@@ -1,0 +1,7 @@
+
+LIBRARY		spdb2push
+
+EXPORTS
+	SetConnectionString @1
+	NotifyDatabaseEvent @2
+	GetConnections @3

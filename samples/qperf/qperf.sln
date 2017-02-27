@@ -1,0 +1,42 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "rabbitmq", "rabbitmq\rabbitmq.csproj", "{00632496-680B-49CA-8D72-737C22C47D05}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "sq_client", "server_queue\sq_client\sq_client.csproj", "{C2950851-539D-485C-84D8-8B0E7F9177E1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "sq_server", "server_queue\sq_server\sq_server.csproj", "{2374C743-3CCC-4761-8845-0BB075E5583C}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Debug|x86 = Debug|x86
+		Release|Any CPU = Release|Any CPU
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{00632496-680B-49CA-8D72-737C22C47D05}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{00632496-680B-49CA-8D72-737C22C47D05}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{00632496-680B-49CA-8D72-737C22C47D05}.Debug|x86.ActiveCfg = Debug|x86
+		{00632496-680B-49CA-8D72-737C22C47D05}.Debug|x86.Build.0 = Debug|x86
+		{00632496-680B-49CA-8D72-737C22C47D05}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{00632496-680B-49CA-8D72-737C22C47D05}.Release|Any CPU.Build.0 = Release|Any CPU
+		{00632496-680B-49CA-8D72-737C22C47D05}.Release|x86.ActiveCfg = Release|x86
+		{00632496-680B-49CA-8D72-737C22C47D05}.Release|x86.Build.0 = Release|x86
+		{C2950851-539D-485C-84D8-8B0E7F9177E1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C2950851-539D-485C-84D8-8B0E7F9177E1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C2950851-539D-485C-84D8-8B0E7F9177E1}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{C2950851-539D-485C-84D8-8B0E7F9177E1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C2950851-539D-485C-84D8-8B0E7F9177E1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C2950851-539D-485C-84D8-8B0E7F9177E1}.Release|x86.ActiveCfg = Release|Any CPU
+		{2374C743-3CCC-4761-8845-0BB075E5583C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2374C743-3CCC-4761-8845-0BB075E5583C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2374C743-3CCC-4761-8845-0BB075E5583C}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{2374C743-3CCC-4761-8845-0BB075E5583C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2374C743-3CCC-4761-8845-0BB075E5583C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2374C743-3CCC-4761-8845-0BB075E5583C}.Release|x86.ActiveCfg = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

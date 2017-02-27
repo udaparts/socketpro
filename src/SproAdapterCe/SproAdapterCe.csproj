@@ -1,0 +1,120 @@
+﻿<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="3.5">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>9.0.21022</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{7791E581-AE1A-4F06-9444-45B0CA80298B}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>SproAdapterCe</RootNamespace>
+    <AssemblyName>SproAdapterCe</AssemblyName>
+    <ProjectTypeGuids>{4D628B5B-2FBC-4AA6-8C16-197242AEB884};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <PlatformFamilyName>PocketPC</PlatformFamilyName>
+    <PlatformID>3C41C503-53EF-4c2a-8DD4-A8217CAD115E</PlatformID>
+    <OSVersion>4.20</OSVersion>
+    <DeployDirSuffix>SproAdapterCe</DeployDirSuffix>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <NativePlatformName>Pocket PC 2003</NativePlatformName>
+    <FormFactorID>
+    </FormFactorID>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;WINCE</DefineConstants>
+    <NoStdLib>true</NoStdLib>
+    <NoConfig>true</NoConfig>
+    <ErrorReport>prompt</ErrorReport>
+    <FileAlignment>512</FileAlignment>
+    <WarningLevel>4</WarningLevel>
+    <GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE;WINCE</DefineConstants>
+    <NoStdLib>true</NoStdLib>
+    <NoConfig>true</NoConfig>
+    <ErrorReport>prompt</ErrorReport>
+    <FileAlignment>512</FileAlignment>
+    <WarningLevel>4</WarningLevel>
+    <GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DocumentationFile>bin\Release\SproAdapterCe.XML</DocumentationFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="mscorlib" />
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\SproAdapter\asyncadohandler.cs">
+      <Link>asyncadohandler.cs</Link>
+    </Compile>
+    <Compile Include="..\SproAdapter\asyncdbhandler.cs">
+      <Link>asyncdbhandler.cs</Link>
+    </Compile>
+    <Compile Include="..\SproAdapter\asynchandler.cs">
+      <Link>asynchandler.cs</Link>
+    </Compile>
+    <Compile Include="..\SproAdapter\asyncqueue.cs">
+      <Link>asyncqueue.cs</Link>
+    </Compile>
+    <Compile Include="..\SproAdapter\asyncstream.cs">
+      <Link>asyncstream.cs</Link>
+    </Compile>
+    <Compile Include="..\SproAdapter\basedefines.cs">
+      <Link>basedefines.cs</Link>
+    </Compile>
+    <Compile Include="..\SproAdapter\clientinterop.cs">
+      <Link>clientinterop.cs</Link>
+    </Compile>
+    <Compile Include="..\SproAdapter\clientsocket.cs">
+      <Link>clientsocket.cs</Link>
+    </Compile>
+    <Compile Include="..\SproAdapter\remotingadonethelper.cs">
+      <Link>remotingadonethelper.cs</Link>
+    </Compile>
+    <Compile Include="..\SproAdapter\replication.cs">
+      <Link>replication.cs</Link>
+    </Compile>
+    <Compile Include="..\SproAdapter\scopeuqueue.cs">
+      <Link>scopeuqueue.cs</Link>
+    </Compile>
+    <Compile Include="..\SproAdapter\socketpool.cs">
+      <Link>socketpool.cs</Link>
+    </Compile>
+    <Compile Include="..\SproAdapter\streamclient.cs">
+      <Link>streamclient.cs</Link>
+    </Compile>
+    <Compile Include="..\SproAdapter\uqueue.cs">
+      <Link>uqueue.cs</Link>
+    </Compile>
+    <Compile Include="..\SproAdapter\usqlite.cs">
+      <Link>usqlite.cs</Link>
+    </Compile>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CompactFramework.CSharp.targets" />
+  <ProjectExtensions>
+    <VisualStudio>
+      <FlavorProperties GUID="{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}">
+        <HostingProcess disable="1" />
+      </FlavorProperties>
+    </VisualStudio>
+  </ProjectExtensions>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

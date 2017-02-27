@@ -1,0 +1,26 @@
+bin/zookeeper-server-start.sh config/zookeeper.properties
+
+bin/kafka-server-start.sh config/server.properties
+
+bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic test0
+bin/kafka-run-class.sh org.apache.kafka.tools.ProducerPerformance --topic test0 --num-records 200000000 --record-size 4 --throughput -1 --producer-props acks=1 bootstrap.servers=localhost:9092 buffer.memory=67108864 batch.size=8196
+bin/kafka-consumer-perf-test.sh --zookeeper localhost:2181 --messages 200000000 --topic test0 --threads 1
+
+bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic test1
+bin/kafka-run-class.sh org.apache.kafka.tools.ProducerPerformance --topic test1 --num-records 200000000 --record-size 32 --throughput -1 --producer-props acks=1 bootstrap.servers=localhost:9092 buffer.memory=67108864 batch.size=8196
+bin/kafka-consumer-perf-test.sh --zookeeper localhost:2181 --messages 200000000 --topic test1 --threads 1
+
+bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic test2
+bin/kafka-run-class.sh org.apache.kafka.tools.ProducerPerformance --topic test2 --num-records 50000000 --record-size 200 --throughput -1 --producer-props acks=1 bootstrap.servers=localhost:9092 buffer.memory=67108864 batch.size=8196
+bin/kafka-consumer-perf-test.sh --zookeeper localhost:2181 --messages 50000000 --topic test2 --threads 1
+
+bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic test3
+bin/kafka-run-class.sh org.apache.kafka.tools.ProducerPerformance --topic test3 --num-records 10000000 --record-size 1024 --throughput -1 --producer-props acks=1 bootstrap.servers=localhost:9092 buffer.memory=67108864 batch.size=8196
+bin/kafka-consumer-perf-test.sh --zookeeper localhost:2181 --messages 10000000 --topic test3 --threads 1
+
+bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic test4
+bin/kafka-run-class.sh org.apache.kafka.tools.ProducerPerformance --topic test4 --num-records 1000000 --record-size 10240 --throughput -1 --producer-props acks=1 bootstrap.servers=localhost:9092 buffer.memory=67108864 batch.size=10240
+bin/kafka-consumer-perf-test.sh --zookeeper localhost:2181 --messages 1000000 --topic test4 --threads 1
+
+bin/kafka-topics.sh --list --zookeeper localhost:2181
+

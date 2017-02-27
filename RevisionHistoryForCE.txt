@@ -1,0 +1,227 @@
+52.	SocketPro Version 6.0.4.1
+	(a) Use windows tagVARIANT instead of boost variant for better performance and portable code across windows and non-windows platforms.
+	(b) Update sample projects because of the change (a)
+	
+51.	SocketPro Version 6.0.3.1-3
+	(a) Add persistent queue manual batch support at server side
+	(b) Improve server dequeuing performance
+	(c) Add or upgrade SocketPro documentations
+	(d) Improve small message server writing performance
+	(e) Improve small message dequeue performance significantly at server side
+	(f) Improve .NET adapter memory packing performance
+	
+50.	SocketPro Version 6.0.2.15-24
+	(a) SocketPro adapters are updated with async databases (sqlite and mysql) supported
+	(b) Make async sqlite and mysql/mariadb services for free
+	(c) SocketPro client core libraries are recompiled
+	(d) SocketPro adapters are updated with async persistent message queue at server side for free
+	(e) Fix a potential dead-lock inside client core library when shutting down a pool of sockets
+
+49.	SocketPro Version 6.0.2.14
+	(a) Improve dequeue performance against high volume of small messages
+	
+48.	SocketPro Version 6.0.2.12
+	(a) Don't use openssl any more. Instead, client core use MS secure channel to SSL/TLSv secure communication
+	(b) Client side is added with client queue auto merge feature, which enables client auto fault recovery through a pool of sockets that can be connected with different server applications
+	(c) .NET Adaptor is upgraded to echo the above new feature
+	
+47. SocketPro Version 6.0.2.10
+	(a) Minor update on usocket.dll
+	
+46. SocketPro Version 6.0.2.9
+	(a) Considerable improvements on dequeue performance from both client and server core libraries usocket.dll and uservercore.dll
+	(b) Fixed message loss problem when dequeued from multiple consumers at server side
+	(c) Update C# sample qperf for demonstration of queue performance improvements by user batch approach
+	
+45. SocketPro Version 6.0.2.8
+	(a) Considerable improvements on performance from client core library usocket.dll
+	(b) Removed over locks for multi-threading environments in SocketPro adapters at client side
+	
+44. SocketPro Version 6.0.2.7
+	(a) Minor improvement on usocket.dll performance
+	(b) Fix issues of object null/None and empty in .NET adapters
+	
+43. SocketPro Version 6.0.2.6
+	(a) Minor improvement on usocket.dll
+	(b) Slight modifications on .NET adapter SproAdapterCe.dll
+	
+42. SocketPro Version 6.0.2.5
+	(a) Fix a few minor flaws
+
+41. SocketPro Version 6.0.2.4
+	(a) Improved persistent message queue performance especially on high volume of small messages
+	(b) Fix a bug with socket pool message Lock
+	(c) Add fully supports on async and await for .net and C++ adapters
+	
+40. SocketPro Version 6.0.2.2
+	(a) Implement auto delay at client side when sending large number of requests asynchronously from client to server
+	(b) Disable Nagle's algorithm by default
+	(c) Other minor improvements
+	
+39. SocketPro Version 6.0.2.1
+	(a) Fixed possible CE usocket.dll crashes with chat service notifications
+	(b) Fixed SproAdapterCe.dll pinvoke bugs with bool for x86 devices
+	(c) Add distribution of usocket.dll for ce x86 devices
+	(d) Updated .NET adapter (SproAdapter.dll) with better performance especially when no callback is set when sending requests
+	
+38.	SocketPro Version 6.0.1.3
+	(a) Documents updated with a number of doc bugs fixed
+	(b) Change from CAsyncServiceHandler::SeverException into ServerException for java and .NET adapters
+
+37.	SocketPro Version 6.0.1.2
+	(a) SocketPro adapters are recreated to support cross-platform and cross-language developments.
+	(b) Adapter for .NET is simplified and portable across different operation systems.
+	(c) SocketPro supports ACID persistent message queues at client or/and server sides.
+	(d) SocketPro supports async, await and lambda expression by nature.
+	(e) Tutorials and samples are recreated and simplified.
+
+36. SocketPro Version 5.2.0.7
+	(a) Improve SocketPro adapters for .NET. New adapter takes advantages of anonymous delegates and Lambda expression.
+	(b) Update samples and tutorials to echo the change of SocketPro adapters.
+	(c) SocketPro adapters for .NET and C++ come with ProcessRy for processing requests synchronously on client side.
+	(d) uidparser.exe is updated with using ProcessRy inside your CAsyncServiceHandler on client side.
+	
+35.	SocketPro Version 5.2.0.5
+	(a) Slightly improve data communication speed and stability.
+
+34.	SocketPro Version 5.2.0.1
+	(a) SocketPro notification service improved significantly. Now, it supports any number of chat groups.
+	(b) SocketProAdapter for CE and samples are updated to echo the above change.
+
+33.	SocketPro for CE Version 5.1.0.1
+	(a) Add support of parallel computation, loading balance and grid computing from CE.
+	(b) Fix .NET application hang after calling Application.Exit.
+	(c) SocketProAdapter for C++ and .NET are updated.
+
+32.	SocketPro Version 5.0.0.4
+	(a) Added HTTP service into one of SocketPro base services.
+	(b) Fully support HTTP server push cross browsers and window applications through AJAX and JavaScript Tag remoting.
+	(c) Added two tutorials to help HTTP developments.
+	(d) Fix a minor bug of de-focusing window controls inside USocket.dll.
+
+31.	SocketPro Version 4.8.4.4
+	(a) Fixed a minor problem with potential dead lock within USocket.dll.
+	(b) SocketProAdapter for remoting ADO.NET objects is largely simplified.
+
+30.	SocketPro Version 4.8.4.3
+	(a) Solved an infinite loop problem at client side for SSL/TLS connection 
+	when a non-SocketPro server sends large size data to the client.
+
+29.	SocketPro Version 4.8.4.2:
+	(a) Minor updates to SocketProAdapter for .NET.
+
+28.	SocketPro Version 4.8.4.1:
+	(a) SocketPro for CE is recompiled.
+
+27.	SocketPro Version 4.8.2.19:
+	(a) All of types of SocketProAdapter for .NET are improved for bi-directional and binary 
+	remoting ADO.NET objects, DataSet, DataTable and IDataReader asynchronously.
+
+26.	SocketPro version 4.8.1.17
+	(a) IUSocketPool is added with a new method AddOneThreadIntoPool.
+	(b) Socket pool is updated with better locking algorthm against socket disconnection.
+
+25.	SocketPro version 4.8.1.16
+	(a) Fix dead lock problem with 100% CPU usage on server side when sending a request with a large size data.
+
+24.	SocketPro version 4.8.1.15
+	(a) Fix MS SSL/TLS Client side handshake failing problem with slow network.
+	(b) Fix usocket.dll crashing problem when compressing data with default zip level.
+
+23.	SocketPro version 4.8.1.14
+	(a) Remove socketpool dead lock problem, when conneting a large number of sockets to a remote server. 
+
+22.	(a) Remote database and file services are fully free to the public for unlimited connections.
+	(b) SocketPool can support 63*255 socket connections per pool.
+	(c) Other minor updates to usocket.dll, ufilesvr and uodbsvr.dll as well as various versions of SocketPro adapters.
+
+21.	SocketPro Version 4.8.2.11
+	(a) Improve IUSocket::WaitAll and IUSocket::Wait for better performance.
+
+20.	SocketPro Version 4.8.2.10
+	(a) Fix the crash problem inside usocket.dll for CE emulator when turning on online compression.
+
+19.	SocketPro Version 4.8.2.9
+	(a) Fix SocketPro pool dead lock problem when a client advises for socket pool events.
+	(b) Fix the problem of request SendUserMessage event ignored on client side with SocketProAdapter for .NET 1.1 and devices.
+
+18.	SocketPro Version 4.8.2.8
+	(a) Add real-time compression into SocketPro.
+
+17.	SocketPro Version 4.8.2.7
+	(a) Minor improvements.
+
+16.	SocketPro Version 4.8.2.6
+	(a) Increase BlowFish decryption speed. However, the new BlowFish implemtation is not compatible with the previous ones.
+
+15.	SocketPro Version 4.8.2.4
+	(a) Complete implementation of BlowFish encryption on UDAParts secure protocol.
+	(b) Implement IUSocketPoolEvents so that socket pool events can be monitored at run time.
+	(c) Add the property LastRequestID to the interface IUSocket.
+
+14.	SocketPro Version 4.8.2.3
+	(a) Reduce memory page fault on client side inside usocket.dll if MS SSL/TLS is used for securing lot of data across network.
+
+13.	SocketPro Version 4.8.2.1
+	(a) Chat service is updated. Now one client can join multiple chat groups. Additionally, there are two new methods 
+	    (SendUserMessage and SendUserMessageEx) added into both client (usocket.dll) and server (usktpror.dll) side libraries.
+
+12. 	SocketPro Version 4.8.1.1
+	(a) Chance of deadlocking is largely reduced for usocket.dll and SocketProAdapter.
+	(b) SocketPro documentation is completed.
+
+11.	SocketPro Version 4.8.0.1
+	(a) All of client sockets created by a SocketPool use WSAEventSelect for non-blocking socket communication.
+	(b) SocketPro performance is improved considerably.
+
+10.	SocketPro Version 4.6.0.3
+	(a) Fix 100%-CPU problem over MS SSPI/Low bandwidth network at client side.
+	(b) Add source code of three SocketProAdapters (.NET 2.0, .NET 1.1 and Compact .NET 2).
+
+9.	SocketPro Version 4.6.0.2
+	(a) Add full support to MS secure channel.
+	(b) Add tool uidparser.exe for creating client and server skeleton code 
+		from universal definition interface files.
+	(c) Add a set of enhancements to SocketProAdapter:
+		(1).	Auto-transfering of server exception.
+		(2).	C++ Helper class for USocketPool object.
+		(3).	Adding functions for supporting MS secure channel.
+	(d) Update documents to echo the above changes a, b and c.
+	(e) Add CSocketPool template into SocketProAdapter.
+
+8.	SocketPro Version 4.4.2.1
+	(a) Add method CleanTrack to clean sensitive data left in memory queues for better security.
+
+7.	SocketPro Version 4.4.1.1
+	(a) Modified both usocket.dll so that no one else is able to peek BlowFish key.
+	(b) Added a method to UDataSource (udb.dll) for setting an OLEDB property.
+
+6.	SocketProCe version 4.4.0.2
+	(a) Added code to automatically clean password on client side inside usocket.dll right after calling IUSocket::SwitchTo.
+
+5.	SocketProCe version 4.4.0.1
+	(a) Added detailed comments to source codes.
+	(b) Used the tool Doxygen to create documentation for SocketPro package.
+	(c) Ported USocketPool object onto CE platform.
+	(d) Overloaded operators <<, >>, +, & and += into the class CUQueue for serializing and deserializing various data.
+	(e) Add interface IUDataReader to COM object URowset for fast retrieving records data.
+	(f) Give away remote database service and remote file management to the public for free with any number of clients. 
+
+4.	SocketProCe Version 4.3.0.2
+	(a) add SocketProAdapter for CE version of SocketPro.
+
+3.	SocketProCe Version 4.3.0.1
+	(a) Add the method Wait and two properties(IsBatching and CountOfRequestsInQueue) onto the interface
+	IUSocket. The method Wait is used for waiting a specified request processed of a specified service id. 
+	(b) Updated database and win file services for sharing a socket connection with other services.
+	(d) SocketPro server sends server ping time interval into a client when calling SwitchTo.
+	(e) The last four optional parameters with the method ISocketBase::Connect are ignored.
+
+2.	SocketProce Version 4.0.4.7
+	(a) Largely reduce thread contention and improve concurrency of usocket.dll over a machine with multiple CPUs.
+	(b) Chat service methods SpeakTo and SpeakToEx specifically support ip addresses "255.255.255.255" (ip address none)
+	and "0.0.0.0" (ip address any). When a client sends a message to such the two IP addresses, SocketPro server
+	will immeadiately reflect the message back to the client without regularly seeking a socket session. 
+		
+1.	SocketProCe Version 4.0.4.6 is initially released on 02/21/2005
+	

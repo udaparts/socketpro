@@ -1,0 +1,6 @@
+LIBRARY			"udbubase.dll"
+
+EXPORTS
+	SetSocketProConnectionString @1
+	NotifySocketProDatabaseEvent @2
+	GetSocketProConnections @3

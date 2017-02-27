@@ -1,0 +1,104 @@
+17.	SocketPro Version 6.0.4.1
+	(a) Use windows tagVARIANT instead of boost variant for better performance and portable code across windows and non-windows platforms.
+	(b) Update sample projects because of the change (a)
+	
+16.	SocketPro Version 6.0.3.1-4
+	(a) Add persistent queue manual batch support at server side
+	(b) Improve server dequeuing performance
+	(c) Fix memory leaking within JAVA JNI library juclient.so
+	(d) Add or upgrade SocketPro documentations
+	(e) Fix a bug of CUQueue move operator of C++ adapter
+	(f) Improve small message server writing performance
+	(g) Improve small message dequeue performance significantly at server side
+	(h) Improve .NET adapter memory packing performance
+	
+15.	SocketPro Version 6.0.2.15-24
+	(a) SocketPro server core libraries are added with four new message chat functions, SpeakPush, SpeakExPush, SendUserMessagePush and SendUserMessageExPush
+	(b) SocketPro adapters are updated with the above four functions
+	(c) SocketPro adapters are updated with async databases (sqlite and mysql) supported
+	(d) SocketPro core libraries are recompiled
+	(e) Make async sqlite and mysql/mariadb services for free
+	(f) Fix server crash when calling the method StopQueueByHandle or StopQueueByName with the input permanent equal to true
+	(g) Fix missing auto enqueue notification when doing transaction equeuing at server side
+	(h) SocketPro adapters are updated with async persistent message queue at server side for free
+	(i) Slightly improve dequeue performance over one message queue file shared among multiple consumers
+	(j) Fix a potential dead-lock inside client core library when shutting down a pool of sockets
+	
+14.	SocketPro Version 6.0.2.14
+	(a) Improve dequeue performance against high volume of small messages 
+	
+13.	SocketPro Version 6.0.2.12
+	(a) Fixed the client side SSL error "routines:SSL3_GET_RECORD:decryption failed or bad record mac"
+	(b) Now, server core supports a pool of threads for main threads. This is new feature to improve server performance for ssl, online zipping/unzipping and HTTP/websocket parsing
+	(c) Client side is added with client queue auto merge feature, which enables client auto fault recovery through a pool of sockets that can be connected with different server applications
+	(d) Adaptors are upgraded to echo the above two new features
+	
+12. SocketPro Version 6.0.2.10
+	(a) Fixed the bug that the structure CMessageSender::IpAddress inside client core library libusocket.so may point to garbage within Java environment on linux platforms, which may lead to crashes
+
+11. SocketPro Version 6.0.2.9
+	(a) Considerable improvements on dequeue performance from both client and server core libraries libusocket.so and libuservercore.so
+	(b) Fixed message loss problem when dequeued from multiple consumers at server side
+	(c) Fixed SocketPro java adapter crashes on linux platforms
+	(d) Update sample qperf (c++, C# and java) for demonstration of queue performance improvements by user batch approach
+	
+10. SocketPro Version 6.0.2.8
+	(a) Considerable improvements on performance from both client and server core libraries libusocket.so and libuservercore.so
+	(b) Improvements on java jni libraries libjuserver.so and libjuclient.so
+	(c) Removed over locks for multi-threading environments in SocketPro adapters at client side
+	
+9. SocketPro Version 6.0.2.7
+	(a) Minor improvements of libusocket.so and libuservercore.so on performance
+	(b) Fix issues of object null/None and empty in python and .NET adapters
+	
+8. SocketPro Version 6.0.2.6
+	(a) Minor improvement on libusocket.so.
+	(b) Java adapter jspa.jar now fully supports java 7/8 SDKs or later.
+	(c) Java tutorial and samples are re-written from java 7 SDK.
+	(d) Fix a bug on libjuclient.so which leads to replication failures in 32-bit java runtime environment.
+	(e) Minor modifications on SocketPro adapters at client side
+	(f) Fix issues of object null/None and empty in python and .NET adapters
+	
+7. SocketPro Version 6.0.2.5
+	(a) Message queues default to oMemoryCached for fast writing
+	(b) Add signal handling to ensure memory cached messages written into file
+	(c) Fix a few minor flaws
+	
+6. SocketPro Version 6.0.2.4
+	(a) Improved persistent message queue performance especially on high volume of small messages
+	(b) Fix a bug with socket pool message Lock
+	(c) Add fully supports on async and await for .net and C++ adapters
+	
+5. SocketPro Version 6.0.2.3
+	(a) Add support of plugging in standard C/C++ dynamic library into SocketPro server
+	(b) Add one example of implementation of standard C/C++ dynamic library pluggin (../SocketProRoot/samples/module_sample/HelloWorld)
+	(c) Improve C++ SocketPro client adapter to support std::future<T>async functions
+	(d) Add SocketPro adapter support to x86
+
+4. SocketPro Version 6.0.2.2
+	(a) Implement auto delay at client side when sending large number of requests asynchronously from client to server
+	(b) Disable Nagle's algorithm by default
+	(c) Other minor improvements
+
+3. SocketPro Version 6.0.2.1
+	(a) Fixed PublishEx bug
+	(b) Released adapter for Python formally
+	(c) Updated C++ adapter, .NET adapter (SproAdapter.dll) and Java adapter (jspa.jar) with better performance especially when no callback is set when sending requests
+
+2. SocketPro Version 6.0.1.3-6.0.1.4
+	(a) SocketPro adapter for Java is released after passing tests
+	(b) Documents updated with a number of bugs fixed
+	(c) Fixed a minor bug of SocketPro .NET adapter, which may throw a null accessing exception at server side when a class instance is used with out from an external assembly
+	(d) Fixed a type constance define error within HTTP/tagContentMultiplax
+	(e) Change from CAsyncServiceHandler::SeverException into ServerException for java and .NET adapters
+	(f) Add CAsyncServiceHandler::ServerException to C++ adapter
+	(g) Fixed two minor bugs with adapters at server side for .NET and Java
+	
+1.	SocketPro Version 6.0.1.2
+	(a) SocketPro redesigned and recreated with supporting both windows and linux/unix platforms as well as window device platforms.
+	(b) SocketPro adapters are recreated to support cross-platform and cross-language developments.
+	(c) Adapters for C++, .NET and Java as well as JavaScript are simplified and portable across different operation systems.
+	(d) SocketPro supports ACID persistent message queues at client or/and server sides.
+	(e) SocketPro supports load balancing with session sticking through server side routing.
+	(f) SocketPro supports async, await and lambda expression by nature.
+	(g) Tutorials and samples are recreated and simplified.

@@ -1,0 +1,13 @@
+
+default window mysql_embedded test root directory
+
+test_smysl.exe
+smysql.dll
+
+	\share
+	\plugin
+	\plugin\spmysqlpush.dll
+	\data\mysql
+	\data\performance_schema
+	\data\sakila
+	\data\sys

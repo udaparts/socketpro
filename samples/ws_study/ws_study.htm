@@ -1,0 +1,193 @@
+﻿<html>
+<head>
+    <title>Web socket client sample</title>
+    <style type="text/css">
+        #btnClose
+        {
+            width: 100px;
+        }
+        #Button1
+        {
+            width: 111px;
+        }
+        #btnReconnect
+        {
+            width: 107px;
+        }
+        #btnSleep
+        {
+            width: 74px;
+        }
+        #btnPublish
+        {
+            height: 27px;
+            width: 142px;
+        }
+        #Text1
+        {
+            width: 123px;
+        }
+        #txtMessage
+        {
+            width: 312px;
+        }
+        #btnSendUserMessage
+        {
+            width: 141px;
+        }
+        #btnException
+        {
+            width: 108px;
+        }
+        #btnExit
+        {
+            width: 82px;
+        }
+        #btnEnter
+        {
+            width: 85px;
+        }
+        #btnBatch
+        {
+            width: 120px;
+        }
+    </style>
+</head>
+<script type="text/javascript">
+    function getBrowserName() {
+        var agent = navigator.userAgent;
+        if (agent.indexOf("Opera") != -1)
+            return 'Opera';
+        else if (agent.indexOf("MSIE") != -1)
+            return 'MSIE';
+        else if (agent.indexOf("Chrome") != -1)
+            return 'Chrome';
+        else if (agent.indexOf("Safari") != -1)
+            return 'Safari';
+        else if (agent.indexOf("Firefox") != -1)
+            return 'FireFox';
+        else
+            return 'Browser';
+    }
+    var ws;
+    //a global function to track the event 
+    //that SocketPro adapter for JavaScript is just loaded.
+    function onUHTTPLoaded() {
+        btnReconnect_onclick();
+    }
+    function btnClose_onclick() {
+        ws.close();
+    }
+    function btnReconnect_onclick() {
+        if (ws && ws.isOpen())
+            return;
+        ws = UHTTP.connect(getBrowserName(), 'PassOne',
+                function () {
+                    document.getElementById('btnSayHello').disabled = "";
+                    document.getElementById('btnSleep').disabled = "";
+                    document.getElementById('btnPublish').disabled = "";
+                    document.getElementById('btnSendUserMessage').disabled = "";
+                    document.getElementById('btnExit').disabled = "";
+                    document.getElementById('btnEnter').disabled = "";
+                    document.getElementById('btnException').disabled = "";
+                    document.getElementById('btnBatch').disabled = "";
+                },
+			    function () {
+			        document.getElementById('btnSayHello').disabled = "disabled";
+			        document.getElementById('btnSleep').disabled = "disabled";
+			        document.getElementById('btnPublish').disabled = "disabled";
+			        document.getElementById('btnSendUserMessage').disabled = "disabled";
+			        document.getElementById('btnExit').disabled = "disabled";
+			        document.getElementById('btnEnter').disabled = "disabled";
+			        document.getElementById('btnException').disabled = "disabled";
+			        document.getElementById('btnBatch').disabled = "disabled";
+			    });
+        ws.onError = function (e) {
+        };
+        ws.push.onMessage = function (msg) {
+            document.getElementById('txtMessage').value = JSON.stringify(msg);
+        };
+    }
+
+    function btnSleep_onclick() {
+        ws.sendRequest('sleep', 2000, function (res) {
+            res = JSON.stringify(res);
+            alert(res);
+        });
+    }
+    function btnSayHello_onclick() {
+        ws.sendRequest('sayHello', 'Jack', 'Smith', function (res) {
+            res = JSON.stringify(res);
+            alert(res);
+        });
+    }
+
+    function btnPublish_onclick() {
+        ws.push.speak(document.getElementById('txtMessage').value, [1, 2, 7], function (res) {
+            //document.getElementById('txtMessage').value = JSON.stringify(res);
+        });
+    }
+    function btnSendUserMessage_onclick() {
+        ws.push.sendUserMessage(document.getElementById('txtMessage').value,
+                document.getElementById('txtReceiver').value, function (res) {
+                    //document.getElementById('txtMessage').value = JSON.stringify(res);
+                });
+    }
+
+    function btnExit_onclick() {
+        ws.push.exit(function (res) { });
+    }
+
+    function btnEnter_onclick() {
+        ws.push.enter([1, 2, 3, 7], function (res) { });
+    }
+
+    function btnException_onclick() {
+        ws.sendRequest('doException', true, 1.2, 'Jack', 'Smith', function (res) {
+            res = JSON.stringify(res);
+            alert(res);
+        });
+    }
+
+    function btnBatch_onclick() {
+        ws.beginBatching();
+        ws.sendRequest('sleep', 200, function (res) {
+            res = JSON.stringify(res);
+            alert(res);
+        });
+        ws.sendRequest('sayHello', 'Michelle', 'Lee', function (res) {
+            res = JSON.stringify(res);
+            alert(res);
+        });
+        ws.commit(1); //1 -- server batch and 0 -- no server batch, or rollback instead commit
+    }
+
+</script>
+<body>
+    <div id="content">
+        A image loaded from SocketPro HTTP/WebSocket server <span id="num">
+            <br />
+        </span>
+        <br />
+        <input id="btnClose" type="button" value="Close" onclick="return btnClose_onclick()" />
+        <input id="btnSayHello" type="button" value="Say Hello" onclick="return btnSayHello_onclick()"
+            disabled="disabled" />
+        <input id="btnSleep" type="button" value="Sleep" disabled="disabled" onclick="return btnSleep_onclick()" />
+        <input id="btnReconnect" type="button" value="Re-connect" onclick="return btnReconnect_onclick()" /><br />
+        <input id="btnPublish" disabled="disabled" type="button" value="Publish" onclick="return btnPublish_onclick()" /><input
+            id="txtMessage" type="text" />&lt;== message<br />
+        <input id="btnSendUserMessage" disabled="disabled" type="button" value="Send User Message"
+            onclick="return btnSendUserMessage_onclick()" /><input id="txtReceiver" type="text" />&lt;==
+        receiver</div>
+    <p>
+        <input id="btnExit" disabled="disabled" type="button" value="Exit" onclick="return btnExit_onclick()" /><input
+            id="btnEnter" disabled="disabled" type="button" value="Enter" onclick="return btnEnter_onclick()" /><span
+                id="num"><input id="btnException" disabled="disabled" type="button" value="Do exception"
+                    onclick="return btnException_onclick()" /></span><input 
+            id="btnBatch" type="button" value="Batch requests" 
+            onclick="return btnBatch_onclick()" disabled="disabled" /></p>
+    <p>
+        &nbsp;</p>
+    <script type="text/javascript" src="uloader.js"></script>
+</body>
+</html>

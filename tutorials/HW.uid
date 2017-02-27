@@ -1,0 +1,58 @@
+/*
+	Rules for correct use uidparser.exe (uid -- universal interface definition)
+	
+	A.	uidparser supports C++/C# comments like "/* ??? */" and "//".
+
+	B.	supported C# data types:
+		1.	bool,
+		2.	byte,
+		3.	sbyte,
+		4.	char (Unicode char, 2 bytes),
+		5.	short,
+		6.	ushort,
+		7.	int,
+		8.	uint,
+		9.	long (8 bytes),
+		10.	ulong (8 bytes),
+		11.	float,
+		12.	double,
+		13.	decimal,
+		14.	string, //UNICODE string
+		15. astring, //ASCII string
+		16.	Guid,
+		17.	object,
+		18.	void (function return type only)
+		19.	UDT -- Any user defined data type
+
+		Data types are based on C#, but all of them are mapped onto proper ones for C++ and VB.NET.
+
+	C.	Input direction of each of function parameters must be "in" or "out". It defaults to "in".
+
+	D.	Specify the char '$' before a function to indicate that the request is slow.
+
+	E.	A uid file can't contain two services that share the same name (case-insensitive) or service id. 
+
+	F.	A service can't contain two methods that have the same name (case-insensitive).
+	
+	G.	A function can't contain two parameters that have the same name (case-insensitive).
+	
+	H.	A function parameter name can not be ignored.
+	
+	I.	Each of functions must be ended with the char ';'
+	
+	J.	uidparser.exe supports single inheritance only. See the below commented-out sample.
+
+	K.	uidparser.exe supports including files as shown in the below.
+*/
+
+
+[	
+	ServiceID = 1 //service id can't be less than 1
+]			
+HelloWorld
+{
+	string SayHello(string firstName, string lastName);
+	$void Sleep(int ms);
+	CMyStruct Echo(CMyStruct ms);
+}
+
