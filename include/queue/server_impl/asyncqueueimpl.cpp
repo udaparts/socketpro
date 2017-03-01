@@ -1,6 +1,9 @@
 
 #include "asyncqueueimpl.h"
 #include <algorithm>
+#ifndef NDEBUG
+#include <iostream>
+#endif
 
 namespace SPA
 {
@@ -42,6 +45,22 @@ namespace SPA
                 m_mapKeyQueue.clear();
             }
         }
+
+		void CAsyncQueueImpl::OnBaseRequestArrive(unsigned short requestId) {
+			switch (requestId) {
+			case idCancel:
+#ifndef NDEBUG
+                std::cout << "Cancel called" << std::endl;
+#endif
+				SPA::CScopeUQueue::Unlock(m_bufferBatch);
+                m_bufferBatch = nullptr;
+                m_count = 0;
+				m_qTrans.reset();
+				break;
+			default:
+				break;
+			}
+		}
 
         void CAsyncQueueImpl::OnFastRequestArrive(unsigned short reqId, unsigned int len) {
             switch (reqId) {
