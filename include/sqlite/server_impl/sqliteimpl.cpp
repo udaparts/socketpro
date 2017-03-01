@@ -80,7 +80,7 @@ namespace SPA
 #endif
                     if (m_pSqlite) {
                         sqlite3_interrupt(m_pSqlite.get());
-                        m_ti != tiUnspecified;
+                        m_ti = tiUnspecified;
                     }
                     break;
                 default:
