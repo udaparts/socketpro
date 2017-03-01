@@ -4,7 +4,9 @@
 #ifndef WIN32_64
 #include <sched.h>
 #endif
-
+#ifndef NDEBUG
+#include <iostream>
+#endif
 namespace SPA
 {
     namespace ServerSide{
@@ -69,6 +71,21 @@ namespace SPA
             m_vPreparedStatements.clear();
             m_pSqlite.reset();
         }
+
+		void CSqliteImpl::OnBaseRequestArrive(unsigned short requestId) {
+			switch(requestId) {
+			case idCancel:
+#ifndef NDEBUG
+				std::cout << "Cancel called" << std::endl;
+#endif
+				if (m_pSqlite) {
+					sqlite3_interrupt(m_pSqlite.get());
+				}
+				break;
+			default:
+				break;
+			}
+		}
 
         void CSqliteImpl::ReleaseArray() {
             for (auto it = m_vArray.begin(), end = m_vArray.end(); it != end; ++it) {

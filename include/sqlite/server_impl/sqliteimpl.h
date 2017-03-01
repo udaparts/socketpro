@@ -84,6 +84,7 @@ namespace SPA {
             virtual int OnSlowRequestArrive(unsigned short reqId, unsigned int len);
             virtual void OnReleaseSource(bool bClosing, unsigned int info);
             virtual void OnSwitchFrom(unsigned int nOldServiceId);
+			virtual void OnBaseRequestArrive(unsigned short requestId);
 
         protected:
             virtual void Open(const std::wstring &strConnection, unsigned int flags, int &res, std::wstring &errMsg, int &ms);

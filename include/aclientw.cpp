@@ -380,7 +380,7 @@ namespace SPA {
             ClientCoreLoader.SetOnSendUserMessage(h, &CClientSocket::OnPostUserMessage);
             ClientCoreLoader.SetOnServerException(h, &CClientSocket::OnServerException);
             ClientCoreLoader.SetOnBaseRequestProcessed(h, &CClientSocket::OnBaseRequestProcessed);
-            ClientCoreLoader.SetOnAllRequestsProcessed(h, &CClientSocket::OnBaseRequestProcessed);
+            ClientCoreLoader.SetOnAllRequestsProcessed(h, &CClientSocket::OnAllRequestsProcessed);
         }
 
         CClientSocket::~CClientSocket() {

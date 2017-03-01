@@ -2,6 +2,9 @@
 #include "mysqlimpl.h"
 #include <algorithm>
 #include <sstream>
+#ifndef NDEBUG
+#include <iostream>
+#endif
 
 namespace SPA
 {
@@ -476,6 +479,27 @@ namespace SPA
             m_vParam.clear();
             m_parameters = 0;
         }
+
+		void CMysqlImpl::OnBaseRequestArrive(unsigned short requestId) {
+			switch(requestId) {
+			case idCancel:
+#ifndef NDEBUG
+				std::cout << "Cancel called" << std::endl;
+#endif
+				{
+					MYSQL *mysql = m_pMysql.get();
+					if (mysql) {
+						unsigned long id = m_pLib->mysql_thread_id(mysql);
+						std::string sqlKill = "KILL QUERY " + std::to_string((UINT64)id);
+						int status = m_pLib->mysql_real_query(mysql, sqlKill.c_str(), (unsigned long)sqlKill.size());
+						status = m_pLib->mysql_rollback(mysql);
+					}
+				}
+				break;
+			default:
+				break;
+			}
+		}
 
         void CMysqlImpl::BeginTrans(int isolation, const std::wstring &dbConn, unsigned int flags, int &res, std::wstring &errMsg, int &ms) {
             ms = msMysql;
