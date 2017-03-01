@@ -72,20 +72,21 @@ namespace SPA
             m_pSqlite.reset();
         }
 
-		void CSqliteImpl::OnBaseRequestArrive(unsigned short requestId) {
-			switch(requestId) {
-			case idCancel:
+        void CSqliteImpl::OnBaseRequestArrive(unsigned short requestId) {
+            switch (requestId) {
+                case idCancel:
 #ifndef NDEBUG
-				std::cout << "Cancel called" << std::endl;
+                    std::cout << "Cancel called" << std::endl;
 #endif
-				if (m_pSqlite) {
-					sqlite3_interrupt(m_pSqlite.get());
-				}
-				break;
-			default:
-				break;
-			}
-		}
+                    if (m_pSqlite) {
+                        sqlite3_interrupt(m_pSqlite.get());
+                        m_ti != tiUnspecified;
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
 
         void CSqliteImpl::ReleaseArray() {
             for (auto it = m_vArray.begin(), end = m_vArray.end(); it != end; ++it) {
