@@ -142,7 +142,7 @@ namespace SPA {
             virtual void OnSwitchFrom(unsigned int nOldServiceId);
             virtual void OnReleaseSource(bool bClosing, unsigned int info);
             virtual void OnRequestArrive(unsigned short requestId, unsigned int len);
-			virtual void OnBaseRequestArrive(unsigned short requestId);
+            virtual void OnBaseRequestArrive(unsigned short requestId);
 
         private:
             //no copy constructor

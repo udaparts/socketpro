@@ -16,7 +16,6 @@ namespace SPA
         unsigned int CAsyncQueueImpl::m_clients = 0;
 
         CAsyncQueueImpl::CAsyncQueueImpl() : m_count(0), m_bufferBatch(nullptr) {
-
         }
 
         void CAsyncQueueImpl::OnSwitchFrom(unsigned int nOldServiceId) {
@@ -46,21 +45,21 @@ namespace SPA
             }
         }
 
-		void CAsyncQueueImpl::OnBaseRequestArrive(unsigned short requestId) {
-			switch (requestId) {
-			case idCancel:
+        void CAsyncQueueImpl::OnBaseRequestArrive(unsigned short requestId) {
+            switch (requestId) {
+                case idCancel:
 #ifndef NDEBUG
-                std::cout << "Cancel called" << std::endl;
+                    std::cout << "Cancel called" << std::endl;
 #endif
-				SPA::CScopeUQueue::Unlock(m_bufferBatch);
-                m_bufferBatch = nullptr;
-                m_count = 0;
-				m_qTrans.reset();
-				break;
-			default:
-				break;
-			}
-		}
+                    SPA::CScopeUQueue::Unlock(m_bufferBatch);
+                    m_bufferBatch = nullptr;
+                    m_count = 0;
+                    m_qTrans.reset();
+                    break;
+                default:
+                    break;
+            }
+        }
 
         void CAsyncQueueImpl::OnFastRequestArrive(unsigned short reqId, unsigned int len) {
             switch (reqId) {
