@@ -21,5 +21,5 @@
     - Superior performance and scalability
     - Continous message writing supported with inline messaging batching, asynchronous data transferring and parallel computation
     - Cancel supported fully
-    - Transaction mesage writing and reading supported fully
+    - Transactional message writing and reading supported fully
     - Free async persistent queue service
