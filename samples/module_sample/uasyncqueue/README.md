@@ -19,5 +19,7 @@
     - Support of both windows and linux platforms
     - Rich features with many unique ones because of its unique design
     - Superior performance and scalability
-    - Great maintainability, modularity and version control
+    - Continous message writing supported with inline messaging batching, asynchronous data transferring and parallel computation
+    - Cancel supported fully
+    - Transaction mesage writing and reading supported fully
     - Free async persistent queue service
