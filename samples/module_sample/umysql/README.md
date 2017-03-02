@@ -21,6 +21,6 @@
     - Support of both windows and linux platforms
     - Rich features with many unique ones because of its unique design
     - Superior performance and scalability
-    - Continous SQL stream processing supported with inline request/response batching, asynchronous data transferring and parallel computation
+    - Continuous SQL stream processing supported with inline request/response batching, asynchronous data transferring and parallel computation
     - Cancel supported fully
     - Free async mysql/mariadb service
