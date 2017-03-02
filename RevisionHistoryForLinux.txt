@@ -1,6 +1,7 @@
-17.	SocketPro Version 6.0.4.1
+17.	SocketPro Version 6.0.4.1-2
 	(a) Use windows tagVARIANT instead of boost variant for better performance and portable code across windows and non-windows platforms.
-	(b) Update sample projects because of the change (a)
+	(b) Update sample projects because of the change (a).
+	(c) Add Cancel support to async MySQL/MariaDB, Sqlite and Queue plugins.
 	
 16.	SocketPro Version 6.0.3.1-4
 	(a) Add persistent queue manual batch support at server side
