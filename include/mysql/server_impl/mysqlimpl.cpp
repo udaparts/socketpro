@@ -490,9 +490,12 @@ namespace SPA
                         MYSQL *mysql = m_pMysql.get();
                         if (!mysql)
                             break;
-                        unsigned long id = m_pLib->mysql_thread_id(mysql);
-                        std::string sqlKill = "KILL QUERY " + std::to_string((UINT64) id);
-                        int status = m_pLib->mysql_real_query(mysql, sqlKill.c_str(), (unsigned long) sqlKill.size());
+						int status = 0;
+						if (!m_pLib->m_bRemote) {
+							unsigned long id = m_pLib->mysql_thread_id(mysql);
+							std::string sqlKill = "KILL QUERY " + std::to_string((UINT64) id);
+							status = m_pLib->mysql_query(mysql, sqlKill.c_str());
+						}
                         if (m_ti == tiUnspecified)
                             break;
                         status = m_pLib->mysql_rollback(mysql);
