@@ -396,7 +396,11 @@ namespace SPA
                             throw CUException("Bad data for loading UNICODE string", __FILE__, __LINE__, __FUNCTION__, MB_BAD_DESERIALIZATION);
                         }
                         const UTF16 *str = (const UTF16 *) GetBuffer(position);
+#ifdef WIN32_64
                         vtData.bstrVal = ::SysAllocStringLen(str, len >> 1);
+#else
+                        vtData.bstrVal = Utilities::SysAllocString(str, len >> 1);
+#endif
                         Pop(len, position);
                     }
                     total += (ulLen - GetSize());
@@ -569,7 +573,11 @@ namespace SPA
                                     if ((len + position) > GetSize()) {
                                         throw CUException("Bad data for loading UNICODE string", __FILE__, __LINE__, __FUNCTION__, MB_BAD_DESERIALIZATION);
                                     }
+#ifdef WIN32_64
                                     pbstr[ulIndex] = ::SysAllocStringLen((const UTF16*) GetBuffer(position), (len >> 1));
+#else
+                                    pbstr[ulIndex] = Utilities::SysAllocString((const UTF16*) GetBuffer(position), (len >> 1));
+#endif
                                     Pop(len, position);
                                 }
 
