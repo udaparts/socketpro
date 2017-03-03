@@ -362,21 +362,20 @@ namespace SPA
             case VT_BSTR:
                 if (m_ToUtf8) {
                     unsigned int len;
-                    *this >> len;
-                    total += sizeof (len);
+                    total += Pop((unsigned char*) &len, sizeof (len), position);
                     if (len == SPA::UQUEUE_NULL_LENGTH) {
                         vtData.vt = VT_NULL;
                     } else {
                         assert((len % sizeof (UTF16)) == 0);
-                        if (len > GetSize()) {
+                        if ((len + position) > GetSize()) {
                             throw CUException("Bad data for loading UNICODE string", __FILE__, __LINE__, __FUNCTION__, MB_BAD_DESERIALIZATION);
                         }
                         SPA::CScopeUQueue sb;
                         unsigned int wchars = (len >> 1);
-                        const UTF16 *str = (const UTF16 *) GetBuffer();
+                        const UTF16 *str = (const UTF16 *) GetBuffer(position);
                         vtData.vt = (VT_ARRAY | VT_I1);
                         Utilities::ToUTF8(str, wchars, *sb);
-                        Pop(len);
+                        Pop(len, position);
                         total += len;
                         SAFEARRAYBOUND sab[1] = {sb->GetSize(), 0};
                         SAFEARRAY *psa = SafeArrayCreate(VT_I1, 1, sab);
@@ -387,26 +386,23 @@ namespace SPA
                         vtData.parray = psa;
                     }
                 } else {
-                    unsigned int ulLen = GetSize();
-#ifdef WIN32_64
-                    CComBSTR bstr;
-                    *this >> bstr;
-                    vtData.bstrVal = bstr.Detach();
-#else
                     unsigned int len;
-                    vtData.vt = VT_BSTR;
-                    *this >> len;
+                    unsigned int ulLen = GetSize();
+                    Pop((unsigned char*) &len, sizeof (len), position);
                     if (len == (unsigned int) (~0))
                         vtData.bstrVal = nullptr;
                     else {
-                        if (len > GetSize()) {
+                        if ((len + position) > GetSize()) {
                             throw CUException("Bad data for loading UNICODE string", __FILE__, __LINE__, __FUNCTION__, MB_BAD_DESERIALIZATION);
                         }
-                        const UTF16 *str = (const UTF16 *) GetBuffer();
+                        const UTF16 *str = (const UTF16 *) GetBuffer(position);
+#ifdef WIN32_64
+                        vtData.bstrVal = ::SysAllocStringLen(str, len >> 1);
+#else
                         vtData.bstrVal = Utilities::SysAllocString(str, len >> 1);
-                        Pop(len);
-                    }
 #endif
+                        Pop(len, position);
+                    }
                     total += (ulLen - GetSize());
                 }
                 break;
@@ -445,10 +441,10 @@ namespace SPA
                     switch (vtData.vt) {
                         case (VT_I1 | VT_ARRAY):
                             if (m_8ToW) {
-                                const char *utf8 = (const char*) GetBuffer();
+                                const char *utf8 = (const char*) GetBuffer(position);
                                 vtData.vt = VT_BSTR;
                                 vtData.bstrVal = Utilities::ToBSTR(utf8, ulSize);
-                                Pop(ulSize);
+                                Pop(ulSize, position);
                                 total += ulSize;
                                 return total;
                             } else {
@@ -569,23 +565,22 @@ namespace SPA
                             pbstr = (BSTR*) pBuffer;
                             for (ulIndex = 0; ulIndex < ulSize; ulIndex++) {
                                 ulLen = GetSize();
-#ifdef WIN32_64
-                                CComBSTR bstr;
-                                *this >> bstr;
-                                pbstr[ulIndex] = bstr.Detach();
-#else
                                 unsigned int len;
-                                *this >> len;
+                                Pop((unsigned char*) &len, sizeof (len), position);
                                 if (len == (unsigned int) (~0))
                                     pbstr[ulIndex] = nullptr;
                                 else {
-                                    if (len > GetSize()) {
+                                    if ((len + position) > GetSize()) {
                                         throw CUException("Bad data for loading UNICODE string", __FILE__, __LINE__, __FUNCTION__, MB_BAD_DESERIALIZATION);
                                     }
-                                    pbstr[ulIndex] = Utilities::SysAllocString((const UTF16*) GetBuffer(), (len >> 1));
-                                    Pop(len);
-                                }
+#ifdef WIN32_64
+                                    pbstr[ulIndex] = ::SysAllocStringLen((const UTF16*) GetBuffer(position), (len >> 1));
+#else
+                                    pbstr[ulIndex] = Utilities::SysAllocString((const UTF16*) GetBuffer(position), (len >> 1));
 #endif
+                                    Pop(len, position);
+                                }
+
                                 total += (ulLen - GetSize());
                             }
                             SafeArrayUnaccessData(psa);
