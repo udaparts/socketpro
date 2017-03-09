@@ -1,6 +1,6 @@
 # Async sqlite client/server applications on SocketPro communication framework
 
-1. A public repository for implementation of async sqlite client/server application by use of SocketPro communication framework, which contains six projects, ssqlite, test_ssqlite, test_csqlite, test_java, test_sharp and test_python at this time.
+1. A public repository for implementation of async sqlite client/server application by use of SocketPro communication framework, which contains six projects, ssqlite, test_ssqlite, test_csqlite, test_java, test_sharp and test_python as well as DBPerf at this time.
 
 2. ssqlite: a dynamic link library project of async sqlite server implementation for both windows and linux platforms. Its source code is actually located at the directory ../../../include/sqlite/server_impl. The produced dynamic library can be loaded at server side by a SocketPro adapter as shown at the below demonstration project test_ssqlite.
 
@@ -14,6 +14,8 @@
 
 7. test_sharp: a test .NET c-sharp project for demonstration of using async sqlite server at client side. For detail, refer to the demo source code at the file test_sharp/Program.cs.
 
+8. DBPerf: a directory containing two projects for performance comparision between SocketPro approach and mysql/mariadb .NET provider.
+
 8. Key features are:
     - Simple for development
     - Support of both windows and linux platforms
@@ -22,4 +24,4 @@
     - Continuous SQL stream processing supported with inline request/response batching, asynchronous data transferring and parallel computation
     - Cancel supported fully
     - Auto server notification upon record updating (add, update and delete)
-    - Free async sqlite service
+    - Async sqlite service is totally free to you

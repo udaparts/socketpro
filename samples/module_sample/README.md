@@ -1,6 +1,6 @@
 # SocketPro server plug-in development with C/C++
 
-1.	SocketPro supports server side plug-in development. A SocketPro server plugin is actually a dynamic library, which must expose the following required seven functiions (See the file socketpro/include/spa_module.h).
+1.	SocketPro supports server side plug-in development. A SocketPro server plugin is actually a dynamic library, which must expose the following required seven functions (See the file socketpro/include/spa_module.h).
 
 	- bool WINAPI InitServerLibrary (int param); //The method will be called from SocketPro server core right after the library is loaded
 	- void WINAPI UninitServerLibrary(); //The method will be called from SocketPro server core right before the library is going to be unloaded

@@ -14,7 +14,7 @@
 
 7. test_sharp: a test .NET c-sharp project for demonstration of using async mysql (mariadb) server at client side. For detail, refer to the demo source code at the file test_sharp/Program.cs.
 
-8. DBPerf: a directory containing two projects for performance comparision between SocketPro approach and mysql/mariadb .NET provider.
+8. DBPerf: a directory containing three projects for performance comparision between SocketPro approach and mysql/mariadb .NET provider.
 
 9. Key features are:
     - Simple for development
@@ -23,4 +23,4 @@
     - Superior performance and scalability
     - Continuous SQL stream processing supported with inline request/response batching, asynchronous data transferring and parallel computation
     - Cancel supported fully
-    - Free async mysql/mariadb service
+    - Async mysql/mariadb service is totally free to you

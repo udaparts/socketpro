@@ -22,4 +22,4 @@
     - Continous message writing supported with inline messaging batching, asynchronous data transferring and parallel computation
     - Cancel supported fully
     - Transactional message writing and reading supported fully
-    - Free async persistent queue service
+    - Async persistent queue service is totally free to you
