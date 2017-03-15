@@ -1,11 +1,18 @@
 
-#pragma once
+#ifndef _ASYNC_ODBC_MODULE_IMPLEMENTATION_BASIC_HEADER_H_
+#define _ASYNC_ODBC_MODULE_IMPLEMENTATION_BASIC_HEADER_H_
 
 #include "../spa_module.h"
 #include "uodbc.h"
 
-#ifndef _ASYNC_ODBC_MODULE_IMPLEMENTATION_BASIC_HEADER_H_
-#define _ASYNC_ODBC_MODULE_IMPLEMENTATION_BASIC_HEADER_H_
+#ifdef WIN32_64
+
+#include <sqlext.h>
+
+#else
+
+
+#endif
 
 #ifdef __cplusplus
 extern "C" {

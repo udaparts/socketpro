@@ -7,7 +7,26 @@
 namespace SPA {
     namespace ServerSide {
 
-		COdbcImpl::COdbcImpl() : m_oks(0), m_fails(0), m_ti(tiUnspecified), m_global(true), m_Blob(*m_sb) {
+		SQLHENV COdbcImpl::g_hEnv = nullptr;
+
+		bool COdbcImpl::SetODBCEnv() {
+			SQLRETURN retcode = SQLAllocHandle(SQL_HANDLE_ENV, SQL_NULL_HANDLE, &g_hEnv);
+			if (retcode != SQL_SUCCESS)
+				return false;
+			retcode = SQLSetEnvAttr(g_hEnv, SQL_ATTR_ODBC_VERSION, (SQLPOINTER*)SQL_OV_ODBC3, 0);
+			if (retcode != SQL_SUCCESS)
+				return false;
+			return true;
+		}
+
+		void COdbcImpl::FreeODBCEnv() {
+			if (g_hEnv) {
+				SQLFreeHandle(SQL_HANDLE_ENV, g_hEnv);
+				g_hEnv = nullptr;
+			}
+		}
+
+		COdbcImpl::COdbcImpl() : m_oks(0), m_fails(0), m_ti(tiUnspecified), m_global(true), m_Blob(*m_sb), m_parameters(0) {
 
 		}
 
@@ -91,13 +110,14 @@ namespace SPA {
         }
 
 		void COdbcImpl::CleanDBObjects() {
-            m_vParam.clear();
+			m_pPrepare.reset();
+			m_pOdbc.reset();
+			m_vParam.clear();
         }
 
 		void COdbcImpl::Open(const std::wstring &strConnection, unsigned int flags, int &res, std::wstring &errMsg, int &ms) {
 			ms = msODBC;
             CleanDBObjects();
-
 		}
 		void COdbcImpl::CloseDb(int &res, std::wstring & errMsg) {
             CleanDBObjects();

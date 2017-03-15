@@ -5,16 +5,19 @@ std::shared_ptr<SPA::ServerSide::COdbcService> g_pOdbc;
 
 void WINAPI SetOdbcDBGlobalConnectionString(const wchar_t *dbConnection, bool remote) {
     
+	
 }
 
 bool WINAPI InitServerLibrary(int param) {
+	if (!SPA::ServerSide::COdbcImpl::SetODBCEnv())
+		return false;
     g_pOdbc.reset(new SPA::ServerSide::COdbcService(SPA::Odbc::sidOdbc, SPA::taNone));
-
     return true;
 }
 
 void WINAPI UninitServerLibrary() {
     g_pOdbc.reset();
+	SPA::ServerSide::COdbcImpl::FreeODBCEnv();
 }
 
 unsigned short WINAPI GetNumOfServices() {

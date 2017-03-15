@@ -19,6 +19,10 @@ namespace SPA {
 		public:
 			COdbcImpl();
 
+		public:
+			static bool SetODBCEnv();
+			static void FreeODBCEnv();
+
 		protected:
             virtual void OnFastRequestArrive(unsigned short reqId, unsigned int len);
             virtual int OnSlowRequestArrive(unsigned short reqId, unsigned int len);
@@ -62,6 +66,16 @@ namespace SPA {
             std::vector<SAFEARRAY *> m_vArray;
             bool m_global;
             CUQueue &m_Blob;
+
+			//ODBC connection handle
+            std::shared_ptr<SQLHDBC> m_pOdbc;
+
+			//parameterized statement
+            std::shared_ptr<SQLHSTMT> m_pPrepare;
+
+			SQLSMALLINT m_parameters;
+
+			static SQLHENV g_hEnv;
 		};
 
 		typedef CSocketProService<COdbcImpl> COdbcService;

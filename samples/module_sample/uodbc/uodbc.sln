@@ -1,6 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "test_sodbc", "test_sodbc\test_sodbc.vcxproj", "{1AF1223B-16E5-4242-9781-4215BE6B6EB2}"
+EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sodbc", "sodbc\sodbc.vcxproj", "{A172B3E3-784D-4BB7-BDA3-5D932A62F70E}"
 EndProject
 Global
@@ -11,6 +13,12 @@ Global
 		Release|x64 = Release|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{1AF1223B-16E5-4242-9781-4215BE6B6EB2}.Debug|Win32.ActiveCfg = Debug|Win32
+		{1AF1223B-16E5-4242-9781-4215BE6B6EB2}.Debug|Win32.Build.0 = Debug|Win32
+		{1AF1223B-16E5-4242-9781-4215BE6B6EB2}.Debug|x64.ActiveCfg = Debug|x64
+		{1AF1223B-16E5-4242-9781-4215BE6B6EB2}.Release|Win32.ActiveCfg = Release|Win32
+		{1AF1223B-16E5-4242-9781-4215BE6B6EB2}.Release|Win32.Build.0 = Release|Win32
+		{1AF1223B-16E5-4242-9781-4215BE6B6EB2}.Release|x64.ActiveCfg = Release|Win32
 		{A172B3E3-784D-4BB7-BDA3-5D932A62F70E}.Debug|Win32.ActiveCfg = Debug|Win32
 		{A172B3E3-784D-4BB7-BDA3-5D932A62F70E}.Debug|Win32.Build.0 = Debug|Win32
 		{A172B3E3-784D-4BB7-BDA3-5D932A62F70E}.Debug|x64.ActiveCfg = Debug|x64
