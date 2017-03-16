@@ -225,13 +225,14 @@ namespace SPA {
 					GetErrMsg(SQL_HANDLE_ENV, g_hEnv, errMsg);
 					break;
 				}
+				
 				if (ocs.timeout) {
 					SQLPOINTER rgbValue = &ocs.timeout;
 					retcode = SQLSetConnectAttr(hdbc, SQL_LOGIN_TIMEOUT, rgbValue, 0);
 				}
 
 				if (ocs.database.size()) {
-					retcode = SQLSetConnectAttr(hdbc, SQL_ATTR_CURRENT_CATALOG, (SQLPOINTER)ocs.database.c_str(), (SQLINTEGER)(ocs.database.size() * sizeof(wchar_t)));
+					retcode = SQLSetConnectAttr(hdbc, SQL_ATTR_CURRENT_CATALOG, (SQLPOINTER)ocs.database.c_str(), (SQLINTEGER)(ocs.database.size() * sizeof(SQLWCHAR)));
 				}
 				
 				retcode = SQLSetConnectAttr(hdbc, SQL_ATTR_ASYNC_ENABLE, (SQLPOINTER)(ocs.async ? SQL_ASYNC_ENABLE_ON : SQL_ASYNC_ENABLE_OFF), 0);
@@ -281,6 +282,46 @@ namespace SPA {
             } else {
                 res = 0;
             }
+			SQLHSTMT hstmt = nullptr;
+			SQLRETURN retcode = SQLAllocHandle(SQL_HANDLE_STMT, m_pOdbc.get(), &hstmt);
+			do {
+				std::shared_ptr<void> pStmt(hstmt, [](SQLHSTMT h) {
+					if (h) {
+						SQLRETURN ret = SQLFreeHandle(SQL_HANDLE_STMT, h);
+						assert(ret == SQL_SUCCESS);
+					}
+				});
+				if (retcode < 0) {
+					res = SPA::Odbc::ER_ERROR;
+					GetErrMsg(SQL_HANDLE_DBC, m_pOdbc.get(), errMsg);
+					break;
+				}
+				retcode = SQLExecDirect(hstmt, (SQLWCHAR*)wsql.c_str(), (SQLINTEGER)wsql.size());
+				if (retcode < 0) {
+					res = SPA::Odbc::ER_ERROR;
+					GetErrMsg(SQL_HANDLE_STMT, hstmt, errMsg);
+					break;
+				}
+				do {
+					SQLSMALLINT columns;
+					retcode=SQLNumResultCols(hstmt, &columns);
+					assert(retcode == SQL_SUCCESS);
+					if (columns > 0) {
+						if (rowset) {
+
+						}
+					}
+					else {
+						SQLLEN rows = 0;
+						retcode = SQLRowCount(hstmt, &rows);
+						assert(retcode == SQL_SUCCESS);
+						if (rows > 0) {
+							affected += rows;
+						}
+					}
+				} while((retcode = SQLMoreResults(hstmt)) == SQL_SUCCESS);
+				assert(retcode == SQL_NO_DATA); 
+			}while(false);
         }
 
         void COdbcImpl::Prepare(const std::wstring& wsql, CParameterInfoArray& params, int &res, std::wstring &errMsg, unsigned int &parameters) {
@@ -350,7 +391,7 @@ namespace SPA {
 			SQLSMALLINT i = 1, MsgLen = 0;
 			SQLINTEGER NativeError = 0;
 			SQLWCHAR SqlState[6] = {0}, Msg[SQL_MAX_MESSAGE_LENGTH + 1] = {0};
-			SQLRETURN res = SQLGetDiagRec(HandleType, Handle, i, SqlState, &NativeError, Msg, sizeof(Msg), &MsgLen);
+			SQLRETURN res = SQLGetDiagRec(HandleType, Handle, i, SqlState, &NativeError, Msg, sizeof(Msg)/sizeof(SQLWCHAR), &MsgLen);
 			while (res != SQL_NO_DATA) {
 				if (errMsg.size())
 					errMsg += L";";

@@ -73,10 +73,10 @@ int main(int argc, char* argv[]) {
     };
 
     ok = pOdbc->Open(nullptr, dr);
-    TestCreateTables(pOdbc);
-    ok = pOdbc->Execute(L"delete from employee;delete from company", er);
-    TestPreparedStatements(pOdbc);
-    InsertBLOBByPreparedStatement(pOdbc);
+    //TestCreateTables(pOdbc);
+    //ok = pOdbc->Execute(L"delete from employee;delete from company", er);
+    //TestPreparedStatements(pOdbc);
+    //InsertBLOBByPreparedStatement(pOdbc);
     ok = pOdbc->Execute(L"SELECT * from company;select * from employee;select curtime()", er, r, rh);
 
     CDBVariantArray vPData;
@@ -92,7 +92,7 @@ int main(int argc, char* argv[]) {
     vPData.push_back(0);
     vPData.push_back(0);
     unsigned int oks = 0;
-    TestStoredProcedure(pOdbc, ra, vPData, oks);
+    //TestStoredProcedure(pOdbc, ra, vPData, oks);
     pOdbc->WaitAll();
 
     std::cout << std::endl;
