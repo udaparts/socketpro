@@ -3,9 +3,8 @@
 
 std::shared_ptr<SPA::ServerSide::COdbcService> g_pOdbc;
 
-void WINAPI SetOdbcDBGlobalConnectionString(const wchar_t *dbConnection, bool remote) {
-    
-	
+void WINAPI SetOdbcDBGlobalConnectionString(const wchar_t *dbConnection) {
+    SPA::ServerSide::COdbcImpl::SetGlobalConnectionString(dbConnection);
 }
 
 bool WINAPI InitServerLibrary(int param) {
