@@ -6,10 +6,11 @@
 #include <iostream>
 #endif
 
-namespace SPA {
-    namespace ServerSide {
+namespace SPA
+{
+    namespace ServerSide{
 
-		const wchar_t * COdbcImpl::NO_DB_OPENED_YET = L"No ODBC database opened yet";
+        const wchar_t * COdbcImpl::NO_DB_OPENED_YET = L"No ODBC database opened yet";
         const wchar_t * COdbcImpl::BAD_END_TRANSTACTION_PLAN = L"Bad end transaction plan";
         const wchar_t * COdbcImpl::NO_PARAMETER_SPECIFIED = L"No parameter specified";
         const wchar_t * COdbcImpl::BAD_PARAMETER_DATA_ARRAY_SIZE = L"Bad parameter data array length";
@@ -19,40 +20,40 @@ namespace SPA {
         const wchar_t * COdbcImpl::ODBC_ENVIRONMENT_NOT_INITIALIZED = L"ODBC system library not initialized";
         const wchar_t * COdbcImpl::BAD_MANUAL_TRANSACTION_STATE = L"Bad manual transaction state";
 
-		SQLHENV COdbcImpl::g_hEnv = nullptr;
+        SQLHENV COdbcImpl::g_hEnv = nullptr;
 
-		const wchar_t* COdbcImpl::ODBC_GLOBAL_CONNECTION_STRING = L"ODBC_GLOBAL_CONNECTION_STRING";
+        const wchar_t * COdbcImpl::ODBC_GLOBAL_CONNECTION_STRING = L"ODBC_GLOBAL_CONNECTION_STRING";
 
-		CUCriticalSection COdbcImpl::m_csPeer;
+        CUCriticalSection COdbcImpl::m_csPeer;
         std::wstring COdbcImpl::m_strGlobalConnection;
 
-		bool COdbcImpl::SetODBCEnv() {
-			SQLRETURN retcode = SQLAllocHandle(SQL_HANDLE_ENV, SQL_NULL_HANDLE, &g_hEnv);
-			if (retcode != SQL_SUCCESS)
-				return false;
-			retcode = SQLSetEnvAttr(g_hEnv, SQL_ATTR_ODBC_VERSION, (SQLPOINTER*)SQL_OV_ODBC3, 0);
-			if (retcode != SQL_SUCCESS)
-				return false;
-			return true;
-		}
+        bool COdbcImpl::SetODBCEnv() {
+            SQLRETURN retcode = SQLAllocHandle(SQL_HANDLE_ENV, SQL_NULL_HANDLE, &g_hEnv);
+            if (retcode != SQL_SUCCESS)
+                return false;
+            retcode = SQLSetEnvAttr(g_hEnv, SQL_ATTR_ODBC_VERSION, (SQLPOINTER*) SQL_OV_ODBC3, 0);
+            if (retcode != SQL_SUCCESS)
+                return false;
+            return true;
+        }
 
-		void COdbcImpl::FreeODBCEnv() {
-			if (g_hEnv) {
-				SQLFreeHandle(SQL_HANDLE_ENV, g_hEnv);
-				g_hEnv = nullptr;
-			}
-		}
+        void COdbcImpl::FreeODBCEnv() {
+            if (g_hEnv) {
+                SQLFreeHandle(SQL_HANDLE_ENV, g_hEnv);
+                g_hEnv = nullptr;
+            }
+        }
 
-		void COdbcImpl::SetGlobalConnectionString(const wchar_t *str) {
-			m_csPeer.lock();
-			if (str)
-				m_strGlobalConnection = str;
-			else
-				m_strGlobalConnection.clear();
-			m_csPeer.unlock();
-		}
+        void COdbcImpl::SetGlobalConnectionString(const wchar_t * str) {
+            m_csPeer.lock();
+            if (str)
+                m_strGlobalConnection = str;
+            else
+                m_strGlobalConnection.clear();
+            m_csPeer.unlock();
+        }
 
-		void COdbcImpl::ODBC_CONNECTION_STRING::Trim(std::wstring & s) {
+        void COdbcImpl::ODBC_CONNECTION_STRING::Trim(std::wstring & s) {
             static const wchar_t *WHITESPACE = L" \r\n\t\v\f\v";
             auto pos = s.find_first_of(WHITESPACE);
             while (pos == 0) {
@@ -66,7 +67,7 @@ namespace SPA {
             }
         }
 
-		void COdbcImpl::ODBC_CONNECTION_STRING::Parse(const wchar_t *s) {
+        void COdbcImpl::ODBC_CONNECTION_STRING::Parse(const wchar_t * s) {
             using namespace std;
             if (!wcsstr(s, L"="))
                 return;
@@ -97,7 +98,7 @@ namespace SPA {
                     host = right;
                 else if (left == L"user" || left == L"uid")
                     user = right;
-				 else if (left == L"async" || left == L"asynchronous")
+                else if (left == L"async" || left == L"asynchronous")
                     async = (_wtoi(right.c_str()) ? true : false);
                 else {
                     //!!! not implemented
@@ -106,12 +107,12 @@ namespace SPA {
             }
         }
 
-		COdbcImpl::COdbcImpl() : m_oks(0), m_fails(0), m_ti(tiUnspecified), m_global(true), m_Blob(*m_sb), m_parameters(0) {
+        COdbcImpl::COdbcImpl() : m_oks(0), m_fails(0), m_ti(tiUnspecified), m_global(true), m_Blob(*m_sb), m_parameters(0) {
 
-		}
+        }
 
-		void COdbcImpl::OnReleaseSource(bool bClosing, unsigned int info) {
-			CleanDBObjects();
+        void COdbcImpl::OnReleaseSource(bool bClosing, unsigned int info) {
+            CleanDBObjects();
             m_Blob.SetSize(0);
             if (m_Blob.GetMaxSize() > 2 * DEFAULT_BIG_FIELD_CHUNK_SIZE) {
                 m_Blob.ReallocBuffer(2 * DEFAULT_BIG_FIELD_CHUNK_SIZE);
@@ -125,7 +126,7 @@ namespace SPA {
             m_ti = tiUnspecified;
         }
 
-		void COdbcImpl::OnFastRequestArrive(unsigned short reqId, unsigned int len) {
+        void COdbcImpl::OnFastRequestArrive(unsigned short reqId, unsigned int len) {
             BEGIN_SWITCH(reqId)
             M_I1_R0(idStartBLOB, StartBLOB, unsigned int)
             M_I0_R0(idChunk, Chunk)
@@ -164,7 +165,7 @@ namespace SPA {
             return 0;
         }
 
-		void COdbcImpl::OnBaseRequestArrive(unsigned short requestId) {
+        void COdbcImpl::OnBaseRequestArrive(unsigned short requestId) {
             switch (requestId) {
                 case idCancel:
 #ifndef NDEBUG
@@ -181,7 +182,7 @@ namespace SPA {
             }
         }
 
-		void COdbcImpl::ReleaseArray() {
+        void COdbcImpl::ReleaseArray() {
             for (auto it = m_vArray.begin(), end = m_vArray.end(); it != end; ++it) {
                 SAFEARRAY *arr = *it;
                 ::SafeArrayUnaccessData(arr);
@@ -189,24 +190,23 @@ namespace SPA {
             m_vArray.clear();
         }
 
-		void COdbcImpl::CleanDBObjects() {
-			m_pPrepare.reset();
-			m_pOdbc.reset();
-			m_vParam.clear();
+        void COdbcImpl::CleanDBObjects() {
+            m_pPrepare.reset();
+            m_pOdbc.reset();
+            m_vParam.clear();
         }
 
-		void COdbcImpl::Open(const std::wstring &strConnection, unsigned int flags, int &res, std::wstring &errMsg, int &ms) {
-			ms = msODBC;
+        void COdbcImpl::Open(const std::wstring &strConnection, unsigned int flags, int &res, std::wstring &errMsg, int &ms) {
+            ms = msODBC;
             CleanDBObjects();
-			if (!g_hEnv) {
-				res = SPA::Odbc::ER_ODBC_ENVIRONMENT_NOT_INITIALIZED;
-				errMsg = ODBC_ENVIRONMENT_NOT_INITIALIZED;
-				return;
-			}
-			else {
-				res = 0;
-			}
-			do {
+            if (!g_hEnv) {
+                res = SPA::Odbc::ER_ODBC_ENVIRONMENT_NOT_INITIALIZED;
+                errMsg = ODBC_ENVIRONMENT_NOT_INITIALIZED;
+                return;
+            } else {
+                res = 0;
+            }
+            do {
                 std::wstring db(strConnection);
                 if (!db.size() || db == ODBC_GLOBAL_CONNECTION_STRING) {
                     m_csPeer.lock();
@@ -216,63 +216,64 @@ namespace SPA {
                 } else {
                     m_global = false;
                 }
-				ODBC_CONNECTION_STRING ocs;
-				ocs.Parse(db.c_str());
-				SQLHDBC hdbc = nullptr;
-				SQLRETURN retcode = SQLAllocHandle(SQL_HANDLE_DBC, g_hEnv, &hdbc);
-				if (retcode < 0) {
-					res = SPA::Odbc::ER_ERROR;
-					GetErrMsg(SQL_HANDLE_ENV, g_hEnv, errMsg);
-					break;
-				}
-				
-				if (ocs.timeout) {
-					SQLPOINTER rgbValue = &ocs.timeout;
-					retcode = SQLSetConnectAttr(hdbc, SQL_LOGIN_TIMEOUT, rgbValue, 0);
-				}
+                ODBC_CONNECTION_STRING ocs;
+                ocs.Parse(db.c_str());
+                SQLHDBC hdbc = nullptr;
+                SQLRETURN retcode = SQLAllocHandle(SQL_HANDLE_DBC, g_hEnv, &hdbc);
+                if (retcode < 0) {
+                    res = SPA::Odbc::ER_ERROR;
+                    GetErrMsg(SQL_HANDLE_ENV, g_hEnv, errMsg);
+                    break;
+                }
 
-				if (ocs.database.size()) {
-					retcode = SQLSetConnectAttr(hdbc, SQL_ATTR_CURRENT_CATALOG, (SQLPOINTER)ocs.database.c_str(), (SQLINTEGER)(ocs.database.size() * sizeof(SQLWCHAR)));
-				}
-				
-				retcode = SQLSetConnectAttr(hdbc, SQL_ATTR_ASYNC_ENABLE, (SQLPOINTER)(ocs.async ? SQL_ASYNC_ENABLE_ON : SQL_ASYNC_ENABLE_OFF), 0);
+                if (ocs.timeout) {
+                    SQLPOINTER rgbValue = &ocs.timeout;
+                    retcode = SQLSetConnectAttr(hdbc, SQL_LOGIN_TIMEOUT, rgbValue, 0);
+                }
 
-				retcode = SQLConnect(hdbc, (SQLWCHAR*) ocs.host.c_str(), (SQLSMALLINT)ocs.host.size(), (SQLWCHAR *)ocs.user.c_str(), (SQLSMALLINT)ocs.user.size(), (SQLWCHAR *)ocs.password.c_str(), (SQLSMALLINT)ocs.password.size());
-				if (retcode < 0) {
-					res = SPA::Odbc::ER_ERROR;
-					GetErrMsg(SQL_HANDLE_DBC, hdbc, errMsg);
-					SQLFreeHandle(SQL_HANDLE_DBC, hdbc);
-					break;
-				}
-				m_pOdbc.reset(hdbc, [](SQLHDBC h) {
-					if (h) {
-						SQLRETURN ret = SQLDisconnect(h);
-						assert(ret == SQL_SUCCESS);
-						ret = SQLFreeHandle(SQL_HANDLE_DBC, h);
-						assert(ret == SQL_SUCCESS);
-					}
-				});
-			} while (false);
-		}
-		void COdbcImpl::CloseDb(int &res, std::wstring & errMsg) {
+                if (ocs.database.size()) {
+                    retcode = SQLSetConnectAttr(hdbc, SQL_ATTR_CURRENT_CATALOG, (SQLPOINTER) ocs.database.c_str(), (SQLINTEGER) (ocs.database.size() * sizeof (SQLWCHAR)));
+                }
+
+                retcode = SQLSetConnectAttr(hdbc, SQL_ATTR_ASYNC_ENABLE, (SQLPOINTER) (ocs.async ? SQL_ASYNC_ENABLE_ON : SQL_ASYNC_ENABLE_OFF), 0);
+
+                retcode = SQLConnect(hdbc, (SQLWCHAR*) ocs.host.c_str(), (SQLSMALLINT) ocs.host.size(), (SQLWCHAR *) ocs.user.c_str(), (SQLSMALLINT) ocs.user.size(), (SQLWCHAR *) ocs.password.c_str(), (SQLSMALLINT) ocs.password.size());
+                if (retcode < 0) {
+                    res = SPA::Odbc::ER_ERROR;
+                    GetErrMsg(SQL_HANDLE_DBC, hdbc, errMsg);
+                    SQLFreeHandle(SQL_HANDLE_DBC, hdbc);
+                    break;
+                }
+                m_pOdbc.reset(hdbc, [](SQLHDBC h) {
+                    if (h) {
+                        SQLRETURN ret = SQLDisconnect(h);
+                        assert(ret == SQL_SUCCESS);
+                        ret = SQLFreeHandle(SQL_HANDLE_DBC, h);
+                        assert(ret == SQL_SUCCESS);
+                    }
+                });
+            } while (false);
+        }
+
+        void COdbcImpl::CloseDb(int &res, std::wstring & errMsg) {
             CleanDBObjects();
             res = 0;
         }
 
         void COdbcImpl::BeginTrans(int isolation, const std::wstring &dbConn, unsigned int flags, int &res, std::wstring &errMsg, int &ms) {
             res = 0;
-			ms = msODBC;
-			
+            ms = msODBC;
+
         }
 
         void COdbcImpl::EndTrans(int plan, int &res, std::wstring & errMsg) {
-			res = 0;
+            res = 0;
         }
 
         void COdbcImpl::Execute(const std::wstring& wsql, bool rowset, bool meta, bool lastInsertId, UINT64 index, INT64 &affected, int &res, std::wstring &errMsg, CDBVariant &vtId, UINT64 & fail_ok) {
             affected = 0;
-			fail_ok = 0;
-			if (!m_pOdbc) {
+            fail_ok = 0;
+            if (!m_pOdbc) {
                 res = SPA::Odbc::ER_NO_DB_OPENED_YET;
                 errMsg = NO_DB_OPENED_YET;
                 ++m_fails;
@@ -282,62 +283,61 @@ namespace SPA {
             } else {
                 res = 0;
             }
-			SQLHSTMT hstmt = nullptr;
-			SQLRETURN retcode = SQLAllocHandle(SQL_HANDLE_STMT, m_pOdbc.get(), &hstmt);
-			do {
-				std::shared_ptr<void> pStmt(hstmt, [](SQLHSTMT h) {
-					if (h) {
-						SQLRETURN ret = SQLFreeHandle(SQL_HANDLE_STMT, h);
-						assert(ret == SQL_SUCCESS);
-					}
-				});
-				if (retcode < 0) {
-					res = SPA::Odbc::ER_ERROR;
-					GetErrMsg(SQL_HANDLE_DBC, m_pOdbc.get(), errMsg);
-					break;
-				}
-				retcode = SQLExecDirect(hstmt, (SQLWCHAR*)wsql.c_str(), (SQLINTEGER)wsql.size());
-				if (retcode < 0) {
-					res = SPA::Odbc::ER_ERROR;
-					GetErrMsg(SQL_HANDLE_STMT, hstmt, errMsg);
-					break;
-				}
-				do {
-					SQLSMALLINT columns;
-					retcode=SQLNumResultCols(hstmt, &columns);
-					assert(retcode == SQL_SUCCESS);
-					if (columns > 0) {
-						if (rowset) {
+            SQLHSTMT hstmt = nullptr;
+            SQLRETURN retcode = SQLAllocHandle(SQL_HANDLE_STMT, m_pOdbc.get(), &hstmt);
+            do {
+                std::shared_ptr<void> pStmt(hstmt, [](SQLHSTMT h) {
+                    if (h) {
+                        SQLRETURN ret = SQLFreeHandle(SQL_HANDLE_STMT, h);
+                        assert(ret == SQL_SUCCESS);
+                    }
+                });
+                if (retcode < 0) {
+                    res = SPA::Odbc::ER_ERROR;
+                    GetErrMsg(SQL_HANDLE_DBC, m_pOdbc.get(), errMsg);
+                    break;
+                }
+                retcode = SQLExecDirect(hstmt, (SQLWCHAR*) wsql.c_str(), (SQLINTEGER) wsql.size());
+                if (retcode < 0) {
+                    res = SPA::Odbc::ER_ERROR;
+                    GetErrMsg(SQL_HANDLE_STMT, hstmt, errMsg);
+                    break;
+                }
+                do {
+                    SQLSMALLINT columns;
+                    retcode = SQLNumResultCols(hstmt, &columns);
+                    assert(retcode == SQL_SUCCESS);
+                    if (columns > 0) {
+                        if (rowset) {
 
-						}
-					}
-					else {
-						SQLLEN rows = 0;
-						retcode = SQLRowCount(hstmt, &rows);
-						assert(retcode == SQL_SUCCESS);
-						if (rows > 0) {
-							affected += rows;
-						}
-					}
-				} while((retcode = SQLMoreResults(hstmt)) == SQL_SUCCESS);
-				assert(retcode == SQL_NO_DATA); 
-			}while(false);
+                        }
+                    } else {
+                        SQLLEN rows = 0;
+                        retcode = SQLRowCount(hstmt, &rows);
+                        assert(retcode == SQL_SUCCESS);
+                        if (rows > 0) {
+                            affected += rows;
+                        }
+                    }
+                } while ((retcode = SQLMoreResults(hstmt)) == SQL_SUCCESS);
+                assert(retcode == SQL_NO_DATA);
+            } while (false);
         }
 
         void COdbcImpl::Prepare(const std::wstring& wsql, CParameterInfoArray& params, int &res, std::wstring &errMsg, unsigned int &parameters) {
             res = 0;
-			parameters = 0;
+            parameters = 0;
         }
 
         void COdbcImpl::ExecuteParameters(bool rowset, bool meta, bool lastInsertId, UINT64 index, INT64 &affected, int &res, std::wstring &errMsg, CDBVariant &vtId, UINT64 & fail_ok) {
             affected = 0;
-			res = 0;
-			fail_ok = 0;
-            
-			
+            res = 0;
+            fail_ok = 0;
+
+
         }
 
-		void COdbcImpl::StartBLOB(unsigned int lenExpected) {
+        void COdbcImpl::StartBLOB(unsigned int lenExpected) {
             m_Blob.SetSize(0);
             if (lenExpected > m_Blob.GetMaxSize()) {
                 m_Blob.ReallocBuffer(lenExpected);
@@ -383,30 +383,32 @@ namespace SPA {
             assert(q.GetSize() == 0);
         }
 
-		void COdbcImpl::GetErrMsg(SQLSMALLINT HandleType, SQLHANDLE Handle, std::wstring &errMsg) {
-			static std::wstring SQLSTATE(L"SQLSTATE=");
-			static std::wstring NATIVE_ERROR(L":NATIVE=");
-			static std::wstring ERROR_MESSAGE(L":ERROR_MESSAGE=");
-			errMsg.clear();
-			SQLSMALLINT i = 1, MsgLen = 0;
-			SQLINTEGER NativeError = 0;
-			SQLWCHAR SqlState[6] = {0}, Msg[SQL_MAX_MESSAGE_LENGTH + 1] = {0};
-			SQLRETURN res = SQLGetDiagRec(HandleType, Handle, i, SqlState, &NativeError, Msg, sizeof(Msg)/sizeof(SQLWCHAR), &MsgLen);
-			while (res != SQL_NO_DATA) {
-				if (errMsg.size())
-					errMsg += L";";
-				errMsg += (SQLSTATE + SqlState);
-				errMsg += (NATIVE_ERROR + std::to_wstring((INT64)NativeError));
-				errMsg += (ERROR_MESSAGE + Msg);
-				::memset(Msg, 0, sizeof(Msg));
-				++i;
-				MsgLen = 0;
-				NativeError = 0;
-				res = SQLGetDiagRec(HandleType, Handle, i, SqlState, &NativeError, Msg, sizeof(Msg), &MsgLen);
-			}
-		}
+        void COdbcImpl::GetErrMsg(SQLSMALLINT HandleType, SQLHANDLE Handle, std::wstring & errMsg) {
+            static std::wstring SQLSTATE(L"SQLSTATE=");
+            static std::wstring NATIVE_ERROR(L":NATIVE=");
+            static std::wstring ERROR_MESSAGE(L":ERROR_MESSAGE=");
+            errMsg.clear();
+            SQLSMALLINT i = 1, MsgLen = 0;
+            SQLINTEGER NativeError = 0;
+            SQLWCHAR SqlState[6] =
+            {0}, Msg[SQL_MAX_MESSAGE_LENGTH + 1] =
+            {0};
+            SQLRETURN res = SQLGetDiagRec(HandleType, Handle, i, SqlState, &NativeError, Msg, sizeof (Msg) / sizeof (SQLWCHAR), &MsgLen);
+            while (res != SQL_NO_DATA) {
+                if (errMsg.size())
+                    errMsg += L";";
+                errMsg += (SQLSTATE + SqlState);
+                errMsg += (NATIVE_ERROR + std::to_wstring((INT64) NativeError));
+                errMsg += (ERROR_MESSAGE + Msg);
+                ::memset(Msg, 0, sizeof (Msg));
+                ++i;
+                MsgLen = 0;
+                NativeError = 0;
+                res = SQLGetDiagRec(HandleType, Handle, i, SqlState, &NativeError, Msg, sizeof (Msg), &MsgLen);
+            }
+        }
 
-		void COdbcImpl::ConvertToUTF8OrDouble(CDBVariant & vt) {
+        void COdbcImpl::ConvertToUTF8OrDouble(CDBVariant & vt) {
             switch (vt.Type()) {
                 case VT_DATE:
                 {

@@ -7,11 +7,11 @@ namespace SPA {
     namespace Odbc {
         static const unsigned int sidOdbc = (unsigned int) sidReserved + 0x6FFFFFF2; //asynchronous ODBC service id
 
-		static const int ER_SUCCESS = 0;
-		static const int ER_SUCCESS_WITH_INFO = 1; 
-		static const int ER_ERROR = -1;
+        static const int ER_SUCCESS = 0;
+        static const int ER_SUCCESS_WITH_INFO = 1;
+        static const int ER_ERROR = -1;
 
-		//error codes from async ODBC server library
+        //error codes from async ODBC server library
         static const int ER_NO_DB_OPENED_YET = -1981;
         static const int ER_BAD_END_TRANSTACTION_PLAN = -1982;
         static const int ER_NO_PARAMETER_SPECIFIED = -1983;

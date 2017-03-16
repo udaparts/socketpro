@@ -29,7 +29,7 @@ typedef void (WINAPI *PSetOdbcDBGlobalConnectionString)(const wchar_t *dbConnect
 namespace SPA {
     namespace ServerSide {
         namespace Odbc {
-            
+
         } //namespace Odbc
     } //namespace ServerSide
 } //namespace SPA
