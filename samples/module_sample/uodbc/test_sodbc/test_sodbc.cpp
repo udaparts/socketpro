@@ -9,7 +9,7 @@ class CMySocketProServer : public SPA::ServerSide::CSocketProServer
 
 protected:
     virtual bool OnSettingServer(unsigned int listeningPort, unsigned int maxBacklog, bool v6) {
-        m_h = SPA::ServerSide::CSocketProServer::DllManager::AddALibrary("sodbc", 1234);
+        m_h = SPA::ServerSide::CSocketProServer::DllManager::AddALibrary("sodbc");
         if (m_h) {
             PSetOdbcDBGlobalConnectionString SetOdbcDBGlobalConnectionString = (PSetOdbcDBGlobalConnectionString) GetProcAddress(m_h, "SetOdbcDBGlobalConnectionString");
             SetOdbcDBGlobalConnectionString(L"dsn=ToMySQL;timeout=10;async=1");

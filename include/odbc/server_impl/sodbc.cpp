@@ -8,7 +8,7 @@ void WINAPI SetOdbcDBGlobalConnectionString(const wchar_t *dbConnection) {
 }
 
 bool WINAPI InitServerLibrary(int param) {
-    if (!SPA::ServerSide::COdbcImpl::SetODBCEnv())
+    if (!SPA::ServerSide::COdbcImpl::SetODBCEnv(param))
         return false;
     g_pOdbc.reset(new SPA::ServerSide::COdbcService(SPA::Odbc::sidOdbc, SPA::taNone));
     return true;

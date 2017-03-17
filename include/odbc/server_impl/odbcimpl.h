@@ -34,7 +34,7 @@ namespace SPA {
             COdbcImpl();
 
         public:
-            static bool SetODBCEnv();
+            static bool SetODBCEnv(int param);
             static void FreeODBCEnv();
             static void SetGlobalConnectionString(const wchar_t *str);
 
@@ -67,6 +67,7 @@ namespace SPA {
 
         private:
             void CleanDBObjects();
+			CDBColumnInfoArray GetColInfo(SQLHSTMT hstmt, SQLSMALLINT columns, bool meta);
 
             static void ConvertToUTF8OrDouble(CDBVariant &vt);
             static void GetErrMsg(SQLSMALLINT HandleType, SQLHANDLE Handle, std::wstring &errMsg);
