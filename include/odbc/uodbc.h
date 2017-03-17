@@ -2,13 +2,26 @@
 #pragma once
 
 #include "../ucomm.h"
+#include "../udatabase.h"
 
 namespace SPA {
     namespace Odbc {
         static const unsigned int sidOdbc = (unsigned int) sidReserved + 0x6FFFFFF2; //asynchronous ODBC service id
 
+		//meta recordsets
+		static const unsigned short idSQLColumnPrivileges = SPA::UDB::idEndRows + 100;
+		static const unsigned short idSQLColumns = SPA::UDB::idEndRows + 101;
+		static const unsigned short idSQLForeignKeys = SPA::UDB::idEndRows + 102;
+		static const unsigned short idSQLPrimaryKeys = SPA::UDB::idEndRows + 103;
+		static const unsigned short idSQLProcedureColumns = SPA::UDB::idEndRows + 104;
+		static const unsigned short idSQLProcedures = SPA::UDB::idEndRows + 105;
+		static const unsigned short idSQLSpecialColumns = SPA::UDB::idEndRows + 106;
+		static const unsigned short idSQLStatistics = SPA::UDB::idEndRows + 107;
+		static const unsigned short idSQLTablePrivileges = SPA::UDB::idEndRows + 108;
+		static const unsigned short idSQLTables = SPA::UDB::idEndRows + 109;
+
+
         static const int ER_SUCCESS = 0;
-        static const int ER_SUCCESS_WITH_INFO = 1;
         static const int ER_ERROR = -1;
 
         //error codes from async ODBC server library

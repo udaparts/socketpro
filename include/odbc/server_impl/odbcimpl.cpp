@@ -284,34 +284,36 @@ namespace SPA
 			for (SQLSMALLINT n = 0; n < columns; ++n) {
 				vCols.push_back(CDBColumnInfo());
                 CDBColumnInfo &info = vCols.back();
-				SQLRETURN retcode = SQLDescribeCol(hstmt, (SQLUSMALLINT)n+1, colname, sizeof (colname) / sizeof(SQLWCHAR), &colnamelen, &coltype, &collen, &decimaldigits, &nullable);
+				SQLRETURN retcode = SQLDescribeCol(hstmt, (SQLUSMALLINT)(n + 1), colname, sizeof (colname) / sizeof(SQLWCHAR), &colnamelen, &coltype, &collen, &decimaldigits, &nullable);
 				assert(SQL_SUCCEEDED(retcode));
-				info.DisplayName.assign(colname, colnamelen);
-				if (nullable == SQL_NO_NULLS)
+				info.DisplayName.assign(colname, colnamelen); //display column name
+				if (nullable == SQL_NO_NULLS) {
 					info.Flags |= CDBColumnInfo::FLAG_NOT_NULL;
-				retcode = SQLColAttribute(hstmt, (SQLUSMALLINT)n+1, SQL_DESC_BASE_COLUMN_NAME, colname, sizeof (colname), &colnamelen, &displaysize);
+				}
+				
+				retcode = SQLColAttribute(hstmt, (SQLUSMALLINT)(n + 1), SQL_DESC_BASE_COLUMN_NAME, colname, sizeof (colname), &colnamelen, &displaysize);
 				assert(SQL_SUCCEEDED(retcode));
-				info.OriginalName.assign(colname, colnamelen / sizeof(SQLWCHAR));
+				info.OriginalName.assign(colname, colnamelen / sizeof(SQLWCHAR)); //original column name
 
-				retcode = SQLColAttribute(hstmt, (SQLUSMALLINT)n+1, SQL_DESC_SCHEMA_NAME, colname, sizeof (colname), &colnamelen, &displaysize);
+				retcode = SQLColAttribute(hstmt, (SQLUSMALLINT)(n + 1), SQL_DESC_SCHEMA_NAME, colname, sizeof (colname), &colnamelen, &displaysize);
 				assert(SQL_SUCCEEDED(retcode));
 				if (colnamelen) {
 					info.TablePath.assign(colname, colnamelen / sizeof(SQLWCHAR));
 					info.TablePath += L".";
 				}
-				retcode = SQLColAttribute(hstmt, (SQLUSMALLINT)n+1, SQL_DESC_BASE_TABLE_NAME, colname, sizeof (colname), &colnamelen, &displaysize);
+				retcode = SQLColAttribute(hstmt, (SQLUSMALLINT)(n + 1), SQL_DESC_BASE_TABLE_NAME, colname, sizeof (colname), &colnamelen, &displaysize);
 				assert(SQL_SUCCEEDED(retcode));
-				info.TablePath += colname;
+				info.TablePath += colname; //schema.table_name
 
-				retcode = SQLColAttribute(hstmt, (SQLUSMALLINT)n+1, SQL_DESC_TYPE_NAME, colname, sizeof (colname), &colnamelen, &displaysize);
+				retcode = SQLColAttribute(hstmt, (SQLUSMALLINT)(n + 1), SQL_DESC_TYPE_NAME, colname, sizeof (colname), &colnamelen, &displaysize);
 				assert(SQL_SUCCEEDED(retcode));
-				info.DeclaredType.assign(colname, colnamelen / sizeof(SQLWCHAR));
+				info.DeclaredType.assign(colname, colnamelen / sizeof(SQLWCHAR)); //native data type
 
-				retcode = SQLColAttribute(hstmt, (SQLUSMALLINT)n+1, SQL_DESC_CATALOG_NAME, colname, sizeof (colname), &colnamelen, &displaysize);
+				retcode = SQLColAttribute(hstmt, (SQLUSMALLINT)(n + 1), SQL_DESC_CATALOG_NAME, colname, sizeof (colname), &colnamelen, &displaysize);
 				assert(SQL_SUCCEEDED(retcode));
 				info.DBPath.assign(colname, colnamelen / sizeof(SQLWCHAR)); //database name
 
-				retcode = SQLColAttribute(hstmt, (SQLUSMALLINT)n+1, SQL_DESC_UNSIGNED, nullptr, 0, nullptr, &displaysize);
+				retcode = SQLColAttribute(hstmt, (SQLUSMALLINT)(n + 1), SQL_DESC_UNSIGNED, nullptr, 0, nullptr, &displaysize);
 				assert(SQL_SUCCEEDED(retcode));
 				switch(coltype) {
 				case SQL_CHAR:
@@ -319,7 +321,7 @@ namespace SPA
 				case SQL_LONGVARCHAR:
 					info.ColumnSize = (unsigned int)collen;
 					info.DataType = (VT_ARRAY | VT_I1);
-					retcode = SQLColAttribute(hstmt, (SQLUSMALLINT)n+1, SQL_DESC_CASE_SENSITIVE, nullptr, 0, nullptr, &displaysize);
+					retcode = SQLColAttribute(hstmt, (SQLUSMALLINT)(n + 1), SQL_DESC_CASE_SENSITIVE, nullptr, 0, nullptr, &displaysize);
 					assert(SQL_SUCCEEDED(retcode));
 					if (displaysize == SQL_TRUE) {
 						info.Flags |= CDBColumnInfo::FLAG_CASE_SENSITIVE;
@@ -330,7 +332,7 @@ namespace SPA
 				case SQL_WLONGVARCHAR:
 					info.ColumnSize = (unsigned int)collen;
 					info.DataType = VT_BSTR;
-					retcode = SQLColAttribute(hstmt, (SQLUSMALLINT)n+1, SQL_DESC_CASE_SENSITIVE, nullptr, 0, nullptr, &displaysize);
+					retcode = SQLColAttribute(hstmt, (SQLUSMALLINT)(n + 1), SQL_DESC_CASE_SENSITIVE, nullptr, 0, nullptr, &displaysize);
 					assert(SQL_SUCCEEDED(retcode));
 					if (displaysize == SQL_TRUE) {
 						info.Flags |= CDBColumnInfo::FLAG_CASE_SENSITIVE;
@@ -347,21 +349,25 @@ namespace SPA
 					info.ColumnSize = coltype; //remember SQL data type
 					info.DataType = VT_DECIMAL;
 					info.Scale = (unsigned char)decimaldigits;
-					retcode = SQLColAttribute(hstmt, (SQLUSMALLINT)n+1, SQL_DESC_PRECISION, nullptr, 0, nullptr, &displaysize);
+					retcode = SQLColAttribute(hstmt, (SQLUSMALLINT)(n + 1), SQL_DESC_PRECISION, nullptr, 0, nullptr, &displaysize);
 					assert(SQL_SUCCEEDED(retcode));
 					info.Precision = (unsigned char)displaysize;
 					break;
 				case SQL_SMALLINT:
-					if (displaysize == SQL_TRUE)
+					if (displaysize == SQL_TRUE) {
 						info.DataType = VT_UI2;
-					else
+					}
+					else {
 						info.DataType = VT_I2;
+					}
 					break;
 				case SQL_INTEGER:
-					if (displaysize == SQL_TRUE)
+					if (displaysize == SQL_TRUE) {
 						info.DataType = VT_UI4;
-					else
+					}
+					else {
 						info.DataType = VT_I4;
+					}
 					break;
 				case SQL_REAL:
 					info.DataType = VT_R4;
@@ -372,17 +378,21 @@ namespace SPA
 					info.DataType = VT_R8;
 					break;
 				case SQL_TINYINT:
-					if (displaysize == SQL_TRUE)
+					if (displaysize == SQL_TRUE) {
 						info.DataType = VT_UI1;
-					else
+					}
+					else {
 						info.DataType = VT_I1;
+					}
 					break;
 					break;
 				case SQL_BIGINT:
-					if (displaysize == SQL_TRUE)
+					if (displaysize == SQL_TRUE) {
 						info.DataType = VT_UI8;
-					else
+					}
+					else {
 						info.DataType = VT_I8;
+					}
 					break;
 				case SQL_BIT:
 					info.DataType = VT_BOOL;
@@ -391,7 +401,7 @@ namespace SPA
 				case SQL_GUID:
 					info.ColumnSize = sizeof(GUID);
 					info.DataType = (VT_ARRAY | VT_UI1);
-					info.Collation = L"GUID"; //remember SQL data type
+					info.Precision = ((unsigned char)16);
 					break;
 				case SQL_TYPE_DATE:
 				case SQL_TYPE_TIME:
@@ -400,12 +410,31 @@ namespace SPA
 					info.DataType = VT_DATE;
 					break;
 				case SQL_INTERVAL_MONTH:
+				case SQL_INTERVAL_YEAR:
+				case SQL_INTERVAL_YEAR_TO_MONTH:
+				case SQL_INTERVAL_DAY:
+				case SQL_INTERVAL_HOUR:
+				case SQL_INTERVAL_MINUTE:
+				case SQL_INTERVAL_SECOND:
+				case SQL_INTERVAL_DAY_TO_HOUR:
+				case SQL_INTERVAL_DAY_TO_MINUTE:
+				case SQL_INTERVAL_DAY_TO_SECOND:
+				case SQL_INTERVAL_HOUR_TO_MINUTE:
+				case SQL_INTERVAL_HOUR_TO_SECOND:
+				case SQL_INTERVAL_MINUTE_TO_SECOND:
+					info.ColumnSize = coltype; //remember SQL data type
+					info.Scale = (unsigned char)decimaldigits;
+					retcode = SQLColAttribute(hstmt, (SQLUSMALLINT)(n + 1), SQL_DESC_PRECISION, nullptr, 0, nullptr, &displaysize);
+					assert(SQL_SUCCEEDED(retcode));
+					info.Precision = (unsigned char)displaysize;
+					info.DataType = VT_UI8;
 					break;
 				default:
 					assert(false); //not supported
 					break;
 				}
-				retcode = SQLColAttribute(hstmt, (SQLUSMALLINT)n+1, SQL_DESC_AUTO_UNIQUE_VALUE, nullptr, 0, nullptr, &displaysize);
+
+				retcode = SQLColAttribute(hstmt, (SQLUSMALLINT)(n + 1), SQL_DESC_AUTO_UNIQUE_VALUE, nullptr, 0, nullptr, &displaysize);
 				assert(SQL_SUCCEEDED(retcode));
 				if (displaysize == SQL_TRUE) {
 					info.Flags |= CDBColumnInfo::FLAG_AUTOINCREMENT;
@@ -415,16 +444,99 @@ namespace SPA
 					primary_key_set = true;
 				}
 
-				retcode = SQLColAttribute(hstmt, (SQLUSMALLINT)n+1, SQL_DESC_UPDATABLE, nullptr, 0, nullptr, &displaysize);
+				retcode = SQLColAttribute(hstmt, (SQLUSMALLINT)(n + 1), SQL_DESC_UPDATABLE, nullptr, 0, nullptr, &displaysize);
 				assert(SQL_SUCCEEDED(retcode));
 				if (displaysize == SQL_ATTR_READONLY) {
 					info.Flags |= CDBColumnInfo::FLAG_NOT_WRITABLE;
 				}
 			}
+
 			if (meta && !primary_key_set) {
 
 			}
 			return vCols;
+		}
+
+		bool COdbcImpl::PushRecords(SQLHSTMT hstmt, const CDBColumnInfoArray &vColInfo, int &res, std::wstring &errMsg) {
+			SQLRETURN retcode;
+			VARTYPE vt;
+			SQLLEN len_or_null = 0;
+			size_t fields = vColInfo.size();
+			CScopeUQueue sb;
+			CUQueue &q = *sb;
+			while(true) {
+				retcode = SQLFetch(hstmt);
+				if (SQL_SUCCEEDED(retcode)) {
+					for (size_t i = 0; i < fields; ++i) {
+						const CDBColumnInfo &colInfo = vColInfo[i];
+						vt = colInfo.DataType;
+						switch(vt) {
+						case VT_BOOL:
+							break;
+						case VT_BSTR:
+							break;
+						case VT_DATE:
+							switch((SQLSMALLINT)colInfo.ColumnSize) {
+							case SQL_TYPE_DATE:
+								break;
+							case SQL_TYPE_TIME:
+								break;
+							case SQL_TYPE_TIMESTAMP:
+								break;
+							default:
+								assert(false); //shouldn't come here
+								break;
+							}
+							break;
+						case VT_I1:
+							break;
+						case VT_UI1:
+							break;
+						case VT_I2:
+							break;
+						case VT_UI2:
+							break;
+						case VT_I4:
+							break;
+						case VT_UI4:
+							break;
+						case VT_I8:
+							break;
+						case VT_UI8:
+							break;
+						case VT_R4:
+							break;
+						case VT_R8:
+							break;
+						case (VT_ARRAY | VT_I1):
+							break;
+						case (VT_ARRAY | VT_UI1):
+							break;
+						case VT_DECIMAL:
+							switch((SQLSMALLINT)colInfo.ColumnSize) {
+							case SQL_DECIMAL:
+								break;
+							case SQL_NUMERIC:
+								break;
+							default:
+								assert(false); //shouldn't come here
+								break;
+							}
+							break;
+						default:
+							assert(false);
+							break;
+						}
+					}
+				}
+				else {
+					res = SPA::Odbc::ER_ERROR;
+                    GetErrMsg(SQL_HANDLE_STMT, hstmt, errMsg);
+					++m_fails;
+                    break;
+				}
+			}
+			return true;
 		}
 
         void COdbcImpl::Execute(const std::wstring& wsql, bool rowset, bool meta, bool lastInsertId, UINT64 index, INT64 &affected, int &res, std::wstring &errMsg, CDBVariant &vtId, UINT64 & fail_ok) {
@@ -440,6 +552,8 @@ namespace SPA
             } else {
                 res = 0;
             }
+			UINT64 fails = m_fails;
+            UINT64 oks = m_oks;
             SQLHSTMT hstmt = nullptr;
             SQLRETURN retcode = SQLAllocHandle(SQL_HANDLE_STMT, m_pOdbc.get(), &hstmt);
             do {
@@ -452,12 +566,14 @@ namespace SPA
                 if (!SQL_SUCCEEDED(retcode)) {
                     res = SPA::Odbc::ER_ERROR;
                     GetErrMsg(SQL_HANDLE_DBC, m_pOdbc.get(), errMsg);
+					++m_fails;
                     break;
                 }
                 retcode = SQLExecDirect(hstmt, (SQLWCHAR*) wsql.c_str(), (SQLINTEGER) wsql.size());
                 if (!SQL_SUCCEEDED(retcode)) {
                     res = SPA::Odbc::ER_ERROR;
                     GetErrMsg(SQL_HANDLE_STMT, hstmt, errMsg);
+					++m_fails;
                     break;
                 }
                 do {
@@ -466,8 +582,19 @@ namespace SPA
                     assert(SQL_SUCCEEDED(retcode));
                     if (columns > 0) {
                         if (rowset) {
-							CDBColumnInfoArray vCols = GetColInfo(hstmt, columns, meta);
-							vCols.clear();
+							unsigned int ret;
+							CDBColumnInfoArray vInfo = GetColInfo(hstmt, columns, meta);
+							CScopeUQueue sbRowset;
+							sbRowset << vInfo << index;
+							ret = SendResult(idRowsetHeader, sbRowset->GetBuffer(), sbRowset->GetSize());
+							if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
+								return;
+							}
+							bool ok = PushRecords(hstmt, vInfo, res, errMsg);
+							++m_oks;
+							if (!ok) {
+								return;
+							}
                         }
                     } else {
                         SQLLEN rows = 0;
@@ -476,10 +603,13 @@ namespace SPA
                         if (rows > 0) {
                             affected += rows;
                         }
+						++m_oks;
                     }
                 } while ((retcode = SQLMoreResults(hstmt)) == SQL_SUCCESS);
                 assert(retcode == SQL_NO_DATA);
             } while (false);
+			fail_ok = ((m_fails - fails) << 32);
+            fail_ok += (unsigned int) (m_oks - oks);
         }
 
         void COdbcImpl::Prepare(const std::wstring& wsql, CParameterInfoArray& params, int &res, std::wstring &errMsg, unsigned int &parameters) {
@@ -491,8 +621,6 @@ namespace SPA
             affected = 0;
             res = 0;
             fail_ok = 0;
-
-
         }
 
         void COdbcImpl::StartBLOB(unsigned int lenExpected) {
@@ -548,9 +676,7 @@ namespace SPA
             errMsg.clear();
             SQLSMALLINT i = 1, MsgLen = 0;
             SQLINTEGER NativeError = 0;
-            SQLWCHAR SqlState[6] =
-            {0}, Msg[SQL_MAX_MESSAGE_LENGTH + 1] =
-            {0};
+            SQLWCHAR SqlState[6] = {0}, Msg[SQL_MAX_MESSAGE_LENGTH + 1] = {0};
             SQLRETURN res = SQLGetDiagRec(HandleType, Handle, i, SqlState, &NativeError, Msg, sizeof (Msg) / sizeof (SQLWCHAR), &MsgLen);
             while (res != SQL_NO_DATA) {
                 if (errMsg.size())
