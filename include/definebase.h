@@ -646,7 +646,7 @@ namespace SPA {
 
 #ifdef WIN32_64
 
-        UDateTime(const SYSTEMTIME &dt, unsigned int us = 0) {
+        UDateTime(const SYSTEMTIME &dt, unsigned short us = 0) {
             Set(dt, us);
         }
 

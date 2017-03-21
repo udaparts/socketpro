@@ -72,7 +72,10 @@ namespace SPA {
 
             static void ConvertToUTF8OrDouble(CDBVariant &vt);
             static void GetErrMsg(SQLSMALLINT HandleType, SQLHANDLE Handle, std::wstring &errMsg);
-
+			static unsigned short ToSystemTime(const TIMESTAMP_STRUCT &d, SYSTEMTIME &st);
+			static void ToSystemTime(const TIME_STRUCT &d, SYSTEMTIME &st);
+			static void ToSystemTime(const DATE_STRUCT &d, SYSTEMTIME &st);
+			static void ToDec(const SQL_NUMERIC_STRUCT &d, DECIMAL &dec);
 
         protected:
             UINT64 m_oks;
@@ -93,6 +96,9 @@ namespace SPA {
             std::shared_ptr<void> m_pPrepare;
 
             SQLSMALLINT m_parameters;
+			bool m_bCall;
+            std::wstring m_sqlPrepare;
+            std::wstring m_procName;
 
             static const wchar_t* NO_DB_OPENED_YET;
             static const wchar_t* BAD_END_TRANSTACTION_PLAN;

@@ -5,15 +5,6 @@
 #include "../spa_module.h"
 #include "uodbc.h"
 
-#ifdef WIN32_64
-
-#include <sqlext.h>
-
-#else
-
-
-#endif
-
 #ifdef __cplusplus
 extern "C" {
 #endif
