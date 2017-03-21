@@ -310,14 +310,63 @@ namespace SPA
             return true;
         }
 
-		bool COdbcImpl::SendBlob(SQLHSTMT hstmt, SQLUSMALLINT index, VARTYPE vt, SQLSMALLINT data_type, CUQueue &qTemp, CUQueue &q, bool &blob) {
+		bool COdbcImpl::SendUText(SQLHSTMT hstmt, SQLUSMALLINT index, CUQueue &qTemp, CUQueue &q, bool &blob) {
+			qTemp.SetSize(0);
+			SQLLEN len_or_null = 0;
+			SQLRETURN retcode = SQLGetData(hstmt, index, SQL_C_WCHAR, (SQLPOINTER)qTemp.GetBuffer(), qTemp.GetMaxSize(), &len_or_null);
+			assert(SQL_SUCCEEDED(retcode));
+			if (len_or_null == SQL_NULL_DATA) {
+				q << (VARTYPE)VT_NULL;
+				blob = false;
+				return true;
+			}
+			else if ((unsigned int)len_or_null < qTemp.GetMaxSize()) {
+#ifdef WIN32_64
+				q << (VARTYPE)VT_BSTR << (unsigned int)len_or_null;
+				q.Push(qTemp.GetBuffer(), (unsigned int)len_or_null);
+#else
+
+#endif
+				blob = false;
+				return true;
+			}
+			if (q.GetSize() && !SendRows(q, true)) {
+                return false;
+            }
+#ifdef WIN32_64
+			unsigned int bytes = (unsigned int)len_or_null;
+			unsigned int ret = SendResult(idStartBLOB, (unsigned int)(bytes + sizeof (VARTYPE) + sizeof (unsigned int) + sizeof (unsigned int)), (VARTYPE)VT_BSTR, bytes);
+            if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
+                return false;
+            }
+			blob = true;
+			while (retcode == SQL_SUCCESS_WITH_INFO) {
+				if (bytes > qTemp.GetMaxSize()) {
+					bytes = qTemp.GetMaxSize();
+				}
+				bytes -= sizeof(wchar_t);
+				ret = SendResult(idChunk, qTemp.GetBuffer(), bytes);
+                if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
+                    return false;
+                }
+				retcode = SQLGetData(hstmt, index, SQL_C_WCHAR, (SQLPOINTER)qTemp.GetBuffer(), qTemp.GetMaxSize(), &len_or_null);
+				bytes = (unsigned int)len_or_null;
+			}
+			ret = SendResult(idEndBLOB, qTemp.GetBuffer(), bytes);
+            if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
+                return false;
+            }
+#else
+
+#endif
+			return true;
+		}
+
+		bool COdbcImpl::SendBlob(SQLHSTMT hstmt, SQLUSMALLINT index, VARTYPE vt, CUQueue &qTemp, CUQueue &q, bool &blob) {
 			qTemp.SetSize(0);
 			SQLLEN len_or_null = 0;
 			SQLRETURN retcode = SQLGetData(hstmt, index, SQL_C_BINARY, (SQLPOINTER)qTemp.GetBuffer(), qTemp.GetMaxSize(), &len_or_null);
-			if (retcode < 0) {
-				blob = false;
-				return false;
-			}
+			assert(SQL_SUCCEEDED(retcode));
 			if (len_or_null == SQL_NULL_DATA) {
 				q << (VARTYPE)VT_NULL;
 				blob = false;
@@ -333,7 +382,7 @@ namespace SPA
                 return false;
             }
 			unsigned int bytes = (unsigned int)len_or_null;
-			unsigned int ret = SendResult(idStartBLOB, (unsigned int)(bytes + sizeof (unsigned short) + sizeof (unsigned int) + sizeof (unsigned int)), vt, bytes);
+			unsigned int ret = SendResult(idStartBLOB, (unsigned int)(bytes + sizeof (VARTYPE) + sizeof (unsigned int) + sizeof (unsigned int)), vt, bytes);
             if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
                 return false;
             }
@@ -600,20 +649,21 @@ namespace SPA
 								}
                                 break;
                             case VT_BSTR:
-								if (colInfo.ColumnSize >= DEFAULT_BIG_FIELD_CHUNK_SIZE)
-								{
-
+								if (colInfo.ColumnSize >= DEFAULT_BIG_FIELD_CHUNK_SIZE) {
+									if (!SendUText(hstmt, (SQLUSMALLINT)(i + 1), *sbTemp, q, blob)) {
+										return false;
+									}
 								}
 								else {
 #ifdef WIN32_64
 									unsigned int max = (colInfo.ColumnSize << 1);
-									if (q.GetTailSize() < sizeof(unsigned int) + sizeof(VARTYPE) + max) {
-										q.ReallocBuffer(q.GetMaxSize() + max + sizeof(unsigned int) + sizeof(VARTYPE));
+									if (q.GetTailSize() < sizeof(unsigned int) + sizeof(VARTYPE) + max + sizeof(wchar_t)) {
+										q.ReallocBuffer(q.GetMaxSize() + max + sizeof(unsigned int) + sizeof(VARTYPE) + sizeof(wchar_t));
 									}
 									VARTYPE *pvt = (VARTYPE *)q.GetBuffer(q.GetSize());
 									unsigned int *plen = (unsigned int*)(pvt + 1);
 									unsigned char *pos = (unsigned char*)(plen + 1);
-									retcode = SQLGetData(hstmt, (SQLUSMALLINT)(i + 1), SQL_C_WCHAR, pos, q.GetTailSize(), &len_or_null);
+									retcode = SQLGetData(hstmt, (SQLUSMALLINT)(i + 1), SQL_C_WCHAR, pos, q.GetTailSize() -  sizeof(unsigned int) - sizeof(VARTYPE), &len_or_null);
 									if (SQL_NULL_DATA == len_or_null) {
 										q << (VARTYPE)VT_NULL; 
 									}
@@ -856,7 +906,7 @@ namespace SPA
 									}
 								}
 								else {
-									if (!SendBlob(hstmt, (SQLUSMALLINT)(i + 1), vt, SQL_C_CHAR, *sbTemp, q, blob)) {
+									if (!SendBlob(hstmt, (SQLUSMALLINT)(i + 1), vt, *sbTemp, q, blob)) {
 										return false;
 									}
 								}
@@ -883,7 +933,7 @@ namespace SPA
 									}
 								}
 								else {
-									if (!SendBlob(hstmt, (SQLUSMALLINT)(i + 1), vt, SQL_C_BINARY, *sbTemp, q, blob)) {
+									if (!SendBlob(hstmt, (SQLUSMALLINT)(i + 1), vt, *sbTemp, q, blob)) {
 										return false;
 									}
 								}
