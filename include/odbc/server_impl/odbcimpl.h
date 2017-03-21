@@ -62,8 +62,9 @@ namespace SPA {
             void BeginRows();
             void EndRows();
             void Transferring();
-            bool SendRows(CScopeUQueue& sb, bool transferring = false);
-            bool SendBlob(unsigned short data_type, const unsigned char *buffer, unsigned int bytes);
+            bool SendRows(CUQueue& sb, bool transferring = false);
+			bool SendBlob(unsigned short data_type, const unsigned char *buffer, unsigned int bytes);
+            bool SendBlob(SQLHSTMT hstmt, SQLUSMALLINT index, VARTYPE vt, SQLSMALLINT data_type, CUQueue &qTemp, CUQueue &q, bool &blob);
 
         private:
             void CleanDBObjects();

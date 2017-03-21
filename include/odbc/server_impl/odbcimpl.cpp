@@ -271,13 +271,13 @@ namespace SPA
             res = 0;
         }
 
-		bool COdbcImpl::SendRows(CScopeUQueue& sb, bool transferring) {
+		bool COdbcImpl::SendRows(CUQueue& sb, bool transferring) {
             bool batching = (GetBytesBatched() >= DEFAULT_RECORD_BATCH_SIZE);
             if (batching) {
                 CommitBatching();
             }
-            unsigned int ret = SendResult(transferring ? idTransferring : idEndRows, sb->GetBuffer(), sb->GetSize());
-            sb->SetSize(0);
+            unsigned int ret = SendResult(transferring ? idTransferring : idEndRows, sb.GetBuffer(), sb.GetSize());
+            sb.SetSize(0);
             if (batching) {
                 StartBatching();
             }
@@ -308,6 +308,52 @@ namespace SPA
                 return false;
             }
             return true;
+        }
+
+		bool COdbcImpl::SendBlob(SQLHSTMT hstmt, SQLUSMALLINT index, VARTYPE vt, SQLSMALLINT data_type, CUQueue &qTemp, CUQueue &q, bool &blob) {
+			qTemp.SetSize(0);
+			SQLLEN len_or_null = 0;
+			SQLRETURN retcode = SQLGetData(hstmt, index, SQL_C_BINARY, (SQLPOINTER)qTemp.GetBuffer(), qTemp.GetMaxSize(), &len_or_null);
+			if (retcode < 0) {
+				blob = false;
+				return false;
+			}
+			if (len_or_null == SQL_NULL_DATA) {
+				q << (VARTYPE)VT_NULL;
+				blob = false;
+				return true;
+			}
+			else if ((unsigned int)len_or_null <= qTemp.GetMaxSize()) {
+				q << vt << (unsigned int)len_or_null;
+				q.Push(qTemp.GetBuffer(), (unsigned int)len_or_null);
+				blob = false;
+				return true;
+			}
+			if (q.GetSize() && !SendRows(q, true)) {
+                return false;
+            }
+			unsigned int bytes = (unsigned int)len_or_null;
+			unsigned int ret = SendResult(idStartBLOB, (unsigned int)(bytes + sizeof (unsigned short) + sizeof (unsigned int) + sizeof (unsigned int)), vt, bytes);
+            if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
+                return false;
+            }
+			blob = true;
+			while (retcode == SQL_SUCCESS_WITH_INFO) {
+				if (bytes > qTemp.GetMaxSize()) {
+					bytes = qTemp.GetMaxSize();
+				}
+				ret = SendResult(idChunk, qTemp.GetBuffer(), bytes);
+                if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
+                    return false;
+                }
+				retcode = SQLGetData(hstmt, index, SQL_C_BINARY, (SQLPOINTER)qTemp.GetBuffer(), qTemp.GetMaxSize(), &len_or_null);
+				bytes = (unsigned int)len_or_null;
+			}
+			ret = SendResult(idEndBLOB, qTemp.GetBuffer(), bytes);
+            if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
+                return false;
+            }
+			return true;
         }
 
         CDBColumnInfoArray COdbcImpl::GetColInfo(SQLHSTMT hstmt, SQLSMALLINT columns, bool meta) {
@@ -531,6 +577,9 @@ namespace SPA
             CUQueue &q = *sb;
             while (true) {
                 retcode = SQLFetch(hstmt);
+				if (retcode == SQL_NO_DATA) {
+					break;
+				}
 				bool blob = false;
                 if (SQL_SUCCEEDED(retcode)) {
                     for (size_t i = 0; i < fields; ++i) {
@@ -553,9 +602,7 @@ namespace SPA
                             case VT_BSTR:
 								if (colInfo.ColumnSize >= DEFAULT_BIG_FIELD_CHUNK_SIZE)
 								{
-									if (sb->GetSize() && !SendRows(sb, true)) {
-                                        return false;
-                                    }
+
 								}
 								else {
 #ifdef WIN32_64
@@ -809,7 +856,9 @@ namespace SPA
 									}
 								}
 								else {
-
+									if (!SendBlob(hstmt, (SQLUSMALLINT)(i + 1), vt, SQL_C_CHAR, *sbTemp, q, blob)) {
+										return false;
+									}
 								}
                                 break;
                             case (VT_ARRAY | VT_UI1):
@@ -834,7 +883,9 @@ namespace SPA
 									}
 								}
 								else {
-
+									if (!SendBlob(hstmt, (SQLUSMALLINT)(i + 1), vt, SQL_C_BINARY, *sbTemp, q, blob)) {
+										return false;
+									}
 								}
                                 break;
                             case VT_DECIMAL:
@@ -875,13 +926,13 @@ namespace SPA
 					assert(false); //shouldn't come here
                     break;
                 }
-				if ((sb->GetSize() >= DEFAULT_RECORD_BATCH_SIZE || blob) && !SendRows(sb)) {
+				if ((q.GetSize() >= DEFAULT_RECORD_BATCH_SIZE || blob) && !SendRows(q)) {
 					return false;
 				}
             } //while loop
 			assert(SQL_NO_DATA == retcode);
-			if (sb->GetSize()) {
-				return SendRows(sb);
+			if (q.GetSize()) {
+				return SendRows(q);
 			}
             return true;
         }

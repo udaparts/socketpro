@@ -690,7 +690,7 @@ namespace SPA {
                             m_Blob.SetSize(0);
                             unsigned int len;
                             mc >> len;
-                            if (len != (UQUEUE_END_POSTION) && len > m_Blob.GetMaxSize()) {
+                            if (len != UQUEUE_END_POSTION && len > m_Blob.GetMaxSize()) {
                                 m_Blob.ReallocBuffer(len);
                             }
                             m_Blob.Push(mc.GetBuffer(), mc.GetSize());
