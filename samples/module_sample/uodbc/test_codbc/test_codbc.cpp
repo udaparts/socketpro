@@ -75,12 +75,12 @@ int main(int argc, char* argv[]) {
     };
 
     ok = pOdbc->Open(nullptr, dr);
-    //TestCreateTables(pOdbc);
+    TestCreateTables(pOdbc);
     //ok = pOdbc->Execute(L"delete from employee;delete from company", er);
     //TestPreparedStatements(pOdbc);
     //InsertBLOBByPreparedStatement(pOdbc);
     //ok = pOdbc->Execute(L"SELECT * from company;select * from employee;select curtime()", er, r, rh);
-	ok = pOdbc->SpecialColumns(SQL_BEST_ROWID, L"mysqldb", L"", L"employee", SQL_SCOPE_CURROW, SQL_NULLABLE, er, r, rh);
+	ok = pOdbc->Tables(L"mysqldb", L"", L"%", L"", er, r, rh);
 
     CDBVariantArray vPData;
     //first set

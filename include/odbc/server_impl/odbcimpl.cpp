@@ -142,12 +142,18 @@ namespace SPA
             M_I5_R5(idExecute, Execute, std::wstring, bool, bool, bool, UINT64, INT64, int, std::wstring, CDBVariant, UINT64)
             M_I2_R3(idPrepare, Prepare, std::wstring, CParameterInfoArray, int, std::wstring, unsigned int)
             M_I4_R5(idExecuteParameters, ExecuteParameters, bool, bool, bool, UINT64, INT64, int, std::wstring, CDBVariant, UINT64)
-			M_I5_R3(SPA::Odbc::idSQLColumnPrivileges, DoSQLColumnPrivileges, std::wstring, std::wstring, std::wstring, std::wstring, UINT64, int, std::wstring, UINT64)
-			M_I5_R3(SPA::Odbc::idSQLColumns, DoSQLColumns, std::wstring, std::wstring, std::wstring, std::wstring, UINT64, int, std::wstring, UINT64)
-			M_I7_R3(SPA::Odbc::idSQLForeignKeys, DoSQLForeignKeys, std::wstring, std::wstring, std::wstring, std::wstring, std::wstring, std::wstring, UINT64, int, std::wstring, UINT64)
-			M_I4_R3(SPA::Odbc::idSQLPrimaryKeys, DoSQLPrimaryKeys, std::wstring, std::wstring, std::wstring, UINT64, int, std::wstring, UINT64)
-			M_I5_R3(SPA::Odbc::idSQLProcedureColumns, DoSQLProcedureColumns, std::wstring, std::wstring, std::wstring, std::wstring, UINT64, int, std::wstring, UINT64)
-			M_I7_R3(SPA::Odbc::idSQLSpecialColumns, DoSQLSpecialColumns, SQLSMALLINT, std::wstring, std::wstring, std::wstring, SQLSMALLINT, SQLSMALLINT, UINT64, int, std::wstring, UINT64)
+#if 0
+            M_I5_R3(SPA::Odbc::idSQLColumnPrivileges, DoSQLColumnPrivileges, std::wstring, std::wstring, std::wstring, std::wstring, UINT64, int, std::wstring, UINT64)
+            M_I5_R3(SPA::Odbc::idSQLColumns, DoSQLColumns, std::wstring, std::wstring, std::wstring, std::wstring, UINT64, int, std::wstring, UINT64)
+            M_I7_R3(SPA::Odbc::idSQLForeignKeys, DoSQLForeignKeys, std::wstring, std::wstring, std::wstring, std::wstring, std::wstring, std::wstring, UINT64, int, std::wstring, UINT64)
+            M_I4_R3(SPA::Odbc::idSQLPrimaryKeys, DoSQLPrimaryKeys, std::wstring, std::wstring, std::wstring, UINT64, int, std::wstring, UINT64)
+            M_I5_R3(SPA::Odbc::idSQLProcedureColumns, DoSQLProcedureColumns, std::wstring, std::wstring, std::wstring, std::wstring, UINT64, int, std::wstring, UINT64)
+            M_I4_R3(SPA::Odbc::idSQLProcedures, DoSQLProcedures, std::wstring, std::wstring, std::wstring, UINT64, int, std::wstring, UINT64)
+            M_I7_R3(SPA::Odbc::idSQLSpecialColumns, DoSQLSpecialColumns, SQLSMALLINT, std::wstring, std::wstring, std::wstring, SQLSMALLINT, SQLSMALLINT, UINT64, int, std::wstring, UINT64)
+            M_I6_R3(SPA::Odbc::idSQLStatistics, DoSQLStatistics, std::wstring, std::wstring, std::wstring, SQLUSMALLINT, SQLUSMALLINT, UINT64, int, std::wstring, UINT64)
+            M_I4_R3(SPA::Odbc::idSQLTablePrivileges, DoSQLTablePrivileges, std::wstring, std::wstring, std::wstring, UINT64, int, std::wstring, UINT64)
+            M_I5_R3(SPA::Odbc::idSQLTables, DoSQLTables, std::wstring, std::wstring, std::wstring, std::wstring, UINT64, int, std::wstring, UINT64)
+#endif
             END_SWITCH
             if (reqId == idExecuteParameters) {
                 ReleaseArray();
@@ -164,13 +170,16 @@ namespace SPA
             M_I5_R5(idExecute, Execute, std::wstring, bool, bool, bool, UINT64, INT64, int, std::wstring, CDBVariant, UINT64)
             M_I2_R3(idPrepare, Prepare, std::wstring, CParameterInfoArray, int, std::wstring, unsigned int)
             M_I4_R5(idExecuteParameters, ExecuteParameters, bool, bool, bool, UINT64, INT64, int, std::wstring, CDBVariant, UINT64)
-			M_I5_R3(SPA::Odbc::idSQLColumnPrivileges, DoSQLColumnPrivileges, std::wstring, std::wstring, std::wstring, std::wstring, UINT64, int, std::wstring, UINT64)
-			M_I5_R3(SPA::Odbc::idSQLColumns, DoSQLColumns, std::wstring, std::wstring, std::wstring, std::wstring, UINT64, int, std::wstring, UINT64)
-			M_I7_R3(SPA::Odbc::idSQLForeignKeys, DoSQLForeignKeys, std::wstring, std::wstring, std::wstring, std::wstring, std::wstring, std::wstring, UINT64, int, std::wstring, UINT64)
-			M_I4_R3(SPA::Odbc::idSQLPrimaryKeys, DoSQLPrimaryKeys, std::wstring, std::wstring, std::wstring, UINT64, int, std::wstring, UINT64)
-			M_I5_R3(SPA::Odbc::idSQLProcedureColumns, DoSQLProcedureColumns, std::wstring, std::wstring, std::wstring, std::wstring, UINT64, int, std::wstring, UINT64)
-			M_I4_R3(SPA::Odbc::idSQLProcedures, DoSQLProcedures, std::wstring, std::wstring, std::wstring, UINT64, int, std::wstring, UINT64)
-			M_I7_R3(SPA::Odbc::idSQLSpecialColumns, DoSQLSpecialColumns, SQLSMALLINT, std::wstring, std::wstring, std::wstring, SQLSMALLINT, SQLSMALLINT, UINT64, int, std::wstring, UINT64)
+            M_I5_R3(SPA::Odbc::idSQLColumnPrivileges, DoSQLColumnPrivileges, std::wstring, std::wstring, std::wstring, std::wstring, UINT64, int, std::wstring, UINT64)
+            M_I5_R3(SPA::Odbc::idSQLColumns, DoSQLColumns, std::wstring, std::wstring, std::wstring, std::wstring, UINT64, int, std::wstring, UINT64)
+            M_I7_R3(SPA::Odbc::idSQLForeignKeys, DoSQLForeignKeys, std::wstring, std::wstring, std::wstring, std::wstring, std::wstring, std::wstring, UINT64, int, std::wstring, UINT64)
+            M_I4_R3(SPA::Odbc::idSQLPrimaryKeys, DoSQLPrimaryKeys, std::wstring, std::wstring, std::wstring, UINT64, int, std::wstring, UINT64)
+            M_I5_R3(SPA::Odbc::idSQLProcedureColumns, DoSQLProcedureColumns, std::wstring, std::wstring, std::wstring, std::wstring, UINT64, int, std::wstring, UINT64)
+            M_I4_R3(SPA::Odbc::idSQLProcedures, DoSQLProcedures, std::wstring, std::wstring, std::wstring, UINT64, int, std::wstring, UINT64)
+            M_I7_R3(SPA::Odbc::idSQLSpecialColumns, DoSQLSpecialColumns, SQLSMALLINT, std::wstring, std::wstring, std::wstring, SQLSMALLINT, SQLSMALLINT, UINT64, int, std::wstring, UINT64)
+            M_I6_R3(SPA::Odbc::idSQLStatistics, DoSQLStatistics, std::wstring, std::wstring, std::wstring, SQLUSMALLINT, SQLUSMALLINT, UINT64, int, std::wstring, UINT64)
+            M_I4_R3(SPA::Odbc::idSQLTablePrivileges, DoSQLTablePrivileges, std::wstring, std::wstring, std::wstring, UINT64, int, std::wstring, UINT64)
+            M_I5_R3(SPA::Odbc::idSQLTables, DoSQLTables, std::wstring, std::wstring, std::wstring, std::wstring, UINT64, int, std::wstring, UINT64)
             END_SWITCH
             if (reqId == idExecuteParameters) {
                 ReleaseArray();
@@ -974,7 +983,7 @@ namespace SPA
             return true;
         }
 
-		void COdbcImpl::DoSQLColumnPrivileges(const std::wstring& catalogName, const std::wstring& schemaName, const std::wstring& tableName, const std::wstring& columnName, UINT64 index, int &res, std::wstring &errMsg, UINT64 &fail_ok) {
+        void COdbcImpl::DoSQLColumnPrivileges(const std::wstring& catalogName, const std::wstring& schemaName, const std::wstring& tableName, const std::wstring& columnName, UINT64 index, int &res, std::wstring &errMsg, UINT64 & fail_ok) {
             fail_ok = 0;
             if (!m_pOdbc) {
                 res = SPA::Odbc::ER_NO_DB_OPENED_YET;
@@ -990,7 +999,7 @@ namespace SPA
             UINT64 oks = m_oks;
             SQLHSTMT hstmt = nullptr;
             SQLRETURN retcode = SQLAllocHandle(SQL_HANDLE_STMT, m_pOdbc.get(), &hstmt);
-			do {
+            do {
                 std::shared_ptr<void> pStmt(hstmt, [](SQLHSTMT h) {
                     if (h) {
                         SQLRETURN ret = SQLFreeHandle(SQL_HANDLE_STMT, h);
@@ -1003,26 +1012,26 @@ namespace SPA
                     ++m_fails;
                     break;
                 }
-				retcode = SQLColumnPrivileges(hstmt, (SQLWCHAR*)catalogName.c_str(), (SQLSMALLINT)catalogName.size(),
-					(SQLWCHAR*)schemaName.c_str(), (SQLSMALLINT)schemaName.size(),
-					(SQLWCHAR*)tableName.c_str(), (SQLSMALLINT)tableName.size(),
-					(SQLWCHAR*)columnName.c_str(), (SQLSMALLINT)columnName.size());
-				if (!SQL_SUCCEEDED(retcode)) {
+                retcode = SQLColumnPrivileges(hstmt, (SQLWCHAR*) catalogName.c_str(), (SQLSMALLINT) catalogName.size(),
+                        (SQLWCHAR*) schemaName.c_str(), (SQLSMALLINT) schemaName.size(),
+                        (SQLWCHAR*) tableName.c_str(), (SQLSMALLINT) tableName.size(),
+                        (SQLWCHAR*) columnName.c_str(), (SQLSMALLINT) columnName.size());
+                if (!SQL_SUCCEEDED(retcode)) {
                     res = SPA::Odbc::ER_ERROR;
                     GetErrMsg(SQL_HANDLE_STMT, hstmt, errMsg);
                     ++m_fails;
                     break;
                 }
-				unsigned int ret;
-				SQLSMALLINT columns;
+                unsigned int ret;
+                SQLSMALLINT columns = 0;
                 retcode = SQLNumResultCols(hstmt, &columns);
                 assert(SQL_SUCCEEDED(retcode));
                 CDBColumnInfoArray vInfo = GetColInfo(hstmt, columns, true);
-				{
-					CScopeUQueue sbRowset;
-					sbRowset << vInfo << index;
-					ret = SendResult(idRowsetHeader, sbRowset->GetBuffer(), sbRowset->GetSize());
-				}
+                {
+                    CScopeUQueue sbRowset;
+                    sbRowset << vInfo << index;
+                    ret = SendResult(idRowsetHeader, sbRowset->GetBuffer(), sbRowset->GetSize());
+                }
                 if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
                     return;
                 }
@@ -1030,13 +1039,13 @@ namespace SPA
                 ++m_oks;
                 if (!ok) {
                     return;
-                }          
-			}while(false);
-			fail_ok = ((m_fails - fails) << 32);
+                }
+            } while (false);
+            fail_ok = ((m_fails - fails) << 32);
             fail_ok += (unsigned int) (m_oks - oks);
-		}
+        }
 
-		void COdbcImpl::DoSQLColumns(const std::wstring& catalogName, const std::wstring& schemaName, const std::wstring& tableName, const std::wstring& columnName, UINT64 index, int &res, std::wstring &errMsg, UINT64 &fail_ok) {
+        void COdbcImpl::DoSQLTables(const std::wstring& catalogName, const std::wstring& schemaName, const std::wstring& tableName, const std::wstring& tableType, UINT64 index, int &res, std::wstring &errMsg, UINT64 & fail_ok) {
             fail_ok = 0;
             if (!m_pOdbc) {
                 res = SPA::Odbc::ER_NO_DB_OPENED_YET;
@@ -1052,7 +1061,7 @@ namespace SPA
             UINT64 oks = m_oks;
             SQLHSTMT hstmt = nullptr;
             SQLRETURN retcode = SQLAllocHandle(SQL_HANDLE_STMT, m_pOdbc.get(), &hstmt);
-			do {
+            do {
                 std::shared_ptr<void> pStmt(hstmt, [](SQLHSTMT h) {
                     if (h) {
                         SQLRETURN ret = SQLFreeHandle(SQL_HANDLE_STMT, h);
@@ -1065,26 +1074,26 @@ namespace SPA
                     ++m_fails;
                     break;
                 }
-				retcode = SQLColumns(hstmt, (SQLWCHAR*)catalogName.c_str(), (SQLSMALLINT)catalogName.size(),
-					(SQLWCHAR*)schemaName.c_str(), (SQLSMALLINT)schemaName.size(),
-					(SQLWCHAR*)tableName.c_str(), (SQLSMALLINT)tableName.size(),
-					(SQLWCHAR*)columnName.c_str(), (SQLSMALLINT)columnName.size());
-				if (!SQL_SUCCEEDED(retcode)) {
+                retcode = SQLTables(hstmt, (SQLWCHAR*) catalogName.c_str(), (SQLSMALLINT) catalogName.size(),
+                        (SQLWCHAR*) schemaName.c_str(), (SQLSMALLINT) schemaName.size(),
+                        (SQLWCHAR*) tableName.c_str(), (SQLSMALLINT) tableName.size(),
+                        (SQLWCHAR*) tableType.c_str(), (SQLSMALLINT) tableType.size());
+                if (!SQL_SUCCEEDED(retcode)) {
                     res = SPA::Odbc::ER_ERROR;
                     GetErrMsg(SQL_HANDLE_STMT, hstmt, errMsg);
                     ++m_fails;
                     break;
                 }
-				unsigned int ret;
-				SQLSMALLINT columns;
+                unsigned int ret;
+                SQLSMALLINT columns = 0;
                 retcode = SQLNumResultCols(hstmt, &columns);
                 assert(SQL_SUCCEEDED(retcode));
                 CDBColumnInfoArray vInfo = GetColInfo(hstmt, columns, true);
-				{
-					CScopeUQueue sbRowset;
-					sbRowset << vInfo << index;
-					ret = SendResult(idRowsetHeader, sbRowset->GetBuffer(), sbRowset->GetSize());
-				}
+                {
+                    CScopeUQueue sbRowset;
+                    sbRowset << vInfo << index;
+                    ret = SendResult(idRowsetHeader, sbRowset->GetBuffer(), sbRowset->GetSize());
+                }
                 if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
                     return;
                 }
@@ -1092,13 +1101,13 @@ namespace SPA
                 ++m_oks;
                 if (!ok) {
                     return;
-                }          
-			}while(false);
-			fail_ok = ((m_fails - fails) << 32);
+                }
+            } while (false);
+            fail_ok = ((m_fails - fails) << 32);
             fail_ok += (unsigned int) (m_oks - oks);
-		}
+        }
 
-		void COdbcImpl::DoSQLProcedureColumns(const std::wstring& catalogName, const std::wstring& schemaName, const std::wstring& procName, const std::wstring& columnName, UINT64 index, int &res, std::wstring &errMsg, UINT64 &fail_ok) {
+        void COdbcImpl::DoSQLColumns(const std::wstring& catalogName, const std::wstring& schemaName, const std::wstring& tableName, const std::wstring& columnName, UINT64 index, int &res, std::wstring &errMsg, UINT64 & fail_ok) {
             fail_ok = 0;
             if (!m_pOdbc) {
                 res = SPA::Odbc::ER_NO_DB_OPENED_YET;
@@ -1114,7 +1123,7 @@ namespace SPA
             UINT64 oks = m_oks;
             SQLHSTMT hstmt = nullptr;
             SQLRETURN retcode = SQLAllocHandle(SQL_HANDLE_STMT, m_pOdbc.get(), &hstmt);
-			do {
+            do {
                 std::shared_ptr<void> pStmt(hstmt, [](SQLHSTMT h) {
                     if (h) {
                         SQLRETURN ret = SQLFreeHandle(SQL_HANDLE_STMT, h);
@@ -1127,26 +1136,26 @@ namespace SPA
                     ++m_fails;
                     break;
                 }
-				retcode = SQLProcedureColumns(hstmt, (SQLWCHAR*)catalogName.c_str(), (SQLSMALLINT)catalogName.size(),
-					(SQLWCHAR*)schemaName.c_str(), (SQLSMALLINT)schemaName.size(),
-					(SQLWCHAR*)procName.c_str(), (SQLSMALLINT)procName.size(),
-					(SQLWCHAR*)columnName.c_str(), (SQLSMALLINT)columnName.size());
-				if (!SQL_SUCCEEDED(retcode)) {
+                retcode = SQLColumns(hstmt, (SQLWCHAR*) catalogName.c_str(), (SQLSMALLINT) catalogName.size(),
+                        (SQLWCHAR*) schemaName.c_str(), (SQLSMALLINT) schemaName.size(),
+                        (SQLWCHAR*) tableName.c_str(), (SQLSMALLINT) tableName.size(),
+                        (SQLWCHAR*) columnName.c_str(), (SQLSMALLINT) columnName.size());
+                if (!SQL_SUCCEEDED(retcode)) {
                     res = SPA::Odbc::ER_ERROR;
                     GetErrMsg(SQL_HANDLE_STMT, hstmt, errMsg);
                     ++m_fails;
                     break;
                 }
-				unsigned int ret;
-				SQLSMALLINT columns;
+                unsigned int ret;
+                SQLSMALLINT columns = 0;
                 retcode = SQLNumResultCols(hstmt, &columns);
                 assert(SQL_SUCCEEDED(retcode));
                 CDBColumnInfoArray vInfo = GetColInfo(hstmt, columns, true);
-				{
-					CScopeUQueue sbRowset;
-					sbRowset << vInfo << index;
-					ret = SendResult(idRowsetHeader, sbRowset->GetBuffer(), sbRowset->GetSize());
-				}
+                {
+                    CScopeUQueue sbRowset;
+                    sbRowset << vInfo << index;
+                    ret = SendResult(idRowsetHeader, sbRowset->GetBuffer(), sbRowset->GetSize());
+                }
                 if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
                     return;
                 }
@@ -1154,13 +1163,13 @@ namespace SPA
                 ++m_oks;
                 if (!ok) {
                     return;
-                }          
-			}while(false);
-			fail_ok = ((m_fails - fails) << 32);
+                }
+            } while (false);
+            fail_ok = ((m_fails - fails) << 32);
             fail_ok += (unsigned int) (m_oks - oks);
-		}
+        }
 
-		void COdbcImpl::DoSQLPrimaryKeys(const std::wstring& catalogName, const std::wstring& schemaName, const std::wstring& tableName, UINT64 index, int &res, std::wstring &errMsg, UINT64 &fail_ok) {
+        void COdbcImpl::DoSQLProcedureColumns(const std::wstring& catalogName, const std::wstring& schemaName, const std::wstring& procName, const std::wstring& columnName, UINT64 index, int &res, std::wstring &errMsg, UINT64 & fail_ok) {
             fail_ok = 0;
             if (!m_pOdbc) {
                 res = SPA::Odbc::ER_NO_DB_OPENED_YET;
@@ -1176,7 +1185,7 @@ namespace SPA
             UINT64 oks = m_oks;
             SQLHSTMT hstmt = nullptr;
             SQLRETURN retcode = SQLAllocHandle(SQL_HANDLE_STMT, m_pOdbc.get(), &hstmt);
-			do {
+            do {
                 std::shared_ptr<void> pStmt(hstmt, [](SQLHSTMT h) {
                     if (h) {
                         SQLRETURN ret = SQLFreeHandle(SQL_HANDLE_STMT, h);
@@ -1189,25 +1198,26 @@ namespace SPA
                     ++m_fails;
                     break;
                 }
-				retcode = SQLPrimaryKeys(hstmt, (SQLWCHAR*)catalogName.c_str(), (SQLSMALLINT)catalogName.size(),
-					(SQLWCHAR*)schemaName.c_str(), (SQLSMALLINT)schemaName.size(),
-					(SQLWCHAR*)tableName.c_str(), (SQLSMALLINT)tableName.size());
-				if (!SQL_SUCCEEDED(retcode)) {
+                retcode = SQLProcedureColumns(hstmt, (SQLWCHAR*) catalogName.c_str(), (SQLSMALLINT) catalogName.size(),
+                        (SQLWCHAR*) schemaName.c_str(), (SQLSMALLINT) schemaName.size(),
+                        (SQLWCHAR*) procName.c_str(), (SQLSMALLINT) procName.size(),
+                        (SQLWCHAR*) columnName.c_str(), (SQLSMALLINT) columnName.size());
+                if (!SQL_SUCCEEDED(retcode)) {
                     res = SPA::Odbc::ER_ERROR;
                     GetErrMsg(SQL_HANDLE_STMT, hstmt, errMsg);
                     ++m_fails;
                     break;
                 }
-				unsigned int ret;
-				SQLSMALLINT columns;
+                unsigned int ret;
+                SQLSMALLINT columns = 0;
                 retcode = SQLNumResultCols(hstmt, &columns);
                 assert(SQL_SUCCEEDED(retcode));
                 CDBColumnInfoArray vInfo = GetColInfo(hstmt, columns, true);
-				{
-					CScopeUQueue sbRowset;
-					sbRowset << vInfo << index;
-					ret = SendResult(idRowsetHeader, sbRowset->GetBuffer(), sbRowset->GetSize());
-				}
+                {
+                    CScopeUQueue sbRowset;
+                    sbRowset << vInfo << index;
+                    ret = SendResult(idRowsetHeader, sbRowset->GetBuffer(), sbRowset->GetSize());
+                }
                 if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
                     return;
                 }
@@ -1215,13 +1225,13 @@ namespace SPA
                 ++m_oks;
                 if (!ok) {
                     return;
-                }          
-			}while(false);
-			fail_ok = ((m_fails - fails) << 32);
+                }
+            } while (false);
+            fail_ok = ((m_fails - fails) << 32);
             fail_ok += (unsigned int) (m_oks - oks);
-		}
+        }
 
-		void COdbcImpl::DoSQLProcedures(const std::wstring& catalogName, const std::wstring& schemaName, const std::wstring& procName, UINT64 index, int &res, std::wstring &errMsg, UINT64 &fail_ok) {
+        void COdbcImpl::DoSQLPrimaryKeys(const std::wstring& catalogName, const std::wstring& schemaName, const std::wstring& tableName, UINT64 index, int &res, std::wstring &errMsg, UINT64 & fail_ok) {
             fail_ok = 0;
             if (!m_pOdbc) {
                 res = SPA::Odbc::ER_NO_DB_OPENED_YET;
@@ -1237,7 +1247,7 @@ namespace SPA
             UINT64 oks = m_oks;
             SQLHSTMT hstmt = nullptr;
             SQLRETURN retcode = SQLAllocHandle(SQL_HANDLE_STMT, m_pOdbc.get(), &hstmt);
-			do {
+            do {
                 std::shared_ptr<void> pStmt(hstmt, [](SQLHSTMT h) {
                     if (h) {
                         SQLRETURN ret = SQLFreeHandle(SQL_HANDLE_STMT, h);
@@ -1250,25 +1260,25 @@ namespace SPA
                     ++m_fails;
                     break;
                 }
-				retcode = SQLProcedures(hstmt, (SQLWCHAR*)catalogName.c_str(), (SQLSMALLINT)catalogName.size(),
-					(SQLWCHAR*)schemaName.c_str(), (SQLSMALLINT)schemaName.size(),
-					(SQLWCHAR*)procName.c_str(), (SQLSMALLINT)procName.size());
-				if (!SQL_SUCCEEDED(retcode)) {
+                retcode = SQLPrimaryKeys(hstmt, (SQLWCHAR*) catalogName.c_str(), (SQLSMALLINT) catalogName.size(),
+                        (SQLWCHAR*) schemaName.c_str(), (SQLSMALLINT) schemaName.size(),
+                        (SQLWCHAR*) tableName.c_str(), (SQLSMALLINT) tableName.size());
+                if (!SQL_SUCCEEDED(retcode)) {
                     res = SPA::Odbc::ER_ERROR;
                     GetErrMsg(SQL_HANDLE_STMT, hstmt, errMsg);
                     ++m_fails;
                     break;
                 }
-				unsigned int ret;
-				SQLSMALLINT columns;
+                unsigned int ret;
+                SQLSMALLINT columns = 0;
                 retcode = SQLNumResultCols(hstmt, &columns);
                 assert(SQL_SUCCEEDED(retcode));
                 CDBColumnInfoArray vInfo = GetColInfo(hstmt, columns, true);
-				{
-					CScopeUQueue sbRowset;
-					sbRowset << vInfo << index;
-					ret = SendResult(idRowsetHeader, sbRowset->GetBuffer(), sbRowset->GetSize());
-				}
+                {
+                    CScopeUQueue sbRowset;
+                    sbRowset << vInfo << index;
+                    ret = SendResult(idRowsetHeader, sbRowset->GetBuffer(), sbRowset->GetSize());
+                }
                 if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
                     return;
                 }
@@ -1276,13 +1286,13 @@ namespace SPA
                 ++m_oks;
                 if (!ok) {
                     return;
-                }          
-			}while(false);
-			fail_ok = ((m_fails - fails) << 32);
+                }
+            } while (false);
+            fail_ok = ((m_fails - fails) << 32);
             fail_ok += (unsigned int) (m_oks - oks);
-		}
+        }
 
-		void COdbcImpl::DoSQLSpecialColumns(SQLSMALLINT identifierType, const std::wstring& catalogName, const std::wstring& schemaName, const std::wstring& tableName, SQLSMALLINT scope, SQLSMALLINT nullable, UINT64 index, int &res, std::wstring &errMsg, UINT64 &fail_ok) {
+        void COdbcImpl::DoSQLTablePrivileges(const std::wstring& catalogName, const std::wstring& schemaName, const std::wstring& tableName, UINT64 index, int &res, std::wstring &errMsg, UINT64 & fail_ok) {
             fail_ok = 0;
             if (!m_pOdbc) {
                 res = SPA::Odbc::ER_NO_DB_OPENED_YET;
@@ -1298,7 +1308,7 @@ namespace SPA
             UINT64 oks = m_oks;
             SQLHSTMT hstmt = nullptr;
             SQLRETURN retcode = SQLAllocHandle(SQL_HANDLE_STMT, m_pOdbc.get(), &hstmt);
-			do {
+            do {
                 std::shared_ptr<void> pStmt(hstmt, [](SQLHSTMT h) {
                     if (h) {
                         SQLRETURN ret = SQLFreeHandle(SQL_HANDLE_STMT, h);
@@ -1311,25 +1321,25 @@ namespace SPA
                     ++m_fails;
                     break;
                 }
-				retcode = SQLSpecialColumns(hstmt, identifierType, (SQLWCHAR*)catalogName.c_str(), (SQLSMALLINT)catalogName.size(),
-					(SQLWCHAR*)schemaName.c_str(), (SQLSMALLINT)schemaName.size(),
-					(SQLWCHAR*)tableName.c_str(), (SQLSMALLINT)tableName.size(), scope, nullable);
-				if (!SQL_SUCCEEDED(retcode)) {
+                retcode = SQLTablePrivileges(hstmt, (SQLWCHAR*) catalogName.c_str(), (SQLSMALLINT) catalogName.size(),
+                        (SQLWCHAR*) schemaName.c_str(), (SQLSMALLINT) schemaName.size(),
+                        (SQLWCHAR*) tableName.c_str(), (SQLSMALLINT) tableName.size());
+                if (!SQL_SUCCEEDED(retcode)) {
                     res = SPA::Odbc::ER_ERROR;
                     GetErrMsg(SQL_HANDLE_STMT, hstmt, errMsg);
                     ++m_fails;
                     break;
                 }
-				unsigned int ret;
-				SQLSMALLINT columns;
+                unsigned int ret;
+                SQLSMALLINT columns = 0;
                 retcode = SQLNumResultCols(hstmt, &columns);
                 assert(SQL_SUCCEEDED(retcode));
                 CDBColumnInfoArray vInfo = GetColInfo(hstmt, columns, true);
-				{
-					CScopeUQueue sbRowset;
-					sbRowset << vInfo << index;
-					ret = SendResult(idRowsetHeader, sbRowset->GetBuffer(), sbRowset->GetSize());
-				}
+                {
+                    CScopeUQueue sbRowset;
+                    sbRowset << vInfo << index;
+                    ret = SendResult(idRowsetHeader, sbRowset->GetBuffer(), sbRowset->GetSize());
+                }
                 if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
                     return;
                 }
@@ -1337,13 +1347,13 @@ namespace SPA
                 ++m_oks;
                 if (!ok) {
                     return;
-                }          
-			}while(false);
-			fail_ok = ((m_fails - fails) << 32);
+                }
+            } while (false);
+            fail_ok = ((m_fails - fails) << 32);
             fail_ok += (unsigned int) (m_oks - oks);
-		}
+        }
 
-		void COdbcImpl::DoSQLForeignKeys(const std::wstring& pkCatalogName, const std::wstring& pkSchemaName, const std::wstring& pkTableName, const std::wstring& fkCatalogName, const std::wstring& fkSchemaName, const std::wstring& fkTableName, UINT64 index, int &res, std::wstring &errMsg, UINT64 &fail_ok) {
+        void COdbcImpl::DoSQLStatistics(const std::wstring& catalogName, const std::wstring& schemaName, const std::wstring& tableName, SQLUSMALLINT unique, SQLUSMALLINT reserved, UINT64 index, int &res, std::wstring &errMsg, UINT64 & fail_ok) {
             fail_ok = 0;
             if (!m_pOdbc) {
                 res = SPA::Odbc::ER_NO_DB_OPENED_YET;
@@ -1359,7 +1369,7 @@ namespace SPA
             UINT64 oks = m_oks;
             SQLHSTMT hstmt = nullptr;
             SQLRETURN retcode = SQLAllocHandle(SQL_HANDLE_STMT, m_pOdbc.get(), &hstmt);
-			do {
+            do {
                 std::shared_ptr<void> pStmt(hstmt, [](SQLHSTMT h) {
                     if (h) {
                         SQLRETURN ret = SQLFreeHandle(SQL_HANDLE_STMT, h);
@@ -1372,28 +1382,25 @@ namespace SPA
                     ++m_fails;
                     break;
                 }
-				retcode = SQLForeignKeys(hstmt, (SQLWCHAR*)pkCatalogName.c_str(), (SQLSMALLINT)pkCatalogName.size(),
-												(SQLWCHAR*)pkSchemaName.c_str(), (SQLSMALLINT)pkSchemaName.size(),
-												(SQLWCHAR*)pkTableName.c_str(), (SQLSMALLINT)pkTableName.size(),
-												(SQLWCHAR*)fkCatalogName.c_str(), (SQLSMALLINT)fkCatalogName.size(),
-												(SQLWCHAR*)fkSchemaName.c_str(), (SQLSMALLINT)fkSchemaName.size(),
-												(SQLWCHAR*)fkTableName.c_str(), (SQLSMALLINT)fkTableName.size());
-				if (!SQL_SUCCEEDED(retcode)) {
+                retcode = SQLStatistics(hstmt, (SQLWCHAR*) catalogName.c_str(), (SQLSMALLINT) catalogName.size(),
+                        (SQLWCHAR*) schemaName.c_str(), (SQLSMALLINT) schemaName.size(),
+                        (SQLWCHAR*) tableName.c_str(), (SQLSMALLINT) tableName.size(), unique, reserved);
+                if (!SQL_SUCCEEDED(retcode)) {
                     res = SPA::Odbc::ER_ERROR;
                     GetErrMsg(SQL_HANDLE_STMT, hstmt, errMsg);
                     ++m_fails;
                     break;
                 }
-				unsigned int ret;
-				SQLSMALLINT columns;
+                unsigned int ret;
+                SQLSMALLINT columns = 0;
                 retcode = SQLNumResultCols(hstmt, &columns);
                 assert(SQL_SUCCEEDED(retcode));
                 CDBColumnInfoArray vInfo = GetColInfo(hstmt, columns, true);
-				{
-					CScopeUQueue sbRowset;
-					sbRowset << vInfo << index;
-					ret = SendResult(idRowsetHeader, sbRowset->GetBuffer(), sbRowset->GetSize());
-				}
+                {
+                    CScopeUQueue sbRowset;
+                    sbRowset << vInfo << index;
+                    ret = SendResult(idRowsetHeader, sbRowset->GetBuffer(), sbRowset->GetSize());
+                }
                 if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
                     return;
                 }
@@ -1401,11 +1408,197 @@ namespace SPA
                 ++m_oks;
                 if (!ok) {
                     return;
-                }          
-			}while(false);
-			fail_ok = ((m_fails - fails) << 32);
+                }
+            } while (false);
+            fail_ok = ((m_fails - fails) << 32);
             fail_ok += (unsigned int) (m_oks - oks);
-		}
+        }
+
+        void COdbcImpl::DoSQLProcedures(const std::wstring& catalogName, const std::wstring& schemaName, const std::wstring& procName, UINT64 index, int &res, std::wstring &errMsg, UINT64 & fail_ok) {
+            fail_ok = 0;
+            if (!m_pOdbc) {
+                res = SPA::Odbc::ER_NO_DB_OPENED_YET;
+                errMsg = NO_DB_OPENED_YET;
+                ++m_fails;
+                fail_ok = 1;
+                fail_ok <<= 32;
+                return;
+            } else {
+                res = 0;
+            }
+            UINT64 fails = m_fails;
+            UINT64 oks = m_oks;
+            SQLHSTMT hstmt = nullptr;
+            SQLRETURN retcode = SQLAllocHandle(SQL_HANDLE_STMT, m_pOdbc.get(), &hstmt);
+            do {
+                std::shared_ptr<void> pStmt(hstmt, [](SQLHSTMT h) {
+                    if (h) {
+                        SQLRETURN ret = SQLFreeHandle(SQL_HANDLE_STMT, h);
+                        assert(ret == SQL_SUCCESS);
+                    }
+                });
+                if (!SQL_SUCCEEDED(retcode)) {
+                    res = SPA::Odbc::ER_ERROR;
+                    GetErrMsg(SQL_HANDLE_DBC, m_pOdbc.get(), errMsg);
+                    ++m_fails;
+                    break;
+                }
+                retcode = SQLProcedures(hstmt, (SQLWCHAR*) catalogName.c_str(), (SQLSMALLINT) catalogName.size(),
+                        (SQLWCHAR*) schemaName.c_str(), (SQLSMALLINT) schemaName.size(),
+                        (SQLWCHAR*) procName.c_str(), (SQLSMALLINT) procName.size());
+                if (!SQL_SUCCEEDED(retcode)) {
+                    res = SPA::Odbc::ER_ERROR;
+                    GetErrMsg(SQL_HANDLE_STMT, hstmt, errMsg);
+                    ++m_fails;
+                    break;
+                }
+                unsigned int ret;
+                SQLSMALLINT columns = 0;
+                retcode = SQLNumResultCols(hstmt, &columns);
+                assert(SQL_SUCCEEDED(retcode));
+                CDBColumnInfoArray vInfo = GetColInfo(hstmt, columns, true);
+                {
+                    CScopeUQueue sbRowset;
+                    sbRowset << vInfo << index;
+                    ret = SendResult(idRowsetHeader, sbRowset->GetBuffer(), sbRowset->GetSize());
+                }
+                if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
+                    return;
+                }
+                bool ok = PushRecords(hstmt, vInfo, res, errMsg);
+                ++m_oks;
+                if (!ok) {
+                    return;
+                }
+            } while (false);
+            fail_ok = ((m_fails - fails) << 32);
+            fail_ok += (unsigned int) (m_oks - oks);
+        }
+
+        void COdbcImpl::DoSQLSpecialColumns(SQLSMALLINT identifierType, const std::wstring& catalogName, const std::wstring& schemaName, const std::wstring& tableName, SQLSMALLINT scope, SQLSMALLINT nullable, UINT64 index, int &res, std::wstring &errMsg, UINT64 & fail_ok) {
+            fail_ok = 0;
+            if (!m_pOdbc) {
+                res = SPA::Odbc::ER_NO_DB_OPENED_YET;
+                errMsg = NO_DB_OPENED_YET;
+                ++m_fails;
+                fail_ok = 1;
+                fail_ok <<= 32;
+                return;
+            } else {
+                res = 0;
+            }
+            UINT64 fails = m_fails;
+            UINT64 oks = m_oks;
+            SQLHSTMT hstmt = nullptr;
+            SQLRETURN retcode = SQLAllocHandle(SQL_HANDLE_STMT, m_pOdbc.get(), &hstmt);
+            do {
+                std::shared_ptr<void> pStmt(hstmt, [](SQLHSTMT h) {
+                    if (h) {
+                        SQLRETURN ret = SQLFreeHandle(SQL_HANDLE_STMT, h);
+                        assert(ret == SQL_SUCCESS);
+                    }
+                });
+                if (!SQL_SUCCEEDED(retcode)) {
+                    res = SPA::Odbc::ER_ERROR;
+                    GetErrMsg(SQL_HANDLE_DBC, m_pOdbc.get(), errMsg);
+                    ++m_fails;
+                    break;
+                }
+                retcode = SQLSpecialColumns(hstmt, identifierType, (SQLWCHAR*) catalogName.c_str(), (SQLSMALLINT) catalogName.size(),
+                        (SQLWCHAR*) schemaName.c_str(), (SQLSMALLINT) schemaName.size(),
+                        (SQLWCHAR*) tableName.c_str(), (SQLSMALLINT) tableName.size(), scope, nullable);
+                if (!SQL_SUCCEEDED(retcode)) {
+                    res = SPA::Odbc::ER_ERROR;
+                    GetErrMsg(SQL_HANDLE_STMT, hstmt, errMsg);
+                    ++m_fails;
+                    break;
+                }
+                unsigned int ret;
+                SQLSMALLINT columns = 0;
+                retcode = SQLNumResultCols(hstmt, &columns);
+                assert(SQL_SUCCEEDED(retcode));
+                CDBColumnInfoArray vInfo = GetColInfo(hstmt, columns, true);
+                {
+                    CScopeUQueue sbRowset;
+                    sbRowset << vInfo << index;
+                    ret = SendResult(idRowsetHeader, sbRowset->GetBuffer(), sbRowset->GetSize());
+                }
+                if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
+                    return;
+                }
+                bool ok = PushRecords(hstmt, vInfo, res, errMsg);
+                ++m_oks;
+                if (!ok) {
+                    return;
+                }
+            } while (false);
+            fail_ok = ((m_fails - fails) << 32);
+            fail_ok += (unsigned int) (m_oks - oks);
+        }
+
+        void COdbcImpl::DoSQLForeignKeys(const std::wstring& pkCatalogName, const std::wstring& pkSchemaName, const std::wstring& pkTableName, const std::wstring& fkCatalogName, const std::wstring& fkSchemaName, const std::wstring& fkTableName, UINT64 index, int &res, std::wstring &errMsg, UINT64 & fail_ok) {
+            fail_ok = 0;
+            if (!m_pOdbc) {
+                res = SPA::Odbc::ER_NO_DB_OPENED_YET;
+                errMsg = NO_DB_OPENED_YET;
+                ++m_fails;
+                fail_ok = 1;
+                fail_ok <<= 32;
+                return;
+            } else {
+                res = 0;
+            }
+            UINT64 fails = m_fails;
+            UINT64 oks = m_oks;
+            SQLHSTMT hstmt = nullptr;
+            SQLRETURN retcode = SQLAllocHandle(SQL_HANDLE_STMT, m_pOdbc.get(), &hstmt);
+            do {
+                std::shared_ptr<void> pStmt(hstmt, [](SQLHSTMT h) {
+                    if (h) {
+                        SQLRETURN ret = SQLFreeHandle(SQL_HANDLE_STMT, h);
+                        assert(ret == SQL_SUCCESS);
+                    }
+                });
+                if (!SQL_SUCCEEDED(retcode)) {
+                    res = SPA::Odbc::ER_ERROR;
+                    GetErrMsg(SQL_HANDLE_DBC, m_pOdbc.get(), errMsg);
+                    ++m_fails;
+                    break;
+                }
+                retcode = SQLForeignKeys(hstmt, (SQLWCHAR*) pkCatalogName.c_str(), (SQLSMALLINT) pkCatalogName.size(),
+                        (SQLWCHAR*) pkSchemaName.c_str(), (SQLSMALLINT) pkSchemaName.size(),
+                        (SQLWCHAR*) pkTableName.c_str(), (SQLSMALLINT) pkTableName.size(),
+                        (SQLWCHAR*) fkCatalogName.c_str(), (SQLSMALLINT) fkCatalogName.size(),
+                        (SQLWCHAR*) fkSchemaName.c_str(), (SQLSMALLINT) fkSchemaName.size(),
+                        (SQLWCHAR*) fkTableName.c_str(), (SQLSMALLINT) fkTableName.size());
+                if (!SQL_SUCCEEDED(retcode)) {
+                    res = SPA::Odbc::ER_ERROR;
+                    GetErrMsg(SQL_HANDLE_STMT, hstmt, errMsg);
+                    ++m_fails;
+                    break;
+                }
+                unsigned int ret;
+                SQLSMALLINT columns = 0;
+                retcode = SQLNumResultCols(hstmt, &columns);
+                assert(SQL_SUCCEEDED(retcode));
+                CDBColumnInfoArray vInfo = GetColInfo(hstmt, columns, true);
+                {
+                    CScopeUQueue sbRowset;
+                    sbRowset << vInfo << index;
+                    ret = SendResult(idRowsetHeader, sbRowset->GetBuffer(), sbRowset->GetSize());
+                }
+                if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
+                    return;
+                }
+                bool ok = PushRecords(hstmt, vInfo, res, errMsg);
+                ++m_oks;
+                if (!ok) {
+                    return;
+                }
+            } while (false);
+            fail_ok = ((m_fails - fails) << 32);
+            fail_ok += (unsigned int) (m_oks - oks);
+        }
 
         void COdbcImpl::Execute(const std::wstring& wsql, bool rowset, bool meta, bool lastInsertId, UINT64 index, INT64 &affected, int &res, std::wstring &errMsg, CDBVariant &vtId, UINT64 & fail_ok) {
             affected = 0;
@@ -1445,18 +1638,18 @@ namespace SPA
                     break;
                 }
                 do {
-                    SQLSMALLINT columns;
+                    SQLSMALLINT columns = 0;
                     retcode = SQLNumResultCols(hstmt, &columns);
                     assert(SQL_SUCCEEDED(retcode));
                     if (columns > 0) {
                         if (rowset) {
                             unsigned int ret;
                             CDBColumnInfoArray vInfo = GetColInfo(hstmt, columns, meta);
-							{
-								CScopeUQueue sbRowset;
-								sbRowset << vInfo << index;
-								ret = SendResult(idRowsetHeader, sbRowset->GetBuffer(), sbRowset->GetSize());
-							}
+                            {
+                                CScopeUQueue sbRowset;
+                                sbRowset << vInfo << index;
+                                ret = SendResult(idRowsetHeader, sbRowset->GetBuffer(), sbRowset->GetSize());
+                            }
                             if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
                                 return;
                             }

@@ -20,7 +20,7 @@ namespace SPA {
         static const unsigned short idSQLStatistics = SPA::UDB::idEndRows + 107;
         static const unsigned short idSQLTablePrivileges = SPA::UDB::idEndRows + 108;
         static const unsigned short idSQLTables = SPA::UDB::idEndRows + 109;
-
+        static const unsigned short idSQLGetInfo = SPA::UDB::idEndRows + 110;
 
         static const int ER_SUCCESS = 0;
         static const int ER_ERROR = -1;

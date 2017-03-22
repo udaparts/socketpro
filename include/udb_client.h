@@ -756,25 +756,25 @@ namespace SPA {
         protected:
             CUCriticalSection m_csDB;
             CDBColumnInfoArray m_vColInfo;
-			std::unordered_map<UINT64, CRowsetHandler> m_mapRowset;
-			INT64 m_affected;
+            std::unordered_map<UINT64, CRowsetHandler> m_mapRowset;
+            INT64 m_affected;
             int m_dbErrCode;
             std::wstring m_dbErrMsg;
             unsigned short m_lastReqId;
-			UINT64 m_nCall;
-			UINT64 m_indexRowset;
+            UINT64 m_nCall;
+            UINT64 m_indexRowset;
 
         private:
             std::wstring m_strConnection;
             std::unordered_map<UINT64, CDBVariantArray*> m_mapParameterCall;
-			unsigned int m_indexProc;
+            unsigned int m_indexProc;
             CUQueue m_Blob;
             CDBVariantArray m_vData;
             tagManagementSystem m_ms;
             DUpdateEvent m_dbEvent;
             unsigned int m_flags;
             unsigned int m_parameters;
-            
+
             unsigned int m_outputs;
         };
 
