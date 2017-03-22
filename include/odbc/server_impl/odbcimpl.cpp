@@ -271,7 +271,7 @@ namespace SPA
             res = 0;
         }
 
-		bool COdbcImpl::SendRows(CUQueue& sb, bool transferring) {
+        bool COdbcImpl::SendRows(CUQueue& sb, bool transferring) {
             bool batching = (GetBytesBatched() >= DEFAULT_RECORD_BATCH_SIZE);
             if (batching) {
                 CommitBatching();
@@ -287,7 +287,7 @@ namespace SPA
             return true;
         }
 
-		bool COdbcImpl::SendBlob(unsigned short data_type, const unsigned char *buffer, unsigned int bytes) {
+        bool COdbcImpl::SendBlob(unsigned short data_type, const unsigned char *buffer, unsigned int bytes) {
             unsigned int ret = SendResult(idStartBLOB,
             (unsigned int) (bytes + sizeof (unsigned short) + sizeof (unsigned int) + sizeof (unsigned int))/* extra 4 bytes for string null termination*/,
             data_type, bytes);
@@ -310,99 +310,97 @@ namespace SPA
             return true;
         }
 
-		bool COdbcImpl::SendUText(SQLHSTMT hstmt, SQLUSMALLINT index, CUQueue &qTemp, CUQueue &q, bool &blob) {
-			qTemp.SetSize(0);
-			SQLLEN len_or_null = 0;
-			SQLRETURN retcode = SQLGetData(hstmt, index, SQL_C_WCHAR, (SQLPOINTER)qTemp.GetBuffer(), qTemp.GetMaxSize(), &len_or_null);
-			assert(SQL_SUCCEEDED(retcode));
-			if (len_or_null == SQL_NULL_DATA) {
-				q << (VARTYPE)VT_NULL;
-				blob = false;
-				return true;
-			}
-			else if ((unsigned int)len_or_null < qTemp.GetMaxSize()) {
+        bool COdbcImpl::SendUText(SQLHSTMT hstmt, SQLUSMALLINT index, CUQueue &qTemp, CUQueue &q, bool & blob) {
+            qTemp.SetSize(0);
+            SQLLEN len_or_null = 0;
+            SQLRETURN retcode = SQLGetData(hstmt, index, SQL_C_WCHAR, (SQLPOINTER) qTemp.GetBuffer(), qTemp.GetMaxSize(), &len_or_null);
+            assert(SQL_SUCCEEDED(retcode));
+            if (len_or_null == SQL_NULL_DATA) {
+                q << (VARTYPE) VT_NULL;
+                blob = false;
+                return true;
+            } else if ((unsigned int) len_or_null < qTemp.GetMaxSize()) {
 #ifdef WIN32_64
-				q << (VARTYPE)VT_BSTR << (unsigned int)len_or_null;
-				q.Push(qTemp.GetBuffer(), (unsigned int)len_or_null);
+                q << (VARTYPE) VT_BSTR << (unsigned int) len_or_null;
+                q.Push(qTemp.GetBuffer(), (unsigned int) len_or_null);
 #else
 
 #endif
-				blob = false;
-				return true;
-			}
-			if (q.GetSize() && !SendRows(q, true)) {
+                blob = false;
+                return true;
+            }
+            if (q.GetSize() && !SendRows(q, true)) {
                 return false;
             }
 #ifdef WIN32_64
-			unsigned int bytes = (unsigned int)len_or_null;
-			unsigned int ret = SendResult(idStartBLOB, (unsigned int)(bytes + sizeof (VARTYPE) + sizeof (unsigned int) + sizeof (unsigned int)), (VARTYPE)VT_BSTR, bytes);
+            unsigned int bytes = (unsigned int) len_or_null;
+            unsigned int ret = SendResult(idStartBLOB, (unsigned int) (bytes + sizeof (VARTYPE) + sizeof (unsigned int) + sizeof (unsigned int)), (VARTYPE) VT_BSTR, bytes);
             if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
                 return false;
             }
-			blob = true;
-			while (retcode == SQL_SUCCESS_WITH_INFO) {
-				if (bytes > qTemp.GetMaxSize()) {
-					bytes = qTemp.GetMaxSize();
-				}
-				bytes -= sizeof(wchar_t);
-				ret = SendResult(idChunk, qTemp.GetBuffer(), bytes);
+            blob = true;
+            while (retcode == SQL_SUCCESS_WITH_INFO) {
+                if (bytes > qTemp.GetMaxSize()) {
+                    bytes = qTemp.GetMaxSize();
+                }
+                bytes -= sizeof (wchar_t);
+                ret = SendResult(idChunk, qTemp.GetBuffer(), bytes);
                 if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
                     return false;
                 }
-				retcode = SQLGetData(hstmt, index, SQL_C_WCHAR, (SQLPOINTER)qTemp.GetBuffer(), qTemp.GetMaxSize(), &len_or_null);
-				bytes = (unsigned int)len_or_null;
-			}
-			ret = SendResult(idEndBLOB, qTemp.GetBuffer(), bytes);
+                retcode = SQLGetData(hstmt, index, SQL_C_WCHAR, (SQLPOINTER) qTemp.GetBuffer(), qTemp.GetMaxSize(), &len_or_null);
+                bytes = (unsigned int) len_or_null;
+            }
+            ret = SendResult(idEndBLOB, qTemp.GetBuffer(), bytes);
             if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
                 return false;
             }
 #else
 
 #endif
-			return true;
-		}
+            return true;
+        }
 
-		bool COdbcImpl::SendBlob(SQLHSTMT hstmt, SQLUSMALLINT index, VARTYPE vt, CUQueue &qTemp, CUQueue &q, bool &blob) {
-			qTemp.SetSize(0);
-			SQLLEN len_or_null = 0;
-			SQLRETURN retcode = SQLGetData(hstmt, index, SQL_C_BINARY, (SQLPOINTER)qTemp.GetBuffer(), qTemp.GetMaxSize(), &len_or_null);
-			assert(SQL_SUCCEEDED(retcode));
-			if (len_or_null == SQL_NULL_DATA) {
-				q << (VARTYPE)VT_NULL;
-				blob = false;
-				return true;
-			}
-			else if ((unsigned int)len_or_null <= qTemp.GetMaxSize()) {
-				q << vt << (unsigned int)len_or_null;
-				q.Push(qTemp.GetBuffer(), (unsigned int)len_or_null);
-				blob = false;
-				return true;
-			}
-			if (q.GetSize() && !SendRows(q, true)) {
+        bool COdbcImpl::SendBlob(SQLHSTMT hstmt, SQLUSMALLINT index, VARTYPE vt, CUQueue &qTemp, CUQueue &q, bool & blob) {
+            qTemp.SetSize(0);
+            SQLLEN len_or_null = 0;
+            SQLRETURN retcode = SQLGetData(hstmt, index, SQL_C_BINARY, (SQLPOINTER) qTemp.GetBuffer(), qTemp.GetMaxSize(), &len_or_null);
+            assert(SQL_SUCCEEDED(retcode));
+            if (len_or_null == SQL_NULL_DATA) {
+                q << (VARTYPE) VT_NULL;
+                blob = false;
+                return true;
+            } else if ((unsigned int) len_or_null <= qTemp.GetMaxSize()) {
+                q << vt << (unsigned int) len_or_null;
+                q.Push(qTemp.GetBuffer(), (unsigned int) len_or_null);
+                blob = false;
+                return true;
+            }
+            if (q.GetSize() && !SendRows(q, true)) {
                 return false;
             }
-			unsigned int bytes = (unsigned int)len_or_null;
-			unsigned int ret = SendResult(idStartBLOB, (unsigned int)(bytes + sizeof (VARTYPE) + sizeof (unsigned int) + sizeof (unsigned int)), vt, bytes);
+            unsigned int bytes = (unsigned int) len_or_null;
+            unsigned int ret = SendResult(idStartBLOB, (unsigned int) (bytes + sizeof (VARTYPE) + sizeof (unsigned int) + sizeof (unsigned int)), vt, bytes);
             if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
                 return false;
             }
-			blob = true;
-			while (retcode == SQL_SUCCESS_WITH_INFO) {
-				if (bytes > qTemp.GetMaxSize()) {
-					bytes = qTemp.GetMaxSize();
-				}
-				ret = SendResult(idChunk, qTemp.GetBuffer(), bytes);
+            blob = true;
+            while (retcode == SQL_SUCCESS_WITH_INFO) {
+                if (bytes > qTemp.GetMaxSize()) {
+                    bytes = qTemp.GetMaxSize();
+                }
+                ret = SendResult(idChunk, qTemp.GetBuffer(), bytes);
                 if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
                     return false;
                 }
-				retcode = SQLGetData(hstmt, index, SQL_C_BINARY, (SQLPOINTER)qTemp.GetBuffer(), qTemp.GetMaxSize(), &len_or_null);
-				bytes = (unsigned int)len_or_null;
-			}
-			ret = SendResult(idEndBLOB, qTemp.GetBuffer(), bytes);
+                retcode = SQLGetData(hstmt, index, SQL_C_BINARY, (SQLPOINTER) qTemp.GetBuffer(), qTemp.GetMaxSize(), &len_or_null);
+                bytes = (unsigned int) len_or_null;
+            }
+            ret = SendResult(idEndBLOB, qTemp.GetBuffer(), bytes);
             if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
                 return false;
             }
-			return true;
+            return true;
         }
 
         CDBColumnInfoArray COdbcImpl::GetColInfo(SQLHSTMT hstmt, SQLSMALLINT columns, bool meta) {
@@ -588,375 +586,352 @@ namespace SPA
             return vCols;
         }
 
-		unsigned short COdbcImpl::ToSystemTime(const TIMESTAMP_STRUCT &d, SYSTEMTIME &st) {
-			st.wYear = (unsigned short)d.year;
-			st.wMonth = d.month;
-			st.wDay = d.day;
-			st.wHour = d.hour;
-			st.wMinute = d.minute;
-			st.wSecond = d.second;
-			st.wMilliseconds = (unsigned short)(d.fraction / 1000000);
-			return (unsigned short) ((d.fraction / 1000) % 1000);
-		}
+        unsigned short COdbcImpl::ToSystemTime(const TIMESTAMP_STRUCT &d, SYSTEMTIME & st) {
+            st.wYear = (unsigned short) d.year;
+            st.wMonth = d.month;
+            st.wDay = d.day;
+            st.wHour = d.hour;
+            st.wMinute = d.minute;
+            st.wSecond = d.second;
+            st.wMilliseconds = (unsigned short) (d.fraction / 1000000);
+            return (unsigned short) ((d.fraction / 1000) % 1000);
+        }
 
-		void COdbcImpl::ToSystemTime(const TIME_STRUCT &d, SYSTEMTIME &st) {
-			//start from 01/01/1900
-			st.wYear = 1900;
-			st.wMonth = 1;
-			st.wDay = 1;
-			st.wHour = d.hour;
-			st.wMinute = d.minute;
-			st.wSecond = d.second;
-			st.wMilliseconds = 0;
-		}
-		void COdbcImpl::ToSystemTime(const DATE_STRUCT &d, SYSTEMTIME &st) {
-			memset(&st, 0, sizeof(st));
-			st.wYear = (unsigned short)d.year;
-			st.wMonth = d.month;
-			st.wDay = d.day;
-		}
+        void COdbcImpl::ToSystemTime(const TIME_STRUCT &d, SYSTEMTIME & st) {
+            //start from 01/01/1900
+            st.wYear = 1900;
+            st.wMonth = 1;
+            st.wDay = 1;
+            st.wHour = d.hour;
+            st.wMinute = d.minute;
+            st.wSecond = d.second;
+            st.wMilliseconds = 0;
+        }
+
+        void COdbcImpl::ToSystemTime(const DATE_STRUCT &d, SYSTEMTIME & st) {
+            memset(&st, 0, sizeof (st));
+            st.wYear = (unsigned short) d.year;
+            st.wMonth = d.month;
+            st.wDay = d.day;
+        }
 
         bool COdbcImpl::PushRecords(SQLHSTMT hstmt, const CDBColumnInfoArray &vColInfo, int &res, std::wstring & errMsg) {
             SQLRETURN retcode;
             VARTYPE vt;
-			CScopeUQueue sbTemp(MY_OPERATION_SYSTEM, SPA::IsBigEndian(), 2 * DEFAULT_BIG_FIELD_CHUNK_SIZE);
+            CScopeUQueue sbTemp(MY_OPERATION_SYSTEM, SPA::IsBigEndian(), 2 * DEFAULT_BIG_FIELD_CHUNK_SIZE);
             SQLLEN len_or_null = 0;
             size_t fields = vColInfo.size();
             CScopeUQueue sb;
             CUQueue &q = *sb;
             while (true) {
                 retcode = SQLFetch(hstmt);
-				if (retcode == SQL_NO_DATA) {
-					break;
-				}
-				bool blob = false;
+                if (retcode == SQL_NO_DATA) {
+                    break;
+                }
+                bool blob = false;
                 if (SQL_SUCCEEDED(retcode)) {
                     for (size_t i = 0; i < fields; ++i) {
                         const CDBColumnInfo &colInfo = vColInfo[i];
                         vt = colInfo.DataType;
                         switch (vt) {
                             case VT_BOOL:
-								{
-									unsigned char boolean = 0;
-									retcode = SQLGetData(hstmt, (SQLUSMALLINT)(i + 1), SQL_C_BIT, &boolean, sizeof(boolean), &len_or_null);
-									if (len_or_null == SQL_NULL_DATA) {
-										q << (VARTYPE)VT_NULL;
-									}
-									else {
-										VARIANT_BOOL ok = boolean ? VARIANT_TRUE : VARIANT_FALSE;
-										q << vt << ok;
-									}
-								}
+                            {
+                                unsigned char boolean = 0;
+                                retcode = SQLGetData(hstmt, (SQLUSMALLINT) (i + 1), SQL_C_BIT, &boolean, sizeof (boolean), &len_or_null);
+                                if (len_or_null == SQL_NULL_DATA) {
+                                    q << (VARTYPE) VT_NULL;
+                                } else {
+                                    VARIANT_BOOL ok = boolean ? VARIANT_TRUE : VARIANT_FALSE;
+                                    q << vt << ok;
+                                }
+                            }
                                 break;
                             case VT_BSTR:
-								if (colInfo.ColumnSize >= DEFAULT_BIG_FIELD_CHUNK_SIZE) {
-									if (!SendUText(hstmt, (SQLUSMALLINT)(i + 1), *sbTemp, q, blob)) {
-										return false;
-									}
-								}
-								else {
+                                if (colInfo.ColumnSize >= DEFAULT_BIG_FIELD_CHUNK_SIZE) {
+                                    if (!SendUText(hstmt, (SQLUSMALLINT) (i + 1), *sbTemp, q, blob)) {
+                                        return false;
+                                    }
+                                } else {
 #ifdef WIN32_64
-									unsigned int max = (colInfo.ColumnSize << 1);
-									if (q.GetTailSize() < sizeof(unsigned int) + sizeof(VARTYPE) + max + sizeof(wchar_t)) {
-										q.ReallocBuffer(q.GetMaxSize() + max + sizeof(unsigned int) + sizeof(VARTYPE) + sizeof(wchar_t));
-									}
-									VARTYPE *pvt = (VARTYPE *)q.GetBuffer(q.GetSize());
-									unsigned int *plen = (unsigned int*)(pvt + 1);
-									unsigned char *pos = (unsigned char*)(plen + 1);
-									retcode = SQLGetData(hstmt, (SQLUSMALLINT)(i + 1), SQL_C_WCHAR, pos, q.GetTailSize() -  sizeof(unsigned int) - sizeof(VARTYPE), &len_or_null);
-									if (SQL_NULL_DATA == len_or_null) {
-										q << (VARTYPE)VT_NULL; 
-									}
-									else {
-										*pvt = vt;
-										*plen = (unsigned int)len_or_null;
-										q.SetSize(q.GetSize() + *plen + sizeof(unsigned int) + sizeof(VARTYPE));
-									}
+                                    unsigned int max = (colInfo.ColumnSize << 1);
+                                    if (q.GetTailSize() < sizeof (unsigned int) + sizeof (VARTYPE) + max + sizeof (wchar_t)) {
+                                        q.ReallocBuffer(q.GetMaxSize() + max + sizeof (unsigned int) + sizeof (VARTYPE) + sizeof (wchar_t));
+                                    }
+                                    VARTYPE *pvt = (VARTYPE *) q.GetBuffer(q.GetSize());
+                                    unsigned int *plen = (unsigned int*) (pvt + 1);
+                                    unsigned char *pos = (unsigned char*) (plen + 1);
+                                    retcode = SQLGetData(hstmt, (SQLUSMALLINT) (i + 1), SQL_C_WCHAR, pos, q.GetTailSize() - sizeof (unsigned int) - sizeof (VARTYPE), &len_or_null);
+                                    if (SQL_NULL_DATA == len_or_null) {
+                                        q << (VARTYPE) VT_NULL;
+                                    } else {
+                                        *pvt = vt;
+                                        *plen = (unsigned int) len_or_null;
+                                        q.SetSize(q.GetSize() + *plen + sizeof (unsigned int) + sizeof (VARTYPE));
+                                    }
 #else
-									unsigned int max = (colInfo.ColumnSize << 2 + sizeof(wchar_t));
-									if (max > sbTemp->GetMaxSize()) {
-										sbTemp->ReallocBuffer(max);
-									}
-									retcode = SQLGetData(hstmt, (SQLUSMALLINT)(i + 1), SQL_C_WCHAR, (SQLPOINTER)sbTemp->GetBuffer(), sbTemp->GetMaxSize(), &len_or_null);
-									if (SQL_NULL_DATA == len_or_null) {
-										q << (VARTYPE)VT_NULL;
-									}
-									else {
-										sbTemp->SetSize(len_or_null);
-										sbTemp->SetNull();
-										q << vt;
-										q << (const wchar_t *)sbTemp->GetBuffer();
-									}
-									sbTemp->SetSize(0);
+                                    unsigned int max = (colInfo.ColumnSize << 2 + sizeof (wchar_t));
+                                    if (max > sbTemp->GetMaxSize()) {
+                                        sbTemp->ReallocBuffer(max);
+                                    }
+                                    retcode = SQLGetData(hstmt, (SQLUSMALLINT) (i + 1), SQL_C_WCHAR, (SQLPOINTER) sbTemp->GetBuffer(), sbTemp->GetMaxSize(), &len_or_null);
+                                    if (SQL_NULL_DATA == len_or_null) {
+                                        q << (VARTYPE) VT_NULL;
+                                    } else {
+                                        sbTemp->SetSize(len_or_null);
+                                        sbTemp->SetNull();
+                                        q << vt;
+                                        q << (const wchar_t *) sbTemp->GetBuffer();
+                                    }
+                                    sbTemp->SetSize(0);
 #endif
-								}
+                                }
                                 break;
                             case VT_DATE:
                                 switch ((SQLSMALLINT) colInfo.ColumnSize) {
                                     case SQL_TYPE_DATE:
-										{
-											DATE_STRUCT d;
-											retcode = SQLGetData(hstmt, (SQLUSMALLINT)(i + 1), SQL_C_TYPE_DATE, &d, sizeof(d), &len_or_null);
-											if (len_or_null == SQL_NULL_DATA) {
-												q << (VARTYPE)VT_NULL;
-											}
-											else {
-												q << vt;
-												SYSTEMTIME st;
-												ToSystemTime(d, st);
-												SPA::UDateTime dt(st);
-												q << dt.time;
-											}
-										}
+                                    {
+                                        DATE_STRUCT d;
+                                        retcode = SQLGetData(hstmt, (SQLUSMALLINT) (i + 1), SQL_C_TYPE_DATE, &d, sizeof (d), &len_or_null);
+                                        if (len_or_null == SQL_NULL_DATA) {
+                                            q << (VARTYPE) VT_NULL;
+                                        } else {
+                                            q << vt;
+                                            SYSTEMTIME st;
+                                            ToSystemTime(d, st);
+                                            SPA::UDateTime dt(st);
+                                            q << dt.time;
+                                        }
+                                    }
                                         break;
                                     case SQL_TYPE_TIME:
-										{
-											TIME_STRUCT d;
-											retcode = SQLGetData(hstmt, (SQLUSMALLINT)(i + 1), SQL_C_TYPE_TIME, &d, sizeof(d), &len_or_null);
-											if (len_or_null == SQL_NULL_DATA) {
-												q << (VARTYPE)VT_NULL;
-											}
-											else {
-												q << vt;
-												SYSTEMTIME st;
-												ToSystemTime(d, st);
-												SPA::UDateTime dt(st);
-												q << dt.time;
-											}
-										}
+                                    {
+                                        TIME_STRUCT d;
+                                        retcode = SQLGetData(hstmt, (SQLUSMALLINT) (i + 1), SQL_C_TYPE_TIME, &d, sizeof (d), &len_or_null);
+                                        if (len_or_null == SQL_NULL_DATA) {
+                                            q << (VARTYPE) VT_NULL;
+                                        } else {
+                                            q << vt;
+                                            SYSTEMTIME st;
+                                            ToSystemTime(d, st);
+                                            SPA::UDateTime dt(st);
+                                            q << dt.time;
+                                        }
+                                    }
                                         break;
                                     case SQL_TYPE_TIMESTAMP:
-										{
-											TIMESTAMP_STRUCT d;
-											retcode = SQLGetData(hstmt, (SQLUSMALLINT)(i + 1), SQL_C_TYPE_TIMESTAMP, &d, sizeof(d), &len_or_null);
-											if (len_or_null == SQL_NULL_DATA) {
-												q << (VARTYPE)VT_NULL;
-											}
-											else {
-												q << vt;
-												SYSTEMTIME st;
-												unsigned short us = ToSystemTime(d, st);
-												SPA::UDateTime dt(st, us);
-												q << dt.time;
-											}
-										}
+                                    {
+                                        TIMESTAMP_STRUCT d;
+                                        retcode = SQLGetData(hstmt, (SQLUSMALLINT) (i + 1), SQL_C_TYPE_TIMESTAMP, &d, sizeof (d), &len_or_null);
+                                        if (len_or_null == SQL_NULL_DATA) {
+                                            q << (VARTYPE) VT_NULL;
+                                        } else {
+                                            q << vt;
+                                            SYSTEMTIME st;
+                                            unsigned short us = ToSystemTime(d, st);
+                                            SPA::UDateTime dt(st, us);
+                                            q << dt.time;
+                                        }
+                                    }
                                         break;
-									case SQL_INTERVAL_MONTH:
-										break;
-									case SQL_INTERVAL_YEAR:
-										break;
-									case SQL_INTERVAL_YEAR_TO_MONTH:
-										break;
-									case SQL_INTERVAL_DAY:
-										break;
-									case SQL_INTERVAL_HOUR:
-										break;
-									case SQL_INTERVAL_MINUTE:
-										break;
-									case SQL_INTERVAL_SECOND:
-										break;
-									case SQL_INTERVAL_DAY_TO_HOUR:
-										break;
-									case SQL_INTERVAL_DAY_TO_MINUTE:
-										break;
-									case SQL_INTERVAL_DAY_TO_SECOND:
-										break;
-									case SQL_INTERVAL_HOUR_TO_MINUTE:
-										break;
-									case SQL_INTERVAL_HOUR_TO_SECOND:
-										break;
-									case SQL_INTERVAL_MINUTE_TO_SECOND:
-										break;
+                                    case SQL_INTERVAL_MONTH:
+                                        break;
+                                    case SQL_INTERVAL_YEAR:
+                                        break;
+                                    case SQL_INTERVAL_YEAR_TO_MONTH:
+                                        break;
+                                    case SQL_INTERVAL_DAY:
+                                        break;
+                                    case SQL_INTERVAL_HOUR:
+                                        break;
+                                    case SQL_INTERVAL_MINUTE:
+                                        break;
+                                    case SQL_INTERVAL_SECOND:
+                                        break;
+                                    case SQL_INTERVAL_DAY_TO_HOUR:
+                                        break;
+                                    case SQL_INTERVAL_DAY_TO_MINUTE:
+                                        break;
+                                    case SQL_INTERVAL_DAY_TO_SECOND:
+                                        break;
+                                    case SQL_INTERVAL_HOUR_TO_MINUTE:
+                                        break;
+                                    case SQL_INTERVAL_HOUR_TO_SECOND:
+                                        break;
+                                    case SQL_INTERVAL_MINUTE_TO_SECOND:
+                                        break;
                                     default:
                                         assert(false); //shouldn't come here
                                         break;
                                 }
                                 break;
                             case VT_I1:
-                                {
-									char d;
-									retcode = SQLGetData(hstmt, (SQLUSMALLINT)(i + 1), SQL_C_TINYINT, &d, sizeof(d), &len_or_null);
-									if (len_or_null == SQL_NULL_DATA) {
-										q << (VARTYPE)VT_NULL;
-									}
-									else {
-										q << vt;
-										q.Push((const unsigned char*)&d, sizeof(d));
-									}
-								}
-								break;
+                            {
+                                char d;
+                                retcode = SQLGetData(hstmt, (SQLUSMALLINT) (i + 1), SQL_C_TINYINT, &d, sizeof (d), &len_or_null);
+                                if (len_or_null == SQL_NULL_DATA) {
+                                    q << (VARTYPE) VT_NULL;
+                                } else {
+                                    q << vt;
+                                    q.Push((const unsigned char*) &d, sizeof (d));
+                                }
+                            }
+                                break;
                             case VT_UI1:
-                                {
-									unsigned char d;
-									retcode = SQLGetData(hstmt, (SQLUSMALLINT)(i + 1), SQL_C_UTINYINT, &d, sizeof(d), &len_or_null);
-									if (len_or_null == SQL_NULL_DATA) {
-										q << (VARTYPE)VT_NULL;
-									}
-									else {
-										q << vt;
-										q.Push((const unsigned char*)&d, sizeof(d));
-									}
-								}
-								break;
+                            {
+                                unsigned char d;
+                                retcode = SQLGetData(hstmt, (SQLUSMALLINT) (i + 1), SQL_C_UTINYINT, &d, sizeof (d), &len_or_null);
+                                if (len_or_null == SQL_NULL_DATA) {
+                                    q << (VARTYPE) VT_NULL;
+                                } else {
+                                    q << vt;
+                                    q.Push((const unsigned char*) &d, sizeof (d));
+                                }
+                            }
+                                break;
                             case VT_I2:
-                                {
-									short d;
-									retcode = SQLGetData(hstmt, (SQLUSMALLINT)(i + 1), SQL_C_SHORT, &d, sizeof(d), &len_or_null);
-									if (len_or_null == SQL_NULL_DATA) {
-										q << (VARTYPE)VT_NULL;
-									}
-									else {
-										q << vt << d;
-									}
-								}
-								break;
+                            {
+                                short d;
+                                retcode = SQLGetData(hstmt, (SQLUSMALLINT) (i + 1), SQL_C_SHORT, &d, sizeof (d), &len_or_null);
+                                if (len_or_null == SQL_NULL_DATA) {
+                                    q << (VARTYPE) VT_NULL;
+                                } else {
+                                    q << vt << d;
+                                }
+                            }
+                                break;
                             case VT_UI2:
-                                {
-									unsigned short d;
-									retcode = SQLGetData(hstmt, (SQLUSMALLINT)(i + 1), SQL_C_USHORT, &d, sizeof(d), &len_or_null);
-									if (len_or_null == SQL_NULL_DATA) {
-										q << (VARTYPE)VT_NULL;
-									}
-									else {
-										q << vt << d;
-									}
-								}
-								break;
+                            {
+                                unsigned short d;
+                                retcode = SQLGetData(hstmt, (SQLUSMALLINT) (i + 1), SQL_C_USHORT, &d, sizeof (d), &len_or_null);
+                                if (len_or_null == SQL_NULL_DATA) {
+                                    q << (VARTYPE) VT_NULL;
+                                } else {
+                                    q << vt << d;
+                                }
+                            }
+                                break;
                             case VT_I4:
-                                {
-									int d;
-									retcode = SQLGetData(hstmt, (SQLUSMALLINT)(i + 1), SQL_C_LONG, &d, sizeof(d), &len_or_null);
-									if (len_or_null == SQL_NULL_DATA) {
-										q << (VARTYPE)VT_NULL;
-									}
-									else {
-										q << vt << d;
-									}
-								}
-								break;
+                            {
+                                int d;
+                                retcode = SQLGetData(hstmt, (SQLUSMALLINT) (i + 1), SQL_C_LONG, &d, sizeof (d), &len_or_null);
+                                if (len_or_null == SQL_NULL_DATA) {
+                                    q << (VARTYPE) VT_NULL;
+                                } else {
+                                    q << vt << d;
+                                }
+                            }
+                                break;
                             case VT_UI4:
-                                {
-									unsigned int d;
-									retcode = SQLGetData(hstmt, (SQLUSMALLINT)(i + 1), SQL_C_ULONG, &d, sizeof(d), &len_or_null);
-									if (len_or_null == SQL_NULL_DATA) {
-										q << (VARTYPE)VT_NULL;
-									}
-									else {
-										q << vt << d;
-									}
-								}
-								break;
-							 case VT_R4:
-								 {
-									float d;
-									retcode = SQLGetData(hstmt, (SQLUSMALLINT)(i + 1), SQL_C_FLOAT, &d, sizeof(d), &len_or_null);
-									if (len_or_null == SQL_NULL_DATA) {
-										q << (VARTYPE)VT_NULL;
-									}
-									else {
-										q << vt << d;
-									}
-								}
+                            {
+                                unsigned int d;
+                                retcode = SQLGetData(hstmt, (SQLUSMALLINT) (i + 1), SQL_C_ULONG, &d, sizeof (d), &len_or_null);
+                                if (len_or_null == SQL_NULL_DATA) {
+                                    q << (VARTYPE) VT_NULL;
+                                } else {
+                                    q << vt << d;
+                                }
+                            }
+                                break;
+                            case VT_R4:
+                            {
+                                float d;
+                                retcode = SQLGetData(hstmt, (SQLUSMALLINT) (i + 1), SQL_C_FLOAT, &d, sizeof (d), &len_or_null);
+                                if (len_or_null == SQL_NULL_DATA) {
+                                    q << (VARTYPE) VT_NULL;
+                                } else {
+                                    q << vt << d;
+                                }
+                            }
                                 break;
                             case VT_I8:
-								{
-									SPA::INT64 d;
-									retcode = SQLGetData(hstmt, (SQLUSMALLINT)(i + 1), SQL_C_SBIGINT, &d, sizeof(d), &len_or_null);
-									if (len_or_null == SQL_NULL_DATA) {
-										q << (VARTYPE)VT_NULL;
-									}
-									else {
-										q << vt << d;
-									}
-								}
-								break;
+                            {
+                                SPA::INT64 d;
+                                retcode = SQLGetData(hstmt, (SQLUSMALLINT) (i + 1), SQL_C_SBIGINT, &d, sizeof (d), &len_or_null);
+                                if (len_or_null == SQL_NULL_DATA) {
+                                    q << (VARTYPE) VT_NULL;
+                                } else {
+                                    q << vt << d;
+                                }
+                            }
+                                break;
                             case VT_UI8:
-								{
-									SPA::UINT64 d;
-									retcode = SQLGetData(hstmt, (SQLUSMALLINT)(i + 1), SQL_C_UBIGINT, &d, sizeof(d), &len_or_null);
-									if (len_or_null == SQL_NULL_DATA) {
-										q << (VARTYPE)VT_NULL;
-									}
-									else {
-										q << vt << d;
-									}
-								}
-								break;
+                            {
+                                SPA::UINT64 d;
+                                retcode = SQLGetData(hstmt, (SQLUSMALLINT) (i + 1), SQL_C_UBIGINT, &d, sizeof (d), &len_or_null);
+                                if (len_or_null == SQL_NULL_DATA) {
+                                    q << (VARTYPE) VT_NULL;
+                                } else {
+                                    q << vt << d;
+                                }
+                            }
+                                break;
                             case VT_R8:
-								{
-									double d;
-									retcode = SQLGetData(hstmt, (SQLUSMALLINT)(i + 1), SQL_C_DOUBLE, &d, sizeof(d), &len_or_null);
-									if (len_or_null == SQL_NULL_DATA) {
-										q << (VARTYPE)VT_NULL;
-									}
-									else {
-										q << vt << d;
-									}
-								}
+                            {
+                                double d;
+                                retcode = SQLGetData(hstmt, (SQLUSMALLINT) (i + 1), SQL_C_DOUBLE, &d, sizeof (d), &len_or_null);
+                                if (len_or_null == SQL_NULL_DATA) {
+                                    q << (VARTYPE) VT_NULL;
+                                } else {
+                                    q << vt << d;
+                                }
+                            }
                                 break;
                             case (VT_ARRAY | VT_I1):
-								if (colInfo.ColumnSize < 2 * DEFAULT_BIG_FIELD_CHUNK_SIZE) {
-									retcode = SQLGetData(hstmt, (SQLUSMALLINT)(i + 1), SQL_C_CHAR, (SQLPOINTER)sbTemp->GetBuffer(), sbTemp->GetMaxSize(), &len_or_null);
-									if (SQL_NULL_DATA == len_or_null) {
-										q << (VARTYPE)VT_NULL;
-									}
-									else {
-										q << vt << (unsigned int)len_or_null;
-										q.Push(sbTemp->GetBuffer(), (unsigned int)len_or_null);
-									}
-								}
-								else {
-									if (!SendBlob(hstmt, (SQLUSMALLINT)(i + 1), vt, *sbTemp, q, blob)) {
-										return false;
-									}
-								}
+                                if (colInfo.ColumnSize < 2 * DEFAULT_BIG_FIELD_CHUNK_SIZE) {
+                                    retcode = SQLGetData(hstmt, (SQLUSMALLINT) (i + 1), SQL_C_CHAR, (SQLPOINTER) sbTemp->GetBuffer(), sbTemp->GetMaxSize(), &len_or_null);
+                                    if (SQL_NULL_DATA == len_or_null) {
+                                        q << (VARTYPE) VT_NULL;
+                                    } else {
+                                        q << vt << (unsigned int) len_or_null;
+                                        q.Push(sbTemp->GetBuffer(), (unsigned int) len_or_null);
+                                    }
+                                } else {
+                                    if (!SendBlob(hstmt, (SQLUSMALLINT) (i + 1), vt, *sbTemp, q, blob)) {
+                                        return false;
+                                    }
+                                }
                                 break;
                             case (VT_ARRAY | VT_UI1):
-								if (colInfo.Precision == sizeof(SQLGUID)) {
-									retcode = SQLGetData(hstmt, (SQLUSMALLINT)(i + 1), SQL_C_GUID, (SQLPOINTER)sbTemp->GetBuffer(), sbTemp->GetMaxSize(), &len_or_null);
-									if (SQL_NULL_DATA == len_or_null) {
-										q << (VARTYPE)VT_NULL;
-									}
-									else {
-										q << vt;
-										q.Push(sbTemp->GetBuffer(), sizeof(SQLGUID));
-									}
-								}
-								else if (colInfo.ColumnSize < 2 * DEFAULT_BIG_FIELD_CHUNK_SIZE) {
-									retcode = SQLGetData(hstmt, (SQLUSMALLINT)(i + 1), SQL_C_BINARY, (SQLPOINTER)sbTemp->GetBuffer(), sbTemp->GetMaxSize(), &len_or_null);
-									if (SQL_NULL_DATA == len_or_null) {
-										q << (VARTYPE)VT_NULL;
-									}
-									else {
-										q << vt << (unsigned int)len_or_null;
-										q.Push(sbTemp->GetBuffer(), (unsigned int)len_or_null);
-									}
-								}
-								else {
-									if (!SendBlob(hstmt, (SQLUSMALLINT)(i + 1), vt, *sbTemp, q, blob)) {
-										return false;
-									}
-								}
+                                if (colInfo.Precision == sizeof (SQLGUID)) {
+                                    retcode = SQLGetData(hstmt, (SQLUSMALLINT) (i + 1), SQL_C_GUID, (SQLPOINTER) sbTemp->GetBuffer(), sbTemp->GetMaxSize(), &len_or_null);
+                                    if (SQL_NULL_DATA == len_or_null) {
+                                        q << (VARTYPE) VT_NULL;
+                                    } else {
+                                        q << vt;
+                                        q.Push(sbTemp->GetBuffer(), sizeof (SQLGUID));
+                                    }
+                                } else if (colInfo.ColumnSize < 2 * DEFAULT_BIG_FIELD_CHUNK_SIZE) {
+                                    retcode = SQLGetData(hstmt, (SQLUSMALLINT) (i + 1), SQL_C_BINARY, (SQLPOINTER) sbTemp->GetBuffer(), sbTemp->GetMaxSize(), &len_or_null);
+                                    if (SQL_NULL_DATA == len_or_null) {
+                                        q << (VARTYPE) VT_NULL;
+                                    } else {
+                                        q << vt << (unsigned int) len_or_null;
+                                        q.Push(sbTemp->GetBuffer(), (unsigned int) len_or_null);
+                                    }
+                                } else {
+                                    if (!SendBlob(hstmt, (SQLUSMALLINT) (i + 1), vt, *sbTemp, q, blob)) {
+                                        return false;
+                                    }
+                                }
                                 break;
                             case VT_DECIMAL:
                                 switch ((SQLSMALLINT) colInfo.ColumnSize) {
                                     case SQL_NUMERIC:
-									case SQL_DECIMAL:
-									{
-										retcode = SQLGetData(hstmt, (SQLUSMALLINT)(i + 1), SQL_C_CHAR, (SQLPOINTER)sbTemp->GetBuffer(), sbTemp->GetMaxSize(), &len_or_null);
-										if (len_or_null == SQL_NULL_DATA) {
-											q << (VARTYPE)VT_NULL;
-										}
-										else {
-											q << vt;
-											sbTemp->SetSize((unsigned int)len_or_null);
-											sbTemp->SetNull();
-											DECIMAL dec;
-											SPA::ParseDec((const char*)sbTemp->GetBuffer(), dec);
-											q << dec;
-											sbTemp->SetSize(0);
-										}
-									}
+                                    case SQL_DECIMAL:
+                                    {
+                                        retcode = SQLGetData(hstmt, (SQLUSMALLINT) (i + 1), SQL_C_CHAR, (SQLPOINTER) sbTemp->GetBuffer(), sbTemp->GetMaxSize(), &len_or_null);
+                                        if (len_or_null == SQL_NULL_DATA) {
+                                            q << (VARTYPE) VT_NULL;
+                                        } else {
+                                            q << vt;
+                                            sbTemp->SetSize((unsigned int) len_or_null);
+                                            sbTemp->SetNull();
+                                            DECIMAL dec;
+                                            SPA::ParseDec((const char*) sbTemp->GetBuffer(), dec);
+                                            q << dec;
+                                            sbTemp->SetSize(0);
+                                        }
+                                    }
                                         break;
                                     default:
                                         assert(false); //shouldn't come here
@@ -967,29 +942,29 @@ namespace SPA
                                 assert(false);
                                 break;
                         } //for loop
-						assert(SQL_SUCCEEDED(retcode));
+                        assert(SQL_SUCCEEDED(retcode));
                     }
                 } else {
                     res = SPA::Odbc::ER_ERROR;
                     GetErrMsg(SQL_HANDLE_STMT, hstmt, errMsg);
                     ++m_fails;
-					assert(false); //shouldn't come here
+                    assert(false); //shouldn't come here
                     break;
                 }
-				if ((q.GetSize() >= DEFAULT_RECORD_BATCH_SIZE || blob) && !SendRows(q)) {
-					return false;
-				}
+                if ((q.GetSize() >= DEFAULT_RECORD_BATCH_SIZE || blob) && !SendRows(q)) {
+                    return false;
+                }
             } //while loop
-			assert(SQL_NO_DATA == retcode);
-			if (q.GetSize()) {
-				return SendRows(q);
-			}
+            assert(SQL_NO_DATA == retcode);
+            if (q.GetSize()) {
+                return SendRows(q);
+            }
             return true;
         }
 
-		void COdbcImpl::ToDec(const SQL_NUMERIC_STRUCT &d, DECIMAL &dec) {
+        void COdbcImpl::ToDec(const SQL_NUMERIC_STRUCT &d, DECIMAL & dec) {
 
-		}
+        }
 
         void COdbcImpl::Execute(const std::wstring& wsql, bool rowset, bool meta, bool lastInsertId, UINT64 index, INT64 &affected, int &res, std::wstring &errMsg, CDBVariant &vtId, UINT64 & fail_ok) {
             affected = 0;

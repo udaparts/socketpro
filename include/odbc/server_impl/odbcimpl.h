@@ -63,9 +63,9 @@ namespace SPA {
             void EndRows();
             void Transferring();
             bool SendRows(CUQueue& sb, bool transferring = false);
-			bool SendBlob(unsigned short data_type, const unsigned char *buffer, unsigned int bytes);
+            bool SendBlob(unsigned short data_type, const unsigned char *buffer, unsigned int bytes);
             bool SendBlob(SQLHSTMT hstmt, SQLUSMALLINT index, VARTYPE vt, CUQueue &qTemp, CUQueue &q, bool &blob);
-			bool SendUText(SQLHSTMT hstmt, SQLUSMALLINT index, CUQueue &qTemp, CUQueue &q, bool &blob);
+            bool SendUText(SQLHSTMT hstmt, SQLUSMALLINT index, CUQueue &qTemp, CUQueue &q, bool &blob);
 
         private:
             void CleanDBObjects();
@@ -74,10 +74,10 @@ namespace SPA {
 
             static void ConvertToUTF8OrDouble(CDBVariant &vt);
             static void GetErrMsg(SQLSMALLINT HandleType, SQLHANDLE Handle, std::wstring &errMsg);
-			static unsigned short ToSystemTime(const TIMESTAMP_STRUCT &d, SYSTEMTIME &st);
-			static void ToSystemTime(const TIME_STRUCT &d, SYSTEMTIME &st);
-			static void ToSystemTime(const DATE_STRUCT &d, SYSTEMTIME &st);
-			static void ToDec(const SQL_NUMERIC_STRUCT &d, DECIMAL &dec);
+            static unsigned short ToSystemTime(const TIMESTAMP_STRUCT &d, SYSTEMTIME &st);
+            static void ToSystemTime(const TIME_STRUCT &d, SYSTEMTIME &st);
+            static void ToSystemTime(const DATE_STRUCT &d, SYSTEMTIME &st);
+            static void ToDec(const SQL_NUMERIC_STRUCT &d, DECIMAL &dec);
 
         protected:
             UINT64 m_oks;
@@ -98,7 +98,7 @@ namespace SPA {
             std::shared_ptr<void> m_pPrepare;
 
             SQLSMALLINT m_parameters;
-			bool m_bCall;
+            bool m_bCall;
             std::wstring m_sqlPrepare;
             std::wstring m_procName;
 
