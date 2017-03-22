@@ -41,5 +41,8 @@
     <ClInclude Include="..\..\..\..\include\udb_client.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\..\include\async_odbc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

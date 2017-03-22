@@ -1,5 +1,7 @@
 
-#pragma once
+#ifndef _UDAPARTS_ASYNC_DATABASE_CLIENT_HANDLER_H_
+#define _UDAPARTS_ASYNC_DATABASE_CLIENT_HANDLER_H_
+
 #include "udatabase.h"
 #include "aclientw.h"
 
@@ -16,8 +18,8 @@ namespace SPA {
             CAsyncDBHandler(CClientSocket *cs = nullptr)
             : CAsyncServiceHandler(serviceId, cs),
             m_affected(-1), m_dbErrCode(0), m_lastReqId(0),
-            m_nCall(0), m_indexRowset(0), m_ms(msUnknown), m_flags(0),
-            m_parameters(0), m_indexProc(0), m_outputs(0) {
+            m_nCall(0), m_indexRowset(0), m_indexProc(0), m_ms(msUnknown), m_flags(0),
+            m_parameters(0), m_outputs(0) {
                 m_Blob.Utf8ToW(true);
             }
 
@@ -31,7 +33,7 @@ namespace SPA {
             typedef std::function<void(CAsyncDBHandler &dbHandler, CDBVariantArray &vData) > DRows;
             typedef std::function<void(CAsyncDBHandler &dbHandler, tagUpdateEvent eventType, const wchar_t *instance, const wchar_t *dbPath, const wchar_t *tablePath, CDBVariant& rowId) > DUpdateEvent;
 
-        private:
+        protected:
             typedef std::pair<DRowsetHeader, DRows> CRowsetHandler;
 
         public:
@@ -366,7 +368,6 @@ namespace SPA {
                         if (it != this->m_mapRowset.end()) {
                             this->m_mapRowset.erase(it);
                         }
-                        this->m_indexProc = 0;
                         if (!this->m_mapRowset.size()) {
                             this->m_nCall = 0;
                         }
@@ -755,26 +756,28 @@ namespace SPA {
         protected:
             CUCriticalSection m_csDB;
             CDBColumnInfoArray m_vColInfo;
-
-        private:
-            std::wstring m_strConnection;
-            INT64 m_affected;
+			std::unordered_map<UINT64, CRowsetHandler> m_mapRowset;
+			INT64 m_affected;
             int m_dbErrCode;
             std::wstring m_dbErrMsg;
             unsigned short m_lastReqId;
-            UINT64 m_nCall;
-            std::unordered_map<UINT64, CRowsetHandler> m_mapRowset;
+			UINT64 m_nCall;
+			UINT64 m_indexRowset;
+
+        private:
+            std::wstring m_strConnection;
             std::unordered_map<UINT64, CDBVariantArray*> m_mapParameterCall;
-            UINT64 m_indexRowset;
+			unsigned int m_indexProc;
             CUQueue m_Blob;
             CDBVariantArray m_vData;
             tagManagementSystem m_ms;
             DUpdateEvent m_dbEvent;
             unsigned int m_flags;
             unsigned int m_parameters;
-            unsigned int m_indexProc;
+            
             unsigned int m_outputs;
         };
 
     } //namespace ClientSide
 } //namespace SPA
+#endif
