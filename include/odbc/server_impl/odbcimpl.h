@@ -3,6 +3,7 @@
 #include "../uodbc_server.h"
 #include "../../udatabase.h"
 #include "../../aserverw.h"
+#include<unordered_map>
 
 namespace SPA {
     namespace ServerSide {
@@ -81,7 +82,11 @@ namespace SPA {
             void CleanDBObjects();
             CDBColumnInfoArray GetColInfo(SQLHSTMT hstmt, SQLSMALLINT columns, bool meta);
             bool PushRecords(SQLHSTMT hstmt, const CDBColumnInfoArray &vColInfo, int &res, std::wstring &errMsg);
-
+			bool PushInfo(SQLHDBC hdbc);
+			static void SetUShortInfo(SQLHDBC hdbc, SQLUSMALLINT infoType, std::unordered_map<SQLUSMALLINT, CComVariant> &mapInfo);
+			static void SetUIntInfo(SQLHDBC hdbc, SQLUSMALLINT infoType, std::unordered_map<SQLUSMALLINT, CComVariant> &mapInfo);
+			static void SetStringInfo(SQLHDBC hdbc, SQLUSMALLINT infoType, std::unordered_map<SQLUSMALLINT, CComVariant> &mapInfo);
+			static void SetUInt64Info(SQLHDBC hdbc, SQLUSMALLINT infoType, std::unordered_map<SQLUSMALLINT, CComVariant> &mapInfo);
             static void ConvertToUTF8OrDouble(CDBVariant &vt);
             static void GetErrMsg(SQLSMALLINT HandleType, SQLHANDLE Handle, std::wstring &errMsg);
             static unsigned short ToSystemTime(const TIMESTAMP_STRUCT &d, SYSTEMTIME &st);
