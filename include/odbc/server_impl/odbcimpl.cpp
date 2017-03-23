@@ -120,6 +120,7 @@ namespace SPA
                 m_Blob.ReallocBuffer(2 * DEFAULT_BIG_FIELD_CHUNK_SIZE);
             }
             m_global = true;
+			m_pExcuting.reset();
         }
 
         void COdbcImpl::OnSwitchFrom(unsigned int nOldServiceId) {
@@ -156,6 +157,7 @@ namespace SPA
             M_I5_R3(SPA::Odbc::idSQLTables, DoSQLTables, std::wstring, std::wstring, std::wstring, std::wstring, UINT64, int, std::wstring, UINT64)
 #endif
             END_SWITCH
+			m_pExcuting.reset();
             if (reqId == idExecuteParameters) {
                 ReleaseArray();
                 m_vParam.clear();
@@ -182,6 +184,7 @@ namespace SPA
             M_I4_R3(SPA::Odbc::idSQLTablePrivileges, DoSQLTablePrivileges, std::wstring, std::wstring, std::wstring, UINT64, int, std::wstring, UINT64)
             M_I5_R3(SPA::Odbc::idSQLTables, DoSQLTables, std::wstring, std::wstring, std::wstring, std::wstring, UINT64, int, std::wstring, UINT64)
             END_SWITCH
+			m_pExcuting.reset();
             if (reqId == idExecuteParameters) {
                 ReleaseArray();
                 m_vParam.clear();
@@ -196,8 +199,13 @@ namespace SPA
                     std::cout << "Cancel called" << std::endl;
 #endif
                     do {
+						std::shared_ptr<void> pExcuting = m_pExcuting;
+						if (!pExcuting)
+							break;
+						SQLRETURN retcode = SQLCancel(pExcuting.get());
                         if (m_ti == tiUnspecified)
                             break;
+						retcode = SQLEndTran(SQL_HANDLE_DBC, m_pOdbc.get(), SQL_ROLLBACK);
                         m_ti = tiUnspecified;
                     } while (false);
                     break;
@@ -657,6 +665,15 @@ namespace SPA
 			}
 		}
 
+		void COdbcImpl::SetIntInfo(SQLHDBC hdbc, SQLUSMALLINT infoType, std::unordered_map<SQLUSMALLINT, CComVariant> &mapInfo) {
+			SQLSMALLINT bufferLen = 0;
+			int d = 0;
+			SQLRETURN retcode = SQLGetInfo(hdbc, infoType, &d, (SQLSMALLINT)sizeof(d), &bufferLen);
+			if (SQL_SUCCEEDED(retcode)) {
+				mapInfo[infoType] = d;
+			}
+		}
+
 		void COdbcImpl::SetUInt64Info(SQLHDBC hdbc, SQLUSMALLINT infoType, std::unordered_map<SQLUSMALLINT, CComVariant> &mapInfo) {
 			SQLSMALLINT bufferLen = 0;
 			SQLULEN d = 0;
@@ -680,8 +697,6 @@ namespace SPA
 
 			SetStringInfo(hdbc, SQL_ACCESSIBLE_PROCEDURES, mapInfo);
 			SetStringInfo(hdbc, SQL_ACCESSIBLE_TABLES, mapInfo);
-			
-
 			SetStringInfo(hdbc, SQL_DATABASE_NAME, mapInfo);
 			SetStringInfo(hdbc, SQL_USER_NAME, mapInfo);
 			SetStringInfo(hdbc, SQL_DATA_SOURCE_NAME, mapInfo);
@@ -711,9 +726,13 @@ namespace SPA
 			SetStringInfo(hdbc, SQL_ORDER_BY_COLUMNS_IN_SELECT, mapInfo);
 			SetStringInfo(hdbc, SQL_PROCEDURE_TERM, mapInfo);
 			SetStringInfo(hdbc, SQL_PROCEDURES, mapInfo);
-
-
-
+			SetStringInfo(hdbc, SQL_ROW_UPDATES, mapInfo);
+			SetStringInfo(hdbc, SQL_SCHEMA_TERM, mapInfo);
+			SetStringInfo(hdbc, SQL_SEARCH_PATTERN_ESCAPE, mapInfo);
+			SetStringInfo(hdbc, SQL_SPECIAL_CHARACTERS, mapInfo);
+			SetStringInfo(hdbc, SQL_SCHEMA_TERM, mapInfo);
+			SetStringInfo(hdbc, SQL_TABLE_TERM, mapInfo);
+			SetStringInfo(hdbc, SQL_XOPEN_CLI_YEAR, mapInfo);
 
 			SetUShortInfo(hdbc, SQL_ACTIVE_ENVIRONMENTS, mapInfo);
 			SetUShortInfo(hdbc, SQL_CATALOG_LOCATION, mapInfo);
@@ -740,8 +759,10 @@ namespace SPA
 			SetUShortInfo(hdbc, SQL_MAX_TABLES_IN_SELECT, mapInfo);
 			SetUShortInfo(hdbc, SQL_MAX_USER_NAME_LEN, mapInfo);
 			SetUShortInfo(hdbc, SQL_NULL_COLLATION, mapInfo);
-
-
+			SetUShortInfo(hdbc, SQL_QUOTED_IDENTIFIER_CASE, mapInfo);
+			SetUShortInfo(hdbc, SQL_TXN_CAPABLE, mapInfo);
+			
+			SetIntInfo(hdbc, SQL_POS_OPERATIONS, mapInfo);
 
 			SetUIntInfo(hdbc, SQL_AGGREGATE_FUNCTIONS, mapInfo);
 			SetUIntInfo(hdbc, SQL_ALTER_DOMAIN, mapInfo);
@@ -791,9 +812,32 @@ namespace SPA
 			SetUIntInfo(hdbc, SQL_ODBC_INTERFACE_CONFORMANCE, mapInfo);
 			SetUIntInfo(hdbc, SQL_OJ_CAPABILITIES, mapInfo);
 			SetUIntInfo(hdbc, SQL_PARAM_ARRAY_SELECTS, mapInfo);
-
-
-
+			SetUIntInfo(hdbc, SQL_SCHEMA_USAGE, mapInfo);
+			SetUIntInfo(hdbc, SQL_SCROLL_OPTIONS, mapInfo);
+			SetUIntInfo(hdbc, SQL_SQL_CONFORMANCE, mapInfo);
+			SetUIntInfo(hdbc, SQL_SQL92_DATETIME_FUNCTIONS, mapInfo);
+			SetUIntInfo(hdbc, SQL_SQL92_FOREIGN_KEY_DELETE_RULE, mapInfo);
+			SetUIntInfo(hdbc, SQL_SQL92_FOREIGN_KEY_UPDATE_RULE, mapInfo);
+			SetUIntInfo(hdbc, SQL_SQL92_GRANT, mapInfo);
+			SetUIntInfo(hdbc, SQL_SQL92_NUMERIC_VALUE_FUNCTIONS, mapInfo);
+			SetUIntInfo(hdbc, SQL_SQL92_PREDICATES, mapInfo);
+			SetUIntInfo(hdbc, SQL_SQL92_RELATIONAL_JOIN_OPERATORS, mapInfo);
+			SetUIntInfo(hdbc, SQL_SQL92_REVOKE, mapInfo);
+			SetUIntInfo(hdbc, SQL_SQL92_ROW_VALUE_CONSTRUCTOR, mapInfo);
+			SetUIntInfo(hdbc, SQL_SQL92_STRING_FUNCTIONS, mapInfo);
+			SetUIntInfo(hdbc, SQL_SQL92_VALUE_EXPRESSIONS, mapInfo);
+			SetUIntInfo(hdbc, SQL_STANDARD_CLI_CONFORMANCE, mapInfo);
+			SetUIntInfo(hdbc, SQL_STATIC_CURSOR_ATTRIBUTES1, mapInfo);
+			SetUIntInfo(hdbc, SQL_STATIC_CURSOR_ATTRIBUTES2, mapInfo);
+			SetUIntInfo(hdbc, SQL_STRING_FUNCTIONS, mapInfo);
+			SetUIntInfo(hdbc, SQL_SUBQUERIES, mapInfo);
+			SetUIntInfo(hdbc, SQL_SYSTEM_FUNCTIONS, mapInfo);
+			SetUIntInfo(hdbc, SQL_TIMEDATE_ADD_INTERVALS, mapInfo);
+			SetUIntInfo(hdbc, SQL_TIMEDATE_DIFF_INTERVALS, mapInfo);
+			SetUIntInfo(hdbc, SQL_TIMEDATE_FUNCTIONS, mapInfo);
+			SetUIntInfo(hdbc, SQL_TXN_ISOLATION_OPTION, mapInfo);
+			SetUIntInfo(hdbc, SQL_UNION, mapInfo);
+			SetUIntInfo(hdbc, SQL_TXN_ISOLATION_OPTION, mapInfo);
 
 			//SetUInt64Info(hdbc, SQL_DRIVER_HDBCSQL_DRIVER_HENV, mapInfo);
 			SetUInt64Info(hdbc, SQL_DRIVER_HDESC, mapInfo);
@@ -1187,6 +1231,7 @@ namespace SPA
                     ++m_fails;
                     break;
                 }
+				m_pExcuting = pStmt;
                 retcode = SQLColumnPrivileges(hstmt, (SQLWCHAR*) catalogName.c_str(), (SQLSMALLINT) catalogName.size(),
                         (SQLWCHAR*) schemaName.c_str(), (SQLSMALLINT) schemaName.size(),
                         (SQLWCHAR*) tableName.c_str(), (SQLSMALLINT) tableName.size(),
@@ -1249,6 +1294,7 @@ namespace SPA
                     ++m_fails;
                     break;
                 }
+				m_pExcuting = pStmt;
                 retcode = SQLTables(hstmt, (SQLWCHAR*) catalogName.c_str(), (SQLSMALLINT) catalogName.size(),
                         (SQLWCHAR*) schemaName.c_str(), (SQLSMALLINT) schemaName.size(),
                         (SQLWCHAR*) tableName.c_str(), (SQLSMALLINT) tableName.size(),
@@ -1311,6 +1357,7 @@ namespace SPA
                     ++m_fails;
                     break;
                 }
+				m_pExcuting = pStmt;
                 retcode = SQLColumns(hstmt, (SQLWCHAR*) catalogName.c_str(), (SQLSMALLINT) catalogName.size(),
                         (SQLWCHAR*) schemaName.c_str(), (SQLSMALLINT) schemaName.size(),
                         (SQLWCHAR*) tableName.c_str(), (SQLSMALLINT) tableName.size(),
@@ -1373,6 +1420,7 @@ namespace SPA
                     ++m_fails;
                     break;
                 }
+				m_pExcuting = pStmt;
                 retcode = SQLProcedureColumns(hstmt, (SQLWCHAR*) catalogName.c_str(), (SQLSMALLINT) catalogName.size(),
                         (SQLWCHAR*) schemaName.c_str(), (SQLSMALLINT) schemaName.size(),
                         (SQLWCHAR*) procName.c_str(), (SQLSMALLINT) procName.size(),
@@ -1435,6 +1483,7 @@ namespace SPA
                     ++m_fails;
                     break;
                 }
+				m_pExcuting = pStmt;
                 retcode = SQLPrimaryKeys(hstmt, (SQLWCHAR*) catalogName.c_str(), (SQLSMALLINT) catalogName.size(),
                         (SQLWCHAR*) schemaName.c_str(), (SQLSMALLINT) schemaName.size(),
                         (SQLWCHAR*) tableName.c_str(), (SQLSMALLINT) tableName.size());
@@ -1496,6 +1545,7 @@ namespace SPA
                     ++m_fails;
                     break;
                 }
+				m_pExcuting = pStmt;
                 retcode = SQLTablePrivileges(hstmt, (SQLWCHAR*) catalogName.c_str(), (SQLSMALLINT) catalogName.size(),
                         (SQLWCHAR*) schemaName.c_str(), (SQLSMALLINT) schemaName.size(),
                         (SQLWCHAR*) tableName.c_str(), (SQLSMALLINT) tableName.size());
@@ -1557,6 +1607,7 @@ namespace SPA
                     ++m_fails;
                     break;
                 }
+				m_pExcuting = pStmt;
                 retcode = SQLStatistics(hstmt, (SQLWCHAR*) catalogName.c_str(), (SQLSMALLINT) catalogName.size(),
                         (SQLWCHAR*) schemaName.c_str(), (SQLSMALLINT) schemaName.size(),
                         (SQLWCHAR*) tableName.c_str(), (SQLSMALLINT) tableName.size(), unique, reserved);
@@ -1618,6 +1669,7 @@ namespace SPA
                     ++m_fails;
                     break;
                 }
+				m_pExcuting = pStmt;
                 retcode = SQLProcedures(hstmt, (SQLWCHAR*) catalogName.c_str(), (SQLSMALLINT) catalogName.size(),
                         (SQLWCHAR*) schemaName.c_str(), (SQLSMALLINT) schemaName.size(),
                         (SQLWCHAR*) procName.c_str(), (SQLSMALLINT) procName.size());
@@ -1679,6 +1731,7 @@ namespace SPA
                     ++m_fails;
                     break;
                 }
+				m_pExcuting = pStmt;
                 retcode = SQLSpecialColumns(hstmt, identifierType, (SQLWCHAR*) catalogName.c_str(), (SQLSMALLINT) catalogName.size(),
                         (SQLWCHAR*) schemaName.c_str(), (SQLSMALLINT) schemaName.size(),
                         (SQLWCHAR*) tableName.c_str(), (SQLSMALLINT) tableName.size(), scope, nullable);
@@ -1740,6 +1793,7 @@ namespace SPA
                     ++m_fails;
                     break;
                 }
+				m_pExcuting = pStmt;
                 retcode = SQLForeignKeys(hstmt, (SQLWCHAR*) pkCatalogName.c_str(), (SQLSMALLINT) pkCatalogName.size(),
                         (SQLWCHAR*) pkSchemaName.c_str(), (SQLSMALLINT) pkSchemaName.size(),
                         (SQLWCHAR*) pkTableName.c_str(), (SQLSMALLINT) pkTableName.size(),
@@ -1805,6 +1859,7 @@ namespace SPA
                     ++m_fails;
                     break;
                 }
+				m_pExcuting = pStmt;
                 retcode = SQLExecDirect(hstmt, (SQLWCHAR*) wsql.c_str(), (SQLINTEGER) wsql.size());
                 if (!SQL_SUCCEEDED(retcode)) {
                     res = SPA::Odbc::ER_ERROR;
