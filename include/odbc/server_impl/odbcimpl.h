@@ -8,7 +8,6 @@
 namespace SPA {
     namespace ServerSide {
         using namespace UDB;
-        using namespace Odbc;
 
         class COdbcImpl : public CClientPeer {
             //no copy constructor
