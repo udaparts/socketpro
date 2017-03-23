@@ -120,7 +120,7 @@ namespace SPA
                 m_Blob.ReallocBuffer(2 * DEFAULT_BIG_FIELD_CHUNK_SIZE);
             }
             m_global = true;
-			m_pExcuting.reset();
+            m_pExcuting.reset();
         }
 
         void COdbcImpl::OnSwitchFrom(unsigned int nOldServiceId) {
@@ -157,7 +157,7 @@ namespace SPA
             M_I5_R3(SPA::Odbc::idSQLTables, DoSQLTables, std::wstring, std::wstring, std::wstring, std::wstring, UINT64, int, std::wstring, UINT64)
 #endif
             END_SWITCH
-			m_pExcuting.reset();
+            m_pExcuting.reset();
             if (reqId == idExecuteParameters) {
                 ReleaseArray();
                 m_vParam.clear();
@@ -184,7 +184,7 @@ namespace SPA
             M_I4_R3(SPA::Odbc::idSQLTablePrivileges, DoSQLTablePrivileges, std::wstring, std::wstring, std::wstring, UINT64, int, std::wstring, UINT64)
             M_I5_R3(SPA::Odbc::idSQLTables, DoSQLTables, std::wstring, std::wstring, std::wstring, std::wstring, UINT64, int, std::wstring, UINT64)
             END_SWITCH
-			m_pExcuting.reset();
+            m_pExcuting.reset();
             if (reqId == idExecuteParameters) {
                 ReleaseArray();
                 m_vParam.clear();
@@ -199,13 +199,13 @@ namespace SPA
                     std::cout << "Cancel called" << std::endl;
 #endif
                     do {
-						std::shared_ptr<void> pExcuting = m_pExcuting;
-						if (!pExcuting)
-							break;
-						SQLRETURN retcode = SQLCancel(pExcuting.get());
+                        std::shared_ptr<void> pExcuting = m_pExcuting;
+                        if (!pExcuting)
+                            break;
+                        SQLRETURN retcode = SQLCancel(pExcuting.get());
                         if (m_ti == tiUnspecified)
                             break;
-						retcode = SQLEndTran(SQL_HANDLE_DBC, m_pOdbc.get(), SQL_ROLLBACK);
+                        retcode = SQLEndTran(SQL_HANDLE_DBC, m_pOdbc.get(), SQL_ROLLBACK);
                         m_ti = tiUnspecified;
                     } while (false);
                     break;
@@ -284,7 +284,7 @@ namespace SPA
                         assert(ret == SQL_SUCCESS);
                     }
                 });
-				PushInfo(hdbc);
+                PushInfo(hdbc);
             } while (false);
         }
 
@@ -295,7 +295,7 @@ namespace SPA
 
         void COdbcImpl::BeginTrans(int isolation, const std::wstring &dbConn, unsigned int flags, int &res, std::wstring &errMsg, int &ms) {
             ms = msODBC;
-			if (m_ti != tiUnspecified || isolation == (int) tiUnspecified) {
+            if (m_ti != tiUnspecified || isolation == (int) tiUnspecified) {
                 errMsg = BAD_MANUAL_TRANSACTION_STATE;
                 res = SPA::Odbc::ER_BAD_MANUAL_TRANSACTION_STATE;
                 return;
@@ -306,36 +306,35 @@ namespace SPA
                     return;
                 }
             }
-			SQLINTEGER attr;
-			switch ((tagTransactionIsolation) isolation) {
-				case tiReadUncommited:
-					attr = SQL_TXN_READ_UNCOMMITTED;
-					break;
-				case tiRepeatableRead:
-					attr = SQL_TXN_REPEATABLE_READ;
-					break;
-				case tiReadCommited:
-					attr = SQL_TXN_READ_COMMITTED;
-					break;
-				case tiSerializable:
-					attr = SQL_TXN_SERIALIZABLE;
-					break;
-				default:
-					attr = 0;
-					break;
-			}
-			SQLRETURN retcode;
-			if (attr) {
-				retcode = SQLSetConnectAttr(m_pOdbc.get(), SQL_ATTR_TXN_ISOLATION, (SQLPOINTER)attr, 0);
-				//ignore errors
-			}
-			retcode = SQLSetConnectAttr(m_pOdbc.get(), SQL_ATTR_AUTOCOMMIT, (SQLPOINTER)FALSE, 0);
-			if (!SQL_SUCCEEDED(retcode)) {
+            SQLINTEGER attr;
+            switch ((tagTransactionIsolation) isolation) {
+                case tiReadUncommited:
+                    attr = SQL_TXN_READ_UNCOMMITTED;
+                    break;
+                case tiRepeatableRead:
+                    attr = SQL_TXN_REPEATABLE_READ;
+                    break;
+                case tiReadCommited:
+                    attr = SQL_TXN_READ_COMMITTED;
+                    break;
+                case tiSerializable:
+                    attr = SQL_TXN_SERIALIZABLE;
+                    break;
+                default:
+                    attr = 0;
+                    break;
+            }
+            SQLRETURN retcode;
+            if (attr) {
+                retcode = SQLSetConnectAttr(m_pOdbc.get(), SQL_ATTR_TXN_ISOLATION, (SQLPOINTER) attr, 0);
+                //ignore errors
+            }
+            retcode = SQLSetConnectAttr(m_pOdbc.get(), SQL_ATTR_AUTOCOMMIT, (SQLPOINTER) FALSE, 0);
+            if (!SQL_SUCCEEDED(retcode)) {
                 res = SPA::Odbc::ER_ERROR;
                 GetErrMsg(SQL_HANDLE_DBC, m_pOdbc.get(), errMsg);
-            }
-			else {
-				res = 0;
+            } else {
+                res = 0;
                 m_fails = 0;
                 m_oks = 0;
                 m_ti = (tagTransactionIsolation) isolation;
@@ -344,7 +343,7 @@ namespace SPA
                 } else {
                     errMsg = ODBC_GLOBAL_CONNECTION_STRING;
                 }
-			}
+            }
         }
 
         void COdbcImpl::EndTrans(int plan, int &res, std::wstring & errMsg) {
@@ -363,7 +362,7 @@ namespace SPA
                 errMsg = NO_DB_OPENED_YET;
                 return;
             }
-			bool rollback = false;
+            bool rollback = false;
             tagRollbackPlan rp = (tagRollbackPlan) plan;
             switch (rp) {
                 case rpRollbackErrorAny:
@@ -388,17 +387,16 @@ namespace SPA
                     assert(false); //shouldn't come here
                     break;
             }
-			SQLRETURN retcode = SQLEndTran(SQL_HANDLE_DBC, m_pOdbc.get(), rollback ? SQL_ROLLBACK : SQL_COMMIT);
-			if (!SQL_SUCCEEDED(retcode)) {
+            SQLRETURN retcode = SQLEndTran(SQL_HANDLE_DBC, m_pOdbc.get(), rollback ? SQL_ROLLBACK : SQL_COMMIT);
+            if (!SQL_SUCCEEDED(retcode)) {
                 res = SPA::Odbc::ER_ERROR;
                 GetErrMsg(SQL_HANDLE_DBC, m_pOdbc.get(), errMsg);
-            }
-			else {
-				res = SQL_SUCCESS;
-				m_ti = tiUnspecified;
+            } else {
+                res = SQL_SUCCESS;
+                m_ti = tiUnspecified;
                 m_fails = 0;
                 m_oks = 0;
-			}
+            }
         }
 
         bool COdbcImpl::SendRows(CUQueue& sb, bool transferring) {
@@ -745,244 +743,245 @@ namespace SPA
             st.wDay = d.day;
         }
 
-		void COdbcImpl::SetStringInfo(SQLHDBC hdbc, SQLUSMALLINT infoType, std::unordered_map<SQLUSMALLINT, CComVariant> &mapInfo) {
-			SQLSMALLINT bufferLen = 0;
-			SQLWCHAR buffer[128] = {0};
-			SQLRETURN retcode = SQLGetInfo(hdbc, infoType, buffer, (SQLSMALLINT)sizeof(buffer), &bufferLen);
-			if (SQL_SUCCEEDED(retcode)) {
-				mapInfo[infoType] = (const SQLWCHAR*)buffer;
-			}
-		}
+        void COdbcImpl::SetStringInfo(SQLHDBC hdbc, SQLUSMALLINT infoType, std::unordered_map<SQLUSMALLINT, CComVariant> &mapInfo) {
+            SQLSMALLINT bufferLen = 0;
+            SQLWCHAR buffer[128] =
+            {0};
+            SQLRETURN retcode = SQLGetInfo(hdbc, infoType, buffer, (SQLSMALLINT)sizeof (buffer), &bufferLen);
+            if (SQL_SUCCEEDED(retcode)) {
+                mapInfo[infoType] = (const SQLWCHAR*) buffer;
+            }
+        }
 
-		void COdbcImpl::SetUIntInfo(SQLHDBC hdbc, SQLUSMALLINT infoType, std::unordered_map<SQLUSMALLINT, CComVariant> &mapInfo) {
-			SQLSMALLINT bufferLen = 0;
-			unsigned int d = 0;
-			SQLRETURN retcode = SQLGetInfo(hdbc, infoType, &d, (SQLSMALLINT)sizeof(d), &bufferLen);
-			if (SQL_SUCCEEDED(retcode)) {
-				mapInfo[infoType] = d;
-			}
-		}
+        void COdbcImpl::SetUIntInfo(SQLHDBC hdbc, SQLUSMALLINT infoType, std::unordered_map<SQLUSMALLINT, CComVariant> &mapInfo) {
+            SQLSMALLINT bufferLen = 0;
+            unsigned int d = 0;
+            SQLRETURN retcode = SQLGetInfo(hdbc, infoType, &d, (SQLSMALLINT)sizeof (d), &bufferLen);
+            if (SQL_SUCCEEDED(retcode)) {
+                mapInfo[infoType] = d;
+            }
+        }
 
-		void COdbcImpl::SetIntInfo(SQLHDBC hdbc, SQLUSMALLINT infoType, std::unordered_map<SQLUSMALLINT, CComVariant> &mapInfo) {
-			SQLSMALLINT bufferLen = 0;
-			int d = 0;
-			SQLRETURN retcode = SQLGetInfo(hdbc, infoType, &d, (SQLSMALLINT)sizeof(d), &bufferLen);
-			if (SQL_SUCCEEDED(retcode)) {
-				mapInfo[infoType] = d;
-			}
-		}
+        void COdbcImpl::SetIntInfo(SQLHDBC hdbc, SQLUSMALLINT infoType, std::unordered_map<SQLUSMALLINT, CComVariant> &mapInfo) {
+            SQLSMALLINT bufferLen = 0;
+            int d = 0;
+            SQLRETURN retcode = SQLGetInfo(hdbc, infoType, &d, (SQLSMALLINT)sizeof (d), &bufferLen);
+            if (SQL_SUCCEEDED(retcode)) {
+                mapInfo[infoType] = d;
+            }
+        }
 
-		void COdbcImpl::SetUInt64Info(SQLHDBC hdbc, SQLUSMALLINT infoType, std::unordered_map<SQLUSMALLINT, CComVariant> &mapInfo) {
-			SQLSMALLINT bufferLen = 0;
-			SQLULEN d = 0;
-			SQLRETURN retcode = SQLGetInfo(hdbc, infoType, &d, (SQLSMALLINT)sizeof(d), &bufferLen);
-			if (SQL_SUCCEEDED(retcode)) {
-				mapInfo[infoType] = d;
-			}
-		}
+        void COdbcImpl::SetUInt64Info(SQLHDBC hdbc, SQLUSMALLINT infoType, std::unordered_map<SQLUSMALLINT, CComVariant> &mapInfo) {
+            SQLSMALLINT bufferLen = 0;
+            SQLULEN d = 0;
+            SQLRETURN retcode = SQLGetInfo(hdbc, infoType, &d, (SQLSMALLINT)sizeof (d), &bufferLen);
+            if (SQL_SUCCEEDED(retcode)) {
+                mapInfo[infoType] = d;
+            }
+        }
 
-		void COdbcImpl::SetUShortInfo(SQLHDBC hdbc, SQLUSMALLINT infoType, std::unordered_map<SQLUSMALLINT, CComVariant> &mapInfo) {
-			SQLSMALLINT bufferLen = 0;
-			SQLUSMALLINT d = 0;
-			SQLRETURN retcode = SQLGetInfo(hdbc, infoType, &d, (SQLSMALLINT)sizeof(d), &bufferLen);
-			if (SQL_SUCCEEDED(retcode)) {
-				mapInfo[infoType] = d;
-			}
-		}
+        void COdbcImpl::SetUShortInfo(SQLHDBC hdbc, SQLUSMALLINT infoType, std::unordered_map<SQLUSMALLINT, CComVariant> &mapInfo) {
+            SQLSMALLINT bufferLen = 0;
+            SQLUSMALLINT d = 0;
+            SQLRETURN retcode = SQLGetInfo(hdbc, infoType, &d, (SQLSMALLINT)sizeof (d), &bufferLen);
+            if (SQL_SUCCEEDED(retcode)) {
+                mapInfo[infoType] = d;
+            }
+        }
 
-		bool COdbcImpl::PushInfo(SQLHDBC hdbc) {
-			std::unordered_map<SQLUSMALLINT, CComVariant> mapInfo;
+        bool COdbcImpl::PushInfo(SQLHDBC hdbc) {
+            std::unordered_map<SQLUSMALLINT, CComVariant> mapInfo;
 
-			SetStringInfo(hdbc, SQL_ACCESSIBLE_PROCEDURES, mapInfo);
-			SetStringInfo(hdbc, SQL_ACCESSIBLE_TABLES, mapInfo);
-			SetStringInfo(hdbc, SQL_DATABASE_NAME, mapInfo);
-			SetStringInfo(hdbc, SQL_USER_NAME, mapInfo);
-			SetStringInfo(hdbc, SQL_DATA_SOURCE_NAME, mapInfo);
-			SetStringInfo(hdbc, SQL_DRIVER_NAME, mapInfo);
-			SetStringInfo(hdbc, SQL_DRIVER_VER, mapInfo);
-			SetStringInfo(hdbc, SQL_DRIVER_ODBC_VER, mapInfo);
-			SetStringInfo(hdbc, SQL_ODBC_VER, mapInfo);
-			SetStringInfo(hdbc, SQL_SERVER_NAME, mapInfo);
-			SetStringInfo(hdbc, SQL_CATALOG_NAME, mapInfo);
-			SetStringInfo(hdbc, SQL_CATALOG_TERM, mapInfo);
-			SetStringInfo(hdbc, SQL_CATALOG_NAME_SEPARATOR, mapInfo);
-			SetStringInfo(hdbc, SQL_COLLATION_SEQ, mapInfo);
-			SetStringInfo(hdbc, SQL_COLUMN_ALIAS, mapInfo);
-			SetStringInfo(hdbc, SQL_DATA_SOURCE_READ_ONLY, mapInfo);
-			SetStringInfo(hdbc, SQL_DBMS_NAME, mapInfo);
-			SetStringInfo(hdbc, SQL_DBMS_VER, mapInfo);
-			SetStringInfo(hdbc, SQL_DESCRIBE_PARAMETER, mapInfo);
-			SetStringInfo(hdbc, SQL_DM_VER, mapInfo);
-			SetStringInfo(hdbc, SQL_EXPRESSIONS_IN_ORDERBY, mapInfo);
-			SetStringInfo(hdbc, SQL_IDENTIFIER_QUOTE_CHAR, mapInfo);
-			SetStringInfo(hdbc, SQL_INTEGRITY, mapInfo);
-			SetStringInfo(hdbc, SQL_KEYWORDS, mapInfo);
-			SetStringInfo(hdbc, SQL_LIKE_ESCAPE_CLAUSE, mapInfo);
-			SetStringInfo(hdbc, SQL_MULT_RESULT_SETS, mapInfo);
-			SetStringInfo(hdbc, SQL_MULTIPLE_ACTIVE_TXN, mapInfo);
-			SetStringInfo(hdbc, SQL_NEED_LONG_DATA_LEN, mapInfo);
-			SetStringInfo(hdbc, SQL_ORDER_BY_COLUMNS_IN_SELECT, mapInfo);
-			SetStringInfo(hdbc, SQL_PROCEDURE_TERM, mapInfo);
-			SetStringInfo(hdbc, SQL_PROCEDURES, mapInfo);
-			SetStringInfo(hdbc, SQL_ROW_UPDATES, mapInfo);
-			SetStringInfo(hdbc, SQL_SCHEMA_TERM, mapInfo);
-			SetStringInfo(hdbc, SQL_SEARCH_PATTERN_ESCAPE, mapInfo);
-			SetStringInfo(hdbc, SQL_SPECIAL_CHARACTERS, mapInfo);
-			SetStringInfo(hdbc, SQL_SCHEMA_TERM, mapInfo);
-			SetStringInfo(hdbc, SQL_TABLE_TERM, mapInfo);
-			SetStringInfo(hdbc, SQL_XOPEN_CLI_YEAR, mapInfo);
+            SetStringInfo(hdbc, SQL_ACCESSIBLE_PROCEDURES, mapInfo);
+            SetStringInfo(hdbc, SQL_ACCESSIBLE_TABLES, mapInfo);
+            SetStringInfo(hdbc, SQL_DATABASE_NAME, mapInfo);
+            SetStringInfo(hdbc, SQL_USER_NAME, mapInfo);
+            SetStringInfo(hdbc, SQL_DATA_SOURCE_NAME, mapInfo);
+            SetStringInfo(hdbc, SQL_DRIVER_NAME, mapInfo);
+            SetStringInfo(hdbc, SQL_DRIVER_VER, mapInfo);
+            SetStringInfo(hdbc, SQL_DRIVER_ODBC_VER, mapInfo);
+            SetStringInfo(hdbc, SQL_ODBC_VER, mapInfo);
+            SetStringInfo(hdbc, SQL_SERVER_NAME, mapInfo);
+            SetStringInfo(hdbc, SQL_CATALOG_NAME, mapInfo);
+            SetStringInfo(hdbc, SQL_CATALOG_TERM, mapInfo);
+            SetStringInfo(hdbc, SQL_CATALOG_NAME_SEPARATOR, mapInfo);
+            SetStringInfo(hdbc, SQL_COLLATION_SEQ, mapInfo);
+            SetStringInfo(hdbc, SQL_COLUMN_ALIAS, mapInfo);
+            SetStringInfo(hdbc, SQL_DATA_SOURCE_READ_ONLY, mapInfo);
+            SetStringInfo(hdbc, SQL_DBMS_NAME, mapInfo);
+            SetStringInfo(hdbc, SQL_DBMS_VER, mapInfo);
+            SetStringInfo(hdbc, SQL_DESCRIBE_PARAMETER, mapInfo);
+            SetStringInfo(hdbc, SQL_DM_VER, mapInfo);
+            SetStringInfo(hdbc, SQL_EXPRESSIONS_IN_ORDERBY, mapInfo);
+            SetStringInfo(hdbc, SQL_IDENTIFIER_QUOTE_CHAR, mapInfo);
+            SetStringInfo(hdbc, SQL_INTEGRITY, mapInfo);
+            SetStringInfo(hdbc, SQL_KEYWORDS, mapInfo);
+            SetStringInfo(hdbc, SQL_LIKE_ESCAPE_CLAUSE, mapInfo);
+            SetStringInfo(hdbc, SQL_MULT_RESULT_SETS, mapInfo);
+            SetStringInfo(hdbc, SQL_MULTIPLE_ACTIVE_TXN, mapInfo);
+            SetStringInfo(hdbc, SQL_NEED_LONG_DATA_LEN, mapInfo);
+            SetStringInfo(hdbc, SQL_ORDER_BY_COLUMNS_IN_SELECT, mapInfo);
+            SetStringInfo(hdbc, SQL_PROCEDURE_TERM, mapInfo);
+            SetStringInfo(hdbc, SQL_PROCEDURES, mapInfo);
+            SetStringInfo(hdbc, SQL_ROW_UPDATES, mapInfo);
+            SetStringInfo(hdbc, SQL_SCHEMA_TERM, mapInfo);
+            SetStringInfo(hdbc, SQL_SEARCH_PATTERN_ESCAPE, mapInfo);
+            SetStringInfo(hdbc, SQL_SPECIAL_CHARACTERS, mapInfo);
+            SetStringInfo(hdbc, SQL_SCHEMA_TERM, mapInfo);
+            SetStringInfo(hdbc, SQL_TABLE_TERM, mapInfo);
+            SetStringInfo(hdbc, SQL_XOPEN_CLI_YEAR, mapInfo);
 
-			SetUShortInfo(hdbc, SQL_ACTIVE_ENVIRONMENTS, mapInfo);
-			SetUShortInfo(hdbc, SQL_CATALOG_LOCATION, mapInfo);
-			SetUShortInfo(hdbc, SQL_CONCAT_NULL_BEHAVIOR, mapInfo);
-			SetUShortInfo(hdbc, SQL_CORRELATION_NAME, mapInfo);
-			SetUShortInfo(hdbc, SQL_CURSOR_COMMIT_BEHAVIOR, mapInfo);
-			SetUShortInfo(hdbc, SQL_CURSOR_ROLLBACK_BEHAVIOR, mapInfo);
-			SetUShortInfo(hdbc, SQL_FILE_USAGE, mapInfo);
-			SetUShortInfo(hdbc, SQL_GROUP_BY, mapInfo);
-			SetUShortInfo(hdbc, SQL_IDENTIFIER_CASE, mapInfo);
-			SetUShortInfo(hdbc, SQL_MAX_CATALOG_NAME_LEN, mapInfo);
-			SetUShortInfo(hdbc, SQL_MAX_COLUMN_NAME_LEN, mapInfo);
-			SetUShortInfo(hdbc, SQL_MAX_COLUMNS_IN_GROUP_BY, mapInfo);
-			SetUShortInfo(hdbc, SQL_MAX_COLUMNS_IN_INDEX, mapInfo);
-			SetUShortInfo(hdbc, SQL_MAX_COLUMNS_IN_ORDER_BY, mapInfo);
-			SetUShortInfo(hdbc, SQL_MAX_COLUMNS_IN_SELECT, mapInfo);
-			SetUShortInfo(hdbc, SQL_MAX_COLUMNS_IN_TABLE, mapInfo);
-			SetUShortInfo(hdbc, SQL_MAX_CONCURRENT_ACTIVITIES, mapInfo);
-			SetUShortInfo(hdbc, SQL_MAX_CURSOR_NAME_LEN, mapInfo);
-			SetUShortInfo(hdbc, SQL_MAX_DRIVER_CONNECTIONS, mapInfo);
-			SetUShortInfo(hdbc, SQL_MAX_IDENTIFIER_LEN, mapInfo);
-			SetUShortInfo(hdbc, SQL_MAX_PROCEDURE_NAME_LEN, mapInfo);
-			SetUShortInfo(hdbc, SQL_MAX_TABLE_NAME_LEN, mapInfo);
-			SetUShortInfo(hdbc, SQL_MAX_TABLES_IN_SELECT, mapInfo);
-			SetUShortInfo(hdbc, SQL_MAX_USER_NAME_LEN, mapInfo);
-			SetUShortInfo(hdbc, SQL_NULL_COLLATION, mapInfo);
-			SetUShortInfo(hdbc, SQL_QUOTED_IDENTIFIER_CASE, mapInfo);
-			SetUShortInfo(hdbc, SQL_TXN_CAPABLE, mapInfo);
-			
-			SetIntInfo(hdbc, SQL_POS_OPERATIONS, mapInfo);
+            SetUShortInfo(hdbc, SQL_ACTIVE_ENVIRONMENTS, mapInfo);
+            SetUShortInfo(hdbc, SQL_CATALOG_LOCATION, mapInfo);
+            SetUShortInfo(hdbc, SQL_CONCAT_NULL_BEHAVIOR, mapInfo);
+            SetUShortInfo(hdbc, SQL_CORRELATION_NAME, mapInfo);
+            SetUShortInfo(hdbc, SQL_CURSOR_COMMIT_BEHAVIOR, mapInfo);
+            SetUShortInfo(hdbc, SQL_CURSOR_ROLLBACK_BEHAVIOR, mapInfo);
+            SetUShortInfo(hdbc, SQL_FILE_USAGE, mapInfo);
+            SetUShortInfo(hdbc, SQL_GROUP_BY, mapInfo);
+            SetUShortInfo(hdbc, SQL_IDENTIFIER_CASE, mapInfo);
+            SetUShortInfo(hdbc, SQL_MAX_CATALOG_NAME_LEN, mapInfo);
+            SetUShortInfo(hdbc, SQL_MAX_COLUMN_NAME_LEN, mapInfo);
+            SetUShortInfo(hdbc, SQL_MAX_COLUMNS_IN_GROUP_BY, mapInfo);
+            SetUShortInfo(hdbc, SQL_MAX_COLUMNS_IN_INDEX, mapInfo);
+            SetUShortInfo(hdbc, SQL_MAX_COLUMNS_IN_ORDER_BY, mapInfo);
+            SetUShortInfo(hdbc, SQL_MAX_COLUMNS_IN_SELECT, mapInfo);
+            SetUShortInfo(hdbc, SQL_MAX_COLUMNS_IN_TABLE, mapInfo);
+            SetUShortInfo(hdbc, SQL_MAX_CONCURRENT_ACTIVITIES, mapInfo);
+            SetUShortInfo(hdbc, SQL_MAX_CURSOR_NAME_LEN, mapInfo);
+            SetUShortInfo(hdbc, SQL_MAX_DRIVER_CONNECTIONS, mapInfo);
+            SetUShortInfo(hdbc, SQL_MAX_IDENTIFIER_LEN, mapInfo);
+            SetUShortInfo(hdbc, SQL_MAX_PROCEDURE_NAME_LEN, mapInfo);
+            SetUShortInfo(hdbc, SQL_MAX_TABLE_NAME_LEN, mapInfo);
+            SetUShortInfo(hdbc, SQL_MAX_TABLES_IN_SELECT, mapInfo);
+            SetUShortInfo(hdbc, SQL_MAX_USER_NAME_LEN, mapInfo);
+            SetUShortInfo(hdbc, SQL_NULL_COLLATION, mapInfo);
+            SetUShortInfo(hdbc, SQL_QUOTED_IDENTIFIER_CASE, mapInfo);
+            SetUShortInfo(hdbc, SQL_TXN_CAPABLE, mapInfo);
 
-			SetUIntInfo(hdbc, SQL_AGGREGATE_FUNCTIONS, mapInfo);
-			SetUIntInfo(hdbc, SQL_ALTER_DOMAIN, mapInfo);
-			SetUIntInfo(hdbc, SQL_ALTER_TABLE, mapInfo);
-			SetUIntInfo(hdbc, SQL_ASYNC_DBC_FUNCTIONS, mapInfo);
-			SetUIntInfo(hdbc, SQL_ASYNC_MODE, mapInfo);
-			SetUIntInfo(hdbc, SQL_BATCH_ROW_COUNT, mapInfo);
-			SetUIntInfo(hdbc, SQL_BATCH_SUPPORT, mapInfo);
-			SetUIntInfo(hdbc, SQL_CATALOG_USAGE, mapInfo);
-			SetUIntInfo(hdbc, SQL_CONVERT_FUNCTIONS, mapInfo);
-			SetUIntInfo(hdbc, SQL_CREATE_ASSERTION, mapInfo);
-			SetUIntInfo(hdbc, SQL_CREATE_CHARACTER_SET, mapInfo);
-			SetUIntInfo(hdbc, SQL_CREATE_COLLATION, mapInfo);
-			SetUIntInfo(hdbc, SQL_CREATE_DOMAIN, mapInfo);
-			SetUIntInfo(hdbc, SQL_CREATE_SCHEMA, mapInfo);
-			SetUIntInfo(hdbc, SQL_CREATE_TABLE, mapInfo);
-			SetUIntInfo(hdbc, SQL_CREATE_TRANSLATION, mapInfo);
-			SetUIntInfo(hdbc, SQL_CREATE_VIEW, mapInfo);
-			SetUIntInfo(hdbc, SQL_CURSOR_SENSITIVITY, mapInfo);
-			SetUIntInfo(hdbc, SQL_DATETIME_LITERALS, mapInfo);
-			SetUIntInfo(hdbc, SQL_DDL_INDEX, mapInfo);
-			SetUIntInfo(hdbc, SQL_DEFAULT_TXN_ISOLATION, mapInfo);
-			//SetUIntInfo(hdbc, SQL_DRIVER_AWARE_POOLING_SUPPORTED, mapInfo);
-			SetUIntInfo(hdbc, SQL_DROP_ASSERTION, mapInfo);
-			SetUIntInfo(hdbc, SQL_DROP_COLLATION, mapInfo);
-			SetUIntInfo(hdbc, SQL_DROP_DOMAIN, mapInfo);
-			SetUIntInfo(hdbc, SQL_DROP_SCHEMA, mapInfo);
-			SetUIntInfo(hdbc, SQL_DROP_TABLE, mapInfo);
-			SetUIntInfo(hdbc, SQL_DROP_TRANSLATION, mapInfo);
-			SetUIntInfo(hdbc, SQL_DROP_VIEW, mapInfo);
-			SetUIntInfo(hdbc, SQL_DYNAMIC_CURSOR_ATTRIBUTES1, mapInfo);
-			SetUIntInfo(hdbc, SQL_DYNAMIC_CURSOR_ATTRIBUTES2, mapInfo);
-			SetUIntInfo(hdbc, SQL_FORWARD_ONLY_CURSOR_ATTRIBUTES1, mapInfo);
-			SetUIntInfo(hdbc, SQL_FORWARD_ONLY_CURSOR_ATTRIBUTES2, mapInfo);
-			SetUIntInfo(hdbc, SQL_GETDATA_EXTENSIONS, mapInfo);
-			SetUIntInfo(hdbc, SQL_INDEX_KEYWORDS, mapInfo);
-			SetUIntInfo(hdbc, SQL_INFO_SCHEMA_VIEWS, mapInfo);
-			SetUIntInfo(hdbc, SQL_INSERT_STATEMENT, mapInfo);
-			SetUIntInfo(hdbc, SQL_KEYSET_CURSOR_ATTRIBUTES1, mapInfo);
-			SetUIntInfo(hdbc, SQL_KEYSET_CURSOR_ATTRIBUTES2, mapInfo);
-			SetUIntInfo(hdbc, SQL_MAX_ASYNC_CONCURRENT_STATEMENTS, mapInfo);
-			SetUIntInfo(hdbc, SQL_MAX_BINARY_LITERAL_LEN, mapInfo);
-			SetUIntInfo(hdbc, SQL_MAX_INDEX_SIZE, mapInfo);
-			SetUIntInfo(hdbc, SQL_MAX_ROW_SIZE, mapInfo);
-			SetUIntInfo(hdbc, SQL_MAX_STATEMENT_LEN, mapInfo);
-			SetUIntInfo(hdbc, SQL_NUMERIC_FUNCTIONS, mapInfo);
-			SetUIntInfo(hdbc, SQL_ODBC_INTERFACE_CONFORMANCE, mapInfo);
-			SetUIntInfo(hdbc, SQL_OJ_CAPABILITIES, mapInfo);
-			SetUIntInfo(hdbc, SQL_PARAM_ARRAY_SELECTS, mapInfo);
-			SetUIntInfo(hdbc, SQL_SCHEMA_USAGE, mapInfo);
-			SetUIntInfo(hdbc, SQL_SCROLL_OPTIONS, mapInfo);
-			SetUIntInfo(hdbc, SQL_SQL_CONFORMANCE, mapInfo);
-			SetUIntInfo(hdbc, SQL_SQL92_DATETIME_FUNCTIONS, mapInfo);
-			SetUIntInfo(hdbc, SQL_SQL92_FOREIGN_KEY_DELETE_RULE, mapInfo);
-			SetUIntInfo(hdbc, SQL_SQL92_FOREIGN_KEY_UPDATE_RULE, mapInfo);
-			SetUIntInfo(hdbc, SQL_SQL92_GRANT, mapInfo);
-			SetUIntInfo(hdbc, SQL_SQL92_NUMERIC_VALUE_FUNCTIONS, mapInfo);
-			SetUIntInfo(hdbc, SQL_SQL92_PREDICATES, mapInfo);
-			SetUIntInfo(hdbc, SQL_SQL92_RELATIONAL_JOIN_OPERATORS, mapInfo);
-			SetUIntInfo(hdbc, SQL_SQL92_REVOKE, mapInfo);
-			SetUIntInfo(hdbc, SQL_SQL92_ROW_VALUE_CONSTRUCTOR, mapInfo);
-			SetUIntInfo(hdbc, SQL_SQL92_STRING_FUNCTIONS, mapInfo);
-			SetUIntInfo(hdbc, SQL_SQL92_VALUE_EXPRESSIONS, mapInfo);
-			SetUIntInfo(hdbc, SQL_STANDARD_CLI_CONFORMANCE, mapInfo);
-			SetUIntInfo(hdbc, SQL_STATIC_CURSOR_ATTRIBUTES1, mapInfo);
-			SetUIntInfo(hdbc, SQL_STATIC_CURSOR_ATTRIBUTES2, mapInfo);
-			SetUIntInfo(hdbc, SQL_STRING_FUNCTIONS, mapInfo);
-			SetUIntInfo(hdbc, SQL_SUBQUERIES, mapInfo);
-			SetUIntInfo(hdbc, SQL_SYSTEM_FUNCTIONS, mapInfo);
-			SetUIntInfo(hdbc, SQL_TIMEDATE_ADD_INTERVALS, mapInfo);
-			SetUIntInfo(hdbc, SQL_TIMEDATE_DIFF_INTERVALS, mapInfo);
-			SetUIntInfo(hdbc, SQL_TIMEDATE_FUNCTIONS, mapInfo);
-			SetUIntInfo(hdbc, SQL_TXN_ISOLATION_OPTION, mapInfo);
-			SetUIntInfo(hdbc, SQL_UNION, mapInfo);
-			SetUIntInfo(hdbc, SQL_TXN_ISOLATION_OPTION, mapInfo);
+            SetIntInfo(hdbc, SQL_POS_OPERATIONS, mapInfo);
 
-			//SetUInt64Info(hdbc, SQL_DRIVER_HDBCSQL_DRIVER_HENV, mapInfo);
-			SetUInt64Info(hdbc, SQL_DRIVER_HDESC, mapInfo);
-			SetUInt64Info(hdbc, SQL_DRIVER_HLIB, mapInfo);
-			SetUInt64Info(hdbc, SQL_DRIVER_HSTMT, mapInfo);
+            SetUIntInfo(hdbc, SQL_AGGREGATE_FUNCTIONS, mapInfo);
+            SetUIntInfo(hdbc, SQL_ALTER_DOMAIN, mapInfo);
+            SetUIntInfo(hdbc, SQL_ALTER_TABLE, mapInfo);
+            SetUIntInfo(hdbc, SQL_ASYNC_DBC_FUNCTIONS, mapInfo);
+            SetUIntInfo(hdbc, SQL_ASYNC_MODE, mapInfo);
+            SetUIntInfo(hdbc, SQL_BATCH_ROW_COUNT, mapInfo);
+            SetUIntInfo(hdbc, SQL_BATCH_SUPPORT, mapInfo);
+            SetUIntInfo(hdbc, SQL_CATALOG_USAGE, mapInfo);
+            SetUIntInfo(hdbc, SQL_CONVERT_FUNCTIONS, mapInfo);
+            SetUIntInfo(hdbc, SQL_CREATE_ASSERTION, mapInfo);
+            SetUIntInfo(hdbc, SQL_CREATE_CHARACTER_SET, mapInfo);
+            SetUIntInfo(hdbc, SQL_CREATE_COLLATION, mapInfo);
+            SetUIntInfo(hdbc, SQL_CREATE_DOMAIN, mapInfo);
+            SetUIntInfo(hdbc, SQL_CREATE_SCHEMA, mapInfo);
+            SetUIntInfo(hdbc, SQL_CREATE_TABLE, mapInfo);
+            SetUIntInfo(hdbc, SQL_CREATE_TRANSLATION, mapInfo);
+            SetUIntInfo(hdbc, SQL_CREATE_VIEW, mapInfo);
+            SetUIntInfo(hdbc, SQL_CURSOR_SENSITIVITY, mapInfo);
+            SetUIntInfo(hdbc, SQL_DATETIME_LITERALS, mapInfo);
+            SetUIntInfo(hdbc, SQL_DDL_INDEX, mapInfo);
+            SetUIntInfo(hdbc, SQL_DEFAULT_TXN_ISOLATION, mapInfo);
+            //SetUIntInfo(hdbc, SQL_DRIVER_AWARE_POOLING_SUPPORTED, mapInfo);
+            SetUIntInfo(hdbc, SQL_DROP_ASSERTION, mapInfo);
+            SetUIntInfo(hdbc, SQL_DROP_COLLATION, mapInfo);
+            SetUIntInfo(hdbc, SQL_DROP_DOMAIN, mapInfo);
+            SetUIntInfo(hdbc, SQL_DROP_SCHEMA, mapInfo);
+            SetUIntInfo(hdbc, SQL_DROP_TABLE, mapInfo);
+            SetUIntInfo(hdbc, SQL_DROP_TRANSLATION, mapInfo);
+            SetUIntInfo(hdbc, SQL_DROP_VIEW, mapInfo);
+            SetUIntInfo(hdbc, SQL_DYNAMIC_CURSOR_ATTRIBUTES1, mapInfo);
+            SetUIntInfo(hdbc, SQL_DYNAMIC_CURSOR_ATTRIBUTES2, mapInfo);
+            SetUIntInfo(hdbc, SQL_FORWARD_ONLY_CURSOR_ATTRIBUTES1, mapInfo);
+            SetUIntInfo(hdbc, SQL_FORWARD_ONLY_CURSOR_ATTRIBUTES2, mapInfo);
+            SetUIntInfo(hdbc, SQL_GETDATA_EXTENSIONS, mapInfo);
+            SetUIntInfo(hdbc, SQL_INDEX_KEYWORDS, mapInfo);
+            SetUIntInfo(hdbc, SQL_INFO_SCHEMA_VIEWS, mapInfo);
+            SetUIntInfo(hdbc, SQL_INSERT_STATEMENT, mapInfo);
+            SetUIntInfo(hdbc, SQL_KEYSET_CURSOR_ATTRIBUTES1, mapInfo);
+            SetUIntInfo(hdbc, SQL_KEYSET_CURSOR_ATTRIBUTES2, mapInfo);
+            SetUIntInfo(hdbc, SQL_MAX_ASYNC_CONCURRENT_STATEMENTS, mapInfo);
+            SetUIntInfo(hdbc, SQL_MAX_BINARY_LITERAL_LEN, mapInfo);
+            SetUIntInfo(hdbc, SQL_MAX_INDEX_SIZE, mapInfo);
+            SetUIntInfo(hdbc, SQL_MAX_ROW_SIZE, mapInfo);
+            SetUIntInfo(hdbc, SQL_MAX_STATEMENT_LEN, mapInfo);
+            SetUIntInfo(hdbc, SQL_NUMERIC_FUNCTIONS, mapInfo);
+            SetUIntInfo(hdbc, SQL_ODBC_INTERFACE_CONFORMANCE, mapInfo);
+            SetUIntInfo(hdbc, SQL_OJ_CAPABILITIES, mapInfo);
+            SetUIntInfo(hdbc, SQL_PARAM_ARRAY_SELECTS, mapInfo);
+            SetUIntInfo(hdbc, SQL_SCHEMA_USAGE, mapInfo);
+            SetUIntInfo(hdbc, SQL_SCROLL_OPTIONS, mapInfo);
+            SetUIntInfo(hdbc, SQL_SQL_CONFORMANCE, mapInfo);
+            SetUIntInfo(hdbc, SQL_SQL92_DATETIME_FUNCTIONS, mapInfo);
+            SetUIntInfo(hdbc, SQL_SQL92_FOREIGN_KEY_DELETE_RULE, mapInfo);
+            SetUIntInfo(hdbc, SQL_SQL92_FOREIGN_KEY_UPDATE_RULE, mapInfo);
+            SetUIntInfo(hdbc, SQL_SQL92_GRANT, mapInfo);
+            SetUIntInfo(hdbc, SQL_SQL92_NUMERIC_VALUE_FUNCTIONS, mapInfo);
+            SetUIntInfo(hdbc, SQL_SQL92_PREDICATES, mapInfo);
+            SetUIntInfo(hdbc, SQL_SQL92_RELATIONAL_JOIN_OPERATORS, mapInfo);
+            SetUIntInfo(hdbc, SQL_SQL92_REVOKE, mapInfo);
+            SetUIntInfo(hdbc, SQL_SQL92_ROW_VALUE_CONSTRUCTOR, mapInfo);
+            SetUIntInfo(hdbc, SQL_SQL92_STRING_FUNCTIONS, mapInfo);
+            SetUIntInfo(hdbc, SQL_SQL92_VALUE_EXPRESSIONS, mapInfo);
+            SetUIntInfo(hdbc, SQL_STANDARD_CLI_CONFORMANCE, mapInfo);
+            SetUIntInfo(hdbc, SQL_STATIC_CURSOR_ATTRIBUTES1, mapInfo);
+            SetUIntInfo(hdbc, SQL_STATIC_CURSOR_ATTRIBUTES2, mapInfo);
+            SetUIntInfo(hdbc, SQL_STRING_FUNCTIONS, mapInfo);
+            SetUIntInfo(hdbc, SQL_SUBQUERIES, mapInfo);
+            SetUIntInfo(hdbc, SQL_SYSTEM_FUNCTIONS, mapInfo);
+            SetUIntInfo(hdbc, SQL_TIMEDATE_ADD_INTERVALS, mapInfo);
+            SetUIntInfo(hdbc, SQL_TIMEDATE_DIFF_INTERVALS, mapInfo);
+            SetUIntInfo(hdbc, SQL_TIMEDATE_FUNCTIONS, mapInfo);
+            SetUIntInfo(hdbc, SQL_TXN_ISOLATION_OPTION, mapInfo);
+            SetUIntInfo(hdbc, SQL_UNION, mapInfo);
+            SetUIntInfo(hdbc, SQL_TXN_ISOLATION_OPTION, mapInfo);
 
-			CScopeUQueue sb;
+            //SetUInt64Info(hdbc, SQL_DRIVER_HDBCSQL_DRIVER_HENV, mapInfo);
+            SetUInt64Info(hdbc, SQL_DRIVER_HDESC, mapInfo);
+            SetUInt64Info(hdbc, SQL_DRIVER_HLIB, mapInfo);
+            SetUInt64Info(hdbc, SQL_DRIVER_HSTMT, mapInfo);
+
+            CScopeUQueue sb;
             CUQueue &q = *sb;
-			for(auto it = mapInfo.begin(), end = mapInfo.end(); it != end; ++it) {
-				q << it->first << it->second;
-			}
-			unsigned int ret = SendResult(SPA::Odbc::idSQLGetInfo, q.GetBuffer(), q.GetSize());
-			if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
+            for (auto it = mapInfo.begin(), end = mapInfo.end(); it != end; ++it) {
+                q << it->first << it->second;
+            }
+            unsigned int ret = SendResult(SPA::Odbc::idSQLGetInfo, q.GetBuffer(), q.GetSize());
+            if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
                 return false;
             }
-			return true;
-		}
+            return true;
+        }
 
-		void COdbcImpl::PreprocessPreparedStatement() {
+        void COdbcImpl::PreprocessPreparedStatement() {
             std::wstring s = m_sqlPrepare;
-			m_bCall = false;
-			m_procName.clear();
-			if (s.size() && s.front() == L'{' && s.back() == L'}') {
-				s.pop_back();
-				s.erase(s.begin(), s.begin() + 1);
-				COdbcImpl::ODBC_CONNECTION_STRING::Trim(s);
-				transform(s.begin(), s.end(), s.begin(), ::tolower);
-				m_bReturn = (s.front() == L'?');
-				if (m_bReturn) {
-					s.erase(s.begin(), s.begin() + 1); //remove '?'
-					COdbcImpl::ODBC_CONNECTION_STRING::Trim(s);
-					if (s.front() != L'=')
-						return;
-					s.erase(s.begin(), s.begin() + 1); //remove '='
-					COdbcImpl::ODBC_CONNECTION_STRING::Trim(s);
-				}
-				m_bCall = (s.find(L"call ") == 0);
-				if (m_bCall) {
-					auto pos = m_sqlPrepare.find('(');
-					if (pos != std::string::npos) {
-						m_procName.assign(m_sqlPrepare.begin() + 5, m_sqlPrepare.begin() + pos);
-					} else {
-						m_procName = m_sqlPrepare.substr(5);
-					}
-					COdbcImpl::ODBC_CONNECTION_STRING::Trim(m_procName);
-				}
-			}
+            m_bCall = false;
+            m_procName.clear();
+            if (s.size() && s.front() == L'{' && s.back() == L'}') {
+                s.pop_back();
+                s.erase(s.begin(), s.begin() + 1);
+                COdbcImpl::ODBC_CONNECTION_STRING::Trim(s);
+                transform(s.begin(), s.end(), s.begin(), ::tolower);
+                m_bReturn = (s.front() == L'?');
+                if (m_bReturn) {
+                    s.erase(s.begin(), s.begin() + 1); //remove '?'
+                    COdbcImpl::ODBC_CONNECTION_STRING::Trim(s);
+                    if (s.front() != L'=')
+                        return;
+                    s.erase(s.begin(), s.begin() + 1); //remove '='
+                    COdbcImpl::ODBC_CONNECTION_STRING::Trim(s);
+                }
+                m_bCall = (s.find(L"call ") == 0);
+                if (m_bCall) {
+                    auto pos = m_sqlPrepare.find('(');
+                    if (pos != std::string::npos) {
+                        m_procName.assign(m_sqlPrepare.begin() + 5, m_sqlPrepare.begin() + pos);
+                    } else {
+                        m_procName = m_sqlPrepare.substr(5);
+                    }
+                    COdbcImpl::ODBC_CONNECTION_STRING::Trim(m_procName);
+                }
+            }
         }
 
         bool COdbcImpl::PushRecords(SQLHSTMT hstmt, const CDBColumnInfoArray &vColInfo, int &res, std::wstring & errMsg) {
@@ -1360,7 +1359,7 @@ namespace SPA
                     ++m_fails;
                     break;
                 }
-				m_pExcuting = pStmt;
+                m_pExcuting = pStmt;
                 retcode = SQLColumnPrivileges(hstmt, (SQLWCHAR*) catalogName.c_str(), (SQLSMALLINT) catalogName.size(),
                         (SQLWCHAR*) schemaName.c_str(), (SQLSMALLINT) schemaName.size(),
                         (SQLWCHAR*) tableName.c_str(), (SQLSMALLINT) tableName.size(),
@@ -1423,7 +1422,7 @@ namespace SPA
                     ++m_fails;
                     break;
                 }
-				m_pExcuting = pStmt;
+                m_pExcuting = pStmt;
                 retcode = SQLTables(hstmt, (SQLWCHAR*) catalogName.c_str(), (SQLSMALLINT) catalogName.size(),
                         (SQLWCHAR*) schemaName.c_str(), (SQLSMALLINT) schemaName.size(),
                         (SQLWCHAR*) tableName.c_str(), (SQLSMALLINT) tableName.size(),
@@ -1486,7 +1485,7 @@ namespace SPA
                     ++m_fails;
                     break;
                 }
-				m_pExcuting = pStmt;
+                m_pExcuting = pStmt;
                 retcode = SQLColumns(hstmt, (SQLWCHAR*) catalogName.c_str(), (SQLSMALLINT) catalogName.size(),
                         (SQLWCHAR*) schemaName.c_str(), (SQLSMALLINT) schemaName.size(),
                         (SQLWCHAR*) tableName.c_str(), (SQLSMALLINT) tableName.size(),
@@ -1549,7 +1548,7 @@ namespace SPA
                     ++m_fails;
                     break;
                 }
-				m_pExcuting = pStmt;
+                m_pExcuting = pStmt;
                 retcode = SQLProcedureColumns(hstmt, (SQLWCHAR*) catalogName.c_str(), (SQLSMALLINT) catalogName.size(),
                         (SQLWCHAR*) schemaName.c_str(), (SQLSMALLINT) schemaName.size(),
                         (SQLWCHAR*) procName.c_str(), (SQLSMALLINT) procName.size(),
@@ -1612,7 +1611,7 @@ namespace SPA
                     ++m_fails;
                     break;
                 }
-				m_pExcuting = pStmt;
+                m_pExcuting = pStmt;
                 retcode = SQLPrimaryKeys(hstmt, (SQLWCHAR*) catalogName.c_str(), (SQLSMALLINT) catalogName.size(),
                         (SQLWCHAR*) schemaName.c_str(), (SQLSMALLINT) schemaName.size(),
                         (SQLWCHAR*) tableName.c_str(), (SQLSMALLINT) tableName.size());
@@ -1674,7 +1673,7 @@ namespace SPA
                     ++m_fails;
                     break;
                 }
-				m_pExcuting = pStmt;
+                m_pExcuting = pStmt;
                 retcode = SQLTablePrivileges(hstmt, (SQLWCHAR*) catalogName.c_str(), (SQLSMALLINT) catalogName.size(),
                         (SQLWCHAR*) schemaName.c_str(), (SQLSMALLINT) schemaName.size(),
                         (SQLWCHAR*) tableName.c_str(), (SQLSMALLINT) tableName.size());
@@ -1736,7 +1735,7 @@ namespace SPA
                     ++m_fails;
                     break;
                 }
-				m_pExcuting = pStmt;
+                m_pExcuting = pStmt;
                 retcode = SQLStatistics(hstmt, (SQLWCHAR*) catalogName.c_str(), (SQLSMALLINT) catalogName.size(),
                         (SQLWCHAR*) schemaName.c_str(), (SQLSMALLINT) schemaName.size(),
                         (SQLWCHAR*) tableName.c_str(), (SQLSMALLINT) tableName.size(), unique, reserved);
@@ -1798,7 +1797,7 @@ namespace SPA
                     ++m_fails;
                     break;
                 }
-				m_pExcuting = pStmt;
+                m_pExcuting = pStmt;
                 retcode = SQLProcedures(hstmt, (SQLWCHAR*) catalogName.c_str(), (SQLSMALLINT) catalogName.size(),
                         (SQLWCHAR*) schemaName.c_str(), (SQLSMALLINT) schemaName.size(),
                         (SQLWCHAR*) procName.c_str(), (SQLSMALLINT) procName.size());
@@ -1860,7 +1859,7 @@ namespace SPA
                     ++m_fails;
                     break;
                 }
-				m_pExcuting = pStmt;
+                m_pExcuting = pStmt;
                 retcode = SQLSpecialColumns(hstmt, identifierType, (SQLWCHAR*) catalogName.c_str(), (SQLSMALLINT) catalogName.size(),
                         (SQLWCHAR*) schemaName.c_str(), (SQLSMALLINT) schemaName.size(),
                         (SQLWCHAR*) tableName.c_str(), (SQLSMALLINT) tableName.size(), scope, nullable);
@@ -1922,7 +1921,7 @@ namespace SPA
                     ++m_fails;
                     break;
                 }
-				m_pExcuting = pStmt;
+                m_pExcuting = pStmt;
                 retcode = SQLForeignKeys(hstmt, (SQLWCHAR*) pkCatalogName.c_str(), (SQLSMALLINT) pkCatalogName.size(),
                         (SQLWCHAR*) pkSchemaName.c_str(), (SQLSMALLINT) pkSchemaName.size(),
                         (SQLWCHAR*) pkTableName.c_str(), (SQLSMALLINT) pkTableName.size(),
@@ -1988,7 +1987,7 @@ namespace SPA
                     ++m_fails;
                     break;
                 }
-				m_pExcuting = pStmt;
+                m_pExcuting = pStmt;
                 retcode = SQLExecDirect(hstmt, (SQLWCHAR*) wsql.c_str(), (SQLINTEGER) wsql.size());
                 if (!SQL_SUCCEEDED(retcode)) {
                     res = SPA::Odbc::ER_ERROR;
@@ -2036,8 +2035,8 @@ namespace SPA
 
         void COdbcImpl::Prepare(const std::wstring& wsql, CParameterInfoArray& params, int &res, std::wstring &errMsg, unsigned int &parameters) {
             m_vPInfo = params;
-			parameters = 0;
-			if (!m_pOdbc) {
+            parameters = 0;
+            if (!m_pOdbc) {
                 res = SPA::Odbc::ER_NO_DB_OPENED_YET;
                 errMsg = NO_DB_OPENED_YET;
                 return;
@@ -2046,11 +2045,11 @@ namespace SPA
             }
             m_pPrepare.reset();
             m_vParam.clear();
-			m_sqlPrepare = wsql;
-			COdbcImpl::ODBC_CONNECTION_STRING::Trim(m_sqlPrepare);
-			PreprocessPreparedStatement();
-			SQLHSTMT hstmt = nullptr;
-			SQLRETURN retcode = SQLAllocHandle(SQL_HANDLE_STMT, m_pOdbc.get(), &hstmt);
+            m_sqlPrepare = wsql;
+            COdbcImpl::ODBC_CONNECTION_STRING::Trim(m_sqlPrepare);
+            PreprocessPreparedStatement();
+            SQLHSTMT hstmt = nullptr;
+            SQLRETURN retcode = SQLAllocHandle(SQL_HANDLE_STMT, m_pOdbc.get(), &hstmt);
             do {
                 m_pPrepare.reset(hstmt, [](SQLHSTMT h) {
                     if (h) {
@@ -2063,44 +2062,43 @@ namespace SPA
                     GetErrMsg(SQL_HANDLE_DBC, m_pOdbc.get(), errMsg);
                     break;
                 }
-				m_pExcuting = m_pPrepare;
-				retcode = SQLPrepare(hstmt, (SQLWCHAR*)m_sqlPrepare.c_str(), (SQLINTEGER)m_sqlPrepare.size());
-				if (!SQL_SUCCEEDED(retcode)) {
+                m_pExcuting = m_pPrepare;
+                retcode = SQLPrepare(hstmt, (SQLWCHAR*) m_sqlPrepare.c_str(), (SQLINTEGER) m_sqlPrepare.size());
+                if (!SQL_SUCCEEDED(retcode)) {
                     res = SPA::Odbc::ER_ERROR;
                     GetErrMsg(SQL_HANDLE_STMT, hstmt, errMsg);
                     break;
                 }
-				retcode = SQLNumParams(hstmt, &m_parameters);
-				if (!SQL_SUCCEEDED(retcode)) {
+                retcode = SQLNumParams(hstmt, &m_parameters);
+                if (!SQL_SUCCEEDED(retcode)) {
                     res = SPA::Odbc::ER_ERROR;
                     GetErrMsg(SQL_HANDLE_STMT, hstmt, errMsg);
                     break;
+                } else if (m_vPInfo.size() && m_parameters != (SQLSMALLINT) m_vPInfo.size()) {
+                    res = SPA::Odbc::ER_BAD_PARAMETER_COLUMN_SIZE;
+                    errMsg = BAD_PARAMETER_COLUMN_SIZE;
+                    break;
                 }
-				else if (m_vPInfo.size() && m_parameters != (SQLSMALLINT)m_vPInfo.size()) {
-					res = SPA::Odbc::ER_BAD_PARAMETER_COLUMN_SIZE;
-					errMsg = BAD_PARAMETER_COLUMN_SIZE;
-					break;
-				}
-				unsigned short outputs = 0;
-				for (auto it = m_vPInfo.begin(), end = m_vPInfo.end(); it != end; ++it) {
-					switch(it->Direction) {
-					case pdInput:
-						break;
-					default:
-						++outputs;
-						break;
-					}
-				}
-				parameters = outputs;
-				parameters <<= 16;
-				parameters += ((unsigned short)m_parameters - outputs);
-			}while(false);
-			if (res) {
-				m_pExcuting.reset();
-				m_pPrepare.reset();
-				m_vPInfo.clear();
-				m_parameters = 0;
-			}
+                unsigned short outputs = 0;
+                for (auto it = m_vPInfo.begin(), end = m_vPInfo.end(); it != end; ++it) {
+                    switch (it->Direction) {
+                        case pdInput:
+                            break;
+                        default:
+                            ++outputs;
+                            break;
+                    }
+                }
+                parameters = outputs;
+                parameters <<= 16;
+                parameters += ((unsigned short) m_parameters - outputs);
+            } while (false);
+            if (res) {
+                m_pExcuting.reset();
+                m_pPrepare.reset();
+                m_vPInfo.clear();
+                m_parameters = 0;
+            }
         }
 
         void COdbcImpl::ExecuteParameters(bool rowset, bool meta, bool lastInsertId, UINT64 index, INT64 &affected, int &res, std::wstring &errMsg, CDBVariant &vtId, UINT64 & fail_ok) {
@@ -2114,7 +2112,7 @@ namespace SPA
                 fail_ok <<= 32;
                 return;
             }
-			if (!m_pPrepare) {
+            if (!m_pPrepare) {
                 res = SPA::Odbc::ER_NO_PARAMETER_SPECIFIED;
                 errMsg = NO_PARAMETER_SPECIFIED;
                 ++m_fails;
@@ -2122,74 +2120,70 @@ namespace SPA
                 fail_ok <<= 32;
                 return;
             }
-			SQLRETURN retcode;
-			if (m_parameters) {
-				if ((m_vParam.size() % (unsigned short)m_parameters) || m_vParam.size() == 0) {
-					res = SPA::Odbc::ER_BAD_PARAMETER_DATA_ARRAY_SIZE;
-					errMsg = BAD_PARAMETER_DATA_ARRAY_SIZE;
-					++m_fails;
-					fail_ok = 1;
-					fail_ok <<= 32;
-					return;
-				}
-				else if (!m_vPInfo.size()) {
-					CParameterInfo info;
-					for (auto it = m_vParam.begin(), end = m_vParam.end(); it != end; ++it) {
-						info.DataType = it->vt;
-						m_vPInfo.push_back(info);
-					}
-				}
-			}
-			res = 0;
-			UINT64 fails = m_fails;
+            SQLRETURN retcode;
+            if (m_parameters) {
+                if ((m_vParam.size() % (unsigned short) m_parameters) || m_vParam.size() == 0) {
+                    res = SPA::Odbc::ER_BAD_PARAMETER_DATA_ARRAY_SIZE;
+                    errMsg = BAD_PARAMETER_DATA_ARRAY_SIZE;
+                    ++m_fails;
+                    fail_ok = 1;
+                    fail_ok <<= 32;
+                    return;
+                } else if (!m_vPInfo.size()) {
+                    CParameterInfo info;
+                    for (auto it = m_vParam.begin(), end = m_vParam.end(); it != end; ++it) {
+                        info.DataType = it->vt;
+                        m_vPInfo.push_back(info);
+                    }
+                }
+            }
+            res = 0;
+            UINT64 fails = m_fails;
             UINT64 oks = m_oks;
-			retcode = SQLExecute(m_pPrepare.get());
-			if (!SQL_SUCCEEDED(retcode)) {
-				res = SPA::Odbc::ER_ERROR;
-				GetErrMsg(SQL_HANDLE_STMT, m_pPrepare.get(), errMsg);
-				++m_fails;
-			}
-			else {
-				do {
-					SQLSMALLINT columns = 0;
+            retcode = SQLExecute(m_pPrepare.get());
+            if (!SQL_SUCCEEDED(retcode)) {
+                res = SPA::Odbc::ER_ERROR;
+                GetErrMsg(SQL_HANDLE_STMT, m_pPrepare.get(), errMsg);
+                ++m_fails;
+            } else {
+                do {
+                    SQLSMALLINT columns = 0;
                     retcode = SQLNumResultCols(m_pPrepare.get(), &columns);
                     assert(SQL_SUCCEEDED(retcode));
-					if (columns) {
-						unsigned int ret;
-						if (rowset) {
-							CDBColumnInfoArray vInfo = GetColInfo(m_pPrepare.get(), columns, meta);
-							{
-								CScopeUQueue sbRowset;
-								sbRowset << vInfo << index;
-								ret = SendResult(idRowsetHeader, sbRowset->GetBuffer(), sbRowset->GetSize());
-							}
-							if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
-								return;
-							}
-							bool ok = PushRecords(m_pPrepare.get(), vInfo, res, errMsg);
-							if (!ok) {
-								return;
-							}
-							if (res) {
-								++m_fails;
-							}
-							else {
-								++m_oks;
-							}
-						}
-					}
-					else {
-						SQLLEN rows = 0;
+                    if (columns) {
+                        unsigned int ret;
+                        if (rowset) {
+                            CDBColumnInfoArray vInfo = GetColInfo(m_pPrepare.get(), columns, meta);
+                            {
+                                CScopeUQueue sbRowset;
+                                sbRowset << vInfo << index;
+                                ret = SendResult(idRowsetHeader, sbRowset->GetBuffer(), sbRowset->GetSize());
+                            }
+                            if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
+                                return;
+                            }
+                            bool ok = PushRecords(m_pPrepare.get(), vInfo, res, errMsg);
+                            if (!ok) {
+                                return;
+                            }
+                            if (res) {
+                                ++m_fails;
+                            } else {
+                                ++m_oks;
+                            }
+                        }
+                    } else {
+                        SQLLEN rows = 0;
                         retcode = SQLRowCount(m_pPrepare.get(), &rows);
                         assert(SQL_SUCCEEDED(retcode));
                         if (rows > 0) {
                             affected += rows;
                         }
-						++m_oks;
-					}
-				} while(SQLMoreResults(m_pPrepare.get()) == SQL_SUCCESS);
-			}
-			fail_ok = ((m_fails - fails) << 32);
+                        ++m_oks;
+                    }
+                } while (SQLMoreResults(m_pPrepare.get()) == SQL_SUCCESS);
+            }
+            fail_ok = ((m_fails - fails) << 32);
             fail_ok += (unsigned int) (m_oks - oks);
         }
 

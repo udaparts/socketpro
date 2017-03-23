@@ -80,7 +80,7 @@ int main(int argc, char* argv[]) {
     TestPreparedStatements(pOdbc);
     //InsertBLOBByPreparedStatement(pOdbc);
     //ok = pOdbc->Execute(L"SELECT * from company;select * from employee;select curtime()", er, r, rh);
-	ok = pOdbc->Tables(L"mysqldb", L"", L"%", L"", er, r, rh);
+    ok = pOdbc->Tables(L"mysqldb", L"", L"%", L"", er, r, rh);
 
     CDBVariantArray vPData;
     //first set
@@ -200,22 +200,22 @@ void InsertBLOBByPreparedStatement(std::shared_ptr<CMyHandler> pOdbc) {
 
 void TestPreparedStatements(std::shared_ptr<CMyHandler> pOdbc) {
 
-	CParameterInfoArray vInfo;
-	CParameterInfo info;
+    CParameterInfoArray vInfo;
+    CParameterInfo info;
 
-	info.DataType = VT_I4;
-	vInfo.push_back(info);
+    info.DataType = VT_I4;
+    vInfo.push_back(info);
 
-	info.DataType = (VT_I1 | VT_ARRAY);
-	info.ColumnSize = 64;
-	vInfo.push_back(info);
+    info.DataType = (VT_I1 | VT_ARRAY);
+    info.ColumnSize = 64;
+    vInfo.push_back(info);
 
-	info.DataType = (VT_I1 | VT_ARRAY);
-	info.ColumnSize = 255;
-	vInfo.push_back(info);
+    info.DataType = (VT_I1 | VT_ARRAY);
+    info.ColumnSize = 255;
+    vInfo.push_back(info);
 
-	info.DataType = VT_R8;
-	vInfo.push_back(info);
+    info.DataType = VT_R8;
+    vInfo.push_back(info);
 
     const wchar_t *sql_insert_parameter = L"INSERT INTO company(ID, NAME, ADDRESS, Income) VALUES (?, ?, ?, ?)";
     bool ok = pOdbc->Prepare(sql_insert_parameter, [](CSender &handler, int res, const std::wstring & errMsg) {
@@ -223,36 +223,36 @@ void TestPreparedStatements(std::shared_ptr<CMyHandler> pOdbc) {
         std::wcout << errMsg << std::endl;
     }, vInfo);
 
-	/*
-    CDBVariantArray vData;
+    /*
+CDBVariantArray vData;
 
-    //first set
-    vData.push_back(1);
-    vData.push_back("Google Inc.");
-    vData.push_back("1600 Amphitheatre Parkway, Mountain View, CA 94043, USA");
-    vData.push_back(66000000000.0);
+//first set
+vData.push_back(1);
+vData.push_back("Google Inc.");
+vData.push_back("1600 Amphitheatre Parkway, Mountain View, CA 94043, USA");
+vData.push_back(66000000000.0);
 
-    //second set
-    vData.push_back(2);
-    vData.push_back("Microsoft Inc.");
-    vData.push_back("700 Bellevue Way NE- 22nd Floor, Bellevue, WA 98804, USA");
-    vData.push_back(93600000000.0);
+//second set
+vData.push_back(2);
+vData.push_back("Microsoft Inc.");
+vData.push_back("700 Bellevue Way NE- 22nd Floor, Bellevue, WA 98804, USA");
+vData.push_back(93600000000.0);
 
-    //third set
-    vData.push_back(3);
-    vData.push_back("Apple Inc.");
-    vData.push_back("1 Infinite Loop, Cupertino, CA 95014, USA");
-    vData.push_back(234000000000.0);
-    ok = pOdbc->Execute(vData, [](CSender &handler, int res, const std::wstring &errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & vtId) {
-        std::cout << "affected = " << affected << ", fails = " << (unsigned int) (fail_ok >> 32) << ", oks = " << (unsigned int) fail_ok << ", res = " << res << ", errMsg: ";
-        std::wcout << errMsg;
-        if (!res) {
-            std::cout << ", last insert id = ";
-                    std::cout << vtId.llVal;
-        }
-        std::cout << std::endl;
-    });
-	*/
+//third set
+vData.push_back(3);
+vData.push_back("Apple Inc.");
+vData.push_back("1 Infinite Loop, Cupertino, CA 95014, USA");
+vData.push_back(234000000000.0);
+ok = pOdbc->Execute(vData, [](CSender &handler, int res, const std::wstring &errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & vtId) {
+    std::cout << "affected = " << affected << ", fails = " << (unsigned int) (fail_ok >> 32) << ", oks = " << (unsigned int) fail_ok << ", res = " << res << ", errMsg: ";
+    std::wcout << errMsg;
+    if (!res) {
+        std::cout << ", last insert id = ";
+                std::cout << vtId.llVal;
+    }
+    std::cout << std::endl;
+});
+     */
 }
 
 void TestCreateTables(std::shared_ptr<CMyHandler> pOdbc) {
@@ -281,7 +281,7 @@ void TestCreateTables(std::shared_ptr<CMyHandler> pOdbc) {
 }
 
 void TestStoredProcedure(std::shared_ptr<CMyHandler> pOdbc, CRowsetArray&ra, CDBVariantArray &vPData, unsigned int &oks) {
-	bool ok = pOdbc->Prepare(L"{ call sp_TestProc(?, ?, ?) } ", [](CSender &handler, int res, const std::wstring & errMsg) {
+    bool ok = pOdbc->Prepare(L"{ call sp_TestProc(?, ?, ?) } ", [](CSender &handler, int res, const std::wstring & errMsg) {
         std::cout << "res = " << res << ", errMsg: ";
         std::wcout << errMsg << std::endl;
     });
