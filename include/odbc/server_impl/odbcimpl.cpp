@@ -109,7 +109,7 @@ namespace SPA
             }
         }
 
-        COdbcImpl::COdbcImpl() : m_oks(0), m_fails(0), m_ti(tiUnspecified), m_global(true), m_Blob(*m_sb), m_parameters(0), m_bCall(false) {
+        COdbcImpl::COdbcImpl() : m_oks(0), m_fails(0), m_ti(tiUnspecified), m_global(true), m_Blob(*m_sb), m_parameters(0), m_bCall(false), m_bReturn(false) {
 
         }
 
@@ -294,13 +294,111 @@ namespace SPA
         }
 
         void COdbcImpl::BeginTrans(int isolation, const std::wstring &dbConn, unsigned int flags, int &res, std::wstring &errMsg, int &ms) {
-            res = 0;
             ms = msODBC;
-
+			if (m_ti != tiUnspecified || isolation == (int) tiUnspecified) {
+                errMsg = BAD_MANUAL_TRANSACTION_STATE;
+                res = SPA::Odbc::ER_BAD_MANUAL_TRANSACTION_STATE;
+                return;
+            }
+            if (!m_pOdbc) {
+                Open(dbConn, flags, res, errMsg, ms);
+                if (!m_pOdbc) {
+                    return;
+                }
+            }
+			SQLINTEGER attr;
+			switch ((tagTransactionIsolation) isolation) {
+				case tiReadUncommited:
+					attr = SQL_TXN_READ_UNCOMMITTED;
+					break;
+				case tiRepeatableRead:
+					attr = SQL_TXN_REPEATABLE_READ;
+					break;
+				case tiReadCommited:
+					attr = SQL_TXN_READ_COMMITTED;
+					break;
+				case tiSerializable:
+					attr = SQL_TXN_SERIALIZABLE;
+					break;
+				default:
+					attr = 0;
+					break;
+			}
+			SQLRETURN retcode;
+			if (attr) {
+				retcode = SQLSetConnectAttr(m_pOdbc.get(), SQL_ATTR_TXN_ISOLATION, (SQLPOINTER)attr, 0);
+				//ignore errors
+			}
+			retcode = SQLSetConnectAttr(m_pOdbc.get(), SQL_ATTR_AUTOCOMMIT, (SQLPOINTER)FALSE, 0);
+			if (!SQL_SUCCEEDED(retcode)) {
+                res = SPA::Odbc::ER_ERROR;
+                GetErrMsg(SQL_HANDLE_DBC, m_pOdbc.get(), errMsg);
+            }
+			else {
+				res = 0;
+                m_fails = 0;
+                m_oks = 0;
+                m_ti = (tagTransactionIsolation) isolation;
+                if (!m_global) {
+                    errMsg = dbConn;
+                } else {
+                    errMsg = ODBC_GLOBAL_CONNECTION_STRING;
+                }
+			}
         }
 
         void COdbcImpl::EndTrans(int plan, int &res, std::wstring & errMsg) {
-            res = 0;
+            if (m_ti == tiUnspecified) {
+                errMsg = BAD_MANUAL_TRANSACTION_STATE;
+                res = SPA::Odbc::ER_BAD_MANUAL_TRANSACTION_STATE;
+                return;
+            }
+            if (plan < 0 || plan > rpRollbackAlways) {
+                res = SPA::Odbc::ER_BAD_END_TRANSTACTION_PLAN;
+                errMsg = BAD_END_TRANSTACTION_PLAN;
+                return;
+            }
+            if (!m_pOdbc) {
+                res = SPA::Odbc::ER_NO_DB_OPENED_YET;
+                errMsg = NO_DB_OPENED_YET;
+                return;
+            }
+			bool rollback = false;
+            tagRollbackPlan rp = (tagRollbackPlan) plan;
+            switch (rp) {
+                case rpRollbackErrorAny:
+                    rollback = m_fails ? true : false;
+                    break;
+                case rpRollbackErrorLess:
+                    rollback = (m_fails < m_oks && m_fails) ? true : false;
+                    break;
+                case rpRollbackErrorEqual:
+                    rollback = (m_fails >= m_oks) ? true : false;
+                    break;
+                case rpRollbackErrorMore:
+                    rollback = (m_fails > m_oks) ? true : false;
+                    break;
+                case rpRollbackErrorAll:
+                    rollback = (m_oks) ? false : true;
+                    break;
+                case rpRollbackAlways:
+                    rollback = true;
+                    break;
+                default:
+                    assert(false); //shouldn't come here
+                    break;
+            }
+			SQLRETURN retcode = SQLEndTran(SQL_HANDLE_DBC, m_pOdbc.get(), rollback ? SQL_ROLLBACK : SQL_COMMIT);
+			if (!SQL_SUCCEEDED(retcode)) {
+                res = SPA::Odbc::ER_ERROR;
+                GetErrMsg(SQL_HANDLE_DBC, m_pOdbc.get(), errMsg);
+            }
+			else {
+				res = SQL_SUCCESS;
+				m_ti = tiUnspecified;
+                m_fails = 0;
+                m_oks = 0;
+			}
         }
 
         bool COdbcImpl::SendRows(CUQueue& sb, bool transferring) {
@@ -855,6 +953,37 @@ namespace SPA
             }
 			return true;
 		}
+
+		void COdbcImpl::PreprocessPreparedStatement() {
+            std::wstring s = m_sqlPrepare;
+			m_bCall = false;
+			m_procName.clear();
+			if (s.size() && s.front() == L'{' && s.back() == L'}') {
+				s.pop_back();
+				s.erase(s.begin(), s.begin() + 1);
+				COdbcImpl::ODBC_CONNECTION_STRING::Trim(s);
+				transform(s.begin(), s.end(), s.begin(), ::tolower);
+				m_bReturn = (s.front() == L'?');
+				if (m_bReturn) {
+					s.erase(s.begin(), s.begin() + 1); //remove '?'
+					COdbcImpl::ODBC_CONNECTION_STRING::Trim(s);
+					if (s.front() != L'=')
+						return;
+					s.erase(s.begin(), s.begin() + 1); //remove '='
+					COdbcImpl::ODBC_CONNECTION_STRING::Trim(s);
+				}
+				m_bCall = (s.find(L"call ") == 0);
+				if (m_bCall) {
+					auto pos = m_sqlPrepare.find('(');
+					if (pos != std::string::npos) {
+						m_procName.assign(m_sqlPrepare.begin() + 5, m_sqlPrepare.begin() + pos);
+					} else {
+						m_procName = m_sqlPrepare.substr(5);
+					}
+					COdbcImpl::ODBC_CONNECTION_STRING::Trim(m_procName);
+				}
+			}
+        }
 
         bool COdbcImpl::PushRecords(SQLHSTMT hstmt, const CDBColumnInfoArray &vColInfo, int &res, std::wstring & errMsg) {
             SQLRETURN retcode;
@@ -1906,14 +2035,162 @@ namespace SPA
         }
 
         void COdbcImpl::Prepare(const std::wstring& wsql, CParameterInfoArray& params, int &res, std::wstring &errMsg, unsigned int &parameters) {
-            res = 0;
-            parameters = 0;
+            m_vPInfo = params;
+			parameters = 0;
+			if (!m_pOdbc) {
+                res = SPA::Odbc::ER_NO_DB_OPENED_YET;
+                errMsg = NO_DB_OPENED_YET;
+                return;
+            } else {
+                res = 0;
+            }
+            m_pPrepare.reset();
+            m_vParam.clear();
+			m_sqlPrepare = wsql;
+			COdbcImpl::ODBC_CONNECTION_STRING::Trim(m_sqlPrepare);
+			PreprocessPreparedStatement();
+			SQLHSTMT hstmt = nullptr;
+			SQLRETURN retcode = SQLAllocHandle(SQL_HANDLE_STMT, m_pOdbc.get(), &hstmt);
+            do {
+                m_pPrepare.reset(hstmt, [](SQLHSTMT h) {
+                    if (h) {
+                        SQLRETURN ret = SQLFreeHandle(SQL_HANDLE_STMT, h);
+                        assert(ret == SQL_SUCCESS);
+                    }
+                });
+                if (!SQL_SUCCEEDED(retcode)) {
+                    res = SPA::Odbc::ER_ERROR;
+                    GetErrMsg(SQL_HANDLE_DBC, m_pOdbc.get(), errMsg);
+                    break;
+                }
+				m_pExcuting = m_pPrepare;
+				retcode = SQLPrepare(hstmt, (SQLWCHAR*)m_sqlPrepare.c_str(), (SQLINTEGER)m_sqlPrepare.size());
+				if (!SQL_SUCCEEDED(retcode)) {
+                    res = SPA::Odbc::ER_ERROR;
+                    GetErrMsg(SQL_HANDLE_STMT, hstmt, errMsg);
+                    break;
+                }
+				retcode = SQLNumParams(hstmt, &m_parameters);
+				if (!SQL_SUCCEEDED(retcode)) {
+                    res = SPA::Odbc::ER_ERROR;
+                    GetErrMsg(SQL_HANDLE_STMT, hstmt, errMsg);
+                    break;
+                }
+				else if (m_vPInfo.size() && m_parameters != (SQLSMALLINT)m_vPInfo.size()) {
+					res = SPA::Odbc::ER_BAD_PARAMETER_COLUMN_SIZE;
+					errMsg = BAD_PARAMETER_COLUMN_SIZE;
+					break;
+				}
+				unsigned short outputs = 0;
+				for (auto it = m_vPInfo.begin(), end = m_vPInfo.end(); it != end; ++it) {
+					switch(it->Direction) {
+					case pdInput:
+						break;
+					default:
+						++outputs;
+						break;
+					}
+				}
+				parameters = outputs;
+				parameters <<= 16;
+				parameters += ((unsigned short)m_parameters - outputs);
+			}while(false);
+			if (res) {
+				m_pExcuting.reset();
+				m_pPrepare.reset();
+				m_vPInfo.clear();
+				m_parameters = 0;
+			}
         }
 
         void COdbcImpl::ExecuteParameters(bool rowset, bool meta, bool lastInsertId, UINT64 index, INT64 &affected, int &res, std::wstring &errMsg, CDBVariant &vtId, UINT64 & fail_ok) {
-            affected = 0;
-            res = 0;
             fail_ok = 0;
+            affected = 0;
+            if (!m_pOdbc) {
+                res = SPA::Odbc::ER_NO_DB_OPENED_YET;
+                errMsg = NO_DB_OPENED_YET;
+                ++m_fails;
+                fail_ok = 1;
+                fail_ok <<= 32;
+                return;
+            }
+			if (!m_pPrepare) {
+                res = SPA::Odbc::ER_NO_PARAMETER_SPECIFIED;
+                errMsg = NO_PARAMETER_SPECIFIED;
+                ++m_fails;
+                fail_ok = 1;
+                fail_ok <<= 32;
+                return;
+            }
+			SQLRETURN retcode;
+			if (m_parameters) {
+				if ((m_vParam.size() % (unsigned short)m_parameters) || m_vParam.size() == 0) {
+					res = SPA::Odbc::ER_BAD_PARAMETER_DATA_ARRAY_SIZE;
+					errMsg = BAD_PARAMETER_DATA_ARRAY_SIZE;
+					++m_fails;
+					fail_ok = 1;
+					fail_ok <<= 32;
+					return;
+				}
+				else if (!m_vPInfo.size()) {
+					CParameterInfo info;
+					for (auto it = m_vParam.begin(), end = m_vParam.end(); it != end; ++it) {
+						info.DataType = it->vt;
+						m_vPInfo.push_back(info);
+					}
+				}
+			}
+			res = 0;
+			UINT64 fails = m_fails;
+            UINT64 oks = m_oks;
+			retcode = SQLExecute(m_pPrepare.get());
+			if (!SQL_SUCCEEDED(retcode)) {
+				res = SPA::Odbc::ER_ERROR;
+				GetErrMsg(SQL_HANDLE_STMT, m_pPrepare.get(), errMsg);
+				++m_fails;
+			}
+			else {
+				do {
+					SQLSMALLINT columns = 0;
+                    retcode = SQLNumResultCols(m_pPrepare.get(), &columns);
+                    assert(SQL_SUCCEEDED(retcode));
+					if (columns) {
+						unsigned int ret;
+						if (rowset) {
+							CDBColumnInfoArray vInfo = GetColInfo(m_pPrepare.get(), columns, meta);
+							{
+								CScopeUQueue sbRowset;
+								sbRowset << vInfo << index;
+								ret = SendResult(idRowsetHeader, sbRowset->GetBuffer(), sbRowset->GetSize());
+							}
+							if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
+								return;
+							}
+							bool ok = PushRecords(m_pPrepare.get(), vInfo, res, errMsg);
+							if (!ok) {
+								return;
+							}
+							if (res) {
+								++m_fails;
+							}
+							else {
+								++m_oks;
+							}
+						}
+					}
+					else {
+						SQLLEN rows = 0;
+                        retcode = SQLRowCount(m_pPrepare.get(), &rows);
+                        assert(SQL_SUCCEEDED(retcode));
+                        if (rows > 0) {
+                            affected += rows;
+                        }
+						++m_oks;
+					}
+				} while(SQLMoreResults(m_pPrepare.get()) == SQL_SUCCESS);
+			}
+			fail_ok = ((m_fails - fails) << 32);
+            fail_ok += (unsigned int) (m_oks - oks);
         }
 
         void COdbcImpl::StartBLOB(unsigned int lenExpected) {

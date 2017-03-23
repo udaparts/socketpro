@@ -77,7 +77,7 @@ int main(int argc, char* argv[]) {
     ok = pOdbc->Open(nullptr, dr);
     TestCreateTables(pOdbc);
     //ok = pOdbc->Execute(L"delete from employee;delete from company", er);
-    //TestPreparedStatements(pOdbc);
+    TestPreparedStatements(pOdbc);
     //InsertBLOBByPreparedStatement(pOdbc);
     //ok = pOdbc->Execute(L"SELECT * from company;select * from employee;select curtime()", er, r, rh);
 	ok = pOdbc->Tables(L"mysqldb", L"", L"%", L"", er, r, rh);
@@ -199,12 +199,31 @@ void InsertBLOBByPreparedStatement(std::shared_ptr<CMyHandler> pOdbc) {
 }
 
 void TestPreparedStatements(std::shared_ptr<CMyHandler> pOdbc) {
+
+	CParameterInfoArray vInfo;
+	CParameterInfo info;
+
+	info.DataType = VT_I4;
+	vInfo.push_back(info);
+
+	info.DataType = (VT_I1 | VT_ARRAY);
+	info.ColumnSize = 64;
+	vInfo.push_back(info);
+
+	info.DataType = (VT_I1 | VT_ARRAY);
+	info.ColumnSize = 255;
+	vInfo.push_back(info);
+
+	info.DataType = VT_R8;
+	vInfo.push_back(info);
+
     const wchar_t *sql_insert_parameter = L"INSERT INTO company(ID, NAME, ADDRESS, Income) VALUES (?, ?, ?, ?)";
     bool ok = pOdbc->Prepare(sql_insert_parameter, [](CSender &handler, int res, const std::wstring & errMsg) {
         std::cout << "res = " << res << ", errMsg: ";
         std::wcout << errMsg << std::endl;
-    });
+    }, vInfo);
 
+	/*
     CDBVariantArray vData;
 
     //first set
@@ -233,6 +252,7 @@ void TestPreparedStatements(std::shared_ptr<CMyHandler> pOdbc) {
         }
         std::cout << std::endl;
     });
+	*/
 }
 
 void TestCreateTables(std::shared_ptr<CMyHandler> pOdbc) {
@@ -261,7 +281,7 @@ void TestCreateTables(std::shared_ptr<CMyHandler> pOdbc) {
 }
 
 void TestStoredProcedure(std::shared_ptr<CMyHandler> pOdbc, CRowsetArray&ra, CDBVariantArray &vPData, unsigned int &oks) {
-    bool ok = pOdbc->Prepare(L"call sp_TestProc(?, ?, ?)", [](CSender &handler, int res, const std::wstring & errMsg) {
+	bool ok = pOdbc->Prepare(L"{ call sp_TestProc(?, ?, ?) } ", [](CSender &handler, int res, const std::wstring & errMsg) {
         std::cout << "res = " << res << ", errMsg: ";
         std::wcout << errMsg << std::endl;
     });
