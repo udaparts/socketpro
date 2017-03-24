@@ -56,5 +56,8 @@
     <ClInclude Include="..\..\..\..\include\ccloader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\..\include\odbc\uodbc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

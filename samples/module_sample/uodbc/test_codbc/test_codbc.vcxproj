@@ -146,6 +146,7 @@
     <ClInclude Include="..\..\..\..\include\commutil.h" />
     <ClInclude Include="..\..\..\..\include\definebase.h" />
     <ClInclude Include="..\..\..\..\include\membuffer.h" />
+    <ClInclude Include="..\..\..\..\include\odbc\uodbc.h" />
     <ClInclude Include="..\..\..\..\include\ucomm.h" />
     <ClInclude Include="..\..\..\..\include\udatabase.h" />
     <ClInclude Include="..\..\..\..\include\udb_client.h" />
