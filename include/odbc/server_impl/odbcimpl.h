@@ -84,12 +84,13 @@ namespace SPA {
             bool PushInfo(SQLHDBC hdbc);
             void PreprocessPreparedStatement();
 			bool CheckInputParameterDataTypes();
+			bool BindParameters(CUQueue &q);
+			static void ConvertDecimalAString(CDBVariant &vt);
             static void SetUShortInfo(SQLHDBC hdbc, SQLUSMALLINT infoType, std::unordered_map<SQLUSMALLINT, CComVariant> &mapInfo);
             static void SetUIntInfo(SQLHDBC hdbc, SQLUSMALLINT infoType, std::unordered_map<SQLUSMALLINT, CComVariant> &mapInfo);
             static void SetStringInfo(SQLHDBC hdbc, SQLUSMALLINT infoType, std::unordered_map<SQLUSMALLINT, CComVariant> &mapInfo);
             static void SetUInt64Info(SQLHDBC hdbc, SQLUSMALLINT infoType, std::unordered_map<SQLUSMALLINT, CComVariant> &mapInfo);
             static void SetIntInfo(SQLHDBC hdbc, SQLUSMALLINT infoType, std::unordered_map<SQLUSMALLINT, CComVariant> &mapInfo);
-            static void ConvertToUTF8OrDouble(CDBVariant &vt);
             static void GetErrMsg(SQLSMALLINT HandleType, SQLHANDLE Handle, std::wstring &errMsg);
             static unsigned short ToSystemTime(const TIMESTAMP_STRUCT &d, SYSTEMTIME &st);
             static void ToSystemTime(const TIME_STRUCT &d, SYSTEMTIME &st);
@@ -123,6 +124,7 @@ namespace SPA {
             CParameterInfoArray m_vPInfo;
             bool m_bReturn;
 			SQLSMALLINT m_outputs;
+			unsigned int m_nParamDataSize;
 
             static const wchar_t* NO_DB_OPENED_YET;
             static const wchar_t* BAD_END_TRANSTACTION_PLAN;

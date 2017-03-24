@@ -111,7 +111,10 @@ namespace SPA
             }
         }
 
-        COdbcImpl::COdbcImpl() : m_oks(0), m_fails(0), m_ti(tiUnspecified), m_global(true), m_Blob(*m_sb), m_parameters(0), m_bCall(false), m_bReturn(false), m_outputs(0) {
+        COdbcImpl::COdbcImpl() 
+			: m_oks(0), m_fails(0), m_ti(tiUnspecified), m_global(true),
+			m_Blob(*m_sb), m_parameters(0), m_bCall(false), m_bReturn(false),
+			m_outputs(0), m_nParamDataSize(0) {
 
         }
 
@@ -2137,9 +2140,47 @@ namespace SPA
         }
 
 		bool COdbcImpl::CheckInputParameterDataTypes() {
+			m_nParamDataSize = 0;
 			unsigned int rows = (unsigned int)(m_vParam.size() / (unsigned short) m_parameters);
-			for(SQLSMALLINT n = 0; n < m_parameters; ++n) {
+			for (SQLSMALLINT n = 0; n < m_parameters; ++n) {
 				CParameterInfo &info = m_vPInfo[n];
+				switch(info.DataType) {
+				case VT_I1:
+				case VT_UI1:
+					m_nParamDataSize += sizeof(unsigned char);
+					break;
+				case VT_BOOL:
+					m_nParamDataSize += sizeof(bool);
+					break;
+				case VT_I2:
+				case VT_UI2:
+					m_nParamDataSize += sizeof(unsigned short);
+					break;
+				case VT_INT:
+				case VT_UINT:
+				case VT_R4:
+				case VT_I4:
+				case VT_UI4:
+					m_nParamDataSize += sizeof(int);
+					break;
+				case VT_R8:
+				case VT_I8:
+				case VT_UI8:
+				case VT_DATE:
+					m_nParamDataSize += sizeof(double);
+					break;
+				case VT_DECIMAL:
+					//convert decimal into ASCII string
+					m_nParamDataSize += sizeof(SQLPOINTER);
+					break;
+				case VT_BSTR:
+				case (VT_I1 | VT_ARRAY):
+				case (VT_UI1 | VT_ARRAY):
+					m_nParamDataSize += sizeof(SQLPOINTER);
+					break;
+				default:
+					break;
+				}
 				if (info.Direction != pdInput && info.Direction != pdInputOutput) {
 					continue;
 				}
@@ -2180,94 +2221,154 @@ namespace SPA
 					if (vt != vtP) {
 						return false;
 					}
+
+					if (vtP == VT_DECIMAL) {
+						ConvertDecimalAString(d);
+					}
 				}
 			}
 			return true;
 		}
 
+		bool COdbcImpl::BindParameters(CUQueue &q) {
+			unsigned int rows = (unsigned int)((m_vParam.size() / (unsigned short) m_parameters));
+			unsigned int size = rows * (sizeof(SQLUSMALLINT) + sizeof(SQLLEN) + m_nParamDataSize);
+			if (q.GetMaxSize() < size) {
+				q.ReallocBuffer(size);
+			}
+			q.SetSize(size);
+			unsigned char *buffer = (unsigned char*)q.GetBuffer();
+			memset(buffer, 0, size);
+			unsigned int pos_status = 0;
+			unsigned int pos_len_ind = rows * sizeof(SQLUSMALLINT);
+			for (SQLSMALLINT n = 0; n < m_parameters; ++n) {
+				CParameterInfo &info = m_vPInfo[n];
+				for (unsigned int r = 0; r < rows; ++r) {
+					CDBVariant &d = m_vParam[(unsigned int)n + r * ((unsigned int) m_parameters)];
+
+				}
+			}
+			return false;
+		}
+
+		void COdbcImpl::ConvertDecimalAString(CDBVariant &vt) {
+			if (vt.vt = VT_DECIMAL) {
+				const DECIMAL &decVal = vt.decVal;
+				std::string s = std::to_string(decVal.Lo64);
+				unsigned char len = (unsigned char) s.size();
+                if (len <= decVal.scale) {
+                    s.insert(0, (decVal.scale - len) + 1, '0');
+                }
+                if (decVal.sign) {
+                    s.insert(0, 1, '-');
+                }
+                if (decVal.scale) {
+                    size_t pos = s.length() - decVal.scale;
+                    s.insert(pos, 1, '.');
+                }
+                vt = s.c_str();
+			}
+		}
+
         void COdbcImpl::ExecuteParameters(bool rowset, bool meta, bool lastInsertId, UINT64 index, INT64 &affected, int &res, std::wstring &errMsg, CDBVariant &vtId, UINT64 & fail_ok) {
             fail_ok = 0;
             affected = 0;
-            if (!m_pOdbc) {
-                res = SPA::Odbc::ER_NO_DB_OPENED_YET;
-                errMsg = NO_DB_OPENED_YET;
-                ++m_fails;
-                fail_ok = 1;
-                fail_ok <<= 32;
-                return;
-            }
-            if (!m_pPrepare) {
-                res = SPA::Odbc::ER_NO_PARAMETER_SPECIFIED;
-                errMsg = NO_PARAMETER_SPECIFIED;
-                ++m_fails;
-                fail_ok = 1;
-                fail_ok <<= 32;
-                return;
-            }
-            SQLRETURN retcode;
-            if (m_parameters) {
-                if ((m_vParam.size() % (unsigned short) m_parameters) || m_vParam.size() == 0) {
-                    res = SPA::Odbc::ER_BAD_PARAMETER_DATA_ARRAY_SIZE;
-                    errMsg = BAD_PARAMETER_DATA_ARRAY_SIZE;
-                    ++m_fails;
-                    fail_ok = 1;
-                    fail_ok <<= 32;
-                    return;
-                } else if (!CheckInputParameterDataTypes()) {
-                    res = SPA::Odbc::ER_BAD_INPUT_PARAMETER_DATA_TYPE;
-                    errMsg = BAD_INPUT_PARAMETER_DATA_TYPE;
-                    ++m_fails;
-                    fail_ok = 1;
-                    fail_ok <<= 32;
-                    return;
-                }
-            }
-            res = 0;
-            UINT64 fails = m_fails;
+			UINT64 fails = m_fails;
             UINT64 oks = m_oks;
-            retcode = SQLExecute(m_pPrepare.get());
-            if (!SQL_SUCCEEDED(retcode)) {
-                res = SPA::Odbc::ER_ERROR;
-                GetErrMsg(SQL_HANDLE_STMT, m_pPrepare.get(), errMsg);
-                ++m_fails;
-            } else {
-                do {
-                    SQLSMALLINT columns = 0;
-                    retcode = SQLNumResultCols(m_pPrepare.get(), &columns);
-                    assert(SQL_SUCCEEDED(retcode));
-                    if (columns) {
-                        unsigned int ret;
-                        if (rowset) {
-                            CDBColumnInfoArray vInfo = GetColInfo(m_pPrepare.get(), columns, meta);
-                            {
-                                CScopeUQueue sbRowset;
-                                sbRowset << vInfo << index;
-                                ret = SendResult(idRowsetHeader, sbRowset->GetBuffer(), sbRowset->GetSize());
-                            }
-                            if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
-                                return;
-                            }
-                            bool ok = PushRecords(m_pPrepare.get(), vInfo, res, errMsg);
-                            if (!ok) {
-                                return;
-                            }
-                            if (res) {
-                                ++m_fails;
-                            } else {
-                                ++m_oks;
-                            }
-                        }
-                    } else {
-                        SQLLEN rows = 0;
-                        retcode = SQLRowCount(m_pPrepare.get(), &rows);
-                        assert(SQL_SUCCEEDED(retcode));
-                        if (rows > 0) {
-                            affected += rows;
-                        }
-                        ++m_oks;
-                    }
-                } while (SQLMoreResults(m_pPrepare.get()) == SQL_SUCCESS);
-            }
+			do {
+				if (!m_pOdbc) {
+					res = SPA::Odbc::ER_NO_DB_OPENED_YET;
+					errMsg = NO_DB_OPENED_YET;
+					++m_fails;
+					break;
+				}
+				if (!m_pPrepare) {
+					res = SPA::Odbc::ER_NO_PARAMETER_SPECIFIED;
+					errMsg = NO_PARAMETER_SPECIFIED;
+					++m_fails;
+					break;
+				}
+				SQLINTEGER ParamsProcessed = 0;
+				SQLRETURN retcode = SQLSetStmtAttr(m_pPrepare.get(), SQL_ATTR_PARAMS_PROCESSED_PTR, &ParamsProcessed, 0);
+				if (!SQL_SUCCEEDED(retcode)) {
+					res = SPA::Odbc::ER_ERROR;
+					GetErrMsg(SQL_HANDLE_STMT, m_pPrepare.get(), errMsg);
+					++m_fails;
+					break;
+				}
+				CScopeUQueue sb;
+				if (m_parameters) {
+					if ((m_vParam.size() % (unsigned short) m_parameters) || m_vParam.size() == 0) {
+						res = SPA::Odbc::ER_BAD_PARAMETER_DATA_ARRAY_SIZE;
+						errMsg = BAD_PARAMETER_DATA_ARRAY_SIZE;
+						++m_fails;
+						break;
+					} else if (!CheckInputParameterDataTypes()) {
+						res = SPA::Odbc::ER_BAD_INPUT_PARAMETER_DATA_TYPE;
+						errMsg = BAD_INPUT_PARAMETER_DATA_TYPE;
+						++m_fails;
+						break;
+					}
+					unsigned int rows = (unsigned int)((m_vParam.size() / (unsigned short) m_parameters));
+					retcode = SQLSetStmtAttr(m_pPrepare.get(), SQL_ATTR_PARAMSET_SIZE, (SQLPOINTER)rows, 0);
+					if (!SQL_SUCCEEDED(retcode)) {
+						res = SPA::Odbc::ER_ERROR;
+						GetErrMsg(SQL_HANDLE_STMT, m_pPrepare.get(), errMsg);
+						++m_fails;
+						break;
+					}
+					else if (!BindParameters(*sb)) {
+						res = SPA::Odbc::ER_ERROR;
+						GetErrMsg(SQL_HANDLE_STMT, m_pPrepare.get(), errMsg);
+						++m_fails;
+						break;
+					}
+				}
+				res = 0;
+				retcode = SQLExecute(m_pPrepare.get());
+				if (!SQL_SUCCEEDED(retcode)) {
+					res = SPA::Odbc::ER_ERROR;
+					GetErrMsg(SQL_HANDLE_STMT, m_pPrepare.get(), errMsg);
+					++m_fails;
+					break;
+				}
+				do {
+					SQLSMALLINT columns = 0;
+					retcode = SQLNumResultCols(m_pPrepare.get(), &columns);
+					assert(SQL_SUCCEEDED(retcode));
+					if (columns) {
+						if (rowset) {
+							unsigned int ret;
+							CDBColumnInfoArray vInfo = GetColInfo(m_pPrepare.get(), columns, meta);
+							{
+								CScopeUQueue sbRowset;
+								sbRowset << vInfo << index;
+								ret = SendResult(idRowsetHeader, sbRowset->GetBuffer(), sbRowset->GetSize());
+							}
+							if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
+								return;
+							}
+							bool ok = PushRecords(m_pPrepare.get(), vInfo, res, errMsg);
+							if (!ok) {
+								return;
+							}
+							if (res) {
+								++m_fails;
+							} else {
+								++m_oks;
+							}
+						}
+					} else {
+						SQLLEN rows = 0;
+						retcode = SQLRowCount(m_pPrepare.get(), &rows);
+						assert(SQL_SUCCEEDED(retcode));
+						if (rows > 0) {
+							affected += rows;
+						}
+						++m_oks;
+					}
+				} while (SQLMoreResults(m_pPrepare.get()) == SQL_SUCCESS);
+			} while(false);
             fail_ok = ((m_fails - fails) << 32);
             fail_ok += (unsigned int) (m_oks - oks);
         }
@@ -2313,7 +2414,6 @@ namespace SPA
                 m_vParam.push_back(CDBVariant());
                 CDBVariant &vt = m_vParam.back();
                 q >> vt;
-                ConvertToUTF8OrDouble(vt);
             }
             assert(q.GetSize() == 0);
         }
@@ -2342,46 +2442,5 @@ namespace SPA
                 res = SQLGetDiagRec(HandleType, Handle, i, SqlState, &NativeError, Msg, sizeof (Msg), &MsgLen);
             }
         }
-
-        void COdbcImpl::ConvertToUTF8OrDouble(CDBVariant & vt) {
-            switch (vt.Type()) {
-                case VT_DATE:
-                {
-                    char str[32] = {0};
-                    UDateTime d(vt.ullVal);
-                    d.ToDBString(str, sizeof (str));
-                    vt = (const char*) str;
-                }
-                    break;
-                case VT_CY:
-                {
-                    double d = (double) vt.cyVal.int64;
-                    d /= 10000.0;
-                    vt = d;
-                }
-                    break;
-                case VT_DECIMAL:
-                {
-                    const DECIMAL &decVal = vt.decVal;
-                    std::string s = std::to_string(decVal.Lo64);
-                    unsigned char len = (unsigned char) s.size();
-                    if (len <= decVal.scale) {
-                        s.insert(0, (decVal.scale - len) + 1, '0');
-                    }
-                    if (decVal.sign) {
-                        s.insert(0, 1, '-');
-                    }
-                    if (decVal.scale) {
-                        size_t pos = s.length() - decVal.scale;
-                        s.insert(pos, 1, '.');
-                    }
-                    vt = s.c_str();
-                }
-                    break;
-                default:
-                    break;
-            }
-        }
-
     } //namespace ServerSide
 } //namespace SPA
