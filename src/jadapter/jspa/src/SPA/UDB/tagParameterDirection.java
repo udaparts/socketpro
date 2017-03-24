@@ -1,7 +1,7 @@
 package SPA.UDB;
 
 public enum tagParameterDirection {
-
+	pdUnknown(0),
     pdInput(1),
     pdOutput(2),
     pdInputOutput(3),

@@ -145,6 +145,7 @@ class CDBColumnInfoArray(IUSerializer):
         return self.__list__
 
 class tagParameterDirection(object):
+    pdUnknown = 0
     pdInput = 1
     pdOutput = 2
     pdInputOutput = 3

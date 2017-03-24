@@ -83,6 +83,7 @@ namespace SPA {
             bool PushRecords(SQLHSTMT hstmt, const CDBColumnInfoArray &vColInfo, int &res, std::wstring &errMsg);
             bool PushInfo(SQLHDBC hdbc);
             void PreprocessPreparedStatement();
+			bool CheckInputParameterDataTypes();
             static void SetUShortInfo(SQLHDBC hdbc, SQLUSMALLINT infoType, std::unordered_map<SQLUSMALLINT, CComVariant> &mapInfo);
             static void SetUIntInfo(SQLHDBC hdbc, SQLUSMALLINT infoType, std::unordered_map<SQLUSMALLINT, CComVariant> &mapInfo);
             static void SetStringInfo(SQLHDBC hdbc, SQLUSMALLINT infoType, std::unordered_map<SQLUSMALLINT, CComVariant> &mapInfo);
@@ -121,6 +122,7 @@ namespace SPA {
             std::wstring m_procName;
             CParameterInfoArray m_vPInfo;
             bool m_bReturn;
+			SQLSMALLINT m_outputs;
 
             static const wchar_t* NO_DB_OPENED_YET;
             static const wchar_t* BAD_END_TRANSTACTION_PLAN;
@@ -131,6 +133,8 @@ namespace SPA {
             static const wchar_t* NO_DB_NAME_SPECIFIED;
             static const wchar_t* ODBC_ENVIRONMENT_NOT_INITIALIZED;
             static const wchar_t* BAD_MANUAL_TRANSACTION_STATE;
+			static const wchar_t* BAD_INPUT_PARAMETER_DATA_TYPE;
+			static const wchar_t* BAD_PARAMETER_DIRECTION_TYPE;
 
             static SQLHENV g_hEnv;
 

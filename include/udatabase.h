@@ -563,6 +563,7 @@ namespace SPA {
         }
 
         enum tagParameterDirection {
+			pdUnknown = 0,
             pdInput = 1,
             pdOutput = 2,
             pdInputOutput = 3,
@@ -627,7 +628,7 @@ namespace SPA {
             }
 
             tagParameterDirection Direction; //required
-            unsigned short DataType; //required! for example, VT_I4, VT_BSTR, VT_I1|VT_ARRAY (UTF8 string), ....
+            VARTYPE DataType; //required! for example, VT_I4, VT_BSTR, VT_I1|VT_ARRAY (UTF8 string), ....
             unsigned int ColumnSize; //-1 BLOB, string len or binary bytes; ignored for other data types
             unsigned char Precision; //datetime, decimal or numeric only
             unsigned char Scale; //datetime, decimal or numeric only

@@ -20,6 +20,8 @@ namespace SPA
         const wchar_t * COdbcImpl::NO_DB_NAME_SPECIFIED = L"No database name specified";
         const wchar_t * COdbcImpl::ODBC_ENVIRONMENT_NOT_INITIALIZED = L"ODBC system library not initialized";
         const wchar_t * COdbcImpl::BAD_MANUAL_TRANSACTION_STATE = L"Bad manual transaction state";
+		const wchar_t * COdbcImpl::BAD_INPUT_PARAMETER_DATA_TYPE = L"Bad input parameter data type";
+		const wchar_t * COdbcImpl::BAD_PARAMETER_DIRECTION_TYPE = L"Bad parameter direction type";
 
         SQLHENV COdbcImpl::g_hEnv = nullptr;
 
@@ -109,7 +111,7 @@ namespace SPA
             }
         }
 
-        COdbcImpl::COdbcImpl() : m_oks(0), m_fails(0), m_ti(tiUnspecified), m_global(true), m_Blob(*m_sb), m_parameters(0), m_bCall(false), m_bReturn(false) {
+        COdbcImpl::COdbcImpl() : m_oks(0), m_fails(0), m_ti(tiUnspecified), m_global(true), m_Blob(*m_sb), m_parameters(0), m_bCall(false), m_bReturn(false), m_outputs(0) {
 
         }
 
@@ -2074,32 +2076,114 @@ namespace SPA
                     res = SPA::Odbc::ER_ERROR;
                     GetErrMsg(SQL_HANDLE_STMT, hstmt, errMsg);
                     break;
-                } else if (m_vPInfo.size() && m_parameters != (SQLSMALLINT) m_vPInfo.size()) {
+                } else if (/*m_vPInfo.size() && */m_parameters != (SQLSMALLINT) m_vPInfo.size()) {
                     res = SPA::Odbc::ER_BAD_PARAMETER_COLUMN_SIZE;
                     errMsg = BAD_PARAMETER_COLUMN_SIZE;
                     break;
                 }
-                unsigned short outputs = 0;
+                m_outputs = 0;
                 for (auto it = m_vPInfo.begin(), end = m_vPInfo.end(); it != end; ++it) {
-                    switch (it->Direction) {
+                    switch (it->DataType) {
+					case VT_I1:
+					case VT_UI1:
+					case VT_I2:
+					case VT_UI2:
+					case VT_I4:
+					case VT_UI4:
+					case VT_INT:
+					case VT_UINT:
+					case VT_I8:
+					case VT_UI8:
+					case VT_R4:
+					case VT_R8:
+					case VT_DATE:
+					case VT_DECIMAL:
+					case VT_BSTR:
+					case (VT_UI1 | VT_ARRAY):
+					case (VT_I1 | VT_ARRAY):
+					case VT_BOOL:
+						break;
+					default:
+						res = SPA::Odbc::ER_BAD_INPUT_PARAMETER_DATA_TYPE;
+						errMsg = BAD_INPUT_PARAMETER_DATA_TYPE;
+						break;
+					}
+					switch (it->Direction) {
+						case pdUnknown:
+							res = SPA::Odbc::ER_BAD_PARAMETER_DIRECTION_TYPE;
+							errMsg = BAD_PARAMETER_DIRECTION_TYPE;
+							break;
                         case pdInput:
                             break;
                         default:
-                            ++outputs;
+                            ++m_outputs;
                             break;
                     }
+					if (res)
+						break;
                 }
-                parameters = outputs;
+                parameters = m_outputs;
                 parameters <<= 16;
-                parameters += ((unsigned short) m_parameters - outputs);
+                parameters += (unsigned short) (m_parameters - m_outputs);
             } while (false);
             if (res) {
                 m_pExcuting.reset();
                 m_pPrepare.reset();
                 m_vPInfo.clear();
                 m_parameters = 0;
+				m_outputs = 0;
+				parameters = 0;
             }
         }
+
+		bool COdbcImpl::CheckInputParameterDataTypes() {
+			unsigned int rows = (unsigned int)(m_vParam.size() / (unsigned short) m_parameters);
+			for(SQLSMALLINT n = 0; n < m_parameters; ++n) {
+				CParameterInfo &info = m_vPInfo[n];
+				if (info.Direction != pdInput && info.Direction != pdInputOutput) {
+					continue;
+				}
+				for (unsigned int r = 0; r < rows; ++r) {
+					CDBVariant &d = m_vParam[(unsigned int)n + r * ((unsigned int) m_parameters)];
+					VARTYPE vtP = d.vt;
+					if (vtP == VT_NULL || vtP == VT_EMPTY) {
+						continue;
+					}
+
+					//ignore signed/unsigned matching
+					if (vtP == VT_UI1) {
+						vtP = VT_I1;
+					}
+					else if (vtP == VT_UI2) {
+						vtP = VT_I2;
+					}
+					else if (vtP == VT_UI4 || vtP == VT_INT || vtP == VT_UINT) {
+						vtP = VT_I4;
+					}
+					else if (vtP == VT_UI8) {
+						vtP = VT_I8;
+					}
+					VARTYPE vt = info.DataType;
+					if (vt == VT_UI1) {
+						vt = VT_I1;
+					}
+					else if (vt == VT_UI2) {
+						vt = VT_I2;
+					}
+					else if (vt == VT_UI4 || vt == VT_INT || vt == VT_UINT) {
+						vtP = VT_I4;
+					}
+					else if (vt == VT_UI8) {
+						vt = VT_I8;
+					}
+
+					if (vt != vtP) {
+						return false;
+					}
+				}
+			}
+			return true;
+		}
 
         void COdbcImpl::ExecuteParameters(bool rowset, bool meta, bool lastInsertId, UINT64 index, INT64 &affected, int &res, std::wstring &errMsg, CDBVariant &vtId, UINT64 & fail_ok) {
             fail_ok = 0;
@@ -2129,12 +2213,13 @@ namespace SPA
                     fail_ok = 1;
                     fail_ok <<= 32;
                     return;
-                } else if (!m_vPInfo.size()) {
-                    CParameterInfo info;
-                    for (auto it = m_vParam.begin(), end = m_vParam.end(); it != end; ++it) {
-                        info.DataType = it->vt;
-                        m_vPInfo.push_back(info);
-                    }
+                } else if (!CheckInputParameterDataTypes()) {
+                    res = SPA::Odbc::ER_BAD_INPUT_PARAMETER_DATA_TYPE;
+                    errMsg = BAD_INPUT_PARAMETER_DATA_TYPE;
+                    ++m_fails;
+                    fail_ok = 1;
+                    fail_ok <<= 32;
+                    return;
                 }
             }
             res = 0;

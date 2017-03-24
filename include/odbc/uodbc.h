@@ -35,5 +35,8 @@ namespace SPA {
         static const int ER_NO_DB_NAME_SPECIFIED = -1987;
         static const int ER_ODBC_ENVIRONMENT_NOT_INITIALIZED = -1988;
         static const int ER_BAD_MANUAL_TRANSACTION_STATE = -1989;
+		static const int ER_BAD_INPUT_PARAMETER_DATA_TYPE = -1990;
+		static const int ER_BAD_PARAMETER_DIRECTION_TYPE = -1991;
+
     } //namespace Odbc
 } //namespace SPA
