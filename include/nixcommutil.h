@@ -5,6 +5,7 @@
 #include <cstdlib>
 #include <boost/thread/recursive_mutex.hpp>
 //#include <mutex>
+#include <boost/uuid/uuid.hpp>
 #include <exception>
 
 #ifdef __ANDROID__
