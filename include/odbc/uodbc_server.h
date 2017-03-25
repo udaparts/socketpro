@@ -2,8 +2,9 @@
 #ifndef _ASYNC_ODBC_MODULE_IMPLEMENTATION_BASIC_HEADER_H_
 #define _ASYNC_ODBC_MODULE_IMPLEMENTATION_BASIC_HEADER_H_
 
-#include "../spa_module.h"
 #include "uodbc.h"
+#include "../spa_module.h"
+
 
 #ifdef __cplusplus
 extern "C" {

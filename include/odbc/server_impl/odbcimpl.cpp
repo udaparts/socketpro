@@ -6,7 +6,6 @@
 #include <iostream>
 #endif
 
-
 namespace SPA
 {
     namespace ServerSide{
@@ -90,21 +89,36 @@ namespace SPA
                 Trim(left);
                 Trim(right);
                 transform(left.begin(), left.end(), left.begin(), ::tolower);
-                if (left == L"connect-timeout" || left == L"timeout" || left == L"connection-timeout")
+                if (left == L"connect-timeout" || left == L"timeout" || left == L"connection-timeout") {
+#ifdef WIN32_64
                     timeout = (unsigned int) _wtoi(right.c_str());
-                else if (left == L"database" || left == L"db")
+#else
+                    wchar_t *tail = nullptr;
+                    timeout = (unsigned int) wcstol(right.c_str(), &tail, 0);
+#endif
+                } else if (left == L"database" || left == L"db")
                     database = right;
-                else if (left == L"port")
+                else if (left == L"port") {
+#ifdef WIN32_64
                     port = (unsigned int) _wtoi(right.c_str());
-                else if (left == L"pwd" || left == L"password")
+#else
+                    wchar_t *tail = nullptr;
+                    port = (unsigned int) wcstol(right.c_str(), &tail, 0);
+#endif
+                } else if (left == L"pwd" || left == L"password") {
                     password = right;
-                else if (left == L"host" || left == L"server" || left == L"dsn")
+                } else if (left == L"host" || left == L"server" || left == L"dsn") {
                     host = right;
-                else if (left == L"user" || left == L"uid")
+                } else if (left == L"user" || left == L"uid") {
                     user = right;
-                else if (left == L"async" || left == L"asynchronous")
+                } else if (left == L"async" || left == L"asynchronous") {
+#ifdef WIN32_64
                     async = (_wtoi(right.c_str()) ? true : false);
-                else {
+#else
+                    wchar_t *tail = nullptr;
+                    async = (wcstol(right.c_str(), &tail, 0) ? true : false);
+#endif
+                } else {
                     //!!! not implemented
                     assert(false);
                 }
@@ -334,7 +348,7 @@ namespace SPA
                 retcode = SQLSetConnectAttr(m_pOdbc.get(), SQL_ATTR_TXN_ISOLATION, (SQLPOINTER) attr, 0);
                 //ignore errors
             }
-            retcode = SQLSetConnectAttr(m_pOdbc.get(), SQL_ATTR_AUTOCOMMIT, (SQLPOINTER) FALSE, 0);
+            retcode = SQLSetConnectAttr(m_pOdbc.get(), SQL_ATTR_AUTOCOMMIT, (SQLPOINTER) SQL_FALSE, 0);
             if (!SQL_SUCCEEDED(retcode)) {
                 res = SPA::Odbc::ER_ERROR;
                 GetErrMsg(SQL_HANDLE_DBC, m_pOdbc.get(), errMsg);
