@@ -160,6 +160,11 @@ namespace SPA {
                 vt = VT_NULL;
             }
 
+			CDBVariant(const GUID &uuid) {
+                vt = VT_CLSID;
+				::memcpy(&decVal, &uuid, sizeof(uuid));
+            }
+
             template <typename type>
             CDBVariant(const type& src) : CComVariant(src) {
             }
@@ -294,6 +299,13 @@ namespace SPA {
             CDBVariant& operator=(const wchar_t* lpszSrc) {
                 CComVariant &me = *this;
                 me = lpszSrc;
+                return *this;
+            }
+
+			CDBVariant& operator=(const GUID &uuid) {
+                ::VariantClear(this);
+                vt = VT_CLSID;
+                ::memcpy(&decVal, &uuid, sizeof(uuid));
                 return *this;
             }
 

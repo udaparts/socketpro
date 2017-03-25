@@ -1,6 +1,11 @@
 
 #pragma once
 
+#include "../definebase.h"
+#ifndef WIN32_64
+#include <boost/uuid/uuid.hpp>
+#endif
+
 #include "../ucomm.h"
 #include "../udatabase.h"
 #include <sqlext.h>

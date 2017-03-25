@@ -661,9 +661,7 @@ namespace SPA
                         info.Flags |= CDBColumnInfo::FLAG_IS_BIT;
                         break;
                     case SQL_GUID:
-                        info.ColumnSize = sizeof (GUID);
-                        info.DataType = (VT_ARRAY | VT_UI1);
-                        info.Precision = ((unsigned char) 16);
+                        info.DataType = VT_CLSID;
                         break;
                     case SQL_TYPE_DATE:
                     case SQL_TYPE_TIME:
@@ -2101,6 +2099,7 @@ namespace SPA
 					case VT_R8:
 					case VT_DATE:
 					case VT_DECIMAL:
+					case VT_CLSID:
 					case VT_BSTR:
 					case (VT_UI1 | VT_ARRAY):
 					case (VT_I1 | VT_ARRAY):

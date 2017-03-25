@@ -169,6 +169,12 @@ static SAFEARRAY* SafeArrayCreate(VARTYPE vt, unsigned int cDims, SAFEARRAYBOUND
         case VT_UI8:
             cbElements = 8;
             break;
+#ifdef 0
+		//windows doesn't support creating GUID array!
+		case VT_CLSID:
+            cbElements = sizeof (GUID);
+			break;
+#endif
         case VT_DECIMAL:
             cbElements = sizeof (tagDEC);
             break;
