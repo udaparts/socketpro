@@ -131,7 +131,7 @@ namespace SPA
                 (*this) << vtData.bstrVal;
                 break;
             case VT_DECIMAL:
-			case VT_CLSID:
+            case VT_CLSID:
                 Insert((const unsigned char*) &(vtData.decVal), sizeof (vtData.decVal), position);
                 break;
             case VT_INT:
@@ -429,7 +429,7 @@ namespace SPA
                 break;
 #endif
             case VT_DECIMAL:
-			case VT_CLSID:
+            case VT_CLSID:
                 total += Pop((unsigned char*) &(vtData.decVal), sizeof (vtData.decVal), position);
                 break;
             default:

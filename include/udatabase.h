@@ -3,6 +3,7 @@
 #ifndef __UDAPARTS_DATABASE_COMM_H___
 #define __UDAPARTS_DATABASE_COMM_H___
 
+
 #include "ucomm.h"
 #include "membuffer.h"
 
@@ -160,10 +161,13 @@ namespace SPA {
                 vt = VT_NULL;
             }
 
-			CDBVariant(const GUID &uuid) {
+#if defined(BOOST_UUID_HPP) || defined(WIN32_64)
+
+            CDBVariant(const GUID &uuid) {
                 vt = VT_CLSID;
-				::memcpy(&decVal, &uuid, sizeof(uuid));
+                ::memcpy(&decVal, &uuid, sizeof (uuid));
             }
+#endif
 
             template <typename type>
             CDBVariant(const type& src) : CComVariant(src) {
@@ -302,12 +306,15 @@ namespace SPA {
                 return *this;
             }
 
-			CDBVariant& operator=(const GUID &uuid) {
+#if defined(BOOST_UUID_HPP) || defined(WIN32_64)
+
+            CDBVariant& operator=(const GUID &uuid) {
                 ::VariantClear(this);
                 vt = VT_CLSID;
-                ::memcpy(&decVal, &uuid, sizeof(uuid));
+                ::memcpy(&decVal, &uuid, sizeof (uuid));
                 return *this;
             }
+#endif
 
             CDBVariant& operator=(const UDateTime &dt) {
                 ::VariantClear(this);
@@ -575,7 +582,7 @@ namespace SPA {
         }
 
         enum tagParameterDirection {
-			pdUnknown = 0,
+            pdUnknown = 0,
             pdInput = 1,
             pdOutput = 2,
             pdInputOutput = 3,

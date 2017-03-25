@@ -116,9 +116,11 @@ typedef struct tagDEC {
 } DECIMAL;
 #pragma pack(pop)
 
+static_assert(sizeof (tagDEC) == 16, "Bad tagDEC structure size!");
+
 #ifdef BOOST_UUID_HPP
 typedef boost::uuids::uuid GUID;
-static_assert(sizeof(GUID) == sizeof(DECIMAL), "GUID and DECIMAL should have the same size");
+static_assert(sizeof (GUID) == sizeof (DECIMAL), "GUID and DECIMAL should have the same size");
 typedef GUID UUID;
 typedef GUID CLSID;
 #endif
