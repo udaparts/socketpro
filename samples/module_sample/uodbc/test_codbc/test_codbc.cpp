@@ -77,9 +77,9 @@ int main(int argc, char* argv[]) {
     ok = pOdbc->Open(nullptr, dr);
     TestCreateTables(pOdbc);
     ok = pOdbc->Execute(L"delete from employee;delete from company", er);
-    TestPreparedStatements(pOdbc);
+    //TestPreparedStatements(pOdbc);
     //InsertBLOBByPreparedStatement(pOdbc);
-    //ok = pOdbc->Execute(L"SELECT * from company;select * from employee;select curtime()", er, r, rh);
+    ok = pOdbc->Execute(L"SELECT * from company;select * from employee;select curtime()", er, r, rh);
     ok = pOdbc->Tables(L"mysqldb", L"", L"%", L"", er, r, rh);
 
     CDBVariantArray vPData;

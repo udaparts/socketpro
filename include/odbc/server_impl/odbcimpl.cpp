@@ -283,12 +283,17 @@ namespace SPA
                 }
 
                 if (ocs.database.size()) {
-                    retcode = SQLSetConnectAttr(hdbc, SQL_ATTR_CURRENT_CATALOG, (SQLPOINTER) ocs.database.c_str(), (SQLINTEGER) (ocs.database.size() * sizeof (SQLWCHAR)));
+					std::string db = SPA::Utilities::ToUTF8(ocs.database.c_str(), ocs.database.size());
+                    retcode = SQLSetConnectAttr(hdbc, SQL_ATTR_CURRENT_CATALOG, (SQLPOINTER) db.c_str(), (SQLINTEGER) (db.size() * sizeof (SQLCHAR)));
                 }
 
                 retcode = SQLSetConnectAttr(hdbc, SQL_ATTR_ASYNC_ENABLE, (SQLPOINTER) (ocs.async ? SQL_ASYNC_ENABLE_ON : SQL_ASYNC_ENABLE_OFF), 0);
 
-                retcode = SQLConnect(hdbc, (SQLWCHAR*) ocs.host.c_str(), (SQLSMALLINT) ocs.host.size(), (SQLWCHAR *) ocs.user.c_str(), (SQLSMALLINT) ocs.user.size(), (SQLWCHAR *) ocs.password.c_str(), (SQLSMALLINT) ocs.password.size());
+				std::string host = SPA::Utilities::ToUTF8(ocs.host.c_str(), ocs.host.size());
+				std::string user = SPA::Utilities::ToUTF8(ocs.user.c_str(), ocs.user.size());
+				std::string pwd = SPA::Utilities::ToUTF8(ocs.password.c_str(), ocs.password.size());
+
+                retcode = SQLConnect(hdbc, (SQLCHAR*) host.c_str(), (SQLSMALLINT) host.size(), (SQLCHAR *) user.c_str(), (SQLSMALLINT) user.size(), (SQLCHAR *) pwd.c_str(), (SQLSMALLINT) pwd.size());
                 if (!SQL_SUCCEEDED(retcode)) {
                     res = SPA::Odbc::ER_ERROR;
                     GetErrMsg(SQL_HANDLE_DBC, hdbc, errMsg);
@@ -552,8 +557,7 @@ namespace SPA
 
         CDBColumnInfoArray COdbcImpl::GetColInfo(SQLHSTMT hstmt, SQLSMALLINT columns, bool meta) {
             bool primary_key_set = false;
-            SQLWCHAR colname[128 + 1] =
-            {0}; // column name
+            SQLCHAR colname[128 + 1] = {0}; // column name
             SQLSMALLINT colnamelen = 0; // length of column name
             SQLSMALLINT nullable = 0; // whether column can have NULL value
             SQLULEN collen = 0; // column lengths
@@ -564,34 +568,34 @@ namespace SPA
             for (SQLSMALLINT n = 0; n < columns; ++n) {
                 vCols.push_back(CDBColumnInfo());
                 CDBColumnInfo &info = vCols.back();
-                SQLRETURN retcode = SQLDescribeCol(hstmt, (SQLUSMALLINT) (n + 1), colname, sizeof (colname) / sizeof (SQLWCHAR), &colnamelen, &coltype, &collen, &decimaldigits, &nullable);
+                SQLRETURN retcode = SQLDescribeCol(hstmt, (SQLUSMALLINT) (n + 1), colname, sizeof (colname) / sizeof (SQLCHAR), &colnamelen, &coltype, &collen, &decimaldigits, &nullable);
                 assert(SQL_SUCCEEDED(retcode));
-                info.DisplayName.assign(colname, colnamelen); //display column name
+                info.DisplayName = SPA::Utilities::ToWide((const char*)colname, (size_t)colnamelen); //display column name
                 if (nullable == SQL_NO_NULLS) {
                     info.Flags |= CDBColumnInfo::FLAG_NOT_NULL;
                 }
 
                 retcode = SQLColAttribute(hstmt, (SQLUSMALLINT) (n + 1), SQL_DESC_BASE_COLUMN_NAME, colname, sizeof (colname), &colnamelen, &displaysize);
                 assert(SQL_SUCCEEDED(retcode));
-                info.OriginalName.assign(colname, colnamelen / sizeof (SQLWCHAR)); //original column name
+                info.OriginalName = SPA::Utilities::ToWide((const char*)colname, colnamelen / sizeof (SQLCHAR)); //original column name
 
                 retcode = SQLColAttribute(hstmt, (SQLUSMALLINT) (n + 1), SQL_DESC_SCHEMA_NAME, colname, sizeof (colname), &colnamelen, &displaysize);
                 assert(SQL_SUCCEEDED(retcode));
                 if (colnamelen) {
-                    info.TablePath.assign(colname, colnamelen / sizeof (SQLWCHAR));
+                    info.TablePath= SPA::Utilities::ToWide((const char*)colname, colnamelen / sizeof (SQLCHAR));
                     info.TablePath += L".";
                 }
                 retcode = SQLColAttribute(hstmt, (SQLUSMALLINT) (n + 1), SQL_DESC_BASE_TABLE_NAME, colname, sizeof (colname), &colnamelen, &displaysize);
                 assert(SQL_SUCCEEDED(retcode));
-                info.TablePath += colname; //schema.table_name
+                info.TablePath += SPA::Utilities::ToWide((const char*)colname); //schema.table_name
 
                 retcode = SQLColAttribute(hstmt, (SQLUSMALLINT) (n + 1), SQL_DESC_TYPE_NAME, colname, sizeof (colname), &colnamelen, &displaysize);
                 assert(SQL_SUCCEEDED(retcode));
-                info.DeclaredType.assign(colname, colnamelen / sizeof (SQLWCHAR)); //native data type
+                info.DeclaredType = SPA::Utilities::ToWide((const char*)colname, colnamelen / sizeof (SQLCHAR)); //native data type
 
                 retcode = SQLColAttribute(hstmt, (SQLUSMALLINT) (n + 1), SQL_DESC_CATALOG_NAME, colname, sizeof (colname), &colnamelen, &displaysize);
                 assert(SQL_SUCCEEDED(retcode));
-                info.DBPath.assign(colname, colnamelen / sizeof (SQLWCHAR)); //database name
+                info.DBPath = SPA::Utilities::ToWide((const char*)colname, colnamelen / sizeof (SQLCHAR)); //database name
 
                 retcode = SQLColAttribute(hstmt, (SQLUSMALLINT) (n + 1), SQL_DESC_UNSIGNED, nullptr, 0, nullptr, &displaysize);
                 assert(SQL_SUCCEEDED(retcode));
@@ -762,11 +766,10 @@ namespace SPA
 
         void COdbcImpl::SetStringInfo(SQLHDBC hdbc, SQLUSMALLINT infoType, std::unordered_map<SQLUSMALLINT, CComVariant> &mapInfo) {
             SQLSMALLINT bufferLen = 0;
-            SQLWCHAR buffer[128] =
-            {0};
+            SQLCHAR buffer[128] = {0};
             SQLRETURN retcode = SQLGetInfo(hdbc, infoType, buffer, (SQLSMALLINT)sizeof (buffer), &bufferLen);
             if (SQL_SUCCEEDED(retcode)) {
-                mapInfo[infoType] = (const SQLWCHAR*) buffer;
+                mapInfo[infoType] = SPA::Utilities::ToWide((const char*) buffer).c_str();
             }
         }
 
@@ -1377,10 +1380,14 @@ namespace SPA
                     break;
                 }
                 m_pExcuting = pStmt;
-                retcode = SQLColumnPrivileges(hstmt, (SQLWCHAR*) catalogName.c_str(), (SQLSMALLINT) catalogName.size(),
-                        (SQLWCHAR*) schemaName.c_str(), (SQLSMALLINT) schemaName.size(),
-                        (SQLWCHAR*) tableName.c_str(), (SQLSMALLINT) tableName.size(),
-                        (SQLWCHAR*) columnName.c_str(), (SQLSMALLINT) columnName.size());
+				std::string cn = SPA::Utilities::ToUTF8(catalogName.c_str(), catalogName.size());
+				std::string sn = SPA::Utilities::ToUTF8(schemaName.c_str(), schemaName.size());
+				std::string tn = SPA::Utilities::ToUTF8(tableName.c_str(), tableName.size());
+				std::string coln = SPA::Utilities::ToUTF8(columnName.c_str(), columnName.size());
+                retcode = SQLColumnPrivileges(hstmt, (SQLCHAR*) cn.c_str(), (SQLSMALLINT) cn.size(),
+                        (SQLCHAR*) sn.c_str(), (SQLSMALLINT) sn.size(),
+                        (SQLCHAR*) tn.c_str(), (SQLSMALLINT) tn.size(),
+                        (SQLCHAR*) coln.c_str(), (SQLSMALLINT) coln.size());
                 if (!SQL_SUCCEEDED(retcode)) {
                     res = SPA::Odbc::ER_ERROR;
                     GetErrMsg(SQL_HANDLE_STMT, hstmt, errMsg);
@@ -1440,10 +1447,14 @@ namespace SPA
                     break;
                 }
                 m_pExcuting = pStmt;
-                retcode = SQLTables(hstmt, (SQLWCHAR*) catalogName.c_str(), (SQLSMALLINT) catalogName.size(),
-                        (SQLWCHAR*) schemaName.c_str(), (SQLSMALLINT) schemaName.size(),
-                        (SQLWCHAR*) tableName.c_str(), (SQLSMALLINT) tableName.size(),
-                        (SQLWCHAR*) tableType.c_str(), (SQLSMALLINT) tableType.size());
+				std::string cn = SPA::Utilities::ToUTF8(catalogName.c_str(), catalogName.size());
+				std::string sn = SPA::Utilities::ToUTF8(schemaName.c_str(), schemaName.size());
+				std::string tn = SPA::Utilities::ToUTF8(tableName.c_str(), tableName.size());
+				std::string tt = SPA::Utilities::ToUTF8(tableType.c_str(), tableType.size());
+                retcode = SQLTables(hstmt, (SQLCHAR*) cn.c_str(), (SQLSMALLINT) cn.size(),
+                        (SQLCHAR*) sn.c_str(), (SQLSMALLINT) sn.size(),
+                        (SQLCHAR*) tn.c_str(), (SQLSMALLINT) tn.size(),
+                        (SQLCHAR*) tt.c_str(), (SQLSMALLINT) tt.size());
                 if (!SQL_SUCCEEDED(retcode)) {
                     res = SPA::Odbc::ER_ERROR;
                     GetErrMsg(SQL_HANDLE_STMT, hstmt, errMsg);
@@ -1503,10 +1514,14 @@ namespace SPA
                     break;
                 }
                 m_pExcuting = pStmt;
-                retcode = SQLColumns(hstmt, (SQLWCHAR*) catalogName.c_str(), (SQLSMALLINT) catalogName.size(),
-                        (SQLWCHAR*) schemaName.c_str(), (SQLSMALLINT) schemaName.size(),
-                        (SQLWCHAR*) tableName.c_str(), (SQLSMALLINT) tableName.size(),
-                        (SQLWCHAR*) columnName.c_str(), (SQLSMALLINT) columnName.size());
+				std::string cn = SPA::Utilities::ToUTF8(catalogName.c_str(), catalogName.size());
+				std::string sn = SPA::Utilities::ToUTF8(schemaName.c_str(), schemaName.size());
+				std::string tn = SPA::Utilities::ToUTF8(tableName.c_str(), tableName.size());
+				std::string coln = SPA::Utilities::ToUTF8(columnName.c_str(), columnName.size());
+                retcode = SQLColumns(hstmt, (SQLCHAR*) cn.c_str(), (SQLSMALLINT) cn.size(),
+                        (SQLCHAR*) sn.c_str(), (SQLSMALLINT) sn.size(),
+                        (SQLCHAR*) tn.c_str(), (SQLSMALLINT) tn.size(),
+                        (SQLCHAR*) coln.c_str(), (SQLSMALLINT) coln.size());
                 if (!SQL_SUCCEEDED(retcode)) {
                     res = SPA::Odbc::ER_ERROR;
                     GetErrMsg(SQL_HANDLE_STMT, hstmt, errMsg);
@@ -1566,10 +1581,14 @@ namespace SPA
                     break;
                 }
                 m_pExcuting = pStmt;
-                retcode = SQLProcedureColumns(hstmt, (SQLWCHAR*) catalogName.c_str(), (SQLSMALLINT) catalogName.size(),
-                        (SQLWCHAR*) schemaName.c_str(), (SQLSMALLINT) schemaName.size(),
-                        (SQLWCHAR*) procName.c_str(), (SQLSMALLINT) procName.size(),
-                        (SQLWCHAR*) columnName.c_str(), (SQLSMALLINT) columnName.size());
+				std::string cn = SPA::Utilities::ToUTF8(catalogName.c_str(), catalogName.size());
+				std::string sn = SPA::Utilities::ToUTF8(schemaName.c_str(), schemaName.size());
+				std::string pn = SPA::Utilities::ToUTF8(procName.c_str(), procName.size());
+				std::string coln = SPA::Utilities::ToUTF8(columnName.c_str(), columnName.size());
+                retcode = SQLProcedureColumns(hstmt, (SQLCHAR*) cn.c_str(), (SQLSMALLINT) cn.size(),
+                        (SQLCHAR*) sn.c_str(), (SQLSMALLINT) sn.size(),
+                        (SQLCHAR*) pn.c_str(), (SQLSMALLINT) pn.size(),
+                        (SQLCHAR*) coln.c_str(), (SQLSMALLINT) coln.size());
                 if (!SQL_SUCCEEDED(retcode)) {
                     res = SPA::Odbc::ER_ERROR;
                     GetErrMsg(SQL_HANDLE_STMT, hstmt, errMsg);
@@ -1629,9 +1648,12 @@ namespace SPA
                     break;
                 }
                 m_pExcuting = pStmt;
-                retcode = SQLPrimaryKeys(hstmt, (SQLWCHAR*) catalogName.c_str(), (SQLSMALLINT) catalogName.size(),
-                        (SQLWCHAR*) schemaName.c_str(), (SQLSMALLINT) schemaName.size(),
-                        (SQLWCHAR*) tableName.c_str(), (SQLSMALLINT) tableName.size());
+				std::string cn = SPA::Utilities::ToUTF8(catalogName.c_str(), catalogName.size());
+				std::string sn = SPA::Utilities::ToUTF8(schemaName.c_str(), schemaName.size());
+				std::string tn = SPA::Utilities::ToUTF8(tableName.c_str(), tableName.size());
+                retcode = SQLPrimaryKeys(hstmt, (SQLCHAR*) cn.c_str(), (SQLSMALLINT) cn.size(),
+                        (SQLCHAR*) sn.c_str(), (SQLSMALLINT) sn.size(),
+                        (SQLCHAR*) tn.c_str(), (SQLSMALLINT) tn.size());
                 if (!SQL_SUCCEEDED(retcode)) {
                     res = SPA::Odbc::ER_ERROR;
                     GetErrMsg(SQL_HANDLE_STMT, hstmt, errMsg);
@@ -1691,9 +1713,12 @@ namespace SPA
                     break;
                 }
                 m_pExcuting = pStmt;
-                retcode = SQLTablePrivileges(hstmt, (SQLWCHAR*) catalogName.c_str(), (SQLSMALLINT) catalogName.size(),
-                        (SQLWCHAR*) schemaName.c_str(), (SQLSMALLINT) schemaName.size(),
-                        (SQLWCHAR*) tableName.c_str(), (SQLSMALLINT) tableName.size());
+				std::string cn = SPA::Utilities::ToUTF8(catalogName.c_str(), catalogName.size());
+				std::string sn = SPA::Utilities::ToUTF8(schemaName.c_str(), schemaName.size());
+				std::string tn = SPA::Utilities::ToUTF8(tableName.c_str(), tableName.size());
+                retcode = SQLTablePrivileges(hstmt, (SQLCHAR*) cn.c_str(), (SQLSMALLINT) cn.size(),
+                        (SQLCHAR*) sn.c_str(), (SQLSMALLINT) sn.size(),
+                        (SQLCHAR*) tn.c_str(), (SQLSMALLINT) tn.size());
                 if (!SQL_SUCCEEDED(retcode)) {
                     res = SPA::Odbc::ER_ERROR;
                     GetErrMsg(SQL_HANDLE_STMT, hstmt, errMsg);
@@ -1753,9 +1778,12 @@ namespace SPA
                     break;
                 }
                 m_pExcuting = pStmt;
-                retcode = SQLStatistics(hstmt, (SQLWCHAR*) catalogName.c_str(), (SQLSMALLINT) catalogName.size(),
-                        (SQLWCHAR*) schemaName.c_str(), (SQLSMALLINT) schemaName.size(),
-                        (SQLWCHAR*) tableName.c_str(), (SQLSMALLINT) tableName.size(), unique, reserved);
+				std::string cn = SPA::Utilities::ToUTF8(catalogName.c_str(), catalogName.size());
+				std::string sn = SPA::Utilities::ToUTF8(schemaName.c_str(), schemaName.size());
+				std::string tn = SPA::Utilities::ToUTF8(tableName.c_str(), tableName.size());
+                retcode = SQLStatistics(hstmt, (SQLCHAR*) cn.c_str(), (SQLSMALLINT) cn.size(),
+                        (SQLCHAR*) sn.c_str(), (SQLSMALLINT) sn.size(),
+                        (SQLCHAR*) tn.c_str(), (SQLSMALLINT) tn.size(), unique, reserved);
                 if (!SQL_SUCCEEDED(retcode)) {
                     res = SPA::Odbc::ER_ERROR;
                     GetErrMsg(SQL_HANDLE_STMT, hstmt, errMsg);
@@ -1815,9 +1843,12 @@ namespace SPA
                     break;
                 }
                 m_pExcuting = pStmt;
-                retcode = SQLProcedures(hstmt, (SQLWCHAR*) catalogName.c_str(), (SQLSMALLINT) catalogName.size(),
-                        (SQLWCHAR*) schemaName.c_str(), (SQLSMALLINT) schemaName.size(),
-                        (SQLWCHAR*) procName.c_str(), (SQLSMALLINT) procName.size());
+				std::string cn = SPA::Utilities::ToUTF8(catalogName.c_str(), catalogName.size());
+				std::string sn = SPA::Utilities::ToUTF8(schemaName.c_str(), schemaName.size());
+				std::string pn = SPA::Utilities::ToUTF8(procName.c_str(), procName.size());
+                retcode = SQLProcedures(hstmt, (SQLCHAR*) cn.c_str(), (SQLSMALLINT) cn.size(),
+                        (SQLCHAR*) sn.c_str(), (SQLSMALLINT) sn.size(),
+                        (SQLCHAR*) pn.c_str(), (SQLSMALLINT) pn.size());
                 if (!SQL_SUCCEEDED(retcode)) {
                     res = SPA::Odbc::ER_ERROR;
                     GetErrMsg(SQL_HANDLE_STMT, hstmt, errMsg);
@@ -1877,9 +1908,12 @@ namespace SPA
                     break;
                 }
                 m_pExcuting = pStmt;
-                retcode = SQLSpecialColumns(hstmt, identifierType, (SQLWCHAR*) catalogName.c_str(), (SQLSMALLINT) catalogName.size(),
-                        (SQLWCHAR*) schemaName.c_str(), (SQLSMALLINT) schemaName.size(),
-                        (SQLWCHAR*) tableName.c_str(), (SQLSMALLINT) tableName.size(), scope, nullable);
+				std::string cn = SPA::Utilities::ToUTF8(catalogName.c_str(), catalogName.size());
+				std::string sn = SPA::Utilities::ToUTF8(schemaName.c_str(), schemaName.size());
+				std::string tn = SPA::Utilities::ToUTF8(tableName.c_str(), tableName.size());
+                retcode = SQLSpecialColumns(hstmt, identifierType, (SQLCHAR*) cn.c_str(), (SQLSMALLINT) cn.size(),
+                        (SQLCHAR*) sn.c_str(), (SQLSMALLINT) sn.size(),
+                        (SQLCHAR*) tn.c_str(), (SQLSMALLINT) tn.size(), scope, nullable);
                 if (!SQL_SUCCEEDED(retcode)) {
                     res = SPA::Odbc::ER_ERROR;
                     GetErrMsg(SQL_HANDLE_STMT, hstmt, errMsg);
@@ -1939,12 +1973,18 @@ namespace SPA
                     break;
                 }
                 m_pExcuting = pStmt;
-                retcode = SQLForeignKeys(hstmt, (SQLWCHAR*) pkCatalogName.c_str(), (SQLSMALLINT) pkCatalogName.size(),
-                        (SQLWCHAR*) pkSchemaName.c_str(), (SQLSMALLINT) pkSchemaName.size(),
-                        (SQLWCHAR*) pkTableName.c_str(), (SQLSMALLINT) pkTableName.size(),
-                        (SQLWCHAR*) fkCatalogName.c_str(), (SQLSMALLINT) fkCatalogName.size(),
-                        (SQLWCHAR*) fkSchemaName.c_str(), (SQLSMALLINT) fkSchemaName.size(),
-                        (SQLWCHAR*) fkTableName.c_str(), (SQLSMALLINT) fkTableName.size());
+				std::string pk_cn = SPA::Utilities::ToUTF8(pkCatalogName.c_str(), pkCatalogName.size());
+				std::string pk_sn = SPA::Utilities::ToUTF8(pkSchemaName.c_str(), pkSchemaName.size());
+				std::string pk_tn = SPA::Utilities::ToUTF8(pkTableName.c_str(), pkTableName.size());
+				std::string fk_cn = SPA::Utilities::ToUTF8(fkCatalogName.c_str(), fkCatalogName.size());
+				std::string fk_sn = SPA::Utilities::ToUTF8(fkSchemaName.c_str(), fkSchemaName.size());
+				std::string fk_tn = SPA::Utilities::ToUTF8(fkTableName.c_str(), fkTableName.size());
+                retcode = SQLForeignKeys(hstmt, (SQLCHAR*) pk_cn.c_str(), (SQLSMALLINT) pk_cn.size(),
+                        (SQLCHAR*) pkSchemaName.c_str(), (SQLSMALLINT) pkSchemaName.size(),
+                        (SQLCHAR*) pk_tn.c_str(), (SQLSMALLINT) pk_tn.size(),
+                        (SQLCHAR*) fk_cn.c_str(), (SQLSMALLINT) fk_cn.size(),
+                        (SQLCHAR*) fk_sn.c_str(), (SQLSMALLINT) fk_sn.size(),
+                        (SQLCHAR*) fk_sn.c_str(), (SQLSMALLINT) fk_tn.size());
                 if (!SQL_SUCCEEDED(retcode)) {
                     res = SPA::Odbc::ER_ERROR;
                     GetErrMsg(SQL_HANDLE_STMT, hstmt, errMsg);
@@ -2005,7 +2045,8 @@ namespace SPA
                     break;
                 }
                 m_pExcuting = pStmt;
-                retcode = SQLExecDirect(hstmt, (SQLWCHAR*) wsql.c_str(), (SQLINTEGER) wsql.size());
+				std::string sql = SPA::Utilities::ToUTF8(wsql.c_str(), wsql.size());
+                retcode = SQLExecDirect(hstmt, (SQLCHAR*) sql.c_str(), (SQLINTEGER) sql.size());
                 if (!SQL_SUCCEEDED(retcode)) {
                     res = SPA::Odbc::ER_ERROR;
                     GetErrMsg(SQL_HANDLE_STMT, hstmt, errMsg);
@@ -2080,7 +2121,8 @@ namespace SPA
                     break;
                 }
                 m_pExcuting = m_pPrepare;
-                retcode = SQLPrepare(hstmt, (SQLWCHAR*) m_sqlPrepare.c_str(), (SQLINTEGER) m_sqlPrepare.size());
+				std::string prepare = SPA::Utilities::ToUTF8(m_sqlPrepare.c_str(), m_sqlPrepare.size());
+                retcode = SQLPrepare(hstmt, (SQLCHAR*) prepare.c_str(), (SQLINTEGER) m_sqlPrepare.size());
                 if (!SQL_SUCCEEDED(retcode)) {
                     res = SPA::Odbc::ER_ERROR;
                     GetErrMsg(SQL_HANDLE_STMT, hstmt, errMsg);
@@ -2431,16 +2473,14 @@ namespace SPA
             errMsg.clear();
             SQLSMALLINT i = 1, MsgLen = 0;
             SQLINTEGER NativeError = 0;
-            SQLWCHAR SqlState[6] =
-            {0}, Msg[SQL_MAX_MESSAGE_LENGTH + 1] =
-            {0};
-            SQLRETURN res = SQLGetDiagRec(HandleType, Handle, i, SqlState, &NativeError, Msg, sizeof (Msg) / sizeof (SQLWCHAR), &MsgLen);
+            SQLCHAR SqlState[6] = {0}, Msg[SQL_MAX_MESSAGE_LENGTH + 1] = {0};
+            SQLRETURN res = SQLGetDiagRec(HandleType, Handle, i, SqlState, &NativeError, Msg, sizeof (Msg) / sizeof (SQLCHAR), &MsgLen);
             while (res != SQL_NO_DATA) {
                 if (errMsg.size())
                     errMsg += L";";
-                errMsg += (SQLSTATE + SqlState);
+                errMsg += (SQLSTATE + SPA::Utilities::ToWide((const char*)SqlState));
                 errMsg += (NATIVE_ERROR + std::to_wstring((INT64) NativeError));
-                errMsg += (ERROR_MESSAGE + Msg);
+                errMsg += (ERROR_MESSAGE + SPA::Utilities::ToWide((const char*)Msg));
                 ::memset(Msg, 0, sizeof (Msg));
                 ++i;
                 MsgLen = 0;

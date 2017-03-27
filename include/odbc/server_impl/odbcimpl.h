@@ -1,4 +1,9 @@
+
 #pragma once
+
+#ifndef SQL_NOUNICODEMAP
+#define SQL_NOUNICODEMAP
+#endif
 
 #include "../uodbc_server.h"
 #include "../../udatabase.h"
