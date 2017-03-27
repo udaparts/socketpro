@@ -72,6 +72,10 @@ namespace SPA
 
         void COdbcImpl::ODBC_CONNECTION_STRING::Parse(const wchar_t * s) {
             using namespace std;
+			remaining.clear();
+			connection_string.clear();
+			if (s)
+				connection_string = s;
             if (!wcsstr(s, L"="))
                 return;
             wstringstream ss(s ? s : L"");
@@ -107,10 +111,18 @@ namespace SPA
 #endif
                 } else if (left == L"pwd" || left == L"password") {
                     password = right;
-                } else if (left == L"host" || left == L"server" || left == L"dsn") {
+                } else if (left == L"host" || left == L"server") {
                     host = right;
+				} else if (left == L"dsn") {
+					dsn = right;
                 } else if (left == L"user" || left == L"uid") {
                     user = right;
+				} else if (left == L"driver") {
+                    driver = right;
+				} else if (left == L"filedsn") {
+                    filedsn = right;
+				} else if (left == L"savefile") {
+                    savefile = right;
                 } else if (left == L"async" || left == L"asynchronous") {
 #ifdef WIN32_64
                     async = (_wtoi(right.c_str()) ? true : false);
@@ -119,8 +131,10 @@ namespace SPA
                     async = (wcstol(right.c_str(), &tail, 0) ? true : false);
 #endif
                 } else {
-                    //!!! not implemented
-                    assert(false);
+                    if (remaining.size()) {
+						remaining += L";";
+					}
+					remaining += (left + L"=" + right);
                 }
             }
         }
@@ -293,7 +307,14 @@ namespace SPA
 				std::string user = SPA::Utilities::ToUTF8(ocs.user.c_str(), ocs.user.size());
 				std::string pwd = SPA::Utilities::ToUTF8(ocs.password.c_str(), ocs.password.size());
 
-                retcode = SQLConnect(hdbc, (SQLCHAR*) host.c_str(), (SQLSMALLINT) host.size(), (SQLCHAR *) user.c_str(), (SQLSMALLINT) user.size(), (SQLCHAR *) pwd.c_str(), (SQLSMALLINT) pwd.size());
+				std::string conn = SPA::Utilities::ToUTF8(ocs.connection_string.c_str(), ocs.connection_string.size());
+
+				SPA::CScopeUQueue sb;
+				SQLCHAR *ConnStrIn = (SQLCHAR *)conn.c_str();
+				SQLCHAR *ConnStrOut = (SQLCHAR *)sb->GetBuffer();
+				SQLSMALLINT cbConnStrOut;
+				retcode = SQLDriverConnect(hdbc, nullptr, ConnStrIn, (SQLSMALLINT)conn.size(), ConnStrOut, (SQLSMALLINT)sb->GetSize(), &cbConnStrOut, SQL_DRIVER_NOPROMPT);
+                //retcode = SQLConnect(hdbc, (SQLCHAR*) host.c_str(), (SQLSMALLINT) host.size(), (SQLCHAR *) user.c_str(), (SQLSMALLINT) user.size(), (SQLCHAR *) pwd.c_str(), (SQLSMALLINT) pwd.size());
                 if (!SQL_SUCCEEDED(retcode)) {
                     res = SPA::Odbc::ER_ERROR;
                     GetErrMsg(SQL_HANDLE_DBC, hdbc, errMsg);

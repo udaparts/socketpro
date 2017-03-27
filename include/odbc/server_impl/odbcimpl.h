@@ -25,9 +25,15 @@ namespace SPA {
                 ODBC_CONNECTION_STRING() : timeout(0), port(0), async(false) {
                 }
                 std::wstring database; //database -- SQL_ATTR_CURRENT_CATALOG
-                std::wstring host; //host | server | dsn
+				std::wstring dsn; //dsn
+                std::wstring host; //host | server
                 std::wstring user; //user | uid
                 std::wstring password; //pwd | password
+				std::wstring filedsn; //FILEDSN
+				std::wstring driver; //DRIVER
+				std::wstring savefile; //SAVEFILE
+				std::wstring remaining;
+				std::wstring connection_string;
                 unsigned int timeout; //timeout | connect-timeout in seconds -- SQL_ATTR_CONNECTION_TIMEOUT
                 unsigned int port; //????
                 bool async; //async | asynchronous -- SQL_ATTR_ASYNC_ENABLE
