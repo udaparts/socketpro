@@ -77,7 +77,7 @@ int main(int argc, char* argv[]) {
     ok = pOdbc->Open(nullptr, dr);
     TestCreateTables(pOdbc);
     ok = pOdbc->Execute(L"delete from employee;delete from company", er);
-    //TestPreparedStatements(pOdbc);
+    TestPreparedStatements(pOdbc);
     //InsertBLOBByPreparedStatement(pOdbc);
     ok = pOdbc->Execute(L"SELECT * from company;select * from employee;select curtime()", er, r, rh);
     ok = pOdbc->Tables(L"mysqldb", L"", L"%", L"", er, r, rh);
@@ -95,7 +95,7 @@ int main(int argc, char* argv[]) {
     vPData.push_back(0);
     vPData.push_back(0);
     unsigned int oks = 0;
-    //TestStoredProcedure(pOdbc, ra, vPData, oks);
+    TestStoredProcedure(pOdbc, ra, vPData, oks);
     pOdbc->WaitAll();
 
     std::cout << std::endl;
@@ -199,30 +199,12 @@ void InsertBLOBByPreparedStatement(std::shared_ptr<CMyHandler> pOdbc) {
 }
 
 void TestPreparedStatements(std::shared_ptr<CMyHandler> pOdbc) {
-
-    CParameterInfoArray vInfo;
-    CParameterInfo info;
-
-    info.DataType = VT_I4;
-    vInfo.push_back(info);
-
-    info.DataType = (VT_I1 | VT_ARRAY);
-    info.ColumnSize = 64;
-    vInfo.push_back(info);
-
-    info.DataType = (VT_I1 | VT_ARRAY);
-    info.ColumnSize = 255;
-    vInfo.push_back(info);
-
-    info.DataType = VT_R8;
-    vInfo.push_back(info);
-
     const wchar_t *sql_insert_parameter = L"INSERT INTO company(ID, NAME, ADDRESS, Income) VALUES (?, ?, ?, ?)";
     bool ok = pOdbc->Prepare(sql_insert_parameter, [](CSender &handler, int res, const std::wstring & errMsg) {
         std::cout << "res = " << res << ", errMsg: ";
         std::wcout << errMsg << std::endl;
-    }, vInfo);
-
+    });
+	
     CDBVariantArray vData;
 
     //first set
@@ -279,10 +261,24 @@ void TestCreateTables(std::shared_ptr<CMyHandler> pOdbc) {
 }
 
 void TestStoredProcedure(std::shared_ptr<CMyHandler> pOdbc, CRowsetArray&ra, CDBVariantArray &vPData, unsigned int &oks) {
+	CParameterInfoArray vInfo;
+    CParameterInfo info;
+
+    info.DataType = VT_I4;
+    vInfo.push_back(info);
+
+    info.DataType = VT_R8;
+    info.Direction = pdOutput;
+    vInfo.push_back(info);
+
+    info.DataType = VT_DATE;
+    info.Direction = pdOutput;
+    vInfo.push_back(info);
+
     bool ok = pOdbc->Prepare(L"{ call sp_TestProc(?, ?, ?) } ", [](CSender &handler, int res, const std::wstring & errMsg) {
         std::cout << "res = " << res << ", errMsg: ";
         std::wcout << errMsg << std::endl;
-    });
+    }, vInfo);
     CMyHandler::DRows r = [&ra](CSender &handler, CDBVariantArray & vData) {
         //rowset data come here
         assert((vData.size() % handler.GetColumnInfo().size()) == 0);
@@ -302,6 +298,7 @@ void TestStoredProcedure(std::shared_ptr<CMyHandler> pOdbc, CRowsetArray&ra, CDB
     };
 
     oks = 0;
+	/*
     //process multiple sets of parameters in one shot
     ok = pOdbc->Execute(vPData, [&oks](CSender &handler, int res, const std::wstring &errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & vtId) {
         oks = (unsigned int) fail_ok;
@@ -313,4 +310,5 @@ void TestStoredProcedure(std::shared_ptr<CMyHandler> pOdbc, CRowsetArray&ra, CDB
         }
         std::cout << std::endl;
     }, r, rh);
+	*/
 }
