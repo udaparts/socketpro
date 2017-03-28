@@ -96,7 +96,7 @@ namespace SPA {
             void PreprocessPreparedStatement();
             bool CheckInputParameterDataTypes();
             bool SetInputParamInfo();
-            bool BindParameters(unsigned int r);
+            bool BindParameters(unsigned int r, SQLLEN *pLenInd);
             static void ConvertDecimalAString(CDBVariant &vt);
             static void SetUShortInfo(SQLHDBC hdbc, SQLUSMALLINT infoType, std::unordered_map<SQLUSMALLINT, CComVariant> &mapInfo);
             static void SetUIntInfo(SQLHDBC hdbc, SQLUSMALLINT infoType, std::unordered_map<SQLUSMALLINT, CComVariant> &mapInfo);

@@ -78,7 +78,7 @@ int main(int argc, char* argv[]) {
     TestCreateTables(pOdbc);
     ok = pOdbc->Execute(L"delete from employee;delete from company", er);
     TestPreparedStatements(pOdbc);
-    //InsertBLOBByPreparedStatement(pOdbc);
+    InsertBLOBByPreparedStatement(pOdbc);
     ok = pOdbc->Execute(L"SELECT * from company;select * from employee;select curtime()", er, r, rh);
     ok = pOdbc->Tables(L"mysqldb", L"", L"%", L"", er, r, rh);
 
