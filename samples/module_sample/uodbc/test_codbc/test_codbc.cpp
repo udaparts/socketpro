@@ -75,25 +75,25 @@ int main(int argc, char* argv[]) {
     };
 
     ok = pOdbc->Open(nullptr, dr);
-    TestCreateTables(pOdbc);
-    ok = pOdbc->Execute(L"delete from employee;delete from company", er);
-    TestPreparedStatements(pOdbc);
-    InsertBLOBByPreparedStatement(pOdbc);
-    ok = pOdbc->Execute(L"SELECT * from company;select * from employee;select curtime()", er, r, rh);
-    ok = pOdbc->Tables(L"mysqldb", L"", L"%", L"", er, r, rh);
+    //TestCreateTables(pOdbc);
+    //ok = pOdbc->Execute(L"delete from employee;delete from company", er);
+    //TestPreparedStatements(pOdbc);
+    //InsertBLOBByPreparedStatement(pOdbc);
+    //ok = pOdbc->Execute(L"SELECT * from company;select * from employee;select curtime()", er, r, rh);
+    //ok = pOdbc->Tables(L"mysqldb", L"", L"%", L"", er, r, rh);
 
     CDBVariantArray vPData;
     //first set
     vPData.push_back(1);
     //output not important, but they are used for receiving proper types of data on mysql
-    vPData.push_back(0);
-    vPData.push_back(0);
+    vPData.push_back(CDBVariant());
+    vPData.push_back(CDBVariant());
 
     //second set
     vPData.push_back(2);
     //output not important, but they are used for receiving proper types of data on mysql
-    vPData.push_back(0);
-    vPData.push_back(0);
+    vPData.push_back(CDBVariant());
+    vPData.push_back(CDBVariant());
     unsigned int oks = 0;
     TestStoredProcedure(pOdbc, ra, vPData, oks);
     pOdbc->WaitAll();

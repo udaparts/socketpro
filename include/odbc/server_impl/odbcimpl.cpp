@@ -2144,6 +2144,8 @@ namespace SPA
             } else {
                 res = 0;
             }
+			m_parameters = 0;
+			m_outputs = 0;
             m_pPrepare.reset();
             m_vParam.clear();
             m_sqlPrepare = wsql;
@@ -2183,7 +2185,6 @@ namespace SPA
                         break;
                     }
                 }
-                m_outputs = 0;
                 for (auto it = m_vPInfo.begin(), end = m_vPInfo.end(); it != end; ++it) {
                     switch (it->DataType) {
                         case VT_I1:
@@ -2232,7 +2233,7 @@ namespace SPA
 				}
                 parameters = m_outputs;
                 parameters <<= 16;
-                parameters += (unsigned short) (m_parameters - m_outputs);
+                parameters += (unsigned short) m_parameters;
             } while (false);
             if (res) {
                 m_pExcuting.reset();
@@ -2274,7 +2275,6 @@ namespace SPA
                     } else if (vt == VT_UI8) {
                         vt = VT_I8;
                     }
-
                     if (vt != vtP) {
                         return false;
                     }
@@ -2344,18 +2344,26 @@ namespace SPA
 						break;
 					case VT_BSTR:
 						if (info.ColumnSize == 0) {
-							info.ColumnSize = DEFAULT_OUTPUT_BUFFER_SIZE / sizeof(wchar_t);
-							max_size += DEFAULT_OUTPUT_BUFFER_SIZE;
+							info.ColumnSize = (DEFAULT_OUTPUT_BUFFER_SIZE / sizeof(wchar_t) + 1);
+							max_size += (DEFAULT_OUTPUT_BUFFER_SIZE + sizeof(wchar_t));
 						}
-						else if (info.ColumnSize > MAX_OUTPUT_BLOB_BUFFER_SIZE / sizeof(wchar_t)) {
-							max_size += MAX_OUTPUT_BLOB_BUFFER_SIZE;
-							info.ColumnSize = MAX_OUTPUT_BLOB_BUFFER_SIZE / sizeof(wchar_t);
+						else if (info.ColumnSize > MAX_OUTPUT_BLOB_BUFFER_SIZE / sizeof(wchar_t) + 1) {
+							max_size += (MAX_OUTPUT_BLOB_BUFFER_SIZE + sizeof(wchar_t));
+							info.ColumnSize = (MAX_OUTPUT_BLOB_BUFFER_SIZE / sizeof(wchar_t) + 1);
 						}
 						else {
 							max_size += info.ColumnSize * sizeof(wchar_t);
 						}
 						break;
 					case (VT_I1 | VT_ARRAY):
+						if (info.ColumnSize == 0) {
+							info.ColumnSize = (DEFAULT_OUTPUT_BUFFER_SIZE + 1);
+						}
+						else if (info.ColumnSize >= MAX_OUTPUT_BLOB_BUFFER_SIZE) {
+							info.ColumnSize = (MAX_OUTPUT_BLOB_BUFFER_SIZE + 1);
+						}
+						max_size += info.ColumnSize;
+						break;
 					case (VT_UI1 | VT_ARRAY):
 						if (info.ColumnSize == 0) {
 							info.ColumnSize = DEFAULT_OUTPUT_BUFFER_SIZE;
@@ -2376,7 +2384,99 @@ namespace SPA
 			return max_size;
 		}
 
-		bool COdbcImpl::PushOutputParameters() {
+		bool COdbcImpl::PushOutputParameters(unsigned int r) {
+			SPA::CScopeUQueue sb;
+			SQLLEN *pLenInd = (SQLLEN*)m_UQueue.GetBuffer();
+			const unsigned char *start = m_Blob.GetBuffer();
+			unsigned int pos = 0;
+			for (SQLSMALLINT n = 0; n < m_parameters; ++n) {
+				CParameterInfo &info = m_vPInfo[n];
+				if (info.Direction == SPA::UDB::pdInput)
+					continue;
+				VARTYPE vt = VT_NULL;
+				if (pLenInd[n] == SQL_NULL_DATA) {
+					sb << vt;
+					continue;
+				}
+				SPA::UDB::CDBVariant &vtD = m_vParam[(unsigned int) n + r * ((unsigned int) m_parameters)];
+				sb << info.DataType;
+				switch(info.DataType) {
+					case VT_I1:
+                    case VT_UI1:
+						sb->Push((const unsigned char*)&vtD.bVal, sizeof(vtD.bVal));
+						break;
+                    case VT_I2:
+                    case VT_UI2:
+						sb->Push((const unsigned char*)&vtD.uiVal, sizeof(vtD.uiVal));
+						break;
+					case VT_BOOL:
+						if (vtD.boolVal) {
+							vtD.boolVal = VARIANT_TRUE;
+						}
+						sb->Push((const unsigned char*)&vtD.boolVal, sizeof(vtD.boolVal));
+						break;
+                    case VT_I4:
+                    case VT_UI4:
+                    case VT_INT:
+                    case VT_UINT:
+						sb->Push((const unsigned char*)&vtD.uintVal, sizeof(unsigned int));
+						break;
+                    case VT_I8:
+                    case VT_UI8:
+						sb->Push((const unsigned char*)&vtD.ullVal, sizeof(vtD.ullVal));
+						break;
+                    case VT_R4:
+						sb->Push((const unsigned char*)&vtD.fltVal, sizeof(vtD.fltVal));
+						break;
+                    case VT_R8:
+						sb->Push((const unsigned char*)&vtD.dblVal, sizeof(vtD.dblVal));
+						break;
+					case VT_CLSID:
+						sb->Push((const unsigned char*)&vtD.decVal, sizeof(vtD.decVal));
+						break;
+					case VT_DATE:
+						{
+							SPA::UDateTime dt;
+							dt.ParseFromDBString((const char*)start);
+							sb << dt.time;
+							start += info.ColumnSize;
+						}
+						break;
+                    case VT_DECIMAL:
+						{
+							DECIMAL dec;
+							SPA::ParseDec((const char*)start, dec);
+							sb << dec;
+							start += info.ColumnSize;
+						}
+						break;
+                    case VT_BSTR:
+						{
+							sb << (const wchar_t*)start;
+							start += (info.ColumnSize * sizeof(wchar_t));
+						}
+						break;
+                    case (VT_UI1 | VT_ARRAY):
+						{
+							sb->Push(start, (unsigned int)(pLenInd[n]));
+							start += info.ColumnSize;
+						}
+						break;
+					case (VT_I1 | VT_ARRAY):
+						{
+							sb << (const char*)start;
+							start += info.ColumnSize;
+						}
+						break;
+					default:
+						assert(false);
+						break;
+				}
+			}
+			unsigned int ret = SendResult(idOutputParameter, sb->GetBuffer(), sb->GetSize());
+            if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
+                return false;
+            }
 			return true;
 		}
 
@@ -2384,7 +2484,7 @@ namespace SPA
             unsigned int output_pos = 0;
 			for (SQLSMALLINT col = 0; col < m_parameters; ++col) {
 				pLenInd[col] = 0;
-                SQLSMALLINT InputOutputType;
+                SQLSMALLINT InputOutputType = SQL_PARAM_TYPE_UNKNOWN;
                 CParameterInfo &info = m_vPInfo[col];
                 switch (info.Direction) {
                     case SPA::UDB::pdInput:
@@ -2399,7 +2499,6 @@ namespace SPA
                         break;
                     default:
                         assert(false);
-                        InputOutputType = SQL_PARAM_TYPE_UNKNOWN;
                         break;
                 }
                 CDBVariant &vtD = m_vParam[r * (unsigned int) m_parameters + (unsigned int) col];
@@ -2637,30 +2736,48 @@ namespace SPA
                         break;
                     case VT_DATE:
 						c_type = SQL_C_CHAR;
-						if (InputOutputType == SQL_PARAM_OUTPUT || InputOutputType == SQL_PARAM_INPUT_OUTPUT) {
-
-						}
-						else {
-							char str[32] = {0};
+						{
 							SPA::UDateTime dt(vtD.ullVal);
-							dt.ToDBString(str,  sizeof(str));
-							vtD = str;
-							::SafeArrayAccessData(vtD.parray, &ParameterValuePtr);
-							m_vArray.push_back(vtD.parray);
-							ColumnSize = vtD.parray->rgsabound->cElements;
-							BufferLength = (SQLLEN) ColumnSize;
-							switch (vtD.parray->rgsabound->cElements) {
-							case 10:
-								sql_type = SQL_TYPE_DATE;
-								break;
-							case 8:
-								sql_type = SQL_TYPE_TIME;
-								break;
-							default:
-								sql_type = SQL_TYPE_TIMESTAMP;
-								break;
+							if (InputOutputType == SQL_PARAM_OUTPUT || InputOutputType == SQL_PARAM_INPUT_OUTPUT) {
+								ParameterValuePtr = (SQLPOINTER) (m_Blob.GetBuffer() + output_pos);
+								BufferLength = info.ColumnSize;
+								dt.ToDBString((char*)ParameterValuePtr, (unsigned int)BufferLength);
+								ColumnSize = ::strlen((const char*)ParameterValuePtr);
+								pLenInd[col] = (SQLLEN)ColumnSize;
+								switch (ColumnSize) {
+								case 10:
+									sql_type = SQL_TYPE_DATE;
+									break;
+								case 8:
+									sql_type = SQL_TYPE_TIME;
+									break;
+								default:
+									sql_type = SQL_TYPE_TIMESTAMP;
+									break;
+								}
+								output_pos += (unsigned int)BufferLength;
 							}
-							pLenInd[col] = (SQLLEN)ColumnSize;
+							else {
+								char str[32] = {0};
+								dt.ToDBString(str,  sizeof(str));
+								vtD = str;
+								::SafeArrayAccessData(vtD.parray, &ParameterValuePtr);
+								m_vArray.push_back(vtD.parray);
+								ColumnSize = vtD.parray->rgsabound->cElements;
+								BufferLength = (SQLLEN) ColumnSize;
+								switch (vtD.parray->rgsabound->cElements) {
+								case 10:
+									sql_type = SQL_TYPE_DATE;
+									break;
+								case 8:
+									sql_type = SQL_TYPE_TIME;
+									break;
+								default:
+									sql_type = SQL_TYPE_TIMESTAMP;
+									break;
+								}
+								pLenInd[col] = (SQLLEN)ColumnSize;
+							}
 						}
                         break;
                     case VT_CLSID:
@@ -2673,20 +2790,44 @@ namespace SPA
 						c_type = SQL_C_WCHAR;
 						sql_type = SQL_WVARCHAR;
 						if (InputOutputType == SQL_PARAM_OUTPUT || InputOutputType == SQL_PARAM_INPUT_OUTPUT) {
-
+							ParameterValuePtr = (SQLPOINTER) (m_Blob.GetBuffer() + output_pos);
+							ColumnSize = ::SysStringLen(vtD.bstrVal);
+							if (ColumnSize > info.ColumnSize) {
+								ColumnSize = info.ColumnSize;
+							}
+							BufferLength = (SQLULEN)info.ColumnSize * sizeof(wchar_t);
+							::memcpy(ParameterValuePtr, (const void*)vtD.bstrVal, ColumnSize * sizeof(wchar_t));
+							output_pos += (unsigned int)BufferLength;
 						}
 						else {
 							ParameterValuePtr = vtD.bstrVal;
 							ColumnSize = ::SysStringLen(vtD.bstrVal);
 							BufferLength = (SQLLEN) ColumnSize * sizeof(wchar_t);
-							pLenInd[col] = (SQLLEN)ColumnSize;
 						}
+						pLenInd[col] = (SQLLEN)ColumnSize;
                         break;
                     case VT_DECIMAL:
 						c_type = SQL_C_CHAR;
 						sql_type = SQL_NUMERIC;
 						if (InputOutputType == SQL_PARAM_OUTPUT || InputOutputType == SQL_PARAM_INPUT_OUTPUT) {
-
+							BufferLength = (SQLULEN)info.ColumnSize;
+							const DECIMAL &decVal = vtD.decVal;
+							std::string s = std::to_string(decVal.Lo64);
+							unsigned char len = (unsigned char) s.size();
+							if (len <= decVal.scale) {
+								s.insert(0, (decVal.scale - len) + 1, '0');
+							}
+							if (decVal.sign) {
+								s.insert(0, 1, '-');
+							}
+							if (decVal.scale) {
+								size_t pos = s.length() - decVal.scale;
+								s.insert(pos, 1, '.');
+							}
+							ParameterValuePtr = (SQLPOINTER) (m_Blob.GetBuffer() + output_pos);
+							ColumnSize = s.size();
+							::memcpy(ParameterValuePtr, s.c_str(), ColumnSize + sizeof(char));
+							output_pos += (unsigned int)BufferLength;
 						}
 						else {
 							ConvertDecimalAString(vtD);
@@ -2694,28 +2835,44 @@ namespace SPA
 							m_vArray.push_back(vtD.parray);
 							ColumnSize = vtD.parray->rgsabound->cElements;
 							BufferLength = (SQLLEN) ColumnSize;
-							pLenInd[col] = (SQLLEN)ColumnSize;
 						}
+						pLenInd[col] = (SQLLEN)ColumnSize;
                         break;
                     case (VT_I1 | VT_ARRAY):
                         c_type = SQL_C_CHAR;
                         sql_type = SQL_VARCHAR;
+						ColumnSize = vtD.parray->rgsabound->cElements;
+						::SafeArrayAccessData(vtD.parray, &ParameterValuePtr);
 						if (InputOutputType == SQL_PARAM_OUTPUT || InputOutputType == SQL_PARAM_INPUT_OUTPUT) {
-
+							if (ColumnSize > info.ColumnSize) {
+								ColumnSize = info.ColumnSize;
+							}
+							BufferLength = (SQLLEN)info.ColumnSize;
+							void *pSrc = ParameterValuePtr;
+							ParameterValuePtr = (SQLPOINTER) (m_Blob.GetBuffer() + output_pos);
+							::memcpy(ParameterValuePtr, (const void*)pSrc, (size_t)ColumnSize);
+							output_pos += (unsigned int)BufferLength;
+							::SafeArrayUnaccessData(vtD.parray);
 						}
 						else {
-							::SafeArrayAccessData(vtD.parray, &ParameterValuePtr);
 							m_vArray.push_back(vtD.parray);
-							ColumnSize = vtD.parray->rgsabound->cElements;
 							BufferLength = (SQLLEN) ColumnSize;
-							pLenInd[col] = (SQLLEN)ColumnSize;
 						}
+						pLenInd[col] = (SQLLEN)ColumnSize;
                         break;
                     case (VT_UI1 | VT_ARRAY):
                         c_type = SQL_C_BINARY;
                         sql_type = SQL_VARBINARY;
 						if (InputOutputType == SQL_PARAM_OUTPUT || InputOutputType == SQL_PARAM_INPUT_OUTPUT) {
-
+							if (ColumnSize > info.ColumnSize) {
+								ColumnSize = info.ColumnSize;
+							}
+							BufferLength = (SQLLEN)info.ColumnSize;
+							void *pSrc = ParameterValuePtr;
+							ParameterValuePtr = (SQLPOINTER) (m_Blob.GetBuffer() + output_pos);
+							::memcpy(ParameterValuePtr, (const void*)pSrc, (size_t)ColumnSize);
+							output_pos += (unsigned int)BufferLength;
+							::SafeArrayUnaccessData(vtD.parray);
 						}
 						else {
 							::SafeArrayAccessData(vtD.parray, &ParameterValuePtr);
@@ -2871,10 +3028,10 @@ namespace SPA
                                 ++m_oks;
                             }
                         } while (SQLMoreResults(m_pPrepare.get()) == SQL_SUCCESS);
+						if (m_outputs && !PushOutputParameters(r)) {
+							break;
+						}
                     }
-					if (m_outputs && !PushOutputParameters()) {
-						break;
-					}
                 } else {
                     SQLRETURN retcode = SQLExecute(m_pPrepare.get());
                     if (!SQL_SUCCEEDED(retcode)) {

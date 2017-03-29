@@ -112,7 +112,7 @@ namespace SPA {
             bool SetInputParamInfo();
             bool BindParameters(unsigned int r, SQLLEN *pLenInd);
 			unsigned int ComputeOutputMaxSize();
-			bool PushOutputParameters();
+			bool PushOutputParameters(unsigned int r);
             static void ConvertDecimalAString(CDBVariant &vt);
             static void SetUShortInfo(SQLHDBC hdbc, SQLUSMALLINT infoType, std::unordered_map<SQLUSMALLINT, CComVariant> &mapInfo);
             static void SetUIntInfo(SQLHDBC hdbc, SQLUSMALLINT infoType, std::unordered_map<SQLUSMALLINT, CComVariant> &mapInfo);
