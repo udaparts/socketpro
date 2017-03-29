@@ -37,6 +37,6 @@ namespace SPA {
         static const int ER_BAD_MANUAL_TRANSACTION_STATE = -1989;
         static const int ER_BAD_INPUT_PARAMETER_DATA_TYPE = -1990;
         static const int ER_BAD_PARAMETER_DIRECTION_TYPE = -1991;
-
+		static const int ER_CORRECT_PARAMETER_INFO_NOT_PROVIDED_YET = -1992;
     } //namespace Odbc
 } //namespace SPA

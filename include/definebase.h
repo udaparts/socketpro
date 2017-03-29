@@ -529,7 +529,6 @@ namespace SPA {
             std::tm tm = GetCTime(&us);
 #if defined (WIN32_64) && _MSC_VER >= 1600 
             if (us) {
-                --bufferSize;
                 if (tm.tm_mday) {
                     sprintf_s(str, bufferSize, "%04d-%02d-%02d %02d:%02d:%02d.%06d", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, us);
                 } else {
@@ -581,7 +580,6 @@ namespace SPA {
             unsigned int ms = us / 1000;
 #if defined (WIN32_64) && _MSC_VER >= 1600 
             if (ms) {
-                --bufferSize;
                 if (tm.tm_mday) {
                     sprintf_s(str, bufferSize, "%04d-%02d-%02dT%02d:%02d:%02d.%03dZ", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, ms);
                 } else {
@@ -749,7 +747,7 @@ namespace SPA {
 #endif
     };
 #pragma pack(pop) //ensure sizeof(UDateTime) == 8
-
+static_assert(sizeof(UDateTime) == 8, "Wrong UDateTime size");
 };
 
 #endif //__UCOMM_BASE_DEFINES_H_____

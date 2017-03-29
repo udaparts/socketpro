@@ -298,7 +298,7 @@ void TestStoredProcedure(std::shared_ptr<CMyHandler> pOdbc, CRowsetArray&ra, CDB
     };
 
     oks = 0;
-	/*
+
     //process multiple sets of parameters in one shot
     ok = pOdbc->Execute(vPData, [&oks](CSender &handler, int res, const std::wstring &errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & vtId) {
         oks = (unsigned int) fail_ok;
@@ -310,5 +310,4 @@ void TestStoredProcedure(std::shared_ptr<CMyHandler> pOdbc, CRowsetArray&ra, CDB
         }
         std::cout << std::endl;
     }, r, rh);
-	*/
 }
