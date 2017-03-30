@@ -764,45 +764,35 @@ namespace SPA
             return vCols;
         }
 
-        unsigned short COdbcImpl::ToSystemTime(const TIMESTAMP_STRUCT &d, SYSTEMTIME & st) {
-#ifdef WIN32_64
-            st.wYear = (unsigned short) d.year;
-            st.wMonth = d.month;
-            st.wDay = d.day;
-            st.wHour = d.hour;
-            st.wMinute = d.minute;
-            st.wSecond = d.second;
-            st.wMilliseconds = (unsigned short) (d.fraction / 1000000);
-            return (unsigned short) ((d.fraction / 1000) % 1000);
-#else
-            return 0;
-#endif
+        unsigned int COdbcImpl::ToCTime(const TIMESTAMP_STRUCT &d, std::tm &tm) {
+            tm.tm_isdst = 0;
+			tm.tm_wday = 0;
+			tm.tm_yday = 0;
+			tm.tm_year = d.year - 1900;
+            tm.tm_mon = d.month - 1;
+            tm.tm_mday = d.day;
+            tm.tm_hour = d.hour;
+            tm.tm_min = d.minute;
+            tm.tm_sec = d.second;
+            return (unsigned int) (d.fraction / 1000);
         }
 
-        void COdbcImpl::ToSystemTime(const TIME_STRUCT &d, SYSTEMTIME & st) {
+        unsigned int COdbcImpl::ToCTime(const TIME_STRUCT &d, std::tm &tm) {
             //start from 01/01/1900
-#ifdef WIN32_64
-            st.wYear = 1900;
-            st.wMonth = 1;
-            st.wDay = 1;
-            st.wHour = d.hour;
-            st.wMinute = d.minute;
-            st.wSecond = d.second;
-            st.wMilliseconds = 0;
-#else
-            st.tv_usec = 0;
-#endif
+			memset(&tm, 0, sizeof (tm));
+            tm.tm_mday = 1;
+            tm.tm_hour = d.hour;
+            tm.tm_min = d.minute;
+            tm.tm_sec = d.second;
+			return 0;
         }
 
-        void COdbcImpl::ToSystemTime(const DATE_STRUCT &d, SYSTEMTIME & st) {
-            memset(&st, 0, sizeof (st));
-#ifdef WIN32_64
-            st.wYear = (unsigned short) d.year;
-            st.wMonth = d.month;
-            st.wDay = d.day;
-#else
-            st.tv_usec = 0;
-#endif
+        unsigned int COdbcImpl::ToCTime(const DATE_STRUCT &d, std::tm &tm) {
+            memset(&tm, 0, sizeof (tm));
+			tm.tm_year = d.year - 1900;
+            tm.tm_mon = d.month - 1;
+            tm.tm_mday = d.day;
+			return 0;
         }
 
         void COdbcImpl::SetStringInfo(SQLHDBC hdbc, SQLUSMALLINT infoType, std::unordered_map<SQLUSMALLINT, CComVariant> &mapInfo) {
@@ -1144,9 +1134,9 @@ namespace SPA
                                             q << (VARTYPE) VT_NULL;
                                         } else {
                                             q << vt;
-                                            SYSTEMTIME st;
-                                            ToSystemTime(d, st);
-                                            SPA::UDateTime dt(st);
+                                            std::tm st;
+                                            unsigned int us = ToCTime(d, st);
+                                            SPA::UDateTime dt(st, us);
                                             q << dt.time;
                                         }
                                     }
@@ -1159,9 +1149,9 @@ namespace SPA
                                             q << (VARTYPE) VT_NULL;
                                         } else {
                                             q << vt;
-                                            SYSTEMTIME st;
-                                            ToSystemTime(d, st);
-                                            SPA::UDateTime dt(st);
+                                            std::tm st;
+                                            unsigned int us = ToCTime(d, st);
+                                            SPA::UDateTime dt(st, us);
                                             q << dt.time;
                                         }
                                     }
@@ -1174,13 +1164,9 @@ namespace SPA
                                             q << (VARTYPE) VT_NULL;
                                         } else {
                                             q << vt;
-                                            SYSTEMTIME st;
-                                            unsigned short us = ToSystemTime(d, st);
-#ifdef WIN32_64
-                                            SPA::UDateTime dt(st, us);
-#else
-                                            SPA::UDateTime dt(st);
-#endif
+                                            std::tm st;
+                                            unsigned int us = ToCTime(d, st);
+											SPA::UDateTime dt(st, us);
                                             q << dt.time;
                                         }
                                     }

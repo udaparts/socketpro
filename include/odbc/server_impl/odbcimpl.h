@@ -121,9 +121,9 @@ namespace SPA {
             static void SetUInt64Info(SQLHDBC hdbc, SQLUSMALLINT infoType, std::unordered_map<SQLUSMALLINT, CComVariant> &mapInfo);
             static void SetIntInfo(SQLHDBC hdbc, SQLUSMALLINT infoType, std::unordered_map<SQLUSMALLINT, CComVariant> &mapInfo);
             static void GetErrMsg(SQLSMALLINT HandleType, SQLHANDLE Handle, std::wstring &errMsg);
-            static unsigned short ToSystemTime(const TIMESTAMP_STRUCT &d, SYSTEMTIME &st);
-            static void ToSystemTime(const TIME_STRUCT &d, SYSTEMTIME &st);
-            static void ToSystemTime(const DATE_STRUCT &d, SYSTEMTIME &st);
+            static unsigned int ToCTime(const TIMESTAMP_STRUCT &d, std::tm &tm);
+            static unsigned int ToCTime(const TIME_STRUCT &d, std::tm &tm);
+            static unsigned int ToCTime(const DATE_STRUCT &d, std::tm &tm);
 
         protected:
             UINT64 m_oks;
