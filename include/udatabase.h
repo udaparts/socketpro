@@ -162,12 +162,17 @@ namespace SPA {
             }
 
             CDBVariant(const GUID &uuid) {
-                vt = VT_CLSID;
                 ::memcpy(&decVal, &uuid, sizeof (uuid));
+				vt = VT_CLSID;
             }
 
             template <typename type>
             CDBVariant(const type& src) : CComVariant(src) {
+            }
+
+            CDBVariant(const DECIMAL& src) {
+				decVal = src;
+				vt = VT_DECIMAL;
             }
 
             CDBVariant(const unsigned char *buffer, unsigned int bytes) {
@@ -305,9 +310,15 @@ namespace SPA {
 
             CDBVariant& operator=(const GUID &uuid) {
                 ::VariantClear(this);
-                vt = VT_CLSID;
                 ::memcpy(&decVal, &uuid, sizeof (uuid));
+				vt = VT_CLSID;
                 return *this;
+            }
+
+			CDBVariant& operator=(const DECIMAL& src) {
+				::VariantClear(this);
+				decVal = src;
+				vt = VT_DECIMAL;
             }
 
             CDBVariant& operator=(const UDateTime &dt) {
@@ -320,14 +331,14 @@ namespace SPA {
             CDBVariant& operator=(const SYSTEMTIME &st) {
                 ::VariantClear(this);
                 vt = VT_DATE;
-                this->ullVal = UDateTime(st).time;
+                ullVal = UDateTime(st).time;
                 return *this;
             }
 
             CDBVariant& operator=(const std::tm &st) {
                 ::VariantClear(this);
                 vt = VT_DATE;
-                this->ullVal = UDateTime(st).time;
+                ullVal = UDateTime(st).time;
                 return *this;
             }
 

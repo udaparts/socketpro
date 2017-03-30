@@ -6,6 +6,7 @@
 #include <iostream>
 #endif
 
+
 namespace SPA
 {
     namespace ServerSide{
@@ -2528,6 +2529,7 @@ namespace SPA
                 SQLPOINTER ParameterValuePtr = nullptr;
                 SQLLEN BufferLength = 0;
                 SQLSMALLINT c_type = 0, sql_type = 0;
+				SQLSMALLINT DecimalDigits = 0;
                 switch (vtD.vt) {
                     case VT_NULL:
                     case VT_EMPTY:
@@ -2595,28 +2597,29 @@ namespace SPA
                                     output_pos += (unsigned int) BufferLength;
                                     break;
                                 case VT_DATE:
-                                    sql_type = SQL_CHAR;
+                                    sql_type = SQL_TYPE_TIMESTAMP;
                                     ParameterValuePtr = (SQLPOINTER) (m_Blob.GetBuffer() + output_pos);
                                     BufferLength = info.ColumnSize;
                                     c_type = SQL_C_CHAR;
                                     output_pos += (unsigned int) BufferLength;
+									DecimalDigits = 6;
                                     break;
                                 case (VT_I1 | VT_ARRAY):
-                                    sql_type = SQL_VARCHAR;
+                                    sql_type = SQL_LONGVARCHAR;
                                     ParameterValuePtr = (SQLPOINTER) (m_Blob.GetBuffer() + output_pos);
                                     BufferLength = info.ColumnSize;
                                     c_type = SQL_C_CHAR;
                                     output_pos += (unsigned int) BufferLength;
                                     break;
                                 case (VT_UI1 | VT_ARRAY):
-                                    sql_type = SQL_VARBINARY;
+                                    sql_type = SQL_LONGVARBINARY;
                                     ParameterValuePtr = (SQLPOINTER) (m_Blob.GetBuffer() + output_pos);
                                     BufferLength = info.ColumnSize;
                                     c_type = SQL_C_BINARY;
                                     output_pos += (unsigned int) BufferLength;
                                     break;
                                 case VT_BSTR:
-                                    sql_type = SQL_WVARCHAR;
+                                    sql_type = SQL_WLONGVARCHAR;
                                     ParameterValuePtr = (SQLPOINTER) (m_Blob.GetBuffer() + output_pos);
                                     BufferLength = info.ColumnSize * sizeof (wchar_t);
                                     c_type = SQL_C_WCHAR;
@@ -2684,17 +2687,18 @@ namespace SPA
                                 case VT_DATE:
                                     sql_type = SQL_TYPE_TIMESTAMP;
                                     c_type = SQL_C_TIMESTAMP;
+									DecimalDigits = 6;
                                     break;
                                 case (VT_I1 | VT_ARRAY):
-                                    sql_type = SQL_VARCHAR;
+                                    sql_type = SQL_LONGVARCHAR;
                                     c_type = SQL_C_CHAR;
                                     break;
                                 case (VT_UI1 | VT_ARRAY):
-                                    sql_type = SQL_VARBINARY;
+                                    sql_type = SQL_LONGVARBINARY;
                                     c_type = SQL_C_BINARY;
                                     break;
                                 case VT_BSTR:
-                                    sql_type = SQL_WVARCHAR;
+                                    sql_type = SQL_WLONGVARCHAR;
                                     c_type = SQL_C_WCHAR;
                                     break;
                                 case VT_CLSID:
@@ -2759,6 +2763,9 @@ namespace SPA
                         c_type = SQL_C_CHAR;
                     {
                         SPA::UDateTime dt(vtD.ullVal);
+						if (dt.HasMicrosecond()) {
+							DecimalDigits = 6;
+						}
                         if (InputOutputType == SQL_PARAM_OUTPUT || InputOutputType == SQL_PARAM_INPUT_OUTPUT) {
                             ParameterValuePtr = (SQLPOINTER) (m_Blob.GetBuffer() + output_pos);
                             BufferLength = info.ColumnSize;
@@ -2808,7 +2815,7 @@ namespace SPA
                         break;
                     case VT_BSTR:
                         c_type = SQL_C_WCHAR;
-                        sql_type = SQL_WVARCHAR;
+                        sql_type = SQL_WLONGVARCHAR;
                         if (InputOutputType == SQL_PARAM_OUTPUT || InputOutputType == SQL_PARAM_INPUT_OUTPUT) {
                             ParameterValuePtr = (SQLPOINTER) (m_Blob.GetBuffer() + output_pos);
                             ColumnSize = ::SysStringLen(vtD.bstrVal);
@@ -2823,11 +2830,12 @@ namespace SPA
                             ColumnSize = ::SysStringLen(vtD.bstrVal);
                             BufferLength = (SQLLEN) ColumnSize * sizeof (wchar_t);
                         }
-                        pLenInd[col] = (SQLLEN) ColumnSize;
+						pLenInd[col] = SQL_NTS;
                         break;
                     case VT_DECIMAL:
                         c_type = SQL_C_CHAR;
                         sql_type = SQL_NUMERIC;
+						DecimalDigits = (SQLSMALLINT)vtD.decVal.scale;
                         if (InputOutputType == SQL_PARAM_OUTPUT || InputOutputType == SQL_PARAM_INPUT_OUTPUT) {
                             BufferLength = (SQLULEN) info.ColumnSize;
                             const DECIMAL &decVal = vtD.decVal;
@@ -2879,7 +2887,7 @@ namespace SPA
                         break;
                     case (VT_UI1 | VT_ARRAY):
                         c_type = SQL_C_BINARY;
-                        sql_type = SQL_VARBINARY;
+                        sql_type = SQL_LONGVARBINARY;
                         if (InputOutputType == SQL_PARAM_OUTPUT || InputOutputType == SQL_PARAM_INPUT_OUTPUT) {
                             if (ColumnSize > info.ColumnSize) {
                                 ColumnSize = info.ColumnSize;
@@ -2908,7 +2916,7 @@ namespace SPA
                         break;
                 }
                 SQLRETURN retcode = SQLBindParameter(m_pPrepare.get(), (SQLUSMALLINT) (col + 1), InputOutputType,
-                        c_type, sql_type, ColumnSize, 0, ParameterValuePtr, BufferLength,
+                        c_type, sql_type, ColumnSize, DecimalDigits, ParameterValuePtr, BufferLength,
                         pLenInd + col);
                 if (!SQL_SUCCEEDED(retcode)) {
                     return false;

@@ -77,10 +77,10 @@ int main(int argc, char* argv[]) {
     ok = pOdbc->Open(nullptr, dr);
     TestCreateTables(pOdbc);
     ok = pOdbc->Execute(L"delete from employee;delete from company", er);
-    //TestPreparedStatements(pOdbc);
-    //InsertBLOBByPreparedStatement(pOdbc);
-    //ok = pOdbc->Execute(L"SELECT * from company;select * from employee;select curtime()", er, r, rh);
-    //ok = pOdbc->Tables(L"mysqldb", L"", L"%", L"", er, r, rh);
+    TestPreparedStatements(pOdbc);
+    InsertBLOBByPreparedStatement(pOdbc);
+    ok = pOdbc->Execute(L"SELECT * from company;select * from employee;select CONVERT (datetime, SYSDATETIME())", er, r, rh);
+    ok = pOdbc->Tables(L"sqltestdb", L"dbo", L"%", L"TABLE", er, r, rh);
 
     CDBVariantArray vPData;
     //first set
@@ -118,7 +118,6 @@ int main(int argc, char* argv[]) {
     std::cout << std::endl;
     std::cout << "Press any key to close the application ......" << std::endl;
     ::getchar();
-
     return 0;
 }
 
@@ -128,12 +127,12 @@ void InsertBLOBByPreparedStatement(std::shared_ptr<CMyHandler> pOdbc) {
         wstr += L"广告做得不那么夸张的就不说了，看看这三家，都是正儿八经的公立三甲，附属医院，不是武警，也不是部队，更不是莆田，都在卫生部门直接监管下，照样明目张胆地骗人。";
     }
 
-    std::string str;
+    std::wstring str;
     while (str.size() < 256 * 1024) {
-        str += "The epic takedown of his opponent on an all-important voting day was extraordinary even by the standards of the 2016 campaign -- and quickly drew a scathing response from Trump.";
+        str += L"The epic takedown of his opponent on an all-important voting day was extraordinary even by the standards of the 2016 campaign -- and quickly drew a scathing response from Trump.";
     }
 
-    const wchar_t *sqlInsert = L"insert into employee(CompanyId, name, JoinDate, image, DESCRIPTION, Salary) values(?, ?, ?, ?, ?, ?)";
+    const wchar_t *sqlInsert = L"insert into employee(CompanyId, name, JoinDate, myimage, DESCRIPTION, Salary) values(?, ?, ?, ?, ?, ?)";
     bool ok = pOdbc->Prepare(sqlInsert, [](CSender &handler, int res, const std::wstring & errMsg) {
         std::cout << "res = " << res << ", errMsg: ";
         std::wcout << errMsg << std::endl;
@@ -145,7 +144,7 @@ void InsertBLOBByPreparedStatement(std::shared_ptr<CMyHandler> pOdbc) {
 
     //first set of data
     vData.push_back(1); //google company id
-    vData.push_back(L"Ted Cruz");
+    vData.push_back("Ted Cruz");
 #ifdef WIN32_64
     ::GetLocalTime(&st);
 #else
@@ -155,7 +154,10 @@ void InsertBLOBByPreparedStatement(std::shared_ptr<CMyHandler> pOdbc) {
     sbBlob << wstr;
     vData.push_back(CDBVariant(sbBlob->GetBuffer(), sbBlob->GetSize()));
     vData.push_back(wstr.c_str());
-    vData.push_back(254000.0);
+	const char *strDec = "254000.2460";
+	DECIMAL dec;
+	SPA::ParseDec(strDec, dec);
+    vData.push_back(dec);
 
     //second set of data
     vData.push_back(1); //google company id
@@ -170,7 +172,9 @@ void InsertBLOBByPreparedStatement(std::shared_ptr<CMyHandler> pOdbc) {
     sbBlob << str;
     vData.push_back(CDBVariant(sbBlob->GetBuffer(), sbBlob->GetSize()));
     vData.push_back(str.c_str());
-    vData.push_back(20254000.0);
+	strDec = "20254000.197";
+	SPA::ParseDec(strDec, dec);
+    vData.push_back(dec);
 
     //third set of data
     vData.push_back(2); //Microsoft company id
@@ -184,7 +188,10 @@ void InsertBLOBByPreparedStatement(std::shared_ptr<CMyHandler> pOdbc) {
     sbBlob << wstr;
     vData.push_back(CDBVariant(sbBlob->GetBuffer(), sbBlob->GetSize()));
     vData.push_back(wstr.c_str());
-    vData.push_back(6254000.0);
+    //vData.push_back(6254000.572);
+	strDec = "6254000.5";
+	SPA::ParseDec(strDec, dec);
+    vData.push_back(dec);
 
     //execute multiple sets of parameter data in one short
     ok = pOdbc->Execute(vData, [](CSender &handler, int res, const std::wstring &errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & vtId) {
@@ -254,7 +261,7 @@ void TestCreateTables(std::shared_ptr<CMyHandler> pOdbc) {
         std::wcout << errMsg << std::endl;
     });
 
-    create_table = L"IF NOT EXISTS(SELECT * FROM sys.tables WHERE name='employee') create table employee(EMPLOYEEID bigint IDENTITY(1,1) PRIMARY KEY NOT NULL, CompanyId bigint not null, name CHAR(64) NOT NULL, JoinDate DATETIME default null, MyIMAGE image, DESCRIPTION TEXT, Salary float, FOREIGN KEY(CompanyId) REFERENCES company(id))";
+    create_table = L"IF NOT EXISTS(SELECT * FROM sys.tables WHERE name='employee') create table employee(EMPLOYEEID bigint IDENTITY(1,1) PRIMARY KEY NOT NULL, CompanyId bigint not null, name CHAR(64) NOT NULL, JoinDate DATETIME2(3) default null, MyIMAGE image, DESCRIPTION NTEXT, Salary decimal(15,2), FOREIGN KEY(CompanyId) REFERENCES company(id))";
     ok = pOdbc->Execute(create_table, [](CSender &handler, int res, const std::wstring &errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & vtId) {
         std::cout << "affected = " << affected << ", fails = " << (unsigned int) (fail_ok >> 32) << ", oks = " << (unsigned int) fail_ok << ", res = " << res << ", errMsg: ";
         std::wcout << errMsg << std::endl;
@@ -274,10 +281,24 @@ void TestCreateTables(std::shared_ptr<CMyHandler> pOdbc) {
 }
 
 void TestStoredProcedure(std::shared_ptr<CMyHandler> pOdbc, CRowsetArray&ra, CDBVariantArray &vPData, unsigned int &oks) {
-    bool ok = pOdbc->Prepare(L"{ call sqltestdb.dbo.sp_TestProc(?, ?, ?) } ", [](CSender &handler, int res, const std::wstring & errMsg) {
+    CParameterInfoArray vPInfo;
+
+	CParameterInfo info;
+	info.DataType = VT_I4;
+	vPInfo.push_back(info);
+
+	info.DataType = VT_R8;
+	info.Direction = pdOutput;
+	vPInfo.push_back(info);
+
+	info.DataType = VT_DATE;
+	info.Direction = pdOutput;
+	vPInfo.push_back(info);
+
+	bool ok = pOdbc->Prepare(L"{ call sqltestdb.dbo.sp_TestProc(?, ?, ?) } ", [](CSender &handler, int res, const std::wstring & errMsg) {
         std::cout << "res = " << res << ", errMsg: ";
         std::wcout << errMsg << std::endl;
-    });
+    }, vPInfo);
     CMyHandler::DRows r = [&ra](CSender &handler, CDBVariantArray & vData) {
         //rowset data come here
         assert((vData.size() % handler.GetColumnInfo().size()) == 0);

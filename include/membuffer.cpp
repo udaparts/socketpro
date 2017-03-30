@@ -429,8 +429,16 @@ namespace SPA
                 break;
 #endif
             case VT_DECIMAL:
+				total += Pop((unsigned char*) &(vtData.decVal), sizeof (vtData.decVal), position);
+#ifdef WIN32_64
+				vtData.vt =VT_DECIMAL;
+#endif
+                break;
             case VT_CLSID:
                 total += Pop((unsigned char*) &(vtData.decVal), sizeof (vtData.decVal), position);
+#ifdef WIN32_64
+				vtData.vt = VT_CLSID;
+#endif
                 break;
             default:
                 if ((vtData.vt & VT_ARRAY) == VT_ARRAY) {
