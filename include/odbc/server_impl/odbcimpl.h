@@ -20,18 +20,19 @@ namespace SPA {
             //no assignment operator
             COdbcImpl& operator=(const COdbcImpl &impl);
 
-			static const unsigned int DEFAULT_OUTPUT_BUFFER_SIZE = 8 * 1024; //bytes
-			static const unsigned int MAX_OUTPUT_BLOB_BUFFER_SIZE = 1024 * 1024; //bytes
+            static const unsigned int DEFAULT_OUTPUT_BUFFER_SIZE = 8 * 1024; //bytes
+            static const unsigned int MAX_OUTPUT_BLOB_BUFFER_SIZE = 1024 * 1024; //bytes
 
 #pragma pack(push,1)
-			struct OdbcDateTime {
-				char dt[32];
-			};
 
-			struct OdbcNumeric {
-				//max precision = 29, max string len = 31
-				char num[32];
-			};
+            struct OdbcDateTime {
+                char dt[32];
+            };
+
+            struct OdbcNumeric {
+                //max precision = 29, max string len = 31
+                char num[32];
+            };
 #pragma pack(pop)
 
             struct ODBC_CONNECTION_STRING {
@@ -111,8 +112,8 @@ namespace SPA {
             bool CheckInputParameterDataTypes();
             bool SetInputParamInfo();
             bool BindParameters(unsigned int r, SQLLEN *pLenInd);
-			unsigned int ComputeOutputMaxSize();
-			bool PushOutputParameters(unsigned int r);
+            unsigned int ComputeOutputMaxSize();
+            bool PushOutputParameters(unsigned int r);
             static void ConvertDecimalAString(CDBVariant &vt);
             static void SetUShortInfo(SQLHDBC hdbc, SQLUSMALLINT infoType, std::unordered_map<SQLUSMALLINT, CComVariant> &mapInfo);
             static void SetUIntInfo(SQLHDBC hdbc, SQLUSMALLINT infoType, std::unordered_map<SQLUSMALLINT, CComVariant> &mapInfo);
@@ -164,7 +165,7 @@ namespace SPA {
             static const wchar_t* BAD_MANUAL_TRANSACTION_STATE;
             static const wchar_t* BAD_INPUT_PARAMETER_DATA_TYPE;
             static const wchar_t* BAD_PARAMETER_DIRECTION_TYPE;
-			static const wchar_t* CORRECT_PARAMETER_INFO_NOT_PROVIDED_YET;
+            static const wchar_t* CORRECT_PARAMETER_INFO_NOT_PROVIDED_YET;
 
             static SQLHENV g_hEnv;
 

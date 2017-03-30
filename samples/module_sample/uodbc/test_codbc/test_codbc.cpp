@@ -204,7 +204,7 @@ void TestPreparedStatements(std::shared_ptr<CMyHandler> pOdbc) {
         std::cout << "res = " << res << ", errMsg: ";
         std::wcout << errMsg << std::endl;
     });
-	
+
     CDBVariantArray vData;
 
     //first set
@@ -261,7 +261,7 @@ void TestCreateTables(std::shared_ptr<CMyHandler> pOdbc) {
 }
 
 void TestStoredProcedure(std::shared_ptr<CMyHandler> pOdbc, CRowsetArray&ra, CDBVariantArray &vPData, unsigned int &oks) {
-	CParameterInfoArray vInfo;
+    CParameterInfoArray vInfo;
     CParameterInfo info;
 
     info.DataType = VT_I4;

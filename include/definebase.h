@@ -747,7 +747,7 @@ namespace SPA {
 #endif
     };
 #pragma pack(pop) //ensure sizeof(UDateTime) == 8
-static_assert(sizeof(UDateTime) == 8, "Wrong UDateTime size");
+    static_assert(sizeof (UDateTime) == 8, "Wrong UDateTime size");
 };
 
 #endif //__UCOMM_BASE_DEFINES_H_____
