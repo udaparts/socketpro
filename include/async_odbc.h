@@ -38,7 +38,7 @@ namespace SPA {
                                 ar >> res >> errMsg >> fail_ok;
                                 this->m_csDB.lock();
                                 this->m_lastReqId = SPA::Odbc::idSQLColumnPrivileges;
-                                this->m_affected = -1;
+                                this->m_affected = 0;
                                 this->m_dbErrCode = res;
                                 this->m_dbErrMsg = errMsg;
                                 auto it = this->m_mapRowset.find(this->m_indexRowset);
@@ -50,7 +50,7 @@ namespace SPA {
                         }
                         this->m_csDB.unlock();
                         if (handler) {
-                            handler(*this, res, errMsg, -1, fail_ok, CDBVariant());
+                            handler(*this, res, errMsg, 0, fail_ok, CDBVariant());
                         }
                     })) {
                 m_csDB.lock();
@@ -75,7 +75,7 @@ namespace SPA {
                                 ar >> res >> errMsg >> fail_ok;
                                 this->m_csDB.lock();
                                 this->m_lastReqId = SPA::Odbc::idSQLColumns;
-                                this->m_affected = -1;
+                                this->m_affected = 0;
                                 this->m_dbErrCode = res;
                                 this->m_dbErrMsg = errMsg;
                                 auto it = this->m_mapRowset.find(this->m_indexRowset);
@@ -87,7 +87,7 @@ namespace SPA {
                         }
                         this->m_csDB.unlock();
                         if (handler) {
-                            handler(*this, res, errMsg, -1, fail_ok, CDBVariant());
+                            handler(*this, res, errMsg, 0, fail_ok, CDBVariant());
                         }
                     })) {
                 m_csDB.lock();
@@ -112,7 +112,7 @@ namespace SPA {
                                 ar >> res >> errMsg >> fail_ok;
                                 this->m_csDB.lock();
                                 this->m_lastReqId = SPA::Odbc::idSQLProcedureColumns;
-                                this->m_affected = -1;
+                                this->m_affected = 0;
                                 this->m_dbErrCode = res;
                                 this->m_dbErrMsg = errMsg;
                                 auto it = this->m_mapRowset.find(this->m_indexRowset);
@@ -124,7 +124,7 @@ namespace SPA {
                         }
                         this->m_csDB.unlock();
                         if (handler) {
-                            handler(*this, res, errMsg, -1, fail_ok, CDBVariant());
+                            handler(*this, res, errMsg, 0, fail_ok, CDBVariant());
                         }
                     })) {
                 m_csDB.lock();
@@ -149,7 +149,7 @@ namespace SPA {
                                 ar >> res >> errMsg >> fail_ok;
                                 this->m_csDB.lock();
                                 this->m_lastReqId = SPA::Odbc::idSQLPrimaryKeys;
-                                this->m_affected = -1;
+                                this->m_affected = 0;
                                 this->m_dbErrCode = res;
                                 this->m_dbErrMsg = errMsg;
                                 auto it = this->m_mapRowset.find(this->m_indexRowset);
@@ -161,7 +161,7 @@ namespace SPA {
                         }
                         this->m_csDB.unlock();
                         if (handler) {
-                            handler(*this, res, errMsg, -1, fail_ok, CDBVariant());
+                            handler(*this, res, errMsg, 0, fail_ok, CDBVariant());
                         }
                     })) {
                 m_csDB.lock();
@@ -186,7 +186,7 @@ namespace SPA {
                                 ar >> res >> errMsg >> fail_ok;
                                 this->m_csDB.lock();
                                 this->m_lastReqId = SPA::Odbc::idSQLForeignKeys;
-                                this->m_affected = -1;
+                                this->m_affected = 0;
                                 this->m_dbErrCode = res;
                                 this->m_dbErrMsg = errMsg;
                                 auto it = this->m_mapRowset.find(this->m_indexRowset);
@@ -198,7 +198,7 @@ namespace SPA {
                         }
                         this->m_csDB.unlock();
                         if (handler) {
-                            handler(*this, res, errMsg, -1, fail_ok, CDBVariant());
+                            handler(*this, res, errMsg, 0, fail_ok, CDBVariant());
                         }
                     })) {
                 m_csDB.lock();
@@ -223,7 +223,7 @@ namespace SPA {
                                 ar >> res >> errMsg >> fail_ok;
                                 this->m_csDB.lock();
                                 this->m_lastReqId = SPA::Odbc::idSQLProcedures;
-                                this->m_affected = -1;
+                                this->m_affected = 0;
                                 this->m_dbErrCode = res;
                                 this->m_dbErrMsg = errMsg;
                                 auto it = this->m_mapRowset.find(this->m_indexRowset);
@@ -235,7 +235,7 @@ namespace SPA {
                         }
                         this->m_csDB.unlock();
                         if (handler) {
-                            handler(*this, res, errMsg, -1, fail_ok, CDBVariant());
+                            handler(*this, res, errMsg, 0, fail_ok, CDBVariant());
                         }
                     })) {
                 m_csDB.lock();
@@ -260,7 +260,7 @@ namespace SPA {
                                 ar >> res >> errMsg >> fail_ok;
                                 this->m_csDB.lock();
                                 this->m_lastReqId = SPA::Odbc::idSQLSpecialColumns;
-                                this->m_affected = -1;
+                                this->m_affected = 0;
                                 this->m_dbErrCode = res;
                                 this->m_dbErrMsg = errMsg;
                                 auto it = this->m_mapRowset.find(this->m_indexRowset);
@@ -272,7 +272,7 @@ namespace SPA {
                         }
                         this->m_csDB.unlock();
                         if (handler) {
-                            handler(*this, res, errMsg, -1, fail_ok, CDBVariant());
+                            handler(*this, res, errMsg, 0, fail_ok, CDBVariant());
                         }
                     })) {
                 m_csDB.lock();
@@ -297,7 +297,7 @@ namespace SPA {
                                 ar >> res >> errMsg >> fail_ok;
                                 this->m_csDB.lock();
                                 this->m_lastReqId = SPA::Odbc::idSQLStatistics;
-                                this->m_affected = -1;
+                                this->m_affected = 0;
                                 this->m_dbErrCode = res;
                                 this->m_dbErrMsg = errMsg;
                                 auto it = this->m_mapRowset.find(this->m_indexRowset);
@@ -309,7 +309,7 @@ namespace SPA {
                         }
                         this->m_csDB.unlock();
                         if (handler) {
-                            handler(*this, res, errMsg, -1, fail_ok, CDBVariant());
+                            handler(*this, res, errMsg, 0, fail_ok, CDBVariant());
                         }
                     })) {
                 m_csDB.lock();
@@ -334,7 +334,7 @@ namespace SPA {
                                 ar >> res >> errMsg >> fail_ok;
                                 this->m_csDB.lock();
                                 this->m_lastReqId = SPA::Odbc::idSQLTablePrivileges;
-                                this->m_affected = -1;
+                                this->m_affected = 0;
                                 this->m_dbErrCode = res;
                                 this->m_dbErrMsg = errMsg;
                                 auto it = this->m_mapRowset.find(this->m_indexRowset);
@@ -346,7 +346,7 @@ namespace SPA {
                         }
                         this->m_csDB.unlock();
                         if (handler) {
-                            handler(*this, res, errMsg, -1, fail_ok, CDBVariant());
+                            handler(*this, res, errMsg, 0, fail_ok, CDBVariant());
                         }
                     })) {
                 m_csDB.lock();
@@ -371,7 +371,7 @@ namespace SPA {
                                 ar >> res >> errMsg >> fail_ok;
                                 this->m_csDB.lock();
                                 this->m_lastReqId = SPA::Odbc::idSQLTables;
-                                this->m_affected = -1;
+                                this->m_affected = 0;
                                 this->m_dbErrCode = res;
                                 this->m_dbErrMsg = errMsg;
                                 auto it = this->m_mapRowset.find(this->m_indexRowset);
@@ -383,7 +383,7 @@ namespace SPA {
                         }
                         this->m_csDB.unlock();
                         if (handler) {
-                            handler(*this, res, errMsg, -1, fail_ok, CDBVariant());
+                            handler(*this, res, errMsg, 0, fail_ok, CDBVariant());
                         }
                     })) {
                 m_csDB.lock();

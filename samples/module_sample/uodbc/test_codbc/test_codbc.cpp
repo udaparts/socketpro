@@ -75,12 +75,12 @@ int main(int argc, char* argv[]) {
     };
 
     ok = pOdbc->Open(nullptr, dr);
-    //TestCreateTables(pOdbc);
-    //ok = pOdbc->Execute(L"delete from employee;delete from company", er);
-    //TestPreparedStatements(pOdbc);
-    //InsertBLOBByPreparedStatement(pOdbc);
-    //ok = pOdbc->Execute(L"SELECT * from company;select * from employee;select curtime()", er, r, rh);
-    //ok = pOdbc->Tables(L"mysqldb", L"", L"%", L"", er, r, rh);
+    TestCreateTables(pOdbc);
+    ok = pOdbc->Execute(L"delete from employee;delete from company", er);
+    TestPreparedStatements(pOdbc);
+    InsertBLOBByPreparedStatement(pOdbc);
+    ok = pOdbc->Execute(L"SELECT * from company;select * from employee;select curtime()", er, r, rh);
+    ok = pOdbc->Tables(L"mysqldb", L"", L"%", L"", er, r, rh);
 
     CDBVariantArray vPData;
     //first set
@@ -261,24 +261,10 @@ void TestCreateTables(std::shared_ptr<CMyHandler> pOdbc) {
 }
 
 void TestStoredProcedure(std::shared_ptr<CMyHandler> pOdbc, CRowsetArray&ra, CDBVariantArray &vPData, unsigned int &oks) {
-    CParameterInfoArray vInfo;
-    CParameterInfo info;
-
-    info.DataType = VT_I4;
-    vInfo.push_back(info);
-
-    info.DataType = VT_R8;
-    info.Direction = pdOutput;
-    vInfo.push_back(info);
-
-    info.DataType = VT_DATE;
-    info.Direction = pdOutput;
-    vInfo.push_back(info);
-
-    bool ok = pOdbc->Prepare(L"{ call sp_TestProc(?, ?, ?) } ", [](CSender &handler, int res, const std::wstring & errMsg) {
+    bool ok = pOdbc->Prepare(L"{ call mysqldb.sp_TestProc(?, ?, ?) } ", [](CSender &handler, int res, const std::wstring & errMsg) {
         std::cout << "res = " << res << ", errMsg: ";
         std::wcout << errMsg << std::endl;
-    }, vInfo);
+    });
     CMyHandler::DRows r = [&ra](CSender &handler, CDBVariantArray & vData) {
         //rowset data come here
         assert((vData.size() % handler.GetColumnInfo().size()) == 0);

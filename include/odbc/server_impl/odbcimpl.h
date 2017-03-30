@@ -106,9 +106,9 @@ namespace SPA {
         private:
             void CleanDBObjects();
             CDBColumnInfoArray GetColInfo(SQLHSTMT hstmt, SQLSMALLINT columns, bool meta);
-            bool PushRecords(SQLHSTMT hstmt, const CDBColumnInfoArray &vColInfo, int &res, std::wstring &errMsg);
+            bool PushRecords(SQLHSTMT hstmt, const CDBColumnInfoArray &vColInfo, bool output, int &res, std::wstring &errMsg);
             bool PushInfo(SQLHDBC hdbc);
-            void PreprocessPreparedStatement();
+            bool PreprocessPreparedStatement();
             bool CheckInputParameterDataTypes();
             bool SetInputParamInfo();
             bool BindParameters(unsigned int r, SQLLEN *pLenInd);
@@ -150,6 +150,7 @@ namespace SPA {
             bool m_bCall;
             std::wstring m_sqlPrepare;
             std::wstring m_procName;
+			std::wstring m_procCatalogSchema;
             CParameterInfoArray m_vPInfo;
             bool m_bReturn;
             SQLSMALLINT m_outputs;

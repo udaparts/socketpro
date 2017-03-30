@@ -1014,7 +1014,8 @@ namespace SPA
             return true;
         }
 
-        void COdbcImpl::PreprocessPreparedStatement() {
+        bool COdbcImpl::PreprocessPreparedStatement() {
+			m_procCatalogSchema.clear();
             std::wstring s = m_sqlPrepare;
             m_bCall = false;
             m_procName.clear();
@@ -1022,30 +1023,46 @@ namespace SPA
                 s.pop_back();
                 s.erase(s.begin(), s.begin() + 1);
                 COdbcImpl::ODBC_CONNECTION_STRING::Trim(s);
-                transform(s.begin(), s.end(), s.begin(), ::tolower);
                 m_bReturn = (s.front() == L'?');
                 if (m_bReturn) {
                     s.erase(s.begin(), s.begin() + 1); //remove '?'
                     COdbcImpl::ODBC_CONNECTION_STRING::Trim(s);
                     if (s.front() != L'=')
-                        return;
+                        return false;
                     s.erase(s.begin(), s.begin() + 1); //remove '='
                     COdbcImpl::ODBC_CONNECTION_STRING::Trim(s);
                 }
+				std::wstring s_copy = s;
+                transform(s.begin(), s.end(), s.begin(), ::tolower);
                 m_bCall = (s.find(L"call ") == 0);
                 if (m_bCall) {
-                    auto pos = m_sqlPrepare.find('(');
-                    if (pos != std::string::npos) {
-                        m_procName.assign(m_sqlPrepare.begin() + 5, m_sqlPrepare.begin() + pos);
+                    auto pos = s_copy.find(L'(');
+                    if (pos != std::wstring::npos) {
+						if (s_copy.back() != L')')
+							return false;
+                        m_procName.assign(s_copy.begin() + 5, s_copy.begin() + pos);
                     } else {
-                        m_procName = m_sqlPrepare.substr(5);
+						if (s_copy.back() == L')')
+							return false;
+                        m_procName = s_copy.substr(5);
                     }
                     COdbcImpl::ODBC_CONNECTION_STRING::Trim(m_procName);
+					pos = m_procName.rfind(L'.');
+					if (pos != std::wstring::npos) {
+						m_procCatalogSchema = m_procName.substr(0, pos);
+						COdbcImpl::ODBC_CONNECTION_STRING::Trim(m_procCatalogSchema);
+						m_procName = m_procName.substr(pos + 1);
+						COdbcImpl::ODBC_CONNECTION_STRING::Trim(m_procName);
+					}
                 }
+				else {
+					return false;
+				}
             }
+			return true;
         }
 
-        bool COdbcImpl::PushRecords(SQLHSTMT hstmt, const CDBColumnInfoArray &vColInfo, int &res, std::wstring & errMsg) {
+        bool COdbcImpl::PushRecords(SQLHSTMT hstmt, const CDBColumnInfoArray &vColInfo, bool output, int &res, std::wstring & errMsg) {
             SQLRETURN retcode;
             VARTYPE vt;
             CScopeUQueue sbTemp(MY_OPERATION_SYSTEM, SPA::IsBigEndian(), 2 * DEFAULT_BIG_FIELD_CHUNK_SIZE);
@@ -1389,7 +1406,14 @@ namespace SPA
                 }
             } //while loop
             assert(SQL_NO_DATA == retcode);
-            if (q.GetSize()) {
+			if (output) {
+				//tell output parameter data
+				unsigned int res = SendResult(idOutputParameter, q.GetBuffer(), q.GetSize());
+				if (res == REQUEST_CANCELED || res == SOCKET_NOT_FOUND) {
+                    return false;
+                }
+			}
+            else if (q.GetSize()) {
                 return SendRows(q);
             }
             return true;
@@ -1452,7 +1476,7 @@ namespace SPA
                 if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
                     return;
                 }
-                bool ok = PushRecords(hstmt, vInfo, res, errMsg);
+                bool ok = PushRecords(hstmt, vInfo, false, res, errMsg);
                 ++m_oks;
                 if (!ok) {
                     return;
@@ -1519,7 +1543,7 @@ namespace SPA
                 if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
                     return;
                 }
-                bool ok = PushRecords(hstmt, vInfo, res, errMsg);
+                bool ok = PushRecords(hstmt, vInfo, false, res, errMsg);
                 ++m_oks;
                 if (!ok) {
                     return;
@@ -1586,7 +1610,7 @@ namespace SPA
                 if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
                     return;
                 }
-                bool ok = PushRecords(hstmt, vInfo, res, errMsg);
+                bool ok = PushRecords(hstmt, vInfo, false, res, errMsg);
                 ++m_oks;
                 if (!ok) {
                     return;
@@ -1653,7 +1677,7 @@ namespace SPA
                 if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
                     return;
                 }
-                bool ok = PushRecords(hstmt, vInfo, res, errMsg);
+                bool ok = PushRecords(hstmt, vInfo, false, res, errMsg);
                 ++m_oks;
                 if (!ok) {
                     return;
@@ -1718,7 +1742,7 @@ namespace SPA
                 if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
                     return;
                 }
-                bool ok = PushRecords(hstmt, vInfo, res, errMsg);
+                bool ok = PushRecords(hstmt, vInfo, false, res, errMsg);
                 ++m_oks;
                 if (!ok) {
                     return;
@@ -1783,7 +1807,7 @@ namespace SPA
                 if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
                     return;
                 }
-                bool ok = PushRecords(hstmt, vInfo, res, errMsg);
+                bool ok = PushRecords(hstmt, vInfo, false, res, errMsg);
                 ++m_oks;
                 if (!ok) {
                     return;
@@ -1848,7 +1872,7 @@ namespace SPA
                 if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
                     return;
                 }
-                bool ok = PushRecords(hstmt, vInfo, res, errMsg);
+                bool ok = PushRecords(hstmt, vInfo, false, res, errMsg);
                 ++m_oks;
                 if (!ok) {
                     return;
@@ -1913,7 +1937,7 @@ namespace SPA
                 if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
                     return;
                 }
-                bool ok = PushRecords(hstmt, vInfo, res, errMsg);
+                bool ok = PushRecords(hstmt, vInfo, false, res, errMsg);
                 ++m_oks;
                 if (!ok) {
                     return;
@@ -1978,7 +2002,7 @@ namespace SPA
                 if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
                     return;
                 }
-                bool ok = PushRecords(hstmt, vInfo, res, errMsg);
+                bool ok = PushRecords(hstmt, vInfo, false, res, errMsg);
                 ++m_oks;
                 if (!ok) {
                     return;
@@ -2049,7 +2073,7 @@ namespace SPA
                 if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
                     return;
                 }
-                bool ok = PushRecords(hstmt, vInfo, res, errMsg);
+                bool ok = PushRecords(hstmt, vInfo, false, res, errMsg);
                 ++m_oks;
                 if (!ok) {
                     return;
@@ -2114,7 +2138,7 @@ namespace SPA
                             if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
                                 return;
                             }
-                            bool ok = PushRecords(hstmt, vInfo, res, errMsg);
+                            bool ok = PushRecords(hstmt, vInfo, false, res, errMsg);
                             ++m_oks;
                             if (!ok) {
                                 return;
@@ -2953,6 +2977,7 @@ namespace SPA
                 }
                 res = 0;
                 if (m_parameters) {
+					bool output_sent = false;
                     unsigned int rows = (unsigned int) (m_vParam.size() / (unsigned short) m_parameters);
                     m_UQueue.SetSize(0);
                     CUQueue &qLenInd = m_UQueue;
@@ -2971,6 +2996,7 @@ namespace SPA
                     }
                     SQLLEN *pLenInd = (SQLLEN*) qLenInd.GetBuffer();
                     for (unsigned int r = 0; r < rows; ++r) {
+						output_sent = false;
                         if (!BindParameters(r, pLenInd)) {
                             res = SPA::Odbc::ER_ERROR;
                             GetErrMsg(SQL_HANDLE_STMT, m_pPrepare.get(), errMsg);
@@ -2984,30 +3010,35 @@ namespace SPA
                             ++m_fails;
                             break;
                         }
+						int temp;
                         do {
+							temp = 0;
+							std::wstring errTemp;
                             SQLSMALLINT columns = 0;
                             retcode = SQLNumResultCols(m_pPrepare.get(), &columns);
                             assert(SQL_SUCCEEDED(retcode));
                             if (columns) {
-                                if (rowset) {
-                                    unsigned int ret;
-                                    CDBColumnInfoArray vInfo = GetColInfo(m_pPrepare.get(), columns, meta);
+								CDBColumnInfoArray vInfo = GetColInfo(m_pPrepare.get(), columns, meta);
+								bool output = (m_bCall && vInfo[0].TablePath == m_procName && (size_t)m_parameters >= vInfo.size());
+								if (output || rowset) {
+									unsigned int outputs = output ? ((unsigned int )vInfo.size()) : 0;
+                                    unsigned int ret = 0;
                                     {
                                         CScopeUQueue sbRowset;
-                                        sbRowset << vInfo << index;
+                                        sbRowset << vInfo << index << outputs;
                                         ret = SendResult(idRowsetHeader, sbRowset->GetBuffer(), sbRowset->GetSize());
                                     }
                                     if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
                                         return;
                                     }
-                                    bool ok = PushRecords(m_pPrepare.get(), vInfo, res, errMsg);
+                                    bool ok = PushRecords(m_pPrepare.get(), vInfo, output, temp, errTemp);
+									output_sent = output;
                                     if (!ok) {
                                         return;
                                     }
-                                    if (res) {
-                                        ++m_fails;
-                                    } else {
-                                        ++m_oks;
+                                    if (temp && !res) {
+                                        res = temp;
+										errMsg = errTemp;
                                     }
                                 }
                             } else {
@@ -3017,10 +3048,15 @@ namespace SPA
                                 if (rows > 0) {
                                     affected += rows;
                                 }
-                                ++m_oks;
                             }
                         } while (SQLMoreResults(m_pPrepare.get()) == SQL_SUCCESS);
-                        if (m_outputs && !PushOutputParameters(r)) {
+						if (temp) {
+							++m_fails;
+						}
+						else {
+							++m_oks;
+						}
+                        if (m_outputs && !output_sent && !PushOutputParameters(r)) {
                             break;
                         }
                     }
@@ -3048,7 +3084,7 @@ namespace SPA
                                 if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
                                     return;
                                 }
-                                bool ok = PushRecords(m_pPrepare.get(), vInfo, res, errMsg);
+                                bool ok = PushRecords(m_pPrepare.get(), vInfo, false, res, errMsg);
                                 if (!ok) {
                                     return;
                                 }
