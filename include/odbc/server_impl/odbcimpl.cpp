@@ -764,11 +764,11 @@ namespace SPA
             return vCols;
         }
 
-        unsigned int COdbcImpl::ToCTime(const TIMESTAMP_STRUCT &d, std::tm &tm) {
+        unsigned int COdbcImpl::ToCTime(const TIMESTAMP_STRUCT &d, std::tm & tm) {
             tm.tm_isdst = 0;
-			tm.tm_wday = 0;
-			tm.tm_yday = 0;
-			tm.tm_year = d.year - 1900;
+            tm.tm_wday = 0;
+            tm.tm_yday = 0;
+            tm.tm_year = d.year - 1900;
             tm.tm_mon = d.month - 1;
             tm.tm_mday = d.day;
             tm.tm_hour = d.hour;
@@ -777,22 +777,22 @@ namespace SPA
             return (unsigned int) (d.fraction / 1000);
         }
 
-        unsigned int COdbcImpl::ToCTime(const TIME_STRUCT &d, std::tm &tm) {
+        unsigned int COdbcImpl::ToCTime(const TIME_STRUCT &d, std::tm & tm) {
             //start from 01/01/1900
-			memset(&tm, 0, sizeof (tm));
+            memset(&tm, 0, sizeof (tm));
             tm.tm_mday = 1;
             tm.tm_hour = d.hour;
             tm.tm_min = d.minute;
             tm.tm_sec = d.second;
-			return 0;
+            return 0;
         }
 
-        unsigned int COdbcImpl::ToCTime(const DATE_STRUCT &d, std::tm &tm) {
+        unsigned int COdbcImpl::ToCTime(const DATE_STRUCT &d, std::tm & tm) {
             memset(&tm, 0, sizeof (tm));
-			tm.tm_year = d.year - 1900;
+            tm.tm_year = d.year - 1900;
             tm.tm_mon = d.month - 1;
             tm.tm_mday = d.day;
-			return 0;
+            return 0;
         }
 
         void COdbcImpl::SetStringInfo(SQLHDBC hdbc, SQLUSMALLINT infoType, std::unordered_map<SQLUSMALLINT, CComVariant> &mapInfo) {
@@ -1006,7 +1006,7 @@ namespace SPA
         }
 
         bool COdbcImpl::PreprocessPreparedStatement() {
-			m_procCatalogSchema.clear();
+            m_procCatalogSchema.clear();
             std::wstring s = m_sqlPrepare;
             m_bCall = false;
             m_procName.clear();
@@ -1023,34 +1023,33 @@ namespace SPA
                     s.erase(s.begin(), s.begin() + 1); //remove '='
                     COdbcImpl::ODBC_CONNECTION_STRING::Trim(s);
                 }
-				std::wstring s_copy = s;
+                std::wstring s_copy = s;
                 transform(s.begin(), s.end(), s.begin(), ::tolower);
                 m_bCall = (s.find(L"call ") == 0);
                 if (m_bCall) {
                     auto pos = s_copy.find(L'(');
                     if (pos != std::wstring::npos) {
-						if (s_copy.back() != L')')
-							return false;
+                        if (s_copy.back() != L')')
+                            return false;
                         m_procName.assign(s_copy.begin() + 5, s_copy.begin() + pos);
                     } else {
-						if (s_copy.back() == L')')
-							return false;
+                        if (s_copy.back() == L')')
+                            return false;
                         m_procName = s_copy.substr(5);
                     }
                     COdbcImpl::ODBC_CONNECTION_STRING::Trim(m_procName);
-					pos = m_procName.rfind(L'.');
-					if (pos != std::wstring::npos) {
-						m_procCatalogSchema = m_procName.substr(0, pos);
-						COdbcImpl::ODBC_CONNECTION_STRING::Trim(m_procCatalogSchema);
-						m_procName = m_procName.substr(pos + 1);
-						COdbcImpl::ODBC_CONNECTION_STRING::Trim(m_procName);
-					}
+                    pos = m_procName.rfind(L'.');
+                    if (pos != std::wstring::npos) {
+                        m_procCatalogSchema = m_procName.substr(0, pos);
+                        COdbcImpl::ODBC_CONNECTION_STRING::Trim(m_procCatalogSchema);
+                        m_procName = m_procName.substr(pos + 1);
+                        COdbcImpl::ODBC_CONNECTION_STRING::Trim(m_procName);
+                    }
+                } else {
+                    return false;
                 }
-				else {
-					return false;
-				}
             }
-			return true;
+            return true;
         }
 
         bool COdbcImpl::PushRecords(SQLHSTMT hstmt, const CDBColumnInfoArray &vColInfo, bool output, int &res, std::wstring & errMsg) {
@@ -1166,7 +1165,7 @@ namespace SPA
                                             q << vt;
                                             std::tm st;
                                             unsigned int us = ToCTime(d, st);
-											SPA::UDateTime dt(st, us);
+                                            SPA::UDateTime dt(st, us);
                                             q << dt.time;
                                         }
                                     }
@@ -1393,14 +1392,13 @@ namespace SPA
                 }
             } //while loop
             assert(SQL_NO_DATA == retcode);
-			if (output) {
-				//tell output parameter data
-				unsigned int res = SendResult(idOutputParameter, q.GetBuffer(), q.GetSize());
-				if (res == REQUEST_CANCELED || res == SOCKET_NOT_FOUND) {
+            if (output) {
+                //tell output parameter data
+                unsigned int res = SendResult(idOutputParameter, q.GetBuffer(), q.GetSize());
+                if (res == REQUEST_CANCELED || res == SOCKET_NOT_FOUND) {
                     return false;
                 }
-			}
-            else if (q.GetSize()) {
+            } else if (q.GetSize()) {
                 return SendRows(q);
             }
             return true;
@@ -2515,7 +2513,7 @@ namespace SPA
                 SQLPOINTER ParameterValuePtr = nullptr;
                 SQLLEN BufferLength = 0;
                 SQLSMALLINT c_type = 0, sql_type = 0;
-				SQLSMALLINT DecimalDigits = 0;
+                SQLSMALLINT DecimalDigits = 0;
                 switch (vtD.vt) {
                     case VT_NULL:
                     case VT_EMPTY:
@@ -2588,7 +2586,7 @@ namespace SPA
                                     BufferLength = info.ColumnSize;
                                     c_type = SQL_C_CHAR;
                                     output_pos += (unsigned int) BufferLength;
-									DecimalDigits = 6;
+                                    DecimalDigits = 6;
                                     break;
                                 case (VT_I1 | VT_ARRAY):
                                     sql_type = SQL_LONGVARCHAR;
@@ -2673,7 +2671,7 @@ namespace SPA
                                 case VT_DATE:
                                     sql_type = SQL_TYPE_TIMESTAMP;
                                     c_type = SQL_C_TIMESTAMP;
-									DecimalDigits = 6;
+                                    DecimalDigits = 6;
                                     break;
                                 case (VT_I1 | VT_ARRAY):
                                     sql_type = SQL_LONGVARCHAR;
@@ -2749,9 +2747,9 @@ namespace SPA
                         c_type = SQL_C_CHAR;
                     {
                         SPA::UDateTime dt(vtD.ullVal);
-						if (dt.HasMicrosecond()) {
-							DecimalDigits = 6;
-						}
+                        if (dt.HasMicrosecond()) {
+                            DecimalDigits = 6;
+                        }
                         if (InputOutputType == SQL_PARAM_OUTPUT || InputOutputType == SQL_PARAM_INPUT_OUTPUT) {
                             ParameterValuePtr = (SQLPOINTER) (m_Blob.GetBuffer() + output_pos);
                             BufferLength = info.ColumnSize;
@@ -2816,12 +2814,12 @@ namespace SPA
                             ColumnSize = ::SysStringLen(vtD.bstrVal);
                             BufferLength = (SQLLEN) ColumnSize * sizeof (wchar_t);
                         }
-						pLenInd[col] = SQL_NTS;
+                        pLenInd[col] = SQL_NTS;
                         break;
                     case VT_DECIMAL:
                         c_type = SQL_C_CHAR;
                         sql_type = SQL_NUMERIC;
-						DecimalDigits = (SQLSMALLINT)vtD.decVal.scale;
+                        DecimalDigits = (SQLSMALLINT) vtD.decVal.scale;
                         if (InputOutputType == SQL_PARAM_OUTPUT || InputOutputType == SQL_PARAM_INPUT_OUTPUT) {
                             BufferLength = (SQLULEN) info.ColumnSize;
                             const DECIMAL &decVal = vtD.decVal;
@@ -2971,7 +2969,7 @@ namespace SPA
                 }
                 res = 0;
                 if (m_parameters) {
-					bool output_sent = false;
+                    bool output_sent = false;
                     unsigned int rows = (unsigned int) (m_vParam.size() / (unsigned short) m_parameters);
                     m_UQueue.SetSize(0);
                     CUQueue &qLenInd = m_UQueue;
@@ -2990,7 +2988,7 @@ namespace SPA
                     }
                     SQLLEN *pLenInd = (SQLLEN*) qLenInd.GetBuffer();
                     for (unsigned int r = 0; r < rows; ++r) {
-						output_sent = false;
+                        output_sent = false;
                         if (!BindParameters(r, pLenInd)) {
                             res = SPA::Odbc::ER_ERROR;
                             GetErrMsg(SQL_HANDLE_STMT, m_pPrepare.get(), errMsg);
@@ -3004,18 +3002,18 @@ namespace SPA
                             ++m_fails;
                             break;
                         }
-						int temp;
+                        int temp;
                         do {
-							temp = 0;
-							std::wstring errTemp;
+                            temp = 0;
+                            std::wstring errTemp;
                             SQLSMALLINT columns = 0;
                             retcode = SQLNumResultCols(m_pPrepare.get(), &columns);
                             assert(SQL_SUCCEEDED(retcode));
                             if (columns) {
-								CDBColumnInfoArray vInfo = GetColInfo(m_pPrepare.get(), columns, meta);
-								bool output = (m_bCall && vInfo[0].TablePath == m_procName && (size_t)m_parameters >= vInfo.size());
-								if (output || rowset) {
-									unsigned int outputs = output ? ((unsigned int )vInfo.size()) : 0;
+                                CDBColumnInfoArray vInfo = GetColInfo(m_pPrepare.get(), columns, meta);
+                                bool output = (m_bCall && vInfo[0].TablePath == m_procName && (size_t) m_parameters >= vInfo.size());
+                                if (output || rowset) {
+                                    unsigned int outputs = output ? ((unsigned int) vInfo.size()) : 0;
                                     unsigned int ret = 0;
                                     {
                                         CScopeUQueue sbRowset;
@@ -3026,13 +3024,13 @@ namespace SPA
                                         return;
                                     }
                                     bool ok = PushRecords(m_pPrepare.get(), vInfo, output, temp, errTemp);
-									output_sent = output;
+                                    output_sent = output;
                                     if (!ok) {
                                         return;
                                     }
                                     if (temp && !res) {
                                         res = temp;
-										errMsg = errTemp;
+                                        errMsg = errTemp;
                                     }
                                 }
                             } else {
@@ -3044,12 +3042,11 @@ namespace SPA
                                 }
                             }
                         } while (SQLMoreResults(m_pPrepare.get()) == SQL_SUCCESS);
-						if (temp) {
-							++m_fails;
-						}
-						else {
-							++m_oks;
-						}
+                        if (temp) {
+                            ++m_fails;
+                        } else {
+                            ++m_oks;
+                        }
                         if (m_outputs && !output_sent && !PushOutputParameters(r)) {
                             break;
                         }

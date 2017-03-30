@@ -163,7 +163,7 @@ namespace SPA {
 
             CDBVariant(const GUID &uuid) {
                 ::memcpy(&decVal, &uuid, sizeof (uuid));
-				vt = VT_CLSID;
+                vt = VT_CLSID;
             }
 
             template <typename type>
@@ -171,8 +171,8 @@ namespace SPA {
             }
 
             CDBVariant(const DECIMAL& src) {
-				decVal = src;
-				vt = VT_DECIMAL;
+                decVal = src;
+                vt = VT_DECIMAL;
             }
 
             CDBVariant(const unsigned char *buffer, unsigned int bytes) {
@@ -311,14 +311,14 @@ namespace SPA {
             CDBVariant& operator=(const GUID &uuid) {
                 ::VariantClear(this);
                 ::memcpy(&decVal, &uuid, sizeof (uuid));
-				vt = VT_CLSID;
+                vt = VT_CLSID;
                 return *this;
             }
 
-			CDBVariant& operator=(const DECIMAL& src) {
-				::VariantClear(this);
-				decVal = src;
-				vt = VT_DECIMAL;
+            CDBVariant& operator=(const DECIMAL& src) {
+                ::VariantClear(this);
+                decVal = src;
+                vt = VT_DECIMAL;
             }
 
             CDBVariant& operator=(const UDateTime &dt) {

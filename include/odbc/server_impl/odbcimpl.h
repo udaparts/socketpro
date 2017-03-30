@@ -150,7 +150,7 @@ namespace SPA {
             bool m_bCall;
             std::wstring m_sqlPrepare;
             std::wstring m_procName;
-			std::wstring m_procCatalogSchema;
+            std::wstring m_procCatalogSchema;
             CParameterInfoArray m_vPInfo;
             bool m_bReturn;
             SQLSMALLINT m_outputs;

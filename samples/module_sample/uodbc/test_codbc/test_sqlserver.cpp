@@ -154,9 +154,9 @@ void InsertBLOBByPreparedStatement(std::shared_ptr<CMyHandler> pOdbc) {
     sbBlob << wstr;
     vData.push_back(CDBVariant(sbBlob->GetBuffer(), sbBlob->GetSize()));
     vData.push_back(wstr.c_str());
-	const char *strDec = "254000.2460";
-	DECIMAL dec;
-	SPA::ParseDec(strDec, dec);
+    const char *strDec = "254000.2460";
+    DECIMAL dec;
+    SPA::ParseDec(strDec, dec);
     vData.push_back(dec);
 
     //second set of data
@@ -172,8 +172,8 @@ void InsertBLOBByPreparedStatement(std::shared_ptr<CMyHandler> pOdbc) {
     sbBlob << str;
     vData.push_back(CDBVariant(sbBlob->GetBuffer(), sbBlob->GetSize()));
     vData.push_back(str.c_str());
-	strDec = "20254000.197";
-	SPA::ParseDec(strDec, dec);
+    strDec = "20254000.197";
+    SPA::ParseDec(strDec, dec);
     vData.push_back(dec);
 
     //third set of data
@@ -189,8 +189,8 @@ void InsertBLOBByPreparedStatement(std::shared_ptr<CMyHandler> pOdbc) {
     vData.push_back(CDBVariant(sbBlob->GetBuffer(), sbBlob->GetSize()));
     vData.push_back(wstr.c_str());
     //vData.push_back(6254000.572);
-	strDec = "6254000.5";
-	SPA::ParseDec(strDec, dec);
+    strDec = "6254000.5";
+    SPA::ParseDec(strDec, dec);
     vData.push_back(dec);
 
     //execute multiple sets of parameter data in one short
@@ -249,7 +249,7 @@ void TestCreateTables(std::shared_ptr<CMyHandler> pOdbc) {
         std::wcout << errMsg << std::endl;
     });
 
-	const wchar_t *use_database = L"Use sqltestdb";
+    const wchar_t *use_database = L"Use sqltestdb";
     ok = pOdbc->Execute(use_database, [](CSender &handler, int res, const std::wstring &errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & vtId) {
         std::cout << "affected = " << affected << ", fails = " << (unsigned int) (fail_ok >> 32) << ", oks = " << (unsigned int) fail_ok << ", res = " << res << ", errMsg: ";
         std::wcout << errMsg << std::endl;
@@ -267,8 +267,8 @@ void TestCreateTables(std::shared_ptr<CMyHandler> pOdbc) {
         std::wcout << errMsg << std::endl;
     });
 
-	const wchar_t *drop_proc = L"IF EXISTS(SELECT * FROM sys.procedures WHERE name='sp_TestProc') drop proc sp_TestProc";
-	 ok = pOdbc->Execute(drop_proc, [](CSender &handler, int res, const std::wstring &errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & vtId) {
+    const wchar_t *drop_proc = L"IF EXISTS(SELECT * FROM sys.procedures WHERE name='sp_TestProc') drop proc sp_TestProc";
+    ok = pOdbc->Execute(drop_proc, [](CSender &handler, int res, const std::wstring &errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & vtId) {
         std::cout << "affected = " << affected << ", fails = " << (unsigned int) (fail_ok >> 32) << ", oks = " << (unsigned int) fail_ok << ", res = " << res << ", errMsg: ";
         std::wcout << errMsg << std::endl;
     });
@@ -283,19 +283,19 @@ void TestCreateTables(std::shared_ptr<CMyHandler> pOdbc) {
 void TestStoredProcedure(std::shared_ptr<CMyHandler> pOdbc, CRowsetArray&ra, CDBVariantArray &vPData, unsigned int &oks) {
     CParameterInfoArray vPInfo;
 
-	CParameterInfo info;
-	info.DataType = VT_I4;
-	vPInfo.push_back(info);
+    CParameterInfo info;
+    info.DataType = VT_I4;
+    vPInfo.push_back(info);
 
-	info.DataType = VT_R8;
-	info.Direction = pdOutput;
-	vPInfo.push_back(info);
+    info.DataType = VT_R8;
+    info.Direction = pdOutput;
+    vPInfo.push_back(info);
 
-	info.DataType = VT_DATE;
-	info.Direction = pdOutput;
-	vPInfo.push_back(info);
+    info.DataType = VT_DATE;
+    info.Direction = pdOutput;
+    vPInfo.push_back(info);
 
-	bool ok = pOdbc->Prepare(L"{ call sqltestdb.dbo.sp_TestProc(?, ?, ?) } ", [](CSender &handler, int res, const std::wstring & errMsg) {
+    bool ok = pOdbc->Prepare(L"{ call sqltestdb.dbo.sp_TestProc(?, ?, ?) } ", [](CSender &handler, int res, const std::wstring & errMsg) {
         std::cout << "res = " << res << ", errMsg: ";
         std::wcout << errMsg << std::endl;
     }, vPInfo);

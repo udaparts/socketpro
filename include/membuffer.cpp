@@ -429,15 +429,15 @@ namespace SPA
                 break;
 #endif
             case VT_DECIMAL:
-				total += Pop((unsigned char*) &(vtData.decVal), sizeof (vtData.decVal), position);
+                total += Pop((unsigned char*) &(vtData.decVal), sizeof (vtData.decVal), position);
 #ifdef WIN32_64
-				vtData.vt =VT_DECIMAL;
+                vtData.vt = VT_DECIMAL;
 #endif
                 break;
             case VT_CLSID:
                 total += Pop((unsigned char*) &(vtData.decVal), sizeof (vtData.decVal), position);
 #ifdef WIN32_64
-				vtData.vt = VT_CLSID;
+                vtData.vt = VT_CLSID;
 #endif
                 break;
             default:
