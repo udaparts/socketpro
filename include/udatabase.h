@@ -162,8 +162,13 @@ namespace SPA {
             }
 
             CDBVariant(const GUID &uuid) {
-                ::memcpy(&decVal, &uuid, sizeof (uuid));
-                vt = VT_CLSID;
+				void *buffer;
+                SAFEARRAYBOUND sab[1] = {sizeof(GUID), 0};
+                parray = ::SafeArrayCreate(VT_UI1, 1, sab);
+                ::SafeArrayAccessData(parray, &buffer);
+                ::memcpy(buffer, &uuid, sizeof (uuid));
+				::SafeArrayUnaccessData(parray);
+                vt = (VT_ARRAY | VT_UI1);
             }
 
             template <typename type>
@@ -309,9 +314,14 @@ namespace SPA {
             }
 
             CDBVariant& operator=(const GUID &uuid) {
-                ::VariantClear(this);
-                ::memcpy(&decVal, &uuid, sizeof (uuid));
-                vt = VT_CLSID;
+                void *buffer;
+				::VariantClear(this);
+				SAFEARRAYBOUND sab[1] = {sizeof(GUID), 0};
+                parray = ::SafeArrayCreate(VT_UI1, 1, sab);
+                ::SafeArrayAccessData(parray, &buffer);
+                ::memcpy(buffer, &uuid, sizeof (uuid));
+				::SafeArrayUnaccessData(parray);
+                vt = (VT_ARRAY | VT_UI1);
                 return *this;
             }
 

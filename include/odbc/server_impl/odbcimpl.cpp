@@ -5,7 +5,7 @@
 #ifndef NDEBUG
 #include <iostream>
 #endif
-
+#include "../sqlncli.h"
 
 namespace SPA
 {
@@ -736,8 +736,17 @@ namespace SPA
                         info.Precision = (unsigned char) displaysize;
                         info.DataType = VT_DATE;
                         break;
+					case SQL_SS_XML:
+						info.DataType = VT_BSTR;
+						info.ColumnSize = (unsigned int) collen;
+						break;
+					case SQL_SS_VARIANT:
+						info.DataType = VT_VARIANT;
+						info.ColumnSize = (unsigned int) collen;
+						break;
                     default:
-                        assert(false); //not supported
+                        info.DataType = VT_BSTR;
+						info.ColumnSize = (unsigned int) collen;
                         break;
                 }
 
@@ -1054,9 +1063,7 @@ namespace SPA
 
         bool COdbcImpl::PushRecords(SQLHSTMT hstmt, const CDBColumnInfoArray &vColInfo, bool output, int &res, std::wstring & errMsg) {
             SQLRETURN retcode;
-            VARTYPE vt;
-            CScopeUQueue sbTemp(MY_OPERATION_SYSTEM, SPA::IsBigEndian(), 2 * DEFAULT_BIG_FIELD_CHUNK_SIZE);
-            SQLLEN len_or_null = 0;
+			CScopeUQueue sbTemp(MY_OPERATION_SYSTEM, SPA::IsBigEndian(), 2 * DEFAULT_BIG_FIELD_CHUNK_SIZE);
             size_t fields = vColInfo.size();
             CScopeUQueue sb;
             CUQueue &q = *sb;
@@ -1068,8 +1075,9 @@ namespace SPA
                 bool blob = false;
                 if (SQL_SUCCEEDED(retcode)) {
                     for (size_t i = 0; i < fields; ++i) {
+						SQLLEN len_or_null = 0;
                         const CDBColumnInfo &colInfo = vColInfo[i];
-                        vt = colInfo.DataType;
+                        VARTYPE vt = colInfo.DataType;
                         switch (vt) {
                             case VT_BOOL:
                             {
@@ -1302,6 +1310,19 @@ namespace SPA
                                 }
                             }
                                 break;
+							case VT_CLSID:
+							{
+								GUID d;
+                                retcode = SQLGetData(hstmt, (SQLUSMALLINT) (i + 1), SQL_C_GUID, &d, sizeof (d), &len_or_null);
+                                if (len_or_null == SQL_NULL_DATA) {
+                                    q << (VARTYPE) VT_NULL;
+                                } else {
+									vt = (VT_UI1 | VT_ARRAY);
+                                    q << vt << (unsigned int)sizeof(GUID) << d;
+									vt = VT_CLSID;
+                                }
+							}
+								break;
                             case VT_R8:
                             {
                                 double d;
@@ -1375,32 +1396,53 @@ namespace SPA
                                         break;
                                 }
                                 break;
-                            default:
-                                assert(false);
-                                break;
+							default:
+								{
+									if (sb->GetMaxSize() < 16 * 1024) {
+										sb->ReallocBuffer(16 * 1024);
+									}
+									retcode = SQLGetData(hstmt, (SQLUSMALLINT) (i + 1), SQL_C_WCHAR, (SQLPOINTER) sbTemp->GetBuffer(), sbTemp->GetMaxSize(), &len_or_null);
+									if(!SQL_SUCCEEDED(retcode)) {
+										break;
+									}
+									else if (len_or_null == SQL_NULL_DATA) {
+                                        q << (VARTYPE) VT_NULL;
+                                    } else {
+										unsigned int len  = (unsigned int)len_or_null;
+										sbTemp->SetSize(len);
+										sbTemp->SetNull();
+										const wchar_t *str = (const wchar_t*)sbTemp->GetBuffer();
+										q << (VARTYPE) VT_BSTR << str;
+										sbTemp->SetSize(0);
+                                    }
+								}
+								break;
                         } //for loop
-                        assert(SQL_SUCCEEDED(retcode));
+                        if(!SQL_SUCCEEDED(retcode)) {
+							res = SPA::Odbc::ER_ERROR;
+							GetErrMsg(SQL_HANDLE_STMT, hstmt, errMsg);
+						}
                     }
                 } else {
                     res = SPA::Odbc::ER_ERROR;
                     GetErrMsg(SQL_HANDLE_STMT, hstmt, errMsg);
-                    ++m_fails;
                     break;
                 }
                 if ((q.GetSize() >= DEFAULT_RECORD_BATCH_SIZE || blob) && !SendRows(q)) {
                     return false;
                 }
             } //while loop
-            assert(SQL_NO_DATA == retcode);
-            if (output) {
-                //tell output parameter data
-                unsigned int res = SendResult(idOutputParameter, q.GetBuffer(), q.GetSize());
-                if (res == REQUEST_CANCELED || res == SOCKET_NOT_FOUND) {
-                    return false;
-                }
-            } else if (q.GetSize()) {
-                return SendRows(q);
-            }
+            if(SQL_NO_DATA == retcode || SQL_SUCCEEDED(retcode)) {
+				if (output) {
+					//tell output parameter data
+					unsigned int res = SendResult(idOutputParameter, q.GetBuffer(), q.GetSize());
+					if (res == REQUEST_CANCELED || res == SOCKET_NOT_FOUND) {
+						return false;
+					}
+				} else if (q.GetSize()) {
+					return SendRows(q);
+				}
+			}
             return true;
         }
 
@@ -2850,7 +2892,7 @@ namespace SPA
                         break;
                     case (VT_I1 | VT_ARRAY):
                         c_type = SQL_C_CHAR;
-                        sql_type = SQL_VARCHAR;
+                        sql_type = SQL_LONGVARCHAR;
                         ColumnSize = vtD.parray->rgsabound->cElements;
                         ::SafeArrayAccessData(vtD.parray, &ParameterValuePtr);
                         if (InputOutputType == SQL_PARAM_OUTPUT || InputOutputType == SQL_PARAM_INPUT_OUTPUT) {

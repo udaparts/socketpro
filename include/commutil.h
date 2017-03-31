@@ -195,7 +195,6 @@ namespace SPA {
                 case VT_CY:
                     return (vt0.cyVal.int64 == vt1.cyVal.int64);
                 case VT_DECIMAL:
-                case VT_CLSID:
                     return (::memcmp(&vt0.decVal, &vt1.decVal, sizeof (tagDEC)) == 0);
                 default:
                     assert(false); //not implemented and shouldn't come here
