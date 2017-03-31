@@ -2329,7 +2329,12 @@ namespace SPA
                         vt = VT_I8;
                     }
                     if (vt != vtP) {
-                        return false;
+                        if (vtP == (VT_ARRAY | VT_UI1) && d.parray->rgsabound->cElements == sizeof(GUID) && vt == VT_CLSID) {
+							continue;
+						}
+						else {
+							return false;
+						}
                     }
                 }
             }
@@ -2359,7 +2364,6 @@ namespace SPA
                             case VT_R8:
                             case VT_DATE:
                             case VT_DECIMAL:
-                            case VT_CLSID:
                             case VT_BSTR:
                             case (VT_UI1 | VT_ARRAY):
                             case (VT_I1 | VT_ARRAY):
@@ -2387,6 +2391,10 @@ namespace SPA
                     case SPA::UDB::pdReturnValue:
                     case SPA::UDB::pdInputOutput:
                         switch (info.DataType) {
+							case VT_CLSID:
+								info.ColumnSize = sizeof (GUID);
+                                max_size += sizeof (GUID);
+								break;
                             case VT_DATE:
                                 info.ColumnSize = sizeof (OdbcDateTime);
                                 max_size += sizeof (OdbcDateTime);
@@ -2448,7 +2456,12 @@ namespace SPA
                     continue;
                 }
                 SPA::UDB::CDBVariant &vtD = m_vParam[(unsigned int) n + r * ((unsigned int) m_parameters)];
-                sb << info.DataType;
+				if (info.DataType == VT_CLSID) {
+					sb << (VARTYPE)(VT_UI1 | VT_ARRAY);
+				}
+				else {
+					sb << info.DataType;
+				}
                 switch (info.DataType) {
                     case VT_I1:
                     case VT_UI1:
@@ -2481,7 +2494,11 @@ namespace SPA
                         sb->Push((const unsigned char*) &vtD.dblVal, sizeof (vtD.dblVal));
                         break;
                     case VT_CLSID:
-                        sb->Push((const unsigned char*) &vtD.decVal, sizeof (vtD.decVal));
+					{
+                        sb << (unsigned int)sizeof(GUID);
+						sb->Push(start, (unsigned int)sizeof(GUID));
+						start += info.ColumnSize;
+					}
                         break;
                     case VT_DATE:
                     {
@@ -2652,9 +2669,11 @@ namespace SPA
                                     output_pos += (unsigned int) BufferLength;
                                     break;
                                 case VT_CLSID:
-                                    c_type = SQL_C_GUID;
+                                    c_type = SQL_C_BINARY;
                                     sql_type = SQL_GUID;
-                                    ParameterValuePtr = &vtD.decVal;
+                                    ParameterValuePtr = (SQLPOINTER) (m_Blob.GetBuffer() + output_pos);
+									BufferLength = info.ColumnSize;
+									output_pos += (unsigned int) BufferLength;
                                     break;
                                 default:
                                     assert(false);
@@ -2833,12 +2852,6 @@ namespace SPA
                         }
                     }
                         break;
-                    case VT_CLSID:
-                        c_type = SQL_C_GUID;
-                        sql_type = SQL_GUID;
-                        ParameterValuePtr = &vtD.decVal;
-                        pLenInd[col] = sizeof (GUID);
-                        break;
                     case VT_BSTR:
                         c_type = SQL_C_WCHAR;
                         sql_type = SQL_WLONGVARCHAR;
@@ -2913,7 +2926,13 @@ namespace SPA
                         break;
                     case (VT_UI1 | VT_ARRAY):
                         c_type = SQL_C_BINARY;
-                        sql_type = SQL_LONGVARBINARY;
+						ColumnSize = vtD.parray->rgsabound->cElements;
+						if (ColumnSize == sizeof(GUID) && info.DataType == VT_CLSID) {
+							sql_type = SQL_GUID;
+						}
+						else {
+							sql_type = SQL_LONGVARBINARY;
+						}
                         if (InputOutputType == SQL_PARAM_OUTPUT || InputOutputType == SQL_PARAM_INPUT_OUTPUT) {
                             if (ColumnSize > info.ColumnSize) {
                                 ColumnSize = info.ColumnSize;
@@ -2927,7 +2946,6 @@ namespace SPA
                         } else {
                             ::SafeArrayAccessData(vtD.parray, &ParameterValuePtr);
                             m_vArray.push_back(vtD.parray);
-                            ColumnSize = vtD.parray->rgsabound->cElements;
                             BufferLength = (SQLLEN) ColumnSize;
                             pLenInd[col] = (SQLLEN) ColumnSize;
                         }
