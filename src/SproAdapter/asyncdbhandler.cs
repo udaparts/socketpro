@@ -588,6 +588,12 @@ namespace SocketProAdapter
                                 }
                             }
                         }
+                        else if (vt is Guid)
+                        {
+                            Guid guid = (Guid)vt;
+                            vt = guid.ToByteArray();
+                            sb.Save(vt);
+                        }
                         else
                         {
                             sb.Save(vt);

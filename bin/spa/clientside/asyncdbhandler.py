@@ -4,7 +4,7 @@ from spa.memqueue import CUQueue
 from spa.udb import *
 from spa.clientside import *
 import collections
-import math
+import math, uuid
 
 class CAsyncDBHandler(CAsyncServiceHandler):
     ONE_MEGA_BYTES = 0x100000
@@ -537,6 +537,10 @@ class CAsyncDBHandler(CAsyncServiceHandler):
                     if not SendBlob(sb):
                         CScopeUQueue.Unlock(sb)
                         return False
+            elif isinstance(vt, uuid.UUID):
+                sb.SaveUShort(tagVariantDataType.sdVT_UI1 | tagVariantDataType.sdVT_ARRAY)
+                sb.SaveUInt(16)
+                sb.SaveUUID(vt)
             elif isinstance(vt, bytearray):
                 #send array of bytes
                 length = len(vt)
