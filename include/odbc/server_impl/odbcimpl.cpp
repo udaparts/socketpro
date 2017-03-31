@@ -5,7 +5,7 @@
 #ifndef NDEBUG
 #include <iostream>
 #endif
-#include "../sqlncli.h"
+#include "../async_sqlncli.h"
 
 namespace SPA
 {
