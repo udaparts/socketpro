@@ -79,7 +79,7 @@ int main(int argc, char* argv[]) {
     ok = pOdbc->Execute(L"delete from employee;delete from company", er);
     TestPreparedStatements(pOdbc);
     InsertBLOBByPreparedStatement(pOdbc);
-    ok = pOdbc->Execute(L"SELECT * from company;select * from employee;select CONVERT (datetime, SYSDATETIME())", er, r, rh);
+    ok = pOdbc->Execute(L"SELECT * from company;select * from employee;select CONVERT (datetime, SYSDATETIME());select * from test_rare1;select * from SpatialTable", er, r, rh);
     ok = pOdbc->Tables(L"sqltestdb", L"dbo", L"%", L"TABLE", er, r, rh);
 
     CDBVariantArray vPData;
@@ -262,6 +262,18 @@ void TestCreateTables(std::shared_ptr<CMyHandler> pOdbc) {
     });
 
     create_table = L"IF NOT EXISTS(SELECT * FROM sys.tables WHERE name='employee') create table employee(EMPLOYEEID bigint IDENTITY(1,1) PRIMARY KEY NOT NULL, CompanyId bigint not null, name CHAR(64) NOT NULL, JoinDate DATETIME2(3) default null, MyIMAGE image, DESCRIPTION NTEXT, Salary decimal(15,2), FOREIGN KEY(CompanyId) REFERENCES company(id))";
+    ok = pOdbc->Execute(create_table, [](CSender &handler, int res, const std::wstring &errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & vtId) {
+        std::cout << "affected = " << affected << ", fails = " << (unsigned int) (fail_ok >> 32) << ", oks = " << (unsigned int) fail_ok << ", res = " << res << ", errMsg: ";
+        std::wcout << errMsg << std::endl;
+    });
+
+	create_table = L"IF NOT EXISTS(SELECT * FROM sys.tables WHERE name='test_rare1') CREATE TABLE test_rare1(testid int IDENTITY(1,1) NOT NULL,myguid uniqueidentifier DEFAULT newid() NULL,mydate date DEFAULT getdate() NULL,mybool bit DEFAULT 0 NOT NULL,mymoney money default 0 NULL,mytinyint tinyint default 0 NULL,myxml xml DEFAULT '<myxml_root />' NULL,myvariant sql_variant DEFAULT 'my_variant_default' NOT NULL,mydateimeoffset datetimeoffset(4) NULL,PRIMARY KEY(testid))";
+    ok = pOdbc->Execute(create_table, [](CSender &handler, int res, const std::wstring &errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & vtId) {
+        std::cout << "affected = " << affected << ", fails = " << (unsigned int) (fail_ok >> 32) << ", oks = " << (unsigned int) fail_ok << ", res = " << res << ", errMsg: ";
+        std::wcout << errMsg << std::endl;
+    });
+
+	create_table = L"IF NOT EXISTS(SELECT * FROM sys.tables WHERE name='SpatialTable') CREATE TABLE SpatialTable(id int IDENTITY(1,1) NOT NULL, GeomCol geometry NULL,PRIMARY KEY(id))";
     ok = pOdbc->Execute(create_table, [](CSender &handler, int res, const std::wstring &errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & vtId) {
         std::cout << "affected = " << affected << ", fails = " << (unsigned int) (fail_ok >> 32) << ", oks = " << (unsigned int) fail_ok << ", res = " << res << ", errMsg: ";
         std::wcout << errMsg << std::endl;

@@ -2143,7 +2143,7 @@ namespace SPA
                 m_pExcuting = pStmt;
                 std::string sql = SPA::Utilities::ToUTF8(wsql.c_str(), wsql.size());
                 retcode = SQLExecDirect(hstmt, (SQLCHAR*) sql.c_str(), (SQLINTEGER) sql.size());
-                if (!SQL_SUCCEEDED(retcode)) {
+                if (!SQL_SUCCEEDED(retcode) && retcode != SQL_NO_DATA) {
                     res = SPA::Odbc::ER_ERROR;
                     GetErrMsg(SQL_HANDLE_STMT, hstmt, errMsg);
                     ++m_fails;
@@ -2181,7 +2181,14 @@ namespace SPA
                         ++m_oks;
                     }
                 } while ((retcode = SQLMoreResults(hstmt)) == SQL_SUCCESS);
-                assert(retcode == SQL_NO_DATA);
+				if (!SQL_SUCCEEDED(retcode) && retcode != SQL_NO_DATA) {
+					res = SPA::Odbc::ER_ERROR;
+                    GetErrMsg(SQL_HANDLE_STMT, hstmt, errMsg);
+                    ++m_fails;
+				}
+                else {
+					assert(retcode == SQL_NO_DATA);
+				}
             } while (false);
             fail_ok = ((m_fails - fails) << 32);
             fail_ok += (unsigned int) (m_oks - oks);
@@ -2305,7 +2312,7 @@ namespace SPA
                 for (unsigned int r = 0; r < rows; ++r) {
                     CDBVariant &d = m_vParam[(unsigned int) n + r * ((unsigned int) m_parameters)];
                     VARTYPE vtP = d.vt;
-                    if (vtP == VT_NULL || vtP == VT_EMPTY) {
+                    if (vtP == VT_NULL || vtP == VT_EMPTY || info.DataType == VT_VARIANT) {
                         continue;
                     }
                     //ignore signed/unsigned matching
