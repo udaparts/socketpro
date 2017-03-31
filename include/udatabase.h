@@ -162,12 +162,12 @@ namespace SPA {
             }
 
             CDBVariant(const GUID &uuid) {
-				void *buffer;
-                SAFEARRAYBOUND sab[1] = {sizeof(GUID), 0};
+                void *buffer;
+                SAFEARRAYBOUND sab[1] = {sizeof (GUID), 0};
                 parray = ::SafeArrayCreate(VT_UI1, 1, sab);
                 ::SafeArrayAccessData(parray, &buffer);
                 ::memcpy(buffer, &uuid, sizeof (uuid));
-				::SafeArrayUnaccessData(parray);
+                ::SafeArrayUnaccessData(parray);
                 vt = (VT_ARRAY | VT_UI1);
             }
 
@@ -315,12 +315,12 @@ namespace SPA {
 
             CDBVariant& operator=(const GUID &uuid) {
                 void *buffer;
-				::VariantClear(this);
-				SAFEARRAYBOUND sab[1] = {sizeof(GUID), 0};
+                ::VariantClear(this);
+                SAFEARRAYBOUND sab[1] = {sizeof (GUID), 0};
                 parray = ::SafeArrayCreate(VT_UI1, 1, sab);
                 ::SafeArrayAccessData(parray, &buffer);
                 ::memcpy(buffer, &uuid, sizeof (uuid));
-				::SafeArrayUnaccessData(parray);
+                ::SafeArrayUnaccessData(parray);
                 vt = (VT_ARRAY | VT_UI1);
                 return *this;
             }
@@ -329,12 +329,13 @@ namespace SPA {
                 ::VariantClear(this);
                 decVal = src;
                 vt = VT_DECIMAL;
+                return *this;
             }
 
             CDBVariant& operator=(const UDateTime &dt) {
                 ::VariantClear(this);
                 vt = VT_DATE;
-                this->ullVal = dt.time;
+                ullVal = dt.time;
                 return *this;
             }
 
@@ -356,8 +357,8 @@ namespace SPA {
             CDBVariant& operator=(const type &src) {
                 CComVariant &me = *this;
                 me = src;
-                if (this->vt == VT_EMPTY) {
-                    this->vt = VT_NULL;
+                if (vt == VT_EMPTY) {
+                    vt = VT_NULL;
                 }
                 return *this;
             }
