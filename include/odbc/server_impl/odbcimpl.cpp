@@ -715,6 +715,7 @@ namespace SPA
                     case SQL_TYPE_TIMESTAMP:
                         info.ColumnSize = coltype; //remember SQL data type
                         info.DataType = VT_DATE;
+						info.Scale = (unsigned char)decimaldigits;
                         break;
                     case SQL_INTERVAL_MONTH:
                     case SQL_INTERVAL_YEAR:
@@ -806,11 +807,16 @@ namespace SPA
 
         void COdbcImpl::SetStringInfo(SQLHDBC hdbc, SQLUSMALLINT infoType, std::unordered_map<SQLUSMALLINT, CComVariant> &mapInfo) {
             SQLSMALLINT bufferLen = 0;
-            SQLCHAR buffer[128] =
+            SQLCHAR buffer[1024] =
             {0};
             SQLRETURN retcode = SQLGetInfo(hdbc, infoType, buffer, (SQLSMALLINT)sizeof (buffer), &bufferLen);
             if (SQL_SUCCEEDED(retcode)) {
-                mapInfo[infoType] = SPA::Utilities::ToWide((const char*) buffer).c_str();
+				std::wstring s;
+				::size_t len = ::strlen((const char*) buffer);
+				for (size_t n = 0; n < len; ++n) {
+					s += buffer[n];
+				}
+				mapInfo[infoType] = s.c_str();
             }
         }
 
@@ -2409,8 +2415,8 @@ namespace SPA
                                 break;
                             case VT_BSTR:
                                 if (info.ColumnSize == 0) {
-                                    info.ColumnSize = (DEFAULT_OUTPUT_BUFFER_SIZE / sizeof (wchar_t) + 1);
-                                    max_size += (DEFAULT_OUTPUT_BUFFER_SIZE + sizeof (wchar_t));
+                                    info.ColumnSize = (DEFAULT_UNICODE_CHAR_SIZE + 1);
+                                    max_size += info.ColumnSize * sizeof (wchar_t);
                                 } else if (info.ColumnSize > MAX_OUTPUT_BLOB_BUFFER_SIZE / sizeof (wchar_t) + 1) {
                                     max_size += (MAX_OUTPUT_BLOB_BUFFER_SIZE + sizeof (wchar_t));
                                     info.ColumnSize = (MAX_OUTPUT_BLOB_BUFFER_SIZE / sizeof (wchar_t) + 1);
