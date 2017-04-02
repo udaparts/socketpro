@@ -78,9 +78,9 @@ int main(int argc, char* argv[]) {
     ok = pOdbc->Open(nullptr, dr);
     TestCreateTables(pOdbc);
     ok = pOdbc->Execute(L"delete from employee;delete from company;delete from test_rare1;delete from SpatialTable;INSERT INTO SpatialTable(mygeometry, mygeography)VALUES(geometry::STGeomFromText('LINESTRING(100 100,20 180,180 180)',0),geography::Point(47.6475,-122.1393,4326))", er);
-	ok = pOdbc->Execute(L"INSERT INTO test_rare1(mybool,mymoney,myxml,myvariant,mydateimeoffset)values(1,23.45,'<sometest />', N'美国总统川普下个星期四','2017-05-02 00:00:00.0000000 -04:00');INSERT INTO test_rare1(mybool,mymoney,myvariant)values(0,1223.45,'This is a test for ASCII string inside sql_variant');INSERT INTO test_rare1(myvariant)values(283.45)", er);
+    ok = pOdbc->Execute(L"INSERT INTO test_rare1(mybool,mymoney,myxml,myvariant,mydateimeoffset)values(1,23.45,'<sometest />', N'美国总统川普下个星期四','2017-05-02 00:00:00.0000000 -04:00');INSERT INTO test_rare1(mybool,mymoney,myvariant)values(0,1223.45,'This is a test for ASCII string inside sql_variant');INSERT INTO test_rare1(myvariant)values(283.45)", er);
     TestPreparedStatements(pOdbc);
-	TestPreparedStatements_2(pOdbc);
+    TestPreparedStatements_2(pOdbc);
     InsertBLOBByPreparedStatement(pOdbc);
     ok = pOdbc->Execute(L"SELECT * from company;select * from employee;select CONVERT(datetime,SYSDATETIME());select * from test_rare1;select * from SpatialTable", er, r, rh);
     ok = pOdbc->Tables(L"sqltestdb", L"dbo", L"%", L"TABLE", er, r, rh);
@@ -246,54 +246,54 @@ void TestPreparedStatements(std::shared_ptr<CMyHandler> pOdbc) {
 }
 
 void TestPreparedStatements_2(std::shared_ptr<CMyHandler> pOdbc) {
-    
-	CParameterInfoArray vInfo;
 
-	CParameterInfo info;
+    CParameterInfoArray vInfo;
 
-	info.DataType = VT_CLSID;
-	vInfo.push_back(info);
+    CParameterInfo info;
 
-	info.DataType = VT_BSTR;
-	vInfo.push_back(info);
+    info.DataType = VT_CLSID;
+    vInfo.push_back(info);
 
-	info.DataType = VT_VARIANT;
-	vInfo.push_back(info);
+    info.DataType = VT_BSTR;
+    vInfo.push_back(info);
 
-	info.DataType = VT_DATE;
-	vInfo.push_back(info);
+    info.DataType = VT_VARIANT;
+    vInfo.push_back(info);
 
-	//if a prepared statement contains UUID or sql_variant, you must specify an array of parameter definitions
-	const wchar_t *sql_insert_parameter = L"INSERT INTO test_rare1(myguid,myxml,myvariant,mydateimeoffset)VALUES(?,?,?,?)";
+    info.DataType = VT_DATE;
+    vInfo.push_back(info);
+
+    //if a prepared statement contains UUID or sql_variant, you must specify an array of parameter definitions
+    const wchar_t *sql_insert_parameter = L"INSERT INTO test_rare1(myguid,myxml,myvariant,mydateimeoffset)VALUES(?,?,?,?)";
     bool ok = pOdbc->Prepare(sql_insert_parameter, [](CSender &handler, int res, const std::wstring & errMsg) {
         std::cout << "res = " << res << ", errMsg: ";
         std::wcout << errMsg << std::endl;
     }, vInfo);
 
     CDBVariantArray vData;
-	SYSTEMTIME st;
-	GUID guid;
-	memset(&guid, 0, sizeof(guid));
+    SYSTEMTIME st;
+    GUID guid;
+    memset(&guid, 0, sizeof (guid));
 
     vData.push_back(guid);
-	vData.push_back(L"<myxmlroot />");
-	vData.push_back(23.456);
+    vData.push_back(L"<myxmlroot />");
+    vData.push_back(23.456);
 #ifdef WIN32_64
     ::GetLocalTime(&st);
 #else
     ::gettimeofday(&st, nullptr);
 #endif
-	vData.push_back(st);
+    vData.push_back(st);
 
-	vData.push_back(guid);
-	vData.push_back(L"<myxmlroot_2 />");
-	vData.push_back(L"马拉阿歌俱乐部");
+    vData.push_back(guid);
+    vData.push_back(L"<myxmlroot_2 />");
+    vData.push_back(L"马拉阿歌俱乐部");
 #ifdef WIN32_64
     ::GetLocalTime(&st);
 #else
     ::gettimeofday(&st, nullptr);
 #endif
-	vData.push_back(st);
+    vData.push_back(st);
 
     ok = pOdbc->Execute(vData, [](CSender &handler, int res, const std::wstring &errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & vtId) {
         std::cout << "affected = " << affected << ", fails = " << (unsigned int) (fail_ok >> 32) << ", oks = " << (unsigned int) fail_ok << ", res = " << res << ", errMsg: ";
