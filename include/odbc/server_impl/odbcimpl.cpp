@@ -2146,8 +2146,8 @@ namespace SPA
                     break;
                 }
                 m_pExcuting = pStmt;
-                std::string sql = SPA::Utilities::ToUTF8(wsql.c_str(), wsql.size());
-                retcode = SQLExecDirect(hstmt, (SQLCHAR*) sql.c_str(), (SQLINTEGER) sql.size());
+                //std::string sql = SPA::Utilities::ToUTF8(wsql.c_str(), wsql.size());
+                retcode = SQLExecDirectW(hstmt, (SQLWCHAR*) wsql.c_str(), (SQLINTEGER) wsql.size());
                 if (!SQL_SUCCEEDED(retcode) && retcode != SQL_NO_DATA) {
                     res = SPA::Odbc::ER_ERROR;
                     GetErrMsg(SQL_HANDLE_STMT, hstmt, errMsg);
@@ -2230,8 +2230,8 @@ namespace SPA
                     break;
                 }
                 m_pExcuting = m_pPrepare;
-                std::string prepare = SPA::Utilities::ToUTF8(m_sqlPrepare.c_str(), m_sqlPrepare.size());
-                retcode = SQLPrepare(hstmt, (SQLCHAR*) prepare.c_str(), (SQLINTEGER) m_sqlPrepare.size());
+                //std::string prepare = SPA::Utilities::ToUTF8(m_sqlPrepare.c_str(), m_sqlPrepare.size());
+                retcode = SQLPrepareW(hstmt, (SQLWCHAR*) m_sqlPrepare.c_str(), (SQLINTEGER) m_sqlPrepare.size());
                 if (!SQL_SUCCEEDED(retcode)) {
                     res = SPA::Odbc::ER_ERROR;
                     GetErrMsg(SQL_HANDLE_STMT, hstmt, errMsg);
@@ -2270,6 +2270,7 @@ namespace SPA
                         case (VT_UI1 | VT_ARRAY):
                         case (VT_I1 | VT_ARRAY):
                         case VT_BOOL:
+						case VT_VARIANT:
                             break;
                         default:
                             res = SPA::Odbc::ER_BAD_INPUT_PARAMETER_DATA_TYPE;
@@ -2670,7 +2671,10 @@ namespace SPA
                                     output_pos += (unsigned int) BufferLength;
                                     break;
                                 case VT_BSTR:
-                                    sql_type = SQL_WLONGVARCHAR;
+									if (info.DataType == VT_VARIANT)
+										sql_type = SQL_WVARCHAR;
+									else
+										sql_type = SQL_WLONGVARCHAR;
                                     ParameterValuePtr = (SQLPOINTER) (m_Blob.GetBuffer() + output_pos);
                                     BufferLength = info.ColumnSize * sizeof (wchar_t);
                                     c_type = SQL_C_WCHAR;
@@ -2862,7 +2866,10 @@ namespace SPA
                         break;
                     case VT_BSTR:
                         c_type = SQL_C_WCHAR;
-                        sql_type = SQL_WLONGVARCHAR;
+                        if (info.DataType == VT_VARIANT)
+							sql_type = SQL_WVARCHAR;
+						else
+							sql_type = SQL_WLONGVARCHAR;
                         if (InputOutputType == SQL_PARAM_OUTPUT || InputOutputType == SQL_PARAM_INPUT_OUTPUT) {
                             ParameterValuePtr = (SQLPOINTER) (m_Blob.GetBuffer() + output_pos);
                             ColumnSize = ::SysStringLen(vtD.bstrVal);
@@ -2913,7 +2920,10 @@ namespace SPA
                         break;
                     case (VT_I1 | VT_ARRAY):
                         c_type = SQL_C_CHAR;
-                        sql_type = SQL_LONGVARCHAR;
+						if (info.DataType == VT_VARIANT)
+							sql_type = SQL_VARCHAR;
+						else
+							sql_type = SQL_LONGVARCHAR;
                         ColumnSize = vtD.parray->rgsabound->cElements;
                         ::SafeArrayAccessData(vtD.parray, &ParameterValuePtr);
                         if (InputOutputType == SQL_PARAM_OUTPUT || InputOutputType == SQL_PARAM_INPUT_OUTPUT) {
@@ -2938,7 +2948,10 @@ namespace SPA
                         if (ColumnSize == sizeof (GUID) && info.DataType == VT_CLSID) {
                             sql_type = SQL_GUID;
                         } else {
-                            sql_type = SQL_LONGVARBINARY;
+							if (info.DataType == VT_VARIANT)
+								sql_type = SQL_VARBINARY;
+							else
+								sql_type = SQL_LONGVARBINARY;
                         }
                         if (InputOutputType == SQL_PARAM_OUTPUT || InputOutputType == SQL_PARAM_INPUT_OUTPUT) {
                             if (ColumnSize > info.ColumnSize) {

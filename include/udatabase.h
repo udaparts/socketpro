@@ -664,7 +664,7 @@ namespace SPA {
 
             tagParameterDirection Direction; //required
             VARTYPE DataType; //required! for example, VT_I4, VT_BSTR, VT_I1|VT_ARRAY (UTF8 string), ....
-            unsigned int ColumnSize; //-1 BLOB, string len or binary bytes; ignored for other data types
+            unsigned int ColumnSize; //-1 BLOB, string length or binary bytes; ignored for other data types
             unsigned char Precision; //datetime, decimal or numeric only
             unsigned char Scale; //datetime, decimal or numeric only
             std::wstring ParameterName; //may be optional, which depends on remote database system
