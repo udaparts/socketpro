@@ -402,14 +402,13 @@ void TestStoredProcedure_2(std::shared_ptr<CMyHandler> pOdbc, CRowsetArray&ra, C
     CParameterInfo info;
 
     info.DataType = VT_I4;
-	info.Direction = pdReturnValue;
     vPInfo.push_back(info);
 
 	info.DataType = VT_I4;
 	info.Direction = pdInput;
     vPInfo.push_back(info);
 
-    info.DataType = VT_BSTR;
+    info.DataType = SPA::VT_XML;
     info.Direction = pdInputOutput;
     vPInfo.push_back(info);
 

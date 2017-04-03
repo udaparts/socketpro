@@ -19,7 +19,7 @@ namespace SPA {
             : CAsyncServiceHandler(serviceId, cs),
             m_affected(-1), m_dbErrCode(0), m_lastReqId(0),
             m_nCall(0), m_indexRowset(0), m_indexProc(0), m_ms(msUnknown), m_flags(0),
-            m_parameters(0), m_outputs(0) {
+            m_parameters(0), m_outputs(0), m_bCallReturn(false) {
                 m_Blob.Utf8ToW(true);
             }
 
@@ -447,6 +447,7 @@ namespace SPA {
                                 unsigned int parameters;
                                 ar >> res >> errMsg >> parameters;
                                 this->m_csDB.lock();
+								this->m_bCallReturn = false;
                                 this->m_lastReqId = idPrepare;
                                 this->m_dbErrCode = res;
                                 this->m_dbErrMsg = errMsg;
@@ -590,6 +591,20 @@ namespace SPA {
                         }
                     }
                         break;
+					case idCallReturn:
+						{
+							CDBVariant vt;
+							mc >> vt;
+							auto it = m_mapParameterCall.find(m_indexRowset);
+                            if (it != m_mapParameterCall.end()) {
+                                //crash? make sure that vParam is valid after calling the method Execute
+                                CDBVariantArray &vParam = *(it->second);
+                                size_t pos = m_parameters * m_indexProc;
+								vParam[pos] = vt;
+                            }
+						}
+						m_bCallReturn = true;
+						break;
                     case idBeginRows:
                         m_Blob.SetSize(0);
                         m_vData.clear();
@@ -660,7 +675,7 @@ namespace SPA {
                                     if (!m_outputs) {
                                         m_outputs = (unsigned int) m_vData.size();
                                     } else {
-                                        assert(m_outputs == (unsigned int) m_vData.size());
+                                        assert(m_outputs == (unsigned int) m_vData.size() + (unsigned int)m_bCallReturn);
                                     }
                                     auto it = m_mapParameterCall.find(m_indexRowset);
                                     if (it != m_mapParameterCall.end()) {
@@ -778,8 +793,8 @@ namespace SPA {
             DUpdateEvent m_dbEvent;
             unsigned int m_flags;
             unsigned int m_parameters;
-
             unsigned int m_outputs;
+			bool m_bCallReturn;
         };
 
     } //namespace ClientSide

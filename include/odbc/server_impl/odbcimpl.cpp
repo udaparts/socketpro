@@ -2243,7 +2243,10 @@ namespace SPA
                     }
                 }
                 for (auto it = m_vPInfo.begin(), end = m_vPInfo.end(); it != end; ++it) {
-                    switch (it->DataType) {
+                    if (m_bReturn && it == m_vPInfo.begin()) {
+						it->Direction = pdReturnValue;
+					}
+					switch (it->DataType) {
                         case VT_I1:
                         case VT_UI1:
                         case VT_I2:
@@ -2264,6 +2267,7 @@ namespace SPA
                         case (VT_I1 | VT_ARRAY):
                         case VT_BOOL:
                         case VT_VARIANT:
+						case SPA::VT_XML:
                             break;
                         default:
                             res = SPA::Odbc::ER_BAD_INPUT_PARAMETER_DATA_TYPE;
@@ -2320,6 +2324,7 @@ namespace SPA
                     if (vtP == VT_NULL || vtP == VT_EMPTY || info.DataType == VT_VARIANT) {
                         continue;
                     }
+					
                     //ignore signed/unsigned matching
                     if (vtP == VT_UI1) {
                         vtP = VT_I1;
@@ -2340,6 +2345,10 @@ namespace SPA
                     } else if (vt == VT_UI8) {
                         vt = VT_I8;
                     }
+					else if (vt == SPA::VT_XML) {
+						vt = VT_BSTR;
+					}
+
                     if (vt != vtP) {
                         if (vtP == (VT_ARRAY | VT_UI1) && d.parray->rgsabound->cElements == sizeof (GUID) && vt == VT_CLSID) {
                             continue;
@@ -2414,6 +2423,7 @@ namespace SPA
                                 info.ColumnSize = sizeof (OdbcNumeric);
                                 max_size += sizeof (OdbcNumeric);
                                 break;
+							case SPA::VT_XML:
                             case VT_BSTR:
                                 if (info.ColumnSize == 0) {
                                     info.ColumnSize = (DEFAULT_UNICODE_CHAR_SIZE + 1);
@@ -2458,6 +2468,10 @@ namespace SPA
 
         bool COdbcImpl::PushOutputParameters(unsigned int r, UINT64 index) {
             SPA::CScopeUQueue sb;
+			unsigned int ret = SendResult(idBeginRows, (const unsigned char*)&index, (unsigned int)sizeof(index));
+            if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
+                return false;
+            }
             SQLLEN *pLenInd = (SQLLEN*) m_UQueue.GetBuffer();
             const unsigned char *start = m_Blob.GetBuffer();
             for (SQLSMALLINT n = 0; n < m_parameters; ++n) {
@@ -2473,7 +2487,7 @@ namespace SPA
                 if (info.DataType == VT_CLSID) {
                     sb << (VARTYPE) (VT_UI1 | VT_ARRAY);
                 } 
-				else if (info.DataType == VT_VARIANT) {
+				else if (info.DataType == VT_VARIANT || info.DataType == SPA::VT_XML) {
 					sb << (VARTYPE) VT_BSTR;
 				}
 				else {
@@ -2533,6 +2547,7 @@ namespace SPA
                         start += info.ColumnSize;
                     }
                         break;
+					case SPA::VT_XML:
                     case VT_BSTR:
                     {
                         sb << (const wchar_t*) start;
@@ -2562,12 +2577,15 @@ namespace SPA
                         assert(false);
                         break;
                 }
+				if (m_bReturn && !n) {
+					ret = SendResult(idCallReturn, sb->GetBuffer(), sb->GetSize());
+					sb->SetSize(0);
+					if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
+						return false;
+					}
+				}
             }
-			unsigned int ret = SendResult(idBeginRows, (const unsigned char*)&index, (unsigned int)sizeof(index));
-            if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
-                return false;
-            }
-
+			
             ret = SendResult(idOutputParameter, sb->GetBuffer(), sb->GetSize());
             if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
                 return false;
@@ -2707,6 +2725,13 @@ namespace SPA
                                     c_type = SQL_C_WCHAR;
                                     output_pos += (unsigned int) BufferLength;
                                     break;
+								case SPA::VT_XML:
+									sql_type = SQL_SS_XML;
+                                    ParameterValuePtr = (SQLPOINTER) (m_Blob.GetBuffer() + output_pos);
+                                    BufferLength = info.ColumnSize * sizeof (wchar_t);
+                                    c_type = SQL_C_WCHAR;
+                                    output_pos += (unsigned int) BufferLength;
+                                    break;
                                 case VT_CLSID:
                                     c_type = SQL_C_GUID;
                                     sql_type = SQL_GUID;
@@ -2800,6 +2825,10 @@ namespace SPA
 								case VT_VARIANT:
                                     c_type = SQL_C_WCHAR;
                                     sql_type = SQL_WVARCHAR;
+                                    break;
+								case SPA::VT_XML:
+                                    c_type = SQL_C_WCHAR;
+                                    sql_type = SQL_SS_XML;
                                     break;
                                 default:
                                     assert(false);
@@ -2907,6 +2936,9 @@ namespace SPA
                         c_type = SQL_C_WCHAR;
                         if (info.DataType == VT_VARIANT) {
                             sql_type = SQL_WVARCHAR;
+						}
+						else if (info.DataType == SPA::VT_XML) {
+							sql_type = SQL_SS_XML;
 						}
                         else {
                             sql_type = SQL_WLONGVARCHAR;
