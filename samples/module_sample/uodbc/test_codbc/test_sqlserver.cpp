@@ -354,6 +354,18 @@ void TestCreateTables(std::shared_ptr<CMyHandler> pOdbc) {
         std::cout << "affected = " << affected << ", fails = " << (unsigned int) (fail_ok >> 32) << ", oks = " << (unsigned int) fail_ok << ", res = " << res << ", errMsg: ";
         std::wcout << errMsg << std::endl;
     });
+
+	drop_proc = L"IF EXISTS(SELECT * FROM sys.procedures WHERE name='sp_TestRare1') drop proc sp_TestRare1";
+    ok = pOdbc->Execute(drop_proc, [](CSender &handler, int res, const std::wstring &errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & vtId) {
+        std::cout << "affected = " << affected << ", fails = " << (unsigned int) (fail_ok >> 32) << ", oks = " << (unsigned int) fail_ok << ", res = " << res << ", errMsg: ";
+        std::wcout << errMsg << std::endl;
+    });
+
+	create_proc = L"CREATE PROCEDURE sp_TestRare1(@testid int,@myxml xml out,@tuuid uniqueidentifier out,@myvar sql_variant out)as insert into test_rare1(myguid,myxml)values(@tuuid,@myxml);select * from test_rare1 where testid>@testid;select @myxml='<myroot_testrare/>';select @tuuid=NEWID();select @myvar=N'test_variant_from_sp_TestRare1'";
+    ok = pOdbc->Execute(create_proc, [](CSender &handler, int res, const std::wstring &errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & vtId) {
+        std::cout << "affected = " << affected << ", fails = " << (unsigned int) (fail_ok >> 32) << ", oks = " << (unsigned int) fail_ok << ", res = " << res << ", errMsg: ";
+        std::wcout << errMsg << std::endl;
+    });
 }
 
 void TestStoredProcedure(std::shared_ptr<CMyHandler> pOdbc, CRowsetArray&ra, CDBVariantArray &vPData, unsigned int &oks) {
