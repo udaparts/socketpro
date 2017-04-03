@@ -2456,7 +2456,7 @@ namespace SPA
             return max_size;
         }
 
-        bool COdbcImpl::PushOutputParameters(unsigned int r) {
+        bool COdbcImpl::PushOutputParameters(unsigned int r, UINT64 index) {
             SPA::CScopeUQueue sb;
             SQLLEN *pLenInd = (SQLLEN*) m_UQueue.GetBuffer();
             const unsigned char *start = m_Blob.GetBuffer();
@@ -2472,7 +2472,11 @@ namespace SPA
                 SPA::UDB::CDBVariant &vtD = m_vParam[(unsigned int) n + r * ((unsigned int) m_parameters)];
                 if (info.DataType == VT_CLSID) {
                     sb << (VARTYPE) (VT_UI1 | VT_ARRAY);
-                } else {
+                } 
+				else if (info.DataType == VT_VARIANT) {
+					sb << (VARTYPE) VT_BSTR;
+				}
+				else {
                     sb << info.DataType;
                 }
                 switch (info.DataType) {
@@ -2549,7 +2553,8 @@ namespace SPA
                         break;
 					case VT_VARIANT:
 					{
-                        sb << (const wchar_t*) start;
+						const wchar_t *ws = (const wchar_t*) start;
+                        sb << ws;
                         start += info.ColumnSize;
                     }
                         break;
@@ -2558,7 +2563,12 @@ namespace SPA
                         break;
                 }
             }
-            unsigned int ret = SendResult(idOutputParameter, sb->GetBuffer(), sb->GetSize());
+			unsigned int ret = SendResult(idBeginRows, (const unsigned char*)&index, (unsigned int)sizeof(index));
+            if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
+                return false;
+            }
+
+            ret = SendResult(idOutputParameter, sb->GetBuffer(), sb->GetSize());
             if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
                 return false;
             }
@@ -2698,7 +2708,7 @@ namespace SPA
                                     output_pos += (unsigned int) BufferLength;
                                     break;
                                 case VT_CLSID:
-                                    c_type = SQL_C_BINARY;
+                                    c_type = SQL_C_GUID;
                                     sql_type = SQL_GUID;
                                     ParameterValuePtr = (SQLPOINTER) (m_Blob.GetBuffer() + output_pos);
                                     BufferLength = info.ColumnSize;
@@ -2708,6 +2718,7 @@ namespace SPA
                                     c_type = SQL_C_WCHAR;
                                     sql_type = SQL_SS_VARIANT;
                                     ParameterValuePtr = (SQLPOINTER) (m_Blob.GetBuffer() + output_pos);
+									memset(ParameterValuePtr, 0, (unsigned int)BufferLength);
                                     BufferLength = info.ColumnSize;
                                     output_pos += (unsigned int) BufferLength;
                                     break;
@@ -2979,6 +2990,7 @@ namespace SPA
                         ColumnSize = vtD.parray->rgsabound->cElements;
                         if (ColumnSize == sizeof (GUID) && info.DataType == VT_CLSID) {
                             sql_type = SQL_GUID;
+							c_type = SQL_C_GUID;
                         } else {
                             if (info.DataType == VT_VARIANT)
                                 sql_type = SQL_VARBINARY;
@@ -3162,7 +3174,7 @@ namespace SPA
                         } else {
                             ++m_oks;
                         }
-                        if (m_outputs && !output_sent && !PushOutputParameters(r)) {
+                        if (m_outputs && !output_sent && !PushOutputParameters(r, index)) {
                             break;
                         }
                     }
