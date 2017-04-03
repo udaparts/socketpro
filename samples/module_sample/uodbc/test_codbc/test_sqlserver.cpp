@@ -99,13 +99,14 @@ int main(int argc, char* argv[]) {
     vPData.push_back(CDBVariant());
     vPData.push_back(CDBVariant());
     unsigned int oks = 0;
-    //TestStoredProcedure(pOdbc, ra, vPData, oks);
+    TestStoredProcedure(pOdbc, ra, vPData, oks);
     pOdbc->WaitAll();
 
     std::cout << std::endl;
     std::cout << "There are " << pOdbc->GetOutputs() * oks << " output data returned" << std::endl;
 
 	GUID guid;
+	memset(&guid, 0, sizeof(guid));
 	vPData.clear();
 
 	//first set
