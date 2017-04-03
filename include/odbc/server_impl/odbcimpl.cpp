@@ -2706,7 +2706,7 @@ namespace SPA
                                     break;
 								case VT_VARIANT:
                                     c_type = SQL_C_WCHAR;
-                                    sql_type = SQL_WVARCHAR;
+                                    sql_type = SQL_SS_VARIANT;
                                     ParameterValuePtr = (SQLPOINTER) (m_Blob.GetBuffer() + output_pos);
                                     BufferLength = info.ColumnSize;
                                     output_pos += (unsigned int) BufferLength;
@@ -2907,7 +2907,7 @@ namespace SPA
                                 ColumnSize = info.ColumnSize;
                             }
                             BufferLength = (SQLULEN) info.ColumnSize * sizeof (wchar_t);
-                            ::memcpy(ParameterValuePtr, (const void*) vtD.bstrVal, ColumnSize * sizeof (wchar_t));
+                            ::memcpy(ParameterValuePtr, (const void*) vtD.bstrVal, (ColumnSize + 1) * sizeof (wchar_t));
                             output_pos += (unsigned int) BufferLength;
                         } else {
                             ParameterValuePtr = vtD.bstrVal;
@@ -2990,7 +2990,8 @@ namespace SPA
                                 ColumnSize = info.ColumnSize;
                             }
                             BufferLength = (SQLLEN) info.ColumnSize;
-                            void *pSrc = ParameterValuePtr;
+                            void *pSrc = nullptr;
+							::SafeArrayAccessData(vtD.parray, &pSrc);
                             ParameterValuePtr = (SQLPOINTER) (m_Blob.GetBuffer() + output_pos);
                             ::memcpy(ParameterValuePtr, (const void*) pSrc, (size_t) ColumnSize);
                             output_pos += (unsigned int) BufferLength;
@@ -3109,10 +3110,12 @@ namespace SPA
                         }
                         SQLRETURN retcode = SQLExecute(m_pPrepare.get());
                         if (!SQL_SUCCEEDED(retcode)) {
-                            res = SPA::Odbc::ER_ERROR;
-                            GetErrMsg(SQL_HANDLE_STMT, m_pPrepare.get(), errMsg);
+							if (!res) {
+								res = SPA::Odbc::ER_ERROR;
+								GetErrMsg(SQL_HANDLE_STMT, m_pPrepare.get(), errMsg);
+							}
                             ++m_fails;
-                            break;
+                            continue;
                         }
                         int temp;
                         do {

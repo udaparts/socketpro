@@ -460,6 +460,9 @@ namespace SPA {
                     })) {
                 return false;
             }
+				m_csDB.lock();
+				m_vParamInfo = vParameterInfo;
+				m_csDB.unlock();
                 return true;
             }
 
@@ -763,6 +766,7 @@ namespace SPA {
             unsigned short m_lastReqId;
             UINT64 m_nCall;
             UINT64 m_indexRowset;
+			CParameterInfoArray m_vParamInfo;
 
         private:
             std::wstring m_strConnection;
