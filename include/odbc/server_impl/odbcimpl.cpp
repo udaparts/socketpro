@@ -738,7 +738,7 @@ namespace SPA
                         info.DataType = VT_DATE;
                         break;
                     case SQL_SS_XML:
-                        info.DataType = VT_BSTR;
+                        info.DataType = SPA::VT_XML;
                         info.ColumnSize = (unsigned int) collen;
                         break;
                     case SQL_SS_VARIANT:
@@ -1062,6 +1062,107 @@ namespace SPA
             return true;
         }
 
+		void COdbcImpl::SaveSqlServerVariant(const unsigned char *buffer, unsigned int bytes, SQLSMALLINT c_type, CUQueue &q) {
+			switch(c_type) {
+			case SQL_C_WCHAR:
+				q << (VARTYPE)VT_BSTR << (const wchar_t *)buffer;
+				break;
+			case SQL_C_CHAR:
+				q << (VARTYPE)(VT_ARRAY | VT_I1) << bytes;
+				q.Push(buffer, bytes);
+				break;
+			case SQL_C_GUID:
+			case SQL_C_BINARY:
+				q << (VARTYPE)(VT_ARRAY | VT_UI1) << bytes;
+				q.Push(buffer, bytes);
+				break;
+			case SQL_NUMERIC:
+			{
+				DECIMAL dec;
+				SQL_NUMERIC_STRUCT *num = (SQL_NUMERIC_STRUCT*)buffer;
+				if (!num->sign)
+					dec.sign = 0x80;
+				dec.scale = num->scale;
+				UINT64 *pll = (UINT64 *)num->val;
+				dec.Lo64 = *pll;
+				q << (VARTYPE)VT_DECIMAL << dec;
+
+			}
+				break;
+			case SQL_C_SSHORT:
+				q << (VARTYPE)VT_I2 << *((short*)buffer);
+				break;
+			case SQL_C_USHORT:
+				q << (VARTYPE)VT_UI2 << *((unsigned short*)buffer);
+				break;
+			case SQL_C_FLOAT:
+				q << (VARTYPE)VT_R4 << *((float*)buffer);
+				break;
+			case SQL_C_DOUBLE:
+				q << (VARTYPE)VT_R8 << *((double*)buffer);
+				break;
+			case SQL_C_STINYINT:
+				q << (VARTYPE)VT_I1 << *((char*)buffer);
+				break;
+			case SQL_C_UTINYINT:
+				q << (VARTYPE)VT_UI1 << *((unsigned char*)buffer);
+				break;
+			case SQL_C_SBIGINT:
+				q << (VARTYPE)VT_I8 << *((INT64*)buffer);
+				break;
+			case SQL_C_UBIGINT:
+				q << (VARTYPE)VT_UI8 << *((UINT64*)buffer);
+				break;
+			case SQL_C_SLONG:
+				q << (VARTYPE)VT_I4 << *((int*)buffer);
+				break;
+			case SQL_C_ULONG:
+				q << (VARTYPE)VT_UI4 << *((unsigned int*)buffer);
+				break;
+			case SQL_C_TIMESTAMP:
+				{
+					TIMESTAMP_STRUCT *ts = (TIMESTAMP_STRUCT *)buffer;
+					q << (VARTYPE)VT_DATE;
+
+					SPA::UINT64 time = 0;
+					q << time;
+				}
+				break;
+			case SQL_C_TYPE_TIMESTAMP:
+				{
+					std::tm tm;
+					SQL_TIMESTAMP_STRUCT *dt = (SQL_TIMESTAMP_STRUCT*)buffer;
+					unsigned int us = ToCTime(*dt, tm);
+					SPA::UDateTime udt(tm, us);
+					q << (VARTYPE)VT_DATE << udt.time;
+				}
+				break;
+			case SQL_C_TYPE_DATE:
+				{
+					std::tm tm;
+					SQL_DATE_STRUCT *dt = (SQL_DATE_STRUCT*)buffer;
+					unsigned int us = ToCTime(*dt, tm);
+					SPA::UDateTime udt(tm, us);
+					q << (VARTYPE)VT_DATE << udt.time;
+				}
+				break;
+			case SQL_C_TYPE_TIME:
+				{
+					std::tm tm;
+					SQL_TIME_STRUCT *dt = (SQL_TIME_STRUCT*)buffer;
+					unsigned int us = ToCTime(*dt, tm);
+					SPA::UDateTime udt(tm, us);
+					q << (VARTYPE)VT_DATE << udt.time;
+				}
+				break;
+			case SQL_SS_XML:
+				break;
+			default:
+				assert(false);
+				break;
+			}
+		}
+
         bool COdbcImpl::PushRecords(SQLHSTMT hstmt, const CDBColumnInfoArray &vColInfo, bool output, int &res, std::wstring & errMsg) {
             SQLRETURN retcode;
             CScopeUQueue sbTemp(MY_OPERATION_SYSTEM, SPA::IsBigEndian(), 2 * DEFAULT_BIG_FIELD_CHUNK_SIZE);
@@ -1092,7 +1193,11 @@ namespace SPA
                                 }
                             }
                                 break;
+							case SPA::VT_XML:
                             case VT_BSTR:
+								if (vt == VT_XML) {
+									vt = VT_BSTR;
+								}
                                 if (colInfo.ColumnSize >= DEFAULT_BIG_FIELD_CHUNK_SIZE) {
                                     if (!SendUText(hstmt, (SQLUSMALLINT) (i + 1), *sbTemp, q, blob)) {
                                         return false;
@@ -1397,6 +1502,19 @@ namespace SPA
                                         break;
                                 }
                                 break;
+							case VT_VARIANT:
+								retcode = SQLGetData(hstmt, (SQLUSMALLINT) (i + 1), SQL_C_BINARY, (SQLPOINTER) sbTemp->GetBuffer(), sbTemp->GetMaxSize(), &len_or_null);
+								if (len_or_null == SQL_NULL_DATA) {
+									q << (VARTYPE) VT_NULL;
+								} else {
+									SQLLEN iValue = 0;
+									sbTemp->SetSize((unsigned int)len_or_null);
+									sbTemp->SetNull();
+									retcode = SQLColAttribute(hstmt, (SQLUSMALLINT) (i + 1), SQL_CA_SS_VARIANT_TYPE, nullptr, 0, nullptr, &iValue);  //Figure out the type
+									SaveSqlServerVariant(sbTemp->GetBuffer(), (unsigned int)len_or_null, (SQLSMALLINT)iValue, q);
+									sbTemp->SetSize(0);
+								}
+								break;
                             default:
                             {
                                 if (sb->GetMaxSize() < 16 * 1024) {
