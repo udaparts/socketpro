@@ -1077,17 +1077,25 @@ namespace SPA
                     q.Push(buffer, bytes);
                     break;
                 case SQL_NUMERIC:
-                {
-                    DECIMAL dec;
-                    SQL_NUMERIC_STRUCT *num = (SQL_NUMERIC_STRUCT*) buffer;
-                    if (!num->sign)
-                        dec.sign = 0x80;
-                    dec.scale = num->scale;
-                    UINT64 *pll = (UINT64 *) num->val;
-                    dec.Lo64 = *pll;
-                    q << (VARTYPE) VT_DECIMAL << dec;
-
-                }
+					if (bytes == sizeof(SQL_NUMERIC_STRUCT)) {
+						DECIMAL dec;
+						memset(&dec, 0, sizeof(dec));
+						SQL_NUMERIC_STRUCT *num = (SQL_NUMERIC_STRUCT*) buffer;
+						if (!num->sign)
+							dec.sign = 0x80;
+						dec.scale = num->scale;
+						UINT64 *pll = (UINT64 *) num->val;
+						dec.Lo64 = *pll;
+						if (pll[1]) {
+							dec.Hi32 = (unsigned int)pll[1];
+						}
+						q << (VARTYPE) VT_DECIMAL << dec;
+					}
+					else {
+						DECIMAL dec;
+						memset(&dec, 0, sizeof(dec));
+						q << (VARTYPE) VT_DECIMAL << dec;
+					}
                     break;
                 case SQL_C_SSHORT:
                     q << (VARTYPE) VT_I2 << *((short*) buffer);
@@ -1120,13 +1128,19 @@ namespace SPA
                     q << (VARTYPE) VT_UI4 << *((unsigned int*) buffer);
                     break;
                 case SQL_C_TIMESTAMP:
-                {
-                    TIMESTAMP_STRUCT *ts = (TIMESTAMP_STRUCT *) buffer;
-                    q << (VARTYPE) VT_DATE;
-
-                    SPA::UINT64 time = 0;
-                    q << time;
-                }
+					if (bytes == sizeof(TIMESTAMP_STRUCT)) {
+						std::tm tm;
+						TIMESTAMP_STRUCT *dt = (TIMESTAMP_STRUCT*) buffer;
+						unsigned int us = ToCTime(*dt, tm);
+						SPA::UDateTime udt(tm, us);
+						q << (VARTYPE) VT_DATE << udt.time;
+					}
+					else {
+						//sql server driver bug?
+						q << (VARTYPE) VT_DATE;
+						SPA::UINT64 time = 0;
+						q << time;
+					}
                     break;
                 case SQL_C_TYPE_TIMESTAMP:
                 {
@@ -1155,8 +1169,9 @@ namespace SPA
                     q << (VARTYPE) VT_DATE << udt.time;
                 }
                     break;
-                case SQL_SS_XML:
-                    break;
+				case SQL_C_BIT:
+					q << (VARTYPE) VT_BOOL << (VARIANT_BOOL) (buffer[0] ? VARIANT_TRUE : VARIANT_FALSE);
+					break;
                 default:
                     assert(false);
                     break;
@@ -1502,6 +1517,7 @@ namespace SPA
                                         break;
                                 }
                                 break;
+#if 0
                             case VT_VARIANT:
                                 retcode = SQLGetData(hstmt, (SQLUSMALLINT) (i + 1), SQL_C_BINARY, (SQLPOINTER) sbTemp->GetBuffer(), sbTemp->GetMaxSize(), &len_or_null);
                                 if (len_or_null == SQL_NULL_DATA) {
@@ -1510,11 +1526,12 @@ namespace SPA
                                     SQLLEN iValue = 0;
                                     sbTemp->SetSize((unsigned int) len_or_null);
                                     sbTemp->SetNull();
-                                    retcode = SQLColAttribute(hstmt, (SQLUSMALLINT) (i + 1), SQL_CA_SS_VARIANT_TYPE, nullptr, 0, nullptr, &iValue); //Figure out the type
+                                    retcode = SQLColAttribute(hstmt, (SQLUSMALLINT) (i + 1), SQL_CA_SS_VARIANT_TYPE, nullptr, 0, nullptr, &iValue);
                                     SaveSqlServerVariant(sbTemp->GetBuffer(), (unsigned int) len_or_null, (SQLSMALLINT) iValue, q);
                                     sbTemp->SetSize(0);
                                 }
                                 break;
+#endif
                             default:
                             {
                                 if (sb->GetMaxSize() < 16 * 1024) {
