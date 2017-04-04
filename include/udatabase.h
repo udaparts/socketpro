@@ -9,7 +9,7 @@
 
 namespace SPA {
 
-	static const VARTYPE VT_XML = 35;
+    static const VARTYPE VT_XML = 35;
 
     namespace UDB {
 
@@ -114,7 +114,7 @@ namespace SPA {
         static const unsigned short idChunk = idStartBLOB + 1;
         static const unsigned short idEndBLOB = idChunk + 1;
         static const unsigned short idEndRows = idEndBLOB + 1;
-		static const unsigned short idCallReturn = idEndRows + 1;
+        static const unsigned short idCallReturn = idEndRows + 1;
 
         /**
          * Whenever a data size in bytes is about twice larger than the defined value,
