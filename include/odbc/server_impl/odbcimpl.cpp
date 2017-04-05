@@ -811,7 +811,13 @@ namespace SPA
             {0};
             SQLRETURN retcode = SQLGetInfoW(hdbc, infoType, buffer, (SQLSMALLINT) sizeof (buffer), &bufferLen);
             if (SQL_SUCCEEDED(retcode)) {
-                mapInfo[infoType] = buffer;
+#ifdef WIN32_64
+                mapInfo[infoType] = (const wchar_t*) buffer;
+#else
+                SPA::CScopeUQueue sb;
+                SPA::Utilities::ToWide(buffer, SPA::Utilities::GetLen(buffer), *sb);
+                mapInfo[infoType] = (const wchar_t*) sb->GetBuffer();
+#endif
             }
         }
 
@@ -1077,25 +1083,24 @@ namespace SPA
                     q.Push(buffer, bytes);
                     break;
                 case SQL_NUMERIC:
-					if (bytes == sizeof(SQL_NUMERIC_STRUCT)) {
-						DECIMAL dec;
-						memset(&dec, 0, sizeof(dec));
-						SQL_NUMERIC_STRUCT *num = (SQL_NUMERIC_STRUCT*) buffer;
-						if (!num->sign)
-							dec.sign = 0x80;
-						dec.scale = num->scale;
-						UINT64 *pll = (UINT64 *) num->val;
-						dec.Lo64 = *pll;
-						if (pll[1]) {
-							dec.Hi32 = (unsigned int)pll[1];
-						}
-						q << (VARTYPE) VT_DECIMAL << dec;
-					}
-					else {
-						DECIMAL dec;
-						memset(&dec, 0, sizeof(dec));
-						q << (VARTYPE) VT_DECIMAL << dec;
-					}
+                    if (bytes == sizeof (SQL_NUMERIC_STRUCT)) {
+                        DECIMAL dec;
+                        memset(&dec, 0, sizeof (dec));
+                        SQL_NUMERIC_STRUCT *num = (SQL_NUMERIC_STRUCT*) buffer;
+                        if (!num->sign)
+                            dec.sign = 0x80;
+                        dec.scale = num->scale;
+                        UINT64 *pll = (UINT64 *) num->val;
+                        dec.Lo64 = *pll;
+                        if (pll[1]) {
+                            dec.Hi32 = (unsigned int) pll[1];
+                        }
+                        q << (VARTYPE) VT_DECIMAL << dec;
+                    } else {
+                        DECIMAL dec;
+                        memset(&dec, 0, sizeof (dec));
+                        q << (VARTYPE) VT_DECIMAL << dec;
+                    }
                     break;
                 case SQL_C_SSHORT:
                     q << (VARTYPE) VT_I2 << *((short*) buffer);
@@ -1128,19 +1133,18 @@ namespace SPA
                     q << (VARTYPE) VT_UI4 << *((unsigned int*) buffer);
                     break;
                 case SQL_C_TIMESTAMP:
-					if (bytes == sizeof(TIMESTAMP_STRUCT)) {
-						std::tm tm;
-						TIMESTAMP_STRUCT *dt = (TIMESTAMP_STRUCT*) buffer;
-						unsigned int us = ToCTime(*dt, tm);
-						SPA::UDateTime udt(tm, us);
-						q << (VARTYPE) VT_DATE << udt.time;
-					}
-					else {
-						//sql server driver bug?
-						q << (VARTYPE) VT_DATE;
-						SPA::UINT64 time = 0;
-						q << time;
-					}
+                    if (bytes == sizeof (TIMESTAMP_STRUCT)) {
+                        std::tm tm;
+                        TIMESTAMP_STRUCT *dt = (TIMESTAMP_STRUCT*) buffer;
+                        unsigned int us = ToCTime(*dt, tm);
+                        SPA::UDateTime udt(tm, us);
+                        q << (VARTYPE) VT_DATE << udt.time;
+                    } else {
+                        //sql server driver bug?
+                        q << (VARTYPE) VT_DATE;
+                        SPA::UINT64 time = 0;
+                        q << time;
+                    }
                     break;
                 case SQL_C_TYPE_TIMESTAMP:
                 {
@@ -1169,9 +1173,9 @@ namespace SPA
                     q << (VARTYPE) VT_DATE << udt.time;
                 }
                     break;
-				case SQL_C_BIT:
-					q << (VARTYPE) VT_BOOL << (VARIANT_BOOL) (buffer[0] ? VARIANT_TRUE : VARIANT_FALSE);
-					break;
+                case SQL_C_BIT:
+                    q << (VARTYPE) VT_BOOL << (VARIANT_BOOL) (buffer[0] ? VARIANT_TRUE : VARIANT_FALSE);
+                    break;
                 default:
                     assert(false);
                     break;
@@ -2276,7 +2280,15 @@ namespace SPA
                     break;
                 }
                 m_pExcuting = pStmt;
+#ifdef WIN32_64
                 retcode = SQLExecDirectW(hstmt, (SQLWCHAR*) wsql.c_str(), (SQLINTEGER) wsql.size());
+#else
+                {
+                    CScopeUQueue sb;
+                    SPA::Utilities::ToUTF16(wsql.c_str(), wsql.size(), *sb);
+                    retcode = SQLExecDirectW(hstmt, (SQLWCHAR*) sb->GetBuffer(), (SQLINTEGER) (sb->GetSize() / sizeof (SQLWCHAR)));
+                }
+#endif
                 if (!SQL_SUCCEEDED(retcode) && retcode != SQL_NO_DATA) {
                     res = SPA::Odbc::ER_ERROR;
                     GetErrMsg(SQL_HANDLE_STMT, hstmt, errMsg);
@@ -2359,7 +2371,15 @@ namespace SPA
                     break;
                 }
                 m_pExcuting = m_pPrepare;
+#ifdef WIN32_64
                 retcode = SQLPrepareW(hstmt, (SQLWCHAR*) m_sqlPrepare.c_str(), (SQLINTEGER) m_sqlPrepare.size());
+#else
+                {
+                    CScopeUQueue sb;
+                    SPA::Utilities::ToUTF16(m_sqlPrepare.c_str(), m_sqlPrepare.size(), *sb);
+                    retcode = SQLPrepareW(hstmt, (SQLWCHAR*) sb->GetBuffer(), (SQLINTEGER) (sb->GetSize() / sizeof (SQLWCHAR)));
+                }
+#endif
                 if (!SQL_SUCCEEDED(retcode)) {
                     res = SPA::Odbc::ER_ERROR;
                     GetErrMsg(SQL_HANDLE_STMT, hstmt, errMsg);
@@ -2620,8 +2640,7 @@ namespace SPA
                 SPA::UDB::CDBVariant &vtD = m_vParam[(unsigned int) n + r * ((unsigned int) m_parameters)];
                 if (info.DataType == VT_CLSID) {
                     sb << (VARTYPE) (VT_UI1 | VT_ARRAY);
-                }
-                else if (info.DataType == VT_VARIANT || info.DataType == SPA::VT_XML) {
+                } else if (info.DataType == VT_VARIANT || info.DataType == SPA::VT_XML) {
                     sb << (VARTYPE) VT_BSTR;
                 } else {
                     sb << info.DataType;
