@@ -17,6 +17,7 @@ protected:
 #else
             SetOdbcDBGlobalConnectionString(L"dsn=ToSqlServer32;uid=mass;pwd=smash1");
 #endif
+			//SetOdbcDBGlobalConnectionString(L"dsn=ToMySQL;uid=root;pwd=Smash123");
         }
         return true;
     }

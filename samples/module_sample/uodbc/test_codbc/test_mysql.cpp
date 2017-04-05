@@ -80,8 +80,7 @@ int main(int argc, char* argv[]) {
     TestPreparedStatements(pOdbc);
     InsertBLOBByPreparedStatement(pOdbc);
     ok = pOdbc->Execute(L"SELECT * from company;select * from employee;select curtime()", er, r, rh);
-    ok = pOdbc->Tables(L"mysqldb", L"", L"%", L"", er, r, rh);
-
+   
     CDBVariantArray vPData;
     //first set
     vPData.push_back(1);
@@ -96,7 +95,18 @@ int main(int argc, char* argv[]) {
     vPData.push_back(CDBVariant());
     unsigned int oks = 0;
     TestStoredProcedure(pOdbc, ra, vPData, oks);
+	ok = pOdbc->Tables(L"sakila", L"", L"%", L"TABLE", er, r, rh);
     pOdbc->WaitAll();
+
+	ok = pOdbc->Execute(L"use sakila", er);
+	auto pTables = ra.back();
+	size_t columns = pTables.first.size();
+	size_t tables = pTables.second.size() / pTables.first.size();
+	for (size_t n = 0; n < tables; ++n) {
+		std::wstring sql = std::wstring(L"select * from ") + pTables.second[n * columns + 2].bstrVal;
+		ok = pOdbc->Execute(sql.c_str(), er, r, rh);
+	}
+	pOdbc->WaitAll();
 
     std::cout << std::endl;
     std::cout << "There are " << pOdbc->GetOutputs() * oks << " output data returned" << std::endl;
