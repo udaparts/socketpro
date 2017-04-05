@@ -36,6 +36,7 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 # Object Files
 OBJECTFILES= \
 	${OBJECTDIR}/_ext/562988696/aclientw.o \
+	${OBJECTDIR}/_ext/562988696/error_code.o \
 	${OBJECTDIR}/_ext/562988696/membuffer.o \
 	${OBJECTDIR}/test_csqlite.o
 
@@ -54,7 +55,7 @@ FFLAGS=
 ASFLAGS=
 
 # Link Libraries and Options
-LDLIBSOPTIONS=-ldl -lpthread -lboost_system
+LDLIBSOPTIONS=-ldl -lpthread
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
@@ -68,6 +69,11 @@ ${OBJECTDIR}/_ext/562988696/aclientw.o: ../../../../include/aclientw.cpp
 	${MKDIR} -p ${OBJECTDIR}/_ext/562988696
 	${RM} "$@.d"
 	$(COMPILE.c) -O2 -s -DNDEBUG -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/562988696/aclientw.o ../../../../include/aclientw.cpp
+
+${OBJECTDIR}/_ext/562988696/error_code.o: ../../../../include/error_code.cpp 
+	${MKDIR} -p ${OBJECTDIR}/_ext/562988696
+	${RM} "$@.d"
+	$(COMPILE.c) -O2 -s -DNDEBUG -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/562988696/error_code.o ../../../../include/error_code.cpp
 
 ${OBJECTDIR}/_ext/562988696/membuffer.o: ../../../../include/membuffer.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/562988696

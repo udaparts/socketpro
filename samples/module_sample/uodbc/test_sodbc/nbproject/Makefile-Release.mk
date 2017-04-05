@@ -23,7 +23,7 @@ AS=as
 # Macros
 CND_PLATFORM=GNU-Linux-x86
 CND_DLIB_EXT=so
-CND_CONF=Debug
+CND_CONF=Release
 CND_DISTDIR=dist
 CND_BUILDDIR=build
 
@@ -38,15 +38,15 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/562988696/aserverw.o \
 	${OBJECTDIR}/_ext/562988696/error_code.o \
 	${OBJECTDIR}/_ext/562988696/membuffer.o \
-	${OBJECTDIR}/test_ssqlite.o
+	${OBJECTDIR}/test_sodbc.o
 
 
 # C Compiler Flags
-CFLAGS=-std=c++11 -Wall
+CFLAGS=-std=c++11
 
 # CC Compiler Flags
-CCFLAGS=-std=c++11 -Wall
-CXXFLAGS=-std=c++11 -Wall
+CCFLAGS=-std=c++11
+CXXFLAGS=-std=c++11
 
 # Fortran Compiler Flags
 FFLAGS=
@@ -55,35 +55,35 @@ FFLAGS=
 ASFLAGS=
 
 # Link Libraries and Options
-LDLIBSOPTIONS=-ldl -lpthread
+LDLIBSOPTIONS=-lpthread -ldl
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
-	"${MAKE}"  -f nbproject/Makefile-${CND_CONF}.mk ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/test_ssqlite
+	"${MAKE}"  -f nbproject/Makefile-${CND_CONF}.mk ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/test_sodbc
 
-${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/test_ssqlite: ${OBJECTFILES}
+${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/test_sodbc: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
-	${LINK.c} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/test_ssqlite ${OBJECTFILES} ${LDLIBSOPTIONS} -lstdc++
+	g++ -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/test_sodbc ${OBJECTFILES} ${LDLIBSOPTIONS} -lstdc++ -s
 
 ${OBJECTDIR}/_ext/562988696/aserverw.o: ../../../../include/aserverw.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/562988696
 	${RM} "$@.d"
-	$(COMPILE.c) -g -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/562988696/aserverw.o ../../../../include/aserverw.cpp
+	$(COMPILE.c) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/562988696/aserverw.o ../../../../include/aserverw.cpp
 
 ${OBJECTDIR}/_ext/562988696/error_code.o: ../../../../include/error_code.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/562988696
 	${RM} "$@.d"
-	$(COMPILE.c) -g -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/562988696/error_code.o ../../../../include/error_code.cpp
+	$(COMPILE.c) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/562988696/error_code.o ../../../../include/error_code.cpp
 
 ${OBJECTDIR}/_ext/562988696/membuffer.o: ../../../../include/membuffer.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/562988696
 	${RM} "$@.d"
-	$(COMPILE.c) -g -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/562988696/membuffer.o ../../../../include/membuffer.cpp
+	$(COMPILE.c) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/562988696/membuffer.o ../../../../include/membuffer.cpp
 
-${OBJECTDIR}/test_ssqlite.o: test_ssqlite.cpp 
+${OBJECTDIR}/test_sodbc.o: test_sodbc.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.c) -g -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/test_ssqlite.o test_ssqlite.cpp
+	$(COMPILE.c) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/test_sodbc.o test_sodbc.cpp
 
 # Subprojects
 .build-subprojects:
@@ -91,7 +91,7 @@ ${OBJECTDIR}/test_ssqlite.o: test_ssqlite.cpp
 # Clean Targets
 .clean-conf: ${CLEAN_SUBPROJECTS}
 	${RM} -r ${CND_BUILDDIR}/${CND_CONF}
-	${RM} ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/test_ssqlite
+	${RM} ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/test_sodbc
 
 # Subprojects
 .clean-subprojects:

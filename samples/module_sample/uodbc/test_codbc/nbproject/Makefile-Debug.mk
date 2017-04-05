@@ -35,10 +35,10 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 
 # Object Files
 OBJECTFILES= \
-	${OBJECTDIR}/_ext/562988696/aserverw.o \
+	${OBJECTDIR}/_ext/562988696/aclientw.o \
 	${OBJECTDIR}/_ext/562988696/error_code.o \
 	${OBJECTDIR}/_ext/562988696/membuffer.o \
-	${OBJECTDIR}/test_ssqlite.o
+	${OBJECTDIR}/test_mysql.o
 
 
 # C Compiler Flags
@@ -55,20 +55,20 @@ FFLAGS=
 ASFLAGS=
 
 # Link Libraries and Options
-LDLIBSOPTIONS=-ldl -lpthread
+LDLIBSOPTIONS=-lpthread -ldl
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
-	"${MAKE}"  -f nbproject/Makefile-${CND_CONF}.mk ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/test_ssqlite
+	"${MAKE}"  -f nbproject/Makefile-${CND_CONF}.mk ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/test_codbc
 
-${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/test_ssqlite: ${OBJECTFILES}
+${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/test_codbc: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
-	${LINK.c} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/test_ssqlite ${OBJECTFILES} ${LDLIBSOPTIONS} -lstdc++
+	g++ -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/test_codbc ${OBJECTFILES} ${LDLIBSOPTIONS} -std=c++11 -lstdc++
 
-${OBJECTDIR}/_ext/562988696/aserverw.o: ../../../../include/aserverw.cpp 
+${OBJECTDIR}/_ext/562988696/aclientw.o: ../../../../include/aclientw.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/562988696
 	${RM} "$@.d"
-	$(COMPILE.c) -g -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/562988696/aserverw.o ../../../../include/aserverw.cpp
+	$(COMPILE.c) -g -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/562988696/aclientw.o ../../../../include/aclientw.cpp
 
 ${OBJECTDIR}/_ext/562988696/error_code.o: ../../../../include/error_code.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/562988696
@@ -80,10 +80,10 @@ ${OBJECTDIR}/_ext/562988696/membuffer.o: ../../../../include/membuffer.cpp
 	${RM} "$@.d"
 	$(COMPILE.c) -g -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/562988696/membuffer.o ../../../../include/membuffer.cpp
 
-${OBJECTDIR}/test_ssqlite.o: test_ssqlite.cpp 
+${OBJECTDIR}/test_mysql.o: test_mysql.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.c) -g -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/test_ssqlite.o test_ssqlite.cpp
+	$(COMPILE.c) -g -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/test_mysql.o test_mysql.cpp
 
 # Subprojects
 .build-subprojects:
@@ -91,7 +91,7 @@ ${OBJECTDIR}/test_ssqlite.o: test_ssqlite.cpp
 # Clean Targets
 .clean-conf: ${CLEAN_SUBPROJECTS}
 	${RM} -r ${CND_BUILDDIR}/${CND_CONF}
-	${RM} ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/test_ssqlite
+	${RM} ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/test_codbc
 
 # Subprojects
 .clean-subprojects:

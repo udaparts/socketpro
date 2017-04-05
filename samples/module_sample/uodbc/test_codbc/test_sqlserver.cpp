@@ -105,27 +105,27 @@ int main(int argc, char* argv[]) {
     std::cout << std::endl;
     std::cout << "There are " << pOdbc->GetOutputs() * oks << " output data returned" << std::endl;
 
-	GUID guid;
-	memset(&guid, 0, sizeof(guid));
-	vPData.clear();
+    GUID guid;
+    memset(&guid, 0, sizeof (guid));
+    vPData.clear();
 
-	//first set
-	guid.Data1 = 12345;
-	vPData.push_back(CDBVariant()); //return int
-	vPData.push_back(1); //@testid
-	vPData.push_back(L"<test_sqlserver />"); //@myxml
-	vPData.push_back(guid); //@tuuid
-	vPData.push_back(CDBVariant()); //@myvar
+    //first set
+    guid.Data1 = 12345;
+    vPData.push_back(CDBVariant()); //return int
+    vPData.push_back(1); //@testid
+    vPData.push_back(L"<test_sqlserver />"); //@myxml
+    vPData.push_back(guid); //@tuuid
+    vPData.push_back(CDBVariant()); //@myvar
 
-	//second set
-	guid.Data1 = 1234578;
-	vPData.push_back(CDBVariant()); //return int
-	vPData.push_back(4); //@testid
-	vPData.push_back(L"<test_sqlserver_again />"); //@myxml
-	vPData.push_back(guid); //@tuuid
-	vPData.push_back(CDBVariant()); //@myvar
+    //second set
+    guid.Data1 = 1234578;
+    vPData.push_back(CDBVariant()); //return int
+    vPData.push_back(4); //@testid
+    vPData.push_back(L"<test_sqlserver_again />"); //@myxml
+    vPData.push_back(guid); //@tuuid
+    vPData.push_back(CDBVariant()); //@myvar
 
-	oks = 0;
+    oks = 0;
     TestStoredProcedure_2(pOdbc, ra, vPData, oks);
     pOdbc->WaitAll();
 
@@ -383,13 +383,13 @@ void TestCreateTables(std::shared_ptr<CMyHandler> pOdbc) {
         std::wcout << errMsg << std::endl;
     });
 
-	drop_proc = L"IF EXISTS(SELECT * FROM sys.procedures WHERE name='sp_TestRare1') drop proc sp_TestRare1";
+    drop_proc = L"IF EXISTS(SELECT * FROM sys.procedures WHERE name='sp_TestRare1') drop proc sp_TestRare1";
     ok = pOdbc->Execute(drop_proc, [](CSender &handler, int res, const std::wstring &errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & vtId) {
         std::cout << "affected = " << affected << ", fails = " << (unsigned int) (fail_ok >> 32) << ", oks = " << (unsigned int) fail_ok << ", res = " << res << ", errMsg: ";
         std::wcout << errMsg << std::endl;
     });
 
-	create_proc = L"CREATE PROCEDURE sp_TestRare1(@testid int,@myxml xml out,@tuuid uniqueidentifier out,@myvar sql_variant out)as insert into test_rare1(myguid,myxml)values(@tuuid,@myxml);select * from test_rare1 where testid>@testid;select @myxml='<myroot_testrare/>';select @tuuid=NEWID();select @myvar=N'test_variant_from_sp_TestRare1'";
+    create_proc = L"CREATE PROCEDURE sp_TestRare1(@testid int,@myxml xml out,@tuuid uniqueidentifier out,@myvar sql_variant out)as insert into test_rare1(myguid,myxml)values(@tuuid,@myxml);select * from test_rare1 where testid>@testid;select @myxml='<myroot_testrare/>';select @tuuid=NEWID();select @myvar=N'test_variant_from_sp_TestRare1'";
     ok = pOdbc->Execute(create_proc, [](CSender &handler, int res, const std::wstring &errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & vtId) {
         std::cout << "affected = " << affected << ", fails = " << (unsigned int) (fail_ok >> 32) << ", oks = " << (unsigned int) fail_ok << ", res = " << res << ", errMsg: ";
         std::wcout << errMsg << std::endl;
@@ -397,15 +397,15 @@ void TestCreateTables(std::shared_ptr<CMyHandler> pOdbc) {
 }
 
 void TestStoredProcedure_2(std::shared_ptr<CMyHandler> pOdbc, CRowsetArray&ra, CDBVariantArray &vPData, unsigned int &oks) {
-	CParameterInfoArray vPInfo;
+    CParameterInfoArray vPInfo;
 
     CParameterInfo info;
 
     info.DataType = VT_I4;
     vPInfo.push_back(info);
 
-	info.DataType = VT_I4;
-	info.Direction = pdInput;
+    info.DataType = VT_I4;
+    info.Direction = pdInput;
     vPInfo.push_back(info);
 
     info.DataType = SPA::VT_XML;
@@ -416,7 +416,7 @@ void TestStoredProcedure_2(std::shared_ptr<CMyHandler> pOdbc, CRowsetArray&ra, C
     info.Direction = pdInputOutput;
     vPInfo.push_back(info);
 
-	info.DataType = VT_VARIANT;
+    info.DataType = VT_VARIANT;
     info.Direction = pdOutput;
     vPInfo.push_back(info);
 
