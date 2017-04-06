@@ -132,6 +132,9 @@ int main(int argc, char* argv[]) {
     std::cout << std::endl;
     std::cout << "There are " << pOdbc->GetOutputs() * oks << " output data returned" << std::endl;
 
+	ok = pOdbc->Execute(L"use AdventureWorks2012;select * from Production.Document;select * from Production.ProductPhoto;select * from Production.ProductReview;select * from Sales.Store;select * from HumanResources.JobCandidate", er, r, rh);
+	pOdbc->WaitAll();
+
     //print out all received rowsets
     int index = 0;
     std::cout << std::endl;

@@ -632,7 +632,10 @@ namespace SPA
                     case SQL_CHAR:
                     case SQL_VARCHAR:
                     case SQL_LONGVARCHAR:
-                        info.ColumnSize = (unsigned int) collen;
+						if (info.ColumnSize == 0)
+							info.ColumnSize = (~0);
+						else
+							info.ColumnSize = (unsigned int) collen;
                         info.DataType = (VT_ARRAY | VT_I1);
                         retcode = SQLColAttribute(hstmt, (SQLUSMALLINT) (n + 1), SQL_DESC_CASE_SENSITIVE, nullptr, 0, nullptr, &displaysize);
                         assert(SQL_SUCCEEDED(retcode));
@@ -643,7 +646,10 @@ namespace SPA
                     case SQL_WCHAR:
                     case SQL_WVARCHAR:
                     case SQL_WLONGVARCHAR:
-                        info.ColumnSize = (unsigned int) collen;
+						if (collen == 0)
+							info.ColumnSize = (~0);
+						else
+							info.ColumnSize = (unsigned int) collen;
                         info.DataType = VT_BSTR;
                         retcode = SQLColAttribute(hstmt, (SQLUSMALLINT) (n + 1), SQL_DESC_CASE_SENSITIVE, nullptr, 0, nullptr, &displaysize);
                         assert(SQL_SUCCEEDED(retcode));
@@ -654,7 +660,10 @@ namespace SPA
                     case SQL_BINARY:
                     case SQL_VARBINARY:
                     case SQL_LONGVARBINARY:
-                        info.ColumnSize = (unsigned int) collen;
+						if (collen == 0)
+							info.ColumnSize = (~0);
+						else
+							info.ColumnSize = (unsigned int) collen;
                         info.DataType = (VT_ARRAY | VT_UI1);
                         break;
                     case SQL_DECIMAL:
@@ -739,15 +748,15 @@ namespace SPA
                         break;
                     case SQL_SS_XML:
                         info.DataType = SPA::VT_XML;
-                        info.ColumnSize = (unsigned int) collen;
+                        info.ColumnSize = (~0);
                         break;
                     case SQL_SS_VARIANT:
                         info.DataType = VT_VARIANT;
-                        info.ColumnSize = (unsigned int) collen;
+                        info.ColumnSize = DEFAULT_OUTPUT_BUFFER_SIZE;
                         break;
                     default:
                         info.DataType = VT_BSTR;
-                        info.ColumnSize = (unsigned int) collen;
+                        info.ColumnSize = DEFAULT_OUTPUT_BUFFER_SIZE;
                         break;
                 }
 
