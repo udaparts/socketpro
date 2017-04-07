@@ -12,6 +12,7 @@ namespace SPA {
         template<unsigned int serviceId>
         class CAsyncDBHandler : public CAsyncServiceHandler {
             static const unsigned int ONE_MEGA_BYTES = 0x100000;
+			static const unsigned int BLOB_LENGTH_NOT_AVAILABLE = 0xffffffE0;
 
         public:
 
@@ -726,7 +727,12 @@ namespace SPA {
                         if (mc.GetSize() || m_Blob.GetSize()) {
                             m_Blob.Push(mc.GetBuffer(), mc.GetSize());
                             mc.SetSize(0);
-                            m_vData.push_back(CDBVariant());
+							unsigned int *len = (unsigned int*)m_Blob.GetBuffer(sizeof(VARTYPE));
+							if (*len >= BLOB_LENGTH_NOT_AVAILABLE) {
+								//legth should be reset if BLOB length not available from server side at beginning
+								*len = (m_Blob.GetSize() - sizeof(VARTYPE) - sizeof(unsigned int));
+							}
+							m_vData.push_back(CDBVariant());
                             CDBVariant &vt = m_vData.back();
                             m_Blob >> vt;
                             assert(m_Blob.GetSize() == 0);

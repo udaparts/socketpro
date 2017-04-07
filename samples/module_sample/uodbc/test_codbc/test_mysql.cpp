@@ -95,9 +95,13 @@ int main(int argc, char* argv[]) {
     vPData.push_back(CDBVariant());
     unsigned int oks = 0;
     TestStoredProcedure(pOdbc, ra, vPData, oks);
-    ok = pOdbc->Tables(L"sakila", L"", L"%", L"TABLE", er, r, rh);
     pOdbc->WaitAll();
-
+	std::cout << std::endl;
+    std::cout << "There are " << pOdbc->GetOutputs() * oks << " output data returned" << std::endl;
+	
+	ok = pOdbc->Tables(L"sakila", L"", L"%", L"TABLE", er, r, rh);
+	pOdbc->WaitAll();
+	
     ok = pOdbc->Execute(L"use sakila", er);
     auto pTables = ra.back();
     size_t columns = pTables.first.size();
@@ -108,8 +112,7 @@ int main(int argc, char* argv[]) {
     }
     pOdbc->WaitAll();
 
-    std::cout << std::endl;
-    std::cout << "There are " << pOdbc->GetOutputs() * oks << " output data returned" << std::endl;
+    
 
     //print out all received rowsets
     int index = 0;

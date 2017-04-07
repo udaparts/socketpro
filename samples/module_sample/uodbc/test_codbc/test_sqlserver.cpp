@@ -128,12 +128,34 @@ int main(int argc, char* argv[]) {
     oks = 0;
     TestStoredProcedure_2(pOdbc, ra, vPData, oks);
     pOdbc->WaitAll();
-
     std::cout << std::endl;
     std::cout << "There are " << pOdbc->GetOutputs() * oks << " output data returned" << std::endl;
-
-	ok = pOdbc->Execute(L"use AdventureWorks2012;select * from Production.Document;select * from Production.ProductPhoto;select * from Production.ProductReview;select * from Sales.Store;select * from HumanResources.JobCandidate", er, r, rh);
+	
+	ok = pOdbc->Tables(L"AdventureWorks2012", L"%", L"%", L"TABLE", er, r, rh);
 	pOdbc->WaitAll();
+	ok = pOdbc->Execute(L"use AdventureWorks2012", er);
+
+	auto pTables = ra.back();
+    size_t columns = pTables.first.size();
+    size_t tables = pTables.second.size() / pTables.first.size();
+    for (size_t n = 0; n < tables; ++n) {
+        std::wstring sql = std::wstring(L"select * from ") + pTables.second[n * columns + 1].bstrVal + L"." + pTables.second[n * columns + 2].bstrVal;
+        ok = pOdbc->Execute(sql.c_str(), er, r, rh);
+    }
+    pOdbc->WaitAll();
+
+	ok = pOdbc->Tables(L"AdventureWorksDW2012", L"%", L"%", L"TABLE", er, r, rh);
+	pOdbc->WaitAll();
+	ok = pOdbc->Execute(L"use AdventureWorksDW2012", er);
+
+	pTables = ra.back();
+    columns = pTables.first.size();
+    tables = pTables.second.size() / pTables.first.size();
+    for (size_t n = 0; n < tables; ++n) {
+        std::wstring sql = std::wstring(L"select * from ") + pTables.second[n * columns + 1].bstrVal + L"." + pTables.second[n * columns + 2].bstrVal;
+        ok = pOdbc->Execute(sql.c_str(), er, r, rh);
+    }
+    pOdbc->WaitAll();
 
     //print out all received rowsets
     int index = 0;
