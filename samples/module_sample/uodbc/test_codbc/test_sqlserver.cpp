@@ -130,12 +130,12 @@ int main(int argc, char* argv[]) {
     pOdbc->WaitAll();
     std::cout << std::endl;
     std::cout << "There are " << pOdbc->GetOutputs() * oks << " output data returned" << std::endl;
-	
-	ok = pOdbc->Tables(L"AdventureWorks2012", L"%", L"%", L"TABLE", er, r, rh);
-	pOdbc->WaitAll();
-	ok = pOdbc->Execute(L"use AdventureWorks2012", er);
 
-	auto pTables = ra.back();
+    ok = pOdbc->Tables(L"AdventureWorks2012", L"%", L"%", L"TABLE", er, r, rh);
+    pOdbc->WaitAll();
+    ok = pOdbc->Execute(L"use AdventureWorks2012", er);
+
+    auto pTables = ra.back();
     size_t columns = pTables.first.size();
     size_t tables = pTables.second.size() / pTables.first.size();
     for (size_t n = 0; n < tables; ++n) {
@@ -144,11 +144,11 @@ int main(int argc, char* argv[]) {
     }
     pOdbc->WaitAll();
 
-	ok = pOdbc->Tables(L"AdventureWorksDW2012", L"%", L"%", L"TABLE", er, r, rh);
-	pOdbc->WaitAll();
-	ok = pOdbc->Execute(L"use AdventureWorksDW2012", er);
+    ok = pOdbc->Tables(L"AdventureWorksDW2012", L"%", L"%", L"TABLE", er, r, rh);
+    pOdbc->WaitAll();
+    ok = pOdbc->Execute(L"use AdventureWorksDW2012", er);
 
-	pTables = ra.back();
+    pTables = ra.back();
     columns = pTables.first.size();
     tables = pTables.second.size() / pTables.first.size();
     for (size_t n = 0; n < tables; ++n) {

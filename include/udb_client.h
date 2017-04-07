@@ -12,7 +12,7 @@ namespace SPA {
         template<unsigned int serviceId>
         class CAsyncDBHandler : public CAsyncServiceHandler {
             static const unsigned int ONE_MEGA_BYTES = 0x100000;
-			static const unsigned int BLOB_LENGTH_NOT_AVAILABLE = 0xffffffE0;
+            static const unsigned int BLOB_LENGTH_NOT_AVAILABLE = 0xffffffe0;
 
         public:
 
@@ -448,7 +448,7 @@ namespace SPA {
                                 unsigned int parameters;
                                 ar >> res >> errMsg >> parameters;
                                 this->m_csDB.lock();
-								this->m_bCallReturn = false;
+                                this->m_bCallReturn = false;
                                 this->m_lastReqId = idPrepare;
                                 this->m_dbErrCode = res;
                                 this->m_dbErrMsg = errMsg;
@@ -462,9 +462,9 @@ namespace SPA {
                     })) {
                 return false;
             }
-				m_csDB.lock();
-				m_vParamInfo = vParameterInfo;
-				m_csDB.unlock();
+                m_csDB.lock();
+                m_vParamInfo = vParameterInfo;
+                m_csDB.unlock();
                 return true;
             }
 
@@ -592,20 +592,20 @@ namespace SPA {
                         }
                     }
                         break;
-					case idCallReturn:
-						{
-							CDBVariant vt;
-							mc >> vt;
-							auto it = m_mapParameterCall.find(m_indexRowset);
-                            if (it != m_mapParameterCall.end()) {
-                                //crash? make sure that vParam is valid after calling the method Execute
-                                CDBVariantArray &vParam = *(it->second);
-                                size_t pos = m_parameters * m_indexProc;
-								vParam[pos] = vt;
-                            }
-						}
-						m_bCallReturn = true;
-						break;
+                    case idCallReturn:
+                    {
+                        CDBVariant vt;
+                        mc >> vt;
+                        auto it = m_mapParameterCall.find(m_indexRowset);
+                        if (it != m_mapParameterCall.end()) {
+                            //crash? make sure that vParam is valid after calling the method Execute
+                            CDBVariantArray &vParam = *(it->second);
+                            size_t pos = m_parameters * m_indexProc;
+                            vParam[pos] = vt;
+                        }
+                    }
+                        m_bCallReturn = true;
+                        break;
                     case idBeginRows:
                         m_Blob.SetSize(0);
                         m_vData.clear();
@@ -676,7 +676,7 @@ namespace SPA {
                                     if (!m_outputs) {
                                         m_outputs = (unsigned int) m_vData.size();
                                     } else {
-                                        assert(m_outputs == (unsigned int) m_vData.size() + (unsigned int)m_bCallReturn);
+                                        assert(m_outputs == (unsigned int) m_vData.size() + (unsigned int) m_bCallReturn);
                                     }
                                     auto it = m_mapParameterCall.find(m_indexRowset);
                                     if (it != m_mapParameterCall.end()) {
@@ -727,12 +727,12 @@ namespace SPA {
                         if (mc.GetSize() || m_Blob.GetSize()) {
                             m_Blob.Push(mc.GetBuffer(), mc.GetSize());
                             mc.SetSize(0);
-							unsigned int *len = (unsigned int*)m_Blob.GetBuffer(sizeof(VARTYPE));
-							if (*len >= BLOB_LENGTH_NOT_AVAILABLE) {
-								//legth should be reset if BLOB length not available from server side at beginning
-								*len = (m_Blob.GetSize() - sizeof(VARTYPE) - sizeof(unsigned int));
-							}
-							m_vData.push_back(CDBVariant());
+                            unsigned int *len = (unsigned int*) m_Blob.GetBuffer(sizeof (VARTYPE));
+                            if (*len >= BLOB_LENGTH_NOT_AVAILABLE) {
+                                //legth should be reset if BLOB length not available from server side at beginning
+                                *len = (m_Blob.GetSize() - sizeof (VARTYPE) - sizeof (unsigned int));
+                            }
+                            m_vData.push_back(CDBVariant());
                             CDBVariant &vt = m_vData.back();
                             m_Blob >> vt;
                             assert(m_Blob.GetSize() == 0);
@@ -787,7 +787,7 @@ namespace SPA {
             unsigned short m_lastReqId;
             UINT64 m_nCall;
             UINT64 m_indexRowset;
-			CParameterInfoArray m_vParamInfo;
+            CParameterInfoArray m_vParamInfo;
 
         private:
             std::wstring m_strConnection;
@@ -800,7 +800,7 @@ namespace SPA {
             unsigned int m_flags;
             unsigned int m_parameters;
             unsigned int m_outputs;
-			bool m_bCallReturn;
+            bool m_bCallReturn;
         };
 
     } //namespace ClientSide

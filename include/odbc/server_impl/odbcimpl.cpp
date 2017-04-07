@@ -632,10 +632,10 @@ namespace SPA
                     case SQL_CHAR:
                     case SQL_VARCHAR:
                     case SQL_LONGVARCHAR:
-						if (info.ColumnSize == 0)
-							info.ColumnSize = (~0);
-						else
-							info.ColumnSize = (unsigned int) collen;
+                        if (info.ColumnSize == 0)
+                            info.ColumnSize = (~0);
+                        else
+                            info.ColumnSize = (unsigned int) collen;
                         info.DataType = (VT_ARRAY | VT_I1);
                         retcode = SQLColAttribute(hstmt, (SQLUSMALLINT) (n + 1), SQL_DESC_CASE_SENSITIVE, nullptr, 0, nullptr, &displaysize);
                         assert(SQL_SUCCEEDED(retcode));
@@ -646,10 +646,10 @@ namespace SPA
                     case SQL_WCHAR:
                     case SQL_WVARCHAR:
                     case SQL_WLONGVARCHAR:
-						if (collen == 0)
-							info.ColumnSize = (~0);
-						else
-							info.ColumnSize = (unsigned int) collen;
+                        if (collen == 0)
+                            info.ColumnSize = (~0);
+                        else
+                            info.ColumnSize = (unsigned int) collen;
                         info.DataType = VT_BSTR;
                         retcode = SQLColAttribute(hstmt, (SQLUSMALLINT) (n + 1), SQL_DESC_CASE_SENSITIVE, nullptr, 0, nullptr, &displaysize);
                         assert(SQL_SUCCEEDED(retcode));
@@ -660,10 +660,10 @@ namespace SPA
                     case SQL_BINARY:
                     case SQL_VARBINARY:
                     case SQL_LONGVARBINARY:
-						if (collen == 0)
-							info.ColumnSize = (~0);
-						else
-							info.ColumnSize = (unsigned int) collen;
+                        if (collen == 0)
+                            info.ColumnSize = (~0);
+                        else
+                            info.ColumnSize = (unsigned int) collen;
                         info.DataType = (VT_ARRAY | VT_UI1);
                         break;
                     case SQL_DECIMAL:

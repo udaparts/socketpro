@@ -96,12 +96,12 @@ int main(int argc, char* argv[]) {
     unsigned int oks = 0;
     TestStoredProcedure(pOdbc, ra, vPData, oks);
     pOdbc->WaitAll();
-	std::cout << std::endl;
+    std::cout << std::endl;
     std::cout << "There are " << pOdbc->GetOutputs() * oks << " output data returned" << std::endl;
-	
-	ok = pOdbc->Tables(L"sakila", L"", L"%", L"TABLE", er, r, rh);
-	pOdbc->WaitAll();
-	
+
+    ok = pOdbc->Tables(L"sakila", L"", L"%", L"TABLE", er, r, rh);
+    pOdbc->WaitAll();
+
     ok = pOdbc->Execute(L"use sakila", er);
     auto pTables = ra.back();
     size_t columns = pTables.first.size();
@@ -112,7 +112,7 @@ int main(int argc, char* argv[]) {
     }
     pOdbc->WaitAll();
 
-    
+
 
     //print out all received rowsets
     int index = 0;
