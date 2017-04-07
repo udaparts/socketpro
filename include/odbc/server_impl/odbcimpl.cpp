@@ -2360,10 +2360,10 @@ namespace SPA
             m_pPrepare.reset();
             m_vParam.clear();
             m_sqlPrepare = wsql;
-			m_bCall = false;
+            m_bCall = false;
             m_procName.clear();
-			m_bReturn = false;
-			m_procCatalogSchema.clear();
+            m_bReturn = false;
+            m_procCatalogSchema.clear();
             COdbcImpl::ODBC_CONNECTION_STRING::Trim(m_sqlPrepare);
             PreprocessPreparedStatement();
             SQLHSTMT hstmt = nullptr;
