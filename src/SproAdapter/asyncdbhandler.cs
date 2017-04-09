@@ -199,7 +199,7 @@ namespace SocketProAdapter
 
         public enum tagParameterDirection
         {
-			pdUnknown = 0,
+            pdUnknown = 0,
             pdInput = 1,
             pdOutput = 2,
             pdInputOutput = 3,
@@ -295,6 +295,7 @@ namespace SocketProAdapter
             public const ushort idChunk = idStartBLOB + 1;
             public const ushort idEndBLOB = idChunk + 1;
             public const ushort idEndRows = idEndBLOB + 1;
+            public const ushort idCallReturn = idEndRows + 1;
 
             /// <summary>
             /// Whenever a data size in bytes is about twice larger than the defined value,
@@ -323,24 +324,26 @@ namespace SocketProAdapter
             protected CDBColumnInfoArray m_vColInfo = new CDBColumnInfoArray();
 
             private string m_strConnection;
-            private long m_affected = -1;
-            private int m_dbErrCode = 0;
-            private string m_dbErrMsg = "";
-            private ushort m_lastReqId = 0;
-            private ulong m_nCall = 0;
-            private Dictionary<ulong, KeyValuePair<DRowsetHeader, DRows>> m_mapRowset = new Dictionary<ulong, KeyValuePair<DRowsetHeader, DRows>>();
+            protected long m_affected = -1;
+            protected int m_dbErrCode = 0;
+            protected string m_dbErrMsg = "";
+            protected ushort m_lastReqId = 0;
+            protected ulong m_nCall = 0;
+            protected Dictionary<ulong, KeyValuePair<DRowsetHeader, DRows>> m_mapRowset = new Dictionary<ulong, KeyValuePair<DRowsetHeader, DRows>>();
             private Dictionary<ulong, CDBVariantArray> m_mapParameterCall = new Dictionary<ulong, CDBVariantArray>();
-            private ulong m_indexRowset = 0;
+            protected ulong m_indexRowset = 0;
             private CUQueue m_Blob = new CUQueue();
             private CDBVariantArray m_vData = new CDBVariantArray();
             private tagManagementSystem m_ms = tagManagementSystem.msUnknown;
-
+            private List<CParameterInfo> m_vParamInfo;
             private uint m_flags = 0;
             private uint m_parameters = 0;
             private uint m_indexProc = 0;
             private uint m_output = 0;
+            private bool m_bCallReturn = false;
 
             public event DUpdateEvent DBEvent;
+
             public int LastDBErrorCode
             {
                 get
@@ -434,6 +437,17 @@ namespace SocketProAdapter
                     lock (m_csDB)
                     {
                         return m_parameters;
+                    }
+                }
+            }
+
+            public bool CallReturn
+            {
+                get
+                {
+                    lock (m_csDB)
+                    {
+                        return m_bCallReturn;
                     }
                 }
             }
@@ -981,6 +995,7 @@ namespace SocketProAdapter
                         ar.Load(out res).Load(out errMsg).Load(out parameters);
                         lock (m_csDB)
                         {
+                            m_bCallReturn = false;
                             m_lastReqId = idPrepare;
                             m_dbErrCode = res;
                             m_dbErrMsg = errMsg;
@@ -996,6 +1011,10 @@ namespace SocketProAdapter
                     {
                         return false;
                     }
+                }
+                lock (m_csDB)
+                {
+                    m_vParamInfo = new List<CParameterInfo>(vParameterInfo);
                 }
                 return true;
             }
@@ -1190,6 +1209,19 @@ namespace SocketProAdapter
                                 header(this);
                             }
                         }
+                        break;
+                    case idCallReturn:
+                        {
+                            object vt;
+                            mc.Load(out vt);
+                            if (m_mapParameterCall.ContainsKey(m_indexRowset))
+                            {
+                                CDBVariantArray vParam = m_mapParameterCall[m_indexRowset];
+                                uint pos = m_parameters * m_indexProc;
+                                vParam[(int)pos] = vt;
+                            }
+                        }
+                        m_bCallReturn = true;
                         break;
                     case idBeginRows:
                         m_Blob.SetSize(0);
