@@ -79,10 +79,10 @@ namespace SPA {
                 return m_outputs;
             }
 
-			inline bool GetCallReturn() {
-				CAutoLock al(m_csDB);
+            inline bool GetCallReturn() {
+                CAutoLock al(m_csDB);
                 return m_bCallReturn;
-			}
+            }
 
             /**
              * Check if the object will automatically convert utf8 string into Unicode string when loading a ASCII string by VARIANT.
@@ -794,7 +794,7 @@ namespace SPA {
             UINT64 m_indexRowset;
 
         private:
-			CParameterInfoArray m_vParamInfo;
+            CParameterInfoArray m_vParamInfo;
             std::wstring m_strConnection;
             std::unordered_map<UINT64, CDBVariantArray*> m_mapParameterCall;
             unsigned int m_indexProc;
