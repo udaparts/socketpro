@@ -2,24 +2,24 @@
 #pragma once
 
 #include "../definebase.h"
-#include "../udatabase.h"
+#include "../ucomm.h"
 
 namespace SPA {
     namespace Odbc {
         static const unsigned int sidOdbc = (unsigned int) sidReserved + 0x6FFFFFF2; //asynchronous ODBC service id
 
         //meta recordsets
-        static const unsigned short idSQLColumnPrivileges = SPA::UDB::idEndRows + 100;
-        static const unsigned short idSQLColumns = SPA::UDB::idEndRows + 101;
-        static const unsigned short idSQLForeignKeys = SPA::UDB::idEndRows + 102;
-        static const unsigned short idSQLPrimaryKeys = SPA::UDB::idEndRows + 103;
-        static const unsigned short idSQLProcedureColumns = SPA::UDB::idEndRows + 104;
-        static const unsigned short idSQLProcedures = SPA::UDB::idEndRows + 105;
-        static const unsigned short idSQLSpecialColumns = SPA::UDB::idEndRows + 106;
-        static const unsigned short idSQLStatistics = SPA::UDB::idEndRows + 107;
-        static const unsigned short idSQLTablePrivileges = SPA::UDB::idEndRows + 108;
-        static const unsigned short idSQLTables = SPA::UDB::idEndRows + 109;
-        static const unsigned short idSQLGetInfo = SPA::UDB::idEndRows + 110;
+        static const unsigned short idSQLColumnPrivileges = 0x7f00 + 100;
+        static const unsigned short idSQLColumns = 0x7f00 + 101;
+        static const unsigned short idSQLForeignKeys = 0x7f00 + 102;
+        static const unsigned short idSQLPrimaryKeys = 0x7f00 + 103;
+        static const unsigned short idSQLProcedureColumns = 0x7f00 + 104;
+        static const unsigned short idSQLProcedures = 0x7f00 + 105;
+        static const unsigned short idSQLSpecialColumns = 0x7f00 + 106;
+        static const unsigned short idSQLStatistics = 0x7f00 + 107;
+        static const unsigned short idSQLTablePrivileges = 0x7f00 + 108;
+        static const unsigned short idSQLTables = 0x7f00 + 109;
+        static const unsigned short idSQLGetInfo = 0x7f00 + 110;
 
         static const int ER_SUCCESS = 0;
         static const int ER_ERROR = -1;
