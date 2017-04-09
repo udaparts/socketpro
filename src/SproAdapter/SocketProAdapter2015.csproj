@@ -50,6 +50,7 @@
     <Compile Include="clientinterop.cs" />
     <Compile Include="clientpeer.cs" />
     <Compile Include="clientsocket.cs" />
+    <Compile Include="odbc.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="remotingadonethelper.cs" />
     <Compile Include="replication.cs" />

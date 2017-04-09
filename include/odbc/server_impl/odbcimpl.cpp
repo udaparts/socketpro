@@ -337,6 +337,11 @@ namespace SPA
                     }
                 });
                 PushInfo(hdbc);
+				if (!m_global) {
+                    errMsg = db;
+                } else {
+                    errMsg = ODBC_GLOBAL_CONNECTION_STRING;
+                }
             } while (false);
         }
 

@@ -267,6 +267,7 @@ namespace SocketProAdapter
         public class CAsyncDBHandler : CAsyncServiceHandler
         {
             private const uint ONE_MEGA_BYTES = 0x100000;
+            private const uint BLOB_LENGTH_NOT_AVAILABLE = 0xffffffe0;
 
             /// <summary>
             /// Async database client/server just requires the following request identification numbers 
@@ -335,7 +336,6 @@ namespace SocketProAdapter
             private CUQueue m_Blob = new CUQueue();
             private CDBVariantArray m_vData = new CDBVariantArray();
             private tagManagementSystem m_ms = tagManagementSystem.msUnknown;
-            private List<CParameterInfo> m_vParamInfo;
             private uint m_flags = 0;
             private uint m_parameters = 0;
             private uint m_indexProc = 0;
@@ -1012,10 +1012,6 @@ namespace SocketProAdapter
                         return false;
                     }
                 }
-                lock (m_csDB)
-                {
-                    m_vParamInfo = new List<CParameterInfo>(vParameterInfo);
-                }
                 return true;
             }
 
@@ -1238,7 +1234,11 @@ namespace SocketProAdapter
                         while (mc.GetSize() > 0)
                         {
                             object vt;
-                            mc.Load(out vt);
+                            int col = (m_vData.Count % m_vColInfo.Count);
+                            if (m_vColInfo[col].DataType == tagVariantDataType.sdVT_CLSID)
+                                mc.LoadDBGuid(out vt);
+                            else
+                                mc.Load(out vt);
                             m_vData.Add(vt);
                         }
                         break;
@@ -1247,16 +1247,16 @@ namespace SocketProAdapter
                         if (mc.GetSize() > 0 || m_vData.Count > 0)
                         {
                             object vt;
-                            while (mc.GetSize() > 0)
-                            {
-                                mc.Load(out vt);
-                                m_vData.Add(vt);
-                            }
                             if (reqId == idOutputParameter)
                             {
+                                while (mc.GetSize() > 0)
+                                {
+                                    mc.Load(out vt);
+                                    m_vData.Add(vt);
+                                }
                                 lock (m_csDB)
                                 {
-                                    m_output = (uint)m_vData.Count;
+                                    m_output = (uint)(m_vData.Count + (m_bCallReturn ? 1 : 0));
                                     if (m_mapParameterCall.ContainsKey(m_indexRowset))
                                     {
                                         CDBVariantArray vParam = m_mapParameterCall[m_indexRowset];
@@ -1272,6 +1272,15 @@ namespace SocketProAdapter
                             }
                             else
                             {
+                                while (mc.GetSize() > 0)
+                                {
+                                    int col = (m_vData.Count % m_vColInfo.Count);
+                                    if (m_vColInfo[col].DataType == tagVariantDataType.sdVT_CLSID)
+                                        mc.LoadDBGuid(out vt);
+                                    else
+                                        mc.Load(out vt);
+                                    m_vData.Add(vt);
+                                }
                                 DRows row = null;
                                 lock (m_csDB)
                                 {
@@ -1312,6 +1321,18 @@ namespace SocketProAdapter
                         {
                             m_Blob.Push(mc.IntenalBuffer, mc.GetSize());
                             mc.SetSize(0);
+                            unsafe
+                            {
+                                fixed (byte* p = mc.IntenalBuffer)
+                                {
+                                    uint* len = (uint*)(p + mc.HeadPosition + sizeof(ushort));
+                                    if (*len >= BLOB_LENGTH_NOT_AVAILABLE)
+                                    {
+                                        //length should be reset if BLOB length not available from server side at beginning
+                                        *len = (m_Blob.GetSize() - sizeof(ushort) - sizeof(uint));
+                                    }
+                                }
+                            }
                             object vt;
                             m_Blob.Load(out vt);
                             m_vData.Add(vt);

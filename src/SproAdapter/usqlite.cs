@@ -6,7 +6,7 @@ namespace SocketProAdapter
 {
     namespace ClientSide
     {
-        public class CSqlite : ClientSide.CAsyncDBHandler
+        public class CSqlite : CAsyncDBHandler
         {
             public const uint sidSqlite = SocketProAdapter.BaseServiceID.sidReserved + 0x6FFFFFF0; //asynchronous sqlite service id
 

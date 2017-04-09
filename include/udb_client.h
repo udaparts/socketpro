@@ -467,9 +467,6 @@ namespace SPA {
                     })) {
                 return false;
             }
-                m_csDB.lock();
-                m_vParamInfo = vParameterInfo;
-                m_csDB.unlock();
                 return true;
             }
 
@@ -794,7 +791,6 @@ namespace SPA {
             UINT64 m_indexRowset;
 
         private:
-            CParameterInfoArray m_vParamInfo;
             std::wstring m_strConnection;
             std::unordered_map<UINT64, CDBVariantArray*> m_mapParameterCall;
             unsigned int m_indexProc;
