@@ -9,6 +9,7 @@
 #include "../../udatabase.h"
 #include "../../aserverw.h"
 #include<unordered_map>
+#include <sqlext.h>
 
 namespace SPA {
     namespace ServerSide {

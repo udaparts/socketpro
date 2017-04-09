@@ -3,7 +3,6 @@
 
 #include "../definebase.h"
 #include "../udatabase.h"
-#include <sqlext.h>
 
 namespace SPA {
     namespace Odbc {

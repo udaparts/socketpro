@@ -252,7 +252,7 @@ namespace SPA {
                 return true;
             }
 
-            virtual bool SpecialColumns(SQLSMALLINT identifierType, const wchar_t *CatalogName, const wchar_t *SchemaName, const wchar_t *TableName, SQLSMALLINT scope, SQLSMALLINT nullable, DExecuteResult handler = DExecuteResult(), DRows row = DRows(), DRowsetHeader rh = DRowsetHeader()) {
+            virtual bool SpecialColumns(short identifierType, const wchar_t *CatalogName, const wchar_t *SchemaName, const wchar_t *TableName, short scope, short nullable, DExecuteResult handler = DExecuteResult(), DRows row = DRows(), DRowsetHeader rh = DRowsetHeader()) {
                 UINT64 index;
                 //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
                 m_csDB.lock();
@@ -290,7 +290,7 @@ namespace SPA {
                 return true;
             }
 
-            virtual bool Statistics(const wchar_t *CatalogName, const wchar_t *SchemaName, const wchar_t *TableName, SQLUSMALLINT unique, SQLUSMALLINT reserved, DExecuteResult handler = DExecuteResult(), DRows row = DRows(), DRowsetHeader rh = DRowsetHeader()) {
+            virtual bool Statistics(const wchar_t *CatalogName, const wchar_t *SchemaName, const wchar_t *TableName, unsigned short unique, unsigned short reserved, DExecuteResult handler = DExecuteResult(), DRows row = DRows(), DRowsetHeader rh = DRowsetHeader()) {
                 UINT64 index;
                 //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
                 m_csDB.lock();
@@ -404,7 +404,7 @@ namespace SPA {
                 return true;
             }
 
-            CComVariant GetInfo(SQLUSMALLINT infoType) {
+            CComVariant GetInfo(unsigned short infoType) {
                 CComVariant infoValue;
                 m_csDB.lock();
                 if (m_mapInfo.find(infoType) != m_mapInfo.end()) {
@@ -421,7 +421,7 @@ namespace SPA {
                     case SPA::Odbc::idSQLGetInfo:
                         m_mapInfo.clear();
                         while (mc.GetSize()) {
-                            SQLUSMALLINT infoType;
+                            unsigned short infoType;
                             CComVariant infoValue;
                             mc >> infoType >> infoValue;
                             m_csDB.lock();
@@ -436,7 +436,7 @@ namespace SPA {
             }
 
         private:
-            std::unordered_map<SQLUSMALLINT, CComVariant> m_mapInfo;
+            std::unordered_map<unsigned short, CComVariant> m_mapInfo;
         };
     } //namespace ClientSide
 } //namespace SPA

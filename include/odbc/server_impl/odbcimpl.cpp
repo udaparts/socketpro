@@ -632,7 +632,7 @@ namespace SPA
                     case SQL_CHAR:
                     case SQL_VARCHAR:
                     case SQL_LONGVARCHAR:
-                        if (info.ColumnSize == 0)
+                        if (collen == 0)
                             info.ColumnSize = (~0);
                         else
                             info.ColumnSize = (unsigned int) collen;
@@ -1031,10 +1031,7 @@ namespace SPA
         }
 
         bool COdbcImpl::PreprocessPreparedStatement() {
-            m_procCatalogSchema.clear();
             std::wstring s = m_sqlPrepare;
-            m_bCall = false;
-            m_procName.clear();
             if (s.size() && s.front() == L'{' && s.back() == L'}') {
                 s.pop_back();
                 s.erase(s.begin(), s.begin() + 1);
@@ -2363,6 +2360,10 @@ namespace SPA
             m_pPrepare.reset();
             m_vParam.clear();
             m_sqlPrepare = wsql;
+            m_bCall = false;
+            m_procName.clear();
+            m_bReturn = false;
+            m_procCatalogSchema.clear();
             COdbcImpl::ODBC_CONNECTION_STRING::Trim(m_sqlPrepare);
             PreprocessPreparedStatement();
             SQLHSTMT hstmt = nullptr;
