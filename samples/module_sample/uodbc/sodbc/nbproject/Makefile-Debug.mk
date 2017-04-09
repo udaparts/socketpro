@@ -56,7 +56,7 @@ FFLAGS=
 ASFLAGS=
 
 # Link Libraries and Options
-LDLIBSOPTIONS=-luservercore
+LDLIBSOPTIONS=-luservercore -lodbc
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}

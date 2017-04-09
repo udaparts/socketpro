@@ -59,6 +59,7 @@
           <commandlineTool>g++</commandlineTool>
           <linkerLibItems>
             <linkerLibLibItem>uservercore</linkerLibLibItem>
+            <linkerLibLibItem>odbc</linkerLibLibItem>
           </linkerLibItems>
           <commandLine>-std=c++11 -static-libgcc -static-libstdc++</commandLine>
         </linkerTool>
@@ -140,6 +141,7 @@
           <commandlineTool>g++</commandlineTool>
           <linkerLibItems>
             <linkerLibLibItem>uservercore</linkerLibLibItem>
+            <linkerLibLibItem>odbc</linkerLibLibItem>
           </linkerLibItems>
           <commandLine>-std=c++11 -static-libgcc -static-libstdc++</commandLine>
         </linkerTool>
