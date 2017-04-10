@@ -7,24 +7,24 @@
 
 namespace SPA {
     namespace ClientSide {
-        typedef CAsyncDBHandler<SPA::Odbc::sidOdbc> CAsyncDBBase;
+        typedef CAsyncDBHandler<SPA::Odbc::sidOdbc> COdbcBase;
 
-        class CAsyncOdbc : public CAsyncDBBase {
+        class COdbc : public COdbcBase {
             //no copy constructor supported
-            CAsyncOdbc(const CAsyncOdbc& ao);
+            COdbc(const COdbc& ao);
 
             //no assignment operator supported
-            CAsyncOdbc& operator=(const CAsyncOdbc& ao);
+            COdbc& operator=(const COdbc& ao);
 
         public:
 
-            CAsyncOdbc(CClientSocket *cs = nullptr) : CAsyncDBHandler(cs) {
+            COdbc(CClientSocket *cs = nullptr) : COdbcBase(cs) {
 
             }
 
         public:
 
-            virtual bool ColumnPrivileges(const wchar_t *CatalogName, const wchar_t *SchemaName, const wchar_t *TableName, const wchar_t *ColumnName, DExecuteResult handler = DExecuteResult(), DRows row = DRows(), DRowsetHeader rh = DRowsetHeader()) {
+            virtual bool ColumnPrivileges(const wchar_t *CatalogName, const wchar_t *SchemaName, const wchar_t *TableName, const wchar_t *ColumnName, DExecuteResult handler, DRows row, DRowsetHeader rh) {
                 UINT64 index;
                 //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
                 m_csDB.lock();
@@ -62,7 +62,7 @@ namespace SPA {
                 return true;
             }
 
-            virtual bool Columns(const wchar_t *CatalogName, const wchar_t *SchemaName, const wchar_t *TableName, const wchar_t *ColumnName, DExecuteResult handler = DExecuteResult(), DRows row = DRows(), DRowsetHeader rh = DRowsetHeader()) {
+            virtual bool Columns(const wchar_t *CatalogName, const wchar_t *SchemaName, const wchar_t *TableName, const wchar_t *ColumnName, DExecuteResult handler, DRows row, DRowsetHeader rh) {
                 UINT64 index;
                 //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
                 m_csDB.lock();
@@ -100,7 +100,7 @@ namespace SPA {
                 return true;
             }
 
-            virtual bool ProcedureColumns(const wchar_t *CatalogName, const wchar_t *SchemaName, const wchar_t *ProcName, const wchar_t *ColumnName, DExecuteResult handler = DExecuteResult(), DRows row = DRows(), DRowsetHeader rh = DRowsetHeader()) {
+            virtual bool ProcedureColumns(const wchar_t *CatalogName, const wchar_t *SchemaName, const wchar_t *ProcName, const wchar_t *ColumnName, DExecuteResult handler, DRows row, DRowsetHeader rh) {
                 UINT64 index;
                 //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
                 m_csDB.lock();
@@ -138,7 +138,7 @@ namespace SPA {
                 return true;
             }
 
-            virtual bool PrimaryKeys(const wchar_t *CatalogName, const wchar_t *SchemaName, const wchar_t *TableName, DExecuteResult handler = DExecuteResult(), DRows row = DRows(), DRowsetHeader rh = DRowsetHeader()) {
+            virtual bool PrimaryKeys(const wchar_t *CatalogName, const wchar_t *SchemaName, const wchar_t *TableName, DExecuteResult handler, DRows row, DRowsetHeader rh) {
                 UINT64 index;
                 //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
                 m_csDB.lock();
@@ -176,7 +176,7 @@ namespace SPA {
                 return true;
             }
 
-            virtual bool ForeignKeys(const wchar_t *PKCatalogName, const wchar_t *PKSchemaName, const wchar_t *PKTableName, const wchar_t *FKCatalogName, const wchar_t *FKSchemaName, const wchar_t *FKTableName, DExecuteResult handler = DExecuteResult(), DRows row = DRows(), DRowsetHeader rh = DRowsetHeader()) {
+            virtual bool ForeignKeys(const wchar_t *PKCatalogName, const wchar_t *PKSchemaName, const wchar_t *PKTableName, const wchar_t *FKCatalogName, const wchar_t *FKSchemaName, const wchar_t *FKTableName, DExecuteResult handler, DRows row, DRowsetHeader rh) {
                 UINT64 index;
                 //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
                 m_csDB.lock();
@@ -214,7 +214,7 @@ namespace SPA {
                 return true;
             }
 
-            virtual bool Procedures(const wchar_t *CatalogName, const wchar_t *SchemaName, const wchar_t *ProcName, DExecuteResult handler = DExecuteResult(), DRows row = DRows(), DRowsetHeader rh = DRowsetHeader()) {
+            virtual bool Procedures(const wchar_t *CatalogName, const wchar_t *SchemaName, const wchar_t *ProcName, DExecuteResult handler, DRows row, DRowsetHeader rh) {
                 UINT64 index;
                 //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
                 m_csDB.lock();
@@ -252,7 +252,7 @@ namespace SPA {
                 return true;
             }
 
-            virtual bool SpecialColumns(short identifierType, const wchar_t *CatalogName, const wchar_t *SchemaName, const wchar_t *TableName, short scope, short nullable, DExecuteResult handler = DExecuteResult(), DRows row = DRows(), DRowsetHeader rh = DRowsetHeader()) {
+            virtual bool SpecialColumns(short identifierType, const wchar_t *CatalogName, const wchar_t *SchemaName, const wchar_t *TableName, short scope, short nullable, DExecuteResult handler, DRows row, DRowsetHeader rh) {
                 UINT64 index;
                 //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
                 m_csDB.lock();
@@ -290,7 +290,7 @@ namespace SPA {
                 return true;
             }
 
-            virtual bool Statistics(const wchar_t *CatalogName, const wchar_t *SchemaName, const wchar_t *TableName, unsigned short unique, unsigned short reserved, DExecuteResult handler = DExecuteResult(), DRows row = DRows(), DRowsetHeader rh = DRowsetHeader()) {
+            virtual bool Statistics(const wchar_t *CatalogName, const wchar_t *SchemaName, const wchar_t *TableName, unsigned short unique, unsigned short reserved, DExecuteResult handler, DRows row, DRowsetHeader rh) {
                 UINT64 index;
                 //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
                 m_csDB.lock();
@@ -328,7 +328,7 @@ namespace SPA {
                 return true;
             }
 
-            virtual bool TablePrivileges(const wchar_t *CatalogName, const wchar_t *SchemaName, const wchar_t *TableName, DExecuteResult handler = DExecuteResult(), DRows row = DRows(), DRowsetHeader rh = DRowsetHeader()) {
+            virtual bool TablePrivileges(const wchar_t *CatalogName, const wchar_t *SchemaName, const wchar_t *TableName, DExecuteResult handler, DRows row, DRowsetHeader rh) {
                 UINT64 index;
                 //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
                 m_csDB.lock();
@@ -366,7 +366,7 @@ namespace SPA {
                 return true;
             }
 
-            virtual bool Tables(const wchar_t *CatalogName, const wchar_t *SchemaName, const wchar_t *TableName, const wchar_t *TableType, DExecuteResult handler = DExecuteResult(), DRows row = DRows(), DRowsetHeader rh = DRowsetHeader()) {
+            virtual bool Tables(const wchar_t *CatalogName, const wchar_t *SchemaName, const wchar_t *TableName, const wchar_t *TableType, DExecuteResult handler, DRows row, DRowsetHeader rh) {
                 UINT64 index;
                 //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
                 m_csDB.lock();
@@ -430,7 +430,7 @@ namespace SPA {
                         }
                         break;
                     default:
-                        CAsyncDBBase::OnResultReturned(reqId, mc);
+                        COdbcBase::OnResultReturned(reqId, mc);
                         break;
                 }
             }

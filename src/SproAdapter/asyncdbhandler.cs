@@ -730,20 +730,12 @@ namespace SocketProAdapter
                         m_affected = affected;
                         m_dbErrCode = res;
                         m_dbErrMsg = errMsg;
-                        if (m_mapRowset.ContainsKey(callIndex))
-                        {
-                            m_mapRowset.Remove(callIndex);
-                        }
-                        if (m_mapParameterCall.ContainsKey(callIndex))
-                        {
-                            m_mapParameterCall.Remove(callIndex);
-                        }
+                        m_mapRowset.Remove(callIndex);
+                        m_mapParameterCall.Remove(callIndex);
                         m_indexProc = 0;
                     }
                     if (handler != null)
-                    {
                         handler(this, res, errMsg, affected, fail_ok, vtId);
-                    }
                 }))
                 {
                     lock (m_csDB)
@@ -847,15 +839,10 @@ namespace SocketProAdapter
                         m_affected = affected;
                         m_dbErrCode = res;
                         m_dbErrMsg = errMsg;
-                        if (m_mapRowset.ContainsKey(m_indexRowset))
-                        {
-                            m_mapRowset.Remove(m_indexRowset);
-                        }
+                        m_mapRowset.Remove(m_indexRowset);
                     }
                     if (handler != null)
-                    {
                         handler(this, res, errMsg, affected, fail_ok, vtId);
-                    }
                 }))
                 {
                     lock (m_csDB)

@@ -6,12 +6,12 @@
 
 using namespace SPA::UDB;
 
-typedef SPA::ClientSide::CAsyncOdbc CMyHandler;
+typedef SPA::ClientSide::COdbc CMyHandler;
 typedef SPA::ClientSide::CSocketPool<CMyHandler> CMyPool;
 typedef SPA::ClientSide::CConnectionContext CMyConnContext;
 typedef std::pair<CDBColumnInfoArray, CDBVariantArray> CPColumnRowset;
 typedef std::vector<CPColumnRowset> CRowsetArray;
-typedef SPA::ClientSide::CAsyncDBBase CSender;
+typedef SPA::ClientSide::COdbcBase CSender;
 
 
 void TestCreateTables(std::shared_ptr<CMyHandler> pOdbc);
