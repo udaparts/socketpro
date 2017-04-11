@@ -74,7 +74,8 @@ int main(int argc, char* argv[]) {
         ra.push_back(column_rowset_pair);
     };
 
-    ok = pOdbc->Open(L"dsn=ToMySQL;uid=root;pwd=Smash123", dr);
+    ok = pOdbc->Open(L"dsn=ToOracle64;uid=scott;pwd=tiger", dr);
+	/*
     TestCreateTables(pOdbc);
     ok = pOdbc->Execute(L"delete from employee;delete from company", er);
     TestPreparedStatements(pOdbc);
@@ -98,22 +99,22 @@ int main(int argc, char* argv[]) {
     pOdbc->WaitAll();
     std::cout << std::endl;
     std::cout << "There are " << pOdbc->GetOutputs() * oks << " output data returned" << std::endl;
-
-    ok = pOdbc->Tables(L"sakila", L"", L"%", L"TABLE", er, r, rh);
-    pOdbc->WaitAll();
-
-    ok = pOdbc->Execute(L"use sakila", er);
-    auto pTables = ra.back();
-    size_t columns = pTables.first.size();
-    size_t tables = pTables.second.size() / pTables.first.size();
-    for (size_t n = 0; n < tables; ++n) {
-        std::wstring sql = std::wstring(L"select * from ") + pTables.second[n * columns + 2].bstrVal;
-        ok = pOdbc->Execute(sql.c_str(), er, r, rh);
-    }
-    pOdbc->WaitAll();
-
-
-
+	*/
+    //ok = pOdbc->Execute(L"select TABLE_NAME from all_tables where OWNER = 'SCOTT'", er, r, rh);
+	ok = pOdbc->Execute(L"select * from myinterval", er, r, rh);
+    ok = pOdbc->WaitAll();
+	/*
+	if (ra.size()) {
+		auto pTables = ra.back();
+		size_t columns = pTables.first.size();
+		size_t tables = pTables.second.size() / pTables.first.size();
+		for (size_t n = 0; n < tables; ++n) {
+			std::wstring sql = std::wstring(L"select * from ") + pTables.second[n * columns].bstrVal;
+			ok = pOdbc->Execute(sql.c_str(), er, r, rh);
+		}
+		ok = pOdbc->WaitAll();
+	}
+	*/
     //print out all received rowsets
     int index = 0;
     std::cout << std::endl;

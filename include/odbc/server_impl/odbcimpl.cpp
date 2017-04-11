@@ -679,6 +679,15 @@ namespace SPA
                         retcode = SQLColAttribute(hstmt, (SQLUSMALLINT) (n + 1), SQL_DESC_PRECISION, nullptr, 0, nullptr, &displaysize);
                         assert(SQL_SUCCEEDED(retcode));
                         info.Precision = (unsigned char) displaysize;
+						if (decimaldigits == 0) {
+							if (displaysize >= 10)
+								info.DataType = VT_I8;
+							else if (displaysize >= 5)
+								info.DataType = VT_I4;
+							else {
+								info.DataType = VT_I2;
+							}
+						}
                         break;
                     case SQL_SMALLINT:
                         if (displaysize == SQL_TRUE) {
@@ -744,12 +753,9 @@ namespace SPA
                     case SQL_INTERVAL_HOUR_TO_MINUTE:
                     case SQL_INTERVAL_HOUR_TO_SECOND:
                     case SQL_INTERVAL_MINUTE_TO_SECOND:
-                        info.ColumnSize = coltype; //remember SQL data type
-                        info.Scale = (unsigned char) decimaldigits;
-                        retcode = SQLColAttribute(hstmt, (SQLUSMALLINT) (n + 1), SQL_DESC_PRECISION, nullptr, 0, nullptr, &displaysize);
-                        assert(SQL_SUCCEEDED(retcode));
-                        info.Precision = (unsigned char) displaysize;
-                        info.DataType = VT_DATE;
+                        info.ColumnSize = 32; //remember SQL data type
+                        info.DataType = (VT_ARRAY | VT_I1);
+						info.Precision = (unsigned char) coltype;
                         break;
                     case SQL_SS_XML:
                         info.DataType = SPA::VT_XML;
