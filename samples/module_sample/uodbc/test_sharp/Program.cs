@@ -67,9 +67,22 @@ class Program
             vPData.Add(0);
             TestStoredProcedure(odbc, ra, vPData);
             ok = odbc.WaitAll();
-
             Console.WriteLine();
             Console.WriteLine("There are {0} output data returned", odbc.Outputs * 2);
+
+            ok = odbc.Tables("sakila", "", "%", "TABLE", er, r, rh);
+            ok = odbc.WaitAll();
+
+            ok = odbc.Execute("use sakila", er);
+            KeyValuePair<CDBColumnInfoArray, CDBVariantArray> tables = ra[ra.Count - 1];
+            int columns = tables.Key.Count;
+            int num_tables = tables.Value.Count / columns;
+            for (int n = 0; n < num_tables; ++n)
+            {
+                string sql = "select * from " + tables.Value[columns * n + 2].ToString();
+                ok = odbc.Execute(sql, er, r, rh);
+            }
+            ok = odbc.WaitAll();
 
             int index = 0;
             Console.WriteLine();

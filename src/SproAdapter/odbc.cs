@@ -58,268 +58,37 @@ namespace SocketProAdapter
 
             public virtual bool ColumnPrivileges(string CatalogName, string SchemaName, string TableName, string ColumnName, DExecuteResult handler, DRows row, DRowsetHeader rh)
             {
-                ulong index;
-                //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
-                lock (m_csDB)
-                {
-                    index = ++m_nCall;
-                    m_mapRowset[m_nCall] = new KeyValuePair<DRowsetHeader, DRows>(rh, row);
-                }
-                if (!SendRequest(idSQLColumnPrivileges, CatalogName, SchemaName, TableName, ColumnName, index, (ar) =>
-                {
-                    ulong fail_ok;
-                    int res;
-                    string errMsg;
-                    ar.Load(out res).Load(out errMsg).Load(out fail_ok);
-                    lock (m_csDB)
-                    {
-                        m_lastReqId = idSQLColumnPrivileges;
-                        m_affected = 0;
-                        m_dbErrCode = res;
-                        m_dbErrMsg = errMsg;
-                        m_mapRowset.Remove(m_indexRowset);
-                        if (m_mapRowset.Count == 0)
-                            m_nCall = 0;
-                    }
-                    if (handler != null)
-                        handler(this, res, errMsg, 0, fail_ok, null);
-                }))
-                {
-                    lock (m_csDB)
-                    {
-                        m_mapRowset.Remove(index);
-                    }
-                    return false;
-                }
-                return true;
+                return DoMeta(idSQLColumnPrivileges, CatalogName, SchemaName, TableName, ColumnName, handler, row, rh);
             }
 
             public virtual bool Columns(string CatalogName, string SchemaName, string TableName, string ColumnName, DExecuteResult handler, DRows row, DRowsetHeader rh)
             {
-                ulong index;
-                //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
-                lock (m_csDB)
-                {
-                    index = ++m_nCall;
-                    m_mapRowset[m_nCall] = new KeyValuePair<DRowsetHeader, DRows>(rh, row);
-                }
-                if (!SendRequest(idSQLColumns, CatalogName, SchemaName, TableName, ColumnName, index, (ar) =>
-                {
-                    ulong fail_ok;
-                    int res;
-                    string errMsg;
-                    ar.Load(out res).Load(out errMsg).Load(out fail_ok);
-                    lock (m_csDB)
-                    {
-                        m_lastReqId = idSQLColumns;
-                        m_affected = 0;
-                        m_dbErrCode = res;
-                        m_dbErrMsg = errMsg;
-                        m_mapRowset.Remove(m_indexRowset);
-                        if (m_mapRowset.Count == 0)
-                            m_nCall = 0;
-                    }
-                    if (handler != null)
-                        handler(this, res, errMsg, 0, fail_ok, null);
-                }))
-                {
-                    lock (m_csDB)
-                    {
-                        m_mapRowset.Remove(index);
-                    }
-                    return false;
-                }
-                return true;
+                return DoMeta(idSQLColumns, CatalogName, SchemaName, TableName, ColumnName, handler, row, rh);
             }
 
             public virtual bool ProcedureColumns(string CatalogName, string SchemaName, string ProcName, string ColumnName, DExecuteResult handler, DRows row, DRowsetHeader rh)
             {
-                ulong index;
-                //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
-                lock (m_csDB)
-                {
-                    index = ++m_nCall;
-                    m_mapRowset[m_nCall] = new KeyValuePair<DRowsetHeader, DRows>(rh, row);
-                }
-                if (!SendRequest(idSQLProcedureColumns, CatalogName, SchemaName, ProcName, ColumnName, index, (ar) =>
-                {
-                    ulong fail_ok;
-                    int res;
-                    string errMsg;
-                    ar.Load(out res).Load(out errMsg).Load(out fail_ok);
-                    lock (m_csDB)
-                    {
-                        m_lastReqId = idSQLProcedureColumns;
-                        m_affected = 0;
-                        m_dbErrCode = res;
-                        m_dbErrMsg = errMsg;
-                        m_mapRowset.Remove(m_indexRowset);
-                        if (m_mapRowset.Count == 0)
-                            m_nCall = 0;
-                    }
-                    if (handler != null)
-                        handler(this, res, errMsg, 0, fail_ok, null);
-                }))
-                {
-                    lock (m_csDB)
-                    {
-                        m_mapRowset.Remove(index);
-                    }
-                    return false;
-                }
-                return true;
+                return DoMeta(idSQLProcedureColumns, CatalogName, SchemaName, ProcName, ColumnName, handler, row, rh);
             }
 
             public virtual bool PrimaryKeys(string CatalogName, string SchemaName, string TableName, DExecuteResult handler, DRows row, DRowsetHeader rh)
             {
-                ulong index;
-                //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
-                lock (m_csDB)
-                {
-                    index = ++m_nCall;
-                    m_mapRowset[m_nCall] = new KeyValuePair<DRowsetHeader, DRows>(rh, row);
-                }
-                if (!SendRequest(idSQLPrimaryKeys, CatalogName, SchemaName, TableName, index, (ar) =>
-                {
-                    ulong fail_ok;
-                    int res;
-                    string errMsg;
-                    ar.Load(out res).Load(out errMsg).Load(out fail_ok);
-                    lock (m_csDB)
-                    {
-                        m_lastReqId = idSQLPrimaryKeys;
-                        m_affected = 0;
-                        m_dbErrCode = res;
-                        m_dbErrMsg = errMsg;
-                        m_mapRowset.Remove(m_indexRowset);
-                        if (m_mapRowset.Count == 0)
-                            m_nCall = 0;
-                    }
-                    if (handler != null)
-                        handler(this, res, errMsg, 0, fail_ok, null);
-                }))
-                {
-                    lock (m_csDB)
-                    {
-                        m_mapRowset.Remove(index);
-                    }
-                    return false;
-                }
-                return true;
+                return DoMeta(idSQLPrimaryKeys, CatalogName, SchemaName, TableName, handler, row, rh);
             }
 
             public virtual bool TablePrivileges(string CatalogName, string SchemaName, string TableName, DExecuteResult handler, DRows row, DRowsetHeader rh)
             {
-                ulong index;
-                //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
-                lock (m_csDB)
-                {
-                    index = ++m_nCall;
-                    m_mapRowset[m_nCall] = new KeyValuePair<DRowsetHeader, DRows>(rh, row);
-                }
-                if (!SendRequest(idSQLTablePrivileges, CatalogName, SchemaName, TableName, index, (ar) =>
-                {
-                    ulong fail_ok;
-                    int res;
-                    string errMsg;
-                    ar.Load(out res).Load(out errMsg).Load(out fail_ok);
-                    lock (m_csDB)
-                    {
-                        m_lastReqId = idSQLTablePrivileges;
-                        m_affected = 0;
-                        m_dbErrCode = res;
-                        m_dbErrMsg = errMsg;
-                        m_mapRowset.Remove(m_indexRowset);
-                        if (m_mapRowset.Count == 0)
-                            m_nCall = 0;
-                    }
-                    if (handler != null)
-                        handler(this, res, errMsg, 0, fail_ok, null);
-                }))
-                {
-                    lock (m_csDB)
-                    {
-                        m_mapRowset.Remove(index);
-                    }
-                    return false;
-                }
-                return true;
+                return DoMeta(idSQLTablePrivileges, CatalogName, SchemaName, TableName, handler, row, rh);
             }
 
             public virtual bool Procedures(string CatalogName, string SchemaName, string ProcName, DExecuteResult handler, DRows row, DRowsetHeader rh)
             {
-                ulong index;
-                //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
-                lock (m_csDB)
-                {
-                    index = ++m_nCall;
-                    m_mapRowset[m_nCall] = new KeyValuePair<DRowsetHeader, DRows>(rh, row);
-                }
-                if (!SendRequest(idSQLProcedures, CatalogName, SchemaName, ProcName, index, (ar) =>
-                {
-                    ulong fail_ok;
-                    int res;
-                    string errMsg;
-                    ar.Load(out res).Load(out errMsg).Load(out fail_ok);
-                    lock (m_csDB)
-                    {
-                        m_lastReqId = idSQLProcedures;
-                        m_affected = 0;
-                        m_dbErrCode = res;
-                        m_dbErrMsg = errMsg;
-                        m_mapRowset.Remove(m_indexRowset);
-                        if (m_mapRowset.Count == 0)
-                            m_nCall = 0;
-                    }
-                    if (handler != null)
-                        handler(this, res, errMsg, 0, fail_ok, null);
-                }))
-                {
-                    lock (m_csDB)
-                    {
-                        m_mapRowset.Remove(index);
-                    }
-                    return false;
-                }
-                return true;
+                return DoMeta(idSQLProcedures, CatalogName, SchemaName, ProcName, handler, row, rh);
             }
 
             public virtual bool SpecialColumns(short identifierType, string CatalogName, string SchemaName, string TableName, short scope, short nullable, DExecuteResult handler, DRows row, DRowsetHeader rh)
             {
-                ulong index;
-                //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
-                lock (m_csDB)
-                {
-                    index = ++m_nCall;
-                    m_mapRowset[m_nCall] = new KeyValuePair<DRowsetHeader, DRows>(rh, row);
-                }
-                if (!SendRequest(idSQLSpecialColumns, identifierType, CatalogName, SchemaName, TableName, scope, nullable, index, (ar) =>
-                {
-                    ulong fail_ok;
-                    int res;
-                    string errMsg;
-                    ar.Load(out res).Load(out errMsg).Load(out fail_ok);
-                    lock (m_csDB)
-                    {
-                        m_lastReqId = idSQLSpecialColumns;
-                        m_affected = 0;
-                        m_dbErrCode = res;
-                        m_dbErrMsg = errMsg;
-                        m_mapRowset.Remove(m_indexRowset);
-                        if (m_mapRowset.Count == 0)
-                            m_nCall = 0;
-                    }
-                    if (handler != null)
-                        handler(this, res, errMsg, 0, fail_ok, null);
-                }))
-                {
-                    lock (m_csDB)
-                    {
-                        m_mapRowset.Remove(index);
-                    }
-                    return false;
-                }
-                return true;
+                return DoMeta(idSQLSpecialColumns, identifierType, CatalogName, SchemaName, TableName, scope, nullable, handler, row, rh);
             }
 
             public virtual bool Statistics(string CatalogName, string SchemaName, string TableName, ushort unique, ushort reserved, DExecuteResult handler, DRows row, DRowsetHeader rh)
@@ -362,6 +131,16 @@ namespace SocketProAdapter
 
             public virtual bool Tables(string CatalogName, string SchemaName, string TableName, string TableType, DExecuteResult handler, DRows row, DRowsetHeader rh)
             {
+                return DoMeta(idSQLTables, CatalogName, SchemaName, TableName, TableType, handler, row, rh);
+            }
+
+            public virtual bool ForeignKeys(string PKCatalogName, string PKSchemaName, string PKTableName, string FKCatalogName, string FKSchemaName, string FKTableName, DExecuteResult handler, DRows row, DRowsetHeader rh)
+            {
+                return DoMeta(idSQLForeignKeys, PKCatalogName, PKSchemaName, PKTableName, FKCatalogName, FKSchemaName, FKTableName, handler, row, rh);
+            }
+
+            private bool DoMeta(ushort id, string s0, string s1, string s2, string s3, DExecuteResult handler, DRows row, DRowsetHeader rh)
+            {
                 ulong index;
                 //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
                 lock (m_csDB)
@@ -369,7 +148,7 @@ namespace SocketProAdapter
                     index = ++m_nCall;
                     m_mapRowset[m_nCall] = new KeyValuePair<DRowsetHeader, DRows>(rh, row);
                 }
-                if (!SendRequest(idSQLTables, CatalogName, SchemaName, TableName, TableType, index, (ar) =>
+                if (!SendRequest(id, s0, s1, s2, s3, index, (ar) =>
                 {
                     ulong fail_ok;
                     int res;
@@ -377,7 +156,7 @@ namespace SocketProAdapter
                     ar.Load(out res).Load(out errMsg).Load(out fail_ok);
                     lock (m_csDB)
                     {
-                        m_lastReqId = idSQLTables;
+                        m_lastReqId = id;
                         m_affected = 0;
                         m_dbErrCode = res;
                         m_dbErrMsg = errMsg;
@@ -397,8 +176,7 @@ namespace SocketProAdapter
                 }
                 return true;
             }
-
-            public virtual bool ForeignKeys(string PKCatalogName, string PKSchemaName, string PKTableName, string FKCatalogName, string FKSchemaName, string FKTableName, DExecuteResult handler, DRows row, DRowsetHeader rh)
+            private bool DoMeta(ushort id, string s0, string s1, string s2, DExecuteResult handler, DRows row, DRowsetHeader rh)
             {
                 ulong index;
                 //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
@@ -407,7 +185,7 @@ namespace SocketProAdapter
                     index = ++m_nCall;
                     m_mapRowset[m_nCall] = new KeyValuePair<DRowsetHeader, DRows>(rh, row);
                 }
-                if (!SendRequest(idSQLForeignKeys, PKCatalogName, PKSchemaName, PKTableName, FKCatalogName, FKSchemaName, FKTableName, index, (ar) =>
+                if (!SendRequest(id, s0, s1, s2, index, (ar) =>
                 {
                     ulong fail_ok;
                     int res;
@@ -415,7 +193,44 @@ namespace SocketProAdapter
                     ar.Load(out res).Load(out errMsg).Load(out fail_ok);
                     lock (m_csDB)
                     {
-                        m_lastReqId = idSQLForeignKeys;
+                        m_lastReqId = id;
+                        m_affected = 0;
+                        m_dbErrCode = res;
+                        m_dbErrMsg = errMsg;
+                        m_mapRowset.Remove(m_indexRowset);
+                        if (m_mapRowset.Count == 0)
+                            m_nCall = 0;
+                    }
+                    if (handler != null)
+                        handler(this, res, errMsg, 0, fail_ok, null);
+                }))
+                {
+                    lock (m_csDB)
+                    {
+                        m_mapRowset.Remove(index);
+                    }
+                    return false;
+                }
+                return true;
+            }
+            private bool DoMeta<T0, T1, T2>(ushort id, T0 t0, string s0, string s1, string s2, T1 t1, T2 t2, DExecuteResult handler, DRows row, DRowsetHeader rh)
+            {
+                ulong index;
+                //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
+                lock (m_csDB)
+                {
+                    index = ++m_nCall;
+                    m_mapRowset[m_nCall] = new KeyValuePair<DRowsetHeader, DRows>(rh, row);
+                }
+                if (!SendRequest(id, t0, s0, s1, s2, t1, t2, index, (ar) =>
+                {
+                    ulong fail_ok;
+                    int res;
+                    string errMsg;
+                    ar.Load(out res).Load(out errMsg).Load(out fail_ok);
+                    lock (m_csDB)
+                    {
+                        m_lastReqId = id;
                         m_affected = 0;
                         m_dbErrCode = res;
                         m_dbErrMsg = errMsg;

@@ -1041,40 +1041,40 @@ namespace SPA
                 s.pop_back();
                 s.erase(s.begin(), s.begin() + 1);
                 COdbcImpl::ODBC_CONNECTION_STRING::Trim(s);
-                m_bReturn = (s.front() == L'?');
-                if (m_bReturn) {
-                    s.erase(s.begin(), s.begin() + 1); //remove '?'
-                    COdbcImpl::ODBC_CONNECTION_STRING::Trim(s);
-                    if (s.front() != L'=')
-                        return false;
-                    s.erase(s.begin(), s.begin() + 1); //remove '='
-                    COdbcImpl::ODBC_CONNECTION_STRING::Trim(s);
-                }
-                std::wstring s_copy = s;
-                transform(s.begin(), s.end(), s.begin(), ::tolower);
-                m_bCall = (s.find(L"call ") == 0);
-                if (m_bCall) {
-                    auto pos = s_copy.find(L'(');
-                    if (pos != std::wstring::npos) {
-                        if (s_copy.back() != L')')
-                            return false;
-                        m_procName.assign(s_copy.begin() + 5, s_copy.begin() + pos);
-                    } else {
-                        if (s_copy.back() == L')')
-                            return false;
-                        m_procName = s_copy.substr(5);
-                    }
-                    COdbcImpl::ODBC_CONNECTION_STRING::Trim(m_procName);
-                    pos = m_procName.rfind(L'.');
-                    if (pos != std::wstring::npos) {
-                        m_procCatalogSchema = m_procName.substr(0, pos);
-                        COdbcImpl::ODBC_CONNECTION_STRING::Trim(m_procCatalogSchema);
-                        m_procName = m_procName.substr(pos + 1);
-                        COdbcImpl::ODBC_CONNECTION_STRING::Trim(m_procName);
-                    }
-                } else {
+			}
+            m_bReturn = (s.front() == L'?');
+            if (m_bReturn) {
+                s.erase(s.begin(), s.begin() + 1); //remove '?'
+                COdbcImpl::ODBC_CONNECTION_STRING::Trim(s);
+                if (s.front() != L'=')
                     return false;
+                s.erase(s.begin(), s.begin() + 1); //remove '='
+                COdbcImpl::ODBC_CONNECTION_STRING::Trim(s);
+            }
+            std::wstring s_copy = s;
+            transform(s.begin(), s.end(), s.begin(), ::tolower);
+            m_bCall = (s.find(L"call ") == 0);
+            if (m_bCall) {
+                auto pos = s_copy.find(L'(');
+                if (pos != std::wstring::npos) {
+                    if (s_copy.back() != L')')
+                        return false;
+                    m_procName.assign(s_copy.begin() + 5, s_copy.begin() + pos);
+                } else {
+                    if (s_copy.back() == L')')
+                        return false;
+                    m_procName = s_copy.substr(5);
                 }
+                COdbcImpl::ODBC_CONNECTION_STRING::Trim(m_procName);
+                pos = m_procName.rfind(L'.');
+                if (pos != std::wstring::npos) {
+                    m_procCatalogSchema = m_procName.substr(0, pos);
+                    COdbcImpl::ODBC_CONNECTION_STRING::Trim(m_procCatalogSchema);
+                    m_procName = m_procName.substr(pos + 1);
+                    COdbcImpl::ODBC_CONNECTION_STRING::Trim(m_procName);
+                }
+            } else {
+                return false;
             }
             return true;
         }

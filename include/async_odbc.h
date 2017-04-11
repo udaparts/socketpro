@@ -25,269 +25,31 @@ namespace SPA {
         public:
 
             virtual bool ColumnPrivileges(const wchar_t *CatalogName, const wchar_t *SchemaName, const wchar_t *TableName, const wchar_t *ColumnName, DExecuteResult handler, DRows row, DRowsetHeader rh) {
-                UINT64 index;
-                //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
-                m_csDB.lock();
-                index = ++m_nCall;
-                m_mapRowset[m_nCall] = CRowsetHandler(rh, row);
-                m_csDB.unlock();
-                if (!SendRequest(SPA::Odbc::idSQLColumnPrivileges, CatalogName, SchemaName, TableName, ColumnName, index, [handler, this](CAsyncResult & ar) {
-                        UINT64 fail_ok;
-                        int res;
-                                std::wstring errMsg;
-                                ar >> res >> errMsg >> fail_ok;
-                                this->m_csDB.lock();
-                                this->m_lastReqId = SPA::Odbc::idSQLColumnPrivileges;
-                                this->m_affected = 0;
-                                this->m_dbErrCode = res;
-                                this->m_dbErrMsg = errMsg;
-                                auto it = this->m_mapRowset.find(this->m_indexRowset);
-                        if (it != this->m_mapRowset.end()) {
-                            this->m_mapRowset.erase(it);
-                        }
-                        if (!this->m_mapRowset.size()) {
-                            this->m_nCall = 0;
-                        }
-                        this->m_csDB.unlock();
-                        if (handler) {
-                            CDBVariant vtNull;
-                                    handler(*this, res, errMsg, 0, fail_ok, vtNull);
-                        }
-                    })) {
-                m_csDB.lock();
-                m_mapRowset.erase(index);
-                m_csDB.unlock();
-                return false;
-            }
-                return true;
+                return DoMeta(SPA::Odbc::idSQLColumnPrivileges, CatalogName, SchemaName, TableName, ColumnName, handler, row, rh);
             }
 
             virtual bool Columns(const wchar_t *CatalogName, const wchar_t *SchemaName, const wchar_t *TableName, const wchar_t *ColumnName, DExecuteResult handler, DRows row, DRowsetHeader rh) {
-                UINT64 index;
-                //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
-                m_csDB.lock();
-                index = ++m_nCall;
-                m_mapRowset[m_nCall] = CRowsetHandler(rh, row);
-                m_csDB.unlock();
-                if (!SendRequest(SPA::Odbc::idSQLColumns, CatalogName, SchemaName, TableName, ColumnName, index, [handler, this](CAsyncResult & ar) {
-                        UINT64 fail_ok;
-                        int res;
-                                std::wstring errMsg;
-                                ar >> res >> errMsg >> fail_ok;
-                                this->m_csDB.lock();
-                                this->m_lastReqId = SPA::Odbc::idSQLColumns;
-                                this->m_affected = 0;
-                                this->m_dbErrCode = res;
-                                this->m_dbErrMsg = errMsg;
-                                auto it = this->m_mapRowset.find(this->m_indexRowset);
-                        if (it != this->m_mapRowset.end()) {
-                            this->m_mapRowset.erase(it);
-                        }
-                        if (!this->m_mapRowset.size()) {
-                            this->m_nCall = 0;
-                        }
-                        this->m_csDB.unlock();
-                        if (handler) {
-                            CDBVariant vtNull;
-                                    handler(*this, res, errMsg, 0, fail_ok, vtNull);
-                        }
-                    })) {
-                m_csDB.lock();
-                m_mapRowset.erase(index);
-                m_csDB.unlock();
-                return false;
-            }
-                return true;
+                return DoMeta(SPA::Odbc::idSQLColumns, CatalogName, SchemaName, TableName, ColumnName, handler, row, rh);
             }
 
             virtual bool ProcedureColumns(const wchar_t *CatalogName, const wchar_t *SchemaName, const wchar_t *ProcName, const wchar_t *ColumnName, DExecuteResult handler, DRows row, DRowsetHeader rh) {
-                UINT64 index;
-                //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
-                m_csDB.lock();
-                index = ++m_nCall;
-                m_mapRowset[m_nCall] = CRowsetHandler(rh, row);
-                m_csDB.unlock();
-                if (!SendRequest(SPA::Odbc::idSQLProcedureColumns, CatalogName, SchemaName, ProcName, ColumnName, index, [handler, this](CAsyncResult & ar) {
-                        UINT64 fail_ok;
-                        int res;
-                                std::wstring errMsg;
-                                ar >> res >> errMsg >> fail_ok;
-                                this->m_csDB.lock();
-                                this->m_lastReqId = SPA::Odbc::idSQLProcedureColumns;
-                                this->m_affected = 0;
-                                this->m_dbErrCode = res;
-                                this->m_dbErrMsg = errMsg;
-                                auto it = this->m_mapRowset.find(this->m_indexRowset);
-                        if (it != this->m_mapRowset.end()) {
-                            this->m_mapRowset.erase(it);
-                        }
-                        if (!this->m_mapRowset.size()) {
-                            this->m_nCall = 0;
-                        }
-                        this->m_csDB.unlock();
-                        if (handler) {
-                            CDBVariant vtNull;
-                                    handler(*this, res, errMsg, 0, fail_ok, vtNull);
-                        }
-                    })) {
-                m_csDB.lock();
-                m_mapRowset.erase(index);
-                m_csDB.unlock();
-                return false;
-            }
-                return true;
+                return DoMeta(SPA::Odbc::idSQLProcedureColumns, CatalogName, SchemaName, ProcName, ColumnName, handler, row, rh);
             }
 
             virtual bool PrimaryKeys(const wchar_t *CatalogName, const wchar_t *SchemaName, const wchar_t *TableName, DExecuteResult handler, DRows row, DRowsetHeader rh) {
-                UINT64 index;
-                //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
-                m_csDB.lock();
-                index = ++m_nCall;
-                m_mapRowset[m_nCall] = CRowsetHandler(rh, row);
-                m_csDB.unlock();
-                if (!SendRequest(SPA::Odbc::idSQLPrimaryKeys, CatalogName, SchemaName, TableName, index, [handler, this](CAsyncResult & ar) {
-                        UINT64 fail_ok;
-                        int res;
-                                std::wstring errMsg;
-                                ar >> res >> errMsg >> fail_ok;
-                                this->m_csDB.lock();
-                                this->m_lastReqId = SPA::Odbc::idSQLPrimaryKeys;
-                                this->m_affected = 0;
-                                this->m_dbErrCode = res;
-                                this->m_dbErrMsg = errMsg;
-                                auto it = this->m_mapRowset.find(this->m_indexRowset);
-                        if (it != this->m_mapRowset.end()) {
-                            this->m_mapRowset.erase(it);
-                        }
-                        if (!this->m_mapRowset.size()) {
-                            this->m_nCall = 0;
-                        }
-                        this->m_csDB.unlock();
-                        if (handler) {
-                            CDBVariant vtNull;
-                                    handler(*this, res, errMsg, 0, fail_ok, vtNull);
-                        }
-                    })) {
-                m_csDB.lock();
-                m_mapRowset.erase(index);
-                m_csDB.unlock();
-                return false;
-            }
-                return true;
+                return DoMeta(SPA::Odbc::idSQLPrimaryKeys, CatalogName, SchemaName, TableName, handler, row, rh);
             }
 
             virtual bool ForeignKeys(const wchar_t *PKCatalogName, const wchar_t *PKSchemaName, const wchar_t *PKTableName, const wchar_t *FKCatalogName, const wchar_t *FKSchemaName, const wchar_t *FKTableName, DExecuteResult handler, DRows row, DRowsetHeader rh) {
-                UINT64 index;
-                //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
-                m_csDB.lock();
-                index = ++m_nCall;
-                m_mapRowset[m_nCall] = CRowsetHandler(rh, row);
-                m_csDB.unlock();
-                if (!SendRequest(SPA::Odbc::idSQLForeignKeys, PKCatalogName, PKSchemaName, PKTableName, FKCatalogName, FKSchemaName, FKTableName, index, [handler, this](CAsyncResult & ar) {
-                        UINT64 fail_ok;
-                        int res;
-                                std::wstring errMsg;
-                                ar >> res >> errMsg >> fail_ok;
-                                this->m_csDB.lock();
-                                this->m_lastReqId = SPA::Odbc::idSQLForeignKeys;
-                                this->m_affected = 0;
-                                this->m_dbErrCode = res;
-                                this->m_dbErrMsg = errMsg;
-                                auto it = this->m_mapRowset.find(this->m_indexRowset);
-                        if (it != this->m_mapRowset.end()) {
-                            this->m_mapRowset.erase(it);
-                        }
-                        if (!this->m_mapRowset.size()) {
-                            this->m_nCall = 0;
-                        }
-                        this->m_csDB.unlock();
-                        if (handler) {
-                            CDBVariant vtNull;
-                                    handler(*this, res, errMsg, 0, fail_ok, vtNull);
-                        }
-                    })) {
-                m_csDB.lock();
-                m_mapRowset.erase(index);
-                m_csDB.unlock();
-                return false;
-            }
-                return true;
+                return DoMeta(SPA::Odbc::idSQLForeignKeys, PKCatalogName, PKSchemaName, PKTableName, FKCatalogName, FKSchemaName, FKTableName, handler, row, rh);
             }
 
             virtual bool Procedures(const wchar_t *CatalogName, const wchar_t *SchemaName, const wchar_t *ProcName, DExecuteResult handler, DRows row, DRowsetHeader rh) {
-                UINT64 index;
-                //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
-                m_csDB.lock();
-                index = ++m_nCall;
-                m_mapRowset[m_nCall] = CRowsetHandler(rh, row);
-                m_csDB.unlock();
-                if (!SendRequest(SPA::Odbc::idSQLProcedures, CatalogName, SchemaName, ProcName, index, [handler, this](CAsyncResult & ar) {
-                        UINT64 fail_ok;
-                        int res;
-                                std::wstring errMsg;
-                                ar >> res >> errMsg >> fail_ok;
-                                this->m_csDB.lock();
-                                this->m_lastReqId = SPA::Odbc::idSQLProcedures;
-                                this->m_affected = 0;
-                                this->m_dbErrCode = res;
-                                this->m_dbErrMsg = errMsg;
-                                auto it = this->m_mapRowset.find(this->m_indexRowset);
-                        if (it != this->m_mapRowset.end()) {
-                            this->m_mapRowset.erase(it);
-                        }
-                        if (!this->m_mapRowset.size()) {
-                            this->m_nCall = 0;
-                        }
-                        this->m_csDB.unlock();
-                        if (handler) {
-                            CDBVariant vtNull;
-                                    handler(*this, res, errMsg, 0, fail_ok, vtNull);
-                        }
-                    })) {
-                m_csDB.lock();
-                m_mapRowset.erase(index);
-                m_csDB.unlock();
-                return false;
-            }
-                return true;
+                return DoMeta(SPA::Odbc::idSQLProcedures, CatalogName, SchemaName, ProcName, handler, row, rh);
             }
 
             virtual bool SpecialColumns(short identifierType, const wchar_t *CatalogName, const wchar_t *SchemaName, const wchar_t *TableName, short scope, short nullable, DExecuteResult handler, DRows row, DRowsetHeader rh) {
-                UINT64 index;
-                //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
-                m_csDB.lock();
-                index = ++m_nCall;
-                m_mapRowset[m_nCall] = CRowsetHandler(rh, row);
-                m_csDB.unlock();
-                if (!SendRequest(SPA::Odbc::idSQLSpecialColumns, identifierType, CatalogName, SchemaName, TableName, scope, nullable, index, [handler, this](CAsyncResult & ar) {
-                        UINT64 fail_ok;
-                        int res;
-                                std::wstring errMsg;
-                                ar >> res >> errMsg >> fail_ok;
-                                this->m_csDB.lock();
-                                this->m_lastReqId = SPA::Odbc::idSQLSpecialColumns;
-                                this->m_affected = 0;
-                                this->m_dbErrCode = res;
-                                this->m_dbErrMsg = errMsg;
-                                auto it = this->m_mapRowset.find(this->m_indexRowset);
-                        if (it != this->m_mapRowset.end()) {
-                            this->m_mapRowset.erase(it);
-                        }
-                        if (!this->m_mapRowset.size()) {
-                            this->m_nCall = 0;
-                        }
-                        this->m_csDB.unlock();
-                        if (handler) {
-                            CDBVariant vtNull;
-                                    handler(*this, res, errMsg, 0, fail_ok, vtNull);
-                        }
-                    })) {
-                m_csDB.lock();
-                m_mapRowset.erase(index);
-                m_csDB.unlock();
-                return false;
-            }
-                return true;
+                return DoMeta(SPA::Odbc::idSQLSpecialColumns, identifierType, CatalogName, SchemaName, TableName, scope, nullable, handler, row, rh);
             }
 
             virtual bool Statistics(const wchar_t *CatalogName, const wchar_t *SchemaName, const wchar_t *TableName, unsigned short unique, unsigned short reserved, DExecuteResult handler, DRows row, DRowsetHeader rh) {
@@ -329,79 +91,11 @@ namespace SPA {
             }
 
             virtual bool TablePrivileges(const wchar_t *CatalogName, const wchar_t *SchemaName, const wchar_t *TableName, DExecuteResult handler, DRows row, DRowsetHeader rh) {
-                UINT64 index;
-                //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
-                m_csDB.lock();
-                index = ++m_nCall;
-                m_mapRowset[m_nCall] = CRowsetHandler(rh, row);
-                m_csDB.unlock();
-                if (!SendRequest(SPA::Odbc::idSQLTablePrivileges, CatalogName, SchemaName, TableName, index, [handler, this](CAsyncResult & ar) {
-                        UINT64 fail_ok;
-                        int res;
-                                std::wstring errMsg;
-                                ar >> res >> errMsg >> fail_ok;
-                                this->m_csDB.lock();
-                                this->m_lastReqId = SPA::Odbc::idSQLTablePrivileges;
-                                this->m_affected = 0;
-                                this->m_dbErrCode = res;
-                                this->m_dbErrMsg = errMsg;
-                                auto it = this->m_mapRowset.find(this->m_indexRowset);
-                        if (it != this->m_mapRowset.end()) {
-                            this->m_mapRowset.erase(it);
-                        }
-                        if (!this->m_mapRowset.size()) {
-                            this->m_nCall = 0;
-                        }
-                        this->m_csDB.unlock();
-                        if (handler) {
-                            CDBVariant vtNull;
-                                    handler(*this, res, errMsg, 0, fail_ok, vtNull);
-                        }
-                    })) {
-                m_csDB.lock();
-                m_mapRowset.erase(index);
-                m_csDB.unlock();
-                return false;
-            }
-                return true;
+               return DoMeta(SPA::Odbc::idSQLTablePrivileges, CatalogName, SchemaName, TableName, handler, row, rh);
             }
 
             virtual bool Tables(const wchar_t *CatalogName, const wchar_t *SchemaName, const wchar_t *TableName, const wchar_t *TableType, DExecuteResult handler, DRows row, DRowsetHeader rh) {
-                UINT64 index;
-                //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
-                m_csDB.lock();
-                index = ++m_nCall;
-                m_mapRowset[m_nCall] = CRowsetHandler(rh, row);
-                m_csDB.unlock();
-                if (!SendRequest(SPA::Odbc::idSQLTables, CatalogName, SchemaName, TableName, TableType, index, [handler, this](CAsyncResult & ar) {
-                        UINT64 fail_ok;
-                        int res;
-                                std::wstring errMsg;
-                                ar >> res >> errMsg >> fail_ok;
-                                this->m_csDB.lock();
-                                this->m_lastReqId = SPA::Odbc::idSQLTables;
-                                this->m_affected = 0;
-                                this->m_dbErrCode = res;
-                                this->m_dbErrMsg = errMsg;
-                                auto it = this->m_mapRowset.find(this->m_indexRowset);
-                        if (it != this->m_mapRowset.end()) {
-                            this->m_mapRowset.erase(it);
-                        }
-                        if (!this->m_mapRowset.size()) {
-                            this->m_nCall = 0;
-                        }
-                        this->m_csDB.unlock();
-                        if (handler) {
-                            CDBVariant vtNull;
-                                    handler(*this, res, errMsg, 0, fail_ok, vtNull);
-                        }
-                    })) {
-                m_csDB.lock();
-                m_mapRowset.erase(index);
-                m_csDB.unlock();
-                return false;
-            }
-                return true;
+                return DoMeta(SPA::Odbc::idSQLTables, CatalogName, SchemaName, TableName, TableType, handler, row, rh);
             }
 
             CComVariant GetInfo(unsigned short infoType) {
@@ -434,6 +128,122 @@ namespace SPA {
                         break;
                 }
             }
+
+		private:
+			bool DoMeta(unsigned short id, const wchar_t *s0, const wchar_t *s1, const wchar_t *s2 , DExecuteResult handler, DRows row, DRowsetHeader rh) {
+				UINT64 index;
+                //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
+                m_csDB.lock();
+                index = ++m_nCall;
+                m_mapRowset[m_nCall] = CRowsetHandler(rh, row);
+                m_csDB.unlock();
+                if (!SendRequest(id, s0, s1, s2, index, [id, handler, this](CAsyncResult & ar) {
+                        UINT64 fail_ok;
+                        int res;
+                                std::wstring errMsg;
+                                ar >> res >> errMsg >> fail_ok;
+                                this->m_csDB.lock();
+                                this->m_lastReqId = id;
+                                this->m_affected = 0;
+                                this->m_dbErrCode = res;
+                                this->m_dbErrMsg = errMsg;
+                                auto it = this->m_mapRowset.find(this->m_indexRowset);
+                        if (it != this->m_mapRowset.end()) {
+                            this->m_mapRowset.erase(it);
+                        }
+                        if (!this->m_mapRowset.size()) {
+                            this->m_nCall = 0;
+                        }
+                        this->m_csDB.unlock();
+                        if (handler) {
+                            CDBVariant vtNull;
+                                    handler(*this, res, errMsg, 0, fail_ok, vtNull);
+                        }
+                    })) {
+					m_csDB.lock();
+					m_mapRowset.erase(index);
+					m_csDB.unlock();
+					return false;
+				}
+                return true;
+			}
+
+			bool DoMeta(unsigned short id, const wchar_t *s0, const wchar_t *s1, const wchar_t *s2, const wchar_t *s3, DExecuteResult handler, DRows row, DRowsetHeader rh) {
+				UINT64 index;
+                //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
+                m_csDB.lock();
+                index = ++m_nCall;
+                m_mapRowset[m_nCall] = CRowsetHandler(rh, row);
+                m_csDB.unlock();
+                if (!SendRequest(id, s0, s1, s2, s3, index, [id, handler, this](CAsyncResult & ar) {
+                        UINT64 fail_ok;
+                        int res;
+                        std::wstring errMsg;
+                        ar >> res >> errMsg >> fail_ok;
+                        this->m_csDB.lock();
+                        this->m_lastReqId = id;
+                        this->m_affected = 0;
+                        this->m_dbErrCode = res;
+                        this->m_dbErrMsg = errMsg;
+                        auto it = this->m_mapRowset.find(this->m_indexRowset);
+                        if (it != this->m_mapRowset.end()) {
+                            this->m_mapRowset.erase(it);
+                        }
+                        if (!this->m_mapRowset.size()) {
+                            this->m_nCall = 0;
+                        }
+                        this->m_csDB.unlock();
+                        if (handler) {
+                            CDBVariant vtNull;
+                            handler(*this, res, errMsg, 0, fail_ok, vtNull);
+                        }
+                    })) {
+					m_csDB.lock();
+					m_mapRowset.erase(index);
+					m_csDB.unlock();
+					return false;
+				}
+                return true;
+			}
+
+			template<typename T0, typename T1, typename T2>
+			bool DoMeta(unsigned short id, const T0 &t0, const wchar_t *s0, const wchar_t *s1, const wchar_t *s2, const T1 &t1, const T2 &t2, DExecuteResult handler, DRows row, DRowsetHeader rh) {
+				UINT64 index;
+                //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
+                m_csDB.lock();
+                index = ++m_nCall;
+                m_mapRowset[m_nCall] = CRowsetHandler(rh, row);
+                m_csDB.unlock();
+                if (!SendRequest(id, t0, s0, s1, s2, t1, t2, index, [id, handler, this](CAsyncResult & ar) {
+                        UINT64 fail_ok;
+                        int res;
+                                std::wstring errMsg;
+                                ar >> res >> errMsg >> fail_ok;
+                                this->m_csDB.lock();
+                                this->m_lastReqId = id;
+                                this->m_affected = 0;
+                                this->m_dbErrCode = res;
+                                this->m_dbErrMsg = errMsg;
+                                auto it = this->m_mapRowset.find(this->m_indexRowset);
+                        if (it != this->m_mapRowset.end()) {
+                            this->m_mapRowset.erase(it);
+                        }
+                        if (!this->m_mapRowset.size()) {
+                            this->m_nCall = 0;
+                        }
+                        this->m_csDB.unlock();
+                        if (handler) {
+                            CDBVariant vtNull;
+                                    handler(*this, res, errMsg, 0, fail_ok, vtNull);
+                        }
+                    })) {
+					m_csDB.lock();
+					m_mapRowset.erase(index);
+					m_csDB.unlock();
+					return false;
+				}
+                return true;
+			}
 
         private:
             std::unordered_map<unsigned short, CComVariant> m_mapInfo;
