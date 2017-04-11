@@ -176,6 +176,7 @@ namespace SocketProAdapter
                 }
                 return true;
             }
+
             private bool DoMeta(ushort id, string s0, string s1, string s2, DExecuteResult handler, DRows row, DRowsetHeader rh)
             {
                 ulong index;
@@ -213,6 +214,7 @@ namespace SocketProAdapter
                 }
                 return true;
             }
+
             private bool DoMeta<T0, T1, T2>(ushort id, T0 t0, string s0, string s1, string s2, T1 t1, T2 t2, DExecuteResult handler, DRows row, DRowsetHeader rh)
             {
                 ulong index;

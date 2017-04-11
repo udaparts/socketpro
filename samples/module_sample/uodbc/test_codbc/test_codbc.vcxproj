@@ -137,7 +137,7 @@
   <ItemGroup>
     <ClCompile Include="..\..\..\..\include\aclientw.cpp" />
     <ClCompile Include="..\..\..\..\include\membuffer.cpp" />
-    <ClCompile Include="test_sqlserver.cpp" />
+    <ClCompile Include="test_oracle.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\include\aclientw.h" />
