@@ -33,7 +33,7 @@ class Program
                 return;
             }
             COdbc odbc = spOdbc.Seek();
-            bool ok = odbc.Open("dsn=ToMySQL;uid=root;pwd=Smash123", dr);
+            bool ok = odbc.Open("", dr);
             List<KeyValuePair<CDBColumnInfoArray, CDBVariantArray>> ra = new List<KeyValuePair<CDBColumnInfoArray, CDBVariantArray>>();
 
             COdbc.DRows r = (handler, rowData) =>
@@ -51,35 +51,70 @@ class Program
                 ra.Add(item);
             };
             TestCreateTables(odbc);
-            ok = odbc.Execute("delete from employee;delete from company", er);
+            ok = odbc.Execute("delete from employee;delete from company;delete from test_rare1;delete from SpatialTable;INSERT INTO SpatialTable(mygeometry, mygeography)VALUES(geometry::STGeomFromText('LINESTRING(100 100,20 180,180 180)',0),geography::Point(47.6475,-122.1393,4326))", er);
+            ok = odbc.Execute("INSERT INTO test_rare1(mybool,mymoney,myxml,myvariant,mydateimeoffset)values(1,23.45,'<sometest />', N'美国总统川普下个星期四','2017-05-02 00:00:00.0000000 -04:00');INSERT INTO test_rare1(mybool,mymoney,myvariant)values(0,1223.45,'This is a test for ASCII string inside sql_variant');INSERT INTO test_rare1(myvariant)values(283.45)", er);
             TestPreparedStatements(odbc);
+            TestPreparedStatements_2(odbc);
             InsertBLOBByPreparedStatement(odbc);
-            ok = odbc.Execute("SELECT * from company;select * from employee;select curtime()", er, r, rh);
+            ok = odbc.Execute("SELECT * from company;select * from employee;select CONVERT(datetime,SYSDATETIME());select * from test_rare1;select * from SpatialTable", er, r, rh);
+            ok = odbc.Tables("sqltestdb", "%", "%", "TABLE", er, r, rh);
             CDBVariantArray vPData = new CDBVariantArray();
             //first set
             vPData.Add(1);
-            vPData.Add(0);
-            vPData.Add(0);
+            vPData.Add(null);
+            vPData.Add(null);
 
             //second set
             vPData.Add(2);
-            vPData.Add(0);
-            vPData.Add(0);
+            vPData.Add(null);
+            vPData.Add(null);
             TestStoredProcedure(odbc, ra, vPData);
             ok = odbc.WaitAll();
             Console.WriteLine();
             Console.WriteLine("There are {0} output data returned", odbc.Outputs * 2);
 
-            ok = odbc.Tables("sakila", "", "%", "TABLE", er, r, rh);
-            ok = odbc.WaitAll();
+            vPData.Clear();
 
-            ok = odbc.Execute("use sakila", er);
+            //first set
+            vPData.Add(null); //return int
+            vPData.Add(1); //@testid
+            vPData.Add("<test_sqlserver />"); //@myxml
+            vPData.Add(Guid.NewGuid()); //@tuuid
+            vPData.Add(null); //@myvar
+
+            //second set
+            vPData.Add(null); //return int
+            vPData.Add(4); //@testid
+            vPData.Add("<test_sqlserver_again />"); //@myxml
+            vPData.Add(Guid.NewGuid()); //@tuuid
+            vPData.Add(null); //@myvar
+            TestStoredProcedure_2(odbc, ra, vPData);
+            ok = odbc.WaitAll();
+            Console.WriteLine();
+            Console.WriteLine("There are {0} output data returned", odbc.Outputs * 2);
+
+            ok = odbc.Tables("AdventureWorks2012", "%", "%", "TABLE", er, r, rh);
+            ok = odbc.WaitAll();
+            ok = odbc.Execute("use AdventureWorks2012", er);
             KeyValuePair<CDBColumnInfoArray, CDBVariantArray> tables = ra[ra.Count - 1];
             int columns = tables.Key.Count;
             int num_tables = tables.Value.Count / columns;
             for (int n = 0; n < num_tables; ++n)
             {
-                string sql = "select * from " + tables.Value[columns * n + 2].ToString();
+                string sql = "select * from " + tables.Value[columns * n + 1].ToString() + "." + tables.Value[columns * n + 2].ToString();
+                ok = odbc.Execute(sql, er, r, rh);
+            }
+            ok = odbc.WaitAll();
+
+            ok = odbc.Tables("AdventureWorksDW2012", "%", "%", "TABLE", er, r, rh);
+            ok = odbc.WaitAll();
+            ok = odbc.Execute("use AdventureWorksDW2012", er);
+            tables = ra[ra.Count - 1];
+            columns = tables.Key.Count;
+            num_tables = tables.Value.Count / columns;
+            for (int n = 0; n < num_tables; ++n)
+            {
+                string sql = "select * from " + tables.Value[columns * n + 1].ToString() + "." + tables.Value[columns * n + 2].ToString();
                 ok = odbc.Execute(sql, er, r, rh);
             }
             ok = odbc.WaitAll();
@@ -105,19 +140,31 @@ class Program
 
     static void TestCreateTables(COdbc odbc)
     {
-        string create_database = "Create database if not exists mysqldb character set utf8 collate utf8_general_ci;USE mysqldb";
+        string create_database = "use master;IF NOT EXISTS(SELECT * FROM sys.databases WHERE name='sqltestdb') BEGIN CREATE DATABASE sqltestdb END";
         bool ok = odbc.Execute(create_database, er);
-        string create_table = "CREATE TABLE IF NOT EXISTS company(ID bigint PRIMARY KEY NOT NULL, name CHAR(64) NOT NULL, ADDRESS varCHAR(256) not null, Income decimal(15,2) not null)";
+        string use_database = "Use sqltestdb";
+        ok = odbc.Execute(use_database, er);
+        string create_table = "IF NOT EXISTS(SELECT * FROM sys.tables WHERE name='company')create table company(ID bigint PRIMARY KEY NOT NULL, name CHAR(64) NOT NULL, ADDRESS varCHAR(256) not null, Income float not null)";
         ok = odbc.Execute(create_table, er);
-        create_table = "CREATE TABLE IF NOT EXISTS employee(EMPLOYEEID bigint AUTO_INCREMENT PRIMARY KEY NOT NULL unique, CompanyId bigint not null, name CHAR(64) NOT NULL, JoinDate DATETIME default null, IMAGE MEDIUMBLOB, DESCRIPTION MEDIUMTEXT, Salary decimal(15,2), FOREIGN KEY(CompanyId) REFERENCES company(id))";
+        create_table = "IF NOT EXISTS(SELECT * FROM sys.tables WHERE name='employee')create table employee(EMPLOYEEID bigint IDENTITY(1,1)PRIMARY KEY NOT NULL,CompanyId bigint not null,name CHAR(64) NOT NULL,JoinDate DATETIME2(3)default null,MyIMAGE varbinary(max),DESCRIPTION nvarchar(max),Salary decimal(15,2),FOREIGN KEY(CompanyId)REFERENCES company(id))";
         ok = odbc.Execute(create_table, er);
-        string create_proc = "DROP PROCEDURE IF EXISTS sp_TestProc;CREATE PROCEDURE sp_TestProc(in p_company_id int, out p_sum_salary double, out p_last_dt datetime) BEGIN select * from employee where companyid >= p_company_id; select sum(salary) into p_sum_salary from employee where companyid >= p_company_id; select now() into p_last_dt;END";
+        create_table = "IF NOT EXISTS(SELECT * FROM sys.tables WHERE name='test_rare1')CREATE TABLE test_rare1(testid int IDENTITY(1,1)NOT NULL,myguid uniqueidentifier DEFAULT newid() NULL,mydate date DEFAULT getdate() NULL,mybool bit DEFAULT 0 NOT NULL,mymoney money default 0 NULL,mytinyint tinyint default 0 NULL,myxml xml DEFAULT '<myxml_root />' NULL,myvariant sql_variant DEFAULT 'my_variant_default' NOT NULL,mydateimeoffset datetimeoffset(4)NULL,PRIMARY KEY(testid))";
+        ok = odbc.Execute(create_table, er);
+        create_table = "IF NOT EXISTS(SELECT * FROM sys.tables WHERE name='SpatialTable')CREATE TABLE SpatialTable(id int IDENTITY(1,1)NOT NULL,mygeometry geometry NULL,mygeography geography NULL,PRIMARY KEY(id))";
+        ok = odbc.Execute(create_table, er);
+        string drop_proc = "IF EXISTS(SELECT * FROM sys.procedures WHERE name='sp_TestProc')drop proc sp_TestProc";
+        ok = odbc.Execute(drop_proc, er);
+        string create_proc = "CREATE PROCEDURE sp_TestProc(@p_company_id int, @p_sum_salary float out, @p_last_dt datetime out) as select * from employee where companyid>=@p_company_id;select @p_sum_salary=sum(salary) from employee where companyid>=@p_company_id;select @p_last_dt=SYSDATETIME()";
+        ok = odbc.Execute(create_proc, er);
+        drop_proc = "IF EXISTS(SELECT * FROM sys.procedures WHERE name='sp_TestRare1')drop proc sp_TestRare1";
+        ok = odbc.Execute(drop_proc, er);
+        create_proc = "CREATE PROCEDURE sp_TestRare1(@testid int,@myxml xml out,@tuuid uniqueidentifier out,@myvar sql_variant out)as insert into test_rare1(myguid,myxml)values(@tuuid,@myxml);select * from test_rare1 where testid>@testid;select @myxml='<myroot_testrare/>';select @tuuid=NEWID();select @myvar=N'test_variant_from_sp_TestRare1'";
         ok = odbc.Execute(create_proc, er);
     }
 
     static void TestPreparedStatements(COdbc odbc)
     {
-        string sql_insert_parameter = "INSERT INTO company(ID, NAME, ADDRESS, Income) VALUES (?, ?, ?, ?)";
+        string sql_insert_parameter = "INSERT INTO company(ID, NAME, ADDRESS, Income)VALUES (?, ?, ?, ?)";
         bool ok = odbc.Prepare(sql_insert_parameter, dr);
 
         CDBVariantArray vData = new CDBVariantArray();
@@ -143,6 +190,47 @@ class Program
         ok = odbc.Execute(vData, er);
     }
 
+    static void TestPreparedStatements_2(COdbc odbc)
+    {
+        CParameterInfo []vInfo = new CParameterInfo[4];
+        vInfo[0] = new CParameterInfo();
+        vInfo[0].DataType = tagVariantDataType.sdVT_CLSID;
+
+        vInfo[1] = new CParameterInfo();
+        vInfo[1].DataType = tagVariantDataType.sdVT_BSTR;
+
+        vInfo[2] = new CParameterInfo();
+        vInfo[2].DataType = tagVariantDataType.sdVT_VARIANT;
+
+        vInfo[3] = new CParameterInfo();
+        vInfo[3].DataType = tagVariantDataType.sdVT_DATE;
+
+        string sql_insert_parameter = "INSERT INTO test_rare1(myguid,myxml,myvariant,mydateimeoffset)VALUES(?,?,?,?)";
+        bool ok = odbc.Prepare(sql_insert_parameter, dr, vInfo);
+
+        CDBVariantArray vData = new CDBVariantArray();
+
+        //first set
+        vData.Add(Guid.NewGuid());
+        vData.Add("<myxmlroot />");
+        vData.Add(23.456);
+        vData.Add(DateTime.Now);
+
+        //second set
+        vData.Add(Guid.NewGuid());
+        vData.Add("<myxmlroot_2 />");
+        vData.Add("马拉阿歌俱乐部");
+        vData.Add(DateTime.Now.AddMinutes(1));
+
+        //third set
+        vData.Add(Guid.NewGuid());
+        vData.Add("<myxmlroot_3 />");
+        vData.Add(1);
+        vData.Add(DateTime.Now.AddMinutes(-1));
+
+        ok = odbc.Execute(vData, er);
+    }
+
     static void InsertBLOBByPreparedStatement(COdbc odbc)
     {
         string wstr = "";
@@ -155,7 +243,7 @@ class Program
         {
             str += "The epic takedown of his opponent on an all-important voting day was extraordinary even by the standards of the 2016 campaign -- and quickly drew a scathing response from Trump.";
         }
-        string sqlInsert = "insert into employee(CompanyId, name, JoinDate, image, DESCRIPTION, Salary) values(?, ?, ?, ?, ?, ?)";
+        string sqlInsert = "insert into employee(CompanyId,name,JoinDate,myimage,DESCRIPTION,Salary)values(?,?,?,?,?,?)";
         bool ok = odbc.Prepare(sqlInsert, dr);
         CDBVariantArray vData = new CDBVariantArray();
         using (CScopeUQueue sbBlob = new CScopeUQueue())
@@ -195,7 +283,50 @@ class Program
 
     static void TestStoredProcedure(COdbc odbc, List<KeyValuePair<CDBColumnInfoArray, CDBVariantArray>> ra, CDBVariantArray vPData)
     {
-        bool ok = odbc.Prepare("{call sp_TestProc(?, ?, ?)}", dr);
+        CParameterInfo[] vInfo = {new CParameterInfo(), new CParameterInfo(), new CParameterInfo()};
+        vInfo[0].DataType = tagVariantDataType.sdVT_I4;
+
+        vInfo[1].DataType = tagVariantDataType.sdVT_R8;
+        vInfo[1].Direction = tagParameterDirection.pdOutput;
+
+        vInfo[2].DataType = tagVariantDataType.sdVT_DATE;
+        vInfo[2].Direction = tagParameterDirection.pdOutput;
+
+        bool ok = odbc.Prepare("{call sp_TestProc(?, ?, ?)}", dr, vInfo);
+        COdbc.DRows r = (handler, rowData) =>
+        {
+            //rowset data come here
+            int last = ra.Count - 1;
+            KeyValuePair<CDBColumnInfoArray, CDBVariantArray> item = ra[last];
+            item.Value.AddRange(rowData);
+        };
+
+        COdbc.DRowsetHeader rh = (handler) =>
+        {
+            //rowset header comes here
+            KeyValuePair<CDBColumnInfoArray, CDBVariantArray> item = new KeyValuePair<CDBColumnInfoArray, CDBVariantArray>(handler.ColumnInfo, new CDBVariantArray());
+            ra.Add(item);
+        };
+        ok = odbc.Execute(vPData, er, r, rh);
+    }
+
+    static void TestStoredProcedure_2(COdbc odbc, List<KeyValuePair<CDBColumnInfoArray, CDBVariantArray>> ra, CDBVariantArray vPData)
+    {
+        CParameterInfo[] vInfo = { new CParameterInfo(), new CParameterInfo(), new CParameterInfo(), new CParameterInfo(), new CParameterInfo() };
+        vInfo[0].DataType = tagVariantDataType.sdVT_I4;
+
+        vInfo[1].DataType = tagVariantDataType.sdVT_I4;
+
+        vInfo[2].DataType = tagVariantDataType.sdVT_XML;
+        vInfo[2].Direction = tagParameterDirection.pdOutput;
+
+        vInfo[3].DataType = tagVariantDataType.sdVT_CLSID;
+        vInfo[3].Direction = tagParameterDirection.pdInputOutput;
+
+        vInfo[4].DataType = tagVariantDataType.sdVT_VARIANT;
+        vInfo[4].Direction = tagParameterDirection.pdOutput;
+
+        bool ok = odbc.Prepare("{?=call sp_TestRare1(?, ?, ?, ?)}", dr, vInfo);
         COdbc.DRows r = (handler, rowData) =>
         {
             //rowset data come here

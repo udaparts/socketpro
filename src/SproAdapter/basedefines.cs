@@ -236,6 +236,7 @@ namespace SocketProAdapter
         sdVT_UI8 = 21,
         sdVT_INT = 22,
         sdVT_UINT = 23,
+        sdVT_XML = 35,
         sdVT_FILETIME = 64,
         sdVT_CLSID = 72,
         sdVT_BYTES = 128,

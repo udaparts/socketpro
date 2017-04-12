@@ -1310,9 +1310,9 @@ namespace SocketProAdapter
                             mc.SetSize(0);
                             unsafe
                             {
-                                fixed (byte* p = mc.IntenalBuffer)
+                                fixed (byte* p = m_Blob.IntenalBuffer)
                                 {
-                                    uint* len = (uint*)(p + mc.HeadPosition + sizeof(ushort));
+                                    uint* len = (uint*)(p + m_Blob.HeadPosition + sizeof(ushort));
                                     if (*len >= BLOB_LENGTH_NOT_AVAILABLE)
                                     {
                                         //length should be reset if BLOB length not available from server side at beginning

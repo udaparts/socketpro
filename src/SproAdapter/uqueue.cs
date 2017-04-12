@@ -2023,7 +2023,7 @@ namespace SocketProAdapter
         {
             ushort vt;
             Load(out vt);
-            if (vt != (ushort)tagVariantDataType.sdVT_CLSID)
+            if (vt != (ushort)(tagVariantDataType.sdVT_UI1 | tagVariantDataType.sdVT_ARRAY))
                 throw new InvalidOperationException("Invalid data found");
             uint len;
             Load(out len);
