@@ -75,13 +75,15 @@ int main(int argc, char* argv[]) {
     };
 
     ok = pOdbc->Open(L"dsn=ToOracle64;uid=scott;pwd=tiger", dr);
-    /*
+
     TestCreateTables(pOdbc);
-    ok = pOdbc->Execute(L"delete from employee;delete from company", er);
+    ok = pOdbc->Execute(L"delete from ora_emp", er);
+	ok = pOdbc->Execute(L"delete from company", er);
     TestPreparedStatements(pOdbc);
     InsertBLOBByPreparedStatement(pOdbc);
-    ok = pOdbc->Execute(L"SELECT * from company;select * from employee;select curtime()", er, r, rh);
-
+    ok = pOdbc->Execute(L"SELECT * from company", er, r, rh);
+	ok = pOdbc->Execute(L"select * from ora_emp", er, r, rh);
+	ok = pOdbc->Execute(L"select LOCALTIMESTAMP(6) from dual", er, r, rh);
     CDBVariantArray vPData;
     //first set
     vPData.push_back(1);
@@ -95,11 +97,10 @@ int main(int argc, char* argv[]) {
     vPData.push_back(CDBVariant());
     vPData.push_back(CDBVariant());
     unsigned int oks = 0;
-    TestStoredProcedure(pOdbc, ra, vPData, oks);
+    //TestStoredProcedure(pOdbc, ra, vPData, oks);
     pOdbc->WaitAll();
     std::cout << std::endl;
     std::cout << "There are " << pOdbc->GetOutputs() * oks << " output data returned" << std::endl;
-     */
     //ok = pOdbc->Execute(L"select TABLE_NAME from all_tables where OWNER = 'SCOTT'", er, r, rh);
 
     ok = pOdbc->Tables(L"", L"SCOTT", L"%", L"TABLE", er, r, rh);
@@ -147,7 +148,7 @@ void InsertBLOBByPreparedStatement(std::shared_ptr<CMyHandler> pOdbc) {
         str += "The epic takedown of his opponent on an all-important voting day was extraordinary even by the standards of the 2016 campaign -- and quickly drew a scathing response from Trump.";
     }
 
-    const wchar_t *sqlInsert = L"insert into employee(CompanyId, name, JoinDate, image, DESCRIPTION, Salary) values(?, ?, ?, ?, ?, ?)";
+    const wchar_t *sqlInsert = L"insert into ora_emp(EmployeeId,CompanyId,name,JoinDate,image,DESCRIPTION,Salary)values(?,?,?,?,?,?,?)";
     bool ok = pOdbc->Prepare(sqlInsert, [](CSender &handler, int res, const std::wstring & errMsg) {
         std::cout << "res = " << res << ", errMsg: ";
         std::wcout << errMsg << std::endl;
@@ -158,6 +159,7 @@ void InsertBLOBByPreparedStatement(std::shared_ptr<CMyHandler> pOdbc) {
     SPA::CScopeUQueue sbBlob;
 
     //first set of data
+	vData.push_back(1); //employee id
     vData.push_back(1); //google company id
     vData.push_back(L"Ted Cruz");
 #ifdef WIN32_64
@@ -172,6 +174,7 @@ void InsertBLOBByPreparedStatement(std::shared_ptr<CMyHandler> pOdbc) {
     vData.push_back(254000.0);
 
     //second set of data
+	vData.push_back(2); //employee id
     vData.push_back(1); //google company id
     vData.push_back("Donald Trump");
 #ifdef WIN32_64
@@ -187,6 +190,7 @@ void InsertBLOBByPreparedStatement(std::shared_ptr<CMyHandler> pOdbc) {
     vData.push_back(20254000.0);
 
     //third set of data
+	vData.push_back(3); //employee id
     vData.push_back(2); //Microsoft company id
     vData.push_back("Hillary Clinton");
 #ifdef WIN32_64
@@ -243,35 +247,31 @@ void TestPreparedStatements(std::shared_ptr<CMyHandler> pOdbc) {
         std::wcout << errMsg;
         if (!res) {
             std::cout << ", last insert id = ";
-                    std::cout << vtId.llVal;
+            std::cout << vtId.llVal;
         }
         std::cout << std::endl;
     });
 }
 
 void TestCreateTables(std::shared_ptr<CMyHandler> pOdbc) {
-    const wchar_t *create_database = L"Create database if not exists mysqldb character set utf8 collate utf8_general_ci;USE mysqldb";
-    bool ok = pOdbc->Execute(create_database, [](CSender &handler, int res, const std::wstring &errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & vtId) {
+    const wchar_t *create_table = L"CREATE TABLE company(ID number(10)PRIMARY KEY NOT NULL,name CHAR(64)NOT NULL,ADDRESS varCHAR(256)not null,Income BINARY_DOUBLE not null)";
+    bool ok = pOdbc->Execute(create_table, [](CSender &handler, int res, const std::wstring &errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & vtId) {
         std::cout << "affected = " << affected << ", fails = " << (unsigned int) (fail_ok >> 32) << ", oks = " << (unsigned int) fail_ok << ", res = " << res << ", errMsg: ";
         std::wcout << errMsg << std::endl;
     });
 
-    const wchar_t *create_table = L"CREATE TABLE IF NOT EXISTS company(ID bigint PRIMARY KEY NOT NULL, name CHAR(64) NOT NULL, ADDRESS varCHAR(256) not null, Income double not null)";
+    create_table = L"CREATE TABLE Ora_emp(EMPLOYEEID number(12)PRIMARY KEY NOT NULL,CompanyId number(12)not null,name NVARCHAR2(64)NOT NULL,JoinDate TIMESTAMP default null,image BLOB,DESCRIPTION NCLOB,Salary BINARY_DOUBLE,FOREIGN KEY(CompanyId) REFERENCES company(id))";
     ok = pOdbc->Execute(create_table, [](CSender &handler, int res, const std::wstring &errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & vtId) {
         std::cout << "affected = " << affected << ", fails = " << (unsigned int) (fail_ok >> 32) << ", oks = " << (unsigned int) fail_ok << ", res = " << res << ", errMsg: ";
         std::wcout << errMsg << std::endl;
     });
-
-    create_table = L"CREATE TABLE IF NOT EXISTS employee(EMPLOYEEID bigint AUTO_INCREMENT PRIMARY KEY NOT NULL unique, CompanyId bigint not null, name CHAR(64) NOT NULL, JoinDate DATETIME default null, IMAGE MEDIUMBLOB, DESCRIPTION MEDIUMTEXT, Salary double, FOREIGN KEY(CompanyId) REFERENCES company(id))";
-    ok = pOdbc->Execute(create_table, [](CSender &handler, int res, const std::wstring &errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & vtId) {
-        std::cout << "affected = " << affected << ", fails = " << (unsigned int) (fail_ok >> 32) << ", oks = " << (unsigned int) fail_ok << ", res = " << res << ", errMsg: ";
-        std::wcout << errMsg << std::endl;
-    });
+	/*
     const wchar_t *create_proc = L"DROP PROCEDURE IF EXISTS sp_TestProc;CREATE PROCEDURE sp_TestProc(in p_company_id int, out p_sum_salary double, out p_last_dt datetime) BEGIN select * from employee where companyid >= p_company_id; select sum(salary) into p_sum_salary from employee where companyid >= p_company_id; select now() into p_last_dt;END";
     ok = pOdbc->Execute(create_proc, [](CSender &handler, int res, const std::wstring &errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & vtId) {
         std::cout << "affected = " << affected << ", fails = " << (unsigned int) (fail_ok >> 32) << ", oks = " << (unsigned int) fail_ok << ", res = " << res << ", errMsg: ";
         std::wcout << errMsg << std::endl;
     });
+	*/
 }
 
 void TestStoredProcedure(std::shared_ptr<CMyHandler> pOdbc, CRowsetArray&ra, CDBVariantArray &vPData, unsigned int &oks) {
