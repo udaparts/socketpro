@@ -97,7 +97,7 @@ int main(int argc, char* argv[]) {
     vPData.push_back(CDBVariant());
     vPData.push_back(CDBVariant());
     unsigned int oks = 0;
-    //TestStoredProcedure(pOdbc, ra, vPData, oks);
+    TestStoredProcedure(pOdbc, ra, vPData, oks);
     pOdbc->WaitAll();
     std::cout << std::endl;
     std::cout << "There are " << pOdbc->GetOutputs() * oks << " output data returned" << std::endl;
@@ -265,20 +265,33 @@ void TestCreateTables(std::shared_ptr<CMyHandler> pOdbc) {
         std::cout << "affected = " << affected << ", fails = " << (unsigned int) (fail_ok >> 32) << ", oks = " << (unsigned int) fail_ok << ", res = " << res << ", errMsg: ";
         std::wcout << errMsg << std::endl;
     });
-	/*
-    const wchar_t *create_proc = L"DROP PROCEDURE IF EXISTS sp_TestProc;CREATE PROCEDURE sp_TestProc(in p_company_id int, out p_sum_salary double, out p_last_dt datetime) BEGIN select * from employee where companyid >= p_company_id; select sum(salary) into p_sum_salary from employee where companyid >= p_company_id; select now() into p_last_dt;END";
+
+    const wchar_t *create_proc = L"CREATE OR REPLACE PROCEDURE sp_TestProc(cid IN number,ss OUT BINARY_DOUBLE,dt OUT TIMESTAMP,rset OUT SYS_REFCURSOR)AS BEGIN select sum(salary)INTO ss from ora_emp where companyid>=cid;select LOCALTIMESTAMP(6)INTO dt from dual;OPEN rset FOR select * from ora_emp where companyid>=cid;END;";
     ok = pOdbc->Execute(create_proc, [](CSender &handler, int res, const std::wstring &errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & vtId) {
         std::cout << "affected = " << affected << ", fails = " << (unsigned int) (fail_ok >> 32) << ", oks = " << (unsigned int) fail_ok << ", res = " << res << ", errMsg: ";
         std::wcout << errMsg << std::endl;
     });
-	*/
 }
 
 void TestStoredProcedure(std::shared_ptr<CMyHandler> pOdbc, CRowsetArray&ra, CDBVariantArray &vPData, unsigned int &oks) {
-    bool ok = pOdbc->Prepare(L"{ call mysqldb.sp_TestProc(?, ?, ?) } ", [](CSender &handler, int res, const std::wstring & errMsg) {
+    CParameterInfoArray vPInfo;
+
+    CParameterInfo info;
+    info.DataType = VT_I4;
+    vPInfo.push_back(info);
+
+    info.DataType = VT_R8;
+    info.Direction = pdOutput;
+    vPInfo.push_back(info);
+
+    info.DataType = VT_DATE;
+    info.Direction = pdOutput;
+    vPInfo.push_back(info);
+	
+	bool ok = pOdbc->Prepare(L"{call sp_TestProc(?, ?, ?)} ", [](CSender &handler, int res, const std::wstring & errMsg) {
         std::cout << "res = " << res << ", errMsg: ";
         std::wcout << errMsg << std::endl;
-    });
+    }, vPInfo);
     CMyHandler::DRows r = [&ra](CSender &handler, CDBVariantArray & vData) {
         //rowset data come here
         assert((vData.size() % handler.GetColumnInfo().size()) == 0);
