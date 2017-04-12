@@ -318,7 +318,7 @@ class Program
         vInfo[1].DataType = tagVariantDataType.sdVT_I4;
 
         vInfo[2].DataType = tagVariantDataType.sdVT_XML;
-        vInfo[2].Direction = tagParameterDirection.pdOutput;
+        vInfo[2].Direction = tagParameterDirection.pdInputOutput;
 
         vInfo[3].DataType = tagVariantDataType.sdVT_CLSID;
         vInfo[3].Direction = tagParameterDirection.pdInputOutput;
