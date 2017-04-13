@@ -61,13 +61,13 @@ class Program
             CDBVariantArray vPData = new CDBVariantArray();
             //first set
             vPData.Add(1);
-            vPData.Add(null);
-            vPData.Add(null);
+            vPData.Add(0);
+            vPData.Add(0);
 
             //second set
             vPData.Add(2);
-            vPData.Add(null);
-            vPData.Add(null);
+            vPData.Add(0);
+            vPData.Add(0);
             TestStoredProcedure(odbc, ra, vPData);
             ok = odbc.WaitAll();
             Console.WriteLine();
@@ -76,18 +76,18 @@ class Program
             vPData.Clear();
 
             //first set
-            vPData.Add(null); //return int
+            vPData.Add(-1); //return int. output parameter value not important. 
             vPData.Add(1); //@testid
             vPData.Add("<test_sqlserver />"); //@myxml
             vPData.Add(Guid.NewGuid()); //@tuuid
-            vPData.Add(null); //@myvar
+            vPData.Add(-1); //@myvar. output parameter value not important. 
 
             //second set
-            vPData.Add(null); //return int
+            vPData.Add(2); //return int. output parameter data type not important. 
             vPData.Add(4); //@testid
             vPData.Add("<test_sqlserver_again />"); //@myxml
             vPData.Add(Guid.NewGuid()); //@tuuid
-            vPData.Add(null); //@myvar
+            vPData.Add(2); //@myvar. output parameter value not important. 
             TestStoredProcedure_2(odbc, ra, vPData);
             ok = odbc.WaitAll();
             Console.WriteLine();
@@ -314,6 +314,7 @@ class Program
     {
         CParameterInfo[] vInfo = { new CParameterInfo(), new CParameterInfo(), new CParameterInfo(), new CParameterInfo(), new CParameterInfo() };
         vInfo[0].DataType = tagVariantDataType.sdVT_I4;
+        //return direction can be ignorable
 
         vInfo[1].DataType = tagVariantDataType.sdVT_I4;
 

@@ -89,15 +89,15 @@ int main(int argc, char* argv[]) {
     CDBVariantArray vPData;
     //first set
     vPData.push_back(1);
-    //output not important, but they are used for receiving proper types of data on mysql
-    vPData.push_back(CDBVariant());
-    vPData.push_back(CDBVariant());
+    //output not important, but they are used for receiving proper types of data from sql server
+    vPData.push_back(true);
+    vPData.push_back(1.1);
 
     //second set
     vPData.push_back(2);
-    //output not important, but they are used for receiving proper types of data on mysql
-    vPData.push_back(CDBVariant());
-    vPData.push_back(CDBVariant());
+    //output not important, but they are used for receiving proper types of data from sql server
+    vPData.push_back(0);
+    vPData.push_back(-1);
     unsigned int oks = 0;
     TestStoredProcedure(pOdbc, ra, vPData, oks);
     pOdbc->WaitAll();
@@ -111,19 +111,19 @@ int main(int argc, char* argv[]) {
 
     //first set
     guid.Data1 = 12345;
-    vPData.push_back(CDBVariant()); //return int
+    vPData.push_back(-1); //return int
     vPData.push_back(1); //@testid
     vPData.push_back(L"<test_sqlserver />"); //@myxml
     vPData.push_back(guid); //@tuuid
-    vPData.push_back(CDBVariant()); //@myvar
+    vPData.push_back(true); //@myvar
 
     //second set
     guid.Data1 = 1234578;
-    vPData.push_back(CDBVariant()); //return int
+    vPData.push_back(-2); //return int
     vPData.push_back(4); //@testid
     vPData.push_back(L"<test_sqlserver_again />"); //@myxml
     vPData.push_back(guid); //@tuuid
-    vPData.push_back(CDBVariant()); //@myvar
+    vPData.push_back(false); //@myvar
 
     oks = 0;
     TestStoredProcedure_2(pOdbc, ra, vPData, oks);
@@ -428,6 +428,7 @@ void TestStoredProcedure_2(std::shared_ptr<CMyHandler> pOdbc, CRowsetArray&ra, C
 
     info.DataType = VT_I4;
     vPInfo.push_back(info);
+	//return direction can be ignorable
 
     info.DataType = VT_I4;
     info.Direction = pdInput;
@@ -488,6 +489,7 @@ void TestStoredProcedure(std::shared_ptr<CMyHandler> pOdbc, CRowsetArray&ra, CDB
     CParameterInfo info;
     info.DataType = VT_I4;
     vPInfo.push_back(info);
+	//return direction can be ignorable
 
     info.DataType = VT_R8;
     info.Direction = pdOutput;

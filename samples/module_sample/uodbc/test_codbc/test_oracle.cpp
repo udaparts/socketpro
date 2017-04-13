@@ -87,15 +87,15 @@ int main(int argc, char* argv[]) {
     CDBVariantArray vPData;
     //first set
     vPData.push_back(1);
-    //output not important, but they are used for receiving proper types of data on mysql
-    vPData.push_back(CDBVariant());
-    vPData.push_back(CDBVariant());
+    //output not important, but they are used for receiving proper types of data from Oracle
+    vPData.push_back(0);
+    vPData.push_back(0);
 
     //second set
     vPData.push_back(2);
-    //output not important, but they are used for receiving proper types of data on mysql
-    vPData.push_back(CDBVariant());
-    vPData.push_back(CDBVariant());
+    //output not important, but they are used for receiving proper types of data from Oracle
+    vPData.push_back(0);
+    vPData.push_back(0);
     unsigned int oks = 0;
     TestStoredProcedure(pOdbc, ra, vPData, oks);
     pOdbc->WaitAll();

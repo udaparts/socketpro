@@ -2498,10 +2498,12 @@ namespace SPA
             unsigned int rows = (unsigned int) (m_vParam.size() / (unsigned short) m_parameters);
             for (SQLSMALLINT n = 0; n < m_parameters; ++n) {
                 CParameterInfo &info = m_vPInfo[n];
+				if (info.DataType == VT_VARIANT || info.Direction == pdOutput || info.Direction == pdReturnValue)
+					continue;
                 for (unsigned int r = 0; r < rows; ++r) {
                     CDBVariant &d = m_vParam[(unsigned int) n + r * ((unsigned int) m_parameters)];
                     VARTYPE vtP = d.vt;
-                    if (vtP == VT_NULL || vtP == VT_EMPTY || info.DataType == VT_VARIANT) {
+                    if (vtP == VT_NULL || vtP == VT_EMPTY) {
                         continue;
                     }
 
@@ -2793,7 +2795,7 @@ namespace SPA
                         assert(false);
                         break;
                 }
-                if (InputOutputType == SQL_PARAM_OUTPUT && info.DataType == VT_VARIANT && (vtD.vt != VT_NULL && vtD.vt != VT_EMPTY)) {
+                if (InputOutputType == SQL_PARAM_INPUT_OUTPUT && info.DataType == VT_VARIANT && (vtD.vt != VT_NULL && vtD.vt != VT_EMPTY)) {
                     return false;
                 }
                 pLenInd[col] = 0;
@@ -2802,11 +2804,16 @@ namespace SPA
                 SQLLEN BufferLength = 0;
                 SQLSMALLINT c_type = 0, sql_type = 0;
                 SQLSMALLINT DecimalDigits = 0;
-                switch (vtD.vt) {
+				VARTYPE my_vt = vtD.vt;
+				if (InputOutputType == SQL_PARAM_OUTPUT || SQL_RETURN_VALUE == InputOutputType) {
+					vtD.Clear();
+					my_vt = VT_NULL;
+				}
+                switch (my_vt) {
                     case VT_NULL:
                     case VT_EMPTY:
                         pLenInd[col] = SQL_NULL_DATA;
-                        if (InputOutputType == SQL_PARAM_OUTPUT || InputOutputType == SQL_PARAM_INPUT_OUTPUT) {
+                        if (InputOutputType == SQL_PARAM_OUTPUT || InputOutputType == SQL_PARAM_INPUT_OUTPUT || SQL_RETURN_VALUE == InputOutputType) {
                             switch (info.DataType) {
                                 case VT_I1:
                                 case VT_UI1:
@@ -3067,7 +3074,7 @@ namespace SPA
                         if (dt.HasMicrosecond()) {
                             DecimalDigits = 6;
                         }
-                        if (InputOutputType == SQL_PARAM_OUTPUT || InputOutputType == SQL_PARAM_INPUT_OUTPUT) {
+                        if (InputOutputType == SQL_PARAM_INPUT_OUTPUT) {
                             ParameterValuePtr = (SQLPOINTER) (m_Blob.GetBuffer() + output_pos);
                             BufferLength = info.ColumnSize;
                             dt.ToDBString((char*) ParameterValuePtr, (unsigned int) BufferLength);
@@ -3117,7 +3124,7 @@ namespace SPA
                         } else {
                             sql_type = SQL_WLONGVARCHAR;
                         }
-                        if (InputOutputType == SQL_PARAM_OUTPUT || InputOutputType == SQL_PARAM_INPUT_OUTPUT) {
+                        if (InputOutputType == SQL_PARAM_INPUT_OUTPUT) {
                             ParameterValuePtr = (SQLPOINTER) (m_Blob.GetBuffer() + output_pos);
                             ColumnSize = ::SysStringLen(vtD.bstrVal);
                             if (ColumnSize > info.ColumnSize) {
@@ -3137,7 +3144,7 @@ namespace SPA
                         c_type = SQL_C_CHAR;
                         sql_type = SQL_NUMERIC;
                         DecimalDigits = (SQLSMALLINT) vtD.decVal.scale;
-                        if (InputOutputType == SQL_PARAM_OUTPUT || InputOutputType == SQL_PARAM_INPUT_OUTPUT) {
+                        if (InputOutputType == SQL_PARAM_INPUT_OUTPUT) {
                             BufferLength = (SQLULEN) info.ColumnSize;
                             const DECIMAL &decVal = vtD.decVal;
                             std::string s = std::to_string(decVal.Lo64);
@@ -3174,7 +3181,7 @@ namespace SPA
                         }
                         ColumnSize = vtD.parray->rgsabound->cElements;
                         ::SafeArrayAccessData(vtD.parray, &ParameterValuePtr);
-                        if (InputOutputType == SQL_PARAM_OUTPUT || InputOutputType == SQL_PARAM_INPUT_OUTPUT) {
+                        if (InputOutputType == SQL_PARAM_INPUT_OUTPUT) {
                             if (ColumnSize > info.ColumnSize) {
                                 ColumnSize = info.ColumnSize;
                             }
@@ -3202,7 +3209,7 @@ namespace SPA
                             else
                                 sql_type = SQL_LONGVARBINARY;
                         }
-                        if (InputOutputType == SQL_PARAM_OUTPUT || InputOutputType == SQL_PARAM_INPUT_OUTPUT) {
+                        if (InputOutputType == SQL_PARAM_INPUT_OUTPUT) {
                             if (ColumnSize > info.ColumnSize) {
                                 ColumnSize = info.ColumnSize;
                             }
