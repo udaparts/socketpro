@@ -74,12 +74,12 @@ int main(int argc, char* argv[]) {
         ra.push_back(column_rowset_pair);
     };
 
-    ok = pOdbc->Open(L"dsn=ToDB2;uid=yye;pwd=C!ye@11920", dr);
+    ok = pOdbc->Open(L"dsn=ToDB2;uid=root;pwd=Smash123", dr);
     TestCreateTables(pOdbc);
     ok = pOdbc->Execute(L"delete from db2_employee;delete from company", er);
     TestPreparedStatements(pOdbc);
     InsertBLOBByPreparedStatement(pOdbc);
-    ok = pOdbc->Execute(L"SELECT * from product;select * from staffg;select * from employee;select * from purchaseorder;select * from emp_resume;select * from company;select * from db2_employee;select current time from sysibm.sysdummy1", er, r, rh);
+    ok = pOdbc->Execute(L"select * from company;select * from db2_employee;select current time from sysibm.sysdummy1", er, r, rh);
     CDBVariantArray vPData;
     //first set
     vPData.push_back(1);
@@ -98,7 +98,7 @@ int main(int argc, char* argv[]) {
     std::cout << std::endl;
     std::cout << "There are " << pOdbc->GetOutputs() * oks << " output data returned" << std::endl;
 
-    ok = pOdbc->Tables(L"SAMPLE", L"%", L"%", L"TABLE", er, r, rh);
+    ok = pOdbc->Tables(L"SAMPLE", L"ROOT", L"%", L"TABLE", er, r, rh);
     pOdbc->WaitAll();
 
     auto pTables = ra.back();
