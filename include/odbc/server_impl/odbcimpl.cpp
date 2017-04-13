@@ -680,7 +680,7 @@ namespace SPA
                         assert(SQL_SUCCEEDED(retcode));
                         info.Precision = (unsigned char) displaysize;
                         if (decimaldigits == 0 && displaysize < 10) {
-							//Hack for Oracle as its driver doesn't support SQL_C_SBIGINT or SQL_C_UBIGINT binding
+                            //Hack for Oracle as its driver doesn't support SQL_C_SBIGINT or SQL_C_UBIGINT binding
                             if (displaysize >= 5)
                                 info.DataType = VT_I4;
                             else {
@@ -1084,22 +1084,21 @@ namespace SPA
             return true;
         }
 
-		void COdbcImpl::ToDecimal(const SQL_NUMERIC_STRUCT &num, DECIMAL &dec) {
-			dec.wReserved = 0;
-			if (!num.sign)
-				dec.sign = 0x80;
-			else
-				dec.sign = 0;
-			dec.scale = num.scale;
+        void COdbcImpl::ToDecimal(const SQL_NUMERIC_STRUCT &num, DECIMAL & dec) {
+            dec.wReserved = 0;
+            if (!num.sign)
+                dec.sign = 0x80;
+            else
+                dec.sign = 0;
+            dec.scale = num.scale;
             UINT64 *pll = (UINT64 *) num.val;
-			dec.Lo64 = *pll;
-			if (pll[1]) {
+            dec.Lo64 = *pll;
+            if (pll[1]) {
                 dec.Hi32 = (unsigned int) pll[1];
+            } else {
+                dec.Hi32 = 0;
             }
-			else {
-				dec.Hi32 = 0;
-			}
-		}
+        }
 
         void COdbcImpl::SaveSqlServerVariant(const unsigned char *buffer, unsigned int bytes, SQLSMALLINT c_type, CUQueue & q) {
             switch (c_type) {
@@ -1119,7 +1118,7 @@ namespace SPA
                     if (bytes == sizeof (SQL_NUMERIC_STRUCT)) {
                         DECIMAL dec;
                         SQL_NUMERIC_STRUCT *num = (SQL_NUMERIC_STRUCT*) buffer;
-						ToDecimal(*num, dec);
+                        ToDecimal(*num, dec);
                         q << (VARTYPE) VT_DECIMAL << dec;
                     } else {
                         DECIMAL dec;
@@ -1527,13 +1526,13 @@ namespace SPA
                                     case SQL_NUMERIC:
                                     case SQL_DECIMAL:
                                     {
-										SQL_NUMERIC_STRUCT num;
-                                        retcode = SQLGetData(hstmt, (SQLUSMALLINT) (i + 1), SQL_C_NUMERIC, (SQLPOINTER) &num, 0, &len_or_null);
+                                        SQL_NUMERIC_STRUCT num;
+                                        retcode = SQLGetData(hstmt, (SQLUSMALLINT) (i + 1), SQL_C_NUMERIC, (SQLPOINTER) & num, 0, &len_or_null);
                                         if (len_or_null == SQL_NULL_DATA) {
                                             q << (VARTYPE) VT_NULL;
                                         } else {
-											DECIMAL dec;
-											ToDecimal(num, dec);
+                                            DECIMAL dec;
+                                            ToDecimal(num, dec);
                                             q << vt << dec;
                                         }
                                     }

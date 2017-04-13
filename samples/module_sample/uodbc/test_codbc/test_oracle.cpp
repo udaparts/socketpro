@@ -78,12 +78,12 @@ int main(int argc, char* argv[]) {
 
     TestCreateTables(pOdbc);
     ok = pOdbc->Execute(L"delete from ora_emp", er);
-	ok = pOdbc->Execute(L"delete from company", er);
+    ok = pOdbc->Execute(L"delete from company", er);
     TestPreparedStatements(pOdbc);
     InsertBLOBByPreparedStatement(pOdbc);
     ok = pOdbc->Execute(L"SELECT * from company", er, r, rh);
-	ok = pOdbc->Execute(L"select * from ora_emp", er, r, rh);
-	ok = pOdbc->Execute(L"select LOCALTIMESTAMP(6) from dual", er, r, rh);
+    ok = pOdbc->Execute(L"select * from ora_emp", er, r, rh);
+    ok = pOdbc->Execute(L"select LOCALTIMESTAMP(6) from dual", er, r, rh);
     CDBVariantArray vPData;
     //first set
     vPData.push_back(1);
@@ -159,7 +159,7 @@ void InsertBLOBByPreparedStatement(std::shared_ptr<CMyHandler> pOdbc) {
     SPA::CScopeUQueue sbBlob;
 
     //first set of data
-	vData.push_back(1); //employee id
+    vData.push_back(1); //employee id
     vData.push_back(1); //google company id
     vData.push_back(L"Ted Cruz");
 #ifdef WIN32_64
@@ -174,7 +174,7 @@ void InsertBLOBByPreparedStatement(std::shared_ptr<CMyHandler> pOdbc) {
     vData.push_back(254000.0);
 
     //second set of data
-	vData.push_back(2); //employee id
+    vData.push_back(2); //employee id
     vData.push_back(1); //google company id
     vData.push_back("Donald Trump");
 #ifdef WIN32_64
@@ -190,7 +190,7 @@ void InsertBLOBByPreparedStatement(std::shared_ptr<CMyHandler> pOdbc) {
     vData.push_back(20254000.0);
 
     //third set of data
-	vData.push_back(3); //employee id
+    vData.push_back(3); //employee id
     vData.push_back(2); //Microsoft company id
     vData.push_back("Hillary Clinton");
 #ifdef WIN32_64
@@ -247,7 +247,7 @@ void TestPreparedStatements(std::shared_ptr<CMyHandler> pOdbc) {
         std::wcout << errMsg;
         if (!res) {
             std::cout << ", last insert id = ";
-            std::cout << vtId.llVal;
+                    std::cout << vtId.llVal;
         }
         std::cout << std::endl;
     });
@@ -287,8 +287,8 @@ void TestStoredProcedure(std::shared_ptr<CMyHandler> pOdbc, CRowsetArray&ra, CDB
     info.DataType = VT_DATE;
     info.Direction = pdOutput;
     vPInfo.push_back(info);
-	
-	bool ok = pOdbc->Prepare(L"{call sp_TestProc(?, ?, ?)} ", [](CSender &handler, int res, const std::wstring & errMsg) {
+
+    bool ok = pOdbc->Prepare(L"{call sp_TestProc(?, ?, ?)} ", [](CSender &handler, int res, const std::wstring & errMsg) {
         std::cout << "res = " << res << ", errMsg: ";
         std::wcout << errMsg << std::endl;
     }, vPInfo);

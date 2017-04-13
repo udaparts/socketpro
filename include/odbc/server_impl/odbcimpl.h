@@ -127,7 +127,7 @@ namespace SPA {
             static unsigned int ToCTime(const TIMESTAMP_STRUCT &d, std::tm &tm);
             static unsigned int ToCTime(const TIME_STRUCT &d, std::tm &tm);
             static unsigned int ToCTime(const DATE_STRUCT &d, std::tm &tm);
-			static void ToDecimal(const SQL_NUMERIC_STRUCT &num, DECIMAL &dec);
+            static void ToDecimal(const SQL_NUMERIC_STRUCT &num, DECIMAL &dec);
 
         protected:
             UINT64 m_oks;
