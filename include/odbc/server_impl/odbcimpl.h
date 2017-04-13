@@ -136,6 +136,7 @@ namespace SPA {
             CDBVariantArray m_vParam;
 
         private:
+			std::wstring m_dbms;
             CScopeUQueue m_sb;
             std::vector<SAFEARRAY *> m_vArray;
             bool m_global;

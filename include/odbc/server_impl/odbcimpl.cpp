@@ -756,7 +756,8 @@ namespace SPA
                         info.DataType = (VT_ARRAY | VT_I1);
                         info.Precision = (unsigned char) coltype;
                         break;
-                    case SQL_SS_XML:
+					case SQL_XML: //IBM DB2
+                    case SQL_SS_XML: //SQL Server
                         info.DataType = SPA::VT_XML;
                         info.ColumnSize = (~0);
                         break;
@@ -896,6 +897,13 @@ namespace SPA
             SetStringInfo(hdbc, SQL_COLUMN_ALIAS, mapInfo);
             SetStringInfo(hdbc, SQL_DATA_SOURCE_READ_ONLY, mapInfo);
             SetStringInfo(hdbc, SQL_DBMS_NAME, mapInfo);
+			if (mapInfo.find(SQL_DBMS_NAME) != mapInfo.end()) {
+				m_dbms = mapInfo[SQL_DBMS_NAME].bstrVal;
+				transform(m_dbms.begin(), m_dbms.end(), m_dbms.begin(), ::tolower); //microsoft sql server, oracle, mysql
+			}
+			else {
+				m_dbms.clear();
+			}
             SetStringInfo(hdbc, SQL_DBMS_VER, mapInfo);
             SetStringInfo(hdbc, SQL_DESCRIBE_PARAMETER, mapInfo);
             SetStringInfo(hdbc, SQL_DM_VER, mapInfo);
@@ -2909,7 +2917,10 @@ namespace SPA
                                     output_pos += (unsigned int) BufferLength;
                                     break;
                                 case SPA::VT_XML:
-                                    sql_type = SQL_SS_XML;
+									if (m_dbms.find(L"db2") != std::wstring::npos)
+										sql_type = SQL_XML;
+									else
+										sql_type = SQL_SS_XML;
                                     ParameterValuePtr = (SQLPOINTER) (m_Blob.GetBuffer() + output_pos);
                                     BufferLength = info.ColumnSize * sizeof (wchar_t);
                                     c_type = SQL_C_WCHAR;
@@ -3011,7 +3022,10 @@ namespace SPA
                                     break;
                                 case SPA::VT_XML:
                                     c_type = SQL_C_WCHAR;
-                                    sql_type = SQL_SS_XML;
+									if (m_dbms.find(L"db2") != std::wstring::npos)
+										sql_type = SQL_XML;
+									else
+										sql_type = SQL_SS_XML;
                                     break;
                                 default:
                                     assert(false);
@@ -3120,7 +3134,10 @@ namespace SPA
                         if (info.DataType == VT_VARIANT) {
                             sql_type = SQL_WVARCHAR;
                         } else if (info.DataType == SPA::VT_XML) {
-                            sql_type = SQL_SS_XML;
+							if (m_dbms.find(L"db2") != std::wstring::npos)
+								sql_type = SQL_XML;
+							else
+								sql_type = SQL_SS_XML;
                         } else {
                             sql_type = SQL_WLONGVARCHAR;
                         }
