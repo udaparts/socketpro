@@ -617,7 +617,8 @@ namespace SPA
                 assert(SQL_SUCCEEDED(retcode));
                 if (colnamelen) {
                     info.TablePath = SPA::Utilities::ToWide((const char*) colname, (size_t) colnamelen / sizeof (SQLCHAR));
-                    info.TablePath += L".";
+                    ODBC_CONNECTION_STRING::Trim(info.TablePath);
+					info.TablePath += L".";
                 }
                 retcode = SQLColAttribute(hstmt, (SQLUSMALLINT) (n + 1), SQL_DESC_BASE_TABLE_NAME, colname, sizeof (colname), &colnamelen, &displaysize);
                 assert(SQL_SUCCEEDED(retcode));
@@ -634,6 +635,7 @@ namespace SPA
                 retcode = SQLColAttribute(hstmt, (SQLUSMALLINT) (n + 1), SQL_DESC_UNSIGNED, nullptr, 0, nullptr, &displaysize);
                 assert(SQL_SUCCEEDED(retcode));
                 switch (coltype) {
+					case SQL_CLOB: //IBM DB2
                     case SQL_CHAR:
                     case SQL_VARCHAR:
                     case SQL_LONGVARCHAR:
@@ -648,6 +650,10 @@ namespace SPA
                             info.Flags |= CDBColumnInfo::FLAG_CASE_SENSITIVE;
                         }
                         break;
+					case SQL_GRAPHIC: //IBM DB2
+					case SQL_VARGRAPHIC: //IBM DB2
+					case SQL_LONGVARGRAPHIC: //IBM DB2
+					case SQL_DBCLOB: //IBM DB2
                     case SQL_WCHAR:
                     case SQL_WVARCHAR:
                     case SQL_WLONGVARCHAR:
@@ -662,6 +668,7 @@ namespace SPA
                             info.Flags |= CDBColumnInfo::FLAG_CASE_SENSITIVE;
                         }
                         break;
+					case SQL_BLOB:
                     case SQL_BINARY:
                     case SQL_VARBINARY:
                     case SQL_LONGVARBINARY:
@@ -2327,7 +2334,9 @@ namespace SPA
                 do {
                     SQLSMALLINT columns = 0;
                     retcode = SQLNumResultCols(hstmt, &columns);
-                    assert(SQL_SUCCEEDED(retcode));
+                    if(!SQL_SUCCEEDED(retcode)) {
+						break;
+					}
                     if (columns > 0) {
                         if (rowset) {
                             unsigned int ret;
@@ -2361,7 +2370,7 @@ namespace SPA
                     GetErrMsg(SQL_HANDLE_STMT, hstmt, errMsg);
                     ++m_fails;
                 } else {
-                    assert(retcode == SQL_NO_DATA);
+                    assert(retcode == SQL_NO_DATA || retcode == SQL_SUCCESS_WITH_INFO);
                 }
             } while (false);
             fail_ok = ((m_fails - fails) << 32);
