@@ -192,7 +192,7 @@ class Program
 
     static void TestPreparedStatements_2(COdbc odbc)
     {
-        CParameterInfo []vInfo = new CParameterInfo[4];
+        CParameterInfo[] vInfo = new CParameterInfo[4];
         vInfo[0] = new CParameterInfo();
         vInfo[0].DataType = tagVariantDataType.sdVT_CLSID;
 
@@ -283,7 +283,7 @@ class Program
 
     static void TestStoredProcedure(COdbc odbc, List<KeyValuePair<CDBColumnInfoArray, CDBVariantArray>> ra, CDBVariantArray vPData)
     {
-        CParameterInfo[] vInfo = {new CParameterInfo(), new CParameterInfo(), new CParameterInfo()};
+        CParameterInfo[] vInfo = { new CParameterInfo(), new CParameterInfo(), new CParameterInfo() };
         vInfo[0].DataType = tagVariantDataType.sdVT_I4;
 
         vInfo[1].DataType = tagVariantDataType.sdVT_R8;
