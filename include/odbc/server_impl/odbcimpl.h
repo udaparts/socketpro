@@ -24,6 +24,7 @@ namespace SPA {
             static const unsigned int DEFAULT_UNICODE_CHAR_SIZE = 4 * 1024;
             static const unsigned int DEFAULT_OUTPUT_BUFFER_SIZE = 8 * 1024; //bytes
             static const unsigned int MAX_OUTPUT_BLOB_BUFFER_SIZE = 1024 * 1024; //bytes
+			static const unsigned char MAX_DECIMAL_PRECISION = 21;
 
 #pragma pack(push,1)
 

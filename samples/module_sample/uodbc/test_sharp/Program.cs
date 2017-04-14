@@ -288,7 +288,6 @@ class Program
 
         vInfo[1].DataType = tagVariantDataType.sdVT_DECIMAL;
         vInfo[1].Direction = tagParameterDirection.pdInputOutput;
-        vInfo[1].Precision = 15;
         vInfo[1].Scale = 2;
 
         vInfo[2].DataType = tagVariantDataType.sdVT_DATE;

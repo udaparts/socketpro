@@ -2684,6 +2684,7 @@ namespace SPA
                 VARTYPE vt = VT_NULL;
                 if (pLenInd[n] == SQL_NULL_DATA) {
                     sb << vt;
+					start += info.ColumnSize;
                     continue;
                 }
                 SPA::UDB::CDBVariant &vtD = m_vParam[(unsigned int) n + r * ((unsigned int) m_parameters)];
@@ -2899,6 +2900,9 @@ namespace SPA
 									ColumnSize = info.Precision;
                                     output_pos += (unsigned int) BufferLength;
 									DecimalDigits = info.Scale;
+									if (!ColumnSize) {
+										ColumnSize = MAX_DECIMAL_PRECISION; //max length for UINT64 in case a client ignores precision 
+									}
                                     break;
                                 case VT_DATE:
                                     sql_type = SQL_TYPE_TIMESTAMP;
@@ -3201,6 +3205,9 @@ namespace SPA
                             ::memcpy(ParameterValuePtr, s.c_str(), s.size());
 							pLenInd[col] = (SQLLEN) s.size();
 							ColumnSize = info.Precision;
+							if (!ColumnSize) {
+								ColumnSize = MAX_DECIMAL_PRECISION;
+							}
                             output_pos += (unsigned int) BufferLength;
                         } else {
 							c_type = SQL_C_CHAR;
