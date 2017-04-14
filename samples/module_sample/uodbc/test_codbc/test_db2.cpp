@@ -279,6 +279,7 @@ void TestStoredProcedure(std::shared_ptr<CMyHandler> pOdbc, CRowsetArray&ra, CDB
 
     info.DataType = VT_DECIMAL;
     info.Direction = pdInputOutput;
+    info.Scale = (unsigned char) 2;
     vPInfo.push_back(info);
 
     info.DataType = VT_DATE;
