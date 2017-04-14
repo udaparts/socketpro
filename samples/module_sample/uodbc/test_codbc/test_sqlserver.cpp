@@ -428,7 +428,7 @@ void TestStoredProcedure_2(std::shared_ptr<CMyHandler> pOdbc, CRowsetArray&ra, C
 
     info.DataType = VT_I4;
     vPInfo.push_back(info);
-	//return direction can be ignorable
+    //return direction can be ignorable
 
     info.DataType = VT_I4;
     info.Direction = pdInput;
@@ -489,7 +489,7 @@ void TestStoredProcedure(std::shared_ptr<CMyHandler> pOdbc, CRowsetArray&ra, CDB
     CParameterInfo info;
     info.DataType = VT_I4;
     vPInfo.push_back(info);
-	//return direction can be ignorable
+    //return direction can be ignorable
 
     info.DataType = VT_R8;
     info.Direction = pdOutput;

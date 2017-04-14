@@ -307,13 +307,16 @@ namespace SPA
 
         void CMysqlImpl::OnReleaseSource(bool bClosing, unsigned int info) {
             CleanDBObjects();
+            m_global = true;
+            m_pLib = nullptr;
+            MYSQL_BIND_RESULT_FIELD::ShrinkMemoryPool();
+        }
+
+        void CMysqlImpl::ResetMemories() {
             m_Blob.SetSize(0);
             if (m_Blob.GetMaxSize() > 2 * DEFAULT_BIG_FIELD_CHUNK_SIZE) {
                 m_Blob.ReallocBuffer(2 * DEFAULT_BIG_FIELD_CHUNK_SIZE);
             }
-            m_global = true;
-            m_pLib = nullptr;
-            MYSQL_BIND_RESULT_FIELD::ShrinkMemoryPool();
         }
 
         void CMysqlImpl::OnSwitchFrom(unsigned int nOldServiceId) {
@@ -478,6 +481,7 @@ namespace SPA
             m_pMysql.reset();
             m_vParam.clear();
             m_parameters = 0;
+            ResetMemories();
         }
 
         void CMysqlImpl::OnBaseRequestArrive(unsigned short requestId) {
@@ -1293,6 +1297,7 @@ namespace SPA
         void CMysqlImpl::Execute(const std::wstring& wsql, bool rowset, bool meta, bool lastInsertId, UINT64 index, INT64 &affected, int &res, std::wstring &errMsg, CDBVariant &vtId, UINT64 & fail_ok) {
             fail_ok = 0;
             affected = 0;
+            ResetMemories();
             if (!m_pMysql) {
                 res = SPA::Mysql::ER_NO_DB_OPENED_YET;
                 errMsg = NO_DB_OPENED_YET;
@@ -1356,6 +1361,7 @@ namespace SPA
         }
 
         void CMysqlImpl::Prepare(const std::wstring& wsql, CParameterInfoArray& params, int &res, std::wstring &errMsg, unsigned int &parameters) {
+            ResetMemories();
             parameters = 0;
             if (!m_pMysql) {
                 res = SPA::Mysql::ER_NO_DB_OPENED_YET;

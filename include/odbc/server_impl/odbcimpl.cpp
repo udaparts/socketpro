@@ -152,6 +152,10 @@ namespace SPA
 
         void COdbcImpl::OnReleaseSource(bool bClosing, unsigned int info) {
             CleanDBObjects();
+            m_global = true;
+        }
+
+        void COdbcImpl::ResetMemories() {
             m_Blob.SetSize(0);
             if (m_Blob.GetMaxSize() > 2 * DEFAULT_BIG_FIELD_CHUNK_SIZE) {
                 m_Blob.ReallocBuffer(2 * DEFAULT_BIG_FIELD_CHUNK_SIZE);
@@ -160,8 +164,6 @@ namespace SPA
             if (m_UQueue.GetMaxSize() > DEFAULT_BIG_FIELD_CHUNK_SIZE) {
                 m_UQueue.ReallocBuffer(DEFAULT_BIG_FIELD_CHUNK_SIZE);
             }
-            m_global = true;
-            m_pExcuting.reset();
         }
 
         void COdbcImpl::OnSwitchFrom(unsigned int nOldServiceId) {
@@ -264,9 +266,11 @@ namespace SPA
         }
 
         void COdbcImpl::CleanDBObjects() {
+            m_pExcuting.reset();
             m_pPrepare.reset();
             m_pOdbc.reset();
             m_vParam.clear();
+            ResetMemories();
         }
 
         void COdbcImpl::Open(const std::wstring &strConnection, unsigned int flags, int &res, std::wstring &errMsg, int &ms) {
@@ -618,7 +622,7 @@ namespace SPA
                 if (colnamelen) {
                     info.TablePath = SPA::Utilities::ToWide((const char*) colname, (size_t) colnamelen / sizeof (SQLCHAR));
                     ODBC_CONNECTION_STRING::Trim(info.TablePath);
-					info.TablePath += L".";
+                    info.TablePath += L".";
                 }
                 retcode = SQLColAttribute(hstmt, (SQLUSMALLINT) (n + 1), SQL_DESC_BASE_TABLE_NAME, colname, sizeof (colname), &colnamelen, &displaysize);
                 assert(SQL_SUCCEEDED(retcode));
@@ -635,7 +639,7 @@ namespace SPA
                 retcode = SQLColAttribute(hstmt, (SQLUSMALLINT) (n + 1), SQL_DESC_UNSIGNED, nullptr, 0, nullptr, &displaysize);
                 assert(SQL_SUCCEEDED(retcode));
                 switch (coltype) {
-					case SQL_CLOB: //IBM DB2
+                    case SQL_CLOB: //IBM DB2
                     case SQL_CHAR:
                     case SQL_VARCHAR:
                     case SQL_LONGVARCHAR:
@@ -650,10 +654,10 @@ namespace SPA
                             info.Flags |= CDBColumnInfo::FLAG_CASE_SENSITIVE;
                         }
                         break;
-					case SQL_GRAPHIC: //IBM DB2
-					case SQL_VARGRAPHIC: //IBM DB2
-					case SQL_LONGVARGRAPHIC: //IBM DB2
-					case SQL_DBCLOB: //IBM DB2
+                    case SQL_GRAPHIC: //IBM DB2
+                    case SQL_VARGRAPHIC: //IBM DB2
+                    case SQL_LONGVARGRAPHIC: //IBM DB2
+                    case SQL_DBCLOB: //IBM DB2
                     case SQL_WCHAR:
                     case SQL_WVARCHAR:
                     case SQL_WLONGVARCHAR:
@@ -668,7 +672,7 @@ namespace SPA
                             info.Flags |= CDBColumnInfo::FLAG_CASE_SENSITIVE;
                         }
                         break;
-					case SQL_BLOB:
+                    case SQL_BLOB:
                     case SQL_BINARY:
                     case SQL_VARBINARY:
                     case SQL_LONGVARBINARY:
@@ -763,7 +767,7 @@ namespace SPA
                         info.DataType = (VT_ARRAY | VT_I1);
                         info.Precision = (unsigned char) coltype;
                         break;
-					case SQL_XML: //IBM DB2
+                    case SQL_XML: //IBM DB2
                     case SQL_SS_XML: //SQL Server
                         info.DataType = SPA::VT_XML;
                         info.ColumnSize = (~0);
@@ -904,13 +908,12 @@ namespace SPA
             SetStringInfo(hdbc, SQL_COLUMN_ALIAS, mapInfo);
             SetStringInfo(hdbc, SQL_DATA_SOURCE_READ_ONLY, mapInfo);
             SetStringInfo(hdbc, SQL_DBMS_NAME, mapInfo);
-			if (mapInfo.find(SQL_DBMS_NAME) != mapInfo.end()) {
-				m_dbms = mapInfo[SQL_DBMS_NAME].bstrVal;
-				transform(m_dbms.begin(), m_dbms.end(), m_dbms.begin(), ::tolower); //microsoft sql server, oracle, mysql
-			}
-			else {
-				m_dbms.clear();
-			}
+            if (mapInfo.find(SQL_DBMS_NAME) != mapInfo.end()) {
+                m_dbms = mapInfo[SQL_DBMS_NAME].bstrVal;
+                transform(m_dbms.begin(), m_dbms.end(), m_dbms.begin(), ::tolower); //microsoft sql server, oracle, mysql
+            } else {
+                m_dbms.clear();
+            }
             SetStringInfo(hdbc, SQL_DBMS_VER, mapInfo);
             SetStringInfo(hdbc, SQL_DESCRIBE_PARAMETER, mapInfo);
             SetStringInfo(hdbc, SQL_DM_VER, mapInfo);
@@ -2288,6 +2291,7 @@ namespace SPA
         void COdbcImpl::Execute(const std::wstring& wsql, bool rowset, bool meta, bool lastInsertId, UINT64 index, INT64 &affected, int &res, std::wstring &errMsg, CDBVariant &vtId, UINT64 & fail_ok) {
             affected = 0;
             fail_ok = 0;
+            ResetMemories();
             if (!m_pOdbc) {
                 res = SPA::Odbc::ER_NO_DB_OPENED_YET;
                 errMsg = NO_DB_OPENED_YET;
@@ -2334,9 +2338,9 @@ namespace SPA
                 do {
                     SQLSMALLINT columns = 0;
                     retcode = SQLNumResultCols(hstmt, &columns);
-                    if(!SQL_SUCCEEDED(retcode)) {
-						break;
-					}
+                    if (!SQL_SUCCEEDED(retcode)) {
+                        break;
+                    }
                     if (columns > 0) {
                         if (rowset) {
                             unsigned int ret;
@@ -2378,6 +2382,7 @@ namespace SPA
         }
 
         void COdbcImpl::Prepare(const std::wstring& wsql, CParameterInfoArray& params, int &res, std::wstring &errMsg, unsigned int &parameters) {
+            ResetMemories();
             m_vPInfo = params;
             parameters = 0;
             if (!m_pOdbc) {
@@ -2515,8 +2520,8 @@ namespace SPA
             unsigned int rows = (unsigned int) (m_vParam.size() / (unsigned short) m_parameters);
             for (SQLSMALLINT n = 0; n < m_parameters; ++n) {
                 CParameterInfo &info = m_vPInfo[n];
-				if (info.DataType == VT_VARIANT || info.Direction == pdOutput || info.Direction == pdReturnValue)
-					continue;
+                if (info.DataType == VT_VARIANT || info.Direction == pdOutput || info.Direction == pdReturnValue)
+                    continue;
                 for (unsigned int r = 0; r < rows; ++r) {
                     CDBVariant &d = m_vParam[(unsigned int) n + r * ((unsigned int) m_parameters)];
                     VARTYPE vtP = d.vt;
@@ -2821,11 +2826,11 @@ namespace SPA
                 SQLLEN BufferLength = 0;
                 SQLSMALLINT c_type = 0, sql_type = 0;
                 SQLSMALLINT DecimalDigits = 0;
-				VARTYPE my_vt = vtD.vt;
-				if (InputOutputType == SQL_PARAM_OUTPUT || SQL_RETURN_VALUE == InputOutputType) {
-					vtD.Clear();
-					my_vt = VT_NULL;
-				}
+                VARTYPE my_vt = vtD.vt;
+                if (InputOutputType == SQL_PARAM_OUTPUT || SQL_RETURN_VALUE == InputOutputType) {
+                    vtD.Clear();
+                    my_vt = VT_NULL;
+                }
                 switch (my_vt) {
                     case VT_NULL:
                     case VT_EMPTY:
@@ -2926,10 +2931,10 @@ namespace SPA
                                     output_pos += (unsigned int) BufferLength;
                                     break;
                                 case SPA::VT_XML:
-									if (m_dbms.find(L"db2") != std::wstring::npos)
-										sql_type = SQL_XML;
-									else
-										sql_type = SQL_SS_XML;
+                                    if (m_dbms.find(L"db2") != std::wstring::npos)
+                                        sql_type = SQL_XML;
+                                    else
+                                        sql_type = SQL_SS_XML;
                                     ParameterValuePtr = (SQLPOINTER) (m_Blob.GetBuffer() + output_pos);
                                     BufferLength = info.ColumnSize * sizeof (wchar_t);
                                     c_type = SQL_C_WCHAR;
@@ -3031,10 +3036,10 @@ namespace SPA
                                     break;
                                 case SPA::VT_XML:
                                     c_type = SQL_C_WCHAR;
-									if (m_dbms.find(L"db2") != std::wstring::npos)
-										sql_type = SQL_XML;
-									else
-										sql_type = SQL_SS_XML;
+                                    if (m_dbms.find(L"db2") != std::wstring::npos)
+                                        sql_type = SQL_XML;
+                                    else
+                                        sql_type = SQL_SS_XML;
                                     break;
                                 default:
                                     assert(false);
@@ -3143,10 +3148,10 @@ namespace SPA
                         if (info.DataType == VT_VARIANT) {
                             sql_type = SQL_WVARCHAR;
                         } else if (info.DataType == SPA::VT_XML) {
-							if (m_dbms.find(L"db2") != std::wstring::npos)
-								sql_type = SQL_XML;
-							else
-								sql_type = SQL_SS_XML;
+                            if (m_dbms.find(L"db2") != std::wstring::npos)
+                                sql_type = SQL_XML;
+                            else
+                                sql_type = SQL_SS_XML;
                         } else {
                             sql_type = SQL_WLONGVARCHAR;
                         }

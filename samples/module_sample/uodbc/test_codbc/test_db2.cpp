@@ -109,7 +109,7 @@ int main(int argc, char* argv[]) {
         ok = pOdbc->Execute(sql.c_str(), er, r, rh);
     }
     pOdbc->WaitAll();
-	
+
     //print out all received rowsets
     int index = 0;
     std::cout << std::endl;
@@ -278,7 +278,7 @@ void TestStoredProcedure(std::shared_ptr<CMyHandler> pOdbc, CRowsetArray&ra, CDB
     info.Direction = pdOutput;
     vPInfo.push_back(info);
 
-	bool ok = pOdbc->Prepare(L"{call sp_TestProc(?, ?, ?)}", [](CSender &handler, int res, const std::wstring & errMsg) {
+    bool ok = pOdbc->Prepare(L"{call sp_TestProc(?, ?, ?)}", [](CSender &handler, int res, const std::wstring & errMsg) {
         std::cout << "res = " << res << ", errMsg: ";
         std::wcout << errMsg << std::endl;
     }, vPInfo);

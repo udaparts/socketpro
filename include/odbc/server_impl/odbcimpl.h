@@ -117,6 +117,7 @@ namespace SPA {
             unsigned int ComputeOutputMaxSize();
             bool PushOutputParameters(unsigned int r, UINT64 index);
             void SaveSqlServerVariant(const unsigned char *buffer, unsigned int bytes, SQLSMALLINT c_type, CUQueue &q);
+            void ResetMemories();
             static void ConvertDecimalAString(CDBVariant &vt);
             static void SetUShortInfo(SQLHDBC hdbc, SQLUSMALLINT infoType, std::unordered_map<SQLUSMALLINT, CComVariant> &mapInfo);
             static void SetUIntInfo(SQLHDBC hdbc, SQLUSMALLINT infoType, std::unordered_map<SQLUSMALLINT, CComVariant> &mapInfo);
@@ -136,7 +137,7 @@ namespace SPA {
             CDBVariantArray m_vParam;
 
         private:
-			std::wstring m_dbms;
+            std::wstring m_dbms;
             CScopeUQueue m_sb;
             std::vector<SAFEARRAY *> m_vArray;
             bool m_global;

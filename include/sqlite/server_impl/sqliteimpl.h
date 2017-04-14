@@ -112,6 +112,7 @@ namespace SPA {
         private:
             void ExecuteSqlWithRowset(const char* sql, bool meta, bool lastInsertId, UINT64 index, int &res, std::wstring &errMsg, CDBVariant &vtId);
             void ExecuteSqlWithoutRowset(const char* sql, bool lastInsertId, int &res, std::wstring &errMsg, CDBVariant &vtId);
+            void ResetMemories();
 
             //sqlite specific functions
             CDBColumnInfoArray GetColInfo(bool meta, sqlite3_stmt *stmt);

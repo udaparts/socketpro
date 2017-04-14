@@ -70,6 +70,7 @@ namespace SPA
             m_vParam.clear();
             m_vPreparedStatements.clear();
             m_pSqlite.reset();
+            ResetMemories();
         }
 
         void CSqliteImpl::OnBaseRequestArrive(unsigned short requestId) {
@@ -98,11 +99,14 @@ namespace SPA
 
         void CSqliteImpl::OnReleaseSource(bool bClosing, unsigned int info) {
             Clean();
+            m_global = true;
+        }
+
+        void CSqliteImpl::ResetMemories() {
             m_Blob.SetSize(0);
             if (m_Blob.GetMaxSize() > DEFAULT_BIG_FIELD_CHUNK_SIZE) {
                 m_Blob.ReallocBuffer(DEFAULT_BIG_FIELD_CHUNK_SIZE);
             }
-            m_global = true;
         }
 
         void CSqliteImpl::OnSwitchFrom(unsigned int nOldServiceId) {
@@ -653,6 +657,7 @@ namespace SPA
         }
 
         void CSqliteImpl::Execute(const std::wstring& sql, bool rowset, bool meta, bool lastInsertId, UINT64 index, INT64 &affected, int &res, std::wstring &errMsg, CDBVariant &vtId, UINT64 & fail_ok) {
+            ResetMemories();
             fail_ok = 0;
             affected = 0;
             if (!m_pSqlite) {
@@ -700,6 +705,7 @@ namespace SPA
         }
 
         void CSqliteImpl::Prepare(const std::wstring& sql, const CParameterInfoArray& params, int &res, std::wstring & errMsg, unsigned int &parameters) {
+            ResetMemories();
             parameters = 0;
             if (!m_pSqlite) {
                 res = SPA::Sqlite::SQLITE_DB_NOT_OPENED_YET;
@@ -776,6 +782,7 @@ namespace SPA
             m_pSqlite.reset();
             m_vParam.clear();
             m_global = true;
+            ResetMemories();
         }
 
         void CSqliteImpl::BeginTrans(int isolation, const std::wstring &dbConn, unsigned int flags, int &res, std::wstring &errMsg, int &ms) {
@@ -939,6 +946,7 @@ namespace SPA
             ms = msSqlite;
             m_vPreparedStatements.clear();
             m_pSqlite.reset();
+            ResetMemories();
             std::wstring strConnection = strConn;
             if (strConnection.size()) {
                 m_global = false;

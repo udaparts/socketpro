@@ -139,6 +139,7 @@ namespace SPA {
             void ExecuteNoParameter(bool rowset, bool meta, bool lastInsertId, UINT64 index, INT64 &affected, int &res, std::wstring &errMsg, CDBVariant &vtId, UINT64 & fail_ok);
 #endif
             void CleanDBObjects();
+            void ResetMemories();
 
             static std::vector<std::string> ParseOptions();
             //mysql specific functions

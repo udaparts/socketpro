@@ -8,6 +8,7 @@
       <itemPath>../../../../include/bvariant.h</itemPath>
       <itemPath>../../../../include/membuffer.h</itemPath>
       <itemPath>../../../../include/nixcommutil.h</itemPath>
+      <itemPath>../../../../include/odbc/server_impl/odbcimpl.h</itemPath>
       <itemPath>../../../../include/scloader.h</itemPath>
       <itemPath>stdafx.h</itemPath>
       <itemPath>../../../../include/udatabase.h</itemPath>
@@ -24,7 +25,6 @@
       <itemPath>../../../../include/aserverw.cpp</itemPath>
       <itemPath>../../../../include/membuffer.cpp</itemPath>
       <itemPath>../../../../include/odbc/server_impl/odbcimpl.cpp</itemPath>
-      <itemPath>../../../../include/odbc/server_impl/odbcimpl.h</itemPath>
       <itemPath>../../../../include/odbc/server_impl/sodbc.cpp</itemPath>
       <itemPath>stdafx.cpp</itemPath>
     </logicalFolder>
