@@ -2684,7 +2684,19 @@ namespace SPA
                 VARTYPE vt = VT_NULL;
                 if (pLenInd[n] == SQL_NULL_DATA) {
                     sb << vt;
-                    start += info.ColumnSize;
+                    switch (info.DataType) {
+                        case VT_CLSID:
+                        case VT_DATE:
+                        case SPA::VT_XML:
+                        case VT_BSTR:
+                        case (VT_UI1 | VT_ARRAY):
+                        case (VT_I1 | VT_ARRAY):
+                        case VT_VARIANT:
+                            start += info.ColumnSize;
+                            break;
+                        default:
+                            break;
+                    }
                     continue;
                 }
                 SPA::UDB::CDBVariant &vtD = m_vParam[(unsigned int) n + r * ((unsigned int) m_parameters)];
