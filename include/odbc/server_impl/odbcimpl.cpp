@@ -2743,8 +2743,8 @@ namespace SPA
                     case VT_DECIMAL:
                     {
                         DECIMAL dec;
-						std::string s = SPA::Utilities::ToUTF8((const SQLWCHAR*) start);
-                        SPA::ParseDec(s.c_str(), dec);
+						const char* s = (const const char*) start;
+                        SPA::ParseDec(s, dec);
                         sb << dec;
                         start += info.ColumnSize;
                     }
@@ -2895,7 +2895,7 @@ namespace SPA
                                     sql_type = SQL_NUMERIC;
                                     ParameterValuePtr = (SQLPOINTER) (m_Blob.GetBuffer() + output_pos);
                                     BufferLength = info.ColumnSize;
-                                    c_type = SQL_C_WCHAR;
+                                    c_type = SQL_C_CHAR;
 									ColumnSize = info.Precision;
                                     output_pos += (unsigned int) BufferLength;
 									DecimalDigits = info.Scale;
@@ -3181,7 +3181,7 @@ namespace SPA
 							DecimalDigits = (SQLSMALLINT)(vtD.decVal.scale);
 						}
                         if (InputOutputType == SQL_PARAM_INPUT_OUTPUT) {
-                            c_type = SQL_C_WCHAR;
+                            c_type = SQL_C_CHAR;
 							BufferLength = (SQLULEN) info.ColumnSize;
                             const DECIMAL &decVal = vtD.decVal;
                             std::string s = std::to_string(decVal.Lo64);
@@ -3196,15 +3196,9 @@ namespace SPA
                                 size_t pos = s.length() - decVal.scale;
                                 s.insert(pos, 1, '.');
                             }
-							CScopeUQueue su;
-#ifdef WIN32_64
-							Utilities::ToWide(s.c_str(), s.size(), *su);
-#else
-
-#endif
                             ParameterValuePtr = (SQLPOINTER) (m_Blob.GetBuffer() + output_pos);
 							memset(ParameterValuePtr, 0, BufferLength);
-                            ::memcpy(ParameterValuePtr, su->GetBuffer(), su->GetSize());
+                            ::memcpy(ParameterValuePtr, s.c_str(), s.size());
 							pLenInd[col] = (SQLLEN) s.size();
 							ColumnSize = info.Precision;
                             output_pos += (unsigned int) BufferLength;

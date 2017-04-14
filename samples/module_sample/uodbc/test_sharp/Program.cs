@@ -61,12 +61,12 @@ class Program
             CDBVariantArray vPData = new CDBVariantArray();
             //first set
             vPData.Add(1);
-            vPData.Add(0);
+            vPData.Add(2.35m);//input/output
             vPData.Add(0);
 
             //second set
             vPData.Add(2);
-            vPData.Add(0);
+            vPData.Add(0.99m);//input/output
             vPData.Add(0);
             TestStoredProcedure(odbc, ra, vPData);
             ok = odbc.WaitAll();
@@ -154,11 +154,11 @@ class Program
         ok = odbc.Execute(create_table, er);
         string drop_proc = "IF EXISTS(SELECT * FROM sys.procedures WHERE name='sp_TestProc')drop proc sp_TestProc";
         ok = odbc.Execute(drop_proc, er);
-        string create_proc = "CREATE PROCEDURE sp_TestProc(@p_company_id int, @p_sum_salary float out, @p_last_dt datetime out) as select * from employee where companyid>=@p_company_id;select @p_sum_salary=sum(salary) from employee where companyid>=@p_company_id;select @p_last_dt=SYSDATETIME()";
+        string create_proc = "CREATE PROCEDURE sp_TestProc(@p_company_id int, @p_sum_salary decimal(15,2) output, @p_last_dt datetime out) as select * from employee where companyid>=@p_company_id;select @p_sum_salary=sum(salary)+@p_sum_salary from employee where companyid>=@p_company_id;select @p_last_dt=SYSDATETIME()";
         ok = odbc.Execute(create_proc, er);
         drop_proc = "IF EXISTS(SELECT * FROM sys.procedures WHERE name='sp_TestRare1')drop proc sp_TestRare1";
         ok = odbc.Execute(drop_proc, er);
-        create_proc = "CREATE PROCEDURE sp_TestRare1(@testid int,@myxml xml out,@tuuid uniqueidentifier out,@myvar sql_variant out)as insert into test_rare1(myguid,myxml)values(@tuuid,@myxml);select * from test_rare1 where testid>@testid;select @myxml='<myroot_testrare/>';select @tuuid=NEWID();select @myvar=N'test_variant_from_sp_TestRare1'";
+        create_proc = "CREATE PROCEDURE sp_TestRare1(@testid int,@myxml xml output,@tuuid uniqueidentifier output,@myvar sql_variant out)as insert into test_rare1(myguid,myxml)values(@tuuid,@myxml);select * from test_rare1 where testid>@testid;select @myxml='<myroot_testrare/>';select @tuuid=NEWID();select @myvar=N'test_variant_from_sp_TestRare1'";
         ok = odbc.Execute(create_proc, er);
     }
 
@@ -255,7 +255,7 @@ class Program
             sbBlob.Save(wstr);
             vData.Add(sbBlob.UQueue.GetBuffer());
             vData.Add(wstr);
-            vData.Add(254000.0);
+            vData.Add(254000.24m);
 
             //second set of data
             vData.Add(1); //google company id
@@ -265,7 +265,7 @@ class Program
             sbBlob.Save(str);
             vData.Add(sbBlob.UQueue.GetBuffer());
             vData.Add(str);
-            vData.Add(20254000.0);
+            vData.Add(20254000.15m);
 
             //third set of data
             vData.Add(2); //Microsoft company id
@@ -274,7 +274,7 @@ class Program
             sbBlob.Save(wstr);
             vData.Add(sbBlob.UQueue.GetBuffer());
             vData.Add(wstr);
-            vData.Add(6254000.0);
+            vData.Add(6254000.08m);
 
             //send three sets of parameterized data in one shot for processing
             ok = odbc.Execute(vData, er);
@@ -286,8 +286,10 @@ class Program
         CParameterInfo[] vInfo = { new CParameterInfo(), new CParameterInfo(), new CParameterInfo() };
         vInfo[0].DataType = tagVariantDataType.sdVT_I4;
 
-        vInfo[1].DataType = tagVariantDataType.sdVT_R8;
-        vInfo[1].Direction = tagParameterDirection.pdOutput;
+        vInfo[1].DataType = tagVariantDataType.sdVT_DECIMAL;
+        vInfo[1].Direction = tagParameterDirection.pdInputOutput;
+        vInfo[1].Precision = 15;
+        vInfo[1].Scale = 2;
 
         vInfo[2].DataType = tagVariantDataType.sdVT_DATE;
         vInfo[2].Direction = tagParameterDirection.pdOutput;
