@@ -81,16 +81,23 @@ int main(int argc, char* argv[]) {
     InsertBLOBByPreparedStatement(pOdbc);
     ok = pOdbc->Execute(L"select * from company;select * from db2_employee;select current time from sysibm.sysdummy1", er, r, rh);
     CDBVariantArray vPData;
+    DECIMAL dec;
+    memset(&dec, 0, sizeof (dec));
+
     //first set
     vPData.push_back(1);
+    dec.Lo64 = 235;
+    dec.scale = (unsigned char) 2;
+    vPData.push_back(dec);
     //output not important, but they are used for receiving proper types of data on mysql
-    vPData.push_back(0);
     vPData.push_back(1.2);
 
     //second set
     vPData.push_back(2);
+    dec.Lo64 = 801;
+    dec.scale = (unsigned char) 2;
+    vPData.push_back(dec);
     //output not important, but they are used for receiving proper types of data on mysql
-    vPData.push_back(L"");
     vPData.push_back(true);
     unsigned int oks = 0;
     TestStoredProcedure(pOdbc, ra, vPData, oks);
@@ -164,7 +171,7 @@ void InsertBLOBByPreparedStatement(std::shared_ptr<CMyHandler> pOdbc) {
     sbBlob << wstr;
     vData.push_back(CDBVariant(sbBlob->GetBuffer(), sbBlob->GetSize()));
     vData.push_back(wstr.c_str());
-    vData.push_back(254000.0);
+    vData.push_back(254000.07);
 
     //second set of data
     vData.push_back(1); //google company id
@@ -179,7 +186,7 @@ void InsertBLOBByPreparedStatement(std::shared_ptr<CMyHandler> pOdbc) {
     sbBlob << str;
     vData.push_back(CDBVariant(sbBlob->GetBuffer(), sbBlob->GetSize()));
     vData.push_back(str.c_str());
-    vData.push_back(20254000.0);
+    vData.push_back(20254000.15);
 
     //third set of data
     vData.push_back(2); //Microsoft company id
@@ -193,7 +200,7 @@ void InsertBLOBByPreparedStatement(std::shared_ptr<CMyHandler> pOdbc) {
     sbBlob << wstr;
     vData.push_back(CDBVariant(sbBlob->GetBuffer(), sbBlob->GetSize()));
     vData.push_back(wstr.c_str());
-    vData.push_back(6254000.0);
+    vData.push_back(6254000.12);
 
     //execute multiple sets of parameter data in one short
     ok = pOdbc->Execute(vData, [](CSender &handler, int res, const std::wstring &errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & vtId) {
@@ -256,7 +263,7 @@ void TestCreateTables(std::shared_ptr<CMyHandler> pOdbc) {
         std::cout << "affected = " << affected << ", fails = " << (unsigned int) (fail_ok >> 32) << ", oks = " << (unsigned int) fail_ok << ", res = " << res << ", errMsg: ";
         std::wcout << errMsg << std::endl;
     });
-    const wchar_t *create_proc = L"create or replace procedure sp_TestProc(in p_company_id int,out p_sum_salary double,out p_last_dt timestamp)DYNAMIC RESULT SETS 1 LANGUAGE SQL BEGIN DECLARE C1 CURSOR FOR select * from db2_employee where companyid>=p_company_id;OPEN C1;select sum(salary)into p_sum_salary from db2_employee where companyid>=p_company_id;select current timestamp into p_last_dt from sysibm.sysdummy1;END";
+    const wchar_t *create_proc = L"create or replace procedure sp_TestProc(in p_company_id int,inout p_sum_salary decimal(14,2),out p_last_dt timestamp)DYNAMIC RESULT SETS 1 LANGUAGE SQL BEGIN DECLARE C1 CURSOR FOR select * from db2_employee where companyid>=p_company_id;OPEN C1;select sum(salary)+p_sum_salary into p_sum_salary from db2_employee where companyid>=p_company_id;select current timestamp into p_last_dt from sysibm.sysdummy1;END";
     ok = pOdbc->Execute(create_proc, [](CSender &handler, int res, const std::wstring &errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & vtId) {
         std::cout << "affected = " << affected << ", fails = " << (unsigned int) (fail_ok >> 32) << ", oks = " << (unsigned int) fail_ok << ", res = " << res << ", errMsg: ";
         std::wcout << errMsg << std::endl;
@@ -270,8 +277,8 @@ void TestStoredProcedure(std::shared_ptr<CMyHandler> pOdbc, CRowsetArray&ra, CDB
     info.DataType = VT_I4;
     vPInfo.push_back(info);
 
-    info.DataType = VT_R8;
-    info.Direction = pdOutput;
+    info.DataType = VT_DECIMAL;
+    info.Direction = pdInputOutput;
     vPInfo.push_back(info);
 
     info.DataType = VT_DATE;
