@@ -2743,7 +2743,8 @@ namespace SPA
                     case VT_DECIMAL:
                     {
                         DECIMAL dec;
-                        SPA::ParseDec((const char*) start, dec);
+						std::string s = SPA::Utilities::ToUTF8((const SQLWCHAR*) start);
+                        SPA::ParseDec(s.c_str(), dec);
                         sb << dec;
                         start += info.ColumnSize;
                     }
@@ -2894,8 +2895,10 @@ namespace SPA
                                     sql_type = SQL_NUMERIC;
                                     ParameterValuePtr = (SQLPOINTER) (m_Blob.GetBuffer() + output_pos);
                                     BufferLength = info.ColumnSize;
-                                    c_type = SQL_C_CHAR;
+                                    c_type = SQL_C_WCHAR;
+									ColumnSize = info.Precision;
                                     output_pos += (unsigned int) BufferLength;
+									DecimalDigits = info.Scale;
                                     break;
                                 case VT_DATE:
                                     sql_type = SQL_TYPE_TIMESTAMP;
@@ -3172,11 +3175,14 @@ namespace SPA
                         pLenInd[col] = SQL_NTS;
                         break;
                     case VT_DECIMAL:
-                        c_type = SQL_C_CHAR;
                         sql_type = SQL_NUMERIC;
-                        DecimalDigits = (SQLSMALLINT) vtD.decVal.scale;
+                        DecimalDigits = info.Scale;
+						if (DecimalDigits < (SQLSMALLINT)(vtD.decVal.scale)) {
+							DecimalDigits = (SQLSMALLINT)(vtD.decVal.scale);
+						}
                         if (InputOutputType == SQL_PARAM_INPUT_OUTPUT) {
-                            BufferLength = (SQLULEN) info.ColumnSize;
+                            c_type = SQL_C_WCHAR;
+							BufferLength = (SQLULEN) info.ColumnSize;
                             const DECIMAL &decVal = vtD.decVal;
                             std::string s = std::to_string(decVal.Lo64);
                             unsigned char len = (unsigned char) s.size();
@@ -3190,18 +3196,30 @@ namespace SPA
                                 size_t pos = s.length() - decVal.scale;
                                 s.insert(pos, 1, '.');
                             }
+							CScopeUQueue su;
+#ifdef WIN32_64
+							Utilities::ToWide(s.c_str(), s.size(), *su);
+#else
+
+#endif
                             ParameterValuePtr = (SQLPOINTER) (m_Blob.GetBuffer() + output_pos);
-                            ColumnSize = s.size();
-                            ::memcpy(ParameterValuePtr, s.c_str(), ColumnSize + sizeof (char));
+							memset(ParameterValuePtr, 0, BufferLength);
+                            ::memcpy(ParameterValuePtr, su->GetBuffer(), su->GetSize());
+							pLenInd[col] = (SQLLEN) s.size();
+							ColumnSize = info.Precision;
                             output_pos += (unsigned int) BufferLength;
                         } else {
+							c_type = SQL_C_CHAR;
+							bool neg = vtD.decVal.sign ? true : false;
+							bool point = vtD.decVal.scale ? true : false;
                             ConvertDecimalAString(vtD);
                             ::SafeArrayAccessData(vtD.parray, &ParameterValuePtr);
                             m_vArray.push_back(vtD.parray);
                             ColumnSize = vtD.parray->rgsabound->cElements;
+							pLenInd[col] = (SQLLEN) ColumnSize;
                             BufferLength = (SQLLEN) ColumnSize;
+							ColumnSize = ColumnSize - neg - point;
                         }
-                        pLenInd[col] = (SQLLEN) ColumnSize;
                         break;
                     case (VT_I1 | VT_ARRAY):
                         c_type = SQL_C_CHAR;

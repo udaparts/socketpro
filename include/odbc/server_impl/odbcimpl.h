@@ -33,7 +33,7 @@ namespace SPA {
 
             struct OdbcNumeric {
                 //max precision = 29, max string len = 31
-                char num[32];
+                SQLWCHAR num[32];
             };
 #pragma pack(pop)
 
