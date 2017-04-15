@@ -450,13 +450,59 @@ public final class CUQueue {
     }
 
     public final java.util.UUID LoadUUID() {
-        byte[] bytes = Load(16);
-        //bytes == m_b
         java.nio.ByteBuffer bb = java.nio.ByteBuffer.wrap(m_b);
         ChangeHeadLong();
         long high = bb.getLong();
         long low = bb.getLong();
         return new java.util.UUID(high, low);
+    }
+
+    public final java.util.UUID LoadDBGuid() {
+        short vt = LoadShort();
+        if (vt != (tagVariantDataType.sdVT_UI1 | tagVariantDataType.sdVT_ARRAY)) {
+            throw new RuntimeException("Invalid data found");
+        }
+        int len = LoadInt();
+        if (len != 16) {
+            throw new RuntimeException("Invalid data found");
+        }
+        return LoadUUID();
+    }
+
+    private byte[] Peek(int size, int pos) {
+        if (size < 0 || pos < 0 || (pos + size) > m_len) {
+            throw new RuntimeException("Invalid operation");
+        }
+        byte[] bytes = new byte[size];
+        System.arraycopy(m_bytes, m_position + pos, bytes, 0, size);
+        return bytes;
+    }
+
+    private void Reset(byte[] bytes, int pos) {
+        if (bytes == null || bytes.length == 0) {
+            return;
+        }
+        if (pos < 0) {
+            throw new RuntimeException("Invalid operation");
+        }
+        if ((pos + bytes.length) > m_len) {
+            throw new RuntimeException("Invalid operation");
+        }
+        System.arraycopy(bytes, 0, m_bytes, m_position + pos, bytes.length);
+    }
+
+    public final CUQueue ResetInt(int n, int pos) {
+        byte bytes[] = {(byte) (n >>> 24), (byte) (n >>> 16), (byte) (n >>> 8), (byte) n};
+        Reset(bytes, pos);
+        return this;
+    }
+
+    public final int PeekInt(int pos) {
+        byte[] data = Peek(4, pos);
+        return (int) ((0xff & data[3]) << 24
+                | (0xff & data[2]) << 16
+                | (0xff & data[1]) << 8
+                | (0xff & data[0]));
     }
 
     private byte[] Load(int size) throws RuntimeException {

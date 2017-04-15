@@ -10,6 +10,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
         super(sid);
     }
     private static final int ONE_MEGA_BYTES = 0x100000;
+    private static final int BLOB_LENGTH_NOT_AVAILABLE = 0xffffffe0;
 
     /**
      * Async database client/server just requires the following request
@@ -41,6 +42,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
     public static final short idChunk = idStartBLOB + 1;
     public static final short idEndBLOB = idChunk + 1;
     public static final short idEndRows = idEndBLOB + 1;
+    public static final short idCallReturn = idEndRows + 1;
 
     /**
      * Whenever a data size in bytes is about twice larger than the defined
@@ -95,13 +97,13 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
     }
 
     private String m_strConnection;
-    private long m_affected = -1;
-    private int m_dbErrCode = 0;
-    private String m_dbErrMsg = "";
-    private short m_lastReqId = 0;
-    private long m_nCall = 0;
+    protected long m_affected = -1;
+    protected int m_dbErrCode = 0;
+    protected String m_dbErrMsg = "";
+    protected short m_lastReqId = 0;
+    protected long m_nCall = 0;
 
-    private final java.util.HashMap<Long, Pair<DRowsetHeader, DRows>> m_mapRowset = new java.util.HashMap<>();
+    protected final java.util.HashMap<Long, Pair<DRowsetHeader, DRows>> m_mapRowset = new java.util.HashMap<>();
     private final java.util.HashMap<Long, CDBVariantArray> m_mapParameterCall = new java.util.HashMap<>();
 
     private long m_indexRowset = 0;
@@ -113,6 +115,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
     private int m_parameters = 0;
     private int m_indexProc = 0;
     private int m_output = 0;
+    private boolean m_bCallReturn = false;
 
     public final int getParameters() {
         synchronized (m_csDB) {
@@ -334,7 +337,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
         return ok;
     }
 
-    class MyCallback<CB> {
+    protected class MyCallback<CB> {
 
         public short ReqId;
         public CB Callback;
@@ -517,7 +520,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
 
     private final Charset UTF8_CHARSET = Charset.forName("UTF-8");
 
-    private final java.util.ArrayDeque<MyCallback<DExecuteResult>> m_deqExecuteResult = new java.util.ArrayDeque<>();
+    protected final java.util.ArrayDeque<MyCallback<DExecuteResult>> m_deqExecuteResult = new java.util.ArrayDeque<>();
 
     private MyCallback<DExecuteResult> GetExecuteResultHandler(short reqId) {
         if (m_ClientSocket.getRandom()) {
@@ -970,6 +973,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                     m_parameters = (parameters & 0xffff);
                     m_output = (parameters >> 16);
                     m_indexProc = 0;
+                    m_bCallReturn = false;
                 }
                 if (t != null && t.Callback != null) {
                     t.Callback.invoke(this, res, errMsg);
@@ -1094,6 +1098,16 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                 }
             }
             break;
+            case idCallReturn: {
+                Object vt = mc.LoadObject();
+                if (m_mapParameterCall.containsKey(m_indexRowset)) {
+                    CDBVariantArray vParam = m_mapParameterCall.get(m_indexRowset);
+                    int pos = m_parameters * m_indexProc;
+                    vParam.set(pos, vt);
+                }
+                m_bCallReturn = true;
+            }
+            break;
             case idBeginRows:
                 m_Blob.SetSize(0);
                 m_vData.clear();
@@ -1112,13 +1126,14 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
             case idOutputParameter:
             case idEndRows:
                 if (mc.GetSize() > 0 || m_vData.size() > 0) {
-                    while (mc.GetSize() > 0) {
-                        Object vt = mc.LoadObject();
-                        m_vData.add(vt);
-                    }
+                    Object vt;
                     if (reqId == idOutputParameter) {
+                        while (mc.GetSize() > 0) {
+                            vt = mc.LoadObject();
+                            m_vData.add(vt);
+                        }
                         synchronized (m_csDB) {
-                            m_output = m_vData.size();
+                            m_output = m_vData.size() + (m_bCallReturn ? 1 : 0);
                             if (m_mapParameterCall.containsKey(m_indexRowset)) {
                                 CDBVariantArray vParam = m_mapParameterCall.get(m_indexRowset);
                                 int pos = m_parameters * m_indexProc + m_parameters - m_output;
@@ -1130,6 +1145,15 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                             ++m_indexProc;
                         }
                     } else {
+                        while (mc.GetSize() > 0) {
+                            int col = (m_vData.size() % m_vColInfo.size());
+                            if (m_vColInfo.get(col).DataType == tagVariantDataType.sdVT_CLSID) {
+                                vt = mc.LoadDBGuid();
+                            } else {
+                                vt = mc.LoadObject();
+                            }
+                            m_vData.add(vt);
+                        }
                         DRows row = null;
                         synchronized (m_csDB) {
                             if (m_mapRowset.containsKey(m_indexRowset)) {
@@ -1164,6 +1188,12 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                 if (mc.GetSize() > 0 || m_Blob.GetSize() > 0) {
                     m_Blob.Push(mc.getIntenalBuffer(), mc.GetSize());
                     mc.SetSize(0);
+                    int len = m_Blob.PeekInt(m_Blob.getHeadPosition() + 2);
+                    if (len < 0 && len >= BLOB_LENGTH_NOT_AVAILABLE) {
+                        //length should be reset if BLOB length not available from server side at beginning
+                        len = m_Blob.GetSize() - 6; //sizeof(short) - sizeof(int);
+                        m_Blob.ResetInt(len, 2); //sizeof(short)
+                    }
                     Object vt = m_Blob.LoadObject();
                     m_vData.add(vt);
                 }

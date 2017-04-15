@@ -22,6 +22,7 @@ public class tagVariantDataType {
     public final static short sdVT_UI8 = ((short) 21);
     public final static short sdVT_INT = ((short) 22);
     public final static short sdVT_UINT = ((short) 23);
+    public final static short sdVT_XML = ((short) 35);
     public final static short sdVT_FILETIME = ((short) 64);
     public final static short sdVT_CLSID = ((short) 72);
     public final static short sdVT_BYTES = ((short) 128);
