@@ -1606,3 +1606,28 @@ JNIEXPORT jstring JNICALL Java_SPA_ServerSide_Mysql_SetMysqlEmbeddedOptions(JNIE
     }
     return env->NewStringUTF("");
 }
+
+HINSTANCE g_hOdbc = nullptr;
+typedef void (WINAPI *PSetOdbcDBGlobalConnectionString)(const wchar_t *dbConnection);
+static PSetOdbcDBGlobalConnectionString SetOdbcDBGlobalConnectionString = nullptr;
+
+JNIEXPORT void JNICALL Java_SPA_ServerSide_Odbc_SetOdbcDBGlobalConnectionString (JNIEnv *env, jclass, jstring dbConnection) {
+	SPA::CAutoLock al(g_co);
+    if (!g_hOdbc) {
+#ifdef WIN32_64
+        g_hOdbc = ::LoadLibraryW(L"sodbc.dll");
+#else
+        g_hOdbc = ::dlopen("libsodbc.so", RTLD_LAZY);
+#endif
+    }
+	if (g_hOdbc && !SetOdbcDBGlobalConnectionString) {
+        SetOdbcDBGlobalConnectionString = (PSetOdbcDBGlobalConnectionString)::GetProcAddress(g_hOdbc, "SetOdbcDBGlobalConnectionString");
+    }
+	if (g_hOdbc && SetOdbcDBGlobalConnectionString) {
+        jsize len = env->GetStringLength(dbConnection);
+        const jchar *p = env->GetStringChars(dbConnection, nullptr);
+        std::wstring s(p, p + len);
+        SetOdbcDBGlobalConnectionString(s.c_str());
+        env->ReleaseStringChars(dbConnection, p);
+    }
+}

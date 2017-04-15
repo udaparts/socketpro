@@ -1497,6 +1497,14 @@ JNIEXPORT void JNICALL Java_SPA_ServerSide_Mysql_SetMysqlDBGlobalConnectionStrin
 JNIEXPORT jstring JNICALL Java_SPA_ServerSide_Mysql_SetMysqlEmbeddedOptions
   (JNIEnv *, jclass, jstring);
 
+/*
+ * Class:     SPA_ServerSide_Mysql
+ * Method:    SetMysqlDBGlobalConnectionString
+ * Signature: (Ljava/lang/String;Z)V
+ */
+JNIEXPORT void JNICALL Java_SPA_ServerSide_Odbc_SetOdbcDBGlobalConnectionString
+  (JNIEnv *, jclass, jstring);
+
 #ifdef __cplusplus
 }
 #endif

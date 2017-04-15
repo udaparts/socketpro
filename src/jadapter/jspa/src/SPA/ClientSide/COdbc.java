@@ -220,20 +220,37 @@ public class COdbc extends CAsyncDBHandler {
 
     @Override
     protected void OnResultReturned(short reqId, CUQueue mc) {
-        switch (reqId) {
-            case idSQLGetInfo:
-                m_mapInfo.clear();
-                while (mc.GetSize() > 0) {
-                    short infoType = mc.LoadShort();
-                    Object infoValue = mc.LoadObject();
-                    synchronized (m_csDB) {
-                        m_mapInfo.put(infoType, infoValue);
-                    }
+        if (reqId >= idSQLColumnPrivileges && reqId <= idSQLTables) {
+            long fail_ok = mc.LoadLong();
+            int res = mc.LoadInt();
+            String errMsg = mc.LoadString();
+            MyCallback<DExecuteResult> t = GetExecuteResultHandler(reqId);
+            synchronized (m_csDB) {
+                m_lastReqId = reqId;
+                m_affected = 0;
+                m_dbErrCode = res;
+                m_dbErrMsg = errMsg;
+                if (m_mapRowset.containsKey(m_indexRowset)) {
+                    m_mapRowset.remove(m_indexRowset);
                 }
-                break;
-            default:
-                super.OnResultReturned(reqId, mc);
-                break;
+                if (m_mapRowset.isEmpty()) {
+                    m_nCall = 0;
+                }
+            }
+            if (t != null && t.Callback != null) {
+                t.Callback.invoke(this, res, errMsg, 0, fail_ok, null);
+            }
+        } else if (reqId == idSQLGetInfo) {
+            m_mapInfo.clear();
+            while (mc.GetSize() > 0) {
+                short infoType = mc.LoadShort();
+                Object infoValue = mc.LoadObject();
+                synchronized (m_csDB) {
+                    m_mapInfo.put(infoType, infoValue);
+                }
+            }
+        } else {
+            super.OnResultReturned(reqId, mc);
         }
     }
 }

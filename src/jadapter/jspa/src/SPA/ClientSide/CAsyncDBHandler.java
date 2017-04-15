@@ -106,7 +106,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
     protected final java.util.HashMap<Long, Pair<DRowsetHeader, DRows>> m_mapRowset = new java.util.HashMap<>();
     private final java.util.HashMap<Long, CDBVariantArray> m_mapParameterCall = new java.util.HashMap<>();
 
-    private long m_indexRowset = 0;
+    protected long m_indexRowset = 0;
     private final CUQueue m_Blob = new CUQueue();
     private final CDBVariantArray m_vData = new CDBVariantArray();
     private tagManagementSystem m_ms = tagManagementSystem.msUnknown;
@@ -181,7 +181,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
     }
 
     private void CleanRowset(int size) {
-        if ((m_mapRowset.size() > 0 || m_vColInfo.size() > 0)
+        if ((!m_mapRowset.isEmpty() || m_vColInfo.size() > 0)
                 && getAttachedClientSocket().getSendable()
                 && getAttachedClientSocket().getCountOfRequestsInQueue() <= size
                 && getAttachedClientSocket().getClientQueue().getMessageCount() <= size) {
@@ -522,7 +522,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
 
     protected final java.util.ArrayDeque<MyCallback<DExecuteResult>> m_deqExecuteResult = new java.util.ArrayDeque<>();
 
-    private MyCallback<DExecuteResult> GetExecuteResultHandler(short reqId) {
+    protected MyCallback<DExecuteResult> GetExecuteResultHandler(short reqId) {
         if (m_ClientSocket.getRandom()) {
             synchronized (m_csDB) {
                 for (MyCallback<DExecuteResult> kv : m_deqExecuteResult) {
