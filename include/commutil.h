@@ -49,7 +49,7 @@ namespace SPA {
         }
     }
 
-	static std::string ToString(const DECIMAL &decVal) {
+    static std::string ToString(const DECIMAL &decVal) {
         std::string s = std::to_string(decVal.Lo64);
         unsigned char len = (unsigned char) s.size();
         if (len <= decVal.scale) {
@@ -62,8 +62,8 @@ namespace SPA {
             size_t pos = s.length() - decVal.scale;
             s.insert(pos, 1, '.');
         }
-		return s;
-	}
+        return s;
+    }
 
     static inline double ToDouble(const DECIMAL &dec) {
         unsigned char scale = dec.scale;
