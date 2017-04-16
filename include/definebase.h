@@ -747,7 +747,11 @@ namespace SPA {
 #endif
     };
 #pragma pack(pop) //ensure sizeof(UDateTime) == 8
+#if defined(WINCE) || defined(UNDER_CE) || defined(_WIN32_WCE)
+
+#else
     static_assert(sizeof (UDateTime) == 8, "Wrong UDateTime size");
+#endif
 };
 
 #endif //__UCOMM_BASE_DEFINES_H_____
