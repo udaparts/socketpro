@@ -4,7 +4,7 @@ import SPA.*;
 
 public class COdbc extends CAsyncDBHandler {
 
-    public final static int sidOdbc = SPA.BaseServiceID.sidReserved + 0x6FFFFFF2; //asynchronous ODBC service id
+    public final static int sidOdbc = SPA.BaseServiceID.sidODBC; //asynchronous ODBC service id
 
     public COdbc() {
         super(sidOdbc);

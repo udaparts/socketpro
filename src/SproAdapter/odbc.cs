@@ -8,7 +8,7 @@ namespace SocketProAdapter
     {
         public class COdbc : CAsyncDBHandler
         {
-            public const uint sidOdbc = SocketProAdapter.BaseServiceID.sidReserved + 0x6FFFFFF2; //asynchronous ODBC service id
+            public const uint sidOdbc = SocketProAdapter.BaseServiceID.sidODBC; //asynchronous ODBC service id
             public COdbc()
                 : base(sidOdbc)
             {

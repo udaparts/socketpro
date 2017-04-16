@@ -9,8 +9,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "test_sharp", "test_sharp\te
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "test_sodbc", "test_sodbc\test_sodbc.vcxproj", "{1AF1223B-16E5-4242-9781-4215BE6B6EB2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SproAdapter", "..\..\..\src\SproAdapter\SproAdapter.csproj", "{83D40134-5DCE-4396-AC69-4D155CD8E660}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -77,18 +75,6 @@ Global
 		{1AF1223B-16E5-4242-9781-4215BE6B6EB2}.Release|Win32.Build.0 = Release|Win32
 		{1AF1223B-16E5-4242-9781-4215BE6B6EB2}.Release|x64.ActiveCfg = Release|x64
 		{1AF1223B-16E5-4242-9781-4215BE6B6EB2}.Release|x64.Build.0 = Release|x64
-		{83D40134-5DCE-4396-AC69-4D155CD8E660}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{83D40134-5DCE-4396-AC69-4D155CD8E660}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{83D40134-5DCE-4396-AC69-4D155CD8E660}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{83D40134-5DCE-4396-AC69-4D155CD8E660}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{83D40134-5DCE-4396-AC69-4D155CD8E660}.Debug|Win32.ActiveCfg = Debug|Any CPU
-		{83D40134-5DCE-4396-AC69-4D155CD8E660}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{83D40134-5DCE-4396-AC69-4D155CD8E660}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{83D40134-5DCE-4396-AC69-4D155CD8E660}.Release|Any CPU.Build.0 = Release|Any CPU
-		{83D40134-5DCE-4396-AC69-4D155CD8E660}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{83D40134-5DCE-4396-AC69-4D155CD8E660}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{83D40134-5DCE-4396-AC69-4D155CD8E660}.Release|Win32.ActiveCfg = Release|Any CPU
-		{83D40134-5DCE-4396-AC69-4D155CD8E660}.Release|x64.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -6,7 +6,7 @@
 
 namespace SPA {
     namespace Odbc {
-        static const unsigned int sidOdbc = (unsigned int) sidReserved + 0x6FFFFFF2; //asynchronous ODBC service id
+        static const unsigned int sidOdbc = sidODBC; //asynchronous ODBC service id
 
         //meta recordsets
         static const unsigned short idSQLColumnPrivileges = 0x7f00 + 100;
