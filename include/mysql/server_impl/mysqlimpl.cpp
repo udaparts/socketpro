@@ -1025,18 +1025,7 @@ namespace SPA
                 case VT_DECIMAL:
                 {
                     const DECIMAL &decVal = vt.decVal;
-                    std::string s = std::to_string(decVal.Lo64);
-                    unsigned char len = (unsigned char) s.size();
-                    if (len <= decVal.scale) {
-                        s.insert(0, (decVal.scale - len) + 1, '0');
-                    }
-                    if (decVal.sign) {
-                        s.insert(0, 1, '-');
-                    }
-                    if (decVal.scale) {
-                        size_t pos = s.length() - decVal.scale;
-                        s.insert(pos, 1, '.');
-                    }
+                    std::string s = SPA::ToString(decVal);
                     vt = s.c_str();
                 }
                     break;

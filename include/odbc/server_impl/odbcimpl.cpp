@@ -3200,18 +3200,7 @@ namespace SPA
                             c_type = SQL_C_CHAR;
                             BufferLength = (SQLULEN) info.ColumnSize;
                             const DECIMAL &decVal = vtD.decVal;
-                            std::string s = std::to_string(decVal.Lo64);
-                            unsigned char len = (unsigned char) s.size();
-                            if (len <= decVal.scale) {
-                                s.insert(0, (decVal.scale - len) + 1, '0');
-                            }
-                            if (decVal.sign) {
-                                s.insert(0, 1, '-');
-                            }
-                            if (decVal.scale) {
-                                size_t pos = s.length() - decVal.scale;
-                                s.insert(pos, 1, '.');
-                            }
+                            std::string s = SPA::ToString(decVal);
                             ParameterValuePtr = (SQLPOINTER) (m_Blob.GetBuffer() + output_pos);
                             memset(ParameterValuePtr, 0, BufferLength);
                             ::memcpy(ParameterValuePtr, s.c_str(), s.size());
@@ -3310,19 +3299,7 @@ namespace SPA
 
         void COdbcImpl::ConvertDecimalAString(CDBVariant & vt) {
             if (vt.vt == VT_DECIMAL) {
-                const DECIMAL &decVal = vt.decVal;
-                std::string s = std::to_string(decVal.Lo64);
-                unsigned char len = (unsigned char) s.size();
-                if (len <= decVal.scale) {
-                    s.insert(0, (decVal.scale - len) + 1, '0');
-                }
-                if (decVal.sign) {
-                    s.insert(0, 1, '-');
-                }
-                if (decVal.scale) {
-                    size_t pos = s.length() - decVal.scale;
-                    s.insert(pos, 1, '.');
-                }
+                std::string s = SPA::ToString(vt.decVal);
                 vt = s.c_str();
             }
         }

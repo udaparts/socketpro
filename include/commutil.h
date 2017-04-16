@@ -49,6 +49,22 @@ namespace SPA {
         }
     }
 
+	static std::string ToString(const DECIMAL &decVal) {
+        std::string s = std::to_string(decVal.Lo64);
+        unsigned char len = (unsigned char) s.size();
+        if (len <= decVal.scale) {
+            s.insert(0, (decVal.scale - len) + 1, '0');
+        }
+        if (decVal.sign && decVal.Lo64) {
+            s.insert(0, 1, '-');
+        }
+        if (decVal.scale) {
+            size_t pos = s.length() - decVal.scale;
+            s.insert(pos, 1, '.');
+        }
+		return s;
+	}
+
     static inline double ToDouble(const DECIMAL &dec) {
         unsigned char scale = dec.scale;
         double d = (double) dec.Lo64;
