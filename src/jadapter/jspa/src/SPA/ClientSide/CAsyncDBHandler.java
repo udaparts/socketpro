@@ -123,6 +123,12 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
         }
     }
 
+    public final boolean getCallReturn() {
+        synchronized (m_csDB) {
+            return m_bCallReturn;
+        }
+    }
+
     public final int getOutputs() {
         synchronized (m_csDB) {
             return m_output;
@@ -1100,12 +1106,14 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
             break;
             case idCallReturn: {
                 Object vt = mc.LoadObject();
-                if (m_mapParameterCall.containsKey(m_indexRowset)) {
-                    CDBVariantArray vParam = m_mapParameterCall.get(m_indexRowset);
-                    int pos = m_parameters * m_indexProc;
-                    vParam.set(pos, vt);
+                synchronized (m_csDB) {
+                    if (m_mapParameterCall.containsKey(m_indexRowset)) {
+                        CDBVariantArray vParam = m_mapParameterCall.get(m_indexRowset);
+                        int pos = m_parameters * m_indexProc;
+                        vParam.set(pos, vt);
+                    }
+                    m_bCallReturn = true;
                 }
-                m_bCallReturn = true;
             }
             break;
             case idBeginRows:

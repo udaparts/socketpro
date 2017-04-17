@@ -1197,14 +1197,17 @@ namespace SocketProAdapter
                         {
                             object vt;
                             mc.Load(out vt);
-                            if (m_mapParameterCall.ContainsKey(m_indexRowset))
+                            lock (m_csDB)
                             {
-                                CDBVariantArray vParam = m_mapParameterCall[m_indexRowset];
-                                uint pos = m_parameters * m_indexProc;
-                                vParam[(int)pos] = vt;
+                                if (m_mapParameterCall.ContainsKey(m_indexRowset))
+                                {
+                                    CDBVariantArray vParam = m_mapParameterCall[m_indexRowset];
+                                    uint pos = m_parameters * m_indexProc;
+                                    vParam[(int)pos] = vt;
+                                }
+                                m_bCallReturn = true;
                             }
                         }
-                        m_bCallReturn = true;
                         break;
                     case idBeginRows:
                         m_Blob.SetSize(0);
