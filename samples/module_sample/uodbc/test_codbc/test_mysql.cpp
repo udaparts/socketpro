@@ -82,17 +82,24 @@ int main(int argc, char* argv[]) {
     ok = pOdbc->Execute(L"SELECT * from company;select * from employee;select curtime()", er, r, rh);
 
     CDBVariantArray vPData;
+    DECIMAL dec;
+    memset(&dec, 0, sizeof (dec));
+
     //first set
     vPData.push_back(1);
+    dec.scale = 2;
+    dec.Lo64 = 235; //2.35
+    vPData.push_back(dec);
     //output not important, but they are used for receiving proper types of data on mysql
-    vPData.push_back(0);
     vPData.push_back(1.2);
 
     //second set
     vPData.push_back(2);
+    dec.Lo64 = 15; //0.15
+    vPData.push_back(dec);
     //output not important, but they are used for receiving proper types of data on mysql
-    vPData.push_back(L"");
     vPData.push_back(true);
+
     unsigned int oks = 0;
     TestStoredProcedure(pOdbc, ra, vPData, oks);
     pOdbc->WaitAll();
@@ -166,7 +173,7 @@ void InsertBLOBByPreparedStatement(std::shared_ptr<CMyHandler> pOdbc) {
     sbBlob << wstr;
     vData.push_back(CDBVariant(sbBlob->GetBuffer(), sbBlob->GetSize()));
     vData.push_back(wstr.c_str());
-    vData.push_back(254000.0);
+    vData.push_back(254000.12);
 
     //second set of data
     vData.push_back(1); //google company id
@@ -181,7 +188,7 @@ void InsertBLOBByPreparedStatement(std::shared_ptr<CMyHandler> pOdbc) {
     sbBlob << str;
     vData.push_back(CDBVariant(sbBlob->GetBuffer(), sbBlob->GetSize()));
     vData.push_back(str.c_str());
-    vData.push_back(20254000.0);
+    vData.push_back(20254000.17);
 
     //third set of data
     vData.push_back(2); //Microsoft company id
@@ -195,7 +202,7 @@ void InsertBLOBByPreparedStatement(std::shared_ptr<CMyHandler> pOdbc) {
     sbBlob << wstr;
     vData.push_back(CDBVariant(sbBlob->GetBuffer(), sbBlob->GetSize()));
     vData.push_back(wstr.c_str());
-    vData.push_back(6254000.0);
+    vData.push_back(6254000.02);
 
     //execute multiple sets of parameter data in one short
     ok = pOdbc->Execute(vData, [](CSender &handler, int res, const std::wstring &errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & vtId) {
@@ -222,19 +229,19 @@ void TestPreparedStatements(std::shared_ptr<CMyHandler> pOdbc) {
     vData.push_back(1);
     vData.push_back("Google Inc.");
     vData.push_back("1600 Amphitheatre Parkway, Mountain View, CA 94043, USA");
-    vData.push_back(66000000000.0);
+    vData.push_back(66000000000.15);
 
     //second set
     vData.push_back(2);
     vData.push_back("Microsoft Inc.");
     vData.push_back("700 Bellevue Way NE- 22nd Floor, Bellevue, WA 98804, USA");
-    vData.push_back(93600000000.0);
+    vData.push_back(93600000000.24);
 
     //third set
     vData.push_back(3);
     vData.push_back("Apple Inc.");
     vData.push_back("1 Infinite Loop, Cupertino, CA 95014, USA");
-    vData.push_back(234000000000.0);
+    vData.push_back(234000000000.05);
     ok = pOdbc->Execute(vData, [](CSender &handler, int res, const std::wstring &errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & vtId) {
         std::cout << "affected = " << affected << ", fails = " << (unsigned int) (fail_ok >> 32) << ", oks = " << (unsigned int) fail_ok << ", res = " << res << ", errMsg: ";
         std::wcout << errMsg;
@@ -253,18 +260,18 @@ void TestCreateTables(std::shared_ptr<CMyHandler> pOdbc) {
         std::wcout << errMsg << std::endl;
     });
 
-    const wchar_t *create_table = L"CREATE TABLE IF NOT EXISTS company(ID bigint PRIMARY KEY NOT NULL, name CHAR(64) NOT NULL, ADDRESS varCHAR(256) not null, Income double not null)";
+    const wchar_t *create_table = L"CREATE TABLE IF NOT EXISTS company(ID bigint PRIMARY KEY NOT NULL,name CHAR(64) NOT NULL,ADDRESS varCHAR(256)not null,Income decimal(15,2)not null)";
     ok = pOdbc->Execute(create_table, [](CSender &handler, int res, const std::wstring &errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & vtId) {
         std::cout << "affected = " << affected << ", fails = " << (unsigned int) (fail_ok >> 32) << ", oks = " << (unsigned int) fail_ok << ", res = " << res << ", errMsg: ";
         std::wcout << errMsg << std::endl;
     });
 
-    create_table = L"CREATE TABLE IF NOT EXISTS employee(EMPLOYEEID bigint AUTO_INCREMENT PRIMARY KEY NOT NULL unique, CompanyId bigint not null, name CHAR(64) NOT NULL, JoinDate DATETIME default null, IMAGE MEDIUMBLOB, DESCRIPTION MEDIUMTEXT, Salary double, FOREIGN KEY(CompanyId) REFERENCES company(id))";
+    create_table = L"CREATE TABLE IF NOT EXISTS employee(EMPLOYEEID bigint AUTO_INCREMENT PRIMARY KEY NOT NULL unique,CompanyId bigint not null, name CHAR(64) NOT NULL,JoinDate DATETIME default null,IMAGE MEDIUMBLOB,DESCRIPTION MEDIUMTEXT,Salary decimal(15,2),FOREIGN KEY(CompanyId)REFERENCES company(id))";
     ok = pOdbc->Execute(create_table, [](CSender &handler, int res, const std::wstring &errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & vtId) {
         std::cout << "affected = " << affected << ", fails = " << (unsigned int) (fail_ok >> 32) << ", oks = " << (unsigned int) fail_ok << ", res = " << res << ", errMsg: ";
         std::wcout << errMsg << std::endl;
     });
-    const wchar_t *create_proc = L"DROP PROCEDURE IF EXISTS sp_TestProc;CREATE PROCEDURE sp_TestProc(in p_company_id int, out p_sum_salary double, out p_last_dt datetime) BEGIN select * from employee where companyid >= p_company_id; select sum(salary) into p_sum_salary from employee where companyid >= p_company_id; select now() into p_last_dt;END";
+    const wchar_t *create_proc = L"DROP PROCEDURE IF EXISTS sp_TestProc;CREATE PROCEDURE sp_TestProc(in p_company_id int,inout p_sum_salary decimal(15,2),out p_last_dt datetime)BEGIN select * from employee where companyid >= p_company_id;select sum(salary)+p_sum_salary into p_sum_salary from employee where companyid>=p_company_id;select now()into p_last_dt;END";
     ok = pOdbc->Execute(create_proc, [](CSender &handler, int res, const std::wstring &errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & vtId) {
         std::cout << "affected = " << affected << ", fails = " << (unsigned int) (fail_ok >> 32) << ", oks = " << (unsigned int) fail_ok << ", res = " << res << ", errMsg: ";
         std::wcout << errMsg << std::endl;
@@ -272,11 +279,26 @@ void TestCreateTables(std::shared_ptr<CMyHandler> pOdbc) {
 }
 
 void TestStoredProcedure(std::shared_ptr<CMyHandler> pOdbc, CRowsetArray&ra, CDBVariantArray &vPData, unsigned int &oks) {
+    CParameterInfoArray vInfo;
+    CParameterInfo info;
+    info.DataType = VT_I4;
+    vInfo.push_back(info);
+
+    info.DataType = VT_DECIMAL;
+    info.Direction = pdInputOutput;
+    info.Scale = 2;
+    vInfo.push_back(info);
+
+    info.DataType = VT_DATE;
+    info.Direction = pdOutput;
+    info.Scale = 0;
+    vInfo.push_back(info);
+
     //Not required to set input/output parameter structures for mysql ODBC driver as it always return output parameters as one recordset
     bool ok = pOdbc->Prepare(L"{ call mysqldb.sp_TestProc(?, ?, ?) } ", [](CSender &handler, int res, const std::wstring & errMsg) {
         std::cout << "res = " << res << ", errMsg: ";
         std::wcout << errMsg << std::endl;
-    });
+    }, vInfo);
     CMyHandler::DRows r = [&ra](CSender &handler, CDBVariantArray & vData) {
         //rowset data come here
         assert((vData.size() % handler.GetColumnInfo().size()) == 0);

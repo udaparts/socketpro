@@ -1544,13 +1544,13 @@ namespace SPA
                                     case SQL_NUMERIC:
                                     case SQL_DECIMAL:
                                     {
-                                        SQL_NUMERIC_STRUCT num;
-                                        retcode = SQLGetData(hstmt, (SQLUSMALLINT) (i + 1), SQL_C_NUMERIC, (SQLPOINTER) & num, 0, &len_or_null);
+                                        char str[64] = {0};
+                                        retcode = SQLGetData(hstmt, (SQLUSMALLINT) (i + 1), SQL_C_CHAR, (SQLPOINTER) str, sizeof (str), &len_or_null);
                                         if (len_or_null == SQL_NULL_DATA) {
                                             q << (VARTYPE) VT_NULL;
                                         } else {
                                             DECIMAL dec;
-                                            ToDecimal(num, dec);
+                                            SPA::ParseDec(str, dec);
                                             q << vt << dec;
                                         }
                                     }
@@ -2290,7 +2290,7 @@ namespace SPA
 
         void COdbcImpl::Execute(const std::wstring& wsql, bool rowset, bool meta, bool lastInsertId, UINT64 index, INT64 &affected, int &res, std::wstring &errMsg, CDBVariant &vtId, UINT64 & fail_ok) {
             vtId = -1;
-			affected = 0;
+            affected = 0;
             fail_ok = 0;
             ResetMemories();
             if (!m_pOdbc) {
@@ -3307,7 +3307,7 @@ namespace SPA
 
         void COdbcImpl::ExecuteParameters(bool rowset, bool meta, bool lastInsertId, UINT64 index, INT64 &affected, int &res, std::wstring &errMsg, CDBVariant &vtId, UINT64 & fail_ok) {
             vtId = -1;
-			fail_ok = 0;
+            fail_ok = 0;
             affected = 0;
             UINT64 fails = m_fails;
             UINT64 oks = m_oks;

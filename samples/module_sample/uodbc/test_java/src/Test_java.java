@@ -2,17 +2,18 @@
 import SPA.ClientSide.*;
 import SPA.UDB.*;
 import SPA.*;
+import java.math.BigDecimal;
 
 public class Test_java {
 
     static void TestCreateTables(COdbc odbc, COdbc.DExecuteResult er) {
         String create_database = "Create database if not exists mysqldb character set utf8 collate utf8_general_ci;USE mysqldb";
         boolean ok = odbc.Execute(create_database, er);
-        String create_table = "CREATE TABLE IF NOT EXISTS company(ID bigint PRIMARY KEY NOT NULL, name CHAR(64) NOT NULL, ADDRESS varCHAR(256) not null, Income decimal(15,2) not null)";
+        String create_table = "CREATE TABLE IF NOT EXISTS company(ID bigint PRIMARY KEY NOT NULL,name CHAR(64)NOT NULL,ADDRESS varCHAR(256)not null,Income decimal(15,2)not null)";
         ok = odbc.Execute(create_table, er);
-        create_table = "CREATE TABLE IF NOT EXISTS employee(EMPLOYEEID bigint AUTO_INCREMENT PRIMARY KEY NOT NULL unique, CompanyId bigint not null, name CHAR(64) NOT NULL, JoinDate DATETIME default null, IMAGE MEDIUMBLOB, DESCRIPTION MEDIUMTEXT, Salary decimal(15,2), FOREIGN KEY(CompanyId)REFERENCES company(id))";
+        create_table = "CREATE TABLE IF NOT EXISTS employee(EMPLOYEEID bigint AUTO_INCREMENT PRIMARY KEY NOT NULL unique,CompanyId bigint not null,name CHAR(64) NOT NULL,JoinDate DATETIME default null,IMAGE MEDIUMBLOB,DESCRIPTION MEDIUMTEXT,Salary decimal(15,2),FOREIGN KEY(CompanyId)REFERENCES company(id))";
         ok = odbc.Execute(create_table, er);
-        String create_proc = "DROP PROCEDURE IF EXISTS sp_TestProc;CREATE PROCEDURE sp_TestProc(in p_company_id int, inout p_sum_salary double, out p_last_dt datetime) BEGIN select * from employee where companyid>=p_company_id;select sum(salary)+p_sum_salary into p_sum_salary from employee where companyid>=p_company_id;select now()into p_last_dt;END";
+        String create_proc = "DROP PROCEDURE IF EXISTS sp_TestProc;CREATE PROCEDURE sp_TestProc(in p_company_id int,inout p_sum_salary double,out p_last_dt datetime) BEGIN select * from employee where companyid>=p_company_id;select sum(salary)+p_sum_salary into p_sum_salary from employee where companyid>=p_company_id;select now()into p_last_dt;END";
         ok = odbc.Execute(create_proc, er);
     }
 
@@ -150,15 +151,16 @@ public class Test_java {
         };
 
         ok = odbc.Execute("SELECT * from company;select * from employee;select curtime()", er, r, rh);
+
         CDBVariantArray vPData = new CDBVariantArray();
         //first set
         vPData.add(1);
-        vPData.add(2.35);
+        vPData.add(new BigDecimal("2.35"));
         vPData.add(0);
 
         //second set
         vPData.add(2);
-        vPData.add(2.11);
+        vPData.add(new BigDecimal("0.12"));
         vPData.add(0);
 
         TestStoredProcedure(odbc, dr, er, ra, vPData);
@@ -203,7 +205,7 @@ public class Test_java {
         vInfo[0].DataType = tagVariantDataType.sdVT_I4;
 
         vInfo[1] = new CParameterInfo();
-        vInfo[1].DataType = tagVariantDataType.sdVT_R8;
+        vInfo[1].DataType = tagVariantDataType.sdVT_DECIMAL;
         vInfo[1].Direction = tagParameterDirection.pdInputOutput;
         vInfo[1].Scale = 2;
 
