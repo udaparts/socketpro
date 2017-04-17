@@ -78,8 +78,7 @@ namespace SPA {
                         }
                         this->m_csDB.unlock();
                         if (handler) {
-                            CDBVariant vtNull;
-                                    handler(*this, res, errMsg, 0, fail_ok, vtNull);
+                                    handler(*this, res, errMsg, 0, fail_ok, CDBVariant(-1));
                         }
                     })) {
                 m_csDB.lock();
@@ -157,8 +156,7 @@ namespace SPA {
                         }
                         this->m_csDB.unlock();
                         if (handler) {
-                            CDBVariant vtNull;
-                                    handler(*this, res, errMsg, 0, fail_ok, vtNull);
+                                    handler(*this, res, errMsg, 0, fail_ok, CDBVariant(-1));
                         }
                     })) {
                 m_csDB.lock();
@@ -195,8 +193,7 @@ namespace SPA {
                         }
                         this->m_csDB.unlock();
                         if (handler) {
-                            CDBVariant vtNull;
-                                    handler(*this, res, errMsg, 0, fail_ok, vtNull);
+                                    handler(*this, res, errMsg, 0, fail_ok, CDBVariant(-1));
                         }
                     })) {
                 m_csDB.lock();
@@ -234,8 +231,7 @@ namespace SPA {
                         }
                         this->m_csDB.unlock();
                         if (handler) {
-                            CDBVariant vtNull;
-                                    handler(*this, res, errMsg, 0, fail_ok, vtNull);
+                                    handler(*this, res, errMsg, 0, fail_ok, CDBVariant(-1));
                         }
                     })) {
                 m_csDB.lock();

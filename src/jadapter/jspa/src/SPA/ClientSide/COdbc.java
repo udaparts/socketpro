@@ -238,7 +238,7 @@ public class COdbc extends CAsyncDBHandler {
                 }
             }
             if (t != null && t.Callback != null) {
-                t.Callback.invoke(this, res, errMsg, 0, fail_ok, null);
+                t.Callback.invoke(this, res, errMsg, 0, fail_ok, -1);
             }
         } else if (reqId == idSQLGetInfo) {
             m_mapInfo.clear();
