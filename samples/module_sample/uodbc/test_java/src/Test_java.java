@@ -124,11 +124,6 @@ public class Test_java {
 
         ok = odbc.Open("dsn=ToMySQL;uid=root;pwd=Smash123", dr);
         final java.util.ArrayList<COdbc.Pair<CDBColumnInfoArray, CDBVariantArray>> ra = new java.util.ArrayList<>();
-        TestCreateTables(odbc, er);
-        ok = odbc.Execute("delete from employee;delete from company", er);
-        TestPreparedStatements(odbc, dr, er);
-        InsertBLOBByPreparedStatement(odbc, dr, er);
-
         COdbc.DRows r = new COdbc.DRows() {
             //rowset data come here
             @Override
@@ -150,6 +145,10 @@ public class Test_java {
             }
         };
 
+        TestCreateTables(odbc, er);
+        ok = odbc.Execute("delete from employee;delete from company", er);
+        TestPreparedStatements(odbc, dr, er);
+        InsertBLOBByPreparedStatement(odbc, dr, er);
         ok = odbc.Execute("SELECT * from company;select * from employee;select curtime()", er, r, rh);
 
         CDBVariantArray vPData = new CDBVariantArray();

@@ -492,7 +492,7 @@ public final class CUQueue {
     }
 
     public final CUQueue ResetInt(int n, int pos) {
-        byte bytes[] = {(byte) (n >>> 24), (byte) (n >>> 16), (byte) (n >>> 8), (byte) n};
+        byte bytes[] = {(byte) n, (byte) (n >>> 8), (byte) (n >>> 16), (byte) (n >>> 24)};
         Reset(bytes, pos);
         return this;
     }
