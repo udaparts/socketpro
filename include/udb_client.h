@@ -598,7 +598,7 @@ namespace SPA {
                     {
                         CDBVariant vt;
                         mc >> vt;
-						CAutoLock al(m_csDB);
+                        CAutoLock al(m_csDB);
                         auto it = m_mapParameterCall.find(m_indexRowset);
                         if (it != m_mapParameterCall.end()) {
                             //crash? make sure that vParam is valid after calling the method Execute
@@ -606,7 +606,7 @@ namespace SPA {
                             size_t pos = m_parameters * m_indexProc;
                             vParam[pos] = vt;
                         }
-						m_bCallReturn = true;
+                        m_bCallReturn = true;
                     }
                         break;
                     case idBeginRows:
