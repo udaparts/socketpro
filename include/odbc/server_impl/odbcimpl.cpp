@@ -1484,9 +1484,7 @@ namespace SPA
                                 if (len_or_null == SQL_NULL_DATA) {
                                     q << (VARTYPE) VT_NULL;
                                 } else {
-                                    vt = (VT_UI1 | VT_ARRAY);
-                                    q << vt << (unsigned int) sizeof (GUID) << d;
-                                    vt = VT_CLSID;
+                                    q << vt << d;
                                 }
                             }
                                 break;
@@ -2701,9 +2699,7 @@ namespace SPA
                     continue;
                 }
                 SPA::UDB::CDBVariant &vtD = m_vParam[(unsigned int) n + r * ((unsigned int) m_parameters)];
-                if (info.DataType == VT_CLSID) {
-                    sb << (VARTYPE) (VT_UI1 | VT_ARRAY);
-                } else if (info.DataType == VT_VARIANT || info.DataType == SPA::VT_XML) {
+                if (info.DataType == VT_VARIANT || info.DataType == SPA::VT_XML) {
                     sb << (VARTYPE) VT_BSTR;
                 } else {
                     sb << info.DataType;
@@ -2741,7 +2737,6 @@ namespace SPA
                         break;
                     case VT_CLSID:
                     {
-                        sb << (unsigned int) sizeof (GUID);
                         sb->Push(start, (unsigned int) sizeof (GUID));
                         start += info.ColumnSize;
                     }

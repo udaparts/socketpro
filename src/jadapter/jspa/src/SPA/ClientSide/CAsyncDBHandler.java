@@ -1135,11 +1135,11 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
             case idEndRows:
                 if (mc.GetSize() > 0 || m_vData.size() > 0) {
                     Object vt;
+                    while (mc.GetSize() > 0) {
+                        vt = mc.LoadObject();
+                        m_vData.add(vt);
+                    }
                     if (reqId == idOutputParameter) {
-                        while (mc.GetSize() > 0) {
-                            vt = mc.LoadObject();
-                            m_vData.add(vt);
-                        }
                         synchronized (m_csDB) {
                             m_output = m_vData.size() + (m_bCallReturn ? 1 : 0);
                             if (m_mapParameterCall.containsKey(m_indexRowset)) {
@@ -1153,15 +1153,6 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                             ++m_indexProc;
                         }
                     } else {
-                        while (mc.GetSize() > 0) {
-                            int col = (m_vData.size() % m_vColInfo.size());
-                            if (m_vColInfo.get(col).DataType == tagVariantDataType.sdVT_CLSID) {
-                                vt = mc.LoadDBGuid();
-                            } else {
-                                vt = mc.LoadObject();
-                            }
-                            m_vData.add(vt);
-                        }
                         DRows row = null;
                         synchronized (m_csDB) {
                             if (m_mapRowset.containsKey(m_indexRowset)) {

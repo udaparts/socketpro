@@ -457,18 +457,6 @@ public final class CUQueue {
         return new java.util.UUID(high, low);
     }
 
-    public final java.util.UUID LoadDBGuid() {
-        short vt = LoadShort();
-        if (vt != (tagVariantDataType.sdVT_UI1 | tagVariantDataType.sdVT_ARRAY)) {
-            throw new RuntimeException("Invalid data found");
-        }
-        int len = LoadInt();
-        if (len != 16) {
-            throw new RuntimeException("Invalid data found");
-        }
-        return LoadUUID();
-    }
-
     private byte[] Peek(int size, int pos) {
         if (size < 0 || pos < 0 || (pos + size) > m_len) {
             throw new RuntimeException("Invalid operation");

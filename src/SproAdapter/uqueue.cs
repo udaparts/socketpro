@@ -2019,22 +2019,6 @@ namespace SocketProAdapter
             return this;
         }
 
-        internal unsafe CUQueue LoadDBGuid(out object guid)
-        {
-            ushort vt;
-            Load(out vt);
-            if (vt != (ushort)(tagVariantDataType.sdVT_UI1 | tagVariantDataType.sdVT_ARRAY))
-                throw new InvalidOperationException("Invalid data found");
-            uint len;
-            Load(out len);
-            if (len != sizeof(Guid))
-                throw new InvalidOperationException("Invalid data found");
-            Guid g;
-            CopyTo(&g, 16); //sizeof(Guid)
-            guid = g;
-            return this;
-        }
-
         public unsafe CUQueue Load(out decimal decData)
         {
             decimal d;

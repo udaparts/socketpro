@@ -433,6 +433,18 @@ namespace SPA
                 vtData.vt = VT_DECIMAL;
 #endif
                 break;
+            case VT_CLSID:
+            {
+                unsigned char *p = nullptr;
+                SAFEARRAYBOUND sab[1] = {sizeof (GUID), 0};
+                SAFEARRAY *psa = ::SafeArrayCreate(VT_UI1, 1, sab);
+                ::SafeArrayAccessData(psa, (void**) &p);
+                total += Pop(p, sizeof (GUID), position);
+                ::SafeArrayUnaccessData(psa);
+                vtData.parray = psa;
+            }
+                vtData.vt = (VT_ARRAY | VT_UI1);
+                break;
             default:
                 if ((vtData.vt & VT_ARRAY) == VT_ARRAY) {
                     unsigned int ulSize = 0;

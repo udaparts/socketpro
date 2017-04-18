@@ -1224,11 +1224,7 @@ namespace SocketProAdapter
                         while (mc.GetSize() > 0)
                         {
                             object vt;
-                            int col = (m_vData.Count % m_vColInfo.Count);
-                            if (m_vColInfo[col].DataType == tagVariantDataType.sdVT_CLSID)
-                                mc.LoadDBGuid(out vt);
-                            else
-                                mc.Load(out vt);
+                            mc.Load(out vt);
                             m_vData.Add(vt);
                         }
                         break;
@@ -1237,13 +1233,13 @@ namespace SocketProAdapter
                         if (mc.GetSize() > 0 || m_vData.Count > 0)
                         {
                             object vt;
+                            while (mc.GetSize() > 0)
+                            {
+                                mc.Load(out vt);
+                                m_vData.Add(vt);
+                            }
                             if (reqId == idOutputParameter)
                             {
-                                while (mc.GetSize() > 0)
-                                {
-                                    mc.Load(out vt);
-                                    m_vData.Add(vt);
-                                }
                                 lock (m_csDB)
                                 {
                                     m_output = (uint)(m_vData.Count + (m_bCallReturn ? 1 : 0));
@@ -1262,15 +1258,6 @@ namespace SocketProAdapter
                             }
                             else
                             {
-                                while (mc.GetSize() > 0)
-                                {
-                                    int col = (m_vData.Count % m_vColInfo.Count);
-                                    if (m_vColInfo[col].DataType == tagVariantDataType.sdVT_CLSID)
-                                        mc.LoadDBGuid(out vt);
-                                    else
-                                        mc.Load(out vt);
-                                    m_vData.Add(vt);
-                                }
                                 DRows row = null;
                                 lock (m_csDB)
                                 {
