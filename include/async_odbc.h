@@ -112,7 +112,9 @@ namespace SPA {
             virtual void OnResultReturned(unsigned short reqId, CUQueue &mc) {
                 switch (reqId) {
                     case SPA::Odbc::idSQLGetInfo:
+						m_csDB.lock();
                         m_mapInfo.clear();
+						m_csDB.unlock();
                         while (mc.GetSize()) {
                             unsigned short infoType;
                             CComVariant infoValue;

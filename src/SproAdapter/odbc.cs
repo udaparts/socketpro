@@ -258,7 +258,10 @@ namespace SocketProAdapter
                 switch (reqId)
                 {
                     case idSQLGetInfo:
-                        m_mapInfo.Clear();
+                        lock (m_csDB)
+                        {
+                            m_mapInfo.Clear();
+                        }
                         while (mc.GetSize() > 0)
                         {
                             ushort infoType;

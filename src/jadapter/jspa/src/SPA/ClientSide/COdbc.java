@@ -241,7 +241,9 @@ public class COdbc extends CAsyncDBHandler {
                 t.Callback.invoke(this, res, errMsg, 0, fail_ok, -1);
             }
         } else if (reqId == idSQLGetInfo) {
-            m_mapInfo.clear();
+            synchronized (m_csDB) {
+                m_mapInfo.clear();
+            }
             while (mc.GetSize() > 0) {
                 short infoType = mc.LoadShort();
                 Object infoValue = mc.LoadObject();
