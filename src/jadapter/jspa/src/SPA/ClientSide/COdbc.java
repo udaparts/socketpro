@@ -243,11 +243,9 @@ public class COdbc extends CAsyncDBHandler {
         } else if (reqId == idSQLGetInfo) {
             synchronized (m_csDB) {
                 m_mapInfo.clear();
-            }
-            while (mc.GetSize() > 0) {
-                short infoType = mc.LoadShort();
-                Object infoValue = mc.LoadObject();
-                synchronized (m_csDB) {
+                while (mc.GetSize() > 0) {
+                    short infoType = mc.LoadShort();
+                    Object infoValue = mc.LoadObject();
                     m_mapInfo.put(infoType, infoValue);
                 }
             }

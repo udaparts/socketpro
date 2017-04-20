@@ -112,17 +112,16 @@ namespace SPA {
             virtual void OnResultReturned(unsigned short reqId, CUQueue &mc) {
                 switch (reqId) {
                     case SPA::Odbc::idSQLGetInfo:
-						m_csDB.lock();
-                        m_mapInfo.clear();
-						m_csDB.unlock();
-                        while (mc.GetSize()) {
-                            unsigned short infoType;
-                            CComVariant infoValue;
-                            mc >> infoType >> infoValue;
-                            m_csDB.lock();
-                            m_mapInfo[infoType] = infoValue;
-                            m_csDB.unlock();
-                        }
+						{
+							CAutoLock al(m_csDB);
+							m_mapInfo.clear();
+							while (mc.GetSize()) {
+								unsigned short infoType;
+								CComVariant infoValue;
+								mc >> infoType >> infoValue;
+								m_mapInfo[infoType] = infoValue;
+							}
+						}
                         break;
                     default:
                         COdbcBase::OnResultReturned(reqId, mc);

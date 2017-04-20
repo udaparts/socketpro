@@ -261,14 +261,11 @@ namespace SocketProAdapter
                         lock (m_csDB)
                         {
                             m_mapInfo.Clear();
-                        }
-                        while (mc.GetSize() > 0)
-                        {
-                            ushort infoType;
-                            object infoValue;
-                            mc.Load(out infoType).Load(out infoValue);
-                            lock (m_csDB)
+                            while (mc.GetSize() > 0)
                             {
+                                ushort infoType;
+                                object infoValue;
+                                mc.Load(out infoType).Load(out infoValue);
                                 m_mapInfo[infoType] = infoValue;
                             }
                         }
