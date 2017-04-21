@@ -8,6 +8,7 @@ import math, uuid
 
 class CAsyncDBHandler(CAsyncServiceHandler):
     ONE_MEGA_BYTES = 0x100000
+    BLOB_LENGTH_NOT_AVAILABLE = 0xffffffe0
 
     """
     Async database client/server just requires the following request identification numbers
@@ -36,6 +37,7 @@ class CAsyncDBHandler(CAsyncServiceHandler):
     idChunk = idStartBLOB + 1
     idEndBLOB = idChunk + 1
     idEndRows = idEndBLOB + 1
+    idCallReturn = idEndRows + 1
 
     """
     Whenever a data size in bytes is about twice larger than the defined value, the data will be treated in large object and transferred in chunks for reducing memory foot print
@@ -74,6 +76,7 @@ class CAsyncDBHandler(CAsyncServiceHandler):
         self._indexProc = 0
         self._output = 0
         self._mapParameterCall = {}
+        self._bCallReturn = False
 
     def _GetResultHandler(self, reqId):
         if self.AttachedClientSocket.Random:
@@ -127,6 +130,11 @@ class CAsyncDBHandler(CAsyncServiceHandler):
         with self._csDB:
             return self._dbErrMsg
 
+    @property
+    def CallReturn(self):
+        with self._csDB:
+            return self._bCallReturn
+
     def CleanCallbacks(self):
         with self._csDB:
             self._Clean()
@@ -167,6 +175,7 @@ class CAsyncDBHandler(CAsyncServiceHandler):
                 self._indexProc = 0
                 self._parameters = (parameters & 0xffff)
                 self._output = (parameters >> 16)
+                self._bCallReturn = False
             if not t is None and not t.second is None:
                 t.second(self, res, errMsg)
 
@@ -260,6 +269,14 @@ class CAsyncDBHandler(CAsyncServiceHandler):
                         header = self._mapRowset.get(self._indexRowset).first
             if not header is None:
                 header(self)
+        elif reqId == CAsyncDBHandler.idCallReturn:
+            vt = mc.LoadObject()
+            with self._csDB:
+                if self._indexRowset in self._mapParameterCall:
+                    vParam = self._mapParameterCall[self._indexRowset]
+                    pos = self._parametersm * self._indexProc
+                    vParam[pos] = vt
+                self._bCallReturn = True
 
         elif reqId == CAsyncDBHandler.idBeginRows:
             self._Blob.SetSize(0)
@@ -310,6 +327,10 @@ class CAsyncDBHandler(CAsyncServiceHandler):
             if mc.GetSize() > 0 or self._Blob.GetSize() > 0:
                 self._Blob.Push(mc.GetBuffer(), mc.GetSize())
                 mc.SetSize(0)
+                content_len = self._Blob.PeakUInt(2)
+                if content_len >= CAsyncDBHandler.BLOB_LENGTH_NOT_AVAILABLE:
+                    content_len = self._Blob.GetSize() - 6 #sizeof(VARTYPE) + sizeof(unsigned int)
+                    self._Blob.ResetUInt(le, 2)
                 vt = self._Blob.LoadObject()
                 self._vData.append(vt)
         elif reqId == CAsyncDBHandler.idDBUpdate:

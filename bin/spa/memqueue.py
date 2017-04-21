@@ -272,6 +272,16 @@ class CUQueue(object):
         self._set_(4)
         return n[0]
 
+    def PeakUInt(self, pos):
+        self._available_(pos + 4)
+        n = struct.unpack_from('I', self._m_bytes_, self._m_position_ + pos)
+        return n[0]
+
+    def ResetUInt(self, n, pos):
+        self._available_(pos + 4)
+        struct.pack_into('I', self._m_bytes_, self._m_position_ + pos, n)
+        return self
+
     def SaveUInt(self, n):
         self._ensure_(4)
         struct.pack_into('I', self._m_bytes_, self._m_position_ + self._m_len_, n)
