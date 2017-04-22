@@ -330,7 +330,7 @@ class CAsyncDBHandler(CAsyncServiceHandler):
                 content_len = self._Blob.PeakUInt(2)
                 if content_len >= CAsyncDBHandler.BLOB_LENGTH_NOT_AVAILABLE:
                     content_len = self._Blob.GetSize() - 6 #sizeof(VARTYPE) + sizeof(unsigned int)
-                    self._Blob.ResetUInt(le, 2)
+                    self._Blob.ResetUInt(content_len, 2)
                 vt = self._Blob.LoadObject()
                 self._vData.append(vt)
         elif reqId == CAsyncDBHandler.idDBUpdate:
