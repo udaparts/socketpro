@@ -66,6 +66,7 @@ class COdbc(CAsyncDBHandler):
             index = self._nCall
             self._mapRowset[self._nCall] = CAsyncDBHandler.Pair(rh, row)
             self._deqResult.append(cb)
+        q.SaveULong(index)
         ok = self.SendRequest(COdbc.idSQLStatistics, q, None)
         if not ok:
             with self._csDB:
@@ -83,6 +84,7 @@ class COdbc(CAsyncDBHandler):
             index = self._nCall
             self._mapRowset[self._nCall] = CAsyncDBHandler.Pair(rh, row)
             self._deqResult.append(cb)
+        q.SaveULong(index)
         ok = self.SendRequest(COdbc.idSQLSpecialColumns, q, None)
         if not ok:
             with self._csDB:
@@ -100,6 +102,7 @@ class COdbc(CAsyncDBHandler):
             index = self._nCall
             self._mapRowset[self._nCall] = CAsyncDBHandler.Pair(rh, row)
             self._deqResult.append(cb)
+        q.SaveULong(index)
         ok = self.SendRequest(COdbc.idSQLForeignKeys, q, None)
         if not ok:
             with self._csDB:
@@ -117,6 +120,7 @@ class COdbc(CAsyncDBHandler):
             index = self._nCall
             self._mapRowset[index] = CAsyncDBHandler.Pair(rh, row)
             self._deqResult.append(cb)
+        q.SaveULong(index)
         ok = self.SendRequest(id, q, None)
         if not ok:
             with self._csDB:
@@ -134,6 +138,7 @@ class COdbc(CAsyncDBHandler):
             index = self._nCall
             self._mapRowset[index] = CAsyncDBHandler.Pair(rh, row)
             self._deqResult.append(cb)
+        q.SaveULong(index)
         ok = self.SendRequest(id, q, None)
         if not ok:
             with self._csDB:
@@ -175,7 +180,6 @@ class COdbc(CAsyncDBHandler):
                 if len(self._mapRowset) == 0:
                     self._nCall = 0
             if not t is None and not t.second is None:
-                print('COdbc callback')
                 t.second(self, res, errMsg, 0, fail_ok, -1)
         else:
             super(COdbc, self).OnResultReturned(reqId, mc)

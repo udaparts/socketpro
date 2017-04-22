@@ -138,8 +138,9 @@ with CSocketPool(COdbc) as spOdbc:
     vPData = [1, Decimal('2.35'), 0, 2, Decimal('1.22'), 0]
     TestStoredProcedure(vPData)
     ok = odbc.WaitAll()
+    print('')
     print('Parameters: ' + str(vPData))
-
+    print('')
     ok = odbc.Tables(u'sakila', u'', u'%', u'TABLE', cbExecute, cbRows, cbRowHeader)
     ok = odbc.WaitAll()
 
@@ -147,12 +148,13 @@ with CSocketPool(COdbc) as spOdbc:
     row_index = len(ra) - 1
     p = ra[row_index]
     cols = len(p.first)
-    data = p.second
-    tables = len(data)
+    data = p.second[0]
+    tables = len(data)/cols
     row = 0
     while row < tables:
-        sql = u'select * from ' + data[row][2]
+        sql = u'select * from ' + data[row * cols + 2]
         ok = odbc.ExecuteSql(sql, cbExecute, cbRows, cbRowHeader)
+        row += 1
     ok = odbc.WaitAll()
 
     print('')
