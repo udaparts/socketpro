@@ -509,19 +509,14 @@ namespace SPA
                 blob = false;
                 return true;
             } else if ((unsigned int) len_or_null < qTemp.GetMaxSize()) {
-#ifdef WIN32_64
                 q << (VARTYPE) VT_BSTR << (unsigned int) len_or_null;
                 q.Push(qTemp.GetBuffer(), (unsigned int) len_or_null);
-#else
-
-#endif
                 blob = false;
                 return true;
             }
             if (q.GetSize() && !SendRows(q, true)) {
                 return false;
             }
-#ifdef WIN32_64
             unsigned int bytes = (unsigned int) len_or_null;
             unsigned int ret = SendResult(idStartBLOB, (unsigned int) (bytes + sizeof (VARTYPE) + sizeof (unsigned int) + sizeof (unsigned int)), (VARTYPE) VT_BSTR, bytes);
             if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
@@ -532,7 +527,7 @@ namespace SPA
                 if (bytes > qTemp.GetMaxSize()) {
                     bytes = qTemp.GetMaxSize();
                 }
-                bytes -= sizeof (wchar_t);
+                bytes -= sizeof (SQLWCHAR);
                 ret = SendResult(idChunk, qTemp.GetBuffer(), bytes);
                 if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
                     return false;
@@ -544,9 +539,6 @@ namespace SPA
             if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
                 return false;
             }
-#else
-
-#endif
             return true;
         }
 
@@ -838,17 +830,12 @@ namespace SPA
 
         void COdbcImpl::SetStringInfo(SQLHDBC hdbc, SQLUSMALLINT infoType, std::unordered_map<SQLUSMALLINT, CComVariant> &mapInfo) {
             SQLSMALLINT bufferLen = 0;
-            SQLWCHAR buffer[1024] =
+            SQLCHAR buffer[1024] =
             {0};
-            SQLRETURN retcode = SQLGetInfoW(hdbc, infoType, buffer, (SQLSMALLINT) sizeof (buffer), &bufferLen);
+            SQLRETURN retcode = SQLGetInfo(hdbc, infoType, buffer, (SQLSMALLINT) sizeof (buffer), &bufferLen);
             if (SQL_SUCCEEDED(retcode)) {
-#ifdef WIN32_64
-                mapInfo[infoType] = (const wchar_t*) buffer;
-#else
-                SPA::CScopeUQueue sb;
-                SPA::Utilities::ToWide(buffer, SPA::Utilities::GetLen(buffer), *sb);
-                mapInfo[infoType] = (const wchar_t*) sb->GetBuffer();
-#endif
+                std::wstring s(buffer, buffer + bufferLen);
+                mapInfo[infoType] = s.c_str();
             }
         }
 
@@ -1264,10 +1251,9 @@ namespace SPA
                                         return false;
                                     }
                                 } else {
-#ifdef WIN32_64
-                                    unsigned int max = (colInfo.ColumnSize << 1);
-                                    if (q.GetTailSize() < sizeof (unsigned int) + sizeof (VARTYPE) + max + sizeof (wchar_t)) {
-                                        q.ReallocBuffer(q.GetMaxSize() + max + sizeof (unsigned int) + sizeof (VARTYPE) + sizeof (wchar_t));
+                                    unsigned int max = (colInfo.ColumnSize * sizeof (SQLWCHAR));
+                                    if (q.GetTailSize() < sizeof (unsigned int) + sizeof (VARTYPE) + max + sizeof (SQLWCHAR)) {
+                                        q.ReallocBuffer(q.GetMaxSize() + max + sizeof (unsigned int) + sizeof (VARTYPE) + sizeof (SQLWCHAR));
                                     }
                                     VARTYPE *pvt = (VARTYPE *) q.GetBuffer(q.GetSize());
                                     unsigned int *plen = (unsigned int*) (pvt + 1);
@@ -1280,22 +1266,6 @@ namespace SPA
                                         *plen = (unsigned int) len_or_null;
                                         q.SetSize(q.GetSize() + *plen + sizeof (unsigned int) + sizeof (VARTYPE));
                                     }
-#else
-                                    unsigned int max = ((colInfo.ColumnSize << 2) + sizeof (wchar_t));
-                                    if (max > sbTemp->GetMaxSize()) {
-                                        sbTemp->ReallocBuffer(max);
-                                    }
-                                    retcode = SQLGetData(hstmt, (SQLUSMALLINT) (i + 1), SQL_C_WCHAR, (SQLPOINTER) sbTemp->GetBuffer(), sbTemp->GetMaxSize(), &len_or_null);
-                                    if (SQL_NULL_DATA == len_or_null) {
-                                        q << (VARTYPE) VT_NULL;
-                                    } else {
-                                        sbTemp->SetSize(len_or_null);
-                                        sbTemp->SetNull();
-                                        q << vt;
-                                        q << (const wchar_t *) sbTemp->GetBuffer();
-                                    }
-                                    sbTemp->SetSize(0);
-#endif
                                 }
                                 break;
                             case VT_DATE:
