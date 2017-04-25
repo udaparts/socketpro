@@ -10,7 +10,7 @@
     - Rich features with many unique ones because of its unique design
     - Superior performance and scalability
     - Great maintainability, modularity and version control
-    - Free async sqlite and mysql/mariadb services
+    - Free async persistent queue, ODBC, sqlite and mysql/mariadb services
 
 4.	Boost libraries (www.boost.org) are required for C/C++ development on non-window platforms. This is NOT required at all with Visual C++ development.
 
