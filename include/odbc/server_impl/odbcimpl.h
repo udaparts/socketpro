@@ -10,6 +10,7 @@
 #include "../../aserverw.h"
 #include<unordered_map>
 #include <sqlext.h>
+#include <memory>
 
 namespace SPA {
     namespace ServerSide {
