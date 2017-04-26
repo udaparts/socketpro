@@ -1248,9 +1248,12 @@ namespace SPA
         bool COdbcImpl::PushRecords(SQLHSTMT hstmt, int &res, std::wstring & errMsg) {
             assert(!m_Blob.GetSize());
             m_Blob.SetSize(0);
-            unsigned int rowset_size = DEFAULT_BIG_FIELD_CHUNK_SIZE / m_nRecordSize;
-            if (m_Blob.GetMaxSize() < DEFAULT_BIG_FIELD_CHUNK_SIZE) {
-                m_Blob.ReallocBuffer(DEFAULT_BIG_FIELD_CHUNK_SIZE);
+            unsigned int size = DEFAULT_BIG_FIELD_CHUNK_SIZE;
+            if (size < m_nRecordSize)
+                size = m_nRecordSize;
+            unsigned int rowset_size = size / m_nRecordSize;
+            if (m_Blob.GetMaxSize() < size) {
+                m_Blob.ReallocBuffer(size);
             }
             SQLRETURN retcode = SQLSetStmtAttr(hstmt, SQL_ROWSET_SIZE, (void*) rowset_size, 0);
             if (!SQL_SUCCEEDED(retcode)) {
@@ -1332,6 +1335,7 @@ namespace SPA
                 if (!SQL_SUCCEEDED(retcode)) {
                     res = SPA::Odbc::ER_ERROR;
                     GetErrMsg(SQL_HANDLE_STMT, hstmt, errMsg);
+                    SQLFreeStmt(hstmt, SQL_UNBIND);
                     return false;
                 }
             }
@@ -1424,6 +1428,7 @@ namespace SPA
                     }
                 }
                 if (q.GetSize() && !SendRows(q)) {
+                    SQLFreeStmt(hstmt, SQL_UNBIND);
                     return false;
                 }
                 if (rows < rowset_size)
@@ -1432,8 +1437,10 @@ namespace SPA
             if (!SQL_SUCCEEDED(retcode) && retcode != SQL_NO_DATA) {
                 res = SPA::Odbc::ER_ERROR;
                 GetErrMsg(SQL_HANDLE_STMT, hstmt, errMsg);
+                SQLFreeStmt(hstmt, SQL_UNBIND);
                 return false;
             }
+            retcode = SQLFreeStmt(hstmt, SQL_UNBIND);
             return true;
         }
 
