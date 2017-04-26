@@ -691,15 +691,17 @@ namespace SPA
                         retcode = SQLColAttribute(hstmt, (SQLUSMALLINT) (n + 1), SQL_DESC_PRECISION, nullptr, 0, nullptr, &displaysize);
                         assert(SQL_SUCCEEDED(retcode));
                         info.Precision = (unsigned char) displaysize;
+                        bindinfo.BufferSize = DECIMAL_STRING_BUFFER_SIZE;
                         if (decimaldigits == 0 && displaysize < 10) {
                             //Hack for Oracle as its driver doesn't support SQL_C_SBIGINT or SQL_C_UBIGINT binding
-                            if (displaysize >= 5)
+                            if (displaysize >= 5) {
                                 info.DataType = VT_I4;
-                            else {
+                                bindinfo.BufferSize = sizeof (int);
+                            } else {
                                 info.DataType = VT_I2;
+                                bindinfo.BufferSize = sizeof (short);
                             }
                         }
-                        bindinfo.BufferSize = DECIMAL_STRING_BUFFER_SIZE;
                         break;
                     case SQL_SMALLINT:
                         if (displaysize == SQL_TRUE) {
