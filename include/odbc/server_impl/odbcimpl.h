@@ -26,18 +26,14 @@ namespace SPA {
             static const unsigned int DEFAULT_OUTPUT_BUFFER_SIZE = 8 * 1024; //bytes
             static const unsigned int MAX_OUTPUT_BLOB_BUFFER_SIZE = 1024 * 1024; //bytes
             static const unsigned char MAX_DECIMAL_PRECISION = 21;
+			static const unsigned int DECIMAL_STRING_BUFFER_SIZE = 32;
+			static const unsigned int DATETIME_STRING_BUFFER_SIZE = 32;
 
-#pragma pack(push,1)
-
-            struct OdbcDateTime {
-                char dt[32];
-            };
-
-            struct OdbcNumeric {
-                //max precision = 29, max string len = 31
-                char num[32];
-            };
-#pragma pack(pop)
+			struct CBindInfo {
+				VARTYPE DataType;
+				unsigned int Offset;
+				unsigned int BufferSize;
+			};
 
             struct ODBC_CONNECTION_STRING {
 
@@ -111,6 +107,7 @@ namespace SPA {
             void CleanDBObjects();
             CDBColumnInfoArray GetColInfo(SQLHSTMT hstmt, SQLSMALLINT columns, bool meta);
             bool PushRecords(SQLHSTMT hstmt, const CDBColumnInfoArray &vColInfo, bool output, int &res, std::wstring &errMsg);
+			bool PushRecords(SQLHSTMT hstmt, int &res, std::wstring &errMsg);
             bool PushInfo(SQLHDBC hdbc);
             bool PreprocessPreparedStatement();
             bool CheckInputParameterDataTypes();
@@ -162,6 +159,9 @@ namespace SPA {
             CParameterInfoArray m_vPInfo;
             bool m_bReturn;
             SQLSMALLINT m_outputs;
+
+			std::vector<CBindInfo> m_vBindInfo;
+			unsigned int m_nRecordSize;
 
             static const wchar_t* NO_DB_OPENED_YET;
             static const wchar_t* BAD_END_TRANSTACTION_PLAN;
