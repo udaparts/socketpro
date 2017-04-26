@@ -1248,9 +1248,9 @@ namespace SPA
         bool COdbcImpl::PushRecords(SQLHSTMT hstmt, int &res, std::wstring & errMsg) {
             assert(!m_Blob.GetSize());
             m_Blob.SetSize(0);
-            unsigned int rowset_size = (2 * DEFAULT_BIG_FIELD_CHUNK_SIZE) / m_nRecordSize;
-            if (m_Blob.GetMaxSize() < 2 * DEFAULT_BIG_FIELD_CHUNK_SIZE) {
-                m_Blob.ReallocBuffer(2 * DEFAULT_BIG_FIELD_CHUNK_SIZE);
+            unsigned int rowset_size = DEFAULT_BIG_FIELD_CHUNK_SIZE / m_nRecordSize;
+            if (m_Blob.GetMaxSize() < DEFAULT_BIG_FIELD_CHUNK_SIZE) {
+                m_Blob.ReallocBuffer(DEFAULT_BIG_FIELD_CHUNK_SIZE);
             }
             SQLRETURN retcode = SQLSetStmtAttr(hstmt, SQL_ROWSET_SIZE, (void*) rowset_size, 0);
             if (!SQL_SUCCEEDED(retcode)) {
