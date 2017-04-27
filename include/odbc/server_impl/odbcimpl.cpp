@@ -281,7 +281,7 @@ namespace SPA
                 errMsg = ODBC_ENVIRONMENT_NOT_INITIALIZED;
                 return;
             } else {
-                res = 0;
+                res = SQL_SUCCESS;
             }
             do {
                 std::wstring db(strConnection);
@@ -351,7 +351,7 @@ namespace SPA
 
         void COdbcImpl::CloseDb(int &res, std::wstring & errMsg) {
             CleanDBObjects();
-            res = 0;
+            res = SQL_SUCCESS;
         }
 
         void COdbcImpl::BeginTrans(int isolation, const std::wstring &dbConn, unsigned int flags, int &res, std::wstring &errMsg, int &ms) {
@@ -395,7 +395,7 @@ namespace SPA
                 res = SPA::Odbc::ER_ERROR;
                 GetErrMsg(SQL_HANDLE_DBC, m_pOdbc.get(), errMsg);
             } else {
-                res = 0;
+                res = SQL_SUCCESS;
                 m_fails = 0;
                 m_oks = 0;
                 m_ti = (tagTransactionIsolation) isolation;
@@ -1837,7 +1837,7 @@ namespace SPA
                 fail_ok <<= 32;
                 return;
             } else {
-                res = 0;
+                res = SQL_SUCCESS;
             }
             UINT64 fails = m_fails;
             UINT64 oks = m_oks;
@@ -1908,7 +1908,7 @@ namespace SPA
                 fail_ok <<= 32;
                 return;
             } else {
-                res = 0;
+                res = SQL_SUCCESS;
             }
             UINT64 fails = m_fails;
             UINT64 oks = m_oks;
@@ -1979,7 +1979,7 @@ namespace SPA
                 fail_ok <<= 32;
                 return;
             } else {
-                res = 0;
+                res = SQL_SUCCESS;
             }
             UINT64 fails = m_fails;
             UINT64 oks = m_oks;
@@ -2050,7 +2050,7 @@ namespace SPA
                 fail_ok <<= 32;
                 return;
             } else {
-                res = 0;
+                res = SQL_SUCCESS;
             }
             UINT64 fails = m_fails;
             UINT64 oks = m_oks;
@@ -2121,7 +2121,7 @@ namespace SPA
                 fail_ok <<= 32;
                 return;
             } else {
-                res = 0;
+                res = SQL_SUCCESS;
             }
             UINT64 fails = m_fails;
             UINT64 oks = m_oks;
@@ -2190,7 +2190,7 @@ namespace SPA
                 fail_ok <<= 32;
                 return;
             } else {
-                res = 0;
+                res = SQL_SUCCESS;
             }
             UINT64 fails = m_fails;
             UINT64 oks = m_oks;
@@ -2259,7 +2259,7 @@ namespace SPA
                 fail_ok <<= 32;
                 return;
             } else {
-                res = 0;
+                res = SQL_SUCCESS;
             }
             UINT64 fails = m_fails;
             UINT64 oks = m_oks;
@@ -2328,7 +2328,7 @@ namespace SPA
                 fail_ok <<= 32;
                 return;
             } else {
-                res = 0;
+                res = SQL_SUCCESS;
             }
             UINT64 fails = m_fails;
             UINT64 oks = m_oks;
@@ -2397,7 +2397,7 @@ namespace SPA
                 fail_ok <<= 32;
                 return;
             } else {
-                res = 0;
+                res = SQL_SUCCESS;
             }
             UINT64 fails = m_fails;
             UINT64 oks = m_oks;
@@ -2466,7 +2466,7 @@ namespace SPA
                 fail_ok <<= 32;
                 return;
             } else {
-                res = 0;
+                res = SQL_SUCCESS;
             }
             UINT64 fails = m_fails;
             UINT64 oks = m_oks;
@@ -2543,7 +2543,7 @@ namespace SPA
                 fail_ok <<= 32;
                 return;
             } else {
-                res = 0;
+                res = SQL_SUCCESS;
             }
             UINT64 fails = m_fails;
             UINT64 oks = m_oks;
@@ -2637,7 +2637,7 @@ namespace SPA
                 errMsg = NO_DB_OPENED_YET;
                 return;
             } else {
-                res = 0;
+                res = SQL_SUCCESS;
             }
             m_parameters = 0;
             m_outputs = 0;
@@ -3587,7 +3587,7 @@ namespace SPA
                         break;
                     }
                 }
-                res = 0;
+                res = SQL_SUCCESS;
                 if (m_parameters) {
                     bool output_sent = false;
                     unsigned int rows = (unsigned int) (m_vParam.size() / (unsigned short) m_parameters);
