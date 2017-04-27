@@ -106,8 +106,7 @@ namespace SPA {
         private:
             void CleanDBObjects();
             CDBColumnInfoArray GetColInfo(SQLHSTMT hstmt, SQLSMALLINT columns, bool meta);
-            bool PushRecords(SQLHSTMT hstmt, const CDBColumnInfoArray &vColInfo, bool output, int &res, std::wstring &errMsg);
-            bool PushRecords(SQLHSTMT hstmt, int &res, std::wstring &errMsg);
+            bool PushRecords(SQLHSTMT hstmt, bool output, int &res, std::wstring &errMsg);
             bool PushInfo(SQLHDBC hdbc);
             bool PreprocessPreparedStatement();
             bool CheckInputParameterDataTypes();
@@ -115,7 +114,12 @@ namespace SPA {
             bool BindParameters(unsigned int r, SQLLEN *pLenInd);
             unsigned int ComputeOutputMaxSize();
             bool PushOutputParameters(unsigned int r, UINT64 index);
+#if 0
             void SaveSqlServerVariant(const unsigned char *buffer, unsigned int bytes, SQLSMALLINT c_type, CUQueue &q);
+            static unsigned int ToCTime(const TIMESTAMP_STRUCT &d, std::tm &tm);
+            static unsigned int ToCTime(const TIME_STRUCT &d, std::tm &tm);
+            static unsigned int ToCTime(const DATE_STRUCT &d, std::tm &tm);
+#endif
             void ResetMemories();
             static void ConvertDecimalAString(CDBVariant &vt);
             static void SetUShortInfo(SQLHDBC hdbc, SQLUSMALLINT infoType, std::unordered_map<SQLUSMALLINT, CComVariant> &mapInfo);
@@ -124,9 +128,6 @@ namespace SPA {
             static void SetUInt64Info(SQLHDBC hdbc, SQLUSMALLINT infoType, std::unordered_map<SQLUSMALLINT, CComVariant> &mapInfo);
             static void SetIntInfo(SQLHDBC hdbc, SQLUSMALLINT infoType, std::unordered_map<SQLUSMALLINT, CComVariant> &mapInfo);
             static void GetErrMsg(SQLSMALLINT HandleType, SQLHANDLE Handle, std::wstring &errMsg);
-            static unsigned int ToCTime(const TIMESTAMP_STRUCT &d, std::tm &tm);
-            static unsigned int ToCTime(const TIME_STRUCT &d, std::tm &tm);
-            static unsigned int ToCTime(const DATE_STRUCT &d, std::tm &tm);
             static void ToDecimal(const SQL_NUMERIC_STRUCT &num, DECIMAL &dec);
 
         protected:
@@ -162,6 +163,7 @@ namespace SPA {
 
             std::vector<CBindInfo> m_vBindInfo;
             unsigned int m_nRecordSize;
+            bool m_bHasBlob;
 
             static const wchar_t* NO_DB_OPENED_YET;
             static const wchar_t* BAD_END_TRANSTACTION_PLAN;
