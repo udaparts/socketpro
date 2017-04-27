@@ -22,7 +22,7 @@ with CSocketPool(COdbc) as spOdbc:
         print('res = ' + str(res) + ', errMsg: ' + errMsg)
 
     def cbExecute(odbc, res, errMsg, affected, fail_ok, lastRowId):
-        print('affected = ' + str(affected) + ', fails = ' + str(fail_ok >> 32) + ', oks = ' + str(fail_ok & 0xffffffff) + ', res = ' + str(res) + ', errMsg: ' + errMsg + ', last insert id = ' + str(lastRowId))
+        print('affected = ' + str(affected) + ', fails = ' + str(fail_ok >> 32) + ', oks = ' + str(fail_ok & 0xffffffff) + ', res = ' + str(res) + ', errMsg: ' + errMsg)
 
     def TestCreateTables():
         ok = odbc.ExecuteSql('CREATE DATABASE IF NOT EXISTS mysqldb character set utf8 collate utf8_general_ci;USE mysqldb', cbExecute)

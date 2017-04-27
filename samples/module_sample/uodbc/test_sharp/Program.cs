@@ -14,7 +14,7 @@ class Program
 
     static COdbc.DExecuteResult er = (handler, res, errMsg, affected, fail_ok, id) =>
     {
-        Console.WriteLine("affected = {0}, fails = {1}, oks = {2}, res = {3}, errMsg: {4}, last insert id = {5}", affected, (uint)(fail_ok >> 32), (uint)fail_ok, res, errMsg, id);
+        Console.WriteLine("affected = {0}, fails = {1}, oks = {2}, res = {3}, errMsg: {4}", affected, (uint)(fail_ok >> 32), (uint)fail_ok, res, errMsg);
     };
 
     static void Main(string[] args)

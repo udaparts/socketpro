@@ -2532,7 +2532,6 @@ namespace SPA
         }
 
         void COdbcImpl::Execute(const std::wstring& wsql, bool rowset, bool meta, bool lastInsertId, UINT64 index, INT64 &affected, int &res, std::wstring &errMsg, CDBVariant &vtId, UINT64 & fail_ok) {
-            vtId = (int) - 1;
             affected = 0;
             fail_ok = 0;
             ResetMemories();
@@ -3550,7 +3549,6 @@ namespace SPA
         }
 
         void COdbcImpl::ExecuteParameters(bool rowset, bool meta, bool lastInsertId, UINT64 index, INT64 &affected, int &res, std::wstring &errMsg, CDBVariant &vtId, UINT64 & fail_ok) {
-            vtId = (int) - 1;
             fail_ok = 0;
             affected = 0;
             UINT64 fails = m_fails;

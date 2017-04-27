@@ -180,7 +180,7 @@ class COdbc(CAsyncDBHandler):
                 if len(self._mapRowset) == 0:
                     self._nCall = 0
             if not t is None and not t.second is None:
-                t.second(self, res, errMsg, 0, fail_ok, -1)
+                t.second(self, res, errMsg, 0, fail_ok, None)
         else:
             super(COdbc, self).OnResultReturned(reqId, mc)
 

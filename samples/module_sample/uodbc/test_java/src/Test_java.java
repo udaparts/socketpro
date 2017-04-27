@@ -117,7 +117,7 @@ public class Test_java {
         COdbc.DExecuteResult er = new COdbc.DExecuteResult() {
             @Override
             public void invoke(CAsyncDBHandler dbHandler, int res, String errMsg, long affected, long fail_ok, Object lastRowId) {
-                System.out.format("affected = %d, fails = %d, oks = %d, res = %d, errMsg: %s, last insert id = %s", affected, (int) (fail_ok >> 32), (int) fail_ok, res, errMsg, lastRowId.toString());
+                System.out.format("affected = %d, fails = %d, oks = %d, res = %d, errMsg: %s", affected, (int) (fail_ok >> 32), (int) fail_ok, res, errMsg);
                 System.out.println();
             }
         };

@@ -117,7 +117,7 @@ namespace SocketProAdapter
                             m_nCall = 0;
                     }
                     if (handler != null)
-                        handler(this, res, errMsg, 0, fail_ok, -1);
+                        handler(this, res, errMsg, 0, fail_ok, null);
                 }))
                 {
                     lock (m_csDB)
@@ -165,7 +165,7 @@ namespace SocketProAdapter
                             m_nCall = 0;
                     }
                     if (handler != null)
-                        handler(this, res, errMsg, 0, fail_ok, -1);
+                        handler(this, res, errMsg, 0, fail_ok, null);
                 }))
                 {
                     lock (m_csDB)
@@ -203,7 +203,7 @@ namespace SocketProAdapter
                             m_nCall = 0;
                     }
                     if (handler != null)
-                        handler(this, res, errMsg, 0, fail_ok, -1);
+                        handler(this, res, errMsg, 0, fail_ok, null);
                 }))
                 {
                     lock (m_csDB)
@@ -241,7 +241,7 @@ namespace SocketProAdapter
                             m_nCall = 0;
                     }
                     if (handler != null)
-                        handler(this, res, errMsg, 0, fail_ok, -1);
+                        handler(this, res, errMsg, 0, fail_ok, null);
                 }))
                 {
                     lock (m_csDB)
