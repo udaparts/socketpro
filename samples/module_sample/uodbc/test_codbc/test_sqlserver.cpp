@@ -52,7 +52,7 @@ int main(int argc, char* argv[]) {
         std::wcout << errMsg;
         if (!res) {
             std::cout << ", last insert id = ";
-            std::cout << vtId.llVal;
+            std::cout << vtId.lVal;
         }
         std::cout << std::endl;
     };
@@ -255,7 +255,7 @@ void InsertBLOBByPreparedStatement(std::shared_ptr<CMyHandler> pOdbc) {
         std::wcout << errMsg;
         if (!res) {
             std::cout << ", last insert id = ";
-                    std::cout << vtId.llVal;
+                    std::cout << vtId.lVal;
         }
         std::cout << std::endl;
     });
@@ -292,7 +292,7 @@ void TestPreparedStatements(std::shared_ptr<CMyHandler> pOdbc) {
         std::wcout << errMsg;
         if (!res) {
             std::cout << ", last insert id = ";
-                    std::cout << vtId.llVal;
+                    std::cout << vtId.lVal;
         }
         std::cout << std::endl;
     });
@@ -353,7 +353,7 @@ void TestPreparedStatements_2(std::shared_ptr<CMyHandler> pOdbc) {
         std::wcout << errMsg;
         if (!res) {
             std::cout << ", last insert id = ";
-                    std::cout << vtId.llVal;
+                    std::cout << vtId.lVal;
         }
         std::cout << std::endl;
     });
@@ -477,7 +477,7 @@ void TestStoredProcedure_2(std::shared_ptr<CMyHandler> pOdbc, CRowsetArray&ra, C
                 std::wcout << errMsg;
         if (!res) {
             std::cout << ", last insert id = ";
-                    std::cout << vtId.llVal;
+                    std::cout << vtId.lVal;
         }
         std::cout << std::endl;
     }, r, rh);
@@ -530,7 +530,7 @@ void TestStoredProcedure(std::shared_ptr<CMyHandler> pOdbc, CRowsetArray&ra, CDB
                 std::wcout << errMsg;
         if (!res) {
             std::cout << ", last insert id = ";
-                    std::cout << vtId.llVal;
+                    std::cout << vtId.lVal;
         }
         std::cout << std::endl;
     }, r, rh);
