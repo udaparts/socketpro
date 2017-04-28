@@ -144,7 +144,7 @@ namespace SPA
         COdbcImpl::COdbcImpl()
         : m_oks(0), m_fails(0), m_ti(tiUnspecified), m_global(true),
         m_Blob(*m_sb), m_parameters(0), m_bCall(false), m_bReturn(false),
-        m_outputs(0), m_nRecordSize(0), m_bHasBlob(false) {
+        m_outputs(0), m_nRecordSize(0) {
 #ifdef WIN32_64
             m_UQueue.TimeEx(true);
 #endif
@@ -500,6 +500,7 @@ namespace SPA
         }
 
         bool COdbcImpl::SendUText(SQLHSTMT hstmt, SQLUSMALLINT index, CUQueue &qTemp, CUQueue &q, bool & blob) {
+            assert((qTemp.GetMaxSize() % sizeof (SQLWCHAR)) == 0);
             qTemp.SetSize(0);
             SQLLEN len_or_null = 0;
             SQLRETURN retcode = SQLGetData(hstmt, index, SQL_C_WCHAR, (SQLPOINTER) qTemp.GetBuffer(), qTemp.GetMaxSize(), &len_or_null);
@@ -508,7 +509,7 @@ namespace SPA
                 q << (VARTYPE) VT_NULL;
                 blob = false;
                 return true;
-            } else if ((unsigned int) len_or_null < qTemp.GetMaxSize()) {
+            } else if ((unsigned int) len_or_null + sizeof (SQLWCHAR) <= qTemp.GetMaxSize()) {
                 q << (VARTYPE) VT_BSTR << (unsigned int) len_or_null;
                 q.Push(qTemp.GetBuffer(), (unsigned int) len_or_null);
                 blob = false;
@@ -587,10 +588,10 @@ namespace SPA
         CDBColumnInfoArray COdbcImpl::GetColInfo(SQLHSTMT hstmt, SQLSMALLINT columns, bool meta) {
             bool primary_key_set = false;
             m_vBindInfo.clear();
+            bool hasBlob = false;
             SQLCHAR colname[128 + 1] =
             {0}; // column name
             m_nRecordSize = 0;
-            m_bHasBlob = false;
             SQLSMALLINT colnamelen = 0; // length of column name
             SQLSMALLINT nullable = 0; // whether column can have NULL value
             SQLULEN collen = 0; // column lengths
@@ -784,7 +785,7 @@ namespace SPA
                     case SQL_SS_XML: //SQL Server
                         info.DataType = SPA::VT_XML;
                         info.ColumnSize = (~0);
-                        bindinfo.BufferSize = (~0);
+                        bindinfo.BufferSize = 0;
                         break;
                     case SQL_SS_VARIANT:
                         info.DataType = VT_VARIANT;
@@ -799,8 +800,7 @@ namespace SPA
                 }
 
                 if (info.ColumnSize > DEFAULT_OUTPUT_BUFFER_SIZE) {
-                    m_bHasBlob = true;
-                    bindinfo.BufferSize = 0;
+                    hasBlob = true;
                 }
 
                 retcode = SQLColAttribute(hstmt, (SQLUSMALLINT) (n + 1), SQL_DESC_AUTO_UNIQUE_VALUE, nullptr, 0, nullptr, &displaysize);
@@ -819,14 +819,50 @@ namespace SPA
                     info.Flags |= CDBColumnInfo::FLAG_NOT_WRITABLE;
                 }
 
-                bindinfo.DataType = info.DataType;
-                bindinfo.Offset = m_nRecordSize;
-                if (bindinfo.BufferSize) {
+                if (!hasBlob) {
+                    bindinfo.DataType = info.DataType;
+                    bindinfo.Offset = m_nRecordSize;
                     m_nRecordSize += (bindinfo.BufferSize + sizeof (SQLULEN));
+                    m_vBindInfo.push_back(bindinfo);
                 }
-                m_vBindInfo.push_back(bindinfo);
+            }
+
+            if (hasBlob) {
+                m_vBindInfo.clear();
+                m_nRecordSize = 0;
             }
             return vCols;
+        }
+
+        unsigned int COdbcImpl::ToCTime(const TIMESTAMP_STRUCT &d, std::tm & tm) {
+            tm.tm_isdst = 0;
+            tm.tm_wday = 0;
+            tm.tm_yday = 0;
+            tm.tm_year = d.year - 1900;
+            tm.tm_mon = d.month - 1;
+            tm.tm_mday = d.day;
+            tm.tm_hour = d.hour;
+            tm.tm_min = d.minute;
+            tm.tm_sec = d.second;
+            return (unsigned int) (d.fraction / 1000);
+        }
+
+        unsigned int COdbcImpl::ToCTime(const TIME_STRUCT &d, std::tm & tm) {
+            //start from 01/01/1900
+            memset(&tm, 0, sizeof (tm));
+            tm.tm_mday = 0;
+            tm.tm_hour = d.hour;
+            tm.tm_min = d.minute;
+            tm.tm_sec = d.second;
+            return 0;
+        }
+
+        unsigned int COdbcImpl::ToCTime(const DATE_STRUCT &d, std::tm & tm) {
+            memset(&tm, 0, sizeof (tm));
+            tm.tm_year = d.year - 1900;
+            tm.tm_mon = d.month - 1;
+            tm.tm_mday = d.day;
+            return 0;
         }
 
         void COdbcImpl::SetStringInfo(SQLHDBC hdbc, SQLUSMALLINT infoType, std::unordered_map<SQLUSMALLINT, CComVariant> &mapInfo) {
@@ -1108,37 +1144,6 @@ namespace SPA
 
 #if 0
 
-        unsigned int COdbcImpl::ToCTime(const TIMESTAMP_STRUCT &d, std::tm & tm) {
-            tm.tm_isdst = 0;
-            tm.tm_wday = 0;
-            tm.tm_yday = 0;
-            tm.tm_year = d.year - 1900;
-            tm.tm_mon = d.month - 1;
-            tm.tm_mday = d.day;
-            tm.tm_hour = d.hour;
-            tm.tm_min = d.minute;
-            tm.tm_sec = d.second;
-            return (unsigned int) (d.fraction / 1000);
-        }
-
-        unsigned int COdbcImpl::ToCTime(const TIME_STRUCT &d, std::tm & tm) {
-            //start from 01/01/1900
-            memset(&tm, 0, sizeof (tm));
-            tm.tm_mday = 0;
-            tm.tm_hour = d.hour;
-            tm.tm_min = d.minute;
-            tm.tm_sec = d.second;
-            return 0;
-        }
-
-        unsigned int COdbcImpl::ToCTime(const DATE_STRUCT &d, std::tm & tm) {
-            memset(&tm, 0, sizeof (tm));
-            tm.tm_year = d.year - 1900;
-            tm.tm_mon = d.month - 1;
-            tm.tm_mday = d.day;
-            return 0;
-        }
-
         void COdbcImpl::SaveSqlServerVariant(const unsigned char *buffer, unsigned int bytes, SQLSMALLINT c_type, CUQueue & q) {
             switch (c_type) {
                 case SQL_C_WCHAR:
@@ -1246,20 +1251,16 @@ namespace SPA
         }
 #endif
 
-        bool COdbcImpl::PushRecords(SQLHSTMT hstmt, bool output, int &res, std::wstring & errMsg) {
+        bool COdbcImpl::PushRecords(SQLHSTMT hstmt, int &res, std::wstring & errMsg) {
             assert(!m_Blob.GetSize());
             m_Blob.SetSize(0);
-            if (!m_nRecordSize)
-                m_nRecordSize = 16;
             unsigned int size = DEFAULT_BIG_FIELD_CHUNK_SIZE;
             if (size < m_nRecordSize)
                 size = m_nRecordSize;
             unsigned int rowset_size = size / m_nRecordSize;
-            if (m_bHasBlob)
-                rowset_size = 1;
-            size = rowset_size * m_nRecordSize;
-            if (m_Blob.GetMaxSize() < size)
+            if (m_Blob.GetMaxSize() < size) {
                 m_Blob.ReallocBuffer(size);
+            }
             SQLRETURN retcode = SQLSetStmtAttr(hstmt, SQL_ROWSET_SIZE, (void*) rowset_size, 0);
             if (!SQL_SUCCEEDED(retcode)) {
                 res = SPA::Odbc::ER_ERROR;
@@ -1282,14 +1283,10 @@ namespace SPA
                     case VT_BSTR:
                     case SPA::VT_XML:
                     case VT_VARIANT:
-                        if (it->BufferSize) {
-                            retcode = SQLBindCol(hstmt, col, SQL_C_WCHAR, p, it->BufferSize, ind);
-                        }
+                        retcode = SQLBindCol(hstmt, col, SQL_C_WCHAR, p, it->BufferSize, ind);
                         break;
                     case (VT_I1 | VT_ARRAY):
-                        if (it->BufferSize) {
-                            retcode = SQLBindCol(hstmt, col, SQL_C_CHAR, p, it->BufferSize, ind);
-                        }
+                        retcode = SQLBindCol(hstmt, col, SQL_C_CHAR, p, it->BufferSize, ind);
                         break;
                     case VT_DATE:
                         retcode = SQLBindCol(hstmt, col, SQL_C_CHAR, p, it->BufferSize, ind);
@@ -1334,9 +1331,7 @@ namespace SPA
                         retcode = SQLBindCol(hstmt, col, SQL_C_GUID, p, it->BufferSize, ind);
                         break;
                     case (VT_UI1 | VT_ARRAY):
-                        if (it->BufferSize) {
-                            retcode = SQLBindCol(hstmt, col, SQL_C_BINARY, p, it->BufferSize, ind);
-                        }
+                        retcode = SQLBindCol(hstmt, col, SQL_C_BINARY, p, it->BufferSize, ind);
                         break;
                     default:
                         assert(false);
@@ -1355,12 +1350,10 @@ namespace SPA
             if (m_UQueue.GetMaxSize() < rowset_size * sizeof (SQLUSMALLINT)) {
                 m_UQueue.ReallocBuffer(rowset_size * sizeof (SQLUSMALLINT));
             }
-            CScopeUQueue sbTemp(MY_OPERATION_SYSTEM, SPA::IsBigEndian(), DEFAULT_BIG_FIELD_CHUNK_SIZE);
             SQLUSMALLINT *pRowStatus = (SQLUSMALLINT *) m_UQueue.GetBuffer();
             CScopeUQueue sb;
             CUQueue &q = *sb;
             while (retcode = SQLExtendedFetch(hstmt, SQL_FETCH_NEXT, 0, &rows, pRowStatus) == SQL_SUCCESS) {
-                bool blob = false;
                 for (SQLULEN r = 0; r < rows; ++r) {
                     unsigned char *beginning = start + r * m_nRecordSize;
                     for (SQLUSMALLINT c = 0; c < cols; ++c) {
@@ -1373,33 +1366,31 @@ namespace SPA
                         unsigned char *header = beginning + info.Offset;
                         switch (info.DataType) {
                             case VT_BSTR:
+                            {
+                                unsigned int len = (unsigned int) (*ind);
+                                q << info.DataType;
+                                const SQLWCHAR *s = (const SQLWCHAR*) header;
+                                q << len;
+                                q.Push((const unsigned char*) s, len);
+                            }
+                                break;
                             case VT_VARIANT:
                             case SPA::VT_XML:
-                                if (info.BufferSize) {
-                                    unsigned int len = (unsigned int) (*ind);
-                                    q << (VARTYPE) VT_BSTR;
-                                    const SQLWCHAR *s = (const SQLWCHAR*) header;
-                                    q << len;
-                                    q.Push((const unsigned char*) s, len);
-                                } else {
-                                    if (!SendUText(hstmt, c + 1, *sbTemp, q, blob)) {
-                                        SQLFreeStmt(hstmt, SQL_UNBIND);
-                                        return false;
-                                    }
-                                }
+                            {
+                                unsigned int len = (unsigned int) (*ind);
+                                q << (VARTYPE) VT_BSTR;
+                                const SQLWCHAR *s = (const SQLWCHAR*) header;
+                                q << len;
+                                q.Push((const unsigned char*) s, len);
+                            }
                                 break;
                             case (VT_UI1 | VT_ARRAY):
-                                if (info.BufferSize) {
-                                    const unsigned char *s = (const unsigned char*) header;
-                                    unsigned int len = (unsigned int) (*ind);
-                                    q << len;
-                                    q.Push(s, len);
-                                } else {
-                                    if (!SendBlob(hstmt, c + 1, VT_UI1 | VT_ARRAY, *sbTemp, q, blob)) {
-                                        SQLFreeStmt(hstmt, SQL_UNBIND);
-                                        return false;
-                                    }
-                                }
+                            {
+                                const unsigned char *s = (const unsigned char*) header;
+                                unsigned int len = (unsigned int) (*ind);
+                                q << len;
+                                q.Push(s, len);
+                            }
                                 break;
                             case VT_BOOL:
                             {
@@ -1410,18 +1401,13 @@ namespace SPA
                             }
                                 break;
                             case (VT_I1 | VT_ARRAY):
-                                if (info.BufferSize) {
-                                    q << info.DataType;
-                                    const char *s = (const char*) header;
-                                    unsigned int len = (unsigned int) (*ind);
-                                    q << len;
-                                    q.Push((const unsigned char*) s, len);
-                                } else {
-                                    if (!SendBlob(hstmt, c + 1, VT_I1 | VT_ARRAY, *sbTemp, q, blob)) {
-                                        SQLFreeStmt(hstmt, SQL_UNBIND);
-                                        return false;
-                                    }
-                                }
+                            {
+                                q << info.DataType;
+                                const char *s = (const char*) header;
+                                unsigned int len = (unsigned int) (*ind);
+                                q << len;
+                                q.Push((const unsigned char*) s, len);
+                            }
                                 break;
                             case VT_DECIMAL:
                             {
@@ -1461,14 +1447,386 @@ namespace SPA
                 return false;
             }
             retcode = SQLFreeStmt(hstmt, SQL_UNBIND);
-            if (output) {
-                //tell output parameter data
-                unsigned int res = SendResult(idOutputParameter, q.GetBuffer(), q.GetSize());
-                if (res == REQUEST_CANCELED || res == SOCKET_NOT_FOUND) {
+            return true;
+        }
+
+        bool COdbcImpl::PushRecords(SQLHSTMT hstmt, const CDBColumnInfoArray &vColInfo, bool output, int &res, std::wstring & errMsg) {
+            SQLRETURN retcode;
+            CScopeUQueue sbTemp(MY_OPERATION_SYSTEM, SPA::IsBigEndian(), DEFAULT_BIG_FIELD_CHUNK_SIZE);
+            size_t fields = vColInfo.size();
+            CScopeUQueue sb;
+            CUQueue &q = *sb;
+            while (true) {
+                retcode = SQLFetch(hstmt);
+                if (retcode == SQL_NO_DATA) {
+                    break;
+                }
+                bool blob = false;
+                if (SQL_SUCCEEDED(retcode)) {
+                    for (size_t i = 0; i < fields; ++i) {
+                        SQLLEN len_or_null = 0;
+                        const CDBColumnInfo &colInfo = vColInfo[i];
+                        VARTYPE vt = colInfo.DataType;
+                        switch (vt) {
+                            case VT_BOOL:
+                            {
+                                unsigned char boolean = 0;
+                                retcode = SQLGetData(hstmt, (SQLUSMALLINT) (i + 1), SQL_C_BIT, &boolean, sizeof (boolean), &len_or_null);
+                                if (len_or_null == SQL_NULL_DATA) {
+                                    q << (VARTYPE) VT_NULL;
+                                } else {
+                                    VARIANT_BOOL ok = boolean ? VARIANT_TRUE : VARIANT_FALSE;
+                                    q << vt << ok;
+                                }
+                            }
+                                break;
+                            case SPA::VT_XML:
+                            case VT_BSTR:
+                                if (vt == VT_XML) {
+                                    vt = VT_BSTR;
+                                }
+                                if (colInfo.ColumnSize >= DEFAULT_BIG_FIELD_CHUNK_SIZE) {
+                                    if (!SendUText(hstmt, (SQLUSMALLINT) (i + 1), *sbTemp, q, blob)) {
+                                        return false;
+                                    }
+                                } else {
+                                    unsigned int max = (colInfo.ColumnSize * sizeof (SQLWCHAR));
+                                    if (q.GetTailSize() < sizeof (unsigned int) + sizeof (VARTYPE) + max + sizeof (SQLWCHAR)) {
+                                        q.ReallocBuffer(q.GetMaxSize() + max + sizeof (unsigned int) + sizeof (VARTYPE) + sizeof (SQLWCHAR));
+                                    }
+                                    VARTYPE *pvt = (VARTYPE *) q.GetBuffer(q.GetSize());
+                                    unsigned int *plen = (unsigned int*) (pvt + 1);
+                                    unsigned char *pos = (unsigned char*) (plen + 1);
+                                    retcode = SQLGetData(hstmt, (SQLUSMALLINT) (i + 1), SQL_C_WCHAR, pos, q.GetTailSize() - sizeof (unsigned int) - sizeof (VARTYPE), &len_or_null);
+                                    if (SQL_NULL_DATA == len_or_null) {
+                                        q << (VARTYPE) VT_NULL;
+                                    } else {
+                                        *pvt = vt;
+                                        *plen = (unsigned int) len_or_null;
+                                        q.SetSize(q.GetSize() + *plen + sizeof (unsigned int) + sizeof (VARTYPE));
+                                    }
+                                }
+                                break;
+                            case VT_DATE:
+                                switch ((SQLSMALLINT) colInfo.ColumnSize) {
+                                    case SQL_TYPE_DATE:
+                                    {
+                                        DATE_STRUCT d;
+                                        retcode = SQLGetData(hstmt, (SQLUSMALLINT) (i + 1), SQL_C_TYPE_DATE, &d, sizeof (d), &len_or_null);
+                                        if (len_or_null == SQL_NULL_DATA) {
+                                            q << (VARTYPE) VT_NULL;
+                                        } else {
+                                            q << vt;
+                                            std::tm st;
+                                            unsigned int us = ToCTime(d, st);
+                                            SPA::UDateTime dt(st, us);
+                                            q << dt.time;
+                                        }
+                                    }
+                                        break;
+                                    case SQL_TYPE_TIME:
+                                    {
+                                        TIME_STRUCT d;
+                                        retcode = SQLGetData(hstmt, (SQLUSMALLINT) (i + 1), SQL_C_TYPE_TIME, &d, sizeof (d), &len_or_null);
+                                        if (len_or_null == SQL_NULL_DATA) {
+                                            q << (VARTYPE) VT_NULL;
+                                        } else {
+                                            q << vt;
+                                            std::tm st;
+                                            unsigned int us = ToCTime(d, st);
+                                            SPA::UDateTime dt(st, us);
+                                            q << dt.time;
+                                        }
+                                    }
+                                        break;
+                                    case SQL_TYPE_TIMESTAMP:
+                                    {
+                                        TIMESTAMP_STRUCT d;
+                                        retcode = SQLGetData(hstmt, (SQLUSMALLINT) (i + 1), SQL_C_TYPE_TIMESTAMP, &d, sizeof (d), &len_or_null);
+                                        if (len_or_null == SQL_NULL_DATA) {
+                                            q << (VARTYPE) VT_NULL;
+                                        } else {
+                                            q << vt;
+                                            std::tm st;
+                                            unsigned int us = ToCTime(d, st);
+                                            SPA::UDateTime dt(st, us);
+                                            q << dt.time;
+                                        }
+                                    }
+                                        break;
+                                    case SQL_INTERVAL_MONTH:
+                                        break;
+                                    case SQL_INTERVAL_YEAR:
+                                        break;
+                                    case SQL_INTERVAL_YEAR_TO_MONTH:
+                                        break;
+                                    case SQL_INTERVAL_DAY:
+                                        break;
+                                    case SQL_INTERVAL_HOUR:
+                                        break;
+                                    case SQL_INTERVAL_MINUTE:
+                                        break;
+                                    case SQL_INTERVAL_SECOND:
+                                        break;
+                                    case SQL_INTERVAL_DAY_TO_HOUR:
+                                        break;
+                                    case SQL_INTERVAL_DAY_TO_MINUTE:
+                                        break;
+                                    case SQL_INTERVAL_DAY_TO_SECOND:
+                                        break;
+                                    case SQL_INTERVAL_HOUR_TO_MINUTE:
+                                        break;
+                                    case SQL_INTERVAL_HOUR_TO_SECOND:
+                                        break;
+                                    case SQL_INTERVAL_MINUTE_TO_SECOND:
+                                        break;
+                                    default:
+                                        assert(false); //shouldn't come here
+                                        break;
+                                }
+                                break;
+                            case VT_I1:
+                            {
+                                char d;
+                                retcode = SQLGetData(hstmt, (SQLUSMALLINT) (i + 1), SQL_C_TINYINT, &d, sizeof (d), &len_or_null);
+                                if (len_or_null == SQL_NULL_DATA) {
+                                    q << (VARTYPE) VT_NULL;
+                                } else {
+                                    q << vt;
+                                    q.Push((const unsigned char*) &d, sizeof (d));
+                                }
+                            }
+                                break;
+                            case VT_UI1:
+                            {
+                                unsigned char d;
+                                retcode = SQLGetData(hstmt, (SQLUSMALLINT) (i + 1), SQL_C_UTINYINT, &d, sizeof (d), &len_or_null);
+                                if (len_or_null == SQL_NULL_DATA) {
+                                    q << (VARTYPE) VT_NULL;
+                                } else {
+                                    q << vt;
+                                    q.Push((const unsigned char*) &d, sizeof (d));
+                                }
+                            }
+                                break;
+                            case VT_I2:
+                            {
+                                short d;
+                                retcode = SQLGetData(hstmt, (SQLUSMALLINT) (i + 1), SQL_C_SHORT, &d, sizeof (d), &len_or_null);
+                                if (len_or_null == SQL_NULL_DATA) {
+                                    q << (VARTYPE) VT_NULL;
+                                } else {
+                                    q << vt << d;
+                                }
+                            }
+                                break;
+                            case VT_UI2:
+                            {
+                                unsigned short d;
+                                retcode = SQLGetData(hstmt, (SQLUSMALLINT) (i + 1), SQL_C_USHORT, &d, sizeof (d), &len_or_null);
+                                if (len_or_null == SQL_NULL_DATA) {
+                                    q << (VARTYPE) VT_NULL;
+                                } else {
+                                    q << vt << d;
+                                }
+                            }
+                                break;
+                            case VT_I4:
+                            {
+                                int d;
+                                retcode = SQLGetData(hstmt, (SQLUSMALLINT) (i + 1), SQL_C_LONG, &d, sizeof (d), &len_or_null);
+                                if (len_or_null == SQL_NULL_DATA) {
+                                    q << (VARTYPE) VT_NULL;
+                                } else {
+                                    q << vt << d;
+                                }
+                            }
+                                break;
+                            case VT_UI4:
+                            {
+                                unsigned int d;
+                                retcode = SQLGetData(hstmt, (SQLUSMALLINT) (i + 1), SQL_C_ULONG, &d, sizeof (d), &len_or_null);
+                                if (len_or_null == SQL_NULL_DATA) {
+                                    q << (VARTYPE) VT_NULL;
+                                } else {
+                                    q << vt << d;
+                                }
+                            }
+                                break;
+                            case VT_R4:
+                            {
+                                float d;
+                                retcode = SQLGetData(hstmt, (SQLUSMALLINT) (i + 1), SQL_C_FLOAT, &d, sizeof (d), &len_or_null);
+                                if (len_or_null == SQL_NULL_DATA) {
+                                    q << (VARTYPE) VT_NULL;
+                                } else {
+                                    q << vt << d;
+                                }
+                            }
+                                break;
+                            case VT_I8:
+                            {
+                                SPA::INT64 d;
+                                retcode = SQLGetData(hstmt, (SQLUSMALLINT) (i + 1), SQL_C_SBIGINT, &d, sizeof (d), &len_or_null);
+                                if (len_or_null == SQL_NULL_DATA) {
+                                    q << (VARTYPE) VT_NULL;
+                                } else {
+                                    q << vt << d;
+                                }
+                            }
+                                break;
+                            case VT_UI8:
+                            {
+                                SPA::UINT64 d;
+                                retcode = SQLGetData(hstmt, (SQLUSMALLINT) (i + 1), SQL_C_UBIGINT, &d, sizeof (d), &len_or_null);
+                                if (len_or_null == SQL_NULL_DATA) {
+                                    q << (VARTYPE) VT_NULL;
+                                } else {
+                                    q << vt << d;
+                                }
+                            }
+                                break;
+                            case VT_CLSID:
+                            {
+                                GUID d;
+                                retcode = SQLGetData(hstmt, (SQLUSMALLINT) (i + 1), SQL_C_GUID, &d, sizeof (d), &len_or_null);
+                                if (len_or_null == SQL_NULL_DATA) {
+                                    q << (VARTYPE) VT_NULL;
+                                } else {
+                                    q << vt << d;
+                                }
+                            }
+                                break;
+                            case VT_R8:
+                            {
+                                double d;
+                                retcode = SQLGetData(hstmt, (SQLUSMALLINT) (i + 1), SQL_C_DOUBLE, &d, sizeof (d), &len_or_null);
+                                if (len_or_null == SQL_NULL_DATA) {
+                                    q << (VARTYPE) VT_NULL;
+                                } else {
+                                    q << vt << d;
+                                }
+                            }
+                                break;
+                            case (VT_ARRAY | VT_I1):
+                                if (colInfo.ColumnSize < 2 * DEFAULT_BIG_FIELD_CHUNK_SIZE) {
+                                    retcode = SQLGetData(hstmt, (SQLUSMALLINT) (i + 1), SQL_C_CHAR, (SQLPOINTER) sbTemp->GetBuffer(), sbTemp->GetMaxSize(), &len_or_null);
+                                    if (SQL_NULL_DATA == len_or_null) {
+                                        q << (VARTYPE) VT_NULL;
+                                    } else {
+                                        q << vt << (unsigned int) len_or_null;
+                                        q.Push(sbTemp->GetBuffer(), (unsigned int) len_or_null);
+                                    }
+                                } else {
+                                    if (!SendBlob(hstmt, (SQLUSMALLINT) (i + 1), vt, *sbTemp, q, blob)) {
+                                        return false;
+                                    }
+                                }
+                                break;
+                            case (VT_ARRAY | VT_UI1):
+                                if (colInfo.Precision == sizeof (SQLGUID)) {
+                                    retcode = SQLGetData(hstmt, (SQLUSMALLINT) (i + 1), SQL_C_GUID, (SQLPOINTER) sbTemp->GetBuffer(), sbTemp->GetMaxSize(), &len_or_null);
+                                    if (SQL_NULL_DATA == len_or_null) {
+                                        q << (VARTYPE) VT_NULL;
+                                    } else {
+                                        q << vt;
+                                        q.Push(sbTemp->GetBuffer(), sizeof (SQLGUID));
+                                    }
+                                } else if (colInfo.ColumnSize < 2 * DEFAULT_BIG_FIELD_CHUNK_SIZE) {
+                                    retcode = SQLGetData(hstmt, (SQLUSMALLINT) (i + 1), SQL_C_BINARY, (SQLPOINTER) sbTemp->GetBuffer(), sbTemp->GetMaxSize(), &len_or_null);
+                                    if (SQL_NULL_DATA == len_or_null) {
+                                        q << (VARTYPE) VT_NULL;
+                                    } else {
+                                        q << vt << (unsigned int) len_or_null;
+                                        q.Push(sbTemp->GetBuffer(), (unsigned int) len_or_null);
+                                    }
+                                } else {
+                                    if (!SendBlob(hstmt, (SQLUSMALLINT) (i + 1), vt, *sbTemp, q, blob)) {
+                                        return false;
+                                    }
+                                }
+                                break;
+                            case VT_DECIMAL:
+                                switch ((SQLSMALLINT) colInfo.ColumnSize) {
+                                    case SQL_NUMERIC:
+                                    case SQL_DECIMAL:
+                                    {
+                                        char str[DECIMAL_STRING_BUFFER_SIZE] = {0};
+                                        retcode = SQLGetData(hstmt, (SQLUSMALLINT) (i + 1), SQL_C_CHAR, (SQLPOINTER) str, sizeof (str), &len_or_null);
+                                        if (len_or_null == SQL_NULL_DATA) {
+                                            q << (VARTYPE) VT_NULL;
+                                        } else {
+                                            DECIMAL dec;
+                                            SPA::ParseDec(str, dec);
+                                            q << vt << dec;
+                                        }
+                                    }
+                                        break;
+                                    default:
+                                        assert(false); //shouldn't come here
+                                        break;
+                                }
+                                break;
+#if 0
+                            case VT_VARIANT:
+                                retcode = SQLGetData(hstmt, (SQLUSMALLINT) (i + 1), SQL_C_BINARY, (SQLPOINTER) sbTemp->GetBuffer(), sbTemp->GetMaxSize(), &len_or_null);
+                                if (len_or_null == SQL_NULL_DATA) {
+                                    q << (VARTYPE) VT_NULL;
+                                } else {
+                                    SQLLEN iValue = 0;
+                                    sbTemp->SetSize((unsigned int) len_or_null);
+                                    sbTemp->SetNull();
+                                    retcode = SQLColAttribute(hstmt, (SQLUSMALLINT) (i + 1), SQL_CA_SS_VARIANT_TYPE, nullptr, 0, nullptr, &iValue);
+                                    SaveSqlServerVariant(sbTemp->GetBuffer(), (unsigned int) len_or_null, (SQLSMALLINT) iValue, q);
+                                    sbTemp->SetSize(0);
+                                }
+                                break;
+#endif
+                            default:
+                            {
+                                if (sb->GetMaxSize() < 16 * 1024) {
+                                    sb->ReallocBuffer(16 * 1024);
+                                }
+                                retcode = SQLGetData(hstmt, (SQLUSMALLINT) (i + 1), SQL_C_WCHAR, (SQLPOINTER) sbTemp->GetBuffer(), sbTemp->GetMaxSize(), &len_or_null);
+                                if (!SQL_SUCCEEDED(retcode)) {
+                                    break;
+                                } else if (len_or_null == SQL_NULL_DATA) {
+                                    q << (VARTYPE) VT_NULL;
+                                } else {
+                                    unsigned int len = (unsigned int) len_or_null;
+                                    sbTemp->SetSize(len);
+                                    sbTemp->SetNull();
+                                    const wchar_t *str = (const wchar_t*) sbTemp->GetBuffer();
+                                    q << (VARTYPE) VT_BSTR << str;
+                                    sbTemp->SetSize(0);
+                                }
+                            }
+                                break;
+                        } //for loop
+                        if (!SQL_SUCCEEDED(retcode)) {
+                            res = SPA::Odbc::ER_ERROR;
+                            GetErrMsg(SQL_HANDLE_STMT, hstmt, errMsg);
+                        }
+                    }
+                } else {
+                    res = SPA::Odbc::ER_ERROR;
+                    GetErrMsg(SQL_HANDLE_STMT, hstmt, errMsg);
+                    break;
+                }
+                if ((q.GetSize() >= DEFAULT_RECORD_BATCH_SIZE || blob) && !SendRows(q)) {
                     return false;
                 }
-            } else if (q.GetSize()) {
-                return SendRows(q);
+            } //while loop
+            if (SQL_NO_DATA == retcode || SQL_SUCCEEDED(retcode)) {
+                if (output) {
+                    //tell output parameter data
+                    unsigned int res = SendResult(idOutputParameter, q.GetBuffer(), q.GetSize());
+                    if (res == REQUEST_CANCELED || res == SOCKET_NOT_FOUND) {
+                        return false;
+                    }
+                } else if (q.GetSize()) {
+                    return SendRows(q);
+                }
             }
             return true;
         }
@@ -1530,7 +1888,11 @@ namespace SPA
                 if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
                     return;
                 }
-                bool ok = PushRecords(hstmt, false, res, errMsg);
+                bool ok;
+                if (m_nRecordSize)
+                    ok = PushRecords(hstmt, res, errMsg);
+                else
+                    ok = PushRecords(hstmt, vInfo, false, res, errMsg);
                 ++m_oks;
                 if (!ok) {
                     return;
@@ -1597,7 +1959,11 @@ namespace SPA
                 if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
                     return;
                 }
-                bool ok = PushRecords(hstmt, false, res, errMsg);
+                bool ok;
+                if (m_nRecordSize)
+                    ok = PushRecords(hstmt, res, errMsg);
+                else
+                    ok = PushRecords(hstmt, vInfo, false, res, errMsg);
                 ++m_oks;
                 if (!ok) {
                     return;
@@ -1664,7 +2030,11 @@ namespace SPA
                 if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
                     return;
                 }
-                bool ok = PushRecords(hstmt, false, res, errMsg);
+                bool ok;
+                if (m_nRecordSize)
+                    ok = PushRecords(hstmt, res, errMsg);
+                else
+                    ok = PushRecords(hstmt, vInfo, false, res, errMsg);
                 ++m_oks;
                 if (!ok) {
                     return;
@@ -1731,7 +2101,11 @@ namespace SPA
                 if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
                     return;
                 }
-                bool ok = PushRecords(hstmt, false, res, errMsg);
+                bool ok;
+                if (m_nRecordSize)
+                    ok = PushRecords(hstmt, res, errMsg);
+                else
+                    ok = PushRecords(hstmt, vInfo, false, res, errMsg);
                 ++m_oks;
                 if (!ok) {
                     return;
@@ -1796,7 +2170,11 @@ namespace SPA
                 if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
                     return;
                 }
-                bool ok = PushRecords(hstmt, false, res, errMsg);
+                bool ok;
+                if (m_nRecordSize)
+                    ok = PushRecords(hstmt, res, errMsg);
+                else
+                    ok = PushRecords(hstmt, vInfo, false, res, errMsg);
                 ++m_oks;
                 if (!ok) {
                     return;
@@ -1861,7 +2239,11 @@ namespace SPA
                 if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
                     return;
                 }
-                bool ok = PushRecords(hstmt, false, res, errMsg);
+                bool ok;
+                if (m_nRecordSize)
+                    ok = PushRecords(hstmt, res, errMsg);
+                else
+                    ok = PushRecords(hstmt, vInfo, false, res, errMsg);
                 ++m_oks;
                 if (!ok) {
                     return;
@@ -1926,7 +2308,11 @@ namespace SPA
                 if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
                     return;
                 }
-                bool ok = PushRecords(hstmt, false, res, errMsg);
+                bool ok;
+                if (m_nRecordSize)
+                    ok = PushRecords(hstmt, res, errMsg);
+                else
+                    ok = PushRecords(hstmt, vInfo, false, res, errMsg);
                 ++m_oks;
                 if (!ok) {
                     return;
@@ -1991,7 +2377,11 @@ namespace SPA
                 if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
                     return;
                 }
-                bool ok = PushRecords(hstmt, false, res, errMsg);
+                bool ok;
+                if (m_nRecordSize)
+                    ok = PushRecords(hstmt, res, errMsg);
+                else
+                    ok = PushRecords(hstmt, vInfo, false, res, errMsg);
                 ++m_oks;
                 if (!ok) {
                     return;
@@ -2056,7 +2446,11 @@ namespace SPA
                 if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
                     return;
                 }
-                bool ok = PushRecords(hstmt, false, res, errMsg);
+                bool ok;
+                if (m_nRecordSize)
+                    ok = PushRecords(hstmt, res, errMsg);
+                else
+                    ok = PushRecords(hstmt, vInfo, false, res, errMsg);
                 ++m_oks;
                 if (!ok) {
                     return;
@@ -2127,7 +2521,11 @@ namespace SPA
                 if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
                     return;
                 }
-                bool ok = PushRecords(hstmt, false, res, errMsg);
+                bool ok;
+                if (m_nRecordSize)
+                    ok = PushRecords(hstmt, res, errMsg);
+                else
+                    ok = PushRecords(hstmt, vInfo, false, res, errMsg);
                 ++m_oks;
                 if (!ok) {
                     return;
@@ -2202,7 +2600,11 @@ namespace SPA
                             if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
                                 return;
                             }
-                            bool ok = PushRecords(hstmt, false, res, errMsg);
+                            bool ok;
+                            if (m_nRecordSize)
+                                ok = PushRecords(hstmt, res, errMsg);
+                            else
+                                ok = PushRecords(hstmt, vInfo, false, res, errMsg);
                             ++m_oks;
                             if (!ok) {
                                 return;
@@ -3247,7 +3649,11 @@ namespace SPA
                                     if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
                                         return;
                                     }
-                                    bool ok = PushRecords(m_pPrepare.get(), output, temp, errTemp);
+                                    bool ok;
+                                    if (m_nRecordSize && !output)
+                                        ok = PushRecords(m_pPrepare.get(), res, errMsg);
+                                    else
+                                        ok = PushRecords(m_pPrepare.get(), vInfo, output, temp, errTemp);
                                     output_sent = output;
                                     if (!ok) {
                                         return;
@@ -3299,7 +3705,7 @@ namespace SPA
                                 if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
                                     return;
                                 }
-                                bool ok = PushRecords(m_pPrepare.get(), false, res, errMsg);
+                                bool ok = PushRecords(m_pPrepare.get(), vInfo, false, res, errMsg);
                                 if (!ok) {
                                     return;
                                 }
