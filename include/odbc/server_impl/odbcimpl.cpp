@@ -243,9 +243,8 @@ namespace SPA
 #endif
                     do {
                         std::shared_ptr<void> pExcuting = m_pExcuting;
-                        if (!pExcuting)
-                            break;
-                        SQLCancel(pExcuting.get());
+                        if (pExcuting)
+                            SQLCancel(pExcuting.get());
                         if (m_ti == tiUnspecified)
                             break;
                         SQLEndTran(SQL_HANDLE_DBC, m_pOdbc.get(), SQL_ROLLBACK);
