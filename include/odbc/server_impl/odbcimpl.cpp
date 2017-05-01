@@ -1266,7 +1266,7 @@ namespace SPA
                 GetErrMsg(SQL_HANDLE_STMT, hstmt, errMsg);
                 return false;
             }
-            retcode = SQLSetStmtAttr(hstmt, SQL_BIND_TYPE, (void*) m_nRecordSize, 0);
+            retcode = SQLSetStmtAttr(hstmt, SQL_ATTR_ROW_BIND_TYPE, (void*) m_nRecordSize, 0);
             if (!SQL_SUCCEEDED(retcode)) {
                 res = SPA::Odbc::ER_ERROR;
                 GetErrMsg(SQL_HANDLE_STMT, hstmt, errMsg);
