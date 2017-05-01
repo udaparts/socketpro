@@ -1387,7 +1387,7 @@ namespace SPA
                             {
                                 const unsigned char *s = (const unsigned char*) header;
                                 unsigned int len = (unsigned int) (*ind);
-                                q << len;
+                                q << info.DataType << len;
                                 q.Push(s, len);
                             }
                                 break;
