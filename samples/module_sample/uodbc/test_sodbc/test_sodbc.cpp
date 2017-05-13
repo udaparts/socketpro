@@ -15,7 +15,7 @@ protected:
 #ifdef _WIN64
             SetOdbcDBGlobalConnectionString(L"dsn=ToSqlServer64;uid=mass;pwd=smash1");
 #else
-            SetOdbcDBGlobalConnectionString(L"dsn=ToSqlServer32;uid=mass;pwd=smash1");
+            SetOdbcDBGlobalConnectionString(L"dsn=ToMySQL;uid=root;pwd=Smash123");
 #endif
             //SetOdbcDBGlobalConnectionString(L"dsn=ToMySQL;uid=root;pwd=Smash123");
         }
