@@ -2777,9 +2777,9 @@ namespace SPA
                         continue;
                     }
 #ifndef WIN32_64
-					else if (vtP == (VT_UI2 | VT_ARRAY)) {
-						vtP = VT_BSTR;
-					}
+                    else if (vtP == (VT_UI2 | VT_ARRAY)) {
+                        vtP = VT_BSTR;
+                    }
 #endif
                     //ignore signed/unsigned matching
                     if (vtP == VT_UI1) {
@@ -2842,7 +2842,7 @@ namespace SPA
 #ifdef WIN32_64
                             case VT_BSTR:
 #else
-							case (VT_UI2 | VT_ARRAY):
+                            case (VT_UI2 | VT_ARRAY):
 #endif
                             case (VT_UI1 | VT_ARRAY):
                             case (VT_I1 | VT_ARRAY):
@@ -3444,8 +3444,8 @@ namespace SPA
                         }
                         pLenInd[col] = SQL_NTS;
 #else
-					case (VT_UI2 | VT_ARRAY):
-						c_type = SQL_C_WCHAR;
+                    case (VT_UI2 | VT_ARRAY):
+                        c_type = SQL_C_WCHAR;
                         if (info.DataType == VT_VARIANT) {
                             sql_type = SQL_WVARCHAR;
                         } else if (info.DataType == SPA::VT_XML) {
@@ -3456,22 +3456,22 @@ namespace SPA
                         } else {
                             sql_type = SQL_WLONGVARCHAR;
                         }
-						ColumnSize = vtD.parray->rgsabound->cElements;
+                        ColumnSize = vtD.parray->rgsabound->cElements;
                         if (InputOutputType == SQL_PARAM_INPUT_OUTPUT) {
                             ParameterValuePtr = (SQLPOINTER) (m_Blob.GetBuffer() + output_pos);
                             if (ColumnSize > info.ColumnSize) {
                                 ColumnSize = info.ColumnSize;
                             }
                             BufferLength = (SQLULEN) info.ColumnSize * sizeof (SQLWCHAR);
-							unsigned short *data = nullptr;
-							::SafeArrayAccessData(vtD.parray, (void**)&data);
+                            unsigned short *data = nullptr;
+                            ::SafeArrayAccessData(vtD.parray, (void**) &data);
                             ::memcpy(ParameterValuePtr, data, ColumnSize * sizeof (unsigned short));
-							::SafeArrayUnaccessData(vtD.parray);
+                            ::SafeArrayUnaccessData(vtD.parray);
                             output_pos += (unsigned int) BufferLength;
                         } else {
                             ::SafeArrayAccessData(vtD.parray, &ParameterValuePtr);
                             BufferLength = (SQLLEN) ColumnSize * sizeof (SQLWCHAR);
-							m_vArray.push_back(vtD.parray);
+                            m_vArray.push_back(vtD.parray);
                         }
                         pLenInd[col] = ColumnSize * sizeof (SQLWCHAR);
 #endif
@@ -3793,12 +3793,12 @@ namespace SPA
             m_vParam.push_back(CDBVariant());
             CDBVariant &vt = m_vParam.back();
 #ifndef WIN32_64
-			VARTYPE *pvt = (VARTYPE*)m_Blob.GetBuffer();
-			if (*pvt == VT_BSTR) {
-				unsigned int *plen = (unsigned int*)m_Blob.GetBuffer(sizeof(VARTYPE));
-				*pvt = (VT_UI2 | VT_ARRAY);
-				*plen /= sizeof(short);
-			}
+            VARTYPE *pvt = (VARTYPE*) m_Blob.GetBuffer();
+            if (*pvt == VT_BSTR) {
+                unsigned int *plen = (unsigned int*) m_Blob.GetBuffer(sizeof (VARTYPE));
+                *pvt = (VT_UI2 | VT_ARRAY);
+                *plen /= sizeof (short);
+            }
 #endif
             m_Blob >> vt;
             assert(m_Blob.GetSize() == 0);
@@ -3818,12 +3818,12 @@ namespace SPA
                 m_vParam.push_back(CDBVariant());
                 CDBVariant &vt = m_vParam.back();
 #ifndef WIN32_64
-				VARTYPE *pvt = (VARTYPE*)q.GetBuffer();
-				if (*pvt == VT_BSTR) {
-					unsigned int *plen = (unsigned int*)q.GetBuffer(sizeof(VARTYPE));
-					*pvt = (VT_UI2 | VT_ARRAY);
-					*plen /= sizeof(short);
-				}
+                VARTYPE *pvt = (VARTYPE*) q.GetBuffer();
+                if (*pvt == VT_BSTR) {
+                    unsigned int *plen = (unsigned int*) q.GetBuffer(sizeof (VARTYPE));
+                    *pvt = (VT_UI2 | VT_ARRAY);
+                    *plen /= sizeof (short);
+                }
 #endif
                 q >> vt;
             }
