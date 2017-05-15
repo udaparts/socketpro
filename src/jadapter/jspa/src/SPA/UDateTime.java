@@ -33,7 +33,7 @@ class UDateTime {
         }
         java.util.Calendar calendar = new java.util.GregorianCalendar();
         calendar.setTime(dt);
-        time = calendar.get(java.util.Calendar.YEAR);
+        time = calendar.get(java.util.Calendar.YEAR) - 1900;
         time <<= 46; //18 bits for years
         long mid = calendar.get(java.util.Calendar.MONTH); //4 bits for month
         mid <<= 42;
