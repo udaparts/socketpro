@@ -1793,10 +1793,8 @@ namespace SPA
                                     q << (VARTYPE) VT_NULL;
                                 } else {
                                     unsigned int len = (unsigned int) len_or_null;
-                                    sbTemp->SetSize(len);
-                                    sbTemp->SetNull();
-                                    const wchar_t *str = (const wchar_t*) sbTemp->GetBuffer();
-                                    q << (VARTYPE) VT_BSTR << str;
+                                    q << (VARTYPE) VT_BSTR << len;
+                                    q.Push(sbTemp->GetBuffer(), len);
                                     sbTemp->SetSize(0);
                                 }
                             }
@@ -2880,12 +2878,12 @@ namespace SPA
                             case VT_BSTR:
                                 if (info.ColumnSize == 0) {
                                     info.ColumnSize = (DEFAULT_UNICODE_CHAR_SIZE + 1);
-                                    max_size += info.ColumnSize * sizeof (wchar_t);
-                                } else if (info.ColumnSize > MAX_OUTPUT_BLOB_BUFFER_SIZE / sizeof (wchar_t) + 1) {
-                                    max_size += (MAX_OUTPUT_BLOB_BUFFER_SIZE + sizeof (wchar_t));
-                                    info.ColumnSize = (MAX_OUTPUT_BLOB_BUFFER_SIZE / sizeof (wchar_t) + 1);
+                                    max_size += info.ColumnSize * sizeof (SQLWCHAR);
+                                } else if (info.ColumnSize > MAX_OUTPUT_BLOB_BUFFER_SIZE / sizeof (SQLWCHAR) + 1) {
+                                    max_size += (MAX_OUTPUT_BLOB_BUFFER_SIZE + sizeof (SQLWCHAR));
+                                    info.ColumnSize = (MAX_OUTPUT_BLOB_BUFFER_SIZE / sizeof (SQLWCHAR) + 1);
                                 } else {
-                                    max_size += info.ColumnSize * sizeof (wchar_t);
+                                    max_size += info.ColumnSize * sizeof (SQLWCHAR);
                                 }
                                 break;
                             case (VT_I1 | VT_ARRAY):
@@ -2905,7 +2903,7 @@ namespace SPA
                                 max_size += info.ColumnSize;
                                 break;
                             case VT_VARIANT:
-                                info.ColumnSize = (unsigned int) ((DEFAULT_UNICODE_CHAR_SIZE + 1) * sizeof (wchar_t));
+                                info.ColumnSize = (unsigned int) ((DEFAULT_UNICODE_CHAR_SIZE + 1) * sizeof (SQLWCHAR));
                                 max_size += info.ColumnSize;
                                 break;
                             default:
@@ -3012,8 +3010,8 @@ namespace SPA
                     case SPA::VT_XML:
                     case VT_BSTR:
                     {
-                        sb << (const wchar_t*) start;
-                        start += (info.ColumnSize * sizeof (wchar_t));
+                        sb << (const SQLWCHAR*) start;
+                        start += (info.ColumnSize * sizeof (SQLWCHAR));
                     }
                         break;
                     case (VT_UI1 | VT_ARRAY):
@@ -3030,7 +3028,7 @@ namespace SPA
                         break;
                     case VT_VARIANT:
                     {
-                        const wchar_t *ws = (const wchar_t*) start;
+                        const SQLWCHAR *ws = (const SQLWCHAR*) start;
                         sb << ws;
                         start += info.ColumnSize;
                     }
@@ -3192,7 +3190,7 @@ namespace SPA
                                         sql_type = SQL_WLONGVARCHAR;
                                     }
                                     ParameterValuePtr = (SQLPOINTER) (m_Blob.GetBuffer() + output_pos);
-                                    BufferLength = info.ColumnSize * sizeof (wchar_t);
+                                    BufferLength = info.ColumnSize * sizeof (SQLWCHAR);
                                     c_type = SQL_C_WCHAR;
                                     output_pos += (unsigned int) BufferLength;
                                     break;
@@ -3202,7 +3200,7 @@ namespace SPA
                                     else
                                         sql_type = SQL_SS_XML;
                                     ParameterValuePtr = (SQLPOINTER) (m_Blob.GetBuffer() + output_pos);
-                                    BufferLength = info.ColumnSize * sizeof (wchar_t);
+                                    BufferLength = info.ColumnSize * sizeof (SQLWCHAR);
                                     c_type = SQL_C_WCHAR;
                                     output_pos += (unsigned int) BufferLength;
                                     break;
@@ -3427,13 +3425,13 @@ namespace SPA
                             if (ColumnSize > info.ColumnSize) {
                                 ColumnSize = info.ColumnSize;
                             }
-                            BufferLength = (SQLULEN) info.ColumnSize * sizeof (wchar_t);
-                            ::memcpy(ParameterValuePtr, (const void*) vtD.bstrVal, (ColumnSize + 1) * sizeof (wchar_t));
+                            BufferLength = (SQLULEN) info.ColumnSize * sizeof (SQLWCHAR);
+                            ::memcpy(ParameterValuePtr, (const void*) vtD.bstrVal, (ColumnSize + 1) * sizeof (SQLWCHAR));
                             output_pos += (unsigned int) BufferLength;
                         } else {
                             ParameterValuePtr = vtD.bstrVal;
                             ColumnSize = ::SysStringLen(vtD.bstrVal);
-                            BufferLength = (SQLLEN) ColumnSize * sizeof (wchar_t);
+                            BufferLength = (SQLLEN) ColumnSize * sizeof (SQLWCHAR);
                         }
                         pLenInd[col] = SQL_NTS;
                         break;
