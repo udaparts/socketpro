@@ -3395,7 +3395,7 @@ namespace SPA
                         } else {
                             char str[32] = {0};
                             dt.ToDBString(str, sizeof (str));
-                            vtD = str;
+                            vtD = (const char*) str;
                             ::SafeArrayAccessData(vtD.parray, &ParameterValuePtr);
                             m_vArray.push_back(vtD.parray);
                             ColumnSize = vtD.parray->rgsabound->cElements;
