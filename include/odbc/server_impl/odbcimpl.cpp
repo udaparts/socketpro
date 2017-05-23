@@ -1141,18 +1141,22 @@ namespace SPA
             }
         }
 
-#if 0
-
         void COdbcImpl::SaveSqlServerVariant(const unsigned char *buffer, unsigned int bytes, SQLSMALLINT c_type, CUQueue & q) {
             switch (c_type) {
                 case SQL_C_WCHAR:
-                    q << (VARTYPE) VT_BSTR << (const wchar_t *) buffer;
+                    q << (VARTYPE) VT_BSTR;
+                    q << bytes;
+                    q.Push(buffer, bytes);
                     break;
                 case SQL_C_CHAR:
                     q << (VARTYPE) (VT_ARRAY | VT_I1) << bytes;
                     q.Push(buffer, bytes);
                     break;
                 case SQL_C_GUID:
+                    q << (VARTYPE) VT_CLSID;
+                    assert(bytes == sizeof (GUID));
+                    q.Push(buffer, bytes);
+                    break;
                 case SQL_C_BINARY:
                     q << (VARTYPE) (VT_ARRAY | VT_UI1) << bytes;
                     q.Push(buffer, bytes);
@@ -1248,7 +1252,6 @@ namespace SPA
                     break;
             }
         }
-#endif
 
         bool COdbcImpl::PushRecords(SQLHSTMT hstmt, int &res, std::wstring & errMsg) {
             assert(!m_Blob.GetSize());
@@ -1281,8 +1284,10 @@ namespace SPA
                 switch (it->DataType) {
                     case VT_BSTR:
                     case SPA::VT_XML:
-                    case VT_VARIANT:
                         retcode = SQLBindCol(hstmt, col, SQL_C_WCHAR, p, it->BufferSize, ind);
+                        break;
+                    case VT_VARIANT:
+                        retcode = SQLBindCol(hstmt, col, SQL_C_BINARY, p, it->BufferSize, ind);
                         break;
                     case (VT_I1 | VT_ARRAY):
                         retcode = SQLBindCol(hstmt, col, SQL_C_CHAR, p, it->BufferSize, ind);
@@ -1374,6 +1379,14 @@ namespace SPA
                             }
                                 break;
                             case VT_VARIANT:
+                            {
+                                unsigned int len = (unsigned int) (*ind);
+                                SQLLEN c_type = 0;
+                                retcode = SQLColAttribute(hstmt, c + 1, SQL_CA_SS_VARIANT_TYPE, nullptr, 0, nullptr, &c_type); //Figure out the type
+                                assert(SQL_SUCCEEDED(retcode));
+                                SaveSqlServerVariant(header, len, (SQLSMALLINT) c_type, q);
+                            }
+                                break;
                             case SPA::VT_XML:
                             {
                                 unsigned int len = (unsigned int) (*ind);
@@ -1766,21 +1779,19 @@ namespace SPA
                                         break;
                                 }
                                 break;
-#if 0
+
                             case VT_VARIANT:
                                 retcode = SQLGetData(hstmt, (SQLUSMALLINT) (i + 1), SQL_C_BINARY, (SQLPOINTER) sbTemp->GetBuffer(), sbTemp->GetMaxSize(), &len_or_null);
                                 if (len_or_null == SQL_NULL_DATA) {
                                     q << (VARTYPE) VT_NULL;
                                 } else {
-                                    SQLLEN iValue = 0;
-                                    sbTemp->SetSize((unsigned int) len_or_null);
-                                    sbTemp->SetNull();
-                                    retcode = SQLColAttribute(hstmt, (SQLUSMALLINT) (i + 1), SQL_CA_SS_VARIANT_TYPE, nullptr, 0, nullptr, &iValue);
-                                    SaveSqlServerVariant(sbTemp->GetBuffer(), (unsigned int) len_or_null, (SQLSMALLINT) iValue, q);
-                                    sbTemp->SetSize(0);
+                                    SQLLEN c_type = 0;
+                                    retcode = SQLColAttribute(hstmt, (SQLUSMALLINT) (i + 1), SQL_CA_SS_VARIANT_TYPE, nullptr, 0, nullptr, &c_type);
+                                    assert(SQL_SUCCEEDED(retcode));
+                                    SaveSqlServerVariant(sbTemp->GetBuffer(), (unsigned int) len_or_null, (SQLSMALLINT) c_type, q);
                                 }
                                 break;
-#endif
+
                             default:
                             {
                                 if (sb->GetMaxSize() < 16 * 1024) {
@@ -2956,8 +2967,9 @@ namespace SPA
                     continue;
                 }
                 SPA::UDB::CDBVariant &vtD = m_vParam[(unsigned int) n + r * ((unsigned int) m_parameters)];
-                if (info.DataType == VT_VARIANT || info.DataType == SPA::VT_XML) {
+                if (info.DataType == SPA::VT_XML) {
                     sb << (VARTYPE) VT_BSTR;
+                } else if (info.DataType == VT_VARIANT) {
                 } else {
                     sb << info.DataType;
                 }
@@ -3036,8 +3048,10 @@ namespace SPA
                         break;
                     case VT_VARIANT:
                     {
-                        const SQLWCHAR *ws = (const SQLWCHAR*) start;
-                        sb << ws;
+                        SQLLEN c_type = 0;
+                        SQLRETURN retcode = SQLColAttribute(m_pPrepare.get(), (SQLUSMALLINT) (n + 1), SQL_CA_SS_VARIANT_TYPE, nullptr, 0, nullptr, &c_type);
+                        assert(SQL_SUCCEEDED(retcode));
+                        SaveSqlServerVariant(start, (unsigned int) pLenInd[n], (SQLSMALLINT) c_type, *sb);
                         start += info.ColumnSize;
                     }
                         break;
@@ -3220,7 +3234,7 @@ namespace SPA
                                     output_pos += (unsigned int) BufferLength;
                                     break;
                                 case VT_VARIANT:
-                                    c_type = SQL_C_WCHAR;
+                                    c_type = SQL_C_BINARY;
                                     sql_type = SQL_SS_VARIANT;
                                     ParameterValuePtr = (SQLPOINTER) (m_Blob.GetBuffer() + output_pos);
                                     memset(ParameterValuePtr, 0, (unsigned int) BufferLength);
@@ -3303,8 +3317,8 @@ namespace SPA
                                     sql_type = SQL_GUID;
                                     break;
                                 case VT_VARIANT:
-                                    c_type = SQL_C_WCHAR;
-                                    sql_type = SQL_WVARCHAR;
+                                    c_type = SQL_C_BINARY;
+                                    sql_type = SQL_SS_VARIANT;
                                     break;
                                 case SPA::VT_XML:
                                     c_type = SQL_C_WCHAR;
