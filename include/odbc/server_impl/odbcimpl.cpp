@@ -2967,9 +2967,8 @@ namespace SPA
                     continue;
                 }
                 SPA::UDB::CDBVariant &vtD = m_vParam[(unsigned int) n + r * ((unsigned int) m_parameters)];
-                if (info.DataType == SPA::VT_XML) {
+                if (info.DataType == VT_VARIANT || info.DataType == SPA::VT_XML) {
                     sb << (VARTYPE) VT_BSTR;
-                } else if (info.DataType == VT_VARIANT) {
                 } else {
                     sb << info.DataType;
                 }
@@ -3048,10 +3047,8 @@ namespace SPA
                         break;
                     case VT_VARIANT:
                     {
-                        SQLLEN c_type = 0;
-                        SQLRETURN retcode = SQLColAttribute(m_pPrepare.get(), (SQLUSMALLINT) (n + 1), SQL_CA_SS_VARIANT_TYPE, nullptr, 0, nullptr, &c_type);
-                        assert(SQL_SUCCEEDED(retcode));
-                        SaveSqlServerVariant(start, (unsigned int) pLenInd[n], (SQLSMALLINT) c_type, *sb);
+                        const SQLWCHAR *ws = (const SQLWCHAR*) start;
+                        sb << ws;
                         start += info.ColumnSize;
                     }
                         break;
@@ -3234,7 +3231,7 @@ namespace SPA
                                     output_pos += (unsigned int) BufferLength;
                                     break;
                                 case VT_VARIANT:
-                                    c_type = SQL_C_BINARY;
+                                    c_type = SQL_C_WCHAR;
                                     sql_type = SQL_SS_VARIANT;
                                     ParameterValuePtr = (SQLPOINTER) (m_Blob.GetBuffer() + output_pos);
                                     memset(ParameterValuePtr, 0, (unsigned int) BufferLength);
@@ -3317,7 +3314,7 @@ namespace SPA
                                     sql_type = SQL_GUID;
                                     break;
                                 case VT_VARIANT:
-                                    c_type = SQL_C_BINARY;
+                                    c_type = SQL_C_WCHAR;
                                     sql_type = SQL_SS_VARIANT;
                                     break;
                                 case SPA::VT_XML:
