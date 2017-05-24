@@ -12,8 +12,8 @@ protected:
         m_h = SPA::ServerSide::CSocketProServer::DllManager::AddALibrary("sodbc");
         if (m_h) {
             PSetOdbcDBGlobalConnectionString SetOdbcDBGlobalConnectionString = (PSetOdbcDBGlobalConnectionString) GetProcAddress(m_h, "SetOdbcDBGlobalConnectionString");
-#ifdef _WIN64
-            SetOdbcDBGlobalConnectionString(L"dsn=ToSqlServer64;uid=mass;pwd=smash1");
+#ifdef WIN32_64
+            SetOdbcDBGlobalConnectionString(L"dsn=ToSqlServer32;uid=mass;pwd=smash1");
 #else
             SetOdbcDBGlobalConnectionString(L"dsn=ToMySQL;uid=root;pwd=Smash123");
 #endif

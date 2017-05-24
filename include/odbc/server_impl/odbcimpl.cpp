@@ -588,6 +588,7 @@ namespace SPA
             bool primary_key_set = false;
             m_vBindInfo.clear();
             bool hasBlob = false;
+            bool hasVariant = false;
             SQLCHAR colname[128 + 1] =
             {0}; // column name
             m_nRecordSize = 0;
@@ -787,6 +788,7 @@ namespace SPA
                         bindinfo.BufferSize = 0;
                         break;
                     case SQL_SS_VARIANT:
+                        hasVariant = true;
                         info.DataType = VT_VARIANT;
                         info.ColumnSize = DEFAULT_OUTPUT_BUFFER_SIZE;
                         bindinfo.BufferSize = DEFAULT_OUTPUT_BUFFER_SIZE;
@@ -826,7 +828,7 @@ namespace SPA
                 }
             }
 
-            if (hasBlob) {
+            if (hasBlob || hasVariant) {
                 m_vBindInfo.clear();
                 m_nRecordSize = 0;
             }
@@ -1204,18 +1206,13 @@ namespace SPA
                     q << (VARTYPE) VT_UI4 << *((unsigned int*) buffer);
                     break;
                 case SQL_C_TIMESTAMP:
-                    if (bytes == sizeof (TIMESTAMP_STRUCT)) {
-                        std::tm tm;
-                        TIMESTAMP_STRUCT *dt = (TIMESTAMP_STRUCT*) buffer;
-                        unsigned int us = ToCTime(*dt, tm);
-                        SPA::UDateTime udt(tm, us);
-                        q << (VARTYPE) VT_DATE << udt.time;
-                    } else {
-                        //sql server driver bug?
-                        q << (VARTYPE) VT_DATE;
-                        SPA::UINT64 time = 0;
-                        q << time;
-                    }
+                {
+                    std::tm tm;
+                    TIMESTAMP_STRUCT *dt = (TIMESTAMP_STRUCT*) buffer;
+                    unsigned int us = ToCTime(*dt, tm);
+                    SPA::UDateTime udt(tm, us);
+                    q << (VARTYPE) VT_DATE << udt.time;
+                }
                     break;
                 case SQL_C_TYPE_TIMESTAMP:
                 {
@@ -1282,12 +1279,10 @@ namespace SPA
                 unsigned char *p = start + it->Offset;
                 SQLLEN *ind = (SQLLEN*) (start + it->Offset + it->BufferSize);
                 switch (it->DataType) {
+                    case VT_VARIANT:
                     case VT_BSTR:
                     case SPA::VT_XML:
                         retcode = SQLBindCol(hstmt, col, SQL_C_WCHAR, p, it->BufferSize, ind);
-                        break;
-                    case VT_VARIANT:
-                        retcode = SQLBindCol(hstmt, col, SQL_C_BINARY, p, it->BufferSize, ind);
                         break;
                     case (VT_I1 | VT_ARRAY):
                         retcode = SQLBindCol(hstmt, col, SQL_C_CHAR, p, it->BufferSize, ind);
@@ -1357,7 +1352,7 @@ namespace SPA
             SQLUSMALLINT *pRowStatus = (SQLUSMALLINT *) m_UQueue.GetBuffer();
             CScopeUQueue sb;
             CUQueue &q = *sb;
-            while (retcode = SQLExtendedFetch(hstmt, SQL_FETCH_NEXT, 0, &rows, pRowStatus) == SQL_SUCCESS) {
+            while ((retcode = SQLExtendedFetch(hstmt, SQL_FETCH_NEXT, 0, &rows, pRowStatus)) == SQL_SUCCESS) {
                 for (SQLULEN r = 0; r < rows; ++r) {
                     unsigned char *beginning = start + r * m_nRecordSize;
                     for (SQLUSMALLINT c = 0; c < cols; ++c) {
@@ -1370,23 +1365,7 @@ namespace SPA
                         unsigned char *header = beginning + info.Offset;
                         switch (info.DataType) {
                             case VT_BSTR:
-                            {
-                                unsigned int len = (unsigned int) (*ind);
-                                q << info.DataType;
-                                const SQLWCHAR *s = (const SQLWCHAR*) header;
-                                q << len;
-                                q.Push((const unsigned char*) s, len);
-                            }
-                                break;
                             case VT_VARIANT:
-                            {
-                                unsigned int len = (unsigned int) (*ind);
-                                SQLLEN c_type = 0;
-                                retcode = SQLColAttribute(hstmt, c + 1, SQL_CA_SS_VARIANT_TYPE, nullptr, 0, nullptr, &c_type); //Figure out the type
-                                assert(SQL_SUCCEEDED(retcode));
-                                SaveSqlServerVariant(header, len, (SQLSMALLINT) c_type, q);
-                            }
-                                break;
                             case SPA::VT_XML:
                             {
                                 unsigned int len = (unsigned int) (*ind);
@@ -1779,19 +1758,21 @@ namespace SPA
                                         break;
                                 }
                                 break;
-
                             case VT_VARIANT:
-                                retcode = SQLGetData(hstmt, (SQLUSMALLINT) (i + 1), SQL_C_BINARY, (SQLPOINTER) sbTemp->GetBuffer(), sbTemp->GetMaxSize(), &len_or_null);
+                                retcode = SQLGetData(hstmt, (SQLUSMALLINT) (i + 1), SQL_C_BINARY, (SQLPOINTER) sbTemp->GetBuffer(), 0, &len_or_null);
                                 if (len_or_null == SQL_NULL_DATA) {
                                     q << (VARTYPE) VT_NULL;
                                 } else {
+                                    assert(retcode == SQL_SUCCESS_WITH_INFO);
                                     SQLLEN c_type = 0;
                                     retcode = SQLColAttribute(hstmt, (SQLUSMALLINT) (i + 1), SQL_CA_SS_VARIANT_TYPE, nullptr, 0, nullptr, &c_type);
                                     assert(SQL_SUCCEEDED(retcode));
-                                    SaveSqlServerVariant(sbTemp->GetBuffer(), (unsigned int) len_or_null, (SQLSMALLINT) c_type, q);
+                                    SQLLEN mylen;
+                                    retcode = SQLGetData(hstmt, (SQLUSMALLINT) (i + 1), (SQLSMALLINT) c_type, (SQLPOINTER) sbTemp->GetBuffer(), sbTemp->GetMaxSize(), &mylen);
+                                    assert(SQL_SUCCEEDED(retcode));
+                                    SaveSqlServerVariant(sbTemp->GetBuffer(), (unsigned int) mylen, (SQLSMALLINT) c_type, q);
                                 }
                                 break;
-
                             default:
                             {
                                 if (sb->GetMaxSize() < 16 * 1024) {
