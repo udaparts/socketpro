@@ -49,6 +49,19 @@ namespace SPA {
         }
     }
 
+	static void ParseDec_long(const char *data, DECIMAL &dec) {
+        assert(data);
+        dec.Hi32 = 0;
+        dec.wReserved = 0;
+#ifdef WIN32_64
+		CComVariant vtSrc(data), vtDes;
+		::VariantChangeType(&vtDes, &vtSrc, 0, VT_DECIMAL);
+		dec = vtDes.decVal;
+#else
+
+#endif
+    }
+
     static std::string ToString(const DECIMAL &decVal) {
         std::string s = std::to_string(decVal.Lo64);
         unsigned char len = (unsigned char) s.size();
@@ -63,6 +76,23 @@ namespace SPA {
             s.insert(pos, 1, '.');
         }
         return s;
+    }
+
+	static std::string ToString_long(const DECIMAL &decVal) {
+#ifdef WIN32_64
+        VARIANT vtSrc, vtDes;
+		vtSrc.vt = VT_DECIMAL;
+		vtSrc.decVal = decVal;
+		vtDes.vt = VT_EMPTY;
+		::VariantChangeType(&vtDes, &vtSrc, 0, VT_BSTR);
+		unsigned int len = ::SysStringLen(vtDes.bstrVal);
+		std::string s(vtDes.bstrVal, vtDes.bstrVal + len);
+		VariantClear(&vtDes);
+#else
+
+
+#endif
+		return s;
     }
 
     static inline double ToDouble(const DECIMAL &dec) {
