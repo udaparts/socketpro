@@ -10,6 +10,7 @@
 #else
 #include "nixcommutil.h"
 #include "bvariant.h"
+#include <boost/multiprecision/cpp_int.hpp>
 #endif
 
 #define CUExCode(errMsg, errCode)  SPA::CUException(errMsg, __FILE__, __LINE__, __FUNCTION__, errCode)
@@ -19,6 +20,11 @@
 namespace SPA {
 
     typedef CComVariant UVariant;
+
+#ifndef WIN32_64
+	using namespace boost::multiprecision;
+	typedef number<cpp_int_backend<96, 96, unsigned_magnitude, unchecked, void> > uint96_t;
+#endif
 
     static void ParseDec(const char *data, DECIMAL &dec) {
         assert(data);
@@ -58,7 +64,29 @@ namespace SPA {
 		::VariantChangeType(&vtDes, &vtSrc, 0, VT_DECIMAL);
 		dec = vtDes.decVal;
 #else
-
+		const char* posNegative = ::strchr(data, '-');
+        if (posNegative) {
+            dec.sign = 0x80;
+            ++data;
+        } else {
+            dec.sign = 0;
+        }
+		uint96_t v;
+		const char *end = ::strchr(data, '.');
+		if (end) {
+			std::string s(data, end);
+			++end;
+			dec.scale = (unsigned char)::strlen(end);
+			s += end;
+			v.assign(s);
+		}
+		else {
+			v.assign(data);
+			dec.scale = 0;
+		}
+		dec.Lo64 = v.convert_to<UINT64>()
+		v >>= 64;
+		dec.Hi32 = v.convert_to<unsigned int>()
 #endif
     }
 
@@ -89,8 +117,21 @@ namespace SPA {
 		std::string s(vtDes.bstrVal, vtDes.bstrVal + len);
 		VariantClear(&vtDes);
 #else
-
-
+		uint96_t v = uint96_t(decVal.Hi32);
+		v <<= 64;
+		v += decVal.Lo64;
+		std::string s = v.str();
+		unsigned char len = (unsigned char) s.size();
+        if (len <= decVal.scale) {
+            s.insert(0, (decVal.scale - len) + 1, '0');
+        }
+		if (decVal.sign && (decVal.Lo64 || decVal.Hi32)) {
+            s.insert(0, 1, '-');
+        }
+		if (decVal.scale) {
+            size_t pos = s.length() - decVal.scale;
+            s.insert(pos, 1, '.');
+        }
 #endif
 		return s;
     }
@@ -116,7 +157,6 @@ namespace SPA {
         } else if (vt0.vt == VT_NULL && vt1.vt == VT_NULL) {
             return true;
         }
-
         VARTYPE vtMe = vt0.vt;
         VARTYPE vtSrc = vt1.vt;
         if (vtMe != vtSrc) {
