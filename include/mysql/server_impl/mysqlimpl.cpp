@@ -1024,8 +1024,12 @@ namespace SPA
                     break;
                 case VT_DECIMAL:
                 {
+					std::string s;
                     const DECIMAL &decVal = vt.decVal;
-                    std::string s = SPA::ToString(decVal);
+					if (decVal.Hi32)
+						s = SPA::ToString_long(decVal);
+					else
+						s = SPA::ToString(decVal);
                     vt = s.c_str();
                 }
                     break;
@@ -1068,7 +1072,10 @@ namespace SPA
                             {
                                 if (colInfo.Precision && colInfo.Precision <= 19) {
                                     DECIMAL dec;
-                                    ParseDec(data, dec);
+									if (len <= 19)
+										ParseDec(data, dec);
+									else
+										ParseDec_long(data, dec);
                                     vt = VT_DECIMAL;
                                     sb->Push((const unsigned char*) &vt, sizeof (vt));
                                     sb << dec;
@@ -1697,7 +1704,10 @@ namespace SPA
                                     }
                                 } else if (colInfo.Precision && colInfo.Precision <= 19) {
                                     DECIMAL dec;
-                                    ParseDec((const char*) b.buffer, dec);
+									if (len <= 19)
+										ParseDec((const char*) b.buffer, dec);
+									else
+										ParseDec_long((const char*) b.buffer, dec);
                                     vt = VT_DECIMAL;
                                     sb->Push((const unsigned char*) &vt, sizeof (vt));
                                     sb << dec;

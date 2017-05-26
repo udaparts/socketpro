@@ -1404,8 +1404,12 @@ namespace SPA
                             {
                                 q << info.DataType;
                                 const char *s = (const char*) header;
+								unsigned int len = (unsigned int) (*ind);
                                 DECIMAL dec;
-                                SPA::ParseDec(s, dec);
+								if (len <= 19)
+									SPA::ParseDec(s, dec);
+								else
+									SPA::ParseDec_long(s, dec);
                                 q << dec;
                             }
                                 break;
@@ -1748,7 +1752,10 @@ namespace SPA
                                             q << (VARTYPE) VT_NULL;
                                         } else {
                                             DECIMAL dec;
-                                            SPA::ParseDec(str, dec);
+											if (len_or_null <= 19)
+												SPA::ParseDec(str, dec);
+											else
+												SPA::ParseDec_long(str, dec);
                                             q << vt << dec;
                                         }
                                     }
@@ -3002,7 +3009,10 @@ namespace SPA
                     {
                         DECIMAL dec;
                         const char* s = (const char*) start;
-                        SPA::ParseDec(s, dec);
+						if (pLenInd[n] <= 19)
+							SPA::ParseDec(s, dec);
+						else
+							SPA::ParseDec_long(s, dec);
                         sb << dec;
                         start += info.ColumnSize;
                     }
@@ -3478,7 +3488,11 @@ namespace SPA
                             c_type = SQL_C_CHAR;
                             BufferLength = (SQLULEN) info.ColumnSize;
                             const DECIMAL &decVal = vtD.decVal;
-                            std::string s = SPA::ToString(decVal);
+                            std::string s;
+							if (decVal.Hi32)
+								s = SPA::ToString_long(decVal);
+							else
+								s = SPA::ToString(decVal);
                             ParameterValuePtr = (SQLPOINTER) (m_Blob.GetBuffer() + output_pos);
                             memset(ParameterValuePtr, 0, BufferLength);
                             ::memcpy(ParameterValuePtr, s.c_str(), s.size());
@@ -3577,7 +3591,11 @@ namespace SPA
 
         void COdbcImpl::ConvertDecimalAString(CDBVariant & vt) {
             if (vt.vt == VT_DECIMAL) {
-                std::string s = SPA::ToString(vt.decVal);
+				std::string s;
+				if (vt.decVal.Hi32)
+					s = SPA::ToString_long(vt.decVal);
+				else
+					s = SPA::ToString(vt.decVal);
                 vt = s.c_str();
             }
         }
