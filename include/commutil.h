@@ -22,15 +22,15 @@ namespace SPA {
     typedef CComVariant UVariant;
 
 #ifndef WIN32_64
-	using namespace boost::multiprecision;
-	typedef number<cpp_int_backend<96, 96, unsigned_magnitude, unchecked, void> > uint96_t;
+    using namespace boost::multiprecision;
+    typedef number<cpp_int_backend<96, 96, unsigned_magnitude, unchecked, void> > uint96_t;
 #endif
 
     static void ParseDec(const char *data, DECIMAL &dec) {
         assert(data);
         dec.Hi32 = 0;
         dec.wReserved = 0;
-        const char* posNegative = strchr(data, '-');
+        const char* posNegative = ::strchr(data, '-');
         if (posNegative) {
             dec.sign = 0x80;
             ++data;
@@ -55,38 +55,37 @@ namespace SPA {
         }
     }
 
-	static void ParseDec_long(const char *data, DECIMAL &dec) {
+    static void ParseDec_long(const char *data, DECIMAL &dec) {
         assert(data);
         dec.Hi32 = 0;
         dec.wReserved = 0;
 #ifdef WIN32_64
-		CComVariant vtSrc(data), vtDes;
-		::VariantChangeType(&vtDes, &vtSrc, 0, VT_DECIMAL);
-		dec = vtDes.decVal;
+        CComVariant vtSrc(data), vtDes;
+        ::VariantChangeType(&vtDes, &vtSrc, 0, VT_DECIMAL);
+        dec = vtDes.decVal;
 #else
-		const char* posNegative = ::strchr(data, '-');
+        const char* posNegative = ::strchr(data, '-');
         if (posNegative) {
             dec.sign = 0x80;
             ++data;
         } else {
             dec.sign = 0;
         }
-		uint96_t v;
-		const char *end = ::strchr(data, '.');
-		if (end) {
-			std::string s(data, end);
-			++end;
-			dec.scale = (unsigned char)::strlen(end);
-			s += end;
-			v.assign(s);
-		}
-		else {
-			v.assign(data);
-			dec.scale = 0;
-		}
-		dec.Lo64 = v.convert_to<UINT64>()
-		v >>= 64;
-		dec.Hi32 = v.convert_to<unsigned int>()
+        uint96_t v;
+        const char *end = ::strchr(data, '.');
+        if (end) {
+            std::string s(data, end);
+            ++end;
+            dec.scale = (unsigned char) ::strlen(end);
+            s += end;
+            v.assign(s);
+        } else {
+            v.assign(data);
+            dec.scale = 0;
+        }
+        dec.Lo64 = (v & 0xffffffffffffffff).convert_to<uint64_t>();
+        v >>= 64;
+        dec.Hi32 = v.convert_to<unsigned int>();
 #endif
     }
 
@@ -106,34 +105,34 @@ namespace SPA {
         return s;
     }
 
-	static std::string ToString_long(const DECIMAL &decVal) {
+    static std::string ToString_long(const DECIMAL &decVal) {
 #ifdef WIN32_64
         VARIANT vtSrc, vtDes;
-		vtSrc.vt = VT_DECIMAL;
-		vtSrc.decVal = decVal;
-		vtDes.vt = VT_EMPTY;
-		::VariantChangeType(&vtDes, &vtSrc, 0, VT_BSTR);
-		unsigned int len = ::SysStringLen(vtDes.bstrVal);
-		std::string s(vtDes.bstrVal, vtDes.bstrVal + len);
-		VariantClear(&vtDes);
+        vtSrc.vt = VT_DECIMAL;
+        vtSrc.decVal = decVal;
+        vtDes.vt = VT_EMPTY;
+        ::VariantChangeType(&vtDes, &vtSrc, 0, VT_BSTR);
+        unsigned int len = ::SysStringLen(vtDes.bstrVal);
+        std::string s(vtDes.bstrVal, vtDes.bstrVal + len);
+        VariantClear(&vtDes);
 #else
-		uint96_t v = uint96_t(decVal.Hi32);
-		v <<= 64;
-		v += decVal.Lo64;
-		std::string s = v.str();
-		unsigned char len = (unsigned char) s.size();
+        uint96_t v = decVal.Hi32;
+        v <<= 64;
+        v += decVal.Lo64;
+        std::string s = v.str();
+        unsigned char len = (unsigned char) s.size();
         if (len <= decVal.scale) {
             s.insert(0, (decVal.scale - len) + 1, '0');
         }
-		if (decVal.sign && (decVal.Lo64 || decVal.Hi32)) {
+        if (decVal.sign && (decVal.Lo64 || decVal.Hi32)) {
             s.insert(0, 1, '-');
         }
-		if (decVal.scale) {
+        if (decVal.scale) {
             size_t pos = s.length() - decVal.scale;
             s.insert(pos, 1, '.');
         }
 #endif
-		return s;
+        return s;
     }
 
     static inline double ToDouble(const DECIMAL &dec) {
