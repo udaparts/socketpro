@@ -599,11 +599,16 @@ namespace SPA
             SQLSMALLINT decimaldigits = 0; // no of digits if column is numeric
             SQLLEN displaysize = 0; // drivers column display size
             CDBColumnInfoArray vCols;
+            bool bPostgres = (m_dbms.find(L"postgre") == 0);
             for (SQLSMALLINT n = 0; n < columns; ++n) {
                 vCols.push_back(CDBColumnInfo());
                 CDBColumnInfo &info = vCols.back();
                 SQLRETURN retcode = SQLDescribeCol(hstmt, (SQLUSMALLINT) (n + 1), colname, sizeof (colname) / sizeof (SQLCHAR), &colnamelen, &coltype, &collen, &decimaldigits, &nullable);
                 assert(SQL_SUCCEEDED(retcode));
+
+                if (bPostgres && collen > 8000)
+                    collen = 0; //make it to long text or binary
+
                 info.DisplayName = SPA::Utilities::ToWide((const char*) colname, (size_t) colnamelen / sizeof (SQLCHAR)); //display column name
                 if (nullable == SQL_NO_NULLS) {
                     info.Flags |= CDBColumnInfo::FLAG_NOT_NULL;
