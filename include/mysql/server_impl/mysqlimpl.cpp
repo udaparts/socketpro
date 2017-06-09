@@ -47,17 +47,17 @@ namespace SPA
 
         void CALLBACK CMysqlImpl::OnThreadEventEmbedded(SPA::ServerSide::tagThreadEvent te) {
             if (te == SPA::ServerSide::teStarted) {
-                
+
             } else {
-                
+
             }
         }
 
         void CALLBACK CMysqlImpl::OnThreadEvent(SPA::ServerSide::tagThreadEvent te) {
             if (te == SPA::ServerSide::teStarted) {
-                
+
             } else {
-                
+
             }
         }
 
@@ -129,17 +129,17 @@ namespace SPA
 
         void CMysqlImpl::Open(const std::wstring &strConnection, unsigned int flags, int &res, std::wstring &errMsg, int &ms) {
             res = 0;
-			ms = msMysql;
+            ms = msMysql;
             CleanDBObjects();
-			MYSQL_SESSION st_session = srv_session_open(NULL, this);
-			m_pMysql.reset(st_session, [this](MYSQL_SESSION mysql){
-				if (mysql) {
-					int ret = srv_session_close(mysql);
-					if (ret) {
-						//my_plugin_log_message(&p, MY_ERROR_LEVEL, "srv_session_close failed.");
-					}
-				}
-			});
+            MYSQL_SESSION st_session = srv_session_open(NULL, this);
+            m_pMysql.reset(st_session, [this](MYSQL_SESSION mysql) {
+                if (mysql) {
+                    int ret = srv_session_close(mysql);
+                    if (ret) {
+                        //my_plugin_log_message(&p, MY_ERROR_LEVEL, "srv_session_close failed.");
+                    }
+                }
+            });
         }
 
         void CMysqlImpl::CloseDb(int &res, std::wstring & errMsg) {
@@ -188,11 +188,11 @@ namespace SPA
                 errMsg = BAD_END_TRANSTACTION_PLAN;
                 return;
             }
-           res = 0;
+            res = 0;
         }
 
         void CMysqlImpl::ExecuteSqlWithoutRowset(int &res, std::wstring &errMsg, INT64 & affected) {
-            
+
         }
 
         bool CMysqlImpl::SendRows(CScopeUQueue& sb, bool transferring) {
@@ -267,69 +267,69 @@ namespace SPA
             }
         }
 
-		const wchar_t *CMysqlImpl::fieldtype2str(enum_field_types type) {
-			switch (type) {
-			case MYSQL_TYPE_BIT:         
-				return L"BIT";
-			case MYSQL_TYPE_BLOB:        
-				return L"BLOB";
-			case MYSQL_TYPE_DATE:        
-				return L"DATE";
-			case MYSQL_TYPE_DATETIME:    
-				return L"DATETIME";
-			case MYSQL_TYPE_NEWDECIMAL:  
-				return L"NEWDECIMAL";
-			case MYSQL_TYPE_DECIMAL:     
-				return L"DECIMAL";
-			case MYSQL_TYPE_DOUBLE:      
-				return L"DOUBLE";
-			case MYSQL_TYPE_ENUM:        
-				return L"ENUM";
-			case MYSQL_TYPE_FLOAT:       
-				return L"FLOAT";
-			case MYSQL_TYPE_GEOMETRY:    
-				return L"GEOMETRY";
-			case MYSQL_TYPE_INT24:       
-				return L"INT24";
-			case MYSQL_TYPE_LONG:        
-				return L"LONG";
-			case MYSQL_TYPE_LONGLONG:    
-				return L"LONGLONG";
-			case MYSQL_TYPE_LONG_BLOB:   
-				return L"LONG_BLOB";
-			case MYSQL_TYPE_MEDIUM_BLOB: 
-				return L"MEDIUM_BLOB";
-			case MYSQL_TYPE_NEWDATE:     
-				return L"NEWDATE";
-			case MYSQL_TYPE_NULL:        
-				return L"NULL";
-			case MYSQL_TYPE_SET:         
-				return L"SET";
-			case MYSQL_TYPE_SHORT:       
-				return L"SHORT";
-			case MYSQL_TYPE_STRING:      
-				return L"STRING";
-			case MYSQL_TYPE_TIME:        
-				return L"TIME";
-			case MYSQL_TYPE_TIMESTAMP:   
-				return L"TIMESTAMP";
-			case MYSQL_TYPE_TINY:        
-				return L"TINY";
-			case MYSQL_TYPE_TINY_BLOB:   
-				return L"TINY_BLOB";
-			case MYSQL_TYPE_VARCHAR:     
-				return L"VARCHAR";
-			case MYSQL_TYPE_VAR_STRING:  
-				return L"VAR_STRING";
-			case MYSQL_TYPE_YEAR:        
-				return L"YEAR";
-			default:                     
-				break;
-			}
-			return L"?-unknown-?";
-		}
+        const wchar_t * CMysqlImpl::fieldtype2str(enum_field_types type) {
+            switch (type) {
+                case MYSQL_TYPE_BIT:
+                    return L"BIT";
+                case MYSQL_TYPE_BLOB:
+                    return L"BLOB";
+                case MYSQL_TYPE_DATE:
+                    return L"DATE";
+                case MYSQL_TYPE_DATETIME:
+                    return L"DATETIME";
+                case MYSQL_TYPE_NEWDECIMAL:
+                    return L"NEWDECIMAL";
+                case MYSQL_TYPE_DECIMAL:
+                    return L"DECIMAL";
+                case MYSQL_TYPE_DOUBLE:
+                    return L"DOUBLE";
+                case MYSQL_TYPE_ENUM:
+                    return L"ENUM";
+                case MYSQL_TYPE_FLOAT:
+                    return L"FLOAT";
+                case MYSQL_TYPE_GEOMETRY:
+                    return L"GEOMETRY";
+                case MYSQL_TYPE_INT24:
+                    return L"INT24";
+                case MYSQL_TYPE_LONG:
+                    return L"LONG";
+                case MYSQL_TYPE_LONGLONG:
+                    return L"LONGLONG";
+                case MYSQL_TYPE_LONG_BLOB:
+                    return L"LONG_BLOB";
+                case MYSQL_TYPE_MEDIUM_BLOB:
+                    return L"MEDIUM_BLOB";
+                case MYSQL_TYPE_NEWDATE:
+                    return L"NEWDATE";
+                case MYSQL_TYPE_NULL:
+                    return L"NULL";
+                case MYSQL_TYPE_SET:
+                    return L"SET";
+                case MYSQL_TYPE_SHORT:
+                    return L"SHORT";
+                case MYSQL_TYPE_STRING:
+                    return L"STRING";
+                case MYSQL_TYPE_TIME:
+                    return L"TIME";
+                case MYSQL_TYPE_TIMESTAMP:
+                    return L"TIMESTAMP";
+                case MYSQL_TYPE_TINY:
+                    return L"TINY";
+                case MYSQL_TYPE_TINY_BLOB:
+                    return L"TINY_BLOB";
+                case MYSQL_TYPE_VARCHAR:
+                    return L"VARCHAR";
+                case MYSQL_TYPE_VAR_STRING:
+                    return L"VAR_STRING";
+                case MYSQL_TYPE_YEAR:
+                    return L"YEAR";
+                default:
+                    break;
+            }
+            return L"?-unknown-?";
+        }
 
-		void CMysqlImpl::Trim(std::string & s) {
+        void CMysqlImpl::Trim(std::string & s) {
             static const char *WHITESPACE = " \r\n\t\v\f\v";
             auto pos = s.find_first_of(WHITESPACE);
             while (pos == 0) {
@@ -362,7 +362,7 @@ namespace SPA
             fail_ok = 0;
             affected = 0;
             ResetMemories();
-            
+
         }
 
         void CMysqlImpl::PreprocessPreparedStatement() {
@@ -406,7 +406,7 @@ namespace SPA
             if (!m_parameters) {
                 return res;
             }
-           
+
             return res;
         }
 
