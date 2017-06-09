@@ -16,18 +16,17 @@ static int async_sql_plugin_deinit(void *p)
   return 0;
 }
 
-struct st_mysql_daemon async_sql_service_plugin=
-{
+st_mysql_daemon async_sql_plugin = {
 	MYSQL_DAEMON_INTERFACE_VERSION 
 };
 
-mysql_declare_plugin(async_mysql_daemon)
+mysql_declare_plugin(async_sql)
 {
   MYSQL_DAEMON_PLUGIN,
-  &async_sql_service_plugin,
-  "UDAParts Asynchronous MySQL/MariaDB Plugin",
+  &async_sql_plugin,
+  "UDAParts_Async_SQL",
   "UDAParts",
-  "Asynchronous SQL Commands",
+  "Async SQL Real-time Streaming Processing",
   PLUGIN_LICENSE_PROPRIETARY,
   async_sql_plugin_init,		/* Plugin Init */
   async_sql_plugin_deinit,		/* Plugin Deinit */
@@ -122,6 +121,7 @@ static int async_auth_plugin_client(MYSQL_PLUGIN_VIO *vio, MYSQL *mysql)
   return CR_OK;
 }
 
+/*
 mysql_declare_client_plugin(AUTHENTICATION)
   "UDAParts_MySQL_Auth_Plugin",
   "UDParts",
@@ -134,3 +134,4 @@ mysql_declare_client_plugin(AUTHENTICATION)
   NULL,
   async_auth_plugin_client
 mysql_end_client_plugin;
+*/
