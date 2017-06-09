@@ -18,7 +18,7 @@
 #define MYSQL_PORT_DEFAULT          0
 #define MYSQL_UNIX_ADDR            "/tmp/mysql.sock"
 #define MYSQL_CONFIG_NAME          "my"
-#define MYSQL_COMPILATION_COMMENT  "MySQL Community Server (GPL)"
+#define MYSQL_COMPILATION_COMMENT  "Source distribution"
 #define LIBMYSQL_VERSION           "5.7.12"
 #define LIBMYSQL_VERSION_ID         50712
 #define SYS_SCHEMA_VERSION         "1.5.0"

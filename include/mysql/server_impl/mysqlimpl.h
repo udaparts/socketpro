@@ -1,15 +1,20 @@
 #pragma once
 
 #include <memory>
-#include "mysql_funcs.h"
-#include "../umysql_server.h"
 #include "../../udatabase.h"
 #include "../../aserverw.h"
+#include "../../mysql/umysql.h"
+
+#include "../../mysql/my_config.h"
+#include "../../mysql/my_global.h"
+#include "../../mysql/mysql.h"
+#include "../../mysql/mysql_time.h"
+#include "../../mysql/mysql/plugin_auth.h"
+
 
 namespace SPA {
     namespace ServerSide {
         using namespace UDB;
-        using namespace Mysql;
 
         class CMysqlImpl : public CClientPeer {
             //no copy constructor
@@ -51,53 +56,12 @@ namespace SPA {
                 }
             };
 
-            struct MYSQL_CONNECTION_STRING {
-
-                MYSQL_CONNECTION_STRING() : timeout(10), port(3306) {
-                }
-                unsigned int timeout; //timeout | connect-timeout seconds
-                std::string database; //database
-                std::string host; //host | server
-                std::string password; //pwd | password
-                unsigned int port; //default to 3306
-                std::string ssl_ca; //file_name
-                std::string ssl_capath; //dir_name
-                std::string ssl_cert; //file_name
-                std::string ssl_cipher; //cipher_list
-                std::string ssl_key; //file_name
-                std::string user; //user | uid
-
-                bool IsRemote() const {
-                    return (host.size() > 0);
-                }
-
-                bool IsSSL() const {
-                    return (ssl_ca.size() || ssl_capath.size() || ssl_cert.size() || ssl_cipher.size() || ssl_key.size());
-                }
-                void Parse(const char *s);
-                static void Trim(std::string &s);
-
-            private:
-                void Init();
-                MYSQL_CONNECTION_STRING(const MYSQL_CONNECTION_STRING &conn);
-                MYSQL_CONNECTION_STRING& operator=(const MYSQL_CONNECTION_STRING &conn);
-            };
-
         public:
             CMysqlImpl();
             unsigned int GetParameters() const;
-            MYSQL* GetDBHandle() const;
-            MYSQL_STMT* GetPreparedStatement() const;
             bool IsGloballyConnected() const;
             bool IsStoredProcedure() const;
             const std::string& GetProcedureName() const;
-            CMysqlLoader* GetLib() const;
-
-            static void SetDBGlobalConnectionString(const wchar_t *dbConnection, bool remote);
-            static const char* SetEmbeddedOptions(const wchar_t *options);
-            static void UnloadMysql();
-            static bool InitMySql();
-            static bool InitEmbeddedMySql();
 
         protected:
             virtual void OnFastRequestArrive(unsigned short reqId, unsigned int len);
@@ -129,32 +93,24 @@ namespace SPA {
         private:
             void ExecuteSqlWithoutRowset(int &res, std::wstring &errMsg, INT64 &affected);
             void ExecuteSqlWithRowset(bool meta, UINT64 index, int &res, std::wstring &errMsg, INT64 &affected);
-            CDBColumnInfoArray GetColInfo(MYSQL_RES *result, unsigned int cols, bool prepare);
-            bool PushRecords(MYSQL_RES *result, const CDBColumnInfoArray &vColInfo, int &res, std::wstring &errMsg);
             int Bind(CUQueue &qBufferSize, int row, std::wstring &errMsg);
-            std::shared_ptr<MYSQL_BIND> PrepareBindResultBuffer(MYSQL_RES *result, const CDBColumnInfoArray &vColInfo, int &res, std::wstring &errMsg, std::shared_ptr<MYSQL_BIND_RESULT_FIELD> &field);
-            bool PushRecords(UINT64 index, MYSQL_BIND *binds, MYSQL_BIND_RESULT_FIELD *fields, const CDBColumnInfoArray &vColInfo, bool rowset, bool output, int &res, std::wstring &errMsg);
             void PreprocessPreparedStatement();
-#ifdef NO_PARAMETER_PREPARED_STATEMENT_SUPPORTED
-            void ExecuteNoParameter(bool rowset, bool meta, bool lastInsertId, UINT64 index, INT64 &affected, int &res, std::wstring &errMsg, CDBVariant &vtId, UINT64 & fail_ok);
-#endif
             void CleanDBObjects();
             void ResetMemories();
 
-            static std::vector<std::string> ParseOptions();
-            //mysql specific functions
             static UINT64 ConvertBitsToInt(const unsigned char *s, unsigned int bytes);
             static void ConvertToUTF8OrDouble(CDBVariant &vt);
             static void CALLBACK OnThreadEventEmbedded(SPA::ServerSide::tagThreadEvent te);
             static void CALLBACK OnThreadEvent(SPA::ServerSide::tagThreadEvent te);
             static UINT64 ToUDateTime(const MYSQL_TIME &td);
+			static void Trim(std::string &s);
+			static const wchar_t *fieldtype2str(enum_field_types type);
 
         protected:
             UINT64 m_oks;
             UINT64 m_fails;
             tagTransactionIsolation m_ti;
             CDBVariantArray m_vParam;
-            CMysqlLoader *m_pLib;
 
         private:
             SPA::CScopeUQueue m_sb;
@@ -163,10 +119,10 @@ namespace SPA {
             CUQueue &m_Blob;
 
             //MySql connection handle
-            std::shared_ptr<MYSQL> m_pMysql;
+            std::shared_ptr<Srv_session> m_pMysql;
 
             //parameterized statement
-            std::shared_ptr<MYSQL_STMT> m_pPrepare;
+            //std::shared_ptr<MYSQL_STMT> m_pPrepare;
             size_t m_parameters;
             bool m_bCall;
             std::string m_sqlPrepare;
@@ -187,21 +143,6 @@ namespace SPA {
             static const wchar_t* NO_DB_NAME_SPECIFIED;
             static const wchar_t* MYSQL_LIBRARY_NOT_INITIALIZED;
             static const wchar_t* BAD_MANUAL_TRANSACTION_STATE;
-
-            static const wchar_t* MYSQL_GLOBAL_CONNECTION_STRING;
-
-            static CUCriticalSection m_csPeer;
-            static std::wstring m_strGlobalConnection; //remote mysql server, protected by m_csPeer
-            static std::wstring m_strGlobalDB; //embedded database, protected by m_csPeer
-            static bool m_bInitMysql; //protected by m_csPeer
-            static bool m_bInitEmbeddedMysql; //protected by m_csPeer
-            static std::string m_strOptions; //protected by m_csPeer
-
-            static CMysqlLoader m_remMysql;
-            static CMysqlLoader m_embMysql;
-
-        public:
-            static unsigned int m_nParam;
         };
 
         typedef CSocketProService<CMysqlImpl> CMysqlService;
