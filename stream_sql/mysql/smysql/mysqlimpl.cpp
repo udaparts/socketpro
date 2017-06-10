@@ -97,22 +97,11 @@ namespace SPA
             M_I0_R0(idTransferring, Transferring)
             M_I0_R0(idEndRows, EndRows)
             M_I0_R2(idClose, CloseDb, int, std::wstring)
-            M_I2_R3(idOpen, Open, std::wstring, unsigned int, int, std::wstring, int)
-            M_I3_R3(idBeginTrans, BeginTrans, int, std::wstring, unsigned int, int, std::wstring, int)
-            M_I1_R2(idEndTrans, EndTrans, int, int, std::wstring)
-            M_I5_R5(idExecute, Execute, std::wstring, bool, bool, bool, UINT64, INT64, int, std::wstring, CDBVariant, UINT64)
-            M_I2_R3(idPrepare, Prepare, std::wstring, CParameterInfoArray, int, std::wstring, unsigned int)
-            M_I4_R5(idExecuteParameters, ExecuteParameters, bool, bool, bool, UINT64, INT64, int, std::wstring, CDBVariant, UINT64)
             END_SWITCH
-            if (reqId == idExecuteParameters) {
-                ReleaseArray();
-                m_vParam.clear();
-            }
         }
 
         int CMysqlImpl::OnSlowRequestArrive(unsigned short reqId, unsigned int len) {
             BEGIN_SWITCH(reqId)
-            M_I0_R2(idClose, CloseDb, int, std::wstring)
             M_I2_R3(idOpen, Open, std::wstring, unsigned int, int, std::wstring, int)
             M_I3_R3(idBeginTrans, BeginTrans, int, std::wstring, unsigned int, int, std::wstring, int)
             M_I1_R2(idEndTrans, EndTrans, int, int, std::wstring)

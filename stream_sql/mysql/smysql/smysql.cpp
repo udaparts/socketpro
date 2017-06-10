@@ -1,26 +1,36 @@
 
-#include "mysqlimpl.h"
-#include "include/mysql/client_plugin.h"
-
+#include "streamingserver.h"
 
 static int async_sql_plugin_init(void *p) {
-    my_plugin_log_message(&p, MY_INFORMATION_LEVEL, "Installation");
+	/*
+	g_pStreamingServer = new CStreamingServer(CSetGlobals::Globals.m_nParam);
+	if (CSetGlobals::Globals.TLSv) {
+
+	}
+	if (!g_pStreamingServer->Run(CSetGlobals::Globals.Port)) {
+		my_plugin_log_message(&p, MY_INFORMATION_LEVEL, "Installation failed as SQL streaming service is not started successfully");
+		return 1;
+	}
+	*/
+	my_plugin_log_message(&p, MY_INFORMATION_LEVEL, "Installation");
     return 0;
 }
 
 static int async_sql_plugin_deinit(void *p) {
+	/*
+	if (g_pStreamingServer) {
+		g_pStreamingServer->StopSocketProServer();
+		g_pStreamingServer = nullptr;
+	}
+	*/
     my_plugin_log_message(&p, MY_INFORMATION_LEVEL, "Uninstallation");
     return 0;
 }
 
-st_mysql_daemon async_sql_plugin = {
-    MYSQL_DAEMON_INTERFACE_VERSION
-};
-
 mysql_declare_plugin(async_sql) {
     MYSQL_DAEMON_PLUGIN,
-    &async_sql_plugin,
-    "UDAParts_Async_SQL",
+    &CSetGlobals::Globals.async_sql_plugin,
+    "UDAParts_SQL_Streaming",
     "UDAParts",
     "Async SQL Real-time Streaming Processing",
     PLUGIN_LICENSE_PROPRIETARY,

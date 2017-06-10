@@ -36,6 +36,9 @@
     <ClInclude Include="..\..\..\include\membuffer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="streamingserver.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -54,6 +57,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="smysql.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="streamingserver.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

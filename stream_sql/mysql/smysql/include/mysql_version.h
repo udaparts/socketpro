@@ -13,7 +13,7 @@
 #define MYSQL_BASE_VERSION         "mysqld-5.7"
 #define MYSQL_SERVER_SUFFIX_DEF    ""
 #define FRM_VER                     6
-#define MYSQL_VERSION_ID            50718
+#define MYSQL_VERSION_ID            50712
 #define MYSQL_PORT                  3306
 #define MYSQL_PORT_DEFAULT          0
 #define MYSQL_UNIX_ADDR            "/tmp/mysql.sock"
