@@ -14,7 +14,6 @@
 
 4.	There are following four samples available for you to study at this time.
 	- HelloWorld: The simpliest tutorial for SocketPro server plug-in development with C/C++
-	- umysql: Async mysql and mariadb client/server applications on SocketPro communication framework
 	- uodbc: Async ODBC client/server applications on SocketPro communication framework
 	- usqlite: Async sqlite client/server applications on SocketPro communication framework
 	- uasyncqueue: Async persistent queue on SocketPro communication framework
