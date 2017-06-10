@@ -1,15 +1,15 @@
 #pragma once
 
 #include <memory>
-#include "../../udatabase.h"
-#include "../../aserverw.h"
-#include "../../mysql/umysql.h"
+#include "../../../include/aserverw.h"
+#include "../../../include/udatabase.h"
+#include "../../../include/mysql/umysql.h"
 
-#include "../../mysql/my_config.h"
-#include "../../mysql/my_global.h"
-#include "../../mysql/mysql.h"
-#include "../../mysql/mysql_time.h"
-#include "../../mysql/mysql/plugin_auth.h"
+#include "include/my_config.h"
+#include "include/my_global.h"
+#include "include/mysql.h"
+#include "include/mysql_time.h"
+#include "include/mysql/plugin_auth.h"
 
 
 namespace SPA {

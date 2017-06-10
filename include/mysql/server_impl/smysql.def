@@ -1,5 +1,0 @@
-
-LIBRARY			"smysql.dll"
-
-EXPORTS
-	

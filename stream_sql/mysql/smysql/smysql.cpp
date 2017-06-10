@@ -1,7 +1,7 @@
 
-
 #include "mysqlimpl.h"
-#include "../../mysql/mysql/client_plugin.h"
+#include "include/mysql/client_plugin.h"
+
 
 static int async_sql_plugin_init(void *p) {
     my_plugin_log_message(&p, MY_INFORMATION_LEVEL, "Installation");
