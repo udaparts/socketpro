@@ -39,3 +39,6 @@ public:
     st_mysql_daemon async_sql_plugin;
     static CSetGlobals Globals;
 };
+
+int async_sql_plugin_init(void *p);
+int async_sql_plugin_deinit(void *p);

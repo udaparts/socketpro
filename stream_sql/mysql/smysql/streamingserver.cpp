@@ -3,7 +3,38 @@
 #include "streamingserver.h"
 #include "include/mysql/client_plugin.h"
 
+CStreamingServer *g_pStreamingServer = nullptr;
+
+int async_sql_plugin_init(void *p) {
+    my_plugin_log_message(&p, MY_INFORMATION_LEVEL, "Installation");
+
+    //g_pStreamingServer = new CStreamingServer(CSetGlobals::Globals.m_nParam);
+    if (CSetGlobals::Globals.TLSv) {
+
+    }
+	/*
+    if (!g_pStreamingServer->Run(CSetGlobals::Globals.Port)) {
+            my_plugin_log_message(&p, MY_INFORMATION_LEVEL, "Installation failed as SQL streaming service is not started successfully");
+            return 1;
+    }
+	*/
+    return 0;
+}
+
+int async_sql_plugin_deinit(void *p) {
+    if (g_pStreamingServer) {
+        g_pStreamingServer->StopSocketProServer();
+        g_pStreamingServer->Clean();
+        delete g_pStreamingServer;
+        g_pStreamingServer = nullptr;
+    }
+    my_plugin_log_message(&p, MY_INFORMATION_LEVEL, "Uninstallation");
+    return 0;
+}
+
 CSetGlobals::CSetGlobals() {
+	//::Sleep(50000);
+
     //defaults
     m_nParam = 0;
     DisableV6 = false;
@@ -14,6 +45,8 @@ CSetGlobals::CSetGlobals() {
     unsigned int version = MYSQL_VERSION_ID;
     async_sql_plugin.interface_version = (version << 8);
 }
+
+CSetGlobals CSetGlobals::Globals;
 
 CStreamingServer::CStreamingServer(int nParam)
 : SPA::ServerSide::CSocketProServer(nParam), m_pMySql(nullptr) {

@@ -7,9 +7,8 @@
 
 #include "include/my_config.h"
 #include "include/my_global.h"
-//#include "include/mysql.h"
 #include "include/mysql_time.h"
-#include "include/mysql/plugin_auth.h"
+#include "include/mysql/plugin.h"
 
 
 namespace SPA {
