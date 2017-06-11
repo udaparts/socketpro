@@ -1,7 +1,11 @@
 
 #include "streamingserver.h"
 
+CStreamingServer *g_pStreamingServer = nullptr;
+CSetGlobals CSetGlobals::Globals;
+
 static int async_sql_plugin_init(void *p) {
+	my_plugin_log_message(&p, MY_INFORMATION_LEVEL, "Installation");
 	/*
 	g_pStreamingServer = new CStreamingServer(CSetGlobals::Globals.m_nParam);
 	if (CSetGlobals::Globals.TLSv) {
@@ -12,7 +16,6 @@ static int async_sql_plugin_init(void *p) {
 		return 1;
 	}
 	*/
-	my_plugin_log_message(&p, MY_INFORMATION_LEVEL, "Installation");
     return 0;
 }
 
@@ -26,8 +29,6 @@ static int async_sql_plugin_deinit(void *p) {
     my_plugin_log_message(&p, MY_INFORMATION_LEVEL, "Uninstallation");
     return 0;
 }
-
-CSetGlobals CSetGlobals::Globals;
 
 mysql_declare_plugin(async_sql) {
     MYSQL_DAEMON_PLUGIN,
@@ -46,7 +47,6 @@ mysql_declare_plugin(async_sql) {
 }
 mysql_declare_plugin_end;
 
-CStreamingServer *g_pStreamingServer = nullptr;
 
 /********************* CLIENT SIDE ***************************************/
 
