@@ -4,13 +4,11 @@
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
                    projectFiles="true">
-      <itemPath>../../../../include/aserverw.h</itemPath>
-      <itemPath>../../../../include/membuffer.h</itemPath>
-      <itemPath>../../../../include/mysql/server_impl/mysql_funcs.h</itemPath>
-      <itemPath>../../../../include/mysql/server_impl/mysqlimpl.h</itemPath>
-      <itemPath>../../../../include/udatabase.h</itemPath>
-      <itemPath>../../../../include/mysql/umysql.h</itemPath>
-      <itemPath>../../../../include/mysql/umysql_server.h</itemPath>
+      <itemPath>../../../include/aserverw.h</itemPath>
+      <itemPath>../../../include/membuffer.h</itemPath>
+      <itemPath>mysqlimpl.h</itemPath>
+      <itemPath>stdafx.h</itemPath>
+      <itemPath>streamingserver.h</itemPath>
     </logicalFolder>
     <logicalFolder name="ResourceFiles"
                    displayName="Resource Files"
@@ -19,10 +17,12 @@
     <logicalFolder name="SourceFiles"
                    displayName="Source Files"
                    projectFiles="true">
-      <itemPath>../../../../include/aserverw.cpp</itemPath>
-      <itemPath>../../../../include/membuffer.cpp</itemPath>
-      <itemPath>../../../../include/mysql/server_impl/mysqlimpl.cpp</itemPath>
-      <itemPath>../../../../include/mysql/server_impl/smysql.cpp</itemPath>
+      <itemPath>../../../include/aserverw.cpp</itemPath>
+      <itemPath>../../../include/membuffer.cpp</itemPath>
+      <itemPath>mysqlimpl.cpp</itemPath>
+      <itemPath>smysql.cpp</itemPath>
+      <itemPath>stdafx.cpp</itemPath>
+      <itemPath>streamingserver.cpp</itemPath>
     </logicalFolder>
     <logicalFolder name="TestFiles"
                    displayName="Test Files"
@@ -59,42 +59,27 @@
           <commandLine>-std=c++11 -static-libgcc -static-libstdc++</commandLine>
         </linkerTool>
       </compileType>
-      <item path="../../../../include/aserverw.cpp" ex="false" tool="0" flavor2="0">
+      <item path="../../../include/aserverw.cpp" ex="false" tool="0" flavor2="0">
       </item>
-      <item path="../../../../include/aserverw.h" ex="false" tool="3" flavor2="0">
+      <item path="../../../include/aserverw.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../../../include/membuffer.cpp" ex="false" tool="0" flavor2="0">
+      <item path="../../../include/membuffer.cpp" ex="false" tool="0" flavor2="0">
       </item>
-      <item path="../../../../include/membuffer.h" ex="false" tool="3" flavor2="0">
+      <item path="../../../include/membuffer.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../../../include/mysql/server_impl/mysql_funcs.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
+      <item path="mysqlimpl.cpp" ex="false" tool="0" flavor2="0">
       </item>
-      <item path="../../../../include/mysql/server_impl/mysqlimpl.cpp"
-            ex="false"
-            tool="0"
-            flavor2="0">
+      <item path="mysqlimpl.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../../../include/mysql/server_impl/mysqlimpl.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
+      <item path="smysql.cpp" ex="false" tool="0" flavor2="0">
       </item>
-      <item path="../../../../include/mysql/server_impl/smysql.cpp"
-            ex="false"
-            tool="0"
-            flavor2="0">
+      <item path="stdafx.cpp" ex="false" tool="0" flavor2="0">
       </item>
-      <item path="../../../../include/mysql/umysql.h" ex="false" tool="3" flavor2="0">
+      <item path="stdafx.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../../../include/mysql/umysql_server.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
+      <item path="streamingserver.cpp" ex="false" tool="0" flavor2="0">
       </item>
-      <item path="../../../../include/udatabase.h" ex="false" tool="3" flavor2="0">
+      <item path="streamingserver.h" ex="false" tool="3" flavor2="0">
       </item>
     </conf>
     <conf name="Release" type="2">
@@ -135,42 +120,27 @@
           <commandLine>-std=c++11 -static-libgcc -static-libstdc++</commandLine>
         </linkerTool>
       </compileType>
-      <item path="../../../../include/aserverw.cpp" ex="false" tool="0" flavor2="0">
+      <item path="../../../include/aserverw.cpp" ex="false" tool="0" flavor2="0">
       </item>
-      <item path="../../../../include/aserverw.h" ex="false" tool="3" flavor2="0">
+      <item path="../../../include/aserverw.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../../../include/membuffer.cpp" ex="false" tool="0" flavor2="0">
+      <item path="../../../include/membuffer.cpp" ex="false" tool="0" flavor2="0">
       </item>
-      <item path="../../../../include/membuffer.h" ex="false" tool="3" flavor2="0">
+      <item path="../../../include/membuffer.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../../../include/mysql/server_impl/mysql_funcs.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
+      <item path="mysqlimpl.cpp" ex="false" tool="0" flavor2="0">
       </item>
-      <item path="../../../../include/mysql/server_impl/mysqlimpl.cpp"
-            ex="false"
-            tool="0"
-            flavor2="0">
+      <item path="mysqlimpl.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../../../include/mysql/server_impl/mysqlimpl.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
+      <item path="smysql.cpp" ex="false" tool="0" flavor2="0">
       </item>
-      <item path="../../../../include/mysql/server_impl/smysql.cpp"
-            ex="false"
-            tool="0"
-            flavor2="0">
+      <item path="stdafx.cpp" ex="false" tool="0" flavor2="0">
       </item>
-      <item path="../../../../include/mysql/umysql.h" ex="false" tool="3" flavor2="0">
+      <item path="stdafx.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../../../include/mysql/umysql_server.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
+      <item path="streamingserver.cpp" ex="false" tool="0" flavor2="0">
       </item>
-      <item path="../../../../include/udatabase.h" ex="false" tool="3" flavor2="0">
+      <item path="streamingserver.h" ex="false" tool="3" flavor2="0">
       </item>
     </conf>
   </confs>

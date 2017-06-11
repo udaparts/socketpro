@@ -40,7 +40,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 [...]
 */
 
-#include "mysql/psi/psi.h"
+#include "psi.h"
 
 #ifndef PSI_SOCKET_CALL
 #define PSI_SOCKET_CALL(M) PSI_DYNAMIC_CALL(M)

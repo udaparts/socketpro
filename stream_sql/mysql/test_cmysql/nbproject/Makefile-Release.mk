@@ -35,8 +35,8 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 
 # Object Files
 OBJECTFILES= \
-	${OBJECTDIR}/_ext/562988696/aclientw.o \
-	${OBJECTDIR}/_ext/562988696/membuffer.o \
+	${OBJECTDIR}/_ext/932346631/aclientw.o \
+	${OBJECTDIR}/_ext/932346631/membuffer.o \
 	${OBJECTDIR}/test_cmysql.o
 
 
@@ -64,15 +64,15 @@ ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/test_cmysql: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
 	${LINK.c} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/test_cmysql ${OBJECTFILES} ${LDLIBSOPTIONS} -std=c++11 -lstdc++
 
-${OBJECTDIR}/_ext/562988696/aclientw.o: ../../../../include/aclientw.cpp 
-	${MKDIR} -p ${OBJECTDIR}/_ext/562988696
+${OBJECTDIR}/_ext/932346631/aclientw.o: ../../../include/aclientw.cpp 
+	${MKDIR} -p ${OBJECTDIR}/_ext/932346631
 	${RM} "$@.d"
-	$(COMPILE.c) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/562988696/aclientw.o ../../../../include/aclientw.cpp
+	$(COMPILE.c) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/932346631/aclientw.o ../../../include/aclientw.cpp
 
-${OBJECTDIR}/_ext/562988696/membuffer.o: ../../../../include/membuffer.cpp 
-	${MKDIR} -p ${OBJECTDIR}/_ext/562988696
+${OBJECTDIR}/_ext/932346631/membuffer.o: ../../../include/membuffer.cpp 
+	${MKDIR} -p ${OBJECTDIR}/_ext/932346631
 	${RM} "$@.d"
-	$(COMPILE.c) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/562988696/membuffer.o ../../../../include/membuffer.cpp
+	$(COMPILE.c) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/932346631/membuffer.o ../../../include/membuffer.cpp
 
 ${OBJECTDIR}/test_cmysql.o: test_cmysql.cpp 
 	${MKDIR} -p ${OBJECTDIR}

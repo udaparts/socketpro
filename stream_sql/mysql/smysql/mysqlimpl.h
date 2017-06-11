@@ -7,7 +7,7 @@
 
 #include "include/my_config.h"
 #include "include/my_global.h"
-#include "include/mysql.h"
+//#include "include/mysql.h"
 #include "include/mysql_time.h"
 #include "include/mysql/plugin_auth.h"
 
@@ -103,8 +103,8 @@ namespace SPA {
             static void CALLBACK OnThreadEventEmbedded(SPA::ServerSide::tagThreadEvent te);
             static void CALLBACK OnThreadEvent(SPA::ServerSide::tagThreadEvent te);
             static UINT64 ToUDateTime(const MYSQL_TIME &td);
-			static void Trim(std::string &s);
-			static const wchar_t *fieldtype2str(enum_field_types type);
+            static void Trim(std::string &s);
+            static const wchar_t *fieldtype2str(enum_field_types type);
 
         protected:
             UINT64 m_oks;

@@ -24,7 +24,7 @@
 #include "my_thread.h" /* my_thread_handle */
 //#include <mysql/psi/psi.h>
 //#include <pfs_socket_provider.h>
-#include "psi/mysql_socket.h"
+#include "mysql/psi/mysql_socket.h"
 
 /* Simple vio interface in C;  The functions are implemented in violite.c */
 

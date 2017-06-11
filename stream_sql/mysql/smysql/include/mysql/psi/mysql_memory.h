@@ -21,7 +21,7 @@
   Instrumentation helpers for memory allocation.
 */
 
-#include "mysql/psi/psi.h"
+#include "psi.h"
 
 #ifndef PSI_MEMORY_CALL
 #define PSI_MEMORY_CALL(M) PSI_DYNAMIC_CALL(M)
