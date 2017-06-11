@@ -9,14 +9,17 @@ public:
 	CStreamingServer(int nParam = 0);
 	~CStreamingServer();
 
+public:
+	void Clean();
+
 protected:
 	virtual bool OnSettingServer(unsigned int listeningPort, unsigned int maxBacklog, bool v6);
 
 private:
 	bool AddService();
 
-public:
-	SPA::ServerSide::CMysqlService m_MySql;
+private:
+	SPA::ServerSide::CMysqlService *m_pMySql;
 
 private:
 	CStreamingServer(const CStreamingServer &ss);

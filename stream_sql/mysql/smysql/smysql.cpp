@@ -17,15 +17,17 @@ static int async_sql_plugin_init(void *p) {
 }
 
 static int async_sql_plugin_deinit(void *p) {
-	/*
 	if (g_pStreamingServer) {
 		g_pStreamingServer->StopSocketProServer();
+		g_pStreamingServer->Clean();
+		delete g_pStreamingServer;
 		g_pStreamingServer = nullptr;
 	}
-	*/
     my_plugin_log_message(&p, MY_INFORMATION_LEVEL, "Uninstallation");
     return 0;
 }
+
+CSetGlobals CSetGlobals::Globals;
 
 mysql_declare_plugin(async_sql) {
     MYSQL_DAEMON_PLUGIN,
@@ -44,6 +46,7 @@ mysql_declare_plugin(async_sql) {
 }
 mysql_declare_plugin_end;
 
+CStreamingServer *g_pStreamingServer = nullptr;
 
 /********************* CLIENT SIDE ***************************************/
 

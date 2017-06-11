@@ -486,6 +486,7 @@ namespace SPA
 
         CBaseService::CBaseService(unsigned int svsId, tagThreadApartment ta)
         : m_nServiceId(svsId) {
+			ServerCoreLoader.Load();
             if (!ServerCoreLoader.IsLoaded())
                 throw CUExCode("Server core library not accessible!", MB_BAD_OPERATION);
             m_SvsContext.m_OnChatRequestCame = &CBaseService::OnChatCame;
@@ -1004,6 +1005,7 @@ namespace SPA
 
         CSocketProServer::CSocketProServer(int nParam)
         : m_listeningPort(20901), m_maxBacklog(32) {
+			ServerCoreLoader.Load();
             if (m_pServer != nullptr)
                 throw CUExCode("One instance supported only per application!", MB_BAD_OPERATION);
             if (!ServerCoreLoader.IsLoaded())
