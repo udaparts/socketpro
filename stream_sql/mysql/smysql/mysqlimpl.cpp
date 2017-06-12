@@ -4,6 +4,7 @@
 #ifndef NDEBUG
 #include <iostream>
 #endif
+#include "streamingserver.h"
 
 namespace SPA
 {
@@ -20,8 +21,38 @@ namespace SPA
         const wchar_t * CMysqlImpl::NO_DB_NAME_SPECIFIED = L"No mysql database name specified";
         const wchar_t * CMysqlImpl::MYSQL_LIBRARY_NOT_INITIALIZED = L"Mysql library not initialized";
         const wchar_t * CMysqlImpl::BAD_MANUAL_TRANSACTION_STATE = L"Bad manual transaction state";
+        const wchar_t * CMysqlImpl::UNABLE_TO_SWITCH_TO_DATABASE = L"Unable to switch to database ";
 
-        CMysqlImpl::CMysqlImpl() : m_oks(0), m_fails(0), m_ti(tiUnspecified), m_global(true), m_Blob(*m_sb), m_parameters(0), m_bCall(false) {
+        st_command_service_cbs CMysqlImpl::m_sql_cbs =
+        {
+            CMysqlImpl::sql_start_result_metadata,
+            CMysqlImpl::sql_field_metadata,
+            CMysqlImpl::sql_end_result_metadata,
+            CMysqlImpl::sql_start_row,
+            CMysqlImpl::sql_end_row,
+            CMysqlImpl::sql_abort_row,
+            CMysqlImpl::sql_get_client_capabilities,
+            CMysqlImpl::sql_get_null,
+            CMysqlImpl::sql_get_integer,
+            CMysqlImpl::sql_get_longlong,
+            CMysqlImpl::sql_get_decimal,
+            CMysqlImpl::sql_get_double,
+            CMysqlImpl::sql_get_date,
+            CMysqlImpl::sql_get_time,
+            CMysqlImpl::sql_get_datetime,
+            CMysqlImpl::sql_get_string,
+            CMysqlImpl::sql_handle_ok,
+            CMysqlImpl::sql_handle_error,
+            CMysqlImpl::sql_shutdown
+        };
+
+        CMysqlImpl::CMysqlImpl()
+        : m_oks(0), m_fails(0), m_ti(tiUnspecified), m_global(true),
+        m_Blob(*m_sb), m_parameters(0), m_bCall(false), m_sql_errno(0),
+        m_sc(nullptr), m_sql_resultcs(nullptr), m_sql_num_meta_rows(0),
+        m_sql_num_rows(0), m_ColIndex(0), m_Cols(0),
+        m_sql_flags(0), m_Rows(0), m_affected_rows(0), m_last_insert_id(0),
+        m_server_status(0), m_statement_warn_count(0) {
             m_Blob.ToUtf8(true);
 #ifdef WIN32_64
             m_UQueue.TimeEx(true); //use high-precision datetime
@@ -116,19 +147,159 @@ namespace SPA
             return 0;
         }
 
+        int CMysqlImpl::sql_start_result_metadata(void *ctx, uint num_cols, uint flags, const CHARSET_INFO * resultcs) {
+            CMysqlImpl *impl = (CMysqlImpl *) ctx;
+            impl->m_Rows = 0;
+            impl->m_Cols = num_cols;
+            impl->m_sql_resultcs = resultcs;
+            impl->m_sql_flags = flags;
+            return 0;
+        }
+
+        int CMysqlImpl::sql_field_metadata(void *ctx, struct st_send_field *field, const CHARSET_INFO * charset) {
+            CMysqlImpl *impl = (CMysqlImpl *) ctx;
+            return 0;
+        }
+
+        int CMysqlImpl::sql_end_result_metadata(void *ctx, uint server_status, uint warn_count) {
+            CMysqlImpl *impl = (CMysqlImpl *) ctx;
+            impl->m_sql_num_meta_rows = (unsigned int) impl->m_Rows;
+            impl->m_Rows = 0;
+            return 0;
+        }
+
+        int CMysqlImpl::sql_start_row(void *ctx) {
+            CMysqlImpl *impl = (CMysqlImpl *) ctx;
+            impl->m_ColIndex = 0;
+            return 0;
+        }
+
+        int CMysqlImpl::sql_end_row(void *ctx) {
+            CMysqlImpl *impl = (CMysqlImpl *) ctx;
+            ++impl->m_Rows;
+            return 0;
+        }
+
+        void CMysqlImpl::sql_abort_row(void *ctx) {
+            CMysqlImpl *impl = (CMysqlImpl *) ctx;
+        }
+
+        ulong CMysqlImpl::sql_get_client_capabilities(void *ctx) {
+            CMysqlImpl *impl = (CMysqlImpl *) ctx;
+            return 0;
+        }
+
+        int CMysqlImpl::sql_get_null(void *ctx) {
+            CMysqlImpl *impl = (CMysqlImpl *) ctx;
+            ++impl->m_ColIndex;
+            return 0;
+        }
+
+        int CMysqlImpl::sql_get_integer(void * ctx, longlong value) {
+            CMysqlImpl *impl = (CMysqlImpl *) ctx;
+            ++impl->m_ColIndex;
+            return 0;
+        }
+
+        int CMysqlImpl::sql_get_longlong(void * ctx, longlong value, uint is_unsigned) {
+            CMysqlImpl *impl = (CMysqlImpl *) ctx;
+            ++impl->m_ColIndex;
+            return 0;
+        }
+
+        int CMysqlImpl::sql_get_decimal(void * ctx, const decimal_t * value) {
+            CMysqlImpl *impl = (CMysqlImpl *) ctx;
+            ++impl->m_ColIndex;
+            return 0;
+        }
+
+        int CMysqlImpl::sql_get_double(void * ctx, double value, uint32 decimals) {
+            CMysqlImpl *impl = (CMysqlImpl *) ctx;
+            ++impl->m_ColIndex;
+            return 0;
+        }
+
+        int CMysqlImpl::sql_get_date(void * ctx, const MYSQL_TIME * value) {
+            CMysqlImpl *impl = (CMysqlImpl *) ctx;
+            ++impl->m_ColIndex;
+            return 0;
+        }
+
+        int CMysqlImpl::sql_get_time(void * ctx, const MYSQL_TIME * value, uint decimals) {
+            CMysqlImpl *impl = (CMysqlImpl *) ctx;
+            ++impl->m_ColIndex;
+            return 0;
+        }
+
+        int CMysqlImpl::sql_get_datetime(void * ctx, const MYSQL_TIME * value, uint decimals) {
+            CMysqlImpl *impl = (CMysqlImpl *) ctx;
+            ++impl->m_ColIndex;
+            return 0;
+        }
+
+        int CMysqlImpl::sql_get_string(void * ctx, const char * const value, size_t length, const CHARSET_INFO * const valuecs) {
+            CMysqlImpl *impl = (CMysqlImpl *) ctx;
+            ++impl->m_ColIndex;
+            return 0;
+        }
+
+        void CMysqlImpl::sql_handle_ok(void * ctx, uint server_status, uint statement_warn_count, ulonglong affected_rows, ulonglong last_insert_id, const char * const message) {
+            CMysqlImpl *impl = (CMysqlImpl *) ctx;
+            impl->m_sql_errno = 0;
+            impl->m_server_status = server_status;
+            impl->m_statement_warn_count = statement_warn_count;
+            impl->m_affected_rows = affected_rows;
+            impl->m_last_insert_id = last_insert_id;
+            if (message)
+                impl->m_err_msg = SPA::Utilities::ToWide(message);
+            else
+                impl->m_err_msg.clear();
+        }
+
+        void CMysqlImpl::sql_handle_error(void * ctx, uint sql_errno, const char * const err_msg, const char * const sqlstate) {
+            CMysqlImpl *impl = (CMysqlImpl *) ctx;
+            impl->m_sql_errno = (int) sql_errno;
+            impl->m_err_msg = SPA::Utilities::ToWide(err_msg);
+            if (sqlstate)
+                impl->m_sqlstate = sqlstate;
+            else
+                impl->m_sqlstate.clear();
+        }
+
+        void CMysqlImpl::sql_shutdown(void *ctx, int shutdown_server) {
+            CMysqlImpl *impl = (CMysqlImpl *) ctx;
+        }
+
+        void CMysqlImpl::srv_session_error_cb(void *ctx, unsigned int sql_errno, const char *err_msg) {
+            CMysqlImpl *p = (CMysqlImpl *) ctx;
+            p->m_sql_errno = (int) sql_errno;
+            p->m_err_msg = SPA::Utilities::ToWide(err_msg);
+        }
+
         void CMysqlImpl::Open(const std::wstring &strConnection, unsigned int flags, int &res, std::wstring &errMsg, int &ms) {
             res = 0;
             ms = msMysql;
             CleanDBObjects();
-            MYSQL_SESSION st_session = srv_session_open(NULL, this);
+
+            MYSQL_SESSION st_session = srv_session_open(srv_session_error_cb, this);
             m_pMysql.reset(st_session, [this](MYSQL_SESSION mysql) {
                 if (mysql) {
-                    int ret = srv_session_close(mysql);
-                    if (ret) {
-                        //my_plugin_log_message(&p, MY_ERROR_LEVEL, "srv_session_close failed.");
-                    }
+                    srv_session_close(mysql);
                 }
             });
+            std::wstring user = GetUID();
+            std::string userA = SPA::Utilities::ToUTF8(user.c_str(), user.size());
+            std::string db = SPA::Utilities::ToUTF8(strConnection.c_str(), strConnection.size());
+            my_svc_bool fail = thd_get_security_context(srv_session_info_get_thd(st_session), &m_sc);
+            fail = security_context_lookup(m_sc, userA.c_str(), "localhost", "127.0.0.1", db.c_str());
+            if (fail) {
+                res = SPA::Mysql::ER_UNABLE_TO_SWITCH_TO_DATABASE;
+                errMsg = UNABLE_TO_SWITCH_TO_DATABASE + strConnection;
+                m_pMysql.reset();
+            } else {
+                res = 0;
+                errMsg = strConnection;
+            }
         }
 
         void CMysqlImpl::CloseDb(int &res, std::wstring & errMsg) {
@@ -163,6 +334,14 @@ namespace SPA
                 res = SPA::Mysql::ER_BAD_MANUAL_TRANSACTION_STATE;
                 return;
             }
+            if (!m_pMysql) {
+                Open(dbConn, flags, res, errMsg, ms);
+                if (!m_pMysql) {
+                    return;
+                }
+            } else {
+
+            }
             res = 0;
         }
 
@@ -177,6 +356,37 @@ namespace SPA
                 errMsg = BAD_END_TRANSTACTION_PLAN;
                 return;
             }
+            if (!m_pMysql) {
+                res = SPA::Mysql::ER_NO_DB_OPENED_YET;
+                errMsg = NO_DB_OPENED_YET;
+                return;
+            }
+            bool rollback = false;
+            tagRollbackPlan rp = (tagRollbackPlan) plan;
+            switch (rp) {
+                case rpRollbackErrorAny:
+                    rollback = m_fails ? true : false;
+                    break;
+                case rpRollbackErrorLess:
+                    rollback = (m_fails < m_oks && m_fails) ? true : false;
+                    break;
+                case rpRollbackErrorEqual:
+                    rollback = (m_fails >= m_oks) ? true : false;
+                    break;
+                case rpRollbackErrorMore:
+                    rollback = (m_fails > m_oks) ? true : false;
+                    break;
+                case rpRollbackErrorAll:
+                    rollback = (m_oks) ? false : true;
+                    break;
+                case rpRollbackAlways:
+                    rollback = true;
+                    break;
+                default:
+                    assert(false); //shouldn't come here
+                    break;
+            }
+            my_bool fail;
             res = 0;
         }
 
@@ -351,7 +561,38 @@ namespace SPA
             fail_ok = 0;
             affected = 0;
             ResetMemories();
-
+            if (!m_pMysql) {
+                res = SPA::Mysql::ER_NO_DB_OPENED_YET;
+                errMsg = NO_DB_OPENED_YET;
+                ++m_fails;
+                fail_ok = 1;
+                fail_ok <<= 32;
+                return;
+            } else {
+                res = 0;
+            }
+            vtId = (INT64) 0;
+            UINT64 fails = m_fails;
+            UINT64 oks = m_oks;
+            CScopeUQueue sb;
+            Utilities::ToUTF8(wsql.c_str(), wsql.size(), *sb);
+            const char *sqlUtf8 = (const char*) sb->GetBuffer();
+            COM_DATA cmd;
+            cmd.com_query.query = sqlUtf8;
+            cmd.com_query.length = sb->GetSize();
+            my_bool fail = command_service_run_command(m_pMysql.get(), COM_QUERY, &cmd, CSetGlobals::Globals.utf8_general_ci, &m_sql_cbs, CS_BINARY_REPRESENTATION, this);
+            if (fail) {
+                res = m_sql_errno;
+                errMsg = m_err_msg;
+                ++m_fails;
+            } else {
+                ++m_oks;
+                affected = (INT64) m_affected_rows;
+                if (lastInsertId)
+                    vtId = m_last_insert_id;
+            }
+            fail_ok = ((m_fails - fails) << 32);
+            fail_ok += (unsigned int) (m_oks - oks);
         }
 
         void CMysqlImpl::PreprocessPreparedStatement() {
@@ -382,12 +623,18 @@ namespace SPA
         void CMysqlImpl::Prepare(const std::wstring& wsql, CParameterInfoArray& params, int &res, std::wstring &errMsg, unsigned int &parameters) {
             ResetMemories();
             parameters = 0;
+            if (!m_pMysql) {
+                res = SPA::Mysql::ER_NO_DB_OPENED_YET;
+                errMsg = NO_DB_OPENED_YET;
+                return;
+            }
             res = 0;
             m_vParam.clear();
             m_parameters = 0;
             m_sqlPrepare = Utilities::ToUTF8(wsql.c_str(), wsql.size());
             CMysqlImpl::Trim(m_sqlPrepare);
             PreprocessPreparedStatement();
+            my_bool fail;
         }
 
         int CMysqlImpl::Bind(CUQueue &qBufferSize, int row, std::wstring & errMsg) {
@@ -419,6 +666,14 @@ namespace SPA
         void CMysqlImpl::ExecuteParameters(bool rowset, bool meta, bool lastInsertId, UINT64 index, INT64 &affected, int &res, std::wstring &errMsg, CDBVariant &vtId, UINT64 & fail_ok) {
             fail_ok = 0;
             affected = 0;
+            if (!m_pMysql) {
+                res = SPA::Mysql::ER_NO_DB_OPENED_YET;
+                errMsg = NO_DB_OPENED_YET;
+                ++m_fails;
+                fail_ok = 1;
+                fail_ok <<= 32;
+                return;
+            }
             res = 0;
         }
 

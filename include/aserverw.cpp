@@ -486,7 +486,7 @@ namespace SPA
 
         CBaseService::CBaseService(unsigned int svsId, tagThreadApartment ta)
         : m_nServiceId(svsId) {
-			ServerCoreLoader.Load();
+            ServerCoreLoader.Load();
             if (!ServerCoreLoader.IsLoaded())
                 throw CUExCode("Server core library not accessible!", MB_BAD_OPERATION);
             m_SvsContext.m_OnChatRequestCame = &CBaseService::OnChatCame;
@@ -585,7 +585,7 @@ namespace SPA
 
         void CALLBACK CBaseService::OnSwitch(USocket_Server_Handle hSocket, unsigned int oldServiceId, unsigned int newServiceId) {
             const CBaseService *p;
-            if ((unsigned int)(~0) == m_nMainThreads) {
+            if ((unsigned int) (~0) == m_nMainThreads) {
                 m_nMainThreads = CSocketProServer::Config::GetMainThreads();
             }
             assert(ServerCoreLoader.IsMainThread());
@@ -1005,7 +1005,7 @@ namespace SPA
 
         CSocketProServer::CSocketProServer(int nParam)
         : m_listeningPort(20901), m_maxBacklog(32) {
-			ServerCoreLoader.Load();
+            ServerCoreLoader.Load();
             if (m_pServer != nullptr)
                 throw CUExCode("One instance supported only per application!", MB_BAD_OPERATION);
             if (!ServerCoreLoader.IsLoaded())

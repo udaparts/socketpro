@@ -5,66 +5,90 @@
 
 CStreamingServer *g_pStreamingServer = nullptr;
 
-int async_sql_plugin_init(void *p) {
-    my_plugin_log_message(&p, MY_INFORMATION_LEVEL, "Installation");
 
-    //g_pStreamingServer = new CStreamingServer(CSetGlobals::Globals.m_nParam);
+int async_sql_plugin_init(void *p) {
+	if (!g_pStreamingServer) {
+		g_pStreamingServer = new CStreamingServer(CSetGlobals::Globals.m_nParam);
+	}
+
     if (CSetGlobals::Globals.TLSv) {
 
     }
-	/*
-    if (!g_pStreamingServer->Run(CSetGlobals::Globals.Port)) {
-            my_plugin_log_message(&p, MY_INFORMATION_LEVEL, "Installation failed as SQL streaming service is not started successfully");
-            return 1;
+
+    if (!g_pStreamingServer->Run(CSetGlobals::Globals.Port, 32, !CSetGlobals::Globals.DisableV6)) {
+		return 1;
     }
-	*/
+
     return 0;
 }
 
 int async_sql_plugin_deinit(void *p) {
     if (g_pStreamingServer) {
         g_pStreamingServer->StopSocketProServer();
-        g_pStreamingServer->Clean();
         delete g_pStreamingServer;
         g_pStreamingServer = nullptr;
     }
-    my_plugin_log_message(&p, MY_INFORMATION_LEVEL, "Uninstallation");
     return 0;
 }
 
 CSetGlobals::CSetGlobals() {
-	//::Sleep(50000);
-
     //defaults
     m_nParam = 0;
     DisableV6 = false;
     Port = 20902;
     TLSv = false;
 
+	HMODULE hModule = ::GetModuleHandle(nullptr);
+	if (hModule) {
+		void *v = ::GetProcAddress(hModule, "my_charset_utf8_general_ci");
+		utf8_general_ci = (CHARSET_INFO*)v;
+		::FreeLibrary(hModule);
+	}
+	else {
+		utf8_general_ci = nullptr;
+	}
     //set interface_version
-    unsigned int version = MYSQL_VERSION_ID;
+    unsigned int version = 50718; //MYSQL_VERSION_ID;
     async_sql_plugin.interface_version = (version << 8);
 }
 
 CSetGlobals CSetGlobals::Globals;
 
 CStreamingServer::CStreamingServer(int nParam)
-: SPA::ServerSide::CSocketProServer(nParam), m_pMySql(nullptr) {
+: SPA::ServerSide::CSocketProServer(nParam) {
 }
 
-void CStreamingServer::Clean() {
-    if (m_pMySql) {
-        delete m_pMySql;
-        m_pMySql = nullptr;
-    }
-}
 
 CStreamingServer::~CStreamingServer() {
-    Clean();
+    
+}
+
+void CStreamingServer::OnClose(USocket_Server_Handle h, int errCode) {
+
+}
+
+bool CStreamingServer::OnIsPermitted(USocket_Server_Handle h, const wchar_t* userId, const wchar_t *password, unsigned int serviceId) {
+
+	
+
+
+    return true;
+}
+
+void CStreamingServer::OnIdle(INT64 milliseconds) {
+
+}
+
+void CStreamingServer::OnSSLShakeCompleted(USocket_Server_Handle h, int errCode) {
+
+}
+
+void CStreamingServer::OnAccept(USocket_Server_Handle h, int errCode) {
+
 }
 
 bool CStreamingServer::OnSettingServer(unsigned int listeningPort, unsigned int maxBacklog, bool v6) {
-    m_pMySql = new SPA::ServerSide::CMysqlService;
+   
     //amIntegrated and amMixed not supported yet
     CSocketProServer::Config::SetAuthenticationMethod(SPA::ServerSide::amOwn);
 
@@ -73,25 +97,25 @@ bool CStreamingServer::OnSettingServer(unsigned int listeningPort, unsigned int 
 }
 
 bool CStreamingServer::AddService() {
-    bool ok = m_pMySql->AddMe(SPA::Mysql::sidMysql, SPA::taNone);
+    bool ok = m_MySql.AddMe(SPA::Mysql::sidMysql, SPA::taNone);
     if (!ok)
         return false;
-    ok = m_pMySql->AddSlowRequest(SPA::UDB::idOpen);
+    ok = m_MySql.AddSlowRequest(SPA::UDB::idOpen);
     if (!ok)
         return false;
-    ok = m_pMySql->AddSlowRequest(SPA::UDB::idBeginTrans);
+    ok = m_MySql.AddSlowRequest(SPA::UDB::idBeginTrans);
     if (!ok)
         return false;
-    ok = m_pMySql->AddSlowRequest(SPA::UDB::idEndTrans);
+    ok = m_MySql.AddSlowRequest(SPA::UDB::idEndTrans);
     if (!ok)
         return false;
-    ok = m_pMySql->AddSlowRequest(SPA::UDB::idExecute);
+    ok = m_MySql.AddSlowRequest(SPA::UDB::idExecute);
     if (!ok)
         return false;
-    ok = m_pMySql->AddSlowRequest(SPA::UDB::idPrepare);
+    ok = m_MySql.AddSlowRequest(SPA::UDB::idPrepare);
     if (!ok)
         return false;
-    ok = m_pMySql->AddSlowRequest(SPA::UDB::idExecuteParameters);
+    ok = m_MySql.AddSlowRequest(SPA::UDB::idExecuteParameters);
     if (!ok)
         return false;
     return true;

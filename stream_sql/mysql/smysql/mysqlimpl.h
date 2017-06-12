@@ -96,7 +96,6 @@ namespace SPA {
             void PreprocessPreparedStatement();
             void CleanDBObjects();
             void ResetMemories();
-
             static UINT64 ConvertBitsToInt(const unsigned char *s, unsigned int bytes);
             static void ConvertToUTF8OrDouble(CDBVariant &vt);
             static void CALLBACK OnThreadEventEmbedded(SPA::ServerSide::tagThreadEvent te);
@@ -104,6 +103,27 @@ namespace SPA {
             static UINT64 ToUDateTime(const MYSQL_TIME &td);
             static void Trim(std::string &s);
             static const wchar_t *fieldtype2str(enum_field_types type);
+            static void srv_session_error_cb(void *ctx, unsigned int sql_errno, const char *err_msg);
+            static int sql_start_result_metadata(void *ctx, uint num_cols, uint flags, const CHARSET_INFO *resultcs);
+            static int sql_field_metadata(void *ctx, struct st_send_field *field, const CHARSET_INFO *charset);
+            static int sql_end_result_metadata(void *ctx, uint server_status, uint warn_count);
+            static int sql_start_row(void *ctx);
+            static int sql_end_row(void *ctx);
+            static void sql_abort_row(void *ctx);
+            static ulong sql_get_client_capabilities(void *ctx);
+            static int sql_get_null(void *ctx);
+            static int sql_get_integer(void * ctx, longlong value);
+            static int sql_get_longlong(void * ctx, longlong value, uint is_unsigned);
+            static int sql_get_decimal(void * ctx, const decimal_t * value);
+            static int sql_get_double(void * ctx, double value, uint32 decimals);
+            static int sql_get_date(void * ctx, const MYSQL_TIME * value);
+            static int sql_get_time(void * ctx, const MYSQL_TIME * value, uint decimals);
+            static int sql_get_datetime(void * ctx, const MYSQL_TIME * value, uint decimals);
+            static int sql_get_string(void * ctx, const char * const value, size_t length, const CHARSET_INFO * const valuecs);
+            static void sql_handle_ok(void * ctx, uint server_status, uint statement_warn_count, ulonglong affected_rows, ulonglong last_insert_id, const char * const message);
+            static void sql_handle_error(void * ctx, uint sql_errno, const char * const err_msg, const char * const sqlstate);
+            static void sql_shutdown(void *ctx, int shutdown_server);
+
 
         protected:
             UINT64 m_oks;
@@ -127,6 +147,25 @@ namespace SPA {
             std::string m_sqlPrepare;
             std::string m_procName;
 
+            int m_sql_errno;
+            std::wstring m_err_msg;
+            MYSQL_SECURITY_CONTEXT m_sc;
+
+            const CHARSET_INFO *m_sql_resultcs;
+            unsigned int m_sql_num_meta_rows;
+            unsigned int m_sql_num_rows;
+            unsigned int m_ColIndex;
+            unsigned int m_Cols;
+            unsigned int m_sql_flags;
+            SPA::UINT64 m_Rows;
+            ulonglong m_affected_rows;
+            ulonglong m_last_insert_id;
+            uint m_server_status;
+            uint m_statement_warn_count;
+            std::string m_sqlstate;
+
+            static st_command_service_cbs m_sql_cbs;
+
             static const int IS_BINARY = 63;
             static const int MYSQL_TINYBLOB = 0xff;
             static const int MYSQL_BLOB = 0xffff;
@@ -142,6 +181,7 @@ namespace SPA {
             static const wchar_t* NO_DB_NAME_SPECIFIED;
             static const wchar_t* MYSQL_LIBRARY_NOT_INITIALIZED;
             static const wchar_t* BAD_MANUAL_TRANSACTION_STATE;
+            static const wchar_t* UNABLE_TO_SWITCH_TO_DATABASE;
         };
 
         typedef CSocketProService<CMysqlImpl> CMysqlService;

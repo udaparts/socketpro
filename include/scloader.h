@@ -206,7 +206,7 @@ namespace SPA {
 
                 CServerCoreLoader() : m_hServerCore(nullptr) {
                     ::memset(this, 0, sizeof (CServerCoreLoader));
-					Load();
+                    Load();
                 }
 
                 ~CServerCoreLoader() {
@@ -413,8 +413,8 @@ namespace SPA {
                     return (nullptr != m_hServerCore);
                 }
 
-				void Load() {
-					if (m_hServerCore) {
+                void Load() {
+                    if (m_hServerCore) {
                         return;
                     }
 #ifdef WIN32_64
@@ -617,7 +617,7 @@ namespace SPA {
                     SendUserMessagePush = (PSendUserMessagePush)::GetProcAddress(m_hServerCore, "SendUserMessagePush");
                     RegisterMe = (PRegisterMe)::GetProcAddress(m_hServerCore, "RegisterMe");
                     BatchEnqueue = (PBatchEnqueue)::GetProcAddress(m_hServerCore, "BatchEnqueue");
-				}
+                }
 
             private:
                 CServerCoreLoader(const CServerCoreLoader &ccl);

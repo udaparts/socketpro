@@ -8,17 +8,19 @@ public:
     CStreamingServer(int nParam = 0);
     ~CStreamingServer();
 
-public:
-    void Clean();
-
 protected:
+	virtual void OnAccept(USocket_Server_Handle h, int errCode);
     virtual bool OnSettingServer(unsigned int listeningPort, unsigned int maxBacklog, bool v6);
+	virtual bool OnIsPermitted(USocket_Server_Handle h, const wchar_t* userId, const wchar_t *password, unsigned int serviceId);
+	virtual void OnClose(USocket_Server_Handle h, int errCode);
+	virtual void OnIdle(INT64 milliseconds);
+	virtual void OnSSLShakeCompleted(USocket_Server_Handle h, int errCode);
 
 private:
     bool AddService();
 
 private:
-    SPA::ServerSide::CMysqlService *m_pMySql;
+    SPA::ServerSide::CMysqlService m_MySql;
 
 private:
     CStreamingServer(const CStreamingServer &ss);
@@ -36,6 +38,7 @@ public:
     bool DisableV6;
     unsigned int Port;
     bool TLSv;
+	CHARSET_INFO *utf8_general_ci;
     st_mysql_daemon async_sql_plugin;
     static CSetGlobals Globals;
 };

@@ -22,10 +22,10 @@ int main(int argc, char* argv[]) {
     std::cout << "Remote host: " << std::endl;
     std::getline(std::cin, cc.Host);
     //cc.Host = "localhost";
-    cc.Port = 20901;
-    cc.UserId = L"MyUserId";
-    cc.Password = L"MyPassword";
-    CMyPool spMysql;
+    cc.Port = 20902;
+    cc.UserId = L"root";
+    cc.Password = L"Smash123";
+    CMyPool spMysql(true, (~0));
     bool ok = spMysql.StartSocketPool(cc, 1, 1);
     if (!ok) {
         std::cout << "Failed in connecting to remote async mysql server" << std::endl;
@@ -72,12 +72,12 @@ int main(int argc, char* argv[]) {
         ra.push_back(column_rowset_pair);
     };
 
-    ok = pMysql->Open(nullptr, dr, SPA::Mysql::USE_REMOTE_MYSQL);
-    TestCreateTables(pMysql);
-    ok = pMysql->Execute(L"delete from employee;delete from company", er);
-    TestPreparedStatements(pMysql);
-    InsertBLOBByPreparedStatement(pMysql);
-    ok = pMysql->Execute(L"SELECT * from company;select * from employee;select curtime()", er, r, rh);
+    ok = pMysql->Open(L"sakila", dr);
+    //TestCreateTables(pMysql);
+    //ok = pMysql->Execute(L"delete from employee;delete from company", er);
+    //TestPreparedStatements(pMysql);
+    //InsertBLOBByPreparedStatement(pMysql);
+    ok = pMysql->Execute(L"SELECT * from sakila.actor", er, r, rh);
 
     CDBVariantArray vPData;
     //first set
@@ -92,7 +92,7 @@ int main(int argc, char* argv[]) {
     vPData.push_back(0);
     vPData.push_back(0);
     unsigned int oks = 0;
-    TestStoredProcedure(pMysql, ra, vPData, oks);
+    //TestStoredProcedure(pMysql, ra, vPData, oks);
     pMysql->WaitAll();
 
     std::cout << std::endl;
