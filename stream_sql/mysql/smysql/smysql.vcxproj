@@ -90,7 +90,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ModuleDefinitionFile>
       </ModuleDefinitionFile>
-      <AdditionalDependencies>../../../lib/x86/mysqlservices.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>lib/x86/mysqlservices.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -106,7 +106,7 @@
       <ModuleDefinitionFile>
       </ModuleDefinitionFile>
       <BaseAddress>0x120000000</BaseAddress>
-      <AdditionalDependencies>../../../lib/x64/mysqlservices.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>lib/x64/mysqlservices.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -125,7 +125,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <ModuleDefinitionFile>
       </ModuleDefinitionFile>
-      <AdditionalDependencies>../../../lib/x86/mysqlservices.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>lib/x86/mysqlservices.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -145,7 +145,7 @@
       <ModuleDefinitionFile>
       </ModuleDefinitionFile>
       <BaseAddress>0x120000000</BaseAddress>
-      <AdditionalDependencies>../../../lib/x64/mysqlservices.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>lib/x64/mysqlservices.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
