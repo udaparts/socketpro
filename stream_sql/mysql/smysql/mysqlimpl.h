@@ -21,44 +21,9 @@ namespace SPA {
             //no assignment operator
             CMysqlImpl& operator=(const CMysqlImpl &impl);
 
-            struct MYSQL_BIND_RESULT_FIELD {
-            private:
-                static const unsigned int DEFAULT_BUFFER_SIZE = 1024;
-
-            private:
-                static_assert(sizeof (MYSQL_TIME) <= DEFAULT_BUFFER_SIZE, "Bad default buffer size");
-                typedef CScopeUQueueEx<DEFAULT_BUFFER_SIZE, DEFAULT_MEMORY_BUFFER_BLOCK_SIZE> CScopeUQueue;
-                CScopeUQueue m_sb;
-                MYSQL_BIND_RESULT_FIELD(const MYSQL_BIND_RESULT_FIELD &field);
-                MYSQL_BIND_RESULT_FIELD& operator=(const MYSQL_BIND_RESULT_FIELD &field);
-
-            public:
-
-                MYSQL_BIND_RESULT_FIELD() : is_null(0), buffer_length(m_sb->GetMaxSize()), length(0) {
-                }
-
-                my_bool is_null;
-                unsigned long buffer_length;
-                unsigned long length;
-
-                inline unsigned char* GetBuffer() {
-                    return (unsigned char*) m_sb->GetBuffer();
-                }
-
-                void ResetMaxBuffer(unsigned int newSize) {
-                    m_sb->ReallocBuffer(newSize);
-                    buffer_length = m_sb->GetMaxSize();
-                }
-
-                static void ShrinkMemoryPool() {
-                    CScopeUQueue::ResetSize();
-                }
-            };
-
         public:
             CMysqlImpl();
             unsigned int GetParameters() const;
-            bool IsGloballyConnected() const;
             bool IsStoredProcedure() const;
             const std::string& GetProcedureName() const;
 
@@ -86,7 +51,7 @@ namespace SPA {
             void BeginRows();
             void EndRows();
             void Transferring();
-            bool SendRows(CScopeUQueue& sb, bool transferring = false);
+            bool SendRows(CUQueue& sb, bool transferring = false);
             bool SendBlob(unsigned short data_type, const unsigned char *buffer, unsigned int bytes);
 
         private:
@@ -102,7 +67,6 @@ namespace SPA {
             static void CALLBACK OnThreadEvent(SPA::ServerSide::tagThreadEvent te);
             static UINT64 ToUDateTime(const MYSQL_TIME &td);
             static void Trim(std::string &s);
-            static const wchar_t *fieldtype2str(enum_field_types type);
             static void srv_session_error_cb(void *ctx, unsigned int sql_errno, const char *err_msg);
             static int sql_start_result_metadata(void *ctx, uint num_cols, uint flags, const CHARSET_INFO *resultcs);
             static int sql_field_metadata(void *ctx, struct st_send_field *field, const CHARSET_INFO *charset);
@@ -123,7 +87,7 @@ namespace SPA {
             static void sql_handle_ok(void * ctx, uint server_status, uint statement_warn_count, ulonglong affected_rows, ulonglong last_insert_id, const char * const message);
             static void sql_handle_error(void * ctx, uint sql_errno, const char * const err_msg, const char * const sqlstate);
             static void sql_shutdown(void *ctx, int shutdown_server);
-
+            static void ToDecimal(const decimal_t &src, bool large, DECIMAL &dec);
 
         protected:
             UINT64 m_oks;
@@ -132,10 +96,11 @@ namespace SPA {
             CDBVariantArray m_vParam;
 
         private:
+            CScopeUQueue m_sqSend;
             SPA::CScopeUQueue m_sb;
             std::vector<SAFEARRAY *> m_vArray;
-            bool m_global;
             CUQueue &m_Blob;
+            SPA::CUQueue &m_qSend;
 
             //MySql connection handle
             std::shared_ptr<Srv_session> m_pMysql;
@@ -147,22 +112,22 @@ namespace SPA {
             std::string m_sqlPrepare;
             std::string m_procName;
 
+            CDBColumnInfoArray m_vColInfo;
+
             int m_sql_errno;
             std::wstring m_err_msg;
             MYSQL_SECURITY_CONTEXT m_sc;
 
             const CHARSET_INFO *m_sql_resultcs;
-            unsigned int m_sql_num_meta_rows;
-            unsigned int m_sql_num_rows;
             unsigned int m_ColIndex;
-            unsigned int m_Cols;
             unsigned int m_sql_flags;
-            SPA::UINT64 m_Rows;
             ulonglong m_affected_rows;
             ulonglong m_last_insert_id;
             uint m_server_status;
             uint m_statement_warn_count;
             std::string m_sqlstate;
+            UINT64 m_indexCall;
+            bool m_bBlob;
 
             static st_command_service_cbs m_sql_cbs;
 

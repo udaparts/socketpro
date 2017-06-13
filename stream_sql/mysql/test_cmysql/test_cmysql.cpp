@@ -73,11 +73,12 @@ int main(int argc, char* argv[]) {
     };
 
     ok = pMysql->Open(L"sakila", dr);
-    //TestCreateTables(pMysql);
-    //ok = pMysql->Execute(L"delete from employee;delete from company", er);
+	ok = pMysql->Execute(L"SELECT * from sakila.film;", er, r, rh);
+    TestCreateTables(pMysql);
+    ok = pMysql->Execute(L"delete from employee;delete from company", er);
     //TestPreparedStatements(pMysql);
     //InsertBLOBByPreparedStatement(pMysql);
-    ok = pMysql->Execute(L"SELECT * from sakila.actor", er, r, rh);
+    ok = pMysql->Execute(L"SELECT * from sakila.my_table;SELECT * from sakila.actor;select * from sakila.address;select * from company;select * from employee", er, r, rh);
 
     CDBVariantArray vPData;
     //first set

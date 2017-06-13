@@ -47,12 +47,11 @@ namespace SPA
         };
 
         CMysqlImpl::CMysqlImpl()
-        : m_oks(0), m_fails(0), m_ti(tiUnspecified), m_global(true),
-        m_Blob(*m_sb), m_parameters(0), m_bCall(false), m_sql_errno(0),
-        m_sc(nullptr), m_sql_resultcs(nullptr), m_sql_num_meta_rows(0),
-        m_sql_num_rows(0), m_ColIndex(0), m_Cols(0),
-        m_sql_flags(0), m_Rows(0), m_affected_rows(0), m_last_insert_id(0),
-        m_server_status(0), m_statement_warn_count(0) {
+        : m_oks(0), m_fails(0), m_ti(tiUnspecified),
+        m_Blob(*m_sb), m_qSend(*m_sqSend), m_parameters(0), m_bCall(false), m_sql_errno(0),
+        m_sc(nullptr), m_sql_resultcs(nullptr), m_ColIndex(0),
+        m_sql_flags(0), m_affected_rows(0), m_last_insert_id(0),
+        m_server_status(0), m_statement_warn_count(0), m_indexCall(0), m_bBlob(false) {
             m_Blob.ToUtf8(true);
 #ifdef WIN32_64
             m_UQueue.TimeEx(true); //use high-precision datetime
@@ -62,10 +61,6 @@ namespace SPA
 
         unsigned int CMysqlImpl::GetParameters() const {
             return (unsigned int) m_parameters;
-        }
-
-        bool CMysqlImpl::IsGloballyConnected() const {
-            return m_global;
         }
 
         bool CMysqlImpl::IsStoredProcedure() const {
@@ -102,8 +97,6 @@ namespace SPA
 
         void CMysqlImpl::OnReleaseSource(bool bClosing, unsigned int info) {
             CleanDBObjects();
-            m_global = true;
-            MYSQL_BIND_RESULT_FIELD::ShrinkMemoryPool();
         }
 
         void CMysqlImpl::ResetMemories() {
@@ -149,22 +142,286 @@ namespace SPA
 
         int CMysqlImpl::sql_start_result_metadata(void *ctx, uint num_cols, uint flags, const CHARSET_INFO * resultcs) {
             CMysqlImpl *impl = (CMysqlImpl *) ctx;
-            impl->m_Rows = 0;
-            impl->m_Cols = num_cols;
             impl->m_sql_resultcs = resultcs;
             impl->m_sql_flags = flags;
+            impl->m_vColInfo.clear();
+            impl->m_bBlob = false;
             return 0;
         }
 
-        int CMysqlImpl::sql_field_metadata(void *ctx, struct st_send_field *field, const CHARSET_INFO * charset) {
+        int CMysqlImpl::sql_field_metadata(void *ctx, struct st_send_field *f, const CHARSET_INFO * charset) {
+            CDBColumnInfo info;
+            size_t len = strlen(f->col_name);
+            info.DisplayName.assign(f->col_name, f->col_name + len);
+            if (f->org_col_name && (len = strlen(f->org_col_name)))
+                info.OriginalName.assign(f->org_col_name, f->org_col_name + len);
+            else
+                info.OriginalName = info.DisplayName;
+
+            if (f->org_table_name && (len = strlen(f->org_table_name)))
+                info.TablePath.assign(f->org_table_name, f->org_table_name + len);
+            else if (f->table_name && (len = strlen(f->table_name)))
+                info.TablePath.assign(f->table_name, f->table_name + len);
+
+            if (f->db_name && (len = strlen(f->db_name)))
+                info.DBPath.assign(f->db_name, f->db_name + len);
+
+            if ((f->flags & NOT_NULL_FLAG) == NOT_NULL_FLAG) {
+                info.Flags |= CDBColumnInfo::FLAG_NOT_NULL;
+            }
+            if ((f->flags & PRI_KEY_FLAG) == PRI_KEY_FLAG) {
+                info.Flags |= CDBColumnInfo::FLAG_PRIMARY_KEY;
+            }
+            if ((f->flags & UNIQUE_KEY_FLAG) == UNIQUE_KEY_FLAG) {
+                info.Flags |= CDBColumnInfo::FLAG_UNIQUE;
+            }
+            if ((f->flags & AUTO_INCREMENT_FLAG) == AUTO_INCREMENT_FLAG) {
+                info.Flags |= CDBColumnInfo::FLAG_AUTOINCREMENT;
+                info.Flags |= CDBColumnInfo::FLAG_NOT_WRITABLE;
+            }
+            if ((f->flags & ENUM_FLAG) == ENUM_FLAG) {
+                info.Flags |= CDBColumnInfo::FLAG_IS_ENUM;
+            } else if ((f->flags & SET_FLAG) == SET_FLAG) {
+                info.Flags |= CDBColumnInfo::FLAG_IS_SET;
+            }
+
+            if ((f->flags & UNSIGNED_FLAG) == UNSIGNED_FLAG) {
+                info.Flags |= CDBColumnInfo::FLAG_IS_UNSIGNED;
+            }
+
+            switch (f->type) {
+                case MYSQL_TYPE_BIT:
+                    info.ColumnSize = f->length;
+                    info.DeclaredType = L"BIT";
+                    info.Flags |= CDBColumnInfo::FLAG_IS_BIT;
+                    if (f->length == 1)
+                        info.DataType = VT_BOOL;
+                    else if (f->length <= 8)
+                        info.DataType = VT_UI1;
+                    else if (f->length <= 16)
+                        info.DataType = VT_UI2;
+                    else if (f->length <= 32)
+                        info.DataType = VT_UI4;
+                    else if (f->length <= 64)
+                        info.DataType = VT_UI8;
+                    else {
+                        assert(false); //not implemented
+                    }
+                    break;
+                case MYSQL_TYPE_LONG_BLOB:
+                    info.ColumnSize = f->length;
+                    if (f->charsetnr == IS_BINARY) {
+                        info.DeclaredType = L"LONG_BLOB";
+                        info.DataType = (VT_UI1 | VT_ARRAY); //binary
+                    } else {
+                        info.DeclaredType = L"LONG_TEXT";
+                        info.DataType = (VT_I1 | VT_ARRAY); //text
+                    }
+                    break;
+                case MYSQL_TYPE_BLOB:
+                    info.ColumnSize = f->length;
+                    if (f->charsetnr == IS_BINARY) {
+                        if (f->length == MYSQL_TINYBLOB) {
+                            info.DeclaredType = L"TINY_BLOB";
+                        } else if (f->length == MYSQL_MIDBLOB) {
+                            info.DeclaredType = L"MEDIUM_BLOB";
+                        } else if (f->length == MYSQL_BLOB) {
+                            info.DeclaredType = L"BLOB";
+                        } else {
+                            info.DeclaredType = L"LONG_BLOB";
+                        }
+                        info.DataType = (VT_UI1 | VT_ARRAY); //binary
+                    } else {
+                        if (f->length == MYSQL_TINYBLOB) {
+                            info.DeclaredType = L"TINY_TEXT";
+                        } else if (f->length == MYSQL_MIDBLOB) {
+                            info.DeclaredType = L"MEDIUM_TEXT";
+                        } else if (f->length == MYSQL_BLOB) {
+                            info.DeclaredType = L"TEXT";
+                        } else {
+                            info.DeclaredType = L"LONG_TEXT";
+                        }
+                        info.DataType = (VT_I1 | VT_ARRAY); //text
+                    }
+                    break;
+                case MYSQL_TYPE_MEDIUM_BLOB:
+                    info.ColumnSize = f->length;
+                    if (f->charsetnr == IS_BINARY) {
+                        info.DeclaredType = L"MEDIUM_BLOB";
+                        info.DataType = (VT_UI1 | VT_ARRAY); //binary
+                    } else {
+                        info.DeclaredType = L"MEDIUM_TEXT";
+                        info.DataType = (VT_I1 | VT_ARRAY); //text
+                    }
+                    break;
+                case MYSQL_TYPE_DATE:
+                    info.DeclaredType = L"DATE";
+                    info.DataType = VT_DATE;
+                    break;
+                case MYSQL_TYPE_NULL:
+                    info.DeclaredType = L"NULL";
+                    info.DataType = VT_NULL;
+                    break;
+                case MYSQL_TYPE_NEWDATE:
+                    info.DeclaredType = L"NEWDATE";
+                    info.DataType = VT_DATE;
+                    break;
+                case MYSQL_TYPE_SET:
+                    info.ColumnSize = f->length;
+                    info.DeclaredType = L"SET";
+                    info.DataType = (VT_I1 | VT_ARRAY); //string
+                    break;
+                case MYSQL_TYPE_DATETIME:
+                    info.DeclaredType = L"DATETIME";
+                    info.Scale = (unsigned char) f->decimals;
+                    info.DataType = VT_DATE;
+                    break;
+                case MYSQL_TYPE_NEWDECIMAL:
+                    info.DeclaredType = L"NEWDECIMAL";
+                    info.DataType = VT_DECIMAL;
+                    info.Scale = (unsigned char) f->decimals;
+                    info.Precision = (unsigned char) (f->length - f->decimals);
+                    break;
+                case MYSQL_TYPE_DECIMAL:
+                    info.DeclaredType = L"DECIMAL";
+                    info.DataType = VT_DECIMAL;
+                    info.Scale = (unsigned char) f->decimals;
+                    info.Precision = (unsigned char) (f->length - f->decimals);
+                    break;
+                case MYSQL_TYPE_DOUBLE:
+                    info.DeclaredType = L"DOUBLE";
+                    info.DataType = VT_R8;
+                    break;
+                case MYSQL_TYPE_ENUM:
+                    info.ColumnSize = f->length;
+                    info.DeclaredType = L"ENUM";
+                    info.DataType = (VT_I1 | VT_ARRAY); //string
+                    break;
+                case MYSQL_TYPE_FLOAT:
+                    info.DeclaredType = L"FLOAT";
+                    info.DataType = VT_R4;
+                    break;
+                case MYSQL_TYPE_GEOMETRY:
+                    info.ColumnSize = f->length;
+                    info.DeclaredType = L"GEOMETRY";
+                    info.DataType = (VT_UI1 | VT_ARRAY); //binary array
+                    break;
+                case MYSQL_TYPE_INT24:
+                    info.DeclaredType = L"INT24";
+                    if ((f->flags & UNSIGNED_FLAG) == UNSIGNED_FLAG)
+                        info.DataType = VT_UI4;
+                    else
+                        info.DataType = VT_I4;
+                    break;
+                case MYSQL_TYPE_LONG:
+                    info.DeclaredType = L"INT";
+                    if ((f->flags & UNSIGNED_FLAG) == UNSIGNED_FLAG)
+                        info.DataType = VT_UI4;
+                    else
+                        info.DataType = VT_I4;
+                    break;
+                case MYSQL_TYPE_LONGLONG:
+                    info.DeclaredType = L"BIGINT";
+                    if ((f->flags & UNSIGNED_FLAG) == UNSIGNED_FLAG)
+                        info.DataType = VT_UI8;
+                    else
+                        info.DataType = VT_I8;
+                    break;
+                case MYSQL_TYPE_SHORT:
+                    info.DeclaredType = L"SHORT";
+                    if ((f->flags & UNSIGNED_FLAG) == UNSIGNED_FLAG)
+                        info.DataType = VT_UI2;
+                    else
+                        info.DataType = VT_I2;
+                    break;
+                case MYSQL_TYPE_STRING:
+                    info.ColumnSize = f->length;
+                    if ((f->flags & ENUM_FLAG) == ENUM_FLAG) {
+                        info.DeclaredType = L"ENUM";
+                        info.DataType = (VT_I1 | VT_ARRAY); //string
+                    } else if ((f->flags & SET_FLAG) == SET_FLAG) {
+                        info.DeclaredType = L"SET";
+                        info.DataType = (VT_I1 | VT_ARRAY); //string
+                    } else {
+                        if (f->charsetnr == IS_BINARY) {
+                            info.DeclaredType = L"BINARY";
+                            info.DataType = (VT_UI1 | VT_ARRAY);
+                        } else {
+                            info.DeclaredType = L"CHAR";
+                            info.DataType = (VT_I1 | VT_ARRAY); //string
+                        }
+                    }
+                    info.ColumnSize = f->length;
+                    break;
+                case MYSQL_TYPE_TIME:
+                    info.DeclaredType = L"TIME";
+                    info.Scale = (unsigned char) f->decimals;
+                    info.DataType = VT_DATE;
+                    break;
+                case MYSQL_TYPE_TIMESTAMP:
+                    info.DeclaredType = L"TIMESTAMP";
+                    info.Scale = (unsigned char) f->decimals;
+                    info.DataType = VT_DATE;
+                    break;
+                case MYSQL_TYPE_TINY:
+                    info.DeclaredType = L"TINY";
+                    if ((f->flags & UNSIGNED_FLAG) == UNSIGNED_FLAG)
+                        info.DataType = VT_UI1;
+                    else
+                        info.DataType = VT_I1;
+                    break;
+                case MYSQL_TYPE_JSON:
+                    info.ColumnSize = f->length;
+                    if (!info.ColumnSize)
+                        info.ColumnSize = (~0);
+                    info.DeclaredType = L"JSON";
+                    info.DataType = (VT_I1 | VT_ARRAY); //string
+                    break;
+                case MYSQL_TYPE_TINY_BLOB:
+                    info.ColumnSize = f->length;
+                    if (f->charsetnr == IS_BINARY) {
+                        info.DeclaredType = L"TINY_BLOB";
+                        info.DataType = (VT_UI1 | VT_ARRAY); //binary
+                    } else {
+                        info.DeclaredType = L"TINY_TEXT";
+                        info.DataType = (VT_I1 | VT_ARRAY); //text
+                    }
+                    break;
+                case MYSQL_TYPE_VAR_STRING:
+                case MYSQL_TYPE_VARCHAR:
+                    info.ColumnSize = f->length;
+                    if (f->charsetnr == IS_BINARY) {
+                        info.DeclaredType = L"VARBINARY";
+                        info.DataType = (VT_UI1 | VT_ARRAY);
+                    } else {
+                        info.DeclaredType = L"VARCHAR";
+                        info.DataType = (VT_I1 | VT_ARRAY); //string
+                    }
+                    break;
+                case MYSQL_TYPE_YEAR:
+                    info.DeclaredType = L"YEAR";
+                    info.DataType = VT_I2;
+                    break;
+                default:
+                    info.DeclaredType = L"?-unknown-?";
+                    info.DataType = VT_EMPTY;
+                    break;
+            }
             CMysqlImpl *impl = (CMysqlImpl *) ctx;
+            impl->m_vColInfo.push_back(info);
             return 0;
         }
 
         int CMysqlImpl::sql_end_result_metadata(void *ctx, uint server_status, uint warn_count) {
             CMysqlImpl *impl = (CMysqlImpl *) ctx;
-            impl->m_sql_num_meta_rows = (unsigned int) impl->m_Rows;
-            impl->m_Rows = 0;
+            CUQueue &q = impl->m_qSend;
+            q.SetSize(0);
+            q << impl->m_vColInfo << impl->m_indexCall;
+            unsigned int ret = impl->SendResult(idRowsetHeader, q.GetBuffer(), q.GetSize());
+            q.SetSize(0);
+            if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
+                return 1; //an error occured, server will abort the command
+            }
             return 0;
         }
 
@@ -176,7 +433,11 @@ namespace SPA
 
         int CMysqlImpl::sql_end_row(void *ctx) {
             CMysqlImpl *impl = (CMysqlImpl *) ctx;
-            ++impl->m_Rows;
+            CUQueue &q = impl->m_qSend;
+            if ((q.GetSize() >= DEFAULT_RECORD_BATCH_SIZE || impl->m_bBlob) && !impl->SendRows(q)) {
+                return 1;
+            }
+            impl->m_bBlob = false;
             return 0;
         }
 
@@ -185,71 +446,232 @@ namespace SPA
         }
 
         ulong CMysqlImpl::sql_get_client_capabilities(void *ctx) {
-            CMysqlImpl *impl = (CMysqlImpl *) ctx;
-            return 0;
+            ulong power = (CLIENT_MULTI_STATEMENTS | CLIENT_MULTI_RESULTS | CLIENT_LONG_FLAG);
+            return power;
         }
 
         int CMysqlImpl::sql_get_null(void *ctx) {
             CMysqlImpl *impl = (CMysqlImpl *) ctx;
+            CUQueue &q = impl->m_qSend;
+            q << (VARTYPE) VT_NULL;
             ++impl->m_ColIndex;
             return 0;
         }
 
         int CMysqlImpl::sql_get_integer(void * ctx, longlong value) {
             CMysqlImpl *impl = (CMysqlImpl *) ctx;
+            CUQueue &q = impl->m_qSend;
+            const CDBColumnInfo &info = impl->m_vColInfo[impl->m_ColIndex];
+            q << info.DataType;
+            switch (info.DataType) {
+                default:
+                    assert(false);
+                    break;
+                case VT_UI1:
+                    q.Push((const unsigned char*) &value, sizeof (char));
+                    break;
+                case VT_UI2:
+                    q << (const unsigned short&) value;
+                    break;
+                case VT_UI4:
+                    q << (const unsigned int&) value;
+                    break;
+                case VT_UI8:
+                    q << (const UINT64&) value;
+                    break;
+                case VT_I1:
+                    q.Push((const unsigned char*) &value, sizeof (char));
+                    break;
+                case VT_I2:
+                    q << (const short&) value;
+                    break;
+                case VT_I4:
+                    q << (const int&) value;
+                    break;
+                case VT_I8:
+                    q << (const INT64&) value;
+                    break;
+            }
             ++impl->m_ColIndex;
             return 0;
         }
 
         int CMysqlImpl::sql_get_longlong(void * ctx, longlong value, uint is_unsigned) {
             CMysqlImpl *impl = (CMysqlImpl *) ctx;
+            CUQueue &q = impl->m_qSend;
+            const CDBColumnInfo &info = impl->m_vColInfo[impl->m_ColIndex];
+            q << info.DataType;
+            switch (info.DataType) {
+                default:
+                case VT_I1:
+                case VT_I2:
+                case VT_I4:
+                case VT_I8:
+                    assert(false);
+                    break;
+                case VT_UI1:
+                    q.Push((const unsigned char*) &value, sizeof (unsigned char));
+                    break;
+                case VT_UI2:
+                    q << (const unsigned short&) value;
+                    break;
+                case VT_UI4:
+                    q << (const unsigned int&) value;
+                    break;
+                case VT_UI8:
+                    q << (const UINT64&) value;
+                    break;
+            }
             ++impl->m_ColIndex;
             return 0;
         }
 
+        void CMysqlImpl::ToDecimal(const decimal_t &src, bool large, DECIMAL & dec) {
+            char str[64] =
+            {0};
+            int len = sizeof (str);
+            CSetGlobals::Globals.decimal2string(&src, str, &len, 0, 0, 0);
+            if (large) {
+                SPA::ParseDec_long(str, dec);
+            } else {
+                SPA::ParseDec(str, dec);
+            }
+        }
+
         int CMysqlImpl::sql_get_decimal(void * ctx, const decimal_t * value) {
+            DECIMAL dec;
             CMysqlImpl *impl = (CMysqlImpl *) ctx;
+            const CDBColumnInfo &info = impl->m_vColInfo[impl->m_ColIndex];
+            ToDecimal(*value, info.Precision > 19, dec);
+            CUQueue &q = impl->m_qSend;
+            q << (VARTYPE) VT_DECIMAL << dec;
             ++impl->m_ColIndex;
             return 0;
         }
 
         int CMysqlImpl::sql_get_double(void * ctx, double value, uint32 decimals) {
             CMysqlImpl *impl = (CMysqlImpl *) ctx;
+            CUQueue &q = impl->m_qSend;
+            const CDBColumnInfo &info = impl->m_vColInfo[impl->m_ColIndex];
+            q << info.DataType;
+            switch (info.DataType) {
+                default:
+                    assert(false);
+                    break;
+                case VT_R4:
+                    q << (const float&) value;
+                    break;
+                case VT_R8:
+                    q << value;
+                    break;
+            }
             ++impl->m_ColIndex;
             return 0;
         }
 
         int CMysqlImpl::sql_get_date(void * ctx, const MYSQL_TIME * value) {
             CMysqlImpl *impl = (CMysqlImpl *) ctx;
+            CUQueue &q = impl->m_qSend;
+            q << (VARTYPE) VT_DATE << ToUDateTime(*value);
             ++impl->m_ColIndex;
             return 0;
         }
 
         int CMysqlImpl::sql_get_time(void * ctx, const MYSQL_TIME * value, uint decimals) {
             CMysqlImpl *impl = (CMysqlImpl *) ctx;
+            CUQueue &q = impl->m_qSend;
+            q << (VARTYPE) VT_DATE << ToUDateTime(*value);
             ++impl->m_ColIndex;
             return 0;
         }
 
         int CMysqlImpl::sql_get_datetime(void * ctx, const MYSQL_TIME * value, uint decimals) {
             CMysqlImpl *impl = (CMysqlImpl *) ctx;
+            CUQueue &q = impl->m_qSend;
+            q << (VARTYPE) VT_DATE << ToUDateTime(*value);
             ++impl->m_ColIndex;
             return 0;
         }
 
         int CMysqlImpl::sql_get_string(void * ctx, const char * const value, size_t length, const CHARSET_INFO * const valuecs) {
             CMysqlImpl *impl = (CMysqlImpl *) ctx;
+            CUQueue &q = impl->m_qSend;
+            const CDBColumnInfo &info = impl->m_vColInfo[impl->m_ColIndex];
+            q << info.DataType;
+            if (info.DeclaredType == L"BIT") {
+                if (info.DataType == VT_BOOL) {
+                    VARIANT_BOOL b = (*value ? VARIANT_TRUE : VARIANT_FALSE);
+                    q << b;
+                } else {
+                    switch (info.DataType) {
+                        case VT_UI1:
+                            assert(length == sizeof (unsigned char));
+                            q.Push((const unsigned char*) value, sizeof (unsigned char));
+                            break;
+                        case VT_UI2:
+                        {
+                            assert(length == sizeof (unsigned short));
+                            UINT64 data = ConvertBitsToInt((const unsigned char *) value, sizeof (unsigned short));
+                            q << (unsigned short) data;
+                        }
+                            break;
+                        case VT_UI4:
+                        {
+                            assert(length == sizeof (unsigned int));
+                            UINT64 data = ConvertBitsToInt((const unsigned char *) value, sizeof (unsigned int));
+                            q << (unsigned int) data;
+                        }
+                            break;
+                        case VT_I8:
+                        {
+                            assert(length == sizeof (UINT64));
+                            UINT64 data = ConvertBitsToInt((const unsigned char *) value, sizeof (UINT64));
+                            q << data;
+                        }
+                            break;
+                        default:
+                            assert(false);
+                            break;
+                    }
+                }
+            } else {
+                if (length <= DEFAULT_BIG_FIELD_CHUNK_SIZE) {
+                    q << (unsigned int) length;
+                    q.Push((const unsigned char*) value, (unsigned int) length);
+                } else {
+                    if (q.GetSize() && !impl->SendRows(q, true)) {
+                        return 1;
+                    }
+                    bool batching = impl->IsBatching();
+                    if (batching) {
+                        impl->CommitBatching();
+                    }
+                    if (!impl->SendBlob(info.DataType, (const unsigned char *) value, (unsigned int) length)) {
+                        return 1;
+                    }
+                    if (batching) {
+                        impl->StartBatching();
+                    }
+                    impl->m_bBlob = true;
+                }
+            }
             ++impl->m_ColIndex;
             return 0;
         }
 
         void CMysqlImpl::sql_handle_ok(void * ctx, uint server_status, uint statement_warn_count, ulonglong affected_rows, ulonglong last_insert_id, const char * const message) {
             CMysqlImpl *impl = (CMysqlImpl *) ctx;
+            CUQueue &q = impl->m_qSend;
+            if (q.GetSize()) {
+                if (!impl->SendRows(q))
+                    return;
+            }
             impl->m_sql_errno = 0;
             impl->m_server_status = server_status;
             impl->m_statement_warn_count = statement_warn_count;
             impl->m_affected_rows = affected_rows;
             impl->m_last_insert_id = last_insert_id;
+            ++impl->m_oks;
             if (message)
                 impl->m_err_msg = SPA::Utilities::ToWide(message);
             else
@@ -258,6 +680,7 @@ namespace SPA
 
         void CMysqlImpl::sql_handle_error(void * ctx, uint sql_errno, const char * const err_msg, const char * const sqlstate) {
             CMysqlImpl *impl = (CMysqlImpl *) ctx;
+            ++impl->m_fails;
             impl->m_sql_errno = (int) sql_errno;
             impl->m_err_msg = SPA::Utilities::ToWide(err_msg);
             if (sqlstate)
@@ -394,13 +817,13 @@ namespace SPA
 
         }
 
-        bool CMysqlImpl::SendRows(CScopeUQueue& sb, bool transferring) {
+        bool CMysqlImpl::SendRows(CUQueue& sb, bool transferring) {
             bool batching = (GetBytesBatched() >= DEFAULT_RECORD_BATCH_SIZE);
             if (batching) {
                 CommitBatching();
             }
-            unsigned int ret = SendResult(transferring ? idTransferring : idEndRows, sb->GetBuffer(), sb->GetSize());
-            sb->SetSize(0);
+            unsigned int ret = SendResult(transferring ? idTransferring : idEndRows, sb.GetBuffer(), sb.GetSize());
+            sb.SetSize(0);
             if (batching) {
                 StartBatching();
             }
@@ -466,68 +889,6 @@ namespace SPA
             }
         }
 
-        const wchar_t * CMysqlImpl::fieldtype2str(enum_field_types type) {
-            switch (type) {
-                case MYSQL_TYPE_BIT:
-                    return L"BIT";
-                case MYSQL_TYPE_BLOB:
-                    return L"BLOB";
-                case MYSQL_TYPE_DATE:
-                    return L"DATE";
-                case MYSQL_TYPE_DATETIME:
-                    return L"DATETIME";
-                case MYSQL_TYPE_NEWDECIMAL:
-                    return L"NEWDECIMAL";
-                case MYSQL_TYPE_DECIMAL:
-                    return L"DECIMAL";
-                case MYSQL_TYPE_DOUBLE:
-                    return L"DOUBLE";
-                case MYSQL_TYPE_ENUM:
-                    return L"ENUM";
-                case MYSQL_TYPE_FLOAT:
-                    return L"FLOAT";
-                case MYSQL_TYPE_GEOMETRY:
-                    return L"GEOMETRY";
-                case MYSQL_TYPE_INT24:
-                    return L"INT24";
-                case MYSQL_TYPE_LONG:
-                    return L"LONG";
-                case MYSQL_TYPE_LONGLONG:
-                    return L"LONGLONG";
-                case MYSQL_TYPE_LONG_BLOB:
-                    return L"LONG_BLOB";
-                case MYSQL_TYPE_MEDIUM_BLOB:
-                    return L"MEDIUM_BLOB";
-                case MYSQL_TYPE_NEWDATE:
-                    return L"NEWDATE";
-                case MYSQL_TYPE_NULL:
-                    return L"NULL";
-                case MYSQL_TYPE_SET:
-                    return L"SET";
-                case MYSQL_TYPE_SHORT:
-                    return L"SHORT";
-                case MYSQL_TYPE_STRING:
-                    return L"STRING";
-                case MYSQL_TYPE_TIME:
-                    return L"TIME";
-                case MYSQL_TYPE_TIMESTAMP:
-                    return L"TIMESTAMP";
-                case MYSQL_TYPE_TINY:
-                    return L"TINY";
-                case MYSQL_TYPE_TINY_BLOB:
-                    return L"TINY_BLOB";
-                case MYSQL_TYPE_VARCHAR:
-                    return L"VARCHAR";
-                case MYSQL_TYPE_VAR_STRING:
-                    return L"VAR_STRING";
-                case MYSQL_TYPE_YEAR:
-                    return L"YEAR";
-                default:
-                    break;
-            }
-            return L"?-unknown-?";
-        }
-
         void CMysqlImpl::Trim(std::string & s) {
             static const char *WHITESPACE = " \r\n\t\v\f\v";
             auto pos = s.find_first_of(WHITESPACE);
@@ -560,6 +921,7 @@ namespace SPA
         void CMysqlImpl::Execute(const std::wstring& wsql, bool rowset, bool meta, bool lastInsertId, UINT64 index, INT64 &affected, int &res, std::wstring &errMsg, CDBVariant &vtId, UINT64 & fail_ok) {
             fail_ok = 0;
             affected = 0;
+            m_indexCall = index;
             ResetMemories();
             if (!m_pMysql) {
                 res = SPA::Mysql::ER_NO_DB_OPENED_YET;
@@ -578,20 +940,20 @@ namespace SPA
             Utilities::ToUTF8(wsql.c_str(), wsql.size(), *sb);
             const char *sqlUtf8 = (const char*) sb->GetBuffer();
             COM_DATA cmd;
-			::memset(&cmd, 0, sizeof(cmd));
-			m_sql_errno = 0;
-			m_last_insert_id = 0;
+            ::memset(&cmd, 0, sizeof (cmd));
+            m_affected_rows = 0;
+            m_vColInfo.clear();
+            m_sql_errno = 0;
+            m_last_insert_id = 0;
             cmd.com_query.query = sqlUtf8;
             cmd.com_query.length = sb->GetSize();
             my_bool fail = command_service_run_command(m_pMysql.get(), COM_QUERY, &cmd, CSetGlobals::Globals.utf8_general_ci, &m_sql_cbs, CS_BINARY_REPRESENTATION, this);
             if (fail || m_sql_errno) {
                 res = m_sql_errno;
                 errMsg = m_err_msg;
-				affected = 0;
-				vtId = m_last_insert_id;
-                ++m_fails;
+                affected = 0;
+                vtId = m_last_insert_id;
             } else {
-                ++m_oks;
                 affected = (INT64) m_affected_rows;
                 if (lastInsertId)
                     vtId = m_last_insert_id;
@@ -671,6 +1033,7 @@ namespace SPA
         void CMysqlImpl::ExecuteParameters(bool rowset, bool meta, bool lastInsertId, UINT64 index, INT64 &affected, int &res, std::wstring &errMsg, CDBVariant &vtId, UINT64 & fail_ok) {
             fail_ok = 0;
             affected = 0;
+            m_indexCall = index;
             if (!m_pMysql) {
                 res = SPA::Mysql::ER_NO_DB_OPENED_YET;
                 errMsg = NO_DB_OPENED_YET;
