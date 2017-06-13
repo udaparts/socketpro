@@ -578,12 +578,17 @@ namespace SPA
             Utilities::ToUTF8(wsql.c_str(), wsql.size(), *sb);
             const char *sqlUtf8 = (const char*) sb->GetBuffer();
             COM_DATA cmd;
+			::memset(&cmd, 0, sizeof(cmd));
+			m_sql_errno = 0;
+			m_last_insert_id = 0;
             cmd.com_query.query = sqlUtf8;
             cmd.com_query.length = sb->GetSize();
             my_bool fail = command_service_run_command(m_pMysql.get(), COM_QUERY, &cmd, CSetGlobals::Globals.utf8_general_ci, &m_sql_cbs, CS_BINARY_REPRESENTATION, this);
-            if (fail) {
+            if (fail || m_sql_errno) {
                 res = m_sql_errno;
                 errMsg = m_err_msg;
+				affected = 0;
+				vtId = m_last_insert_id;
                 ++m_fails;
             } else {
                 ++m_oks;
