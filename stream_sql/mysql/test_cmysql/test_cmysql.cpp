@@ -73,12 +73,12 @@ int main(int argc, char* argv[]) {
     };
 
     ok = pMysql->Open(L"sakila", dr);
-	ok = pMysql->Execute(L"SELECT * from sakila.film;", er, r, rh);
+	ok = pMysql->Execute(L"show variables where variable_name = 'version'", er, r, rh);
     TestCreateTables(pMysql);
     ok = pMysql->Execute(L"delete from employee;delete from company", er);
     //TestPreparedStatements(pMysql);
     //InsertBLOBByPreparedStatement(pMysql);
-    ok = pMysql->Execute(L"SELECT * from sakila.my_table;SELECT * from sakila.actor;select * from sakila.address;select * from company;select * from employee", er, r, rh);
+    ok = pMysql->Execute(L"SELECT * from company;select * from employee;select curtime()", er, r, rh);
 
     CDBVariantArray vPData;
     //first set
@@ -116,7 +116,8 @@ int main(int argc, char* argv[]) {
     std::cout << std::endl;
     std::cout << "Press any key to close the application ......" << std::endl;
     ::getchar();
-
+	pMysql->Close();
+	pMysql->WaitAll();
     return 0;
 }
 

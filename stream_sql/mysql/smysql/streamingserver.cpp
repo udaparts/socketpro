@@ -36,21 +36,32 @@ CSetGlobals::CSetGlobals() {
     DisableV6 = false;
     Port = 20902;
     TLSv = false;
-
+	char strAppName[2048] = {0};
+	
     HMODULE hModule = ::GetModuleHandle(nullptr);
     if (hModule) {
         void *v = ::GetProcAddress(hModule, "my_charset_utf8_general_ci");
         utf8_general_ci = (CHARSET_INFO*) v;
         decimal2string = (pdecimal2string)::GetProcAddress(hModule, "decimal2string");
         ::FreeLibrary(hModule);
+		//::GetModuleFileNameA(hModule, strAppName, sizeof(strAppName));
     } else {
         assert(false);
         utf8_general_ci = nullptr;
         decimal2string = nullptr;
     }
+	unsigned int version = 50718; //MYSQL_VERSION_ID;
+	if (strlen(strAppName)) {
+		version = GetVersion(strAppName);
+		if (!version)
+			version = MYSQL_VERSION_ID;
+	}
     //set interface_version
-    unsigned int version = 50718; //MYSQL_VERSION_ID;
     async_sql_plugin.interface_version = (version << 8);
+}
+
+unsigned int CSetGlobals::GetVersion(const char *prog) {
+	return 0;
 }
 
 CSetGlobals CSetGlobals::Globals;
@@ -67,11 +78,36 @@ void CStreamingServer::OnClose(USocket_Server_Handle h, int errCode) {
 
 }
 
+bool CStreamingServer::DoSQLAuthentication(USocket_Server_Handle h, const wchar_t* userId, const wchar_t *password) {
+	std::string userA = SPA::Utilities::ToUTF8(userId);
+	std::shared_ptr<Srv_session> pMysql(srv_session_open(nullptr, this), [this](MYSQL_SESSION mysql) {
+        if (mysql) {
+            srv_session_close(mysql);
+        }
+    });
+	if (!pMysql)
+		return false;
+	MYSQL_SECURITY_CONTEXT sc = nullptr;
+	my_svc_bool fail = thd_get_security_context(srv_session_info_get_thd(pMysql.get()), &sc);
+	if (fail)
+		return false;
+	char strIp[64] = {0};
+	unsigned int port;
+	bool ok = SPA::ServerSide::ServerCoreLoader.GetPeerName(h, &port, strIp, sizeof(strIp));
+	fail = security_context_lookup(sc, userA.c_str(), "localhost", strIp, nullptr);
+	if (fail)
+		return false;
+    return true;
+}
+
 bool CStreamingServer::OnIsPermitted(USocket_Server_Handle h, const wchar_t* userId, const wchar_t *password, unsigned int serviceId) {
-
-
-
-
+	switch(serviceId)
+	{
+	case SPA::Mysql::sidMysql:
+		return DoSQLAuthentication(h, userId, password);
+	default:
+		break;
+	}
     return true;
 }
 

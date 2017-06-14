@@ -26,6 +26,7 @@ namespace SPA {
             unsigned int GetParameters() const;
             bool IsStoredProcedure() const;
             const std::string& GetProcedureName() const;
+			static unsigned int GetMySqlServerVersion();
 
         protected:
             virtual void OnFastRequestArrive(unsigned short reqId, unsigned int len);
@@ -113,6 +114,7 @@ namespace SPA {
             std::string m_procName;
 
             CDBColumnInfoArray m_vColInfo;
+			bool m_NoSending;
 
             int m_sql_errno;
             std::wstring m_err_msg;
