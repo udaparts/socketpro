@@ -2,7 +2,7 @@
 
 #include "stdafx.h"
 #include <iostream>
-#include "../../../../../include/mysql/umysql.h"
+#include "../../../../include/mysql/umysql.h"
 
 using namespace SPA::UDB;
 
@@ -17,14 +17,11 @@ int main(int argc, char* argv[]) {
     std::cout << "Remote host: " << std::endl;
     std::getline(std::cin, cc.Host);
     //cc.Host = "localhost";
-    cc.Port = 20901;
-    cc.UserId = L"MyUserId";
-    cc.Password = L"MyPassword";
-    std::cout << "Embedded (0) or remote (1) mysql/mariadb database?" << std::endl;
-    std::string s;
-    std::getline(std::cin, s);
-    int remote = std::atoi(s.c_str());
+    cc.Port = 20902;
+    cc.UserId = L"root";
+    cc.Password = L"Smash123";
     std::cout << "Table name: " << std::endl;
+	std::string s;
     std::getline(std::cin, s);
     std::wstring tableName = SPA::Utilities::ToWide(s.c_str());
     std::cout << "sql filter: " << std::endl;
@@ -93,8 +90,7 @@ int main(int argc, char* argv[]) {
         ra.push_back(column_rowset_pair);
     };
 
-    ok = pMysql->Open(L"", dr, remote ? SPA::Mysql::USE_REMOTE_MYSQL : 0);
-    pMysql->Execute(L"use sakila", er);
+    ok = pMysql->Open(L"sakila", dr);
     ok = pMysql->WaitAll();
     obtained = 0;
     std::wstring sql = L"select * from " + tableName;

@@ -12,14 +12,12 @@ class Program
     {
         Console.WriteLine("Remote host: ");
         string host = Console.ReadLine();
-        Console.WriteLine("Embedded (0) or remote (1) mysql/mariadb database?");
-        bool remote = (Console.ReadKey().KeyChar != '0');
         Console.WriteLine("");
         Console.WriteLine("Table name: ");
         string tableName = Console.ReadLine();
         Console.WriteLine("sql filter: ");
         string filter = Console.ReadLine();
-        CConnectionContext cc = new CConnectionContext(host, 20901, "umysql_client", "pwd_for_mysql");
+        CConnectionContext cc = new CConnectionContext(host, 20902, "root", "Smash123");
         Console.WriteLine("Asynchronous execution (0) or synchronous execution (1) ?");
         bool sync = (Console.ReadKey().KeyChar != '0');
         using (CSocketPool<CMysql> spMysql = new CSocketPool<CMysql>())
@@ -40,7 +38,7 @@ class Program
                     Console.WriteLine("res = {0}, errMsg: {1}", res, errMsg);
             };
             uint obtained = 0;
-            bool ok = mysql.Open("", dr, remote ? CMysql.USE_REMOTE_MYSQL : 0);
+            bool ok = mysql.Open("sakila", dr);
 #if USE_DATATABLE
             List<KeyValuePair<CDBColumnInfoArray, DataTable>> ra = new List<KeyValuePair<CDBColumnInfoArray, DataTable>>();
 #else
@@ -76,8 +74,6 @@ class Program
 #endif
                 ra.Add(item);
             };
-            mysql.Execute("use sakila", er);
-            ok = mysql.WaitAll();
             obtained = 0;
             string sql = "select * from " + tableName;
             if (filter.Length > 0)
