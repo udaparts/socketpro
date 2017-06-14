@@ -18,11 +18,11 @@ protected:
 
 private:
     bool AddService();
-	bool DoSQLAuthentication(USocket_Server_Handle h, const wchar_t* userId, const wchar_t *password);
+    bool DoSQLAuthentication(USocket_Server_Handle h, const wchar_t* userId, const wchar_t *password);
 
 private:
     SPA::ServerSide::CMysqlService m_MySql;
-	
+
 private:
     CStreamingServer(const CStreamingServer &ss);
     CStreamingServer& operator=(const CStreamingServer &ss);
@@ -35,13 +35,14 @@ typedef int (*pdecimal2string) (const decimal_t *from, char *to, int *to_len, in
 struct CSetGlobals {
 private:
     CSetGlobals();
-	unsigned int GetVersion(const char *prog);
+    static unsigned int GetVersion(const char *prog);
 
 public:
     int m_nParam;
     bool DisableV6;
     unsigned int Port;
     bool TLSv;
+    const char *server_version;
     CHARSET_INFO *utf8_general_ci;
     pdecimal2string decimal2string;
     st_mysql_daemon async_sql_plugin;

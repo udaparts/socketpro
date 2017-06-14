@@ -22,6 +22,7 @@ namespace SPA
         const wchar_t * CMysqlImpl::MYSQL_LIBRARY_NOT_INITIALIZED = L"Mysql library not initialized";
         const wchar_t * CMysqlImpl::BAD_MANUAL_TRANSACTION_STATE = L"Bad manual transaction state";
         const wchar_t * CMysqlImpl::UNABLE_TO_SWITCH_TO_DATABASE = L"Unable to switch to database ";
+        const wchar_t * CMysqlImpl::SERVICE_COMMAND_ERROR = L"Service command error";
 
         st_command_service_cbs CMysqlImpl::m_sql_cbs =
         {
@@ -402,8 +403,15 @@ namespace SPA
                     info.DataType = VT_I2;
                     break;
                 default:
+                    info.ColumnSize = f->length;
                     info.DeclaredType = L"?-unknown-?";
-                    info.DataType = VT_EMPTY;
+                    if (f->charsetnr == IS_BINARY) {
+                        info.DeclaredType = L"VARBINARY";
+                        info.DataType = (VT_UI1 | VT_ARRAY);
+                    } else {
+                        info.DeclaredType = L"VARCHAR";
+                        info.DataType = (VT_I1 | VT_ARRAY); //string
+                    }
                     break;
             }
             CMysqlImpl *impl = (CMysqlImpl *) ctx;
@@ -415,14 +423,14 @@ namespace SPA
             CMysqlImpl *impl = (CMysqlImpl *) ctx;
             CUQueue &q = impl->m_qSend;
             q.SetSize(0);
-			if (!impl->m_NoSending) {
-				q << impl->m_vColInfo << impl->m_indexCall;
-				unsigned int ret = impl->SendResult(idRowsetHeader, q.GetBuffer(), q.GetSize());
-				q.SetSize(0);
-				if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
-					return 1; //an error occured, server will abort the command
-				}
-			}
+            if (!impl->m_NoSending) {
+                q << impl->m_vColInfo << impl->m_indexCall;
+                unsigned int ret = impl->SendResult(idRowsetHeader, q.GetBuffer(), q.GetSize());
+                q.SetSize(0);
+                if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
+                    return 1; //an error occured, server will abort the command
+                }
+            }
             return 0;
         }
 
@@ -700,31 +708,31 @@ namespace SPA
             p->m_err_msg = SPA::Utilities::ToWide(err_msg);
         }
 
-		unsigned int CMysqlImpl::GetMySqlServerVersion() {
-			CMysqlImpl impl;
-			std::wstring db, errMsg, wsql(L"show variables where variable_name = 'version'");
-			int res, ms;
-			INT64 affected;
-			SPA::UDB::CDBVariant vtId;
-			UINT64 fail_ok;
-			impl.Open(db, 0, res, errMsg, ms);
-			if (res)
-				return MYSQL_VERSION_ID;
-			impl.m_NoSending = true;
-			impl.Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
-			SPA::UDB::CDBVariant vt0, vt1;
-			impl.m_qSend.Utf8ToW(true);
-			if (impl.m_qSend.GetSize()) {
-				impl.m_qSend >> vt0 >> vt1;
-				std::string s = SPA::Utilities::ToUTF8(vt1.bstrVal);
-				const char *end;
-				unsigned int major = SPA::atoui(s.c_str(), end);
-				unsigned int minor = SPA::atoui(++end, end);
-				unsigned int build = SPA::atoui(++end, end);
-				return (major * 10000 + minor * 100 + build);
-			}
-			return MYSQL_VERSION_ID;
-		}
+        unsigned int CMysqlImpl::GetMySqlServerVersion() {
+            CMysqlImpl impl;
+            std::wstring db, errMsg, wsql(L"show variables where variable_name = 'version'");
+            int res, ms;
+            INT64 affected;
+            SPA::UDB::CDBVariant vtId;
+            UINT64 fail_ok;
+            impl.Open(db, 0, res, errMsg, ms);
+            if (res)
+                return MYSQL_VERSION_ID;
+            impl.m_NoSending = true;
+            impl.Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
+            SPA::UDB::CDBVariant vt0, vt1;
+            impl.m_qSend.Utf8ToW(true);
+            if (impl.m_qSend.GetSize()) {
+                impl.m_qSend >> vt0 >> vt1;
+                std::string s = SPA::Utilities::ToUTF8(vt1.bstrVal);
+                const char *end;
+                unsigned int major = SPA::atoui(s.c_str(), end);
+                unsigned int minor = SPA::atoui(++end, end);
+                unsigned int build = SPA::atoui(++end, end);
+                return (major * 10000 + minor * 100 + build);
+            }
+            return MYSQL_VERSION_ID;
+        }
 
         void CMysqlImpl::Open(const std::wstring &strConnection, unsigned int flags, int &res, std::wstring &errMsg, int &ms) {
             res = 0;
@@ -736,43 +744,39 @@ namespace SPA
                     srv_session_close(mysql);
                 }
             });
-			unsigned int port;
-			std::string ip = GetPeerName(&port);
-			std::wstring user = GetUID();
+            unsigned int port;
+            std::string ip = GetPeerName(&port);
+            std::wstring user = GetUID();
             std::string userA = SPA::Utilities::ToUTF8(user.c_str(), user.size());
-			if (!userA.size()) {
-				userA = "root";
-				ip = "127.0.0.1";
-			}
-			my_bool fail = thd_get_security_context(srv_session_info_get_thd(st_session), &m_sc);
-			fail = security_context_lookup(m_sc, userA.c_str(), "localhost", ip.c_str(), nullptr);
-			m_qSend.SetSize(0);
-			m_sql_errno = 0;
-			m_NoSending = true;
-			if (strConnection.size()) {
-				std::string db = SPA::Utilities::ToUTF8(strConnection.c_str(), strConnection.size());
-				COM_DATA cmd;
-				cmd.com_init_db.db_name= db.c_str();
-				cmd.com_init_db.length= (unsigned long)db.size();
-				fail = command_service_run_command(st_session, COM_INIT_DB, &cmd, CSetGlobals::Globals.utf8_general_ci, &m_sql_cbs, CS_BINARY_REPRESENTATION, this);
-			}
+            if (!userA.size()) {
+                userA = "root";
+                ip = "127.0.0.1";
+            }
+            my_bool fail = thd_get_security_context(srv_session_info_get_thd(st_session), &m_sc);
+            fail = security_context_lookup(m_sc, userA.c_str(), "localhost", ip.c_str(), nullptr);
+            InitMysqlSession();
+            m_NoSending = true;
+            if (strConnection.size()) {
+                std::string db = SPA::Utilities::ToUTF8(strConnection.c_str(), strConnection.size());
+                COM_DATA cmd;
+                cmd.com_init_db.db_name = db.c_str();
+                cmd.com_init_db.length = (unsigned long) db.size();
+                fail = command_service_run_command(st_session, COM_INIT_DB, &cmd, CSetGlobals::Globals.utf8_general_ci, &m_sql_cbs, CS_BINARY_REPRESENTATION, this);
+            }
             if (fail) {
                 res = SPA::Mysql::ER_UNABLE_TO_SWITCH_TO_DATABASE;
                 errMsg = UNABLE_TO_SWITCH_TO_DATABASE + strConnection;
                 m_pMysql.reset();
-            } 
-			else if (m_sql_errno) {
-				res = m_sql_errno;
-				errMsg = m_err_msg;
-				m_pMysql.reset();
-			}
-			else {
+            } else if (m_sql_errno) {
+                res = m_sql_errno;
+                errMsg = m_err_msg;
+                m_pMysql.reset();
+            } else {
                 res = 0;
-				LEX_CSTRING db_name= srv_session_info_get_current_db(st_session);
+                LEX_CSTRING db_name = srv_session_info_get_current_db(st_session);
                 errMsg = SPA::Utilities::ToWide(db_name.str, db_name.length);
             }
-			m_NoSending = false;
-			m_qSend.SetSize(0);
+            m_NoSending = false;
         }
 
         void CMysqlImpl::CloseDb(int &res, std::wstring & errMsg) {
@@ -794,6 +798,11 @@ namespace SPA
 #ifndef NDEBUG
                     std::cout << "Cancel called" << std::endl;
 #endif
+                {
+                    int res;
+                    std::wstring errMsg;
+                    EndTrans((int) rpRollbackAlways, res, errMsg);
+                }
                     break;
                 default:
                     break;
@@ -813,9 +822,47 @@ namespace SPA
                     return;
                 }
             } else {
-
+                std::string sql;
+                switch ((tagTransactionIsolation) isolation) {
+                    case tiReadUncommited:
+                        sql = "SET SESSION TRANSACTION ISOLATION LEVEL READ UNCOMMITTED";
+                        break;
+                    case tiRepeatableRead:
+                        sql = "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ";
+                        break;
+                    case tiReadCommited:
+                        sql = "SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED";
+                        break;
+                    case tiSerializable:
+                        sql = "SET SESSION TRANSACTION ISOLATION LEVEL SERIALIZABLE";
+                        break;
+                    default:
+                        break;
+                }
+                if (sql.size())
+                    sql += ";";
+                sql += "SET AUTOCOMMIT=0";
+                m_NoSending = true;
+                COM_DATA cmd;
+                ::memset(&cmd, 0, sizeof (cmd));
+                InitMysqlSession();
+                cmd.com_query.query = sql.c_str();
+                cmd.com_query.length = (unsigned int) sql.size();
+                my_bool fail = command_service_run_command(m_pMysql.get(), COM_QUERY, &cmd, CSetGlobals::Globals.utf8_general_ci, &m_sql_cbs, CS_BINARY_REPRESENTATION, this);
+                m_NoSending = false;
+                if (m_sql_errno) {
+                    res = m_sql_errno;
+                    errMsg = m_err_msg;
+                } else if (fail) {
+                    errMsg = SERVICE_COMMAND_ERROR;
+                    res = SPA::Mysql::ER_SERVICE_COMMAND_ERROR;
+                } else {
+                    res = 0;
+                    m_fails = 0;
+                    m_oks = 0;
+                    m_ti = (tagTransactionIsolation) isolation;
+                }
             }
-            res = 0;
         }
 
         void CMysqlImpl::EndTrans(int plan, int &res, std::wstring & errMsg) {
@@ -859,8 +906,28 @@ namespace SPA
                     assert(false); //shouldn't come here
                     break;
             }
-            my_bool fail;
-            res = 0;
+            std::string sql(rollback ? "rollback" : "commit");
+            m_NoSending = true;
+            COM_DATA cmd;
+            ::memset(&cmd, 0, sizeof (cmd));
+            InitMysqlSession();
+            cmd.com_query.query = sql.c_str();
+            cmd.com_query.length = (unsigned int) sql.size();
+            my_bool fail = command_service_run_command(m_pMysql.get(), COM_QUERY, &cmd, CSetGlobals::Globals.utf8_general_ci, &m_sql_cbs, CS_BINARY_REPRESENTATION, this);
+            m_NoSending = false;
+            if (m_sql_errno) {
+                res = m_sql_errno;
+                errMsg = m_err_msg;
+            } else if (fail) {
+                errMsg = SERVICE_COMMAND_ERROR;
+                res = SPA::Mysql::ER_SERVICE_COMMAND_ERROR;
+            } else {
+                res = 0;
+                m_ti = tiUnspecified;
+                m_fails = 0;
+                m_oks = 0;
+            }
+
         }
 
         void CMysqlImpl::ExecuteSqlWithoutRowset(int &res, std::wstring &errMsg, INT64 & affected) {
@@ -868,8 +935,8 @@ namespace SPA
         }
 
         bool CMysqlImpl::SendRows(CUQueue& sb, bool transferring) {
-			if (m_NoSending)
-				return true;
+            if (m_NoSending)
+                return true;
             bool batching = (GetBytesBatched() >= DEFAULT_RECORD_BATCH_SIZE);
             if (batching) {
                 CommitBatching();
@@ -886,11 +953,11 @@ namespace SPA
         }
 
         bool CMysqlImpl::SendBlob(unsigned short data_type, const unsigned char *buffer, unsigned int bytes) {
-			if (m_NoSending) {
-				m_qSend << data_type << bytes;
-				m_qSend.Push(buffer, bytes);
-				return true;
-			}
+            if (m_NoSending) {
+                m_qSend << data_type << bytes;
+                m_qSend.Push(buffer, bytes);
+                return true;
+            }
             unsigned int ret = SendResult(idStartBLOB,
             (unsigned int) (bytes + sizeof (unsigned short) + sizeof (unsigned int) + sizeof (unsigned int))/* extra 4 bytes for string null termination*/,
             data_type, bytes);
@@ -975,6 +1042,15 @@ namespace SPA
 
         }
 
+        void CMysqlImpl::InitMysqlSession() {
+            m_affected_rows = 0;
+            m_vColInfo.clear();
+            m_sql_errno = 0;
+            m_last_insert_id = 0;
+            m_err_msg.clear();
+            m_qSend.SetSize(0);
+        }
+
         void CMysqlImpl::Execute(const std::wstring& wsql, bool rowset, bool meta, bool lastInsertId, UINT64 index, INT64 &affected, int &res, std::wstring &errMsg, CDBVariant &vtId, UINT64 & fail_ok) {
             fail_ok = 0;
             affected = 0;
@@ -998,14 +1074,15 @@ namespace SPA
             const char *sqlUtf8 = (const char*) sb->GetBuffer();
             COM_DATA cmd;
             ::memset(&cmd, 0, sizeof (cmd));
-            m_affected_rows = 0;
-            m_vColInfo.clear();
-            m_sql_errno = 0;
-            m_last_insert_id = 0;
+            InitMysqlSession();
             cmd.com_query.query = sqlUtf8;
             cmd.com_query.length = sb->GetSize();
             my_bool fail = command_service_run_command(m_pMysql.get(), COM_QUERY, &cmd, CSetGlobals::Globals.utf8_general_ci, &m_sql_cbs, CS_BINARY_REPRESENTATION, this);
-            if (fail || m_sql_errno) {
+            if (fail) {
+                errMsg = SERVICE_COMMAND_ERROR;
+                res = SPA::Mysql::ER_SERVICE_COMMAND_ERROR;
+                ++m_fails;
+            } else if (m_sql_errno) {
                 res = m_sql_errno;
                 errMsg = m_err_msg;
                 affected = 0;
@@ -1058,7 +1135,27 @@ namespace SPA
             m_sqlPrepare = Utilities::ToUTF8(wsql.c_str(), wsql.size());
             CMysqlImpl::Trim(m_sqlPrepare);
             PreprocessPreparedStatement();
-            my_bool fail;
+            m_NoSending = true;
+            CScopeUQueue sb;
+            Utilities::ToUTF8(wsql.c_str(), wsql.size(), *sb);
+            const char *sqlUtf8 = (const char*) sb->GetBuffer();
+            COM_DATA cmd;
+            ::memset(&cmd, 0, sizeof (cmd));
+            InitMysqlSession();
+            cmd.com_stmt_prepare.query = sqlUtf8;
+            cmd.com_stmt_prepare.length = sb->GetSize();
+            my_bool fail = command_service_run_command(m_pMysql.get(), COM_STMT_PREPARE, &cmd, CSetGlobals::Globals.utf8_general_ci, &m_sql_cbs, CS_BINARY_REPRESENTATION, this);
+            m_NoSending = false;
+            if (m_sql_errno) {
+                res = m_sql_errno;
+                errMsg = m_err_msg;
+                --m_fails;
+            } else if (fail) {
+                errMsg = SERVICE_COMMAND_ERROR;
+                res = SPA::Mysql::ER_SERVICE_COMMAND_ERROR;
+            } else {
+                res = 0;
+            }
         }
 
         int CMysqlImpl::Bind(CUQueue &qBufferSize, int row, std::wstring & errMsg) {

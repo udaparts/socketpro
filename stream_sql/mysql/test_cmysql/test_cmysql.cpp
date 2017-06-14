@@ -75,8 +75,10 @@ int main(int argc, char* argv[]) {
     ok = pMysql->Open(L"sakila", dr);
 	ok = pMysql->Execute(L"show variables where variable_name = 'version'", er, r, rh);
     TestCreateTables(pMysql);
+	ok = pMysql->BeginTrans();
     ok = pMysql->Execute(L"delete from employee;delete from company", er);
-    //TestPreparedStatements(pMysql);
+	ok = pMysql->EndTrans(rpRollbackAlways);
+    TestPreparedStatements(pMysql);
     //InsertBLOBByPreparedStatement(pMysql);
     ok = pMysql->Execute(L"SELECT * from company;select * from employee;select curtime()", er, r, rh);
 
@@ -203,7 +205,7 @@ void TestPreparedStatements(std::shared_ptr<CMyHandler> pMysql) {
         std::cout << "res = " << res << ", errMsg: ";
         std::wcout << errMsg << std::endl;
     });
-
+	/*
     CDBVariantArray vData;
 
     //first set
@@ -232,6 +234,7 @@ void TestPreparedStatements(std::shared_ptr<CMyHandler> pMysql) {
         }
         std::cout << std::endl;
     });
+	*/
 }
 
 void TestCreateTables(std::shared_ptr<CMyHandler> pMysql) {

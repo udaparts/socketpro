@@ -19,7 +19,7 @@ namespace SPA {
         static const int ER_MYSQL_LIBRARY_NOT_INITIALIZED = 1988;
         static const int ER_BAD_MANUAL_TRANSACTION_STATE = 1989;
         static const int ER_UNABLE_TO_SWITCH_TO_DATABASE = 1990;
-
+        static const int ER_SERVICE_COMMAND_ERROR = 1991;
     } //namespace Mysql
 } //namespace SPA
 #endif

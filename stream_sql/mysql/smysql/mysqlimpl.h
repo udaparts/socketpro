@@ -26,7 +26,7 @@ namespace SPA {
             unsigned int GetParameters() const;
             bool IsStoredProcedure() const;
             const std::string& GetProcedureName() const;
-			static unsigned int GetMySqlServerVersion();
+            static unsigned int GetMySqlServerVersion();
 
         protected:
             virtual void OnFastRequestArrive(unsigned short reqId, unsigned int len);
@@ -62,6 +62,7 @@ namespace SPA {
             void PreprocessPreparedStatement();
             void CleanDBObjects();
             void ResetMemories();
+            void InitMysqlSession();
             static UINT64 ConvertBitsToInt(const unsigned char *s, unsigned int bytes);
             static void ConvertToUTF8OrDouble(CDBVariant &vt);
             static void CALLBACK OnThreadEventEmbedded(SPA::ServerSide::tagThreadEvent te);
@@ -114,7 +115,7 @@ namespace SPA {
             std::string m_procName;
 
             CDBColumnInfoArray m_vColInfo;
-			bool m_NoSending;
+            bool m_NoSending;
 
             int m_sql_errno;
             std::wstring m_err_msg;
@@ -149,6 +150,7 @@ namespace SPA {
             static const wchar_t* MYSQL_LIBRARY_NOT_INITIALIZED;
             static const wchar_t* BAD_MANUAL_TRANSACTION_STATE;
             static const wchar_t* UNABLE_TO_SWITCH_TO_DATABASE;
+            static const wchar_t* SERVICE_COMMAND_ERROR;
         };
 
         typedef CSocketProService<CMysqlImpl> CMysqlService;
