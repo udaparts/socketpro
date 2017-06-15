@@ -20,8 +20,11 @@ int main(int argc, char* argv[]) {
     cc.Port = 20902;
     cc.UserId = L"root";
     cc.Password = L"Smash123";
-    std::cout << "Table name: " << std::endl;
 	std::string s;
+	std::cout << "Database name: " << std::endl;
+	std::getline(std::cin, s);
+    std::wstring dbName = SPA::Utilities::ToWide(s.c_str());
+    std::cout << "Table name: " << std::endl;
     std::getline(std::cin, s);
     std::wstring tableName = SPA::Utilities::ToWide(s.c_str());
     std::cout << "sql filter: " << std::endl;
@@ -90,7 +93,7 @@ int main(int argc, char* argv[]) {
         ra.push_back(column_rowset_pair);
     };
 
-    ok = pMysql->Open(L"sakila", dr);
+    ok = pMysql->Open(dbName.c_str(), dr);
     ok = pMysql->WaitAll();
     obtained = 0;
     std::wstring sql = L"select * from " + tableName;

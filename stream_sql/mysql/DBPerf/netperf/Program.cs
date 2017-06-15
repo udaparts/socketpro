@@ -12,7 +12,8 @@ class Program
     {
         Console.WriteLine("Remote host: ");
         string host = Console.ReadLine();
-        Console.WriteLine("");
+        Console.WriteLine("Database name: ");
+        string dbName = Console.ReadLine();
         Console.WriteLine("Table name: ");
         string tableName = Console.ReadLine();
         Console.WriteLine("sql filter: ");
@@ -38,7 +39,7 @@ class Program
                     Console.WriteLine("res = {0}, errMsg: {1}", res, errMsg);
             };
             uint obtained = 0;
-            bool ok = mysql.Open("sakila", dr);
+            bool ok = mysql.Open(dbName, dr);
 #if USE_DATATABLE
             List<KeyValuePair<CDBColumnInfoArray, DataTable>> ra = new List<KeyValuePair<CDBColumnInfoArray, DataTable>>();
 #else

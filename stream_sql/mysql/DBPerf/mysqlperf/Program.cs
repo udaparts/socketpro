@@ -8,12 +8,14 @@ class Program
     {
         Console.WriteLine("Remote host: ");
         string host = Console.ReadLine();
+        Console.WriteLine("Database name: ");
+        string dbName = Console.ReadLine();
         Console.WriteLine("Table name: ");
         string tableName = Console.ReadLine();
         Console.WriteLine("sql filter: ");
         string filter = Console.ReadLine();
         string mysql_conn = "server=" + host;
-        mysql_conn += ";Port=3306;Database=sakila;Uid=root;Pwd=Smash123";
+        mysql_conn += (";Port=3306;Uid=root;Pwd=Smash123;Database=" + dbName);
         MySqlConnection conn = new MySqlConnection(mysql_conn);
         conn.Open();
         string sql = "select * from " + tableName;

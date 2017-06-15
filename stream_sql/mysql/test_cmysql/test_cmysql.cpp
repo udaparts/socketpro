@@ -73,7 +73,7 @@ int main(int argc, char* argv[]) {
     };
 
     ok = pMysql->Open(L"sakila", dr);
-	ok = pMysql->Execute(L"show variables where variable_name = 'version'", er, r, rh);
+	ok = pMysql->Execute(L"select * from t1", er, r, rh);
     TestCreateTables(pMysql);
 	ok = pMysql->BeginTrans();
     ok = pMysql->Execute(L"delete from employee;delete from company", er);
@@ -118,8 +118,6 @@ int main(int argc, char* argv[]) {
     std::cout << std::endl;
     std::cout << "Press any key to close the application ......" << std::endl;
     ::getchar();
-	pMysql->Close();
-	pMysql->WaitAll();
     return 0;
 }
 
