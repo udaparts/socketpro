@@ -48,7 +48,7 @@ namespace SPA
         };
 
         CMysqlImpl::CMysqlImpl()
-        : m_oks(0), m_fails(0), m_ti(tiUnspecified),
+        : m_EnableMessages(false), m_oks(0), m_fails(0), m_ti(tiUnspecified),
         m_Blob(*m_sb), m_qSend(*m_sqSend), m_parameters(0), m_bCall(false), m_NoSending(false), m_sql_errno(0),
         m_sc(nullptr), m_sql_resultcs(nullptr), m_ColIndex(0),
         m_sql_flags(0), m_affected_rows(0), m_last_insert_id(0),
@@ -737,6 +737,7 @@ namespace SPA
         void CMysqlImpl::Open(const std::wstring &strConnection, unsigned int flags, int &res, std::wstring &errMsg, int &ms) {
             res = 0;
             ms = msMysql;
+			m_EnableMessages = false;
             CleanDBObjects();
             MYSQL_SESSION st_session = srv_session_open(srv_session_error_cb, this);
             m_pMysql.reset(st_session, [this](MYSQL_SESSION mysql) {
@@ -775,11 +776,18 @@ namespace SPA
                 res = 0;
                 LEX_CSTRING db_name = srv_session_info_get_current_db(st_session);
                 errMsg = SPA::Utilities::ToWide(db_name.str, db_name.length);
+				if ((flags & SPA::UDB::ENABLE_TABLE_UPDATE_MESSAGES) == SPA::UDB::ENABLE_TABLE_UPDATE_MESSAGES) {
+					m_EnableMessages = GetPush().Subscribe(&SPA::UDB::STREAMING_SQL_CHAT_GROUP_ID, 1);
+				}
             }
             m_NoSending = false;
         }
 
         void CMysqlImpl::CloseDb(int &res, std::wstring & errMsg) {
+			if (m_EnableMessages) {
+				GetPush().Unsubscribe();
+				m_EnableMessages = false;
+			}
             CleanDBObjects();
             res = 0;
         }

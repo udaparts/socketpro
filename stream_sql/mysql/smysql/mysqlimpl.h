@@ -92,6 +92,7 @@ namespace SPA {
             static void ToDecimal(const decimal_t &src, bool large, DECIMAL &dec);
 
         protected:
+			bool m_EnableMessages;
             UINT64 m_oks;
             UINT64 m_fails;
             tagTransactionIsolation m_ti;

@@ -130,9 +130,13 @@ void CStreamingServer::OnAccept(USocket_Server_Handle h, int errCode) {
 }
 
 bool CStreamingServer::OnSettingServer(unsigned int listeningPort, unsigned int maxBacklog, bool v6) {
-
     //amIntegrated and amMixed not supported yet
     CSocketProServer::Config::SetAuthenticationMethod(SPA::ServerSide::amOwn);
+
+	//register streaming sql database events
+	PushManager::AddAChatGroup(SPA::UDB::STREAMING_SQL_CHAT_GROUP_ID, L"Streaming SQL Database Events");
+
+
 
     //add MySQL streaming service into SocketPro server
     return AddService();

@@ -116,6 +116,9 @@ namespace SPA {
         static const unsigned short idEndRows = idEndBLOB + 1;
         static const unsigned short idCallReturn = idEndRows + 1;
 
+		static const unsigned short idBeginPushCache = idCallReturn + 1;
+		static const unsigned short idEndPushCache = idBeginPushCache + 1;
+
         /**
          * Whenever a data size in bytes is about twice larger than the defined value,
          * the data will be treated in large object and transferred in chunks for reducing memory foot print
@@ -126,6 +129,16 @@ namespace SPA {
          * A record data size in bytes is approximately equal to or slightly larger than the defined constant
          */
         static const unsigned int DEFAULT_RECORD_BATCH_SIZE = 16 * 1024;
+		
+		/**
+         * A flag used with idOpen for tracting database table update events
+         */
+		static const unsigned int ENABLE_TABLE_UPDATE_MESSAGES = 0x1;
+		
+		/**
+         * A chat group id used at SocketPro server side for notifying database events from server to connected clients
+         */
+		static const unsigned int STREAMING_SQL_CHAT_GROUP_ID = 0x1fffffff;
 
         /**
          * VARINAT data types for OLEDB
