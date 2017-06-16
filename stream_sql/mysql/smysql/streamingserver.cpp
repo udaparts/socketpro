@@ -133,8 +133,8 @@ bool CStreamingServer::OnSettingServer(unsigned int listeningPort, unsigned int 
     //amIntegrated and amMixed not supported yet
     CSocketProServer::Config::SetAuthenticationMethod(SPA::ServerSide::amOwn);
 
-	//register streaming sql database events
-	PushManager::AddAChatGroup(SPA::UDB::STREAMING_SQL_CHAT_GROUP_ID, L"Streaming SQL Database Events");
+    //register streaming sql database events
+    PushManager::AddAChatGroup(SPA::UDB::STREAMING_SQL_CHAT_GROUP_ID, L"Streaming SQL Database Events");
 
 
 

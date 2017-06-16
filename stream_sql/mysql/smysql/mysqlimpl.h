@@ -21,6 +21,15 @@ namespace SPA {
             //no assignment operator
             CMysqlImpl& operator=(const CMysqlImpl &impl);
 
+            struct Stmt {
+
+                Stmt(unsigned long id, bool ok, size_t params = 0) : stmt_id(id), parameters(params), prepared(ok) {
+                }
+                unsigned long stmt_id;
+                size_t parameters;
+                bool prepared;
+            };
+
         public:
             CMysqlImpl();
             unsigned int GetParameters() const;
@@ -56,13 +65,12 @@ namespace SPA {
             bool SendBlob(unsigned short data_type, const unsigned char *buffer, unsigned int bytes);
 
         private:
-            void ExecuteSqlWithoutRowset(int &res, std::wstring &errMsg, INT64 &affected);
-            void ExecuteSqlWithRowset(bool meta, UINT64 index, int &res, std::wstring &errMsg, INT64 &affected);
-            int Bind(CUQueue &qBufferSize, int row, std::wstring &errMsg);
             void PreprocessPreparedStatement();
             void CleanDBObjects();
             void ResetMemories();
             void InitMysqlSession();
+            void CloseStmt();
+            static size_t ComputeParameters(const std::wstring &sql);
             static UINT64 ConvertBitsToInt(const unsigned char *s, unsigned int bytes);
             static void ConvertToUTF8OrDouble(CDBVariant &vt);
             static void CALLBACK OnThreadEventEmbedded(SPA::ServerSide::tagThreadEvent te);
@@ -92,7 +100,7 @@ namespace SPA {
             static void ToDecimal(const decimal_t &src, bool large, DECIMAL &dec);
 
         protected:
-			bool m_EnableMessages;
+            bool m_EnableMessages;
             UINT64 m_oks;
             UINT64 m_fails;
             tagTransactionIsolation m_ti;
@@ -109,8 +117,7 @@ namespace SPA {
             std::shared_ptr<Srv_session> m_pMysql;
 
             //parameterized statement
-            //std::shared_ptr<MYSQL_STMT> m_pPrepare;
-            size_t m_parameters;
+            Stmt m_stmt;
             bool m_bCall;
             std::string m_sqlPrepare;
             std::string m_procName;
