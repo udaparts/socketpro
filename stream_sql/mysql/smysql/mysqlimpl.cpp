@@ -1111,11 +1111,11 @@ namespace SPA
                 res = m_sql_errno;
                 errMsg = m_err_msg;
                 affected = 0;
-                vtId = m_last_insert_id;
+                vtId = (SPA::UINT64)m_last_insert_id;
             } else {
-                affected = (INT64) m_affected_rows;
+                affected = (SPA::INT64) m_affected_rows;
                 if (lastInsertId)
-                    vtId = m_last_insert_id;
+                    vtId = (SPA::UINT64)m_last_insert_id;
             }
             fail_ok = ((m_fails - fails) << 32);
             fail_ok += (unsigned int) (m_oks - oks);

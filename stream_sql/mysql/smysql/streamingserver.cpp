@@ -36,7 +36,11 @@ CSetGlobals::CSetGlobals() {
     DisableV6 = false;
     Port = 20902;
     TLSv = false;
+#ifdef WIN32_64
     HMODULE hModule = ::GetModuleHandle(nullptr);
+#else
+    HINSTANCE hModule = ::dlopen(nullptr, RTLD_LAZY);
+#endif
     if (hModule) {
         void *v = ::GetProcAddress(hModule, "my_charset_utf8_general_ci");
         utf8_general_ci = (CHARSET_INFO*) v;
@@ -117,7 +121,7 @@ bool CStreamingServer::OnIsPermitted(USocket_Server_Handle h, const wchar_t* use
     return true;
 }
 
-void CStreamingServer::OnIdle(INT64 milliseconds) {
+void CStreamingServer::OnIdle(SPA::INT64 milliseconds) {
 
 }
 

@@ -13,7 +13,7 @@ protected:
     virtual bool OnSettingServer(unsigned int listeningPort, unsigned int maxBacklog, bool v6);
     virtual bool OnIsPermitted(USocket_Server_Handle h, const wchar_t* userId, const wchar_t *password, unsigned int serviceId);
     virtual void OnClose(USocket_Server_Handle h, int errCode);
-    virtual void OnIdle(INT64 milliseconds);
+    virtual void OnIdle(SPA::INT64 milliseconds);
     virtual void OnSSLShakeCompleted(USocket_Server_Handle h, int errCode);
 
 private:
