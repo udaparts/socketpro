@@ -477,7 +477,7 @@ namespace SPA
                     assert(false);
                     break;
                 case VT_UI1:
-                    q.Push((const unsigned char*) &value, sizeof (char));
+                    q.Push((const unsigned char*) &value, sizeof (unsigned char));
                     break;
                 case VT_UI2:
                     q << (const unsigned short&) value;
@@ -489,7 +489,7 @@ namespace SPA
                     q << (const UINT64&) value;
                     break;
                 case VT_I1:
-                    q.Push((const unsigned char*) &value, sizeof (char));
+                    q.Push((const char*) &value, sizeof (char));
                     break;
                 case VT_I2:
                     q << (const short&) value;
@@ -512,11 +512,19 @@ namespace SPA
             q << info.DataType;
             switch (info.DataType) {
                 default:
-                case VT_I1:
-                case VT_I2:
-                case VT_I4:
-                case VT_I8:
                     assert(false);
+                    break;
+                case VT_I1:
+                    q.Push((const char*) &value, sizeof (char));
+                    break;
+                case VT_I2:
+                    q << (const short&) value;
+                    break;
+                case VT_I4:
+                    q << (const int&) value;
+                    break;
+                case VT_I8:
+                    q << (const INT64&) value;
                     break;
                 case VT_UI1:
                     q.Push((const unsigned char*) &value, sizeof (unsigned char));
