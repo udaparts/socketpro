@@ -9,7 +9,6 @@ int async_sql_plugin_init(void *p) {
     if (!g_pStreamingServer) {
         g_pStreamingServer = new CStreamingServer(CSetGlobals::Globals.m_nParam);
     }
-
     if (CSetGlobals::Globals.TLSv) {
 
     }
@@ -17,7 +16,6 @@ int async_sql_plugin_init(void *p) {
     if (!g_pStreamingServer->Run(CSetGlobals::Globals.Port, 32, !CSetGlobals::Globals.DisableV6)) {
         return 1;
     }
-
     return 0;
 }
 

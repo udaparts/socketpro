@@ -718,9 +718,9 @@ namespace SPA
 
         bool CMysqlImpl::Authenticate(const std::wstring &userName, const wchar_t *password, const std::string & ip) {
             int res, ms;
-            CMysqlImpl impl;
+            std::unique_ptr<CMysqlImpl> impl(new CMysqlImpl);
             std::wstring db, errMsg;
-            impl.Open(db, 0, res, errMsg, ms);
+            impl->Open(db, 0, res, errMsg, ms);
             if (res)
                 return false;
             std::wstring wsql(L"select host from mysql.user where account_locked='N' and user='");
@@ -730,12 +730,13 @@ namespace SPA
             INT64 affected;
             SPA::UDB::CDBVariant vtId;
             UINT64 fail_ok;
-            impl.m_NoSending = true;
-            impl.Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
+            impl->m_NoSending = true;
+            impl->Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
+            memset(&wsql[0], 0, wsql.size() * sizeof (wchar_t));
             SPA::UDB::CDBVariant vt0, vt1;
-            impl.m_qSend.Utf8ToW(true);
-            if (impl.m_qSend.GetSize()) {
-                impl.m_qSend >> vt0;
+            impl->m_qSend.Utf8ToW(true);
+            if (impl->m_qSend.GetSize()) {
+                impl->m_qSend >> vt0;
                 std::wstring s = vt0.bstrVal;
                 std::transform(s.begin(), s.end(), s.begin(), ::tolower);
                 if (s == L"localhost" || s == L"127.0.0.1" || s == L"::ffff:127.0.0.1" || s == L"::1") {

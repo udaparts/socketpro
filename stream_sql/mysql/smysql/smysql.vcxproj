@@ -91,6 +91,8 @@
       <ModuleDefinitionFile>
       </ModuleDefinitionFile>
       <AdditionalDependencies>lib/x86/mysqlservices.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <StackReserveSize>0x400000</StackReserveSize>
+      <StackCommitSize>0x400000</StackCommitSize>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -107,6 +109,8 @@
       </ModuleDefinitionFile>
       <BaseAddress>0x120000000</BaseAddress>
       <AdditionalDependencies>lib/x64/mysqlservices.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <StackReserveSize>0x400000</StackReserveSize>
+      <StackCommitSize>0x400000</StackCommitSize>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -126,6 +130,8 @@
       <ModuleDefinitionFile>
       </ModuleDefinitionFile>
       <AdditionalDependencies>lib/x86/mysqlservices.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <StackReserveSize>0x400000</StackReserveSize>
+      <StackCommitSize>0x400000</StackCommitSize>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -146,6 +152,8 @@
       </ModuleDefinitionFile>
       <BaseAddress>0x120000000</BaseAddress>
       <AdditionalDependencies>lib/x64/mysqlservices.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <StackReserveSize>0x400000</StackReserveSize>
+      <StackCommitSize>0x400000</StackCommitSize>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
