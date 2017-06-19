@@ -49,11 +49,11 @@ namespace SPA
 
         CMysqlImpl::CMysqlImpl()
         : m_EnableMessages(false), m_oks(0), m_fails(0), m_ti(tiUnspecified),
-        m_Blob(*m_sb), m_qSend(*m_sqSend), m_stmt(0, false), m_bCall(false), m_NoSending(false), m_sql_errno(0),
+        m_qSend(*m_sb), m_stmt(0, false), m_bCall(false), m_NoSending(false), m_sql_errno(0),
         m_sc(nullptr), m_sql_resultcs(nullptr), m_ColIndex(0),
         m_sql_flags(0), m_affected_rows(0), m_last_insert_id(0),
         m_server_status(0), m_statement_warn_count(0), m_indexCall(0), m_bBlob(false) {
-            m_Blob.ToUtf8(true);
+            m_qSend.ToUtf8(true);
 #ifdef WIN32_64
             m_UQueue.TimeEx(true); //use high-precision datetime
 #endif
@@ -101,9 +101,9 @@ namespace SPA
         }
 
         void CMysqlImpl::ResetMemories() {
-            m_Blob.SetSize(0);
-            if (m_Blob.GetMaxSize() > 2 * DEFAULT_BIG_FIELD_CHUNK_SIZE) {
-                m_Blob.ReallocBuffer(2 * DEFAULT_BIG_FIELD_CHUNK_SIZE);
+            m_qSend.SetSize(0);
+            if (m_qSend.GetMaxSize() > 2 * DEFAULT_BIG_FIELD_CHUNK_SIZE) {
+                m_qSend.ReallocBuffer(2 * DEFAULT_BIG_FIELD_CHUNK_SIZE);
             }
         }
 
@@ -716,30 +716,37 @@ namespace SPA
             p->m_err_msg = SPA::Utilities::ToWide(err_msg);
         }
 
-        unsigned int CMysqlImpl::GetMySqlServerVersion() {
-            CMysqlImpl impl;
-            std::wstring db, errMsg, wsql(L"show variables where variable_name = 'version'");
+        bool CMysqlImpl::Authenticate(const std::wstring &userName, const wchar_t *password, const std::string & ip) {
             int res, ms;
+            CMysqlImpl impl;
+            std::wstring db, errMsg;
+            impl.Open(db, 0, res, errMsg, ms);
+            if (res)
+                return false;
+            std::wstring wsql(L"select host from mysql.user where account_locked='N' and user='");
+            wsql += (userName + L"' AND authentication_string=password('");
+            wsql += password;
+            wsql += L"')";
             INT64 affected;
             SPA::UDB::CDBVariant vtId;
             UINT64 fail_ok;
-            impl.Open(db, 0, res, errMsg, ms);
-            if (res)
-                return MYSQL_VERSION_ID;
             impl.m_NoSending = true;
             impl.Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
             SPA::UDB::CDBVariant vt0, vt1;
             impl.m_qSend.Utf8ToW(true);
             if (impl.m_qSend.GetSize()) {
-                impl.m_qSend >> vt0 >> vt1;
-                std::string s = SPA::Utilities::ToUTF8(vt1.bstrVal);
-                const char *end;
-                unsigned int major = SPA::atoui(s.c_str(), end);
-                unsigned int minor = SPA::atoui(++end, end);
-                unsigned int build = SPA::atoui(++end, end);
-                return (major * 10000 + minor * 100 + build);
+                impl.m_qSend >> vt0;
+                std::wstring s = vt0.bstrVal;
+                std::transform(s.begin(), s.end(), s.begin(), ::tolower);
+                if (s == L"localhost" || s == L"127.0.0.1" || s == L"::ffff:127.0.0.1" || s == L"::1") {
+                    if (ip != "localhost" && ip != "127.0.0.1" && ip != "::ffff:127.0.0.1" && ip != "::1")
+                        return false;
+                    return true;
+                } else {
+                    return true;
+                }
             }
-            return MYSQL_VERSION_ID;
+            return false;
         }
 
         void CMysqlImpl::Open(const std::wstring &strConnection, unsigned int flags, int &res, std::wstring &errMsg, int &ms) {
@@ -1280,12 +1287,12 @@ namespace SPA
         }
 
         void CMysqlImpl::StartBLOB(unsigned int lenExpected) {
-            m_Blob.SetSize(0);
-            if (lenExpected > m_Blob.GetMaxSize()) {
-                m_Blob.ReallocBuffer(lenExpected);
+            m_qSend.SetSize(0);
+            if (lenExpected > m_qSend.GetMaxSize()) {
+                m_qSend.ReallocBuffer(lenExpected);
             }
             CUQueue &q = m_UQueue;
-            m_Blob.Push(q.GetBuffer(), q.GetSize());
+            m_qSend.Push(q.GetBuffer(), q.GetSize());
             assert(q.GetSize() > sizeof (unsigned short) + sizeof (unsigned int));
             q.SetSize(0);
         }
@@ -1293,7 +1300,7 @@ namespace SPA
         void CMysqlImpl::Chunk() {
             CUQueue &q = m_UQueue;
             if (q.GetSize()) {
-                m_Blob.Push(q.GetBuffer(), q.GetSize());
+                m_qSend.Push(q.GetBuffer(), q.GetSize());
                 q.SetSize(0);
             }
         }
@@ -1302,8 +1309,8 @@ namespace SPA
             Chunk();
             m_vParam.push_back(CDBVariant());
             CDBVariant &vt = m_vParam.back();
-            m_Blob >> vt;
-            assert(m_Blob.GetSize() == 0);
+            m_qSend >> vt;
+            assert(m_qSend.GetSize() == 0);
         }
 
         void CMysqlImpl::BeginRows() {

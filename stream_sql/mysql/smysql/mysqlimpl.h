@@ -35,7 +35,7 @@ namespace SPA {
             unsigned int GetParameters() const;
             bool IsStoredProcedure() const;
             const std::string& GetProcedureName() const;
-            static unsigned int GetMySqlServerVersion();
+            static bool Authenticate(const std::wstring &userName, const wchar_t *password, const std::string &ip);
 
         protected:
             virtual void OnFastRequestArrive(unsigned short reqId, unsigned int len);
@@ -107,11 +107,9 @@ namespace SPA {
             CDBVariantArray m_vParam;
 
         private:
-            CScopeUQueue m_sqSend;
             SPA::CScopeUQueue m_sb;
             std::vector<SAFEARRAY *> m_vArray;
-            CUQueue &m_Blob;
-            SPA::CUQueue &m_qSend;
+            CUQueue &m_qSend;
 
             //MySql connection handle
             std::shared_ptr<Srv_session> m_pMysql;

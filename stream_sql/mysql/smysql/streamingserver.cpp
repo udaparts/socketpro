@@ -90,25 +90,12 @@ void CStreamingServer::OnClose(USocket_Server_Handle h, int errCode) {
 }
 
 bool CStreamingServer::DoSQLAuthentication(USocket_Server_Handle h, const wchar_t* userId, const wchar_t *password) {
-    std::string userA = SPA::Utilities::ToUTF8(userId);
-    std::shared_ptr<Srv_session> pMysql(srv_session_open(nullptr, this), [this](MYSQL_SESSION mysql) {
-        if (mysql) {
-            srv_session_close(mysql);
-        }
-    });
-    if (!pMysql)
-        return false;
-    MYSQL_SECURITY_CONTEXT sc = nullptr;
-    my_svc_bool fail = thd_get_security_context(srv_session_info_get_thd(pMysql.get()), &sc);
-    if (fail)
-        return false;
+    std::wstring user(userId);
     char strIp[64] = {0};
     unsigned int port;
     bool ok = SPA::ServerSide::ServerCoreLoader.GetPeerName(h, &port, strIp, sizeof (strIp));
-    fail = security_context_lookup(sc, userA.c_str(), "localhost", strIp, nullptr);
-    if (fail)
-        return false;
-    return true;
+    std::string ip(strIp);
+    return SPA::ServerSide::CMysqlImpl::Authenticate(user, password, ip);
 }
 
 bool CStreamingServer::OnIsPermitted(USocket_Server_Handle h, const wchar_t* userId, const wchar_t *password, unsigned int serviceId) {
