@@ -1497,7 +1497,9 @@ namespace SPA
             ServerCoreLoader.GetUID(Handler, userId, sizeof (userId) / sizeof (wchar_t));
             ServerCoreLoader.GetPassword(Handler, password, sizeof (password) / sizeof (wchar_t));
             assert(IsMainThread());
-            return m_pServer->OnIsPermitted(Handler, userId, password, serviceId);
+            bool ok = m_pServer->OnIsPermitted(Handler, userId, password, serviceId);
+            memset(password, 0, sizeof (password));
+            return ok;
         }
 
         void WINAPI CSocketProServer::OnIdleInternal(INT64 milliseconds) {
