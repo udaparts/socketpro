@@ -77,7 +77,6 @@ namespace SPA {
             static void CALLBACK OnThreadEvent(SPA::ServerSide::tagThreadEvent te);
             static UINT64 ToUDateTime(const MYSQL_TIME &td);
             static void Trim(std::string &s);
-            static void srv_session_error_cb(void *ctx, unsigned int sql_errno, const char *err_msg);
             static int sql_start_result_metadata(void *ctx, uint num_cols, uint flags, const CHARSET_INFO *resultcs);
             static int sql_field_metadata(void *ctx, struct st_send_field *field, const CHARSET_INFO *charset);
             static int sql_end_result_metadata(void *ctx, uint server_status, uint warn_count);

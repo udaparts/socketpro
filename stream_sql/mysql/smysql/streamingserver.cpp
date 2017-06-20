@@ -35,16 +35,16 @@ CSetGlobals::CSetGlobals() {
     Port = 20902;
     TLSv = false;
 #ifdef WIN32_64
-    HMODULE hModule = ::GetModuleHandle(nullptr);
+    m_hModule = ::GetModuleHandle(nullptr);
 #else
-    HINSTANCE hModule = ::dlopen(nullptr, RTLD_LAZY);
+    m_hModule = ::dlopen(nullptr, RTLD_LAZY);
 #endif
-    if (hModule) {
-        void *v = ::GetProcAddress(hModule, "my_charset_utf8_general_ci");
+    if (m_hModule) {
+        void *v = ::GetProcAddress(m_hModule, "my_charset_utf8_general_ci");
         utf8_general_ci = (CHARSET_INFO*) v;
-        decimal2string = (pdecimal2string)::GetProcAddress(hModule, "decimal2string");
-        server_version = (const char*) ::GetProcAddress(hModule, "server_version");
-        ::FreeLibrary(hModule);
+        decimal2string = (pdecimal2string)::GetProcAddress(m_hModule, "decimal2string");
+        server_version = (const char*) ::GetProcAddress(m_hModule, "server_version");
+        //::FreeLibrary(m_hModule);
     } else {
         assert(false);
         utf8_general_ci = nullptr;

@@ -710,12 +710,6 @@ namespace SPA
             CMysqlImpl *impl = (CMysqlImpl *) ctx;
         }
 
-        void CMysqlImpl::srv_session_error_cb(void *ctx, unsigned int sql_errno, const char *err_msg) {
-            CMysqlImpl *p = (CMysqlImpl *) ctx;
-            p->m_sql_errno = (int) sql_errno;
-            p->m_err_msg = SPA::Utilities::ToWide(err_msg);
-        }
-
         bool CMysqlImpl::Authenticate(const std::wstring &userName, const wchar_t *password, const std::string & ip) {
             int res, ms;
             std::unique_ptr<CMysqlImpl> impl(new CMysqlImpl);
@@ -755,7 +749,7 @@ namespace SPA
             ms = msMysql;
             m_EnableMessages = false;
             CleanDBObjects();
-            MYSQL_SESSION st_session = srv_session_open(srv_session_error_cb, this);
+            MYSQL_SESSION st_session = srv_session_open(nullptr, this);
             m_pMysql.reset(st_session, [this](MYSQL_SESSION mysql) {
                 if (mysql) {
                     srv_session_close(mysql);
@@ -1105,9 +1099,9 @@ namespace SPA
             CScopeUQueue sb;
             Utilities::ToUTF8(wsql.c_str(), wsql.size(), *sb);
             const char *sqlUtf8 = (const char*) sb->GetBuffer();
+            InitMysqlSession();
             COM_DATA cmd;
             ::memset(&cmd, 0, sizeof (cmd));
-            InitMysqlSession();
             cmd.com_query.query = sqlUtf8;
             cmd.com_query.length = sb->GetSize();
             my_bool fail = command_service_run_command(m_pMysql.get(), COM_QUERY, &cmd, CSetGlobals::Globals.utf8_general_ci, &m_sql_cbs, CS_BINARY_REPRESENTATION, this);
