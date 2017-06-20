@@ -72,12 +72,9 @@ int main(int argc, char* argv[]) {
         ra.push_back(column_rowset_pair);
     };
 
-    ok = pMysql->Open(L"sakila", dr);
-	ok = pMysql->Execute(L"select * from t1", er, r, rh);
+    ok = pMysql->Open(L"", dr);
     TestCreateTables(pMysql);
-	ok = pMysql->BeginTrans();
     ok = pMysql->Execute(L"delete from employee;delete from company", er);
-	ok = pMysql->EndTrans(rpRollbackAlways);
     TestPreparedStatements(pMysql);
     //InsertBLOBByPreparedStatement(pMysql);
     ok = pMysql->Execute(L"SELECT * from company;select * from employee;select curtime()", er, r, rh);

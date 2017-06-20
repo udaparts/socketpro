@@ -1,7 +1,7 @@
 
 
 #include "streamingserver.h"
-#include "include/mysql/client_plugin.h"
+#include <mysql/client_plugin.h>
 
 CStreamingServer *g_pStreamingServer = nullptr;
 
