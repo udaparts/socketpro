@@ -729,7 +729,7 @@ namespace SPA
             fail = security_context_lookup(impl->m_sc, userA.c_str(), "localhost", ip.c_str(), nullptr);
             if (fail)
                 return false;
-            std::wstring wsql(L"select host from mysql.user where account_locked='N' and user='");
+            std::wstring wsql(L"select host from mysql.user where password_expired='N' and account_locked='N' and user='");
             wsql += (userName + L"' and authentication_string=password('");
             wsql += password;
             wsql += L"')";
