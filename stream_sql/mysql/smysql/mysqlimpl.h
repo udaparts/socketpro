@@ -5,10 +5,10 @@
 #include "../../../include/udatabase.h"
 #include "../../../include/mysql/umysql.h"
 
-#include "include/my_config.h"
-#include "include/my_global.h"
-#include "include/mysql_time.h"
-#include "include/mysql/plugin.h"
+#include <my_config.h>
+#include <my_global.h>
+#include <mysql_time.h>
+#include <mysql/plugin.h>
 
 
 namespace SPA {
