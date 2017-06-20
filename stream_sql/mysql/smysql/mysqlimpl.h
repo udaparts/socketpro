@@ -31,7 +31,7 @@ namespace SPA {
 
         public:
             CMysqlImpl();
-			~CMysqlImpl();
+            ~CMysqlImpl();
             unsigned int GetParameters() const;
             bool IsStoredProcedure() const;
             const std::string& GetProcedureName() const;
@@ -63,6 +63,7 @@ namespace SPA {
             void Transferring();
             bool SendRows(CUQueue& sb, bool transferring = false);
             bool SendBlob(unsigned short data_type, const unsigned char *buffer, unsigned int bytes);
+            void StoreParamTypes(CUQueue& buffer);
 
         private:
             void PreprocessPreparedStatement();
@@ -96,6 +97,19 @@ namespace SPA {
             static void sql_handle_error(void * ctx, uint sql_errno, const char * const err_msg, const char * const sqlstate);
             static void sql_shutdown(void *ctx, int shutdown_server);
             static void ToDecimal(const decimal_t &src, bool large, DECIMAL &dec);
+            static void ReserveNullBytesPlus(CUQueue& buffer, unsigned int parameters);
+            static void StoreParamNull(CUQueue& buffer, unsigned int pos);
+
+            template<typename T>
+            static void StoreFixedParam(CUQueue& buffer, T t) {
+                buffer << t;
+            }
+            static void StoreFixedParam(CUQueue& buffer, char c);
+            static void StoreFixedParam(CUQueue& buffer, unsigned char c);
+            static void StoreParamTime(CUQueue& buffer, const MYSQL_TIME &dt);
+            static void StoreParamDateTime(CUQueue& buffer, const MYSQL_TIME &dt);
+            static void StoreParam(CUQueue& buffer, const unsigned char *str, unsigned int length);
+            static uchar *net_store_length(uchar *packet, ulonglong length);
 
         protected:
             bool m_EnableMessages;

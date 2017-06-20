@@ -60,9 +60,9 @@ namespace SPA
             m_UQueue.ToUtf8(true);
         }
 
-		CMysqlImpl::~CMysqlImpl() {
-			CleanDBObjects();
-		}
+        CMysqlImpl::~CMysqlImpl() {
+            CleanDBObjects();
+        }
 
         unsigned int CMysqlImpl::GetParameters() const {
             return (unsigned int) m_stmt.parameters;
@@ -1204,6 +1204,113 @@ namespace SPA
             date.tm_min = td.minute;
             date.tm_sec = td.second;
             return SPA::UDateTime(date, td.second_part).time;
+        }
+
+        void CMysqlImpl::ReserveNullBytesPlus(CUQueue& buffer, unsigned int parameters) {
+            unsigned int null_bytes = (parameters + 7) / 8;
+            buffer.SetSize(0);
+            buffer.CleanTrack();
+            buffer.SetSize(null_bytes + 1);
+            unsigned char *header = (unsigned char*) buffer.GetBuffer();
+            header[null_bytes] = 1; //always send types to server
+        }
+
+        void CMysqlImpl::StoreParamNull(CUQueue& buffer, unsigned int pos) {
+            unsigned char *header = (unsigned char*) buffer.GetBuffer();
+            header[pos / 8] |= (unsigned char) (1 << (pos & 7));
+        }
+
+        void CMysqlImpl::StoreFixedParam(CUQueue& buffer, char c) {
+            buffer.Push((const unsigned char*) &c, sizeof (c));
+        }
+
+        void CMysqlImpl::StoreFixedParam(CUQueue& buffer, unsigned char c) {
+            buffer.Push((const unsigned char*) &c, sizeof (c));
+        }
+
+        void CMysqlImpl::StoreParamTime(CUQueue& buffer, const MYSQL_TIME & dt) {
+            const MYSQL_TIME *tm = &dt;
+            uchar buff[13], *pos;
+            pos = buff + 1;
+            pos[0] = tm->neg ? 1 : 0;
+            int4store(pos + 1, tm->day);
+            pos[5] = (uchar) tm->hour;
+            pos[6] = (uchar) tm->minute;
+            pos[7] = (uchar) tm->second;
+            int4store(pos + 8, tm->second_part);
+            uint length;
+            if (tm->second_part)
+                length = 12;
+            else if (tm->hour || tm->minute || tm->second || tm->day)
+                length = 8;
+            else
+                length = 0;
+            buff[0] = (char) length++;
+            buffer.Push(buff, length);
+        }
+
+        void CMysqlImpl::StoreParamDateTime(CUQueue& buffer, const MYSQL_TIME & dt) {
+            const MYSQL_TIME *tm = &dt;
+            uchar buff[12], *pos;
+            pos = buff + 1;
+            int2store(pos, tm->year);
+            pos[2] = (uchar) tm->month;
+            pos[3] = (uchar) tm->day;
+            pos[4] = (uchar) tm->hour;
+            pos[5] = (uchar) tm->minute;
+            pos[6] = (uchar) tm->second;
+            int4store(pos + 7, tm->second_part);
+            uint length;
+            if (tm->second_part)
+                length = 11;
+            else if (tm->hour || tm->minute || tm->second)
+                length = 7;
+            else if (tm->year || tm->month || tm->day)
+                length = 4;
+            else
+                length = 0;
+            buff[0] = (char) length++;
+            buffer.Push(buff, length);
+        }
+
+        uchar * CMysqlImpl::net_store_length(uchar *packet, ulonglong length) {
+            if (length < (ulonglong) 251LL) {
+                *packet = (uchar) length;
+                return packet + 1;
+            }
+            /* 251 is reserved for NULL */
+            if (length < (ulonglong) 65536LL) {
+                *packet++ = 252;
+                int2store(packet, (uint) length);
+                return packet + 2;
+            }
+            if (length < (ulonglong) 16777216LL) {
+                *packet++ = 253;
+                int3store(packet, (ulong) length);
+                return packet + 3;
+            }
+            *packet++ = 254;
+            int8store(packet, length);
+            return packet + 8;
+        }
+
+        void CMysqlImpl::StoreParam(CUQueue& buffer, const unsigned char *str, unsigned int length) {
+            unsigned int tail = buffer.GetTailSize();
+            if (tail < (length + sizeof (UINT64))) {
+                buffer.ReallocBuffer(buffer.GetSize() + length + sizeof (UINT64));
+            }
+            uchar *begin = (uchar*) buffer.GetBuffer(buffer.GetSize());
+            uchar *to = net_store_length(begin, length);
+            unsigned int increase = (unsigned int) (to - begin);
+            buffer.SetSize(buffer.GetSize() + increase);
+            buffer.Push(str, length);
+        }
+
+        void CMysqlImpl::StoreParamTypes(CUQueue & buffer) {
+            for (size_t n = 0; n < m_stmt.parameters; ++n) {
+
+
+            }
         }
 
         void CMysqlImpl::ExecuteParameters(bool rowset, bool meta, bool lastInsertId, UINT64 index, INT64 &affected, int &res, std::wstring &errMsg, CDBVariant &vtId, UINT64 & fail_ok) {
