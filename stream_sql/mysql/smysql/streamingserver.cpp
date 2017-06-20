@@ -1,7 +1,6 @@
 
 
 #include "streamingserver.h"
-#include <mysql/client_plugin.h>
 
 CStreamingServer *g_pStreamingServer = nullptr;
 
@@ -25,6 +24,10 @@ int async_sql_plugin_deinit(void *p) {
         delete g_pStreamingServer;
         g_pStreamingServer = nullptr;
     }
+    if (CSetGlobals::Globals.m_hModule) {
+        ::FreeLibrary(CSetGlobals::Globals.m_hModule);
+        CSetGlobals::Globals.m_hModule = nullptr;
+    }
     return 0;
 }
 
@@ -44,7 +47,6 @@ CSetGlobals::CSetGlobals() {
         utf8_general_ci = (CHARSET_INFO*) v;
         decimal2string = (pdecimal2string)::GetProcAddress(m_hModule, "decimal2string");
         server_version = (const char*) ::GetProcAddress(m_hModule, "server_version");
-        //::FreeLibrary(m_hModule);
     } else {
         assert(false);
         utf8_general_ci = nullptr;

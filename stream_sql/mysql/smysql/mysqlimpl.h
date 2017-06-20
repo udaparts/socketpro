@@ -5,7 +5,6 @@
 #include "../../../include/udatabase.h"
 #include "../../../include/mysql/umysql.h"
 
-#include <my_config.h>
 #include <my_global.h>
 #include <mysql_time.h>
 #include <mysql/plugin.h>
@@ -32,6 +31,7 @@ namespace SPA {
 
         public:
             CMysqlImpl();
+			~CMysqlImpl();
             unsigned int GetParameters() const;
             bool IsStoredProcedure() const;
             const std::string& GetProcedureName() const;
@@ -72,7 +72,6 @@ namespace SPA {
             void CloseStmt();
             static size_t ComputeParameters(const std::wstring &sql);
             static UINT64 ConvertBitsToInt(const unsigned char *s, unsigned int bytes);
-            static void ConvertToUTF8OrDouble(CDBVariant &vt);
             static void CALLBACK OnThreadEventEmbedded(SPA::ServerSide::tagThreadEvent te);
             static void CALLBACK OnThreadEvent(SPA::ServerSide::tagThreadEvent te);
             static UINT64 ToUDateTime(const MYSQL_TIME &td);

@@ -13,6 +13,4 @@
 #endif
 #endif
 
-#define BUILD_VERSION				1
-#define ASYNC_SQL_PRODUCTVERSION	"5.7.12.1"
-
+#define BUILD_VERSION	1

@@ -48,8 +48,6 @@ public:
     st_mysql_daemon async_sql_plugin;
 
     static CSetGlobals Globals;
-
-private:
     HINSTANCE m_hModule;
 };
 

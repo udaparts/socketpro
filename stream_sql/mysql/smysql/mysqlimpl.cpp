@@ -60,6 +60,10 @@ namespace SPA
             m_UQueue.ToUtf8(true);
         }
 
+		CMysqlImpl::~CMysqlImpl() {
+			CleanDBObjects();
+		}
+
         unsigned int CMysqlImpl::GetParameters() const {
             return (unsigned int) m_stmt.parameters;
         }
@@ -711,35 +715,44 @@ namespace SPA
         }
 
         bool CMysqlImpl::Authenticate(const std::wstring &userName, const wchar_t *password, const std::string & ip) {
-            int res, ms;
             std::unique_ptr<CMysqlImpl> impl(new CMysqlImpl);
-            std::wstring db, errMsg;
-            impl->Open(db, 0, res, errMsg, ms);
-            if (res)
+            std::string userA = SPA::Utilities::ToUTF8(userName.c_str(), userName.size());
+            MYSQL_SESSION st_session = srv_session_open(nullptr, impl.get());
+            impl->m_pMysql.reset(st_session, [](MYSQL_SESSION mysql) {
+                if (mysql) {
+                    srv_session_close(mysql);
+                }
+            });
+            my_bool fail = thd_get_security_context(srv_session_info_get_thd(st_session), &impl->m_sc);
+            if (fail)
+                return false;
+            fail = security_context_lookup(impl->m_sc, userA.c_str(), "localhost", ip.c_str(), nullptr);
+            if (fail)
                 return false;
             std::wstring wsql(L"select host from mysql.user where account_locked='N' and user='");
-            wsql += (userName + L"' AND authentication_string=password('");
+            wsql += (userName + L"' and authentication_string=password('");
             wsql += password;
             wsql += L"')";
+            int res;
             INT64 affected;
             SPA::UDB::CDBVariant vtId;
             UINT64 fail_ok;
             impl->m_NoSending = true;
+            std::wstring errMsg;
             impl->Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
             memset(&wsql[0], 0, wsql.size() * sizeof (wchar_t));
-            SPA::UDB::CDBVariant vt0, vt1;
+            SPA::UDB::CDBVariant vt0;
             impl->m_qSend.Utf8ToW(true);
             if (impl->m_qSend.GetSize()) {
                 impl->m_qSend >> vt0;
                 std::wstring s = vt0.bstrVal;
                 std::transform(s.begin(), s.end(), s.begin(), ::tolower);
                 if (s == L"localhost" || s == L"127.0.0.1" || s == L"::ffff:127.0.0.1" || s == L"::1") {
-                    if (ip != "localhost" && ip != "127.0.0.1" && ip != "::ffff:127.0.0.1" && ip != "::1")
+                    if (ip != "localhost" && ip != "127.0.0.1" && ip != "::ffff:127.0.0.1" && ip != "::1") {
                         return false;
-                    return true;
-                } else {
-                    return true;
+                    }
                 }
+                return true;
             }
             return false;
         }
@@ -750,7 +763,7 @@ namespace SPA
             m_EnableMessages = false;
             CleanDBObjects();
             MYSQL_SESSION st_session = srv_session_open(nullptr, this);
-            m_pMysql.reset(st_session, [this](MYSQL_SESSION mysql) {
+            m_pMysql.reset(st_session, [](MYSQL_SESSION mysql) {
                 if (mysql) {
                     srv_session_close(mysql);
                 }
@@ -759,10 +772,6 @@ namespace SPA
             std::string ip = GetPeerName(&port);
             std::wstring user = GetUID();
             std::string userA = SPA::Utilities::ToUTF8(user.c_str(), user.size());
-            if (!userA.size()) {
-                userA = "root";
-                ip = "127.0.0.1";
-            }
             my_bool fail = thd_get_security_context(srv_session_info_get_thd(st_session), &m_sc);
             fail = security_context_lookup(m_sc, userA.c_str(), "localhost", ip.c_str(), nullptr);
             InitMysqlSession();
@@ -821,7 +830,6 @@ namespace SPA
         void CMysqlImpl::CleanDBObjects() {
             CloseStmt();
             m_pMysql.reset();
-            m_stmt.prepared = false;
             m_stmt.stmt_id = 0;
             m_vParam.clear();
             ResetMemories();
@@ -1009,39 +1017,6 @@ namespace SPA
                 return false;
             }
             return true;
-        }
-
-        void CMysqlImpl::ConvertToUTF8OrDouble(CDBVariant & vt) {
-            switch (vt.Type()) {
-                case VT_DATE:
-                {
-                    char str[32] = {0};
-                    UDateTime d(vt.ullVal);
-                    d.ToDBString(str, sizeof (str));
-                    vt = (const char*) str;
-                }
-                    break;
-                case VT_CY:
-                {
-                    double d = (double) vt.cyVal.int64;
-                    d /= 10000.0;
-                    vt = d;
-                }
-                    break;
-                case VT_DECIMAL:
-                {
-                    std::string s;
-                    const DECIMAL &decVal = vt.decVal;
-                    if (decVal.Hi32)
-                        s = SPA::ToString_long(decVal);
-                    else
-                        s = SPA::ToString(decVal);
-                    vt = s.c_str();
-                }
-                    break;
-                default:
-                    break;
-            }
         }
 
         void CMysqlImpl::Trim(std::string & s) {
@@ -1322,7 +1297,6 @@ namespace SPA
                 m_vParam.push_back(CDBVariant());
                 CDBVariant &vt = m_vParam.back();
                 q >> vt;
-                ConvertToUTF8OrDouble(vt);
             }
             assert(q.GetSize() == 0);
         }
