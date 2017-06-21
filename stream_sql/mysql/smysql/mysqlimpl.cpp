@@ -618,8 +618,8 @@ namespace SPA
             CMysqlImpl *impl = (CMysqlImpl *) ctx;
             CUQueue &q = impl->m_qSend;
             const CDBColumnInfo &info = impl->m_vColInfo[impl->m_ColIndex];
-            q << info.DataType;
             if (info.DeclaredType == L"BIT") {
+                q << info.DataType;
                 if (info.DataType == VT_BOOL) {
                     VARIANT_BOOL b = (*value ? VARIANT_TRUE : VARIANT_FALSE);
                     q << b;
@@ -657,6 +657,7 @@ namespace SPA
                 }
             } else {
                 if (length <= DEFAULT_BIG_FIELD_CHUNK_SIZE) {
+                    q << info.DataType;
                     q << (unsigned int) length;
                     q.Push((const unsigned char*) value, (unsigned int) length);
                 } else {

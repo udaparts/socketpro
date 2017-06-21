@@ -77,7 +77,7 @@ int main(int argc, char* argv[]) {
     ok = pMysql->Execute(L"delete from employee;delete from company", er);
     TestPreparedStatements(pMysql);
     InsertBLOBByPreparedStatement(pMysql);
-    ok = pMysql->Execute(L"SELECT * from company;select * from employee where 0=1;select curtime()", er, r, rh);
+    ok = pMysql->Execute(L"SELECT * from company;select * from employee;select curtime()", er, r, rh);
     CDBVariantArray vPData;
     //first set
     vPData.push_back(1);
@@ -91,7 +91,7 @@ int main(int argc, char* argv[]) {
     vPData.push_back(0);
     vPData.push_back(0);
     unsigned int oks = 0;
-    //TestStoredProcedure(pMysql, ra, vPData, oks);
+    TestStoredProcedure(pMysql, ra, vPData, oks);
     pMysql->WaitAll();
 
     std::cout << std::endl;
