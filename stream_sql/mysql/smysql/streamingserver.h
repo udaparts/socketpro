@@ -46,9 +46,9 @@ public:
     CHARSET_INFO *utf8_general_ci;
     pdecimal2string decimal2string;
     st_mysql_daemon async_sql_plugin;
-
-    static CSetGlobals Globals;
     HINSTANCE m_hModule;
+    const void *Plugin;
+    static CSetGlobals Globals;
 };
 
 int async_sql_plugin_init(void *p);

@@ -76,19 +76,12 @@ namespace SPA
             return m_procName;
         }
 
-        void CALLBACK CMysqlImpl::OnThreadEventEmbedded(SPA::ServerSide::tagThreadEvent te) {
-            if (te == SPA::ServerSide::teStarted) {
-
-            } else {
-
-            }
-        }
-
         void CALLBACK CMysqlImpl::OnThreadEvent(SPA::ServerSide::tagThreadEvent te) {
+            my_bool fail;
             if (te == SPA::ServerSide::teStarted) {
-
+                fail = srv_session_init_thread(CSetGlobals::Globals.Plugin);
             } else {
-
+                srv_session_deinit_thread();
             }
         }
 
@@ -125,7 +118,6 @@ namespace SPA
             M_I0_R0(idBeginRows, BeginRows)
             M_I0_R0(idTransferring, Transferring)
             M_I0_R0(idEndRows, EndRows)
-            M_I0_R2(idClose, CloseDb, int, std::wstring)
             END_SWITCH
         }
 
@@ -137,6 +129,7 @@ namespace SPA
             M_I5_R5(idExecute, Execute, std::wstring, bool, bool, bool, UINT64, INT64, int, std::wstring, CDBVariant, UINT64)
             M_I2_R3(idPrepare, Prepare, std::wstring, CParameterInfoArray, int, std::wstring, unsigned int)
             M_I4_R5(idExecuteParameters, ExecuteParameters, bool, bool, bool, UINT64, INT64, int, std::wstring, CDBVariant, UINT64)
+            M_I0_R2(idClose, CloseDb, int, std::wstring)
             END_SWITCH
             if (reqId == idExecuteParameters) {
                 ReleaseArray();
@@ -820,7 +813,8 @@ namespace SPA
                 InitMysqlSession();
                 cmd.com_stmt_close.stmt_id = m_stmt.stmt_id;
                 m_NoSending = true;
-                command_service_run_command(m_pMysql.get(), COM_STMT_CLOSE, &cmd, CSetGlobals::Globals.utf8_general_ci, &m_sql_cbs, CS_BINARY_REPRESENTATION, this);
+                my_bool fail = command_service_run_command(m_pMysql.get(), COM_STMT_CLOSE, &cmd, CSetGlobals::Globals.utf8_general_ci, &m_sql_cbs, CS_BINARY_REPRESENTATION, this);
+                srv_session_deinit_thread();
                 m_NoSending = false;
                 m_stmt.prepared = false;
 

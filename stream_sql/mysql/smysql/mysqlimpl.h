@@ -36,6 +36,7 @@ namespace SPA {
             bool IsStoredProcedure() const;
             const std::string& GetProcedureName() const;
             static bool Authenticate(const std::wstring &userName, const wchar_t *password, const std::string &ip);
+            static void CALLBACK OnThreadEvent(SPA::ServerSide::tagThreadEvent te);
 
         protected:
             virtual void OnFastRequestArrive(unsigned short reqId, unsigned int len);
@@ -74,8 +75,6 @@ namespace SPA {
             void StoreParamDatas(CUQueue& buffer, int row);
             static size_t ComputeParameters(const std::wstring &sql);
             static UINT64 ConvertBitsToInt(const unsigned char *s, unsigned int bytes);
-            static void CALLBACK OnThreadEventEmbedded(SPA::ServerSide::tagThreadEvent te);
-            static void CALLBACK OnThreadEvent(SPA::ServerSide::tagThreadEvent te);
             static UINT64 ToUDateTime(const MYSQL_TIME &td);
             static void Trim(std::string &s);
             static int sql_start_result_metadata(void *ctx, uint num_cols, uint flags, const CHARSET_INFO *resultcs);

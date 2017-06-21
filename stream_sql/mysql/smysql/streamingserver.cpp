@@ -5,13 +5,14 @@
 CStreamingServer *g_pStreamingServer = nullptr;
 
 int async_sql_plugin_init(void *p) {
+    CSetGlobals::Globals.Plugin = (const void *) p;
     if (!g_pStreamingServer) {
         g_pStreamingServer = new CStreamingServer(CSetGlobals::Globals.m_nParam);
     }
     if (CSetGlobals::Globals.TLSv) {
 
     }
-
+    SPA::ServerSide::ServerCoreLoader.SetThreadEvent(SPA::ServerSide::CMysqlImpl::OnThreadEvent);
     if (!g_pStreamingServer->Run(CSetGlobals::Globals.Port, 32, !CSetGlobals::Globals.DisableV6)) {
         return 1;
     }
@@ -52,6 +53,7 @@ CSetGlobals::CSetGlobals() {
         utf8_general_ci = nullptr;
         decimal2string = nullptr;
         server_version = nullptr;
+        Plugin = nullptr;
     }
     unsigned int version = MYSQL_VERSION_ID;
     if (strlen(server_version)) {
@@ -153,6 +155,9 @@ bool CStreamingServer::AddService() {
     if (!ok)
         return false;
     ok = m_MySql.AddSlowRequest(SPA::UDB::idExecuteParameters);
+    if (!ok)
+        return false;
+    ok = m_MySql.AddSlowRequest(SPA::UDB::idClose);
     if (!ok)
         return false;
     return true;
