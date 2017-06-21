@@ -63,7 +63,6 @@ namespace SPA {
             void Transferring();
             bool SendRows(CUQueue& sb, bool transferring = false);
             bool SendBlob(unsigned short data_type, const unsigned char *buffer, unsigned int bytes);
-            void StoreParamTypes(CUQueue& buffer);
 
         private:
             void PreprocessPreparedStatement();
@@ -71,6 +70,8 @@ namespace SPA {
             void ResetMemories();
             void InitMysqlSession();
             void CloseStmt();
+            int StoreParamTypes(CUQueue& buffer, int row, std::wstring & errMsg);
+            void StoreParamDatas(CUQueue& buffer, int row);
             static size_t ComputeParameters(const std::wstring &sql);
             static UINT64 ConvertBitsToInt(const unsigned char *s, unsigned int bytes);
             static void CALLBACK OnThreadEventEmbedded(SPA::ServerSide::tagThreadEvent te);
@@ -109,6 +110,7 @@ namespace SPA {
             static void StoreParamTime(CUQueue& buffer, const MYSQL_TIME &dt);
             static void StoreParamDateTime(CUQueue& buffer, const MYSQL_TIME &dt);
             static void StoreParam(CUQueue& buffer, const unsigned char *str, unsigned int length);
+            static void StoreParamDecimal(CUQueue& buffer, const DECIMAL &dec);
             static uchar *net_store_length(uchar *packet, ulonglong length);
 
         protected:
@@ -131,6 +133,7 @@ namespace SPA {
             bool m_bCall;
             std::string m_sqlPrepare;
             std::string m_procName;
+            bool m_bExecutingParameters;
 
             CDBColumnInfoArray m_vColInfo;
             bool m_NoSending;

@@ -74,11 +74,10 @@ int main(int argc, char* argv[]) {
 
     ok = pMysql->Open(L"", dr, SPA::UDB::ENABLE_TABLE_UPDATE_MESSAGES);
     TestCreateTables(pMysql);
-    //ok = pMysql->Execute(L"delete from employee;delete from company", er);
-    //TestPreparedStatements(pMysql);
-    //InsertBLOBByPreparedStatement(pMysql);
-    ok = pMysql->Execute(L"SELECT * from company;select * from employee;select curtime()", er, r, rh);
-
+    ok = pMysql->Execute(L"delete from employee;delete from company", er);
+    TestPreparedStatements(pMysql);
+    InsertBLOBByPreparedStatement(pMysql);
+    ok = pMysql->Execute(L"SELECT * from company;select * from employee where 0=1;select curtime()", er, r, rh);
     CDBVariantArray vPData;
     //first set
     vPData.push_back(1);
@@ -188,7 +187,7 @@ void InsertBLOBByPreparedStatement(std::shared_ptr<CMyHandler> pMysql) {
         std::wcout << errMsg;
         if (!res) {
             std::cout << ", last insert id = ";
-            std::cout << vtId.llVal;
+                    std::cout << vtId.llVal;
         }
         std::cout << std::endl;
     });
@@ -200,36 +199,44 @@ void TestPreparedStatements(std::shared_ptr<CMyHandler> pMysql) {
         std::cout << "res = " << res << ", errMsg: ";
         std::wcout << errMsg << std::endl;
     });
-	/*
+
     CDBVariantArray vData;
+    DECIMAL dec;
+    memset(&dec, 0, sizeof (dec));
 
     //first set
     vData.push_back(1);
     vData.push_back("Google Inc.");
     vData.push_back("1600 Amphitheatre Parkway, Mountain View, CA 94043, USA");
-    vData.push_back(66000000000.0);
+
+    dec.scale = 2;
+    dec.Lo64 = 6600000000015;
+    vData.push_back(dec);
 
     //second set
     vData.push_back(2);
     vData.push_back("Microsoft Inc.");
     vData.push_back("700 Bellevue Way NE- 22nd Floor, Bellevue, WA 98804, USA");
-    vData.push_back(93600000000.0);
+    dec.scale = 2;
+    dec.Lo64 = 9360000000012;
+    vData.push_back(dec);
 
     //third set
     vData.push_back(3);
     vData.push_back("Apple Inc.");
     vData.push_back("1 Infinite Loop, Cupertino, CA 95014, USA");
-    vData.push_back(234000000000.0);
+    dec.scale = 2;
+    dec.Lo64 = 23400000000014;
+    vData.push_back(dec);
     ok = pMysql->Execute(vData, [](CMyHandler &handler, int res, const std::wstring &errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & vtId) {
         std::cout << "affected = " << affected << ", fails = " << (unsigned int) (fail_ok >> 32) << ", oks = " << (unsigned int) fail_ok << ", res = " << res << ", errMsg: ";
         std::wcout << errMsg;
         if (!res) {
             std::cout << ", last insert id = ";
-            std::cout << vtId.llVal;
+                    std::cout << vtId.llVal;
         }
         std::cout << std::endl;
     });
-	*/
 }
 
 void TestCreateTables(std::shared_ptr<CMyHandler> pMysql) {
@@ -239,18 +246,18 @@ void TestCreateTables(std::shared_ptr<CMyHandler> pMysql) {
         std::wcout << errMsg << std::endl;
     });
 
-    const wchar_t *create_table = L"CREATE TABLE IF NOT EXISTS company(ID bigint PRIMARY KEY NOT NULL, name CHAR(64) NOT NULL, ADDRESS varCHAR(256) not null, Income double not null)";
+    const wchar_t *create_table = L"CREATE TABLE IF NOT EXISTS company(ID bigint PRIMARY KEY NOT NULL, name CHAR(64) NOT NULL, ADDRESS varCHAR(256) not null, Income Decimal(21,2) not null)";
     ok = pMysql->Execute(create_table, [](CMyHandler &handler, int res, const std::wstring &errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & vtId) {
         std::cout << "affected = " << affected << ", fails = " << (unsigned int) (fail_ok >> 32) << ", oks = " << (unsigned int) fail_ok << ", res = " << res << ", errMsg: ";
         std::wcout << errMsg << std::endl;
     });
 
-    create_table = L"CREATE TABLE IF NOT EXISTS employee(EMPLOYEEID bigint AUTO_INCREMENT PRIMARY KEY NOT NULL unique, CompanyId bigint not null, name CHAR(64) NOT NULL, JoinDate DATETIME default null, IMAGE MEDIUMBLOB, DESCRIPTION MEDIUMTEXT, Salary double, FOREIGN KEY(CompanyId) REFERENCES company(id))";
+    create_table = L"CREATE TABLE IF NOT EXISTS employee(EMPLOYEEID bigint AUTO_INCREMENT PRIMARY KEY NOT NULL unique, CompanyId bigint not null, name CHAR(64) NOT NULL, JoinDate DATETIME(6) default null, IMAGE MEDIUMBLOB, DESCRIPTION MEDIUMTEXT, Salary DECIMAL(25,2), FOREIGN KEY(CompanyId) REFERENCES company(id))";
     ok = pMysql->Execute(create_table, [](CMyHandler &handler, int res, const std::wstring &errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & vtId) {
         std::cout << "affected = " << affected << ", fails = " << (unsigned int) (fail_ok >> 32) << ", oks = " << (unsigned int) fail_ok << ", res = " << res << ", errMsg: ";
         std::wcout << errMsg << std::endl;
     });
-    const wchar_t *create_proc = L"DROP PROCEDURE IF EXISTS sp_TestProc;CREATE PROCEDURE sp_TestProc(in p_company_id int, out p_sum_salary double, out p_last_dt datetime) BEGIN select * from employee where companyid >= p_company_id; select sum(salary) into p_sum_salary from employee where companyid >= p_company_id; select now() into p_last_dt;END";
+    const wchar_t *create_proc = L"DROP PROCEDURE IF EXISTS sp_TestProc;CREATE PROCEDURE sp_TestProc(in p_company_id int, out p_sum_salary DECIMAL(25,2), out p_last_dt datetime) BEGIN select * from employee where companyid >= p_company_id; select sum(salary) into p_sum_salary from employee where companyid >= p_company_id; select now() into p_last_dt;END";
     ok = pMysql->Execute(create_proc, [](CMyHandler &handler, int res, const std::wstring &errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & vtId) {
         std::cout << "affected = " << affected << ", fails = " << (unsigned int) (fail_ok >> 32) << ", oks = " << (unsigned int) fail_ok << ", res = " << res << ", errMsg: ";
         std::wcout << errMsg << std::endl;
@@ -288,7 +295,7 @@ void TestStoredProcedure(std::shared_ptr<CMyHandler> pMysql, CRowsetArray&ra, CD
                 std::wcout << errMsg;
         if (!res) {
             std::cout << ", last insert id = ";
-            std::cout << vtId.llVal;
+                    std::cout << vtId.llVal;
         }
         std::cout << std::endl;
     }, r, rh);

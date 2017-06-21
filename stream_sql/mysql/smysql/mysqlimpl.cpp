@@ -49,7 +49,7 @@ namespace SPA
 
         CMysqlImpl::CMysqlImpl()
         : m_EnableMessages(false), m_oks(0), m_fails(0), m_ti(tiUnspecified),
-        m_qSend(*m_sb), m_stmt(0, false), m_bCall(false), m_NoSending(false), m_sql_errno(0),
+        m_qSend(*m_sb), m_stmt(0, false), m_bCall(false), m_bExecutingParameters(false), m_NoSending(false), m_sql_errno(0),
         m_sc(nullptr), m_sql_resultcs(nullptr), m_ColIndex(0),
         m_sql_flags(0), m_affected_rows(0), m_last_insert_id(0),
         m_server_status(0), m_statement_warn_count(0), m_indexCall(0), m_bBlob(false) {
@@ -459,7 +459,7 @@ namespace SPA
         }
 
         ulong CMysqlImpl::sql_get_client_capabilities(void *ctx) {
-            ulong power = (CLIENT_MULTI_STATEMENTS | CLIENT_MULTI_RESULTS | CLIENT_LONG_FLAG);
+            ulong power = (CLIENT_MULTI_STATEMENTS | CLIENT_MULTI_RESULTS);
             return power;
         }
 
@@ -783,13 +783,13 @@ namespace SPA
                 cmd.com_init_db.length = (unsigned long) db.size();
                 fail = command_service_run_command(st_session, COM_INIT_DB, &cmd, CSetGlobals::Globals.utf8_general_ci, &m_sql_cbs, CS_BINARY_REPRESENTATION, this);
             }
-            if (fail) {
-                res = SPA::Mysql::ER_UNABLE_TO_SWITCH_TO_DATABASE;
-                errMsg = UNABLE_TO_SWITCH_TO_DATABASE + strConnection;
-                m_pMysql.reset();
-            } else if (m_sql_errno) {
+            if (m_sql_errno) {
                 res = m_sql_errno;
                 errMsg = m_err_msg;
+                m_pMysql.reset();
+            } else if (fail) {
+                res = SPA::Mysql::ER_UNABLE_TO_SWITCH_TO_DATABASE;
+                errMsg = UNABLE_TO_SWITCH_TO_DATABASE + strConnection;
                 m_pMysql.reset();
             } else {
                 res = 0;
@@ -836,6 +836,7 @@ namespace SPA
         }
 
         void CMysqlImpl::OnBaseRequestArrive(unsigned short requestId) {
+            m_bExecutingParameters = false;
             switch (requestId) {
                 case idCancel:
 #ifndef NDEBUG
@@ -1080,15 +1081,15 @@ namespace SPA
             cmd.com_query.query = sqlUtf8;
             cmd.com_query.length = sb->GetSize();
             my_bool fail = command_service_run_command(m_pMysql.get(), COM_QUERY, &cmd, CSetGlobals::Globals.utf8_general_ci, &m_sql_cbs, CS_BINARY_REPRESENTATION, this);
-            if (fail) {
-                errMsg = SERVICE_COMMAND_ERROR;
-                res = SPA::Mysql::ER_SERVICE_COMMAND_ERROR;
-                ++m_fails;
-            } else if (m_sql_errno) {
+            if (m_sql_errno) {
                 res = m_sql_errno;
                 errMsg = m_err_msg;
                 affected = 0;
                 vtId = (SPA::UINT64)m_last_insert_id;
+            } else if (fail) {
+                errMsg = SERVICE_COMMAND_ERROR;
+                res = SPA::Mysql::ER_SERVICE_COMMAND_ERROR;
+                ++m_fails;
             } else {
                 affected = (SPA::INT64) m_affected_rows;
                 if (lastInsertId)
@@ -1294,6 +1295,11 @@ namespace SPA
             return packet + 8;
         }
 
+        void CMysqlImpl::StoreParamDecimal(CUQueue& buffer, const DECIMAL & dec) {
+            std::string s = dec.Hi32 ? SPA::ToString_long(dec) : SPA::ToString(dec);
+            StoreParam(buffer, (const unsigned char *) s.c_str(), (unsigned int) s.size());
+        }
+
         void CMysqlImpl::StoreParam(CUQueue& buffer, const unsigned char *str, unsigned int length) {
             unsigned int tail = buffer.GetTailSize();
             if (tail < (length + sizeof (UINT64))) {
@@ -1306,11 +1312,161 @@ namespace SPA
             buffer.Push(str, length);
         }
 
-        void CMysqlImpl::StoreParamTypes(CUQueue & buffer) {
+        void CMysqlImpl::StoreParamDatas(CUQueue& buffer, int row) {
             for (size_t n = 0; n < m_stmt.parameters; ++n) {
-
-
+                CDBVariant &data = m_vParam[row * m_stmt.parameters + n];
+                unsigned short vt = data.Type();
+                switch (vt) {
+                    case VT_NULL:
+                    case VT_EMPTY:
+                        StoreParamNull(buffer, (unsigned int) n);
+                        break;
+                    case VT_BOOL:
+                    {
+                        unsigned char b = (data.boolVal ? 1 : 0);
+                        StoreFixedParam(buffer, b);
+                    }
+                        break;
+                    case VT_I1:
+                        StoreFixedParam(buffer, data.cVal);
+                        break;
+                    case VT_UI1:
+                        StoreFixedParam(buffer, data.bVal);
+                        break;
+                    case VT_I2:
+                        StoreFixedParam(buffer, data.iVal);
+                        break;
+                    case VT_UI2:
+                        StoreFixedParam(buffer, data.uiVal);
+                        break;
+                    case VT_INT:
+                    case VT_I4:
+                        StoreFixedParam(buffer, data.intVal);
+                        break;
+                    case VT_UI4:
+                    case VT_UINT:
+                        StoreFixedParam(buffer, data.uintVal);
+                        break;
+                    case VT_I8:
+                        StoreFixedParam(buffer, data.llVal);
+                        break;
+                    case VT_UI8:
+                        StoreFixedParam(buffer, data.ullVal);
+                        break;
+                    case VT_R4:
+                        StoreFixedParam(buffer, data.fltVal);
+                        break;
+                    case VT_R8:
+                        StoreFixedParam(buffer, data.dblVal);
+                        break;
+                    case VT_DATE:
+                    {
+                        SPA::UDateTime dt(data.ullVal);
+                        MYSQL_TIME mt;
+                        memset(&mt, 0, sizeof (mt));
+                        unsigned int micros = 0;
+                        tm ct = dt.GetCTime(&micros);
+                        mt.second_part = micros;
+                        mt.hour = ct.tm_hour;
+                        mt.minute = ct.tm_min;
+                        mt.second = ct.tm_sec;
+                        mt.day = ct.tm_mday;
+                        mt.month = ct.tm_mon + 1;
+                        mt.year = ct.tm_year + 1900;
+                        if (ct.tm_mday == 0) {
+                            mt.time_type = MYSQL_TIMESTAMP_TIME;
+                            StoreParamTime(buffer, mt);
+                        } else if (mt.hour == 0 && mt.minute == 0 && mt.second == 0) {
+                            mt.time_type = MYSQL_TIMESTAMP_DATE;
+                            StoreParamDateTime(buffer, mt);
+                        } else {
+                            mt.time_type = MYSQL_TIMESTAMP_DATETIME;
+                            StoreParamDateTime(buffer, mt);
+                        }
+                    }
+                        break;
+                    case VT_DECIMAL:
+                        StoreParamDecimal(buffer, data.decVal);
+                        break;
+                    case VT_STR:
+                    case VT_BYTES:
+                    case (VT_ARRAY | VT_UI1):
+                    case (VT_ARRAY | VT_I1):
+                    {
+                        unsigned char *str;
+                        unsigned int len = data.parray->rgsabound->cElements;
+                        ::SafeArrayAccessData(data.parray, (void**) &str);
+                        StoreParam(buffer, str, len);
+                        ::SafeArrayUnaccessData(data.parray);
+                    }
+                        break;
+                    default:
+                        assert(false);
+                        break;
+                }
             }
+        }
+
+        int CMysqlImpl::StoreParamTypes(CUQueue & buffer, int row, std::wstring & errMsg) {
+            int res = 0;
+            errMsg.clear();
+            for (size_t n = 0; n < m_stmt.parameters; ++n) {
+                CDBVariant &data = m_vParam[row * m_stmt.parameters + n];
+                unsigned short vt = data.Type();
+                switch (vt) {
+                    case VT_NULL:
+                    case VT_EMPTY:
+                        buffer << (short) MYSQL_TYPE_NULL;
+                        break;
+                    case VT_I1:
+                    case VT_UI1:
+                    case VT_BOOL:
+                        buffer << (short) MYSQL_TYPE_TINY;
+                        break;
+                    case VT_I2:
+                    case VT_UI2:
+                        buffer << (short) MYSQL_TYPE_SHORT;
+                        break;
+                    case VT_INT:
+                    case VT_UINT:
+                    case VT_I4:
+                    case VT_UI4:
+                        buffer << (short) MYSQL_TYPE_LONG;
+                        break;
+                    case VT_I8:
+                    case VT_UI8:
+                        buffer << (short) MYSQL_TYPE_LONGLONG;
+                        break;
+                    case VT_R4:
+                        buffer << (short) MYSQL_TYPE_FLOAT;
+                        break;
+                    case VT_R8:
+                        buffer << (short) MYSQL_TYPE_DOUBLE;
+                        break;
+                    case VT_DECIMAL:
+                        buffer << (short) MYSQL_TYPE_NEWDECIMAL;
+                        break;
+                    case VT_DATE:
+                        buffer << (short) MYSQL_TYPE_DATETIME;
+                        break;
+                    case VT_STR:
+                    case (VT_ARRAY | VT_I1):
+                        buffer << (short) MYSQL_TYPE_VAR_STRING;
+                        break;
+                    case VT_BYTES:
+                    case (VT_ARRAY | VT_UI1):
+                        buffer << (short) MYSQL_TYPE_BLOB;
+                        break;
+                    default:
+                        assert(false); //not implemented
+                        if (!res) {
+                            res = SPA::Mysql::ER_DATA_TYPE_NOT_SUPPORTED;
+                            errMsg = DATA_TYPE_NOT_SUPPORTED;
+                        }
+                        break;
+                }
+            }
+            return res;
         }
 
         void CMysqlImpl::ExecuteParameters(bool rowset, bool meta, bool lastInsertId, UINT64 index, INT64 &affected, int &res, std::wstring &errMsg, CDBVariant &vtId, UINT64 & fail_ok) {
@@ -1348,17 +1504,57 @@ namespace SPA
                 fail_ok <<= 32;
                 return;
             }
+            m_bExecutingParameters = true;
             fail_ok = 0;
             res = 0;
             UINT64 fails = m_fails;
             UINT64 oks = m_oks;
             m_NoSending = false;
-            InitMysqlSession();
-
-            affected = (INT64) m_affected_rows;
-            if (lastInsertId) {
-                vtId = (UINT64) m_last_insert_id;
+            CScopeUQueue sb;
+            CUQueue &buffer = *sb;
+            int rows = (int) (m_vParam.size() / m_stmt.parameters);
+            for (int row = 0; row < rows; ++row) {
+                buffer.SetSize(0);
+                ReserveNullBytesPlus(buffer, (unsigned int) m_stmt.parameters);
+                int ret = StoreParamTypes(buffer, row, errMsg);
+                if (ret) {
+                    if (!res) {
+                        res = ret;
+                    }
+                    ++m_fails;
+                    continue;
+                }
+                StoreParamDatas(buffer, row);
+                COM_DATA cmd;
+                ::memset(&cmd, 0, sizeof (cmd));
+                InitMysqlSession();
+                cmd.com_stmt_execute.stmt_id = m_stmt.stmt_id;
+                cmd.com_stmt_execute.params = (unsigned char *) buffer.GetBuffer();
+                cmd.com_stmt_execute.params_length = buffer.GetSize();
+                my_bool fail = command_service_run_command(m_pMysql.get(), COM_STMT_EXECUTE, &cmd, CSetGlobals::Globals.utf8_general_ci, &m_sql_cbs, CS_BINARY_REPRESENTATION, this);
+                if (m_sql_errno) {
+                    if (!res) {
+                        res = m_sql_errno;
+                        errMsg = m_err_msg;
+                    }
+                    if (m_last_insert_id && lastInsertId)
+                        vtId = (SPA::UINT64)m_last_insert_id;
+                } else if (fail) {
+                    if (!res) {
+                        errMsg = SERVICE_COMMAND_ERROR;
+                        res = SPA::Mysql::ER_SERVICE_COMMAND_ERROR;
+                    }
+                    if (m_last_insert_id && lastInsertId)
+                        vtId = (SPA::UINT64)m_last_insert_id;
+                    ++m_fails;
+                } else {
+                    affected += (INT64) m_affected_rows;
+                    if (lastInsertId) {
+                        vtId = (UINT64) m_last_insert_id;
+                    }
+                }
             }
+            m_bExecutingParameters = false;
             fail_ok = ((m_fails - fails) << 32);
             fail_ok += (unsigned int) (m_oks - oks);
         }
