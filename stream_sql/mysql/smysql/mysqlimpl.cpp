@@ -77,9 +77,9 @@ namespace SPA
         }
 
         void CALLBACK CMysqlImpl::OnThreadEvent(SPA::ServerSide::tagThreadEvent te) {
-            my_bool fail;
             if (te == SPA::ServerSide::teStarted) {
-                fail = srv_session_init_thread(CSetGlobals::Globals.Plugin);
+                my_bool fail = srv_session_init_thread(CSetGlobals::Globals.Plugin);
+                assert(!fail);
             } else {
                 srv_session_deinit_thread();
             }
@@ -702,7 +702,8 @@ namespace SPA
             MYSQL_SESSION st_session = srv_session_open(nullptr, impl.get());
             impl->m_pMysql.reset(st_session, [](MYSQL_SESSION mysql) {
                 if (mysql) {
-                    srv_session_close(mysql);
+                    my_bool fail = srv_session_close(mysql);
+                    assert(!fail);
                 }
             });
             my_bool fail = thd_get_security_context(srv_session_info_get_thd(st_session), &impl->m_sc);
@@ -747,7 +748,8 @@ namespace SPA
             MYSQL_SESSION st_session = srv_session_open(nullptr, this);
             m_pMysql.reset(st_session, [](MYSQL_SESSION mysql) {
                 if (mysql) {
-                    srv_session_close(mysql);
+                    my_bool fail = srv_session_close(mysql);
+                    assert(!fail);
                 }
             });
             unsigned int port;
@@ -755,7 +757,9 @@ namespace SPA
             std::wstring user = GetUID();
             std::string userA = SPA::Utilities::ToUTF8(user.c_str(), user.size());
             my_bool fail = thd_get_security_context(srv_session_info_get_thd(st_session), &m_sc);
+            assert(!fail);
             fail = security_context_lookup(m_sc, userA.c_str(), "localhost", ip.c_str(), nullptr);
+            assert(!fail);
             InitMysqlSession();
             m_NoSending = true;
             if (strConnection.size()) {
@@ -802,7 +806,6 @@ namespace SPA
                 cmd.com_stmt_close.stmt_id = m_stmt.stmt_id;
                 m_NoSending = true;
                 my_bool fail = command_service_run_command(m_pMysql.get(), COM_STMT_CLOSE, &cmd, CSetGlobals::Globals.utf8_general_ci, &m_sql_cbs, CS_BINARY_REPRESENTATION, this);
-                srv_session_deinit_thread();
                 m_NoSending = false;
                 m_stmt.prepared = false;
 
@@ -1140,10 +1143,16 @@ namespace SPA
                 errMsg = SERVICE_COMMAND_ERROR;
                 res = SPA::Mysql::ER_SERVICE_COMMAND_ERROR;
             } else {
-                res = 0;
                 m_stmt.prepared = true;
                 m_stmt.parameters = ComputeParameters(wsql);
                 parameters = (unsigned int) m_stmt.parameters;
+                if (parameters == 0) {
+                    res = SPA::Mysql::ER_NO_PARAMETER_SPECIFIED;
+                    errMsg = NO_PARAMETER_SPECIFIED;
+                    CloseStmt();
+                } else {
+                    res = 0;
+                }
             }
         }
 
@@ -1456,15 +1465,7 @@ namespace SPA
             affected = 0;
             m_indexCall = index;
             vtId = (UINT64) 0;
-            if (!m_pMysql) {
-                res = SPA::Mysql::ER_NO_DB_OPENED_YET;
-                errMsg = NO_DB_OPENED_YET;
-                ++m_fails;
-                fail_ok = 1;
-                fail_ok <<= 32;
-                return;
-            }
-            if (!m_stmt.prepared) {
+            if (!m_stmt.prepared || !m_stmt.parameters) {
                 res = SPA::Mysql::ER_NO_PARAMETER_SPECIFIED;
                 errMsg = NO_PARAMETER_SPECIFIED;
                 ++m_fails;
@@ -1472,17 +1473,26 @@ namespace SPA
                 fail_ok <<= 32;
                 return;
             }
-            if (!m_stmt.parameters) {
-                res = SPA::Mysql::ER_NO_PARAMETER_SPECIFIED;
-                errMsg = NO_PARAMETER_SPECIFIED;
-                ++m_fails;
-                fail_ok = 1;
-                fail_ok <<= 32;
-                return;
-            } else if ((m_vParam.size() % m_stmt.parameters) || (m_vParam.size() == 0)) {
+            if (m_vParam.size() == 0) {
                 res = SPA::Mysql::ER_BAD_PARAMETER_DATA_ARRAY_SIZE;
                 errMsg = BAD_PARAMETER_DATA_ARRAY_SIZE;
                 ++m_fails;
+                fail_ok = 1;
+                fail_ok <<= 32;
+                return;
+            }
+            if (m_vParam.size() % m_stmt.parameters) {
+                res = SPA::Mysql::ER_BAD_PARAMETER_DATA_ARRAY_SIZE;
+                errMsg = BAD_PARAMETER_DATA_ARRAY_SIZE;
+                m_fails += (m_vParam.size() / m_stmt.parameters);
+                fail_ok = 1;
+                fail_ok <<= 32;
+                return;
+            }
+            if (!m_pMysql) {
+                res = SPA::Mysql::ER_NO_DB_OPENED_YET;
+                errMsg = NO_DB_OPENED_YET;
+                m_fails += (m_vParam.size() / m_stmt.parameters);
                 fail_ok = 1;
                 fail_ok <<= 32;
                 return;
