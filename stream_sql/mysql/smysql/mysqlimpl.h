@@ -72,6 +72,7 @@ namespace SPA {
             void CloseStmt();
             int StoreParamTypes(CUQueue& buffer, int row, std::wstring & errMsg);
             void StoreParamDatas(CUQueue& buffer, int row);
+            bool OpenSession(const std::wstring &userName, const std::string &ip);
             static size_t ComputeParameters(const std::wstring &sql);
             static UINT64 ConvertBitsToInt(const unsigned char *s, unsigned int bytes);
             static UINT64 ToUDateTime(const MYSQL_TIME &td);

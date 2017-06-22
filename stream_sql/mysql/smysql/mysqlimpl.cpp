@@ -696,26 +696,34 @@ namespace SPA
             CMysqlImpl *impl = (CMysqlImpl *) ctx;
         }
 
-        bool CMysqlImpl::Authenticate(const std::wstring &userName, const wchar_t *password, const std::string & ip) {
-            std::unique_ptr<CMysqlImpl> impl(new CMysqlImpl);
+        bool CMysqlImpl::OpenSession(const std::wstring &userName, const std::string & ip) {
             std::string userA = SPA::Utilities::ToUTF8(userName.c_str(), userName.size());
-            MYSQL_SESSION st_session = srv_session_open(nullptr, impl.get());
+            MYSQL_SESSION st_session = srv_session_open(nullptr, this);
+            m_pMysql.reset(st_session, [](MYSQL_SESSION mysql) {
+                if (mysql) {
+                    my_bool fail = srv_session_detach(mysql);
+                    assert(!fail);
+                    fail = srv_session_close(mysql);
+                    assert(!fail);
+                }
+            });
             my_bool fail = srv_session_info_set_connection_type(st_session, VIO_TYPE_PLUGIN);
             assert(!fail);
             if (fail)
                 return false;
-            impl->m_pMysql.reset(st_session, [](MYSQL_SESSION mysql) {
-                if (mysql) {
-                    my_bool fail = srv_session_close(mysql);
-                    assert(!fail);
-                }
-            });
-            fail = thd_get_security_context(srv_session_info_get_thd(st_session), &impl->m_sc);
+            fail = thd_get_security_context(srv_session_info_get_thd(st_session), &m_sc);
             assert(!fail);
             if (fail)
                 return false;
-            fail = security_context_lookup(impl->m_sc, userA.c_str(), "localhost", ip.c_str(), nullptr);
+            fail = security_context_lookup(m_sc, userA.c_str(), "localhost", ip.c_str(), nullptr);
             if (fail)
+                return false;
+            return true;
+        }
+
+        bool CMysqlImpl::Authenticate(const std::wstring &userName, const wchar_t *password, const std::string & ip) {
+            std::unique_ptr<CMysqlImpl> impl(new CMysqlImpl);
+            if (!impl->OpenSession(userName, ip))
                 return false;
             std::wstring wsql(L"select host from mysql.user where password_expired='N' and account_locked='N' and user='");
             wsql += (userName + L"' and authentication_string=password('");
@@ -746,35 +754,23 @@ namespace SPA
         }
 
         void CMysqlImpl::Open(const std::wstring &strConnection, unsigned int flags, int &res, std::wstring &errMsg, int &ms) {
+            unsigned int port;
             res = 0;
             ms = msMysql;
             m_EnableMessages = false;
             CleanDBObjects();
-            MYSQL_SESSION st_session = srv_session_open(nullptr, this);
-            my_bool fail = srv_session_info_set_connection_type(st_session, VIO_TYPE_PLUGIN);
-            assert(!fail);
-            m_pMysql.reset(st_session, [](MYSQL_SESSION mysql) {
-                if (mysql) {
-                    my_bool fail = srv_session_close(mysql);
-                    assert(!fail);
-                }
-            });
-            unsigned int port;
             std::string ip = GetPeerName(&port);
             std::wstring user = GetUID();
-            std::string userA = SPA::Utilities::ToUTF8(user.c_str(), user.size());
-            fail = thd_get_security_context(srv_session_info_get_thd(st_session), &m_sc);
-            assert(!fail);
-            fail = security_context_lookup(m_sc, userA.c_str(), "localhost", ip.c_str(), nullptr);
-            assert(!fail);
+            OpenSession(user, ip);
             InitMysqlSession();
             m_NoSending = true;
+            my_bool fail = 0;
             if (strConnection.size()) {
                 std::string db = SPA::Utilities::ToUTF8(strConnection.c_str(), strConnection.size());
                 COM_DATA cmd;
                 cmd.com_init_db.db_name = db.c_str();
                 cmd.com_init_db.length = (unsigned long) db.size();
-                fail = command_service_run_command(st_session, COM_INIT_DB, &cmd, CSetGlobals::Globals.utf8_general_ci, &m_sql_cbs, CS_BINARY_REPRESENTATION, this);
+                fail = command_service_run_command(m_pMysql.get(), COM_INIT_DB, &cmd, CSetGlobals::Globals.utf8_general_ci, &m_sql_cbs, CS_BINARY_REPRESENTATION, this);
             }
             if (m_sql_errno) {
                 res = m_sql_errno;
@@ -786,7 +782,7 @@ namespace SPA
                 m_pMysql.reset();
             } else {
                 res = 0;
-                LEX_CSTRING db_name = srv_session_info_get_current_db(st_session);
+                LEX_CSTRING db_name = srv_session_info_get_current_db(m_pMysql.get());
                 errMsg = SPA::Utilities::ToWide(db_name.str, db_name.length);
                 if ((flags & SPA::UDB::ENABLE_TABLE_UPDATE_MESSAGES) == SPA::UDB::ENABLE_TABLE_UPDATE_MESSAGES) {
                     m_EnableMessages = GetPush().Subscribe(&SPA::UDB::STREAMING_SQL_CHAT_GROUP_ID, 1);
@@ -813,6 +809,7 @@ namespace SPA
                 cmd.com_stmt_close.stmt_id = m_stmt.stmt_id;
                 m_NoSending = true;
                 my_bool fail = command_service_run_command(m_pMysql.get(), COM_STMT_CLOSE, &cmd, CSetGlobals::Globals.utf8_general_ci, &m_sql_cbs, CS_BINARY_REPRESENTATION, this);
+                assert(!fail);
                 m_NoSending = false;
                 m_stmt.prepared = false;
 
