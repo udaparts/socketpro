@@ -700,13 +700,18 @@ namespace SPA
             std::unique_ptr<CMysqlImpl> impl(new CMysqlImpl);
             std::string userA = SPA::Utilities::ToUTF8(userName.c_str(), userName.size());
             MYSQL_SESSION st_session = srv_session_open(nullptr, impl.get());
+            my_bool fail = srv_session_info_set_connection_type(st_session, VIO_TYPE_PLUGIN);
+            assert(!fail);
+            if (fail)
+                return false;
             impl->m_pMysql.reset(st_session, [](MYSQL_SESSION mysql) {
                 if (mysql) {
                     my_bool fail = srv_session_close(mysql);
                     assert(!fail);
                 }
             });
-            my_bool fail = thd_get_security_context(srv_session_info_get_thd(st_session), &impl->m_sc);
+            fail = thd_get_security_context(srv_session_info_get_thd(st_session), &impl->m_sc);
+            assert(!fail);
             if (fail)
                 return false;
             fail = security_context_lookup(impl->m_sc, userA.c_str(), "localhost", ip.c_str(), nullptr);
@@ -746,6 +751,8 @@ namespace SPA
             m_EnableMessages = false;
             CleanDBObjects();
             MYSQL_SESSION st_session = srv_session_open(nullptr, this);
+            my_bool fail = srv_session_info_set_connection_type(st_session, VIO_TYPE_PLUGIN);
+            assert(!fail);
             m_pMysql.reset(st_session, [](MYSQL_SESSION mysql) {
                 if (mysql) {
                     my_bool fail = srv_session_close(mysql);
@@ -756,7 +763,7 @@ namespace SPA
             std::string ip = GetPeerName(&port);
             std::wstring user = GetUID();
             std::string userA = SPA::Utilities::ToUTF8(user.c_str(), user.size());
-            my_bool fail = thd_get_security_context(srv_session_info_get_thd(st_session), &m_sc);
+            fail = thd_get_security_context(srv_session_info_get_thd(st_session), &m_sc);
             assert(!fail);
             fail = security_context_lookup(m_sc, userA.c_str(), "localhost", ip.c_str(), nullptr);
             assert(!fail);
