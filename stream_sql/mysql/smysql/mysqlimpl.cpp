@@ -85,14 +85,6 @@ namespace SPA
             }
         }
 
-        void CMysqlImpl::ReleaseArray() {
-            for (auto it = m_vArray.begin(), end = m_vArray.end(); it != end; ++it) {
-                SAFEARRAY *arr = *it;
-                ::SafeArrayUnaccessData(arr);
-            }
-            m_vArray.clear();
-        }
-
         void CMysqlImpl::OnReleaseSource(bool bClosing, unsigned int info) {
             CleanDBObjects();
         }
@@ -131,10 +123,6 @@ namespace SPA
             M_I4_R5(idExecuteParameters, ExecuteParameters, bool, bool, bool, UINT64, INT64, int, std::wstring, CDBVariant, UINT64)
             M_I0_R2(idClose, CloseDb, int, std::wstring)
             END_SWITCH
-            if (reqId == idExecuteParameters) {
-                ReleaseArray();
-                m_vParam.clear();
-            }
             return 0;
         }
 

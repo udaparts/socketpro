@@ -55,7 +55,6 @@ namespace SPA {
             virtual void ExecuteParameters(bool rowset, bool meta, bool lastInsertId, UINT64 index, INT64 &affected, int &res, std::wstring &errMsg, CDBVariant &vtId, UINT64 &fail_ok);
 
         private:
-            void ReleaseArray();
             void StartBLOB(unsigned int lenExpected);
             void Chunk();
             void EndBLOB();
@@ -121,7 +120,6 @@ namespace SPA {
 
         private:
             SPA::CScopeUQueue m_sb;
-            std::vector<SAFEARRAY *> m_vArray;
             CUQueue &m_qSend;
 
             //MySql connection handle
