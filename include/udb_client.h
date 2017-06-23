@@ -281,6 +281,7 @@ namespace SPA {
                 if (!rowset) {
                     meta = false;
                 }
+                CAutoLock alOne(m_csCall);
                 {
                     //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
                     CAutoLock al(m_csDB);
@@ -312,7 +313,7 @@ namespace SPA {
                             this->m_mapRowset.erase(it);
                         }
                         this->m_indexProc = 0;
-                        auto pit = this->m_mapParameterCall.find(callIndex);
+                                auto pit = this->m_mapParameterCall.find(callIndex);
                         if (pit != this->m_mapParameterCall.end()) {
                             this->m_mapParameterCall.erase(pit);
                         }
@@ -347,6 +348,7 @@ namespace SPA {
                 if (!rowset) {
                     meta = false;
                 }
+                CAutoLock alOne(m_csCall);
                 {
                     //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
                     CAutoLock al(m_csDB);
@@ -392,6 +394,7 @@ namespace SPA {
              */
             virtual bool Open(const wchar_t* strConnection, DResult handler, unsigned int flags = 0) {
                 std::wstring s;
+                CAutoLock alOne(m_csCall);
                 {
                     //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
                     CAutoLock al(m_csDB);
@@ -501,6 +504,7 @@ namespace SPA {
             virtual bool BeginTrans(tagTransactionIsolation isolation = tiReadCommited, DResult handler = DResult()) {
                 unsigned int flags;
                 std::wstring connection;
+                CAutoLock alOne(m_csCall);
                 {
                     //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
                     CAutoLock al(m_csDB);
@@ -536,6 +540,7 @@ namespace SPA {
              * @return true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
              */
             virtual bool EndTrans(tagRollbackPlan plan = rpDefault, DResult handler = DResult()) {
+                CAutoLock alOne(m_csCall);
                 if (SendRequest(idEndTrans, (int) plan, [handler, this](CAsyncResult & ar) {
                         int res;
                         std::wstring errMsg;
@@ -797,6 +802,8 @@ namespace SPA {
             unsigned int m_parameters;
             unsigned int m_outputs;
             bool m_bCallReturn;
+        protected:
+            CUCriticalSection m_csCall;
         };
 
     } //namespace ClientSide

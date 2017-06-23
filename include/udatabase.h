@@ -131,7 +131,7 @@ namespace SPA {
         static const unsigned int DEFAULT_RECORD_BATCH_SIZE = 16 * 1024;
 		
 		/**
-         * A flag used with idOpen for tracting database table update events
+         * A flag used with idOpen for tracing database table update events
          */
 		static const unsigned int ENABLE_TABLE_UPDATE_MESSAGES = 0x1;
 		
