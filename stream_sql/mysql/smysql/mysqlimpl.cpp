@@ -114,6 +114,7 @@ namespace SPA
         }
 
         int CMysqlImpl::OnSlowRequestArrive(unsigned short reqId, unsigned int len) {
+            m_NoSending = false;
             BEGIN_SWITCH(reqId)
             M_I2_R3(idOpen, Open, std::wstring, unsigned int, int, std::wstring, int)
             M_I3_R3(idBeginTrans, BeginTrans, int, std::wstring, unsigned int, int, std::wstring, int)
@@ -123,11 +124,16 @@ namespace SPA
             M_I4_R5(idExecuteParameters, ExecuteParameters, bool, bool, bool, UINT64, INT64, int, std::wstring, CDBVariant, UINT64)
             M_I0_R2(idClose, CloseDb, int, std::wstring)
             END_SWITCH
+            if (m_pMysql) {
+                my_bool fail = srv_session_detach(m_pMysql.get());
+            }
             return 0;
         }
 
         int CMysqlImpl::sql_start_result_metadata(void *ctx, uint num_cols, uint flags, const CHARSET_INFO * resultcs) {
             CMysqlImpl *impl = (CMysqlImpl *) ctx;
+            if (!impl)
+                return 1;
             impl->m_sql_resultcs = resultcs;
             impl->m_sql_flags = flags;
             impl->m_vColInfo.clear();
@@ -664,6 +670,8 @@ namespace SPA
 
         void CMysqlImpl::sql_handle_ok(void * ctx, uint server_status, uint statement_warn_count, ulonglong affected_rows, ulonglong last_insert_id, const char * const message) {
             CMysqlImpl *impl = (CMysqlImpl *) ctx;
+            if (!impl)
+                return;
             CUQueue &q = impl->m_qSend;
             if (q.GetSize()) {
                 if (!impl->SendRows(q))
@@ -683,6 +691,8 @@ namespace SPA
 
         void CMysqlImpl::sql_handle_error(void * ctx, uint sql_errno, const char * const err_msg, const char * const sqlstate) {
             CMysqlImpl *impl = (CMysqlImpl *) ctx;
+            if (!impl)
+                return;
             ++impl->m_fails;
             impl->m_sql_errno = (int) sql_errno;
             impl->m_err_msg = SPA::Utilities::ToWide(err_msg);
@@ -702,7 +712,7 @@ namespace SPA
             m_pMysql.reset(st_session, [](MYSQL_SESSION mysql) {
                 if (mysql) {
                     my_bool fail = srv_session_detach(mysql);
-                    assert(!fail);
+                    //assert(!fail);
                     fail = srv_session_close(mysql);
                     assert(!fail);
                 }
@@ -729,7 +739,7 @@ namespace SPA
             wsql += (userName + L"' and authentication_string=password('");
             wsql += password;
             wsql += L"')";
-            int res;
+            int res = 0;
             INT64 affected;
             SPA::UDB::CDBVariant vtId;
             UINT64 fail_ok;
@@ -739,7 +749,7 @@ namespace SPA
             memset(&wsql[0], 0, wsql.size() * sizeof (wchar_t));
             SPA::UDB::CDBVariant vt0;
             impl->m_qSend.Utf8ToW(true);
-            if (impl->m_qSend.GetSize()) {
+            if (impl->m_qSend.GetSize() && !res) {
                 impl->m_qSend >> vt0;
                 std::wstring s = vt0.bstrVal;
                 std::transform(s.begin(), s.end(), s.begin(), ::tolower);
@@ -763,14 +773,13 @@ namespace SPA
             std::wstring user = GetUID();
             OpenSession(user, ip);
             InitMysqlSession();
-            m_NoSending = true;
             my_bool fail = 0;
             if (strConnection.size()) {
                 std::string db = SPA::Utilities::ToUTF8(strConnection.c_str(), strConnection.size());
                 COM_DATA cmd;
                 cmd.com_init_db.db_name = db.c_str();
                 cmd.com_init_db.length = (unsigned long) db.size();
-                fail = command_service_run_command(m_pMysql.get(), COM_INIT_DB, &cmd, CSetGlobals::Globals.utf8_general_ci, &m_sql_cbs, CS_BINARY_REPRESENTATION, this);
+                fail = command_service_run_command(m_pMysql.get(), COM_INIT_DB, &cmd, CSetGlobals::Globals.utf8_general_ci, &m_sql_cbs, CS_BINARY_REPRESENTATION, nullptr);
             }
             if (m_sql_errno) {
                 res = m_sql_errno;
@@ -788,7 +797,6 @@ namespace SPA
                     m_EnableMessages = GetPush().Subscribe(&SPA::UDB::STREAMING_SQL_CHAT_GROUP_ID, 1);
                 }
             }
-            m_NoSending = false;
         }
 
         void CMysqlImpl::CloseDb(int &res, std::wstring & errMsg) {
@@ -807,10 +815,8 @@ namespace SPA
                 ::memset(&cmd, 0, sizeof (cmd));
                 InitMysqlSession();
                 cmd.com_stmt_close.stmt_id = m_stmt.stmt_id;
-                m_NoSending = true;
-                my_bool fail = command_service_run_command(m_pMysql.get(), COM_STMT_CLOSE, &cmd, CSetGlobals::Globals.utf8_general_ci, &m_sql_cbs, CS_BINARY_REPRESENTATION, this);
+                my_bool fail = command_service_run_command(m_pMysql.get(), COM_STMT_CLOSE, &cmd, CSetGlobals::Globals.utf8_general_ci, &m_sql_cbs, CS_BINARY_REPRESENTATION, nullptr);
                 assert(!fail);
-                m_NoSending = false;
                 m_stmt.prepared = false;
 
                 //don't set stmt_it to 0 !!!
@@ -875,15 +881,13 @@ namespace SPA
                 }
                 if (sql.size())
                     sql += ";";
-                sql += "SET AUTOCOMMIT=0";
-                m_NoSending = true;
+                sql += "SET AUTOCOMMIT=0;START TRANSACTION";
                 COM_DATA cmd;
                 ::memset(&cmd, 0, sizeof (cmd));
                 InitMysqlSession();
                 cmd.com_query.query = sql.c_str();
                 cmd.com_query.length = (unsigned int) sql.size();
                 my_bool fail = command_service_run_command(m_pMysql.get(), COM_QUERY, &cmd, CSetGlobals::Globals.utf8_general_ci, &m_sql_cbs, CS_BINARY_REPRESENTATION, this);
-                m_NoSending = false;
                 if (m_sql_errno) {
                     res = m_sql_errno;
                     errMsg = m_err_msg;
@@ -940,15 +944,14 @@ namespace SPA
                     assert(false); //shouldn't come here
                     break;
             }
-            std::string sql(rollback ? "rollback" : "commit");
-            m_NoSending = true;
+            std::string sql(rollback ? "ROLLBACK" : "COMMIT");
+            sql += ";SET AUTOCOMMIT=1";
             COM_DATA cmd;
             ::memset(&cmd, 0, sizeof (cmd));
             InitMysqlSession();
             cmd.com_query.query = sql.c_str();
             cmd.com_query.length = (unsigned int) sql.size();
             my_bool fail = command_service_run_command(m_pMysql.get(), COM_QUERY, &cmd, CSetGlobals::Globals.utf8_general_ci, &m_sql_cbs, CS_BINARY_REPRESENTATION, this);
-            m_NoSending = false;
             if (m_sql_errno) {
                 res = m_sql_errno;
                 errMsg = m_err_msg;
@@ -1128,7 +1131,6 @@ namespace SPA
             m_sqlPrepare = Utilities::ToUTF8(wsql.c_str(), wsql.size());
             CMysqlImpl::Trim(m_sqlPrepare);
             PreprocessPreparedStatement();
-            m_NoSending = true;
             CScopeUQueue sb;
             Utilities::ToUTF8(wsql.c_str(), wsql.size(), *sb);
             const char *sqlUtf8 = (const char*) sb->GetBuffer();
@@ -1138,7 +1140,6 @@ namespace SPA
             cmd.com_stmt_prepare.query = sqlUtf8;
             cmd.com_stmt_prepare.length = sb->GetSize();
             my_bool fail = command_service_run_command(m_pMysql.get(), COM_STMT_PREPARE, &cmd, CSetGlobals::Globals.utf8_general_ci, &m_sql_cbs, CS_BINARY_REPRESENTATION, this);
-            m_NoSending = false;
             ++m_stmt.stmt_id; //always increase statement id by one
             if (m_sql_errno) {
                 res = m_sql_errno;
@@ -1506,7 +1507,6 @@ namespace SPA
             res = 0;
             UINT64 fails = m_fails;
             UINT64 oks = m_oks;
-            m_NoSending = false;
             CScopeUQueue sb;
             CUQueue &buffer = *sb;
             int rows = (int) (m_vParam.size() / m_stmt.parameters);

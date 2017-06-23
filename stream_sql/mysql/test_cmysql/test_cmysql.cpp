@@ -91,7 +91,7 @@ int main(int argc, char* argv[]) {
     vPData.push_back(0);
     vPData.push_back(0);
     unsigned int oks = 0;
-    //TestStoredProcedure(pMysql, ra, vPData, oks);
+    TestStoredProcedure(pMysql, ra, vPData, oks);
     pMysql->WaitAll();
 
     std::cout << std::endl;

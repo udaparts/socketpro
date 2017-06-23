@@ -21,8 +21,7 @@ class Program
     {
         Console.WriteLine("Remote host: ");
         string host = Console.ReadLine();
-        CConnectionContext cc = new CConnectionContext(host, 20901, "umysql_client", "pwd_for_mysql");
-
+        CConnectionContext cc = new CConnectionContext(host, 20902, "root", "Smash123");
         using (CSocketPool<CMysql> spMysql = new CSocketPool<CMysql>())
         {
             if (!spMysql.StartSocketPool(cc, 1, 1))
@@ -33,7 +32,7 @@ class Program
                 return;
             }
             CMysql mysql = spMysql.Seek();
-            bool ok = mysql.Open("", dr, CMysql.USE_REMOTE_MYSQL);
+            bool ok = mysql.Open("", dr, CMysql.ENABLE_TABLE_UPDATE_MESSAGES);
             List<KeyValuePair<CDBColumnInfoArray, CDBVariantArray>> ra = new List<KeyValuePair<CDBColumnInfoArray, CDBVariantArray>>();
 
             CMysql.DRows r = (handler, rowData) =>

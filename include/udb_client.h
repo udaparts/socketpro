@@ -281,6 +281,7 @@ namespace SPA {
                 if (!rowset) {
                     meta = false;
                 }
+                CAutoLock alOne(m_csCall);
                 {
                     //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
                     CAutoLock al(m_csDB);
@@ -312,10 +313,7 @@ namespace SPA {
                             this->m_mapRowset.erase(it);
                         }
                         this->m_indexProc = 0;
-                        if (!this->m_mapRowset.size()) {
-                            this->m_nCall = 0;
-                        }
-                        auto pit = this->m_mapParameterCall.find(callIndex);
+                                auto pit = this->m_mapParameterCall.find(callIndex);
                         if (pit != this->m_mapParameterCall.end()) {
                             this->m_mapParameterCall.erase(pit);
                         }
@@ -350,6 +348,7 @@ namespace SPA {
                 if (!rowset) {
                     meta = false;
                 }
+                CAutoLock alOne(m_csCall);
                 {
                     //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
                     CAutoLock al(m_csDB);
@@ -358,7 +357,7 @@ namespace SPA {
                         m_mapRowset[m_nCall] = CRowsetHandler(rh, row);
                     }
                 }
-                if (!SendRequest(idExecute, sql, rowset, meta, lastInsertId, index, [handler, this](CAsyncResult & ar) {
+                if (!SendRequest(idExecute, sql, rowset, meta, lastInsertId, index, [index, handler, this](CAsyncResult & ar) {
                         INT64 affected;
                         UINT64 fail_ok;
                                 int res;
@@ -370,12 +369,9 @@ namespace SPA {
                                 this->m_affected = affected;
                                 this->m_dbErrCode = res;
                                 this->m_dbErrMsg = errMsg;
-                                auto it = this->m_mapRowset.find(this->m_indexRowset);
+                                auto it = this->m_mapRowset.find(index);
                         if (it != this->m_mapRowset.end()) {
                             this->m_mapRowset.erase(it);
-                        }
-                        if (!this->m_mapRowset.size()) {
-                            this->m_nCall = 0;
                         }
                         this->m_csDB.unlock();
                         if (handler) {
@@ -398,6 +394,7 @@ namespace SPA {
              */
             virtual bool Open(const wchar_t* strConnection, DResult handler, unsigned int flags = 0) {
                 std::wstring s;
+                CAutoLock alOne(m_csCall);
                 {
                     //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
                     CAutoLock al(m_csDB);
@@ -507,6 +504,7 @@ namespace SPA {
             virtual bool BeginTrans(tagTransactionIsolation isolation = tiReadCommited, DResult handler = DResult()) {
                 unsigned int flags;
                 std::wstring connection;
+                CAutoLock alOne(m_csCall);
                 {
                     //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
                     CAutoLock al(m_csDB);
@@ -542,6 +540,7 @@ namespace SPA {
              * @return true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
              */
             virtual bool EndTrans(tagRollbackPlan plan = rpDefault, DResult handler = DResult()) {
+                CAutoLock alOne(m_csCall);
                 if (SendRequest(idEndTrans, (int) plan, [handler, this](CAsyncResult & ar) {
                         int res;
                         std::wstring errMsg;
@@ -803,6 +802,8 @@ namespace SPA {
             unsigned int m_parameters;
             unsigned int m_outputs;
             bool m_bCallReturn;
+        protected:
+            CUCriticalSection m_csCall;
         };
 
     } //namespace ClientSide
