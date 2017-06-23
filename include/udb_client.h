@@ -312,9 +312,6 @@ namespace SPA {
                             this->m_mapRowset.erase(it);
                         }
                         this->m_indexProc = 0;
-                        if (!this->m_mapRowset.size()) {
-                            this->m_nCall = 0;
-                        }
                         auto pit = this->m_mapParameterCall.find(callIndex);
                         if (pit != this->m_mapParameterCall.end()) {
                             this->m_mapParameterCall.erase(pit);
@@ -358,7 +355,7 @@ namespace SPA {
                         m_mapRowset[m_nCall] = CRowsetHandler(rh, row);
                     }
                 }
-                if (!SendRequest(idExecute, sql, rowset, meta, lastInsertId, index, [handler, this](CAsyncResult & ar) {
+                if (!SendRequest(idExecute, sql, rowset, meta, lastInsertId, index, [index, handler, this](CAsyncResult & ar) {
                         INT64 affected;
                         UINT64 fail_ok;
                                 int res;
@@ -370,12 +367,9 @@ namespace SPA {
                                 this->m_affected = affected;
                                 this->m_dbErrCode = res;
                                 this->m_dbErrMsg = errMsg;
-                                auto it = this->m_mapRowset.find(this->m_indexRowset);
+                                auto it = this->m_mapRowset.find(index);
                         if (it != this->m_mapRowset.end()) {
                             this->m_mapRowset.erase(it);
-                        }
-                        if (!this->m_mapRowset.size()) {
-                            this->m_nCall = 0;
                         }
                         this->m_csDB.unlock();
                         if (handler) {
