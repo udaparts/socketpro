@@ -94,9 +94,9 @@ public class Test_java {
         CConnectionContext cc = new CConnectionContext();
         System.out.println("Remote host: ");
         cc.Host = new java.util.Scanner(System.in).next();
-        cc.Port = 20901;
-        cc.UserId = "umysql_client_java";
-        cc.Password = "pwd_for_umysql";
+        cc.Port = 20902;
+        cc.UserId = "root";
+        cc.Password = "Smash123";
 
         CSocketPool<CMysql> spMysql = new CSocketPool<>(CMysql.class);
         boolean ok = spMysql.StartSocketPool(cc, 1, 1);
@@ -121,7 +121,7 @@ public class Test_java {
             }
         };
 
-        ok = mysql.Open(null, dr, CMysql.USE_REMOTE_MYSQL);
+        ok = mysql.Open(null, dr, CMysql.ENABLE_TABLE_UPDATE_MESSAGES);
         final java.util.ArrayList<CMysql.Pair<CDBColumnInfoArray, CDBVariantArray>> ra = new java.util.ArrayList<>();
         TestCreateTables(mysql, er);
         ok = mysql.Execute("delete from employee;delete from company", er);
