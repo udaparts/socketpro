@@ -123,6 +123,9 @@ namespace SPA
             M_I4_R5(idExecuteParameters, ExecuteParameters, bool, bool, bool, UINT64, INT64, int, std::wstring, CDBVariant, UINT64)
             M_I0_R2(idClose, CloseDb, int, std::wstring)
             END_SWITCH
+            if (m_pMysql) {
+                my_bool fail = srv_session_detach(m_pMysql.get());
+            }
             return 0;
         }
 
@@ -702,7 +705,7 @@ namespace SPA
             m_pMysql.reset(st_session, [](MYSQL_SESSION mysql) {
                 if (mysql) {
                     my_bool fail = srv_session_detach(mysql);
-                    assert(!fail);
+                    //assert(!fail);
                     fail = srv_session_close(mysql);
                     assert(!fail);
                 }
@@ -729,7 +732,7 @@ namespace SPA
             wsql += (userName + L"' and authentication_string=password('");
             wsql += password;
             wsql += L"')";
-            int res;
+            int res = 0;
             INT64 affected;
             SPA::UDB::CDBVariant vtId;
             UINT64 fail_ok;
@@ -739,7 +742,7 @@ namespace SPA
             memset(&wsql[0], 0, wsql.size() * sizeof (wchar_t));
             SPA::UDB::CDBVariant vt0;
             impl->m_qSend.Utf8ToW(true);
-            if (impl->m_qSend.GetSize()) {
+            if (impl->m_qSend.GetSize() && !res) {
                 impl->m_qSend >> vt0;
                 std::wstring s = vt0.bstrVal;
                 std::transform(s.begin(), s.end(), s.begin(), ::tolower);
