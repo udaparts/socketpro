@@ -81,14 +81,14 @@ int main(int argc, char* argv[]) {
     CDBVariantArray vPData;
     //first set
     vPData.push_back(1);
-    //output not important, but they are used for receiving proper types of data on mysql
-    vPData.push_back(0);
+    vPData.push_back(1.25);
+	//output not important, but they are used for receiving proper types of data on mysql
     vPData.push_back(0);
 
     //second set
     vPData.push_back(2);
-    //output not important, but they are used for receiving proper types of data on mysql
-    vPData.push_back(0);
+    vPData.push_back(1.14);
+	//output not important, but they are used for receiving proper types of data on mysql
     vPData.push_back(0);
     unsigned int oks = 0;
     TestStoredProcedure(pMysql, ra, vPData, oks);
@@ -257,7 +257,7 @@ void TestCreateTables(std::shared_ptr<CMyHandler> pMysql) {
         std::cout << "affected = " << affected << ", fails = " << (unsigned int) (fail_ok >> 32) << ", oks = " << (unsigned int) fail_ok << ", res = " << res << ", errMsg: ";
         std::wcout << errMsg << std::endl;
     });
-    const wchar_t *create_proc = L"DROP PROCEDURE IF EXISTS sp_TestProc;CREATE PROCEDURE sp_TestProc(in p_company_id int, out p_sum_salary DECIMAL(25,2), out p_last_dt datetime) BEGIN select * from employee where companyid >= p_company_id; select sum(salary) into p_sum_salary from employee where companyid >= p_company_id; select now() into p_last_dt;END";
+    const wchar_t *create_proc = L"DROP PROCEDURE IF EXISTS sp_TestProc;CREATE PROCEDURE sp_TestProc(in p_company_id int, inout p_sum_salary DECIMAL(25,2), out p_last_dt datetime) BEGIN select * from employee where companyid >= p_company_id; select sum(salary)+p_sum_salary into p_sum_salary from employee where companyid >= p_company_id; select now() into p_last_dt;END";
     ok = pMysql->Execute(create_proc, [](CMyHandler &handler, int res, const std::wstring &errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & vtId) {
         std::cout << "affected = " << affected << ", fails = " << (unsigned int) (fail_ok >> 32) << ", oks = " << (unsigned int) fail_ok << ", res = " << res << ", errMsg: ";
         std::wcout << errMsg << std::endl;

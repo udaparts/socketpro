@@ -412,10 +412,14 @@ namespace SPA
 
         int CMysqlImpl::sql_end_result_metadata(void *ctx, uint server_status, uint warn_count) {
             CMysqlImpl *impl = (CMysqlImpl *) ctx;
+            impl->m_server_status = server_status;
             CUQueue &q = impl->m_qSend;
             q.SetSize(0);
             if (!impl->m_NoSending) {
                 q << impl->m_vColInfo << impl->m_indexCall;
+                if ((server_status & SERVER_PS_OUT_PARAMS) == SERVER_PS_OUT_PARAMS) {
+                    q << (unsigned int) impl->m_vColInfo.size();
+                }
                 unsigned int ret = impl->SendResult(idRowsetHeader, q.GetBuffer(), q.GetSize());
                 q.SetSize(0);
                 if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
@@ -446,7 +450,7 @@ namespace SPA
         }
 
         ulong CMysqlImpl::sql_get_client_capabilities(void *ctx) {
-            ulong power = (CLIENT_MULTI_STATEMENTS | CLIENT_MULTI_RESULTS);
+            ulong power = (CLIENT_MULTI_STATEMENTS | CLIENT_MULTI_RESULTS | CLIENT_PS_MULTI_RESULTS);
             return power;
         }
 
@@ -643,7 +647,16 @@ namespace SPA
                     }
                 }
             } else {
-                if (length <= DEFAULT_BIG_FIELD_CHUNK_SIZE) {
+                if (info.DataType == VT_DECIMAL) {
+                    q << info.DataType;
+                    DECIMAL dec;
+                    if (length <= 20) {
+                        ParseDec(value, dec);
+                    } else {
+                        ParseDec_long(value, dec);
+                    }
+                    q << dec;
+                } else if (length <= DEFAULT_BIG_FIELD_CHUNK_SIZE) {
                     q << info.DataType;
                     q << (unsigned int) length;
                     q.Push((const unsigned char*) value, (unsigned int) length);
@@ -673,7 +686,13 @@ namespace SPA
             if (!impl)
                 return;
             CUQueue &q = impl->m_qSend;
-            if (q.GetSize()) {
+            if ((impl->m_server_status & SERVER_PS_OUT_PARAMS) == SERVER_PS_OUT_PARAMS) {
+                //tell output parameter data
+                unsigned int sent = impl->SendResult(idOutputParameter, q.GetBuffer(), q.GetSize());
+                if (sent == REQUEST_CANCELED || sent == SOCKET_NOT_FOUND) {
+                    return;
+                }
+            } else if (q.GetSize()) {
                 if (!impl->SendRows(q))
                     return;
             }
@@ -682,7 +701,8 @@ namespace SPA
             impl->m_statement_warn_count = statement_warn_count;
             impl->m_affected_rows += affected_rows;
             impl->m_last_insert_id = last_insert_id;
-            ++impl->m_oks;
+            if (!impl->m_bExecutingParameters)
+                ++impl->m_oks;
             if (message)
                 impl->m_err_msg = SPA::Utilities::ToWide(message);
             else
@@ -1530,6 +1550,7 @@ namespace SPA
                 cmd.com_stmt_execute.params_length = buffer.GetSize();
                 my_bool fail = command_service_run_command(m_pMysql.get(), COM_STMT_EXECUTE, &cmd, CSetGlobals::Globals.utf8_general_ci, &m_sql_cbs, CS_BINARY_REPRESENTATION, this);
                 if (m_sql_errno) {
+                    ++m_fails;
                     if (!res) {
                         res = m_sql_errno;
                         errMsg = m_err_msg;
@@ -1545,6 +1566,7 @@ namespace SPA
                         vtId = (SPA::UINT64)m_last_insert_id;
                     ++m_fails;
                 } else {
+                    ++m_oks;
                     affected += (INT64) m_affected_rows;
                     if (lastInsertId) {
                         vtId = (UINT64) m_last_insert_id;
