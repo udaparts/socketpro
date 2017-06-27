@@ -727,8 +727,9 @@ namespace SPA
         }
 
         bool CMysqlImpl::OpenSession(const std::wstring &userName, const std::string & ip) {
-            std::string userA = SPA::Utilities::ToUTF8(userName.c_str(), userName.size());
             MYSQL_SESSION st_session = srv_session_open(nullptr, this);
+            if (!st_session)
+                return false;
             m_pMysql.reset(st_session, [](MYSQL_SESSION mysql) {
                 if (mysql) {
                     my_bool fail = srv_session_detach(mysql);
@@ -745,10 +746,93 @@ namespace SPA
             assert(!fail);
             if (fail)
                 return false;
+            std::string userA = SPA::Utilities::ToUTF8(userName.c_str(), userName.size());
             fail = security_context_lookup(m_sc, userA.c_str(), "localhost", ip.c_str(), nullptr);
             if (fail)
                 return false;
             return true;
+        }
+
+        std::unordered_map<std::string, std::string> CMysqlImpl::ConfigStreamingDB() {
+            std::unordered_map<std::string, std::string> map;
+            std::unique_ptr<CMysqlImpl> impl(new CMysqlImpl);
+            if (!impl->OpenSession(L"root", "localhost"))
+                return map;
+            std::wstring wsql = L"Create database if not exists sp_streaming_db character set utf8 collate utf8_general_ci;USE sp_streaming_db";
+            int res = 0;
+            INT64 affected;
+            SPA::UDB::CDBVariant vtId;
+            UINT64 fail_ok;
+            impl->m_NoSending = true;
+            std::wstring errMsg;
+            impl->Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
+            if (res)
+                return map;
+            wsql = L"CREATE TABLE IF NOT EXISTS config(mykey varchar(32) PRIMARY KEY NOT NULL, value text not null)";
+            impl->Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
+            if (res)
+                return map;
+            wsql = L"select mykey, value from config";
+            impl->Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
+            SPA::UDB::CDBVariant vtKey, vtValue;
+            while (impl->m_qSend.GetSize() && !res) {
+                impl->m_qSend >> vtKey >> vtValue;
+                const char *p;
+                ::SafeArrayAccessData(vtKey.parray, (void**) &p);
+                unsigned int len = vtKey.parray->rgsabound->cElements;
+                std::string s0(p, p + len);
+                ::SafeArrayUnaccessData(vtKey.parray);
+
+                ::SafeArrayAccessData(vtValue.parray, (void**) &p);
+                len = vtValue.parray->rgsabound->cElements;
+                std::string s1(p, p + len);
+                ::SafeArrayUnaccessData(vtValue.parray);
+                std::transform(s0.begin(), s0.end(), s0.begin(), ::tolower);
+                map[s0] = s1;
+            }
+            auto it = map.find(STREAMING_DB_PORT);
+            if (it == map.end()) {
+                wsql = L"insert into config values('port', '20902')";
+                impl->Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
+                map[STREAMING_DB_PORT] = "20902";
+            }
+            it = map.find(STREAMING_DB_MAIN_THREADS);
+            if (it == map.end()) {
+                wsql = L"insert into config values('main_threads', '1')";
+                impl->Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
+                map[STREAMING_DB_MAIN_THREADS] = "1";
+            }
+            it = map.find(STREAMING_DB_NO_IPV6);
+            if (it == map.end()) {
+                wsql = L"insert into config values('disable_ipv6', '0')";
+                impl->Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
+                map[STREAMING_DB_NO_IPV6] = "0";
+            }
+            it = map.find(STREAMING_DB_SSL_KEY);
+            if (it == map.end()) {
+                wsql = L"insert into config values('ssl_key_or_store', '')";
+                impl->Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
+                map[STREAMING_DB_SSL_KEY] = "";
+            }
+            it = map.find(STREAMING_DB_SSL_CERT);
+            if (it == map.end()) {
+                wsql = L"insert into config values('ssl_cert', '')";
+                impl->Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
+                map[STREAMING_DB_SSL_CERT] = "";
+            }
+            it = map.find(STREAMING_DB_SSL_PASSWORD);
+            if (it == map.end()) {
+                wsql = L"insert into config values('ssl_key_password', '')";
+                impl->Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
+                map[STREAMING_DB_SSL_PASSWORD] = "";
+            }
+            it = map.find(STREAMING_DB_CACHE_TABLES);
+            if (it == map.end()) {
+                wsql = L"insert into config values('cached_tables', '')";
+                impl->Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
+                map[STREAMING_DB_CACHE_TABLES] = "";
+            }
+            return map;
         }
 
         bool CMysqlImpl::Authenticate(const std::wstring &userName, const wchar_t *password, const std::string & ip) {

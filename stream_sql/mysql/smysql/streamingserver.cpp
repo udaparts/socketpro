@@ -1,19 +1,13 @@
 
 
 #include "streamingserver.h"
+#include <algorithm>
 
 CStreamingServer *g_pStreamingServer = nullptr;
 
 int async_sql_plugin_init(void *p) {
     CSetGlobals::Globals.Plugin = (const void *) p;
-    if (!g_pStreamingServer) {
-        g_pStreamingServer = new CStreamingServer(CSetGlobals::Globals.m_nParam);
-    }
-    if (CSetGlobals::Globals.TLSv) {
-
-    }
-    SPA::ServerSide::ServerCoreLoader.SetThreadEvent(SPA::ServerSide::CMysqlImpl::OnThreadEvent);
-    if (!g_pStreamingServer->Run(CSetGlobals::Globals.Port, 32, !CSetGlobals::Globals.DisableV6)) {
+    if (!CSetGlobals::Globals.StartListening()) {
         return 1;
     }
     return 0;
@@ -21,7 +15,13 @@ int async_sql_plugin_init(void *p) {
 
 int async_sql_plugin_deinit(void *p) {
     if (g_pStreamingServer) {
-        g_pStreamingServer->StopSocketProServer();
+        g_pStreamingServer->PostQuit();
+#ifdef WIN32_64
+        ::WaitForSingleObject(CSetGlobals::Globals.m_hThread, INFINITE);
+        ::CloseHandle(CSetGlobals::Globals.m_hThread);
+#else
+
+#endif
         delete g_pStreamingServer;
         g_pStreamingServer = nullptr;
     }
@@ -32,13 +32,13 @@ int async_sql_plugin_deinit(void *p) {
     return 0;
 }
 
-CSetGlobals::CSetGlobals() {
+CSetGlobals::CSetGlobals() : m_nParam(0), DisableV6(false), Port(20902),
+server_version(nullptr), utf8_general_ci(nullptr), decimal2string(nullptr),
+m_hModule(nullptr), Plugin(nullptr) {
     //defaults
-    m_nParam = 0;
-    DisableV6 = false;
-    Port = 20902;
-    TLSv = false;
 #ifdef WIN32_64
+    m_hThread = nullptr;
+    m_dwThreadId = 0;
     m_hModule = ::GetModuleHandle(nullptr);
 #else
     m_hModule = ::dlopen(nullptr, RTLD_LAZY);
@@ -50,10 +50,6 @@ CSetGlobals::CSetGlobals() {
         server_version = (const char*) ::GetProcAddress(m_hModule, "server_version");
     } else {
         assert(false);
-        utf8_general_ci = nullptr;
-        decimal2string = nullptr;
-        server_version = nullptr;
-        Plugin = nullptr;
     }
     unsigned int version = MYSQL_VERSION_ID;
     if (strlen(server_version)) {
@@ -75,6 +71,102 @@ unsigned int CSetGlobals::GetVersion(const char *version) {
     if (end && *end)
         build = SPA::atoui(++end, end);
     return (major * 10000 + minor * 100 + build);
+}
+
+bool CSetGlobals::StartListening() {
+#ifdef WIN32_64
+    m_hThread = ::CreateThread(nullptr, 0, ThreadProc, this, 0, &m_dwThreadId);
+    return (m_hThread != nullptr);
+#else
+
+#endif
+}
+
+#ifdef WIN32_64
+
+DWORD WINAPI CSetGlobals::ThreadProc(LPVOID lpParameter) {
+    MYSQL_SESSION st_session = srv_session_open(nullptr, nullptr);
+    while (!st_session) {
+        ::Sleep(40);
+        st_session = srv_session_open(nullptr, nullptr);
+    }
+    srv_session_close(st_session);
+    std::unordered_map<std::string, std::string> mapConfig = SPA::ServerSide::CMysqlImpl::ConfigStreamingDB();
+    CSetGlobals::SetConfig(mapConfig);
+    if (!g_pStreamingServer) {
+        g_pStreamingServer = new CStreamingServer(CSetGlobals::Globals.m_nParam);
+    }
+    if (CSetGlobals::Globals.ssl_key.size() && (CSetGlobals::Globals.ssl_cert.size() || CSetGlobals::Globals.ssl_pwd.size())) {
+        std::string key = CSetGlobals::Globals.ssl_key;
+        std::transform(key.begin(), key.end(), key.begin(), ::tolower);
+        auto pos = key.find_last_of(".pfx");
+        if (pos == key.size() - 4) {
+            g_pStreamingServer->UseSSL(CSetGlobals::Globals.ssl_key.c_str(), "", CSetGlobals::Globals.ssl_pwd.c_str());
+        } else {
+            g_pStreamingServer->UseSSL(CSetGlobals::Globals.ssl_key.c_str(), CSetGlobals::Globals.ssl_cert.c_str(), "");
+        }
+        CSetGlobals::Globals.ssl_pwd.clear();
+    }
+    SPA::ServerSide::ServerCoreLoader.SetThreadEvent(SPA::ServerSide::CMysqlImpl::OnThreadEvent);
+    if (!g_pStreamingServer->Run(CSetGlobals::Globals.Port, 32, !CSetGlobals::Globals.DisableV6)) {
+        return 1;
+    }
+    return 0;
+}
+#else
+
+#endif
+
+void CSetGlobals::SetConfig(const std::unordered_map<std::string, std::string>& mapConfig) {
+    auto it = mapConfig.find(STREAMING_DB_PORT);
+    if (it != mapConfig.end()) {
+        std::string s = it->second;
+        int port = std::atoi(s.c_str());
+        if (port > 0) {
+            CSetGlobals::Globals.Port = (unsigned int) port;
+        }
+    }
+    it = mapConfig.find(STREAMING_DB_MAIN_THREADS);
+    if (it != mapConfig.end()) {
+        std::string s = it->second;
+        int n = std::atoi(s.c_str());
+        if (n > 0) {
+            CSetGlobals::Globals.m_nParam = (unsigned int) n;
+        }
+    }
+    it = mapConfig.find(STREAMING_DB_NO_IPV6);
+    if (it != mapConfig.end()) {
+        std::string s = it->second;
+        int n = std::atoi(s.c_str());
+        CSetGlobals::Globals.DisableV6 = n ? true : false;
+    }
+    it = mapConfig.find(STREAMING_DB_SSL_KEY);
+    if (it != mapConfig.end()) {
+        CSetGlobals::Globals.ssl_key = it->second;
+        SPA::ServerSide::CMysqlImpl::Trim(CSetGlobals::Globals.ssl_key);
+    }
+    it = mapConfig.find(STREAMING_DB_SSL_CERT);
+    if (it != mapConfig.end()) {
+        CSetGlobals::Globals.ssl_cert = it->second;
+        SPA::ServerSide::CMysqlImpl::Trim(CSetGlobals::Globals.ssl_cert);
+    }
+    it = mapConfig.find(STREAMING_DB_SSL_PASSWORD);
+    if (it != mapConfig.end()) {
+        CSetGlobals::Globals.ssl_pwd = it->second;
+        SPA::ServerSide::CMysqlImpl::Trim(CSetGlobals::Globals.ssl_pwd);
+    }
+    it = mapConfig.find(STREAMING_DB_CACHE_TABLES);
+    if (it != mapConfig.end()) {
+        std::string tok;
+        std::string s = it->second;
+        SPA::ServerSide::CMysqlImpl::Trim(s);
+        std::stringstream ss(s);
+        while (std::getline(ss, tok, ';')) {
+            SPA::ServerSide::CMysqlImpl::Trim(tok);
+            if (tok.size())
+                CSetGlobals::Globals.cached_tables.push_back(tok);
+        }
+    }
 }
 
 CSetGlobals CSetGlobals::Globals;

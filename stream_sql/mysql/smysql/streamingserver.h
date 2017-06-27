@@ -36,19 +36,39 @@ struct CSetGlobals {
 private:
     CSetGlobals();
     static unsigned int GetVersion(const char *prog);
+    static void SetConfig(const std::unordered_map<std::string, std::string>& mapConfig);
+
+#ifdef WIN32_64
+    static DWORD WINAPI ThreadProc(LPVOID lpParameter);
+#else
+
+#endif
 
 public:
     int m_nParam;
     bool DisableV6;
     unsigned int Port;
-    bool TLSv;
     const char *server_version;
     CHARSET_INFO *utf8_general_ci;
     pdecimal2string decimal2string;
     st_mysql_daemon async_sql_plugin;
     HINSTANCE m_hModule;
     const void *Plugin;
+    std::string ssl_key;
+    std::string ssl_cert;
+    std::string ssl_pwd;
+    std::vector<std::string> cached_tables;
     static CSetGlobals Globals;
+
+#ifdef WIN32_64
+    HANDLE m_hThread;
+    DWORD m_dwThreadId;
+#else
+
+#endif
+
+public:
+    bool StartListening();
 };
 
 int async_sql_plugin_init(void *p);

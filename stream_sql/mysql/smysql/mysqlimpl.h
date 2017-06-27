@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <unordered_map>
 #include "../../../include/aserverw.h"
 #include "../../../include/udatabase.h"
 #include "../../../include/mysql/umysql.h"
@@ -9,6 +10,14 @@
 #include <mysql_time.h>
 #include <mysql/plugin.h>
 
+
+#define STREAMING_DB_PORT			"port"
+#define STREAMING_DB_MAIN_THREADS	"main_threads"
+#define STREAMING_DB_NO_IPV6		"disable_ipv6"
+#define STREAMING_DB_SSL_KEY		"ssl_key_or_store"
+#define STREAMING_DB_SSL_CERT		"ssl_cert"
+#define STREAMING_DB_SSL_PASSWORD	"ssl_key_password"
+#define STREAMING_DB_CACHE_TABLES	"cached_tables"
 
 namespace SPA {
     namespace ServerSide {
@@ -37,6 +46,8 @@ namespace SPA {
             const std::string& GetProcedureName() const;
             static bool Authenticate(const std::wstring &userName, const wchar_t *password, const std::string &ip);
             static void CALLBACK OnThreadEvent(SPA::ServerSide::tagThreadEvent te);
+            static std::unordered_map<std::string, std::string> ConfigStreamingDB();
+            static void Trim(std::string &s);
 
         protected:
             virtual void OnFastRequestArrive(unsigned short reqId, unsigned int len);
@@ -76,7 +87,7 @@ namespace SPA {
             static size_t ComputeParameters(const std::wstring &sql);
             static UINT64 ConvertBitsToInt(const unsigned char *s, unsigned int bytes);
             static UINT64 ToUDateTime(const MYSQL_TIME &td);
-            static void Trim(std::string &s);
+
             static int sql_start_result_metadata(void *ctx, uint num_cols, uint flags, const CHARSET_INFO *resultcs);
             static int sql_field_metadata(void *ctx, struct st_send_field *field, const CHARSET_INFO *charset);
             static int sql_end_result_metadata(void *ctx, uint server_status, uint warn_count);
