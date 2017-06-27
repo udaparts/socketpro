@@ -1,7 +1,8 @@
 
-
 #include "streamingserver.h"
 #include <algorithm>
+
+#define STREAM_DB_LOG_FILE "streaming_db.log"
 
 CStreamingServer *g_pStreamingServer = nullptr;
 
@@ -32,7 +33,7 @@ int async_sql_plugin_deinit(void *p) {
     return 0;
 }
 
-CSetGlobals::CSetGlobals() : m_nParam(0), DisableV6(false), Port(20902),
+CSetGlobals::CSetGlobals() : m_fLog(nullptr), m_nParam(0), DisableV6(false), Port(20902),
 server_version(nullptr), utf8_general_ci(nullptr), decimal2string(nullptr),
 m_hModule(nullptr), Plugin(nullptr) {
     //defaults
@@ -59,6 +60,50 @@ m_hModule(nullptr), Plugin(nullptr) {
     }
     //set interface_version
     async_sql_plugin.interface_version = (version << 8);
+}
+
+void CSetGlobals::LogMsg(const char *file, int fileLineNumber, const char *format ...) {
+    SPA::CScopeUQueue sb;
+    SPA::CUQueue &q = *sb;
+    va_list ap;
+    va_start(ap, format);
+#ifdef WIN32_64
+    int res = ::_vsnprintf_s((char*) q.GetBuffer(), q.GetMaxSize(), _TRUNCATE, format, ap);
+#else
+    int res = ::vsnprintf((char*) q.GetBuffer(), q.GetMaxSize(), format, ap);
+#endif
+    va_end(ap);
+    LogEntry(file, fileLineNumber, (const char*) q.GetBuffer());
+}
+
+void CSetGlobals::LogEntry(const char* file, int fileLineNumber, const char* szBuf) {
+    SPA::CAutoLock al(m_cs);
+    if (!m_fLog) {
+#ifdef WIN32_64
+        errno_t errCode = ::fopen_s(&m_fLog, STREAM_DB_LOG_FILE, "a+");
+#else
+        m_fLog = ::fopen("streaming_db.log", "a+");
+#endif
+    }
+    if (!m_fLog) {
+        return;
+    }
+    SYSTEMTIME st;
+#ifdef WIN32_64
+    ::GetLocalTime(&st);
+#else
+    ::gettimeofday(&st, nullptr);
+#endif
+    SPA::UDB::CDBVariant vtDT(st);
+    SPA::UDateTime dt(vtDT.ullVal);
+    char str[32] = {0};
+    dt.ToDBString(str, sizeof (str));
+    int res = fprintf(m_fLog, "%s - %s:%d - ", str, file, fileLineNumber);
+    if (szBuf)
+        res = fprintf(m_fLog, "%s\n", szBuf);
+    else
+        res = fprintf(m_fLog, "\n");
+    ::fflush(m_fLog);
 }
 
 unsigned int CSetGlobals::GetVersion(const char *version) {
@@ -92,6 +137,9 @@ DWORD WINAPI CSetGlobals::ThreadProc(LPVOID lpParameter) {
     }
     srv_session_close(st_session);
     std::unordered_map<std::string, std::string> mapConfig = SPA::ServerSide::CMysqlImpl::ConfigStreamingDB();
+    if (!mapConfig.size()) {
+        return 1;
+    }
     CSetGlobals::SetConfig(mapConfig);
     if (!g_pStreamingServer) {
         g_pStreamingServer = new CStreamingServer(CSetGlobals::Globals.m_nParam);
@@ -109,6 +157,7 @@ DWORD WINAPI CSetGlobals::ThreadProc(LPVOID lpParameter) {
     }
     SPA::ServerSide::ServerCoreLoader.SetThreadEvent(SPA::ServerSide::CMysqlImpl::OnThreadEvent);
     if (!g_pStreamingServer->Run(CSetGlobals::Globals.Port, 32, !CSetGlobals::Globals.DisableV6)) {
+        CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Starting listening socket failed(errCode=%d; errMsg=%s)", g_pStreamingServer->GetErrorCode(), g_pStreamingServer->GetErrorMessage().c_str());
         return 1;
     }
     return 0;

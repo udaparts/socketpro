@@ -32,9 +32,14 @@ extern CStreamingServer *g_pStreamingServer;
 
 typedef int (*pdecimal2string) (const decimal_t *from, char *to, int *to_len, int fixed_precision, int fixed_decimals, char filler);
 
-struct CSetGlobals {
+class CSetGlobals {
+private:
+    FILE *m_fLog;
+    SPA::CUCriticalSection m_cs;
+
 private:
     CSetGlobals();
+    void LogEntry(const char* file, int fileLineNumber, const char* szBuf);
     static unsigned int GetVersion(const char *prog);
     static void SetConfig(const std::unordered_map<std::string, std::string>& mapConfig);
 
@@ -69,6 +74,7 @@ public:
 
 public:
     bool StartListening();
+    void LogMsg(const char *file, int fileLineNumber, const char *format ...);
 };
 
 int async_sql_plugin_init(void *p);

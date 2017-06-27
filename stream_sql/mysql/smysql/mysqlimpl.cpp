@@ -766,14 +766,22 @@ namespace SPA
             impl->m_NoSending = true;
             std::wstring errMsg;
             impl->Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
-            if (res)
+            if (res) {
+                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Configuring streaming DB failed(errCode=%d; errMsg=%s)", res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()).c_str());
                 return map;
+            }
             wsql = L"CREATE TABLE IF NOT EXISTS config(mykey varchar(32) PRIMARY KEY NOT NULL, value text not null)";
             impl->Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
-            if (res)
+            if (res) {
+                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Configuring streaming DB failed(errCode=%d; errMsg=%s)", res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()).c_str());
                 return map;
+            }
             wsql = L"select mykey, value from config";
             impl->Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
+            if (res) {
+                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Configuring streaming DB failed(errCode=%d; errMsg=%s)", res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()).c_str());
+                return map;
+            }
             SPA::UDB::CDBVariant vtKey, vtValue;
             while (impl->m_qSend.GetSize() && !res) {
                 impl->m_qSend >> vtKey >> vtValue;
@@ -850,6 +858,10 @@ namespace SPA
             impl->m_NoSending = true;
             std::wstring errMsg;
             impl->Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
+            if (res) {
+                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Authentication failed(errCode=%d; errMsg=%s)", res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()).c_str());
+                return false;
+            }
             memset(&wsql[0], 0, wsql.size() * sizeof (wchar_t));
             SPA::UDB::CDBVariant vt0;
             impl->m_qSend.Utf8ToW(true);
@@ -859,11 +871,13 @@ namespace SPA
                 std::transform(s.begin(), s.end(), s.begin(), ::tolower);
                 if (s == L"localhost" || s == L"127.0.0.1" || s == L"::ffff:127.0.0.1" || s == L"::1") {
                     if (ip != "localhost" && ip != "127.0.0.1" && ip != "::ffff:127.0.0.1" && ip != "::1") {
+                        CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Authentication failed(user_id=%s; ip_address=%s)", SPA::Utilities::ToUTF8(userName.c_str(), userName.size()).c_str(), ip.c_str());
                         return false;
                     }
                 }
                 return true;
             }
+            CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Authentication failed(user_id=%s; ip_address=%s)", SPA::Utilities::ToUTF8(userName.c_str(), userName.size()).c_str(), ip.c_str());
             return false;
         }
 
