@@ -50,8 +50,10 @@ namespace SPA {
             const std::string& GetProcedureName() const;
             static bool Authenticate(const std::wstring &userName, const wchar_t *password, const std::string &ip);
             static void CALLBACK OnThreadEvent(SPA::ServerSide::tagThreadEvent te);
-            static std::unordered_map<std::string, std::string> ConfigStreamingDB();
+            static std::unordered_map<std::string, std::string> ConfigStreamingDB(CMysqlImpl &impl);
+            static void CreateTriggers(CMysqlImpl &impl, const std::vector<std::string> &vecTables);
             static void Trim(std::string &s);
+
 
         protected:
             virtual void OnFastRequestArrive(unsigned short reqId, unsigned int len);
@@ -88,6 +90,11 @@ namespace SPA {
             int StoreParamTypes(CUQueue& buffer, int row, std::wstring & errMsg);
             void StoreParamDatas(CUQueue& buffer, int row);
             bool OpenSession(const std::wstring &userName, const std::string &ip);
+            void RemoveUnusedTriggers(const std::vector<std::string> &vecTables);
+            void CreateTriggers(const std::string &schema, const std::string &table);
+
+            static std::string ToString(const CDBVariant &vtUTF8);
+
             static size_t ComputeParameters(const std::wstring &sql);
             static UINT64 ConvertBitsToInt(const unsigned char *s, unsigned int bytes);
             static UINT64 ToUDateTime(const MYSQL_TIME &td);

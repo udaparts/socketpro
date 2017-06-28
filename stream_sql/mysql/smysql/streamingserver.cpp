@@ -135,7 +135,8 @@ DWORD WINAPI CSetGlobals::ThreadProc(LPVOID lpParameter) {
         ::Sleep(40);
         available = srv_session_server_is_available();
     }
-    std::unordered_map<std::string, std::string> mapConfig = SPA::ServerSide::CMysqlImpl::ConfigStreamingDB();
+    SPA::ServerSide::CMysqlImpl impl;
+    std::unordered_map<std::string, std::string> mapConfig = SPA::ServerSide::CMysqlImpl::ConfigStreamingDB(impl);
     if (!mapConfig.size()) {
         return 1;
     }
@@ -143,6 +144,8 @@ DWORD WINAPI CSetGlobals::ThreadProc(LPVOID lpParameter) {
     if (!g_pStreamingServer) {
         g_pStreamingServer = new CStreamingServer(CSetGlobals::Globals.m_nParam);
     }
+
+    SPA::ServerSide::CMysqlImpl::CreateTriggers(impl, CSetGlobals::Globals.cached_tables);
     if (CSetGlobals::Globals.ssl_key.size() && (CSetGlobals::Globals.ssl_cert.size() || CSetGlobals::Globals.ssl_pwd.size())) {
         std::string key = CSetGlobals::Globals.ssl_key;
         std::transform(key.begin(), key.end(), key.begin(), ::tolower);
