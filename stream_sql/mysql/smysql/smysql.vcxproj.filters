@@ -68,4 +68,9 @@
       <Filter>Resource Files</Filter>
     </ResourceCompile>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="smysql.def">
+      <Filter>Source Files</Filter>
+    </None>
+  </ItemGroup>
 </Project>

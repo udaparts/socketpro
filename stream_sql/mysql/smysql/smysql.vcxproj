@@ -88,8 +88,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <ModuleDefinitionFile>
-      </ModuleDefinitionFile>
+      <ModuleDefinitionFile>smysql.def</ModuleDefinitionFile>
       <AdditionalDependencies>lib/x86/mysqlservices.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <StackReserveSize>0x400000</StackReserveSize>
       <StackCommitSize>0x400000</StackCommitSize>
@@ -105,8 +104,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <ModuleDefinitionFile>
-      </ModuleDefinitionFile>
+      <ModuleDefinitionFile>smysql.def</ModuleDefinitionFile>
       <BaseAddress>0x120000000</BaseAddress>
       <AdditionalDependencies>lib/x64/mysqlservices.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <StackReserveSize>0x400000</StackReserveSize>
@@ -127,8 +125,7 @@
       <GenerateDebugInformation>false</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <ModuleDefinitionFile>
-      </ModuleDefinitionFile>
+      <ModuleDefinitionFile>smysql.def</ModuleDefinitionFile>
       <AdditionalDependencies>lib/x86/mysqlservices.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <StackReserveSize>0x400000</StackReserveSize>
       <StackCommitSize>0x400000</StackCommitSize>
@@ -148,8 +145,7 @@
       <GenerateDebugInformation>false</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <ModuleDefinitionFile>
-      </ModuleDefinitionFile>
+      <ModuleDefinitionFile>smysql.def</ModuleDefinitionFile>
       <BaseAddress>0x120000000</BaseAddress>
       <AdditionalDependencies>lib/x64/mysqlservices.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <StackReserveSize>0x400000</StackReserveSize>
@@ -216,6 +212,9 @@
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="smysql.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="smysql.def" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

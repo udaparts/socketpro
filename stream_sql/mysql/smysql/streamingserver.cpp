@@ -130,12 +130,11 @@ bool CSetGlobals::StartListening() {
 #ifdef WIN32_64
 
 DWORD WINAPI CSetGlobals::ThreadProc(LPVOID lpParameter) {
-    MYSQL_SESSION st_session = srv_session_open(nullptr, nullptr);
-    while (!st_session) {
+    my_bool available = srv_session_server_is_available();
+    while (!available) {
         ::Sleep(40);
-        st_session = srv_session_open(nullptr, nullptr);
+        available = srv_session_server_is_available();
     }
-    srv_session_close(st_session);
     std::unordered_map<std::string, std::string> mapConfig = SPA::ServerSide::CMysqlImpl::ConfigStreamingDB();
     if (!mapConfig.size()) {
         return 1;

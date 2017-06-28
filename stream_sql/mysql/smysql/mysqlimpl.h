@@ -6,6 +6,10 @@
 #include "../../../include/udatabase.h"
 #include "../../../include/mysql/umysql.h"
 
+#ifdef HAVE_PSI_SOCKET_INTERFACE
+#undef HAVE_PSI_SOCKET_INTERFACE
+#endif
+
 #include <my_global.h>
 #include <mysql_time.h>
 #include <mysql/plugin.h>
