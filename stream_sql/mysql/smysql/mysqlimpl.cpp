@@ -5,6 +5,7 @@
 #include <iostream>
 #endif
 #include "streamingserver.h"
+#include <mysqld_error.h>
 
 namespace SPA
 {
@@ -748,14 +749,37 @@ namespace SPA
                 return false;
             std::string userA = SPA::Utilities::ToUTF8(userName.c_str(), userName.size());
             fail = security_context_lookup(m_sc, userA.c_str(), "localhost", ip.c_str(), nullptr);
-            if (fail)
+            if (fail) {
+                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "looking up security context failed(user_id=%s; ip_address==%s)", userA.c_str(), ip.c_str());
                 return false;
+            }
             return true;
         }
 
-        std::unordered_map<std::string, std::string> CMysqlImpl::ConfigStreamingDB(CMysqlImpl &impl) {
+        void CMysqlImpl::SetPublishDBEvent(CMysqlImpl & impl) {
+#ifdef WIN32_64
+            std::wstring wsql = L"CREATE FUNCTION PublishDBEvent RETURNS INTEGER SONAME 'smysql.dll'";
+#else
+            std::wstring wsql = L"CREATE FUNCTION PublishDBEvent RETURNS INTEGER SONAME 'smysql.so'";
+#endif
+            if (!impl.m_pMysql && !impl.OpenSession(L"root", "localhost"))
+                return;
+            impl.m_NoSending = true;
+            int res = 0;
+            INT64 affected;
+            SPA::UDB::CDBVariant vtId;
+            UINT64 fail_ok;
+            std::wstring errMsg;
+            impl.Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
+            //Setting streaming DB events failed(errCode=1125; errMsg=Function 'PublishDBEvent' already exists)
+            if (res && res != ER_UDF_EXISTS) {
+                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Setting streaming DB events failed(errCode=%d; errMsg=%s)", res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()).c_str());
+            }
+        }
+
+        std::unordered_map<std::string, std::string> CMysqlImpl::ConfigStreamingDB(CMysqlImpl & impl) {
             std::unordered_map<std::string, std::string> map;
-            if (!impl.OpenSession(L"root", "localhost"))
+            if (!impl.m_pMysql && !impl.OpenSession(L"root", "localhost"))
                 return map;
             std::wstring wsql = L"Create database if not exists sp_streaming_db character set utf8 collate utf8_general_ci;USE sp_streaming_db";
             int res = 0;
@@ -787,8 +811,8 @@ namespace SPA
                 std::string s0 = ToString(vtKey);
                 std::string s1 = ToString(vtValue);
                 std::transform(s0.begin(), s0.end(), s0.begin(), ::tolower);
-				if (s0 == STREAMING_DB_CACHE_TABLES)
-					std::transform(s1.begin(), s1.end(), s1.begin(), ::tolower);
+                if (s0 == STREAMING_DB_CACHE_TABLES)
+                    std::transform(s1.begin(), s1.end(), s1.begin(), ::tolower);
                 map[s0] = s1;
             }
             auto it = map.find(STREAMING_DB_PORT);

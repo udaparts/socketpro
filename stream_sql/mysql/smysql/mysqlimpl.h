@@ -42,6 +42,12 @@ namespace SPA {
                 bool prepared;
             };
 
+            struct PriKey {
+                std::string ColumnName;
+                bool Quoted;
+            };
+            typedef std::vector<PriKey> CPriKeyArray;
+
         public:
             CMysqlImpl();
             ~CMysqlImpl();
@@ -52,6 +58,7 @@ namespace SPA {
             static void CALLBACK OnThreadEvent(SPA::ServerSide::tagThreadEvent te);
             static std::unordered_map<std::string, std::string> ConfigStreamingDB(CMysqlImpl &impl);
             static void CreateTriggers(CMysqlImpl &impl, const std::vector<std::string> &vecTables);
+            static void SetPublishDBEvent(CMysqlImpl &impl);
             static void Trim(std::string &s);
 
 
@@ -92,6 +99,10 @@ namespace SPA {
             bool OpenSession(const std::wstring &userName, const std::string &ip);
             void RemoveUnusedTriggers(const std::vector<std::string> &vecTables);
             void CreateTriggers(const std::string &schema, const std::string &table);
+            static std::wstring GetCreateTriggerSQLDelete(const wchar_t *db, const wchar_t *table, const CPriKeyArray &vPriKey);
+            static std::wstring GetCreateTriggerSQLInsert(const wchar_t *db, const wchar_t *table, const CPriKeyArray &vPriKey);
+            static std::wstring GetCreateTriggerSQLUpdate(const wchar_t *db, const wchar_t *table, const CPriKeyArray &vPriKey);
+            static std::wstring GetCreateTriggerSQL(const wchar_t *db, const wchar_t *table, const CPriKeyArray &vPriKey, SPA::UDB::tagUpdateEvent eventType);
 
             static std::string ToString(const CDBVariant &vtUTF8);
 
