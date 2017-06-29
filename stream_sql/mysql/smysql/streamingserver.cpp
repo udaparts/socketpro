@@ -132,9 +132,10 @@ bool CSetGlobals::StartListening() {
 DWORD WINAPI CSetGlobals::ThreadProc(LPVOID lpParameter) {
     my_bool available = srv_session_server_is_available();
     while (!available) {
-        ::Sleep(40);
+        ::Sleep(50);
         available = srv_session_server_is_available();
     }
+    ::Sleep(2000);
     std::unique_ptr<SPA::ServerSide::CMysqlImpl> impl(new SPA::ServerSide::CMysqlImpl);
     std::unordered_map<std::string, std::string> mapConfig = SPA::ServerSide::CMysqlImpl::ConfigStreamingDB(*impl);
     if (!mapConfig.size()) {

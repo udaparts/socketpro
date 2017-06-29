@@ -1200,14 +1200,26 @@ namespace SPA
             vtId = (INT64) 0;
             UINT64 fails = m_fails;
             UINT64 oks = m_oks;
-            CScopeUQueue sb;
-            Utilities::ToUTF8(wsql.c_str(), wsql.size(), *sb);
-            const char *sqlUtf8 = (const char*) sb->GetBuffer();
+            std::string sql = SPA::Utilities::ToUTF8(wsql.c_str(), wsql.size());
+            if (m_EnableMessages && !sql.size() && CSetGlobals::Globals.cached_tables.size()) {
+                //client side is asking for data from cached tables
+                for (auto it = CSetGlobals::Globals.cached_tables.begin(), end = CSetGlobals::Globals.cached_tables.end(); it != end; ++it) {
+                    if (sql.size())
+                        sql += ";";
+                    std::string s = *it;
+                    auto pos = s.find('.');
+                    sql += "select * from `";
+                    sql += s.substr(0, pos);
+                    sql += "`.`";
+                    sql += s.substr(pos + 1);
+                    sql += "`";
+                }
+            }
             InitMysqlSession();
             COM_DATA cmd;
             ::memset(&cmd, 0, sizeof (cmd));
-            cmd.com_query.query = sqlUtf8;
-            cmd.com_query.length = sb->GetSize();
+            cmd.com_query.query = sql.c_str();
+            cmd.com_query.length = (unsigned int) sql.size();
             my_bool fail = command_service_run_command(m_pMysql.get(), COM_QUERY, &cmd, CSetGlobals::Globals.utf8_general_ci, &m_sql_cbs, CS_BINARY_REPRESENTATION, this);
             if (m_sql_errno) {
                 res = m_sql_errno;
