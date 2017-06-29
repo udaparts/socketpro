@@ -130,12 +130,14 @@ bool CSetGlobals::StartListening() {
 #ifdef WIN32_64
 
 DWORD WINAPI CSetGlobals::ThreadProc(LPVOID lpParameter) {
-    my_bool available = srv_session_server_is_available();
-    while (!available) {
-        ::Sleep(50);
-        available = srv_session_server_is_available();
+    {
+        my_bool available = srv_session_server_is_available();
+        while (!available) {
+            ::Sleep(50);
+            available = srv_session_server_is_available();
+        }
+        ::Sleep(1000);
     }
-    ::Sleep(2000);
     std::unique_ptr<SPA::ServerSide::CMysqlImpl> impl(new SPA::ServerSide::CMysqlImpl);
     std::unordered_map<std::string, std::string> mapConfig = SPA::ServerSide::CMysqlImpl::ConfigStreamingDB(*impl);
     if (!mapConfig.size()) {
@@ -145,8 +147,6 @@ DWORD WINAPI CSetGlobals::ThreadProc(LPVOID lpParameter) {
     if (!g_pStreamingServer) {
         g_pStreamingServer = new CStreamingServer(CSetGlobals::Globals.m_nParam);
     }
-    SPA::ServerSide::CMysqlImpl::SetPublishDBEvent(*impl);
-    SPA::ServerSide::CMysqlImpl::CreateTriggers(*impl, CSetGlobals::Globals.cached_tables);
     if (CSetGlobals::Globals.ssl_key.size() && (CSetGlobals::Globals.ssl_cert.size() || CSetGlobals::Globals.ssl_pwd.size())) {
         std::string key = CSetGlobals::Globals.ssl_key;
         std::transform(key.begin(), key.end(), key.begin(), ::tolower);
@@ -224,7 +224,7 @@ void CSetGlobals::SetConfig(const std::unordered_map<std::string, std::string>& 
 CSetGlobals CSetGlobals::Globals;
 
 CStreamingServer::CStreamingServer(int nParam)
-: SPA::ServerSide::CSocketProServer(nParam) {
+: SPA::ServerSide::CSocketProServer(nParam), m_bSet(false) {
 }
 
 CStreamingServer::~CStreamingServer() {
@@ -245,6 +245,16 @@ bool CStreamingServer::DoSQLAuthentication(USocket_Server_Handle h, const wchar_
 }
 
 bool CStreamingServer::OnIsPermitted(USocket_Server_Handle h, const wchar_t* userId, const wchar_t *password, unsigned int serviceId) {
+    {
+        SPA::CAutoLock al(m_cs);
+        if (!m_bSet) {
+            std::unique_ptr<SPA::ServerSide::CMysqlImpl> impl(new SPA::ServerSide::CMysqlImpl);
+            SPA::ServerSide::CMysqlImpl::SetPublishDBEvent(*impl);
+            SPA::ServerSide::CMysqlImpl::CreateTriggers(*impl, CSetGlobals::Globals.cached_tables);
+            m_bSet = true;
+        }
+    }
+
     switch (serviceId) {
         case SPA::Mysql::sidMysql:
             return DoSQLAuthentication(h, userId, password);

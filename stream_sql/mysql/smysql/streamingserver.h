@@ -22,6 +22,8 @@ private:
 
 private:
     SPA::ServerSide::CMysqlService m_MySql;
+	bool m_bSet;
+	SPA::CUCriticalSection m_cs;
 
 private:
     CStreamingServer(const CStreamingServer &ss);
