@@ -6,7 +6,7 @@
 #undef HAVE_PSI_SOCKET_INTERFACE
 #endif
 
-#include <mysql_com.h>
+#include "include/mysql_com.h"
 
 #define STREAMING_DB_TRIGGER_FIX  L"sp_streaming_db_trigger_"
 

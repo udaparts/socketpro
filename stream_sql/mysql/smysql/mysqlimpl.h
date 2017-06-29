@@ -6,13 +6,19 @@
 #include "../../../include/udatabase.h"
 #include "../../../include/mysql/umysql.h"
 
+#include "include/my_config.h"
+
 #ifdef HAVE_PSI_SOCKET_INTERFACE
 #undef HAVE_PSI_SOCKET_INTERFACE
 #endif
 
-#include <my_global.h>
-#include <mysql_time.h>
-#include <mysql/plugin.h>
+#ifdef HAVE_STRUCT_TIMESPEC
+#undef HAVE_STRUCT_TIMESPEC
+#endif
+
+#include "include/my_global.h"
+#include "include/mysql_time.h"
+#include "include/plugin.h"
 
 
 #define STREAMING_DB_PORT			"port"
