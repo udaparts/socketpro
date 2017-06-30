@@ -10,7 +10,7 @@ my_bool PublishDBEvent_init(UDF_INIT *initid, UDF_ARGS *args, char *message) {
     initid->ptr = nullptr;
     initid->decimals = 0;
     initid->max_length = 1024;
-    if (args->arg_count < 4 || args->arg_type[0] != INT_RESULT || args->arg_type[1] != STRING_RESULT || args->arg_type[2] != STRING_RESULT) {
+    if (args->arg_count < 5 || args->arg_type[0] != INT_RESULT || args->arg_type[1] != STRING_RESULT || args->arg_type[2] != STRING_RESULT || args->arg_type[3] != STRING_RESULT) {
 #ifdef WIN32_64
         strcpy_s(message, 1023, "PublishDBEvent() requires database event type number, host, database, and one or more other values");
 #else
@@ -33,12 +33,28 @@ long long PublishDBEvent(UDF_INIT *initid, UDF_ARGS *args, char *is_null, char *
     unsigned int count = args->arg_count;
     SPA::UVariant vtArray;
     vtArray.vt = (VT_ARRAY | VT_VARIANT);
-    SAFEARRAYBOUND sab[] = {count, 0};
+    SAFEARRAYBOUND sab[] = {count + 1, 0};
     vtArray.parray = SafeArrayCreate(VT_VARIANT, 1, sab);
     SafeArrayAccessData(vtArray.parray, (void**) &p);
     ::memset(p, 0, sizeof (VARIANT) * count);
+
     p[0].vt = VT_I4;
     p[0].intVal = (int) eventType;
+
+    {
+        char *s = nullptr;
+        char host_name[128] = {0};
+        int res = ::gethostname(host_name, sizeof (host_name));
+        unsigned int len = (unsigned int) strlen(host_name);
+        SAFEARRAYBOUND sab1[] = {len, 0};
+        p[1].vt = (VT_ARRAY | VT_I1);
+        p[1].parray = SafeArrayCreate(VT_I1, 1, sab1);
+        SafeArrayAccessData(p[1].parray, (void**) &s);
+        memcpy(s, host_name, len);
+        SafeArrayUnaccessData(p[1].parray);
+        ++p;
+    }
+
     for (unsigned int n = 1; n < count; ++n) {
         bool bNull = (args->args[n]) ? false : true;
         if (bNull && args->maybe_null[n]) {
@@ -162,7 +178,9 @@ namespace SPA{
             sql += table;
             sql += L"` FOR EACH ROW BEGIN DECLARE res BIGINT;";
             sql += L"SELECT PublishDBEvent(" + std::to_wstring((SPA::INT64)eventType);
-            sql += L",USER(),DATABASE()";
+            sql += L",USER(),DATABASE(),'";
+            sql += table;
+            sql += L"'";
             for (auto it = pKey->begin(), end = pKey->end(); it != end; ++it) {
                 switch (eventType) {
                     case SPA::UDB::ueDelete:
