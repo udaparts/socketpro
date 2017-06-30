@@ -8,7 +8,7 @@
 
 #include "include/mysql_com.h"
 
-#define STREAMING_DB_TRIGGER_FIX  L"sp_streaming_db_trigger_"
+#define STREAMING_DB_TRIGGER_PREFIX  L"sp_streaming_db_trigger_"
 
 #ifdef __cplusplus
 extern "C" {

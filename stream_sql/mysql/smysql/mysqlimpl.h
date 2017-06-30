@@ -50,7 +50,7 @@ namespace SPA {
 
             struct PriKey {
                 std::string ColumnName;
-                bool Quoted;
+                bool Pri;
             };
             typedef std::vector<PriKey> CPriKeyArray;
 
@@ -105,13 +105,8 @@ namespace SPA {
             bool OpenSession(const std::wstring &userName, const std::string &ip);
             void RemoveUnusedTriggers(const std::vector<std::string> &vecTables);
             void CreateTriggers(const std::string &schema, const std::string &table);
-            static std::wstring GetCreateTriggerSQLDelete(const wchar_t *db, const wchar_t *table, const CPriKeyArray &vPriKey);
-            static std::wstring GetCreateTriggerSQLInsert(const wchar_t *db, const wchar_t *table, const CPriKeyArray &vPriKey);
-            static std::wstring GetCreateTriggerSQLUpdate(const wchar_t *db, const wchar_t *table, const CPriKeyArray &vPriKey);
             static std::wstring GetCreateTriggerSQL(const wchar_t *db, const wchar_t *table, const CPriKeyArray &vPriKey, SPA::UDB::tagUpdateEvent eventType);
-
             static std::string ToString(const CDBVariant &vtUTF8);
-
             static size_t ComputeParameters(const std::wstring &sql);
             static UINT64 ConvertBitsToInt(const unsigned char *s, unsigned int bytes);
             static UINT64 ToUDateTime(const MYSQL_TIME &td);
