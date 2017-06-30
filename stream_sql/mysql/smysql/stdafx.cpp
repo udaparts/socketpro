@@ -190,10 +190,14 @@ namespace SPA{
                         sql += L",new.`";
                         break;
                     default: //update
-                        sql += L",new.`";
+                        sql += L",old.`";
                         break;
                 }
                 sql += (SPA::Utilities::ToWide(it->ColumnName.c_str(), it->ColumnName.size()) + L"`");
+                if (eventType == SPA::UDB::ueUpdate) {
+                    sql += L",new.`";
+                    sql += (SPA::Utilities::ToWide(it->ColumnName.c_str(), it->ColumnName.size()) + L"`");
+                }
             }
             sql += L")INTO res;END";
             return sql;
