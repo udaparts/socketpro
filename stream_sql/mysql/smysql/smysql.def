@@ -1,0 +1,8 @@
+
+LIBRARY		smysql
+
+EXPORTS
+	PublishDBEvent_init
+	PublishDBEvent_deinit
+	PublishDBEvent
+	
