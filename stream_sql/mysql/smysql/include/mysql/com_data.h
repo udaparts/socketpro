@@ -16,8 +16,8 @@
 #define PLUGIN_PROTOCOL_INCLUDED
 
 #ifndef MYSQL_ABI_CHECK
-#include "my_global.h" /* Needed for my_bool in mysql_com.h */
-#include "mysql_com.h" /* mysql_enum_shutdown_level */
+#include "../my_global.h" /* Needed for my_bool in mysql_com.h */
+#include "../mysql_com.h" /* mysql_enum_shutdown_level */
 #endif
 
 

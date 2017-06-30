@@ -7,55 +7,9 @@
 #include "streamingserver.h"
 #include "include/mysqld_error.h"
 
-//copy it from violite.h
-
-enum enum_vio_type {
-    /**
-      Type of the connection is unknown.
-     */
-    NO_VIO_TYPE = 0,
-    /**
-      Used in case of TCP/IP connections.
-     */
-    VIO_TYPE_TCPIP = 1,
-    /**
-      Used for Unix Domain socket connections. Unix only.
-     */
-    VIO_TYPE_SOCKET = 2,
-    /**
-      Used for named pipe connections. Windows only.
-     */
-    VIO_TYPE_NAMEDPIPE = 3,
-    /**
-      Used in case of SSL connections.
-     */
-    VIO_TYPE_SSL = 4,
-    /**
-      Used for shared memory connections. Windows only.
-     */
-    VIO_TYPE_SHARED_MEMORY = 5,
-    /**
-      Used internally by the prepared statements
-     */
-    VIO_TYPE_LOCAL = 6,
-    /**
-      Implicitly used by plugins that doesn't support any other VIO_TYPE.
-     */
-    VIO_TYPE_PLUGIN = 7,
-
-    FIRST_VIO_TYPE = VIO_TYPE_TCPIP,
-    /*
-      If a new type is added, please update LAST_VIO_TYPE. In addition, please
-      change get_vio_type_name() in vio/vio.c to return correct name for it.
-     */
-    LAST_VIO_TYPE = VIO_TYPE_PLUGIN
-};
-
-
-namespace SPA{
-    namespace ServerSide
-    {
-
+namespace SPA
+{
+    namespace ServerSide{
         my_bool CMysqlImpl::B_IS_NULL = 1;
 
         const wchar_t * CMysqlImpl::NO_DB_OPENED_YET = L"No mysql database opened yet";

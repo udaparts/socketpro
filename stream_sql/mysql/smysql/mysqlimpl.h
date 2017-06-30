@@ -12,8 +12,10 @@
 #undef HAVE_PSI_SOCKET_INTERFACE
 #endif
 
+#ifdef WIN32_64
 #ifdef HAVE_STRUCT_TIMESPEC
 #undef HAVE_STRUCT_TIMESPEC
+#endif
 #endif
 
 #include "include/my_global.h"
