@@ -40,8 +40,8 @@ long long PublishDBEvent(UDF_INIT *initid, UDF_ARGS *args, char *is_null, char *
     p[0].vt = VT_I4;
     p[0].intVal = (int) eventType;
     for (unsigned int n = 1; n < count; ++n) {
-        bool bNull = (args->args + n) ? false : true;
-        if (bNull) {
+        bool bNull = (args->args[n]) ? false : true;
+        if (bNull && args->maybe_null[n]) {
             p[n].vt = VT_NULL;
             continue;
         }
