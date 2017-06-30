@@ -2104,7 +2104,11 @@ void mysqld_stmt_prepare(THD *thd, const char *query, uint length)
   thd->protocol_binary.set_client_capabilities(
       thd->get_protocol()->get_client_capabilities());
 
-  thd->set_protocol(&thd->protocol_binary);
+  if (thd->protocol_binary.get_vio())
+	  thd->set_protocol(&thd->protocol_binary);
+  else {
+	  ((Protocol_callback*)save_protocol)->init(thd);
+  }
   stmt->m_prepared_stmt= MYSQL_CREATE_PS(stmt, stmt->id,
                                          thd->m_statement_psi,
                                          stmt->name().str, stmt->name().length,
