@@ -814,15 +814,15 @@ namespace SPA
                     std::transform(s1.begin(), s1.end(), s1.begin(), ::tolower);
                 map[s0] = s1;
             }
-			std::unordered_map<std::string, std::string> &config = CSetGlobals::Globals.DefaultConfig;
-			for (auto it = config.begin(), end = config.end(); it != end; ++it) {
-				auto found = map.find(it->first);
-				if (found == map.end()) {
-					wsql = L"insert into config values('" + Utilities::ToWide(it->first.c_str(), it->first.size()) + L"','" + Utilities::ToWide(it->second.c_str(), it->second.size()) + L"')";
-					impl.Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
-					map[it->first] = it->second;
-				}
-			}
+            std::unordered_map<std::string, std::string> &config = CSetGlobals::Globals.DefaultConfig;
+            for (auto it = config.begin(), end = config.end(); it != end; ++it) {
+                auto found = map.find(it->first);
+                if (found == map.end()) {
+                    wsql = L"insert into config values('" + Utilities::ToWide(it->first.c_str(), it->first.size()) + L"','" + Utilities::ToWide(it->second.c_str(), it->second.size()) + L"')";
+                    impl.Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
+                    map[it->first] = it->second;
+                }
+            }
             return map;
         }
 

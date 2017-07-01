@@ -66,7 +66,7 @@ long long PublishDBEvent(UDF_INIT *initid, UDF_ARGS *args, char *is_null, char *
             case STRING_RESULT:
             {
                 char *s = nullptr;
-                unsigned long len = args->lengths[n];
+                unsigned int len = (unsigned int) args->lengths[n];
                 p[n].vt = (VT_ARRAY | VT_I1);
                 SAFEARRAYBOUND sab1[] = {len, 0};
                 p[n].parray = SafeArrayCreate(VT_I1, 1, sab1);
