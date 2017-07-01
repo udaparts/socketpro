@@ -814,48 +814,15 @@ namespace SPA
                     std::transform(s1.begin(), s1.end(), s1.begin(), ::tolower);
                 map[s0] = s1;
             }
-            auto it = map.find(STREAMING_DB_PORT);
-            if (it == map.end()) {
-                wsql = L"insert into config values('port', '20902')";
-                impl.Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
-                map[STREAMING_DB_PORT] = "20902";
-            }
-            it = map.find(STREAMING_DB_MAIN_THREADS);
-            if (it == map.end()) {
-                wsql = L"insert into config values('main_threads', '1')";
-                impl.Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
-                map[STREAMING_DB_MAIN_THREADS] = "1";
-            }
-            it = map.find(STREAMING_DB_NO_IPV6);
-            if (it == map.end()) {
-                wsql = L"insert into config values('disable_ipv6', '0')";
-                impl.Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
-                map[STREAMING_DB_NO_IPV6] = "0";
-            }
-            it = map.find(STREAMING_DB_SSL_KEY);
-            if (it == map.end()) {
-                wsql = L"insert into config values('ssl_key_or_store', '')";
-                impl.Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
-                map[STREAMING_DB_SSL_KEY] = "";
-            }
-            it = map.find(STREAMING_DB_SSL_CERT);
-            if (it == map.end()) {
-                wsql = L"insert into config values('ssl_cert', '')";
-                impl.Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
-                map[STREAMING_DB_SSL_CERT] = "";
-            }
-            it = map.find(STREAMING_DB_SSL_PASSWORD);
-            if (it == map.end()) {
-                wsql = L"insert into config values('ssl_key_password', '')";
-                impl.Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
-                map[STREAMING_DB_SSL_PASSWORD] = "";
-            }
-            it = map.find(STREAMING_DB_CACHE_TABLES);
-            if (it == map.end()) {
-                wsql = L"insert into config values('cached_tables', '')";
-                impl.Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
-                map[STREAMING_DB_CACHE_TABLES] = "";
-            }
+			std::unordered_map<std::string, std::string> &config = CSetGlobals::Globals.DefaultConfig;
+			for (auto it = config.begin(), end = config.end(); it != end; ++it) {
+				auto found = map.find(it->first);
+				if (found == map.end()) {
+					wsql = L"insert into config values('" + Utilities::ToWide(it->first.c_str(), it->first.size()) + L"','" + Utilities::ToWide(it->second.c_str(), it->second.size()) + L"')";
+					impl.Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
+					map[it->first] = it->second;
+				}
+			}
             return map;
         }
 

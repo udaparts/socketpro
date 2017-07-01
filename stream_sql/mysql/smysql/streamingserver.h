@@ -65,6 +65,7 @@ public:
     std::string ssl_cert;
     std::string ssl_pwd;
     std::vector<std::string> cached_tables;
+	std::unordered_map<std::string, std::string> DefaultConfig;
     static CSetGlobals Globals;
 
 #ifdef WIN32_64

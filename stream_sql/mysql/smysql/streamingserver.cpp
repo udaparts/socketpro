@@ -52,6 +52,15 @@ m_hModule(nullptr), Plugin(nullptr) {
     } else {
         assert(false);
     }
+
+	DefaultConfig[STREAMING_DB_PORT] = "20902";
+	DefaultConfig[STREAMING_DB_MAIN_THREADS] = "1";
+	DefaultConfig[STREAMING_DB_NO_IPV6] = "0";
+	DefaultConfig[STREAMING_DB_SSL_KEY] = "";
+	DefaultConfig[STREAMING_DB_SSL_CERT] = "";
+	DefaultConfig[STREAMING_DB_SSL_PASSWORD] = "";
+	DefaultConfig[STREAMING_DB_CACHE_TABLES] = "";
+
     unsigned int version = MYSQL_VERSION_ID;
     if (strlen(server_version)) {
         version = GetVersion(server_version);
