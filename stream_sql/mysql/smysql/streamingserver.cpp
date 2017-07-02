@@ -139,20 +139,24 @@ bool CSetGlobals::StartListening() {
 #ifdef WIN32_64
 
 DWORD WINAPI CSetGlobals::ThreadProc(LPVOID lpParameter) {
+	my_bool fail = srv_session_init_thread(CSetGlobals::Globals.Plugin);
+    assert(!fail);
     {
         my_bool available = srv_session_server_is_available();
         while (!available) {
             ::Sleep(50);
             available = srv_session_server_is_available();
         }
-        ::Sleep(1000);
     }
     std::unique_ptr<SPA::ServerSide::CMysqlImpl> impl(new SPA::ServerSide::CMysqlImpl);
     std::unordered_map<std::string, std::string> mapConfig = SPA::ServerSide::CMysqlImpl::ConfigStreamingDB(*impl);
     if (!mapConfig.size()) {
+		srv_session_deinit_thread();
         return 1;
     }
     CSetGlobals::SetConfig(mapConfig);
+	SPA::ServerSide::CMysqlImpl::SetPublishDBEvent(*impl);
+    SPA::ServerSide::CMysqlImpl::CreateTriggers(*impl, CSetGlobals::Globals.cached_tables);
     if (!g_pStreamingServer) {
         g_pStreamingServer = new CStreamingServer(CSetGlobals::Globals.m_nParam);
     }
@@ -168,7 +172,10 @@ DWORD WINAPI CSetGlobals::ThreadProc(LPVOID lpParameter) {
         CSetGlobals::Globals.ssl_pwd.clear();
     }
     SPA::ServerSide::ServerCoreLoader.SetThreadEvent(SPA::ServerSide::CMysqlImpl::OnThreadEvent);
-    if (!g_pStreamingServer->Run(CSetGlobals::Globals.Port, 32, !CSetGlobals::Globals.DisableV6)) {
+	bool ok = g_pStreamingServer->Run(CSetGlobals::Globals.Port, 32, !CSetGlobals::Globals.DisableV6);
+	impl.reset();
+	srv_session_deinit_thread();
+    if (!ok) {
         CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Starting listening socket failed(errCode=%d; errMsg=%s)", g_pStreamingServer->GetErrorCode(), g_pStreamingServer->GetErrorMessage().c_str());
         return 1;
     }
@@ -233,7 +240,7 @@ void CSetGlobals::SetConfig(const std::unordered_map<std::string, std::string>& 
 CSetGlobals CSetGlobals::Globals;
 
 CStreamingServer::CStreamingServer(int nParam)
-: SPA::ServerSide::CSocketProServer(nParam), m_bSet(false) {
+: SPA::ServerSide::CSocketProServer(nParam) {
 }
 
 CStreamingServer::~CStreamingServer() {
@@ -254,16 +261,6 @@ bool CStreamingServer::DoSQLAuthentication(USocket_Server_Handle h, const wchar_
 }
 
 bool CStreamingServer::OnIsPermitted(USocket_Server_Handle h, const wchar_t* userId, const wchar_t *password, unsigned int serviceId) {
-    {
-        SPA::CAutoLock al(m_cs);
-        if (!m_bSet) {
-            std::unique_ptr<SPA::ServerSide::CMysqlImpl> impl(new SPA::ServerSide::CMysqlImpl);
-            SPA::ServerSide::CMysqlImpl::SetPublishDBEvent(*impl);
-            SPA::ServerSide::CMysqlImpl::CreateTriggers(*impl, CSetGlobals::Globals.cached_tables);
-            m_bSet = true;
-        }
-    }
-
     switch (serviceId) {
         case SPA::Mysql::sidMysql:
             return DoSQLAuthentication(h, userId, password);
