@@ -2546,11 +2546,7 @@ void mysqld_stmt_execute(THD *thd, ulong stmt_id, ulong flags, uchar *params,
   // set the current client capabilities before switching the protocol
   thd->protocol_binary.set_client_capabilities(
       thd->get_protocol()->get_client_capabilities());
-  if (thd->protocol_binary.get_vio())
-	thd->set_protocol(&thd->protocol_binary);
-  else {
-	  ((Protocol_callback*)save_protocol)->init(thd);
-  }
+  thd->set_protocol(&thd->protocol_binary);
 
   MYSQL_EXECUTE_PS(thd->m_statement_psi, stmt->m_prepared_stmt);
   
