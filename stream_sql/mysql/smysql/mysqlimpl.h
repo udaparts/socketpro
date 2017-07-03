@@ -69,7 +69,6 @@ namespace SPA {
             static void SetPublishDBEvent(CMysqlImpl &impl);
             static void Trim(std::string &s);
 
-
         protected:
             virtual void OnFastRequestArrive(unsigned short reqId, unsigned int len);
             virtual int OnSlowRequestArrive(unsigned short reqId, unsigned int len);
@@ -107,12 +106,12 @@ namespace SPA {
             bool OpenSession(const std::wstring &userName, const std::string &ip);
             void RemoveUnusedTriggers(const std::vector<std::string> &vecTables);
             void CreateTriggers(const std::string &schema, const std::string &table);
+
             static std::wstring GetCreateTriggerSQL(const wchar_t *db, const wchar_t *table, const CPriKeyArray &vPriKey, SPA::UDB::tagUpdateEvent eventType);
             static std::string ToString(const CDBVariant &vtUTF8);
             static size_t ComputeParameters(const std::wstring &sql);
             static UINT64 ConvertBitsToInt(const unsigned char *s, unsigned int bytes);
             static UINT64 ToUDateTime(const MYSQL_TIME &td);
-
             static int sql_start_result_metadata(void *ctx, uint num_cols, uint flags, const CHARSET_INFO *resultcs);
             static int sql_field_metadata(void *ctx, struct st_send_field *field, const CHARSET_INFO *charset);
             static int sql_end_result_metadata(void *ctx, uint server_status, uint warn_count);
