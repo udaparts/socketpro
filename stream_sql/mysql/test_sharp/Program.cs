@@ -57,12 +57,12 @@ class Program
             CDBVariantArray vPData = new CDBVariantArray();
             //first set
             vPData.Add(1);
-            vPData.Add(0);
+            vPData.Add(1.4);
             vPData.Add(0);
 
             //second set
             vPData.Add(2);
-            vPData.Add(0);
+            vPData.Add(2.5);
             vPData.Add(0);
             TestStoredProcedure(mysql, ra, vPData);
             ok = mysql.WaitAll();
@@ -93,17 +93,17 @@ class Program
     {
         string create_database = "Create database if not exists mysqldb character set utf8 collate utf8_general_ci;USE mysqldb";
         bool ok = mysql.Execute(create_database, er);
-        string create_table = "CREATE TABLE IF NOT EXISTS company(ID bigint PRIMARY KEY NOT NULL, name CHAR(64) NOT NULL, ADDRESS varCHAR(256) not null, Income decimal(15,2) not null)";
+        string create_table = "CREATE TABLE IF NOT EXISTS company(ID bigint PRIMARY KEY NOT NULL,name CHAR(64)NOT NULL,ADDRESS varCHAR(256)not null,Income decimal(15,2)not null)";
         ok = mysql.Execute(create_table, er);
-        create_table = "CREATE TABLE IF NOT EXISTS employee(EMPLOYEEID bigint AUTO_INCREMENT PRIMARY KEY NOT NULL unique, CompanyId bigint not null, name CHAR(64) NOT NULL, JoinDate DATETIME default null, IMAGE MEDIUMBLOB, DESCRIPTION MEDIUMTEXT, Salary decimal(15,2), FOREIGN KEY(CompanyId) REFERENCES company(id))";
+        create_table = "CREATE TABLE IF NOT EXISTS employee(EMPLOYEEID bigint AUTO_INCREMENT PRIMARY KEY NOT NULL unique,CompanyId bigint not null,name CHAR(64)NOT NULL,JoinDate DATETIME default null,IMAGE MEDIUMBLOB,DESCRIPTION MEDIUMTEXT,Salary decimal(15,2),FOREIGN KEY(CompanyId)REFERENCES company(id))";
         ok = mysql.Execute(create_table, er);
-        string create_proc = "DROP PROCEDURE IF EXISTS sp_TestProc;CREATE PROCEDURE sp_TestProc(in p_company_id int, out p_sum_salary double, out p_last_dt datetime) BEGIN select * from employee where companyid >= p_company_id; select sum(salary) into p_sum_salary from employee where companyid >= p_company_id; select now() into p_last_dt;END";
+        string create_proc = "DROP PROCEDURE IF EXISTS sp_TestProc;CREATE PROCEDURE sp_TestProc(in p_company_id int,inout p_sum_salary decimal(20,2),out p_last_dt datetime)BEGIN select * from employee where companyid>=p_company_id;select sum(salary)+p_sum_salary into p_sum_salary from employee where companyid>=p_company_id;select now()into p_last_dt;END";
         ok = mysql.Execute(create_proc, er);
     }
 
     static void TestPreparedStatements(CMysql mysql)
     {
-        string sql_insert_parameter = "INSERT INTO company(ID, NAME, ADDRESS, Income) VALUES (?, ?, ?, ?)";
+        string sql_insert_parameter = "INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?)";
         bool ok = mysql.Prepare(sql_insert_parameter, dr);
 
         CDBVariantArray vData = new CDBVariantArray();
@@ -141,7 +141,7 @@ class Program
         {
             str += "The epic takedown of his opponent on an all-important voting day was extraordinary even by the standards of the 2016 campaign -- and quickly drew a scathing response from Trump.";
         }
-        string sqlInsert = "insert into employee(CompanyId, name, JoinDate, image, DESCRIPTION, Salary) values(?, ?, ?, ?, ?, ?)";
+        string sqlInsert = "insert into employee(CompanyId,name,JoinDate,image,DESCRIPTION,Salary)values(?,?,?,?,?,?)";
         bool ok = mysql.Prepare(sqlInsert, dr);
         CDBVariantArray vData = new CDBVariantArray();
         using (CScopeUQueue sbBlob = new CScopeUQueue())
@@ -181,7 +181,7 @@ class Program
 
     static void TestStoredProcedure(CMysql mysql, List<KeyValuePair<CDBColumnInfoArray, CDBVariantArray>> ra, CDBVariantArray vPData)
     {
-        bool ok = mysql.Prepare("call sp_TestProc(?, ?, ?)", dr);
+        bool ok = mysql.Prepare("call sp_TestProc(?,?,?)", dr);
         CMysql.DRows r = (handler, rowData) =>
         {
             //rowset data come here
