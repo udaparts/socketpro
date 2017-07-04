@@ -291,7 +291,7 @@ namespace SPA{
 
         void CMysqlImpl::RemoveUnusedTriggers(const std::vector<std::string> &vecTables) {
             std::wstring prefix(STREAMING_DB_TRIGGER_PREFIX);
-            std::wstring sql_existing = L"SELECT event_object_schema, trigger_name, EVENT_OBJECT_TABLE FROM INFORMATION_SCHEMA.TRIGGERS where TRIGGER_NAME like '" + prefix + L"%' order by event_object_schema, EVENT_OBJECT_TABLE";
+            std::wstring sql_existing = L"SELECT event_object_schema,trigger_name,EVENT_OBJECT_TABLE FROM INFORMATION_SCHEMA.TRIGGERS where TRIGGER_NAME like '" + prefix + L"%' order by event_object_schema,EVENT_OBJECT_TABLE";
             int res = 0;
             INT64 affected;
             SPA::UDB::CDBVariant vtId;
@@ -335,7 +335,6 @@ namespace SPA{
                 }
             }
         }
-
     } //namespace ServerSide
 } //namespace SPA
 

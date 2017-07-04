@@ -7,6 +7,7 @@
 #include "streamingserver.h"
 #include "include/mysqld_error.h"
 
+
 namespace SPA
 {
     namespace ServerSide{
@@ -776,6 +777,104 @@ namespace SPA
             }
         }
 
+		void CMysqlImpl::ConfigServices(CMysqlImpl &impl) {
+			int res = 0;
+            INT64 affected;
+            SPA::UDB::CDBVariant vtId;
+            UINT64 fail_ok;
+            impl.m_NoSending = true;
+            std::wstring errMsg;
+			if (!impl.m_pMysql && !impl.OpenSession(L"root", "localhost"))
+                return;
+			std::wstring wsql = L"CREATE TABLE IF NOT EXISTS service(id INT UNSIGNED PRIMARY KEY NOT NULL,library VARCHAR(2048)NOT NULL,param INT NULL,description VARCHAR(2048)NULL)";
+			impl.Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
+            if (res) {
+                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Creating the table service failed(errCode=%d; errMsg=%s)", res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()).c_str());
+                return;
+            }
+			wsql = L"CREATE TABLE IF NOT EXISTS permission(svsid INT UNSIGNED NOT NULL,user VARCHAR(32)NOT NULL,PRIMARY KEY(svsid,user),FOREIGN KEY(svsid)REFERENCES service(id)ON DELETE CASCADE ON UPDATE CASCADE)";
+			impl.Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
+			if (res) {
+                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Creating the table permission failed(errCode=%d; errMsg=%s)", res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()).c_str());
+                return;
+            }
+			std::vector<CService> vService;
+			wsql = L"select id,library,param,description from service";
+			impl.Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
+			SPA::UDB::CDBVariant vtLib, vtParam, vtDesc;
+			while (impl.m_qSend.GetSize() && !res) {
+                impl.m_qSend >> vtId >> vtLib >> vtParam >> vtDesc;
+				CService svs;
+				svs.ServiceId = vtId.uintVal;
+                svs.Library = ToString(vtLib);
+				switch(vtParam.Type()) {
+				case VT_I4:
+				case VT_INT:
+				case VT_I8:
+				case VT_UI4:
+				case VT_UINT:
+				case VT_UI8:
+					svs.Param = (int)vtParam.lVal;
+					break;
+				default:
+					svs.Param = 0;
+					break;
+				}
+				if (vtDesc.Type() == (VT_I1 |VT_ARRAY))
+					svs.Description = ToString(vtDesc);
+				vService.push_back(svs);
+            }
+			auto it = std::find_if(vService.begin(), vService.end(), [](const CService &svs)->bool {
+				return (svs.ServiceId == SPA::Mysql::sidMysql);
+			});
+			if (it == vService.end()) {
+				wsql = L"INSERT INTO service(id,library,param,description)VALUES(" + std::to_wstring((UINT64)Mysql::sidMysql) + 
+#ifdef WIN32_64
+					L",'smysql.dll'" +
+#else
+					L",'libsmysql.so'" +
+#endif
+					L",0,'Continous SQL streaming processing service')";
+				impl.Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
+				if (res) {
+					 CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Inserting the table service failed(errCode=%d; errMsg=%s)", res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()).c_str());
+				}
+			}
+
+			for (auto p = CSetGlobals::Globals.services.begin(), end = CSetGlobals::Globals.services.end(); p != end; ++p) {
+				auto found = std::find_if(vService.begin(), vService.end(), [p](const CService &svs)->bool {
+					if (!p->size() || !svs.Library.size())
+						return false;
+					return (::strstr(svs.Library.c_str(), p->c_str()) != nullptr);
+				});
+				int param = 0;
+				if (found != vService.end())
+					param = found->Param;
+				HINSTANCE hModule = CSocketProServer::DllManager::AddALibrary(p->c_str(), param);
+				if (!hModule) {
+					CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Not able o load server plugin %s", p->c_str());
+					continue;
+				}
+				PGetNumOfServices GetNumOfServices = (PGetNumOfServices)::GetProcAddress(hModule, "GetNumOfServices");
+				PGetAServiceID GetAServiceID = (PGetAServiceID)::GetProcAddress(hModule, "GetAServiceID");
+				unsigned short count = GetNumOfServices();
+				for(unsigned short n = 0; n < count; ++n) {
+					unsigned int svsId = GetAServiceID(n);
+					it = std::find_if(vService.begin(), vService.end(), [svsId](const CService &svs)->bool {
+						return (svs.ServiceId == svsId);
+					});
+					if (it == vService.end()) {
+						wsql = L"INSERT INTO service(id,library,param,description)VALUES(" + std::to_wstring((UINT64)svsId) + L",'" +
+							SPA::Utilities::ToWide(p->c_str(), p->size()) + L"'," + std::to_wstring((INT64)param) + L",'')";
+						impl.Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
+						if (res) {
+							 CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Inserting the table service failed(errCode=%d; errMsg=%s)", res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()).c_str());
+						}
+					}
+				}
+			}
+		}
+
         std::unordered_map<std::string, std::string> CMysqlImpl::ConfigStreamingDB(CMysqlImpl & impl) {
             std::unordered_map<std::string, std::string> map;
             if (!impl.m_pMysql && !impl.OpenSession(L"root", "localhost"))
@@ -792,13 +891,13 @@ namespace SPA
                 CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Configuring streaming DB failed(errCode=%d; errMsg=%s)", res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()).c_str());
                 return map;
             }
-            wsql = L"CREATE TABLE IF NOT EXISTS config(mykey varchar(32) PRIMARY KEY NOT NULL, value text not null)";
+            wsql = L"CREATE TABLE IF NOT EXISTS config(mykey varchar(32)PRIMARY KEY NOT NULL,value text not null)";
             impl.Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
             if (res) {
                 CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Configuring streaming DB failed(errCode=%d; errMsg=%s)", res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()).c_str());
                 return map;
             }
-            wsql = L"select mykey, value from config";
+            wsql = L"select mykey,value from config";
             impl.Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
             if (res) {
                 CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Configuring streaming DB failed(errCode=%d; errMsg=%s)", res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()).c_str());
@@ -826,10 +925,15 @@ namespace SPA
             return map;
         }
 
-        bool CMysqlImpl::Authenticate(const std::wstring &userName, const wchar_t *password, const std::string & ip) {
-            std::unique_ptr<CMysqlImpl> impl(new CMysqlImpl);
-            if (!impl->OpenSession(userName, ip))
+		bool CMysqlImpl::Authenticate(const std::wstring &userName, const wchar_t *password, const std::string &ip, unsigned int svsId) {
+			std::unique_ptr<CMysqlImpl> impl(new CMysqlImpl);
+            if (!impl->OpenSession(userName, ip)) {
                 return false;
+			}
+			impl->m_pMysql.reset();
+			if (!impl->OpenSession(L"root", "localhost")) {
+                return false;
+			}
             std::wstring wsql(L"select host from mysql.user where password_expired='N' and account_locked='N' and user='");
             wsql += (userName + L"' and authentication_string=password('");
             wsql += password;
@@ -841,8 +945,40 @@ namespace SPA
             impl->m_NoSending = true;
             std::wstring errMsg;
             impl->Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
-            if (res) {
-                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Authentication failed(errCode=%d; errMsg=%s)", res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()).c_str());
+            if (res || !impl->m_qSend.GetSize()) {
+				std::string user = SPA::Utilities::ToUTF8(userName.c_str(), userName.size());
+                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Authentication failed as password mismatched for user %s(errCode=%d; errMsg=%s)", user.c_str(), res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()).c_str());
+                return false;
+            }
+			wsql = L"SELECT user from sp_streaming_db.permission,sp_streaming_db.service where svsid=id AND svsid=" + std::to_wstring((UINT64)svsId) + L" AND user='" + userName + L"'";
+			impl->Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
+            if (res || !impl->m_qSend.GetSize()) {
+				std::string user = SPA::Utilities::ToUTF8(userName.c_str(), userName.size());
+                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Authentication failed as service %d is not set for user %s yet(errCode=%d; errMsg=%s)", svsId, user.c_str(), res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()).c_str());
+                return false;
+            }
+			return true;
+		}
+
+        bool CMysqlImpl::Authenticate(const std::wstring &userName, const wchar_t *password, const std::string & ip) {
+            std::unique_ptr<CMysqlImpl> impl(new CMysqlImpl);
+            if (!impl->OpenSession(userName, ip)) {
+                return false;
+			}
+			std::string user = SPA::Utilities::ToUTF8(userName.c_str(), userName.size());
+            std::wstring wsql(L"select host from mysql.user where password_expired='N' and account_locked='N' and user='");
+            wsql += (userName + L"' and authentication_string=password('");
+            wsql += password;
+            wsql += L"')";
+            int res = 0;
+            INT64 affected;
+            SPA::UDB::CDBVariant vtId;
+            UINT64 fail_ok;
+            impl->m_NoSending = true;
+            std::wstring errMsg;
+            impl->Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
+            if (res || !impl->m_qSend.GetSize()) {
+                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Authentication failed as password mismatched for user %s(errCode=%d; errMsg=%s)", user.c_str(), res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()).c_str());
                 return false;
             }
             memset(&wsql[0], 0, wsql.size() * sizeof (wchar_t));
@@ -854,13 +990,13 @@ namespace SPA
                 std::transform(s.begin(), s.end(), s.begin(), ::tolower);
                 if (s == L"localhost" || s == L"127.0.0.1" || s == L"::ffff:127.0.0.1" || s == L"::1") {
                     if (ip != "localhost" && ip != "127.0.0.1" && ip != "::ffff:127.0.0.1" && ip != "::1") {
-                        CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Authentication failed(user_id=%s; ip_address=%s)", SPA::Utilities::ToUTF8(userName.c_str(), userName.size()).c_str(), ip.c_str());
+                        CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Authentication failed as the user %s is not set for remote connecting(ip_address=%s)", user.c_str(), ip.c_str());
                         return false;
                     }
                 }
                 return true;
             }
-            CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Authentication failed(user_id=%s; ip_address=%s)", SPA::Utilities::ToUTF8(userName.c_str(), userName.size()).c_str(), ip.c_str());
+            CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Authentication failed(user_id=%s; ip_address=%s)", user.c_str(), ip.c_str());
             return false;
         }
 

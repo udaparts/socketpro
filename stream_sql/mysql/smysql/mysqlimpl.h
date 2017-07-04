@@ -30,6 +30,7 @@
 #define STREAMING_DB_SSL_CERT		"ssl_cert"
 #define STREAMING_DB_SSL_PASSWORD	"ssl_key_password"
 #define STREAMING_DB_CACHE_TABLES	"cached_tables"
+#define STREAMING_DB_SERVICES		"services"
 
 namespace SPA {
     namespace ServerSide {
@@ -62,11 +63,13 @@ namespace SPA {
             unsigned int GetParameters() const;
             bool IsStoredProcedure() const;
             const std::string& GetProcedureName() const;
+			static bool Authenticate(const std::wstring &userName, const wchar_t *password, const std::string &ip, unsigned int svsId);
             static bool Authenticate(const std::wstring &userName, const wchar_t *password, const std::string &ip);
             static void CALLBACK OnThreadEvent(SPA::ServerSide::tagThreadEvent te);
             static std::unordered_map<std::string, std::string> ConfigStreamingDB(CMysqlImpl &impl);
             static void CreateTriggers(CMysqlImpl &impl, const std::vector<std::string> &vecTables);
             static void SetPublishDBEvent(CMysqlImpl &impl);
+			static void ConfigServices(CMysqlImpl &impl);
             static void Trim(std::string &s);
 
         protected:

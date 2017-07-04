@@ -60,6 +60,7 @@ m_hModule(nullptr), Plugin(nullptr) {
     DefaultConfig[STREAMING_DB_SSL_CERT] = "";
     DefaultConfig[STREAMING_DB_SSL_PASSWORD] = "";
     DefaultConfig[STREAMING_DB_CACHE_TABLES] = "";
+	DefaultConfig[STREAMING_DB_SERVICES] = "";
 
     unsigned int version = MYSQL_VERSION_ID;
     if (strlen(server_version)) {
@@ -83,6 +84,14 @@ void CSetGlobals::LogMsg(const char *file, int fileLineNumber, const char *forma
 #endif
     va_end(ap);
     LogEntry(file, fileLineNumber, (const char*) q.GetBuffer());
+}
+
+void CSetGlobals::UpdateLog() {
+	SPA::CAutoLock al(m_cs);
+	if (m_fLog) {
+		::fclose(m_fLog);
+		m_fLog = nullptr;
+	}
 }
 
 void CSetGlobals::LogEntry(const char* file, int fileLineNumber, const char* szBuf) {
@@ -171,6 +180,7 @@ DWORD WINAPI CSetGlobals::ThreadProc(LPVOID lpParameter) {
         }
         CSetGlobals::Globals.ssl_pwd.clear();
     }
+	SPA::ServerSide::CMysqlImpl::ConfigServices(*impl);
     SPA::ServerSide::ServerCoreLoader.SetThreadEvent(SPA::ServerSide::CMysqlImpl::OnThreadEvent);
     bool ok = g_pStreamingServer->Run(CSetGlobals::Globals.Port, 32, !CSetGlobals::Globals.DisableV6);
     impl.reset();
@@ -235,6 +245,18 @@ void CSetGlobals::SetConfig(const std::unordered_map<std::string, std::string>& 
                 CSetGlobals::Globals.cached_tables.push_back(tok);
         }
     }
+	it = mapConfig.find(STREAMING_DB_SERVICES);
+    if (it != mapConfig.end()) {
+        std::string tok;
+        std::string s = it->second;
+        SPA::ServerSide::CMysqlImpl::Trim(s);
+        std::stringstream ss(s);
+        while (std::getline(ss, tok, ';')) {
+            SPA::ServerSide::CMysqlImpl::Trim(tok);
+            if (tok.size())
+                CSetGlobals::Globals.services.push_back(tok);
+        }
+    }
 }
 
 CSetGlobals CSetGlobals::Globals;
@@ -251,27 +273,23 @@ void CStreamingServer::OnClose(USocket_Server_Handle h, int errCode) {
 
 }
 
-bool CStreamingServer::DoSQLAuthentication(USocket_Server_Handle h, const wchar_t* userId, const wchar_t *password) {
-    std::wstring user(userId);
+bool CStreamingServer::OnIsPermitted(USocket_Server_Handle h, const wchar_t* userId, const wchar_t *password, unsigned int serviceId) {
     char strIp[64] = {0};
     unsigned int port;
     bool ok = SPA::ServerSide::ServerCoreLoader.GetPeerName(h, &port, strIp, sizeof (strIp));
     std::string ip(strIp);
-    return SPA::ServerSide::CMysqlImpl::Authenticate(user, password, ip);
-}
-
-bool CStreamingServer::OnIsPermitted(USocket_Server_Handle h, const wchar_t* userId, const wchar_t *password, unsigned int serviceId) {
-    switch (serviceId) {
+	switch (serviceId) {
         case SPA::Mysql::sidMysql:
-            return DoSQLAuthentication(h, userId, password);
+            return SPA::ServerSide::CMysqlImpl::Authenticate(userId, password, ip);
         default:
+			return SPA::ServerSide::CMysqlImpl::Authenticate(userId, password, ip, serviceId);
             break;
     }
     return true;
 }
 
 void CStreamingServer::OnIdle(SPA::INT64 milliseconds) {
-
+	CSetGlobals::Globals.UpdateLog();
 }
 
 void CStreamingServer::OnSSLShakeCompleted(USocket_Server_Handle h, int errCode) {

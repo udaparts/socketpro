@@ -3,6 +3,13 @@
 
 #include "mysqlimpl.h"
 
+struct CService {
+	unsigned int ServiceId;
+	std::string Library;
+	int Param;
+	std::string Description;
+};
+
 class CStreamingServer : public SPA::ServerSide::CSocketProServer {
 public:
     CStreamingServer(int nParam = 0);
@@ -18,7 +25,6 @@ protected:
 
 private:
     bool AddService();
-    bool DoSQLAuthentication(USocket_Server_Handle h, const wchar_t* userId, const wchar_t *password);
 
 private:
     SPA::ServerSide::CMysqlService m_MySql;
@@ -63,7 +69,9 @@ public:
     std::string ssl_cert;
     std::string ssl_pwd;
     std::vector<std::string> cached_tables;
+	std::vector<std::string> services;
     std::unordered_map<std::string, std::string> DefaultConfig;
+	std::vector<CService> table_service;
     static CSetGlobals Globals;
 
 #ifdef WIN32_64
@@ -76,6 +84,7 @@ public:
 public:
     bool StartListening();
     void LogMsg(const char *file, int fileLineNumber, const char *format ...);
+	void UpdateLog();
 };
 
 int async_sql_plugin_init(void *p);
