@@ -4,10 +4,10 @@
 #include "mysqlimpl.h"
 
 struct CService {
-	unsigned int ServiceId;
-	std::string Library;
-	int Param;
-	std::string Description;
+    unsigned int ServiceId;
+    std::string Library;
+    int Param;
+    std::string Description;
 };
 
 class CStreamingServer : public SPA::ServerSide::CSocketProServer {
@@ -69,9 +69,9 @@ public:
     std::string ssl_cert;
     std::string ssl_pwd;
     std::vector<std::string> cached_tables;
-	std::vector<std::string> services;
+    std::vector<std::string> services;
     std::unordered_map<std::string, std::string> DefaultConfig;
-	std::vector<CService> table_service;
+    std::vector<CService> table_service;
     static CSetGlobals Globals;
 
 #ifdef WIN32_64
@@ -84,7 +84,7 @@ public:
 public:
     bool StartListening();
     void LogMsg(const char *file, int fileLineNumber, const char *format ...);
-	void UpdateLog();
+    void UpdateLog();
 };
 
 int async_sql_plugin_init(void *p);
