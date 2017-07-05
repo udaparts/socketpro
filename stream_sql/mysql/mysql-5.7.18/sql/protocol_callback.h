@@ -392,12 +392,11 @@ public:
   virtual bool send_error(uint sql_errno, const char *err_msg,
                           const char *sql_state);
 
-
+public:
   bool send_out_parameters(List<Item_param> *sp_params);
   void init(THD *thd_arg);
-
 protected:
-	MYSQL_THD m_thd;
+  MYSQL_THD m_thd;
 
 private:
   void *callbacks_ctx;
