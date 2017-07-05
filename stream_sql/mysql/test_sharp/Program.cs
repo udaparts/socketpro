@@ -32,7 +32,7 @@ class Program
                 return;
             }
             CMysql mysql = spMysql.Seek();
-            bool ok = mysql.Open("", dr, CMysql.ENABLE_TABLE_UPDATE_MESSAGES);
+            bool ok = mysql.Open("", dr);
             List<KeyValuePair<CDBColumnInfoArray, CDBVariantArray>> ra = new List<KeyValuePair<CDBColumnInfoArray, CDBVariantArray>>();
 
             CMysql.DRows r = (handler, rowData) =>

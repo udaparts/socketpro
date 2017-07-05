@@ -72,7 +72,7 @@ int main(int argc, char* argv[]) {
         ra.push_back(column_rowset_pair);
     };
 
-    ok = pMysql->Open(L"", dr, SPA::UDB::ENABLE_TABLE_UPDATE_MESSAGES);
+    ok = pMysql->Open(L"", dr);
     TestCreateTables(pMysql);
     ok = pMysql->Execute(L"delete from employee;delete from company", er);
     TestPreparedStatements(pMysql);

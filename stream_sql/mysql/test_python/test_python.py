@@ -8,7 +8,7 @@ import datetime
 
 with CSocketPool(CMysql) as spMysql:
     print('Remote async mysql server host: ')
-    cc = CConnectionContext(sys.stdin.readline(), 20901, 'MysqlUser', 'TooMuchSecret')
+    cc = CConnectionContext(sys.stdin.readline(), 20902, 'root', 'Smash123')
     ok = spMysql.StartSocketPool(cc, 1, 1)
     mysql = spMysql.AsyncHandlers[0]
     if not ok:
@@ -23,9 +23,9 @@ with CSocketPool(CMysql) as spMysql:
 
     def TestCreateTables():
         ok = mysql.ExecuteSql('CREATE DATABASE IF NOT EXISTS mysqldb character set utf8 collate utf8_general_ci;USE mysqldb', cbExecute)
-        ok = mysql.ExecuteSql('CREATE TABLE IF NOT EXISTS company(ID bigint PRIMARY KEY NOT NULL, name CHAR(64) NOT NULL, ADDRESS varCHAR(256) not null, Income decimal(15,2) not null)', cbExecute)
-        ok = mysql.ExecuteSql('CREATE TABLE IF NOT EXISTS employee(EMPLOYEEID bigint AUTO_INCREMENT PRIMARY KEY NOT NULL unique, CompanyId bigint not null, name CHAR(64) NOT NULL, JoinDate DATETIME default null, IMAGE MEDIUMBLOB, DESCRIPTION MEDIUMTEXT, Salary decimal(15,2), FOREIGN KEY(CompanyId) REFERENCES company(id))', cbExecute)
-        ok = mysql.ExecuteSql('DROP PROCEDURE IF EXISTS sp_TestProc;CREATE PROCEDURE sp_TestProc(in p_company_id int, out p_sum_salary double, out p_last_dt datetime) BEGIN select * from employee where companyid >= p_company_id; select sum(salary) into p_sum_salary from employee where companyid >= p_company_id; select now() into p_last_dt;END', cbExecute)
+        ok = mysql.ExecuteSql('CREATE TABLE IF NOT EXISTS company(ID bigint PRIMARY KEY NOT NULL,name CHAR(64)NOT NULL,ADDRESS varCHAR(256)not null,Income decimal(15,2)not null)', cbExecute)
+        ok = mysql.ExecuteSql('CREATE TABLE IF NOT EXISTS employee(EMPLOYEEID bigint AUTO_INCREMENT PRIMARY KEY NOT NULL unique,CompanyId bigint not null,name CHAR(64)NOT NULL,JoinDate DATETIME(6)default null,IMAGE MEDIUMBLOB,DESCRIPTION MEDIUMTEXT,Salary decimal(18,2),FOREIGN KEY(CompanyId)REFERENCES company(id))', cbExecute)
+        ok = mysql.ExecuteSql('DROP PROCEDURE IF EXISTS sp_TestProc;CREATE PROCEDURE sp_TestProc(in p_company_id int,inout p_sum_salary decimal(17,2),out p_last_dt datetime)BEGIN select * from employee where companyid>=p_company_id;select sum(salary)+p_sum_salary into p_sum_salary from employee where companyid>=p_company_id;select now() into p_last_dt;END', cbExecute)
 
     ra = []
 
@@ -38,7 +38,7 @@ with CSocketPool(CMysql) as spMysql:
         ra.append(CMysql.Pair(vColInfo, []))
 
     def TestPreparedStatements():
-        sql_insert_parameter = u'INSERT INTO company(ID, NAME, ADDRESS, Income) VALUES (?, ?, ?, ?)'
+        sql_insert_parameter = u'INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?)'
         ok = mysql.Prepare(sql_insert_parameter, cb)
 
         vData = []
@@ -65,7 +65,7 @@ with CSocketPool(CMysql) as spMysql:
         str = ""
         while len(str) < 256 * 1024:
             str += 'The epic takedown of his opponent on an all-important voting day was extraordinary even by the standards of the 2016 campaign -- and quickly drew a scathing response from Trump.'
-        sqlInsert = u'insert into employee(CompanyId, name, JoinDate, image, DESCRIPTION, Salary) values(?, ?, ?, ?, ?, ?)'
+        sqlInsert = u'insert into employee(CompanyId,name,JoinDate,image,DESCRIPTION,Salary)values(?,?,?,?,?,?)'
         ok = mysql.Prepare(sqlInsert, cb)
 
         vData = []
@@ -101,11 +101,11 @@ with CSocketPool(CMysql) as spMysql:
         return mysql.ExecuteParameters(vData, cbExecute)
 
     def TestStoredProcedure(vData):
-        ok = mysql.Prepare('call sp_TestProc(?, ?, ?)', cb)
+        ok = mysql.Prepare('call sp_TestProc(?,?,?)', cb)
         #send multiple sets of parameter data in one shot
         return mysql.ExecuteParameters(vData, cbExecute, cbRows, cbRowHeader)
 
-    ok = mysql.Open(u'', cb, CMysql.USE_REMOTE_MYSQL)
+    ok = mysql.Open(u'', cb)
     ok = TestCreateTables()
     ok = mysql.ExecuteSql('delete from employee;delete from company', cbExecute)
     ok = TestPreparedStatements()
@@ -115,7 +115,7 @@ with CSocketPool(CMysql) as spMysql:
     #two sets (2 * 3) of parameter data
     # 1st set -- 1, 0, 0
     # 2nd set -- 2, 0, 0
-    vPData = [1, 0, 0, 2, 0, 0]
+    vPData = [1, 1.5, 0, 2, 1.8, 0]
     TestStoredProcedure(vPData)
     mysql.WaitAll()
     print('')
