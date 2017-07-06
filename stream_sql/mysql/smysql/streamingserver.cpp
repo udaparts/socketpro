@@ -307,8 +307,6 @@ bool CStreamingServer::OnSettingServer(unsigned int listeningPort, unsigned int 
     //register streaming sql database events
     PushManager::AddAChatGroup(SPA::UDB::STREAMING_SQL_CHAT_GROUP_ID, L"Streaming SQL Database Events");
 
-
-
     //add MySQL streaming service into SocketPro server
     return AddService();
 }

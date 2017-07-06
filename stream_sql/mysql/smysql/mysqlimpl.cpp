@@ -50,7 +50,7 @@ namespace SPA
 
         CMysqlImpl::CMysqlImpl()
         : m_EnableMessages(false), m_oks(0), m_fails(0), m_ti(tiUnspecified),
-        m_qSend(*m_sb), m_stmt(0, false), m_bCall(false), m_bExecutingParameters(false), m_NoSending(false), m_sql_errno(0),
+        m_qSend(*m_sb), m_stmt(0, false), m_bExecutingParameters(false), m_NoSending(false), m_sql_errno(0),
         m_sc(nullptr), m_sql_resultcs(nullptr), m_ColIndex(0),
         m_sql_flags(0), m_affected_rows(0), m_last_insert_id(0),
         m_server_status(0), m_statement_warn_count(0), m_indexCall(0), m_bBlob(false) {
@@ -67,14 +67,6 @@ namespace SPA
 
         unsigned int CMysqlImpl::GetParameters() const {
             return (unsigned int) m_stmt.parameters;
-        }
-
-        bool CMysqlImpl::IsStoredProcedure() const {
-            return m_bCall;
-        }
-
-        const std::string & CMysqlImpl::GetProcedureName() const {
-            return m_procName;
         }
 
         void CALLBACK CMysqlImpl::OnThreadEvent(SPA::ServerSide::tagThreadEvent te) {
@@ -170,7 +162,9 @@ namespace SPA
             }
             if ((f->flags & AUTO_INCREMENT_FLAG) == AUTO_INCREMENT_FLAG) {
                 info.Flags |= CDBColumnInfo::FLAG_AUTOINCREMENT;
-                info.Flags |= CDBColumnInfo::FLAG_NOT_WRITABLE;
+                info.Flags |= CDBColumnInfo::FLAG_UNIQUE;
+                info.Flags |= CDBColumnInfo::FLAG_NOT_NULL;
+                info.Flags |= CDBColumnInfo::FLAG_PRIMARY_KEY;
             }
             if ((f->flags & ENUM_FLAG) == ENUM_FLAG) {
                 info.Flags |= CDBColumnInfo::FLAG_IS_ENUM;
@@ -909,8 +903,8 @@ namespace SPA
                 std::string s0 = ToString(vtKey);
                 std::string s1 = ToString(vtValue);
                 std::transform(s0.begin(), s0.end(), s0.begin(), ::tolower);
-                if (s0 == STREAMING_DB_CACHE_TABLES)
-                    std::transform(s1.begin(), s1.end(), s1.begin(), ::tolower);
+                Trim(s0);
+                Trim(s1);
                 map[s0] = s1;
             }
             std::unordered_map<std::string, std::string> &config = CSetGlobals::Globals.DefaultConfig;
@@ -1341,31 +1335,6 @@ namespace SPA
             fail_ok += (unsigned int) (m_oks - oks);
         }
 
-        void CMysqlImpl::PreprocessPreparedStatement() {
-            std::string s = m_sqlPrepare;
-            transform(s.begin(), s.end(), s.begin(), ::tolower);
-            m_bCall = (s.find("call ") == 0);
-            if (m_bCall) {
-                auto pos = m_sqlPrepare.find('(');
-                if (pos != std::string::npos) {
-                    m_procName.assign(m_sqlPrepare.begin() + 5, m_sqlPrepare.begin() + pos);
-                } else {
-                    m_procName = m_sqlPrepare.substr(5);
-                }
-                auto dot = m_procName.rfind('.');
-                if (dot != std::string::npos) {
-                    m_procName = m_procName.substr(dot + 1);
-                }
-                if (m_procName.back() == '`') {
-                    m_procName.pop_back();
-                    m_procName.erase(m_procName.begin());
-                }
-                CMysqlImpl::Trim(m_procName);
-            } else {
-                m_procName.clear();
-            }
-        }
-
         void CMysqlImpl::Prepare(const std::wstring& wsql, CParameterInfoArray& params, int &res, std::wstring &errMsg, unsigned int &parameters) {
             ResetMemories();
             parameters = 0;
@@ -1377,9 +1346,6 @@ namespace SPA
             CloseStmt();
             res = 0;
             m_vParam.clear();
-            m_sqlPrepare = Utilities::ToUTF8(wsql.c_str(), wsql.size());
-            CMysqlImpl::Trim(m_sqlPrepare);
-            PreprocessPreparedStatement();
             CScopeUQueue sb;
             Utilities::ToUTF8(wsql.c_str(), wsql.size(), *sb);
             const char *sqlUtf8 = (const char*) sb->GetBuffer();

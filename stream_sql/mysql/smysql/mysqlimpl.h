@@ -61,8 +61,6 @@ namespace SPA {
             CMysqlImpl();
             ~CMysqlImpl();
             unsigned int GetParameters() const;
-            bool IsStoredProcedure() const;
-            const std::string& GetProcedureName() const;
             static bool Authenticate(const std::wstring &userName, const wchar_t *password, const std::string &ip, unsigned int svsId);
             static bool Authenticate(const std::wstring &userName, const wchar_t *password, const std::string &ip);
             static void CALLBACK OnThreadEvent(SPA::ServerSide::tagThreadEvent te);
@@ -99,7 +97,6 @@ namespace SPA {
             bool SendBlob(unsigned short data_type, const unsigned char *buffer, unsigned int bytes);
 
         private:
-            void PreprocessPreparedStatement();
             void CleanDBObjects();
             void ResetMemories();
             void InitMysqlSession();
@@ -166,9 +163,6 @@ namespace SPA {
 
             //parameterized statement
             Stmt m_stmt;
-            bool m_bCall;
-            std::string m_sqlPrepare;
-            std::string m_procName;
             bool m_bExecutingParameters;
 
             CDBColumnInfoArray m_vColInfo;
