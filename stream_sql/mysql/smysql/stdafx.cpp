@@ -315,8 +315,6 @@ namespace SPA{
                 std::string table = ToString(vtTable);
 
                 std::string trigger_db_table = schema + "." + table;
-                std::transform(trigger_db_table.begin(), trigger_db_table.end(), trigger_db_table.begin(), ::tolower);
-
                 auto ret = std::find_if(vec.begin(), vec.end(), [&trigger_db_table](const std::string & s) {
                     return (trigger_db_table == s);
                 });
