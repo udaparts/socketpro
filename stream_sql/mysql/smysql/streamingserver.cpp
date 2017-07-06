@@ -278,6 +278,8 @@ bool CStreamingServer::OnIsPermitted(USocket_Server_Handle h, const wchar_t* use
     unsigned int port;
     bool ok = SPA::ServerSide::ServerCoreLoader.GetPeerName(h, &port, strIp, sizeof (strIp));
     std::string ip(strIp);
+    if (ip == "127.0.0.1" || ip == "::ffff:127.0.0.1" || ip == "::1")
+        ip = "localhost";
     switch (serviceId) {
         case SPA::Mysql::sidMysql:
             return SPA::ServerSide::CMysqlImpl::Authenticate(userId, password, ip);

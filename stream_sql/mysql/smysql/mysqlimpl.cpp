@@ -975,23 +975,7 @@ namespace SPA
                 CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Authentication failed as password mismatched for user %s(errCode=%d; errMsg=%s)", user.c_str(), res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()).c_str());
                 return false;
             }
-            memset(&wsql[0], 0, wsql.size() * sizeof (wchar_t));
-            SPA::UDB::CDBVariant vt0;
-            impl->m_qSend.Utf8ToW(true);
-            if (impl->m_qSend.GetSize() && !res) {
-                impl->m_qSend >> vt0;
-                std::wstring s = vt0.bstrVal;
-                std::transform(s.begin(), s.end(), s.begin(), ::tolower);
-                if (s == L"localhost" || s == L"127.0.0.1" || s == L"::ffff:127.0.0.1" || s == L"::1") {
-                    if (ip != "localhost" && ip != "127.0.0.1" && ip != "::ffff:127.0.0.1" && ip != "::1") {
-                        CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Authentication failed as the user %s is not set for remote connecting(ip_address=%s)", user.c_str(), ip.c_str());
-                        return false;
-                    }
-                }
-                return true;
-            }
-            CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Authentication failed(user_id=%s; ip_address=%s)", user.c_str(), ip.c_str());
-            return false;
+            return true;
         }
 
         void CMysqlImpl::Open(const std::wstring &strConnection, unsigned int flags, int &res, std::wstring &errMsg, int &ms) {
@@ -1001,6 +985,8 @@ namespace SPA
             m_EnableMessages = false;
             CleanDBObjects();
             std::string ip = GetPeerName(&port);
+            if (ip == "127.0.0.1" || ip == "::ffff:127.0.0.1" || ip == "::1")
+                ip = "localhost";
             std::wstring user = GetUID();
             OpenSession(user, ip);
             InitMysqlSession();
