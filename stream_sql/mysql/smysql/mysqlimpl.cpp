@@ -780,7 +780,7 @@ namespace SPA
             std::wstring errMsg;
             if (!impl.m_pMysql && !impl.OpenSession(L"root", "localhost"))
                 return;
-            std::wstring wsql = L"CREATE TABLE IF NOT EXISTS service(id INT UNSIGNED PRIMARY KEY NOT NULL,library VARCHAR(2048)NOT NULL,param INT NULL,description VARCHAR(2048)NULL)";
+            std::wstring wsql = L"USE sp_streaming_db;CREATE TABLE IF NOT EXISTS service(id INT UNSIGNED PRIMARY KEY NOT NULL,library VARCHAR(2048)NOT NULL,param INT NULL,description VARCHAR(2048)NULL)";
             impl.Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
             if (res) {
                 CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Creating the table service failed(errCode=%d; errMsg=%s)", res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()).c_str());
@@ -822,13 +822,30 @@ namespace SPA
                 return (svs.ServiceId == SPA::Mysql::sidMysql);
             });
             if (it == vService.end()) {
-                wsql = L"INSERT INTO service(id,library,param,description)VALUES(" + std::to_wstring((UINT64) Mysql::sidMysql) +
+                wsql = L"INSERT INTO service VALUES(" + std::to_wstring((UINT64) Mysql::sidMysql) +
 #ifdef WIN32_64
                         L",'smysql.dll'" +
 #else
                         L",'libsmysql.so'" +
 #endif
                         L",0,'Continous SQL streaming processing service')";
+                impl.Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
+                if (res) {
+                    CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Inserting the table service failed(errCode=%d; errMsg=%s)", res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()).c_str());
+                }
+            }
+
+            it = std::find_if(vService.begin(), vService.end(), [](const CService & svs)->bool {
+                return (svs.ServiceId == (unsigned int) SPA::sidHTTP);
+            });
+            if (it == vService.end()) {
+                wsql = L"INSERT INTO service VALUES(" + std::to_wstring((UINT64) SPA::sidHTTP) +
+#ifdef WIN32_64
+                        L",'uservercore.dll'" +
+#else
+                        L",'libuservercore.so'" +
+#endif
+                        L",0,'HTTP/Websocket processing service')";
                 impl.Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
                 if (res) {
                     CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Inserting the table service failed(errCode=%d; errMsg=%s)", res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()).c_str());

@@ -156,6 +156,7 @@
     <ClInclude Include="..\..\..\include\aserverw.h" />
     <ClInclude Include="..\..\..\include\commutil.h" />
     <ClInclude Include="..\..\..\include\membuffer.h" />
+    <ClInclude Include="httppeer.h" />
     <ClInclude Include="mysqlimpl.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="stdafx.h" />

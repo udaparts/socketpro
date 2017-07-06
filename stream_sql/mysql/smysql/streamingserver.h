@@ -2,6 +2,7 @@
 #pragma once
 
 #include "mysqlimpl.h"
+#include "httppeer.h"
 
 struct CService {
     unsigned int ServiceId;
@@ -28,6 +29,7 @@ private:
 
 private:
     SPA::ServerSide::CMysqlService m_MySql;
+    SPA::ServerSide::CSocketProService<CHttpPeer> m_myHttp;
 
 private:
     CStreamingServer(const CStreamingServer &ss);
@@ -72,6 +74,7 @@ public:
     std::vector<std::string> services;
     std::unordered_map<std::string, std::string> DefaultConfig;
     std::vector<CService> table_service;
+    bool enable_http_websocket;
     static CSetGlobals Globals;
 
 #ifdef WIN32_64

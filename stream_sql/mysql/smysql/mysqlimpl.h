@@ -31,6 +31,7 @@
 #define STREAMING_DB_SSL_PASSWORD	"ssl_key_password"
 #define STREAMING_DB_CACHE_TABLES	"cached_tables"
 #define STREAMING_DB_SERVICES		"services"
+#define STREAMING_DB_HTTP_WEBSOCKET "enable_http_websocket"
 
 namespace SPA {
     namespace ServerSide {
