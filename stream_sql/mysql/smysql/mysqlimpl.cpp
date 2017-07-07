@@ -742,7 +742,10 @@ namespace SPA
             if (fail)
                 return false;
             std::string userA = SPA::Utilities::ToUTF8(userName.c_str(), userName.size());
-            fail = security_context_lookup(m_sc, userA.c_str(), "localhost", ip.c_str(), nullptr);
+            std::string host = "localhost";
+            if (ip != host)
+                host = "%";
+            fail = security_context_lookup(m_sc, userA.c_str(), host.c_str(), ip.c_str(), nullptr);
             if (fail) {
                 CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "looking up security context failed(user_id=%s; ip_address==%s)", userA.c_str(), ip.c_str());
                 return false;

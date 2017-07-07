@@ -246,7 +246,7 @@ namespace SPA{
                 return;
             }
             if (!m_qSend.GetSize()) {
-                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Unable to create triggers for the table %s.%s because it has no primary key defined", schema.c_str(), table.c_str());
+                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Unable to create triggers for the table %s.%s because it has no table or primary key defined", schema.c_str(), table.c_str());
                 return;
             }
 
