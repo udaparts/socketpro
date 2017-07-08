@@ -54,8 +54,8 @@
         <linkerTool>
           <commandlineTool>g++</commandlineTool>
           <linkerLibItems>
-            <linkerLibStdlibItem>PosixThreads</linkerLibStdlibItem>
-            <linkerLibStdlibItem>DynamicLinking</linkerLibStdlibItem>
+            <linkerLibFileItem>../../../../mysql-5.7.18/bld/libservices/libmysqlservices.a</linkerLibFileItem>
+            <linkerLibLibItem>uservercore</linkerLibLibItem>
           </linkerLibItems>
           <commandLine>-std=c++11 -static-libgcc -static-libstdc++</commandLine>
         </linkerTool>
@@ -116,8 +116,8 @@
           <stripSymbols>true</stripSymbols>
           <commandlineTool>g++</commandlineTool>
           <linkerLibItems>
-            <linkerLibStdlibItem>PosixThreads</linkerLibStdlibItem>
-            <linkerLibStdlibItem>DynamicLinking</linkerLibStdlibItem>
+            <linkerLibFileItem>../../../../mysql-5.7.18/bld/libservices/libmysqlservices.a</linkerLibFileItem>
+            <linkerLibFileItem>/usr/lib/libuservercore.so</linkerLibFileItem>
           </linkerLibItems>
           <commandLine>-std=c++11 -static-libgcc -static-libstdc++</commandLine>
         </linkerTool>
