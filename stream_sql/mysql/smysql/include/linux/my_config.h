@@ -52,7 +52,7 @@
 #define HAVE_SYS_RESOURCE_H 1
 #define HAVE_SYS_SELECT_H 1
 #define HAVE_SYS_SOCKET_H 1
-/* #undef HAVE_TERM_H */
+#define HAVE_TERM_H 1
 #define HAVE_TERMIOS_H 1
 #define HAVE_TERMIO_H 1
 #define HAVE_UNISTD_H 1
@@ -445,7 +445,7 @@
 /* For --secure-file-priv */
 #define DEFAULT_SECURE_FILE_PRIV_DIR "NULL"
 #define DEFAULT_SECURE_FILE_PRIV_EMBEDDED_DIR "NULL"
-#define HAVE_LIBNUMA 1
+/* #undef HAVE_LIBNUMA */
 
 /* For default value of --early_plugin_load */
 /* #undef DEFAULT_EARLY_PLUGIN_LOAD */
