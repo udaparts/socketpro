@@ -149,7 +149,11 @@ void* CSetGlobals::ThreadProc(void *lpParameter) {
     {
         my_bool available = srv_session_server_is_available();
         while (!available) {
+#ifdef WIN32_64
             ::Sleep(50);
+#else
+            ::usleep(50000);
+#endif
             available = srv_session_server_is_available();
         }
     }
