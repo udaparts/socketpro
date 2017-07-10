@@ -17,7 +17,7 @@ int async_sql_plugin_init(void *p) {
 int async_sql_plugin_deinit(void *p) {
     if (g_pStreamingServer) {
         g_pStreamingServer->PostQuit();
-		CSetGlobals::Globals.my_thread_join(&CSetGlobals::Globals.m_thread, nullptr);
+        CSetGlobals::Globals.my_thread_join(&CSetGlobals::Globals.m_thread, nullptr);
         delete g_pStreamingServer;
         g_pStreamingServer = nullptr;
     }
@@ -29,7 +29,7 @@ int async_sql_plugin_deinit(void *p) {
 }
 
 CSetGlobals::CSetGlobals() : m_fLog(nullptr), m_nParam(0), DisableV6(false), Port(20902),
-server_version(nullptr), utf8_general_ci(nullptr), decimal2string(nullptr), my_thread_create(nullptr), 
+server_version(nullptr), utf8_general_ci(nullptr), decimal2string(nullptr), my_thread_create(nullptr),
 my_thread_join(nullptr), m_hModule(nullptr), Plugin(nullptr), enable_http_websocket(false) {
     //defaults
 #ifdef WIN32_64
@@ -41,8 +41,8 @@ my_thread_join(nullptr), m_hModule(nullptr), Plugin(nullptr), enable_http_websoc
         void *v = ::GetProcAddress(m_hModule, "my_charset_utf8_general_ci");
         utf8_general_ci = (CHARSET_INFO*) v;
         decimal2string = (pdecimal2string)::GetProcAddress(m_hModule, "decimal2string");
-		my_thread_create = (pmy_thread_create)::GetProcAddress(m_hModule, "my_thread_create");
-		my_thread_join = (pmy_thread_join)::GetProcAddress(m_hModule, "my_thread_join");
+        my_thread_create = (pmy_thread_create)::GetProcAddress(m_hModule, "my_thread_create");
+        my_thread_join = (pmy_thread_join)::GetProcAddress(m_hModule, "my_thread_join");
         server_version = (const char*) ::GetProcAddress(m_hModule, "server_version");
     } else {
         assert(false);
@@ -133,14 +133,14 @@ unsigned int CSetGlobals::GetVersion(const char *version) {
 }
 
 bool CSetGlobals::StartListening() {
-	my_thread_attr_t attr;          /* Thread attributes */
-	my_thread_attr_init(&attr);
-	(void) my_thread_attr_setdetachstate(&attr, MY_THREAD_CREATE_JOINABLE);
-	::memset(&m_thread, 0, sizeof(m_thread));
-	if (my_thread_create(&m_thread, &attr, ThreadProc, this)) {
-		return false;
-	}
-	return true;
+    my_thread_attr_t attr; /* Thread attributes */
+    my_thread_attr_init(&attr);
+    (void) my_thread_attr_setdetachstate(&attr, MY_THREAD_CREATE_JOINABLE);
+    ::memset(&m_thread, 0, sizeof (m_thread));
+    if (my_thread_create(&m_thread, &attr, ThreadProc, this)) {
+        return false;
+    }
+    return true;
 }
 
 void* CSetGlobals::ThreadProc(void *lpParameter) {
@@ -184,7 +184,7 @@ void* CSetGlobals::ThreadProc(void *lpParameter) {
     if (!ok) {
         CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Starting listening socket failed(errCode=%d; errMsg=%s)", g_pStreamingServer->GetErrorCode(), g_pStreamingServer->GetErrorMessage().c_str());
     }
-	return nullptr;
+    return nullptr;
 }
 
 void CSetGlobals::SetConfig(const std::unordered_map<std::string, std::string>& mapConfig) {

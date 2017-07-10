@@ -62,8 +62,8 @@ public:
     const char *server_version;
     CHARSET_INFO *utf8_general_ci;
     pdecimal2string decimal2string;
-	pmy_thread_create my_thread_create;
-	pmy_thread_join my_thread_join;
+    pmy_thread_create my_thread_create;
+    pmy_thread_join my_thread_join;
     st_mysql_daemon async_sql_plugin;
     HINSTANCE m_hModule;
     const void *Plugin;
@@ -75,10 +75,10 @@ public:
     std::unordered_map<std::string, std::string> DefaultConfig;
     std::vector<CService> table_service;
     bool enable_http_websocket;
-	my_thread_handle m_thread;
+    my_thread_handle m_thread;
 
     static CSetGlobals Globals;
-	
+
 public:
     bool StartListening();
     void LogMsg(const char *file, int fileLineNumber, const char *format ...);
