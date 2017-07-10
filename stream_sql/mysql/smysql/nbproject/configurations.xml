@@ -47,15 +47,23 @@
       <compileType>
         <cTool>
           <commandLine>-std=c++11 -static-libgcc -static-libstdc++ -Wall</commandLine>
+          <preprocessorList>
+            <Elem>MYSQL_DYNAMIC_PLUGIN</Elem>
+          </preprocessorList>
         </cTool>
         <ccTool>
           <commandLine>-std=c++11 -static-libgcc -static-libstdc++ -Wall</commandLine>
+          <preprocessorList>
+            <Elem>MYSQL_DYNAMIC_PLUGIN</Elem>
+          </preprocessorList>
         </ccTool>
         <linkerTool>
           <commandlineTool>g++</commandlineTool>
           <linkerLibItems>
-            <linkerLibFileItem>../../../../mysql-5.7.18/bld/libservices/libmysqlservices.a</linkerLibFileItem>
             <linkerLibLibItem>uservercore</linkerLibLibItem>
+            <linkerLibLibItem>mysqlservices</linkerLibLibItem>
+            <linkerLibStdlibItem>DynamicLinking</linkerLibStdlibItem>
+            <linkerLibStdlibItem>PosixThreads</linkerLibStdlibItem>
           </linkerLibItems>
           <commandLine>-std=c++11 -static-libgcc -static-libstdc++</commandLine>
         </linkerTool>
@@ -95,6 +103,7 @@
           <stripSymbols>true</stripSymbols>
           <commandLine>-std=c++11 -static-libgcc -static-libstdc++</commandLine>
           <preprocessorList>
+            <Elem>MYSQL_DYNAMIC_PLUGIN</Elem>
             <Elem>NDEBUG</Elem>
           </preprocessorList>
         </cTool>
@@ -103,6 +112,7 @@
           <stripSymbols>true</stripSymbols>
           <commandLine>-std=c++11 -static-libgcc -static-libstdc++ -Wall</commandLine>
           <preprocessorList>
+            <Elem>MYSQL_DYNAMIC_PLUGIN</Elem>
             <Elem>NDEBUG</Elem>
           </preprocessorList>
         </ccTool>
@@ -116,8 +126,10 @@
           <stripSymbols>true</stripSymbols>
           <commandlineTool>g++</commandlineTool>
           <linkerLibItems>
-            <linkerLibFileItem>../../../../mysql-5.7.18/bld/libservices/libmysqlservices.a</linkerLibFileItem>
             <linkerLibFileItem>/usr/lib/libuservercore.so</linkerLibFileItem>
+            <linkerLibLibItem>mysqlservices</linkerLibLibItem>
+            <linkerLibStdlibItem>PosixThreads</linkerLibStdlibItem>
+            <linkerLibStdlibItem>DynamicLinking</linkerLibStdlibItem>
           </linkerLibItems>
           <commandLine>-std=c++11 -static-libgcc -static-libstdc++</commandLine>
         </linkerTool>

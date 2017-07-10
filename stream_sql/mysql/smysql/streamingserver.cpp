@@ -17,7 +17,8 @@ int async_sql_plugin_init(void *p) {
 int async_sql_plugin_deinit(void *p) {
     if (g_pStreamingServer) {
         g_pStreamingServer->PostQuit();
-        CSetGlobals::Globals.my_thread_join(&CSetGlobals::Globals.m_thread, nullptr);
+        if (CSetGlobals::Globals.my_thread_join)
+            CSetGlobals::Globals.my_thread_join(&CSetGlobals::Globals.m_thread, nullptr);
         delete g_pStreamingServer;
         g_pStreamingServer = nullptr;
     }
@@ -40,10 +41,20 @@ my_thread_join(nullptr), m_hModule(nullptr), Plugin(nullptr), enable_http_websoc
     if (m_hModule) {
         void *v = ::GetProcAddress(m_hModule, "my_charset_utf8_general_ci");
         utf8_general_ci = (CHARSET_INFO*) v;
+        if (!utf8_general_ci)
+            LogMsg(__FILE__, __LINE__, "Variable utf8_general_ci not found inside mysqld application");
         decimal2string = (pdecimal2string)::GetProcAddress(m_hModule, "decimal2string");
+        if (!decimal2string)
+            LogMsg(__FILE__, __LINE__, "Function decimal2string not found inside mysqld application");
         my_thread_create = (pmy_thread_create)::GetProcAddress(m_hModule, "my_thread_create");
+        if (!my_thread_create)
+            LogMsg(__FILE__, __LINE__, "Function my_thread_create not found inside mysqld application");
         my_thread_join = (pmy_thread_join)::GetProcAddress(m_hModule, "my_thread_join");
+        if (!my_thread_create)
+            LogMsg(__FILE__, __LINE__, "Function my_thread_join not found inside mysqld application");
         server_version = (const char*) ::GetProcAddress(m_hModule, "server_version");
+        if (!server_version)
+            LogMsg(__FILE__, __LINE__, "Variable server_version not found inside mysqld application");
     } else {
         assert(false);
     }
@@ -59,7 +70,7 @@ my_thread_join(nullptr), m_hModule(nullptr), Plugin(nullptr), enable_http_websoc
     DefaultConfig[STREAMING_DB_HTTP_WEBSOCKET] = "0";
 
     unsigned int version = MYSQL_VERSION_ID;
-    if (strlen(server_version)) {
+    if (server_version && strlen(server_version)) {
         version = GetVersion(server_version);
         if (!version)
             version = MYSQL_VERSION_ID;
@@ -137,7 +148,7 @@ bool CSetGlobals::StartListening() {
     my_thread_attr_init(&attr);
     (void) my_thread_attr_setdetachstate(&attr, MY_THREAD_CREATE_JOINABLE);
     ::memset(&m_thread, 0, sizeof (m_thread));
-    if (my_thread_create(&m_thread, &attr, ThreadProc, this)) {
+    if (my_thread_create && my_thread_create(&m_thread, &attr, ThreadProc, this)) {
         return false;
     }
     return true;
