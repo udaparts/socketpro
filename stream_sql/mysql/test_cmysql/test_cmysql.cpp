@@ -82,13 +82,13 @@ int main(int argc, char* argv[]) {
     //first set
     vPData.push_back(1);
     vPData.push_back(1.25);
-	//output not important, but they are used for receiving proper types of data on mysql
+    //output not important, but they are used for receiving proper types of data on mysql
     vPData.push_back(0);
 
     //second set
     vPData.push_back(2);
     vPData.push_back(1.14);
-	//output not important, but they are used for receiving proper types of data on mysql
+    //output not important, but they are used for receiving proper types of data on mysql
     vPData.push_back(0);
     unsigned int oks = 0;
     TestStoredProcedure(pMysql, ra, vPData, oks);
