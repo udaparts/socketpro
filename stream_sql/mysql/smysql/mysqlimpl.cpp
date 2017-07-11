@@ -757,7 +757,7 @@ namespace SPA
 #ifdef WIN32_64
             std::wstring wsql = L"CREATE FUNCTION PublishDBEvent RETURNS INTEGER SONAME 'smysql.dll'";
 #else
-            std::wstring wsql = L"CREATE FUNCTION PublishDBEvent RETURNS INTEGER SONAME 'smysql.so'";
+            std::wstring wsql = L"CREATE FUNCTION PublishDBEvent RETURNS INTEGER SONAME 'libsmysql.so'";
 #endif
             if (!impl.m_pMysql && !impl.OpenSession(L"root", "localhost"))
                 return;
