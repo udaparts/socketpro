@@ -60,10 +60,10 @@
         <linkerTool>
           <commandlineTool>g++</commandlineTool>
           <linkerLibItems>
-            <linkerLibLibItem>uservercore</linkerLibLibItem>
             <linkerLibLibItem>mysqlservices</linkerLibLibItem>
             <linkerLibStdlibItem>DynamicLinking</linkerLibStdlibItem>
             <linkerLibStdlibItem>PosixThreads</linkerLibStdlibItem>
+            <linkerLibLibItem>uservercore</linkerLibLibItem>
           </linkerLibItems>
           <commandLine>-std=c++11 -static-libgcc -static-libstdc++</commandLine>
         </linkerTool>
@@ -126,10 +126,10 @@
           <stripSymbols>true</stripSymbols>
           <commandlineTool>g++</commandlineTool>
           <linkerLibItems>
-            <linkerLibFileItem>/usr/lib/libuservercore.so</linkerLibFileItem>
             <linkerLibLibItem>mysqlservices</linkerLibLibItem>
             <linkerLibStdlibItem>PosixThreads</linkerLibStdlibItem>
             <linkerLibStdlibItem>DynamicLinking</linkerLibStdlibItem>
+            <linkerLibLibItem>uservercore</linkerLibLibItem>
           </linkerLibItems>
           <commandLine>-std=c++11 -static-libgcc -static-libstdc++</commandLine>
         </linkerTool>

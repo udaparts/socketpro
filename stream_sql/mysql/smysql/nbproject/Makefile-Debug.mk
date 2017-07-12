@@ -57,7 +57,7 @@ FFLAGS=
 ASFLAGS=
 
 # Link Libraries and Options
-LDLIBSOPTIONS=-luservercore -lmysqlservices -ldl -lpthread
+LDLIBSOPTIONS=-lmysqlservices -ldl -lpthread -luservercore
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
