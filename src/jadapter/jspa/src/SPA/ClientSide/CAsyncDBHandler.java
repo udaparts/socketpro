@@ -88,11 +88,6 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
         void invoke(CAsyncDBHandler dbHandler, CDBVariantArray lstData);
     }
 
-    public interface DUpdateEvent {
-
-        void invoke(CAsyncDBHandler dbHandler, tagUpdateEvent eventType, String instance, String dbPath, String tablePath, Object lastRowId);
-    }
-
     protected final Object m_csDB = new Object();
     protected CDBColumnInfoArray m_vColInfo = new CDBColumnInfoArray();
 
@@ -145,8 +140,6 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
             return m_output;
         }
     }
-
-    public DUpdateEvent DBEvent;
 
     public final int getLastDBErrorCode() {
         synchronized (m_csDB) {
@@ -1223,16 +1216,6 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                     }
                     Object vt = m_Blob.LoadObject();
                     m_vData.add(vt);
-                }
-                break;
-            case idDBUpdate:
-                if (mc.GetSize() > 0) {
-                    int dbEventType = mc.LoadInt();
-                    String dbInstance = mc.LoadString(), dbPath = mc.LoadString(), tablePath = mc.LoadString();
-                    Object idRow = mc.LoadObject();
-                    if (DBEvent != null) {
-                        DBEvent.invoke(this, tagUpdateEvent.forValue(dbEventType), dbInstance, dbPath, tablePath, idRow);
-                    }
                 }
                 break;
             default:

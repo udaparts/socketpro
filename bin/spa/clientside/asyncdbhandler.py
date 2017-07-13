@@ -80,7 +80,6 @@ class CAsyncDBHandler(CAsyncServiceHandler):
         self._vData = []
         self._ms = tagManagementSystem.msUnknown
         self._flags = 0
-        self.DBEvent = None
         self._deqResult = collections.deque()
         self._parameters = 0
         self._indexProc = 0
@@ -344,15 +343,6 @@ class CAsyncDBHandler(CAsyncServiceHandler):
                     self._Blob.ResetUInt(content_len, 2)
                 vt = self._Blob.LoadObject()
                 self._vData.append(vt)
-        elif reqId == CAsyncDBHandler.idDBUpdate:
-            if mc.GetSize() > 0:
-                dbEventType = mc.LoadInt()
-                dbInstance = mc.LoadString()
-                dbPath = mc.LoadString()
-                tablePath = mc.LoadString()
-                idRow = mc.LoadObject()
-                if not self.DBEvent is None:
-                    self.DBEvent(self, dbEventType, dbInstance, dbPath, tablePath, idRow)
         else:
             super(CAsyncDBHandler, self).OnResultReturned(reqId, mc)
 

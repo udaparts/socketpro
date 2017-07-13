@@ -6,6 +6,7 @@ namespace SocketProAdapter
 {
     namespace ClientSide
     {
+        using UDB;
         public class CSqlite : CAsyncDBHandler
         {
             public const uint sidSqlite = SocketProAdapter.BaseServiceID.sidReserved + 0x6FFFFFF0; //asynchronous sqlite service id
@@ -112,7 +113,32 @@ namespace SocketProAdapter
             public CSqlite()
                 : base(sidSqlite)
             {
+            }
 
+            public delegate void DUpdateEvent(CAsyncDBHandler dbHandler, tagUpdateEvent eventType, string instance, string dbPath, string tablePath, object rowId);
+            public event DUpdateEvent DBEvent;
+
+            protected override void OnResultReturned(ushort reqId, CUQueue mc)
+            {
+                switch (reqId)
+                {
+                    case idDBUpdate:
+                        if (mc.GetSize() > 0)
+                        {
+                            int dbEventType;
+                            string dbInstance, dbPath, tablePath;
+                            object idRow;
+                            mc.Load(out dbEventType).Load(out dbInstance).Load(out dbPath).Load(out tablePath).Load(out idRow);
+                            if (DBEvent != null)
+                            {
+                                DBEvent(this, (tagUpdateEvent)dbEventType, dbInstance, dbPath, tablePath, idRow);
+                            }
+                        }
+                        break;
+                    default:
+                        base.OnResultReturned(reqId, mc);
+                        break;
+                }
             }
         }
 
