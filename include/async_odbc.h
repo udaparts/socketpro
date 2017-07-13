@@ -54,6 +54,7 @@ namespace SPA {
 
             virtual bool Statistics(const wchar_t *CatalogName, const wchar_t *SchemaName, const wchar_t *TableName, unsigned short unique, unsigned short reserved, DExecuteResult handler, DRows row, DRowsetHeader rh) {
                 UINT64 index;
+                CAutoLock alOne(m_csCall);
                 //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
                 m_csDB.lock();
                 index = ++m_nCall;
@@ -134,6 +135,7 @@ namespace SPA {
 
             bool DoMeta(unsigned short id, const wchar_t *s0, const wchar_t *s1, const wchar_t *s2, DExecuteResult handler, DRows row, DRowsetHeader rh) {
                 UINT64 index;
+                CAutoLock alOne(m_csCall);
                 //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
                 m_csDB.lock();
                 index = ++m_nCall;
@@ -172,6 +174,7 @@ namespace SPA {
 
             bool DoMeta(unsigned short id, const wchar_t *s0, const wchar_t *s1, const wchar_t *s2, const wchar_t *s3, DExecuteResult handler, DRows row, DRowsetHeader rh) {
                 UINT64 index;
+                CAutoLock alOne(m_csCall);
                 //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
                 m_csDB.lock();
                 index = ++m_nCall;
@@ -211,6 +214,7 @@ namespace SPA {
             template<typename T0, typename T1, typename T2>
             bool DoMeta(unsigned short id, const T0 &t0, const wchar_t *s0, const wchar_t *s1, const wchar_t *s2, const T1 &t1, const T2 &t2, DExecuteResult handler, DRows row, DRowsetHeader rh) {
                 UINT64 index;
+                CAutoLock alOne(m_csCall);
                 //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
                 m_csDB.lock();
                 index = ++m_nCall;
