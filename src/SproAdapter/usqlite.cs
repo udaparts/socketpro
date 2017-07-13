@@ -140,9 +140,9 @@ namespace SocketProAdapter
             public const int ER_BAD_PARAMETER_COLUMN_SIZE = 1984;
             public const int ER_BAD_PARAMETER_DATA_ARRAY_SIZE = 1985;
             public const int ER_DATA_TYPE_NOT_SUPPORTED = 1986;
-            public const int ER_NO_DB_NAME_SPECIFIED = 1987;
-            public const int ER_MYSQL_LIBRARY_NOT_INITIALIZED = 1988;
-            public const int ER_BAD_MANUAL_TRANSACTION_STATE = 1989;
+            public const int ER_BAD_MANUAL_TRANSACTION_STATE = 1987;
+            public const int ER_UNABLE_TO_SWITCH_TO_DATABASE = 1988;
+            public const int ER_SERVICE_COMMAND_ERROR = 1989;
         }
     }
 #if WINCE

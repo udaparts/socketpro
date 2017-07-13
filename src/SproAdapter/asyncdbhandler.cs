@@ -309,6 +309,16 @@ namespace SocketProAdapter
             /// </summary>
             public const uint DEFAULT_RECORD_BATCH_SIZE = 16 * 1024; //16k
 
+            /// <summary>
+            /// A flag used with idOpen for tracing database table update events
+            /// </summary>
+            public const uint ENABLE_TABLE_UPDATE_MESSAGES = 0x1;
+
+            /// <summary>
+            /// A chat group id used at SocketPro server side for notifying database events from server to connected clients
+            /// </summary>
+            public const uint STREAMING_SQL_CHAT_GROUP_ID = 0x1fffffff;
+
             public delegate void DResult(CAsyncDBHandler dbHandler, int res, string errMsg);
             public delegate void DExecuteResult(CAsyncDBHandler dbHandler, int res, string errMsg, long affected, ulong fail_ok, object vtId);
             public delegate void DRowsetHeader(CAsyncDBHandler dbHandler);
@@ -322,6 +332,7 @@ namespace SocketProAdapter
             }
 
             protected object m_csDB = new object();
+            protected object m_csOne = new object();
             protected CDBColumnInfoArray m_vColInfo = new CDBColumnInfoArray();
 
             private string m_strConnection;
@@ -700,55 +711,58 @@ namespace SocketProAdapter
                 if (!rowset)
                     meta = false;
                 ulong callIndex;
-                //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
-                lock (m_csDB)
+                lock (m_csOne)
                 {
-                    if (!SendParametersData(vParam))
-                    {
-                        Clean();
-                        return false;
-                    }
-                    ++m_nCall;
-                    callIndex = m_nCall;
-                    if (rowset)
-                    {
-                        m_mapRowset[m_nCall] = new KeyValuePair<DRowsetHeader, DRows>(rh, row);
-                    }
-                    m_mapParameterCall[m_nCall] = vParam;
-                }
-                if (!SendRequest(idExecuteParameters, rowset, meta, lastInsertId, callIndex, (ar) =>
-                {
-                    long affected;
-                    ulong fail_ok;
-                    int res;
-                    string errMsg;
-                    object vtId;
-                    ar.Load(out affected).Load(out res).Load(out errMsg).Load(out vtId).Load(out fail_ok);
+                    //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
                     lock (m_csDB)
                     {
-                        m_lastReqId = idExecute;
-                        m_affected = affected;
-                        m_dbErrCode = res;
-                        m_dbErrMsg = errMsg;
-                        m_mapRowset.Remove(callIndex);
-                        m_mapParameterCall.Remove(callIndex);
-                        m_indexProc = 0;
-                    }
-                    if (handler != null)
-                        handler(this, res, errMsg, affected, fail_ok, vtId);
-                }))
-                {
-                    lock (m_csDB)
-                    {
-                        m_mapParameterCall.Remove(callIndex);
+                        if (!SendParametersData(vParam))
+                        {
+                            Clean();
+                            return false;
+                        }
+                        ++m_nCall;
+                        callIndex = m_nCall;
                         if (rowset)
                         {
-                            m_mapRowset.Remove(callIndex);
+                            m_mapRowset[m_nCall] = new KeyValuePair<DRowsetHeader, DRows>(rh, row);
                         }
+                        m_mapParameterCall[m_nCall] = vParam;
                     }
-                    return false;
+                    if (!SendRequest(idExecuteParameters, rowset, meta, lastInsertId, callIndex, (ar) =>
+                    {
+                        long affected;
+                        ulong fail_ok;
+                        int res;
+                        string errMsg;
+                        object vtId;
+                        ar.Load(out affected).Load(out res).Load(out errMsg).Load(out vtId).Load(out fail_ok);
+                        lock (m_csDB)
+                        {
+                            m_lastReqId = idExecute;
+                            m_affected = affected;
+                            m_dbErrCode = res;
+                            m_dbErrMsg = errMsg;
+                            m_mapRowset.Remove(callIndex);
+                            m_mapParameterCall.Remove(callIndex);
+                            m_indexProc = 0;
+                        }
+                        if (handler != null)
+                            handler(this, res, errMsg, affected, fail_ok, vtId);
+                    }))
+                    {
+                        lock (m_csDB)
+                        {
+                            m_mapParameterCall.Remove(callIndex);
+                            if (rowset)
+                            {
+                                m_mapRowset.Remove(callIndex);
+                            }
+                        }
+                        return false;
+                    }
+                    return true;
                 }
-                return true;
             }
 
             /// <summary>
@@ -815,43 +829,45 @@ namespace SocketProAdapter
                 bool rowset = (rh != null) ? true : false;
                 if (!rowset)
                     meta = false;
-
-                //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
-                lock (m_csDB)
+                lock (m_csOne)
                 {
-                    index = ++m_nCall;
-                    if (rowset)
-                    {
-                        m_mapRowset[m_nCall] = new KeyValuePair<DRowsetHeader, DRows>(rh, row);
-                    }
-                }
-                if (!SendRequest(idExecute, sql, rowset, meta, lastInsertId, index, (ar) =>
-                {
-                    long affected;
-                    ulong fail_ok;
-                    int res;
-                    string errMsg;
-                    object vtId;
-                    ar.Load(out affected).Load(out res).Load(out errMsg).Load(out vtId).Load(out fail_ok);
+                    //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
                     lock (m_csDB)
                     {
-                        m_lastReqId = idExecute;
-                        m_affected = affected;
-                        m_dbErrCode = res;
-                        m_dbErrMsg = errMsg;
-                        m_mapRowset.Remove(m_indexRowset);
+                        index = ++m_nCall;
+                        if (rowset)
+                        {
+                            m_mapRowset[m_nCall] = new KeyValuePair<DRowsetHeader, DRows>(rh, row);
+                        }
                     }
-                    if (handler != null)
-                        handler(this, res, errMsg, affected, fail_ok, vtId);
-                }))
-                {
-                    lock (m_csDB)
+                    if (!SendRequest(idExecute, sql, rowset, meta, lastInsertId, index, (ar) =>
                     {
-                        m_mapRowset.Remove(index);
+                        long affected;
+                        ulong fail_ok;
+                        int res;
+                        string errMsg;
+                        object vtId;
+                        ar.Load(out affected).Load(out res).Load(out errMsg).Load(out vtId).Load(out fail_ok);
+                        lock (m_csDB)
+                        {
+                            m_lastReqId = idExecute;
+                            m_affected = affected;
+                            m_dbErrCode = res;
+                            m_dbErrMsg = errMsg;
+                            m_mapRowset.Remove(m_indexRowset);
+                        }
+                        if (handler != null)
+                            handler(this, res, errMsg, affected, fail_ok, vtId);
+                    }))
+                    {
+                        lock (m_csDB)
+                        {
+                            m_mapRowset.Remove(index);
+                        }
+                        return false;
                     }
-                    return false;
+                    return true;
                 }
-                return true;
             }
 
             /// <summary>
@@ -875,54 +891,57 @@ namespace SocketProAdapter
             public virtual bool Open(string strConnection, DResult handler, uint flags)
             {
                 string s = null;
-                //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
-                lock (m_csDB)
+                lock (m_csOne)
                 {
-                    m_flags = flags;
-                    if (strConnection != null)
-                    {
-                        s = m_strConnection;
-                        m_strConnection = strConnection;
-                    }
-                }
-                if (SendRequest(idOpen, strConnection, flags, (ar) =>
-                {
-                    int res, ms;
-                    string errMsg;
-                    ar.Load(out res).Load(out errMsg).Load(out ms);
+                    //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
                     lock (m_csDB)
                     {
-                        CleanRowset();
-                        m_dbErrCode = res;
-                        m_lastReqId = idOpen;
-                        if (res == 0)
+                        m_flags = flags;
+                        if (strConnection != null)
                         {
-                            m_strConnection = errMsg;
-                            errMsg = "";
+                            s = m_strConnection;
+                            m_strConnection = strConnection;
                         }
-                        else
+                    }
+                    if (SendRequest(idOpen, strConnection, flags, (ar) =>
+                    {
+                        int res, ms;
+                        string errMsg;
+                        ar.Load(out res).Load(out errMsg).Load(out ms);
+                        lock (m_csDB)
                         {
-                            m_strConnection = "";
+                            CleanRowset();
+                            m_dbErrCode = res;
+                            m_lastReqId = idOpen;
+                            if (res == 0)
+                            {
+                                m_strConnection = errMsg;
+                                errMsg = "";
+                            }
+                            else
+                            {
+                                m_strConnection = "";
+                            }
+                            m_dbErrMsg = errMsg;
+                            m_ms = (tagManagementSystem)ms;
+                            m_parameters = 0;
+                            m_indexProc = 0;
+                            m_output = 0;
                         }
-                        m_dbErrMsg = errMsg;
-                        m_ms = (tagManagementSystem)ms;
-                        m_parameters = 0;
-                        m_indexProc = 0;
-                        m_output = 0;
-                    }
-                    if (handler != null)
+                        if (handler != null)
+                        {
+                            handler(this, res, errMsg);
+                        }
+                    }))
                     {
-                        handler(this, res, errMsg);
+                        return true;
                     }
-                }))
-                {
-                    return true;
-                }
-                lock (m_csDB)
-                {
-                    if (strConnection != null)
+                    lock (m_csDB)
                     {
-                        m_strConnection = s;
+                        if (strConnection != null)
+                        {
+                            m_strConnection = s;
+                        }
                     }
                 }
                 return false;
@@ -1029,28 +1048,31 @@ namespace SocketProAdapter
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
             public virtual bool EndTrans(tagRollbackPlan plan, DResult handler)
             {
-                if (SendRequest(idEndTrans, (int)plan, (ar) =>
+                lock (m_csOne)
                 {
-                    int res;
-                    string errMsg;
-                    ar.Load(out res).Load(out errMsg);
-                    lock (m_csDB)
+                    if (SendRequest(idEndTrans, (int)plan, (ar) =>
                     {
-                        m_lastReqId = idEndTrans;
-                        m_dbErrCode = res;
-                        m_dbErrMsg = errMsg;
-                        CleanRowset();
-                    }
-                    if (handler != null)
+                        int res;
+                        string errMsg;
+                        ar.Load(out res).Load(out errMsg);
+                        lock (m_csDB)
+                        {
+                            m_lastReqId = idEndTrans;
+                            m_dbErrCode = res;
+                            m_dbErrMsg = errMsg;
+                            CleanRowset();
+                        }
+                        if (handler != null)
+                        {
+                            handler(this, res, errMsg);
+                        }
+                    }))
                     {
-                        handler(this, res, errMsg);
+                        AttachedClientSocket.ClientQueue.EndJob();
+                        return true;
                     }
-                }))
-                {
-                    AttachedClientSocket.ClientQueue.EndJob();
-                    return true;
+                    return false;
                 }
-                return false;
             }
 
             /// <summary>
@@ -1082,36 +1104,39 @@ namespace SocketProAdapter
             {
                 uint flags;
                 string connection;
-                //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
-                lock (m_csDB)
+                lock (m_csOne)
                 {
-                    connection = m_strConnection;
-                    flags = m_flags;
-                }
-                AttachedClientSocket.ClientQueue.StartJob();
-                return SendRequest(idBeginTrans, (int)isolation, connection, flags, (ar) =>
-                {
-                    int res, ms;
-                    string errMsg;
-                    ar.Load(out res).Load(out errMsg).Load(out ms);
+                    //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
                     lock (m_csDB)
                     {
-                        CleanRowset();
-                        if (res == 0)
-                        {
-                            m_strConnection = errMsg;
-                            errMsg = "";
-                        }
-                        m_lastReqId = idBeginTrans;
-                        m_dbErrCode = res;
-                        m_dbErrMsg = errMsg;
-                        m_ms = (tagManagementSystem)ms;
+                        connection = m_strConnection;
+                        flags = m_flags;
                     }
-                    if (handler != null)
+                    AttachedClientSocket.ClientQueue.StartJob();
+                    return SendRequest(idBeginTrans, (int)isolation, connection, flags, (ar) =>
                     {
-                        handler(this, res, errMsg);
-                    }
-                });
+                        int res, ms;
+                        string errMsg;
+                        ar.Load(out res).Load(out errMsg).Load(out ms);
+                        lock (m_csDB)
+                        {
+                            CleanRowset();
+                            if (res == 0)
+                            {
+                                m_strConnection = errMsg;
+                                errMsg = "";
+                            }
+                            m_lastReqId = idBeginTrans;
+                            m_dbErrCode = res;
+                            m_dbErrMsg = errMsg;
+                            m_ms = (tagManagementSystem)ms;
+                        }
+                        if (handler != null)
+                        {
+                            handler(this, res, errMsg);
+                        }
+                    });
+                }
             }
 
             /// <summary>

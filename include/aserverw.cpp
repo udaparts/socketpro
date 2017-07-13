@@ -486,6 +486,7 @@ namespace SPA
 
         CBaseService::CBaseService(unsigned int svsId, tagThreadApartment ta)
         : m_nServiceId(svsId) {
+            ServerCoreLoader.Load();
             if (!ServerCoreLoader.IsLoaded())
                 throw CUExCode("Server core library not accessible!", MB_BAD_OPERATION);
             m_SvsContext.m_OnChatRequestCame = &CBaseService::OnChatCame;
@@ -584,7 +585,7 @@ namespace SPA
 
         void CALLBACK CBaseService::OnSwitch(USocket_Server_Handle hSocket, unsigned int oldServiceId, unsigned int newServiceId) {
             const CBaseService *p;
-            if ((unsigned int)(~0) == m_nMainThreads) {
+            if ((unsigned int) (~0) == m_nMainThreads) {
                 m_nMainThreads = CSocketProServer::Config::GetMainThreads();
             }
             assert(ServerCoreLoader.IsMainThread());
@@ -1004,6 +1005,7 @@ namespace SPA
 
         CSocketProServer::CSocketProServer(int nParam)
         : m_listeningPort(20901), m_maxBacklog(32) {
+            ServerCoreLoader.Load();
             if (m_pServer != nullptr)
                 throw CUExCode("One instance supported only per application!", MB_BAD_OPERATION);
             if (!ServerCoreLoader.IsLoaded())
@@ -1495,7 +1497,9 @@ namespace SPA
             ServerCoreLoader.GetUID(Handler, userId, sizeof (userId) / sizeof (wchar_t));
             ServerCoreLoader.GetPassword(Handler, password, sizeof (password) / sizeof (wchar_t));
             assert(IsMainThread());
-            return m_pServer->OnIsPermitted(Handler, userId, password, serviceId);
+            bool ok = m_pServer->OnIsPermitted(Handler, userId, password, serviceId);
+            memset(password, 0, sizeof (password));
+            return ok;
         }
 
         void WINAPI CSocketProServer::OnIdleInternal(INT64 milliseconds) {

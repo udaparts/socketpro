@@ -691,6 +691,16 @@
             A record data size in bytes is approximately equal to or slightly larger than the defined constant
             </summary>
         </member>
+        <member name="F:SocketProAdapter.ClientSide.CAsyncDBHandler.ENABLE_TABLE_UPDATE_MESSAGES">
+            <summary>
+            A flag used with idOpen for tracing database table update events
+            </summary>
+        </member>
+        <member name="F:SocketProAdapter.ClientSide.CAsyncDBHandler.STREAMING_SQL_CHAT_GROUP_ID">
+            <summary>
+            A chat group id used at SocketPro server side for notifying database events from server to connected clients
+            </summary>
+        </member>
         <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Execute(SocketProAdapter.UDB.CDBVariantArray)">
             <summary>
             Process one or more sets of prepared statements with an array of parameter data asynchronously, and don't expect any data returned
