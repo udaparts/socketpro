@@ -1,22 +1,20 @@
 ﻿
 #include "stdafx.h"
 #include <iostream>
-#include "../../../../include/sqlite/usqlite.h"
-#include "../../../../include/udb_client.h"
+#include "../../../../include/async_sqlite.h"
 using namespace SPA::UDB;
 
-typedef SPA::ClientSide::CAsyncDBHandler<SPA::Sqlite::sidSqlite> CMyHandler;
-typedef SPA::ClientSide::CSocketPool<CMyHandler> CMyPool;
+typedef SPA::ClientSide::CSqliteBase CMyHandler;
+typedef SPA::ClientSide::CSocketPool<SPA::ClientSide::CSqlite> CMyPool;
 typedef SPA::ClientSide::CConnectionContext CMyConnContext;
 typedef std::pair<CDBColumnInfoArray, CDBVariantArray> CPColumnRowset;
 typedef std::vector<CPColumnRowset> CRowsetArray;
 
-void TestCreateTables(std::shared_ptr<CMyHandler> pSqlite);
-void InsertBLOBByPreparedStatement(std::shared_ptr<CMyHandler> pSqlite, CRowsetArray &ra);
-void TestPreparedStatements(std::shared_ptr<CMyHandler> pSqlite, CRowsetArray &ra);
+void TestCreateTables(std::shared_ptr<SPA::ClientSide::CSqlite> pSqlite);
+void InsertBLOBByPreparedStatement(std::shared_ptr<SPA::ClientSide::CSqlite> pSqlite, CRowsetArray &ra);
+void TestPreparedStatements(std::shared_ptr<SPA::ClientSide::CSqlite> pSqlite, CRowsetArray &ra);
 
 int main(int argc, char* argv[]) {
-
     CMyConnContext cc;
     std::cout << "Remote host: " << std::endl;
     std::getline(std::cin, cc.Host);
@@ -69,7 +67,7 @@ int main(int argc, char* argv[]) {
     return 0;
 }
 
-void TestPreparedStatements(std::shared_ptr<CMyHandler> pSqlite, CRowsetArray &ra) {
+void TestPreparedStatements(std::shared_ptr<SPA::ClientSide::CSqlite> pSqlite, CRowsetArray &ra) {
     static const wchar_t *sql_insert_parameter = L"Select datetime('now');INSERT OR REPLACE INTO COMPANY(ID, NAME, ADDRESS, Income) VALUES (?, ?, ?, ?)";
 
     bool ok = pSqlite->Prepare(sql_insert_parameter, [](CMyHandler &handler, int res, const std::wstring & errMsg) {
@@ -115,11 +113,10 @@ void TestPreparedStatements(std::shared_ptr<CMyHandler> pSqlite, CRowsetArray &r
         CPColumnRowset column_rowset_pair;
                 column_rowset_pair.first = vColInfo;
                 ra.push_back(column_rowset_pair);
-
     });
 }
 
-void TestCreateTables(std::shared_ptr<CMyHandler> pSqlite) {
+void TestCreateTables(std::shared_ptr<SPA::ClientSide::CSqlite> pSqlite) {
     const wchar_t *create_table = L"CREATE TABLE COMPANY(ID INT8 PRIMARY KEY NOT NULL, name CHAR(64) NOT NULL, ADDRESS varCHAR(256) not null, Income float not null)";
     bool ok = pSqlite->Execute(create_table, [](CMyHandler &handler, int res, const std::wstring &errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & vtId) {
         std::cout << "affected = " << affected << ", fails = " << (unsigned int) (fail_ok >> 32) << ", oks = " << (unsigned int) fail_ok << ", res = " << res << ", errMsg: ";
@@ -133,8 +130,7 @@ void TestCreateTables(std::shared_ptr<CMyHandler> pSqlite) {
     });
 }
 
-void InsertBLOBByPreparedStatement(std::shared_ptr<CMyHandler> pSqlite, CRowsetArray &ra) {
-
+void InsertBLOBByPreparedStatement(std::shared_ptr<SPA::ClientSide::CSqlite> pSqlite, CRowsetArray &ra) {
     std::wstring wstr;
     while (wstr.size() < 128 * 1024) {
         wstr += L"广告做得不那么夸张的就不说了，看看这三家，都是正儿八经的公立三甲，附属医院，不是武警，也不是部队，更不是莆田，都在卫生部门直接监管下，照样明目张胆地骗人。";

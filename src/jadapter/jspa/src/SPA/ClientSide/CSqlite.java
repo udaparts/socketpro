@@ -8,6 +8,31 @@ public class CSqlite extends CAsyncDBHandler {
         super(sidSqlite);
     }
 
+    public interface DUpdateEvent {
+
+        void invoke(CAsyncDBHandler dbHandler, SPA.UDB.tagUpdateEvent eventType, String instance, String dbPath, String tablePath, Object lastRowId);
+    }
+
+    public DUpdateEvent DBEvent;
+
+    @Override
+    protected void OnResultReturned(short reqId, SPA.CUQueue mc) {
+        switch (reqId) {
+            case idDBUpdate:
+                if (mc.GetSize() > 0) {
+                    int dbEventType = mc.LoadInt();
+                    String dbInstance = mc.LoadString(), dbPath = mc.LoadString(), tablePath = mc.LoadString();
+                    Object idRow = mc.LoadObject();
+                    if (DBEvent != null) {
+                        DBEvent.invoke(this, SPA.UDB.tagUpdateEvent.forValue(dbEventType), dbInstance, dbPath, tablePath, idRow);
+                    }
+                }
+            default:
+                super.OnResultReturned(reqId, mc);
+                break;
+        }
+    }
+
     public final static int SQLITE_OK = 0; /* Successful result */
 
     /* beginning-of-error-codes */

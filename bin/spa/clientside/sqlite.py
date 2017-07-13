@@ -107,4 +107,17 @@ class CSqlite(CAsyncDBHandler):
 
     def __init__(self):
         super(CSqlite, self).__init__(CSqlite.sidSqlite)
+        self.DBEvent = None
 
+    def OnResultReturned(self, reqId, mc):
+        if reqId == CAsyncDBHandler.idDBUpdate:
+            if mc.GetSize() > 0:
+                dbEventType = mc.LoadInt()
+                dbInstance = mc.LoadString()
+                dbPath = mc.LoadString()
+                tablePath = mc.LoadString()
+                idRow = mc.LoadObject()
+                if not self.DBEvent is None:
+                    self.DBEvent(self, dbEventType, dbInstance, dbPath, tablePath, idRow)
+        else:
+            super(CSqlite, self).OnResultReturned(reqId, mc)

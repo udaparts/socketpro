@@ -323,7 +323,6 @@ namespace SocketProAdapter
             public delegate void DExecuteResult(CAsyncDBHandler dbHandler, int res, string errMsg, long affected, ulong fail_ok, object vtId);
             public delegate void DRowsetHeader(CAsyncDBHandler dbHandler);
             public delegate void DRows(CAsyncDBHandler dbHandler, CDBVariantArray lstData);
-            public delegate void DUpdateEvent(CAsyncDBHandler dbHandler, tagUpdateEvent eventType, string instance, string dbPath, string tablePath, object rowId);
 
             protected CAsyncDBHandler(uint ServiceId)
                 : base(ServiceId)
@@ -352,8 +351,6 @@ namespace SocketProAdapter
             private uint m_indexProc = 0;
             private uint m_output = 0;
             private bool m_bCallReturn = false;
-
-            public event DUpdateEvent DBEvent;
 
             public int LastDBErrorCode
             {
@@ -1340,23 +1337,9 @@ namespace SocketProAdapter
                             m_vData.Add(vt);
                         }
                         break;
-                    case idDBUpdate:
-                        if (mc.GetSize() > 0)
-                        {
-                            int dbEventType;
-                            string dbInstance, dbPath, tablePath;
-                            object idRow;
-                            mc.Load(out dbEventType).Load(out dbInstance).Load(out dbPath).Load(out tablePath).Load(out idRow);
-                            if (DBEvent != null)
-                            {
-                                DBEvent(this, (tagUpdateEvent)dbEventType, dbInstance, dbPath, tablePath, idRow);
-                            }
-                        }
-                        break;
                     default:
                         break;
                 }
-
                 base.OnResultReturned(reqId, mc);
             }
 
