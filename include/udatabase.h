@@ -141,16 +141,6 @@ namespace SPA {
         static const unsigned int STREAMING_SQL_CHAT_GROUP_ID = 0x1fffffff;
 
         /**
-         * A flag used with idOpen for tracing database table update events
-         */
-        static const unsigned int ENABLE_TABLE_UPDATE_MESSAGES = 0x1;
-
-        /**
-         * A chat group id used at SocketPro server side for notifying database events from server to connected clients
-         */
-        static const unsigned int STREAMING_SQL_CHAT_GROUP_ID = 0x1fffffff;
-
-        /**
          * VARINAT data types for OLEDB
          */
         static const unsigned short VT_BYTES = 128; //OLEDB data type for binary array
