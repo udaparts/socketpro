@@ -103,10 +103,11 @@ class Program
             ok = mysql.WaitAll();
             int index = 0;
             count = 50000;
+            Console.WriteLine();
             Console.WriteLine("Going to insert {0} records into the table mysqldb.company", count);
-            ok = mysql.BeginTrans();
-            CDBVariantArray vData = new CDBVariantArray();
             start = DateTime.Now;
+            CDBVariantArray vData = new CDBVariantArray();
+            ok = mysql.BeginTrans();
             for (int n = 0; n < count; ++n)
             {
                 vData.Add(n + 4);
@@ -145,6 +146,7 @@ class Program
             ok = mysql.WaitAll();
             diff = (DateTime.Now - start).TotalMilliseconds;
             Console.WriteLine("Time required = {0} millseconds for {1} insert requests", diff, count);
+            Console.WriteLine();
             Console.WriteLine("Press any key to close the application ......");
             Console.ReadLine();
         }
