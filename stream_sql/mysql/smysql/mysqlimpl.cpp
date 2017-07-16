@@ -117,6 +117,8 @@ namespace SPA
             M_I4_R5(idExecuteParameters, ExecuteParameters, bool, bool, bool, UINT64, INT64, int, std::wstring, CDBVariant, UINT64)
             M_I0_R2(idClose, CloseDb, int, std::wstring)
             END_SWITCH
+			if (reqId == idExecuteParameters)
+				m_vParam.clear();
             if (m_pMysql) {
                 my_bool fail = srv_session_detach(m_pMysql.get());
             }
