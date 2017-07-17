@@ -268,12 +268,12 @@ namespace SPA {
                 }
                 CAutoLock alOne(m_csCall);
                 {
-                    //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
-                    CAutoLock al(m_csDB);
                     if (!SendParametersData(vParam)) {
                         Clean();
                         return false;
                     }
+                    //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
+                    CAutoLock al(m_csDB);
                     ++m_nCall;
                     callIndex = m_nCall;
                     if (rowset) {

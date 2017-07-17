@@ -617,12 +617,11 @@ class CAsyncDBHandler(CAsyncServiceHandler):
             meta = False
         q = CScopeUQueue.Lock().SaveBool(rowset).SaveBool(meta).SaveBool(lastInsertId)
         with self._csOne:
+            if not self._SendParametersData(vParam):
+                CScopeUQueue.Unlock(q)
+                return False
             #don't make self._csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
             with self._csDB:
-                if not self._SendParametersData(vParam):
-                    self._Clean()
-                    CScopeUQueue.Unlock(q)
-                    return False
                 self._nCall += 1
                 q.SaveULong(self._nCall)
                 index = self._nCall

@@ -710,14 +710,14 @@ namespace SocketProAdapter
                 ulong callIndex;
                 lock (m_csOne)
                 {
+                    if (!SendParametersData(vParam))
+                    {
+                        Clean();
+                        return false;
+                    }
                     //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
                     lock (m_csDB)
                     {
-                        if (!SendParametersData(vParam))
-                        {
-                            Clean();
-                            return false;
-                        }
                         ++m_nCall;
                         callIndex = m_nCall;
                         if (rowset)
