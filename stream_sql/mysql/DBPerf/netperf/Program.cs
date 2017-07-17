@@ -131,18 +131,23 @@ class Program
                         break;
                 }
                 ++index;
-                ok = mysql.Execute(vData, er);
-                if (4000 == index)
+                //send 2000 sets of parameter data onto server for processing in batch
+                if (2000 == index)
                 {
+                    ok = mysql.Execute(vData, er);
                     ok = mysql.EndTrans();
+                    vData.Clear();
                     Console.WriteLine("Commit {0} records into the table mysqldb.company", index);
                     ok = mysql.BeginTrans();
                     index = 0;
                 }
-                vData.Clear();
+            }
+            if (vData.Count > 0)
+            {
+                ok = mysql.Execute(vData, er);
+                Console.WriteLine("Commit {0} records into the table mysqldb.company", index);
             }
             ok = mysql.EndTrans();
-            Console.WriteLine("Commit {0} records into the table mysqldb.company", index);
             ok = mysql.WaitAll();
             diff = (DateTime.Now - start).TotalMilliseconds;
             Console.WriteLine("Time required = {0} millseconds for {1} insert requests", diff, count);

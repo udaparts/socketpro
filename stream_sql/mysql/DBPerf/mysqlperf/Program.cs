@@ -80,7 +80,7 @@ class Program
             }
             ++index;
             res = cmdMysql.ExecuteNonQuery();
-            if (4000 == index)
+            if (2000 == index)
             {
                 sqlTran.Commit();
                 Console.WriteLine("Commit {0} records into the table mysqldb.company", index);
