@@ -164,7 +164,7 @@ void CDBUpdateImpl::Parse(const wchar_t *s) {
     m_vZip.push_back(zip);
 }
 
-SPA::UINT64 CDBUpdateImpl::NotifySocketProDatabaseEvent(unsigned int *group, unsigned int count, int dbEvent, const wchar_t *queryFilter, unsigned int *index, unsigned int size) {
+SPA::UINT64 CDBUpdateImpl::NotifySocketProDatabaseEvent(unsigned int *group, unsigned int count, SPA::UDB::tagUpdateEvent dbEvent, const wchar_t *queryFilter, unsigned int *index, unsigned int size) {
     if (size) {
         ::memset(index, 0, size * sizeof (unsigned int));
     }

@@ -1,6 +1,8 @@
 
 #pragma once
 
+#include "../../include/udatabase.h"
+
 class CAsyncDBUpdate : public SPA::ClientSide::CAsyncServiceHandler {
 public:
 
@@ -18,7 +20,7 @@ public:
 
 public:
     unsigned int SetSocketProConnectionString(const wchar_t *connectionString);
-    SPA::UINT64 NotifySocketProDatabaseEvent(unsigned int *group, unsigned int count, int dbEvent, const wchar_t *queryFilter, unsigned int *index, unsigned int size);
+    SPA::UINT64 NotifySocketProDatabaseEvent(unsigned int *group, unsigned int count, SPA::UDB::tagUpdateEvent dbEvent, const wchar_t *queryFilter, unsigned int *index, unsigned int size);
     SPA::UINT64 GetSocketProConnections(unsigned int *index, unsigned int size);
 
 private:

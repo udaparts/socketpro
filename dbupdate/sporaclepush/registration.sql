@@ -60,12 +60,12 @@ select SetConnectionString('host=localhost;port=20901;userid=udatabase_update;pw
 /
 
 /*
-Calling the function sends a string message (2/rental_id=12@localhost.mysql.sakila.rental) to all connected servers,
+Calling the function sends a string message (1/rental_id=12@localhost.mysql.sakila.rental) to all connected servers,
 and returns a sending status string to all remote SocketPro servers (1 -- success and 0 -- fail).
 
 The last input ('1,2') is a list of chat (notification or topic) group identification numbers.
 */
-select NotifyDatabaseEvent(2, 'rental_id=12@localhost.mysql.sakila.rental', '1,2') as Res from dual
+select NotifyDatabaseEvent(1, 'rental_id=12@localhost.mysql.sakila.rental', '1,2') as Res from dual
 /
 
 /*

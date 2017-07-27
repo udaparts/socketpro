@@ -39,7 +39,7 @@ void SQL_API_FN NotifyDatabaseEvent(SQLUDF_INTEGER *et, SQLUDF_VARCHAR *queryFil
     SPA::CScopeUQueue sb;
     unsigned int *index = (unsigned int *) sb->GetBuffer();
     unsigned int count = sb->GetMaxSize() / sizeof (unsigned int);
-    SPA::UINT64 ret = NotifySocketProDatabaseEvent(vGroup.data(), (unsigned int) vGroup.size(), eventType, SPA::Utilities::ToWide(sqlFilter.c_str()).c_str(), index, sb->GetMaxSize() / sizeof (unsigned int));
+    SPA::UINT64 ret = NotifySocketProDatabaseEvent(vGroup.data(), (unsigned int) vGroup.size(), (SPA::UDB::tagUpdateEvent)eventType, SPA::Utilities::ToWide(sqlFilter.c_str()).c_str(), index, sb->GetMaxSize() / sizeof (unsigned int));
     unsigned int suc = (unsigned int) ret;
     unsigned int fail = (unsigned int) (ret >> 32);
     if (count > suc + fail)

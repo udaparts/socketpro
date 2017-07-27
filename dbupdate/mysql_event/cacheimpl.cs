@@ -14,26 +14,6 @@ public class CMySqlCachePeer : CClientPeer
 
     private const ushort idQuerying = ((ushort)tagBaseRequestID.idReservedTwo + 2048);
 
-    /// <summary>
-    /// Predefined event types
-    /// </summary>
-    public enum EventType
-    {
-        /// <summary>
-        /// Record added -- 1
-        /// </summary>
-        etAdd = 1,
-
-        /// <summary>
-        /// Record updated -- 2
-        /// </summary>
-        etUpdate = 2,
-
-        /// <summary>
-        /// Record deleted -- 3
-        /// </summary>
-        etDelete = 3
-    }
 
     /// <summary>
     /// Cache source information structure
@@ -130,7 +110,7 @@ public class CMySqlCachePeer : CClientPeer
         Console.WriteLine("Going to update server real-time cache: <" + str + "> from " + host);
 #endif
         string[] sep = str.Split('/', '@');
-        EventType eventType = (EventType)int.Parse(sep[0]); //event type integer
+        SocketProAdapter.UDB.tagUpdateEvent eventType = (SocketProAdapter.UDB.tagUpdateEvent)int.Parse(sep[0]); //event type integer
         string filter = sep[1]; //valid sql filter
         string tableName = sep[2]; //valid datatable name
 
@@ -202,7 +182,7 @@ public class CMySqlCachePeer : CClientPeer
         return errMsg;
     }
 
-    private static void HandleCache(string ipAddr, string tableName, string filter, EventType et)
+    private static void HandleCache(string ipAddr, string tableName, string filter, SocketProAdapter.UDB.tagUpdateEvent et)
     {
         lock (m_cs)
         {
@@ -224,8 +204,8 @@ public class CMySqlCachePeer : CClientPeer
             DataTable dt = ds.Tables[tableName];
             switch (et)
             {
-                case EventType.etAdd:
-                case EventType.etUpdate:
+                case SocketProAdapter.UDB.tagUpdateEvent.ueInsert:
+                case SocketProAdapter.UDB.tagUpdateEvent.ueUpdate:
                     do
                     {
                         MySqlConnection conn = null;
@@ -262,7 +242,7 @@ public class CMySqlCachePeer : CClientPeer
                         }
                     } while (false);
                     break;
-                case EventType.etDelete:
+                case SocketProAdapter.UDB.tagUpdateEvent.ueDelete:
                     {
                         var rows = dt.Select(filter);
                         foreach (var row in rows)
