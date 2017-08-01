@@ -89,6 +89,7 @@
           <developmentMode>5</developmentMode>
         </asmTool>
         <linkerTool>
+          <stripSymbols>true</stripSymbols>
           <linkerLibItems>
             <linkerLibStdlibItem>PosixThreads</linkerLibStdlibItem>
             <linkerLibStdlibItem>DynamicLinking</linkerLibStdlibItem>
