@@ -2,6 +2,7 @@
 //
 
 #include "stdafx.h"
+#include "../../include/udatabase.h"
 
 int main(int argc, char* argv[])
 {
@@ -21,11 +22,10 @@ int main(int argc, char* argv[])
 	res = GetSocketProConnections(index, sizeof(index)/sizeof(unsigned int));
 
 	unsigned int group[2] = {1, 2};
-	//receiver will obtain the following string like "2/rental_id=12@localhost.mysql.sakila.rental"
-	SPA::UINT64 ret = NotifySocketProDatabaseEvent(group, sizeof(group)/sizeof(unsigned int), 2, L"rental_id=12@localhost.mysql.sakila.rental", index, sizeof(index)/sizeof(unsigned int));
+	//receiver will obtain the following string like "1/rental_id=12@localhost.mysql.sakila.rental"
+	SPA::UINT64 ret = NotifySocketProDatabaseEvent(group, sizeof(group)/sizeof(unsigned int), SPA::UDB::ueUpdate, L"rental_id=12@localhost.mysql.sakila.rental", index, sizeof(index)/sizeof(unsigned int));
 	
 	//all sockets will be closed if connection string is null or empty
 	count = SetSocketProConnectionString(nullptr);
 	return 0;
 }
-

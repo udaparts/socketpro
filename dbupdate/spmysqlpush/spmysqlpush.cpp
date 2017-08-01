@@ -68,7 +68,7 @@ char* NotifyDatabaseEvent(UDF_INIT *initid, UDF_ARGS *args, char *result, unsign
     SPA::CScopeUQueue sb;
     unsigned int *index = (unsigned int *) sb->GetBuffer();
     unsigned int count = sb->GetMaxSize() / sizeof (unsigned int);
-    SPA::UINT64 res = NotifySocketProDatabaseEvent(vGroup.data(), (unsigned int) vGroup.size(), (int) eventType, SPA::Utilities::ToWide(sqlFilter.c_str()).c_str(), index, count);
+    SPA::UINT64 res = NotifySocketProDatabaseEvent(vGroup.data(), (unsigned int) vGroup.size(), (SPA::UDB::tagUpdateEvent) eventType, SPA::Utilities::ToWide(sqlFilter.c_str()).c_str(), index, count);
     unsigned int suc = (unsigned int) res;
     unsigned int fail = (unsigned int) (res >> 32);
     if (count > suc + fail)

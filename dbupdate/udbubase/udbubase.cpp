@@ -14,7 +14,7 @@ SPA::UINT64 WINAPI GetSocketProConnections(unsigned int *index, unsigned int siz
     return CDBUpdateImpl::DBUpdate.GetSocketProConnections(index, size);
 }
 
-SPA::UINT64 WINAPI NotifySocketProDatabaseEvent(unsigned int *group, unsigned int count, int dbEvent, const wchar_t *queryFilter, unsigned int *index, unsigned int size) {
+SPA::UINT64 WINAPI NotifySocketProDatabaseEvent(unsigned int *group, unsigned int count, SPA::UDB::tagUpdateEvent dbEvent, const wchar_t *queryFilter, unsigned int *index, unsigned int size) {
     if (!group || !count)
         return 0;
     if (!index)

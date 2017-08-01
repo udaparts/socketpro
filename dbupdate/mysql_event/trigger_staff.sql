@@ -5,7 +5,7 @@ BEGIN
     DECLARE msg VARCHAR(128);
     DECLARE res VARCHAR(16);
     SET msg = CONCAT('staff_id=', new.staff_id, '@sakila.staff');
-	SELECT NotifyCache(1, msg) INTO res;
+	SELECT NotifyCache(0, msg) INTO res;
 END;
 @@
 CREATE TRIGGER sakila_staff_trigger_update
@@ -14,7 +14,7 @@ BEGIN
     DECLARE msg VARCHAR(128);
     DECLARE res VARCHAR(16);
     SET msg = CONCAT('staff_id=', new.staff_id, '@sakila.staff');
-	SELECT NotifyCache(2, msg) INTO res;
+	SELECT NotifyCache(1, msg) INTO res;
 END;
 @@
 CREATE TRIGGER sakila_staff_trigger_delete
@@ -23,5 +23,5 @@ BEGIN
     DECLARE msg VARCHAR(128);
     DECLARE res VARCHAR(16);
     SET msg = CONCAT('staff_id=', old.staff_id, '@sakila.staff');
-	SELECT NotifyCache(3, msg) INTO res;
+	SELECT NotifyCache(2, msg) INTO res;
 END;
