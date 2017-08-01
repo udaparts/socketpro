@@ -183,53 +183,15 @@ public final class CUQueue {
         }
         return t;
     }
-    /*
-     public <T> CUQueue Save(T t) {
-     String type = t.getClass().getTypeName();
-     switch (type) {
-     case "java.lang.Byte":
-     Save((Byte) t);
-     break;
-     case "byte[]":
-     Save((byte[]) t);
-     break;
-     case "java.lang.Boolean":
-     Save((Boolean) t);
-     break;
-     case "java.lang.Short":
-     Save((Short) t);
-     break;
-     case "java.lang.Integer":
-     Save((Integer) t);
-     break;
-     case "java.lang.Long":
-     Save((Long) t);
-     break;
-     case "java.lang.Float":
-     Save((Float) t);
-     break;
-     case "java.lang.Double":
-     Save((Double) t);
-     break;
-     case "java.util.Date":
-     Save((java.util.Date) t);
-     break;
-     case "java.util.UUID":
-     Save((java.util.UUID) t);
-     break;
-     case "java.math.BigDecimal":
-     Save((java.math.BigDecimal) t);
-     break;
-     case "java.lang.String":
-     Save((String) t);
-     break;
-     default:
-     SaveObject(t);
-     break;
-     }
-     return this;
-     }
-     */
+
+    public final CUQueue Save(java.sql.Timestamp dt) throws IllegalArgumentException {
+        if (dt == null) {
+            throw new IllegalArgumentException("Timestamp dt can not be null");
+        }
+        short us = (short) ((dt.getNanos() / 1000) % 1000);
+        UDateTime udt = new UDateTime(dt, us);
+        return Save(udt.time);
+    }
 
     public final CUQueue Save(java.util.Date dt) throws IllegalArgumentException {
         if (dt == null) {
@@ -241,6 +203,15 @@ public final class CUQueue {
     public final java.util.Date LoadDate() {
         long d = LoadLong();
         return new UDateTime(d).get();
+    }
+
+    public final java.sql.Timestamp LoadTimestamp() {
+        long d = LoadLong();
+        long us = (d & 0xfffff);
+        UDateTime udt = new UDateTime(d);
+        java.sql.Timestamp dt = new java.sql.Timestamp(udt.get().getTime());
+        dt.setNanos((int) (us * 1000));
+        return dt;
     }
 
     public final CUQueue Save(CUQueue q) {
@@ -825,13 +796,13 @@ public final class CUQueue {
             }
             break;
             case tagVariantDataType.sdVT_DATE:
-                obj = LoadDate();
+                obj = LoadTimestamp();
                 break;
             case tagVariantDataType.sdVT_DATE | tagVariantDataType.sdVT_ARRAY: {
                 int len = LoadInt();
-                java.util.Date[] a = new java.util.Date[len];
+                java.sql.Timestamp[] a = new java.sql.Timestamp[len];
                 for (int n = 0; n < len; ++n) {
-                    a[n] = LoadDate();
+                    a[n] = LoadTimestamp();
                 }
                 obj = a;
             }
@@ -1047,6 +1018,21 @@ public final class CUQueue {
                     vt = (tagVariantDataType.sdVT_DATE | tagVariantDataType.sdVT_ARRAY);
                     Save(vt);
                     java.util.Date[] a = (java.util.Date[]) obj;
+                    Save(a.length);
+                    for (java.util.Date d : a) {
+                        Save(d);
+                    }
+                }
+                break;
+                case "java.sql.Timestamp":
+                    vt = tagVariantDataType.sdVT_DATE;
+                    Save(vt);
+                    Save((java.sql.Timestamp) obj);
+                    break;
+                case "[Ljava.sql.Timestamp;": {
+                    vt = (tagVariantDataType.sdVT_DATE | tagVariantDataType.sdVT_ARRAY);
+                    Save(vt);
+                    java.sql.Timestamp[] a = (java.sql.Timestamp[]) obj;
                     Save(a.length);
                     for (java.util.Date d : a) {
                         Save(d);
