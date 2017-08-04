@@ -54,14 +54,14 @@ int main(int argc, char* argv[]) {
     //optionally start a persistent queue at client side for auto failure recovery and once-only delivery
     //ok = pSqlite->GetAttachedClientSocket()->GetClientQueue().StartQueue("sqlite_queue", 24 * 3600, false); //time-to-live 1 day and true for encryption
 
-    CMyHandler::DResult dr = [](CMyHandler &handler, int res, const std::wstring & errMsg) {
+    CMyHandler::DResult dr = [](CMyHandler &handler, int res, const std::wstring & errMsg){
         if (res) {
             std::cout << "res = " << res;
             std::wcout << L", errMsg: " << errMsg << std::endl;
         }
     };
 
-    CMyHandler::DExecuteResult er = [&obtained, &ra](CMyHandler &handler, int res, const std::wstring &errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & vtId) {
+    CMyHandler::DExecuteResult er = [&obtained, &ra](CMyHandler &handler, int res, const std::wstring &errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & vtId){
         if (res) {
             std::cout << "affected = " << affected << ", fails = " << (unsigned int) (fail_ok >> 32) << ", oks = " << (unsigned int) fail_ok << ", res = " << res << ", errMsg: ";
             std::wcout << errMsg;
@@ -71,7 +71,7 @@ int main(int argc, char* argv[]) {
         ++obtained;
     };
 
-    CMyHandler::DRows r = [&ra](CMyHandler &handler, CDBVariantArray & vData) {
+    CMyHandler::DRows r = [&ra](CMyHandler &handler, CDBVariantArray & vData){
         //rowset data come here
         assert((vData.size() % handler.GetColumnInfo().size()) == 0);
         CDBVariantArray &row_data = ra.back().second;
@@ -81,7 +81,7 @@ int main(int argc, char* argv[]) {
         }
     };
 
-    CMyHandler::DRowsetHeader rh = [&ra](CMyHandler & handler) {
+    CMyHandler::DRowsetHeader rh = [&ra](CMyHandler & handler){
         //rowset header comes here
         auto &vColInfo = handler.GetColumnInfo();
         CPColumnRowset column_rowset_pair;
@@ -118,7 +118,70 @@ int main(int argc, char* argv[]) {
     ms d = std::chrono::duration_cast<ms>(stop - start);
     unsigned int diff = d.count();
 #endif
-    std::cout << "Time required = " << diff << " millseconds for " << obtained << " requests" << std::endl;
+    std::cout << "Time required = " << diff << " millseconds for " << obtained << " query requests" << std::endl;
+
+    ok = pSqlite->Open(L"", dr); //open a global database at remote server
+    ok = pSqlite->Execute(L"delete from company where id > 3");
+    const wchar_t *sql_insert_parameter = L"INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?)";
+    ok = pSqlite->Prepare(sql_insert_parameter, dr);
+    ok = pSqlite->WaitAll();
+    int index = 0;
+    count = 50000;
+    std::cout << std::endl;
+    std::cout << "Going to insert " << count << " records into the table mysqldb.company" << std::endl;
+#ifdef WIN32_64
+    dwStart = ::GetTickCount();
+#else
+    start = system_clock::now();
+#endif
+    CDBVariantArray vData;
+    ok = pSqlite->BeginTrans();
+    for (unsigned int n = 0; n < count; ++n) {
+        vData.push_back(n + 4);
+        int data = (n % 3);
+        switch (data) {
+            case 0:
+                vData.push_back("Google Inc.");
+                vData.push_back("1600 Amphitheatre Parkway, Mountain View, CA 94043, USA");
+                vData.push_back(66000000000.12);
+                break;
+            case 1:
+                vData.push_back("Microsoft Inc.");
+                vData.push_back("700 Bellevue Way NE- 22nd Floor, Bellevue, WA 98804, USA");
+                vData.push_back(93600000001.24);
+                break;
+            default:
+                vData.push_back("Apple Inc.");
+                vData.push_back("1 Infinite Loop, Cupertino, CA 95014, USA");
+                vData.push_back(234000000002.17);
+                break;
+        }
+        ++index;
+        //send 2000 sets of parameter data onto server for processing in batch
+        if (2000 == index) {
+            ok = pSqlite->Execute(vData, er);
+            ok = pSqlite->EndTrans();
+            vData.clear();
+            std::cout << "Commit " << index << " records into the table mysqldb.company" << std::endl;
+            ok = pSqlite->BeginTrans();
+            index = 0;
+        }
+    }
+    if (vData.size()) {
+        ok = pSqlite->Execute(vData, er);
+        std::cout << "Commit " << index << " records into the table mysqldb.company" << std::endl;
+    }
+    ok = pSqlite->EndTrans();
+    ok = pSqlite->WaitAll();
+#ifdef WIN32_64
+    diff = ::GetTickCount() - dwStart;
+#else
+    stop = system_clock::now();
+    d = std::chrono::duration_cast<ms>(stop - start);
+    diff = d.count();
+#endif
+    std::cout << "Time required = " << diff << " millseconds for " << count << " insert requests" << std::endl;
+
     std::cout << "Press any key to close the application ......" << std::endl;
     ::getchar();
     return 0;

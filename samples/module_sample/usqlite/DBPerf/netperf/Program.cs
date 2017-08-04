@@ -93,7 +93,64 @@ class Program
             if (!sync && ok)
                 ok = sqlite.WaitAll();
             double diff = (DateTime.Now - start).TotalMilliseconds;
-            Console.WriteLine("Time required = {0} millseconds for {1} requests", diff, obtained);
+            Console.WriteLine("Time required = {0} millseconds for {1} query requests", diff, obtained);
+
+            //you need to compile and run the sample project test_sharp before running the below code
+            ok = sqlite.Open("", dr); //open a global database at remote server
+            ok = sqlite.Execute("delete from company where id > 3");
+            string sql_insert_parameter = "INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?)";
+            ok = sqlite.Prepare(sql_insert_parameter, dr);
+            ok = sqlite.WaitAll();
+            int index = 0;
+            count = 50000;
+            Console.WriteLine();
+            Console.WriteLine("Going to insert {0} records into the table mysqldb.company", count);
+            start = DateTime.Now;
+            CDBVariantArray vData = new CDBVariantArray();
+            ok = sqlite.BeginTrans();
+            for (int n = 0; n < count; ++n)
+            {
+                vData.Add(n + 4);
+                int data = (n % 3);
+                switch (data)
+                {
+                    case 0:
+                        vData.Add("Google Inc.");
+                        vData.Add("1600 Amphitheatre Parkway, Mountain View, CA 94043, USA");
+                        vData.Add(66000000000.12);
+                        break;
+                    case 1:
+                        vData.Add("Microsoft Inc.");
+                        vData.Add("700 Bellevue Way NE- 22nd Floor, Bellevue, WA 98804, USA");
+                        vData.Add(93600000001.24);
+                        break;
+                    default:
+                        vData.Add("Apple Inc.");
+                        vData.Add("1 Infinite Loop, Cupertino, CA 95014, USA");
+                        vData.Add(234000000002.17);
+                        break;
+                }
+                ++index;
+                //send 2000 sets of parameter data onto server for processing in batch
+                if (2000 == index)
+                {
+                    ok = sqlite.Execute(vData, er);
+                    ok = sqlite.EndTrans();
+                    vData.Clear();
+                    Console.WriteLine("Commit {0} records into the table mysqldb.company", index);
+                    ok = sqlite.BeginTrans();
+                    index = 0;
+                }
+            }
+            if (vData.Count > 0)
+            {
+                ok = sqlite.Execute(vData, er);
+                Console.WriteLine("Commit {0} records into the table mysqldb.company", index);
+            }
+            ok = sqlite.EndTrans();
+            ok = sqlite.WaitAll();
+            diff = (DateTime.Now - start).TotalMilliseconds;
+            Console.WriteLine("Time required = {0} millseconds for {1} insert requests", diff, count);
             Console.WriteLine("Press any key to close the application ......");
             Console.ReadLine();
         }
