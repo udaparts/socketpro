@@ -17,10 +17,10 @@
     <logicalFolder name="SourceFiles"
                    displayName="Source Files"
                    projectFiles="true">
-      <itemPath>../../../../../include/aclientw.cpp</itemPath>
+      <itemPath>../../../../include/aclientw.cpp</itemPath>
       <itemPath>cppperf.cpp</itemPath>
-      <itemPath>../../../../../include/error_code.cpp</itemPath>
-      <itemPath>../../../../../include/membuffer.cpp</itemPath>
+      <itemPath>../../../../include/error_code.cpp</itemPath>
+      <itemPath>../../../../include/membuffer.cpp</itemPath>
     </logicalFolder>
     <logicalFolder name="TestFiles"
                    displayName="Test Files"
@@ -57,24 +57,9 @@
           </linkerLibItems>
         </linkerTool>
       </compileType>
-      <item path="../../../../../include/aclientw.cpp"
-            ex="false"
-            tool="0"
-            flavor2="0">
-      </item>
       <item path="../../../../../include/aclientw.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../../../../include/bvariant.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../../../../include/error_code.cpp"
-            ex="false"
-            tool="0"
-            flavor2="0">
-      </item>
-      <item path="../../../../../include/membuffer.cpp"
-            ex="false"
-            tool="0"
-            flavor2="0">
       </item>
       <item path="../../../../../include/membuffer.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -84,6 +69,12 @@
             ex="false"
             tool="3"
             flavor2="0">
+      </item>
+      <item path="../../../../include/aclientw.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="../../../../include/error_code.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="../../../../include/membuffer.cpp" ex="false" tool="0" flavor2="0">
       </item>
       <item path="cppperf.cpp" ex="false" tool="0" flavor2="0">
       </item>
@@ -118,24 +109,9 @@
           </linkerLibItems>
         </linkerTool>
       </compileType>
-      <item path="../../../../../include/aclientw.cpp"
-            ex="false"
-            tool="0"
-            flavor2="0">
-      </item>
       <item path="../../../../../include/aclientw.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../../../../include/bvariant.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../../../../include/error_code.cpp"
-            ex="false"
-            tool="0"
-            flavor2="0">
-      </item>
-      <item path="../../../../../include/membuffer.cpp"
-            ex="false"
-            tool="0"
-            flavor2="0">
       </item>
       <item path="../../../../../include/membuffer.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -145,6 +121,12 @@
             ex="false"
             tool="3"
             flavor2="0">
+      </item>
+      <item path="../../../../include/aclientw.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="../../../../include/error_code.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="../../../../include/membuffer.cpp" ex="false" tool="0" flavor2="0">
       </item>
       <item path="cppperf.cpp" ex="false" tool="0" flavor2="0">
       </item>
