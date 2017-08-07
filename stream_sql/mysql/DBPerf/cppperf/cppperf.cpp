@@ -20,9 +20,9 @@ int main(int argc, char* argv[]) {
     cc.Port = 20902;
     cc.UserId = L"root";
     cc.Password = L"Smash123";
-	std::string s;
-	std::cout << "Database name: " << std::endl;
-	std::getline(std::cin, s);
+    std::string s;
+    std::cout << "Database name: " << std::endl;
+    std::getline(std::cin, s);
     std::wstring dbName = SPA::Utilities::ToWide(s.c_str());
     std::cout << "Table name: " << std::endl;
     std::getline(std::cin, s);
@@ -122,7 +122,69 @@ int main(int argc, char* argv[]) {
     ms d = std::chrono::duration_cast<ms>(stop - start);
     unsigned int diff = d.count();
 #endif
-    std::cout << "Time required = " << diff << " millseconds for " << obtained << " requests" << std::endl;
+    std::cout << "Time required = " << diff << " milliseconds for " << obtained << " query requests" << std::endl;
+
+    ok = pMysql->Execute(L"USE mysqldb;delete from company where id > 3");
+    ok = pMysql->Execute(L"delete from company where id > 3");
+    const wchar_t *sql_insert_parameter = L"INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?)";
+    ok = pMysql->Prepare(sql_insert_parameter, dr);
+    ok = pMysql->WaitAll();
+    int index = 0;
+    count = 50000;
+    std::cout << std::endl;
+    std::cout << "Going to insert " << count << " records into the table mysqldb.company" << std::endl;
+#ifdef WIN32_64
+    dwStart = ::GetTickCount();
+#else
+    start = system_clock::now();
+#endif
+    CDBVariantArray vData;
+    ok = pMysql->BeginTrans();
+    for (unsigned int n = 0; n < count; ++n) {
+        vData.push_back(n + 4);
+        int data = (n % 3);
+        switch (data) {
+            case 0:
+                vData.push_back("Google Inc.");
+                vData.push_back("1600 Amphitheatre Parkway, Mountain View, CA 94043, USA");
+                vData.push_back(66000000000.12);
+                break;
+            case 1:
+                vData.push_back("Microsoft Inc.");
+                vData.push_back("700 Bellevue Way NE- 22nd Floor, Bellevue, WA 98804, USA");
+                vData.push_back(93600000001.24);
+                break;
+            default:
+                vData.push_back("Apple Inc.");
+                vData.push_back("1 Infinite Loop, Cupertino, CA 95014, USA");
+                vData.push_back(234000000002.17);
+                break;
+        }
+        ++index;
+        //send 2000 sets of parameter data onto server for processing in batch
+        if (2000 == index) {
+            ok = pMysql->Execute(vData, er);
+            ok = pMysql->EndTrans();
+            vData.clear();
+            std::cout << "Commit " << index << " records into the table mysqldb.company" << std::endl;
+            ok = pMysql->BeginTrans();
+            index = 0;
+        }
+    }
+    if (vData.size()) {
+        ok = pMysql->Execute(vData, er);
+        std::cout << "Commit " << index << " records into the table mysqldb.company" << std::endl;
+    }
+    ok = pMysql->EndTrans();
+    ok = pMysql->WaitAll();
+#ifdef WIN32_64
+    diff = ::GetTickCount() - dwStart;
+#else
+    stop = system_clock::now();
+    d = std::chrono::duration_cast<ms>(stop - start);
+    diff = d.count();
+#endif
+    std::cout << "Time required = " << diff << " milliseconds for " << count << " insert requests" << std::endl;
     std::cout << "Press any key to close the application ......" << std::endl;
     ::getchar();
     return 0;

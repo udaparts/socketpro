@@ -118,7 +118,7 @@ int main(int argc, char* argv[]) {
     ms d = std::chrono::duration_cast<ms>(stop - start);
     unsigned int diff = d.count();
 #endif
-    std::cout << "Time required = " << diff << " millseconds for " << obtained << " query requests" << std::endl;
+    std::cout << "Time required = " << diff << " milliseconds for " << obtained << " query requests" << std::endl;
 
     ok = pSqlite->Open(L"", dr); //open a global database at remote server
     ok = pSqlite->Execute(L"delete from company where id > 3");
@@ -180,7 +180,7 @@ int main(int argc, char* argv[]) {
     d = std::chrono::duration_cast<ms>(stop - start);
     diff = d.count();
 #endif
-    std::cout << "Time required = " << diff << " millseconds for " << count << " insert requests" << std::endl;
+    std::cout << "Time required = " << diff << " milliseconds for " << count << " insert requests" << std::endl;
 
     std::cout << "Press any key to close the application ......" << std::endl;
     ::getchar();

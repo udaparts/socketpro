@@ -91,7 +91,7 @@ class Program
         sqlTran.Commit();
         Console.WriteLine("Commit {0} records into the table mysqldb.company", index);
         diff = (DateTime.Now - start).TotalMilliseconds;
-        Console.WriteLine("Time required = {0} millseconds for {1} insert requests", diff, count);
+        Console.WriteLine("Time required = {0} milliseconds for {1} insert requests", diff, count);
         Console.WriteLine();
         Console.WriteLine("Press any key to shutdown the application ......");
         Console.ReadLine();

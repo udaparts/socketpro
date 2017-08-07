@@ -94,7 +94,7 @@ class Program
             if (!sync && ok)
                 ok = mysql.WaitAll();
             double diff = (DateTime.Now - start).TotalMilliseconds;
-            Console.WriteLine("Time required = {0} millseconds for {1} query requests", diff, obtained);
+            Console.WriteLine("Time required = {0} milliseconds for {1} query requests", diff, obtained);
 
             //you need to compile and run the sample project test_sharp before running the below code
             ok = mysql.Execute("USE mysqldb;delete from company where id > 3");
@@ -150,7 +150,7 @@ class Program
             ok = mysql.EndTrans();
             ok = mysql.WaitAll();
             diff = (DateTime.Now - start).TotalMilliseconds;
-            Console.WriteLine("Time required = {0} millseconds for {1} insert requests", diff, count);
+            Console.WriteLine("Time required = {0} milliseconds for {1} insert requests", diff, count);
             Console.WriteLine();
             Console.WriteLine("Press any key to close the application ......");
             Console.ReadLine();

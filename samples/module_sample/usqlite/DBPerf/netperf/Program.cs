@@ -93,7 +93,7 @@ class Program
             if (!sync && ok)
                 ok = sqlite.WaitAll();
             double diff = (DateTime.Now - start).TotalMilliseconds;
-            Console.WriteLine("Time required = {0} millseconds for {1} query requests", diff, obtained);
+            Console.WriteLine("Time required = {0} milliseconds for {1} query requests", diff, obtained);
 
             //you need to compile and run the sample project test_sharp before running the below code
             ok = sqlite.Open("", dr); //open a global database at remote server
@@ -150,10 +150,9 @@ class Program
             ok = sqlite.EndTrans();
             ok = sqlite.WaitAll();
             diff = (DateTime.Now - start).TotalMilliseconds;
-            Console.WriteLine("Time required = {0} millseconds for {1} insert requests", diff, count);
+            Console.WriteLine("Time required = {0} milliseconds for {1} insert requests", diff, count);
             Console.WriteLine("Press any key to close the application ......");
             Console.ReadLine();
         }
     }
 }
-
