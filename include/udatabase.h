@@ -87,6 +87,11 @@ namespace SPA {
             msODBC = 2,
         };
 
+        enum tagVTExt {
+            vteNormal = 0,
+            vteGuid = 1
+        };
+
         /**
          * Async database client/server just requires the following request identification numbers 
          */
@@ -149,33 +154,39 @@ namespace SPA {
 
         class CDBVariant : public CComVariant {
         public:
+            tagVTExt VtExt;
 
             CDBVariant(CDBVariant &&vtData) {
                 CDBVariant &me = *this;
                 me = (tagVARIANT&&)vtData;
+                VtExt = vtData.VtExt;
+                vtData.VtExt = vteNormal;
             }
 
             CDBVariant(CComVariant &&vtData) {
                 CDBVariant &me = *this;
                 me = (tagVARIANT&&)vtData;
+                VtExt = vteNormal;
             }
 
             CDBVariant(tagVARIANT &&vtData) {
                 CDBVariant &me = *this;
                 me = vtData;
+                VtExt = vteNormal;
             }
 
-            CDBVariant(const CDBVariant &vt) : CComVariant(vt) {
+            CDBVariant(const CDBVariant &vt) : CComVariant(vt), VtExt(vt.VtExt) {
             }
 
-            CDBVariant(const CComVariant &vt) : CComVariant(vt) {
+            CDBVariant(const CComVariant &vt) : CComVariant(vt), VtExt(vteNormal) {
             }
 
-            CDBVariant(const tagVARIANT &vt) : CComVariant(vt) {
+            CDBVariant(const tagVARIANT &vt) : CComVariant(vt), VtExt(vteNormal) {
             }
 
             CDBVariant() {
                 vt = VT_NULL;
+                VtExt = vteNormal;
             }
 
             CDBVariant(const GUID &uuid) {
@@ -186,15 +197,18 @@ namespace SPA {
                 ::memcpy(buffer, &uuid, sizeof (uuid));
                 ::SafeArrayUnaccessData(parray);
                 vt = (VT_ARRAY | VT_UI1);
+                VtExt = vteGuid;
             }
 
             template <typename type>
             CDBVariant(const type& src) : CComVariant(src) {
+                VtExt = vteNormal;
             }
 
             CDBVariant(const DECIMAL& src) {
                 decVal = src;
                 vt = VT_DECIMAL;
+                VtExt = vteNormal;
             }
 
             CDBVariant(const unsigned char *buffer, unsigned int bytes) {
@@ -211,6 +225,7 @@ namespace SPA {
                 } else {
                     vt = VT_NULL;
                 }
+                VtExt = vteNormal;
             }
 
             CDBVariant(const char* lpszSrc, unsigned int len = UQUEUE_NULL_LENGTH) {
@@ -230,6 +245,7 @@ namespace SPA {
                 } else {
                     vt = VT_NULL;
                 }
+                VtExt = vteNormal;
             }
 
             CDBVariant(const wchar_t* lpszSrc, unsigned int len = UQUEUE_NULL_LENGTH) {
@@ -242,14 +258,17 @@ namespace SPA {
                 } else {
                     vt = VT_NULL;
                 }
+                VtExt = vteNormal;
             }
 
             CDBVariant(const UDateTime &dt) : CComVariant(dt.time) {
                 vt = VT_DATE;
+                VtExt = vteNormal;
             }
 
             CDBVariant(const std::tm &st, unsigned int us = 0) : CComVariant(UDateTime(st, us).time) {
                 vt = VT_DATE;
+                VtExt = vteNormal;
             }
 
 #ifdef WIN32_64
@@ -261,6 +280,7 @@ namespace SPA {
                 } else {
                     vt = VT_NULL;
                 }
+                VtExt = vteNormal;
             }
 
             CDBVariant(double dblSrc, VARTYPE vtSrc = VT_R8/* or VT_DATE*/, unsigned short us = 0) : CComVariant(dblSrc, vtSrc) {
@@ -269,16 +289,19 @@ namespace SPA {
                     UDateTime udt(dblSrc, us);
                     this->ullVal = udt.time;
                 }
+                VtExt = vteNormal;
             }
 
             CDBVariant(const SYSTEMTIME &st, unsigned short us = 0) : CComVariant(UDateTime(st, us).time) {
                 vt = VT_DATE;
+                VtExt = vteNormal;
             }
 #else
 
             CDBVariant(const SYSTEMTIME &st) {
                 vt = VT_DATE;
                 ullVal = UDateTime(st).time;
+                VtExt = vteNormal;
             }
 #endif
         public:
@@ -290,18 +313,21 @@ namespace SPA {
             CDBVariant& operator=(const CDBVariant &vtData) {
                 CComVariant &me = *this;
                 me = vtData;
+                VtExt = vtData.VtExt;
                 return *this;
             }
 
             CDBVariant& operator=(const CComVariant &vtData) {
                 CComVariant &me = *this;
                 me = vtData;
+                VtExt = vteNormal;
                 return *this;
             }
 
             CDBVariant& operator=(const tagVARIANT &vtData) {
                 CComVariant &me = *this;
                 me = vtData;
+                VtExt = vteNormal;
                 return *this;
             }
 
@@ -321,12 +347,14 @@ namespace SPA {
                 } else {
                     vt = VT_NULL;
                 }
+                VtExt = vteNormal;
                 return *this;
             }
 
             CDBVariant& operator=(const wchar_t* lpszSrc) {
                 CComVariant &me = *this;
                 me = lpszSrc;
+                VtExt = vteNormal;
                 return *this;
             }
 
@@ -339,6 +367,7 @@ namespace SPA {
                 ::memcpy(buffer, &uuid, sizeof (uuid));
                 ::SafeArrayUnaccessData(parray);
                 vt = (VT_ARRAY | VT_UI1);
+                VtExt = vteGuid;
                 return *this;
             }
 
@@ -346,6 +375,7 @@ namespace SPA {
                 ::VariantClear(this);
                 decVal = src;
                 vt = VT_DECIMAL;
+                VtExt = vteNormal;
                 return *this;
             }
 
@@ -353,6 +383,7 @@ namespace SPA {
                 ::VariantClear(this);
                 vt = VT_DATE;
                 ullVal = dt.time;
+                VtExt = vteNormal;
                 return *this;
             }
 
@@ -360,6 +391,7 @@ namespace SPA {
                 ::VariantClear(this);
                 vt = VT_DATE;
                 ullVal = UDateTime(st).time;
+                VtExt = vteNormal;
                 return *this;
             }
 
@@ -367,6 +399,7 @@ namespace SPA {
                 ::VariantClear(this);
                 vt = VT_DATE;
                 ullVal = UDateTime(st).time;
+                VtExt = vteNormal;
                 return *this;
             }
 
@@ -377,11 +410,13 @@ namespace SPA {
                 if (vt == VT_EMPTY) {
                     vt = VT_NULL;
                 }
+                VtExt = vteNormal;
                 return *this;
             }
 
             CDBVariant& operator=(CComVariant &&vtData) {
                 *this = (tagVARIANT&&)vtData;
+                VtExt = vteNormal;
                 return *this;
             }
 
@@ -428,22 +463,43 @@ namespace SPA {
                 } else {
                     ::memcpy(this, &vtData, sizeof (vtData));
                 }
+                VtExt = vteNormal;
                 return *this;
             }
 
             CDBVariant& operator=(CDBVariant &&vtData) {
+                tagVTExt ve = VtExt;
                 *this = (tagVARIANT&&)vtData;
+                VtExt = vtData.VtExt;
+                vtData.VtExt = ve;
                 return *this;
             }
         };
 
         static CUQueue& operator<<(CUQueue &q, const CDBVariant &vt) {
-            q << (const tagVARIANT&) vt;
+            if (vteGuid == vt.VtExt && (vt.vt == (VT_ARRAY | VT_UI1)) && vt.parray->rgsabound->cElements == sizeof (GUID)) {
+                const VARTYPE type = VT_CLSID;
+                q.Push((const unsigned char*) &type, sizeof (type));
+                unsigned char *buffer;
+                ::SafeArrayAccessData(vt.parray, (void**) &buffer);
+                q.Push((const unsigned char *) buffer, sizeof (GUID));
+                ::SafeArrayUnaccessData(vt.parray);
+            } else {
+                q << (const tagVARIANT&) vt;
+            }
             return q;
         }
 
         static CUQueue& operator>>(CUQueue &q, CDBVariant &vt) {
+            tagVTExt vte = vteNormal;
+            if (q.GetSize() >= (sizeof (VARTYPE) + sizeof (GUID))) {
+                const VARTYPE *pvt = (const VARTYPE *) q.GetBuffer();
+                if (VT_CLSID == *pvt) {
+                    vte = vteGuid;
+                }
+            }
             q >> (tagVARIANT&) vt;
+            vt.VtExt = vte;
             return q;
         }
 

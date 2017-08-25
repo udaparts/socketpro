@@ -2779,6 +2779,8 @@ namespace SPA
                     VARTYPE vtP = d.vt;
                     if (vtP == VT_NULL || vtP == VT_EMPTY) {
                         continue;
+                    } else if (vteGuid == d.VtExt && (d.vt == (VT_ARRAY | VT_UI1)) && d.parray->rgsabound->cElements == sizeof (GUID)) {
+                        vtP = VT_CLSID;
                     }
 #ifndef WIN32_64
                     else if (vtP == (VT_UI2 | VT_ARRAY)) {
@@ -2809,11 +2811,7 @@ namespace SPA
                     }
 
                     if (vt != vtP) {
-                        if (vtP == (VT_ARRAY | VT_UI1) && d.parray->rgsabound->cElements == sizeof (GUID) && vt == VT_CLSID) {
-                            continue;
-                        } else {
-                            return false;
-                        }
+                        return false;
                     }
                 }
             }
@@ -2848,10 +2846,18 @@ namespace SPA
 #else
                             case (VT_UI2 | VT_ARRAY):
 #endif
-                            case (VT_UI1 | VT_ARRAY):
                             case (VT_I1 | VT_ARRAY):
                             case VT_BOOL:
                                 info.DataType = vt;
+                                break;
+                            case (VT_UI1 | VT_ARRAY):
+                                info.DataType = vt;
+                            {
+                                CDBVariant &d = m_vParam[r * (unsigned short) m_parameters + (unsigned short) col];
+                                if (d.VtExt == vteGuid && d.parray->rgsabound->cElements == sizeof (GUID)) {
+                                    info.DataType = VT_CLSID;
+                                }
+                            }
                                 break;
                             default:
                                 return false;
@@ -3092,6 +3098,7 @@ namespace SPA
                         break;
                 }
                 if (InputOutputType == SQL_PARAM_INPUT_OUTPUT && info.DataType == VT_VARIANT && (vtD.vt != VT_NULL && vtD.vt != VT_EMPTY)) {
+                    //sql_variant inputoutput parameter must be null when calling a stored procedure.
                     return false;
                 }
                 pLenInd[col] = 0;

@@ -571,10 +571,6 @@ class CAsyncDBHandler(CAsyncServiceHandler):
                     if not SendBlob(sb):
                         CScopeUQueue.Unlock(sb)
                         return False
-            elif isinstance(vt, uuid.UUID):
-                sb.SaveUShort(tagVariantDataType.sdVT_UI1 | tagVariantDataType.sdVT_ARRAY)
-                sb.SaveUInt(16)
-                sb.SaveUUID(vt)
             elif isinstance(vt, bytearray):
                 #send array of bytes
                 length = len(vt)

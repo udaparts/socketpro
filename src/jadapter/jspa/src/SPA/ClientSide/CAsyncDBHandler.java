@@ -324,13 +324,6 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                     }
                 }
                 break;
-                case "java.util.UUID": {
-                    java.util.UUID uuid = (java.util.UUID) vt;
-                    short uuid_type = (tagVariantDataType.sdVT_ARRAY | tagVariantDataType.sdVT_UI1);
-                    int len = 16;
-                    sb.Save(uuid_type).Save(len).Save(uuid);
-                }
-                break;
                 default:
                     sb.Save(vt);
                     break;
