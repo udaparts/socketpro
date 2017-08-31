@@ -25,3 +25,6 @@
     - Real-time cache for table update, insert and delete
     - Cancel supported fully
     - Async MySQL service is totally free to you
+	
+10. mysql-5.7.18: modified implementation files and pre-combined executable mysqld program for MySQL version 5.7.18.
+11. mysql-5.7.19: modified implementation files and pre-combined executable mysqld program for MySQL version 5.7.19.

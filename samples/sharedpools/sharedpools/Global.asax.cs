@@ -17,8 +17,16 @@ namespace SharedPools
         private static CSocketPool<CMysql> m_spRead = new CSocketPool<CMysql>();
         private static DataSet m_dsCache = new DataSet();
 
+        private static CConnectionContext m_ccMaster = new CConnectionContext("127.0.0.1", 20902, "root", "Smash123");
+        private static CConnectionContext []m_vSlave = {
+                                                           new CConnectionContext("127.0.0.1", 20902, "root", "Smash123"), 
+                                                           new CConnectionContext("127.0.0.1", 20902, "root", "Smash123"),
+                                                           new CConnectionContext("127.0.0.1", 20902, "root", "Smash123")
+                                                       };
+
         protected void Application_Start(object sender, EventArgs e)
         {
+            bool ok = m_spUpdate.StartSocketPool(m_ccMaster, 2, 1); //create one worker thread
 
         }
 
