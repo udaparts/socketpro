@@ -27,6 +27,7 @@ namespace test_cache
         private DataSet m_ds = null;
         private DMessage m_thread_message;
         private DSessionClose m_closed;
+        private object m_cs = new object();
 
         private void frmCache_Load(object sender, EventArgs e)
         {
@@ -145,8 +146,11 @@ namespace test_cache
         private void DbMessage(string message, DataTable dt)
         {
             txtMessage.Text = message;
-            dgvShow.Update();
-            dgvShow.Refresh();
+            lock (m_cs)
+            {
+                dgvShow.Update();
+                dgvShow.Refresh();
+            }
         }
 
         private void Push_OnPublish(CClientSocket sender, CMessageSender messageSender, uint[] group, object msg)
@@ -161,64 +165,69 @@ namespace test_cache
             tagUpdateEvent ue = (tagUpdateEvent)(int)vData[0];
 
             string table_name = vData[3].ToString() + "." + vData[4].ToString();
-            DataTable dt = m_ds.Tables[table_name];
-            DataColumn[] keys = dt.PrimaryKey;
-            int cols = dt.Columns.Count;
-            switch (ue)
+            lock (m_cs)
             {
-                case tagUpdateEvent.ueUpdate:
-                    {
-                        foreach (DataColumn dc in keys)
+                DataTable dt = m_ds.Tables[table_name];
+                if (dt == null)
+                    return;
+                DataColumn[] keys = dt.PrimaryKey;
+                int cols = dt.Columns.Count;
+                switch (ue)
+                {
+                    case tagUpdateEvent.ueUpdate:
                         {
-                            KeyValuePair<DataColumn, object> kv = new KeyValuePair<DataColumn, object>(dc, vData[5 + 2 * dc.Ordinal]);
-                            vKeyVal.Add(kv);
+                            foreach (DataColumn dc in keys)
+                            {
+                                KeyValuePair<DataColumn, object> kv = new KeyValuePair<DataColumn, object>(dc, vData[5 + 2 * dc.Ordinal]);
+                                vKeyVal.Add(kv);
+                            }
+                            DataRow dr = FindRowByKeys(dt, vKeyVal, ue, out filter);
+                            for (int n = 0; n < cols; ++n)
+                            {
+                                if (dt.Columns[n].ReadOnly)
+                                    continue;
+                                object d = vData[5 + 2 * n + 1];
+                                dr[n] = d;
+                            }
+                            message = "Table " + table_name + " updated for row (" + filter + ")";
                         }
-                        DataRow dr = FindRowByKeys(dt, vKeyVal, ue, out filter);
-                        for (int n = 0; n < cols; ++n)
+                        break;
+                    case tagUpdateEvent.ueDelete:
                         {
-                            if (dt.Columns[n].ReadOnly)
-                                continue;
-                            object d = vData[5 + 2 * n + 1];
-                            dr[n] = d;
+                            int index = 0;
+                            foreach (DataColumn dc in keys)
+                            {
+                                KeyValuePair<DataColumn, object> kv = new KeyValuePair<DataColumn, object>(dc, vData[5 + index]);
+                                vKeyVal.Add(kv);
+                                ++index;
+                            }
+                            dt.Rows.Remove(FindRowByKeys(dt, vKeyVal, ue, out filter));
+                            message = "Table " + table_name + " deleted for row (" + filter + ")";
                         }
-                        message = "Table " + table_name + " updated for row (" + filter + ")";
-                    }
-                    break;
-                case tagUpdateEvent.ueDelete:
-                    {
-                        int index = 0;
-                        foreach (DataColumn dc in keys)
+                        break;
+                    case tagUpdateEvent.ueInsert:
                         {
-                            KeyValuePair<DataColumn, object> kv = new KeyValuePair<DataColumn, object>(dc, vData[5 + index]);
-                            vKeyVal.Add(kv);
-                            ++index;
+                            foreach (DataColumn dc in keys)
+                            {
+                                KeyValuePair<DataColumn, object> kv = new KeyValuePair<DataColumn, object>(dc, vData[5 + dc.Ordinal]);
+                                vKeyVal.Add(kv);
+                            }
+                            DataRow dr = FindRowByKeys(dt, vKeyVal, ue, out filter); //generate filter only
+                            dr = dt.NewRow();
+                            for (int n = 0; n < cols; ++n)
+                            {
+                                dr[n] = vData[5 + n];
+                            }
+                            dt.Rows.Add(dr);
+                            message = "Table " + table_name + " inserted for row (" + filter + ")";
                         }
-                        dt.Rows.Remove(FindRowByKeys(dt, vKeyVal, ue, out filter));
-                        message = "Table " + table_name + " deleted for row (" + filter + ")";
-                    }
-                    break;
-                case tagUpdateEvent.ueInsert:
-                    {
-                        foreach (DataColumn dc in keys)
-                        {
-                            KeyValuePair<DataColumn, object> kv = new KeyValuePair<DataColumn, object>(dc, vData[5 + dc.Ordinal]);
-                            vKeyVal.Add(kv);
-                        }
-                        DataRow dr = FindRowByKeys(dt, vKeyVal, ue, out filter); //generate filter only
-                        dr = dt.NewRow();
-                        for (int n = 0; n < cols; ++n)
-                        {
-                            dr[n] = vData[5 + n];
-                        }
-                        dt.Rows.Add(dr);
-                        message = "Table " + table_name + " inserted for row (" + filter + ")";
-                    }
-                    break;
-                default:
-                    message = "Unknown DB message found"; //shouldn't come here
-                    break;
+                        break;
+                    default:
+                        message = "Unknown DB message found"; //shouldn't come here
+                        break;
+                }
+                BeginInvoke(m_thread_message, message, dt);
             }
-            BeginInvoke(m_thread_message, message, dt);
         }
 
         private void btnDisconnect_Click(object sender, EventArgs e)
@@ -229,8 +238,11 @@ namespace test_cache
         private void lstTables_SelectedIndexChanged(object sender, EventArgs e)
         {
             int index = lstTables.SelectedIndex;
-            dgvShow.DataSource = m_ds.Tables[index];
-            dgvShow.Update();
+            lock (m_cs)
+            {
+                dgvShow.DataSource = m_ds.Tables[index];
+                dgvShow.Update();
+            }
         }
     }
 }
