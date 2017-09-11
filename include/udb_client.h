@@ -267,7 +267,7 @@ namespace SPA {
                     meta = false;
                 }
 
-				//make sure all parameter data sendings and ExecuteParameters sending as one combination sending
+                //make sure all parameter data sendings and ExecuteParameters sending as one combination sending
                 //to avoid possible request sending overlapping within multiple threading environment
                 CAutoLock alOne(m_csOneSending);
 
@@ -494,7 +494,7 @@ namespace SPA {
                 unsigned int flags;
                 std::wstring connection;
 
-				//make sure BeginTrans sending and underlying client persistent message queue as one combination sending
+                //make sure BeginTrans sending and underlying client persistent message queue as one combination sending
                 //to avoid possible request sending/client message writing overlapping within multiple threading environment
                 CAutoLock alOne(m_csOneSending);
 
@@ -505,7 +505,7 @@ namespace SPA {
                     connection = m_strConnection;
                     flags = m_flags;
                 }
-				//associate begin transaction with underlying client persistent message queue
+                //associate begin transaction with underlying client persistent message queue
                 bool queueOk = GetAttachedClientSocket()->GetClientQueue().StartJob();
                 bool ok = SendRequest(idBeginTrans, (int) isolation, connection, flags, [handler, this](CAsyncResult & ar) {
                     int res, ms;
@@ -526,10 +526,10 @@ namespace SPA {
                         handler(*this, res, errMsg);
                     }
                 });
-				if (!ok && queueOk) {
-					GetAttachedClientSocket()->GetClientQueue().AbortJob();
-				}
-				return ok;
+                if (!ok && queueOk) {
+                    GetAttachedClientSocket()->GetClientQueue().AbortJob();
+                }
+                return ok;
             }
 
             /**
@@ -540,7 +540,7 @@ namespace SPA {
              */
             virtual bool EndTrans(tagRollbackPlan plan = rpDefault, DResult handler = DResult()) {
 
-				//make sure EndTrans sending and underlying client persistent message queue as one combination sending
+                //make sure EndTrans sending and underlying client persistent message queue as one combination sending
                 //to avoid possible request sending/client message writing overlapping within multiple threading environment
                 CAutoLock alOne(m_csOneSending);
 
@@ -558,7 +558,7 @@ namespace SPA {
                             handler(*this, res, errMsg);
                         }
                     })) {
-				//associate end transaction with underlying client persistent message queue
+                //associate end transaction with underlying client persistent message queue
                 GetAttachedClientSocket()->GetClientQueue().EndJob();
                 return true;
             }
