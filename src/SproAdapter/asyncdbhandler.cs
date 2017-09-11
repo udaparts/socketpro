@@ -703,7 +703,8 @@ namespace SocketProAdapter
                     meta = false;
                 ulong callIndex;
 
-                //make sure all parameter data sendings and ExecuteParameters sending as one combination sending within multiple threading environment
+                //make sure all parameter data sendings and ExecuteParameters sending as one combination sending
+                //to avoid possible request sending overlapping within multiple threading environment
                 lock (m_csOneSending) 
                 {
                     if (!SendParametersData(vParam))
@@ -1038,6 +1039,8 @@ namespace SocketProAdapter
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
             public virtual bool EndTrans(tagRollbackPlan plan, DResult handler)
             {
+                //make sure EndTrans sending and underlying client persistent message queue as one combination sending
+                //to avoid possible request sending/client message writing overlapping within multiple threading environment
                 lock (m_csOneSending)
                 {
                     if (SendRequest(idEndTrans, (int)plan, (ar) =>
@@ -1095,17 +1098,20 @@ namespace SocketProAdapter
             {
                 uint flags;
                 string connection;
+                //make sure BeginTrans sending and underlying client persistent message queue as one combination sending
+                //to avoid possible request sending/client message writing overlapping within multiple threading environment
                 lock (m_csOneSending)
                 {
-                    //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
+                    //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
+                    //in case a client asynchronously sends lots of requests without use of client side queue.
                     lock (m_csDB)
                     {
                         connection = m_strConnection;
                         flags = m_flags;
                     }
-                    //associate begin transaction with underlying client persistet message queue
-                    AttachedClientSocket.ClientQueue.StartJob();
-                    return SendRequest(idBeginTrans, (int)isolation, connection, flags, (ar) =>
+                    //associate begin transaction with underlying client persistent message queue
+                    bool queueOk = AttachedClientSocket.ClientQueue.StartJob();
+                    bool ok = SendRequest(idBeginTrans, (int)isolation, connection, flags, (ar) =>
                     {
                         int res, ms;
                         string errMsg;
@@ -1128,6 +1134,11 @@ namespace SocketProAdapter
                             handler(this, res, errMsg);
                         }
                     });
+                    if (!ok && queueOk)
+                    {
+                        AttachedClientSocket.ClientQueue.AbortJob();
+                    }
+                    return ok;
                 }
             }
 

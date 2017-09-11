@@ -394,17 +394,16 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      */
     public boolean Close(DResult handler) {
         MyCallback<DResult> cb = new MyCallback<>(idClose, handler);
-        synchronized (m_csOne) {
-            //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
+        //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
+        //in case a client asynchronously sends lots of requests without use of client side queue.
+        synchronized (m_csDB) {
+            m_deqResult.add(cb);
+        }
+        if (!SendRequest(idClose, null)) {
             synchronized (m_csDB) {
-                m_deqResult.add(cb);
+                m_deqResult.remove(cb);
             }
-            if (!SendRequest(idClose, null)) {
-                synchronized (m_csDB) {
-                    m_deqResult.remove(cb);
-                }
-                return false;
-            }
+            return false;
         }
         return true;
     }
@@ -450,10 +449,15 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
     public boolean BeginTrans(tagTransactionIsolation isolation, DResult handler) {
         MyCallback<DResult> cb = new MyCallback<>(idBeginTrans, handler);
         CUQueue sb = CScopeUQueue.Lock();
-        synchronized (m_csOne) {
-            //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
+        //make sure BeginTrans sending and underlying client persistent message queue as one combination sending
+        //to avoid possible request sending/client message writing overlapping within multiple threading environment
+        synchronized (m_csOneSending) {
+            boolean queueOk;
+            //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
+            //in case a client asynchronously sends lots of requests without use of client side queue.
             synchronized (m_csDB) {
-                getAttachedClientSocket().getClientQueue().StartJob();
+                //associate begin transaction with underlying client persistent message queue
+                queueOk = getAttachedClientSocket().getClientQueue().StartJob();
                 sb.Save(isolation.getValue()).Save(m_strConnection).Save(m_flags);
                 m_deqResult.add(cb);
             }
@@ -462,6 +466,9 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                     m_deqResult.remove(cb);
                 }
                 CScopeUQueue.Unlock(sb);
+                if (queueOk) {
+                    getAttachedClientSocket().getClientQueue().AbortJob();
+                }
                 return false;
             }
         }
@@ -512,13 +519,17 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
         MyCallback<DResult> cb = new MyCallback<>(idEndTrans, handler);
         CUQueue sb = CScopeUQueue.Lock();
         sb.Save(plan.getValue());
-        synchronized (m_csOne) {
-            //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
+        //make sure EndTrans sending and underlying client persistent message queue as one combination sending
+        //to avoid possible request sending/client message writing overlapping within multiple threading environment
+        synchronized (m_csOneSending) {
+            //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
+            //in case a client asynchronously sends lots of requests without use of client side queue.
             synchronized (m_csDB) {
                 m_deqResult.add(cb);
             }
             ok = SendRequest(idEndTrans, sb, null);
             if (ok) {
+                //associate end transaction with underlying client persistent message queue
                 getAttachedClientSocket().getClientQueue().EndJob();
             } else {
                 m_deqResult.remove(cb);
@@ -583,25 +594,25 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
         MyCallback<DResult> cb = new MyCallback<>(idOpen, handler);
         CUQueue sb = CScopeUQueue.Lock();
         sb.Save(strConnection).Save(flags);
-        synchronized (m_csOne) {
-            //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
-            synchronized (m_csDB) {
-                m_flags = flags;
-                if (strConnection != null) {
-                    str = m_strConnection;
-                    m_strConnection = strConnection;
-                }
-                m_deqResult.add(cb);
+
+        //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
+        //in case a client asynchronously sends lots of requests without use of client side queue.
+        synchronized (m_csDB) {
+            m_flags = flags;
+            if (strConnection != null) {
+                str = m_strConnection;
+                m_strConnection = strConnection;
             }
-            if (SendRequest(idOpen, sb, null)) {
-                CScopeUQueue.Unlock(sb);
-                return true;
-            } else {
-                synchronized (m_csDB) {
-                    m_deqResult.remove(cb);
-                    if (strConnection != null) {
-                        m_strConnection = str;
-                    }
+            m_deqResult.add(cb);
+        }
+        if (SendRequest(idOpen, sb, null)) {
+            CScopeUQueue.Unlock(sb);
+            return true;
+        } else {
+            synchronized (m_csDB) {
+                m_deqResult.remove(cb);
+                if (strConnection != null) {
+                    m_strConnection = str;
                 }
             }
         }
@@ -657,18 +668,17 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
         }
         boolean ok;
         MyCallback<DResult> cb = new MyCallback<>(idOpen, handler);
-        synchronized (m_csOne) {
-            //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
+        //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
+        //in case a client asynchronously sends lots of requests without use of client side queue.
+        synchronized (m_csDB) {
+            m_deqResult.add(cb);
+        }
+        if (SendRequest(idPrepare, sb, null)) {
+            ok = true;
+        } else {
+            ok = false;
             synchronized (m_csDB) {
-                m_deqResult.add(cb);
-            }
-            if (SendRequest(idPrepare, sb, null)) {
-                ok = true;
-            } else {
-                ok = false;
-                synchronized (m_csDB) {
-                    m_deqResult.remove(cb);
-                }
+                m_deqResult.remove(cb);
             }
         }
         CScopeUQueue.Unlock(sb);
@@ -773,27 +783,27 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
         sb.Save(rowset);
         sb.Save(meta);
         sb.Save(lastInsertId);
-        synchronized (m_csOne) {
-            //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
+
+        //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
+        //in case a client asynchronously sends lots of requests without use of client side queue.
+        synchronized (m_csDB) {
+            ++m_nCall;
+            sb.Save(m_nCall);
+            if (rowset) {
+                m_mapRowset.put(m_nCall, new Pair<>(rh, row));
+            }
+            m_deqExecuteResult.add(cb);
+            index = m_nCall;
+        }
+        if (!SendRequest(idExecute, sb, null)) {
             synchronized (m_csDB) {
-                ++m_nCall;
-                sb.Save(m_nCall);
+                m_deqExecuteResult.remove(cb);
                 if (rowset) {
-                    m_mapRowset.put(m_nCall, new Pair<>(rh, row));
+                    m_mapRowset.remove(index);
                 }
-                m_deqExecuteResult.add(cb);
-                index = m_nCall;
             }
-            if (!SendRequest(idExecute, sb, null)) {
-                synchronized (m_csDB) {
-                    m_deqExecuteResult.remove(cb);
-                    if (rowset) {
-                        m_mapRowset.remove(index);
-                    }
-                }
-                CScopeUQueue.Unlock(sb);
-                return false;
-            }
+            CScopeUQueue.Unlock(sb);
+            return false;
         }
         CScopeUQueue.Unlock(sb);
         return true;
@@ -912,14 +922,19 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
         long index;
         MyCallback<DExecuteResult> cb = new MyCallback<>(idExecuteParameters, handler);
         CUQueue sb = CScopeUQueue.Lock();
-        synchronized (m_csOne) {
+
+        //make sure all parameter data sendings and ExecuteParameters sending as one combination sending
+        //to avoid possible request sending overlapping within multiple threading environment
+        synchronized (m_csOneSending) {
             if (!SendParametersData(vParam)) {
                 return false;
             }
             sb.Save(rowset);
             sb.Save(meta);
             sb.Save(lastInsertId);
-            //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
+
+            //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
+            //in case a client asynchronously sends lots of requests without use of client side queue.
             synchronized (m_csDB) {
                 ++m_nCall;
                 sb.Save(m_nCall);
@@ -946,7 +961,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
         return true;
     }
 
-    final protected Object m_csOne = new Object();
+    final private Object m_csOneSending = new Object();
 
     @Override
     protected void OnResultReturned(short reqId, CUQueue mc) {

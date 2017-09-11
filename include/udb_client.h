@@ -266,7 +266,11 @@ namespace SPA {
                 if (!rowset) {
                     meta = false;
                 }
-                CAutoLock alOne(m_csCall);
+
+				//make sure all parameter data sendings and ExecuteParameters sending as one combination sending
+                //to avoid possible request sending overlapping within multiple threading environment
+                CAutoLock alOne(m_csOneSending);
+
                 {
                     if (!SendParametersData(vParam)) {
                         Clean();
@@ -333,9 +337,9 @@ namespace SPA {
                 if (!rowset) {
                     meta = false;
                 }
-                CAutoLock alOne(m_csCall);
                 {
-                    //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
+                    //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
+                    //in case a client asynchronously sends lots of requests without use of client side queue.
                     CAutoLock al(m_csDB);
                     index = ++m_nCall;
                     if (rowset) {
@@ -379,9 +383,9 @@ namespace SPA {
              */
             virtual bool Open(const wchar_t* strConnection, DResult handler, unsigned int flags = 0) {
                 std::wstring s;
-                CAutoLock alOne(m_csCall);
                 {
-                    //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
+                    //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
+                    //in case a client asynchronously sends lots of requests without use of client side queue.
                     CAutoLock al(m_csDB);
                     m_flags = flags;
                     if (strConnection) {
@@ -489,15 +493,21 @@ namespace SPA {
             virtual bool BeginTrans(tagTransactionIsolation isolation = tiReadCommited, DResult handler = DResult()) {
                 unsigned int flags;
                 std::wstring connection;
-                CAutoLock alOne(m_csCall);
+
+				//make sure BeginTrans sending and underlying client persistent message queue as one combination sending
+                //to avoid possible request sending/client message writing overlapping within multiple threading environment
+                CAutoLock alOne(m_csOneSending);
+
                 {
-                    //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
+                    //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
+                    //in case a client asynchronously sends lots of requests without use of client side queue.
                     CAutoLock al(m_csDB);
                     connection = m_strConnection;
                     flags = m_flags;
                 }
-                GetAttachedClientSocket()->GetClientQueue().StartJob();
-                return SendRequest(idBeginTrans, (int) isolation, connection, flags, [handler, this](CAsyncResult & ar) {
+				//associate begin transaction with underlying client persistent message queue
+                bool queueOk = GetAttachedClientSocket()->GetClientQueue().StartJob();
+                bool ok = SendRequest(idBeginTrans, (int) isolation, connection, flags, [handler, this](CAsyncResult & ar) {
                     int res, ms;
                     std::wstring errMsg;
                             ar >> res >> errMsg >> ms;
@@ -516,6 +526,10 @@ namespace SPA {
                         handler(*this, res, errMsg);
                     }
                 });
+				if (!ok && queueOk) {
+					GetAttachedClientSocket()->GetClientQueue().AbortJob();
+				}
+				return ok;
             }
 
             /**
@@ -525,7 +539,11 @@ namespace SPA {
              * @return true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
              */
             virtual bool EndTrans(tagRollbackPlan plan = rpDefault, DResult handler = DResult()) {
-                CAutoLock alOne(m_csCall);
+
+				//make sure EndTrans sending and underlying client persistent message queue as one combination sending
+                //to avoid possible request sending/client message writing overlapping within multiple threading environment
+                CAutoLock alOne(m_csOneSending);
+
                 if (SendRequest(idEndTrans, (int) plan, [handler, this](CAsyncResult & ar) {
                         int res;
                         std::wstring errMsg;
@@ -540,6 +558,7 @@ namespace SPA {
                             handler(*this, res, errMsg);
                         }
                     })) {
+				//associate end transaction with underlying client persistent message queue
                 GetAttachedClientSocket()->GetClientQueue().EndJob();
                 return true;
             }
@@ -772,8 +791,7 @@ namespace SPA {
             unsigned int m_parameters;
             unsigned int m_outputs;
             bool m_bCallReturn;
-        protected:
-            CUCriticalSection m_csCall;
+            CUCriticalSection m_csOneSending;
         };
     } //namespace ClientSide
 } //namespace SPA
