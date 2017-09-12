@@ -95,7 +95,7 @@ class Program
         });
     }
 
-    const uint m_cycle = 1000;
+    const uint m_cycle = 10000;
     static void Demo_Multiple_SendRequest_MultiThreaded_Correct_Lock_Unlock(object sp)
     {
         uint cycle = m_cycle; CSocketPool<CSqlite> spSqlite = (CSocketPool<CSqlite>)sp;
@@ -124,11 +124,10 @@ class Program
             StreamSQLsWithManualTransaction(sqlite);
             --cycle;
         }
-        //This section code may cause dead-lock here
-        //foreach (CSqlite s in spSqlite.AsyncHandlers)
-        //{
-        //    s.WaitAll();
-        //}
+        foreach (CSqlite s in spSqlite.AsyncHandlers)
+        {
+            s.WaitAll();
+        }
     }
 
     static void TestCreateTables(CSqlite sqlite)
@@ -178,7 +177,6 @@ class Program
                 Task.Factory.StartNew(Demo_Multiple_SendRequest_MultiThreaded_Wrong, spSqlite),
                 Task.Factory.StartNew(Demo_Multiple_SendRequest_MultiThreaded_Wrong, spSqlite)
             };
-            System.Threading.Thread.Sleep(2000); //make sure all requests processed
             Task.WaitAll(tasks);
             Console.WriteLine("Demo_Multiple_SendRequest_MultiThreaded_Wrong"); Console.WriteLine();
 
