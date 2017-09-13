@@ -89,6 +89,7 @@ namespace SPA {
 #endif
     }
 
+#ifndef WINCE
     static std::string ToString(const DECIMAL &decVal) {
         std::string s = std::to_string(decVal.Lo64);
         unsigned char len = (unsigned char) s.size();
@@ -104,6 +105,7 @@ namespace SPA {
         }
         return s;
     }
+#endif
 
     static std::string ToString_long(const DECIMAL &decVal) {
 #ifdef WIN32_64

@@ -1,3 +1,7 @@
+18.	SocketPro Version 6.0.4.5
+	(a) Fix a potential WaitAll dead lock within client core library when calling the method from two different threads against the same socket at client side
+	(b) Fix a crash bug within client core library when locking a socket from a socket pool at client side
+
 17.	SocketPro Version 6.0.4.1-4.4
 	(a) Use windows tagVARIANT instead of boost variant for better performance and portable code across windows and non-windows platforms.
 	(b) Update sample projects because of the change (a).
