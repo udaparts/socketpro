@@ -19,7 +19,7 @@ virtual bool Open(const wchar_t* strConnection, DResult handler, unsigned int fl
         s = m_strConnection;
         m_strConnection = strConnection;
     }
-	//self cross-SendRequest dead-locking here !!!!
+    //self cross SendRequest dead-locking here !!!!
     if (SendRequest(UDB::idOpen, strConnection, flags, [handler, this](CAsyncResult & ar) {
             int res, ms;
             std::wstring errMsg;
@@ -43,31 +43,32 @@ virtual bool Open(const wchar_t* strConnection, DResult handler, unsigned int fl
                 handler(*this, res, errMsg);
             }
         })) {
-		return true;
-	}
+                return true;
+        }
     if (strConnection) {
         m_strConnection = s;
     }
     return false;
 }
-*/
+ */
 
 #define sample_database L"mysample.db"
+
 void Demo_Cross_Locking_Dead_Lock(CMyPool::PHandler sqlite) {
     unsigned int count = 1000000;
-    do
-    {
-        bool ok = sqlite->Open(sample_database, [](CMyHandler &handler, int res, const std::wstring &errMsg) {
-            if (res != 0)
-				std::cout << "Open: res = " << res << ", errMsg: "; std::wcout << errMsg << std::endl;
+    do {
+        bool ok = sqlite->Open(sample_database, [](CMyHandler &handler, int res, const std::wstring & errMsg) {
+            if (res != 0) {
+                std::cout << "Open: res = " << res << ", errMsg: ";
+                std::wcout << errMsg << std::endl;
+            }
         });
         --count;
     } while (count > 0);
 }
 
-int main(int argc, char* argv[])
-{
-	CMyConnContext cc;
+int main(int argc, char* argv[]) {
+    CMyConnContext cc;
     std::cout << "Remote host: " << std::endl;
     std::getline(std::cin, cc.Host);
     //cc.Host = "localhost";
@@ -76,19 +77,20 @@ int main(int argc, char* argv[])
     cc.Password = L"MyPassword";
     CMyPool spSqlite;
 
-	bool ok = spSqlite.StartSocketPool(cc, 1, 2);
+    bool ok = spSqlite.StartSocketPool(cc, 1, 2);
     if (!ok) {
         std::cout << "No connection to sqlite server and press any key to close the demo ......" << std::endl;
-        ::getchar(); return 0;
+        ::getchar();
+        return 0;
     }
-	CMyPool::PHandler sqlite = spSqlite.GetAsyncHandlers()[0];
-	//Use the above bad implementation to replace original SPA::ClientSide::CAsyncDBHandler::Open method
+    CMyPool::PHandler sqlite = spSqlite.GetAsyncHandlers()[0];
+    //Use the above bad implementation to replace original SPA::ClientSide::CAsyncDBHandler::Open method
     //at file socketpro/include/udb_client.h
     std::cout << "Doing Demo_Cross_Locking_Dead_Lock ......" << std::endl;
-	Demo_Cross_Locking_Dead_Lock(sqlite);
+    Demo_Cross_Locking_Dead_Lock(sqlite);
 
-	std::cout << "Press any key to close the application ......" << std::endl;
+    std::cout << "Press any key to close the application ......" << std::endl;
     ::getchar();
-	return 0;
+    return 0;
 }
 
