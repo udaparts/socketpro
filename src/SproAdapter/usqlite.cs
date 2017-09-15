@@ -169,6 +169,7 @@ namespace SocketProAdapter
             public const int ER_BAD_MANUAL_TRANSACTION_STATE = 1987;
             public const int ER_UNABLE_TO_SWITCH_TO_DATABASE = 1988;
             public const int ER_SERVICE_COMMAND_ERROR = 1989;
+            public const int ER_MYSQL_LIBRARY_NOT_INITIALIZED = 1990;
         }
     }
 #if WINCE
