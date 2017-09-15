@@ -1581,3 +1581,53 @@ JNIEXPORT void JNICALL Java_SPA_ServerSide_Odbc_SetOdbcDBGlobalConnectionString(
         env->ReleaseStringChars(dbConnection, p);
     }
 }
+
+HINSTANCE g_hMysql = nullptr;
+typedef void (WINAPI *PSetMysqlDBGlobalConnectionString)(const wchar_t *dbConnection, bool remote);
+typedef const char* (WINAPI *PSetMysqlEmbeddedOptions)(const wchar_t *options);
+static PSetMysqlDBGlobalConnectionString SetMysqlDBGlobalConnectionString = nullptr;
+static PSetMysqlEmbeddedOptions SetMysqlEmbeddedOptions = nullptr;
+
+JNIEXPORT void JNICALL Java_SPA_ServerSide_Mysql_SetMysqlDBGlobalConnectionString(JNIEnv *env, jclass pClass, jstring dbConnection, jboolean remote) {
+    SPA::CAutoLock al(g_co);
+    if (!g_hMysql) {
+#ifdef WIN32_64
+        g_hMysql = ::LoadLibraryW(L"smysql.dll");
+#else
+        g_hMysql = ::dlopen("libsmysql.so", RTLD_LAZY);
+#endif
+    }
+    if (g_hMysql && !SetMysqlDBGlobalConnectionString) {
+        SetMysqlDBGlobalConnectionString = (PSetMysqlDBGlobalConnectionString)::GetProcAddress(g_hMysql, "SetMysqlDBGlobalConnectionString");
+    }
+    if (g_hMysql && SetMysqlDBGlobalConnectionString) {
+        jsize len = env->GetStringLength(dbConnection);
+        const jchar *p = env->GetStringChars(dbConnection, nullptr);
+        std::wstring s(p, p + len);
+        SetMysqlDBGlobalConnectionString(s.c_str(), remote ? true : false);
+        env->ReleaseStringChars(dbConnection, p);
+    }
+}
+
+JNIEXPORT jstring JNICALL Java_SPA_ServerSide_Mysql_SetMysqlEmbeddedOptions(JNIEnv *env, jclass pClass, jstring options) {
+    SPA::CAutoLock al(g_co);
+    if (!g_hMysql) {
+#ifdef WIN32_64
+        g_hMysql = ::LoadLibraryW(L"smysql.dll");
+#else
+        g_hMysql = ::dlopen("libsmysql.so", RTLD_LAZY);
+#endif
+    }
+    if (g_hMysql && !SetMysqlEmbeddedOptions) {
+        SetMysqlEmbeddedOptions = (PSetMysqlEmbeddedOptions)::GetProcAddress(g_hMysql, "SetMysqlEmbeddedOptions");
+    }
+    if (g_hMysql && SetMysqlEmbeddedOptions) {
+        jsize len = env->GetStringLength(options);
+        const jchar *p = env->GetStringChars(options, nullptr);
+        std::wstring s(p, p + len);
+        jstring joptions = env->NewStringUTF(SetMysqlEmbeddedOptions(s.c_str()));
+        env->ReleaseStringChars(options, p);
+        return joptions;
+    }
+    return env->NewStringUTF("");
+}
