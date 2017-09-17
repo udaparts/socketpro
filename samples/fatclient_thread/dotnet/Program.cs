@@ -150,10 +150,13 @@ class Program
             TestCreateTables(sqlite);
             bool ok = sqlite.WaitAll(); sqlite = null;
             Console.WriteLine("mysample.db created, opened and shared by two sessions"); Console.WriteLine();
-            //make sure second handler/socket to open the same database mysample.db
-            spSqlite.AsyncHandlers[1].Open(sample_database, (handler, res, errMsg) => {
-                if (res != 0) Console.WriteLine("Open: res = {0}, errMsg: {1}", res, errMsg);
-            }); ok = spSqlite.AsyncHandlers[1].WaitAll();
+            CSqlite []vSqlite = spSqlite.AsyncHandlers;
+            for (int n = 1; n < vSqlite.Length; ++n) {
+                //make sure second handler/socket to open the same database mysample.db
+                vSqlite[n].Open(sample_database, (handler, res, errMsg) => {
+                    if (res != 0) Console.WriteLine("Open: res = {0}, errMsg: {1}", res, errMsg);
+                }); ok = vSqlite[n].WaitAll();
+            }
             //execute manual transactions concurrently with transaction overlapping on the same session at client side
             var tasks = new[] {
                 Task.Factory.StartNew(Demo_Multiple_SendRequest_MultiThreaded_Wrong, spSqlite),
