@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 class Program
 {
     /*
-    //This is bad implementation for original SocketProAdapter.ClientSide.CAsyncDBHandler.Open method!!!!
+    //Bad implementation for original SocketProAdapter.ClientSide.CAsyncDBHandler.Open method!!!!
     public virtual bool Open(string strConnection, DResult handler, uint flags) {
         string s = null;
         lock (m_csDB) {
@@ -44,9 +44,11 @@ class Program
     */
 
     const string sample_database = "mysample.db";
-    static void Demo_Cross_Locking_Dead_Lock(CSqlite sqlite)
+    static void Demo_Cross_Request_Dead_Lock(CSqlite sqlite)
     {
         uint count = 1000000;
+        //uncomment the following call to remove potential cross-request dead lock
+        //sqlite.AttachedClientSocket.ClientQueue.StartQueue("cross_locking_0", 3600);
         do
         {
             bool ok = sqlite.Open(sample_database, (handler, res, errMsg) =>
@@ -59,15 +61,18 @@ class Program
 
     static void TestCreateTables(CSqlite sqlite)
     {
-        string create_table = "CREATE TABLE COMPANY(ID INT8 PRIMARY KEY NOT NULL, NAME CHAR(64) NOT NULL)";
-        bool ok = sqlite.Execute(create_table, (handler, res, errMsg, affected, fail_ok, id) =>
+        string sql = "CREATE TABLE COMPANY(ID INT8 PRIMARY KEY NOT NULL, NAME CHAR(64) NOT NULL)";
+        bool ok = sqlite.Execute(sql, (handler, res, errMsg, affected, fail_ok, id) =>
         {
-            Console.WriteLine("affected = {0}, fails = {1}, oks = {2}, res = {3}, errMsg: {4}, last insert id = {5}", affected, (uint)(fail_ok >> 32), (uint)fail_ok, res, errMsg, id);
+            Console.WriteLine("affected = {0}, fails = {1}, oks = {2}, res = {3}, errMsg: {4}, last insert id = {5}",
+                affected, (uint)(fail_ok >> 32), (uint)fail_ok, res, errMsg, id);
         });
-        create_table = "CREATE TABLE EMPLOYEE(EMPLOYEEID INT8 PRIMARY KEY NOT NULL,CompanyId INT8 not null,name NCHAR(64)NOT NULL,JoinDate DATETIME not null default(datetime('now')),FOREIGN KEY(CompanyId)REFERENCES COMPANY(id))";
-        ok = sqlite.Execute(create_table, (handler, res, errMsg, affected, fail_ok, id) =>
+        sql = @"CREATE TABLE EMPLOYEE(EMPLOYEEID INT8 PRIMARY KEY NOT NULL,CompanyId INT8 not null,name NCHAR(64)NOT
+            NULL,JoinDate DATETIME not null default(datetime('now')),FOREIGN KEY(CompanyId)REFERENCES COMPANY(id))";
+        ok = sqlite.Execute(sql, (handler, res, errMsg, affected, fail_ok, id) =>
         {
-            Console.WriteLine("affected = {0}, fails = {1}, oks = {2}, res = {3}, errMsg: {4}, last insert id = {5}", affected, (uint)(fail_ok >> 32), (uint)fail_ok, res, errMsg, id);
+            Console.WriteLine("affected = {0}, fails = {1}, oks = {2}, res = {3}, errMsg: {4}, last insert id = {5}",
+                affected, (uint)(fail_ok >> 32), (uint)fail_ok, res, errMsg, id);
         });
     }
 
@@ -79,7 +84,8 @@ class Program
         });
         ok = sqlite.Execute("delete from EMPLOYEE;delete from COMPANY", (h, res, errMsg, affected, fail_ok, id) => {
             lock (m_csConsole)
-                if (res != 0) Console.WriteLine("Execute_Delete: affected={0}, fails={1}, res={2}, errMsg={3}", affected, (uint)(fail_ok >> 32), res, errMsg);
+                if (res != 0) Console.WriteLine("Execute_Delete: affected={0}, fails={1}, res={2}, errMsg={3}",
+                    affected, (uint)(fail_ok >> 32), res, errMsg);
         });
         ok = sqlite.Prepare("INSERT INTO COMPANY(ID,NAME)VALUES(?,?)");
         CDBVariantArray vData = new CDBVariantArray();
@@ -88,7 +94,8 @@ class Program
         //send two sets of parameterized data in one shot for processing
         ok = sqlite.Execute(vData, (h, res, errMsg, affected, fail_ok, id) => {
             lock (m_csConsole)
-                if (res != 0) Console.WriteLine("Execute_Delete: affected={0}, fails={1}, res={2}, errMsg={3}", affected, (uint)(fail_ok >> 32), res, errMsg);
+                if (res != 0) Console.WriteLine("INSERT COMPANY: affected={0}, fails={1}, res={2}, errMsg={3}",
+                    affected, (uint)(fail_ok >> 32), res, errMsg);
         });
         ok = sqlite.Prepare("INSERT INTO EMPLOYEE(EMPLOYEEID,CompanyId,name,JoinDate)VALUES(?,?,?,?)");
         vData.Clear();
@@ -98,7 +105,8 @@ class Program
         //send three sets of parameterized data in one shot for processing
         ok = sqlite.Execute(vData, (h, res, errMsg, affected, fail_ok, id) => {
             lock (m_csConsole)
-                if (res != 0) Console.WriteLine("Execute_Delete: affected={0}, fails={1}, res={2}, errMsg={3}", affected, (uint)(fail_ok >> 32), res, errMsg);
+                if (res != 0) Console.WriteLine("INSET EMPLOYEE: affected={0}, fails={1}, res={2}, errMsg={3}",
+                    affected, (uint)(fail_ok >> 32), res, errMsg);
         });
         sqlite.EndTrans(tagRollbackPlan.rpDefault, (h, res, errMsg) => {
             lock (m_csConsole)
@@ -112,6 +120,7 @@ class Program
         while (cycle > 0) {
             //Seek an async handler on the min number of requests queued in memory and its associated socket connection
             CSqlite sqlite = spSqlite.Seek();
+            //lock(sqlite) //uncomment this call to remove potential batch request overlap
             StreamSQLsWithManualTransaction(sqlite);
             --cycle;
         }
@@ -145,14 +154,14 @@ class Program
             CSqlite sqlite = spSqlite.AsyncHandlers[0];
             //Use the above bad implementation to replace original SocketProAdapter.ClientSide.CAsyncDBHandler.Open method
             //at file socketpro/src/SproAdapter/asyncdbhandler.cs
-            Console.WriteLine("Doing Demo_Cross_Locking_Dead_Lock ......");
-            Demo_Cross_Locking_Dead_Lock(sqlite);
+            Console.WriteLine("Doing Demo_Cross_Request_Dead_Lock ......");
+            Demo_Cross_Request_Dead_Lock(sqlite);
             TestCreateTables(sqlite);
             bool ok = sqlite.WaitAll(); sqlite = null;
-            Console.WriteLine("mysample.db created, opened and shared by two sessions"); Console.WriteLine();
+            Console.WriteLine("{0} created, opened and shared by two sessions", sample_database); Console.WriteLine();
             CSqlite []vSqlite = spSqlite.AsyncHandlers;
             for (int n = 1; n < vSqlite.Length; ++n) {
-                //make sure second handler/socket to open the same database mysample.db
+                //make sure all other handlers/sockets to open the same database mysample.db
                 vSqlite[n].Open(sample_database, (handler, res, errMsg) => {
                     if (res != 0) Console.WriteLine("Open: res = {0}, errMsg: {1}", res, errMsg);
                 }); ok = vSqlite[n].WaitAll();
