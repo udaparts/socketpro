@@ -165,6 +165,36 @@ void StreamSQLsWithManualTransaction(CMyPool::PHandler sqlite) {
 
 #define m_cycle ((unsigned int) 100)
 
+void Demo_Multiple_SendRequest_MultiThreaded_Wrong(CMyPool& sp) {
+    uint cycle = m_cycle;
+    while (cycle > 0) {
+        //Seek an async handler on the min number of requests queued in memory and its associated socket connection
+        CMyPool::PHandler sqlite = sp.Seek();
+        StreamSQLsWithManualTransaction(sqlite);
+        --cycle;
+    }
+    auto vSqlite = sp.GetAsyncHandlers();
+    for (auto s = vSqlite.begin(), e = vSqlite.end(); s != e; ++s) {
+        (*s)->WaitAll();
+    }
+}
+
+void Demo_Multiple_SendRequest_MultiThreaded_Correct_Lock_Unlock(CMyPool& sp) {
+    uint cycle = m_cycle;
+    while (cycle > 0) {
+        //Take an async handler infinitely from socket pool for sending multiple requests from current thread
+        CMyPool::PHandler sqlite = sp.Lock();
+        StreamSQLsWithManualTransaction(sqlite);
+        //Put back a previously locked async handler to pool for reuse.
+        sp.Unlock(sqlite);
+        --cycle;
+    }
+    auto vSqlite = sp.GetAsyncHandlers();
+    for (auto s = vSqlite.begin(), e = vSqlite.end(); s != e; ++s) {
+        (*s)->WaitAll();
+    }
+}
+
 int main(int argc, char* argv[]) {
     CMyConnContext cc;
     std::cout << "Remote host: " << std::endl;
@@ -202,6 +232,7 @@ int main(int argc, char* argv[]) {
         ok = sqlite->WaitAll();
     }
     //execute manual transactions concurrently with transaction overlapping on the same session at client side
+
 
     //execute manual transactions concurrently without transaction overlapping on the same session at client side by lock/unlock
 
