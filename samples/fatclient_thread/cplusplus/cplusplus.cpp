@@ -1,5 +1,6 @@
 
 #include "stdafx.h"
+#include <future>
 
 using namespace SPA::UDB;
 
@@ -166,7 +167,7 @@ void StreamSQLsWithManualTransaction(CMyPool::PHandler sqlite) {
 #define m_cycle ((unsigned int) 100)
 
 void Demo_Multiple_SendRequest_MultiThreaded_Wrong(CMyPool& sp) {
-    uint cycle = m_cycle;
+    unsigned int cycle = m_cycle;
     while (cycle > 0) {
         //Seek an async handler on the min number of requests queued in memory and its associated socket connection
         CMyPool::PHandler sqlite = sp.Seek();
@@ -178,9 +179,8 @@ void Demo_Multiple_SendRequest_MultiThreaded_Wrong(CMyPool& sp) {
         (*s)->WaitAll();
     }
 }
-
 void Demo_Multiple_SendRequest_MultiThreaded_Correct_Lock_Unlock(CMyPool& sp) {
-    uint cycle = m_cycle;
+    unsigned int cycle = m_cycle;
     while (cycle > 0) {
         //Take an async handler infinitely from socket pool for sending multiple requests from current thread
         CMyPool::PHandler sqlite = sp.Lock();
@@ -232,12 +232,38 @@ int main(int argc, char* argv[]) {
         ok = sqlite->WaitAll();
     }
     //execute manual transactions concurrently with transaction overlapping on the same session at client side
-
+    auto f0 = std::async(std::launch::async, [&spSqlite]() {
+        Demo_Multiple_SendRequest_MultiThreaded_Wrong(spSqlite);
+    });
+    auto f1 = std::async(std::launch::async, [&spSqlite]() {
+        Demo_Multiple_SendRequest_MultiThreaded_Wrong(spSqlite);
+    });
+    auto f2 = std::async(std::launch::async, [&spSqlite]() {
+        Demo_Multiple_SendRequest_MultiThreaded_Wrong(spSqlite);
+    });
+    Demo_Multiple_SendRequest_MultiThreaded_Wrong(spSqlite);
+    f0.get();
+    f1.get();
+    f2.get();
+    std::cout << "Demo_Multiple_SendRequest_MultiThreaded_Wrong completed" << std::endl << std::endl;
 
     //execute manual transactions concurrently without transaction overlapping on the same session at client side by lock/unlock
+    auto f3 = std::async(std::launch::async, [&spSqlite]() {
+        Demo_Multiple_SendRequest_MultiThreaded_Correct_Lock_Unlock(spSqlite);
+    });
+    auto f4 = std::async(std::launch::async, [&spSqlite]() {
+        Demo_Multiple_SendRequest_MultiThreaded_Correct_Lock_Unlock(spSqlite);
+    });
+    auto f5 = std::async(std::launch::async, [&spSqlite]() {
+        Demo_Multiple_SendRequest_MultiThreaded_Correct_Lock_Unlock(spSqlite);
+    });
+    Demo_Multiple_SendRequest_MultiThreaded_Correct_Lock_Unlock(spSqlite);
+    f3.get();
+    f4.get();
+    f5.get();
+    std::cout << "Demo_Multiple_SendRequest_MultiThreaded_Correct_Lock_Unlock" << std::endl << std::endl;
 
     std::cout << "Press any key to close the application ......" << std::endl;
     ::getchar();
     return 0;
 }
-
