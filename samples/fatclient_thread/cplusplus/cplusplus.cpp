@@ -119,8 +119,8 @@ void StreamSQLsWithManualTransaction(CMyPool::PHandler sqlite) {
     vData.clear();
     SYSTEMTIME st;
     vData.push_back(1);
-    vData.push_back(1);
-    /*google company id*/ vData.push_back("Ted Cruz");
+    vData.push_back(1); //Google company id
+    vData.push_back("Ted Cruz");
 #ifdef WIN32_64
     ::GetLocalTime(&st);
 #else
@@ -129,8 +129,8 @@ void StreamSQLsWithManualTransaction(CMyPool::PHandler sqlite) {
     vData.push_back(st);
 
     vData.push_back(2);
-    vData.push_back(1);
-    /*google company id*/ vData.push_back("Donald Trump");
+    vData.push_back(1); //Google company id
+    vData.push_back("Donald Trump");
 #ifdef WIN32_64
     ::GetLocalTime(&st);
 #else
@@ -139,8 +139,8 @@ void StreamSQLsWithManualTransaction(CMyPool::PHandler sqlite) {
     vData.push_back(st);
 
     vData.push_back(3);
-    vData.push_back(2);
-    /*Microsoft company id*/ vData.push_back("Hillary Clinton");
+    vData.push_back(2); //Microsoft company id
+    vData.push_back("Hillary Clinton");
 #ifdef WIN32_64
     ::GetLocalTime(&st);
 #else
