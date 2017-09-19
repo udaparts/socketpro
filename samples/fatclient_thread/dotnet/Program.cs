@@ -64,14 +64,14 @@ class Program
         string sql = "CREATE TABLE COMPANY(ID INT8 PRIMARY KEY NOT NULL, NAME CHAR(64) NOT NULL)";
         bool ok = sqlite.Execute(sql, (handler, res, errMsg, affected, fail_ok, id) =>
         {
-            Console.WriteLine("affected = {0}, fails = {1}, oks = {2}, res = {3}, errMsg: {4}, last insert id = {5}",
+            if (res != 0) Console.WriteLine("affected = {0}, fails = {1}, oks = {2}, res = {3}, errMsg: {4}, last insert id = {5}",
                 affected, (uint)(fail_ok >> 32), (uint)fail_ok, res, errMsg, id);
         });
         sql = @"CREATE TABLE EMPLOYEE(EMPLOYEEID INT8 PRIMARY KEY NOT NULL,CompanyId INT8 not null,name NCHAR(64)NOT
             NULL,JoinDate DATETIME not null default(datetime('now')),FOREIGN KEY(CompanyId)REFERENCES COMPANY(id))";
         ok = sqlite.Execute(sql, (handler, res, errMsg, affected, fail_ok, id) =>
         {
-            Console.WriteLine("affected = {0}, fails = {1}, oks = {2}, res = {3}, errMsg: {4}, last insert id = {5}",
+            if (res != 0) Console.WriteLine("affected = {0}, fails = {1}, oks = {2}, res = {3}, errMsg: {4}, last insert id = {5}",
                 affected, (uint)(fail_ok >> 32), (uint)fail_ok, res, errMsg, id);
         });
     }
@@ -79,12 +79,10 @@ class Program
     static object m_csConsole = new object();
     static void StreamSQLsWithManualTransaction(CSqlite sqlite) {
         bool ok = sqlite.BeginTrans(tagTransactionIsolation.tiReadCommited, (h, res, errMsg) => {
-            lock(m_csConsole)
-                if (res != 0) Console.WriteLine("BeginTrans: Error code={0}, message={1}", res, errMsg);
+            if (res != 0) lock (m_csConsole) Console.WriteLine("BeginTrans: Error code={0}, message={1}", res, errMsg);
         });
         ok = sqlite.Execute("delete from EMPLOYEE;delete from COMPANY", (h, res, errMsg, affected, fail_ok, id) => {
-            lock (m_csConsole)
-                if (res != 0) Console.WriteLine("Execute_Delete: affected={0}, fails={1}, res={2}, errMsg={3}",
+            if (res != 0) lock (m_csConsole) Console.WriteLine("Execute_Delete: affected={0}, fails={1}, res={2}, errMsg={3}",
                     affected, (uint)(fail_ok >> 32), res, errMsg);
         });
         ok = sqlite.Prepare("INSERT INTO COMPANY(ID,NAME)VALUES(?,?)");
@@ -93,8 +91,7 @@ class Program
         vData.Add(2); vData.Add("Microsoft Inc.");
         //send two sets of parameterized data in one shot for processing
         ok = sqlite.Execute(vData, (h, res, errMsg, affected, fail_ok, id) => {
-            lock (m_csConsole)
-                if (res != 0) Console.WriteLine("INSERT COMPANY: affected={0}, fails={1}, res={2}, errMsg={3}",
+            if (res != 0) lock (m_csConsole) Console.WriteLine("INSERT COMPANY: affected={0}, fails={1}, res={2}, errMsg={3}",
                     affected, (uint)(fail_ok >> 32), res, errMsg);
         });
         ok = sqlite.Prepare("INSERT INTO EMPLOYEE(EMPLOYEEID,CompanyId,name,JoinDate)VALUES(?,?,?,?)");
@@ -104,13 +101,11 @@ class Program
         vData.Add(3); vData.Add(2); /*Microsoft company id*/ vData.Add("Hillary Clinton"); vData.Add(DateTime.Now);
         //send three sets of parameterized data in one shot for processing
         ok = sqlite.Execute(vData, (h, res, errMsg, affected, fail_ok, id) => {
-            lock (m_csConsole)
-                if (res != 0) Console.WriteLine("INSET EMPLOYEE: affected={0}, fails={1}, res={2}, errMsg={3}",
+            if (res != 0) lock (m_csConsole) Console.WriteLine("INSET EMPLOYEE: affected={0}, fails={1}, res={2}, errMsg={3}",
                     affected, (uint)(fail_ok >> 32), res, errMsg);
         });
         sqlite.EndTrans(tagRollbackPlan.rpDefault, (h, res, errMsg) => {
-            lock (m_csConsole)
-                if (res != 0) Console.WriteLine("EndTrans: Error code={0}, message={1}", res, errMsg);
+            if (res != 0) lock (m_csConsole) Console.WriteLine("EndTrans: Error code={0}, message={1}", res, errMsg);
         });
     }
 
