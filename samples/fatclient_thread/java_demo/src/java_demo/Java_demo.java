@@ -3,6 +3,40 @@ package java_demo;
 import SPA.ClientSide.*;
 import SPA.UDB.*;
 
+/*
+//This is bad implementation for original SPA.ClientSide.CAsyncDBHandler.Open method!!!!
+public boolean Open(String strConnection, DResult handler, int flags) {
+    String str = null;
+    MyCallback<DResult> cb = new MyCallback<>(idOpen, handler);
+    CUQueue sb = CScopeUQueue.Lock();
+    sb.Save(strConnection).Save(flags);
+
+    //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
+    //in case a client asynchronously sends lots of requests without use of client side queue.
+    synchronized (m_csDB) {
+        m_flags = flags;
+        if (strConnection != null) {
+            str = m_strConnection;
+            m_strConnection = strConnection;
+        }
+        m_deqResult.add(cb);
+        if (SendRequest(idOpen, sb, null)) {
+            CScopeUQueue.Unlock(sb);
+            return true;
+        } else {
+            synchronized (m_csDB) {
+                m_deqResult.remove(cb);
+                if (strConnection != null) {
+                    m_strConnection = str;
+                }
+            }
+        }
+    }
+    CScopeUQueue.Unlock(sb);
+    return false;
+}
+*/
+
 public class Java_demo {
 
     static final String sample_database = "mysample.db";
