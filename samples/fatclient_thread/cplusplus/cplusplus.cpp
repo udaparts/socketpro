@@ -71,14 +71,14 @@ void Demo_Cross_Request_Dead_Lock(CMyPool::PHandler sqlite) {
 
 void TestCreateTables(CMyPool::PHandler sqlite) {
     const wchar_t *sql = L"CREATE TABLE COMPANY(ID INT8 PRIMARY KEY NOT NULL, NAME CHAR(64) NOT NULL)";
-    bool ok = sqlite->Execute(sql, [](CMyHandler &handler, int res, const std::wstring &errMsg, INT64 affected, UINT64 fail_ok, CDBVariant & id) {
+    bool ok = sqlite->Execute(sql, [](CMyHandler &handler, int res, const std::wstring &errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & id) {
         if (res != 0) {
             std::cout << "affected = " << affected << ", fails = " << (fail_ok >> 32) << ", oks = " << (unsigned int) fail_ok << ", res = " << res << ", errMsg: ";
             std::wcout << errMsg << std::endl;
         }
     });
     sql = L"CREATE TABLE EMPLOYEE(EMPLOYEEID INT8 PRIMARY KEY NOT NULL,CompanyId INT8 not null,name NCHAR(64)NOT NULL,JoinDate DATETIME not null default(datetime('now')),FOREIGN KEY(CompanyId)REFERENCES COMPANY(id))";
-    ok = sqlite->Execute(sql, [](CMyHandler &handler, int res, const std::wstring &errMsg, INT64 affected, UINT64 fail_ok, CDBVariant & id) {
+    ok = sqlite->Execute(sql, [](CMyHandler &handler, int res, const std::wstring &errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & id) {
         if (res != 0) {
             std::cout << "affected = " << affected << ", fails = " << (fail_ok >> 32) << ", oks = " << (unsigned int) fail_ok << ", res = " << res << ", errMsg: ";
             std::wcout << errMsg << std::endl;
@@ -96,7 +96,7 @@ void StreamSQLsWithManualTransaction(CMyPool::PHandler sqlite) {
             std::wcout << errMsg << std::endl;
         }
     });
-    ok = sqlite->Execute(L"delete from EMPLOYEE;delete from COMPANY", [](CMyHandler &h, int res, const std::wstring & errMsg, INT64 affected, UINT64 fail_ok, CDBVariant & id) {
+    ok = sqlite->Execute(L"delete from EMPLOYEE;delete from COMPANY", [](CMyHandler &h, int res, const std::wstring & errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & id) {
         if (res != 0) {
             SPA::CAutoLock al(m_csConsole);
             std::wcout << L"Execute_Delete: affected=" << affected << L", fails=" << (fail_ok >> 32) << L", res=" << res << L", errMsg=" << errMsg << std::endl;
@@ -109,7 +109,7 @@ void StreamSQLsWithManualTransaction(CMyPool::PHandler sqlite) {
     vData.push_back(2);
     vData.push_back("Microsoft Inc.");
     //send two sets of parameterized data in one shot for processing
-    ok = sqlite->Execute(vData, [](CMyHandler &h, int res, const std::wstring & errMsg, INT64 affected, UINT64 fail_ok, CDBVariant & id) {
+    ok = sqlite->Execute(vData, [](CMyHandler &h, int res, const std::wstring & errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & id) {
         if (res != 0) {
             SPA::CAutoLock al(m_csConsole);
             std::wcout << L"INSERT COMPANY: affected=" << affected << L", fails=" << (fail_ok >> 32) << L", res=" << res << L", errMsg=" << errMsg << std::endl;
@@ -148,7 +148,7 @@ void StreamSQLsWithManualTransaction(CMyPool::PHandler sqlite) {
 #endif
     vData.push_back(st);
     //send three sets of parameterized data in one shot for processing
-    ok = sqlite->Execute(vData, [](CMyHandler &h, int res, const std::wstring & errMsg, INT64 affected, UINT64 fail_ok, CDBVariant & id) {
+    ok = sqlite->Execute(vData, [](CMyHandler &h, int res, const std::wstring & errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & id) {
         if (res != 0) {
             SPA::CAutoLock al(m_csConsole);
             std::wcout << L"INSERT EMPLOYEE: affected=" << affected << L", fails=" << (fail_ok >> 32) << L", res=" << res << L", errMsg=" << errMsg << std::endl;
