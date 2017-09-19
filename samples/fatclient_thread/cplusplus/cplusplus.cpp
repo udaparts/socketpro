@@ -179,6 +179,7 @@ void Demo_Multiple_SendRequest_MultiThreaded_Wrong(CMyPool& sp) {
         (*s)->WaitAll();
     }
 }
+
 void Demo_Multiple_SendRequest_MultiThreaded_Correct_Lock_Unlock(CMyPool& sp) {
     unsigned int cycle = m_cycle;
     while (cycle > 0) {
@@ -244,7 +245,7 @@ int main(int argc, char* argv[]) {
     Demo_Multiple_SendRequest_MultiThreaded_Wrong(spSqlite);
     f0.get();
     f1.get();
-    f2.get();
+    f2.get(); //wait until all streamed SQL statements are processed
     std::cout << "Demo_Multiple_SendRequest_MultiThreaded_Wrong completed" << std::endl << std::endl;
 
     //execute manual transactions concurrently without transaction overlapping on the same session at client side by lock/unlock
@@ -260,7 +261,7 @@ int main(int argc, char* argv[]) {
     Demo_Multiple_SendRequest_MultiThreaded_Correct_Lock_Unlock(spSqlite);
     f3.get();
     f4.get();
-    f5.get();
+    f5.get(); //wait until all streamed SQL statements are processed
     std::cout << "Demo_Multiple_SendRequest_MultiThreaded_Correct_Lock_Unlock" << std::endl << std::endl;
 
     std::cout << "Press any key to close the application ......" << std::endl;
