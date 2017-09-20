@@ -132,7 +132,7 @@ namespace SocketProAdapter
                 IntPtr h = m_ClientSocket.Handle;
                 lock (m_cs)
                 {
-                    m_kvCallback.AddRange(m_kvBatching);
+                    m_kvCallback.InsertRange(m_kvCallback.Count, m_kvBatching);
                     m_kvBatching.Clear();
                 }
                 return ClientCoreLoader.CommitBatching(h, (byte)(bBatchingAtServerSide ? 1 : 0)) != 0;
@@ -144,7 +144,7 @@ namespace SocketProAdapter
                 {
                     lock (m_cs)
                     {
-                        to.m_kvCallback.AddRange(m_kvCallback);
+                        to.m_kvCallback.InsertRange(to.m_kvCallback.Count, m_kvCallback);
                         m_kvCallback.Clear();
                     }
                 }
@@ -294,8 +294,7 @@ namespace SocketProAdapter
                     {
                         if (m_kvCallback.Count > 0 && m_kvCallback[0].Key == reqId)
                         {
-                            KeyValuePair<ushort, CResultCb> kv = m_kvCallback[0];
-                            m_kvCallback.RemoveAt(0);
+                            KeyValuePair<ushort, CResultCb> kv = m_kvCallback.RemoveFromFront();
                             return kv;
                         }
                     }
@@ -498,11 +497,11 @@ namespace SocketProAdapter
                         {
                             if (batching != 0)
                             {
-                                m_kvBatching.Add(kv);
+                                m_kvBatching.AddToBack(kv);
                             }
                             else
                             {
-                                m_kvCallback.Add(kv);
+                                m_kvCallback.AddToBack(kv);
                             }
                         }
                     }
@@ -1893,11 +1892,11 @@ namespace SocketProAdapter
                             byte batching = ClientCoreLoader.IsBatching(h);
                             if (batching != 0)
                             {
-                                m_kvBatching.Add(kv);
+                                m_kvBatching.AddToBack(kv);
                             }
                             else
                             {
-                                m_kvCallback.Add(kv);
+                                m_kvCallback.AddToBack(kv);
                             }
                         }
                     }
@@ -2059,10 +2058,10 @@ namespace SocketProAdapter
             internal uint m_nServiceId;
             internal object m_cs = new object();
             private object m_csSend = new object();
-            private List<KeyValuePair<ushort, CResultCb>> m_kvCallback = new List<KeyValuePair<ushort, CResultCb>>();
-            private List<KeyValuePair<ushort, CResultCb>> m_kvBatching = new List<KeyValuePair<ushort, CResultCb>>();
+            private Deque<KeyValuePair<ushort, CResultCb>> m_kvCallback = new Deque<KeyValuePair<ushort, CResultCb>>();
+            private Deque<KeyValuePair<ushort, CResultCb>> m_kvBatching = new Deque<KeyValuePair<ushort, CResultCb>>();
 
-            internal List<KeyValuePair<ushort, CResultCb>> GetCallbacks()
+            internal Deque<KeyValuePair<ushort, CResultCb>> GetCallbacks()
             {
                 return m_kvCallback;
             }

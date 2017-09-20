@@ -43,6 +43,7 @@
     <Compile Include="adoclientpeer.cs" />
     <Compile Include="asyncdbhandler.cs" />
     <Compile Include="asyncqueue.cs" />
+    <Compile Include="deque.cs" />
     <Compile Include="odbc.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="asyncadohandler.cs" />
