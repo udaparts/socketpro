@@ -129,7 +129,7 @@ class Program
             //Take an async handler infinitely from socket pool for sending multiple requests from current thread
             CSqlite sqlite = spSqlite.Lock();
             StreamSQLsWithManualTransaction(sqlite);
-            //Put back a previously locked async handler to pool for reuse.
+            //Put back a previously locked async handler to pool for reuse
             spSqlite.Unlock(sqlite);
             --cycle;
         }
