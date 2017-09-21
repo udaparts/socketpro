@@ -11,7 +11,7 @@ class Program
     //Bad implementation for original SocketProAdapter.ClientSide.CAsyncDBHandler.Open method!!!!
     public virtual bool Open(string strConnection, DResult handler, uint flags) {
         string s = null;
-        lock (m_csDB) {
+        lock (m_csDB) { //start locking here
             m_flags = flags;
             if (strConnection != null) {
                 s = m_strConnection;
@@ -38,7 +38,7 @@ class Program
             }
             if (strConnection != null)
                 m_strConnection = s;
-        }
+        } //end lock
         return false;
     }
     */
@@ -47,7 +47,7 @@ class Program
     static void Demo_Cross_Request_Dead_Lock(CSqlite sqlite)
     {
         uint count = 1000000;
-        //uncomment the following call to remove potential cross-request dead lock
+        //uncomment the following call to remove potential cross SendRequest dead lock
         //sqlite.AttachedClientSocket.ClientQueue.StartQueue("cross_locking_0", 3600);
         do
         {
@@ -61,18 +61,18 @@ class Program
 
     static void TestCreateTables(CSqlite sqlite)
     {
-        string sql = "CREATE TABLE COMPANY(ID INT8 PRIMARY KEY NOT NULL, NAME CHAR(64) NOT NULL)";
+        string sql = "CREATE TABLE COMPANY(ID INT8 PRIMARY KEY NOT NULL,NAME CHAR(64)NOT NULL)";
         bool ok = sqlite.Execute(sql, (handler, res, errMsg, affected, fail_ok, id) =>
         {
-            if (res != 0) Console.WriteLine("affected = {0}, fails = {1}, oks = {2}, res = {3}, errMsg: {4}, last insert id = {5}",
-                affected, (uint)(fail_ok >> 32), (uint)fail_ok, res, errMsg, id);
+            if (res != 0) Console.WriteLine("affected = {0}, fails = {1}, oks = {2}, res = {3}, errMsg: {4}",
+                affected, (uint)(fail_ok >> 32), (uint)fail_ok, res, errMsg);
         });
         sql = @"CREATE TABLE EMPLOYEE(EMPLOYEEID INT8 PRIMARY KEY NOT NULL,CompanyId INT8 not null,name NCHAR(64)NOT
             NULL,JoinDate DATETIME not null default(datetime('now')),FOREIGN KEY(CompanyId)REFERENCES COMPANY(id))";
         ok = sqlite.Execute(sql, (handler, res, errMsg, affected, fail_ok, id) =>
         {
-            if (res != 0) Console.WriteLine("affected = {0}, fails = {1}, oks = {2}, res = {3}, errMsg: {4}, last insert id = {5}",
-                affected, (uint)(fail_ok >> 32), (uint)fail_ok, res, errMsg, id);
+            if (res != 0) Console.WriteLine("affected = {0}, fails = {1}, oks = {2}, res = {3}, errMsg: {4}",
+                affected, (uint)(fail_ok >> 32), (uint)fail_ok, res, errMsg);
         });
     }
 
@@ -142,39 +142,46 @@ class Program
         Console.WriteLine("Remote host: "); string host = Console.ReadLine();
         CConnectionContext cc = new CConnectionContext(host, 20901, "usqlite_client", "pwd_for_usqlite");
         using (CSocketPool<CSqlite> spSqlite = new CSocketPool<CSqlite>()) {
-            if (!spSqlite.StartSocketPool(cc, 1, 2)) {
+            //start socket pool having 1 worker thread which hosts 2 non-blocking sockets
+            if (!spSqlite.StartSocketPool(cc, 2, 1)) {
                 Console.WriteLine("No connection to sqlite server and press any key to close the demo ......");
                 Console.Read(); return;
             }
             CSqlite sqlite = spSqlite.AsyncHandlers[0];
             //Use the above bad implementation to replace original SocketProAdapter.ClientSide.CAsyncDBHandler.Open method
-            //at file socketpro/src/SproAdapter/asyncdbhandler.cs
+            //at file socketpro/src/SproAdapter/asyncdbhandler.cs for cross SendRequest dead lock demonstration
             Console.WriteLine("Doing Demo_Cross_Request_Dead_Lock ......");
             Demo_Cross_Request_Dead_Lock(sqlite);
+
+            //create two tables, COMPANY and EMPLOYEE.
             TestCreateTables(sqlite);
-            bool ok = sqlite.WaitAll(); sqlite = null;
-            Console.WriteLine("{0} created, opened and shared by two sessions", sample_database); Console.WriteLine();
+            bool ok = sqlite.WaitAll();
+            Console.WriteLine("{0} created, opened and shared by multiple sessions", sample_database); Console.WriteLine();
+
+            //make sure all other handlers/sockets to open the same database mysample.db
             CSqlite []vSqlite = spSqlite.AsyncHandlers;
             for (int n = 1; n < vSqlite.Length; ++n) {
-                //make sure all other handlers/sockets to open the same database mysample.db
                 vSqlite[n].Open(sample_database, (handler, res, errMsg) => {
                     if (res != 0) Console.WriteLine("Open: res = {0}, errMsg: {1}", res, errMsg);
                 }); ok = vSqlite[n].WaitAll();
             }
-            //execute manual transactions concurrently with transaction overlapping on the same session at client side
+
+            //execute manual transactions concurrently with transaction overlapping on the same session
             var tasks = new[] {
                 Task.Factory.StartNew(Demo_Multiple_SendRequest_MultiThreaded_Wrong, spSqlite),
                 Task.Factory.StartNew(Demo_Multiple_SendRequest_MultiThreaded_Wrong, spSqlite),
                 Task.Factory.StartNew(Demo_Multiple_SendRequest_MultiThreaded_Wrong, spSqlite)
             }; Demo_Multiple_SendRequest_MultiThreaded_Wrong(spSqlite); Task.WaitAll(tasks);
             Console.WriteLine("Demo_Multiple_SendRequest_MultiThreaded_Wrong completed"); Console.WriteLine();
-            //execute manual transactions concurrently without transaction overlapping on the same session at client side by lock/unlock
+
+            //execute manual transactions concurrently without transaction overlapping on the same session by lock/unlock
             tasks = new[] {
                 Task.Factory.StartNew(Demo_Multiple_SendRequest_MultiThreaded_Correct_Lock_Unlock, spSqlite),
                 Task.Factory.StartNew(Demo_Multiple_SendRequest_MultiThreaded_Correct_Lock_Unlock, spSqlite),
                 Task.Factory.StartNew(Demo_Multiple_SendRequest_MultiThreaded_Correct_Lock_Unlock, spSqlite)
             }; Demo_Multiple_SendRequest_MultiThreaded_Correct_Lock_Unlock(spSqlite); Task.WaitAll();
             Console.WriteLine("Demo_Multiple_SendRequest_MultiThreaded_Correct_Lock_Unlock completed"); Console.WriteLine();
+
             Console.WriteLine("Press any key to close the application ......"); Console.Read();
         }
     }
