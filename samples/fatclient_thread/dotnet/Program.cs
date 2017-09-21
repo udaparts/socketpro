@@ -153,7 +153,7 @@ class Program
             Console.WriteLine("Doing Demo_Cross_Request_Dead_Lock ......");
             Demo_Cross_Request_Dead_Lock(sqlite);
 
-            //create two tables, COMPANY and EMPLOYEE.
+            //create two tables, COMPANY and EMPLOYEE
             TestCreateTables(sqlite);
             bool ok = sqlite.WaitAll();
             Console.WriteLine("{0} created, opened and shared by multiple sessions", sample_database); Console.WriteLine();
