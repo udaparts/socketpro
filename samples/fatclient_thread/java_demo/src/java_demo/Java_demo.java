@@ -4,39 +4,38 @@ import SPA.ClientSide.*;
 import SPA.UDB.*;
 
 /*
- //This is bad implementation for original SPA.ClientSide.CAsyncDBHandler.Open method!!!!
- public boolean Open(String strConnection, DResult handler, int flags) {
- String str = null;
- MyCallback<DResult> cb = new MyCallback<>(idOpen, handler);
- CUQueue sb = CScopeUQueue.Lock();
- sb.Save(strConnection).Save(flags);
+//This is bad implementation for original SPA.ClientSide.CAsyncDBHandler.Open method!!!!
+public boolean Open(String strConnection, DResult handler, int flags) {
+    String str = null;
+    MyCallback<DResult> cb = new MyCallback<>(idOpen, handler);
+    CUQueue sb = CScopeUQueue.Lock();
+    sb.Save(strConnection).Save(flags);
 
- //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
- //in case a client asynchronously sends lots of requests without use of client side queue.
- synchronized (m_csDB) { //start lock here
- m_flags = flags;
- if (strConnection != null) {
- str = m_strConnection;
- m_strConnection = strConnection;
- }
- m_deqResult.add(cb);
- //cross SendRequest dead lock here
- if (SendRequest(idOpen, sb, null)) {
- CScopeUQueue.Unlock(sb);
- return true;
- } else {
- synchronized (m_csDB) { //dead lock
- m_deqResult.remove(cb);
- if (strConnection != null) {
- m_strConnection = str;
- }
- }
- }
- } //end lock
- CScopeUQueue.Unlock(sb);
- return false;
- }
- */
+    //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
+    //in case a client asynchronously sends lots of requests without use of client side queue.
+    synchronized (m_csDB) { //start lock here
+        m_flags = flags;
+        if (strConnection != null) {
+            str = m_strConnection;
+            m_strConnection = strConnection;
+        }
+        m_deqResult.add(cb);
+        //cross SendRequest dead lock here
+        if (SendRequest(idOpen, sb, null)) {
+            CScopeUQueue.Unlock(sb);
+            return true;
+        } else {
+            m_deqResult.remove(cb);
+            if (strConnection != null) {
+                m_strConnection = str;
+            }
+        }
+    } //end lock
+    CScopeUQueue.Unlock(sb);
+    return false;
+}
+*/
+
 public class Java_demo {
 
     static final String sample_database = "mysample.db";
@@ -186,12 +185,12 @@ public class Java_demo {
         //at file socketpro/src/jadpater/jspa/src/SPA/ClientSide/CAsyncDBHandler.java
         System.out.println("Doing Demo_Cross_Request_Dead_Lock ......");
         Demo_Cross_Request_Dead_Lock(sqlite);
-        
+
         //create two tables, COMPANY and EMPLOYEE
         TestCreateTables(sqlite);
         ok = sqlite.WaitAll();
         System.out.println(sample_database + " created, opened and shared by two sessions");
-        
+
         //make sure all other handlers/sockets to open the same database mysample.db
         CSqlite[] vSqlite = spSqlite.getAsyncHandlers();
         for (int n = 1; n < vSqlite.length; ++n) {
