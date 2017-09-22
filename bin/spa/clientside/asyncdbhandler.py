@@ -349,7 +349,7 @@ class CAsyncDBHandler(CAsyncServiceHandler):
     def _Clean(self):
         self._strConnection = u''
         self._mapRowset = {}
-        self._vColInfo = []
+        self._vColInfo = CDBColumnInfoArray()
         self._lastReqId = 0
         self._Blob.SetSize(0)
         if self._Blob.MaxBufferSize > CAsyncDBHandler.DEFAULT_BIG_FIELD_CHUNK_SIZE:
@@ -358,8 +358,8 @@ class CAsyncDBHandler(CAsyncServiceHandler):
 
     def _CleanRowset(self, size = 0):
         if ((len(self._mapRowset) > 0 or len(self._vColInfo.list) > 0) and self.AttachedClientSocket.Sendable and self.AttachedClientSocket.CountOfRequestsInQueue <= size and self.AttachedClientSocket.ClientQueue.MessageCount <= size):
-            self._mapRowset.Clear = {}
-            self._vColInfo.Clear = []
+            self._mapRowset = {}
+            self._vColInfo = CDBColumnInfoArray()
 
     def Close(self, handler = None):
         """
