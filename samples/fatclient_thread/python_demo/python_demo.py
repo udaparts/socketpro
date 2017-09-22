@@ -22,10 +22,9 @@ import threading
                 self._strConnection = strConnection
             ok = self.SendRequest(CAsyncDBHandler.idOpen, q, None)
             if not ok:
-                with self._csDB:
-                    if not strConnection is None:
-                        self._strConnection = s
-                    self._deqResult.remove(cb)
+                if not strConnection is None:
+                    self._strConnection = s
+                self._deqResult.remove(cb)
 
         CScopeUQueue.Unlock(q)
         return ok
