@@ -4,13 +4,41 @@ from spa.clientside import CSocketPool, CConnectionContext, CSqlite, CUQueue
 import datetime
 import threading
 
+"""
+
+    # Bad implementation for original spa.clientside.CAsyncDBHandler.Open method!!!!
+    def Open(self, strConnection, handler = None, flags = 0):
+        ok = True
+        s = ''
+        q = CScopeUQueue.Lock().SaveString(strConnection).SaveUInt(flags)
+        cb = CAsyncDBHandler.Pair(CAsyncDBHandler.idOpen, handler)
+
+        #don't make self._csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
+        with self._csDB:
+            self._flags = flags
+            self._deqResult.append(cb)
+            if not strConnection is None:
+                s = self._strConnection
+                self._strConnection = strConnection
+            ok = self.SendRequest(CAsyncDBHandler.idOpen, q, None)
+            if not ok:
+                with self._csDB:
+                    if not strConnection is None:
+                        self._strConnection = s
+                    self._deqResult.remove(cb)
+
+        CScopeUQueue.Unlock(q)
+        return ok
+
+"""
+
 sample_database = "mysample.db"
 
 
 def Demo_Cross_Request_Dead_Lock(sqlite):
     # uncomment the following call to remove potential cross SendRequest dead lock
     # sqlite.AttachedClientSocket.ClientQueue.StartQueue("cross_locking_0", 3600)
-    count = 1000
+    count = 1000000
     def cb(sqlite, res, errMsg):
         if res != 0:
             print('Open: res = ' + str(res) + ', errMsg: ' + errMsg)
@@ -129,12 +157,26 @@ with CSocketPool(CSqlite) as spSqlite:
         s.WaitAll()
 
     # execute manual transactions concurrently with transaction overlapping on the same session
+    threads = []
+    for i in range(3):
+        t = threading.Thread(target=Demo_Multiple_SendRequest_MultiThreaded_Wrong, args=(spSqlite,))
+        t.start()
+        threads.append(t)
     Demo_Multiple_SendRequest_MultiThreaded_Wrong(spSqlite)
+    for t in threads:
+        t.join()
     print('Demo_Multiple_SendRequest_MultiThreaded_Wrong completed')
     print('')
 
     # execute manual transactions concurrently without transaction overlapping on the same session by lock/unlock
+    threads = []
+    for i in range(3):
+        t = threading.Thread(target= Demo_Multiple_SendRequest_MultiThreaded_Correct_Lock_Unlock, args=(spSqlite,))
+        t.start()
+        threads.append(t)
     Demo_Multiple_SendRequest_MultiThreaded_Correct_Lock_Unlock(spSqlite)
+    for t in threads:
+        t.join()
     print('Demo_Multiple_SendRequest_MultiThreaded_Correct_Lock_Unlock completed')
     print('')
 
