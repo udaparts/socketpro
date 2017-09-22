@@ -5,7 +5,6 @@ import datetime
 import threading
 
 """
-
     # Bad implementation for original spa.clientside.CAsyncDBHandler.Open method!!!!
     def Open(self, strConnection, handler = None, flags = 0):
         ok = True
@@ -28,7 +27,6 @@ import threading
 
         CScopeUQueue.Unlock(q)
         return ok
-
 """
 
 sample_database = "mysample.db"
