@@ -171,12 +171,12 @@ class CCoreLoader(object):
     #USocket_Client_Handle WINAPI LockASocket(unsigned int poolId, unsigned int timeout, USocket_Client_Handle hSameThread = NULL);
     LockASocket = _ucsLib_.LockASocket
     LockASocket.argtypes = [c_uint, c_uint, USocket_Client_Handle]
-    LockASocket.restype = c_uint64
+    LockASocket.restype = USocket_Client_Handle
 
     #bool WINAPI UnlockASocket(unsigned int poolId, USocket_Client_Handle h);
     UnlockASocket = _ucsLib_.UnlockASocket
     UnlockASocket.argtypes = [c_uint, USocket_Client_Handle]
-    UnlockASocket.restype = c_uint64
+    UnlockASocket.restype = c_bool
 
     #unsigned int WINAPI GetSocketsPerThread(unsigned int poolId);
     GetSocketsPerThread = _ucsLib_.GetSocketsPerThread

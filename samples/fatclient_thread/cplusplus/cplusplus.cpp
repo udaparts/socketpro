@@ -14,7 +14,7 @@ typedef std::vector<CPColumnRowset> CRowsetArray;
 //This is bad implementation for original SPA::ClientSide::CAsyncDBHandler::Open method!!!!
 virtual bool Open(const wchar_t* strConnection, DResult handler, unsigned int flags = 0) {
     std::wstring s;
-    CAutoLock al(m_csDB);
+    CAutoLock al(m_csDB); //start lock here
     m_flags = flags;
     if (strConnection) {
         s = m_strConnection;
@@ -50,6 +50,7 @@ virtual bool Open(const wchar_t* strConnection, DResult handler, unsigned int fl
         m_strConnection = s;
     }
     return false;
+    //end lock
 }
  */
 
@@ -57,7 +58,7 @@ virtual bool Open(const wchar_t* strConnection, DResult handler, unsigned int fl
 
 void Demo_Cross_Request_Dead_Lock(CMyPool::PHandler sqlite) {
     unsigned int count = 1000000;
-    //uncomment the following call to remove potential cross-request dead lock
+    //uncomment the following call to remove potential cross SendRequest dead lock
     //sqlite->GetAttachedClientSocket()->GetClientQueue().StartQueue("cross_locking_0", 3600);
     do {
         bool ok = sqlite->Open(sample_database, [](CMyHandler &handler, int res, const std::wstring & errMsg) {
@@ -71,7 +72,7 @@ void Demo_Cross_Request_Dead_Lock(CMyPool::PHandler sqlite) {
 }
 
 void TestCreateTables(CMyPool::PHandler sqlite) {
-    const wchar_t *sql = L"CREATE TABLE COMPANY(ID INT8 PRIMARY KEY NOT NULL, NAME CHAR(64) NOT NULL)";
+    const wchar_t *sql = L"CREATE TABLE COMPANY(ID INT8 PRIMARY KEY NOT NULL,NAME CHAR(64)NOT NULL)";
     bool ok = sqlite->Execute(sql, [](CMyHandler &handler, int res, const std::wstring &errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & id) {
         if (res != 0) {
             std::cout << "affected = " << affected << ", fails = " << (fail_ok >> 32) << ", oks = " << (unsigned int) fail_ok << ", res = " << res << ", errMsg: ";
@@ -205,8 +206,8 @@ int main(int argc, char* argv[]) {
     cc.UserId = L"MyUserId";
     cc.Password = L"MyPassword";
     CMyPool spSqlite;
-
-    bool ok = spSqlite.StartSocketPool(cc, 1, 2);
+    //start socket pool having 1 worker thread which hosts two non-block sockets
+    bool ok = spSqlite.StartSocketPool(cc, 2, 1);
     if (!ok) {
         std::cout << "No connection to sqlite server and press any key to close the demo ......" << std::endl;
         ::getchar();
@@ -214,16 +215,19 @@ int main(int argc, char* argv[]) {
     }
     CMyPool::PHandler sqlite = spSqlite.GetAsyncHandlers()[0];
     //Use the above bad implementation to replace original SPA::ClientSide::CAsyncDBHandler::Open method
-    //at file socketpro/include/udb_client.h
+    //at file socketpro/include/udb_client.h for cross SendRequest dead lock demonstration
     std::cout << "Doing Demo_Cross_Request_Dead_Lock ......" << std::endl;
     Demo_Cross_Request_Dead_Lock(sqlite);
+
+    //create two tables, COMAPNY and EMPLOYEE
     TestCreateTables(sqlite);
     ok = sqlite->WaitAll();
+
+    //make sure all other handlers/sockets to open the same database mysample.db
     auto vHandle = spSqlite.GetAsyncHandlers();
     size_t count = vHandle.size();
     for (size_t n = 1; n < count; ++n) {
         sqlite = vHandle[n];
-        //make sure all other handlers/sockets to open the same database mysample.db
         sqlite->Open(sample_database, [](CMyHandler &handler, int res, const std::wstring & errMsg) {
             if (res != 0) {
                 std::cout << "Open: res = " << res << ", errMsg: ";
