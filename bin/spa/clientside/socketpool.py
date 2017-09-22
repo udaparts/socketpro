@@ -312,7 +312,8 @@ class CSocketPool(object):
         poolId = None
         with self._lock_:
             poolId = self._PoolId_
-        return self._MapToHandler_(ccl.LockASocket(poolId, timeout, sameThreadHandle))
+        h = ccl.LockASocket(poolId, timeout, sameThreadHandle);
+        return self._MapToHandler_(h)
 
     """
     <summary>
