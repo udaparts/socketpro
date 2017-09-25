@@ -1,8 +1,10 @@
 
 #pragma once
 
-
 #include "../../../../include/mysql/umysql.h"
+#include "../../../../include/aserverw.h"
+#include "../../../../include/udb_client.h"
+
 
 #ifdef WIN32_64
 
