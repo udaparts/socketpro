@@ -15,6 +15,11 @@ protected:
 private:
 	bool AddServices();
 	void SetOnlineMessage();
+	
+public:
+	static void SetMySQLPools();
+	static std::shared_ptr<CMySQLPool> Master;
+	static std::shared_ptr<CMySQLPool> Slave;
 
 private:
 	CSocketProService<CSSPeer> m_SSPeer;

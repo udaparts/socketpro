@@ -3,6 +3,13 @@
 #include "ssserver.h"
 #include "config.h"
 
+std::shared_ptr<CMySQLPool> CSSServer::Master;
+std::shared_ptr<CMySQLPool> CSSServer::Slave;
+
+void CSSServer::SetMySQLPools() {
+
+}
+
 CSSServer::CSSServer(int nParam) : CSocketProServer(nParam)
 {
 
