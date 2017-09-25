@@ -30,6 +30,15 @@
     <ClInclude Include="..\..\..\..\include\membuffer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="config.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ssserver.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sspeer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -45,6 +54,15 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\include\membuffer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="config.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ssserver.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="sspeer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
