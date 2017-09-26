@@ -1,19 +1,18 @@
 #pragma once
 
-class CSSPeer : public CClientPeer
-{
+class CSSPeer : public CClientPeer {
 public:
-	CSSPeer();
-	~CSSPeer();
+    CSSPeer();
+    ~CSSPeer();
 
 protected:
-	virtual void OnFastRequestArrive(unsigned short reqId, unsigned int len);
-	virtual int OnSlowRequestArrive(unsigned short reqId, unsigned int len);
+    virtual void OnFastRequestArrive(unsigned short reqId, unsigned int len);
+    virtual int OnSlowRequestArrive(unsigned short reqId, unsigned int len);
 
 private:
-	
+
 
 private:
-	CSSPeer(const CSSPeer &p);
-	CSSPeer& operator=(const CSSPeer &p);
+    CSSPeer(const CSSPeer &p);
+    CSSPeer& operator=(const CSSPeer &p);
 };
