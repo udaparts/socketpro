@@ -5,10 +5,11 @@
 #include "ssserver.h"
 
 int main(int argc, char* argv[]) {
-    //get configuration settings
-    CConfig::GetConfig(g_config);
-    if (!g_config.m_vSlave.size()) { //check requirements
-        std::cout << "There is no connection setting for remote MySQL slave servers at all" << std::endl;
+    //set configuration settings
+    g_config.SetConfig();
+	if (!g_config.m_vSlave.size() || !g_config.m_nMasterSessions || !g_config.m_nSlaveSessions) { //check requirements
+        std::cout << "Wrong settings for remote MySQL master and slave servers, and press any key to stop the server ......" << std::endl;
+		::getchar();
         return 1;
     }
 
