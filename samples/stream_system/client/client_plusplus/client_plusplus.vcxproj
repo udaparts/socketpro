@@ -145,14 +145,17 @@
   <ItemGroup>
     <ClInclude Include="..\..\..\..\include\aclientw.h" />
     <ClInclude Include="..\..\..\..\include\membuffer.h" />
+    <ClInclude Include="..\..\..\..\include\udatabase.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
+    <ClInclude Include="webasynchandler.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\..\include\aclientw.cpp" />
     <ClCompile Include="..\..\..\..\include\membuffer.cpp" />
     <ClCompile Include="client_plusplus.cpp" />
     <ClCompile Include="stdafx.cpp" />
+    <ClCompile Include="webasynchandler.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

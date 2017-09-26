@@ -2,7 +2,11 @@
 
 #pragma once
 
-#include "../../../../include/udb_client.h"
+#include "../../../../include/aclientw.h"
+#include "../../shared/ss_defines.h"
+#include "../../../../include/udatabase.h"
+
+using namespace SPA::ClientSide;
 
 #ifdef WIN32_64
 #include "targetver.h"
