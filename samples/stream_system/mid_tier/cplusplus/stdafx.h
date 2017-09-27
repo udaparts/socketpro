@@ -10,8 +10,9 @@ using namespace SPA::ClientSide;
 using namespace SPA::ServerSide;
 using namespace SPA::UDB;
 
-typedef SPA::ClientSide::CAsyncDBHandler<SPA::Mysql::sidMysql> CMySQLHandler;
-typedef SPA::ClientSide::CSocketPool<CMySQLHandler> CMySQLPool;
+typedef SPA::ClientSide::CAsyncDBHandler<SPA::Mysql::sidMysql> CAsyncSQLHandler;
+
+typedef SPA::ClientSide::CSocketPool<CAsyncSQLHandler> CAsyncSQLPool;
 
 #ifdef WIN32_64
 

@@ -15,9 +15,6 @@ int main(int argc, char* argv[]) {
 
     CSSServer server(g_config.m_main_threads);
 
-    //set two socket pools, master and slave
-    CSSServer::SetMySQLPools();
-
     //set configuration settings for persistent message queues that used by this middle tier server and client backup
     if (g_config.m_working_directory.size()) {
         CClientSocket::QueueConfigure::SetWorkDirectory(g_config.m_working_directory.c_str());
@@ -27,6 +24,9 @@ int main(int argc, char* argv[]) {
         CSSServer::QueueManager::SetMessageQueuePassword(g_config.m_message_queue_password.c_str());
         CClientSocket::QueueConfigure::SetMessageQueuePassword(g_config.m_message_queue_password.c_str());
     }
+
+	//set two socket pools, master and slave
+	CSSServer::StartMySQLPools();
 
     if (!server.Run(g_config.m_nPort, 32, !g_config.m_bNoIpV6))
         std::cout << "Error happens with code = " << server.GetErrorCode() << std::endl;

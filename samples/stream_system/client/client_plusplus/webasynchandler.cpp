@@ -22,6 +22,6 @@ bool CWebAsyncHandler::EndBatchProcessing(unsigned int hints, DResult handler) {
     return false;
 }
 
-bool CWebAsyncHandler::QueryMaxMinAvgs(const wchar_t *sql, DMaxMinAvg mma, DResult handler) {
+bool CWebAsyncHandler::QueryMaxMinAvgs(const wchar_t *sql, DMaxMinAvg mma) {
     return false;
 }

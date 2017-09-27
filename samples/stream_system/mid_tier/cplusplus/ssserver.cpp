@@ -2,15 +2,16 @@
 #include "stdafx.h"
 #include "ssserver.h"
 #include "config.h"
+#include "../../shared/tablecache.h"
 
-std::shared_ptr<CMySQLPool> CSSServer::Master;
-std::shared_ptr<CMySQLPool> CSSServer::Slave;
+std::shared_ptr<CMasterPool> CSSServer::Master;
+std::shared_ptr<CAsyncSQLPool> CSSServer::Slave;
 
-void CSSServer::SetMySQLPools() {
-    CSSServer::Master.reset(new CMySQLPool);
+void CSSServer::StartMySQLPools() {
+	CSSServer::Master.reset(new CMasterPool);
     bool ok = CSSServer::Master->StartSocketPool(g_config.m_Master, (unsigned int) g_config.m_nMasterSessions, 1); //one thread enough
-    CMySQLPool::PHandler a0 = CSSServer::Master->GetAsyncHandlers()[0];
-
+	ok = CSSServer::Master->GetAsyncHandlers()[0]->WaitAll();
+	
 
 }
 

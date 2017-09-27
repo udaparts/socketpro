@@ -1,6 +1,7 @@
 #pragma once
 
 #include "sspeer.h"
+#include "masterpool.h"
 
 class CSSServer : public CSocketProServer {
 public:
@@ -16,9 +17,9 @@ private:
     void SetOnlineMessage();
 
 public:
-    static void SetMySQLPools();
-    static std::shared_ptr<CMySQLPool> Master;
-    static std::shared_ptr<CMySQLPool> Slave;
+    static void StartMySQLPools();
+	static std::shared_ptr<CMasterPool> Master;
+    static std::shared_ptr<CAsyncSQLPool> Slave;
 
 private:
     CSocketProService<CSSPeer> m_SSPeer;

@@ -9,7 +9,7 @@ public:
 
 public:
     typedef std::function<void(CWebAsyncHandler &sender, int res, const std::wstring &errMsg) > DResult;
-    typedef std::function<void(CWebAsyncHandler &sender, const CMaxMinAvg &mma) > DMaxMinAvg;
+	typedef std::function<void(CWebAsyncHandler &sender, const CMaxMinAvg &mma, int res, const std::wstring &errMsg) > DMaxMinAvg;
 
 public:
     /**
@@ -50,9 +50,8 @@ public:
      * 
      * @param sql
      * @param mma
-     * @param handler
      * @return true if request is successfully sent or queued; and false if failed
      */
-    bool QueryMaxMinAvgs(const wchar_t *sql, DMaxMinAvg mma, DResult handler = DResult());
+    bool QueryMaxMinAvgs(const wchar_t *sql, DMaxMinAvg mma);
 
 };
