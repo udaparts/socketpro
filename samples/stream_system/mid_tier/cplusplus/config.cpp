@@ -14,31 +14,31 @@ m_bNoIpV6(false) {
 }
 
 void CConfig::SetConfig() {
-	m_main_threads = 4;
-	
-	//master
-	m_Master.Host = "localhost";
-	m_Master.UserId = L"root";
-	m_Master.Password = L"Smash123";
-	m_Master.Port = m_nStreamSQLPort;
-	m_nMasterSessions = 2;
+    m_main_threads = 4;
 
-	CConnectionContext cc = m_Master;
+    //master
+    m_Master.Host = "localhost";
+    m_Master.UserId = L"root";
+    m_Master.Password = L"Smash123";
+    m_Master.Port = m_nStreamSQLPort;
+    m_nMasterSessions = 2;
 
-	m_vSlave.push_back(cc);
-	m_vSlave.push_back(cc);
-	m_vSlave.push_back(cc);
-	m_nSlaveSessions = 6;
+    CConnectionContext cc = m_Master;
+
+    m_vSlave.push_back(cc);
+    m_vSlave.push_back(cc);
+    m_vSlave.push_back(cc);
+    m_nSlaveSessions = 6;
 
 #ifdef WIN32_64
-	m_working_directory = "c:\\sp_test";
+    m_working_directory = "c:\\sp_test";
 #else
-	m_working_directory = "/home/yye/sp_test/";
+    m_working_directory = "/home/yye/sp_test/";
 #endif
 
-	if (!m_nMasterSessions)
-		m_nMasterSessions = 2;
-	if (!m_nSlaveSessions && m_vSlave.size())
-		m_nSlaveSessions = m_vSlave.size();
+    if (!m_nMasterSessions)
+        m_nMasterSessions = 2;
+    if (!m_nSlaveSessions && m_vSlave.size())
+        m_nSlaveSessions = m_vSlave.size();
 }
 

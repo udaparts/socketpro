@@ -6,8 +6,10 @@
                    projectFiles="true">
       <itemPath>../../../../include/aclientw.h</itemPath>
       <itemPath>../../../../include/membuffer.h</itemPath>
+      <itemPath>../../shared/ss_defines.h</itemPath>
       <itemPath>../../../../include/udatabase.h</itemPath>
       <itemPath>../../../../include/udb_client.h</itemPath>
+      <itemPath>webasynchandler.h</itemPath>
     </logicalFolder>
     <logicalFolder name="ResourceFiles"
                    displayName="Resource Files"
@@ -21,6 +23,7 @@
       <itemPath>../../../../include/error_code.cpp</itemPath>
       <itemPath>../../../../include/membuffer.cpp</itemPath>
       <itemPath>stdafx.cpp</itemPath>
+      <itemPath>webasynchandler.cpp</itemPath>
     </logicalFolder>
     <logicalFolder name="TestFiles"
                    displayName="Test Files"
@@ -71,9 +74,15 @@
       </item>
       <item path="../../../../include/udb_client.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../shared/ss_defines.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="client_plusplus.cpp" ex="false" tool="0" flavor2="0">
       </item>
       <item path="stdafx.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="webasynchandler.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="webasynchandler.h" ex="false" tool="3" flavor2="0">
       </item>
     </conf>
     <conf name="Release" type="1">
@@ -120,9 +129,15 @@
       </item>
       <item path="../../../../include/udb_client.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../shared/ss_defines.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="client_plusplus.cpp" ex="false" tool="0" flavor2="0">
       </item>
       <item path="stdafx.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="webasynchandler.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="webasynchandler.h" ex="false" tool="3" flavor2="0">
       </item>
     </conf>
   </confs>

@@ -9,7 +9,7 @@ struct CConfig {
     size_t m_nSlaveSessions;
     std::vector<SPA::ClientSide::CConnectionContext> m_vSlave;
 
-	size_t m_nMasterSessions;
+    size_t m_nMasterSessions;
     SPA::ClientSide::CConnectionContext m_Master;
     std::string m_working_directory;
     std::string m_message_queue_password;

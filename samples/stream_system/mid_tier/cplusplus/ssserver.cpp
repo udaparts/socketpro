@@ -7,11 +7,11 @@ std::shared_ptr<CMySQLPool> CSSServer::Master;
 std::shared_ptr<CMySQLPool> CSSServer::Slave;
 
 void CSSServer::SetMySQLPools() {
-	CSSServer::Master.reset(new CMySQLPool);
-	bool ok = CSSServer::Master->StartSocketPool(g_config.m_Master, (unsigned int)g_config.m_nMasterSessions, 1); //one thread enough
-	CMySQLPool::PHandler a0 = CSSServer::Master->GetAsyncHandlers()[0];
+    CSSServer::Master.reset(new CMySQLPool);
+    bool ok = CSSServer::Master->StartSocketPool(g_config.m_Master, (unsigned int) g_config.m_nMasterSessions, 1); //one thread enough
+    CMySQLPool::PHandler a0 = CSSServer::Master->GetAsyncHandlers()[0];
 
-	
+
 }
 
 CSSServer::CSSServer(int nParam) : CSocketProServer(nParam) {
@@ -44,12 +44,12 @@ bool CSSServer::AddServices() {
     bool ok = m_SSPeer.AddMe(sidStreamSystem);
     if (!ok)
         return false;
-	ok = m_SSPeer.AddSlowRequest(idSubscribeAndGetInitialCachedTablesData);
-	ok = m_SSPeer.AddSlowRequest(idSetDefaultDatabaseName);
-	ok = m_SSPeer.AddSlowRequest(idEndBatchProcessing);
+    ok = m_SSPeer.AddSlowRequest(idSubscribeAndGetInitialCachedTablesData);
+    ok = m_SSPeer.AddSlowRequest(idSetDefaultDatabaseName);
+    ok = m_SSPeer.AddSlowRequest(idEndBatchProcessing);
 
 
-	ok = m_SSPeer.AddSlowRequest(idQueryMaxMinAvgs);
+    ok = m_SSPeer.AddSlowRequest(idQueryMaxMinAvgs);
 
     return true;
 }

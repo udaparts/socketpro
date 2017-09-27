@@ -39,7 +39,8 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/562988696/error_code.o \
 	${OBJECTDIR}/_ext/562988696/membuffer.o \
 	${OBJECTDIR}/client_plusplus.o \
-	${OBJECTDIR}/stdafx.o
+	${OBJECTDIR}/stdafx.o \
+	${OBJECTDIR}/webasynchandler.o
 
 
 # C Compiler Flags
@@ -90,6 +91,11 @@ ${OBJECTDIR}/stdafx.o: stdafx.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.c) -g -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/stdafx.o stdafx.cpp
+
+${OBJECTDIR}/webasynchandler.o: webasynchandler.cpp 
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.c) -g -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/webasynchandler.o webasynchandler.cpp
 
 # Subprojects
 .build-subprojects:
