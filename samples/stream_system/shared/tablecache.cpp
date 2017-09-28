@@ -70,6 +70,38 @@ size_t CTableCache::AddRows(const wchar_t *dbName, const wchar_t *tblName, SPA::
 	return (~0); //not found
 }
 
+SPA::UDB::CDBVariant* CTableCache::FindARowInternal(CTableCache::CPColumnRowset &pcr, const VARIANT &key) {
+	size_t col_count = pcr.first.size();
+	size_t keyIndex = FindKeyColIndex(pcr.first);
+	if (keyIndex == (~0))
+		return nullptr;
+	SPA::UDB::CDBVariantArray &vData = pcr.second;
+	size_t rows = pcr.second.size() / col_count;
+	for (size_t r = 0; r < rows; ++r) {
+		const SPA::UDB::CDBVariant &vtKey = vData[r * col_count + keyIndex];
+		if (vtKey == key)
+			return vData.data() + r * col_count;
+	}
+	return nullptr;
+}
+
+SPA::UDB::CDBVariant* CTableCache::FindARowInternal(CTableCache::CPColumnRowset &pcr, const VARIANT &key0, const VARIANT &key1) {
+	size_t col_count = pcr.first.size();
+	size_t key;
+	size_t keyIndex = FindKeyColIndex(pcr.first, key);
+	if (keyIndex == (~0) || key == (~0))
+		return nullptr;
+	SPA::UDB::CDBVariantArray &vData = pcr.second;
+	size_t rows = pcr.second.size() / col_count;
+	for (size_t r = 0; r < rows; ++r) {
+		const SPA::UDB::CDBVariant &vtKey = vData[r * col_count + keyIndex];
+		const SPA::UDB::CDBVariant &vtKey1 = vData[r * col_count + key];
+		if (vtKey == key0 && vtKey1 == key1)
+			return vData.data() + r * col_count;
+	}
+	return nullptr;
+}
+
 SPA::UDB::CDBVariantArray CTableCache::FindARow(const wchar_t *dbName, const wchar_t *tblName, const VARIANT &key) {
 	SPA::CAutoLock al(m_cs);
 	for (auto it = m_ds.cbegin(), end = m_ds.cend(); it != end; ++it) {
@@ -120,6 +152,42 @@ size_t CTableCache::DeleteARow(const wchar_t *dbName, const wchar_t *tblName, co
 		}
 	}
 	return deleted;
+}
+
+size_t CTableCache::UpdateARow(const wchar_t *dbName, const wchar_t *tblName, VARIANT *pvt, size_t count) {
+	if (!pvt || !count || count % 2)
+		return (~0);
+	size_t updated = 0;
+	SPA::CAutoLock al(m_cs);
+	for (auto it = m_ds.begin(), end = m_ds.end(); it != end; ++it) {
+		CPColumnRowset &pr = *it;
+		const SPA::UDB::CDBColumnInfoArray &meta = pr.first;
+		const SPA::UDB::CDBColumnInfo &col = meta.front();
+		if (col.DBPath == dbName && col.TablePath == tblName) {
+			size_t col_count = meta.size();
+			if (count % col_count || 2 * col_count != count)
+				return (~0);
+			size_t key1;
+			SPA::UDB::CDBVariant *row;
+			size_t key0 = FindKeyColIndex(meta, key1);
+			if (key0 == (~0) && key1 == (~0))
+				return (~0);
+			else if (key1 == (~0)) {
+				row = FindARowInternal(*it, pvt[key0 * 2]);
+			}
+			else {
+				row = FindARowInternal(*it, pvt[key0 * 2], pvt[key1 * 2]);
+			}
+			if (row) {
+				for (unsigned int n = 0; n < col_count; ++n) {
+					row[n] = pvt[2 * n + 1]; //??? date time in string
+				}
+				updated = 1;
+			}
+			break;
+		}
+	}
+	return updated;
 }
 
 size_t CTableCache::DeleteARow(const wchar_t *dbName, const wchar_t *tblName, const VARIANT &vtKey0, const VARIANT &vtKey1) {
@@ -207,22 +275,23 @@ SPA::UDB::CDBVariantArray CTableCache::FindARow(const wchar_t *dbName, const wch
 	return FindARow(dbName, tblName, (const VARIANT &)key0, (const VARIANT &)key1);
 }
 
-SPA::UDB::CDBColumnInfoArray CTableCache::FindKeys(const wchar_t *dbName, const wchar_t *tblName) {
-	SPA::UDB::CDBColumnInfoArray v;
+CTableCache::CKeyMap CTableCache::FindKeys(const wchar_t *dbName, const wchar_t *tblName) {
+	CKeyMap map;
 	SPA::CAutoLock al(m_cs);
 	for (auto it = m_ds.cbegin(), end = m_ds.cend(); it != end; ++it) {
 		const CPColumnRowset &pr = *it;
 		const SPA::UDB::CDBColumnInfoArray &meta = pr.first;
 		const SPA::UDB::CDBColumnInfo &col = meta.front();
 		if (col.DBPath == dbName && col.TablePath == tblName) {
-			for (auto m = meta.cbegin(), mend = meta.cend(); m != mend; ++m) {
+			unsigned int col = 0;
+			for (auto m = meta.cbegin(), mend = meta.cend(); m != mend; ++m, ++col) {
 				if ((m->Flags & (SPA::UDB::CDBColumnInfo::FLAG_PRIMARY_KEY | SPA::UDB::CDBColumnInfo::FLAG_AUTOINCREMENT)))
-					v.push_back(*m);
+					map[col] = *m;
 			}
 			break;
 		}
 	}
-	return v;
+	return map;
 }
 
 SPA::UDB::CDBColumnInfoArray CTableCache::GetColumMeta(const wchar_t *dbName, const wchar_t *tblName) {
@@ -236,6 +305,19 @@ SPA::UDB::CDBColumnInfoArray CTableCache::GetColumMeta(const wchar_t *dbName, co
 		}
 	}
 	return SPA::UDB::CDBColumnInfoArray();
+}
+
+std::string CTableCache::GetDBServerIp() {
+	SPA::CAutoLock al(m_cs);
+	return m_strIp;
+}
+
+void CTableCache::SetDBServerIp(const char *ip) {
+	SPA::CAutoLock al(m_cs);
+	if (ip)
+		m_strIp = ip;
+	else
+		m_strIp.clear();
 }
 
 size_t CTableCache::GetColumnCount(const wchar_t *dbName, const wchar_t *tblName) {
