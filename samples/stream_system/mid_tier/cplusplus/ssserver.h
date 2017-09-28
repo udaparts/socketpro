@@ -18,7 +18,7 @@ private:
 
 public:
     static void StartMySQLPools();
-	static std::shared_ptr<CMasterPool> Master;
+    static std::shared_ptr<CMasterPool> Master;
     static std::shared_ptr<CAsyncSQLPool> Slave;
 
 private:

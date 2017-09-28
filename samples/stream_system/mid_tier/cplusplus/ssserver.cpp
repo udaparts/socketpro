@@ -8,10 +8,10 @@ std::shared_ptr<CMasterPool> CSSServer::Master;
 std::shared_ptr<CAsyncSQLPool> CSSServer::Slave;
 
 void CSSServer::StartMySQLPools() {
-	CSSServer::Master.reset(new CMasterPool);
+    CSSServer::Master.reset(new CMasterPool);
     bool ok = CSSServer::Master->StartSocketPool(g_config.m_Master, (unsigned int) g_config.m_nMasterSessions, 1); //one thread enough
-	ok = CSSServer::Master->GetAsyncHandlers()[0]->WaitAll();
-	
+    ok = CSSServer::Master->GetAsyncHandlers()[0]->WaitAll();
+
 
 }
 
