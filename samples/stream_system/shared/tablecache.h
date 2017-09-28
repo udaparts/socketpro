@@ -11,14 +11,28 @@ public:
 
 	typedef std::pair<SPA::UDB::CDBColumnInfoArray, SPA::UDB::CDBVariantArray> CPColumnRowset;
 	typedef std::vector<CPColumnRowset> CRowsetArray;
+	typedef std::pair<std::wstring, std::wstring> CPDbTable; //DB and Table name pair
 
 public:
 	void Empty();
 	void Swap(CTableCache &tc);
-	SPA::UDB::CDBVariantArray FindARow(const wchar_t *dbName, const wchar_t *tblName, const SPA::UDB::CDBVariant &key, size_t *cols = nullptr);
-	SPA::UDB::CDBVariantArray FindARow(const wchar_t *dbName, const wchar_t *tblName, const SPA::UDB::CDBVariant &key0, const SPA::UDB::CDBVariant &key1, size_t *cols = nullptr);
+	SPA::UDB::CDBVariantArray FindARow(const wchar_t *dbName, const wchar_t *tblName, const CComVariant &key);
+	SPA::UDB::CDBVariantArray FindARow(const wchar_t *dbName, const wchar_t *tblName, const CComVariant &key0, const CComVariant &key1);
+	SPA::UDB::CDBVariantArray FindARow(const wchar_t *dbName, const wchar_t *tblName, const VARIANT &key);
+	SPA::UDB::CDBVariantArray FindARow(const wchar_t *dbName, const wchar_t *tblName, const VARIANT &key0, const VARIANT &key1);
+	size_t DeleteARow(const wchar_t *dbName, const wchar_t *tblName, const VARIANT &key);
+	size_t DeleteARow(const wchar_t *dbName, const wchar_t *tblName, const VARIANT &key0, const VARIANT &key1);
+	size_t DeleteARow(const wchar_t *dbName, const wchar_t *tblName, const CComVariant &key);
+	size_t DeleteARow(const wchar_t *dbName, const wchar_t *tblName, const CComVariant &key0, const CComVariant &key1);
+
 	void AddEmptyRowset(const SPA::UDB::CDBColumnInfoArray &meta);
 	size_t AddRows(const wchar_t *dbName, const wchar_t *tblName, SPA::UDB::CDBVariantArray &vData);
+	size_t AddRows(const wchar_t *dbName, const wchar_t *tblName, VARIANT *pvt, size_t count);
+	std::vector<CPDbTable> GetDbTablePair();
+	SPA::UDB::CDBColumnInfoArray FindKeys(const wchar_t *dbName, const wchar_t *tblName);
+	SPA::UDB::CDBColumnInfoArray GetColumMeta(const wchar_t *dbName, const wchar_t *tblName);
+	size_t GetRowCount(const wchar_t *dbName, const wchar_t *tblName);
+	size_t GetColumnCount(const wchar_t *dbName, const wchar_t *tblName);
 
 private:
 	static size_t FindKeyColIndex(const SPA::UDB::CDBColumnInfoArray &meta);

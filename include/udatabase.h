@@ -310,6 +310,149 @@ namespace SPA {
                 return vt;
             }
 
+            bool operator!=(const VARIANT &data) const {
+                return (!(*this == data));
+            }
+
+            bool operator==(const VARIANT &data) const {
+                if ((vt == VT_NULL || vt == VT_EMPTY) && (data.vt == VT_EMPTY || data.vt == VT_NULL)) {
+                    return true;
+                } else if (vt == VT_BSTR) {
+                    int res;
+                    //case-insensitive compare
+                    if (data.vt == VT_BSTR)
+                        res = ::_wcsicmp(bstrVal, data.bstrVal);
+                    else if (data.vt == (VT_ARRAY | VT_I1)) {
+                        SPA::CScopeUQueue sb;
+                        const char *s0 = nullptr;
+                        ::SafeArrayAccessData(data.parray, (void**) &s0);
+                        SPA::Utilities::ToWide(s0, data.parray->rgsabound->cElements);
+                        ::SafeArrayUnaccessData(data.parray);
+                        const wchar_t *s = (const wchar_t*)sb->GetBuffer();
+                        res = ::_wcsicmp(s, bstrVal);
+                    } else {
+                        res = -1;
+                    }
+                    return (res == 0);
+                } else if (vt == (VT_ARRAY | VT_I1)) {
+                    int res;
+                    //case-insensitive compare
+                    if (data.vt == (VT_ARRAY | VT_I1)) {
+                        if (parray->rgsabound->cElements != data.parray->rgsabound->cElements)
+                            return false;
+                        const char *s0;
+                        ::SafeArrayAccessData(data.parray, (void**) &s0);
+                        const char *s;
+                        ::SafeArrayAccessData(parray, (void**) &s);
+                        res = ::_strnicmp(s0, s, parray->rgsabound->cElements);
+                        ::SafeArrayUnaccessData(parray);
+                        ::SafeArrayUnaccessData(data.parray);
+                    } else if (data.vt == VT_BSTR) {
+                        SPA::CScopeUQueue sb;
+                        SPA::Utilities::ToUTF8(data.bstrVal, ::wcslen(data.bstrVal), *sb);
+                        if (sb->GetSize() != parray->rgsabound->cElements)
+                            return false;
+                        const char *s0 = (const char*) sb->GetBuffer();
+                        const char *s;
+                        ::SafeArrayAccessData(parray, (void**) &s);
+                        res = ::_strnicmp(s0, s, parray->rgsabound->cElements);
+                        ::SafeArrayUnaccessData(parray);
+                    } else {
+                        res = -1;
+                    }
+                    return (res == 0);
+                } else if (vt == data.vt && vt == (VT_UI1 | VT_ARRAY)) {
+                    if (parray->rgsabound->cElements != data.parray->rgsabound->cElements)
+                        return false;
+                    const unsigned char *s;
+                    const unsigned char *s0;
+                    ::SafeArrayAccessData(data.parray, (void**) &s0);
+                    ::SafeArrayAccessData(parray, (void**) &s);
+                    int res = ::memcmp(s, s0, parray->rgsabound->cElements);
+                    ::SafeArrayUnaccessData(parray);
+                    ::SafeArrayUnaccessData(data.parray);
+                    return (res == 0);
+                }
+                UINT64 d, d0;
+                switch (vt) {
+                    case VT_BOOL:
+                        d = boolVal ? 1 : 0;
+                        break;
+                    case VT_I1:
+                        d = cVal;
+                        break;
+                    case VT_UI1:
+                        d = bVal;
+                        break;
+                    case VT_I2:
+                        d = iVal;
+                        break;
+                    case VT_UI2:
+                        d = uiVal;
+                        break;
+                    case VT_I4:
+                        d = lVal;
+                        break;
+                    case VT_INT:
+                        d = intVal;
+                        break;
+                    case VT_UI4:
+                        d = ulVal;
+                        break;
+                    case VT_UINT:
+                        d = uintVal;
+                        break;
+                    case VT_I8:
+                        d = (UINT64) llVal;
+                        break;
+                    case VT_UI8:
+                        d = ullVal;
+                        break;
+                    default:
+                        return false;
+                        break;
+                }
+                switch (data.vt) {
+                    case VT_BOOL:
+                        d0 = data.boolVal ? 1 : 0;
+                        break;
+                    case VT_I1:
+                        d0 = data.cVal;
+                        break;
+                    case VT_UI1:
+                        d0 = data.bVal;
+                        break;
+                    case VT_I2:
+                        d0 = data.iVal;
+                        break;
+                    case VT_UI2:
+                        d0 = data.uiVal;
+                        break;
+                    case VT_I4:
+                        d0 = data.lVal;
+                        break;
+                    case VT_INT:
+                        d0 = data.intVal;
+                        break;
+                    case VT_UI4:
+                        d0 = data.ulVal;
+                        break;
+                    case VT_UINT:
+                        d0 = data.uintVal;
+                        break;
+                    case VT_I8:
+                        d0 = (UINT64) data.llVal;
+                        break;
+                    case VT_UI8:
+                        d0 = data.ullVal;
+                        break;
+                    default:
+                        return false;
+                        break;
+                }
+                return (d == d0);
+            }
+
             CDBVariant& operator=(const CDBVariant &vtData) {
                 CComVariant &me = *this;
                 me = vtData;

@@ -26,7 +26,7 @@ void CMasterPool::OnSocketPoolEvent(tagSocketPoolEvent spe, const PHandler &asyn
                 }, [this](CAsyncSQLHandler &h, CDBVariantArray & vData) {
                     auto meta = h.GetColumnInfo();
                     const CDBColumnInfo &info = meta.front();
-                            this->m_cache.AddRows(info.DBPath.c_str(), info.OriginalName.c_str(), vData);
+                    this->m_cache.AddRows(info.DBPath.c_str(), info.TablePath.c_str(), vData);
                 }, [this](CAsyncSQLHandler & h) {
                     this->m_cache.AddEmptyRowset(h.GetColumnInfo());
                 });
