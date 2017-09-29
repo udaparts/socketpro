@@ -25,9 +25,10 @@ namespace SPA {
 		size_t GetRowCount(const wchar_t *dbName, const wchar_t *tblName);
 		size_t GetColumnCount(const wchar_t *dbName, const wchar_t *tblName);
 		std::string GetDBServerIp();
+		std::wstring GetDBServerName();
+		std::wstring GetUpdater();
+
 		bool IsEmpty();
-
-
 
 		//find a row based on one or two keys and equal operation
 		UDB::CDBVariantArray FindARow(const wchar_t *dbName, const wchar_t *tblName, const CComVariant &key);
@@ -61,31 +62,38 @@ namespace SPA {
 	protected:
 		CUCriticalSection m_cs;
 		CRowsetArray m_ds;
+
+
+	private:
 		std::string m_strIp;
 		bool m_bWide;
+		std::wstring m_strHostName;
+		std::wstring m_strUpdater;
 
+	protected:
 #ifdef WIN32_64
 		bool m_bTimeEx;
 #endif
-
 	private:
 		CTableCache(const CTableCache &tc);
 		CTableCache& operator=(const CTableCache &tc);
 
-		template<unsigned int serviceId, typename TCache>
+		template<unsigned int serviceId, typename THandler, typename TCache>
 		friend class CMasterPool;
 	};
 
-	template<unsigned int serviceId, typename TCache = CTableCache>
-	class CMasterPool : public ClientSide::CSocketPool<ClientSide::CAsyncDBHandler<serviceId> > {
+	template<unsigned int serviceId, typename THandler = ClientSide::CAsyncDBHandler<serviceId>, typename TCache = CTableCache>
+	class CMasterPool : public ClientSide::CSocketPool<THandler> {
 	public:
-		CMasterPool() {
+		CMasterPool(bool autoConn = true, unsigned int recvTimeout = ClientSide::DEFAULT_RECV_TIMEOUT, unsigned int connTimeout = ClientSide::DEFAULT_CONN_TIMEOUT)
+			: ClientSide::CSocketPool<THandler>(autoConn, recvTimeout, connTimeout) {
 		}
 
 		static CTableCache Cache;
 
-		typedef ClientSide::CAsyncDBHandler<serviceId> CAsyncSQLHandler;
+		typedef THandler CAsyncSQLHandler;
 		typedef ClientSide::CSocketPool<CAsyncSQLHandler> CAsyncSQLPool;
+		typedef TCache CTableCache;
 
 	protected:
 		virtual void OnSocketPoolEvent(ClientSide::tagSocketPoolEvent spe, const PHandler &asyncSQL) {
@@ -95,8 +103,17 @@ namespace SPA {
 					asyncSQL->GetAttachedClientSocket()->GetPush().OnPublish = [](ClientSide::CClientSocket*cs, const ClientSide::CMessageSender& sender, const unsigned int* groups, unsigned int count, const UVariant & vtMsg) {
 						VARIANT *vData;
 						size_t res;
+						//vData[0] == event type; vData[1] == host; vData[2] = user; vData[3] == db name; vData[4] == table name
 						::SafeArrayAccessData(vtMsg.parray, (void**)&vData);
 						ClientSide::tagUpdateEvent eventType = (ClientSide::tagUpdateEvent)(vData[0].intVal);
+						Cache.m_cs.lock();
+						if (!Cache.m_strHostName.size()) {
+							if (vData[1].vt == (VT_ARRAY | VT_I1))
+								Cache.m_strHostName = ToWide(vData[1]);
+						}
+						if (vData[2].vt == (VT_ARRAY | VT_I1))
+							Cache.m_strUpdater = ToWide(vData[2]);
+						Cache.m_cs.unlock();
 						std::wstring dbName;
 						if (vData[3].vt == (VT_I1 | VT_ARRAY)) {
 							dbName = ToWide(vData[3]);
@@ -160,6 +177,8 @@ namespace SPA {
 						::SafeArrayUnaccessData(vtMsg.parray);
 					};
 					bool ok = asyncSQL->Open(L"", [this](CAsyncSQLHandler &h, int res, const std::wstring & errMsg) {
+						this->m_cache.m_strHostName.clear();
+						this->m_cache.m_strUpdater.clear();
 						this->m_cache.m_ds.clear();
 						unsigned int port;
 						std::string ip = h.GetAttachedClientSocket()->GetPeerName(&port);
@@ -200,11 +219,11 @@ namespace SPA {
 		}
 
 	private:
-		CTableCache m_cache;
+		TCache m_cache;
 	};
 
-	template<unsigned int serviceId, typename TCache>
-	TCache CMasterPool<serviceId, TCache>::Cache;
+	template<unsigned int serviceId, typename THandler, typename TCache>
+	TCache CMasterPool<serviceId, THandler, TCache>::Cache;
 
 }; //namespace SPA
 

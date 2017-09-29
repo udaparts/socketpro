@@ -15,6 +15,8 @@ namespace SPA {
 		CAutoLock al(m_cs);
 		m_ds.swap(tc.m_ds);
 		m_strIp.swap(tc.m_strIp);
+		m_strHostName.swap(tc.m_strHostName);
+		m_strUpdater.swap(tc.m_strUpdater);
 		bool b = m_bWide;
 		m_bWide = tc.m_bWide;
 		tc.m_bWide = b;
@@ -409,6 +411,16 @@ namespace SPA {
 	std::string CTableCache::GetDBServerIp() {
 		CAutoLock al(m_cs);
 		return m_strIp;
+	}
+
+	std::wstring CTableCache::GetDBServerName() {
+		CAutoLock al(m_cs);
+		return m_strHostName;
+	}
+
+	std::wstring CTableCache::GetUpdater() {
+		CAutoLock al(m_cs);
+		return m_strUpdater;
 	}
 
 	size_t CTableCache::GetColumnCount(const wchar_t *dbName, const wchar_t *tblName) {
