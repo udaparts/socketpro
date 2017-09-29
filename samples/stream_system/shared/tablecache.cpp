@@ -85,7 +85,7 @@ namespace SPA
         return INVALID_VALUE; //not found
     }
 
-    UDB::CDBVariant * CTableCache::FindARowInternal(CTableCache::CPColumnRowset &pcr, const VARIANT & key) {
+    UDB::CDBVariant * CTableCache::FindARowInternal(CPColumnRowset &pcr, const VARIANT & key) {
         size_t col_count = pcr.first.size();
         size_t keyIndex = FindKeyColIndex(pcr.first);
         if (keyIndex == INVALID_VALUE)
@@ -100,7 +100,7 @@ namespace SPA
         return nullptr;
     }
 
-    UDB::CDBVariant * CTableCache::FindARowInternal(CTableCache::CPColumnRowset &pcr, const VARIANT &key0, const VARIANT & key1) {
+    UDB::CDBVariant * CTableCache::FindARowInternal(CPColumnRowset &pcr, const VARIANT &key0, const VARIANT & key1) {
         size_t col_count = pcr.first.size();
         size_t key;
         size_t keyIndex = FindKeyColIndex(pcr.first, key);
@@ -348,7 +348,7 @@ namespace SPA
         return index;
     }
 
-    std::vector<CTableCache::CPDbTable> CTableCache::GetDbTablePair() {
+    std::vector<CPDbTable> CTableCache::GetDbTablePair() {
         std::vector<CPDbTable> v;
         CAutoLock al(m_cs);
         for (auto it = m_ds.cbegin(), end = m_ds.cend(); it != end; ++it) {
@@ -368,7 +368,7 @@ namespace SPA
         return FindARow(dbName, tblName, (const VARIANT &) key0, (const VARIANT &) key1);
     }
 
-    CTableCache::CKeyMap CTableCache::FindKeys(const wchar_t *dbName, const wchar_t * tblName) {
+    CKeyMap CTableCache::FindKeys(const wchar_t *dbName, const wchar_t * tblName) {
         CKeyMap map;
         CAutoLock al(m_cs);
         for (auto it = m_ds.cbegin(), end = m_ds.cend(); it != end; ++it) {

@@ -26,10 +26,10 @@ namespace SPA {
 
         protected:
 
-            virtual void OnSocketPoolEvent(ClientSide::tagSocketPoolEvent spe, const PHandler &asyncSQL) {
+            void OnSocketPoolEvent(ClientSide::tagSocketPoolEvent spe, const std::shared_ptr<THandler> &asyncSQL) {
                 switch (spe) {
                     case ClientSide::speConnected:
-                        if (asyncSQL == GetAsyncHandlers()[0]) {
+                        if (asyncSQL == this->GetAsyncHandlers()[0]) {
                             asyncSQL->GetAttachedClientSocket()->GetPush().OnPublish = [](ClientSide::CClientSocket*cs, const ClientSide::CMessageSender& sender, const unsigned int* groups, unsigned int count, const UVariant & vtMsg) {
                                 VARIANT *vData;
                                 size_t res;
@@ -69,7 +69,7 @@ namespace SPA {
                                     {
                                         unsigned int count = vtMsg.parray->rgsabound->cElements - 5;
 #ifndef NDEBUG
-                                        CTableCache::CKeyMap map = Cache.FindKeys(dbName.c_str(), tblName.c_str());
+                                        CKeyMap map = Cache.FindKeys(dbName.c_str(), tblName.c_str());
 
                                         //there must be one or two key columns. For other cases, you must implement them
                                         assert(map.size() > 0 && map.size() <= 2);
@@ -87,7 +87,7 @@ namespace SPA {
                                         //there must be one or two key columns. For other cases, you must implement them
                                         assert(keys <= 2 && keys > 0);
 #ifndef NDEBUG
-                                        CTableCache::CKeyMap map = Cache.FindKeys(dbName.c_str(), tblName.c_str());
+                                        CKeyMap map = Cache.FindKeys(dbName.c_str(), tblName.c_str());
                                         assert(map.size() == keys);
 #endif
                                         if (keys == 1)

@@ -12,14 +12,14 @@ namespace SPA {
         class CMasterPool;
     };
 
+    typedef std::pair<UDB::CDBColumnInfoArray, UDB::CDBVariantArray> CPColumnRowset; //meta and data array for a rowset
+    typedef std::vector<CPColumnRowset> CRowsetArray;
+    typedef std::pair<std::wstring, std::wstring> CPDbTable; //DB and Table name pair
+    typedef std::map<unsigned int, UDB::CDBColumnInfo> CKeyMap; //ordinal and column info map
+
     class CTableCache {
     public:
         CTableCache();
-
-        typedef std::pair<UDB::CDBColumnInfoArray, UDB::CDBVariantArray> CPColumnRowset; //meta and data array for a rowset
-        typedef std::vector<CPColumnRowset> CRowsetArray;
-        typedef std::pair<std::wstring, std::wstring> CPDbTable; //DB and Table name pair
-        typedef std::map<unsigned int, UDB::CDBColumnInfo> CKeyMap; //ordinal and colunm info map
 
         static const size_t INVALID_VALUE = ((size_t) (~0));
 
