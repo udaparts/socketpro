@@ -13,6 +13,8 @@ public:
     typedef std::pair<std::wstring, std::wstring> CPDbTable; //DB and Table name pair
     typedef std::map<unsigned int, SPA::UDB::CDBColumnInfo> CKeyMap;
 
+    static const size_t INVALID_VALUE = ((size_t) (~0));
+
 public:
     void Empty();
     void Swap(CTableCache &tc);

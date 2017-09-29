@@ -12,6 +12,7 @@ void CTableCache::Empty() {
 void CTableCache::Swap(CTableCache &tc) {
     SPA::CAutoLock al(m_cs);
     m_ds.swap(tc.m_ds);
+    m_strIp.swap(tc.m_strIp);
 }
 
 void CTableCache::AddEmptyRowset(const SPA::UDB::CDBColumnInfoArray &meta) {
@@ -25,7 +26,7 @@ size_t CTableCache::AddRows(const wchar_t *dbName, const wchar_t *tblName, VARIA
     if (!pvt || !count)
         return 0;
     if (!dbName || !tblName)
-        return INVALID_NUMBER;
+        return INVALID_VALUE;
     SPA::CAutoLock al(m_cs);
     for (auto it = m_ds.begin(), end = m_ds.end(); it != end; ++it) {
         CPColumnRowset &pr = *it;
@@ -34,7 +35,7 @@ size_t CTableCache::AddRows(const wchar_t *dbName, const wchar_t *tblName, VARIA
         if (col.DBPath == dbName && col.TablePath == tblName) {
             size_t col_count = meta.size();
             if (count % col_count)
-                return INVALID_NUMBER;
+                return INVALID_VALUE;
             SPA::UDB::CDBVariantArray &row_data = pr.second;
             for (size_t n = 0; n < count; ++n) {
                 row_data.push_back(SPA::UDB::CDBVariant(pvt[n])); //avoid memory repeatedly allocation/de-allocation for better performance
@@ -42,7 +43,7 @@ size_t CTableCache::AddRows(const wchar_t *dbName, const wchar_t *tblName, VARIA
             return (count / col_count);
         }
     }
-    return INVALID_NUMBER; //not found
+    return INVALID_VALUE; //not found
 }
 
 size_t CTableCache::AddRows(const wchar_t *dbName, const wchar_t *tblName, SPA::UDB::CDBVariantArray &vData) {
@@ -50,7 +51,7 @@ size_t CTableCache::AddRows(const wchar_t *dbName, const wchar_t *tblName, SPA::
     if (!count)
         return 0;
     if (!dbName || !tblName)
-        return INVALID_NUMBER;
+        return INVALID_VALUE;
     SPA::CAutoLock al(m_cs);
     for (auto it = m_ds.begin(), end = m_ds.end(); it != end; ++it) {
         CPColumnRowset &pr = *it;
@@ -59,7 +60,7 @@ size_t CTableCache::AddRows(const wchar_t *dbName, const wchar_t *tblName, SPA::
         if (col.DBPath == dbName && col.TablePath == tblName) {
             size_t col_count = meta.size();
             if (count % col_count)
-                return INVALID_NUMBER;
+                return INVALID_VALUE;
             SPA::UDB::CDBVariantArray &row_data = pr.second;
             for (size_t n = 0; n < count; ++n) {
                 row_data.push_back(std::move(vData[n])); //avoid memory repeatedly allocation/de-allocation for better performance
@@ -67,13 +68,13 @@ size_t CTableCache::AddRows(const wchar_t *dbName, const wchar_t *tblName, SPA::
             return (count / col_count);
         }
     }
-    return INVALID_NUMBER; //not found
+    return INVALID_VALUE; //not found
 }
 
 SPA::UDB::CDBVariant* CTableCache::FindARowInternal(CTableCache::CPColumnRowset &pcr, const VARIANT &key) {
     size_t col_count = pcr.first.size();
     size_t keyIndex = FindKeyColIndex(pcr.first);
-    if (keyIndex == INVALID_NUMBER)
+    if (keyIndex == INVALID_VALUE)
         return nullptr;
     SPA::UDB::CDBVariantArray &vData = pcr.second;
     size_t rows = pcr.second.size() / col_count;
@@ -89,7 +90,7 @@ SPA::UDB::CDBVariant* CTableCache::FindARowInternal(CTableCache::CPColumnRowset 
     size_t col_count = pcr.first.size();
     size_t key;
     size_t keyIndex = FindKeyColIndex(pcr.first, key);
-    if (keyIndex == INVALID_NUMBER || key == INVALID_NUMBER)
+    if (keyIndex == INVALID_VALUE || key == INVALID_VALUE)
         return nullptr;
     SPA::UDB::CDBVariantArray &vData = pcr.second;
     size_t rows = pcr.second.size() / col_count;
@@ -111,7 +112,7 @@ SPA::UDB::CDBVariantArray CTableCache::FindARow(const wchar_t *dbName, const wch
         if (col.DBPath == dbName && col.TablePath == tblName) {
             size_t col_count = meta.size();
             size_t keyIndex = FindKeyColIndex(meta);
-            if (keyIndex == INVALID_NUMBER)
+            if (keyIndex == INVALID_VALUE)
                 return SPA::UDB::CDBVariantArray();
             const SPA::UDB::CDBVariantArray &vData = pr.second;
             size_t rows = pr.second.size() / col_count;
@@ -136,8 +137,8 @@ size_t CTableCache::DeleteARow(const wchar_t *dbName, const wchar_t *tblName, co
         if (col.DBPath == dbName && col.TablePath == tblName) {
             size_t col_count = meta.size();
             size_t key = FindKeyColIndex(meta);
-            if (key == INVALID_NUMBER)
-                return INVALID_NUMBER;
+            if (key == INVALID_VALUE)
+                return INVALID_VALUE;
             SPA::UDB::CDBVariantArray &vData = pr.second;
             size_t rows = vData.size() / col_count;
             for (size_t r = 0; r < rows; ++r) {
@@ -156,7 +157,7 @@ size_t CTableCache::DeleteARow(const wchar_t *dbName, const wchar_t *tblName, co
 
 size_t CTableCache::UpdateARow(const wchar_t *dbName, const wchar_t *tblName, VARIANT *pvt, size_t count) {
     if (!pvt || !count || count % 2)
-        return INVALID_NUMBER;
+        return INVALID_VALUE;
     size_t updated = 0;
     SPA::CAutoLock al(m_cs);
     for (auto it = m_ds.begin(), end = m_ds.end(); it != end; ++it) {
@@ -166,13 +167,13 @@ size_t CTableCache::UpdateARow(const wchar_t *dbName, const wchar_t *tblName, VA
         if (col.DBPath == dbName && col.TablePath == tblName) {
             size_t col_count = meta.size();
             if (count % col_count || 2 * col_count != count)
-                return INVALID_NUMBER;
+                return INVALID_VALUE;
             size_t key1;
             SPA::UDB::CDBVariant *row;
             size_t key0 = FindKeyColIndex(meta, key1);
-            if (key0 == INVALID_NUMBER && key1 == INVALID_NUMBER)
-                return INVALID_NUMBER;
-            else if (key1 == INVALID_NUMBER) {
+            if (key0 == INVALID_VALUE && key1 == INVALID_VALUE)
+                return INVALID_VALUE;
+            else if (key1 == INVALID_VALUE) {
                 row = FindARowInternal(*it, pvt[key0 * 2]);
             } else {
                 row = FindARowInternal(*it, pvt[key0 * 2], pvt[key1 * 2]);
@@ -200,8 +201,8 @@ size_t CTableCache::DeleteARow(const wchar_t *dbName, const wchar_t *tblName, co
             size_t col_count = meta.size();
             size_t key1;
             size_t key = FindKeyColIndex(meta, key1);
-            if (key == INVALID_NUMBER || key1 == INVALID_NUMBER)
-                return INVALID_NUMBER;
+            if (key == INVALID_VALUE || key1 == INVALID_VALUE)
+                return INVALID_VALUE;
             SPA::UDB::CDBVariantArray &vData = pr.second;
             size_t rows = vData.size() / col_count;
             for (size_t r = 0; r < rows; ++r) {
@@ -233,14 +234,14 @@ size_t CTableCache::FindKeyColIndex(const SPA::UDB::CDBColumnInfoArray &meta) {
         if ((it->Flags & (SPA::UDB::CDBColumnInfo::FLAG_PRIMARY_KEY | SPA::UDB::CDBColumnInfo::FLAG_AUTOINCREMENT)))
             return index;
     }
-    return INVALID_NUMBER;
+    return INVALID_VALUE;
 }
 
 size_t CTableCache::FindKeyColIndex(const SPA::UDB::CDBColumnInfoArray &meta, size_t &key1) {
-    size_t index = INVALID_NUMBER;
-    key1 = INVALID_NUMBER;
+    size_t index = INVALID_VALUE;
+    key1 = INVALID_VALUE;
     for (auto it = meta.cbegin(), end = meta.cend(); it != end; ++it) {
-        if (index == INVALID_NUMBER) {
+        if (index == INVALID_VALUE) {
             if ((it->Flags & (SPA::UDB::CDBColumnInfo::FLAG_PRIMARY_KEY | SPA::UDB::CDBColumnInfo::FLAG_AUTOINCREMENT)))
                 index = it - meta.cbegin();
         } else {
@@ -328,7 +329,7 @@ size_t CTableCache::GetColumnCount(const wchar_t *dbName, const wchar_t *tblName
             return meta.size();
         }
     }
-    return INVALID_NUMBER;
+    return INVALID_VALUE;
 }
 
 size_t CTableCache::GetRowCount(const wchar_t *dbName, const wchar_t *tblName) {
@@ -341,7 +342,7 @@ size_t CTableCache::GetRowCount(const wchar_t *dbName, const wchar_t *tblName) {
             return pr.second.size() / meta.size();
         }
     }
-    return INVALID_NUMBER;
+    return INVALID_VALUE;
 }
 
 SPA::UDB::CDBVariantArray CTableCache::FindARow(const wchar_t *dbName, const wchar_t *tblName, const VARIANT &key0, const VARIANT &key1) {
@@ -354,7 +355,7 @@ SPA::UDB::CDBVariantArray CTableCache::FindARow(const wchar_t *dbName, const wch
             size_t col_count = meta.size();
             size_t nKey1;
             size_t key = FindKeyColIndex(meta, nKey1);
-            if (key == INVALID_NUMBER || nKey1 == INVALID_NUMBER)
+            if (key == INVALID_VALUE || nKey1 == INVALID_VALUE)
                 return SPA::UDB::CDBVariantArray();
             const SPA::UDB::CDBVariantArray &vData = pr.second;
             size_t rows = pr.second.size() / col_count;
