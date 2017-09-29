@@ -150,7 +150,6 @@
     <ClInclude Include="..\..\..\..\include\udb_client.h" />
     <ClInclude Include="..\..\shared\tablecache.h" />
     <ClInclude Include="config.h" />
-    <ClInclude Include="masterpool.h" />
     <ClInclude Include="sspeer.h" />
     <ClInclude Include="ssserver.h" />
     <ClInclude Include="stdafx.h" />
@@ -163,7 +162,6 @@
     <ClCompile Include="..\..\shared\tablecache.cpp" />
     <ClCompile Include="config.cpp" />
     <ClCompile Include="cplusplus.cpp" />
-    <ClCompile Include="masterpool.cpp" />
     <ClCompile Include="sspeer.cpp" />
     <ClCompile Include="ssserver.cpp" />
     <ClCompile Include="stdafx.cpp" />

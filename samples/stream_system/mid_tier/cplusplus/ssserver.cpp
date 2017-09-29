@@ -4,11 +4,11 @@
 #include "config.h"
 #include "../../shared/tablecache.h"
 
-std::shared_ptr<CMasterPool> CSSServer::Master;
-std::shared_ptr<CAsyncSQLPool> CSSServer::Slave;
+std::shared_ptr<CMySQLMasterPool> CSSServer::Master;
+std::shared_ptr<CMySQLSlavePool> CSSServer::Slave;
 
 void CSSServer::StartMySQLPools() {
-    CSSServer::Master.reset(new CMasterPool);
+    CSSServer::Master.reset(new CMySQLMasterPool);
     bool ok = CSSServer::Master->StartSocketPool(g_config.m_Master, (unsigned int) g_config.m_nMasterSessions, 1); //one thread enough
     ok = CSSServer::Master->GetAsyncHandlers()[0]->WaitAll();
 

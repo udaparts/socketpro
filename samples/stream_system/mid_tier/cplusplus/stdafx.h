@@ -1,18 +1,18 @@
 
 #pragma once
 
-#include "../../../../include/mysql/umysql.h"
+
 #include "../../../../include/aserverw.h"
-#include "../../../../include/udb_client.h"
-#include "../../shared/ss_defines.h"
+
+
+#include "../../shared/tablecache.h"
+#include "../../../../include/mysql/umysql.h"
+typedef SPA::CMasterPool<SPA::Mysql::sidMysql> CMySQLMasterPool;
+typedef CMySQLMasterPool::CAsyncSQLPool CMySQLSlavePool;
+typedef CMySQLMasterPool::CAsyncSQLHandler CMySQLHandler;
 
 using namespace SPA::ClientSide;
 using namespace SPA::ServerSide;
-using namespace SPA::UDB;
-
-typedef SPA::ClientSide::CAsyncDBHandler<SPA::Mysql::sidMysql> CAsyncSQLHandler;
-
-typedef SPA::ClientSide::CSocketPool<CAsyncSQLHandler> CAsyncSQLPool;
 
 #ifdef WIN32_64
 

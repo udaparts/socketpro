@@ -48,9 +48,6 @@
     <ClInclude Include="..\..\shared\tablecache.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="masterpool.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -78,9 +75,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\shared\tablecache.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="masterpool.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

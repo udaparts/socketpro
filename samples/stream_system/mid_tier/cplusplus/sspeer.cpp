@@ -5,8 +5,6 @@
 #include "../../shared/tablecache.h"
 
 
-CTableCache g_cache;
-
 CSSPeer::CSSPeer() {
 
 }
@@ -46,7 +44,7 @@ void CSSPeer::SetDefaultDatabaseName(const std::wstring &dbName, bool optimistic
                 break;
             }
             std::wstring sql = L"USE " + dbName;
-            if (!mysql->Execute(sql.c_str(), [&res, &errMsg](CAsyncSQLHandler & sender, int errCode, const std::wstring & err, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & vtId) {
+			if (!mysql->Execute(sql.c_str(), [&res, &errMsg](CMySQLHandler & sender, int errCode, const std::wstring & err, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & vtId) {
                     res = errCode;
                     errMsg = err;
                 })) {

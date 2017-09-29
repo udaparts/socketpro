@@ -1,5 +1,7 @@
 #pragma once
 
+#include "../../shared/ss_defines.h"
+
 class CSSPeer : public CClientPeer {
 public:
     CSSPeer();
