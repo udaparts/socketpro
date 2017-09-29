@@ -27,7 +27,8 @@ void CConfig::SetConfig() {
 
     m_vSlave.push_back(cc);
     m_vSlave.push_back(cc);
-    m_vSlave.push_back(cc);
+
+    m_vSlave.push_back(m_Master);
     m_nSlaveSessions = 6;
 
 #ifdef WIN32_64

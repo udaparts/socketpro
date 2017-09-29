@@ -28,6 +28,8 @@ namespace SPA {
                 CleanCallbacks();
             }
 
+            static const unsigned int SQLStreamServiceId = serviceId;
+
             typedef std::function<void(CAsyncDBHandler &dbHandler, int res, const std::wstring &errMsg) > DResult;
             typedef std::function<void(CAsyncDBHandler &dbHandler, int res, const std::wstring &errMsg, INT64 affected, UINT64 fail_ok, CDBVariant &vtId) > DExecuteResult;
             typedef std::function<void(CAsyncDBHandler &dbHandler) > DRowsetHeader;

@@ -5,11 +5,22 @@
 #include "../../../../include/aserverw.h"
 
 
-#include "../../shared/tablecache.h"
+#include "../../shared/servercache.h"
 #include "../../../../include/mysql/umysql.h"
-typedef SPA::CMasterPool<SPA::Mysql::sidMysql> CMySQLMasterPool;
-typedef CMySQLMasterPool::CAsyncSQLPool CMySQLSlavePool;
-typedef CMySQLMasterPool::CAsyncSQLHandler CMySQLHandler;
+
+typedef SPA::ClientSide::CAsyncDBHandler<SPA::Mysql::sidMysql> CMySQLHandler;
+typedef SPA::ServerSide::CMasterPool<CMySQLHandler> CMySQLMasterPool;
+typedef CMySQLMasterPool::CSlavePool CMySQLSlavePool;
+
+#include "../../../../include/async_sqlite.h"
+typedef SPA::ServerSide::CMasterPool<SPA::ClientSide::CSqlite> CSqliteMasterPool;
+typedef CSqliteMasterPool::CSlavePool CSqliteSlavePool;
+typedef SPA::ClientSide::CSqlite CSqliteHandler;
+
+#include "../../../../include/async_odbc.h"
+typedef SPA::ServerSide::CMasterPool<SPA::ClientSide::COdbc> COdbcMasterPool;
+typedef COdbcMasterPool::CSlavePool COdbcSlavePool;
+typedef SPA::ClientSide::COdbc COdbcHandler;
 
 using namespace SPA::ClientSide;
 using namespace SPA::ServerSide;
