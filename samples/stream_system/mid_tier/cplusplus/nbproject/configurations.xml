@@ -7,7 +7,6 @@
       <itemPath>../../../../include/aclientw.h</itemPath>
       <itemPath>../../../../include/aserverw.h</itemPath>
       <itemPath>config.h</itemPath>
-      <itemPath>masterpool.h</itemPath>
       <itemPath>../../../../include/membuffer.h</itemPath>
       <itemPath>sspeer.h</itemPath>
       <itemPath>ssserver.h</itemPath>
@@ -28,7 +27,6 @@
       <itemPath>config.cpp</itemPath>
       <itemPath>cplusplus.cpp</itemPath>
       <itemPath>../../../../include/error_code.cpp</itemPath>
-      <itemPath>masterpool.cpp</itemPath>
       <itemPath>../../../../include/membuffer.cpp</itemPath>
       <itemPath>sspeer.cpp</itemPath>
       <itemPath>ssserver.cpp</itemPath>
@@ -97,10 +95,6 @@
       <item path="config.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="cplusplus.cpp" ex="false" tool="0" flavor2="0">
-      </item>
-      <item path="masterpool.cpp" ex="false" tool="0" flavor2="0">
-      </item>
-      <item path="masterpool.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="sspeer.cpp" ex="false" tool="0" flavor2="0">
       </item>
@@ -174,10 +168,6 @@
       <item path="config.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="cplusplus.cpp" ex="false" tool="0" flavor2="0">
-      </item>
-      <item path="masterpool.cpp" ex="false" tool="0" flavor2="0">
-      </item>
-      <item path="masterpool.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="sspeer.cpp" ex="false" tool="0" flavor2="0">
       </item>

@@ -42,7 +42,6 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/877975035/tablecache.o \
 	${OBJECTDIR}/config.o \
 	${OBJECTDIR}/cplusplus.o \
-	${OBJECTDIR}/masterpool.o \
 	${OBJECTDIR}/sspeer.o \
 	${OBJECTDIR}/ssserver.o \
 	${OBJECTDIR}/stdafx.o
@@ -106,11 +105,6 @@ ${OBJECTDIR}/cplusplus.o: cplusplus.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.c) -O2 -s -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/cplusplus.o cplusplus.cpp
-
-${OBJECTDIR}/masterpool.o: masterpool.cpp 
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} "$@.d"
-	$(COMPILE.c) -O2 -s -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/masterpool.o masterpool.cpp
 
 ${OBJECTDIR}/sspeer.o: sspeer.cpp 
 	${MKDIR} -p ${OBJECTDIR}
