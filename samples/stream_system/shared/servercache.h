@@ -4,6 +4,7 @@
 #define ___SOCKETPRO_SERVER_SIDE_CACHE_I_H__
 
 #include "tablecache.h"
+#include "../../../include/udb_client.h"
 
 namespace SPA {
     namespace ServerSide {
