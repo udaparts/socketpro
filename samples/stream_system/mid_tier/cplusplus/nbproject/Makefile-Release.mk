@@ -39,6 +39,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/562988696/aserverw.o \
 	${OBJECTDIR}/_ext/562988696/error_code.o \
 	${OBJECTDIR}/_ext/562988696/membuffer.o \
+	${OBJECTDIR}/_ext/877975035/tablecache.o \
 	${OBJECTDIR}/config.o \
 	${OBJECTDIR}/cplusplus.o \
 	${OBJECTDIR}/masterpool.o \
@@ -90,6 +91,11 @@ ${OBJECTDIR}/_ext/562988696/membuffer.o: ../../../../include/membuffer.cpp
 	${MKDIR} -p ${OBJECTDIR}/_ext/562988696
 	${RM} "$@.d"
 	$(COMPILE.c) -O2 -s -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/562988696/membuffer.o ../../../../include/membuffer.cpp
+
+${OBJECTDIR}/_ext/877975035/tablecache.o: ../../shared/tablecache.cpp 
+	${MKDIR} -p ${OBJECTDIR}/_ext/877975035
+	${RM} "$@.d"
+	$(COMPILE.c) -O2 -s -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/877975035/tablecache.o ../../shared/tablecache.cpp
 
 ${OBJECTDIR}/config.o: config.cpp 
 	${MKDIR} -p ${OBJECTDIR}

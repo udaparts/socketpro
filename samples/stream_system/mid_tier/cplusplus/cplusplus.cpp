@@ -27,17 +27,17 @@ int main(int argc, char* argv[]) {
         CClientSocket::QueueConfigure::SetMessageQueuePassword(g_config.m_message_queue_password.c_str());
     }
 
-	//set two socket pools, master and slave
-	CSSServer::StartMySQLPools();
+    //set two socket pools, master and slave
+    CSSServer::StartMySQLPools();
 
-	auto v = g_cache.GetDbTablePair();
-	auto v1 = g_cache.FindKeys(v.front().first.c_str(), v.front().second.c_str());
-	auto v2 = g_cache.FindARow(L"sakila", L"actor", 42);
-	auto v3 = g_cache.GetColumMeta(L"sakila", L"actor");
-	auto v4 = g_cache.GetColumnCount(L"sakila", L"actor");
-	auto v5 = g_cache.GetRowCount(L"sakila", L"actor");
- 
-	if (!server.Run(g_config.m_nPort, 32, !g_config.m_bNoIpV6))
+    auto v0 = g_cache.GetDbTablePair();
+    auto v1 = g_cache.FindKeys(v0.front().first.c_str(), v0.front().second.c_str());
+    auto v2 = g_cache.FindARow(L"sakila", L"actor", 42);
+    auto v3 = g_cache.GetColumMeta(L"sakila", L"actor");
+    auto v4 = g_cache.GetColumnCount(L"sakila", L"actor");
+    auto v5 = g_cache.GetRowCount(L"sakila", L"actor");
+
+    if (!server.Run(g_config.m_nPort, 32, !g_config.m_bNoIpV6))
         std::cout << "Error happens with code = " << server.GetErrorCode() << std::endl;
 
     std::cout << "Press any key to stop the server ......" << std::endl;

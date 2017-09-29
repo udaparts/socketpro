@@ -1,8 +1,6 @@
 
-
 #ifndef __UDAPARTS_DATABASE_COMM_H___
 #define __UDAPARTS_DATABASE_COMM_H___
-
 
 #include "ucomm.h"
 #include "membuffer.h"
@@ -320,16 +318,24 @@ namespace SPA {
                 } else if (vt == VT_BSTR) {
                     int res;
                     //case-insensitive compare
-                    if (data.vt == VT_BSTR)
+                    if (data.vt == VT_BSTR) {
+#ifdef WIN32_64
                         res = ::_wcsicmp(bstrVal, data.bstrVal);
-                    else if (data.vt == (VT_ARRAY | VT_I1)) {
+#else
+                        res = ::wcscasecmp(bstrVal, data.bstrVal);
+#endif
+                    } else if (data.vt == (VT_ARRAY | VT_I1)) {
                         SPA::CScopeUQueue sb;
                         const char *s0 = nullptr;
                         ::SafeArrayAccessData(data.parray, (void**) &s0);
                         SPA::Utilities::ToWide(s0, data.parray->rgsabound->cElements);
                         ::SafeArrayUnaccessData(data.parray);
                         const wchar_t *s = (const wchar_t*)sb->GetBuffer();
+#ifdef WIN32_64
                         res = ::_wcsicmp(s, bstrVal);
+#else
+                        res = ::wcscasecmp(s, bstrVal);
+#endif
                     } else {
                         res = -1;
                     }
@@ -344,7 +350,11 @@ namespace SPA {
                         ::SafeArrayAccessData(data.parray, (void**) &s0);
                         const char *s;
                         ::SafeArrayAccessData(parray, (void**) &s);
+#ifdef WIN32_64
                         res = ::_strnicmp(s0, s, parray->rgsabound->cElements);
+#else
+                        res = ::strncasecmp(s0, s, parray->rgsabound->cElements);
+#endif
                         ::SafeArrayUnaccessData(parray);
                         ::SafeArrayUnaccessData(data.parray);
                     } else if (data.vt == VT_BSTR) {
@@ -355,7 +365,11 @@ namespace SPA {
                         const char *s0 = (const char*) sb->GetBuffer();
                         const char *s;
                         ::SafeArrayAccessData(parray, (void**) &s);
+#ifdef WIN32_64
                         res = ::_strnicmp(s0, s, parray->rgsabound->cElements);
+#else
+                        res = ::strncasecmp(s0, s, parray->rgsabound->cElements);
+#endif
                         ::SafeArrayUnaccessData(parray);
                     } else {
                         res = -1;
