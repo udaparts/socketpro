@@ -11,9 +11,10 @@ class Program
     {
         Console.WriteLine("Remote host: ");
         string host = Console.ReadLine();
-        CConnectionContext cc = new CConnectionContext(host, 20901, "usqlite_client", "pwd_for_usqlite");
+        CConnectionContext cc = new CConnectionContext(host, 20901, "usqlite_client", "password_for_usqlite");
         using (CSocketPool<CSqlite> spSqlite = new CSocketPool<CSqlite>())
         {
+            //start a socket pool with 1 thread hosting 1 non-blocking socket
             if (!spSqlite.StartSocketPool(cc, 1, 1))
             {
                 Console.WriteLine("Failed in connecting to remote async sqlite server");
@@ -22,18 +23,32 @@ class Program
                 return;
             }
             CSqlite sqlite = spSqlite.Seek();
+
+            //open a global database at server side because an empty string is given
             bool ok = sqlite.Open("", (handler, res, errMsg) =>
             {
                 Console.WriteLine("res = {0}, errMsg: {1}", res, errMsg);
             });
+
+            //prepare two test tables, COMPANY and EMPLOYEE
             TestCreateTables(sqlite);
+
+            //a container for receiving all tables data
             List<KeyValuePair<CDBColumnInfoArray, CDBVariantArray>> lstRowset = new List<KeyValuePair<CDBColumnInfoArray, CDBVariantArray>>();
-            ok = sqlite.BeginTrans();
+
+            ok = sqlite.BeginTrans(); //start manual transaction
+
+            //test both prepare and query statements
             TestPreparedStatements(sqlite, lstRowset);
+
+            //test both prepare and query statements involved with reading and updating BLOB and large text
             InsertBLOBByPreparedStatement(sqlite, lstRowset);
-            ok = sqlite.EndTrans();
+
+            ok = sqlite.EndTrans(); //end manual transaction
+
             sqlite.WaitAll();
 
+            //display received rowsets
             int index = 0;
             Console.WriteLine();
             Console.WriteLine("+++++ Start rowsets +++");
@@ -55,7 +70,8 @@ class Program
 
     static void TestPreparedStatements(CSqlite sqlite, List<KeyValuePair<CDBColumnInfoArray, CDBVariantArray>> ra)
     {
-        string sql_insert_parameter = "Select datetime('now');INSERT OR REPLACE INTO COMPANY(ID, NAME, ADDRESS, Income) VALUES (?, ?, ?, ?)";
+        //a complex SQL statement combined with query and insert prepare statements
+        string sql_insert_parameter = "Select datetime('now');INSERT OR REPLACE INTO COMPANY(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?)";
         bool ok = sqlite.Prepare(sql_insert_parameter, (handler, res, errMsg) =>
         {
             Console.WriteLine("res = {0}, errMsg: {1}", res, errMsg);
@@ -89,7 +105,7 @@ class Program
             item.Value.AddRange(rowData);
         }, (handler) =>
         {
-            //rowset header comes here
+            //rowset header meta info comes here
             KeyValuePair<CDBColumnInfoArray, CDBVariantArray> item = new KeyValuePair<CDBColumnInfoArray, CDBVariantArray>(handler.ColumnInfo, new CDBVariantArray());
             ra.Add(item);
         });
@@ -98,6 +114,7 @@ class Program
     static void InsertBLOBByPreparedStatement(CSqlite sqlite, List<KeyValuePair<CDBColumnInfoArray, CDBVariantArray>> ra)
     {
         string wstr = "";
+        //prepare junk data for testing
         while (wstr.Length < 128 * 1024)
         {
             wstr += "广告做得不那么夸张的就不说了，看看这三家，都是正儿八经的公立三甲，附属医院，不是武警，也不是部队，更不是莆田，都在卫生部门直接监管下，照样明目张胆地骗人。";
@@ -107,7 +124,9 @@ class Program
         {
             str += "The epic takedown of his opponent on an all-important voting day was extraordinary even by the standards of the 2016 campaign -- and quickly drew a scathing response from Trump.";
         }
-        string sqlInsert = "insert or replace into employee(EMPLOYEEID, CompanyId, name, JoinDate, image, DESCRIPTION, Salary) values(?, ?, ?, ?, ?, ?, ?);select * from employee where employeeid = ?";
+
+        //a complex SQL statement combined with two insert and query prepare statements
+        string sqlInsert = "insert or replace into employee(EMPLOYEEID,CompanyId,name,JoinDate,image,DESCRIPTION,Salary)values(?,?,?,?,?,?,?);select * from employee where employeeid=?";
         bool ok = sqlite.Prepare(sqlInsert, (handler, res, errMsg) =>
         {
             Console.WriteLine("res = {0}, errMsg: {1}", res, errMsg);
@@ -161,7 +180,7 @@ class Program
             item.Value.AddRange(rowData);
         }, (handler) =>
         {
-            //rowset header comes here
+            //rowset header meta info comes here
             KeyValuePair<CDBColumnInfoArray, CDBVariantArray> item = new KeyValuePair<CDBColumnInfoArray, CDBVariantArray>(handler.ColumnInfo, new CDBVariantArray());
             ra.Add(item);
         });
@@ -169,12 +188,12 @@ class Program
 
     static void TestCreateTables(CSqlite sqlite)
     {
-        string create_table = "CREATE TABLE COMPANY(ID INT8 PRIMARY KEY NOT NULL, name CHAR(64) NOT NULL, ADDRESS varCHAR(256) not null, Income float not null)";
+        string create_table = "CREATE TABLE COMPANY(ID INT8 PRIMARY KEY NOT NULL,name CHAR(64)NOT NULL,ADDRESS varCHAR(256)not null,Income float not null)";
         bool ok = sqlite.Execute(create_table, (handler, res, errMsg, affected, fail_ok, id) =>
         {
             Console.WriteLine("affected = {0}, fails = {1}, oks = {2}, res = {3}, errMsg: {4}, last insert id = {5}", affected, (uint)(fail_ok >> 32), (uint)fail_ok, res, errMsg, id);
         });
-        create_table = "CREATE TABLE EMPLOYEE(EMPLOYEEID INT8 PRIMARY KEY NOT NULL unique, CompanyId INT8 not null, name NCHAR(64) NOT NULL, JoinDate DATETIME not null default(datetime('now')), IMAGE BLOB, DESCRIPTION NTEXT, Salary real, FOREIGN KEY(CompanyId) REFERENCES COMPANY(id))";
+        create_table = "CREATE TABLE EMPLOYEE(EMPLOYEEID INT8 PRIMARY KEY NOT NULL unique,CompanyId INT8 not null,name NCHAR(64)NOT NULL,JoinDate DATETIME not null default(datetime('now')),IMAGE BLOB,DESCRIPTION NTEXT,Salary real,FOREIGN KEY(CompanyId)REFERENCES COMPANY(id))";
         ok = sqlite.Execute(create_table, (handler, res, errMsg, affected, fail_ok, id) =>
         {
             Console.WriteLine("affected = {0}, fails = {1}, oks = {2}, res = {3}, errMsg: {4}, last insert id = {5}", affected, (uint)(fail_ok >> 32), (uint)fail_ok, res, errMsg, id);
