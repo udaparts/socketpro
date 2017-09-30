@@ -8,11 +8,41 @@ std::shared_ptr<CMySQLMasterPool> CSSServer::Master;
 std::shared_ptr<CMySQLSlavePool> CSSServer::Slave;
 
 void CSSServer::StartMySQLPools() {
+	assert(g_config.m_vccSlave.size());
+	assert(g_config.m_nSlaveSessions);
+	assert((g_config.m_nSlaveSessions % g_config.m_vccSlave.size()) == 0);
+
     CSSServer::Master.reset(new CMySQLMasterPool);
-    bool ok = CSSServer::Master->StartSocketPool(g_config.m_Master, (unsigned int) g_config.m_nMasterSessions, 1); //one thread enough
-    ok = CSSServer::Master->GetAsyncHandlers()[0]->WaitAll();
 
+	//start master pool for cache and update accessing
+    bool ok = CSSServer::Master->StartSocketPool(g_config.m_ccMaster, (unsigned int) g_config.m_nMasterSessions, 1); //one thread enough
+	
+	//get threads and sockets_per_thread
+	unsigned int threads = (unsigned int)(g_config.m_nSlaveSessions / g_config.m_vccSlave.size());
+	unsigned int sockets_per_thread = (unsigned int) g_config.m_vccSlave.size();
+	CSSServer::Slave.reset(new CMySQLSlavePool);
 
+	typedef CConnectionContext* PCConnectionContext;
+	//prepare connection contexts for slave pool
+	PCConnectionContext *ppCCs = new PCConnectionContext[threads];
+	for (unsigned int t = 0; t < threads; ++t) {
+		CConnectionContext *pcc = new CConnectionContext[sockets_per_thread];
+		ppCCs[t] = pcc;
+		for (unsigned int s = 0; s < sockets_per_thread; ++s) {
+			pcc[s] = g_config.m_vccSlave[s];
+		}
+	}
+	//start slave pool for query accessing
+	ok = CSSServer::Slave->StartSocketPool(ppCCs, threads, sockets_per_thread);
+
+	//wait until all data of cached tables are brought from backend database server to this middle server application cache
+	ok = CSSServer::Master->GetAsyncHandlers()[0]->WaitAll();
+	
+	for (unsigned int t = 0; t < threads; ++t) {
+		CConnectionContext *pcc = ppCCs[t];
+		delete[]pcc;
+	}
+	delete []ppCCs;
 }
 
 CSSServer::CSSServer(int nParam) : CSocketProServer(nParam) {

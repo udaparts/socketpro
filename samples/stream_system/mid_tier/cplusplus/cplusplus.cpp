@@ -7,7 +7,7 @@
 int main(int argc, char* argv[]) {
     //set configuration settings
     g_config.SetConfig();
-    if (!g_config.m_vSlave.size() || !g_config.m_nMasterSessions || !g_config.m_nSlaveSessions) { //check requirements
+    if (!g_config.m_vccSlave.size() || !g_config.m_nMasterSessions || !g_config.m_nSlaveSessions) { //check requirements
         std::cout << "Wrong settings for remote MySQL master and slave servers, and press any key to stop the server ......" << std::endl;
         ::getchar();
         return 1;
@@ -15,7 +15,7 @@ int main(int argc, char* argv[]) {
 
     CSSServer server(g_config.m_main_threads);
 
-    //set configuration settings for persistent message queues that used by this middle tier server and client backup
+    //set configuration settings for persistent message queues that used by this middle tier server and master/slave requests backup
     if (g_config.m_working_directory.size()) {
         CClientSocket::QueueConfigure::SetWorkDirectory(g_config.m_working_directory.c_str());
         CSSServer::QueueManager::SetWorkDirectory(g_config.m_working_directory.c_str());
