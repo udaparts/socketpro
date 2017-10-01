@@ -262,133 +262,133 @@ namespace SPA
             case VT_NULL:
             case VT_EMPTY:
                 return UDB::CDBVariant();
-			case VT_BOOL:
-				switch (vtTarget) {
-				case VT_BOOL:
-					return (data.boolVal ? true : false);
-				case VT_I1:
-					return (char)(data.boolVal ? 1 : 0);
-				case VT_UI1:
-					return (unsigned char)(data.boolVal ? 1 : 0);
-				case VT_I2:
-					return (short)(data.boolVal ? 1 : 0);
-				case VT_UI2:
-					return (unsigned short)(data.boolVal ? 1 : 0);
-				case VT_INT:
-				case VT_I4:
-					return (int)(data.boolVal ? 1 : 0);
-				case VT_UINT:
-				case VT_UI4:
-					return (unsigned int)(data.boolVal ? 1 : 0);
-				case VT_I8:
-					return (INT64)(data.boolVal ? 1 : 0);
-				case VT_UI8:
-					return (UINT64)(data.boolVal ? 1 : 0);
-				case VT_R4:
-					return (float)(data.boolVal ? 1 : 0);
-				case VT_R8:
-					return (double)(data.boolVal ? 1 : 0);
-				default:
-					//shoudn't come here
-					assert(false); //you may need to implement these cases
-					break;
-				}
-				break;
-			case VT_UI1:
-				switch (vtTarget) {
-				case VT_BOOL:
-					return (data.bVal ? true : false);
-				case VT_UI1:
-					return data.bVal;
-				case VT_UI2:
-					return (unsigned short)data.bVal;
-				case VT_UINT:
-				case VT_UI4:
-					return (unsigned int)data.bVal;
-				case VT_UI8:
-					return (UINT64)data.bVal;
-				case VT_R4:
-					return (float)data.bVal;
-				case VT_R8:
-					return (double)data.bVal;
-				default:
-					//shoudn't come here
-					assert(false); //you may need to implement these cases
-					break;
-				}
-				break;
-			case VT_I1:
-				switch (vtTarget) {
-				case VT_BOOL:
-					return (data.cVal ? true : false);
-				case VT_I1:
-					return data.cVal;
-				case VT_I2:
-					return (short)data.cVal;
-				case VT_INT:
-				case VT_I4:
-					return (int)data.cVal;
-				case VT_I8:
-					return (INT64)data.cVal;
-				case VT_R4:
-					return (float)data.cVal;
-				case VT_R8:
-					return (double)data.cVal;
-				default:
-					//shoudn't come here
-					assert(false); //you may need to implement these cases
-					break;
-				}
-				break;
-			case VT_UI2:
-				switch (vtTarget) {
-				case VT_BOOL:
-					return (data.uiVal ? true : false);
-					break;
-				case VT_UI1:
-					return (unsigned char)data.uiVal;
-				case VT_UI2:
-					return data.uiVal;
-				case VT_UINT:
-				case VT_UI4:
-					return (unsigned int)data.uiVal;
-				case VT_UI8:
-					return (UINT64)data.uiVal;
-				case VT_R4:
-					return (float)data.uiVal;
-				case VT_R8:
-					return (double)data.uiVal;
-				default:
-					//shoudn't come here
-					assert(false); //you may need to implement these cases
-					break;
-				}
-				break;
-			case VT_I2:
-				switch (vtTarget) {
-				case VT_BOOL:
-					return (data.iVal ? true : false);
-					break;
-				case VT_I1:
-					return (char)data.iVal;
-				case VT_I2:
-					return data.iVal;
-				case VT_INT:
-				case VT_I4:
-					return (int)data.iVal;
-				case VT_I8:
-					return (INT64)data.iVal;
-				case VT_R4:
-					return (float)data.iVal;
-				case VT_R8:
-					return (double)data.iVal;
-				default:
-					//shoudn't come here
-					assert(false); //you may need to implement these cases
-					break;
-				}
-				break;
-			case VT_INT:
+            case VT_BOOL:
+                switch (vtTarget) {
+                    case VT_BOOL:
+                        return (data.boolVal ? true : false);
+                    case VT_I1:
+                        return (char) (data.boolVal ? 1 : 0);
+                    case VT_UI1:
+                        return (unsigned char) (data.boolVal ? 1 : 0);
+                    case VT_I2:
+                        return (short) (data.boolVal ? 1 : 0);
+                    case VT_UI2:
+                        return (unsigned short) (data.boolVal ? 1 : 0);
+                    case VT_INT:
+                    case VT_I4:
+                        return (int) (data.boolVal ? 1 : 0);
+                    case VT_UINT:
+                    case VT_UI4:
+                        return (unsigned int) (data.boolVal ? 1 : 0);
+                    case VT_I8:
+                        return (INT64) (data.boolVal ? 1 : 0);
+                    case VT_UI8:
+                        return (UINT64) (data.boolVal ? 1 : 0);
+                    case VT_R4:
+                        return (float) (data.boolVal ? 1 : 0);
+                    case VT_R8:
+                        return (double) (data.boolVal ? 1 : 0);
+                    default:
+                        //shoudn't come here
+                        assert(false); //you may need to implement these cases
+                        break;
+                }
+                break;
+            case VT_UI1:
+                switch (vtTarget) {
+                    case VT_BOOL:
+                        return (data.bVal ? true : false);
+                    case VT_UI1:
+                        return data.bVal;
+                    case VT_UI2:
+                        return (unsigned short) data.bVal;
+                    case VT_UINT:
+                    case VT_UI4:
+                        return (unsigned int) data.bVal;
+                    case VT_UI8:
+                        return (UINT64) data.bVal;
+                    case VT_R4:
+                        return (float) data.bVal;
+                    case VT_R8:
+                        return (double) data.bVal;
+                    default:
+                        //shoudn't come here
+                        assert(false); //you may need to implement these cases
+                        break;
+                }
+                break;
+            case VT_I1:
+                switch (vtTarget) {
+                    case VT_BOOL:
+                        return (data.cVal ? true : false);
+                    case VT_I1:
+                        return data.cVal;
+                    case VT_I2:
+                        return (short) data.cVal;
+                    case VT_INT:
+                    case VT_I4:
+                        return (int) data.cVal;
+                    case VT_I8:
+                        return (INT64) data.cVal;
+                    case VT_R4:
+                        return (float) data.cVal;
+                    case VT_R8:
+                        return (double) data.cVal;
+                    default:
+                        //shoudn't come here
+                        assert(false); //you may need to implement these cases
+                        break;
+                }
+                break;
+            case VT_UI2:
+                switch (vtTarget) {
+                    case VT_BOOL:
+                        return (data.uiVal ? true : false);
+                        break;
+                    case VT_UI1:
+                        return (unsigned char) data.uiVal;
+                    case VT_UI2:
+                        return data.uiVal;
+                    case VT_UINT:
+                    case VT_UI4:
+                        return (unsigned int) data.uiVal;
+                    case VT_UI8:
+                        return (UINT64) data.uiVal;
+                    case VT_R4:
+                        return (float) data.uiVal;
+                    case VT_R8:
+                        return (double) data.uiVal;
+                    default:
+                        //shoudn't come here
+                        assert(false); //you may need to implement these cases
+                        break;
+                }
+                break;
+            case VT_I2:
+                switch (vtTarget) {
+                    case VT_BOOL:
+                        return (data.iVal ? true : false);
+                        break;
+                    case VT_I1:
+                        return (char) data.iVal;
+                    case VT_I2:
+                        return data.iVal;
+                    case VT_INT:
+                    case VT_I4:
+                        return (int) data.iVal;
+                    case VT_I8:
+                        return (INT64) data.iVal;
+                    case VT_R4:
+                        return (float) data.iVal;
+                    case VT_R8:
+                        return (double) data.iVal;
+                    default:
+                        //shoudn't come here
+                        assert(false); //you may need to implement these cases
+                        break;
+                }
+                break;
+            case VT_INT:
             case VT_I4:
                 switch (vtTarget) {
                     case VT_BOOL:
@@ -400,17 +400,17 @@ namespace SPA
                     case VT_INT:
                     case VT_I4:
                         return (int) data.lVal;
-					case VT_I8:
-						return (INT64)data.lVal;
-					case VT_R8:
-						return (double)data.lVal;
+                    case VT_I8:
+                        return (INT64) data.lVal;
+                    case VT_R8:
+                        return (double) data.lVal;
                     default:
                         //shoudn't come here
                         assert(false); //you may need to implement these cases
                         break;
                 }
                 break;
-			case VT_UINT:
+            case VT_UINT:
             case VT_UI4:
                 switch (vtTarget) {
                     case VT_BOOL:
@@ -422,10 +422,10 @@ namespace SPA
                     case VT_UINT:
                     case VT_UI4:
                         return (unsigned int) data.ulVal;
-					case VT_UI8:
-						return (UINT64)data.ulVal;
-					case VT_R8:
-						return (double)data.ulVal;
+                    case VT_UI8:
+                        return (UINT64) data.ulVal;
+                    case VT_R8:
+                        return (double) data.ulVal;
                     default:
                         //shoudn't come here
                         assert(false); //you may need to implement these cases
@@ -511,18 +511,18 @@ namespace SPA
                         break;
                 }
                 break;
-			case VT_R4:
-				switch (vtTarget) {
-				case VT_R4:
-					return data.fltVal;
-				case VT_R8:
-					return (double)data.fltVal;
-				default:
-					//shoudn't come here
-					assert(false); //you may need to implement these cases
-					break;
-				}
-				break;
+            case VT_R4:
+                switch (vtTarget) {
+                    case VT_R4:
+                        return data.fltVal;
+                    case VT_R8:
+                        return (double) data.fltVal;
+                    default:
+                        //shoudn't come here
+                        assert(false); //you may need to implement these cases
+                        break;
+                }
+                break;
             case (VT_ARRAY | VT_I1):
                 if (vtTarget == data.vt || vtTarget == VT_BSTR) {
                     if (m_bWide || vtTarget == VT_BSTR) {
