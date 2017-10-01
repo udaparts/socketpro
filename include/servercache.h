@@ -130,6 +130,7 @@ namespace SPA {
                                         ip += std::to_string(port);
                                         this->m_cache.m_strIp = ip;
                                         this->m_cache.m_bWide = h.Utf8ToW();
+										this->m_cache.m_ms = h.GetDBManagementSystem();
 #ifdef WIN32_64
                                         this->m_cache.m_bTimeEx = h.TimeEx();
 #endif
