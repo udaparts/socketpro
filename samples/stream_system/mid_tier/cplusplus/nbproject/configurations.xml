@@ -8,10 +8,11 @@
       <itemPath>../../../../include/aserverw.h</itemPath>
       <itemPath>config.h</itemPath>
       <itemPath>../../../../include/membuffer.h</itemPath>
+      <itemPath>../../../../include/servercache.h</itemPath>
       <itemPath>sspeer.h</itemPath>
       <itemPath>ssserver.h</itemPath>
       <itemPath>stdafx.h</itemPath>
-      <itemPath>../../shared/tablecache.h</itemPath>
+      <itemPath>../../../../include/tablecache.h</itemPath>
       <itemPath>../../../../include/udatabase.h</itemPath>
       <itemPath>../../../../include/udb_client.h</itemPath>
     </logicalFolder>
@@ -31,7 +32,7 @@
       <itemPath>sspeer.cpp</itemPath>
       <itemPath>ssserver.cpp</itemPath>
       <itemPath>stdafx.cpp</itemPath>
-      <itemPath>../../shared/tablecache.cpp</itemPath>
+      <itemPath>../../../../include/tablecache.cpp</itemPath>
     </logicalFolder>
     <logicalFolder name="TestFiles"
                    displayName="Test Files"
@@ -82,13 +83,15 @@
       </item>
       <item path="../../../../include/membuffer.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../../../include/servercache.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../../include/tablecache.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="../../../../include/tablecache.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../../../include/udatabase.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../../../include/udb_client.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../shared/tablecache.cpp" ex="false" tool="0" flavor2="0">
-      </item>
-      <item path="../../shared/tablecache.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="config.cpp" ex="false" tool="0" flavor2="0">
       </item>
@@ -161,13 +164,15 @@
       </item>
       <item path="../../../../include/membuffer.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../../../include/servercache.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../../include/tablecache.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="../../../../include/tablecache.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../../../include/udatabase.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../../../include/udb_client.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../shared/tablecache.cpp" ex="false" tool="0" flavor2="0">
-      </item>
-      <item path="../../shared/tablecache.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="config.cpp" ex="false" tool="0" flavor2="0">
       </item>

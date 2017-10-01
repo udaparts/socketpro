@@ -25,7 +25,6 @@ namespace SPA {
 
     public:
         std::vector<CPDbTable> GetDbTablePair();
-        CKeyMap FindKeys(const wchar_t *dbName, const wchar_t *tblName);
         UDB::CDBColumnInfoArray GetColumMeta(const wchar_t *dbName, const wchar_t *tblName);
         size_t GetRowCount(const wchar_t *dbName, const wchar_t *tblName);
         size_t GetColumnCount(const wchar_t *dbName, const wchar_t *tblName);
@@ -36,23 +35,27 @@ namespace SPA {
         bool Utf8ToW();
         bool HighPrecsionTime();
 
+        void Swap(CTableCache &tc);
+        void AddEmptyRowset(const UDB::CDBColumnInfoArray &meta);
+
+        CKeyMap FindKeys(const wchar_t *dbName, const wchar_t *tblName);
+
         //find a row based on one or two keys and equal operation
         UDB::CDBVariantArray FindARow(const wchar_t *dbName, const wchar_t *tblName, const CComVariant &key);
         UDB::CDBVariantArray FindARow(const wchar_t *dbName, const wchar_t *tblName, const CComVariant &key0, const CComVariant &key1);
         UDB::CDBVariantArray FindARow(const wchar_t *dbName, const wchar_t *tblName, const VARIANT &key);
         UDB::CDBVariantArray FindARow(const wchar_t *dbName, const wchar_t *tblName, const VARIANT &key0, const VARIANT &key1);
-		size_t AddRows(const wchar_t *dbName, const wchar_t *tblName, VARIANT *pvt, size_t count);
-		void AddEmptyRowset(const UDB::CDBColumnInfoArray &meta);
-		size_t UpdateARow(const wchar_t *dbName, const wchar_t *tblName, VARIANT *pvt, size_t count);
-		size_t DeleteARow(const wchar_t *dbName, const wchar_t *tblName, const VARIANT &key);
-		size_t DeleteARow(const wchar_t *dbName, const wchar_t *tblName, const VARIANT &key0, const VARIANT &key1);
-		void Swap(CTableCache &tc);
-        size_t DeleteARow(const wchar_t *dbName, const wchar_t *tblName, const CComVariant &key);
-        size_t DeleteARow(const wchar_t *dbName, const wchar_t *tblName, const CComVariant &key0, const CComVariant &key1);
+        size_t AddRows(const wchar_t *dbName, const wchar_t *tblName, VARIANT *pvt, size_t count);
         size_t AddRows(const wchar_t *dbName, const wchar_t *tblName, UDB::CDBVariantArray &vData);
 
-		//you may define other methods for >, >=, < and <= to search for rows
-        
+        size_t UpdateARow(const wchar_t *dbName, const wchar_t *tblName, VARIANT *pvt, size_t count);
+        size_t DeleteARow(const wchar_t *dbName, const wchar_t *tblName, const VARIANT &key);
+        size_t DeleteARow(const wchar_t *dbName, const wchar_t *tblName, const VARIANT &key0, const VARIANT &key1);
+        size_t DeleteARow(const wchar_t *dbName, const wchar_t *tblName, const CComVariant &key);
+        size_t DeleteARow(const wchar_t *dbName, const wchar_t *tblName, const CComVariant &key0, const CComVariant &key1);
+
+        //you may define other methods for >, >=, < and <= to search for rows
+
     private:
         UDB::CDBVariant* FindARowInternal(CPColumnRowset &pcr, const VARIANT &key);
         UDB::CDBVariant* FindARowInternal(CPColumnRowset &pcr, const VARIANT &key0, const VARIANT &key1);

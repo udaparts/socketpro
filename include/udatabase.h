@@ -386,12 +386,11 @@ namespace SPA {
                     ::SafeArrayUnaccessData(parray);
                     ::SafeArrayUnaccessData(data.parray);
                     return (res == 0);
+                } else if (vt == VT_DECIMAL && vt == data.vt) {
+                    return (decVal.Lo64 == data.decVal.Lo64) &&
+                            (decVal.Hi32 == data.decVal.Hi32) &&
+                            (decVal.signscale == data.decVal.signscale);
                 }
-				else if (vt == VT_DECIMAL && vt == data.vt) {
-					return (decVal.Lo64 == data.decVal.Lo64) && 
-						(decVal.Hi32 == data.decVal.Hi32) && 
-						(decVal.signscale == data.decVal.signscale);
-				}
                 UINT64 d, d0;
                 switch (vt) {
                     case VT_BOOL:

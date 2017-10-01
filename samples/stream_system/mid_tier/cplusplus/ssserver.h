@@ -18,7 +18,7 @@ private:
 public:
     static void StartMySQLPools();
     static std::shared_ptr<CMySQLMasterPool> Master;
-	static std::shared_ptr<CMySQLSlavePool> Slave;
+    static std::shared_ptr<CMySQLSlavePool> Slave;
 
 private:
     CSocketProService<CSSPeer> m_SSPeer;
