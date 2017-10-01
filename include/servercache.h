@@ -127,11 +127,11 @@ namespace SPA {
                                         ip += ":";
                                         ip += std::to_string(port);
 #ifdef WIN32_64
-										bool high_time = h.TimeEx();
+                                        bool high_time = h.TimeEx();
 #else
-										bool high_time = true;
+                                        bool high_time = true;
 #endif
-										this->m_cache.Set(ip.c_str(), h.Utf8ToW(), high_time, h.GetDBManagementSystem());
+                                        this->m_cache.Set(ip.c_str(), h.Utf8ToW(), high_time, h.GetDBManagementSystem());
                             }, UDB::ENABLE_TABLE_UPDATE_MESSAGES);
 
                             //bring all cached table data into m_cache first, and exchange it with Cache if there is no error

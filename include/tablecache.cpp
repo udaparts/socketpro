@@ -642,10 +642,10 @@ namespace SPA
         return (m_ds.size() == 0);
     }
 
-	void CTableCache::Empty() {
-		CAutoLock al(m_cs);
-		return m_ds.clear();
-	}
+    void CTableCache::Empty() {
+        CAutoLock al(m_cs);
+        return m_ds.clear();
+    }
 
     bool CTableCache::Utf8ToW() {
         CAutoLock al(m_cs);
@@ -681,33 +681,34 @@ namespace SPA
         return m_strUpdater;
     }
 
-	void CTableCache::Set(const char *strIp, bool bWide, bool bHighPrecision, UDB::tagManagementSystem ms) {
-		CAutoLock al(m_cs);
-		if (strIp)
-			m_strIp = strIp;
-		else
-			m_strIp.clear();
-		m_bWide = bWide;
-		m_ms = ms;
+    void CTableCache::Set(const char *strIp, bool bWide, bool bHighPrecision, UDB::tagManagementSystem ms) {
+        CAutoLock al(m_cs);
+        if (strIp)
+            m_strIp = strIp;
+        else
+            m_strIp.clear();
+        m_bWide = bWide;
+        m_ms = ms;
 #ifdef WIN32_64
-		m_bTimeEx = bHighPrecision;
+        m_bTimeEx = bHighPrecision;
 #endif
-	}
+    }
 
-	void CTableCache::SetDBServerName(const wchar_t *strDBServerName) {
-		CAutoLock al(m_cs);
-		if (strDBServerName)
-			m_strHostName = strDBServerName;
-		else
-			m_strHostName.clear();
-	}
-	void CTableCache::SetUpdater(const wchar_t *strUpdater) {
-		CAutoLock al(m_cs);
-		if (strUpdater)
-			m_strUpdater = strUpdater;
-		else
-			m_strUpdater.clear();
-	}
+    void CTableCache::SetDBServerName(const wchar_t * strDBServerName) {
+        CAutoLock al(m_cs);
+        if (strDBServerName)
+            m_strHostName = strDBServerName;
+        else
+            m_strHostName.clear();
+    }
+
+    void CTableCache::SetUpdater(const wchar_t * strUpdater) {
+        CAutoLock al(m_cs);
+        if (strUpdater)
+            m_strUpdater = strUpdater;
+        else
+            m_strUpdater.clear();
+    }
 
     size_t CTableCache::GetColumnCount(const wchar_t *dbName, const wchar_t * tblName) {
         CAutoLock al(m_cs);
