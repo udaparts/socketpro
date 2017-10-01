@@ -6,12 +6,6 @@
 #include "udatabase.h"
 
 namespace SPA {
-
-    namespace ServerSide {
-        template<typename THandler, typename TCache>
-        class CMasterPool;
-    };
-
     typedef std::pair<UDB::CDBColumnInfoArray, UDB::CDBVariantArray> CPColumnRowset; //meta and data array for a rowset
     typedef std::vector<CPColumnRowset> CRowsetArray;
     typedef std::pair<std::wstring, std::wstring> CPDbTable; //DB and Table name pair
@@ -35,10 +29,12 @@ namespace SPA {
         bool Utf8ToW();
         bool HighPrecsionTime();
         UDB::tagManagementSystem GetDBManagementSystem();
-
+		void Set(const char *strIp, bool bWide, bool bHighPrecision, UDB::tagManagementSystem ms);
+		void SetDBServerName(const wchar_t *strDBServerName);
+		void SetUpdater(const wchar_t *strUpdater);
         void Swap(CTableCache &tc);
         void AddEmptyRowset(const UDB::CDBColumnInfoArray &meta);
-
+		void Empty();
         CKeyMap FindKeys(const wchar_t *dbName, const wchar_t *tblName);
 
         //find a row based on one or two keys and equal operation
@@ -80,9 +76,6 @@ namespace SPA {
     private:
         CTableCache(const CTableCache &tc);
         CTableCache& operator=(const CTableCache &tc);
-
-        template<typename THandler, typename TCache>
-        friend class ServerSide::CMasterPool;
     };
 }; //namespace SPA
 

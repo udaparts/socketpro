@@ -42,20 +42,18 @@ namespace SPA {
                                 ::SafeArrayAccessData(vtMsg.parray, (void**) &vData);
                                 ClientSide::tagUpdateEvent eventType = (ClientSide::tagUpdateEvent)(vData[0].intVal);
 
-                                Cache.m_cs.lock();
-                                if (!Cache.m_strHostName.size()) {
+                                if (!Cache.GetDBServerName().size()) {
                                     if (vData[1].vt == (VT_ARRAY | VT_I1))
-                                        Cache.m_strHostName = ToWide(vData[1]);
+                                        Cache.SetDBServerName(ToWide(vData[1]).c_str());
                                     else if (vData[1].vt == VT_BSTR)
-                                        Cache.m_strHostName = vData[1].bstrVal;
+                                        Cache.SetDBServerName(vData[1].bstrVal);
                                 }
                                 if (vData[2].vt == (VT_ARRAY | VT_I1))
-                                    Cache.m_strUpdater = ToWide(vData[2]);
+                                    Cache.SetUpdater(ToWide(vData[2]).c_str());
                                 else if (vData[2].vt == VT_BSTR)
-                                    Cache.m_strUpdater = vData[2].bstrVal;
+                                    Cache.SetUpdater(vData[2].bstrVal);
                                 else
-                                    Cache.m_strUpdater.clear();
-                                Cache.m_cs.unlock();
+                                    Cache.SetUpdater(nullptr);
 
                                 std::wstring dbName;
                                 if (vData[3].vt == (VT_I1 | VT_ARRAY)) {
@@ -121,19 +119,19 @@ namespace SPA {
 
                             //open default database and subscribe for table update events (update, delete and insert) by setting flag UDB::ENABLE_TABLE_UPDATE_MESSAGES
                             bool ok = asyncSQL->Open(L"", [this](CSQLHandler &h, int res, const std::wstring & errMsg) {
-                                this->m_cache.m_strHostName.clear();
-                                this->m_cache.m_strUpdater.clear();
-                                        this->m_cache.m_ds.clear();
+                                this->m_cache.SetDBServerName(nullptr);
+                                this->m_cache.SetUpdater(nullptr);
+                                        this->m_cache.Empty();
                                         unsigned int port;
                                         std::string ip = h.GetAttachedClientSocket()->GetPeerName(&port);
                                         ip += ":";
                                         ip += std::to_string(port);
-                                        this->m_cache.m_strIp = ip;
-                                        this->m_cache.m_bWide = h.Utf8ToW();
-                                        this->m_cache.m_ms = h.GetDBManagementSystem();
 #ifdef WIN32_64
-                                        this->m_cache.m_bTimeEx = h.TimeEx();
+										bool high_time = h.TimeEx();
+#else
+										bool high_time = true;
 #endif
+										this->m_cache.Set(ip.c_str(), h.Utf8ToW(), high_time, h.GetDBManagementSystem());
                             }, UDB::ENABLE_TABLE_UPDATE_MESSAGES);
 
                             //bring all cached table data into m_cache first, and exchange it with Cache if there is no error
