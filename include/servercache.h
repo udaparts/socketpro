@@ -4,7 +4,7 @@
 #define ___SOCKETPRO_SERVER_SIDE_CACHE_I_H__
 
 #include "tablecache.h"
-#include "../../../include/udb_client.h"
+#include "udb_client.h"
 
 namespace SPA {
 	namespace ServerSide {
@@ -36,7 +36,7 @@ namespace SPA {
 
 							assert(count == 1);
 							assert(groups != nullptr);
-							assert(groups[0] == UDB::ENABLE_TABLE_UPDATE_MESSAGES);
+							assert(groups[0] == UDB::STREAMING_SQL_CHAT_GROUP_ID);
 
 							//vData[0] == event type; vData[1] == host; vData[2] = database user; vData[3] == db name; vData[4] == table name
 							::SafeArrayAccessData(vtMsg.parray, (void**)&vData);
@@ -64,7 +64,7 @@ namespace SPA {
 							else if (vData[3].vt == VT_BSTR)
 								dbName = vData[3].bstrVal;
 							else {
-								assert(false);
+								assert(false); //shouldn't come here
 							}
 							std::wstring tblName;
 							if (vData[4].vt == (VT_I1 | VT_ARRAY)) {
@@ -73,7 +73,7 @@ namespace SPA {
 							else if (vData[3].vt == VT_BSTR)
 								tblName = vData[4].bstrVal;
 							else {
-								assert(false);
+								assert(false); //shouldn't come here
 							}
 							switch (eventType) {
 							case UDB::ueInsert:
@@ -94,6 +94,7 @@ namespace SPA {
 #endif
 
 								res = Cache.UpdateARow(dbName.c_str(), tblName.c_str(), vData + 5, count);
+								assert(res != CTableCache::INVALID_VALUE);
 							}
 							break;
 							case UDB::ueDelete:

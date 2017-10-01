@@ -2,7 +2,6 @@
 #include "stdafx.h"
 #include "ssserver.h"
 #include "config.h"
-#include "../../shared/tablecache.h"
 
 std::shared_ptr<CMySQLMasterPool> CSSServer::Master;
 std::shared_ptr<CMySQLSlavePool> CSSServer::Slave;

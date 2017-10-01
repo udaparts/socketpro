@@ -2,8 +2,6 @@
 #include "stdafx.h"
 #include "sspeer.h"
 #include "ssserver.h"
-#include "../../shared/tablecache.h"
-
 
 CSSPeer::CSSPeer() {
 

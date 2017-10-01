@@ -146,9 +146,10 @@
     <ClInclude Include="..\..\..\..\include\aclientw.h" />
     <ClInclude Include="..\..\..\..\include\aserverw.h" />
     <ClInclude Include="..\..\..\..\include\membuffer.h" />
+    <ClInclude Include="..\..\..\..\include\servercache.h" />
+    <ClInclude Include="..\..\..\..\include\tablecache.h" />
     <ClInclude Include="..\..\..\..\include\udatabase.h" />
     <ClInclude Include="..\..\..\..\include\udb_client.h" />
-    <ClInclude Include="..\..\shared\tablecache.h" />
     <ClInclude Include="config.h" />
     <ClInclude Include="sspeer.h" />
     <ClInclude Include="ssserver.h" />
@@ -159,7 +160,7 @@
     <ClCompile Include="..\..\..\..\include\aclientw.cpp" />
     <ClCompile Include="..\..\..\..\include\aserverw.cpp" />
     <ClCompile Include="..\..\..\..\include\membuffer.cpp" />
-    <ClCompile Include="..\..\shared\tablecache.cpp" />
+    <ClCompile Include="..\..\..\..\include\tablecache.cpp" />
     <ClCompile Include="config.cpp" />
     <ClCompile Include="cplusplus.cpp" />
     <ClCompile Include="sspeer.cpp" />

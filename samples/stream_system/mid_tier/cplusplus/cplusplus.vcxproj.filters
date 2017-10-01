@@ -45,7 +45,10 @@
     <ClInclude Include="..\..\..\..\include\udb_client.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\shared\tablecache.h">
+    <ClInclude Include="..\..\..\..\include\servercache.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\include\tablecache.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -74,7 +77,7 @@
     <ClCompile Include="sspeer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\shared\tablecache.cpp">
+    <ClCompile Include="..\..\..\..\include\tablecache.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

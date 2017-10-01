@@ -3,7 +3,7 @@
 #define __SOCKETPRO_REAL_TIME_CACHE_H_
 
 #include <map>
-#include "../../../include/udatabase.h"
+#include "udatabase.h"
 
 namespace SPA {
 
@@ -41,25 +41,22 @@ namespace SPA {
         UDB::CDBVariantArray FindARow(const wchar_t *dbName, const wchar_t *tblName, const CComVariant &key0, const CComVariant &key1);
         UDB::CDBVariantArray FindARow(const wchar_t *dbName, const wchar_t *tblName, const VARIANT &key);
         UDB::CDBVariantArray FindARow(const wchar_t *dbName, const wchar_t *tblName, const VARIANT &key0, const VARIANT &key1);
-
-
-        //you may define other methods for >, >=, < and <= to search for rows
-
-    private:
-        void Swap(CTableCache &tc);
-        size_t DeleteARow(const wchar_t *dbName, const wchar_t *tblName, const VARIANT &key);
-        size_t DeleteARow(const wchar_t *dbName, const wchar_t *tblName, const VARIANT &key0, const VARIANT &key1);
+		size_t AddRows(const wchar_t *dbName, const wchar_t *tblName, VARIANT *pvt, size_t count);
+		void AddEmptyRowset(const UDB::CDBColumnInfoArray &meta);
+		size_t UpdateARow(const wchar_t *dbName, const wchar_t *tblName, VARIANT *pvt, size_t count);
+		size_t DeleteARow(const wchar_t *dbName, const wchar_t *tblName, const VARIANT &key);
+		size_t DeleteARow(const wchar_t *dbName, const wchar_t *tblName, const VARIANT &key0, const VARIANT &key1);
+		void Swap(CTableCache &tc);
         size_t DeleteARow(const wchar_t *dbName, const wchar_t *tblName, const CComVariant &key);
         size_t DeleteARow(const wchar_t *dbName, const wchar_t *tblName, const CComVariant &key0, const CComVariant &key1);
-        size_t UpdateARow(const wchar_t *dbName, const wchar_t *tblName, VARIANT *pvt, size_t count);
-        void AddEmptyRowset(const UDB::CDBColumnInfoArray &meta);
         size_t AddRows(const wchar_t *dbName, const wchar_t *tblName, UDB::CDBVariantArray &vData);
-        size_t AddRows(const wchar_t *dbName, const wchar_t *tblName, VARIANT *pvt, size_t count);
 
+		//you may define other methods for >, >=, < and <= to search for rows
+        
     private:
         UDB::CDBVariant* FindARowInternal(CPColumnRowset &pcr, const VARIANT &key);
         UDB::CDBVariant* FindARowInternal(CPColumnRowset &pcr, const VARIANT &key0, const VARIANT &key1);
-        static UDB::CDBVariant Convert(const VARIANT &data, VARTYPE vtTarget);
+        UDB::CDBVariant Convert(const VARIANT &data, VARTYPE vtTarget);
         static size_t FindKeyColIndex(const UDB::CDBColumnInfoArray &meta);
         static size_t FindKeyColIndex(const UDB::CDBColumnInfoArray &meta, size_t &key1);
 
