@@ -28,7 +28,7 @@ int main(int argc, char* argv[]) {
     //start two socket pools, master and slave
     CSSServer::StartMySQLPools();
 
-    auto v0 = CMySQLMasterPool::Cache.GetDbTablePair();
+    auto v0 = CMySQLMasterPool::Cache.GetDBTablePair();
     auto v1 = CMySQLMasterPool::Cache.FindKeys(v0.front().first.c_str(), v0.front().second.c_str());
     auto v2 = CMySQLMasterPool::Cache.FindARow(L"sakila", L"actor", 42);
     auto v3 = CMySQLMasterPool::Cache.GetColumMeta(L"sakila", L"actor");

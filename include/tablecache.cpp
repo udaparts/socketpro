@@ -585,7 +585,7 @@ namespace SPA
         return index;
     }
 
-    std::vector<CPDbTable> CTableCache::GetDbTablePair() {
+    std::vector<CPDbTable> CTableCache::GetDBTablePair() {
         std::vector<CPDbTable> v;
         CAutoLock al(m_cs);
         for (auto it = m_ds.cbegin(), end = m_ds.cend(); it != end; ++it) {
@@ -647,7 +647,7 @@ namespace SPA
         return m_bWide;
     }
 
-    UDB::tagManagementSystem CTableCache::GetManagementSystem() {
+    UDB::tagManagementSystem CTableCache::GetDBManagementSystem() {
         CAutoLock al(m_cs);
         return m_ms;
     }

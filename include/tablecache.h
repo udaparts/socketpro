@@ -24,7 +24,7 @@ namespace SPA {
         static const size_t INVALID_VALUE = ((size_t) (~0));
 
     public:
-        std::vector<CPDbTable> GetDbTablePair();
+        std::vector<CPDbTable> GetDBTablePair();
         UDB::CDBColumnInfoArray GetColumMeta(const wchar_t *dbName, const wchar_t *tblName);
         size_t GetRowCount(const wchar_t *dbName, const wchar_t *tblName);
         size_t GetColumnCount(const wchar_t *dbName, const wchar_t *tblName);
@@ -34,7 +34,7 @@ namespace SPA {
         bool IsEmpty();
         bool Utf8ToW();
         bool HighPrecsionTime();
-        UDB::tagManagementSystem GetManagementSystem();
+        UDB::tagManagementSystem GetDBManagementSystem();
 
         void Swap(CTableCache &tc);
         void AddEmptyRowset(const UDB::CDBColumnInfoArray &meta);
