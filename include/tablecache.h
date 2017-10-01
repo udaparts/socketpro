@@ -34,7 +34,7 @@ namespace SPA {
         bool IsEmpty();
         bool Utf8ToW();
         bool HighPrecsionTime();
-		UDB::tagManagementSystem GetManagementSystem();
+        UDB::tagManagementSystem GetManagementSystem();
 
         void Swap(CTableCache &tc);
         void AddEmptyRowset(const UDB::CDBColumnInfoArray &meta);
@@ -73,7 +73,7 @@ namespace SPA {
         bool m_bWide;
         std::wstring m_strHostName;
         std::wstring m_strUpdater;
-		UDB::tagManagementSystem m_ms;
+        UDB::tagManagementSystem m_ms;
 #ifdef WIN32_64
         bool m_bTimeEx;
 #endif
