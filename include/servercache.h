@@ -134,7 +134,7 @@ namespace SPA {
                                         this->m_cache.Set(ip.c_str(), h.Utf8ToW(), high_time, h.GetDBManagementSystem());
                             }, UDB::ENABLE_TABLE_UPDATE_MESSAGES);
 
-                            //bring all cached table data into m_cache first, and exchange it with Cache if there is no error
+                            //bring all cached table data into m_cache first for initial cache, and exchange it with Cache if there is no error
                             ok = asyncSQL->Execute(L"", [this](CSQLHandler &h, int res, const std::wstring &errMsg, INT64 affected, UINT64 fail_ok, UDB::CDBVariant & vtId) {
                                 if (res == 0) {
                                     Cache.Swap(this->m_cache); //exchange between master Cache and this m_cache
