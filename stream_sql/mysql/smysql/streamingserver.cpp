@@ -1,6 +1,7 @@
 
 #include "streamingserver.h"
 #include <algorithm>
+#include "../../../include/scloader.h"
 
 #define STREAM_DB_LOG_FILE "streaming_db.log"
 

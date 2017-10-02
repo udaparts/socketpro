@@ -647,4 +647,96 @@ public:
     }
 };
 
+static HRESULT VariantChangeType(VARIANT *pvargDest, const VARIANT *pvarSrc, unsigned short wFlags, VARTYPE vt) {
+	if (!pvargDest || pvarSrc)
+		return E_INVALIDARG;
+	::VariantClear(pvargDest);
+	switch(vt)
+	{
+	case VT_I1:
+		switch(pvarSrc->vt) {
+		case VT_I1:
+			pvargDest->vt = vt;
+			pvargDest->cVal = pvarSrc->cVal;
+			break;
+		case VT_I2:
+			pvargDest->vt = vt;
+			pvargDest->cVal = (char)pvarSrc->iVal;
+			break;
+		case VT_INT:
+		case VT_I4:
+			pvargDest->vt = vt;
+			pvargDest->cVal = (char)pvarSrc->lVal;
+			break;
+		case VT_I8:
+			pvargDest->vt = vt;
+			pvargDest->cVal = (char)pvarSrc->llVal;
+			break;
+		case VT_UI2:
+			pvargDest->vt = vt;
+			pvargDest->cVal = (char)pvarSrc->uiVal;
+			break;
+		case VT_UINT:
+		case VT_UI4:
+			pvargDest->vt = vt;
+			pvargDest->cVal = (char)pvarSrc->ulVal;
+			break;
+		case VT_UI8:
+			pvargDest->vt = vt;
+			pvargDest->cVal = (char)pvarSrc->ullVal;
+			break;
+		case VT_R4:
+			pvargDest->vt = vt;
+			pvargDest->cVal = (char)pvarSrc->fltVal;
+			break;
+		case VT_R8:
+			pvargDest->vt = vt;
+			pvargDest->cVal = (char)pvarSrc->dblVal;
+			break;
+		case VT_BOOL:
+			pvargDest->vt = vt;
+			pvargDest->cVal = (char)(pvarSrc->boolVal ? 1 : 0);
+			break;
+		case VT_DECIMAL:
+			pvargDest->vt = vt;
+			pvargDest->cVal = (char)(pvarSrc->boolVal ? 1 : 0);
+			break;
+		}
+		break;
+	case VT_I2:
+		break;
+	case VT_INT:
+	case VT_I4:
+		break;
+	case VT_I8:
+		break;
+	case VT_R4:
+		break;
+	case VT_R8:
+		break;
+	case VT_UI1:
+		break;
+	case VT_UI2:
+		break;
+	case VT_UINT:
+	case VT_UI4:
+		break;
+	case VT_UI8:
+		break;
+	case VT_BSTR:
+		break;
+	case (VT_I1|VT_ARRAY):
+		break;
+	case VT_DATE:
+		break;
+	case VT_DECIMAL:
+		break;
+	case VT_BOOL:
+		break;
+	default:
+		return E_UNEXPECTED;
+	}
+	return S_OK;
+}
+
 #endif

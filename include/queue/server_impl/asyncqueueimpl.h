@@ -6,6 +6,7 @@
 #include "../uasyncqueue_server.h"
 #include "../../aserverw.h"
 #include <unordered_map>
+#include "../../scloader.h"
 
 namespace SPA {
     namespace ServerSide {

@@ -6,7 +6,7 @@
 #endif
 #include "streamingserver.h"
 #include "include/mysqld_error.h"
-
+#include "../../../include/server_functions.h"
 
 namespace SPA
 {
