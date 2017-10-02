@@ -87,6 +87,7 @@ namespace SPA {
     }
 
 #ifndef WINCE
+
     static std::string ToString(const DECIMAL &decVal) {
         std::string s = std::to_string(decVal.Lo64);
         unsigned char len = (unsigned char) s.size();
@@ -156,7 +157,7 @@ namespace SPA {
 #endif
 
 namespace SPA {
-	typedef CComVariant UVariant;
+    typedef CComVariant UVariant;
 
     static bool IsEqual(const tagVARIANT &vt0, const tagVARIANT &vt1) {
         if (vt0.vt == VT_EMPTY && vt1.vt == VT_EMPTY) {
