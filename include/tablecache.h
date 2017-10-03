@@ -26,16 +26,15 @@ namespace SPA {
         std::wstring GetDBServerName();
         std::wstring GetUpdater();
         bool IsEmpty();
-        bool Utf8ToW();
-        bool HighPrecsionTime();
         UDB::tagManagementSystem GetDBManagementSystem();
-        void Set(const char *strIp, bool bWide, bool bHighPrecision, UDB::tagManagementSystem ms);
+        void Set(const char *strIp, UDB::tagManagementSystem ms);
         void SetDBServerName(const wchar_t *strDBServerName);
         void SetUpdater(const wchar_t *strUpdater);
         void Swap(CTableCache &tc);
         void AddEmptyRowset(const UDB::CDBColumnInfoArray &meta);
         void Empty();
         CKeyMap FindKeys(const wchar_t *dbName, const wchar_t *tblName);
+		static std::string ToDate(const VARIANT &vtDate);
 
         //find a row based on one or two keys and equal operation
         UDB::CDBVariantArray FindARow(const wchar_t *dbName, const wchar_t *tblName, const CComVariant &key);
@@ -66,13 +65,9 @@ namespace SPA {
 
     private:
         std::string m_strIp;
-        bool m_bWide;
         std::wstring m_strHostName;
         std::wstring m_strUpdater;
         UDB::tagManagementSystem m_ms;
-#ifdef WIN32_64
-        bool m_bTimeEx;
-#endif
     private:
         CTableCache(const CTableCache &tc);
         CTableCache& operator=(const CTableCache &tc);
