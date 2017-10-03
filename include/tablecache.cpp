@@ -42,7 +42,22 @@ namespace SPA
 					return INVALID_VALUE;
 				UDB::CDBVariantArray &row_data = pr.second;
 				for (size_t n = 0; n < count; ++n) {
-					row_data.push_back(Convert(pvt[n], meta[n % col_count].DataType));
+					VARIANT &vt = pvt[n];
+					if (vt.vt == (VT_ARRAY | VT_I1)) {
+						const char *s;
+						CComVariant vtNew;
+						::SafeArrayAccessData(vt.parray, (void**)&s);
+						vtNew.bstrVal = SPA::Utilities::ToBSTR(s, vt.parray->rgsabound->cElements);
+						vtNew.vt = VT_BSTR;
+						::SafeArrayUnaccessData(vt.parray);
+						VARTYPE vtTarget = meta[n % col_count].DataType;
+						if (vtTarget == (VT_I1 | VT_ARRAY))
+							vtTarget = VT_BSTR;
+						row_data.push_back(Convert(vtNew, vtTarget));
+					}
+					else {
+						row_data.push_back(Convert(vt, meta[n % col_count].DataType));
+					}
 				}
 				return (count / col_count);
 			}
@@ -191,12 +206,18 @@ namespace SPA
 						VARIANT &vt = pvt[2 * n + 1];
 						if (vt.vt == (VT_ARRAY | VT_I1)) {
 							const char *s;
+							CComVariant vtNew;
 							::SafeArrayAccessData(vt.parray, (void**)&s);
-							CComVariant vtNew = s;
-							row[n] = Convert(vtNew, meta[n].DataType);
+							vtNew.bstrVal = SPA::Utilities::ToBSTR(s, vt.parray->rgsabound->cElements);
+							vtNew.vt = VT_BSTR;
+							::SafeArrayUnaccessData(vt.parray);
+							VARTYPE vtTarget = meta[n].DataType;
+							if (vtTarget == (VT_I1 | VT_ARRAY))
+								vtTarget = VT_BSTR;
+							row[n] = Convert(vtNew, vtTarget);
 						}
 						else {
-							row[n] = Convert(pvt[2 * n + 1], meta[n].DataType);
+							row[n] = Convert(vt, meta[n].DataType);
 						}
 					}
 					updated = 1;
