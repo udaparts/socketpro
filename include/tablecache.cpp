@@ -4,11 +4,11 @@
 namespace SPA
 {
 
-    CTableCache::CTableCache() : m_ms(UDB::msUnknown) {
+    CDataSet::CDataSet() : m_ms(UDB::msUnknown) {
 
     }
 
-    void CTableCache::Swap(CTableCache & tc) {
+    void CDataSet::Swap(CDataSet & tc) {
         CAutoLock al(m_cs);
         m_ds.swap(tc.m_ds);
         m_strIp.swap(tc.m_strIp);
@@ -19,14 +19,14 @@ namespace SPA
         tc.m_ms = ms;
     }
 
-    void CTableCache::AddEmptyRowset(const UDB::CDBColumnInfoArray & meta) {
+    void CDataSet::AddEmptyRowset(const UDB::CDBColumnInfoArray & meta) {
         if (!meta.size())
             return;
         CAutoLock al(m_cs);
         m_ds.push_back(CPColumnRowset(meta, UDB::CDBVariantArray()));
     }
 
-    size_t CTableCache::AddRows(const wchar_t *dbName, const wchar_t *tblName, VARIANT *pvt, size_t count) {
+    size_t CDataSet::AddRows(const wchar_t *dbName, const wchar_t *tblName, VARIANT *pvt, size_t count) {
         if (!pvt || !count)
             return 0;
         if (!dbName || !tblName)
@@ -64,7 +64,7 @@ namespace SPA
         return INVALID_VALUE; //not found
     }
 
-    size_t CTableCache::AddRows(const wchar_t *dbName, const wchar_t *tblName, UDB::CDBVariantArray & vData) {
+    size_t CDataSet::AddRows(const wchar_t *dbName, const wchar_t *tblName, UDB::CDBVariantArray & vData) {
         size_t count = vData.size();
         if (!count)
             return 0;
@@ -92,7 +92,7 @@ namespace SPA
         return INVALID_VALUE; //not found
     }
 
-    UDB::CDBVariant * CTableCache::FindARowInternal(CPColumnRowset &pcr, const VARIANT & key) {
+    UDB::CDBVariant * CDataSet::FindARowInternal(CPColumnRowset &pcr, const VARIANT & key) {
         size_t col_count = pcr.first.size();
         size_t keyIndex = FindKeyColIndex(pcr.first);
         if (keyIndex == INVALID_VALUE)
@@ -107,7 +107,7 @@ namespace SPA
         return nullptr;
     }
 
-    UDB::CDBVariant * CTableCache::FindARowInternal(CPColumnRowset &pcr, const VARIANT &key0, const VARIANT & key1) {
+    UDB::CDBVariant * CDataSet::FindARowInternal(CPColumnRowset &pcr, const VARIANT &key0, const VARIANT & key1) {
         size_t col_count = pcr.first.size();
         size_t key;
         size_t keyIndex = FindKeyColIndex(pcr.first, key);
@@ -124,31 +124,7 @@ namespace SPA
         return nullptr;
     }
 
-    UDB::CDBVariantArray CTableCache::FindARow(const wchar_t *dbName, const wchar_t *tblName, const VARIANT & key) {
-        CAutoLock al(m_cs);
-        for (auto it = m_ds.cbegin(), end = m_ds.cend(); it != end; ++it) {
-            const CPColumnRowset &pr = *it;
-            const UDB::CDBColumnInfoArray &meta = pr.first;
-            const UDB::CDBColumnInfo &col = meta.front();
-            if (col.DBPath == dbName && col.TablePath == tblName) {
-                size_t col_count = meta.size();
-                size_t keyIndex = FindKeyColIndex(meta);
-                if (keyIndex == INVALID_VALUE)
-                    return UDB::CDBVariantArray();
-                const UDB::CDBVariantArray &vData = pr.second;
-                size_t rows = pr.second.size() / col_count;
-                for (size_t r = 0; r < rows; ++r) {
-                    const UDB::CDBVariant &vtKey = vData[r * col_count + keyIndex];
-                    if (vtKey == key)
-                        return UDB::CDBVariantArray(vData.data() + r * col_count, vData.data() + (r + 1) * col_count);
-                }
-                break;
-            }
-        }
-        return UDB::CDBVariantArray();
-    }
-
-    size_t CTableCache::DeleteARow(const wchar_t *dbName, const wchar_t *tblName, const VARIANT & vtKey) {
+    size_t CDataSet::DeleteARow(const wchar_t *dbName, const wchar_t *tblName, const VARIANT & vtKey) {
         size_t deleted = 0;
         CAutoLock al(m_cs);
         for (auto it = m_ds.begin(), end = m_ds.end(); it != end; ++it) {
@@ -176,7 +152,7 @@ namespace SPA
         return deleted;
     }
 
-    size_t CTableCache::UpdateARow(const wchar_t *dbName, const wchar_t *tblName, VARIANT *pvt, size_t count) {
+    size_t CDataSet::UpdateARow(const wchar_t *dbName, const wchar_t *tblName, VARIANT *pvt, size_t count) {
         if (!pvt || !count || count % 2)
             return INVALID_VALUE;
         size_t updated = 0;
@@ -225,7 +201,7 @@ namespace SPA
         return updated;
     }
 
-    size_t CTableCache::DeleteARow(const wchar_t *dbName, const wchar_t *tblName, const VARIANT &vtKey0, const VARIANT & vtKey1) {
+    size_t CDataSet::DeleteARow(const wchar_t *dbName, const wchar_t *tblName, const VARIANT &vtKey0, const VARIANT & vtKey1) {
         size_t deleted = 0;
         CAutoLock al(m_cs);
         for (auto it = m_ds.begin(), end = m_ds.end(); it != end; ++it) {
@@ -255,15 +231,15 @@ namespace SPA
         return deleted;
     }
 
-    size_t CTableCache::DeleteARow(const wchar_t *dbName, const wchar_t *tblName, const CComVariant & key) {
+    size_t CDataSet::DeleteARow(const wchar_t *dbName, const wchar_t *tblName, const CComVariant & key) {
         return DeleteARow(dbName, tblName, (const VARIANT&) key);
     }
 
-    size_t CTableCache::DeleteARow(const wchar_t *dbName, const wchar_t *tblName, const CComVariant &key0, const CComVariant & key1) {
+    size_t CDataSet::DeleteARow(const wchar_t *dbName, const wchar_t *tblName, const CComVariant &key0, const CComVariant & key1) {
         return DeleteARow(dbName, tblName, (const VARIANT&) key0, (const VARIANT&) key1);
     }
 
-    size_t CTableCache::FindKeyColIndex(const UDB::CDBColumnInfoArray & meta) {
+    size_t CDataSet::FindKeyColIndex(const UDB::CDBColumnInfoArray & meta) {
         size_t index = 0;
         for (auto it = meta.cbegin(), end = meta.cend(); it != end; ++it, ++index) {
             if ((it->Flags & (UDB::CDBColumnInfo::FLAG_PRIMARY_KEY | UDB::CDBColumnInfo::FLAG_AUTOINCREMENT)))
@@ -272,7 +248,7 @@ namespace SPA
         return INVALID_VALUE;
     }
 
-    UDB::CDBVariant CTableCache::Convert(const VARIANT &data, VARTYPE vtTarget) {
+    UDB::CDBVariant CDataSet::Convert(const VARIANT &data, VARTYPE vtTarget) {
         assert(vtTarget != (VT_ARRAY | VT_I1)); //no ASCII string!
         if (data.vt == vtTarget)
             return data;
@@ -289,7 +265,7 @@ namespace SPA
         return vt;
     }
 
-    size_t CTableCache::FindKeyColIndex(const UDB::CDBColumnInfoArray &meta, size_t & key1) {
+    size_t CDataSet::FindKeyColIndex(const UDB::CDBColumnInfoArray &meta, size_t & key1) {
         size_t index = INVALID_VALUE;
         key1 = INVALID_VALUE;
         for (auto it = meta.cbegin(), end = meta.cend(); it != end; ++it) {
@@ -306,7 +282,7 @@ namespace SPA
         return index;
     }
 
-    std::vector<CPDbTable> CTableCache::GetDBTablePair() {
+    std::vector<CPDbTable> CDataSet::GetDBTablePair() {
         std::vector<CPDbTable> v;
         CAutoLock al(m_cs);
         for (auto it = m_ds.cbegin(), end = m_ds.cend(); it != end; ++it) {
@@ -318,24 +294,16 @@ namespace SPA
         return v;
     }
 
-    std::string CTableCache::ToDate(const VARIANT & vtDate) {
+    std::string CDataSet::ToDate(const VARIANT & vtDate) {
         assert(vtDate.vt == VT_DATE);
 #ifdef WIN32_64
-        assert(vtDate.dblVal < 1.0 / (3600000 * 24));
+        assert(vtDate.dblVal < 1.0 / (3600000 * 24)); //must be in high precision time format
 #endif
         UDateTime dt(vtDate.ullVal);
         return dt.ToDBString();
     }
 
-    UDB::CDBVariantArray CTableCache::FindARow(const wchar_t *dbName, const wchar_t *tblName, const CComVariant & key) {
-        return FindARow(dbName, tblName, (const VARIANT &) key);
-    }
-
-    UDB::CDBVariantArray CTableCache::FindARow(const wchar_t *dbName, const wchar_t *tblName, const CComVariant &key0, const CComVariant & key1) {
-        return FindARow(dbName, tblName, (const VARIANT &) key0, (const VARIANT &) key1);
-    }
-
-    CKeyMap CTableCache::FindKeys(const wchar_t *dbName, const wchar_t * tblName) {
+    CKeyMap CDataSet::FindKeys(const wchar_t *dbName, const wchar_t * tblName) {
         CKeyMap map;
         CAutoLock al(m_cs);
         for (auto it = m_ds.cbegin(), end = m_ds.cend(); it != end; ++it) {
@@ -354,7 +322,7 @@ namespace SPA
         return map;
     }
 
-    UDB::CDBColumnInfoArray CTableCache::GetColumMeta(const wchar_t *dbName, const wchar_t * tblName) {
+    UDB::CDBColumnInfoArray CDataSet::GetColumMeta(const wchar_t *dbName, const wchar_t * tblName) {
         CAutoLock al(m_cs);
         for (auto it = m_ds.cbegin(), end = m_ds.cend(); it != end; ++it) {
             const CPColumnRowset &pr = *it;
@@ -367,37 +335,37 @@ namespace SPA
         return UDB::CDBColumnInfoArray();
     }
 
-    bool CTableCache::IsEmpty() {
+    bool CDataSet::IsEmpty() {
         CAutoLock al(m_cs);
         return (m_ds.size() == 0);
     }
 
-    void CTableCache::Empty() {
+    void CDataSet::Empty() {
         CAutoLock al(m_cs);
         return m_ds.clear();
     }
 
-    UDB::tagManagementSystem CTableCache::GetDBManagementSystem() {
+    UDB::tagManagementSystem CDataSet::GetDBManagementSystem() {
         CAutoLock al(m_cs);
         return m_ms;
     }
 
-    std::string CTableCache::GetDBServerIp() {
+    std::string CDataSet::GetDBServerIp() {
         CAutoLock al(m_cs);
         return m_strIp;
     }
 
-    std::wstring CTableCache::GetDBServerName() {
+    std::wstring CDataSet::GetDBServerName() {
         CAutoLock al(m_cs);
         return m_strHostName;
     }
 
-    std::wstring CTableCache::GetUpdater() {
+    std::wstring CDataSet::GetUpdater() {
         CAutoLock al(m_cs);
         return m_strUpdater;
     }
 
-    void CTableCache::Set(const char *strIp, UDB::tagManagementSystem ms) {
+    void CDataSet::Set(const char *strIp, UDB::tagManagementSystem ms) {
         CAutoLock al(m_cs);
         if (strIp)
             m_strIp = strIp;
@@ -406,7 +374,7 @@ namespace SPA
         m_ms = ms;
     }
 
-    void CTableCache::SetDBServerName(const wchar_t * strDBServerName) {
+    void CDataSet::SetDBServerName(const wchar_t * strDBServerName) {
         CAutoLock al(m_cs);
         if (strDBServerName)
             m_strHostName = strDBServerName;
@@ -414,7 +382,7 @@ namespace SPA
             m_strHostName.clear();
     }
 
-    void CTableCache::SetUpdater(const wchar_t * strUpdater) {
+    void CDataSet::SetUpdater(const wchar_t * strUpdater) {
         CAutoLock al(m_cs);
         if (strUpdater)
             m_strUpdater = strUpdater;
@@ -422,7 +390,7 @@ namespace SPA
             m_strUpdater.clear();
     }
 
-    size_t CTableCache::GetColumnCount(const wchar_t *dbName, const wchar_t * tblName) {
+    size_t CDataSet::GetColumnCount(const wchar_t *dbName, const wchar_t * tblName) {
         CAutoLock al(m_cs);
         for (auto it = m_ds.cbegin(), end = m_ds.cend(); it != end; ++it) {
             const CPColumnRowset &pr = *it;
@@ -435,7 +403,7 @@ namespace SPA
         return INVALID_VALUE;
     }
 
-    size_t CTableCache::GetRowCount(const wchar_t *dbName, const wchar_t * tblName) {
+    size_t CDataSet::GetRowCount(const wchar_t *dbName, const wchar_t * tblName) {
         CAutoLock al(m_cs);
         for (auto it = m_ds.cbegin(), end = m_ds.cend(); it != end; ++it) {
             const CPColumnRowset &pr = *it;
@@ -446,32 +414,6 @@ namespace SPA
             }
         }
         return INVALID_VALUE;
-    }
-
-    UDB::CDBVariantArray CTableCache::FindARow(const wchar_t *dbName, const wchar_t *tblName, const VARIANT &key0, const VARIANT & key1) {
-        CAutoLock al(m_cs);
-        for (auto it = m_ds.cbegin(), end = m_ds.cend(); it != end; ++it) {
-            const CPColumnRowset &pr = *it;
-            const UDB::CDBColumnInfoArray &meta = pr.first;
-            const UDB::CDBColumnInfo &col = meta.front();
-            if (col.DBPath == dbName && col.TablePath == tblName) {
-                size_t col_count = meta.size();
-                size_t nKey1;
-                size_t key = FindKeyColIndex(meta, nKey1);
-                if (key == INVALID_VALUE || nKey1 == INVALID_VALUE)
-                    return UDB::CDBVariantArray();
-                const UDB::CDBVariantArray &vData = pr.second;
-                size_t rows = pr.second.size() / col_count;
-                for (size_t r = 0; r < rows; ++r) {
-                    const UDB::CDBVariant &vtKey0 = vData[r * col_count + key];
-                    const UDB::CDBVariant &vtKey1 = vData[r * col_count + nKey1];
-                    if (vtKey0 == key0 && vtKey1 == key1)
-                        return UDB::CDBVariantArray(vData.data() + r * col_count, vData.data() + (r + 1) * col_count);
-                }
-                break;
-            }
-        }
-        return UDB::CDBVariantArray();
     }
 
 } //namespace SPA

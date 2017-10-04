@@ -4,10 +4,6 @@
 #include "ssserver.h"
 
 int main(int argc, char* argv[]) {
-    CComVariant vt(L"2013-3-18");
-    CComVariant vtDes;
-    HRESULT hr = VariantChangeType(&vtDes, &vt, 0, VT_DATE);
-
     //set configuration settings
     g_config.SetConfig();
     if (!g_config.m_vccSlave.size() || !g_config.m_nMasterSessions || !g_config.m_nSlaveSessions) { //check requirements

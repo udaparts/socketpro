@@ -1,10 +1,6 @@
 
 #include "stdafx.h"
 
-namespace SPA {
-	
-};
-
 int main(int argc, char* argv[]) {
 	SPA::UDB::CDBVariant vt(true);
 	CComVariant vtDes;
