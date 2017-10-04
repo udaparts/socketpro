@@ -45,10 +45,10 @@
     <ClInclude Include="..\..\..\..\include\udb_client.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\include\servercache.h">
+    <ClInclude Include="..\..\..\..\include\tablecache.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\include\tablecache.h">
+    <ClInclude Include="..\..\..\..\include\rdbcache.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
