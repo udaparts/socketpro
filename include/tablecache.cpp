@@ -13,6 +13,38 @@ namespace SPA
 		return *this;
 	}
 
+	int CTable::Find(size_t ordinal, CTable::Operator op, const CComVariant &vt, CTable &tbl) const {
+		return Find(ordinal, op, (const VARIANT &)vt, tbl);
+	}
+
+	int CTable::Find(size_t ordinal, CTable::Operator op, const VARIANT &vt, CTable &tbl) const {
+		tbl.second.clear();
+		tbl.first = first;
+		tbl.m_bDataCaseSensitive = m_bDataCaseSensitive;
+		tbl.m_bFieldNameCaseSensitive = m_bFieldNameCaseSensitive;
+		return -1;
+	}
+
+	int CTable::Between(size_t ordinal, const CComVariant &vt0, const CComVariant &vt1, CTable &tbl) const {
+		return Between(ordinal, (const VARIANT&)vt0, (const VARIANT&)vt1, tbl);
+	}
+
+	int CTable::Between(size_t ordinal, const VARIANT &vt0, const VARIANT &vt1, CTable &tbl) const {
+		tbl.second.clear();
+		tbl.first = first;
+		tbl.m_bDataCaseSensitive = m_bDataCaseSensitive;
+		tbl.m_bFieldNameCaseSensitive = m_bFieldNameCaseSensitive;
+		if (ordinal >= tbl.first.size())
+			return BAD_ORDINAL;
+
+
+		return -1;
+	}
+
+	int CTable::Append(const CTable &tbl) {
+		return -1;
+	}
+
 	CDataSet::CDataSet() 
 		: m_ms(UDB::msUnknown),
 		m_bDBNameCaseSensitive(false),

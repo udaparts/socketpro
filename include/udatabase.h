@@ -753,6 +753,24 @@ namespace SPA {
                 return *this;
             }
 
+			bool operator==(const CDBColumnInfo &info) const {
+				return (DBPath == info.DBPath &&
+					TablePath == info.TablePath &&
+					DisplayName == info.DisplayName &&
+					OriginalName == info.OriginalName &&
+					DeclaredType == info.DeclaredType &&
+					Collation == info.Collation &&
+					ColumnSize == info.ColumnSize &&
+					Flags == info.Flags &&
+					DataType == info.DataType &&
+					Precision == info.Precision &&
+					Scale == info.Scale);
+			}
+
+			bool operator !=(const CDBColumnInfo &info) const {
+				return (!(*this == info));
+			}
+
         public:
             std::wstring DBPath;
             std::wstring TablePath;

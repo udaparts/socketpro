@@ -12,11 +12,30 @@ namespace SPA {
 
 	class CTable : protected CPColumnRowset {
 	public:
+
+		enum Operator {
+			equal = 0,
+			great,
+			less,
+			great_equal,
+			less_equal
+		};
+
+		static const int BAD_ORDINAL = -1;
+		static const int BAD_DATA_TYPE = -2;
+
+
+		CTable() 
+			: m_bFieldNameCaseSensitive(false),
+			m_bDataCaseSensitive(false) {
+		}
+
 		CTable(const UDB::CDBColumnInfoArray &meta, bool bFieldNameCaseSensitive, bool bDataCaseSensitive)
 			: CPColumnRowset(meta, UDB::CDBVariantArray()),
 			m_bFieldNameCaseSensitive(bFieldNameCaseSensitive),
 			m_bDataCaseSensitive(bDataCaseSensitive) {
 		}
+
 		CTable(const CTable &tbl) 
 			: CPColumnRowset(tbl),
 			m_bFieldNameCaseSensitive(tbl.m_bFieldNameCaseSensitive),
@@ -27,6 +46,12 @@ namespace SPA {
 		CTable& operator=(const CTable &tbl);
 		const UDB::CDBColumnInfoArray& GetMeta() const { return first; }
 		const UDB::CDBVariantArray& GetData() const { return second; }
+
+		int Find(size_t ordinal, Operator op, const CComVariant &vt, CTable &tbl) const;
+		int Find(size_t ordinal, Operator op, const VARIANT &vt, CTable &tbl) const;
+		int Between(size_t ordinal, const CComVariant &vt0, const CComVariant &vt1, CTable &tbl) const;
+		int Between(size_t ordinal, const VARIANT &vt0, const VARIANT &vt1, CTable &tbl) const;
+		int Append(const CTable &tbl);
 
 	protected:
 		bool m_bFieldNameCaseSensitive;
