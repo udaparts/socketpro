@@ -7,6 +7,7 @@
 #include "udb_client.h"
 
 namespace SPA {
+
     template<typename THandler, typename TCache = CDataSet>
     class CMasterPool : public ClientSide::CSocketPool < THandler > {
     public:
@@ -124,9 +125,9 @@ namespace SPA {
                                     std::string ip = h.GetAttachedClientSocket()->GetPeerName(&port);
                                     ip += ":";
                                     ip += std::to_string(port);
-									h.Utf8ToW(true);
+                                    h.Utf8ToW(true);
 #ifdef WIN32_64
-									h.TimeEx(true);
+                                    h.TimeEx(true);
 #endif
                                     this->m_cache.Set(ip.c_str(), h.GetDBManagementSystem());
                         }, UDB::ENABLE_TABLE_UPDATE_MESSAGES);

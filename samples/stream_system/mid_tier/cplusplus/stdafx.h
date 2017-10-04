@@ -5,7 +5,7 @@
 #include "../../../../include/aserverw.h"
 
 
-#include "../../../../include/servercache.h"
+#include "../../../../include/rdbcache.h"
 #include "../../../../include/mysql/umysql.h"
 
 typedef SPA::ClientSide::CAsyncDBHandler<SPA::Mysql::sidMysql> CMySQLHandler;
