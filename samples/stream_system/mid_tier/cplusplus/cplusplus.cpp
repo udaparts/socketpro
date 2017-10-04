@@ -1,14 +1,12 @@
 
-
 #include "stdafx.h"
 #include "config.h"
 #include "ssserver.h"
 
 int main(int argc, char* argv[]) {
-
-    SPA::UDB::CDBVariant vt("123.75");
+    CComVariant vt(L"2013-3-18");
     CComVariant vtDes;
-    VariantChangeType(&vtDes, &vt, 0, VT_R8);
+    HRESULT hr = VariantChangeType(&vtDes, &vt, 0, VT_DATE);
 
     //set configuration settings
     g_config.SetConfig();
@@ -32,14 +30,14 @@ int main(int argc, char* argv[]) {
 
     //start two socket pools, master and slave
     CSSServer::StartMySQLPools();
-
+/*
     auto v0 = CMySQLMasterPool::Cache.GetDBTablePair();
     auto v1 = CMySQLMasterPool::Cache.FindKeys(v0.front().first.c_str(), v0.front().second.c_str());
     auto v2 = CMySQLMasterPool::Cache.FindARow(L"sakila", L"actor", 42);
     auto v3 = CMySQLMasterPool::Cache.GetColumMeta(L"sakila", L"actor");
     auto v4 = CMySQLMasterPool::Cache.GetColumnCount(L"sakila", L"actor");
     auto v5 = CMySQLMasterPool::Cache.GetRowCount(L"sakila", L"actor");
-
+*/
     if (!server.Run(g_config.m_nPort, 32, !g_config.m_bNoIpV6))
         std::cout << "Error happens with code = " << server.GetErrorCode() << std::endl;
 

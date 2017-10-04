@@ -34,7 +34,7 @@ namespace SPA {
         void AddEmptyRowset(const UDB::CDBColumnInfoArray &meta);
         void Empty();
         CKeyMap FindKeys(const wchar_t *dbName, const wchar_t *tblName);
-		static std::string ToDate(const VARIANT &vtDate);
+        static std::string ToDate(const VARIANT &vtDate);
 
         //find a row based on one or two keys and equal operation
         UDB::CDBVariantArray FindARow(const wchar_t *dbName, const wchar_t *tblName, const CComVariant &key);
