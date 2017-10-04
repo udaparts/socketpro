@@ -11,12 +11,17 @@ void CSSServer::StartMySQLPools() {
     assert(g_config.m_nSlaveSessions);
     assert((g_config.m_nSlaveSessions % g_config.m_vccSlave.size()) == 0);
 
+	//these case-sensitivities depends on your MySQL running platform and sensitivity settings
+	CMySQLMasterPool::Cache.SetFieldNameCaseSensitive(false);
+	CMySQLMasterPool::Cache.SetTableNameCaseSensitive(false);
+	CMySQLMasterPool::Cache.SetDBNameCaseSensitive(false);
+
     CSSServer::Master.reset(new CMySQLMasterPool);
 
     //start master pool for cache and update accessing
     bool ok = CSSServer::Master->StartSocketPool(g_config.m_ccMaster, (unsigned int) g_config.m_nMasterSessions, 1); //one thread enough
 
-    //get threads and sockets_per_thread
+    //compute threads and sockets_per_thread
     unsigned int threads = (unsigned int) (g_config.m_nSlaveSessions / g_config.m_vccSlave.size());
     unsigned int sockets_per_thread = (unsigned int) g_config.m_vccSlave.size();
     CSSServer::Slave.reset(new CMySQLSlavePool);
@@ -45,10 +50,6 @@ void CSSServer::StartMySQLPools() {
 }
 
 CSSServer::CSSServer(int nParam) : CSocketProServer(nParam) {
-
-}
-
-CSSServer::~CSSServer() {
 
 }
 

@@ -3,9 +3,22 @@
 
 namespace SPA
 {
+	CTable& CTable::operator = (const CTable &tbl) {
+		if (this == &tbl)
+			return *this;
+		CPColumnRowset &base = *this;
+		base = tbl;
+		m_bFieldNameCaseSensitive = tbl.m_bFieldNameCaseSensitive;
+		m_bDataCaseSensitive = tbl.m_bDataCaseSensitive;
+		return *this;
+	}
 
-    CDataSet::CDataSet() : m_ms(UDB::msUnknown) {
-
+	CDataSet::CDataSet() 
+		: m_ms(UDB::msUnknown),
+		m_bDBNameCaseSensitive(false),
+		m_bTableNameCaseSensitive(false),
+		m_bFieldNameCaseSensitive(false),
+		m_bDataCaseSensitive(false) {
     }
 
     void CDataSet::Swap(CDataSet & tc) {
@@ -23,26 +36,25 @@ namespace SPA
         if (!meta.size())
             return;
         CAutoLock al(m_cs);
-        m_ds.push_back(CPColumnRowset(meta, UDB::CDBVariantArray()));
+		m_ds.push_back(CTable(meta, m_bFieldNameCaseSensitive, m_bDataCaseSensitive));
     }
 
-    size_t CDataSet::AddRows(const wchar_t *dbName, const wchar_t *tblName, VARIANT *pvt, size_t count) {
+    size_t CDataSet::AddRows(const wchar_t *dbName, const wchar_t *tblName, const VARIANT *pvt, size_t count) {
         if (!pvt || !count)
             return 0;
         if (!dbName || !tblName)
             return INVALID_VALUE;
         CAutoLock al(m_cs);
         for (auto it = m_ds.begin(), end = m_ds.end(); it != end; ++it) {
-            CPColumnRowset &pr = *it;
-            const UDB::CDBColumnInfoArray &meta = pr.first;
+            const UDB::CDBColumnInfoArray &meta = it->GetMeta();
             const UDB::CDBColumnInfo &col = meta.front();
             if (col.DBPath == dbName && col.TablePath == tblName) {
                 size_t col_count = meta.size();
                 if (count % col_count)
                     return INVALID_VALUE;
-                UDB::CDBVariantArray &row_data = pr.second;
+				UDB::CDBVariantArray &row_data = it->second;
                 for (size_t n = 0; n < count; ++n) {
-                    VARIANT &vt = pvt[n];
+                    const VARIANT &vt = pvt[n];
                     if (vt.vt == (VT_ARRAY | VT_I1)) {
                         const char *s;
                         CComVariant vtNew;
@@ -72,14 +84,13 @@ namespace SPA
             return INVALID_VALUE;
         CAutoLock al(m_cs);
         for (auto it = m_ds.begin(), end = m_ds.end(); it != end; ++it) {
-            CPColumnRowset &pr = *it;
-            const UDB::CDBColumnInfoArray &meta = pr.first;
+            const UDB::CDBColumnInfoArray &meta = it->GetMeta();
             const UDB::CDBColumnInfo &col = meta.front();
             if (col.DBPath == dbName && col.TablePath == tblName) {
                 size_t col_count = meta.size();
                 if (count % col_count)
                     return INVALID_VALUE;
-                UDB::CDBVariantArray &row_data = pr.second;
+                UDB::CDBVariantArray &row_data = it->second;
                 for (size_t n = 0; n < count; ++n) {
                     VARTYPE vtTarget = meta[n % col_count].DataType;
                     if (vtTarget == (VT_I1 | VT_ARRAY))
@@ -128,15 +139,14 @@ namespace SPA
         size_t deleted = 0;
         CAutoLock al(m_cs);
         for (auto it = m_ds.begin(), end = m_ds.end(); it != end; ++it) {
-            CPColumnRowset &pr = *it;
-            const UDB::CDBColumnInfoArray &meta = pr.first;
+            const UDB::CDBColumnInfoArray &meta = it->GetMeta();
             const UDB::CDBColumnInfo &col = meta.front();
             if (col.DBPath == dbName && col.TablePath == tblName) {
                 size_t col_count = meta.size();
                 size_t key = FindKeyColIndex(meta);
                 if (key == INVALID_VALUE)
                     return INVALID_VALUE;
-                UDB::CDBVariantArray &vData = pr.second;
+                UDB::CDBVariantArray &vData = it->second;
                 size_t rows = vData.size() / col_count;
                 for (size_t r = 0; r < rows; ++r) {
                     const UDB::CDBVariant &vtKey0 = vData[r * col_count + key];
@@ -152,7 +162,7 @@ namespace SPA
         return deleted;
     }
 
-    size_t CDataSet::UpdateARow(const wchar_t *dbName, const wchar_t *tblName, VARIANT *pvt, size_t count) {
+    size_t CDataSet::UpdateARow(const wchar_t *dbName, const wchar_t *tblName, const VARIANT *pvt, size_t count) {
         if (!pvt || !count || count % 2)
             return INVALID_VALUE;
         size_t updated = 0;
@@ -177,7 +187,7 @@ namespace SPA
                 }
                 if (row) {
                     for (unsigned int n = 0; n < col_count; ++n) {
-                        VARIANT &vt = pvt[2 * n + 1];
+                        const VARIANT &vt = pvt[2 * n + 1];
                         if (vt.vt == (VT_ARRAY | VT_I1)) {
                             const char *s;
                             CComVariant vtNew;
@@ -364,6 +374,46 @@ namespace SPA
         CAutoLock al(m_cs);
         return m_strUpdater;
     }
+
+	void CDataSet::SetDBNameCaseSensitive(bool bCaseSensitive) {
+		CAutoLock al(m_cs);
+		m_bDBNameCaseSensitive = bCaseSensitive;
+	}
+
+	void CDataSet::SetTableNameCaseSensitive(bool bCaseSensitive) {
+		CAutoLock al(m_cs);
+		m_bTableNameCaseSensitive = bCaseSensitive;
+	}
+
+	void CDataSet::SetFieldNameCaseSensitive(bool bCaseSensitive) {
+		CAutoLock al(m_cs);
+		m_bFieldNameCaseSensitive = bCaseSensitive;
+	}
+
+	void CDataSet::SetDataCaseSensitive(bool bCaseSensitive) {
+		CAutoLock al(m_cs);
+		m_bDataCaseSensitive = bCaseSensitive;
+	}
+
+	bool CDataSet::GetDBNameCaseSensitive() {
+		CAutoLock al(m_cs);
+		return m_bDBNameCaseSensitive;
+	}
+
+	bool CDataSet::GetTableNameCaseSensitive() {
+		CAutoLock al(m_cs);
+		return m_bTableNameCaseSensitive;
+	}
+
+	bool CDataSet::GetFieldNameCaseSensitive() {
+		CAutoLock al(m_cs);
+		return m_bFieldNameCaseSensitive;
+	}
+
+	bool CDataSet::GetDataCaseSensitive() {
+		CAutoLock al(m_cs);
+		return m_bDataCaseSensitive;
+	}
 
     void CDataSet::Set(const char *strIp, UDB::tagManagementSystem ms) {
         CAutoLock al(m_cs);

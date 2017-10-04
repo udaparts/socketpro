@@ -5,7 +5,6 @@
 class CSSServer : public CSocketProServer {
 public:
     CSSServer(int nParam);
-    ~CSSServer();
 
 protected:
     virtual bool OnSettingServer(unsigned int listeningPort, unsigned int maxBacklog, bool v6);
