@@ -1661,7 +1661,7 @@ HRESULT VariantChangeType(VARIANT *pvargDest, const VARIANT *pvarSrc, unsigned s
                 case VT_I8:
                 {
                     char str[32] = {0};
-                    ::sprintf(str, "%lld", pvarSrc->llVal);
+                    ::sprintf(str, "%ld", pvarSrc->llVal);
                     SPA::ParseDec(str, pvargDest->decVal);
                 }
                     break;

@@ -3,54 +3,54 @@
 
 namespace SPA
 {
-	CTable& CTable::operator = (const CTable &tbl) {
-		if (this == &tbl)
-			return *this;
-		CPColumnRowset &base = *this;
-		base = tbl;
-		m_bFieldNameCaseSensitive = tbl.m_bFieldNameCaseSensitive;
-		m_bDataCaseSensitive = tbl.m_bDataCaseSensitive;
-		return *this;
-	}
+    CTable & CTable::operator = (const CTable & tbl){
+        if (this == &tbl)
+            return *this;
+        CPColumnRowset &base = *this;
+        base = tbl;
+        m_bFieldNameCaseSensitive = tbl.m_bFieldNameCaseSensitive;
+        m_bDataCaseSensitive = tbl.m_bDataCaseSensitive;
+        return *this;
+    }
 
-	int CTable::Find(size_t ordinal, CTable::Operator op, const CComVariant &vt, CTable &tbl) const {
-		return Find(ordinal, op, (const VARIANT &)vt, tbl);
-	}
+    int CTable::Find(size_t ordinal, CTable::Operator op, const CComVariant &vt, CTable & tbl) const {
+        return Find(ordinal, op, (const VARIANT &) vt, tbl);
+    }
 
-	int CTable::Find(size_t ordinal, CTable::Operator op, const VARIANT &vt, CTable &tbl) const {
-		tbl.second.clear();
-		tbl.first = first;
-		tbl.m_bDataCaseSensitive = m_bDataCaseSensitive;
-		tbl.m_bFieldNameCaseSensitive = m_bFieldNameCaseSensitive;
-		return -1;
-	}
+    int CTable::Find(size_t ordinal, CTable::Operator op, const VARIANT &vt, CTable & tbl) const {
+        tbl.second.clear();
+        tbl.first = first;
+        tbl.m_bDataCaseSensitive = m_bDataCaseSensitive;
+        tbl.m_bFieldNameCaseSensitive = m_bFieldNameCaseSensitive;
+        return -1;
+    }
 
-	int CTable::Between(size_t ordinal, const CComVariant &vt0, const CComVariant &vt1, CTable &tbl) const {
-		return Between(ordinal, (const VARIANT&)vt0, (const VARIANT&)vt1, tbl);
-	}
+    int CTable::Between(size_t ordinal, const CComVariant &vt0, const CComVariant &vt1, CTable & tbl) const {
+        return Between(ordinal, (const VARIANT&) vt0, (const VARIANT&) vt1, tbl);
+    }
 
-	int CTable::Between(size_t ordinal, const VARIANT &vt0, const VARIANT &vt1, CTable &tbl) const {
-		tbl.second.clear();
-		tbl.first = first;
-		tbl.m_bDataCaseSensitive = m_bDataCaseSensitive;
-		tbl.m_bFieldNameCaseSensitive = m_bFieldNameCaseSensitive;
-		if (ordinal >= tbl.first.size())
-			return BAD_ORDINAL;
+    int CTable::Between(size_t ordinal, const VARIANT &vt0, const VARIANT &vt1, CTable & tbl) const {
+        tbl.second.clear();
+        tbl.first = first;
+        tbl.m_bDataCaseSensitive = m_bDataCaseSensitive;
+        tbl.m_bFieldNameCaseSensitive = m_bFieldNameCaseSensitive;
+        if (ordinal >= tbl.first.size())
+            return BAD_ORDINAL;
 
 
-		return -1;
-	}
+        return -1;
+    }
 
-	int CTable::Append(const CTable &tbl) {
-		return -1;
-	}
+    int CTable::Append(const CTable & tbl) {
+        return -1;
+    }
 
-	CDataSet::CDataSet() 
-		: m_ms(UDB::msUnknown),
-		m_bDBNameCaseSensitive(false),
-		m_bTableNameCaseSensitive(false),
-		m_bFieldNameCaseSensitive(false),
-		m_bDataCaseSensitive(false) {
+    CDataSet::CDataSet()
+            : m_ms(UDB::msUnknown),
+            m_bDBNameCaseSensitive(false),
+            m_bTableNameCaseSensitive(false),
+            m_bFieldNameCaseSensitive(false),
+            m_bDataCaseSensitive(false) {
     }
 
     void CDataSet::Swap(CDataSet & tc) {
@@ -68,7 +68,7 @@ namespace SPA
         if (!meta.size())
             return;
         CAutoLock al(m_cs);
-		m_ds.push_back(CTable(meta, m_bFieldNameCaseSensitive, m_bDataCaseSensitive));
+        m_ds.push_back(CTable(meta, m_bFieldNameCaseSensitive, m_bDataCaseSensitive));
     }
 
     size_t CDataSet::AddRows(const wchar_t *dbName, const wchar_t *tblName, const VARIANT *pvt, size_t count) {
@@ -84,7 +84,7 @@ namespace SPA
                 size_t col_count = meta.size();
                 if (count % col_count)
                     return INVALID_VALUE;
-				UDB::CDBVariantArray &row_data = it->second;
+                UDB::CDBVariantArray &row_data = it->second;
                 for (size_t n = 0; n < count; ++n) {
                     const VARIANT &vt = pvt[n];
                     if (vt.vt == (VT_ARRAY | VT_I1)) {
@@ -407,45 +407,45 @@ namespace SPA
         return m_strUpdater;
     }
 
-	void CDataSet::SetDBNameCaseSensitive(bool bCaseSensitive) {
-		CAutoLock al(m_cs);
-		m_bDBNameCaseSensitive = bCaseSensitive;
-	}
+    void CDataSet::SetDBNameCaseSensitive(bool bCaseSensitive) {
+        CAutoLock al(m_cs);
+        m_bDBNameCaseSensitive = bCaseSensitive;
+    }
 
-	void CDataSet::SetTableNameCaseSensitive(bool bCaseSensitive) {
-		CAutoLock al(m_cs);
-		m_bTableNameCaseSensitive = bCaseSensitive;
-	}
+    void CDataSet::SetTableNameCaseSensitive(bool bCaseSensitive) {
+        CAutoLock al(m_cs);
+        m_bTableNameCaseSensitive = bCaseSensitive;
+    }
 
-	void CDataSet::SetFieldNameCaseSensitive(bool bCaseSensitive) {
-		CAutoLock al(m_cs);
-		m_bFieldNameCaseSensitive = bCaseSensitive;
-	}
+    void CDataSet::SetFieldNameCaseSensitive(bool bCaseSensitive) {
+        CAutoLock al(m_cs);
+        m_bFieldNameCaseSensitive = bCaseSensitive;
+    }
 
-	void CDataSet::SetDataCaseSensitive(bool bCaseSensitive) {
-		CAutoLock al(m_cs);
-		m_bDataCaseSensitive = bCaseSensitive;
-	}
+    void CDataSet::SetDataCaseSensitive(bool bCaseSensitive) {
+        CAutoLock al(m_cs);
+        m_bDataCaseSensitive = bCaseSensitive;
+    }
 
-	bool CDataSet::GetDBNameCaseSensitive() {
-		CAutoLock al(m_cs);
-		return m_bDBNameCaseSensitive;
-	}
+    bool CDataSet::GetDBNameCaseSensitive() {
+        CAutoLock al(m_cs);
+        return m_bDBNameCaseSensitive;
+    }
 
-	bool CDataSet::GetTableNameCaseSensitive() {
-		CAutoLock al(m_cs);
-		return m_bTableNameCaseSensitive;
-	}
+    bool CDataSet::GetTableNameCaseSensitive() {
+        CAutoLock al(m_cs);
+        return m_bTableNameCaseSensitive;
+    }
 
-	bool CDataSet::GetFieldNameCaseSensitive() {
-		CAutoLock al(m_cs);
-		return m_bFieldNameCaseSensitive;
-	}
+    bool CDataSet::GetFieldNameCaseSensitive() {
+        CAutoLock al(m_cs);
+        return m_bFieldNameCaseSensitive;
+    }
 
-	bool CDataSet::GetDataCaseSensitive() {
-		CAutoLock al(m_cs);
-		return m_bDataCaseSensitive;
-	}
+    bool CDataSet::GetDataCaseSensitive() {
+        CAutoLock al(m_cs);
+        return m_bDataCaseSensitive;
+    }
 
     void CDataSet::Set(const char *strIp, UDB::tagManagementSystem ms) {
         CAutoLock al(m_cs);
