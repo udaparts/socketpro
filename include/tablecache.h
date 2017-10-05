@@ -52,10 +52,10 @@ namespace SPA {
             return second;
         }
 
-        int Find(size_t ordinal, Operator op, const CComVariant &vt, CTable &tbl) const;
-        int Find(size_t ordinal, Operator op, const VARIANT &vt, CTable &tbl) const;
-        int Between(size_t ordinal, const CComVariant &vt0, const CComVariant &vt1, CTable &tbl) const;
-        int Between(size_t ordinal, const VARIANT &vt0, const VARIANT &vt1, CTable &tbl) const;
+        int Find(unsigned int ordinal, Operator op, const CComVariant &vt, CTable &tbl) const;
+		int Find(unsigned int ordinal, Operator op, const VARIANT &vt, CTable &tbl) const;
+		int Between(unsigned int ordinal, const CComVariant &vt0, const CComVariant &vt1, CTable &tbl) const;
+		int Between(unsigned int ordinal, const VARIANT &vt0, const VARIANT &vt1, CTable &tbl) const;
         int Append(const CTable &tbl);
 
     protected:
