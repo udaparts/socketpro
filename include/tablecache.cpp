@@ -22,7 +22,97 @@ namespace SPA
         tbl.first = first;
         tbl.m_bDataCaseSensitive = m_bDataCaseSensitive;
         tbl.m_bFieldNameCaseSensitive = m_bFieldNameCaseSensitive;
-        return -1;
+		if (ordinal >= tbl.first.size())
+			return BAD_ORDINAL;
+		VARTYPE type = first[ordinal].DataType;
+		if (type == (VT_I1 | VT_ARRAY))
+			type = VT_BSTR;
+		size_t cols = first.size();
+		size_t rows = second.size() / cols;
+		for (size_t r = 0; r < rows; ++r) {
+			bool ok;
+			switch (op)
+			{
+			case is_null:
+			{
+				VARTYPE d = second[r * cols + ordinal].vt;
+				ok = (d == VT_NULL || d == VT_EMPTY);
+			}
+				break;
+			case great:
+			{
+				CComVariant v;
+				HRESULT hr = ::VariantChangeType(&v, &vt, 0, type);
+				if (S_OK != hr)
+					return BAD_DATA_TYPE;
+				const VARIANT &v0 = second[r * cols + ordinal];
+				int res = gt(v0, v);
+				if (res < 0)
+					return res;
+				ok = (res > 0);
+			}
+			break;
+			{
+				CComVariant v;
+				HRESULT hr = ::VariantChangeType(&v, &vt, 0, type);
+				if (S_OK != hr)
+					return BAD_DATA_TYPE;
+				const VARIANT &v0 = second[r * cols + ordinal];
+				int res = eq(v0, v);
+				if (res < 0)
+					return res;
+				ok = (res > 0);
+			}
+			break;
+			case great_equal:
+			{
+				CComVariant v;
+				HRESULT hr = ::VariantChangeType(&v, &vt, 0, type);
+				if (S_OK != hr)
+					return BAD_DATA_TYPE;
+				const VARIANT &v0 = second[r * cols + ordinal];
+				int res = ge(v0, v);
+				if (res < 0)
+					return res;
+				ok = (res > 0);
+			}
+			break;
+			case less:
+			{
+				CComVariant v;
+				HRESULT hr = ::VariantChangeType(&v, &vt, 0, type);
+				if (S_OK != hr)
+					return BAD_DATA_TYPE;
+				const VARIANT &v0 = second[r * cols + ordinal];
+				int res = lt(v0, v);
+				if (res < 0)
+					return res;
+				ok = (res > 0);
+			}
+			break;
+			case less_equal:
+			{
+				CComVariant v;
+				HRESULT hr = ::VariantChangeType(&v, &vt, 0, type);
+				if (S_OK != hr)
+					return BAD_DATA_TYPE;
+				const VARIANT &v0 = second[r * cols + ordinal];
+				int res = le(v0, v);
+				if (res < 0)
+					return res;
+				ok = (res > 0);
+			}
+			break;
+			default:
+				return OPERATION_NOT_SUPPORTED;
+			}
+			if (ok) {
+				for (size_t col = 0; col < cols; ++col) {
+					tbl.second.push_back(second[r * cols + col]);
+				}
+			}
+		}
+        return 1;
     }
 
 	int CTable::Between(unsigned int ordinal, const CComVariant &vt0, const CComVariant &vt1, CTable & tbl) const {
@@ -36,14 +126,304 @@ namespace SPA
         tbl.m_bFieldNameCaseSensitive = m_bFieldNameCaseSensitive;
         if (ordinal >= tbl.first.size())
             return BAD_ORDINAL;
-
-
-        return -1;
+		VARTYPE type = first[ordinal].DataType;
+		if (type == (VT_I1 | VT_ARRAY))
+			type = VT_BSTR;
+		CComVariant v0, v1;
+		HRESULT hr = ::VariantChangeType(&v0, &vt0, 0, type);
+		if (S_OK != hr)
+			return BAD_DATA_TYPE;
+		hr = ::VariantChangeType(&v1, &vt1, 0, type);
+		if (S_OK != hr)
+			return BAD_DATA_TYPE;
+		const VARIANT *small_vt = &vt0;
+		const VARIANT *large_vt = &vt1;
+		int res = gt(vt0, vt1);
+		if (res < 0)
+			return res;
+		else if (res) {
+			small_vt = &vt1;
+			large_vt = &vt0;
+		}
+		size_t cols = first.size();
+		size_t rows = second.size() / cols;
+		for (size_t r = 0; r < rows; ++r) {
+			const VARIANT &vt = second[r * cols + ordinal];
+			res = ge(vt, *small_vt);
+			if (res == 0)
+				continue;
+			if (res < 0)
+				return res;
+			res = le(vt, *large_vt);
+			if (res == 0)
+				continue;
+			if (res < 0)
+				return res;
+			for (size_t col = 0; col < cols; ++col) {
+				tbl.second.push_back(second[r * cols + col]);
+			}
+		}
+        return 1;
     }
 
     int CTable::Append(const CTable & tbl) {
         return -1;
     }
+
+	int CTable::gt(const VARIANT &vt0, const VARIANT &vt1) const {
+		assert(vt0.vt == vt1.vt);
+		assert(vt0.vt != VT_NULL && vt0.vt != VT_EMPTY);
+		switch (vt0.vt)
+		{
+		case VT_I1:
+			return (vt0.cVal > vt1.cVal);
+		case VT_I2:
+			return (vt0.iVal > vt1.iVal);
+		case VT_INT:
+		case VT_I4:
+			return (vt0.intVal > vt1.intVal);
+		case VT_I8:
+			return (vt0.llVal > vt1.llVal);
+		case VT_R4:
+			return (vt0.fltVal > vt1.fltVal);
+		case VT_R8:
+			return (vt0.dblVal > vt1.dblVal);
+		case VT_UI8:
+		case VT_DATE:
+			return (vt0.ullVal > vt1.ullVal);
+		case VT_UI1:
+			return (vt0.bVal > vt1.bVal);
+			break;
+		case VT_UI2:
+			return (vt0.uiVal > vt1.uiVal);
+		case VT_UINT:
+		case VT_UI4:
+			return (vt0.uintVal > vt1.uintVal);
+		case VT_DECIMAL:
+			return (ToDouble(vt0.decVal) > ToDouble(vt1.decVal));
+		case VT_BSTR:
+			if (m_bDataCaseSensitive) {
+				return (::wcscmp(vt0.bstrVal, vt1.bstrVal) > 0);
+			}
+			else {
+#ifdef WIN32_64
+				return (::_wcsicmp(vt0.bstrVal, vt1.bstrVal) > 0);
+#else
+				res = (::wcscasecmp(vt0.bstrVal, vt1.bstrVal) > 0);
+#endif
+			}
+		case VT_BOOL:
+			return (vt0.boolVal < vt1.boolVal);
+			break;
+		default:
+			break;
+		}
+		return COMPARISON_NOT_SUPPORTED;
+	}
+
+	int CTable::ge(const VARIANT &vt0, const VARIANT &vt1) const {
+		assert(vt0.vt == vt1.vt);
+		assert(vt0.vt != VT_NULL && vt0.vt != VT_EMPTY);
+		switch (vt0.vt)
+		{
+		case VT_I1:
+			return (vt0.cVal >= vt1.cVal);
+		case VT_I2:
+			return (vt0.iVal >= vt1.iVal);
+		case VT_INT:
+		case VT_I4:
+			return (vt0.intVal >= vt1.intVal);
+		case VT_I8:
+			return (vt0.llVal > vt1.llVal);
+		case VT_R4:
+			return (vt0.fltVal >= vt1.fltVal);
+		case VT_R8:
+			return (vt0.dblVal >= vt1.dblVal);
+		case VT_UI8:
+		case VT_DATE:
+			return (vt0.ullVal >= vt1.ullVal);
+		case VT_UI1:
+			return (vt0.bVal >= vt1.bVal);
+			break;
+		case VT_UI2:
+			return (vt0.uiVal >= vt1.uiVal);
+		case VT_UINT:
+		case VT_UI4:
+			return (vt0.uintVal >= vt1.uintVal);
+		case VT_DECIMAL:
+			return (ToDouble(vt0.decVal) >= ToDouble(vt1.decVal));
+		case VT_BSTR:
+			if (m_bDataCaseSensitive) {
+				return (::wcscmp(vt0.bstrVal, vt1.bstrVal) >= 0);
+			}
+			else {
+#ifdef WIN32_64
+				return (::_wcsicmp(vt0.bstrVal, vt1.bstrVal) >= 0);
+#else
+				res = (::wcscasecmp(vt0.bstrVal, vt1.bstrVal) >= 0);
+#endif
+			}
+		case VT_BOOL:
+			return (vt0.boolVal <= vt1.boolVal);
+			break;
+		default:
+			break;
+		}
+		return COMPARISON_NOT_SUPPORTED;
+	}
+
+	int CTable::lt(const VARIANT &vt0, const VARIANT &vt1) const {
+		assert(vt0.vt == vt1.vt);
+		assert(vt0.vt != VT_NULL && vt0.vt != VT_EMPTY);
+		switch (vt0.vt)
+		{
+		case VT_I1:
+			return (vt0.cVal < vt1.cVal);
+		case VT_I2:
+			return (vt0.iVal < vt1.iVal);
+		case VT_INT:
+		case VT_I4:
+			return (vt0.intVal < vt1.intVal);
+		case VT_I8:
+			return (vt0.llVal < vt1.llVal);
+		case VT_R4:
+			return (vt0.fltVal < vt1.fltVal);
+		case VT_R8:
+			return (vt0.dblVal < vt1.dblVal);
+		case VT_UI8:
+		case VT_DATE:
+			return (vt0.ullVal < vt1.ullVal);
+		case VT_UI1:
+			return (vt0.bVal < vt1.bVal);
+			break;
+		case VT_UI2:
+			return (vt0.uiVal < vt1.uiVal);
+		case VT_UINT:
+		case VT_UI4:
+			return (vt0.uintVal < vt1.uintVal);
+		case VT_DECIMAL:
+			return (ToDouble(vt0.decVal) < ToDouble(vt1.decVal));
+		case VT_BSTR:
+			if (m_bDataCaseSensitive) {
+				return (::wcscmp(vt0.bstrVal, vt1.bstrVal) < 0);
+			}
+			else {
+#ifdef WIN32_64
+				return (::_wcsicmp(vt0.bstrVal, vt1.bstrVal) < 0);
+#else
+				res = (::wcscasecmp(vt0.bstrVal, vt1.bstrVal) < 0);
+#endif
+			}
+		case VT_BOOL:
+			return (vt0.boolVal > vt1.boolVal);
+			break;
+		default:
+			break;
+		}
+		return COMPARISON_NOT_SUPPORTED;
+	}
+
+	int CTable::le(const VARIANT &vt0, const VARIANT &vt1) const {
+		assert(vt0.vt == vt1.vt);
+		assert(vt0.vt != VT_NULL && vt0.vt != VT_EMPTY);
+		switch (vt0.vt)
+		{
+		case VT_I1:
+			return (vt0.cVal <= vt1.cVal);
+		case VT_I2:
+			return (vt0.iVal <= vt1.iVal);
+		case VT_INT:
+		case VT_I4:
+			return (vt0.intVal <= vt1.intVal);
+		case VT_I8:
+			return (vt0.llVal <= vt1.llVal);
+		case VT_R4:
+			return (vt0.fltVal <= vt1.fltVal);
+		case VT_R8:
+			return (vt0.dblVal <= vt1.dblVal);
+		case VT_UI8:
+		case VT_DATE:
+			return (vt0.ullVal <= vt1.ullVal);
+		case VT_UI1:
+			return (vt0.bVal <= vt1.bVal);
+			break;
+		case VT_UI2:
+			return (vt0.uiVal <= vt1.uiVal);
+		case VT_UINT:
+		case VT_UI4:
+			return (vt0.uintVal <= vt1.uintVal);
+		case VT_DECIMAL:
+			return (ToDouble(vt0.decVal) <= ToDouble(vt1.decVal));
+		case VT_BSTR:
+			if (m_bDataCaseSensitive) {
+				return (::wcscmp(vt0.bstrVal, vt1.bstrVal) <= 0);
+			}
+			else {
+#ifdef WIN32_64
+				return (::_wcsicmp(vt0.bstrVal, vt1.bstrVal) <= 0);
+#else
+				res = (::wcscasecmp(vt0.bstrVal, vt1.bstrVal) <= 0);
+#endif
+			}
+		case VT_BOOL:
+			return (vt0.boolVal >= vt1.boolVal);
+			break;
+		default:
+			break;
+		}
+		return COMPARISON_NOT_SUPPORTED;
+	}
+
+	int CTable::eq(const VARIANT &vt0, const VARIANT &vt1) const {
+		assert(vt0.vt == vt1.vt);
+		assert(vt0.vt != VT_NULL && vt0.vt != VT_EMPTY);
+		switch (vt0.vt)
+		{
+		case VT_I1:
+			return (vt0.cVal == vt1.cVal);
+		case VT_I2:
+			return (vt0.iVal == vt1.iVal);
+		case VT_INT:
+		case VT_I4:
+			return (vt0.intVal == vt1.intVal);
+		case VT_I8:
+			return (vt0.llVal == vt1.llVal);
+		case VT_R4:
+			return (vt0.fltVal == vt1.fltVal);
+		case VT_R8:
+			return (vt0.dblVal == vt1.dblVal);
+		case VT_UI8:
+		case VT_DATE:
+			return (vt0.ullVal == vt1.ullVal);
+		case VT_UI1:
+			return (vt0.bVal == vt1.bVal);
+			break;
+		case VT_UI2:
+			return (vt0.uiVal == vt1.uiVal);
+		case VT_UINT:
+		case VT_UI4:
+			return (vt0.uintVal == vt1.uintVal);
+		case VT_DECIMAL:
+			return (ToDouble(vt0.decVal) == ToDouble(vt1.decVal));
+		case VT_BSTR:
+			if (m_bDataCaseSensitive) {
+				return (::wcscmp(vt0.bstrVal, vt1.bstrVal) == 0);
+			}
+			else {
+#ifdef WIN32_64
+				return (::_wcsicmp(vt0.bstrVal, vt1.bstrVal) == 0);
+#else
+				res = (::wcscasecmp(vt0.bstrVal, vt1.bstrVal) == 0);
+#endif
+			}
+		case VT_BOOL:
+			return (vt0.boolVal == vt1.boolVal);
+			break;
+		default:
+			break;
+		}
+		return COMPARISON_NOT_SUPPORTED;
+	}
 
     CDataSet::CDataSet()
             : m_ms(UDB::msUnknown),

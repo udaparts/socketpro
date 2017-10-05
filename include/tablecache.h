@@ -18,11 +18,14 @@ namespace SPA {
             great,
             less,
             great_equal,
-            less_equal
+            less_equal,
+			is_null
         };
 
         static const int BAD_ORDINAL = -1;
         static const int BAD_DATA_TYPE = -2;
+		static const int OPERATION_NOT_SUPPORTED = -3;
+		static const int COMPARISON_NOT_SUPPORTED = -4;
 
         CTable()
         : m_bFieldNameCaseSensitive(false),
@@ -57,6 +60,13 @@ namespace SPA {
 		int Between(unsigned int ordinal, const CComVariant &vt0, const CComVariant &vt1, CTable &tbl) const;
 		int Between(unsigned int ordinal, const VARIANT &vt0, const VARIANT &vt1, CTable &tbl) const;
         int Append(const CTable &tbl);
+
+	protected:
+		int gt(const VARIANT &vt0, const VARIANT &vt1) const;
+		int ge(const VARIANT &vt0, const VARIANT &vt1) const;
+		int lt(const VARIANT &vt0, const VARIANT &vt1) const;
+		int le(const VARIANT &vt0, const VARIANT &vt1) const;
+		int eq(const VARIANT &vt0, const VARIANT &vt1) const;
 
     protected:
         bool m_bFieldNameCaseSensitive;
