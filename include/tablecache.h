@@ -3,7 +3,7 @@
 #define __SOCKETPRO_REAL_TIME_CACHE_H_
 
 #include <map>
-#include  <memory>
+#include <memory>
 #include "udatabase.h"
 
 namespace SPA {
