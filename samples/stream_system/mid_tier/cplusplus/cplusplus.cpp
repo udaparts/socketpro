@@ -32,6 +32,8 @@ int main(int argc, char* argv[]) {
     auto v2 = CMySQLMasterPool::Cache.GetColumMeta(L"sakila", L"actor");
     auto v3 = CMySQLMasterPool::Cache.GetColumnCount(L"sakila", L"actor");
     auto v4 = CMySQLMasterPool::Cache.GetRowCount(L"sakila", L"actor");
+    SPA::CTable table;
+    int res = CMySQLMasterPool::Cache.Between(L"sakila", L"actor", 3, "2017-07-01", "2017-01-1", table);
 
     if (!server.Run(g_config.m_nPort, 32, !g_config.m_bNoIpV6))
         std::cout << "Error happens with code = " << server.GetErrorCode() << std::endl;

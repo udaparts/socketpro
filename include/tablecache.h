@@ -19,13 +19,17 @@ namespace SPA {
             less,
             great_equal,
             less_equal,
-			is_null
+            is_null
         };
 
         static const int BAD_ORDINAL = -1;
         static const int BAD_DATA_TYPE = -2;
-		static const int OPERATION_NOT_SUPPORTED = -3;
-		static const int COMPARISON_NOT_SUPPORTED = -4;
+        static const int OPERATION_NOT_SUPPORTED = -3;
+        static const int COMPARISON_NOT_SUPPORTED = -4;
+        static const int NO_TABLE_NAME_GIVEN = -5;
+        static const int NO_TABLE_FOUND = -6;
+
+        static const unsigned int INVALID_ORDINAL = (unsigned int) (-1);
 
         CTable()
         : m_bFieldNameCaseSensitive(false),
@@ -56,17 +60,20 @@ namespace SPA {
         }
 
         int Find(unsigned int ordinal, Operator op, const CComVariant &vt, CTable &tbl) const;
-		int Find(unsigned int ordinal, Operator op, const VARIANT &vt, CTable &tbl) const;
-		int Between(unsigned int ordinal, const CComVariant &vt0, const CComVariant &vt1, CTable &tbl) const;
-		int Between(unsigned int ordinal, const VARIANT &vt0, const VARIANT &vt1, CTable &tbl) const;
+        int Find(unsigned int ordinal, Operator op, const VARIANT &vt, CTable &tbl) const;
+        int Between(unsigned int ordinal, const CComVariant &vt0, const CComVariant &vt1, CTable &tbl) const;
+        int Between(unsigned int ordinal, const VARIANT &vt0, const VARIANT &vt1, CTable &tbl) const;
         int Append(const CTable &tbl);
+        unsigned int FindOrdinal(const wchar_t *colName) const;
+        unsigned int FindOrdinal(const char *colName) const;
 
-	protected:
-		int gt(const VARIANT &vt0, const VARIANT &vt1) const;
-		int ge(const VARIANT &vt0, const VARIANT &vt1) const;
-		int lt(const VARIANT &vt0, const VARIANT &vt1) const;
-		int le(const VARIANT &vt0, const VARIANT &vt1) const;
-		int eq(const VARIANT &vt0, const VARIANT &vt1) const;
+    protected:
+        int gt(const VARIANT &vt0, const VARIANT &vt1) const;
+        int ge(const VARIANT &vt0, const VARIANT &vt1) const;
+        int lt(const VARIANT &vt0, const VARIANT &vt1) const;
+        int le(const VARIANT &vt0, const VARIANT &vt1) const;
+        int eq(const VARIANT &vt0, const VARIANT &vt1) const;
+        static HRESULT ChangeType(const VARIANT &vtSrc, VARTYPE vtTarget, VARIANT &vtDes);
 
     protected:
         bool m_bFieldNameCaseSensitive;
@@ -111,6 +118,12 @@ namespace SPA {
         bool GetTableNameCaseSensitive();
         bool GetFieldNameCaseSensitive();
         bool GetDataCaseSensitive();
+        unsigned int FindOrdinal(const wchar_t *dbName, const wchar_t *tblName, const wchar_t *colName);
+        unsigned int FindOrdinal(const char *dbName, const char *tblName, const char *colName);
+        int Find(const wchar_t *dbName, const wchar_t *tblName, unsigned int ordinal, CTable::Operator op, const CComVariant &vt, CTable &tbl);
+        int Find(const wchar_t *dbName, const wchar_t *tblName, unsigned int ordinal, CTable::Operator op, const VARIANT &vt, CTable &tbl);
+        int Between(const wchar_t *dbName, const wchar_t *tblName, unsigned int ordinal, const CComVariant &vt0, const CComVariant &vt1, CTable &tbl);
+        int Between(const wchar_t *dbName, const wchar_t *tblName, unsigned int ordinal, const VARIANT &vt0, const VARIANT &vt1, CTable &tbl);
 
         size_t AddRows(const wchar_t *dbName, const wchar_t *tblName, const VARIANT *pvt, size_t count);
         size_t AddRows(const wchar_t *dbName, const wchar_t *tblName, UDB::CDBVariantArray &vData);

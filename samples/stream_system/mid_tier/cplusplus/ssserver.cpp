@@ -11,7 +11,8 @@ void CSSServer::StartMySQLPools() {
     assert(g_config.m_nSlaveSessions);
     assert((g_config.m_nSlaveSessions % g_config.m_vccSlave.size()) == 0);
 
-	//these case-sensitivities depends on your MySQL running platform and sensitivity settings
+	//These case-sensitivities depends on your DB running platform and sensitivity settings.
+	//All of them are false or case-insensitive by default
 	CMySQLMasterPool::Cache.SetFieldNameCaseSensitive(false);
 	CMySQLMasterPool::Cache.SetTableNameCaseSensitive(false);
 	CMySQLMasterPool::Cache.SetDBNameCaseSensitive(false);
