@@ -34,6 +34,8 @@ int main(int argc, char* argv[]) {
     auto v4 = CMySQLMasterPool::Cache.GetRowCount(L"sakila", L"actor");
     SPA::CTable table;
     int res = CMySQLMasterPool::Cache.Between(L"sakila", L"actor", 3, "2017-07-01", "2017-01-1", table);
+    res = CMySQLMasterPool::Cache.Between(L"sakila", L"mynulls", 0, 1, 10, table);
+    res = table.Sort(1);
 
     if (!server.Run(g_config.m_nPort, 32, !g_config.m_bNoIpV6))
         std::cout << "Error happens with code = " << server.GetErrorCode() << std::endl;

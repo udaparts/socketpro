@@ -18,7 +18,9 @@ struct CConfig {
     unsigned char m_main_threads;
     unsigned int m_nPort;
     bool m_bNoIpV6;
-    std::vector<std::string> m_vCachedTable;
+
+
+    std::vector<std::string> m_vFrontCachedTable;
 
     void SetConfig();
 

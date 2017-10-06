@@ -1,5 +1,6 @@
 
 #include "tablecache.h"
+#include <algorithm>
 
 namespace SPA
 {
@@ -13,8 +14,8 @@ namespace SPA
         return *this;
     }
 
-    int CTable::Find(unsigned int ordinal, CTable::Operator op, const CComVariant &vt, CTable & tbl) const {
-        return Find(ordinal, op, (const VARIANT &) vt, tbl);
+    int CTable::Find(unsigned int ordinal, CTable::Operator op, const CComVariant &vt, CTable & tbl, bool copyData) const {
+        return Find(ordinal, op, (const VARIANT &) vt, tbl, copyData);
     }
 
     HRESULT CTable::ChangeType(const VARIANT &vtSrc, VARTYPE vtTarget, VARIANT & vtDes) {
@@ -30,12 +31,12 @@ namespace SPA
         return hr;
     }
 
-    int CTable::Find(unsigned int ordinal, CTable::Operator op, const VARIANT &vt, CTable & tbl) const {
+    int CTable::Find(unsigned int ordinal, CTable::Operator op, const VARIANT &vt, CTable & tbl, bool copyData) const {
         tbl.second.clear();
         tbl.first = first;
         tbl.m_bDataCaseSensitive = m_bDataCaseSensitive;
         tbl.m_bFieldNameCaseSensitive = m_bFieldNameCaseSensitive;
-        if (ordinal >= tbl.first.size())
+        if (ordinal >= first.size())
             return BAD_ORDINAL;
         if (vt.vt <= VT_NULL || vt.vt <= VT_NULL)
             return COMPARISON_NOT_SUPPORTED;
@@ -43,13 +44,14 @@ namespace SPA
         if (type == (VT_I1 | VT_ARRAY))
             type = VT_BSTR; //Table string is always unicode string 
         size_t cols = first.size();
-        size_t rows = second.size() / cols;
+        size_t rows = second.size();
         for (size_t r = 0; r < rows; ++r) {
             bool ok;
+            CPRow prow = second[r];
             switch (op) {
                 case is_null:
                 {
-                    VARTYPE d = second[r * cols + ordinal].vt;
+                    VARTYPE d = prow->at(ordinal).vt;
                     ok = (d == VT_NULL || d == VT_EMPTY);
                 }
                     break;
@@ -59,7 +61,7 @@ namespace SPA
                     HRESULT hr = ChangeType(vt, type, v);
                     if (S_OK != hr)
                         return hr;
-                    const VARIANT &v0 = second[r * cols + ordinal];
+                    const VARIANT &v0 = prow->at(ordinal);
                     int res = gt(v0, v);
                     if (res < 0)
                         return res;
@@ -71,7 +73,7 @@ namespace SPA
                     HRESULT hr = ChangeType(vt, type, v);
                     if (S_OK != hr)
                         return hr;
-                    const VARIANT &v0 = second[r * cols + ordinal];
+                    const VARIANT &v0 = prow->at(ordinal);
                     int res = eq(v0, v);
                     if (res < 0)
                         return res;
@@ -84,7 +86,7 @@ namespace SPA
                     HRESULT hr = ChangeType(vt, type, v);
                     if (S_OK != hr)
                         return hr;
-                    const VARIANT &v0 = second[r * cols + ordinal];
+                    const VARIANT &v0 = prow->at(ordinal);
                     int res = ge(v0, v);
                     if (res < 0)
                         return res;
@@ -97,7 +99,7 @@ namespace SPA
                     HRESULT hr = ChangeType(vt, type, v);
                     if (S_OK != hr)
                         return hr;
-                    const VARIANT &v0 = second[r * cols + ordinal];
+                    const VARIANT &v0 = prow->at(ordinal);
                     int res = lt(v0, v);
                     if (res < 0)
                         return res;
@@ -110,7 +112,7 @@ namespace SPA
                     HRESULT hr = ChangeType(vt, type, v);
                     if (S_OK != hr)
                         return hr;
-                    const VARIANT &v0 = second[r * cols + ordinal];
+                    const VARIANT &v0 = prow->at(ordinal);
                     int res = le(v0, v);
                     if (res < 0)
                         return res;
@@ -121,24 +123,29 @@ namespace SPA
                     return OPERATION_NOT_SUPPORTED;
             }
             if (ok) {
-                for (size_t col = 0; col < cols; ++col) {
-                    tbl.second.push_back(second[r * cols + col]);
-                }
+                if (copyData) {
+                    CPRow p(new CRow);
+                    for (size_t n = 0; n < cols; ++n) {
+                        p->push_back(prow->at(n));
+                    }
+                    tbl.second.push_back(p);
+                } else
+                    tbl.second.push_back(prow);
             }
         }
         return 1;
     }
 
-    int CTable::Between(unsigned int ordinal, const CComVariant &vt0, const CComVariant &vt1, CTable & tbl) const {
-        return Between(ordinal, (const VARIANT&) vt0, (const VARIANT&) vt1, tbl);
+    int CTable::Between(unsigned int ordinal, const CComVariant &vt0, const CComVariant &vt1, CTable & tbl, bool copyData) const {
+        return Between(ordinal, (const VARIANT&) vt0, (const VARIANT&) vt1, tbl, copyData);
     }
 
-    int CTable::Between(unsigned int ordinal, const VARIANT &vt0, const VARIANT &vt1, CTable & tbl) const {
+    int CTable::Between(unsigned int ordinal, const VARIANT &vt0, const VARIANT &vt1, CTable & tbl, bool copyData) const {
         tbl.second.clear();
         tbl.first = first;
         tbl.m_bDataCaseSensitive = m_bDataCaseSensitive;
         tbl.m_bFieldNameCaseSensitive = m_bFieldNameCaseSensitive;
-        if (ordinal >= tbl.first.size())
+        if (ordinal >= first.size())
             return BAD_ORDINAL;
         if (vt0.vt <= VT_NULL || vt1.vt <= VT_NULL)
             return COMPARISON_NOT_SUPPORTED;
@@ -162,9 +169,10 @@ namespace SPA
             large_vt = &v0;
         }
         size_t cols = first.size();
-        size_t rows = second.size() / cols;
+        size_t rows = second.size();
         for (size_t r = 0; r < rows; ++r) {
-            const VARIANT &vt = second[r * cols + ordinal];
+            CPRow prow = second[r];
+            const VARIANT &vt = prow->at(ordinal);
             res = ge(vt, *small_vt);
             if (res == 0)
                 continue;
@@ -175,10 +183,39 @@ namespace SPA
                 continue;
             if (res < 0)
                 return res;
-            for (size_t col = 0; col < cols; ++col) {
-                tbl.second.push_back(second[r * cols + col]);
-            }
+            if (copyData) {
+                CPRow p(new CRow);
+                for (size_t n = 0; n < cols; ++n) {
+                    p->push_back(prow->at(n));
+                }
+                tbl.second.push_back(p);
+            } else
+                tbl.second.push_back(prow);
         }
+        return 1;
+    }
+
+    int CTable::Sort(unsigned int ordinal, bool desc) {
+        if (ordinal >= first.size())
+            return BAD_ORDINAL;
+        std::sort(second.begin(), second.end(), [this, ordinal, desc](const CPRow& a, const CPRow & b) {
+            const UDB::CDBVariant &va = a->at(ordinal);
+            const UDB::CDBVariant &vb = b->at(ordinal);
+            if (vb.vt <= VT_NULL && va.vt <= VT_NULL)
+                return false;
+                if (desc) {
+                    if (vb.vt <= VT_NULL)
+                        return true;
+                    else if (va.vt <= VT_NULL)
+                        return false;
+                        return (this->gt(va, vb) > 0);
+                    }
+            if (va.vt <= VT_NULL)
+                return true;
+            else if (vb.vt <= VT_NULL)
+                return false;
+                return (this->lt(va, vb) > 0);
+            });
         return 1;
     }
 
@@ -228,7 +265,7 @@ namespace SPA
     }
 
     int CTable::gt(const VARIANT &vt0, const VARIANT & vt1) const {
-        if (vt0.vt == VT_NULL || vt0.vt == VT_EMPTY)
+        if (vt0.vt <= VT_NULL)
             return 0;
         assert(vt0.vt == vt1.vt);
         switch (vt0.vt) {
@@ -278,7 +315,7 @@ namespace SPA
     }
 
     int CTable::ge(const VARIANT &vt0, const VARIANT & vt1) const {
-        if (vt0.vt == VT_NULL || vt0.vt == VT_EMPTY)
+        if (vt0.vt <= VT_NULL)
             return 0;
         assert(vt0.vt == vt1.vt);
         switch (vt0.vt) {
@@ -328,7 +365,7 @@ namespace SPA
     }
 
     int CTable::lt(const VARIANT &vt0, const VARIANT & vt1) const {
-        if (vt0.vt == VT_NULL || vt0.vt == VT_EMPTY)
+        if (vt0.vt <= VT_NULL)
             return 0;
         assert(vt0.vt == vt1.vt);
         switch (vt0.vt) {
@@ -378,7 +415,7 @@ namespace SPA
     }
 
     int CTable::le(const VARIANT &vt0, const VARIANT & vt1) const {
-        if (vt0.vt == VT_NULL || vt0.vt == VT_EMPTY)
+        if (vt0.vt <= VT_NULL)
             return 0;
         assert(vt0.vt == vt1.vt);
         switch (vt0.vt) {
@@ -428,7 +465,7 @@ namespace SPA
     }
 
     int CTable::eq(const VARIANT &vt0, const VARIANT & vt1) const {
-        if (vt0.vt == VT_NULL || vt0.vt == VT_EMPTY)
+        if (vt0.vt <= VT_NULL)
             return 0;
         assert(vt0.vt == vt1.vt);
         switch (vt0.vt) {
@@ -516,8 +553,13 @@ namespace SPA
                 size_t col_count = meta.size();
                 if (count % col_count)
                     return INVALID_VALUE;
-                UDB::CDBVariantArray &row_data = it->second;
+                auto &vRow = it->second;
+                CPRow prow;
                 for (size_t n = 0; n < count; ++n) {
+                    if ((n % col_count) == 0) {
+                        prow.reset(new CRow());
+                        vRow.push_back(prow);
+                    }
                     const VARIANT &vt = pvt[n];
                     if (vt.vt == (VT_ARRAY | VT_I1)) {
                         const char *s;
@@ -529,9 +571,9 @@ namespace SPA
                         VARTYPE vtTarget = meta[n % col_count].DataType;
                         if (vtTarget == (VT_I1 | VT_ARRAY))
                             vtTarget = VT_BSTR;
-                        row_data.push_back(Convert(vtNew, vtTarget));
+                        prow->push_back(Convert(vtNew, vtTarget));
                     } else {
-                        row_data.push_back(Convert(vt, meta[n % col_count].DataType));
+                        prow->push_back(Convert(vt, meta[n % col_count].DataType));
                     }
                 }
                 return (count / col_count);
@@ -554,12 +596,17 @@ namespace SPA
                 size_t col_count = meta.size();
                 if (count % col_count)
                     return INVALID_VALUE;
-                UDB::CDBVariantArray &row_data = it->second;
+                auto &vRow = it->second;
+                CPRow prow;
                 for (size_t n = 0; n < count; ++n) {
                     VARTYPE vtTarget = meta[n % col_count].DataType;
                     if (vtTarget == (VT_I1 | VT_ARRAY))
                         vtTarget = VT_BSTR;
-                    row_data.push_back(Convert(vData[n], vtTarget));
+                    if ((n % col_count) == 0) {
+                        prow.reset(new CRow());
+                        vRow.push_back(prow);
+                    }
+                    prow->push_back(Convert(vData[n], vtTarget));
                 }
                 return (count / col_count);
             }
@@ -567,34 +614,34 @@ namespace SPA
         return INVALID_VALUE; //not found
     }
 
-    UDB::CDBVariant * CDataSet::FindARowInternal(CPColumnRowset &pcr, const VARIANT & key) {
+    CPRow CDataSet::FindARowInternal(CPColumnRowset &pcr, const VARIANT & key) {
         size_t col_count = pcr.first.size();
         size_t keyIndex = FindKeyColIndex(pcr.first);
         if (keyIndex == INVALID_VALUE)
             return nullptr;
-        UDB::CDBVariantArray &vData = pcr.second;
-        size_t rows = pcr.second.size() / col_count;
+        auto &vRow = pcr.second;
+        size_t rows = pcr.second.size();
         for (size_t r = 0; r < rows; ++r) {
-            const UDB::CDBVariant &vtKey = vData[r * col_count + keyIndex];
+            const UDB::CDBVariant &vtKey = vRow[r]->at(keyIndex);
             if (vtKey == key)
-                return vData.data() + r * col_count;
+                return vRow[r];
         }
         return nullptr;
     }
 
-    UDB::CDBVariant * CDataSet::FindARowInternal(CPColumnRowset &pcr, const VARIANT &key0, const VARIANT & key1) {
+    CPRow CDataSet::FindARowInternal(CPColumnRowset &pcr, const VARIANT &key0, const VARIANT & key1) {
         size_t col_count = pcr.first.size();
         size_t key;
         size_t keyIndex = FindKeyColIndex(pcr.first, key);
         if (keyIndex == INVALID_VALUE || key == INVALID_VALUE)
             return nullptr;
-        UDB::CDBVariantArray &vData = pcr.second;
-        size_t rows = pcr.second.size() / col_count;
+        auto &vRow = pcr.second;
+        size_t rows = pcr.second.size();
         for (size_t r = 0; r < rows; ++r) {
-            const UDB::CDBVariant &vtKey = vData[r * col_count + keyIndex];
-            const UDB::CDBVariant &vtKey1 = vData[r * col_count + key];
+            const UDB::CDBVariant &vtKey = vRow[r]->at(keyIndex);
+            const UDB::CDBVariant &vtKey1 = vRow[r]->at(key);
             if (vtKey == key0 && vtKey1 == key1)
-                return vData.data() + r * col_count;
+                return vRow[r];
         }
         return nullptr;
     }
@@ -610,13 +657,13 @@ namespace SPA
                 size_t key = FindKeyColIndex(meta);
                 if (key == INVALID_VALUE)
                     return INVALID_VALUE;
-                UDB::CDBVariantArray &vData = it->second;
-                size_t rows = vData.size() / col_count;
+                auto &vRow = it->second;
+                size_t rows = vRow.size();
                 for (size_t r = 0; r < rows; ++r) {
-                    const UDB::CDBVariant &vtKey0 = vData[r * col_count + key];
+                    const UDB::CDBVariant &vtKey0 = vRow[r]->at(key);
                     if (vtKey0 == vtKey) {
-                        vData.erase(vData.begin() + r * col_count, vData.begin() + (r + 1) * col_count);
-                        deleted = col_count;
+                        vRow.erase(vRow.begin() + r);
+                        deleted = 1;
                         break;
                     }
                 }
@@ -640,7 +687,7 @@ namespace SPA
                 if (count % col_count || 2 * col_count != count)
                     return INVALID_VALUE;
                 size_t key1;
-                UDB::CDBVariant *row;
+                CPRow row;
                 size_t key0 = FindKeyColIndex(meta, key1);
                 if (key0 == INVALID_VALUE && key1 == INVALID_VALUE)
                     return INVALID_VALUE;
@@ -662,9 +709,9 @@ namespace SPA
                             VARTYPE vtTarget = meta[n].DataType;
                             if (vtTarget == (VT_I1 | VT_ARRAY))
                                 vtTarget = VT_BSTR;
-                            row[n] = Convert(vtNew, vtTarget);
+                            row->at(n) = Convert(vtNew, vtTarget);
                         } else {
-                            row[n] = Convert(vt, meta[n].DataType);
+                            row->at(n) = Convert(vt, meta[n].DataType);
                         }
                     }
                     updated = 1;
@@ -688,14 +735,14 @@ namespace SPA
                 size_t key = FindKeyColIndex(meta, key1);
                 if (key == INVALID_VALUE || key1 == INVALID_VALUE)
                     return INVALID_VALUE;
-                UDB::CDBVariantArray &vData = pr.second;
-                size_t rows = vData.size() / col_count;
+                auto &vRow = pr.second;
+                size_t rows = vRow.size();
                 for (size_t r = 0; r < rows; ++r) {
-                    const UDB::CDBVariant &vtKey = vData[r * col_count + key];
-                    const UDB::CDBVariant &vt2 = vData[r * col_count + key1];
+                    const UDB::CDBVariant &vtKey = vRow[r]->at(key);
+                    const UDB::CDBVariant &vt2 = vRow[r]->at(key1);
                     if (vtKey == vtKey0 && vt2 == vtKey1) {
-                        vData.erase(vData.begin() + r * col_count, vData.begin() + (r + 1) * col_count);
-                        deleted = col_count;
+                        vRow.erase(vRow.begin() + r);
+                        deleted = 1;
                         break;
                     }
                 }
@@ -924,7 +971,7 @@ namespace SPA
             }
             if (!okTable)
                 continue;
-            return tbl.Find(ordinal, op, vt, t);
+            return tbl.Find(ordinal, op, vt, t, true);
         }
         return CTable::NO_TABLE_FOUND;
     }
@@ -965,7 +1012,7 @@ namespace SPA
             }
             if (!okTable)
                 continue;
-            return tbl.Between(ordinal, vt0, vt1, t);
+            return tbl.Between(ordinal, vt0, vt1, t, true);
         }
         return CTable::NO_TABLE_FOUND;
     }

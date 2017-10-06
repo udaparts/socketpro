@@ -3,10 +3,16 @@
 #define __SOCKETPRO_REAL_TIME_CACHE_H_
 
 #include <map>
+#include  <memory>
 #include "udatabase.h"
 
 namespace SPA {
-    typedef std::pair<UDB::CDBColumnInfoArray, UDB::CDBVariantArray> CPColumnRowset; //meta and data array for a rowset
+
+    typedef UDB::CDBVariantArray CRow;
+    typedef std::shared_ptr<CRow> CPRow;
+    typedef std::vector<CPRow> CDataMatrix;
+
+    typedef std::pair<UDB::CDBColumnInfoArray, CDataMatrix> CPColumnRowset; //meta and data array for a rowset
 
     class CDataSet;
 
@@ -37,7 +43,7 @@ namespace SPA {
         }
 
         CTable(const UDB::CDBColumnInfoArray &meta, bool bFieldNameCaseSensitive, bool bDataCaseSensitive)
-        : CPColumnRowset(meta, UDB::CDBVariantArray()),
+        : CPColumnRowset(meta, CDataMatrix()),
         m_bFieldNameCaseSensitive(bFieldNameCaseSensitive),
         m_bDataCaseSensitive(bDataCaseSensitive) {
         }
@@ -55,15 +61,16 @@ namespace SPA {
             return first;
         }
 
-        const UDB::CDBVariantArray& GetData() const {
+        const CDataMatrix& GetDataMatrix() const {
             return second;
         }
 
-        int Find(unsigned int ordinal, Operator op, const CComVariant &vt, CTable &tbl) const;
-        int Find(unsigned int ordinal, Operator op, const VARIANT &vt, CTable &tbl) const;
-        int Between(unsigned int ordinal, const CComVariant &vt0, const CComVariant &vt1, CTable &tbl) const;
-        int Between(unsigned int ordinal, const VARIANT &vt0, const VARIANT &vt1, CTable &tbl) const;
+        int Find(unsigned int ordinal, Operator op, const CComVariant &vt, CTable &tbl, bool copyData = false) const;
+        int Find(unsigned int ordinal, Operator op, const VARIANT &vt, CTable &tbl, bool copyData = false) const;
+        int Between(unsigned int ordinal, const CComVariant &vt0, const CComVariant &vt1, CTable &tbl, bool copyData = false) const;
+        int Between(unsigned int ordinal, const VARIANT &vt0, const VARIANT &vt1, CTable &tbl, bool copyData = false) const;
         int Append(const CTable &tbl);
+        int Sort(unsigned int ordinal, bool desc = false);
         unsigned int FindOrdinal(const wchar_t *colName) const;
         unsigned int FindOrdinal(const char *colName) const;
 
@@ -136,8 +143,8 @@ namespace SPA {
         static std::string ToDate(const VARIANT &vtDate);
 
     private:
-        static UDB::CDBVariant* FindARowInternal(CPColumnRowset &pcr, const VARIANT &key);
-        static UDB::CDBVariant* FindARowInternal(CPColumnRowset &pcr, const VARIANT &key0, const VARIANT &key1);
+        static CPRow FindARowInternal(CPColumnRowset &pcr, const VARIANT &key);
+        static CPRow FindARowInternal(CPColumnRowset &pcr, const VARIANT &key0, const VARIANT &key1);
         static UDB::CDBVariant Convert(const VARIANT &data, VARTYPE vtTarget);
         static size_t FindKeyColIndex(const UDB::CDBColumnInfoArray &meta);
         static size_t FindKeyColIndex(const UDB::CDBColumnInfoArray &meta, size_t &key1);
