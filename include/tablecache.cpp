@@ -523,7 +523,7 @@ namespace SPA
                         const char *s;
                         CComVariant vtNew;
                         ::SafeArrayAccessData(vt.parray, (void**) &s);
-                        vtNew.bstrVal = SPA::Utilities::ToBSTR(s, vt.parray->rgsabound->cElements);
+                        vtNew.bstrVal = Utilities::ToBSTR(s, vt.parray->rgsabound->cElements);
                         vtNew.vt = VT_BSTR;
                         ::SafeArrayUnaccessData(vt.parray);
                         VARTYPE vtTarget = meta[n % col_count].DataType;
@@ -656,7 +656,7 @@ namespace SPA
                             const char *s;
                             CComVariant vtNew;
                             ::SafeArrayAccessData(vt.parray, (void**) &s);
-                            vtNew.bstrVal = SPA::Utilities::ToBSTR(s, vt.parray->rgsabound->cElements);
+                            vtNew.bstrVal = Utilities::ToBSTR(s, vt.parray->rgsabound->cElements);
                             vtNew.vt = VT_BSTR;
                             ::SafeArrayUnaccessData(vt.parray);
                             VARTYPE vtTarget = meta[n].DataType;
