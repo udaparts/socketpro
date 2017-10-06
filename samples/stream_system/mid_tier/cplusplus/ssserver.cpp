@@ -11,11 +11,11 @@ void CSSServer::StartMySQLPools() {
     assert(g_config.m_nSlaveSessions);
     assert((g_config.m_nSlaveSessions % g_config.m_vccSlave.size()) == 0);
 
-	//These case-sensitivities depends on your DB running platform and sensitivity settings.
-	//All of them are false or case-insensitive by default
-	CMySQLMasterPool::Cache.SetFieldNameCaseSensitive(false);
-	CMySQLMasterPool::Cache.SetTableNameCaseSensitive(false);
-	CMySQLMasterPool::Cache.SetDBNameCaseSensitive(false);
+    //These case-sensitivities depends on your DB running platform and sensitivity settings.
+    //All of them are false or case-insensitive by default
+    CMySQLMasterPool::Cache.SetFieldNameCaseSensitive(false);
+    CMySQLMasterPool::Cache.SetTableNameCaseSensitive(false);
+    CMySQLMasterPool::Cache.SetDBNameCaseSensitive(false);
 
     CSSServer::Master.reset(new CMySQLMasterPool);
 
@@ -27,11 +27,11 @@ void CSSServer::StartMySQLPools() {
     unsigned int sockets_per_thread = (unsigned int) g_config.m_vccSlave.size();
     CSSServer::Slave.reset(new CMySQLSlavePool);
 
-    typedef CConnectionContext* PCConnectionContext;
+    typedef SPA::ClientSide::CConnectionContext* PCConnectionContext;
     //prepare connection contexts for slave pool
     PCConnectionContext *ppCCs = new PCConnectionContext[threads];
     for (unsigned int t = 0; t < threads; ++t) {
-        CConnectionContext *pcc = new CConnectionContext[sockets_per_thread];
+        SPA::ClientSide::CConnectionContext *pcc = new SPA::ClientSide::CConnectionContext[sockets_per_thread];
         ppCCs[t] = pcc;
         for (unsigned int s = 0; s < sockets_per_thread; ++s) {
             pcc[s] = g_config.m_vccSlave[s];
@@ -44,7 +44,7 @@ void CSSServer::StartMySQLPools() {
     ok = CSSServer::Master->GetAsyncHandlers()[0]->WaitAll();
 
     for (unsigned int t = 0; t < threads; ++t) {
-        CConnectionContext *pcc = ppCCs[t];
+        SPA::ClientSide::CConnectionContext *pcc = ppCCs[t];
         delete[]pcc;
     }
     delete []ppCCs;

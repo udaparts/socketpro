@@ -16,12 +16,12 @@ int main(int argc, char* argv[]) {
 
     //set configuration settings for persistent message queues that used by this middle tier server and master/slave requests backup
     if (g_config.m_working_directory.size()) {
-        CClientSocket::QueueConfigure::SetWorkDirectory(g_config.m_working_directory.c_str());
+        SPA::ClientSide::CClientSocket::QueueConfigure::SetWorkDirectory(g_config.m_working_directory.c_str());
         CSSServer::QueueManager::SetWorkDirectory(g_config.m_working_directory.c_str());
     }
     if (g_config.m_message_queue_password.size()) {
         CSSServer::QueueManager::SetMessageQueuePassword(g_config.m_message_queue_password.c_str());
-        CClientSocket::QueueConfigure::SetMessageQueuePassword(g_config.m_message_queue_password.c_str());
+        SPA::ClientSide::CClientSocket::QueueConfigure::SetMessageQueuePassword(g_config.m_message_queue_password.c_str());
     }
 
     //start two socket pools, master and slave

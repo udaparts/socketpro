@@ -1,28 +1,24 @@
 
 #pragma once
 
-
 #include "../../../../include/aserverw.h"
-
-
 #include "../../../../include/rdbcache.h"
-#include "../../../../include/mysql/umysql.h"
 
+#include "../../../../include/mysql/umysql.h"
 typedef SPA::ClientSide::CAsyncDBHandler<SPA::Mysql::sidMysql> CMySQLHandler;
 typedef SPA::CMasterPool<CMySQLHandler> CMySQLMasterPool;
 typedef CMySQLMasterPool::CSlavePool CMySQLSlavePool;
 
 //#include "../../../../include/async_sqlite.h"
-//typedef SPA::CMasterPool<SPA::ClientSide::CSqlite> CSqliteMasterPool;
-//typedef CSqliteMasterPool::CSlavePool CSqliteSlavePool;
 //typedef SPA::ClientSide::CSqlite CSqliteHandler;
-//
-//#include "../../../../include/async_odbc.h"
-//typedef SPA::CMasterPool<SPA::ClientSide::COdbc> COdbcMasterPool;
-//typedef COdbcMasterPool::CSlavePool COdbcSlavePool;
-//typedef SPA::ClientSide::COdbc COdbcHandler;
+//typedef SPA::CMasterPool<CSqliteHandler> CSqliteMasterPool;
+//typedef CSqliteMasterPool::CSlavePool CSqliteSlavePool;
 
-using namespace SPA::ClientSide;
+//#include "../../../../include/async_odbc.h"
+//typedef SPA::ClientSide::COdbc COdbcHandler;
+//typedef SPA::CMasterPool<COdbcHandler> COdbcMasterPool;
+//typedef COdbcMasterPool::CSlavePool COdbcSlavePool;
+
 using namespace SPA::ServerSide;
 
 #ifdef WIN32_64

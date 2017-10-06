@@ -23,7 +23,7 @@ void CConfig::SetConfig() {
     m_nMasterSessions = 2; //two sessions enough
 
     //slave
-    CConnectionContext cc = m_ccMaster;
+    SPA::ClientSide::CConnectionContext cc = m_ccMaster;
     m_vccSlave.push_back(cc);
     m_vccSlave.push_back(cc);
     //treat master as last salve
