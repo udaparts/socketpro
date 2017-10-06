@@ -302,7 +302,7 @@ namespace SPA
 #ifdef WIN32_64
                     return (::_wcsicmp(vt0.bstrVal, vt1.bstrVal) > 0);
 #else
-                    res = (::wcscasecmp(vt0.bstrVal, vt1.bstrVal) > 0);
+                    return (::wcscasecmp(vt0.bstrVal, vt1.bstrVal) > 0);
 #endif
                 }
             case VT_BOOL:
@@ -352,7 +352,7 @@ namespace SPA
 #ifdef WIN32_64
                     return (::_wcsicmp(vt0.bstrVal, vt1.bstrVal) >= 0);
 #else
-                    res = (::wcscasecmp(vt0.bstrVal, vt1.bstrVal) >= 0);
+                    return (::wcscasecmp(vt0.bstrVal, vt1.bstrVal) >= 0);
 #endif
                 }
             case VT_BOOL:
@@ -402,7 +402,7 @@ namespace SPA
 #ifdef WIN32_64
                     return (::_wcsicmp(vt0.bstrVal, vt1.bstrVal) < 0);
 #else
-                    res = (::wcscasecmp(vt0.bstrVal, vt1.bstrVal) < 0);
+                    return (::wcscasecmp(vt0.bstrVal, vt1.bstrVal) < 0);
 #endif
                 }
             case VT_BOOL:
@@ -452,7 +452,7 @@ namespace SPA
 #ifdef WIN32_64
                     return (::_wcsicmp(vt0.bstrVal, vt1.bstrVal) <= 0);
 #else
-                    res = (::wcscasecmp(vt0.bstrVal, vt1.bstrVal) <= 0);
+                    return (::wcscasecmp(vt0.bstrVal, vt1.bstrVal) <= 0);
 #endif
                 }
             case VT_BOOL:
@@ -502,7 +502,7 @@ namespace SPA
 #ifdef WIN32_64
                     return (::_wcsicmp(vt0.bstrVal, vt1.bstrVal) == 0);
 #else
-                    res = (::wcscasecmp(vt0.bstrVal, vt1.bstrVal) == 0);
+                    return (::wcscasecmp(vt0.bstrVal, vt1.bstrVal) == 0);
 #endif
                 }
             case VT_BOOL:
@@ -582,7 +582,7 @@ namespace SPA
         return INVALID_VALUE; //not found
     }
 
-    size_t CDataSet::AddRows(const wchar_t *dbName, const wchar_t *tblName, UDB::CDBVariantArray & vData) {
+    size_t CDataSet::AddRows(const wchar_t *dbName, const wchar_t *tblName, const UDB::CDBVariantArray & vData) {
         size_t count = vData.size();
         if (!count)
             return 0;
@@ -615,7 +615,6 @@ namespace SPA
     }
 
     CPRow CDataSet::FindARowInternal(CPColumnRowset &pcr, const VARIANT & key) {
-        size_t col_count = pcr.first.size();
         size_t keyIndex = FindKeyColIndex(pcr.first);
         if (keyIndex == INVALID_VALUE)
             return nullptr;
@@ -630,7 +629,6 @@ namespace SPA
     }
 
     CPRow CDataSet::FindARowInternal(CPColumnRowset &pcr, const VARIANT &key0, const VARIANT & key1) {
-        size_t col_count = pcr.first.size();
         size_t key;
         size_t keyIndex = FindKeyColIndex(pcr.first, key);
         if (keyIndex == INVALID_VALUE || key == INVALID_VALUE)
@@ -653,7 +651,6 @@ namespace SPA
             const UDB::CDBColumnInfoArray &meta = it->GetMeta();
             const UDB::CDBColumnInfo &col = meta.front();
             if (col.DBPath == dbName && col.TablePath == tblName) {
-                size_t col_count = meta.size();
                 size_t key = FindKeyColIndex(meta);
                 if (key == INVALID_VALUE)
                     return INVALID_VALUE;
@@ -730,7 +727,6 @@ namespace SPA
             const UDB::CDBColumnInfoArray &meta = pr.first;
             const UDB::CDBColumnInfo &col = meta.front();
             if (col.DBPath == dbName && col.TablePath == tblName) {
-                size_t col_count = meta.size();
                 size_t key1;
                 size_t key = FindKeyColIndex(meta, key1);
                 if (key == INVALID_VALUE || key1 == INVALID_VALUE)
@@ -1101,7 +1097,7 @@ namespace SPA
             const UDB::CDBColumnInfoArray &meta = pr.first;
             const UDB::CDBColumnInfo &col = meta.front();
             if (col.DBPath == dbName && col.TablePath == tblName) {
-                return pr.second.size() / meta.size();
+                return pr.second.size();
             }
         }
         return INVALID_VALUE;
