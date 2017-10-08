@@ -76,6 +76,7 @@ bool CSSServer::AddServices() {
     bool ok = m_SSPeer.AddMe(sidStreamSystem);
     if (!ok)
         return false;
+	ok = m_SSPeer.AddSlowRequest(SPA::UDB::idGetCachedTables);
     ok = m_SSPeer.AddSlowRequest(idQueryMaxMinAvgs);
 
     return true;

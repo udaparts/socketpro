@@ -8,7 +8,7 @@
 namespace SPA {
 	namespace ClientSide {
 		using namespace UDB;
-		template<unsigned int serviceId, typename TSubHandler>
+		template<unsigned int serviceId>
 		class CCachedBaseHandler : public CAsyncServiceHandler {
 			static const unsigned int ONE_MEGA_BYTES = 0x100000;
 			static const unsigned int BLOB_LENGTH_NOT_AVAILABLE = 0xffffffe0;
@@ -25,17 +25,14 @@ namespace SPA {
 			static const unsigned int CachedServiceId = serviceId;
 
 		public:
-			typedef std::function<void(TSubHandler &handler, int res, const std::wstring &errMsg) > DResult;
-			typedef std::function<void(TSubHandler &handler, CDBColumnInfoArray &meta) > DRowsetHeader;
-			typedef std::function<void(TSubHandler &handler, CDBVariantArray &vData) > DRows;
-
-		protected:
-			typedef std::pair<DRowsetHeader, DRows> CRowsetHandler;
+			typedef std::function<void(int res, const std::wstring &errMsg) > DResult;
+			typedef std::function<void(CDBColumnInfoArray &meta) > DRowsetHeader;
+			typedef std::function<void(CDBVariantArray &vData) > DRows;
 
 		public:
 			virtual unsigned int CleanCallbacks() {
 				{
-					CAutoLock al(m_csDB);
+					CAutoLock al(m_csCache);
 					m_mapRowset.clear();
 				}
 				return CAsyncServiceHandler::CleanCallbacks();
@@ -47,7 +44,7 @@ namespace SPA {
 				{
 					//don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
 					//in case a client asynchronously sends lots of requests without use of client side queue.
-					CAutoLock al(m_csDB);
+					CAutoLock al(m_csCache);
 					++m_nCall;
 					index = m_nCall;
 					if (rowset) {
@@ -59,17 +56,17 @@ namespace SPA {
 					int res;
 					std::wstring errMsg;
 					ar >> res >> errMsg;
-					this->m_csDB.lock();
+					this->m_csCache.lock();
 					auto it = this->m_mapRowset.find(index);
 					if (it != this->m_mapRowset.end()) {
 						this->m_mapRowset.erase(it);
 					}
-					this->m_csDB.unlock();
+					this->m_csCache.unlock();
 					if (handler) {
-						handler((TSubHandler &)*this, res, errMsg);
+						handler(res, errMsg);
 					}
 				})) {
-					CAutoLock al(m_csDB);
+					CAutoLock al(m_csCache);
 					m_mapRowset.erase(index);
 					return false;
 				}
@@ -87,11 +84,11 @@ namespace SPA {
 					}
 					CDBColumnInfoArray vColInfo;
 					mc >> vColInfo >> m_indexRowset;
-					CAutoLock al(m_csDB);
+					CAutoLock al(m_csCache);
 					m_vData.clear();
 					auto &p = m_mapRowset[m_indexRowset];
 					if (p.first) {
-						p.first((TSubHandler&)*this, vColInfo);
+						p.first(vColInfo);
 					}
 				}
 				case idBeginRows:
@@ -100,12 +97,12 @@ namespace SPA {
 					break;
 				case idTransferring:
 					if (mc.GetSize()) {
-						m_csDB.lock();
+						m_csCache.lock();
 						bool Utf8ToW = m_Blob.Utf8ToW();
 #ifdef WIN32_64
 						bool timeEx = m_Blob.TimeEx();
 #endif
-						m_csDB.unlock();
+						m_csCache.unlock();
 						if (Utf8ToW)
 							mc.Utf8ToW(true);
 #ifdef WIN32_64
@@ -128,12 +125,12 @@ namespace SPA {
 					break;
 				case idEndRows:
 					if (mc.GetSize() || m_vData.size()) {
-						m_csDB.lock();
+						m_csCache.lock();
 						bool Utf8ToW = m_Blob.Utf8ToW();
 #ifdef WIN32_64
 						bool timeEx = m_Blob.TimeEx();
 #endif
-						m_csDB.unlock();
+						m_csCache.unlock();
 						if (Utf8ToW)
 							mc.Utf8ToW(true);
 #ifdef WIN32_64
@@ -155,12 +152,12 @@ namespace SPA {
 #endif
 						DRows row;
 						{
-							CAutoLock al(m_csDB);
+							CAutoLock al(m_csCache);
 							auto &p = m_mapRowset[m_indexRowset];
 							row = p.second;
 						}
 						if (row) {
-							row((TSubHandler&)*this, m_vData);
+							row(m_vData);
 						}
 					}
 					m_vData.clear();
@@ -203,9 +200,10 @@ namespace SPA {
 			}
 
 		protected:
-			CUCriticalSection m_csDB;
+			CUCriticalSection m_csCache;
 
 		private:
+			typedef std::pair<DRowsetHeader, DRows> CRowsetHandler;
 			std::unordered_map<UINT64, CRowsetHandler> m_mapRowset;
 			CDBVariantArray m_vData;
 			CUQueue m_Blob;

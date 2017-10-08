@@ -39,11 +39,14 @@ int main(int argc, char* argv[]) {
 		return 1;
 	}
 	auto handler = sp.Seek();
-	ok = handler->GetCachedTables([](CWebAsyncHandler &h, int res, const std::wstring &errMsg) {
-			
-		}, [](CWebAsyncHandler &h, SPA::UDB::CDBColumnInfoArray &meta) {
+	ok = handler->GetCachedTables([](int res, const std::wstring &errMsg) {
+		if (res) {
+			std::cout << "Get initial cache with error code: " << res;
+			std::wcout << errMsg.c_str() << std::endl;
+		}
+		}, [](SPA::UDB::CDBColumnInfoArray &meta) {
 
-		}, [](CWebAsyncHandler &h, CDBVariantArray &vData){
+		}, [](CDBVariantArray &vData){
 		
 		});
 	
