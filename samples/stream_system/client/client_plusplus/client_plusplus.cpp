@@ -1,31 +1,54 @@
 
 #include "stdafx.h"
+#include "webasynchandler.h"
+
+typedef SPA::ClientSide::CSocketPool<CWebAsyncHandler> CMyPool;
+
 
 int main(int argc, char* argv[]) {
-	SPA::UDB::CDBVariant vt(true);
-	CComVariant vtDes;
-	HRESULT hr = VariantChangeType(&vtDes, &vt, 0, VT_DECIMAL);
-	//HRESULT hr = SPA::VariantChangeType(&vtDes, &vt, 0, VT_I4);
-	SYSTEMTIME st;
-	::GetLocalTime(&st);
-
-	SPA::UDB::CDBVariant vtNow(st);
-	vtNow.ullVal /= 2;
-	if (vtNow.date < 1.0/3600 * 24) {
-		std::cout << "High precision date time" << std::endl;
-	}
-
-	hr = VariantChangeType(&vtDes, &vtNow, 0, VT_I2);
-
 	CConnectionContext cc;
 	std::cout << "Remote host: " << std::endl;
 	std::getline(std::cin, cc.Host);
 	//cc.Host = "localhost";
-	cc.Port = 20902;
-	cc.UserId = L"root";
-	cc.Password = L"Smash123";
+	cc.Port = 20901;
+	cc.UserId = L"SomeUserId";
+	cc.Password = L"A_Password_For_SomeUserId";
+	cc.EncrytionMethod = SPA::tagEncryptionMethod::TLSv1;
 
+	//CA file is located at the directory ../socketpro/bin
+	CClientSocket::SSL::SetVerifyLocation("ca.cert.pem");
 
+	CMyPool sp(true, (~0));
+
+	sp.DoSslServerAuthentication = [](CMyPool *sender, CClientSocket * cs)->bool {
+		int errCode;
+		SPA::IUcert *cert = cs->GetUCert();
+		std::cout << cert->SessionInfo << std::endl;
+
+		const char* res = cert->Verify(&errCode);
+
+		//do ssl server certificate authentication here
+
+		return (errCode == 0); //true -- user id and password will be sent to server
+	};
+
+	bool ok = sp.StartSocketPool(cc, 1, 1);
+	if (!ok) {
+		std::cout << "Failed in connecting to remote middle tier server, and press any key to close the application ......" << std::endl;
+		::getchar();
+		return 1;
+	}
+	auto handler = sp.Seek();
+	ok = handler->GetCachedTables([](CWebAsyncHandler &h, int res, const std::wstring &errMsg) {
+			
+		}, [](CWebAsyncHandler &h, SPA::UDB::CDBColumnInfoArray &meta) {
+
+		}, [](CWebAsyncHandler &h, CDBVariantArray &vData){
+		
+		});
+	
+	std::cout << "Press a key to shutdown the demo application ......" << std::endl;
+	::getchar();
 	return 0;
 }
 

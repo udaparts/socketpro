@@ -747,6 +747,7 @@ namespace SPA {
                         }
                         break;
                     default:
+						CAsyncServiceHandler::OnResultReturned(reqId, mc);
                         break;
                 }
             }

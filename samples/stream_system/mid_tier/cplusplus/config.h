@@ -19,6 +19,13 @@ struct CConfig {
     unsigned int m_nPort;
     bool m_bNoIpV6;
 
+#ifdef WIN32_64
+	std::string m_store_or_pfx;
+#else
+	std::string m_cert; //in PEM
+	std::string m_key; //in PEM
+#endif
+	std::string m_password_or_subject;
 
     std::vector<std::string> m_vFrontCachedTable;
 

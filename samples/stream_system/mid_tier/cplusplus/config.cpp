@@ -30,11 +30,20 @@ void CConfig::SetConfig() {
     m_vccSlave.push_back(m_ccMaster);
     m_nSlaveSessions = 12;
 
-
+	//middle tier
+	//test certificate and private key files are located at the directory ../socketpro/bin
 #ifdef WIN32_64
     m_working_directory = "c:\\sp_test";
+	m_store_or_pfx = "intermediate.pfx";
 #else
     m_working_directory = "/home/yye/sp_test/";
+	m_cert = "intermediate.cert.pem";
+	m_key = "intermediate.key.pem";
 #endif
-}
+	m_password_or_subject = "mypassword";
 
+	//cached tables on front applications
+	m_vFrontCachedTable.push_back("sakila.actor");
+	m_vFrontCachedTable.push_back("sakila.language");
+	m_vFrontCachedTable.push_back("sakila.country");
+}

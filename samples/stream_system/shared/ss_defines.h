@@ -6,15 +6,10 @@
 #define ___SOCKETPRO_DEFINES_STREAM_SYSTEM_I_H__
 
 //#defines for stream system
-
 static const unsigned int sidStreamSystem = (SPA::sidReserved + 121);
 
-static const unsigned short idSetDefaultDatabaseName = ((unsigned short) SPA::idReservedTwo + 20);
-static const unsigned short idSubscribeAndGetInitialCachedTablesData = idSetDefaultDatabaseName + 1;
-static const unsigned short idBeginBatchProcessing = idSetDefaultDatabaseName + 2;
-static const unsigned short idEndBatchProcessing = idSetDefaultDatabaseName + 3;
+static const unsigned short idQueryMaxMinAvgs = SPA::idReservedTwo + 1;
 
-static const unsigned short idQueryMaxMinAvgs = idSetDefaultDatabaseName + 4;
 
 struct CMaxMinAvg {
     SPA::INT64 Max;

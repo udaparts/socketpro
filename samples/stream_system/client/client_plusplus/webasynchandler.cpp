@@ -3,25 +3,19 @@
 #include "webasynchandler.h"
 
 CWebAsyncHandler::CWebAsyncHandler(CClientSocket *pClientSocket)
-: CAsyncServiceHandler(sidStreamSystem, pClientSocket) {
+	: CCachedBaseHandler<sidStreamSystem, CWebAsyncHandler>(pClientSocket) {
 }
 
-bool CWebAsyncHandler::SubscribeAndGetInitialCachedTablesData(DResult handler) {
+bool CWebAsyncHandler::QueryMaxMinAvgs(const wchar_t *table, DMaxMinAvg mma) {
     return false;
 }
 
-bool CWebAsyncHandler::SetDefaultDatabaseName(const wchar_t *dbName, DResult handler, bool optimistic, bool slaveCheck) {
-    return false;
-}
-
-bool CWebAsyncHandler::BeginBatchProcessing(bool readonly, bool manualTrans, DResult handler) {
-    return false;
-}
-
-bool CWebAsyncHandler::EndBatchProcessing(unsigned int hints, DResult handler) {
-    return false;
-}
-
-bool CWebAsyncHandler::QueryMaxMinAvgs(const wchar_t *sql, DMaxMinAvg mma) {
-    return false;
+void CWebAsyncHandler::OnResultReturned(unsigned short reqId, SPA::CUQueue &mc) {
+	switch (reqId) {
+	case idQueryMaxMinAvgs:
+		break;
+	default:
+		CCachedBaseHandler<sidStreamSystem, CWebAsyncHandler>::OnResultReturned(reqId, mc);
+		break;
+	}
 }

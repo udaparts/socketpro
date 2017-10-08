@@ -119,8 +119,7 @@ namespace SPA {
         static const unsigned short idEndRows = idEndBLOB + 1;
         static const unsigned short idCallReturn = idEndRows + 1;
 
-        static const unsigned short idBeginPushCache = idCallReturn + 1;
-        static const unsigned short idEndPushCache = idBeginPushCache + 1;
+        static const unsigned short idGetCachedTables = idCallReturn + 1;
 
         /**
          * Whenever a data size in bytes is about twice larger than the defined value,
