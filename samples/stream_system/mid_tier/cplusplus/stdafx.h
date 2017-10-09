@@ -2,9 +2,9 @@
 #pragma once
 
 #include "../../../../include/aserverw.h"
-#include "../../../../include/rdbcache.h"
+#include "../../../../include/rdbcache.h" //relation DB cache
 
-#include "../../../../include/mysql/umysql.h"
+#include "../../../../include/mysql/umysql.h" //MySQL constants
 typedef SPA::ClientSide::CAsyncDBHandler<SPA::Mysql::sidMysql> CMySQLHandler;
 typedef SPA::CMasterPool<CMySQLHandler> CMySQLMasterPool;
 typedef CMySQLMasterPool::CSlavePool CMySQLSlavePool;

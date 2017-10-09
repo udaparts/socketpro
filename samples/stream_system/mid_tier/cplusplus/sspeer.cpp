@@ -4,20 +4,17 @@
 #include "ssserver.h"
 #include "config.h"
 
-CSSPeer::CSSPeer() {
+CYourPeerOne::CYourPeerOne() {
 
 }
 
-CSSPeer::~CSSPeer() {
-}
-
-void CSSPeer::OnFastRequestArrive(unsigned short reqId, unsigned int len) {
+void CYourPeerOne::OnFastRequestArrive(unsigned short reqId, unsigned int len) {
     BEGIN_SWITCH(reqId)
 
     END_SWITCH
 }
 
-int CSSPeer::OnSlowRequestArrive(unsigned short reqId, unsigned int len) {
+int CYourPeerOne::OnSlowRequestArrive(unsigned short reqId, unsigned int len) {
     BEGIN_SWITCH(reqId)
     M_I1_R3(idQueryMaxMinAvgs, QueryMaxMinAvgs, std::wstring, CMaxMinAvg, int, std::wstring)
     M_I3_R2(SPA::UDB::idGetCachedTables, GetCachedTables, unsigned int, bool, SPA::UINT64, int, std::wstring)
@@ -25,37 +22,37 @@ int CSSPeer::OnSlowRequestArrive(unsigned short reqId, unsigned int len) {
     return 0;
 }
 
-void CSSPeer::QueryMaxMinAvgs(const std::wstring &sql, CMaxMinAvg &mma, int &res, std::wstring &errMsg) {
+void CYourPeerOne::QueryMaxMinAvgs(const std::wstring &sql, CMaxMinAvg &mma, int &res, std::wstring &errMsg) {
 
 }
 
-unsigned int CSSPeer::SendMeta(const SPA::UDB::CDBColumnInfoArray &meta, SPA::UINT64 index) {
+unsigned int CYourPeerOne::SendMeta(const SPA::UDB::CDBColumnInfoArray &meta, SPA::UINT64 index) {
     return SendResult(SPA::UDB::idRowsetHeader, meta, index);
 }
 
-unsigned int CSSPeer::SendRows(SPA::UDB::CDBVariantArray &vData) {
+unsigned int CYourPeerOne::SendRows(SPA::UDB::CDBVariantArray &vData) {
     SPA::CScopeUQueue sb;
     sb << vData;
     unsigned int count;
-    sb >> count;
+    sb >> count; //remove data array size at head as a client is expecting an array of data without size ahead
     return SendResult(SPA::UDB::idEndRows, sb);
 }
 
-void CSSPeer::GetCachedTables(unsigned int flags, bool rowset, SPA::UINT64 index, int &res, std::wstring &errMsg) {
+void CYourPeerOne::GetCachedTables(unsigned int flags, bool rowset, SPA::UINT64 index, int &res, std::wstring &errMsg) {
     res = 0;
     do {
         if (SPA::UDB::ENABLE_TABLE_UPDATE_MESSAGES == (flags & SPA::UDB::ENABLE_TABLE_UPDATE_MESSAGES)) {
-            if (!GetPush().Subscribe(&SPA::UDB::STREAMING_SQL_CHAT_GROUP_ID, 1)) {
-                res = -1;
-                errMsg = L"Failed in subscribing for table events";
+            unsigned int chatgroup[] = {SPA::UDB::CACHE_UPDATE_CHAT_GROUP_ID, SPA::UDB::STREAMING_SQL_CHAT_GROUP_ID};
+            if (!GetPush().Subscribe(chatgroup, 2)) {
+                errMsg = L"Failed in subscribing for table events"; //warning message
             }
         }
         if (!rowset)
             break;
-        auto handler = CSSServer::Slave->Seek();
+        auto handler = CYourServer::Master->Seek();
         if (!handler) {
             res = -1;
-            errMsg = L"No connection to anyone of slave databases";
+            errMsg = L"No connection to a master database";
             break;
         }
         if (!g_config.m_vFrontCachedTable.size())
@@ -87,4 +84,3 @@ void CSSPeer::GetCachedTables(unsigned int flags, bool rowset, SPA::UINT64 index
         }
     } while (false);
 }
-

@@ -12,20 +12,20 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    CSSServer server(g_config.m_main_threads);
+    CYourServer server(g_config.m_main_threads);
 
     //set configuration settings for persistent message queues that used by this middle tier server and master/slave requests backup
     if (g_config.m_working_directory.size()) {
         SPA::ClientSide::CClientSocket::QueueConfigure::SetWorkDirectory(g_config.m_working_directory.c_str());
-        CSSServer::QueueManager::SetWorkDirectory(g_config.m_working_directory.c_str());
+        CYourServer::QueueManager::SetWorkDirectory(g_config.m_working_directory.c_str());
     }
     if (g_config.m_message_queue_password.size()) {
-        CSSServer::QueueManager::SetMessageQueuePassword(g_config.m_message_queue_password.c_str());
+        CYourServer::QueueManager::SetMessageQueuePassword(g_config.m_message_queue_password.c_str());
         SPA::ClientSide::CClientSocket::QueueConfigure::SetMessageQueuePassword(g_config.m_message_queue_password.c_str());
     }
 
     //start two socket pools, master and slave
-    CSSServer::StartMySQLPools();
+    CYourServer::StartMySQLPools();
     //Cache is ready for use now
 
     auto v0 = CMySQLMasterPool::Cache.GetDBTablePair();
@@ -56,7 +56,7 @@ int main(int argc, char* argv[]) {
     ::getchar();
 
     //shut down slave and master socket pools
-    CSSServer::Slave.reset();
-    CSSServer::Master.reset();
+    CYourServer::Slave.reset();
+    CYourServer::Master.reset();
     return 0;
 }

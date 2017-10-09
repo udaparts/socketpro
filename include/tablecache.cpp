@@ -579,7 +579,7 @@ namespace SPA
                 return (count / col_count);
             }
         }
-        return INVALID_VALUE; //not found
+        return 0; //not found
     }
 
     size_t CDataSet::AddRows(const wchar_t *dbName, const wchar_t *tblName, const UDB::CDBVariantArray & vData) {
@@ -611,7 +611,7 @@ namespace SPA
                 return (count / col_count);
             }
         }
-        return INVALID_VALUE; //not found
+        return 0; //not found
     }
 
     CPRow CDataSet::FindARowInternal(CPColumnRowset &pcr, const VARIANT & key) {

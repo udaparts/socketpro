@@ -2,9 +2,9 @@
 
 #include "sspeer.h"
 
-class CSSServer : public CSocketProServer {
+class CYourServer : public CSocketProServer {
 public:
-    CSSServer(int nParam);
+    CYourServer(int nParam);
 
 protected:
     virtual bool OnSettingServer(unsigned int listeningPort, unsigned int maxBacklog, bool v6);
@@ -12,7 +12,7 @@ protected:
 
 private:
     bool AddServices();
-    void SetOnlineMessage();
+    void SetChatGroups();
 
 public:
     static void StartMySQLPools();
@@ -20,10 +20,10 @@ public:
     static std::shared_ptr<CMySQLSlavePool> Slave;
 
 private:
-    CSocketProService<CSSPeer> m_SSPeer;
+    CSocketProService<CYourPeerOne> m_SSPeer;
 
 private:
-    CSSServer(const CSSServer &s);
-    CSSServer& operator=(const CSSServer &s);
+    CYourServer(const CYourServer &s);
+    CYourServer& operator=(const CYourServer &s);
 };
 

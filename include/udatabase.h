@@ -142,6 +142,8 @@ namespace SPA {
          */
         static const unsigned int STREAMING_SQL_CHAT_GROUP_ID = 0x1fffffff;
 
+        static const unsigned int CACHE_UPDATE_CHAT_GROUP_ID = STREAMING_SQL_CHAT_GROUP_ID + 1;
+
         /**
          * VARINAT data types for OLEDB
          */
@@ -752,23 +754,23 @@ namespace SPA {
                 return *this;
             }
 
-			bool operator==(const CDBColumnInfo &info) const {
-				return (DBPath == info.DBPath &&
-					TablePath == info.TablePath &&
-					DisplayName == info.DisplayName &&
-					OriginalName == info.OriginalName &&
-					DeclaredType == info.DeclaredType &&
-					Collation == info.Collation &&
-					ColumnSize == info.ColumnSize &&
-					Flags == info.Flags &&
-					DataType == info.DataType &&
-					Precision == info.Precision &&
-					Scale == info.Scale);
-			}
+            bool operator==(const CDBColumnInfo &info) const {
+                return (DBPath == info.DBPath &&
+                        TablePath == info.TablePath &&
+                        DisplayName == info.DisplayName &&
+                        OriginalName == info.OriginalName &&
+                        DeclaredType == info.DeclaredType &&
+                        Collation == info.Collation &&
+                        ColumnSize == info.ColumnSize &&
+                        Flags == info.Flags &&
+                        DataType == info.DataType &&
+                        Precision == info.Precision &&
+                        Scale == info.Scale);
+            }
 
-			bool operator !=(const CDBColumnInfo &info) const {
-				return (!(*this == info));
-			}
+            bool operator!=(const CDBColumnInfo &info) const {
+                return (!(*this == info));
+            }
 
         public:
             std::wstring DBPath;

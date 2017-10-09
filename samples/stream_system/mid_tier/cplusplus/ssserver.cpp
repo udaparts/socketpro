@@ -3,10 +3,10 @@
 #include "ssserver.h"
 #include "config.h"
 
-std::shared_ptr<CMySQLMasterPool> CSSServer::Master;
-std::shared_ptr<CMySQLSlavePool> CSSServer::Slave;
+std::shared_ptr<CMySQLMasterPool> CYourServer::Master;
+std::shared_ptr<CMySQLSlavePool> CYourServer::Slave;
 
-void CSSServer::StartMySQLPools() {
+void CYourServer::StartMySQLPools() {
     assert(g_config.m_vccSlave.size());
     assert(g_config.m_nSlaveSessions);
     assert((g_config.m_nSlaveSessions % g_config.m_vccSlave.size()) == 0);
@@ -17,17 +17,17 @@ void CSSServer::StartMySQLPools() {
     CMySQLMasterPool::Cache.SetTableNameCaseSensitive(false);
     CMySQLMasterPool::Cache.SetDBNameCaseSensitive(false);
 
-    CSSServer::Master.reset(new CMySQLMasterPool(g_config.m_master_default_db.c_str()));
+    CYourServer::Master.reset(new CMySQLMasterPool(g_config.m_master_default_db.c_str(), true));
 
     //start master pool for cache and update accessing
-    bool ok = CSSServer::Master->StartSocketPool(g_config.m_ccMaster, (unsigned int) g_config.m_nMasterSessions, 1); //one thread enough
+    bool ok = CYourServer::Master->StartSocketPool(g_config.m_ccMaster, (unsigned int) g_config.m_nMasterSessions, 1); //one thread enough
 
     //compute threads and sockets_per_thread
     unsigned int threads = (unsigned int) (g_config.m_nSlaveSessions / g_config.m_vccSlave.size());
     unsigned int sockets_per_thread = (unsigned int) g_config.m_vccSlave.size();
-    CSSServer::Slave.reset(new CMySQLSlavePool);
+    CYourServer::Slave.reset(new CMySQLSlavePool);
 
-    CSSServer::Slave->SocketPoolEvent = [](CMySQLSlavePool *pool, SPA::ClientSide::tagSocketPoolEvent spe, CMySQLHandler * handler) {
+    CYourServer::Slave->SocketPoolEvent = [](CMySQLSlavePool *pool, SPA::ClientSide::tagSocketPoolEvent spe, CMySQLHandler * handler) {
         switch (spe) {
             case SPA::ClientSide::speConnected:
                 handler->Open(g_config.m_slave_default_db.c_str(), nullptr);
@@ -48,10 +48,10 @@ void CSSServer::StartMySQLPools() {
         }
     }
     //start slave pool for query accessing
-    ok = CSSServer::Slave->StartSocketPool(ppCCs, threads, sockets_per_thread);
+    ok = CYourServer::Slave->StartSocketPool(ppCCs, threads, sockets_per_thread);
 
     //wait until all data of cached tables are brought from backend database server to this middle server application cache
-    ok = CSSServer::Master->GetAsyncHandlers()[0]->WaitAll();
+    ok = CYourServer::Master->GetAsyncHandlers()[0]->WaitAll();
 
     for (unsigned int t = 0; t < threads; ++t) {
         SPA::ClientSide::CConnectionContext *pcc = ppCCs[t];
@@ -60,20 +60,20 @@ void CSSServer::StartMySQLPools() {
     delete []ppCCs;
 }
 
-CSSServer::CSSServer(int nParam) : CSocketProServer(nParam) {
+CYourServer::CYourServer(int nParam) : CSocketProServer(nParam) {
 
 }
 
-bool CSSServer::OnIsPermitted(USocket_Server_Handle h, const wchar_t* userId, const wchar_t *password, unsigned int serviceId) {
+bool CYourServer::OnIsPermitted(USocket_Server_Handle h, const wchar_t* userId, const wchar_t *password, unsigned int serviceId) {
     std::wcout << L"Ask for a service " << serviceId << L" from user " << userId << L" with password = " << password << std::endl;
     return true; //true -- ok; false -- no permission
 }
 
-bool CSSServer::OnSettingServer(unsigned int listeningPort, unsigned int maxBacklog, bool v6) {
+bool CYourServer::OnSettingServer(unsigned int listeningPort, unsigned int maxBacklog, bool v6) {
     //amIntegrated and amMixed not supported yet
     CSocketProServer::Config::SetAuthenticationMethod(amOwn);
 
-    SetOnlineMessage();
+    SetChatGroups();
 
     if (!AddServices()) {
         std::cout << "Unable to register a service" << std::endl;
@@ -82,7 +82,7 @@ bool CSSServer::OnSettingServer(unsigned int listeningPort, unsigned int maxBack
     return true; //true -- ok; false -- no listening server
 }
 
-bool CSSServer::AddServices() {
+bool CYourServer::AddServices() {
     bool ok = m_SSPeer.AddMe(sidStreamSystem);
     if (!ok)
         return false;
@@ -92,7 +92,8 @@ bool CSSServer::AddServices() {
     return true;
 }
 
-void CSSServer::SetOnlineMessage() {
+void CYourServer::SetChatGroups() {
     bool ok = PushManager::AddAChatGroup(SPA::UDB::STREAMING_SQL_CHAT_GROUP_ID, L"Subscribe/publish for front clients");
+    ok = PushManager::AddAChatGroup(SPA::UDB::CACHE_UPDATE_CHAT_GROUP_ID, L"Cache update notification from middle tier to front");
     //ok = false;
 }
