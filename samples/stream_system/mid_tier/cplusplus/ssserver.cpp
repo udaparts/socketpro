@@ -30,7 +30,7 @@ void CSSServer::StartMySQLPools() {
     CSSServer::Slave->SocketPoolEvent = [](CMySQLSlavePool *pool, SPA::ClientSide::tagSocketPoolEvent spe, CMySQLHandler * handler) {
         switch (spe) {
             case SPA::ClientSide::speConnected:
-                handler->Open(g_config.m_slave_default_db.c_str(), CMySQLHandler::DResult());
+                handler->Open(g_config.m_slave_default_db.c_str(), nullptr);
                 break;
             default:
                 break;

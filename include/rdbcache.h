@@ -13,7 +13,7 @@ namespace SPA {
     public:
 
         CMasterPool(const wchar_t *defaultDb, bool autoConn = true, unsigned int recvTimeout = ClientSide::DEFAULT_RECV_TIMEOUT, unsigned int connTimeout = ClientSide::DEFAULT_CONN_TIMEOUT)
-			: ClientSide::CSocketPool<THandler>(autoConn, recvTimeout, connTimeout), m_dbDefalut(defaultDb ? defaultDb : L""){
+        : ClientSide::CSocketPool<THandler>(autoConn, recvTimeout, connTimeout), m_dbDefalut(defaultDb ? defaultDb : L"") {
         }
 
         static TCache Cache; //real-time cache accessable from your code
@@ -149,10 +149,9 @@ namespace SPA {
                             //a rowset column meta comes
                             this->m_cache.AddEmptyRowset(h.GetColumnInfo());
                         });
+                    } else {
+                        asyncSQL->Open(L"", nullptr);
                     }
-					else {
-						asyncSQL->Open(L"", CSQLHandler::DResult());
-					}
                     break;
                 default:
                     break;
@@ -172,7 +171,7 @@ namespace SPA {
 
     protected:
         TCache m_cache;
-		std::wstring m_dbDefalut;
+        std::wstring m_dbDefalut;
     };
 
     template<typename THandler, typename TCache>
