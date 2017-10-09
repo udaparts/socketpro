@@ -5,10 +5,12 @@ struct CConfig {
     CConfig();
 
     //master
+	std::wstring m_master_default_db;
     size_t m_nMasterSessions;
     SPA::ClientSide::CConnectionContext m_ccMaster;
 
     //slave
+	std::wstring m_slave_default_db;
     size_t m_nSlaveSessions;
     std::vector<SPA::ClientSide::CConnectionContext> m_vccSlave;
 

@@ -41,15 +41,15 @@ int main(int argc, char* argv[]) {
 	auto handler = sp.Seek();
 	ok = handler->GetCachedTables([](int res, const std::wstring &errMsg) {
 		if (res) {
-			std::cout << "Get initial cache with error code: " << res;
+			std::cout << "Get initial cache with error code: " << res << ", error message: ";
 			std::wcout << errMsg.c_str() << std::endl;
 		}
-		}, [](SPA::UDB::CDBColumnInfoArray &meta) {
+	}, [](CDBVariantArray &vData){
 
-		}, [](CDBVariantArray &vData){
-		
-		});
-	
+	}, [](CDBColumnInfoArray &meta) {
+
+	});
+
 	std::cout << "Press a key to shutdown the demo application ......" << std::endl;
 	::getchar();
 	return 0;

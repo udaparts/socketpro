@@ -7,6 +7,10 @@ public:
     CSSPeer();
     ~CSSPeer();
 
+public:
+	unsigned int SendMeta(const SPA::UDB::CDBColumnInfoArray &meta, SPA::UINT64 index);
+	unsigned int SendRows(SPA::UDB::CDBVariantArray &vData);
+
 protected:
     virtual void OnFastRequestArrive(unsigned short reqId, unsigned int len);
     virtual int OnSlowRequestArrive(unsigned short reqId, unsigned int len);

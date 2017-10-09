@@ -38,7 +38,7 @@ namespace SPA {
 				return CAsyncServiceHandler::CleanCallbacks();
 			}
 
-			virtual bool GetCachedTables(DResult handler, DRowsetHeader rh, DRows row, unsigned int flags = SPA::UDB::ENABLE_TABLE_UPDATE_MESSAGES) {
+			virtual bool GetCachedTables(DResult handler, DRows row, DRowsetHeader rh, unsigned int flags = SPA::UDB::ENABLE_TABLE_UPDATE_MESSAGES) {
 				bool rowset = (rh || row);
 				UINT64 index;
 				{

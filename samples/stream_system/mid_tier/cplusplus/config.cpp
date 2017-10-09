@@ -16,13 +16,16 @@ void CConfig::SetConfig() {
     m_main_threads = 4;
 
     //master
+	m_master_default_db = L"sakila";
     m_ccMaster.Host = "localhost";
     m_ccMaster.UserId = L"root";
     m_ccMaster.Password = L"Smash123";
     m_ccMaster.Port = 20902;
     m_nMasterSessions = 2; //two sessions enough
+	
 
     //slave
+	m_slave_default_db = L"sakila";
     SPA::ClientSide::CConnectionContext cc = m_ccMaster;
     m_vccSlave.push_back(cc);
     m_vccSlave.push_back(cc);

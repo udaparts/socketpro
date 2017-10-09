@@ -17,7 +17,7 @@ void CSSServer::StartMySQLPools() {
     CMySQLMasterPool::Cache.SetTableNameCaseSensitive(false);
     CMySQLMasterPool::Cache.SetDBNameCaseSensitive(false);
 
-    CSSServer::Master.reset(new CMySQLMasterPool);
+	CSSServer::Master.reset(new CMySQLMasterPool(g_config.m_master_default_db.c_str()));
 
     //start master pool for cache and update accessing
     bool ok = CSSServer::Master->StartSocketPool(g_config.m_ccMaster, (unsigned int) g_config.m_nMasterSessions, 1); //one thread enough
@@ -26,6 +26,16 @@ void CSSServer::StartMySQLPools() {
     unsigned int threads = (unsigned int) (g_config.m_nSlaveSessions / g_config.m_vccSlave.size());
     unsigned int sockets_per_thread = (unsigned int) g_config.m_vccSlave.size();
     CSSServer::Slave.reset(new CMySQLSlavePool);
+
+	CSSServer::Slave->SocketPoolEvent = [](CMySQLSlavePool *pool, SPA::ClientSide::tagSocketPoolEvent spe, CMySQLHandler *handler) {
+		switch (spe) {
+		case SPA::ClientSide::speConnected:
+			handler->Open(g_config.m_slave_default_db.c_str(), CMySQLHandler::DResult());
+			break;
+		default:
+			break;
+		}
+	};
 
     typedef SPA::ClientSide::CConnectionContext* PCConnectionContext;
     //prepare connection contexts for slave pool
@@ -83,5 +93,6 @@ bool CSSServer::AddServices() {
 }
 
 void CSSServer::SetOnlineMessage() {
-
+	bool ok = PushManager::AddAChatGroup(SPA::UDB::STREAMING_SQL_CHAT_GROUP_ID, L"Subscribe/publish for front clients");
+	//ok = false;
 }
