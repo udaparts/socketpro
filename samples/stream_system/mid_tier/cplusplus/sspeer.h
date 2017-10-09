@@ -8,8 +8,8 @@ public:
     ~CSSPeer();
 
 public:
-	unsigned int SendMeta(const SPA::UDB::CDBColumnInfoArray &meta, SPA::UINT64 index);
-	unsigned int SendRows(SPA::UDB::CDBVariantArray &vData);
+    unsigned int SendMeta(const SPA::UDB::CDBColumnInfoArray &meta, SPA::UINT64 index);
+    unsigned int SendRows(SPA::UDB::CDBVariantArray &vData);
 
 protected:
     virtual void OnFastRequestArrive(unsigned short reqId, unsigned int len);
@@ -17,7 +17,7 @@ protected:
 
 private:
     void QueryMaxMinAvgs(const std::wstring &sql, CMaxMinAvg &mma, int &res, std::wstring &errMsg);
-	void GetCachedTables(unsigned int flags, bool rowset, SPA::UINT64 index, int &res, std::wstring &errMsg);
+    void GetCachedTables(unsigned int flags, bool rowset, SPA::UINT64 index, int &res, std::wstring &errMsg);
 
 private:
     CSSPeer(const CSSPeer &p);

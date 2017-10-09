@@ -3,7 +3,7 @@
 #include "webasynchandler.h"
 
 CWebAsyncHandler::CWebAsyncHandler(CClientSocket *pClientSocket)
-	: CCachedBaseHandler<sidStreamSystem>(pClientSocket) {
+: CCachedBaseHandler<sidStreamSystem>(pClientSocket) {
 }
 
 bool CWebAsyncHandler::QueryMaxMinAvgs(const wchar_t *sql, DMaxMinAvg mma) {
@@ -11,11 +11,11 @@ bool CWebAsyncHandler::QueryMaxMinAvgs(const wchar_t *sql, DMaxMinAvg mma) {
 }
 
 void CWebAsyncHandler::OnResultReturned(unsigned short reqId, SPA::CUQueue &mc) {
-	switch (reqId) {
-	case idQueryMaxMinAvgs:
-		break;
-	default:
-		CCachedBaseHandler<sidStreamSystem>::OnResultReturned(reqId, mc);
-		break;
-	}
+    switch (reqId) {
+        case idQueryMaxMinAvgs:
+            break;
+        default:
+            CCachedBaseHandler<sidStreamSystem>::OnResultReturned(reqId, mc);
+            break;
+    }
 }

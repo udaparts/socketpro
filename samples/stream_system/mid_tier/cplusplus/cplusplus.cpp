@@ -25,8 +25,8 @@ int main(int argc, char* argv[]) {
     }
 
     //start two socket pools, master and slave
-    CSSServer::StartMySQLPools();  
-	//Cache is ready for use now
+    CSSServer::StartMySQLPools();
+    //Cache is ready for use now
 
     auto v0 = CMySQLMasterPool::Cache.GetDBTablePair();
     auto v1 = CMySQLMasterPool::Cache.FindKeys(v0.front().first.c_str(), v0.front().second.c_str());
@@ -35,21 +35,20 @@ int main(int argc, char* argv[]) {
     auto v4 = CMySQLMasterPool::Cache.GetRowCount(L"sakila", L"actor");
     SPA::CTable table;
     int res = CMySQLMasterPool::Cache.Between(L"sakila", L"actor", 3, "2017-07-01", "2017-01-1", table);
-    
-	//test certificate and private key files are located at the directory ../socketpro/bin
+
+    //test certificate and private key files are located at the directory ../socketpro/bin
 #ifdef WIN32_64 //windows platforms
-	if (g_config.m_store_or_pfx.rfind(".pfx") != std::string::npos) {
-		server.UseSSL(g_config.m_store_or_pfx.c_str(), "", g_config.m_password_or_subject.c_str());
-	}
-	else {
-		//or load cert and private key from windows system cert store
-		server.UseSSL(g_config.m_store_or_pfx.c_str()/*"my"*/, g_config.m_password_or_subject.c_str(), ""); 
-	}
+    if (g_config.m_store_or_pfx.rfind(".pfx") != std::string::npos) {
+        server.UseSSL(g_config.m_store_or_pfx.c_str(), "", g_config.m_password_or_subject.c_str());
+    } else {
+        //or load cert and private key from windows system cert store
+        server.UseSSL(g_config.m_store_or_pfx.c_str()/*"my"*/, g_config.m_password_or_subject.c_str(), "");
+    }
 #else //non-windows platforms
-	server.UseSSL(g_config.m_key.c_str(), g_config.m_key.c_str(), g_config.m_password_or_subject.c_str());
+    server.UseSSL(g_config.m_key.c_str(), g_config.m_key.c_str(), g_config.m_password_or_subject.c_str());
 #endif
 
-	//start listening socket with standrad TLSv1.x security
+    //start listening socket with standrad TLSv1.x security
     if (!server.Run(g_config.m_nPort, 32, !g_config.m_bNoIpV6))
         std::cout << "Error happens with code = " << server.GetErrorCode() << std::endl;
 

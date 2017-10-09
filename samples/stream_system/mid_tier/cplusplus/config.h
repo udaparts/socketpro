@@ -5,12 +5,12 @@ struct CConfig {
     CConfig();
 
     //master
-	std::wstring m_master_default_db;
+    std::wstring m_master_default_db;
     size_t m_nMasterSessions;
     SPA::ClientSide::CConnectionContext m_ccMaster;
 
     //slave
-	std::wstring m_slave_default_db;
+    std::wstring m_slave_default_db;
     size_t m_nSlaveSessions;
     std::vector<SPA::ClientSide::CConnectionContext> m_vccSlave;
 
@@ -22,12 +22,12 @@ struct CConfig {
     bool m_bNoIpV6;
 
 #ifdef WIN32_64
-	std::string m_store_or_pfx;
+    std::string m_store_or_pfx;
 #else
-	std::string m_cert; //in PEM
-	std::string m_key; //in PEM
+    std::string m_cert; //in PEM
+    std::string m_key; //in PEM
 #endif
-	std::string m_password_or_subject;
+    std::string m_password_or_subject;
 
     std::vector<std::string> m_vFrontCachedTable;
 
