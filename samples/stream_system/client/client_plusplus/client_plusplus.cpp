@@ -14,12 +14,12 @@ int main(int argc, char* argv[]) {
     cc.Password = L"A_Password_For_SomeUserId";
     cc.EncrytionMethod = SPA::tagEncryptionMethod::TLSv1;
 
-	CMySQLMasterPool master(L"", false);
+	CMySQLMasterPool master(L"sakila", false);
 
     //CA file is located at the directory ../socketpro/bin
     CClientSocket::SSL::SetVerifyLocation("ca.cert.pem");
 
-    CMyPool sp(true, (~0));
+    CMyPool sp(true);
 
     sp.DoSslServerAuthentication = [](CMyPool *sender, CClientSocket * cs)->bool {
         int errCode;

@@ -48,7 +48,7 @@ int main(int argc, char* argv[]) {
     server.UseSSL(g_config.m_key.c_str(), g_config.m_key.c_str(), g_config.m_password_or_subject.c_str());
 #endif
 
-    //start listening socket with standrad TLSv1.x security
+    //start listening socket with standard TLSv1.x security
     if (!server.Run(g_config.m_nPort, 32, !g_config.m_bNoIpV6))
         std::cout << "Error happens with code = " << server.GetErrorCode() << std::endl;
 

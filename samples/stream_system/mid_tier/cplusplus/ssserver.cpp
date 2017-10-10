@@ -25,19 +25,10 @@ void CYourServer::StartMySQLPools() {
     //compute threads and sockets_per_thread
     unsigned int threads = (unsigned int) (g_config.m_nSlaveSessions / g_config.m_vccSlave.size());
     unsigned int sockets_per_thread = (unsigned int) g_config.m_vccSlave.size();
-    CYourServer::Slave.reset(new CMySQLSlavePool);
-
-    CYourServer::Slave->SocketPoolEvent = [](CMySQLSlavePool *pool, SPA::ClientSide::tagSocketPoolEvent spe, CMySQLHandler * handler) {
-        switch (spe) {
-            case SPA::ClientSide::speConnected:
-                handler->Open(g_config.m_slave_default_db.c_str(), nullptr);
-                break;
-            default:
-                break;
-        }
-    };
+    CYourServer::Slave.reset(new CMySQLSlavePool(g_config.m_slave_default_db.c_str()));
 
     typedef SPA::ClientSide::CConnectionContext* PCConnectionContext;
+
     //prepare connection contexts for slave pool
     PCConnectionContext *ppCCs = new PCConnectionContext[threads];
     for (unsigned int t = 0; t < threads; ++t) {
