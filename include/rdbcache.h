@@ -186,7 +186,7 @@ namespace SPA {
                     }
                     break;
                 default:
-                    CMasterSlaveBase<THandler>::OnSocketPoolEvent(spe, asyncSQL);
+                    CBase::OnSocketPoolEvent(spe, asyncSQL);
                     break;
             }
         }
