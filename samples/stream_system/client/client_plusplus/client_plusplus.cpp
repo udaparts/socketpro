@@ -33,6 +33,8 @@ int main(int argc, char* argv[]) {
         return (errCode == 0); //true -- user id and password will be sent to server
     };
 
+	SPA::CDataSet ds;
+
     bool ok = sp.StartSocketPool(cc, 1, 1);
     if (!ok) {
         std::cout << "Failed in connecting to remote middle tier server, and press any key to close the application ......" << std::endl;
@@ -40,16 +42,20 @@ int main(int argc, char* argv[]) {
         return 1;
     }
     auto handler = sp.Seek();
+	CDBColumnInfoArray vCol;
     ok = handler->GetCachedTables([](int res, const std::wstring & errMsg) {
         if (res) {
             std::cout << "Get initial cache with error code: " << res << ", error message: ";
             std::wcout << errMsg.c_str() << std::endl;
         }
-    }, [](CDBVariantArray & vData) {
-
-    }, [](CDBColumnInfoArray & meta) {
-
+	}, [&ds, &vCol](CDBVariantArray & vData) {
+		ds.AddRows(vCol.front().DBPath.c_str(), vCol.front().TablePath.c_str(), vData);
+	}, [&ds, &vCol](CDBColumnInfoArray & meta) {
+		ds.AddEmptyRowset(meta);
+		vCol = meta;
     });
+
+	ok = handler->WaitAll();
 
     std::cout << "Press a key to shutdown the demo application ......" << std::endl;
     ::getchar();
