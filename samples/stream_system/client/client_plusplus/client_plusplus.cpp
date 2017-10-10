@@ -2,6 +2,9 @@
 #include "stdafx.h"
 #include "webasynchandler.h"
 
+typedef SPA::CMasterPool<false, CWebAsyncHandler> CWebMasterPool;
+typedef CWebMasterPool::CSlavePool CSlavePool;
+
 typedef SPA::ClientSide::CSocketPool<CWebAsyncHandler> CMyPool;
 
 int main(int argc, char* argv[]) {
@@ -14,7 +17,7 @@ int main(int argc, char* argv[]) {
     cc.Password = L"A_Password_For_SomeUserId";
     cc.EncrytionMethod = SPA::tagEncryptionMethod::TLSv1;
 
-	CMySQLMasterPool master(L"sakila", false);
+	CWebMasterPool master(L"sakila", false);
 
     //CA file is located at the directory ../socketpro/bin
     CClientSocket::SSL::SetVerifyLocation("ca.cert.pem");

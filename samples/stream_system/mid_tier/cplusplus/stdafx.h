@@ -7,7 +7,7 @@
 
 #include "../../../../include/mysql/umysql.h" //MySQL constants
 typedef SPA::ClientSide::CAsyncDBHandler<SPA::Mysql::sidMysql> CMySQLHandler;
-typedef SPA::CMasterPool<true, CMySQLHandler> CMySQLMasterPool;
+typedef SPA::CSQLMasterPool<true, CMySQLHandler> CMySQLMasterPool;
 typedef CMySQLMasterPool::CSlavePool CMySQLSlavePool;
 
 using namespace SPA::ServerSide;

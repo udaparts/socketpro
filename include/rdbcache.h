@@ -3,84 +3,42 @@
 #ifndef ___SOCKETPRO_SERVER_SIDE_CACHE_I_H__
 #define ___SOCKETPRO_SERVER_SIDE_CACHE_I_H__
 
-#include "tablecache.h"
 #include "udb_client.h"
+#include "masterslavebase.h"
 
 namespace SPA {
-
-    template<typename THandler, typename TCS = ClientSide::CClientSocket>
-    class CMasterSlaveBase : public ClientSide::CSocketPool < THandler, TCS> {
-    public:
-        typedef ClientSide::CSocketPool < THandler, TCS> CBase;
-
-        CMasterSlaveBase(const wchar_t *defaultDb, unsigned int recvTimeout = ClientSide::DEFAULT_RECV_TIMEOUT)
-        : CBase(true, recvTimeout), m_dbDefalut(defaultDb ? defaultDb : L""), m_nRecvTimeout(recvTimeout) {
-        }
-
-        typedef std::function<void() > DOnClosed;
-
-    public:
-
-        void Subscribe(UINT64 key, DOnClosed c) {
-            CAutoLock al(this->m_cs);
-            m_mapClose[key] = c;
-        }
-
-        void Remove(UINT64 key) {
-            CAutoLock al(this->m_cs);
-            m_mapClose.erase(key);
-        }
-
-        const wchar_t* GetDefaultDBName() const {
-            return m_dbDefalut.c_str();
-        }
-
-        unsigned int GetRecvTimeout() const {
-            return m_nRecvTimeout;
-        }
-
-    protected:
-
-        virtual void OnSocketPoolEvent(ClientSide::tagSocketPoolEvent spe, const std::shared_ptr<THandler> &asyncSQL) {
-            switch (spe) {
-                case SPA::ClientSide::speConnected:
-                    if (asyncSQL->GetAttachedClientSocket()->GetErrorCode() != 0)
-                        break;
-                    asyncSQL->Open(m_dbDefalut.c_str(), nullptr); //open a session to backend database by default 
-                    break;
-                case ClientSide::speSocketClosed:
-                    if (!asyncSQL->GetAttachedClientSocket()->Sendable()) {
-                        CAutoLock al(this->m_cs);
-                        for (auto it = m_mapClose.begin(), end = m_mapClose.end(); it != end; ++it) {
-                            DOnClosed closed = it->second;
-                            if (closed)
-                                closed();
-                        }
-                    }
-                    break;
-                default:
-                    break;
-            }
-        }
-
-    private:
-        std::unordered_map<UINT64, DOnClosed> m_mapClose; //protected by base class m_cs
-        std::wstring m_dbDefalut;
-        unsigned int m_nRecvTimeout;
-    };
-
     template<bool midTier, typename THandler, typename TCache = CDataSet>
-    class CMasterPool : public CMasterSlaveBase < THandler > {
+    class CSQLMasterPool : public CMasterSlaveBase < THandler > {
     public:
         typedef CMasterSlaveBase < THandler > CBase;
         
-        CMasterPool(const wchar_t *defaultDb, unsigned int recvTimeout = ClientSide::DEFAULT_RECV_TIMEOUT)
+        CSQLMasterPool(const wchar_t *defaultDb, unsigned int recvTimeout = ClientSide::DEFAULT_RECV_TIMEOUT)
         : CBase(defaultDb, recvTimeout) {
         }
         typedef TCache CDataSet;
         static TCache Cache; //real-time cache accessable from your code
         typedef ClientSide::CAsyncDBHandler<THandler::SQLStreamServiceId> CSQLHandler;
-        typedef CMasterSlaveBase<THandler> CSlavePool;
+
+		class CSlavePool : public CMasterSlaveBase < THandler > {
+		public:
+			CSlavePool(const wchar_t *defaultDb, unsigned int recvTimeout = ClientSide::DEFAULT_RECV_TIMEOUT)
+				: CMasterSlaveBase<THandler>(defaultDb, recvTimeout) {
+			}
+
+		protected:
+			virtual void OnSocketPoolEvent(ClientSide::tagSocketPoolEvent spe, const std::shared_ptr<THandler> &asyncSQL) {
+				switch (spe) {
+				case SPA::ClientSide::speConnected:
+					if (asyncSQL->GetAttachedClientSocket()->GetErrorCode() != 0)
+						break;
+					asyncSQL->Open(this->GetDefaultDBName(), nullptr); //open a session to backend database by default 
+					break;
+				default:
+					CMasterSlaveBase < THandler >::OnSocketPoolEvent(spe, asyncSQL);
+					break;
+				}
+			}
+		};
 
     protected:
 
@@ -191,17 +149,6 @@ namespace SPA {
             }
         }
 
-    protected:
-
-        static std::wstring ToWide(const VARIANT &data) {
-            const char *s;
-            assert(data.vt == (VT_ARRAY | VT_I1));
-            ::SafeArrayAccessData(data.parray, (void**) &s);
-            std::wstring ws = Utilities::ToWide(s, data.parray->rgsabound->cElements);
-            ::SafeArrayUnaccessData(data.parray);
-            return ws;
-        }
-
     private:
 
         void SetInitialCache(const std::shared_ptr<THandler> &asyncSQL) {
@@ -225,9 +172,6 @@ namespace SPA {
             ok = asyncSQL->Execute(L"", [this](CSQLHandler &h, int res, const std::wstring &errMsg, INT64 affected, UINT64 fail_ok, UDB::CDBVariant & vtId) {
                 if (res == 0) {
                     Cache.Swap(this->m_cache); //exchange between master Cache and this m_cache
-                } else {
-                    std::cout << "Error code: " << res << ", error message: ";
-                    std::wcout << errMsg.c_str() << std::endl;
                 }
             }, [this](CSQLHandler &h, UDB::CDBVariantArray & vData) {
                 auto meta = h.GetColumnInfo();
@@ -245,7 +189,7 @@ namespace SPA {
     };
 
     template<bool midTier, typename THandler, typename TCache>
-    TCache CMasterPool<midTier, THandler, TCache>::Cache;
+    TCache CSQLMasterPool<midTier, THandler, TCache>::Cache;
 }; //namespace SPA
 
 #endif

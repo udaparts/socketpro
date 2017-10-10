@@ -4,15 +4,8 @@
 
 #include "../../../../include/generalcache.h"
 #include "../../shared/ss_defines.h"
-
-#include "../../../../include/rdbcache.h" //relation DB cache
-
+#include "../../../../include/masterpool.h" //general cache
 #include "../../../../include/aserverw.h"
-#include "../../../../include/mysql/umysql.h" //MySQL constants
-typedef SPA::ClientSide::CAsyncDBHandler<SPA::Mysql::sidMysql> CMySQLHandler;
-typedef SPA::CMasterPool<false, CMySQLHandler> CMySQLMasterPool;
-typedef CMySQLMasterPool::CSlavePool CMySQLSlavePool;
-
 using namespace SPA::ClientSide;
 
 #ifdef WIN32_64
