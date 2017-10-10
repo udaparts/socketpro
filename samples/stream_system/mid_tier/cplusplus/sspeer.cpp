@@ -11,8 +11,8 @@ CYourPeerOne::CYourPeerOne() {
 }
 
 void CYourPeerOne::OnReleaseSource(bool bClosing, unsigned int info) {
-    CYourServer::Slave->Remove((UINT64) this);
-    CYourServer::Master->Remove((UINT64) this);
+    CYourServer::Slave->Remove((SPA::UINT64) this);
+    CYourServer::Master->Remove((SPA::UINT64) this);
 }
 
 void CYourPeerOne::OnSwitchFrom(unsigned int nOldServiceId) {
@@ -50,7 +50,7 @@ void CYourPeerOne::QueryMaxMinAvgs(const std::wstring &sql, CMaxMinAvg &mma, int
             break;
         }
         CAutoLock al(m_mutex);
-        CYourServer::Slave->Subscribe((UINT64) this, [this, &res, &errMsg] {
+        CYourServer::Slave->Subscribe((SPA::UINT64) this, [this, &res, &errMsg] {
             this->m_cv.notify_one();
             res = -4;
                     errMsg = L"Slave backend database disconnected during querying";
@@ -68,21 +68,21 @@ void CYourPeerOne::QueryMaxMinAvgs(const std::wstring &sql, CMaxMinAvg &mma, int
                 }
                 CComVariant vt;
                 HRESULT hr = ::VariantChangeType(&vt, &vData[0], 0, VT_I8);
-                if (FAILED(hr)) {
+                if (hr != S_OK) {
                     res = hr;
                     errMsg = L"Data type mismatch";
                     break;
                 }
                 mma.Max = vt.llVal;
                 hr = ::VariantChangeType(&vt, &vData[1], 0, VT_I8);
-                if (FAILED(hr)) {
+                if (hr != S_OK) {
                     res = hr;
                     errMsg = L"Data type mismatch";
                     break;
                 }
                 mma.Min = vt.llVal;
                 hr = ::VariantChangeType(&vt, &vData[2], 0, VT_R8);
-                if (FAILED(hr)) {
+                if (hr != S_OK) {
                     res = hr;
                     errMsg = L"Data type mismatch";
                     break;
@@ -142,7 +142,7 @@ void CYourPeerOne::GetCachedTables(unsigned int flags, bool rowset, SPA::UINT64 
             sql += L"SELECT * FROM " + SPA::Utilities::ToWide(it->c_str(), it->size());
         }
         CAutoLock al(m_mutex);
-        CYourServer::Master->Subscribe((UINT64) this, [this, &res, &errMsg] {
+        CYourServer::Master->Subscribe((SPA::UINT64) this, [this, &res, &errMsg] {
             this->m_cv.notify_one();
             res = -4;
                     errMsg = L"Master backend database disconnected during querying for cached tables data";

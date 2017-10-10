@@ -11,9 +11,10 @@ namespace SPA {
     template<typename THandler, typename TCS = ClientSide::CClientSocket>
     class CMasterSlaveBase : public ClientSide::CSocketPool < THandler, TCS> {
     public:
+        typedef ClientSide::CSocketPool < THandler, TCS> CBase;
 
         CMasterSlaveBase(const wchar_t *defaultDb, unsigned int recvTimeout = ClientSide::DEFAULT_RECV_TIMEOUT)
-        : ClientSide::CSocketPool<THandler>(true, recvTimeout), m_dbDefalut(defaultDb ? defaultDb : L""), m_nRecvTimeout(recvTimeout) {
+        : CBase(true, recvTimeout), m_dbDefalut(defaultDb ? defaultDb : L""), m_nRecvTimeout(recvTimeout) {
         }
 
         typedef std::function<void() > DOnClosed;
@@ -21,12 +22,12 @@ namespace SPA {
     public:
 
         void Subscribe(UINT64 key, DOnClosed c) {
-            CAutoLock al(m_cs);
+            CAutoLock al(this->m_cs);
             m_mapClose[key] = c;
         }
 
         void Remove(UINT64 key) {
-            CAutoLock al(m_cs);
+            CAutoLock al(this->m_cs);
             m_mapClose.erase(key);
         }
 
@@ -49,7 +50,7 @@ namespace SPA {
                     break;
                 case ClientSide::speSocketClosed:
                     if (!asyncSQL->GetAttachedClientSocket()->Sendable()) {
-                        CAutoLock al(m_cs);
+                        CAutoLock al(this->m_cs);
                         for (auto it = m_mapClose.begin(), end = m_mapClose.end(); it != end; ++it) {
                             DOnClosed closed = it->second;
                             if (closed)
@@ -71,9 +72,10 @@ namespace SPA {
     template<bool midTier, typename THandler, typename TCache = CDataSet>
     class CMasterPool : public CMasterSlaveBase < THandler > {
     public:
-
+        typedef CMasterSlaveBase < THandler > CBase;
+        
         CMasterPool(const wchar_t *defaultDb, unsigned int recvTimeout = ClientSide::DEFAULT_RECV_TIMEOUT)
-        : CMasterSlaveBase<THandler>(defaultDb, recvTimeout) {
+        : CBase(defaultDb, recvTimeout) {
         }
         typedef TCache CDataSet;
         static TCache Cache; //real-time cache accessable from your code
@@ -88,7 +90,7 @@ namespace SPA {
                     if (asyncSQL->GetAttachedClientSocket()->GetErrorCode() != 0)
                         break;
                     //use the first socket session for table events only, update, delete and insert
-                    if (asyncSQL == GetAsyncHandlers()[0]) {
+                    if (asyncSQL == this->GetAsyncHandlers()[0]) {
                         asyncSQL->GetAttachedClientSocket()->GetPush().OnPublish = [this, asyncSQL](ClientSide::CClientSocket*cs, const ClientSide::CMessageSender& sender, const unsigned int* groups, unsigned int count, const UVariant & vtMsg) {
                             assert(count == 1);
                             assert(groups != nullptr);
@@ -180,7 +182,7 @@ namespace SPA {
                         }
                         SetInitialCache(asyncSQL);
                     } else {
-                        asyncSQL->Open(GetDefaultDBName(), nullptr);
+                        asyncSQL->Open(this->GetDefaultDBName(), nullptr);
                     }
                     break;
                 default:
@@ -204,7 +206,7 @@ namespace SPA {
 
         void SetInitialCache(const std::shared_ptr<THandler> &asyncSQL) {
             //open default database and subscribe for table update events (update, delete and insert) by setting flag UDB::ENABLE_TABLE_UPDATE_MESSAGES
-            bool ok = asyncSQL->Open(GetDefaultDBName(), [this](CSQLHandler &h, int res, const std::wstring & errMsg) {
+            bool ok = asyncSQL->Open(this->GetDefaultDBName(), [this](CSQLHandler &h, int res, const std::wstring & errMsg) {
                 this->m_cache.SetDBServerName(nullptr);
                 this->m_cache.SetUpdater(nullptr);
                         this->m_cache.Empty();
