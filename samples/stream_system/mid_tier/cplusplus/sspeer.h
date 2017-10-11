@@ -1,7 +1,10 @@
 #pragma once
 
 #include "../../shared/ss_defines.h"
+#include <condition_variable>
 #include <chrono>
+
+using namespace SPA::ServerSide;
 
 class CYourPeerOne : public CClientPeer {
 public:

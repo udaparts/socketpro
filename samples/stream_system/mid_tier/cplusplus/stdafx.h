@@ -1,8 +1,6 @@
 
 #pragma once
 
-#include <condition_variable>
-#include "../../../../include/aserverw.h"
 #include "../../../../include/rdbcache.h" //relation DB cache
 
 #include "../../../../include/mysql/umysql.h" //MySQL constants

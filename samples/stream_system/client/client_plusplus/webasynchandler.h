@@ -2,6 +2,9 @@
 #pragma once
 
 #include "../../shared/ss_defines.h"
+#include "../../../../include/generalcache.h"
+
+using namespace SPA::ClientSide;
 
 class CWebAsyncHandler : public CCachedBaseHandler<sidStreamSystem> {
 public:

@@ -1,10 +1,10 @@
 
-
 #ifndef ___SOCKETPRO_SERVER_SIDE_CACHE_I_H__
 #define ___SOCKETPRO_SERVER_SIDE_CACHE_I_H__
 
 #include "udb_client.h"
 #include "masterslavebase.h"
+#include "aserverw.h"
 
 namespace SPA {
 

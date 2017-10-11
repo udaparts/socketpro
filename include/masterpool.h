@@ -2,8 +2,9 @@
 #ifndef _UDAPARTS_MASTER_POOL_H_
 #define _UDAPARTS_MASTER_POOL_H_
 
-#include "masterslavebase.h"
 #include "generalcache.h"
+#include "masterslavebase.h"
+#include "aserverw.h" //don't need to distribute server code library if the below template midTier is false, even though the header file is required here
 
 namespace SPA {
 
