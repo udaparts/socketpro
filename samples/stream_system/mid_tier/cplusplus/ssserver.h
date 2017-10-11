@@ -15,6 +15,7 @@ private:
     void SetChatGroups();
 
 public:
+    static void CreateTestDB();
     static void StartMySQLPools();
     static std::shared_ptr<CMySQLMasterPool> Master;
     static std::shared_ptr<CMySQLSlavePool> Slave;

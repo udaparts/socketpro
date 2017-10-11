@@ -27,7 +27,7 @@ void CYourPeerOne::OnFastRequestArrive(unsigned short reqId, unsigned int len) {
 
 int CYourPeerOne::OnSlowRequestArrive(unsigned short reqId, unsigned int len) {
     BEGIN_SWITCH(reqId)
-    M_I1_R3(idQueryMaxMinAvgs, QueryPaymentMaxMinAvgs, std::wstring, CMaxMinAvg, int, std::wstring)
+    M_I1_R3(idQueryMaxMinAvgs, QueryPaymentMaxMinAvgs, std::wstring, int, std::wstring, CMaxMinAvg)
     M_I3_R2(SPA::UDB::idGetCachedTables, GetCachedTables, unsigned int, bool, SPA::UINT64, int, std::wstring)
     M_I1_R3(idUploadEmployees, UploadEmployees, SPA::UDB::CDBVariantArray, int, std::wstring, std::vector<SPA::INT64>)
     END_SWITCH
@@ -122,10 +122,10 @@ void CYourPeerOne::UploadEmployees(const SPA::UDB::CDBVariantArray &vData, int &
     CYourServer::Master->Unlock(handler);
 }
 
-void CYourPeerOne::QueryPaymentMaxMinAvgs(const std::wstring &filter, CMaxMinAvg &mma, int &res, std::wstring &errMsg) {
+void CYourPeerOne::QueryPaymentMaxMinAvgs(const std::wstring &filter, int &res, std::wstring &errMsg, CMaxMinAvg &mma) {
     res = 0;
     ::memset(&mma, 0, sizeof (mma));
-    std::wstring sql = L"SELECT MAX(amount), MIN(amount), AVG(amount) FROM sakila.payment";
+    std::wstring sql = L"SELECT MAX(amount),MIN(amount),AVG(amount) FROM sakila.payment";
     if (filter.size())
         sql += (L" WHERE " + filter);
     do {
@@ -177,6 +177,8 @@ void CYourPeerOne::QueryPaymentMaxMinAvgs(const std::wstring &filter, CMaxMinAvg
                 }
                 mma.Avg = vt.dblVal;
             } while (false);
+        }, [](CMySQLHandler & h) {
+
         });
         if (!ok) {
             res = handler->GetAttachedClientSocket()->GetErrorCode();
@@ -198,6 +200,9 @@ unsigned int CYourPeerOne::SendMeta(const SPA::UDB::CDBColumnInfoArray &meta, SP
 
 unsigned int CYourPeerOne::SendRows(SPA::UDB::CDBVariantArray &vData) {
     SPA::CScopeUQueue sb;
+#ifdef WIN32_64
+    sb->TimeEx(true);
+#endif
     sb << vData;
     unsigned int count;
     sb >> count; //remove data array size at head as a client is expecting an array of data without size ahead

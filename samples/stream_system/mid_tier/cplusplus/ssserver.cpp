@@ -87,5 +87,14 @@ bool CYourServer::AddServices() {
 void CYourServer::SetChatGroups() {
     bool ok = PushManager::AddAChatGroup(SPA::UDB::STREAMING_SQL_CHAT_GROUP_ID, L"Subscribe/publish for front clients");
     ok = PushManager::AddAChatGroup(SPA::UDB::CACHE_UPDATE_CHAT_GROUP_ID, L"Cache update notification from middle tier to front");
-    //ok = false;
+}
+
+void CYourServer::CreateTestDB() {
+    std::wstring sql = L"CREATE DATABASE IF NOT EXISTS mysample character set utf8 collate utf8_general_ci;USE mysample;CREATE TABLE IF NOT EXISTS COMPANY(ID BIGINT PRIMARY KEY NOT NULL,Name CHAR(64)NOT NULL);CREATE TABLE IF NOT EXISTS EMPLOYEE(EMPLOYEEID BIGINT PRIMARY KEY AUTO_INCREMENT,CompanyId BIGINT NOT NULL,Name NCHAR(64)NOT NULL,JoinDate DATETIME(6)DEFAULT NULL,FOREIGN KEY(CompanyId)REFERENCES COMPANY(id))";
+    auto handler = Master->Seek();
+    if (handler) {
+        handler->Execute(sql.c_str());
+        sql = L"INSERT INTO mysample.COMPANY(ID,Name)VALUES(1,'Google Inc.'),(2,'Microsoft Inc.'),(3,'Amazon Inc.')";
+        handler->Execute(sql.c_str());
+    }
 }

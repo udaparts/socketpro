@@ -35,6 +35,10 @@ namespace SPA {
                     case SPA::ClientSide::speConnected:
                         if (asyncSQL->GetAttachedClientSocket()->GetErrorCode() != 0)
                             break;
+                        asyncSQL->Utf8ToW(true);
+#ifdef WIN32_64
+                        asyncSQL->TimeEx(true);
+#endif
                         asyncSQL->Open(this->GetDefaultDBName(), nullptr); //open a session to backend database by default 
                         break;
                     default:
@@ -144,6 +148,10 @@ namespace SPA {
                         }
                         SetInitialCache(asyncSQL);
                     } else {
+                        asyncSQL->Utf8ToW(true);
+#ifdef WIN32_64
+                        asyncSQL->TimeEx(true);
+#endif
                         asyncSQL->Open(this->GetDefaultDBName(), nullptr);
                     }
                     break;

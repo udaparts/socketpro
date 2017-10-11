@@ -36,6 +36,8 @@ int main(int argc, char* argv[]) {
     SPA::CTable table;
     int res = CMySQLMasterPool::Cache.Between(L"sakila", L"actor", 3, "2017-07-01", "2017-01-1", table);
 
+    CYourServer::CreateTestDB();
+
     //test certificate and private key files are located at the directory ../socketpro/bin
 #ifdef WIN32_64 //windows platforms
     if (g_config.m_store_or_pfx.rfind(".pfx") != std::string::npos) {
