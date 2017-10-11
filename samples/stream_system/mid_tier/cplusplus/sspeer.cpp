@@ -51,7 +51,7 @@ void CYourPeerOne::UploadEmployees(const SPA::UDB::CDBVariantArray &vData, int &
 
     const wchar_t *sql = L"INSERT INTO mysample.employee(CompanyId,Name,JoinDate)VALUES(?,?,?)";
     //use master for insert, update and delete
-    auto handler = CYourServer::Master->Lock();
+    auto handler = CYourServer::Master->Lock(); //use Lock and Unlock to avoid SQL stream overlap on a session within a multi-thread environment
     if (!handler) {
         res = -1;
         errMsg = L"No connection to a master database";
@@ -113,13 +113,16 @@ void CYourPeerOne::UploadEmployees(const SPA::UDB::CDBVariantArray &vData, int &
             errMsg = SPA::Utilities::ToWide(handler->GetAttachedClientSocket()->GetErrorMsg().c_str());
             break;
         }
+        CYourServer::Master->Unlock(handler); //put back locked handler and its socket back into pool for reuse as soon as possible
+        handler = nullptr;
         auto status = m_cv.wait_for(al, m_timeout); //don't use handle->WaitAll() for better completion event as a session may be shared by multiple threads
         if (status == std::cv_status::timeout) {
             res = -3;
             errMsg = L"Insert table data timeout";
         }
     } while (false);
-    CYourServer::Master->Unlock(handler);
+    if (handler)
+        CYourServer::Master->Unlock(handler);
 }
 
 void CYourPeerOne::QueryPaymentMaxMinAvgs(const std::wstring &filter, int &res, std::wstring &errMsg, CMaxMinAvg &mma) {
@@ -220,12 +223,6 @@ void CYourPeerOne::GetCachedTables(unsigned int flags, bool rowset, SPA::UINT64 
         }
         if (!rowset)
             break;
-        auto handler = CYourServer::Master->Seek();
-        if (!handler) {
-            res = -1;
-            errMsg = L"No connection to a master database";
-            break;
-        }
         if (!g_config.m_vFrontCachedTable.size())
             break;
         std::wstring sql;
@@ -233,6 +230,12 @@ void CYourPeerOne::GetCachedTables(unsigned int flags, bool rowset, SPA::UINT64 
             if (sql.size())
                 sql += L";";
             sql += L"SELECT * FROM " + SPA::Utilities::ToWide(it->c_str(), it->size());
+        }
+        auto handler = CYourServer::Master->Lock(); //use Lock and Unlock to avoid SQL stream overlap on a session within a multi-thread environment
+        if (!handler) {
+            res = -1;
+            errMsg = L"No connection to a master database";
+            break;
         }
         //subscribe for socket disconnection event during querying cached tables data
         CYourServer::Master->Subscribe((SPA::UINT64) this, [this, &res, &errMsg] {
@@ -253,8 +256,10 @@ void CYourPeerOne::GetCachedTables(unsigned int flags, bool rowset, SPA::UINT64 
         if (!ok) {
             res = handler->GetAttachedClientSocket()->GetErrorCode();
             errMsg = SPA::Utilities::ToWide(handler->GetAttachedClientSocket()->GetErrorMsg().c_str());
+            CYourServer::Master->Unlock(handler); //put back locked handler and its socket back into pool for reuse as soon as possible
             break;
         }
+        CYourServer::Master->Unlock(handler); //put back locked handler and its socket back into pool for reuse as soon as possible
         auto status = m_cv.wait_for(al, m_timeout); //don't use handle->WaitAll() for better completion event as a session may be shared by multiple threads
         if (status == std::cv_status::timeout) {
             res = -3;
