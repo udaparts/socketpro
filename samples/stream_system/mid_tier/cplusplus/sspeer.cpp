@@ -49,16 +49,17 @@ void CYourPeerOne::QueryMaxMinAvgs(const std::wstring &sql, CMaxMinAvg &mma, int
             errMsg = L"No connection to a slave database";
             break;
         }
-        CAutoLock al(m_mutex);
+		//subscribe for socket disconnection event during querying max, min and avg
         CYourServer::Slave->Subscribe((SPA::UINT64) this, [this, &res, &errMsg] {
-            this->m_cv.notify_one();
             res = -4;
-                    errMsg = L"Slave backend database disconnected during querying";
+            errMsg = L"Slave backend database disconnected during querying";
+			this->m_cv.notify_one();
         });
+		CAutoLock al(m_mutex);
         bool ok = handler->Execute(sql.c_str(), [this, &res, &errMsg](CMySQLHandler &h, int r, const std::wstring &err, SPA::INT64 affected, SPA::UINT64 fail_ok, SPA::UDB::CDBVariant & vtId) {
             res = r;
             errMsg = err;
-                    this->m_cv.notify_one();
+            this->m_cv.notify_one();
         }, [&mma, &res, &errMsg](CMySQLHandler &h, SPA::UDB::CDBVariantArray & vData) {
             do {
                 if (vData.size() != 3) {
@@ -141,16 +142,17 @@ void CYourPeerOne::GetCachedTables(unsigned int flags, bool rowset, SPA::UINT64 
                 sql += L";";
             sql += L"SELECT * FROM " + SPA::Utilities::ToWide(it->c_str(), it->size());
         }
-        CAutoLock al(m_mutex);
+		//subscribe for socket disconnection event during querying cached tables data
         CYourServer::Master->Subscribe((SPA::UINT64) this, [this, &res, &errMsg] {
-            this->m_cv.notify_one();
             res = -4;
-                    errMsg = L"Master backend database disconnected during querying for cached tables data";
+            errMsg = L"Master backend database disconnected during querying for cached tables data";
+			this->m_cv.notify_one();
         });
+		CAutoLock al(m_mutex);
         bool ok = handler->Execute(sql.c_str(), [this, &res, &errMsg](CMySQLHandler &h, int r, const std::wstring &err, SPA::INT64 affected, SPA::UINT64 fail_ok, SPA::UDB::CDBVariant & vtId) {
             res = r;
             errMsg = err;
-                    this->m_cv.notify_one();
+            this->m_cv.notify_one();
         }, [this](CMySQLHandler &h, SPA::UDB::CDBVariantArray & vData) {
             this->SendRows(vData);
         }, [this, index](CMySQLHandler & h) {
