@@ -29,13 +29,13 @@ bool CWebAsyncHandler::GetMasterSlaveConnectedSessions(DConnectedSessions cs) {
 }
 
 bool CWebAsyncHandler::UploadEmployees(const SPA::UDB::CDBVariantArray &vData, DUploadEmployees res) {
-	return SendRequest(idUploadEmployees, vData, [res](CAsyncResult & ar) {
-		int errCode;
-		std::wstring errMsg;
-		std::vector<SPA::INT64> vId;
-		ar >> errCode >> errMsg >> vId;
-		if (res) {
-			res(errCode, errMsg, vId);
-		}
-	});
+    return SendRequest(idUploadEmployees, vData, [res](CAsyncResult & ar) {
+        int errCode;
+        std::wstring errMsg;
+                std::vector<SPA::INT64> vId;
+                ar >> errCode >> errMsg >> vId;
+        if (res) {
+            res(errCode, errMsg, vId);
+        }
+    });
 }

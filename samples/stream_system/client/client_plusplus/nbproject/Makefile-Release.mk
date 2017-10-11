@@ -36,8 +36,10 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 # Object Files
 OBJECTFILES= \
 	${OBJECTDIR}/_ext/562988696/aclientw.o \
+	${OBJECTDIR}/_ext/562988696/aserverw.o \
 	${OBJECTDIR}/_ext/562988696/error_code.o \
 	${OBJECTDIR}/_ext/562988696/membuffer.o \
+	${OBJECTDIR}/_ext/562988696/tablecache.o \
 	${OBJECTDIR}/client_plusplus.o \
 	${OBJECTDIR}/stdafx.o \
 	${OBJECTDIR}/webasynchandler.o
@@ -72,6 +74,11 @@ ${OBJECTDIR}/_ext/562988696/aclientw.o: ../../../../include/aclientw.cpp
 	${RM} "$@.d"
 	$(COMPILE.c) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/562988696/aclientw.o ../../../../include/aclientw.cpp
 
+${OBJECTDIR}/_ext/562988696/aserverw.o: ../../../../include/aserverw.cpp 
+	${MKDIR} -p ${OBJECTDIR}/_ext/562988696
+	${RM} "$@.d"
+	$(COMPILE.c) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/562988696/aserverw.o ../../../../include/aserverw.cpp
+
 ${OBJECTDIR}/_ext/562988696/error_code.o: ../../../../include/error_code.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/562988696
 	${RM} "$@.d"
@@ -81,6 +88,11 @@ ${OBJECTDIR}/_ext/562988696/membuffer.o: ../../../../include/membuffer.cpp
 	${MKDIR} -p ${OBJECTDIR}/_ext/562988696
 	${RM} "$@.d"
 	$(COMPILE.c) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/562988696/membuffer.o ../../../../include/membuffer.cpp
+
+${OBJECTDIR}/_ext/562988696/tablecache.o: ../../../../include/tablecache.cpp 
+	${MKDIR} -p ${OBJECTDIR}/_ext/562988696
+	${RM} "$@.d"
+	$(COMPILE.c) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/562988696/tablecache.o ../../../../include/tablecache.cpp
 
 ${OBJECTDIR}/client_plusplus.o: client_plusplus.cpp 
 	${MKDIR} -p ${OBJECTDIR}

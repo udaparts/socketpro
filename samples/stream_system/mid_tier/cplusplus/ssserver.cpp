@@ -79,7 +79,7 @@ bool CYourServer::AddServices() {
         return false;
     ok = m_SSPeer.AddSlowRequest(SPA::UDB::idGetCachedTables);
     ok = m_SSPeer.AddSlowRequest(idQueryMaxMinAvgs);
-	ok = m_SSPeer.AddSlowRequest(idUploadEmployees);
+    ok = m_SSPeer.AddSlowRequest(idUploadEmployees);
 
     return true;
 }

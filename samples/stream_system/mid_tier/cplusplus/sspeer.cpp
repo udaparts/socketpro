@@ -29,7 +29,7 @@ int CYourPeerOne::OnSlowRequestArrive(unsigned short reqId, unsigned int len) {
     BEGIN_SWITCH(reqId)
     M_I1_R3(idQueryMaxMinAvgs, QueryPaymentMaxMinAvgs, std::wstring, CMaxMinAvg, int, std::wstring)
     M_I3_R2(SPA::UDB::idGetCachedTables, GetCachedTables, unsigned int, bool, SPA::UINT64, int, std::wstring)
-	M_I1_R3(idUploadEmployees, UploadEmployees, SPA::UDB::CDBVariantArray, int, std::wstring, std::vector<SPA::INT64>)
+    M_I1_R3(idUploadEmployees, UploadEmployees, SPA::UDB::CDBVariantArray, int, std::wstring, std::vector<SPA::INT64>)
     END_SWITCH
     return 0;
 }
@@ -40,93 +40,94 @@ void CYourPeerOne::GetMasterSlaveConnectedSessions(unsigned int &m_connections, 
 }
 
 void CYourPeerOne::UploadEmployees(const SPA::UDB::CDBVariantArray &vData, int &res, std::wstring &errMsg, std::vector<SPA::INT64> &vId) {
-	res = 0;
-	if (!vData.size())
-		return;
-	if ((vData.size() % 3)) {
-		res = -1; errMsg = L"Data array size wrong";
-		return;
-	}
+    res = 0;
+    if (!vData.size())
+        return;
+    if ((vData.size() % 3)) {
+        res = -1;
+        errMsg = L"Data array size wrong";
+        return;
+    }
 
-	const wchar_t *sql = L"INSERT INTO mysample.employee(CompanyId,Name,JoinDate)VALUES(?,?,?)";
-	//use master for insert, update and delete
-	auto handler = CYourServer::Master->Lock();
-	if (!handler) {
-		res = -1; errMsg = L"No connection to a master database";
-		return;
-	}
-	bool ok;
-	do {
-		//subscribe for socket disconnection event during querying cached tables data
-		CYourServer::Master->Subscribe((SPA::UINT64) this, [this, &res, &errMsg] {
-			res = -4;
-			errMsg = L"Master backend database disconnected during querying for cached tables data";
-			this->m_cv.notify_one();
-		});
-		CAutoLock al(m_mutex);
-		ok = handler->Prepare(sql);
-		if (!ok) {
-			res = handler->GetAttachedClientSocket()->GetErrorCode();
-			errMsg = SPA::Utilities::ToWide(handler->GetAttachedClientSocket()->GetErrorMsg().c_str());
-			break;
-		}
-		ok = handler->BeginTrans();
-		if (!ok) {
-			res = handler->GetAttachedClientSocket()->GetErrorCode();
-			errMsg = SPA::Utilities::ToWide(handler->GetAttachedClientSocket()->GetErrorMsg().c_str());
-			break;
-		}
-		SPA::UDB::CDBVariantArray v;
-		for (auto it = vData.cbegin(), end = vData.cend(); it != end;) {
-			v.push_back(*it);
-			v.push_back(*(it + 1));
-			v.push_back(*(it + 2));
-			ok = handler->Execute(v, [&res, &errMsg, &vId](CMySQLHandler &h, int r, const std::wstring &err, SPA::INT64 affected, SPA::UINT64 fail_ok, SPA::UDB::CDBVariant & vtId) {
-				if (r && !res) {
-					res = r;
-					errMsg = err;
-					vId.push_back(-1);
-				}
-				else if (r)
-					vId.push_back(-1);
-				else {
-					assert(affected == 1);
-					assert(!err.size());
-					assert(fail_ok == 1);
-					vId.push_back(vtId.llVal);
-				}
-			});
-			if (!ok) {
-				res = handler->GetAttachedClientSocket()->GetErrorCode();
-				errMsg = SPA::Utilities::ToWide(handler->GetAttachedClientSocket()->GetErrorMsg().c_str());
-				break;
-			}
-			v.clear();
-			it += 3;
-		}
-		if (!ok)
-			break;
-		ok = handler->EndTrans(SPA::UDB::rpRollbackErrorAll);
-		if (!ok) {
-			res = handler->GetAttachedClientSocket()->GetErrorCode();
-			errMsg = SPA::Utilities::ToWide(handler->GetAttachedClientSocket()->GetErrorMsg().c_str());
-			break;
-		}
-		auto status = m_cv.wait_for(al, m_timeout); //don't use handle->WaitAll() for better completion event as a session may be shared by multiple threads
-		if (status == std::cv_status::timeout) {
-			res = -3;
-			errMsg = L"Insert table data timeout";
-		}
-	} while (false);
-	CYourServer::Master->Unlock(handler);
+    const wchar_t *sql = L"INSERT INTO mysample.employee(CompanyId,Name,JoinDate)VALUES(?,?,?)";
+    //use master for insert, update and delete
+    auto handler = CYourServer::Master->Lock();
+    if (!handler) {
+        res = -1;
+        errMsg = L"No connection to a master database";
+        return;
+    }
+    bool ok;
+    do {
+        //subscribe for socket disconnection event during querying cached tables data
+        CYourServer::Master->Subscribe((SPA::UINT64) this, [this, &res, &errMsg] {
+            res = -4;
+            errMsg = L"Master backend database disconnected during querying for cached tables data";
+                    this->m_cv.notify_one();
+        });
+        CAutoLock al(m_mutex);
+        ok = handler->Prepare(sql);
+        if (!ok) {
+            res = handler->GetAttachedClientSocket()->GetErrorCode();
+            errMsg = SPA::Utilities::ToWide(handler->GetAttachedClientSocket()->GetErrorMsg().c_str());
+            break;
+        }
+        ok = handler->BeginTrans();
+        if (!ok) {
+            res = handler->GetAttachedClientSocket()->GetErrorCode();
+            errMsg = SPA::Utilities::ToWide(handler->GetAttachedClientSocket()->GetErrorMsg().c_str());
+            break;
+        }
+        SPA::UDB::CDBVariantArray v;
+        for (auto it = vData.cbegin(), end = vData.cend(); it != end;) {
+            v.push_back(*it);
+            v.push_back(*(it + 1));
+            v.push_back(*(it + 2));
+            ok = handler->Execute(v, [&res, &errMsg, &vId](CMySQLHandler &h, int r, const std::wstring &err, SPA::INT64 affected, SPA::UINT64 fail_ok, SPA::UDB::CDBVariant & vtId) {
+                if (r && !res) {
+                    res = r;
+                    errMsg = err;
+                    vId.push_back(-1);
+                } else if (r)
+                    vId.push_back(-1);
+                else {
+                    assert(affected == 1);
+                    assert(!err.size());
+                    assert(fail_ok == 1);
+                    vId.push_back(vtId.llVal);
+                }
+            });
+            if (!ok) {
+                res = handler->GetAttachedClientSocket()->GetErrorCode();
+                errMsg = SPA::Utilities::ToWide(handler->GetAttachedClientSocket()->GetErrorMsg().c_str());
+                break;
+            }
+            v.clear();
+            it += 3;
+        }
+        if (!ok)
+            break;
+        ok = handler->EndTrans(SPA::UDB::rpRollbackErrorAll);
+        if (!ok) {
+            res = handler->GetAttachedClientSocket()->GetErrorCode();
+            errMsg = SPA::Utilities::ToWide(handler->GetAttachedClientSocket()->GetErrorMsg().c_str());
+            break;
+        }
+        auto status = m_cv.wait_for(al, m_timeout); //don't use handle->WaitAll() for better completion event as a session may be shared by multiple threads
+        if (status == std::cv_status::timeout) {
+            res = -3;
+            errMsg = L"Insert table data timeout";
+        }
+    } while (false);
+    CYourServer::Master->Unlock(handler);
 }
 
 void CYourPeerOne::QueryPaymentMaxMinAvgs(const std::wstring &filter, CMaxMinAvg &mma, int &res, std::wstring &errMsg) {
     res = 0;
     ::memset(&mma, 0, sizeof (mma));
-	std::wstring sql = L"SELECT MAX(amount), MIN(amount), AVG(amount) FROM sakila.payment";
-	if (filter.size())
-		sql += (L" WHERE " + filter);
+    std::wstring sql = L"SELECT MAX(amount), MIN(amount), AVG(amount) FROM sakila.payment";
+    if (filter.size())
+        sql += (L" WHERE " + filter);
     do {
         //we are going to use slave for the query
         auto handler = CYourServer::Slave->Seek();
@@ -135,17 +136,17 @@ void CYourPeerOne::QueryPaymentMaxMinAvgs(const std::wstring &filter, CMaxMinAvg
             errMsg = L"No connection to a slave database";
             break;
         }
-		//subscribe for socket disconnection event during querying max, min and avg
+        //subscribe for socket disconnection event during querying max, min and avg
         CYourServer::Slave->Subscribe((SPA::UINT64) this, [this, &res, &errMsg] {
             res = -4;
             errMsg = L"Slave backend database disconnected during querying";
-			this->m_cv.notify_one();
+                    this->m_cv.notify_one();
         });
-		CAutoLock al(m_mutex);
+        CAutoLock al(m_mutex);
         bool ok = handler->Execute(sql.c_str(), [this, &res, &errMsg](CMySQLHandler &h, int r, const std::wstring &err, SPA::INT64 affected, SPA::UINT64 fail_ok, SPA::UDB::CDBVariant & vtId) {
             res = r;
             errMsg = err;
-            this->m_cv.notify_one();
+                    this->m_cv.notify_one();
         }, [&mma, &res, &errMsg](CMySQLHandler &h, SPA::UDB::CDBVariantArray & vData) {
             do {
                 if (vData.size() != 3) {
@@ -228,17 +229,17 @@ void CYourPeerOne::GetCachedTables(unsigned int flags, bool rowset, SPA::UINT64 
                 sql += L";";
             sql += L"SELECT * FROM " + SPA::Utilities::ToWide(it->c_str(), it->size());
         }
-		//subscribe for socket disconnection event during querying cached tables data
+        //subscribe for socket disconnection event during querying cached tables data
         CYourServer::Master->Subscribe((SPA::UINT64) this, [this, &res, &errMsg] {
             res = -4;
             errMsg = L"Master backend database disconnected during querying for cached tables data";
-			this->m_cv.notify_one();
+                    this->m_cv.notify_one();
         });
-		CAutoLock al(m_mutex);
+        CAutoLock al(m_mutex);
         bool ok = handler->Execute(sql.c_str(), [this, &res, &errMsg](CMySQLHandler &h, int r, const std::wstring &err, SPA::INT64 affected, SPA::UINT64 fail_ok, SPA::UDB::CDBVariant & vtId) {
             res = r;
             errMsg = err;
-            this->m_cv.notify_one();
+                    this->m_cv.notify_one();
         }, [this](CMySQLHandler &h, SPA::UDB::CDBVariantArray & vData) {
             this->SendRows(vData);
         }, [this, index](CMySQLHandler & h) {

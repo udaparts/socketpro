@@ -13,10 +13,10 @@ public:
 public:
     typedef std::function<void(const CMaxMinAvg &mma, int res, const std::wstring &errMsg) > DMaxMinAvg;
     typedef std::function<void(unsigned int, unsigned int) > DConnectedSessions;
-	typedef std::function<void(int res, const std::wstring &errMsg, std::vector<SPA::INT64> &vId) > DUploadEmployees;
+    typedef std::function<void(int res, const std::wstring &errMsg, std::vector<SPA::INT64> &vId) > DUploadEmployees;
 
 public:
     bool QueryPaymentMaxMinAvgs(const wchar_t *filter, DMaxMinAvg mma);
     bool GetMasterSlaveConnectedSessions(DConnectedSessions cs);
-	bool UploadEmployees(const SPA::UDB::CDBVariantArray &vData, DUploadEmployees res);
+    bool UploadEmployees(const SPA::UDB::CDBVariantArray &vData, DUploadEmployees res);
 };

@@ -5,10 +5,12 @@
                    displayName="Header Files"
                    projectFiles="true">
       <itemPath>../../../../include/aclientw.h</itemPath>
+      <itemPath>../../../../include/generalcache.h</itemPath>
+      <itemPath>../../../../include/masterslavebase.h</itemPath>
       <itemPath>../../../../include/membuffer.h</itemPath>
       <itemPath>../../shared/ss_defines.h</itemPath>
+      <itemPath>../../../../include/tablecache.h</itemPath>
       <itemPath>../../../../include/udatabase.h</itemPath>
-      <itemPath>../../../../include/udb_client.h</itemPath>
       <itemPath>webasynchandler.h</itemPath>
     </logicalFolder>
     <logicalFolder name="ResourceFiles"
@@ -19,10 +21,12 @@
                    displayName="Source Files"
                    projectFiles="true">
       <itemPath>../../../../include/aclientw.cpp</itemPath>
+      <itemPath>../../../../include/aserverw.cpp</itemPath>
       <itemPath>client_plusplus.cpp</itemPath>
       <itemPath>../../../../include/error_code.cpp</itemPath>
       <itemPath>../../../../include/membuffer.cpp</itemPath>
       <itemPath>stdafx.cpp</itemPath>
+      <itemPath>../../../../include/tablecache.cpp</itemPath>
       <itemPath>webasynchandler.cpp</itemPath>
     </logicalFolder>
     <logicalFolder name="TestFiles"
@@ -64,15 +68,26 @@
       </item>
       <item path="../../../../include/aclientw.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../../../include/aserverw.cpp" ex="false" tool="0" flavor2="0">
+      </item>
       <item path="../../../../include/error_code.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="../../../../include/generalcache.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../../include/masterslavebase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="../../../../include/membuffer.cpp" ex="false" tool="0" flavor2="0">
       </item>
       <item path="../../../../include/membuffer.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../../../include/udatabase.h" ex="false" tool="3" flavor2="0">
+      <item path="../../../../include/tablecache.cpp" ex="false" tool="0" flavor2="0">
       </item>
-      <item path="../../../../include/udb_client.h" ex="false" tool="3" flavor2="0">
+      <item path="../../../../include/tablecache.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../../include/udatabase.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../shared/ss_defines.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -119,15 +134,26 @@
       </item>
       <item path="../../../../include/aclientw.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../../../include/aserverw.cpp" ex="false" tool="0" flavor2="0">
+      </item>
       <item path="../../../../include/error_code.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="../../../../include/generalcache.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../../include/masterslavebase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="../../../../include/membuffer.cpp" ex="false" tool="0" flavor2="0">
       </item>
       <item path="../../../../include/membuffer.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../../../include/udatabase.h" ex="false" tool="3" flavor2="0">
+      <item path="../../../../include/tablecache.cpp" ex="false" tool="0" flavor2="0">
       </item>
-      <item path="../../../../include/udb_client.h" ex="false" tool="3" flavor2="0">
+      <item path="../../../../include/tablecache.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../../include/udatabase.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../shared/ss_defines.h" ex="false" tool="3" flavor2="0">
       </item>

@@ -17,7 +17,7 @@ int main(int argc, char* argv[]) {
     cc.Password = L"A_Password_For_SomeUserId";
     cc.EncrytionMethod = SPA::tagEncryptionMethod::TLSv1;
 
-	CWebMasterPool master(L"sakila", false);
+    CWebMasterPool master(L"sakila", false);
 
     //CA file is located at the directory ../socketpro/bin
     CClientSocket::SSL::SetVerifyLocation("ca.cert.pem");
@@ -36,7 +36,7 @@ int main(int argc, char* argv[]) {
         return (errCode == 0); //true -- user id and password will be sent to server
     };
 
-	SPA::CDataSet ds;
+    SPA::CDataSet ds;
 
     bool ok = sp.StartSocketPool(cc, 1, 1);
     if (!ok) {
@@ -45,20 +45,20 @@ int main(int argc, char* argv[]) {
         return 1;
     }
     auto handler = sp.Seek();
-	CDBColumnInfoArray vCol;
+    CDBColumnInfoArray vCol;
     ok = handler->GetCachedTables([](int res, const std::wstring & errMsg) {
         if (res) {
             std::cout << "Get initial cache with error code: " << res << ", error message: ";
             std::wcout << errMsg.c_str() << std::endl;
         }
-	}, [&ds, &vCol](CDBVariantArray & vData) {
-		ds.AddRows(vCol.front().DBPath.c_str(), vCol.front().TablePath.c_str(), vData);
-	}, [&ds, &vCol](CDBColumnInfoArray & meta) {
-		ds.AddEmptyRowset(meta);
-		vCol = meta;
+    }, [&ds, &vCol](CDBVariantArray & vData) {
+        ds.AddRows(vCol.front().DBPath.c_str(), vCol.front().TablePath.c_str(), vData);
+    }, [&ds, &vCol](CDBColumnInfoArray & meta) {
+        ds.AddEmptyRowset(meta);
+        vCol = meta;
     });
 
-	ok = handler->WaitAll();
+    ok = handler->WaitAll();
 
     std::cout << "Press a key to shutdown the demo application ......" << std::endl;
     ::getchar();

@@ -20,19 +20,19 @@ struct CMaxMinAvg {
 };
 
 static SPA::CUQueue& operator<<(SPA::CUQueue &q, const std::vector<SPA::INT64> &v) {
-	q << (unsigned int)v.size();
-	q.Push((const unsigned char*)v.data(), (unsigned int)(v.size() * sizeof(SPA::INT64)));
-	return q;
+    q << (unsigned int) v.size();
+    q.Push((const unsigned char*) v.data(), (unsigned int) (v.size() * sizeof (SPA::INT64)));
+    return q;
 }
 
 static SPA::CUQueue& operator>>(SPA::CUQueue &q, std::vector<SPA::INT64> &v) {
-	unsigned int count;
-	v.clear();
-	q >> count;
-	auto data = (const SPA::INT64*)q.GetBuffer();
-	v.assign(data, data + count);
-	q.Pop(count * sizeof(SPA::INT64));
-	return q;
+    unsigned int count;
+    v.clear();
+    q >> count;
+    auto data = (const SPA::INT64*)q.GetBuffer();
+    v.assign(data, data + count);
+    q.Pop(count * sizeof (SPA::INT64));
+    return q;
 }
 
 #endif
