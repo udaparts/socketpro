@@ -5,7 +5,8 @@
 #include "tablecache.h"
 
 namespace SPA {
-	template<typename THandler, typename TCS = ClientSide::CClientSocket>
+
+    template<typename THandler, typename TCS = ClientSide::CClientSocket>
     class CMasterSlaveBase : public ClientSide::CSocketPool < THandler, TCS> {
     public:
         typedef ClientSide::CSocketPool < THandler, TCS> CBase;
@@ -55,14 +56,14 @@ namespace SPA {
             }
         }
 
-		static std::wstring ToWide(const VARIANT &data) {
-			const char *s;
-			assert(data.vt == (VT_ARRAY | VT_I1));
-			::SafeArrayAccessData(data.parray, (void**)&s);
-			std::wstring ws = Utilities::ToWide(s, data.parray->rgsabound->cElements);
-			::SafeArrayUnaccessData(data.parray);
-			return ws;
-		}
+        static std::wstring ToWide(const VARIANT &data) {
+            const char *s;
+            assert(data.vt == (VT_ARRAY | VT_I1));
+            ::SafeArrayAccessData(data.parray, (void**) &s);
+            std::wstring ws = Utilities::ToWide(s, data.parray->rgsabound->cElements);
+            ::SafeArrayUnaccessData(data.parray);
+            return ws;
+        }
 
     private:
         std::unordered_map<UINT64, DOnClosed> m_mapClose; //protected by base class m_cs

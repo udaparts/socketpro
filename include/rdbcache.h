@@ -7,38 +7,42 @@
 #include "masterslavebase.h"
 
 namespace SPA {
+
     template<bool midTier, typename THandler, typename TCache = CDataSet>
     class CSQLMasterPool : public CMasterSlaveBase < THandler > {
     public:
         typedef CMasterSlaveBase < THandler > CBase;
-        
+
         CSQLMasterPool(const wchar_t *defaultDb, unsigned int recvTimeout = ClientSide::DEFAULT_RECV_TIMEOUT)
         : CBase(defaultDb, recvTimeout) {
         }
+
         typedef TCache CDataSet;
-        static TCache Cache; //real-time cache accessable from your code
+        static TCache Cache; //real-time cache accessible from your code
         typedef ClientSide::CAsyncDBHandler<THandler::SQLStreamServiceId> CSQLHandler;
 
-		class CSlavePool : public CMasterSlaveBase < THandler > {
-		public:
-			CSlavePool(const wchar_t *defaultDb, unsigned int recvTimeout = ClientSide::DEFAULT_RECV_TIMEOUT)
-				: CMasterSlaveBase<THandler>(defaultDb, recvTimeout) {
-			}
+        class CSlavePool : public CMasterSlaveBase < THandler > {
+        public:
 
-		protected:
-			virtual void OnSocketPoolEvent(ClientSide::tagSocketPoolEvent spe, const std::shared_ptr<THandler> &asyncSQL) {
-				switch (spe) {
-				case SPA::ClientSide::speConnected:
-					if (asyncSQL->GetAttachedClientSocket()->GetErrorCode() != 0)
-						break;
-					asyncSQL->Open(this->GetDefaultDBName(), nullptr); //open a session to backend database by default 
-					break;
-				default:
-					CMasterSlaveBase < THandler >::OnSocketPoolEvent(spe, asyncSQL);
-					break;
-				}
-			}
-		};
+            CSlavePool(const wchar_t *defaultDb, unsigned int recvTimeout = ClientSide::DEFAULT_RECV_TIMEOUT)
+            : CMasterSlaveBase<THandler>(defaultDb, recvTimeout) {
+            }
+
+        protected:
+
+            virtual void OnSocketPoolEvent(ClientSide::tagSocketPoolEvent spe, const std::shared_ptr<THandler> &asyncSQL) {
+                switch (spe) {
+                    case SPA::ClientSide::speConnected:
+                        if (asyncSQL->GetAttachedClientSocket()->GetErrorCode() != 0)
+                            break;
+                        asyncSQL->Open(this->GetDefaultDBName(), nullptr); //open a session to backend database by default 
+                        break;
+                    default:
+                        CMasterSlaveBase < THandler >::OnSocketPoolEvent(spe, asyncSQL);
+                        break;
+                }
+            }
+        };
 
     protected:
 
@@ -76,12 +80,12 @@ namespace SPA {
 
                             if (!Cache.GetDBServerName().size()) {
                                 if (vData[1].vt == (VT_ARRAY | VT_I1))
-                                    Cache.SetDBServerName(ToWide(vData[1]).c_str());
+                                    Cache.SetDBServerName(this->ToWide(vData[1]).c_str());
                                 else if (vData[1].vt == VT_BSTR)
                                     Cache.SetDBServerName(vData[1].bstrVal);
                             }
                             if (vData[2].vt == (VT_ARRAY | VT_I1))
-                                Cache.SetUpdater(ToWide(vData[2]).c_str());
+                                Cache.SetUpdater(this->ToWide(vData[2]).c_str());
                             else if (vData[2].vt == VT_BSTR)
                                 Cache.SetUpdater(vData[2].bstrVal);
                             else
@@ -89,7 +93,7 @@ namespace SPA {
 
                             std::wstring dbName;
                             if (vData[3].vt == (VT_I1 | VT_ARRAY)) {
-                                dbName = ToWide(vData[3]);
+                                dbName = this->ToWide(vData[3]);
                             } else if (vData[3].vt == VT_BSTR)
                                 dbName = vData[3].bstrVal;
                             else {
@@ -97,7 +101,7 @@ namespace SPA {
                             }
                             std::wstring tblName;
                             if (vData[4].vt == (VT_I1 | VT_ARRAY)) {
-                                tblName = ToWide(vData[4]);
+                                tblName = this->ToWide(vData[4]);
                             } else if (vData[3].vt == VT_BSTR)
                                 tblName = vData[4].bstrVal;
                             else {

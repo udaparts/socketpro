@@ -9,11 +9,11 @@ public:
 
 public:
     typedef std::function<void(const CMaxMinAvg &mma, int res, const std::wstring &errMsg) > DMaxMinAvg;
-	typedef std::function<void(unsigned int, unsigned int) > DConnectedSessions;
+    typedef std::function<void(unsigned int, unsigned int) > DConnectedSessions;
 
 public:
     bool QueryMaxMinAvgs(const wchar_t *sql, DMaxMinAvg mma);
-	bool GetMasterSlaveConnectedSessions(DConnectedSessions cs);
+    bool GetMasterSlaveConnectedSessions(DConnectedSessions cs);
 
 protected:
     virtual void OnResultReturned(unsigned short reqId, SPA::CUQueue &mc);
