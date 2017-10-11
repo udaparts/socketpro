@@ -45,7 +45,7 @@ int main(int argc, char* argv[]) {
         server.UseSSL(g_config.m_store_or_pfx.c_str()/*"my"*/, g_config.m_password_or_subject.c_str(), "");
     }
 #else //non-windows platforms
-    server.UseSSL(g_config.m_key.c_str(), g_config.m_key.c_str(), g_config.m_password_or_subject.c_str());
+    server.UseSSL(g_config.m_cert.c_str(), g_config.m_key.c_str(), g_config.m_password_or_subject.c_str());
 #endif
 
     //start listening socket with standard TLSv1.x security

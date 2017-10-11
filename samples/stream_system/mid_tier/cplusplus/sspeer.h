@@ -22,8 +22,9 @@ protected:
 
 private:
     void GetCachedTables(unsigned int flags, bool rowset, SPA::UINT64 index, int &res, std::wstring &errMsg);
-    void QueryMaxMinAvgs(const std::wstring &sql, CMaxMinAvg &mma, int &res, std::wstring &errMsg);
+    void QueryPaymentMaxMinAvgs(const std::wstring &filter, CMaxMinAvg &mma, int &res, std::wstring &errMsg);
     void GetMasterSlaveConnectedSessions(unsigned int &m_connections, unsigned int &s_connections);
+	void UploadEmployees(const SPA::UDB::CDBVariantArray &vData, int &res, std::wstring &errMsg, std::vector<SPA::INT64> &vId);
 
 private:
     CYourPeerOne(const CYourPeerOne &p);
