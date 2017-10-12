@@ -27,10 +27,7 @@ namespace SPA
         CSqliteImpl::CSqliteUpdateMap CSqliteImpl::m_mapUpdate;
 
         CSqliteImpl::CSqliteImpl() : m_oks(0), m_fails(0), m_ti(tiUnspecified), m_global(true), m_parameters(0) {
-#ifdef WIN32_64
-            //use high precision datetime
-            m_UQueue.TimeEx(true);
-#endif
+
         }
 
         void CSqliteImpl::SetDBGlobalConnectionString(const wchar_t * dbConnection) {

@@ -55,9 +55,6 @@ namespace SPA
         m_sql_flags(0), m_affected_rows(0), m_last_insert_id(0),
         m_server_status(0), m_statement_warn_count(0), m_indexCall(0), m_bBlob(false) {
             m_qSend.ToUtf8(true);
-#ifdef WIN32_64
-            m_UQueue.TimeEx(true); //use high-precision datetime
-#endif
             m_UQueue.ToUtf8(true);
         }
 
