@@ -19,9 +19,6 @@ namespace SPA {
             CCachedBaseHandler(CClientSocket *cs = nullptr)
             : CAsyncServiceHandler(serviceId, cs), m_nCall(0), m_indexRowset(0) {
                 m_Blob.Utf8ToW(true);
-#ifdef WIN32_64
-                m_Blob.TimeEx(true);
-#endif
             }
 
             static const unsigned int CachedServiceId = serviceId;
@@ -103,16 +100,9 @@ namespace SPA {
                         if (mc.GetSize()) {
                             m_csCache.lock();
                             bool Utf8ToW = m_Blob.Utf8ToW();
-#ifdef WIN32_64
-                            bool timeEx = m_Blob.TimeEx();
-#endif
                             m_csCache.unlock();
                             if (Utf8ToW)
                                 mc.Utf8ToW(true);
-#ifdef WIN32_64
-                            if (timeEx)
-                                mc.TimeEx(true);
-#endif
                             while (mc.GetSize()) {
                                 m_vData.push_back(CDBVariant());
                                 CDBVariant &vt = m_vData.back();
@@ -121,26 +111,15 @@ namespace SPA {
                             assert(mc.GetSize() == 0);
                             if (Utf8ToW)
                                 mc.Utf8ToW(false);
-#ifdef WIN32_64
-                            if (timeEx)
-                                mc.TimeEx(false);
-#endif
                         }
                         break;
                     case idEndRows:
                         if (mc.GetSize() || m_vData.size()) {
                             m_csCache.lock();
                             bool Utf8ToW = m_Blob.Utf8ToW();
-#ifdef WIN32_64
-                            bool timeEx = m_Blob.TimeEx();
-#endif
                             m_csCache.unlock();
                             if (Utf8ToW)
                                 mc.Utf8ToW(true);
-#ifdef WIN32_64
-                            if (timeEx)
-                                mc.TimeEx(true);
-#endif
                             CDBVariant vtOne;
                             while (mc.GetSize()) {
                                 m_vData.push_back(vtOne);
@@ -150,10 +129,6 @@ namespace SPA {
                             assert(mc.GetSize() == 0);
                             if (Utf8ToW)
                                 mc.Utf8ToW(false);
-#ifdef WIN32_64
-                            if (timeEx)
-                                mc.TimeEx(false);
-#endif
                             DRows row;
                             {
                                 CAutoLock al(m_csCache);

@@ -40,7 +40,7 @@ int main(int argc, char* argv[]) {
         ::getchar();
         return 1;
     }
-    auto handler = master.Lock();
+    auto handler = master.Seek();
     SPA::CDataSet &cache = CWebMasterPool::Cache;
     ok = handler->GetMasterSlaveConnectedSessions([](unsigned int master_connection, unsigned int slave_connection) {
         std::cout << "master connection: " << master_connection << ", slave connection: " << slave_connection << std::endl;
@@ -53,8 +53,41 @@ int main(int argc, char* argv[]) {
             std::cout << "QueryPaymentMaxMinAvgs max: " << mma.Max << ", min: " << mma.Min << ", avg: " << mma.Avg << std::endl;
         }
     });
+    SYSTEMTIME st;
+    CDBVariantArray vData;
+
+    vData.push_back(1); //google company id
+    vData.push_back(L"Ted Cruz");
+#ifdef WIN32_64
+    ::GetLocalTime(&st);
+#else
+    ::gettimeofday(&st, nullptr);
+#endif
+    vData.push_back(st);
+
+    vData.push_back(1); //google company id
+    vData.push_back("Donald Trump");
+#ifdef WIN32_64
+    ::GetLocalTime(&st);
+#else
+    ::gettimeofday(&st, nullptr);
+#endif
+    vData.push_back(st);
+
+    vData.push_back(2); //Microsoft company id
+    vData.push_back("Hillary Clinton");
+#ifdef WIN32_64
+    ::GetLocalTime(&st);
+#else
+    ::gettimeofday(&st, nullptr);
+#endif
+    vData.push_back(st);
+    ok = handler->UploadEmployees(vData, [](int res, const std::wstring &errMsg, CInt64Array & vId) {
+        for (auto it = vId.cbegin(), end = vId.cend(); it != end; ++it) {
+            std::cout << "Last id: " << *it << std::endl;
+        }
+    });
     ok = handler->WaitAll();
-    master.Unlock(handler);
     std::cout << "Press a key to shutdown the demo application ......" << std::endl;
     ::getchar();
     return 0;

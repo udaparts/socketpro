@@ -103,27 +103,6 @@ namespace SPA {
                 m_Blob.Utf8ToW(bUtf8ToW);
             }
 
-#ifdef WIN32_64
-
-            /**
-             * Check if the object will use high-precision time when saving or loading a ASCII string by VARIANT.
-             * @return true if the object will use high-precision time, and false if the object will not
-             */
-            inline bool TimeEx() {
-                CAutoLock al(m_csDB);
-                return m_Blob.TimeEx();
-            }
-
-            /**
-             * Enable or disable the object to use high-precision time when saving or loading a ASCII string by VARIANT.
-             * @param timeEx true for enabling, and false for disabling
-             */
-            inline void TimeEx(bool timeEx) {
-                CAutoLock al(m_csDB);
-                m_Blob.TimeEx(timeEx);
-            }
-#endif
-
             virtual unsigned int CleanCallbacks() {
                 {
                     CAutoLock al(m_csDB);
@@ -190,9 +169,6 @@ namespace SPA {
                 if (size) {
                     bool firstRow = true;
                     CScopeUQueue sb;
-#ifdef WIN32_64
-                    sb->TimeEx(true); //force sending high precision datetime
-#endif
                     for (size_t n = 0; n < size; ++n) {
                         const CDBVariant &vt = vParam[n];
                         unsigned short dt = vt.Type();
@@ -626,16 +602,9 @@ namespace SPA {
                         if (mc.GetSize()) {
                             m_csDB.lock();
                             bool Utf8ToW = m_Blob.Utf8ToW();
-#ifdef WIN32_64
-                            bool timeEx = m_Blob.TimeEx();
-#endif
                             m_csDB.unlock();
                             if (Utf8ToW)
                                 mc.Utf8ToW(true);
-#ifdef WIN32_64
-                            if (timeEx)
-                                mc.TimeEx(true);
-#endif
                             while (mc.GetSize()) {
                                 m_vData.push_back(CDBVariant());
                                 CDBVariant &vt = m_vData.back();
@@ -644,10 +613,6 @@ namespace SPA {
                             assert(mc.GetSize() == 0);
                             if (Utf8ToW)
                                 mc.Utf8ToW(false);
-#ifdef WIN32_64
-                            if (timeEx)
-                                mc.TimeEx(false);
-#endif
                         }
                         break;
                     case idOutputParameter:
@@ -655,16 +620,9 @@ namespace SPA {
                         if (mc.GetSize() || m_vData.size()) {
                             m_csDB.lock();
                             bool Utf8ToW = m_Blob.Utf8ToW();
-#ifdef WIN32_64
-                            bool timeEx = m_Blob.TimeEx();
-#endif
                             m_csDB.unlock();
                             if (Utf8ToW)
                                 mc.Utf8ToW(true);
-#ifdef WIN32_64
-                            if (timeEx)
-                                mc.TimeEx(true);
-#endif
                             CDBVariant vtOne;
                             while (mc.GetSize()) {
                                 m_vData.push_back(vtOne);
@@ -674,10 +632,6 @@ namespace SPA {
                             assert(mc.GetSize() == 0);
                             if (Utf8ToW)
                                 mc.Utf8ToW(false);
-#ifdef WIN32_64
-                            if (timeEx)
-                                mc.TimeEx(false);
-#endif
                             if (reqId == idOutputParameter) {
                                 {
                                     CAutoLock al(m_csDB);

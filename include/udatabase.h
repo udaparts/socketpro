@@ -151,6 +151,10 @@ namespace SPA {
         static const unsigned short VT_STR = 129; //OLEDB data type for ASCII string
         static const unsigned short VT_WSTR = 130; //OLEDB data type for unicode string
 
+#ifdef WIN32_64
+        static const double MIN_WIN_DATETIME = 0.000001 / 3600 / 24;
+#endif
+
         class CDBVariant : public CComVariant {
         public:
             tagVTExt VtExt;
@@ -646,7 +650,13 @@ namespace SPA {
                 ::SafeArrayAccessData(vt.parray, (void**) &buffer);
                 q.Push((const unsigned char *) buffer, sizeof (GUID));
                 ::SafeArrayUnaccessData(vt.parray);
-            } else {
+            }
+#ifdef WIN32_64
+            else if (vt.vt == VT_DATE && vt.date < MIN_WIN_DATETIME) {
+                q << vt.vt << vt.ullVal;
+            }
+#endif
+            else {
                 q << (const tagVARIANT&) vt;
             }
             return q;
@@ -660,6 +670,17 @@ namespace SPA {
                     vte = vteGuid;
                 }
             }
+#ifdef WIN32_64
+            const VARTYPE *pvt = (const VARTYPE *) q.GetBuffer();
+            if (*pvt == VT_DATE) {
+                const double *dbl = (const double *) q.GetBuffer(sizeof (VARTYPE));
+                if (*dbl < MIN_WIN_DATETIME) {
+                    //high precision time
+                    q >> vt.vt >> vt.ullVal;
+                    return q;
+                }
+            }
+#endif
             q >> (tagVARIANT&) vt;
             vt.VtExt = vte;
             return q;

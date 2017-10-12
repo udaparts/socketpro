@@ -36,9 +36,6 @@ namespace SPA {
                         if (asyncSQL->GetAttachedClientSocket()->GetErrorCode() != 0)
                             break;
                         asyncSQL->Utf8ToW(true);
-#ifdef WIN32_64
-                        asyncSQL->TimeEx(true);
-#endif
                         asyncSQL->Open(this->GetDefaultDBName(), nullptr); //open a session to backend database by default 
                         break;
                     default:
@@ -149,9 +146,6 @@ namespace SPA {
                         SetInitialCache(asyncSQL);
                     } else {
                         asyncSQL->Utf8ToW(true);
-#ifdef WIN32_64
-                        asyncSQL->TimeEx(true);
-#endif
                         asyncSQL->Open(this->GetDefaultDBName(), nullptr);
                     }
                     break;
@@ -174,9 +168,6 @@ namespace SPA {
                         ip += ":";
                         ip += std::to_string(port);
                         h.Utf8ToW(true);
-#ifdef WIN32_64
-                        h.TimeEx(true);
-#endif
                         this->m_cache.Set(ip.c_str(), h.GetDBManagementSystem());
             }, UDB::ENABLE_TABLE_UPDATE_MESSAGES);
 

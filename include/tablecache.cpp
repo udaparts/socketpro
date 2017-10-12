@@ -23,7 +23,7 @@ namespace SPA
         if (S_OK != hr)
             return BAD_DATA_TYPE;
 #ifdef WIN32_64
-        if (vtTarget == VT_DATE && vtDes.date > 1.0 / 3600 / 24) {
+        if (vtTarget == VT_DATE && vtDes.date > UDB::MIN_WIN_DATETIME) {
             UDateTime dt(vtDes.date);
             vtDes.ullVal = dt.time;
         }
@@ -814,7 +814,7 @@ namespace SPA
     std::string CDataSet::ToDate(const VARIANT & vtDate) {
         assert(vtDate.vt == VT_DATE);
 #ifdef WIN32_64
-        assert(vtDate.dblVal < 1.0 / (3600000 * 24)); //must be in high precision time format
+        assert(vtDate.dblVal < UDB::MIN_WIN_DATETIME); //must be in high precision time format
 #endif
         UDateTime dt(vtDate.ullVal);
         return dt.ToDBString();

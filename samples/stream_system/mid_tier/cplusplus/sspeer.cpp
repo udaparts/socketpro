@@ -4,18 +4,10 @@
 #include "ssserver.h"
 #include "config.h"
 
+
 std::chrono::seconds CYourPeerOne::m_timeout(30); //30 seconds
 
 CYourPeerOne::CYourPeerOne() {
-
-}
-
-void CYourPeerOne::OnReleaseSource(bool bClosing, unsigned int info) {
-    CYourServer::Slave->Remove((SPA::UINT64) this);
-    CYourServer::Master->Remove((SPA::UINT64) this);
-}
-
-void CYourPeerOne::OnSwitchFrom(unsigned int nOldServiceId) {
 
 }
 
@@ -29,7 +21,7 @@ int CYourPeerOne::OnSlowRequestArrive(unsigned short reqId, unsigned int len) {
     BEGIN_SWITCH(reqId)
     M_I1_R3(idQueryMaxMinAvgs, QueryPaymentMaxMinAvgs, std::wstring, int, std::wstring, CMaxMinAvg)
     M_I3_R2(SPA::UDB::idGetCachedTables, GetCachedTables, unsigned int, bool, SPA::UINT64, int, std::wstring)
-    M_I1_R3(idUploadEmployees, UploadEmployees, SPA::UDB::CDBVariantArray, int, std::wstring, std::vector<SPA::INT64>)
+    M_I1_R3(idUploadEmployees, UploadEmployees, SPA::UDB::CDBVariantArray, int, std::wstring, CInt64Array)
     END_SWITCH
     return 0;
 }
@@ -39,7 +31,7 @@ void CYourPeerOne::GetMasterSlaveConnectedSessions(unsigned int &m_connections, 
     s_connections = CYourServer::Slave->GetConnectedSockets();
 }
 
-void CYourPeerOne::UploadEmployees(const SPA::UDB::CDBVariantArray &vData, int &res, std::wstring &errMsg, std::vector<SPA::INT64> &vId) {
+void CYourPeerOne::UploadEmployees(const SPA::UDB::CDBVariantArray &vData, int &res, std::wstring &errMsg, CInt64Array &vId) {
     res = 0;
     if (!vData.size())
         return;
@@ -57,16 +49,9 @@ void CYourPeerOne::UploadEmployees(const SPA::UDB::CDBVariantArray &vData, int &
         errMsg = L"No connection to a master database";
         return;
     }
-    bool ok;
     do {
-        //subscribe for socket disconnection event during querying cached tables data
-        CYourServer::Master->Subscribe((SPA::UINT64) this, [this, &res, &errMsg] {
-            res = -4;
-            errMsg = L"Master backend database disconnected during querying for cached tables data";
-                    this->m_cv.notify_one();
-        });
         CAutoLock al(m_mutex);
-        ok = handler->Prepare(sql);
+        bool ok = handler->Prepare(sql);
         if (!ok) {
             res = handler->GetAttachedClientSocket()->GetErrorCode();
             errMsg = SPA::Utilities::ToWide(handler->GetAttachedClientSocket()->GetErrorMsg().c_str());
@@ -79,11 +64,12 @@ void CYourPeerOne::UploadEmployees(const SPA::UDB::CDBVariantArray &vData, int &
             break;
         }
         SPA::UDB::CDBVariantArray v;
+        size_t records = vData.size() / 3;
         for (auto it = vData.cbegin(), end = vData.cend(); it != end;) {
             v.push_back(*it);
             v.push_back(*(it + 1));
             v.push_back(*(it + 2));
-            ok = handler->Execute(v, [&res, &errMsg, &vId](CMySQLHandler &h, int r, const std::wstring &err, SPA::INT64 affected, SPA::UINT64 fail_ok, SPA::UDB::CDBVariant & vtId) {
+            ok = handler->Execute(v, [&res, &errMsg, &vId, &records, this](CMySQLHandler &h, int r, const std::wstring &err, SPA::INT64 affected, SPA::UINT64 fail_ok, SPA::UDB::CDBVariant & vtId) {
                 if (r && !res) {
                     res = r;
                     errMsg = err;
@@ -95,6 +81,11 @@ void CYourPeerOne::UploadEmployees(const SPA::UDB::CDBVariantArray &vData, int &
                     assert(!err.size());
                     assert(fail_ok == 1);
                     vId.push_back(vtId.llVal);
+                }
+                --records;
+                if (!records) {
+                    //notify all requests are completed
+                    this->m_cv.notify_one();
                 }
             });
             if (!ok) {
@@ -139,12 +130,6 @@ void CYourPeerOne::QueryPaymentMaxMinAvgs(const std::wstring &filter, int &res, 
             errMsg = L"No connection to a slave database";
             break;
         }
-        //subscribe for socket disconnection event during querying max, min and avg
-        CYourServer::Slave->Subscribe((SPA::UINT64) this, [this, &res, &errMsg] {
-            res = -4;
-            errMsg = L"Slave backend database disconnected during querying";
-                    this->m_cv.notify_one();
-        });
         CAutoLock al(m_mutex);
         bool ok = handler->Execute(sql.c_str(), [this, &res, &errMsg](CMySQLHandler &h, int r, const std::wstring &err, SPA::INT64 affected, SPA::UINT64 fail_ok, SPA::UDB::CDBVariant & vtId) {
             res = r;
@@ -203,9 +188,6 @@ unsigned int CYourPeerOne::SendMeta(const SPA::UDB::CDBColumnInfoArray &meta, SP
 
 unsigned int CYourPeerOne::SendRows(SPA::UDB::CDBVariantArray &vData) {
     SPA::CScopeUQueue sb;
-#ifdef WIN32_64
-    sb->TimeEx(true);
-#endif
     sb << vData;
     unsigned int count;
     sb >> count; //remove data array size at head as a client is expecting an array of data without size ahead
@@ -237,12 +219,6 @@ void CYourPeerOne::GetCachedTables(unsigned int flags, bool rowset, SPA::UINT64 
             errMsg = L"No connection to a master database";
             break;
         }
-        //subscribe for socket disconnection event during querying cached tables data
-        CYourServer::Master->Subscribe((SPA::UINT64) this, [this, &res, &errMsg] {
-            res = -4;
-            errMsg = L"Master backend database disconnected during querying for cached tables data";
-                    this->m_cv.notify_one();
-        });
         CAutoLock al(m_mutex);
         bool ok = handler->Execute(sql.c_str(), [this, &res, &errMsg](CMySQLHandler &h, int r, const std::wstring &err, SPA::INT64 affected, SPA::UINT64 fail_ok, SPA::UDB::CDBVariant & vtId) {
             res = r;
