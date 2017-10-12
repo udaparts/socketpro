@@ -147,6 +147,7 @@
     <ClInclude Include="..\..\..\..\include\generalcache.h" />
     <ClInclude Include="..\..\..\..\include\masterpool.h" />
     <ClInclude Include="..\..\..\..\include\membuffer.h" />
+    <ClInclude Include="..\..\..\..\include\tablecache.h" />
     <ClInclude Include="..\..\..\..\include\udatabase.h" />
     <ClInclude Include="..\..\..\..\include\udb_client.h" />
     <ClInclude Include="stdafx.h" />
