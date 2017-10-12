@@ -19,7 +19,7 @@ protected:
     virtual int OnSlowRequestArrive(unsigned short reqId, unsigned int len);
 
 private:
-    void GetCachedTables(unsigned int flags, bool rowset, SPA::UINT64 index, int &res, std::wstring &errMsg);
+    void GetCachedTables(const std::wstring &defaultDb, int flags, bool rowset, SPA::UINT64 index, int &res, std::wstring &errMsg);
     void QueryPaymentMaxMinAvgs(const std::wstring &filter, int &res, std::wstring &errMsg, CMaxMinAvg &mma);
     void GetMasterSlaveConnectedSessions(unsigned int &m_connections, unsigned int &s_connections);
     void UploadEmployees(const SPA::UDB::CDBVariantArray &vData, int &res, std::wstring &errMsg, CInt64Array &vId);

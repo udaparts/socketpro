@@ -129,7 +129,7 @@ namespace SPA {
                         this->m_cache.Set(ip.c_str(), UDB::msUnknown);
                         SetInitialCache(pHandler);
                     } else {
-                        pHandler->GetCachedTables(nullptr, nullptr, nullptr, (unsigned int) 0);
+                        pHandler->GetCachedTables(this->GetDefaultDBName(), nullptr, nullptr, nullptr, (unsigned int) 0);
                     }
                     break;
                 default:
@@ -142,7 +142,7 @@ namespace SPA {
 
         void SetInitialCache(const std::shared_ptr<THandler> &pHandler) {
             //open default database and subscribe for table update events (update, delete and insert) by setting flag UDB::ENABLE_TABLE_UPDATE_MESSAGES
-            bool ok = pHandler->GetCachedTables([this](int res, const std::wstring & errMsg) {
+            bool ok = pHandler->GetCachedTables(this->GetDefaultDBName(), [this](int res, const std::wstring & errMsg) {
                 if (res == 0) {
                     Cache.Swap(this->m_cache); //exchange between master Cache and this m_cache
                 }

@@ -38,7 +38,7 @@ namespace SPA {
                 return CAsyncServiceHandler::CleanCallbacks();
             }
 
-            virtual bool GetCachedTables(DResult handler, DRows row, DRowsetHeader rh, unsigned int flags = SPA::UDB::ENABLE_TABLE_UPDATE_MESSAGES) {
+            virtual bool GetCachedTables(const wchar_t *defaultDb, DResult handler, DRows row, DRowsetHeader rh, unsigned int flags = SPA::UDB::ENABLE_TABLE_UPDATE_MESSAGES) {
                 bool rowset = (rh || row);
                 UINT64 index;
                 {
@@ -52,7 +52,7 @@ namespace SPA {
                     }
                 }
 
-                if (!SendRequest(idGetCachedTables, flags, rowset, index, [index, handler, this](CAsyncResult & ar) {
+                if (!SendRequest(idGetCachedTables, defaultDb, flags, rowset, index, [index, handler, this](CAsyncResult & ar) {
                         int res;
                         std::wstring errMsg;
                                 ar >> res >> errMsg;
