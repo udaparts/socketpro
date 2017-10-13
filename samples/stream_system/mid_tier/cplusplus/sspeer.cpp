@@ -5,7 +5,7 @@
 #include "config.h"
 
 
-std::chrono::seconds CYourPeerOne::m_timeout(4); //4 seconds
+std::chrono::seconds CYourPeerOne::m_timeout(10); //10 seconds
 
 CYourPeerOne::CYourPeerOne() {
 
@@ -43,23 +43,18 @@ void CYourPeerOne::UploadEmployees(const SPA::UDB::CDBVariantArray &vData, int &
     //use master for insert, update and delete
     auto handler = CYourServer::Master->Lock(); //use Lock and Unlock to avoid SQL stream overlap on a session within a multi-thread environment
     if (!handler) {
-        res = -1;
+        res = -2;
         errMsg = L"No connection to a master database";
         return;
     }
+    bool ok = true;
     do {
-        bool ok = handler->Prepare(L"INSERT INTO mysample.employee(CompanyId,Name,JoinDate)VALUES(?,?,?)");
-        if (!ok) {
-            res = handler->GetAttachedClientSocket()->GetErrorCode();
-            errMsg = SPA::Utilities::ToWide(handler->GetAttachedClientSocket()->GetErrorMsg().c_str());
+        ok = handler->Prepare(L"INSERT INTO mysample.employee(CompanyId,Name,JoinDate)VALUES(?,?,?)");
+        if (!ok)
             break;
-        }
         ok = handler->BeginTrans();
-        if (!ok) {
-            res = handler->GetAttachedClientSocket()->GetErrorCode();
-            errMsg = SPA::Utilities::ToWide(handler->GetAttachedClientSocket()->GetErrorMsg().c_str());
+        if (!ok)
             break;
-        }
         SPA::UDB::CDBVariantArray v;
         for (auto it = vData.cbegin(), end = vData.cend(); it != end;) {
             v.push_back(*it);
@@ -79,26 +74,20 @@ void CYourPeerOne::UploadEmployees(const SPA::UDB::CDBVariantArray &vData, int &
                     vId.push_back(vtId.llVal);
                 }
             });
-            if (!ok) {
-                res = handler->GetAttachedClientSocket()->GetErrorCode();
-                errMsg = SPA::Utilities::ToWide(handler->GetAttachedClientSocket()->GetErrorMsg().c_str());
+            if (!ok)
                 break;
-            }
             v.clear();
             it += 3;
         }
         if (!ok)
             break;
-		CAutoLock al(m_mutex);
-		ok = handler->EndTrans(SPA::UDB::rpRollbackErrorAll, [this](CMySQLHandler &h, int r, const std::wstring &err) {
-			CAutoLock a(m_mutex);
-			this->m_cv.notify_one(); //notify all requests are completed
-		});
-        if (!ok) {
-            res = handler->GetAttachedClientSocket()->GetErrorCode();
-            errMsg = SPA::Utilities::ToWide(handler->GetAttachedClientSocket()->GetErrorMsg().c_str());
+        CAutoLock al(m_mutex);
+        ok = handler->EndTrans(SPA::UDB::rpRollbackErrorAll, [this](CMySQLHandler &h, int r, const std::wstring & err) {
+            CAutoLock a(this->m_mutex);
+            this->m_cv.notify_one(); //notify all requests are completed
+        });
+        if (!ok)
             break;
-        }
         CYourServer::Master->Unlock(handler); //put back locked handler and its socket back into pool for reuse as soon as possible
         auto status = m_cv.wait_for(al, m_timeout); //don't use handle->WaitAll() for better completion event as a session may be shared by multiple threads
         if (status == std::cv_status::timeout) {
@@ -106,6 +95,10 @@ void CYourPeerOne::UploadEmployees(const SPA::UDB::CDBVariantArray &vData, int &
             errMsg = L"Insert table data timeout";
         }
     } while (false);
+    if (!ok) {
+        res = handler->GetAttachedClientSocket()->GetErrorCode();
+        errMsg = SPA::Utilities::ToWide(handler->GetAttachedClientSocket()->GetErrorMsg().c_str());
+    }
 }
 
 void CYourPeerOne::QueryPaymentMaxMinAvgs(const std::wstring &filter, int &res, std::wstring &errMsg, CMaxMinAvg &mma) {
@@ -123,49 +116,48 @@ void CYourPeerOne::QueryPaymentMaxMinAvgs(const std::wstring &filter, int &res, 
             break;
         }
         CAutoLock al(m_mutex);
-        bool ok = handler->Execute(sql.c_str(), [this, &res, &errMsg](CMySQLHandler &h, int r, const std::wstring &err, SPA::INT64 affected, SPA::UINT64 fail_ok, SPA::UDB::CDBVariant & vtId) {
-            res = r;
-            errMsg = err;
-			CAutoLock a(m_mutex);
-                    this->m_cv.notify_one();
-        }, [&mma, &res, &errMsg](CMySQLHandler &h, SPA::UDB::CDBVariantArray & vData) {
-            do {
-                if (vData.size() != 3) {
-                    res = -2;
-                    errMsg = L"Sql statement doesn't generate max, min and average values as expected";
-                    break;
-                }
-                CComVariant vt;
-                HRESULT hr = ::VariantChangeType(&vt, &vData[0], 0, VT_R8);
-                if (hr != S_OK) {
-                    res = hr;
-                    errMsg = L"Data type mismatch";
-                    break;
-                }
-                mma.Max = vt.dblVal;
-                hr = ::VariantChangeType(&vt, &vData[1], 0, VT_R8);
-                if (hr != S_OK) {
-                    res = hr;
-                    errMsg = L"Data type mismatch";
-                    break;
-                }
-                mma.Min = vt.dblVal;
-                hr = ::VariantChangeType(&vt, &vData[2], 0, VT_R8);
-                if (hr != S_OK) {
-                    res = hr;
-                    errMsg = L"Data type mismatch";
-                    break;
-                }
-                mma.Avg = vt.dblVal;
-            } while (false);
-        }, [](CMySQLHandler & h) {
+        if (!handler->Execute(sql.c_str(), [this, &res, &errMsg](CMySQLHandler & h, int r, const std::wstring & err, SPA::INT64 affected, SPA::UINT64 fail_ok, SPA::UDB::CDBVariant & vtId) {
+                res = r;
+                errMsg = err;
+                        CAutoLock a(this->m_mutex);
+                        this->m_cv.notify_one();
+            }, [&mma, &res, &errMsg](CMySQLHandler &h, SPA::UDB::CDBVariantArray & vData) {
+                do {
+                    if (vData.size() != 3) {
+                        res = -2;
+                        errMsg = L"Sql statement doesn't generate max, min and average values as expected";
+                        break;
+                    }
+                    CComVariant vt;
+                    HRESULT hr = ::VariantChangeType(&vt, &vData[0], 0, VT_R8);
+                    if (hr != S_OK) {
+                        res = hr;
+                        errMsg = L"Data type mismatch";
+                        break;
+                    }
+                    mma.Max = vt.dblVal;
+                    hr = ::VariantChangeType(&vt, &vData[1], 0, VT_R8);
+                    if (hr != S_OK) {
+                        res = hr;
+                        errMsg = L"Data type mismatch";
+                        break;
+                    }
+                    mma.Min = vt.dblVal;
+                    hr = ::VariantChangeType(&vt, &vData[2], 0, VT_R8);
+                    if (hr != S_OK) {
+                        res = hr;
+                        errMsg = L"Data type mismatch";
+                        break;
+                    }
+                    mma.Avg = vt.dblVal;
+                } while (false);
+            }, [](CMySQLHandler & h) {
 
-        });
-        if (!ok) {
-            res = handler->GetAttachedClientSocket()->GetErrorCode();
-            errMsg = SPA::Utilities::ToWide(handler->GetAttachedClientSocket()->GetErrorMsg().c_str());
-            break;
-        }
+            })) {
+        res = handler->GetAttachedClientSocket()->GetErrorCode();
+        errMsg = SPA::Utilities::ToWide(handler->GetAttachedClientSocket()->GetErrorMsg().c_str());
+        break;
+    }
         auto status = m_cv.wait_for(al, m_timeout); //don't use handle->WaitAll() for better completion event as a session may be shared by multiple threads
         if (status == std::cv_status::timeout) {
             res = -3;
@@ -213,21 +205,20 @@ void CYourPeerOne::GetCachedTables(const std::wstring &defaultDb, int flags, boo
             break;
         }
         CAutoLock al(m_mutex);
-        bool ok = handler->Execute(sql.c_str(), [this, &res, &errMsg](CMySQLHandler &h, int r, const std::wstring &err, SPA::INT64 affected, SPA::UINT64 fail_ok, SPA::UDB::CDBVariant & vtId) {
-            res = r;
-            errMsg = err;
-			CAutoLock a(m_mutex);
-                    this->m_cv.notify_one();
-        }, [this](CMySQLHandler &h, SPA::UDB::CDBVariantArray & vData) {
-            this->SendRows(vData);
-        }, [this, index](CMySQLHandler & h) {
-            this->SendMeta(h.GetColumnInfo(), index);
-        });
-        if (!ok) {
-            res = handler->GetAttachedClientSocket()->GetErrorCode();
-            errMsg = SPA::Utilities::ToWide(handler->GetAttachedClientSocket()->GetErrorMsg().c_str());
-            break;
-        }
+        if (!handler->Execute(sql.c_str(), [this, &res, &errMsg](CMySQLHandler & h, int r, const std::wstring & err, SPA::INT64 affected, SPA::UINT64 fail_ok, SPA::UDB::CDBVariant & vtId) {
+                res = r;
+                errMsg = err;
+                        CAutoLock a(this->m_mutex);
+                        this->m_cv.notify_one();
+            }, [this](CMySQLHandler &h, SPA::UDB::CDBVariantArray & vData) {
+                this->SendRows(vData);
+            }, [this, index](CMySQLHandler & h) {
+                this->SendMeta(h.GetColumnInfo(), index);
+            })) {
+        res = handler->GetAttachedClientSocket()->GetErrorCode();
+        errMsg = SPA::Utilities::ToWide(handler->GetAttachedClientSocket()->GetErrorMsg().c_str());
+        break;
+    }
         CYourServer::Master->Unlock(handler); //put back locked handler and its socket back into pool for reuse as soon as possible
         auto status = m_cv.wait_for(al, m_timeout); //don't use handle->WaitAll() for better completion event as a session may be shared by multiple threads
         if (status == std::cv_status::timeout) {
