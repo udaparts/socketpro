@@ -138,6 +138,65 @@ class Program
         }
     }
 
+    static void LastWait(CSocketPool<CSqlite> sp) {
+        CSqlite sqlite = sp.Lock();
+        if (sqlite == null) {
+            lock (m_csConsole) Console.WriteLine("All sockets are disconnected from server"); return;
+        }
+        bool ok = false;
+        do {
+            if (!sqlite.BeginTrans(tagTransactionIsolation.tiReadCommited, (h, res, errMsg) => {
+                if (res != 0) lock (m_csConsole) Console.WriteLine("BeginTrans: Error code={0}, message={1}", res, errMsg);
+            })) break;
+            if (!sqlite.Execute("delete from EMPLOYEE;delete from COMPANY", (h, res, errMsg, affected, fail_ok, id) => {
+                if (res != 0) lock (m_csConsole) Console.WriteLine("Execute_Delete: affected={0}, fails={1}, res={2}, errMsg={3}",
+                        affected, (uint)(fail_ok >> 32), res, errMsg);
+            })) break;
+            if (!sqlite.Prepare("INSERT INTO COMPANY(ID,NAME)VALUES(?,?)")) break;
+            CDBVariantArray vData = new CDBVariantArray();
+            vData.Add(1); vData.Add("Google Inc.");
+            vData.Add(2); vData.Add("Microsoft Inc.");
+            //send two sets of parameterized data in one shot for processing
+            if (!sqlite.Execute(vData, (h, res, errMsg, affected, fail_ok, id) => {
+                if (res != 0) lock (m_csConsole) Console.WriteLine("INSERT COMPANY: affected={0}, fails={1}, res={2}, errMsg={3}",
+                        affected, (uint)(fail_ok >> 32), res, errMsg);
+            })) break;
+            if (!sqlite.Prepare("INSERT INTO EMPLOYEE(EMPLOYEEID,CompanyId,name,JoinDate)VALUES(?,?,?,?)")) break;
+            vData.Clear();
+            vData.Add(1); vData.Add(1); /*google company id*/ vData.Add("Ted Cruz"); vData.Add(DateTime.Now);
+            vData.Add(2); vData.Add(1); /*google company id*/ vData.Add("Donald Trump"); vData.Add(DateTime.Now);
+            vData.Add(3); vData.Add(2); /*Microsoft company id*/ vData.Add("Hillary Clinton"); vData.Add(DateTime.Now);
+            //send three sets of parameterized data in one shot for processing
+            if (!sqlite.Execute(vData, (h, res, errMsg, affected, fail_ok, id) => {
+                if (res != 0) lock (m_csConsole) Console.WriteLine("INSET EMPLOYEE: affected={0}, fails={1}, res={2}, errMsg={3}",
+                        affected, (uint)(fail_ok >> 32), res, errMsg);
+            })) break;
+            object sync = new object();
+            lock (sync) {
+                if (!sqlite.EndTrans(tagRollbackPlan.rpDefault, (h, res, errMsg) => {
+                    if (res != 0) lock (m_csConsole) Console.WriteLine("EndTrans: Error code={0}, message={1}", res, errMsg);
+                    lock (sync) {
+                        System.Threading.Monitor.Pulse(sync);
+                    }
+                })) break;
+                ok = true;
+                sp.Unlock(sqlite); //put handler back into pool for reuse
+                //Use Wait instead of sqlite.WaitAll() for better completion event as a session may be shared by multiple threads
+                if (!System.Threading.Monitor.Wait(sync, 5000)) {
+                    lock (m_csConsole) Console.WriteLine("The above requests are not completed in 5 seconds");
+                }
+                else {
+                    lock (m_csConsole) Console.WriteLine("All the above requests are completed");
+                }
+            }
+        } while (false);
+        if (!ok) {
+            //Socket is closed at server side and the above locked handler is automatically unlocked
+            lock (m_csConsole) Console.WriteLine("LastWait: Connection disconnected error code ={0}, message ={1}",
+                sqlite.AttachedClientSocket.ErrorCode, sqlite.AttachedClientSocket.ErrorMsg);
+        }
+    }
+
     static void Main(string[] args) {
         Console.WriteLine("Remote host: "); string host = Console.ReadLine();
         CConnectionContext cc = new CConnectionContext(host, 20901, "usqlite_client", "pwd_for_usqlite");
@@ -181,6 +240,9 @@ class Program
                 Task.Factory.StartNew(Demo_Multiple_SendRequest_MultiThreaded_Correct_Lock_Unlock, spSqlite)
             }; Demo_Multiple_SendRequest_MultiThreaded_Correct_Lock_Unlock(spSqlite); Task.WaitAll();
             Console.WriteLine("Demo_Multiple_SendRequest_MultiThreaded_Correct_Lock_Unlock completed"); Console.WriteLine();
+
+            Console.WriteLine("Demonstration of last wait ....."); Console.WriteLine();
+            LastWait(spSqlite);
 
             Console.WriteLine("Press any key to close the application ......"); Console.Read();
         }
