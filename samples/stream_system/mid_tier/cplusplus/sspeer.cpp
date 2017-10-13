@@ -33,28 +33,21 @@ void CYourPeerOne::GetMasterSlaveConnectedSessions(unsigned int &m_connections, 
 
 void CYourPeerOne::UploadEmployees(const SPA::UDB::CDBVariantArray &vData, int &res, std::wstring &errMsg, CInt64Array &vId) {
 	res = 0;
-	if (!vData.size())
-		return;
+	if (!vData.size()) return;
 	if ((vData.size() % 3)) {
-		res = -1;
-		errMsg = L"Data array size wrong";
-		return;
+		res = -1; errMsg = L"Data array size wrong"; return;
 	}
 	//use master for insert, update and delete
 	auto handler = CYourServer::Master->Lock(); //use Lock and Unlock to avoid SQL stream overlap on a session within a multi-thread environment
 	if (!handler) {
-		res = -2;
-		errMsg = L"No connection to a master database";
-		return;
+		res = -2; errMsg = L"No connection to a master database"; return;
 	}
 	bool ok = true;
 	do {
 		ok = handler->Prepare(L"INSERT INTO mysample.employee(CompanyId,Name,JoinDate)VALUES(?,?,?)");
-		if (!ok)
-			break;
+		if (!ok) break;
 		ok = handler->BeginTrans();
-		if (!ok)
-			break;
+		if (!ok) break;
 		SPA::UDB::CDBVariantArray v;
 		for (auto it = vData.cbegin(), end = vData.cend(); it != end;) {
 			v.push_back(*it);
@@ -62,45 +55,35 @@ void CYourPeerOne::UploadEmployees(const SPA::UDB::CDBVariantArray &vData, int &
 			v.push_back(*(it + 2));
 			ok = handler->Execute(v, [&res, &errMsg, &vId](CMySQLHandler &h, int r, const std::wstring &err, SPA::INT64 affected, SPA::UINT64 fail_ok, SPA::UDB::CDBVariant & vtId) {
 				if (r && !res) {
-					res = r;
-					errMsg = err;
-					vId.push_back(-1);
+					res = r; errMsg = err; vId.push_back(-1);
 				}
 				else if (r)
 					vId.push_back(-1);
 				else {
-					assert(affected == 1);
-					assert(!err.size());
-					assert(fail_ok == 1);
-					vId.push_back(vtId.llVal);
+					assert(affected == 1); assert(!err.size()); assert(fail_ok == 1); vId.push_back(vtId.llVal);
 				}
 			});
-			if (!ok)
-				break;
-			v.clear();
-			it += 3;
+			if (!ok) break;
+			v.clear(); it += 3;
 		}
-		if (!ok)
-			break;
+		if (!ok) break;
+		//Lock cross the last request, and wait until the last request is returned and processed
 		CAutoLock al(m_mutex);
 		ok = handler->EndTrans(SPA::UDB::rpRollbackErrorAll, [this](CMySQLHandler &h, int r, const std::wstring & err) {
 			CAutoLock a(this->m_mutex);
 			this->m_cv.notify_one(); //notify all requests are completed
 		});
-		if (!ok)
-			break;
+		if (!ok) break;
 		CYourServer::Master->Unlock(handler); //put back locked handler and its socket back into pool for reuse as soon as possible
 		auto status = m_cv.wait_for(al, m_timeout); //don't use handle->WaitAll() for better completion event as a session may be shared by multiple threads
 		if (status == std::cv_status::timeout) {
-			res = -3;
-			errMsg = L"Insert table data timeout";
+			res = -3; errMsg = L"Insert table data timeout";
 		}
 	} while (false);
 	if (!ok) {
 		//Socket is closed at server side and the above locked handler is automatically unlocked
 		//retrieve error code and its error message
-		res = handler->GetAttachedClientSocket()->GetErrorCode();
-		errMsg = SPA::Utilities::ToWide(handler->GetAttachedClientSocket()->GetErrorMsg().c_str());
+		res = handler->GetAttachedClientSocket()->GetErrorCode(); errMsg = SPA::Utilities::ToWide(handler->GetAttachedClientSocket()->GetErrorMsg().c_str());
 	}
 }
 
@@ -171,11 +154,13 @@ void CYourPeerOne::QueryPaymentMaxMinAvgs(const std::wstring &filter, int &res, 
 }
 
 unsigned int CYourPeerOne::SendMeta(const SPA::UDB::CDBColumnInfoArray &meta, SPA::UINT64 index) {
+	//A client expects a rowset meta data and call index
 	return SendResult(SPA::UDB::idRowsetHeader, meta, index);
 }
 
 unsigned int CYourPeerOne::SendRows(SPA::UDB::CDBVariantArray &vData) {
 	SPA::CScopeUQueue sb;
+	//The serialization will be fine as long as the data array doesn't contain huge BLOB or text
 	sb << vData;
 	unsigned int count;
 	sb >> count; //remove data array size at head as a client is expecting an array of data without size ahead

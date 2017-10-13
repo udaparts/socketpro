@@ -26,31 +26,27 @@ int main(int argc, char* argv[]) {
 	CClientSocket::SSL::SetVerifyLocation("ca.cert.pem");
 
 	auto cb = [](CMyPool *sender, CClientSocket * cs)->bool {
-		int errCode;
-		SPA::IUcert *cert = cs->GetUCert();
+		int errCode; SPA::IUcert *cert = cs->GetUCert();
 		//std::cout << cert->SessionInfo << std::endl;
-
 		const char* res = cert->Verify(&errCode);
-
 		//do ssl server certificate authentication here
-
 		return (errCode == 0); //true -- user id and password will be sent to server
 	};
 	master.DoSslServerAuthentication = cb;
 	bool ok = master.StartSocketPool(cc, 2, 1);
 	if (!ok) {
 		std::cout << "Failed in connecting to remote middle tier server, and press any key to close the application ......" << std::endl;
-		::getchar();
-		return 1;
+		::getchar(); return 1;
 	}
+	//No need to use the methods Lock and Unlock for removing request stream overlap
+	//as the following calls do not care for request stream overlap on one session between front and mid-tier
 	auto handler = master.Seek();
 	SPA::CDataSet &cache = CWebMasterPool::Cache; //accessing real-time update cache
 	do {
 		ok = handler->GetMasterSlaveConnectedSessions([](unsigned int master_connection, unsigned int slave_connection) {
 			std::cout << "master connection: " << master_connection << ", slave connection: " << slave_connection << std::endl;
 		});
-		if (!ok)
-			break;
+		if (!ok) break;
 		ok = handler->QueryPaymentMaxMinAvgs(L"", [](const CMaxMinAvg &mma, int res, const std::wstring & errMsg) {
 			if (res) {
 				std::cout << "QueryPaymentMaxMinAvgs error code: " << res << ", error message: ";
@@ -60,8 +56,7 @@ int main(int argc, char* argv[]) {
 				std::cout << "QueryPaymentMaxMinAvgs max: " << mma.Max << ", min: " << mma.Min << ", avg: " << mma.Avg << std::endl;
 			}
 		});
-		if (!ok)
-			break;
+		if (!ok) break;
 		SYSTEMTIME st;
 		CDBVariantArray vData;
 
@@ -91,6 +86,7 @@ int main(int argc, char* argv[]) {
 		::gettimeofday(&st, nullptr);
 #endif
 		vData.push_back(st);
+		//Lock cross the last request, and wait until the last request is returned and processed
 		std::unique_lock<std::mutex> al(mutex);
 		ok = handler->UploadEmployees(vData, [&mutex, &cv](int res, const std::wstring &errMsg, CInt64Array & vId) {
 			for (auto it = vId.cbegin(), end = vId.cend(); it != end; ++it) {
@@ -99,8 +95,7 @@ int main(int argc, char* argv[]) {
 			std::unique_lock<std::mutex> a(mutex);
 			cv.notify_one();
 		});
-		if (!ok)
-			break;
+		if (!ok) break;
 		//Use wait_for instead of handler->WaitAll() for better completion event as a session may be shared by multiple threads
 		auto status = cv.wait_for(al, std::chrono::seconds(5));
 		if (status == std::cv_status::timeout) {
