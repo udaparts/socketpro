@@ -48,7 +48,6 @@ void CYourPeerOne::UploadEmployees(const SPA::UDB::CDBVariantArray &vData, int &
         return;
     }
     do {
-        CAutoLock al(m_mutex);
         bool ok = handler->Prepare(L"INSERT INTO mysample.employee(CompanyId,Name,JoinDate)VALUES(?,?,?)");
         if (!ok) {
             res = handler->GetAttachedClientSocket()->GetErrorCode();
@@ -62,12 +61,11 @@ void CYourPeerOne::UploadEmployees(const SPA::UDB::CDBVariantArray &vData, int &
             break;
         }
         SPA::UDB::CDBVariantArray v;
-        size_t records = vData.size() / 3;
         for (auto it = vData.cbegin(), end = vData.cend(); it != end;) {
             v.push_back(*it);
             v.push_back(*(it + 1));
             v.push_back(*(it + 2));
-            ok = handler->Execute(v, [&res, &errMsg, &vId, &records, this](CMySQLHandler &h, int r, const std::wstring &err, SPA::INT64 affected, SPA::UINT64 fail_ok, SPA::UDB::CDBVariant & vtId) {
+            ok = handler->Execute(v, [&res, &errMsg, &vId](CMySQLHandler &h, int r, const std::wstring &err, SPA::INT64 affected, SPA::UINT64 fail_ok, SPA::UDB::CDBVariant & vtId) {
                 if (r && !res) {
                     res = r;
                     errMsg = err;
@@ -80,11 +78,6 @@ void CYourPeerOne::UploadEmployees(const SPA::UDB::CDBVariantArray &vData, int &
                     assert(fail_ok == 1);
                     vId.push_back(vtId.llVal);
                 }
-                --records;
-                if (!records) {
-                    //notify all requests are completed
-                    this->m_cv.notify_one();
-                }
             });
             if (!ok) {
                 res = handler->GetAttachedClientSocket()->GetErrorCode();
@@ -96,22 +89,23 @@ void CYourPeerOne::UploadEmployees(const SPA::UDB::CDBVariantArray &vData, int &
         }
         if (!ok)
             break;
-        ok = handler->EndTrans(SPA::UDB::rpRollbackErrorAll);
+		CAutoLock al(m_mutex);
+		ok = handler->EndTrans(SPA::UDB::rpRollbackErrorAll, [this](CMySQLHandler &h, int r, const std::wstring &err) {
+			CAutoLock a(m_mutex);
+			this->m_cv.notify_one(); //notify all requests are completed
+		});
         if (!ok) {
             res = handler->GetAttachedClientSocket()->GetErrorCode();
             errMsg = SPA::Utilities::ToWide(handler->GetAttachedClientSocket()->GetErrorMsg().c_str());
             break;
         }
         CYourServer::Master->Unlock(handler); //put back locked handler and its socket back into pool for reuse as soon as possible
-        handler = nullptr;
         auto status = m_cv.wait_for(al, m_timeout); //don't use handle->WaitAll() for better completion event as a session may be shared by multiple threads
         if (status == std::cv_status::timeout) {
             res = -3;
             errMsg = L"Insert table data timeout";
         }
     } while (false);
-    if (handler)
-        CYourServer::Master->Unlock(handler);
 }
 
 void CYourPeerOne::QueryPaymentMaxMinAvgs(const std::wstring &filter, int &res, std::wstring &errMsg, CMaxMinAvg &mma) {
@@ -132,6 +126,7 @@ void CYourPeerOne::QueryPaymentMaxMinAvgs(const std::wstring &filter, int &res, 
         bool ok = handler->Execute(sql.c_str(), [this, &res, &errMsg](CMySQLHandler &h, int r, const std::wstring &err, SPA::INT64 affected, SPA::UINT64 fail_ok, SPA::UDB::CDBVariant & vtId) {
             res = r;
             errMsg = err;
+			CAutoLock a(m_mutex);
                     this->m_cv.notify_one();
         }, [&mma, &res, &errMsg](CMySQLHandler &h, SPA::UDB::CDBVariantArray & vData) {
             do {
@@ -221,6 +216,7 @@ void CYourPeerOne::GetCachedTables(const std::wstring &defaultDb, int flags, boo
         bool ok = handler->Execute(sql.c_str(), [this, &res, &errMsg](CMySQLHandler &h, int r, const std::wstring &err, SPA::INT64 affected, SPA::UINT64 fail_ok, SPA::UDB::CDBVariant & vtId) {
             res = r;
             errMsg = err;
+			CAutoLock a(m_mutex);
                     this->m_cv.notify_one();
         }, [this](CMySQLHandler &h, SPA::UDB::CDBVariantArray & vData) {
             this->SendRows(vData);
@@ -230,7 +226,6 @@ void CYourPeerOne::GetCachedTables(const std::wstring &defaultDb, int flags, boo
         if (!ok) {
             res = handler->GetAttachedClientSocket()->GetErrorCode();
             errMsg = SPA::Utilities::ToWide(handler->GetAttachedClientSocket()->GetErrorMsg().c_str());
-            CYourServer::Master->Unlock(handler); //put back locked handler and its socket back into pool for reuse as soon as possible
             break;
         }
         CYourServer::Master->Unlock(handler); //put back locked handler and its socket back into pool for reuse as soon as possible
