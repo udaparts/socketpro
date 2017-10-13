@@ -5,7 +5,7 @@
 #include "config.h"
 
 
-std::chrono::seconds CYourPeerOne::m_timeout(30); //30 seconds
+std::chrono::seconds CYourPeerOne::m_timeout(4); //4 seconds
 
 CYourPeerOne::CYourPeerOne() {
 
@@ -40,8 +40,6 @@ void CYourPeerOne::UploadEmployees(const SPA::UDB::CDBVariantArray &vData, int &
         errMsg = L"Data array size wrong";
         return;
     }
-
-    const wchar_t *sql = L"INSERT INTO mysample.employee(CompanyId,Name,JoinDate)VALUES(?,?,?)";
     //use master for insert, update and delete
     auto handler = CYourServer::Master->Lock(); //use Lock and Unlock to avoid SQL stream overlap on a session within a multi-thread environment
     if (!handler) {
@@ -51,7 +49,7 @@ void CYourPeerOne::UploadEmployees(const SPA::UDB::CDBVariantArray &vData, int &
     }
     do {
         CAutoLock al(m_mutex);
-        bool ok = handler->Prepare(sql);
+		bool ok = handler->Prepare(L"INSERT INTO mysample.employee(CompanyId,Name,JoinDate)VALUES(?,?,?)");
         if (!ok) {
             res = handler->GetAttachedClientSocket()->GetErrorCode();
             errMsg = SPA::Utilities::ToWide(handler->GetAttachedClientSocket()->GetErrorMsg().c_str());
