@@ -3,7 +3,6 @@
 #include "webasynchandler.h"
 
 typedef SPA::CMasterPool<false, CWebAsyncHandler> CWebMasterPool;
-typedef CWebMasterPool::CSlavePool CSlavePool;
 
 typedef SPA::ClientSide::CSocketPool<CWebAsyncHandler> CMyPool;
 
@@ -56,7 +55,7 @@ int main(int argc, char* argv[]) {
     SYSTEMTIME st;
     CDBVariantArray vData;
 
-    vData.push_back(1); //google company id
+    vData.push_back(1); //Google company id
     vData.push_back(L"Ted Cruz");
 #ifdef WIN32_64
     ::GetLocalTime(&st);
@@ -65,7 +64,7 @@ int main(int argc, char* argv[]) {
 #endif
     vData.push_back(st);
 
-    vData.push_back(1); //google company id
+    vData.push_back(1); //Google company id
     vData.push_back("Donald Trump");
 #ifdef WIN32_64
     ::GetLocalTime(&st);

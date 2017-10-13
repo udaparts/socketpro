@@ -32,7 +32,7 @@ bool CWebAsyncHandler::UploadEmployees(const SPA::UDB::CDBVariantArray &vData, D
     return SendRequest(idUploadEmployees, vData, [res](CAsyncResult & ar) {
         int errCode;
         std::wstring errMsg;
-		CInt64Array vId;
+                CInt64Array vId;
                 ar >> errCode >> errMsg >> vId;
         if (res) {
             res(errCode, errMsg, vId);
