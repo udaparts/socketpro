@@ -2,9 +2,9 @@
 
 #include <condition_variable>
 #include <chrono>
-using namespace SPA::ServerSide;
-
 #include "../../shared/ss_defines.h"
+
+using namespace SPA::ServerSide;
 
 class CYourPeerOne : public CClientPeer {
 public:
