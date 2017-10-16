@@ -1,6 +1,7 @@
 
 #pragma once
 
+#include <future>
 #include "../../../include/async_sqlite.h"
 
 #ifdef WIN32_64

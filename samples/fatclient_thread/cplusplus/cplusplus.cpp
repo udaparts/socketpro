@@ -1,6 +1,5 @@
 
 #include "stdafx.h"
-#include <future>
 #include <condition_variable>
 #include <chrono>
 
@@ -15,45 +14,45 @@ typedef std::vector<CPColumnRowset> CRowsetArray;
 /*
 //This is bad implementation for original SPA::ClientSide::CAsyncDBHandler::Open method!!!!
 virtual bool Open(const wchar_t* strConnection, DResult handler, unsigned int flags = 0) {
-	std::wstring s;
-	CAutoLock al(m_csDB); //start lock here
-	m_flags = flags;
-	if (strConnection) {
-		s = m_strConnection;
-		m_strConnection = strConnection;
-	}
-	//self cross SendRequest dead-lock here !!!!
-	if (SendRequest(UDB::idOpen, strConnection, flags, [handler, this](CAsyncResult & ar) {
-		int res, ms;
-		std::wstring errMsg;
-		ar >> res >> errMsg >> ms;
-		this->m_csDB.lock(); //self dead-lock !!!!
-		this->CleanRowset();
-		this->m_dbErrCode = res;
-		this->m_lastReqId = idOpen;
-		if (res == 0) {
-			this->m_strConnection = std::move(errMsg);
-			errMsg.clear();
-		}
-		else {
-			this->m_strConnection.clear();
-		}
-		this->m_dbErrMsg = errMsg;
-		this->m_ms = (tagManagementSystem)ms;
-		this->m_parameters = 0;
-		this->m_outputs = 0;
-		this->m_csDB.unlock();
-		if (handler) {
-			handler(*this, res, errMsg);
-		}
-	})) {
-		return true;
-	}
-	if (strConnection) {
-		m_strConnection = s;
-	}
-	return false;
-	//end lock
+std::wstring s;
+CAutoLock al(m_csDB); //start lock here
+m_flags = flags;
+if (strConnection) {
+s = m_strConnection;
+m_strConnection = strConnection;
+}
+//self cross SendRequest dead-lock here !!!!
+if (SendRequest(UDB::idOpen, strConnection, flags, [handler, this](CAsyncResult & ar) {
+int res, ms;
+std::wstring errMsg;
+ar >> res >> errMsg >> ms;
+this->m_csDB.lock(); //self dead-lock !!!!
+this->CleanRowset();
+this->m_dbErrCode = res;
+this->m_lastReqId = idOpen;
+if (res == 0) {
+this->m_strConnection = std::move(errMsg);
+errMsg.clear();
+}
+else {
+this->m_strConnection.clear();
+}
+this->m_dbErrMsg = errMsg;
+this->m_ms = (tagManagementSystem)ms;
+this->m_parameters = 0;
+this->m_outputs = 0;
+this->m_csDB.unlock();
+if (handler) {
+handler(*this, res, errMsg);
+}
+})) {
+return true;
+}
+if (strConnection) {
+m_strConnection = s;
+}
+return false;
+//end lock
 }
 */
 
@@ -307,6 +306,105 @@ void LastWait(CMyPool &sp) {
 	}
 }
 
+std::future<bool> DoTask(CMyPool &sp) {
+	std::shared_ptr<std::promise<bool> > prom(new std::promise<bool>, [](std::promise<bool> *p) {
+		delete p;
+	});
+	CMyPool::PHandler sqlite = sp.Lock();
+	if (!sqlite) {
+		SPA::CAutoLock al(m_csConsole);
+		std::cout << "All connections are disconnected" << std::endl;
+		prom->set_value(false);
+		return prom->get_future();
+	}
+	bool ok = false;
+	do {
+		if (!sqlite->BeginTrans(tiReadCommited, [](CMyHandler &handler, int res, const std::wstring & errMsg) {
+			if (res != 0) {
+				SPA::CAutoLock al(m_csConsole);
+				std::wcout << L"BeginTrans: res = " << res << L", errMsg: ";
+				std::wcout << errMsg << std::endl;
+			}
+		})) break;
+		if (!sqlite->Execute(L"delete from EMPLOYEE;delete from COMPANY", [](CMyHandler &h, int res, const std::wstring & errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & id) {
+			if (res != 0) {
+				SPA::CAutoLock al(m_csConsole);
+				std::wcout << L"Execute_Delete: affected=" << affected << L", fails=" << (fail_ok >> 32) << L", res=" << res << L", errMsg=" << errMsg << std::endl;
+			}
+		})) break;
+		if (!sqlite->Prepare(L"INSERT INTO COMPANY(ID,NAME)VALUES(?,?)")) break;
+		CDBVariantArray vData;
+		vData.push_back(1);
+		vData.push_back("Google Inc.");
+		vData.push_back(2);
+		vData.push_back("Microsoft Inc.");
+		//send two sets of parameterized data in one shot for processing
+		if (!sqlite->Execute(vData, [](CMyHandler &h, int res, const std::wstring & errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & id) {
+			if (res != 0) {
+				SPA::CAutoLock al(m_csConsole);
+				std::wcout << L"INSERT COMPANY: affected=" << affected << L", fails=" << (fail_ok >> 32) << L", res=" << res << L", errMsg=" << errMsg << std::endl;
+			}
+		})) break;
+		if (!sqlite->Prepare(L"INSERT INTO EMPLOYEE(EMPLOYEEID,CompanyId,name,JoinDate)VALUES(?,?,?,?)")) break;
+		vData.clear();
+		SYSTEMTIME st;
+		vData.push_back(1);
+		vData.push_back(1); //Google company id
+		vData.push_back("Ted Cruz");
+#ifdef WIN32_64
+		::GetLocalTime(&st);
+#else
+		::gettimeofday(&st, nullptr);
+#endif
+		vData.push_back(st);
+
+		vData.push_back(2);
+		vData.push_back(1); //Google company id
+		vData.push_back("Donald Trump");
+#ifdef WIN32_64
+		::GetLocalTime(&st);
+#else
+		::gettimeofday(&st, nullptr);
+#endif
+		vData.push_back(st);
+
+		vData.push_back(3);
+		vData.push_back(2); //Microsoft company id
+		vData.push_back("Hillary Clinton");
+#ifdef WIN32_64
+		::GetLocalTime(&st);
+#else
+		::gettimeofday(&st, nullptr);
+#endif
+		vData.push_back(st);
+		//send three sets of parameterized data in one shot for processing
+		if (!sqlite->Execute(vData, [](CMyHandler &h, int res, const std::wstring & errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & id) {
+			if (res != 0) {
+				SPA::CAutoLock al(m_csConsole);
+				std::wcout << L"INSERT EMPLOYEE: affected=" << affected << L", fails=" << (fail_ok >> 32) << L", res=" << res << L", errMsg=" << errMsg << std::endl;
+			}
+		})) break;
+		if (!sqlite->EndTrans(rpDefault, [prom](CMyHandler &handler, int res, const std::wstring & errMsg) {
+			if (res != 0) {
+				SPA::CAutoLock al(m_csConsole);
+				std::wcout << L"EndTrans: res = " << res << L", errMsg: ";
+				std::wcout << errMsg << std::endl;
+			}
+			prom->set_value(true);
+		})) break;
+		ok = true;
+		sp.Unlock(sqlite); //put handler back into pool for reuse 
+	} while (false);
+	if (!ok) {
+		prom->set_value(false);
+		//Socket is closed at server side and the above locked handler is automatically unlocked
+		SPA::CAutoLock al(m_csConsole);
+		std::cout << "Socket closed with error code: " << sqlite->GetAttachedClientSocket()->GetErrorCode() << ", error message: ";
+		std::wcout << sqlite->GetAttachedClientSocket()->GetErrorMsg().c_str() << std::endl;
+	}
+	return prom->get_future();
+}
+
 int main(int argc, char* argv[]) {
 	CMyConnContext cc;
 	std::cout << "Remote host: " << std::endl;
@@ -378,8 +476,18 @@ int main(int argc, char* argv[]) {
 	f5.get(); //wait until all streamed SQL statements are processed
 	std::cout << "Demo_Multiple_SendRequest_MultiThreaded_Correct_Lock_Unlock" << std::endl << std::endl;
 
-	std::cout << "Demonstration of last wait ....." << std::endl << std::endl;
+	std::cout << "Demonstration of last wait ....." << std::endl;
 	LastWait(spSqlite);
+	std::cout << std::endl;
+
+	std::cout << "Demonstration of DoTask ....." << std::endl;
+	auto f = DoTask(spSqlite);
+	if (f.wait_for(std::chrono::seconds(5)) == std::_Future_status::timeout)
+		std::cout << "The above requests are not completed in 5 seconds" << std::endl;
+	else {
+		std::cout << "All the above requests are completed with return result = " << f.get() << std::endl;
+	}
+	std::cout << std::endl;
 
 	std::cout << "Press any key to close the application ......" << std::endl;
 	::getchar();
