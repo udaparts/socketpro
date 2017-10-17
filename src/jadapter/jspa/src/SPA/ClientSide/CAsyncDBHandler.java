@@ -532,7 +532,9 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                 //associate end transaction with underlying client persistent message queue
                 getAttachedClientSocket().getClientQueue().EndJob();
             } else {
-                m_deqResult.remove(cb);
+                synchronized (m_csDB) {
+                    m_deqResult.remove(cb);
+                }
             }
         }
         CScopeUQueue.Unlock(sb);
@@ -667,7 +669,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
             }
         }
         boolean ok;
-        MyCallback<DResult> cb = new MyCallback<>(idOpen, handler);
+        MyCallback<DResult> cb = new MyCallback<>(idPrepare, handler);
         //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
         //in case a client asynchronously sends lots of requests without use of client side queue.
         synchronized (m_csDB) {
@@ -1062,7 +1064,6 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                 }
             }
             break;
-
             case idBeginTrans: {
                 int res = mc.LoadInt();
                 String errMsg = mc.LoadString();
