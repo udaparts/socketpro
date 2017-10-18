@@ -69,7 +69,7 @@ public class COdbc extends CAsyncDBHandler {
     public boolean Tables(String CatalogName, String SchemaName, String TableName, String TableType, DExecuteResult handler, DRows row, DRowsetHeader rh) {
         return DoMeta(idSQLTables, CatalogName, SchemaName, TableName, TableType, handler, row, rh);
     }
-
+    
     public boolean Statistics(String CatalogName, String SchemaName, String TableName, short unique, short reserved, DExecuteResult handler, DRows row, DRowsetHeader rh) {
         MyCallback<DExecuteResult> cb = new MyCallback<>(idSQLStatistics, handler);
         CUQueue sb = CScopeUQueue.Lock();
@@ -79,22 +79,23 @@ public class COdbc extends CAsyncDBHandler {
         sb.Save(unique);
         sb.Save(reserved);
         long index;
-
-        //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
-        //in case a client asynchronously sends lots of requests without use of client side queue.
-        synchronized (m_csDB) {
-            index = ++m_nCall;
-            m_mapRowset.put(index, new Pair<>(rh, row));
-            m_deqExecuteResult.add(cb);
-        }
-        sb.Save(index);
-        if (!SendRequest(idSQLStatistics, sb, null)) {
+        synchronized (m_csOneSending) {
+            //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
+            //in case a client asynchronously sends lots of requests without use of client side queue.
             synchronized (m_csDB) {
-                m_deqExecuteResult.remove(cb);
-                m_mapRowset.remove(index);
+                index = ++m_nCall;
+                m_mapRowset.put(index, new Pair<>(rh, row));
+                m_deqExecuteResult.add(cb);
             }
-            CScopeUQueue.Unlock(sb);
-            return false;
+            sb.Save(index);
+            if (!SendRequest(idSQLStatistics, sb, null)) {
+                synchronized (m_csDB) {
+                    m_deqExecuteResult.remove(cb);
+                    m_mapRowset.remove(index);
+                }
+                CScopeUQueue.Unlock(sb);
+                return false;
+            }
         }
         CScopeUQueue.Unlock(sb);
         return true;
@@ -110,21 +111,23 @@ public class COdbc extends CAsyncDBHandler {
         sb.Save(scope);
         sb.Save(nullable);
         long index;
-        //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
-        //in case a client asynchronously sends lots of requests without use of client side queue.
-        synchronized (m_csDB) {
-            index = ++m_nCall;
-            m_mapRowset.put(index, new Pair<>(rh, row));
-            m_deqExecuteResult.add(cb);
-        }
-        sb.Save(index);
-        if (!SendRequest(idSQLSpecialColumns, sb, null)) {
+        synchronized (m_csOneSending) {
+            //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
+            //in case a client asynchronously sends lots of requests without use of client side queue.
             synchronized (m_csDB) {
-                m_deqExecuteResult.remove(cb);
-                m_mapRowset.remove(index);
+                index = ++m_nCall;
+                m_mapRowset.put(index, new Pair<>(rh, row));
+                m_deqExecuteResult.add(cb);
             }
-            CScopeUQueue.Unlock(sb);
-            return false;
+            sb.Save(index);
+            if (!SendRequest(idSQLSpecialColumns, sb, null)) {
+                synchronized (m_csDB) {
+                    m_deqExecuteResult.remove(cb);
+                    m_mapRowset.remove(index);
+                }
+                CScopeUQueue.Unlock(sb);
+                return false;
+            }
         }
         CScopeUQueue.Unlock(sb);
         return true;
@@ -140,21 +143,23 @@ public class COdbc extends CAsyncDBHandler {
         sb.Save(FKSchemaName);
         sb.Save(FKTableName);
         long index;
-        //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
-        //in case a client asynchronously sends lots of requests without use of client side queue.
-        synchronized (m_csDB) {
-            index = ++m_nCall;
-            m_mapRowset.put(index, new Pair<>(rh, row));
-            m_deqExecuteResult.add(cb);
-        }
-        sb.Save(index);
-        if (!SendRequest(idSQLForeignKeys, sb, null)) {
+        synchronized (m_csOneSending) {
+            //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
+            //in case a client asynchronously sends lots of requests without use of client side queue.
             synchronized (m_csDB) {
-                m_deqExecuteResult.remove(cb);
-                m_mapRowset.remove(index);
+                index = ++m_nCall;
+                m_mapRowset.put(index, new Pair<>(rh, row));
+                m_deqExecuteResult.add(cb);
             }
-            CScopeUQueue.Unlock(sb);
-            return false;
+            sb.Save(index);
+            if (!SendRequest(idSQLForeignKeys, sb, null)) {
+                synchronized (m_csDB) {
+                    m_deqExecuteResult.remove(cb);
+                    m_mapRowset.remove(index);
+                }
+                CScopeUQueue.Unlock(sb);
+                return false;
+            }
         }
         CScopeUQueue.Unlock(sb);
         return true;
@@ -168,21 +173,23 @@ public class COdbc extends CAsyncDBHandler {
         sb.Save(s2);
         sb.Save(s3);
         long index;
-        //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
-        //in case a client asynchronously sends lots of requests without use of client side queue.
-        synchronized (m_csDB) {
-            index = ++m_nCall;
-            m_mapRowset.put(index, new Pair<>(rh, row));
-            m_deqExecuteResult.add(cb);
-        }
-        sb.Save(index);
-        if (!SendRequest(id, sb, null)) {
+        synchronized (m_csOneSending) {
+            //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
+            //in case a client asynchronously sends lots of requests without use of client side queue.
             synchronized (m_csDB) {
-                m_deqExecuteResult.remove(cb);
-                m_mapRowset.remove(index);
+                index = ++m_nCall;
+                m_mapRowset.put(index, new Pair<>(rh, row));
+                m_deqExecuteResult.add(cb);
             }
-            CScopeUQueue.Unlock(sb);
-            return false;
+            sb.Save(index);
+            if (!SendRequest(id, sb, null)) {
+                synchronized (m_csDB) {
+                    m_deqExecuteResult.remove(cb);
+                    m_mapRowset.remove(index);
+                }
+                CScopeUQueue.Unlock(sb);
+                return false;
+            }
         }
         CScopeUQueue.Unlock(sb);
         return true;
@@ -195,21 +202,23 @@ public class COdbc extends CAsyncDBHandler {
         sb.Save(s1);
         sb.Save(s2);
         long index;
-        //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
-        //in case a client asynchronously sends lots of requests without use of client side queue.
-        synchronized (m_csDB) {
-            index = ++m_nCall;
-            m_mapRowset.put(index, new Pair<>(rh, row));
-            m_deqExecuteResult.add(cb);
-        }
-        sb.Save(index);
-        if (!SendRequest(id, sb, null)) {
+        synchronized (m_csOneSending) {
+            //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
+            //in case a client asynchronously sends lots of requests without use of client side queue.
             synchronized (m_csDB) {
-                m_deqExecuteResult.remove(cb);
-                m_mapRowset.remove(index);
+                index = ++m_nCall;
+                m_mapRowset.put(index, new Pair<>(rh, row));
+                m_deqExecuteResult.add(cb);
             }
-            CScopeUQueue.Unlock(sb);
-            return false;
+            sb.Save(index);
+            if (!SendRequest(id, sb, null)) {
+                synchronized (m_csDB) {
+                    m_deqExecuteResult.remove(cb);
+                    m_mapRowset.remove(index);
+                }
+                CScopeUQueue.Unlock(sb);
+                return false;
+            }
         }
         CScopeUQueue.Unlock(sb);
         return true;
