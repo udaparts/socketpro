@@ -1243,11 +1243,11 @@ namespace SPA {
 			USocket_Client_Handle GetClientSocketHandle() const;
 
 #if defined(_CONDITION_VARIABLE_)
-			std::mutex m_mutex;
+			std::mutex m_m;
 			std::condition_variable m_cv;
 
 			bool P_Internal(unsigned short reqId, const CUQueue &qSender, ResultHandler arh, DCanceled c, DServerException se) {
-				std::unique_lock<std::mutex> al(m_mutex);
+				std::unique_lock<std::mutex> al(m_m);
 				if (!SendRequest(reqId, qSender.GetBuffer(), qSender.GetSize(), arh, c, se)) {
 					return false;
 				}
@@ -1256,18 +1256,18 @@ namespace SPA {
 
 			bool P(unsigned short reqId, const CUQueue &qSender) {
 				ResultHandler arh = [this](CAsyncResult & ar) {
-					std::unique_lock<std::mutex> a(this->m_mutex);
+					std::unique_lock<std::mutex> a(this->m_m);
 					m_cv.notify_one();
 				};
 				std::exception_ptr p_error;
 				DCanceled c = [&p_error, this]() {
 					p_error = std::make_exception_ptr(std::runtime_error("Canceled or closed"));
-					std::unique_lock<std::mutex> a(this->m_mutex);
+					std::unique_lock<std::mutex> a(this->m_m);
 					this->m_cv.notify_one();
 				};
 				DServerException se = [&p_error, this](CAsyncServiceHandler *ash, unsigned short requestId, const wchar_t *errMessage, const char* errWhere, unsigned int errCode) {
 					p_error = std::make_exception_ptr(std::runtime_error(SPA::Utilities::ToUTF8(errMessage)));
-					std::unique_lock<std::mutex> a(this->m_mutex);
+					std::unique_lock<std::mutex> a(this->m_m);
 					this->m_cv.notify_one();
 				};
 				bool ok = P_Internal(reqId, qSender, arh, c, se);
@@ -1282,21 +1282,20 @@ namespace SPA {
 
 			template<typename R0>
 			bool P(unsigned short reqId, const CUQueue &qSender, R0 &r0) {
-				bool ok = true;
 				ResultHandler arh = [&r0, this](CAsyncResult & ar) {
 					ar >> r0;
-					std::unique_lock<std::mutex> a(this->m_mutex);
+					std::unique_lock<std::mutex> a(this->m_m);
 					this->m_cv.notify_one();
 				};
 				std::exception_ptr p_error;
 				DCanceled c = [&p_error, this]() {
 					p_error = std::make_exception_ptr(std::runtime_error("Canceled or closed"));
-					std::unique_lock<std::mutex> a(this->m_mutex);
+					std::unique_lock<std::mutex> a(this->m_m);
 					this->m_cv.notify_one();
 				};
 				DServerException se = [&p_error, this](CAsyncServiceHandler *ash, unsigned short requestId, const wchar_t *errMessage, const char* errWhere, unsigned int errCode) {
 					p_error = std::make_exception_ptr(std::runtime_error(SPA::Utilities::ToUTF8(errMessage)));
-					std::unique_lock<std::mutex> a(this->m_mutex);
+					std::unique_lock<std::mutex> a(this->m_m);
 					this->m_cv.notify_one();
 				};
 				bool ok = P_Internal(reqId, qSender, arh, c, se);
@@ -1311,21 +1310,20 @@ namespace SPA {
 
 			template<typename R0, typename R1>
 			bool P(unsigned short reqId, const CUQueue &qSender, R0 &r0, R1 &r1) {
-				bool ok = true;
 				ResultHandler arh = [&r0, &r1, this](CAsyncResult & ar) {
 					ar >> r0 >> r1;
-					std::unique_lock<std::mutex> a(this->m_mutex);
+					std::unique_lock<std::mutex> a(this->m_m);
 					this->m_cv.notify_one();
 				};
 				std::exception_ptr p_error;
 				DCanceled c = [&p_error, this]() {
 					p_error = std::make_exception_ptr(std::runtime_error("Canceled or closed"));
-					std::unique_lock<std::mutex> a(this->m_mutex);
+					std::unique_lock<std::mutex> a(this->m_m);
 					this->m_cv.notify_one();
 				};
 				DServerException se = [&p_error, this](CAsyncServiceHandler *ash, unsigned short requestId, const wchar_t *errMessage, const char* errWhere, unsigned int errCode) {
 					p_error = std::make_exception_ptr(std::runtime_error(SPA::Utilities::ToUTF8(errMessage)));
-					std::unique_lock<std::mutex> a(this->m_mutex);
+					std::unique_lock<std::mutex> a(this->m_m);
 					this->m_cv.notify_one();
 				};
 				bool ok = P_Internal(reqId, qSender, arh, c, se);
@@ -1340,21 +1338,20 @@ namespace SPA {
 
 			template<typename R0, typename R1, typename R2>
 			bool P(unsigned short reqId, const CUQueue &qSender, R0 &r0, R1 &r1, R2 &r2) {
-				bool ok = true;
 				ResultHandler arh = [&r0, &r1, &r2, this](CAsyncResult & ar) {
 					ar >> r0 >> r1 >> r2;
-					std::unique_lock<std::mutex> a(this->m_mutex);
+					std::unique_lock<std::mutex> a(this->m_m);
 					this->m_cv.notify_one();
 				};
 				std::exception_ptr p_error;
 				DCanceled c = [&p_error, this]() {
 					p_error = std::make_exception_ptr(std::runtime_error("Canceled or closed"));
-					std::unique_lock<std::mutex> a(this->m_mutex);
+					std::unique_lock<std::mutex> a(this->m_m);
 					this->m_cv.notify_one();
 				};
 				DServerException se = [&p_error, this](CAsyncServiceHandler *ash, unsigned short requestId, const wchar_t *errMessage, const char* errWhere, unsigned int errCode) {
 					p_error = std::make_exception_ptr(std::runtime_error(SPA::Utilities::ToUTF8(errMessage)));
-					std::unique_lock<std::mutex> a(this->m_mutex);
+					std::unique_lock<std::mutex> a(this->m_m);
 					this->m_cv.notify_one();
 				};
 				bool ok = P_Internal(reqId, qSender, arh, c, se);
@@ -1369,21 +1366,20 @@ namespace SPA {
 
 			template<typename R0, typename R1, typename R2, typename R3>
 			bool P(unsigned short reqId, const CUQueue &qSender, R0 &r0, R1 &r1, R2 &r2, R3 &r3) {
-				bool ok = true;
 				ResultHandler arh = [&r0, &r1, &r2, &r3, this](CAsyncResult & ar) {
 					ar >> r0 >> r1 >> r2 >> r3;
-					std::unique_lock<std::mutex> a(this->m_mutex);
+					std::unique_lock<std::mutex> a(this->m_m);
 					this->m_cv.notify_one();
 				};
 				std::exception_ptr p_error;
 				DCanceled c = [&p_error, this]() {
 					p_error = std::make_exception_ptr(std::runtime_error("Canceled or closed"));
-					std::unique_lock<std::mutex> a(this->m_mutex);
+					std::unique_lock<std::mutex> a(this->m_m);
 					this->m_cv.notify_one();
 				};
 				DServerException se = [&p_error, this](CAsyncServiceHandler *ash, unsigned short requestId, const wchar_t *errMessage, const char* errWhere, unsigned int errCode) {
 					p_error = std::make_exception_ptr(std::runtime_error(SPA::Utilities::ToUTF8(errMessage)));
-					std::unique_lock<std::mutex> a(this->m_mutex);
+					std::unique_lock<std::mutex> a(this->m_m);
 					this->m_cv.notify_one();
 				};
 				bool ok = P_Internal(reqId, qSender, arh, c, se);
@@ -1398,21 +1394,20 @@ namespace SPA {
 
 			template<typename R0, typename R1, typename R2, typename R3, typename R4>
 			bool P(unsigned short reqId, const CUQueue &qSender, R0 &r0, R1 &r1, R2 &r2, R3 &r3, R4 &r4) {
-				bool ok = true;
 				ResultHandler arh = [&r0, &r1, &r2, &r3, &r4, this](CAsyncResult & ar) {
 					ar >> r0 >> r1 >> r2 >> r3 >> r4;
-					std::unique_lock<std::mutex> a(this->m_mutex);
+					std::unique_lock<std::mutex> a(this->m_m);
 					this->m_cv.notify_one();
 				};
 				std::exception_ptr p_error;
 				DCanceled c = [&p_error, this]() {
 					p_error = std::make_exception_ptr(std::runtime_error("Canceled or closed"));
-					std::unique_lock<std::mutex> a(this->m_mutex);
+					std::unique_lock<std::mutex> a(this->m_m);
 					this->m_cv.notify_one();
 				};
 				DServerException se = [&p_error, this](CAsyncServiceHandler *ash, unsigned short requestId, const wchar_t *errMessage, const char* errWhere, unsigned int errCode) {
 					p_error = std::make_exception_ptr(std::runtime_error(SPA::Utilities::ToUTF8(errMessage)));
-					std::unique_lock<std::mutex> a(this->m_mutex);
+					std::unique_lock<std::mutex> a(this->m_m);
 					this->m_cv.notify_one();
 				};
 				bool ok = P_Internal(reqId, qSender, arh, c, se);
