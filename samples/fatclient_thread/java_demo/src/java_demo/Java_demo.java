@@ -7,46 +7,45 @@ import java.util.concurrent.locks.*;
 import java.util.concurrent.*;
 
 /*
-//This is bad implementation for original SPA.ClientSide.CAsyncDBHandler.Open method!!!!
-public boolean Open(String strConnection, DResult handler, int flags) {
-    String str = null;
-    MyCallback<DResult> cb = new MyCallback<>(idOpen, handler);
-    CUQueue sb = CScopeUQueue.Lock();
-    sb.Save(strConnection).Save(flags);
-    synchronized (m_csOneSending) {
-        //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
-        //in case a client asynchronously sends lots of requests without use of client side queue.
-        synchronized (m_csDB) { //start lock here
-            m_flags = flags;
-            if (strConnection != null) {
-                str = m_strConnection;
-                m_strConnection = strConnection;
-            }
-            m_deqResult.add(cb);
-            //cross SendRequest dead lock here
-            if (SendRequest(idOpen, sb, null)) {
-                CScopeUQueue.Unlock(sb);
-                return true;
-            } else {
-                m_deqResult.remove(cb);
-                if (strConnection != null) {
-                    m_strConnection = str;
-                }
-            }
-        } //end lock -- m_csDB
-    }
-    CScopeUQueue.Unlock(sb);
-    return false;
-}
-*/
-
+ //This is bad implementation for original SPA.ClientSide.CAsyncDBHandler.Open method!!!!
+ public boolean Open(String strConnection, DResult handler, int flags) {
+ String str = null;
+ MyCallback<DResult> cb = new MyCallback<>(idOpen, handler);
+ CUQueue sb = CScopeUQueue.Lock();
+ sb.Save(strConnection).Save(flags);
+ synchronized (m_csOneSending) {
+ //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
+ //in case a client asynchronously sends lots of requests without use of client side queue.
+ synchronized (m_csDB) { //start lock here
+ m_flags = flags;
+ if (strConnection != null) {
+ str = m_strConnection;
+ m_strConnection = strConnection;
+ }
+ m_deqResult.add(cb);
+ //cross SendRequest dead lock here
+ if (SendRequest(idOpen, sb, null)) {
+ CScopeUQueue.Unlock(sb);
+ return true;
+ } else {
+ m_deqResult.remove(cb);
+ if (strConnection != null) {
+ m_strConnection = str;
+ }
+ }
+ } //end lock -- m_csDB
+ }
+ CScopeUQueue.Unlock(sb);
+ return false;
+ }
+ */
 public class Java_demo {
 
     static final String sample_database = "mysample.db";
 
     static void Demo_Cross_Request_Dead_Lock(CSqlite sqlite) {
         boolean ok;
-        int count = 1000000;
+        int count = 10000;
         //uncomment the following call to remove potential cross-request dead lock
         //ok = sqlite.getAttachedClientSocket().getClientQueue().StartQueue("cross_locking_0", 3600);
         do {
@@ -136,7 +135,7 @@ public class Java_demo {
         });
     }
 
-    static final int m_cycle = 100;
+    static final int m_cycle = 10;
 
     static void Demo_Multiple_SendRequest_MultiThreaded_Wrong(CSocketPool<CSqlite> spSqlite) {
         int cycle = m_cycle;
@@ -285,6 +284,103 @@ public class Java_demo {
         }
     }
 
+    static UFuture<Boolean> DoTask(CSocketPool<CSqlite> sp) {
+        CSqlite sqlite = sp.Lock();
+        UFuture<Boolean> f = new UFuture<>();
+        if (sqlite == null) {
+            synchronized (m_csConsole) {
+                System.out.println("All sockets are disconnected from server");
+            }
+            f.set(false);
+            return f;
+        }
+        boolean ok = false;
+        do {
+            if (!sqlite.BeginTrans(tagTransactionIsolation.tiReadCommited, (h, res, errMsg) -> {
+                if (res != 0) {
+                    synchronized (m_csConsole) {
+                        System.out.println("BeginTrans: Error code=" + res + ", message=" + errMsg);
+                    }
+                }
+            })) {
+                break;
+            }
+            if (!sqlite.Execute("delete from EMPLOYEE;delete from COMPANY", (h, res, errMsg, affected, fail_ok, id) -> {
+                if (res != 0) {
+                    synchronized (m_csConsole) {
+                        System.out.println("Execute_Delete: affected = " + affected + ", fails = " + (int) (fail_ok >> 32) + ", res = " + res + ", errMsg: " + errMsg);
+                    }
+                }
+            })) {
+                break;
+            }
+            if (!sqlite.Prepare("INSERT INTO COMPANY(ID,NAME)VALUES(?,?)")) {
+                break;
+            }
+            CDBVariantArray vData = new CDBVariantArray();
+            vData.add(1);
+            vData.add("Google Inc.");
+            vData.add(2);
+            vData.add("Microsoft Inc.");
+            //send two sets of parameterized data in one shot for processing
+            if (!sqlite.Execute(vData, (h, res, errMsg, affected, fail_ok, id) -> {
+                if (res != 0) {
+                    synchronized (m_csConsole) {
+                        System.out.println("INSERT COMPANY: affected = " + affected + ", fails = " + (int) (fail_ok >> 32) + ", res = " + res + ", errMsg: " + errMsg);
+                    }
+                }
+            })) {
+                break;
+            }
+            if (!sqlite.Prepare("INSERT INTO EMPLOYEE(EMPLOYEEID,CompanyId,name,JoinDate)VALUES(?,?,?,?)")) {
+                break;
+            }
+            vData.clear();
+            vData.add(1);
+            vData.add(1); //google company id
+            vData.add("Ted Cruz");
+            vData.add(new java.util.Date());
+            vData.add(2);
+            vData.add(1); //google company id
+            vData.add("Donald Trump");
+            vData.add(new java.util.Date());
+            vData.add(3);
+            vData.add(2); //Microsoft company id
+            vData.add("Hillary Clinton");
+            vData.add(new java.util.Date());
+            //send three sets of parameterized data in one shot for processing
+            if (!sqlite.Execute(vData, (h, res, errMsg, affected, fail_ok, id) -> {
+                if (res != 0) {
+                    synchronized (m_csConsole) {
+                        System.out.println("INSET EMPLOYEE: affected = " + affected + ", fails = " + (int) (fail_ok >> 32) + ", res = " + res + ", errMsg: " + errMsg);
+                    }
+                }
+            })) {
+                break;
+            }
+            if (!sqlite.EndTrans(tagRollbackPlan.rpDefault, (h, res, errMsg) -> {
+                if (res != 0) {
+                    synchronized (m_csConsole) {
+                        System.out.println("EndTrans: Error code= " + res + ", message= " + errMsg);
+                    }
+                }
+                f.set(true);
+            })) {
+                break;
+            }
+            sp.Unlock(sqlite);
+            ok = true;
+        } while (false);
+        if (!ok) {
+            f.set(false);
+            //Socket is closed at server side and the above locked handler is automatically unlocked
+            synchronized (m_csConsole) {
+                System.out.println("LastWait: Connection disconnected error code = " + sqlite.getAttachedClientSocket().getErrorCode() + ", message= " + sqlite.getAttachedClientSocket().getErrorMsg());
+            }
+        }
+        return f;
+    }
+
     public static void main(String[] args) {
         CConnectionContext cc = new CConnectionContext();
         System.out.println("Remote host: ");
@@ -293,8 +389,7 @@ public class Java_demo {
         cc.UserId = "usqlite_client_java";
         cc.Password = "pwd_for_usqlite";
 
-        CSocketPool<CSqlite> spSqlite = new CSocketPool<>(CSqlite.class
-        );
+        CSocketPool<CSqlite> spSqlite = new CSocketPool<>(CSqlite.class);
         //start socket pool having 1 worker thread which hosts two non-block socket
         boolean ok = spSqlite.StartSocketPool(cc, 2, 1);
         if (!ok) {
@@ -303,9 +398,9 @@ public class Java_demo {
             return;
         }
         CSqlite sqlite = spSqlite.getAsyncHandlers()[0];
+        
         //Use the above bad implementation to replace original SPA.ClientSide.CAsyncDBHandler.Open method
         //at file socketpro/src/jadpater/jspa/src/SPA/ClientSide/CAsyncDBHandler.java
-
         System.out.println("Doing Demo_Cross_Request_Dead_Lock ......");
         Demo_Cross_Request_Dead_Lock(sqlite);
 
@@ -387,6 +482,18 @@ public class Java_demo {
         System.out.println("Demonstration of last wait .....");
         LastWait(spSqlite);
         System.out.println("");
+        
+        System.out.println("Demonstration of DoTask .....");
+        try {
+            if (DoTask(spSqlite).get(5000, TimeUnit.MILLISECONDS)) {
+                System.out.println("All the above requests are completed");
+            }
+        }
+        catch(TimeoutException err) {
+            System.out.println("The above requests are not completed in 5 seconds");
+        }
+        System.out.println("");
+        
         System.out.println("Press any key to close the application ......");
         new java.util.Scanner(System.in).nextLine();
     }

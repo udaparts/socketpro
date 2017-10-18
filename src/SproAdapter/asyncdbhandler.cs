@@ -1070,6 +1070,44 @@ namespace SocketProAdapter
             }
 
             /// <summary>
+            /// End a manual transaction with a given rollback plan. Note the transaction will be associated with SocketPro client message queue if available to avoid possible transaction lose
+            /// </summary>
+            /// <param name="plan">a value for computing how included transactions should be rollback at server side. It defaults to tagRollbackPlan.rpDefault</param>
+            /// <param name="handler">a callback for tracking its response result</param>
+            /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
+            public virtual bool EndTrans(tagRollbackPlan plan, DResult handler, DCanceled canceled)
+            {
+                //make sure EndTrans sending and underlying client persistent message queue as one combination sending
+                //to avoid possible request sending/client message writing overlapping within multiple threading environment
+                lock (m_csOneSending)
+                {
+                    if (SendRequest(idEndTrans, (int)plan, (ar) =>
+                    {
+                        int res;
+                        string errMsg;
+                        ar.Load(out res).Load(out errMsg);
+                        lock (m_csDB)
+                        {
+                            m_lastReqId = idEndTrans;
+                            m_dbErrCode = res;
+                            m_dbErrMsg = errMsg;
+                            CleanRowset();
+                        }
+                        if (handler != null)
+                        {
+                            handler(this, res, errMsg);
+                        }
+                    }))
+                    {
+                        //associate end transaction with underlying client persistent message queue
+                        AttachedClientSocket.ClientQueue.EndJob();
+                        return true;
+                    }
+                    return false;
+                }
+            }
+
+            /// <summary>
             /// Start a manual transaction with a given isolation tagTransactionIsolation.tiReadCommited asynchronously. Note the transaction will be associated with SocketPro client message queue if available to avoid possible transaction lose
             /// </summary>
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>

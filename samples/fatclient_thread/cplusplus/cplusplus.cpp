@@ -1,6 +1,5 @@
 
 #include "stdafx.h"
-#include <condition_variable>
 #include <chrono>
 
 using namespace SPA::UDB;
@@ -13,7 +12,7 @@ typedef std::vector<CPColumnRowset> CRowsetArray;
 
 /*
 //This is bad implementation for original SPA::ClientSide::CAsyncDBHandler::Open method!!!!
-virtual bool Open(const wchar_t* strConnection, DResult handler, unsigned int flags = 0) {
+virtual bool Open(const wchar_t* strConnection, DResult handler, unsigned int flags = 0, DCanceled canceled = nullptr) {
 std::wstring s;
 CAutoLock al(m_csDB); //start lock here
 m_flags = flags;
@@ -45,7 +44,7 @@ this->m_csDB.unlock();
 if (handler) {
 handler(*this, res, errMsg);
 }
-})) {
+}, canceled, nullptr)) {
 return true;
 }
 if (strConnection) {
@@ -208,14 +207,14 @@ void LastWait(CMyPool &sp) {
 	}
 	bool ok = false;
 	do {
-		if (!sqlite->BeginTrans(tiReadCommited, [](CMyHandler &handler, int res, const std::wstring & errMsg) {
+		if (!sqlite->BeginTrans(tiReadCommited, [](CMyHandler & handler, int res, const std::wstring & errMsg) {
 			if (res != 0) {
 				SPA::CAutoLock al(m_csConsole);
 				std::wcout << L"BeginTrans: res = " << res << L", errMsg: ";
 				std::wcout << errMsg << std::endl;
 			}
 		})) break;
-		if (!sqlite->Execute(L"delete from EMPLOYEE;delete from COMPANY", [](CMyHandler &h, int res, const std::wstring & errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & id) {
+		if (!sqlite->Execute(L"delete from EMPLOYEE;delete from COMPANY", [](CMyHandler & h, int res, const std::wstring & errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & id) {
 			if (res != 0) {
 				SPA::CAutoLock al(m_csConsole);
 				std::wcout << L"Execute_Delete: affected=" << affected << L", fails=" << (fail_ok >> 32) << L", res=" << res << L", errMsg=" << errMsg << std::endl;
@@ -228,7 +227,7 @@ void LastWait(CMyPool &sp) {
 		vData.push_back(2);
 		vData.push_back("Microsoft Inc.");
 		//send two sets of parameterized data in one shot for processing
-		if (!sqlite->Execute(vData, [](CMyHandler &h, int res, const std::wstring & errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & id) {
+		if (!sqlite->Execute(vData, [](CMyHandler & h, int res, const std::wstring & errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & id) {
 			if (res != 0) {
 				SPA::CAutoLock al(m_csConsole);
 				std::wcout << L"INSERT COMPANY: affected=" << affected << L", fails=" << (fail_ok >> 32) << L", res=" << res << L", errMsg=" << errMsg << std::endl;
@@ -267,7 +266,7 @@ void LastWait(CMyPool &sp) {
 #endif
 		vData.push_back(st);
 		//send three sets of parameterized data in one shot for processing
-		if (!sqlite->Execute(vData, [](CMyHandler &h, int res, const std::wstring & errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & id) {
+		if (!sqlite->Execute(vData, [](CMyHandler & h, int res, const std::wstring & errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & id) {
 			if (res != 0) {
 				SPA::CAutoLock al(m_csConsole);
 				std::wcout << L"INSERT EMPLOYEE: affected=" << affected << L", fails=" << (fail_ok >> 32) << L", res=" << res << L", errMsg=" << errMsg << std::endl;
@@ -277,11 +276,18 @@ void LastWait(CMyPool &sp) {
 		std::condition_variable cv;
 		//Lock cross the last request, and wait until the last request is returned and processed
 		std::unique_lock<std::mutex> al(mutex);
-		if (!sqlite->EndTrans(rpDefault, [&mutex, &cv](CMyHandler &handler, int res, const std::wstring & errMsg) {
+		if (!sqlite->EndTrans(rpDefault, [&mutex, &cv](CMyHandler & handler, int res, const std::wstring & errMsg) {
 			if (res != 0) {
 				SPA::CAutoLock al(m_csConsole);
 				std::wcout << L"EndTrans: res = " << res << L", errMsg: ";
 				std::wcout << errMsg << std::endl;
+			}
+			std::unique_lock<std::mutex> a(mutex);
+			cv.notify_one();
+		}, [&mutex, &cv]() {
+			{
+				SPA::CAutoLock al(m_csConsole);
+				std::cout << "Canceled" << std::endl;
 			}
 			std::unique_lock<std::mutex> a(mutex);
 			cv.notify_one();
@@ -319,14 +325,14 @@ std::future<bool> DoTask(CMyPool &sp) {
 	}
 	bool ok = false;
 	do {
-		if (!sqlite->BeginTrans(tiReadCommited, [](CMyHandler &handler, int res, const std::wstring & errMsg) {
+		if (!sqlite->BeginTrans(tiReadCommited, [](CMyHandler & handler, int res, const std::wstring & errMsg) {
 			if (res != 0) {
 				SPA::CAutoLock al(m_csConsole);
 				std::wcout << L"BeginTrans: res = " << res << L", errMsg: ";
 				std::wcout << errMsg << std::endl;
 			}
 		})) break;
-		if (!sqlite->Execute(L"delete from EMPLOYEE;delete from COMPANY", [](CMyHandler &h, int res, const std::wstring & errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & id) {
+		if (!sqlite->Execute(L"delete from EMPLOYEE;delete from COMPANY", [](CMyHandler & h, int res, const std::wstring & errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & id) {
 			if (res != 0) {
 				SPA::CAutoLock al(m_csConsole);
 				std::wcout << L"Execute_Delete: affected=" << affected << L", fails=" << (fail_ok >> 32) << L", res=" << res << L", errMsg=" << errMsg << std::endl;
@@ -339,7 +345,7 @@ std::future<bool> DoTask(CMyPool &sp) {
 		vData.push_back(2);
 		vData.push_back("Microsoft Inc.");
 		//send two sets of parameterized data in one shot for processing
-		if (!sqlite->Execute(vData, [](CMyHandler &h, int res, const std::wstring & errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & id) {
+		if (!sqlite->Execute(vData, [](CMyHandler & h, int res, const std::wstring & errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & id) {
 			if (res != 0) {
 				SPA::CAutoLock al(m_csConsole);
 				std::wcout << L"INSERT COMPANY: affected=" << affected << L", fails=" << (fail_ok >> 32) << L", res=" << res << L", errMsg=" << errMsg << std::endl;
@@ -378,19 +384,26 @@ std::future<bool> DoTask(CMyPool &sp) {
 #endif
 		vData.push_back(st);
 		//send three sets of parameterized data in one shot for processing
-		if (!sqlite->Execute(vData, [](CMyHandler &h, int res, const std::wstring & errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & id) {
+		if (!sqlite->Execute(vData, [](CMyHandler & h, int res, const std::wstring & errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & id) {
 			if (res != 0) {
 				SPA::CAutoLock al(m_csConsole);
 				std::wcout << L"INSERT EMPLOYEE: affected=" << affected << L", fails=" << (fail_ok >> 32) << L", res=" << res << L", errMsg=" << errMsg << std::endl;
 			}
 		})) break;
-		if (!sqlite->EndTrans(rpDefault, [prom](CMyHandler &handler, int res, const std::wstring & errMsg) {
+		if (!sqlite->EndTrans(rpDefault, [prom](CMyHandler & handler, int res, const std::wstring & errMsg) {
 			if (res != 0) {
 				SPA::CAutoLock al(m_csConsole);
 				std::wcout << L"EndTrans: res = " << res << L", errMsg: ";
 				std::wcout << errMsg << std::endl;
 			}
 			prom->set_value(true);
+		}, [prom]() {
+			{
+				SPA::CAutoLock al(m_csConsole);
+				std::cout << "Canceled" << std::endl;
+			}
+			std::exception ex("Canceled");
+			prom->set_exception(std::make_exception_ptr(ex));
 		})) break;
 		ok = true;
 		sp.Unlock(sqlite); //put handler back into pool for reuse 

@@ -480,39 +480,7 @@ namespace SocketProAdapter
 
             public virtual bool SendRequest(ushort reqId, byte[] data, uint len, DAsyncResultHandler ash)
             {
-                if (m_ClientSocket == null)
-                    return false;
-                IntPtr h = m_ClientSocket.Handle;
-                if (data != null && len > (uint)data.Length)
-                    len = (uint)data.Length;
-                lock (m_csSend)
-                {
-                    if (ash != null)
-                    {
-                        CResultCb rcb = new CResultCb();
-                        rcb.AsyncResultHandler = ash;
-                        KeyValuePair<ushort, CResultCb> kv = new KeyValuePair<ushort, CResultCb>(reqId, rcb);
-                        byte batching = ClientCoreLoader.IsBatching(h);
-                        lock (m_cs)
-                        {
-                            if (batching != 0)
-                            {
-                                m_kvBatching.AddToBack(kv);
-                            }
-                            else
-                            {
-                                m_kvCallback.AddToBack(kv);
-                            }
-                        }
-                    }
-                    unsafe
-                    {
-                        fixed (byte* buffer = data)
-                        {
-                            return (ClientCoreLoader.SendRequest(h, reqId, buffer, len) != 0);
-                        }
-                    }
-                }
+                return SendRequest(reqId, data, len, ash, null, null);
             }
 
             public virtual bool SendRequest(ushort reqId, CUQueue q, DAsyncResultHandler ash)
