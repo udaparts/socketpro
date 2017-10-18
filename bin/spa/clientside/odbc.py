@@ -61,17 +61,18 @@ class COdbc(CAsyncDBHandler):
         q = CScopeUQueue.Lock().SaveString(CatalogName).SaveString(SchemaName).SaveString(TableName).SaveUShort(unique).SaveUShort(reserved)
         cb = CAsyncDBHandler.Pair(COdbc.idSQLStatistics, handler)
         index = 0
-        with self._csDB:
-            self._nCall += 1
-            index = self._nCall
-            self._mapRowset[self._nCall] = CAsyncDBHandler.Pair(rh, row)
-            self._deqResult.append(cb)
-        q.SaveULong(index)
-        ok = self.SendRequest(COdbc.idSQLStatistics, q, None)
-        if not ok:
+        with self._csOneSending:
             with self._csDB:
-                self._deqResult.remove(cb)
-                self._mapRowset.pop(index)
+                self._nCall += 1
+                index = self._nCall
+                self._mapRowset[self._nCall] = CAsyncDBHandler.Pair(rh, row)
+                self._deqResult.append(cb)
+            q.SaveULong(index)
+            ok = self.SendRequest(COdbc.idSQLStatistics, q, None)
+            if not ok:
+                with self._csDB:
+                    self._deqResult.remove(cb)
+                    self._mapRowset.pop(index)
         CScopeUQueue.Unlock(q)
         return ok
 
@@ -80,17 +81,18 @@ class COdbc(CAsyncDBHandler):
         cb = CAsyncDBHandler.Pair(COdbc.idSQLSpecialColumns, handler)
         index = 0
         ok = True
-        with self._csDB:
-            self._nCall += 1
-            index = self._nCall
-            self._mapRowset[self._nCall] = CAsyncDBHandler.Pair(rh, row)
-            self._deqResult.append(cb)
-        q.SaveULong(index)
-        ok = self.SendRequest(COdbc.idSQLSpecialColumns, q, None)
-        if not ok:
+        with self._csOneSending:
             with self._csDB:
-                self._deqResult.remove(cb)
-                self._mapRowset.pop(index)
+                self._nCall += 1
+                index = self._nCall
+                self._mapRowset[self._nCall] = CAsyncDBHandler.Pair(rh, row)
+                self._deqResult.append(cb)
+            q.SaveULong(index)
+            ok = self.SendRequest(COdbc.idSQLSpecialColumns, q, None)
+            if not ok:
+                with self._csDB:
+                    self._deqResult.remove(cb)
+                    self._mapRowset.pop(index)
         CScopeUQueue.Unlock(q)
         return ok
 
@@ -99,17 +101,18 @@ class COdbc(CAsyncDBHandler):
         cb = CAsyncDBHandler.Pair(COdbc.idSQLForeignKeys, handler)
         index = 0
         ok = True
-        with self._csDB:
-            self._nCall += 1
-            index = self._nCall
-            self._mapRowset[self._nCall] = CAsyncDBHandler.Pair(rh, row)
-            self._deqResult.append(cb)
-        q.SaveULong(index)
-        ok = self.SendRequest(COdbc.idSQLForeignKeys, q, None)
-        if not ok:
+        with self._csOneSending:
             with self._csDB:
-                self._deqResult.remove(cb)
-                self._mapRowset.pop(index)
+                self._nCall += 1
+                index = self._nCall
+                self._mapRowset[self._nCall] = CAsyncDBHandler.Pair(rh, row)
+                self._deqResult.append(cb)
+            q.SaveULong(index)
+            ok = self.SendRequest(COdbc.idSQLForeignKeys, q, None)
+            if not ok:
+                with self._csDB:
+                    self._deqResult.remove(cb)
+                    self._mapRowset.pop(index)
         CScopeUQueue.Unlock(q)
         return ok
 
@@ -118,17 +121,18 @@ class COdbc(CAsyncDBHandler):
         cb = CAsyncDBHandler.Pair(id, handler)
         index = 0
         ok = True
-        with self._csDB:
-            self._nCall += 1
-            index = self._nCall
-            self._mapRowset[index] = CAsyncDBHandler.Pair(rh, row)
-            self._deqResult.append(cb)
-        q.SaveULong(index)
-        ok = self.SendRequest(id, q, None)
-        if not ok:
+        with self._csOneSending:
             with self._csDB:
-                self._deqResult.remove(cb)
-                self._mapRowset.pop(index)
+                self._nCall += 1
+                index = self._nCall
+                self._mapRowset[index] = CAsyncDBHandler.Pair(rh, row)
+                self._deqResult.append(cb)
+            q.SaveULong(index)
+            ok = self.SendRequest(id, q, None)
+            if not ok:
+                with self._csDB:
+                    self._deqResult.remove(cb)
+                    self._mapRowset.pop(index)
         CScopeUQueue.Unlock(q)
         return ok
 
@@ -137,17 +141,18 @@ class COdbc(CAsyncDBHandler):
         cb = CAsyncDBHandler.Pair(id, handler)
         index = 0
         ok = True
-        with self._csDB:
-            self._nCall += 1
-            index = self._nCall
-            self._mapRowset[index] = CAsyncDBHandler.Pair(rh, row)
-            self._deqResult.append(cb)
-        q.SaveULong(index)
-        ok = self.SendRequest(id, q, None)
-        if not ok:
+        with self._csOneSending:
             with self._csDB:
-                self._deqResult.remove(cb)
-                self._mapRowset.pop(index)
+                self._nCall += 1
+                index = self._nCall
+                self._mapRowset[index] = CAsyncDBHandler.Pair(rh, row)
+                self._deqResult.append(cb)
+            q.SaveULong(index)
+            ok = self.SendRequest(id, q, None)
+            if not ok:
+                with self._csDB:
+                    self._deqResult.remove(cb)
+                    self._mapRowset.pop(index)
         CScopeUQueue.Unlock(q)
         return ok
 

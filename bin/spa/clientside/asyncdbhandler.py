@@ -370,15 +370,14 @@ class CAsyncDBHandler(CAsyncServiceHandler):
         ok = True
         cb = CAsyncDBHandler.Pair(CAsyncDBHandler.idClose, handler)
         buffer = CScopeUQueue.Lock()
-
-        #don't make self._csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
-        with self._csDB:
-            self._deqResult.append(cb)
-        ok = self.SendRequest(CAsyncDBHandler.idClose, buffer, None)
-        if not ok:
+        with self._csOneSending:
+            #don't make self._csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
             with self._csDB:
-                self._deqResult.remove(cb)
-
+                self._deqResult.append(cb)
+            ok = self.SendRequest(CAsyncDBHandler.idClose, buffer, None)
+            if not ok:
+                with self._csDB:
+                    self._deqResult.remove(cb)
         CScopeUQueue.Unlock(buffer)
         return ok
 
@@ -455,21 +454,20 @@ class CAsyncDBHandler(CAsyncServiceHandler):
         s = ''
         q = CScopeUQueue.Lock().SaveString(strConnection).SaveUInt(flags)
         cb = CAsyncDBHandler.Pair(CAsyncDBHandler.idOpen, handler)
-
-        #don't make self._csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
-        with self._csDB:
-            self._flags = flags
-            self._deqResult.append(cb)
-            if not strConnection is None:
-                s = self._strConnection
-                self._strConnection = strConnection
-        ok = self.SendRequest(CAsyncDBHandler.idOpen, q, None)
-        if not ok:
+        with self._csOneSending:
+            #don't make self._csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
             with self._csDB:
+                self._flags = flags
+                self._deqResult.append(cb)
                 if not strConnection is None:
-                    self._strConnection = s
-                self._deqResult.remove(cb)
-
+                    s = self._strConnection
+                    self._strConnection = strConnection
+            ok = self.SendRequest(CAsyncDBHandler.idOpen, q, None)
+            if not ok:
+                with self._csDB:
+                    if not strConnection is None:
+                        self._strConnection = s
+                    self._deqResult.remove(cb)
         CScopeUQueue.Unlock(q)
         return ok
 
@@ -491,14 +489,13 @@ class CAsyncDBHandler(CAsyncServiceHandler):
             for one in lstParameterInfo:
                 one.SaveTo(q)
         cb = CAsyncDBHandler.Pair(CAsyncDBHandler.idPrepare, handler)
-
-        with self._csDB:
-            self._deqResult.append(cb)
-        ok = self.SendRequest(CAsyncDBHandler.idPrepare, q, None)
-        if not ok:
+        with self._csOneSending:
             with self._csDB:
-                self._deqResult.remove(cb)
-
+                self._deqResult.append(cb)
+            ok = self.SendRequest(CAsyncDBHandler.idPrepare, q, None)
+            if not ok:
+                with self._csDB:
+                    self._deqResult.remove(cb)
         CScopeUQueue.Unlock(q)
         return ok
 
@@ -520,22 +517,21 @@ class CAsyncDBHandler(CAsyncServiceHandler):
             meta = False
         q = CScopeUQueue.Lock().SaveString(sql).SaveBool(rowset).SaveBool(meta).SaveBool(lastInsertId)
         cb = CAsyncDBHandler.Pair(CAsyncDBHandler.idExecute, handler)
-
-        #don't make self._csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
-        with self._csDB:
-            self._nCall += 1
-            q.SaveULong(self._nCall)
-            if rowset:
-                self._mapRowset[self._nCall] = CAsyncDBHandler.Pair(rh,row)
-            self._deqResult.append(cb)
-            index = self._nCall
-        ok = self.SendRequest(CAsyncDBHandler.idExecute, q, None)
-        if not ok:
+        with self._csOneSending:
+            #don't make self._csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
             with self._csDB:
-                self._deqResult.remove(cb)
+                self._nCall += 1
+                q.SaveULong(self._nCall)
                 if rowset:
-                    self._mapRowset.pop(index)
-
+                    self._mapRowset[self._nCall] = CAsyncDBHandler.Pair(rh,row)
+                self._deqResult.append(cb)
+                index = self._nCall
+            ok = self.SendRequest(CAsyncDBHandler.idExecute, q, None)
+            if not ok:
+                with self._csDB:
+                    self._deqResult.remove(cb)
+                    if rowset:
+                        self._mapRowset.pop(index)
         CScopeUQueue.Unlock(q)
         return ok
 
