@@ -56,42 +56,82 @@ namespace SocketProAdapter
                 }
             }
 
-            public virtual bool ColumnPrivileges(string CatalogName, string SchemaName, string TableName, string ColumnName, DExecuteResult handler, DRows row, DRowsetHeader rh)
+            public bool ColumnPrivileges(string CatalogName, string SchemaName, string TableName, string ColumnName, DExecuteResult handler, DRows row, DRowsetHeader rh)
             {
-                return DoMeta(idSQLColumnPrivileges, CatalogName, SchemaName, TableName, ColumnName, handler, row, rh);
+                return DoMeta(idSQLColumnPrivileges, CatalogName, SchemaName, TableName, ColumnName, handler, row, rh, null);
             }
 
-            public virtual bool Columns(string CatalogName, string SchemaName, string TableName, string ColumnName, DExecuteResult handler, DRows row, DRowsetHeader rh)
+            public bool ColumnPrivileges(string CatalogName, string SchemaName, string TableName, string ColumnName, DExecuteResult handler, DRows row, DRowsetHeader rh, DCanceled canceled)
             {
-                return DoMeta(idSQLColumns, CatalogName, SchemaName, TableName, ColumnName, handler, row, rh);
+                return DoMeta(idSQLColumnPrivileges, CatalogName, SchemaName, TableName, ColumnName, handler, row, rh, canceled);
             }
 
-            public virtual bool ProcedureColumns(string CatalogName, string SchemaName, string ProcName, string ColumnName, DExecuteResult handler, DRows row, DRowsetHeader rh)
+            public bool Columns(string CatalogName, string SchemaName, string TableName, string ColumnName, DExecuteResult handler, DRows row, DRowsetHeader rh)
             {
-                return DoMeta(idSQLProcedureColumns, CatalogName, SchemaName, ProcName, ColumnName, handler, row, rh);
+                return DoMeta(idSQLColumns, CatalogName, SchemaName, TableName, ColumnName, handler, row, rh, null);
             }
 
-            public virtual bool PrimaryKeys(string CatalogName, string SchemaName, string TableName, DExecuteResult handler, DRows row, DRowsetHeader rh)
+            public bool Columns(string CatalogName, string SchemaName, string TableName, string ColumnName, DExecuteResult handler, DRows row, DRowsetHeader rh, DCanceled canceled)
             {
-                return DoMeta(idSQLPrimaryKeys, CatalogName, SchemaName, TableName, handler, row, rh);
+                return DoMeta(idSQLColumns, CatalogName, SchemaName, TableName, ColumnName, handler, row, rh, canceled);
             }
 
-            public virtual bool TablePrivileges(string CatalogName, string SchemaName, string TableName, DExecuteResult handler, DRows row, DRowsetHeader rh)
+            public bool ProcedureColumns(string CatalogName, string SchemaName, string ProcName, string ColumnName, DExecuteResult handler, DRows row, DRowsetHeader rh)
             {
-                return DoMeta(idSQLTablePrivileges, CatalogName, SchemaName, TableName, handler, row, rh);
+                return DoMeta(idSQLProcedureColumns, CatalogName, SchemaName, ProcName, ColumnName, handler, row, rh, null);
             }
 
-            public virtual bool Procedures(string CatalogName, string SchemaName, string ProcName, DExecuteResult handler, DRows row, DRowsetHeader rh)
+            public bool ProcedureColumns(string CatalogName, string SchemaName, string ProcName, string ColumnName, DExecuteResult handler, DRows row, DRowsetHeader rh, DCanceled canceled)
             {
-                return DoMeta(idSQLProcedures, CatalogName, SchemaName, ProcName, handler, row, rh);
+                return DoMeta(idSQLProcedureColumns, CatalogName, SchemaName, ProcName, ColumnName, handler, row, rh, canceled);
             }
 
-            public virtual bool SpecialColumns(short identifierType, string CatalogName, string SchemaName, string TableName, short scope, short nullable, DExecuteResult handler, DRows row, DRowsetHeader rh)
+            public bool PrimaryKeys(string CatalogName, string SchemaName, string TableName, DExecuteResult handler, DRows row, DRowsetHeader rh)
             {
-                return DoMeta(idSQLSpecialColumns, identifierType, CatalogName, SchemaName, TableName, scope, nullable, handler, row, rh);
+                return DoMeta(idSQLPrimaryKeys, CatalogName, SchemaName, TableName, handler, row, rh, null);
             }
 
-            public virtual bool Statistics(string CatalogName, string SchemaName, string TableName, ushort unique, ushort reserved, DExecuteResult handler, DRows row, DRowsetHeader rh)
+            public bool PrimaryKeys(string CatalogName, string SchemaName, string TableName, DExecuteResult handler, DRows row, DRowsetHeader rh, DCanceled canceled)
+            {
+                return DoMeta(idSQLPrimaryKeys, CatalogName, SchemaName, TableName, handler, row, rh, canceled);
+            }
+
+            public bool TablePrivileges(string CatalogName, string SchemaName, string TableName, DExecuteResult handler, DRows row, DRowsetHeader rh)
+            {
+                return DoMeta(idSQLTablePrivileges, CatalogName, SchemaName, TableName, handler, row, rh, null);
+            }
+
+            public bool TablePrivileges(string CatalogName, string SchemaName, string TableName, DExecuteResult handler, DRows row, DRowsetHeader rh, DCanceled canceled)
+            {
+                return DoMeta(idSQLTablePrivileges, CatalogName, SchemaName, TableName, handler, row, rh, canceled);
+            }
+
+            public bool Procedures(string CatalogName, string SchemaName, string ProcName, DExecuteResult handler, DRows row, DRowsetHeader rh)
+            {
+                return DoMeta(idSQLProcedures, CatalogName, SchemaName, ProcName, handler, row, rh, null);
+            }
+
+            public bool Procedures(string CatalogName, string SchemaName, string ProcName, DExecuteResult handler, DRows row, DRowsetHeader rh, DCanceled canceled)
+            {
+                return DoMeta(idSQLProcedures, CatalogName, SchemaName, ProcName, handler, row, rh, canceled);
+            }
+
+            public bool SpecialColumns(short identifierType, string CatalogName, string SchemaName, string TableName, short scope, short nullable, DExecuteResult handler, DRows row, DRowsetHeader rh)
+            {
+                return DoMeta(idSQLSpecialColumns, identifierType, CatalogName, SchemaName, TableName, scope, nullable, handler, row, rh, null);
+            }
+
+            public bool SpecialColumns(short identifierType, string CatalogName, string SchemaName, string TableName, short scope, short nullable, DExecuteResult handler, DRows row, DRowsetHeader rh, DCanceled canceled)
+            {
+                return DoMeta(idSQLSpecialColumns, identifierType, CatalogName, SchemaName, TableName, scope, nullable, handler, row, rh, canceled);
+            }
+
+            public bool Statistics(string CatalogName, string SchemaName, string TableName, ushort unique, ushort reserved, DExecuteResult handler, DRows row, DRowsetHeader rh)
+            {
+                return Statistics(CatalogName, SchemaName, TableName, unique, reserved, handler, row, rh, null);
+            }
+
+            public bool Statistics(string CatalogName, string SchemaName, string TableName, ushort unique, ushort reserved, DExecuteResult handler, DRows row, DRowsetHeader rh, DCanceled canceled)
             {
                 ulong index;
                 //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
@@ -117,7 +157,7 @@ namespace SocketProAdapter
                     }
                     if (handler != null)
                         handler(this, res, errMsg, 0, fail_ok, null);
-                }))
+                }, canceled, null))
                 {
                     lock (m_csDB)
                     {
@@ -128,17 +168,27 @@ namespace SocketProAdapter
                 return true;
             }
 
-            public virtual bool Tables(string CatalogName, string SchemaName, string TableName, string TableType, DExecuteResult handler, DRows row, DRowsetHeader rh)
+            public bool Tables(string CatalogName, string SchemaName, string TableName, string TableType, DExecuteResult handler, DRows row, DRowsetHeader rh)
             {
-                return DoMeta(idSQLTables, CatalogName, SchemaName, TableName, TableType, handler, row, rh);
+                return DoMeta(idSQLTables, CatalogName, SchemaName, TableName, TableType, handler, row, rh, null);
             }
 
-            public virtual bool ForeignKeys(string PKCatalogName, string PKSchemaName, string PKTableName, string FKCatalogName, string FKSchemaName, string FKTableName, DExecuteResult handler, DRows row, DRowsetHeader rh)
+            public bool Tables(string CatalogName, string SchemaName, string TableName, string TableType, DExecuteResult handler, DRows row, DRowsetHeader rh, DCanceled canceled)
             {
-                return DoMeta(idSQLForeignKeys, PKCatalogName, PKSchemaName, PKTableName, FKCatalogName, FKSchemaName, FKTableName, handler, row, rh);
+                return DoMeta(idSQLTables, CatalogName, SchemaName, TableName, TableType, handler, row, rh, canceled);
             }
 
-            private bool DoMeta(ushort id, string s0, string s1, string s2, string s3, DExecuteResult handler, DRows row, DRowsetHeader rh)
+            public bool ForeignKeys(string PKCatalogName, string PKSchemaName, string PKTableName, string FKCatalogName, string FKSchemaName, string FKTableName, DExecuteResult handler, DRows row, DRowsetHeader rh)
+            {
+                return DoMeta(idSQLForeignKeys, PKCatalogName, PKSchemaName, PKTableName, FKCatalogName, FKSchemaName, FKTableName, handler, row, rh, null);
+            }
+
+            public bool ForeignKeys(string PKCatalogName, string PKSchemaName, string PKTableName, string FKCatalogName, string FKSchemaName, string FKTableName, DExecuteResult handler, DRows row, DRowsetHeader rh, DCanceled canceled)
+            {
+                return DoMeta(idSQLForeignKeys, PKCatalogName, PKSchemaName, PKTableName, FKCatalogName, FKSchemaName, FKTableName, handler, row, rh, canceled);
+            }
+
+            private bool DoMeta(ushort id, string s0, string s1, string s2, string s3, DExecuteResult handler, DRows row, DRowsetHeader rh, DCanceled canceled)
             {
                 ulong index;
                 //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
@@ -164,7 +214,7 @@ namespace SocketProAdapter
                     }
                     if (handler != null)
                         handler(this, res, errMsg, 0, fail_ok, null);
-                }))
+                }, canceled, null))
                 {
                     lock (m_csDB)
                     {
@@ -175,7 +225,7 @@ namespace SocketProAdapter
                 return true;
             }
 
-            private bool DoMeta(ushort id, string s0, string s1, string s2, DExecuteResult handler, DRows row, DRowsetHeader rh)
+            private bool DoMeta(ushort id, string s0, string s1, string s2, DExecuteResult handler, DRows row, DRowsetHeader rh, DCanceled canceled)
             {
                 ulong index;
                 //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
@@ -201,7 +251,7 @@ namespace SocketProAdapter
                     }
                     if (handler != null)
                         handler(this, res, errMsg, 0, fail_ok, null);
-                }))
+                }, canceled, null))
                 {
                     lock (m_csDB)
                     {
@@ -212,7 +262,7 @@ namespace SocketProAdapter
                 return true;
             }
 
-            private bool DoMeta<T0, T1, T2>(ushort id, T0 t0, string s0, string s1, string s2, T1 t1, T2 t2, DExecuteResult handler, DRows row, DRowsetHeader rh)
+            private bool DoMeta<T0, T1, T2>(ushort id, T0 t0, string s0, string s1, string s2, T1 t1, T2 t2, DExecuteResult handler, DRows row, DRowsetHeader rh, DCanceled canceled)
             {
                 ulong index;
                 //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
@@ -238,7 +288,7 @@ namespace SocketProAdapter
                     }
                     if (handler != null)
                         handler(this, res, errMsg, 0, fail_ok, null);
-                }))
+                }, canceled, null))
                 {
                     lock (m_csDB)
                     {
