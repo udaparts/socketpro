@@ -167,130 +167,7 @@ public class Java_demo {
         }
     }
 
-    static void LastWait(CSocketPool<CSqlite> sp) {
-        CSqlite sqlite = sp.Lock();
-        if (sqlite == null) {
-            synchronized (m_csConsole) {
-                System.out.println("All sockets are disconnected from server");
-            }
-            return;
-        }
-        boolean ok = false;
-        do {
-            if (!sqlite.BeginTrans(tagTransactionIsolation.tiReadCommited, (h, res, errMsg) -> {
-                if (res != 0) {
-                    synchronized (m_csConsole) {
-                        System.out.println("BeginTrans: Error code=" + res + ", message=" + errMsg);
-                    }
-                }
-            })) {
-                break;
-            }
-            if (!sqlite.Execute("delete from EMPLOYEE;delete from COMPANY", (h, res, errMsg, affected, fail_ok, id) -> {
-                if (res != 0) {
-                    synchronized (m_csConsole) {
-                        System.out.println("Execute_Delete: affected = " + affected + ", fails = " + (int) (fail_ok >> 32) + ", res = " + res + ", errMsg: " + errMsg);
-                    }
-                }
-            })) {
-                break;
-            }
-            if (!sqlite.Prepare("INSERT INTO COMPANY(ID,NAME)VALUES(?,?)")) {
-                break;
-            }
-            CDBVariantArray vData = new CDBVariantArray();
-            vData.add(1);
-            vData.add("Google Inc.");
-            vData.add(2);
-            vData.add("Microsoft Inc.");
-            //send two sets of parameterized data in one shot for processing
-            if (!sqlite.Execute(vData, (h, res, errMsg, affected, fail_ok, id) -> {
-                if (res != 0) {
-                    synchronized (m_csConsole) {
-                        System.out.println("INSERT COMPANY: affected = " + affected + ", fails = " + (int) (fail_ok >> 32) + ", res = " + res + ", errMsg: " + errMsg);
-                    }
-                }
-            })) {
-                break;
-            }
-            if (!sqlite.Prepare("INSERT INTO EMPLOYEE(EMPLOYEEID,CompanyId,name,JoinDate)VALUES(?,?,?,?)")) {
-                break;
-            }
-            vData.clear();
-            vData.add(1);
-            vData.add(1); //google company id
-            vData.add("Ted Cruz");
-            vData.add(new java.util.Date());
-            vData.add(2);
-            vData.add(1); //google company id
-            vData.add("Donald Trump");
-            vData.add(new java.util.Date());
-            vData.add(3);
-            vData.add(2); //Microsoft company id
-            vData.add("Hillary Clinton");
-            vData.add(new java.util.Date());
-            //send three sets of parameterized data in one shot for processing
-            if (!sqlite.Execute(vData, (h, res, errMsg, affected, fail_ok, id) -> {
-                if (res != 0) {
-                    synchronized (m_csConsole) {
-                        System.out.println("INSET EMPLOYEE: affected = " + affected + ", fails = " + (int) (fail_ok >> 32) + ", res = " + res + ", errMsg: " + errMsg);
-                    }
-                }
-            })) {
-                break;
-            }
-            final Lock lock = new ReentrantLock();
-            try {
-                final Condition cv = lock.newCondition();
-                lock.lock();
-                if (!sqlite.EndTrans(tagRollbackPlan.rpDefault, (h, res, errMsg) -> {
-                    if (res != 0) {
-                        synchronized (m_csConsole) {
-                            System.out.println("EndTrans: Error code= " + res + ", message= " + errMsg);
-                        }
-                    }
-                    lock.lock();
-                    cv.signal();
-                    lock.unlock();
-                }, () -> {
-                    synchronized (m_csConsole) {
-                        System.out.println("EndTrans: Request canceled or socket closed");
-                    }
-                    lock.lock();
-                    cv.signal();
-                    lock.unlock();
-                })) {
-                    lock.unlock();
-                    break;
-                }
-                ok = true;
-                sp.Unlock(sqlite);
-                if (cv.await(5000, TimeUnit.MILLISECONDS)) {
-                    synchronized (m_csConsole) {
-                        System.out.println("All the above requests are completed");
-                    }
-                } else {
-                    synchronized (m_csConsole) {
-                        System.out.println("The above requests are not completed in 5 seconds");
-                    }
-                }
-            } catch (InterruptedException err) {
-                synchronized (m_csConsole) {
-                    System.out.println(err.getLocalizedMessage());
-                }
-            } finally {
-                lock.unlock();
-            }
-        } while (false);
-        if (!ok) {
-            //Socket is closed at server side and the above locked handler is automatically unlocked
-            synchronized (m_csConsole) {
-                System.out.println("LastWait: Connection disconnected error code = " + sqlite.getAttachedClientSocket().getErrorCode() + ", message= " + sqlite.getAttachedClientSocket().getErrorMsg());
-            }
-        }
-    }
-
-    static UFuture<Boolean> DoTask(CSocketPool<CSqlite> sp) {
+    static UFuture<Boolean> DoFuture(CSocketPool<CSqlite> sp) {
         CSqlite sqlite = sp.Lock();
         UFuture<Boolean> f = new UFuture<>();
         if (sqlite == null) {
@@ -490,17 +367,16 @@ public class Java_demo {
         System.out.println("Demo_Multiple_SendRequest_MultiThreaded_Correct_Lock_Unlock completed");
         System.out.println("");
         executor.shutdown();
-        System.out.println("Demonstration of last wait .....");
-        LastWait(spSqlite);
-        System.out.println("");
 
-        System.out.println("Demonstration of DoTask .....");
+        System.out.println("Demonstration of DoFuture .....");
         try {
-            if (DoTask(spSqlite).get(5000, TimeUnit.MILLISECONDS)) {
-                System.out.println("All the above requests are completed");
+            if (DoFuture(spSqlite).get(5000, TimeUnit.MILLISECONDS)) {
+                System.out.println("All requests within the function DoFuture are completed");
+            } else {
+                System.out.println("The requests within the function DoFuture are canceled partially");
             }
         } catch (TimeoutException err) {
-            System.out.println("The above requests are not completed in 5 seconds");
+            System.out.println("The requests within the function DoFuture are not completed in 5 seconds");
         }
         System.out.println("");
 

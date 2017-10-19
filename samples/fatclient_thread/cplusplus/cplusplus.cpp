@@ -198,121 +198,7 @@ void Demo_Multiple_SendRequest_MultiThreaded_Correct_Lock_Unlock(CMyPool& sp) {
 	}
 }
 
-void LastWait(CMyPool &sp) {
-	CMyPool::PHandler sqlite = sp.Lock();
-	if (!sqlite) {
-		SPA::CAutoLock al(m_csConsole);
-		std::cout << "All connections are disconnected" << std::endl;
-		return;
-	}
-	bool ok = false;
-	do {
-		if (!sqlite->BeginTrans(tiReadCommited, [](CMyHandler & handler, int res, const std::wstring & errMsg) {
-			if (res != 0) {
-				SPA::CAutoLock al(m_csConsole);
-				std::wcout << L"BeginTrans: res = " << res << L", errMsg: ";
-				std::wcout << errMsg << std::endl;
-			}
-		})) break;
-		if (!sqlite->Execute(L"delete from EMPLOYEE;delete from COMPANY", [](CMyHandler & h, int res, const std::wstring & errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & id) {
-			if (res != 0) {
-				SPA::CAutoLock al(m_csConsole);
-				std::wcout << L"Execute_Delete: affected=" << affected << L", fails=" << (fail_ok >> 32) << L", res=" << res << L", errMsg=" << errMsg << std::endl;
-			}
-		})) break;
-		if (!sqlite->Prepare(L"INSERT INTO COMPANY(ID,NAME)VALUES(?,?)")) break;
-		CDBVariantArray vData;
-		vData.push_back(1);
-		vData.push_back("Google Inc.");
-		vData.push_back(2);
-		vData.push_back("Microsoft Inc.");
-		//send two sets of parameterized data in one shot for processing
-		if (!sqlite->Execute(vData, [](CMyHandler & h, int res, const std::wstring & errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & id) {
-			if (res != 0) {
-				SPA::CAutoLock al(m_csConsole);
-				std::wcout << L"INSERT COMPANY: affected=" << affected << L", fails=" << (fail_ok >> 32) << L", res=" << res << L", errMsg=" << errMsg << std::endl;
-			}
-		})) break;
-		if (!sqlite->Prepare(L"INSERT INTO EMPLOYEE(EMPLOYEEID,CompanyId,name,JoinDate)VALUES(?,?,?,?)")) break;
-		vData.clear();
-		SYSTEMTIME st;
-		vData.push_back(1);
-		vData.push_back(1); //Google company id
-		vData.push_back("Ted Cruz");
-#ifdef WIN32_64
-		::GetLocalTime(&st);
-#else
-		::gettimeofday(&st, nullptr);
-#endif
-		vData.push_back(st);
-
-		vData.push_back(2);
-		vData.push_back(1); //Google company id
-		vData.push_back("Donald Trump");
-#ifdef WIN32_64
-		::GetLocalTime(&st);
-#else
-		::gettimeofday(&st, nullptr);
-#endif
-		vData.push_back(st);
-
-		vData.push_back(3);
-		vData.push_back(2); //Microsoft company id
-		vData.push_back("Hillary Clinton");
-#ifdef WIN32_64
-		::GetLocalTime(&st);
-#else
-		::gettimeofday(&st, nullptr);
-#endif
-		vData.push_back(st);
-		//send three sets of parameterized data in one shot for processing
-		if (!sqlite->Execute(vData, [](CMyHandler & h, int res, const std::wstring & errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & id) {
-			if (res != 0) {
-				SPA::CAutoLock al(m_csConsole);
-				std::wcout << L"INSERT EMPLOYEE: affected=" << affected << L", fails=" << (fail_ok >> 32) << L", res=" << res << L", errMsg=" << errMsg << std::endl;
-			}
-		})) break;
-		std::mutex mutex;
-		std::condition_variable cv;
-		//Lock cross the last request, and wait until the last request is returned and processed
-		std::unique_lock<std::mutex> al(mutex);
-		if (!sqlite->EndTrans(rpDefault, [&mutex, &cv](CMyHandler & handler, int res, const std::wstring & errMsg) {
-			if (res != 0) {
-				SPA::CAutoLock al(m_csConsole);
-				std::wcout << L"EndTrans: res = " << res << L", errMsg: ";
-				std::wcout << errMsg << std::endl;
-			}
-			std::unique_lock<std::mutex> a(mutex);
-			cv.notify_one();
-		}, [&mutex, &cv]() {
-			{
-				SPA::CAutoLock al(m_csConsole);
-				std::cout << "Canceled" << std::endl;
-			}
-			std::unique_lock<std::mutex> a(mutex);
-			cv.notify_one();
-		})) break;
-		ok = true;
-		sp.Unlock(sqlite); //put handler back into pool for reuse 
-		//Use wait_for instead of handler->WaitAll() for better completion event as a session may be shared by multiple threads
-		auto status = cv.wait_for(al, std::chrono::seconds(5));
-		SPA::CAutoLock scope(m_csConsole);
-		if (status == std::cv_status::timeout) {
-			std::cout << "The above requests are not completed in 5 seconds" << std::endl;
-		}
-		else {
-			std::cout << "All the above requests are completed" << std::endl;
-		}
-	} while (false);
-	if (!ok) {
-		//Socket is closed at server side and the above locked handler is automatically unlocked
-		SPA::CAutoLock al(m_csConsole);
-		std::cout << "Socket closed with error code: " << sqlite->GetAttachedClientSocket()->GetErrorCode() << ", error message: ";
-		std::wcout << sqlite->GetAttachedClientSocket()->GetErrorMsg().c_str() << std::endl;
-	}
-}
-
-std::future<bool> DoTask(CMyPool &sp) {
+std::future<bool> DoFuture(CMyPool &sp) {
 	std::shared_ptr<std::promise<bool> > prom(new std::promise<bool>, [](std::promise<bool> *p) {
 		delete p;
 	});
@@ -402,8 +288,9 @@ std::future<bool> DoTask(CMyPool &sp) {
 				SPA::CAutoLock al(m_csConsole);
 				std::cout << "Canceled" << std::endl;
 			}
-			std::exception ex("Canceled");
-			prom->set_exception(std::make_exception_ptr(ex));
+			//std::exception ex("Canceled");
+			//prom->set_exception(std::make_exception_ptr(ex));
+			prom->set_value(false);
 		})) break;
 		ok = true;
 		sp.Unlock(sqlite); //put handler back into pool for reuse 
@@ -489,16 +376,12 @@ int main(int argc, char* argv[]) {
 	f5.get(); //wait until all streamed SQL statements are processed
 	std::cout << "Demo_Multiple_SendRequest_MultiThreaded_Correct_Lock_Unlock" << std::endl << std::endl;
 
-	std::cout << "Demonstration of last wait ....." << std::endl;
-	LastWait(spSqlite);
-	std::cout << std::endl;
-
-	std::cout << "Demonstration of DoTask ....." << std::endl;
-	auto f = DoTask(spSqlite);
-	if (f.wait_for(std::chrono::seconds(5)) == std::_Future_status::timeout)
-		std::cout << "The above requests are not completed in 5 seconds" << std::endl;
+	std::cout << "Demonstration of DoFuture ....." << std::endl;
+	auto f = DoFuture(spSqlite);
+	if (f.wait_for(std::chrono::seconds(5)) == std::_Future_status::timeout || !f.get())
+		std::cout << "The requests within the function DoFuture are not completed in 5 seconds" << std::endl;
 	else {
-		std::cout << "All the above requests are completed with return result = " << f.get() << std::endl;
+		std::cout << "All requests within the function DoFuture are completed" << std::endl;
 	}
 	std::cout << std::endl;
 
