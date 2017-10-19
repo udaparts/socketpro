@@ -257,6 +257,10 @@ public final class CClientSocket {
 
     private static void OnSocketClosed(long h, int errCode) {
         CClientSocket cs = Find(h);
+        CAsyncServiceHandler ash = cs.Seek(cs.getCurrentServiceID());
+        if (ash != null && !cs.getSendable()) {
+            ash.CleanCallbacks();
+        }
         if (cs.SocketClosed != null) {
             cs.SocketClosed.invoke(cs, errCode);
         }
@@ -275,10 +279,6 @@ public final class CClientSocket {
             cs.m_cert = new CUCertImpl(cs);
         } else {
             cs.m_cert = null;
-        }
-        CAsyncServiceHandler ash = cs.Seek(cs.getCurrentServiceID());
-        if (ash != null && !cs.getSendable()) {
-            ash.CleanCallbacks();
         }
         if (cs.SocketConnected != null) {
             cs.SocketConnected.invoke(cs, errCode);

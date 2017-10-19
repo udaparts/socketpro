@@ -8,7 +8,7 @@ import java.util.concurrent.*;
 
 /*
  //This is bad implementation for original SPA.ClientSide.CAsyncDBHandler.Open method!!!!
- public boolean Open(String strConnection, DResult handler, int flags) {
+ public boolean Open(String strConnection, DResult handler, int flags, DCanceled canceled) {
  String str = null;
  MyCallback<DResult> cb = new MyCallback<>(idOpen, handler);
  CUQueue sb = CScopeUQueue.Lock();
@@ -24,7 +24,7 @@ import java.util.concurrent.*;
  }
  m_deqResult.add(cb);
  //cross SendRequest dead lock here
- if (SendRequest(idOpen, sb, null)) {
+ if (SendRequest(idOpen, sb, null, canceled)) {
  CScopeUQueue.Unlock(sb);
  return true;
  } else {
@@ -45,7 +45,7 @@ public class Java_demo {
 
     static void Demo_Cross_Request_Dead_Lock(CSqlite sqlite) {
         boolean ok;
-        int count = 10000;
+        int count = 1000000;
         //uncomment the following call to remove potential cross-request dead lock
         //ok = sqlite.getAttachedClientSocket().getClientQueue().StartQueue("cross_locking_0", 3600);
         do {
@@ -252,7 +252,13 @@ public class Java_demo {
                     lock.lock();
                     cv.signal();
                     lock.unlock();
-
+                }, () -> {
+                    synchronized (m_csConsole) {
+                        System.out.println("EndTrans: Request canceled or socket closed");
+                    }
+                    lock.lock();
+                    cv.signal();
+                    lock.unlock();
                 })) {
                     lock.unlock();
                     break;
@@ -365,6 +371,11 @@ public class Java_demo {
                     }
                 }
                 f.set(true);
+            }, () -> {
+                synchronized (m_csConsole) {
+                    System.out.println("EndTrans: Request canceled or socket closed");
+                }
+                f.set(false);
             })) {
                 break;
             }
@@ -398,7 +409,7 @@ public class Java_demo {
             return;
         }
         CSqlite sqlite = spSqlite.getAsyncHandlers()[0];
-        
+
         //Use the above bad implementation to replace original SPA.ClientSide.CAsyncDBHandler.Open method
         //at file socketpro/src/jadpater/jspa/src/SPA/ClientSide/CAsyncDBHandler.java
         System.out.println("Doing Demo_Cross_Request_Dead_Lock ......");
@@ -482,18 +493,17 @@ public class Java_demo {
         System.out.println("Demonstration of last wait .....");
         LastWait(spSqlite);
         System.out.println("");
-        
+
         System.out.println("Demonstration of DoTask .....");
         try {
             if (DoTask(spSqlite).get(5000, TimeUnit.MILLISECONDS)) {
                 System.out.println("All the above requests are completed");
             }
-        }
-        catch(TimeoutException err) {
+        } catch (TimeoutException err) {
             System.out.println("The above requests are not completed in 5 seconds");
         }
         System.out.println("");
-        
+
         System.out.println("Press any key to close the application ......");
         new java.util.Scanner(System.in).nextLine();
     }

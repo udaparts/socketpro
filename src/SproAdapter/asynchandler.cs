@@ -323,19 +323,16 @@ namespace SocketProAdapter
             internal void onRR(ushort reqId, CUQueue mc)
             {
                 KeyValuePair<ushort, CResultCb> p = GetAsyncResultHandler(reqId);
-                if (p.Value != null)
+                if (p.Value != null && p.Value.AsyncResultHandler != null)
                 {
                     CAsyncResult ar = new CAsyncResult(this, reqId, mc, p.Value.AsyncResultHandler);
                     p.Value.AsyncResultHandler.Invoke(ar);
                 }
-                else
+                else if (ResultReturned != null && ResultReturned.Invoke(this, reqId, mc))
                 {
-                    if (ResultReturned != null && ResultReturned.Invoke(this, reqId, mc))
-                    {
-                    }
-                    else
-                        OnResultReturned(reqId, mc);
                 }
+                else
+                    OnResultReturned(reqId, mc);
             }
 
             protected virtual void OnResultReturned(ushort sRequestId, CUQueue UQueue)

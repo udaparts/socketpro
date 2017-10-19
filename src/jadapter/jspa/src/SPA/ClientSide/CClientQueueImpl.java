@@ -28,11 +28,23 @@ class CClientQueueImpl implements IClientQueue {
 
     @Override
     public boolean AbortJob() {
-        return ClientCoreLoader.AbortJob(m_cs.getHandle());
+        CAsyncServiceHandler ash = m_cs.getCurrentHandler();
+        synchronized (ash.m_cs) {
+            int aborted = ash.GetCallbacks().size() - m_nQIndex;
+            if (ClientCoreLoader.AbortJob(m_cs.getHandle())) {
+                ash.EraseBack(aborted);
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
     public boolean StartJob() {
+        CAsyncServiceHandler ash = m_cs.getCurrentHandler();
+        synchronized (ash.m_cs) {
+            m_nQIndex = ash.GetCallbacks().size();
+        }
         return ClientCoreLoader.StartJob(m_cs.getHandle());
     }
 
@@ -253,4 +265,5 @@ class CClientQueueImpl implements IClientQueue {
     }
 
     private final CClientSocket m_cs;
+    private int m_nQIndex = 0;
 }

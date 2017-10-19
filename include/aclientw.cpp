@@ -290,12 +290,10 @@ namespace SPA
 				CAsyncResult ar(this, reqId, mc, p->second.AsyncResultHandler);
 				p->second.AsyncResultHandler(ar);
 			}
-			else {
-				if (ResultReturned && ResultReturned(this, reqId, mc)) {
-				}
-				else
-					OnResultReturned(reqId, mc);
+			else if (ResultReturned && ResultReturned(this, reqId, mc)) {
 			}
+			else
+				OnResultReturned(reqId, mc);
 			Recycle(p);
 		}
 

@@ -380,7 +380,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * request is NOT successfully sent or queued
      */
     public final boolean Close() {
-        return Close(null);
+        return Close(null, null);
     }
 
     /**
@@ -393,6 +393,20 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * request is NOT successfully sent or queued
      */
     public boolean Close(DResult handler) {
+        return Close(handler, null);
+    }
+
+    /**
+     * Notify connected remote server to close database connection string
+     * asynchronously
+     *
+     * @param handler a callback for closing result, which should be OK always
+     * as long as there is network or queue available
+     * @param canceled a callback for tracking cancel or socket closed event
+     * @return true if request is successfully sent or queued; and false if
+     * request is NOT successfully sent or queued
+     */
+    public boolean Close(DResult handler, DCanceled canceled) {
         MyCallback<DResult> cb = new MyCallback<>(idClose, handler);
         synchronized (m_csOneSending) {
             //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
@@ -400,7 +414,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
             synchronized (m_csDB) {
                 m_deqResult.add(cb);
             }
-            if (!SendRequest(idClose, null)) {
+            if (!SendRequest(idClose, null, canceled)) {
                 synchronized (m_csDB) {
                     m_deqResult.remove(cb);
                 }
@@ -420,7 +434,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * request is NOT successfully sent or queued
      */
     public final boolean BeginTrans() {
-        return BeginTrans(tagTransactionIsolation.tiReadCommited, null);
+        return BeginTrans(tagTransactionIsolation.tiReadCommited, null, null);
     }
 
     /**
@@ -434,7 +448,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * request is NOT successfully sent or queued
      */
     public final boolean BeginTrans(tagTransactionIsolation isolation) {
-        return BeginTrans(isolation, null);
+        return BeginTrans(isolation, null, null);
     }
 
     /**
@@ -448,7 +462,23 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @return true if request is successfully sent or queued; and false if
      * request is NOT successfully sent or queued
      */
-    public boolean BeginTrans(tagTransactionIsolation isolation, DResult handler) {
+    public final boolean BeginTrans(tagTransactionIsolation isolation, DResult handler) {
+        return BeginTrans(isolation, handler, null);
+    }
+
+    /**
+     * Start a manual transaction with a given isolation asynchronously. Note
+     * the transaction will be associated with SocketPro client message queue if
+     * available to avoid possible transaction lose
+     *
+     * @param isolation a second for transaction isolation. It defaults to
+     * tagTransactionIsolation.tiReadCommited
+     * @param handler a callback for tracking its response result
+     * @param canceled a callback for tracking cancel or socket closed event
+     * @return true if request is successfully sent or queued; and false if
+     * request is NOT successfully sent or queued
+     */
+    public boolean BeginTrans(tagTransactionIsolation isolation, DResult handler, DCanceled canceled) {
         MyCallback<DResult> cb = new MyCallback<>(idBeginTrans, handler);
         CUQueue sb = CScopeUQueue.Lock();
         //make sure BeginTrans sending and underlying client persistent message queue as one combination sending
@@ -463,7 +493,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                 sb.Save(isolation.getValue()).Save(m_strConnection).Save(m_flags);
                 m_deqResult.add(cb);
             }
-            if (!SendRequest(idBeginTrans, sb, null)) {
+            if (!SendRequest(idBeginTrans, sb, null, canceled)) {
                 synchronized (m_csDB) {
                     m_deqResult.remove(cb);
                 }
@@ -488,7 +518,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * request is NOT successfully sent or queued
      */
     public final boolean EndTrans() {
-        return EndTrans(tagRollbackPlan.rpDefault, null);
+        return EndTrans(tagRollbackPlan.rpDefault, null, null);
     }
 
     /**
@@ -502,7 +532,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * request is NOT successfully sent or queued
      */
     public final boolean EndTrans(tagRollbackPlan plan) {
-        return EndTrans(plan, null);
+        return EndTrans(plan, null, null);
     }
 
     /**
@@ -517,6 +547,22 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * request is NOT successfully sent or queued
      */
     public boolean EndTrans(tagRollbackPlan plan, DResult handler) {
+        return EndTrans(plan, handler, null);
+    }
+
+    /**
+     * End a manual transaction with a given rollback plan. Note the transaction
+     * will be associated with SocketPro client message queue if available to
+     * avoid possible transaction lose
+     *
+     * @param plan a second for computing how included transactions should be
+     * rollback at server side. It defaults to tagRollbackPlan.rpDefault
+     * @param handler a callback for tracking its response result
+     * @param canceled a callback for tracking cancel or socket closed event
+     * @return true if request is successfully sent or queued; and false if
+     * request is NOT successfully sent or queued
+     */
+    public boolean EndTrans(tagRollbackPlan plan, DResult handler, DCanceled canceled) {
         boolean ok = true;
         MyCallback<DResult> cb = new MyCallback<>(idEndTrans, handler);
         CUQueue sb = CScopeUQueue.Lock();
@@ -529,7 +575,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
             synchronized (m_csDB) {
                 m_deqResult.add(cb);
             }
-            ok = SendRequest(idEndTrans, sb, null);
+            ok = SendRequest(idEndTrans, sb, null, canceled);
             if (ok) {
                 //associate end transaction with underlying client persistent message queue
                 getAttachedClientSocket().getClientQueue().EndJob();
@@ -578,7 +624,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * request is NOT successfully sent or queued
      */
     public final boolean Open(String strConnection, DResult handler) {
-        return Open(strConnection, handler, 0);
+        return Open(strConnection, handler, 0, null);
     }
 
     /**
@@ -594,6 +640,23 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * request is NOT successfully sent or queued
      */
     public boolean Open(String strConnection, DResult handler, int flags) {
+        return Open(strConnection, handler, flags, null);
+    }
+
+    /**
+     * Open a database connection at server side asynchronously
+     *
+     * @param strConnection a database connection string. The database
+     * connection string can be an empty string if its server side supports
+     * global database connection string
+     * @param handler a callback for database connecting result
+     * @param flags a set of flags transferred to server to indicate how to
+     * build database connection at server side. It defaults to zero
+     * @param canceled a callback for tracking cancel or socket closed event
+     * @return true if request is successfully sent or queued; and false if
+     * request is NOT successfully sent or queued
+     */
+    public boolean Open(String strConnection, DResult handler, int flags, DCanceled canceled) {
         String str = null;
         MyCallback<DResult> cb = new MyCallback<>(idOpen, handler);
         CUQueue sb = CScopeUQueue.Lock();
@@ -609,7 +672,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                 }
                 m_deqResult.add(cb);
             }
-            if (SendRequest(idOpen, sb, null)) {
+            if (SendRequest(idOpen, sb, null, canceled)) {
                 CScopeUQueue.Unlock(sb);
                 return true;
             } else {
@@ -633,7 +696,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * request is NOT successfully sent or queued
      */
     public final boolean Prepare(String sql) {
-        return Prepare(sql, null, null);
+        return Prepare(sql, null, null, null);
     }
 
     /**
@@ -645,7 +708,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * request is NOT successfully sent or queued
      */
     public final boolean Prepare(String sql, DResult handler) {
-        return Prepare(sql, handler, null);
+        return Prepare(sql, handler, null, null);
     }
 
     /**
@@ -658,7 +721,22 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @return true if request is successfully sent or queued; and false if
      * request is NOT successfully sent or queued
      */
-    public boolean Prepare(String sql, DResult handler, CParameterInfo[] vParameterInfo) {
+    public final boolean Prepare(String sql, DResult handler, CParameterInfo[] vParameterInfo) {
+        return Prepare(sql, handler, vParameterInfo, null);
+    }
+
+    /**
+     * Send a parameterized SQL statement for preparing with a given array of
+     * parameter informations asynchronously
+     *
+     * @param sql a parameterized SQL statement
+     * @param handler a callback for SQL preparing result
+     * @param vParameterInfo a given array of parameter informations
+     * @param canceled a callback for tracking cancel or socket closed event
+     * @return true if request is successfully sent or queued; and false if
+     * request is NOT successfully sent or queued
+     */
+    public boolean Prepare(String sql, DResult handler, CParameterInfo[] vParameterInfo, DCanceled canceled) {
         CUQueue sb = CScopeUQueue.Lock();
         sb.Save(sql);
         int count = 0;
@@ -679,7 +757,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
             synchronized (m_csDB) {
                 m_deqResult.add(cb);
             }
-            if (SendRequest(idPrepare, sb, null)) {
+            if (SendRequest(idPrepare, sb, null, canceled)) {
                 ok = true;
             } else {
                 ok = false;
@@ -702,7 +780,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * request is NOT successfully sent or queued
      */
     public final boolean Execute(String sql) {
-        return Execute(sql, null, null, null, true, true);
+        return Execute(sql, null, null, null, true, true, null);
     }
 
     /**
@@ -716,7 +794,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * request is NOT successfully sent or queued
      */
     public final boolean Execute(String sql, DExecuteResult handler) {
-        return Execute(sql, handler, null, null, true, true);
+        return Execute(sql, handler, null, null, true, true, null);
     }
 
     /**
@@ -734,7 +812,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * request is NOT successfully sent or queued
      */
     public final boolean Execute(String sql, DExecuteResult handler, DRows row, DRowsetHeader rh) {
-        return Execute(sql, handler, row, rh, true, true);
+        return Execute(sql, handler, row, rh, true, true, null);
     }
 
     /**
@@ -755,7 +833,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * request is NOT successfully sent or queued
      */
     public final boolean Execute(String sql, DExecuteResult handler, DRows row, DRowsetHeader rh, boolean meta) {
-        return Execute(sql, handler, row, rh, meta, true);
+        return Execute(sql, handler, row, rh, meta, true, null);
     }
 
     /**
@@ -778,7 +856,32 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @return true if request is successfully sent or queued; and false if
      * request is NOT successfully sent or queued
      */
-    public boolean Execute(String sql, DExecuteResult handler, DRows row, DRowsetHeader rh, boolean meta, boolean lastInsertId) {
+    public final boolean Execute(String sql, DExecuteResult handler, DRows row, DRowsetHeader rh, boolean meta, boolean lastInsertId) {
+        return Execute(sql, handler, row, rh, meta, lastInsertId, null);
+    }
+
+    /**
+     * Process a complex SQL statement which may be combined with multiple basic
+     * SQL statements asynchronously
+     *
+     * @param sql a complex SQL statement which may be combined with multiple
+     * basic SQL statements
+     * @param handler a callback for tracking final result
+     * @param row a callback for tracking record or output parameter returned
+     * data
+     * @param rh a callback for tracking row set of header column informations.
+     * Note that there will be NO row set data or its column informations
+     * returned if NO such a callback is set
+     * @param meta a boolean second for better or more detailed column meta
+     * details such as unique, not null, primary first, and so on. It defaults
+     * to true
+     * @param lastInsertId a boolean second for last insert record
+     * identification number. It defaults to true
+     * @param canceled a callback for tracking cancel or socket closed event
+     * @return true if request is successfully sent or queued; and false if
+     * request is NOT successfully sent or queued
+     */
+    public boolean Execute(String sql, DExecuteResult handler, DRows row, DRowsetHeader rh, boolean meta, boolean lastInsertId, DCanceled canceled) {
         boolean rowset = (rh != null) ? true : false;
         if (!rowset) {
             meta = false;
@@ -803,7 +906,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                 m_deqExecuteResult.add(cb);
                 index = m_nCall;
             }
-            if (!SendRequest(idExecute, sb, null)) {
+            if (!SendRequest(idExecute, sb, null, canceled)) {
                 synchronized (m_csDB) {
                     m_deqExecuteResult.remove(cb);
                     if (rowset) {
@@ -828,7 +931,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * request is NOT successfully sent or queued
      */
     public final boolean Execute(CDBVariantArray vParam) {
-        return Execute(vParam, null, null, null, true, true);
+        return Execute(vParam, null, null, null, true, true, null);
     }
 
     /**
@@ -843,7 +946,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * request is NOT successfully sent or queued
      */
     public final boolean Execute(CDBVariantArray vParam, DExecuteResult handler) {
-        return Execute(vParam, handler, null, null, true, true);
+        return Execute(vParam, handler, null, null, true, true, null);
     }
 
     /**
@@ -859,7 +962,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * request is NOT successfully sent or queued
      */
     public final boolean Execute(CDBVariantArray vParam, DExecuteResult handler, DRows row) {
-        return Execute(vParam, handler, row, null, true, true);
+        return Execute(vParam, handler, row, null, true, true, null);
     }
 
     /**
@@ -878,7 +981,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * request is NOT successfully sent or queued
      */
     public final boolean Execute(CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh) {
-        return Execute(vParam, handler, row, rh, true, true);
+        return Execute(vParam, handler, row, rh, true, true, null);
     }
 
     /**
@@ -900,7 +1003,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * request is NOT successfully sent or queued
      */
     public final boolean Execute(CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh, boolean meta) {
-        return Execute(vParam, handler, row, rh, meta, true);
+        return Execute(vParam, handler, row, rh, meta, true, null);
     }
 
     /**
@@ -923,7 +1026,32 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @return true if request is successfully sent or queued; and false if
      * request is NOT successfully sent or queued
      */
-    public boolean Execute(CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh, boolean meta, boolean lastInsertId) {
+    public final boolean Execute(CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh, boolean meta, boolean lastInsertId) {
+        return Execute(vParam, handler, row, rh, meta, lastInsertId, null);
+    }
+
+    /**
+     * Process one or more sets of prepared statements with an array of
+     * parameter data asynchronously
+     *
+     * @param vParam an array of parameter data which will be bounded to
+     * previously prepared parameters
+     * @param handler a callback for tracking final result
+     * @param row a callback for tracking record or output parameter returned
+     * data
+     * @param rh a callback for tracking row set of header column informations.
+     * Note that there will be NO row set data or its column informations
+     * returned if NO such a callback is set
+     * @param meta a boolean second for better or more detailed column meta
+     * details such as unique, not null, primary first, and so on. It defaults
+     * to true
+     * @param lastInsertId a boolean second for last insert record
+     * identification number. It defaults to true
+     * @param canceled a callback for tracking cancel or socket closed event
+     * @return true if request is successfully sent or queued; and false if
+     * request is NOT successfully sent or queued
+     */
+    public boolean Execute(CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh, boolean meta, boolean lastInsertId, DCanceled canceled) {
         boolean rowset = (rh != null) ? true : false;
         if (!rowset) {
             meta = false;
@@ -954,7 +1082,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                 m_mapParameterCall.put(m_nCall, vParam);
                 index = m_nCall;
             }
-            if (!SendRequest(idExecuteParameters, sb, null)) {
+            if (!SendRequest(idExecuteParameters, sb, null, canceled)) {
                 synchronized (m_csDB) {
                     m_mapParameterCall.remove(index);
                     m_deqExecuteResult.remove(cb);
