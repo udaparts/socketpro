@@ -1033,7 +1033,7 @@ namespace SPA {
 					}
 					catch (...) {
 					}
-					};
+				};
 				ResultHandler rh = [prom](CAsyncResult & ar) {
 					prom->set_value();
 				};
@@ -1041,7 +1041,7 @@ namespace SPA {
 					throw CUException(GetAttachedClientSocket()->GetErrorMsg().c_str(), __FILE__, reqId, __FUNCTION__, GetAttachedClientSocket()->GetErrorCode());
 				}
 				return prom->get_future();
-				}
+			}
 
 			std::future<void> async(unsigned short reqId) {
 				return async(reqId, (const unsigned char *) nullptr, (unsigned int)0);
@@ -1143,7 +1143,7 @@ namespace SPA {
 					}
 					catch (...) {
 					}
-					};
+				};
 				ResultHandler rh = [prom](CAsyncResult & ar) {
 					try {
 						R r;
@@ -1158,7 +1158,7 @@ namespace SPA {
 					throw CUException(GetAttachedClientSocket()->GetErrorMsg().c_str(), __FILE__, reqId, __FUNCTION__, GetAttachedClientSocket()->GetErrorCode());
 				}
 				return prom->get_future();
-				}
+			}
 
 			template<typename R>
 			std::future<R> async(unsigned short reqId) {
@@ -1419,8 +1419,7 @@ namespace SPA {
 				}
 				return ok;
 			}
-#else
-
+#endif
 			bool P(unsigned short reqId, const CUQueue &qSender) {
 				bool ok = true;
 				if (!SendRequest(reqId, qSender.GetBuffer(), qSender.GetSize(), [](CAsyncResult & ar) {
@@ -1497,7 +1496,7 @@ namespace SPA {
 				}
 				return (WaitAll() && ok);
 			}
-#endif
+
 			bool GetAsyncResultHandler(unsigned short usReqId, PRR_PAIR &p);
 			void OnRR(unsigned short reqId, CUQueue &mc);
 			void OnSE(unsigned short requestId, const wchar_t *errMessage, const char* errWhere, unsigned int errCode);
@@ -1777,14 +1776,14 @@ namespace SPA {
 
 		private:
 
-			struct cs_hash : public std::hash<PClientSocket> {
+			struct cs_hash : public std::hash < PClientSocket > {
 
 				inline size_t operator()(const PClientSocket & key) const {
 					return (size_t)key->GetHandle();
 				}
 			};
 
-			struct cs_equal : public std::binary_function<PClientSocket, PClientSocket, bool> {
+			struct cs_equal : public std::binary_function < PClientSocket, PClientSocket, bool > {
 
 				inline bool operator()(const PClientSocket &s1, const PClientSocket & s2) const {
 					return (s1->GetHandle() == s2->GetHandle());
