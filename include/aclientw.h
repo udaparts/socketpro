@@ -1242,7 +1242,7 @@ namespace SPA {
 
 			USocket_Client_Handle GetClientSocketHandle() const;
 
-#if defined(_CONDITION_VARIABLE_)
+#if 0 //defined(_CONDITION_VARIABLE_)
 			std::mutex m_m;
 			std::condition_variable m_cv;
 
@@ -1257,7 +1257,7 @@ namespace SPA {
 			bool P(unsigned short reqId, const CUQueue &qSender) {
 				ResultHandler arh = [this](CAsyncResult & ar) {
 					std::unique_lock<std::mutex> a(this->m_m);
-					m_cv.notify_one();
+					this->m_cv.notify_one();
 				};
 				std::exception_ptr p_error;
 				DCanceled c = [&p_error, this]() {
