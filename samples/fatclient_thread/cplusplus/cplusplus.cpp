@@ -1,6 +1,5 @@
 
 #include "stdafx.h"
-#include <chrono>
 
 using namespace SPA::UDB;
 
@@ -230,7 +229,7 @@ std::future<bool> DoFuture(CMyPool &sp) {
 		vData.push_back("Google Inc.");
 		vData.push_back(2);
 		vData.push_back("Microsoft Inc.");
-		//send two sets of parameterized data in one shot for processing
+		//send two sets of parameterised data in one shot for processing
 		if (!sqlite->Execute(vData, [](CMyHandler & h, int res, const std::wstring & errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & id) {
 			if (res != 0) {
 				SPA::CAutoLock al(m_csConsole);
@@ -269,7 +268,7 @@ std::future<bool> DoFuture(CMyPool &sp) {
 		::gettimeofday(&st, nullptr);
 #endif
 		vData.push_back(st);
-		//send three sets of parameterized data in one shot for processing
+		//send three sets of parameterised data in one shot for processing
 		if (!sqlite->Execute(vData, [](CMyHandler & h, int res, const std::wstring & errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & id) {
 			if (res != 0) {
 				SPA::CAutoLock al(m_csConsole);

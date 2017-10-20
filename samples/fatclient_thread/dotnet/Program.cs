@@ -1,5 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿
+using System;
 using SocketProAdapter;
 using SocketProAdapter.ClientSide;
 using SocketProAdapter.UDB;
@@ -174,7 +174,7 @@ class Program
             CDBVariantArray vData = new CDBVariantArray();
             vData.Add(1); vData.Add("Google Inc.");
             vData.Add(2); vData.Add("Microsoft Inc.");
-            //send two sets of parameterized data in one shot for processing
+            //send two sets of parameterised data in one shot for processing
             if (!sqlite.Execute(vData, (h, res, errMsg, affected, fail_ok, id) =>
             {
                 if (res != 0) lock (m_csConsole) Console.WriteLine("INSERT COMPANY: affected={0}, fails={1}, res={2}, errMsg={3}",
@@ -185,7 +185,7 @@ class Program
             vData.Add(1); vData.Add(1); /*google company id*/ vData.Add("Ted Cruz"); vData.Add(DateTime.Now);
             vData.Add(2); vData.Add(1); /*google company id*/ vData.Add("Donald Trump"); vData.Add(DateTime.Now);
             vData.Add(3); vData.Add(2); /*Microsoft company id*/ vData.Add("Hillary Clinton"); vData.Add(DateTime.Now);
-            //send three sets of parameterized data in one shot for processing
+            //send three sets of parameterised data in one shot for processing
             if (!sqlite.Execute(vData, (h, res, errMsg, affected, fail_ok, id) =>
             {
                 if (res != 0) lock (m_csConsole) Console.WriteLine("INSET EMPLOYEE: affected={0}, fails={1}, res={2}, errMsg={3}",
@@ -206,7 +206,7 @@ class Program
         if (!ok)
         {
             //Socket is closed at server side and the above locked handler is automatically unlocked
-            lock (m_csConsole) Console.WriteLine("LastWait: Connection disconnected error code ={0}, message ={1}",
+            lock (m_csConsole) Console.WriteLine("DoFuture: Connection disconnected error code ={0}, message ={1}",
                 sqlite.AttachedClientSocket.ErrorCode, sqlite.AttachedClientSocket.ErrorMsg);
             tcs.SetResult(false);
         }

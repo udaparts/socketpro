@@ -79,3 +79,4 @@ from spa.clientside.sqlite import CSqlite
 from spa.clientside.mysql import CMysql
 from spa.clientside.odbc import COdbc
 from spa.clientside.asyncqueue import CAsyncQueue
+from spa.clientside.ufuture import UFuture

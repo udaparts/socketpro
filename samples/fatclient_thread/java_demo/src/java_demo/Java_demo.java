@@ -2,8 +2,6 @@ package java_demo;
 
 import SPA.ClientSide.*;
 import SPA.UDB.*;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.*;
 import java.util.concurrent.*;
 
 /*
@@ -118,7 +116,7 @@ public class Java_demo {
         vData.add(2); //Microsoft company id
         vData.add("Hillary Clinton");
         vData.add(new java.util.Date());
-        //send three sets of parameterized data in one shot for processing
+        //send three sets of parameterised data in one shot for processing
         ok = sqlite.Execute(vData, (h, res, errMsg, affected, fail_ok, id) -> {
             if (res != 0) {
                 synchronized (m_csConsole) {
@@ -205,7 +203,7 @@ public class Java_demo {
             vData.add("Google Inc.");
             vData.add(2);
             vData.add("Microsoft Inc.");
-            //send two sets of parameterized data in one shot for processing
+            //send two sets of parameterised data in one shot for processing
             if (!sqlite.Execute(vData, (h, res, errMsg, affected, fail_ok, id) -> {
                 if (res != 0) {
                     synchronized (m_csConsole) {
