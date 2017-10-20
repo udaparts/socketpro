@@ -77,6 +77,7 @@ class CClientSocket:
     class CClientQueueImpl(IClientQueue):
         def __init__(self, cs):
             self._m_cs_ = cs
+            self._nQIndex_ = 0
 
         def StartQueue(self, qName, ttl, secure=True, dequeueShared=False):
             if qName is None or len(qName) == 0:
@@ -157,9 +158,22 @@ class CClientSocket:
             return ccl.RemoveQueuedRequestsByTTL(self._m_cs_.Handle)
 
         def AbortJob(self):
-            return ccl.AbortJob(self._m_cs_.Handle)
+            ash = self._m_cs_.CurrentHandler
+            with ash._lock_:
+                aborted = len(ash._m_kvCallback_) - self._nQIndex_
+                if ccl.AbortJob(self._m_cs_.Handle):
+                    while aborted > 0:
+                        p = ash._m_kvCallback_.pop()
+                        if p and p[1] and p[1].Canceled:
+                            p[1].Canceled()
+                        aborted -= 1
+                    return True
+            return False
 
         def StartJob(self):
+            ash = self._m_cs_.CurrentHandler
+            with ash._lock_:
+                self._nQIndex_ = len(ash._m_kvCallback_)
             return ccl.StartJob(self._m_cs_.Handle)
 
         def EndJob(self):
@@ -314,6 +328,9 @@ class CClientSocket:
             self.RequestProcessed(self, reqId, size)
 
     def _ss_(self, handler, nError):
+        ash = self._Seek_(self.CurrentServiceID)
+        if ash and not self._m_qm_.Available:
+            ash.CleanCallbacks()
         if not self.SocketClosed is None:
             self.SocketClosed(self, nError)
 
@@ -395,9 +412,6 @@ class CClientSocket:
             self._m_cert_ = CClientSocket.CUCertImpl(pCertInfo, self)
         else:
             self._m_cert_ = None
-        ash = self._Seek_(self.CurrentServiceID)
-        if not ash is None and not self._m_qm_.Available:
-            ash.CleanCallbacks()
         if not self.SocketConnected is None:
             self.SocketConnected(self, nError)
 
@@ -584,6 +598,10 @@ class CClientSocket:
     @property
     def CurrentServiceID(self):
         return self._m_currSvsId
+
+    @property
+    def CurrentHandler(self):
+        return self._Seek_(self._m_currSvsId)
 
     @property
     def EncryptionMethod(self):
