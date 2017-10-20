@@ -378,7 +378,7 @@ int main(int argc, char* argv[]) {
 
 	std::cout << "Demonstration of DoFuture ....." << std::endl;
 	auto f = DoFuture(spSqlite);
-	if (f.wait_for(std::chrono::seconds(5)) == std::_Future_status::timeout || !f.get())
+	if (f.wait_for(std::chrono::seconds(5)) == std::future_status::timeout || !f.get())
 		std::cout << "The requests within the function DoFuture are not completed in 5 seconds" << std::endl;
 	else {
 		std::cout << "All requests within the function DoFuture are completed" << std::endl;
