@@ -36,118 +36,123 @@ class COdbc(CAsyncDBHandler):
     ER_BAD_PARAMETER_DIRECTION_TYPE = -1991
     ER_CORRECT_PARAMETER_INFO_NOT_PROVIDED_YET = -1992
 
-    def ColumnPrivileges(self, CatalogName, SchemaName, TableName, ColumnName, handler, row, rh):
-        return self._DoMeta4(COdbc.idSQLColumnPrivileges, CatalogName, SchemaName, TableName, ColumnName, handler, row, rh)
+    def ColumnPrivileges(self, CatalogName, SchemaName, TableName, ColumnName, handler, row, rh, canceled = None):
+        return self._DoMeta4(COdbc.idSQLColumnPrivileges, CatalogName, SchemaName, TableName, ColumnName, handler, row, rh, canceled)
 
-    def Columns(self, CatalogName, SchemaName, TableName, ColumnName, handler, row, rh):
-        return self._DoMeta4(COdbc.idSQLColumns, CatalogName, SchemaName, TableName, ColumnName, handler, row, rh)
+    def Columns(self, CatalogName, SchemaName, TableName, ColumnName, handler, row, rh, canceled = None):
+        return self._DoMeta4(COdbc.idSQLColumns, CatalogName, SchemaName, TableName, ColumnName, handler, row, rh, canceled)
 
-    def ProcedureColumns(self, CatalogName, SchemaName, ProcName, ColumnName, handler, row, rh):
-        return self._DoMeta4(COdbc.idSQLProcedureColumns, CatalogName, SchemaName, ProcName, ColumnName, handler, row, rh)
+    def ProcedureColumns(self, CatalogName, SchemaName, ProcName, ColumnName, handler, row, rh, canceled = None):
+        return self._DoMeta4(COdbc.idSQLProcedureColumns, CatalogName, SchemaName, ProcName, ColumnName, handler, row, rh, canceled)
 
-    def PrimaryKeys(self, CatalogName, SchemaName, TableName, handler, row, rh):
-        return self._DoMeta3(COdbc.idSQLPrimaryKeys, CatalogName, SchemaName, TableName, handler, row, rh)
+    def PrimaryKeys(self, CatalogName, SchemaName, TableName, handler, row, rh, canceled = None):
+        return self._DoMeta3(COdbc.idSQLPrimaryKeys, CatalogName, SchemaName, TableName, handler, row, rh, canceled)
 
-    def Procedures(self, CatalogName, SchemaName, ProcName, handler, row, rh):
-        return self._DoMeta3(COdbc.idSQLProcedures, CatalogName, SchemaName, ProcName, handler, row, rh)
+    def Procedures(self, CatalogName, SchemaName, ProcName, handler, row, rh, canceled = None):
+        return self._DoMeta3(COdbc.idSQLProcedures, CatalogName, SchemaName, ProcName, handler, row, rh, canceled)
 
-    def TablePrivileges(self, CatalogName, SchemaName, TableName, handler, row, rh):
-        return self._DoMeta3(COdbc.idSQLTablePrivileges, CatalogName, SchemaName, TableName, handler, row, rh)
+    def TablePrivileges(self, CatalogName, SchemaName, TableName, handler, row, rh, canceled = None):
+        return self._DoMeta3(COdbc.idSQLTablePrivileges, CatalogName, SchemaName, TableName, handler, row, rh, canceled)
 
-    def Tables(self, CatalogName, SchemaName, TableName, TableType, handler, row, rh):
-        return self._DoMeta4(COdbc.idSQLTables, CatalogName, SchemaName, TableName, TableType, handler, row, rh)
+    def Tables(self, CatalogName, SchemaName, TableName, TableType, handler, row, rh, canceled = None):
+        return self._DoMeta4(COdbc.idSQLTables, CatalogName, SchemaName, TableName, TableType, handler, row, rh, canceled)
 
-    def Statistics(self, CatalogName, SchemaName, TableName, unique, reserved, handler, row, rh):
+    def Statistics(self, CatalogName, SchemaName, TableName, unique, reserved, handler, row, rh, canceled = None):
         q = CScopeUQueue.Lock().SaveString(CatalogName).SaveString(SchemaName).SaveString(TableName).SaveUShort(unique).SaveUShort(reserved)
         cb = CAsyncDBHandler.Pair(COdbc.idSQLStatistics, handler)
         index = 0
-        with self._csDB:
-            self._nCall += 1
-            index = self._nCall
-            self._mapRowset[self._nCall] = CAsyncDBHandler.Pair(rh, row)
-            self._deqResult.append(cb)
-        q.SaveULong(index)
-        ok = self.SendRequest(COdbc.idSQLStatistics, q, None)
-        if not ok:
+        with self._csOneSending:
             with self._csDB:
-                self._deqResult.remove(cb)
-                self._mapRowset.pop(index)
+                self._nCall += 1
+                index = self._nCall
+                self._mapRowset[self._nCall] = CAsyncDBHandler.Pair(rh, row)
+                self._deqResult.append(cb)
+            q.SaveULong(index)
+            ok = self.SendRequest(COdbc.idSQLStatistics, q, None, canceled)
+            if not ok:
+                with self._csDB:
+                    self._deqResult.remove(cb)
+                    self._mapRowset.pop(index)
         CScopeUQueue.Unlock(q)
         return ok
 
-    def SpecialColumns(self, identifierType, CatalogName, SchemaName, TableName, scope, nullable, handler, row, rh):
+    def SpecialColumns(self, identifierType, CatalogName, SchemaName, TableName, scope, nullable, handler, row, rh, canceled = None):
         q = CScopeUQueue.Lock().SaveShort(identifierType).SaveString(CatalogName).SaveString(SchemaName).SaveString(TableName).SaveShort(scope).SaveShort(nullable)
         cb = CAsyncDBHandler.Pair(COdbc.idSQLSpecialColumns, handler)
         index = 0
         ok = True
-        with self._csDB:
-            self._nCall += 1
-            index = self._nCall
-            self._mapRowset[self._nCall] = CAsyncDBHandler.Pair(rh, row)
-            self._deqResult.append(cb)
-        q.SaveULong(index)
-        ok = self.SendRequest(COdbc.idSQLSpecialColumns, q, None)
-        if not ok:
+        with self._csOneSending:
             with self._csDB:
-                self._deqResult.remove(cb)
-                self._mapRowset.pop(index)
+                self._nCall += 1
+                index = self._nCall
+                self._mapRowset[self._nCall] = CAsyncDBHandler.Pair(rh, row)
+                self._deqResult.append(cb)
+            q.SaveULong(index)
+            ok = self.SendRequest(COdbc.idSQLSpecialColumns, q, None, canceled)
+            if not ok:
+                with self._csDB:
+                    self._deqResult.remove(cb)
+                    self._mapRowset.pop(index)
         CScopeUQueue.Unlock(q)
         return ok
 
-    def ForeignKeys(self, PKCatalogName, PKSchemaName, PKTableName, FKCatalogName, FKSchemaName, FKTableName, handler, row, rh):
+    def ForeignKeys(self, PKCatalogName, PKSchemaName, PKTableName, FKCatalogName, FKSchemaName, FKTableName, handler, row, rh, canceled = None):
         q = CScopeUQueue.Lock().SaveString(PKCatalogName).SaveString(PKSchemaName).SaveString(PKTableName).SaveString(FKCatalogName).SaveString(FKSchemaName).SaveString(FKTableName)
         cb = CAsyncDBHandler.Pair(COdbc.idSQLForeignKeys, handler)
         index = 0
         ok = True
-        with self._csDB:
-            self._nCall += 1
-            index = self._nCall
-            self._mapRowset[self._nCall] = CAsyncDBHandler.Pair(rh, row)
-            self._deqResult.append(cb)
-        q.SaveULong(index)
-        ok = self.SendRequest(COdbc.idSQLForeignKeys, q, None)
-        if not ok:
+        with self._csOneSending:
             with self._csDB:
-                self._deqResult.remove(cb)
-                self._mapRowset.pop(index)
+                self._nCall += 1
+                index = self._nCall
+                self._mapRowset[self._nCall] = CAsyncDBHandler.Pair(rh, row)
+                self._deqResult.append(cb)
+            q.SaveULong(index)
+            ok = self.SendRequest(COdbc.idSQLForeignKeys, q, None, canceled)
+            if not ok:
+                with self._csDB:
+                    self._deqResult.remove(cb)
+                    self._mapRowset.pop(index)
         CScopeUQueue.Unlock(q)
         return ok
 
-    def _DoMeta3(self, id, s0, s1, s2, handler, row, rh):
+    def _DoMeta3(self, id, s0, s1, s2, handler, row, rh, canceled):
         q = CScopeUQueue.Lock().SaveString(s0).SaveString(s1).SaveString(s2)
         cb = CAsyncDBHandler.Pair(id, handler)
         index = 0
         ok = True
-        with self._csDB:
-            self._nCall += 1
-            index = self._nCall
-            self._mapRowset[index] = CAsyncDBHandler.Pair(rh, row)
-            self._deqResult.append(cb)
-        q.SaveULong(index)
-        ok = self.SendRequest(id, q, None)
-        if not ok:
+        with self._csOneSending:
             with self._csDB:
-                self._deqResult.remove(cb)
-                self._mapRowset.pop(index)
+                self._nCall += 1
+                index = self._nCall
+                self._mapRowset[index] = CAsyncDBHandler.Pair(rh, row)
+                self._deqResult.append(cb)
+            q.SaveULong(index)
+            ok = self.SendRequest(id, q, None, canceled)
+            if not ok:
+                with self._csDB:
+                    self._deqResult.remove(cb)
+                    self._mapRowset.pop(index)
         CScopeUQueue.Unlock(q)
         return ok
 
-    def _DoMeta4(self, id, s0, s1, s2, s3, handler, row, rh):
+    def _DoMeta4(self, id, s0, s1, s2, s3, handler, row, rh, canceled):
         q = CScopeUQueue.Lock().SaveString(s0).SaveString(s1).SaveString(s2).SaveString(s3)
         cb = CAsyncDBHandler.Pair(id, handler)
         index = 0
         ok = True
-        with self._csDB:
-            self._nCall += 1
-            index = self._nCall
-            self._mapRowset[index] = CAsyncDBHandler.Pair(rh, row)
-            self._deqResult.append(cb)
-        q.SaveULong(index)
-        ok = self.SendRequest(id, q, None)
-        if not ok:
+        with self._csOneSending:
             with self._csDB:
-                self._deqResult.remove(cb)
-                self._mapRowset.pop(index)
+                self._nCall += 1
+                index = self._nCall
+                self._mapRowset[index] = CAsyncDBHandler.Pair(rh, row)
+                self._deqResult.append(cb)
+            q.SaveULong(index)
+            ok = self.SendRequest(id, q, None, canceled)
+            if not ok:
+                with self._csDB:
+                    self._deqResult.remove(cb)
+                    self._mapRowset.pop(index)
         CScopeUQueue.Unlock(q)
         return ok
 

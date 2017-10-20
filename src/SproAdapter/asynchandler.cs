@@ -323,19 +323,16 @@ namespace SocketProAdapter
             internal void onRR(ushort reqId, CUQueue mc)
             {
                 KeyValuePair<ushort, CResultCb> p = GetAsyncResultHandler(reqId);
-                if (p.Value != null)
+                if (p.Value != null && p.Value.AsyncResultHandler != null)
                 {
                     CAsyncResult ar = new CAsyncResult(this, reqId, mc, p.Value.AsyncResultHandler);
                     p.Value.AsyncResultHandler.Invoke(ar);
                 }
-                else
+                else if (ResultReturned != null && ResultReturned.Invoke(this, reqId, mc))
                 {
-                    if (ResultReturned != null && ResultReturned.Invoke(this, reqId, mc))
-                    {
-                    }
-                    else
-                        OnResultReturned(reqId, mc);
                 }
+                else
+                    OnResultReturned(reqId, mc);
             }
 
             protected virtual void OnResultReturned(ushort sRequestId, CUQueue UQueue)
@@ -480,39 +477,7 @@ namespace SocketProAdapter
 
             public virtual bool SendRequest(ushort reqId, byte[] data, uint len, DAsyncResultHandler ash)
             {
-                if (m_ClientSocket == null)
-                    return false;
-                IntPtr h = m_ClientSocket.Handle;
-                if (data != null && len > (uint)data.Length)
-                    len = (uint)data.Length;
-                lock (m_csSend)
-                {
-                    if (ash != null)
-                    {
-                        CResultCb rcb = new CResultCb();
-                        rcb.AsyncResultHandler = ash;
-                        KeyValuePair<ushort, CResultCb> kv = new KeyValuePair<ushort, CResultCb>(reqId, rcb);
-                        byte batching = ClientCoreLoader.IsBatching(h);
-                        lock (m_cs)
-                        {
-                            if (batching != 0)
-                            {
-                                m_kvBatching.AddToBack(kv);
-                            }
-                            else
-                            {
-                                m_kvCallback.AddToBack(kv);
-                            }
-                        }
-                    }
-                    unsafe
-                    {
-                        fixed (byte* buffer = data)
-                        {
-                            return (ClientCoreLoader.SendRequest(h, reqId, buffer, len) != 0);
-                        }
-                    }
-                }
+                return SendRequest(reqId, data, len, ash, null, null);
             }
 
             public virtual bool SendRequest(ushort reqId, CUQueue q, DAsyncResultHandler ash)
@@ -524,6 +489,15 @@ namespace SocketProAdapter
                 return SendRequest(reqId, q.m_bytes, q.GetSize(), ash);
             }
 
+            public virtual bool SendRequest(ushort reqId, CUQueue q, DAsyncResultHandler ash, DCanceled canceled, DOnExceptionFromServer exception)
+            {
+                if (q == null)
+                    return SendRequest(reqId, ash, canceled, exception);
+                if (q.HeadPosition > 0)
+                    return SendRequest(reqId, q.GetBuffer(), q.GetSize(), ash, canceled, exception);
+                return SendRequest(reqId, q.m_bytes, q.GetSize(), ash, canceled, exception);
+            }
+
             public virtual bool SendRequest(ushort reqId, CScopeUQueue q, DAsyncResultHandler ash)
             {
                 if (q == null)
@@ -531,9 +505,111 @@ namespace SocketProAdapter
                 return SendRequest(reqId, q.UQueue, ash);
             }
 
+            public virtual bool SendRequest(ushort reqId, CScopeUQueue q, DAsyncResultHandler ash, DCanceled canceled, DOnExceptionFromServer exception)
+            {
+                if (q == null)
+                    return SendRequest(reqId, ash, canceled, exception);
+                return SendRequest(reqId, q.UQueue, ash, canceled, exception);
+            }
+
             public bool SendRequest(ushort reqId, DAsyncResultHandler ash)
             {
                 return SendRequest(reqId, (byte[])null, (uint)0, ash);
+            }
+
+            public bool SendRequest(ushort reqId, DAsyncResultHandler ash, DCanceled canceled, DOnExceptionFromServer exception)
+            {
+                return SendRequest(reqId, (byte[])null, (uint)0, ash, canceled, exception);
+            }
+
+            public bool SendRequest<T0>(ushort reqId, T0 t0, DAsyncResultHandler ash, DCanceled canceled, DOnExceptionFromServer exception)
+            {
+                CUQueue su = CScopeUQueue.Lock();
+                su.Save(t0);
+                bool ok = SendRequest(reqId, su, ash, canceled, exception);
+                CScopeUQueue.Unlock(su);
+                return ok;
+            }
+
+            public bool SendRequest<T0, T1>(ushort reqId, T0 t0, T1 t1, DAsyncResultHandler ash, DCanceled canceled, DOnExceptionFromServer exception)
+            {
+                CUQueue su = CScopeUQueue.Lock();
+                su.Save(t0).Save(t1);
+                bool ok = SendRequest(reqId, su, ash, canceled, exception);
+                CScopeUQueue.Unlock(su);
+                return ok;
+            }
+
+            public bool SendRequest<T0, T1, T2>(ushort reqId, T0 t0, T1 t1, T2 t2, DAsyncResultHandler ash, DCanceled canceled, DOnExceptionFromServer exception)
+            {
+                CUQueue su = CScopeUQueue.Lock();
+                su.Save(t0).Save(t1).Save(t2);
+                bool ok = SendRequest(reqId, su, ash, canceled, exception);
+                CScopeUQueue.Unlock(su);
+                return ok;
+            }
+
+            public bool SendRequest<T0, T1, T2, T3>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3, DAsyncResultHandler ash, DCanceled canceled, DOnExceptionFromServer exception)
+            {
+                CUQueue su = CScopeUQueue.Lock();
+                su.Save(t0).Save(t1).Save(t2).Save(t3);
+                bool ok = SendRequest(reqId, su, ash, canceled, exception);
+                CScopeUQueue.Unlock(su);
+                return ok;
+            }
+
+            public bool SendRequest<T0, T1, T2, T3, T4>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, DAsyncResultHandler ash, DCanceled canceled, DOnExceptionFromServer exception)
+            {
+                CUQueue su = CScopeUQueue.Lock();
+                su.Save(t0).Save(t1).Save(t2).Save(t3).Save(t4);
+                bool ok = SendRequest(reqId, su, ash, canceled, exception);
+                CScopeUQueue.Unlock(su);
+                return ok;
+            }
+
+            public bool SendRequest<T0, T1, T2, T3, T4, T5>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, DAsyncResultHandler ash, DCanceled canceled, DOnExceptionFromServer exception)
+            {
+                CUQueue su = CScopeUQueue.Lock();
+                su.Save(t0).Save(t1).Save(t2).Save(t3).Save(t4).Save(t5);
+                bool ok = SendRequest(reqId, su, ash, canceled, exception);
+                CScopeUQueue.Unlock(su);
+                return ok;
+            }
+
+            public bool SendRequest<T0, T1, T2, T3, T4, T5, T6>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, DAsyncResultHandler ash, DCanceled canceled, DOnExceptionFromServer exception)
+            {
+                CUQueue su = CScopeUQueue.Lock();
+                su.Save(t0).Save(t1).Save(t2).Save(t3).Save(t4).Save(t5).Save(t6);
+                bool ok = SendRequest(reqId, su, ash, canceled, exception);
+                CScopeUQueue.Unlock(su);
+                return ok;
+            }
+
+            public bool SendRequest<T0, T1, T2, T3, T4, T5, T6, T7>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, T7 t7, DAsyncResultHandler ash, DCanceled canceled, DOnExceptionFromServer exception)
+            {
+                CUQueue su = CScopeUQueue.Lock();
+                su.Save(t0).Save(t1).Save(t2).Save(t3).Save(t4).Save(t5).Save(t6).Save(t7);
+                bool ok = SendRequest(reqId, su, ash, canceled, exception);
+                CScopeUQueue.Unlock(su);
+                return ok;
+            }
+
+            public bool SendRequest<T0, T1, T2, T3, T4, T5, T6, T7, T8>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, T7 t7, T8 t8, DAsyncResultHandler ash, DCanceled canceled, DOnExceptionFromServer exception)
+            {
+                CUQueue su = CScopeUQueue.Lock();
+                su.Save(t0).Save(t1).Save(t2).Save(t3).Save(t4).Save(t5).Save(t6).Save(t7).Save(t8);
+                bool ok = SendRequest(reqId, su, ash, canceled, exception);
+                CScopeUQueue.Unlock(su);
+                return ok;
+            }
+
+            public bool SendRequest<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, T7 t7, T8 t8, T9 t9, DAsyncResultHandler ash, DCanceled canceled, DOnExceptionFromServer exception)
+            {
+                CUQueue su = CScopeUQueue.Lock();
+                su.Save(t0).Save(t1).Save(t2).Save(t3).Save(t4).Save(t5).Save(t6).Save(t7).Save(t8).Save(t9);
+                bool ok = SendRequest(reqId, su, ash, canceled, exception);
+                CScopeUQueue.Unlock(su);
+                return ok;
             }
 
             public bool SendRequest<T0>(ushort reqId, T0 t0, DAsyncResultHandler ash)

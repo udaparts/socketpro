@@ -2,40 +2,41 @@ package java_demo;
 
 import SPA.ClientSide.*;
 import SPA.UDB.*;
+import java.util.concurrent.*;
 
 /*
-//This is bad implementation for original SPA.ClientSide.CAsyncDBHandler.Open method!!!!
-public boolean Open(String strConnection, DResult handler, int flags) {
-    String str = null;
-    MyCallback<DResult> cb = new MyCallback<>(idOpen, handler);
-    CUQueue sb = CScopeUQueue.Lock();
-    sb.Save(strConnection).Save(flags);
-
-    //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
-    //in case a client asynchronously sends lots of requests without use of client side queue.
-    synchronized (m_csDB) { //start lock here
-        m_flags = flags;
-        if (strConnection != null) {
-            str = m_strConnection;
-            m_strConnection = strConnection;
-        }
-        m_deqResult.add(cb);
-        //cross SendRequest dead lock here
-        if (SendRequest(idOpen, sb, null)) {
-            CScopeUQueue.Unlock(sb);
-            return true;
-        } else {
-            m_deqResult.remove(cb);
-            if (strConnection != null) {
-                m_strConnection = str;
-            }
-        }
-    } //end lock
-    CScopeUQueue.Unlock(sb);
-    return false;
-}
-*/
-
+ //This is bad implementation for original SPA.ClientSide.CAsyncDBHandler.Open method!!!!
+ public boolean Open(String strConnection, DResult handler, int flags, DCanceled canceled) {
+ String str = null;
+ MyCallback<DResult> cb = new MyCallback<>(idOpen, handler);
+ CUQueue sb = CScopeUQueue.Lock();
+ sb.Save(strConnection).Save(flags);
+ synchronized (m_csOneSending) {
+ //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
+ //in case a client asynchronously sends lots of requests without use of client side queue.
+ synchronized (m_csDB) { //start lock here
+ m_flags = flags;
+ if (strConnection != null) {
+ str = m_strConnection;
+ m_strConnection = strConnection;
+ }
+ m_deqResult.add(cb);
+ //cross SendRequest dead lock here
+ if (SendRequest(idOpen, sb, null, canceled)) {
+ CScopeUQueue.Unlock(sb);
+ return true;
+ } else {
+ m_deqResult.remove(cb);
+ if (strConnection != null) {
+ m_strConnection = str;
+ }
+ }
+ } //end lock -- m_csDB
+ }
+ CScopeUQueue.Unlock(sb);
+ return false;
+ }
+ */
 public class Java_demo {
 
     static final String sample_database = "mysample.db";
@@ -115,7 +116,7 @@ public class Java_demo {
         vData.add(2); //Microsoft company id
         vData.add("Hillary Clinton");
         vData.add(new java.util.Date());
-        //send three sets of parameterized data in one shot for processing
+        //send three sets of parameterised data in one shot for processing
         ok = sqlite.Execute(vData, (h, res, errMsg, affected, fail_ok, id) -> {
             if (res != 0) {
                 synchronized (m_csConsole) {
@@ -132,7 +133,7 @@ public class Java_demo {
         });
     }
 
-    static final int m_cycle = 100;
+    static final int m_cycle = 10;
 
     static void Demo_Multiple_SendRequest_MultiThreaded_Wrong(CSocketPool<CSqlite> spSqlite) {
         int cycle = m_cycle;
@@ -164,6 +165,108 @@ public class Java_demo {
         }
     }
 
+    static UFuture<Boolean> DoFuture(CSocketPool<CSqlite> sp) {
+        CSqlite sqlite = sp.Lock();
+        UFuture<Boolean> f = new UFuture<>();
+        if (sqlite == null) {
+            synchronized (m_csConsole) {
+                System.out.println("All sockets are disconnected from server");
+            }
+            f.set(false);
+            return f;
+        }
+        boolean ok = false;
+        do {
+            if (!sqlite.BeginTrans(tagTransactionIsolation.tiReadCommited, (h, res, errMsg) -> {
+                if (res != 0) {
+                    synchronized (m_csConsole) {
+                        System.out.println("BeginTrans: Error code=" + res + ", message=" + errMsg);
+                    }
+                }
+            })) {
+                break;
+            }
+            if (!sqlite.Execute("delete from EMPLOYEE;delete from COMPANY", (h, res, errMsg, affected, fail_ok, id) -> {
+                if (res != 0) {
+                    synchronized (m_csConsole) {
+                        System.out.println("Execute_Delete: affected = " + affected + ", fails = " + (int) (fail_ok >> 32) + ", res = " + res + ", errMsg: " + errMsg);
+                    }
+                }
+            })) {
+                break;
+            }
+            if (!sqlite.Prepare("INSERT INTO COMPANY(ID,NAME)VALUES(?,?)")) {
+                break;
+            }
+            CDBVariantArray vData = new CDBVariantArray();
+            vData.add(1);
+            vData.add("Google Inc.");
+            vData.add(2);
+            vData.add("Microsoft Inc.");
+            //send two sets of parameterised data in one shot for processing
+            if (!sqlite.Execute(vData, (h, res, errMsg, affected, fail_ok, id) -> {
+                if (res != 0) {
+                    synchronized (m_csConsole) {
+                        System.out.println("INSERT COMPANY: affected = " + affected + ", fails = " + (int) (fail_ok >> 32) + ", res = " + res + ", errMsg: " + errMsg);
+                    }
+                }
+            })) {
+                break;
+            }
+            if (!sqlite.Prepare("INSERT INTO EMPLOYEE(EMPLOYEEID,CompanyId,name,JoinDate)VALUES(?,?,?,?)")) {
+                break;
+            }
+            vData.clear();
+            vData.add(1);
+            vData.add(1); //google company id
+            vData.add("Ted Cruz");
+            vData.add(new java.util.Date());
+            vData.add(2);
+            vData.add(1); //google company id
+            vData.add("Donald Trump");
+            vData.add(new java.util.Date());
+            vData.add(3);
+            vData.add(2); //Microsoft company id
+            vData.add("Hillary Clinton");
+            vData.add(new java.util.Date());
+            //send three sets of parameterized data in one shot for processing
+            if (!sqlite.Execute(vData, (h, res, errMsg, affected, fail_ok, id) -> {
+                if (res != 0) {
+                    synchronized (m_csConsole) {
+                        System.out.println("INSET EMPLOYEE: affected = " + affected + ", fails = " + (int) (fail_ok >> 32) + ", res = " + res + ", errMsg: " + errMsg);
+                    }
+                }
+            })) {
+                break;
+            }
+            if (!sqlite.EndTrans(tagRollbackPlan.rpDefault, (h, res, errMsg) -> {
+                if (res != 0) {
+                    synchronized (m_csConsole) {
+                        System.out.println("EndTrans: Error code= " + res + ", message= " + errMsg);
+                    }
+                }
+                f.set(true);
+            }, () -> {
+                synchronized (m_csConsole) {
+                    System.out.println("EndTrans: Request canceled or socket closed");
+                }
+                f.set(false);
+            })) {
+                break;
+            }
+            sp.Unlock(sqlite);
+            ok = true;
+        } while (false);
+        if (!ok) {
+            f.set(false);
+            //Socket is closed at server side and the above locked handler is automatically unlocked
+            synchronized (m_csConsole) {
+                System.out.println("LastWait: Connection disconnected error code = " + sqlite.getAttachedClientSocket().getErrorCode() + ", message= " + sqlite.getAttachedClientSocket().getErrorMsg());
+            }
+        }
+        return f;
+    }
+
     public static void main(String[] args) {
         CConnectionContext cc = new CConnectionContext();
         System.out.println("Remote host: ");
@@ -181,6 +284,7 @@ public class Java_demo {
             return;
         }
         CSqlite sqlite = spSqlite.getAsyncHandlers()[0];
+
         //Use the above bad implementation to replace original SPA.ClientSide.CAsyncDBHandler.Open method
         //at file socketpro/src/jadpater/jspa/src/SPA/ClientSide/CAsyncDBHandler.java
         System.out.println("Doing Demo_Cross_Request_Dead_Lock ......");
@@ -189,11 +293,14 @@ public class Java_demo {
         //create two tables, COMPANY and EMPLOYEE
         TestCreateTables(sqlite);
         ok = sqlite.WaitAll();
+
         System.out.println(sample_database + " created, opened and shared by two sessions");
 
         //make sure all other handlers/sockets to open the same database mysample.db
         CSqlite[] vSqlite = spSqlite.getAsyncHandlers();
-        for (int n = 1; n < vSqlite.length; ++n) {
+        for (int n = 1;
+                n < vSqlite.length;
+                ++n) {
             vSqlite[n].Open(sample_database, (handler, res, errMsg) -> {
                 if (res != 0) {
                     System.out.println("Open: res = " + res + ", errMsg: " + errMsg);
@@ -201,39 +308,76 @@ public class Java_demo {
             });
             ok = vSqlite[n].WaitAll();
         }
+
+        ExecutorService executor = Executors.newFixedThreadPool(3);
+
         //execute manual transactions concurrently with transaction overlapping on the same session at client side
-        Runnable t0 = () -> {
+        FutureTask<String> f0 = new FutureTask<>(() -> {
             Demo_Multiple_SendRequest_MultiThreaded_Wrong(spSqlite);
-        };
-        Runnable t1 = () -> {
+            return "";
+        });
+        FutureTask<String> f1 = new FutureTask<>(() -> {
             Demo_Multiple_SendRequest_MultiThreaded_Wrong(spSqlite);
-        };
-        Runnable t2 = () -> {
+            return "";
+        });
+        FutureTask<String> f2 = new FutureTask<>(() -> {
             Demo_Multiple_SendRequest_MultiThreaded_Wrong(spSqlite);
-        };
+            return "";
+        });
+        executor.execute(f0);
+        executor.execute(f1);
+        executor.execute(f2);
         Demo_Multiple_SendRequest_MultiThreaded_Wrong(spSqlite);
-        t0.run();
-        t1.run();
-        t2.run();
+        try {
+            String s = f0.get();
+            s = f1.get();
+            s = f2.get();
+        } catch (InterruptedException | ExecutionException err) {
+            System.out.println(err.getLocalizedMessage());
+        }
         System.out.println("Demo_Multiple_SendRequest_MultiThreaded_Wrong completed");
         System.out.println("");
-        
+
         //execute manual transactions concurrently without transaction overlapping on the same session at client side by lock/unlock
-        Runnable t3 = () -> {
+        f0 = new FutureTask<>(() -> {
             Demo_Multiple_SendRequest_MultiThreaded_Correct_Lock_Unlock(spSqlite);
-        };
-        Runnable t4 = () -> {
+            return "";
+        });
+        f1 = new FutureTask<>(() -> {
             Demo_Multiple_SendRequest_MultiThreaded_Correct_Lock_Unlock(spSqlite);
-        };
-        Runnable t5 = () -> {
+            return "";
+        });
+        f2 = new FutureTask<>(() -> {
             Demo_Multiple_SendRequest_MultiThreaded_Correct_Lock_Unlock(spSqlite);
-        };
+            return "";
+        });
+        executor.execute(f0);
+        executor.execute(f1);
+        executor.execute(f2);
         Demo_Multiple_SendRequest_MultiThreaded_Correct_Lock_Unlock(spSqlite);
-        t0.run();
-        t1.run();
-        t2.run();
+        try {
+            String s = f0.get();
+            s = f1.get();
+            s = f2.get();
+        } catch (InterruptedException | ExecutionException err) {
+            System.out.println(err.getLocalizedMessage());
+        }
         System.out.println("Demo_Multiple_SendRequest_MultiThreaded_Correct_Lock_Unlock completed");
         System.out.println("");
+        executor.shutdown();
+
+        System.out.println("Demonstration of DoFuture .....");
+        try {
+            if (DoFuture(spSqlite).get(5000, TimeUnit.MILLISECONDS)) {
+                System.out.println("All requests within the function DoFuture are completed");
+            } else {
+                System.out.println("The requests within the function DoFuture are canceled partially");
+            }
+        } catch (TimeoutException err) {
+            System.out.println("The requests within the function DoFuture are not completed in 5 seconds");
+        }
+        System.out.println("");
+
         System.out.println("Press any key to close the application ......");
         new java.util.Scanner(System.in).nextLine();
     }

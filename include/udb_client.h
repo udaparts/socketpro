@@ -244,15 +244,16 @@ namespace SPA {
 			 * @param rh a callback for tracking row set of header column informations. Note that there will be NO row set data or its column informations returned if NO such a callback is set
 			 * @param meta a boolean for better or more detailed column meta details such as unique, not null, primary key, and so on
 			 * @param lastInsertId a boolean for last insert record identification number
+			 * @param canceled a callback for tracking cancel event
 			 * @return true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
 			 */
-			virtual bool Execute(CDBVariantArray &vParam, DExecuteResult handler = DExecuteResult(), DRows row = DRows(), DRowsetHeader rh = DRowsetHeader(), bool meta = true, bool lastInsertId = true) {
+			virtual bool Execute(CDBVariantArray &vParam, DExecuteResult handler = DExecuteResult(), DRows row = DRows(), DRowsetHeader rh = DRowsetHeader(), bool meta = true, bool lastInsertId = true, DCanceled canceled = nullptr) {
 				UINT64 callIndex;
 				bool rowset = rh ? true : false;
 				if (!rowset) {
 					meta = false;
 				}
-
+				CScopeUQueue sb;
 				//make sure all parameter data sendings and ExecuteParameters sending as one combination sending
 				//to avoid possible request sending overlapping within multiple threading environment
 				CAutoLock alOne(m_csOneSending);
@@ -271,7 +272,8 @@ namespace SPA {
 					}
 					m_mapParameterCall[m_nCall] = &vParam;
 				}
-				if (!SendRequest(idExecuteParameters, rowset, meta, lastInsertId, callIndex, [callIndex, handler, this](CAsyncResult & ar) {
+				sb << rowset << meta << lastInsertId << callIndex;
+				ResultHandler arh = [callIndex, handler, this](CAsyncResult & ar) {
 					INT64 affected;
 					UINT64 fail_ok;
 					int res;
@@ -296,7 +298,8 @@ namespace SPA {
 					if (handler) {
 						handler(*this, res, errMsg, affected, fail_ok, vtId);
 					}
-				})) {
+				};
+				if (!SendRequest(idExecuteParameters, sb->GetBuffer(), sb->GetSize(), arh, canceled, nullptr)) {
 					CAutoLock al(m_csDB);
 					m_mapParameterCall.erase(callIndex);
 					if (rowset) {
@@ -315,14 +318,16 @@ namespace SPA {
 			 * @param rh a callback for tracking row set of header column informations. Note that there will be NO row set data or its column informations returned if NO such a callback is set
 			 * @param meta a boolean for better or more detailed column meta details such as unique, not null, primary key, and so on
 			 * @param lastInsertId a boolean for last insert record identification number
+			 * @param canceled a callback for tracking cancel event
 			 * @return true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
 			 */
-			virtual bool Execute(const wchar_t* sql, DExecuteResult handler = DExecuteResult(), DRows row = DRows(), DRowsetHeader rh = DRowsetHeader(), bool meta = true, bool lastInsertId = true) {
+			virtual bool Execute(const wchar_t* sql, DExecuteResult handler = DExecuteResult(), DRows row = DRows(), DRowsetHeader rh = DRowsetHeader(), bool meta = true, bool lastInsertId = true, DCanceled canceled = nullptr) {
 				UINT64 index;
 				bool rowset = rh ? true : false;
 				if (!rowset) {
 					meta = false;
 				}
+				CScopeUQueue sb;
 				{
 					//don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
 					//in case a client asynchronously sends lots of requests without use of client side queue.
@@ -332,7 +337,8 @@ namespace SPA {
 						m_mapRowset[m_nCall] = CRowsetHandler(rh, row);
 					}
 				}
-				if (!SendRequest(idExecute, sql, rowset, meta, lastInsertId, index, [index, handler, this](CAsyncResult & ar) {
+				sb << sql << rowset << meta << lastInsertId << index;
+				ResultHandler arh = [index, handler, this](CAsyncResult & ar) {
 					INT64 affected;
 					UINT64 fail_ok;
 					int res;
@@ -352,7 +358,8 @@ namespace SPA {
 					if (handler) {
 						handler(*this, res, errMsg, affected, fail_ok, vtId);
 					}
-				})) {
+				};
+				if (!SendRequest(idExecute, sb->GetBuffer(), sb->GetSize(), arh, canceled, nullptr)) {
 					CAutoLock al(m_csDB);
 					m_mapRowset.erase(index);
 					return false;
@@ -365,10 +372,12 @@ namespace SPA {
 			 * @param strConnection a database connection string. The database connection string can be an empty string if its server side supports global database connection string
 			 * @param handler a callback for database connecting result
 			 * @param flags a set of flags transferred to server to indicate how to build database connection
+			 * @param canceled a callback for tracking cancel event
 			 * @return true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
 			 */
-			virtual bool Open(const wchar_t* strConnection, DResult handler, unsigned int flags = 0) {
+			virtual bool Open(const wchar_t* strConnection, DResult handler, unsigned int flags = 0, DCanceled canceled = nullptr) {
 				std::wstring s;
+				CScopeUQueue sb;
 				{
 					//don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
 					//in case a client asynchronously sends lots of requests without use of client side queue.
@@ -379,7 +388,8 @@ namespace SPA {
 						m_strConnection = strConnection;
 					}
 				}
-				if (SendRequest(UDB::idOpen, strConnection, flags, [handler, this](CAsyncResult & ar) {
+				sb << strConnection << flags;
+				ResultHandler arh = [handler, this](CAsyncResult & ar) {
 					int res, ms;
 					std::wstring errMsg;
 					ar >> res >> errMsg >> ms;
@@ -402,7 +412,8 @@ namespace SPA {
 					if (handler) {
 						handler(*this, res, errMsg);
 					}
-				})) {
+				};
+				if (SendRequest(UDB::idOpen, sb->GetBuffer(), sb->GetSize(), arh, canceled, nullptr)) {
 					return true;
 				}
 				CAutoLock al(m_csDB);
@@ -417,10 +428,12 @@ namespace SPA {
 			 * @param sql a parameterized SQL statement
 			 * @param handler a callback for SQL preparing result
 			 * @param vParameterInfo a given array of parameter informations
+			 * @param canceled a callback for tracking cancel event
 			 * @return true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
 			 */
-			virtual bool Prepare(const wchar_t *sql, DResult handler = DResult(), const CParameterInfoArray& vParameterInfo = CParameterInfoArray()) {
-				if (!SendRequest(idPrepare, sql, vParameterInfo, [handler, this](CAsyncResult & ar) {
+			virtual bool Prepare(const wchar_t *sql, DResult handler = nullptr, const CParameterInfoArray& vParameterInfo = CParameterInfoArray(), DCanceled canceled = nullptr) {
+				CScopeUQueue sb;
+				ResultHandler arh = [handler, this](CAsyncResult & ar) {
 					int res;
 					std::wstring errMsg;
 					unsigned int parameters;
@@ -437,19 +450,19 @@ namespace SPA {
 					if (handler) {
 						handler(*this, res, errMsg);
 					}
-				})) {
-					return false;
-				}
-				return true;
+				};
+				sb << sql << vParameterInfo;
+				return SendRequest(idPrepare, sb->GetBuffer(), sb->GetSize(), arh, canceled, nullptr);
 			}
 
 			/**
 			 * Notify connected remote server to close database connection string asynchronously
 			 * @param handler a callback for closing result, which should be OK always as long as there is network or queue available
+			 * @param canceled a callback for tracking cancel event
 			 * @return true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
 			 */
-			virtual bool Close(DResult handler = DResult()) {
-				if (!SendRequest(idClose, [handler, this](CAsyncResult & ar) {
+			virtual bool Close(DResult handler = nullptr, DCanceled canceled = nullptr) {
+				ResultHandler arh = [handler, this](CAsyncResult & ar) {
 					int res;
 					std::wstring errMsg;
 					ar >> res >> errMsg;
@@ -465,21 +478,21 @@ namespace SPA {
 					if (handler) {
 						handler(*this, res, errMsg);
 					}
-				})) {
-					return false;
-				}
-				return true;
+				};
+				return SendRequest(idClose, (const unsigned char*) nullptr, (unsigned int)0, arh, canceled, nullptr);
 			}
 
 			/**
 			 * Start a manual transaction with a given isolation asynchronously. Note the transaction will be associated with SocketPro client message queue if available to avoid possible transaction lose
 			 * @param isolation a value for isolation
 			 * @param handler a callback for tracking its response result
+			 * @param canceled a callback for tracking cancel event
 			 * @return true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
 			 */
-			virtual bool BeginTrans(tagTransactionIsolation isolation = tiReadCommited, DResult handler = DResult()) {
+			virtual bool BeginTrans(tagTransactionIsolation isolation = tiReadCommited, DResult handler = nullptr, DCanceled canceled = nullptr) {
 				unsigned int flags;
 				std::wstring connection;
+				CScopeUQueue sb;
 
 				//make sure BeginTrans sending and underlying client persistent message queue as one combination sending
 				//to avoid possible request sending/client message writing overlapping within multiple threading environment
@@ -492,9 +505,9 @@ namespace SPA {
 					connection = m_strConnection;
 					flags = m_flags;
 				}
-				//associate begin transaction with underlying client persistent message queue
-				bool queueOk = GetAttachedClientSocket()->GetClientQueue().StartJob();
-				bool ok = SendRequest(idBeginTrans, (int)isolation, connection, flags, [handler, this](CAsyncResult & ar) {
+
+				sb << (int)isolation << connection << flags;
+				ResultHandler arh = [handler, this](CAsyncResult & ar) {
 					int res, ms;
 					std::wstring errMsg;
 					ar >> res >> errMsg >> ms;
@@ -512,7 +525,10 @@ namespace SPA {
 					if (handler) {
 						handler(*this, res, errMsg);
 					}
-				});
+				};
+				//associate begin transaction with underlying client persistent message queue
+				bool queueOk = GetAttachedClientSocket()->GetClientQueue().StartJob();
+				bool ok = SendRequest(idBeginTrans, sb->GetBuffer(), sb->GetSize(), arh, canceled, nullptr);
 				if (!ok && queueOk) {
 					GetAttachedClientSocket()->GetClientQueue().AbortJob();
 				}
@@ -523,15 +539,13 @@ namespace SPA {
 			 * End a manual transaction with a given rollback plan. Note the transaction will be associated with SocketPro client message queue if available to avoid possible transaction lose
 			 * @param plan a value for computing how included transactions should be rollback
 			 * @param handler a callback for tracking its response result
+			 * @param canceled a callback for tracking cancel event
 			 * @return true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
 			 */
-			virtual bool EndTrans(tagRollbackPlan plan = rpDefault, DResult handler = DResult()) {
-
-				//make sure EndTrans sending and underlying client persistent message queue as one combination sending
-				//to avoid possible request sending/client message writing overlapping within multiple threading environment
-				CAutoLock alOne(m_csOneSending);
-
-				if (SendRequest(idEndTrans, (int)plan, [handler, this](CAsyncResult & ar) {
+			virtual bool EndTrans(tagRollbackPlan plan = rpDefault, DResult handler = nullptr, DCanceled canceled = nullptr) {
+				CScopeUQueue sb;
+				sb << (int)plan;
+				ResultHandler arh = [handler, this](CAsyncResult & ar) {
 					int res;
 					std::wstring errMsg;
 					ar >> res >> errMsg;
@@ -544,7 +558,13 @@ namespace SPA {
 					if (handler) {
 						handler(*this, res, errMsg);
 					}
-				})) {
+				};
+
+				//make sure EndTrans sending and underlying client persistent message queue as one combination sending
+				//to avoid possible request sending/client message writing overlapping within multiple threading environment
+				CAutoLock alOne(m_csOneSending);
+
+				if (SendRequest(idEndTrans, sb->GetBuffer(), sb->GetSize(), arh, canceled, nullptr)) {
 					//associate end transaction with underlying client persistent message queue
 					GetAttachedClientSocket()->GetClientQueue().EndJob();
 					return true;

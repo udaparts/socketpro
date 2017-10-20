@@ -361,32 +361,33 @@ class CAsyncDBHandler(CAsyncServiceHandler):
             self._mapRowset = {}
             self._vColInfo = CDBColumnInfoArray()
 
-    def Close(self, handler = None):
+    def Close(self, handler = None, canceled = None):
         """
         Notify connected remote server to close database connection string asynchronously
         :param handler: a callback for closing result, which should be OK always as long as there is network or queue available
+        :param canceled: a callback for tracking cancel or socket closed event. It defaults to None
         :return: true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
         """
         ok = True
         cb = CAsyncDBHandler.Pair(CAsyncDBHandler.idClose, handler)
         buffer = CScopeUQueue.Lock()
-
-        #don't make self._csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
-        with self._csDB:
-            self._deqResult.append(cb)
-        ok = self.SendRequest(CAsyncDBHandler.idClose, buffer, None)
-        if not ok:
+        with self._csOneSending:
+            #don't make self._csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
             with self._csDB:
-                self._deqResult.remove(cb)
-
+                self._deqResult.append(cb)
+            ok = self.SendRequest(CAsyncDBHandler.idClose, buffer, None, canceled)
+            if not ok:
+                with self._csDB:
+                    self._deqResult.remove(cb)
         CScopeUQueue.Unlock(buffer)
         return ok
 
-    def BeginTrans(self, isolation = tagTransactionIsolation.tiReadCommited, handler = None):
+    def BeginTrans(self, isolation = tagTransactionIsolation.tiReadCommited, handler = None, canceled = None):
         """
         Start a manual transaction with a given isolation asynchronously. Note the transaction will be associated with SocketPro client message queue if available to avoid possible transaction lose
         :param isolation: a value for transaction isolation. It defaults to tagTransactionIsolation.tiReadCommited
         :param handler: a callback for tracking its response result. It defaults to None
+        :param canceled: a callback for tracking cancel or socket closed event. It defaults to None
         :return: true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
         """
         ok = True
@@ -404,7 +405,7 @@ class CAsyncDBHandler(CAsyncServiceHandler):
                 self._deqResult.append(cb)
             #associate begin transaction with underlying client persistent message queue
             queueOk = self.AttachedClientSocket.ClientQueue.StartJob()
-            ok = self.SendRequest(CAsyncDBHandler.idBeginTrans, q, None)
+            ok = self.SendRequest(CAsyncDBHandler.idBeginTrans, q, None, canceled)
             if not ok:
                 with self._csDB:
                     self._deqResult.remove(cb)
@@ -414,11 +415,12 @@ class CAsyncDBHandler(CAsyncServiceHandler):
         CScopeUQueue.Unlock(q)
         return ok
 
-    def EndTrans(self, plan = tagRollbackPlan.rpDefault, handler = None):
+    def EndTrans(self, plan = tagRollbackPlan.rpDefault, handler = None, canceled = None):
         """
         End a manual transaction with a given rollback plan. Note the transaction will be associated with SocketPro client message queue if available to avoid possible transaction lose
         :param plan: a value for computing how included transactions should be rollback at server side. It defaults to tagRollbackPlan.rpDefault
         :param handler: a callback for tracking its response result
+        :param canceled: a callback for tracking cancel or socket closed event. It defaults to None
         :return: true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
         """
         ok = True
@@ -432,7 +434,7 @@ class CAsyncDBHandler(CAsyncServiceHandler):
             #don't make self._csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
             with self._csDB:
                 self._deqResult.append(cb)
-            ok = self.SendRequest(CAsyncDBHandler.idEndTrans, q, None)
+            ok = self.SendRequest(CAsyncDBHandler.idEndTrans, q, None, canceled)
             if ok:
                 #associate end transaction with underlying client persistent message queue
                 self.AttachedClientSocket.ClientQueue.EndJob()
@@ -443,42 +445,43 @@ class CAsyncDBHandler(CAsyncServiceHandler):
         return ok
 
 
-    def Open(self, strConnection, handler = None, flags = 0):
+    def Open(self, strConnection, handler = None, flags = 0, canceled = None):
         """
         Open a database connection at server side asynchronously
         :param strConnection: a database connection string. The database connection string can be an empty string if its server side supports global database connection string
         :param hander: a callback for database connecting result
         :param flags: a set of flags transferred to server to indicate how to build database connection at server side. It defaults to zero
+        :param canceled: a callback for tracking cancel or socket closed event. It defaults to None
         :return: true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
         """
         ok = True
         s = ''
         q = CScopeUQueue.Lock().SaveString(strConnection).SaveUInt(flags)
         cb = CAsyncDBHandler.Pair(CAsyncDBHandler.idOpen, handler)
-
-        #don't make self._csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
-        with self._csDB:
-            self._flags = flags
-            self._deqResult.append(cb)
-            if not strConnection is None:
-                s = self._strConnection
-                self._strConnection = strConnection
-        ok = self.SendRequest(CAsyncDBHandler.idOpen, q, None)
-        if not ok:
+        with self._csOneSending:
+            #don't make self._csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
             with self._csDB:
+                self._flags = flags
+                self._deqResult.append(cb)
                 if not strConnection is None:
-                    self._strConnection = s
-                self._deqResult.remove(cb)
-
+                    s = self._strConnection
+                    self._strConnection = strConnection
+            ok = self.SendRequest(CAsyncDBHandler.idOpen, q, None, canceled)
+            if not ok:
+                with self._csDB:
+                    if not strConnection is None:
+                        self._strConnection = s
+                    self._deqResult.remove(cb)
         CScopeUQueue.Unlock(q)
         return ok
 
-    def Prepare(self, sql, handler = None, lstParameterInfo = []):
+    def Prepare(self, sql, handler = None, lstParameterInfo = [], canceled = None):
         """
         Send a parameterized SQL statement for preparing with a given array of parameter informations asynchronously
         :param sql: a parameterized SQL statement
         :param handler: a callback for SQL preparing result
         :param lstParameterInfo: a given array of parameter informations
+        :param canceled: a callback for tracking cancel or socket closed event. It defaults to None
         :return: true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
         """
         ok = True
@@ -491,18 +494,17 @@ class CAsyncDBHandler(CAsyncServiceHandler):
             for one in lstParameterInfo:
                 one.SaveTo(q)
         cb = CAsyncDBHandler.Pair(CAsyncDBHandler.idPrepare, handler)
-
-        with self._csDB:
-            self._deqResult.append(cb)
-        ok = self.SendRequest(CAsyncDBHandler.idPrepare, q, None)
-        if not ok:
+        with self._csOneSending:
             with self._csDB:
-                self._deqResult.remove(cb)
-
+                self._deqResult.append(cb)
+            ok = self.SendRequest(CAsyncDBHandler.idPrepare, q, None, canceled)
+            if not ok:
+                with self._csDB:
+                    self._deqResult.remove(cb)
         CScopeUQueue.Unlock(q)
         return ok
 
-    def ExecuteSql(self, sql, handler = None, row = None, rh = None, meta = True, lastInsertId = True):
+    def ExecuteSql(self, sql, handler = None, row = None, rh = None, meta = True, lastInsertId = True, canceled = None):
         """
         Process a complex SQL statement which may be combined with multiple basic SQL statements asynchronously
         :param sql: a complex SQL statement which may be combined with multiple basic SQL statements
@@ -511,6 +513,7 @@ class CAsyncDBHandler(CAsyncServiceHandler):
         :param rh: a callback for tracking row set of header column informations. Note that there will be NO row set data or its column informations returned if NO such a callback is set
         :param meta: a boolean value for better or more detailed column meta details such as unique, not null, primary key, and so on. It defaults to true
         :param lastInsertId: a boolean value for last insert record identification number. It defaults to true
+        :param canceled: a callback for tracking cancel or socket closed event
         :return: true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
         """
         ok = True
@@ -520,22 +523,21 @@ class CAsyncDBHandler(CAsyncServiceHandler):
             meta = False
         q = CScopeUQueue.Lock().SaveString(sql).SaveBool(rowset).SaveBool(meta).SaveBool(lastInsertId)
         cb = CAsyncDBHandler.Pair(CAsyncDBHandler.idExecute, handler)
-
-        #don't make self._csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
-        with self._csDB:
-            self._nCall += 1
-            q.SaveULong(self._nCall)
-            if rowset:
-                self._mapRowset[self._nCall] = CAsyncDBHandler.Pair(rh,row)
-            self._deqResult.append(cb)
-            index = self._nCall
-        ok = self.SendRequest(CAsyncDBHandler.idExecute, q, None)
-        if not ok:
+        with self._csOneSending:
+            #don't make self._csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
             with self._csDB:
-                self._deqResult.remove(cb)
+                self._nCall += 1
+                q.SaveULong(self._nCall)
                 if rowset:
-                    self._mapRowset.pop(index)
-
+                    self._mapRowset[self._nCall] = CAsyncDBHandler.Pair(rh,row)
+                self._deqResult.append(cb)
+                index = self._nCall
+            ok = self.SendRequest(CAsyncDBHandler.idExecute, q, None, canceled)
+            if not ok:
+                with self._csDB:
+                    self._deqResult.remove(cb)
+                    if rowset:
+                        self._mapRowset.pop(index)
         CScopeUQueue.Unlock(q)
         return ok
 
@@ -612,7 +614,7 @@ class CAsyncDBHandler(CAsyncServiceHandler):
         CScopeUQueue.Unlock(sb)
         return ok
 
-    def ExecuteParameters(self, vParam, handler = None, row = None, rh = None, meta = True, lastInsertId = True):
+    def ExecuteParameters(self, vParam, handler = None, row = None, rh = None, meta = True, lastInsertId = True, canceled = None):
         """
         Process a complex SQL statement which may be combined with multiple basic SQL statements asynchronously
         :param vParam: an array of parameter data which will be bounded to previously prepared parameters
@@ -621,6 +623,7 @@ class CAsyncDBHandler(CAsyncServiceHandler):
         :param rh: a callback for tracking row set of header column informations. Note that there will be NO row set data or its column informations returned if NO such a callback is set
         :param meta: a boolean value for better or more detailed column meta details such as unique, not null, primary key, and so on. It defaults to true
         :param lastInsertId: a boolean value for last insert record identification number. It defaults to true
+        :param canceled: a callback for tracking cancel or socket closed event. It defaults to None
         :return: true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
         """
         ok = True
@@ -647,7 +650,7 @@ class CAsyncDBHandler(CAsyncServiceHandler):
                 self._mapParameterCall[self._nCall] = vParam
                 if rowset:
                     self._mapRowset[self._nCall] = CAsyncDBHandler.Pair(rh, row)
-            ok = self.SendRequest(CAsyncDBHandler.idExecuteParameters, q, None)
+            ok = self.SendRequest(CAsyncDBHandler.idExecuteParameters, q, None, canceled)
             if not ok:
                 with self._csDB:
                     if rowset:
