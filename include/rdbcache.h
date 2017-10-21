@@ -13,8 +13,8 @@ namespace SPA {
 	public:
 		typedef CMasterSlaveBase < THandler > CBase;
 
-		CSQLMasterPool(const wchar_t *defaultDb, unsigned int recvTimeout = ClientSide::DEFAULT_RECV_TIMEOUT)
-			: CBase(defaultDb, recvTimeout) {
+		CSQLMasterPool(const wchar_t *defaultDb, const char* qname, bool auto_merge = true, unsigned int recvTimeout = ClientSide::DEFAULT_RECV_TIMEOUT)
+			: CBase(defaultDb, qname, auto_merge, recvTimeout) {
 		}
 
 		typedef TCache CDataSet;
@@ -24,8 +24,8 @@ namespace SPA {
 		class CSlavePool : public CMasterSlaveBase < THandler > {
 		public:
 
-			CSlavePool(const wchar_t *defaultDb, unsigned int recvTimeout = ClientSide::DEFAULT_RECV_TIMEOUT)
-				: CMasterSlaveBase<THandler>(defaultDb, recvTimeout) {
+			CSlavePool(const wchar_t *defaultDb, const char* qname, bool auto_merge = true, unsigned int recvTimeout = ClientSide::DEFAULT_RECV_TIMEOUT)
+				: CMasterSlaveBase<THandler>(defaultDb, qname, auto_merge, recvTimeout) {
 			}
 
 		protected:
@@ -39,9 +39,9 @@ namespace SPA {
 					asyncSQL->Open(this->GetDefaultDBName(), nullptr); //open a session to backend database by default 
 					break;
 				default:
-					CMasterSlaveBase < THandler >::OnSocketPoolEvent(spe, asyncSQL);
 					break;
 				}
+				CMasterSlaveBase < THandler >::OnSocketPoolEvent(spe, asyncSQL);
 			}
 		};
 
@@ -153,9 +153,9 @@ namespace SPA {
 				}
 				break;
 			default:
-				CBase::OnSocketPoolEvent(spe, asyncSQL);
 				break;
 			}
+			CBase::OnSocketPoolEvent(spe, asyncSQL);
 		}
 
 	private:
