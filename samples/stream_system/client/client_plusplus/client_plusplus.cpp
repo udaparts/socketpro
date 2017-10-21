@@ -100,27 +100,26 @@ int main(int argc, char* argv[]) {
         if (status == std::future_status::timeout) {
             std::cout << "The above requests are not completed in 5 seconds" << std::endl;
         }
-		CMaxMinAvg sum_mma;
-		::memset(&sum_mma, 0, sizeof(sum_mma));
-		for (unsigned int n = 0; n < 10000; ++n) {
-			handler = master.Seek();
-			if (!handler->QueryPaymentMaxMinAvgs(L"", [&sum_mma](const CMaxMinAvg &mma, int res, const std::wstring & errMsg) {
-				if (res) {
-					std::cout << "QueryPaymentMaxMinAvgs error code: " << res << ", error message: ";
-					std::wcout << errMsg.c_str() << std::endl;
-				}
-				else {
-					sum_mma.Avg += mma.Avg;
-					sum_mma.Max += mma.Max;
-					sum_mma.Min += mma.Min;
-				}
-			})) break;
-		}
-		auto v = master.GetAsyncHandlers();
-		for (auto it = v.begin(), end = v.end(); it != end; ++it) {
-			(*it)->WaitAll();
-		}
-		std::cout << "QueryPaymentMaxMinAvgs sum_max: " << sum_mma.Max << ", sum_min: " << sum_mma.Min << ", avg: " << sum_mma.Avg << std::endl;
+        CMaxMinAvg sum_mma;
+        ::memset(&sum_mma, 0, sizeof (sum_mma));
+        for (unsigned int n = 0; n < 10000; ++n) {
+            handler = master.Seek();
+            if (!handler->QueryPaymentMaxMinAvgs(L"", [&sum_mma](const CMaxMinAvg & mma, int res, const std::wstring & errMsg) {
+                    if (res) {
+                        std::cout << "QueryPaymentMaxMinAvgs error code: " << res << ", error message: ";
+                        std::wcout << errMsg.c_str() << std::endl;
+                    } else {
+                        sum_mma.Avg += mma.Avg;
+                        sum_mma.Max += mma.Max;
+                        sum_mma.Min += mma.Min;
+                    }
+                })) break;
+        }
+        auto v = master.GetAsyncHandlers();
+        for (auto it = v.begin(), end = v.end(); it != end; ++it) {
+            (*it)->WaitAll();
+        }
+        std::cout << "QueryPaymentMaxMinAvgs sum_max: " << sum_mma.Max << ", sum_min: " << sum_mma.Min << ", avg: " << sum_mma.Avg << std::endl;
     } while (false);
     if (!ok) {
         std::cout << "Socket closed with error code: " << handler->GetAttachedClientSocket()->GetErrorCode() << ", error message: ";
