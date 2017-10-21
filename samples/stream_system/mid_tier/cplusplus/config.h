@@ -29,7 +29,7 @@ struct CConfig {
 #endif
     std::string m_password_or_subject;
 
-    std::vector<std::string> m_vFrontCachedTable;
+    std::vector<std::wstring> m_vFrontCachedTable;
 
     void SetConfig();
 

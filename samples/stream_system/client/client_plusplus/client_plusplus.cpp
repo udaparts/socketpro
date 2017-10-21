@@ -10,7 +10,7 @@ int main(int argc, char* argv[]) {
 	std::cout << "Remote host: " << std::endl;
 	std::getline(std::cin, cc.Host);
 	//cc.Host = "localhost";
-	cc.Port = 20901;
+	cc.Port = 20911;
 	cc.UserId = L"SomeUserId";
 	cc.Password = L"A_Password_For_SomeUserId";
 	cc.EncrytionMethod = SPA::tagEncryptionMethod::TLSv1;

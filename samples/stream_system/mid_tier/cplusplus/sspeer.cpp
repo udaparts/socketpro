@@ -44,14 +44,14 @@ void CYourPeerOne::UploadEmployees(const SPA::UDB::CDBVariantArray &vData, int &
 	}
 	bool ok = false;
 	do {
-		if (!handler->Prepare(L"INSERT INTO mysample.employee(CompanyId,Name,JoinDate)VALUES(?,?,?)")) break;
+		if (!handler->Prepare(L"INSERT INTO mysample.EMPLOYEE(CompanyId,Name,JoinDate)VALUES(?,?,?)")) break;
 		if (!handler->BeginTrans()) break;
 		SPA::UDB::CDBVariantArray v;
 		for (auto it = vData.cbegin(), end = vData.cend(); it != end;) {
 			v.push_back(*it);
 			v.push_back(*(it + 1));
 			v.push_back(*(it + 2));
-			ok = handler->Execute(v, [&res, &errMsg, &vId](CMySQLHandler &h, int r, const std::wstring &err, SPA::INT64 affected, SPA::UINT64 fail_ok, SPA::UDB::CDBVariant & vtId) {
+			ok = handler->Execute(v, [&res, &errMsg, &vId](CSQLHandler &h, int r, const std::wstring &err, SPA::INT64 affected, SPA::UINT64 fail_ok, SPA::UDB::CDBVariant & vtId) {
 				if (r && !res) {
 					res = r; errMsg = err; vId.push_back(-1);
 				}
@@ -69,7 +69,7 @@ void CYourPeerOne::UploadEmployees(const SPA::UDB::CDBVariantArray &vData, int &
 		std::shared_ptr<std::promise<void> > prom(new std::promise<void>, [](std::promise<void> *p) {
 			delete p;
 		});
-		if (!handler->EndTrans(SPA::UDB::rpRollbackErrorAll, [prom](CMySQLHandler &h, int r, const std::wstring & err) {
+		if (!handler->EndTrans(SPA::UDB::rpRollbackErrorAll, [prom](CSQLHandler &h, int r, const std::wstring & err) {
 			prom->set_value();
 		}, [prom, &res, &errMsg](){
 			res = -4;
@@ -108,11 +108,11 @@ void CYourPeerOne::QueryPaymentMaxMinAvgs(const std::wstring &filter, int &res, 
 		std::shared_ptr<std::promise<void> > prom(new std::promise<void>, [](std::promise<void> *p) {
 			delete p;
 		});
-		if (!handler->Execute(sql.c_str(), [prom, &res, &errMsg](CMySQLHandler & h, int r, const std::wstring & err, SPA::INT64 affected, SPA::UINT64 fail_ok, SPA::UDB::CDBVariant & vtId) {
+		if (!handler->Execute(sql.c_str(), [prom, &res, &errMsg](CSQLHandler & h, int r, const std::wstring & err, SPA::INT64 affected, SPA::UINT64 fail_ok, SPA::UDB::CDBVariant & vtId) {
 			res = r;
 			errMsg = err;
 			prom->set_value();
-		}, [&mma, &res, &errMsg](CMySQLHandler &h, SPA::UDB::CDBVariantArray & vData) {
+		}, [&mma, &res, &errMsg](CSQLHandler &h, SPA::UDB::CDBVariantArray & vData) {
 			do {
 				if (vData.size() != 3) {
 					res = -2;
@@ -142,7 +142,7 @@ void CYourPeerOne::QueryPaymentMaxMinAvgs(const std::wstring &filter, int &res, 
 				}
 				mma.Avg = vt.dblVal;
 			} while (false);
-		}, [](CMySQLHandler & h) {
+		}, [](CSQLHandler & h) {
 			assert(h.GetColumnInfo().size() == 3);
 		}, true, true, [prom, &res, &errMsg]() {
 			res = -4;
@@ -193,7 +193,7 @@ void CYourPeerOne::GetCachedTables(const std::wstring &defaultDb, int flags, boo
 		for (auto it = g_config.m_vFrontCachedTable.cbegin(), end = g_config.m_vFrontCachedTable.cend(); it != end; ++it) {
 			if (sql.size())
 				sql += L";";
-			sql += L"SELECT * FROM " + SPA::Utilities::ToWide(it->c_str(), it->size());
+			sql += L"SELECT * FROM " + *it;
 		}
 		auto handler = CYourServer::Master->Lock(); //use Lock and Unlock to avoid SQL stream overlap on a session within a multi-thread environment
 		if (!handler) {
@@ -204,13 +204,17 @@ void CYourPeerOne::GetCachedTables(const std::wstring &defaultDb, int flags, boo
 		std::shared_ptr<std::promise<void> > prom(new std::promise<void>, [](std::promise<void> *p) {
 			delete p;
 		});
-		if (!handler->Execute(sql.c_str(), [prom, &res, &errMsg](CMySQLHandler & h, int r, const std::wstring & err, SPA::INT64 affected, SPA::UINT64 fail_ok, SPA::UDB::CDBVariant & vtId) {
+		if (!handler->Execute(sql.c_str(), [prom, &res, &errMsg](CSQLHandler & h, int r, const std::wstring & err, SPA::INT64 affected, SPA::UINT64 fail_ok, SPA::UDB::CDBVariant & vtId) {
 			res = r;
 			errMsg = err;
+			if (res) {
+				std::cout << "CYourPeerOne::GetCachedTables: error code = " << res << ", error message = ";
+				std::wcout << errMsg.c_str() << std::endl;
+			}
 			prom->set_value();
-		}, [this](CMySQLHandler &h, SPA::UDB::CDBVariantArray & vData) {
+		}, [this](CSQLHandler &h, SPA::UDB::CDBVariantArray & vData) {
 			this->SendRows(vData);
-		}, [this, index](CMySQLHandler & h) {
+		}, [this, index](CSQLHandler & h) {
 			this->SendMeta(h.GetColumnInfo(), index);
 		}, true, true, [prom, &res, &errMsg](){
 			res = -4;

@@ -26,8 +26,8 @@ int main(int argc, char* argv[]) {
 
     //start two socket pools, master and slave
     CYourServer::StartMySQLPools();
-    //Cache is ready for use now
 
+    //Cache is ready for use now
     auto v0 = CMySQLMasterPool::Cache.GetDBTablePair();
     auto v1 = CMySQLMasterPool::Cache.FindKeys(v0.front().first.c_str(), v0.front().second.c_str());
     auto v2 = CMySQLMasterPool::Cache.GetColumMeta(L"sakila", L"actor");
