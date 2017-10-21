@@ -42,6 +42,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/562988696/tablecache.o \
 	${OBJECTDIR}/config.o \
 	${OBJECTDIR}/cplusplus.o \
+	${OBJECTDIR}/sqlitehandler.o \
 	${OBJECTDIR}/sspeer.o \
 	${OBJECTDIR}/ssserver.o \
 	${OBJECTDIR}/stdafx.o
@@ -105,6 +106,11 @@ ${OBJECTDIR}/cplusplus.o: cplusplus.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.c) -O2 -s -DNDEBUG -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/cplusplus.o cplusplus.cpp
+
+${OBJECTDIR}/sqlitehandler.o: sqlitehandler.cpp 
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.c) -O2 -s -DNDEBUG -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/sqlitehandler.o sqlitehandler.cpp
 
 ${OBJECTDIR}/sspeer.o: sspeer.cpp 
 	${MKDIR} -p ${OBJECTDIR}

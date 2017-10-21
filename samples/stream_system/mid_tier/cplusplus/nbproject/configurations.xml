@@ -9,6 +9,7 @@
       <itemPath>config.h</itemPath>
       <itemPath>../../../../include/membuffer.h</itemPath>
       <itemPath>../../../../include/rdbcache.h</itemPath>
+      <itemPath>sqlitehandler.h</itemPath>
       <itemPath>sspeer.h</itemPath>
       <itemPath>ssserver.h</itemPath>
       <itemPath>stdafx.h</itemPath>
@@ -29,6 +30,7 @@
       <itemPath>cplusplus.cpp</itemPath>
       <itemPath>../../../../include/error_code.cpp</itemPath>
       <itemPath>../../../../include/membuffer.cpp</itemPath>
+      <itemPath>sqlitehandler.cpp</itemPath>
       <itemPath>sspeer.cpp</itemPath>
       <itemPath>ssserver.cpp</itemPath>
       <itemPath>stdafx.cpp</itemPath>
@@ -98,6 +100,10 @@
       <item path="config.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="cplusplus.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="sqlitehandler.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="sqlitehandler.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="sspeer.cpp" ex="false" tool="0" flavor2="0">
       </item>
@@ -179,6 +185,10 @@
       <item path="config.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="cplusplus.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="sqlitehandler.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="sqlitehandler.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="sspeer.cpp" ex="false" tool="0" flavor2="0">
       </item>
