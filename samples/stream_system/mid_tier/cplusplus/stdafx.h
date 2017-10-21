@@ -1,6 +1,7 @@
 
 #pragma once
 
+#include <future>
 #include "../../../../include/rdbcache.h" //relation DB cache
 
 #include "../../../../include/mysql/umysql.h" //MySQL constants

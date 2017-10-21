@@ -42,12 +42,10 @@ void CYourPeerOne::UploadEmployees(const SPA::UDB::CDBVariantArray &vData, int &
 	if (!handler) {
 		res = -2; errMsg = L"No connection to a master database"; return;
 	}
-	bool ok = true;
+	bool ok = false;
 	do {
-		ok = handler->Prepare(L"INSERT INTO mysample.employee(CompanyId,Name,JoinDate)VALUES(?,?,?)");
-		if (!ok) break;
-		ok = handler->BeginTrans();
-		if (!ok) break;
+		if (!handler->Prepare(L"INSERT INTO mysample.employee(CompanyId,Name,JoinDate)VALUES(?,?,?)")) break;
+		if (!handler->BeginTrans()) break;
 		SPA::UDB::CDBVariantArray v;
 		for (auto it = vData.cbegin(), end = vData.cend(); it != end;) {
 			v.push_back(*it);
@@ -67,17 +65,23 @@ void CYourPeerOne::UploadEmployees(const SPA::UDB::CDBVariantArray &vData, int &
 			v.clear(); it += 3;
 		}
 		if (!ok) break;
-		//Lock cross the last request, and wait until the last request is returned and processed
-		CAutoLock al(m_mutex);
-		ok = handler->EndTrans(SPA::UDB::rpRollbackErrorAll, [this](CMySQLHandler &h, int r, const std::wstring & err) {
-			CAutoLock a(this->m_mutex);
-			this->m_cv.notify_one(); //notify all requests are completed
+		ok = false;
+		std::shared_ptr<std::promise<void> > prom(new std::promise<void>, [](std::promise<void> *p) {
+			delete p;
 		});
-		if (!ok) break;
+		if (!handler->EndTrans(SPA::UDB::rpRollbackErrorAll, [prom](CMySQLHandler &h, int r, const std::wstring & err) {
+			prom->set_value();
+		}, [prom, &res, &errMsg](){
+			res = -4;
+			errMsg = L"Request canceled or socket closed";
+			prom->set_value();
+		})) break;
+		ok = true;
 		CYourServer::Master->Unlock(handler); //put back locked handler and its socket back into pool for reuse as soon as possible
-		auto status = m_cv.wait_for(al, m_timeout); //don't use handle->WaitAll() for better completion event as a session may be shared by multiple threads
-		if (status == std::cv_status::timeout) {
-			res = -3; errMsg = L"Insert table data timeout";
+		auto status = prom->get_future().wait_for(m_timeout); //don't use handle->WaitAll() for better completion event as a session may be shared by multiple threads
+		if (status == std::future_status::timeout) {
+			res = -3;
+			errMsg = L"Insert table data timeout";
 		}
 	} while (false);
 	if (!ok) {
@@ -101,12 +105,13 @@ void CYourPeerOne::QueryPaymentMaxMinAvgs(const std::wstring &filter, int &res, 
 			errMsg = L"No connection to a slave database";
 			break;
 		}
-		CAutoLock al(m_mutex);
-		if (!handler->Execute(sql.c_str(), [this, &res, &errMsg](CMySQLHandler & h, int r, const std::wstring & err, SPA::INT64 affected, SPA::UINT64 fail_ok, SPA::UDB::CDBVariant & vtId) {
+		std::shared_ptr<std::promise<void> > prom(new std::promise<void>, [](std::promise<void> *p) {
+			delete p;
+		});
+		if (!handler->Execute(sql.c_str(), [prom, &res, &errMsg](CMySQLHandler & h, int r, const std::wstring & err, SPA::INT64 affected, SPA::UINT64 fail_ok, SPA::UDB::CDBVariant & vtId) {
 			res = r;
 			errMsg = err;
-			CAutoLock a(this->m_mutex);
-			this->m_cv.notify_one();
+			prom->set_value();
 		}, [&mma, &res, &errMsg](CMySQLHandler &h, SPA::UDB::CDBVariantArray & vData) {
 			do {
 				if (vData.size() != 3) {
@@ -139,13 +144,17 @@ void CYourPeerOne::QueryPaymentMaxMinAvgs(const std::wstring &filter, int &res, 
 			} while (false);
 		}, [](CMySQLHandler & h) {
 			assert(h.GetColumnInfo().size() == 3);
+		}, true, true, [prom, &res, &errMsg]() {
+			res = -4;
+			errMsg = L"Request canceled or socket closed";
+			prom->set_value();
 		})) {
 			res = handler->GetAttachedClientSocket()->GetErrorCode();
 			errMsg = SPA::Utilities::ToWide(handler->GetAttachedClientSocket()->GetErrorMsg().c_str());
 			break;
 		}
-		auto status = m_cv.wait_for(al, m_timeout); //don't use handle->WaitAll() for better completion event as a session may be shared by multiple threads
-		if (status == std::cv_status::timeout) {
+		auto status = prom->get_future().wait_for(m_timeout); //don't use handle->WaitAll() for better completion event as a session may be shared by multiple threads
+		if (status == std::future_status::timeout) {
 			res = -3;
 			errMsg = L"Querying timeout";
 			break;
@@ -192,24 +201,29 @@ void CYourPeerOne::GetCachedTables(const std::wstring &defaultDb, int flags, boo
 			errMsg = L"No connection to a master database";
 			break;
 		}
-		CAutoLock al(m_mutex);
-		if (!handler->Execute(sql.c_str(), [this, &res, &errMsg](CMySQLHandler & h, int r, const std::wstring & err, SPA::INT64 affected, SPA::UINT64 fail_ok, SPA::UDB::CDBVariant & vtId) {
+		std::shared_ptr<std::promise<void> > prom(new std::promise<void>, [](std::promise<void> *p) {
+			delete p;
+		});
+		if (!handler->Execute(sql.c_str(), [prom, &res, &errMsg](CMySQLHandler & h, int r, const std::wstring & err, SPA::INT64 affected, SPA::UINT64 fail_ok, SPA::UDB::CDBVariant & vtId) {
 			res = r;
 			errMsg = err;
-			CAutoLock a(this->m_mutex);
-			this->m_cv.notify_one();
+			prom->set_value();
 		}, [this](CMySQLHandler &h, SPA::UDB::CDBVariantArray & vData) {
 			this->SendRows(vData);
 		}, [this, index](CMySQLHandler & h) {
 			this->SendMeta(h.GetColumnInfo(), index);
+		}, true, true, [prom, &res, &errMsg](){
+			res = -4;
+			errMsg = L"Request canceled or socket closed";
+			prom->set_value();
 		})) {
 			res = handler->GetAttachedClientSocket()->GetErrorCode();
 			errMsg = SPA::Utilities::ToWide(handler->GetAttachedClientSocket()->GetErrorMsg().c_str());
 			break;
 		}
 		CYourServer::Master->Unlock(handler); //put back locked handler and its socket back into pool for reuse as soon as possible
-		auto status = m_cv.wait_for(al, m_timeout); //don't use handle->WaitAll() for better completion event as a session may be shared by multiple threads
-		if (status == std::cv_status::timeout) {
+		auto status = prom->get_future().wait_for(m_timeout); //don't use handle->WaitAll() for better completion event as a session may be shared by multiple threads
+		if (status == std::future_status::timeout) {
 			res = -3;
 			errMsg = L"Querying cached table data timeout";
 			break;

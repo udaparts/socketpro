@@ -1,8 +1,6 @@
 
 #include "stdafx.h"
 #include "webasynchandler.h"
-#include <condition_variable>
-#include <chrono>
 
 typedef SPA::CMasterPool<false, CWebAsyncHandler> CWebMasterPool;
 typedef SPA::ClientSide::CSocketPool<CWebAsyncHandler> CMyPool;
@@ -16,9 +14,6 @@ int main(int argc, char* argv[]) {
 	cc.UserId = L"SomeUserId";
 	cc.Password = L"A_Password_For_SomeUserId";
 	cc.EncrytionMethod = SPA::tagEncryptionMethod::TLSv1;
-
-	std::mutex mutex;
-	std::condition_variable cv;
 
 	CWebMasterPool master(L"");
 
@@ -86,19 +81,22 @@ int main(int argc, char* argv[]) {
 		::gettimeofday(&st, nullptr);
 #endif
 		vData.push_back(st);
-		//Lock cross the last request, and wait until the last request is returned and processed
-		std::unique_lock<std::mutex> al(mutex);
-		ok = handler->UploadEmployees(vData, [&mutex, &cv](int res, const std::wstring &errMsg, CInt64Array & vId) {
+		std::shared_ptr<std::promise<void> > prom(new std::promise<void>, [](std::promise<void> *p) {
+			delete p;
+		});
+		ok = handler->UploadEmployees(vData, [prom](int res, const std::wstring &errMsg, CInt64Array & vId) {
 			for (auto it = vId.cbegin(), end = vId.cend(); it != end; ++it) {
 				std::cout << "Last id: " << *it << std::endl;
 			}
-			std::unique_lock<std::mutex> a(mutex);
-			cv.notify_one();
+			prom->set_value();
+		}, [prom](){
+			std::cout << "Socket closed or request canceled" << std::endl;
+			prom->set_value();
 		});
 		if (!ok) break;
 		//Use wait_for instead of handler->WaitAll() for better completion event as a session may be shared by multiple threads
-		auto status = cv.wait_for(al, std::chrono::seconds(5));
-		if (status == std::cv_status::timeout) {
+		auto status = prom->get_future().wait_for(std::chrono::seconds(5));
+		if (status == std::future_status::timeout) {
 			std::cout << "The above requests are not completed in 5 seconds" << std::endl;
 		}
 	} while (false);

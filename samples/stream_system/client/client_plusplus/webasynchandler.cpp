@@ -6,7 +6,7 @@ CWebAsyncHandler::CWebAsyncHandler(CClientSocket *pClientSocket)
 	: CCachedBaseHandler<sidStreamSystem>(pClientSocket) {
 }
 
-bool CWebAsyncHandler::QueryPaymentMaxMinAvgs(const wchar_t *filter, DMaxMinAvg mma) {
+bool CWebAsyncHandler::QueryPaymentMaxMinAvgs(const wchar_t *filter, DMaxMinAvg mma, DCanceled canceled) {
 	return SendRequest(idQueryMaxMinAvgs, filter, [mma](CAsyncResult & ar) {
 		int res;
 		std::wstring errMsg;
@@ -14,19 +14,19 @@ bool CWebAsyncHandler::QueryPaymentMaxMinAvgs(const wchar_t *filter, DMaxMinAvg 
 		ar >> res >> errMsg >> m_m_a;
 		if (mma)
 			mma(m_m_a, res, errMsg);
-	});
+	}, canceled, nullptr);
 }
 
-bool CWebAsyncHandler::GetMasterSlaveConnectedSessions(DConnectedSessions cs) {
+bool CWebAsyncHandler::GetMasterSlaveConnectedSessions(DConnectedSessions cs, DCanceled canceled) {
 	return SendRequest(idGetMasterSlaveConnectedSessions, [cs](CAsyncResult & ar) {
 		unsigned int master_connections, slave_conenctions;
 		ar >> master_connections >> slave_conenctions;
 		if (cs)
 			cs(master_connections, slave_conenctions);
-	});
+	}, canceled, nullptr);
 }
 
-bool CWebAsyncHandler::UploadEmployees(const SPA::UDB::CDBVariantArray &vData, DUploadEmployees res) {
+bool CWebAsyncHandler::UploadEmployees(const SPA::UDB::CDBVariantArray &vData, DUploadEmployees res, DCanceled canceled) {
 	return SendRequest(idUploadEmployees, vData, [res](CAsyncResult & ar) {
 		int errCode;
 		std::wstring errMsg;
@@ -34,5 +34,5 @@ bool CWebAsyncHandler::UploadEmployees(const SPA::UDB::CDBVariantArray &vData, D
 		ar >> errCode >> errMsg >> vId;
 		if (res)
 			res(errCode, errMsg, vId);
-	});
+	}, canceled, nullptr);
 }
