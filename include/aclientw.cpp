@@ -199,7 +199,7 @@ namespace SPA
 			return ClientCoreLoader.IsBatching(GetClientSocketHandle());
 		}
 
-		bool CAsyncServiceHandler::SendRequest(unsigned short reqId, const unsigned char *pBuffer, unsigned int size, const ResultHandler &rh, const DCanceled &canceled, const DServerException & serverException) {
+		bool CAsyncServiceHandler::SendRequest(unsigned short reqId, const unsigned char *pBuffer, unsigned int size, ResultHandler rh, DCanceled canceled, DServerException serverException) {
 			USocket_Client_Handle h = GetClientSocketHandle();
 			CAutoLock alSend(m_csSend);
 			if (rh || canceled || serverException) {
@@ -232,12 +232,6 @@ namespace SPA
 			return ClientCoreLoader.SendRequest(h, reqId, pBuffer, size);
 		}
 
-		bool CAsyncServiceHandler::SendRequest(unsigned short reqId, const unsigned char *pBuffer, unsigned int size, const ResultHandler & rh) {
-			DCanceled c;
-			DServerException ex;
-			return SendRequest(reqId, pBuffer, size, rh, c, ex);
-		}
-
 		void CAsyncServiceHandler::SetNULL() {
 			m_pClientSocket = nullptr;
 		}
@@ -266,7 +260,7 @@ namespace SPA
 			m_vCallback.SetSize(m_vCallback.GetSize() - count * sizeof(PRR_PAIR));
 		}
 
-		bool CAsyncServiceHandler::SendRequest(unsigned short reqId, const ResultHandler & rh, DCanceled canceled, DServerException se) {
+		bool CAsyncServiceHandler::SendRequest(unsigned short reqId, ResultHandler rh, DCanceled canceled, DServerException se) {
 			return SendRequest(reqId, (const unsigned char *) nullptr, (unsigned int)0, rh, canceled, se);
 		}
 

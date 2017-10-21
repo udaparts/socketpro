@@ -449,12 +449,12 @@ namespace SPA {
 			DServerException ServerException;
 
 		public:
-			virtual bool SendRequest(unsigned short reqId, const unsigned char *pBuffer, unsigned int size, const ResultHandler &rh);
 			unsigned int GetRequestsQueued();
 			void ShrinkDeque();
 			unsigned int GetSvsID() const;
 			void SetSvsID(unsigned int serviceId);
-			bool SendRequest(unsigned short reqId, const ResultHandler &rh, DCanceled canceled = nullptr, DServerException se = nullptr);
+			virtual bool SendRequest(unsigned short reqId, const unsigned char *pBuffer, unsigned int size, ResultHandler rh, DCanceled canceled = nullptr, DServerException serverException = nullptr);
+			bool SendRequest(unsigned short reqId, ResultHandler rh, DCanceled canceled = nullptr, DServerException se = nullptr);
 			CClientSocket *GetAttachedClientSocket();
 			virtual bool WaitAll(unsigned int timeOut = (~0));
 			bool StartBatching();
@@ -1003,8 +1003,6 @@ namespace SPA {
 				sb << t0 << t1 << t2 << t3 << t4 << t5 << t6 << t7 << t8 << t9;
 				return SendRequest(reqId, sb->GetBuffer(), sb->GetSize(), rh, canceled, se);
 			}
-
-			virtual bool SendRequest(unsigned short reqId, const unsigned char *pBuffer, unsigned int size, const ResultHandler &rh, const DCanceled &canceled, const DServerException &serverException);
 
 #if defined(_FUTURE_) || defined(_GLIBCXX_FUTURE)
 
