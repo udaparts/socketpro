@@ -2,6 +2,10 @@
 
 #include "../../../../include/async_sqlite.h"
 
+/*
+SQLite supports multiple databases by statement ATTACH DATABASE ....
+Therefore, we use the class for attaching multiple databases onto one session
+*/
 class CSqliteHandler : public SPA::ClientSide::CSqlite {
 public:
     CSqliteHandler(SPA::ClientSide::CClientSocket *cs = nullptr);

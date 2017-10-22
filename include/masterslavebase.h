@@ -11,12 +11,10 @@ namespace SPA {
 	public:
 		typedef ClientSide::CSocketPool < THandler, TCS> CBase;
 
-		CMasterSlaveBase(const wchar_t *defaultDb, const char* qname, bool auto_merge = true, unsigned int recvTimeout = ClientSide::DEFAULT_RECV_TIMEOUT)
+		CMasterSlaveBase(const wchar_t *defaultDb, unsigned int recvTimeout = ClientSide::DEFAULT_RECV_TIMEOUT)
 			: CBase(true, recvTimeout),
 			m_dbDefalut(defaultDb ? defaultDb : L""),
-			m_qname(qname ? qname : ""),
-			m_nRecvTimeout(recvTimeout),
-			m_bAutoMerge(auto_merge) {
+			m_nRecvTimeout(recvTimeout) {
 		}
 
 		typedef std::function<void() > DOnClosed;
@@ -26,36 +24,8 @@ namespace SPA {
 			return m_dbDefalut;
 		}
 
-		inline const std::string& GetQueueName() const {
-			return m_qname;
-		}
-
 		inline unsigned int GetRecvTimeout() const {
 			return m_nRecvTimeout;
-		}
-
-	protected:
-
-		virtual void OnSocketPoolEvent(ClientSide::tagSocketPoolEvent spe, const std::shared_ptr<THandler> &asyncSQL) {
-			switch (spe) {
-			case ClientSide::speConnecting:
-				if (m_qname.size()) {
-					asyncSQL->GetAttachedClientSocket()->GetClientQueue().StopQueue(false);
-				}
-				break;
-			case ClientSide::speConnected:
-				if (m_qname.size() && m_bAutoMerge && !this->GetQueueAutoMerge()) {
-					this->SetQueueAutoMerge(m_bAutoMerge);
-				}
-				if (m_qname.size()) {
-					std::string qname = m_qname + "_pool_" + std::to_string(GetIndex(asyncSQL));
-					bool ok = asyncSQL->GetAttachedClientSocket()->GetClientQueue().StartQueue(qname.c_str(), 3600, false);
-					assert(ok);
-				}
-				break;
-			default:
-				break;
-			}
 		}
 
 		static std::wstring ToWide(const VARIANT &data) {
@@ -82,9 +52,7 @@ namespace SPA {
 
 	private:
 		std::wstring m_dbDefalut;
-		std::string m_qname;
 		unsigned int m_nRecvTimeout;
-		bool m_bAutoMerge;
 	};
 } //namespace SPA
 

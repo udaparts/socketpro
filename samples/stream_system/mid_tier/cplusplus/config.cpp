@@ -46,10 +46,8 @@ void CConfig::SetConfig() {
     //middle tier
     //test certificate and private key files are located at the directory ../socketpro/bin
 #ifdef WIN32_64
-    m_working_directory = "c:\\sp_test";
     m_store_or_pfx = "intermediate.pfx";
 #else
-    m_working_directory = "/home/yye/sp_test/";
     m_cert = "intermediate.cert.pem";
     m_key = "intermediate.key.pem";
 #endif

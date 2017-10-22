@@ -15,8 +15,6 @@ struct CConfig {
     std::vector<SPA::ClientSide::CConnectionContext> m_vccSlave;
 
     //middle tier server
-    std::string m_working_directory;
-    std::string m_message_queue_password;
     unsigned char m_main_threads;
     unsigned int m_nPort;
     bool m_bNoIpV6;

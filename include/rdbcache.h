@@ -13,8 +13,8 @@ namespace SPA {
 	public:
 		typedef CMasterSlaveBase < THandler > CBase;
 
-		CSQLMasterPool(const wchar_t *defaultDb, const char* qname, bool auto_merge = true, unsigned int recvTimeout = ClientSide::DEFAULT_RECV_TIMEOUT)
-			: CBase(defaultDb, qname, auto_merge, recvTimeout) {
+		CSQLMasterPool(const wchar_t *defaultDb, unsigned int recvTimeout = ClientSide::DEFAULT_RECV_TIMEOUT)
+			: CBase(defaultDb, recvTimeout) {
 		}
 
 		typedef TCache CDataSet;
@@ -24,8 +24,8 @@ namespace SPA {
 		class CSlavePool : public CMasterSlaveBase < THandler > {
 		public:
 
-			CSlavePool(const wchar_t *defaultDb, const char* qname, bool auto_merge = true, unsigned int recvTimeout = ClientSide::DEFAULT_RECV_TIMEOUT)
-				: CMasterSlaveBase<THandler>(defaultDb, qname, auto_merge, recvTimeout) {
+			CSlavePool(const wchar_t *defaultDb, unsigned int recvTimeout = ClientSide::DEFAULT_RECV_TIMEOUT)
+				: CMasterSlaveBase<THandler>(defaultDb, recvTimeout) {
 			}
 
 		protected:

@@ -1,7 +1,10 @@
 #include "stdafx.h"
 #include "sqlitehandler.h"
-#include <iostream>
 #include "config.h"
+
+#ifndef NDEBUG
+#include <iostream>
+#endif
 
 CSqliteHandler::CSqliteHandler(SPA::ClientSide::CClientSocket *cs)
 	: SPA::ClientSide::CSqlite(cs) {
@@ -39,6 +42,7 @@ bool CSqliteHandler::Open(const wchar_t* strConnection, DResult handler, unsigne
 bool CSqliteHandler::Execute(const wchar_t* sql, DExecuteResult handler, DRows row, DRowsetHeader rh, bool meta, bool lastInsertId, DCanceled canceled) {
 	if (sql && ::wcslen(sql))
 		return SPA::ClientSide::CSqlite::Execute(sql, handler, row, rh, meta, lastInsertId, canceled);
+	//this is for getting cached tables from SQLite database
 	std::wstring my_sql;
 	for (auto it = g_config.m_vFrontCachedTable.cbegin(), end = g_config.m_vFrontCachedTable.cend(); it != end; ++it) {
 		if (my_sql.size())
@@ -53,7 +57,11 @@ bool CSqliteHandler::Execute(SPA::UDB::CDBVariantArray &vParam, DExecuteResult h
 }
 
 void CSqliteHandler::OnExceptionFromServer(unsigned short requestId, const wchar_t *errMessage, const char* errWhere, unsigned int errCode) {
+#ifndef NDEBUG
+	//for debug purpose
 	std::cout << "Request id: " << requestId << ", error message: ";
 	std::wcout << errMessage;
 	std::cout << ", error where: " << errMessage << ", error code: " << errCode << std::endl;
+#endif
+	SPA::ClientSide::CSqlite::OnExceptionFromServer(requestId, errMessage, errWhere, errCode);
 }

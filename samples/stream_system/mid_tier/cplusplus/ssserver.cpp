@@ -17,7 +17,7 @@ void CYourServer::StartMySQLPools() {
     CMySQLMasterPool::Cache.SetTableNameCaseSensitive(false);
     CMySQLMasterPool::Cache.SetDBNameCaseSensitive(false);
 
-    CYourServer::Master.reset(new CMySQLMasterPool(g_config.m_master_default_db.c_str(), ""));
+    CYourServer::Master.reset(new CMySQLMasterPool(g_config.m_master_default_db.c_str()));
 
     //start master pool for cache and update accessing
     bool ok = CYourServer::Master->StartSocketPool(g_config.m_ccMaster, (unsigned int) g_config.m_nMasterSessions, 1); //one thread enough
@@ -25,7 +25,7 @@ void CYourServer::StartMySQLPools() {
     //compute threads and sockets_per_thread
     unsigned int threads = (unsigned int) (g_config.m_nSlaveSessions / g_config.m_vccSlave.size());
     unsigned int sockets_per_thread = (unsigned int) g_config.m_vccSlave.size();
-    CYourServer::Slave.reset(new CMySQLSlavePool(g_config.m_slave_default_db.c_str(), ""));
+    CYourServer::Slave.reset(new CMySQLSlavePool(g_config.m_slave_default_db.c_str()));
 
     typedef SPA::ClientSide::CConnectionContext* PCConnectionContext;
 

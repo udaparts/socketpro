@@ -5,7 +5,7 @@
 #include "config.h"
 
 
-std::chrono::seconds CYourPeerOne::m_timeout(600); //600 seconds
+std::chrono::seconds CYourPeerOne::m_timeout(10); //10 seconds
 
 CYourPeerOne::CYourPeerOne() {
 
@@ -39,67 +39,66 @@ void CYourPeerOne::UploadEmployees(const SPA::UDB::CDBVariantArray &vData, int &
 		errMsg = L"Data array size wrong";
 		return;
 	}
-	//use master for insert, update and delete
-	auto handler = CYourServer::Master->Lock(); //use Lock and Unlock to avoid SQL stream overlap on a session within a multi-thread environment
-	if (!handler) {
-		res = -2;
-		errMsg = L"No connection to a master database";
-		return;
-	}
-	bool ok = false;
+	int redo = 0;
 	do {
-		if (!handler->Prepare(L"INSERT INTO mysample.EMPLOYEE(CompanyId,Name,JoinDate)VALUES(?,?,?)")) break;
-		if (!handler->BeginTrans()) break;
-		SPA::UDB::CDBVariantArray v;
-		for (auto it = vData.cbegin(), end = vData.cend(); it != end;) {
-			v.push_back(*it);
-			v.push_back(*(it + 1));
-			v.push_back(*(it + 2));
-			ok = handler->Execute(v, [&res, &errMsg, &vId](CSQLHandler &h, int r, const std::wstring &err, SPA::INT64 affected, SPA::UINT64 fail_ok, SPA::UDB::CDBVariant & vtId) {
-				if (r && !res) {
-					res = r;
-					errMsg = err;
-					vId.push_back(-1);
-				}
-				else if (r)
-					vId.push_back(-1);
-				else {
-					assert(affected == 1);
-					assert(!err.size());
-					assert(fail_ok == 1);
-					vId.push_back(vtId.llVal);
-				}
-			});
+		//use master for insert, update and delete
+		auto handler = CYourServer::Master->Lock(); //use Lock and Unlock to avoid SQL stream overlap on a session within a multi-thread environment
+		if (!handler) {
+			res = -2;
+			errMsg = L"No connection to a master database";
+			return;
+		}
+		++redo;
+		do {
+			bool ok = false;
+			if (!handler->Prepare(L"INSERT INTO mysample.EMPLOYEE(CompanyId,Name,JoinDate)VALUES(?,?,?)")) break;
+			if (!handler->BeginTrans()) break;
+			SPA::UDB::CDBVariantArray v;
+			for (auto it = vData.cbegin(), end = vData.cend(); it != end;) {
+				v.push_back(*it);
+				v.push_back(*(it + 1));
+				v.push_back(*(it + 2));
+				ok = handler->Execute(v, [&redo, &res, &errMsg, &vId](CSQLHandler &h, int r, const std::wstring &err, SPA::INT64 affected, SPA::UINT64 fail_ok, SPA::UDB::CDBVariant & vtId) {
+					if (r && !res) {
+						res = r;
+						errMsg = err;
+						vId.push_back(-1);
+					}
+					else if (r)
+						vId.push_back(-1);
+					else {
+						assert(affected == 1);
+						assert(!err.size());
+						assert(fail_ok == 1);
+						vId.push_back(vtId.llVal);
+					}
+				});
+				if (!ok) break;
+				v.clear();
+				it += 3;
+			}
 			if (!ok) break;
-			v.clear();
-			it += 3;
+			std::shared_ptr<std::promise<void> > prom(new std::promise<void>, [](std::promise<void> *p) {
+				delete p;
+			});
+			if (handler->EndTrans(SPA::UDB::rpRollbackErrorAll, [&redo, prom](CSQLHandler & h, int r, const std::wstring & err) {
+				redo = 0; //we will not redo only if the final callback is called
+				prom->set_value();
+			}, [prom, &res, &errMsg]() {
+				//socket closed after sending
+				prom->set_value();
+			})) {
+				CYourServer::Master->Unlock(handler); //put back locked handler and its socket back into pool for reuse as soon as possible
+				auto status = prom->get_future().wait_for(m_timeout); //don't use handle->WaitAll() for better completion event as a session may be shared by multiple threads
+			}
+			else {
+				//socket closed when sending
+			}
+		} while (false);
+		if (redo) {
+			std::cout << "Going to retry ......" << std::endl;
 		}
-		if (!ok) break;
-		ok = false;
-		std::shared_ptr<std::promise<void> > prom(new std::promise<void>, [](std::promise<void> *p) {
-			delete p;
-		});
-		if (!handler->EndTrans(SPA::UDB::rpRollbackErrorAll, [prom](CSQLHandler & h, int r, const std::wstring & err) {
-			prom->set_value();
-		}, [prom, &res, &errMsg]() {
-			res = -4;
-			errMsg = L"Request canceled or socket closed";
-			prom->set_value();
-		})) break;
-		ok = true;
-		CYourServer::Master->Unlock(handler); //put back locked handler and its socket back into pool for reuse as soon as possible
-		auto status = prom->get_future().wait_for(m_timeout); //don't use handle->WaitAll() for better completion event as a session may be shared by multiple threads
-		if (status == std::future_status::timeout) {
-			res = -3;
-			errMsg = L"Insert table data timeout";
-		}
-	} while (false);
-	if (!ok) {
-		//Socket is closed at server side and the above locked handler is automatically unlocked
-		//retrieve error code and its error message
-		res = handler->GetAttachedClientSocket()->GetErrorCode();
-		errMsg = SPA::Utilities::ToWide(handler->GetAttachedClientSocket()->GetErrorMsg().c_str());
-	}
+	} while (redo);
 }
 
 void CYourPeerOne::QueryPaymentMaxMinAvgs(const std::wstring &filter, int &res, std::wstring &errMsg, CMaxMinAvg &mma) {
@@ -108,21 +107,23 @@ void CYourPeerOne::QueryPaymentMaxMinAvgs(const std::wstring &filter, int &res, 
 	std::wstring sql = L"SELECT MAX(amount),MIN(amount),AVG(amount) FROM sakila.payment";
 	if (filter.size())
 		sql += (L" WHERE " + filter);
+	int redo = 0;
 	do {
 		//we are going to use slave for the query
 		auto handler = CYourServer::Slave->Seek();
 		if (!handler) {
 			res = -1;
 			errMsg = L"No connection to a slave database";
-			break;
+			return;
 		}
+		++redo;
 		std::shared_ptr<std::promise<void> > prom(new std::promise<void>, [](std::promise<void> *p) {
 			delete p;
 		});
-
-		if (!handler->Execute(sql.c_str(), [prom, &res, &errMsg](CSQLHandler & h, int r, const std::wstring & err, SPA::INT64 affected, SPA::UINT64 fail_ok, SPA::UDB::CDBVariant & vtId) {
+		if (handler->Execute(sql.c_str(), [&redo, prom, &res, &errMsg](CSQLHandler & h, int r, const std::wstring & err, SPA::INT64 affected, SPA::UINT64 fail_ok, SPA::UDB::CDBVariant & vtId) {
 			res = r;
 			errMsg = err;
+			redo = 0; //we will not redo only if the final callback is called
 			prom->set_value();
 		}, [&mma, &res, &errMsg](CSQLHandler &h, SPA::UDB::CDBVariantArray & vData) {
 			do {
@@ -156,24 +157,18 @@ void CYourPeerOne::QueryPaymentMaxMinAvgs(const std::wstring &filter, int &res, 
 			} while (false);
 		}, [](CSQLHandler & h) {
 			assert(h.GetColumnInfo().size() == 3);
-		}, true, true, [this, prom, &res, &errMsg]() {
-			res = -4;
-			errMsg = L"Request canceled or socket closed";
-			this->AbortDequeuedMessage();
-			prom->set_value();
+		}, true, true, [prom]() {
+			prom->set_value(); //socket closed after sending
 		})) {
-			res = handler->GetAttachedClientSocket()->GetErrorCode();
-			errMsg = SPA::Utilities::ToWide(handler->GetAttachedClientSocket()->GetErrorMsg().c_str());
-			AbortDequeuedMessage();
-			break;
+			auto status = prom->get_future().wait_for(m_timeout); //don't use handle->WaitAll() for better completion event as a session may be shared by multiple threads
 		}
-		auto status = prom->get_future().wait_for(m_timeout); //don't use handle->WaitAll() for better completion event as a session may be shared by multiple threads
-		if (status == std::future_status::timeout) {
-			res = -3;
-			errMsg = L"Querying timeout";
-			break;
+		else {
+			//socket closed when sending
 		}
-	} while (false);
+		if (redo) {
+			std::cout << "Going to retry ......" << std::endl;
+		}
+	} while (redo);
 }
 
 unsigned int CYourPeerOne::SendMeta(const SPA::UDB::CDBColumnInfoArray &meta, SPA::UINT64 index) {
