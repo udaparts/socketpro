@@ -6,99 +6,86 @@
 
 namespace SPA {
 
-    template<typename THandler, typename TCS = ClientSide::CClientSocket>
-    class CMasterSlaveBase : public ClientSide::CSocketPool < THandler, TCS > {
-    public:
-        typedef ClientSide::CSocketPool < THandler, TCS> CBase;
+	template<typename THandler, typename TCS = ClientSide::CClientSocket>
+	class CMasterSlaveBase : public ClientSide::CSocketPool < THandler, TCS > {
+	public:
+		typedef ClientSide::CSocketPool < THandler, TCS> CBase;
 
-        CMasterSlaveBase(const wchar_t *defaultDb, const char* qname, bool auto_merge = true, unsigned int recvTimeout = ClientSide::DEFAULT_RECV_TIMEOUT)
-        : CBase(true, recvTimeout),
-        m_dbDefalut(defaultDb ? defaultDb : L""),
-        m_qname(qname ? qname : ""),
-        m_nRecvTimeout(recvTimeout),
-        m_bAutoMerge(auto_merge) {
-        }
+		CMasterSlaveBase(const wchar_t *defaultDb, const char* qname, bool auto_merge = true, unsigned int recvTimeout = ClientSide::DEFAULT_RECV_TIMEOUT)
+			: CBase(true, recvTimeout),
+			m_dbDefalut(defaultDb ? defaultDb : L""),
+			m_qname(qname ? qname : ""),
+			m_nRecvTimeout(recvTimeout),
+			m_bAutoMerge(auto_merge) {
+		}
 
-        typedef std::function<void() > DOnClosed;
+		typedef std::function<void() > DOnClosed;
 
-    public:
+	public:
+		inline const std::wstring& GetDefaultDBName() const {
+			return m_dbDefalut;
+		}
 
-        void Subscribe(UINT64 key, DOnClosed c) {
-            CAutoLock al(this->m_cs);
-            m_mapClose[key] = c;
-        }
+		inline const std::string& GetQueueName() const {
+			return m_qname;
+		}
 
-        void Remove(UINT64 key) {
-            CAutoLock al(this->m_cs);
-            m_mapClose.erase(key);
-        }
+		inline unsigned int GetRecvTimeout() const {
+			return m_nRecvTimeout;
+		}
 
-        const wchar_t* GetDefaultDBName() const {
-            return m_dbDefalut.c_str();
-        }
+	protected:
 
-        unsigned int GetRecvTimeout() const {
-            return m_nRecvTimeout;
-        }
+		virtual void OnSocketPoolEvent(ClientSide::tagSocketPoolEvent spe, const std::shared_ptr<THandler> &asyncSQL) {
+			switch (spe) {
+			case ClientSide::speConnecting:
+				if (m_qname.size()) {
+					asyncSQL->GetAttachedClientSocket()->GetClientQueue().StopQueue(false);
+				}
+				break;
+			case ClientSide::speConnected:
+				if (m_qname.size() && m_bAutoMerge && !this->GetQueueAutoMerge()) {
+					this->SetQueueAutoMerge(m_bAutoMerge);
+				}
+				if (m_qname.size()) {
+					std::string qname = m_qname + "_pool_" + std::to_string(GetIndex(asyncSQL));
+					bool ok = asyncSQL->GetAttachedClientSocket()->GetClientQueue().StartQueue(qname.c_str(), 3600, false);
+					assert(ok);
+				}
+				break;
+			default:
+				break;
+			}
+		}
 
-    protected:
+		static std::wstring ToWide(const VARIANT &data) {
+			const char *s;
+			assert(data.vt == (VT_ARRAY | VT_I1));
+			::SafeArrayAccessData(data.parray, (void**)&s);
+			std::wstring ws = Utilities::ToWide(s, data.parray->rgsabound->cElements);
+			::SafeArrayUnaccessData(data.parray);
+			return ws;
+		}
 
-        virtual void OnSocketPoolEvent(ClientSide::tagSocketPoolEvent spe, const std::shared_ptr<THandler> &asyncSQL) {
-            switch (spe) {
-                case ClientSide::speSocketClosed:
-                    if (!asyncSQL->GetAttachedClientSocket()->Sendable()) {
-                        CAutoLock al(this->m_cs);
-                        for (auto it = m_mapClose.begin(), end = m_mapClose.end(); it != end; ++it) {
-                            DOnClosed closed = it->second;
-                            if (closed)
-                                closed();
-                        }
-                    }
-                    break;
-                case ClientSide::speConnected:
-                    if (m_bAutoMerge && !this->GetQueueAutoMerge()) {
-                        this->SetQueueAutoMerge(m_bAutoMerge);
-                    }
-                    if (m_qname.size()) {
-                        std::string qname = m_qname + "_pool_" + std::to_string(GetIndex(asyncSQL));
-                        bool ok = asyncSQL->GetAttachedClientSocket()->GetClientQueue().StartQueue(qname.c_str(), 3600, false);
-                        assert(ok);
-                    }
-                    break;
-                default:
-                    break;
-            }
-        }
+	private:
 
-        static std::wstring ToWide(const VARIANT &data) {
-            const char *s;
-            assert(data.vt == (VT_ARRAY | VT_I1));
-            ::SafeArrayAccessData(data.parray, (void**) &s);
-            std::wstring ws = Utilities::ToWide(s, data.parray->rgsabound->cElements);
-            ::SafeArrayUnaccessData(data.parray);
-            return ws;
-        }
+		int GetIndex(std::shared_ptr<THandler> h) {
+			int index = 0;
+			CAutoLock al(this->m_cs);
+			for (auto it = this->m_mapSocketHandler.begin(), end = this->m_mapSocketHandler.end(); it != end; ++it, ++index) {
+				if (it->second == h)
+					return index;
+			}
+			assert(false);
+			return -1;
+		}
 
-    private:
-
-        int GetIndex(std::shared_ptr<THandler> h) {
-            int index = 0;
-            CAutoLock al(this->m_cs);
-            for (auto it = this->m_mapSocketHandler.begin(), end = this->m_mapSocketHandler.end(); it != end; ++it, ++index) {
-                if (it->second == h)
-                    return index;
-            }
-            assert(false);
-            return -1;
-        }
-
-    private:
-        std::unordered_map<UINT64, DOnClosed> m_mapClose; //protected by base class m_cs
-        std::wstring m_dbDefalut;
-        std::string m_qname;
-        unsigned int m_nRecvTimeout;
-        bool m_bAutoMerge;
-    };
+	private:
+		std::wstring m_dbDefalut;
+		std::string m_qname;
+		unsigned int m_nRecvTimeout;
+		bool m_bAutoMerge;
+	};
 } //namespace SPA
 
 #endif

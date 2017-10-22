@@ -51,3 +51,9 @@ bool CSqliteHandler::Execute(const wchar_t* sql, DExecuteResult handler, DRows r
 bool CSqliteHandler::Execute(SPA::UDB::CDBVariantArray &vParam, DExecuteResult handler, DRows row, DRowsetHeader rh, bool meta, bool lastInsertId, DCanceled canceled) {
 	return SPA::ClientSide::CSqlite::Execute(vParam, handler, row, rh, meta, lastInsertId, canceled);
 }
+
+void CSqliteHandler::OnExceptionFromServer(unsigned short requestId, const wchar_t *errMessage, const char* errWhere, unsigned int errCode) {
+	std::cout << "Request id: " << requestId << ", error message: ";
+	std::wcout << errMessage;
+	std::cout << ", error where: " << errMessage << ", error code: " << errCode << std::endl;
+}

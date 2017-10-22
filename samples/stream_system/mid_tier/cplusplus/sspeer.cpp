@@ -5,7 +5,7 @@
 #include "config.h"
 
 
-std::chrono::seconds CYourPeerOne::m_timeout(10); //10 seconds
+std::chrono::seconds CYourPeerOne::m_timeout(600); //600 seconds
 
 CYourPeerOne::CYourPeerOne() {
 
@@ -119,6 +119,7 @@ void CYourPeerOne::QueryPaymentMaxMinAvgs(const std::wstring &filter, int &res, 
 		std::shared_ptr<std::promise<void> > prom(new std::promise<void>, [](std::promise<void> *p) {
 			delete p;
 		});
+
 		if (!handler->Execute(sql.c_str(), [prom, &res, &errMsg](CSQLHandler & h, int r, const std::wstring & err, SPA::INT64 affected, SPA::UINT64 fail_ok, SPA::UDB::CDBVariant & vtId) {
 			res = r;
 			errMsg = err;
@@ -155,13 +156,15 @@ void CYourPeerOne::QueryPaymentMaxMinAvgs(const std::wstring &filter, int &res, 
 			} while (false);
 		}, [](CSQLHandler & h) {
 			assert(h.GetColumnInfo().size() == 3);
-		}, true, true, [prom, &res, &errMsg]() {
+		}, true, true, [this, prom, &res, &errMsg]() {
 			res = -4;
 			errMsg = L"Request canceled or socket closed";
+			this->AbortDequeuedMessage();
 			prom->set_value();
 		})) {
 			res = handler->GetAttachedClientSocket()->GetErrorCode();
 			errMsg = SPA::Utilities::ToWide(handler->GetAttachedClientSocket()->GetErrorMsg().c_str());
+			AbortDequeuedMessage();
 			break;
 		}
 		auto status = prom->get_future().wait_for(m_timeout); //don't use handle->WaitAll() for better completion event as a session may be shared by multiple threads

@@ -25,7 +25,7 @@ void CYourServer::StartMySQLPools() {
     //compute threads and sockets_per_thread
     unsigned int threads = (unsigned int) (g_config.m_nSlaveSessions / g_config.m_vccSlave.size());
     unsigned int sockets_per_thread = (unsigned int) g_config.m_vccSlave.size();
-    CYourServer::Slave.reset(new CMySQLSlavePool(g_config.m_slave_default_db.c_str(), "slave"));
+    CYourServer::Slave.reset(new CMySQLSlavePool(g_config.m_slave_default_db.c_str(), ""));
 
     typedef SPA::ClientSide::CConnectionContext* PCConnectionContext;
 
