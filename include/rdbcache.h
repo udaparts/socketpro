@@ -8,10 +8,10 @@
 
 namespace SPA {
 
-	template<bool midTier, typename THandler, typename TCache = CDataSet>
-	class CSQLMasterPool : public CMasterSlaveBase < THandler > {
+	template<bool midTier, typename THandler, typename TCache = CDataSet, typename TCS = ClientSide::CClientSocket>
+	class CSQLMasterPool : public CMasterSlaveBase < THandler, TCS > {
 	public:
-		typedef CMasterSlaveBase < THandler > CBase;
+		typedef CMasterSlaveBase < THandler, TCS > CBase;
 
 		CSQLMasterPool(const wchar_t *defaultDb, unsigned int recvTimeout = ClientSide::DEFAULT_RECV_TIMEOUT)
 			: CBase(defaultDb, recvTimeout) {
@@ -21,7 +21,7 @@ namespace SPA {
 		static TCache Cache; //real-time cache accessible from your code
 		typedef ClientSide::CAsyncDBHandler<THandler::SQLStreamServiceId> CSQLHandler;
 
-		class CSlavePool : public CMasterSlaveBase < THandler > {
+		class CSlavePool : public CMasterSlaveBase < THandler, TCS > {
 		public:
 
 			CSlavePool(const wchar_t *defaultDb, unsigned int recvTimeout = ClientSide::DEFAULT_RECV_TIMEOUT)
@@ -194,8 +194,8 @@ namespace SPA {
 		TCache m_cache;
 	};
 
-	template<bool midTier, typename THandler, typename TCache>
-	TCache CSQLMasterPool<midTier, THandler, TCache>::Cache;
+	template<bool midTier, typename THandler, typename TCache, typename TCS>
+	TCache CSQLMasterPool<midTier, THandler, TCache, TCS>::Cache;
 }; //namespace SPA
 
 #endif

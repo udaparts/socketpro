@@ -17,8 +17,6 @@ namespace SPA {
 			m_nRecvTimeout(recvTimeout) {
 		}
 
-		typedef std::function<void() > DOnClosed;
-
 	public:
 		inline const std::wstring& GetDefaultDBName() const {
 			return m_dbDefalut;
@@ -35,19 +33,6 @@ namespace SPA {
 			std::wstring ws = Utilities::ToWide(s, data.parray->rgsabound->cElements);
 			::SafeArrayUnaccessData(data.parray);
 			return ws;
-		}
-
-	private:
-
-		int GetIndex(std::shared_ptr<THandler> h) {
-			int index = 0;
-			CAutoLock al(this->m_cs);
-			for (auto it = this->m_mapSocketHandler.begin(), end = this->m_mapSocketHandler.end(); it != end; ++it, ++index) {
-				if (it->second == h)
-					return index;
-			}
-			assert(false);
-			return -1;
 		}
 
 	private:

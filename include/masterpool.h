@@ -8,10 +8,10 @@
 
 namespace SPA {
 
-	template<bool midTier, typename THandler, typename TCache = CDataSet>
-	class CMasterPool : public CMasterSlaveBase < THandler > {
+	template<bool midTier, typename THandler, typename TCache = CDataSet, typename TCS = ClientSide::CClientSocket>
+	class CMasterPool : public CMasterSlaveBase < THandler, TCS > {
 	public:
-		typedef CMasterSlaveBase < THandler > CBase;
+		typedef CMasterSlaveBase < THandler, TCS > CBase;
 
 		CMasterPool(const wchar_t *defaultDb, unsigned int recvTimeout = ClientSide::DEFAULT_RECV_TIMEOUT)
 			: CBase(defaultDb, recvTimeout) {
@@ -19,7 +19,7 @@ namespace SPA {
 		typedef TCache CDataSet;
 		static TCache Cache; //real-time cache accessible from your code
 		typedef ClientSide::CCachedBaseHandler<THandler::CachedServiceId> CHandler;
-		typedef CMasterSlaveBase < THandler > CSlavePool;
+		typedef CMasterSlaveBase < THandler, TCS > CSlavePool;
 
 	protected:
 
@@ -164,8 +164,8 @@ namespace SPA {
 	private:
 		UDB::CDBColumnInfoArray m_meta;
 	};
-	template<bool midTier, typename THandler, typename TCache>
-	TCache CMasterPool<midTier, THandler, TCache>::Cache;
+	template<bool midTier, typename THandler, typename TCache, typename TCS>
+	TCache CMasterPool<midTier, THandler, TCache, TCS>::Cache;
 } //namespace SPA
 
 #endif
