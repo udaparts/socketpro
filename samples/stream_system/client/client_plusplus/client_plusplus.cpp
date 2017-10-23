@@ -6,9 +6,12 @@ typedef SPA::CMasterPool<false, CWebAsyncHandler> CWebMasterPool;
 typedef SPA::ClientSide::CSocketPool<CWebAsyncHandler> CMyPool;
 
 int main(int argc, char* argv[]) {
+	std::wstring filter;
 	CConnectionContext cc;
 	std::cout << "Remote host: " << std::endl;
 	std::getline(std::cin, cc.Host);
+	std::cout << "Sakila.payment filter: " << std::endl;
+	std::getline(std::wcin, filter);
 	//cc.Host = "localhost";
 	cc.Port = 20911;
 	cc.UserId = L"SomeUserId";
@@ -52,7 +55,7 @@ int main(int argc, char* argv[]) {
 			std::cout << "master connection: " << master_connection << ", slave connection: " << slave_connection << std::endl;
 		});
 		if (!ok) break;
-		ok = handler->QueryPaymentMaxMinAvgs(L"", [](SPA::UINT64 index, const CMaxMinAvg &mma, int res, const std::wstring & errMsg) {
+		ok = handler->QueryPaymentMaxMinAvgs(filter.c_str(), [](SPA::UINT64 index, const CMaxMinAvg &mma, int res, const std::wstring & errMsg) {
 			if (res) {
 				std::cout << "QueryPaymentMaxMinAvgs error code: " << res << ", error message: ";
 				std::wcout << errMsg.c_str() << std::endl;
@@ -95,8 +98,14 @@ int main(int argc, char* argv[]) {
 			delete p;
 		});
 		ok = handler->UploadEmployees(vData, [prom](SPA::UINT64 index, int res, const std::wstring &errMsg, CInt64Array & vId) {
-			for (auto it = vId.cbegin(), end = vId.cend(); it != end; ++it) {
-				std::cout << "Last id: " << *it << std::endl;
+			if (res) {
+				std::cout << "UploadEmployees Error code =  " << res << ", error message = ";
+				std::wcout << errMsg.c_str() << std::endl;
+			}
+			else {
+				for (auto it = vId.cbegin(), end = vId.cend(); it != end; ++it) {
+					std::cout << "Last id: " << *it << std::endl;
+				}
 			}
 			prom->set_value();
 		}, [prom](SPA::UINT64 index) {
@@ -111,9 +120,12 @@ int main(int argc, char* argv[]) {
 		}
 		CMaxMinAvg sum_mma;
 		::memset(&sum_mma, 0, sizeof(sum_mma));
+
+
+		auto start = std::chrono::system_clock::now();
 		for (unsigned int n = 0; n < 10000; ++n) {
 			handler = master.Seek();
-			if (!handler->QueryPaymentMaxMinAvgs(L"", [&sum_mma](SPA::UINT64 index, const CMaxMinAvg & mma, int res, const std::wstring & errMsg) {
+			if (!handler->QueryPaymentMaxMinAvgs(filter.c_str(), [&sum_mma](SPA::UINT64 index, const CMaxMinAvg & mma, int res, const std::wstring & errMsg) {
 				if (res) {
 					std::cout << "QueryPaymentMaxMinAvgs error code: " << res << ", error message: ";
 					std::wcout << errMsg.c_str() << std::endl;
@@ -129,6 +141,8 @@ int main(int argc, char* argv[]) {
 		for (auto it = v.begin(), end = v.end(); it != end; ++it) {
 			(*it)->WaitAll();
 		}
+		std::chrono::duration<double> diff = (std::chrono::system_clock::now() - start);
+		std::cout << "Time required: " << diff.count() << " seconds" << std::endl;
 		std::cout << "QueryPaymentMaxMinAvgs sum_max: " << sum_mma.Max << ", sum_min: " << sum_mma.Min << ", avg: " << sum_mma.Avg << std::endl;
 	} while (false);
 	if (!ok) {

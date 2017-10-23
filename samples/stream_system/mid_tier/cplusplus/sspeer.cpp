@@ -122,19 +122,19 @@ void CYourPeerOne::UploadEmployees(SPA::CUQueue &q) {
 				unsigned int ret = this->SendResult(idUploadEmployees, index, pError->first, pError->second, *pId);
 			}, [index, pData, this, peer_handle]() {
 #ifndef NDEBUG
-				{
-					SPA::CAutoLock al(m_csConsole);
-					//socket closed after sending
-					std::cout << "Retrying UploadEmployees ......" << std::endl;
-				}
+					{
+						SPA::CAutoLock al(m_csConsole);
+						//socket closed after sending
+						std::cout << "Retrying UploadEmployees ......" << std::endl;
+					}
 #endif
-				//we need to retry as long as front socket is not closed yet
-				if (peer_handle == this->GetSocketHandle()) {
-					SPA::CScopeUQueue sq;
-					//repack original request data and retry if socket is closed after sending
-					sq << index << *pData;
-					this->UploadEmployees(*sq); //this will not cause recursive stack-overflow exeption
-				}
+					//we need to retry as long as front socket is not closed yet
+					if (peer_handle == this->GetSocketHandle()) {
+						SPA::CScopeUQueue sq;
+						//repack original request data and retry if socket is closed after sending
+						sq << index << *pData;
+						this->UploadEmployees(*sq); //this will not cause recursive stack-overflow exeption
+					}
 			})) {
 				CYourServer::Master->Unlock(handler); //put back locked handler and its socket back into pool for reuse as soon as possible
 				redo = 0; //disable redo only if all requests are successfully put onto wire
@@ -234,20 +234,20 @@ void CYourPeerOne::QueryPaymentMaxMinAvgs(SPA::CUQueue &q) {
 			assert(h.GetColumnInfo().size() == 3);
 		}, true, true, [peer_handle, index, filter, this]() {
 #ifndef NDEBUG
-				{
-					SPA::CAutoLock al(m_csConsole);
-					//socket closed after sending
-					std::cout << "Retrying QueryPaymentMaxMinAvgs ......" << std::endl;
-				}
-#endif
-				//we need to retry as long as front socket is not closed yet
-				if (peer_handle == this->GetSocketHandle()) {
-					SPA::CScopeUQueue sq;
-					//repack original request data and retry if socket is closed after sending
-					sq << index << filter;
-					this->QueryPaymentMaxMinAvgs(*sq); //this will not cause recursive stack-overflow exeption
-				}
+			{
+				SPA::CAutoLock al(m_csConsole);
 				//socket closed after sending
+				std::cout << "Retrying QueryPaymentMaxMinAvgs ......" << std::endl;
+			}
+#endif
+			//we need to retry as long as front socket is not closed yet
+			if (peer_handle == this->GetSocketHandle()) {
+				SPA::CScopeUQueue sq;
+				//repack original request data and retry if socket is closed after sending
+				sq << index << filter;
+				this->QueryPaymentMaxMinAvgs(*sq); //this will not cause recursive stack-overflow exeption
+			}
+			//socket closed after sending
 		})) {
 			redo = 0;
 		}
