@@ -80,7 +80,7 @@ bool CYourServer::AddServices() {
     ok = m_SSPeer.AddSlowRequest(SPA::UDB::idGetCachedTables);
     ok = m_SSPeer.AddSlowRequest(idQueryMaxMinAvgs);
     ok = m_SSPeer.AddSlowRequest(idUploadEmployees);
-
+	m_SSPeer.SetReturnRandom(true);
     return true;
 }
 

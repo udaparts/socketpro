@@ -16,7 +16,18 @@ public:
     typedef std::function<void(int res, const std::wstring &errMsg, CInt64Array &vId) > DUploadEmployees;
 
 public:
-    bool QueryPaymentMaxMinAvgs(const wchar_t *filter, DMaxMinAvg mma, DCanceled canceled = nullptr);
-    bool GetMasterSlaveConnectedSessions(DConnectedSessions cs, DCanceled canceled = nullptr);
-    bool UploadEmployees(const SPA::UDB::CDBVariantArray &vData, DUploadEmployees res, DCanceled canceled = nullptr);
+    SPA::UINT64 QueryPaymentMaxMinAvgs(const wchar_t *filter, DMaxMinAvg mma, DCanceled canceled = nullptr);
+	SPA::UINT64 GetMasterSlaveConnectedSessions(DConnectedSessions cs, DCanceled canceled = nullptr);
+	SPA::UINT64 UploadEmployees(const SPA::UDB::CDBVariantArray &vData, DUploadEmployees res, DCanceled canceled = nullptr);
+
+private:
+	CWebAsyncHandler(const CWebAsyncHandler &wah);
+	CWebAsyncHandler& operator=(const CWebAsyncHandler &wah);
+
+private:
+	SPA::CUCriticalSection m_csSS;
+	SPA::UINT64 m_ssIndex;
+	std::unordered_map<UINT64, std::pair<DMaxMinAvg, DCanceled> > m_mapMMA;
+	std::unordered_map<UINT64, std::pair<DConnectedSessions, DCanceled> > m_mapSession;
+	std::unordered_map<UINT64, std::pair<DUploadEmployees, DCanceled> > m_mapUpload;
 };

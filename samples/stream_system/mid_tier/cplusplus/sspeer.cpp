@@ -11,6 +11,10 @@ CYourPeerOne::CYourPeerOne() {
 
 }
 
+void CYourPeerOne::OnSwitchFrom(unsigned int nOldServiceId) {
+	
+}
+
 void CYourPeerOne::OnFastRequestArrive(unsigned short reqId, unsigned int len) {
 	BEGIN_SWITCH(reqId)
 		M_I0_R2(idGetMasterSlaveConnectedSessions, GetMasterSlaveConnectedSessions, unsigned int, unsigned int)

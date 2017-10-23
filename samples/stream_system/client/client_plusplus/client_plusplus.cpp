@@ -37,7 +37,7 @@ int main(int argc, char* argv[]) {
 #endif
 	CClientSocket::QueueConfigure::SetWorkDirectory(working_directory.c_str());
 
-	bool ok = master.StartSocketPool(cc, 2, 1);
+	bool ok = master.StartSocketPool(cc, 6, 1);
 	if (!ok) {
 		std::cout << "Failed in connecting to remote middle tier server, and press any key to close the application ......" << std::endl;
 		::getchar();

@@ -17,6 +17,7 @@ public:
 protected:
     virtual void OnFastRequestArrive(unsigned short reqId, unsigned int len);
     virtual int OnSlowRequestArrive(unsigned short reqId, unsigned int len);
+	virtual void OnSwitchFrom(unsigned int nOldServiceId);
 
 private:
     void GetCachedTables(const std::wstring &defaultDb, int flags, bool rowset, SPA::UINT64 index, int &res, std::wstring &errMsg);
