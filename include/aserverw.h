@@ -607,7 +607,7 @@ namespace SPA {
             virtual void OnPublishEx(const unsigned int *pGroup, unsigned int count, const unsigned char *pMessage, unsigned int size);
             virtual void OnSendUserMessageEx(const wchar_t* receiver, const unsigned char *pMessage, unsigned int size);
 
-        protected:
+        public:
             unsigned int SendResult(unsigned short reqId, const unsigned char* pResult, unsigned int size) const;
             unsigned int SendResult(unsigned short reqId, const CUQueue &mc) const;
             unsigned int SendResult(unsigned short reqId, const CScopeUQueue &sb) const;

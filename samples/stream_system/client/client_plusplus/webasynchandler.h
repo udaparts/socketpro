@@ -11,14 +11,15 @@ public:
     CWebAsyncHandler(CClientSocket *pClientSocket = nullptr);
 
 public:
-    typedef std::function<void(const CMaxMinAvg &mma, int res, const std::wstring &errMsg) > DMaxMinAvg;
-    typedef std::function<void(unsigned int, unsigned int) > DConnectedSessions;
-    typedef std::function<void(int res, const std::wstring &errMsg, CInt64Array &vId) > DUploadEmployees;
+	typedef std::function<void(SPA::UINT64 index)> DMyCanceled;
+    typedef std::function<void(SPA::UINT64 index, const CMaxMinAvg &mma, int res, const std::wstring &errMsg) > DMaxMinAvg;
+	typedef std::function<void(SPA::UINT64 index, unsigned int, unsigned int) > DConnectedSessions;
+	typedef std::function<void(SPA::UINT64 index, int res, const std::wstring &errMsg, CInt64Array &vId) > DUploadEmployees;
 
 public:
-    SPA::UINT64 QueryPaymentMaxMinAvgs(const wchar_t *filter, DMaxMinAvg mma, DCanceled canceled = nullptr);
-	SPA::UINT64 GetMasterSlaveConnectedSessions(DConnectedSessions cs, DCanceled canceled = nullptr);
-	SPA::UINT64 UploadEmployees(const SPA::UDB::CDBVariantArray &vData, DUploadEmployees res, DCanceled canceled = nullptr);
+	SPA::UINT64 QueryPaymentMaxMinAvgs(const wchar_t *filter, DMaxMinAvg mma, DMyCanceled canceled = nullptr);
+	SPA::UINT64 GetMasterSlaveConnectedSessions(DConnectedSessions cs, DMyCanceled canceled = nullptr);
+	SPA::UINT64 UploadEmployees(const SPA::UDB::CDBVariantArray &vData, DUploadEmployees res, DMyCanceled canceled = nullptr);
 
 private:
 	CWebAsyncHandler(const CWebAsyncHandler &wah);
@@ -27,7 +28,7 @@ private:
 private:
 	SPA::CUCriticalSection m_csSS;
 	SPA::UINT64 m_ssIndex;
-	std::unordered_map<UINT64, std::pair<DMaxMinAvg, DCanceled> > m_mapMMA;
-	std::unordered_map<UINT64, std::pair<DConnectedSessions, DCanceled> > m_mapSession;
-	std::unordered_map<UINT64, std::pair<DUploadEmployees, DCanceled> > m_mapUpload;
+	std::unordered_map<SPA::UINT64, std::pair<DMaxMinAvg, DMyCanceled> > m_mapMMA;
+	std::unordered_map<SPA::UINT64, std::pair<DConnectedSessions, DMyCanceled> > m_mapSession;
+	std::unordered_map<SPA::UINT64, std::pair<DUploadEmployees, DMyCanceled> > m_mapUpload;
 };

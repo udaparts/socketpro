@@ -1,7 +1,5 @@
 #pragma once
 
-#include <condition_variable>
-#include <chrono>
 #include "../../shared/ss_defines.h"
 
 using namespace SPA::ServerSide;
@@ -21,18 +19,15 @@ protected:
 
 private:
     void GetCachedTables(const std::wstring &defaultDb, int flags, bool rowset, SPA::UINT64 index, int &res, std::wstring &errMsg);
-    void QueryPaymentMaxMinAvgs(const std::wstring &filter, int &res, std::wstring &errMsg, CMaxMinAvg &mma);
-    void GetMasterSlaveConnectedSessions(unsigned int &m_connections, unsigned int &s_connections);
-    void UploadEmployees(const SPA::UDB::CDBVariantArray &vData, int &res, std::wstring &errMsg, CInt64Array &vId);
+	void GetMasterSlaveConnectedSessions(SPA::UINT64 index, SPA::UINT64 &retIndex, unsigned int &m_connections, unsigned int &s_connections);
+	void QueryPaymentMaxMinAvgs(SPA::CUQueue &q);
+	void UploadEmployees(SPA::CUQueue &q);
 
 private:
     CYourPeerOne(const CYourPeerOne &p);
     CYourPeerOne& operator=(const CYourPeerOne &p);
 
-public:
-    std::mutex m_mutex;
-    typedef std::unique_lock<std::mutex> CAutoLock;
-    std::condition_variable m_cv;
-    static std::chrono::seconds m_timeout;
+#ifndef NDEBUG
+	static SPA::CUCriticalSection m_csConsole;
+#endif
 };
-

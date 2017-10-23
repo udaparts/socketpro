@@ -37,7 +37,7 @@ int main(int argc, char* argv[]) {
 #endif
 	CClientSocket::QueueConfigure::SetWorkDirectory(working_directory.c_str());
 
-	bool ok = master.StartSocketPool(cc, 6, 1);
+	SPA::UINT64 ok = master.StartSocketPool(cc, 6, 1);
 	if (!ok) {
 		std::cout << "Failed in connecting to remote middle tier server, and press any key to close the application ......" << std::endl;
 		::getchar();
@@ -48,11 +48,11 @@ int main(int argc, char* argv[]) {
 	auto handler = master.Seek();
 	SPA::CDataSet &cache = CWebMasterPool::Cache; //accessing real-time update cache
 	do {
-		ok = handler->GetMasterSlaveConnectedSessions([](unsigned int master_connection, unsigned int slave_connection) {
+		ok = handler->GetMasterSlaveConnectedSessions([](SPA::UINT64 index, unsigned int master_connection, unsigned int slave_connection) {
 			std::cout << "master connection: " << master_connection << ", slave connection: " << slave_connection << std::endl;
 		});
 		if (!ok) break;
-		ok = handler->QueryPaymentMaxMinAvgs(L"", [](const CMaxMinAvg &mma, int res, const std::wstring & errMsg) {
+		ok = handler->QueryPaymentMaxMinAvgs(L"", [](SPA::UINT64 index, const CMaxMinAvg &mma, int res, const std::wstring & errMsg) {
 			if (res) {
 				std::cout << "QueryPaymentMaxMinAvgs error code: " << res << ", error message: ";
 				std::wcout << errMsg.c_str() << std::endl;
@@ -94,12 +94,12 @@ int main(int argc, char* argv[]) {
 		std::shared_ptr<std::promise<void> > prom(new std::promise<void>, [](std::promise<void> *p) {
 			delete p;
 		});
-		ok = handler->UploadEmployees(vData, [prom](int res, const std::wstring &errMsg, CInt64Array & vId) {
+		ok = handler->UploadEmployees(vData, [prom](SPA::UINT64 index, int res, const std::wstring &errMsg, CInt64Array & vId) {
 			for (auto it = vId.cbegin(), end = vId.cend(); it != end; ++it) {
 				std::cout << "Last id: " << *it << std::endl;
 			}
 			prom->set_value();
-		}, [prom]() {
+		}, [prom](SPA::UINT64 index) {
 			std::cout << "Socket closed or request canceled" << std::endl;
 			prom->set_value();
 		});
@@ -113,7 +113,7 @@ int main(int argc, char* argv[]) {
 		::memset(&sum_mma, 0, sizeof(sum_mma));
 		for (unsigned int n = 0; n < 10000; ++n) {
 			handler = master.Seek();
-			if (!handler->QueryPaymentMaxMinAvgs(L"", [&sum_mma](const CMaxMinAvg & mma, int res, const std::wstring & errMsg) {
+			if (!handler->QueryPaymentMaxMinAvgs(L"", [&sum_mma](SPA::UINT64 index, const CMaxMinAvg & mma, int res, const std::wstring & errMsg) {
 				if (res) {
 					std::cout << "QueryPaymentMaxMinAvgs error code: " << res << ", error message: ";
 					std::wcout << errMsg.c_str() << std::endl;

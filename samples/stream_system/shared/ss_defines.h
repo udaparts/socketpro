@@ -14,6 +14,9 @@ static const unsigned short idGetMasterSlaveConnectedSessions = SPA::idReservedT
 static const unsigned short idUploadEmployees = SPA::idReservedTwo + 3;
 
 struct CMaxMinAvg {
+	CMaxMinAvg() {
+		::memset(this, 0, sizeof(CMaxMinAvg));
+	}
 	double Max;
 	double Min;
 	double Avg;

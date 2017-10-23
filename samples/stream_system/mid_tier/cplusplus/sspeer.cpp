@@ -4,43 +4,60 @@
 #include "ssserver.h"
 #include "config.h"
 
-
-std::chrono::seconds CYourPeerOne::m_timeout(10); //10 seconds
+#ifndef NDEBUG
+SPA::CUCriticalSection CYourPeerOne::m_csConsole;
+#endif
 
 CYourPeerOne::CYourPeerOne() {
 
 }
 
 void CYourPeerOne::OnSwitchFrom(unsigned int nOldServiceId) {
-	
+
 }
 
 void CYourPeerOne::OnFastRequestArrive(unsigned short reqId, unsigned int len) {
+	if (reqId == idQueryMaxMinAvgs) {
+		QueryPaymentMaxMinAvgs(m_UQueue);
+		return;
+	}
+	else if (reqId == idUploadEmployees) {
+		UploadEmployees(m_UQueue);
+		return;
+	}
 	BEGIN_SWITCH(reqId)
-		M_I0_R2(idGetMasterSlaveConnectedSessions, GetMasterSlaveConnectedSessions, unsigned int, unsigned int)
+		M_I1_R3(idGetMasterSlaveConnectedSessions, GetMasterSlaveConnectedSessions, SPA::UINT64, SPA::UINT64, unsigned int, unsigned int)
 		END_SWITCH
 }
 
 int CYourPeerOne::OnSlowRequestArrive(unsigned short reqId, unsigned int len) {
 	BEGIN_SWITCH(reqId)
-		M_I1_R3(idQueryMaxMinAvgs, QueryPaymentMaxMinAvgs, std::wstring, int, std::wstring, CMaxMinAvg)
 		M_I4_R2(SPA::UDB::idGetCachedTables, GetCachedTables, std::wstring, unsigned int, bool, SPA::UINT64, int, std::wstring)
-		M_I1_R3(idUploadEmployees, UploadEmployees, SPA::UDB::CDBVariantArray, int, std::wstring, CInt64Array)
 		END_SWITCH
 		return 0;
 }
 
-void CYourPeerOne::GetMasterSlaveConnectedSessions(unsigned int &m_connections, unsigned int &s_connections) {
+void CYourPeerOne::GetMasterSlaveConnectedSessions(SPA::UINT64 index, SPA::UINT64 &retIndex, unsigned int &m_connections, unsigned int &s_connections) {
+	retIndex = index;
 	m_connections = CYourServer::Master->GetConnectedSockets();
 	s_connections = CYourServer::Slave->GetConnectedSockets();
 }
 
-void CYourPeerOne::UploadEmployees(const SPA::UDB::CDBVariantArray &vData, int &res, std::wstring &errMsg, CInt64Array &vId) {
-	res = 0;
-	if (!vData.size()) return;
-	if ((vData.size() % 3)) {
-		res = -1;
-		errMsg = L"Data array size wrong";
+void CYourPeerOne::UploadEmployees(SPA::CUQueue &q) {
+	unsigned int ret;
+	SPA::UINT64 index;
+	std::shared_ptr<SPA::UDB::CDBVariantArray> pData(new SPA::UDB::CDBVariantArray);
+	q >> index >> *pData;
+	std::shared_ptr<std::pair<int, std::wstring> > pError(new std::pair<int, std::wstring>(0, L""));
+	std::shared_ptr<CInt64Array> pId(new CInt64Array);
+	if (!pData->size()) {
+		ret = SendResult(idUploadEmployees, index, pError->first, pError->second, *pId);
+		return;
+	}
+	else if ((pData->size() % 3)) {
+		pError->first = -1;
+		pError->second = L"Data array size is wrong";
+		ret = SendResult(idUploadEmployees, index, pError->first, pError->second, *pId);
 		return;
 	}
 	int redo = 0;
@@ -48,8 +65,9 @@ void CYourPeerOne::UploadEmployees(const SPA::UDB::CDBVariantArray &vData, int &
 		//use master for insert, update and delete
 		auto handler = CYourServer::Master->Lock(); //use Lock and Unlock to avoid SQL stream overlap on a session within a multi-thread environment
 		if (!handler) {
-			res = -2;
-			errMsg = L"No connection to a master database";
+			pError->first = -2;
+			pError->second = L"No connection to a master database";
+			ret = SendResult(idUploadEmployees, index, pError->first, pError->second, *pId);
 			return;
 		}
 		++redo;
@@ -58,23 +76,31 @@ void CYourPeerOne::UploadEmployees(const SPA::UDB::CDBVariantArray &vData, int &
 			if (!handler->Prepare(L"INSERT INTO mysample.EMPLOYEE(CompanyId,Name,JoinDate)VALUES(?,?,?)")) break;
 			if (!handler->BeginTrans()) break;
 			SPA::UDB::CDBVariantArray v;
-			for (auto it = vData.cbegin(), end = vData.cend(); it != end;) {
+			for (auto it = pData->cbegin(), end = pData->cend(); it != end;) {
 				v.push_back(*it);
 				v.push_back(*(it + 1));
 				v.push_back(*(it + 2));
-				ok = handler->Execute(v, [&redo, &res, &errMsg, &vId](CSQLHandler &h, int r, const std::wstring &err, SPA::INT64 affected, SPA::UINT64 fail_ok, SPA::UDB::CDBVariant & vtId) {
-					if (r && !res) {
-						res = r;
-						errMsg = err;
-						vId.push_back(-1);
+				ok = handler->Execute(v, [pError, pId](CSQLHandler &h, int r, const std::wstring &err, SPA::INT64 affected, SPA::UINT64 fail_ok, SPA::UDB::CDBVariant & vtId) {
+					if (r) {
+						if (!pError->first) {
+							//we only report the first error back to front caller
+							pError->first = r;
+							pError->second = err;
+						}
+#ifndef NDEBUG
+						{
+							SPA::CAutoLock al(m_csConsole);
+							std::cout << __FUNCTION__ << "@LINE@" << __LINE__ << ": error code = " << r << ", error message = ";
+							std::wcout << err.c_str() << std::endl;
+						}
+#endif
+						pId->push_back(-1);
 					}
-					else if (r)
-						vId.push_back(-1);
 					else {
 						assert(affected == 1);
 						assert(!err.size());
 						assert(fail_ok == 1);
-						vId.push_back(vtId.llVal);
+						pId->push_back(vtId.llVal);
 					}
 				});
 				if (!ok) break;
@@ -82,32 +108,53 @@ void CYourPeerOne::UploadEmployees(const SPA::UDB::CDBVariantArray &vData, int &
 				it += 3;
 			}
 			if (!ok) break;
-			std::shared_ptr<std::promise<void> > prom(new std::promise<void>, [](std::promise<void> *p) {
-				delete p;
-			});
-			if (handler->EndTrans(SPA::UDB::rpRollbackErrorAll, [&redo, prom](CSQLHandler & h, int r, const std::wstring & err) {
-				redo = 0; //we will not redo only if the final callback is called
-				prom->set_value();
-			}, [prom, &res, &errMsg]() {
-				//socket closed after sending
-				prom->set_value();
+			auto peer_handle = GetSocketHandle();
+			if (handler->EndTrans(SPA::UDB::rpRollbackErrorAll, [index, pError, pId, this](CSQLHandler & h, int r, const std::wstring & err) {
+				if (r) {
+#ifndef NDEBUG
+						{
+							SPA::CAutoLock al(m_csConsole);
+							std::cout << __FUNCTION__ << "@LINE@" << __LINE__ << ": error code = " << r << ", error message = ";
+							std::wcout << err.c_str() << std::endl;
+						}
+#endif
+				}
+				unsigned int ret = this->SendResult(idUploadEmployees, index, pError->first, pError->second, *pId);
+			}, [index, pData, this, peer_handle]() {
+#ifndef NDEBUG
+				{
+					SPA::CAutoLock al(m_csConsole);
+					//socket closed after sending
+					std::cout << "Retrying UploadEmployees ......" << std::endl;
+				}
+#endif
+				//we need to retry as long as front socket is not closed yet
+				if (peer_handle == this->GetSocketHandle()) {
+					SPA::CScopeUQueue sq;
+					//repack original request data and retry if socket is closed after sending
+					sq << index << *pData;
+					this->UploadEmployees(*sq); //this will not cause recursive stack-overflow exeption
+				}
 			})) {
 				CYourServer::Master->Unlock(handler); //put back locked handler and its socket back into pool for reuse as soon as possible
-				auto status = prom->get_future().wait_for(m_timeout); //don't use handle->WaitAll() for better completion event as a session may be shared by multiple threads
+				redo = 0; //disable redo only if all requests are successfully put onto wire
 			}
 			else {
 				//socket closed when sending
 			}
 		} while (false);
-		if (redo) {
-			std::cout << "Going to retry ......" << std::endl;
-		}
 	} while (redo);
 }
 
-void CYourPeerOne::QueryPaymentMaxMinAvgs(const std::wstring &filter, int &res, std::wstring &errMsg, CMaxMinAvg &mma) {
-	res = 0;
-	::memset(&mma, 0, sizeof(mma));
+void CYourPeerOne::QueryPaymentMaxMinAvgs(SPA::CUQueue &q) {
+	unsigned int ret;
+	SPA::UINT64 index;
+	std::shared_ptr<CMaxMinAvg> pmma(new CMaxMinAvg);
+	std::wstring filter;
+	q >> index >> filter;
+
+	//we only report the first error back to front caller 
+	std::shared_ptr<std::pair<int, std::wstring> > pError(new std::pair<int, std::wstring>(0, L""));
 	std::wstring sql = L"SELECT MAX(amount),MIN(amount),AVG(amount) FROM sakila.payment";
 	if (filter.size())
 		sql += (L" WHERE " + filter);
@@ -116,61 +163,96 @@ void CYourPeerOne::QueryPaymentMaxMinAvgs(const std::wstring &filter, int &res, 
 		//we are going to use slave for the query
 		auto handler = CYourServer::Slave->Seek();
 		if (!handler) {
-			res = -1;
-			errMsg = L"No connection to a slave database";
+			pError->first = -1;
+			pError->second = L"No connection to a slave database";
+			ret = SendResult(idQueryMaxMinAvgs, index, pError->first, pError->second, *pmma);
 			return;
 		}
 		++redo;
-		std::shared_ptr<std::promise<void> > prom(new std::promise<void>, [](std::promise<void> *p) {
-			delete p;
-		});
-		if (handler->Execute(sql.c_str(), [&redo, prom, &res, &errMsg](CSQLHandler & h, int r, const std::wstring & err, SPA::INT64 affected, SPA::UINT64 fail_ok, SPA::UDB::CDBVariant & vtId) {
-			res = r;
-			errMsg = err;
-			redo = 0; //we will not redo only if the final callback is called
-			prom->set_value();
-		}, [&mma, &res, &errMsg](CSQLHandler &h, SPA::UDB::CDBVariantArray & vData) {
+		auto peer_handle = GetSocketHandle();
+		if (handler->Execute(sql.c_str(), [index, pError, pmma, this](CSQLHandler & h, int r, const std::wstring & err, SPA::INT64 affected, SPA::UINT64 fail_ok, SPA::UDB::CDBVariant & vtId) {
+			if (r) {
+#ifndef NDEBUG
+				SPA::CAutoLock al(m_csConsole);
+				std::cout << __FUNCTION__ << "@LINE@" << __LINE__ << ": error code = " << r << ", error message = ";
+				std::wcout << err.c_str() << std::endl;
+#endif
+				if (pError->first) {
+					pError->first = r;
+					pError->second = err;
+				}
+			}
+			unsigned int ret = this->SendResult(idQueryMaxMinAvgs, index, pError->first, pError->second, *pmma);
+		}, [pError, pmma](CSQLHandler &h, SPA::UDB::CDBVariantArray & vData) {
+			HRESULT hr = -1;
 			do {
 				if (vData.size() != 3) {
-					res = -2;
-					errMsg = L"Sql statement doesn't generate max, min and average values as expected";
+					if (!pError->first) {
+						pError->first = -2;
+						pError->second = L"Sql statement doesn't generate max, min and average values as expected";
+					}
+					hr = -2;
 					break;
 				}
 				CComVariant vt;
-				HRESULT hr = ::VariantChangeType(&vt, &vData[0], 0, VT_R8);
+				hr = ::VariantChangeType(&vt, &vData[0], 0, VT_R8);
 				if (hr != S_OK) {
-					res = hr;
-					errMsg = L"Data type mismatch";
+					if (!pError->first) {
+						pError->first = hr;
+						pError->second = L"Data type mismatch";
+					}
 					break;
 				}
-				mma.Max = vt.dblVal;
+				pmma->Max = vt.dblVal;
 				hr = ::VariantChangeType(&vt, &vData[1], 0, VT_R8);
 				if (hr != S_OK) {
-					res = hr;
-					errMsg = L"Data type mismatch";
+					if (!pError->first) {
+						pError->first = hr;
+						pError->second = L"Data type mismatch";
+					}
 					break;
 				}
-				mma.Min = vt.dblVal;
+				pmma->Min = vt.dblVal;
 				hr = ::VariantChangeType(&vt, &vData[2], 0, VT_R8);
 				if (hr != S_OK) {
-					res = hr;
-					errMsg = L"Data type mismatch";
+					if (!pError->first) {
+						pError->first = hr;
+						pError->second = L"Data type mismatch";
+					}
 					break;
 				}
-				mma.Avg = vt.dblVal;
+				pmma->Avg = vt.dblVal;
 			} while (false);
+#ifndef NDEBUG
+			if (hr) {
+				SPA::CAutoLock al(m_csConsole);
+				std::cout << __FUNCTION__ << "@LINE@" << __LINE__ << ": error code = " << hr << ", error message = ";
+				std::wcout << pError->second.c_str() << std::endl;
+			}
+#endif
 		}, [](CSQLHandler & h) {
 			assert(h.GetColumnInfo().size() == 3);
-		}, true, true, [prom]() {
-			prom->set_value(); //socket closed after sending
+		}, true, true, [peer_handle, index, filter, this]() {
+#ifndef NDEBUG
+				{
+					SPA::CAutoLock al(m_csConsole);
+					//socket closed after sending
+					std::cout << "Retrying QueryPaymentMaxMinAvgs ......" << std::endl;
+				}
+#endif
+				//we need to retry as long as front socket is not closed yet
+				if (peer_handle == this->GetSocketHandle()) {
+					SPA::CScopeUQueue sq;
+					//repack original request data and retry if socket is closed after sending
+					sq << index << filter;
+					this->QueryPaymentMaxMinAvgs(*sq); //this will not cause recursive stack-overflow exeption
+				}
+				//socket closed after sending
 		})) {
-			auto status = prom->get_future().wait_for(m_timeout); //don't use handle->WaitAll() for better completion event as a session may be shared by multiple threads
+			redo = 0;
 		}
 		else {
 			//socket closed when sending
-		}
-		if (redo) {
-			std::cout << "Going to retry ......" << std::endl;
 		}
 	} while (redo);
 }
@@ -239,7 +321,7 @@ void CYourPeerOne::GetCachedTables(const std::wstring &defaultDb, int flags, boo
 			break;
 		}
 		CYourServer::Master->Unlock(handler); //put back locked handler and its socket back into pool for reuse as soon as possible
-		auto status = prom->get_future().wait_for(m_timeout); //don't use handle->WaitAll() for better completion event as a session may be shared by multiple threads
+		auto status = prom->get_future().wait_for(std::chrono::seconds(5)); //don't use handle->WaitAll() for better completion event as a session may be shared by multiple threads
 		if (status == std::future_status::timeout) {
 			res = -3;
 			errMsg = L"Querying cached table data timeout";

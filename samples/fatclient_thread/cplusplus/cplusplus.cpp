@@ -57,7 +57,7 @@ return false;
 #define sample_database L"mysample.db"
 
 void Demo_Cross_Request_Dead_Lock(CMyPool::PHandler sqlite) {
-	unsigned int count = 1000000;
+	unsigned int count = 10000;
 	//uncomment the following call to remove potential cross SendRequest dead lock
 	//sqlite->GetAttachedClientSocket()->GetClientQueue().StartQueue("cross_locking_0", 3600);
 	do {
