@@ -10,6 +10,8 @@ class CSqliteHandler : public SPA::ClientSide::CSqlite {
 public:
     CSqliteHandler(SPA::ClientSide::CClientSocket *cs = nullptr);
 
+	typedef SPA::ClientSide::CSqliteBase CSQLHandler;
+
 public:
     virtual bool Open(const wchar_t* strConnection, DResult handler, unsigned int flags = 0, DCanceled canceled = nullptr);
     virtual bool Execute(const wchar_t* sql, DExecuteResult handler = DExecuteResult(), DRows row = DRows(), DRowsetHeader rh = DRowsetHeader(), bool meta = true, bool lastInsertId = true, DCanceled canceled = nullptr);

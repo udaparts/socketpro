@@ -6,8 +6,6 @@
 #include <iostream>
 #endif
 
-#ifndef _UMYSQL_SOCKETPRO_H_
-
 CSqliteHandler::CSqliteHandler(SPA::ClientSide::CClientSocket *cs)
 	: SPA::ClientSide::CSqlite(cs) {
 }
@@ -67,4 +65,3 @@ void CSqliteHandler::OnExceptionFromServer(unsigned short requestId, const wchar
 #endif
 	SPA::ClientSide::CSqlite::OnExceptionFromServer(requestId, errMessage, errWhere, errCode);
 }
-#endif

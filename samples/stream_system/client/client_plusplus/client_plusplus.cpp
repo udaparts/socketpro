@@ -118,10 +118,9 @@ int main(int argc, char* argv[]) {
 		if (status == std::future_status::timeout) {
 			std::cout << "The above requests are not completed in 5 seconds" << std::endl;
 		}
+
 		CMaxMinAvg sum_mma;
 		::memset(&sum_mma, 0, sizeof(sum_mma));
-
-
 		auto start = std::chrono::system_clock::now();
 		for (unsigned int n = 0; n < 10000; ++n) {
 			handler = master.Seek();
