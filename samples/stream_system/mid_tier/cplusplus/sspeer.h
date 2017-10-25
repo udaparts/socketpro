@@ -22,10 +22,15 @@ private:
     void GetMasterSlaveConnectedSessions(SPA::UINT64 index, SPA::UINT64 &retIndex, unsigned int &m_connections, unsigned int &s_connections);
     void QueryPaymentMaxMinAvgs(SPA::CUQueue &q);
     void UploadEmployees(SPA::CUQueue &q);
+    void StartSequence(SPA::UINT64 index, SPA::UINT64 &retIndex, int &res, std::wstring &errMsg);
+    void EndSequence(SPA::UINT64 index, SPA::UINT64 &retIndex, int &res, std::wstring &errMsg);
+    void GetRentalDateTimes(SPA::CUQueue &q);
 
 private:
     CYourPeerOne(const CYourPeerOne &p);
     CYourPeerOne& operator=(const CYourPeerOne &p);
+
+    std::shared_ptr<CSQLHandler> m_seqHandler;
 
 #ifndef NDEBUG
     static SPA::CUCriticalSection m_csConsole;

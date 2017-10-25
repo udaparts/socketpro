@@ -13,7 +13,10 @@ CYourPeerOne::CYourPeerOne() {
 }
 
 void CYourPeerOne::OnSwitchFrom(unsigned int nOldServiceId) {
-
+	if (m_seqHandler) {
+		CYourServer::Slave->Unlock(m_seqHandler);
+		m_seqHandler = nullptr;
+	}
 }
 
 void CYourPeerOne::OnFastRequestArrive(unsigned short reqId, unsigned int len) {
@@ -25,8 +28,14 @@ void CYourPeerOne::OnFastRequestArrive(unsigned short reqId, unsigned int len) {
 		UploadEmployees(m_UQueue);
 		return;
 	}
+	else if (reqId == idGetRentalDateTimes) {
+		GetRentalDateTimes(m_UQueue);
+		return;
+	}
 	BEGIN_SWITCH(reqId)
 		M_I1_R3(idGetMasterSlaveConnectedSessions, GetMasterSlaveConnectedSessions, SPA::UINT64, SPA::UINT64, unsigned int, unsigned int)
+		M_I1_R3(idStartSequence, StartSequence, SPA::UINT64, SPA::UINT64, int, std::wstring)
+		M_I1_R3(idEndSequence, EndSequence, SPA::UINT64, SPA::UINT64, int, std::wstring)
 		END_SWITCH
 }
 
@@ -35,6 +44,38 @@ int CYourPeerOne::OnSlowRequestArrive(unsigned short reqId, unsigned int len) {
 		M_I4_R2(SPA::UDB::idGetCachedTables, GetCachedTables, std::wstring, unsigned int, bool, SPA::UINT64, int, std::wstring)
 		END_SWITCH
 		return 0;
+}
+
+void CYourPeerOne::StartSequence(SPA::UINT64 index, SPA::UINT64 &retIndex, int &res, std::wstring &errMsg) {
+	retIndex = index;
+	do {
+		if (m_seqHandler) {
+			res = -1;
+			errMsg = L"Wrong call sequence";
+			break;
+		}
+		m_seqHandler = CYourServer::Slave->Lock();
+		if (!m_seqHandler) {
+			res = -2;
+			errMsg = L"No connection to slave servers";
+			break;
+		}
+		res = 0;
+	} while (false);
+}
+
+void CYourPeerOne::EndSequence(SPA::UINT64 index, SPA::UINT64 &retIndex, int &res, std::wstring &errMsg) {
+	retIndex = index;
+	do {
+		if (!m_seqHandler) {
+			res = -1;
+			errMsg = L"Wrong call sequence";
+			break;
+		}
+		CYourServer::Slave->Unlock(m_seqHandler);
+		m_seqHandler = nullptr;
+		res = 0;
+	} while (false);
 }
 
 void CYourPeerOne::GetMasterSlaveConnectedSessions(SPA::UINT64 index, SPA::UINT64 &retIndex, unsigned int &m_connections, unsigned int &s_connections) {
@@ -118,6 +159,11 @@ void CYourPeerOne::UploadEmployees(SPA::CUQueue &q) {
 							std::wcout << err.c_str() << std::endl;
 						}
 #endif
+						if (!pError->first) {
+							//we only report the first error back to front caller
+							pError->first = r;
+							pError->second = err;
+						}
 				}
 				unsigned int ret = this->SendResult(idUploadEmployees, index, pError->first, pError->second, *pId);
 			}, [index, pData, this, peer_handle]() {
@@ -146,30 +192,123 @@ void CYourPeerOne::UploadEmployees(SPA::CUQueue &q) {
 	} while (redo);
 }
 
+void CYourPeerOne::GetRentalDateTimes(SPA::CUQueue &q) {
+	unsigned int ret;
+	SPA::UINT64 index;
+	SPA::INT64 rental_id;
+	q >> index >> rental_id;
+	std::shared_ptr<CRentalDateTimes> prdt(new CRentalDateTimes);
+	std::shared_ptr<std::pair<int, std::wstring> > pError(new std::pair<int, std::wstring>(0, L""));
+	std::wstring sql = L"SELECT rental_date,return_date,last_update FROM sakila.rental where rental_id=" + std::to_wstring(rental_id);
+	int redo = 0;
+	do {
+		bool seq;
+		std::shared_ptr<CSQLHandler> handler;
+		if (m_seqHandler) {
+			handler = m_seqHandler;
+			seq = true;
+		}
+		else {
+			seq = false;
+			handler = CYourServer::Slave->Lock();
+			if (!handler) {
+				pError->first = -1;
+				pError->second = L"No connection to a slave database";
+				ret = SendResult(idGetRentalDateTimes, index, pError->first, pError->second, *prdt);
+				return;
+			}
+		}
+		++redo;
+		auto peer_handle = seq ? 0 : GetSocketHandle();
+		if (handler->Execute(sql.c_str(), [index, pError, prdt, this](CSQLHandler & h, int r, const std::wstring & err, SPA::INT64 affected, SPA::UINT64 fail_ok, SPA::UDB::CDBVariant & vtId) {
+			if (r) {
+#ifndef NDEBUG
+				SPA::CAutoLock al(m_csConsole);
+				std::cout << __FUNCTION__ << "@LINE@" << __LINE__ << ": error code = " << r << ", error message = ";
+				std::wcout << err.c_str() << std::endl;
+#endif
+				pError->first = r;
+				pError->second = err;
+			}
+			unsigned int ret = this->SendResult(idGetRentalDateTimes, index, pError->first, pError->second, *prdt);
+		}, [prdt](CSQLHandler &h, SPA::UDB::CDBVariantArray & vData) {
+			prdt->Rental = vData[0].ullVal; //date time in high precision format
+			prdt->Return = vData[1].ullVal; //date time in high precision format
+			prdt->LastUpdate = vData[2].ullVal; //date time in high precision format
+		}, [](CSQLHandler & h) {
+			assert(h.GetColumnInfo().size() == 3);
+		}, true, true, [index, prdt, peer_handle, rental_id, this]() {
+			//socket closed after sending
+			unsigned int ret;
+			if (!peer_handle) {
+				//sequence
+				ret = this->SendResult(idGetRentalDateTimes, index, (int)-2, L"Socket closed after sending and no sequence possible", *prdt);
+			}
+			else {
+				//no sequence
+#ifndef NDEBUG
+					{
+						SPA::CAutoLock al(m_csConsole);
+						//socket closed after sending
+						std::cout << "Retrying QueryPaymentMaxMinAvgs ......" << std::endl;
+					}
+#endif
+					//we need to retry as long as front socket is not closed yet
+					if (peer_handle == this->GetSocketHandle()) {
+						SPA::CScopeUQueue sq;
+						//repack original request data and retry if socket is closed after sending
+						sq << index << rental_id;
+						this->GetRentalDateTimes(*sq); //this will not cause recursive stack-overflow exeption
+					}
+			}
+		})) {
+			redo = 0; //disable redo
+			if (!seq) {
+				//handler is locally locked so that we need to unlock it
+				CYourServer::Slave->Unlock(handler);
+			}
+		}
+		else if (seq) {
+			//sequence and socket closed when sending
+			pError->first = handler->GetAttachedClientSocket()->GetErrorCode();
+			pError->second = SPA::Utilities::ToWide(handler->GetAttachedClientSocket()->GetErrorMsg().c_str());
+			ret = SendResult(idGetRentalDateTimes, index, pError->first, pError->second, *prdt);
+			redo = 0; //disable redo
+		}
+	} while (redo);
+}
+
 void CYourPeerOne::QueryPaymentMaxMinAvgs(SPA::CUQueue &q) {
 	unsigned int ret;
 	SPA::UINT64 index;
 	std::shared_ptr<CMaxMinAvg> pmma(new CMaxMinAvg);
 	std::wstring filter;
 	q >> index >> filter;
-
-	//we only report the first error back to front caller 
 	std::shared_ptr<std::pair<int, std::wstring> > pError(new std::pair<int, std::wstring>(0, L""));
 	std::wstring sql = L"SELECT MAX(amount),MIN(amount),AVG(amount) FROM sakila.payment";
 	if (filter.size())
 		sql += (L" WHERE " + filter);
 	int redo = 0;
 	do {
-		//we are going to use slave for the query
-		auto handler = CYourServer::Slave->Seek();
-		if (!handler) {
-			pError->first = -1;
-			pError->second = L"No connection to a slave database";
-			ret = SendResult(idQueryMaxMinAvgs, index, pError->first, pError->second, *pmma);
-			return;
+		bool seq;
+		std::shared_ptr<CSQLHandler> handler;
+		if (m_seqHandler) {
+			handler = m_seqHandler;
+			seq = true;
+		}
+		else {
+			seq = false;
+			//we are going to use slave for the query
+			handler = CYourServer::Slave->Lock();
+			if (!handler) {
+				pError->first = -1;
+				pError->second = L"No connection to a slave database";
+				ret = SendResult(idQueryMaxMinAvgs, index, pError->first, pError->second, *pmma);
+				return;
+			}
 		}
 		++redo;
-		auto peer_handle = GetSocketHandle();
+		auto peer_handle = seq ? 0 : GetSocketHandle();
 		if (handler->Execute(sql.c_str(), [index, pError, pmma, this](CSQLHandler & h, int r, const std::wstring & err, SPA::INT64 affected, SPA::UINT64 fail_ok, SPA::UDB::CDBVariant & vtId) {
 			if (r) {
 #ifndef NDEBUG
@@ -177,10 +316,8 @@ void CYourPeerOne::QueryPaymentMaxMinAvgs(SPA::CUQueue &q) {
 				std::cout << __FUNCTION__ << "@LINE@" << __LINE__ << ": error code = " << r << ", error message = ";
 				std::wcout << err.c_str() << std::endl;
 #endif
-				if (pError->first) {
-					pError->first = r;
-					pError->second = err;
-				}
+				pError->first = r;
+				pError->second = err;
 			}
 			unsigned int ret = this->SendResult(idQueryMaxMinAvgs, index, pError->first, pError->second, *pmma);
 		}, [pError, pmma](CSQLHandler &h, SPA::UDB::CDBVariantArray & vData) {
@@ -232,7 +369,7 @@ void CYourPeerOne::QueryPaymentMaxMinAvgs(SPA::CUQueue &q) {
 #endif
 		}, [](CSQLHandler & h) {
 			assert(h.GetColumnInfo().size() == 3);
-		}, true, true, [peer_handle, index, filter, this]() {
+		}, true, true, [peer_handle, index, filter, pmma, this]() {
 #ifndef NDEBUG
 			{
 				SPA::CAutoLock al(m_csConsole);
@@ -240,8 +377,11 @@ void CYourPeerOne::QueryPaymentMaxMinAvgs(SPA::CUQueue &q) {
 				std::cout << "Retrying QueryPaymentMaxMinAvgs ......" << std::endl;
 			}
 #endif
-			//we need to retry as long as front socket is not closed yet
-			if (peer_handle == this->GetSocketHandle()) {
+			if (!peer_handle) {
+				//sequence
+				unsigned int ret = this->SendResult(idQueryMaxMinAvgs, index, (int)-2, L"Socket closed after sending and no sequence possible", *pmma);
+			}                //we need to retry as long as front socket is not closed yet
+			else if (peer_handle == this->GetSocketHandle()) {
 				SPA::CScopeUQueue sq;
 				//repack original request data and retry if socket is closed after sending
 				sq << index << filter;
@@ -250,9 +390,17 @@ void CYourPeerOne::QueryPaymentMaxMinAvgs(SPA::CUQueue &q) {
 			//socket closed after sending
 		})) {
 			redo = 0;
+			if (!seq) {
+				//handler is locally locked so that we need to unlock it
+				CYourServer::Slave->Unlock(handler);
+			}
 		}
-		else {
-			//socket closed when sending
+		else if (seq) {
+			//sequence and socket closed when sending
+			pError->first = handler->GetAttachedClientSocket()->GetErrorCode();
+			pError->second = SPA::Utilities::ToWide(handler->GetAttachedClientSocket()->GetErrorMsg().c_str());
+			ret = SendResult(idGetRentalDateTimes, index, pError->first, pError->second, *pmma);
+			redo = 0; //disable redo
 		}
 	} while (redo);
 }

@@ -45,6 +45,45 @@ SPA::UINT64 CWebAsyncHandler::QueryPaymentMaxMinAvgs(const wchar_t *filter, DMax
 	return index;
 }
 
+SPA::UINT64 CWebAsyncHandler::GetRentalDateTimes(SPA::INT64 rentalId, DRentalDateTimes rdt, DMyCanceled canceled) {
+	ResultHandler arh = [this](CAsyncResult & ar) {
+		SPA::UINT64 index;
+		int res;
+		std::wstring errMsg;
+		CRentalDateTimes rdt;
+		ar >> index >> res >> errMsg >> rdt;
+		std::pair<DRentalDateTimes, DMyCanceled> p;
+		{
+			SPA::CAutoLock al(this->m_csSS);
+			p = this->m_mapRentalDateTimes[index];
+			this->m_mapRentalDateTimes.erase(index);
+		}
+		if (p.first)
+			p.first(index, rdt, res, errMsg);
+	};
+	SPA::UINT64 index;
+	{
+		SPA::CAutoLock al(m_csSS);
+		index = ++m_ssIndex;
+		m_mapRentalDateTimes[index] = std::pair<DRentalDateTimes, DMyCanceled>(rdt, canceled);
+	}
+	if (!SendRequest(idGetRentalDateTimes, index, rentalId, arh, [index, this]() {
+		std::pair<DRentalDateTimes, DMyCanceled> p;
+		{
+			SPA::CAutoLock al(this->m_csSS);
+			p = this->m_mapRentalDateTimes[index];
+			this->m_mapRentalDateTimes.erase(index);
+		}
+		if (p.second)
+			p.second(index);
+	})) {
+		SPA::CAutoLock al(m_csSS);
+		m_mapRentalDateTimes.erase(index);
+		return 0;
+	}
+	return index;
+}
+
 SPA::UINT64 CWebAsyncHandler::GetMasterSlaveConnectedSessions(DConnectedSessions cs, DMyCanceled canceled) {
 	ResultHandler arh = [this](CAsyncResult & ar) {
 		SPA::UINT64 index;
@@ -116,6 +155,82 @@ SPA::UINT64 CWebAsyncHandler::UploadEmployees(const SPA::UDB::CDBVariantArray &v
 	})) {
 		SPA::CAutoLock al(m_csSS);
 		m_mapUpload.erase(index);
+		return 0;
+	}
+	return index;
+}
+
+SPA::UINT64 CWebAsyncHandler::StartSequence(DSequeue seq, DMyCanceled canceled) {
+	ResultHandler arh = [this](CAsyncResult & ar) {
+		SPA::UINT64 index;
+		int errCode;
+		std::wstring errMsg;
+		ar >> index >> errCode >> errMsg;
+		std::pair<DSequeue, DMyCanceled> p;
+		{
+			SPA::CAutoLock al(this->m_csSS);
+			p = this->m_mapSequence[index];
+			this->m_mapSequence.erase(index);
+		}
+		if (p.first)
+			p.first(index, errCode, errMsg);
+	};
+	SPA::UINT64 index;
+	{
+		SPA::CAutoLock al(m_csSS);
+		index = ++m_ssIndex;
+		m_mapSequence[index] = std::pair<DSequeue, DMyCanceled>(seq, canceled);
+	}
+	if (!SendRequest(idStartSequence, index, arh, [index, this]() {
+		std::pair<DSequeue, DMyCanceled> p;
+		{
+			SPA::CAutoLock al(this->m_csSS);
+			p = this->m_mapSequence[index];
+			this->m_mapSequence.erase(index);
+		}
+		if (p.second)
+			p.second(index);
+	})) {
+		SPA::CAutoLock al(m_csSS);
+		m_mapSequence.erase(index);
+		return 0;
+	}
+	return index;
+}
+
+SPA::UINT64 CWebAsyncHandler::EndSequence(DSequeue seq, DMyCanceled canceled) {
+	ResultHandler arh = [this](CAsyncResult & ar) {
+		SPA::UINT64 index;
+		int errCode;
+		std::wstring errMsg;
+		ar >> index >> errCode >> errMsg;
+		std::pair<DSequeue, DMyCanceled> p;
+		{
+			SPA::CAutoLock al(this->m_csSS);
+			p = this->m_mapSequence[index];
+			this->m_mapSequence.erase(index);
+		}
+		if (p.first)
+			p.first(index, errCode, errMsg);
+	};
+	SPA::UINT64 index;
+	{
+		SPA::CAutoLock al(m_csSS);
+		index = ++m_ssIndex;
+		m_mapSequence[index] = std::pair<DSequeue, DMyCanceled>(seq, canceled);
+	}
+	if (!SendRequest(idEndSequence, index, arh, [index, this]() {
+		std::pair<DSequeue, DMyCanceled> p;
+		{
+			SPA::CAutoLock al(this->m_csSS);
+			p = this->m_mapSequence[index];
+			this->m_mapSequence.erase(index);
+		}
+		if (p.second)
+			p.second(index);
+	})) {
+		SPA::CAutoLock al(m_csSS);
+		m_mapSequence.erase(index);
 		return 0;
 	}
 	return index;
