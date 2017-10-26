@@ -78,6 +78,8 @@ bool CYourServer::AddServices() {
     if (!ok)
         return false;
     ok = m_SSPeer.AddSlowRequest(SPA::UDB::idGetCachedTables);
+	ok = m_SSPeer.AddSlowRequest(idGetRentalDateTimes);
+
     //tell caller that all results could be returned randomly (not in order)
     m_SSPeer.SetReturnRandom(true);
     return true;

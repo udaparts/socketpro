@@ -22,8 +22,6 @@ public:
     SPA::UINT64 QueryPaymentMaxMinAvgs(const wchar_t *filter, DMaxMinAvg mma, DMyCanceled canceled = nullptr);
     SPA::UINT64 GetMasterSlaveConnectedSessions(DConnectedSessions cs, DMyCanceled canceled = nullptr);
     SPA::UINT64 UploadEmployees(const SPA::UDB::CDBVariantArray &vData, DUploadEmployees res, DMyCanceled canceled = nullptr);
-    SPA::UINT64 StartSequence(DSequeue seq, DMyCanceled canceled = nullptr);
-    SPA::UINT64 EndSequence(DSequeue seq, DMyCanceled canceled = nullptr);
     SPA::UINT64 GetRentalDateTimes(SPA::INT64 rentalId, DRentalDateTimes rdt, DMyCanceled canceled = nullptr);
 
 private:
@@ -36,6 +34,5 @@ private:
     std::unordered_map<SPA::UINT64, std::pair<DMaxMinAvg, DMyCanceled> > m_mapMMA;
     std::unordered_map<SPA::UINT64, std::pair<DConnectedSessions, DMyCanceled> > m_mapSession;
     std::unordered_map<SPA::UINT64, std::pair<DUploadEmployees, DMyCanceled> > m_mapUpload;
-    std::unordered_map<SPA::UINT64, std::pair<DSequeue, DMyCanceled> > m_mapSequence;
     std::unordered_map<SPA::UINT64, std::pair<DRentalDateTimes, DMyCanceled> > m_mapRentalDateTimes;
 };

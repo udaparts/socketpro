@@ -12,9 +12,7 @@ static const unsigned int sidStreamSystem = (SPA::sidReserved + 1210);
 static const unsigned short idQueryMaxMinAvgs = SPA::idReservedTwo + 1;
 static const unsigned short idGetMasterSlaveConnectedSessions = SPA::idReservedTwo + 2;
 static const unsigned short idUploadEmployees = SPA::idReservedTwo + 3;
-static const unsigned short idStartSequence = SPA::idReservedTwo + 4;
-static const unsigned short idEndSequence = SPA::idReservedTwo + 5;
-static const unsigned short idGetRentalDateTimes = SPA::idReservedTwo + 6;
+static const unsigned short idGetRentalDateTimes = SPA::idReservedTwo + 4;
 
 
 struct CMaxMinAvg {
