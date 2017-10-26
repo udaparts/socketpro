@@ -307,10 +307,10 @@ void CYourPeerOne::GetCachedTables(const std::wstring &defaultDb, int flags, boo
 		if (!handler->Execute(sql.c_str(), [prom, &res, &errMsg](CSQLHandler & h, int r, const std::wstring & err, SPA::INT64 affected, SPA::UINT64 fail_ok, SPA::UDB::CDBVariant & vtId) {
 			res = r;
 			errMsg = err;
-			if (res) {
-				std::cout << "CYourPeerOne::GetCachedTables: error code = " << res << ", error message = ";
-				std::wcout << errMsg.c_str() << std::endl;
-			}
+#ifndef NDEBUG
+			std::cout << "CYourPeerOne::GetCachedTables: error code = " << res << ", error message = ";
+			std::wcout << errMsg.c_str() << std::endl;
+#endif
 			prom->set_value();
 		}, [this](CSQLHandler &h, SPA::UDB::CDBVariantArray & vData) {
 			this->SendRows(vData);
@@ -326,7 +326,7 @@ void CYourPeerOne::GetCachedTables(const std::wstring &defaultDb, int flags, boo
 			break;
 		}
 		CYourServer::Master->Unlock(handler); //put back locked handler and its socket back into pool for reuse as soon as possible
-		auto status = prom->get_future().wait_for(std::chrono::seconds(100)); //don't use handle->WaitAll() for better completion event as a session may be shared by multiple threads
+		auto status = prom->get_future().wait_for(std::chrono::seconds(25)); //don't use handle->WaitAll() for better completion event as a session may be shared by multiple threads
 		if (status == std::future_status::timeout) {
 			res = -3;
 			errMsg = L"Querying cached table data timeout";
