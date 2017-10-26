@@ -1,16 +1,13 @@
 #pragma once
 
 #include "../../shared/ss_defines.h"
+#include "../../../../include/gencachepeer.h"
 
 using namespace SPA::ServerSide;
 
-class CYourPeerOne : public CClientPeer {
+class CYourPeerOne : public CCacheBasePeer {
 public:
     CYourPeerOne();
-
-public:
-    unsigned int SendMeta(const SPA::UDB::CDBColumnInfoArray &meta, SPA::UINT64 index);
-    unsigned int SendRows(SPA::UDB::CDBVariantArray &vData);
 
 protected:
     virtual void OnFastRequestArrive(unsigned short reqId, unsigned int len);

@@ -51,7 +51,7 @@ SPA::UINT64 CWebAsyncHandler::GetRentalDateTimes(SPA::INT64 rentalId, DRentalDat
 		int res;
 		std::wstring errMsg;
 		CRentalDateTimes rdt;
-		ar >> index >> res >> errMsg >> rdt;
+		ar >> index >> rdt >> res >> errMsg;
 		std::pair<DRentalDateTimes, DMyCanceled> p;
 		{
 			SPA::CAutoLock al(this->m_csSS);

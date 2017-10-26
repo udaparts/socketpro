@@ -57,4 +57,5 @@ void CConfig::SetConfig() {
 	m_vFrontCachedTable.push_back(L"sakila.actor");
 	m_vFrontCachedTable.push_back(L"sakila.language");
 	m_vFrontCachedTable.push_back(L"sakila.country");
+	m_vFrontCachedTable.push_back(L"mysqldb.employee");
 }

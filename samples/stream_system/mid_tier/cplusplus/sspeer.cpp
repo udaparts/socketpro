@@ -179,13 +179,14 @@ void CYourPeerOne::GetRentalDateTimes(SPA::UINT64 index, SPA::INT64 rental_id, S
 			//socket closed after sending
 			prom->set_value(false);
 		})) {
-			auto status = prom->get_future().wait_for(std::chrono::seconds(20)); //don't use handle->WaitAll() for better completion event as a session may be shared by multiple threads
+			auto f = prom->get_future();
+			auto status = f.wait_for(std::chrono::seconds(20)); //don't use handle->WaitAll() for better completion event as a session may be shared by multiple threads
 			if (status == std::future_status::timeout) {
 				res = -2;
 				errMsg = L"Querying rental date times timed out";
 				redo = 0; //no redo because of timed-out
 			}
-			else if (prom->get_future().get()) {
+			else if (f.get()) {
 				redo = 0; //disable redo after result returned
 			}
 			else {
@@ -235,9 +236,13 @@ void CYourPeerOne::QueryPaymentMaxMinAvgs(SPA::CUQueue &q) {
 			}
 			unsigned int ret = this->SendResult(idQueryMaxMinAvgs, index, pError->first, pError->second, *pmma);
 		}, [pmma](CSQLHandler &h, SPA::UDB::CDBVariantArray & vData) {
-			pmma->Max = vData[0].dblVal;
-			pmma->Min = vData[1].dblVal;
-			pmma->Avg = vData[2].dblVal;
+			CComVariant temp;
+			::VariantChangeType(&temp, &vData[0], 0, VT_R8);
+			pmma->Max = temp.dblVal;
+			::VariantChangeType(&temp, &vData[1], 0, VT_R8);
+			pmma->Min = temp.dblVal;
+			::VariantChangeType(&temp, &vData[2], 0, VT_R8);
+			pmma->Avg = temp.dblVal;
 		}, [](CSQLHandler & h) {
 			assert(h.GetColumnInfo().size() == 3);
 		}, true, true, [peer_handle, index, filter, this]() {
@@ -260,20 +265,6 @@ void CYourPeerOne::QueryPaymentMaxMinAvgs(SPA::CUQueue &q) {
 			redo = 0; //disable redo once request is put on wire
 		}
 	} while (redo);
-}
-
-unsigned int CYourPeerOne::SendMeta(const SPA::UDB::CDBColumnInfoArray &meta, SPA::UINT64 index) {
-	//A client expects a rowset meta data and call index
-	return SendResult(SPA::UDB::idRowsetHeader, meta, index);
-}
-
-unsigned int CYourPeerOne::SendRows(SPA::UDB::CDBVariantArray &vData) {
-	SPA::CScopeUQueue sb;
-	//The serialization will be fine as long as the data array doesn't contain huge BLOB or text
-	sb << vData;
-	unsigned int count;
-	sb >> count; //remove data array size at head as a client is expecting an array of data without size ahead
-	return SendResult(SPA::UDB::idEndRows, sb);
 }
 
 void CYourPeerOne::GetCachedTables(const std::wstring &defaultDb, int flags, bool rowset, SPA::UINT64 index, int &res, std::wstring &errMsg) {
