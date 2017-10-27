@@ -3197,6 +3197,31 @@ namespace SocketProAdapter
                 }
             }
 
+            protected virtual uint SendResult(ushort reqId, byte[] data, uint len, uint offset)
+            {
+                if (data == null || len == 0 || offset >= (uint)data.LongLength)
+                {
+                    if (data == null)
+                        data = new byte[1];
+                    unsafe
+                    {
+                        fixed (byte* buffer = data)
+                        {
+                            return ServerCoreLoader.SendReturnData(Handle, reqId, 0, buffer);
+                        }
+                    }
+                }
+                unsafe
+                {
+                    if (len + offset > (uint)data.LongLength)
+                        len = (uint)data.LongLength - offset;
+                    fixed (byte* buffer = &(data[offset]))
+                    {
+                        return ServerCoreLoader.SendReturnData(Handle, reqId, len, buffer);
+                    }
+                }
+            }
+
             protected virtual uint SendResult(ushort reqId, byte[] data, uint len)
             {
                 if (data != null && len > (uint)data.Length)
@@ -3214,9 +3239,7 @@ namespace SocketProAdapter
             {
                 if (q == null)
                     return SendResult(reqId);
-                if (q.HeadPosition > 0)
-                    return SendResult(reqId, q.GetBuffer(), q.GetSize());
-                return SendResult(reqId, q.m_bytes, q.GetSize());
+                return SendResult(reqId, q.IntenalBuffer, q.GetSize(), q.HeadPosition);
             }
 
             protected uint SendResult(ushort reqId, CScopeUQueue su)
