@@ -1,6 +1,7 @@
 ﻿
 using System;
 using System.Collections.Generic;
+using System.Data;
 
 namespace SocketProAdapter
 {
@@ -18,6 +19,225 @@ namespace SocketProAdapter
         private bool m_bTableNameCaseSensitive = false;
         private bool m_bFieldNameCaseSensitive = false;
         private bool m_bDataCaseSensitive = false;
+
+        public void AddEmptyRowset(UDB.CDBColumnInfoArray meta)
+        {
+            if (meta == null || meta.Count == 0)
+                return;
+            if (meta[0].DBPath == null || meta[0].DBPath.Length == 0 || meta[0].TablePath == null || meta[0].TablePath.Length == 0)
+                throw new Exception("The first column meta must contain database name and table name");
+            System.Data.DataTable tbl = ClientSide.CAsyncDBHandler.MakeDataTable(meta, meta[0].TablePath);
+            if (tbl.PrimaryKey == null || tbl.PrimaryKey.Length == 0)
+                throw new Exception("Column meta information doesn't contain any key");
+            lock (m_cs)
+            {
+                tbl.CaseSensitive = m_bDataCaseSensitive;
+                m_ds.Add(new KeyValuePair<string, System.Data.DataTable>(meta[0].DBPath, tbl));
+            }
+        }
+
+        public DataRow[] Find(string dbName, string tblName, string filterExpression, string sort)
+        {
+            if (dbName == null || dbName.Length == 0 || tblName == null || tblName.Length == 0)
+                return null;
+            lock (m_cs)
+            {
+                foreach (KeyValuePair<string, System.Data.DataTable> p in m_ds)
+                {
+                    bool equal = (m_bDBNameCaseSensitive ? (string.Compare(dbName, p.Key) == 0) : (string.Compare(dbName, p.Key, StringComparison.OrdinalIgnoreCase) == 0));
+                    if (!equal)
+                        continue;
+                    equal = (m_bTableNameCaseSensitive ? (string.Compare(tblName, p.Value.TableName) == 0) : (string.Compare(tblName, p.Value.TableName, StringComparison.OrdinalIgnoreCase) == 0));
+                    if (!equal)
+                        continue;
+                    return p.Value.Select(filterExpression, sort);
+                }
+            }
+            return null;
+        }
+
+        public DataColumnCollection GetColumnMeta(string dbName, string tblName)
+        {
+            if (dbName == null || dbName.Length == 0 || tblName == null || tblName.Length == 0)
+                return null;
+            lock (m_cs)
+            {
+                foreach (KeyValuePair<string, System.Data.DataTable> p in m_ds)
+                {
+                    bool equal = (m_bDBNameCaseSensitive ? (string.Compare(dbName, p.Key) == 0) : (string.Compare(dbName, p.Key, StringComparison.OrdinalIgnoreCase) == 0));
+                    if (!equal)
+                        continue;
+                    equal = (m_bTableNameCaseSensitive ? (string.Compare(tblName, p.Value.TableName) == 0) : (string.Compare(tblName, p.Value.TableName, StringComparison.OrdinalIgnoreCase) == 0));
+                    if (!equal)
+                        continue;
+                    return p.Value.Columns;
+                }
+            }
+            return null;
+        }
+
+        public DataRow[] Find(string dbName, string tblName, string filterExpression)
+        {
+            return Find(dbName, tblName, filterExpression, "");
+        }
+
+        public DataRow[] Find(string dbName, string tblName)
+        {
+            return Find(dbName, tblName, "", "");
+        }
+
+        public uint AddRows(string dbName, string tblName, List<object> vData)
+        {
+            if (vData == null || vData.Count == 0)
+                return 0;
+            if (dbName == null || dbName.Length == 0 || tblName == null || tblName.Length == 0)
+                return INVALID_VALUE;
+            lock (m_cs)
+            {
+                foreach (KeyValuePair<string, System.Data.DataTable> p in m_ds)
+                {
+                    bool equal = (m_bDBNameCaseSensitive ? (string.Compare(dbName, p.Key) == 0) : (string.Compare(dbName, p.Key, StringComparison.OrdinalIgnoreCase) == 0));
+                    if (!equal)
+                        continue;
+                    equal = (m_bTableNameCaseSensitive ? (string.Compare(tblName, p.Value.TableName) == 0) : (string.Compare(tblName, p.Value.TableName, StringComparison.OrdinalIgnoreCase) == 0));
+                    if (!equal)
+                        continue;
+                    ClientSide.CAsyncDBHandler.AppendRowDataIntoDataTable(vData, p.Value);
+                    return (uint)(vData.Count / p.Value.Columns.Count);
+                }
+            }
+            return INVALID_VALUE;
+        }
+
+        public uint AddRows(string dbName, string tblName, object[] vData)
+        {
+            if (vData == null || vData.Length == 0)
+                return 0;
+            if (dbName == null || dbName.Length == 0 || tblName == null || tblName.Length == 0)
+                return INVALID_VALUE;
+            lock (m_cs)
+            {
+                foreach (KeyValuePair<string, System.Data.DataTable> p in m_ds)
+                {
+                    bool equal = (m_bDBNameCaseSensitive ? (string.Compare(dbName, p.Key) == 0) : (string.Compare(dbName, p.Key, StringComparison.OrdinalIgnoreCase) == 0));
+                    if (!equal)
+                        continue;
+                    equal = (m_bTableNameCaseSensitive ? (string.Compare(tblName, p.Value.TableName) == 0) : (string.Compare(tblName, p.Value.TableName, StringComparison.OrdinalIgnoreCase) == 0));
+                    if (!equal)
+                        continue;
+                    ClientSide.CAsyncDBHandler.AppendRowDataIntoDataTable(vData, p.Value);
+                    return (uint)(vData.Length / p.Value.Columns.Count);
+                }
+            }
+            return INVALID_VALUE;
+        }
+
+        public uint UpdateARow(string dbName, string tblName, object[] keys, object[] newValues)
+        {
+            if (keys == null || keys.Length == 0 || newValues == null || newValues.Length == 0)
+                return 0;
+            if (dbName == null || dbName.Length == 0 || tblName == null || tblName.Length == 0)
+                return INVALID_VALUE;
+            lock (m_cs)
+            {
+                foreach (KeyValuePair<string, System.Data.DataTable> p in m_ds)
+                {
+                    bool equal = (m_bDBNameCaseSensitive ? (string.Compare(dbName, p.Key) == 0) : (string.Compare(dbName, p.Key, StringComparison.OrdinalIgnoreCase) == 0));
+                    if (!equal)
+                        continue;
+                    equal = (m_bTableNameCaseSensitive ? (string.Compare(tblName, p.Value.TableName) == 0) : (string.Compare(tblName, p.Value.TableName, StringComparison.OrdinalIgnoreCase) == 0));
+                    if (!equal)
+                        continue;
+                    DataColumn[] keyColumns = p.Value.PrimaryKey;
+                    if (keyColumns == null || keyColumns.Length != keys.Length)
+                        throw new Exception("Wrong key number");
+                    List<KeyValuePair<DataColumn, object>> vKeyVal = new List<KeyValuePair<DataColumn, object>>();
+                    int index = 0;
+                    foreach (DataColumn dc in keyColumns)
+                    {
+                        KeyValuePair<DataColumn, object> kv = new KeyValuePair<DataColumn, object>(dc, keys[index]);
+                        vKeyVal.Add(kv);
+                        ++index;
+                    }
+                    string filter;
+                    DataRow row = FindRowByKeys(p.Value, vKeyVal, UDB.tagUpdateEvent.ueDelete, out filter);
+                    if (row != null)
+                    {
+                        if (newValues.Length != row.ItemArray.Length)
+                            throw new Exception("Wrong number of new values");
+                        row.ItemArray = newValues;
+                        return 1;
+                    }
+                    return 0;
+                }
+            }
+            return INVALID_VALUE;
+        }
+
+        public uint DeleteARow(string dbName, string tblName, object[] keys)
+        {
+            if (keys == null || keys.Length == 0)
+                return 0;
+            if (dbName == null || dbName.Length == 0 || tblName == null || tblName.Length == 0)
+                return INVALID_VALUE;
+            lock (m_cs)
+            {
+                foreach (KeyValuePair<string, System.Data.DataTable> p in m_ds)
+                {
+                    bool equal = (m_bDBNameCaseSensitive ? (string.Compare(dbName, p.Key) == 0) : (string.Compare(dbName, p.Key, StringComparison.OrdinalIgnoreCase) == 0));
+                    if (!equal)
+                        continue;
+                    equal = (m_bTableNameCaseSensitive ? (string.Compare(tblName, p.Value.TableName) == 0) : (string.Compare(tblName, p.Value.TableName, StringComparison.OrdinalIgnoreCase) == 0));
+                    if (!equal)
+                        continue;
+                    DataColumn[] keyColumns = p.Value.PrimaryKey;
+                    if (keyColumns == null || keyColumns.Length != keys.Length)
+                        throw new Exception("Wrong key number");
+                    List<KeyValuePair<DataColumn, object>> vKeyVal = new List<KeyValuePair<DataColumn, object>>();
+                    int index = 0;
+                    foreach (DataColumn dc in keyColumns)
+                    {
+                        KeyValuePair<DataColumn, object> kv = new KeyValuePair<DataColumn, object>(dc, keys[index]);
+                        vKeyVal.Add(kv);
+                        ++index;
+                    }
+                    string filter;
+                    DataRow row = FindRowByKeys(p.Value, vKeyVal, UDB.tagUpdateEvent.ueDelete, out filter);
+                    if (row != null)
+                    {
+                        p.Value.Rows.Remove(row);
+                        return 1;
+                    }
+                    return 0;
+                }
+            }
+            return INVALID_VALUE;
+        }
+
+        private static DataRow FindRowByKeys(DataTable dt, List<KeyValuePair<DataColumn, object>> vKey, UDB.tagUpdateEvent ue, out string filter)
+        {
+            DataRow[] rows = null;
+            filter = "";
+            foreach (var kv in vKey)
+            {
+                if (filter.Length > 0)
+                    filter += " AND ";
+                filter += ("`" + kv.Key.ColumnName + "`=");
+                if (kv.Value is long || kv.Value is decimal || kv.Value is double)
+                    filter += kv.Value.ToString();
+                else if (kv.Value is string)
+                    filter += ("'" + kv.Value.ToString() + "'");
+                else
+                    throw new Exception("Other key column not supported");
+            }
+            if (ue != UDB.tagUpdateEvent.ueInsert)
+                rows = dt.Select(filter);
+            if (rows != null && rows.Length == 1)
+                return rows[0];
+            else if (rows != null && rows.Length > 1)
+                throw new Exception("Multiple rows found beyond our expectation");
+            return null;
+        }
 
         public uint GetRowCount(string dbName, string tblName)
         {

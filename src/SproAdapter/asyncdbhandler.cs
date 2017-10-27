@@ -1524,11 +1524,31 @@ namespace SocketProAdapter
                 return MakeDataTable(vColumn, "");
             }
 
-            public static void AppendRowDataIntoDataTable(CDBVariantArray vtData, DataTable dt)
+            public static void AppendRowDataIntoDataTable(List<object> vtData, DataTable dt)
             {
                 int index = 0;
                 int cols = dt.Columns.Count;
                 int count = vtData.Count;
+                object[] row = new object[cols];
+                for (int n = 0; n < count; ++n)
+                {
+                    if (vtData[n] == null)
+                        row[index] = DBNull.Value;
+                    else
+                        row[index] = vtData[n];
+                    ++index;
+                    if (index == cols)
+                    {
+                        dt.Rows.Add(row);
+                        index = 0;
+                    }
+                }
+            }
+            public static void AppendRowDataIntoDataTable(object []vtData, DataTable dt)
+            {
+                int index = 0;
+                int cols = dt.Columns.Count;
+                int count = vtData.Length;
                 object[] row = new object[cols];
                 for (int n = 0; n < count; ++n)
                 {
