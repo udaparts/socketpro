@@ -4,6 +4,8 @@ using System.Collections.Generic;
 
 public class CConfig
 {
+    private CConfig() { }
+
     //master
     public string m_master_default_db = "";
     public uint m_nMasterSessions = 2;

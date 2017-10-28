@@ -34,11 +34,12 @@ class CYourPeerOne : CCacheBasePeer
         do
         {
             CMysql handler = CYourServer.Slave.Seek();
-		    if (handler != null) {
+            if (handler != null)
+            {
                 ret = SendResult(ss.Consts.idQueryMaxMinAvgs, index, (int)-1, "No connection to a slave database", pmma);
-			    return;
-		    }
-		    ++redo;
+                return;
+            }
+            ++redo;
             ulong peer_handle = Handle;
             if (handler.Execute(sql, (h, r, err, affected, fail_ok, vtId) =>
             {
@@ -76,7 +77,101 @@ class CYourPeerOne : CCacheBasePeer
 
     void UploadEmployees(CUQueue q)
     {
-
+        uint ret;
+        ulong index;
+        KeyValuePair<int, string> error = new KeyValuePair<int, string>();
+        ss.CInt64Array vId = new ss.CInt64Array();
+        SocketProAdapter.UDB.CDBVariantArray vData;
+        q.Load(out index).Load(out vData);
+        if (vData.Count == 0)
+        {
+            ret = SendResult(ss.Consts.idUploadEmployees, index, (int)0, "", new ss.CInt64Array());
+            return;
+        }
+        else if ((vData.Count % 3) != 0)
+        {
+            ret = SendResult(ss.Consts.idUploadEmployees, index, (int)-1, "Data array size is wrong", new ss.CInt64Array());
+            return;
+        }
+        int redo = 0;
+        do
+        {
+            //use master for insert, update and delete
+            CMysql handler = CYourServer.Master.Lock(); //use Lock and Unlock to avoid SQL stream overlap on a session within a multi-thread environment
+            if (handler == null)
+            {
+                ret = SendResult(ss.Consts.idUploadEmployees, index, (int)-2, "No connection to a master database", new ss.CInt64Array());
+                return;
+            }
+            ++redo;
+            do
+            {
+                bool ok = false;
+                if (!handler.Prepare("INSERT INTO mysample.EMPLOYEE(CompanyId,Name,JoinDate)VALUES(?,?,?)")) break;
+                if (!handler.BeginTrans()) break;
+                SocketProAdapter.UDB.CDBVariantArray v = new SocketProAdapter.UDB.CDBVariantArray();
+                int rows = vData.Count / 3;
+                for (int n = 0; n < rows; ++n)
+                {
+                    v.Add(vData[n * 3 + 0]);
+                    v.Add(vData[n * 3 + 1]);
+                    v.Add(vData[n * 3 + 2]);
+                    ok = handler.Execute(v, (h, r, err, affected, fail_ok, vtId) =>
+                    {
+                        if (r != 0)
+                        {
+                            if (error.Key == 0)
+                            {
+                                error = new KeyValuePair<int, string>(r, err);
+                            }
+                            vId.Add(-1);
+                        }
+                        else
+                        {
+                            vId.Add(long.Parse(vtId.ToString()));
+                        }
+                    });
+                    if (!ok)
+                        break;
+                    v.Clear();
+                }
+                if (!ok)
+                    break;
+                ulong peer_handle = Handle;
+                if (handler.EndTrans(SocketProAdapter.UDB.tagRollbackPlan.rpRollbackErrorAll, (h, res, errMsg) =>
+                {
+                    if (res != 0 && error.Key == 0)
+                        error = new KeyValuePair<int, string>(res, errMsg);
+                    ret = SendResult(ss.Consts.idUploadEmployees, index, error.Key, error.Value, vId);
+                }, () => {
+                    //front peer not closed yet
+                    if (peer_handle == Handle)
+                    {
+#if DEBUG
+                        //socket closed after sending
+                        lock (m_csConsole)
+                        {
+                            Console.WriteLine("Retry UploadEmployees ......");
+                        }
+#endif
+                        using (CScopeUQueue sb = new CScopeUQueue())
+                        {
+                            //repack original request data and retry
+                            sb.Save(index).Save(vData);
+                            UploadEmployees(sb.UQueue); //this will not cause recursive stack-overflow exeption
+                        }
+                    }
+                }))
+                {
+                    redo = 0;
+                    CYourServer.Master.Unlock(handler);
+                }
+                else
+                {
+                    //socket closed when sending
+                }
+            } while (false);
+        } while (redo > 0);
     }
 
     [RequestAttr(ss.Consts.idGetMasterSlaveConnectedSessions)]
