@@ -152,7 +152,7 @@ void CYourPeerOne::GetRentalDateTimes(SPA::UINT64 index, SPA::INT64 rental_id, S
 	retIndex = index;
 	res = 0;
 	::memset(&dates, 0, sizeof(dates));
-	std::wstring sql = L"SELECT rental_date,return_date,last_update FROM sakila.rental where rental_id=" + std::to_wstring(rental_id);
+	std::wstring sql = L"SELECT rental_id,rental_date,return_date,last_update FROM sakila.rental where rental_id=" + std::to_wstring(rental_id);
 	int redo = 0;
 	do {
 		std::shared_ptr<CSQLHandler> handler = CYourServer::Slave->Seek();
@@ -170,9 +170,10 @@ void CYourPeerOne::GetRentalDateTimes(SPA::UINT64 index, SPA::INT64 rental_id, S
 			errMsg = err;
 			prom->set_value(true);
 		}, [&dates](CSQLHandler &h, SPA::UDB::CDBVariantArray & vData) {
-			dates.Rental = vData[0].ullVal; //date time in high precision format
-			dates.Return = vData[1].ullVal;
-			dates.LastUpdate = vData[2].ullVal;
+			dates.rental_id = vData[0].llVal;
+			dates.Rental = vData[1].ullVal; //date time in high precision format
+			dates.Return = vData[2].ullVal;
+			dates.LastUpdate = vData[3].ullVal;
 		}, [](CSQLHandler & h) {
 			assert(h.GetColumnInfo().size() == 3);
 		}, true, true, [prom]() {

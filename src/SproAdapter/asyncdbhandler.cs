@@ -298,6 +298,8 @@ namespace SocketProAdapter
             public const ushort idEndRows = idEndBLOB + 1;
             public const ushort idCallReturn = idEndRows + 1;
 
+            public const ushort idGetCachedTables = idCallReturn + 1;
+
             /// <summary>
             /// Whenever a data size in bytes is about twice larger than the defined value,
             /// the data will be treated in large object and transferred in chunks for reducing memory foot print
@@ -318,6 +320,8 @@ namespace SocketProAdapter
             /// A chat group id used at SocketPro server side for notifying database events from server to connected clients
             /// </summary>
             public const uint STREAMING_SQL_CHAT_GROUP_ID = 0x1fffffff;
+
+            public const uint CACHE_UPDATE_CHAT_GROUP_ID = STREAMING_SQL_CHAT_GROUP_ID + 1;
 
             public delegate void DResult(CAsyncDBHandler dbHandler, int res, string errMsg);
             public delegate void DExecuteResult(CAsyncDBHandler dbHandler, int res, string errMsg, long affected, ulong fail_ok, object vtId);

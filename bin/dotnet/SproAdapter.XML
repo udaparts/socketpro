@@ -4,6 +4,182 @@
         <name>SproAdapter</name>
     </assembly>
     <members>
+        <member name="M:SocketProAdapter.ClientSide.CSocketPool`1.SeekByQueue(System.String)">
+            <summary>
+            Seek an async handler by its associated queue file full path or raw name. 
+            </summary>
+            <param name="queueName">queue file full path or raw name</param>
+            <returns>An async handler if found; and null or nothing if none is found</returns>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CSocketPool`1.Seek">
+            <summary>
+            Seek an async handler on the min number of requests queued in memory and its associated socket connection
+            </summary>
+            <returns>An async handler if found; and null or nothing if no connection is found</returns>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CSocketPool`1.SeekByQueue">
+            <summary>
+            Seek an async handler on the min number of requests queued and its associated socket connection
+            </summary>
+            <returns>An async handler if found; and null or nothing if no queue is available</returns>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CSocketPool`1.Lock">
+            <summary>
+            Lock an async handler infinitely
+            </summary>
+            <returns>An async handler if successful; and null or nothing if failed</returns>
+            <remarks>You must also call the method Unlock to unlock the handler and its assocaited socket connection for reuse.</remarks>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CSocketPool`1.Lock(System.UInt32)">
+            <summary>
+            Lock an async handler on a given timeout.
+            </summary>
+            <param name="timeout">A timeout in milliseconds</param>
+            <returns>An async handler if successful; and null or nothing if failed</returns>
+            <remarks>You must also call the method Unlock to unlock the handler and its assocaited socket connection for reuse.</remarks>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CSocketPool`1.Lock(System.IntPtr)">
+            <summary>
+            Lock an async handler on a given thread handle with infinite timeout
+            </summary>
+            <param name="sameThreadHandle">A handle to a thread</param>
+            <returns>An async handler if successful; and null or nothing if failed</returns>
+            <remarks>You must also call the method Unlock to unlock the handler and its associated socket connection for reuse.</remarks>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CSocketPool`1.Lock(System.IntPtr,System.UInt32)">
+            <summary>
+            Lock an async handler on given thread handle and timeout.
+            </summary>
+            <param name="sameThreadHandle">A handle to a thread</param>
+            <param name="timeout">A timeout in milliseconds</param>
+            <returns>An async handler if successful; and null or nothing if failed</returns>
+            <remarks>You must also call the method Unlock to unlock the handler and its associated socket connection for reuse.</remarks>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CSocketPool`1.Unlock(`0)">
+            <summary>
+            Unlock a previously locked async handler to pool for reuse.
+            </summary>
+            <param name="handler">A previously locked async handler</param>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CSocketPool`1.Unlock(SocketProAdapter.ClientSide.CClientSocket)">
+            <summary>
+            Unlock a previously locked socket to pool for reuse.
+            </summary>
+            <param name="handler">A previously locked socket</param>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CSocketPool`1.#ctor">
+            <summary>
+            Create an instance of socket pool with both request receiving and socket connecting timeout default to 30 seconds as well as auto connecting default to true.
+            </summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CSocketPool`1.#ctor(System.Boolean)">
+            <summary>
+            Create an instance of socket pool with both request receiving and socket connecting timeout default to 30 seconds.
+            </summary>
+            <param name="autoConn">All sockets will support auto connection if true; and not if false</param>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CSocketPool`1.#ctor(System.Boolean,System.UInt32)">
+            <summary>
+            Create an instance of socket pool with socket connecting timeout default to 30 seconds.
+            </summary>
+            <param name="autoConn">All sockets will support auto connection if true; and not if false</param>
+            <param name="recvTimeout">Request receiving timeout in milliseconds</param>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CSocketPool`1.#ctor(System.Boolean,System.UInt32,System.UInt32)">
+            <summary>
+            Create an instance of socket pool
+            </summary>
+            <param name="autoConn">All sockets will support auto connection if true; and not if false</param>
+            <param name="recvTimeout">Request receiving timeout in milliseconds</param>
+            <param name="connTimeout">Socket connection timeout in milliseconds</param>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CSocketPool`1.#ctor(System.Boolean,System.UInt32,System.UInt32,System.UInt32)">
+            <summary>
+            Create an instance of socket pool
+            </summary>
+            <param name="autoConn">All sockets will support auto connection if true; and not if false</param>
+            <param name="recvTimeout">Request receiving timeout in milliseconds</param>
+            <param name="connTimeout">Socket connection timeout in milliseconds</param>
+            <param name="svsId">Service id which defaults to 0</param>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CSocketPool`1.ShutdownPool">
+            <summary>
+            Shut down the socket pool after all connections are disconnected.
+            </summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CSocketPool`1.DisconnectAll">
+            <summary>
+            Disconnect all connections
+            </summary>
+            <returns>The method always returns true.</returns>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CSocketPool`1.StartSocketPool(SocketProAdapter.ClientSide.CConnectionContext[0:,0:])">
+            <summary>
+            Start a pool of sockets with a given two-dimensional matrix of connection contexts
+            </summary>
+            <param name="cc">A given two-dimensional matrix of connection contexts. Its first dimension length represents the number of threads; and the second dimension length is the number of sockets per thread</param>
+            <returns>False if there is no connection established; and true as long as there is one connection started</returns>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CSocketPool`1.StartSocketPool(SocketProAdapter.ClientSide.CConnectionContext[0:,0:],System.Boolean)">
+            <summary>
+            Start a pool of sockets with a given two-dimensional matrix of connection contexts
+            </summary>
+            <param name="cc">A given two-dimensional matrix of connection contexts. Its first dimension length represents the number of threads; and the second dimension length is the number of sockets per thread</param>
+            <param name="avg">A boolean value for building internal socket pool, which defaults to true</param>
+            <returns>False if there is no connection established; and true as long as there is one connection started</returns>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CSocketPool`1.StartSocketPool(SocketProAdapter.ClientSide.CConnectionContext[0:,0:],System.Boolean,SocketProAdapter.tagThreadApartment)">
+            <summary>
+            Start a pool of sockets with a given two-dimensional matrix of connection contexts
+            </summary>
+            <param name="cc">A given two-dimensional matrix of connection contexts. Its first dimension length represents the number of threads; and the second dimension length is the number of sockets per thread</param>
+            <param name="avg">A boolean value for building internal socket pool, which defaults to true.</param>
+            <param name="ta">A value for COM thread apartment if there is COM object involved. It is ignored on non-window platforms, and default to tagThreadApartment.taNone</param>
+            <returns>False if there is no connection established; and true as long as there is one connection started</returns>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CSocketPool`1.StartSocketPool(SocketProAdapter.ClientSide.CConnectionContext,System.UInt32)">
+            <summary>
+             Start a pool of sockets with one connection context
+            </summary>
+            <param name="cc">A connection context structure</param>
+            <param name="socketsPerThread">The number of socket connections per thread</param>
+            <returns>False if there is no connection established; and true as long as there is one connection started</returns>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CSocketPool`1.StartSocketPool(SocketProAdapter.ClientSide.CConnectionContext,System.UInt32,System.UInt32)">
+            <summary>
+             Start a pool of sockets with one connection context
+            </summary>
+            <param name="cc">A connection context structure</param>
+            <param name="socketsPerThread">The number of socket connections per thread</param>
+            <param name="threads">The number of threads in a pool which defaults to the number of CPU cores</param>
+            <returns>False if there is no connection established; and true as long as there is one connection started</returns>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CSocketPool`1.StartSocketPool(SocketProAdapter.ClientSide.CConnectionContext,System.UInt32,System.UInt32,System.Boolean)">
+            <summary>
+             Start a pool of sockets with one connection context
+            </summary>
+            <param name="cc">A connection context structure</param>
+            <param name="socketsPerThread">The number of socket connections per thread</param>
+            <param name="threads">The number of threads in a pool which defaults to the number of CPU cores</param>
+            <param name="avg">A boolean value for building internal socket pool, which defaults to true.</param>
+            <returns>False if there is no connection established; and true as long as there is one connection started</returns>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CSocketPool`1.StartSocketPool(SocketProAdapter.ClientSide.CConnectionContext,System.UInt32,System.UInt32,System.Boolean,SocketProAdapter.tagThreadApartment)">
+            <summary>
+             Start a pool of sockets with one connection context
+            </summary>
+            <param name="cc">A connection context structure</param>
+            <param name="socketsPerThread">The number of socket connections per thread</param>
+            <param name="threads">The number of threads in a pool which defaults to the number of CPU cores</param>
+            <param name="avg">A boolean value for building internal socket pool, which defaults to true.</param>
+            <param name="ta">A value for COM thread apartment if there is COM object involved. It is ignored on non-window platforms, and default to tagThreadApartment.taNone</param>
+            <returns>False if there is no connection established; and true as long as there is one connection started</returns>
+        </member>
+        <member name="P:SocketProAdapter.ClientSide.CSocketPool`1.QueueAutoMerge">
+            <summary>
+            Enable (true) or disable (false) automatically merging requests queued inside a local/client file to a connected session within a pool of sockets when a session is disconnected. The property defaults to false.
+            </summary>
+        </member>
         <member name="T:SocketProAdapter.ClientSide.CAsyncQueue">
             <summary>
             A client side class for easy accessing remote persistent message queues by use of SocketPro communication framework
@@ -390,182 +566,6 @@
             A bool value for enabling or disabling routing queue index. The property defaults to false.
             If there is only one worker application instance running (Note that one instance may have multiple socket connections), it ensures once-only delivery if this property is set to true.
             If there are multiple worker application instances running, you should not set this property to true! Otherwise, SocketPro may function incorrectly in dequeuing messages.
-            </summary>
-        </member>
-        <member name="M:SocketProAdapter.ClientSide.CSocketPool`1.SeekByQueue(System.String)">
-            <summary>
-            Seek an async handler by its associated queue file full path or raw name. 
-            </summary>
-            <param name="queueName">queue file full path or raw name</param>
-            <returns>An async handler if found; and null or nothing if none is found</returns>
-        </member>
-        <member name="M:SocketProAdapter.ClientSide.CSocketPool`1.Seek">
-            <summary>
-            Seek an async handler on the min number of requests queued in memory and its associated socket connection
-            </summary>
-            <returns>An async handler if found; and null or nothing if no connection is found</returns>
-        </member>
-        <member name="M:SocketProAdapter.ClientSide.CSocketPool`1.SeekByQueue">
-            <summary>
-            Seek an async handler on the min number of requests queued and its associated socket connection
-            </summary>
-            <returns>An async handler if found; and null or nothing if no queue is available</returns>
-        </member>
-        <member name="M:SocketProAdapter.ClientSide.CSocketPool`1.Lock">
-            <summary>
-            Lock an async handler infinitely
-            </summary>
-            <returns>An async handler if successful; and null or nothing if failed</returns>
-            <remarks>You must also call the method Unlock to unlock the handler and its assocaited socket connection for reuse.</remarks>
-        </member>
-        <member name="M:SocketProAdapter.ClientSide.CSocketPool`1.Lock(System.UInt32)">
-            <summary>
-            Lock an async handler on a given timeout.
-            </summary>
-            <param name="timeout">A timeout in milliseconds</param>
-            <returns>An async handler if successful; and null or nothing if failed</returns>
-            <remarks>You must also call the method Unlock to unlock the handler and its assocaited socket connection for reuse.</remarks>
-        </member>
-        <member name="M:SocketProAdapter.ClientSide.CSocketPool`1.Lock(System.IntPtr)">
-            <summary>
-            Lock an async handler on a given thread handle with infinite timeout
-            </summary>
-            <param name="sameThreadHandle">A handle to a thread</param>
-            <returns>An async handler if successful; and null or nothing if failed</returns>
-            <remarks>You must also call the method Unlock to unlock the handler and its associated socket connection for reuse.</remarks>
-        </member>
-        <member name="M:SocketProAdapter.ClientSide.CSocketPool`1.Lock(System.IntPtr,System.UInt32)">
-            <summary>
-            Lock an async handler on given thread handle and timeout.
-            </summary>
-            <param name="sameThreadHandle">A handle to a thread</param>
-            <param name="timeout">A timeout in milliseconds</param>
-            <returns>An async handler if successful; and null or nothing if failed</returns>
-            <remarks>You must also call the method Unlock to unlock the handler and its associated socket connection for reuse.</remarks>
-        </member>
-        <member name="M:SocketProAdapter.ClientSide.CSocketPool`1.Unlock(`0)">
-            <summary>
-            Unlock a previously locked async handler to pool for reuse.
-            </summary>
-            <param name="handler">A previously locked async handler</param>
-        </member>
-        <member name="M:SocketProAdapter.ClientSide.CSocketPool`1.Unlock(SocketProAdapter.ClientSide.CClientSocket)">
-            <summary>
-            Unlock a previously locked socket to pool for reuse.
-            </summary>
-            <param name="handler">A previously locked socket</param>
-        </member>
-        <member name="M:SocketProAdapter.ClientSide.CSocketPool`1.#ctor">
-            <summary>
-            Create an instance of socket pool with both request receiving and socket connecting timeout default to 30 seconds as well as auto connecting default to true.
-            </summary>
-        </member>
-        <member name="M:SocketProAdapter.ClientSide.CSocketPool`1.#ctor(System.Boolean)">
-            <summary>
-            Create an instance of socket pool with both request receiving and socket connecting timeout default to 30 seconds.
-            </summary>
-            <param name="autoConn">All sockets will support auto connection if true; and not if false</param>
-        </member>
-        <member name="M:SocketProAdapter.ClientSide.CSocketPool`1.#ctor(System.Boolean,System.UInt32)">
-            <summary>
-            Create an instance of socket pool with socket connecting timeout default to 30 seconds.
-            </summary>
-            <param name="autoConn">All sockets will support auto connection if true; and not if false</param>
-            <param name="recvTimeout">Request receiving timeout in milliseconds</param>
-        </member>
-        <member name="M:SocketProAdapter.ClientSide.CSocketPool`1.#ctor(System.Boolean,System.UInt32,System.UInt32)">
-            <summary>
-            Create an instance of socket pool
-            </summary>
-            <param name="autoConn">All sockets will support auto connection if true; and not if false</param>
-            <param name="recvTimeout">Request receiving timeout in milliseconds</param>
-            <param name="connTimeout">Socket connection timeout in milliseconds</param>
-        </member>
-        <member name="M:SocketProAdapter.ClientSide.CSocketPool`1.#ctor(System.Boolean,System.UInt32,System.UInt32,System.UInt32)">
-            <summary>
-            Create an instance of socket pool
-            </summary>
-            <param name="autoConn">All sockets will support auto connection if true; and not if false</param>
-            <param name="recvTimeout">Request receiving timeout in milliseconds</param>
-            <param name="connTimeout">Socket connection timeout in milliseconds</param>
-            <param name="svsId">Service id which defaults to 0</param>
-        </member>
-        <member name="M:SocketProAdapter.ClientSide.CSocketPool`1.ShutdownPool">
-            <summary>
-            Shut down the socket pool after all connections are disconnected.
-            </summary>
-        </member>
-        <member name="M:SocketProAdapter.ClientSide.CSocketPool`1.DisconnectAll">
-            <summary>
-            Disconnect all connections
-            </summary>
-            <returns>The method always returns true.</returns>
-        </member>
-        <member name="M:SocketProAdapter.ClientSide.CSocketPool`1.StartSocketPool(SocketProAdapter.ClientSide.CConnectionContext[0:,0:])">
-            <summary>
-            Start a pool of sockets with a given two-dimensional matrix of connection contexts
-            </summary>
-            <param name="cc">A given two-dimensional matrix of connection contexts. Its first dimension length represents the number of threads; and the second dimension length is the number of sockets per thread</param>
-            <returns>False if there is no connection established; and true as long as there is one connection started</returns>
-        </member>
-        <member name="M:SocketProAdapter.ClientSide.CSocketPool`1.StartSocketPool(SocketProAdapter.ClientSide.CConnectionContext[0:,0:],System.Boolean)">
-            <summary>
-            Start a pool of sockets with a given two-dimensional matrix of connection contexts
-            </summary>
-            <param name="cc">A given two-dimensional matrix of connection contexts. Its first dimension length represents the number of threads; and the second dimension length is the number of sockets per thread</param>
-            <param name="avg">A boolean value for building internal socket pool, which defaults to true</param>
-            <returns>False if there is no connection established; and true as long as there is one connection started</returns>
-        </member>
-        <member name="M:SocketProAdapter.ClientSide.CSocketPool`1.StartSocketPool(SocketProAdapter.ClientSide.CConnectionContext[0:,0:],System.Boolean,SocketProAdapter.tagThreadApartment)">
-            <summary>
-            Start a pool of sockets with a given two-dimensional matrix of connection contexts
-            </summary>
-            <param name="cc">A given two-dimensional matrix of connection contexts. Its first dimension length represents the number of threads; and the second dimension length is the number of sockets per thread</param>
-            <param name="avg">A boolean value for building internal socket pool, which defaults to true.</param>
-            <param name="ta">A value for COM thread apartment if there is COM object involved. It is ignored on non-window platforms, and default to tagThreadApartment.taNone</param>
-            <returns>False if there is no connection established; and true as long as there is one connection started</returns>
-        </member>
-        <member name="M:SocketProAdapter.ClientSide.CSocketPool`1.StartSocketPool(SocketProAdapter.ClientSide.CConnectionContext,System.UInt32)">
-            <summary>
-             Start a pool of sockets with one connection context
-            </summary>
-            <param name="cc">A connection context structure</param>
-            <param name="socketsPerThread">The number of socket connections per thread</param>
-            <returns>False if there is no connection established; and true as long as there is one connection started</returns>
-        </member>
-        <member name="M:SocketProAdapter.ClientSide.CSocketPool`1.StartSocketPool(SocketProAdapter.ClientSide.CConnectionContext,System.UInt32,System.UInt32)">
-            <summary>
-             Start a pool of sockets with one connection context
-            </summary>
-            <param name="cc">A connection context structure</param>
-            <param name="socketsPerThread">The number of socket connections per thread</param>
-            <param name="threads">The number of threads in a pool which defaults to the number of CPU cores</param>
-            <returns>False if there is no connection established; and true as long as there is one connection started</returns>
-        </member>
-        <member name="M:SocketProAdapter.ClientSide.CSocketPool`1.StartSocketPool(SocketProAdapter.ClientSide.CConnectionContext,System.UInt32,System.UInt32,System.Boolean)">
-            <summary>
-             Start a pool of sockets with one connection context
-            </summary>
-            <param name="cc">A connection context structure</param>
-            <param name="socketsPerThread">The number of socket connections per thread</param>
-            <param name="threads">The number of threads in a pool which defaults to the number of CPU cores</param>
-            <param name="avg">A boolean value for building internal socket pool, which defaults to true.</param>
-            <returns>False if there is no connection established; and true as long as there is one connection started</returns>
-        </member>
-        <member name="M:SocketProAdapter.ClientSide.CSocketPool`1.StartSocketPool(SocketProAdapter.ClientSide.CConnectionContext,System.UInt32,System.UInt32,System.Boolean,SocketProAdapter.tagThreadApartment)">
-            <summary>
-             Start a pool of sockets with one connection context
-            </summary>
-            <param name="cc">A connection context structure</param>
-            <param name="socketsPerThread">The number of socket connections per thread</param>
-            <param name="threads">The number of threads in a pool which defaults to the number of CPU cores</param>
-            <param name="avg">A boolean value for building internal socket pool, which defaults to true.</param>
-            <param name="ta">A value for COM thread apartment if there is COM object involved. It is ignored on non-window platforms, and default to tagThreadApartment.taNone</param>
-            <returns>False if there is no connection established; and true as long as there is one connection started</returns>
-        </member>
-        <member name="P:SocketProAdapter.ClientSide.CSocketPool`1.QueueAutoMerge">
-            <summary>
-            Enable (true) or disable (false) automatically merging requests queued inside a local/client file to a connected session within a pool of sockets when a session is disconnected. The property defaults to false.
             </summary>
         </member>
         <member name="M:SocketProAdapter.ClientSide.CStreamHelper.Reset">

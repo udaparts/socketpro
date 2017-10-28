@@ -132,9 +132,9 @@ namespace SocketProAdapter
             return INVALID_VALUE;
         }
 
-        public uint UpdateARow(string dbName, string tblName, object[] keys, object[] newValues)
+        public uint UpdateARow(string dbName, string tblName, object[] oldnewValues)
         {
-            if (keys == null || keys.Length == 0 || newValues == null || newValues.Length == 0)
+            if (oldnewValues == null || oldnewValues.Length == 0)
                 return 0;
             if (dbName == null || dbName.Length == 0 || tblName == null || tblName.Length == 0)
                 return INVALID_VALUE;
@@ -149,22 +149,23 @@ namespace SocketProAdapter
                     if (!equal)
                         continue;
                     DataColumn[] keyColumns = p.Value.PrimaryKey;
-                    if (keyColumns == null || keyColumns.Length != keys.Length)
-                        throw new Exception("Wrong key number");
+                    if (oldnewValues.Length != p.Value.Columns.Count * 2)
+                        throw new Exception("Wrong data number for update");
                     List<KeyValuePair<DataColumn, object>> vKeyVal = new List<KeyValuePair<DataColumn, object>>();
-                    int index = 0;
                     foreach (DataColumn dc in keyColumns)
                     {
-                        KeyValuePair<DataColumn, object> kv = new KeyValuePair<DataColumn, object>(dc, keys[index]);
+                        KeyValuePair<DataColumn, object> kv = new KeyValuePair<DataColumn, object>(dc, oldnewValues[dc.Ordinal * 2]);
                         vKeyVal.Add(kv);
-                        ++index;
                     }
                     string filter;
                     DataRow row = FindRowByKeys(p.Value, vKeyVal, UDB.tagUpdateEvent.ueDelete, out filter);
                     if (row != null)
                     {
-                        if (newValues.Length != row.ItemArray.Length)
-                            throw new Exception("Wrong number of new values");
+                        object[] newValues = new object[p.Value.Columns.Count];
+                        for (int n = 0; n < p.Value.Columns.Count; ++n)
+                        {
+                            newValues[n] = oldnewValues[n * 2 + 1];
+                        }
                         row.ItemArray = newValues;
                         return 1;
                     }

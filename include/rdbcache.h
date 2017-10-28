@@ -163,15 +163,17 @@ namespace SPA {
 		void SetInitialCache(const std::shared_ptr<THandler> &asyncSQL) {
 			//open default database and subscribe for table update events (update, delete and insert) by setting flag UDB::ENABLE_TABLE_UPDATE_MESSAGES
 			bool ok = asyncSQL->Open(this->GetDefaultDBName().c_str(), [this](CSQLHandler &h, int res, const std::wstring & errMsg) {
-				this->m_cache.SetDBServerName(nullptr);
-				this->m_cache.SetUpdater(nullptr);
-				this->m_cache.Empty();
-				unsigned int port;
-				std::string ip = h.GetAttachedClientSocket()->GetPeerName(&port);
-				ip += ":";
-				ip += std::to_string(port);
-				h.Utf8ToW(true);
-				this->m_cache.Set(ip.c_str(), h.GetDBManagementSystem());
+				if (!res) {
+					this->m_cache.SetDBServerName(nullptr);
+					this->m_cache.SetUpdater(nullptr);
+					this->m_cache.Empty();
+					unsigned int port;
+					std::string ip = h.GetAttachedClientSocket()->GetPeerName(&port);
+					ip += ":";
+					ip += std::to_string(port);
+					h.Utf8ToW(true);
+					this->m_cache.Set(ip.c_str(), h.GetDBManagementSystem());
+				}
 			}, UDB::ENABLE_TABLE_UPDATE_MESSAGES);
 
 			//bring all cached table data into m_cache first for initial cache, and exchange it with Cache if there is no error

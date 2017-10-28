@@ -28,6 +28,7 @@ struct CRentalDateTimes {
 	CRentalDateTimes() {
 		::memset(this, 0, sizeof(CRentalDateTimes));
 	}
+	SPA::INT64 rental_id;
 	SPA::UINT64 Rental;
 	SPA::UINT64 Return;
 	SPA::UINT64 LastUpdate;
@@ -64,12 +65,12 @@ namespace SPA {
 	}
 
 	static CUQueue& operator<<(CUQueue &q, const CRentalDateTimes &v) {
-		q << v.Rental << v.Return << v.LastUpdate;
+		q << v.rental_id << v.Rental << v.Return << v.LastUpdate;
 		return q;
 	}
 
 	static CUQueue& operator>>(CUQueue &q, CRentalDateTimes &v) {
-		q >> v.Rental >> v.Return >> v.LastUpdate;
+		q >> v.rental_id >> v.Rental >> v.Return >> v.LastUpdate;
 		return q;
 	}
 };

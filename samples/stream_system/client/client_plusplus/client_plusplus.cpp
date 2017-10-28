@@ -118,7 +118,7 @@ int main(int argc, char* argv[]) {
 		}
 	}
 
-	std::cout << "Press a key to continue ......" << std::endl;
+	std::cout << "Press a key to test random returning ......" << std::endl;
 	::getchar();
 	//we don't care sequence
 	CMaxMinAvg sum_mma;
@@ -147,7 +147,7 @@ int main(int argc, char* argv[]) {
 	std::cout << "Time required: " << diff.count() << " seconds" << std::endl;
 	std::cout << "QueryPaymentMaxMinAvgs sum_max: " << sum_mma.Max << ", sum_min: " << sum_mma.Min << ", avg: " << sum_mma.Avg << std::endl;
 
-	std::cout << "Press a key to continue ......" << std::endl;
+	std::cout << "Press a key to test sequence returning ......" << std::endl;
 	::getchar();
 	CWebAsyncHandler::DRentalDateTimes rdt = [](SPA::UINT64 index, const CRentalDateTimes &dates, int res, const std::wstring & errMsg) {
 		if (res) {
@@ -156,7 +156,7 @@ int main(int argc, char* argv[]) {
 		}
 		else {
 			SPA::UDateTime rental_date(dates.Rental), return_date(dates.Return), laste_update(dates.LastUpdate);
-			std::cout << "GetRentalDateTimes call index: " << index << " and dates (" << rental_date.ToDBString() << ", " << return_date.ToDBString() << ", " << laste_update.ToDBString() << ")" << std::endl;
+			std::cout << "GetRentalDateTimes call index: " << index << " rental_id=" << dates.rental_id << " and dates (" << rental_date.ToDBString() << ", " << return_date.ToDBString() << ", " << laste_update.ToDBString() << ")" << std::endl;
 		}
 	};
 	//lock one session, and all requests should be returned in sequence
