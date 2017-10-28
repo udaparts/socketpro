@@ -19,6 +19,7 @@ struct CConfig {
     unsigned int m_nPort;
     bool m_bNoIpV6;
 
+	//secure communication between front and middle tier
 #ifdef WIN32_64
     std::string m_store_or_pfx;
 #else
@@ -29,7 +30,7 @@ struct CConfig {
 
     std::vector<std::wstring> m_vFrontCachedTable;
 
-    void SetConfig();
+    void GetConfig();
 
 private:
     //no copy constructor

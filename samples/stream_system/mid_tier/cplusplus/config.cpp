@@ -12,7 +12,8 @@ CConfig::CConfig()
 	m_bNoIpV6(false) {
 }
 
-void CConfig::SetConfig() {
+void CConfig::GetConfig() {
+	//load the following settings from a configuration file
 	m_main_threads = 4;
 
 	//master
@@ -28,7 +29,6 @@ void CConfig::SetConfig() {
 	m_ccMaster.Password = L"Smash123";
 
 	m_nMasterSessions = 2; //two sessions enough
-
 
 	//slave
 #if defined(_UMYSQL_SOCKETPRO_H_)

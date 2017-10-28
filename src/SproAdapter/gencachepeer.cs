@@ -5,8 +5,11 @@ namespace SocketProAdapter
 {
     namespace ServerSide
     {
-        public class CCacheBasePeer : CClientPeer
+        public abstract class CCacheBasePeer : CClientPeer
         {
+            [RequestAttr(SocketProAdapter.ClientSide.CAsyncDBHandler.idGetCachedTables, true)]
+            protected abstract string GetCachedTables(string defaultDb, uint flags, bool rowset, ulong index, out int res);
+
             public bool SendMeta(UDB.CDBColumnInfoArray meta, ulong index)
             {
                 //A client expects a rowset meta data and call index

@@ -268,19 +268,19 @@ void CYourPeerOne::QueryPaymentMaxMinAvgs(SPA::CUQueue &q) {
 	} while (redo);
 }
 
-void CYourPeerOne::GetCachedTables(const std::wstring &defaultDb, int flags, bool rowset, SPA::UINT64 index, int &res, std::wstring &errMsg) {
+void CYourPeerOne::GetCachedTables(const std::wstring &defaultDb, unsigned int flags, bool rowset, SPA::UINT64 index, int &res, std::wstring &errMsg) {
 	res = 0;
 	do {
+		if (!rowset)
+			break;
+		if (!g_config.m_vFrontCachedTable.size())
+			break;
 		if (SPA::UDB::ENABLE_TABLE_UPDATE_MESSAGES == (flags & SPA::UDB::ENABLE_TABLE_UPDATE_MESSAGES)) {
 			unsigned int chatgroup[] = { SPA::UDB::CACHE_UPDATE_CHAT_GROUP_ID, SPA::UDB::STREAMING_SQL_CHAT_GROUP_ID };
 			if (!GetPush().Subscribe(chatgroup, 2)) {
 				errMsg = L"Failed in subscribing for table events"; //warning message
 			}
 		}
-		if (!rowset)
-			break;
-		if (!g_config.m_vFrontCachedTable.size())
-			break;
 		std::wstring sql;
 		for (auto it = g_config.m_vFrontCachedTable.cbegin(), end = g_config.m_vFrontCachedTable.cend(); it != end; ++it) {
 			if (sql.size())
@@ -309,7 +309,7 @@ void CYourPeerOne::GetCachedTables(const std::wstring &defaultDb, int flags, boo
 		}, [this, index](CSQLHandler & h) {
 			this->SendMeta(h.GetColumnInfo(), index);
 		}, true, true, [prom, &res, &errMsg]() {
-			res = -4;
+			res = -2;
 			errMsg = L"Request canceled or socket closed";
 			prom->set_value();
 		})) {
