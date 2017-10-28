@@ -19,7 +19,7 @@ struct CConfig {
     unsigned int m_nPort;
     bool m_bNoIpV6;
 
-	//secure communication between front and middle tier
+    //secure communication between front and middle tier
 #ifdef WIN32_64
     std::string m_store_or_pfx;
 #else

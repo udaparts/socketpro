@@ -32,7 +32,7 @@ private:
     static SPA::CUCriticalSection m_csSS;
     static SPA::UINT64 m_ssIndex; //protected by m_csSS
 
-	//following members protected by m_csChache
+    //following members protected by m_csChache
     std::unordered_map<SPA::UINT64, std::pair<DMaxMinAvg, DMyCanceled> > m_mapMMA;
     std::unordered_map<SPA::UINT64, std::pair<DConnectedSessions, DMyCanceled> > m_mapSession;
     std::unordered_map<SPA::UINT64, std::pair<DUploadEmployees, DMyCanceled> > m_mapUpload;
