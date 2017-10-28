@@ -199,7 +199,11 @@ void CYourPeerOne::GetRentalDateTimes(SPA::UINT64 index, SPA::INT64 rental_id, S
 			}
 		}
 		else {
-			//socket closed when sending		
+#ifndef NDEBUG
+			SPA::CAutoLock al(m_csConsole);
+			//socket closed after sending SQL
+			std::cout << "Retry rental date times ......" << std::endl;
+#endif
 		}
 	} while (redo);
 }
@@ -248,15 +252,16 @@ void CYourPeerOne::QueryPaymentMaxMinAvgs(SPA::CUQueue &q) {
 			assert(h.GetColumnInfo().size() == 3);
 		}, true, true, [peer_handle, index, filter, this]() {
 			//socket closed after sending
-#ifndef NDEBUG
-			{
-				SPA::CAutoLock al(m_csConsole);
-				//socket closed after sending
-				std::cout << "Retrying QueryPaymentMaxMinAvgs ......" << std::endl;
-			}
-#endif
+
 			//front peer not closed yet
 			if (peer_handle == this->GetSocketHandle()) {
+#ifndef NDEBUG
+				{
+					SPA::CAutoLock al(m_csConsole);
+					//socket closed after sending
+					std::cout << "Retrying QueryPaymentMaxMinAvgs ......" << std::endl;
+				}
+#endif
 				SPA::CScopeUQueue sq;
 				//repack original request data and retry
 				sq << index << filter;
