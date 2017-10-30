@@ -130,11 +130,25 @@ namespace SPA {
             static void SetDataType(const char *str, CDBColumnInfo &info);
             static void SetLen(const std::string& str, CDBColumnInfo &info);
             static void SetPrecisionScale(const std::string& str, CDBColumnInfo &info);
-
-            static void update_callback(void* udp, int type, const char* db_name, const char* tbl_name, sqlite3_int64 rowid);
-            static int commit_hook(void *p);
-            static void rollback_hook(void *p);
             static int sqlite3_sleep(int time);
+			static void SetCacheTables(const std::wstring &str);
+			static void ltrim(std::wstring &s);
+			static void rtrim(std::wstring &s);
+			static void trim(std::wstring &s);
+			static void SetTriggers();
+			static std::vector<std::pair<std::string, char> > GetKeys(sqlite3 *db, const std::wstring &tblName);
+			static int cbGetKeys(void *p, int argc, char **argv, char **azColName);
+			static void SetTriggers(sqlite3 *db, const std::wstring &tblName, const std::vector<std::pair<std::string, char> > &vCol);
+			static void SetUpdateTrigger(sqlite3 *db, const std::wstring &tblName, const std::vector<std::pair<std::string, char> > &vCol);
+			static void SetInsertTrigger(sqlite3 *db, const std::wstring &tblName, const std::vector<std::pair<std::string, char> > &vCol);
+			static void SetDeleteTrigger(sqlite3 *db, const std::wstring &tblName, const std::vector<std::pair<std::string, char> > &vCol);
+
+			static size_t HasKey(const std::vector<std::pair<std::string, char> > &vCol);
+
+			static void XFunc(sqlite3_context *context, int count, sqlite3_value **pp);
+			static void XStep(sqlite3_context *context, int count, sqlite3_value **pp);
+			static void XFinal(sqlite3_context *context);
+			static void XDestroy(void *p);
 
         protected:
             UINT64 m_oks;
@@ -161,16 +175,13 @@ namespace SPA {
             std::shared_ptr<sqlite3> m_pSqlite;
             std::vector<std::shared_ptr<sqlite3_stmt> > m_vPreparedStatements;
 
-#ifdef WIN32_64
-            typedef std::unordered_map<CSqliteImpl*, std::shared_ptr<std::vector<CSqliteUpdateContext> > > CSqliteUpdateMap;
-#else
-            typedef std::map<CSqliteImpl*, std::shared_ptr<std::vector<CSqliteUpdateContext> > > CSqliteUpdateMap;
-#endif
             static unsigned int m_nParam;
             static std::wstring m_strGlobalConnection; //protected by m_csPeer
-            static std::vector<CSqliteImpl*> m_vSqlitePeer; //protected by m_csPeer
-            static CSqliteUpdateMap m_mapUpdate; //protected by m_csPeer
             static const int SLEEP_TIME = 1; //ms
+			static std::unordered_map<std::wstring, std::vector<std::wstring>> m_mapCache;
+
+			static std::string DIU_TRIGGER_PREFIX;
+			static std::string DIU_TRIGGER_FUNC;
         };
 
         typedef CSocketProService<CSqliteImpl> CSqliteService;
