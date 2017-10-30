@@ -255,8 +255,7 @@ class CYourPeerOne : CCacheBasePeer
     string GetRentalDateTimes(ulong index, long rental_id, out ulong retIndex, out ss.CRentalDateTimes dates, out int res)
     {
         retIndex = index;
-        ss.CRentalDateTimes myDates = new ss.CRentalDateTimes();
-        myDates.rental_id = rental_id;
+        ss.CRentalDateTimes myDates = new ss.CRentalDateTimes(rental_id);
         res = 0;
         string errMsg = "";
         string sql = "SELECT rental_id,rental_date,return_date,last_update FROM sakila.rental where rental_id=" + rental_id;
@@ -278,7 +277,6 @@ class CYourPeerOne : CCacheBasePeer
                 tcs.SetResult(1);
             }, (h, vData) =>
             {
-                myDates.rental_id = long.Parse(vData[0].ToString());
                 myDates.Rental = (DateTime)vData[1];
                 myDates.Return = (DateTime)vData[2];
                 myDates.LastUpdate = (DateTime)vData[3];
