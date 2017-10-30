@@ -48,7 +48,7 @@ namespace SocketProAdapter
         protected TDataSet m_cache = new TDataSet();
         protected UDB.CDBColumnInfoArray m_meta = new UDB.CDBColumnInfoArray();
 
-        private THandler m_hander;
+        private THandler m_hander = null;
 
         protected override void OnSocketPoolEvent(ClientSide.tagSocketPoolEvent spe, THandler handler)
         {
@@ -211,21 +211,34 @@ namespace SocketProAdapter
                     ip += ":";
                     ip += port;
                     m_cache.Set(ip, h.DBManagementSystem);
-                    m_MasterCache.Swap(m_cache); //exchange between master Cache and this m_cache
                 }
             }, ClientSide.CAsyncDBHandler.ENABLE_TABLE_UPDATE_MESSAGES);
             //bring all cached table data into m_cache first for initial cache, and exchange it with Cache if there is no error
             ok = m_hander.Execute("", (h, res, errMsg, affected, fail_ok, id) =>
             {
                 if (res == 0)
-                    m_MasterCache.Swap(m_cache);
+                    m_MasterCache.Swap(m_cache); //exchange between master Cache and this m_cache
             }, (h, vData) =>
             {
                 UDB.CDBColumnInfoArray meta = h.ColumnInfo;
-                m_cache.AddRows(meta[0].DBPath, meta[0].TablePath, vData);
+                try
+                {
+                    m_cache.AddRows(meta[0].DBPath, meta[0].TablePath, vData);
+                }
+                catch (Exception err)
+                {
+                    Console.WriteLine(err.Message);
+                }
             }, (h) =>
             {
-                m_cache.AddEmptyRowset(h.ColumnInfo);
+                try
+                {
+                    m_cache.AddEmptyRowset(h.ColumnInfo);
+                }
+                catch (Exception err)
+                {
+                    Console.WriteLine(err.Message);
+                }
             });
         }
 
@@ -240,10 +253,17 @@ namespace SocketProAdapter
             {
             }
 
-            protected override void OnSocketPoolEvent(ClientSide.tagSocketPoolEvent spe, THandler AsyncServiceHandler)
+            protected override void OnSocketPoolEvent(ClientSide.tagSocketPoolEvent spe, THandler handler)
             {
-                AsyncServiceHandler.Open(DefaultDBName, null); //open a session to backend database by default 
-                base.OnSocketPoolEvent(spe, AsyncServiceHandler);
+                switch (spe)
+                {
+                    case ClientSide.tagSocketPoolEvent.speConnected:
+                        handler.Open(DefaultDBName, null); //open a session to backend database by default 
+                        break;
+                    default:
+                        break;
+                }
+                base.OnSocketPoolEvent(spe, handler);
             }
         }
     }

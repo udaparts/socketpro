@@ -76,7 +76,7 @@ public class CConfig
         m_config.m_vFrontCachedTable.Add("sakila.actor");
         m_config.m_vFrontCachedTable.Add("sakila.language");
         m_config.m_vFrontCachedTable.Add("sakila.country");
-        m_config.m_vFrontCachedTable.Add("mysqldb.employee");
+        //m_config.m_vFrontCachedTable.Add("mysqldb.employee");
 
         return m_config;
     }

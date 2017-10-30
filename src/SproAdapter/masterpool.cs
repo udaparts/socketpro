@@ -47,7 +47,7 @@ namespace SocketProAdapter
         protected TDataSet m_cache = new TDataSet();
         protected UDB.CDBColumnInfoArray m_meta = new UDB.CDBColumnInfoArray();
 
-        private THandler m_hander;
+        private THandler m_hander = null;
 
         protected override void OnSocketPoolEvent(ClientSide.tagSocketPoolEvent spe, THandler handler)
         {

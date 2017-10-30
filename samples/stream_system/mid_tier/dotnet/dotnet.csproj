@@ -21,6 +21,7 @@
     <DefineConstants>DEBUG;TRACE;WIN32_64</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -30,9 +31,11 @@
     <DefineConstants>TRACE;WIN32_64</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="SproAdapter">
+    <Reference Include="SproAdapter, Version=3.1.0.19, Culture=neutral, PublicKeyToken=6a4213dc0321e06c, processorArchitecture=AMD64">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\bin\dotnet\SproAdapter.dll</HintPath>
     </Reference>
     <Reference Include="System" />

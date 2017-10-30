@@ -76,6 +76,26 @@ namespace SocketProAdapter
             return null;
         }
 
+        public DataTable GetTable(string dbName, string tblName)
+        {
+            if (dbName == null || dbName.Length == 0 || tblName == null || tblName.Length == 0)
+                return null;
+            lock (m_cs)
+            {
+                foreach (KeyValuePair<string, System.Data.DataTable> p in m_ds)
+                {
+                    bool equal = (m_bDBNameCaseSensitive ? (string.Compare(dbName, p.Key) == 0) : (string.Compare(dbName, p.Key, StringComparison.OrdinalIgnoreCase) == 0));
+                    if (!equal)
+                        continue;
+                    equal = (m_bTableNameCaseSensitive ? (string.Compare(tblName, p.Value.TableName) == 0) : (string.Compare(tblName, p.Value.TableName, StringComparison.OrdinalIgnoreCase) == 0));
+                    if (!equal)
+                        continue;
+                    return p.Value;
+                }
+            }
+            return null;
+        }
+
         public DataRow[] Find(string dbName, string tblName, string filterExpression)
         {
             return Find(dbName, tblName, filterExpression, "");

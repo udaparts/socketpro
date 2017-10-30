@@ -45,6 +45,7 @@
     <Compile Include="asyncqueue.cs" />
     <Compile Include="ccachedbasehandler.cs" />
     <Compile Include="deque.cs" />
+    <Compile Include="gencachepeer.cs" />
     <Compile Include="masterpool.cs" />
     <Compile Include="masterslavebase.cs" />
     <Compile Include="odbc.cs" />

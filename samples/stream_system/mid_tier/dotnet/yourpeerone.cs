@@ -34,7 +34,7 @@ class CYourPeerOne : CCacheBasePeer
         do
         {
             CMysql handler = CYourServer.Slave.Seek();
-            if (handler != null)
+            if (handler == null)
             {
                 ret = SendResult(ss.Consts.idQueryMaxMinAvgs, index, (int)-1, "No connection to a slave database", pmma);
                 return;
@@ -143,7 +143,8 @@ class CYourPeerOne : CCacheBasePeer
                     if (res != 0 && error.Key == 0)
                         error = new KeyValuePair<int, string>(res, errMsg);
                     ret = SendResult(ss.Consts.idUploadEmployees, index, error.Key, error.Value, vId);
-                }, () => {
+                }, () =>
+                {
                     //front peer not closed yet
                     if (peer_handle == Handle)
                     {
@@ -182,6 +183,7 @@ class CYourPeerOne : CCacheBasePeer
         return CYourServer.Slave.ConnectedSockets;
     }
 
+    [RequestAttr(SocketProAdapter.ClientSide.CAsyncDBHandler.idGetCachedTables, true)]
     protected override string GetCachedTables(string defaultDb, uint flags, bool rowset, ulong index, out int res)
     {
         res = 0;
@@ -275,7 +277,7 @@ class CYourPeerOne : CCacheBasePeer
                 tcs.SetResult(1);
             }, (h, vData) =>
             {
-                myDates.rental_id = (long)vData[0];
+                myDates.rental_id = long.Parse(vData[0].ToString());
                 myDates.Rental = (DateTime)vData[1];
                 myDates.Return = (DateTime)vData[2];
                 myDates.LastUpdate = (DateTime)vData[3];

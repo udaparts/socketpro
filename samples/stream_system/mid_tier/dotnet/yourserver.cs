@@ -5,9 +5,10 @@ using SocketProAdapter.ClientSide;
 
 class CYourServer : CSocketProServer
 {
-    public static CSqlMasterPool<CMysql, CDataSet> Master = new CSqlMasterPool<CMysql, CDataSet>("sakila", true);
-    public static CSqlMasterPool<CMysql, CDataSet>.CSlavePool Slave = new CSqlMasterPool<CMysql, CDataSet>.CSlavePool("sakila");
+    public static CSqlMasterPool<CMysql, CDataSet> Master;
+    public static CSqlMasterPool<CMysql, CDataSet>.CSlavePool Slave;
 
+    [ServiceAttr(ss.Consts.sidStreamSystem)]
     private CSocketProService<CYourPeerOne> m_SSPeer = new CSocketProService<CYourPeerOne>();
 
     public CYourServer(int param = 1)
@@ -51,6 +52,34 @@ class CYourServer : CSocketProServer
     public static void StartMySQLPools()
     {
         CConfig config = CConfig.GetConfig();
-       
+
+        //These case-sensitivities depends on your DB running platform and sensitivity settings.
+        //All of them are false or case-insensitive by default
+        CSqlMasterPool<CMysql, CDataSet>.Cache.FieldNameCaseSensitive = false;
+        CSqlMasterPool<CMysql, CDataSet>.Cache.TableNameCaseSensitive = false;
+        CSqlMasterPool<CMysql, CDataSet>.Cache.DBNameCaseSensitive = false;
+
+        CYourServer.Master = new CSqlMasterPool<CMysql, CDataSet>(config.m_master_default_db, true);
+        //start master pool for cache and update accessing
+        bool ok = CYourServer.Master.StartSocketPool(config.m_ccMaster, config.m_nMasterSessions, 1); //one thread enough
+        //wait until all data of cached tables are brought from backend database server to this middle server application cache
+        ok = CYourServer.Master.AsyncHandlers[0].WaitAll();
+
+        //compute threads and sockets_per_thread
+        uint threads = config.m_nSlaveSessions / (uint)config.m_vccSlave.Count;
+        uint sockets_per_thread = (uint)config.m_vccSlave.Count;
+
+        CYourServer.Slave = new CSqlMasterPool<CMysql, CDataSet>.CSlavePool(config.m_slave_default_db);
+
+        CConnectionContext[,] ppCC = new CConnectionContext[threads, sockets_per_thread];
+        for (uint i = 0; i < threads; ++i)
+        {
+            for (uint j = 0; j < sockets_per_thread; ++j)
+            {
+                ppCC[i, j] = config.m_vccSlave[(int)j];
+            }
+        }
+        //start slave pool for query accessing
+        ok = CYourServer.Slave.StartSocketPool(ppCC);
     }
 }
