@@ -58,10 +58,11 @@ namespace ss
 
     class CRentalDateTimes : IUSerializer
     {
+        const DateTime START_DATETIME = new DateTime(1900, 1, 0);
         public long rental_id = 0;
-        public DateTime Rental;
-        public DateTime Return;
-        public DateTime LastUpdate;
+        public DateTime Rental = START_DATETIME;
+        public DateTime Return = START_DATETIME;
+        public DateTime LastUpdate = START_DATETIME;
 
         public void LoadFrom(CUQueue UQueue)
         {

@@ -256,6 +256,7 @@ class CYourPeerOne : CCacheBasePeer
     {
         retIndex = index;
         ss.CRentalDateTimes myDates = new ss.CRentalDateTimes();
+        myDates.rental_id = rental_id;
         res = 0;
         string errMsg = "";
         string sql = "SELECT rental_id,rental_date,return_date,last_update FROM sakila.rental where rental_id=" + rental_id;

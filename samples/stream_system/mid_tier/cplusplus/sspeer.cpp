@@ -152,6 +152,7 @@ void CYourPeerOne::GetRentalDateTimes(SPA::UINT64 index, SPA::INT64 rental_id, S
 	retIndex = index;
 	res = 0;
 	::memset(&dates, 0, sizeof(dates));
+	dates.rental_id = rental_id;
 	std::wstring sql = L"SELECT rental_id,rental_date,return_date,last_update FROM sakila.rental where rental_id=" + std::to_wstring(rental_id);
 	int redo = 0;
 	do {

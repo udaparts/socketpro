@@ -154,6 +154,9 @@ int main(int argc, char* argv[]) {
 			std::cout << "GetRentalDateTimes call index: " << index << ", error code: " << res << ", error message: ";
 			std::wcout << errMsg.c_str() << std::endl;
 		}
+		else if (dates.Rental == 0 && dates.Return == 0 && dates.LastUpdate == 0) {
+			std::cout << "GetRentalDateTimes call index: " << index << " rental_id=" << dates.rental_id << " not available" << std::endl;
+		}
 		else {
 			SPA::UDateTime rental_date(dates.Rental), return_date(dates.Return), laste_update(dates.LastUpdate);
 			std::cout << "GetRentalDateTimes call index: " << index << " rental_id=" << dates.rental_id << " and dates (" << rental_date.ToDBString() << ", " << return_date.ToDBString() << ", " << laste_update.ToDBString() << ")" << std::endl;
