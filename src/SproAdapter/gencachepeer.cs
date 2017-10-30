@@ -95,7 +95,7 @@ namespace SocketProAdapter
                 {
                     return false;
                 }
-                while ((bytes - offset) > ClientSide.CAsyncDBHandler.DEFAULT_BIG_FIELD_CHUNK_SIZE)
+                while (bytes > ClientSide.CAsyncDBHandler.DEFAULT_BIG_FIELD_CHUNK_SIZE)
                 {
                     ret = SendResult(ClientSide.CAsyncDBHandler.idChunk, buffer, ClientSide.CAsyncDBHandler.DEFAULT_BIG_FIELD_CHUNK_SIZE, offset);
                     if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND)
@@ -103,8 +103,9 @@ namespace SocketProAdapter
                         return false;
                     }
                     offset += ret;
+                    bytes -= ret;
                 }
-                ret = SendResult(ClientSide.CAsyncDBHandler.idEndBLOB, buffer, bytes - offset, offset);
+                ret = SendResult(ClientSide.CAsyncDBHandler.idEndBLOB, buffer, bytes, offset);
                 if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND)
                 {
                     return false;
