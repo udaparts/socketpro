@@ -764,7 +764,12 @@ namespace SocketProAdapter
                         if (ras[0].RequestID <= (ushort)SocketProAdapter.tagBaseRequestID.idReservedTwo)
                             throw new InvalidProgramException("The request ID must be larger than ocketProAdapter.tagBaseRequestID.idReservedTwo");
                         if (m_dicMethod.ContainsKey(ras[0].RequestID))
-                            throw new InvalidProgramException("The request ID (" + ras[0].RequestID.ToString() + ") can not be duplicated within the same service");
+                        {
+                            if (mi.IsVirtual)
+                                continue;
+                            else
+                                throw new InvalidProgramException("The request ID (" + ras[0].RequestID.ToString() + ") can not be duplicated within the same service");
+                        }
                         uint input = 0;
                         uint output = 0;
                         ParameterInfo[] pis = mi.GetParameters();

@@ -183,7 +183,6 @@ class CYourPeerOne : CCacheBasePeer
         return CYourServer.Slave.ConnectedSockets;
     }
 
-    [RequestAttr(SocketProAdapter.ClientSide.CAsyncDBHandler.idGetCachedTables, true)]
     protected override string GetCachedTables(string defaultDb, uint flags, bool rowset, ulong index, out int res)
     {
         res = 0;
