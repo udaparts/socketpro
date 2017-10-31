@@ -91,6 +91,7 @@
       <DataExecutionPrevention>true</DataExecutionPrevention>
       <BaseAddress>
       </BaseAddress>
+      <AdditionalDependencies>Ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -105,6 +106,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ModuleDefinitionFile>../../../../include/sqlite/server_impl/ssqlite.def</ModuleDefinitionFile>
       <DataExecutionPrevention>true</DataExecutionPrevention>
+      <AdditionalDependencies>Ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -125,6 +127,7 @@
       <DataExecutionPrevention>true</DataExecutionPrevention>
       <BaseAddress>
       </BaseAddress>
+      <AdditionalDependencies>Ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -143,6 +146,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <ModuleDefinitionFile>../../../../include/sqlite/server_impl/ssqlite.def</ModuleDefinitionFile>
       <DataExecutionPrevention>true</DataExecutionPrevention>
+      <AdditionalDependencies>Ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>

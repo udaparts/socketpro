@@ -132,26 +132,25 @@ namespace SPA {
             static void SetPrecisionScale(const std::string& str, CDBColumnInfo &info);
             static int sqlite3_sleep(int time);
 			static void SetCacheTables(const std::wstring &str);
-			static void ltrim(std::wstring &s);
-			static void rtrim(std::wstring &s);
-			static void trim(std::wstring &s);
+			static void ltrim(std::string &s);
+			static void rtrim(std::string &s);
+			static void trim(std::string &s);
 			static void SetTriggers();
-			static std::vector<std::pair<std::string, char> > GetKeys(sqlite3 *db, const std::wstring &tblName);
+			static std::vector<std::pair<std::string, char> > GetKeys(sqlite3 *db, const std::string &tblName);
 			static int cbGetKeys(void *p, int argc, char **argv, char **azColName);
-			static void SetTriggers(sqlite3 *db, const std::wstring &tblName, const std::vector<std::pair<std::string, char> > &vCol);
-			static bool SetUpdateTrigger(sqlite3 *db, const std::wstring &tblName, const std::vector<std::pair<std::string, char> > &vCol);
-			static bool SetInsertTrigger(sqlite3 *db, const std::wstring &tblName, const std::vector<std::pair<std::string, char> > &vCol);
-			static bool SetDeleteTrigger(sqlite3 *db, const std::wstring &tblName, const std::vector<std::pair<std::string, char> > &vCol);
+			static void SetTriggers(sqlite3 *db, const std::string &tblName, const std::vector<std::pair<std::string, char> > &vCol);
+			static bool SetUpdateTrigger(sqlite3 *db, const std::string &tblName, const std::vector<std::pair<std::string, char> > &vCol);
+			static bool SetInsertTrigger(sqlite3 *db, const std::string &tblName, const std::vector<std::pair<std::string, char> > &vCol);
+			static bool SetDeleteTrigger(sqlite3 *db, const std::string &tblName, const std::vector<std::pair<std::string, char> > &vCol);
 			static int DoAttach(sqlite3 *db);
 			bool SubscribeForEvents(sqlite3 *db, const std::wstring &strConnection);
-
+			static bool InCache(const std::string &dbFile);
+			static int cbGetAllTables(void *p, int argc, char **argv, char **azColName);
+			static void DropAllTriggers(sqlite3 *db);
+			static void DropATrigger(sqlite3 *db, const std::string &sql);
 			static size_t HasKey(const std::vector<std::pair<std::string, char> > &vCol);
-
 			static void XFunc(sqlite3_context *context, int count, sqlite3_value **pp);
-			static void XStep(sqlite3_context *context, int count, sqlite3_value **pp);
-			static void XFinal(sqlite3_context *context);
-			static void XDestroy(void *p);
-
+			
         protected:
             UINT64 m_oks;
             UINT64 m_fails;
@@ -180,7 +179,7 @@ namespace SPA {
             static unsigned int m_nParam;
             static std::wstring m_strGlobalConnection; //protected by m_csPeer
             static const int SLEEP_TIME = 1; //ms
-			static std::unordered_map<std::wstring, std::vector<std::wstring>> m_mapCache;
+			static std::unordered_map<std::string, std::vector<std::string>> m_mapCache;
 
 			static std::string DIU_TRIGGER_PREFIX;
 			static std::string DIU_TRIGGER_FUNC;
