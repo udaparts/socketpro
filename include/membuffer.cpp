@@ -902,3 +902,811 @@ namespace SPA
     }
 }
 
+#ifndef WIN32_64
+
+HRESULT VariantChangeType(VARIANT *pvargDest, const VARIANT *pvarSrc, unsigned short wFlags, VARTYPE vt) {
+    if (!pvargDest || !pvarSrc)
+        return E_INVALIDARG;
+    ::VariantClear(pvargDest);
+    if ((pvarSrc->vt == VT_NULL || pvarSrc->vt == VT_EMPTY) && (vt == VT_NULL || vt == VT_EMPTY)) {
+        pvargDest->vt = pvarSrc->vt;
+        return S_OK;
+    }
+    pvargDest->vt = vt;
+    switch (vt) {
+        case VT_I1:
+            switch (pvarSrc->vt) {
+                case VT_I1:
+                    pvargDest->cVal = pvarSrc->cVal;
+                    break;
+                case VT_I2:
+                    pvargDest->cVal = (char) pvarSrc->iVal;
+                    break;
+                case VT_INT:
+                case VT_I4:
+                    pvargDest->cVal = (char) pvarSrc->intVal;
+                    break;
+                case VT_I8:
+                    pvargDest->cVal = (char) pvarSrc->llVal;
+                    break;
+                case VT_UI1:
+                    pvargDest->cVal = (char) pvarSrc->bVal;
+                    break;
+                case VT_UI2:
+                    pvargDest->cVal = (char) pvarSrc->uiVal;
+                    break;
+                case VT_UINT:
+                case VT_UI4:
+                    pvargDest->cVal = (char) pvarSrc->ulVal;
+                    break;
+                case VT_UI8:
+                    pvargDest->cVal = (char) pvarSrc->ullVal;
+                    break;
+                case VT_R4:
+                    pvargDest->cVal = (char) pvarSrc->fltVal;
+                    break;
+                case VT_R8:
+                    pvargDest->cVal = (char) pvarSrc->dblVal;
+                    break;
+                case VT_BOOL:
+                    pvargDest->cVal = (char) pvarSrc->boolVal;
+                    break;
+                case VT_DECIMAL:
+                    pvargDest->cVal = (char) SPA::ToDouble(pvarSrc->decVal);
+                    break;
+                case VT_BSTR:
+                {
+                    SPA::INT64 data;
+                    int res = swscanf(pvarSrc->bstrVal, L"%lld", &data);
+                    if (res)
+                        pvargDest->cVal = (char) data;
+                    else {
+                        pvargDest->vt = VT_EMPTY;
+                        return DISP_E_TYPEMISMATCH;
+                    }
+                }
+                    break;
+                default:
+                    pvargDest->vt = VT_EMPTY;
+                    return DISP_E_TYPEMISMATCH;
+            }
+            break;
+        case VT_I2:
+            switch (pvarSrc->vt) {
+                case VT_I1:
+                    pvargDest->iVal = pvarSrc->cVal;
+                    break;
+                case VT_I2:
+                    pvargDest->iVal = pvarSrc->iVal;
+                    break;
+                case VT_INT:
+                case VT_I4:
+                    pvargDest->iVal = (short) pvarSrc->intVal;
+                    break;
+                case VT_I8:
+                    pvargDest->iVal = (short) pvarSrc->llVal;
+                    break;
+                case VT_UI1:
+                    pvargDest->iVal = (short) pvarSrc->bVal;
+                    break;
+                case VT_UI2:
+                    pvargDest->iVal = (short) pvarSrc->uiVal;
+                    break;
+                case VT_UINT:
+                case VT_UI4:
+                    pvargDest->iVal = (short) pvarSrc->ulVal;
+                    break;
+                case VT_UI8:
+                    pvargDest->iVal = (short) pvarSrc->ullVal;
+                    break;
+                case VT_R4:
+                    pvargDest->iVal = (short) pvarSrc->fltVal;
+                    break;
+                case VT_R8:
+                    pvargDest->iVal = (short) pvarSrc->dblVal;
+                    break;
+                case VT_BOOL:
+                    pvargDest->iVal = pvarSrc->boolVal;
+                    break;
+                case VT_DECIMAL:
+                    pvargDest->iVal = (short) SPA::ToDouble(pvarSrc->decVal);
+                    break;
+                case VT_BSTR:
+                {
+                    SPA::INT64 data;
+                    int res = swscanf(pvarSrc->bstrVal, L"%lld", &data);
+                    if (res)
+                        pvargDest->iVal = (short) data;
+                    else {
+                        pvargDest->vt = VT_EMPTY;
+                        return DISP_E_TYPEMISMATCH;
+                    }
+                }
+                    break;
+                default:
+                    return DISP_E_TYPEMISMATCH;
+            }
+            break;
+        case VT_INT:
+        case VT_I4:
+            switch (pvarSrc->vt) {
+                case VT_I1:
+                    pvargDest->intVal = pvarSrc->cVal;
+                    break;
+                case VT_I2:
+                    pvargDest->intVal = pvarSrc->iVal;
+                    break;
+                case VT_INT:
+                case VT_I4:
+                    pvargDest->intVal = pvarSrc->intVal;
+                    break;
+                case VT_I8:
+                    pvargDest->intVal = (int) pvarSrc->llVal;
+                    break;
+                case VT_UI1:
+                    pvargDest->intVal = (int) pvarSrc->bVal;
+                    break;
+                case VT_UI2:
+                    pvargDest->intVal = (int) pvarSrc->uiVal;
+                    break;
+                case VT_UINT:
+                case VT_UI4:
+                    pvargDest->intVal = (int) pvarSrc->ulVal;
+                    break;
+                case VT_UI8:
+                    pvargDest->intVal = (int) pvarSrc->ullVal;
+                    break;
+                case VT_R4:
+                    pvargDest->intVal = (int) pvarSrc->fltVal;
+                    break;
+                case VT_R8:
+                    pvargDest->intVal = (int) pvarSrc->dblVal;
+                    break;
+                case VT_BOOL:
+                    pvargDest->intVal = pvarSrc->boolVal;
+                    break;
+                case VT_DECIMAL:
+                    pvargDest->intVal = (int) SPA::ToDouble(pvarSrc->decVal);
+                    break;
+                case VT_BSTR:
+                {
+                    SPA::INT64 data;
+                    int res = swscanf(pvarSrc->bstrVal, L"%lld", &data);
+                    if (res)
+                        pvargDest->intVal = (int) data;
+                    else {
+                        pvargDest->vt = VT_EMPTY;
+                        return DISP_E_TYPEMISMATCH;
+                    }
+                }
+                    break;
+                default:
+                    pvargDest->vt = VT_EMPTY;
+                    return DISP_E_TYPEMISMATCH;
+            }
+            break;
+        case VT_I8:
+            switch (pvarSrc->vt) {
+                case VT_I1:
+                    pvargDest->llVal = pvarSrc->cVal;
+                    break;
+                case VT_I2:
+                    pvargDest->llVal = pvarSrc->iVal;
+                    break;
+                case VT_INT:
+                case VT_I4:
+                    pvargDest->llVal = pvarSrc->intVal;
+                    break;
+                case VT_I8:
+                    pvargDest->llVal = pvarSrc->llVal;
+                    break;
+                case VT_UI1:
+                    pvargDest->llVal = pvarSrc->bVal;
+                    break;
+                case VT_UI2:
+                    pvargDest->llVal = (SPA::INT64)pvarSrc->uiVal;
+                    break;
+                case VT_UINT:
+                case VT_UI4:
+                    pvargDest->llVal = (SPA::INT64)pvarSrc->ulVal;
+                    break;
+                case VT_UI8:
+                    pvargDest->llVal = (SPA::INT64)pvarSrc->ullVal;
+                    break;
+                case VT_R4:
+                    pvargDest->llVal = (SPA::INT64)pvarSrc->fltVal;
+                    break;
+                case VT_R8:
+                    pvargDest->llVal = (SPA::INT64)pvarSrc->dblVal;
+                    break;
+                case VT_BOOL:
+                    pvargDest->llVal = pvarSrc->boolVal;
+                    break;
+                case VT_DECIMAL:
+                    pvargDest->llVal = (SPA::INT64)SPA::ToDouble(pvarSrc->decVal);
+                    break;
+                case VT_BSTR:
+                {
+                    SPA::INT64 data;
+                    int res = swscanf(pvarSrc->bstrVal, L"%lld", &data);
+                    if (res)
+                        pvargDest->llVal = (char) data;
+                    else {
+                        pvargDest->vt = VT_EMPTY;
+                        return DISP_E_TYPEMISMATCH;
+                    }
+                }
+                    break;
+                default:
+                    pvargDest->vt = VT_EMPTY;
+                    return DISP_E_TYPEMISMATCH;
+            }
+            break;
+        case VT_R4:
+            switch (pvarSrc->vt) {
+                case VT_I1:
+                    pvargDest->fltVal = (float) pvarSrc->cVal;
+                    break;
+                case VT_I2:
+                    pvargDest->fltVal = (float) pvarSrc->iVal;
+                    break;
+                case VT_INT:
+                case VT_I4:
+                    pvargDest->fltVal = (float) pvarSrc->intVal;
+                    break;
+                case VT_I8:
+                    pvargDest->fltVal = (float) pvarSrc->llVal;
+                    break;
+                case VT_UI1:
+                    pvargDest->fltVal = (float) pvarSrc->bVal;
+                    break;
+                case VT_UI2:
+                    pvargDest->fltVal = (float) pvarSrc->uiVal;
+                    break;
+                case VT_UINT:
+                case VT_UI4:
+                    pvargDest->fltVal = (float) pvarSrc->ulVal;
+                    break;
+                case VT_UI8:
+                    pvargDest->fltVal = (float) pvarSrc->ullVal;
+                    break;
+                case VT_R4:
+                    pvargDest->fltVal = pvarSrc->fltVal;
+                    break;
+                case VT_R8:
+                    pvargDest->fltVal = (float) pvarSrc->dblVal;
+                    break;
+                case VT_BOOL:
+                    pvargDest->fltVal = (float) pvarSrc->boolVal;
+                    break;
+                case VT_DECIMAL:
+                    pvargDest->fltVal = (float) SPA::ToDouble(pvarSrc->decVal);
+                    break;
+                case VT_BSTR:
+                {
+                    float data;
+                    int res = swscanf(pvarSrc->bstrVal, L"%f", &data);
+                    if (res)
+                        pvargDest->fltVal = data;
+                    else {
+                        pvargDest->vt = VT_EMPTY;
+                        return DISP_E_TYPEMISMATCH;
+                    }
+                }
+                    break;
+                default:
+                    pvargDest->vt = VT_EMPTY;
+                    return DISP_E_TYPEMISMATCH;
+            }
+            break;
+        case VT_R8:
+            switch (pvarSrc->vt) {
+                case VT_I1:
+                    pvargDest->dblVal = (double) pvarSrc->cVal;
+                    break;
+                case VT_I2:
+                    pvargDest->dblVal = (double) pvarSrc->iVal;
+                    break;
+                case VT_INT:
+                case VT_I4:
+                    pvargDest->dblVal = (double) pvarSrc->intVal;
+                    break;
+                case VT_I8:
+                    pvargDest->dblVal = (double) pvarSrc->llVal;
+                    break;
+                case VT_UI1:
+                    pvargDest->dblVal = (double) pvarSrc->bVal;
+                    break;
+                case VT_UI2:
+                    pvargDest->dblVal = (double) pvarSrc->uiVal;
+                    break;
+                case VT_UINT:
+                case VT_UI4:
+                    pvargDest->dblVal = (double) pvarSrc->ulVal;
+                    break;
+                case VT_UI8:
+                    pvargDest->dblVal = (double) pvarSrc->ullVal;
+                    break;
+                case VT_R4:
+                    pvargDest->dblVal = pvarSrc->fltVal;
+                    break;
+                case VT_R8:
+                    pvargDest->dblVal = pvarSrc->dblVal;
+                    break;
+                case VT_BOOL:
+                    pvargDest->dblVal = pvarSrc->boolVal;
+                    break;
+                case VT_DECIMAL:
+                    pvargDest->dblVal = SPA::ToDouble(pvarSrc->decVal);
+                    break;
+                case VT_BSTR:
+                {
+                    double data;
+                    int res = swscanf(pvarSrc->bstrVal, L"%lf", &data);
+                    if (res)
+                        pvargDest->dblVal = data;
+                    else {
+                        pvargDest->vt = VT_EMPTY;
+                        return DISP_E_TYPEMISMATCH;
+                    }
+                }
+                    break;
+                default:
+                    pvargDest->vt = VT_EMPTY;
+                    return DISP_E_TYPEMISMATCH;
+            }
+            break;
+        case VT_UI1:
+            switch (pvarSrc->vt) {
+                case VT_I1:
+                    pvargDest->bVal = (unsigned char) pvarSrc->cVal;
+                    break;
+                case VT_I2:
+                    pvargDest->bVal = (unsigned char) pvarSrc->iVal;
+                    break;
+                case VT_INT:
+                case VT_I4:
+                    pvargDest->bVal = (unsigned char) pvarSrc->intVal;
+                    break;
+                case VT_I8:
+                    pvargDest->bVal = (unsigned char) pvarSrc->llVal;
+                    break;
+                case VT_UI1:
+                    pvargDest->bVal = (unsigned char) pvarSrc->bVal;
+                    break;
+                case VT_UI2:
+                    pvargDest->bVal = (unsigned char) pvarSrc->uiVal;
+                    break;
+                case VT_UINT:
+                case VT_UI4:
+                    pvargDest->bVal = (unsigned char) pvarSrc->ulVal;
+                    break;
+                case VT_UI8:
+                    pvargDest->bVal = (unsigned char) pvarSrc->ullVal;
+                    break;
+                case VT_R4:
+                    pvargDest->bVal = (unsigned char) pvarSrc->fltVal;
+                    break;
+                case VT_R8:
+                    pvargDest->bVal = (unsigned char) pvarSrc->dblVal;
+                    break;
+                case VT_BOOL:
+                    pvargDest->bVal = (unsigned char) pvarSrc->boolVal;
+                    break;
+                case VT_DECIMAL:
+                    pvargDest->bVal = (unsigned char) SPA::ToDouble(pvarSrc->decVal);
+                    break;
+                case VT_BSTR:
+                {
+                    SPA::UINT64 data;
+                    int res = swscanf(pvarSrc->bstrVal, L"%llu", &data);
+                    if (res)
+                        pvargDest->bVal = (char) data;
+                    else {
+                        pvargDest->vt = VT_EMPTY;
+                        return E_UNEXPECTED;
+                    }
+                }
+                    break;
+                default:
+                    pvargDest->vt = VT_EMPTY;
+                    return DISP_E_TYPEMISMATCH;
+            }
+            break;
+        case VT_UI2:
+            switch (pvarSrc->vt) {
+                case VT_I1:
+                    pvargDest->uiVal = (unsigned short) pvarSrc->cVal;
+                    break;
+                case VT_I2:
+                    pvargDest->uiVal = (unsigned short) pvarSrc->iVal;
+                    break;
+                case VT_INT:
+                case VT_I4:
+                    pvargDest->uiVal = (unsigned short) pvarSrc->intVal;
+                    break;
+                case VT_I8:
+                    pvargDest->uiVal = (unsigned short) pvarSrc->llVal;
+                    break;
+                case VT_UI1:
+                    pvargDest->uiVal = (unsigned short) pvarSrc->bVal;
+                    break;
+                case VT_UI2:
+                    pvargDest->uiVal = (unsigned short) pvarSrc->uiVal;
+                    break;
+                case VT_UINT:
+                case VT_UI4:
+                    pvargDest->uiVal = (unsigned short) pvarSrc->ulVal;
+                    break;
+                case VT_UI8:
+                    pvargDest->uiVal = (unsigned short) pvarSrc->ullVal;
+                    break;
+                case VT_R4:
+                    pvargDest->uiVal = (unsigned short) pvarSrc->fltVal;
+                    break;
+                case VT_R8:
+                    pvargDest->uiVal = (unsigned short) pvarSrc->dblVal;
+                    break;
+                case VT_BOOL:
+                    pvargDest->uiVal = (unsigned short) pvarSrc->boolVal;
+                    break;
+                case VT_DECIMAL:
+                    pvargDest->uiVal = (unsigned short) SPA::ToDouble(pvarSrc->decVal);
+                    break;
+                case VT_BSTR:
+                {
+                    SPA::UINT64 data;
+                    int res = swscanf(pvarSrc->bstrVal, L"%llu", &data);
+                    if (res)
+                        pvargDest->uiVal = (unsigned short) data;
+                    else {
+                        pvargDest->vt = VT_EMPTY;
+                        return E_UNEXPECTED;
+                    }
+                }
+                    break;
+                default:
+                    pvargDest->vt = VT_EMPTY;
+                    return DISP_E_TYPEMISMATCH;
+            }
+            break;
+        case VT_UINT:
+        case VT_UI4:
+            switch (pvarSrc->vt) {
+                case VT_I1:
+                    pvargDest->uintVal = (unsigned int) pvarSrc->cVal;
+                    break;
+                case VT_I2:
+                    pvargDest->uintVal = (unsigned int) pvarSrc->iVal;
+                    break;
+                case VT_INT:
+                case VT_I4:
+                    pvargDest->uintVal = (unsigned int) pvarSrc->intVal;
+                    break;
+                case VT_I8:
+                    pvargDest->uintVal = (unsigned int) pvarSrc->llVal;
+                    break;
+                case VT_UI1:
+                    pvargDest->uintVal = (unsigned int) pvarSrc->bVal;
+                    break;
+                case VT_UI2:
+                    pvargDest->uintVal = (unsigned int) pvarSrc->uiVal;
+                    break;
+                case VT_UINT:
+                case VT_UI4:
+                    pvargDest->uintVal = (unsigned int) pvarSrc->ulVal;
+                    break;
+                case VT_UI8:
+                    pvargDest->uintVal = (unsigned int) pvarSrc->ullVal;
+                    break;
+                case VT_R4:
+                    pvargDest->uintVal = (unsigned int) pvarSrc->fltVal;
+                    break;
+                case VT_R8:
+                    pvargDest->uintVal = (unsigned int) pvarSrc->dblVal;
+                    break;
+                case VT_BOOL:
+                    pvargDest->uintVal = (unsigned int) pvarSrc->boolVal;
+                    break;
+                case VT_DECIMAL:
+                    pvargDest->uintVal = (unsigned int) SPA::ToDouble(pvarSrc->decVal);
+                    break;
+                case VT_BSTR:
+                {
+                    SPA::UINT64 data;
+                    int res = swscanf(pvarSrc->bstrVal, L"%lld", &data);
+                    if (res)
+                        pvargDest->uintVal = (unsigned int) data;
+                    else {
+                        pvargDest->vt = VT_EMPTY;
+                        return DISP_E_TYPEMISMATCH;
+                    }
+                }
+                    break;
+                default:
+                    pvargDest->vt = VT_EMPTY;
+                    return DISP_E_TYPEMISMATCH;
+            }
+            break;
+        case VT_UI8:
+            switch (pvarSrc->vt) {
+                case VT_I1:
+                    pvargDest->ullVal = (SPA::UINT64)pvarSrc->cVal;
+                    break;
+                case VT_I2:
+                    pvargDest->ullVal = (SPA::UINT64)pvarSrc->iVal;
+                    break;
+                case VT_INT:
+                case VT_I4:
+                    pvargDest->ullVal = (SPA::UINT64)pvarSrc->intVal;
+                    break;
+                case VT_I8:
+                    pvargDest->ullVal = (SPA::UINT64)pvarSrc->llVal;
+                    break;
+                case VT_UI1:
+                    pvargDest->ullVal = (SPA::UINT64)pvarSrc->bVal;
+                    break;
+                case VT_UI2:
+                    pvargDest->ullVal = (SPA::UINT64)pvarSrc->uiVal;
+                    break;
+                case VT_UINT:
+                case VT_UI4:
+                    pvargDest->ullVal = (SPA::UINT64)pvarSrc->ulVal;
+                    break;
+                case VT_UI8:
+                    pvargDest->ullVal = (SPA::UINT64)pvarSrc->ullVal;
+                    break;
+                case VT_R4:
+                    pvargDest->ullVal = (SPA::UINT64)pvarSrc->fltVal;
+                    break;
+                case VT_R8:
+                    pvargDest->ullVal = (SPA::UINT64)pvarSrc->dblVal;
+                    break;
+                case VT_BOOL:
+                    pvargDest->ullVal = (SPA::UINT64)pvarSrc->boolVal;
+                    break;
+                case VT_DECIMAL:
+                    pvargDest->ullVal = (SPA::UINT64)SPA::ToDouble(pvarSrc->decVal);
+                    break;
+                case VT_BSTR:
+                {
+                    SPA::UINT64 data;
+                    int res = swscanf(pvarSrc->bstrVal, L"%llu", &data);
+                    if (res)
+                        pvargDest->ullVal = data;
+                    else {
+                        pvargDest->vt = VT_EMPTY;
+                        return DISP_E_TYPEMISMATCH;
+                    }
+                }
+                    break;
+                default:
+                    pvargDest->vt = VT_EMPTY;
+                    return DISP_E_TYPEMISMATCH;
+            }
+            break;
+        case VT_BSTR:
+            if (pvarSrc->vt == VT_BSTR) {
+                pvargDest->bstrVal = ::SysAllocString(pvarSrc->bstrVal);
+            } else if (pvarSrc->vt == VT_DECIMAL) {
+                std::string s = SPA::ToString_long(pvarSrc->decVal);
+                pvargDest->bstrVal = SPA::Utilities::ToBSTR(s.c_str(), s.size());
+            } else {
+                wchar_t buffer[64] = {0};
+                switch (pvarSrc->vt) {
+                    case VT_I1:
+                        swprintf(buffer, sizeof (buffer) / sizeof (wchar_t), L"%d", pvarSrc->cVal);
+                        break;
+                    case VT_I2:
+                        swprintf(buffer, sizeof (buffer) / sizeof (wchar_t), L"%d", pvarSrc->iVal);
+                        break;
+                    case VT_INT:
+                    case VT_I4:
+                        swprintf(buffer, sizeof (buffer) / sizeof (wchar_t), L"%d", pvarSrc->intVal);
+                        break;
+                    case VT_I8:
+                        swprintf(buffer, sizeof (buffer) / sizeof (wchar_t), L"%ld", pvarSrc->cVal);
+                        break;
+                    case VT_UI1:
+                        swprintf(buffer, sizeof (buffer) / sizeof (wchar_t), L"%u", pvarSrc->bVal);
+                        break;
+                    case VT_UI2:
+                        swprintf(buffer, sizeof (buffer) / sizeof (wchar_t), L"%u", pvarSrc->uiVal);
+                        break;
+                    case VT_UINT:
+                    case VT_UI4:
+                        swprintf(buffer, sizeof (buffer) / sizeof (wchar_t), L"%u", pvarSrc->uintVal);
+                        break;
+                    case VT_UI8:
+                        swprintf(buffer, sizeof (buffer) / sizeof (wchar_t), L"%lu", pvarSrc->ullVal);
+                        break;
+                    case VT_R4:
+                        swprintf(buffer, sizeof (buffer) / sizeof (wchar_t), L"%f", pvarSrc->fltVal);
+                        break;
+                    case VT_R8:
+                        swprintf(buffer, sizeof (buffer) / sizeof (wchar_t), L"%lf", pvarSrc->dblVal);
+                        break;
+                    case VT_BOOL:
+                        swprintf(buffer, sizeof (buffer) / sizeof (wchar_t), L"%d", pvarSrc->boolVal);
+                        break;
+                    default:
+                        pvargDest->vt = VT_EMPTY;
+                        return DISP_E_TYPEMISMATCH;
+                }
+                pvargDest->bstrVal = ::SysAllocString(buffer);
+            }
+            break;
+        case VT_BOOL:
+            switch (pvarSrc->vt) {
+                case VT_BOOL:
+                    pvargDest->boolVal = pvarSrc->boolVal;
+                    break;
+                case VT_I1:
+                    pvargDest->boolVal = pvarSrc->cVal ? VARIANT_TRUE : VARIANT_FALSE;
+                    break;
+                case VT_I2:
+                    pvargDest->boolVal = pvarSrc->iVal ? VARIANT_TRUE : VARIANT_FALSE;
+                    break;
+                case VT_INT:
+                case VT_I4:
+                    pvargDest->boolVal = pvarSrc->intVal ? VARIANT_TRUE : VARIANT_FALSE;
+                    break;
+                case VT_I8:
+                    pvargDest->boolVal = pvarSrc->llVal ? VARIANT_TRUE : VARIANT_FALSE;
+                    break;
+                case VT_UI1:
+                    pvargDest->boolVal = pvarSrc->bVal ? VARIANT_TRUE : VARIANT_FALSE;
+                    break;
+                case VT_UI2:
+                    pvargDest->boolVal = pvarSrc->uiVal ? VARIANT_TRUE : VARIANT_FALSE;
+                    break;
+                case VT_UINT:
+                case VT_UI4:
+                    pvargDest->boolVal = pvarSrc->uintVal ? VARIANT_TRUE : VARIANT_FALSE;
+                    break;
+                case VT_UI8:
+                    pvargDest->boolVal = pvarSrc->ullVal ? VARIANT_TRUE : VARIANT_FALSE;
+                    break;
+                case VT_R4:
+                    pvargDest->boolVal = pvarSrc->fltVal ? VARIANT_TRUE : VARIANT_FALSE;
+                    break;
+                case VT_R8:
+                    pvargDest->boolVal = pvarSrc->dblVal ? VARIANT_TRUE : VARIANT_FALSE;
+                    break;
+                case VT_DECIMAL:
+                    pvargDest->boolVal = (pvarSrc->decVal.Lo64 || pvarSrc->decVal.Hi32) ? VARIANT_TRUE : VARIANT_FALSE;
+                    break;
+                case VT_BSTR:
+                {
+                    double data;
+                    int res = swscanf(pvarSrc->bstrVal, L"%lf", &data);
+                    if (res)
+                        pvargDest->boolVal = data ? VARIANT_TRUE : VARIANT_FALSE;
+                    else {
+                        pvargDest->vt = VT_EMPTY;
+                        return DISP_E_TYPEMISMATCH;
+                    }
+                }
+                    break;
+                default:
+                    pvargDest->vt = VT_EMPTY;
+                    return DISP_E_TYPEMISMATCH;
+            }
+            break;
+        case VT_DATE:
+            switch (pvarSrc->vt) {
+                case VT_DATE:
+                    pvargDest->ullVal = pvarSrc->ullVal;
+                    break;
+                case VT_BSTR:
+                {
+                    SPA::CScopeUQueue sb;
+                    SPA::Utilities::ToUTF8(pvarSrc->bstrVal, ::SysStringLen(pvarSrc->bstrVal), *sb);
+                    //assuming string is correct!
+                    pvargDest->ullVal = SPA::UDateTime((const char*) sb->GetBuffer()).time;
+                }
+                    break;
+                default:
+                    pvargDest->vt = VT_EMPTY;
+                    return DISP_E_TYPEMISMATCH;
+            }
+            break;
+        case VT_DECIMAL:
+            ::memset(&pvargDest->decVal, 0, sizeof (DECIMAL));
+            switch (pvarSrc->vt) {
+                case VT_DECIMAL:
+                    pvargDest->decVal = pvarSrc->decVal;
+                    break;
+                case VT_BOOL:
+                    if (pvarSrc->boolVal) {
+                        pvargDest->decVal.Lo64 = 1;
+                        pvargDest->decVal.sign = 0x80;
+                    }
+                    break;
+                case VT_UI1:
+                    pvargDest->decVal.Lo64 = pvarSrc->bVal;
+                    break;
+                case VT_UI2:
+                    pvargDest->decVal.Lo64 = pvarSrc->uiVal;
+                    break;
+                case VT_UINT:
+                case VT_UI4:
+                    pvargDest->decVal.Lo64 = pvarSrc->uintVal;
+                    break;
+                case VT_UI8:
+                    pvargDest->decVal.Lo64 = pvarSrc->ullVal;
+                    break;
+                case VT_I1:
+                {
+                    char str[32] = {0};
+                    ::sprintf(str, "%d", pvarSrc->cVal);
+                    SPA::ParseDec(str, pvargDest->decVal);
+                }
+                    break;
+                case VT_I2:
+                {
+                    char str[32] = {0};
+                    ::sprintf(str, "%d", pvarSrc->iVal);
+                    SPA::ParseDec(str, pvargDest->decVal);
+                }
+                    break;
+                case VT_I4:
+                case VT_INT:
+                {
+                    char str[32] = {0};
+                    ::sprintf(str, "%d", pvarSrc->intVal);
+                    SPA::ParseDec(str, pvargDest->decVal);
+                }
+                    break;
+                case VT_I8:
+                {
+                    char str[32] = {0};
+                    ::sprintf(str, "%ld", pvarSrc->llVal);
+                    SPA::ParseDec(str, pvargDest->decVal);
+                }
+                    break;
+                case VT_R4:
+                {
+                    char str[64] = {0};
+                    ::sprintf(str, "%f", pvarSrc->fltVal);
+                    SPA::ParseDec(str, pvargDest->decVal);
+                }
+                    break;
+                case VT_R8:
+                {
+                    char str[64] = {0};
+                    ::sprintf(str, "%lf", pvarSrc->dblVal);
+                    SPA::ParseDec(str, pvargDest->decVal);
+                }
+                    break;
+                case VT_BSTR:
+                {
+                    SPA::CScopeUQueue sb;
+                    SPA::Utilities::ToUTF8(pvarSrc->bstrVal, ::SysStringLen(pvarSrc->bstrVal), *sb);
+                    //assuming parse correct!
+                    SPA::ParseDec_long((const char*) sb->GetBuffer(), pvargDest->decVal);
+                }
+                    break;
+                default:
+                    break;
+            }
+            break;
+        case VT_NULL:
+        case VT_EMPTY:
+            break;
+        case VT_CLSID:
+        case VT_SAFEARRAY:
+        case VT_PTR:
+        case VT_HRESULT:
+        case VT_RESERVED:
+        case VT_VOID:
+            pvargDest->vt = VT_EMPTY;
+            return DISP_E_BADVARTYPE;
+        default:
+            pvargDest->vt = VT_EMPTY;
+            return DISP_E_TYPEMISMATCH;
+    }
+    return S_OK;
+}
+
+#endif

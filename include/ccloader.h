@@ -437,8 +437,8 @@ namespace SPA {
                 }
 
                 ~CClientCoreLoader() {
-                    if (m_hClientCore)
-                        ::FreeLibrary(m_hClientCore);
+                    //if (m_hClientCore)
+                    //    ::FreeLibrary(m_hClientCore);
                 }
 
             public:

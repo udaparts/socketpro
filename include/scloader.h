@@ -2,7 +2,7 @@
 #ifndef ___SOCKETPRO_SERVERSIDE_LOADER__H____
 #define ___SOCKETPRO_SERVERSIDE_LOADER__H____
 
-#include "userver.h"
+#include "server_functions.h"
 
 namespace SPA {
     namespace ServerSide {

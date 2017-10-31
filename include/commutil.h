@@ -9,7 +9,6 @@
 #include "wincommutil.h"
 #else
 #include "nixcommutil.h"
-#include "bvariant.h"
 #include <boost/multiprecision/cpp_int.hpp>
 #endif
 
@@ -18,8 +17,6 @@
 #define CUSEx(errMsg) CUExCode(errMsg, MB_BAD_DESERIALIZATION)
 
 namespace SPA {
-
-    typedef CComVariant UVariant;
 
 #ifndef WIN32_64
     using namespace boost::multiprecision;
@@ -90,6 +87,7 @@ namespace SPA {
     }
 
 #ifndef WINCE
+
     static std::string ToString(const DECIMAL &decVal) {
         std::string s = std::to_string(decVal.Lo64);
         unsigned char len = (unsigned char) s.size();
@@ -151,6 +149,15 @@ namespace SPA {
         }
         return d;
     }
+
+};
+
+#ifndef WIN32_64	
+#include "bvariant.h"
+#endif
+
+namespace SPA {
+    typedef CComVariant UVariant;
 
     static bool IsEqual(const tagVARIANT &vt0, const tagVARIANT &vt1) {
         if (vt0.vt == VT_EMPTY && vt1.vt == VT_EMPTY) {

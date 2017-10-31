@@ -2,7 +2,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>9.0.21022</ProductVersion>
+    <ProductVersion>9.0.30729</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{7791E581-AE1A-4F06-9444-45B0CA80298B}</ProjectGuid>
     <OutputType>Library</OutputType>
@@ -73,6 +73,9 @@
     <Compile Include="..\SproAdapter\basedefines.cs">
       <Link>basedefines.cs</Link>
     </Compile>
+    <Compile Include="..\SproAdapter\ccachedbasehandler.cs">
+      <Link>ccachedbasehandler.cs</Link>
+    </Compile>
     <Compile Include="..\SproAdapter\clientinterop.cs">
       <Link>clientinterop.cs</Link>
     </Compile>
@@ -81,6 +84,12 @@
     </Compile>
     <Compile Include="..\SproAdapter\deque.cs">
       <Link>deque.cs</Link>
+    </Compile>
+    <Compile Include="..\SproAdapter\masterpool.cs">
+      <Link>masterpool.cs</Link>
+    </Compile>
+    <Compile Include="..\SproAdapter\masterslavebase.cs">
+      <Link>masterslavebase.cs</Link>
     </Compile>
     <Compile Include="..\SproAdapter\odbc.cs">
       <Link>odbc.cs</Link>
@@ -97,8 +106,14 @@
     <Compile Include="..\SproAdapter\socketpool.cs">
       <Link>socketpool.cs</Link>
     </Compile>
+    <Compile Include="..\SproAdapter\sqlmasterpool.cs">
+      <Link>sqlmasterpool.cs</Link>
+    </Compile>
     <Compile Include="..\SproAdapter\streamclient.cs">
       <Link>streamclient.cs</Link>
+    </Compile>
+    <Compile Include="..\SproAdapter\udataset.cs">
+      <Link>udataset.cs</Link>
     </Compile>
     <Compile Include="..\SproAdapter\uqueue.cs">
       <Link>uqueue.cs</Link>

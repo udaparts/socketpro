@@ -31,10 +31,7 @@ namespace SPA
 		std::string CSqliteImpl::DIU_TRIGGER_FUNC("sp_sqlite_db_event_func");
 
         CSqliteImpl::CSqliteImpl() : m_oks(0), m_fails(0), m_ti(tiUnspecified), m_global(true), m_parameters(0) {
-#ifdef WIN32_64
-            //use high precision datetime
-            m_UQueue.TimeEx(true);
-#endif
+
         }
 
 		void CSqliteImpl::ltrim(std::string &s) {

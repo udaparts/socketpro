@@ -163,6 +163,50 @@ namespace SPA {
     typedef uint64_t UINT64;
 };
 
+#pragma pack(push,1)
+
+typedef struct tagCY {
+    int64_t int64;
+
+    inline bool operator==(const tagCY & cy) const {
+        return (::memcmp(this, &cy, sizeof (cy)) == 0);
+    }
+} CY;
+
+#pragma pack(pop)
+
+#pragma pack(push,1)
+
+typedef struct tagDEC {
+    unsigned short wReserved;
+
+    union {
+
+        struct {
+            unsigned char scale;
+            unsigned char sign;
+        };
+        unsigned short signscale;
+    };
+    unsigned int Hi32;
+
+    union {
+
+        struct {
+            unsigned int Lo32;
+            unsigned int Mid32;
+        };
+        uint64_t Lo64;
+    };
+
+    inline bool operator==(const tagDEC & dec) const {
+        return (::memcmp(this, &dec, sizeof (dec)) == 0);
+    }
+} DECIMAL;
+#pragma pack(pop)
+
+static_assert(sizeof (tagDEC) == 16, "Bad tagDEC structure size!");
+
 #if __GNUC__ >= 4
 #define U_MODULE_HIDDEN __attribute__ ((visibility ("hidden")))
 #else

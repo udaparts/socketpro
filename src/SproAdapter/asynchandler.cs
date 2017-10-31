@@ -2035,9 +2035,55 @@ namespace SocketProAdapter
                 return tcs.Task;
             }
 
+            public Task Async(ushort reqId, byte[] data, uint len)
+            {
+                //use threadless task only
+                TaskCompletionSource<bool> tcs = new TaskCompletionSource<bool>();
+                if (!SendRequest(reqId, data, len, (ar) =>
+                {
+                    try
+                    {
+                        bool r = true;
+                        tcs.SetResult(r);
+                    }
+                    catch (Exception err)
+                    {
+                        tcs.SetException(err);
+                    }
+                }, () =>
+                {
+                    try
+                    {
+                        //tcs.SetException(new Exception("Task canceled"));
+                        tcs.SetCanceled();
+                    }
+                    catch
+                    {
+                    }
+                }, (sender, rid, errMessage, errWhere, errCode) =>
+                {
+                    try
+                    {
+                        tcs.SetException(new Exception(errMessage));
+                    }
+                    catch
+                    {
+                    }
+                }))
+                {
+                    tcs.SetException(new Exception(AttachedClientSocket.ErrorMsg));
+                }
+                return tcs.Task;
+            }
+
             public Task<R> Async<R>(ushort reqId)
             {
                 return Async<R>(reqId, (byte[])null, (uint)0);
+            }
+
+            public Task Async(ushort reqId)
+            {
+                return Async(reqId, (byte[])null, (uint)0);
             }
 
             public Task<R> Async<R, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, T7 t7, T8 t8, T9 t9)
@@ -2045,6 +2091,15 @@ namespace SocketProAdapter
                 CUQueue su = CScopeUQueue.Lock();
                 su.Save(t0).Save(t1).Save(t2).Save(t3).Save(t4).Save(t5).Save(t6).Save(t7).Save(t8).Save(t9);
                 Task<R> r = Async<R>(reqId, su.IntenalBuffer, su.GetSize());
+                CScopeUQueue.Unlock(su);
+                return r;
+            }
+
+            public Task Async<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, T7 t7, T8 t8, T9 t9)
+            {
+                CUQueue su = CScopeUQueue.Lock();
+                su.Save(t0).Save(t1).Save(t2).Save(t3).Save(t4).Save(t5).Save(t6).Save(t7).Save(t8).Save(t9);
+                Task r = Async(reqId, su.IntenalBuffer, su.GetSize());
                 CScopeUQueue.Unlock(su);
                 return r;
             }
@@ -2058,11 +2113,29 @@ namespace SocketProAdapter
                 return r;
             }
 
+            public Task Async<T0, T1, T2, T3, T4, T5, T6, T7, T8>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, T7 t7, T8 t8)
+            {
+                CUQueue su = CScopeUQueue.Lock();
+                su.Save(t0).Save(t1).Save(t2).Save(t3).Save(t4).Save(t5).Save(t6).Save(t7).Save(t8);
+                Task r = Async(reqId, su.IntenalBuffer, su.GetSize());
+                CScopeUQueue.Unlock(su);
+                return r;
+            }
+
             public Task<R> Async<R, T0, T1, T2, T3, T4, T5, T6, T7>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, T7 t7)
             {
                 CUQueue su = CScopeUQueue.Lock();
                 su.Save(t0).Save(t1).Save(t2).Save(t3).Save(t4).Save(t5).Save(t6).Save(t7);
                 Task<R> r = Async<R>(reqId, su.IntenalBuffer, su.GetSize());
+                CScopeUQueue.Unlock(su);
+                return r;
+            }
+
+            public Task Async<T0, T1, T2, T3, T4, T5, T6, T7>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, T7 t7)
+            {
+                CUQueue su = CScopeUQueue.Lock();
+                su.Save(t0).Save(t1).Save(t2).Save(t3).Save(t4).Save(t5).Save(t6).Save(t7);
+                Task r = Async(reqId, su.IntenalBuffer, su.GetSize());
                 CScopeUQueue.Unlock(su);
                 return r;
             }
@@ -2076,11 +2149,29 @@ namespace SocketProAdapter
                 return r;
             }
 
+            public Task Async<T0, T1, T2, T3, T4, T5, T6>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6)
+            {
+                CUQueue su = CScopeUQueue.Lock();
+                su.Save(t0).Save(t1).Save(t2).Save(t3).Save(t4).Save(t5).Save(t6);
+                Task r = Async(reqId, su.IntenalBuffer, su.GetSize());
+                CScopeUQueue.Unlock(su);
+                return r;
+            }
+
             public Task<R> Async<R, T0, T1, T2, T3, T4, T5>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5)
             {
                 CUQueue su = CScopeUQueue.Lock();
                 su.Save(t0).Save(t1).Save(t2).Save(t3).Save(t4).Save(t5);
                 Task<R> r = Async<R>(reqId, su.IntenalBuffer, su.GetSize());
+                CScopeUQueue.Unlock(su);
+                return r;
+            }
+
+            public Task Async<T0, T1, T2, T3, T4, T5>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5)
+            {
+                CUQueue su = CScopeUQueue.Lock();
+                su.Save(t0).Save(t1).Save(t2).Save(t3).Save(t4).Save(t5);
+                Task r = Async(reqId, su.IntenalBuffer, su.GetSize());
                 CScopeUQueue.Unlock(su);
                 return r;
             }
@@ -2094,11 +2185,29 @@ namespace SocketProAdapter
                 return r;
             }
 
+            public Task Async<T0, T1, T2, T3, T4>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4)
+            {
+                CUQueue su = CScopeUQueue.Lock();
+                su.Save(t0).Save(t1).Save(t2).Save(t3).Save(t4);
+                Task r = Async(reqId, su.IntenalBuffer, su.GetSize());
+                CScopeUQueue.Unlock(su);
+                return r;
+            }
+
             public Task<R> Async<R, T0, T1, T2, T3>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3)
             {
                 CUQueue su = CScopeUQueue.Lock();
                 su.Save(t0).Save(t1).Save(t2).Save(t3);
                 Task<R> r = Async<R>(reqId, su.IntenalBuffer, su.GetSize());
+                CScopeUQueue.Unlock(su);
+                return r;
+            }
+
+            public Task Async<T0, T1, T2, T3>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3)
+            {
+                CUQueue su = CScopeUQueue.Lock();
+                su.Save(t0).Save(t1).Save(t2).Save(t3);
+                Task r = Async(reqId, su.IntenalBuffer, su.GetSize());
                 CScopeUQueue.Unlock(su);
                 return r;
             }
@@ -2112,6 +2221,15 @@ namespace SocketProAdapter
                 return r;
             }
 
+            public Task Async<T0, T1, T2>(ushort reqId, T0 t0, T1 t1, T2 t2)
+            {
+                CUQueue su = CScopeUQueue.Lock();
+                su.Save(t0).Save(t1).Save(t2);
+                Task r = Async(reqId, su.IntenalBuffer, su.GetSize());
+                CScopeUQueue.Unlock(su);
+                return r;
+            }
+
             public Task<R> Async<R, T0, T1>(ushort reqId, T0 t0, T1 t1)
             {
                 CUQueue su = CScopeUQueue.Lock();
@@ -2121,11 +2239,29 @@ namespace SocketProAdapter
                 return r;
             }
 
+            public Task Async<T0, T1>(ushort reqId, T0 t0, T1 t1)
+            {
+                CUQueue su = CScopeUQueue.Lock();
+                su.Save(t0).Save(t1);
+                Task r = Async(reqId, su.IntenalBuffer, su.GetSize());
+                CScopeUQueue.Unlock(su);
+                return r;
+            }
+
             public Task<R> Async<R, T0>(ushort reqId, T0 t0)
             {
                 CUQueue su = CScopeUQueue.Lock();
                 su.Save(t0);
                 Task<R> r = Async<R>(reqId, su.IntenalBuffer, su.GetSize());
+                CScopeUQueue.Unlock(su);
+                return r;
+            }
+
+            public Task Async<T0>(ushort reqId, T0 t0)
+            {
+                CUQueue su = CScopeUQueue.Lock();
+                su.Save(t0);
+                Task r = Async(reqId, su.IntenalBuffer, su.GetSize());
                 CScopeUQueue.Unlock(su);
                 return r;
             }

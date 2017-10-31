@@ -1015,6 +1015,7 @@ namespace SPA {
 						prom->set_exception(std::make_exception_ptr(CUException("Task aborted", __FILE__, reqId, __FUNCTION__, MB_REQUEST_ABORTED)));
 					}
 					catch (...) {
+
 					}
 				};
 				DServerException se = [prom](CAsyncServiceHandler *ash, unsigned short requestId, const wchar_t *errMessage, const char* errWhere, unsigned int errCode) {
@@ -1775,7 +1776,6 @@ namespace SPA {
 		private:
 
 			struct cs_hash : public std::hash < PClientSocket > {
-
 				inline size_t operator()(const PClientSocket & key) const {
 					return (size_t)key->GetHandle();
 				}
