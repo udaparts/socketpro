@@ -128,9 +128,23 @@ namespace SPA
 					*it = '_';
 			}
 			sql += (tbl + "_UPDATE AFTER UPDATE ON `" + orig_tbl);
-			sql += "` FOR EACH ROW BEGIN ";
-
-			sql += " END;";
+			sql += ("` FOR EACH ROW BEGIN SELECT " + DIU_TRIGGER_FUNC);
+			sql += "(";
+			std::string arg;
+			for(auto it = vCol.begin(), end = vCol.end(); it != end; ++it) {
+				if (arg.size())
+					arg += ",";
+				arg += "OLD.`";
+				arg += it->first;
+				arg += "`";
+				arg += ",";
+				arg += "NEW.`";
+				arg += it->first;
+				arg += "`";
+			}
+			arg = "1," + arg;
+			sql += arg;
+			sql += ");END";
 			sql.clear();
 		}
 
