@@ -26,373 +26,376 @@ namespace SPA
         unsigned int CSqliteImpl::m_nParam = 0;
 
         CUCriticalSection CSqliteImpl::m_csPeer;
-		std::unordered_map<std::string, std::vector<std::string>> CSqliteImpl::m_mapCache;
-		std::string CSqliteImpl::DIU_TRIGGER_PREFIX("sp_streaming_db_trigger_");
-		std::string CSqliteImpl::DIU_TRIGGER_FUNC("sp_sqlite_db_event_func");
+        std::unordered_map<std::string, std::vector < std::string >> CSqliteImpl::m_mapCache;
+        std::string CSqliteImpl::DIU_TRIGGER_PREFIX("sp_streaming_db_trigger_");
+        std::string CSqliteImpl::DIU_TRIGGER_FUNC("sp_sqlite_db_event_func");
 
         CSqliteImpl::CSqliteImpl() : m_EnableMessages(false), m_oks(0), m_fails(0), m_ti(tiUnspecified), m_global(true), m_parameters(0) {
 
         }
 
-		void CSqliteImpl::ltrim(std::string &s) {
-			s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](int ch) {
-				return !std::isspace(ch);
-			}));
-		}
-
-		void CSqliteImpl::rtrim(std::string &s) {
-			s.erase(std::find_if(s.rbegin(), s.rend(), [](int ch) {
-				return !std::isspace(ch);
-			}).base(), s.end());
-		}
-
-		void CSqliteImpl::trim(std::string &s) {
-			ltrim(s);
-			rtrim(s);
-		}
-
-		void CSqliteImpl::SetCacheTables(const std::wstring &str) {
-			std::istringstream f(SPA::Utilities::ToUTF8(str.c_str(), str.size()));
-			std::string s;
-			while (getline(f, s, ';')) {
-				trim(s);
-				size_t point = s.rfind('.');
-				if (point == std::wstring::npos || point == 0)
-					continue;
-				std::string table = s.substr(point + 1);
-				trim(table);
-				if (!table.size())
-					continue;
-				s = s.substr(0, point);
-				trim(s);
-				if (!s.size())
-					continue;
-				if (m_mapCache.find(s) == m_mapCache.end())
-					m_mapCache[s] = std::vector<std::string>();
-				m_mapCache[s].push_back(table);
-			}
-		}
-
-		const std::vector<std::string>* CSqliteImpl::InCache(const std::string &dbFile) {
-			std::string s = dbFile;
-			trim(s);
-#ifdef WIN32
-			std::transform(s.begin(), s.end(), s.begin(), ::tolower);
-#endif
-			for (auto it = m_mapCache.cbegin(), end = m_mapCache.cend(); it != end; ++it) {
-				size_t pos = s.rfind(it->first);
-				if (pos == s.size() - it->first.size())
-					return &(it->second);
-			}
-			return nullptr;
-		}
-
-		void CSqliteImpl::SetTriggers() {
-			for (auto it = m_mapCache.begin(), end = m_mapCache.end(); it != end; ++it) {
-				const std::string &dbName = it->first;
-				sqlite3 *db = nullptr;
-				do {
-					int rc = sqlite3_open(dbName.c_str(), &db);
-					if (rc != SQLITE_OK || !db)
-						break;
-					DropAllTriggers(db);
-					auto &tables = it->second;
-
-					//remove all unknown tables or tables that have no primary key
-					bool broken;
-					do {
-						broken = false;
-						for(auto j = tables.begin(), jend = tables.end(); j != jend; ++j) {
-							std::vector<std::pair<std::string, char> > v = GetKeys(db, *j);
-							if (!v.size() || !HasKey(v)) {
-								tables.erase(j);
-								broken = true;
-								break;
-							}
-						}
-					}while (broken);
-					for(auto j = tables.begin(), jend = tables.end(); j != jend; ++j) {
-						std::vector<std::pair<std::string, char> > v = GetKeys(db, *j);
-						SetTriggers(db, *j, v);
-					}
-				}while (false);
-				if (db)
-					sqlite3_close(db);
-				db = nullptr;
-			}
-		}
-
-		void CSqliteImpl::SetTriggers(sqlite3 *db, const std::string &tblName, const std::vector<std::pair<std::string, char> > &vCol) {
-			SetDeleteTrigger(db, tblName, vCol);
-			SetInsertTrigger(db, tblName, vCol);
-			SetUpdateTrigger(db, tblName, vCol);
-		}
-
-		bool CSqliteImpl::SetUpdateTrigger(sqlite3 *db, const std::string &tblName, const std::vector<std::pair<std::string, char> > &vCol) {
-			std::string sql = "CREATE TRIGGER IF NOT EXISTS " + DIU_TRIGGER_PREFIX;
-			std::string tbl = tblName;
-			for(auto it = tbl.begin(), end = tbl.end(); it != end; ++it) {
-				if (std::isspace(*it))
-					*it = '_';
-			}
-			sql += (tbl + "_UPDATE AFTER UPDATE ON `" + tblName);
-			sql += ("` FOR EACH ROW BEGIN SELECT " + DIU_TRIGGER_FUNC);
-			sql += "(";
-			std::string arg;
-			for(auto it = vCol.begin(), end = vCol.end(); it != end; ++it) {
-				if (arg.size())
-					arg += ",";
-				arg += "OLD.`";
-				arg += it->first;
-				arg += "`";
-				arg += ",";
-				arg += "NEW.`";
-				arg += it->first;
-				arg += "`";
-			}
-			arg = "1,'" + tblName + "'," + arg;
-			sql += arg;
-			sql += ");END";
-			char *err_msg = nullptr;
-			int rc = sqlite3_exec(db, sql.c_str(), nullptr, nullptr, &err_msg);
-			if (rc != SQLITE_OK && err_msg)
-				sqlite3_free(err_msg);
-			return rc == SQLITE_OK;
-		}
-
-		bool CSqliteImpl::SetInsertTrigger(sqlite3 *db, const std::string &tblName, const std::vector<std::pair<std::string, char> > &vCol) {
-			std::string sql = "CREATE TRIGGER IF NOT EXISTS " + DIU_TRIGGER_PREFIX;
-			std::string tbl = tblName;
-			for(auto it = tbl.begin(), end = tbl.end(); it != end; ++it) {
-				if (std::isspace(*it))
-					*it = '_';
-			}
-			sql += (tbl + "_INSERT AFTER INSERT ON `" + tblName);
-			sql += ("` FOR EACH ROW BEGIN SELECT "  + DIU_TRIGGER_FUNC);
-			sql += "(";
-			std::string arg;
-			for(auto it = vCol.begin(), end = vCol.end(); it != end; ++it) {
-				if (arg.size())
-					arg += ",";
-				arg += "NEW.`";
-				arg += it->first;
-				arg += "`";
-			}
-			arg = "0,'" + tblName + "'," + arg;
-			sql += arg;
-			sql += ");END";
-			char *err_msg = nullptr;
-			int rc = sqlite3_exec(db, sql.c_str(), nullptr, nullptr, &err_msg);
-			if (rc != SQLITE_OK && err_msg)
-				sqlite3_free(err_msg);
-			return rc == SQLITE_OK;
-		}
-
-		bool CSqliteImpl::SetDeleteTrigger(sqlite3 *db, const std::string &tblName, const std::vector<std::pair<std::string, char> > &vCol) {
-			std::string sql = "CREATE TRIGGER IF NOT EXISTS " + DIU_TRIGGER_PREFIX;
-			std::string tbl = tblName;
-			for(auto it = tbl.begin(), end = tbl.end(); it != end; ++it) {
-				if (std::isspace(*it))
-					*it = '_';
-			}
-			sql += (tbl + "_DELETE AFTER DELETE ON `" + tblName);
-			sql += ("` FOR EACH ROW BEGIN SELECT " + DIU_TRIGGER_FUNC);
-			sql += "(";
-			std::string arg;
-			for(auto it = vCol.begin(), end = vCol.end(); it != end; ++it) {
-				if (it->second == '0')
-					continue;
-				if (arg.size())
-					arg += ",";
-				arg += "OLD.`";
-				arg += it->first;
-				arg += "`";
-			}
-			arg = "2,'" + tblName + "'," + arg;
-			sql += arg;
-			sql += ");END";
-			char *err_msg = nullptr;
-			int rc = sqlite3_exec(db, sql.c_str(), nullptr, nullptr, &err_msg);
-			if (rc != SQLITE_OK && err_msg)
-				sqlite3_free(err_msg);
-			return rc == SQLITE_OK;
-		}
-
-		size_t CSqliteImpl::HasKey(const std::vector<std::pair<std::string, char> > &vCol) {
-			size_t keys = 0;
-			for (auto it = vCol.begin(), end = vCol.end(); it != end; ++it) {
-				if (it->second != '0')
-					++keys;
-			}
-			return keys;
-		}
-
-		void CSqliteImpl::DropATrigger(sqlite3 *db, const std::string &sql) {
-			char *err_msg = nullptr;
-			int rc = sqlite3_exec(db, sql.c_str(), nullptr, nullptr, &err_msg);
-			if (rc != SQLITE_OK && err_msg)
-				sqlite3_free(err_msg);
-		}
-
-		void CSqliteImpl::DropAllTriggers(sqlite3 *db) {
-			char *err_msg = nullptr;
-			std::vector<std::string> v;
-			std::string sql = "SELECT name FROM sqlite_master WHERE type='table' and name != 'sqlite_sequence'";
-			int rc = sqlite3_exec(db, sql.c_str(), cbGetAllTables, &v, &err_msg);
-			if (rc != SQLITE_OK && err_msg) {
-				sqlite3_free(err_msg);
-				err_msg = nullptr;
-			}
-			for (auto it = v.begin(), end = v.end(); it != end; ++it) {
-				std::string s = *it;
-				for(auto j = s.begin(), jend = s.end(); j != jend; ++j) {
-					if (std::isspace(*j))
-						*j = '_';
-				}
-				sql = "DROP TRIGGER " + DIU_TRIGGER_PREFIX + s + "_INSERT";
-				DropATrigger(db, sql);
-
-				sql = "DROP TRIGGER " + DIU_TRIGGER_PREFIX + s + "_UPDATE";
-				DropATrigger(db, sql);
-
-				sql = "DROP TRIGGER " + DIU_TRIGGER_PREFIX + s + "_DELETE";
-				DropATrigger(db, sql);
-			}
-		}
-
-		std::vector<std::pair<std::string, char> > CSqliteImpl::GetKeys(sqlite3 *db, const std::string &tblName) {
-			char *err_msg = nullptr;
-			std::vector<std::pair<std::string, char> > v;
-			std::string sql = "PRAGMA table_info(`" + tblName + "`)";
-			int rc = sqlite3_exec(db, sql.c_str(), cbGetKeys, &v, &err_msg);
-			if (rc != SQLITE_OK && err_msg)
-				sqlite3_free(err_msg);
-			return v;
-		}
-
-		int CSqliteImpl::cbGetAllTables(void *p, int argc, char **argv, char **azColName) {
-			assert(argc == 1);
-			std::vector<std::string> *v = (std::vector<std::string> *)p;
-			v->push_back(argv[0]);
-			return 0;
-		}
-
-		int CSqliteImpl::cbGetKeys(void *p, int argc, char **argv, char **azColName) {
-			std::vector<std::pair<std::string, char> > *v = (std::vector<std::pair<std::string, char> > *)p;
-			if (argc == 6) {
-				v->push_back(std::pair<std::string, char>((const char *)(argv[1]), *(argv[5])));
-			}
-			return 0;
-		}
-
-        void CSqliteImpl::SetDBGlobalConnectionString(const wchar_t * dbConnection) {
-			std::wstring str(dbConnection ? dbConnection : L"");
-#ifdef WIN32_64
-			std::transform(str.begin(), str.end(), str.begin(), ::tolower);
-#endif
-			SPA::CAutoLock al(m_csPeer);
-			m_mapCache.clear();
-			m_strGlobalConnection.clear();
-			size_t pos = str.find(L"+");
-			if (pos == std::wstring::npos)
-				m_strGlobalConnection = str;
-			else {
-				m_strGlobalConnection = str.substr(0, pos);
-				str = str.substr(pos + 1);
-				SetCacheTables(str);
-				SetTriggers();
-			}
+        void CSqliteImpl::ltrim(std::string & s) {
+            s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](int ch) {
+                return !std::isspace(ch);
+            }));
         }
 
-		void CSqliteImpl::XFunc(sqlite3_context *context, int count, sqlite3_value **pp) {
-			SPA::UVariant vtArray;
-			vtArray.vt = (VT_ARRAY | VT_VARIANT);
-			SAFEARRAYBOUND sab[] = {count + 3};
-			vtArray.parray = ::SafeArrayCreate(VT_VARIANT, 1, sab);
-			VARIANT *pVt = nullptr;
-			::SafeArrayAccessData(vtArray.parray, (void**)&pVt);
-			::memset(pVt, 0, sizeof(VARIANT) * (count + 3));
+        void CSqliteImpl::rtrim(std::string & s) {
+            s.erase(std::find_if(s.rbegin(), s.rend(), [](int ch) {
+                return !std::isspace(ch);
+            }).base(), s.end());
+        }
 
-			pVt[0].vt = VT_I4;
-			pVt[0].intVal = sqlite3_value_int(pp[0]);
+        void CSqliteImpl::trim(std::string & s) {
+            ltrim(s);
+            rtrim(s);
+        }
 
-			{
-				char *s = nullptr;
-				char host_name[128] = {0};
-				int res = ::gethostname(host_name, sizeof (host_name));
-				unsigned int len = (unsigned int) strlen(host_name);
-				SAFEARRAYBOUND sab1[] = {len, 0};
-				pVt[1].vt = (VT_ARRAY | VT_I1);
-				pVt[1].parray = SafeArrayCreate(VT_I1, 1, sab1);
-				SafeArrayAccessData(pVt[1].parray, (void**) &s);
-				memcpy(s, host_name, len);
-				SafeArrayUnaccessData(pVt[1].parray);
-			}
+        void CSqliteImpl::SetCacheTables(const std::wstring & str) {
+            std::istringstream f(SPA::Utilities::ToUTF8(str.c_str(), str.size()));
+            std::string s;
+            while (getline(f, s, ';')) {
+                trim(s);
+                size_t point = s.rfind('.');
+                if (point == std::wstring::npos || point == 0)
+                    continue;
+                std::string table = s.substr(point + 1);
+                trim(table);
+                if (!table.size())
+                    continue;
+                s = s.substr(0, point);
+                trim(s);
+                if (!s.size())
+                    continue;
+                if (m_mapCache.find(s) == m_mapCache.end())
+                    m_mapCache[s] = std::vector<std::string>();
+                m_mapCache[s].push_back(table);
+            }
+        }
 
-			void *p = sqlite3_user_data(context);
-			CSqliteImpl *peer = (CSqliteImpl*)p;
-			std::wstring userId = peer->GetUID();
+        const std::vector<std::string>* CSqliteImpl::InCache(const std::string & dbFile) {
+            std::string s = dbFile;
+            trim(s);
+#ifdef WIN32
+            std::transform(s.begin(), s.end(), s.begin(), ::tolower);
+#endif
+            for (auto it = m_mapCache.cbegin(), end = m_mapCache.cend(); it != end; ++it) {
+                size_t pos = s.rfind(it->first);
+                if (pos == s.size() - it->first.size())
+                    return &(it->second);
+            }
+            return nullptr;
+        }
 
-			pVt[2].vt = VT_BSTR;
-			pVt[2].bstrVal = ::SysAllocString(userId.c_str());
+        void CSqliteImpl::SetTriggers() {
+            for (auto it = m_mapCache.begin(), end = m_mapCache.end(); it != end; ++it) {
+                const std::string &dbName = it->first;
+                sqlite3 *db = nullptr;
+                do {
+                    int rc = sqlite3_open(dbName.c_str(), &db);
+                    if (rc != SQLITE_OK || !db)
+                        break;
+                    DropAllTriggers(db);
+                    auto &tables = it->second;
 
-			pVt[3].vt = VT_BSTR;
-			pVt[3].bstrVal = ::SysAllocString(SPA::Utilities::ToWide(peer->m_dbName.c_str(), peer->m_dbName.size()).c_str());
+                    //remove all unknown tables or tables that have no primary key
+                    bool broken;
+                    do {
+                        broken = false;
+                        for (auto j = tables.begin(), jend = tables.end(); j != jend; ++j) {
+                            std::vector<std::pair<std::string, char> > v = GetKeys(db, *j);
+                            if (!v.size() || !HasKey(v)) {
+                                tables.erase(j);
+                                broken = true;
+                                break;
+                            }
+                        }
+                    } while (broken);
+                    for (auto j = tables.begin(), jend = tables.end(); j != jend; ++j) {
+                        std::vector<std::pair<std::string, char> > v = GetKeys(db, *j);
+                        SetTriggers(db, *j, v);
+                    }
+                } while (false);
+                if (db)
+                    sqlite3_close(db);
+                db = nullptr;
+            }
+        }
 
-			for(int n = 1; n < count; ++n) {
-				sqlite3_value *value = pp[n];
-				int type = sqlite3_value_type(value);
-				switch(type) {
-				case SQLITE_NULL:
-					pVt[n + 3].vt = VT_NULL;
-					break;
-				case SQLITE_BLOB:
-					{
-						unsigned char *target;
-						int bytes = sqlite3_value_bytes(value);
-						const void *buffer = sqlite3_value_blob(value);
-						SAFEARRAYBOUND sab1[] = {bytes, 0};
-						pVt[n+3].vt = (VT_UI1|VT_ARRAY);
-						pVt[n+3].parray = ::SafeArrayCreate(VT_UI1, 1, sab1);
-						::SafeArrayAccessData(pVt[n+3].parray, (void**)&target);
-						::memcpy(target, buffer, bytes);
-						::SafeArrayUnaccessData(pVt[n+3].parray);
-					}
-					break;
-				case SQLITE_TEXT:
-					{
-						char *target;
-						int bytes = sqlite3_value_bytes(value);
-						const unsigned char *buffer = sqlite3_value_text(value);
-						SAFEARRAYBOUND sab1[] = {bytes, 0};
-						pVt[n+3].vt = (VT_I1|VT_ARRAY);
-						pVt[n+3].parray = ::SafeArrayCreate(VT_I1, 1, sab1);
-						::SafeArrayAccessData(pVt[n+3].parray, (void**)&target);
-						::memcpy(target, buffer, bytes);
-						::SafeArrayUnaccessData(pVt[n+3].parray);
-					}
-					break;
-				case SQLITE_FLOAT:
-					{
-						pVt[n+3].vt = VT_R8;
-						pVt[n+3].dblVal = sqlite3_value_double(value);
-					}
-					break;
-				case SQLITE_INTEGER:
-					{
-						pVt[n+3].vt = VT_I8;
-						pVt[n+3].llVal = sqlite3_value_int64(value);
-					}
-					break;
-				default:
-					assert(false);
-					break;
-				}
-			}
-			::SafeArrayUnaccessData(vtArray.parray);
-			bool ok = SPA::ServerSide::CSocketProServer::PushManager::Publish(vtArray, &SPA::UDB::STREAMING_SQL_CHAT_GROUP_ID, 1);
-			assert(ok);
-		}
+        void CSqliteImpl::SetTriggers(sqlite3 *db, const std::string &tblName, const std::vector<std::pair<std::string, char> > &vCol) {
+            SetDeleteTrigger(db, tblName, vCol);
+            SetInsertTrigger(db, tblName, vCol);
+            SetUpdateTrigger(db, tblName, vCol);
+        }
+
+        bool CSqliteImpl::SetUpdateTrigger(sqlite3 *db, const std::string &tblName, const std::vector<std::pair<std::string, char> > &vCol) {
+            std::string sql = "CREATE TRIGGER IF NOT EXISTS " + DIU_TRIGGER_PREFIX;
+            std::string tbl = tblName;
+            for (auto it = tbl.begin(), end = tbl.end(); it != end; ++it) {
+                if (std::isspace(*it))
+                    *it = '_';
+            }
+            sql += (tbl + "_UPDATE AFTER UPDATE ON `" + tblName);
+            sql += ("` FOR EACH ROW BEGIN SELECT " + DIU_TRIGGER_FUNC);
+            sql += "(";
+            std::string arg;
+            for (auto it = vCol.begin(), end = vCol.end(); it != end; ++it) {
+                if (arg.size())
+                    arg += ",";
+                arg += "OLD.`";
+                arg += it->first;
+                arg += "`";
+                arg += ",";
+                arg += "NEW.`";
+                arg += it->first;
+                arg += "`";
+            }
+            arg = "1,'" + tblName + "'," + arg;
+            sql += arg;
+            sql += ");END";
+            char *err_msg = nullptr;
+            int rc = sqlite3_exec(db, sql.c_str(), nullptr, nullptr, &err_msg);
+            if (rc != SQLITE_OK && err_msg)
+                sqlite3_free(err_msg);
+            return rc == SQLITE_OK;
+        }
+
+        bool CSqliteImpl::SetInsertTrigger(sqlite3 *db, const std::string &tblName, const std::vector<std::pair<std::string, char> > &vCol) {
+            std::string sql = "CREATE TRIGGER IF NOT EXISTS " + DIU_TRIGGER_PREFIX;
+            std::string tbl = tblName;
+            for (auto it = tbl.begin(), end = tbl.end(); it != end; ++it) {
+                if (std::isspace(*it))
+                    *it = '_';
+            }
+            sql += (tbl + "_INSERT AFTER INSERT ON `" + tblName);
+            sql += ("` FOR EACH ROW BEGIN SELECT " + DIU_TRIGGER_FUNC);
+            sql += "(";
+            std::string arg;
+            for (auto it = vCol.begin(), end = vCol.end(); it != end; ++it) {
+                if (arg.size())
+                    arg += ",";
+                arg += "NEW.`";
+                arg += it->first;
+                arg += "`";
+            }
+            arg = "0,'" + tblName + "'," + arg;
+            sql += arg;
+            sql += ");END";
+            char *err_msg = nullptr;
+            int rc = sqlite3_exec(db, sql.c_str(), nullptr, nullptr, &err_msg);
+            if (rc != SQLITE_OK && err_msg)
+                sqlite3_free(err_msg);
+            return rc == SQLITE_OK;
+        }
+
+        bool CSqliteImpl::SetDeleteTrigger(sqlite3 *db, const std::string &tblName, const std::vector<std::pair<std::string, char> > &vCol) {
+            std::string sql = "CREATE TRIGGER IF NOT EXISTS " + DIU_TRIGGER_PREFIX;
+            std::string tbl = tblName;
+            for (auto it = tbl.begin(), end = tbl.end(); it != end; ++it) {
+                if (std::isspace(*it))
+                    *it = '_';
+            }
+            sql += (tbl + "_DELETE AFTER DELETE ON `" + tblName);
+            sql += ("` FOR EACH ROW BEGIN SELECT " + DIU_TRIGGER_FUNC);
+            sql += "(";
+            std::string arg;
+            for (auto it = vCol.begin(), end = vCol.end(); it != end; ++it) {
+                if (it->second == '0')
+                    continue;
+                if (arg.size())
+                    arg += ",";
+                arg += "OLD.`";
+                arg += it->first;
+                arg += "`";
+            }
+            arg = "2,'" + tblName + "'," + arg;
+            sql += arg;
+            sql += ");END";
+            char *err_msg = nullptr;
+            int rc = sqlite3_exec(db, sql.c_str(), nullptr, nullptr, &err_msg);
+            if (rc != SQLITE_OK && err_msg)
+                sqlite3_free(err_msg);
+            return rc == SQLITE_OK;
+        }
+
+        size_t CSqliteImpl::HasKey(const std::vector<std::pair<std::string, char> > &vCol) {
+            size_t keys = 0;
+            for (auto it = vCol.begin(), end = vCol.end(); it != end; ++it) {
+                if (it->second != '0')
+                    ++keys;
+            }
+            return keys;
+        }
+
+        void CSqliteImpl::DropATrigger(sqlite3 *db, const std::string & sql) {
+            char *err_msg = nullptr;
+            int rc = sqlite3_exec(db, sql.c_str(), nullptr, nullptr, &err_msg);
+            if (rc != SQLITE_OK && err_msg)
+                sqlite3_free(err_msg);
+        }
+
+        void CSqliteImpl::DropAllTriggers(sqlite3 * db) {
+            char *err_msg = nullptr;
+            std::vector<std::string> v;
+            std::string sql = "SELECT name FROM sqlite_master WHERE type='table' and name != 'sqlite_sequence'";
+            int rc = sqlite3_exec(db, sql.c_str(), cbGetAllTables, &v, &err_msg);
+            if (rc != SQLITE_OK && err_msg) {
+                sqlite3_free(err_msg);
+                err_msg = nullptr;
+            }
+            for (auto it = v.begin(), end = v.end(); it != end; ++it) {
+                std::string s = *it;
+                for (auto j = s.begin(), jend = s.end(); j != jend; ++j) {
+                    if (std::isspace(*j))
+                        *j = '_';
+                }
+                sql = "DROP TRIGGER " + DIU_TRIGGER_PREFIX + s + "_INSERT";
+                DropATrigger(db, sql);
+
+                sql = "DROP TRIGGER " + DIU_TRIGGER_PREFIX + s + "_UPDATE";
+                DropATrigger(db, sql);
+
+                sql = "DROP TRIGGER " + DIU_TRIGGER_PREFIX + s + "_DELETE";
+                DropATrigger(db, sql);
+            }
+        }
+
+        std::vector<std::pair<std::string, char> > CSqliteImpl::GetKeys(sqlite3 *db, const std::string & tblName) {
+            char *err_msg = nullptr;
+            std::vector<std::pair<std::string, char> > v;
+            std::string sql = "PRAGMA table_info(`" + tblName + "`)";
+            int rc = sqlite3_exec(db, sql.c_str(), cbGetKeys, &v, &err_msg);
+            if (rc != SQLITE_OK && err_msg)
+                sqlite3_free(err_msg);
+            return v;
+        }
+
+        int CSqliteImpl::cbGetAllTables(void *p, int argc, char **argv, char **azColName) {
+            assert(argc == 1);
+            std::vector<std::string> *v = (std::vector<std::string> *)p;
+            v->push_back(argv[0]);
+            return 0;
+        }
+
+        int CSqliteImpl::cbGetKeys(void *p, int argc, char **argv, char **azColName) {
+            std::vector<std::pair<std::string, char> > *v = (std::vector<std::pair<std::string, char> > *)p;
+            if (argc == 6) {
+                v->push_back(std::pair<std::string, char>((const char *) (argv[1]), *(argv[5])));
+            }
+            return 0;
+        }
+
+        void CSqliteImpl::SetDBGlobalConnectionString(const wchar_t * dbConnection) {
+            std::wstring str(dbConnection ? dbConnection : L"");
+#ifdef WIN32_64
+            std::transform(str.begin(), str.end(), str.begin(), ::tolower);
+#endif
+            SPA::CAutoLock al(m_csPeer);
+            m_mapCache.clear();
+            m_strGlobalConnection.clear();
+            size_t pos = str.find(L"+");
+            if (pos == std::wstring::npos)
+                m_strGlobalConnection = str;
+            else {
+                m_strGlobalConnection = str.substr(0, pos);
+                str = str.substr(pos + 1);
+                SetCacheTables(str);
+                SetTriggers();
+            }
+        }
+
+        void CSqliteImpl::XFunc(sqlite3_context *context, int count, sqlite3_value **pp) {
+            SPA::UVariant vtArray;
+            vtArray.vt = (VT_ARRAY | VT_VARIANT);
+            SAFEARRAYBOUND sab[] =
+            {(unsigned int) count + 3};
+            vtArray.parray = ::SafeArrayCreate(VT_VARIANT, 1, sab);
+            VARIANT *pVt = nullptr;
+            ::SafeArrayAccessData(vtArray.parray, (void**) &pVt);
+            ::memset(pVt, 0, sizeof (VARIANT) * (count + 3));
+
+            pVt[0].vt = VT_I4;
+            pVt[0].intVal = sqlite3_value_int(pp[0]);
+
+            {
+                char *s = nullptr;
+                char host_name[128] =
+                {0};
+                ::gethostname(host_name, sizeof (host_name));
+                unsigned int len = (unsigned int) strlen(host_name);
+                SAFEARRAYBOUND sab1[] =
+                {len, 0};
+                pVt[1].vt = (VT_ARRAY | VT_I1);
+                pVt[1].parray = SafeArrayCreate(VT_I1, 1, sab1);
+                SafeArrayAccessData(pVt[1].parray, (void**) &s);
+                memcpy(s, host_name, len);
+                SafeArrayUnaccessData(pVt[1].parray);
+            }
+
+            void *p = sqlite3_user_data(context);
+            CSqliteImpl *peer = (CSqliteImpl*) p;
+            std::wstring userId = peer->GetUID();
+
+            pVt[2].vt = VT_BSTR;
+            pVt[2].bstrVal = ::SysAllocString(userId.c_str());
+
+            pVt[3].vt = VT_BSTR;
+            pVt[3].bstrVal = ::SysAllocString(SPA::Utilities::ToWide(peer->m_dbName.c_str(), peer->m_dbName.size()).c_str());
+
+            for (int n = 1; n < count; ++n) {
+                sqlite3_value *value = pp[n];
+                int type = sqlite3_value_type(value);
+                switch (type) {
+                    case SQLITE_NULL:
+                        pVt[n + 3].vt = VT_NULL;
+                        break;
+                    case SQLITE_BLOB:
+                    {
+                        unsigned char *target;
+                        unsigned int bytes = (unsigned int) sqlite3_value_bytes(value);
+                        const void *buffer = sqlite3_value_blob(value);
+                        SAFEARRAYBOUND sab1[] = {bytes, 0};
+                        pVt[n + 3].vt = (VT_UI1 | VT_ARRAY);
+                        pVt[n + 3].parray = ::SafeArrayCreate(VT_UI1, 1, sab1);
+                        ::SafeArrayAccessData(pVt[n + 3].parray, (void**) &target);
+                        ::memcpy(target, buffer, bytes);
+                        ::SafeArrayUnaccessData(pVt[n + 3].parray);
+                    }
+                        break;
+                    case SQLITE_TEXT:
+                    {
+                        char *target;
+                        unsigned int bytes = (unsigned int) sqlite3_value_bytes(value);
+                        const unsigned char *buffer = sqlite3_value_text(value);
+                        SAFEARRAYBOUND sab1[] = {bytes, 0};
+                        pVt[n + 3].vt = (VT_I1 | VT_ARRAY);
+                        pVt[n + 3].parray = ::SafeArrayCreate(VT_I1, 1, sab1);
+                        ::SafeArrayAccessData(pVt[n + 3].parray, (void**) &target);
+                        ::memcpy(target, buffer, bytes);
+                        ::SafeArrayUnaccessData(pVt[n + 3].parray);
+                    }
+                        break;
+                    case SQLITE_FLOAT:
+                    {
+                        pVt[n + 3].vt = VT_R8;
+                        pVt[n + 3].dblVal = sqlite3_value_double(value);
+                    }
+                        break;
+                    case SQLITE_INTEGER:
+                    {
+                        pVt[n + 3].vt = VT_I8;
+                        pVt[n + 3].llVal = sqlite3_value_int64(value);
+                    }
+                        break;
+                    default:
+                        assert(false);
+                        break;
+                }
+            }
+            ::SafeArrayUnaccessData(vtArray.parray);
+            bool ok = SPA::ServerSide::CSocketProServer::PushManager::Publish(vtArray, &SPA::UDB::STREAMING_SQL_CHAT_GROUP_ID, 1);
+            assert(ok);
+        }
 
         void CSqliteImpl::SetInitialParam(unsigned int param) {
             m_nParam = param;
@@ -436,7 +439,7 @@ namespace SPA
         void CSqliteImpl::OnReleaseSource(bool bClosing, unsigned int info) {
             Clean();
             m_global = true;
-			m_EnableMessages = false;
+            m_EnableMessages = false;
         }
 
         void CSqliteImpl::ResetMemories() {
@@ -1003,23 +1006,23 @@ namespace SPA
                 fail_ok <<= 32;
                 return;
             }
-			std::string sql = Utilities::ToUTF8(wsql.c_str(), wsql.size());
-			
+            std::string sql = Utilities::ToUTF8(wsql.c_str(), wsql.size());
+
             UINT64 fails = m_fails;
             UINT64 oks = m_oks;
             int start = sqlite3_total_changes(m_pSqlite.get());
-			if (m_EnableMessages && !sql.size()) {
-				const std::vector<std::string> *v = InCache(sqlite3_db_filename(m_pSqlite.get(), nullptr));
-				if (v) {
-					//client side is asking for data from cached tables
-					for (auto it = v->cbegin(), end = v->cend(); it != end; ++it) {
-						if (sql.size())
-							sql += ';';
-						sql += "select * from `";
-						sql += *it;
-						sql += '`';
-					}
-				}
+            if (m_EnableMessages && !sql.size()) {
+                const std::vector<std::string> *v = InCache(sqlite3_db_filename(m_pSqlite.get(), nullptr));
+                if (v) {
+                    //client side is asking for data from cached tables
+                    for (auto it = v->cbegin(), end = v->cend(); it != end; ++it) {
+                        if (sql.size())
+                            sql += ';';
+                        sql += "select * from `";
+                        sql += *it;
+                        sql += '`';
+                    }
+                }
             }
             const char *sqlUtf8 = sql.c_str();
             if (rowset) {
@@ -1131,7 +1134,7 @@ namespace SPA
             m_vParam.clear();
             m_global = true;
             ResetMemories();
-			if (m_EnableMessages) {
+            if (m_EnableMessages) {
                 GetPush().Unsubscribe();
                 m_EnableMessages = false;
             }
@@ -1142,7 +1145,7 @@ namespace SPA
             if (!m_pSqlite) {
                 std::wstring s = dbConn;
 #ifdef WIN32_64
-				std::transform(s.begin(), s.end(), s.begin(), ::tolower);
+                std::transform(s.begin(), s.end(), s.begin(), ::tolower);
 #endif
                 if (!s.size() && m_global) {
                     m_csPeer.lock();
@@ -1257,16 +1260,16 @@ namespace SPA
             }
         }
 
-		bool CSqliteImpl::SubscribeForEvents(sqlite3 *db, const std::wstring &strConnection) {
-			std::string dbfile = SPA::Utilities::ToUTF8(strConnection.c_str(), strConnection.size());
-			if (!InCache(dbfile))
-				return true;
-			int rc = sqlite3_create_function(db, DIU_TRIGGER_FUNC.c_str(), -1, SQLITE_UTF16, this, XFunc, nullptr, nullptr);
-			return (rc == SQLITE_OK);
-		}
+        bool CSqliteImpl::SubscribeForEvents(sqlite3 *db, const std::wstring & strConnection) {
+            std::string dbfile = SPA::Utilities::ToUTF8(strConnection.c_str(), strConnection.size());
+            if (!InCache(dbfile))
+                return true;
+            int rc = sqlite3_create_function(db, DIU_TRIGGER_FUNC.c_str(), -1, SQLITE_UTF16, this, XFunc, nullptr, nullptr);
+            return (rc == SQLITE_OK);
+        }
 
         int CSqliteImpl::DoSafeOpen(const std::wstring &strConnection, unsigned int flags) {
-			if ((flags & SPA::UDB::ENABLE_TABLE_UPDATE_MESSAGES) == SPA::UDB::ENABLE_TABLE_UPDATE_MESSAGES) {
+            if ((flags & SPA::UDB::ENABLE_TABLE_UPDATE_MESSAGES) == SPA::UDB::ENABLE_TABLE_UPDATE_MESSAGES) {
                 m_EnableMessages = GetPush().Subscribe(&SPA::UDB::STREAMING_SQL_CHAT_GROUP_ID, 1);
             }
             int res = SQLITE_OK;
@@ -1295,29 +1298,27 @@ namespace SPA
                     if (!IsOpened() || IsCanceled()) {
                         break;
                     }
+                } else {
+                    bool ok = SubscribeForEvents(db, strConnection);
+                    assert(ok);
+                    break;
                 }
-				else {
-					bool ok = SubscribeForEvents(db, strConnection);
-					assert(ok);
-					break;
-				}
             } while (true);
-			if (db) {
-				const char *db_file = sqlite3_db_filename(db, nullptr);
+            if (db) {
+                const char *db_file = sqlite3_db_filename(db, nullptr);
 #ifdef WIN32_64
-				char c = '\\';
+                char c = '\\';
 #else
-				char c = '/';
+                char c = '/';
 #endif
-				if (db_file) {
-					std::string s(db_file);
-					size_t pos = s.rfind(c);
-					m_dbName = s.substr(pos + 1);
-				}
-			}
-			else {
-				m_dbName.clear();
-			}
+                if (db_file) {
+                    std::string s(db_file);
+                    size_t pos = s.rfind(c);
+                    m_dbName = s.substr(pos + 1);
+                }
+            } else {
+                m_dbName.clear();
+            }
             m_pSqlite.reset(db, [](sqlite3 * p) {
                 if (p) {
                     int ret = sqlite3_close_v2(p);
@@ -1334,7 +1335,7 @@ namespace SPA
             ResetMemories();
             std::wstring strConnection = strConn;
 #ifdef WIN32_64
-			std::transform(strConnection.begin(), strConnection.end(), strConnection.begin(), ::tolower);
+            std::transform(strConnection.begin(), strConnection.end(), strConnection.begin(), ::tolower);
 #endif
             if (strConnection.size()) {
                 m_global = false;

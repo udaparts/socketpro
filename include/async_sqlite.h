@@ -8,7 +8,7 @@
 namespace SPA {
     namespace ClientSide {
         typedef CAsyncDBHandler<SPA::Sqlite::sidSqlite> CSqliteBase;
-		typedef CAsyncDBHandler<SPA::Sqlite::sidSqlite> CSqlite;
+        typedef CAsyncDBHandler<SPA::Sqlite::sidSqlite> CSqlite;
     } //namespace ClientSide
 } //namespace SPA
 

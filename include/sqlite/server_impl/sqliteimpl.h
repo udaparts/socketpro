@@ -5,11 +5,7 @@
 #include "../usqlite_server.h"
 #include "../../udatabase.h"
 #include "../../aserverw.h"
-#ifdef WIN32_64
 #include <unordered_map>
-#else
-#include <map>
-#endif
 
 namespace SPA {
     namespace ServerSide {
@@ -131,27 +127,27 @@ namespace SPA {
             static void SetLen(const std::string& str, CDBColumnInfo &info);
             static void SetPrecisionScale(const std::string& str, CDBColumnInfo &info);
             static int sqlite3_sleep(int time);
-			static void SetCacheTables(const std::wstring &str);
-			static void ltrim(std::string &s);
-			static void rtrim(std::string &s);
-			static void trim(std::string &s);
-			static void SetTriggers();
-			static std::vector<std::pair<std::string, char> > GetKeys(sqlite3 *db, const std::string &tblName);
-			static int cbGetKeys(void *p, int argc, char **argv, char **azColName);
-			static void SetTriggers(sqlite3 *db, const std::string &tblName, const std::vector<std::pair<std::string, char> > &vCol);
-			static bool SetUpdateTrigger(sqlite3 *db, const std::string &tblName, const std::vector<std::pair<std::string, char> > &vCol);
-			static bool SetInsertTrigger(sqlite3 *db, const std::string &tblName, const std::vector<std::pair<std::string, char> > &vCol);
-			static bool SetDeleteTrigger(sqlite3 *db, const std::string &tblName, const std::vector<std::pair<std::string, char> > &vCol);
-			bool SubscribeForEvents(sqlite3 *db, const std::wstring &strConnection);
-			static const std::vector<std::string>* InCache(const std::string &dbFile);
-			static int cbGetAllTables(void *p, int argc, char **argv, char **azColName);
-			static void DropAllTriggers(sqlite3 *db);
-			static void DropATrigger(sqlite3 *db, const std::string &sql);
-			static size_t HasKey(const std::vector<std::pair<std::string, char> > &vCol);
-			static void XFunc(sqlite3_context *context, int count, sqlite3_value **pp);
-			
+            static void SetCacheTables(const std::wstring &str);
+            static void ltrim(std::string &s);
+            static void rtrim(std::string &s);
+            static void trim(std::string &s);
+            static void SetTriggers();
+            static std::vector<std::pair<std::string, char> > GetKeys(sqlite3 *db, const std::string &tblName);
+            static int cbGetKeys(void *p, int argc, char **argv, char **azColName);
+            static void SetTriggers(sqlite3 *db, const std::string &tblName, const std::vector<std::pair<std::string, char> > &vCol);
+            static bool SetUpdateTrigger(sqlite3 *db, const std::string &tblName, const std::vector<std::pair<std::string, char> > &vCol);
+            static bool SetInsertTrigger(sqlite3 *db, const std::string &tblName, const std::vector<std::pair<std::string, char> > &vCol);
+            static bool SetDeleteTrigger(sqlite3 *db, const std::string &tblName, const std::vector<std::pair<std::string, char> > &vCol);
+            bool SubscribeForEvents(sqlite3 *db, const std::wstring &strConnection);
+            static const std::vector<std::string>* InCache(const std::string &dbFile);
+            static int cbGetAllTables(void *p, int argc, char **argv, char **azColName);
+            static void DropAllTriggers(sqlite3 *db);
+            static void DropATrigger(sqlite3 *db, const std::string &sql);
+            static size_t HasKey(const std::vector<std::pair<std::string, char> > &vCol);
+            static void XFunc(sqlite3_context *context, int count, sqlite3_value **pp);
+
         protected:
-			bool m_EnableMessages;
+            bool m_EnableMessages;
             UINT64 m_oks;
             UINT64 m_fails;
             tagTransactionIsolation m_ti;
@@ -162,7 +158,7 @@ namespace SPA {
             bool m_global;
             size_t m_parameters;
             CUQueue m_Blob;
-			std::string m_dbName;
+            std::string m_dbName;
 
             static CUCriticalSection m_csPeer;
             static const wchar_t* NO_DB_OPENED_YET;
@@ -180,10 +176,10 @@ namespace SPA {
             static unsigned int m_nParam;
             static std::wstring m_strGlobalConnection; //protected by m_csPeer
             static const int SLEEP_TIME = 1; //ms
-			static std::unordered_map<std::string, std::vector<std::string>> m_mapCache;
+            static std::unordered_map<std::string, std::vector<std::string>> m_mapCache;
 
-			static std::string DIU_TRIGGER_PREFIX;
-			static std::string DIU_TRIGGER_FUNC;
+            static std::string DIU_TRIGGER_PREFIX;
+            static std::string DIU_TRIGGER_FUNC;
         };
 
         typedef CSocketProService<CSqliteImpl> CSqliteService;
