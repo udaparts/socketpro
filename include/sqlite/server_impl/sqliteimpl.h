@@ -139,11 +139,11 @@ namespace SPA {
 			static std::vector<std::pair<std::string, char> > GetKeys(sqlite3 *db, const std::wstring &tblName);
 			static int cbGetKeys(void *p, int argc, char **argv, char **azColName);
 			static void SetTriggers(sqlite3 *db, const std::wstring &tblName, const std::vector<std::pair<std::string, char> > &vCol);
-			static void SetUpdateTrigger(sqlite3 *db, const std::wstring &tblName, const std::vector<std::pair<std::string, char> > &vCol);
-			static void SetInsertTrigger(sqlite3 *db, const std::wstring &tblName, const std::vector<std::pair<std::string, char> > &vCol);
-			static void SetDeleteTrigger(sqlite3 *db, const std::wstring &tblName, const std::vector<std::pair<std::string, char> > &vCol);
+			static bool SetUpdateTrigger(sqlite3 *db, const std::wstring &tblName, const std::vector<std::pair<std::string, char> > &vCol);
+			static bool SetInsertTrigger(sqlite3 *db, const std::wstring &tblName, const std::vector<std::pair<std::string, char> > &vCol);
+			static bool SetDeleteTrigger(sqlite3 *db, const std::wstring &tblName, const std::vector<std::pair<std::string, char> > &vCol);
 			static int DoAttach(sqlite3 *db);
-			static void SubscribeForEvents(sqlite3 *db, const std::wstring &strConnection);
+			bool SubscribeForEvents(sqlite3 *db, const std::wstring &strConnection);
 
 			static size_t HasKey(const std::vector<std::pair<std::string, char> > &vCol);
 

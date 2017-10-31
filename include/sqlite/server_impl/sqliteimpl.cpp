@@ -119,7 +119,7 @@ namespace SPA
 			SetUpdateTrigger(db, tblName, vCol);
 		}
 
-		void CSqliteImpl::SetUpdateTrigger(sqlite3 *db, const std::wstring &tblName, const std::vector<std::pair<std::string, char> > &vCol) {
+		bool CSqliteImpl::SetUpdateTrigger(sqlite3 *db, const std::wstring &tblName, const std::vector<std::pair<std::string, char> > &vCol) {
 			std::string sql = "CREATE TRIGGER IF NOT EXISTS " + DIU_TRIGGER_PREFIX;
 			std::string tbl = SPA::Utilities::ToUTF8(tblName.c_str(), tblName.size());
 			std::string orig_tbl = tbl;
@@ -145,10 +145,14 @@ namespace SPA
 			arg = "1," + arg;
 			sql += arg;
 			sql += ");END";
-			sql.clear();
+			char *err_msg = nullptr;
+			int rc = sqlite3_exec(db, sql.c_str(), nullptr, nullptr, &err_msg);
+			if (rc != SQLITE_OK && err_msg)
+				sqlite3_free(err_msg);
+			return rc == SQLITE_OK;
 		}
 
-		void CSqliteImpl::SetInsertTrigger(sqlite3 *db, const std::wstring &tblName, const std::vector<std::pair<std::string, char> > &vCol) {
+		bool CSqliteImpl::SetInsertTrigger(sqlite3 *db, const std::wstring &tblName, const std::vector<std::pair<std::string, char> > &vCol) {
 			std::string sql = "CREATE TRIGGER IF NOT EXISTS " + DIU_TRIGGER_PREFIX;
 			std::string tbl = SPA::Utilities::ToUTF8(tblName.c_str(), tblName.size());
 			std::string orig_tbl = tbl;
@@ -170,10 +174,14 @@ namespace SPA
 			arg = "0," + arg;
 			sql += arg;
 			sql += ");END";
-			sql.clear();
+			char *err_msg = nullptr;
+			int rc = sqlite3_exec(db, sql.c_str(), nullptr, nullptr, &err_msg);
+			if (rc != SQLITE_OK && err_msg)
+				sqlite3_free(err_msg);
+			return rc == SQLITE_OK;
 		}
 
-		void CSqliteImpl::SetDeleteTrigger(sqlite3 *db, const std::wstring &tblName, const std::vector<std::pair<std::string, char> > &vCol) {
+		bool CSqliteImpl::SetDeleteTrigger(sqlite3 *db, const std::wstring &tblName, const std::vector<std::pair<std::string, char> > &vCol) {
 			std::string sql = "CREATE TRIGGER IF NOT EXISTS " + DIU_TRIGGER_PREFIX;
 			std::string tbl = SPA::Utilities::ToUTF8(tblName.c_str(), tblName.size());
 			std::string orig_tbl = tbl;
@@ -197,6 +205,11 @@ namespace SPA
 			arg = "2," + arg;
 			sql += arg;
 			sql += ");END";
+			char *err_msg = nullptr;
+			int rc = sqlite3_exec(db, sql.c_str(), nullptr, nullptr, &err_msg);
+			if (rc != SQLITE_OK && err_msg)
+				sqlite3_free(err_msg);
+			return rc == SQLITE_OK;
 		}
 
 		size_t CSqliteImpl::HasKey(const std::vector<std::pair<std::string, char> > &vCol) {
@@ -1105,8 +1118,9 @@ namespace SPA
 			return SQLITE_OK;
 		}
 
-		void CSqliteImpl::SubscribeForEvents(sqlite3 *db, const std::wstring &strConnection) {
-
+		bool CSqliteImpl::SubscribeForEvents(sqlite3 *db, const std::wstring &strConnection) {
+			int rc = sqlite3_create_function(db, DIU_TRIGGER_FUNC.c_str(), -1, SQLITE_UTF16, this, XFunc, nullptr, nullptr);
+			return (rc == SQLITE_OK);
 		}
 
         int CSqliteImpl::DoSafeOpen(const std::wstring &strConnection, unsigned int flags) {
@@ -1136,8 +1150,6 @@ namespace SPA
                     if (!IsOpened() || IsCanceled()) {
                         break;
                     }
-                } else {
-                    break;
                 }
 				SubscribeForEvents(db, strConnection);
 				bool attached = ((flags & SPA::Sqlite::DATABASE_AUTO_ATTACHED) == SPA::Sqlite::DATABASE_AUTO_ATTACHED);
