@@ -4,33 +4,14 @@ public class CSqlite extends CAsyncDBHandler {
 
     public final static int sidSqlite = SPA.BaseServiceID.sidReserved + 0x6FFFFFF0; //asynchronous sqlite service id
 
+    /**
+     * A flag used with the method CAsyncDBHandler.Open for automatically
+     * attaching the opening database onto current session
+     */
+    public final static int DATABASE_AUTO_ATTACHED = 0x40000000;
+
     public CSqlite() {
         super(sidSqlite);
-    }
-
-    public interface DUpdateEvent {
-
-        void invoke(CAsyncDBHandler dbHandler, SPA.UDB.tagUpdateEvent eventType, String instance, String dbPath, String tablePath, Object lastRowId);
-    }
-
-    public DUpdateEvent DBEvent;
-
-    @Override
-    protected void OnResultReturned(short reqId, SPA.CUQueue mc) {
-        switch (reqId) {
-            case idDBUpdate:
-                if (mc.GetSize() > 0) {
-                    int dbEventType = mc.LoadInt();
-                    String dbInstance = mc.LoadString(), dbPath = mc.LoadString(), tablePath = mc.LoadString();
-                    Object idRow = mc.LoadObject();
-                    if (DBEvent != null) {
-                        DBEvent.invoke(this, SPA.UDB.tagUpdateEvent.forValue(dbEventType), dbInstance, dbPath, tablePath, idRow);
-                    }
-                }
-            default:
-                super.OnResultReturned(reqId, mc);
-                break;
-        }
     }
 
     public final static int SQLITE_OK = 0; /* Successful result */

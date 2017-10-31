@@ -429,6 +429,17 @@ namespace SocketProAdapter
                 }
             }
 
+            public string Connection
+            {
+                get
+                {
+                    lock (m_csDB)
+                    {
+                        return m_strConnection;
+                    }
+                }
+            }
+
             public override uint CleanCallbacks()
             {
                 lock (m_csDB)

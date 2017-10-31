@@ -70,10 +70,10 @@ public class CMySocketProServer : CSocketProServer
         PushManager.AddAChatGroup(7, "HR Department");
 
         //load socketpro async sqlite and queue server libraries located at the directory ../socketpro/bin
-        IntPtr p = CSocketProServer.DllManager.AddALibrary("ssqlite", ENABLE_GLOBAL_SQLITE_UPDATE_HOOK);
+        IntPtr p = CSocketProServer.DllManager.AddALibrary("ssqlite");
         if (p.ToInt64() != 0) 
         {
-            SetSqliteDBGlobalConnectionString("usqlite.db");
+            SetSqliteDBGlobalConnectionString("usqlite.db+sakila.db.actor;sakila.db.language;sakila.db.category;sakila.db.country;sakila.db.film_actor");
         }
         p = CSocketProServer.DllManager.AddALibrary("uasyncqueue", 24 * 1024); //24 * 1024 batch dequeuing size in bytes
 

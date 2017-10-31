@@ -48,9 +48,9 @@ public class CMySocketProServer extends CSocketProServer {
         //CSocketProServer.QueueManager.setMessageQueuePassword("MyPasswordForMsgQueue");
 
         //load socketpro async sqlite and queue server libraries located at the directory ../socketpro/bin
-        long handle = CSocketProServer.DllManager.AddALibrary("ssqlite", Sqlite.ENABLE_GLOBAL_SQLITE_UPDATE_HOOK);
+        long handle = CSocketProServer.DllManager.AddALibrary("ssqlite");
         if (handle != 0) {
-            Sqlite.SetSqliteDBGlobalConnectionString("usqlite.db");
+            Sqlite.SetSqliteDBGlobalConnectionString("usqlite.db+sakila.db.actor;sakila.db.language;sakila.db.category;sakila.db.country;sakila.db.film_actor");
         }
         handle = CSocketProServer.DllManager.AddALibrary("uasyncqueue", 16 * 1024); //16 * 1024 batch dequeuing size in bytes
 

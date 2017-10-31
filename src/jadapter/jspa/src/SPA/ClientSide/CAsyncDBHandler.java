@@ -123,6 +123,12 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
     private int m_output = 0;
     private boolean m_bCallReturn = false;
 
+    public final String getConnection() {
+        synchronized (m_csDB) {
+            return m_strConnection;
+        }
+    }
+
     public final int getParameters() {
         synchronized (m_csDB) {
             return m_parameters;

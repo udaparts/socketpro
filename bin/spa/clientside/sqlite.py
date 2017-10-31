@@ -5,9 +5,12 @@ from spa import BaseServiceID, tagBaseRequestID
 class CSqlite(CAsyncDBHandler):
     sidSqlite = BaseServiceID.sidReserved + 0x6FFFFFF0 #asynchronous sqlite service id
 
+    # A flag used with the method CAsyncDBHandler.Open for automatically attaching the opening database onto current session
+    DATABASE_AUTO_ATTACHED = 0x40000000
+
     SQLITE_OK = 0 # Successful result 
 
-    #beginning-of-error-codes
+    # beginning-of-error-codes
     SQLITE_ERROR = 1 # SQL error or missing database 
     SQLITE_INTERNAL = 2 # Internal logic error in SQLite 
     SQLITE_PERM = 3 # Access permission denied 
@@ -39,7 +42,7 @@ class CSqlite(CAsyncDBHandler):
     SQLITE_ROW = 100 # sqlite3_step() has another row ready 
     SQLITE_DONE = 101 # sqlite3_step() has finished executing 
     
-    #error codes from asynchronous sqlite server side implementation
+    # error codes from asynchronous sqlite server side implementation
     SQLITE_DB_NOT_OPENED_YET = 131
     SQLITE_BAD_END_TRANSTACTION_PLAN = 132
     SQLITE_NO_PARAMETER_SPECIFIED = 133
@@ -48,7 +51,7 @@ class CSqlite(CAsyncDBHandler):
     SQLITE_DATA_TYPE_NOT_SUPPORTED = 136
     SQLITE_NO_DB_FILE_SPECIFIED = 137
     
-    #sqlite extended error codes
+    # sqlite extended error codes
     SQLITE_IOERR_READ = (SQLITE_IOERR | (1 << 8))
     SQLITE_IOERR_SHORT_READ = (SQLITE_IOERR | (2 << 8))
     SQLITE_IOERR_WRITE = (SQLITE_IOERR | (3 << 8))
@@ -107,17 +110,3 @@ class CSqlite(CAsyncDBHandler):
 
     def __init__(self):
         super(CSqlite, self).__init__(CSqlite.sidSqlite)
-        self.DBEvent = None
-
-    def OnResultReturned(self, reqId, mc):
-        if reqId == CAsyncDBHandler.idDBUpdate:
-            if mc.GetSize() > 0:
-                dbEventType = mc.LoadInt()
-                dbInstance = mc.LoadString()
-                dbPath = mc.LoadString()
-                tablePath = mc.LoadString()
-                idRow = mc.LoadObject()
-                if not self.DBEvent is None:
-                    self.DBEvent(self, dbEventType, dbInstance, dbPath, tablePath, idRow)
-        else:
-            super(CSqlite, self).OnResultReturned(reqId, mc)
