@@ -48,6 +48,11 @@ namespace SPA {
 				return m_dbErrMsg;
 			}
 
+			inline std::wstring GetConnection() {
+				CAutoLock al(m_csDB);
+				return m_strConnection;
+			}
+
 			inline INT64 GetLastAffected() {
 				CAutoLock al(m_csDB);
 				return m_affected;

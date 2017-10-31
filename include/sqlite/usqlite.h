@@ -6,6 +6,10 @@
 namespace SPA {
     namespace Sqlite {
         static const unsigned int sidSqlite = (unsigned int) sidReserved + 0x6FFFFFF0; //asynchronous sqlite service id
+
+		//used a flag with CAsyncDBHandler::Open for automatically attaching the current database
+		static const unsigned int DATABASE_AUTO_ATTACHED = 0x40000000;
+
 #ifndef SQLITE_OK
         static const int SQLITE_OK = 0; /* Successful result */
         /* beginning-of-error-codes */

@@ -142,6 +142,8 @@ namespace SPA {
 			static void SetUpdateTrigger(sqlite3 *db, const std::wstring &tblName, const std::vector<std::pair<std::string, char> > &vCol);
 			static void SetInsertTrigger(sqlite3 *db, const std::wstring &tblName, const std::vector<std::pair<std::string, char> > &vCol);
 			static void SetDeleteTrigger(sqlite3 *db, const std::wstring &tblName, const std::vector<std::pair<std::string, char> > &vCol);
+			static int DoAttach(sqlite3 *db);
+			static void SubscribeForEvents(sqlite3 *db, const std::wstring &strConnection);
 
 			static size_t HasKey(const std::vector<std::pair<std::string, char> > &vCol);
 

@@ -1101,6 +1101,14 @@ namespace SPA
             }
         }
 
+		int CSqliteImpl::DoAttach(sqlite3 *db) {
+			return SQLITE_OK;
+		}
+
+		void CSqliteImpl::SubscribeForEvents(sqlite3 *db, const std::wstring &strConnection) {
+
+		}
+
         int CSqliteImpl::DoSafeOpen(const std::wstring &strConnection, unsigned int flags) {
             int res = SQLITE_OK;
             bool bUTF16 = ((Sqlite::USE_UTF16_ENCODING & m_nParam) == Sqlite::USE_UTF16_ENCODING);
@@ -1131,6 +1139,11 @@ namespace SPA
                 } else {
                     break;
                 }
+				SubscribeForEvents(db, strConnection);
+				bool attached = ((flags & SPA::Sqlite::DATABASE_AUTO_ATTACHED) == SPA::Sqlite::DATABASE_AUTO_ATTACHED);
+				if (attached) {
+					res = DoAttach(db);
+				}
             } while (true);
             m_pSqlite.reset(db, [](sqlite3 * p) {
                 if (p) {
