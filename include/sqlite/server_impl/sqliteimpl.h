@@ -142,9 +142,8 @@ namespace SPA {
 			static bool SetUpdateTrigger(sqlite3 *db, const std::string &tblName, const std::vector<std::pair<std::string, char> > &vCol);
 			static bool SetInsertTrigger(sqlite3 *db, const std::string &tblName, const std::vector<std::pair<std::string, char> > &vCol);
 			static bool SetDeleteTrigger(sqlite3 *db, const std::string &tblName, const std::vector<std::pair<std::string, char> > &vCol);
-			static int DoAttach(sqlite3 *db);
 			bool SubscribeForEvents(sqlite3 *db, const std::wstring &strConnection);
-			static bool InCache(const std::string &dbFile);
+			static const std::vector<std::string>* InCache(const std::string &dbFile);
 			static int cbGetAllTables(void *p, int argc, char **argv, char **azColName);
 			static void DropAllTriggers(sqlite3 *db);
 			static void DropATrigger(sqlite3 *db, const std::string &sql);
@@ -152,6 +151,7 @@ namespace SPA {
 			static void XFunc(sqlite3_context *context, int count, sqlite3_value **pp);
 			
         protected:
+			bool m_EnableMessages;
             UINT64 m_oks;
             UINT64 m_fails;
             tagTransactionIsolation m_ti;
@@ -162,6 +162,7 @@ namespace SPA {
             bool m_global;
             size_t m_parameters;
             CUQueue m_Blob;
+			std::string m_dbName;
 
             static CUCriticalSection m_csPeer;
             static const wchar_t* NO_DB_OPENED_YET;

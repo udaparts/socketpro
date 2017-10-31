@@ -30,7 +30,7 @@ namespace SPA
 		std::string CSqliteImpl::DIU_TRIGGER_PREFIX("sp_streaming_db_trigger_");
 		std::string CSqliteImpl::DIU_TRIGGER_FUNC("sp_sqlite_db_event_func");
 
-        CSqliteImpl::CSqliteImpl() : m_oks(0), m_fails(0), m_ti(tiUnspecified), m_global(true), m_parameters(0) {
+        CSqliteImpl::CSqliteImpl() : m_EnableMessages(false), m_oks(0), m_fails(0), m_ti(tiUnspecified), m_global(true), m_parameters(0) {
 
         }
 
@@ -73,14 +73,18 @@ namespace SPA
 			}
 		}
 
-		bool CSqliteImpl::InCache(const std::string &dbFile) {
+		const std::vector<std::string>* CSqliteImpl::InCache(const std::string &dbFile) {
 			std::string s = dbFile;
-			for (auto it = m_mapCache.begin(), end = m_mapCache.end(); it != end; ++it) {
+			trim(s);
+#ifdef WIN32
+			std::transform(s.begin(), s.end(), s.begin(), ::tolower);
+#endif
+			for (auto it = m_mapCache.cbegin(), end = m_mapCache.cend(); it != end; ++it) {
 				size_t pos = s.rfind(it->first);
 				if (pos == s.size() - it->first.size())
-					return true;
+					return &(it->second);
 			}
-			return false;
+			return nullptr;
 		}
 
 		void CSqliteImpl::SetTriggers() {
@@ -301,19 +305,6 @@ namespace SPA
         }
 
 		void CSqliteImpl::XFunc(sqlite3_context *context, int count, sqlite3_value **pp) {
-			sqlite3 *db = sqlite3_context_db_handle(context);
-			const char *db_file = sqlite3_db_filename(db, nullptr);
-			if (!db_file)
-				return;
-#ifdef WIN32_64
-			char c = '\\';
-#else
-			char c = '/';
-#endif
-			std::string s = db_file;
-			size_t pos = s.rfind(c);
-			std::string dbPath = s.substr(pos + 1);
-
 			SPA::UVariant vtArray;
 			vtArray.vt = (VT_ARRAY | VT_VARIANT);
 			SAFEARRAYBOUND sab[] = {count + 3};
@@ -346,7 +337,7 @@ namespace SPA
 			pVt[2].bstrVal = ::SysAllocString(userId.c_str());
 
 			pVt[3].vt = VT_BSTR;
-			pVt[3].bstrVal = ::SysAllocString(SPA::Utilities::ToWide(dbPath.c_str(), dbPath.size()).c_str());
+			pVt[3].bstrVal = ::SysAllocString(SPA::Utilities::ToWide(peer->m_dbName.c_str(), peer->m_dbName.size()).c_str());
 
 			for(int n = 1; n < count; ++n) {
 				sqlite3_value *value = pp[n];
@@ -445,6 +436,7 @@ namespace SPA
         void CSqliteImpl::OnReleaseSource(bool bClosing, unsigned int info) {
             Clean();
             m_global = true;
+			m_EnableMessages = false;
         }
 
         void CSqliteImpl::ResetMemories() {
@@ -999,7 +991,7 @@ namespace SPA
             }
         }
 
-        void CSqliteImpl::Execute(const std::wstring& sql, bool rowset, bool meta, bool lastInsertId, UINT64 index, INT64 &affected, int &res, std::wstring &errMsg, CDBVariant &vtId, UINT64 & fail_ok) {
+        void CSqliteImpl::Execute(const std::wstring& wsql, bool rowset, bool meta, bool lastInsertId, UINT64 index, INT64 &affected, int &res, std::wstring &errMsg, CDBVariant &vtId, UINT64 & fail_ok) {
             ResetMemories();
             fail_ok = 0;
             affected = 0;
@@ -1011,12 +1003,25 @@ namespace SPA
                 fail_ok <<= 32;
                 return;
             }
+			std::string sql = Utilities::ToUTF8(wsql.c_str(), wsql.size());
+			
             UINT64 fails = m_fails;
             UINT64 oks = m_oks;
             int start = sqlite3_total_changes(m_pSqlite.get());
-            CScopeUQueue sb;
-            Utilities::ToUTF8(sql.c_str(), sql.size(), *sb);
-            const char *sqlUtf8 = (const char*) sb->GetBuffer();
+			if (m_EnableMessages && !sql.size()) {
+				const std::vector<std::string> *v = InCache(sqlite3_db_filename(m_pSqlite.get(), nullptr));
+				if (v) {
+					//client side is asking for data from cached tables
+					for (auto it = v->cbegin(), end = v->cend(); it != end; ++it) {
+						if (sql.size())
+							sql += ';';
+						sql += "select * from `";
+						sql += *it;
+						sql += '`';
+					}
+				}
+            }
+            const char *sqlUtf8 = sql.c_str();
             if (rowset) {
                 ExecuteSqlWithRowset(sqlUtf8, meta, lastInsertId, index, res, errMsg, vtId);
             } else {
@@ -1126,6 +1131,10 @@ namespace SPA
             m_vParam.clear();
             m_global = true;
             ResetMemories();
+			if (m_EnableMessages) {
+                GetPush().Unsubscribe();
+                m_EnableMessages = false;
+            }
         }
 
         void CSqliteImpl::BeginTrans(int isolation, const std::wstring &dbConn, unsigned int flags, int &res, std::wstring &errMsg, int &ms) {
@@ -1248,10 +1257,6 @@ namespace SPA
             }
         }
 
-		int CSqliteImpl::DoAttach(sqlite3 *db) {
-			return SQLITE_OK;
-		}
-
 		bool CSqliteImpl::SubscribeForEvents(sqlite3 *db, const std::wstring &strConnection) {
 			std::string dbfile = SPA::Utilities::ToUTF8(strConnection.c_str(), strConnection.size());
 			if (!InCache(dbfile))
@@ -1261,8 +1266,11 @@ namespace SPA
 		}
 
         int CSqliteImpl::DoSafeOpen(const std::wstring &strConnection, unsigned int flags) {
+			if ((flags & SPA::UDB::ENABLE_TABLE_UPDATE_MESSAGES) == SPA::UDB::ENABLE_TABLE_UPDATE_MESSAGES) {
+                m_EnableMessages = GetPush().Subscribe(&SPA::UDB::STREAMING_SQL_CHAT_GROUP_ID, 1);
+            }
             int res = SQLITE_OK;
-            bool bUTF16 = ((Sqlite::USE_UTF16_ENCODING & m_nParam) == Sqlite::USE_UTF16_ENCODING);
+            bool bUTF16 = false; //((Sqlite::USE_UTF16_ENCODING & m_nParam) == Sqlite::USE_UTF16_ENCODING);
             sqlite3 *db = nullptr;
             CScopeUQueue sb;
             do {
@@ -1289,14 +1297,27 @@ namespace SPA
                     }
                 }
 				else {
-					SubscribeForEvents(db, strConnection);
-					bool attached = ((flags & SPA::Sqlite::DATABASE_AUTO_ATTACHED) == SPA::Sqlite::DATABASE_AUTO_ATTACHED);
-					if (attached) {
-						res = DoAttach(db);
-					}
+					bool ok = SubscribeForEvents(db, strConnection);
+					assert(ok);
 					break;
 				}
             } while (true);
+			if (db) {
+				const char *db_file = sqlite3_db_filename(db, nullptr);
+#ifdef WIN32_64
+				char c = '\\';
+#else
+				char c = '/';
+#endif
+				if (db_file) {
+					std::string s(db_file);
+					size_t pos = s.rfind(c);
+					m_dbName = s.substr(pos + 1);
+				}
+			}
+			else {
+				m_dbName.clear();
+			}
             m_pSqlite.reset(db, [](sqlite3 * p) {
                 if (p) {
                     int ret = sqlite3_close_v2(p);
