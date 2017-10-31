@@ -6,6 +6,7 @@
 #include <iostream>
 #endif
 #include "../async_sqlncli.h"
+#include "../../../include/scloader.h"
 
 namespace SPA
 {

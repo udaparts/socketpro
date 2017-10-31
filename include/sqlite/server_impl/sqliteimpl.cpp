@@ -9,6 +9,7 @@
 #endif
 #include <sstream>
 #include <cctype>
+#include "../../../include/scloader.h"
 
 namespace SPA
 {
