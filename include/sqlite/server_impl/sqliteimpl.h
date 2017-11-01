@@ -120,7 +120,7 @@ namespace SPA {
             void ConvertVariantDateToString();
             int DoSafeOpen(const std::wstring &strConnection, unsigned int flags);
             void Clean();
-			bool SubscribeForEvents(sqlite3 *db, const std::wstring &strConnection);
+            bool SubscribeForEvents(sqlite3 *db, const std::wstring &strConnection);
 
             static int DoStep(sqlite3_stmt *stmt);
             static int DoFinalize(sqlite3_stmt *stmt);
@@ -145,7 +145,7 @@ namespace SPA {
             static void DropATrigger(sqlite3 *db, const std::string &sql);
             static size_t HasKey(const std::vector<std::pair<std::string, char> > &vCol);
             static void XFunc(sqlite3_context *context, int count, sqlite3_value **pp);
-			
+
 
         protected:
             bool m_EnableMessages;

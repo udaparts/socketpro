@@ -1322,6 +1322,11 @@
             <param name="canceled">a callback for tracking cancel or socket closed event</param>
             <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
         </member>
+        <member name="F:SocketProAdapter.ClientSide.CSqlite.DATABASE_AUTO_ATTACHED">
+            <summary>
+            A flag used with the method CAsyncDBHandler.Open for automatically attaching the opening database onto current session
+            </summary>
+        </member>
         <member name="F:SocketProAdapter.ClientSide.CMysql.USE_REMOTE_MYSQL">
             <summary>
             Use Mysql embedded at SocketPro server side by default.
