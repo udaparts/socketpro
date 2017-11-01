@@ -4,7 +4,7 @@
 #include <future>
 #include "../../../../include/rdbcache.h" //relation DB cache
 
-#if 1
+#if 0
 #include "../../../../include/mysql/umysql.h" //MySQL constants
 typedef SPA::ClientSide::CAsyncDBHandler<SPA::Mysql::sidMysql> CMySQLHandler;
 typedef SPA::CSQLMasterPool<true, CMySQLHandler> CMySQLMasterPool;

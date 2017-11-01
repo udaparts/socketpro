@@ -323,7 +323,7 @@ namespace SocketProAdapter
                     return (uint)p.Value.Columns.Count;
                 }
             }
-            return INVALID_VALUE;
+            return 0;
         }
 
         public void Set(string strIp, UDB.tagManagementSystem ms)

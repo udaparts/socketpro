@@ -53,9 +53,17 @@ void CConfig::GetConfig() {
 #endif
 	m_password_or_subject = "mypassword";
 
+#if defined(_UMYSQL_SOCKETPRO_H_)
 	//cached tables on front applications
 	m_vFrontCachedTable.push_back(L"sakila.actor");
 	m_vFrontCachedTable.push_back(L"sakila.language");
 	m_vFrontCachedTable.push_back(L"sakila.country");
 	m_vFrontCachedTable.push_back(L"mysqldb.employee");
+#else
+	//cached tables on front applications
+	m_vFrontCachedTable.push_back(L"actor");
+	m_vFrontCachedTable.push_back(L"language");
+	m_vFrontCachedTable.push_back(L"country");
+	m_vFrontCachedTable.push_back(L"employee");
+#endif
 }

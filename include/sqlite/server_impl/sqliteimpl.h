@@ -120,6 +120,7 @@ namespace SPA {
             void ConvertVariantDateToString();
             int DoSafeOpen(const std::wstring &strConnection, unsigned int flags);
             void Clean();
+			bool SubscribeForEvents(sqlite3 *db, const std::wstring &strConnection);
 
             static int DoStep(sqlite3_stmt *stmt);
             static int DoFinalize(sqlite3_stmt *stmt);
@@ -138,13 +139,13 @@ namespace SPA {
             static bool SetUpdateTrigger(sqlite3 *db, const std::string &tblName, const std::vector<std::pair<std::string, char> > &vCol);
             static bool SetInsertTrigger(sqlite3 *db, const std::string &tblName, const std::vector<std::pair<std::string, char> > &vCol);
             static bool SetDeleteTrigger(sqlite3 *db, const std::string &tblName, const std::vector<std::pair<std::string, char> > &vCol);
-            bool SubscribeForEvents(sqlite3 *db, const std::wstring &strConnection);
             static const std::vector<std::string>* InCache(const std::string &dbFile);
             static int cbGetAllTables(void *p, int argc, char **argv, char **azColName);
             static void DropAllTriggers(sqlite3 *db);
             static void DropATrigger(sqlite3 *db, const std::string &sql);
             static size_t HasKey(const std::vector<std::pair<std::string, char> > &vCol);
             static void XFunc(sqlite3_context *context, int count, sqlite3_value **pp);
+			
 
         protected:
             bool m_EnableMessages;

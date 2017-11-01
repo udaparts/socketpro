@@ -935,7 +935,7 @@ namespace SPA
             if (last_error) {
                 errMsg = Utilities::ToWide(last_err_msg.c_str(), last_err_msg.size());
             }
-            if (!header_sent) {
+            if (!header_sent && !last_error) {
                 sbRowset->SetSize(0);
                 CDBColumnInfoArray vColInfo;
                 sbRowset << vColInfo << index;
@@ -975,10 +975,22 @@ namespace SPA
                 } else {
                     assert(statement);
                     int ret = DoStep(statement);
-                    assert(ret == SQLITE_OK || ret == SQLITE_DONE || ret == SQLITE_ROW);
+                    if (!(ret == SQLITE_OK || ret == SQLITE_DONE || ret == SQLITE_ROW)) {
+						if (!last_error) {
+							if ((m_nParam & Sqlite::DO_NOT_USE_EXTENDED_ERROR_CODE) == Sqlite::DO_NOT_USE_EXTENDED_ERROR_CODE) {
+								last_error = ret;
+							} else {
+								last_error = sqlite3_extended_errcode(db);
+							}
+							last_err_msg = Utilities::ToWide(sqlite3_errmsg(db));
+						}
+						++m_fails;
+					}
+					else {
+						++m_oks;
+					}
                     ret = DoFinalize(statement);
-                    assert(ret == SQLITE_OK);
-                    ++m_oks;
+                    //assert(ret == SQLITE_OK);
                 }
                 if (sqlUtf8 == tail) {
                     break;
@@ -1286,8 +1298,8 @@ namespace SPA
                     res = sqlite3_open16((const SPA::UTF16*)sb->GetBuffer(), &db);
 #endif
                 } else {
-                    Utilities::ToUTF8(strConnection.c_str(), strConnection.size(), *sb);
-                    res = sqlite3_open((const char*) sb->GetBuffer(), &db);
+					Utilities::ToUTF8(strConnection.c_str(), strConnection.size(), *sb);
+					res = sqlite3_open((const char*) sb->GetBuffer(), &db);
                 }
                 if (res == SQLITE_BUSY || res == SQLITE_LOCKED) {
                     sqlite3_sleep(SLEEP_TIME);
@@ -1301,7 +1313,7 @@ namespace SPA
                     }
                 } else {
                     bool ok = SubscribeForEvents(db, strConnection);
-                    assert(ok);
+					assert(ok);
                     break;
                 }
             } while (true);

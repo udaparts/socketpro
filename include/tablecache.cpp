@@ -1087,7 +1087,7 @@ namespace SPA
                 return meta.size();
             }
         }
-        return INVALID_VALUE;
+        return 0;
     }
 
     size_t CDataSet::GetRowCount(const wchar_t *dbName, const wchar_t * tblName) {
