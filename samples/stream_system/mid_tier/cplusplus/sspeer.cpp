@@ -153,7 +153,7 @@ void CYourPeerOne::GetRentalDateTimes(SPA::UINT64 index, SPA::INT64 rental_id, S
 	res = 0;
 	::memset(&dates, 0, sizeof(dates));
 	dates.rental_id = rental_id;
-	std::wstring sql = L"SELECT rental_id,rental_date,return_date,last_update FROM sakila.rental where rental_id=" + std::to_wstring(rental_id);
+	std::wstring sql = L"SELECT rental_id,rental_date,return_date,last_update FROM rental where rental_id=" + std::to_wstring(rental_id);
 	int redo = 0;
 	do {
 		std::shared_ptr<CSQLHandler> handler = CYourServer::Slave->Seek();
@@ -216,7 +216,7 @@ void CYourPeerOne::QueryPaymentMaxMinAvgs(SPA::CUQueue &q) {
 	std::wstring filter;
 	q >> index >> filter;
 	std::shared_ptr<std::pair<int, std::wstring> > pError(new std::pair<int, std::wstring>(0, L""));
-	std::wstring sql = L"SELECT MAX(amount),MIN(amount),AVG(amount) FROM sakila.payment";
+	std::wstring sql = L"SELECT MAX(amount),MIN(amount),AVG(amount) FROM payment";
 	if (filter.size())
 		sql += (L" WHERE " + filter);
 	int redo = 0;

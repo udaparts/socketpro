@@ -151,7 +151,6 @@
     <ClInclude Include="..\..\..\..\include\udatabase.h" />
     <ClInclude Include="..\..\..\..\include\udb_client.h" />
     <ClInclude Include="config.h" />
-    <ClInclude Include="sqlitehandler.h" />
     <ClInclude Include="sspeer.h" />
     <ClInclude Include="ssserver.h" />
     <ClInclude Include="stdafx.h" />
@@ -164,7 +163,6 @@
     <ClCompile Include="..\..\..\..\include\tablecache.cpp" />
     <ClCompile Include="config.cpp" />
     <ClCompile Include="cplusplus.cpp" />
-    <ClCompile Include="sqlitehandler.cpp" />
     <ClCompile Include="sspeer.cpp" />
     <ClCompile Include="ssserver.cpp" />
     <ClCompile Include="stdafx.cpp" />

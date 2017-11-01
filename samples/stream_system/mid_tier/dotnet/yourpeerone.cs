@@ -27,7 +27,7 @@ class CYourPeerOne : CCacheBasePeer
         ss.CMaxMinAvg pmma = new ss.CMaxMinAvg();
         string filter;
         q.Load(out index).Load(out filter);
-        string sql = "SELECT MAX(amount),MIN(amount),AVG(amount) FROM sakila.payment";
+        string sql = "SELECT MAX(amount),MIN(amount),AVG(amount) FROM payment";
         if (filter != null && filter.Length > 0)
             sql += (" WHERE " + filter);
         int redo = 0;
@@ -257,7 +257,7 @@ class CYourPeerOne : CCacheBasePeer
         ss.CRentalDateTimes myDates = new ss.CRentalDateTimes(rental_id);
         res = 0;
         string errMsg = "";
-        string sql = "SELECT rental_id,rental_date,return_date,last_update FROM sakila.rental where rental_id=" + rental_id;
+        string sql = "SELECT rental_id,rental_date,return_date,last_update FROM rental where rental_id=" + rental_id;
         int redo = 0;
         do
         {

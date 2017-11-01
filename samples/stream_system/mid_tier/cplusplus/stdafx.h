@@ -9,8 +9,8 @@
 typedef SPA::ClientSide::CAsyncDBHandler<SPA::Mysql::sidMysql> CMySQLHandler;
 typedef SPA::CSQLMasterPool<true, CMySQLHandler> CMySQLMasterPool;
 #else
-#include "sqlitehandler.h"
-typedef SPA::CSQLMasterPool<true, CSqliteHandler> CMySQLMasterPool;
+#include "../../../../include/async_sqlite.h"
+typedef SPA::CSQLMasterPool<true, SPA::ClientSide::CSqlite> CMySQLMasterPool;
 #endif
 typedef CMySQLMasterPool::CSlavePool CMySQLSlavePool;
 typedef CMySQLMasterPool::CSQLHandler CSQLHandler;

@@ -28,7 +28,11 @@ void CConfig::GetConfig() {
 	m_ccMaster.UserId = L"root";
 	m_ccMaster.Password = L"Smash123";
 
+#if defined(_UMYSQL_SOCKETPRO_H_)
 	m_nMasterSessions = 2; //two sessions enough
+#else
+	m_nMasterSessions = 1; //one session enough
+#endif
 
 	//slave
 #if defined(_UMYSQL_SOCKETPRO_H_)
@@ -58,7 +62,6 @@ void CConfig::GetConfig() {
 	m_vFrontCachedTable.push_back(L"sakila.actor");
 	m_vFrontCachedTable.push_back(L"sakila.language");
 	m_vFrontCachedTable.push_back(L"sakila.country");
-	m_vFrontCachedTable.push_back(L"mysqldb.employee");
 #else
 	//cached tables on front applications
 	m_vFrontCachedTable.push_back(L"actor");
