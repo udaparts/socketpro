@@ -84,6 +84,11 @@ namespace SocketProAdapter
             msSqlite = 0,
             msMysql = 1,
             msODBC = 2,
+            msMsSQL = 3,
+            msOracle = 4,
+            msDB2 = 5,
+            msPostgreSQL = 6,
+            msMongoDB = 7
         };
 
         public class CDBVariantArray : List<object>, IUSerializer
@@ -1541,7 +1546,7 @@ namespace SocketProAdapter
                     }
                 }
             }
-            public static void AppendRowDataIntoDataTable(object []vtData, DataTable dt)
+            public static void AppendRowDataIntoDataTable(object[] vtData, DataTable dt)
             {
                 int index = 0;
                 int cols = dt.Columns.Count;

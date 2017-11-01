@@ -83,6 +83,11 @@ namespace SPA {
             msSqlite = 0,
             msMysql = 1,
             msODBC = 2,
+			msMsSQL = 3,
+			msOracle = 4,
+			msDB2 = 5,
+			msPostgreSQL = 6,
+			msMongoDB = 7
         };
 
         enum tagVTExt {

@@ -5,7 +5,12 @@ public enum tagManagementSystem {
     msUnknown(-1),
     msSqlite(0),
     msMysql(1),
-    msODBC(2);
+    msODBC(2),
+    msMsSQL(3),
+    msOracle(4),
+    msDB2(5),
+    msPostgreSQL(6),
+    msMongoDB(7);
 
     private final int intValue;
     private static java.util.HashMap<Integer, tagManagementSystem> mappings;
