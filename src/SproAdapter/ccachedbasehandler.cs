@@ -27,6 +27,18 @@ namespace SocketProAdapter
             protected ulong m_nCall = 0;
             protected ulong m_indexRowset = 0;
 
+            private UDB.tagManagementSystem m_ms = tagManagementSystem.msUnknown;
+            public UDB.tagManagementSystem DBManagementSystem
+            {
+                get
+                {
+                    lock (m_csCache)
+                    {
+                        return m_ms;
+                    }
+                }
+            }
+
             public override uint CleanCallbacks()
             {
                 lock (m_csCache)
@@ -163,11 +175,12 @@ namespace SocketProAdapter
                 }
                 if (!SendRequest(CAsyncDBHandler.idGetCachedTables, defaultDb, flags, rowset, index, (ar) =>
                 {
-                    int res;
+                    int res, dbMS;
                     string errMsg;
-                    ar.Load(out res).Load(out errMsg);
+                    ar.Load(out dbMS).Load(out res).Load(out errMsg);
                     lock (m_csCache)
                     {
+                        m_ms = (UDB.tagManagementSystem)dbMS;
                         m_mapRowset.Remove(index);
                     }
                     if (handler != null)

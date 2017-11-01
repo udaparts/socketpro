@@ -70,7 +70,7 @@ namespace SPA {
             }
 
         protected:
-            virtual void GetCachedTables(const std::wstring &defaultDb, unsigned int flags, bool rowset, UINT64 index, int &res, std::wstring &errMsg) = 0;
+            virtual void GetCachedTables(const std::wstring &defaultDb, unsigned int flags, bool rowset, UINT64 index, int &dbMS, int &res, std::wstring &errMsg) = 0;
 
             bool SendBlob(unsigned short data_type, const unsigned char *buffer, unsigned int bytes) const {
                 unsigned int ret = SendResult(UDB::idStartBLOB,

@@ -8,7 +8,7 @@ namespace SocketProAdapter
         public abstract class CCacheBasePeer : CClientPeer
         {
             [RequestAttr(SocketProAdapter.ClientSide.CAsyncDBHandler.idGetCachedTables, true)]
-            protected abstract string GetCachedTables(string defaultDb, uint flags, bool rowset, ulong index, out int res);
+            protected abstract string GetCachedTables(string defaultDb, uint flags, bool rowset, ulong index, out int dbManagementSystem, out int res);
 
             public bool SendMeta(UDB.CDBColumnInfoArray meta, ulong index)
             {
@@ -90,7 +90,7 @@ namespace SocketProAdapter
             protected bool SendBlob(ushort data_type, byte[] buffer, uint bytes, uint offset)
             {
                 uint ret = SendResult(ClientSide.CAsyncDBHandler.idStartBLOB,
-                        //extra 4 bytes for string null termination
+                    //extra 4 bytes for string null termination
                         (uint)(bytes + sizeof(ushort) + sizeof(uint) + sizeof(uint)),
                         data_type, bytes);
                 if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND)

@@ -17,7 +17,7 @@ namespace SPA {
 		public:
 
 			CCachedBaseHandler(CClientSocket *cs = nullptr)
-				: CAsyncServiceHandler(serviceId, cs), m_nCall(0), m_indexRowset(0) {
+				: CAsyncServiceHandler(serviceId, cs), m_nCall(0), m_indexRowset(0), m_ms(UDB::msUnknown) {
 				m_Blob.Utf8ToW(true);
 			}
 
@@ -38,6 +38,11 @@ namespace SPA {
 				return CAsyncServiceHandler::CleanCallbacks();
 			}
 
+			inline tagManagementSystem GetDBManagementSystem() {
+				CAutoLock al(m_csCache);
+				return m_ms;
+			}
+
 			virtual bool GetCachedTables(const wchar_t *defaultDb, DResult handler, DRows row, DRowsetHeader rh, unsigned int flags = SPA::UDB::ENABLE_TABLE_UPDATE_MESSAGES) {
 				bool rowset = (rh || row);
 				UINT64 index;
@@ -53,10 +58,11 @@ namespace SPA {
 				}
 
 				if (!SendRequest(idGetCachedTables, defaultDb, flags, rowset, index, [index, handler, this](CAsyncResult & ar) {
-					int res;
+					int res, dbMS;
 					std::wstring errMsg;
-					ar >> res >> errMsg;
+					ar >> dbMS >> res >> errMsg;
 					this->m_csCache.lock();
+					this->m_ms = (UDB::tagManagementSystem) dbMS;
 					auto it = this->m_mapRowset.find(index);
 					if (it != this->m_mapRowset.end()) {
 						this->m_mapRowset.erase(it);
@@ -188,6 +194,7 @@ namespace SPA {
 			CUQueue m_Blob;
 			UINT64 m_nCall;
 			UINT64 m_indexRowset;
+			UDB::tagManagementSystem m_ms;
 		};
 	} //namespace ClientSide
 } //namespace SPA
