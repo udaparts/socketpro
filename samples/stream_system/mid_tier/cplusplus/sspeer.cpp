@@ -28,7 +28,7 @@ void CYourPeerOne::OnFastRequestArrive(unsigned short reqId, unsigned int len) {
 
 int CYourPeerOne::OnSlowRequestArrive(unsigned short reqId, unsigned int len) {
 	BEGIN_SWITCH(reqId)
-		M_I4_R2(SPA::UDB::idGetCachedTables, GetCachedTables, std::wstring, unsigned int, bool, SPA::UINT64, int, std::wstring)
+		M_I4_R3(SPA::UDB::idGetCachedTables, GetCachedTables, std::wstring, unsigned int, bool, SPA::UINT64, int, int, std::wstring)
 		M_I2_R4(idGetRentalDateTimes, GetRentalDateTimes, SPA::UINT64, SPA::INT64, SPA::UINT64, CRentalDateTimes, int, std::wstring)
 		END_SWITCH
 		return 0;
@@ -274,8 +274,9 @@ void CYourPeerOne::QueryPaymentMaxMinAvgs(SPA::CUQueue &q) {
 	} while (redo);
 }
 
-void CYourPeerOne::GetCachedTables(const std::wstring &defaultDb, unsigned int flags, bool rowset, SPA::UINT64 index, int &res, std::wstring &errMsg) {
+void CYourPeerOne::GetCachedTables(const std::wstring &defaultDb, unsigned int flags, bool rowset, SPA::UINT64 index, int &dbMS, int &res, std::wstring &errMsg) {
 	res = 0;
+	dbMS = (int) SPA::UDB::msUnknown;
 	do {
 		if (!rowset)
 			break;
@@ -299,6 +300,7 @@ void CYourPeerOne::GetCachedTables(const std::wstring &defaultDb, unsigned int f
 			errMsg = L"No connection to a master database";
 			break;
 		}
+		dbMS = (int) handler->GetDBManagementSystem();
 		std::shared_ptr<std::promise<void> > prom(new std::promise<void>, [](std::promise<void> *p) {
 			delete p;
 		});

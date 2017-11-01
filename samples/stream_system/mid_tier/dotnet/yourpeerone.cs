@@ -183,9 +183,10 @@ class CYourPeerOne : CCacheBasePeer
         return CYourServer.Slave.ConnectedSockets;
     }
 
-    protected override string GetCachedTables(string defaultDb, uint flags, bool rowset, ulong index, out int res)
+    protected override string GetCachedTables(string defaultDb, uint flags, bool rowset, ulong index, out int dbMS, out int res)
     {
         res = 0;
+        dbMS = (int)SocketProAdapter.UDB.tagManagementSystem.msUnknown;
         string errMsg = "";
         do
         {
@@ -214,6 +215,7 @@ class CYourPeerOne : CCacheBasePeer
                 errMsg = "No connection to a master database";
                 break;
             }
+            dbMS = (int)handler.DBManagementSystem;
             TaskCompletionSource<int> tcs = new TaskCompletionSource<int>();
             if (!handler.Execute(sql, (h, r, err, affected, fail_ok, vtId) =>
             {
