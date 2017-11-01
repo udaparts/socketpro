@@ -88,6 +88,12 @@ class CAsyncDBHandler(CAsyncServiceHandler):
         self._bCallReturn = False
         self._csOneSending = threading.Lock()
 
+	def OnAllProcessed(self):
+		with self._csDB:
+			self._mapParameterCall = {}
+			while len(self._mapRowset) > 16:
+				self._mapRowset.popitem()
+
     def _GetResultHandler(self, reqId):
         if self.AttachedClientSocket.Random:
             with self._csDB:
@@ -274,7 +280,7 @@ class CAsyncDBHandler(CAsyncServiceHandler):
                     self._output = mc.LoadUInt()
                 else:
                     self._output = 0
-                if self._output == 0:
+                if self._output == 0 and len(self._vColInfo) > 0:
                     if self._indexRowset in self._mapRowset:
                         header = self._mapRowset.get(self._indexRowset).first
             if not header is None:

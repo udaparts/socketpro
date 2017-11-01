@@ -443,6 +443,7 @@ namespace SPA {
 			virtual void OnResultReturned(unsigned short reqId, CUQueue &mc);
 			virtual void OnExceptionFromServer(unsigned short requestId, const wchar_t *errMessage, const char* errWhere, unsigned int errCode);
 			virtual void OnBaseRequestprocessed(unsigned short reqId);
+			virtual void OnAllProcessed();
 
 		public:
 			DResultReturned ResultReturned;

@@ -89,6 +89,10 @@ namespace SPA
 
 		}
 
+		void CAsyncServiceHandler::OnAllProcessed() {
+
+		}
+
 		void CAsyncServiceHandler::OnExceptionFromServer(unsigned short requestId, const wchar_t *errMessage, const char* errWhere, unsigned int errCode) {
 
 		}
@@ -1118,6 +1122,9 @@ namespace SPA
 			CClientSocket *p = Seek(handler);
 			if (!p)
 				return;
+			CAsyncServiceHandler *ash = p->Seek(ClientCoreLoader.GetCurrentServiceId(handler));
+			if (ash)
+				ash->OnAllProcessed();
 			if (p->AllRequestsProcessed)
 				p->AllRequestsProcessed(p, lastRequestId);
 			p->OnAllRequestsProcessed(lastRequestId);

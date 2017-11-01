@@ -324,9 +324,14 @@ public class CAsyncServiceHandler {
     }
 
     protected void OnResultReturned(short sRequestId, SPA.CUQueue UQueue) {
+
     }
 
     protected void OnBaseRequestProcessed(short reqId) {
+
+    }
+
+    protected void OnAllProcessed() {
 
     }
 

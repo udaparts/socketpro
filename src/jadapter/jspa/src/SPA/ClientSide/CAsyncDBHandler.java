@@ -3,6 +3,8 @@ package SPA.ClientSide;
 import SPA.*;
 import SPA.UDB.*;
 import java.nio.charset.Charset;
+import java.util.Map;
+import java.util.Set;
 
 public class CAsyncDBHandler extends CAsyncServiceHandler {
 
@@ -192,30 +194,29 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
         return super.CleanCallbacks();
     }
 
-    private void CleanRowset() {
-        CleanRowset(0);
-    }
-
-    private void CleanRowset(int size) {
-        if ((!m_mapRowset.isEmpty() || m_vColInfo.size() > 0)
-                && getAttachedClientSocket().getSendable()
-                && getAttachedClientSocket().getCountOfRequestsInQueue() <= size
-                && getAttachedClientSocket().getClientQueue().getMessageCount() <= size) {
-            m_mapRowset.clear();
-            m_vColInfo.clear();
-        }
-    }
-
     private void Clean() {
         m_strConnection = "";
         m_mapRowset.clear();
         m_vColInfo.clear();
+        m_mapParameterCall.clear();
         m_lastReqId = 0;
         m_Blob.SetSize(0);
         if (m_Blob.getMaxBufferSize() > DEFAULT_BIG_FIELD_CHUNK_SIZE) {
             m_Blob.Realloc(DEFAULT_BIG_FIELD_CHUNK_SIZE);
         }
         m_vData.clear();
+    }
+
+    @Override
+    protected void OnAllProcessed() {
+        synchronized (m_csDB) {
+            Object[] arr = m_mapRowset.keySet().toArray();
+            int count = arr.length - 16;
+            for (int n = 0; n < count; ++n) {
+                m_mapRowset.remove((Long) (arr[n]));
+            }
+            m_mapParameterCall.clear();
+        }
     }
 
     private boolean Send(CUQueue q, boolean[] firstRow) {
@@ -1125,6 +1126,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                     if (m_mapRowset.containsKey(m_indexRowset)) {
                         m_mapRowset.remove(m_indexRowset);
                     }
+
                     m_indexProc = 0;
                     if (m_mapParameterCall.containsKey(m_indexRowset)) {
                         m_mapParameterCall.remove(m_indexRowset);
@@ -1164,7 +1166,6 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                 int ms = mc.LoadInt();
                 MyCallback<DResult> t = GetResultHandler(reqId);
                 synchronized (m_csDB) {
-                    CleanRowset();
                     m_dbErrCode = res;
                     m_lastReqId = idOpen;
                     if (res == 0) {
@@ -1195,7 +1196,6 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                     m_lastReqId = idEndTrans;
                     m_dbErrCode = res;
                     m_dbErrMsg = errMsg;
-                    CleanRowset();
                     if (getAttachedClientSocket().getCountOfRequestsInQueue() == 1) {
                         m_mapParameterCall.clear();
                     }
@@ -1211,7 +1211,6 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                 int ms = mc.LoadInt();
                 MyCallback<DResult> t = GetResultHandler(reqId);
                 synchronized (m_csDB) {
-                    CleanRowset();
                     if (res == 0) {
                         m_strConnection = errMsg;
                         errMsg = "";
@@ -1235,7 +1234,6 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                     m_strConnection = "";
                     m_dbErrCode = res;
                     m_dbErrMsg = errMsg;
-                    CleanRowset();
                     m_parameters = 0;
                     m_output = 0;
                     m_indexProc = 0;
@@ -1264,7 +1262,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                     } else {
                         m_output = 0;
                     }
-                    if (m_output == 0) {
+                    if (m_output == 0 && m_vColInfo.size() > 0) {
                         if (m_mapRowset.containsKey(m_indexRowset)) {
                             header = m_mapRowset.get(m_indexRowset).first;
                         }

@@ -245,6 +245,9 @@ class CAsyncServiceHandler(object):
     def OnResultReturned(self, reqId, q):
         pass
 
+	def OnAllProcessed(self):
+		pass
+
     def OnBaseRequestProcessed(self, reqId):
         pass
 

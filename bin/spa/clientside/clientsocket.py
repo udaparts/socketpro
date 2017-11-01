@@ -428,6 +428,9 @@ class CClientSocket:
             self.BaseRequestProcessed(self, reqId)
 
     def _arp_(self, handler, reqId):
+		ash = self._Seek_(self.CurrentServiceID)
+        if ash:
+			ash.OnAllProcessed()
         if not self.AllRequestsProcessed is None:
             self.AllRequestsProcessed(self, reqId)
 

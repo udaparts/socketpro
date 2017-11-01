@@ -487,20 +487,6 @@ namespace SocketProAdapter
                 m_vData.Clear();
             }
 
-            private void CleanRowset()
-            {
-                CleanRowset(0);
-            }
-
-            private void CleanRowset(uint size)
-            {
-                if ((m_mapRowset.Count > 0 || m_vColInfo.Count > 0) && AttachedClientSocket.Sendable && AttachedClientSocket.CountOfRequestsInQueue <= size && AttachedClientSocket.ClientQueue.MessageCount <= size)
-                {
-                    m_mapRowset.Clear();
-                    m_vColInfo.Clear();
-                }
-            }
-
             private bool Send(CScopeUQueue sb, ref bool firstRow)
             {
                 CUQueue q = sb.UQueue;
@@ -962,7 +948,6 @@ namespace SocketProAdapter
                     ar.Load(out res).Load(out errMsg).Load(out ms);
                     lock (m_csDB)
                     {
-                        CleanRowset();
                         m_dbErrCode = res;
                         m_lastReqId = idOpen;
                         if (res == 0)
@@ -1138,7 +1123,6 @@ namespace SocketProAdapter
                             m_lastReqId = idEndTrans;
                             m_dbErrCode = res;
                             m_dbErrMsg = errMsg;
-                            CleanRowset();
                         }
                         if (handler != null)
                         {
@@ -1215,7 +1199,6 @@ namespace SocketProAdapter
                         ar.Load(out res).Load(out errMsg).Load(out ms);
                         lock (m_csDB)
                         {
-                            CleanRowset();
                             if (res == 0)
                             {
                                 m_strConnection = errMsg;
@@ -1277,7 +1260,6 @@ namespace SocketProAdapter
                         m_strConnection = "";
                         m_dbErrCode = res;
                         m_dbErrMsg = errMsg;
-                        CleanRowset();
                         m_parameters = 0;
                         m_indexProc = 0;
                         m_output = 0;
@@ -1315,7 +1297,7 @@ namespace SocketProAdapter
                                 {
                                     m_output = 0;
                                 }
-                                if (m_output == 0)
+                                if (m_output == 0 && m_vColInfo.Count > 0)
                                 {
                                     if (m_mapRowset.ContainsKey(m_indexRowset))
                                     {

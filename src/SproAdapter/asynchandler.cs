@@ -350,6 +350,16 @@ namespace SocketProAdapter
                 OnBaseRequestProcessed(reqId);
             }
 
+            internal void OnAll()
+            {
+                OnAllProcessed();
+            }
+
+            protected virtual void OnAllProcessed()
+            {
+
+            }
+
             protected virtual bool SendRouteeResult(byte[] data, uint len, ushort reqId)
             {
                 if (m_ClientSocket == null)

@@ -935,7 +935,7 @@ namespace SPA
             if (last_error) {
                 errMsg = Utilities::ToWide(last_err_msg.c_str(), last_err_msg.size());
             }
-            if (!header_sent && !last_error) {
+            if (!header_sent) {
                 sbRowset->SetSize(0);
                 CDBColumnInfoArray vColInfo;
                 sbRowset << vColInfo << index;

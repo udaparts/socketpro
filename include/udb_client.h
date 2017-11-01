@@ -598,7 +598,7 @@ namespace SPA {
 						else {
 							m_outputs = 0;
 						}
-						if (!m_outputs) {
+						if (!m_outputs && m_vColInfo.size()) {
 							auto it = m_mapRowset.find(m_indexRowset);
 							if (it != m_mapRowset.end()) {
 								header = it->second.first;

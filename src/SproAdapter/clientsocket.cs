@@ -860,6 +860,9 @@ namespace SocketProAdapter
             {
                 if (AllRequestsProcessed != null)
                     AllRequestsProcessed.Invoke(this, lastRequestId);
+                CAsyncServiceHandler ash = Seek(CurrentServiceID);
+                if (ash != null)
+                    ash.OnAll();
             }
 
             private POnHandShakeCompleted m_hsc;
