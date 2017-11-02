@@ -1020,7 +1020,7 @@ namespace SPA
             CAutoLock sl(m_mutex);
             std::vector<CSocketPeer*>::const_iterator end = m_vPeer.cend();
             for (it = m_vPeer.cbegin(); it != end; ++it) {
-                if ((*it)->GetSocketHandle() == h) {
+                if ((*it)->m_hHandler == h) {
                     return (*it);
                 }
             }
@@ -1033,7 +1033,7 @@ namespace SPA
             std::vector<CSocketPeer*>::iterator end = m_vPeer.end();
             for (it = m_vPeer.begin(); it != end; ++it) {
                 CSocketPeer *pPeer = *it;
-                if (pPeer->GetSocketHandle() == h) {
+                if (pPeer->m_hHandler == h) {
                     pPeer->OnReleaseSource(bClosing, info);
                     pPeer->m_hHandler = 0;
                     if (pPeer->m_UQueue.GetMaxSize() > 2 * DEFAULT_INITIAL_MEMORY_BUFFER_SIZE) {
