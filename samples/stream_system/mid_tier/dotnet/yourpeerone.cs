@@ -43,7 +43,9 @@ class CYourPeerOne : CCacheBasePeer
             ulong peer_handle = Handle;
             if (handler.Execute(sql, (h, r, err, affected, fail_ok, vtId) =>
             {
-                ret = SendResult(ss.Consts.idQueryMaxMinAvgs, index, r, err, pmma);
+                //send result if front peer not closed yet
+                if (peer_handle == Handle)
+                    ret = SendResult(ss.Consts.idQueryMaxMinAvgs, index, r, err, pmma);
             }, (h, vData) =>
             {
                 pmma.Max = double.Parse(vData[0].ToString());
@@ -51,7 +53,7 @@ class CYourPeerOne : CCacheBasePeer
                 pmma.Avg = double.Parse(vData[2].ToString());
             }, (h) => { }, true, true, () =>
             {
-                //front peer not closed yet
+                //retry if front peer not closed yet
                 if (peer_handle == Handle)
                 {
 #if DEBUG
@@ -142,10 +144,12 @@ class CYourPeerOne : CCacheBasePeer
                 {
                     if (res != 0 && error.Key == 0)
                         error = new KeyValuePair<int, string>(res, errMsg);
-                    ret = SendResult(ss.Consts.idUploadEmployees, index, error.Key, error.Value, vId);
+                    //send result if front peer not closed yet
+                    if (peer_handle == Handle)
+                        ret = SendResult(ss.Consts.idUploadEmployees, index, error.Key, error.Value, vId);
                 }, () =>
                 {
-                    //front peer not closed yet
+                    //retry if front peer not closed yet
                     if (peer_handle == Handle)
                     {
 #if DEBUG

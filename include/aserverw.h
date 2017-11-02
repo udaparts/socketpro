@@ -4,6 +4,7 @@
 #include "userver.h"
 #include "membuffer.h"
 #include <fstream>
+#include <deque>
 
 //this may be used for debug
 #define SET_SERVER_CALL_INFO(str) SPA::ServerSide::SetLastCallInfo(str, __LINE__, __FUNCTION__)
@@ -716,11 +717,12 @@ namespace SPA {
         private:
             CSvsContext m_SvsContext;
             std::vector<CSocketPeer*> m_vPeer;
-            std::vector<CSocketPeer*> m_vDeadPeer;
+            std::deque<CSocketPeer*> m_vDeadPeer;
             unsigned int m_nServiceId;
             static U_MODULE_HIDDEN CUCriticalSection m_mutex;
             static U_MODULE_HIDDEN std::vector<CBaseService*> m_vService;
             friend class CSocketProServer;
+			friend class CSocketPeer;
         };
 
         class CDummyPeer : public CClientPeer {

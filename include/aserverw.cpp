@@ -208,6 +208,7 @@ namespace SPA
         }
 
         USocket_Server_Handle CSocketPeer::GetSocketHandle() const {
+			CAutoLock sl(CBaseService::m_mutex);
             return m_hHandler;
         }
 
@@ -1002,8 +1003,8 @@ namespace SPA
             CAutoLock sl(m_mutex);
             size_t size = m_vDeadPeer.size();
             if (size) {
-                p = m_vDeadPeer[size - 1];
-                m_vDeadPeer.pop_back();
+                p = m_vDeadPeer.front();
+                m_vDeadPeer.pop_front();
             }
             if (!p) {
                 p = GetPeerSocket();
@@ -1034,6 +1035,7 @@ namespace SPA
                 CSocketPeer *pPeer = *it;
                 if (pPeer->GetSocketHandle() == h) {
                     pPeer->OnReleaseSource(bClosing, info);
+					pPeer->m_hHandler = 0;
                     if (pPeer->m_UQueue.GetMaxSize() > 2 * DEFAULT_INITIAL_MEMORY_BUFFER_SIZE) {
                         pPeer->m_UQueue.ReallocBuffer(DEFAULT_INITIAL_MEMORY_BUFFER_SIZE);
                     }
@@ -1058,16 +1060,12 @@ namespace SPA
         }
 
         void CBaseService::Clean() {
-            std::vector<CSocketPeer*>::iterator it;
             CAutoLock sl(m_mutex);
-            std::vector<CSocketPeer*>::iterator end = m_vDeadPeer.end();
-            for (it = m_vDeadPeer.begin(); it != end; ++it) {
+            for (auto it = m_vDeadPeer.begin(), end = m_vDeadPeer.end(); it != end; ++it) {
                 delete(*it);
             }
             m_vDeadPeer.clear();
-
-            end = m_vPeer.end();
-            for (it = m_vPeer.begin(); it != end; ++it) {
+            for (auto it = m_vPeer.begin(), end = m_vPeer.end(); it != end; ++it) {
                 //comment out the below call to avoid crashing here
                 //::PostClose((*it)->m_hHandler); 
                 delete(*it);

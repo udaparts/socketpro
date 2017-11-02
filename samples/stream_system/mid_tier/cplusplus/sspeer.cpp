@@ -106,7 +106,7 @@ void CYourPeerOne::UploadEmployees(SPA::CUQueue &q) {
 			}
 			if (!ok) break;
 			auto peer_handle = GetSocketHandle();
-			if (handler->EndTrans(SPA::UDB::rpRollbackErrorAll, [index, pError, pId, this](CSQLHandler & h, int r, const std::wstring & err) {
+			if (handler->EndTrans(SPA::UDB::rpRollbackErrorAll, [peer_handle, index, pError, pId, this](CSQLHandler & h, int r, const std::wstring & err) {
 				if (r) {
 #ifndef NDEBUG
 						{
@@ -121,7 +121,10 @@ void CYourPeerOne::UploadEmployees(SPA::CUQueue &q) {
 							pError->second = err;
 						}
 				}
-				unsigned int ret = this->SendResult(idUploadEmployees, index, pError->first, pError->second, *pId);
+				//send result if front socket is not closed yet
+				if (peer_handle == this->GetSocketHandle()) {
+					unsigned int ret = this->SendResult(idUploadEmployees, index, pError->first, pError->second, *pId);
+				}
 			}, [index, pData, this, peer_handle]() {
 #ifndef NDEBUG
 					{
@@ -230,7 +233,7 @@ void CYourPeerOne::QueryPaymentMaxMinAvgs(SPA::CUQueue &q) {
 		}
 		++redo;
 		auto peer_handle = GetSocketHandle();
-		if (handler->Execute(sql.c_str(), [index, pError, pmma, this](CSQLHandler & h, int r, const std::wstring & err, SPA::INT64 affected, SPA::UINT64 fail_ok, SPA::UDB::CDBVariant & vtId) {
+		if (handler->Execute(sql.c_str(), [peer_handle, index, pError, pmma, this](CSQLHandler & h, int r, const std::wstring & err, SPA::INT64 affected, SPA::UINT64 fail_ok, SPA::UDB::CDBVariant & vtId) {
 			if (r) {
 #ifndef NDEBUG
 				SPA::CAutoLock al(m_csConsole);
@@ -240,7 +243,9 @@ void CYourPeerOne::QueryPaymentMaxMinAvgs(SPA::CUQueue &q) {
 				pError->first = r;
 				pError->second = err;
 			}
-			unsigned int ret = this->SendResult(idQueryMaxMinAvgs, index, pError->first, pError->second, *pmma);
+			//front peer not closed yet
+			if (peer_handle == this->GetSocketHandle())
+				unsigned int ret = this->SendResult(idQueryMaxMinAvgs, index, pError->first, pError->second, *pmma);
 		}, [pmma](CSQLHandler &h, SPA::UDB::CDBVariantArray & vData) {
 			CComVariant temp;
 			::VariantChangeType(&temp, &vData[0], 0, VT_R8);
