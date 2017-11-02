@@ -36,7 +36,7 @@ namespace SocketProAdapter
             }
         }
 
-        public DataRow[] Find(string dbName, string tblName, string filterExpression, string sort)
+        public DataTable Find(string dbName, string tblName, string filterExpression, string sort)
         {
             if (dbName == null || dbName.Length == 0 || tblName == null || tblName.Length == 0)
                 return null;
@@ -50,11 +50,31 @@ namespace SocketProAdapter
                     equal = (m_bTableNameCaseSensitive ? (string.Compare(tblName, p.Value.TableName) == 0) : (string.Compare(tblName, p.Value.TableName, StringComparison.OrdinalIgnoreCase) == 0));
                     if (!equal)
                         continue;
-                    return p.Value.Select(filterExpression, sort);
+                    DataTable dt = p.Value.Clone();
+                    DataRow[] rows = p.Value.Select(filterExpression, sort);
+                    if (rows != null)
+                    {
+                        foreach (DataRow r in rows)
+                        {
+                            dt.ImportRow(r);
+                        }
+                    }
+                    return dt;
                 }
             }
             return null;
         }
+
+        public DataTable Find(string dbName, string tblName, string filterExpression)
+        {
+            return Find(dbName, tblName, filterExpression, "");
+        }
+
+        public DataTable Find(string dbName, string tblName)
+        {
+            return Find(dbName, tblName, "", "");
+        }
+
 
         public DataColumnCollection GetColumnMeta(string dbName, string tblName)
         {
@@ -74,36 +94,6 @@ namespace SocketProAdapter
                 }
             }
             return null;
-        }
-
-        public DataTable GetTable(string dbName, string tblName)
-        {
-            if (dbName == null || dbName.Length == 0 || tblName == null || tblName.Length == 0)
-                return null;
-            lock (m_cs)
-            {
-                foreach (KeyValuePair<string, System.Data.DataTable> p in m_ds)
-                {
-                    bool equal = (m_bDBNameCaseSensitive ? (string.Compare(dbName, p.Key) == 0) : (string.Compare(dbName, p.Key, StringComparison.OrdinalIgnoreCase) == 0));
-                    if (!equal)
-                        continue;
-                    equal = (m_bTableNameCaseSensitive ? (string.Compare(tblName, p.Value.TableName) == 0) : (string.Compare(tblName, p.Value.TableName, StringComparison.OrdinalIgnoreCase) == 0));
-                    if (!equal)
-                        continue;
-                    return p.Value;
-                }
-            }
-            return null;
-        }
-
-        public DataRow[] Find(string dbName, string tblName, string filterExpression)
-        {
-            return Find(dbName, tblName, filterExpression, "");
-        }
-
-        public DataRow[] Find(string dbName, string tblName)
-        {
-            return Find(dbName, tblName, "", "");
         }
 
         public uint AddRows(string dbName, string tblName, List<object> vData)
