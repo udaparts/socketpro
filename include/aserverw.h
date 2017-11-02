@@ -722,7 +722,7 @@ namespace SPA {
             static U_MODULE_HIDDEN CUCriticalSection m_mutex;
             static U_MODULE_HIDDEN std::vector<CBaseService*> m_vService;
             friend class CSocketProServer;
-			friend class CSocketPeer;
+            friend class CSocketPeer;
         };
 
         class CDummyPeer : public CClientPeer {

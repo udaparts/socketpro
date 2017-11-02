@@ -55,24 +55,24 @@ int main(int argc, char* argv[]) {
         std::cout << std::endl;
     }
 #else
-	auto v2 = CMySQLMasterPool::Cache.GetColumMeta(L"main", L"actor");
-	for (auto it = v2.begin(), end = v2.end(); it != end; ++it) {
-		std::wcout << L"DB name = " << it->DBPath << ", table name = " << it->TablePath << ", column name: " << it->DisplayName << std::endl;
-	}
-	std::cout << std::endl;
+    auto v2 = CMySQLMasterPool::Cache.GetColumMeta(L"main", L"actor");
+    for (auto it = v2.begin(), end = v2.end(); it != end; ++it) {
+        std::wcout << L"DB name = " << it->DBPath << ", table name = " << it->TablePath << ", column name: " << it->DisplayName << std::endl;
+    }
+    std::cout << std::endl;
 
-	auto v3 = CMySQLMasterPool::Cache.GetColumnCount(L"main", L"actor");
-	if (v3) {
-		std::cout << "main.actor cached with " << v3 << " columns and rows = " << CMySQLMasterPool::Cache.GetRowCount(L"main", L"actor") << std::endl;
-		std::cout << std::endl;
-	}
+    auto v3 = CMySQLMasterPool::Cache.GetColumnCount(L"main", L"actor");
+    if (v3) {
+        std::cout << "main.actor cached with " << v3 << " columns and rows = " << CMySQLMasterPool::Cache.GetRowCount(L"main", L"actor") << std::endl;
+        std::cout << std::endl;
+    }
 
-	SPA::CTable table;
-	int res = CMySQLMasterPool::Cache.Between(L"main", L"actor", 3, "2017-07-01", "2017-01-1", table);
-	if (table.GetMeta().size()) {
-		std::cout << "There are " << table.GetDataMatrix().size() / table.GetMeta().size() << " records between 2017-07-01 and 2017-01-1" << std::endl;
-		std::cout << std::endl;
-	}
+    SPA::CTable table;
+    int res = CMySQLMasterPool::Cache.Between(L"main", L"actor", 3, "2017-07-01", "2017-01-1", table);
+    if (table.GetMeta().size()) {
+        std::cout << "There are " << table.GetDataMatrix().size() / table.GetMeta().size() << " records between 2017-07-01 and 2017-01-1" << std::endl;
+        std::cout << std::endl;
+    }
 #endif
 
     CYourServer::CreateTestDB();

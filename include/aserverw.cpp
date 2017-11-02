@@ -208,7 +208,7 @@ namespace SPA
         }
 
         USocket_Server_Handle CSocketPeer::GetSocketHandle() const {
-			CAutoLock sl(CBaseService::m_mutex);
+            CAutoLock sl(CBaseService::m_mutex);
             return m_hHandler;
         }
 
@@ -1035,7 +1035,7 @@ namespace SPA
                 CSocketPeer *pPeer = *it;
                 if (pPeer->GetSocketHandle() == h) {
                     pPeer->OnReleaseSource(bClosing, info);
-					pPeer->m_hHandler = 0;
+                    pPeer->m_hHandler = 0;
                     if (pPeer->m_UQueue.GetMaxSize() > 2 * DEFAULT_INITIAL_MEMORY_BUFFER_SIZE) {
                         pPeer->m_UQueue.ReallocBuffer(DEFAULT_INITIAL_MEMORY_BUFFER_SIZE);
                     }
