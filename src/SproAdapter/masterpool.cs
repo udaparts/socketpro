@@ -74,11 +74,6 @@ namespace SocketProAdapter
                     m_cache.DBServerName = "";
                     m_cache.Updater = "";
                     m_cache.Empty();
-                    uint port;
-                    string ip = handler.AttachedClientSocket.GetPeerName(out port);
-                    ip += ":";
-                    ip += port;
-                    m_cache.Set(ip, UDB.tagManagementSystem.msUnknown);
                     SetInitialCache();
                 }
                 else
@@ -200,9 +195,15 @@ namespace SocketProAdapter
             //open default database and subscribe for table update events (update, delete and insert) by setting flag ClientSide.CAsyncDBHandler.ENABLE_TABLE_UPDATE_MESSAGES
             bool ok = m_hander.GetCachedTables(DefaultDBName, (res, errMsg) =>
             {
+                uint port;
+                string ip = m_hander.AttachedClientSocket.GetPeerName(out port);
+                ip += ":";
+                ip += port;
+                m_cache.Set(ip, m_hander.DBManagementSystem);
                 if (res == 0)
                 {
                     m_MasterCache.Swap(m_cache); //exchange between master Cache and this m_cache
+                    m_cache.Set(ip, m_hander.DBManagementSystem);
                 }
             }, (vData) =>
             {

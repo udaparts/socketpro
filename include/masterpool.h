@@ -124,11 +124,6 @@ namespace SPA {
 					this->m_cache.SetDBServerName(nullptr);
 					this->m_cache.SetUpdater(nullptr);
 					this->m_cache.Empty();
-					unsigned int port;
-					std::string ip = pHandler->GetAttachedClientSocket()->GetPeerName(&port);
-					ip += ":";
-					ip += std::to_string(port);
-					this->m_cache.Set(ip.c_str(), UDB::msUnknown);
 					SetInitialCache(pHandler);
 				}
 				else {
@@ -145,9 +140,15 @@ namespace SPA {
 
 		void SetInitialCache(const std::shared_ptr<THandler> &pHandler) {
 			//open default database and subscribe for table update events (update, delete and insert) by setting flag UDB::ENABLE_TABLE_UPDATE_MESSAGES
-			bool ok = pHandler->GetCachedTables(this->GetDefaultDBName().c_str(), [this](int res, const std::wstring & errMsg) {
+			bool ok = pHandler->GetCachedTables(this->GetDefaultDBName().c_str(), [this, pHandler](int res, const std::wstring & errMsg) {
+				unsigned int port;
+				std::string ip = pHandler->GetAttachedClientSocket()->GetPeerName(&port);
+				ip += ":";
+				ip += std::to_string(port);
+				this->m_cache.Set(ip.c_str(), pHandler->GetDBManagementSystem());
 				if (res == 0) {
 					Cache.Swap(this->m_cache); //exchange between master Cache and this m_cache
+					this->m_cache.Set(ip.c_str(), pHandler->GetDBManagementSystem());
 				}
 			}, [this](UDB::CDBVariantArray & vData) {
 				UDB::CDBColumnInfoArray &vCol = this->m_meta;
