@@ -27,7 +27,7 @@ namespace SocketProAdapter
             {
                 lock (m_cs)
                 {
-                    CSocketPeer found = m_lstPeer.Find(delegate(CSocketPeer sp) { return (sp.Handle == hSocket); });
+                    CSocketPeer found = m_lstPeer.Find(delegate(CSocketPeer sp) { return (sp.m_sh == hSocket); });
                     if (found != null)
                     {
                         found.m_qBuffer.SetSize(0);
@@ -226,7 +226,7 @@ namespace SocketProAdapter
                 {
                     foreach (CSocketPeer sp in m_lstPeer)
                     {
-                        if (sp.Handle == hSocket)
+                        if (sp.m_sh == hSocket)
                             return sp;
                     }
                 }

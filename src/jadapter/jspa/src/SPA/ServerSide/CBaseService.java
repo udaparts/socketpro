@@ -25,7 +25,7 @@ public abstract class CBaseService {
     void ReleasePeer(long hSocket, boolean bClosing, int info) {
         synchronized (m_cs) {
             for (CSocketPeer p : m_lstPeer) {
-                if (p.getHandle() == hSocket) {
+                if (p.m_sh == hSocket) {
                     p.getUQueue().SetSize(0);
                     p.OnRelease(bClosing, info);
                     p.m_sh = 0;
@@ -190,7 +190,7 @@ public abstract class CBaseService {
     public final CSocketPeer Seek(long hSocket) {
         synchronized (m_cs) {
             for (CSocketPeer sp : m_lstPeer) {
-                if (sp.getHandle() == hSocket) {
+                if (sp.m_sh == hSocket) {
                     return sp;
                 }
             }
