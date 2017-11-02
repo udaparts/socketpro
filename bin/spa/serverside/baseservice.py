@@ -23,9 +23,10 @@ class CBaseService(object):
     def _ReleasePeer(self, hSocket, bClosing, info):
         found = self.Seek(hSocket)
         if not found is None:
-            found._m_qBuffer.SetSize(0)
-            found.OnReleaseResource(bClosing, info)
             with self._m_cs:
+                found.OnReleaseResource(bClosing, info)
+                found._m_qBuffer.SetSize(0)
+                found._m_sh = 0
                 self._m_lstPeer.remove(found)
                 self._m_lstDeadPeer.append(found)
 
@@ -252,7 +253,7 @@ class CBaseService(object):
     def Seek(self, hSocket):
         with self._m_cs:
             for sp in self._m_lstPeer:
-                if sp.Handle == hSocket:
+                if sp._m_sh == hSocket:
                     return sp
         return None
 

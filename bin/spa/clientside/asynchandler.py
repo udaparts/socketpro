@@ -257,5 +257,5 @@ class CAsyncServiceHandler(object):
             if not (self.ResultReturned and self.ResultReturned(reqId, mc)):
                 self.OnResultReturned(reqId, mc)
         else:
-            ar = CAsyncResult(self, reqId, mc, cb)
+            ar = CAsyncResult(self, reqId, mc, rcb)
             rcb.AsyncResultHandler(ar)
