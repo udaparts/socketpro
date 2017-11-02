@@ -330,7 +330,9 @@ public abstract class CSocketPeer {
     }
 
     public final long getHandle() {
-        return m_sh;
+        synchronized (m_Service.m_cs) {
+            return m_sh;
+        }
     }
 
     public final long getSSL() {
