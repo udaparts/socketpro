@@ -341,7 +341,7 @@ namespace SPA
             pVt[2].bstrVal = ::SysAllocString(userId.c_str());
 
             pVt[3].vt = VT_BSTR;
-            pVt[3].bstrVal = ::SysAllocString(SPA::Utilities::ToWide(peer->m_dbName.c_str(), peer->m_dbName.size()).c_str());
+            pVt[3].bstrVal = ::SysAllocString(L"main");
 
             for (int n = 1; n < count; ++n) {
                 sqlite3_value *value = pp[n];
@@ -1316,21 +1316,6 @@ namespace SPA
                     break;
                 }
             } while (true);
-            if (db) {
-                const char *db_file = sqlite3_db_filename(db, nullptr);
-#ifdef WIN32_64
-                char c = '\\';
-#else
-                char c = '/';
-#endif
-                if (db_file) {
-                    std::string s(db_file);
-                    size_t pos = s.rfind(c);
-                    m_dbName = s.substr(pos + 1);
-                }
-            } else {
-                m_dbName.clear();
-            }
             m_pSqlite.reset(db, [](sqlite3 * p) {
                 if (p) {
                     int ret = sqlite3_close_v2(p);

@@ -3,12 +3,14 @@
 #include <iostream>
 
 #include "../../../../include/sqlite/usqlite_server.h"
+#include "../../../../include/udatabase.h"
 
 class CMySocketProServer : public SPA::ServerSide::CSocketProServer
 {
 
 protected:
     virtual bool OnSettingServer(unsigned int listeningPort, unsigned int maxBacklog, bool v6) {
+		PushManager::AddAChatGroup(SPA::UDB::STREAMING_SQL_CHAT_GROUP_ID, L"Subscribe/publish for front clients");
         m_h = SPA::ServerSide::CSocketProServer::DllManager::AddALibrary("ssqlite");
         if (m_h) {
             PSetSqliteDBGlobalConnectionString SetSqliteDBGlobalConnectionString = (PSetSqliteDBGlobalConnectionString) GetProcAddress(m_h, "SetSqliteDBGlobalConnectionString");

@@ -159,7 +159,6 @@ namespace SPA {
             bool m_global;
             size_t m_parameters;
             CUQueue m_Blob;
-            std::string m_dbName;
 
             static CUCriticalSection m_csPeer;
             static const wchar_t* NO_DB_OPENED_YET;
