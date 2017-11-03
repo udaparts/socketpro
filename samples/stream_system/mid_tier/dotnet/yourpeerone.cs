@@ -5,6 +5,7 @@ using SocketProAdapter.ClientSide;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
+
 class CYourPeerOne : CCacheBasePeer
 {
     private object m_csConsole = new object();
@@ -33,7 +34,7 @@ class CYourPeerOne : CCacheBasePeer
         int redo = 0;
         do
         {
-            CMysql handler = CYourServer.Slave.Seek();
+            var handler = CYourServer.Slave.Seek();
             if (handler == null)
             {
                 ret = SendResult(ss.Consts.idQueryMaxMinAvgs, index, (int)-1, "No connection to a slave database", pmma);
@@ -99,7 +100,7 @@ class CYourPeerOne : CCacheBasePeer
         do
         {
             //use master for insert, update and delete
-            CMysql handler = CYourServer.Master.Lock(); //use Lock and Unlock to avoid SQL stream overlap on a session within a multi-thread environment
+            var handler = CYourServer.Master.Lock(); //use Lock and Unlock to avoid SQL stream overlap on a session within a multi-thread environment
             if (handler == null)
             {
                 ret = SendResult(ss.Consts.idUploadEmployees, index, (int)-2, "No connection to a master database", new ss.CInt64Array());
@@ -212,7 +213,7 @@ class CYourPeerOne : CCacheBasePeer
                     sql += ";";
                 sql += "SELECT * FROM " + s;
             }
-            CMysql handler = CYourServer.Master.Lock(); //use Lock and Unlock to avoid SQL stream overlap on a session within a multi-thread environment
+            var handler = CYourServer.Master.Lock(); //use Lock and Unlock to avoid SQL stream overlap on a session within a multi-thread environment
             if (handler == null)
             {
                 res = -1;
@@ -267,7 +268,7 @@ class CYourPeerOne : CCacheBasePeer
         int redo = 0;
         do
         {
-            CMysql handler = CYourServer.Slave.Seek();
+            var handler = CYourServer.Slave.Seek();
             if (handler == null)
             {
                 res = -1;

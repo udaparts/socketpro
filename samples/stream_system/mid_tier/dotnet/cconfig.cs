@@ -42,15 +42,24 @@ public class CConfig
         m_config.m_main_threads = 4;
 
         //master
+#if USE_SQLITE
+        m_config.m_ccMaster.Port = 20901;
+        m_config.m_master_default_db = "sakila.db";
+        m_config.m_nMasterSessions = 1; //one session enough
+#else
         m_config.m_ccMaster.Port = 20902;
         m_config.m_master_default_db = "sakila";
+        m_config.m_nMasterSessions = 2; //two sessions enough
+#endif
         m_config.m_ccMaster.Host = "localhost";
         m_config.m_ccMaster.UserId = "root";
         m_config.m_ccMaster.Password = "Smash123";
-        m_config.m_nMasterSessions = 2; //two sessions enough
 
+#if USE_SQLITE
+        m_config.m_slave_default_db = "sakila.db";
+#else
         m_config.m_slave_default_db = "sakila";
-
+#endif
         SocketProAdapter.ClientSide.CConnectionContext cc = new SocketProAdapter.ClientSide.CConnectionContext();
         cc.Host = "104.154.160.127";
         cc.Port = 20902;
@@ -73,11 +82,15 @@ public class CConfig
         m_config.m_password_or_subject = "mypassword";
 
         //cached tables on front applications
+#if USE_SQLITE
+        m_config.m_vFrontCachedTable.Add("actor");
+        m_config.m_vFrontCachedTable.Add("language");
+        m_config.m_vFrontCachedTable.Add("country");
+#else
         m_config.m_vFrontCachedTable.Add("sakila.actor");
         m_config.m_vFrontCachedTable.Add("sakila.language");
         m_config.m_vFrontCachedTable.Add("sakila.country");
-        m_config.m_vFrontCachedTable.Add("mysqldb.employee");
-
+#endif
         return m_config;
     }
 

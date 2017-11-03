@@ -204,10 +204,12 @@ namespace SPA
 		}
 
 		bool CAsyncServiceHandler::SendRequest(unsigned short reqId, const unsigned char *pBuffer, unsigned int size, ResultHandler rh, DCanceled canceled, DServerException serverException) {
+			PRR_PAIR p = nullptr;
+			bool batching = false;
 			USocket_Client_Handle h = GetClientSocketHandle();
 			CAutoLock alSend(m_csSend);
 			if (rh || canceled || serverException) {
-				PRR_PAIR p = Reuse();
+				p = Reuse();
 				if (p) {
 					p->first = reqId;
 					p->second.AsyncResultHandler = rh;
@@ -218,7 +220,7 @@ namespace SPA
 					p = new std::pair<unsigned short, CResultCb>(reqId, CResultCb(rh, canceled, serverException));
 				}
 				CAutoLock al(m_cs);
-				bool batching = ClientCoreLoader.IsBatching(h);
+				batching = ClientCoreLoader.IsBatching(h);
 				if (batching) {
 					if (m_vBatching.GetTailSize() < sizeof(PRR_PAIR) && m_vBatching.GetHeadPosition() > m_vBatching.GetSize()) {
 						m_vBatching.SetHeadPosition();
@@ -233,7 +235,17 @@ namespace SPA
 					m_vCallback << p;
 				}
 			}
-			return ClientCoreLoader.SendRequest(h, reqId, pBuffer, size);
+			if (!ClientCoreLoader.SendRequest(h, reqId, pBuffer, size)) {
+				if (p) {
+					CAutoLock al(m_cs);
+					if (batching)
+						m_vBatching.SetSize(m_vBatching.GetSize() - sizeof(PRR_PAIR));
+					else
+						m_vCallback.SetSize(m_vCallback.GetSize() - sizeof(PRR_PAIR));
+				}
+				return false;
+			}
+			return true;
 		}
 
 		void CAsyncServiceHandler::SetNULL() {

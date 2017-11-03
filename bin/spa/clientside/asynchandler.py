@@ -120,15 +120,26 @@ class CAsyncServiceHandler(object):
         h = self._m_ClientSocket_.Handle
         if h == 0:
             return False
+        kv = None
+        batching = False
         with self._lock_Send_:
             if arh or canceled or efs:
                 kv = (reqId, CResultCb(arh, canceled, efs))
                 with self._lock_:
-                    if ccl.IsBatching(h):
+                    batching = ccl.IsBatching(h)
+                    if batching:
                         self._m_kvBatching_.append(kv)
                     else:
                         self._m_kvCallback_.append(kv)
-            return ccl.SendRequest(h, reqId, bytes, q.GetSize())
+            if ccl.SendRequest(h, reqId, bytes, q.GetSize()):
+                return True
+            if kv:
+                with self._lock_:
+                    if batching:
+                        self._m_kvBatching_.pop()
+                    else:
+                        self._m_kvCallback_.pop()
+            return False
 
     @property
     def Batching(self):

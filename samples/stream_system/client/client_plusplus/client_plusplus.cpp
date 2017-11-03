@@ -126,6 +126,8 @@ int main(int argc, char* argv[]) {
 	auto start = std::chrono::system_clock::now();
 	for (unsigned int n = 0; n < 10000; ++n) {
 		handler = master.Seek(); //find a handler from a pool of sockets
+		if (!handler)
+			break;
 		call_index = handler->QueryPaymentMaxMinAvgs(filter.c_str(), [&sum_mma](SPA::UINT64 index, const CMaxMinAvg & mma, int res, const std::wstring & errMsg) {
 			if (res) {
 				std::cout << "QueryPaymentMaxMinAvgs call index: " << index << ", error code: " << res << ", error message: ";
@@ -164,11 +166,13 @@ int main(int argc, char* argv[]) {
 	};
 	//lock one session, and all requests should be returned in sequence
 	handler = master.Lock();
-	for (unsigned int n = 0; n < 1000; ++n) {
-		call_index = handler->GetRentalDateTimes(n + 1, rdt);
+	if (handler) {
+		for (unsigned int n = 0; n < 1000; ++n) {
+			call_index = handler->GetRentalDateTimes(n + 1, rdt);
+		}
+		master.Unlock(handler);
+		ok = handler->WaitAll();
 	}
-	master.Unlock(handler);
-	ok = handler->WaitAll();
 
 	std::cout << "Press a key to shutdown the demo application ......" << std::endl;
 	::getchar();

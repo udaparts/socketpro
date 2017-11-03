@@ -1959,6 +1959,9 @@ namespace SocketProAdapter
 
             public virtual bool SendRequest(ushort reqId, byte[] data, uint len, DAsyncResultHandler ash, DCanceled canceled, DOnExceptionFromServer exception)
             {
+                bool sent = false;
+                byte batching = 0;
+                CResultCb rcb = null;
                 if (m_ClientSocket == null)
                     return false;
                 IntPtr h = m_ClientSocket.Handle;
@@ -1968,14 +1971,14 @@ namespace SocketProAdapter
                 {
                     if (ash != null || canceled != null || exception != null)
                     {
-                        CResultCb rcb = new CResultCb();
+                        rcb = new CResultCb();
                         rcb.AsyncResultHandler = ash;
                         rcb.Canceled = canceled;
                         rcb.ExceptionFromServer = exception;
                         KeyValuePair<ushort, CResultCb> kv = new KeyValuePair<ushort, CResultCb>(reqId, rcb);
                         lock (m_cs)
                         {
-                            byte batching = ClientCoreLoader.IsBatching(h);
+                            batching = ClientCoreLoader.IsBatching(h);
                             if (batching != 0)
                             {
                                 m_kvBatching.AddToBack(kv);
@@ -1990,9 +1993,22 @@ namespace SocketProAdapter
                     {
                         fixed (byte* buffer = data)
                         {
-                            return (ClientCoreLoader.SendRequest(h, reqId, buffer, len) != 0);
+                            sent = (ClientCoreLoader.SendRequest(h, reqId, buffer, len) != 0);
                         }
                     }
+                    if (sent)
+                        return true;
+                    if (rcb != null)
+                    {
+                        lock (m_cs)
+                        {
+                            if (batching > 0)
+                                m_kvBatching.RemoveFromBack();
+                            else
+                                m_kvCallback.RemoveFromBack();
+                        }
+                    }
+                    return false;
                 }
             }
             public delegate void DCanceled();

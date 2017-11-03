@@ -112,24 +112,37 @@ public class CAsyncServiceHandler {
         if (h == 0) {
             return false;
         }
+        boolean batching = false;
+        CResultCb rcb = null;
         synchronized (m_csSend) {
             if (ash != null || canceled != null || exception != null) {
-                CResultCb rcb = new CResultCb();
+                rcb = new CResultCb();
                 rcb.AsyncResultHandler = ash;
                 rcb.Canceled = canceled;
                 rcb.ExceptionFromServer = exception;
                 java.util.Map.Entry<Short, CResultCb> kv = new java.util.AbstractMap.SimpleEntry<>(reqId, rcb);
-                if (ClientCoreLoader.IsBatching(h)) {
-                    synchronized (m_cs) {
+                synchronized (m_cs) {
+                    batching = ClientCoreLoader.IsBatching(h);
+                    if (batching) {
                         m_kvBatching.add(kv);
-                    }
-                } else {
-                    synchronized (m_cs) {
+                    } else {
                         m_kvCallback.add(kv);
                     }
                 }
             }
-            return ClientCoreLoader.SendRequest(h, reqId, data, len);
+            if (ClientCoreLoader.SendRequest(h, reqId, data, len)) {
+                return true;
+            }
+            if (rcb != null) {
+                synchronized (m_cs) {
+                    if (batching) {
+                        m_kvBatching.removeLast();
+                    } else {
+                        m_kvCallback.removeLast();
+                    }
+                }
+            }
+            return false;
         }
     }
 

@@ -4,9 +4,12 @@ using SocketProAdapter.ServerSide;
 using SocketProAdapter.ClientSide;
 using System.Data;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
+#if USE_SQLITE
+using CMaster = SocketProAdapter.CSqlMasterPool<SocketProAdapter.ClientSide.CSqlite, SocketProAdapter.CDataSet>;
+#else
+using CMaster = SocketProAdapter.CSqlMasterPool<SocketProAdapter.ClientSide.CMysql, SocketProAdapter.CDataSet>;
+#endif
 
 class Program
 {
@@ -24,7 +27,7 @@ class Program
             CYourServer.StartMySQLPools();
 
             //Cache is ready for use now
-            List<KeyValuePair<string, string>> v0 = CSqlMasterPool<CMysql, CDataSet>.Cache.DBTablePair;
+            List<KeyValuePair<string, string>> v0 = CMaster.Cache.DBTablePair;
             if (v0.Count == 0)
                 Console.WriteLine("There is no table cached");
             else
@@ -34,12 +37,15 @@ class Program
                 {
                     Console.WriteLine("DB name = {0}, table name = {1}", p.Key, p.Value);
                 }
-                DataColumn[] keys = CSqlMasterPool<CMysql, CDataSet>.Cache.FindKeys(v0[0].Key, v0[0].Value);
+                DataColumn[] keys = CMaster.Cache.FindKeys(v0[0].Key, v0[0].Value);
                 foreach (DataColumn dc in keys)
                 {
                     Console.WriteLine("Key ordinal = {0}, key column name = {1}", dc.Ordinal, dc.ColumnName);
                 }
             }
+
+            DataTable tbl = CMaster.Cache.Find("sakila", "actor", "actor_id >= 1 and actor_id <= 10");
+            
             CYourServer.CreateTestDB();
             Console.WriteLine();
 
