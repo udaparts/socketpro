@@ -43,8 +43,11 @@ class Program
                     Console.WriteLine("Key ordinal = {0}, key column name = {1}", dc.Ordinal, dc.ColumnName);
                 }
             }
-
+#if USE_SQLITE
+            DataTable tbl = CMaster.Cache.Find("main", "actor", "actor_id >= 1 and actor_id <= 10");
+#else
             DataTable tbl = CMaster.Cache.Find("sakila", "actor", "actor_id >= 1 and actor_id <= 10");
+#endif
             
             CYourServer.CreateTestDB();
             Console.WriteLine();

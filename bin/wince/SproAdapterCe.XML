@@ -292,6 +292,49 @@
             Last dequeue callback
             </summary>
         </member>
+        <member name="M:SocketProAdapter.CDataSet.AddEmptyRowset(SocketProAdapter.UDB.CDBColumnInfoArray)">
+            <summary>
+            Add an empty rowset from a given column meta data for cache
+            </summary>
+            <param name="meta">A meta data for a rowset</param>
+            <remarks>Track the event that a new rowset is added into a cache by overriding this method</remarks>
+        </member>
+        <member name="M:SocketProAdapter.CDataSet.AddRows(System.String,System.String,System.Collections.Generic.List{System.Object})">
+            <summary>
+            Add one or more rows into cache
+            </summary>
+            <param name="dbName">A database name string</param>
+            <param name="tblName">A table name string</param>
+            <param name="vData">A data array</param>
+            <returns>the number of rows added into cache. It could also be 0 and INVALID_VALUE </returns>
+            <remarks>Track the event of adding rows into cache by overriding this method</remarks>
+        </member>
+        <member name="M:SocketProAdapter.CDataSet.UpdateARow(System.String,System.String,System.Object[])">
+            <summary>
+            Update a row data into cache
+            </summary>
+            <param name="dbName">A database name string</param>
+            <param name="tblName">A table name string</param>
+            <param name="oldnewValues">An array of data containg both old and new values (old,new,old,new, ......) for one row</param>
+            <returns>the number of updated rows, which could be 0, 1 or INVALID_VALUE</returns>
+            <remarks>Track update event by overriding this method</remarks>
+        </member>
+        <member name="M:SocketProAdapter.CDataSet.DeleteARow(System.String,System.String,System.Object[])">
+            <summary>
+            Delete one row from cache from an array of given key values 
+            </summary>
+            <param name="dbName">A database name string</param>
+            <param name="tblName">A table name string</param>
+            <param name="keys">An array of key values</param>
+            <returns>the number of deleted rows, which could be 0, 1 or INVALID_VALUE</returns>
+        </member>
+        <member name="M:SocketProAdapter.CDataSet.Swap(SocketProAdapter.CDataSet)">
+            <summary>
+            Swap internal data structure with tc
+            </summary>
+            <param name="tc">A valid Dataset object</param>
+            <remarks>Track cache data initilization event by overriding this method</remarks>
+        </member>
         <!-- Badly formed XML comment ignored for member "F:SocketProAdapter.tagOperationSystem.osWinPhone" -->
         <member name="F:SocketProAdapter.tagThreadApartment.taNone">
             no COM apartment involved

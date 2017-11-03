@@ -45,6 +45,17 @@ class CYourServer : CSocketProServer
 
     public static void CreateTestDB()
     {
+#if USE_SQLITE
+        var handler = Master.Seek();
+        if (handler != null)
+        {
+            bool ok = handler.Execute("ATTACH DATABASE 'mysample.db' as mysample", null);
+            string sql = "CREATE TABLE mysample.COMPANY(ID INT8 PRIMARY KEY NOT NULL,Name CHAR(64)NOT NULL);CREATE TABLE mysample.EMPLOYEE(EMPLOYEEID INTEGER PRIMARY KEY AUTOINCREMENT,CompanyId INT8 not null,Name NCHAR(64)NOT NULL,JoinDate DATETIME not null default(datetime('now')),FOREIGN KEY(CompanyId)REFERENCES COMPANY(id))";
+            ok = handler.Execute(sql);
+            sql = "INSERT INTO mysample.COMPANY(ID,Name)VALUES(1,'Google Inc.'),(2,'Microsoft Inc.'),(3,'Amazon Inc.')";
+            ok = handler.Execute(sql);
+        }
+#else
         string sql = "CREATE DATABASE IF NOT EXISTS mysample character set utf8 collate utf8_general_ci;USE mysample;CREATE TABLE IF NOT EXISTS COMPANY(ID BIGINT PRIMARY KEY NOT NULL,Name CHAR(64)NOT NULL);CREATE TABLE IF NOT EXISTS EMPLOYEE(EMPLOYEEID BIGINT PRIMARY KEY AUTO_INCREMENT,CompanyId BIGINT NOT NULL,Name NCHAR(64)NOT NULL,JoinDate DATETIME(6)DEFAULT NULL,FOREIGN KEY(CompanyId)REFERENCES COMPANY(id));USE sakila";
         var handler = Master.Seek();
         if (handler != null)
@@ -53,6 +64,7 @@ class CYourServer : CSocketProServer
             sql = "INSERT INTO mysample.COMPANY(ID,Name)VALUES(1,'Google Inc.'),(2,'Microsoft Inc.'),(3,'Amazon Inc.')";
             ok = handler.Execute(sql);
         }
+#endif
     }
 
     public static void StartMySQLPools()

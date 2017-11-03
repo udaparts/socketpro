@@ -20,7 +20,12 @@ namespace SocketProAdapter
         private bool m_bFieldNameCaseSensitive = false;
         private bool m_bDataCaseSensitive = false;
 
-        public void AddEmptyRowset(UDB.CDBColumnInfoArray meta)
+        /// <summary>
+        /// Add an empty rowset from a given column meta data for cache
+        /// </summary>
+        /// <param name="meta">A meta data for a rowset</param>
+        /// <remarks>Track the event that a new rowset is added into a cache by overriding this method</remarks>
+        public virtual void AddEmptyRowset(UDB.CDBColumnInfoArray meta)
         {
             if (meta == null || meta.Count == 0)
                 return;
@@ -28,7 +33,7 @@ namespace SocketProAdapter
                 throw new Exception("The first column meta must contain database name and table name");
             System.Data.DataTable tbl = ClientSide.CAsyncDBHandler.MakeDataTable(meta, meta[0].TablePath);
             if (tbl.PrimaryKey == null || tbl.PrimaryKey.Length == 0)
-                throw new Exception("Column meta information doesn't contain any key");
+                throw new Exception("Column meta must contain at least one key");
             lock (m_cs)
             {
                 tbl.CaseSensitive = m_bDataCaseSensitive;
@@ -75,7 +80,6 @@ namespace SocketProAdapter
             return Find(dbName, tblName, "", "");
         }
 
-
         public DataColumnCollection GetColumnMeta(string dbName, string tblName)
         {
             if (dbName == null || dbName.Length == 0 || tblName == null || tblName.Length == 0)
@@ -96,7 +100,15 @@ namespace SocketProAdapter
             return null;
         }
 
-        public uint AddRows(string dbName, string tblName, List<object> vData)
+        /// <summary>
+        /// Add one or more rows into cache
+        /// </summary>
+        /// <param name="dbName">A database name string</param>
+        /// <param name="tblName">A table name string</param>
+        /// <param name="vData">A data array</param>
+        /// <returns>the number of rows added into cache. It could also be 0 and INVALID_VALUE </returns>
+        /// <remarks>Track the event of adding rows into cache by overriding this method</remarks>
+        public virtual uint AddRows(string dbName, string tblName, List<object> vData)
         {
             if (vData == null || vData.Count == 0)
                 return 0;
@@ -142,7 +154,15 @@ namespace SocketProAdapter
             return INVALID_VALUE;
         }
 
-        public uint UpdateARow(string dbName, string tblName, object[] oldnewValues)
+        /// <summary>
+        /// Update a row data into cache
+        /// </summary>
+        /// <param name="dbName">A database name string</param>
+        /// <param name="tblName">A table name string</param>
+        /// <param name="oldnewValues">An array of data containg both old and new values (old,new,old,new, ......) for one row</param>
+        /// <returns>the number of updated rows, which could be 0, 1 or INVALID_VALUE</returns>
+        /// <remarks>Track update event by overriding this method</remarks>
+        public virtual uint UpdateARow(string dbName, string tblName, object[] oldnewValues)
         {
             if (oldnewValues == null || oldnewValues.Length == 0)
                 return 0;
@@ -185,7 +205,14 @@ namespace SocketProAdapter
             return INVALID_VALUE;
         }
 
-        public uint DeleteARow(string dbName, string tblName, object[] keys)
+        /// <summary>
+        /// Delete one row from cache from an array of given key values 
+        /// </summary>
+        /// <param name="dbName">A database name string</param>
+        /// <param name="tblName">A table name string</param>
+        /// <param name="keys">An array of key values</param>
+        /// <returns>the number of deleted rows, which could be 0, 1 or INVALID_VALUE</returns>
+        public virtual uint DeleteARow(string dbName, string tblName, object[] keys)
         {
             if (keys == null || keys.Length == 0)
                 return 0;
@@ -326,8 +353,12 @@ namespace SocketProAdapter
                 m_ms = ms;
             }
         }
-
-        public void Swap(CDataSet tc)
+        /// <summary>
+        /// Swap internal data structure with tc
+        /// </summary>
+        /// <param name="tc">A valid Dataset object</param>
+        /// <remarks>Track cache data initilization event by overriding this method</remarks>
+        public virtual void Swap(CDataSet tc)
         {
             if (tc == null)
                 return;

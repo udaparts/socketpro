@@ -113,8 +113,6 @@ namespace SPA {
         void Set(const char *strIp, UDB::tagManagementSystem ms);
         void SetDBServerName(const wchar_t *strDBServerName);
         void SetUpdater(const wchar_t *strUpdater);
-        void Swap(CDataSet &tc);
-        void AddEmptyRowset(const UDB::CDBColumnInfoArray &meta);
         void Empty();
         CKeyMap FindKeys(const wchar_t *dbName, const wchar_t *tblName);
         void SetDBNameCaseSensitive(bool bCaseSensitive);
@@ -131,16 +129,17 @@ namespace SPA {
         int Find(const wchar_t *dbName, const wchar_t *tblName, unsigned int ordinal, CTable::Operator op, const VARIANT &vt, CTable &tbl);
         int Between(const wchar_t *dbName, const wchar_t *tblName, unsigned int ordinal, const CComVariant &vt0, const CComVariant &vt1, CTable &tbl);
         int Between(const wchar_t *dbName, const wchar_t *tblName, unsigned int ordinal, const VARIANT &vt0, const VARIANT &vt1, CTable &tbl);
-
-        size_t AddRows(const wchar_t *dbName, const wchar_t *tblName, const VARIANT *pvt, size_t count);
-        size_t AddRows(const wchar_t *dbName, const wchar_t *tblName, const UDB::CDBVariantArray &vData);
-        size_t UpdateARow(const wchar_t *dbName, const wchar_t *tblName, const VARIANT *pvt, size_t count);
-        size_t DeleteARow(const wchar_t *dbName, const wchar_t *tblName, const VARIANT &key);
-        size_t DeleteARow(const wchar_t *dbName, const wchar_t *tblName, const VARIANT &key0, const VARIANT &key1);
         size_t DeleteARow(const wchar_t *dbName, const wchar_t *tblName, const CComVariant &key);
         size_t DeleteARow(const wchar_t *dbName, const wchar_t *tblName, const CComVariant &key0, const CComVariant &key1);
-
         static std::string ToDate(const VARIANT &vtDate);
+
+		virtual void Swap(CDataSet &tc);
+		virtual void AddEmptyRowset(const UDB::CDBColumnInfoArray &meta);
+		virtual size_t AddRows(const wchar_t *dbName, const wchar_t *tblName, const VARIANT *pvt, size_t count);
+		virtual size_t AddRows(const wchar_t *dbName, const wchar_t *tblName, const UDB::CDBVariantArray &vData);
+		virtual size_t UpdateARow(const wchar_t *dbName, const wchar_t *tblName, const VARIANT *pvt, size_t count);
+		virtual size_t DeleteARow(const wchar_t *dbName, const wchar_t *tblName, const VARIANT &key);
+		virtual size_t DeleteARow(const wchar_t *dbName, const wchar_t *tblName, const VARIANT &key0, const VARIANT &key1);
 
     private:
         static CPRow FindARowInternal(CPColumnRowset &pcr, const VARIANT &key);
