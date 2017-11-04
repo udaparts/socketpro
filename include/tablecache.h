@@ -133,13 +133,65 @@ namespace SPA {
         size_t DeleteARow(const wchar_t *dbName, const wchar_t *tblName, const CComVariant &key0, const CComVariant &key1);
         static std::string ToDate(const VARIANT &vtDate);
 
-		virtual void Swap(CDataSet &tc);
-		virtual void AddEmptyRowset(const UDB::CDBColumnInfoArray &meta);
-		virtual size_t AddRows(const wchar_t *dbName, const wchar_t *tblName, const VARIANT *pvt, size_t count);
-		virtual size_t AddRows(const wchar_t *dbName, const wchar_t *tblName, const UDB::CDBVariantArray &vData);
-		virtual size_t UpdateARow(const wchar_t *dbName, const wchar_t *tblName, const VARIANT *pvt, size_t count);
-		virtual size_t DeleteARow(const wchar_t *dbName, const wchar_t *tblName, const VARIANT &key);
-		virtual size_t DeleteARow(const wchar_t *dbName, const wchar_t *tblName, const VARIANT &key0, const VARIANT &key1);
+        /**
+         * 
+         * @param tc
+         */
+        virtual void Swap(CDataSet &tc);
+
+        /**
+         * 
+         * @param meta
+         */
+        virtual void AddEmptyRowset(const UDB::CDBColumnInfoArray &meta);
+
+        /**
+         * 
+         * @param dbName
+         * @param tblName
+         * @param pvt
+         * @param count
+         * @return 
+         */
+        virtual size_t AddRows(const wchar_t *dbName, const wchar_t *tblName, const VARIANT *pvt, size_t count);
+
+        /**
+         * 
+         * @param dbName
+         * @param tblName
+         * @param vData
+         * @return 
+         */
+        virtual size_t AddRows(const wchar_t *dbName, const wchar_t *tblName, const UDB::CDBVariantArray &vData);
+
+        /**
+         * 
+         * @param dbName
+         * @param tblName
+         * @param pvt
+         * @param count
+         * @return 
+         */
+        virtual size_t UpdateARow(const wchar_t *dbName, const wchar_t *tblName, const VARIANT *pvt, size_t count);
+
+        /**
+         * 
+         * @param dbName
+         * @param tblName
+         * @param key
+         * @return 
+         */
+        virtual size_t DeleteARow(const wchar_t *dbName, const wchar_t *tblName, const VARIANT &key);
+
+        /**
+         * 
+         * @param dbName
+         * @param tblName
+         * @param key0
+         * @param key1
+         * @return 
+         */
+        virtual size_t DeleteARow(const wchar_t *dbName, const wchar_t *tblName, const VARIANT &key0, const VARIANT &key1);
 
     private:
         static CPRow FindARowInternal(CPColumnRowset &pcr, const VARIANT &key);

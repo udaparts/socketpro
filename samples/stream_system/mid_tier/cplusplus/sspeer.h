@@ -12,7 +12,7 @@ public:
 protected:
     virtual void OnFastRequestArrive(unsigned short reqId, unsigned int len);
     virtual int OnSlowRequestArrive(unsigned short reqId, unsigned int len);
-	virtual void GetCachedTables(const std::wstring &defaultDb, unsigned int flags, bool rowset, SPA::UINT64 index, int &dbMS, int &res, std::wstring &errMsg);
+    virtual void GetCachedTables(const std::wstring &defaultDb, unsigned int flags, bool rowset, SPA::UINT64 index, int &dbMS, int &res, std::wstring &errMsg);
 
 private:
     void GetRentalDateTimes(SPA::UINT64 index, SPA::INT64 rentalId, SPA::UINT64 &retIndex, CRentalDateTimes &dates, int &res, std::wstring &errMsg);
