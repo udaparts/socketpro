@@ -67,6 +67,16 @@ class CYourServer : CSocketProServer
 #endif
     }
 
+    public override bool Run(uint port, uint maxBacklog, bool v6Supported)
+    {
+        bool ok = base.Run(port, maxBacklog, v6Supported);
+        if (ok)
+        {
+            m_SSPeer.ReturnRandom = true; //results could be returned randomly and not in order
+        }
+        return ok;
+    }
+
     public static void StartMySQLPools()
     {
         CConfig config = CConfig.GetConfig();

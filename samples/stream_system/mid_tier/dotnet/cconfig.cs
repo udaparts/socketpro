@@ -76,8 +76,8 @@ public class CConfig
 #if WIN32_64
         m_config.m_store_or_pfx = "intermediate.pfx";
 #else
-            m_config.m_cert = "intermediate.cert.pem";
-	        m_config.m_key = "intermediate.key.pem";
+        m_config.m_cert = "intermediate.cert.pem";
+	    m_config.m_key = "intermediate.key.pem";
 #endif
         m_config.m_password_or_subject = "mypassword";
 

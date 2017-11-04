@@ -110,6 +110,7 @@ class Program
                         sum_mma.Avg += mma.Avg;
                         sum_mma.Max += mma.Max;
                         sum_mma.Min += mma.Min;
+                        //Console.WriteLine("QueryPaymentMaxMinAvgs call index = " + index);
                     }
                     ++returned;
                 });
