@@ -45,6 +45,7 @@
     <Compile Include="..\..\shared\ss_defines.cs">
       <Link>ss_defines.cs</Link>
     </Compile>
+    <Compile Include="cwebasynchandler.cs" />
     <Compile Include="Program.cs" />
   </ItemGroup>
   <ItemGroup>

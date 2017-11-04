@@ -22,10 +22,12 @@ namespace ss
             int size;
             Clear();
             UQueue.Load(out size);
-            while(size > 0) {
+            while (size > 0)
+            {
                 long n;
                 UQueue.Load(out n);
                 Add(n);
+                --size;
             }
         }
 
@@ -59,6 +61,12 @@ namespace ss
     class CRentalDateTimes : IUSerializer
     {
         public long rental_id = 0;
+        public CRentalDateTimes()
+        {
+            Rental = new DateTime(1900, 1, 1);
+            Return = new DateTime(1900, 1, 1);
+            LastUpdate = new DateTime(1900, 1, 1);
+        }
         public CRentalDateTimes(long rentaLId)
         {
             rental_id = rentaLId;

@@ -67,6 +67,5 @@ void CConfig::GetConfig() {
 	m_vFrontCachedTable.push_back(L"actor");
 	m_vFrontCachedTable.push_back(L"language");
 	m_vFrontCachedTable.push_back(L"country");
-	m_vFrontCachedTable.push_back(L"employee");
 #endif
 }

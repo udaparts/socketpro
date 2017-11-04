@@ -15,6 +15,7 @@ class Program
 {
     static void Main(string[] args)
     {
+        //load settings from some configuration file
         CConfig config = CConfig.GetConfig();
         if (config.m_vccSlave.Count == 0 || config.m_nMasterSessions == 0 || config.m_nSlaveSessions == 0)
         {
@@ -24,6 +25,7 @@ class Program
         }
         using (CYourServer server = new CYourServer(config.m_main_threads))
         {
+            //start two socket pools, master and slave
             CYourServer.StartMySQLPools();
 
             //Cache is ready for use now
@@ -48,10 +50,10 @@ class Program
 #else
             DataTable tbl = CMaster.Cache.Find("sakila", "actor", "actor_id >= 1 and actor_id <= 10");
 #endif
-            
             CYourServer.CreateTestDB();
             Console.WriteLine();
 
+            //test certificate and private key files are located at the directory ../socketpro/bin
 #if WIN32_64
             if (config.m_store_or_pfx.IndexOf(".pfx") == -1)
             {

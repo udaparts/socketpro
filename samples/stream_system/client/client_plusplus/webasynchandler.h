@@ -13,10 +13,9 @@ public:
 public:
     typedef std::function<void(SPA::UINT64 index) > DMyCanceled;
     typedef std::function<void(SPA::UINT64 index, const CMaxMinAvg &mma, int res, const std::wstring &errMsg) > DMaxMinAvg;
-    typedef std::function<void(SPA::UINT64 index, unsigned int, unsigned int) > DConnectedSessions;
+    typedef std::function<void(SPA::UINT64 index, unsigned int m_connections, unsigned int s_connections) > DConnectedSessions;
     typedef std::function<void(SPA::UINT64 index, int res, const std::wstring &errMsg, CInt64Array &vId) > DUploadEmployees;
     typedef std::function<void(SPA::UINT64 index, const CRentalDateTimes &dates, int res, const std::wstring &errMsg) > DRentalDateTimes;
-    typedef std::function<void(SPA::UINT64 index, int res, const std::wstring &errMsg) > DSequeue;
 
 public:
     SPA::UINT64 QueryPaymentMaxMinAvgs(const wchar_t *filter, DMaxMinAvg mma, DMyCanceled canceled = nullptr);

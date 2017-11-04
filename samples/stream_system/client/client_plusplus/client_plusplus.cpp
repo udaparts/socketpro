@@ -33,14 +33,7 @@ int main(int argc, char* argv[]) {
 	};
 	master.DoSslServerAuthentication = cb;
 
-#ifdef WIN32_64
-	std::string working_directory = "c:\\sp_test";
-#else
-	std::string working_directory = "/home/yye/sp_test/";
-#endif
-	CClientSocket::QueueConfigure::SetWorkDirectory(working_directory.c_str());
-
-	bool ok = master.StartSocketPool(cc, 6, 1);
+	bool ok = master.StartSocketPool(cc, 4, 1);
 	if (!ok) {
 		std::cout << "Failed in connecting to remote middle tier server, and press any key to close the application ......" << std::endl;
 		::getchar();
@@ -97,7 +90,7 @@ int main(int argc, char* argv[]) {
 	});
 	call_index = handler->UploadEmployees(vData, [prom](SPA::UINT64 index, int res, const std::wstring &errMsg, CInt64Array & vId) {
 		if (res) {
-			std::cout << "UploadEmployees Error code =  " << res << ", error message = ";
+			std::cout << "UploadEmployees Error code = " << res << ", error message = ";
 			std::wcout << errMsg.c_str() << std::endl;
 		}
 		else {
@@ -107,7 +100,7 @@ int main(int argc, char* argv[]) {
 		}
 		prom->set_value();
 	}, [prom](SPA::UINT64 index) {
-		std::cout << "Socket closed or request canceled" << std::endl;
+		std::cout << "Socket closed or request cancelled" << std::endl;
 		prom->set_value();
 	});
 	if (call_index) {
@@ -117,6 +110,9 @@ int main(int argc, char* argv[]) {
 			std::cout << "The above requests are not completed in 5 seconds" << std::endl;
 		}
 	}
+	else
+		std::cout << "Socket already closed before sending request" << std::endl;
+	
 
 	std::cout << "Press a key to test random returning ......" << std::endl;
 	::getchar();
@@ -147,7 +143,7 @@ int main(int argc, char* argv[]) {
 	}
 	std::chrono::duration<double> diff = (std::chrono::system_clock::now() - start);
 	std::cout << "Time required: " << diff.count() << " seconds" << std::endl;
-	std::cout << "QueryPaymentMaxMinAvgs sum_max: " << sum_mma.Max << ", sum_min: " << sum_mma.Min << ", avg: " << sum_mma.Avg << std::endl;
+	std::cout << "QueryPaymentMaxMinAvgs sum_max: " << sum_mma.Max << ", sum_min: " << sum_mma.Min << ", sum_avg: " << sum_mma.Avg << std::endl;
 
 	std::cout << "Press a key to test sequence returning ......" << std::endl;
 	::getchar();

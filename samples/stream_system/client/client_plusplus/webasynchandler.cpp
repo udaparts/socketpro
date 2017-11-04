@@ -33,6 +33,7 @@ SPA::UINT64 CWebAsyncHandler::QueryPaymentMaxMinAvgs(const wchar_t *filter, DMax
 		m_mapMMA[index] = std::pair<DMaxMinAvg, DMyCanceled>(mma, canceled);
 	}
 	if (!SendRequest(idQueryMaxMinAvgs, index, filter, arh, [index, this]() {
+		//socket closed or request canceled after request is put on wire
 		std::pair<DMaxMinAvg, DMyCanceled> p;
 		{
 			SPA::CAutoLock al(this->m_csCache);
@@ -42,6 +43,7 @@ SPA::UINT64 CWebAsyncHandler::QueryPaymentMaxMinAvgs(const wchar_t *filter, DMax
 		if (p.second)
 			p.second(index);
 	})) {
+		//socket is already closed before sending request
 		SPA::CAutoLock al(this->m_csCache);
 		m_mapMMA.erase(index);
 		return 0;
@@ -73,6 +75,7 @@ SPA::UINT64 CWebAsyncHandler::GetRentalDateTimes(SPA::INT64 rentalId, DRentalDat
 		m_mapRentalDateTimes[index] = std::pair<DRentalDateTimes, DMyCanceled>(rdt, canceled);
 	}
 	if (!SendRequest(idGetRentalDateTimes, index, rentalId, arh, [index, this]() {
+		//socket closed or request canceled after request is put on wire
 		std::pair<DRentalDateTimes, DMyCanceled> p;
 		{
 			SPA::CAutoLock al(this->m_csCache);
@@ -82,6 +85,7 @@ SPA::UINT64 CWebAsyncHandler::GetRentalDateTimes(SPA::INT64 rentalId, DRentalDat
 		if (p.second)
 			p.second(index);
 	})) {
+		//socket is already closed before sending request
 		SPA::CAutoLock al(this->m_csCache);
 		m_mapRentalDateTimes.erase(index);
 		return 0;
@@ -111,6 +115,7 @@ SPA::UINT64 CWebAsyncHandler::GetMasterSlaveConnectedSessions(DConnectedSessions
 		m_mapSession[index] = std::pair<DConnectedSessions, DMyCanceled>(cs, canceled);
 	}
 	if (!SendRequest(idGetMasterSlaveConnectedSessions, index, arh, [index, this]() {
+		//socket closed or request canceled after request is put on wire
 		std::pair<DConnectedSessions, DMyCanceled> p;
 		{
 			SPA::CAutoLock al(this->m_csCache);
@@ -120,6 +125,7 @@ SPA::UINT64 CWebAsyncHandler::GetMasterSlaveConnectedSessions(DConnectedSessions
 		if (p.second)
 			p.second(index);
 	})) {
+		//socket is already closed before sending request
 		SPA::CAutoLock al(this->m_csCache);
 		m_mapSession.erase(index);
 		return 0;
@@ -151,6 +157,7 @@ SPA::UINT64 CWebAsyncHandler::UploadEmployees(const SPA::UDB::CDBVariantArray &v
 		m_mapUpload[index] = std::pair<DUploadEmployees, DMyCanceled>(res, canceled);
 	}
 	if (!SendRequest(idUploadEmployees, index, vData, arh, [index, this]() {
+		//socket closed or request canceled after request is put on wire
 		std::pair<DUploadEmployees, DMyCanceled> p;
 		{
 			SPA::CAutoLock al(this->m_csCache);
@@ -160,6 +167,7 @@ SPA::UINT64 CWebAsyncHandler::UploadEmployees(const SPA::UDB::CDBVariantArray &v
 		if (p.second)
 			p.second(index);
 	})) {
+		//socket is already closed before sending request
 		SPA::CAutoLock al(this->m_csCache);
 		m_mapUpload.erase(index);
 		return 0;
