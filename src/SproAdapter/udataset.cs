@@ -106,7 +106,7 @@ namespace SocketProAdapter
         /// <param name="dbName">A database name string</param>
         /// <param name="tblName">A table name string</param>
         /// <param name="vData">A data array</param>
-        /// <returns>the number of rows added into cache. It could also be 0 and INVALID_VALUE </returns>
+        /// <returns>The number of rows added into cache. It could also be 0 and INVALID_VALUE </returns>
         /// <remarks>Track the event of adding rows into cache by overriding this method</remarks>
         public virtual uint AddRows(string dbName, string tblName, List<object> vData)
         {
@@ -159,8 +159,8 @@ namespace SocketProAdapter
         /// </summary>
         /// <param name="dbName">A database name string</param>
         /// <param name="tblName">A table name string</param>
-        /// <param name="oldnewValues">An array of data containg both old and new values (old,new,old,new, ......) for one row</param>
-        /// <returns>the number of updated rows, which could be 0, 1 or INVALID_VALUE</returns>
+        /// <param name="oldnewValues">An array of data containing both old and new values (old,new,old,new, ......) for one row</param>
+        /// <returns>The number of updated rows, which could be 0, 1 or INVALID_VALUE</returns>
         /// <remarks>Track update event by overriding this method</remarks>
         public virtual uint UpdateARow(string dbName, string tblName, object[] oldnewValues)
         {
@@ -211,7 +211,8 @@ namespace SocketProAdapter
         /// <param name="dbName">A database name string</param>
         /// <param name="tblName">A table name string</param>
         /// <param name="keys">An array of key values</param>
-        /// <returns>the number of deleted rows, which could be 0, 1 or INVALID_VALUE</returns>
+        /// <returns>The number of deleted rows, which could be 0, 1 or INVALID_VALUE</returns>
+        /// <remarks>Track delete event by overriding this method</remarks>
         public virtual uint DeleteARow(string dbName, string tblName, object[] keys)
         {
             if (keys == null || keys.Length == 0)
@@ -357,7 +358,7 @@ namespace SocketProAdapter
         /// Swap internal data structure with tc
         /// </summary>
         /// <param name="tc">A valid Dataset object</param>
-        /// <remarks>Track cache data initilization event by overriding this method</remarks>
+        /// <remarks>Track cache data initialization event by overriding this method</remarks>
         public virtual void Swap(CDataSet tc)
         {
             if (tc == null)

@@ -134,62 +134,62 @@ namespace SPA {
         static std::string ToDate(const VARIANT &vtDate);
 
         /**
-         * 
-         * @param tc
+         * Swap internal data structure with tc. Track cache data initialization event by overriding this method
+         * @param tc A valid Dataset object
          */
         virtual void Swap(CDataSet &tc);
 
         /**
-         * 
-         * @param meta
+         * Add an empty rowset from a given column meta data for cache. Track the event that a new rowset is added into a cache by overriding this method
+         * @param meta A meta data for a rowset
          */
         virtual void AddEmptyRowset(const UDB::CDBColumnInfoArray &meta);
 
         /**
-         * 
-         * @param dbName
-         * @param tblName
-         * @param pvt
-         * @param count
-         * @return 
+         * Add one or more rows into cache. Track the event of adding rows into cache by overriding this method
+         * @param dbName A database name string
+         * @param tblName A table name string
+         * @param pvt A pointer to a data array
+         * @param count The number of data in array
+         * @return The number of rows added into cache. It could also be 0 and INVALID_VALUE
          */
         virtual size_t AddRows(const wchar_t *dbName, const wchar_t *tblName, const VARIANT *pvt, size_t count);
 
         /**
-         * 
-         * @param dbName
-         * @param tblName
-         * @param vData
-         * @return 
+         * Add one or more rows into cache. Track the event of adding rows into cache by overriding this method
+         * @param dbName A database name string
+         * @param tblName A table name string
+         * @param vData A data array
+         * @return The number of rows added into cache. It could also be 0 and INVALID_VALUE
          */
         virtual size_t AddRows(const wchar_t *dbName, const wchar_t *tblName, const UDB::CDBVariantArray &vData);
 
         /**
-         * 
-         * @param dbName
-         * @param tblName
-         * @param pvt
+         * Update a row data into cache. Track update event by overriding this method
+         * @param dbName A database name string
+         * @param tblName A table name string
+         * @param pvt A pointer to an array of data containing both old and new values (old,new,old,new, ......) for one row
          * @param count
-         * @return 
+         * @return The number of updated rows, which could be 0, 1 or INVALID_VALUE
          */
         virtual size_t UpdateARow(const wchar_t *dbName, const wchar_t *tblName, const VARIANT *pvt, size_t count);
 
         /**
-         * 
-         * @param dbName
-         * @param tblName
-         * @param key
-         * @return 
+         * Delete one row from cache from one given key value. Track delete event by overriding this method
+         * @param dbName A database name string
+         * @param tblName A table name string
+         * @param key One given key value
+         * @return The number of deleted rows, which could be 0, 1 or INVALID_VALUE
          */
         virtual size_t DeleteARow(const wchar_t *dbName, const wchar_t *tblName, const VARIANT &key);
 
         /**
-         * 
-         * @param dbName
-         * @param tblName
-         * @param key0
-         * @param key1
-         * @return 
+         * Delete one row from cache from one given key value. Track delete event by overriding this method
+         * @param dbName A database name string
+         * @param tblName A table name string
+         * @param key0 The first given key value
+         * @param key1 The second given key value
+         * @return The number of deleted rows, which could be 0, 1 or INVALID_VALUE
          */
         virtual size_t DeleteARow(const wchar_t *dbName, const wchar_t *tblName, const VARIANT &key0, const VARIANT &key1);
 
