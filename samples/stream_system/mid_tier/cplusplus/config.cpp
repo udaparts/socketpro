@@ -62,6 +62,7 @@ void CConfig::GetConfig() {
 	m_vFrontCachedTable.push_back(L"sakila.actor");
 	m_vFrontCachedTable.push_back(L"sakila.language");
 	m_vFrontCachedTable.push_back(L"sakila.country");
+	m_vFrontCachedTable.push_back(L"mysqldb.employee");
 #else
 	//cached tables on front applications
 	m_vFrontCachedTable.push_back(L"actor");
