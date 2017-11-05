@@ -112,7 +112,6 @@ int main(int argc, char* argv[]) {
 	}
 	else
 		std::cout << "Socket already closed before sending request" << std::endl;
-	
 
 	std::cout << "Press a key to test random returning ......" << std::endl;
 	::getchar();

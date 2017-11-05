@@ -55,7 +55,6 @@ class CWebAsyncHandler : CCachedBaseHandler
             }
             if (p.Value != null)
                 p.Value.Invoke(callIndex);
-
         }, (DOnExceptionFromServer)null))
         {
             //socket is already closed before sending request
@@ -106,7 +105,6 @@ class CWebAsyncHandler : CCachedBaseHandler
             }
             if (p.Value != null)
                 p.Value.Invoke(callIndex);
-
         }, (DOnExceptionFromServer)null))
         {
             //socket is already closed before sending request
@@ -130,7 +128,6 @@ class CWebAsyncHandler : CCachedBaseHandler
             string errMsg;
             ss.CInt64Array vId;
             ar.Load(out index).Load(out errCode).Load(out errMsg).Load(out vId);
-
             KeyValuePair<DUploadEmployees, DMyCanceled> p;
             lock (m_csCache)
             {
@@ -160,7 +157,6 @@ class CWebAsyncHandler : CCachedBaseHandler
             }
             if (p.Value != null)
                 p.Value.Invoke(callIndex);
-
         }, (DOnExceptionFromServer)null))
         {
             //socket is already closed before sending request
@@ -213,7 +209,6 @@ class CWebAsyncHandler : CCachedBaseHandler
             }
             if (p.Value != null)
                 p.Value.Invoke(callIndex);
-
         }, (DOnExceptionFromServer)null))
         {
             //socket is already closed before sending request
