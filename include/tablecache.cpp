@@ -803,17 +803,16 @@ namespace SPA
                 break;
         }
         UDB::CDBVariant vt;
-		if (vtTarget == (VT_UI1 | VT_ARRAY) && data.vt == (VT_ARRAY | VT_I1)) {
-			vt = data;
-			vt.vt = (VT_ARRAY | VT_UI1);
-			return vt;
-		}
-		else if (vtTarget == VT_DATE && data.vt == VT_BSTR) {
-			std::string s = Utilities::ToUTF8(data.bstrVal);
-			UDateTime dt(s.c_str());
-			vt = dt;
-			return vt;
-		}
+        if (vtTarget == (VT_UI1 | VT_ARRAY) && data.vt == (VT_ARRAY | VT_I1)) {
+            vt = data;
+            vt.vt = (VT_ARRAY | VT_UI1);
+            return vt;
+        } else if (vtTarget == VT_DATE && data.vt == VT_BSTR) {
+            std::string s = Utilities::ToUTF8(data.bstrVal);
+            UDateTime dt(s.c_str());
+            vt = dt;
+            return vt;
+        }
         HRESULT hr = ::VariantChangeType(&vt, &data, 0, vtTarget);
         assert(S_OK == hr);
         return vt;
