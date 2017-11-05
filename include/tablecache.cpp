@@ -4,6 +4,31 @@
 
 namespace SPA
 {
+	CTable::CTable()
+		: m_bFieldNameCaseSensitive(false),
+		m_bDataCaseSensitive(false) {
+	}
+
+	CTable::CTable(const UDB::CDBColumnInfoArray &meta, bool bFieldNameCaseSensitive, bool bDataCaseSensitive)
+		: CPColumnRowset(meta, CDataMatrix()),
+		m_bFieldNameCaseSensitive(bFieldNameCaseSensitive),
+		m_bDataCaseSensitive(bDataCaseSensitive) {
+	}
+
+	CTable::CTable(const CTable &tbl)
+		: CPColumnRowset(tbl),
+		m_bFieldNameCaseSensitive(tbl.m_bFieldNameCaseSensitive),
+		m_bDataCaseSensitive(tbl.m_bDataCaseSensitive) {
+	}
+
+	const UDB::CDBColumnInfoArray& CTable::GetMeta() const {
+		return first;
+	}
+
+	const CDataMatrix& CTable::GetDataMatrix() const {
+		return second;
+	}
+
     CTable & CTable::operator = (const CTable & tbl){
         if (this == &tbl)
             return *this;
@@ -599,14 +624,14 @@ namespace SPA
                 auto &vRow = it->second;
                 CPRow prow;
                 for (size_t n = 0; n < count; ++n) {
+					if ((n % col_count) == 0) {
+						prow.reset(new CRow());
+						vRow.push_back(prow);
+					}
                     VARTYPE vtTarget = meta[n % col_count].DataType;
-                    if (vtTarget == (VT_I1 | VT_ARRAY))
-                        vtTarget = VT_BSTR;
-                    if ((n % col_count) == 0) {
-                        prow.reset(new CRow());
-                        vRow.push_back(prow);
-                    }
-                    prow->push_back(Convert(vData[n], vtTarget));
+					if (vtTarget == (VT_I1 | VT_ARRAY))
+						vtTarget = VT_BSTR;
+					prow->push_back(Convert(vData[n], vtTarget));
                 }
                 return (count / col_count);
             }
@@ -777,6 +802,11 @@ namespace SPA
                 break;
         }
         UDB::CDBVariant vt;
+		if (vtTarget == (VT_UI1 | VT_ARRAY) && data.vt == (VT_ARRAY | VT_I1)) {
+			vt = data;
+			vt.vt = (VT_ARRAY | VT_UI1);
+			return vt;
+		}
         HRESULT hr = ::VariantChangeType(&vt, &data, 0, vtTarget);
         assert(S_OK == hr);
         return vt;

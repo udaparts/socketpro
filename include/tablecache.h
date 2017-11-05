@@ -37,33 +37,14 @@ namespace SPA {
 
         static const unsigned int INVALID_ORDINAL = (unsigned int) (-1);
 
-        CTable()
-        : m_bFieldNameCaseSensitive(false),
-        m_bDataCaseSensitive(false) {
-        }
-
-        CTable(const UDB::CDBColumnInfoArray &meta, bool bFieldNameCaseSensitive, bool bDataCaseSensitive)
-        : CPColumnRowset(meta, CDataMatrix()),
-        m_bFieldNameCaseSensitive(bFieldNameCaseSensitive),
-        m_bDataCaseSensitive(bDataCaseSensitive) {
-        }
-
-        CTable(const CTable &tbl)
-        : CPColumnRowset(tbl),
-        m_bFieldNameCaseSensitive(tbl.m_bFieldNameCaseSensitive),
-        m_bDataCaseSensitive(tbl.m_bDataCaseSensitive) {
-        }
+		CTable();
+		CTable(const UDB::CDBColumnInfoArray &meta, bool bFieldNameCaseSensitive, bool bDataCaseSensitive);
+		CTable(const CTable &tbl);
 
     public:
         CTable& operator=(const CTable &tbl);
-
-        const UDB::CDBColumnInfoArray& GetMeta() const {
-            return first;
-        }
-
-        const CDataMatrix& GetDataMatrix() const {
-            return second;
-        }
+		const UDB::CDBColumnInfoArray& GetMeta() const;
+		const CDataMatrix& GetDataMatrix() const;
 
         int Find(unsigned int ordinal, Operator op, const CComVariant &vt, CTable &tbl, bool copyData = false) const;
         int Find(unsigned int ordinal, Operator op, const VARIANT &vt, CTable &tbl, bool copyData = false) const;
