@@ -224,7 +224,7 @@ namespace SPA
     int CTable::Sort(unsigned int ordinal, bool desc) {
         if (ordinal >= first.size())
             return BAD_ORDINAL;
-        std::sort(second.begin(), second.end(), [this, ordinal, desc](const CPRow& a, const CPRow & b) {
+        std::sort(second.begin(), second.end(), [this, ordinal, desc](const CPRow& a, const CPRow & b) -> bool {
             const UDB::CDBVariant &va = a->at(ordinal);
             const UDB::CDBVariant &vb = b->at(ordinal);
             if (vb.vt <= VT_NULL && va.vt <= VT_NULL)
@@ -334,6 +334,17 @@ namespace SPA
             case VT_BOOL:
                 return (vt0.boolVal < vt1.boolVal);
                 break;
+			case (VT_ARRAY | VT_UI1):
+				if (vt0.parray->rgsabound->cElements == vt1.parray->rgsabound->cElements && vt0.parray->rgsabound->cElements == sizeof(UUID)) {
+					unsigned char *s0, *s1;
+					::SafeArrayAccessData(vt0.parray, (void**)&s0);
+					::SafeArrayAccessData(vt1.parray, (void**)&s1);
+					int ret = ::memcmp(s0, s1, sizeof(UUID));
+					::SafeArrayUnaccessData(vt1.parray);
+					::SafeArrayUnaccessData(vt0.parray);
+					return ret > 0;
+				}
+				break;
             default:
                 break;
         }
@@ -384,6 +395,17 @@ namespace SPA
             case VT_BOOL:
                 return (vt0.boolVal <= vt1.boolVal);
                 break;
+			case (VT_ARRAY | VT_UI1):
+				if (vt0.parray->rgsabound->cElements == vt1.parray->rgsabound->cElements && vt0.parray->rgsabound->cElements == sizeof(UUID)) {
+					unsigned char *s0, *s1;
+					::SafeArrayAccessData(vt0.parray, (void**)&s0);
+					::SafeArrayAccessData(vt1.parray, (void**)&s1);
+					int ret = ::memcmp(s0, s1, sizeof(UUID));
+					::SafeArrayUnaccessData(vt1.parray);
+					::SafeArrayUnaccessData(vt0.parray);
+					return ret >= 0;
+				}
+				break;
             default:
                 break;
         }
@@ -434,6 +456,17 @@ namespace SPA
             case VT_BOOL:
                 return (vt0.boolVal > vt1.boolVal);
                 break;
+			case (VT_ARRAY | VT_UI1):
+				if (vt0.parray->rgsabound->cElements == vt1.parray->rgsabound->cElements && vt0.parray->rgsabound->cElements == sizeof(UUID)) {
+					unsigned char *s0, *s1;
+					::SafeArrayAccessData(vt0.parray, (void**)&s0);
+					::SafeArrayAccessData(vt1.parray, (void**)&s1);
+					int ret = ::memcmp(s0, s1, sizeof(UUID));
+					::SafeArrayUnaccessData(vt1.parray);
+					::SafeArrayUnaccessData(vt0.parray);
+					return ret < 0;
+				}
+				break;
             default:
                 break;
         }
@@ -484,6 +517,17 @@ namespace SPA
             case VT_BOOL:
                 return (vt0.boolVal >= vt1.boolVal);
                 break;
+			case (VT_ARRAY | VT_UI1):
+				if (vt0.parray->rgsabound->cElements == vt1.parray->rgsabound->cElements && vt0.parray->rgsabound->cElements == sizeof(UUID)) {
+					unsigned char *s0, *s1;
+					::SafeArrayAccessData(vt0.parray, (void**)&s0);
+					::SafeArrayAccessData(vt1.parray, (void**)&s1);
+					int ret = ::memcmp(s0, s1, sizeof(UUID));
+					::SafeArrayUnaccessData(vt1.parray);
+					::SafeArrayUnaccessData(vt0.parray);
+					return ret <= 0;
+				}
+				break;
             default:
                 break;
         }
