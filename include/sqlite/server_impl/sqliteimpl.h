@@ -141,7 +141,7 @@ namespace SPA {
             static bool SetDeleteTrigger(sqlite3 *db, const std::string &tblName, const std::vector<std::pair<std::string, char> > &vCol);
             static const std::vector<std::string>* InCache(const std::string &dbFile);
             static int cbGetAllTables(void *p, int argc, char **argv, char **azColName);
-            static void DropAllTriggers(sqlite3 *db);
+            static void DropAllTriggers(sqlite3 *db, const std::vector<std::string> &vTable);
             static void DropATrigger(sqlite3 *db, const std::string &sql);
             static size_t HasKey(const std::vector<std::pair<std::string, char> > &vCol);
             static void XFunc(sqlite3_context *context, int count, sqlite3_value **pp);
