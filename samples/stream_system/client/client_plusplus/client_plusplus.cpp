@@ -160,12 +160,11 @@ int main(int argc, char* argv[]) {
 		}
 	};
 	//lock one session, and all requests should be returned in sequence
-	handler = master.Lock();
+	handler = master.Seek();
 	if (handler) {
 		for (unsigned int n = 0; n < 1000; ++n) {
 			call_index = handler->GetRentalDateTimes(n + 1, rdt);
 		}
-		master.Unlock(handler);
 		ok = handler->WaitAll();
 	}
 

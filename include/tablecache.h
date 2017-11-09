@@ -55,7 +55,7 @@ namespace SPA {
         unsigned int FindOrdinal(const wchar_t *colName) const;
         unsigned int FindOrdinal(const char *colName) const;
 
-    protected:
+    private:
         int gt(const VARIANT &vt0, const VARIANT &vt1) const;
         int ge(const VARIANT &vt0, const VARIANT &vt1) const;
         int lt(const VARIANT &vt0, const VARIANT &vt1) const;
@@ -63,7 +63,7 @@ namespace SPA {
         int eq(const VARIANT &vt0, const VARIANT &vt1) const;
         static HRESULT ChangeType(const VARIANT &vtSrc, VARTYPE vtTarget, VARIANT &vtDes);
 
-    protected:
+    private:
         bool m_bFieldNameCaseSensitive;
         bool m_bDataCaseSensitive;
 

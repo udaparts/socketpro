@@ -134,14 +134,13 @@ class Program
                 else
                     Console.WriteLine("GetRentalDateTimes call index: {0} rental_id={1} and dates ({2}, {3}, {4})", index, dates.rental_id, dates.Rental, dates.Return, dates.LastUpdate);
             };
-            handler = master.Lock();
+            handler = master.Seek();
             if (handler != null)
             {
                 for (int n = 0; n < 1000; ++n)
                 {
                     call_index = handler.GetRentalDateTimes(n + 1, rdt);
                 }
-                master.Unlock(handler);
                 handler.WaitAll();
             }
             Console.WriteLine("Press a key to shutdown the demo application ......");
