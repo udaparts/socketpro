@@ -238,15 +238,15 @@ namespace SPA
         void CSqliteImpl::DropAllTriggers(sqlite3 * db, const std::vector<std::string> &vTable) {
             char *err_msg = nullptr;
             std::vector<std::string> v;
-			std::string strIn;
-			for(auto it = vTable.cbegin(), end = vTable.cend(); it != end; ++it) {
-				if(strIn.size())
-					strIn += ',';
-				strIn += '\'';
-				strIn += *it;
-				strIn += '\'';
-			}
-            std::string sql = "SELECT tbl_name FROM sqlite_master WHERE type='trigger' and name like '" + DIU_TRIGGER_PREFIX + "%' and tbl_name not in(" + strIn +")group by tbl_name";
+            std::string strIn;
+            for (auto it = vTable.cbegin(), end = vTable.cend(); it != end; ++it) {
+                if (strIn.size())
+                    strIn += ',';
+                strIn += '\'';
+                strIn += *it;
+                strIn += '\'';
+            }
+            std::string sql = "SELECT tbl_name FROM sqlite_master WHERE type='trigger' and name like '" + DIU_TRIGGER_PREFIX + "%' and tbl_name not in(" + strIn + ")group by tbl_name";
             int rc = sqlite3_exec(db, sql.c_str(), cbGetAllTables, &v, &err_msg);
             if (rc != SQLITE_OK && err_msg) {
                 sqlite3_free(err_msg);
