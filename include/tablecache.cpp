@@ -45,6 +45,14 @@ namespace SPA
 	}
 
 	HRESULT CTable::ChangeType(const VARIANT &vtSrc, VARTYPE vtTarget, VARIANT & vtDes) {
+		if (vtSrc.vt == (VT_ARRAY | VT_I1) && vtTarget == VT_BSTR) {
+			const char *s;
+			::SafeArrayAccessData(vtSrc.parray, (void**)&s);
+			vtDes.vt = VT_BSTR;
+			vtDes.bstrVal = SPA::Utilities::ToBSTR(s, vtSrc.parray->rgsabound->cElements);
+			::SafeArrayUnaccessData(vtSrc.parray);
+			return S_OK;
+		}
 		HRESULT hr = ::VariantChangeType(&vtDes, &vtSrc, 0, vtTarget);
 		if (S_OK != hr)
 			return BAD_DATA_TYPE;
@@ -64,7 +72,7 @@ namespace SPA
 		tbl.m_bFieldNameCaseSensitive = m_bFieldNameCaseSensitive;
 		if (ordinal >= first.size())
 			return BAD_ORDINAL;
-		if (vt.vt <= VT_NULL || vt.vt <= VT_NULL)
+		if (vt.vt <= VT_NULL && op != is_null)
 			return COMPARISON_NOT_SUPPORTED;
 		VARTYPE type = first[ordinal].DataType;
 		if (type == (VT_I1 | VT_ARRAY))

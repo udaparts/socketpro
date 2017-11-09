@@ -111,13 +111,13 @@ public class CTable {
             return 0;
         }
         if (vt0 instanceof Integer) {
-            return (Integer) vt0 > (Integer) vt1 ? 1 : 0;
+            return (int) vt0 > (int) vt1 ? 1 : 0;
         } else if (vt0 instanceof Long) {
-            return (Long) vt0 > (Long) vt1 ? 1 : 0;
+            return (long) vt0 > (long) vt1 ? 1 : 0;
         } else if (vt0 instanceof Short) {
-            return (Short) vt0 > (Short) vt1 ? 1 : 0;
+            return (short) vt0 > (short) vt1 ? 1 : 0;
         } else if (vt0 instanceof Double) {
-            return (Double) vt0 > (Double) vt1 ? 1 : 0;
+            return (double) vt0 > (double) vt1 ? 1 : 0;
         } else if (vt0 instanceof String) {
             String s0 = (String) vt0;
             String s1 = (String) vt1;
@@ -127,8 +127,8 @@ public class CTable {
                 return s0.compareToIgnoreCase(s1) > 0 ? 1 : 0;
             }
         } else if (vt0 instanceof Boolean) {
-            int n0 = (Boolean) vt0 ? 1 : 0;
-            int n1 = (Boolean) vt1 ? 1 : 0;
+            int n0 = (boolean) vt0 ? 1 : 0;
+            int n1 = (boolean) vt1 ? 1 : 0;
             return n0 > n1 ? 1 : 0;
         } else if (vt0 instanceof java.sql.Timestamp) {
             java.sql.Timestamp n0 = (java.sql.Timestamp) vt0;
@@ -139,15 +139,15 @@ public class CTable {
             java.math.BigDecimal n1 = (java.math.BigDecimal) vt1;
             return n0.compareTo(n1) > 0 ? 1 : 0;
         } else if (vt0 instanceof Float) {
-            return (Float) vt0 > (Float) vt1 ? 1 : 0;
+            return (float) vt0 > (float) vt1 ? 1 : 0;
         } else if (vt0 instanceof java.util.UUID) {
             java.util.UUID n0 = (java.util.UUID) vt0;
             java.util.UUID n1 = (java.util.UUID) vt1;
             return n0.compareTo(n1) > 0 ? 1 : 0;
         } else if (vt0 instanceof Character) {
-            return (Character) vt0 > (Character) vt1 ? 1 : 0;
+            return (char) vt0 > (char) vt1 ? 1 : 0;
         } else if (vt0 instanceof Byte) {
-            return (Byte) vt0 > (Byte) vt1 ? 1 : 0;
+            return (byte) vt0 > (byte) vt1 ? 1 : 0;
         } else if (vt0 instanceof java.util.Date) {
             java.util.Date n0 = (java.util.Date) vt0;
             java.util.Date n1 = (java.util.Date) vt1;
@@ -161,13 +161,13 @@ public class CTable {
             return 0;
         }
         if (vt0 instanceof Integer) {
-            return (Integer) vt0 >= (Integer) vt1 ? 1 : 0;
+            return (int) vt0 >= (int) vt1 ? 1 : 0;
         } else if (vt0 instanceof Long) {
-            return (Long) vt0 >= (Long) vt1 ? 1 : 0;
+            return (long) vt0 >= (long) vt1 ? 1 : 0;
         } else if (vt0 instanceof Short) {
-            return (Short) vt0 >= (Short) vt1 ? 1 : 0;
+            return (short) vt0 >= (short) vt1 ? 1 : 0;
         } else if (vt0 instanceof Double) {
-            return (Double) vt0 >= (Double) vt1 ? 1 : 0;
+            return (double) vt0 >= (double) vt1 ? 1 : 0;
         } else if (vt0 instanceof String) {
             String s0 = (String) vt0;
             String s1 = (String) vt1;
@@ -177,8 +177,8 @@ public class CTable {
                 return s0.compareToIgnoreCase(s1) >= 0 ? 1 : 0;
             }
         } else if (vt0 instanceof Boolean) {
-            int n0 = (Boolean) vt0 ? 1 : 0;
-            int n1 = (Boolean) vt1 ? 1 : 0;
+            int n0 = (boolean) vt0 ? 1 : 0;
+            int n1 = (boolean) vt1 ? 1 : 0;
             return n0 >= n1 ? 1 : 0;
         } else if (vt0 instanceof java.sql.Timestamp) {
             java.sql.Timestamp n0 = (java.sql.Timestamp) vt0;
@@ -189,15 +189,15 @@ public class CTable {
             java.math.BigDecimal n1 = (java.math.BigDecimal) vt1;
             return n0.compareTo(n1) >= 0 ? 1 : 0;
         } else if (vt0 instanceof Float) {
-            return (Float) vt0 >= (Float) vt1 ? 1 : 0;
+            return (float) vt0 >= (float) vt1 ? 1 : 0;
         } else if (vt0 instanceof java.util.UUID) {
             java.util.UUID n0 = (java.util.UUID) vt0;
             java.util.UUID n1 = (java.util.UUID) vt1;
             return n0.compareTo(n1) >= 0 ? 1 : 0;
         } else if (vt0 instanceof Character) {
-            return (Character) vt0 >= (Character) vt1 ? 1 : 0;
+            return (char) vt0 >= (char) vt1 ? 1 : 0;
         } else if (vt0 instanceof Byte) {
-            return (Byte) vt0 >= (Byte) vt1 ? 1 : 0;
+            return (byte) vt0 >= (byte) vt1 ? 1 : 0;
         } else if (vt0 instanceof java.util.Date) {
             java.util.Date n0 = (java.util.Date) vt0;
             java.util.Date n1 = (java.util.Date) vt1;
@@ -211,13 +211,13 @@ public class CTable {
             return 0;
         }
         if (vt0 instanceof Integer) {
-            return (Integer) vt0 < (Integer) vt1 ? 1 : 0;
+            return (int) vt0 < (int) vt1 ? 1 : 0;
         } else if (vt0 instanceof Long) {
-            return (Long) vt0 < (Long) vt1 ? 1 : 0;
+            return (long) vt0 < (long) vt1 ? 1 : 0;
         } else if (vt0 instanceof Short) {
-            return (Short) vt0 < (Short) vt1 ? 1 : 0;
+            return (short) vt0 < (short) vt1 ? 1 : 0;
         } else if (vt0 instanceof Double) {
-            return (Double) vt0 < (Double) vt1 ? 1 : 0;
+            return (double) vt0 < (double) vt1 ? 1 : 0;
         } else if (vt0 instanceof String) {
             String s0 = (String) vt0;
             String s1 = (String) vt1;
@@ -227,8 +227,8 @@ public class CTable {
                 return s0.compareToIgnoreCase(s1) < 0 ? 1 : 0;
             }
         } else if (vt0 instanceof Boolean) {
-            int n0 = (Boolean) vt0 ? 1 : 0;
-            int n1 = (Boolean) vt1 ? 1 : 0;
+            int n0 = (boolean) vt0 ? 1 : 0;
+            int n1 = (boolean) vt1 ? 1 : 0;
             return n0 < n1 ? 1 : 0;
         } else if (vt0 instanceof java.sql.Timestamp) {
             java.sql.Timestamp n0 = (java.sql.Timestamp) vt0;
@@ -239,15 +239,15 @@ public class CTable {
             java.math.BigDecimal n1 = (java.math.BigDecimal) vt1;
             return n0.compareTo(n1) < 0 ? 1 : 0;
         } else if (vt0 instanceof Float) {
-            return (Float) vt0 < (Float) vt1 ? 1 : 0;
+            return (float) vt0 < (float) vt1 ? 1 : 0;
         } else if (vt0 instanceof java.util.UUID) {
             java.util.UUID n0 = (java.util.UUID) vt0;
             java.util.UUID n1 = (java.util.UUID) vt1;
             return n0.compareTo(n1) < 0 ? 1 : 0;
         } else if (vt0 instanceof Character) {
-            return (Character) vt0 < (Character) vt1 ? 1 : 0;
+            return (char) vt0 < (char) vt1 ? 1 : 0;
         } else if (vt0 instanceof Byte) {
-            return (Byte) vt0 < (Byte) vt1 ? 1 : 0;
+            return (byte) vt0 < (byte) vt1 ? 1 : 0;
         } else if (vt0 instanceof java.util.Date) {
             java.util.Date n0 = (java.util.Date) vt0;
             java.util.Date n1 = (java.util.Date) vt1;
@@ -261,13 +261,13 @@ public class CTable {
             return 0;
         }
         if (vt0 instanceof Integer) {
-            return (Integer) vt0 <= (Integer) vt1 ? 1 : 0;
+            return (int) vt0 <= (int) vt1 ? 1 : 0;
         } else if (vt0 instanceof Long) {
-            return (Long) vt0 <= (Long) vt1 ? 1 : 0;
+            return (long) vt0 <= (long) vt1 ? 1 : 0;
         } else if (vt0 instanceof Short) {
-            return (Short) vt0 <= (Short) vt1 ? 1 : 0;
+            return (short) vt0 <= (short) vt1 ? 1 : 0;
         } else if (vt0 instanceof Double) {
-            return (Double) vt0 <= (Double) vt1 ? 1 : 0;
+            return (double) vt0 <= (double) vt1 ? 1 : 0;
         } else if (vt0 instanceof String) {
             String s0 = (String) vt0;
             String s1 = (String) vt1;
@@ -277,8 +277,8 @@ public class CTable {
                 return s0.compareToIgnoreCase(s1) <= 0 ? 1 : 0;
             }
         } else if (vt0 instanceof Boolean) {
-            int n0 = (Boolean) vt0 ? 1 : 0;
-            int n1 = (Boolean) vt1 ? 1 : 0;
+            int n0 = (boolean) vt0 ? 1 : 0;
+            int n1 = (boolean) vt1 ? 1 : 0;
             return n0 <= n1 ? 1 : 0;
         } else if (vt0 instanceof java.sql.Timestamp) {
             java.sql.Timestamp n0 = (java.sql.Timestamp) vt0;
@@ -289,19 +289,203 @@ public class CTable {
             java.math.BigDecimal n1 = (java.math.BigDecimal) vt1;
             return n0.compareTo(n1) <= 0 ? 1 : 0;
         } else if (vt0 instanceof Float) {
-            return (Float) vt0 <= (Float) vt1 ? 1 : 0;
+            return (float) vt0 <= (float) vt1 ? 1 : 0;
         } else if (vt0 instanceof java.util.UUID) {
             java.util.UUID n0 = (java.util.UUID) vt0;
             java.util.UUID n1 = (java.util.UUID) vt1;
             return n0.compareTo(n1) <= 0 ? 1 : 0;
         } else if (vt0 instanceof Character) {
-            return (Character) vt0 <= (Character) vt1 ? 1 : 0;
+            return (char) vt0 <= (char) vt1 ? 1 : 0;
         } else if (vt0 instanceof Byte) {
-            return (Byte) vt0 <= (Byte) vt1 ? 1 : 0;
+            return (byte) vt0 <= (byte) vt1 ? 1 : 0;
         } else if (vt0 instanceof java.util.Date) {
             java.util.Date n0 = (java.util.Date) vt0;
             java.util.Date n1 = (java.util.Date) vt1;
             return (n0.before(n1) || n0.equals(n1)) ? 1 : 0;
+        }
+        return COMPARISON_NOT_SUPPORTED;
+    }
+
+    private Object ChangeType(Object vt0, short vtTarget) {
+        switch (vtTarget) {
+            case tagVariantDataType.sdVT_I1:
+            case tagVariantDataType.sdVT_UI1:
+                if (vt0 instanceof Integer) {
+                    return (byte) (int) vt0;
+                } else if (vt0 instanceof Long) {
+                    return (byte) (long) vt0;
+                } else if (vt0 instanceof Short) {
+                    return (byte) (short) vt0;
+                } else if (vt0 instanceof Double) {
+                    return (byte) (double) vt0;
+                } else if (vt0 instanceof Byte) {
+                    return (byte) vt0;
+                } else if (vt0 instanceof Float) {
+                    return (byte) (float) vt0;
+                } else if (vt0 instanceof Character) {
+                    return (byte) (char) vt0;
+                } else if (vt0 instanceof Boolean) {
+                    byte n0 = (byte) ((boolean) vt0 ? 1 : 0);
+                    return n0;
+                } else if (vt0 instanceof java.math.BigDecimal) {
+                    java.math.BigDecimal n0 = (java.math.BigDecimal) vt0;
+                    return n0.byteValue();
+                } else {
+                    return null;
+                }
+            case tagVariantDataType.sdVT_I2:
+            case tagVariantDataType.sdVT_UI2:
+                if (vt0 instanceof Integer) {
+                    return (short) (int) vt0;
+                } else if (vt0 instanceof Long) {
+                    return (short) (long) vt0;
+                } else if (vt0 instanceof Short) {
+                    return (short) vt0;
+                } else if (vt0 instanceof Double) {
+                    return (short) (double) vt0;
+                } else if (vt0 instanceof Byte) {
+                    return (short) (byte) vt0;
+                } else if (vt0 instanceof Float) {
+                    return (short) (float) vt0;
+                } else if (vt0 instanceof Character) {
+                    return (short) (char) vt0;
+                } else if (vt0 instanceof Boolean) {
+                    byte n0 = (byte) ((boolean) vt0 ? 1 : 0);
+                    return (short) n0;
+                } else if (vt0 instanceof java.math.BigDecimal) {
+                    java.math.BigDecimal n0 = (java.math.BigDecimal) vt0;
+                    return n0.shortValue();
+                } else {
+                    return null;
+                }
+            case tagVariantDataType.sdVT_I4:
+            case tagVariantDataType.sdVT_UI4:
+            case tagVariantDataType.sdVT_INT:
+            case tagVariantDataType.sdVT_UINT:
+                if (vt0 instanceof Integer) {
+                    return (int) vt0;
+                } else if (vt0 instanceof Long) {
+                    return (int) (long) vt0;
+                } else if (vt0 instanceof Short) {
+                    return (int)(short) vt0;
+                } else if (vt0 instanceof Double) {
+                    return (int) (double) vt0;
+                } else if (vt0 instanceof Byte) {
+                    return (int) (byte) vt0;
+                } else if (vt0 instanceof Float) {
+                    return (int) (float) vt0;
+                } else if (vt0 instanceof Character) {
+                    return (int) (char) vt0;
+                } else if (vt0 instanceof Boolean) {
+                    byte n0 = (byte) ((boolean) vt0 ? 1 : 0);
+                    return (int) n0;
+                } else if (vt0 instanceof java.math.BigDecimal) {
+                    java.math.BigDecimal n0 = (java.math.BigDecimal) vt0;
+                    return n0.intValue();
+                } else {
+                    return null;
+                }
+            case tagVariantDataType.sdVT_I8:
+            case tagVariantDataType.sdVT_UI8:
+                if (vt0 instanceof Integer) {
+                    return (long)(int) vt0;
+                } else if (vt0 instanceof Long) {
+                    return (long) vt0;
+                } else if (vt0 instanceof Short) {
+                    return (long)(short) vt0;
+                } else if (vt0 instanceof Double) {
+                    return (long) (double) vt0;
+                } else if (vt0 instanceof Byte) {
+                    return (long) (byte) vt0;
+                } else if (vt0 instanceof Float) {
+                    return (long) (float) vt0;
+                } else if (vt0 instanceof Character) {
+                    return (long) (char) vt0;
+                } else if (vt0 instanceof Boolean) {
+                    byte n0 = (byte) ((boolean) vt0 ? 1 : 0);
+                    return (long) n0;
+                } else if (vt0 instanceof java.math.BigDecimal) {
+                    java.math.BigDecimal n0 = (java.math.BigDecimal) vt0;
+                    return n0.longValue();
+                } else {
+                    return null;
+                }
+            case tagVariantDataType.sdVT_R4:
+                if (vt0 instanceof Integer) {
+                    return (float)(int) vt0;
+                } else if (vt0 instanceof Long) {
+                    return (float)(long) vt0;
+                } else if (vt0 instanceof Short) {
+                    return (float)(short) vt0;
+                } else if (vt0 instanceof Double) {
+                    return (float) (double) vt0;
+                } else if (vt0 instanceof Byte) {
+                    return (float) (byte) vt0;
+                } else if (vt0 instanceof Float) {
+                    return (float) vt0;
+                } else if (vt0 instanceof Character) {
+                    return (float) (char) vt0;
+                } else if (vt0 instanceof Boolean) {
+                    byte n0 = (byte) ((boolean) vt0 ? 1 : 0);
+                    return (float) n0;
+                } else if (vt0 instanceof java.math.BigDecimal) {
+                    java.math.BigDecimal n0 = (java.math.BigDecimal) vt0;
+                    return n0.floatValue();
+                } else {
+                    return null;
+                }
+            default:
+                break;
+        }
+        return null;
+    }
+
+    private int eq(Object vt0, Object vt1) {
+        if (vt0 == null) {
+            return 0;
+        }
+        if (vt0 instanceof Integer) {
+            return (int) vt0 == (int) vt1 ? 1 : 0;
+        } else if (vt0 instanceof Long) {
+            return (long) vt0 == (long) vt1 ? 1 : 0;
+        } else if (vt0 instanceof Short) {
+            return (short) vt0 == (short) vt1 ? 1 : 0;
+        } else if (vt0 instanceof Double) {
+            return (double) vt0 == (double) vt1 ? 1 : 0;
+        } else if (vt0 instanceof String) {
+            String s0 = (String) vt0;
+            String s1 = (String) vt1;
+            if (this.m_bDataCaseSensitive) {
+                return s0.compareTo(s1) == 0 ? 1 : 0;
+            } else {
+                return s0.compareToIgnoreCase(s1) == 0 ? 1 : 0;
+            }
+        } else if (vt0 instanceof Boolean) {
+            int n0 = (boolean) vt0 ? 1 : 0;
+            int n1 = (boolean) vt1 ? 1 : 0;
+            return n0 == n1 ? 1 : 0;
+        } else if (vt0 instanceof java.sql.Timestamp) {
+            java.sql.Timestamp n0 = (java.sql.Timestamp) vt0;
+            java.sql.Timestamp n1 = (java.sql.Timestamp) vt1;
+            return n0.equals(n1) ? 1 : 0;
+        } else if (vt0 instanceof java.math.BigDecimal) {
+            java.math.BigDecimal n0 = (java.math.BigDecimal) vt0;
+            java.math.BigDecimal n1 = (java.math.BigDecimal) vt1;
+            return n0.compareTo(n1) == 0 ? 1 : 0;
+        } else if (vt0 instanceof Float) {
+            return (float) vt0 == (float) vt1 ? 1 : 0;
+        } else if (vt0 instanceof java.util.UUID) {
+            java.util.UUID n0 = (java.util.UUID) vt0;
+            java.util.UUID n1 = (java.util.UUID) vt1;
+            return n0.compareTo(n1) == 0 ? 1 : 0;
+        } else if (vt0 instanceof Character) {
+            return (char) vt0 == (char) vt1 ? 1 : 0;
+        } else if (vt0 instanceof Byte) {
+            return (byte) vt0 == (byte) vt1 ? 1 : 0;
+        } else if (vt0 instanceof java.util.Date) {
+            java.util.Date n0 = (java.util.Date) vt0;
+            java.util.Date n1 = (java.util.Date) vt1;
+            return n0.equals(n1) ? 1 : 0;
         }
         return COMPARISON_NOT_SUPPORTED;
     }
