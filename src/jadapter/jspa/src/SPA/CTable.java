@@ -1,6 +1,5 @@
 package SPA;
 
-import SPA.*;
 import SPA.UDB.*;
 
 public class CTable {
@@ -52,15 +51,15 @@ public class CTable {
 
     private boolean m_bFieldNameCaseSensitive = false;
     private boolean m_bDataCaseSensitive = false;
-    final private CDBColumnInfoArray m_meta = new CDBColumnInfoArray();
-    private java.util.ArrayList<CDBVariantArray> m_vRow = new java.util.ArrayList<>();
+    private final CDBColumnInfoArray m_meta = new CDBColumnInfoArray();
+    private final java.util.ArrayList<CDBVariantArray> m_vRow = new java.util.ArrayList<>();
 
     public CTable() {
-
     }
 
     public CTable(CDBColumnInfoArray meta, boolean bFieldNameCaseSensitive, boolean bDataCaseSensitive) {
         if (meta != null) {
+            //deep copy
             CUQueue q = CScopeUQueue.Lock();
             meta.SaveTo(q);
             m_meta.LoadFrom(q);
@@ -70,12 +69,60 @@ public class CTable {
         m_bDataCaseSensitive = bDataCaseSensitive;
     }
 
+    class CComparator implements java.util.Comparator<CDBVariantArray> {
+
+        private final int m_ordinal;
+        private final CTable m_table;
+        private final Operator m_op;
+
+        public CComparator(Operator op, int ordinal, CTable table) {
+            m_op = op;
+            m_ordinal = ordinal;
+            m_table = table;
+        }
+
+        @Override
+        public int compare(CDBVariantArray v0, CDBVariantArray v1) {
+            Object vt0 = v0.get(m_ordinal);
+            Object vt1 = v1.get(m_ordinal);
+            switch (m_op) {
+                case equal:
+                    return m_table.eq(vt0, vt1);
+                case great:
+                    return m_table.gt(vt0, vt1);
+                case less:
+                    return m_table.lt(vt0, vt1);
+                case great_equal:
+                    return m_table.ge(vt0, vt1);
+                case less_equal:
+                    return m_table.le(vt0, vt1);
+                default:
+                    break;
+            }
+            return 0;
+        }
+    }
+
     public CDBColumnInfoArray getMeta() {
         return m_meta;
     }
 
     public java.util.ArrayList<CDBVariantArray> getDataMatrix() {
         return m_vRow;
+    }
+
+    public CTable Copy() {
+        CTable tbl = new CTable(m_meta, m_bFieldNameCaseSensitive, m_bDataCaseSensitive);
+        CUQueue q = CScopeUQueue.Lock();
+        for (CDBVariantArray v : m_vRow) {
+            //deep copy
+            v.SaveTo(q);
+            CDBVariantArray r = new CDBVariantArray();
+            r.LoadFrom(q);
+            tbl.m_vRow.add(r);
+        }
+        CScopeUQueue.Unlock(q);
+        return tbl;
     }
 
     public int Append(CTable tbl) {
@@ -102,7 +149,8 @@ public class CTable {
         if (ordinal < 0 || ordinal >= m_meta.size()) {
             return BAD_ORDINAL;
         }
-
+        CComparator comp = new CComparator(desc ? Operator.less : Operator.great, ordinal, this);
+        java.util.Collections.sort(m_vRow, comp);
         return 1;
     }
 
@@ -307,6 +355,9 @@ public class CTable {
     }
 
     private Object ChangeType(Object vt0, short vtTarget) {
+        if (vt0 == null) {
+            return null;
+        }
         switch (vtTarget) {
             case tagVariantDataType.sdVT_I1:
             case tagVariantDataType.sdVT_UI1:
@@ -330,6 +381,8 @@ public class CTable {
                 } else if (vt0 instanceof java.math.BigDecimal) {
                     java.math.BigDecimal n0 = (java.math.BigDecimal) vt0;
                     return n0.byteValue();
+                } else if (vt0 instanceof String) {
+                    return Byte.parseByte((String) vt0);
                 } else {
                     return null;
                 }
@@ -355,6 +408,8 @@ public class CTable {
                 } else if (vt0 instanceof java.math.BigDecimal) {
                     java.math.BigDecimal n0 = (java.math.BigDecimal) vt0;
                     return n0.shortValue();
+                } else if (vt0 instanceof String) {
+                    return Short.parseShort((String) vt0);
                 } else {
                     return null;
                 }
@@ -367,7 +422,7 @@ public class CTable {
                 } else if (vt0 instanceof Long) {
                     return (int) (long) vt0;
                 } else if (vt0 instanceof Short) {
-                    return (int)(short) vt0;
+                    return (int) (short) vt0;
                 } else if (vt0 instanceof Double) {
                     return (int) (double) vt0;
                 } else if (vt0 instanceof Byte) {
@@ -382,17 +437,19 @@ public class CTable {
                 } else if (vt0 instanceof java.math.BigDecimal) {
                     java.math.BigDecimal n0 = (java.math.BigDecimal) vt0;
                     return n0.intValue();
+                } else if (vt0 instanceof String) {
+                    return Integer.parseInt((String) vt0);
                 } else {
                     return null;
                 }
             case tagVariantDataType.sdVT_I8:
             case tagVariantDataType.sdVT_UI8:
                 if (vt0 instanceof Integer) {
-                    return (long)(int) vt0;
+                    return (long) (int) vt0;
                 } else if (vt0 instanceof Long) {
                     return (long) vt0;
                 } else if (vt0 instanceof Short) {
-                    return (long)(short) vt0;
+                    return (long) (short) vt0;
                 } else if (vt0 instanceof Double) {
                     return (long) (double) vt0;
                 } else if (vt0 instanceof Byte) {
@@ -407,16 +464,18 @@ public class CTable {
                 } else if (vt0 instanceof java.math.BigDecimal) {
                     java.math.BigDecimal n0 = (java.math.BigDecimal) vt0;
                     return n0.longValue();
+                } else if (vt0 instanceof String) {
+                    return Long.parseLong((String) vt0);
                 } else {
                     return null;
                 }
             case tagVariantDataType.sdVT_R4:
                 if (vt0 instanceof Integer) {
-                    return (float)(int) vt0;
+                    return (float) (int) vt0;
                 } else if (vt0 instanceof Long) {
-                    return (float)(long) vt0;
+                    return (float) (long) vt0;
                 } else if (vt0 instanceof Short) {
-                    return (float)(short) vt0;
+                    return (float) (short) vt0;
                 } else if (vt0 instanceof Double) {
                     return (float) (double) vt0;
                 } else if (vt0 instanceof Byte) {
@@ -431,6 +490,112 @@ public class CTable {
                 } else if (vt0 instanceof java.math.BigDecimal) {
                     java.math.BigDecimal n0 = (java.math.BigDecimal) vt0;
                     return n0.floatValue();
+                } else if (vt0 instanceof String) {
+                    return Float.parseFloat((String) vt0);
+                } else {
+                    return null;
+                }
+            case tagVariantDataType.sdVT_R8:
+                if (vt0 instanceof Integer) {
+                    return (double) (int) vt0;
+                } else if (vt0 instanceof Long) {
+                    return (double) (long) vt0;
+                } else if (vt0 instanceof Short) {
+                    return (double) (short) vt0;
+                } else if (vt0 instanceof Double) {
+                    return (double) vt0;
+                } else if (vt0 instanceof Byte) {
+                    return (double) (byte) vt0;
+                } else if (vt0 instanceof Float) {
+                    return (double) (float) vt0;
+                } else if (vt0 instanceof Character) {
+                    return (double) (char) vt0;
+                } else if (vt0 instanceof Boolean) {
+                    byte n0 = (byte) ((boolean) vt0 ? 1 : 0);
+                    return (double) n0;
+                } else if (vt0 instanceof java.math.BigDecimal) {
+                    java.math.BigDecimal n0 = (java.math.BigDecimal) vt0;
+                    return n0.doubleValue();
+                } else if (vt0 instanceof String) {
+                    return Double.parseDouble((String) vt0);
+                } else {
+                    return null;
+                }
+            case tagVariantDataType.sdVT_DECIMAL:
+                if (vt0 instanceof Integer) {
+                    return new java.math.BigDecimal((int) vt0);
+                } else if (vt0 instanceof Long) {
+                    return new java.math.BigDecimal((long) vt0);
+                } else if (vt0 instanceof Short) {
+                    return new java.math.BigDecimal((short) vt0);
+                } else if (vt0 instanceof Double) {
+                    return new java.math.BigDecimal((double) vt0);
+                } else if (vt0 instanceof Byte) {
+                    return new java.math.BigDecimal((byte) vt0);
+                } else if (vt0 instanceof Float) {
+                    return new java.math.BigDecimal((float) vt0);
+                } else if (vt0 instanceof Character) {
+                    return new java.math.BigDecimal((char) vt0);
+                } else if (vt0 instanceof Boolean) {
+                    byte n0 = (byte) ((boolean) vt0 ? 1 : 0);
+                    return new java.math.BigDecimal(n0);
+                } else if (vt0 instanceof java.math.BigDecimal) {
+                    java.math.BigDecimal n0 = (java.math.BigDecimal) vt0;
+                    return n0;
+                } else if (vt0 instanceof String) {
+                    java.math.BigDecimal n0 = new java.math.BigDecimal((String) vt0);
+                    return n0;
+                } else {
+                    return null;
+                }
+            case (tagVariantDataType.sdVT_ARRAY | tagVariantDataType.sdVT_I1):
+            case tagVariantDataType.sdVT_BSTR:
+                return vt0.toString();
+            case (tagVariantDataType.sdVT_ARRAY | tagVariantDataType.sdVT_UI1):
+                if (vt0 instanceof byte[]) {
+                    return (byte[]) vt0;
+                } else {
+                    return null;
+                }
+            case tagVariantDataType.sdVT_CLSID:
+                if (vt0 instanceof java.util.UUID) {
+                    return (java.util.UUID) vt0;
+                } else if (vt0 instanceof String) {
+                    return java.util.UUID.fromString((String) vt0);
+                } else {
+                    return null;
+                }
+            case tagVariantDataType.sdVT_DATE:
+                if (vt0 instanceof java.sql.Timestamp) {
+                    return (java.sql.Timestamp) vt0;
+                } else if (vt0 instanceof String) {
+                    return java.sql.Timestamp.valueOf((String) vt0);
+                } else {
+                    return null;
+                }
+            case tagVariantDataType.sdVT_BOOL:
+                if (vt0 instanceof Integer) {
+                    return (int) vt0 != 0;
+                } else if (vt0 instanceof Long) {
+                    return (long) vt0 != 0;
+                } else if (vt0 instanceof Short) {
+                    return (short) vt0 != 0;
+                } else if (vt0 instanceof Double) {
+                    return (double) vt0 != 0;
+                } else if (vt0 instanceof Byte) {
+                    return (byte) vt0 != 0;
+                } else if (vt0 instanceof Float) {
+                    return (float) vt0 != 0;
+                } else if (vt0 instanceof Character) {
+                    return (char) vt0 != 0;
+                } else if (vt0 instanceof Boolean) {
+                    byte n0 = (byte) ((boolean) vt0 ? 1 : 0);
+                    return n0;
+                } else if (vt0 instanceof java.math.BigDecimal) {
+                    java.math.BigDecimal n0 = (java.math.BigDecimal) vt0;
+                    return n0.doubleValue() != 0;
+                } else if (vt0 instanceof String) {
+                    return Boolean.parseBoolean((String) vt0);
                 } else {
                     return null;
                 }
