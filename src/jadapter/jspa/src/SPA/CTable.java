@@ -20,7 +20,8 @@ public class CTable {
         less(2),
         great_equal(3),
         less_equal(4),
-        is_null(5);
+        not_equal(5),
+        is_null(6);
 
         private final int intValue;
         private static java.util.HashMap<Integer, Operator> mappings;
@@ -51,7 +52,7 @@ public class CTable {
 
     private boolean m_bFieldNameCaseSensitive = false;
     private boolean m_bDataCaseSensitive = false;
-    private final CDBColumnInfoArray m_meta = new CDBColumnInfoArray();
+    private CDBColumnInfoArray m_meta = new CDBColumnInfoArray();
     private final java.util.ArrayList<CDBVariantArray> m_vRow = new java.util.ArrayList<>();
 
     public CTable() {
@@ -154,6 +155,218 @@ public class CTable {
         return 1;
     }
 
+    public int Between(int ordinal, Object vt0, Object vt1, CTable tbl) {
+        return Between(ordinal, vt0, vt1, tbl, false);
+    }
+
+    private boolean In(Object v, CDBVariantArray vArray) {
+        for (Object o : vArray) {
+            if (eq(o, v) > 0) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public int In(int ordinal, CDBVariantArray vArray, CTable tbl) {
+        return In(ordinal, vArray, tbl, false);
+    }
+
+    public int In(int ordinal, CDBVariantArray vArray, CTable tbl, boolean copyData) {
+        if (tbl == null) {
+            //return OPERATION_NOT_SUPPORTED; //????
+            tbl = new CTable(m_meta, this.m_bFieldNameCaseSensitive, this.m_bDataCaseSensitive);
+        } else {
+            tbl.m_bFieldNameCaseSensitive = m_bFieldNameCaseSensitive;
+            tbl.m_bDataCaseSensitive = m_bDataCaseSensitive;
+            tbl.m_vRow.clear();
+            if (copyData) {
+                CUQueue q = CScopeUQueue.Lock();
+                m_meta.SaveTo(q);
+                tbl.m_meta.LoadFrom(q);
+                CScopeUQueue.Unlock(q);
+            } else {
+                tbl.m_meta = m_meta;
+            }
+        }
+        if (ordinal < 0 || ordinal >= m_meta.size()) {
+            return BAD_ORDINAL;
+        }
+        if (vArray == null) {
+            return OPERATION_NOT_SUPPORTED;
+        }
+        short type = m_meta.get(ordinal).DataType;
+        if (type == (tagVariantDataType.sdVT_I1 | tagVariantDataType.sdVT_ARRAY)) {
+            type = tagVariantDataType.sdVT_BSTR; //Table string is always unicode string 
+        }
+        int index = 0;
+        for (Object o : vArray) {
+            Object vt = ChangeType(o, type);
+            if (vt == null) {
+                return BAD_DATA_TYPE;
+            }
+            vArray.set(index, vt);
+            ++index;
+        }
+        int rows = m_vRow.size();
+        for (int r = 0; r < rows; ++r) {
+            CDBVariantArray prow = m_vRow.get(r);
+            Object v0 = prow.get(ordinal);
+            if (In(v0, vArray)) {
+                if (copyData) {
+                    CDBVariantArray p = new CDBVariantArray();
+                    CUQueue q = CScopeUQueue.Lock();
+                    prow.SaveTo(q);
+                    p.LoadFrom(q);
+                    CScopeUQueue.Unlock(q);
+                    tbl.m_vRow.add(p);
+                } else {
+                    tbl.m_vRow.add(prow);
+                }
+            }
+        }
+        return 1;
+    }
+
+    public int NotIn(int ordinal, CDBVariantArray vArray, CTable tbl) {
+        return NotIn(ordinal, vArray, tbl, false);
+    }
+
+    public int NotIn(int ordinal, CDBVariantArray vArray, CTable tbl, boolean copyData) {
+        if (tbl == null) {
+            //return OPERATION_NOT_SUPPORTED; //????
+            tbl = new CTable(m_meta, this.m_bFieldNameCaseSensitive, this.m_bDataCaseSensitive);
+        } else {
+            tbl.m_bFieldNameCaseSensitive = m_bFieldNameCaseSensitive;
+            tbl.m_bDataCaseSensitive = m_bDataCaseSensitive;
+            tbl.m_vRow.clear();
+            if (copyData) {
+                CUQueue q = CScopeUQueue.Lock();
+                m_meta.SaveTo(q);
+                tbl.m_meta.LoadFrom(q);
+                CScopeUQueue.Unlock(q);
+            } else {
+                tbl.m_meta = m_meta;
+            }
+        }
+        if (ordinal < 0 || ordinal >= m_meta.size()) {
+            return BAD_ORDINAL;
+        }
+        if (vArray == null) {
+            return OPERATION_NOT_SUPPORTED;
+        }
+        short type = m_meta.get(ordinal).DataType;
+        if (type == (tagVariantDataType.sdVT_I1 | tagVariantDataType.sdVT_ARRAY)) {
+            type = tagVariantDataType.sdVT_BSTR; //Table string is always unicode string 
+        }
+        int index = 0;
+        for (Object o : vArray) {
+            Object vt = ChangeType(o, type);
+            if (vt == null) {
+                return BAD_DATA_TYPE;
+            }
+            vArray.set(index, vt);
+            ++index;
+        }
+        int rows = m_vRow.size();
+        for (int r = 0; r < rows; ++r) {
+            CDBVariantArray prow = m_vRow.get(r);
+            Object v0 = prow.get(ordinal);
+            if (!In(v0, vArray)) {
+                if (copyData) {
+                    CDBVariantArray p = new CDBVariantArray();
+                    CUQueue q = CScopeUQueue.Lock();
+                    prow.SaveTo(q);
+                    p.LoadFrom(q);
+                    CScopeUQueue.Unlock(q);
+                    tbl.m_vRow.add(p);
+                } else {
+                    tbl.m_vRow.add(prow);
+                }
+            }
+        }
+        return 1;
+    }
+
+    public int Between(int ordinal, Object vt0, Object vt1, CTable tbl, boolean copyData) {
+        if (tbl == null) {
+            //return OPERATION_NOT_SUPPORTED; //????
+            tbl = new CTable(m_meta, this.m_bFieldNameCaseSensitive, this.m_bDataCaseSensitive);
+        } else {
+            tbl.m_bFieldNameCaseSensitive = m_bFieldNameCaseSensitive;
+            tbl.m_bDataCaseSensitive = m_bDataCaseSensitive;
+            tbl.m_vRow.clear();
+            if (copyData) {
+                CUQueue q = CScopeUQueue.Lock();
+                m_meta.SaveTo(q);
+                tbl.m_meta.LoadFrom(q);
+                CScopeUQueue.Unlock(q);
+            } else {
+                tbl.m_meta = m_meta;
+            }
+        }
+        if (ordinal < 0 || ordinal >= m_meta.size()) {
+            return BAD_ORDINAL;
+        }
+        if (vt0 == null || vt1 == null) {
+            return OPERATION_NOT_SUPPORTED;
+        }
+
+        short type = m_meta.get(ordinal).DataType;
+        if (type == (tagVariantDataType.sdVT_I1 | tagVariantDataType.sdVT_ARRAY)) {
+            type = tagVariantDataType.sdVT_BSTR; //Table string is always unicode string 
+        }
+        Object v0, v1;
+        v0 = ChangeType(vt0, type);
+        if (v0 == null) {
+            return BAD_DATA_TYPE;
+        }
+        v1 = ChangeType(vt1, type);
+        if (v1 == null) {
+            return BAD_DATA_TYPE;
+        }
+        Object small_vt = v0;
+        Object large_vt = v1;
+        int res = gt(v0, v1);
+        if (res < 0) {
+            return res;
+        } else if (res > 0) {
+            small_vt = v1;
+            large_vt = v0;
+        }
+        int cols = m_meta.size();
+        int rows = m_vRow.size();
+        for (int r = 0; r < rows; ++r) {
+            CDBVariantArray prow = m_vRow.get(r);
+            Object vt = prow.get(ordinal);
+            res = ge(vt, small_vt);
+            if (res == 0) {
+                continue;
+            }
+            if (res < 0) {
+                return res;
+            }
+            res = le(vt, large_vt);
+            if (res == 0) {
+                continue;
+            }
+            if (res < 0) {
+                return res;
+            }
+            if (copyData) {
+                CDBVariantArray p = new CDBVariantArray();
+                CUQueue q = CScopeUQueue.Lock();
+                prow.SaveTo(q);
+                p.LoadFrom(q);
+                CScopeUQueue.Unlock(q);
+                tbl.m_vRow.add(p);
+            } else {
+                tbl.m_vRow.add(prow);
+            }
+        }
+        return 1;
+    }
+
     public int FindNull(int ordinal, CTable tbl) {
         return Find(ordinal, Operator.is_null, null, tbl, false);
     }
@@ -174,10 +387,14 @@ public class CTable {
             tbl.m_bFieldNameCaseSensitive = m_bFieldNameCaseSensitive;
             tbl.m_bDataCaseSensitive = m_bDataCaseSensitive;
             tbl.m_vRow.clear();
-            CUQueue q = CScopeUQueue.Lock();
-            m_meta.SaveTo(q);
-            tbl.m_meta.LoadFrom(q);
-            CScopeUQueue.Unlock(q);
+            if (copyData) {
+                CUQueue q = CScopeUQueue.Lock();
+                m_meta.SaveTo(q);
+                tbl.m_meta.LoadFrom(q);
+                CScopeUQueue.Unlock(q);
+            } else {
+                tbl.m_meta = m_meta;
+            }
         }
         if (ordinal < 0 || ordinal >= m_meta.size()) {
             return BAD_ORDINAL;
@@ -204,11 +421,14 @@ public class CTable {
                 }
                 Object v0 = prow.get(ordinal);
                 switch (op) {
-                    case great:
-                        res = gt(v0, v);
-                        break;
                     case equal:
                         res = eq(v0, v);
+                        break;
+                    case not_equal:
+                        res = neq(v0, v);
+                        break;
+                    case great:
+                        res = gt(v0, v);
                         break;
                     case great_equal:
                         res = ge(v0, v);
@@ -439,6 +659,106 @@ public class CTable {
             java.util.Date n0 = (java.util.Date) vt0;
             java.util.Date n1 = (java.util.Date) vt1;
             return (n0.before(n1) || n0.equals(n1)) ? 1 : 0;
+        }
+        return COMPARISON_NOT_SUPPORTED;
+    }
+
+    private int eq(Object vt0, Object vt1) {
+        if (vt0 == null) {
+            return 0;
+        }
+        if (vt0 instanceof Integer) {
+            return (int) vt0 == (int) vt1 ? 1 : 0;
+        } else if (vt0 instanceof Long) {
+            return (long) vt0 == (long) vt1 ? 1 : 0;
+        } else if (vt0 instanceof Short) {
+            return (short) vt0 == (short) vt1 ? 1 : 0;
+        } else if (vt0 instanceof Double) {
+            return (double) vt0 == (double) vt1 ? 1 : 0;
+        } else if (vt0 instanceof String) {
+            String s0 = (String) vt0;
+            String s1 = (String) vt1;
+            if (this.m_bDataCaseSensitive) {
+                return s0.compareTo(s1) == 0 ? 1 : 0;
+            } else {
+                return s0.compareToIgnoreCase(s1) == 0 ? 1 : 0;
+            }
+        } else if (vt0 instanceof Boolean) {
+            int n0 = (boolean) vt0 ? 1 : 0;
+            int n1 = (boolean) vt1 ? 1 : 0;
+            return n0 == n1 ? 1 : 0;
+        } else if (vt0 instanceof java.sql.Timestamp) {
+            java.sql.Timestamp n0 = (java.sql.Timestamp) vt0;
+            java.sql.Timestamp n1 = (java.sql.Timestamp) vt1;
+            return n0.equals(n1) ? 1 : 0;
+        } else if (vt0 instanceof java.math.BigDecimal) {
+            java.math.BigDecimal n0 = (java.math.BigDecimal) vt0;
+            java.math.BigDecimal n1 = (java.math.BigDecimal) vt1;
+            return n0.compareTo(n1) == 0 ? 1 : 0;
+        } else if (vt0 instanceof Float) {
+            return (float) vt0 == (float) vt1 ? 1 : 0;
+        } else if (vt0 instanceof java.util.UUID) {
+            java.util.UUID n0 = (java.util.UUID) vt0;
+            java.util.UUID n1 = (java.util.UUID) vt1;
+            return n0.compareTo(n1) == 0 ? 1 : 0;
+        } else if (vt0 instanceof Character) {
+            return (char) vt0 == (char) vt1 ? 1 : 0;
+        } else if (vt0 instanceof Byte) {
+            return (byte) vt0 == (byte) vt1 ? 1 : 0;
+        } else if (vt0 instanceof java.util.Date) {
+            java.util.Date n0 = (java.util.Date) vt0;
+            java.util.Date n1 = (java.util.Date) vt1;
+            return n0.equals(n1) ? 1 : 0;
+        }
+        return COMPARISON_NOT_SUPPORTED;
+    }
+
+    private int neq(Object vt0, Object vt1) {
+        if (vt0 == null) {
+            return 0;
+        }
+        if (vt0 instanceof Integer) {
+            return (int) vt0 != (int) vt1 ? 1 : 0;
+        } else if (vt0 instanceof Long) {
+            return (long) vt0 != (long) vt1 ? 1 : 0;
+        } else if (vt0 instanceof Short) {
+            return (short) vt0 != (short) vt1 ? 1 : 0;
+        } else if (vt0 instanceof Double) {
+            return (double) vt0 != (double) vt1 ? 1 : 0;
+        } else if (vt0 instanceof String) {
+            String s0 = (String) vt0;
+            String s1 = (String) vt1;
+            if (this.m_bDataCaseSensitive) {
+                return s0.compareTo(s1) != 0 ? 1 : 0;
+            } else {
+                return s0.compareToIgnoreCase(s1) != 0 ? 1 : 0;
+            }
+        } else if (vt0 instanceof Boolean) {
+            int n0 = (boolean) vt0 ? 1 : 0;
+            int n1 = (boolean) vt1 ? 1 : 0;
+            return n0 != n1 ? 1 : 0;
+        } else if (vt0 instanceof java.sql.Timestamp) {
+            java.sql.Timestamp n0 = (java.sql.Timestamp) vt0;
+            java.sql.Timestamp n1 = (java.sql.Timestamp) vt1;
+            return n0.equals(n1) ? 0 : 1;
+        } else if (vt0 instanceof java.math.BigDecimal) {
+            java.math.BigDecimal n0 = (java.math.BigDecimal) vt0;
+            java.math.BigDecimal n1 = (java.math.BigDecimal) vt1;
+            return n0.compareTo(n1) != 0 ? 1 : 0;
+        } else if (vt0 instanceof Float) {
+            return (float) vt0 != (float) vt1 ? 1 : 0;
+        } else if (vt0 instanceof java.util.UUID) {
+            java.util.UUID n0 = (java.util.UUID) vt0;
+            java.util.UUID n1 = (java.util.UUID) vt1;
+            return n0.compareTo(n1) != 0 ? 1 : 0;
+        } else if (vt0 instanceof Character) {
+            return (char) vt0 != (char) vt1 ? 1 : 0;
+        } else if (vt0 instanceof Byte) {
+            return (byte) vt0 != (byte) vt1 ? 1 : 0;
+        } else if (vt0 instanceof java.util.Date) {
+            java.util.Date n0 = (java.util.Date) vt0;
+            java.util.Date n1 = (java.util.Date) vt1;
+            return n0.equals(n1) ? 0 : 1;
         }
         return COMPARISON_NOT_SUPPORTED;
     }
@@ -692,56 +1012,6 @@ public class CTable {
                 break;
         }
         return null;
-    }
-
-    private int eq(Object vt0, Object vt1) {
-        if (vt0 == null) {
-            return 0;
-        }
-        if (vt0 instanceof Integer) {
-            return (int) vt0 == (int) vt1 ? 1 : 0;
-        } else if (vt0 instanceof Long) {
-            return (long) vt0 == (long) vt1 ? 1 : 0;
-        } else if (vt0 instanceof Short) {
-            return (short) vt0 == (short) vt1 ? 1 : 0;
-        } else if (vt0 instanceof Double) {
-            return (double) vt0 == (double) vt1 ? 1 : 0;
-        } else if (vt0 instanceof String) {
-            String s0 = (String) vt0;
-            String s1 = (String) vt1;
-            if (this.m_bDataCaseSensitive) {
-                return s0.compareTo(s1) == 0 ? 1 : 0;
-            } else {
-                return s0.compareToIgnoreCase(s1) == 0 ? 1 : 0;
-            }
-        } else if (vt0 instanceof Boolean) {
-            int n0 = (boolean) vt0 ? 1 : 0;
-            int n1 = (boolean) vt1 ? 1 : 0;
-            return n0 == n1 ? 1 : 0;
-        } else if (vt0 instanceof java.sql.Timestamp) {
-            java.sql.Timestamp n0 = (java.sql.Timestamp) vt0;
-            java.sql.Timestamp n1 = (java.sql.Timestamp) vt1;
-            return n0.equals(n1) ? 1 : 0;
-        } else if (vt0 instanceof java.math.BigDecimal) {
-            java.math.BigDecimal n0 = (java.math.BigDecimal) vt0;
-            java.math.BigDecimal n1 = (java.math.BigDecimal) vt1;
-            return n0.compareTo(n1) == 0 ? 1 : 0;
-        } else if (vt0 instanceof Float) {
-            return (float) vt0 == (float) vt1 ? 1 : 0;
-        } else if (vt0 instanceof java.util.UUID) {
-            java.util.UUID n0 = (java.util.UUID) vt0;
-            java.util.UUID n1 = (java.util.UUID) vt1;
-            return n0.compareTo(n1) == 0 ? 1 : 0;
-        } else if (vt0 instanceof Character) {
-            return (char) vt0 == (char) vt1 ? 1 : 0;
-        } else if (vt0 instanceof Byte) {
-            return (byte) vt0 == (byte) vt1 ? 1 : 0;
-        } else if (vt0 instanceof java.util.Date) {
-            java.util.Date n0 = (java.util.Date) vt0;
-            java.util.Date n1 = (java.util.Date) vt1;
-            return n0.equals(n1) ? 1 : 0;
-        }
-        return COMPARISON_NOT_SUPPORTED;
     }
 
     public int FindOrdinal(String colName) {

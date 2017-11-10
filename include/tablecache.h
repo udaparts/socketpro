@@ -25,6 +25,7 @@ namespace SPA {
             less,
             great_equal,
             less_equal,
+            not_equal,
             is_null
         };
 
@@ -48,6 +49,9 @@ namespace SPA {
 
         int Find(unsigned int ordinal, Operator op, const CComVariant &vt, CTable &tbl, bool copyData = false) const;
         int Find(unsigned int ordinal, Operator op, const VARIANT &vt, CTable &tbl, bool copyData = false) const;
+        int FindNull(unsigned int ordinal, CTable &tbl, bool copyData = false) const;
+        int In(unsigned int ordinal, const UDB::CDBVariantArray &v, CTable &tbl, bool copyData = false) const;
+        int NotIn(unsigned int ordinal, const UDB::CDBVariantArray &v, CTable &tbl, bool copyData = false) const;
         int Between(unsigned int ordinal, const CComVariant &vt0, const CComVariant &vt1, CTable &tbl, bool copyData = false) const;
         int Between(unsigned int ordinal, const VARIANT &vt0, const VARIANT &vt1, CTable &tbl, bool copyData = false) const;
         int Append(const CTable &tbl);
@@ -61,6 +65,7 @@ namespace SPA {
         int lt(const VARIANT &vt0, const VARIANT &vt1) const;
         int le(const VARIANT &vt0, const VARIANT &vt1) const;
         int eq(const VARIANT &vt0, const VARIANT &vt1) const;
+        int neq(const VARIANT &vt0, const VARIANT &vt1) const;
         static HRESULT ChangeType(const VARIANT &vtSrc, VARTYPE vtTarget, VARIANT &vtDes);
 
     private:
@@ -108,6 +113,9 @@ namespace SPA {
         unsigned int FindOrdinal(const char *dbName, const char *tblName, const char *colName);
         int Find(const wchar_t *dbName, const wchar_t *tblName, unsigned int ordinal, CTable::Operator op, const CComVariant &vt, CTable &tbl);
         int Find(const wchar_t *dbName, const wchar_t *tblName, unsigned int ordinal, CTable::Operator op, const VARIANT &vt, CTable &tbl);
+        int FindNull(const wchar_t *dbName, const wchar_t *tblName, unsigned int ordinal, CTable &tbl);
+        int In(const wchar_t *dbName, const wchar_t *tblName, unsigned int ordinal, const UDB::CDBVariantArray &v, CTable &tbl);
+        int NotIn(const wchar_t *dbName, const wchar_t *tblName, unsigned int ordinal, const UDB::CDBVariantArray &v, CTable &tbl);
         int Between(const wchar_t *dbName, const wchar_t *tblName, unsigned int ordinal, const CComVariant &vt0, const CComVariant &vt1, CTable &tbl);
         int Between(const wchar_t *dbName, const wchar_t *tblName, unsigned int ordinal, const VARIANT &vt0, const VARIANT &vt1, CTable &tbl);
         size_t DeleteARow(const wchar_t *dbName, const wchar_t *tblName, const CComVariant &key);
