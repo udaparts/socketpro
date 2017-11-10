@@ -154,6 +154,95 @@ public class CTable {
         return 1;
     }
 
+    public int FindNull(int ordinal, CTable tbl) {
+        return Find(ordinal, Operator.is_null, null, tbl, false);
+    }
+
+    public int FindNull(int ordinal, CTable tbl, boolean copyData) {
+        return Find(ordinal, Operator.is_null, null, tbl, copyData);
+    }
+
+    public int Find(int ordinal, Operator op, Object vt, CTable tbl) {
+        return Find(ordinal, op, vt, tbl, false);
+    }
+
+    public int Find(int ordinal, Operator op, Object vt, CTable tbl, boolean copyData) {
+        if (tbl == null) {
+            //return OPERATION_NOT_SUPPORTED; //????
+            tbl = new CTable(m_meta, this.m_bFieldNameCaseSensitive, this.m_bDataCaseSensitive);
+        } else {
+            tbl.m_bFieldNameCaseSensitive = m_bFieldNameCaseSensitive;
+            tbl.m_bDataCaseSensitive = m_bDataCaseSensitive;
+            tbl.m_vRow.clear();
+            CUQueue q = CScopeUQueue.Lock();
+            m_meta.SaveTo(q);
+            tbl.m_meta.LoadFrom(q);
+            CScopeUQueue.Unlock(q);
+        }
+        if (ordinal < 0 || ordinal >= m_meta.size()) {
+            return BAD_ORDINAL;
+        }
+        if (vt == null && op != Operator.is_null) {
+            return COMPARISON_NOT_SUPPORTED;
+        }
+        short type = m_meta.get(ordinal).DataType;
+        if (type == (tagVariantDataType.sdVT_I1 | tagVariantDataType.sdVT_ARRAY)) {
+            type = tagVariantDataType.sdVT_BSTR; //Table string is always unicode string 
+        }
+        int cols = m_meta.size();
+        int rows = m_vRow.size();
+        for (int r = 0; r < rows; ++r) {
+            boolean ok;
+            CDBVariantArray prow = m_vRow.get(r);
+            if (op == Operator.is_null) {
+                ok = (prow.get(ordinal) == null);
+            } else {
+                int res;
+                Object v = ChangeType(vt, type);
+                if (v == null) {
+                    return BAD_DATA_TYPE;
+                }
+                Object v0 = prow.get(ordinal);
+                switch (op) {
+                    case great:
+                        res = gt(v0, v);
+                        break;
+                    case equal:
+                        res = eq(v0, v);
+                        break;
+                    case great_equal:
+                        res = ge(v0, v);
+                        break;
+                    case less:
+                        res = lt(v0, v);
+                        break;
+                    case less_equal:
+                        res = le(v0, v);
+                        break;
+                    default:
+                        return OPERATION_NOT_SUPPORTED;
+                }
+                if (res < 0) {
+                    return res;
+                }
+                ok = (res > 0);
+            }
+            if (ok) {
+                if (copyData) {
+                    CDBVariantArray row = new CDBVariantArray();
+                    CUQueue q = CScopeUQueue.Lock();
+                    prow.SaveTo(q);
+                    row.LoadFrom(q);
+                    CScopeUQueue.Unlock(q);
+                    tbl.m_vRow.add(row);
+                } else {
+                    tbl.m_vRow.add(prow);
+                }
+            }
+        }
+        return 1;
+    }
+
     private int gt(Object vt0, Object vt1) {
         if (vt0 == null) {
             return 0;

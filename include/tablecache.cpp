@@ -82,79 +82,39 @@ namespace SPA
 		for (size_t r = 0; r < rows; ++r) {
 			bool ok;
 			CPRow prow = second[r];
-			switch (op) {
-			case is_null:
-			{
+			if (op == is_null) {
 				VARTYPE d = prow->at(ordinal).vt;
 				ok = (d == VT_NULL || d == VT_EMPTY);
 			}
-			break;
-			case great:
-			{
+			else {
+				int res;
 				CComVariant v;
 				HRESULT hr = ChangeType(vt, type, v);
 				if (S_OK != hr)
 					return hr;
 				const VARIANT &v0 = prow->at(ordinal);
-				int res = gt(v0, v);
+				switch (op) {
+				case great:
+					res = gt(v0, v);
+					break;
+				case equal:
+					res = eq(v0, v);
+					break;
+				case great_equal:
+					res = ge(v0, v);
+					break;
+				case less:
+					res = lt(v0, v);
+					break;
+				case less_equal:
+					res = le(v0, v);
+					break;
+				default:
+					return OPERATION_NOT_SUPPORTED;
+				}
 				if (res < 0)
 					return res;
 				ok = (res > 0);
-			}
-			break;
-			{
-				CComVariant v;
-				HRESULT hr = ChangeType(vt, type, v);
-				if (S_OK != hr)
-					return hr;
-				const VARIANT &v0 = prow->at(ordinal);
-				int res = eq(v0, v);
-				if (res < 0)
-					return res;
-				ok = (res > 0);
-			}
-			break;
-			case great_equal:
-			{
-				CComVariant v;
-				HRESULT hr = ChangeType(vt, type, v);
-				if (S_OK != hr)
-					return hr;
-				const VARIANT &v0 = prow->at(ordinal);
-				int res = ge(v0, v);
-				if (res < 0)
-					return res;
-				ok = (res > 0);
-			}
-			break;
-			case less:
-			{
-				CComVariant v;
-				HRESULT hr = ChangeType(vt, type, v);
-				if (S_OK != hr)
-					return hr;
-				const VARIANT &v0 = prow->at(ordinal);
-				int res = lt(v0, v);
-				if (res < 0)
-					return res;
-				ok = (res > 0);
-			}
-			break;
-			case less_equal:
-			{
-				CComVariant v;
-				HRESULT hr = ChangeType(vt, type, v);
-				if (S_OK != hr)
-					return hr;
-				const VARIANT &v0 = prow->at(ordinal);
-				int res = le(v0, v);
-				if (res < 0)
-					return res;
-				ok = (res > 0);
-			}
-			break;
-			default:
-				return OPERATION_NOT_SUPPORTED;
 			}
 			if (ok) {
 				if (copyData) {
@@ -355,7 +315,7 @@ namespace SPA
 				::SafeArrayUnaccessData(vt0.parray);
 				return ret > 0;
 			}
-			break;
+								 break;
 		default:
 			break;
 		}
@@ -417,7 +377,7 @@ namespace SPA
 				::SafeArrayUnaccessData(vt0.parray);
 				return ret >= 0;
 			}
-			break;
+								 break;
 		default:
 			break;
 		}
@@ -479,7 +439,7 @@ namespace SPA
 				::SafeArrayUnaccessData(vt0.parray);
 				return ret < 0;
 			}
-			break;
+								 break;
 		default:
 			break;
 		}
@@ -541,7 +501,7 @@ namespace SPA
 				::SafeArrayUnaccessData(vt0.parray);
 				return ret <= 0;
 			}
-			break;
+								 break;
 		default:
 			break;
 		}
@@ -603,7 +563,7 @@ namespace SPA
 				::SafeArrayUnaccessData(vt0.parray);
 				return ret == 0;
 			}
-			break;
+								 break;
 		default:
 			break;
 		}
