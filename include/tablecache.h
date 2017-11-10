@@ -188,6 +188,7 @@ namespace SPA {
         static UDB::CDBVariant Convert(const VARIANT &data, VARTYPE vtTarget);
         static size_t FindKeyColIndex(const UDB::CDBColumnInfoArray &meta);
         static size_t FindKeyColIndex(const UDB::CDBColumnInfoArray &meta, size_t &key1);
+		bool Is(const CTable &tbl, const wchar_t *dbName, const wchar_t *tblName);
 
     protected:
         CUCriticalSection m_cs;
