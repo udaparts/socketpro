@@ -68,7 +68,7 @@ namespace SPA
     int CTable::FindNull(unsigned int ordinal, CTable &tbl, bool copyData) const {
         VARIANT vt;
         ::memset(&vt, 0, sizeof (vt));
-        return Find(ordinal, CTable::Operator::is_null, vt, tbl, copyData);
+        return Find(ordinal, CTable::is_null, vt, tbl, copyData);
     }
 
     int CTable::In(unsigned int ordinal, const UDB::CDBVariantArray &vArray, CTable &tbl, bool copyData) const {
@@ -1147,7 +1147,7 @@ namespace SPA
     int CDataSet::FindNull(const wchar_t *dbName, const wchar_t *tblName, unsigned int ordinal, CTable & tbl) {
         VARIANT vt;
         ::memset(&vt, 0, sizeof (vt));
-        return Find(dbName, tblName, ordinal, CTable::Operator::is_null, vt, tbl);
+        return Find(dbName, tblName, ordinal, CTable::is_null, vt, tbl);
     }
 
     int CDataSet::In(const wchar_t *dbName, const wchar_t *tblName, unsigned int ordinal, const UDB::CDBVariantArray &v, CTable & t) {
