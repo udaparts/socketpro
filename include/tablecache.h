@@ -12,6 +12,7 @@ namespace SPA {
     typedef std::shared_ptr<CRow> CPRow;
     typedef std::vector<CPRow> CDataMatrix;
 
+    typedef std::map<unsigned int, UDB::CDBColumnInfo> CKeyMap; //ordinal and column info map
     typedef std::pair<UDB::CDBColumnInfoArray, CDataMatrix> CPColumnRowset; //meta and data array for a rowset
 
     class CDataSet;
@@ -46,6 +47,7 @@ namespace SPA {
         CTable& operator=(const CTable &tbl);
         const UDB::CDBColumnInfoArray& GetMeta() const;
         const CDataMatrix& GetDataMatrix() const;
+        CKeyMap GetKeys() const;
 
         int Find(unsigned int ordinal, Operator op, const CComVariant &vt, CTable &tbl, bool copyData = false) const;
         int Find(unsigned int ordinal, Operator op, const VARIANT &vt, CTable &tbl, bool copyData = false) const;
@@ -78,7 +80,6 @@ namespace SPA {
 
     typedef std::vector<CTable> CRowsetArray;
     typedef std::pair<std::wstring, std::wstring> CPDbTable; //DB and Table name pair
-    typedef std::map<unsigned int, UDB::CDBColumnInfo> CKeyMap; //ordinal and column info map
 
     class CDataSet {
     public:
@@ -188,7 +189,7 @@ namespace SPA {
         static UDB::CDBVariant Convert(const VARIANT &data, VARTYPE vtTarget);
         static size_t FindKeyColIndex(const UDB::CDBColumnInfoArray &meta);
         static size_t FindKeyColIndex(const UDB::CDBColumnInfoArray &meta, size_t &key1);
-		bool Is(const CTable &tbl, const wchar_t *dbName, const wchar_t *tblName);
+        bool Is(const CTable &tbl, const wchar_t *dbName, const wchar_t *tblName);
 
     protected:
         CUCriticalSection m_cs;

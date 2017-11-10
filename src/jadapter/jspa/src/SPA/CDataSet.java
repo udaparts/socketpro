@@ -11,25 +11,10 @@ public class CDataSet {
     public CDBColumnInfoArray GetColumMeta(String dbName, String tblName) {
         synchronized (m_cs) {
             for (CTable tbl : m_ds) {
-                boolean eq;
+                if (!Is(tbl, dbName, tblName)) {
+                    continue;
+                }
                 CDBColumnInfoArray meta = tbl.getMeta();
-                CDBColumnInfo col = meta.get(0);
-                if (m_bDBNameCaseSensitive) {
-                    eq = col.DBPath.equals(dbName);
-                } else {
-                    eq = col.DBPath.equalsIgnoreCase(dbName);
-                }
-                if (!eq) {
-                    continue;
-                }
-                if (m_bTableNameCaseSensitive) {
-                    eq = col.TablePath.equals(dbName);
-                } else {
-                    eq = col.TablePath.equalsIgnoreCase(dbName);
-                }
-                if (!eq) {
-                    continue;
-                }
                 return meta;
             }
         }
@@ -39,23 +24,7 @@ public class CDataSet {
     public int GetRowCount(String dbName, String tblName) {
         synchronized (m_cs) {
             for (CTable tbl : m_ds) {
-                boolean eq;
-                CDBColumnInfoArray meta = tbl.getMeta();
-                CDBColumnInfo col = meta.get(0);
-                if (m_bDBNameCaseSensitive) {
-                    eq = col.DBPath.equals(dbName);
-                } else {
-                    eq = col.DBPath.equalsIgnoreCase(dbName);
-                }
-                if (!eq) {
-                    continue;
-                }
-                if (m_bTableNameCaseSensitive) {
-                    eq = col.TablePath.equals(dbName);
-                } else {
-                    eq = col.TablePath.equalsIgnoreCase(dbName);
-                }
-                if (!eq) {
+                if (!Is(tbl, dbName, tblName)) {
                     continue;
                 }
                 return tbl.getDataMatrix().size();
@@ -67,32 +36,37 @@ public class CDataSet {
     public int GetColumnCount(String dbName, String tblName) {
         synchronized (m_cs) {
             for (CTable tbl : m_ds) {
-                boolean eq;
+                if (!Is(tbl, dbName, tblName)) {
+                    continue;
+                }
                 CDBColumnInfoArray meta = tbl.getMeta();
-                CDBColumnInfo col = meta.get(0);
-                if (m_bDBNameCaseSensitive) {
-                    eq = col.DBPath.equals(dbName);
-                } else {
-                    eq = col.DBPath.equalsIgnoreCase(dbName);
-                }
-                if (!eq) {
-                    continue;
-                }
-                if (m_bTableNameCaseSensitive) {
-                    eq = col.TablePath.equals(dbName);
-                } else {
-                    eq = col.TablePath.equalsIgnoreCase(dbName);
-                }
-                if (!eq) {
-                    continue;
-                }
                 return meta.size();
             }
         }
         return 0;
     }
 
-    int FindOrdinal(String dbName, String tblName, String colName) {
+    private boolean Is(CTable tbl, String dbName, String tblName) {
+        boolean eq;
+        CDBColumnInfoArray meta = tbl.getMeta();
+        CDBColumnInfo col = meta.get(0);
+        if (m_bDBNameCaseSensitive) {
+            eq = col.DBPath.equals(dbName);
+        } else {
+            eq = col.DBPath.equalsIgnoreCase(dbName);
+        }
+        if (!eq) {
+            return false;
+        }
+        if (m_bTableNameCaseSensitive) {
+            eq = col.TablePath.equals(dbName);
+        } else {
+            eq = col.TablePath.equalsIgnoreCase(dbName);
+        }
+        return eq;
+    }
+
+    public int FindOrdinal(String dbName, String tblName, String colName) {
         if (tblName == null || colName == null) {
             return CTable.INVALID_ORDINAL;
         }
@@ -101,31 +75,7 @@ public class CDataSet {
         }
         synchronized (m_cs) {
             for (CTable tbl : m_ds) {
-                boolean eq;
-                CDBColumnInfoArray meta = tbl.getMeta();
-                CDBColumnInfo col = meta.get(0);
-                if (m_bDBNameCaseSensitive) {
-                    eq = col.DBPath.equals(dbName);
-                } else {
-                    eq = col.DBPath.equalsIgnoreCase(dbName);
-                }
-                if (!eq) {
-                    continue;
-                }
-                if (m_bTableNameCaseSensitive) {
-                    eq = col.TablePath.equals(dbName);
-                } else {
-                    eq = col.TablePath.equalsIgnoreCase(dbName);
-                }
-                if (!eq) {
-                    continue;
-                }
-                if (m_bTableNameCaseSensitive) {
-                    eq = col.TablePath.equals(dbName);
-                } else {
-                    eq = col.TablePath.equalsIgnoreCase(dbName);
-                }
-                if (!eq) {
+                if (!Is(tbl, dbName, tblName)) {
                     continue;
                 }
                 return tbl.FindOrdinal(colName);
@@ -135,36 +85,15 @@ public class CDataSet {
     }
 
     public java.util.HashMap<Integer, CDBColumnInfo> FindKeys(String dbName, String tblName) {
-        int index = 0;
-        java.util.HashMap<Integer, CDBColumnInfo> map = new java.util.HashMap<>();
         synchronized (m_cs) {
             for (CTable tbl : m_ds) {
-                boolean eq;
-                CDBColumnInfoArray meta = tbl.getMeta();
-                CDBColumnInfo col = meta.get(0);
-                ++index;
-                if (m_bDBNameCaseSensitive) {
-                    eq = col.DBPath.equals(dbName);
-                } else {
-                    eq = col.DBPath.equalsIgnoreCase(dbName);
-                }
-                if (!eq) {
+                if (!Is(tbl, dbName, tblName)) {
                     continue;
                 }
-                if (m_bTableNameCaseSensitive) {
-                    eq = col.TablePath.equals(dbName);
-                } else {
-                    eq = col.TablePath.equalsIgnoreCase(dbName);
-                }
-                if (!eq) {
-                    continue;
-                }
-                if ((col.Flags & CDBColumnInfo.FLAG_PRIMARY_KEY) == CDBColumnInfo.FLAG_PRIMARY_KEY || (col.Flags & CDBColumnInfo.FLAG_AUTOINCREMENT) == CDBColumnInfo.FLAG_AUTOINCREMENT) {
-                    map.put(index - 1, col);
-                }
+                return tbl.getKeys();
             }
         }
-        return map;
+        return new java.util.HashMap<>();
     }
 
     public java.util.ArrayList<Pair<String, String>> getDBTablePair() {

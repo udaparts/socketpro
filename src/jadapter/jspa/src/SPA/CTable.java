@@ -112,6 +112,16 @@ public class CTable {
         return m_vRow;
     }
 
+    public java.util.HashMap<Integer, CDBColumnInfo> getKeys() {
+        int index = 0;
+        java.util.HashMap<Integer, CDBColumnInfo> map = new java.util.HashMap<>();
+        CDBColumnInfo col = m_meta.get(0);
+        if ((col.Flags & CDBColumnInfo.FLAG_PRIMARY_KEY) == CDBColumnInfo.FLAG_PRIMARY_KEY || (col.Flags & CDBColumnInfo.FLAG_AUTOINCREMENT) == CDBColumnInfo.FLAG_AUTOINCREMENT) {
+            map.put(index - 1, col);
+        }
+        return map;
+    }
+
     public CTable Copy() {
         CTable tbl = new CTable(m_meta, m_bFieldNameCaseSensitive, m_bDataCaseSensitive);
         CUQueue q = CScopeUQueue.Lock();
