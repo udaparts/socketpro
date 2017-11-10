@@ -168,6 +168,15 @@ public class CTable {
         return false;
     }
 
+    private boolean NotIn(Object v, CDBVariantArray vArray) {
+        for (Object o : vArray) {
+            if (neq(o, v) > 0) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public int In(int ordinal, CDBVariantArray vArray, CTable tbl) {
         return In(ordinal, vArray, tbl, false);
     }
@@ -272,7 +281,7 @@ public class CTable {
         for (int r = 0; r < rows; ++r) {
             CDBVariantArray prow = m_vRow.get(r);
             Object v0 = prow.get(ordinal);
-            if (!In(v0, vArray)) {
+            if (NotIn(v0, vArray)) {
                 if (copyData) {
                     CDBVariantArray p = new CDBVariantArray();
                     CUQueue q = CScopeUQueue.Lock();

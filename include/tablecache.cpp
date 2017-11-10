@@ -97,7 +97,7 @@ namespace SPA
             CPRow prow = second[r];
             const VARIANT &v0 = prow->at(ordinal);
             bool ok = (std::find_if(v.cbegin(), v.cend(), [&v0, this](const UDB::CDBVariant & v1) -> bool {
-                return (this->eq(v0, v1) != 0);
+                return (this->eq(v0, v1) > 0);
             }) != v.cend());
             if (ok) {
                 if (copyData) {
@@ -137,9 +137,9 @@ namespace SPA
             CPRow prow = second[r];
             const VARIANT &v0 = prow->at(ordinal);
             bool ok = (std::find_if(v.cbegin(), v.cend(), [&v0, this](const UDB::CDBVariant & v1) -> bool {
-                return (this->eq(v0, v1) != 0);
+                return (this->neq(v0, v1) > 0);
             }) != v.cend());
-            if (!ok) {
+            if (ok) {
                 if (copyData) {
                     CPRow p(new CRow);
                     for (size_t n = 0; n < cols; ++n) {
