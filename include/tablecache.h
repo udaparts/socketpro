@@ -68,7 +68,7 @@ namespace SPA {
         int le(const VARIANT &vt0, const VARIANT &vt1) const;
         int eq(const VARIANT &vt0, const VARIANT &vt1) const;
         int neq(const VARIANT &vt0, const VARIANT &vt1) const;
-		bool NotIn(const UDB::CDBVariantArray &v, const VARIANT &v0) const;
+        bool NotIn(const UDB::CDBVariantArray &v, const VARIANT &v0) const;
         static HRESULT ChangeType(const VARIANT &vtSrc, VARTYPE vtTarget, VARIANT &vtDes);
 
     private:
@@ -185,8 +185,8 @@ namespace SPA {
         virtual size_t DeleteARow(const wchar_t *dbName, const wchar_t *tblName, const VARIANT &key0, const VARIANT &key1);
 
     private:
-		static CPRow FindARowInternal(const CTable &tbl, size_t f, const VARIANT &key);
-		static CPRow FindARowInternal(const CTable &tbl, size_t f0, size_t f1, const VARIANT &key0, const VARIANT &key1);
+        static CPRow FindARowInternal(const CTable &tbl, size_t f, const VARIANT &key);
+        static CPRow FindARowInternal(const CTable &tbl, size_t f0, size_t f1, const VARIANT &key0, const VARIANT &key1);
         static UDB::CDBVariant Convert(const VARIANT &data, VARTYPE vtTarget);
         static size_t FindKeyColIndex(const UDB::CDBColumnInfoArray &meta);
         static size_t FindKeyColIndex(const UDB::CDBColumnInfoArray &meta, size_t &key1);
