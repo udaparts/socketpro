@@ -3,8 +3,6 @@ package SPA.ClientSide;
 import SPA.*;
 import SPA.UDB.*;
 import java.nio.charset.Charset;
-import java.util.Map;
-import java.util.Set;
 
 public class CAsyncDBHandler extends CAsyncServiceHandler {
 
@@ -46,6 +44,8 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
     public static final short idEndRows = idEndBLOB + 1;
     public static final short idCallReturn = idEndRows + 1;
 
+    public static final short idGetCachedTables = idCallReturn + 1;
+
     /**
      * Whenever a data size in bytes is about twice larger than the defined
      * second, the data will be treated in large object and transferred in
@@ -69,6 +69,12 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * events from server to connected clients
      */
     public static final int STREAMING_SQL_CHAT_GROUP_ID = 0x1fffffff;
+
+    /**
+     * A chat group id used at a SocketPro middle tier server side for notifying
+     * database connecting events from the middle tier server to front clients
+     */
+    public static final int CACHE_UPDATE_CHAT_GROUP_ID = STREAMING_SQL_CHAT_GROUP_ID + 1;
 
     public interface DResult {
 

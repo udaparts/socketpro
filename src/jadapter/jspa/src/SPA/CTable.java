@@ -53,7 +53,7 @@ public class CTable {
     private boolean m_bFieldNameCaseSensitive = false;
     private boolean m_bDataCaseSensitive = false;
     private CDBColumnInfoArray m_meta = new CDBColumnInfoArray();
-    private final java.util.ArrayList<CDBVariantArray> m_vRow = new java.util.ArrayList<>();
+    protected java.util.ArrayList<CDBVariantArray> m_vRow = new java.util.ArrayList<>();
 
     public CTable() {
     }
@@ -682,7 +682,7 @@ public class CTable {
         return COMPARISON_NOT_SUPPORTED;
     }
 
-    private int eq(Object vt0, Object vt1) {
+    int eq(Object vt0, Object vt1) {
         if (vt0 == null) {
             return 0;
         }
@@ -782,7 +782,7 @@ public class CTable {
         return COMPARISON_NOT_SUPPORTED;
     }
 
-    private Object ChangeType(Object vt0, short vtTarget) {
+    Object ChangeType(Object vt0, short vtTarget) {
         if (vt0 == null) {
             return null;
         }

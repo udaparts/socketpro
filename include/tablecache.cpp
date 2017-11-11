@@ -147,9 +147,7 @@ namespace SPA
         for (size_t r = 0; r < rows; ++r) {
             CPRow prow = second[r];
             const VARIANT &v0 = prow->at(ordinal);
-            bool ok = (std::find_if(v.cbegin(), v.cend(), [&v0, this](const UDB::CDBVariant & v1) -> bool {
-                return (this->neq(v0, v1) > 0);
-            }) != v.cend());
+			bool ok = NotIn(v, v0);
             if (ok) {
                 if (copyData) {
                     CPRow p(new CRow);
@@ -175,7 +173,13 @@ namespace SPA
             return COMPARISON_NOT_SUPPORTED;
         VARTYPE type = first[ordinal].DataType;
         if (type == (VT_I1 | VT_ARRAY))
-            type = VT_BSTR; //Table string is always unicode string 
+            type = VT_BSTR; //Table string is always unicode string
+		CComVariant v;
+		if (op != is_null) {
+			HRESULT hr = ChangeType(vt, type, v);
+			if (S_OK != hr)
+				return hr;
+		}
         size_t cols = first.size();
         size_t rows = second.size();
         for (size_t r = 0; r < rows; ++r) {
@@ -186,10 +190,6 @@ namespace SPA
                 ok = (d == VT_NULL || d == VT_EMPTY);
             } else {
                 int res;
-                CComVariant v;
-                HRESULT hr = ChangeType(vt, type, v);
-                if (S_OK != hr)
-                    return hr;
                 const VARIANT &v0 = prow->at(ordinal);
                 switch (op) {
                     case equal:
@@ -432,7 +432,7 @@ namespace SPA
             case VT_I4:
                 return (vt0.intVal >= vt1.intVal);
             case VT_I8:
-                return (vt0.llVal > vt1.llVal);
+                return (vt0.llVal >= vt1.llVal);
             case VT_R4:
                 return (vt0.fltVal >= vt1.fltVal);
             case VT_R8:
@@ -602,6 +602,14 @@ namespace SPA
         return COMPARISON_NOT_SUPPORTED;
     }
 
+	bool CTable::NotIn(const UDB::CDBVariantArray &v, const VARIANT &v0) const {
+		for (auto it = v.cbegin(), end = v.cend(); it != end; ++it) {
+			if (eq(*it, v0) > 0)
+				return false;
+		}
+		return true;
+	}
+
     int CTable::eq(const VARIANT &vt0, const VARIANT & vt1) const {
         if (vt0.vt <= VT_NULL)
             return 0;
@@ -644,7 +652,7 @@ namespace SPA
 #endif
                 }
             case VT_BOOL:
-                return (vt0.boolVal == vt1.boolVal);
+                return ((vt0.boolVal ? true : false) == (vt1.boolVal ? true : false));
                 break;
             case (VT_ARRAY | VT_UI1):
                 if (vt0.parray->rgsabound->cElements == vt1.parray->rgsabound->cElements && vt0.parray->rgsabound->cElements == sizeof (UUID)) {
@@ -822,31 +830,24 @@ namespace SPA
         return 0; //not found
     }
 
-    CPRow CDataSet::FindARowInternal(CPColumnRowset &pcr, const VARIANT & key) {
-        size_t keyIndex = FindKeyColIndex(pcr.first);
-        if (keyIndex == INVALID_VALUE)
-            return nullptr;
-        auto &vRow = pcr.second;
-        size_t rows = pcr.second.size();
+	CPRow CDataSet::FindARowInternal(const CTable &tbl, size_t f, const VARIANT & key) {
+		auto &vRow = tbl.second;
+		size_t rows = tbl.second.size();
         for (size_t r = 0; r < rows; ++r) {
-            const UDB::CDBVariant &vtKey = vRow[r]->at(keyIndex);
-            if (vtKey == key)
+            const UDB::CDBVariant &vtKey = vRow[r]->at(f);
+            if (tbl.eq(vtKey, key) > 0)
                 return vRow[r];
         }
         return nullptr;
     }
 
-    CPRow CDataSet::FindARowInternal(CPColumnRowset &pcr, const VARIANT &key0, const VARIANT & key1) {
-        size_t key;
-        size_t keyIndex = FindKeyColIndex(pcr.first, key);
-        if (keyIndex == INVALID_VALUE || key == INVALID_VALUE)
-            return nullptr;
-        auto &vRow = pcr.second;
-        size_t rows = pcr.second.size();
+	CPRow CDataSet::FindARowInternal(const CTable &tbl, size_t f0, size_t f1, const VARIANT &key0, const VARIANT & key1) {
+        auto &vRow = tbl.second;
+        size_t rows = tbl.second.size();
         for (size_t r = 0; r < rows; ++r) {
-            const UDB::CDBVariant &vtKey = vRow[r]->at(keyIndex);
-            const UDB::CDBVariant &vtKey1 = vRow[r]->at(key);
-            if (vtKey == key0 && vtKey1 == key1)
+            const UDB::CDBVariant &vtKey = vRow[r]->at(f0);
+            const UDB::CDBVariant &vtKey1 = vRow[r]->at(f1);
+			if (tbl.eq(vtKey, key0) > 0 && tbl.eq(vtKey1, key1) > 0)
                 return vRow[r];
         }
         return nullptr;
@@ -866,7 +867,7 @@ namespace SPA
             size_t rows = vRow.size();
             for (size_t r = 0; r < rows; ++r) {
                 const UDB::CDBVariant &vtKey0 = vRow[r]->at(key);
-                if (vtKey0 == vtKey) {
+                if (it->eq(vtKey0, vtKey) > 0) {
                     vRow.erase(vRow.begin() + r);
                     deleted = 1;
                     break;
@@ -895,9 +896,9 @@ namespace SPA
             if (key0 == INVALID_VALUE && key1 == INVALID_VALUE)
                 return INVALID_VALUE;
             else if (key1 == INVALID_VALUE) {
-                row = FindARowInternal(*it, pvt[key0 * 2]);
+                row = FindARowInternal(*it, key0, pvt[key0 * 2]);
             } else {
-                row = FindARowInternal(*it, pvt[key0 * 2], pvt[key1 * 2]);
+				row = FindARowInternal(*it, key0, key1, pvt[key0 * 2], pvt[key1 * 2]);
             }
             if (row) {
                 for (unsigned int n = 0; n < col_count; ++n) {
@@ -940,7 +941,7 @@ namespace SPA
             for (size_t r = 0; r < rows; ++r) {
                 const UDB::CDBVariant &vtKey = vRow[r]->at(key);
                 const UDB::CDBVariant &vt2 = vRow[r]->at(key1);
-                if (vtKey == vtKey0 && vt2 == vtKey1) {
+                if (it->eq(vtKey, vtKey0) > 0 && it->eq(vt2, vtKey1) > 0) {
                     vRow.erase(vRow.begin() + r);
                     deleted = 1;
                     break;

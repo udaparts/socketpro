@@ -6,7 +6,239 @@ public class CDataSet {
 
     public final static int INVALID_VALUE = -1;
     protected final Object m_cs = new Object();
-    protected java.util.ArrayList<CTable> m_ds = new java.util.ArrayList<>();
+    java.util.ArrayList<CTable> m_ds = new java.util.ArrayList<>();
+
+    private Object Convert(CTable tbl, Object data, short vtTarget) {
+        return tbl.ChangeType(data, vtTarget);
+    }
+
+    public int AddRows(String dbName, String tblName, Object[] v) {
+        if (v == null || v.length == 0) {
+            return 0;
+        }
+        if (dbName == null || tblName == null) {
+            return INVALID_VALUE;
+        }
+        int count = v.length;
+        synchronized (m_cs) {
+            for (CTable tbl : m_ds) {
+                if (!Is(tbl, dbName, tblName)) {
+                    continue;
+                }
+                CDBColumnInfoArray meta = tbl.getMeta();
+                int col_count = meta.size();
+                if ((count % col_count) > 0) {
+                    return INVALID_VALUE;
+                }
+                CDBVariantArray prow = null;
+                for (int n = 0; n < count; ++n) {
+                    if ((n % col_count) == 0) {
+                        prow = new CDBVariantArray();
+                        tbl.getDataMatrix().add(prow);
+                    }
+                    short vtTarget = meta.get(n % col_count).DataType;
+                    Object obj = Convert(tbl, v[n], vtTarget);
+                    boolean added = prow.add(obj);
+                }
+                return count / col_count;
+            }
+        }
+        return 0;
+    }
+
+    public int Between(String dbName, String tblName, int ordinal, Object vt0, Object vt1, CTable t) {
+        if (dbName == null) {
+            dbName = "";
+        }
+        if (tblName == null || tblName.length() == 0) {
+            return CTable.NO_TABLE_NAME_GIVEN;
+        }
+        synchronized (m_cs) {
+            for (CTable tbl : m_ds) {
+                if (!Is(tbl, dbName, tblName)) {
+                    continue;
+                }
+                return tbl.Between(ordinal, vt0, vt1, t, true);
+            }
+        }
+        return CTable.NO_TABLE_FOUND;
+    }
+
+    private int FindKeyColIndex(CDBColumnInfoArray meta) {
+        int index = 0;
+        for (CDBColumnInfo col : meta) {
+            if ((col.Flags & (CDBColumnInfo.FLAG_PRIMARY_KEY | CDBColumnInfo.FLAG_AUTOINCREMENT)) > 0) {
+                return index;
+            }
+            ++index;
+        }
+        return INVALID_VALUE;
+    }
+
+    public int DeleteARow(String dbName, String tblName, Object vtKey) {
+        int deleted = 0;
+        synchronized (m_cs) {
+            for (CTable tbl : m_ds) {
+                if (!Is(tbl, dbName, tblName)) {
+                    continue;
+                }
+                CDBColumnInfoArray meta = tbl.getMeta();
+                int key = FindKeyColIndex(meta);
+                if (key == INVALID_VALUE) {
+                    return INVALID_VALUE;
+                }
+                java.util.ArrayList<CDBVariantArray> vRow = tbl.m_vRow;
+                int rows = vRow.size();
+                for (int r = 0; r < rows; ++r) {
+                    Object vtKey0 = vRow.get(r).get(key);
+                    if (tbl.eq(vtKey0, vtKey) > 0) {
+                        vRow.remove(r);
+                        deleted = 1;
+                        break;
+                    }
+                }
+            }
+        }
+        return deleted;
+    }
+
+    private int FindKeyColIndex(CDBColumnInfoArray meta, Integer key1) {
+        int index = 0;
+        int key0 = INVALID_VALUE;
+        key1 = INVALID_VALUE;
+        for (CDBColumnInfo col : meta) {
+            if ((col.Flags & (CDBColumnInfo.FLAG_PRIMARY_KEY | CDBColumnInfo.FLAG_AUTOINCREMENT)) > 0) {
+                if (key0 == INVALID_VALUE) {
+                    key0 = index;
+                } else {
+                    key1 = index;
+                    break;
+                }
+            }
+            ++index;
+        }
+        return INVALID_VALUE;
+    }
+
+    public int DeleteARow(String dbName, String tblName, Object vtKey0, Object vtKey1) {
+        int deleted = 0;
+        synchronized (m_cs) {
+            for (CTable tbl : m_ds) {
+                if (!Is(tbl, dbName, tblName)) {
+                    continue;
+                }
+                CDBColumnInfoArray meta = tbl.getMeta();
+                Integer key1 = INVALID_VALUE;
+                int key = FindKeyColIndex(meta, key1);
+                if (key == INVALID_VALUE || key1 == INVALID_VALUE) {
+                    return INVALID_VALUE;
+                }
+                java.util.ArrayList<CDBVariantArray> vRow = tbl.m_vRow;
+                int rows = vRow.size();
+                for (int r = 0; r < rows; ++r) {
+                    Object vtKey = vRow.get(r).get(key);
+                    Object vt2 = vRow.get(r).get(key1);
+                    if (tbl.eq(vtKey0, vtKey) > 0 && tbl.eq(vt2, vtKey1) > 0) {
+                        vRow.remove(r);
+                        deleted = 1;
+                        break;
+                    }
+                }
+            }
+        }
+        return deleted;
+    }
+
+    public int Find(String dbName, String tblName, int ordinal, CTable.Operator op, Object vt, CTable t) {
+        if (dbName == null) {
+            dbName = "";
+        }
+        if (tblName == null || tblName.length() == 0) {
+            return CTable.NO_TABLE_NAME_GIVEN;
+        }
+        synchronized (m_cs) {
+            for (CTable tbl : m_ds) {
+                if (!Is(tbl, dbName, tblName)) {
+                    continue;
+                }
+                return tbl.Find(ordinal, op, vt, t, true);
+            }
+        }
+        return CTable.NO_TABLE_FOUND;
+    }
+
+    private CDBVariantArray FindARowInternal(CTable tbl, int ordinal, Object key) {
+        java.util.ArrayList<CDBVariantArray> vRow = tbl.m_vRow;
+        int rows = vRow.size();
+        for (int r = 0; r < rows; ++r) {
+            Object vtKey = vRow.get(r).get(ordinal);
+            if (tbl.eq(key, vtKey) > 0) {
+                return vRow.get(r);
+            }
+        }
+        return null;
+    }
+
+    private CDBVariantArray FindARowInternal(CTable tbl, int f0, int f1, Object key0, Object key1) {
+        java.util.ArrayList<CDBVariantArray> vRow = tbl.m_vRow;
+        int rows = vRow.size();
+        for (int r = 0; r < rows; ++r) {
+            Object vtKey = vRow.get(r).get(f0);
+            Object vtKey1 = vRow.get(r).get(f1);
+            if (tbl.eq(key0, vtKey) > 0 && tbl.eq(key1, vtKey1) > 0) {
+                return vRow.get(r);
+            }
+        }
+        return null;
+    }
+
+    public int UpdateARow(String dbName, String tblName, Object[] pvt) {
+        if (pvt == null || pvt.length == 0) {
+            return INVALID_VALUE;
+        }
+        int count = pvt.length;
+        if ((count % 2) > 0) {
+            return INVALID_VALUE;
+        }
+        int updated = 0;
+        synchronized (m_cs) {
+            for (CTable tbl : m_ds) {
+                if (!Is(tbl, dbName, tblName)) {
+                    continue;
+                }
+                CDBColumnInfoArray meta = tbl.getMeta();
+                int col_count = meta.size();
+                if ((count % col_count) > 0 || 2 * col_count != count) {
+                    return INVALID_VALUE;
+                }
+                CDBVariantArray row = null;
+                Integer key1 = 0;
+                int key0 = FindKeyColIndex(meta, key1);
+                if (key0 == INVALID_VALUE && key1 == INVALID_VALUE) {
+                    return INVALID_VALUE;
+                } else if (key1 == INVALID_VALUE) {
+                    row = FindARowInternal(tbl, key0, pvt[key0 * 2]);
+                } else {
+                    row = FindARowInternal(tbl, key0, key1, pvt[key0 * 2], pvt[key1 * 2]);
+                }
+                if (row != null) {
+                    for (int n = 0; n < col_count; ++n) {
+                        short vtTarget = meta.get(n).DataType;
+                        Object vt = pvt[2 * n + 1];
+                        row.set(n, vt);
+                    }
+                    updated = 1;
+                }
+                break;
+            }
+        }
+        return updated;
+    }
+
+    public int FindNull(String dbName, String tblName, int ordinal, CTable tbl) {
+        Object vt = null;
+        return Find(dbName, tblName, ordinal, CTable.Operator.is_null, vt, tbl);
+    }
 
     public CDBColumnInfoArray GetColumMeta(String dbName, String tblName) {
         synchronized (m_cs) {

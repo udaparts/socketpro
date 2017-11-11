@@ -51,7 +51,7 @@ int main(int argc, char* argv[]) {
     SPA::CTable table;
     int res = CMySQLMasterPool::Cache.Between(L"sakila", L"actor", 3, "2017-07-01", "2017-01-1", table);
     if (table.GetMeta().size()) {
-        std::cout << "There are " << table.GetDataMatrix().size() / table.GetMeta().size() << " records between 2017-07-01 and 2017-01-1" << std::endl;
+        std::cout << "There are " << table.GetDataMatrix().size() << " records between 2017-07-01 and 2017-01-1" << std::endl;
         std::cout << std::endl;
     }
 #else
@@ -68,11 +68,13 @@ int main(int argc, char* argv[]) {
     }
 
     SPA::CTable table;
-    int res = CMySQLMasterPool::Cache.Between(L"main", L"actor", 3, "2017-07-01", "2017-01-1", table);
+    int res = CMySQLMasterPool::Cache.Between(L"maIn", L"actor", 3, "2000-07-01", "2017-01-1", table);
     if (table.GetMeta().size()) {
-        std::cout << "There are " << table.GetDataMatrix().size() / table.GetMeta().size() << " records between 2017-07-01 and 2017-01-1" << std::endl;
+        std::cout << "There are " << table.GetDataMatrix().size() << " records between 2017-07-01 and 2017-01-1" << std::endl;
         std::cout << std::endl;
     }
+
+
 #endif
 
     CYourServer::CreateTestDB();
