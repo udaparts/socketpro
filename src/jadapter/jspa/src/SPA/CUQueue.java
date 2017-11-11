@@ -647,6 +647,14 @@ public final class CUQueue {
         return obj;
     }
 
+    public static String ToString(byte[] bytes) {
+        String s = null;
+        if (bytes != null) {
+            s = new String(bytes, 0, bytes.length, m_UTF8);
+        }
+        return s;
+    }
+
     public Object LoadObject(short[] datatype) {
         Object obj = null;
         datatype[0] = LoadShort();

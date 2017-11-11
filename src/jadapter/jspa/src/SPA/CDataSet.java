@@ -12,14 +12,24 @@ public class CDataSet {
         return tbl.ChangeType(data, vtTarget);
     }
 
-    public int AddRows(String dbName, String tblName, Object[] v) {
-        if (v == null || v.length == 0) {
+    public void Set(String strIp, tagManagementSystem ms) {
+        if (strIp == null) {
+            strIp = "";
+        }
+        synchronized (m_cs) {
+            m_strIp = strIp;
+            m_ms = ms;
+        }
+    }
+
+    public int AddRows(String dbName, String tblName, java.util.ArrayList<Object> v) {
+        if (v == null || v.size() == 0) {
             return 0;
         }
         if (dbName == null || tblName == null) {
             return INVALID_VALUE;
         }
-        int count = v.length;
+        int count = v.size();
         synchronized (m_cs) {
             for (CTable tbl : m_ds) {
                 if (!Is(tbl, dbName, tblName)) {
@@ -37,7 +47,7 @@ public class CDataSet {
                         tbl.getDataMatrix().add(prow);
                     }
                     short vtTarget = meta.get(n % col_count).DataType;
-                    Object obj = Convert(tbl, v[n], vtTarget);
+                    Object obj = Convert(tbl, v.get(n), vtTarget);
                     boolean added = prow.add(obj);
                 }
                 return count / col_count;
@@ -192,11 +202,11 @@ public class CDataSet {
         return null;
     }
 
-    public int UpdateARow(String dbName, String tblName, Object[] pvt) {
-        if (pvt == null || pvt.length == 0) {
+    public int UpdateARow(String dbName, String tblName, java.util.ArrayList<Object> pvt) {
+        if (pvt == null || pvt.size() == 0) {
             return INVALID_VALUE;
         }
-        int count = pvt.length;
+        int count = pvt.size();
         if ((count % 2) > 0) {
             return INVALID_VALUE;
         }
@@ -217,14 +227,14 @@ public class CDataSet {
                 if (key0 == INVALID_VALUE && key1 == INVALID_VALUE) {
                     return INVALID_VALUE;
                 } else if (key1 == INVALID_VALUE) {
-                    row = FindARowInternal(tbl, key0, pvt[key0 * 2]);
+                    row = FindARowInternal(tbl, key0, pvt.get(key0 * 2));
                 } else {
-                    row = FindARowInternal(tbl, key0, key1, pvt[key0 * 2], pvt[key1 * 2]);
+                    row = FindARowInternal(tbl, key0, key1, pvt.get(key0 * 2), pvt.get(key1 * 2));
                 }
                 if (row != null) {
                     for (int n = 0; n < col_count; ++n) {
                         short vtTarget = meta.get(n).DataType;
-                        Object vt = pvt[2 * n + 1];
+                        Object vt = pvt.get(2 * n + 1);
                         row.set(n, vt);
                     }
                     updated = 1;
@@ -398,6 +408,24 @@ public class CDataSet {
     public String getDBServerName() {
         synchronized (m_cs) {
             return m_strHostName;
+        }
+    }
+
+    public void setDBServerName(String s) {
+        synchronized (m_cs) {
+            m_strHostName = s;
+            if (s == null) {
+                m_strHostName = "";
+            }
+        }
+    }
+
+    public void setUpdater(String s) {
+        synchronized (m_cs) {
+            m_strUpdater = s;
+            if (s == null) {
+                m_strUpdater = "";
+            }
         }
     }
 
