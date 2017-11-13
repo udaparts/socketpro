@@ -68,7 +68,7 @@ namespace SPA {
         int le(const VARIANT &vt0, const VARIANT &vt1) const;
         int eq(const VARIANT &vt0, const VARIANT &vt1) const;
         int neq(const VARIANT &vt0, const VARIANT &vt1) const;
-        bool NotIn(const UDB::CDBVariantArray &v, const VARIANT &v0) const;
+        bool In(const UDB::CDBVariantArray &v, const VARIANT &v0) const;
         static HRESULT ChangeType(const VARIANT &vtSrc, VARTYPE vtTarget, VARIANT &vtDes);
 
     private:

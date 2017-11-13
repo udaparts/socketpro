@@ -147,8 +147,7 @@ namespace SPA
         for (size_t r = 0; r < rows; ++r) {
             CPRow prow = second[r];
             const VARIANT &v0 = prow->at(ordinal);
-            bool ok = NotIn(v, v0);
-            if (ok) {
+			if (v0.vt > VT_NULL && !In(v, v0)) {
                 if (copyData) {
                     CPRow p(new CRow);
                     for (size_t n = 0; n < cols; ++n) {
@@ -602,12 +601,12 @@ namespace SPA
         return COMPARISON_NOT_SUPPORTED;
     }
 
-    bool CTable::NotIn(const UDB::CDBVariantArray &v, const VARIANT & v0) const {
+    bool CTable::In(const UDB::CDBVariantArray &v, const VARIANT & v0) const {
         for (auto it = v.cbegin(), end = v.cend(); it != end; ++it) {
-            if (eq(*it, v0) > 0)
-                return false;
+			if (eq(*it, v0) > 0)
+                return true;
         }
-        return true;
+        return false;
     }
 
     int CTable::eq(const VARIANT &vt0, const VARIANT & vt1) const {
