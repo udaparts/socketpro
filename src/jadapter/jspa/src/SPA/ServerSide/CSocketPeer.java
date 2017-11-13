@@ -204,6 +204,9 @@ public abstract class CSocketPeer {
             case "java.util.Date":
                 q.Save((java.util.Date) res);
                 break;
+            case "java.sql.Timestamp":
+                q.Save((java.sql.Timestamp) res);
+                break;
             case "java.util.UUID":
                 q.Save((java.util.UUID) res);
                 break;
@@ -231,6 +234,7 @@ public abstract class CSocketPeer {
                 if (scope != null) {
                     SPA.CScopeUQueue.Unlock(q);
                     ServerCoreLoader.SendReturnData(m_sh, reqId, scope.getUQueue().GetSize(), scope.getUQueue().getIntenalBuffer());
+                    scope.Clean();
                     return;
                 }
             }

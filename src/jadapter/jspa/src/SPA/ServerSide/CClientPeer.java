@@ -1,5 +1,9 @@
 package SPA.ServerSide;
 
+import SPA.*;
+
+import SPA.CScopeUQueue;
+
 public class CClientPeer extends CSocketPeer {
 
     class CServerPushExImpl implements SPA.IUPushEx {
@@ -103,6 +107,14 @@ public class CClientPeer extends CSocketPeer {
 
     protected final int SendResult(short reqId) {
         return SendResult(reqId, (byte[]) null, 0);
+    }
+
+    public <T0> int SendResult(short reqId, T0 t0) {
+        CUQueue q = CScopeUQueue.Lock();
+        q.Save(t0);
+        int ret = SendResult(reqId, q);
+        CScopeUQueue.Unlock(q);
+        return ret;
     }
 
     protected int SendResult(short reqId, byte[] data, int len) {
