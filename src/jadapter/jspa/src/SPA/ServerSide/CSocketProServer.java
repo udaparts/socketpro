@@ -366,7 +366,7 @@ public class CSocketProServer {
             return ServerCoreLoader.GetAllCreatedChatGroups();
         }
 
-        public static boolean Publish(byte[] Message, int[] Groups) {
+        public static boolean Publish(byte[] Message, int... Groups) {
             int size;
             int len;
             if (Groups == null) {
@@ -392,7 +392,7 @@ public class CSocketProServer {
             return ServerCoreLoader.SendUserMessageExPush(UserId, Message, size);
         }
 
-        public static boolean Publish(Object Message, int[] Groups) {
+        public static boolean Publish(Object Message, int... Groups) {
             int len;
             if (Groups == null) {
                 len = 0;

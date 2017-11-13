@@ -104,16 +104,14 @@ public class CSqlMasterPool<THandler extends CAsyncDBHandler> extends CMasterSla
                     public void invoke(CClientSocket sender, CMessageSender messageSender, int[] group, Object msg) {
                         if (group[0] == CAsyncDBHandler.CACHE_UPDATE_CHAT_GROUP_ID) {
                             if (m_bMidTier) {
-                                int[] Groups = {CAsyncDBHandler.CACHE_UPDATE_CHAT_GROUP_ID};
-                                SPA.ServerSide.CSocketProServer.PushManager.Publish(msg, Groups);
+                                SPA.ServerSide.CSocketProServer.PushManager.Publish(msg, CAsyncDBHandler.CACHE_UPDATE_CHAT_GROUP_ID);
                             }
                             SetInitialCache();
                             return;
                         }
                         if (m_bMidTier) {
-                            int[] Groups = {CAsyncDBHandler.STREAMING_SQL_CHAT_GROUP_ID};
                             //push message onto front clients which may be interested in the message
-                            SPA.ServerSide.CSocketProServer.PushManager.Publish(msg, Groups);
+                            SPA.ServerSide.CSocketProServer.PushManager.Publish(msg, CAsyncDBHandler.STREAMING_SQL_CHAT_GROUP_ID);
                         }
                         //vData[0] == event type; vData[1] == host; vData[2] = database user; vData[3] == db name; vData[4] == table name
                         Object[] vData = (Object[]) msg;

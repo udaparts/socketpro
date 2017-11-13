@@ -19,7 +19,7 @@ public class CYourServer extends CSocketProServer {
     //public static CSqlMasterPool<CMysql> Master = null;
     //public static CSqlMasterPool<CMysql>.CSlavePool Slave = null;
     @ServiceAttr(ServiceID = Consts.sidStreamSystem)
-    private CSocketProService<CYourPeerOne> m_SSPeer = new CSocketProService<>(CYourPeerOne.class);
+    private final CSocketProService<CYourPeerOne> m_SSPeer = new CSocketProService<>(CYourPeerOne.class);
 
     private void SetChatGroups() {
         PushManager.AddAChatGroup(CAsyncDBHandler.STREAMING_SQL_CHAT_GROUP_ID, "Subscribe/publish for front clients");
