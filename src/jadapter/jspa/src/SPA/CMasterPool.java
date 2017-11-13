@@ -5,27 +5,42 @@ import SPA.ClientSide.*;
 public class CMasterPool<THandler extends CCachedBaseHandler> extends CMasterSlaveBase<THandler> {
 
     private boolean m_bMidTier = false;
-    private static CDataSet Cache = new CDataSet();
+    private CDataSet Cache = new CDataSet();
     protected CDataSet m_cache = new CDataSet();
     protected SPA.UDB.CDBColumnInfoArray m_meta = new SPA.UDB.CDBColumnInfoArray();
     protected THandler m_hander = null;
+    private final Class<THandler> m_impl;
 
-    public static CDataSet getCache() {
+    public class CSlavePool extends CMasterSlaveBase<THandler> {
+
+        public CSlavePool(String defaultDB, int recvTimeout) {
+            super(m_impl, defaultDB, recvTimeout);
+        }
+
+        public CSlavePool(String defaultDB) {
+            super(m_impl, defaultDB, CClientSocket.DEFAULT_RECV_TIMEOUT);
+        }
+    }
+
+    public CDataSet getCache() {
         return Cache;
     }
 
     public CMasterPool(Class<THandler> impl, String defaultDB, boolean midTier, int recvTimeout) {
         super(impl, defaultDB, recvTimeout);
         m_bMidTier = midTier;
+        m_impl = impl;
     }
 
-    public CMasterPool(Class<THandler> implHandler, String defaultDB, boolean midTier) {
-        super(implHandler, defaultDB, CClientSocket.DEFAULT_RECV_TIMEOUT);
+    public CMasterPool(Class<THandler> impl, String defaultDB, boolean midTier) {
+        super(impl, defaultDB, CClientSocket.DEFAULT_RECV_TIMEOUT);
         m_bMidTier = midTier;
+        m_impl = impl;
     }
 
-    public CMasterPool(Class<THandler> implHandler, String defaultDB) {
-        super(implHandler, defaultDB, CClientSocket.DEFAULT_RECV_TIMEOUT);
+    public CMasterPool(Class<THandler> impl, String defaultDB) {
+        super(impl, defaultDB, CClientSocket.DEFAULT_RECV_TIMEOUT);
+        m_impl = impl;
     }
 
     void SetInitialCache() {

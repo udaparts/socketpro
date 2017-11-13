@@ -1,7 +1,8 @@
 
 package SPA.UDB;
+import java.util.ArrayList;
 
-public class CDBVariantArray extends java.util.ArrayList<Object> implements SPA.IUSerializer {
+public class CDBVariantArray extends ArrayList<Object> implements SPA.IUSerializer {
 
     @Override
     public void LoadFrom(SPA.CUQueue UQueue) {

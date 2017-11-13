@@ -1,6 +1,7 @@
 package SPA;
 
 import SPA.UDB.*;
+import java.util.ArrayList;
 
 public class CDataSet {
 
@@ -10,6 +11,48 @@ public class CDataSet {
 
     private Object Convert(CTable tbl, Object data, short vtTarget) {
         return tbl.ChangeType(data, vtTarget);
+    }
+
+    public int In(String dbName, String tblName, int ordinal, ArrayList<Object> v, CTable tbl) {
+        if (v == null || v.isEmpty()) {
+            return 0;
+        }
+        if (dbName == null) {
+            tblName = "";
+        }
+        if (tblName == null || tblName.length() == 0) {
+            return CTable.NO_TABLE_NAME_GIVEN;
+        }
+        synchronized (m_cs) {
+            for (CTable t : m_ds) {
+                if (!Is(t, dbName, tblName)) {
+                    continue;
+                }
+                return t.In(ordinal, v, tbl, true);
+            }
+        }
+        return CTable.NO_TABLE_FOUND;
+    }
+
+    public int NotIn(String dbName, String tblName, int ordinal, ArrayList<Object> v, CTable tbl) {
+        if (v == null || v.isEmpty()) {
+            return 0;
+        }
+        if (dbName == null) {
+            tblName = "";
+        }
+        if (tblName == null || tblName.length() == 0) {
+            return CTable.NO_TABLE_NAME_GIVEN;
+        }
+        synchronized (m_cs) {
+            for (CTable t : m_ds) {
+                if (!Is(t, dbName, tblName)) {
+                    continue;
+                }
+                return t.NotIn(ordinal, v, tbl, true);
+            }
+        }
+        return CTable.NO_TABLE_FOUND;
     }
 
     public void Set(String strIp, tagManagementSystem ms) {
@@ -23,7 +66,7 @@ public class CDataSet {
     }
 
     public int AddRows(String dbName, String tblName, java.util.ArrayList<Object> v) {
-        if (v == null || v.size() == 0) {
+        if (v == null || v.isEmpty()) {
             return 0;
         }
         if (dbName == null || tblName == null) {
@@ -177,7 +220,7 @@ public class CDataSet {
         return CTable.NO_TABLE_FOUND;
     }
 
-    private CDBVariantArray FindARowInternal(CTable tbl, int ordinal, Object key) {
+    private ArrayList<Object> FindARowInternal(CTable tbl, int ordinal, Object key) {
         java.util.ArrayList<CDBVariantArray> vRow = tbl.m_vRow;
         int rows = vRow.size();
         for (int r = 0; r < rows; ++r) {
@@ -189,7 +232,7 @@ public class CDataSet {
         return null;
     }
 
-    private CDBVariantArray FindARowInternal(CTable tbl, int f0, int f1, Object key0, Object key1) {
+    private ArrayList<Object> FindARowInternal(CTable tbl, int f0, int f1, Object key0, Object key1) {
         java.util.ArrayList<CDBVariantArray> vRow = tbl.m_vRow;
         int rows = vRow.size();
         for (int r = 0; r < rows; ++r) {
@@ -203,7 +246,7 @@ public class CDataSet {
     }
 
     public int UpdateARow(String dbName, String tblName, java.util.ArrayList<Object> pvt) {
-        if (pvt == null || pvt.size() == 0) {
+        if (pvt == null || pvt.isEmpty()) {
             return INVALID_VALUE;
         }
         int count = pvt.size();
@@ -221,7 +264,7 @@ public class CDataSet {
                 if ((count % col_count) > 0 || 2 * col_count != count) {
                     return INVALID_VALUE;
                 }
-                CDBVariantArray row = null;
+                ArrayList<Object> row = null;
                 Integer key1 = 0;
                 int key0 = FindKeyColIndex(meta, key1);
                 if (key0 == INVALID_VALUE && key1 == INVALID_VALUE) {
@@ -301,9 +344,9 @@ public class CDataSet {
             return false;
         }
         if (m_bTableNameCaseSensitive) {
-            eq = col.TablePath.equals(dbName);
+            eq = col.TablePath.equals(tblName);
         } else {
-            eq = col.TablePath.equalsIgnoreCase(dbName);
+            eq = col.TablePath.equalsIgnoreCase(tblName);
         }
         return eq;
     }
@@ -480,8 +523,14 @@ public class CDataSet {
         if (meta == null || meta.isEmpty()) {
             return;
         }
+
         synchronized (m_cs) {
-            m_ds.add(new CTable(meta, m_bFieldNameCaseSensitive, m_bDataCaseSensitive));
+            CTable tbl = new CTable(meta, m_bFieldNameCaseSensitive, m_bDataCaseSensitive);
+            java.util.HashMap<Integer, CDBColumnInfo> keys = tbl.getKeys();
+            if (keys.isEmpty() || keys.size() > 2) {
+                return;
+            }
+            m_ds.add(tbl);
         }
     }
 

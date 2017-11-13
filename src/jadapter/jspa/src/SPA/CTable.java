@@ -1,6 +1,7 @@
 package SPA;
 
 import SPA.UDB.*;
+import java.util.ArrayList;
 
 public class CTable {
 
@@ -115,9 +116,11 @@ public class CTable {
     public java.util.HashMap<Integer, CDBColumnInfo> getKeys() {
         int index = 0;
         java.util.HashMap<Integer, CDBColumnInfo> map = new java.util.HashMap<>();
-        CDBColumnInfo col = m_meta.get(0);
-        if ((col.Flags & CDBColumnInfo.FLAG_PRIMARY_KEY) == CDBColumnInfo.FLAG_PRIMARY_KEY || (col.Flags & CDBColumnInfo.FLAG_AUTOINCREMENT) == CDBColumnInfo.FLAG_AUTOINCREMENT) {
-            map.put(index - 1, col);
+        for (CDBColumnInfo col : m_meta) {
+            if ((col.Flags & CDBColumnInfo.FLAG_PRIMARY_KEY) == CDBColumnInfo.FLAG_PRIMARY_KEY || (col.Flags & CDBColumnInfo.FLAG_AUTOINCREMENT) == CDBColumnInfo.FLAG_AUTOINCREMENT) {
+                map.put(index, col);
+            }
+            ++index;
         }
         return map;
     }
@@ -169,7 +172,7 @@ public class CTable {
         return Between(ordinal, vt0, vt1, tbl, false);
     }
 
-    private boolean In(Object v, CDBVariantArray vArray) {
+    private boolean In(Object v, ArrayList<Object> vArray) {
         for (Object o : vArray) {
             if (eq(o, v) > 0) {
                 return true;
@@ -178,23 +181,13 @@ public class CTable {
         return false;
     }
 
-    private boolean NotIn(Object v, CDBVariantArray vArray) {
-        for (Object o : vArray) {
-            if (neq(o, v) > 0) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public int In(int ordinal, CDBVariantArray vArray, CTable tbl) {
+    public int In(int ordinal, ArrayList<Object> vArray, CTable tbl) {
         return In(ordinal, vArray, tbl, false);
     }
 
-    public int In(int ordinal, CDBVariantArray vArray, CTable tbl, boolean copyData) {
+    public int In(int ordinal, ArrayList<Object> vArray, CTable tbl, boolean copyData) {
         if (tbl == null) {
-            //return OPERATION_NOT_SUPPORTED; //????
-            tbl = new CTable(m_meta, this.m_bFieldNameCaseSensitive, this.m_bDataCaseSensitive);
+            return OPERATION_NOT_SUPPORTED;
         } else {
             tbl.m_bFieldNameCaseSensitive = m_bFieldNameCaseSensitive;
             tbl.m_bDataCaseSensitive = m_bDataCaseSensitive;
@@ -247,14 +240,13 @@ public class CTable {
         return 1;
     }
 
-    public int NotIn(int ordinal, CDBVariantArray vArray, CTable tbl) {
+    public int NotIn(int ordinal, ArrayList<Object> vArray, CTable tbl) {
         return NotIn(ordinal, vArray, tbl, false);
     }
 
-    public int NotIn(int ordinal, CDBVariantArray vArray, CTable tbl, boolean copyData) {
+    public int NotIn(int ordinal, ArrayList<Object> vArray, CTable tbl, boolean copyData) {
         if (tbl == null) {
-            //return OPERATION_NOT_SUPPORTED; //????
-            tbl = new CTable(m_meta, this.m_bFieldNameCaseSensitive, this.m_bDataCaseSensitive);
+            return OPERATION_NOT_SUPPORTED;
         } else {
             tbl.m_bFieldNameCaseSensitive = m_bFieldNameCaseSensitive;
             tbl.m_bDataCaseSensitive = m_bDataCaseSensitive;
@@ -291,7 +283,7 @@ public class CTable {
         for (int r = 0; r < rows; ++r) {
             CDBVariantArray prow = m_vRow.get(r);
             Object v0 = prow.get(ordinal);
-            if (NotIn(v0, vArray)) {
+            if (v0 != null && !In(v0, vArray)) {
                 if (copyData) {
                     CDBVariantArray p = new CDBVariantArray();
                     CUQueue q = CScopeUQueue.Lock();
@@ -309,8 +301,7 @@ public class CTable {
 
     public int Between(int ordinal, Object vt0, Object vt1, CTable tbl, boolean copyData) {
         if (tbl == null) {
-            //return OPERATION_NOT_SUPPORTED; //????
-            tbl = new CTable(m_meta, this.m_bFieldNameCaseSensitive, this.m_bDataCaseSensitive);
+            return OPERATION_NOT_SUPPORTED;
         } else {
             tbl.m_bFieldNameCaseSensitive = m_bFieldNameCaseSensitive;
             tbl.m_bDataCaseSensitive = m_bDataCaseSensitive;
@@ -400,8 +391,7 @@ public class CTable {
 
     public int Find(int ordinal, Operator op, Object vt, CTable tbl, boolean copyData) {
         if (tbl == null) {
-            //return OPERATION_NOT_SUPPORTED; //????
-            tbl = new CTable(m_meta, this.m_bFieldNameCaseSensitive, this.m_bDataCaseSensitive);
+            return OPERATION_NOT_SUPPORTED;
         } else {
             tbl.m_bFieldNameCaseSensitive = m_bFieldNameCaseSensitive;
             tbl.m_bDataCaseSensitive = m_bDataCaseSensitive;
