@@ -122,7 +122,7 @@ public class Test_java {
         };
 
         ok = mysql.Open(null, dr);
-        final java.util.ArrayList<CMysql.Pair<CDBColumnInfoArray, CDBVariantArray>> ra = new java.util.ArrayList<>();
+        final java.util.ArrayList<Pair<CDBColumnInfoArray, CDBVariantArray>> ra = new java.util.ArrayList<>();
         TestCreateTables(mysql, er);
         ok = mysql.Execute("delete from employee;delete from company", er);
         TestPreparedStatements(mysql, dr, er);
@@ -132,7 +132,7 @@ public class Test_java {
             @Override
             public void invoke(CAsyncDBHandler dbHandler, CDBVariantArray lstData) {
                 int last = ra.size() - 1;
-                CMysql.Pair<CDBColumnInfoArray, CDBVariantArray> item = ra.get(last);
+                Pair<CDBColumnInfoArray, CDBVariantArray> item = ra.get(last);
                 item.second.addAll(lstData);
             }
         }, new CMysql.DRowsetHeader() {
@@ -141,7 +141,7 @@ public class Test_java {
                 //rowset header comes here
                 CDBColumnInfoArray vColInfo = dbHandler.getColumnInfo();
                 CDBVariantArray vData = new CDBVariantArray();
-                CMysql.Pair<CDBColumnInfoArray, CDBVariantArray> item = (new CMysql()).new Pair<>(vColInfo, vData);
+                Pair<CDBColumnInfoArray, CDBVariantArray> item = new Pair<>(vColInfo, vData);
                 ra.add(item);
             }
         });
@@ -161,7 +161,7 @@ public class Test_java {
         int index = 0;
         System.out.println();
         System.out.println("+++++ Start rowsets +++");
-        for (CMysql.Pair<CDBColumnInfoArray, CDBVariantArray> a : ra) {
+        for (Pair<CDBColumnInfoArray, CDBVariantArray> a : ra) {
             System.out.format("Statement index = %d", index);
             if (a.first.size() > 0) {
                 System.out.format(", rowset with columns = %d, records = %d.", a.first.size(), a.second.size() / a.first.size());
@@ -177,14 +177,14 @@ public class Test_java {
         new java.util.Scanner(System.in).nextLine();
     }
 
-    static void TestStoredProcedure(CMysql mysql, CMysql.DResult dr, CMysql.DExecuteResult er, final java.util.ArrayList<CMysql.Pair<CDBColumnInfoArray, CDBVariantArray>> ra, CDBVariantArray vPData) {
+    static void TestStoredProcedure(CMysql mysql, CMysql.DResult dr, CMysql.DExecuteResult er, final java.util.ArrayList<Pair<CDBColumnInfoArray, CDBVariantArray>> ra, CDBVariantArray vPData) {
         boolean ok = mysql.Prepare("call sp_TestProc(?,?,?)", dr);
         CMysql.DRows r = new CMysql.DRows() {
             //rowset data come here
             @Override
             public void invoke(CAsyncDBHandler dbHandler, CDBVariantArray lstData) {
                 int last = ra.size() - 1;
-                CMysql.Pair<CDBColumnInfoArray, CDBVariantArray> item = ra.get(last);
+                Pair<CDBColumnInfoArray, CDBVariantArray> item = ra.get(last);
                 item.second.addAll(lstData);
             }
         };
@@ -195,7 +195,7 @@ public class Test_java {
                 //rowset header comes here
                 CDBColumnInfoArray vColInfo = dbHandler.getColumnInfo();
                 CDBVariantArray vData = new CDBVariantArray();
-                CMysql.Pair<CDBColumnInfoArray, CDBVariantArray> item = (new CMysql()).new Pair<>(vColInfo, vData);
+                Pair<CDBColumnInfoArray, CDBVariantArray> item = new Pair<>(vColInfo, vData);
                 ra.add(item);
             }
         };

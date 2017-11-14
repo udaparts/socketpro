@@ -123,13 +123,13 @@ public class Test_java {
         };
 
         ok = odbc.Open("dsn=ToMySQL;uid=root;pwd=Smash123", dr);
-        final java.util.ArrayList<COdbc.Pair<CDBColumnInfoArray, CDBVariantArray>> ra = new java.util.ArrayList<>();
+        final java.util.ArrayList<Pair<CDBColumnInfoArray, CDBVariantArray>> ra = new java.util.ArrayList<>();
         COdbc.DRows r = new COdbc.DRows() {
             //rowset data come here
             @Override
             public void invoke(CAsyncDBHandler dbHandler, CDBVariantArray lstData) {
                 int last = ra.size() - 1;
-                COdbc.Pair<CDBColumnInfoArray, CDBVariantArray> item = ra.get(last);
+                Pair<CDBColumnInfoArray, CDBVariantArray> item = ra.get(last);
                 item.second.addAll(lstData);
             }
         };
@@ -140,7 +140,7 @@ public class Test_java {
                 //rowset header comes here
                 CDBColumnInfoArray vColInfo = dbHandler.getColumnInfo();
                 CDBVariantArray vData = new CDBVariantArray();
-                COdbc.Pair<CDBColumnInfoArray, CDBVariantArray> item = (new COdbc()).new Pair<>(vColInfo, vData);
+                Pair<CDBColumnInfoArray, CDBVariantArray> item = new Pair<>(vColInfo, vData);
                 ra.add(item);
             }
         };
@@ -169,7 +169,7 @@ public class Test_java {
         ok = odbc.WaitAll();
 
         ok = odbc.Execute("use sakila", er);
-        COdbc.Pair<CDBColumnInfoArray, CDBVariantArray> tables = ra.get(ra.size() - 1);
+        Pair<CDBColumnInfoArray, CDBVariantArray> tables = ra.get(ra.size() - 1);
         int columns = tables.first.size();
         int num_tables = tables.second.size() / columns;
         for (int n = 0; n < num_tables; ++n) {
@@ -181,7 +181,7 @@ public class Test_java {
         int index = 0;
         System.out.println();
         System.out.println("+++++ Start rowsets +++");
-        for (COdbc.Pair<CDBColumnInfoArray, CDBVariantArray> a : ra) {
+        for (Pair<CDBColumnInfoArray, CDBVariantArray> a : ra) {
             System.out.format("Statement index = %d", index);
             if (a.first.size() > 0) {
                 System.out.format(", rowset with columns = %d, records = %d.", a.first.size(), a.second.size() / a.first.size());
@@ -197,7 +197,7 @@ public class Test_java {
         new java.util.Scanner(System.in).nextLine();
     }
 
-    static void TestStoredProcedure(COdbc odbc, COdbc.DResult dr, COdbc.DExecuteResult er, final java.util.ArrayList<COdbc.Pair<CDBColumnInfoArray, CDBVariantArray>> ra, CDBVariantArray vPData) {
+    static void TestStoredProcedure(COdbc odbc, COdbc.DResult dr, COdbc.DExecuteResult er, final java.util.ArrayList<Pair<CDBColumnInfoArray, CDBVariantArray>> ra, CDBVariantArray vPData) {
         CParameterInfo[] vInfo = new CParameterInfo[3];
 
         vInfo[0] = new CParameterInfo();
@@ -218,7 +218,7 @@ public class Test_java {
             @Override
             public void invoke(CAsyncDBHandler dbHandler, CDBVariantArray lstData) {
                 int last = ra.size() - 1;
-                COdbc.Pair<CDBColumnInfoArray, CDBVariantArray> item = ra.get(last);
+                Pair<CDBColumnInfoArray, CDBVariantArray> item = ra.get(last);
                 item.second.addAll(lstData);
             }
         };
@@ -229,7 +229,7 @@ public class Test_java {
                 //rowset header comes here
                 CDBColumnInfoArray vColInfo = dbHandler.getColumnInfo();
                 CDBVariantArray vData = new CDBVariantArray();
-                COdbc.Pair<CDBColumnInfoArray, CDBVariantArray> item = (new COdbc()).new Pair<>(vColInfo, vData);
+                Pair<CDBColumnInfoArray, CDBVariantArray> item = new Pair<>(vColInfo, vData);
                 ra.add(item);
             }
         };
