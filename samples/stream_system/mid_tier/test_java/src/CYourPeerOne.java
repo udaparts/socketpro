@@ -1,12 +1,14 @@
 
-import SPA.ServerSide.*;
-import SPA.ClientSide.*;
 import SPA.*;
 import SPA.UDB.*;
+import java.util.concurrent.*;
+import SPA.ServerSide.*;
+import SPA.ClientSide.*;
+
 
 public class CYourPeerOne extends CCacheBasePeer {
 
-    void QueryPaymentMaxMinAvgs(CUQueue q) {
+    private void QueryPaymentMaxMinAvgs(CUQueue q) {
         CMaxMinAvg pmma = new CMaxMinAvg();
         long index = q.LoadLong();
         String filter = q.LoadString();
@@ -55,7 +57,7 @@ public class CYourPeerOne extends CCacheBasePeer {
         CScopeUQueue.Unlock(sb);
     }
 
-    void UploadEmployees(CUQueue q) {
+    private void UploadEmployees(CUQueue q) {
         int ret;
         final Pair<Integer, String> p = new Pair<>(0, "");
         long index = q.LoadLong();
@@ -163,10 +165,68 @@ public class CYourPeerOne extends CCacheBasePeer {
         return sb;
     }
 
+    @RequestAttr(RequestID = Consts.idGetRentalDateTimes, SlowRequest = true)
+    CScopeUQueue GetRentalDateTimes(long index, long rental_id) {
+        CScopeUQueue sb = new CScopeUQueue();
+        sb.Save(index);
+        CRentalDateTimes myDates = new CRentalDateTimes();
+        myDates.rental_id = rental_id;
+        Pair<Integer, String> error = new Pair<>(0, "");
+        String sql = "SELECT rental_id,rental_date,return_date,last_update FROM rental where rental_id=" + rental_id;
+        int redo = 0;
+        do {
+            CSqlite handler = CYourServer.Slave.Seek();
+            if (handler == null) {
+                error.first = -1;
+                error.second = "No connection to a slave database";
+                break;
+            }
+            ++redo;
+            UFuture<Integer> f = new UFuture<>();
+            if (handler.Execute(sql, (h, r, err, affected, fail_ok, vtId) -> {
+                error.first = r;
+                error.second = err;
+                f.set(1);
+            }, (h, vData) -> {
+                myDates.Rental = (java.sql.Timestamp) vData.get(1);
+                myDates.Return = (java.sql.Timestamp) vData.get(2);
+                myDates.LastUpdate = (java.sql.Timestamp) vData.get(3);
+            }, (h) -> {
+                //rowset meta
+            }, true, true, () -> {
+                //socket closed after sending
+                f.set(0);
+            })) {
+
+                try {
+                    int ret = f.get(20000, TimeUnit.MILLISECONDS);
+                    if (ret > 0) {
+                        redo = 0; //disable redo after result returned
+                    } else {
+                        //retry ..... because socket is closed after sending
+                    }
+                } catch (TimeoutException err) {
+                    error.first = -2;
+                    error.second = "Querying rental date times timed out";
+                    redo = 0; //no redo because of timed-out
+                } catch (InterruptedException | ExecutionException err) {
+                    error.first = -3;
+                    error.second = err.getMessage();
+                    redo = 0; //no redo because of other exceptions
+                }
+            } else {
+                //socket closed when sending SQL
+                //retry .....
+            }
+        } while (redo > 0);
+        myDates.SaveTo(sb.getUQueue());
+        sb.Save(error.first).Save(error.second);
+        return sb;
+    }
+
     @Override
     protected CachedTableResult GetCachedTables(String defaultDb, int flags, boolean rowset, long index) {
         CachedTableResult res = this.new CachedTableResult();
-        //CSqlMasterPool<CSqlite> Master = CYourServer.Master;
         do {
             if (!rowset) {
                 res.errMsg = "Client side doesn't ask for rowsets";
@@ -195,10 +255,32 @@ public class CYourPeerOne extends CCacheBasePeer {
                 break;
             }
             res.ms = handler.getDBManagementSystem();
-
+            UFuture<Integer> f = new UFuture<>();
+            if (!handler.Execute(sql, (h, r, err, affected, fail_ok, vtId) -> {
+                res.errMsg = err;
+                res.res = r;
+                f.set(0);
+            }, (h, vData) -> {
+                SendRows(vData);
+            }, (h) -> {
+                SendMeta(h.getColumnInfo(), index);
+            }, true, true, () -> {
+                res.res = -2;
+                res.errMsg = "Request canceled or socket closed";
+                f.set(-2);
+            })) {
+                res.res = handler.getAttachedClientSocket().getErrorCode();
+                res.errMsg = handler.getAttachedClientSocket().getErrorMsg();
+                break;
+            }
+            CYourServer.Master.Unlock(handler);//put back locked handler and its socket back into pool for reuse as soon as possible
+            try {
+                int ret = f.get(25000, TimeUnit.MILLISECONDS);
+            } catch (InterruptedException | TimeoutException | ExecutionException err) {
+                res.res = -3;
+                res.errMsg = err.getMessage();
+            }
         } while (false);
-
         return res;
     }
-
 }
