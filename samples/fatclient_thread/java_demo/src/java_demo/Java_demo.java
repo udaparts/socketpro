@@ -373,7 +373,7 @@ public class Java_demo {
             } else {
                 System.out.println("The requests within the function DoFuture are canceled partially");
             }
-        } catch (TimeoutException err) {
+        } catch (TimeoutException | InterruptedException | ExecutionException err) {
             System.out.println("The requests within the function DoFuture are not completed in 5 seconds");
         }
         System.out.println("");
