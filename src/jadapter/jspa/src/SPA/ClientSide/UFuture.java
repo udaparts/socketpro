@@ -3,7 +3,7 @@ package SPA.ClientSide;
 import java.util.concurrent.*;
 import java.util.concurrent.locks.*;
 
-public class UFuture<V> {
+public class UFuture<V> implements Future<V> {
 
     // States for Future.
     public final static int PENDING = 0;
@@ -57,6 +57,7 @@ public class UFuture<V> {
         }
     }
 
+    @Override
     public boolean cancel(boolean mayInterruptIfRunning) {
         boolean cancelled = false;
         try {
@@ -75,6 +76,7 @@ public class UFuture<V> {
         return cancelled;
     }
 
+    @Override
     public boolean isCancelled() {
         boolean res = false;
         try {
@@ -86,6 +88,7 @@ public class UFuture<V> {
         return res;
     }
 
+    @Override
     public boolean isDone() {
         boolean res = false;
         try {
@@ -97,6 +100,7 @@ public class UFuture<V> {
         return res;
     }
 
+    @Override
     public V get(long timeout, TimeUnit unit) throws InterruptedException, TimeoutException, ExecutionException {
         TimeoutException te = null;
         InterruptedException ie = null;
@@ -136,6 +140,7 @@ public class UFuture<V> {
         return v;
     }
 
+    @Override
     public V get() throws InterruptedException, ExecutionException {
         InterruptedException ie = null;
         ExecutionException ee = null;
