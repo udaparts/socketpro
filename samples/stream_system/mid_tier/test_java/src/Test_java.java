@@ -44,5 +44,21 @@ public class Test_java {
         res = cache.In("main", "actor", 0, v, tbl);
         res = cache.NotIn("main", "actor", 0, v, tbl);
         res = 0;
+        CYourServer.CreateTestDB();
+        System.out.println("Starting middle tier server ......");
+        if (config.m_store_or_pfx.endsWith(".pfx")) {
+            //windows .pfx + password
+            server.UseSSL(config.m_store_or_pfx, "", config.m_password_or_subject);
+        } else if (config.m_key.endsWith(".pem")) {
+            server.UseSSL(config.m_cert, config.m_key, config.m_password_or_subject);
+        } else {
+            //load cert and private key from windows system cert store
+            server.UseSSL(config.m_store_or_pfx/*"my"*/, config.m_password_or_subject, "");
+        }
+        if (!server.Run(config.m_nPort, 32, !config.m_bNoIpV6)) {
+            System.out.println("Error happens with error message = " + SPA.ServerSide.CSocketProServer.getErrorMessage());
+        }
+        System.out.println("Press any key to shut down the application ......");
+        new java.util.Scanner(System.in).nextLine();
     }
 }

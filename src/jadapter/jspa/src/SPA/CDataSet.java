@@ -140,11 +140,12 @@ public class CDataSet {
                 if (key == INVALID_VALUE) {
                     return INVALID_VALUE;
                 }
+                Object v0 = tbl.ChangeType(vtKey, meta.get(key).DataType);
                 java.util.ArrayList<CDBVariantArray> vRow = tbl.m_vRow;
                 int rows = vRow.size();
                 for (int r = 0; r < rows; ++r) {
                     Object vtKey0 = vRow.get(r).get(key);
-                    if (tbl.eq(vtKey0, vtKey) > 0) {
+                    if (tbl.eq(vtKey0, v0) > 0) {
                         vRow.remove(r);
                         deleted = 1;
                         break;
@@ -155,22 +156,22 @@ public class CDataSet {
         return deleted;
     }
 
-    private int FindKeyColIndex(CDBColumnInfoArray meta, Integer key1) {
+    private int FindKeyColIndex(CDBColumnInfoArray meta, RefObject<Integer> key1) {
         int index = 0;
         int key0 = INVALID_VALUE;
-        key1 = INVALID_VALUE;
+        key1.Value = INVALID_VALUE;
         for (CDBColumnInfo col : meta) {
             if ((col.Flags & (CDBColumnInfo.FLAG_PRIMARY_KEY | CDBColumnInfo.FLAG_AUTOINCREMENT)) > 0) {
                 if (key0 == INVALID_VALUE) {
                     key0 = index;
                 } else {
-                    key1 = index;
+                    key1.Value = index;
                     break;
                 }
             }
             ++index;
         }
-        return INVALID_VALUE;
+        return key0;
     }
 
     public int DeleteARow(String dbName, String tblName, Object vtKey0, Object vtKey1) {
@@ -181,17 +182,19 @@ public class CDataSet {
                     continue;
                 }
                 CDBColumnInfoArray meta = tbl.getMeta();
-                Integer key1 = INVALID_VALUE;
+                RefObject<Integer> key1 = new RefObject<>(-1);
                 int key = FindKeyColIndex(meta, key1);
-                if (key == INVALID_VALUE || key1 == INVALID_VALUE) {
+                if (key == INVALID_VALUE || key1.Value == INVALID_VALUE) {
                     return INVALID_VALUE;
                 }
+                Object v0 = tbl.ChangeType(vtKey0, meta.get(key).DataType);
+                Object v1 = tbl.ChangeType(vtKey1, meta.get(key1.Value).DataType);
                 java.util.ArrayList<CDBVariantArray> vRow = tbl.m_vRow;
                 int rows = vRow.size();
                 for (int r = 0; r < rows; ++r) {
                     Object vtKey = vRow.get(r).get(key);
-                    Object vt2 = vRow.get(r).get(key1);
-                    if (tbl.eq(vtKey0, vtKey) > 0 && tbl.eq(vt2, vtKey1) > 0) {
+                    Object vt2 = vRow.get(r).get(key1.Value);
+                    if (tbl.eq(v0, vtKey) > 0 && tbl.eq(vt2, v1) > 0) {
                         vRow.remove(r);
                         deleted = 1;
                         break;
@@ -221,25 +224,21 @@ public class CDataSet {
     }
 
     private ArrayList<Object> FindARowInternal(CTable tbl, int ordinal, Object key) {
-        java.util.ArrayList<CDBVariantArray> vRow = tbl.m_vRow;
-        int rows = vRow.size();
-        for (int r = 0; r < rows; ++r) {
-            Object vtKey = vRow.get(r).get(ordinal);
+        for (CDBVariantArray r : tbl.m_vRow) {
+            Object vtKey = r.get(ordinal);
             if (tbl.eq(key, vtKey) > 0) {
-                return vRow.get(r);
+                return r;
             }
         }
         return null;
     }
 
     private ArrayList<Object> FindARowInternal(CTable tbl, int f0, int f1, Object key0, Object key1) {
-        java.util.ArrayList<CDBVariantArray> vRow = tbl.m_vRow;
-        int rows = vRow.size();
-        for (int r = 0; r < rows; ++r) {
-            Object vtKey = vRow.get(r).get(f0);
-            Object vtKey1 = vRow.get(r).get(f1);
+        for (CDBVariantArray r : tbl.m_vRow) {
+            Object vtKey = r.get(f0);
+            Object vtKey1 = r.get(f1);
             if (tbl.eq(key0, vtKey) > 0 && tbl.eq(key1, vtKey1) > 0) {
-                return vRow.get(r);
+                return r;
             }
         }
         return null;
@@ -265,14 +264,17 @@ public class CDataSet {
                     return INVALID_VALUE;
                 }
                 ArrayList<Object> row = null;
-                Integer key1 = 0;
+                RefObject<Integer> key1 = new RefObject<>(-1);
                 int key0 = FindKeyColIndex(meta, key1);
-                if (key0 == INVALID_VALUE && key1 == INVALID_VALUE) {
+                if (key0 == INVALID_VALUE && key1.Value == INVALID_VALUE) {
                     return INVALID_VALUE;
-                } else if (key1 == INVALID_VALUE) {
-                    row = FindARowInternal(tbl, key0, pvt.get(key0 * 2));
+                } else if (key1.Value == INVALID_VALUE) {
+                    Object v0 = tbl.ChangeType(pvt.get(key0 * 2), meta.get(key0).DataType);
+                    row = FindARowInternal(tbl, key0, v0);
                 } else {
-                    row = FindARowInternal(tbl, key0, key1, pvt.get(key0 * 2), pvt.get(key1 * 2));
+                    Object v0 = tbl.ChangeType(pvt.get(key0 * 2), meta.get(key0).DataType);
+                    Object v1 = tbl.ChangeType(pvt.get(key1.Value * 2), meta.get(key1.Value).DataType);
+                    row = FindARowInternal(tbl, key0, key1.Value, v0, v1);
                 }
                 if (row != null) {
                     for (int n = 0; n < col_count; ++n) {

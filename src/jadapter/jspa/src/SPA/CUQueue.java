@@ -551,10 +551,8 @@ public final class CUQueue {
 
     public final short LoadShort() {
         byte[] data = Load(2);
-        short s = data[1];
-        s <<= 8;
-        s += data[0];
-        return s;
+        return (short) ((0xff & data[1]) << 8
+                | (0xff & data[0]));
     }
 
     public final byte LoadByte() {
