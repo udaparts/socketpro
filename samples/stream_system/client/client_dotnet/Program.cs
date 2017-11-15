@@ -128,7 +128,7 @@ class Program
             CWebAsyncHandler.DRentalDateTimes rdt = (index, dates, res, errMsg) =>
             {
                 if (res != 0)
-                    Console.WriteLine("GetRentalDateTimes call index: {0}, error code: {1}, error message: ", index, res, errMsg);
+                    Console.WriteLine("GetRentalDateTimes call index: {0}, error code: {1}, error message: {2}", index, res, errMsg);
                 else if (dates.rental_id == 0)
                     Console.WriteLine("GetRentalDateTimes call index: {0} rental_id={1} not available", index, dates.rental_id);
                 else
