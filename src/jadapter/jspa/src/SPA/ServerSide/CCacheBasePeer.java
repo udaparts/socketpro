@@ -27,7 +27,6 @@ public abstract class CCacheBasePeer extends CClientPeer {
         public String errMsg = "";
     }
 
-    @RequestAttr(RequestID = CAsyncDBHandler.idGetCachedTables, SlowRequest = true) //true -- slow request
     protected abstract CachedTableResult GetCachedTables(String defaultDb, int flags, boolean rowset, long index);
 
     public boolean SendMeta(CDBColumnInfoArray meta, long index) {

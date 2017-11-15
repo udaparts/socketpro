@@ -172,6 +172,7 @@ public class CSocketProServer {
             if (fi.getType() != CSocketProService.class) {
                 continue;
             }
+            //This may not work for parent class!!!!
             ServiceAttr sa = (ServiceAttr) fi.getAnnotation(ServiceAttr.class);
             if (sa != null) {
                 Object obj;

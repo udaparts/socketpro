@@ -1,6 +1,5 @@
 
-import SPA.CUQueue;
-import SPA.IUSerializer;
+import SPA.*;
 import java.util.ArrayList;
 
 public class CLongArray extends ArrayList<Long> implements IUSerializer {

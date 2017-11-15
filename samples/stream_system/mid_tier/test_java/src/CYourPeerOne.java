@@ -1,10 +1,9 @@
 
 import SPA.*;
 import SPA.UDB.*;
-import java.util.concurrent.*;
 import SPA.ServerSide.*;
 import SPA.ClientSide.*;
-
+import java.util.concurrent.*;
 
 public class CYourPeerOne extends CCacheBasePeer {
 
@@ -225,6 +224,7 @@ public class CYourPeerOne extends CCacheBasePeer {
     }
 
     @Override
+    @RequestAttr(RequestID = CAsyncDBHandler.idGetCachedTables, SlowRequest = true) //true -- slow request
     protected CachedTableResult GetCachedTables(String defaultDb, int flags, boolean rowset, long index) {
         CachedTableResult res = this.new CachedTableResult();
         do {

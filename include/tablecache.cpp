@@ -147,7 +147,7 @@ namespace SPA
         for (size_t r = 0; r < rows; ++r) {
             CPRow prow = second[r];
             const VARIANT &v0 = prow->at(ordinal);
-			if (v0.vt > VT_NULL && !In(v, v0)) {
+            if (v0.vt > VT_NULL && !In(v, v0)) {
                 if (copyData) {
                     CPRow p(new CRow);
                     for (size_t n = 0; n < cols; ++n) {
@@ -603,7 +603,7 @@ namespace SPA
 
     bool CTable::In(const UDB::CDBVariantArray &v, const VARIANT & v0) const {
         for (auto it = v.cbegin(), end = v.cend(); it != end; ++it) {
-			if (eq(*it, v0) > 0)
+            if (eq(*it, v0) > 0)
                 return true;
         }
         return false;
@@ -862,10 +862,10 @@ namespace SPA
             size_t key = FindKeyColIndex(meta);
             if (key == INVALID_VALUE)
                 return INVALID_VALUE;
-			VARTYPE type = meta[key].DataType;
-			if (type == (VT_I1 | VT_ARRAY))
-				type = VT_BSTR; //Table string is always unicode string
-			UDB::CDBVariant vt = Convert(vtKey, type);
+            VARTYPE type = meta[key].DataType;
+            if (type == (VT_I1 | VT_ARRAY))
+                type = VT_BSTR; //Table string is always unicode string
+            UDB::CDBVariant vt = Convert(vtKey, type);
             auto &vRow = it->second;
             size_t rows = vRow.size();
             for (size_t r = 0; r < rows; ++r) {
@@ -899,20 +899,20 @@ namespace SPA
             if (key0 == INVALID_VALUE && key1 == INVALID_VALUE)
                 return INVALID_VALUE;
             else if (key1 == INVALID_VALUE) {
-				VARTYPE type = meta[key0].DataType;
-				if (type == (VT_I1 | VT_ARRAY))
-					type = VT_BSTR; //Table string is always unicode string
-				UDB::CDBVariant vt = Convert(pvt[key0 * 2], type);
+                VARTYPE type = meta[key0].DataType;
+                if (type == (VT_I1 | VT_ARRAY))
+                    type = VT_BSTR; //Table string is always unicode string
+                UDB::CDBVariant vt = Convert(pvt[key0 * 2], type);
                 row = FindARowInternal(*it, key0, vt);
             } else {
-				VARTYPE type = meta[key0].DataType;
-				if (type == (VT_I1 | VT_ARRAY))
-					type = VT_BSTR; //Table string is always unicode string
-				UDB::CDBVariant vt0 = Convert(pvt[key0 * 2], type);
-				type = meta[key1].DataType;
-				if (type == (VT_I1 | VT_ARRAY))
-					type = VT_BSTR; //Table string is always unicode string
-				UDB::CDBVariant vt1 = Convert(pvt[key1 * 2], type);
+                VARTYPE type = meta[key0].DataType;
+                if (type == (VT_I1 | VT_ARRAY))
+                    type = VT_BSTR; //Table string is always unicode string
+                UDB::CDBVariant vt0 = Convert(pvt[key0 * 2], type);
+                type = meta[key1].DataType;
+                if (type == (VT_I1 | VT_ARRAY))
+                    type = VT_BSTR; //Table string is always unicode string
+                UDB::CDBVariant vt1 = Convert(pvt[key1 * 2], type);
                 row = FindARowInternal(*it, key0, key1, vt0, vt1);
             }
             if (row) {
@@ -951,14 +951,14 @@ namespace SPA
             size_t key = FindKeyColIndex(meta, key1);
             if (key == INVALID_VALUE || key1 == INVALID_VALUE)
                 return INVALID_VALUE;
-			VARTYPE type = meta[key].DataType;
-			if (type == (VT_I1 | VT_ARRAY))
-				type = VT_BSTR; //Table string is always unicode string
-			UDB::CDBVariant vt0 = Convert(vtKey0, type);
-			type = meta[key1].DataType;
-			if (type == (VT_I1 | VT_ARRAY))
-				type = VT_BSTR; //Table string is always unicode string
-			UDB::CDBVariant vt1 = Convert(vtKey1, type);
+            VARTYPE type = meta[key].DataType;
+            if (type == (VT_I1 | VT_ARRAY))
+                type = VT_BSTR; //Table string is always unicode string
+            UDB::CDBVariant vt0 = Convert(vtKey0, type);
+            type = meta[key1].DataType;
+            if (type == (VT_I1 | VT_ARRAY))
+                type = VT_BSTR; //Table string is always unicode string
+            UDB::CDBVariant vt1 = Convert(vtKey1, type);
             auto &vRow = it->second;
             size_t rows = vRow.size();
             for (size_t r = 0; r < rows; ++r) {

@@ -1,7 +1,7 @@
 
-import java.util.*;
 import SPA.*;
 import SPA.UDB.*;
+import java.util.*;
 
 public class Test_java {
 
@@ -24,9 +24,9 @@ public class Test_java {
             System.out.println("There is no table cached");
         } else {
             System.out.println("Table cached:");
-            for (Pair<String, String> p : v0) {
+            v0.stream().forEach((p) -> {
                 System.out.format("DB name = %s, table name = %s%n", p.first, p.second);
-            }
+            });
             HashMap<Integer, CDBColumnInfo> keys = cache.FindKeys(v0.get(0).first, v0.get(0).second);
             keys.forEach((k, v) -> {
                 System.out.format("Key ordinal = %d, key column name = %s%n", k, v.DisplayName);

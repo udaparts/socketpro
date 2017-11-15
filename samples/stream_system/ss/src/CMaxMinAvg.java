@@ -1,6 +1,5 @@
 
-import SPA.CUQueue;
-import SPA.IUSerializer;
+import SPA.*;
 
 public class CMaxMinAvg implements IUSerializer {
 
