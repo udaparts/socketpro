@@ -42,6 +42,8 @@ public class CYourPeerOne extends CCacheBasePeer {
                 pmma.Avg = Double.parseDouble(vData.get(2).toString());
             }, (h) -> {
             }, true, true, () -> {
+                //socket closed after sending
+
                 //retry if front peer not closed yet
                 if (peer_handle == getHandle()) {
                     CUQueue sb0 = CScopeUQueue.Lock();
@@ -196,7 +198,6 @@ public class CYourPeerOne extends CCacheBasePeer {
                 //socket closed after sending
                 f.set(0);
             })) {
-
                 try {
                     int ret = f.get(20000, TimeUnit.MILLISECONDS);
                     if (ret > 0) {
