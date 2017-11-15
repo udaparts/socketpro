@@ -862,11 +862,15 @@ namespace SPA
             size_t key = FindKeyColIndex(meta);
             if (key == INVALID_VALUE)
                 return INVALID_VALUE;
+			VARTYPE type = meta[key].DataType;
+			if (type == (VT_I1 | VT_ARRAY))
+				type = VT_BSTR; //Table string is always unicode string
+			UDB::CDBVariant vt = Convert(vtKey, type);
             auto &vRow = it->second;
             size_t rows = vRow.size();
             for (size_t r = 0; r < rows; ++r) {
                 const UDB::CDBVariant &vtKey0 = vRow[r]->at(key);
-                if (it->eq(vtKey0, vtKey) > 0) {
+                if (it->eq(vtKey0, vt) > 0) {
                     vRow.erase(vRow.begin() + r);
                     deleted = 1;
                     break;
@@ -895,9 +899,21 @@ namespace SPA
             if (key0 == INVALID_VALUE && key1 == INVALID_VALUE)
                 return INVALID_VALUE;
             else if (key1 == INVALID_VALUE) {
-                row = FindARowInternal(*it, key0, pvt[key0 * 2]);
+				VARTYPE type = meta[key0].DataType;
+				if (type == (VT_I1 | VT_ARRAY))
+					type = VT_BSTR; //Table string is always unicode string
+				UDB::CDBVariant vt = Convert(pvt[key0 * 2], type);
+                row = FindARowInternal(*it, key0, vt);
             } else {
-                row = FindARowInternal(*it, key0, key1, pvt[key0 * 2], pvt[key1 * 2]);
+				VARTYPE type = meta[key0].DataType;
+				if (type == (VT_I1 | VT_ARRAY))
+					type = VT_BSTR; //Table string is always unicode string
+				UDB::CDBVariant vt0 = Convert(pvt[key0 * 2], type);
+				type = meta[key1].DataType;
+				if (type == (VT_I1 | VT_ARRAY))
+					type = VT_BSTR; //Table string is always unicode string
+				UDB::CDBVariant vt1 = Convert(pvt[key1 * 2], type);
+                row = FindARowInternal(*it, key0, key1, vt0, vt1);
             }
             if (row) {
                 for (unsigned int n = 0; n < col_count; ++n) {
@@ -935,12 +951,20 @@ namespace SPA
             size_t key = FindKeyColIndex(meta, key1);
             if (key == INVALID_VALUE || key1 == INVALID_VALUE)
                 return INVALID_VALUE;
+			VARTYPE type = meta[key].DataType;
+			if (type == (VT_I1 | VT_ARRAY))
+				type = VT_BSTR; //Table string is always unicode string
+			UDB::CDBVariant vt0 = Convert(vtKey0, type);
+			type = meta[key1].DataType;
+			if (type == (VT_I1 | VT_ARRAY))
+				type = VT_BSTR; //Table string is always unicode string
+			UDB::CDBVariant vt1 = Convert(vtKey1, type);
             auto &vRow = it->second;
             size_t rows = vRow.size();
             for (size_t r = 0; r < rows; ++r) {
                 const UDB::CDBVariant &vtKey = vRow[r]->at(key);
                 const UDB::CDBVariant &vt2 = vRow[r]->at(key1);
-                if (it->eq(vtKey, vtKey0) > 0 && it->eq(vt2, vtKey1) > 0) {
+                if (it->eq(vtKey, vt0) > 0 && it->eq(vt2, vt1) > 0) {
                     vRow.erase(vRow.begin() + r);
                     deleted = 1;
                     break;
