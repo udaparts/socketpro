@@ -19,7 +19,7 @@ public class Test_java {
     static void InsertBLOBByPreparedStatement(CMysql mysql, CMysql.DResult dr, CMysql.DExecuteResult er) {
         String wstr = "";
         while (wstr.length() < 128 * 1024) {
-            wstr += "广告做得不那么夸张的就不说了，看看这三家，都是正儿八经的公立三甲，附属医院，不是武警，也不是部队，更不是莆田，都在卫生部门直接监管下，照样明目张胆地骗人。";
+            wstr += "广告�?�得�?那么夸张的就�?说了，看看这三家，都是正儿八�?的公立三甲，附属医院，�?是武警，也�?是部队，更�?是莆田，都在�?�生部门直接监管下，照样明目张胆地骗人。";
         }
         String str = "";
         while (str.length() < 256 * 1024) {
@@ -93,7 +93,8 @@ public class Test_java {
     public static void main(String[] args) {
         CConnectionContext cc = new CConnectionContext();
         System.out.println("Remote host: ");
-        cc.Host = new java.util.Scanner(System.in).next();
+        java.util.Scanner in = new java.util.Scanner(System.in);
+        cc.Host = in.nextLine();
         cc.Port = 20902;
         cc.UserId = "root";
         cc.Password = "Smash123";
@@ -103,7 +104,7 @@ public class Test_java {
         CMysql mysql = spMysql.getAsyncHandlers()[0];
         if (!ok) {
             System.out.println("No connection error code = " + mysql.getAttachedClientSocket().getErrorCode());
-            new java.util.Scanner(System.in).nextLine();
+            in.nextLine();
             return;
         }
         CMysql.DResult dr = new CMysql.DResult() {
@@ -174,7 +175,7 @@ public class Test_java {
         System.out.println("+++++ End rowsets +++");
         System.out.println();
         System.out.println("Press any key to close the application ......");
-        new java.util.Scanner(System.in).nextLine();
+        in.nextLine();
     }
 
     static void TestStoredProcedure(CMysql mysql, CMysql.DResult dr, CMysql.DExecuteResult er, final java.util.ArrayList<Pair<CDBColumnInfoArray, CDBVariantArray>> ra, CDBVariantArray vPData) {

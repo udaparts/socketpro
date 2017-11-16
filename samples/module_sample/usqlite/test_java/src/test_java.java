@@ -8,7 +8,8 @@ public class test_java {
     public static void main(String[] args) {
         CConnectionContext cc = new CConnectionContext();
         System.out.println("Remote host: ");
-        cc.Host = new java.util.Scanner(System.in).next();
+        java.util.Scanner in = new java.util.Scanner(System.in);
+        cc.Host = in.nextLine();
         cc.Port = 20901;
         cc.UserId = "usqlite_client_java";
         cc.Password = "pwd_for_usqlite";
@@ -18,7 +19,7 @@ public class test_java {
         CSqlite sqlite = spSqlite.getAsyncHandlers()[0];
         if (!ok) {
             System.out.println("No connection error code = " + sqlite.getAttachedClientSocket().getErrorCode());
-            new java.util.Scanner(System.in).nextLine();
+            in.nextLine();
             return;
         }
         ok = sqlite.Open("", new CSqlite.DResult() {
@@ -52,7 +53,7 @@ public class test_java {
         System.out.println("+++++ End rowsets +++");
         System.out.println();
         System.out.println("Press any key to close the application ......");
-        new java.util.Scanner(System.in).nextLine();
+        in.nextLine();
     }
 
     static void TestPreparedStatements(CSqlite sqlite, final java.util.ArrayList<Pair<CDBColumnInfoArray, CDBVariantArray>> ra) {

@@ -94,7 +94,8 @@ public class Test_java {
     public static void main(String[] args) {
         CConnectionContext cc = new CConnectionContext();
         System.out.println("Remote host: ");
-        cc.Host = new java.util.Scanner(System.in).next();
+        java.util.Scanner in = new java.util.Scanner(System.in);
+        cc.Host = in.nextLine();
         cc.Port = 20901;
         cc.UserId = "uodbc_client_java";
         cc.Password = "pwd_for_uodbc";
@@ -104,7 +105,7 @@ public class Test_java {
         COdbc odbc = spOdbc.getAsyncHandlers()[0];
         if (!ok) {
             System.out.println("No connection error code = " + odbc.getAttachedClientSocket().getErrorCode());
-            new java.util.Scanner(System.in).nextLine();
+            in.nextLine();
             return;
         }
         COdbc.DResult dr = new COdbc.DResult() {
@@ -194,7 +195,7 @@ public class Test_java {
         System.out.println("+++++ End rowsets +++");
         System.out.println();
         System.out.println("Press any key to close the application ......");
-        new java.util.Scanner(System.in).nextLine();
+        in.nextLine();
     }
 
     static void TestStoredProcedure(COdbc odbc, COdbc.DResult dr, COdbc.DExecuteResult er, final java.util.ArrayList<Pair<CDBColumnInfoArray, CDBVariantArray>> ra, CDBVariantArray vPData) {

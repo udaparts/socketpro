@@ -13,7 +13,8 @@ public class Program {
     public static void main(String[] args) {
        CConnectionContext cc = new CConnectionContext();
         System.out.println("Remote host: ");
-        cc.Host = new java.util.Scanner(System.in).next();
+        java.util.Scanner in = new java.util.Scanner(System.in);
+        cc.Host = in.nextLine();
         cc.Port = 20901;
         cc.UserId = "async_queue_client_java";
         cc.Password = "pwd_for_async_queue";
@@ -23,7 +24,7 @@ public class Program {
         CAsyncQueue aq = spAq.getAsyncHandlers()[0];
         if (!ok) {
             System.out.println("No connection error code = " + aq.getAttachedClientSocket().getErrorCode());
-            new java.util.Scanner(System.in).nextLine();
+            in.nextLine();
             return;
         }
 
@@ -31,7 +32,7 @@ public class Program {
         TestDequeue(aq);
         
         System.out.println("Press a key to complete dequeuing messages from server ......");
-        new java.util.Scanner(System.in).nextLine();
+        in.nextLine();
     }
     
     private static boolean TestEnqueue(CAsyncQueue aq) {

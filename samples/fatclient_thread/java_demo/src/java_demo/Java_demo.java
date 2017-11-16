@@ -270,7 +270,8 @@ public class Java_demo {
     public static void main(String[] args) {
         CConnectionContext cc = new CConnectionContext();
         System.out.println("Remote host: ");
-        cc.Host = new java.util.Scanner(System.in).next();
+        java.util.Scanner in = new java.util.Scanner(System.in);
+        cc.Host = in.nextLine();
         cc.Port = 20901;
         cc.UserId = "usqlite_client_java";
         cc.Password = "pwd_for_usqlite";
@@ -280,7 +281,7 @@ public class Java_demo {
         boolean ok = spSqlite.StartSocketPool(cc, 2, 1);
         if (!ok) {
             System.out.println("No connection to sqlite server and press any key to close the demo ......");
-            new java.util.Scanner(System.in).nextLine();
+            in.nextLine();
             return;
         }
         CSqlite sqlite = spSqlite.getAsyncHandlers()[0];
@@ -379,6 +380,6 @@ public class Java_demo {
         System.out.println("");
 
         System.out.println("Press any key to close the application ......");
-        new java.util.Scanner(System.in).nextLine();
+        in.nextLine();
     }
 }

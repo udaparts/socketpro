@@ -6,11 +6,12 @@ import java.util.*;
 public class Test_java {
 
     public static void main(String[] args) {
+        java.util.Scanner in = new java.util.Scanner(System.in);
         //load settings from some configuration file
         CConfig config = CConfig.getConfig();
         if (config.m_vccSlave.isEmpty() || config.m_nMasterSessions == 0 || config.m_nSlaveSessions == 0) {
             System.out.println("Wrong settings for remote MySQL master and slave servers, and press any key to stop the server ......");
-            new java.util.Scanner(System.in).nextLine();
+            in.nextLine();
             return;
         }
         CYourServer server = new CYourServer(config.m_main_threads);
@@ -59,6 +60,6 @@ public class Test_java {
             System.out.println("Error happens with error message = " + SPA.ServerSide.CSocketProServer.getErrorMessage());
         }
         System.out.println("Press any key to shut down the application ......");
-        new java.util.Scanner(System.in).nextLine();
+        in.nextLine();
     }
 }
