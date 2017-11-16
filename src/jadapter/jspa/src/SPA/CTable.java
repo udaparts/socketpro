@@ -163,8 +163,15 @@ public class CTable {
         if (ordinal < 0 || ordinal >= m_meta.size()) {
             return BAD_ORDINAL;
         }
-        CComparator comp = new CComparator(desc ? Operator.less : Operator.great, ordinal, this);
-        java.util.Collections.sort(m_vRow, comp);
+        for (CDBVariantArray r : m_vRow) {
+            r.CaseSenstive = this.m_bDataCaseSensitive;
+            r.Ordinal = ordinal;
+        }
+        if (desc) {
+            java.util.Collections.sort(m_vRow, java.util.Collections.reverseOrder());
+        } else {
+            java.util.Collections.sort(m_vRow);
+        }
         return 1;
     }
 

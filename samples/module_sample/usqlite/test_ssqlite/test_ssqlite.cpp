@@ -14,7 +14,7 @@ protected:
         m_h = SPA::ServerSide::CSocketProServer::DllManager::AddALibrary("ssqlite");
         if (m_h) {
             PSetSqliteDBGlobalConnectionString SetSqliteDBGlobalConnectionString = (PSetSqliteDBGlobalConnectionString) GetProcAddress(m_h, "SetSqliteDBGlobalConnectionString");
-            SetSqliteDBGlobalConnectionString(L"usqlite.db+sakila.db.actor;sakila.db.language;sakila.db.category;sakila.db.country;sakila.db.film_actor");
+            SetSqliteDBGlobalConnectionString(L"usqlite.db+sakila.db.actor;sakila.db.language;sakila.db.category;sakila.db.country;sakila.db.film_actor;sakila.db.mynulls");
         }
         return true;
     }
