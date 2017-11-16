@@ -8,9 +8,10 @@ public class Client_java {
 
     public static void main(String[] args) {
         System.out.println("Remote host: ");
-        String host = new java.util.Scanner(System.in).next();
+        java.util.Scanner in = new java.util.Scanner(System.in);
+        String host = in.nextLine();
         System.out.println("Sakila.payment filter: ");
-        String filter = new java.util.Scanner(System.in).next();
+        String filter = in.nextLine();
         CConnectionContext cc = new CConnectionContext(host, 20911, "SomeUserId", "A_Password_For_SomeUserId", tagEncryptionMethod.TLSv1);
         //CA file is located at the directory ../socketpro/bin
         CClientSocket.SSL.SetVerifyLocation("ca.cert.pem");
@@ -24,7 +25,7 @@ public class Client_java {
         boolean ok = master.StartSocketPool(cc, 4, 1);
         if (!ok) {
             System.out.println("Failed in connecting to remote middle tier server, and press any key to close the application ......");
-            new java.util.Scanner(System.in).nextLine();
+            in.nextLine();
             return;
         }
         CDataSet cache = master.getCache(); //accessing real-time update cache
@@ -73,7 +74,7 @@ public class Client_java {
             System.out.println("Socket already closed before sending request");
         }
         System.out.println("Press a key to test random returning ......");
-        new java.util.Scanner(System.in).nextLine();
+        in.nextLine();
         CMaxMinAvg sum_mma = new CMaxMinAvg();
         long start = System.currentTimeMillis();
         RefObject<Integer> returned = new RefObject<>(0);
@@ -95,23 +96,23 @@ public class Client_java {
                 returned.Value += 1;
             });
         }
-        for (CWebAsyncHandler h : master.getAsyncHandlers()) {
+        CWebAsyncHandler[] v = master.getAsyncHandlers();
+        for (CWebAsyncHandler h : v) {
             h.WaitAll();
         }
         System.out.format("Time required: %d milliseconds for %d requests%n", System.currentTimeMillis() - start, returned.Value);
         System.out.format("QueryPaymentMaxMinAvgs sum_max: %f, sum_min: %f, sum_avg: %f%n", sum_mma.Max, sum_mma.Min, sum_mma.Avg);
         System.out.println("Press a key to test sequence returning ......");
-        new java.util.Scanner(System.in).nextLine();
+        in.nextLine();
         CWebAsyncHandler.DRentalDateTimes rdt = (index, dates, res, errMsg) -> {
             if (res != 0) {
                 System.out.format("GetRentalDateTimes call index: %d, error code: %d, error message: %s%n", index, res, errMsg);
             } else if (dates.rental_id == 0) {
                 System.out.format("GetRentalDateTimes call index: %d rental_id=%d not available%n", index, dates.rental_id);
             } else {
-                System.out.format("GetRentalDateTimes call index: %d rental_id=%d and dates (%tB, %tB, %tB)%n", index, dates.rental_id, dates.Rental, dates.Return, dates.LastUpdate);
+                System.out.format("GetRentalDateTimes call index: %d rental_id=%d and dates (%s, %s, %s)%n", index, dates.rental_id, dates.Rental.toString(), dates.Return.toString(), dates.LastUpdate.toString());
             }
         };
-
         handler = master.Seek();
         if (handler != null) {
             for (int n = 0; n < 1000; ++n) {
@@ -122,6 +123,6 @@ public class Client_java {
             handler.WaitAll();
         }
         System.out.println("Press a key to shutdown the demo application ......");
-        new java.util.Scanner(System.in).nextLine();
+        in.nextLine();
     }
 }

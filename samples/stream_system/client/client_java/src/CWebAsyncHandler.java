@@ -187,10 +187,10 @@ public class CWebAsyncHandler extends CCachedBaseHandler {
         CUQueue q = CScopeUQueue.Lock();
         CAsyncServiceHandler.DAsyncResultHandler arh = (ar) -> {
             long index = ar.LoadLong();
-            int res = ar.LoadInt();
-            String errMsg = ar.LoadString();
             CRentalDateTimes dates = new CRentalDateTimes();
             dates.LoadFrom(ar.getUQueue());
+            int res = ar.LoadInt();
+            String errMsg = ar.LoadString();
             Pair<DRentalDateTimes, DMyCanceled> p;
             synchronized (m_csCache) {
                 p = m_mapRentalDateTimes.remove(index);
