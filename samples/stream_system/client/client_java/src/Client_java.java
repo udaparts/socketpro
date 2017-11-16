@@ -78,13 +78,9 @@ public class Client_java {
         CMaxMinAvg sum_mma = new CMaxMinAvg();
         long start = System.currentTimeMillis();
         RefObject<Integer> returned = new RefObject<>(0);
+        handler = master.Seek(); //find a handler from a pool of sockets
         for (int n = 0; n < 10000; ++n) {
-            handler = master.Seek(); //find a handler from a pool of sockets
-            if (handler == null) {
-                System.out.println("All sockets already closed");
-                break;
-            }
-            handler.QueryPaymentMaxMinAvgs(filter, (index, mma, res, errMsg) -> {
+            if (handler.QueryPaymentMaxMinAvgs(filter, (index, mma, res, errMsg) -> {
                 if (res != 0) {
                     System.out.format("QueryPaymentMaxMinAvgs call index: %d, error code: %d, error message: %s%n", index, res, errMsg);
                 } else {
@@ -94,12 +90,11 @@ public class Client_java {
                     //System.out.println("QueryPaymentMaxMinAvgs call index = " + index);
                 }
                 returned.Value += 1;
-            });
+            }) == 0) {
+                break;
+            }
         }
-        CWebAsyncHandler[] v = master.getAsyncHandlers();
-        for (CWebAsyncHandler h : v) {
-            h.WaitAll();
-        }
+        handler.WaitAll();
         System.out.format("Time required: %d milliseconds for %d requests%n", System.currentTimeMillis() - start, returned.Value);
         System.out.format("QueryPaymentMaxMinAvgs sum_max: %f, sum_min: %f, sum_avg: %f%n", sum_mma.Max, sum_mma.Min, sum_mma.Avg);
         System.out.println("Press a key to test sequence returning ......");
@@ -114,14 +109,12 @@ public class Client_java {
             }
         };
         handler = master.Seek();
-        if (handler != null) {
-            for (int n = 0; n < 1000; ++n) {
-                if (handler.GetRentalDateTimes(n + 1, rdt) == 0) {
-                    break;
-                }
+        for (int n = 0; n < 1000; ++n) {
+            if (handler.GetRentalDateTimes(n + 1, rdt) == 0) {
+                break;
             }
-            handler.WaitAll();
         }
+        handler.WaitAll();
         System.out.println("Press a key to shutdown the demo application ......");
         in.nextLine();
     }

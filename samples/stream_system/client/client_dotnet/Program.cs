@@ -93,14 +93,9 @@ class Program
             ss.CMaxMinAvg sum_mma = new ss.CMaxMinAvg();
             DateTime start = DateTime.Now;
             uint returned = 0;
+            handler = master.Seek(); //find a handler from a pool of sockets
             for (uint n = 0; n < 10000; ++n)
             {
-                handler = master.Seek(); //find a handler from a pool of sockets
-                if (handler == null)
-                {
-                    Console.WriteLine("All sockets already closed");
-                    break;
-                }
                 call_index = handler.QueryPaymentMaxMinAvgs(filter, (index, mma, res, errMsg) =>
                 {
                     if (res != 0)
@@ -115,10 +110,7 @@ class Program
                     ++returned;
                 });
             }
-            foreach (CWebAsyncHandler h in master.AsyncHandlers)
-            {
-                ok = h.WaitAll();
-            }
+            ok = handler.WaitAll();
             Console.WriteLine("Time required: {0} seconds for {1} requests", (DateTime.Now - start).TotalSeconds, returned);
             Console.WriteLine("QueryPaymentMaxMinAvgs sum_max: {0}, sum_min: {1}, sum_avg: {2}", sum_mma.Max, sum_mma.Min, sum_mma.Avg);
 
@@ -135,14 +127,11 @@ class Program
                     Console.WriteLine("GetRentalDateTimes call index: {0} rental_id={1} and dates ({2}, {3}, {4})", index, dates.rental_id, dates.Rental, dates.Return, dates.LastUpdate);
             };
             handler = master.Seek();
-            if (handler != null)
+            for (int n = 0; n < 1000; ++n)
             {
-                for (int n = 0; n < 1000; ++n)
-                {
-                    call_index = handler.GetRentalDateTimes(n + 1, rdt);
-                }
-                handler.WaitAll();
+                call_index = handler.GetRentalDateTimes(n + 1, rdt);
             }
+            handler.WaitAll();
             Console.WriteLine("Press a key to shutdown the demo application ......");
             Console.ReadLine();
         }
