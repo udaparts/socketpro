@@ -71,40 +71,6 @@ public class CTable {
         m_bDataCaseSensitive = bDataCaseSensitive;
     }
 
-    class CComparator implements java.util.Comparator<CDBVariantArray> {
-
-        private final int m_ordinal;
-        private final CTable m_table;
-        private final Operator m_op;
-
-        public CComparator(Operator op, int ordinal, CTable table) {
-            m_op = op;
-            m_ordinal = ordinal;
-            m_table = table;
-        }
-
-        @Override
-        public int compare(CDBVariantArray v0, CDBVariantArray v1) {
-            Object vt0 = v0.get(m_ordinal);
-            Object vt1 = v1.get(m_ordinal);
-            switch (m_op) {
-                case equal:
-                    return m_table.eq(vt0, vt1);
-                case great:
-                    return m_table.gt(vt0, vt1);
-                case less:
-                    return m_table.lt(vt0, vt1);
-                case great_equal:
-                    return m_table.ge(vt0, vt1);
-                case less_equal:
-                    return m_table.le(vt0, vt1);
-                default:
-                    break;
-            }
-            return 0;
-        }
-    }
-
     public CDBColumnInfoArray getMeta() {
         return m_meta;
     }

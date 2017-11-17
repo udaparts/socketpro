@@ -115,10 +115,8 @@ int main(int argc, char* argv[]) {
 
 	std::cout << "Press a key to test random returning ......" << std::endl;
 	::getchar();
-	//we don't care sequence
 	CMaxMinAvg sum_mma;
 	::memset(&sum_mma, 0, sizeof(sum_mma));
-	handler = master.Seek(); //find a handler from a pool of sockets
 	auto start = std::chrono::system_clock::now();
 	for (unsigned int n = 0; n < 10000; ++n) {
 		call_index = handler->QueryPaymentMaxMinAvgs(filter.c_str(), [&sum_mma](SPA::UINT64 index, const CMaxMinAvg & mma, int res, const std::wstring & errMsg) {
@@ -157,8 +155,7 @@ int main(int argc, char* argv[]) {
 			std::cout << "GetRentalDateTimes call index: " << index << " rental_id=" << dates.rental_id << " and dates (" << rental_date.ToDBString() << ", " << return_date.ToDBString() << ", " << laste_update.ToDBString() << ")" << std::endl;
 		}
 	};
-	//lock one session, and all requests should be returned in sequence
-	handler = master.Seek();
+	//all requests should be returned in sequence
 	for (unsigned int n = 0; n < 1000; ++n) {
 		call_index = handler->GetRentalDateTimes(n + 1, rdt);
 	}

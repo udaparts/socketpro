@@ -78,7 +78,6 @@ public class Client_java {
         CMaxMinAvg sum_mma = new CMaxMinAvg();
         long start = System.currentTimeMillis();
         RefObject<Integer> returned = new RefObject<>(0);
-        handler = master.Seek(); //find a handler from a pool of sockets
         for (int n = 0; n < 10000; ++n) {
             if (handler.QueryPaymentMaxMinAvgs(filter, (index, mma, res, errMsg) -> {
                 if (res != 0) {
@@ -108,7 +107,6 @@ public class Client_java {
                 System.out.format("GetRentalDateTimes call index: %d rental_id=%d and dates (%s, %s, %s)%n", index, dates.rental_id, dates.Rental.toString(), dates.Return.toString(), dates.LastUpdate.toString());
             }
         };
-        handler = master.Seek();
         for (int n = 0; n < 1000; ++n) {
             if (handler.GetRentalDateTimes(n + 1, rdt) == 0) {
                 break;

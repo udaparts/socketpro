@@ -73,8 +73,6 @@ int main(int argc, char* argv[]) {
         std::cout << "There are " << table.GetDataMatrix().size() << " records between 2000-07-01 and 2017-01-1" << std::endl;
         std::cout << std::endl;
     }
-
-
 #endif
 
     CYourServer::CreateTestDB();

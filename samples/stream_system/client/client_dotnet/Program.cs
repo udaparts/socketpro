@@ -38,7 +38,6 @@ class Program
             }
 
             CDataSet cache = CMaster.Cache; //accessing real-time update cache
-
             CWebAsyncHandler handler = master.Seek();
             ulong call_index = handler.GetMasterSlaveConnectedSessions((index, m, s) =>
             {
@@ -88,12 +87,12 @@ class Program
             }
             else
                 Console.WriteLine("Socket already closed before sending request");
+
             Console.WriteLine("Press a key to test random returning ......");
             Console.ReadLine();
             ss.CMaxMinAvg sum_mma = new ss.CMaxMinAvg();
             DateTime start = DateTime.Now;
             uint returned = 0;
-            handler = master.Seek(); //find a handler from a pool of sockets
             for (uint n = 0; n < 10000; ++n)
             {
                 call_index = handler.QueryPaymentMaxMinAvgs(filter, (index, mma, res, errMsg) =>
@@ -116,7 +115,6 @@ class Program
 
             Console.WriteLine("Press a key to test sequence returning ......");
             Console.ReadLine();
-
             CWebAsyncHandler.DRentalDateTimes rdt = (index, dates, res, errMsg) =>
             {
                 if (res != 0)
@@ -126,7 +124,6 @@ class Program
                 else
                     Console.WriteLine("GetRentalDateTimes call index: {0} rental_id={1} and dates ({2}, {3}, {4})", index, dates.rental_id, dates.Rental, dates.Return, dates.LastUpdate);
             };
-            handler = master.Seek();
             for (int n = 0; n < 1000; ++n)
             {
                 call_index = handler.GetRentalDateTimes(n + 1, rdt);

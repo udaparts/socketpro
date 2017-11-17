@@ -884,7 +884,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * request is NOT successfully sent or queued
      */
     public boolean Execute(String sql, DExecuteResult handler, DRows row, DRowsetHeader rh, boolean meta, boolean lastInsertId, DCanceled canceled) {
-        boolean rowset = (rh != null) ? true : false;
+        boolean rowset = (rh != null);
         if (!rowset) {
             meta = false;
         }
@@ -1054,7 +1054,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * request is NOT successfully sent or queued
      */
     public boolean Execute(CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh, boolean meta, boolean lastInsertId, DCanceled canceled) {
-        boolean rowset = (rh != null) ? true : false;
+        boolean rowset = (rh != null);
         if (!rowset) {
             meta = false;
         }
