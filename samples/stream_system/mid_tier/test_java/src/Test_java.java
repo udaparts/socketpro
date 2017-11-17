@@ -37,10 +37,7 @@ public class Test_java {
         CTable tbl = new CTable();
         int res = cache.Find("main", "actor", 0, CTable.Operator.less, 12, tbl);
         res = cache.Between("main", "actor", 0, 1, 12, tbl);
-        res = cache.Find("main", "mynulls", 0, CTable.Operator.great, -1, tbl);
-        tbl.Sort(1, true);
-        tbl.Sort(1, false);
-
+        
         CDBVariantArray v = new CDBVariantArray();
         v.add(1);
         v.add(10);

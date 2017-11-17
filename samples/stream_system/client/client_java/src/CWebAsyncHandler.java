@@ -28,8 +28,7 @@ public class CWebAsyncHandler extends CCachedBaseHandler {
             long index = ar.LoadLong();
             int res = ar.LoadInt();
             String errMsg = ar.LoadString();
-            CMaxMinAvg m_m_a = new CMaxMinAvg();
-            m_m_a.LoadFrom(ar.getUQueue());
+            CMaxMinAvg m_m_a = ar.Load(CMaxMinAvg.class);
             Pair<DMaxMinAvg, DMyCanceled> p;
             synchronized (m_csCache) {
                 p = m_mapMMA.remove(index);
@@ -135,8 +134,7 @@ public class CWebAsyncHandler extends CCachedBaseHandler {
             long index = ar.LoadLong();
             int res = ar.LoadInt();
             String errMsg = ar.LoadString();
-            CLongArray vId = new CLongArray();
-            vId.LoadFrom(ar.getUQueue());
+            CLongArray vId = ar.Load(CLongArray.class);
             Pair<DUploadEmployees, DMyCanceled> p;
             synchronized (m_csCache) {
                 p = m_mapUpload.remove(index);
@@ -187,8 +185,7 @@ public class CWebAsyncHandler extends CCachedBaseHandler {
         CUQueue q = CScopeUQueue.Lock();
         CAsyncServiceHandler.DAsyncResultHandler arh = (ar) -> {
             long index = ar.LoadLong();
-            CRentalDateTimes dates = new CRentalDateTimes();
-            dates.LoadFrom(ar.getUQueue());
+            CRentalDateTimes dates = ar.Load(CRentalDateTimes.class);
             int res = ar.LoadInt();
             String errMsg = ar.LoadString();
             Pair<DRentalDateTimes, DMyCanceled> p;
