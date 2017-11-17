@@ -1,6 +1,6 @@
 
 import threading
-from spa.memqueue import CUQueue
+from spa.memqueue import CUQueue, CScopeUQueue
 from spa.udb import *
 from spa.clientside import *
 import collections

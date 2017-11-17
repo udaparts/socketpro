@@ -1,7 +1,7 @@
 
 import threading
 from spa.clientside.ccoreloader import CCoreLoader as ccl
-from spa import classproperty
+from spa import classproperty, CScopeUQueue
 from spa.memqueue import CUQueue
 from spa.clientside import tagSocketPoolEvent, BaseServiceID, tagEncryptionMethod, tagSocketOption, tagSocketLevel, tagConnectionState, tagOperationSystem, tagThreadApartment
 from spa.clientside.conncontext import CConnectionContext
@@ -140,7 +140,10 @@ class CSocketPool(object):
     def _spe_(self, poolId, spe, h): #h -- usocket handle
         #print "Pool id = " + str(poolId) + ", spe = " + str(spe) + ", usocket handle = " + str(h)
         handler = self._MapToHandler_(h)
-        if spe == tagSocketPoolEvent.speStarted:
+        if spe == tagSocketPoolEvent.speTimer:
+            if CScopeUQueue.MemoryConsumed() / 1024 > CScopeUQueue.SHARED_BUFFER_CLEAN_SIZE:
+                CScopeUQueue.DestroyUQueuePool()
+        elif spe == tagSocketPoolEvent.speStarted:
             with self._lock_:
                 self._PoolId_ = poolId
         elif spe == tagSocketPoolEvent.speShutdown:

@@ -2236,6 +2236,11 @@ namespace SPA {
 			static void CALLBACK SPE(unsigned int poolId, SPA::ClientSide::tagSocketPoolEvent spe, USocket_Client_Handle h) {
 				CSocketPool *sp = Seek(poolId);
 				switch (spe) {
+				case speTimer:
+					if ((CScopeUQueue::GetMemoryConsumed() / 1024) > SHARED_BUFFER_CLEAN_SIZE) {
+						CScopeUQueue::DestroyUQueuePool();
+					}
+					break;
 				case speShutdown:
 					if (sp) {
 						CAutoLock al(sp->m_cs);

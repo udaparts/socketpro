@@ -12,43 +12,67 @@ namespace SocketProAdapter
 
         public static void DestroyUQueuePool()
         {
-#if TASKS_ENABLED
-            CUQueue UQueue;
-            if (m_sQueue.TryPop(out UQueue))
-            {
-                UQueue.Empty();
-            }
-#else
             lock (m_cs)
             {
                 while (m_sQueue.Count > 0)
                 {
-                    m_sQueue.Pop().Empty();
+                    m_sQueue.RemoveFromBack().Empty();
                 }
             }
-#endif
         }
 
         public static CUQueue Lock(tagOperationSystem os)
         {
-#if TASKS_ENABLED
-            CUQueue UQueue;
-            if (!m_sQueue.TryPop(out UQueue))
-                UQueue = new CUQueue();
-#else
             CUQueue UQueue = null;
             lock (m_cs)
             {
                 if (m_sQueue.Count > 0)
                 {
-                    UQueue = m_sQueue.Pop();
+                    UQueue = m_sQueue.RemoveFromBack();
                 }
             }
             if (UQueue == null)
                 UQueue = new CUQueue();
-#endif
             UQueue.OS = os;
             return UQueue;
+        }
+
+        private static uint m_cleanSize = 32 * 1024;
+
+        public static uint SHARED_BUFFER_CLEAN_SIZE
+        {
+            get
+            {
+                lock (m_cs)
+                {
+                    return m_cleanSize;
+                }
+            }
+            set
+            {
+                lock (m_cs)
+                {
+                    if (value < 512)
+                        value = 512;
+                    m_cleanSize = value;
+                }
+            }
+        }
+
+        public static ulong MemoryConsumed
+        {
+            get
+            {
+                ulong mem = 0;
+                lock (m_cs)
+                {
+                    foreach (CUQueue q in m_sQueue)
+                    {
+                        mem += q.MaxBufferSize;
+                    }
+                }
+                return mem;
+            }
         }
 
         public static CUQueue Lock()
@@ -61,14 +85,10 @@ namespace SocketProAdapter
             if (UQueue != null)
             {
                 UQueue.SetSize(0);
-#if TASKS_ENABLED
-                m_sQueue.Push(UQueue);
-#else
                 lock (m_cs)
                 {
-                    m_sQueue.Push(UQueue);
+                    m_sQueue.AddToBack(UQueue);
                 }
-#endif
             }
         }
 
@@ -118,12 +138,8 @@ namespace SocketProAdapter
         }
 
         private CUQueue m_UQueue;
-#if TASKS_ENABLED
-        private static System.Collections.Concurrent.ConcurrentStack<CUQueue> m_sQueue = new System.Collections.Concurrent.ConcurrentStack<CUQueue>();
-#else
-        private static Stack<CUQueue> m_sQueue = new Stack<CUQueue>();
+        private static Deque<CUQueue> m_sQueue = new Deque<CUQueue>();
         private static object m_cs = new object();
-#endif
         #region IDisposable Members
         void IDisposable.Dispose()
         {

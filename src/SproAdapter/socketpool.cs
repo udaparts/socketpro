@@ -728,7 +728,8 @@ namespace SocketProAdapter
                 switch (spe)
                 {
                     case tagSocketPoolEvent.speTimer:
-                        //Console.WriteLine("Timer running = " + poolId + ", thread id = " + System.Threading.Thread.CurrentThread.ManagedThreadId);
+                        if (CScopeUQueue.MemoryConsumed / 1024 > CScopeUQueue.SHARED_BUFFER_CLEAN_SIZE)
+                            CScopeUQueue.DestroyUQueuePool();
                         break;
                     case tagSocketPoolEvent.speStarted:
                         lock (m_cs)

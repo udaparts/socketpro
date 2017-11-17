@@ -169,7 +169,7 @@ public final class CUQueue {
         return Save((boolean) b);
     }
 
-    public final CUQueue Save(IUSerializer s) {
+    public final <T extends IUSerializer> CUQueue Save(T s) {
         s.SaveTo(this);
         return this;
     }

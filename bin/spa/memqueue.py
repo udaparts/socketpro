@@ -5,6 +5,7 @@ from decimal import localcontext
 from spa import tagOperationSystem, tagVariantDataType, IUSerializer
 import datetime
 import threading
+from collections import deque
 
 class UDateTime(object):
     _MICRO_SECONDS = 0xfffff; # 20bits
@@ -103,6 +104,11 @@ class CUQueue(object):
 
     def __exit__(self, type, value, traceback):
         self._m_bytes_ = bytearray()
+
+    def Empty(self):
+        self._m_position_ = 0
+        self._m_len_ = 0
+        self._m_bytes_ = bytearray(1)
 
     @property
     def OS(self):
@@ -802,7 +808,18 @@ class CUQueue(object):
 
 class CScopeUQueue:
     _cs = threading.Lock()
-    _vQueue = []
+    _vQueue = deque()
+    SHARED_BUFFER_CLEAN_SIZE = 32 * 1024
+
+    @staticmethod
+    def MemoryConsumed():
+        mem = 0;
+        with CScopeUQueue._cs:
+            for q in CScopeUQueue._vQueue:
+                mem += q.MaxBufferSize
+        return mem
+
+    @staticmethod
     def Lock(os = CUQueue.DEFAULT_OS):
         q = None
         with CScopeUQueue._cs:
@@ -813,6 +830,7 @@ class CScopeUQueue:
         q.OS = os
         return q
 
+    @staticmethod
     def Unlock(q):
         if q is None:
             return
@@ -820,6 +838,9 @@ class CScopeUQueue:
         with CScopeUQueue._cs:
             CScopeUQueue._vQueue.append(q)
 
+    @staticmethod
     def DestroyUQueuePool():
         with CScopeUQueue._cs:
-            CScopeUQueue._vQueue = []
+            for q in CScopeUQueue._vQueue:
+                q.Empty()
+            CScopeUQueue._vQueue = deque()

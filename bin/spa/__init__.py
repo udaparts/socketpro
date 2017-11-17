@@ -419,13 +419,13 @@ class IPushEx(IPush):
     def SendUserMessageEx(self, userId, message):
         raise NotImplementedError("Please implement this method")
 
-from spa.memqueue import CUQueue, CScopeUQueue
-
 class classproperty(object):
     def __init__(self, getter):
         self.getter = getter
     def __get__(self, instance, owner):
         return self.getter(owner)
+
+from spa.memqueue import CUQueue, CScopeUQueue
 
 isVersion3 = (sys.version_info[0] >= 3)
 isVersion342 = (sys.version_info[0] * 100 + sys.version_info[1] * 10 + sys.version_info[2] >= 342)

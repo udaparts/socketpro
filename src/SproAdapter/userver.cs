@@ -214,7 +214,8 @@ namespace SocketProAdapter
 
             protected virtual void OnIdle(ulong milliseconds)
             {
-
+                if (CScopeUQueue.MemoryConsumed / 1024 > CScopeUQueue.SHARED_BUFFER_CLEAN_SIZE)
+                    CScopeUQueue.DestroyUQueuePool();
             }
 
             protected virtual void OnSSLShakeCompleted(ulong hSocket, int errCode)

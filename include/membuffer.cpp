@@ -4,6 +4,7 @@
 
 namespace SPA
 {
+    unsigned int SHARED_BUFFER_CLEAN_SIZE = 32 * 1024;
 
     void CUQueue::ChangeArrayInt(void *p, unsigned char sizePerInt, unsigned int count) {
         unsigned int n;

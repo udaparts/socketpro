@@ -1,5 +1,7 @@
 package SPA.ServerSide;
 
+import SPA.CScopeUQueue;
+
 public class CSocketProServer {
 
     @Override
@@ -131,7 +133,9 @@ public class CSocketProServer {
     }
 
     protected void OnIdle(long milliseconds) {
-
+        if (CScopeUQueue.getMemoryConsumed() / 1024 > CScopeUQueue.getSHARED_BUFFER_CLEAN_SIZE()) {
+            CScopeUQueue.DestroyUQueuePool();
+        }
     }
 
     private static void OnIdleInternal(long milliseconds) {

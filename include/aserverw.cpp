@@ -1531,7 +1531,10 @@ namespace SPA
         }
 
         void CSocketProServer::OnIdle(INT64 milliseconds) {
-
+            UINT64 size = CScopeUQueue::GetMemoryConsumed();
+            if (size / 1024 > SHARED_BUFFER_CLEAN_SIZE) {
+                CScopeUQueue::DestroyUQueuePool();
+            }
         }
 
         void CSocketProServer::OnClose(USocket_Server_Handle h, int errCode) {
