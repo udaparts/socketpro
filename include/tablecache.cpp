@@ -853,6 +853,8 @@ namespace SPA
     }
 
     size_t CDataSet::DeleteARow(const wchar_t *dbName, const wchar_t *tblName, const VARIANT & vtKey) {
+        if (!dbName || !tblName)
+            return INVALID_VALUE;
         size_t deleted = 0;
         CAutoLock al(m_cs);
         for (auto it = m_ds.begin(), end = m_ds.end(); it != end; ++it) {
@@ -882,6 +884,8 @@ namespace SPA
     }
 
     size_t CDataSet::UpdateARow(const wchar_t *dbName, const wchar_t *tblName, const VARIANT *pvt, size_t count) {
+        if (!dbName || !tblName)
+            return INVALID_VALUE;
         if (!pvt || !count || count % 2)
             return INVALID_VALUE;
         size_t updated = 0;
@@ -941,6 +945,8 @@ namespace SPA
     }
 
     size_t CDataSet::DeleteARow(const wchar_t *dbName, const wchar_t *tblName, const VARIANT &vtKey0, const VARIANT & vtKey1) {
+        if (!dbName || !tblName)
+            return INVALID_VALUE;
         size_t deleted = 0;
         CAutoLock al(m_cs);
         for (auto it = m_ds.begin(), end = m_ds.end(); it != end; ++it) {
