@@ -7,7 +7,7 @@ public class CDataSet {
 
     public final static int INVALID_VALUE = -1;
     protected final Object m_cs = new Object();
-    java.util.ArrayList<CTable> m_ds = new java.util.ArrayList<>();
+    ArrayList<CTable> m_ds = new ArrayList<>();
 
     private Object Convert(CTable tbl, Object data, short vtTarget) {
         return tbl.ChangeType(data, vtTarget);
@@ -65,7 +65,7 @@ public class CDataSet {
         }
     }
 
-    public int AddRows(String dbName, String tblName, java.util.ArrayList<Object> v) {
+    public int AddRows(String dbName, String tblName, ArrayList<Object> v) {
         if (v == null || v.isEmpty()) {
             return 0;
         }
@@ -129,6 +129,9 @@ public class CDataSet {
     }
 
     public int DeleteARow(String dbName, String tblName, Object vtKey) {
+        if (dbName == null || tblName == null) {
+            return INVALID_VALUE;
+        }
         int deleted = 0;
         synchronized (m_cs) {
             for (CTable tbl : m_ds) {
@@ -141,7 +144,7 @@ public class CDataSet {
                     return INVALID_VALUE;
                 }
                 Object v0 = tbl.ChangeType(vtKey, meta.get(key).DataType);
-                java.util.ArrayList<CDBVariantArray> vRow = tbl.m_vRow;
+                ArrayList<CDBVariantArray> vRow = tbl.m_vRow;
                 int rows = vRow.size();
                 for (int r = 0; r < rows; ++r) {
                     Object vtKey0 = vRow.get(r).get(key);
@@ -175,6 +178,9 @@ public class CDataSet {
     }
 
     public int DeleteARow(String dbName, String tblName, Object vtKey0, Object vtKey1) {
+        if (dbName == null || tblName == null) {
+            return INVALID_VALUE;
+        }
         int deleted = 0;
         synchronized (m_cs) {
             for (CTable tbl : m_ds) {
@@ -189,7 +195,7 @@ public class CDataSet {
                 }
                 Object v0 = tbl.ChangeType(vtKey0, meta.get(key).DataType);
                 Object v1 = tbl.ChangeType(vtKey1, meta.get(key1.Value).DataType);
-                java.util.ArrayList<CDBVariantArray> vRow = tbl.m_vRow;
+                ArrayList<CDBVariantArray> vRow = tbl.m_vRow;
                 int rows = vRow.size();
                 for (int r = 0; r < rows; ++r) {
                     Object vtKey = vRow.get(r).get(key);
@@ -244,8 +250,11 @@ public class CDataSet {
         return null;
     }
 
-    public int UpdateARow(String dbName, String tblName, java.util.ArrayList<Object> pvt) {
+    public int UpdateARow(String dbName, String tblName, ArrayList<Object> pvt) {
         if (pvt == null || pvt.isEmpty()) {
+            return INVALID_VALUE;
+        }
+        if (dbName == null || tblName == null) {
             return INVALID_VALUE;
         }
         int count = pvt.size();
@@ -384,7 +393,7 @@ public class CDataSet {
     }
 
     public java.util.ArrayList<Pair<String, String>> getDBTablePair() {
-        java.util.ArrayList<Pair<String, String>> v = new java.util.ArrayList<>();
+        ArrayList<Pair<String, String>> v = new ArrayList<>();
         synchronized (m_cs) {
             for (CTable tbl : m_ds) {
                 CDBColumnInfoArray meta = tbl.getMeta();
@@ -503,7 +512,7 @@ public class CDataSet {
             return;
         }
         synchronized (m_cs) {
-            java.util.ArrayList<CTable> ds = m_ds;
+            ArrayList<CTable> ds = m_ds;
             m_ds = tc.m_ds;
             tc.m_ds = ds;
             String s = m_strIp;

@@ -54,7 +54,7 @@ public class CTable {
     private boolean m_bFieldNameCaseSensitive = false;
     private boolean m_bDataCaseSensitive = false;
     private CDBColumnInfoArray m_meta = new CDBColumnInfoArray();
-    protected java.util.ArrayList<CDBVariantArray> m_vRow = new java.util.ArrayList<>();
+    protected ArrayList<CDBVariantArray> m_vRow = new ArrayList<>();
 
     public CTable() {
     }
@@ -75,7 +75,7 @@ public class CTable {
         return m_meta;
     }
 
-    public java.util.ArrayList<CDBVariantArray> getDataMatrix() {
+    public ArrayList<CDBVariantArray> getDataMatrix() {
         return m_vRow;
     }
 
