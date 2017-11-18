@@ -6,6 +6,14 @@ from spa.udb import *
 from spa.clientside import CSocketPool, CConnectionContext, CSqlite, CUQueue
 import datetime
 
+meta = CDBColumnInfoArray()
+meta.append(CDBColumnInfo())
+meta.append(CDBColumnInfo())
+
+
+
+size = len(meta)
+
 with CSocketPool(CSqlite) as spSqlite:
     print('Remote async sqlite server host: ')
     cc = CConnectionContext(sys.stdin.readline(), 20901, 'PythonUser', 'TooMuchSecret')

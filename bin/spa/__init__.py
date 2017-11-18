@@ -446,3 +446,5 @@ class CStreamSerializationHelper(object):
     @staticmethod
     def Read(f):
         return f.read(CStreamSerializationHelper.STREAM_CHUNK_SIZE)
+
+from spa.dataset import CTable, CDataSet

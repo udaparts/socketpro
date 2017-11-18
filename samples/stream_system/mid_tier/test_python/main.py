@@ -1,17 +1,23 @@
 
 from functools import total_ordering
-from dataset import CTable
+from spa import CDataSet, CTable
+from decimal import Decimal
+import datetime, uuid
+from spa.udb import *
 
-@total_ordering
-class MinType(object):
-    def __le__(self, other):
-        return True
-    def __eq__(self, other):
-        return self is other
+var = [(1, 'str'), (2, 'ye'), (3, 'char')]
+for (myd, mys) in var:
+    myd = 0
 
-Min = MinType()
+meta = CDBColumnInfoArray()
+meta.append(CDBColumnInfo())
+meta.append(CDBColumnInfo())
 
-tbl = CTable(1)
+tbl = CTable(meta)
+keys = tbl.Keys
+
+n = tbl._eq_(u' ', ' ')
+
 tbl_copy = tbl.Copy()
 
 obj = -0.35
@@ -21,7 +27,7 @@ ok = obj0 > obj
 
 def my_key(a):
     if a is None:
-        return Min
+        return CTable._MIN_
     return a
 arr = ['4', u'', None, u'ABC', 'abc']
 

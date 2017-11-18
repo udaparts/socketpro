@@ -147,6 +147,15 @@ class CDBColumnInfoArray(IUSerializer):
         for obj in self.__list__:
             obj.SaveTo(q)
 
+    def __iter__(self):
+        return self.__list__.__iter__()
+
+    def append(self, col):
+        self.__list__.append(col)
+
+    def __len__(self):
+        return len(self.list)
+
     @property
     def list(self):
         return self.__list__
