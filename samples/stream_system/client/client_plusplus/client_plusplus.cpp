@@ -42,7 +42,7 @@ int main(int argc, char* argv[]) {
 	//No need to use the methods Lock and Unlock for removing request stream overlap
 	//as the following calls do not care for request stream overlap on one session between front and mid-tier
 	auto handler = master.Seek();
-	SPA::CDataSet &cache = CWebMasterPool::Cache; //accessing real-time update cache
+	SPA::CDataSet &cache = master.Cache; //accessing real-time update cache
 
 	SPA::UINT64 call_index = handler->GetMasterSlaveConnectedSessions([](SPA::UINT64 index, unsigned int master_connection, unsigned int slave_connection) {
 		std::cout << "master connection: " << master_connection << ", slave connection: " << slave_connection << std::endl;

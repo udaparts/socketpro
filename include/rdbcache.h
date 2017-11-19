@@ -18,7 +18,7 @@ namespace SPA {
 		}
 
 		typedef TCache CDataSet;
-		static TCache Cache; //real-time cache accessible from your code
+		TCache Cache; //real-time cache accessible from your code
 		typedef ClientSide::CAsyncDBHandler<THandler::SQLStreamServiceId> CSQLHandler;
 
 		class CSlavePool : public CMasterSlaveBase < THandler, TCS > {
@@ -79,18 +79,18 @@ namespace SPA {
 						::SafeArrayAccessData(vtMsg.parray, (void**)&vData);
 						ClientSide::tagUpdateEvent eventType = (ClientSide::tagUpdateEvent)(vData[0].intVal);
 
-						if (!Cache.GetDBServerName().size()) {
+						if (!this->Cache.GetDBServerName().size()) {
 							if (vData[1].vt == (VT_ARRAY | VT_I1))
-								Cache.SetDBServerName(this->ToWide(vData[1]).c_str());
+								this->Cache.SetDBServerName(this->ToWide(vData[1]).c_str());
 							else if (vData[1].vt == VT_BSTR)
-								Cache.SetDBServerName(vData[1].bstrVal);
+								this->Cache.SetDBServerName(vData[1].bstrVal);
 						}
 						if (vData[2].vt == (VT_ARRAY | VT_I1))
-							Cache.SetUpdater(this->ToWide(vData[2]).c_str());
+							this->Cache.SetUpdater(this->ToWide(vData[2]).c_str());
 						else if (vData[2].vt == VT_BSTR)
-							Cache.SetUpdater(vData[2].bstrVal);
+							this->Cache.SetUpdater(vData[2].bstrVal);
 						else
-							Cache.SetUpdater(nullptr);
+							this->Cache.SetUpdater(nullptr);
 
 						std::wstring dbName;
 						if (vData[3].vt == (VT_I1 | VT_ARRAY)) {
@@ -112,13 +112,13 @@ namespace SPA {
 						}
 						switch (eventType) {
 						case UDB::ueInsert:
-							res = Cache.AddRows(dbName.c_str(), tblName.c_str(), vData + 5, vtMsg.parray->rgsabound->cElements - 5);
+							res = this->Cache.AddRows(dbName.c_str(), tblName.c_str(), vData + 5, vtMsg.parray->rgsabound->cElements - 5);
 							assert(res != CDataSet::INVALID_VALUE);
 							break;
 						case UDB::ueUpdate:
 						{
 							unsigned int count = vtMsg.parray->rgsabound->cElements - 5;
-							res = Cache.UpdateARow(dbName.c_str(), tblName.c_str(), vData + 5, count);
+							res = this->Cache.UpdateARow(dbName.c_str(), tblName.c_str(), vData + 5, count);
 							assert(res != CDataSet::INVALID_VALUE);
 						}
 						break;
@@ -127,9 +127,9 @@ namespace SPA {
 							unsigned int keys = vtMsg.parray->rgsabound->cElements - 5;
 							//there must be one or two key columns. For other cases, you must implement them
 							if (keys == 1)
-								res = Cache.DeleteARow(dbName.c_str(), tblName.c_str(), vData[5]);
+								res = this->Cache.DeleteARow(dbName.c_str(), tblName.c_str(), vData[5]);
 							else
-								res = Cache.DeleteARow(dbName.c_str(), tblName.c_str(), vData[5], vData[6]);
+								res = this->Cache.DeleteARow(dbName.c_str(), tblName.c_str(), vData[5], vData[6]);
 							assert(res != CDataSet::INVALID_VALUE);
 						}
 						break;
@@ -179,7 +179,7 @@ namespace SPA {
 			//bring all cached table data into m_cache first for initial cache, and exchange it with Cache if there is no error
 			ok = asyncSQL->Execute(L"", [this](CSQLHandler &h, int res, const std::wstring &errMsg, INT64 affected, UINT64 fail_ok, UDB::CDBVariant & vtId) {
 				if (res == 0) {
-					Cache.Swap(this->m_cache); //exchange between master Cache and this m_cache
+					this->Cache.Swap(this->m_cache); //exchange between master Cache and this m_cache
 				}
 			}, [this](CSQLHandler &h, UDB::CDBVariantArray & vData) {
 				auto meta = h.GetColumnInfo();
@@ -195,9 +195,6 @@ namespace SPA {
 	protected:
 		TCache m_cache;
 	};
-
-	template<bool midTier, typename THandler, typename TCache, typename TCS>
-	TCache CSQLMasterPool<midTier, THandler, TCache, TCS>::Cache;
 }; //namespace SPA
 
 #endif

@@ -37,7 +37,7 @@ class Program
                 return;
             }
 
-            CDataSet cache = CMaster.Cache; //accessing real-time update cache
+            CDataSet cache = master.Cache; //accessing real-time update cache
             CWebAsyncHandler handler = master.Seek();
             ulong call_index = handler.GetMasterSlaveConnectedSessions((index, m, s) =>
             {

@@ -18,7 +18,7 @@ int main(int argc, char* argv[]) {
     CYourServer::StartMySQLPools();
 
     //Cache is ready for use now
-    auto v0 = CMySQLMasterPool::Cache.GetDBTablePair();
+    auto v0 = server.Master->Cache.GetDBTablePair();
     if (!v0.size())
         std::cout << "There is no table cached" << std::endl;
     else
@@ -29,46 +29,46 @@ int main(int argc, char* argv[]) {
     std::cout << std::endl;
     if (v0.size()) {
         std::wcout << "Keys with " << v0.front().first << "." << v0.front().second << ":" << std::endl;
-        auto v1 = CMySQLMasterPool::Cache.FindKeys(v0.front().first.c_str(), v0.front().second.c_str());
+        auto v1 = server.Master->Cache.FindKeys(v0.front().first.c_str(), v0.front().second.c_str());
         for (auto it = v1.begin(), end = v1.end(); it != end; ++it) {
             std::wcout << L"Key ordinal = " << it->first << ", key column name = " << it->second.DisplayName << std::endl;
         }
         std::cout << std::endl;
     }
 #if defined(_UMYSQL_SOCKETPRO_H_)
-    auto v2 = CMySQLMasterPool::Cache.GetColumMeta(L"sakila", L"actor");
+    auto v2 = server.Master->Cache.GetColumMeta(L"sakila", L"actor");
     for (auto it = v2.begin(), end = v2.end(); it != end; ++it) {
         std::wcout << L"DB name = " << it->DBPath << ", table name = " << it->TablePath << ", column name: " << it->DisplayName << std::endl;
     }
     std::cout << std::endl;
 
-    auto v3 = CMySQLMasterPool::Cache.GetColumnCount(L"sakila", L"actor");
+    auto v3 = server.Master->Cache.GetColumnCount(L"sakila", L"actor");
     if (v3) {
-        std::cout << "sakila.actor cached with " << v3 << " columns and rows = " << CMySQLMasterPool::Cache.GetRowCount(L"sakila", L"actor") << std::endl;
+        std::cout << "sakila.actor cached with " << v3 << " columns and rows = " << server.Master->Cache.GetRowCount(L"sakila", L"actor") << std::endl;
         std::cout << std::endl;
     }
 
     SPA::CTable table;
-    int res = CMySQLMasterPool::Cache.Between(L"sakila", L"actor", 3, "2000-07-01", "2017-01-1", table);
+    int res = server.Master->Cache.Between(L"sakila", L"actor", 3, "2000-07-01", "2017-01-1", table);
     if (table.GetMeta().size()) {
         std::cout << "There are " << table.GetDataMatrix().size() << " records between 2000-07-01 and 2017-01-1" << std::endl;
         std::cout << std::endl;
     }
 #else
-    auto v2 = CMySQLMasterPool::Cache.GetColumMeta(L"main", L"actor");
+    auto v2 = server.Master->Cache.GetColumMeta(L"main", L"actor");
     for (auto it = v2.begin(), end = v2.end(); it != end; ++it) {
         std::wcout << L"DB name = " << it->DBPath << ", table name = " << it->TablePath << ", column name: " << it->DisplayName << std::endl;
     }
     std::cout << std::endl;
 
-    auto v3 = CMySQLMasterPool::Cache.GetColumnCount(L"main", L"actor");
+    auto v3 = server.Master->Cache.GetColumnCount(L"main", L"actor");
     if (v3) {
-        std::cout << "main.actor cached with " << v3 << " columns and rows = " << CMySQLMasterPool::Cache.GetRowCount(L"main", L"actor") << std::endl;
+        std::cout << "main.actor cached with " << v3 << " columns and rows = " << server.Master->Cache.GetRowCount(L"main", L"actor") << std::endl;
         std::cout << std::endl;
     }
 
     SPA::CTable table;
-    int res = CMySQLMasterPool::Cache.Between(L"maIn", L"actor", 3, "2000-07-01", "2017-01-1", table);
+    int res = server.Master->Cache.Between(L"maIn", L"actor", 3, "2000-07-01", "2017-01-1", table);
     if (table.GetMeta().size()) {
         std::cout << "There are " << table.GetDataMatrix().size() << " records between 2000-07-01 and 2017-01-1" << std::endl;
         std::cout << std::endl;

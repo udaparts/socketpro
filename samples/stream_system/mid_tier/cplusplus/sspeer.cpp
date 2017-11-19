@@ -179,7 +179,7 @@ void CYourPeerOne::GetRentalDateTimes(SPA::UINT64 index, SPA::INT64 rental_id, S
 			dates.Return = vData[2].ullVal;
 			dates.LastUpdate = vData[3].ullVal;
 		}, [](CSQLHandler & h) {
-			assert(h.GetColumnInfo().size() == 3);
+			assert(h.GetColumnInfo().size() == 4);
 		}, true, true, [prom]() {
 			//socket closed after sending
 			prom->set_value(false);

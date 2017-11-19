@@ -81,13 +81,14 @@ class CYourServer : CSocketProServer
     {
         CConfig config = CConfig.GetConfig();
 
+        CYourServer.Master = new CMaster(config.m_master_default_db, true);
+
         //These case-sensitivities depends on your DB running platform and sensitivity settings.
         //All of them are false or case-insensitive by default
-        CMaster.Cache.FieldNameCaseSensitive = false;
-        CMaster.Cache.TableNameCaseSensitive = false;
-        CMaster.Cache.DBNameCaseSensitive = false;
+        Master.Cache.FieldNameCaseSensitive = false;
+        Master.Cache.TableNameCaseSensitive = false;
+        Master.Cache.DBNameCaseSensitive = false;
 
-        CYourServer.Master = new CMaster(config.m_master_default_db, true);
         //start master pool for cache and update accessing
         bool ok = CYourServer.Master.StartSocketPool(config.m_ccMaster, config.m_nMasterSessions, 1); //one thread enough
         

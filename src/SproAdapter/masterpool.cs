@@ -16,7 +16,7 @@ namespace SocketProAdapter
             }
         }
 
-        public static TDataSet Cache
+        public TDataSet Cache
         {
             get
             {
@@ -42,7 +42,7 @@ namespace SocketProAdapter
             m_bMidTier = false;
         }
 
-        private static TDataSet m_MasterCache = new TDataSet();
+        private TDataSet m_MasterCache = new TDataSet();
 
         protected TDataSet m_cache = new TDataSet();
         protected UDB.CDBColumnInfoArray m_meta = new UDB.CDBColumnInfoArray();

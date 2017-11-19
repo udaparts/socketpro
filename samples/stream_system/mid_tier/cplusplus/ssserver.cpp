@@ -11,13 +11,13 @@ void CYourServer::StartMySQLPools() {
     assert(g_config.m_nSlaveSessions);
     assert((g_config.m_nSlaveSessions % g_config.m_vccSlave.size()) == 0);
 
+    CYourServer::Master.reset(new CMySQLMasterPool(g_config.m_master_default_db.c_str()));
+
     //These case-sensitivities depends on your DB running platform and sensitivity settings.
     //All of them are false or case-insensitive by default
-    CMySQLMasterPool::Cache.SetFieldNameCaseSensitive(false);
-    CMySQLMasterPool::Cache.SetTableNameCaseSensitive(false);
-    CMySQLMasterPool::Cache.SetDBNameCaseSensitive(false);
-
-    CYourServer::Master.reset(new CMySQLMasterPool(g_config.m_master_default_db.c_str()));
+    CYourServer::Master->Cache.SetFieldNameCaseSensitive(false);
+    CYourServer::Master->Cache.SetTableNameCaseSensitive(false);
+    CYourServer::Master->Cache.SetDBNameCaseSensitive(false);
 
     //start master pool for cache and update accessing
     bool ok = CYourServer::Master->StartSocketPool(g_config.m_ccMaster, (unsigned int) g_config.m_nMasterSessions, 1); //one thread enough

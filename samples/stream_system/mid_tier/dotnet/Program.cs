@@ -29,7 +29,7 @@ class Program
             CYourServer.StartMySQLPools();
 
             //Cache is ready for use now
-            List<KeyValuePair<string, string>> v0 = CMaster.Cache.DBTablePair;
+            List<KeyValuePair<string, string>> v0 = CYourServer.Master.Cache.DBTablePair;
             if (v0.Count == 0)
                 Console.WriteLine("There is no table cached");
             else
@@ -39,16 +39,16 @@ class Program
                 {
                     Console.WriteLine("DB name = {0}, table name = {1}", p.Key, p.Value);
                 }
-                DataColumn[] keys = CMaster.Cache.FindKeys(v0[0].Key, v0[0].Value);
+                DataColumn[] keys = CYourServer.Master.Cache.FindKeys(v0[0].Key, v0[0].Value);
                 foreach (DataColumn dc in keys)
                 {
                     Console.WriteLine("Key ordinal = {0}, key column name = {1}", dc.Ordinal, dc.ColumnName);
                 }
             }
 #if USE_SQLITE
-            DataTable tbl = CMaster.Cache.Find("main", "actor", "actor_id >= 1 and actor_id <= 10");
+            DataTable tbl = CYourServer.Master.Cache.Find("main", "actor", "actor_id >= 1 and actor_id <= 10");
 #else
-            DataTable tbl = CMaster.Cache.Find("sakila", "actor", "actor_id >= 1 and actor_id <= 10");
+            DataTable tbl = CYourServer.Master.Cache.Find("sakila", "actor", "actor_id >= 1 and actor_id <= 10");
 #endif
             CYourServer.CreateTestDB();
             Console.WriteLine();
