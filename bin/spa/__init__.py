@@ -196,6 +196,11 @@ class BaseExceptionCode(object):
     becALREADY_DEQUEUED = 0xAAAA0008
     becROUTEE_DISCONNECTED = 0xAAAA0009
 
+class Pair(object):
+    def __init__(self, reqId, cb):
+        self.first = reqId
+        self.second = cb
+
 from abc import abstractmethod, abstractproperty
 class IUSerializer(object):
     @abstractmethod

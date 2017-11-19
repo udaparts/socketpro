@@ -13,6 +13,8 @@ meta = CDBColumnInfoArray()
 meta.append(CDBColumnInfo())
 meta.append(CDBColumnInfo())
 
+ds = CDataSet()
+
 tbl = CTable(meta)
 keys = tbl.Keys
 

@@ -1,7 +1,5 @@
 
-from spa import *
 from spa.udb import *
-from spa.clientside.asyncdbhandler import CAsyncDBHandler
 import copy
 from functools import total_ordering
 import threading

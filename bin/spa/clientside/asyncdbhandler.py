@@ -38,6 +38,7 @@ class CAsyncDBHandler(CAsyncServiceHandler):
     idEndBLOB = idChunk + 1
     idEndRows = idEndBLOB + 1
     idCallReturn = idEndRows + 1
+    idGetCachedTables = idCallReturn + 1
 
     """
     Whenever a data size in bytes is about twice larger than the defined value, the data will be treated in large object and transferred in chunks for reducing memory foot print
@@ -59,10 +60,7 @@ class CAsyncDBHandler(CAsyncServiceHandler):
     """
     STREAMING_SQL_CHAT_GROUP_ID = 0x1fffffff
 
-    class Pair(object):
-        def __init__(self, reqId, cb):
-            self.first = reqId
-            self.second = cb
+    CACHE_UPDATE_CHAT_GROUP_ID = STREAMING_SQL_CHAT_GROUP_ID + 1
 
     def __init__(self, serviceId):
         super(CAsyncDBHandler, self).__init__(serviceId)
@@ -375,7 +373,7 @@ class CAsyncDBHandler(CAsyncServiceHandler):
         :return: true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
         """
         ok = True
-        cb = CAsyncDBHandler.Pair(CAsyncDBHandler.idClose, handler)
+        cb = Pair(CAsyncDBHandler.idClose, handler)
         buffer = CScopeUQueue.Lock()
         with self._csOneSending:
             #don't make self._csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
@@ -397,7 +395,7 @@ class CAsyncDBHandler(CAsyncServiceHandler):
         :return: true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
         """
         ok = True
-        cb = CAsyncDBHandler.Pair(CAsyncDBHandler.idBeginTrans, handler)
+        cb = Pair(CAsyncDBHandler.idBeginTrans, handler)
         q = CScopeUQueue.Lock()
 
         """
@@ -431,7 +429,7 @@ class CAsyncDBHandler(CAsyncServiceHandler):
         """
         ok = True
         q = CScopeUQueue.Lock().SaveInt(plan)
-        cb = CAsyncDBHandler.Pair(CAsyncDBHandler.idEndTrans, handler)
+        cb = Pair(CAsyncDBHandler.idEndTrans, handler)
         """
         make sure EndTrans sending and underlying client persistent message queue as one combination sending
         to avoid possible request sending/client message writing overlapping within multiple threading environment
@@ -463,7 +461,7 @@ class CAsyncDBHandler(CAsyncServiceHandler):
         ok = True
         s = ''
         q = CScopeUQueue.Lock().SaveString(strConnection).SaveUInt(flags)
-        cb = CAsyncDBHandler.Pair(CAsyncDBHandler.idOpen, handler)
+        cb = Pair(CAsyncDBHandler.idOpen, handler)
         with self._csOneSending:
             #don't make self._csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
             with self._csDB:
@@ -499,7 +497,7 @@ class CAsyncDBHandler(CAsyncServiceHandler):
         if count > 0:
             for one in lstParameterInfo:
                 one.SaveTo(q)
-        cb = CAsyncDBHandler.Pair(CAsyncDBHandler.idPrepare, handler)
+        cb = Pair(CAsyncDBHandler.idPrepare, handler)
         with self._csOneSending:
             with self._csDB:
                 self._deqResult.append(cb)
@@ -528,14 +526,14 @@ class CAsyncDBHandler(CAsyncServiceHandler):
         if not rowset:
             meta = False
         q = CScopeUQueue.Lock().SaveString(sql).SaveBool(rowset).SaveBool(meta).SaveBool(lastInsertId)
-        cb = CAsyncDBHandler.Pair(CAsyncDBHandler.idExecute, handler)
+        cb = Pair(CAsyncDBHandler.idExecute, handler)
         with self._csOneSending:
             #don't make self._csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
             with self._csDB:
                 self._nCall += 1
                 q.SaveULong(self._nCall)
                 if rowset:
-                    self._mapRowset[self._nCall] = CAsyncDBHandler.Pair(rh,row)
+                    self._mapRowset[self._nCall] = Pair(rh,row)
                 self._deqResult.append(cb)
                 index = self._nCall
             ok = self.SendRequest(CAsyncDBHandler.idExecute, q, None, canceled)
@@ -635,7 +633,7 @@ class CAsyncDBHandler(CAsyncServiceHandler):
         ok = True
         index = 0
         rowset = (not rh is None)
-        cb = CAsyncDBHandler.Pair(CAsyncDBHandler.idExecuteParameters, handler)
+        cb = Pair(CAsyncDBHandler.idExecuteParameters, handler)
         if not rowset:
             meta = False
         q = CScopeUQueue.Lock().SaveBool(rowset).SaveBool(meta).SaveBool(lastInsertId)
@@ -655,7 +653,7 @@ class CAsyncDBHandler(CAsyncServiceHandler):
                 self._deqResult.append(cb)
                 self._mapParameterCall[self._nCall] = vParam
                 if rowset:
-                    self._mapRowset[self._nCall] = CAsyncDBHandler.Pair(rh, row)
+                    self._mapRowset[self._nCall] = Pair(rh, row)
             ok = self.SendRequest(CAsyncDBHandler.idExecuteParameters, q, None, canceled)
             if not ok:
                 with self._csDB:

@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import sys
+from spa import Pair
 from spa.udb import *
 from spa.clientside import CSocketPool, CConnectionContext, CSqlite, CUQueue
 import datetime
@@ -41,7 +42,7 @@ with CSocketPool(CSqlite) as spSqlite:
 
     def cbRowHeader(sqlite):
         vColInfo = sqlite.ColumnInfo
-        ra.append(CSqlite.Pair(vColInfo, []))
+        ra.append(Pair(vColInfo, []))
 
     def TestPreparedStatements():
         sql_insert_parameter = "Select datetime('now');INSERT OR REPLACE INTO COMPANY(ID, NAME, ADDRESS, Income) VALUES (?, ?, ?, ?)"
