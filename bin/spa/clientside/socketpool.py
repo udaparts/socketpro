@@ -137,6 +137,9 @@ class CSocketPool(object):
     def SocketPools(cls):
         return ccl.GetNumberOfSocketPools()
 
+    def OnSocketPoolEvent(self, spe, handler):
+        pass
+
     def _spe_(self, poolId, spe, h): #h -- usocket handle
         #print "Pool id = " + str(poolId) + ", spe = " + str(spe) + ", usocket handle = " + str(h)
         handler = self._MapToHandler_(h)
@@ -189,8 +192,7 @@ class CSocketPool(object):
             self._hFrom = None
         else:
             pass
-        if self.SocketPoolEvent is not None:
-            self.SocketPoolEvent(self, spe, handler)
+        self.OnSocketPoolEvent(spe, handler)
 
     def _start_(self, sockets_per_thread, thread=0, avg=True, ta=0):
         with self._lock_:

@@ -453,3 +453,4 @@ class CStreamSerializationHelper(object):
         return f.read(CStreamSerializationHelper.STREAM_CHUNK_SIZE)
 
 from spa.dataset import CTable, CDataSet
+from spa.poolbase import CMasterSlaveBase

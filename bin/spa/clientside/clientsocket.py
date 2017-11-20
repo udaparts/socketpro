@@ -514,6 +514,12 @@ class CClientSocket:
             raise Exception("Can't call the method Cancel during batching requests")
         return ccl.Cancel(self._m_h_, -1)
 
+    def GetPeerName(self):
+        port = c_uint()
+        addr = (c_char * 256)()
+        res = ccl.GetPeerName(self._m_h_, byref(port), addr, 256)
+        return addr.value.decode('latin-1'), port.value
+
     def DoEcho(self):
         return ccl.DoEcho(self._m_h_)
 
