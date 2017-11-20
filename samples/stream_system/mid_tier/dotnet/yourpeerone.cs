@@ -196,7 +196,7 @@ class CYourPeerOne : CCacheBasePeer
         do
         {
             CConfig config = CConfig.GetConfig();
-            if (config.m_vFrontCachedTable.Count == 0)
+            if (config.m_vFrontCachedTable.Count == 0 || (flags & CAsyncDBHandler.ENABLE_TABLE_UPDATE_MESSAGES) != CAsyncDBHandler.ENABLE_TABLE_UPDATE_MESSAGES)
                 break;
             if ((flags & CAsyncDBHandler.ENABLE_TABLE_UPDATE_MESSAGES) == CAsyncDBHandler.ENABLE_TABLE_UPDATE_MESSAGES)
             {

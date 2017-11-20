@@ -283,7 +283,7 @@ void CYourPeerOne::GetCachedTables(const std::wstring &defaultDb, unsigned int f
 	res = 0;
 	dbMS = (int) SPA::UDB::msUnknown;
 	do {
-		if (!g_config.m_vFrontCachedTable.size())
+		if (!g_config.m_vFrontCachedTable.size() || SPA::UDB::ENABLE_TABLE_UPDATE_MESSAGES != (flags & SPA::UDB::ENABLE_TABLE_UPDATE_MESSAGES))
 			break;
 		if (SPA::UDB::ENABLE_TABLE_UPDATE_MESSAGES == (flags & SPA::UDB::ENABLE_TABLE_UPDATE_MESSAGES)) {
 			unsigned int chatgroup[] = { SPA::UDB::CACHE_UPDATE_CHAT_GROUP_ID, SPA::UDB::STREAMING_SQL_CHAT_GROUP_ID };
