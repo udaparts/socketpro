@@ -8,7 +8,7 @@ namespace SocketProAdapter
         public abstract class CCacheBasePeer : CClientPeer
         {
             [RequestAttr(SocketProAdapter.ClientSide.CAsyncDBHandler.idGetCachedTables, true)]
-            protected abstract string GetCachedTables(string defaultDb, uint flags, bool rowset, ulong index, out int dbManagementSystem, out int res);
+            protected abstract string GetCachedTables(string defaultDb, uint flags, ulong index, out int dbManagementSystem, out int res);
 
             public bool SendMeta(UDB.CDBColumnInfoArray meta, ulong index)
             {

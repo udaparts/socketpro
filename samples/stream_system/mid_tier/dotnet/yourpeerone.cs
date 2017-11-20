@@ -188,15 +188,13 @@ class CYourPeerOne : CCacheBasePeer
         return CYourServer.Slave.ConnectedSockets;
     }
 
-    protected override string GetCachedTables(string defaultDb, uint flags, bool rowset, ulong index, out int dbMS, out int res)
+    protected override string GetCachedTables(string defaultDb, uint flags, ulong index, out int dbMS, out int res)
     {
         res = 0;
         dbMS = (int)SocketProAdapter.UDB.tagManagementSystem.msUnknown;
         string errMsg = "";
         do
         {
-            if (!rowset)
-                break;
             CConfig config = CConfig.GetConfig();
             if (config.m_vFrontCachedTable.Count == 0)
                 break;

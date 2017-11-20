@@ -44,7 +44,6 @@ namespace SPA {
 			}
 
 			virtual bool GetCachedTables(const wchar_t *defaultDb, DResult handler, DRows row, DRowsetHeader rh, unsigned int flags = SPA::UDB::ENABLE_TABLE_UPDATE_MESSAGES) {
-				bool rowset = (rh || row);
 				UINT64 index;
 				{
 					//don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
@@ -52,12 +51,10 @@ namespace SPA {
 					CAutoLock al(m_csCache);
 					++m_nCall;
 					index = m_nCall;
-					if (rowset) {
-						m_mapRowset[index] = CRowsetHandler(rh, row);
-					}
+					m_mapRowset[index] = CRowsetHandler(rh, row);
 				}
 
-				if (!SendRequest(idGetCachedTables, defaultDb, flags, rowset, index, [index, handler, this](CAsyncResult & ar) {
+				if (!SendRequest(idGetCachedTables, defaultDb, flags, index, [index, handler, this](CAsyncResult & ar) {
 					int res, dbMS;
 					std::wstring errMsg;
 					ar >> dbMS >> res >> errMsg;

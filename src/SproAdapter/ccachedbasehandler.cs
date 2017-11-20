@@ -160,7 +160,6 @@ namespace SocketProAdapter
 
             public virtual bool GetCachedTables(string defaultDb, DResult handler, DRows row, DRowsetHeader rh, uint flags)
             {
-                bool rowset = (rh != null || row != null);
                 ulong index;
                 lock (m_csCache)
                 {
@@ -168,12 +167,9 @@ namespace SocketProAdapter
                     //in case a client asynchronously sends lots of requests without use of client side queue.
                     ++m_nCall;
                     index = m_nCall;
-                    if (rowset)
-                    {
-                        m_mapRowset[index] = new KeyValuePair<DRowsetHeader, DRows>(rh, row);
-                    }
+                    m_mapRowset[index] = new KeyValuePair<DRowsetHeader, DRows>(rh, row);
                 }
-                if (!SendRequest(CAsyncDBHandler.idGetCachedTables, defaultDb, flags, rowset, index, (ar) =>
+                if (!SendRequest(CAsyncDBHandler.idGetCachedTables, defaultDb, flags, index, (ar) =>
                 {
                     int res, dbMS;
                     string errMsg;

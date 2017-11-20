@@ -28,7 +28,7 @@ void CYourPeerOne::OnFastRequestArrive(unsigned short reqId, unsigned int len) {
 
 int CYourPeerOne::OnSlowRequestArrive(unsigned short reqId, unsigned int len) {
 	BEGIN_SWITCH(reqId)
-		M_I4_R3(SPA::UDB::idGetCachedTables, GetCachedTables, std::wstring, unsigned int, bool, SPA::UINT64, int, int, std::wstring)
+		M_I3_R3(SPA::UDB::idGetCachedTables, GetCachedTables, std::wstring, unsigned int, SPA::UINT64, int, int, std::wstring)
 		M_I2_R4(idGetRentalDateTimes, GetRentalDateTimes, SPA::UINT64, SPA::INT64, SPA::UINT64, CRentalDateTimes, int, std::wstring)
 		END_SWITCH
 		return 0;
@@ -279,12 +279,10 @@ void CYourPeerOne::QueryPaymentMaxMinAvgs(SPA::CUQueue &q) {
 	} while (redo);
 }
 
-void CYourPeerOne::GetCachedTables(const std::wstring &defaultDb, unsigned int flags, bool rowset, SPA::UINT64 index, int &dbMS, int &res, std::wstring &errMsg) {
+void CYourPeerOne::GetCachedTables(const std::wstring &defaultDb, unsigned int flags, SPA::UINT64 index, int &dbMS, int &res, std::wstring &errMsg) {
 	res = 0;
 	dbMS = (int) SPA::UDB::msUnknown;
 	do {
-		if (!rowset)
-			break;
 		if (!g_config.m_vFrontCachedTable.size())
 			break;
 		if (SPA::UDB::ENABLE_TABLE_UPDATE_MESSAGES == (flags & SPA::UDB::ENABLE_TABLE_UPDATE_MESSAGES)) {

@@ -27,7 +27,7 @@ public abstract class CCacheBasePeer extends CClientPeer {
         public String errMsg = "";
     }
 
-    protected abstract CachedTableResult GetCachedTables(String defaultDb, int flags, boolean rowset, long index);
+    protected abstract CachedTableResult GetCachedTables(String defaultDb, int flags, long index);
 
     public boolean SendMeta(CDBColumnInfoArray meta, long index) {
         CUQueue q = CScopeUQueue.Lock();

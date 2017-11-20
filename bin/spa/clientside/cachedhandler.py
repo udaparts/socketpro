@@ -32,23 +32,20 @@ class CCachedBaseHandler(CAsyncServiceHandler):
         return super(CAsyncServiceHandler, self).CleanCallbacks()
 
     def GetCachedTables(self, defaultDb, handler, row, rh, flags=CAsyncDBHandler.ENABLE_TABLE_UPDATE_MESSAGES):
-        rowset = (rh or row)
+        q = CScopeUQueue.Lock()
         index = 0;
         with self._csDB:
             self._nCall += 1
             index = self._nCall
-            if rowset:
-                self._mapRowset[index] = Pair(rh, row)
+            self._mapRowset[index] = Pair(rh, row)
             self._mapHandler[index] = handler
-        q = CScopeUQueue.Lock()
-        q.SaveString(defaultDb).SaveUInt(flags).SaveBool(rowset).SaveULong(index)
+        q.SaveString(defaultDb).SaveUInt(flags).SaveULong(index)
         ok = self.SendRequest(CAsyncDBHandler.idGetCachedTables, q, None)
         CScopeUQueue.Unlock(q)
         if not ok:
             with self._csDB:
                 self._mapHandler.pop(index)
-                if rowset:
-                    self._mapRowset.pop(index)
+                self._mapRowset.pop(index)
         return ok
 
     def OnResultReturned(self, reqId, mc):

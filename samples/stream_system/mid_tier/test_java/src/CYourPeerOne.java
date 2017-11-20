@@ -226,13 +226,9 @@ public class CYourPeerOne extends CCacheBasePeer {
 
     @Override
     @RequestAttr(RequestID = CAsyncDBHandler.idGetCachedTables, SlowRequest = true) //true -- slow request
-    protected CachedTableResult GetCachedTables(String defaultDb, int flags, boolean rowset, long index) {
+    protected CachedTableResult GetCachedTables(String defaultDb, int flags, long index) {
         CachedTableResult res = this.new CachedTableResult();
         do {
-            if (!rowset) {
-                res.errMsg = "Client side doesn't ask for rowsets";
-                break;
-            }
             CConfig config = CConfig.getConfig();
             if (config.m_vFrontCachedTable.isEmpty()) {
                 break;
