@@ -156,6 +156,9 @@ class CDBColumnInfoArray(IUSerializer):
     def __len__(self):
         return len(self.list)
 
+    def __getitem__(self, item):
+        return self.__list__.__getitem__(item)
+
     @property
     def list(self):
         return self.__list__

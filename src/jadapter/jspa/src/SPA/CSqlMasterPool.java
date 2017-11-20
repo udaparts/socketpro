@@ -183,9 +183,6 @@ public class CSqlMasterPool<THandler extends CAsyncDBHandler> extends CMasterSla
                     int[] Groups = {CAsyncDBHandler.CACHE_UPDATE_CHAT_GROUP_ID};
                     SPA.ServerSide.CSocketProServer.PushManager.Publish(vtMessage, Groups);
                 }
-                m_cache.setDBServerName("");
-                m_cache.setUpdater("");
-                m_cache.Empty();
                 SetInitialCache();
             } else {
                 handler.Open(getDefaultDBName(), null);

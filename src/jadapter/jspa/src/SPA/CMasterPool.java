@@ -48,6 +48,9 @@ public class CMasterPool<THandler extends CCachedBaseHandler> extends CMasterSla
         boolean ok = m_hander.GetCachedTables(getDefaultDBName(), new CCachedBaseHandler.DResult() {
             @Override
             public void invoke(int res, String errMsg) {
+                m_cache.setDBServerName("");
+                m_cache.setUpdater("");
+                m_cache.Empty();
                 SPA.RefObject<Integer> port = new SPA.RefObject<>(0);
                 String ip = m_hander.getAttachedClientSocket().GetPeerName(port);
                 ip += ":";
@@ -161,9 +164,6 @@ public class CMasterPool<THandler extends CCachedBaseHandler> extends CMasterSla
                     int[] Groups = {CAsyncDBHandler.CACHE_UPDATE_CHAT_GROUP_ID};
                     SPA.ServerSide.CSocketProServer.PushManager.Publish(vtMessage, Groups);
                 }
-                m_cache.setDBServerName("");
-                m_cache.setUpdater("");
-                m_cache.Empty();
                 SetInitialCache();
             } else {
                 handler.GetCachedTables(getDefaultDBName(), null, null, null, 0);

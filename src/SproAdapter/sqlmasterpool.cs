@@ -72,14 +72,6 @@ namespace SocketProAdapter
                         ServerSide.CSocketProServer.PushManager.Publish(vtMessage, ClientSide.CAsyncDBHandler.CACHE_UPDATE_CHAT_GROUP_ID);
                     }
 #endif
-                    m_cache.DBServerName = "";
-                    m_cache.Updater = "";
-                    m_cache.Empty();
-                    uint port;
-                    string ip = handler.AttachedClientSocket.GetPeerName(out port);
-                    ip += ":";
-                    ip += port;
-                    m_cache.Set(ip, UDB.tagManagementSystem.msUnknown);
                     SetInitialCache();
                 }
                 else
@@ -201,17 +193,14 @@ namespace SocketProAdapter
             //open default database and subscribe for table update events (update, delete and insert) by setting flag ClientSide.CAsyncDBHandler.ENABLE_TABLE_UPDATE_MESSAGES
             bool ok = m_hander.Open(DefaultDBName, (h, res, errMsg) =>
             {
-                if (res == 0)
-                {
-                    m_cache.DBServerName = "";
-                    m_cache.Updater = "";
-                    m_cache.Empty();
-                    uint port;
-                    string ip = h.AttachedClientSocket.GetPeerName(out port);
-                    ip += ":";
-                    ip += port;
-                    m_cache.Set(ip, h.DBManagementSystem);
-                }
+                m_cache.DBServerName = "";
+                m_cache.Updater = "";
+                m_cache.Empty();
+                uint port;
+                string ip = h.AttachedClientSocket.GetPeerName(out port);
+                ip += ":";
+                ip += port;
+                m_cache.Set(ip, h.DBManagementSystem);
             }, ClientSide.CAsyncDBHandler.ENABLE_TABLE_UPDATE_MESSAGES);
             //bring all cached table data into m_cache first for initial cache, and exchange it with Cache if there is no error
             ok = m_hander.Execute("", (h, res, errMsg, affected, fail_ok, id) =>

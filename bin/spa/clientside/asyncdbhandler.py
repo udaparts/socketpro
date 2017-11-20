@@ -132,7 +132,7 @@ class CAsyncDBHandler(CAsyncServiceHandler):
     @property
     def ColumnInfo(self):
         with self._csDB:
-            return self._vColInfo.list[:]
+            return self._vColInfo
 
     @property
     def LastAffected(self):
@@ -278,7 +278,7 @@ class CAsyncDBHandler(CAsyncServiceHandler):
                     self._output = mc.LoadUInt()
                 else:
                     self._output = 0
-                if self._output == 0 and len(self._vColInfo.list) > 0:
+                if self._output == 0 and len(self._vColInfo) > 0:
                     if self._indexRowset in self._mapRowset:
                         header = self._mapRowset.get(self._indexRowset).first
             if not header is None:
@@ -361,7 +361,7 @@ class CAsyncDBHandler(CAsyncServiceHandler):
         self._vData = []
 
     def _CleanRowset(self, size = 0):
-        if ((len(self._mapRowset) > 0 or len(self._vColInfo.list) > 0) and self.AttachedClientSocket.Sendable and self.AttachedClientSocket.CountOfRequestsInQueue <= size and self.AttachedClientSocket.ClientQueue.MessageCount <= size):
+        if ((len(self._mapRowset) > 0 or len(self._vColInfo) > 0) and self.AttachedClientSocket.Sendable and self.AttachedClientSocket.CountOfRequestsInQueue <= size and self.AttachedClientSocket.ClientQueue.MessageCount <= size):
             self._mapRowset = {}
             self._vColInfo = CDBColumnInfoArray()
 

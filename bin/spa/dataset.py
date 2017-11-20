@@ -1,5 +1,6 @@
 
 from spa.udb import *
+from spa import CScopeUQueue, CUQueue
 import copy
 from functools import total_ordering
 import threading
@@ -33,10 +34,10 @@ class CTable(object):
         not_equal = 5
         is_null = 6
 
-    def __init__(self, meta, bFieldCaseSensitive = False, bDataCaseSensitive = False):
+    def __init__(self, meta=None, bFieldCaseSensitive = False, bDataCaseSensitive = False):
         self._meta_ = CDBColumnInfoArray()
         if meta and isinstance(meta, CDBColumnInfoArray):
-           self._meta_ = copy.deepcopy(meta)
+            self._meta_ = copy.deepcopy(meta)
         self._bFieldCaseSensitive_ = bFieldCaseSensitive
         self._bDataCaseSensitive_ = bDataCaseSensitive
         self._vRow_ = []
@@ -54,7 +55,7 @@ class CTable(object):
         index = 0
         keys = {}
         for col in self._meta_:
-            if (col.Flags & CDBColumnInfo.FLAG_AUTOINCREMENT) == CDBColumnInfo.FLAG_AUTOINCREMENT or (col.Flags & CDBColumnInfo.FLAG_PRIMARY_KEY) == CDBColumnInfo.FLAG_PRIMARY_KEY:
+            if ((col.Flags & CDBColumnInfo.FLAG_AUTOINCREMENT) == CDBColumnInfo.FLAG_AUTOINCREMENT) or ((col.Flags & CDBColumnInfo.FLAG_PRIMARY_KEY) == CDBColumnInfo.FLAG_PRIMARY_KEY):
                 keys[index] = col
             index += 1
         return keys
@@ -64,7 +65,7 @@ class CTable(object):
             return None
         v_col = []
         keys = self.Keys
-        for (c, col) in keys:
+        for c in keys:
             v_col.append(c)
         for r in self._vRow_:
             if self._eq_(key0, r[v_col[0]]) > 0:
@@ -581,13 +582,13 @@ class CDataSet(object):
                         return CDataSet.INVALID_VALUE
                     keys = tbl.Keys
                     v = []
-                    for (c, col) in keys:
+                    for c in keys:
                         v.append(vData[2 * c])
                     key1 = None
                     if len(v) == 2:
                         key1 = v[1]
                     r = tbl.FindARow(v[0], key1)
-                    if not isinstance(list):
+                    if not isinstance(r, list):
                         return 0
                     index = 0
                     while index < col_count:
@@ -604,7 +605,7 @@ class CDataSet(object):
             for tbl in self._ds_:
                 if self._Is_(tbl, dbName, tblName):
                     r = tbl.FindARow(key0, key1)
-                    if not isinstance(list):
+                    if not isinstance(r, list):
                         return 0
                     tbl._vRow_.remove(r)
                     return 1

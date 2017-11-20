@@ -1,20 +1,26 @@
 
 from functools import total_ordering
-from spa import CDataSet, CTable, CMasterSlaveBase
+from spa import CDataSet, CTable, CSqlMasterPool, CMasterPool
 from decimal import Decimal
-import datetime, uuid
+import datetime, uuid, sys
 from spa.udb import *
 from spa.clientside import CSqlite, CConnectionContext
-from sqlpool import CSqlMasterPool
 
 slave = CSqlMasterPool.CSlavePool(CSqlite, 'sakila.db')
 
-with CMasterSlaveBase(CSqlite, 'sakila.db') as sp:
+with CSqlMasterPool(CSqlite, 'sakila.db', False) as sp:
     cc = CConnectionContext('localhost', 20901, 'PythonUser', 'TooMuchSecret')
     ok = sp.StartSocketPool(cc, 1, 1)
-    hw = sp.Seek()
-    hw = None
-
+    cache = sp.Cache
+    tbl = CTable()
+    res = cache.Find('main', 'mynulls', 0, CTable.Operator.great, -1, tbl)
+    res = tbl.Sort(0, True)
+    res = tbl.Sort(0, False)
+    res = tbl.Sort(1, True)
+    res = tbl.Sort(1, False)
+    print('Press ENTER key to shutdown the demo application ......')
+    line = sys.stdin.readline()
+    res = 0
 
 var = [(1, 'str'), (2, 'ye'), (3, 'char')]
 for (myd, mys) in var:

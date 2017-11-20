@@ -454,3 +454,5 @@ class CStreamSerializationHelper(object):
 
 from spa.dataset import CTable, CDataSet
 from spa.poolbase import CMasterSlaveBase
+from spa.sqlpool import CSqlMasterPool
+from spa.masterpool import CMasterPool

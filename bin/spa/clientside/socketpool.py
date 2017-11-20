@@ -166,6 +166,7 @@ class CSocketPool(object):
             if ash.SvsID <= BaseServiceID.sidStartup:
                 raise ValueError('Service id must be larger than SocketProAdapter.BaseServiceID.sidReserved (268435456)')
             ash._Attach_(cs)
+            handler = ash
             with self._lock_:
                 self._m_dicSocketHandler_[cs] = ash
         elif spe == tagSocketPoolEvent.speConnected:
