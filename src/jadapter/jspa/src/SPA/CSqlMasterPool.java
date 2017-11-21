@@ -66,7 +66,7 @@ public class CSqlMasterPool<THandler extends CAsyncDBHandler> extends CMasterSla
                 SPA.RefObject<Integer> port = new SPA.RefObject<>(0);
                 String ip = m_hander.getAttachedClientSocket().GetPeerName(port);
                 ip += ":";
-                ip += port;
+                ip += port.Value;
                 m_cache.Set(ip, m_hander.getDBManagementSystem());
             }
         }, CAsyncDBHandler.ENABLE_TABLE_UPDATE_MESSAGES);

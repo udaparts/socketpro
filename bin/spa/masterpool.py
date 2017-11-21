@@ -10,7 +10,7 @@ class CMasterPool(CMasterSlaveBase):
         self._midTier_ = midTier
         self._msTool_ = CDataSet()
         self._m_cache_ = CDataSet()
-        self._m_meta_ = CDBColumnInfoArray()
+        self._m_meta_ = None
         self._handler_ = None
 
     @property
@@ -24,9 +24,6 @@ class CMasterPool(CMasterSlaveBase):
     def _SetInitialCache_(self):
         # bring all cached table data into m_cache first for initial cache, and exchange it with Cache if there is no error
         def sql_result(res, errMsg):
-            self._m_cache_.DBServerName = ""
-            self._m_cache_.Updater = ""
-            self._m_cache_.Empty()
             ip, port = self._handler_.AttachedClientSocket.GetPeerName()
             ip += ":"
             ip += str(port)
@@ -42,6 +39,9 @@ class CMasterPool(CMasterSlaveBase):
             self._m_meta_ = meta
             self._m_cache_.AddEmptyRowset(meta)
 
+        self._m_cache_.DBServerName = ''
+        self._m_cache_.Updater = ''
+        self._m_cache_.Empty()
         ok = self._handler_.GetCachedTables(self.DefaultDBName, sql_result, sql_data, sql_meta, CAsyncDBHandler.ENABLE_TABLE_UPDATE_MESSAGES)
 
     def OnSocketPoolEvent(self, spe, handler):
@@ -50,10 +50,10 @@ class CMasterPool(CMasterSlaveBase):
             if group[0] == CAsyncDBHandler.CACHE_UPDATE_CHAT_GROUP_ID:
                 if self._midTier_:
                     CSocketProServer.PushManager.Publish(msg, [CAsyncDBHandler.CACHE_UPDATE_CHAT_GROUP_ID])
-                    self._SetInitialCache_(self)
-                    return
+                self._SetInitialCache_(self)
+                return
             if self._midTier_:
-                CSocketProServer.PushManager.Publish(msg, [CAsyncDBHandler.CACHE_UPDATE_CHAT_GROUP_ID])
+                CSocketProServer.PushManager.Publish(msg, [CAsyncDBHandler.STREAMING_SQL_CHAT_GROUP_ID])
 
             # vData[0] == event type; vData[1] == host; vData[2] = database user; vData[3] == db name; vData[4] == table name
             vData = msg
@@ -82,7 +82,7 @@ class CMasterPool(CMasterSlaveBase):
         elif spe == tagSocketPoolEvent.speConnected and handler.AttachedClientSocket.ErrorCode == 0:
             if handler == self.AsyncHandlers[0]:
                 if self._midTier_:
-                    CSocketProServer.PushManager.Publish('', CAsyncDBHandler.CACHE_UPDATE_CHAT_GROUP_ID)
+                    CSocketProServer.PushManager.Publish(None, CAsyncDBHandler.CACHE_UPDATE_CHAT_GROUP_ID)
                 self._SetInitialCache_()
             else:
                 handler.GetCachedTables(self.DefaultDBName, None, None, None, 0)

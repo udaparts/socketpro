@@ -23,10 +23,11 @@ class CSqlMasterPool(CMasterSlaveBase):
 
     def _SetInitialCache_(self):
 
+        self._m_cache_.DBServerName = ""
+        self._m_cache_.Updater = ""
+        self._m_cache_.Empty()
+
         def rh(h, res, errMsg):
-            self._m_cache_.DBServerName = ""
-            self._m_cache_.Updater = ""
-            self._m_cache_.Empty()
             ip, port = h.AttachedClientSocket.GetPeerName()
             ip += ":"
             ip += str(port)
@@ -55,10 +56,10 @@ class CSqlMasterPool(CMasterSlaveBase):
             if group[0] == CAsyncDBHandler.CACHE_UPDATE_CHAT_GROUP_ID:
                 if self._midTier_:
                     CSocketProServer.PushManager.Publish(msg, [CAsyncDBHandler.CACHE_UPDATE_CHAT_GROUP_ID])
-                    self._SetInitialCache_()
-                    return
+                self._SetInitialCache_()
+                return
             if self._midTier_:
-                CSocketProServer.PushManager.Publish(msg, [CAsyncDBHandler.CACHE_UPDATE_CHAT_GROUP_ID])
+                CSocketProServer.PushManager.Publish(msg, [CAsyncDBHandler.STREAMING_SQL_CHAT_GROUP_ID])
 
             # vData[0] == event type; vData[1] == host; vData[2] = database user; vData[3] == db name; vData[4] == table name
             vData = msg

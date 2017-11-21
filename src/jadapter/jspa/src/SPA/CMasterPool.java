@@ -44,17 +44,17 @@ public class CMasterPool<THandler extends CCachedBaseHandler> extends CMasterSla
     }
 
     void SetInitialCache() {
+        m_cache.setDBServerName("");
+        m_cache.setUpdater("");
+        m_cache.Empty();
         //open default database and subscribe for table update events (update, delete and insert) by setting flag ClientSide.CAsyncDBHandler.ENABLE_TABLE_UPDATE_MESSAGES
         boolean ok = m_hander.GetCachedTables(getDefaultDBName(), new CCachedBaseHandler.DResult() {
             @Override
             public void invoke(int res, String errMsg) {
-                m_cache.setDBServerName("");
-                m_cache.setUpdater("");
-                m_cache.Empty();
                 SPA.RefObject<Integer> port = new SPA.RefObject<>(0);
                 String ip = m_hander.getAttachedClientSocket().GetPeerName(port);
                 ip += ":";
-                ip += port;
+                ip += port.Value;
                 m_cache.Set(ip, m_hander.getDBManagementSystem());
                 if (res == 0) {
                     Cache.Swap(m_cache); //exchange between master Cache and this m_cache
