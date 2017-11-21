@@ -73,6 +73,9 @@ class CAsyncResult(object):
     def Load(self, obj):
         return self.UQueue.Load(obj)
 
+    def LoadByClass(self, cls):
+        return self.UQueue.LoadByClass(cls)
+
 class CResultCb(object):
     def __init__(self, arh = None, canceled = None, efs = None):
         self.AsyncResultHandler = arh

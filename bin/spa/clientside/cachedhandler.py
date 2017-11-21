@@ -11,7 +11,7 @@ class CCachedBaseHandler(CAsyncServiceHandler):
 
     def __init__(self, serviceId):
         super(CCachedBaseHandler, self).__init__(serviceId)
-        self._csDB = threading.Lock()
+        self._csCache = threading.Lock()
         self._nCall = 0
         self._mapRowset = {}
         self._indexRowset = 0
@@ -22,19 +22,19 @@ class CCachedBaseHandler(CAsyncServiceHandler):
 
     @property
     def DBManagementSystem(self):
-        with self._csDB:
+        with self._csCache:
             return self._ms
 
     def CleanCallbacks(self):
-        with self._csDB:
+        with self._csCache:
             self._mapRowset = {}
             self._mapHandler = {}
-        return super(CAsyncServiceHandler, self).CleanCallbacks()
+        return super(CCachedBaseHandler, self).CleanCallbacks()
 
     def GetCachedTables(self, defaultDb, handler, row, rh, flags=CAsyncDBHandler.ENABLE_TABLE_UPDATE_MESSAGES):
         q = CScopeUQueue.Lock()
         index = 0;
-        with self._csDB:
+        with self._csCache:
             self._nCall += 1
             index = self._nCall
             self._mapRowset[index] = Pair(rh, row)
@@ -43,7 +43,7 @@ class CCachedBaseHandler(CAsyncServiceHandler):
         ok = self.SendRequest(CAsyncDBHandler.idGetCachedTables, q, None)
         CScopeUQueue.Unlock(q)
         if not ok:
-            with self._csDB:
+            with self._csCache:
                 self._mapHandler.pop(index)
                 self._mapRowset.pop(index)
         return ok
@@ -57,7 +57,7 @@ class CCachedBaseHandler(CAsyncServiceHandler):
             vColInfo = CDBColumnInfoArray()
             vColInfo.LoadFrom(mc)
             header = None
-            with self._csDB:
+            with self._csCache:
                 self._indexRowset = mc.LoadULong()
                 if len(vColInfo.list) > 0:
                     if self._indexRowset in self._mapRowset:
@@ -68,7 +68,7 @@ class CCachedBaseHandler(CAsyncServiceHandler):
             self._Blob.SetSize(0)
             self._vData = []
             if mc.GetSize() > 0:
-                with self._csDB:
+                with self._csCache:
                     self._indexRowset = mc.LoadULong()
         elif reqId == CAsyncDBHandler.idTransferring:
             while mc.GetSize() > 0:
@@ -80,7 +80,7 @@ class CCachedBaseHandler(CAsyncServiceHandler):
                     vt = mc.LoadObject()
                     self._vData.append(vt)
                 row = None
-                with self._csDB:
+                with self._csCache:
                     if self._indexRowset in self._mapRowset:
                         row = self._mapRowset.get(self._indexRowset).second
                 if not row is None:
@@ -113,7 +113,7 @@ class CCachedBaseHandler(CAsyncServiceHandler):
             self._ms = mc.LoadInt()
             err_msg = mc.LoadString()
             r = None
-            with self._csDB:
+            with self._csCache:
                 if self._indexRowset in self._mapHandler:
                     r = self._mapHandler.get(self._indexRowset)
                     self._mapHandler.pop(self._indexRowset)

@@ -522,6 +522,11 @@ class CUQueue(object):
     def SaveUUID(self, uuid):
         return self.Push(uuid.bytes_le, 16)
 
+    def LoadByClass(self, cls):
+        obj = cls()
+        obj.LoadFrom(self)
+        return obj
+
     def LoadUUID(self):
         self._available_(16)
         bytes = struct.unpack_from('16s', self._m_bytes_, self._m_position_)

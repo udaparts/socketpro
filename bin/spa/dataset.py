@@ -35,6 +35,8 @@ class CTable(object):
         is_null = 6
 
     def __init__(self, meta=None, bFieldCaseSensitive = False, bDataCaseSensitive = False):
+        if meta:
+            assert isinstance(meta, CDBColumnInfoArray)
         self._meta_ = CDBColumnInfoArray()
         if meta and isinstance(meta, CDBColumnInfoArray):
             self._meta_ = copy.deepcopy(meta)
@@ -81,16 +83,16 @@ class CTable(object):
         return tbl
 
     def Append(self, tbl):
-        if tbl and isinstance(tbl, CTable):
-            if len(tbl._meta_) != len(self._meta_):
-                return CTable.OPERATION_NOT_SUPPORTED
-            index = 0
-            for col in self._meta_:
-                if col.DataType != tbl._meta_[index].DataType:
-                    return CTable.BAD_DATA_TYPE
-                index += 1
-            for v in tbl._vRow_:
-                self._vRow_.append(v)
+        assert isinstance(tbl, CTable)
+        if len(tbl._meta_) != len(self._meta_):
+            return CTable.OPERATION_NOT_SUPPORTED
+        index = 0
+        for col in self._meta_:
+            if col.DataType != tbl._meta_[index].DataType:
+                return CTable.BAD_DATA_TYPE
+            index += 1
+        for v in tbl._vRow_:
+            self._vRow_.append(v)
         return 1
 
     def Sort(self, ordinal, desc = False):
@@ -113,8 +115,7 @@ class CTable(object):
         self._vRow_.sort(key=key_func, reverse=desc)
 
     def FindOrdinal(self, colName):
-        if not colName or not isinstance(colName, str):
-            return CTable.INVALID_ORDINAL
+        assert isinstance(colName, str)
         index = 0
         for col in self._meta_:
             s0 = self._meta_[index].DisplayName
@@ -186,8 +187,7 @@ class CTable(object):
         return 0
 
     def Find(self, ordinal, op, vt, tbl, copy_data=False):
-        if not isinstance(tbl, CTable):
-            return CTable.BAD_INPUT_PARAMETER
+        assert isinstance(tbl, CTable)
         tbl._meta_ = copy.deepcopy(self._meta_)
         tbl._vRow_ = []
         tbl._bDataCaseSensitive_ = self._bDataCaseSensitive_
@@ -227,8 +227,7 @@ class CTable(object):
         return self.Find(ordinal, CTable.Operator.is_null, None, tbl, copy_data)
 
     def Between(self, ordinal, vt0, vt1, tbl, copy_data=False):
-        if not isinstance(tbl, CTable):
-            return CTable.BAD_INPUT_PARAMETER
+        assert isinstance(tbl, CTable)
         tbl._meta_ = copy.deepcopy(self._meta_)
         tbl._vRow_ = []
         tbl._bDataCaseSensitive_ = self._bDataCaseSensitive_
@@ -261,8 +260,7 @@ class CTable(object):
         return False
 
     def In(self, ordinal, v, tbl, copy_data=False):
-        if not isinstance(tbl, CTable):
-            return CTable.BAD_INPUT_PARAMETER
+        assert isinstance(tbl, CTable)
         tbl._meta_ = copy.deepcopy(self._meta_)
         tbl._vRow_ = []
         tbl._bDataCaseSensitive_ = self._bDataCaseSensitive_
@@ -279,8 +277,7 @@ class CTable(object):
         return 1
 
     def NotIn(self, ordinal, v, tbl, copy_data=False):
-        if not isinstance(tbl, CTable):
-            return CTable.BAD_INPUT_PARAMETER
+        assert isinstance(tbl, CTable)
         tbl._meta_ = copy.deepcopy(self._meta_)
         tbl._vRow_ = []
         tbl._bDataCaseSensitive_ = self._bDataCaseSensitive_
@@ -401,8 +398,7 @@ class CDataSet(object):
             self._ms_ = ms
 
     def Swap(self, ds):
-        if not isinstance(ds, CDataSet):
-            return
+        assert isinstance(ds, CDataSet)
         with self._cs_:
             temp = self._ds_
             self._ds_ = ds._ds_
@@ -421,8 +417,7 @@ class CDataSet(object):
             ds._ms_ = temp
 
     def AddEmptyRowset(self, meta):
-        if meta is None or len(meta) == 0:
-            return
+        assert isinstance(meta, CDBColumnInfoArray)
         if len(meta[0].DBPath) == 0 or len(meta[0].TablePath) == 0:
             raise Exception('The first column meta must contain database name and table name')
         tbl = CTable(meta, self._FieldNameCase_, self._DataCase_)
