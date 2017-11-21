@@ -109,14 +109,6 @@ public class CClientPeer extends CSocketPeer {
         return SendResult(reqId, (byte[]) null, 0);
     }
 
-    public <T0> int SendResult(short reqId, T0 t0) {
-        CUQueue q = CScopeUQueue.Lock();
-        q.Save(t0);
-        int ret = SendResult(reqId, q);
-        CScopeUQueue.Unlock(q);
-        return ret;
-    }
-
     protected int SendResult(short reqId, byte[] data, int len) {
         if (data == null) {
             len = 0;
