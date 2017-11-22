@@ -17,9 +17,9 @@ with CSocketProServer() as server:
     server.OnIsPermitted = OnIsPermitted
 
     mapIdMethod = {
-        hwConst.idSayHelloHelloWorld : 'sayHello',
-        hwConst.idSleepHelloWorld : ['sleep', True],  # or ('sleep', True)
-        hwConst.idEchoHelloWorld : 'echo'
+        hwConst.idSayHelloHelloWorld: 'sayHello',
+        hwConst.idSleepHelloWorld: ['sleep', True],  # or ('sleep', True)
+        hwConst.idEchoHelloWorld: 'echo'
     }
     server.hw = CSocketProService(CHelloWorldPeer, hwConst.sidHelloWorld, mapIdMethod)
 

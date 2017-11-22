@@ -85,7 +85,7 @@ class CBaseService(object):
             else:
                 funcName = self._m_dicMethod[reqId]
                 res = sp.__getattribute__(funcName)()
-                if isinstance(res, CUQueue):
+                if isinstance(res, CUQueue) or isinstance(res, CScopeUQueue):
                     sp.SendResult(res, reqId)
                 else:
                     sp.SendResult(None, reqId)
