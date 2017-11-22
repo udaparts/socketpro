@@ -1,6 +1,6 @@
 
 import threading
-from spa.memqueue import CUQueue
+from spa.memqueue import CUQueue, CScopeUQueue
 from spa.clientside.ccoreloader import CCoreLoader as ccl
 from ctypes import c_ubyte
 from collections import deque
@@ -116,6 +116,8 @@ class CAsyncServiceHandler(object):
     def SendRequest(self, reqId, q, arh, canceled = None, efs = None):
         if q is None:
             q = CUQueue(bytearray(0))
+        if isinstance(q, CScopeUQueue):
+            q = q.UQueue
         if not isinstance(q, CUQueue):
             raise ValueError('Bad input for parameter q')
         #http://stackoverflow.com/questions/21483482/efficient-way-to-convert-string-to-ctypes-c-ubyte-array-in-python

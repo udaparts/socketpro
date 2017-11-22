@@ -816,6 +816,80 @@ class CScopeUQueue:
     _vQueue = deque()
     SHARED_BUFFER_CLEAN_SIZE = 32 * 1024
 
+    def __init__(self):
+        self._Buffer_ = CScopeUQueue.Lock()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        CScopeUQueue.Unlock(self._Buffer_)
+        self._Buffer_ = None
+
+    @property
+    def UQueue(self):
+        return self._Buffer_
+
+    def SaveDecimal(self, dec):
+        return self._Buffer_.SaveDecimal(dec)
+
+    def Save(self, obj):
+        return self._Buffer_.Save(obj)
+
+    def SaveInt(self, n):
+        return self._Buffer_.SaveInt(n)
+
+    def SaveUInt(self, n):
+        return self._Buffer_.SaveUInt(n)
+
+    def SaveShort(self, s):
+        return self._Buffer_.SaveShort(s)
+
+    def SaveUShort(self, s):
+        return self._Buffer_.SaveUShort(s)
+
+    def SaveChar(self, c):
+        return self._Buffer_.SaveChar(c)
+
+    def SaveAChar(self, c):
+        return self._Buffer_.SaveAChar(c)
+
+    def SaveLong(self, n):
+        return self._Buffer_.SaveLong(n)
+
+    def SaveULong(self, n):
+        return self._Buffer_.SaveULong(n)
+
+    def SaveFloat(self, f):
+        return self._Buffer_.SaveFloat(f)
+
+    def SaveDouble(self, d):
+        return self._Buffer_.SaveDouble(d)
+
+    def SaveBool(self, b):
+        return self._Buffer_.SaveBool(b)
+
+    def SaveAString(self, s):
+        return self._Buffer_.SaveAString(s)
+
+    def SaveString(self, s):
+        return self._Buffer_.SaveString(s)
+
+    def SaveDate(self, dt):
+        return self._Buffer_.SaveDate(dt)
+
+    def SaveBytes(self, bytes, length):
+        return self._Buffer_.SaveBytes(bytes, length)
+
+    def SaveUUID(self, uuid):
+        return self._Buffer_.SaveUUID(uuid)
+
+    def SaveObject(self, obj, hint=''):
+        return self._Buffer_.SaveObject(obj, hint)
+
+    def SaveByte(self, b):
+        return self._Buffer_.SaveByte(b)
+
     @staticmethod
     def MemoryConsumed():
         mem = 0;

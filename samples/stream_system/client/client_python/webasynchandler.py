@@ -1,7 +1,8 @@
 
-from spa.clientside import CCachedBaseHandler
-from sharedstruct import *
 import threading
+from spa.clientside import CCachedBaseHandler
+
+from sharedstruct import *
 
 
 class CWebAsyncHandler(CCachedBaseHandler):
@@ -41,7 +42,6 @@ class CWebAsyncHandler(CCachedBaseHandler):
                 p = self._mapMMA.pop(index)
             if p and p.first:
                 p.first(index, mma, res, errMsg)
-
         callIndex = 0
         with CWebAsyncHandler._csSS:
             CWebAsyncHandler._ssIndex += 1
@@ -54,15 +54,12 @@ class CWebAsyncHandler(CCachedBaseHandler):
                 p = self._mapMMA.pop(callIndex)
             if p and p.second:
                 p.second(callIndex)
-
-        q = CScopeUQueue.Lock()
-        q.SaveLong(callIndex).SaveString(filter)
-        ok = self.SendRequest(idQueryMaxMinAvgs, q, arh, closed)
-        CScopeUQueue.Unlock(q)
-        if not ok:
-            with self._csCache:
-                p = self._mapMMA.pop(callIndex)
-            return 0
+        with CScopeUQueue() as q:
+            q.SaveLong(callIndex).SaveString(filter)
+            if not self.SendRequest(idQueryMaxMinAvgs, q, arh, closed):
+                with self._csCache:
+                    p = self._mapMMA.pop(callIndex)
+                return 0
         return callIndex
 
     def GetMasterSlaveConnectedSessions(self, dMscs, dClosed=None):
@@ -75,7 +72,6 @@ class CWebAsyncHandler(CCachedBaseHandler):
                 p = self._mapSession.pop(index)
             if p and p.first:
                 p.first(index, master_connections, slave_conenctions)
-
         callIndex = 0
         with CWebAsyncHandler._csSS:
             CWebAsyncHandler._ssIndex += 1
@@ -88,14 +84,12 @@ class CWebAsyncHandler(CCachedBaseHandler):
                 p = self._mapSession.pop(callIndex)
             if p and p.second:
                 p.second(callIndex)
-        q = CScopeUQueue.Lock()
-        q.SaveLong(callIndex)
-        ok = self.SendRequest(idGetMasterSlaveConnectedSessions, q, arh, closed)
-        CScopeUQueue.Unlock(q)
-        if not ok:
-            with self._csCache:
-                p = self._mapSession.pop(callIndex)
-            return 0
+        with CScopeUQueue() as q:
+            q.SaveLong(callIndex)
+            if not self.SendRequest(idGetMasterSlaveConnectedSessions, q, arh, closed):
+                with self._csCache:
+                    p = self._mapSession.pop(callIndex)
+                return 0
         return callIndex
 
     def UploadEmployees(self, vData, dUe, dClosed=None):
@@ -110,7 +104,6 @@ class CWebAsyncHandler(CCachedBaseHandler):
                 p = self._mapUpload.pop(index)
             if p and p.first:
                 p.first(index, errCode, errMsg, vId)
-
         callIndex = 0
         with CWebAsyncHandler._csSS:
             CWebAsyncHandler._ssIndex += 1
@@ -123,19 +116,16 @@ class CWebAsyncHandler(CCachedBaseHandler):
                 p = self._mapUpload.pop(callIndex)
             if p and p.second:
                 p.second(callIndex)
-        q = CScopeUQueue.Lock()
-        q.SaveLong(callIndex)
-
-        #pack vData into memory
-        q.SaveInt(len(vData))
-        for d in vData:
-            q.SaveObject(d)
-        ok = self.SendRequest(idUploadEmployees, q, arh, closed)
-        CScopeUQueue.Unlock(q)
-        if not ok:
-            with self._csCache:
-                p = self._mapUpload.pop(callIndex)
-            return 0
+        with CScopeUQueue() as q:
+            q.SaveLong(callIndex)
+            #pack vData into memory
+            q.SaveInt(len(vData))
+            for d in vData:
+                q.SaveObject(d)
+            if not self.SendRequest(idUploadEmployees, q, arh, closed):
+                with self._csCache:
+                    p = self._mapUpload.pop(callIndex)
+                return 0
         return callIndex
 
     def GetRentalDateTimes(self, rentalId, dRdt, dClosed=None):
@@ -149,7 +139,6 @@ class CWebAsyncHandler(CCachedBaseHandler):
                 p = self._mapRentalDateTimes.pop(index)
             if p and p.first:
                 p.first(index, dates, errCode, errMsg)
-
         callIndex = 0
         with CWebAsyncHandler._csSS:
             CWebAsyncHandler._ssIndex += 1
@@ -162,12 +151,10 @@ class CWebAsyncHandler(CCachedBaseHandler):
                 p = self._mapRentalDateTimes.pop(callIndex)
             if p and p.second:
                 p.second(callIndex)
-        q = CScopeUQueue.Lock()
-        q.SaveLong(callIndex).SaveLong(rentalId)
-        ok = self.SendRequest(idGetRentalDateTimes, q, arh, closed)
-        CScopeUQueue.Unlock(q)
-        if not ok:
-            with self._csCache:
-                p = self._mapRentalDateTimes.pop(callIndex)
-            return 0
+        with CScopeUQueue() as q:
+            q.SaveLong(callIndex).SaveLong(rentalId)
+            if not self.SendRequest(idGetRentalDateTimes, q, arh, closed):
+                with self._csCache:
+                    p = self._mapRentalDateTimes.pop(callIndex)
+                return 0
         return callIndex
