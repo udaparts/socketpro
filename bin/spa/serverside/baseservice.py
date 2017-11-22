@@ -266,10 +266,8 @@ class CBaseService(object):
         return None
 
 class CSocketProService(CBaseService):
-    def __init__(self, clsSocketPeer, svsId, dicRequests, ta=0):
+    def __init__(self, clsSocketPeer, svsId, dicRequests, ta=tagThreadApartment.taNone):
         super(CSocketProService, self).__init__()
-        sa = CSocketProService._sa_
-
         self._m_SocketPeer = clsSocketPeer
         if not self.AddMe(svsId, ta):
             raise Exception('Error in registering service (' + str(svsId) + ')')
