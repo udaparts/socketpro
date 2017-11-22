@@ -71,4 +71,6 @@ from spa.serverside.clientpeer import CClientPeer
 from spa.serverside.spserver import CSocketProServer
 from spa.serverside.serverstreamhelper import CStreamHelper
 from spa.serverside.cachebpeer import CCacheBasePeer
+from spa.serverside.reqattr import RequestAttr
+from spa.serverside.serviceattr import ServicetAttr
 
