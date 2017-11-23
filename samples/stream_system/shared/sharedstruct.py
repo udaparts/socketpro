@@ -43,11 +43,11 @@ class CMaxMinAvg(IUSerializer):
         q.SaveDouble(self.Max).SaveDouble(self.Min).SaveDouble(self.Avg)
 
 class CRentalDateTimes(IUSerializer):
-    def __init__(self):
-        self.rental_id = 0
-        self.Rental = datetime.datetime(datetime.MINYEAR, 1, 1)
-        self.Return = datetime.datetime(datetime.MINYEAR, 1, 1)
-        self.LastUpdate = datetime.datetime(datetime.MINYEAR, 1, 1)
+    def __init__(self, rentalId=0):
+        self.rental_id = rentalId
+        self.Rental = datetime.datetime(1900, 1, 1)
+        self.Return = datetime.datetime(1900, 1, 1)
+        self.LastUpdate = datetime.datetime(1900, 1, 1)
 
     def LoadFrom(self, q):
         self.rental_id = q.LoadLong()

@@ -823,8 +823,12 @@ class CScopeUQueue:
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        CScopeUQueue.Unlock(self._Buffer_)
-        self._Buffer_ = None
+        self.Dispose()
+
+    def Dispose(self):
+        if self._Buffer_:
+            CScopeUQueue.Unlock(self._Buffer_)
+            self._Buffer_ = None
 
     @property
     def UQueue(self):

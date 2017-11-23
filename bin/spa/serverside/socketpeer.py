@@ -154,6 +154,12 @@ class CSocketPeer(object):
     def OnRequestArrive(self, reqId, len):
         pass
 
+    def OnFastRequestArrive(self, reqId, len):
+        pass
+
+    def OnSlowRequestArrive(self, reqId, len):
+        return 0
+
     def _OnChatComing(self, chatReqId):
         ok = True
         q = self._m_qBuffer

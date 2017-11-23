@@ -55,14 +55,15 @@ public class CConfig
         m_config.m_ccMaster.UserId = "root";
         m_config.m_ccMaster.Password = "Smash123";
 
+        SocketProAdapter.ClientSide.CConnectionContext cc = new SocketProAdapter.ClientSide.CConnectionContext();
 #if USE_SQLITE
         m_config.m_slave_default_db = "sakila.db";
+        cc.Port = 20901;
 #else
         m_config.m_slave_default_db = "sakila";
-#endif
-        SocketProAdapter.ClientSide.CConnectionContext cc = new SocketProAdapter.ClientSide.CConnectionContext();
-        cc.Host = "104.154.160.127";
         cc.Port = 20902;
+#endif
+        cc.Host = "104.154.160.127";
         cc.UserId = "root";
         cc.Password = "Smash123";
         m_config.m_vccSlave.Add(cc);

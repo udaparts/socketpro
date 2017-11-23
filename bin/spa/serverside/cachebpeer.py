@@ -10,12 +10,13 @@ from ctypes import c_ubyte
 class CCacheBasePeer(CClientPeer):
 
     @abstractmethod
-    def GetCachedTables(self, defaultDb, flags, index):
+    def GetCachedTables(self):
         raise NotImplementedError("Please implement this method")
 
     def SendMeta(self, meta, index):
         q = CScopeUQueue.Lock()
         meta.SaveTo(q)
+        q.SaveULong(index)
         ret = self.SendResult(q, CAsyncDBHandler.idRowsetHeader)
         CScopeUQueue.Unlock(q)
         return ret != CClientPeer.REQUEST_CANCELED and ret != CClientPeer.SOCKET_NOT_FOUND
@@ -71,17 +72,19 @@ class CCacheBasePeer(CClientPeer):
             dt = tagVariantDataType.sdVT_BSTR
         q = CScopeUQueue.Lock()
         q.SaveObject(blob)
+        dt = q.LoadUShort()
+        bytes = q.LoadUInt()
+        byte_len = q.GetSize()
+
         q0 = CScopeUQueue.Lock()
-        byte_len = q.Size + 4  #extra 4 bytes for string null termination
-        q0.SaveUInt(byte_len).SaveUShort(dt)
-        byte_len = q.Size - 6  #sizeof(ushort) + sizeof(uint)
-        q.SaveUInt(byte_len)
+        byte_len += 10  # sizeof(ushort) + sizeof(uint) + sizeof(uint) extra 4 bytes for string null termination
+        q0.SaveUInt(byte_len).SaveUShort(dt).SaveUInt(q.GetSize())
         ret = self.SendResult(q0, CAsyncDBHandler.idStartBLOB)
         CScopeUQueue.Unlock(q0)
         if ret == CClientPeer.REQUEST_CANCELED or ret == CClientPeer.SOCKET_NOT_FOUND:
             CScopeUQueue.Unlock(q)
             return False
-        q.Discard(6)
+        byte_len = q.GetSize()
         while byte_len > CAsyncDBHandler.DEFAULT_BIG_FIELD_CHUNK_SIZE:
             buffer = (c_ubyte * CAsyncDBHandler.DEFAULT_BIG_FIELD_CHUNK_SIZE).from_buffer(q._m_bytes_, q._m_position_)
             ret = scl.SendReturnData(self.Handle, CAsyncDBHandler.idChunk, CAsyncDBHandler.DEFAULT_BIG_FIELD_CHUNK_SIZE, buffer)
@@ -89,7 +92,7 @@ class CCacheBasePeer(CClientPeer):
                 CScopeUQueue.Unlock(q)
                 return False
             q.Discard(ret)
-            byte_len -= ret
+            byte_len = q.GetSize()
         ret = self.SendResult(q, CAsyncDBHandler.idEndBLOB)
         CScopeUQueue.Unlock(q)
         return ret != CClientPeer.REQUEST_CANCELED and ret != CClientPeer.SOCKET_NOT_FOUND
