@@ -110,8 +110,8 @@ class CYourPeerOne : CCacheBasePeer
             do
             {
                 bool ok = false;
-                if (!handler.Prepare("INSERT INTO mysample.EMPLOYEE(CompanyId,Name,JoinDate)VALUES(?,?,?)")) break;
                 if (!handler.BeginTrans()) break;
+                if (!handler.Prepare("INSERT INTO mysample.EMPLOYEE(CompanyId,Name,JoinDate)VALUES(?,?,?)")) break;
                 SocketProAdapter.UDB.CDBVariantArray v = new SocketProAdapter.UDB.CDBVariantArray();
                 int rows = vData.Count / 3;
                 for (int n = 0; n < rows; ++n)

@@ -28,6 +28,10 @@ class CLongArray(IUSerializer):
         for n in self._list_:
             q.SaveLong(n)
 
+    @property
+    def list(self):
+        return self._list_
+
 class CMaxMinAvg(IUSerializer):
     def __init__(self):
         self.Max = 0.0

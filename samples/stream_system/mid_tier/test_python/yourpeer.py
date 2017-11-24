@@ -14,11 +14,151 @@ class CYourPeer(CCacheBasePeer):
 
     def OnFastRequestArrive(self, reqId, len):
         if reqId == idQueryMaxMinAvgs:
-            pass
+            self.QueryMaxMinAvgs(self.UQueue)
         elif reqId == idUploadEmployees:
-            pass
+            self.UploadEmployees(self.UQueue)
         else:
             assert False  # not implemented
+
+    def QueryMaxMinAvgs(self, q):
+        index = q.LoadULong()
+        filter = q.LoadString()
+        pmma = CMaxMinAvg()
+        sql = "SELECT MAX(amount),MIN(amount),AVG(amount) FROM payment"
+        if filter and len(filter) > 0:
+            sql += (' WHERE ' + filter)
+        res = 0
+        errMsg = ''
+        while True:
+            handler = CYourPeer.Slave.Seek()
+            if not handler:
+                res = -1
+                errMsg = 'No connection to a slave database'
+                break
+            peer_handle = self.Handle
+
+            def ares(h, r, err, affected, fail_ok, vtId):
+                # send result if front peer not closed yet
+                if peer_handle == self.Handle:
+                    with CScopeUQueue() as sb0:
+                        sb0.SaveULong(index).SaveInt(res).SaveString(errMsg)
+                        pmma.SaveTo(sb0.UQueue)
+                        self.SendResult(sb0, idQueryMaxMinAvgs)
+
+            def rows(h, vData):
+                pmma.Max = float(vData[0])
+                pmma.Min = float(vData[1])
+                pmma.Avg = float(vData[2])
+
+            def meta(h):
+                pass
+
+            def closed():
+                # retry if front peer not closed yet
+                if peer_handle == self.Handle:
+                    with CScopeUQueue() as sb0:
+                        sb0.SaveULong(index).SaveInt(filter)
+                        self.QueryMaxMinAvgs(sb0.UQueue)
+
+            if handler.ExecuteSql(sql, ares, rows, meta, True, True, closed):
+                # disable redo once request is put on wire
+                return
+
+            # re-seek a handler and retry as socket is closed when sending the request
+
+        with CScopeUQueue() as sb:
+            sb.SaveULong(index).SaveInt(res).SaveString(errMsg)
+            pmma.SaveTo(sb.UQueue)
+            self.SendResult(sb, idQueryMaxMinAvgs)
+
+
+    def UploadEmployees(self, q):
+        index = q.LoadULong()
+        vData = []
+        count = q.LoadUInt()
+        while count > 0:
+            vData.append(q.LoadObject())
+            count -= 1
+        res = 0
+        errMsg = ''
+        vId = CLongArray()
+        while True:
+            if len(vData) == 0:
+                break  # no retry
+            elif len(vData) % 3 != 0:
+                res = -1
+                errMsg = 'Data array size is wrong'
+                break  # no retry
+            # use master for insert, update and delete
+            # use Lock and Unlock to avoid SQL stream overlap on a session within a multi-thread environment
+            handler = CYourPeer.Master.Lock()
+            if not handler:
+                res = -2
+                errMsg = 'No connection to a master database'
+                break  # no retry
+            while True:
+                if not handler.BeginTrans():
+                    break  # re-seek a handler and retry as socket is closed when sending request
+                if not handler.Prepare('INSERT INTO mysample.EMPLOYEE(CompanyId,Name,JoinDate)VALUES(?,?,?)'):
+                    break  # re-seek a handler and retry as socket is closed when sending request
+                rows = len(vData) / 3
+                r = 0
+                ok = False
+                while r < rows:
+                    v = []
+                    v.append(vData[r * 3 + 0])
+                    v.append(vData[r * 3 + 1])
+                    v.append(vData[r * 3 + 2])
+                    r += 1
+
+                    def ares(h, r, err, affected, fail_ok, vtId):
+                        if r != 0:
+                            res = r
+                            errMsg = err
+                            vId.list.append(-1)
+                        else:
+                            vId.list.append(vtId)
+
+                    ok = handler.ExecuteParameters(v, ares)
+                    if not ok:
+                        break
+                if not ok:
+                    break  # re-seek a handler and retry as socket is closed when sending request
+
+                def et(h, r, err):
+                    if r == 0:
+                        res = r
+                        errMsg = err
+
+                    # send result if front peer not closed yet
+                    if peer_handle == self.Handle:
+                        with CScopeUQueue() as sb0:
+                            sb0.SaveULong(index).SaveInt(res).SaveString(errMsg)
+                            vId.SaveTo(sb0.UQueue)
+                            self.SendResult(sb0, idUploadEmployees)
+
+                def closed():
+                    # retry if front peer not closed yet
+                    if peer_handle == self.Handle:
+                        with CScopeUQueue() as sb0:
+                            # repack original data
+                            sb0.SaveULong(index)
+                            count = len(vData)
+                            for d in vData:
+                                sb0.SaveObject(d)
+                            self.UploadEmployees(sb0.UQueue)
+
+                peer_handle = self.Handle
+                if handler.EndTrans(tagRollbackPlan.rpRollbackErrorAll, et, closed):
+                    CYourPeer.Master.Unlock(handler)  # put handler back into pool for reuse as soon as possible
+                    return  # disable redo if requests are put on wire
+                else:
+                    pass  # re-seek a handler and retry as socket is closed when sending request
+
+        with CScopeUQueue() as sb:
+            sb.SaveULong(index).SaveInt(res).SaveString(errMsg)
+            vId.SaveTo(sb.UQueue)
+            self.SendResult(sb, idUploadEmployees)
 
     def GetRentalDateTimes(self):
         index = self.UQueue.LoadLong()

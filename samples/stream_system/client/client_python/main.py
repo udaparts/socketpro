@@ -35,6 +35,7 @@ with CMasterPool(CWebAsyncHandler, '', False) as sp:
 
     call_index = handler.QueryPaymentMaxMinAvgs(filter, dMma, lambda index: print('Socket closed after sending call %d' % index))
     ok = handler.WaitAll()
+
     vData = []
     vData.append(1)  #Google company id
     vData.append('Ted Cruz')

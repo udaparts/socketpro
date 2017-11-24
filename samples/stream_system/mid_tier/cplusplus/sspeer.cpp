@@ -70,8 +70,8 @@ void CYourPeerOne::UploadEmployees(SPA::CUQueue &q) {
 		++redo;
 		do {
 			bool ok = false;
-			if (!handler->Prepare(L"INSERT INTO mysample.EMPLOYEE(CompanyId,Name,JoinDate)VALUES(?,?,?)")) break;
 			if (!handler->BeginTrans()) break;
+			if (!handler->Prepare(L"INSERT INTO mysample.EMPLOYEE(CompanyId,Name,JoinDate)VALUES(?,?,?)")) break;
 			SPA::UDB::CDBVariantArray v;
 			for (auto it = pData->cbegin(), end = pData->cend(); it != end;) {
 				v.push_back(*it);

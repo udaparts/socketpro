@@ -52,5 +52,7 @@ with CYourServer() as server:
     if not server.Run(config.m_nPort, 32, not config.m_bNoIpV6):
         print("Error happens with error message = " + CYourServer.ErrorMessage)
 
-    input('Press any key to shut down the application ......')
+    s = input('Press any key to shut down the application ......')
+
+
 

@@ -83,10 +83,10 @@ public class CYourPeerOne extends CCacheBasePeer {
                 }
                 ++redo;
                 do {
-                    if (!handler.Prepare("INSERT INTO mysample.EMPLOYEE(CompanyId,Name,JoinDate)VALUES(?,?,?)")) {
+                    if (!handler.BeginTrans()) {
                         break;
                     }
-                    if (!handler.BeginTrans()) {
+                    if (!handler.Prepare("INSERT INTO mysample.EMPLOYEE(CompanyId,Name,JoinDate)VALUES(?,?,?)")) {
                         break;
                     }
                     boolean ok = false;
