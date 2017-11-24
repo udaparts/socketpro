@@ -22,10 +22,10 @@ public class CConfig {
     public boolean m_bNoIpV6 = false;
 
     //windows
-    public String m_store_or_pfx;
+    public String m_store_or_pfx = "";
     //Linux
-    public String m_cert; //in PEM
-    public String m_key; //in PEM
+    public String m_cert = ""; //in PEM
+    public String m_key = ""; //in PEM
 
     //both windows and Linux
     public String m_password_or_subject;
@@ -64,7 +64,7 @@ public class CConfig {
         
         CConnectionContext cc = new CConnectionContext();
         //cc.Host = "104.154.160.127";
-        cc.Host = "ws-yye-1";
+        cc.Host = "localhost";
         cc.Port = 20901;
         cc.UserId = "root";
         cc.Password = "Smash123";
@@ -76,11 +76,12 @@ public class CConfig {
 
         //middle tier
         //test certificate and private key files are located at the directory ../socketpro/bin
-        m_config.m_store_or_pfx = "intermediate.pfx";
+        
+        //m_config.m_store_or_pfx = "intermediate.pfx";
         
         //Linux
-        //m_config.m_cert = "intermediate.cert.pem";
-        //m_config.m_key = "intermediate.key.pem";
+        m_config.m_cert = "intermediate.cert.pem";
+        m_config.m_key = "intermediate.key.pem";
         
         
         m_config.m_password_or_subject = "mypassword";
