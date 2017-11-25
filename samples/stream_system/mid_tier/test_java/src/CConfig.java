@@ -77,11 +77,11 @@ public class CConfig {
         //middle tier
         //test certificate and private key files are located at the directory ../socketpro/bin
         
-        //m_config.m_store_or_pfx = "intermediate.pfx";
+        m_config.m_store_or_pfx = "intermediate.pfx";
         
         //Linux
-        m_config.m_cert = "intermediate.cert.pem";
-        m_config.m_key = "intermediate.key.pem";
+        //m_config.m_cert = "intermediate.cert.pem";
+        //m_config.m_key = "intermediate.key.pem";
         
         
         m_config.m_password_or_subject = "mypassword";
