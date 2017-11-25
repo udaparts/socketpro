@@ -11,7 +11,13 @@ int main(int argc, char* argv[]) {
     std::cout << "Remote host: " << std::endl;
     std::getline(std::cin, cc.Host);
     std::cout << "Sakila.payment filter: " << std::endl;
+#ifdef WIN32_64
     std::getline(std::wcin, filter);
+#else
+    std::string temp;
+    std::getline(std::cin, temp);
+    filter = SPA::Utilities::ToWide(temp.c_str(), temp.size());
+#endif
     //cc.Host = "localhost";
     cc.Port = 20911;
     cc.UserId = L"SomeUserId";
