@@ -43,6 +43,8 @@ public class CYourServer extends CSocketProServer {
     public boolean Run(int port, int maxBacklog, boolean v6Supported) {
         boolean ok = super.Run(port, maxBacklog, v6Supported);
         if (ok) {
+            m_SSPeer.AddSlowRequest(Consts.idQueryMaxMinAvgs);
+            m_SSPeer.AddSlowRequest(Consts.idUploadEmployees);
             m_SSPeer.setReturnRandom(true); //results could be returned randomly and not in order
         }
         return ok;

@@ -151,12 +151,13 @@ public class CYourPeerOne extends CCacheBasePeer {
     }
 
     @Override
-    protected void OnFastRequestArrive(short reqId, int len) {
+    protected int OnSlowRequestArrive(short reqId, int len) {
         if (reqId == Consts.idQueryMaxMinAvgs) {
             QueryPaymentMaxMinAvgs(getUQueue());
         } else if (reqId == Consts.idUploadEmployees) {
             UploadEmployees(getUQueue());
         }
+        return 0;
     }
 
     @RequestAttr(RequestID = Consts.idGetMasterSlaveConnectedSessions)

@@ -41,18 +41,23 @@ public class CConfig {
         m_config = new CConfig();
 
         //load the following settings from a configuration file
-        m_config.m_main_threads = 4;
+        if (SPA.CUQueue.DEFAULT_OS == SPA.tagOperationSystem.osWin) {
+            //m_main_threads would be 1 for windows platforms if you use OnFastRequestArrive.
+            //Otherwise, random responses may be lost for a unknown reason. This is a known flaw for window platforms
+            m_config.m_main_threads = 4;
+        } else {
+            m_config.m_main_threads = 4;
+        }
 
         //master
         m_config.m_ccMaster.Port = 20901;
         m_config.m_master_default_db = "sakila.db";
         m_config.m_nMasterSessions = 1; //one session enough
-        
+
         //MySQL plugin
         //m_config.m_ccMaster.Port = 20902;
         //m_config.m_master_default_db = "sakila";
         //m_config.m_nMasterSessions = 2; //two sessions enough
-        
         m_config.m_ccMaster.Host = "localhost";
         m_config.m_ccMaster.UserId = "root";
         m_config.m_ccMaster.Password = "Smash123";
@@ -60,8 +65,7 @@ public class CConfig {
         m_config.m_slave_default_db = "sakila.db";
         //MySQL plugin
         //m_config.m_slave_default_db = "sakila";
-        
-        
+
         CConnectionContext cc = new CConnectionContext();
         //cc.Host = "104.154.160.127";
         cc.Host = "localhost";
@@ -76,26 +80,23 @@ public class CConfig {
 
         //middle tier
         //test certificate and private key files are located at the directory ../socketpro/bin
-        
-        m_config.m_store_or_pfx = "intermediate.pfx";
-        
-        //Linux
-        //m_config.m_cert = "intermediate.cert.pem";
-        //m_config.m_key = "intermediate.key.pem";
-        
-        
+        if (SPA.CUQueue.DEFAULT_OS == SPA.tagOperationSystem.osWin) {
+            m_config.m_store_or_pfx = "intermediate.pfx";
+        } else {
+            m_config.m_cert = "intermediate.cert.pem";
+            m_config.m_key = "intermediate.key.pem";
+        }
         m_config.m_password_or_subject = "mypassword";
 
         //cached tables on front applications
         m_config.m_vFrontCachedTable.add("actor");
         m_config.m_vFrontCachedTable.add("language");
         m_config.m_vFrontCachedTable.add("country");
-        
+
         //MySQL plugin
         //m_config.m_vFrontCachedTable.add("sakila.actor");
         //m_config.m_vFrontCachedTable.add("sakila.language");
         //m_config.m_vFrontCachedTable.add("sakila.country");
-        
         return m_config;
     }
 }

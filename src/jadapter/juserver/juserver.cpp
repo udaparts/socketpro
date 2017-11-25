@@ -1412,6 +1412,7 @@ bool CALLBACK OnIsPermitted(USocket_Server_Handle h, unsigned int serviceId) {
 void CALLBACK OnClose(USocket_Server_Handle h, int errCode) {
     JNIEnv *env;
     jint es = g_vm->GetEnv((void **) &env, JNI_VERSION_1_6);
+    assert(es == JNI_OK);
     env->CallStaticVoidMethod(g_clsCSocketPeer, g_midOnClose, (jlong) h, (jint) errCode);
     CleanException(env);
 }
@@ -1426,6 +1427,7 @@ void CALLBACK OnResultsSent(USocket_Server_Handle h) {
 void CALLBACK OnRequestArrive(USocket_Server_Handle h, unsigned short requestId, unsigned int len) {
     JNIEnv *env;
     jint es = g_vm->GetEnv((void **) &env, JNI_VERSION_1_6);
+    assert(es == JNI_OK);
     env->CallStaticVoidMethod(g_clsCSocketPeer, g_midOnRequestArrive, (jlong) h, (jshort) requestId, (jint) len);
     CleanException(env);
 }
@@ -1433,6 +1435,7 @@ void CALLBACK OnRequestArrive(USocket_Server_Handle h, unsigned short requestId,
 void CALLBACK OnFastRequestArrive(USocket_Server_Handle h, unsigned short requestId, unsigned int len) {
     JNIEnv *env;
     jint es = g_vm->GetEnv((void **) &env, JNI_VERSION_1_6);
+    assert(es == JNI_OK);
     env->CallStaticVoidMethod(g_clsCSocketPeer, g_midOnFastRequestArrive, (jlong) h, (jshort) requestId, (jint) len);
     CleanException(env);
 }
@@ -1441,6 +1444,7 @@ int CALLBACK SLOW_PROCESS(unsigned short requestId, unsigned int len, USocket_Se
     jint res = 0;
     JNIEnv *env;
     jint es = g_vm->GetEnv((void **) &env, JNI_VERSION_1_6);
+    assert(es == JNI_OK);
     res = env->CallStaticIntMethod(g_clsCSocketPeer, g_midSLOW_PROCESS, (jlong) h, (jshort) requestId, (jint) len);
     CleanException(env);
     return (int) res;
@@ -1449,6 +1453,7 @@ int CALLBACK SLOW_PROCESS(unsigned short requestId, unsigned int len, USocket_Se
 void CALLBACK OnRequestProcessed(USocket_Server_Handle h, unsigned short requestId) {
     JNIEnv *env;
     jint es = g_vm->GetEnv((void **) &env, JNI_VERSION_1_6);
+    assert(es == JNI_OK);
     env->CallStaticVoidMethod(g_clsCSocketPeer, g_midOnRequestProcessed, (jlong) h, (jshort) requestId);
     CleanException(env);
 }
@@ -1456,6 +1461,7 @@ void CALLBACK OnRequestProcessed(USocket_Server_Handle h, unsigned short request
 void CALLBACK OnBaseRequestCame(USocket_Server_Handle h, unsigned short requestId) {
     JNIEnv *env;
     jint es = g_vm->GetEnv((void **) &env, JNI_VERSION_1_6);
+    assert(es == JNI_OK);
     env->CallStaticVoidMethod(g_clsCSocketPeer, g_midOnBaseRequestCame, (jlong) h, (jshort) requestId);
     CleanException(env);
 }
@@ -1463,6 +1469,7 @@ void CALLBACK OnBaseRequestCame(USocket_Server_Handle h, unsigned short requestI
 void CALLBACK OnSwitchTo(USocket_Server_Handle h, unsigned int oldServiceId, unsigned int newServiceId) {
     JNIEnv *env;
     jint es = g_vm->GetEnv((void **) &env, JNI_VERSION_1_6);
+    assert(es == JNI_OK);
     env->CallStaticVoidMethod(g_clsCSocketPeer, g_midOnSwitchTo, (jlong) h, (jint) oldServiceId, (jint) newServiceId);
     CleanException(env);
 }
@@ -1470,6 +1477,7 @@ void CALLBACK OnSwitchTo(USocket_Server_Handle h, unsigned int oldServiceId, uns
 void CALLBACK OnChatRequestComing(USocket_Server_Handle h, SPA::tagChatRequestID chatRequestID, unsigned int len) {
     JNIEnv *env;
     jint es = g_vm->GetEnv((void **) &env, JNI_VERSION_1_6);
+    assert(es == JNI_OK);
     env->CallStaticVoidMethod(g_clsCSocketPeer, g_midOnChatRequestComing, (jlong) h, (jshort) chatRequestID, (jint) len);
     CleanException(env);
 }
@@ -1477,6 +1485,7 @@ void CALLBACK OnChatRequestComing(USocket_Server_Handle h, SPA::tagChatRequestID
 void CALLBACK OnChatRequestCame(USocket_Server_Handle h, SPA::tagChatRequestID chatRequestId) {
     JNIEnv *env;
     jint es = g_vm->GetEnv((void **) &env, JNI_VERSION_1_6);
+    assert(es == JNI_OK);
     env->CallStaticVoidMethod(g_clsCSocketPeer, g_midOnChatRequestCame, (jlong) h, (jshort) chatRequestId);
     CleanException(env);
 }
@@ -1507,6 +1516,7 @@ bool CALLBACK OnHttpAuthentication(USocket_Server_Handle h, const wchar_t *userI
 #endif
     jboolean res = false;
     jint es = g_vm->GetEnv((void **) &env, JNI_VERSION_1_6);
+    assert(es == JNI_OK);
     res = env->CallStaticBooleanMethod(g_clsCHttpPeerBase, g_midOnHttpAuthentication, (jlong) h, env->NewString((const jchar*) userId, idLen), env->NewString((const jchar*) password, pwdLen));
     CleanException(env);
     return res ? true : false;
