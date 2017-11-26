@@ -60,7 +60,7 @@ class CYourPeer(CCacheBasePeer):
                         sb0.SaveULong(index).SaveInt(filter)
                         self.QueryMaxMinAvgs(sb0.UQueue)
 
-            if handler.ExecuteSql(sql, ares, rows, meta, True, True, closed):
+            if handler.Execute(sql, ares, rows, meta, True, True, closed):
                 # disable redo once request is put on wire
                 return
 
@@ -119,7 +119,7 @@ class CYourPeer(CCacheBasePeer):
                         else:
                             vId.list.append(vtId)
 
-                    ok = handler.ExecuteParameters(v, ares)
+                    ok = handler.Execute(v, ares)
                     if not ok:
                         break
                 if not ok:
@@ -196,7 +196,7 @@ class CYourPeer(CCacheBasePeer):
                 errMsg = 'Request canceled or socket closed'
                 f.set(-1)
 
-            if handler.ExecuteSql(sql, ares, rows, meta, True, True, closed):
+            if handler.Execute(sql, ares, rows, meta, True, True, closed):
                 ret = f.get(20)
                 if not ret:
                     # don't use handle->WaitAll() for better completion event as a session may be shared by multiple threads
@@ -270,7 +270,7 @@ class CYourPeer(CCacheBasePeer):
                 errMsg = 'Request canceled or socket closed'
                 f.set(1)
 
-            if not handler.ExecuteSql(sql, ares, rows, meta, True, True, lambda : f.set(-2)):
+            if not handler.Execute(sql, ares, rows, meta, True, True, lambda : f.set(-2)):
                 res = handler.AttachedClientSocket.ErrorCode
                 errMsg = handler.AttachedClientSocket.ErrorMsg
                 break
@@ -285,7 +285,3 @@ class CYourPeer(CCacheBasePeer):
         sb = CScopeUQueue()
         sb.SaveInt(ms).SaveInt(res).SaveString(errMsg)
         return sb
-
-
-
-

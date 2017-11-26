@@ -508,6 +508,13 @@ class CAsyncDBHandler(CAsyncServiceHandler):
         CScopeUQueue.Unlock(q)
         return ok
 
+    def Execute(self, sql_or_array, handler = None, row = None, rh = None, meta = True, lastInsertId = True, canceled = None):
+        if isinstance(sql_or_array, list):
+            return self.ExecuteParameters(sql_or_array, handler, row, rh, meta, lastInsertId, canceled)
+        elif isinstance(sql_or_array, tuple):
+            return self.ExecuteParameters(sql_or_array, handler, row, rh, meta, lastInsertId, canceled)
+        return self.ExecuteSql(sql_or_array, handler, row, rh, meta, lastInsertId, canceled)
+
     def ExecuteSql(self, sql, handler = None, row = None, rh = None, meta = True, lastInsertId = True, canceled = None):
         """
         Process a complex SQL statement which may be combined with multiple basic SQL statements asynchronously

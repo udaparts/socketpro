@@ -7,9 +7,6 @@ from yourpeer import CYourPeer
 
 
 class CYourServer(CSocketProServer):
-    Master = None
-    Slave = None
-
     def __init__(self, param=0):
         super(CYourServer, self).__init__(param)
         self.YourPeerService = None
@@ -40,7 +37,7 @@ class CYourServer(CSocketProServer):
 
     @staticmethod
     def CreateTestDB():
-        handler = CYourServer.Master.Seek()
+        handler = CYourPeer.Master.Seek()
         if handler:
             ok = handler.ExecuteSql("ATTACH DATABASE 'mysample.db' as mysample", None)
             sql = "CREATE TABLE mysample.COMPANY(ID INT8 PRIMARY KEY NOT NULL,Name CHAR(64)NOT NULL);CREATE TABLE mysample.EMPLOYEE(EMPLOYEEID INTEGER PRIMARY KEY AUTOINCREMENT,CompanyId INT8 not null,Name NCHAR(64)NOT NULL,JoinDate DATETIME not null default(datetime('now')),FOREIGN KEY(CompanyId)REFERENCES COMPANY(id))"
@@ -51,21 +48,21 @@ class CYourServer(CSocketProServer):
     @staticmethod
     def StartMySQLPools():
         config = CConfig.getConfig()
-        CYourServer.Master = CMaster(CSqlite, config.m_master_default_db, True)
+        CYourPeer.Master = CMaster(CSqlite, config.m_master_default_db, True)
 
         # These case-sensitivities depends on your DB running platform and sensitivity settings.
         # All of them are false or case-insensitive by default
-        CYourServer.Master.Cache.FieldNameCaseSensitive = False
-        CYourServer.Master.Cache.TableNameCaseSensitive = False
-        CYourServer.Master.Cache.DBNameCaseSensitive = False
+        CYourPeer.Master.Cache.FieldNameCaseSensitive = False
+        CYourPeer.Master.Cache.TableNameCaseSensitive = False
+        CYourPeer.Master.Cache.DBNameCaseSensitive = False
 
-        ok = CYourServer.Master.StartSocketPool(config.m_ccMaster, config.m_nMasterSessions, 1)  # one thread enough
+        ok = CYourPeer.Master.StartSocketPool(config.m_ccMaster, config.m_nMasterSessions, 1)  # one thread enough
 
         # compute threads and sockets_per_thread
         sockets_per_thread = len(config.m_vccSlave)
         threads = int(config.m_nSlaveSessions / sockets_per_thread)
 
-        CYourServer.Slave = CMaster.CSlavePool(CSqlite, config.m_slave_default_db)
+        CYourPeer.Slave = CMaster.CSlavePool(CSqlite, config.m_slave_default_db)
         mcc = [[0 for i in range(sockets_per_thread)] for i in range(threads)]
         while threads >= 0:
             threads -= 1
@@ -73,10 +70,7 @@ class CYourServer(CSocketProServer):
             for cc in config.m_vccSlave:
                 mcc[threads][j] = cc
                 j += 1
-        ok = CYourServer.Slave.StartSocketPoolEx(mcc)
+        ok = CYourPeer.Slave.StartSocketPoolEx(mcc)
 
         # Wait until all data of cached tables are brought from backend database server to this middle server application cache
-        ok = CYourServer.Master.AsyncHandlers[0].WaitAll()
-
-        CYourPeer.Master = CYourServer.Master
-        CYourPeer.Slave = CYourServer.Slave
+        ok = CYourPeer.Master.AsyncHandlers[0].WaitAll()
