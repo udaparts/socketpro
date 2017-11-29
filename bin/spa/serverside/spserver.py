@@ -1,7 +1,7 @@
 
 from spa.serverside.scoreloader import SCoreLoader as scl, CConfigImpl, CQueueManagerImpl
-from ctypes import c_char, c_uint, c_wchar
-from spa import tagEncryptionMethod, classproperty
+from ctypes import c_char, c_uint, c_wchar, c_ubyte
+from spa import tagEncryptionMethod, classproperty, CScopeUQueue, CUQueue
 from spa.serverside import tagRoutingAlgorithm
 
 class CSocketProServer(object):
@@ -109,7 +109,8 @@ class CSocketProServer(object):
         pass
 
     def OnIdle(self, milliseconds):
-        pass
+        if CScopeUQueue.MemoryConsumed() / 1024 > CScopeUQueue.SHARED_BUFFER_CLEAN_SIZE:
+            CScopeUQueue.DestroyUQueuePool()
 
     def OnSSLShakeCompleted(self, hSocket, errCode):
         pass

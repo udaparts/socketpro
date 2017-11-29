@@ -6,8 +6,12 @@
 #define DISP_E_ARRAYISLOCKED ((int)0x8002000D)
 #define E_OUTOFMEMORY ((int)0x8007000E)
 #define E_INVALIDARG ((int)0x80070057)
+#define DISP_E_TYPEMISMATCH ((int)0x80020005)
+#define DISP_E_BADVARTYPE ((int)0x80020008)
+#define DISP_E_OVERFLOW ((int)0x8002000A)
+#define VARIANT_ALPHABOOL ((unsigned short)0x02)
 
-#define S_OK 0
+#define S_OK ((int)0)
 
 typedef int HRESULT;
 typedef unsigned short VARTYPE;
@@ -646,5 +650,7 @@ public:
         return VariantCopy(this, const_cast<VARIANT*> (pSrc));
     }
 };
+
+HRESULT VariantChangeType(VARIANT *pvargDest, const VARIANT *pvarSrc, unsigned short wFlags, VARTYPE vt);
 
 #endif

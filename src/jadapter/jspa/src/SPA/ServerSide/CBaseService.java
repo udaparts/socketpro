@@ -18,16 +18,17 @@ public abstract class CBaseService {
     protected abstract CSocketPeer GetPeerSocket() throws InstantiationException, IllegalAccessException;
     volatile java.util.HashMap<Short, java.lang.reflect.Method> m_dicMethod = new java.util.HashMap<>();
 
-    private final Object m_cs = new Object();
+    protected final Object m_cs = new Object();
     private volatile java.util.ArrayList<CSocketPeer> m_lstPeer = new java.util.ArrayList<>();
     private final java.util.ArrayList<CSocketPeer> m_lstDeadPeer = new java.util.ArrayList<>();
 
     void ReleasePeer(long hSocket, boolean bClosing, int info) {
         synchronized (m_cs) {
             for (CSocketPeer p : m_lstPeer) {
-                if (p.getHandle() == hSocket) {
+                if (p.m_sh == hSocket) {
                     p.getUQueue().SetSize(0);
                     p.OnRelease(bClosing, info);
+                    p.m_sh = 0;
                     m_lstDeadPeer.add(p);
                     m_lstPeer.remove(p);
                     break;
@@ -189,7 +190,7 @@ public abstract class CBaseService {
     public final CSocketPeer Seek(long hSocket) {
         synchronized (m_cs) {
             for (CSocketPeer sp : m_lstPeer) {
-                if (sp.getHandle() == hSocket) {
+                if (sp.m_sh == hSocket) {
                     return sp;
                 }
             }

@@ -1,5 +1,6 @@
 
 
+#include "scloader.h"
 #include "aserverw.h"
 #include <algorithm>
 
@@ -10,6 +11,77 @@ namespace SPA
         Internal::CServerCoreLoader ServerCoreLoader;
 
         CSocketProServer * CSocketProServer::m_pServer = nullptr;
+
+        UINT64 CStreamHelper::ReadDataFromServerToClient(USocket_Server_Handle PeerHandle, std::istream & source) {
+            UINT64 sent = 0;
+            CScopeUQueue su;
+            CUQueue &q = *su;
+            unsigned int read = CStreamSerializationHelper::Read(source, q);
+            while (read != 0) {
+                unsigned int res = ServerCoreLoader.SendReturnData(PeerHandle, CStreamSerializationHelper::idReadDataFromServerToClient, read, q.GetBuffer());
+                if (res == REQUEST_CANCELED || res == SOCKET_NOT_FOUND)
+                    break;
+                sent += res;
+                q.SetSize(0);
+                read = CStreamSerializationHelper::Read(source, q);
+            }
+            return sent;
+        }
+
+        void CStreamHelper::WriteDataFromClientToServer(const CUQueue& q, std::ostream & target) {
+            CStreamSerializationHelper::Write(target, q);
+        }
+
+        void CStreamHelper::Download(USocket_Server_Handle PeerHandle, std::istream &is, UINT64 &StreamSize, std::wstring & errMsg) {
+            try
+            {
+                if (is.good()) {
+                    is.seekg(0, std::ios_base::end);
+#ifdef WIN32_64
+                    StreamSize = is.tellg().seekpos();
+#else
+                    static_assert(sizeof (std::streampos) >= sizeof (INT64), "Large file not supported");
+                    StreamSize = is.tellg();
+#endif
+                    is.seekg(0, std::ios_base::beg);
+                    ServerCoreLoader.MakeRequest(PeerHandle, CStreamSerializationHelper::idReadDataFromServerToClient, nullptr, 0);
+                    return;
+                } else
+                    errMsg = L"Bad stream";
+            }
+
+            catch(std::exception & err) {
+                const char *s = err.what();
+                if (!s)
+                    s = "";
+                errMsg = Utilities::ToWide(s);
+            }
+            StreamSize = (~0);
+        }
+
+        void CStreamHelper::DownloadFile(USocket_Server_Handle PeerHandle, const std::wstring& RemoteFilePath, UINT64 &fileSize, std::wstring &errMsg, std::ifstream & is) {
+            try
+            {
+                if (!is.is_open()) {
+                    CScopeUQueue su;
+                    Utilities::ToUTF8(RemoteFilePath.c_str(), RemoteFilePath.size(), *su);
+                    is.open((const char*) su->GetBuffer(), std::ios_base::binary | std::ios_base::in);
+                }
+                if (is.is_open()) {
+                    Download(PeerHandle, is, fileSize, errMsg);
+                    return;
+                } else
+                    errMsg = L"Error in openning file";
+            }
+
+            catch(std::exception & err) {
+                const char *s = err.what();
+                if (!s)
+                    s = "";
+                errMsg = Utilities::ToWide(s);
+            }
+            fileSize = (~0);
+        }
 
         CSocketPeer::CSocketPeer() : m_hHandler(0), m_pBase(nullptr), m_UQueue(*m_sb) {
 
@@ -136,6 +208,7 @@ namespace SPA
         }
 
         USocket_Server_Handle CSocketPeer::GetSocketHandle() const {
+            CAutoLock sl(CBaseService::m_mutex);
             return m_hHandler;
         }
 
@@ -930,8 +1003,8 @@ namespace SPA
             CAutoLock sl(m_mutex);
             size_t size = m_vDeadPeer.size();
             if (size) {
-                p = m_vDeadPeer[size - 1];
-                m_vDeadPeer.pop_back();
+                p = m_vDeadPeer.front();
+                m_vDeadPeer.pop_front();
             }
             if (!p) {
                 p = GetPeerSocket();
@@ -947,7 +1020,7 @@ namespace SPA
             CAutoLock sl(m_mutex);
             std::vector<CSocketPeer*>::const_iterator end = m_vPeer.cend();
             for (it = m_vPeer.cbegin(); it != end; ++it) {
-                if ((*it)->GetSocketHandle() == h) {
+                if ((*it)->m_hHandler == h) {
                     return (*it);
                 }
             }
@@ -960,8 +1033,9 @@ namespace SPA
             std::vector<CSocketPeer*>::iterator end = m_vPeer.end();
             for (it = m_vPeer.begin(); it != end; ++it) {
                 CSocketPeer *pPeer = *it;
-                if (pPeer->GetSocketHandle() == h) {
+                if (pPeer->m_hHandler == h) {
                     pPeer->OnReleaseSource(bClosing, info);
+                    pPeer->m_hHandler = 0;
                     if (pPeer->m_UQueue.GetMaxSize() > 2 * DEFAULT_INITIAL_MEMORY_BUFFER_SIZE) {
                         pPeer->m_UQueue.ReallocBuffer(DEFAULT_INITIAL_MEMORY_BUFFER_SIZE);
                     }
@@ -986,16 +1060,12 @@ namespace SPA
         }
 
         void CBaseService::Clean() {
-            std::vector<CSocketPeer*>::iterator it;
             CAutoLock sl(m_mutex);
-            std::vector<CSocketPeer*>::iterator end = m_vDeadPeer.end();
-            for (it = m_vDeadPeer.begin(); it != end; ++it) {
+            for (auto it = m_vDeadPeer.begin(), end = m_vDeadPeer.end(); it != end; ++it) {
                 delete(*it);
             }
             m_vDeadPeer.clear();
-
-            end = m_vPeer.end();
-            for (it = m_vPeer.begin(); it != end; ++it) {
+            for (auto it = m_vPeer.begin(), end = m_vPeer.end(); it != end; ++it) {
                 //comment out the below call to avoid crashing here
                 //::PostClose((*it)->m_hHandler); 
                 delete(*it);
@@ -1461,7 +1531,10 @@ namespace SPA
         }
 
         void CSocketProServer::OnIdle(INT64 milliseconds) {
-
+            UINT64 size = CScopeUQueue::GetMemoryConsumed();
+            if (size / 1024 > SHARED_BUFFER_CLEAN_SIZE) {
+                CScopeUQueue::DestroyUQueuePool();
+            }
         }
 
         void CSocketProServer::OnClose(USocket_Server_Handle h, int errCode) {

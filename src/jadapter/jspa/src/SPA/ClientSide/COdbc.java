@@ -42,35 +42,67 @@ public class COdbc extends CAsyncDBHandler {
 
     private final java.util.HashMap<Short, Object> m_mapInfo = new java.util.HashMap<>();
 
-    public boolean ColumnPrivileges(String CatalogName, String SchemaName, String TableName, String ColumnName, DExecuteResult handler, DRows row, DRowsetHeader rh) {
-        return DoMeta(idSQLColumnPrivileges, CatalogName, SchemaName, TableName, ColumnName, handler, row, rh);
+    public final boolean ColumnPrivileges(String CatalogName, String SchemaName, String TableName, String ColumnName, DExecuteResult handler, DRows row, DRowsetHeader rh) {
+        return DoMeta(idSQLColumnPrivileges, CatalogName, SchemaName, TableName, ColumnName, handler, row, rh, null);
     }
 
-    public boolean Columns(String CatalogName, String SchemaName, String TableName, String ColumnName, DExecuteResult handler, DRows row, DRowsetHeader rh) {
-        return DoMeta(idSQLColumns, CatalogName, SchemaName, TableName, ColumnName, handler, row, rh);
+    public final boolean ColumnPrivileges(String CatalogName, String SchemaName, String TableName, String ColumnName, DExecuteResult handler, DRows row, DRowsetHeader rh, DCanceled canceled) {
+        return DoMeta(idSQLColumnPrivileges, CatalogName, SchemaName, TableName, ColumnName, handler, row, rh, canceled);
     }
 
-    public boolean ProcedureColumns(String CatalogName, String SchemaName, String ProcName, String ColumnName, DExecuteResult handler, DRows row, DRowsetHeader rh) {
-        return DoMeta(idSQLProcedureColumns, CatalogName, SchemaName, ProcName, ColumnName, handler, row, rh);
+    public final boolean Columns(String CatalogName, String SchemaName, String TableName, String ColumnName, DExecuteResult handler, DRows row, DRowsetHeader rh) {
+        return DoMeta(idSQLColumns, CatalogName, SchemaName, TableName, ColumnName, handler, row, rh, null);
     }
 
-    public boolean PrimaryKeys(String CatalogName, String SchemaName, String TableName, DExecuteResult handler, DRows row, DRowsetHeader rh) {
-        return DoMeta(idSQLPrimaryKeys, CatalogName, SchemaName, TableName, handler, row, rh);
+    public final boolean Columns(String CatalogName, String SchemaName, String TableName, String ColumnName, DExecuteResult handler, DRows row, DRowsetHeader rh, DCanceled canceled) {
+        return DoMeta(idSQLColumns, CatalogName, SchemaName, TableName, ColumnName, handler, row, rh, canceled);
     }
 
-    public boolean TablePrivileges(String CatalogName, String SchemaName, String TableName, DExecuteResult handler, DRows row, DRowsetHeader rh) {
-        return DoMeta(idSQLTablePrivileges, CatalogName, SchemaName, TableName, handler, row, rh);
+    public final boolean ProcedureColumns(String CatalogName, String SchemaName, String ProcName, String ColumnName, DExecuteResult handler, DRows row, DRowsetHeader rh) {
+        return DoMeta(idSQLProcedureColumns, CatalogName, SchemaName, ProcName, ColumnName, handler, row, rh, null);
     }
 
-    public boolean Procedures(String CatalogName, String SchemaName, String ProcName, DExecuteResult handler, DRows row, DRowsetHeader rh) {
-        return DoMeta(idSQLProcedures, CatalogName, SchemaName, ProcName, handler, row, rh);
+    public final boolean ProcedureColumns(String CatalogName, String SchemaName, String ProcName, String ColumnName, DExecuteResult handler, DRows row, DRowsetHeader rh, DCanceled canceled) {
+        return DoMeta(idSQLProcedureColumns, CatalogName, SchemaName, ProcName, ColumnName, handler, row, rh, canceled);
     }
 
-    public boolean Tables(String CatalogName, String SchemaName, String TableName, String TableType, DExecuteResult handler, DRows row, DRowsetHeader rh) {
-        return DoMeta(idSQLTables, CatalogName, SchemaName, TableName, TableType, handler, row, rh);
+    public final boolean PrimaryKeys(String CatalogName, String SchemaName, String TableName, DExecuteResult handler, DRows row, DRowsetHeader rh) {
+        return DoMeta(idSQLPrimaryKeys, CatalogName, SchemaName, TableName, handler, row, rh, null);
     }
 
-    public boolean Statistics(String CatalogName, String SchemaName, String TableName, short unique, short reserved, DExecuteResult handler, DRows row, DRowsetHeader rh) {
+    public final boolean PrimaryKeys(String CatalogName, String SchemaName, String TableName, DExecuteResult handler, DRows row, DRowsetHeader rh, DCanceled canceled) {
+        return DoMeta(idSQLPrimaryKeys, CatalogName, SchemaName, TableName, handler, row, rh, canceled);
+    }
+
+    public final boolean TablePrivileges(String CatalogName, String SchemaName, String TableName, DExecuteResult handler, DRows row, DRowsetHeader rh) {
+        return DoMeta(idSQLTablePrivileges, CatalogName, SchemaName, TableName, handler, row, rh, null);
+    }
+
+    public final boolean TablePrivileges(String CatalogName, String SchemaName, String TableName, DExecuteResult handler, DRows row, DRowsetHeader rh, DCanceled canceled) {
+        return DoMeta(idSQLTablePrivileges, CatalogName, SchemaName, TableName, handler, row, rh, canceled);
+    }
+
+    public final boolean Procedures(String CatalogName, String SchemaName, String ProcName, DExecuteResult handler, DRows row, DRowsetHeader rh) {
+        return DoMeta(idSQLProcedures, CatalogName, SchemaName, ProcName, handler, row, rh, null);
+    }
+
+    public final boolean Procedures(String CatalogName, String SchemaName, String ProcName, DExecuteResult handler, DRows row, DRowsetHeader rh, DCanceled canceled) {
+        return DoMeta(idSQLProcedures, CatalogName, SchemaName, ProcName, handler, row, rh, canceled);
+    }
+
+    public final boolean Tables(String CatalogName, String SchemaName, String TableName, String TableType, DExecuteResult handler, DRows row, DRowsetHeader rh) {
+        return DoMeta(idSQLTables, CatalogName, SchemaName, TableName, TableType, handler, row, rh, null);
+    }
+
+    public final boolean Tables(String CatalogName, String SchemaName, String TableName, String TableType, DExecuteResult handler, DRows row, DRowsetHeader rh, DCanceled canceled) {
+        return DoMeta(idSQLTables, CatalogName, SchemaName, TableName, TableType, handler, row, rh, canceled);
+    }
+
+    public final boolean Statistics(String CatalogName, String SchemaName, String TableName, short unique, short reserved, DExecuteResult handler, DRows row, DRowsetHeader rh) {
+        return Statistics(CatalogName, SchemaName, TableName, unique, reserved, handler, row, rh, null);
+    }
+
+    public final boolean Statistics(String CatalogName, String SchemaName, String TableName, short unique, short reserved, DExecuteResult handler, DRows row, DRowsetHeader rh, DCanceled canceled) {
         MyCallback<DExecuteResult> cb = new MyCallback<>(idSQLStatistics, handler);
         CUQueue sb = CScopeUQueue.Lock();
         sb.Save(CatalogName);
@@ -79,28 +111,33 @@ public class COdbc extends CAsyncDBHandler {
         sb.Save(unique);
         sb.Save(reserved);
         long index;
-
-        //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
-        //in case a client asynchronously sends lots of requests without use of client side queue.
-        synchronized (m_csDB) {
-            index = ++m_nCall;
-            m_mapRowset.put(index, new Pair<>(rh, row));
-            m_deqExecuteResult.add(cb);
-        }
-        sb.Save(index);
-        if (!SendRequest(idSQLStatistics, sb, null)) {
+        synchronized (m_csOneSending) {
+            //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
+            //in case a client asynchronously sends lots of requests without use of client side queue.
             synchronized (m_csDB) {
-                m_deqExecuteResult.remove(cb);
-                m_mapRowset.remove(index);
+                index = ++m_nCall;
+                m_mapRowset.put(index, new Pair<>(rh, row));
+                m_deqExecuteResult.add(cb);
             }
-            CScopeUQueue.Unlock(sb);
-            return false;
+            sb.Save(index);
+            if (!SendRequest(idSQLStatistics, sb, null, canceled)) {
+                synchronized (m_csDB) {
+                    m_deqExecuteResult.remove(cb);
+                    m_mapRowset.remove(index);
+                }
+                CScopeUQueue.Unlock(sb);
+                return false;
+            }
         }
         CScopeUQueue.Unlock(sb);
         return true;
     }
 
-    public boolean SpecialColumns(short identifierType, String CatalogName, String SchemaName, String TableName, short scope, short nullable, DExecuteResult handler, DRows row, DRowsetHeader rh) {
+    public final boolean SpecialColumns(short identifierType, String CatalogName, String SchemaName, String TableName, short scope, short nullable, DExecuteResult handler, DRows row, DRowsetHeader rh) {
+        return SpecialColumns(identifierType, CatalogName, SchemaName, TableName, scope, nullable, handler, row, rh, null);
+    }
+
+    public final boolean SpecialColumns(short identifierType, String CatalogName, String SchemaName, String TableName, short scope, short nullable, DExecuteResult handler, DRows row, DRowsetHeader rh, DCanceled canceled) {
         MyCallback<DExecuteResult> cb = new MyCallback<>(idSQLSpecialColumns, handler);
         CUQueue sb = CScopeUQueue.Lock();
         sb.Save(identifierType);
@@ -110,27 +147,33 @@ public class COdbc extends CAsyncDBHandler {
         sb.Save(scope);
         sb.Save(nullable);
         long index;
-        //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
-        //in case a client asynchronously sends lots of requests without use of client side queue.
-        synchronized (m_csDB) {
-            index = ++m_nCall;
-            m_mapRowset.put(index, new Pair<>(rh, row));
-            m_deqExecuteResult.add(cb);
-        }
-        sb.Save(index);
-        if (!SendRequest(idSQLSpecialColumns, sb, null)) {
+        synchronized (m_csOneSending) {
+            //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
+            //in case a client asynchronously sends lots of requests without use of client side queue.
             synchronized (m_csDB) {
-                m_deqExecuteResult.remove(cb);
-                m_mapRowset.remove(index);
+                index = ++m_nCall;
+                m_mapRowset.put(index, new Pair<>(rh, row));
+                m_deqExecuteResult.add(cb);
             }
-            CScopeUQueue.Unlock(sb);
-            return false;
+            sb.Save(index);
+            if (!SendRequest(idSQLSpecialColumns, sb, null, canceled)) {
+                synchronized (m_csDB) {
+                    m_deqExecuteResult.remove(cb);
+                    m_mapRowset.remove(index);
+                }
+                CScopeUQueue.Unlock(sb);
+                return false;
+            }
         }
         CScopeUQueue.Unlock(sb);
         return true;
     }
 
-    public boolean ForeignKeys(String PKCatalogName, String PKSchemaName, String PKTableName, String FKCatalogName, String FKSchemaName, String FKTableName, DExecuteResult handler, DRows row, DRowsetHeader rh) {
+    public final boolean ForeignKeys(String PKCatalogName, String PKSchemaName, String PKTableName, String FKCatalogName, String FKSchemaName, String FKTableName, DExecuteResult handler, DRows row, DRowsetHeader rh) {
+        return ForeignKeys(PKCatalogName, PKSchemaName, PKTableName, FKCatalogName, FKSchemaName, FKTableName, handler, row, rh, null);
+    }
+
+    public final boolean ForeignKeys(String PKCatalogName, String PKSchemaName, String PKTableName, String FKCatalogName, String FKSchemaName, String FKTableName, DExecuteResult handler, DRows row, DRowsetHeader rh, DCanceled canceled) {
         MyCallback<DExecuteResult> cb = new MyCallback<>(idSQLForeignKeys, handler);
         CUQueue sb = CScopeUQueue.Lock();
         sb.Save(PKCatalogName);
@@ -140,27 +183,29 @@ public class COdbc extends CAsyncDBHandler {
         sb.Save(FKSchemaName);
         sb.Save(FKTableName);
         long index;
-        //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
-        //in case a client asynchronously sends lots of requests without use of client side queue.
-        synchronized (m_csDB) {
-            index = ++m_nCall;
-            m_mapRowset.put(index, new Pair<>(rh, row));
-            m_deqExecuteResult.add(cb);
-        }
-        sb.Save(index);
-        if (!SendRequest(idSQLForeignKeys, sb, null)) {
+        synchronized (m_csOneSending) {
+            //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
+            //in case a client asynchronously sends lots of requests without use of client side queue.
             synchronized (m_csDB) {
-                m_deqExecuteResult.remove(cb);
-                m_mapRowset.remove(index);
+                index = ++m_nCall;
+                m_mapRowset.put(index, new Pair<>(rh, row));
+                m_deqExecuteResult.add(cb);
             }
-            CScopeUQueue.Unlock(sb);
-            return false;
+            sb.Save(index);
+            if (!SendRequest(idSQLForeignKeys, sb, null, canceled)) {
+                synchronized (m_csDB) {
+                    m_deqExecuteResult.remove(cb);
+                    m_mapRowset.remove(index);
+                }
+                CScopeUQueue.Unlock(sb);
+                return false;
+            }
         }
         CScopeUQueue.Unlock(sb);
         return true;
     }
 
-    private boolean DoMeta(short id, String s0, String s1, String s2, String s3, DExecuteResult handler, DRows row, DRowsetHeader rh) {
+    private boolean DoMeta(short id, String s0, String s1, String s2, String s3, DExecuteResult handler, DRows row, DRowsetHeader rh, DCanceled canceled) {
         MyCallback<DExecuteResult> cb = new MyCallback<>(id, handler);
         CUQueue sb = CScopeUQueue.Lock();
         sb.Save(s0);
@@ -168,48 +213,52 @@ public class COdbc extends CAsyncDBHandler {
         sb.Save(s2);
         sb.Save(s3);
         long index;
-        //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
-        //in case a client asynchronously sends lots of requests without use of client side queue.
-        synchronized (m_csDB) {
-            index = ++m_nCall;
-            m_mapRowset.put(index, new Pair<>(rh, row));
-            m_deqExecuteResult.add(cb);
-        }
-        sb.Save(index);
-        if (!SendRequest(id, sb, null)) {
+        synchronized (m_csOneSending) {
+            //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
+            //in case a client asynchronously sends lots of requests without use of client side queue.
             synchronized (m_csDB) {
-                m_deqExecuteResult.remove(cb);
-                m_mapRowset.remove(index);
+                index = ++m_nCall;
+                m_mapRowset.put(index, new Pair<>(rh, row));
+                m_deqExecuteResult.add(cb);
             }
-            CScopeUQueue.Unlock(sb);
-            return false;
+            sb.Save(index);
+            if (!SendRequest(id, sb, null, canceled)) {
+                synchronized (m_csDB) {
+                    m_deqExecuteResult.remove(cb);
+                    m_mapRowset.remove(index);
+                }
+                CScopeUQueue.Unlock(sb);
+                return false;
+            }
         }
         CScopeUQueue.Unlock(sb);
         return true;
     }
 
-    private boolean DoMeta(short id, String s0, String s1, String s2, DExecuteResult handler, DRows row, DRowsetHeader rh) {
+    private boolean DoMeta(short id, String s0, String s1, String s2, DExecuteResult handler, DRows row, DRowsetHeader rh, DCanceled canceled) {
         MyCallback<DExecuteResult> cb = new MyCallback<>(id, handler);
         CUQueue sb = CScopeUQueue.Lock();
         sb.Save(s0);
         sb.Save(s1);
         sb.Save(s2);
         long index;
-        //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
-        //in case a client asynchronously sends lots of requests without use of client side queue.
-        synchronized (m_csDB) {
-            index = ++m_nCall;
-            m_mapRowset.put(index, new Pair<>(rh, row));
-            m_deqExecuteResult.add(cb);
-        }
-        sb.Save(index);
-        if (!SendRequest(id, sb, null)) {
+        synchronized (m_csOneSending) {
+            //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
+            //in case a client asynchronously sends lots of requests without use of client side queue.
             synchronized (m_csDB) {
-                m_deqExecuteResult.remove(cb);
-                m_mapRowset.remove(index);
+                index = ++m_nCall;
+                m_mapRowset.put(index, new Pair<>(rh, row));
+                m_deqExecuteResult.add(cb);
             }
-            CScopeUQueue.Unlock(sb);
-            return false;
+            sb.Save(index);
+            if (!SendRequest(id, sb, null, canceled)) {
+                synchronized (m_csDB) {
+                    m_deqExecuteResult.remove(cb);
+                    m_mapRowset.remove(index);
+                }
+                CScopeUQueue.Unlock(sb);
+                return false;
+            }
         }
         CScopeUQueue.Unlock(sb);
         return true;

@@ -17,11 +17,11 @@
 #define UCERT_OBJECT_ARRAY_SIZE 10
 #define UMESSAGE_OBJECT_ARRAY_SIZE 2
 
-SPA::CUCriticalSection g_co;
+SPA::CUCriticalSection g_coClient;
 jobject g_currObj = nullptr;
-JavaVM *g_vm = nullptr;
+JavaVM *g_vmClient = nullptr;
 
-SPA::CUCriticalSection g_cs;
+SPA::CUCriticalSection g_csClient;
 std::unordered_map<unsigned int, jobject> g_mapPJ;
 
 //cache CClientSocket class and its callback method ids
@@ -108,7 +108,7 @@ void CleanException(JNIEnv *env) {
 
 void CALLBACK OnSocketClosed(USocket_Client_Handle handler, int nError) {
     JNIEnv *env;
-    jint es = g_vm->GetEnv((void **) &env, JNI_VERSION_1_6);
+    jint es = g_vmClient->GetEnv((void **) &env, JNI_VERSION_1_6);
     assert(env);
 #ifndef NDEBUG
     std::cout << "++++ @" << __FUNCTION__ << "/" << "nError: " << nError << std::endl;
@@ -122,7 +122,7 @@ void CALLBACK OnSocketClosed(USocket_Client_Handle handler, int nError) {
 
 void CALLBACK OnHandShakeCompleted(USocket_Client_Handle handler, int nError) {
     JNIEnv *env;
-    jint es = g_vm->GetEnv((void **) &env, JNI_VERSION_1_6);
+    jint es = g_vmClient->GetEnv((void **) &env, JNI_VERSION_1_6);
     assert(env);
 #ifndef NDEBUG
     std::cout << "++++ @" << __FUNCTION__ << "/" << "nError: " << nError << std::endl;
@@ -136,7 +136,7 @@ void CALLBACK OnHandShakeCompleted(USocket_Client_Handle handler, int nError) {
 
 void CALLBACK OnSocketConnected(USocket_Client_Handle handler, int nError) {
     JNIEnv *env;
-    jint es = g_vm->GetEnv((void **) &env, JNI_VERSION_1_6);
+    jint es = g_vmClient->GetEnv((void **) &env, JNI_VERSION_1_6);
     assert(env);
 #ifndef NDEBUG
     std::cout << "++++ @" << __FUNCTION__ << "/" << "nError: " << nError << std::endl;
@@ -156,7 +156,7 @@ void CALLBACK OnRequestProcessed(USocket_Client_Handle handler, unsigned short r
     const unsigned char *arr = GetResultBuffer(handler);
     if (!arr)
         len = 0;
-    jint es = g_vm->GetEnv((void **) &env, JNI_VERSION_1_6);
+    jint es = g_vmClient->GetEnv((void **) &env, JNI_VERSION_1_6);
     assert(env);
     jbyteArray bytes = env->NewByteArray(len);
     if (len && bytes) {
@@ -169,7 +169,7 @@ void CALLBACK OnRequestProcessed(USocket_Client_Handle handler, unsigned short r
 
 void CALLBACK OnBaseRequestProcessed(USocket_Client_Handle handler, unsigned short requestId) {
     JNIEnv *env;
-    jint es = g_vm->GetEnv((void **) &env, JNI_VERSION_1_6);
+    jint es = g_vmClient->GetEnv((void **) &env, JNI_VERSION_1_6);
     assert(env);
 #ifndef NDEBUG
     std::cout << "++++ @" << __FUNCTION__ << "/" << "Request id: " << requestId << std::endl;
@@ -184,7 +184,7 @@ void CALLBACK OnBaseRequestProcessed(USocket_Client_Handle handler, unsigned sho
 jobject createCertInfo(const SPA::CertInfo *ci, jobject *arrayObject, unsigned int count) {
     JNIEnv *env;
     assert(count >= UCERT_OBJECT_ARRAY_SIZE);
-    jint es = g_vm->GetEnv((void **) &env, JNI_VERSION_1_6);
+    jint es = g_vmClient->GetEnv((void **) &env, JNI_VERSION_1_6);
     assert(env);
     jclass cls = env->FindClass("SPA/ClientSide/CertInfo");
     jmethodID constructor = env->GetMethodID(cls, "<init>", "()V");
@@ -268,7 +268,7 @@ jobject create(JNIEnv *env, const SPA::ClientSide::CMessageSender &sender, jobje
 
 void CALLBACK OnEnter(USocket_Client_Handle handler, SPA::ClientSide::CMessageSender sender, const unsigned int *pGroup, unsigned int count) {
     JNIEnv *env;
-    jint es = g_vm->GetEnv((void **) &env, JNI_VERSION_1_6);
+    jint es = g_vmClient->GetEnv((void **) &env, JNI_VERSION_1_6);
     assert(env);
     jobject arrayObject[UMESSAGE_OBJECT_ARRAY_SIZE] = {nullptr};
     jobject obj = create(env, sender, arrayObject, UMESSAGE_OBJECT_ARRAY_SIZE);
@@ -290,7 +290,7 @@ void CALLBACK OnEnter(USocket_Client_Handle handler, SPA::ClientSide::CMessageSe
 
 void CALLBACK OnExit(USocket_Client_Handle handler, SPA::ClientSide::CMessageSender sender, const unsigned int *pGroup, unsigned int count) {
     JNIEnv *env;
-    jint es = g_vm->GetEnv((void **) &env, JNI_VERSION_1_6);
+    jint es = g_vmClient->GetEnv((void **) &env, JNI_VERSION_1_6);
     assert(env);
     jobject arrayObject[UMESSAGE_OBJECT_ARRAY_SIZE] = {nullptr};
     jobject obj = create(env, sender, arrayObject, UMESSAGE_OBJECT_ARRAY_SIZE);
@@ -312,7 +312,7 @@ void CALLBACK OnExit(USocket_Client_Handle handler, SPA::ClientSide::CMessageSen
 
 void CALLBACK OnSpeakEx(USocket_Client_Handle handler, SPA::ClientSide::CMessageSender sender, const unsigned int *pGroup, unsigned int count, const unsigned char *pMessage, unsigned int size) {
     JNIEnv *env;
-    jint es = g_vm->GetEnv((void **) &env, JNI_VERSION_1_6);
+    jint es = g_vmClient->GetEnv((void **) &env, JNI_VERSION_1_6);
     assert(env);
     jobject arrayObject[UMESSAGE_OBJECT_ARRAY_SIZE] = {nullptr};
     jobject obj = create(env, sender, arrayObject, UMESSAGE_OBJECT_ARRAY_SIZE);
@@ -340,7 +340,7 @@ void CALLBACK OnSpeakEx(USocket_Client_Handle handler, SPA::ClientSide::CMessage
 
 void CALLBACK OnSpeak(USocket_Client_Handle handler, SPA::ClientSide::CMessageSender sender, const unsigned int *pGroup, unsigned int count, const unsigned char *pMessage, unsigned int size) {
     JNIEnv *env;
-    jint es = g_vm->GetEnv((void **) &env, JNI_VERSION_1_6);
+    jint es = g_vmClient->GetEnv((void **) &env, JNI_VERSION_1_6);
     assert(env);
     jobject arrayObject[UMESSAGE_OBJECT_ARRAY_SIZE] = {nullptr};
     jobject obj = create(env, sender, arrayObject, UMESSAGE_OBJECT_ARRAY_SIZE);
@@ -368,7 +368,7 @@ void CALLBACK OnSpeak(USocket_Client_Handle handler, SPA::ClientSide::CMessageSe
 
 void CALLBACK OnSendUserMessage(USocket_Client_Handle handler, SPA::ClientSide::CMessageSender sender, const unsigned char *pMessage, unsigned int size) {
     JNIEnv *env;
-    jint es = g_vm->GetEnv((void **) &env, JNI_VERSION_1_6);
+    jint es = g_vmClient->GetEnv((void **) &env, JNI_VERSION_1_6);
     assert(env);
     jobject arrayObject[UMESSAGE_OBJECT_ARRAY_SIZE] = {nullptr};
     jobject obj = create(env, sender, arrayObject, UMESSAGE_OBJECT_ARRAY_SIZE);
@@ -390,7 +390,7 @@ void CALLBACK OnSendUserMessage(USocket_Client_Handle handler, SPA::ClientSide::
 
 void CALLBACK OnSendUserMessageEx(USocket_Client_Handle handler, SPA::ClientSide::CMessageSender sender, const unsigned char *pMessage, unsigned int size) {
     JNIEnv *env;
-    jint es = g_vm->GetEnv((void **) &env, JNI_VERSION_1_6);
+    jint es = g_vmClient->GetEnv((void **) &env, JNI_VERSION_1_6);
     assert(env);
     jobject arrayObject[UMESSAGE_OBJECT_ARRAY_SIZE] = {nullptr};
     jobject obj = create(env, sender, arrayObject, UMESSAGE_OBJECT_ARRAY_SIZE);
@@ -412,7 +412,7 @@ void CALLBACK OnSendUserMessageEx(USocket_Client_Handle handler, SPA::ClientSide
 
 void CALLBACK OnServerException(USocket_Client_Handle handler, unsigned short requestId, const wchar_t *errMessage, const char* errWhere, unsigned int errCode) {
     JNIEnv *env;
-    jint es = g_vm->GetEnv((void **) &env, JNI_VERSION_1_6);
+    jint es = g_vmClient->GetEnv((void **) &env, JNI_VERSION_1_6);
     assert(env);
 #ifdef WIN32_64
     jsize size = (jsize)::wcslen(errMessage);
@@ -435,7 +435,7 @@ void CALLBACK OnServerException(USocket_Client_Handle handler, unsigned short re
 
 void CALLBACK OnAllRequestsProcessed(USocket_Client_Handle handler, unsigned short lastRequestId) {
     JNIEnv *env;
-    jint es = g_vm->GetEnv((void **) &env, JNI_VERSION_1_6);
+    jint es = g_vmClient->GetEnv((void **) &env, JNI_VERSION_1_6);
     assert(env);
 
     env->CallStaticVoidMethod(g_classCClientSocket, g_midOnAllRequestsProcessed, (jlong) handler, (jshort) lastRequestId);
@@ -462,7 +462,7 @@ typedef DWORD UTHREAD_ID;
 typedef pthread_t UTHREAD_ID;
 #endif
 
-std::vector<std::pair<unsigned int, UTHREAD_ID> > g_vDThread; //locked by g_cs
+std::vector<std::pair<unsigned int, UTHREAD_ID> > g_vDThreadClient; //locked by g_csClient
 
 void SetPoolThreadAsDaemon(unsigned int pid) {
     jint res;
@@ -476,17 +476,17 @@ void SetPoolThreadAsDaemon(unsigned int pid) {
     std::cout << "++++ ClientSide::speThreadCreated thread id =" << tid << std::endl;
 #endif
     std::pair<unsigned int, UTHREAD_ID> pair = std::make_pair(pid, tid);
-    SPA::CAutoLock al(g_cs);
-    if (std::find(g_vDThread.begin(), g_vDThread.end(), pair) == g_vDThread.end()) {
+    SPA::CAutoLock al(g_csClient);
+    if (std::find(g_vDThreadClient.begin(), g_vDThreadClient.end(), pair) == g_vDThreadClient.end()) {
         JNIEnv *env = nullptr;
         JavaVMAttachArgs args;
         args.version = JNI_VERSION_1_6; // choose your JNI version
         args.name = (char*) "uclient_pool_thread"; // you might want to give the java thread a name
         args.group = nullptr; // you might want to assign the java thread to a ThreadGroup
-        res = g_vm->AttachCurrentThreadAsDaemon((void **) &env, &args);
+        res = g_vmClient->AttachCurrentThreadAsDaemon((void **) &env, &args);
         assert(res == 0);
         if (res == 0)
-            g_vDThread.push_back(pair);
+            g_vDThreadClient.push_back(pair);
     }
 }
 
@@ -500,15 +500,15 @@ void RemovePoolThreadAsDaemon(unsigned int pid) {
 #endif
     std::cout << "---- ClientSide::speThreadKilling thread id =" << tid << std::endl;
 #endif
-    SPA::CAutoLock al(g_cs);
+    SPA::CAutoLock al(g_csClient);
     while (removed) {
         removed = false;
-        for (auto it = g_vDThread.begin(), end = g_vDThread.end(); it != end; ++it) {
+        for (auto it = g_vDThreadClient.begin(), end = g_vDThreadClient.end(); it != end; ++it) {
             if (it->first == pid) {
-                jint res = g_vm->DetachCurrentThread();
+                jint res = g_vmClient->DetachCurrentThread();
                 assert(JNI_OK == res);
                 removed = true;
-                g_vDThread.erase(it);
+                g_vDThreadClient.erase(it);
                 break;
             }
         }
@@ -519,21 +519,21 @@ void CALLBACK SPC(unsigned int pid, SPA::ClientSide::tagSocketPoolEvent spe, USo
     JNIEnv *env;
     jobject spc = nullptr;
     {
-        SPA::CAutoLock al(g_cs);
+        SPA::CAutoLock al(g_csClient);
         if (g_mapPJ.find(pid) != g_mapPJ.cend())
             spc = g_mapPJ[pid];
     }
-    jint es = g_vm->GetEnv((void **) &env, JNI_VERSION_1_6);
+    jint es = g_vmClient->GetEnv((void **) &env, JNI_VERSION_1_6);
     switch (spe) {
         case SPA::ClientSide::speThreadCreated:
             SetPoolThreadAsDaemon(pid);
-            es = g_vm->GetEnv((void **) &env, JNI_VERSION_1_6);
+            es = g_vmClient->GetEnv((void **) &env, JNI_VERSION_1_6);
             if (spc)
                 DoCallback(env, spc, pid, spe, h);
             assert(JNI_OK == es);
             break;
         case SPA::ClientSide::speKillingThread:
-            es = g_vm->GetEnv((void **) &env, JNI_VERSION_1_6);
+            es = g_vmClient->GetEnv((void **) &env, JNI_VERSION_1_6);
             assert(JNI_OK == es);
             if (spc)
                 DoCallback(env, spc, pid, spe, h);
@@ -545,7 +545,7 @@ void CALLBACK SPC(unsigned int pid, SPA::ClientSide::tagSocketPoolEvent spe, USo
             assert(env);
             spc = env->NewGlobalRef(g_currObj);
         {
-            SPA::CAutoLock al(g_cs);
+            SPA::CAutoLock al(g_csClient);
             g_mapPJ[pid] = spc;
         }
             if (spc)
@@ -557,7 +557,7 @@ void CALLBACK SPC(unsigned int pid, SPA::ClientSide::tagSocketPoolEvent spe, USo
             assert(spc);
             if (spc)
                 DoCallback(env, spc, pid, spe, h);
-            SPA::CAutoLock al(g_cs);
+            SPA::CAutoLock al(g_csClient);
             g_mapPJ.erase((unsigned int) pid);
             env->DeleteGlobalRef(spc);
         }
@@ -573,7 +573,7 @@ void CALLBACK SPC(unsigned int pid, SPA::ClientSide::tagSocketPoolEvent spe, USo
 
 bool CALLBACK CertCallback(bool preverified, int depth, int errorCode, const char *errMsg, SPA::CertInfo *ci) {
     JNIEnv *env;
-    jint es = g_vm->GetEnv((void **) &env, JNI_VERSION_1_6);
+    jint es = g_vmClient->GetEnv((void **) &env, JNI_VERSION_1_6);
     assert(env);
     jclass cls = env->FindClass("SPA/ClientSide/CClientSocket$SSL");
     jmethodID mid = env->GetStaticMethodID(cls, "Verify", "(ZIILjava/lang/String;Ljava/lang/Object;)Z");
@@ -624,9 +624,9 @@ JNIEXPORT void JNICALL Java_SPA_ClientSide_ClientCoreLoader_SetCs(JNIEnv *env, j
 JNIEXPORT jint JNICALL Java_SPA_ClientSide_ClientCoreLoader_CreateSocketPool(JNIEnv *env, jclass spObj, jobject spc, jint maxSocketsPerThread, jint maxThreads, jboolean bAvg, jint ta) {
     unsigned int id;
     {
-        SPA::CAutoLock al(g_co);
-        if (g_vm == nullptr) {
-            jint es = env->GetJavaVM(&g_vm);
+        SPA::CAutoLock al(g_coClient);
+        if (g_vmClient == nullptr) {
+            jint es = env->GetJavaVM(&g_vmClient);
             assert(JNI_OK == es);
             es = env->EnsureLocalCapacity(32);
             assert(JNI_OK == es);

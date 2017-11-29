@@ -234,6 +234,10 @@ public final class CClientSocket {
 
     private static void OnAllRequestsProcessed(long h, short reqId) {
         CClientSocket cs = Find(h);
+        CAsyncServiceHandler ash = cs.Seek(cs.getCurrentServiceID());
+        if (ash != null) {
+            ash.OnAllProcessed();
+        }
         if (cs.AllRequestsProcessed != null) {
             cs.AllRequestsProcessed.invoke(cs, reqId);
         }
@@ -257,6 +261,10 @@ public final class CClientSocket {
 
     private static void OnSocketClosed(long h, int errCode) {
         CClientSocket cs = Find(h);
+        CAsyncServiceHandler ash = cs.Seek(cs.getCurrentServiceID());
+        if (ash != null && !cs.getSendable()) {
+            ash.CleanCallbacks();
+        }
         if (cs.SocketClosed != null) {
             cs.SocketClosed.invoke(cs, errCode);
         }
@@ -275,10 +283,6 @@ public final class CClientSocket {
             cs.m_cert = new CUCertImpl(cs);
         } else {
             cs.m_cert = null;
-        }
-        CAsyncServiceHandler ash = cs.Seek(cs.getCurrentServiceID());
-        if (ash != null && !cs.getSendable()) {
-            ash.CleanCallbacks();
         }
         if (cs.SocketConnected != null) {
             cs.SocketConnected.invoke(cs, errCode);
@@ -299,7 +303,7 @@ public final class CClientSocket {
             }
             //this does not cause re-allocting bytes memory
             SPA.CUQueue q = new SPA.CUQueue(bytes);
-            
+
             q.setOS(tagOperationSystem.forValue(os));
             q.setEndian(endian);
             ash.onRR(reqId, q);

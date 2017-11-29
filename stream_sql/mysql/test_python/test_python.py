@@ -3,6 +3,7 @@
 
 import sys
 from spa.udb import *
+from spa import Pair
 from spa.clientside import CSocketPool, CConnectionContext, CMysql, CUQueue
 import datetime
 
@@ -35,7 +36,7 @@ with CSocketPool(CMysql) as spMysql:
 
     def cbRowHeader(mysql):
         vColInfo = mysql.ColumnInfo
-        ra.append(CMysql.Pair(vColInfo, []))
+        ra.append(Pair(vColInfo, []))
 
     def TestPreparedStatements():
         sql_insert_parameter = u'INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?)'

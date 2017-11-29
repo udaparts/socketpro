@@ -1,5 +1,7 @@
 package SPA.ServerSide;
 
+import SPA.CScopeUQueue;
+
 public class CSocketProServer {
 
     @Override
@@ -131,7 +133,9 @@ public class CSocketProServer {
     }
 
     protected void OnIdle(long milliseconds) {
-
+        if (CScopeUQueue.getMemoryConsumed() / 1024 > CScopeUQueue.getSHARED_BUFFER_CLEAN_SIZE()) {
+            CScopeUQueue.DestroyUQueuePool();
+        }
     }
 
     private static void OnIdleInternal(long milliseconds) {
@@ -172,6 +176,7 @@ public class CSocketProServer {
             if (fi.getType() != CSocketProService.class) {
                 continue;
             }
+            //This may not work for parent class!!!!
             ServiceAttr sa = (ServiceAttr) fi.getAnnotation(ServiceAttr.class);
             if (sa != null) {
                 Object obj;
@@ -366,7 +371,7 @@ public class CSocketProServer {
             return ServerCoreLoader.GetAllCreatedChatGroups();
         }
 
-        public static boolean Publish(byte[] Message, int[] Groups) {
+        public static boolean Publish(byte[] Message, int... Groups) {
             int size;
             int len;
             if (Groups == null) {
@@ -392,7 +397,7 @@ public class CSocketProServer {
             return ServerCoreLoader.SendUserMessageExPush(UserId, Message, size);
         }
 
-        public static boolean Publish(Object Message, int[] Groups) {
+        public static boolean Publish(Object Message, int... Groups) {
             int len;
             if (Groups == null) {
                 len = 0;

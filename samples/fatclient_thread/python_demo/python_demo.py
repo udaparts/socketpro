@@ -1,6 +1,6 @@
 import sys
 from spa.udb import *
-from spa.clientside import CSocketPool, CConnectionContext, CSqlite, CUQueue
+from spa.clientside import CSocketPool, CConnectionContext, CSqlite, CUQueue, UFuture
 import datetime
 import threading
 
@@ -36,12 +36,15 @@ def Demo_Cross_Request_Dead_Lock(sqlite):
     # uncomment the following call to remove potential cross SendRequest dead lock
     # sqlite.AttachedClientSocket.ClientQueue.StartQueue("cross_locking_0", 3600)
     count = 1000000
+
     def cb(sqlite, res, errMsg):
         if res != 0:
             print('Open: res = ' + str(res) + ', errMsg: ' + errMsg)
+
     while count > 0:
         sqlite.Open(sample_database, cb)
-        count = count - 1
+        count -= 1
+
 
 def TestCreateTables(sqlite):
     def cb(sqlite, res, errMsg, affected, fail_ok, lastRowId):
@@ -51,6 +54,8 @@ def TestCreateTables(sqlite):
     sqlite.ExecuteSql("CREATE TABLE EMPLOYEE(EMPLOYEEID INT8 PRIMARY KEY NOT NULL,CompanyId INT8 not null,name NCHAR(64)NOT NULL,JoinDate DATETIME not null default(datetime('now')),FOREIGN KEY(CompanyId)REFERENCES COMPANY(id))", cb)
 
 m_csConsole = threading.Lock()
+
+
 def StreamSQLsWithManualTransaction(sqlite):
     def cb(sqlite, res, errMsg):
         if res != 0:
@@ -98,13 +103,15 @@ def StreamSQLsWithManualTransaction(sqlite):
     sqlite.EndTrans(tagRollbackPlan.rpDefault, cb)
 
 m_cycle = 100
+
+
 def Demo_Multiple_SendRequest_MultiThreaded_Wrong(sp):
     cycle = m_cycle
     while cycle > 0:
         # Seek an async handler on the min number of requests queued in memory and its associated socket connection
         sqlite = sp.Seek()
         StreamSQLsWithManualTransaction(sqlite)
-        cycle = cycle - 1
+        cycle -= 1
     vSqlite = sp.AsyncHandlers
     for s in vSqlite:
         s.WaitAll()
@@ -118,10 +125,95 @@ def Demo_Multiple_SendRequest_MultiThreaded_Correct_Lock_Unlock(sp):
         StreamSQLsWithManualTransaction(sqlite)
         # Put back a previously locked async handler to pool for reuse
         sp.Unlock(sqlite)
-        cycle = cycle - 1
+        cycle -= 1
     vSqlite = sp.AsyncHandlers
     for s in vSqlite:
         s.WaitAll()
+
+
+def DoFuture(sp):
+    f = UFuture()
+    sqlite = sp.Lock()
+    if sqlite is None:
+        with m_csConsole:
+            print('All sockets are disconnected from server')
+        f.set(False)
+        return f
+
+    def cb(sqlite, res, errMsg):
+        if res != 0:
+            with m_csConsole:
+                print('MANUAL TRANSACTION: res = ' + str(res) + ', errMsg: ' + errMsg)
+
+    def cbExecute(sqlite, res, errMsg, affected, fail_ok, lastRowId):
+        if res != 0:
+            with m_csConsole:
+                print('StreamSQL: affected = ' + str(affected) + ', fails = ' + str(fail_ok >> 32) + ', oks = ' + str(fail_ok & 0xffffffff) + ', res = ' + str(res) + ', errMsg: ' + errMsg)
+    ok = False
+    while True:
+        if not sqlite.BeginTrans(tagTransactionIsolation.tiReadCommited, cb):
+            break
+        if not sqlite.ExecuteSql("delete from EMPLOYEE;delete from COMPANY", cbExecute):
+            break
+        if not sqlite.Prepare("INSERT INTO COMPANY(ID,NAME)VALUES(?,?)"):
+            break
+        vData = []
+        vData.append(1)
+        vData.append("Google Inc.")
+
+        vData.append(2)
+        vData.append("Microsoft Inc.")
+        # send two sets of parameter data in one shot for processing
+        if not sqlite.ExecuteParameters(vData, cbExecute):
+            break
+
+        if not sqlite.Prepare("INSERT INTO EMPLOYEE(EMPLOYEEID,CompanyId,name,JoinDate)VALUES(?,?,?,?)"):
+            break
+        vData = []
+        # first set of data
+        vData.append(1)
+        vData.append(1) # google company id
+        vData.append("Ted Cruz")
+        vData.append(datetime.datetime.now())
+
+        # second set of data
+        vData.append(2)
+        vData.append(1) # google company id
+        vData.append("Donald Trump")
+        vData.append(datetime.datetime.now())
+
+        # third set of data
+        vData.append(3)
+        vData.append(2) # Microsoft company id
+        vData.append("Hillary Clinton")
+        vData.append(datetime.datetime.now())
+        # send three sets of parametrised data in one shot for processing
+        if not sqlite.ExecuteParameters(vData, cbExecute):
+            break
+
+        def cbx(sqlite, res, errMsg):
+            if res != 0:
+                with m_csConsole:
+                    print('EndTrans: res = ' + str(res) + ', errMsg: ' + errMsg)
+            f.set(True)
+
+        def canceled():
+            with m_csConsole:
+                print('EndTrans: Request canceled or socket closed')
+            f.set(False)
+
+        if not sqlite.EndTrans(tagRollbackPlan.rpDefault, cbx, canceled):
+            break
+        sp.Unlock(sqlite)  # put handler back into pool for reuse
+        ok = True
+        break  # break while loop
+
+    if not ok:
+        with m_csConsole:
+            print('DoFuture: Connection disconnected error code = ' + str(sqlite.AttachedClientSocket.ErrorCode) + ', message = ' + sqlite.AttachedClientSocket.ErrorMessage)
+        f.set(False)
+    return f
+
 
 with CSocketPool(CSqlite) as spSqlite:
     print('Remote async sqlite server host: ')
@@ -175,6 +267,13 @@ with CSocketPool(CSqlite) as spSqlite:
     for t in threads:
         t.join()
     print('Demo_Multiple_SendRequest_MultiThreaded_Correct_Lock_Unlock completed')
+    print('')
+
+    print('Demonstration of DoFuture .....')
+    if DoFuture(spSqlite).get(5):
+        print('All requests within the function DoFuture are completed')
+    else:
+        print('The requests within the function DoFuture are not completed in 5 seconds')
     print('')
 
     print('Press any key to close the application ......')

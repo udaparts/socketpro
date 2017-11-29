@@ -8,7 +8,8 @@ public class test_java {
     public static void main(String[] args) {
         CConnectionContext cc = new CConnectionContext();
         System.out.println("Remote host: ");
-        cc.Host = new java.util.Scanner(System.in).next();
+        java.util.Scanner in = new java.util.Scanner(System.in);
+        cc.Host = in.nextLine();
         cc.Port = 20901;
         cc.UserId = "usqlite_client_java";
         cc.Password = "pwd_for_usqlite";
@@ -18,7 +19,7 @@ public class test_java {
         CSqlite sqlite = spSqlite.getAsyncHandlers()[0];
         if (!ok) {
             System.out.println("No connection error code = " + sqlite.getAttachedClientSocket().getErrorCode());
-            new java.util.Scanner(System.in).nextLine();
+            in.nextLine();
             return;
         }
         ok = sqlite.Open("", new CSqlite.DResult() {
@@ -29,7 +30,7 @@ public class test_java {
             }
         });
         TestCreateTables(sqlite);
-        java.util.ArrayList<CSqlite.Pair<CDBColumnInfoArray, CDBVariantArray>> lstRowset = new java.util.ArrayList<>();
+        java.util.ArrayList<Pair<CDBColumnInfoArray, CDBVariantArray>> lstRowset = new java.util.ArrayList<>();
 
         ok = sqlite.BeginTrans();
         TestPreparedStatements(sqlite, lstRowset);
@@ -39,7 +40,7 @@ public class test_java {
         int index = 0;
         System.out.println();
         System.out.println("+++++ Start rowsets +++");
-        for (CSqlite.Pair<CDBColumnInfoArray, CDBVariantArray> a : lstRowset) {
+        for (Pair<CDBColumnInfoArray, CDBVariantArray> a : lstRowset) {
             System.out.format("Statement index = %d", index);
             if (a.first.size() > 0) {
                 System.out.format(", rowset with columns = %d, records = %d.", a.first.size(), a.second.size() / a.first.size());
@@ -52,10 +53,10 @@ public class test_java {
         System.out.println("+++++ End rowsets +++");
         System.out.println();
         System.out.println("Press any key to close the application ......");
-        new java.util.Scanner(System.in).nextLine();
+        in.nextLine();
     }
 
-    static void TestPreparedStatements(CSqlite sqlite, final java.util.ArrayList<CSqlite.Pair<CDBColumnInfoArray, CDBVariantArray>> ra) {
+    static void TestPreparedStatements(CSqlite sqlite, final java.util.ArrayList<Pair<CDBColumnInfoArray, CDBVariantArray>> ra) {
         String sql_insert_parameter = "Select datetime('now');INSERT OR REPLACE INTO COMPANY(ID, NAME, ADDRESS, Income) VALUES (?, ?, ?, ?)";
         boolean ok = sqlite.Prepare(sql_insert_parameter, new CSqlite.DResult() {
             @Override
@@ -94,7 +95,7 @@ public class test_java {
             @Override
             public void invoke(CAsyncDBHandler dbHandler, CDBVariantArray lstData) {
                 int last = ra.size() - 1;
-                CSqlite.Pair<CDBColumnInfoArray, CDBVariantArray> item = ra.get(last);
+                Pair<CDBColumnInfoArray, CDBVariantArray> item = ra.get(last);
                 item.second.addAll(lstData);
             }
         }, new CSqlite.DRowsetHeader() {
@@ -103,13 +104,13 @@ public class test_java {
                 //rowset header comes here
                 CDBColumnInfoArray vColInfo = dbHandler.getColumnInfo();
                 CDBVariantArray vData = new CDBVariantArray();
-                CSqlite.Pair<CDBColumnInfoArray, CDBVariantArray> item = (new CSqlite()).new Pair<>(vColInfo, vData);
+                Pair<CDBColumnInfoArray, CDBVariantArray> item = new Pair<>(vColInfo, vData);
                 ra.add(item);
             }
         });
     }
 
-    static void InsertBLOBByPreparedStatement(CSqlite sqlite, final java.util.ArrayList<CSqlite.Pair<CDBColumnInfoArray, CDBVariantArray>> ra) {
+    static void InsertBLOBByPreparedStatement(CSqlite sqlite, final java.util.ArrayList<Pair<CDBColumnInfoArray, CDBVariantArray>> ra) {
         String wstr = "";
         while (wstr.length() < 128 * 1024) {
             wstr += "近日，一则极具震撼性的消息，在中航工业的干部职工中悄然流传：中航工业科技委副主任、总装备部先进制造技术专家组组长、原中航工业制造所所长郭恩明突然失联。老郭突然失联，在中航工业和国防科技工业投下了震撼弹，也给人们留下了难以解开的谜团，以正面形象示人的郭恩明，为什么会涉足谍海，走上不归路，是被人下药被动失足？还是没能逃过漂亮“女间谍“的致命诱惑？还是仇视社会主义，仇视航空工业，自甘堕落与国家与人民为敌？";
@@ -177,7 +178,7 @@ public class test_java {
             @Override
             public void invoke(CAsyncDBHandler dbHandler, CDBVariantArray lstData) {
                 int last = ra.size() - 1;
-                CSqlite.Pair<CDBColumnInfoArray, CDBVariantArray> item = ra.get(last);
+                Pair<CDBColumnInfoArray, CDBVariantArray> item = ra.get(last);
                 item.second.addAll(lstData);
             }
         }, new CSqlite.DRowsetHeader() {
@@ -186,7 +187,7 @@ public class test_java {
                 //rowset header comes here
                 CDBColumnInfoArray vColInfo = dbHandler.getColumnInfo();
                 CDBVariantArray vData = new CDBVariantArray();
-                CSqlite.Pair<CDBColumnInfoArray, CDBVariantArray> item = (new CSqlite()).new Pair<>(vColInfo, vData);
+                Pair<CDBColumnInfoArray, CDBVariantArray> item = new Pair<>(vColInfo, vData);
                 ra.add(item);
             }
         });

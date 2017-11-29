@@ -1,6 +1,6 @@
 
 from spa.serverside.socketpeer import CSocketPeer
-from spa import CUQueue, IPushEx
+from spa import CUQueue, IPushEx, CScopeUQueue
 from ctypes import c_ubyte, c_bool, byref, c_uint
 from spa.serverside.scoreloader import SCoreLoader as scl
 
@@ -67,6 +67,8 @@ class CClientPeer(CSocketPeer):
     def SendResult(self, q, reqId=0):
         if reqId == 0:
             reqId = self.CurrentRequestID
+        if isinstance(q, CScopeUQueue):
+            q = q.UQueue
         if q is None:
             q = CUQueue()
         buffer = (c_ubyte * q.GetSize()).from_buffer(q._m_bytes_, q._m_position_)

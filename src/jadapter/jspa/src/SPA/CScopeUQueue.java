@@ -1,45 +1,8 @@
 package SPA;
 
-import java.util.concurrent.atomic.*;
+import java.util.ArrayDeque;
 
 public final class CScopeUQueue {
-
-    private static class ConcurrentStack<T> {
-
-        private final AtomicReference<Node<T>> top = new AtomicReference<>();
-
-        public void push(T item) {
-            Node<T> oldHead;
-            Node<T> newHead = new Node<>(item);
-            do {
-                oldHead = top.get();
-                newHead.next = oldHead;
-            } while (!top.compareAndSet(oldHead, newHead));
-        }
-
-        public T pop() {
-            Node<T> oldHead;
-            Node<T> newHead;
-            do {
-                oldHead = top.get();
-                if (oldHead == null) {
-                    return null;
-                }
-                newHead = oldHead.next;
-            } while (!top.compareAndSet(oldHead, newHead));
-            return oldHead.item;
-        }
-
-        private static class Node<T> {
-
-            public final T item;
-            public Node<T> next;
-
-            public Node(T item) {
-                this.item = item;
-            }
-        }
-    }
 
     @Override
     protected void finalize() throws Throwable {
@@ -47,8 +10,49 @@ public final class CScopeUQueue {
         super.finalize();
     }
 
+    public static long getMemoryConsumed() {
+        long mem = 0;
+        synchronized (m_cs) {
+            for (CUQueue q : m_sQueue) {
+                mem += q.getMaxBufferSize();
+            }
+        }
+        return mem;
+    }
+
+    public static void DestroyUQueuePool() {
+        synchronized (m_cs) {
+            while (m_sQueue.size() > 0) {
+                CUQueue q = m_sQueue.removeLast();
+                q.Empty();
+            }
+        }
+    }
+
+    private static int m_mem_size = 32 * 1024;
+
+    public static int getSHARED_BUFFER_CLEAN_SIZE() {
+        synchronized (m_cs) {
+            return m_mem_size;
+        }
+    }
+
+    public static void setSHARED_BUFFER_CLEAN_SIZE(int size) {
+        synchronized (m_cs) {
+            if (size <= 512) {
+                size = 512;
+            }
+            m_mem_size = size;
+        }
+    }
+
     public static CUQueue Lock(tagOperationSystem os) {
-        CUQueue UQueue = m_sQueue.pop();
+        CUQueue UQueue = null;
+        synchronized (m_cs) {
+            if (m_sQueue.size() > 0) {
+                UQueue = m_sQueue.removeLast();
+            }
+        }
         if (UQueue == null) {
             UQueue = new CUQueue();
         }
@@ -63,7 +67,9 @@ public final class CScopeUQueue {
     public static void Unlock(CUQueue UQueue) {
         if (UQueue != null) {
             UQueue.SetSize(0);
-            m_sQueue.push(UQueue);
+            synchronized (m_cs) {
+                m_sQueue.addLast(UQueue);
+            }
         }
     }
 
@@ -124,7 +130,7 @@ public final class CScopeUQueue {
         return this;
     }
 
-    public final CScopeUQueue Save(IUSerializer s) {
+    public final <T extends IUSerializer> CScopeUQueue Save(T s) {
         s.SaveTo(m_UQueue);
         return this;
     }
@@ -205,5 +211,6 @@ public final class CScopeUQueue {
     }
 
     private CUQueue m_UQueue = Lock();
-    private final static ConcurrentStack<CUQueue> m_sQueue = new ConcurrentStack<>();
+    private final static Object m_cs = new Object();
+    private final static ArrayDeque<CUQueue> m_sQueue = new ArrayDeque<>();
 }

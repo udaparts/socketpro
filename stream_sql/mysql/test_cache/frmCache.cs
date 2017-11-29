@@ -125,7 +125,7 @@ namespace test_cache
             {
                 if (filter.Length > 0)
                     filter += " AND ";
-                filter += ("`" + kv.Key.ColumnName + "`=");
+                filter += ("[" + kv.Key.ColumnName + "]=");
                 if (kv.Value is long || kv.Value is decimal || kv.Value is double)
                     filter += kv.Value.ToString();
                 else if (kv.Value is string)

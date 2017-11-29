@@ -164,7 +164,10 @@ namespace SocketProAdapter
             {
                 get
                 {
-                    return m_sh;
+                    lock (m_Service.m_cs)
+                    {
+                        return m_sh;
+                    }
                 }
             }
 

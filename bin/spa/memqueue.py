@@ -5,6 +5,7 @@ from decimal import localcontext
 from spa import tagOperationSystem, tagVariantDataType, IUSerializer
 import datetime
 import threading
+from collections import deque
 
 class UDateTime(object):
     _MICRO_SECONDS = 0xfffff; # 20bits
@@ -103,6 +104,11 @@ class CUQueue(object):
 
     def __exit__(self, type, value, traceback):
         self._m_bytes_ = bytearray()
+
+    def Empty(self):
+        self._m_position_ = 0
+        self._m_len_ = 0
+        self._m_bytes_ = bytearray(1)
 
     @property
     def OS(self):
@@ -516,6 +522,11 @@ class CUQueue(object):
     def SaveUUID(self, uuid):
         return self.Push(uuid.bytes_le, 16)
 
+    def LoadByClass(self, cls):
+        obj = cls()
+        obj.LoadFrom(self)
+        return obj
+
     def LoadUUID(self):
         self._available_(16)
         bytes = struct.unpack_from('16s', self._m_bytes_, self._m_position_)
@@ -802,7 +813,96 @@ class CUQueue(object):
 
 class CScopeUQueue:
     _cs = threading.Lock()
-    _vQueue = []
+    _vQueue = deque()
+    SHARED_BUFFER_CLEAN_SIZE = 32 * 1024
+
+    def __init__(self):
+        self._Buffer_ = CScopeUQueue.Lock()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.Dispose()
+
+    def Dispose(self):
+        if self._Buffer_:
+            CScopeUQueue.Unlock(self._Buffer_)
+            self._Buffer_ = None
+
+    @property
+    def UQueue(self):
+        return self._Buffer_
+
+    def SaveDecimal(self, dec):
+        return self._Buffer_.SaveDecimal(dec)
+
+    def Save(self, obj):
+        return self._Buffer_.Save(obj)
+
+    def SaveInt(self, n):
+        return self._Buffer_.SaveInt(n)
+
+    def SaveUInt(self, n):
+        return self._Buffer_.SaveUInt(n)
+
+    def SaveShort(self, s):
+        return self._Buffer_.SaveShort(s)
+
+    def SaveUShort(self, s):
+        return self._Buffer_.SaveUShort(s)
+
+    def SaveChar(self, c):
+        return self._Buffer_.SaveChar(c)
+
+    def SaveAChar(self, c):
+        return self._Buffer_.SaveAChar(c)
+
+    def SaveLong(self, n):
+        return self._Buffer_.SaveLong(n)
+
+    def SaveULong(self, n):
+        return self._Buffer_.SaveULong(n)
+
+    def SaveFloat(self, f):
+        return self._Buffer_.SaveFloat(f)
+
+    def SaveDouble(self, d):
+        return self._Buffer_.SaveDouble(d)
+
+    def SaveBool(self, b):
+        return self._Buffer_.SaveBool(b)
+
+    def SaveAString(self, s):
+        return self._Buffer_.SaveAString(s)
+
+    def SaveString(self, s):
+        return self._Buffer_.SaveString(s)
+
+    def SaveDate(self, dt):
+        return self._Buffer_.SaveDate(dt)
+
+    def SaveBytes(self, bytes, length):
+        return self._Buffer_.SaveBytes(bytes, length)
+
+    def SaveUUID(self, uuid):
+        return self._Buffer_.SaveUUID(uuid)
+
+    def SaveObject(self, obj, hint=''):
+        return self._Buffer_.SaveObject(obj, hint)
+
+    def SaveByte(self, b):
+        return self._Buffer_.SaveByte(b)
+
+    @staticmethod
+    def MemoryConsumed():
+        mem = 0;
+        with CScopeUQueue._cs:
+            for q in CScopeUQueue._vQueue:
+                mem += q.MaxBufferSize
+        return mem
+
+    @staticmethod
     def Lock(os = CUQueue.DEFAULT_OS):
         q = None
         with CScopeUQueue._cs:
@@ -813,6 +913,7 @@ class CScopeUQueue:
         q.OS = os
         return q
 
+    @staticmethod
     def Unlock(q):
         if q is None:
             return
@@ -820,6 +921,9 @@ class CScopeUQueue:
         with CScopeUQueue._cs:
             CScopeUQueue._vQueue.append(q)
 
+    @staticmethod
     def DestroyUQueuePool():
         with CScopeUQueue._cs:
-            CScopeUQueue._vQueue = []
+            for q in CScopeUQueue._vQueue:
+                q.Empty()
+            CScopeUQueue._vQueue = deque()

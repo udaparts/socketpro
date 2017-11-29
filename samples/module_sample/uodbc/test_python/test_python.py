@@ -3,6 +3,7 @@
 
 import sys
 from spa.udb import *
+from spa import Pair
 from spa.clientside import CSocketPool, CConnectionContext, COdbc, CUQueue
 from spa.udb import CParameterInfo
 import datetime
@@ -38,7 +39,7 @@ with CSocketPool(COdbc) as spOdbc:
 
     def cbRowHeader(odbc):
         vColInfo = odbc.ColumnInfo
-        ra.append(odbc.Pair(vColInfo, []))
+        ra.append(Pair(vColInfo, []))
 
     def TestPreparedStatements():
         sql_insert_parameter = u'INSERT INTO company(ID, NAME, ADDRESS, Income) VALUES (?, ?, ?, ?)'

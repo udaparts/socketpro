@@ -6,6 +6,7 @@
 #include <iostream>
 #endif
 #include "../async_sqlncli.h"
+#include "../../../include/scloader.h"
 
 namespace SPA
 {
@@ -145,9 +146,7 @@ namespace SPA
         : m_oks(0), m_fails(0), m_ti(tiUnspecified), m_global(true),
         m_Blob(*m_sb), m_parameters(0), m_bCall(false), m_bReturn(false),
         m_outputs(0), m_nRecordSize(0) {
-#ifdef WIN32_64
-            m_UQueue.TimeEx(true);
-#endif
+
         }
 
         void COdbcImpl::OnReleaseSource(bool bClosing, unsigned int info) {

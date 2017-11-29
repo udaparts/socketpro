@@ -1193,6 +1193,11 @@ namespace SPA {
 #endif
     };
 
+    /**
+     * Shared and reusable buffer size in kilobytes
+     */
+    extern unsigned int SHARED_BUFFER_CLEAN_SIZE;
+
     /** 
      * The template class CScopeUQueueEx (a smart pointer for CUQueue) stores a pointer to a dynamically allocated memory buffer object. 
      * The object pointed to, if available, is guaranteed to be recycled into a memory buffer pool for reuse on destruction of the CScopeUQueueEx.

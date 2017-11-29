@@ -16,12 +16,13 @@ with CSocketProServer() as server:
         return True
     server.OnIsPermitted = OnIsPermitted
 
-    map = {
-        hwConst.idSayHelloHelloWorld : 'sayHello',
-        hwConst.idSleepHelloWorld : ['sleep', True], #or ('sleep', True)
-        hwConst.idEchoHelloWorld : 'echo'
+    mapIdMethod = {
+        hwConst.idSayHelloHelloWorld: 'sayHello',
+        hwConst.idSleepHelloWorld: ['sleep', True],  # or ('sleep', True)
+        hwConst.idEchoHelloWorld: 'echo'
     }
-    server.hw = CSocketProService(CHelloWorldPeer, hwConst.sidHelloWorld, map)
+    server.hw = CSocketProService(CHelloWorldPeer, hwConst.sidHelloWorld, mapIdMethod)
+
     ok = server.Run(20901)
     if not ok:
         print('Error message = ' + CSocketProServer.ErrorMessage)

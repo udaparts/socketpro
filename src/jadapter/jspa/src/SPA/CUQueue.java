@@ -169,7 +169,7 @@ public final class CUQueue {
         return Save((boolean) b);
     }
 
-    public final CUQueue Save(IUSerializer s) {
+    public final <T extends IUSerializer> CUQueue Save(T s) {
         s.SaveTo(this);
         return this;
     }
@@ -551,10 +551,8 @@ public final class CUQueue {
 
     public final short LoadShort() {
         byte[] data = Load(2);
-        short s = data[1];
-        s <<= 8;
-        s += data[0];
-        return s;
+        return (short) ((0xff & data[1]) << 8
+                | (0xff & data[0]));
     }
 
     public final byte LoadByte() {
@@ -645,6 +643,14 @@ public final class CUQueue {
                 throw new UnsupportedOperationException("unsupported data type from this method");
         }
         return obj;
+    }
+
+    public static String ToString(byte[] bytes) {
+        String s = null;
+        if (bytes != null) {
+            s = new String(bytes, 0, bytes.length, m_UTF8);
+        }
+        return s;
     }
 
     public Object LoadObject(short[] datatype) {

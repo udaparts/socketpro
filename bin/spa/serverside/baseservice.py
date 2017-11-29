@@ -23,9 +23,10 @@ class CBaseService(object):
     def _ReleasePeer(self, hSocket, bClosing, info):
         found = self.Seek(hSocket)
         if not found is None:
-            found._m_qBuffer.SetSize(0)
-            found.OnReleaseResource(bClosing, info)
             with self._m_cs:
+                found.OnReleaseResource(bClosing, info)
+                found._m_qBuffer.SetSize(0)
+                found._m_sh = 0
                 self._m_lstPeer.remove(found)
                 self._m_lstDeadPeer.append(found)
 
@@ -78,22 +79,32 @@ class CBaseService(object):
         self._ReleasePeer(hSocket, True, nError)
 
     def _calling(self, sp, reqId, len, slow=False):
+        ret = 0
         try:
             if sp.SvsID == BaseServiceID.sidHTTP:
                 return sp._OnHttpRequestArrive(reqId, sp._m_qBuffer.GetSize())
             else:
-                funcName = self._m_dicMethod[reqId]
-                res = sp.__getattribute__(funcName)()
-                if isinstance(res, CUQueue):
-                    sp.SendResult(res, reqId)
+                funcName = self._m_dicMethod.get(reqId, None)
+                if not funcName:
+                    if slow:
+                        ret = sp.OnSlowRequestArrive(reqId, len)
+                    else:
+                        sp.OnFastRequestArrive(reqId, len)
                 else:
-                    sp.SendResult(None, reqId)
+                    res = sp.__getattribute__(funcName)()
+                    if isinstance(res, CUQueue):
+                        sp.SendResult(res, reqId)
+                    elif isinstance(res, CScopeUQueue):
+                        sp.SendResult(res, reqId)
+                        res.Dispose()
+                    else:
+                        sp.SendResult(None, reqId)
         except Exception as ex:
             exc_type, exc_value, exc_traceback = sys.exc_info()
             stack = repr(traceback.format_exception(exc_type, exc_value, exc_traceback))
             scl.SendExceptionResult(sp.Handle, ex.message, stack, reqId, 0)
         if slow:
-            return 0
+            return ret
 
     def _OnFast(self, hSocket, reqId, len):
         sp = self.Seek(hSocket)
@@ -252,7 +263,7 @@ class CBaseService(object):
     def Seek(self, hSocket):
         with self._m_cs:
             for sp in self._m_lstPeer:
-                if sp.Handle == hSocket:
+                if sp._m_sh == hSocket:
                     return sp
         return None
 
@@ -265,7 +276,7 @@ class CBaseService(object):
         return None
 
 class CSocketProService(CBaseService):
-    def __init__(self, clsSocketPeer, svsId, dicRequests, ta=0):
+    def __init__(self, clsSocketPeer, svsId, dicRequests, ta=tagThreadApartment.taNone):
         super(CSocketProService, self).__init__()
         self._m_SocketPeer = clsSocketPeer
         if not self.AddMe(svsId, ta):

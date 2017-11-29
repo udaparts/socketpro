@@ -11,6 +11,11 @@ namespace SocketProAdapter
         {
             public const uint sidSqlite = SocketProAdapter.BaseServiceID.sidReserved + 0x6FFFFFF0; //asynchronous sqlite service id
 
+            /// <summary>
+            /// A flag used with the method CAsyncDBHandler.Open for automatically attaching the opening database onto current session
+            /// </summary>
+            public const uint DATABASE_AUTO_ATTACHED = 0x40000000;
+
             public const int SQLITE_OK = 0; /* Successful result */
             /* beginning-of-error-codes */
             public const int SQLITE_ERROR = 1; /* SQL error or missing database */
@@ -114,32 +119,6 @@ namespace SocketProAdapter
                 : base(sidSqlite)
             {
             }
-
-            public delegate void DUpdateEvent(CAsyncDBHandler dbHandler, tagUpdateEvent eventType, string instance, string dbPath, string tablePath, object rowId);
-            public event DUpdateEvent DBEvent;
-
-            protected override void OnResultReturned(ushort reqId, CUQueue mc)
-            {
-                switch (reqId)
-                {
-                    case idDBUpdate:
-                        if (mc.GetSize() > 0)
-                        {
-                            int dbEventType;
-                            string dbInstance, dbPath, tablePath;
-                            object idRow;
-                            mc.Load(out dbEventType).Load(out dbInstance).Load(out dbPath).Load(out tablePath).Load(out idRow);
-                            if (DBEvent != null)
-                            {
-                                DBEvent(this, (tagUpdateEvent)dbEventType, dbInstance, dbPath, tablePath, idRow);
-                            }
-                        }
-                        break;
-                    default:
-                        base.OnResultReturned(reqId, mc);
-                        break;
-                }
-            }
         }
 
         public class CMysql : ClientSide.CAsyncDBHandler
@@ -154,12 +133,12 @@ namespace SocketProAdapter
 
             /// <summary>
             /// Use Mysql embedded at SocketPro server side by default.
-		    /// Use this const value for the input parameter flags with the method of CAsyncDBHandler::Open at client side
-		    /// to open a connection to remote Mysql server at SocketPro server instead of embedded Mysql
+            /// Use this const value for the input parameter flags with the method of CAsyncDBHandler::Open at client side
+            /// to open a connection to remote Mysql server at SocketPro server instead of embedded Mysql
             /// </summary>
             public const uint USE_REMOTE_MYSQL = 0x1;
 
-		    //error codes from async mysql server library
+            //error codes from async mysql server library
             public const int ER_NO_DB_OPENED_YET = 1981;
             public const int ER_BAD_END_TRANSTACTION_PLAN = 1982;
             public const int ER_NO_PARAMETER_SPECIFIED = 1983;
@@ -228,7 +207,7 @@ namespace SocketProAdapter
             }
 
             public const uint DISABLE_REMOTE_MYSQL = 0x1;
-	        public const uint DISABLE_EMBEDDED_MYSQL = 0x2;
+            public const uint DISABLE_EMBEDDED_MYSQL = 0x2;
         }
     }
 #endif

@@ -1,9 +1,12 @@
 
-from spa.serverside import CClientPeer, CUQueue
+from spa.serverside import CClientPeer
+from spa import CUQueue
 from msstruct import CMyStruct
 import time
 
+
 class CHelloWorldPeer(CClientPeer):
+
     def sayHello(self):
         fName = self.UQueue.LoadString()
         lName = self.UQueue.LoadString()

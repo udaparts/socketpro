@@ -66,6 +66,13 @@ class tagManagementSystem(object):
     msSqlite = 0
     msMysql = 1
     msODBC = 2
+    msMsSQL = 3
+    msOracle = 4
+    msDB2 = 5
+    msPostgreSQL = 6
+    msMongoDB = 7
+
+
 
 class CDBColumnInfo(IUSerializer):
     FLAG_NOT_NULL = 0x1
@@ -139,6 +146,18 @@ class CDBColumnInfoArray(IUSerializer):
         q.SaveUInt(size)
         for obj in self.__list__:
             obj.SaveTo(q)
+
+    def __iter__(self):
+        return self.__list__.__iter__()
+
+    def append(self, col):
+        self.__list__.append(col)
+
+    def __len__(self):
+        return len(self.list)
+
+    def __getitem__(self, item):
+        return self.__list__.__getitem__(item)
 
     @property
     def list(self):

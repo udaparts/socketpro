@@ -5,11 +5,7 @@
 #include "../usqlite_server.h"
 #include "../../udatabase.h"
 #include "../../aserverw.h"
-#ifdef WIN32_64
 #include <unordered_map>
-#else
-#include <map>
-#endif
 
 namespace SPA {
     namespace ServerSide {
@@ -124,19 +120,35 @@ namespace SPA {
             void ConvertVariantDateToString();
             int DoSafeOpen(const std::wstring &strConnection, unsigned int flags);
             void Clean();
+            bool SubscribeForEvents(sqlite3 *db, const std::wstring &strConnection);
 
             static int DoStep(sqlite3_stmt *stmt);
             static int DoFinalize(sqlite3_stmt *stmt);
             static void SetDataType(const char *str, CDBColumnInfo &info);
             static void SetLen(const std::string& str, CDBColumnInfo &info);
             static void SetPrecisionScale(const std::string& str, CDBColumnInfo &info);
-
-            static void update_callback(void* udp, int type, const char* db_name, const char* tbl_name, sqlite3_int64 rowid);
-            static int commit_hook(void *p);
-            static void rollback_hook(void *p);
             static int sqlite3_sleep(int time);
+            static void SetCacheTables(const std::wstring &str);
+            static void ltrim(std::string &s);
+            static void rtrim(std::string &s);
+            static void trim(std::string &s);
+            static void SetTriggers();
+            static std::vector<std::pair<std::string, char> > GetKeys(sqlite3 *db, const std::string &tblName);
+            static int cbGetKeys(void *p, int argc, char **argv, char **azColName);
+            static void SetTriggers(sqlite3 *db, const std::string &tblName, const std::vector<std::pair<std::string, char> > &vCol);
+            static bool SetUpdateTrigger(sqlite3 *db, const std::string &tblName, const std::vector<std::pair<std::string, char> > &vCol);
+            static bool SetInsertTrigger(sqlite3 *db, const std::string &tblName, const std::vector<std::pair<std::string, char> > &vCol);
+            static bool SetDeleteTrigger(sqlite3 *db, const std::string &tblName, const std::vector<std::pair<std::string, char> > &vCol);
+            static const std::vector<std::string>* InCache(const std::string &dbFile);
+            static int cbGetAllTables(void *p, int argc, char **argv, char **azColName);
+            static void DropAllTriggers(sqlite3 *db, const std::vector<std::string> &vTable);
+            static void DropATrigger(sqlite3 *db, const std::string &sql);
+            static size_t HasKey(const std::vector<std::pair<std::string, char> > &vCol);
+            static void XFunc(sqlite3_context *context, int count, sqlite3_value **pp);
+
 
         protected:
+            bool m_EnableMessages;
             UINT64 m_oks;
             UINT64 m_fails;
             tagTransactionIsolation m_ti;
@@ -161,16 +173,13 @@ namespace SPA {
             std::shared_ptr<sqlite3> m_pSqlite;
             std::vector<std::shared_ptr<sqlite3_stmt> > m_vPreparedStatements;
 
-#ifdef WIN32_64
-            typedef std::unordered_map<CSqliteImpl*, std::shared_ptr<std::vector<CSqliteUpdateContext> > > CSqliteUpdateMap;
-#else
-            typedef std::map<CSqliteImpl*, std::shared_ptr<std::vector<CSqliteUpdateContext> > > CSqliteUpdateMap;
-#endif
             static unsigned int m_nParam;
             static std::wstring m_strGlobalConnection; //protected by m_csPeer
-            static std::vector<CSqliteImpl*> m_vSqlitePeer; //protected by m_csPeer
-            static CSqliteUpdateMap m_mapUpdate; //protected by m_csPeer
             static const int SLEEP_TIME = 1; //ms
+            static std::unordered_map<std::string, std::vector<std::string>> m_mapCache;
+
+            static std::string DIU_TRIGGER_PREFIX;
+            static std::string DIU_TRIGGER_FUNC;
         };
 
         typedef CSocketProService<CSqliteImpl> CSqliteService;

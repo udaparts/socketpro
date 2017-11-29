@@ -1,5 +1,7 @@
 package SPA.ClientSide;
 
+import SPA.CScopeUQueue;
+
 public class CSocketPool<THandler extends CAsyncServiceHandler> {
 
     private volatile java.lang.reflect.Constructor<THandler> m_AsyncHandlerCtor = null;
@@ -22,6 +24,11 @@ public class CSocketPool<THandler extends CAsyncServiceHandler> {
         THandler handler = MapToHandler(h);
         tagSocketPoolEvent event = tagSocketPoolEvent.forValue(spc);
         switch (event) {
+            case speTimer:
+                if (CScopeUQueue.getMemoryConsumed() / 1024 > CScopeUQueue.getSHARED_BUFFER_CLEAN_SIZE()) {
+                    CScopeUQueue.DestroyUQueuePool();
+                }
+                break;
             case speStarted:
                 synchronized (m_cs) {
                     m_nPoolId = poolId;

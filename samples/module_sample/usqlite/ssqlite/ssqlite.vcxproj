@@ -83,6 +83,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <OmitFramePointers>
       </OmitFramePointers>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -91,6 +92,7 @@
       <DataExecutionPrevention>true</DataExecutionPrevention>
       <BaseAddress>
       </BaseAddress>
+      <AdditionalDependencies>Ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -99,12 +101,14 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>SQLITE_ENABLE_COLUMN_METADATA;HAVE_GMTIME_R;HAVE_LOCALTIME_S;SQLITE_ENABLE_FTS4;SQLITE_ENABLE_RTREE;SQLITE_ENABLE_JSON1;SQLITE_DEFAULT_FOREIGN_KEYS=1;_WIN64;_DEBUG;_WINDOWS;_USRDLL;_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ModuleDefinitionFile>../../../../include/sqlite/server_impl/ssqlite.def</ModuleDefinitionFile>
       <DataExecutionPrevention>true</DataExecutionPrevention>
+      <AdditionalDependencies>Ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -115,6 +119,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>SQLITE_ENABLE_COLUMN_METADATA;HAVE_GMTIME_R;HAVE_LOCALTIME_S;SQLITE_ENABLE_FTS4;SQLITE_ENABLE_RTREE;SQLITE_ENABLE_JSON1;SQLITE_DEFAULT_FOREIGN_KEYS=1;WIN32;NDEBUG;_WINDOWS;_USRDLL;_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -125,6 +130,7 @@
       <DataExecutionPrevention>true</DataExecutionPrevention>
       <BaseAddress>
       </BaseAddress>
+      <AdditionalDependencies>Ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -135,6 +141,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>SQLITE_ENABLE_COLUMN_METADATA;HAVE_GMTIME_R;HAVE_LOCALTIME_S;SQLITE_ENABLE_FTS4;SQLITE_ENABLE_RTREE;SQLITE_ENABLE_JSON1;SQLITE_DEFAULT_FOREIGN_KEYS=1;_WIN64;NDEBUG;_WINDOWS;_USRDLL;_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -143,6 +150,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <ModuleDefinitionFile>../../../../include/sqlite/server_impl/ssqlite.def</ModuleDefinitionFile>
       <DataExecutionPrevention>true</DataExecutionPrevention>
+      <AdditionalDependencies>Ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>

@@ -90,7 +90,8 @@ public class Program {
     public static void main(String[] args) {
         CConnectionContext cc = new CConnectionContext();
         System.out.println("Remote host: ");
-        cc.Host = new java.util.Scanner(System.in).next();
+        java.util.Scanner in = new java.util.Scanner(System.in);
+        cc.Host = in.nextLine();
         cc.Port = 20901;
         cc.UserId = "async_queue_client_java";
         cc.Password = "pwd_for_async_queue";
@@ -144,6 +145,6 @@ public class Program {
         DequeueFromServer(sq);
 
         System.out.println("Press key ENTER to complete dequeuing messages from server ......");
-        new Scanner(System.in).nextLine();
+        in.nextLine();
     }
 }

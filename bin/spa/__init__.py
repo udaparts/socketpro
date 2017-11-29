@@ -196,6 +196,11 @@ class BaseExceptionCode(object):
     becALREADY_DEQUEUED = 0xAAAA0008
     becROUTEE_DISCONNECTED = 0xAAAA0009
 
+class Pair(object):
+    def __init__(self, reqId, cb):
+        self.first = reqId
+        self.second = cb
+
 from abc import abstractmethod, abstractproperty
 class IUSerializer(object):
     @abstractmethod
@@ -419,13 +424,13 @@ class IPushEx(IPush):
     def SendUserMessageEx(self, userId, message):
         raise NotImplementedError("Please implement this method")
 
-from spa.memqueue import CUQueue, CScopeUQueue
-
 class classproperty(object):
     def __init__(self, getter):
         self.getter = getter
     def __get__(self, instance, owner):
         return self.getter(owner)
+
+from spa.memqueue import CUQueue, CScopeUQueue
 
 isVersion3 = (sys.version_info[0] >= 3)
 isVersion342 = (sys.version_info[0] * 100 + sys.version_info[1] * 10 + sys.version_info[2] >= 342)
@@ -446,3 +451,8 @@ class CStreamSerializationHelper(object):
     @staticmethod
     def Read(f):
         return f.read(CStreamSerializationHelper.STREAM_CHUNK_SIZE)
+
+from spa.dataset import CTable, CDataSet
+from spa.poolbase import CMasterSlaveBase
+from spa.sqlpool import CSqlMasterPool
+from spa.masterpool import CMasterPool

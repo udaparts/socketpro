@@ -1,7 +1,7 @@
 
 import threading
 from spa.clientside.ccoreloader import CCoreLoader as ccl
-from spa import classproperty
+from spa import classproperty, CScopeUQueue
 from spa.memqueue import CUQueue
 from spa.clientside import tagSocketPoolEvent, BaseServiceID, tagEncryptionMethod, tagSocketOption, tagSocketLevel, tagConnectionState, tagOperationSystem, tagThreadApartment
 from spa.clientside.conncontext import CConnectionContext
@@ -137,10 +137,16 @@ class CSocketPool(object):
     def SocketPools(cls):
         return ccl.GetNumberOfSocketPools()
 
+    def OnSocketPoolEvent(self, spe, handler):
+        pass
+
     def _spe_(self, poolId, spe, h): #h -- usocket handle
         #print "Pool id = " + str(poolId) + ", spe = " + str(spe) + ", usocket handle = " + str(h)
         handler = self._MapToHandler_(h)
-        if spe == tagSocketPoolEvent.speStarted:
+        if spe == tagSocketPoolEvent.speTimer:
+            if CScopeUQueue.MemoryConsumed() / 1024 > CScopeUQueue.SHARED_BUFFER_CLEAN_SIZE:
+                CScopeUQueue.DestroyUQueuePool()
+        elif spe == tagSocketPoolEvent.speStarted:
             with self._lock_:
                 self._PoolId_ = poolId
         elif spe == tagSocketPoolEvent.speShutdown:
@@ -160,6 +166,7 @@ class CSocketPool(object):
             if ash.SvsID <= BaseServiceID.sidStartup:
                 raise ValueError('Service id must be larger than SocketProAdapter.BaseServiceID.sidReserved (268435456)')
             ash._Attach_(cs)
+            handler = ash
             with self._lock_:
                 self._m_dicSocketHandler_[cs] = ash
         elif spe == tagSocketPoolEvent.speConnected:
@@ -186,8 +193,7 @@ class CSocketPool(object):
             self._hFrom = None
         else:
             pass
-        if self.SocketPoolEvent is not None:
-            self.SocketPoolEvent(self, spe, handler)
+        self.OnSocketPoolEvent(spe, handler)
 
     def _start_(self, sockets_per_thread, thread=0, avg=True, ta=0):
         with self._lock_:

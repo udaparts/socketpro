@@ -14,7 +14,7 @@ namespace SocketProAdapter
             private static List<CBaseService> m_lstService = new List<CBaseService>();
             private uint m_svsId;
 
-            private object m_cs = new object();
+            internal object m_cs = new object();
             private CSvsContext m_sc = new CSvsContext();
             private List<CSocketPeer> m_lstPeer = new List<CSocketPeer>();
             private List<CSocketPeer> m_lstDeadPeer = new List<CSocketPeer>();
@@ -27,11 +27,12 @@ namespace SocketProAdapter
             {
                 lock (m_cs)
                 {
-                    CSocketPeer found = m_lstPeer.Find(delegate(CSocketPeer sp) { return (sp.Handle == hSocket); });
+                    CSocketPeer found = m_lstPeer.Find(delegate(CSocketPeer sp) { return (sp.m_sh == hSocket); });
                     if (found != null)
                     {
                         found.m_qBuffer.SetSize(0);
                         found.OnRelease(bClosing, info);
+                        found.m_sh = 0;
                         m_lstPeer.Remove(found);
                         m_lstDeadPeer.Add(found);
                     }
@@ -225,7 +226,7 @@ namespace SocketProAdapter
                 {
                     foreach (CSocketPeer sp in m_lstPeer)
                     {
-                        if (sp.Handle == hSocket)
+                        if (sp.m_sh == hSocket)
                             return sp;
                     }
                 }

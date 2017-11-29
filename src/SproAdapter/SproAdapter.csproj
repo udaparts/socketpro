@@ -47,10 +47,14 @@
     <Compile Include="asyncqueue.cs" />
     <Compile Include="asyncstream.cs" />
     <Compile Include="basedefines.cs" />
+    <Compile Include="ccachedbasehandler.cs" />
     <Compile Include="clientinterop.cs" />
     <Compile Include="clientpeer.cs" />
     <Compile Include="clientsocket.cs" />
     <Compile Include="deque.cs" />
+    <Compile Include="gencachepeer.cs" />
+    <Compile Include="masterpool.cs" />
+    <Compile Include="masterslavebase.cs" />
     <Compile Include="odbc.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="remotingadonethelper.cs" />
@@ -61,8 +65,10 @@
     <Compile Include="serverqueue.cs" />
     <Compile Include="serversocket.cs" />
     <Compile Include="socketpool.cs" />
+    <Compile Include="sqlmasterpool.cs" />
     <Compile Include="streamclient.cs" />
     <Compile Include="streamserver.cs" />
+    <Compile Include="udataset.cs" />
     <Compile Include="uhttppeer.cs" />
     <Compile Include="uqueue.cs" />
     <Compile Include="userver.cs" />

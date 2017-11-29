@@ -77,7 +77,8 @@ class CSocketPeer(object):
 
     @property
     def Handle(self):
-        return self._m_sh
+        with self._m_Service._m_cs:
+            return self._m_sh
 
     @property
     def SSL(self):
@@ -152,6 +153,12 @@ class CSocketPeer(object):
 
     def OnRequestArrive(self, reqId, len):
         pass
+
+    def OnFastRequestArrive(self, reqId, len):
+        pass
+
+    def OnSlowRequestArrive(self, reqId, len):
+        return 0
 
     def _OnChatComing(self, chatReqId):
         ok = True

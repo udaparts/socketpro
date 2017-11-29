@@ -10,6 +10,7 @@ class Program
 {
     static void Main(string[] args)
     {
+        Console.WriteLine("SocketPro performance test against a remote MySQL backend DB");
         Console.WriteLine("Remote host: ");
         string host = Console.ReadLine();
         Console.WriteLine("Database name: ");
