@@ -6,6 +6,7 @@
 #include <iostream>
 #endif
 #include "../umysql_server.h"
+#include "../../scloader.h"
 
 namespace SPA
 {
