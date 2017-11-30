@@ -165,6 +165,58 @@ namespace MsSql
             return eventData;
         }
 
+        public static string[] GetUSqlServerKeys()
+        {
+            string []v = null;
+            using (SqlConnection conn = new SqlConnection("context connection=true"))
+            {
+                try
+                {
+                    conn.Open();
+                    v = GetUSqlServerKeys(conn);
+                }
+                finally
+                {
+                    conn.Close();
+                }
+            }
+            return v;
+        }
+
+        public static string[] GetUSqlServerKeys(SqlConnection conn)
+        {
+            Exception ex = null;
+            if (conn == null || conn.State != ConnectionState.Open)
+                throw new InvalidOperationException("An opened connection required");
+            string[] v = null;
+            SqlDataReader dr = null;
+            string sqlCmd = "select @@SERVICENAME + '@' + @@servername, SUSER_NAME(), DB_NAME()";
+            try
+            {
+                SqlCommand cmd = new SqlCommand(sqlCmd, conn);
+                dr = cmd.ExecuteReader();
+                if (dr.Read())
+                {
+                    v = new string[3];
+                    v[0] = dr.GetString(0);
+                    v[1] = dr.GetString(1);
+                    v[2] = dr.GetString(2);
+                }
+            }
+            catch (Exception err)
+            {
+                ex = err;
+            }
+            finally
+            {
+                if (dr != null)
+                    dr.Close();
+            }
+            if (ex != null)
+                throw ex;
+            return v;
+        }
+
         /// <summary>
         /// Query a database full name from the current sql server database
         /// </summary>

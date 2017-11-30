@@ -33,4 +33,4 @@
 
 -- select 'To run your project, please edit the Test.sql file in your project. This file is located in the Test Scripts folder in the Solution Explorer.'
 
-select PublishDBEvent(1, 'CyeWin7', 'sa', 'mydb', 'mytable')
+select PublishDBEvent()
