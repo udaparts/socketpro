@@ -52,7 +52,7 @@ namespace SocketProAdapter
             {
                 switch (reqId)
                 {
-                    case CAsyncDBHandler.idRowsetHeader:
+                    case DB_CONSTS.idRowsetHeader:
                         {
                             m_Blob.SetSize(0);
                             if (m_Blob.MaxBufferSize > ONE_MEGA_BYTES)
@@ -72,11 +72,11 @@ namespace SocketProAdapter
                                 p.Key.Invoke(vColInfo);
                         }
                         break;
-                    case CAsyncDBHandler.idBeginRows:
+                    case DB_CONSTS.idBeginRows:
                         m_Blob.SetSize(0);
                         m_vData.Clear();
                         break;
-                    case CAsyncDBHandler.idTransferring:
+                    case DB_CONSTS.idTransferring:
                         while (mc.GetSize() > 0)
                         {
                             object vt;
@@ -84,7 +84,7 @@ namespace SocketProAdapter
                             m_vData.Add(vt);
                         }
                         break;
-                    case CAsyncDBHandler.idEndRows:
+                    case DB_CONSTS.idEndRows:
                         if (mc.GetSize() > 0 || m_vData.Count > 0)
                         {
                             object vt;
@@ -108,7 +108,7 @@ namespace SocketProAdapter
                         }
                         m_vData.Clear();
                         break;
-                    case CAsyncDBHandler.idStartBLOB:
+                    case DB_CONSTS.idStartBLOB:
                         {
                             m_Blob.SetSize(0);
                             uint len;
@@ -121,11 +121,11 @@ namespace SocketProAdapter
                             mc.SetSize(0);
                         }
                         break;
-                    case CAsyncDBHandler.idChunk:
+                    case DB_CONSTS.idChunk:
                         m_Blob.Push(mc.IntenalBuffer, mc.GetSize());
                         mc.SetSize(0);
                         break;
-                    case CAsyncDBHandler.idEndBLOB:
+                    case DB_CONSTS.idEndBLOB:
                         if (mc.GetSize() > 0 || m_Blob.GetSize() > 0)
                         {
                             m_Blob.Push(mc.IntenalBuffer, mc.GetSize());
@@ -155,7 +155,7 @@ namespace SocketProAdapter
 
             public bool GetCachedTables(string defaultDb, DResult handler, DRows row, DRowsetHeader rh)
             {
-                return GetCachedTables(defaultDb, handler, row, rh, CAsyncDBHandler.ENABLE_TABLE_UPDATE_MESSAGES);
+                return GetCachedTables(defaultDb, handler, row, rh, DB_CONSTS.ENABLE_TABLE_UPDATE_MESSAGES);
             }
 
             public virtual bool GetCachedTables(string defaultDb, DResult handler, DRows row, DRowsetHeader rh, uint flags)
@@ -169,7 +169,7 @@ namespace SocketProAdapter
                     index = m_nCall;
                     m_mapRowset[index] = new KeyValuePair<DRowsetHeader, DRows>(rh, row);
                 }
-                if (!SendRequest(CAsyncDBHandler.idGetCachedTables, defaultDb, flags, index, (ar) =>
+                if (!SendRequest(DB_CONSTS.idGetCachedTables, defaultDb, flags, index, (ar) =>
                 {
                     int res, dbMS;
                     string errMsg;

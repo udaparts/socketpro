@@ -1,9 +1,7 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.40629.0
-MinimumVisualStudioVersion = 10.0.40219.1
-Project("{00D1A9C2-B5F0-4AF3-8072-F6C62B433612}") = "usqlserver", "usqlserver.sqlproj", "{C927256F-39D8-42B2-916E-9249EC47CA60}"
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "usqlserver", "usqlserver\usqlserver.csproj", "{03263C8C-795F-4E0F-BEBB-9975463E7C4B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,12 +9,12 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{C927256F-39D8-42B2-916E-9249EC47CA60}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C927256F-39D8-42B2-916E-9249EC47CA60}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C927256F-39D8-42B2-916E-9249EC47CA60}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
-		{C927256F-39D8-42B2-916E-9249EC47CA60}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C927256F-39D8-42B2-916E-9249EC47CA60}.Release|Any CPU.Build.0 = Release|Any CPU
-		{C927256F-39D8-42B2-916E-9249EC47CA60}.Release|Any CPU.Deploy.0 = Release|Any CPU
+		{03263C8C-795F-4E0F-BEBB-9975463E7C4B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{03263C8C-795F-4E0F-BEBB-9975463E7C4B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{03263C8C-795F-4E0F-BEBB-9975463E7C4B}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{03263C8C-795F-4E0F-BEBB-9975463E7C4B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{03263C8C-795F-4E0F-BEBB-9975463E7C4B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{03263C8C-795F-4E0F-BEBB-9975463E7C4B}.Release|Any CPU.Deploy.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

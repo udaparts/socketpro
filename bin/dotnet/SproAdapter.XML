@@ -370,42 +370,6 @@
             <param name="errMsg">An error message. It will be empty string with zero length if no error is found</param>
             <returns>A file stream</returns>
         </member>
-        <member name="F:SocketProAdapter.ClientSide.CAsyncDBHandler.idOpen">
-            <summary>
-            Async database client/server just requires the following request identification numbers 
-            </summary>
-        </member>
-        <member name="F:SocketProAdapter.ClientSide.CAsyncDBHandler.idDBUpdate">
-            <summary>
-            the request identification numbers used for message push from server to client
-            </summary>
-        </member>
-        <member name="F:SocketProAdapter.ClientSide.CAsyncDBHandler.idBeginRows">
-            <summary>
-            Internal request/response identification numbers used for data communication between client and server
-            </summary>
-        </member>
-        <member name="F:SocketProAdapter.ClientSide.CAsyncDBHandler.DEFAULT_BIG_FIELD_CHUNK_SIZE">
-            <summary>
-            Whenever a data size in bytes is about twice larger than the defined value,
-            the data will be treated in large object and transferred in chunks for reducing memory foot print
-            </summary>
-        </member>
-        <member name="F:SocketProAdapter.ClientSide.CAsyncDBHandler.DEFAULT_RECORD_BATCH_SIZE">
-            <summary>
-            A record data size in bytes is approximately equal to or slightly larger than the defined constant
-            </summary>
-        </member>
-        <member name="F:SocketProAdapter.ClientSide.CAsyncDBHandler.ENABLE_TABLE_UPDATE_MESSAGES">
-            <summary>
-            A flag used with idOpen for tracing database table update events
-            </summary>
-        </member>
-        <member name="F:SocketProAdapter.ClientSide.CAsyncDBHandler.STREAMING_SQL_CHAT_GROUP_ID">
-            <summary>
-            A chat group id used at SocketPro server side for notifying database events from server to connected clients
-            </summary>
-        </member>
         <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Execute(SocketProAdapter.UDB.CDBVariantArray)">
             <summary>
             Process one or more sets of prepared statements with an array of parameter data asynchronously, and don't expect any data returned
@@ -1068,6 +1032,42 @@
         <member name="F:SocketProAdapter.UDB.tagUpdateEvent.ueDelete">
             <summary>
             An event for deleting a record from a table
+            </summary>
+        </member>
+        <member name="F:SocketProAdapter.UDB.DB_CONSTS.idOpen">
+            <summary>
+            Async database client/server just requires the following request identification numbers 
+            </summary>
+        </member>
+        <member name="F:SocketProAdapter.UDB.DB_CONSTS.idDBUpdate">
+            <summary>
+            the request identification numbers used for message push from server to client
+            </summary>
+        </member>
+        <member name="F:SocketProAdapter.UDB.DB_CONSTS.idBeginRows">
+            <summary>
+            Internal request/response identification numbers used for data communication between client and server
+            </summary>
+        </member>
+        <member name="F:SocketProAdapter.UDB.DB_CONSTS.DEFAULT_BIG_FIELD_CHUNK_SIZE">
+            <summary>
+            Whenever a data size in bytes is about twice larger than the defined value,
+            the data will be treated in large object and transferred in chunks for reducing memory foot print
+            </summary>
+        </member>
+        <member name="F:SocketProAdapter.UDB.DB_CONSTS.DEFAULT_RECORD_BATCH_SIZE">
+            <summary>
+            A record data size in bytes is approximately equal to or slightly larger than the defined constant
+            </summary>
+        </member>
+        <member name="F:SocketProAdapter.UDB.DB_CONSTS.ENABLE_TABLE_UPDATE_MESSAGES">
+            <summary>
+            A flag used with idOpen for tracing database table update events
+            </summary>
+        </member>
+        <member name="F:SocketProAdapter.UDB.DB_CONSTS.STREAMING_SQL_CHAT_GROUP_ID">
+            <summary>
+            A chat group id used at SocketPro server side for notifying database events from server to connected clients
             </summary>
         </member>
         <member name="M:SocketProAdapter.ServerSide.IServerQueue.AppendTo(SocketProAdapter.ServerSide.IServerQueue)">

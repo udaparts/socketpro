@@ -351,6 +351,10 @@ namespace SocketProAdapter
         tagOptimistic Optimistic { get; set; }
     }
 
+#if USQLSERVER
+
+#else
+
     namespace ClientSide
     {
         public interface IClientQueue : IMessageQueueBasic
@@ -646,6 +650,8 @@ namespace SocketProAdapter
             speQueueMergedTo,
         }
     }
+#endif
+
 #if WINCE
 #else
     namespace ServerSide
