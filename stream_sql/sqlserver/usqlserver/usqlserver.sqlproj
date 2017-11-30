@@ -1,0 +1,122 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <Name>usqlserver</Name>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectVersion>4.1</ProjectVersion>
+    <ProjectGuid>{c927256f-39d8-42b2-916e-9249ec47ca60}</ProjectGuid>
+    <DSP>Microsoft.Data.Tools.Schema.Sql.Sql110DatabaseSchemaProvider</DSP>
+    <OutputType>Database</OutputType>
+    <RootPath>
+    </RootPath>
+    <RootNamespace>usqlserver</RootNamespace>
+    <AssemblyName>usqlserver</AssemblyName>
+    <ModelCollation>1033, CI</ModelCollation>
+    <DefaultFileStructure>BySchemaAndSchemaType</DefaultFileStructure>
+    <DeployToDatabase>True</DeployToDatabase>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetLanguage>CS</TargetLanguage>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <SqlServerVerification>False</SqlServerVerification>
+    <IncludeCompositeObjects>True</IncludeCompositeObjects>
+    <TargetDatabaseSet>True</TargetDatabaseSet>
+    <PermissionSet>UNSAFE</PermissionSet>
+    <GenerateSqlClrDdl>True</GenerateSqlClrDdl>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <OutputPath>bin\Release\</OutputPath>
+    <BuildScriptName>$(MSBuildProjectName).sql</BuildScriptName>
+    <TreatWarningsAsErrors>False</TreatWarningsAsErrors>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <DefineDebug>false</DefineDebug>
+    <DefineTrace>true</DefineTrace>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>1</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <OutputPath>bin\Debug\</OutputPath>
+    <BuildScriptName>$(MSBuildProjectName).sql</BuildScriptName>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <DefineDebug>true</DefineDebug>
+    <DefineTrace>true</DefineTrace>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup>
+    <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">11.0</VisualStudioVersion>
+    <!-- Default to the v11.0 targets path if the targets file for the current VS version is not found -->
+    <SSDTExists Condition="Exists('$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v$(VisualStudioVersion)\SSDT\Microsoft.Data.Tools.Schema.SqlTasks.targets')">True</SSDTExists>
+    <VisualStudioVersion Condition="'$(SSDTExists)' == ''">11.0</VisualStudioVersion>
+  </PropertyGroup>
+  <Import Condition="'$(SQLDBExtensionsRefPath)' != ''" Project="$(SQLDBExtensionsRefPath)\Microsoft.Data.Tools.Schema.SqlTasks.targets" />
+  <Import Condition="'$(SQLDBExtensionsRefPath)' == ''" Project="$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v$(VisualStudioVersion)\SSDT\Microsoft.Data.Tools.Schema.SqlTasks.targets" />
+  <ItemGroup>
+    <Folder Include="Properties" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="..\..\..\src\SproAdapter\asyncdbhandler.cs">
+      <Link>asyncdbhandler.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\src\SproAdapter\asynchandler.cs">
+      <Link>asynchandler.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\src\SproAdapter\basedefines.cs">
+      <Link>basedefines.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\src\SproAdapter\clientinterop.cs">
+      <Link>clientinterop.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\src\SproAdapter\clientpeer.cs">
+      <Link>clientpeer.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\src\SproAdapter\clientsocket.cs">
+      <Link>clientsocket.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\src\SproAdapter\deque.cs">
+      <Link>deque.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\src\SproAdapter\scopeuqueue.cs">
+      <Link>scopeuqueue.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\src\SproAdapter\serverinterop.cs">
+      <Link>serverinterop.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\src\SproAdapter\serverpeerbase.cs">
+      <Link>serverpeerbase.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\src\SproAdapter\serverqueue.cs">
+      <Link>serverqueue.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\src\SproAdapter\serversocket.cs">
+      <Link>serversocket.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\src\SproAdapter\uqueue.cs">
+      <Link>uqueue.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\src\SproAdapter\userver.cs">
+      <Link>userver.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\src\SproAdapter\usvrservice.cs">
+      <Link>usvrservice.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\src\SproAdapter\uhttppeer.cs">
+      <Link>uhttppeer.cs</Link>
+    </Compile>
+  </ItemGroup>
+</Project>
