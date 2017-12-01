@@ -92,17 +92,6 @@
     <Compile Include="myserver.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
-  <ItemGroup>
-    <Content Include="Test Scripts\Test.sql">
-      <SubType>Content</SubType>
-    </Content>
-    <Content Include="PreDeployScript.sql">
-      <SubType>Content</SubType>
-    </Content>
-    <Content Include="PostDeployScript.sql">
-      <SubType>Content</SubType>
-    </Content>
-  </ItemGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
