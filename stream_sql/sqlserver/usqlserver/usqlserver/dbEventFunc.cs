@@ -1,10 +1,10 @@
-﻿using System;
+﻿
+using System;
 using System.Data;
 using System.Data.SqlClient;
 using System.Data.SqlTypes;
 using System.Collections.Generic;
 using Microsoft.SqlServer.Server;
-using SocketProAdapter;
 using SocketProAdapter.UDB;
 using SocketProAdapter.ServerSide;
 
@@ -17,9 +17,8 @@ public static class SQLPlugin
         NOT_SUPPORTED = "Not supported";
     }
 
-    public static CSqlPlugin Server
+    public static CSocketProServer Server
     {
-
         get
         {
             return Plugin;
@@ -226,6 +225,12 @@ public static class SQLPlugin
         }
     }
 
+    /// <summary>
+    /// Call this method from your trigger code to push data of table events (DELETE, INSERT and UPDATE) onto clients
+    /// </summary>
+    /// <param name="tableName">A string for table name</param>
+    /// <param name="schema">A string for schema which defaults to dbo</param>
+    /// <returns></returns>
     public static string PublishDBEvent(string tableName, string schema="dbo")
     {
         if (schema == null || schema.Length == 0)
