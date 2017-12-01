@@ -1,0 +1,47 @@
+
+Create database sp_streaming_db
+GO
+
+sp_configure 'clr enabled', 1
+GO
+RECONFIGURE
+GO
+
+-- Load usqlserver.dll into SQL server
+CREATE ASSEMBLY usqlserver
+AUTHORIZATION [dbo]
+FROM 'C:\my_directory\usqlserver.dll'
+WITH PERMISSION_SET = UNSAFE
+GO
+
+EXEC sp_changedbowner 'sa' ALTER DATABASE sp_streaming_db SET TRUSTWORTHY ON
+GO
+
+CREATE FUNCTION  StartSPServer(@param int)
+returns int
+As
+	EXTERNAL NAME usqlserver.SQLPlugin.StartSPServer
+GO	
+
+CREATE TRIGGER [start_sp_server]
+ON ALL SERVER
+FOR LOGON
+AS
+BEGIN
+	if sp_streaming_db.dbo.StartSPServer(1) < 0
+	BEGIN
+		ROLLBACK;
+	END
+END
+GO
+
+select sp_streaming_db.dbo.StartSPServer(1)
+GO
+
+-- use cmd and execute the following to check port
+-- netstat -a
+
+sqlcmd -S LocalHost -d master -A
+DROP TRIGGER start_sp_server ON ALL SERVER
+GO
+exit

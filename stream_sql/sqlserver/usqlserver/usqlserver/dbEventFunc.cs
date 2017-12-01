@@ -8,22 +8,62 @@ using SocketProAdapter;
 using SocketProAdapter.UDB;
 using SocketProAdapter.ServerSide;
 
-public static class DBEvents
+public static class SQLPlugin
 {
     private static readonly string NOT_SUPPORTED;
-    
-    static DBEvents()
+    private static CSqlPlugin Plugin = null;
+    static SQLPlugin()
     {
         NOT_SUPPORTED = "Not supported";
     }
 
-    private static void PublishInsert(string[] v, SqlConnection conn)
+    public static CSqlPlugin Server
+    {
+
+        get
+        {
+            return Plugin;
+        }
+    }
+
+    public static SqlInt32 StartSPServer(int param)
+    {
+        int n = 1000;
+        if (Plugin == null)
+        {
+            n += 100;
+            Plugin = new CSqlPlugin(param);
+        }
+        if (!CSqlPlugin.Running)
+        {
+            n += 10;
+            if (Plugin.Run(20903))
+                n += 1;
+        }
+        return n;
+    }
+
+    private static void PublishInsert(string tablepath, string[] v, SqlConnection conn)
     {
         SqlDataReader reader = null;
         try
         {
+            int index = 0;
             SqlCommand cmd = new SqlCommand("SELECT * FROM INSERTED", conn);
             reader = cmd.ExecuteReader(CommandBehavior.KeyInfo);
+            DataTable dt = reader.GetSchemaTable();
+            List<int> vKeyOrdinal = new List<int>();
+            foreach (DataRow dr in dt.Rows)
+            {
+                bool isKey = (bool)dr["IsKey"];
+                if (!isKey)
+                    isKey = (bool)dr["IsAutoIncrement"];
+                if (isKey)
+                    vKeyOrdinal.Add(index);
+                ++index;
+            }
+            if (vKeyOrdinal.Count == 0)
+                return;
             int count = reader.FieldCount;
             int total = 2 + v.Length + count;
             object[] msg = new object[total];
@@ -31,8 +71,7 @@ public static class DBEvents
             msg[1] = v[0];
             msg[2] = v[1];
             msg[3] = v[2];
-            DataTable dt = reader.GetSchemaTable();
-            msg[4] = dt.Rows[0]["BaseSchemaName"] + "." + dt.Rows[0]["BaseTableName"];
+            msg[4] = tablepath;
             if (reader.Read())
             {
                 for (int n = 5; n < total; ++n)
@@ -57,13 +96,27 @@ public static class DBEvents
         }
     }
 
-    private static void PublishUpdate(string[] v, SqlConnection conn)
+    private static void PublishUpdate(string tablepath, string[] v, SqlConnection conn)
     {
         SqlDataReader reader = null;
         try
         {
+            int index = 0;
             SqlCommand cmd = new SqlCommand("SELECT * FROM DELETED;SELECT * FROM INSERTED", conn);
             reader = cmd.ExecuteReader(CommandBehavior.KeyInfo);
+            DataTable dt = reader.GetSchemaTable();
+            List<int> vKeyOrdinal = new List<int>();
+            foreach (DataRow dr in dt.Rows)
+            {
+                bool isKey = (bool)dr["IsKey"];
+                if (!isKey)
+                    isKey = (bool)dr["IsAutoIncrement"];
+                if (isKey)
+                    vKeyOrdinal.Add(index);
+                ++index;
+            }
+            if (vKeyOrdinal.Count == 0)
+                return;
             int count = reader.FieldCount;
             int total = 2 + v.Length + count * 2;
             object[] msg = new object[total];
@@ -71,8 +124,7 @@ public static class DBEvents
             msg[1] = v[0];
             msg[2] = v[1];
             msg[3] = v[2];
-            DataTable dt = reader.GetSchemaTable();
-            msg[4] = dt.Rows[0]["BaseSchemaName"] + "." + dt.Rows[0]["BaseTableName"];
+            msg[4] = tablepath;
             do
             {
                 if (!reader.Read())
@@ -116,7 +168,7 @@ public static class DBEvents
         }
     }
 
-    private static void PublishDelete(string[] v, SqlConnection conn)
+    private static void PublishDelete(string tablepath, string[] v, SqlConnection conn)
     {
         SqlDataReader reader = null;
         try
@@ -145,7 +197,7 @@ public static class DBEvents
                 msg[1] = v[0];
                 msg[2] = v[1];
                 msg[3] = v[2];
-                msg[4] = dt.Rows[0]["BaseSchemaName"] + "." + dt.Rows[0]["BaseTableName"];
+                msg[4] = tablepath;
                 if (reader.Read())
                 {
                     index = 0;
@@ -174,9 +226,13 @@ public static class DBEvents
         }
     }
 
-    [Microsoft.SqlServer.Server.SqlFunction(DataAccess = DataAccessKind.Read)]
-    public static string PublishDBEvent()
+    public static string PublishDBEvent(string tableName, string schema="dbo")
     {
+        if (schema == null || schema.Length == 0)
+            schema = "dbo";
+        if (Plugin == null || !CSqlPlugin.Running)
+            return "SocketPro server not started yet";
+        string tablepath = string.Format("[{0}].[{1}]", schema, tableName);
         SqlTriggerContext tc = SqlContext.TriggerContext;
         if (!SqlContext.IsAvailable || tc == null)
             return NOT_SUPPORTED;
@@ -190,13 +246,13 @@ public static class DBEvents
                 switch (tc.TriggerAction)
                 {
                     case TriggerAction.Update:
-                        PublishUpdate(v, conn);
+                        PublishUpdate(tablepath, v, conn);
                         break;
                     case TriggerAction.Delete:
-                        PublishDelete(v, conn);
+                        PublishDelete(tablepath, v, conn);
                         break;
                     case TriggerAction.Insert:
-                        PublishInsert(v, conn);
+                        PublishInsert(tablepath, v, conn);
                         break;
                     default:
                         break;
