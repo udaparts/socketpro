@@ -91,6 +91,7 @@
     <Compile Include="..\..\..\..\src\SproAdapter\usvrservice.cs">
       <Link>usvrservice.cs</Link>
     </Compile>
+    <Compile Include="config.cs" />
     <Compile Include="dbEventFunc.cs" />
     <Compile Include="mssqlpush.cs" />
     <Compile Include="myserver.cs" />

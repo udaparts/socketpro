@@ -11,6 +11,7 @@ using SocketProAdapter.ServerSide;
 public static class SQLPlugin
 {
     private static CSqlPlugin Plugin = null;
+    
     static SQLPlugin()
     {
         
@@ -30,6 +31,7 @@ public static class SQLPlugin
         if (Plugin == null)
         {
             n += 100;
+            System.IO.Directory.SetCurrentDirectory(Config.WorkingDirectory);
             Plugin = new CSqlPlugin(param);
         }
         if (!CSqlPlugin.Running)
