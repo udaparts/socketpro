@@ -10,6 +10,9 @@ class CSqlPlugin : CSocketProServer
 
     }
 
+    [ServiceAttr(CStreamSql.sidMsSql)]
+    internal CSocketProService<CStreamSql> StreamSql = new CSocketProService<CStreamSql>();
+
     protected override bool OnIsPermitted(ulong hSocket, string userId, string password, uint nSvsID)
     {
         Console.WriteLine("Ask for a service " + nSvsID + " from user " + userId + " with password = " + password);

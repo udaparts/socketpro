@@ -10,11 +10,10 @@ using SocketProAdapter.ServerSide;
 
 public static class SQLPlugin
 {
-    private static readonly string NOT_SUPPORTED;
     private static CSqlPlugin Plugin = null;
     static SQLPlugin()
     {
-        NOT_SUPPORTED = "Not supported";
+        
     }
 
     public static CSocketProServer Server
@@ -25,7 +24,7 @@ public static class SQLPlugin
         }
     }
 
-    public static SqlInt32 StartSPServer(int param)
+    public static SqlInt32 StartSPServer(int param, string store_or_pfx = "", string subject_or_password = "")
     {
         int n = 1000;
         if (Plugin == null)
@@ -36,6 +35,17 @@ public static class SQLPlugin
         if (!CSqlPlugin.Running)
         {
             n += 10;
+            if (store_or_pfx != null && subject_or_password != null && store_or_pfx.Length > 0 && subject_or_password.Length > 0) {
+                if (store_or_pfx.IndexOf(".pfx") == -1)
+                {
+                    //load cert and private key from windows system cert store
+                    Plugin.UseSSL(store_or_pfx/*"my"*/, subject_or_password, "");
+                }
+                else
+                {
+                    Plugin.UseSSL(store_or_pfx, "", subject_or_password);
+                }
+            }
             if (Plugin.Run(20903))
                 n += 1;
         }
@@ -240,7 +250,7 @@ public static class SQLPlugin
         string tablepath = string.Format("[{0}].[{1}]", schema, tableName);
         SqlTriggerContext tc = SqlContext.TriggerContext;
         if (!SqlContext.IsAvailable || tc == null)
-            return NOT_SUPPORTED;
+            return "Trigger context not available";
         string errMsg = "";
         using (SqlConnection conn = new SqlConnection("context connection=true"))
         {

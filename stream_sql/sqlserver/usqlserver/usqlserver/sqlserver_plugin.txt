@@ -7,6 +7,9 @@ GO
 RECONFIGURE
 GO
 
+EXEC sp_changedbowner 'sa' ALTER DATABASE sp_streaming_db SET TRUSTWORTHY ON
+GO
+
 -- Load usqlserver.dll into SQL server
 CREATE ASSEMBLY usqlserver
 AUTHORIZATION [dbo]
@@ -14,10 +17,7 @@ FROM 'C:\my_directory\usqlserver.dll'
 WITH PERMISSION_SET = UNSAFE
 GO
 
-EXEC sp_changedbowner 'sa' ALTER DATABASE sp_streaming_db SET TRUSTWORTHY ON
-GO
-
-CREATE FUNCTION  StartSPServer(@param int)
+CREATE FUNCTION  StartSPServer(@param int, @store_or_pfx nvarchar(1024)=NULL, @subject_or_password nvarchar(512)=NULL)
 returns int
 As
 	EXTERNAL NAME usqlserver.SQLPlugin.StartSPServer
@@ -28,14 +28,14 @@ ON ALL SERVER
 FOR LOGON
 AS
 BEGIN
-	if sp_streaming_db.dbo.StartSPServer(1) < 0
+	if sp_streaming_db.dbo.StartSPServer(1, '', '') < 0
 	BEGIN
 		ROLLBACK;
 	END
 END
 GO
 
-select sp_streaming_db.dbo.StartSPServer(1)
+select sp_streaming_db.dbo.StartSPServer(1, '', '')
 GO
 
 -- use cmd and execute the following to check port
