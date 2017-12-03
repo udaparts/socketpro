@@ -6,7 +6,7 @@
 
 int main(int argc, char* argv[]) {
 	CConnectionContext cc;
-	std::cout << "Input router server ip address ......" << std::endl;
+	std::cout << "This is worker. Input router server ip address ......" << std::endl;
 	std::getline(std::cin, cc.Host);
 
 	cc.Port = 20901;
@@ -20,4 +20,3 @@ int main(int argc, char* argv[]) {
 	::getchar();
 	return 0;
 }
-
