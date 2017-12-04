@@ -27,6 +27,8 @@ INSERT INTO config VALUES('subject_or_password','')
 GO
 INSERT INTO config VALUES('read_only','1')
 GO
+INSERT INTO config VALUES('working_directory','C:\ProgramData\\MSSQL\')
+GO
 
 sp_configure 'clr enabled', 1
 GO
@@ -42,7 +44,7 @@ WITH PERMISSION_SET = UNSAFE
 GO
 
 
-CREATE FUNCTION  StartSPServer()
+CREATE FUNCTION StartSPServer()
 returns int
 As
 	EXTERNAL NAME usqlserver.SQLPlugin.StartSPServer
