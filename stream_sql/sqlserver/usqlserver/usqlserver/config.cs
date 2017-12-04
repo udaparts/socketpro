@@ -43,6 +43,10 @@ public static class SQLConfig
         sqlInsert = string.Format("INSERT INTO sp_streaming_db.dbo.config VALUES('{0}','{1}')", "read_only", m_readOnly ? 1 : 0);
         cmd.CommandText = sqlInsert;
         cmd.ExecuteNonQuery();
+
+        sqlInsert = string.Format("INSERT INTO sp_streaming_db.dbo.config VALUES('{0}','{1}')", "working_directory", m_WorkingDirectory);
+        cmd.CommandText = sqlInsert;
+        cmd.ExecuteNonQuery();
     }
 
     private static void SetConfig(SqlDataReader reader)
@@ -113,6 +117,9 @@ public static class SQLConfig
                 case "subject_or_password":
                     m_subject_or_password = value;
                     break;
+                case "working_directory":
+                    m_WorkingDirectory = value;
+                    break;
                 default:
                     break; //ignored
             }
@@ -134,6 +141,8 @@ public static class SQLConfig
             }
             finally
             {
+                if (reader != null)
+                    reader.Close();
                 conn.Close();
             }
         }
