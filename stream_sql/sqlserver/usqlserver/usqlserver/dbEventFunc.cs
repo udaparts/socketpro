@@ -7,49 +7,84 @@ using System.Collections.Generic;
 using Microsoft.SqlServer.Server;
 using SocketProAdapter.UDB;
 using SocketProAdapter.ServerSide;
+using System.IO;
 
 public static class SQLPlugin
 {
     private static CSqlPlugin Plugin = null;
-    
+    private static object m_cs = new object();
+
     static SQLPlugin()
     {
-        
+
     }
 
     public static CSocketProServer Server
     {
         get
         {
-            return Plugin;
+            lock (m_cs)
+            {
+                return Plugin;
+            }
         }
     }
 
-    public static SqlInt32 StartSPServer(int param, string store_or_pfx = "", string subject_or_password = "")
+    [SqlFunction(DataAccess = DataAccessKind.Read)]
+    public static SqlInt32 StopSPServer()
+    {
+        int n = 100;
+        do
+        {
+            lock (m_cs)
+            {
+                if (Plugin == null)
+                    break;
+                if (CSqlPlugin.Running)
+                {
+                    Plugin.StopSocketProServer();
+                    n += 10;
+                }
+                Plugin.Dispose();
+                Plugin = null;
+            }
+            n += 1;
+        } while (false);
+        return n;
+    }
+
+    [SqlFunction(DataAccess=DataAccessKind.Read)]
+    public static SqlInt32 StartSPServer()
     {
         int n = 1000;
-        if (Plugin == null)
+        lock (m_cs)
         {
-            n += 100;
-            System.IO.Directory.SetCurrentDirectory(Config.WorkingDirectory);
-            Plugin = new CSqlPlugin(param);
-        }
-        if (!CSqlPlugin.Running)
-        {
-            n += 10;
-            if (store_or_pfx != null && subject_or_password != null && store_or_pfx.Length > 0 && subject_or_password.Length > 0) {
-                if (store_or_pfx.IndexOf(".pfx") == -1)
-                {
-                    //load cert and private key from windows system cert store
-                    Plugin.UseSSL(store_or_pfx/*"my"*/, subject_or_password, "");
-                }
-                else
-                {
-                    Plugin.UseSSL(store_or_pfx, "", subject_or_password);
-                }
+            if (Plugin == null)
+            {
+                n += 100;
+                if (!Directory.Exists(SQLConfig.WorkingDirectory))
+                    Directory.CreateDirectory(SQLConfig.WorkingDirectory);
+                Directory.SetCurrentDirectory(SQLConfig.WorkingDirectory);
+                Plugin = new CSqlPlugin(SQLConfig.Param);
             }
-            if (Plugin.Run(20903))
-                n += 1;
+            if (!CSqlPlugin.Running)
+            {
+                n += 10;
+                if (SQLConfig.StoreOrPfx != null && SQLConfig.SubjectOrPassword != null && SQLConfig.StoreOrPfx.Length > 0 && SQLConfig.SubjectOrPassword.Length > 0)
+                {
+                    if (SQLConfig.StoreOrPfx.IndexOf(".pfx") == -1)
+                    {
+                        //load cert and private key from windows system cert store
+                        Plugin.UseSSL(SQLConfig.StoreOrPfx/*"my"*/, SQLConfig.SubjectOrPassword, "");
+                    }
+                    else
+                    {
+                        Plugin.UseSSL(SQLConfig.StoreOrPfx, "", SQLConfig.SubjectOrPassword);
+                    }
+                }
+                if (Plugin.Run(SQLConfig.Port, 16, !SQLConfig.NoV6))
+                    n += 1;
+            }
         }
         return n;
     }
@@ -97,7 +132,10 @@ public static class SQLPlugin
                     else
                         msg[n] = data;
                 }
-                CSocketProServer.PushManager.Publish(msg, DB_CONSTS.STREAMING_SQL_CHAT_GROUP_ID);
+                lock (m_cs)
+                {
+                    CSocketProServer.PushManager.Publish(msg, DB_CONSTS.STREAMING_SQL_CHAT_GROUP_ID);
+                }
             }
         }
         finally
@@ -169,7 +207,10 @@ public static class SQLPlugin
                     else
                         msg[n] = data;
                 }
-                CSocketProServer.PushManager.Publish(msg, DB_CONSTS.STREAMING_SQL_CHAT_GROUP_ID);
+                lock (m_cs)
+                {
+                    CSocketProServer.PushManager.Publish(msg, DB_CONSTS.STREAMING_SQL_CHAT_GROUP_ID);
+                }
             } while (false);
         }
         finally
@@ -226,7 +267,10 @@ public static class SQLPlugin
                             msg[n] = data;
                         ++index;
                     }
-                    CSocketProServer.PushManager.Publish(msg, DB_CONSTS.STREAMING_SQL_CHAT_GROUP_ID);
+                    lock (m_cs)
+                    {
+                        CSocketProServer.PushManager.Publish(msg, DB_CONSTS.STREAMING_SQL_CHAT_GROUP_ID);
+                    }
                 }
             } while (false);
         }
@@ -242,13 +286,13 @@ public static class SQLPlugin
     /// </summary>
     /// <param name="tableName">A string for table name</param>
     /// <param name="schema">A string for schema which defaults to dbo</param>
-    /// <returns></returns>
-    public static string PublishDBEvent(string tableName, string schema="dbo")
+    /// <returns>An enmpty string if successful. Otherwise, an error message returned</returns>
+    public static string PublishDBEvent(string tableName, string schema = "dbo")
     {
         if (schema == null || schema.Length == 0)
             schema = "dbo";
-        if (Plugin == null || !CSqlPlugin.Running)
-            return "SocketPro server not started yet";
+        if (tableName == null || tableName.Length == 0)
+            return "Non empty table name string required";
         string tablepath = string.Format("[{0}].[{1}]", schema, tableName);
         SqlTriggerContext tc = SqlContext.TriggerContext;
         if (!SqlContext.IsAvailable || tc == null)
