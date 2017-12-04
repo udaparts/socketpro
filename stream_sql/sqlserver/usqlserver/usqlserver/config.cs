@@ -39,6 +39,10 @@ public static class SQLConfig
         sqlInsert = string.Format("INSERT INTO sp_streaming_db.dbo.config VALUES('{0}','{1}')", "subject_or_password", m_subject_or_password);
         cmd.CommandText = sqlInsert;
         cmd.ExecuteNonQuery();
+
+        sqlInsert = string.Format("INSERT INTO sp_streaming_db.dbo.config VALUES('{0}','{1}')", "read_only", m_readOnly ? 1 : 0);
+        cmd.CommandText = sqlInsert;
+        cmd.ExecuteNonQuery();
     }
 
     private static void SetConfig(SqlDataReader reader)
