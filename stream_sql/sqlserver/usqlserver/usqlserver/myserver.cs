@@ -1,12 +1,9 @@
-﻿using System;
+﻿
+using System;
 using SocketProAdapter;
 using SocketProAdapter.ServerSide;
 using SocketProAdapter.UDB;
 using System.Data.SqlClient;
-using System.Collections.Generic;
-using System.Threading;
-using System.Security.Principal;
-using Microsoft.SqlServer.Server;
 
 class CSqlPlugin : CSocketProServer
 {
@@ -59,6 +56,10 @@ class CSqlPlugin : CSocketProServer
         {
             case CStreamSql.sidMsSql:
                 return DoDBAuthentication(hSocket, userId, password);
+            case BaseServiceID.sidHTTP:
+                return true; //do authentication inside the method CMyHttpPeer.DoAuthentication
+            case BaseServiceID.sidChat: //SocketPro async persistent message queue
+                break;
             default:
                 break;
         }

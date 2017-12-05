@@ -4,8 +4,8 @@ using SocketProAdapter;
 using SocketProAdapter.ServerSide;
 
 /// <summary>
-/// This is a skeleton code for HTTP/web socket.
-/// Extends its functionalities at your will.
+/// This is a skeleton code for HTTP/web socket, which is not fully implemented.
+/// Extends its functionalities or delete the class from your project at your will.
 /// </summary>
 public class CMyHttpPeer : CHttpPeerBase
 {

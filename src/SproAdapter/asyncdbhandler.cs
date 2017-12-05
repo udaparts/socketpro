@@ -268,6 +268,36 @@ namespace SocketProAdapter
             #endregion
         }
 
+        public class CParameterInfoArray : List<CParameterInfo>, IUSerializer
+        {
+            #region IUSerializer Members
+
+            public void LoadFrom(CUQueue UQueue)
+            {
+                int count;
+                Clear();
+                UQueue.Load(out count);
+                while (count > 0)
+                {
+                    CParameterInfo info = new CParameterInfo();
+                    info.LoadFrom(UQueue);
+                    Add(info);
+                    --count;
+                }
+            }
+
+            public void SaveTo(CUQueue UQueue)
+            {
+                UQueue.Save(this.Count);
+                foreach (CParameterInfo info in this)
+                {
+                    info.SaveTo(UQueue);
+                }
+            }
+
+            #endregion
+        }
+
         public static class DB_CONSTS
         {
             /// <summary>

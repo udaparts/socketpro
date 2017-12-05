@@ -36,6 +36,8 @@ class Program
             }
             CSqlServer sql = spSql.Seek();
             bool ok = sql.Open("Northwind", dr, DB_CONSTS.ENABLE_TABLE_UPDATE_MESSAGES);
+            ok = sql.BeginTrans();
+            ok = sql.EndTrans();
 
             /*
             List<KeyValuePair<CDBColumnInfoArray, CDBVariantArray>> ra = new List<KeyValuePair<CDBColumnInfoArray, CDBVariantArray>>();
