@@ -36,8 +36,58 @@ class Program
             }
             CSqlServer sql = spSql.Seek();
             bool ok = sql.Open("Northwind", dr, DB_CONSTS.ENABLE_TABLE_UPDATE_MESSAGES);
-            ok = sql.BeginTrans();
-            ok = sql.EndTrans();
+            CParameterInfoArray vInfo = new CParameterInfoArray();
+            /*
+             * SELECT TOP 1000 [AddressID]
+      ,[AddressLine1]
+      ,[AddressLine2]
+      ,[City]
+      ,[StateProvinceID]
+      ,[PostalCode]
+      ,[SpatialLocation]
+      ,[rowguid]
+      ,[ModifiedDate]
+  FROM [AdventureWorks].[Person].[Address]
+             */
+            string sqlPrepare = "INSERT INTO AdventureWorks.Person.Address(AddressLine1,AddressLine2,City,StateProvinceID,PostalCode,SpatialLocation,rowguid,ModifiedDate)VALUES(@AddressLine1,@AddressLine2,@City,@StateProvinceID,@PostalCode,@SpatialLocation,@rowguid,@ModifiedDate)";
+            CParameterInfo info = new CParameterInfo();
+            info.DataType = tagVariantDataType.sdVT_BSTR;
+            info.ColumnSize = 60;
+            info.ParameterName = "@AddressLine1";
+            vInfo.Add(info);
+            info = new CParameterInfo();
+            info.DataType = tagVariantDataType.sdVT_BSTR;
+            info.ColumnSize = 60;
+            info.ParameterName = "@AddressLine2";
+            vInfo.Add(info);
+            info = new CParameterInfo();
+            info.DataType = tagVariantDataType.sdVT_BSTR;
+            info.ColumnSize = 30;
+            info.ParameterName = "@City";
+            vInfo.Add(info);
+            info = new CParameterInfo();
+            info.DataType = tagVariantDataType.sdVT_INT;
+            info.ParameterName = "@StateProvinceID";
+            vInfo.Add(info);
+            info = new CParameterInfo();
+            info.DataType = tagVariantDataType.sdVT_BSTR;
+            info.ColumnSize = 15;
+            info.ParameterName = "@PostalCode";
+            vInfo.Add(info);
+            info = new CParameterInfo();
+            info.DataType = tagVariantDataType.sdVT_BSTR;
+            info.ColumnSize = 128;
+            info.ParameterName = "@SpatialLocation";
+            vInfo.Add(info);
+            info = new CParameterInfo();
+            info.DataType = tagVariantDataType.sdVT_CLSID;
+            info.ParameterName = "@rowguid";
+            vInfo.Add(info);
+            info = new CParameterInfo();
+            info.DataType = tagVariantDataType.sdVT_DATE;
+            info.ParameterName = "@ModifiedDate";
+            vInfo.Add(info);
+            ok = sql.Prepare(sqlPrepare, null, vInfo.ToArray());
 
             /*
             List<KeyValuePair<CDBColumnInfoArray, CDBVariantArray>> ra = new List<KeyValuePair<CDBColumnInfoArray, CDBVariantArray>>();
