@@ -2,13 +2,17 @@
 using SocketProAdapter;
 using SocketProAdapter.ServerSide;
 using SocketProAdapter.UDB;
+using System.Data.SqlClient;
+using System.Collections.Generic;
+using System.Threading;
+using System.Security.Principal;
+using Microsoft.SqlServer.Server;
 
 class CSqlPlugin : CSocketProServer
 {
     public CSqlPlugin(int param = 0)
         : base(param)
-    {
-
+    {  
     }
 
     [ServiceAttr(CStreamSql.sidMsSql)]
@@ -30,9 +34,34 @@ class CSqlPlugin : CSocketProServer
         return base.Run(port, maxBacklog, v6Supported);
     }
 
+    private bool DoDBAuthentication(ulong hSocket, string userId, string password)
+    {
+        string connection = string.Format("Server={0};User Id={1};Password={2}", SQLConfig.Server, userId, password);
+        try
+        {
+            SqlConnection conn = new SqlConnection(connection);
+            conn.Open();
+            lock (CStreamSql.m_csPeer)
+            {
+                CStreamSql.m_mapConnection.Add(hSocket, conn);
+            }
+            return true;
+        }
+        catch
+        {
+        }
+        return false;
+    }
+
     protected override bool OnIsPermitted(ulong hSocket, string userId, string password, uint nSvsID)
     {
-        Console.WriteLine("Ask for a service " + nSvsID + " from user " + userId + " with password = " + password);
+        switch (nSvsID)
+        {
+            case CStreamSql.sidMsSql:
+                return DoDBAuthentication(hSocket, userId, password);
+            default:
+                break;
+        }
         return true;
     }
 }

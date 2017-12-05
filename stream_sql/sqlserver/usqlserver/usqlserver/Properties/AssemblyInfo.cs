@@ -7,11 +7,11 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("SQL stream plugin for MS SQL Server")]
-[assembly: AssemblyDescription("SQL stream processing and responsing")]
+[assembly: AssemblyDescription("SQL stream processing and responsing for Microsoft SQL Server")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("UDAParts")]
 [assembly: AssemblyProduct("MS SQL stream for SQL Server 2008 or later")]
-[assembly: AssemblyCopyright("Copyright ©  UDAParts 2017")]
+[assembly: AssemblyCopyright("Copyright ©  UDAParts 2018")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

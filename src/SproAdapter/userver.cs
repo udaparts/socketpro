@@ -14,6 +14,12 @@ namespace SocketProAdapter
             private DOnIsPermitted m_onIsPermitted;
             private DOnSSLHandShakeCompleted m_shc;
 
+            private static void TE(tagThreadEvent te)
+            {
+                if (ThreadEvent != null)
+                    ThreadEvent.Invoke(te);
+            }
+
             private void Init(int param)
             {
                 bool ok = ServerCoreLoader.InitSocketProServer(param);
@@ -28,7 +34,10 @@ namespace SocketProAdapter
                 ServerCoreLoader.SetOnIsPermitted(m_onIsPermitted);
                 m_shc = new DOnSSLHandShakeCompleted(OnSSLShakeCompleted);
                 ServerCoreLoader.SetOnSSLHandShakeCompleted(m_shc);
+                ServerCoreLoader.SetThreadEvent(TE);
             }
+
+            public static event DOnThreadEvent ThreadEvent = null;
 
             /// <summary>
             /// Use the method for debugging crash within cross development environments.

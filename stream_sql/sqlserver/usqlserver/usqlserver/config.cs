@@ -138,6 +138,8 @@ public static class SQLConfig
                 cmd = new SqlCommand("SELECT * from sp_streaming_db.dbo.config", conn);
                 reader = cmd.ExecuteReader();
                 SetConfig(reader);
+                reader.Close();
+                m_server = MsSql.Utilities.GetServerName(conn);
             }
             finally
             {
@@ -145,6 +147,15 @@ public static class SQLConfig
                     reader.Close();
                 conn.Close();
             }
+        }
+    }
+
+    private static string m_server = Environment.MachineName;
+    public static string Server
+    {
+        get
+        {
+            return m_server;
         }
     }
 

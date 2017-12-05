@@ -21,6 +21,7 @@ namespace SocketProAdapter
         delegate void DOnChatRequestCame(ulong handler, tagChatRequestID chatRequestId);
         delegate bool DOnHttpAuthentication(ulong handler, IntPtr userId, IntPtr password);
         delegate void DOnResultsSent(ulong handler);
+        public delegate void DOnThreadEvent(tagThreadEvent te);
 
         [StructLayout(LayoutKind.Sequential)]
         struct CSvsContext
@@ -188,6 +189,9 @@ namespace SocketProAdapter
 
             [DllImport(SERVER_CORE_DLL)]
             internal static extern void SetOnAccept(DOnAccept p);
+
+            [DllImport(SERVER_CORE_DLL)]
+            internal static extern void SetThreadEvent(DOnThreadEvent p);
 
             [DllImport(SERVER_CORE_DLL)]
             internal static extern void Close(ulong h);

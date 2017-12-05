@@ -296,5 +296,44 @@ namespace MsSql
             }
             return fullDbName;
         }
+
+        /// <summary>
+        /// Query a server name from sql server database for connection string
+        /// </summary>
+        /// <param name="conn">An valid and opened conection</param>
+        /// <returns>An instance full name in the format like [serverName].[dbInstance]</returns>
+        public static string GetServerName(SqlConnection conn)
+        {
+            if (conn == null || conn.State != ConnectionState.Open)
+                throw new InvalidOperationException("An opened connection required");
+            string serverName = Environment.MachineName;
+            SqlDataReader dr = null;
+            string sqlCmd = "SELECT @@servername";
+            try
+            {
+                SqlCommand cmd = new SqlCommand(sqlCmd, conn);
+                dr = cmd.ExecuteReader();
+                if (dr.Read())
+                {
+                    if (dr.IsDBNull(0))
+                    {
+                        dr.Close();
+                        sqlCmd = "SELECT @@SERVICENAME";
+                        cmd.CommandText = sqlCmd;
+                        dr = cmd.ExecuteReader();
+                        if (dr.Read())
+                            serverName += ("\\" + dr.GetString(0));
+                    }
+                    else
+                        serverName = dr.GetString(0);
+                }
+            }
+            finally
+            {
+                if (dr != null)
+                    dr.Close();
+            }
+            return serverName;
+        }
     }
 }

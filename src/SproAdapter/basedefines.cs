@@ -719,6 +719,12 @@ namespace SocketProAdapter
             raAverage,
         };
 
+        public enum tagThreadEvent
+        {
+            teStarted = 0,
+            teKilling = 1
+        }
+
         [StructLayout(LayoutKind.Sequential)]
         struct CHttpHV
         {
