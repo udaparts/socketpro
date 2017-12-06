@@ -14,7 +14,7 @@ namespace SocketProAdapter
             private DOnIsPermitted m_onIsPermitted;
             private DOnSSLHandShakeCompleted m_shc;
 
-            private static void TE(tagThreadEvent te)
+            internal static void TE(tagThreadEvent te)
             {
                 if (ThreadEvent != null)
                     ThreadEvent.Invoke(te);
@@ -34,7 +34,6 @@ namespace SocketProAdapter
                 ServerCoreLoader.SetOnIsPermitted(m_onIsPermitted);
                 m_shc = new DOnSSLHandShakeCompleted(OnSSLShakeCompleted);
                 ServerCoreLoader.SetOnSSLHandShakeCompleted(m_shc);
-                ServerCoreLoader.SetThreadEvent(TE);
             }
 
             public static event DOnThreadEvent ThreadEvent = null;
@@ -261,6 +260,11 @@ namespace SocketProAdapter
                         if (!bs.AddMe(sas[0].ServiceID, sas[0].ThreadApartment))
                             throw new InvalidOperationException("Failed in registering service = " + sas[0].ServiceID + ", and check if the service ID is duplicated with the previous one or if the service ID is less or equal to SocketProAdapter.BaseServiceID.sidReserved");
                     }
+                }
+                if (!CBaseService.m_bRegEvent)
+                {
+                    ServerCoreLoader.SetThreadEvent(TE);
+                    CBaseService.m_bRegEvent = true;
                 }
                 bool ok = ServerCoreLoader.StartSocketProServer(port, maxBacklog, v6Supported);
                 CBaseService.m_nMainThreads = uint.MaxValue;

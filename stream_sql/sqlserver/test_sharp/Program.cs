@@ -35,20 +35,8 @@ class Program
                 return;
             }
             CSqlServer sql = spSql.Seek();
-            bool ok = sql.Open("Northwind", dr, DB_CONSTS.ENABLE_TABLE_UPDATE_MESSAGES);
+            bool ok = sql.Open("AdventureWorks2012", dr, DB_CONSTS.ENABLE_TABLE_UPDATE_MESSAGES);
             CParameterInfoArray vInfo = new CParameterInfoArray();
-            /*
-             * SELECT TOP 1000 [AddressID]
-      ,[AddressLine1]
-      ,[AddressLine2]
-      ,[City]
-      ,[StateProvinceID]
-      ,[PostalCode]
-      ,[SpatialLocation]
-      ,[rowguid]
-      ,[ModifiedDate]
-  FROM [AdventureWorks].[Person].[Address]
-             */
             string sqlPrepare = "INSERT INTO AdventureWorks.Person.Address(AddressLine1,AddressLine2,City,StateProvinceID,PostalCode,SpatialLocation,rowguid,ModifiedDate)VALUES(@AddressLine1,@AddressLine2,@City,@StateProvinceID,@PostalCode,@SpatialLocation,@rowguid,@ModifiedDate)";
             CParameterInfo info = new CParameterInfo();
             info.DataType = tagVariantDataType.sdVT_BSTR;
@@ -87,7 +75,8 @@ class Program
             info.DataType = tagVariantDataType.sdVT_DATE;
             info.ParameterName = "@ModifiedDate";
             vInfo.Add(info);
-            ok = sql.Prepare(sqlPrepare, null, vInfo.ToArray());
+            ok = sql.Prepare(sqlPrepare, dr, vInfo.ToArray());
+            ok = sql.BeginTrans();
 
             /*
             List<KeyValuePair<CDBColumnInfoArray, CDBVariantArray>> ra = new List<KeyValuePair<CDBColumnInfoArray, CDBVariantArray>>();
@@ -141,7 +130,8 @@ class Program
             }
             Console.WriteLine("+++++ End rowsets +++");
             Console.WriteLine();
- */ 
+ */
+            ok = sql.EndTrans();
             Console.WriteLine("Press any key to close the application ......");
             Console.Read();
             sql.Close();
