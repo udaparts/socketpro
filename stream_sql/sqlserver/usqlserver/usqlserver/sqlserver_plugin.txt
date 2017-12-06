@@ -68,6 +68,9 @@ BEGIN
 END
 GO
 
+
+-- CREATE TRIGGER tr_config ON config AFTER INSERT,DELETE,UPDATE AS EXTERNAL NAME usqlserver.SQLPlugin.PublishDBEvent
+
 select sp_streaming_db.dbo.StartSPServer()
 GO
 

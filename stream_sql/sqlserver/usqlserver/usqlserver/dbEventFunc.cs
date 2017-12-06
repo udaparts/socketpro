@@ -53,7 +53,7 @@ public static class SQLPlugin
         return n;
     }
 
-    [SqlFunction(DataAccess=DataAccessKind.Read)]
+    [SqlFunction(DataAccess = DataAccessKind.Read)]
     public static SqlInt32 StartSPServer()
     {
         int n = 1000;
@@ -89,54 +89,34 @@ public static class SQLPlugin
         return n;
     }
 
-    private static void PublishInsert(string tablepath, string[] v, SqlConnection conn)
+    private static object[] PublishInsert(SqlConnection conn, out DataTable dt)
     {
+        dt = null;
         SqlDataReader reader = null;
         try
         {
-            int index = 0;
             SqlCommand cmd = new SqlCommand("SELECT * FROM INSERTED", conn);
             reader = cmd.ExecuteReader(CommandBehavior.KeyInfo);
-            DataTable dt = reader.GetSchemaTable();
-            List<int> vKeyOrdinal = new List<int>();
-            foreach (DataRow dr in dt.Rows)
-            {
-                bool isKey = (bool)dr["IsKey"];
-                if (!isKey)
-                    isKey = (bool)dr["IsAutoIncrement"];
-                if (isKey)
-                    vKeyOrdinal.Add(index);
-                ++index;
-            }
-            if (vKeyOrdinal.Count == 0)
-                return;
+            dt = reader.GetSchemaTable();
             int count = reader.FieldCount;
-            int total = 2 + v.Length + count;
+            int total = 5 + count;
             object[] msg = new object[total];
             msg[0] = (int)tagUpdateEvent.ueInsert;
-            msg[1] = v[0];
-            msg[2] = v[1];
-            msg[3] = v[2];
-            msg[4] = tablepath;
             if (reader.Read())
+                return null;
+            for (int n = 5; n < total; ++n)
             {
-                for (int n = 5; n < total; ++n)
-                {
-                    Object data = reader.GetValue(n - 5);
-                    if (data is DateTimeOffset)
-                        msg[n] = data.ToString();
-                    else if (data is TimeSpan)
-                        msg[n] = data.ToString();
-                    else if (data is SqlXml)
-                        msg[n] = data.ToString();
-                    else
-                        msg[n] = data;
-                }
-                lock (m_cs)
-                {
-                    CSocketProServer.PushManager.Publish(msg, DB_CONSTS.STREAMING_SQL_CHAT_GROUP_ID);
-                }
+                Object data = reader.GetValue(n - 5);
+                if (data is DateTimeOffset)
+                    msg[n] = data.ToString();
+                else if (data is TimeSpan)
+                    msg[n] = data.ToString();
+                else if (data is SqlXml)
+                    msg[n] = data.ToString();
+                else
+                    msg[n] = data;
             }
+            return msg;
         }
         finally
         {
@@ -145,73 +125,51 @@ public static class SQLPlugin
         }
     }
 
-    private static void PublishUpdate(string tablepath, string[] v, SqlConnection conn)
+    private static object[] PublishUpdate(SqlConnection conn, out DataTable dt)
     {
+        dt = null;
         SqlDataReader reader = null;
         try
         {
-            int index = 0;
             SqlCommand cmd = new SqlCommand("SELECT * FROM DELETED;SELECT * FROM INSERTED", conn);
             reader = cmd.ExecuteReader(CommandBehavior.KeyInfo);
-            DataTable dt = reader.GetSchemaTable();
-            List<int> vKeyOrdinal = new List<int>();
-            foreach (DataRow dr in dt.Rows)
-            {
-                bool isKey = (bool)dr["IsKey"];
-                if (!isKey)
-                    isKey = (bool)dr["IsAutoIncrement"];
-                if (isKey)
-                    vKeyOrdinal.Add(index);
-                ++index;
-            }
-            if (vKeyOrdinal.Count == 0)
-                return;
+            dt = reader.GetSchemaTable();
             int count = reader.FieldCount;
-            int total = 2 + v.Length + count * 2;
+            int total = 5 + count * 2;
             object[] msg = new object[total];
             msg[0] = (int)tagUpdateEvent.ueUpdate;
-            msg[1] = v[0];
-            msg[2] = v[1];
-            msg[3] = v[2];
-            msg[4] = tablepath;
-            do
+            if (!reader.Read())
+                return null;
+            for (int ordinal = 0; ordinal < count; ++ordinal)
             {
-                if (!reader.Read())
-                    break;
-                for (int ordinal = 0; ordinal < count; ++ordinal)
-                {
-                    int n = 5 + ordinal * 2;
-                    Object data = reader.GetValue(ordinal);
-                    if (data is DateTimeOffset)
-                        msg[n] = data.ToString();
-                    else if (data is TimeSpan)
-                        msg[n] = data.ToString();
-                    else if (data is SqlXml)
-                        msg[n] = data.ToString();
-                    else
-                        msg[n] = data;
-                }
-                reader.NextResult();
-                if (!reader.Read())
-                    break;
-                for (int ordinal = 0; ordinal < count; ++ordinal)
-                {
-                    int n = 6 + ordinal * 2;
-                    Object data = reader.GetValue(ordinal);
-                    if (data is DateTimeOffset)
-                        msg[n] = data.ToString();
-                    else if (data is TimeSpan)
-                        msg[n] = data.ToString();
-                    else if (data is SqlXml)
-                        msg[n] = data.ToString();
-                    else
-                        msg[n] = data;
-                }
-                lock (m_cs)
-                {
-                    CSocketProServer.PushManager.Publish(msg, DB_CONSTS.STREAMING_SQL_CHAT_GROUP_ID);
-                }
-            } while (false);
+                int n = 5 + ordinal * 2;
+                Object data = reader.GetValue(ordinal);
+                if (data is DateTimeOffset)
+                    msg[n] = data.ToString();
+                else if (data is TimeSpan)
+                    msg[n] = data.ToString();
+                else if (data is SqlXml)
+                    msg[n] = data.ToString();
+                else
+                    msg[n] = data;
+            }
+            reader.NextResult();
+            if (!reader.Read())
+                return null;
+            for (int ordinal = 0; ordinal < count; ++ordinal)
+            {
+                int n = 6 + ordinal * 2;
+                Object data = reader.GetValue(ordinal);
+                if (data is DateTimeOffset)
+                    msg[n] = data.ToString();
+                else if (data is TimeSpan)
+                    msg[n] = data.ToString();
+                else if (data is SqlXml)
+                    msg[n] = data.ToString();
+                else
+                    msg[n] = data;
+            }
+            return msg;
         }
         finally
         {
@@ -220,59 +178,34 @@ public static class SQLPlugin
         }
     }
 
-    private static void PublishDelete(string tablepath, string[] v, SqlConnection conn)
+    private static object[] PublishDelete(SqlConnection conn, out DataTable dt)
     {
+        dt = null;
         SqlDataReader reader = null;
         try
         {
-            int index = 0;
             SqlCommand cmd = new SqlCommand("SELECT * FROM DELETED", conn);
             reader = cmd.ExecuteReader(CommandBehavior.KeyInfo);
-            DataTable dt = reader.GetSchemaTable();
-            List<int> vKeyOrdinal = new List<int>();
-            foreach (DataRow dr in dt.Rows)
+            dt = reader.GetSchemaTable();
+            int count = reader.FieldCount;
+            int total = 5 + count;
+            object[] msg = new object[total];
+            msg[0] = (int)tagUpdateEvent.ueDelete;
+            if (reader.Read())
+                return null;
+            for (int n = 5; n < total; ++n)
             {
-                bool isKey = (bool)dr["IsKey"];
-                if (!isKey)
-                    isKey = (bool)dr["IsAutoIncrement"];
-                if (isKey)
-                    vKeyOrdinal.Add(index);
-                ++index;
+                Object data = reader.GetValue(n - 5);
+                if (data is DateTimeOffset)
+                    msg[n] = data.ToString();
+                else if (data is TimeSpan)
+                    msg[n] = data.ToString();
+                else if (data is SqlXml)
+                    msg[n] = data.ToString();
+                else
+                    msg[n] = data;
             }
-            do
-            {
-                if (vKeyOrdinal.Count == 0)
-                    break;
-                int total = 2 + v.Length + vKeyOrdinal.Count;
-                object[] msg = new object[total];
-                msg[0] = (int)tagUpdateEvent.ueDelete;
-                msg[1] = v[0];
-                msg[2] = v[1];
-                msg[3] = v[2];
-                msg[4] = tablepath;
-                if (reader.Read())
-                {
-                    index = 0;
-                    foreach (int ordinal in vKeyOrdinal)
-                    {
-                        Object data = reader.GetValue(ordinal);
-                        int n = 5 + index;
-                        if (data is DateTimeOffset)
-                            msg[n] = data.ToString();
-                        else if (data is TimeSpan)
-                            msg[n] = data.ToString();
-                        else if (data is SqlXml)
-                            msg[n] = data.ToString();
-                        else
-                            msg[n] = data;
-                        ++index;
-                    }
-                    lock (m_cs)
-                    {
-                        CSocketProServer.PushManager.Publish(msg, DB_CONSTS.STREAMING_SQL_CHAT_GROUP_ID);
-                    }
-                }
-            } while (false);
+            return msg;
         }
         finally
         {
@@ -281,42 +214,140 @@ public static class SQLPlugin
         }
     }
 
-    /// <summary>
-    /// Call this method from your trigger code to push data of table events (DELETE, INSERT and UPDATE) onto clients
-    /// </summary>
-    /// <param name="tableName">A string for table name</param>
-    /// <param name="schema">A string for schema which defaults to dbo</param>
-    /// <returns>An enmpty string if successful. Otherwise, an error message returned</returns>
-    public static string PublishDBEvent(string tableName, string schema = "dbo")
+    private static string[] GetUSqlServerKeys(SqlConnection conn)
     {
-        if (schema == null || schema.Length == 0)
-            schema = "dbo";
-        if (tableName == null || tableName.Length == 0)
-            return "Non empty table name string required";
-        string tablepath = string.Format("[{0}].[{1}]", schema, tableName);
+        Exception ex = null;
+        if (conn == null || conn.State != ConnectionState.Open)
+            throw new InvalidOperationException("An opened connection required");
+        string[] v = null;
+        SqlDataReader dr = null;
+        string sqlCmd = "select SUSER_NAME(), DB_NAME()";
+        try
+        {
+            SqlCommand cmd = new SqlCommand(sqlCmd, conn);
+            dr = cmd.ExecuteReader();
+            if (dr.Read())
+            {
+                v = new string[2];
+                v[0] = dr.GetString(0);
+                v[1] = dr.GetString(1);
+            }
+        }
+        catch (Exception err)
+        {
+            ex = err;
+        }
+        finally
+        {
+            if (dr != null)
+                dr.Close();
+        }
+        if (ex != null)
+            throw ex;
+        return v;
+    }
+
+    private static string GuessTablePath(SqlConnection conn, string dbName, DataTable dt)
+    {
+        SqlDataReader dr = null;
+        string sql = string.Format("select object_name(parent_id), object_schema_name(parent_id) from [{0}].sys.triggers where type='TA' and is_disabled=0 and is_instead_of_trigger=0 and is_ms_shipped=0 and parent_class=1", dbName);
+        try
+        {
+            List<KeyValuePair<string, string>> v = new List<KeyValuePair<string, string>>();
+            SqlCommand cmd = new SqlCommand(sql, conn);
+            dr = cmd.ExecuteReader();
+            while (dr.Read())
+            {
+                KeyValuePair<string, string> p = new KeyValuePair<string, string>(dr.GetString(0), dr.GetString(1));
+                v.Add(p);
+            }
+            dr.Close();
+            dr = null;
+            foreach (KeyValuePair<string, string> p in v)
+            {
+                cmd.CommandText = string.Format("select COUNT(TABLE_NAME) as cols from information_schema.columns where TABLE_NAME='{0}' and TABLE_SCHEMA='{1}' group by TABLE_SCHEMA", p.Key, p.Value);
+                object obj = cmd.ExecuteScalar();
+                if (obj == null || obj is DBNull)
+                    continue;
+                int cols = int.Parse(obj.ToString());
+                if (cols != dt.Rows.Count)
+                    continue;
+                cmd.CommandText = string.Format("select COLUMN_NAME,DATA_TYPE from information_schema.columns where TABLE_NAME='{0}' and TABLE_SCHEMA='{1}' order by ordinal_position", p.Key, p.Value);
+                dr = cmd.ExecuteReader();
+                int row = 0;
+                bool eq = true;
+                while (dr.Read())
+                {
+                    string col_name = dr.GetString(0);
+                    string data_type = dr.GetString(1);
+                    DataRow myrow = dt.Rows[row];
+                    string cName = (string)myrow["ColumnName"];
+                    string dType = (string)myrow["DataTypeName"];
+                    if (col_name != cName || data_type != dType)
+                    {
+                        eq = false;
+                        break;
+                    }
+                    ++row;
+                }
+                if (eq)
+                    return p.Value + "." + p.Key;
+            }
+        }
+        finally
+        {
+            if (dr != null)
+                dr.Close();
+        }
+        return "";
+    }
+
+    public static void PublishDBEventEx(string tablePath)
+    {
         SqlTriggerContext tc = SqlContext.TriggerContext;
-        if (!SqlContext.IsAvailable || tc == null)
-            return "Trigger context not available";
+        if (!SqlContext.IsAvailable || tc == null || Plugin == null || !CSocketProServer.Running)
+            return;
         string errMsg = "";
         using (SqlConnection conn = new SqlConnection("context connection=true"))
         {
             try
             {
                 conn.Open();
-                string[] v = MsSql.Utilities.GetUSqlServerKeys(conn);
+                string[] v = GetUSqlServerKeys(conn);
+                object[] msg = null;
+                DataTable dt = null;
                 switch (tc.TriggerAction)
                 {
                     case TriggerAction.Update:
-                        PublishUpdate(tablepath, v, conn);
+                        msg = PublishUpdate(conn, out dt);
                         break;
                     case TriggerAction.Delete:
-                        PublishDelete(tablepath, v, conn);
+                        msg = PublishDelete(conn, out dt);
                         break;
                     case TriggerAction.Insert:
-                        PublishInsert(tablepath, v, conn);
+                        msg = PublishInsert(conn, out dt);
                         break;
                     default:
+                        errMsg = "Unknown DML event";
                         break;
+                }
+                errMsg = "Unknown error";
+                if (dt != null && msg != null)
+                {
+                    msg[1] = SQLConfig.Server;
+                    msg[2] = v[0];
+                    msg[3] = v[1];
+                    if (tablePath == null || tablePath.Length == 0)
+                        tablePath = GuessTablePath(conn, v[1], dt);
+                    if (tablePath != null && tablePath.Length > 0)
+                    {
+                        msg[4] = tablePath;
+                        lock (m_cs)
+                        {
+                            CSocketProServer.PushManager.Publish(msg, DB_CONSTS.STREAMING_SQL_CHAT_GROUP_ID);
+                            errMsg = "";
+                        }
+                    }
                 }
             }
             catch (Exception err)
@@ -328,7 +359,12 @@ public static class SQLPlugin
                 conn.Close();
             }
         }
-        return errMsg;
+        SqlContext.Pipe.Send(errMsg);
+    }
+
+    public static void PublishDBEvent()
+    {
+        PublishDBEventEx("");
     }
 }
 

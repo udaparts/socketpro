@@ -35,9 +35,9 @@ class Program
                 return;
             }
             CSqlServer sql = spSql.Seek();
-            bool ok = sql.Open("AdventureWorks2012", dr, DB_CONSTS.ENABLE_TABLE_UPDATE_MESSAGES);
+            bool ok = sql.Open("AdventureWorks", dr, DB_CONSTS.ENABLE_TABLE_UPDATE_MESSAGES);
             CParameterInfoArray vInfo = new CParameterInfoArray();
-            string sqlPrepare = "INSERT INTO AdventureWorks.Person.Address(AddressLine1,AddressLine2,City,StateProvinceID,PostalCode,SpatialLocation,rowguid,ModifiedDate)VALUES(@AddressLine1,@AddressLine2,@City,@StateProvinceID,@PostalCode,@SpatialLocation,@rowguid,@ModifiedDate)";
+            string sqlPrepare = "INSERT INTO Person.Address(AddressLine1,AddressLine2,City,StateProvinceID,PostalCode,SpatialLocation,rowguid,ModifiedDate)VALUES(@AddressLine1,@AddressLine2,@City,@StateProvinceID,@PostalCode,@SpatialLocation,@rowguid,@ModifiedDate)";
             CParameterInfo info = new CParameterInfo();
             info.DataType = tagVariantDataType.sdVT_BSTR;
             info.ColumnSize = 60;
@@ -76,7 +76,7 @@ class Program
             info.ParameterName = "@ModifiedDate";
             vInfo.Add(info);
             ok = sql.Prepare(sqlPrepare, dr, vInfo.ToArray());
-            ok = sql.BeginTrans();
+            ok = sql.BeginTrans(tagTransactionIsolation.tiReadCommited, dr);
 
             /*
             List<KeyValuePair<CDBColumnInfoArray, CDBVariantArray>> ra = new List<KeyValuePair<CDBColumnInfoArray, CDBVariantArray>>();
@@ -131,7 +131,7 @@ class Program
             Console.WriteLine("+++++ End rowsets +++");
             Console.WriteLine();
  */
-            ok = sql.EndTrans();
+            ok = sql.EndTrans(tagRollbackPlan.rpDefault, dr);
             Console.WriteLine("Press any key to close the application ......");
             Console.Read();
             sql.Close();

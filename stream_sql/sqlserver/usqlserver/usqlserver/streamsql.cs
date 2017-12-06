@@ -1,14 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using SocketProAdapter;
 using SocketProAdapter.ServerSide;
 using SocketProAdapter.UDB;
 using System.Data;
 using System.Data.SqlClient;
 using System.Data.SqlTypes;
-using Microsoft.SqlServer.Server;
 
 class CStreamSql : CClientPeer
 {

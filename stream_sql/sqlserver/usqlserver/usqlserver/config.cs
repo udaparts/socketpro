@@ -1,52 +1,42 @@
-﻿using System;
+﻿
+using System;
 using System.Data;
 using System.Data.SqlClient;
-using System.Data.SqlTypes;
-using Microsoft.SqlServer.Server;
 
 public static class SQLConfig
 {
-    private static void CreateTableConfig(SqlConnection conn)
+    private static string GetServerName(SqlConnection conn)
     {
-        //table doesn't exist
-        SqlCommand cmd = new SqlCommand("CREATE TABLE sp_streaming_db.dbo.config(mykey nvarchar(32)primary key,value nvarchar(max)not null)", conn);
-        cmd.ExecuteNonQuery();
-
-        string sqlInsert = string.Format("INSERT INTO sp_streaming_db.dbo.config VALUES('{0}','{1}')", "disable_ipv6", m_bNoV6 ? 1 : 0);
-        cmd.CommandText = sqlInsert;
-        cmd.ExecuteNonQuery();
-
-        sqlInsert = string.Format("INSERT INTO sp_streaming_db.dbo.config VALUES('{0}','{1}')", "main_threads", m_Param);
-        cmd.CommandText = sqlInsert;
-        cmd.ExecuteNonQuery();
-
-        sqlInsert = string.Format("INSERT INTO sp_streaming_db.dbo.config VALUES('{0}','{1}')", "enable_http_websocket", m_bWebSocket ? 1 : 0);
-        cmd.CommandText = sqlInsert;
-        cmd.ExecuteNonQuery();
-
-        sqlInsert = string.Format("INSERT INTO sp_streaming_db.dbo.config VALUES('{0}','{1}')", "port", m_nPort);
-        cmd.CommandText = sqlInsert;
-        cmd.ExecuteNonQuery();
-
-        sqlInsert = string.Format("INSERT INTO sp_streaming_db.dbo.config VALUES('{0}','{1}')", "services", m_services);
-        cmd.CommandText = sqlInsert;
-        cmd.ExecuteNonQuery();
-
-        sqlInsert = string.Format("INSERT INTO sp_streaming_db.dbo.config VALUES('{0}','{1}')", "store_or_pfx", m_store_or_pfx);
-        cmd.CommandText = sqlInsert;
-        cmd.ExecuteNonQuery();
-
-        sqlInsert = string.Format("INSERT INTO sp_streaming_db.dbo.config VALUES('{0}','{1}')", "subject_or_password", m_subject_or_password);
-        cmd.CommandText = sqlInsert;
-        cmd.ExecuteNonQuery();
-
-        sqlInsert = string.Format("INSERT INTO sp_streaming_db.dbo.config VALUES('{0}','{1}')", "read_only", m_readOnly ? 1 : 0);
-        cmd.CommandText = sqlInsert;
-        cmd.ExecuteNonQuery();
-
-        sqlInsert = string.Format("INSERT INTO sp_streaming_db.dbo.config VALUES('{0}','{1}')", "working_directory", m_WorkingDirectory);
-        cmd.CommandText = sqlInsert;
-        cmd.ExecuteNonQuery();
+        if (conn == null || conn.State != ConnectionState.Open)
+            throw new InvalidOperationException("An opened connection required");
+        string serverName = Environment.MachineName;
+        SqlDataReader dr = null;
+        string sqlCmd = "SELECT @@servername";
+        try
+        {
+            SqlCommand cmd = new SqlCommand(sqlCmd, conn);
+            dr = cmd.ExecuteReader();
+            if (dr.Read())
+            {
+                if (dr.IsDBNull(0))
+                {
+                    dr.Close();
+                    sqlCmd = "SELECT @@SERVICENAME";
+                    cmd.CommandText = sqlCmd;
+                    dr = cmd.ExecuteReader();
+                    if (dr.Read())
+                        serverName += ("\\" + dr.GetString(0));
+                }
+                else
+                    serverName = dr.GetString(0);
+            }
+        }
+        finally
+        {
+            if (dr != null)
+                dr.Close();
+        }
+        return serverName;
     }
 
     private static void SetConfig(SqlDataReader reader)
@@ -139,7 +129,7 @@ public static class SQLConfig
                 reader = cmd.ExecuteReader();
                 SetConfig(reader);
                 reader.Close();
-                m_server = MsSql.Utilities.GetServerName(conn);
+                m_server = GetServerName(conn);
             }
             finally
             {
