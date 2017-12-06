@@ -176,6 +176,18 @@ public class CDataSet {
         }
         return key0;
     }
+    
+    public int DeleteARow(String dbName, String tblName, Object []row) {
+        if (row == null)
+            return INVALID_VALUE;
+        if (GetColumnCount(dbName, tblName) != row.length)
+            return INVALID_VALUE;
+        java.util.HashMap<Integer, CDBColumnInfo> map = FindKeys(dbName, tblName);
+        Object []keys = map.keySet().toArray();
+        if (keys.length == 1)
+            return DeleteARow(dbName, tblName, row[(int)keys[0]]);
+        return DeleteARow(dbName, tblName, row[(int)keys[0]], row[(int)keys[1]]);
+    }
 
     public int DeleteARow(String dbName, String tblName, Object vtKey0, Object vtKey1) {
         if (dbName == null || tblName == null) {

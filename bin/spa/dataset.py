@@ -592,14 +592,31 @@ class CDataSet(object):
                     return 1
         return 0
 
-    def DeleteARow(self, dbName, tblName, key0, key1):
+    def DeleteARow(self, dbName, tblName, keys):
         deleted = 0
         if not isinstance(dbName, str) or not isinstance(tblName, str):
             return CDataSet.INVALID_VALUE
         with self._cs_:
             for tbl in self._ds_:
                 if self._Is_(tbl, dbName, tblName):
-                    r = tbl.FindARow(key0, key1)
+                    size = len(keys)
+                    cols = len(tbl._meta_)
+                    if size == 2:
+                        r = tbl.FindARow(keys[0], keys[1])
+                    elif size == 1:
+                        r = tbl.FindARow(keys[0], None)
+                    else:
+                        key0 = None
+                        key1 = None
+                        myKeys = tbl.Keys
+                        index = 0;
+                        for k, v in myKeys.items():
+                            if index == 0:
+                                key0 = keys[k]
+                            else:
+                                key1 = keys[k]
+                            index += 1
+                        r = tbl.FindARow(key0, key1)
                     if not isinstance(r, list):
                         return 0
                     tbl._vRow_.remove(r)

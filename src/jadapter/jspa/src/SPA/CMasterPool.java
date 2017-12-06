@@ -130,7 +130,9 @@ public class CMasterPool<THandler extends CCachedBaseHandler> extends CMasterSla
                                 for (int n = 5; n < vData.length; ++n) {
                                     v.add(vData[n]);
                                 }
-                                if (v.size() == 1) {
+                                if (v.size() == Cache.GetColumnCount(dbName, tblName)) {
+                                    ret = Cache.DeleteARow(dbName, tblName, v.toArray());
+                                } else if (v.size() == 1) {
                                     ret = Cache.DeleteARow(dbName, tblName, v.get(0));
                                 } else if (v.size() == 2) {
                                     ret = Cache.DeleteARow(dbName, tblName, v.get(0), v.get(1));

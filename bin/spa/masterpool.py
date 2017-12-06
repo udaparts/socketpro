@@ -66,10 +66,7 @@ class CMasterPool(CMasterSlaveBase):
             ret = 0
             if eventType == tagUpdateEvent.ueDelete:
                 keys = vData[5:]
-                key1 = None
-                if len(keys) > 1:
-                    key1 = keys[1]
-                ret = self._msTool_.DeleteARow(dbName, tblName, keys[0], key1)
+                ret = self._msTool_.DeleteARow(dbName, tblName, keys)
             elif eventType == tagUpdateEvent.ueInsert:
                 ret = self._msTool_.AddRows(dbName, tblName, vData[5:])
             elif eventType == tagUpdateEvent.ueUpdate:
