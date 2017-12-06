@@ -351,7 +351,7 @@ class CStreamSql : CClientPeer
         else
         {
             res = 0;
-            errMsg = "";
+            errMsg = m_defaultDB;
         }
         try
         {
@@ -439,6 +439,8 @@ class CStreamSql : CClientPeer
                 errMsg = err.Message;
             }
         }
+        if (res == 0)
+            errMsg = m_defaultDB;
         return (int)tagManagementSystem.msMsSQL;
     }
 
