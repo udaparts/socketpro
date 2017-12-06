@@ -8,7 +8,7 @@ namespace SocketProAdapter
     {
         public class CSqlServer : CAsyncDBHandler
         {
-            public const uint sidMsSql = SocketProAdapter.BaseServiceID.sidReserved + 0x6FFFFFF2; //asynchronous sqlite service id
+            public const uint sidMsSql = SocketProAdapter.BaseServiceID.sidReserved + 0x6FFFFFF2; //asynchronous MS SQL stream service id
             public CSqlServer()
                 : base(sidMsSql)
             {
