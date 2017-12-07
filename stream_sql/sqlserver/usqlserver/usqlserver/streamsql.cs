@@ -110,15 +110,15 @@ class CStreamSql : CClientPeer
             bool b = (bool)dr["AllowDBNull"];
             if (!b)
                 info.Flags = CDBColumnInfo.FLAG_NOT_NULL;
-#if PLUGIN_DEV
-
-#else
-            info.DBPath = SQLConfig.Server + "." + dr["BaseCatalogName"];
-#endif
+            info.DBPath = m_conn.DataSource + "." + m_conn.Database;
             info.TablePath = dr["BaseSchemaName"] + "." + dr["BaseTableName"];
             b = (bool)dr["IsAutoIncrement"];
             if (b)
+            {
+                info.Flags |= CDBColumnInfo.FLAG_PRIMARY_KEY;
+                info.Flags |= CDBColumnInfo.FLAG_UNIQUE;
                 info.Flags |= CDBColumnInfo.FLAG_AUTOINCREMENT;
+            }
             object isKey = dr["IsKey"];
             if (!(isKey is DBNull))
             {
@@ -166,7 +166,7 @@ class CStreamSql : CClientPeer
                     info.Precision = byte.Parse(dr["NumericPrecision"].ToString());
                     break;
                 case "datetimeoffset":
-                    info.DataType = tagVariantDataType.sdVT_BSTR;
+                    info.DataType = tagVariantDataType.sdVT_BSTR; //!!!! use string instead GetDateTimeOffset()
                     info.ColumnSize = 64;
                     break;
                 case "smallmoney":
@@ -180,7 +180,7 @@ class CStreamSql : CClientPeer
                 case "float":
                     info.DataType = tagVariantDataType.sdVT_R8;
                     break;
-                case "image":
+                case "image": //!!!! FILESTREAM attribute 
                     info.DataType = (tagVariantDataType.sdVT_UI1 | tagVariantDataType.sdVT_ARRAY);
                     info.ColumnSize = uint.MaxValue;
                     break;
@@ -222,7 +222,7 @@ class CStreamSql : CClientPeer
                         info.ColumnSize = uint.Parse(dr["ColumnSize"].ToString());
                     break;
                 case "xml":
-                    info.DataType = tagVariantDataType.sdVT_XML;
+                    info.DataType = tagVariantDataType.sdVT_BSTR; //!!!! use string instead GetSqlXml
                     info.ColumnSize = uint.MaxValue;
                     info.Flags |= CDBColumnInfo.FLAG_XML;
                     break;
@@ -230,7 +230,7 @@ class CStreamSql : CClientPeer
                     info.DataType = tagVariantDataType.sdVT_VARIANT;
                     break;
                 default:
-                    info.DataType = tagVariantDataType.sdVT_BSTR;
+                    info.DataType = tagVariantDataType.sdVT_BSTR; //!!!! use string instead GetValue
                     info.ColumnSize = 4 * 1024;
                     break;
             }
@@ -733,13 +733,7 @@ class CStreamSql : CClientPeer
         if ((flags & DB_CONSTS.ENABLE_TABLE_UPDATE_MESSAGES) == DB_CONSTS.ENABLE_TABLE_UPDATE_MESSAGES)
             m_EnableMessages = Push.Subscribe(DB_CONSTS.STREAMING_SQL_CHAT_GROUP_ID);
         SqlCommand cmd = new SqlCommand("select DB_NAME()", m_conn);
-        try
-        {
-            m_defaultDB = (string)cmd.ExecuteScalar();
-        }
-        finally
-        {
-        }
+        m_defaultDB = m_conn.Database;
         if (strConnection != null && strConnection.Length > 0)
         {
             string sql = "USE " + strConnection;
