@@ -9,12 +9,12 @@ using SocketProAdapter.UDB;
 using SocketProAdapter.ServerSide;
 using System.IO;
 
-public static class SQLPlugin
+public static class USqlStream
 {
     private static CSqlPlugin Plugin = null;
     private static object m_cs = new object();
 
-    static SQLPlugin()
+    static USqlStream()
     {
 
     }
@@ -30,63 +30,87 @@ public static class SQLPlugin
         }
     }
 
-    [SqlFunction(DataAccess = DataAccessKind.Read)]
-    public static SqlInt32 StopSPServer()
+    [SqlProcedure()]
+    public static void StopSPServer(out SqlInt32 res)
     {
-        int n = 100;
-        do
+        res = 0;
+        using (SqlConnection conn = new SqlConnection("context connection=true"))
         {
-            lock (m_cs)
+            try
             {
-                if (Plugin == null)
-                    break;
-                if (CSqlPlugin.Running)
+                conn.Open();
+                do
                 {
-                    Plugin.StopSocketProServer();
-                    n += 10;
-                }
-                Plugin.Dispose();
-                Plugin = null;
-            }
-            n += 1;
-        } while (false);
-        return n;
-    }
-
-    [SqlFunction(DataAccess = DataAccessKind.Read)]
-    public static SqlInt32 StartSPServer()
-    {
-        int n = 1000;
-        lock (m_cs)
-        {
-            if (Plugin == null)
-            {
-                n += 100;
-                if (!Directory.Exists(SQLConfig.WorkingDirectory))
-                    Directory.CreateDirectory(SQLConfig.WorkingDirectory);
-                Directory.SetCurrentDirectory(SQLConfig.WorkingDirectory);
-                Plugin = new CSqlPlugin(SQLConfig.Param);
-            }
-            if (!CSqlPlugin.Running)
-            {
-                n += 10;
-                if (SQLConfig.StoreOrPfx != null && SQLConfig.SubjectOrPassword != null && SQLConfig.StoreOrPfx.Length > 0 && SQLConfig.SubjectOrPassword.Length > 0)
-                {
-                    if (SQLConfig.StoreOrPfx.IndexOf(".pfx") == -1)
+                    lock (m_cs)
                     {
-                        //load cert and private key from windows system cert store
-                        Plugin.UseSSL(SQLConfig.StoreOrPfx/*"my"*/, SQLConfig.SubjectOrPassword, "");
+                        if (CSqlPlugin.Running)
+                        {
+                            Plugin.StopSocketProServer();
+                            res += 10;
+                        }
+                        Plugin = null;
                     }
-                    else
-                    {
-                        Plugin.UseSSL(SQLConfig.StoreOrPfx, "", SQLConfig.SubjectOrPassword);
-                    }
-                }
-                if (Plugin.Run(SQLConfig.Port, 16, !SQLConfig.NoV6))
-                    n += 1;
+                    res += 1;
+                } while (false);
+            }
+            catch (Exception err)
+            {
+                LogError(conn, err.Message);
+            }
+            finally
+            {
+                conn.Close();
             }
         }
-        return n;
+    }
+
+    [SqlProcedure()]
+    public static void StartSPServer(out SqlInt32 res)
+    {
+        res = 0;
+        using (SqlConnection conn = new SqlConnection("context connection=true"))
+        {
+            try
+            {
+                lock (m_cs)
+                {
+                    if (Plugin == null)
+                    {
+                        res += 100;
+                        if (!Directory.Exists(SQLConfig.WorkingDirectory))
+                            Directory.CreateDirectory(SQLConfig.WorkingDirectory);
+                        Directory.SetCurrentDirectory(SQLConfig.WorkingDirectory);
+                        Plugin = new CSqlPlugin(SQLConfig.Param);
+                    }
+                    if (!CSqlPlugin.Running)
+                    {
+                        res += 10;
+                        if (SQLConfig.StoreOrPfx != null && SQLConfig.SubjectOrPassword != null && SQLConfig.StoreOrPfx.Length > 0 && SQLConfig.SubjectOrPassword.Length > 0)
+                        {
+                            if (SQLConfig.StoreOrPfx.IndexOf(".pfx") == -1)
+                            {
+                                //load cert and private key from windows system cert store
+                                Plugin.UseSSL(SQLConfig.StoreOrPfx/*"my"*/, SQLConfig.SubjectOrPassword, "");
+                            }
+                            else
+                            {
+                                Plugin.UseSSL(SQLConfig.StoreOrPfx, "", SQLConfig.SubjectOrPassword);
+                            }
+                        }
+                        if (Plugin.Run(SQLConfig.Port, 16, !SQLConfig.NoV6))
+                            res += 1;
+                    }
+                }
+            }
+            catch (Exception err)
+            {
+                LogError(conn, err.Message);
+            }
+            finally
+            {
+                conn.Close();
+            }
+        }
     }
 
     private static object[] PublishInsert(SqlConnection conn, out DataTable dt)
@@ -102,7 +126,7 @@ public static class SQLPlugin
             int total = 5 + count;
             object[] msg = new object[total];
             msg[0] = (int)tagUpdateEvent.ueInsert;
-            if (reader.Read())
+            if (!reader.Read())
                 return null;
             for (int n = 5; n < total; ++n)
             {
@@ -191,7 +215,7 @@ public static class SQLPlugin
             int total = 5 + count;
             object[] msg = new object[total];
             msg[0] = (int)tagUpdateEvent.ueDelete;
-            if (reader.Read())
+            if (!reader.Read())
                 return null;
             for (int n = 5; n < total; ++n)
             {
@@ -221,7 +245,7 @@ public static class SQLPlugin
             throw new InvalidOperationException("An opened connection required");
         string[] v = null;
         SqlDataReader dr = null;
-        string sqlCmd = "select SUSER_NAME(), DB_NAME()";
+        string sqlCmd = "select SUSER_NAME(),DB_NAME()";
         try
         {
             SqlCommand cmd = new SqlCommand(sqlCmd, conn);
@@ -250,7 +274,7 @@ public static class SQLPlugin
     private static string GuessTablePath(SqlConnection conn, string dbName, DataTable dt)
     {
         SqlDataReader dr = null;
-        string sql = string.Format("select object_name(parent_id), object_schema_name(parent_id) from [{0}].sys.triggers where type='TA' and is_disabled=0 and is_instead_of_trigger=0 and is_ms_shipped=0 and parent_class=1", dbName);
+        string sql = string.Format("select OBJECT_NAME(parent_id),object_schema_name(am.object_id)from [{0}].sys.assembly_modules as am,[{0}].sys.triggers as t where t.object_id=am.object_id and assembly_method like 'PublishDMLEvent%' and assembly_class='USqlStream'", dbName);
         try
         {
             List<KeyValuePair<string, string>> v = new List<KeyValuePair<string, string>>();
@@ -265,7 +289,7 @@ public static class SQLPlugin
             dr = null;
             foreach (KeyValuePair<string, string> p in v)
             {
-                cmd.CommandText = string.Format("select COUNT(TABLE_NAME) as cols from information_schema.columns where TABLE_NAME='{0}' and TABLE_SCHEMA='{1}' group by TABLE_SCHEMA", p.Key, p.Value);
+                cmd.CommandText = string.Format("select COUNT(TABLE_NAME)as cols from information_schema.columns where TABLE_NAME='{0}' and TABLE_SCHEMA='{1}' group by TABLE_SCHEMA", p.Key, p.Value);
                 object obj = cmd.ExecuteScalar();
                 if (obj == null || obj is DBNull)
                     continue;
@@ -302,53 +326,85 @@ public static class SQLPlugin
         return "";
     }
 
-    public static void PublishDBEventEx(string tablePath)
+    public static int LogError(SqlConnection conn, string errMsg)
+    {
+        if (errMsg == null)
+            errMsg = "";
+        if (conn == null || conn.State != ConnectionState.Open)
+            return -1;
+        string sql = string.Format("UPDATE sp_streaming_db.dbo.config set value='{0}' WHERE mykey='{1}'", errMsg, "usql_streaming_last_error");
+        SqlCommand cmd = new SqlCommand(sql, conn);
+        try
+        {
+            return cmd.ExecuteNonQuery();
+        }
+        finally
+        {
+        }
+    }
+
+    public static void PublishDMLEvent()
     {
         SqlTriggerContext tc = SqlContext.TriggerContext;
-        if (!SqlContext.IsAvailable || tc == null || Plugin == null || !CSocketProServer.Running)
+        if (!SqlContext.IsAvailable || tc == null)
             return;
         string errMsg = "";
         using (SqlConnection conn = new SqlConnection("context connection=true"))
         {
             try
             {
-                conn.Open();
-                string[] v = GetUSqlServerKeys(conn);
-                object[] msg = null;
-                DataTable dt = null;
-                switch (tc.TriggerAction)
+                if (CSqlPlugin.Running)
                 {
-                    case TriggerAction.Update:
-                        msg = PublishUpdate(conn, out dt);
-                        break;
-                    case TriggerAction.Delete:
-                        msg = PublishDelete(conn, out dt);
-                        break;
-                    case TriggerAction.Insert:
-                        msg = PublishInsert(conn, out dt);
-                        break;
-                    default:
-                        errMsg = "Unknown DML event";
-                        break;
-                }
-                errMsg = "Unknown error";
-                if (dt != null && msg != null)
-                {
-                    msg[1] = SQLConfig.Server;
-                    msg[2] = v[0];
-                    msg[3] = v[1];
-                    if (tablePath == null || tablePath.Length == 0)
-                        tablePath = GuessTablePath(conn, v[1], dt);
-                    if (tablePath != null && tablePath.Length > 0)
+                    conn.Open();
+                    string[] v = GetUSqlServerKeys(conn);
+                    object[] msg = null;
+                    DataTable dt = null;
+                    switch (tc.TriggerAction)
                     {
-                        msg[4] = tablePath;
-                        lock (m_cs)
+                        case TriggerAction.Update:
+                            msg = PublishUpdate(conn, out dt);
+                            if (dt == null)
+                                errMsg = "DELETED schema table not available";
+                            break;
+                        case TriggerAction.Delete:
+                            msg = PublishDelete(conn, out dt);
+                            if (dt == null)
+                                errMsg = "DELETED schema table not available";
+                            break;
+                        case TriggerAction.Insert:
+                            msg = PublishInsert(conn, out dt);
+                            if (dt == null)
+                                errMsg = "INSERTED schema table not available";
+                            break;
+                        default:
+                            errMsg = "Unknown DML event";
+                            break;
+                    }
+                    if (msg == null && errMsg.Length == 0)
+                        errMsg = "Trigger record not obtained";
+                    if (dt != null && msg != null)
+                    {
+                        msg[1] = SQLConfig.Server;
+                        msg[2] = v[0];
+                        msg[3] = v[1];
+                        string tblName = GuessTablePath(conn, v[1], dt);
+                        if (tblName != null && tblName.Length > 0)
                         {
-                            CSocketProServer.PushManager.Publish(msg, DB_CONSTS.STREAMING_SQL_CHAT_GROUP_ID);
-                            errMsg = "";
+                            msg[4] = GuessTablePath(conn, v[1], dt);
+                            lock (m_cs)
+                            {
+                                if (!CSocketProServer.PushManager.Publish(msg, DB_CONSTS.STREAMING_SQL_CHAT_GROUP_ID))
+                                    errMsg = "Message publishing failed";
+                            }
+                        }
+                        else
+                        {
+                            errMsg = "Triggered table not guessed out";
                         }
                     }
                 }
+                else
+                    errMsg = "MS SQL streaming plugin not running";
             }
             catch (Exception err)
             {
@@ -356,15 +412,11 @@ public static class SQLPlugin
             }
             finally
             {
+                LogError(conn, errMsg);
                 conn.Close();
             }
         }
         SqlContext.Pipe.Send(errMsg);
-    }
-
-    public static void PublishDBEvent()
-    {
-        PublishDBEventEx("");
     }
 }
 

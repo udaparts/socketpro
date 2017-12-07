@@ -25,7 +25,7 @@ INSERT INTO config VALUES('store_or_pfx','')
 GO
 INSERT INTO config VALUES('subject_or_password','')
 GO
-INSERT INTO config VALUES('read_only','1')
+INSERT INTO config VALUES('usql_streaming_last_error','')
 GO
 INSERT INTO config VALUES('working_directory','C:\ProgramData\\MSSQL\')
 GO
@@ -44,16 +44,10 @@ WITH PERMISSION_SET = UNSAFE
 GO
 
 
-CREATE FUNCTION StartSPServer()
-returns int
-As
-	EXTERNAL NAME usqlserver.SQLPlugin.StartSPServer
+CREATE PROCEDURE StartSPServer(@res int output)As EXTERNAL NAME usqlserver.USqlStream.StartSPServer
 GO
 
-CREATE FUNCTION  StopSPServer()
-returns int
-As
-	EXTERNAL NAME usqlserver.SQLPlugin.StopSPServer
+CREATE PROCEDURE StopSPServer(@res int output)As EXTERNAL NAME usqlserver.USqlStream.StopSPServer
 GO	
 
 CREATE TRIGGER start_sp_server
@@ -61,17 +55,20 @@ ON ALL SERVER
 FOR LOGON
 AS
 BEGIN
-	if sp_streaming_db.dbo.StartSPServer() < 0
-	BEGIN
-		ROLLBACK;
-	END
+	DECLARE @res int
+	EXEC sp_streaming_db.dbo.StartSPServer @res OUTPUT -- assuming the procedure created within sp_streaming_db
+	if @res < 0
+		BEGIN
+			ROLLBACK;
+		END
 END
 GO
 
+CREATE TRIGGER tr_config ON config AFTER INSERT,DELETE,UPDATE AS EXTERNAL NAME usqlserver.USqlStream.PublishDMLEvent
+GO
 
--- CREATE TRIGGER tr_config ON config AFTER INSERT,DELETE,UPDATE AS EXTERNAL NAME usqlserver.SQLPlugin.PublishDBEvent
-
-select sp_streaming_db.dbo.StartSPServer()
+DECLARE @res int
+EXEC sp_streaming_db.dbo.StartSPServer @res OUTPUT -- assuming the procedure created within sp_streaming_db
 GO
 
 -- use cmd and execute the following to check port
