@@ -9,13 +9,17 @@ class CSqlPlugin : CSocketProServer
 {
     public CSqlPlugin(int param = 0)
         : base(param)
-    {  
+    {
     }
 
     [ServiceAttr(CStreamSql.sidMsSql)]
     internal CSocketProService<CStreamSql> StreamSql = new CSocketProService<CStreamSql>();
 
+#if PLUGIN_DEV
+
+#else
     internal CSocketProService<CMyHttpPeer> m_http = new CSocketProService<CMyHttpPeer>();
+#endif
 
     public override bool Run(uint port, uint maxBacklog, bool v6Supported)
     {
@@ -37,20 +41,23 @@ class CSqlPlugin : CSocketProServer
 
     private bool DoDBAuthentication(ulong hSocket, string userId, string password)
     {
+#if PLUGIN_DEV
+        string connection = string.Format("Server={0};User Id={1};Password={2}", "(local)", userId, password);
+#else
         string connection = string.Format("Server={0};User Id={1};Password={2}", SQLConfig.Server, userId, password);
+#endif
         try
         {
             SqlConnection conn = new SqlConnection(connection);
             conn.Open();
             lock (CStreamSql.m_csPeer)
             {
+                //Remember connection without re-connecting. The database session is closed when socket is closed
                 CStreamSql.m_mapConnection.Add(hSocket, conn);
             }
             return true;
         }
-        catch
-        {
-        }
+        catch { }
         return false;
     }
 

@@ -80,6 +80,7 @@ class CStreamSql : CClientPeer
         CloseDb(out res);
         if (m_conn != null)
         {
+            //we close a database session when a socket is closed
             try
             {
                 m_conn.Close();
@@ -499,6 +500,7 @@ class CStreamSql : CClientPeer
     [RequestAttr(DB_CONSTS.idClose, true)]
     private string CloseDb(out int res)
     {
+        //we don't close a database session when a client call the method but close it when a socket is closed, which we believe the approach is fit with client socket pool architecture
         string errMsg = "";
         res = 0;
         m_vParam.Clear();

@@ -45,12 +45,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\usqlserver\usqlserver\config.cs">
-      <Link>config.cs</Link>
-    </Compile>
-    <Compile Include="..\usqlserver\usqlserver\myhttppeer.cs">
-      <Link>myhttppeer.cs</Link>
-    </Compile>
     <Compile Include="..\usqlserver\usqlserver\myserver.cs">
       <Link>myserver.cs</Link>
     </Compile>
