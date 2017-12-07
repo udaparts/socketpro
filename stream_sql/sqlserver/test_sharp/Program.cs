@@ -21,7 +21,7 @@ class Program
     {
         Console.WriteLine("Remote host: ");
         string host = Console.ReadLine();
-        CConnectionContext cc = new CConnectionContext(host, 20903, "sa", "Smash123");
+        CConnectionContext cc = new CConnectionContext(host, 20901, "sa", "Smash123");
 #if DEBUG
         using (CSocketPool<CSqlServer> spSql = new CSocketPool<CSqlServer>(true, 3600 * 1000))
 #else
@@ -41,6 +41,7 @@ class Program
             };
 
             bool ok = sql.Open("AdventureWorks", dr, DB_CONSTS.ENABLE_TABLE_UPDATE_MESSAGES);
+            ok = sql.Execute("select * from Person.Address", null, (h, vData0) => { }, (h) => { }, true, true);
             CParameterInfoArray vInfo = new CParameterInfoArray();
             string sqlPrepare = "INSERT INTO Person.Address(AddressLine1,AddressLine2,City,StateProvinceID,PostalCode,SpatialLocation,rowguid,ModifiedDate)VALUES(@AddressLine1,@AddressLine2,@City,@StateProvinceID,@PostalCode,@SpatialLocation,@rowguid,@ModifiedDate)";
             CParameterInfo info = new CParameterInfo();

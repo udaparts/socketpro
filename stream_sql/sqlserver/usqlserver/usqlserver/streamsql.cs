@@ -14,6 +14,8 @@ class CStreamSql : CClientPeer
     private CUQueue m_Blob = new CUQueue();
     private SqlConnection m_conn = null;
     private SqlCommand m_sqlPrepare = null;
+    private ulong m_indexCall = 0;
+    private ushort m_outputs = 0;
     internal static object m_csPeer = new object();
     internal static Dictionary<ulong, SqlConnection> m_mapConnection = new Dictionary<ulong, SqlConnection>(); //protected by m_csPeer
 
@@ -27,6 +29,9 @@ class CStreamSql : CClientPeer
     {
         switch (reqId)
         {
+            case tagBaseRequestID.idPing:
+                ResetMemories();
+                break;
             case tagBaseRequestID.idCancel:
                 if (m_trans != null)
                 {
@@ -93,12 +98,329 @@ class CStreamSql : CClientPeer
         }
     }
 
+    private bool PushRowsetHeader(SqlDataReader reader, out CDBColumnInfoArray vCol)
+    {
+        vCol = new CDBColumnInfoArray();
+        DataTable dt = reader.GetSchemaTable();
+        int cols = reader.FieldCount;
+        for (int n = 0; n < cols; ++n)
+        {
+            DataRow dr = dt.Rows[n];
+            CDBColumnInfo info = new CDBColumnInfo();
+            bool b = (bool)dr["AllowDBNull"];
+            if (!b)
+                info.Flags = CDBColumnInfo.FLAG_NOT_NULL;
+#if PLUGIN_DEV
+
+#else
+            info.DBPath = SQLConfig.Server + "." + dr["BaseCatalogName"];
+#endif
+            info.TablePath = dr["BaseSchemaName"] + "." + dr["BaseTableName"];
+            b = (bool)dr["IsAutoIncrement"];
+            if (b)
+                info.Flags |= CDBColumnInfo.FLAG_AUTOINCREMENT;
+            object isKey = dr["IsKey"];
+            if (!(isKey is DBNull))
+            {
+                b = (bool)isKey;
+                info.Flags |= CDBColumnInfo.FLAG_PRIMARY_KEY;
+            }
+            b = (bool)dr["IsUnique"];
+            if (b)
+                info.Flags |= CDBColumnInfo.FLAG_UNIQUE;
+            b = (bool)dr["IsRowVersion"];
+            if (b)
+                info.Flags |= CDBColumnInfo.FLAG_ROWID;
+            string data_type = reader.GetDataTypeName(n);
+            info.DeclaredType = data_type;
+            info.DisplayName = dr["ColumnName"].ToString();
+            info.OriginalName = dr["BaseColumnName"].ToString();
+            switch (data_type)
+            {
+                case "bigint":
+                    info.DataType = tagVariantDataType.sdVT_I8;
+                    break;
+                case "bit":
+                    info.DataType = tagVariantDataType.sdVT_BOOL;
+                    info.Flags |= CDBColumnInfo.FLAG_IS_BIT;
+                    break;
+                case "timestamp":
+                case "rowversion":
+                case "binary":
+                    info.DataType = (tagVariantDataType.sdVT_UI1 | tagVariantDataType.sdVT_ARRAY);
+                    info.ColumnSize = uint.Parse(dr["ColumnSize"].ToString());
+                    break;
+                case "nchar":
+                case "char":
+                    info.DataType = tagVariantDataType.sdVT_BSTR;
+                    info.ColumnSize = uint.Parse(dr["ColumnSize"].ToString());
+                    break;
+                case "time":
+                case "smalldatetime":
+                case "date":
+                case "datetime":
+                    info.DataType = tagVariantDataType.sdVT_DATE;
+                    break;
+                case "datetime2":
+                    info.DataType = tagVariantDataType.sdVT_DATE;
+                    info.Precision = byte.Parse(dr["NumericPrecision"].ToString());
+                    break;
+                case "datetimeoffset":
+                    info.DataType = tagVariantDataType.sdVT_BSTR;
+                    info.ColumnSize = 64;
+                    break;
+                case "smallmoney":
+                case "numeric":
+                case "money":
+                case "decimal":
+                    info.DataType = tagVariantDataType.sdVT_DECIMAL;
+                    info.Precision = byte.Parse(dr["NumericPrecision"].ToString());
+                    info.Precision = byte.Parse(dr["NumericScale"].ToString());
+                    break;
+                case "float":
+                    info.DataType = tagVariantDataType.sdVT_R8;
+                    break;
+                case "image":
+                    info.DataType = (tagVariantDataType.sdVT_UI1 | tagVariantDataType.sdVT_ARRAY);
+                    info.ColumnSize = uint.MaxValue;
+                    break;
+                case "int":
+                    info.DataType = tagVariantDataType.sdVT_INT;
+                    break;
+                case "text":
+                case "ntext":
+                    info.DataType = tagVariantDataType.sdVT_BSTR;
+                    info.ColumnSize = uint.MaxValue;
+                    break;
+                case "varchar":
+                case "nvarchar":
+                    info.DataType = tagVariantDataType.sdVT_BSTR;
+                    b = (bool)dr["IsLong"];
+                    if (b)
+                        info.ColumnSize = uint.MaxValue;
+                    else
+                        info.ColumnSize = uint.Parse(dr["ColumnSize"].ToString());
+                    break;
+                case "real":
+                    info.DataType = tagVariantDataType.sdVT_R4;
+                    break;
+                case "smallint":
+                    info.DataType = tagVariantDataType.sdVT_I2;
+                    break;
+                case "tinyint":
+                    info.DataType = tagVariantDataType.sdVT_UI1;
+                    break;
+                case "uniqueidentifier":
+                    info.DataType = tagVariantDataType.sdVT_CLSID;
+                    break;
+                case "varbinary":
+                    info.DataType = (tagVariantDataType.sdVT_UI1 | tagVariantDataType.sdVT_ARRAY);
+                    b = (bool)dr["IsLong"];
+                    if (b)
+                        info.ColumnSize = uint.MaxValue;
+                    else
+                        info.ColumnSize = uint.Parse(dr["ColumnSize"].ToString());
+                    break;
+                case "xml":
+                    info.DataType = tagVariantDataType.sdVT_XML;
+                    info.ColumnSize = uint.MaxValue;
+                    info.Flags |= CDBColumnInfo.FLAG_XML;
+                    break;
+                case "sql_variant":
+                    info.DataType = tagVariantDataType.sdVT_VARIANT;
+                    break;
+                default:
+                    info.DataType = tagVariantDataType.sdVT_BSTR;
+                    info.ColumnSize = 4 * 1024;
+                    break;
+            }
+            vCol.Add(info);
+        }
+        uint res = SendResult(DB_CONSTS.idRowsetHeader, vCol, m_indexCall);
+        if (res == SOCKET_NOT_FOUND || res == REQUEST_CANCELED)
+            return false;
+        return true;
+    }
+
+    private bool PushToClient(SqlDataReader reader)
+    {
+        CDBColumnInfoArray vCol;
+        if (!PushRowsetHeader(reader, out vCol))
+            return false;
+        return PushRows(reader, vCol);
+    }
+
+    private bool PushRows(SqlDataReader reader, CDBColumnInfoArray vCol)
+    {
+        using (CScopeUQueue sb = new CScopeUQueue())
+        {
+            while (reader.Read())
+            {
+
+            }
+        }
+        return true;
+    }
+
+    [RequestAttr(DB_CONSTS.idExecute, true)]
+    private ulong Execute(string sql, bool rowset, bool meta, bool lastInsertId, ulong index, out long affected, out int res, out string errMsg, out object vtId)
+    {
+        ulong fail_ok = 0;
+        m_indexCall = index;
+        affected = 0;
+        res = 0;
+        errMsg = "";
+        vtId = null;
+        ulong fails = m_fails;
+        ulong oks = m_oks;
+        bool HeaderSent = false;
+        bool ok = true;
+        SqlDataReader reader = null;
+        try
+        {
+            SqlCommand cmd = new SqlCommand(sql, m_conn);
+            if (rowset)
+            {
+                reader = cmd.ExecuteReader(meta ? CommandBehavior.KeyInfo : CommandBehavior.Default);
+                while (reader.FieldCount > 0 && ok)
+                {
+                    ok = PushToClient(reader);
+                    HeaderSent = true;
+                    if (!reader.NextResult())
+                        break;
+                }
+                if (reader.RecordsAffected > 0)
+                    affected += reader.RecordsAffected;
+            }
+            else
+            {
+                int ret = cmd.ExecuteNonQuery();
+                if (ret > 0)
+                    affected += ret;
+            }
+            ++m_oks;
+        }
+        catch (SqlException err)
+        {
+            if (res == 0)
+            {
+                res = err.ErrorCode;
+                errMsg = err.Message;
+            }
+            ++m_fails;
+        }
+        catch (Exception err)
+        {
+            if (res == 0)
+            {
+                res = -1;
+                errMsg = err.Message;
+            }
+            ++m_fails;
+        }
+        finally
+        {
+            if (reader != null)
+                reader.Close();
+        }
+        if (!HeaderSent && ok)
+        {
+            CDBColumnInfoArray v = new CDBColumnInfoArray();
+            SendResult(DB_CONSTS.idRowsetHeader, v, index);
+        }
+        fail_ok = ((m_fails - fails) << 32);
+        fail_ok += (m_oks - oks);
+        return fail_ok;
+    }
+
+    [RequestAttr(DB_CONSTS.idExecuteParameters, true)]
+    private ulong ExecuteParameters(bool rowset, bool meta, bool lastInsertId, ulong index, out long affected, out int res, out string errMsg, out object vtId)
+    {
+        ulong fail_ok = 0;
+        m_indexCall = index;
+        affected = 0;
+        res = 0;
+        errMsg = "";
+        vtId = null;
+        ulong fails = m_fails;
+        ulong oks = m_oks;
+        do
+        {
+            if (m_sqlPrepare == null || m_sqlPrepare.Parameters.Count == 0 || m_vParam.Count == 0)
+            {
+                res = -2;
+                errMsg = "No parameter specified";
+                ++m_fails;
+                break;
+            }
+            int cols = m_sqlPrepare.Parameters.Count;
+            if ((m_vParam.Count % cols) != 0)
+            {
+                res = -2;
+                errMsg = "Bad parameter data array size";
+                ++m_fails;
+                break;
+            }
+            int rows = m_vParam.Count / cols;
+            for (int r = 0; r < rows; ++r)
+            {
+                try
+                {
+                    int c = 0;
+                    foreach (SqlParameter p in m_sqlPrepare.Parameters)
+                    {
+                        p.Value = m_vParam[r * cols + c];
+                        ++c;
+                    }
+                    if (rowset)
+                    {
+                        SqlDataReader reader = m_sqlPrepare.ExecuteReader(meta ? CommandBehavior.KeyInfo : CommandBehavior.Default);
+                        while (reader.FieldCount > 0)
+                        {
+                            if (reader.RecordsAffected > 0)
+                                affected += reader.RecordsAffected;
+
+                        }
+                    }
+                    else
+                    {
+                        int ret = m_sqlPrepare.ExecuteNonQuery();
+                        if (ret > 0)
+                            affected += ret;
+                    }
+                    ++m_oks;
+                }
+                catch (SqlException err)
+                {
+                    if (res == 0)
+                    {
+                        res = err.ErrorCode;
+                        errMsg = err.Message;
+                    }
+                    ++m_fails;
+                }
+                catch (Exception err)
+                {
+                    if (res == 0)
+                    {
+                        res = -1;
+                        errMsg = err.Message;
+                    }
+                    ++m_fails;
+                }
+            }
+        } while (false);
+        fail_ok = ((m_fails - fails) << 32);
+        fail_ok += (m_oks - oks);
+        return fail_ok;
+    }
+
     [RequestAttr(DB_CONSTS.idPrepare, true)]
     private uint Prepare(string sql, CParameterInfoArray vColInfo, out int res, out string errMsg)
     {
         res = 0;
         errMsg = "";
-        ushort outputs = 0;
+        m_outputs = 0;
         uint parameters = 0;
         try
         {
@@ -108,8 +430,6 @@ class CStreamSql : CClientPeer
                 SqlParameter param = null;
                 foreach (CParameterInfo info in vColInfo)
                 {
-                    if (info.Direction >= tagParameterDirection.pdOutput)
-                        ++outputs;
                     switch (info.DataType)
                     {
                         case tagVariantDataType.sdVT_BYTES:
@@ -199,15 +519,15 @@ class CStreamSql : CClientPeer
                             break;
                         case tagParameterDirection.pdInputOutput:
                             param.Direction = ParameterDirection.InputOutput;
-                            ++outputs;
+                            ++m_outputs;
                             break;
                         case tagParameterDirection.pdOutput:
                             param.Direction = ParameterDirection.Output;
-                            ++outputs;
+                            ++m_outputs;
                             break;
                         case tagParameterDirection.pdReturnValue:
                             param.Direction = ParameterDirection.ReturnValue;
-                            ++outputs;
+                            ++m_outputs;
                             break;
                         default:
                             res = -2;
@@ -218,7 +538,7 @@ class CStreamSql : CClientPeer
                     }
                     m_sqlPrepare.Parameters.Add(param);
                 }
-                parameters = outputs;
+                parameters = m_outputs;
                 parameters <<= 16;
                 parameters += (ushort)vColInfo.Count;
             }
@@ -230,6 +550,7 @@ class CStreamSql : CClientPeer
             errMsg = err.Message;
             m_sqlPrepare = null;
             parameters = 0;
+            m_outputs = 0;
         }
         catch (Exception err)
         {
@@ -237,6 +558,7 @@ class CStreamSql : CClientPeer
             errMsg = err.Message;
             m_sqlPrepare = null;
             parameters = 0;
+            m_outputs = 0;
         }
         return parameters;
     }
@@ -519,6 +841,7 @@ class CStreamSql : CClientPeer
             {
                 try
                 {
+                    //reset back to original default database
                     SqlCommand cmd = new SqlCommand("USE " + m_defaultDB, m_conn);
                     int ret = cmd.ExecuteNonQuery();
                 }
