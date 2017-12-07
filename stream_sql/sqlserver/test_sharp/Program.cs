@@ -35,7 +35,12 @@ class Program
                 return;
             }
             CSqlServer sql = spSql.Seek();
-            bool ok = sql.Open("AdventureWorks", dr, DB_CONSTS.ENABLE_TABLE_UPDATE_MESSAGES);
+            sql.AttachedClientSocket.Push.OnPublish += (sender, messageSender, group, msg) =>
+            {
+                msg = null;
+            };
+
+            bool ok = sql.Open("AdventureWorks2012", dr, DB_CONSTS.ENABLE_TABLE_UPDATE_MESSAGES);
             CParameterInfoArray vInfo = new CParameterInfoArray();
             string sqlPrepare = "INSERT INTO Person.Address(AddressLine1,AddressLine2,City,StateProvinceID,PostalCode,SpatialLocation,rowguid,ModifiedDate)VALUES(@AddressLine1,@AddressLine2,@City,@StateProvinceID,@PostalCode,@SpatialLocation,@rowguid,@ModifiedDate)";
             CParameterInfo info = new CParameterInfo();

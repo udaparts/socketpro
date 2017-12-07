@@ -408,7 +408,7 @@ class CStreamSql : CClientPeer
         res = 0;
         errMsg = "";
         if ((flags & DB_CONSTS.ENABLE_TABLE_UPDATE_MESSAGES) == DB_CONSTS.ENABLE_TABLE_UPDATE_MESSAGES)
-            m_EnableMessages = Push.Subscribe(DB_CONSTS.ENABLE_TABLE_UPDATE_MESSAGES);
+            m_EnableMessages = Push.Subscribe(DB_CONSTS.STREAMING_SQL_CHAT_GROUP_ID);
         SqlCommand cmd = new SqlCommand("select DB_NAME()", m_conn);
         try
         {
