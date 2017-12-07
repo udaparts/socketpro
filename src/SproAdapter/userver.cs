@@ -273,6 +273,7 @@ namespace SocketProAdapter
 
             public virtual void StopSocketProServer()
             {
+                Clean();
                 ServerCoreLoader.PostQuitPump();
                 ServerCoreLoader.StopSocketProServer();
             }
@@ -746,13 +747,23 @@ namespace SocketProAdapter
 
             private static CSocketProServer m_sps = null;
 
-            public void Dispose()
+            private void Clean()
             {
                 if (m_sps != null)
                 {
+                    ServerCoreLoader.SetOnAccept(null);
+                    ServerCoreLoader.SetOnClose(null);
+                    ServerCoreLoader.SetOnIdle(null);
+                    ServerCoreLoader.SetOnIsPermitted(null);
+                    ServerCoreLoader.SetOnSSLHandShakeCompleted(null);
                     ServerCoreLoader.UninitSocketProServer();
                     m_sps = null;
                 }
+            }
+
+            public void Dispose()
+            {
+                Clean();
             }
 
             #endregion

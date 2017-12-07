@@ -39,19 +39,16 @@ public static class USqlStream
             try
             {
                 conn.Open();
-                do
+                lock (m_cs)
                 {
-                    lock (m_cs)
+                    if (CSqlPlugin.Running)
                     {
-                        if (CSqlPlugin.Running)
-                        {
-                            Plugin.StopSocketProServer();
-                            res += 10;
-                        }
-                        Plugin = null;
+                        Plugin.StopSocketProServer();
+                        res += 10;
                     }
-                    res += 1;
-                } while (false);
+                    Plugin = null;
+                }
+                res += 1;
             }
             catch (Exception err)
             {
