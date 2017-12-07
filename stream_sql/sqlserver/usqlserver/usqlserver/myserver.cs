@@ -19,6 +19,9 @@ class CSqlPlugin : CSocketProServer
 
     public override bool Run(uint port, uint maxBacklog, bool v6Supported)
     {
+#if PLUGIN_DEV
+
+#else
         if (SQLConfig.HttpWebSocket)
             m_http.AddMe(BaseServiceID.sidHTTP);
         string[] vService = SQLConfig.Services.Split(';');
@@ -27,6 +30,7 @@ class CSqlPlugin : CSocketProServer
             if (s.Length > 0)
                 DllManager.AddALibrary(s);
         }
+#endif
         PushManager.AddAChatGroup(DB_CONSTS.STREAMING_SQL_CHAT_GROUP_ID, "Subscribe/publish for MS SQL SERVER Table events, DELETE, INSERT and UPDATE");
         return base.Run(port, maxBacklog, v6Supported);
     }
