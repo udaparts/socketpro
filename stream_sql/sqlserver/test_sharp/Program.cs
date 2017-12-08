@@ -12,9 +12,24 @@ class Program
         Console.WriteLine("res = {0}, errMsg: {1}", res, errMsg);
     };
 
-    static CSqlServer.DExecuteResult er = (handler, res, errMsg, affected, fail_ok, id) =>
+    static CAsyncDBHandler.DRowsetHeader rh = (h) =>
     {
-        Console.WriteLine("affected = {0}, fails = {1}, oks = {2}, res = {3}, errMsg: {4}, last insert id = {5}", affected, (uint)(fail_ok >> 32), (uint)fail_ok, res, errMsg, id);
+        CDBColumnInfoArray v = h.ColumnInfo;
+        if (v.Count > 0)
+            Console.WriteLine("dbPath={0}, tablePath={1}", v[0].DBPath, v[0].TablePath);
+    };
+
+    static CAsyncDBHandler.DExecuteResult er = (h, res, errMsg, affected, fail_ok, vtId) =>
+    {
+        if (res != 0)
+            Console.WriteLine("Error code = {0}, error message = {1}, affected = {2}, oks = {3}, fails = {4}", res, errMsg, affected, (uint)fail_ok, (uint)(fail_ok >> 32));
+        else
+            Console.WriteLine("Affected = {0}, oks = {1}, fails = {2}", affected, (uint)fail_ok, (uint)(fail_ok >> 32));
+    };
+
+    static CAsyncDBHandler.DRows rows = (h, vData) =>
+    {
+        Console.WriteLine("Rows = " + vData.Count / h.ColumnInfo.Count);
     };
 
     static void Main(string[] args)
@@ -48,15 +63,8 @@ class Program
                 }
             };
 
-            CAsyncDBHandler.DRowsetHeader rh = (h) =>
-            {
-                CDBColumnInfoArray v = h.ColumnInfo;
-                if (v.Count > 0)
-                    Console.WriteLine("dbPath={0}, tablePath={1}", v[0].DBPath, v[0].TablePath);
-            };
-
-            bool ok = sql.Open("AdventureWorks2012", dr, DB_CONSTS.ENABLE_TABLE_UPDATE_MESSAGES);
-            ok = sql.Execute("select * from Person.Address;select * from sp_streaming_db..config;select * from AdventureWorksDW2012..DimProduct", null, (h, vData0) => { }, rh, true, true);
+            bool ok = sql.Open("AdventureWorks", dr, DB_CONSTS.ENABLE_TABLE_UPDATE_MESSAGES);
+            ok = sql.Execute("select * from Production.ProductModel;select * from sp_streaming_db.dbo.config;select * from AdventureWorksDW..DimProduct;select * from Production.ProductPhoto;;select * from Sales.Store", er, rows, rh, true, false);
             CParameterInfoArray vInfo = new CParameterInfoArray();
             string sqlPrepare = "INSERT INTO Person.Address(AddressLine1,AddressLine2,City,StateProvinceID,PostalCode,SpatialLocation,rowguid,ModifiedDate)VALUES(@AddressLine1,@AddressLine2,@City,@StateProvinceID,@PostalCode,@SpatialLocation,@rowguid,@ModifiedDate)";
             CParameterInfo info = new CParameterInfo();

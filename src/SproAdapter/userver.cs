@@ -261,10 +261,13 @@ namespace SocketProAdapter
                             throw new InvalidOperationException("Failed in registering service = " + sas[0].ServiceID + ", and check if the service ID is duplicated with the previous one or if the service ID is less or equal to SocketProAdapter.BaseServiceID.sidReserved");
                     }
                 }
-                if (!CBaseService.m_bRegEvent)
+                lock (CBaseService.m_csService)
                 {
-                    ServerCoreLoader.SetThreadEvent(TE);
-                    CBaseService.m_bRegEvent = true;
+                    if (!CBaseService.m_bRegEvent)
+                    {
+                        ServerCoreLoader.SetThreadEvent(TE);
+                        CBaseService.m_bRegEvent = true;
+                    }
                 }
                 bool ok = ServerCoreLoader.StartSocketProServer(port, maxBacklog, v6Supported);
                 CBaseService.m_nMainThreads = uint.MaxValue;
@@ -756,7 +759,14 @@ namespace SocketProAdapter
                     ServerCoreLoader.SetOnIdle(null);
                     ServerCoreLoader.SetOnIsPermitted(null);
                     ServerCoreLoader.SetOnSSLHandShakeCompleted(null);
-                    ServerCoreLoader.UninitSocketProServer();
+                    lock (CBaseService.m_csService)
+                    {
+                        if (CBaseService.m_bRegEvent)
+                        {
+                            ServerCoreLoader.SetThreadEvent(null);
+                            CBaseService.m_bRegEvent = false;
+                        }
+                    }
                     m_sps = null;
                 }
             }

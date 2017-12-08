@@ -11,7 +11,7 @@ namespace SocketProAdapter
         {
             internal static bool m_bRegEvent = false;
             internal static uint m_nMainThreads = uint.MaxValue;
-            private static object m_csService = new object();
+            internal static object m_csService = new object();
             private static List<CBaseService> m_lstService = new List<CBaseService>();
             private uint m_svsId;
 

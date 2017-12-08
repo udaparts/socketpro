@@ -29,9 +29,6 @@ class CStreamSql : CClientPeer
     {
         switch (reqId)
         {
-            case tagBaseRequestID.idPing:
-                ResetMemories();
-                break;
             case tagBaseRequestID.idCancel:
                 if (m_trans != null)
                 {
@@ -58,6 +55,7 @@ class CStreamSql : CClientPeer
         {
             case DB_CONSTS.idExecuteParameters:
                 m_vParam.Clear();
+                ResetMemories();
                 break;
             default:
                 break;
@@ -82,7 +80,7 @@ class CStreamSql : CClientPeer
     protected override void OnReleaseResource(bool bClosing, uint info)
     {
         int res;
-        CloseDb(out res);
+        string errMsg = CloseDb(out res);
         if (m_conn != null)
         {
             //we close a database session when a socket is closed
@@ -260,6 +258,62 @@ class CStreamSql : CClientPeer
         return PushRows(reader, vCol);
     }
 
+    private bool SendRows(CUQueue q, bool transferring)
+    {
+        uint ret;
+        bool batching = (BytesBatched >= DB_CONSTS.DEFAULT_RECORD_BATCH_SIZE);
+        if (batching)
+            CommitBatching();
+        ret = SendResult(transferring ? DB_CONSTS.idTransferring : DB_CONSTS.idEndRows, q.IntenalBuffer, q.GetSize());
+        if (batching)
+            StartBatching();
+        if (ret != q.GetSize())
+            return false; //socket closed or request canceled
+        q.SetSize(0);
+        return true;
+    }
+
+    private bool PushText(string text)
+    {
+        using (CScopeUQueue sb = new CScopeUQueue())
+        {
+            CUQueue q = sb.UQueue;
+            q.Push(text);
+            return PushBlob(q.IntenalBuffer, q.GetSize(), (ushort)tagVariantDataType.sdVT_BSTR);
+        }
+    }
+
+    private bool PushBlob(byte[] buffer, uint len, ushort data_type = (ushort)(tagVariantDataType.sdVT_ARRAY | tagVariantDataType.sdVT_UI1))
+    {
+        bool batching = Batching;
+        try
+        {
+            if (batching)
+                CommitBatching();
+            uint bytes = len;
+            uint ret = SendResult(DB_CONSTS.idStartBLOB, bytes + sizeof(ushort) + sizeof(uint) + sizeof(uint), //extra 4 bytes for string null termination
+                data_type, bytes);
+            if (ret == SOCKET_NOT_FOUND || ret == REQUEST_CANCELED)
+                return false;
+            uint offset = 0;
+            while (bytes > DB_CONSTS.DEFAULT_BIG_FIELD_CHUNK_SIZE)
+            {
+                ret = SendResult(DB_CONSTS.idChunk, buffer, DB_CONSTS.DEFAULT_BIG_FIELD_CHUNK_SIZE, offset);
+                if (ret != DB_CONSTS.DEFAULT_BIG_FIELD_CHUNK_SIZE)
+                    return false;
+                offset += ret;
+                bytes -= ret;
+            }
+            ret = SendResult(DB_CONSTS.idEndBLOB, buffer, bytes, offset);
+            return (ret == bytes);
+        }
+        finally
+        {
+            if (batching)
+                StartBatching();
+        }
+    }
+
     private bool PushRows(SqlDataReader reader, CDBColumnInfoArray vCol)
     {
         using (CScopeUQueue sb = new CScopeUQueue())
@@ -267,6 +321,8 @@ class CStreamSql : CClientPeer
             CUQueue q = sb.UQueue;
             while (reader.Read())
             {
+                if (q.GetSize() >= DB_CONSTS.DEFAULT_RECORD_BATCH_SIZE && !SendRows(q, false))
+                    return false;
                 int col = 0;
                 foreach (CDBColumnInfo info in vCol)
                 {
@@ -280,7 +336,18 @@ class CStreamSql : CClientPeer
                         case tagVariantDataType.sdVT_BSTR:
                             if (info.DeclaredType == "xml")
                             {
-                                SqlXml xml = reader.GetSqlXml(col);
+                                string xml = reader.GetSqlXml(col).Value;
+                                if (xml.Length <= DB_CONSTS.DEFAULT_BIG_FIELD_CHUNK_SIZE)
+                                {
+                                    q.Save((ushort)info.DataType).Save(xml);
+                                }
+                                else
+                                {
+                                    if (q.GetSize() != 0 && !SendRows(q, true))
+                                        return false;
+                                    if (!PushText(xml))
+                                        return false;
+                                }
                             }
                             else if (info.DeclaredType == "datetimeoffset")
                             {
@@ -295,11 +362,33 @@ class CStreamSql : CClientPeer
                             else
                             {
                                 string s = reader.GetString(col);
+                                if (s.Length <= DB_CONSTS.DEFAULT_BIG_FIELD_CHUNK_SIZE)
+                                {
+                                    q.Save((ushort)info.DataType).Save(s);
+                                }
+                                else ////text, ntext, varchar(max), nvarchar(max)
+                                {
+                                    if (q.GetSize() != 0 && !SendRows(q, true))
+                                        return false;
+                                    if (!PushText(s))
+                                        return false;
+                                }
                             }
                             break;
                         case (tagVariantDataType.sdVT_UI1 | tagVariantDataType.sdVT_ARRAY):
                             {
-                                SqlBytes bytes = reader.GetSqlBytes(col);
+                                SqlBinary bytes = reader.GetSqlBinary(col);
+                                if (bytes.Length <= 2 * DB_CONSTS.DEFAULT_BIG_FIELD_CHUNK_SIZE)
+                                {
+                                    q.Save((ushort)info.DataType).Save(bytes.Value);
+                                }
+                                else //image, varbinary(max) or file?
+                                {
+                                    if (q.GetSize() != 0 && !SendRows(q, true))
+                                        return false;
+                                    if (!PushBlob(bytes.Value, (uint)bytes.Length))
+                                        return false;
+                                }
                             }
                             break;
                         case tagVariantDataType.sdVT_I8:
@@ -346,6 +435,9 @@ class CStreamSql : CClientPeer
                     ++col;
                 }
             }
+            uint ret = SendResult(DB_CONSTS.idEndRows, q.IntenalBuffer, q.GetSize());
+            if (ret != q.GetSize())
+                return false; //socket closed or request canceled
         }
         return true;
     }
@@ -374,11 +466,12 @@ class CStreamSql : CClientPeer
                 {
                     ok = PushToClient(reader);
                     HeaderSent = true;
-                    if (!reader.NextResult())
+                    if (!ok || !reader.NextResult())
                         break;
                 }
                 if (reader.RecordsAffected > 0)
                     affected += reader.RecordsAffected;
+                reader.Close();
             }
             else
             {
@@ -901,7 +994,7 @@ class CStreamSql : CClientPeer
         Transferring();
     }
 
-    [RequestAttr(DB_CONSTS.idClose, true)]
+    [RequestAttr(DB_CONSTS.idClose)]
     private string CloseDb(out int res)
     {
         //we don't close a database session when a client call the method but close it when a socket is closed, which we believe the approach is fit with client socket pool architecture
