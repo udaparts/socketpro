@@ -120,6 +120,7 @@ class CStreamSql : CClientPeer
             if (schema.Length == 0)
                 schema = "dbo";
             info.TablePath = schema + "." + dr["BaseTableName"];
+
             b = (bool)dr["IsAutoIncrement"];
             if (b)
             {
@@ -525,6 +526,8 @@ class CStreamSql : CClientPeer
         vtId = null;
         ulong fails = m_fails;
         ulong oks = m_oks;
+        bool ok = true;
+        bool HeaderSent = false;
         do
         {
             if (m_sqlPrepare == null || m_sqlPrepare.Parameters.Count == 0 || m_vParam.Count == 0)
@@ -558,9 +561,12 @@ class CStreamSql : CClientPeer
                         SqlDataReader reader = m_sqlPrepare.ExecuteReader(meta ? CommandBehavior.KeyInfo : CommandBehavior.Default);
                         while (reader.FieldCount > 0)
                         {
+                            ok = PushToClient(reader);
+                            HeaderSent = true;
                             if (reader.RecordsAffected > 0)
                                 affected += reader.RecordsAffected;
-
+                            if (!ok || !reader.NextResult())
+                                break;
                         }
                     }
                     else
@@ -589,8 +595,15 @@ class CStreamSql : CClientPeer
                     }
                     ++m_fails;
                 }
+                if (!ok)
+                    break;
             }
         } while (false);
+        if (!HeaderSent && ok)
+        {
+            CDBColumnInfoArray v = new CDBColumnInfoArray();
+            SendResult(DB_CONSTS.idRowsetHeader, v, index);
+        }
         fail_ok = ((m_fails - fails) << 32);
         fail_ok += (m_oks - oks);
         return fail_ok;
