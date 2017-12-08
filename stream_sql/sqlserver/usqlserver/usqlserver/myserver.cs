@@ -42,7 +42,7 @@ class CSqlPlugin : CSocketProServer
     private bool DoDBAuthentication(ulong hSocket, string userId, string password)
     {
 #if PLUGIN_DEV
-        string connection = string.Format("Server={0};User Id={1};Password={2}", "CYE-WIN8", userId, password);
+        string connection = string.Format("Server={0};User Id={1};Password={2}", Environment.MachineName, userId, password);
 #else
         string connection = string.Format("Server={0};User Id={1};Password={2}", SQLConfig.Server, userId, password);
 #endif

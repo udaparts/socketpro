@@ -37,11 +37,26 @@ class Program
             CSqlServer sql = spSql.Seek();
             sql.AttachedClientSocket.Push.OnPublish += (sender, messageSender, group, msg) =>
             {
-                msg = null;
+                if (group[0] == DB_CONSTS.STREAMING_SQL_CHAT_GROUP_ID)
+                {
+                    object[] vMsg = (object[])msg;
+                    tagUpdateEvent ue = (tagUpdateEvent)(int)(vMsg[0]);
+                    string server = (string)vMsg[1];
+                    string user = (string)vMsg[2];
+                    string database = (string)vMsg[3];
+                    Console.WriteLine("DML event={0}, dbPath={1}, user={2}", ue, server + "." + database, user);
+                }
             };
 
-            bool ok = sql.Open("AdventureWorks", dr, DB_CONSTS.ENABLE_TABLE_UPDATE_MESSAGES);
-            ok = sql.Execute("select * from Person.Address", null, (h, vData0) => { }, (h) => { }, true, true);
+            CAsyncDBHandler.DRowsetHeader rh = (h) =>
+            {
+                CDBColumnInfoArray v = h.ColumnInfo;
+                if (v.Count > 0)
+                    Console.WriteLine("dbPath={0}, tablePath={1}", v[0].DBPath, v[0].TablePath);
+            };
+
+            bool ok = sql.Open("AdventureWorks2012", dr, DB_CONSTS.ENABLE_TABLE_UPDATE_MESSAGES);
+            ok = sql.Execute("select * from Person.Address;select * from sp_streaming_db..config;select * from AdventureWorksDW2012..DimProduct", null, (h, vData0) => { }, rh, true, true);
             CParameterInfoArray vInfo = new CParameterInfoArray();
             string sqlPrepare = "INSERT INTO Person.Address(AddressLine1,AddressLine2,City,StateProvinceID,PostalCode,SpatialLocation,rowguid,ModifiedDate)VALUES(@AddressLine1,@AddressLine2,@City,@StateProvinceID,@PostalCode,@SpatialLocation,@rowguid,@ModifiedDate)";
             CParameterInfo info = new CParameterInfo();

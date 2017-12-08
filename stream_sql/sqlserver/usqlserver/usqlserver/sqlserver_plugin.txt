@@ -27,7 +27,7 @@ INSERT INTO config VALUES('subject_or_password','')
 GO
 INSERT INTO config VALUES('usql_streaming_last_error','')
 GO
-INSERT INTO config VALUES('working_directory','C:\ProgramData\\MSSQL\')
+INSERT INTO config VALUES('working_directory','C:\ProgramData\MSSQL\')
 GO
 
 sp_configure 'clr enabled', 1

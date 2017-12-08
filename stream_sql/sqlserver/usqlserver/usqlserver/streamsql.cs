@@ -110,8 +110,18 @@ class CStreamSql : CClientPeer
             bool b = (bool)dr["AllowDBNull"];
             if (!b)
                 info.Flags = CDBColumnInfo.FLAG_NOT_NULL;
-            info.DBPath = m_conn.DataSource + "." + m_conn.Database;
-            info.TablePath = dr["BaseSchemaName"] + "." + dr["BaseTableName"];
+            string dbName = dr["BaseCatalogName"].ToString();
+            if (dbName.Length == 0)
+                dbName = m_conn.Database;
+#if PLUGIN_DEV
+            info.DBPath = m_conn.DataSource + "." + dbName;
+#else
+            info.DBPath = SQLConfig.Server + "." + dbName;
+#endif
+            string schema = dr["BaseSchemaName"].ToString();
+            if (schema.Length == 0)
+                schema = "dbo";
+            info.TablePath = schema + "." + dr["BaseTableName"];
             b = (bool)dr["IsAutoIncrement"];
             if (b)
             {
@@ -231,7 +241,7 @@ class CStreamSql : CClientPeer
                     break;
                 default:
                     info.DataType = tagVariantDataType.sdVT_BSTR; //!!!! use string instead GetValue
-                    info.ColumnSize = 4 * 1024;
+                    info.ColumnSize = 0; //default
                     break;
             }
             vCol.Add(info);
@@ -254,9 +264,87 @@ class CStreamSql : CClientPeer
     {
         using (CScopeUQueue sb = new CScopeUQueue())
         {
+            CUQueue q = sb.UQueue;
             while (reader.Read())
             {
-
+                int col = 0;
+                foreach (CDBColumnInfo info in vCol)
+                {
+                    if (reader.IsDBNull(col))
+                    {
+                        q.Save((ushort)tagVariantDataType.sdVT_NULL);
+                        continue;
+                    }
+                    switch (info.DataType)
+                    {
+                        case tagVariantDataType.sdVT_BSTR:
+                            if (info.DeclaredType == "xml")
+                            {
+                                SqlXml xml = reader.GetSqlXml(col);
+                            }
+                            else if (info.DeclaredType == "datetimeoffset")
+                            {
+                                DateTimeOffset dto = reader.GetDateTimeOffset(col);
+                                q.Save((ushort)info.DataType).Save(dto.ToString());
+                            }
+                            else if (info.ColumnSize == 0)
+                            {
+                                object obj = reader.GetValue(col);
+                                q.Save((ushort)info.DataType).Save(obj.ToString());
+                            }
+                            else
+                            {
+                                string s = reader.GetString(col);
+                            }
+                            break;
+                        case (tagVariantDataType.sdVT_UI1 | tagVariantDataType.sdVT_ARRAY):
+                            {
+                                SqlBytes bytes = reader.GetSqlBytes(col);
+                            }
+                            break;
+                        case tagVariantDataType.sdVT_I8:
+                            q.Save((ushort)info.DataType).Save(reader.GetInt64(col));
+                            break;
+                        case tagVariantDataType.sdVT_I4:
+                        case tagVariantDataType.sdVT_INT:
+                            q.Save((ushort)info.DataType).Save(reader.GetInt32(col));
+                            break;
+                        case tagVariantDataType.sdVT_I2:
+                            q.Save((ushort)info.DataType).Save(reader.GetInt16(col));
+                            break;
+                        case tagVariantDataType.sdVT_UI1:
+                            q.Save((ushort)info.DataType).Save(reader.GetByte(col));
+                            break;
+                        case tagVariantDataType.sdVT_R4:
+                            q.Save((ushort)info.DataType).Save(reader.GetFloat(col));
+                            break;
+                        case tagVariantDataType.sdVT_R8:
+                            q.Save((ushort)info.DataType).Save(reader.GetDouble(col));
+                            break;
+                        case tagVariantDataType.sdVT_BOOL:
+                            q.Save((ushort)info.DataType);
+                            if (reader.GetBoolean(col))
+                                q.Save((short)-1);
+                            else
+                                q.Save((short)0);
+                            break;
+                        case tagVariantDataType.sdVT_DATE:
+                            q.Save((ushort)info.DataType).Save(reader.GetDateTime(col));
+                            break;
+                        case tagVariantDataType.sdVT_DECIMAL:
+                            q.Save((ushort)info.DataType).Save(reader.GetDecimal(col));
+                            break;
+                        case tagVariantDataType.sdVT_CLSID:
+                            q.Save((ushort)info.DataType).Save(reader.GetGuid(col));
+                            break;
+                        case tagVariantDataType.sdVT_VARIANT:
+                            q.Save(reader.GetValue(col));
+                            break;
+                        default:
+                            break;
+                    }
+                    ++col;
+                }
             }
         }
         return true;
@@ -464,7 +552,7 @@ class CStreamSql : CClientPeer
                             param.Precision = info.Precision;
                             param.Scale = info.Scale;
                             break;
-                        case tagVariantDataType.sdVT_I1:
+                        case tagVariantDataType.sdVT_UI1:
                             param = new SqlParameter(info.ParameterName, SqlDbType.TinyInt);
                             break;
                         case tagVariantDataType.sdVT_I2:
