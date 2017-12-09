@@ -5,9 +5,11 @@ using System.Data.SqlClient;
 using System.Data.SqlTypes;
 using System.Collections.Generic;
 using Microsoft.SqlServer.Server;
+using SocketProAdapter;
 using SocketProAdapter.UDB;
 using SocketProAdapter.ServerSide;
 using System.IO;
+using System.Runtime.InteropServices;
 
 public static class USqlStream
 {
@@ -41,7 +43,7 @@ public static class USqlStream
                 conn.Open();
                 lock (m_cs)
                 {
-                    if (CSqlPlugin.Running)
+                    if (IsRunning())
                     {
                         Plugin.StopSocketProServer();
                         res += 10;
@@ -79,7 +81,7 @@ public static class USqlStream
                         Directory.SetCurrentDirectory(SQLConfig.WorkingDirectory);
                         Plugin = new CSqlPlugin(SQLConfig.Param);
                     }
-                    if (!CSqlPlugin.Running)
+                    if (!IsRunning())
                     {
                         res += 10;
                         if (SQLConfig.StoreOrPfx != null && SQLConfig.SubjectOrPassword != null && SQLConfig.StoreOrPfx.Length > 0 && SQLConfig.SubjectOrPassword.Length > 0)
@@ -322,6 +324,38 @@ public static class USqlStream
         }
     }
 
+    [DllImport("uservercore")]
+    [return: MarshalAs(UnmanagedType.I1)]
+    private static unsafe extern bool SpeakPush(byte* message, uint size, uint* chatGroupIds, uint count);
+
+    [DllImport("uservercore")]
+    [return: MarshalAs(UnmanagedType.I1)]
+    private static extern bool IsRunning();
+
+    static bool Publish(object Message, params uint[] Groups)
+    {
+        uint len;
+        if (Groups == null)
+            len = 0;
+        else
+            len = (uint)Groups.Length;
+        using (CScopeUQueue su = new CScopeUQueue())
+        {
+            CUQueue q = su.UQueue;
+            q.Save(Message);
+            unsafe
+            {
+                fixed (byte* buffer = q.m_bytes)
+                {
+                    fixed (uint* p = Groups)
+                    {
+                        return SpeakPush(buffer, q.GetSize(), p, len);
+                    }
+                }
+            }
+        }
+    }
+
     public static void PublishDMLEvent()
     {
         SqlTriggerContext tc = SqlContext.TriggerContext;
@@ -332,7 +366,7 @@ public static class USqlStream
         {
             try
             {
-                if (CSocketProServer.Running)
+                if (IsRunning())
                 {
                     conn.Open();
                     string[] v = GetUSqlServerKeys(conn);
@@ -372,7 +406,7 @@ public static class USqlStream
                             msg[4] = tblName;
                             lock (m_cs)
                             {
-                                if (!CSocketProServer.PushManager.Publish(msg, DB_CONSTS.STREAMING_SQL_CHAT_GROUP_ID))
+                                if (!Publish(msg, DB_CONSTS.STREAMING_SQL_CHAT_GROUP_ID))
                                     errMsg = "Message publishing failed";
                             }
                         }
@@ -391,11 +425,20 @@ public static class USqlStream
             }
             finally
             {
-                //LogError(conn, errMsg);
+#if DEBUG
+                if (errMsg.Length > 0)
+                {
+                    try
+                    {
+                        SqlCommand sqlCommand = new SqlCommand(string.Format("raiserror('{0}',0,0) with nowait", errMsg), conn);
+                        SqlContext.Pipe.ExecuteAndSend(sqlCommand);
+                    }
+                    finally { }
+                }
+#endif
                 conn.Close();
             }
         }
-        SqlContext.Pipe.Send(errMsg);
     }
 }
 

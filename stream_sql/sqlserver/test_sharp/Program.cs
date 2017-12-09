@@ -291,7 +291,7 @@ class Program
     {
         Console.WriteLine("Remote host: ");
         string host = Console.ReadLine();
-        CConnectionContext cc = new CConnectionContext(host, 20901, "sa", "Smash123");
+        CConnectionContext cc = new CConnectionContext(host, 20903, "sa", "Smash123");
 #if DEBUG
         using (CSocketPool<CSqlServer> spSql = new CSocketPool<CSqlServer>(true, 3600 * 1000))
 #else
