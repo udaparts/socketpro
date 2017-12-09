@@ -271,7 +271,7 @@ public static class USqlStream
     private static string GuessTablePath(SqlConnection conn, string dbName, DataTable dt)
     {
         SqlDataReader dr = null;
-        string sql = string.Format("select OBJECT_NAME(parent_id),object_schema_name(am.object_id)from [{0}].sys.assembly_modules as am,[{0}].sys.triggers as t where t.object_id=am.object_id and assembly_method like 'PublishDMLEvent%' and assembly_class='USqlStream'", dbName);
+        string sql = "select OBJECT_NAME(parent_id),object_schema_name(parent_id)from sys.assembly_modules as am,sys.triggers as t where t.object_id=am.object_id and assembly_method like 'PublishDMLEvent%' and assembly_class='USqlStream'";
         try
         {
             List<KeyValuePair<string, string>> v = new List<KeyValuePair<string, string>>();
@@ -329,10 +329,10 @@ public static class USqlStream
             errMsg = "";
         if (conn == null || conn.State != ConnectionState.Open)
             return -1;
-        string sql = string.Format("UPDATE sp_streaming_db.dbo.config set value='{0}' WHERE mykey='{1}'", errMsg, "usql_streaming_last_error");
-        SqlCommand cmd = new SqlCommand(sql, conn);
         try
         {
+            string sql = string.Format("UPDATE sp_streaming_db.dbo.config set value='{0}' WHERE mykey='{1}'", errMsg, "usql_streaming_last_error");
+            SqlCommand cmd = new SqlCommand(sql, conn);
             return cmd.ExecuteNonQuery();
         }
         finally

@@ -291,7 +291,7 @@ class Program
     {
         Console.WriteLine("Remote host: ");
         string host = Console.ReadLine();
-        CConnectionContext cc = new CConnectionContext(host, 20903, "sa", "Smash123");
+        CConnectionContext cc = new CConnectionContext(host, 20901, "sa", "Smash123");
 #if DEBUG
         using (CSocketPool<CSqlServer> spSql = new CSocketPool<CSqlServer>(true, 3600 * 1000))
 #else
@@ -335,6 +335,7 @@ class Program
             vPData.Add(11.42);
             vPData.Add(null);
             TestStoredProcedure(sql, ra, vPData);
+            ok = sql.Execute("", er, rows, rh);
             sql.WaitAll();
             Console.WriteLine("Press any key to close the application ......");
             Console.Read();

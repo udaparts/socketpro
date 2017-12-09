@@ -443,6 +443,53 @@ class CStreamSql : CClientPeer
         return true;
     }
 
+    private string GenerateSqlForCachedTables()
+    {
+        string sqlCache = "";
+        string current_db = m_conn.Database;
+        List<string> vDB = new List<string>();
+        SqlDataReader reader = null;
+        string sql = "SELECT name FROM master.dbo.sysdatabases where name NOT IN('master','tempdb','model','msdb','sp_streaming_db')";
+        try
+        {
+            SqlCommand cmd = new SqlCommand(sql, m_conn);
+            reader = cmd.ExecuteReader();
+            while (reader.Read())
+            {
+                vDB.Add(reader.GetString(0));
+            }
+            reader.Close();
+            foreach (string db in vDB)
+            {
+                cmd.CommandText = "USE " + db;
+                cmd.ExecuteNonQuery();
+                sql = "select object_schema_name(parent_id),OBJECT_NAME(parent_id)from sys.assembly_modules as am,sys.triggers as t where t.object_id=am.object_id and assembly_method like 'PublishDMLEvent%' and assembly_class='USqlStream'";
+                cmd.CommandText = sql;
+                reader = cmd.ExecuteReader();
+                while (reader.Read())
+                {
+                    if (sqlCache.Length > 0)
+                        sqlCache += ";";
+                    string schema = reader.GetString(0);
+                    string tblName = reader.GetString(1);
+                    sqlCache += string.Format("SELECT * FROM [{0}].[{1}].[{2}]", db, schema, tblName);
+                }
+                reader.Close();
+            }
+        }
+        finally
+        {
+            if (reader != null)
+                reader.Close();
+            try
+            {
+                SqlCommand cmd = new SqlCommand("USE " + current_db, m_conn);
+                cmd.ExecuteNonQuery();
+            }
+            finally { }
+        }
+        return sqlCache;
+    }
     [RequestAttr(DB_CONSTS.idExecute, true)]
     private ulong Execute(string sql, bool rowset, bool meta, bool lastInsertId, ulong index, out long affected, out int res, out string errMsg, out object vtId)
     {
@@ -459,6 +506,10 @@ class CStreamSql : CClientPeer
         SqlDataReader reader = null;
         try
         {
+            if ((sql == null || sql.Length == 0) && m_EnableMessages)
+            {
+                sql = GenerateSqlForCachedTables();
+            }
             SqlCommand cmd = new SqlCommand(sql, m_conn);
             if (rowset)
             {

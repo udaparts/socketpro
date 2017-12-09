@@ -72,6 +72,11 @@ EXEC sp_streaming_db.dbo.StartSPServer @res OUTPUT -- assuming the procedure cre
 print @res
 GO
 
+DECLARE @res int
+EXEC sp_streaming_db.dbo.StopSPServer @res OUTPUT -- assuming the procedure created within sp_streaming_db
+print @res
+GO
+
 -- use cmd and execute the following to check port
 -- netstat -a
 

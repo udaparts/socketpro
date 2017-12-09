@@ -67,10 +67,14 @@ class CSqlPlugin : CSocketProServer
         {
             case CStreamSql.sidMsSql:
                 return DoDBAuthentication(hSocket, userId, password);
+#if PLUGIN_DEV
+
+#else
             case BaseServiceID.sidHTTP:
                 return true; //do authentication inside the method CMyHttpPeer.DoAuthentication
             case BaseServiceID.sidChat: //SocketPro async persistent message queue
                 break;
+#endif
             default:
                 break;
         }
