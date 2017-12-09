@@ -368,7 +368,7 @@ class Program
                     string server = (string)vMsg[1];
                     string user = (string)vMsg[2];
                     string database = (string)vMsg[3];
-                    Console.WriteLine("DML event={0}, dbPath={1}, user={2}", ue, server + "." + database, user);
+                    Console.WriteLine("DML event={0}, server={1}, database={2}, user={3}, table={4}", ue, server, database, user, vMsg[4].ToString());
                 }
             };
             bool ok = sql.Open("", dr, DB_CONSTS.ENABLE_TABLE_UPDATE_MESSAGES);
