@@ -944,52 +944,52 @@ namespace SPA
         return updated;
     }
 
-	size_t CDataSet::DeleteARow(const wchar_t *dbName, const wchar_t *tblName, const VARIANT *pRow, unsigned int cols) {
-		if (!dbName || !tblName)
-			return INVALID_VALUE;
-		size_t deleted = 0;
-		CAutoLock al(m_cs);
-		for (auto it = m_ds.begin(), end = m_ds.end(); it != end; ++it) {
-			if (!Is(*it, dbName, tblName))
-				continue;
-			const UDB::CDBColumnInfoArray &meta = it->first;
-			size_t key1;
-			size_t key = FindKeyColIndex(meta, key1);
-			if (key == INVALID_VALUE && key1 == INVALID_VALUE)
-				return INVALID_VALUE;
-			VARTYPE type = meta[key].DataType;
-			if (type == (VT_I1 | VT_ARRAY))
-				type = VT_BSTR; //Table string is always unicode string
-			UDB::CDBVariant vt0 = Convert(pRow[key], type);
-			UDB::CDBVariant vt1;
-			if (key1 != INVALID_VALUE) {
-				type = meta[key1].DataType;
-				if (type == (VT_I1 | VT_ARRAY))
-					type = VT_BSTR; //Table string is always unicode string
-				if (cols == 2)
-					vt1 = Convert(pRow[1], type);
-				else
-					vt1 = Convert(pRow[key1], type);
-			}
-			auto &vRow = it->second;
-			size_t rows = vRow.size();
-			for (size_t r = 0; r < rows; ++r) {
-				const UDB::CDBVariant &vtKey = vRow[r]->at(key);
-				if (it->eq(vtKey, vt0) <= 0)
-					continue;
-				if (key1 != INVALID_VALUE) {
-					const UDB::CDBVariant &vt2 = vRow[r]->at(key1);
-					if (it->eq(vt2, vt1) <= 0)
-						continue;
-				}
-				vRow.erase(vRow.begin() + r);
-				deleted = 1;
-				break;
-			}
-			break;
-		}
-		return deleted;
-	}
+    size_t CDataSet::DeleteARow(const wchar_t *dbName, const wchar_t *tblName, const VARIANT *pRow, unsigned int cols) {
+        if (!dbName || !tblName)
+            return INVALID_VALUE;
+        size_t deleted = 0;
+        CAutoLock al(m_cs);
+        for (auto it = m_ds.begin(), end = m_ds.end(); it != end; ++it) {
+            if (!Is(*it, dbName, tblName))
+                continue;
+            const UDB::CDBColumnInfoArray &meta = it->first;
+            size_t key1;
+            size_t key = FindKeyColIndex(meta, key1);
+            if (key == INVALID_VALUE && key1 == INVALID_VALUE)
+                return INVALID_VALUE;
+            VARTYPE type = meta[key].DataType;
+            if (type == (VT_I1 | VT_ARRAY))
+                type = VT_BSTR; //Table string is always unicode string
+            UDB::CDBVariant vt0 = Convert(pRow[key], type);
+            UDB::CDBVariant vt1;
+            if (key1 != INVALID_VALUE) {
+                type = meta[key1].DataType;
+                if (type == (VT_I1 | VT_ARRAY))
+                    type = VT_BSTR; //Table string is always unicode string
+                if (cols == 2)
+                    vt1 = Convert(pRow[1], type);
+                else
+                    vt1 = Convert(pRow[key1], type);
+            }
+            auto &vRow = it->second;
+            size_t rows = vRow.size();
+            for (size_t r = 0; r < rows; ++r) {
+                const UDB::CDBVariant &vtKey = vRow[r]->at(key);
+                if (it->eq(vtKey, vt0) <= 0)
+                    continue;
+                if (key1 != INVALID_VALUE) {
+                    const UDB::CDBVariant &vt2 = vRow[r]->at(key1);
+                    if (it->eq(vt2, vt1) <= 0)
+                        continue;
+                }
+                vRow.erase(vRow.begin() + r);
+                deleted = 1;
+                break;
+            }
+            break;
+        }
+        return deleted;
+    }
 
     size_t CDataSet::DeleteARow(const wchar_t *dbName, const wchar_t *tblName, const CComVariant & key) {
         return DeleteARow(dbName, tblName, (const VARIANT&) key);

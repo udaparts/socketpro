@@ -173,15 +173,15 @@ namespace SPA {
          */
         virtual size_t DeleteARow(const wchar_t *dbName, const wchar_t *tblName, const VARIANT &key);
 
-		/**
-		* Delete one row from cache from one given row of data. Track delete event by overriding this method
-		* @param dbName A database name string
-		* @param tblName A table name string
-		* @param pRow a pointer to a row of data
-		* @param cols the column number
-		* @return The number of deleted rows, which could be 0, 1 or INVALID_VALUE
-		*/
-		virtual size_t DeleteARow(const wchar_t *dbName, const wchar_t *tblName, const VARIANT *pRow, unsigned int cols);
+        /**
+         * Delete one row from cache from one given row of data. Track delete event by overriding this method
+         * @param dbName A database name string
+         * @param tblName A table name string
+         * @param pRow a pointer to a row of data
+         * @param cols the column number
+         * @return The number of deleted rows, which could be 0, 1 or INVALID_VALUE
+         */
+        virtual size_t DeleteARow(const wchar_t *dbName, const wchar_t *tblName, const VARIANT *pRow, unsigned int cols);
 
     private:
         static CPRow FindARowInternal(const CTable &tbl, size_t f, const VARIANT &key);
