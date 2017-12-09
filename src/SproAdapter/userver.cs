@@ -14,11 +14,11 @@ namespace SocketProAdapter
             private DOnIsPermitted m_onIsPermitted;
             private DOnSSLHandShakeCompleted m_shc;
 
-            internal static void TE(tagThreadEvent te)
+            internal static DOnThreadEvent te = (te) =>
             {
                 if (ThreadEvent != null)
                     ThreadEvent.Invoke(te);
-            }
+            };
 
             private void Init(int param)
             {
@@ -265,7 +265,7 @@ namespace SocketProAdapter
                 {
                     if (!CBaseService.m_bRegEvent)
                     {
-                        ServerCoreLoader.SetThreadEvent(TE);
+                        ServerCoreLoader.SetThreadEvent(te);
                         CBaseService.m_bRegEvent = true;
                     }
                 }

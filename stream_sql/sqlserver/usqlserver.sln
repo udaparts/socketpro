@@ -5,7 +5,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "test_sharp", "test_sharp\te
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "plugindev", "plugindev\plugindev.csproj", "{79C062C9-2DAA-4F9B-8A21-1579DD9B4535}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SproAdapter", "..\..\src\SproAdapter\SproAdapter.csproj", "{83D40134-5DCE-4396-AC69-4D155CD8E660}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "usqlserver", "usqlserver\usqlserver\usqlserver.csproj", "{03263C8C-795F-4E0F-BEBB-9975463E7C4B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,10 +21,12 @@ Global
 		{79C062C9-2DAA-4F9B-8A21-1579DD9B4535}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{79C062C9-2DAA-4F9B-8A21-1579DD9B4535}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{79C062C9-2DAA-4F9B-8A21-1579DD9B4535}.Release|Any CPU.Build.0 = Release|Any CPU
-		{83D40134-5DCE-4396-AC69-4D155CD8E660}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{83D40134-5DCE-4396-AC69-4D155CD8E660}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{83D40134-5DCE-4396-AC69-4D155CD8E660}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{83D40134-5DCE-4396-AC69-4D155CD8E660}.Release|Any CPU.Build.0 = Release|Any CPU
+		{03263C8C-795F-4E0F-BEBB-9975463E7C4B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{03263C8C-795F-4E0F-BEBB-9975463E7C4B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{03263C8C-795F-4E0F-BEBB-9975463E7C4B}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{03263C8C-795F-4E0F-BEBB-9975463E7C4B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{03263C8C-795F-4E0F-BEBB-9975463E7C4B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{03263C8C-795F-4E0F-BEBB-9975463E7C4B}.Release|Any CPU.Deploy.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

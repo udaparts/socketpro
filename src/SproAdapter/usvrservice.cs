@@ -114,7 +114,7 @@ namespace SocketProAdapter
                     {
                         if (!m_bRegEvent)
                         {
-                            ServerCoreLoader.SetThreadEvent(CSocketProServer.TE);
+                            ServerCoreLoader.SetThreadEvent(CSocketProServer.te);
                             m_bRegEvent = true;
                         }
                         m_lstService.Add(this);

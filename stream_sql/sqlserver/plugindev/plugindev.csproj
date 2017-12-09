@@ -54,9 +54,9 @@
     <Folder Include="Properties\" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\src\SproAdapter\SproAdapter.csproj">
-      <Project>{83D40134-5DCE-4396-AC69-4D155CD8E660}</Project>
-      <Name>SproAdapter</Name>
+    <ProjectReference Include="..\usqlserver\usqlserver\usqlserver.csproj">
+      <Project>{03263C8C-795F-4E0F-BEBB-9975463E7C4B}</Project>
+      <Name>usqlserver</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

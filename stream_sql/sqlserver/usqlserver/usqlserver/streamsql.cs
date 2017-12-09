@@ -568,12 +568,35 @@ class CStreamSql : CClientPeer
                             if (!ok || !reader.NextResult())
                                 break;
                         }
+                        reader.Close();
                     }
                     else
                     {
                         int ret = m_sqlPrepare.ExecuteNonQuery();
                         if (ret > 0)
                             affected += ret;
+                    }
+                    if (ok && m_outputs > 0)
+                    {
+                        CDBColumnInfoArray v = new CDBColumnInfoArray();
+                        uint ret = SendResult(DB_CONSTS.idRowsetHeader, v, index, (uint)m_outputs);
+                        ok = (ret != SOCKET_NOT_FOUND && ret != REQUEST_CANCELED);
+                        HeaderSent = true;
+                        if (ok)
+                        {
+                            using (CScopeUQueue sb = new CScopeUQueue())
+                            {
+                                CUQueue q = sb.UQueue;
+                                foreach (SqlParameter p in m_sqlPrepare.Parameters)
+                                {
+                                    if (p.Direction != ParameterDirection.Input)
+                                    {
+                                        q.Save(p.Value);
+                                    }
+                                }
+                                ok = (SendResult(DB_CONSTS.idOutputParameter, q.IntenalBuffer, q.GetSize()) == q.GetSize());
+                            }
+                        }
                     }
                     ++m_oks;
                 }
@@ -629,21 +652,36 @@ class CStreamSql : CClientPeer
                         case tagVariantDataType.sdVT_BYTES:
                         case tagVariantDataType.sdVT_ARRAY | tagVariantDataType.sdVT_UI1:
                             if (info.ColumnSize == uint.MaxValue)
-                                param = new SqlParameter(info.ParameterName, SqlDbType.Image);
+                            {
+                                if (info.Direction == tagParameterDirection.pdInput)
+                                    param = new SqlParameter(info.ParameterName, SqlDbType.Image, int.MaxValue);
+                                else
+                                    param = new SqlParameter(info.ParameterName, SqlDbType.Image, (int)DB_CONSTS.DEFAULT_BIG_FIELD_CHUNK_SIZE);
+                            }
                             else
                                 param = new SqlParameter(info.ParameterName, SqlDbType.VarBinary, (int)info.ColumnSize);
                             break;
                         case tagVariantDataType.sdVT_STR:
                         case tagVariantDataType.sdVT_ARRAY | tagVariantDataType.sdVT_I1:
                             if (info.ColumnSize == uint.MaxValue)
-                                param = new SqlParameter(info.ParameterName, SqlDbType.Text);
+                            {
+                                if (info.Direction == tagParameterDirection.pdInput)
+                                    param = new SqlParameter(info.ParameterName, SqlDbType.Text, int.MaxValue);
+                                else
+                                    param = new SqlParameter(info.ParameterName, SqlDbType.Text, (int)DB_CONSTS.DEFAULT_BIG_FIELD_CHUNK_SIZE);
+                            }
                             else
                                 param = new SqlParameter(info.ParameterName, SqlDbType.VarChar, (int)info.ColumnSize);
                             break;
                         case tagVariantDataType.sdVT_WSTR:
                         case tagVariantDataType.sdVT_BSTR:
                             if (info.ColumnSize == uint.MaxValue)
-                                param = new SqlParameter(info.ParameterName, SqlDbType.NText);
+                            {
+                                if (info.Direction == tagParameterDirection.pdInput)
+                                    param = new SqlParameter(info.ParameterName, SqlDbType.NText, int.MaxValue);
+                                else
+                                    param = new SqlParameter(info.ParameterName, SqlDbType.NText, (int)DB_CONSTS.DEFAULT_BIG_FIELD_CHUNK_SIZE);
+                            }
                             else
                                 param = new SqlParameter(info.ParameterName, SqlDbType.NVarChar, (int)info.ColumnSize);
                             break;
@@ -686,11 +724,12 @@ class CStreamSql : CClientPeer
                                 param.Precision = info.Precision;
                             }
                             break;
-                        case tagVariantDataType.sdVT_XML:
-                            param = new SqlParameter(info.ParameterName, SqlDbType.Xml);
-                            break;
                         case tagVariantDataType.sdVT_VARIANT:
                             param = new SqlParameter(info.ParameterName, SqlDbType.Variant);
+                            break;
+                        /*
+                        case tagVariantDataType.sdVT_XML:
+                            param = new SqlParameter(info.ParameterName, SqlDbType.Xml);
                             break;
                         case tagVariantDataType.sdVT_TIMESPAN:
                             param = new SqlParameter(info.ParameterName, SqlDbType.Time);
@@ -699,6 +738,7 @@ class CStreamSql : CClientPeer
                             param = new SqlParameter(info.ParameterName, SqlDbType.DateTimeOffset);
                             param.Precision = info.Precision;
                             break;
+                        */
                         default:
                             res = -2;
                             errMsg = "Unsupported data type: " + info.DataType.ToString();
@@ -736,6 +776,8 @@ class CStreamSql : CClientPeer
                 parameters <<= 16;
                 parameters += (ushort)vColInfo.Count;
             }
+            if (m_outputs > 0)
+                m_sqlPrepare.CommandType = CommandType.StoredProcedure;
             m_sqlPrepare.Prepare();
         }
         catch (SqlException err)
@@ -959,7 +1001,7 @@ class CStreamSql : CClientPeer
         m_Blob.SetSize(0);
         if (lenExpected > m_Blob.MaxBufferSize)
             m_Blob.Realloc(lenExpected);
-        m_Blob.Push(UQueue.IntenalBuffer, UQueue.GetSize());
+        m_Blob.Push(UQueue.IntenalBuffer, UQueue.HeadPosition, UQueue.GetSize());
         UQueue.SetSize(0);
     }
 

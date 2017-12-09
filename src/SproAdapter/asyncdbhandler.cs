@@ -236,7 +236,7 @@ namespace SocketProAdapter
                 {
                     if ((dt & (ushort)tagVariantDataType.sdVT_UI1) == (ushort)tagVariantDataType.sdVT_UI1)
                     {
-                        DataType = tagVariantDataType.sdVT_BYTES;
+                        DataType = tagVariantDataType.sdVT_UI1 | tagVariantDataType.sdVT_ARRAY;
                     }
                     else
                     {

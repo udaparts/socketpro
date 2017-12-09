@@ -14,7 +14,7 @@
     <OutputType>Library</OutputType>
     <NoStandardLibraries>false</NoStandardLibraries>
     <AssemblyName>usqlserver</AssemblyName>
-    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <SGenUseProxyTypes>false</SGenUseProxyTypes>
     <PermissionLevel>3</PermissionLevel>
     <ConnectionString>
@@ -29,7 +29,7 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
     <DefineConstants>TRACE;DEBUG;USQLSERVER</DefineConstants>
     <WarningLevel>4</WarningLevel>
-    <DeployCode>true</DeployCode>
+    <DeployCode>false</DeployCode>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
@@ -39,7 +39,7 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
     <DefineConstants>TRACE;USQLSERVER</DefineConstants>
     <WarningLevel>4</WarningLevel>
-    <DeployCode>true</DeployCode>
+    <DeployCode>false</DeployCode>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup>
