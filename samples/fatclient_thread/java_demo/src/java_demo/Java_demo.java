@@ -8,7 +8,7 @@ import java.util.concurrent.*;
  //This is bad implementation for original SPA.ClientSide.CAsyncDBHandler.Open method!!!!
  public boolean Open(String strConnection, DResult handler, int flags, DCanceled canceled) {
  String str = null;
- MyCallback<DResult> cb = new MyCallback<>(idOpen, handler);
+ MyCallback<DResult> cb = new MyCallback<>(DB_CONSTS.idOpen, handler);
  CUQueue sb = CScopeUQueue.Lock();
  sb.Save(strConnection).Save(flags);
  synchronized (m_csOneSending) {
@@ -22,7 +22,7 @@ import java.util.concurrent.*;
  }
  m_deqResult.add(cb);
  //cross SendRequest dead lock here
- if (SendRequest(idOpen, sb, null, canceled)) {
+ if (SendRequest(DB_CONSTS.idOpen, sb, null, canceled)) {
  CScopeUQueue.Unlock(sb);
  return true;
  } else {

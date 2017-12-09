@@ -1,6 +1,7 @@
 package SPA;
 
 import SPA.ClientSide.*;
+import SPA.UDB.DB_CONSTS;
 
 public class CMasterPool<THandler extends CCachedBaseHandler> extends CMasterSlaveBase<THandler> {
 
@@ -72,7 +73,7 @@ public class CMasterPool<THandler extends CCachedBaseHandler> extends CMasterSla
                 m_cache.AddEmptyRowset(meta);
                 m_meta = meta;
             }
-        }, CAsyncDBHandler.ENABLE_TABLE_UPDATE_MESSAGES);
+        }, DB_CONSTS.ENABLE_TABLE_UPDATE_MESSAGES);
     }
 
     @Override
@@ -83,16 +84,16 @@ public class CMasterPool<THandler extends CCachedBaseHandler> extends CMasterSla
                 handler.getAttachedClientSocket().getPush().OnPublish = new DOnPublish() {
                     @Override
                     public void invoke(CClientSocket sender, CMessageSender messageSender, int[] group, Object msg) {
-                        if (group[0] == CAsyncDBHandler.CACHE_UPDATE_CHAT_GROUP_ID) {
+                        if (group[0] == DB_CONSTS.CACHE_UPDATE_CHAT_GROUP_ID) {
                             if (m_bMidTier) {
-                                SPA.ServerSide.CSocketProServer.PushManager.Publish(msg, CAsyncDBHandler.CACHE_UPDATE_CHAT_GROUP_ID);
+                                SPA.ServerSide.CSocketProServer.PushManager.Publish(msg, DB_CONSTS.CACHE_UPDATE_CHAT_GROUP_ID);
                             }
                             SetInitialCache();
                             return;
                         }
                         if (m_bMidTier) {
                             //push message onto front clients which may be interested in the message
-                            SPA.ServerSide.CSocketProServer.PushManager.Publish(msg, CAsyncDBHandler.STREAMING_SQL_CHAT_GROUP_ID);
+                            SPA.ServerSide.CSocketProServer.PushManager.Publish(msg, DB_CONSTS.STREAMING_SQL_CHAT_GROUP_ID);
                         }
                         //vData[0] == event type; vData[1] == host; vData[2] = database user; vData[3] == db name; vData[4] == table name
                         Object[] vData = (Object[]) msg;
@@ -163,7 +164,7 @@ public class CMasterPool<THandler extends CCachedBaseHandler> extends CMasterSla
             if (handler == getAsyncHandlers()[0]) {
                 if (m_bMidTier) {
                     Object vtMessage = null;
-                    int[] Groups = {CAsyncDBHandler.CACHE_UPDATE_CHAT_GROUP_ID};
+                    int[] Groups = {DB_CONSTS.CACHE_UPDATE_CHAT_GROUP_ID};
                     SPA.ServerSide.CSocketProServer.PushManager.Publish(vtMessage, Groups);
                 }
                 SetInitialCache();

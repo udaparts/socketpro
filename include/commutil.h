@@ -23,6 +23,12 @@ namespace SPA {
     typedef number<cpp_int_backend<96, 96, unsigned_magnitude, unchecked, void> > uint96_t;
 #endif
 
+	static const VARTYPE VT_XML = 35;
+	static const VARTYPE VT_DATETIMEOFFSET = 2816;
+	static const VARTYPE VT_TIMESPAN = 3072;
+	static const VARTYPE VT_USERIALIZER_OBJECT = 3328;
+	static const VARTYPE VT_NETObject = 3584;
+
     static void ParseDec(const char *data, DECIMAL &dec) {
         assert(data);
         dec.Hi32 = 0;

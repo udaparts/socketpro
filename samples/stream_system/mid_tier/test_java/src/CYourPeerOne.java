@@ -226,7 +226,7 @@ public class CYourPeerOne extends CCacheBasePeer {
     }
 
     @Override
-    @RequestAttr(RequestID = CAsyncDBHandler.idGetCachedTables, SlowRequest = true) //true -- slow request
+    @RequestAttr(RequestID = DB_CONSTS.idGetCachedTables, SlowRequest = true) //true -- slow request
     protected CachedTableResult GetCachedTables(String defaultDb, int flags, long index) {
         CachedTableResult res = this.new CachedTableResult();
         do {
@@ -234,8 +234,8 @@ public class CYourPeerOne extends CCacheBasePeer {
             if (config.m_vFrontCachedTable.isEmpty()) {
                 break;
             }
-            if ((flags & CAsyncDBHandler.ENABLE_TABLE_UPDATE_MESSAGES) == CAsyncDBHandler.ENABLE_TABLE_UPDATE_MESSAGES) {
-                if (!getPush().Subscribe(CAsyncDBHandler.CACHE_UPDATE_CHAT_GROUP_ID, CAsyncDBHandler.STREAMING_SQL_CHAT_GROUP_ID)) {
+            if ((flags & DB_CONSTS.ENABLE_TABLE_UPDATE_MESSAGES) == DB_CONSTS.ENABLE_TABLE_UPDATE_MESSAGES) {
+                if (!getPush().Subscribe(DB_CONSTS.CACHE_UPDATE_CHAT_GROUP_ID, DB_CONSTS.STREAMING_SQL_CHAT_GROUP_ID)) {
                     res.errMsg = "Failed in subscribing for table events"; //warning message
                 }
             }

@@ -1,10 +1,9 @@
 ﻿using System;
 using SocketProAdapter;
 using SocketProAdapter.ServerSide;
-using SocketProAdapter.ClientSide;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-
+using SocketProAdapter.UDB;
 
 class CYourPeerOne : CCacheBasePeer
 {
@@ -196,11 +195,11 @@ class CYourPeerOne : CCacheBasePeer
         do
         {
             CConfig config = CConfig.GetConfig();
-            if (config.m_vFrontCachedTable.Count == 0 || (flags & CAsyncDBHandler.ENABLE_TABLE_UPDATE_MESSAGES) != CAsyncDBHandler.ENABLE_TABLE_UPDATE_MESSAGES)
+            if (config.m_vFrontCachedTable.Count == 0 || (flags & DB_CONSTS.ENABLE_TABLE_UPDATE_MESSAGES) != DB_CONSTS.ENABLE_TABLE_UPDATE_MESSAGES)
                 break;
-            if ((flags & CAsyncDBHandler.ENABLE_TABLE_UPDATE_MESSAGES) == CAsyncDBHandler.ENABLE_TABLE_UPDATE_MESSAGES)
+            if ((flags & DB_CONSTS.ENABLE_TABLE_UPDATE_MESSAGES) == DB_CONSTS.ENABLE_TABLE_UPDATE_MESSAGES)
             {
-                if (!Push.Subscribe(CAsyncDBHandler.CACHE_UPDATE_CHAT_GROUP_ID, CAsyncDBHandler.STREAMING_SQL_CHAT_GROUP_ID))
+                if (!Push.Subscribe(DB_CONSTS.CACHE_UPDATE_CHAT_GROUP_ID, DB_CONSTS.STREAMING_SQL_CHAT_GROUP_ID))
                     errMsg = "Failed in subscribing for table events"; //warning message
             }
             string sql = "";

@@ -2,6 +2,7 @@
 import SPA.*;
 import SPA.ServerSide.*;
 import SPA.ClientSide.*;
+import SPA.UDB.DB_CONSTS;
 
 public class CYourServer extends CSocketProServer {
 
@@ -22,8 +23,8 @@ public class CYourServer extends CSocketProServer {
     private final CSocketProService<CYourPeerOne> m_SSPeer = new CSocketProService<>(CYourPeerOne.class);
 
     private void SetChatGroups() {
-        PushManager.AddAChatGroup(CAsyncDBHandler.STREAMING_SQL_CHAT_GROUP_ID, "Subscribe/publish for front clients");
-        PushManager.AddAChatGroup(CAsyncDBHandler.CACHE_UPDATE_CHAT_GROUP_ID, "Cache update notification from middle tier to front");
+        PushManager.AddAChatGroup(DB_CONSTS.STREAMING_SQL_CHAT_GROUP_ID, "Subscribe/publish for front clients");
+        PushManager.AddAChatGroup(DB_CONSTS.CACHE_UPDATE_CHAT_GROUP_ID, "Cache update notification from middle tier to front");
     }
 
     @Override
