@@ -778,7 +778,6 @@ class CStreamSql : CClientPeer
                         case tagVariantDataType.sdVT_VARIANT:
                             param = new SqlParameter(info.ParameterName, SqlDbType.Variant);
                             break;
-                        /*
                         case tagVariantDataType.sdVT_XML:
                             param = new SqlParameter(info.ParameterName, SqlDbType.Xml);
                             break;
@@ -789,7 +788,6 @@ class CStreamSql : CClientPeer
                             param = new SqlParameter(info.ParameterName, SqlDbType.DateTimeOffset);
                             param.Precision = info.Precision;
                             break;
-                        */
                         default:
                             res = -2;
                             errMsg = "Unsupported data type: " + info.DataType.ToString();

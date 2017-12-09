@@ -62,7 +62,7 @@ class Program
         drop_proc = "IF EXISTS(SELECT * FROM sys.procedures WHERE name='sp_TestRare1') drop proc sp_TestRare1";
         ok = sql.Execute(drop_proc, er);
 
-        create_proc = "CREATE PROCEDURE sp_TestRare1(@testid int,@myxml xml output,@tuuid uniqueidentifier output,@myvar sql_variant out)as insert into test_rare1(myguid,myxml)values(@tuuid,@myxml);select * from test_rare1 where testid>@testid;select @myxml='<myroot_testrare/>';select @tuuid=NEWID();select @myvar=N'test_variant_from_sp_TestRare1'";
+        create_proc = "CREATE PROCEDURE sp_TestRare1(@testid int, @dot datetimeoffset(4), @myxml xml output,@tuuid uniqueidentifier output,@myvar sql_variant out)as insert into test_rare1(myguid,myxml,mydateimeoffset)values(@tuuid,@myxml,@dot);select * from test_rare1 where testid>@testid;select @myxml='<myroot_testrare/>';select @tuuid=NEWID();select @myvar=N'test_variant_from_sp_TestRare1'";
         ok = sql.Execute(create_proc, er);
     }
 
@@ -287,6 +287,60 @@ class Program
         });
     }
 
+    static void TestStoredProcedure_2(CSqlServer sql, List<KeyValuePair<CDBColumnInfoArray, CDBVariantArray>> ra, CDBVariantArray vPData)
+    {
+        CParameterInfoArray vPInfo = new CParameterInfoArray();
+
+        CParameterInfo info = new CParameterInfo();
+        info.ParameterName = "RetVal";
+        info.DataType = tagVariantDataType.sdVT_INT;
+        info.Direction = tagParameterDirection.pdReturnValue;
+        vPInfo.Add(info);
+
+        info = new CParameterInfo();
+        info.ParameterName = "@testid";
+        info.DataType = tagVariantDataType.sdVT_INT;
+        vPInfo.Add(info);
+
+        info = new CParameterInfo();
+        info.ParameterName = "@dot";
+        info.DataType = tagVariantDataType.sdVT_DATETIMEOFFSET;
+        vPInfo.Add(info);
+
+        info = new CParameterInfo();
+        info.ParameterName = "@myxml";
+        info.DataType = tagVariantDataType.sdVT_XML;
+        info.ColumnSize = uint.MaxValue;
+        info.Direction = tagParameterDirection.pdInputOutput;
+        vPInfo.Add(info);
+
+        info = new CParameterInfo();
+        info.ParameterName = "@tuuid";
+        info.DataType = tagVariantDataType.sdVT_CLSID;
+        info.Direction = tagParameterDirection.pdInputOutput;
+        vPInfo.Add(info);
+
+        info = new CParameterInfo();
+        info.ParameterName = "@myvar";
+        info.DataType = tagVariantDataType.sdVT_VARIANT;
+        info.Direction = tagParameterDirection.pdOutput;
+        vPInfo.Add(info);
+
+        bool ok = sql.Prepare("sp_TestRare1", dr, vPInfo.ToArray());
+
+        //process multiple sets of parameters in one shot
+        ok = sql.Execute(vPData, er, (h, v) =>
+        {
+            KeyValuePair<CDBColumnInfoArray, CDBVariantArray> p = ra[ra.Count - 1];
+            p.Value.AddRange(v);
+        }, (h) =>
+        {
+            CDBColumnInfoArray v = h.ColumnInfo;
+            ra.Add(new KeyValuePair<CDBColumnInfoArray, CDBVariantArray>(v, new CDBVariantArray()));
+            Console.WriteLine("dbPath={0}, tablePath={1}", v[0].DBPath, v[0].TablePath);
+        });
+    }
+
     static void Main(string[] args)
     {
         Console.WriteLine("Remote host: ");
@@ -337,6 +391,27 @@ class Program
             vPData.Add(null);
             TestStoredProcedure(sql, ra, vPData);
             ok = sql.Execute("", er, rows, rh);
+            sql.WaitAll();
+            vPData.Clear();
+
+            //first set
+            vPData.Add(-1); //return int
+            vPData.Add(1); //@testid
+            vPData.Add(DateTime.Now);
+            vPData.Add("<test_sqlserver />"); //@myxml
+            Guid guid = Guid.NewGuid();
+            vPData.Add(guid); //@tuuid
+            vPData.Add(true); //@myvar
+
+            //second set
+            vPData.Add(-2); //return int
+            vPData.Add(4); //@testid
+            vPData.Add(DateTime.Now);
+            vPData.Add("<test_sqlserver_again />"); //@myxml
+            Guid guid2 = Guid.NewGuid();
+            vPData.Add(guid2); //@tuuid
+            vPData.Add(false); //@myvar
+            TestStoredProcedure_2(sql, ra, vPData);
             sql.WaitAll();
             Console.WriteLine("Press any key to close the application ......");
             Console.Read();
