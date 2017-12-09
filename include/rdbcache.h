@@ -82,8 +82,10 @@ namespace SPA {
 						if (!this->Cache.GetDBServerName().size()) {
 							if (vData[1].vt == (VT_ARRAY | VT_I1))
 								this->Cache.SetDBServerName(this->ToWide(vData[1]).c_str());
-							else if (vData[1].vt == VT_BSTR)
-								this->Cache.SetDBServerName(vData[1].bstrVal);
+							else if (vData[1].vt == VT_BSTR) {
+								std::wstring s = vData[1].bstrVal;
+								this->Cache.SetDBServerName(s.c_str());
+							}
 						}
 						if (vData[2].vt == (VT_ARRAY | VT_I1))
 							this->Cache.SetUpdater(this->ToWide(vData[2]).c_str());
@@ -129,7 +131,7 @@ namespace SPA {
 							if (keys == 1)
 								res = this->Cache.DeleteARow(dbName.c_str(), tblName.c_str(), vData[5]);
 							else
-								res = this->Cache.DeleteARow(dbName.c_str(), tblName.c_str(), vData[5], vData[6]);
+								res = this->Cache.DeleteARow(dbName.c_str(), tblName.c_str(), vData + 5, keys);
 							assert(res != CDataSet::INVALID_VALUE);
 						}
 						break;

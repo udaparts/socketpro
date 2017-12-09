@@ -121,7 +121,6 @@ namespace SPA {
         int Between(const wchar_t *dbName, const wchar_t *tblName, unsigned int ordinal, const CComVariant &vt0, const CComVariant &vt1, CTable &tbl);
         int Between(const wchar_t *dbName, const wchar_t *tblName, unsigned int ordinal, const VARIANT &vt0, const VARIANT &vt1, CTable &tbl);
         size_t DeleteARow(const wchar_t *dbName, const wchar_t *tblName, const CComVariant &key);
-        size_t DeleteARow(const wchar_t *dbName, const wchar_t *tblName, const CComVariant &key0, const CComVariant &key1);
         static std::string ToDate(const VARIANT &vtDate);
 
         /**
@@ -174,15 +173,15 @@ namespace SPA {
          */
         virtual size_t DeleteARow(const wchar_t *dbName, const wchar_t *tblName, const VARIANT &key);
 
-        /**
-         * Delete one row from cache from one given key value. Track delete event by overriding this method
-         * @param dbName A database name string
-         * @param tblName A table name string
-         * @param key0 The first given key value
-         * @param key1 The second given key value
-         * @return The number of deleted rows, which could be 0, 1 or INVALID_VALUE
-         */
-        virtual size_t DeleteARow(const wchar_t *dbName, const wchar_t *tblName, const VARIANT &key0, const VARIANT &key1);
+		/**
+		* Delete one row from cache from one given row of data. Track delete event by overriding this method
+		* @param dbName A database name string
+		* @param tblName A table name string
+		* @param pRow a pointer to a row of data
+		* @param cols the column number
+		* @return The number of deleted rows, which could be 0, 1 or INVALID_VALUE
+		*/
+		virtual size_t DeleteARow(const wchar_t *dbName, const wchar_t *tblName, const VARIANT *pRow, unsigned int cols);
 
     private:
         static CPRow FindARowInternal(const CTable &tbl, size_t f, const VARIANT &key);

@@ -111,16 +111,11 @@ class CStreamSql : CClientPeer
             string dbName = dr["BaseCatalogName"].ToString();
             if (dbName.Length == 0)
                 dbName = m_conn.Database;
-#if PLUGIN_DEV
-            info.DBPath = m_conn.DataSource + "." + dbName;
-#else
-            info.DBPath = SQLConfig.Server + "." + dbName;
-#endif
+            info.DBPath = dbName;
             string schema = dr["BaseSchemaName"].ToString();
             if (schema.Length == 0)
                 schema = "dbo";
             info.TablePath = schema + "." + dr["BaseTableName"];
-
             b = (bool)dr["IsAutoIncrement"];
             if (b)
             {
@@ -132,7 +127,8 @@ class CStreamSql : CClientPeer
             if (!(isKey is DBNull))
             {
                 b = (bool)isKey;
-                info.Flags |= CDBColumnInfo.FLAG_PRIMARY_KEY;
+                if (b)
+                    info.Flags |= CDBColumnInfo.FLAG_PRIMARY_KEY;
             }
             b = (bool)dr["IsUnique"];
             if (b)

@@ -5,7 +5,7 @@
 #include "../ucomm.h"
 
 namespace SPA {
-    namespace Mysql {
+    namespace SqlServer {
         static const unsigned int sidMsSql = (unsigned int) sidReserved + 0x6FFFFFF2; //asynchronous MS SQL stream service id
 
         

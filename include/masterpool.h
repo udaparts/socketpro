@@ -105,7 +105,7 @@ namespace SPA {
 							if (keys == 1)
 								res = this->Cache.DeleteARow(dbName.c_str(), tblName.c_str(), vData[5]);
 							else
-								res = this->Cache.DeleteARow(dbName.c_str(), tblName.c_str(), vData[5], vData[6]);
+								res = this->Cache.DeleteARow(dbName.c_str(), tblName.c_str(), vData + 5, keys);
 							assert(res != CDataSet::INVALID_VALUE);
 						}
 						break;
