@@ -319,6 +319,7 @@ class Program
             };
             bool ok = sql.Open("", dr, DB_CONSTS.ENABLE_TABLE_UPDATE_MESSAGES);
             TestCreateTables(sql);
+            ok = sql.Execute("select * from SpatialTable", er, rows, rh);
             ok = sql.Execute("delete from employee;delete from company;delete from test_rare1;delete from SpatialTable;INSERT INTO SpatialTable(mygeometry, mygeography)VALUES(geometry::STGeomFromText('LINESTRING(100 100,20 180,180 180)',0),geography::Point(47.6475,-122.1393,4326))", er);
             ok = sql.Execute("INSERT INTO test_rare1(mybool,mymoney,myxml,myvariant,mydateimeoffset)values(1,23.45,'<sometest />', N'美国总统川普下个星期四','2017-05-02 00:00:00.0000000 -04:00');INSERT INTO test_rare1(mybool,mymoney,myvariant)values(0,1223.45,'This is a test for ASCII string inside sql_variant');INSERT INTO test_rare1(myvariant)values(283.45)", er);
             TestPreparedStatements(sql);

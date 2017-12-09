@@ -449,7 +449,7 @@ class CStreamSql : CClientPeer
         string current_db = m_conn.Database;
         List<string> vDB = new List<string>();
         SqlDataReader reader = null;
-        string sql = "SELECT name FROM master.dbo.sysdatabases where name NOT IN('master','tempdb','model','msdb','sp_streaming_db')";
+        string sql = "SELECT name FROM master.dbo.sysdatabases where name NOT IN('master','tempdb','model','msdb')";
         try
         {
             SqlCommand cmd = new SqlCommand(sql, m_conn);

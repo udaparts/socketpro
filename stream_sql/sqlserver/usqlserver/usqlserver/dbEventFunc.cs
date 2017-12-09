@@ -127,15 +127,7 @@ public static class USqlStream
                 return null;
             for (int n = 5; n < total; ++n)
             {
-                Object data = reader.GetValue(n - 5);
-                if (data is DateTimeOffset)
-                    msg[n] = data.ToString();
-                else if (data is TimeSpan)
-                    msg[n] = data.ToString();
-                else if (data is SqlXml)
-                    msg[n] = data.ToString();
-                else
-                    msg[n] = data;
+                msg[n] = GetData(reader, n - 5);
             }
             return msg;
         }
@@ -144,6 +136,20 @@ public static class USqlStream
             if (reader != null)
                 reader.Close();
         }
+    }
+
+    private static object GetData(SqlDataReader reader, int ordinal)
+    {
+        if (reader.IsDBNull(ordinal))
+            return null;
+        string native = reader.GetDataTypeName(ordinal);
+        if (native.IndexOf(".") != -1)
+            return reader.GetValue(ordinal).ToString(); //customer defined data types, geometry, and geography
+        else if (native == "xml")
+            return reader.GetSqlXml(ordinal).ToString();
+        else if (native == "datetimeoffset")
+            return reader.GetDateTimeOffset(ordinal).ToString();
+        return reader.GetValue(ordinal);
     }
 
     private static object[] PublishUpdate(SqlConnection conn, out DataTable dt)
@@ -164,15 +170,7 @@ public static class USqlStream
             for (int ordinal = 0; ordinal < count; ++ordinal)
             {
                 int n = 5 + ordinal * 2;
-                Object data = reader.GetValue(ordinal);
-                if (data is DateTimeOffset)
-                    msg[n] = data.ToString();
-                else if (data is TimeSpan)
-                    msg[n] = data.ToString();
-                else if (data is SqlXml)
-                    msg[n] = data.ToString();
-                else
-                    msg[n] = data;
+                msg[n] = GetData(reader, ordinal);
             }
             reader.NextResult();
             if (!reader.Read())
@@ -180,15 +178,7 @@ public static class USqlStream
             for (int ordinal = 0; ordinal < count; ++ordinal)
             {
                 int n = 6 + ordinal * 2;
-                Object data = reader.GetValue(ordinal);
-                if (data is DateTimeOffset)
-                    msg[n] = data.ToString();
-                else if (data is TimeSpan)
-                    msg[n] = data.ToString();
-                else if (data is SqlXml)
-                    msg[n] = data.ToString();
-                else
-                    msg[n] = data;
+                msg[n] = GetData(reader, ordinal);
             }
             return msg;
         }
@@ -216,15 +206,7 @@ public static class USqlStream
                 return null;
             for (int n = 5; n < total; ++n)
             {
-                Object data = reader.GetValue(n - 5);
-                if (data is DateTimeOffset)
-                    msg[n] = data.ToString();
-                else if (data is TimeSpan)
-                    msg[n] = data.ToString();
-                else if (data is SqlXml)
-                    msg[n] = data.ToString();
-                else
-                    msg[n] = data;
+                msg[n] = GetData(reader, n - 5);
             }
             return msg;
         }
@@ -268,7 +250,7 @@ public static class USqlStream
         return v;
     }
 
-    private static string GuessTablePath(SqlConnection conn, string dbName, DataTable dt)
+    private static string GuessTablePath(SqlConnection conn, DataTable dt)
     {
         SqlDataReader dr = null;
         string sql = "select OBJECT_NAME(parent_id),object_schema_name(parent_id)from sys.assembly_modules as am,sys.triggers as t where t.object_id=am.object_id and assembly_method like 'PublishDMLEvent%' and assembly_class='USqlStream'";
@@ -350,7 +332,7 @@ public static class USqlStream
         {
             try
             {
-                if (CSqlPlugin.Running)
+                if (CSocketProServer.Running)
                 {
                     conn.Open();
                     string[] v = GetUSqlServerKeys(conn);
@@ -384,10 +366,10 @@ public static class USqlStream
                         msg[1] = SQLConfig.Server;
                         msg[2] = v[0];
                         msg[3] = v[1];
-                        string tblName = GuessTablePath(conn, v[1], dt);
+                        string tblName = GuessTablePath(conn, dt);
                         if (tblName != null && tblName.Length > 0)
                         {
-                            msg[4] = GuessTablePath(conn, v[1], dt);
+                            msg[4] = tblName;
                             lock (m_cs)
                             {
                                 if (!CSocketProServer.PushManager.Publish(msg, DB_CONSTS.STREAMING_SQL_CHAT_GROUP_ID))
@@ -409,7 +391,7 @@ public static class USqlStream
             }
             finally
             {
-                LogError(conn, errMsg);
+                //LogError(conn, errMsg);
                 conn.Close();
             }
         }
