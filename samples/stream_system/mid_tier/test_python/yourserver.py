@@ -1,6 +1,7 @@
 from spa import CSqlMasterPool as CMaster
 from spa.serverside import CSocketProServer, tagAuthenticationMethod, CSocketProService
 from spa.clientside import CAsyncDBHandler, CSqlite
+from spa.udb import DB_CONSTS
 from config import CConfig
 from sharedstruct import *
 from yourpeer import CYourPeer
@@ -24,7 +25,7 @@ class CYourServer(CSocketProServer):
         mapIdMethod = {
             idGetMasterSlaveConnectedSessions: 'GetMasterSlaveConnectedSessions',
             idGetRentalDateTimes: ['GetRentalDateTimes', True],  # or ('GetRentalDateTimes', True)
-            CAsyncDBHandler.idGetCachedTables: ('GetCachedTables', True)  # True -- slow request
+            DB_CONSTS.idGetCachedTables: ('GetCachedTables', True)  # True -- slow request
         }
         self.YourPeerService = CSocketProService(CYourPeer, sidStreamSystem, mapIdMethod)
         ok = super(CYourServer, self).Run(port, maxBacklog, v6Supported)
@@ -32,8 +33,8 @@ class CYourServer(CSocketProServer):
         return ok
 
     def SetChatGroups(self):
-        CYourServer.PushManager.AddAChatGroup(CAsyncDBHandler.STREAMING_SQL_CHAT_GROUP_ID, 'Subscribe/publish for front clients')
-        CYourServer.PushManager.AddAChatGroup(CAsyncDBHandler.CACHE_UPDATE_CHAT_GROUP_ID, 'Cache update notification from middle tier to front')
+        CYourServer.PushManager.AddAChatGroup(DB_CONSTS.STREAMING_SQL_CHAT_GROUP_ID, 'Subscribe/publish for front clients')
+        CYourServer.PushManager.AddAChatGroup(DB_CONSTS.CACHE_UPDATE_CHAT_GROUP_ID, 'Cache update notification from middle tier to front')
 
     @staticmethod
     def CreateTestDB():

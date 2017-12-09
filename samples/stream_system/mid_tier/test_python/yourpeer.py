@@ -234,8 +234,8 @@ class CYourPeer(CCacheBasePeer):
         redo = 1
         while redo > 0:
             redo = 0  # disable redo
-            if (flags & CAsyncDBHandler.ENABLE_TABLE_UPDATE_MESSAGES) == CAsyncDBHandler.ENABLE_TABLE_UPDATE_MESSAGES:
-                if not self.Push.Subscribe([CAsyncDBHandler.CACHE_UPDATE_CHAT_GROUP_ID, CAsyncDBHandler.STREAMING_SQL_CHAT_GROUP_ID]):
+            if (flags & DB_CONSTS.ENABLE_TABLE_UPDATE_MESSAGES) == DB_CONSTS.ENABLE_TABLE_UPDATE_MESSAGES:
+                if not self.Push.Subscribe([DB_CONSTS.CACHE_UPDATE_CHAT_GROUP_ID, DB_CONSTS.STREAMING_SQL_CHAT_GROUP_ID]):
                     errMsg = 'Failed in subscribing for table events' # warning message
             if len(config.m_vFrontCachedTable) == 0:
                 break

@@ -1,5 +1,5 @@
 
-from spa.clientside import CAsyncServiceHandler, CAsyncDBHandler
+from spa.clientside import CAsyncServiceHandler
 import threading
 from spa import CUQueue, CScopeUQueue, Pair
 from spa.udb import *
@@ -31,7 +31,7 @@ class CCachedBaseHandler(CAsyncServiceHandler):
             self._mapHandler = {}
         return super(CCachedBaseHandler, self).CleanCallbacks()
 
-    def GetCachedTables(self, defaultDb, handler, row, rh, flags=CAsyncDBHandler.ENABLE_TABLE_UPDATE_MESSAGES):
+    def GetCachedTables(self, defaultDb, handler, row, rh, flags=DB_CONSTS.ENABLE_TABLE_UPDATE_MESSAGES):
         q = CScopeUQueue.Lock()
         index = 0;
         with self._csCache:
@@ -40,7 +40,7 @@ class CCachedBaseHandler(CAsyncServiceHandler):
             self._mapRowset[index] = Pair(rh, row)
             self._mapHandler[index] = handler
         q.SaveString(defaultDb).SaveUInt(flags).SaveULong(index)
-        ok = self.SendRequest(CAsyncDBHandler.idGetCachedTables, q, None)
+        ok = self.SendRequest(DB_CONSTS.idGetCachedTables, q, None)
         CScopeUQueue.Unlock(q)
         if not ok:
             with self._csCache:
@@ -49,7 +49,7 @@ class CCachedBaseHandler(CAsyncServiceHandler):
         return ok
 
     def OnResultReturned(self, reqId, mc):
-        if reqId == CAsyncDBHandler.idRowsetHeader:
+        if reqId == DB_CONSTS.idRowsetHeader:
             self._Blob.SetSize(0)
             if self._Blob.MaxBufferSize > CCachedBaseHandler.ONE_MEGA_BYTES:
                 self._Blob.Realloc(CCachedBaseHandler.ONE_MEGA_BYTES)
@@ -64,17 +64,17 @@ class CCachedBaseHandler(CAsyncServiceHandler):
                         header = self._mapRowset.get(self._indexRowset).first
             if not header is None:
                 header(vColInfo)
-        elif reqId == CAsyncDBHandler.idBeginRows:
+        elif reqId == DB_CONSTS.idBeginRows:
             self._Blob.SetSize(0)
             self._vData = []
             if mc.GetSize() > 0:
                 with self._csCache:
                     self._indexRowset = mc.LoadULong()
-        elif reqId == CAsyncDBHandler.idTransferring:
+        elif reqId == DB_CONSTS.idTransferring:
             while mc.GetSize() > 0:
                 vt = mc.LoadObject()
                 self._vData.append(vt)
-        elif reqId == CAsyncDBHandler.idEndRows:
+        elif reqId == DB_CONSTS.idEndRows:
             if mc.GetSize() > 0 or len(self._vData) > 0:
                 while mc.GetSize() > 0:
                     vt = mc.LoadObject()
@@ -86,7 +86,7 @@ class CCachedBaseHandler(CAsyncServiceHandler):
                 if not row is None:
                     row(self._vData)
             self._vData = []
-        elif reqId == CAsyncDBHandler.idStartBLOB:
+        elif reqId == DB_CONSTS.idStartBLOB:
             if mc.GetSize() > 0:
                 self._Blob.SetSize(0)
                 length = mc.LoadUInt()
@@ -94,21 +94,21 @@ class CCachedBaseHandler(CAsyncServiceHandler):
                     self._Blob.Realloc(length)
                 self._Blob.Push(mc.GetBuffer(), mc.GetSize())
                 mc.SetSize(0)
-        elif reqId == CAsyncDBHandler.idChunk:
+        elif reqId == DB_CONSTS.idChunk:
             if mc.GetSize() > 0:
                 self._Blob.Push(mc.GetBuffer(), mc.GetSize())
                 mc.SetSize(0)
-        elif reqId == CAsyncDBHandler.idEndBLOB:
+        elif reqId == DB_CONSTS.idEndBLOB:
             if mc.GetSize() > 0 or self._Blob.GetSize() > 0:
                 self._Blob.Push(mc.GetBuffer(), mc.GetSize())
                 mc.SetSize(0)
                 content_len = self._Blob.PeakUInt(2)
-                if content_len >= CAsyncDBHandler.BLOB_LENGTH_NOT_AVAILABLE:
+                if content_len >= DB_CONSTS.BLOB_LENGTH_NOT_AVAILABLE:
                     content_len = self._Blob.GetSize() - 6 #sizeof(VARTYPE) + sizeof(unsigned int)
                     self._Blob.ResetUInt(content_len, 2)
                 vt = self._Blob.LoadObject()
                 self._vData.append(vt)
-        elif reqId == CAsyncDBHandler.idGetCachedTables:
+        elif reqId == DB_CONSTS.idGetCachedTables:
             res = mc.LoadInt()
             self._ms = mc.LoadInt()
             err_msg = mc.LoadString()

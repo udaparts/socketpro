@@ -10,58 +10,6 @@ class CAsyncDBHandler(CAsyncServiceHandler):
     ONE_MEGA_BYTES = 0x100000
     BLOB_LENGTH_NOT_AVAILABLE = 0xffffffe0
 
-    """
-    Async database client/server just requires the following request identification numbers
-    """
-    idOpen = 0x7E7F
-    idClose = idOpen + 1
-    idBeginTrans = idClose + 1
-    idEndTrans = idBeginTrans + 1
-    idExecute = idEndTrans + 1
-    idPrepare = idExecute + 1
-    idExecuteParameters = idPrepare + 1
-
-    """
-    the request identification numbers used for message push from server to client
-    """
-    idDBUpdate = idExecuteParameters + 1 #server ==> client only
-    idRowsetHeader = idDBUpdate + 1 #server ==> client only
-    idOutputParameter = idRowsetHeader + 1 #server ==> client only
-
-    """
-    Internal request/response identification numbers used for data communication between client and server
-    """
-    idBeginRows = idOutputParameter + 1
-    idTransferring = idBeginRows + 1
-    idStartBLOB = idTransferring + 1
-    idChunk = idStartBLOB + 1
-    idEndBLOB = idChunk + 1
-    idEndRows = idEndBLOB + 1
-    idCallReturn = idEndRows + 1
-    idGetCachedTables = idCallReturn + 1
-
-    """
-    Whenever a data size in bytes is about twice larger than the defined value, the data will be treated in large object and transferred in chunks for reducing memory foot print
-    """
-    DEFAULT_BIG_FIELD_CHUNK_SIZE = 16 * 1024 #16k
-
-    """
-    A record data size in bytes is approximately equal to or slightly larger than the defined constant
-    """
-    DEFAULT_RECORD_BATCH_SIZE = 16 * 1024 #16k
-
-    """
-    A flag used with idOpen for tracing database table update events
-    """
-    ENABLE_TABLE_UPDATE_MESSAGES = 0x1
-
-    """
-    A chat group id used at SocketPro server side for notifying database events from server to connected clients
-    """
-    STREAMING_SQL_CHAT_GROUP_ID = 0x1fffffff
-
-    CACHE_UPDATE_CHAT_GROUP_ID = STREAMING_SQL_CHAT_GROUP_ID + 1
-
     def __init__(self, serviceId):
         super(CAsyncDBHandler, self).__init__(serviceId)
         self._csDB = threading.Lock()
@@ -155,7 +103,7 @@ class CAsyncDBHandler(CAsyncServiceHandler):
         return super(CAsyncDBHandler, self).CleanCallbacks()
 
     def OnResultReturned(self, reqId, mc):
-        if reqId == CAsyncDBHandler.idExecuteParameters or reqId == CAsyncDBHandler.idExecute:
+        if reqId == DB_CONSTS.idExecuteParameters or reqId == DB_CONSTS.idExecute:
             affected = mc.LoadLong()
             res = mc.LoadInt()
             errMsg = mc.LoadString()
@@ -177,7 +125,7 @@ class CAsyncDBHandler(CAsyncServiceHandler):
             if not t is None and not t.second is None:
                 t.second(self, res, errMsg, affected, fail_ok, vtId)
 
-        elif reqId == CAsyncDBHandler.idPrepare:
+        elif reqId == DB_CONSTS.idPrepare:
             res = mc.LoadInt()
             errMsg = mc.LoadString()
             parameters = mc.LoadInt()
@@ -193,7 +141,7 @@ class CAsyncDBHandler(CAsyncServiceHandler):
             if not t is None and not t.second is None:
                 t.second(self, res, errMsg)
 
-        elif reqId == CAsyncDBHandler.idOpen:
+        elif reqId == DB_CONSTS.idOpen:
             res = mc.LoadInt()
             errMsg = mc.LoadString()
             ms = mc.LoadInt()
@@ -217,7 +165,7 @@ class CAsyncDBHandler(CAsyncServiceHandler):
             if not t is None and not t.second is None:
                 t.second(self, res, errMsg)
 
-        elif reqId == CAsyncDBHandler.idEndTrans:
+        elif reqId == DB_CONSTS.idEndTrans:
             res = mc.LoadInt()
             errMsg = mc.LoadString()
             t = self._GetResultHandler(reqId)
@@ -231,7 +179,7 @@ class CAsyncDBHandler(CAsyncServiceHandler):
             if not t is None and not t.second is None:
                 t.second(self, res, errMsg)
 
-        elif reqId == CAsyncDBHandler.idBeginTrans:
+        elif reqId == DB_CONSTS.idBeginTrans:
             res = mc.LoadInt()
             errMsg = mc.LoadString()
             ms = mc.LoadInt()
@@ -248,7 +196,7 @@ class CAsyncDBHandler(CAsyncServiceHandler):
             if not t is None and not t.second is None:
                 t.second(self, res, errMsg)
 
-        elif reqId == CAsyncDBHandler.idClose:
+        elif reqId == DB_CONSTS.idClose:
             res = mc.LoadInt()
             errMsg = mc.LoadString()
             t = self._GetResultHandler(reqId)
@@ -265,7 +213,7 @@ class CAsyncDBHandler(CAsyncServiceHandler):
             if not t is None and not t.second is None:
                 t.second(self, res, errMsg)
 
-        elif reqId == CAsyncDBHandler.idRowsetHeader:
+        elif reqId == DB_CONSTS.idRowsetHeader:
             self._Blob.SetSize(0)
             if self._Blob.MaxBufferSize > CAsyncDBHandler.ONE_MEGA_BYTES:
                 self._Blob.Realloc(CAsyncDBHandler.ONE_MEGA_BYTES)
@@ -283,7 +231,7 @@ class CAsyncDBHandler(CAsyncServiceHandler):
                         header = self._mapRowset.get(self._indexRowset).first
             if not header is None:
                 header(self)
-        elif reqId == CAsyncDBHandler.idCallReturn:
+        elif reqId == DB_CONSTS.idCallReturn:
             vt = mc.LoadObject()
             with self._csDB:
                 if self._indexRowset in self._mapParameterCall:
@@ -292,22 +240,22 @@ class CAsyncDBHandler(CAsyncServiceHandler):
                     vParam[pos] = vt
                 self._bCallReturn = True
 
-        elif reqId == CAsyncDBHandler.idBeginRows:
+        elif reqId == DB_CONSTS.idBeginRows:
             self._Blob.SetSize(0)
             self._vData = []
             if mc.GetSize() > 0:
                 with self._csDB:
                     self._indexRowset = mc.LoadULong()
-        elif reqId == CAsyncDBHandler.idTransferring:
+        elif reqId == DB_CONSTS.idTransferring:
             while mc.GetSize() > 0:
                 vt = mc.LoadObject()
                 self._vData.append(vt)
-        elif reqId == CAsyncDBHandler.idOutputParameter or reqId == CAsyncDBHandler.idEndRows:
+        elif reqId == DB_CONSTS.idOutputParameter or reqId == DB_CONSTS.idEndRows:
             if mc.GetSize() > 0 or len(self._vData) > 0:
                 while mc.GetSize() > 0:
                     vt = mc.LoadObject()
                     self._vData.append(vt)
-                if reqId == CAsyncDBHandler.idOutputParameter:
+                if reqId == DB_CONSTS.idOutputParameter:
                     with self._csDB:
                         self._output = len(self._vData)
                         if self._indexRowset in self._mapParameterCall:
@@ -325,7 +273,7 @@ class CAsyncDBHandler(CAsyncServiceHandler):
                     if not row is None:
                         row(self, self._vData)
             self._vData = []
-        elif reqId == CAsyncDBHandler.idStartBLOB:
+        elif reqId == DB_CONSTS.idStartBLOB:
             if mc.GetSize() > 0:
                 self._Blob.SetSize(0)
                 length = mc.LoadUInt()
@@ -333,16 +281,16 @@ class CAsyncDBHandler(CAsyncServiceHandler):
                     self._Blob.Realloc(length)
                 self._Blob.Push(mc.GetBuffer(), mc.GetSize())
                 mc.SetSize(0)
-        elif reqId == CAsyncDBHandler.idChunk:
+        elif reqId == DB_CONSTS.idChunk:
             if mc.GetSize() > 0:
                 self._Blob.Push(mc.GetBuffer(), mc.GetSize())
                 mc.SetSize(0)
-        elif reqId == CAsyncDBHandler.idEndBLOB:
+        elif reqId == DB_CONSTS.idEndBLOB:
             if mc.GetSize() > 0 or self._Blob.GetSize() > 0:
                 self._Blob.Push(mc.GetBuffer(), mc.GetSize())
                 mc.SetSize(0)
                 content_len = self._Blob.PeakUInt(2)
-                if content_len >= CAsyncDBHandler.BLOB_LENGTH_NOT_AVAILABLE:
+                if content_len >= DB_CONSTS.BLOB_LENGTH_NOT_AVAILABLE:
                     content_len = self._Blob.GetSize() - 6 #sizeof(VARTYPE) + sizeof(unsigned int)
                     self._Blob.ResetUInt(content_len, 2)
                 vt = self._Blob.LoadObject()
@@ -356,8 +304,8 @@ class CAsyncDBHandler(CAsyncServiceHandler):
         self._vColInfo = CDBColumnInfoArray()
         self._lastReqId = 0
         self._Blob.SetSize(0)
-        if self._Blob.MaxBufferSize > CAsyncDBHandler.DEFAULT_BIG_FIELD_CHUNK_SIZE:
-            self._Blob.Realloc(CAsyncDBHandler.DEFAULT_BIG_FIELD_CHUNK_SIZE)
+        if self._Blob.MaxBufferSize > DB_CONSTS.DEFAULT_BIG_FIELD_CHUNK_SIZE:
+            self._Blob.Realloc(DB_CONSTS.DEFAULT_BIG_FIELD_CHUNK_SIZE)
         self._vData = []
 
     def _CleanRowset(self, size = 0):
@@ -373,13 +321,13 @@ class CAsyncDBHandler(CAsyncServiceHandler):
         :return: true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
         """
         ok = True
-        cb = Pair(CAsyncDBHandler.idClose, handler)
+        cb = Pair(DB_CONSTS.idClose, handler)
         buffer = CScopeUQueue.Lock()
         with self._csOneSending:
             #don't make self._csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
             with self._csDB:
                 self._deqResult.append(cb)
-            ok = self.SendRequest(CAsyncDBHandler.idClose, buffer, None, canceled)
+            ok = self.SendRequest(DB_CONSTS.idClose, buffer, None, canceled)
             if not ok:
                 with self._csDB:
                     self._deqResult.remove(cb)
@@ -395,7 +343,7 @@ class CAsyncDBHandler(CAsyncServiceHandler):
         :return: true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
         """
         ok = True
-        cb = Pair(CAsyncDBHandler.idBeginTrans, handler)
+        cb = Pair(DB_CONSTS.idBeginTrans, handler)
         q = CScopeUQueue.Lock()
 
         """
@@ -409,7 +357,7 @@ class CAsyncDBHandler(CAsyncServiceHandler):
                 self._deqResult.append(cb)
             #associate begin transaction with underlying client persistent message queue
             queueOk = self.AttachedClientSocket.ClientQueue.StartJob()
-            ok = self.SendRequest(CAsyncDBHandler.idBeginTrans, q, None, canceled)
+            ok = self.SendRequest(DB_CONSTS.idBeginTrans, q, None, canceled)
             if not ok:
                 with self._csDB:
                     self._deqResult.remove(cb)
@@ -429,7 +377,7 @@ class CAsyncDBHandler(CAsyncServiceHandler):
         """
         ok = True
         q = CScopeUQueue.Lock().SaveInt(plan)
-        cb = Pair(CAsyncDBHandler.idEndTrans, handler)
+        cb = Pair(DB_CONSTS.idEndTrans, handler)
         """
         make sure EndTrans sending and underlying client persistent message queue as one combination sending
         to avoid possible request sending/client message writing overlapping within multiple threading environment
@@ -438,7 +386,7 @@ class CAsyncDBHandler(CAsyncServiceHandler):
             #don't make self._csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
             with self._csDB:
                 self._deqResult.append(cb)
-            ok = self.SendRequest(CAsyncDBHandler.idEndTrans, q, None, canceled)
+            ok = self.SendRequest(DB_CONSTS.idEndTrans, q, None, canceled)
             if ok:
                 #associate end transaction with underlying client persistent message queue
                 self.AttachedClientSocket.ClientQueue.EndJob()
@@ -461,7 +409,7 @@ class CAsyncDBHandler(CAsyncServiceHandler):
         ok = True
         s = ''
         q = CScopeUQueue.Lock().SaveString(strConnection).SaveUInt(flags)
-        cb = Pair(CAsyncDBHandler.idOpen, handler)
+        cb = Pair(DB_CONSTS.idOpen, handler)
         with self._csOneSending:
             #don't make self._csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
             with self._csDB:
@@ -470,7 +418,7 @@ class CAsyncDBHandler(CAsyncServiceHandler):
                 if not strConnection is None:
                     s = self._strConnection
                     self._strConnection = strConnection
-            ok = self.SendRequest(CAsyncDBHandler.idOpen, q, None, canceled)
+            ok = self.SendRequest(DB_CONSTS.idOpen, q, None, canceled)
             if not ok:
                 with self._csDB:
                     if not strConnection is None:
@@ -497,11 +445,11 @@ class CAsyncDBHandler(CAsyncServiceHandler):
         if count > 0:
             for one in lstParameterInfo:
                 one.SaveTo(q)
-        cb = Pair(CAsyncDBHandler.idPrepare, handler)
+        cb = Pair(DB_CONSTS.idPrepare, handler)
         with self._csOneSending:
             with self._csDB:
                 self._deqResult.append(cb)
-            ok = self.SendRequest(CAsyncDBHandler.idPrepare, q, None, canceled)
+            ok = self.SendRequest(DB_CONSTS.idPrepare, q, None, canceled)
             if not ok:
                 with self._csDB:
                     self._deqResult.remove(cb)
@@ -533,7 +481,7 @@ class CAsyncDBHandler(CAsyncServiceHandler):
         if not rowset:
             meta = False
         q = CScopeUQueue.Lock().SaveString(sql).SaveBool(rowset).SaveBool(meta).SaveBool(lastInsertId)
-        cb = Pair(CAsyncDBHandler.idExecute, handler)
+        cb = Pair(DB_CONSTS.idExecute, handler)
         with self._csOneSending:
             #don't make self._csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
             with self._csDB:
@@ -543,7 +491,7 @@ class CAsyncDBHandler(CAsyncServiceHandler):
                     self._mapRowset[self._nCall] = Pair(rh,row)
                 self._deqResult.append(cb)
                 index = self._nCall
-            ok = self.SendRequest(CAsyncDBHandler.idExecute, q, None, canceled)
+            ok = self.SendRequest(DB_CONSTS.idExecute, q, None, canceled)
             if not ok:
                 with self._csDB:
                     self._deqResult.remove(cb)
@@ -561,28 +509,28 @@ class CAsyncDBHandler(CAsyncServiceHandler):
             if sb.GetSize() > 0:
                 if self._firstRow:
                     self._firstRow = False
-                    if not self.SendRequest(CAsyncDBHandler.idBeginRows, sb, None):
+                    if not self.SendRequest(DB_CONSTS.idBeginRows, sb, None):
                         return False
                 else:
-                    if not self.SendRequest(CAsyncDBHandler.idTransferring, sb, None):
+                    if not self.SendRequest(DB_CONSTS.idTransferring, sb, None):
                         return False
                 sb.SetSize(0)
             elif self._firstRow:
                 self._firstRow = False
-                return self.SendRequest(CAsyncDBHandler.idBeginRows, None, None)
+                return self.SendRequest(DB_CONSTS.idBeginRows, None, None)
             return True
         def SendBlob(sb):
             start = True
-            while sb.GetSize() > CAsyncDBHandler.DEFAULT_BIG_FIELD_CHUNK_SIZE:
-                bytes = sb.PopBytes(CAsyncDBHandler.DEFAULT_BIG_FIELD_CHUNK_SIZE)
+            while sb.GetSize() > DB_CONSTS.DEFAULT_BIG_FIELD_CHUNK_SIZE:
+                bytes = sb.PopBytes(DB_CONSTS.DEFAULT_BIG_FIELD_CHUNK_SIZE)
                 if start:
-                    if not self.SendRequest(CAsyncDBHandler.idStartBLOB, CUQueue(bytes), None):
+                    if not self.SendRequest(DB_CONSTS.idStartBLOB, CUQueue(bytes), None):
                         return False
                     start = False
                 else:
-                    if not self.SendRequest(CAsyncDBHandler.idChunk, CUQueue(bytes), None):
+                    if not self.SendRequest(DB_CONSTS.idChunk, CUQueue(bytes), None):
                         return False
-            if not self.SendRequest(CAsyncDBHandler.idEndBLOB, sb, None):
+            if not self.SendRequest(DB_CONSTS.idEndBLOB, sb, None):
                 return False
             sb.SetSize(0)
             return True
@@ -591,7 +539,7 @@ class CAsyncDBHandler(CAsyncServiceHandler):
             if isinstance(vt, str):
                 #send string as unicode string
                 length = len(vt) * 2
-                if length < 2 * CAsyncDBHandler.DEFAULT_BIG_FIELD_CHUNK_SIZE:
+                if length < 2 * DB_CONSTS.DEFAULT_BIG_FIELD_CHUNK_SIZE:
                     sb.SaveObject(vt)
                 else:
                     if not Send(sb):
@@ -605,7 +553,7 @@ class CAsyncDBHandler(CAsyncServiceHandler):
             elif isinstance(vt, bytearray):
                 #send array of bytes
                 length = len(vt)
-                if length < 2 * CAsyncDBHandler.DEFAULT_BIG_FIELD_CHUNK_SIZE:
+                if length < 2 * DB_CONSTS.DEFAULT_BIG_FIELD_CHUNK_SIZE:
                     sb.SaveObject(vt)
                 else:
                     if not Send(sb):
@@ -618,7 +566,7 @@ class CAsyncDBHandler(CAsyncServiceHandler):
                         return False
             else:
                 sb.SaveObject(vt)
-            if sb.GetSize() >= CAsyncDBHandler.DEFAULT_RECORD_BATCH_SIZE and not Send(sb):
+            if sb.GetSize() >= DB_CONSTS.DEFAULT_RECORD_BATCH_SIZE and not Send(sb):
                 CScopeUQueue.Unlock(sb)
                 return False
         ok = Send(sb)
@@ -640,7 +588,7 @@ class CAsyncDBHandler(CAsyncServiceHandler):
         ok = True
         index = 0
         rowset = (not rh is None)
-        cb = Pair(CAsyncDBHandler.idExecuteParameters, handler)
+        cb = Pair(DB_CONSTS.idExecuteParameters, handler)
         if not rowset:
             meta = False
         q = CScopeUQueue.Lock().SaveBool(rowset).SaveBool(meta).SaveBool(lastInsertId)
@@ -661,7 +609,7 @@ class CAsyncDBHandler(CAsyncServiceHandler):
                 self._mapParameterCall[self._nCall] = vParam
                 if rowset:
                     self._mapRowset[self._nCall] = Pair(rh, row)
-            ok = self.SendRequest(CAsyncDBHandler.idExecuteParameters, q, None, canceled)
+            ok = self.SendRequest(DB_CONSTS.idExecuteParameters, q, None, canceled)
             if not ok:
                 with self._csDB:
                     if rowset:

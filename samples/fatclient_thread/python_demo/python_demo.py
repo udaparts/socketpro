@@ -10,7 +10,7 @@ import threading
         ok = True
         s = ''
         q = CScopeUQueue.Lock().SaveString(strConnection).SaveUInt(flags)
-        cb = CAsyncDBHandler.Pair(CAsyncDBHandler.idOpen, handler)
+        cb = CAsyncDBHandler.Pair(DB_CONSTS.idOpen, handler)
 
         #don't make self._csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
         with self._csDB:
@@ -19,7 +19,7 @@ import threading
             if not strConnection is None:
                 s = self._strConnection
                 self._strConnection = strConnection
-            ok = self.SendRequest(CAsyncDBHandler.idOpen, q, None)
+            ok = self.SendRequest(DB_CONSTS.idOpen, q, None)
             if not ok:
                 if not strConnection is None:
                     self._strConnection = s
