@@ -15,6 +15,7 @@ public static class USqlStream
 {
     private static CSqlPlugin Plugin = null;
     private static object m_cs = new object();
+    private static string ServerHost = null;
 
     static USqlStream()
     {
@@ -356,6 +357,40 @@ public static class USqlStream
         }
     }
 
+    private static string GetServerName(SqlConnection conn)
+    {
+        if (conn == null || conn.State != ConnectionState.Open)
+            throw new InvalidOperationException("An opened connection required");
+        string serverName = Environment.MachineName;
+        SqlDataReader dr = null;
+        string sqlCmd = "SELECT @@servername";
+        try
+        {
+            SqlCommand cmd = new SqlCommand(sqlCmd, conn);
+            dr = cmd.ExecuteReader();
+            if (dr.Read())
+            {
+                if (dr.IsDBNull(0))
+                {
+                    dr.Close();
+                    sqlCmd = "SELECT @@SERVICENAME";
+                    cmd.CommandText = sqlCmd;
+                    dr = cmd.ExecuteReader();
+                    if (dr.Read())
+                        serverName += ("\\" + dr.GetString(0));
+                }
+                else
+                    serverName = dr.GetString(0);
+            }
+        }
+        finally
+        {
+            if (dr != null)
+                dr.Close();
+        }
+        return serverName;
+    }
+
     public static void PublishDMLEvent()
     {
         SqlTriggerContext tc = SqlContext.TriggerContext;
@@ -397,7 +432,9 @@ public static class USqlStream
                         errMsg = "Trigger record not obtained";
                     if (dt != null && msg != null)
                     {
-                        msg[1] = SQLConfig.Server;
+                        if (ServerHost == null)
+                            ServerHost = GetServerName(conn);
+                        msg[1] = ServerHost;
                         msg[2] = v[0];
                         msg[3] = v[1];
                         string tblName = GuessTablePath(conn, dt);
