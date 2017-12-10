@@ -601,7 +601,7 @@ class CDataSet(object):
                 if self._Is_(tbl, dbName, tblName):
                     size = len(keys)
                     cols = len(tbl._meta_)
-                    if size == 2:
+                    if size == 2 and cols > size:
                         r = tbl.FindARow(keys[0], keys[1])
                     elif size == 1:
                         r = tbl.FindARow(keys[0], None)
