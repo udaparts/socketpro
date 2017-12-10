@@ -113,32 +113,34 @@ public static class USqlStream
         }
     }
 
-    private static object[] PublishInsert(SqlConnection conn, out DataTable dt)
+    private static List<object[]> GetRows(SqlConnection conn, bool delete, out DataTable dt)
     {
         dt = null;
         SqlDataReader reader = null;
+        List<object[]> v = new List<object[]>();
         try
         {
-            SqlCommand cmd = new SqlCommand("SELECT * FROM INSERTED", conn);
+            SqlCommand cmd = new SqlCommand(delete ? "SELECT * FROM DELETED" : "SELECT * FROM INSERTED", conn);
             reader = cmd.ExecuteReader(CommandBehavior.KeyInfo);
             dt = reader.GetSchemaTable();
             int count = reader.FieldCount;
-            int total = 5 + count;
-            object[] msg = new object[total];
-            msg[0] = (int)tagUpdateEvent.ueInsert;
-            if (!reader.Read())
-                return null;
-            for (int n = 5; n < total; ++n)
+            while (reader.Read())
             {
-                msg[n] = GetData(reader, n - 5);
+                object[] r = new object[count + 5];
+                r[0] = (delete ? (int)tagUpdateEvent.ueDelete : (int)tagUpdateEvent.ueInsert);
+                for (int n = 0; n < count; ++n)
+                {
+                    r[n + 5] = GetData(reader, n);
+                }
+                v.Add(r);
             }
-            return msg;
         }
         finally
         {
             if (reader != null)
                 reader.Close();
         }
+        return v;
     }
 
     private static object GetData(SqlDataReader reader, int ordinal)
@@ -155,69 +157,47 @@ public static class USqlStream
         return reader.GetValue(ordinal);
     }
 
-    private static object[] PublishUpdate(SqlConnection conn, out DataTable dt)
+    private static List<object[]> GetUpdateRows(SqlConnection conn, out DataTable dt)
     {
         dt = null;
         SqlDataReader reader = null;
-        try
-        {
-            SqlCommand cmd = new SqlCommand("SELECT * FROM DELETED;SELECT * FROM INSERTED", conn);
-            reader = cmd.ExecuteReader(CommandBehavior.KeyInfo);
-            dt = reader.GetSchemaTable();
-            int count = reader.FieldCount;
-            int total = 5 + count * 2;
-            object[] msg = new object[total];
-            msg[0] = (int)tagUpdateEvent.ueUpdate;
-            if (!reader.Read())
-                return null;
-            for (int ordinal = 0; ordinal < count; ++ordinal)
-            {
-                int n = 5 + ordinal * 2;
-                msg[n] = GetData(reader, ordinal);
-            }
-            reader.NextResult();
-            if (!reader.Read())
-                return null;
-            for (int ordinal = 0; ordinal < count; ++ordinal)
-            {
-                int n = 6 + ordinal * 2;
-                msg[n] = GetData(reader, ordinal);
-            }
-            return msg;
-        }
-        finally
-        {
-            if (reader != null)
-                reader.Close();
-        }
-    }
-
-    private static object[] PublishDelete(SqlConnection conn, out DataTable dt)
-    {
-        dt = null;
-        SqlDataReader reader = null;
+        List<object[]> rows = new List<object[]>();
         try
         {
             SqlCommand cmd = new SqlCommand("SELECT * FROM DELETED", conn);
             reader = cmd.ExecuteReader(CommandBehavior.KeyInfo);
             dt = reader.GetSchemaTable();
             int count = reader.FieldCount;
-            int total = 5 + count;
-            object[] msg = new object[total];
-            msg[0] = (int)tagUpdateEvent.ueDelete;
-            if (!reader.Read())
-                return null;
-            for (int n = 5; n < total; ++n)
+            int total = 5 + count * 2;
+            while (reader.Read())
             {
-                msg[n] = GetData(reader, n - 5);
+                object[] r = new object[total];
+                r[0] = (int)tagUpdateEvent.ueUpdate;
+                for (int n = 0; n < count; ++n)
+                {
+                    r[5 + 2 * n] = GetData(reader, n);
+                }
+                rows.Add(r);
             }
-            return msg;
+            reader.Close();
+            cmd.CommandText = "SELECT * FROM INSERTED";
+            int index = 0;
+            while (reader.Read())
+            {
+                object[] r = rows[index];
+                for (int n = 0; n < count; ++n)
+                {
+                    r[6 + n * 2] = GetData(reader, n);
+                }
+                ++index;
+            }
         }
         finally
         {
             if (reader != null)
                 reader.Close();
         }
+        return rows;
     }
 
     private static string[] GetUSqlServerKeys(SqlConnection conn)
@@ -333,7 +313,7 @@ public static class USqlStream
     [return: MarshalAs(UnmanagedType.I1)]
     private static extern bool IsRunning();
 
-    static bool Publish(object Message, params uint[] Groups)
+    private static bool Publish(object Message, params uint[] Groups)
     {
         uint len;
         if (Groups == null)
@@ -405,22 +385,22 @@ public static class USqlStream
                 {
                     conn.Open();
                     string[] v = GetUSqlServerKeys(conn);
-                    object[] msg = null;
+                    List<object[]> rows = null;
                     DataTable dt = null;
                     switch (tc.TriggerAction)
                     {
                         case TriggerAction.Update:
-                            msg = PublishUpdate(conn, out dt);
+                            rows = GetUpdateRows(conn, out dt);
                             if (dt == null)
                                 errMsg = "DELETED schema table not available";
                             break;
                         case TriggerAction.Delete:
-                            msg = PublishDelete(conn, out dt);
+                            rows = GetRows(conn, true, out dt);
                             if (dt == null)
                                 errMsg = "DELETED schema table not available";
                             break;
                         case TriggerAction.Insert:
-                            msg = PublishInsert(conn, out dt);
+                            rows = GetRows(conn, false, out dt);
                             if (dt == null)
                                 errMsg = "INSERTED schema table not available";
                             break;
@@ -428,33 +408,40 @@ public static class USqlStream
                             errMsg = "Unknown DML event";
                             break;
                     }
-                    if (msg == null && errMsg.Length == 0)
-                        errMsg = "Trigger record not obtained";
-                    if (dt != null && msg != null)
+                    do
                     {
-                        if (ServerHost == null)
+                        if (dt == null)
+                            break;
+                        if (ServerHost == null || ServerHost.Length == 0)
                             ServerHost = GetServerName(conn);
-                        msg[1] = ServerHost;
-                        msg[2] = v[0];
-                        msg[3] = v[1];
-                        string tblName = GuessTablePath(conn, dt);
-                        if (tblName != null && tblName.Length > 0)
+                        if (ServerHost == null || ServerHost.Length == 0)
                         {
-                            msg[4] = tblName;
-                            lock (m_cs)
+                            errMsg = "Server not available";
+                            break;
+                        }
+                        string tblName = GuessTablePath(conn, dt);
+                        if (tblName == null || tblName.Length == 0)
+                        {
+                            errMsg = "Table name not available";
+                            break;
+                        }
+                        lock (m_cs)
+                        {
+                            foreach (object[] msg in rows)
                             {
+                                msg[1] = ServerHost;
+                                msg[2] = v[0];
+                                msg[3] = v[1];
+                                msg[4] = tblName;
                                 if (!Publish(msg, DB_CONSTS.STREAMING_SQL_CHAT_GROUP_ID))
+                                {
                                     errMsg = "Message publishing failed";
+                                    break;
+                                }
                             }
                         }
-                        else
-                        {
-                            errMsg = "Triggered table not guessed out";
-                        }
-                    }
+                    } while (false);
                 }
-                else
-                    errMsg = "MS SQL streaming plugin not running";
             }
             catch (Exception err)
             {
@@ -462,20 +449,8 @@ public static class USqlStream
             }
             finally
             {
-#if DEBUG
-                if (errMsg.Length > 0)
-                {
-                    try
-                    {
-                        SqlCommand sqlCommand = new SqlCommand(string.Format("raiserror('{0}',0,0) with nowait", errMsg), conn);
-                        SqlContext.Pipe.ExecuteAndSend(sqlCommand);
-                    }
-                    finally { }
-                }
-#endif
                 conn.Close();
             }
         }
     }
 }
-
