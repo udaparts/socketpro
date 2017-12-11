@@ -160,7 +160,6 @@ class CStreamSql : CClientPeer
                     info.DataType = tagVariantDataType.sdVT_BSTR;
                     info.ColumnSize = uint.Parse(dr["ColumnSize"].ToString());
                     break;
-                case "time":
                 case "smalldatetime":
                 case "date":
                 case "datetime":
@@ -234,6 +233,7 @@ class CStreamSql : CClientPeer
                 case "sql_variant":
                     info.DataType = tagVariantDataType.sdVT_VARIANT;
                     break;
+                case "time":
                 default:
                     info.DataType = tagVariantDataType.sdVT_BSTR; //!!!! use string instead GetValue
                     info.ColumnSize = 0; //default
@@ -352,7 +352,7 @@ class CStreamSql : CClientPeer
                                 DateTimeOffset dto = reader.GetDateTimeOffset(col);
                                 q.Save((ushort)info.DataType).Save(dto.ToString());
                             }
-                            else if (info.ColumnSize == 0)
+                            else if (info.ColumnSize == 0) //for example, case "time"
                             {
                                 object obj = reader.GetValue(col);
                                 q.Save((ushort)info.DataType).Save(obj.ToString());

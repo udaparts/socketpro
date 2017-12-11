@@ -152,6 +152,8 @@ public static class USqlStream
             return reader.GetValue(ordinal).ToString(); //customer defined data types, geometry, and geography
         else if (native == "xml")
             return reader.GetSqlXml(ordinal).ToString();
+        else if (native == "time")
+            return reader.GetValue(ordinal).ToString();
         else if (native == "datetimeoffset")
             return reader.GetDateTimeOffset(ordinal).ToString();
         return reader.GetValue(ordinal);
@@ -270,7 +272,8 @@ public static class USqlStream
                     DataRow myrow = dt.Rows[row];
                     string cName = (string)myrow["ColumnName"];
                     string dType = (string)myrow["DataTypeName"];
-                    if (col_name != cName || data_type != dType)
+                    dType = dType.ToLower();
+                    if (col_name != cName || dType.IndexOf(data_type) == -1)
                     {
                         eq = false;
                         break;

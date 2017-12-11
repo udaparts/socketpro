@@ -14,7 +14,7 @@
     <OutputType>Library</OutputType>
     <NoStandardLibraries>false</NoStandardLibraries>
     <AssemblyName>usqlserver</AssemblyName>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <SGenUseProxyTypes>false</SGenUseProxyTypes>
     <PermissionLevel>3</PermissionLevel>
     <ConnectionString>
