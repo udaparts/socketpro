@@ -181,6 +181,7 @@ public static class USqlStream
             }
             reader.Close();
             cmd.CommandText = "SELECT * FROM INSERTED";
+            reader = cmd.ExecuteReader();
             int index = 0;
             while (reader.Read())
             {
