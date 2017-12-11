@@ -99,7 +99,6 @@ namespace SPA {
             void EndRows();
             void Transferring();
             bool SendRows(CUQueue& sb, bool transferring = false);
-            bool SendBlob(unsigned short data_type, const unsigned char *buffer, unsigned int bytes);
             bool SendBlob(SQLHSTMT hstmt, SQLUSMALLINT index, VARTYPE vt, CUQueue &qTemp, CUQueue &q, bool &blob);
             bool SendUText(SQLHSTMT hstmt, SQLUSMALLINT index, CUQueue &qTemp, CUQueue &q, bool &blob);
 

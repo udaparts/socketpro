@@ -474,29 +474,6 @@ namespace SPA
             return true;
         }
 
-        bool COdbcImpl::SendBlob(unsigned short data_type, const unsigned char *buffer, unsigned int bytes) {
-            unsigned int ret = SendResult(idStartBLOB,
-            (unsigned int) (bytes + sizeof (unsigned short) + sizeof (unsigned int) + sizeof (unsigned int))/* extra 4 bytes for string null termination*/,
-            data_type, bytes);
-            if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
-                return false;
-            }
-            while (bytes > DEFAULT_BIG_FIELD_CHUNK_SIZE) {
-                ret = SendResult(idChunk, buffer, DEFAULT_BIG_FIELD_CHUNK_SIZE);
-                if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
-                    return false;
-                }
-                assert(ret == DEFAULT_BIG_FIELD_CHUNK_SIZE);
-                buffer += DEFAULT_BIG_FIELD_CHUNK_SIZE;
-                bytes -= DEFAULT_BIG_FIELD_CHUNK_SIZE;
-            }
-            ret = SendResult(idEndBLOB, buffer, bytes);
-            if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
-                return false;
-            }
-            return true;
-        }
-
         bool COdbcImpl::SendUText(SQLHSTMT hstmt, SQLUSMALLINT index, CUQueue &qTemp, CUQueue &q, bool & blob) {
             assert((qTemp.GetMaxSize() % sizeof (SQLWCHAR)) == 0);
             qTemp.SetSize(0);
@@ -565,6 +542,9 @@ namespace SPA
                 return false;
             }
             blob = true;
+			bool isBatching = IsBatching();
+			if (isBatching)
+				CommitBatching();
             while (retcode == SQL_SUCCESS_WITH_INFO) {
                 if (bytes > qTemp.GetMaxSize()) {
                     bytes = qTemp.GetMaxSize();
@@ -576,6 +556,8 @@ namespace SPA
                 retcode = SQLGetData(hstmt, index, SQL_C_BINARY, (SQLPOINTER) qTemp.GetBuffer(), qTemp.GetMaxSize(), &len_or_null);
                 bytes = (unsigned int) len_or_null;
             }
+			if (isBatching)
+				StartBatching();
             ret = SendResult(idEndBLOB, qTemp.GetBuffer(), bytes);
             if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
                 return false;

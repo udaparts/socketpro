@@ -1609,6 +1609,9 @@ namespace SPA
             if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
                 return false;
             }
+			bool isBatching = IsBatching();
+			if (isBatching)
+				CommitBatching();
             while (bytes > DEFAULT_BIG_FIELD_CHUNK_SIZE) {
                 ret = SendResult(idChunk, buffer, DEFAULT_BIG_FIELD_CHUNK_SIZE);
                 if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
@@ -1618,6 +1621,8 @@ namespace SPA
                 buffer += DEFAULT_BIG_FIELD_CHUNK_SIZE;
                 bytes -= DEFAULT_BIG_FIELD_CHUNK_SIZE;
             }
+			if (isBatching)
+				StartBatching();
             ret = SendResult(idEndBLOB, buffer, bytes);
             if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
                 return false;
