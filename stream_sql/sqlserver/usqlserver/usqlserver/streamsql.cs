@@ -326,6 +326,7 @@ class CStreamSql : CClientPeer
                     if (reader.IsDBNull(col))
                     {
                         q.Save((ushort)tagVariantDataType.sdVT_NULL);
+                        ++col;
                         continue;
                     }
                     switch (info.DataType)
