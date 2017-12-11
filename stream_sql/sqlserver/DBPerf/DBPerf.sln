@@ -1,0 +1,54 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "mysqlperf", "mysqlperf\mysqlperf.csproj", "{332F051F-4E13-4046-BE47-8E721CCB0370}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NETPerf", "netperf\NETPerf.csproj", "{43A07740-F644-4FCF-A006-2C9CCF822CAD}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Debug|Mixed Platforms = Debug|Mixed Platforms
+		Debug|Win32 = Debug|Win32
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|Any CPU = Release|Any CPU
+		Release|Mixed Platforms = Release|Mixed Platforms
+		Release|Win32 = Release|Win32
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{332F051F-4E13-4046-BE47-8E721CCB0370}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{332F051F-4E13-4046-BE47-8E721CCB0370}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{332F051F-4E13-4046-BE47-8E721CCB0370}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{332F051F-4E13-4046-BE47-8E721CCB0370}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{332F051F-4E13-4046-BE47-8E721CCB0370}.Debug|Win32.ActiveCfg = Debug|Any CPU
+		{332F051F-4E13-4046-BE47-8E721CCB0370}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{332F051F-4E13-4046-BE47-8E721CCB0370}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{332F051F-4E13-4046-BE47-8E721CCB0370}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{332F051F-4E13-4046-BE47-8E721CCB0370}.Release|Any CPU.Build.0 = Release|Any CPU
+		{332F051F-4E13-4046-BE47-8E721CCB0370}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{332F051F-4E13-4046-BE47-8E721CCB0370}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{332F051F-4E13-4046-BE47-8E721CCB0370}.Release|Win32.ActiveCfg = Release|Any CPU
+		{332F051F-4E13-4046-BE47-8E721CCB0370}.Release|x64.ActiveCfg = Release|Any CPU
+		{332F051F-4E13-4046-BE47-8E721CCB0370}.Release|x86.ActiveCfg = Release|Any CPU
+		{43A07740-F644-4FCF-A006-2C9CCF822CAD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{43A07740-F644-4FCF-A006-2C9CCF822CAD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{43A07740-F644-4FCF-A006-2C9CCF822CAD}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{43A07740-F644-4FCF-A006-2C9CCF822CAD}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{43A07740-F644-4FCF-A006-2C9CCF822CAD}.Debug|Win32.ActiveCfg = Debug|Any CPU
+		{43A07740-F644-4FCF-A006-2C9CCF822CAD}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{43A07740-F644-4FCF-A006-2C9CCF822CAD}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{43A07740-F644-4FCF-A006-2C9CCF822CAD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{43A07740-F644-4FCF-A006-2C9CCF822CAD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{43A07740-F644-4FCF-A006-2C9CCF822CAD}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{43A07740-F644-4FCF-A006-2C9CCF822CAD}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{43A07740-F644-4FCF-A006-2C9CCF822CAD}.Release|Win32.ActiveCfg = Release|Any CPU
+		{43A07740-F644-4FCF-A006-2C9CCF822CAD}.Release|x64.ActiveCfg = Release|Any CPU
+		{43A07740-F644-4FCF-A006-2C9CCF822CAD}.Release|x86.ActiveCfg = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

@@ -524,6 +524,8 @@ class CStreamSql : CClientPeer
             }
             else
             {
+                if (m_trans != null)
+                    cmd.Transaction = m_trans;
                 int ret = cmd.ExecuteNonQuery();
                 if (ret > 0)
                     affected += ret;
@@ -620,6 +622,8 @@ class CStreamSql : CClientPeer
                     }
                     else
                     {
+                        if (m_trans != null)
+                            m_sqlPrepare.Transaction = m_trans;
                         int ret = m_sqlPrepare.ExecuteNonQuery();
                         if (ret > 0)
                             affected += ret;
