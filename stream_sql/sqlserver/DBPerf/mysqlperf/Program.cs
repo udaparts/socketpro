@@ -15,9 +15,9 @@ class Program
         string tableName = Console.ReadLine();
         Console.WriteLine("sql filter: ");
         string filter = Console.ReadLine();
-        string mysql_conn = "Server=" + host;
-        mysql_conn += (";User Id=sa;Password=Smash123;Database=" + dbName);
-        SqlConnection conn = new SqlConnection(mysql_conn);
+        string sql_conn = "Server=" + host;
+        sql_conn += (";User Id=sa;Password=Smash123;Database=" + dbName);
+        SqlConnection conn = new SqlConnection(sql_conn);
         conn.Open();
         string sql = "select * from " + tableName;
         if (filter.Length > 0)
