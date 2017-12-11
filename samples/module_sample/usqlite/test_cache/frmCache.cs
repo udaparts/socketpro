@@ -81,7 +81,7 @@ namespace test_cache
             m_spSqlite.Sockets[0].Push.OnPublish += new DOnPublish(Push_OnPublish);
 
             //create a DB session with default to sample database sakil
-            bool ok = sqlite.Open("sakila.db", null, CSqlite.ENABLE_TABLE_UPDATE_MESSAGES);
+            bool ok = sqlite.Open("sakila.db", null, DB_CONSTS.ENABLE_TABLE_UPDATE_MESSAGES);
 
             m_ds = new DataSet("real-time cache");
             DataTable dt = null;
