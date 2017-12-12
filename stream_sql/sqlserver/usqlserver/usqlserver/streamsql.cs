@@ -41,6 +41,8 @@ class CStreamSql : CClientPeer
                         m_fails = 0;
                         m_oks = 0;
                         m_trans = null;
+                        if (m_sqlPrepare != null)
+                            m_sqlPrepare.Transaction = null;
                     }
                 }
                 break;
@@ -449,7 +451,7 @@ class CStreamSql : CClientPeer
         string sql = "SELECT name FROM master.dbo.sysdatabases where name NOT IN('master','tempdb','model','msdb')";
         try
         {
-            SqlCommand cmd = new SqlCommand(sql, m_conn);
+            SqlCommand cmd = new SqlCommand(sql, m_conn, m_trans);
             reader = cmd.ExecuteReader();
             while (reader.Read())
             {
@@ -480,7 +482,7 @@ class CStreamSql : CClientPeer
                 reader.Close();
             try
             {
-                SqlCommand cmd = new SqlCommand("USE " + current_db, m_conn);
+                SqlCommand cmd = new SqlCommand("USE " + current_db, m_conn, m_trans);
                 cmd.ExecuteNonQuery();
             }
             finally { }
@@ -507,7 +509,7 @@ class CStreamSql : CClientPeer
             {
                 sql = GenerateSqlForCachedTables();
             }
-            SqlCommand cmd = new SqlCommand(sql, m_conn);
+            SqlCommand cmd = new SqlCommand(sql, m_conn, m_trans);
             if (rowset)
             {
                 reader = cmd.ExecuteReader(meta ? CommandBehavior.KeyInfo : CommandBehavior.Default);
@@ -524,8 +526,6 @@ class CStreamSql : CClientPeer
             }
             else
             {
-                if (m_trans != null)
-                    cmd.Transaction = m_trans;
                 int ret = cmd.ExecuteNonQuery();
                 if (ret > 0)
                     affected += ret;
@@ -595,6 +595,8 @@ class CStreamSql : CClientPeer
                 ++m_fails;
                 break;
             }
+            if (m_trans != null)
+                m_sqlPrepare.Transaction = m_trans;
             int rows = m_vParam.Count / cols;
             for (int r = 0; r < rows; ++r)
             {
@@ -622,8 +624,6 @@ class CStreamSql : CClientPeer
                     }
                     else
                     {
-                        if (m_trans != null)
-                            m_sqlPrepare.Transaction = m_trans;
                         int ret = m_sqlPrepare.ExecuteNonQuery();
                         if (ret > 0)
                             affected += ret;
@@ -693,7 +693,7 @@ class CStreamSql : CClientPeer
         uint parameters = 0;
         try
         {
-            m_sqlPrepare = new SqlCommand(sql, m_conn);
+            m_sqlPrepare = new SqlCommand(sql, m_conn, m_trans);
             if (vColInfo != null)
             {
                 SqlParameter param = null;
@@ -915,6 +915,8 @@ class CStreamSql : CClientPeer
                 m_fails = 0;
                 m_oks = 0;
                 m_trans = null;
+                if (m_sqlPrepare != null)
+                    m_sqlPrepare.Transaction = null;
             }
         } while (false);
         return errMsg;
