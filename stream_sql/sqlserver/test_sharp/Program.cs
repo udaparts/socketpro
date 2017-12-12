@@ -13,13 +13,6 @@ class Program
             Console.WriteLine("res = {0}, errMsg: {1}", res, errMsg);
     };
 
-    static CAsyncDBHandler.DRowsetHeader rh = (h) =>
-    {
-        CDBColumnInfoArray v = h.ColumnInfo;
-        if (v.Count > 0)
-            Console.WriteLine("dbPath={0}, tablePath={1}", v[0].DBPath, v[0].TablePath);
-    };
-
     static CAsyncDBHandler.DExecuteResult er = (h, res, errMsg, affected, fail_ok, vtId) =>
     {
         if (res != 0)
@@ -28,12 +21,7 @@ class Program
             Console.WriteLine("Affected = {0}, oks = {1}, fails = {2}", affected, (uint)fail_ok, (uint)(fail_ok >> 32));
     };
 
-    static CAsyncDBHandler.DRows rows = (h, vData) =>
-    {
-        //Console.WriteLine("Rows = " + vData.Count / h.ColumnInfo.Count);
-    };
-
-    static void TestCreateTables(CSqlServer sql)
+    static void TestCreateTablesAndStoredProcedures(CSqlServer sql)
     {
         string create_database = "use master;IF NOT EXISTS(SELECT * FROM sys.databases WHERE name = 'sqltestdb') BEGIN CREATE DATABASE sqltestdb END";
         bool ok = sql.Execute(create_database, er);
@@ -205,7 +193,6 @@ class Program
 
         bool ok = sql.Prepare(sqlInsert, dr, vInfo.ToArray());
 
-
         CDBVariantArray vData = new CDBVariantArray();
         using (CScopeUQueue sbBlob = new CScopeUQueue())
         {
@@ -359,6 +346,8 @@ class Program
                 return;
             }
             CSqlServer sql = spSql.Seek();
+
+            //track all DML (DELETE, INSERT and UPDATE) events
             sql.AttachedClientSocket.Push.OnPublish += (sender, messageSender, group, msg) =>
             {
                 if (group[0] == DB_CONSTS.STREAMING_SQL_CHAT_GROUP_ID)
@@ -371,29 +360,51 @@ class Program
                     Console.WriteLine("DML event={0}, server={1}, database={2}, user={3}, table={4}", ue, server, database, user, vMsg[4].ToString());
                 }
             };
+            List<KeyValuePair<CDBColumnInfoArray, CDBVariantArray>> ra = new List<KeyValuePair<CDBColumnInfoArray, CDBVariantArray>>();
+
+            //enable monitoring DML events through triggers by flag DB_CONSTS.ENABLE_TABLE_UPDATE_MESSAGES
             bool ok = sql.Open("", dr, DB_CONSTS.ENABLE_TABLE_UPDATE_MESSAGES);
-            TestCreateTables(sql);
+
+            CAsyncDBHandler.DRowsetHeader rh = (h) =>
+            {
+                CDBColumnInfoArray v = h.ColumnInfo;
+                if (v.Count > 0)
+                {
+                    Console.WriteLine("dbPath={0}, tablePath={1}", v[0].DBPath, v[0].TablePath);
+                    ra.Add(new KeyValuePair<CDBColumnInfoArray,CDBVariantArray>(v, new CDBVariantArray()));
+                }
+            };
+            CAsyncDBHandler.DRows rows = (h, vData) =>
+            {
+                int endIndex = ra.Count - 1;
+                ra[endIndex].Value.AddRange(vData);
+            };
+
+            //bring all table data which have USqlStream trigger (usqlserver.USqlStream.PublishDMLEvent) with an empty sql input string when opening with the flag DB_CONSTS.ENABLE_TABLE_UPDATE_MESSAGES
+            ok = sql.Execute("", er, rows, rh);
+
+            TestCreateTablesAndStoredProcedures(sql);
             ok = sql.Execute("select * from SpatialTable", er, rows, rh);
             ok = sql.Execute("delete from employee;delete from company;delete from test_rare1;delete from SpatialTable;INSERT INTO SpatialTable(mygeometry, mygeography)VALUES(geometry::STGeomFromText('LINESTRING(100 100,20 180,180 180)',0),geography::Point(47.6475,-122.1393,4326))", er);
             ok = sql.Execute("INSERT INTO test_rare1(mybool,mymoney,myxml,myvariant,mydateimeoffset)values(1,23.45,'<sometest />', N'美国总统川普下个星期四','2017-05-02 00:00:00.0000000 -04:00');INSERT INTO test_rare1(mybool,mymoney,myvariant)values(0,1223.45,'This is a test for ASCII string inside sql_variant');INSERT INTO test_rare1(myvariant)values(283.45)", er);
             TestPreparedStatements(sql);
             TestPreparedStatements_2(sql);
             InsertBLOBByPreparedStatement(sql);
-            List<KeyValuePair<CDBColumnInfoArray, CDBVariantArray>> ra = new List<KeyValuePair<CDBColumnInfoArray, CDBVariantArray>>();
             CDBVariantArray vPData = new CDBVariantArray();
+            //first set
             vPData.Add(0); //retval
             vPData.Add(1);
             vPData.Add(21.2);
             vPData.Add(null);
+            //2nd set
             vPData.Add(0); //retval
             vPData.Add(2);
             vPData.Add(11.42);
             vPData.Add(null);
             TestStoredProcedure(sql, ra, vPData);
-            ok = sql.Execute("", er, rows, rh);
             sql.WaitAll();
-            vPData.Clear();
 
+            vPData.Clear();
             //first set
             vPData.Add(-1); //return int
             vPData.Add(1); //@testid
@@ -403,7 +414,7 @@ class Program
             vPData.Add(guid); //@tuuid
             vPData.Add(true); //@myvar
 
-            //second set
+            //2nd set
             vPData.Add(-2); //return int
             vPData.Add(4); //@testid
             vPData.Add(DateTime.Now);
@@ -413,6 +424,21 @@ class Program
             vPData.Add(false); //@myvar
             TestStoredProcedure_2(sql, ra, vPData);
             sql.WaitAll();
+            int index = 0;
+            Console.WriteLine("+++++ Start rowsets +++");
+            foreach (KeyValuePair<CDBColumnInfoArray, CDBVariantArray> it in ra)
+            {
+                Console.Write("Statement index = {0}", index);
+                if (it.Key.Count > 0)
+                    Console.WriteLine(", rowset with columns = {0}, records = {1}.", it.Key.Count, it.Value.Count / it.Key.Count);
+                else
+                    Console.WriteLine(", no rowset received.");
+                ++index;
+            }
+            Console.WriteLine("+++++ End rowsets +++");
+            Console.WriteLine();
+            Console.WriteLine("Press any key to close the application ......");
+            Console.Read();
             Console.WriteLine("Press any key to close the application ......");
             Console.Read();
         }

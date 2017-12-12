@@ -13,24 +13,24 @@ class Program
         Console.WriteLine("SocketPro performance test against a remote MS SQL backend DB");
         Console.WriteLine("Remote host: ");
         string host = Console.ReadLine();
-        Console.WriteLine("Database name: ");
-        string dbName = Console.ReadLine();
-        Console.WriteLine("Table name: ");
-        string tableName = Console.ReadLine();
-        Console.WriteLine("sql filter: ");
-        string filter = Console.ReadLine();
-        CConnectionContext cc = new CConnectionContext(host, 20903, "sa", "Smash123");
-        Console.WriteLine("Asynchronous execution (0) or synchronous execution (1) ?");
-        bool sync = (Console.ReadKey().KeyChar != '0');
         using (CSocketPool<CSqlServer> spSql = new CSocketPool<CSqlServer>())
         {
+            CConnectionContext cc = new CConnectionContext(host, 20903, "sa", "Smash123");
             if (!spSql.StartSocketPool(cc, 1, 1))
             {
-                Console.WriteLine("Failed in connecting to remote helloworld server");
-                Console.WriteLine("Press any key to close the application ......");
+                Console.WriteLine("Failed in connecting to remote helloworld server. Press any key to close the application ......");
                 Console.Read();
                 return;
             }
+            
+            Console.WriteLine("Database name: ");
+            string dbName = Console.ReadLine();
+            Console.WriteLine("Table name: ");
+            string tableName = Console.ReadLine();
+            Console.WriteLine("sql filter: ");
+            string filter = Console.ReadLine();
+            Console.WriteLine("Asynchronous execution (0) or synchronous execution (1) ?");
+            bool sync = (Console.ReadKey().KeyChar != '0');
             Console.WriteLine("");
             Console.WriteLine("Computing ......");
             CSqlServer mysql = spSql.Seek();

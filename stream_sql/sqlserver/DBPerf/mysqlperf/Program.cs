@@ -11,14 +11,14 @@ class Program
         string host = Console.ReadLine();
         Console.WriteLine("Database name: ");
         string dbName = Console.ReadLine();
-        Console.WriteLine("Table name: ");
-        string tableName = Console.ReadLine();
-        Console.WriteLine("sql filter: ");
-        string filter = Console.ReadLine();
         string sql_conn = "Server=" + host;
         sql_conn += (";User Id=sa;Password=Smash123;Database=" + dbName);
         SqlConnection conn = new SqlConnection(sql_conn);
         conn.Open();
+        Console.WriteLine("Table name: ");
+        string tableName = Console.ReadLine();
+        Console.WriteLine("sql filter: ");
+        string filter = Console.ReadLine();
         string sql = "select * from " + tableName;
         if (filter.Length > 0)
         {
