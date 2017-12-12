@@ -542,9 +542,9 @@ namespace SPA
                 return false;
             }
             blob = true;
-			bool isBatching = IsBatching();
-			if (isBatching)
-				CommitBatching();
+            bool isBatching = IsBatching();
+            if (isBatching)
+                CommitBatching();
             while (retcode == SQL_SUCCESS_WITH_INFO) {
                 if (bytes > qTemp.GetMaxSize()) {
                     bytes = qTemp.GetMaxSize();
@@ -556,8 +556,8 @@ namespace SPA
                 retcode = SQLGetData(hstmt, index, SQL_C_BINARY, (SQLPOINTER) qTemp.GetBuffer(), qTemp.GetMaxSize(), &len_or_null);
                 bytes = (unsigned int) len_or_null;
             }
-			if (isBatching)
-				StartBatching();
+            if (isBatching)
+                StartBatching();
             ret = SendResult(idEndBLOB, qTemp.GetBuffer(), bytes);
             if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
                 return false;
