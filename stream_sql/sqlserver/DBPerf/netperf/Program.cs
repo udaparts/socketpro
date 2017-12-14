@@ -86,7 +86,7 @@ class Program
             DateTime start = DateTime.Now;
             for (int n = 0; n < count; ++n)
             {
-                ok = mysql.Execute(sql, er, r, rh);
+                ok = mysql.Execute(sql, er, r, rh, false);
                 if (sync && ok)
                     ok = mysql.WaitAll();
                 if (!ok)

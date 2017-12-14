@@ -98,50 +98,57 @@ class CStreamSql : CClientPeer
         }
     }
 
-    private bool PushRowsetHeader(SqlDataReader reader, out CDBColumnInfoArray vCol)
+    private bool PushRowsetHeader(SqlDataReader reader, bool meta, out CDBColumnInfoArray vCol)
     {
+        bool b;
+        DataTable dt = null;
+        DataRow dr = null;
         vCol = new CDBColumnInfoArray();
-        DataTable dt = reader.GetSchemaTable();
+        if (meta)
+            dt = reader.GetSchemaTable();
         int cols = reader.FieldCount;
         for (int n = 0; n < cols; ++n)
         {
-            DataRow dr = dt.Rows[n];
             CDBColumnInfo info = new CDBColumnInfo();
-            bool b = (bool)dr["AllowDBNull"];
-            if (!b)
-                info.Flags = CDBColumnInfo.FLAG_NOT_NULL;
-            string dbName = dr["BaseCatalogName"].ToString();
-            if (dbName.Length == 0)
-                dbName = m_conn.Database;
-            info.DBPath = dbName;
-            string schema = dr["BaseSchemaName"].ToString();
-            if (schema.Length == 0)
-                schema = "dbo";
-            info.TablePath = schema + "." + dr["BaseTableName"];
-            b = (bool)dr["IsAutoIncrement"];
-            if (b)
+            if (meta)
             {
-                info.Flags |= CDBColumnInfo.FLAG_PRIMARY_KEY;
-                info.Flags |= CDBColumnInfo.FLAG_UNIQUE;
-                info.Flags |= CDBColumnInfo.FLAG_AUTOINCREMENT;
-            }
-            object isKey = dr["IsKey"];
-            if (!(isKey is DBNull))
-            {
-                b = (bool)isKey;
+                dr = dt.Rows[n];
+                b = (bool)dr["AllowDBNull"];
+                if (!b)
+                    info.Flags = CDBColumnInfo.FLAG_NOT_NULL;
+                string dbName = dr["BaseCatalogName"].ToString();
+                if (dbName.Length == 0)
+                    dbName = m_conn.Database;
+                info.DBPath = dbName;
+                string schema = dr["BaseSchemaName"].ToString();
+                if (schema.Length == 0)
+                    schema = "dbo";
+                info.TablePath = schema + "." + dr["BaseTableName"];
+                b = (bool)dr["IsAutoIncrement"];
                 if (b)
+                {
                     info.Flags |= CDBColumnInfo.FLAG_PRIMARY_KEY;
+                    info.Flags |= CDBColumnInfo.FLAG_UNIQUE;
+                    info.Flags |= CDBColumnInfo.FLAG_AUTOINCREMENT;
+                }
+                object isKey = dr["IsKey"];
+                if (!(isKey is DBNull))
+                {
+                    b = (bool)isKey;
+                    if (b)
+                        info.Flags |= CDBColumnInfo.FLAG_PRIMARY_KEY;
+                }
+                b = (bool)dr["IsUnique"];
+                if (b)
+                    info.Flags |= CDBColumnInfo.FLAG_UNIQUE;
+                b = (bool)dr["IsRowVersion"];
+                if (b)
+                    info.Flags |= CDBColumnInfo.FLAG_ROWID;
+                info.DisplayName = dr["ColumnName"].ToString();
+                info.OriginalName = dr["BaseColumnName"].ToString();
             }
-            b = (bool)dr["IsUnique"];
-            if (b)
-                info.Flags |= CDBColumnInfo.FLAG_UNIQUE;
-            b = (bool)dr["IsRowVersion"];
-            if (b)
-                info.Flags |= CDBColumnInfo.FLAG_ROWID;
             string data_type = reader.GetDataTypeName(n);
             info.DeclaredType = data_type;
-            info.DisplayName = dr["ColumnName"].ToString();
-            info.OriginalName = dr["BaseColumnName"].ToString();
             switch (data_type)
             {
                 case "bigint":
@@ -155,12 +162,16 @@ class CStreamSql : CClientPeer
                 case "rowversion":
                 case "binary":
                     info.DataType = (tagVariantDataType.sdVT_UI1 | tagVariantDataType.sdVT_ARRAY);
-                    info.ColumnSize = uint.Parse(dr["ColumnSize"].ToString());
+                    if (meta)
+                        info.ColumnSize = uint.Parse(dr["ColumnSize"].ToString());
                     break;
                 case "nchar":
                 case "char":
                     info.DataType = tagVariantDataType.sdVT_BSTR;
-                    info.ColumnSize = uint.Parse(dr["ColumnSize"].ToString());
+                    if (meta)
+                        info.ColumnSize = uint.Parse(dr["ColumnSize"].ToString());
+                    else
+                        info.ColumnSize = 255;
                     break;
                 case "smalldatetime":
                 case "date":
@@ -169,7 +180,8 @@ class CStreamSql : CClientPeer
                     break;
                 case "datetime2":
                     info.DataType = tagVariantDataType.sdVT_DATE;
-                    info.Precision = byte.Parse(dr["NumericPrecision"].ToString());
+                    if (meta)
+                        info.Precision = byte.Parse(dr["NumericPrecision"].ToString());
                     break;
                 case "datetimeoffset":
                     info.DataType = tagVariantDataType.sdVT_BSTR; //!!!! use string instead GetDateTimeOffset()
@@ -180,8 +192,11 @@ class CStreamSql : CClientPeer
                 case "money":
                 case "decimal":
                     info.DataType = tagVariantDataType.sdVT_DECIMAL;
-                    info.Precision = byte.Parse(dr["NumericPrecision"].ToString());
-                    info.Precision = byte.Parse(dr["NumericScale"].ToString());
+                    if (meta)
+                    {
+                        info.Precision = byte.Parse(dr["NumericPrecision"].ToString());
+                        info.Precision = byte.Parse(dr["NumericScale"].ToString());
+                    }
                     break;
                 case "float":
                     info.DataType = tagVariantDataType.sdVT_R8;
@@ -201,11 +216,16 @@ class CStreamSql : CClientPeer
                 case "varchar":
                 case "nvarchar":
                     info.DataType = tagVariantDataType.sdVT_BSTR;
-                    b = (bool)dr["IsLong"];
-                    if (b)
-                        info.ColumnSize = uint.MaxValue;
+                    if (meta)
+                    {
+                        b = (bool)dr["IsLong"];
+                        if (b)
+                            info.ColumnSize = uint.MaxValue;
+                        else
+                            info.ColumnSize = uint.Parse(dr["ColumnSize"].ToString());
+                    }
                     else
-                        info.ColumnSize = uint.Parse(dr["ColumnSize"].ToString());
+                        info.ColumnSize = uint.MaxValue;
                     break;
                 case "real":
                     info.DataType = tagVariantDataType.sdVT_R4;
@@ -221,11 +241,16 @@ class CStreamSql : CClientPeer
                     break;
                 case "varbinary":
                     info.DataType = (tagVariantDataType.sdVT_UI1 | tagVariantDataType.sdVT_ARRAY);
-                    b = (bool)dr["IsLong"];
-                    if (b)
-                        info.ColumnSize = uint.MaxValue;
+                    if (meta)
+                    {
+                        b = (bool)dr["IsLong"];
+                        if (b)
+                            info.ColumnSize = uint.MaxValue;
+                        else
+                            info.ColumnSize = uint.Parse(dr["ColumnSize"].ToString());
+                    }
                     else
-                        info.ColumnSize = uint.Parse(dr["ColumnSize"].ToString());
+                        info.ColumnSize = uint.MaxValue;
                     break;
                 case "xml":
                     info.DataType = tagVariantDataType.sdVT_BSTR; //!!!! use string instead GetSqlXml
@@ -249,10 +274,10 @@ class CStreamSql : CClientPeer
         return true;
     }
 
-    private bool PushToClient(SqlDataReader reader)
+    private bool PushToClient(SqlDataReader reader, bool meta)
     {
         CDBColumnInfoArray vCol;
-        if (!PushRowsetHeader(reader, out vCol))
+        if (!PushRowsetHeader(reader, meta, out vCol))
             return false;
         return PushRows(reader, vCol);
     }
@@ -515,7 +540,7 @@ class CStreamSql : CClientPeer
                 reader = cmd.ExecuteReader(meta ? CommandBehavior.KeyInfo : CommandBehavior.Default);
                 while (reader.FieldCount > 0 && ok)
                 {
-                    ok = PushToClient(reader);
+                    ok = PushToClient(reader, meta);
                     HeaderSent = true;
                     if (!ok || !reader.NextResult())
                         break;
@@ -613,7 +638,7 @@ class CStreamSql : CClientPeer
                         SqlDataReader reader = m_sqlPrepare.ExecuteReader(meta ? CommandBehavior.KeyInfo : CommandBehavior.Default);
                         while (reader.FieldCount > 0)
                         {
-                            ok = PushToClient(reader);
+                            ok = PushToClient(reader, meta);
                             HeaderSent = true;
                             if (reader.RecordsAffected > 0)
                                 affected += reader.RecordsAffected;
