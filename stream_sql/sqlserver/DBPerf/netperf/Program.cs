@@ -86,6 +86,7 @@ class Program
             DateTime start = DateTime.Now;
             for (int n = 0; n < count; ++n)
             {
+                //set meta to false so that server side doesn't return meta, which will improve query performance
                 ok = mysql.Execute(sql, er, r, rh, false);
                 if (sync && ok)
                     ok = mysql.WaitAll();
