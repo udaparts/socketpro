@@ -387,7 +387,11 @@ namespace SocketProAdapter
                 m_len = 0;
                 return;
             }
-            if (size > (uint)(m_bytes.Length - m_position))
+#if WINCE
+            if (size > ((uint)m_bytes.Length - m_position))
+#else
+            if (size > (uint)(m_bytes.LongLength - m_position))
+#endif
             {
                 throw new InvalidOperationException("Bad new size");
             }
@@ -396,7 +400,7 @@ namespace SocketProAdapter
 
         public void Empty()
         {
-            m_bytes = null;
+            m_bytes = new byte[0];
             m_position = 0;
             m_len = 0;
         }
@@ -453,7 +457,11 @@ namespace SocketProAdapter
 #endif
         private unsafe CUQueue Append(void* pData, uint len)
         {
-            if (TailSize < (uint)len)
+#if WINCE
+            if (((uint)m_bytes.Length - m_position - m_len) < len)
+#else
+            if (((uint)m_bytes.LongLength - m_position - m_len) < len)
+#endif
             {
                 uint addedSize = (((uint)len - TailSize) / m_blockSize + 1) * m_blockSize;
                 Realloc(MaxBufferSize + addedSize);
@@ -2167,7 +2175,11 @@ namespace SocketProAdapter
             {
                 if (m_bytes == null)
                     return 0;
+#if WINCE
                 return (uint)m_bytes.Length;
+#else
+                return (uint)m_bytes.LongLength;
+#endif
             }
         }
 
@@ -2207,7 +2219,11 @@ namespace SocketProAdapter
             {
                 if (m_bytes == null)
                     return 0;
-                return (uint)(m_bytes.Length - m_position - m_len);
+#if WINCE
+                return ((uint)m_bytes.Length - m_position - m_len);
+#else
+                return (uint)(m_bytes.LongLength - m_position - m_len);
+#endif
             }
         }
 
