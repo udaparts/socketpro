@@ -753,7 +753,7 @@ namespace SocketProAdapter
                 sbyte[] str = data as sbyte[];
                 Save(str);
             }
-            else if (hasUSerializer(typeof(T)))
+            else if (data is IUSerializer)
             {
                 IUSerializer serializer = data as IUSerializer;
                 Push(serializer);
