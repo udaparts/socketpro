@@ -50,6 +50,19 @@ GO
 CREATE PROCEDURE StopSPServer(@res int output)As EXTERNAL NAME usqlserver.USqlStream.StopSPServer
 GO	
 
+CREATE TRIGGER tr_config ON config AFTER INSERT,DELETE,UPDATE AS EXTERNAL NAME usqlserver.USqlStream.PublishDMLEvent
+GO
+
+DECLARE @res int
+EXEC sp_streaming_db.dbo.StartSPServer @res OUTPUT -- assuming the procedure created within sp_streaming_db
+print @res
+GO
+
+DECLARE @res int
+EXEC sp_streaming_db.dbo.StopSPServer @res OUTPUT -- assuming the procedure created within sp_streaming_db
+print @res
+GO
+
 CREATE TRIGGER start_sp_server
 ON ALL SERVER
 FOR LOGON
@@ -62,19 +75,6 @@ BEGIN
 			ROLLBACK;
 		END
 END
-GO
-
-CREATE TRIGGER tr_config ON config AFTER INSERT,DELETE,UPDATE AS EXTERNAL NAME usqlserver.USqlStream.PublishDMLEvent
-GO
-
-DECLARE @res int
-EXEC sp_streaming_db.dbo.StartSPServer @res OUTPUT -- assuming the procedure created within sp_streaming_db
-print @res
-GO
-
-DECLARE @res int
-EXEC sp_streaming_db.dbo.StopSPServer @res OUTPUT -- assuming the procedure created within sp_streaming_db
-print @res
 GO
 
 -- use cmd and execute the following to check port
