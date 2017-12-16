@@ -7,8 +7,6 @@
 
 namespace SPA {
 
-    static const VARTYPE VT_XML = 35;
-
     namespace UDB {
 
         enum tagTransactionIsolation {

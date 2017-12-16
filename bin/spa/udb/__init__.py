@@ -72,7 +72,58 @@ class tagManagementSystem(object):
     msPostgreSQL = 6
     msMongoDB = 7
 
+class DB_CONSTS(object):
+    """
+    Async database client/server just requires the following request identification numbers
+    """
+    idOpen = 0x7E7F
+    idClose = idOpen + 1
+    idBeginTrans = idClose + 1
+    idEndTrans = idBeginTrans + 1
+    idExecute = idEndTrans + 1
+    idPrepare = idExecute + 1
+    idExecuteParameters = idPrepare + 1
 
+    """
+    the request identification numbers used for message push from server to client
+    """
+    idDBUpdate = idExecuteParameters + 1  # server ==> client only
+    idRowsetHeader = idDBUpdate + 1  # server ==> client only
+    idOutputParameter = idRowsetHeader + 1  # server ==> client only
+
+    """
+    Internal request/response identification numbers used for data communication between client and server
+    """
+    idBeginRows = idOutputParameter + 1
+    idTransferring = idBeginRows + 1
+    idStartBLOB = idTransferring + 1
+    idChunk = idStartBLOB + 1
+    idEndBLOB = idChunk + 1
+    idEndRows = idEndBLOB + 1
+    idCallReturn = idEndRows + 1
+    idGetCachedTables = idCallReturn + 1
+
+    """
+    Whenever a data size in bytes is about twice larger than the defined value, the data will be treated in large object and transferred in chunks for reducing memory foot print
+    """
+    DEFAULT_BIG_FIELD_CHUNK_SIZE = 16 * 1024  # 16k
+
+    """
+    A record data size in bytes is approximately equal to or slightly larger than the defined constant
+    """
+    DEFAULT_RECORD_BATCH_SIZE = 16 * 1024  # 16k
+
+    """
+    A flag used with idOpen for tracing database table update events
+    """
+    ENABLE_TABLE_UPDATE_MESSAGES = 0x1
+
+    """
+    A chat group id used at SocketPro server side for notifying database events from server to connected clients
+    """
+    STREAMING_SQL_CHAT_GROUP_ID = 0x1fffffff
+
+    CACHE_UPDATE_CHAT_GROUP_ID = STREAMING_SQL_CHAT_GROUP_ID + 1
 
 class CDBColumnInfo(IUSerializer):
     FLAG_NOT_NULL = 0x1

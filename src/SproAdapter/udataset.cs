@@ -230,15 +230,24 @@ namespace SocketProAdapter
                     if (!equal)
                         continue;
                     DataColumn[] keyColumns = p.Value.PrimaryKey;
-                    if (keyColumns == null || keyColumns.Length != keys.Length)
-                        throw new Exception("Wrong key number");
                     List<KeyValuePair<DataColumn, object>> vKeyVal = new List<KeyValuePair<DataColumn, object>>();
-                    int index = 0;
-                    foreach (DataColumn dc in keyColumns)
+                    if (keys.Length == p.Value.Columns.Count)
                     {
-                        KeyValuePair<DataColumn, object> kv = new KeyValuePair<DataColumn, object>(dc, keys[index]);
-                        vKeyVal.Add(kv);
-                        ++index;
+                        foreach (DataColumn dc in keyColumns)
+                        {
+                            KeyValuePair<DataColumn, object> kv = new KeyValuePair<DataColumn, object>(dc, keys[dc.Ordinal]);
+                            vKeyVal.Add(kv);
+                        }
+                    }
+                    else
+                    {
+                        int index = 0;
+                        foreach (DataColumn dc in keyColumns)
+                        {
+                            KeyValuePair<DataColumn, object> kv = new KeyValuePair<DataColumn, object>(dc, keys[index]);
+                            vKeyVal.Add(kv);
+                            ++index;
+                        }
                     }
                     string filter;
                     DataRow row = FindRowByKeys(p.Value, vKeyVal, UDB.tagUpdateEvent.ueDelete, out filter);

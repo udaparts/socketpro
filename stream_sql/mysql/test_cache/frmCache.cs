@@ -79,7 +79,7 @@ namespace test_cache
             m_spMysql.Sockets[0].Push.OnPublish += new DOnPublish(Push_OnPublish);
 
             //create a DB session with default to sample database sakil
-            bool ok = mysql.Open("sakila", null, CMysql.ENABLE_TABLE_UPDATE_MESSAGES);
+            bool ok = mysql.Open("sakila", null, DB_CONSTS.ENABLE_TABLE_UPDATE_MESSAGES);
 
             m_ds = new DataSet("real-time cache");
             DataTable dt = null;
@@ -126,7 +126,7 @@ namespace test_cache
                 if (filter.Length > 0)
                     filter += " AND ";
                 filter += ("[" + kv.Key.ColumnName + "]=");
-                if (kv.Value is long || kv.Value is decimal || kv.Value is double)
+                if (kv.Value is short || kv.Value is int || kv.Value is long || kv.Value is decimal || kv.Value is double)
                     filter += kv.Value.ToString();
                 else if (kv.Value is string)
                     filter += ("'" + kv.Value.ToString() + "'");

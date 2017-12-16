@@ -1,7 +1,7 @@
 
 from spa import CDataSet, CTable, CMasterSlaveBase
 from spa.clientside import CClientSocket, CAsyncDBHandler, tagSocketPoolEvent
-from spa.udb import CDBColumnInfoArray, tagUpdateEvent
+from spa.udb import CDBColumnInfoArray, tagUpdateEvent, DB_CONSTS
 from spa.serverside import CSocketProServer
 
 
@@ -33,8 +33,8 @@ class CSqlMasterPool(CMasterSlaveBase):
             ip += str(port)
             self._m_cache_.Set(ip, h.DBManagementSystem)
 
-        # open default database and subscribe for table update events (update, delete and insert) by setting flag ClientSide.CAsyncDBHandler.ENABLE_TABLE_UPDATE_MESSAGES
-        ok = self._handler_.Open(self.DefaultDBName, rh, CAsyncDBHandler.ENABLE_TABLE_UPDATE_MESSAGES)
+        # open default database and subscribe for table update events (update, delete and insert) by setting flag DB_CONSTS.ENABLE_TABLE_UPDATE_MESSAGES
+        ok = self._handler_.Open(self.DefaultDBName, rh, DB_CONSTS.ENABLE_TABLE_UPDATE_MESSAGES)
 
         # bring all cached table data into m_cache first for initial cache, and exchange it with Cache if there is no error
         def sql_result(h, res, errMsg, affected, fail_ok, id):
@@ -53,13 +53,13 @@ class CSqlMasterPool(CMasterSlaveBase):
     def OnSocketPoolEvent(self, spe, handler):
 
         def OnPublish(sender, messageSender, group, msg):
-            if group[0] == CAsyncDBHandler.CACHE_UPDATE_CHAT_GROUP_ID:
+            if group[0] == DB_CONSTS.CACHE_UPDATE_CHAT_GROUP_ID:
                 if self._midTier_:
-                    CSocketProServer.PushManager.Publish(msg, [CAsyncDBHandler.CACHE_UPDATE_CHAT_GROUP_ID])
+                    CSocketProServer.PushManager.Publish(msg, [DB_CONSTS.CACHE_UPDATE_CHAT_GROUP_ID])
                 self._SetInitialCache_()
                 return
             if self._midTier_:
-                CSocketProServer.PushManager.Publish(msg, [CAsyncDBHandler.STREAMING_SQL_CHAT_GROUP_ID])
+                CSocketProServer.PushManager.Publish(msg, [DB_CONSTS.STREAMING_SQL_CHAT_GROUP_ID])
 
             # vData[0] == event type; vData[1] == host; vData[2] = database user; vData[3] == db name; vData[4] == table name
             vData = msg
@@ -88,7 +88,7 @@ class CSqlMasterPool(CMasterSlaveBase):
         elif spe == tagSocketPoolEvent.speConnected and handler.AttachedClientSocket.ErrorCode == 0:
             if handler == self.AsyncHandlers[0]:
                 if self._midTier_:
-                    CSocketProServer.PushManager.Publish(None, [CAsyncDBHandler.CACHE_UPDATE_CHAT_GROUP_ID])
+                    CSocketProServer.PushManager.Publish(None, [DB_CONSTS.CACHE_UPDATE_CHAT_GROUP_ID])
                 self._SetInitialCache_()
             else:
                 handler.Open(self.DefaultDBName, None)

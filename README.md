@@ -2,7 +2,7 @@
 
 1.  A public repository for UDAParts (www.udaparts.com) SocketPro async communication framework. It contains a complete SocketPro software development kit with many tutorial and sample projects for C++, Java, .NET and Python as well as JavaScript across different operation systems.
 
-2.  SocketPro is a world-leading package of secured communication software components written with continuous inline request/result batching, real-time stream processing, asynchronous data transferring, and parallel computation in mind. It offers superior performance and scalability with many unique and critical features which will definitely help you quickly develop high-quality distributed applications on major platforms such as Windows, Linux variants and Apple as well as browsers and devices.
+2.  SocketPro is a world-leading package of secured communication software components. They are written from scratch with continuous inline request/result batching, real-time stream sending/processing, asynchronous data transferring and parallel computation in mind. SocketPro offers superior performance and scalability with many unique and critical features. These features will definitely solve your daunting issues and meet complex needs. As result, SocketPro will help you quickly develop high-quality distributed applications on major platforms such as Windows, Linux variants and browsers as well as Apple and devices in the future.
 
 3.  Key features are:
     - Simple for development
@@ -12,8 +12,8 @@
     - Great maintainability, modularity and version control
     - Free async persistent queue, ODBC, sqlite and mysql services
 
-4.	Boost libraries (www.boost.org) are required for C/C++ development on non-window platforms. This is NOT required at all with Visual C++ development.
+4.  Boost libraries (www.boost.org) are required for C/C++ development on non-window platforms. This is NOT required at all with Visual C++ development.
 
-5.	We use netbeans (https://netbeans.org/) for Java development on all platforms; and also for C/C++ developments on Linux platforms.
+5.  We use netbeans (https://netbeans.org/) for Java development on all platforms; and also for C/C++ developments on Linux platforms.
 
-6.	We use PyCharm (https://www.jetbrains.com/pycharm/) for python development on all platforms. Its free Community Edition works just fine.
+6.  We use PyCharm (https://www.jetbrains.com/pycharm/) for python development on all platforms. Its free Community Edition works just fine.

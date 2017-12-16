@@ -7,13 +7,13 @@ namespace SocketProAdapter
     {
         public abstract class CCacheBasePeer : CClientPeer
         {
-            [RequestAttr(SocketProAdapter.ClientSide.CAsyncDBHandler.idGetCachedTables, true)]
+            [RequestAttr(UDB.DB_CONSTS.idGetCachedTables, true)]
             protected abstract string GetCachedTables(string defaultDb, uint flags, ulong index, out int dbManagementSystem, out int res);
 
             public bool SendMeta(UDB.CDBColumnInfoArray meta, ulong index)
             {
                 //A client expects a rowset meta data and call index
-                uint ret = SendResult(ClientSide.CAsyncDBHandler.idRowsetHeader, meta, index);
+                uint ret = SendResult(UDB.DB_CONSTS.idRowsetHeader, meta, index);
                 return (ret != REQUEST_CANCELED && ret != SOCKET_NOT_FOUND);
             }
 
@@ -29,7 +29,7 @@ namespace SocketProAdapter
                         if (vt is string)
                         {
                             string s = (string)vt;
-                            if (s.Length > ClientSide.CAsyncDBHandler.DEFAULT_BIG_FIELD_CHUNK_SIZE)
+                            if (s.Length > UDB.DB_CONSTS.DEFAULT_BIG_FIELD_CHUNK_SIZE)
                             {
                                 if (sb.UQueue.GetSize() > 0 && !SendRows(sb, true))
                                     return false;
@@ -47,7 +47,7 @@ namespace SocketProAdapter
                         else if (vt is byte[])
                         {
                             byte[] bytes = (byte[])vt;
-                            if (bytes.LongLength > 2 * ClientSide.CAsyncDBHandler.DEFAULT_BIG_FIELD_CHUNK_SIZE)
+                            if (bytes.LongLength > 2 * UDB.DB_CONSTS.DEFAULT_BIG_FIELD_CHUNK_SIZE)
                             {
                                 if (sb.UQueue.GetSize() > 0 && !SendRows(sb, true))
                                     return false;
@@ -62,7 +62,7 @@ namespace SocketProAdapter
                         else if (vt is sbyte)
                         {
                             sbyte[] bytes = (sbyte[])vt;
-                            if (bytes.LongLength > 2 * ClientSide.CAsyncDBHandler.DEFAULT_BIG_FIELD_CHUNK_SIZE)
+                            if (bytes.LongLength > 2 * UDB.DB_CONSTS.DEFAULT_BIG_FIELD_CHUNK_SIZE)
                             {
                                 if (sb.UQueue.GetSize() > 0 && !SendRows(sb, true))
                                     return false;
@@ -82,14 +82,14 @@ namespace SocketProAdapter
                             sb.UQueue.Save(vt);
                         }
                     }
-                    len = SendResult(ClientSide.CAsyncDBHandler.idEndRows, sb);
+                    len = SendResult(UDB.DB_CONSTS.idEndRows, sb);
                     return (len != REQUEST_CANCELED && len != SOCKET_NOT_FOUND);
                 }
             }
 
             protected bool SendBlob(ushort data_type, byte[] buffer, uint bytes, uint offset)
             {
-                uint ret = SendResult(ClientSide.CAsyncDBHandler.idStartBLOB,
+                uint ret = SendResult(UDB.DB_CONSTS.idStartBLOB,
                     //extra 4 bytes for string null termination
                         (uint)(bytes + sizeof(ushort) + sizeof(uint) + sizeof(uint)),
                         data_type, bytes);
@@ -97,9 +97,9 @@ namespace SocketProAdapter
                 {
                     return false;
                 }
-                while (bytes > ClientSide.CAsyncDBHandler.DEFAULT_BIG_FIELD_CHUNK_SIZE)
+                while (bytes > UDB.DB_CONSTS.DEFAULT_BIG_FIELD_CHUNK_SIZE)
                 {
-                    ret = SendResult(ClientSide.CAsyncDBHandler.idChunk, buffer, ClientSide.CAsyncDBHandler.DEFAULT_BIG_FIELD_CHUNK_SIZE, offset);
+                    ret = SendResult(UDB.DB_CONSTS.idChunk, buffer, UDB.DB_CONSTS.DEFAULT_BIG_FIELD_CHUNK_SIZE, offset);
                     if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND)
                     {
                         return false;
@@ -107,7 +107,7 @@ namespace SocketProAdapter
                     offset += ret;
                     bytes -= ret;
                 }
-                ret = SendResult(ClientSide.CAsyncDBHandler.idEndBLOB, buffer, bytes, offset);
+                ret = SendResult(UDB.DB_CONSTS.idEndBLOB, buffer, bytes, offset);
                 if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND)
                 {
                     return false;
@@ -117,12 +117,12 @@ namespace SocketProAdapter
 
             protected bool SendRows(CScopeUQueue sb, bool transferring)
             {
-                bool batching = (BytesBatched >= ClientSide.CAsyncDBHandler.DEFAULT_RECORD_BATCH_SIZE);
+                bool batching = (BytesBatched >= UDB.DB_CONSTS.DEFAULT_RECORD_BATCH_SIZE);
                 if (batching)
                 {
                     CommitBatching();
                 }
-                uint ret = SendResult(transferring ? ClientSide.CAsyncDBHandler.idTransferring : ClientSide.CAsyncDBHandler.idEndRows, sb.UQueue.IntenalBuffer, sb.UQueue.GetSize());
+                uint ret = SendResult(transferring ? UDB.DB_CONSTS.idTransferring : UDB.DB_CONSTS.idEndRows, sb.UQueue.IntenalBuffer, sb.UQueue.GetSize());
                 sb.UQueue.SetSize(0);
                 if (batching)
                 {

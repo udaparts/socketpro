@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+#if USQLSERVER
+#else
 using SocketProAdapter.ClientSide;
+#endif
 using System.Data;
 
 namespace SocketProAdapter
@@ -233,7 +236,7 @@ namespace SocketProAdapter
                 {
                     if ((dt & (ushort)tagVariantDataType.sdVT_UI1) == (ushort)tagVariantDataType.sdVT_UI1)
                     {
-                        DataType = tagVariantDataType.sdVT_BYTES;
+                        DataType = tagVariantDataType.sdVT_UI1 | tagVariantDataType.sdVT_ARRAY;
                     }
                     else
                     {
@@ -264,16 +267,39 @@ namespace SocketProAdapter
 
             #endregion
         }
-    }
 
-    namespace ClientSide
-    {
-        using UDB;
-        public class CAsyncDBHandler : CAsyncServiceHandler
+        public class CParameterInfoArray : List<CParameterInfo>, IUSerializer
         {
-            private const uint ONE_MEGA_BYTES = 0x100000;
-            private const uint BLOB_LENGTH_NOT_AVAILABLE = 0xffffffe0;
+            #region IUSerializer Members
 
+            public void LoadFrom(CUQueue UQueue)
+            {
+                int count;
+                Clear();
+                UQueue.Load(out count);
+                while (count > 0)
+                {
+                    CParameterInfo info = new CParameterInfo();
+                    info.LoadFrom(UQueue);
+                    Add(info);
+                    --count;
+                }
+            }
+
+            public void SaveTo(CUQueue UQueue)
+            {
+                UQueue.Save(this.Count);
+                foreach (CParameterInfo info in this)
+                {
+                    info.SaveTo(UQueue);
+                }
+            }
+
+            #endregion
+        }
+
+        public static class DB_CONSTS
+        {
             /// <summary>
             /// Async database client/server just requires the following request identification numbers 
             /// </summary>
@@ -327,6 +353,19 @@ namespace SocketProAdapter
             public const uint STREAMING_SQL_CHAT_GROUP_ID = 0x1fffffff;
 
             public const uint CACHE_UPDATE_CHAT_GROUP_ID = STREAMING_SQL_CHAT_GROUP_ID + 1;
+        }
+    }
+
+#if USQLSERVER
+
+#else
+    namespace ClientSide
+    {
+        using UDB;
+        public class CAsyncDBHandler : CAsyncServiceHandler
+        {
+            private const uint ONE_MEGA_BYTES = 0x100000;
+            private const uint BLOB_LENGTH_NOT_AVAILABLE = 0xffffffe0;
 
             public delegate void DResult(CAsyncDBHandler dbHandler, int res, string errMsg);
             public delegate void DExecuteResult(CAsyncDBHandler dbHandler, int res, string errMsg, long affected, ulong fail_ok, object vtId);
@@ -487,8 +526,8 @@ namespace SocketProAdapter
                 m_vColInfo.Clear();
                 m_lastReqId = 0;
                 m_Blob.SetSize(0);
-                if (m_Blob.MaxBufferSize > DEFAULT_BIG_FIELD_CHUNK_SIZE)
-                    m_Blob.Realloc(DEFAULT_BIG_FIELD_CHUNK_SIZE);
+                if (m_Blob.MaxBufferSize > DB_CONSTS.DEFAULT_BIG_FIELD_CHUNK_SIZE)
+                    m_Blob.Realloc(DB_CONSTS.DEFAULT_BIG_FIELD_CHUNK_SIZE);
                 m_vData.Clear();
             }
 
@@ -500,14 +539,14 @@ namespace SocketProAdapter
                     if (firstRow)
                     {
                         firstRow = false;
-                        if (!SendRequest(idBeginRows, q.IntenalBuffer, q.GetSize(), null))
+                        if (!SendRequest(DB_CONSTS.idBeginRows, q.IntenalBuffer, q.GetSize(), null))
                         {
                             return false;
                         }
                     }
                     else
                     {
-                        if (!SendRequest(idTransferring, q.IntenalBuffer, q.GetSize(), null))
+                        if (!SendRequest(DB_CONSTS.idTransferring, q.IntenalBuffer, q.GetSize(), null))
                         {
                             return false;
                         }
@@ -517,7 +556,7 @@ namespace SocketProAdapter
                 else if (firstRow)
                 {
                     firstRow = false;
-                    if (!SendRequest(idBeginRows, null))
+                    if (!SendRequest(DB_CONSTS.idBeginRows, null))
                     {
                         return false;
                     }
@@ -534,11 +573,11 @@ namespace SocketProAdapter
                     bool start = true;
                     while (q.GetSize() > 0)
                     {
-                        uint send = (q.GetSize() >= DEFAULT_BIG_FIELD_CHUNK_SIZE) ? DEFAULT_BIG_FIELD_CHUNK_SIZE : q.GetSize();
+                        uint send = (q.GetSize() >= DB_CONSTS.DEFAULT_BIG_FIELD_CHUNK_SIZE) ? DB_CONSTS.DEFAULT_BIG_FIELD_CHUNK_SIZE : q.GetSize();
                         q.Pop(send, ref bytes);
                         if (start)
                         {
-                            if (!SendRequest(idStartBLOB, bytes, send, null))
+                            if (!SendRequest(DB_CONSTS.idStartBLOB, bytes, send, null))
                             {
                                 return false;
                             }
@@ -546,17 +585,17 @@ namespace SocketProAdapter
                         }
                         else
                         {
-                            if (!SendRequest(idChunk, bytes, send, null))
+                            if (!SendRequest(DB_CONSTS.idChunk, bytes, send, null))
                             {
                                 return false;
                             }
                         }
-                        if (q.GetSize() < DEFAULT_BIG_FIELD_CHUNK_SIZE)
+                        if (q.GetSize() < DB_CONSTS.DEFAULT_BIG_FIELD_CHUNK_SIZE)
                         {
                             break;
                         }
                     }
-                    if (!SendRequest(idEndBLOB, q.GetBuffer(), q.GetSize(), null))
+                    if (!SendRequest(DB_CONSTS.idEndBLOB, q.GetBuffer(), q.GetSize(), null))
                     {
                         return false;
                     }
@@ -582,7 +621,7 @@ namespace SocketProAdapter
                         {
                             string s = (string)vt;
                             uint len = (uint)(s.Length);
-                            if (len < DEFAULT_BIG_FIELD_CHUNK_SIZE)
+                            if (len < DB_CONSTS.DEFAULT_BIG_FIELD_CHUNK_SIZE)
                                 sb.Save(vt);
                             else
                             {
@@ -602,7 +641,7 @@ namespace SocketProAdapter
                         {
                             byte[] bytes = (byte[])vt;
                             uint len = (uint)bytes.Length;
-                            if (len < 2 * DEFAULT_BIG_FIELD_CHUNK_SIZE)
+                            if (len < 2 * DB_CONSTS.DEFAULT_BIG_FIELD_CHUNK_SIZE)
                                 sb.Save(vt);
                             else
                             {
@@ -620,7 +659,7 @@ namespace SocketProAdapter
                         {
                             sb.Save(vt);
                         }
-                        if (sb.UQueue.GetSize() >= DEFAULT_RECORD_BATCH_SIZE)
+                        if (sb.UQueue.GetSize() >= DB_CONSTS.DEFAULT_RECORD_BATCH_SIZE)
                         {
                             if (!Send(sb, ref firstRow))
                                 return false;
@@ -746,7 +785,7 @@ namespace SocketProAdapter
                         }
                         m_mapParameterCall[m_nCall] = vParam;
                     }
-                    if (!SendRequest(idExecuteParameters, rowset, meta, lastInsertId, callIndex, (ar) =>
+                    if (!SendRequest(DB_CONSTS.idExecuteParameters, rowset, meta, lastInsertId, callIndex, (ar) =>
                     {
                         long affected;
                         ulong fail_ok;
@@ -756,7 +795,7 @@ namespace SocketProAdapter
                         ar.Load(out affected).Load(out res).Load(out errMsg).Load(out vtId).Load(out fail_ok);
                         lock (m_csDB)
                         {
-                            m_lastReqId = idExecute;
+                            m_lastReqId = DB_CONSTS.idExecute;
                             m_affected = affected;
                             m_dbErrCode = res;
                             m_dbErrMsg = errMsg;
@@ -872,7 +911,7 @@ namespace SocketProAdapter
                         m_mapRowset[m_nCall] = new KeyValuePair<DRowsetHeader, DRows>(rh, row);
                     }
                 }
-                if (!SendRequest(idExecute, sql, rowset, meta, lastInsertId, index, (ar) =>
+                if (!SendRequest(DB_CONSTS.idExecute, sql, rowset, meta, lastInsertId, index, (ar) =>
                 {
                     long affected;
                     ulong fail_ok;
@@ -882,7 +921,7 @@ namespace SocketProAdapter
                     ar.Load(out affected).Load(out res).Load(out errMsg).Load(out vtId).Load(out fail_ok);
                     lock (m_csDB)
                     {
-                        m_lastReqId = idExecute;
+                        m_lastReqId = DB_CONSTS.idExecute;
                         m_affected = affected;
                         m_dbErrCode = res;
                         m_dbErrMsg = errMsg;
@@ -946,7 +985,7 @@ namespace SocketProAdapter
                         m_strConnection = strConnection;
                     }
                 }
-                if (SendRequest(idOpen, strConnection, flags, (ar) =>
+                if (SendRequest(DB_CONSTS.idOpen, strConnection, flags, (ar) =>
                 {
                     int res, ms;
                     string errMsg;
@@ -954,7 +993,7 @@ namespace SocketProAdapter
                     lock (m_csDB)
                     {
                         m_dbErrCode = res;
-                        m_lastReqId = idOpen;
+                        m_lastReqId = DB_CONSTS.idOpen;
                         if (res == 0)
                         {
                             m_strConnection = errMsg;
@@ -1047,7 +1086,7 @@ namespace SocketProAdapter
                             info.SaveTo(sb.UQueue);
                         }
                     }
-                    if (!SendRequest(idPrepare, sb.UQueue.IntenalBuffer, sb.UQueue.GetSize(), (ar) =>
+                    if (!SendRequest(DB_CONSTS.idPrepare, sb.UQueue.IntenalBuffer, sb.UQueue.GetSize(), (ar) =>
                     {
                         int res;
                         string errMsg;
@@ -1056,7 +1095,7 @@ namespace SocketProAdapter
                         lock (m_csDB)
                         {
                             m_bCallReturn = false;
-                            m_lastReqId = idPrepare;
+                            m_lastReqId = DB_CONSTS.idPrepare;
                             m_dbErrCode = res;
                             m_dbErrMsg = errMsg;
                             m_parameters = (parameters & 0xffff);
@@ -1118,14 +1157,14 @@ namespace SocketProAdapter
                 //to avoid possible request sending/client message writing overlapping within multiple threading environment
                 lock (m_csOneSending)
                 {
-                    if (SendRequest(idEndTrans, (int)plan, (ar) =>
+                    if (SendRequest(DB_CONSTS.idEndTrans, (int)plan, (ar) =>
                     {
                         int res;
                         string errMsg;
                         ar.Load(out res).Load(out errMsg);
                         lock (m_csDB)
                         {
-                            m_lastReqId = idEndTrans;
+                            m_lastReqId = DB_CONSTS.idEndTrans;
                             m_dbErrCode = res;
                             m_dbErrMsg = errMsg;
                         }
@@ -1197,7 +1236,7 @@ namespace SocketProAdapter
                     }
                     //associate begin transaction with underlying client persistent message queue
                     bool queueOk = AttachedClientSocket.ClientQueue.StartJob();
-                    bool ok = SendRequest(idBeginTrans, (int)isolation, connection, flags, (ar) =>
+                    bool ok = SendRequest(DB_CONSTS.idBeginTrans, (int)isolation, connection, flags, (ar) =>
                     {
                         int res, ms;
                         string errMsg;
@@ -1209,7 +1248,7 @@ namespace SocketProAdapter
                                 m_strConnection = errMsg;
                                 errMsg = "";
                             }
-                            m_lastReqId = idBeginTrans;
+                            m_lastReqId = DB_CONSTS.idBeginTrans;
                             m_dbErrCode = res;
                             m_dbErrMsg = errMsg;
                             m_ms = (tagManagementSystem)ms;
@@ -1254,14 +1293,14 @@ namespace SocketProAdapter
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
             public virtual bool Close(DResult handler, DCanceled canceled)
             {
-                return SendRequest(idClose, (ar) =>
+                return SendRequest(DB_CONSTS.idClose, (ar) =>
                 {
                     int res;
                     string errMsg;
                     ar.Load(out res).Load(out errMsg);
                     lock (m_csDB)
                     {
-                        m_lastReqId = idClose;
+                        m_lastReqId = DB_CONSTS.idClose;
                         m_strConnection = "";
                         m_dbErrCode = res;
                         m_dbErrMsg = errMsg;
@@ -1280,7 +1319,7 @@ namespace SocketProAdapter
             {
                 switch (reqId)
                 {
-                    case idRowsetHeader:
+                    case DB_CONSTS.idRowsetHeader:
                         {
                             m_Blob.SetSize(0);
                             if (m_Blob.MaxBufferSize > ONE_MEGA_BYTES)
@@ -1316,7 +1355,7 @@ namespace SocketProAdapter
                             }
                         }
                         break;
-                    case idCallReturn:
+                    case DB_CONSTS.idCallReturn:
                         {
                             object vt;
                             mc.Load(out vt);
@@ -1332,7 +1371,7 @@ namespace SocketProAdapter
                             }
                         }
                         break;
-                    case idBeginRows:
+                    case DB_CONSTS.idBeginRows:
                         m_Blob.SetSize(0);
                         m_vData.Clear();
                         if (mc.GetSize() > 0)
@@ -1343,7 +1382,7 @@ namespace SocketProAdapter
                             }
                         }
                         break;
-                    case idTransferring:
+                    case DB_CONSTS.idTransferring:
                         while (mc.GetSize() > 0)
                         {
                             object vt;
@@ -1351,8 +1390,8 @@ namespace SocketProAdapter
                             m_vData.Add(vt);
                         }
                         break;
-                    case idOutputParameter:
-                    case idEndRows:
+                    case DB_CONSTS.idOutputParameter:
+                    case DB_CONSTS.idEndRows:
                         if (mc.GetSize() > 0 || m_vData.Count > 0)
                         {
                             object vt;
@@ -1361,7 +1400,7 @@ namespace SocketProAdapter
                                 mc.Load(out vt);
                                 m_vData.Add(vt);
                             }
-                            if (reqId == idOutputParameter)
+                            if (reqId == DB_CONSTS.idOutputParameter)
                             {
                                 lock (m_csDB)
                                 {
@@ -1397,7 +1436,7 @@ namespace SocketProAdapter
                         }
                         m_vData.Clear();
                         break;
-                    case idStartBLOB:
+                    case DB_CONSTS.idStartBLOB:
                         if (mc.GetSize() > 0)
                         {
                             m_Blob.SetSize(0);
@@ -1409,14 +1448,14 @@ namespace SocketProAdapter
                             mc.SetSize(0);
                         }
                         break;
-                    case idChunk:
+                    case DB_CONSTS.idChunk:
                         if (mc.GetSize() > 0)
                         {
                             m_Blob.Push(mc.IntenalBuffer, mc.GetSize());
                             mc.SetSize(0);
                         }
                         break;
-                    case idEndBLOB:
+                    case DB_CONSTS.idEndBLOB:
                         if (mc.GetSize() > 0 || m_Blob.GetSize() > 0)
                         {
                             m_Blob.Push(mc.IntenalBuffer, mc.GetSize());
@@ -1568,4 +1607,5 @@ namespace SocketProAdapter
             }
         }
     } //namespace ClientSide
+#endif
 }//namespace UDatabase

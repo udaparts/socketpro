@@ -2,7 +2,6 @@ package SPA.ServerSide;
 
 import SPA.*;
 import SPA.UDB.*;
-import SPA.ClientSide.*;
 
 public abstract class CCacheBasePeer extends CClientPeer {
 
@@ -34,17 +33,17 @@ public abstract class CCacheBasePeer extends CClientPeer {
         meta.SaveTo(q);
         q.Save(index);
         //A client expects a rowset meta data and call index
-        int ret = SendResult(CAsyncDBHandler.idRowsetHeader, q);
+        int ret = SendResult(DB_CONSTS.idRowsetHeader, q);
         CScopeUQueue.Unlock(q);
         return (ret != REQUEST_CANCELED && ret != SOCKET_NOT_FOUND);
     }
 
     protected boolean SendRows(CUQueue q, boolean transferring) {
-        boolean batching = (getBytesBatched() >= CAsyncDBHandler.DEFAULT_RECORD_BATCH_SIZE);
+        boolean batching = (getBytesBatched() >= DB_CONSTS.DEFAULT_RECORD_BATCH_SIZE);
         if (batching) {
             CommitBatching();
         }
-        int ret = SendResult(transferring ? CAsyncDBHandler.idTransferring : CAsyncDBHandler.idEndRows, q.getIntenalBuffer(), q.GetSize());
+        int ret = SendResult(transferring ? DB_CONSTS.idTransferring : DB_CONSTS.idEndRows, q.getIntenalBuffer(), q.GetSize());
         q.SetSize(0);
         if (batching) {
             StartBatching();
@@ -58,21 +57,21 @@ public abstract class CCacheBasePeer extends CClientPeer {
         int bytes = qBuffer.LoadInt();
         /* 10 = sizeof (short) + sizeof (int) + sizeof (int) extra 4 bytes for string null termination*/
         q.Save(bytes + 10).Save(data_type).Save(bytes);
-        int ret = SendResult(CAsyncDBHandler.idStartBLOB, q);
+        int ret = SendResult(DB_CONSTS.idStartBLOB, q);
         CScopeUQueue.Unlock(q);
         if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
             return false;
         }
-        byte[] b = new byte[CAsyncDBHandler.DEFAULT_BIG_FIELD_CHUNK_SIZE];
-        while (qBuffer.GetSize() > CAsyncDBHandler.DEFAULT_BIG_FIELD_CHUNK_SIZE) {
-            ret = qBuffer.PopBytes(b, CAsyncDBHandler.DEFAULT_BIG_FIELD_CHUNK_SIZE);
-            ret = SendResult(CAsyncDBHandler.idChunk, b, CAsyncDBHandler.DEFAULT_BIG_FIELD_CHUNK_SIZE);
+        byte[] b = new byte[DB_CONSTS.DEFAULT_BIG_FIELD_CHUNK_SIZE];
+        while (qBuffer.GetSize() > DB_CONSTS.DEFAULT_BIG_FIELD_CHUNK_SIZE) {
+            ret = qBuffer.PopBytes(b, DB_CONSTS.DEFAULT_BIG_FIELD_CHUNK_SIZE);
+            ret = SendResult(DB_CONSTS.idChunk, b, DB_CONSTS.DEFAULT_BIG_FIELD_CHUNK_SIZE);
             if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
                 return false;
             }
         }
-        ret = qBuffer.PopBytes(b, CAsyncDBHandler.DEFAULT_BIG_FIELD_CHUNK_SIZE);
-        ret = SendResult(CAsyncDBHandler.idEndBLOB, b, ret);
+        ret = qBuffer.PopBytes(b, DB_CONSTS.DEFAULT_BIG_FIELD_CHUNK_SIZE);
+        ret = SendResult(DB_CONSTS.idEndBLOB, b, ret);
         return (ret != REQUEST_CANCELED && ret != SOCKET_NOT_FOUND);
     }
 
@@ -82,7 +81,7 @@ public abstract class CCacheBasePeer extends CClientPeer {
         for (Object vt : vData) {
             if (vt instanceof String) {
                 String s = (String) vt;
-                if (s.length() > CAsyncDBHandler.DEFAULT_BIG_FIELD_CHUNK_SIZE) {
+                if (s.length() > DB_CONSTS.DEFAULT_BIG_FIELD_CHUNK_SIZE) {
                     if (q.GetSize() > 0 && !SendRows(q, true)) {
                         CScopeUQueue.Unlock(q);
                         return false;
@@ -98,7 +97,7 @@ public abstract class CCacheBasePeer extends CClientPeer {
                 }
             } else if (vt instanceof byte[]) {
                 byte[] s = (byte[]) vt;
-                if (s.length > CAsyncDBHandler.DEFAULT_BIG_FIELD_CHUNK_SIZE * 2) {
+                if (s.length > DB_CONSTS.DEFAULT_BIG_FIELD_CHUNK_SIZE * 2) {
                     if (q.GetSize() > 0 && !SendRows(q, true)) {
                         CScopeUQueue.Unlock(q);
                         return false;
@@ -116,7 +115,7 @@ public abstract class CCacheBasePeer extends CClientPeer {
                 q.Save(vt);
             }
         }
-        len = SendResult(CAsyncDBHandler.idEndRows, q);
+        len = SendResult(DB_CONSTS.idEndRows, q);
         CScopeUQueue.Unlock(q);
         return (len != REQUEST_CANCELED && len != SOCKET_NOT_FOUND);
     }

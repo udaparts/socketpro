@@ -14,6 +14,12 @@ namespace SocketProAdapter
             private DOnIsPermitted m_onIsPermitted;
             private DOnSSLHandShakeCompleted m_shc;
 
+            internal static DOnThreadEvent te = (te) =>
+            {
+                if (ThreadEvent != null)
+                    ThreadEvent.Invoke(te);
+            };
+
             private void Init(int param)
             {
                 bool ok = ServerCoreLoader.InitSocketProServer(param);
@@ -29,6 +35,8 @@ namespace SocketProAdapter
                 m_shc = new DOnSSLHandShakeCompleted(OnSSLShakeCompleted);
                 ServerCoreLoader.SetOnSSLHandShakeCompleted(m_shc);
             }
+
+            public static event DOnThreadEvent ThreadEvent = null;
 
             /// <summary>
             /// Use the method for debugging crash within cross development environments.
@@ -253,6 +261,14 @@ namespace SocketProAdapter
                             throw new InvalidOperationException("Failed in registering service = " + sas[0].ServiceID + ", and check if the service ID is duplicated with the previous one or if the service ID is less or equal to SocketProAdapter.BaseServiceID.sidReserved");
                     }
                 }
+                lock (CBaseService.m_csService)
+                {
+                    if (!CBaseService.m_bRegEvent)
+                    {
+                        ServerCoreLoader.SetThreadEvent(te);
+                        CBaseService.m_bRegEvent = true;
+                    }
+                }
                 bool ok = ServerCoreLoader.StartSocketProServer(port, maxBacklog, v6Supported);
                 CBaseService.m_nMainThreads = uint.MaxValue;
                 return ok;
@@ -260,6 +276,7 @@ namespace SocketProAdapter
 
             public virtual void StopSocketProServer()
             {
+                Clean();
                 ServerCoreLoader.PostQuitPump();
                 ServerCoreLoader.StopSocketProServer();
             }
@@ -733,13 +750,30 @@ namespace SocketProAdapter
 
             private static CSocketProServer m_sps = null;
 
-            public void Dispose()
+            private void Clean()
             {
                 if (m_sps != null)
                 {
-                    ServerCoreLoader.UninitSocketProServer();
+                    ServerCoreLoader.SetOnAccept(null);
+                    ServerCoreLoader.SetOnClose(null);
+                    ServerCoreLoader.SetOnIdle(null);
+                    ServerCoreLoader.SetOnIsPermitted(null);
+                    ServerCoreLoader.SetOnSSLHandShakeCompleted(null);
+                    lock (CBaseService.m_csService)
+                    {
+                        if (CBaseService.m_bRegEvent)
+                        {
+                            ServerCoreLoader.SetThreadEvent(null);
+                            CBaseService.m_bRegEvent = false;
+                        }
+                    }
                     m_sps = null;
                 }
+            }
+
+            public void Dispose()
+            {
+                Clean();
             }
 
             #endregion

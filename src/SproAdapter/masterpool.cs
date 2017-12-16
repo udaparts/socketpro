@@ -68,7 +68,7 @@ namespace SocketProAdapter
                     if (m_bMidTier)
                     {
                         object vtMessage = null;
-                        ServerSide.CSocketProServer.PushManager.Publish(vtMessage, ClientSide.CAsyncDBHandler.CACHE_UPDATE_CHAT_GROUP_ID);
+                        ServerSide.CSocketProServer.PushManager.Publish(vtMessage, UDB.DB_CONSTS.CACHE_UPDATE_CHAT_GROUP_ID);
                     }
 #endif
                     m_cache.DBServerName = "";
@@ -86,13 +86,13 @@ namespace SocketProAdapter
 
         void Push_OnPublish(ClientSide.CClientSocket sender, ClientSide.CMessageSender messageSender, uint[] group, object msg)
         {
-            if (group[0] == ClientSide.CAsyncDBHandler.CACHE_UPDATE_CHAT_GROUP_ID)
+            if (group[0] == UDB.DB_CONSTS.CACHE_UPDATE_CHAT_GROUP_ID)
             {
 #if WINCE
 #else
                 if (m_bMidTier)
                 {
-                    ServerSide.CSocketProServer.PushManager.Publish(msg, ClientSide.CAsyncDBHandler.CACHE_UPDATE_CHAT_GROUP_ID);
+                    ServerSide.CSocketProServer.PushManager.Publish(msg, UDB.DB_CONSTS.CACHE_UPDATE_CHAT_GROUP_ID);
                 }
 #endif
                 SetInitialCache();
@@ -103,7 +103,7 @@ namespace SocketProAdapter
             if (m_bMidTier)
             {
                 //push message onto front clients which may be interested in the message
-                ServerSide.CSocketProServer.PushManager.Publish(msg, ClientSide.CAsyncDBHandler.STREAMING_SQL_CHAT_GROUP_ID);
+                ServerSide.CSocketProServer.PushManager.Publish(msg, UDB.DB_CONSTS.STREAMING_SQL_CHAT_GROUP_ID);
             }
 #endif
             //vData[0] == event type; vData[1] == host; vData[2] = database user; vData[3] == db name; vData[4] == table name
@@ -212,7 +212,7 @@ namespace SocketProAdapter
             {
                 m_cache.AddEmptyRowset(meta);
                 m_meta = meta;
-            }, ClientSide.CAsyncDBHandler.ENABLE_TABLE_UPDATE_MESSAGES);
+            }, UDB.DB_CONSTS.ENABLE_TABLE_UPDATE_MESSAGES);
         }
 
         public class CSlavePool : CMasterSlaveBase<THandler>

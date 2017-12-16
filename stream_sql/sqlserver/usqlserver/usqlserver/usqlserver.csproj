@@ -1,0 +1,108 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <!--
+    <ProjectTypeGuids>{c252feb5-a946-4202-b1d4-9916a0590387};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+	-->
+    <ProductVersion>
+    </ProductVersion>
+    <SchemaVersion>
+    </SchemaVersion>
+    <ProjectGuid>{03263C8C-795F-4E0F-BEBB-9975463E7C4B}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <NoStandardLibraries>false</NoStandardLibraries>
+    <AssemblyName>usqlserver</AssemblyName>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <SGenUseProxyTypes>false</SGenUseProxyTypes>
+    <PermissionLevel>3</PermissionLevel>
+    <ConnectionString>
+    </ConnectionString>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
+    <DefineConstants>TRACE;DEBUG;USQLSERVER</DefineConstants>
+    <WarningLevel>4</WarningLevel>
+    <DeployCode>false</DeployCode>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugSymbols>false</DebugSymbols>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
+    <DefineConstants>TRACE;USQLSERVER</DefineConstants>
+    <WarningLevel>4</WarningLevel>
+    <DeployCode>false</DeployCode>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup>
+    <RootNamespace>usqlserver</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <!--
+  <Import Project="$(MSBuildBinPath)\SqlServer.targets" />
+  -->
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.XML" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\..\..\src\SproAdapter\asyncdbhandler.cs">
+      <Link>asyncdbhandler.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\src\SproAdapter\basedefines.cs">
+      <Link>basedefines.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\src\SproAdapter\clientpeer.cs">
+      <Link>clientpeer.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\src\SproAdapter\scopeuqueue.cs">
+      <Link>scopeuqueue.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\src\SproAdapter\serverinterop.cs">
+      <Link>serverinterop.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\src\SproAdapter\serverpeerbase.cs">
+      <Link>serverpeerbase.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\src\SproAdapter\serverqueue.cs">
+      <Link>serverqueue.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\src\SproAdapter\serversocket.cs">
+      <Link>serversocket.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\src\SproAdapter\uhttppeer.cs">
+      <Link>uhttppeer.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\src\SproAdapter\uqueue.cs">
+      <Link>uqueue.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\src\SproAdapter\userver.cs">
+      <Link>userver.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\src\SproAdapter\usvrservice.cs">
+      <Link>usvrservice.cs</Link>
+    </Compile>
+    <Compile Include="config.cs" />
+    <Compile Include="dbEventFunc.cs" />
+    <Compile Include="myhttppeer.cs" />
+    <Compile Include="myserver.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="streamsql.cs" />
+  </ItemGroup>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

@@ -2,6 +2,7 @@
 using SocketProAdapter;
 using SocketProAdapter.ServerSide;
 using SocketProAdapter.ClientSide;
+using SocketProAdapter.UDB;
 
 #if USE_SQLITE
 using CMaster = SocketProAdapter.CSqlMasterPool<SocketProAdapter.ClientSide.CSqlite, SocketProAdapter.CDataSet>;
@@ -39,8 +40,8 @@ class CYourServer : CSocketProServer
 
     void SetChatGroups()
     {
-        PushManager.AddAChatGroup(CAsyncDBHandler.STREAMING_SQL_CHAT_GROUP_ID, "Subscribe/publish for front clients");
-        PushManager.AddAChatGroup(CAsyncDBHandler.CACHE_UPDATE_CHAT_GROUP_ID, "Cache update notification from middle tier to front");
+        PushManager.AddAChatGroup(DB_CONSTS.STREAMING_SQL_CHAT_GROUP_ID, "Subscribe/publish for front clients");
+        PushManager.AddAChatGroup(DB_CONSTS.CACHE_UPDATE_CHAT_GROUP_ID, "Cache update notification from middle tier to front");
     }
 
     public static void CreateTestDB()

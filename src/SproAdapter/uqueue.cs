@@ -387,7 +387,11 @@ namespace SocketProAdapter
                 m_len = 0;
                 return;
             }
-            if (size > (uint)(m_bytes.Length - m_position))
+#if WINCE
+            if (size > ((uint)m_bytes.Length - m_position))
+#else
+            if (size > (uint)(m_bytes.LongLength - m_position))
+#endif
             {
                 throw new InvalidOperationException("Bad new size");
             }
@@ -396,7 +400,7 @@ namespace SocketProAdapter
 
         public void Empty()
         {
-            m_bytes = null;
+            m_bytes = new byte[0];
             m_position = 0;
             m_len = 0;
         }
@@ -453,7 +457,11 @@ namespace SocketProAdapter
 #endif
         private unsafe CUQueue Append(void* pData, uint len)
         {
-            if (TailSize < (uint)len)
+#if WINCE
+            if (((uint)m_bytes.Length - m_position - m_len) < len)
+#else
+            if (((uint)m_bytes.LongLength - m_position - m_len) < len)
+#endif
             {
                 uint addedSize = (((uint)len - TailSize) / m_blockSize + 1) * m_blockSize;
                 Realloc(MaxBufferSize + addedSize);
@@ -492,7 +500,7 @@ namespace SocketProAdapter
         }
 
         /// <summary>
-        /// Save a string into this memory buffer without regarding its length. In general, don't use this method directly but the method Save instead
+        /// Save a string into this memory buffer without saving its length. In general, don't use this method directly but the method Save instead
         /// </summary>
         /// <param name="str">a string</param>
         /// <returns>a reference to this memory buffer</returns>
@@ -509,7 +517,7 @@ namespace SocketProAdapter
         }
 
         /// <summary>
-        /// Save an array of bytes into this memory buffer. In general, don't use this method directly but the method Save instead
+        /// Save an array of bytes into this memory buffer without saving its length. In general, don't use this method directly but the method Save instead
         /// </summary>
         /// <param name="bytes">an array of bytes</param>
         /// <param name="offset">offset length in byte</param>
@@ -529,7 +537,7 @@ namespace SocketProAdapter
         }
 
         /// <summary>
-        /// Save an array of bytes into this memory buffer. In general, don't use this method directly but the method Save instead
+        /// Save an array of bytes into this memory buffer without saving its length. In general, don't use this method directly but the method Save instead
         /// </summary>
         /// <param name="bytes">an array of bytes</param>
         /// <param name="len">length in byte</param>
@@ -540,7 +548,7 @@ namespace SocketProAdapter
         }
 
         /// <summary>
-        /// Save an array of bytes into this memory buffer. In general, don't use this method directly but the method Save instead
+        /// Save an array of bytes into this memory buffer without saving its length. In general, don't use this method directly but the method Save instead
         /// </summary>
         /// <param name="bytes">an array of bytes</param>
         /// <returns>a reference to this memory buffer</returns>
@@ -552,7 +560,7 @@ namespace SocketProAdapter
         }
 
         /// <summary>
-        /// Save an array of ANSCII chars into this memory buffer. In general, don't use this method directly but the method Save instead
+        /// Save an array of ANSCII chars into this memory buffer without saving its length. In general, don't use this method directly but the method Save instead
         /// </summary>
         /// <param name="bytes">an array of ANSCII chars</param>
         /// <param name="len">length in byte</param>
@@ -571,7 +579,7 @@ namespace SocketProAdapter
         }
 
         /// <summary>
-        /// Save an array of ANSCII chars into this memory buffer. In general, don't use this method directly but the method Save instead
+        /// Save an array of ANSCII chars into this memory buffer without saving its length. In general, don't use this method directly but the method Save instead
         /// </summary>
         /// <param name="bytes">an array of ANSCII chars</param>
         /// <returns>a reference to this memory buffer</returns>
@@ -753,7 +761,7 @@ namespace SocketProAdapter
                 sbyte[] str = data as sbyte[];
                 Save(str);
             }
-            else if (hasUSerializer(typeof(T)))
+            else if (data is IUSerializer)
             {
                 IUSerializer serializer = data as IUSerializer;
                 Push(serializer);
@@ -1232,7 +1240,7 @@ namespace SocketProAdapter
         }
 
         /// <summary>
-        /// Read an array of bytes from this memory buffer. In general, don't use this method but the method Load instead
+        /// Read an array of bytes from this memory buffer without reading its length ahead. In general, don't use this method but the method Load instead
         /// </summary>
         /// <param name="Bytes">an array of bytes receiving data</param>
         /// <param name="nLen">expected length in bytes</param>
@@ -1256,6 +1264,12 @@ namespace SocketProAdapter
             return this;
         }
 
+        /// <summary>
+        /// Read an array of bytes from this memory buffer without reading its length ahead. In general, don't use this method but the method Load instead
+        /// </summary>
+        /// <param name="nLen">expected length in bytes</param>
+        /// <param name="Bytes">an array of bytes receiving data</param>
+        /// <returns>a reference to this memory buffer</returns>
         public CUQueue Pop(uint nLen, ref byte[] Bytes)
         {
             if (nLen > m_len)
@@ -1282,7 +1296,7 @@ namespace SocketProAdapter
         }
 
         /// <summary>
-        /// Read an array of ANSCII chars from this memory buffer. In general, don't use this method but the method Load instead
+        /// Read an array of ANSCII chars from this memory buffer without reading its length ahead. In general, don't use this method but the method Load instead
         /// </summary>
         /// <param name="sBytes">an array of ANSCII bytes receiving data</param>
         /// <param name="nLen">expected length in bytes</param>
@@ -1306,6 +1320,12 @@ namespace SocketProAdapter
             return this;
         }
 
+        /// <summary>
+        /// Read an array of ANSCII chars from this memory buffer without reading its length ahead. In general, don't use this method but the method Load instead
+        /// </summary>
+        /// <param name="nLen">expected length in bytes</param>
+        /// <param name="sBytes">an array of ANSCII bytes receiving data</param>
+        /// <returns>a reference to this memory buffer</returns>
         public CUQueue Pop(uint nLen, ref sbyte[] sBytes)
         {
             if (nLen > m_len)
@@ -1332,7 +1352,7 @@ namespace SocketProAdapter
         }
 
         /// <summary>
-        /// Read an array of bytes from this memory buffer. In general, don't use this method but the method Load instead
+        /// Read all available bytes from this memory buffer without reading its length ahead. In general, don't use this method but the method Load instead
         /// </summary>
         /// <param name="Bytes">an array of bytes receiving data</param>
         /// <returns>a reference to this memory buffer</returns>
@@ -1342,7 +1362,7 @@ namespace SocketProAdapter
         }
 
         /// <summary>
-        /// Read an array of ANSCII bytes from this memory buffer. In general, don't use this method but the method Load instead
+        /// Read all available ANSCII bytes from this memory buffer without reading its length ahead. In general, don't use this method but the method Load instead
         /// </summary>
         /// <param name="sBytes">an array of ANSCII receiving data</param>
         /// <returns>a reference to this memory buffer</returns>
@@ -1371,7 +1391,7 @@ namespace SocketProAdapter
         }
 
         /// <summary>
-        /// Read string out from this memory buffer. In general, don't use this method but the method Load instead
+        /// Read string out from this memory buffer without reading its length ahead. In general, don't use this method but the method Load instead
         /// </summary>
         /// <param name="strData">a string receiving data</param>
         /// <param name="nBytes">a given number of bytes</param>
@@ -1905,6 +1925,7 @@ namespace SocketProAdapter
                             obData = sData;
                         }
                         break;
+                    case tagVariantDataType.sdVT_INT:
                     case tagVariantDataType.sdVT_I4:
                         {
                             int nData;
@@ -1954,6 +1975,7 @@ namespace SocketProAdapter
                             obData = usData;
                         }
                         break;
+                    case tagVariantDataType.sdVT_UINT:
                     case tagVariantDataType.sdVT_UI4:
                         {
                             uint unData;
@@ -2153,7 +2175,11 @@ namespace SocketProAdapter
             {
                 if (m_bytes == null)
                     return 0;
+#if WINCE
                 return (uint)m_bytes.Length;
+#else
+                return (uint)m_bytes.LongLength;
+#endif
             }
         }
 
@@ -2193,7 +2219,11 @@ namespace SocketProAdapter
             {
                 if (m_bytes == null)
                     return 0;
-                return (uint)(m_bytes.Length - m_position - m_len);
+#if WINCE
+                return ((uint)m_bytes.Length - m_position - m_len);
+#else
+                return (uint)(m_bytes.LongLength - m_position - m_len);
+#endif
             }
         }
 

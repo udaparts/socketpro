@@ -12,7 +12,8 @@ class Program
             CClientSocket.QueueConfigure.WorkDirectory = "/home/yye/sp_test/";
         else
             CClientSocket.QueueConfigure.WorkDirectory = "c:\\sp_test";
-        CConnectionContext cc = new CConnectionContext("localhost", 20901, "lb_client", "pwd_lb_client");
+        Console.WriteLine("This is a client. Remote router host: ");
+        CConnectionContext cc = new CConnectionContext(Console.ReadLine(), 20901, "lb_client", "pwd_lb_client");
         using (CSocketPool<Pi> spPi = new CSocketPool<Pi>(true)) //true -- automatic reconnecting
         {
             ok = spPi.StartSocketPool(cc, 1, 1);

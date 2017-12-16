@@ -9,8 +9,9 @@ namespace SocketProAdapter
     {
         public abstract class CBaseService : IDisposable
         {
+            internal static bool m_bRegEvent = false;
             internal static uint m_nMainThreads = uint.MaxValue;
-            private static object m_csService = new object();
+            internal static object m_csService = new object();
             private static List<CBaseService> m_lstService = new List<CBaseService>();
             private uint m_svsId;
 
@@ -111,6 +112,11 @@ namespace SocketProAdapter
                     m_svsId = svsId;
                     lock (m_csService)
                     {
+                        if (!m_bRegEvent)
+                        {
+                            ServerCoreLoader.SetThreadEvent(CSocketProServer.te);
+                            m_bRegEvent = true;
+                        }
                         m_lstService.Add(this);
                     }
                     return true;

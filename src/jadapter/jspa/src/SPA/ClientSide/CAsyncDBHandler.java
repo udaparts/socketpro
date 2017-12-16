@@ -6,75 +6,12 @@ import java.nio.charset.Charset;
 
 public class CAsyncDBHandler extends CAsyncServiceHandler {
 
-    public CAsyncDBHandler(int sid) {
-        super(sid);
-    }
     private static final int ONE_MEGA_BYTES = 0x100000;
     private static final int BLOB_LENGTH_NOT_AVAILABLE = 0xffffffe0;
 
-    /**
-     * Async database client/server just requires the following request
-     * identification numbers
-     */
-    public static final short idOpen = 0x7E7F;
-    public static final short idClose = idOpen + 1;
-    public static final short idBeginTrans = idClose + 1;
-    public static final short idEndTrans = idBeginTrans + 1;
-    public static final short idExecute = idEndTrans + 1;
-    public static final short idPrepare = idExecute + 1;
-    public static final short idExecuteParameters = idPrepare + 1;
-
-    /**
-     * Request identification numbers used for message push from server to
-     * client
-     */
-    public static final short idDBUpdate = idExecuteParameters + 1; //server ==> client only
-    public static final short idRowsetHeader = idDBUpdate + 1; //server ==> client only
-    public static final short idOutputParameter = idRowsetHeader + 1; //server ==> client only
-
-    /**
-     * Internal request/response identification numbers used for data
-     * communication between client and server
-     */
-    public static final short idBeginRows = idOutputParameter + 1;
-    public static final short idTransferring = idBeginRows + 1;
-    public static final short idStartBLOB = idTransferring + 1;
-    public static final short idChunk = idStartBLOB + 1;
-    public static final short idEndBLOB = idChunk + 1;
-    public static final short idEndRows = idEndBLOB + 1;
-    public static final short idCallReturn = idEndRows + 1;
-
-    public static final short idGetCachedTables = idCallReturn + 1;
-
-    /**
-     * Whenever a data size in bytes is about twice larger than the defined
-     * second, the data will be treated in large object and transferred in
-     * chunks for reducing memory foot print
-     */
-    public static final int DEFAULT_BIG_FIELD_CHUNK_SIZE = 16 * 1024; //16k
-
-    /**
-     * A record data size in bytes is approximately equal to or slightly larger
-     * than the defined constant
-     */
-    public static final int DEFAULT_RECORD_BATCH_SIZE = 16 * 1024; //16k
-
-    /**
-     * A flag used with idOpen for tracing database table update events
-     */
-    public static final int ENABLE_TABLE_UPDATE_MESSAGES = 0x1;
-
-    /**
-     * A chat group id used at SocketPro server side for notifying database
-     * events from server to connected clients
-     */
-    public static final int STREAMING_SQL_CHAT_GROUP_ID = 0x1fffffff;
-
-    /**
-     * A chat group id used at a SocketPro middle tier server side for notifying
-     * database connecting events from the middle tier server to front clients
-     */
-    public static final int CACHE_UPDATE_CHAT_GROUP_ID = STREAMING_SQL_CHAT_GROUP_ID + 1;
+    public CAsyncDBHandler(int sid) {
+        super(sid);
+    }
 
     public interface DResult {
 
@@ -196,8 +133,8 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
         m_mapParameterCall.clear();
         m_lastReqId = 0;
         m_Blob.SetSize(0);
-        if (m_Blob.getMaxBufferSize() > DEFAULT_BIG_FIELD_CHUNK_SIZE) {
-            m_Blob.Realloc(DEFAULT_BIG_FIELD_CHUNK_SIZE);
+        if (m_Blob.getMaxBufferSize() > DB_CONSTS.DEFAULT_BIG_FIELD_CHUNK_SIZE) {
+            m_Blob.Realloc(DB_CONSTS.DEFAULT_BIG_FIELD_CHUNK_SIZE);
         }
         m_vData.clear();
     }
@@ -218,18 +155,18 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
         if (q.GetSize() > 0) {
             if (firstRow[0]) {
                 firstRow[0] = false;
-                if (!SendRequest(idBeginRows, q.GetBuffer(), q.GetSize(), null)) {
+                if (!SendRequest(DB_CONSTS.idBeginRows, q.GetBuffer(), q.GetSize(), null)) {
                     return false;
                 }
             } else {
-                if (!SendRequest(idTransferring, q.GetBuffer(), q.GetSize(), null)) {
+                if (!SendRequest(DB_CONSTS.idTransferring, q.GetBuffer(), q.GetSize(), null)) {
                     return false;
                 }
             }
             q.SetSize(0);
         } else if (firstRow[0]) {
             firstRow[0] = false;
-            if (!SendRequest(idBeginRows, null)) {
+            if (!SendRequest(DB_CONSTS.idBeginRows, null)) {
                 return false;
             }
         }
@@ -238,26 +175,26 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
 
     private boolean SendBlob(CUQueue q) {
         if (q.GetSize() > 0) {
-            byte[] bytes = new byte[DEFAULT_BIG_FIELD_CHUNK_SIZE];
+            byte[] bytes = new byte[DB_CONSTS.DEFAULT_BIG_FIELD_CHUNK_SIZE];
             boolean start = true;
             while (q.GetSize() > 0) {
-                int send = (q.GetSize() >= DEFAULT_BIG_FIELD_CHUNK_SIZE) ? DEFAULT_BIG_FIELD_CHUNK_SIZE : q.GetSize();
+                int send = (q.GetSize() >= DB_CONSTS.DEFAULT_BIG_FIELD_CHUNK_SIZE) ? DB_CONSTS.DEFAULT_BIG_FIELD_CHUNK_SIZE : q.GetSize();
                 q.PopBytes(bytes, send);
                 if (start) {
-                    if (!SendRequest(idStartBLOB, bytes, send, null)) {
+                    if (!SendRequest(DB_CONSTS.idStartBLOB, bytes, send, null)) {
                         return false;
                     }
                     start = false;
                 } else {
-                    if (!SendRequest(idChunk, bytes, send, null)) {
+                    if (!SendRequest(DB_CONSTS.idChunk, bytes, send, null)) {
                         return false;
                     }
                 }
-                if (q.GetSize() < DEFAULT_BIG_FIELD_CHUNK_SIZE) {
+                if (q.GetSize() < DB_CONSTS.DEFAULT_BIG_FIELD_CHUNK_SIZE) {
                     break;
                 }
             }
-            if (!SendRequest(idEndBLOB, q.GetBuffer(), q.GetSize(), null)) {
+            if (!SendRequest(DB_CONSTS.idEndBLOB, q.GetBuffer(), q.GetSize(), null)) {
                 return false;
             }
             q.SetSize(0);
@@ -289,7 +226,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                 case "java.lang.String": {
                     String s = (String) vt;
                     int len = s.length();
-                    if (len < DEFAULT_BIG_FIELD_CHUNK_SIZE) {
+                    if (len < DB_CONSTS.DEFAULT_BIG_FIELD_CHUNK_SIZE) {
                         sb.Save(vt);
                     } else {
                         if (!Send(sb, firstRow)) {
@@ -310,7 +247,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                 case "[B": {
                     byte[] bytes = (byte[]) vt;
                     int len = bytes.length;
-                    if (len < 2 * DEFAULT_BIG_FIELD_CHUNK_SIZE) {
+                    if (len < 2 * DB_CONSTS.DEFAULT_BIG_FIELD_CHUNK_SIZE) {
                         sb.Save(vt);
                     } else {
                         if (!Send(sb, firstRow)) {
@@ -330,7 +267,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                     sb.Save(vt);
                     break;
             }
-            if (sb.GetSize() >= DEFAULT_RECORD_BATCH_SIZE) {
+            if (sb.GetSize() >= DB_CONSTS.DEFAULT_RECORD_BATCH_SIZE) {
                 if (!Send(sb, firstRow)) {
                     CScopeUQueue.Unlock(sb);
                     return false;
@@ -409,14 +346,14 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * request is NOT successfully sent or queued
      */
     public boolean Close(DResult handler, DCanceled canceled) {
-        MyCallback<DResult> cb = new MyCallback<>(idClose, handler);
+        MyCallback<DResult> cb = new MyCallback<>(DB_CONSTS.idClose, handler);
         synchronized (m_csOneSending) {
             //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
             //in case a client asynchronously sends lots of requests without use of client side queue.
             synchronized (m_csDB) {
                 m_deqResult.add(cb);
             }
-            if (!SendRequest(idClose, null, canceled)) {
+            if (!SendRequest(DB_CONSTS.idClose, null, canceled)) {
                 synchronized (m_csDB) {
                     m_deqResult.remove(cb);
                 }
@@ -481,7 +418,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * request is NOT successfully sent or queued
      */
     public boolean BeginTrans(tagTransactionIsolation isolation, DResult handler, DCanceled canceled) {
-        MyCallback<DResult> cb = new MyCallback<>(idBeginTrans, handler);
+        MyCallback<DResult> cb = new MyCallback<>(DB_CONSTS.idBeginTrans, handler);
         CUQueue sb = CScopeUQueue.Lock();
         //make sure BeginTrans sending and underlying client persistent message queue as one combination sending
         //to avoid possible request sending/client message writing overlapping within multiple threading environment
@@ -495,7 +432,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                 sb.Save(isolation.getValue()).Save(m_strConnection).Save(m_flags);
                 m_deqResult.add(cb);
             }
-            if (!SendRequest(idBeginTrans, sb, null, canceled)) {
+            if (!SendRequest(DB_CONSTS.idBeginTrans, sb, null, canceled)) {
                 synchronized (m_csDB) {
                     m_deqResult.remove(cb);
                 }
@@ -566,7 +503,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      */
     public boolean EndTrans(tagRollbackPlan plan, DResult handler, DCanceled canceled) {
         boolean ok = true;
-        MyCallback<DResult> cb = new MyCallback<>(idEndTrans, handler);
+        MyCallback<DResult> cb = new MyCallback<>(DB_CONSTS.idEndTrans, handler);
         CUQueue sb = CScopeUQueue.Lock();
         sb.Save(plan.getValue());
         //make sure EndTrans sending and underlying client persistent message queue as one combination sending
@@ -577,7 +514,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
             synchronized (m_csDB) {
                 m_deqResult.add(cb);
             }
-            ok = SendRequest(idEndTrans, sb, null, canceled);
+            ok = SendRequest(DB_CONSTS.idEndTrans, sb, null, canceled);
             if (ok) {
                 //associate end transaction with underlying client persistent message queue
                 getAttachedClientSocket().getClientQueue().EndJob();
@@ -660,7 +597,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      */
     public boolean Open(String strConnection, DResult handler, int flags, DCanceled canceled) {
         String str = null;
-        MyCallback<DResult> cb = new MyCallback<>(idOpen, handler);
+        MyCallback<DResult> cb = new MyCallback<>(DB_CONSTS.idOpen, handler);
         CUQueue sb = CScopeUQueue.Lock();
         sb.Save(strConnection).Save(flags);
         synchronized (m_csOneSending) {
@@ -674,7 +611,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                 }
                 m_deqResult.add(cb);
             }
-            if (SendRequest(idOpen, sb, null, canceled)) {
+            if (SendRequest(DB_CONSTS.idOpen, sb, null, canceled)) {
                 CScopeUQueue.Unlock(sb);
                 return true;
             } else {
@@ -752,14 +689,14 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
             }
         }
         boolean ok;
-        MyCallback<DResult> cb = new MyCallback<>(idPrepare, handler);
+        MyCallback<DResult> cb = new MyCallback<>(DB_CONSTS.idPrepare, handler);
         synchronized (m_csOneSending) {
             //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
             //in case a client asynchronously sends lots of requests without use of client side queue.
             synchronized (m_csDB) {
                 m_deqResult.add(cb);
             }
-            if (SendRequest(idPrepare, sb, null, canceled)) {
+            if (SendRequest(DB_CONSTS.idPrepare, sb, null, canceled)) {
                 ok = true;
             } else {
                 ok = false;
@@ -889,7 +826,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
             meta = false;
         }
         long index;
-        MyCallback<DExecuteResult> cb = new MyCallback<>(idExecute, handler);
+        MyCallback<DExecuteResult> cb = new MyCallback<>(DB_CONSTS.idExecute, handler);
         CUQueue sb = CScopeUQueue.Lock();
         sb.Save(sql);
         sb.Save(rowset);
@@ -908,7 +845,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                 m_deqExecuteResult.add(cb);
                 index = m_nCall;
             }
-            if (!SendRequest(idExecute, sb, null, canceled)) {
+            if (!SendRequest(DB_CONSTS.idExecute, sb, null, canceled)) {
                 synchronized (m_csDB) {
                     m_deqExecuteResult.remove(cb);
                     if (rowset) {
@@ -1059,7 +996,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
             meta = false;
         }
         long index;
-        MyCallback<DExecuteResult> cb = new MyCallback<>(idExecuteParameters, handler);
+        MyCallback<DExecuteResult> cb = new MyCallback<>(DB_CONSTS.idExecuteParameters, handler);
         CUQueue sb = CScopeUQueue.Lock();
 
         //make sure all parameter data sendings and ExecuteParameters sending as one combination sending
@@ -1084,7 +1021,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                 m_mapParameterCall.put(m_nCall, vParam);
                 index = m_nCall;
             }
-            if (!SendRequest(idExecuteParameters, sb, null, canceled)) {
+            if (!SendRequest(DB_CONSTS.idExecuteParameters, sb, null, canceled)) {
                 synchronized (m_csDB) {
                     m_mapParameterCall.remove(index);
                     m_deqExecuteResult.remove(cb);
@@ -1105,8 +1042,8 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
     @Override
     protected void OnResultReturned(short reqId, CUQueue mc) {
         switch (reqId) {
-            case idExecuteParameters:
-            case idExecute: {
+            case DB_CONSTS.idExecuteParameters:
+            case DB_CONSTS.idExecute: {
                 long affected = mc.LoadLong();
                 int res = mc.LoadInt();
                 String errMsg = mc.LoadString();
@@ -1136,13 +1073,13 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                 }
             }
             break;
-            case idPrepare: {
+            case DB_CONSTS.idPrepare: {
                 int res = mc.LoadInt();
                 String errMsg = mc.LoadString();
                 int parameters = mc.LoadInt();
                 MyCallback<DResult> t = GetResultHandler(reqId);
                 synchronized (m_csDB) {
-                    m_lastReqId = idPrepare;
+                    m_lastReqId = DB_CONSTS.idPrepare;
                     m_dbErrCode = res;
                     m_dbErrMsg = errMsg;
                     m_parameters = (parameters & 0xffff);
@@ -1155,14 +1092,14 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                 }
             }
             break;
-            case idOpen: {
+            case DB_CONSTS.idOpen: {
                 int res = mc.LoadInt();
                 String errMsg = mc.LoadString();
                 int ms = mc.LoadInt();
                 MyCallback<DResult> t = GetResultHandler(reqId);
                 synchronized (m_csDB) {
                     m_dbErrCode = res;
-                    m_lastReqId = idOpen;
+                    m_lastReqId = DB_CONSTS.idOpen;
                     if (res == 0) {
                         m_strConnection = errMsg;
                         errMsg = "";
@@ -1183,12 +1120,12 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                 }
             }
             break;
-            case idEndTrans: {
+            case DB_CONSTS.idEndTrans: {
                 int res = mc.LoadInt();
                 String errMsg = mc.LoadString();
                 MyCallback<DResult> t = GetResultHandler(reqId);
                 synchronized (m_csDB) {
-                    m_lastReqId = idEndTrans;
+                    m_lastReqId = DB_CONSTS.idEndTrans;
                     m_dbErrCode = res;
                     m_dbErrMsg = errMsg;
                     if (getAttachedClientSocket().getCountOfRequestsInQueue() == 1) {
@@ -1200,7 +1137,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                 }
             }
             break;
-            case idBeginTrans: {
+            case DB_CONSTS.idBeginTrans: {
                 int res = mc.LoadInt();
                 String errMsg = mc.LoadString();
                 int ms = mc.LoadInt();
@@ -1210,7 +1147,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                         m_strConnection = errMsg;
                         errMsg = "";
                     }
-                    m_lastReqId = idBeginTrans;
+                    m_lastReqId = DB_CONSTS.idBeginTrans;
                     m_dbErrCode = res;
                     m_dbErrMsg = errMsg;
                     m_ms = tagManagementSystem.forValue(ms);
@@ -1220,12 +1157,12 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                 }
             }
             break;
-            case idClose: {
+            case DB_CONSTS.idClose: {
                 int res = mc.LoadInt();
                 String errMsg = mc.LoadString();
                 MyCallback<DResult> t = GetResultHandler(reqId);
                 synchronized (m_csDB) {
-                    m_lastReqId = idClose;
+                    m_lastReqId = DB_CONSTS.idClose;
                     m_strConnection = "";
                     m_dbErrCode = res;
                     m_dbErrMsg = errMsg;
@@ -1241,7 +1178,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                 }
             }
             break;
-            case idRowsetHeader: {
+            case DB_CONSTS.idRowsetHeader: {
                 m_Blob.SetSize(0);
                 if (m_Blob.getMaxBufferSize() > ONE_MEGA_BYTES) {
                     m_Blob.Realloc(ONE_MEGA_BYTES);
@@ -1268,7 +1205,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                 }
             }
             break;
-            case idCallReturn: {
+            case DB_CONSTS.idCallReturn: {
                 Object vt = mc.LoadObject();
                 synchronized (m_csDB) {
                     if (m_mapParameterCall.containsKey(m_indexRowset)) {
@@ -1280,7 +1217,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                 }
             }
             break;
-            case idBeginRows:
+            case DB_CONSTS.idBeginRows:
                 m_Blob.SetSize(0);
                 m_vData.clear();
                 if (mc.GetSize() > 0) {
@@ -1289,21 +1226,21 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                     }
                 }
                 break;
-            case idTransferring:
+            case DB_CONSTS.idTransferring:
                 while (mc.GetSize() > 0) {
                     Object vt = mc.LoadObject();
                     m_vData.add(vt);
                 }
                 break;
-            case idOutputParameter:
-            case idEndRows:
+            case DB_CONSTS.idOutputParameter:
+            case DB_CONSTS.idEndRows:
                 if (mc.GetSize() > 0 || m_vData.size() > 0) {
                     Object vt;
                     while (mc.GetSize() > 0) {
                         vt = mc.LoadObject();
                         m_vData.add(vt);
                     }
-                    if (reqId == idOutputParameter) {
+                    if (reqId == DB_CONSTS.idOutputParameter) {
                         synchronized (m_csDB) {
                             m_output = m_vData.size() + (m_bCallReturn ? 1 : 0);
                             if (m_mapParameterCall.containsKey(m_indexRowset)) {
@@ -1330,7 +1267,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                 }
                 m_vData.clear();
                 break;
-            case idStartBLOB:
+            case DB_CONSTS.idStartBLOB:
                 if (mc.GetSize() > 0) {
                     m_Blob.SetSize(0);
                     int len = mc.LoadInt();
@@ -1341,13 +1278,13 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                     mc.SetSize(0);
                 }
                 break;
-            case idChunk:
+            case DB_CONSTS.idChunk:
                 if (mc.GetSize() > 0) {
                     m_Blob.Push(mc.getIntenalBuffer(), mc.GetSize());
                     mc.SetSize(0);
                 }
                 break;
-            case idEndBLOB:
+            case DB_CONSTS.idEndBLOB:
                 if (mc.GetSize() > 0 || m_Blob.GetSize() > 0) {
                     m_Blob.Push(mc.getIntenalBuffer(), mc.GetSize());
                     mc.SetSize(0);

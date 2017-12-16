@@ -52,7 +52,7 @@ public class CCachedBaseHandler extends CAsyncServiceHandler {
             m_mapHandler.put(index, handler);
         }
         q.Save(defaultDb).Save(flags).Save(index);
-        boolean ok = SendRequest(CAsyncDBHandler.idGetCachedTables, q, null, null);
+        boolean ok = SendRequest(DB_CONSTS.idGetCachedTables, q, null, null);
         CScopeUQueue.Unlock(q);
         if (!ok) {
             synchronized (m_csCache) {
@@ -66,7 +66,7 @@ public class CCachedBaseHandler extends CAsyncServiceHandler {
     @Override
     protected void OnResultReturned(short reqId, CUQueue mc) {
         switch (reqId) {
-            case CAsyncDBHandler.idGetCachedTables: {
+            case DB_CONSTS.idGetCachedTables: {
                 int res = mc.LoadInt();
                 int dbMS = mc.LoadInt();
                 String errMsg = mc.LoadString();
@@ -86,7 +86,7 @@ public class CCachedBaseHandler extends CAsyncServiceHandler {
                 }
             }
             break;
-            case CAsyncDBHandler.idRowsetHeader: {
+            case DB_CONSTS.idRowsetHeader: {
                 m_Blob.SetSize(0);
                 if (m_Blob.getMaxBufferSize() > ONE_MEGA_BYTES) {
                     m_Blob.Realloc(ONE_MEGA_BYTES);
@@ -109,7 +109,7 @@ public class CCachedBaseHandler extends CAsyncServiceHandler {
                 }
             }
             break;
-            case CAsyncDBHandler.idBeginRows:
+            case DB_CONSTS.idBeginRows:
                 m_Blob.SetSize(0);
                 m_vData.clear();
                 if (mc.GetSize() > 0) {
@@ -118,13 +118,13 @@ public class CCachedBaseHandler extends CAsyncServiceHandler {
                     }
                 }
                 break;
-            case CAsyncDBHandler.idTransferring:
+            case DB_CONSTS.idTransferring:
                 while (mc.GetSize() > 0) {
                     Object vt = mc.LoadObject();
                     m_vData.add(vt);
                 }
                 break;
-            case CAsyncDBHandler.idEndRows:
+            case DB_CONSTS.idEndRows:
                 if (mc.GetSize() > 0 || m_vData.size() > 0) {
                     Object vt;
                     while (mc.GetSize() > 0) {
@@ -143,7 +143,7 @@ public class CCachedBaseHandler extends CAsyncServiceHandler {
                 }
                 m_vData.clear();
                 break;
-            case CAsyncDBHandler.idStartBLOB:
+            case DB_CONSTS.idStartBLOB:
                 if (mc.GetSize() > 0) {
                     m_Blob.SetSize(0);
                     int len = mc.LoadInt();
@@ -154,13 +154,13 @@ public class CCachedBaseHandler extends CAsyncServiceHandler {
                     mc.SetSize(0);
                 }
                 break;
-            case CAsyncDBHandler.idChunk:
+            case DB_CONSTS.idChunk:
                 if (mc.GetSize() > 0) {
                     m_Blob.Push(mc.getIntenalBuffer(), mc.GetSize());
                     mc.SetSize(0);
                 }
                 break;
-            case CAsyncDBHandler.idEndBLOB:
+            case DB_CONSTS.idEndBLOB:
                 if (mc.GetSize() > 0 || m_Blob.GetSize() > 0) {
                     m_Blob.Push(mc.getIntenalBuffer(), mc.GetSize());
                     mc.SetSize(0);

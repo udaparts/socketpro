@@ -16,7 +16,7 @@ namespace SocketProAdapter
             {
                 while (m_sQueue.Count > 0)
                 {
-                    m_sQueue.RemoveFromBack().Empty();
+                    m_sQueue.RemoveAt(m_sQueue.Count - 1);
                 }
             }
         }
@@ -28,7 +28,8 @@ namespace SocketProAdapter
             {
                 if (m_sQueue.Count > 0)
                 {
-                    UQueue = m_sQueue.RemoveFromBack();
+                    UQueue = m_sQueue[m_sQueue.Count - 1];
+                    m_sQueue.RemoveAt(m_sQueue.Count - 1);
                 }
             }
             if (UQueue == null)
@@ -87,7 +88,7 @@ namespace SocketProAdapter
                 UQueue.SetSize(0);
                 lock (m_cs)
                 {
-                    m_sQueue.AddToBack(UQueue);
+                    m_sQueue.Add(UQueue);
                 }
             }
         }
@@ -138,7 +139,7 @@ namespace SocketProAdapter
         }
 
         private CUQueue m_UQueue;
-        private static Deque<CUQueue> m_sQueue = new Deque<CUQueue>();
+        private static List<CUQueue> m_sQueue = new List<CUQueue>();
         private static object m_cs = new object();
         #region IDisposable Members
         void IDisposable.Dispose()
