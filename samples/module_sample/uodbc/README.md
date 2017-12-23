@@ -1,4 +1,4 @@
-# Async ODBC database applications on SocketPro communication framework
+# SQL streaming for any databases having ODBC driver on SocketPro communication framework
 
 1. A public repository for implementation of async ODBC database application by use of SocketPro communication framework, which contains nine projects, sodbc, test_sodbc, test_codbc, test_java, test_sharp, test_python, netperf as well as onperf at this time.
 

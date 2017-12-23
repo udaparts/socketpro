@@ -30,8 +30,8 @@ int main(int argc, char* argv[]) {
 	pi->GetAttachedClientSocket()->GetClientQueue().EnableRoutingQueueIndex(true);
 
 	double dPi = 0.0;
-	int nDivision = 100;
-	int nNum = 100000000;
+	int nDivision = 1000;
+	int nNum = 10000000;
 	double dStep = 1.0 / nNum / nDivision;
 	std::map<double, double> mapReturn;
 	
@@ -48,9 +48,6 @@ int main(int argc, char* argv[]) {
 	}
 	ok = pi->WaitAll();
 	std::cout << "Your pi = " << dPi << ", returns = " << mapReturn.size() << std::endl;
-	for (auto it = mapReturn.begin(), end = mapReturn.end(); it != end; ++it) {
-		std::cout << "start = " << it->first << ", res = " << it->second << std::endl;
-	}
 	std::cout << "Press a key to shutdown the demo application ......" << std::endl;
 	::getchar();
 	return 0;

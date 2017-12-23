@@ -1,4 +1,4 @@
-# Async sqlite client/server applications on SocketPro communication framework
+# SQL streaming for SQLite on SocketPro communication framework
 
 1. A public repository for implementation of async sqlite client/server application by use of SocketPro communication framework, which contains seven projects, ssqlite, test_ssqlite, test_csqlite, test_java, test_sharp, test_cache and test_python as well as DBPerf at this time.
 
