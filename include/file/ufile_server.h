@@ -19,13 +19,4 @@ extern "C" {
 
 typedef void (WINAPI *PSetRootDirectory)(const wchar_t *pathRoot);
 
-namespace SPA {
-    namespace ServerSide {
-        namespace File {
-            
-        } //namespace File
-    } //namespace ServerSide
-} //namespace SPA
-
-
 #endif

@@ -1,11 +1,50 @@
-// test_client.cpp : Defines the entry point for the console application.
-//
 
 #include "stdafx.h"
+#include "../../../../include/streamingfile.h"
 
+using namespace SPA;
+using namespace SPA::ClientSide;
 
-int _tmain(int argc, _TCHAR* argv[])
+int main(int argc, char* argv[])
 {
+	CConnectionContext cc;
+	cc.Host = "localhost";
+	cc.Port = 20901;
+	cc.UserId = L"MyUserId";
+	cc.Password = L"MyPassword";
+
+	typedef CSocketPool<CStreamingFile, CClientSocket> CMyPool;
+	CMyPool spRf;
+
+	bool ok = spRf.StartSocketPool(cc, 1, 1);
+	if (!ok) {
+		std::cout << "Can not connect to remote server" << std::endl;
+		return -1;
+	}
+	auto rf = spRf.Seek();
+	std::cout << "Input a remote file to download ......" << std::endl;
+	std::wstring RemoteFile;
+	std::getline(std::wcin, RemoteFile);
+	std::string LocalFile("spfile.test");
+	
+	//downloading test
+	ok = rf->Download(LocalFile.c_str(), RemoteFile.c_str(), [LocalFile, RemoteFile](CStreamingFile *file, int res, const std::wstring &errMsg){
+		if (res) {
+			std::wcout << L"Error code: " << res << L", error message: " << errMsg << std::endl;
+#ifdef WIN32_64
+			::DeleteFileA(LocalFile.c_str());
+#else
+
+#endif
+		}
+		else
+			std::wcout << L"Downloading " << RemoteFile << L" completed" << std::endl;
+	}, [](CStreamingFile *file, SPA::UINT64 downloaded) {
+		std::cout << "Downloading rate: " << (downloaded * 100) / file->GetFileSize() << "%" << std::endl;
+	});
+	ok = rf->WaitAll();
+	std::cout << "Press a key to shutdown the demo application ......" << std::endl;
+	::getchar();
 	return 0;
 }
 
