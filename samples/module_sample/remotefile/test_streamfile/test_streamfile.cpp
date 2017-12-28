@@ -1,11 +1,33 @@
-// test_streamfile.cpp : Defines the entry point for the console application.
-//
 
 #include "stdafx.h"
+#include "../../../../include/file/ufile_server.h"
 
-
-int _tmain(int argc, _TCHAR* argv[])
+class CMySocketProServer : public SPA::ServerSide::CSocketProServer
 {
+
+protected:
+	virtual bool OnSettingServer(unsigned int listeningPort, unsigned int maxBacklog, bool v6) {
+		m_h = SPA::ServerSide::CSocketProServer::DllManager::AddALibrary("ustreamfile");
+		if (m_h) {
+			PSetRootDirectory SetRootDirectory = (PSetRootDirectory)GetProcAddress(m_h, "SetRootDirectory");
+			SetRootDirectory(L"C:\\boost_1_60_0\\stage\\lib64");
+		}
+		return true;
+	}
+
+private:
+	HINSTANCE m_h;
+};
+
+int main(int argc, char* argv[])
+{
+	CMySocketProServer server;
+	if (!server.Run(20901)) {
+		int errCode = server.GetErrorCode();
+		std::cout << "Error happens with code = " << errCode << std::endl;
+	}
+	std::cout << "Press any key to stop the server ......" << std::endl;
+	::getchar();
 	return 0;
 }
 

@@ -16,8 +16,13 @@ namespace SPA {
 
         static const unsigned short idUpload = 0x7F73;
 		static const unsigned short idUploading = 0x7F74;
+		static const unsigned short idUploadCompleted = 0x7F75;
 
-        //error codes for exchanging file between two machines
+		//error code
+		static const int UNKNOWN_ERROR = -1;
+		static const int CANNOT_OPEN_LOCAL_FILE_FOR_WRITING = -2;
+		static const int CANNOT_OPEN_LOCAL_FILE_FOR_READING = -3;
+
     } //namespace File
 } //namespace SPA
 #endif
