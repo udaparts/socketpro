@@ -113,7 +113,22 @@ namespace SPA{
                 errMsg = SPA::Utilities::ToWide(msg.c_str(), msg.size());
                 return;
             }
-
+			catch(std::runtime_error & e) {
+                res = errno;
+				if (!res)
+					res = CANNOT_OPEN_LOCAL_FILE_FOR_WRITING;
+                std::string msg = e.what();
+                errMsg = SPA::Utilities::ToWide(msg.c_str(), msg.size());
+                return;
+            }
+			catch(std::exception & e) {
+                res = errno;
+				if (!res)
+					res = CANNOT_OPEN_LOCAL_FILE_FOR_WRITING;
+                std::string msg = e.what();
+                errMsg = SPA::Utilities::ToWide(msg.c_str(), msg.size());
+                return;
+            }
             catch(...) {
                 res = UNKNOWN_ERROR;
                 errMsg = L"Unknown error";
@@ -178,7 +193,22 @@ namespace SPA{
                 errMsg = SPA::Utilities::ToWide(msg.c_str(), msg.size());
                 return;
             }
-
+			catch(std::runtime_error & e) {
+                res = errno;
+				if (!res)
+					res = CANNOT_OPEN_LOCAL_FILE_FOR_READING;
+                std::string msg = e.what();
+                errMsg = SPA::Utilities::ToWide(msg.c_str(), msg.size());
+                return;
+            }
+			catch(std::exception & e) {
+                res = errno;
+				if (!res)
+					res = CANNOT_OPEN_LOCAL_FILE_FOR_READING;
+                std::string msg = e.what();
+                errMsg = SPA::Utilities::ToWide(msg.c_str(), msg.size());
+                return;
+            }
             catch(...) {
                 res = UNKNOWN_ERROR;
                 errMsg = L"Unknown error";

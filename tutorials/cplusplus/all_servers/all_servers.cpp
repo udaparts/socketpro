@@ -5,7 +5,6 @@
 #include "../../../include/aserverw.h"
 #include "../pub_sub/server/HWImpl.h"
 #include "../Loading_balance/pi_i.h"
-#include "../remote_file/server/RemFileImpl.h"
 #include "../webdemo/httppeer.h"
 #include "../../../include/sqlite/usqlite_server.h"
 
@@ -31,7 +30,11 @@ protected:
 			PSetSqliteDBGlobalConnectionString SetSqliteDBGlobalConnectionString = (PSetSqliteDBGlobalConnectionString) GetProcAddress(h, "SetSqliteDBGlobalConnectionString");
 			SetSqliteDBGlobalConnectionString(L"usqlite.db");
 		}
+		//SocketPro asynchronous persistent message queue
 		h = CSocketProServer::DllManager::AddALibrary("uasyncqueue", 24 * 1024); //24 * 1024 batch dequeuing size in bytes
+
+		//exchange files by streaming files
+		h = SPA::ServerSide::CSocketProServer::DllManager::AddALibrary("ustreamfile");
 
 		return true; //true -- ok; false -- no listening server
 	}
@@ -56,8 +59,6 @@ private:
 	CSocketProService<SPA::ServerSide::CDummyPeer> m_Pi;
 	CSocketProService<SPA::ServerSide::CDummyPeer> m_PiWorker;
 
-	CSocketProService<RemotingFilePeer> m_RemotingFile;
-
 	SPA::ServerSide::CSocketProService<CHttpPeer> m_myHttp;
 
 private:
@@ -70,13 +71,6 @@ private:
         ok = m_HelloWorld.AddMe(sidHelloWorld);
         ok = m_HelloWorld.AddSlowRequest(idSleepHelloWorld);
         
-		//remoting file
-		ok = m_RemotingFile.AddMe(sidRemotingFile, taNone);
-		ok = m_RemotingFile.AddSlowRequest(SPA::CStreamSerializationHelper::idReadDataFromServerToClient);
-		ok = m_RemotingFile.AddSlowRequest(SPA::CStreamSerializationHelper::idWriteDataFromClientToServer);
-		ok = m_RemotingFile.AddSlowRequest(SPA::CStreamSerializationHelper::idStartUploading);
-		ok = m_RemotingFile.AddSlowRequest(SPA::CStreamSerializationHelper::idStartDownloading);
-
 		//HTTP and WebSocket services
 		//Copy all files inside directories ../socketpro/bin/js and ../socketpro/tutorials/webtests into the directory where the application is located
 		ok = m_myHttp.AddMe(SPA::sidHTTP);

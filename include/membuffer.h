@@ -1495,33 +1495,6 @@ namespace SPA {
 
     typedef CScopeUQueueEx<DEFAULT_INITIAL_MEMORY_BUFFER_SIZE, DEFAULT_MEMORY_BUFFER_BLOCK_SIZE> CScopeUQueue;
 
-    struct CStreamSerializationHelper {
-        static const unsigned int STREAM_CHUNK_SIZE = 10240;
-        static const unsigned short idStartDownloading = 0x7F7F;
-        static const unsigned short idDownloadCompleted = 0x7F7E;
-        static const unsigned short idStartUploading = 0x7F7D;
-        static const unsigned short idUploadCompleted = 0x7F7C;
-        static const unsigned short idReadDataFromServerToClient = 0x7F7B;
-        static const unsigned short idWriteDataFromClientToServer = 0x7F7A;
-
-        static void Write(std::ostream &s, const CUQueue &q) {
-            s.write((const char*) q.GetBuffer(), q.GetSize());
-        }
-
-        static unsigned int Read(std::istream& s, CUQueue &q) {
-            unsigned int res = 0;
-            q.SetSize(0);
-            if (q.GetMaxSize() < STREAM_CHUNK_SIZE + 16) {
-                q.ReallocBuffer(STREAM_CHUNK_SIZE + 16);
-            }
-            s.read((char*) q.GetBuffer(), STREAM_CHUNK_SIZE);
-            res = (unsigned int) s.gcount();
-            q.SetSize(res);
-            return res;
-        }
-    };
-
 }; //namespace SPA
 
 #endif //__UCOMM_SHARED_MEMORY_QUEUE_H_
-

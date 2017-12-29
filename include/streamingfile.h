@@ -5,6 +5,7 @@
 #include <fstream>
 #include <deque>
 #include "file/ufile.h"
+#include "aclientw.h"
 
 namespace SPA {
     namespace ClientSide {

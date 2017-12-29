@@ -14,13 +14,6 @@ namespace SPA {
         //this may be used for debug
         void SetLastCallInfo(const char *str, int data, const char *func);
 
-        struct CStreamHelper {
-            static UINT64 ReadDataFromServerToClient(USocket_Server_Handle PeerHandle, std::istream &source);
-            static void WriteDataFromClientToServer(const CUQueue& q, std::ostream &target);
-            static void Download(USocket_Server_Handle PeerHandle, std::istream &is, UINT64 &StreamSize, std::wstring &errMsg);
-            static void DownloadFile(USocket_Server_Handle PeerHandle, const std::wstring& RemoteFilePath, UINT64 &fileSize, std::wstring &errMsg, std::ifstream& is);
-        };
-
         class CBaseService;
 
         struct IServerQueue : public IMessageQueueBasic {
