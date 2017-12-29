@@ -68,22 +68,22 @@ ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libustreamfile.${CND_DLIB_EXT}: ${OBJ
 ${OBJECTDIR}/_ext/562988696/aserverw.o: ../../../../include/aserverw.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/562988696
 	${RM} "$@.d"
-	$(COMPILE.c) -O2 -s -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/562988696/aserverw.o ../../../../include/aserverw.cpp
+	$(COMPILE.c) -O2 -s -DNDEBUG -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/562988696/aserverw.o ../../../../include/aserverw.cpp
 
 ${OBJECTDIR}/_ext/1429980336/sfileimpl.o: ../../../../include/file/server_impl/sfileimpl.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1429980336
 	${RM} "$@.d"
-	$(COMPILE.c) -O2 -s -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1429980336/sfileimpl.o ../../../../include/file/server_impl/sfileimpl.cpp
+	$(COMPILE.c) -O2 -s -DNDEBUG -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1429980336/sfileimpl.o ../../../../include/file/server_impl/sfileimpl.cpp
 
 ${OBJECTDIR}/_ext/1429980336/ustreamfile.o: ../../../../include/file/server_impl/ustreamfile.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1429980336
 	${RM} "$@.d"
-	$(COMPILE.c) -O2 -s -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1429980336/ustreamfile.o ../../../../include/file/server_impl/ustreamfile.cpp
+	$(COMPILE.c) -O2 -s -DNDEBUG -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1429980336/ustreamfile.o ../../../../include/file/server_impl/ustreamfile.cpp
 
 ${OBJECTDIR}/_ext/562988696/membuffer.o: ../../../../include/membuffer.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/562988696
 	${RM} "$@.d"
-	$(COMPILE.c) -O2 -s -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/562988696/membuffer.o ../../../../include/membuffer.cpp
+	$(COMPILE.c) -O2 -s -DNDEBUG -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/562988696/membuffer.o ../../../../include/membuffer.cpp
 
 # Subprojects
 .build-subprojects:

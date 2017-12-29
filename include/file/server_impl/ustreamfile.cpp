@@ -24,7 +24,7 @@ bool WINAPI InitServerLibrary(int param) {
     if (g_pathRoot.back() != L'\\')
         g_pathRoot += L'\\';
 #else
-    getcwd((char*) sb->GetBuffer(), sb->GetMaxSize());
+    char *s = getcwd((char*) sb->GetBuffer(), sb->GetMaxSize());
     g_pathRoot = SPA::Utilities::ToWide((const char*) sb->GetBuffer());
     if (g_pathRoot.back() != L'/')
         g_pathRoot += L'/';

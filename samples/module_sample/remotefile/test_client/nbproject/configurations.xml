@@ -4,9 +4,9 @@
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
                    projectFiles="true">
-      <itemPath>../../../../include/aserverw.h</itemPath>
+      <itemPath>../../../../include/aclientw.h</itemPath>
       <itemPath>../../../../include/membuffer.h</itemPath>
-      <itemPath>../../../../include/file/server_impl/sfileimpl.h</itemPath>
+      <itemPath>../../../../include/streamingfile.h</itemPath>
     </logicalFolder>
     <logicalFolder name="ResourceFiles"
                    displayName="Resource Files"
@@ -15,10 +15,10 @@
     <logicalFolder name="SourceFiles"
                    displayName="Source Files"
                    projectFiles="true">
-      <itemPath>../../../../include/aserverw.cpp</itemPath>
+      <itemPath>../../../../include/aclientw.cpp</itemPath>
+      <itemPath>../../../../include/error_code.cpp</itemPath>
       <itemPath>../../../../include/membuffer.cpp</itemPath>
-      <itemPath>../../../../include/file/server_impl/sfileimpl.cpp</itemPath>
-      <itemPath>../../../../include/file/server_impl/ustreamfile.cpp</itemPath>
+      <itemPath>test_client.cpp</itemPath>
     </logicalFolder>
     <logicalFolder name="TestFiles"
                    displayName="Test Files"
@@ -34,7 +34,7 @@
   </logicalFolder>
   <projectmakefile>Makefile</projectmakefile>
   <confs>
-    <conf name="Debug" type="2">
+    <conf name="Debug" type="1">
       <toolsSet>
         <compilerSet>default</compilerSet>
         <dependencyChecking>true</dependencyChecking>
@@ -42,44 +42,38 @@
       </toolsSet>
       <compileType>
         <cTool>
-          <commandLine>-std=c++11 -static-libgcc -static-libstdc++ -Wall</commandLine>
+          <commandLine>-std=c++11 -Wall</commandLine>
         </cTool>
         <ccTool>
-          <commandLine>-std=c++11 -static-libgcc -static-libstdc++ -Wall</commandLine>
+          <commandLine>-std=c++11 -Wall</commandLine>
         </ccTool>
         <linkerTool>
-          <commandlineTool>g++</commandlineTool>
           <linkerLibItems>
-            <linkerLibLibItem>uservercore</linkerLibLibItem>
+            <linkerLibStdlibItem>PosixThreads</linkerLibStdlibItem>
+            <linkerLibStdlibItem>DynamicLinking</linkerLibStdlibItem>
           </linkerLibItems>
-          <commandLine>-std=c++11 -static-libgcc -static-libstdc++</commandLine>
+          <commandLine>-lstdc++</commandLine>
         </linkerTool>
       </compileType>
-      <item path="../../../../include/aserverw.cpp" ex="false" tool="0" flavor2="0">
+      <item path="../../../../include/aclientw.cpp" ex="false" tool="0" flavor2="0">
       </item>
-      <item path="../../../../include/aserverw.h" ex="false" tool="3" flavor2="0">
+      <item path="../../../../include/aclientw.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../../../include/file/server_impl/sfileimpl.cpp"
-            ex="false"
-            tool="0"
-            flavor2="0">
-      </item>
-      <item path="../../../../include/file/server_impl/sfileimpl.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../../../include/file/server_impl/ustreamfile.cpp"
-            ex="false"
-            tool="0"
-            flavor2="0">
+      <item path="../../../../include/error_code.cpp" ex="false" tool="0" flavor2="0">
       </item>
       <item path="../../../../include/membuffer.cpp" ex="false" tool="0" flavor2="0">
       </item>
       <item path="../../../../include/membuffer.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../../../include/streamingfile.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="test_client.cpp" ex="false" tool="0" flavor2="0">
+      </item>
     </conf>
-    <conf name="Release" type="2">
+    <conf name="Release" type="1">
       <toolsSet>
         <compilerSet>default</compilerSet>
         <dependencyChecking>true</dependencyChecking>
@@ -89,7 +83,7 @@
         <cTool>
           <developmentMode>5</developmentMode>
           <stripSymbols>true</stripSymbols>
-          <commandLine>-std=c++11 -static-libgcc -static-libstdc++</commandLine>
+          <commandLine>-std=c++11 -Wall</commandLine>
           <preprocessorList>
             <Elem>NDEBUG</Elem>
           </preprocessorList>
@@ -97,7 +91,7 @@
         <ccTool>
           <developmentMode>5</developmentMode>
           <stripSymbols>true</stripSymbols>
-          <commandLine>-std=c++11 -static-libgcc -static-libstdc++</commandLine>
+          <commandLine>-std=c++11 -Wall</commandLine>
           <preprocessorList>
             <Elem>NDEBUG</Elem>
           </preprocessorList>
@@ -110,35 +104,29 @@
         </asmTool>
         <linkerTool>
           <stripSymbols>true</stripSymbols>
-          <commandlineTool>g++</commandlineTool>
           <linkerLibItems>
-            <linkerLibLibItem>uservercore</linkerLibLibItem>
+            <linkerLibStdlibItem>PosixThreads</linkerLibStdlibItem>
+            <linkerLibStdlibItem>DynamicLinking</linkerLibStdlibItem>
           </linkerLibItems>
-          <commandLine>-std=c++11 -static-libgcc -static-libstdc++</commandLine>
+          <commandLine>-lstdc++</commandLine>
         </linkerTool>
       </compileType>
-      <item path="../../../../include/aserverw.cpp" ex="false" tool="0" flavor2="0">
+      <item path="../../../../include/aclientw.cpp" ex="false" tool="0" flavor2="0">
       </item>
-      <item path="../../../../include/aserverw.h" ex="false" tool="3" flavor2="0">
+      <item path="../../../../include/aclientw.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../../../include/file/server_impl/sfileimpl.cpp"
-            ex="false"
-            tool="0"
-            flavor2="0">
-      </item>
-      <item path="../../../../include/file/server_impl/sfileimpl.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../../../include/file/server_impl/ustreamfile.cpp"
-            ex="false"
-            tool="0"
-            flavor2="0">
+      <item path="../../../../include/error_code.cpp" ex="false" tool="0" flavor2="0">
       </item>
       <item path="../../../../include/membuffer.cpp" ex="false" tool="0" flavor2="0">
       </item>
       <item path="../../../../include/membuffer.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../../include/streamingfile.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="test_client.cpp" ex="false" tool="0" flavor2="0">
       </item>
     </conf>
   </confs>
