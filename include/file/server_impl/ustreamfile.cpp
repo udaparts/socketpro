@@ -24,7 +24,6 @@ bool WINAPI InitServerLibrary(int param) {
 	if (g_pathRoot.back() != L'\\')
 		g_pathRoot += L'\\';
 #else
-
 	g_pathRoot = (const wchar_t*)sb->GetBuffer();
 	if (g_pathRoot.back() != L'/')
 		g_pathRoot += L'/';
@@ -57,14 +56,23 @@ CSvsContext WINAPI GetOneSvsContext(unsigned int serviceId) {
 }
 
 unsigned short WINAPI GetNumOfSlowRequests(unsigned int serviceId) {
-    return 1; //The service only has seven slow requests
+    return 4; //The service only has four slow requests
 }
 
 unsigned short WINAPI GetOneSlowRequestID(unsigned int serviceId, unsigned short index) {
-    //The following seven requests are slow ones
+    //The following four requests are slow ones
     switch (index) {
         case 0:
             return SPA::SFile::idDownload;
+            break;
+		case 1:
+            return SPA::SFile::idUpload;
+            break;
+		case 2:
+            return SPA::SFile::idUploadCompleted;
+            break;
+		case 3:
+            return SPA::SFile::idUploading;
             break;
         default:
             break;

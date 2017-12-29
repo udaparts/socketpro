@@ -24,16 +24,15 @@ namespace SPA {
 		}
 
 		void CSFileImpl::OnFastRequestArrive(unsigned short reqId, unsigned int len) {
-			BEGIN_SWITCH(reqId)
-				M_I3_R2(idUpload, Upload, std::wstring, unsigned int, UINT64, int, std::wstring)
-				M_I0_R1(idUploading, Uploading, UINT64)
-				M_I0_R0(idUploadCompleted, UploadCompleted)
-			END_SWITCH
+			
 		}
 
 		int CSFileImpl::OnSlowRequestArrive(unsigned short reqId, unsigned int len) {
 			BEGIN_SWITCH(reqId)
 				M_I2_R2(idDownload, Download, std::wstring, unsigned int, int, std::wstring)
+				M_I3_R2(idUpload, Upload, std::wstring, unsigned int, UINT64, int, std::wstring)
+				M_I0_R1(idUploading, Uploading, UINT64)
+				M_I0_R0(idUploadCompleted, UploadCompleted)
 			END_SWITCH
 			return 0;
 		}

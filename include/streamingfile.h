@@ -76,7 +76,7 @@ namespace SPA {
 				m_vContext.push_back(context);
 				if (uploadings)
 					return true;
-				return Initilize();
+				return Transfer();
 			}
 
 			bool Download(const char *localFile, const wchar_t *remoteFile, DDownload dl, DTransferring trans, DCanceled aborted = DCanceled(), unsigned int flags = 0) {
@@ -96,7 +96,7 @@ namespace SPA {
 				if (uploadings) {
 					return true;
 				}
-				return Initilize();
+				return Transfer();
 			}
 
 		protected:
@@ -135,7 +135,7 @@ namespace SPA {
 							dl(this, res, errMsg);
 					}
 					CAutoLock al(m_csFile);
-					Initilize();
+					Transfer();
 				}
 				break;
 				case SFile::idStartDownloading:
@@ -207,10 +207,6 @@ namespace SPA {
 					}
 					if (upl)
 						upl(this, res, errMsg);
-					if (res) {
-						CAutoLock al(m_csFile);
-						Initilize();
-					}
 				}
 				break;
 				case SFile::idUploading:
@@ -232,7 +228,7 @@ namespace SPA {
 						if (trans)
 							trans(this, uploaded);
 						CAutoLock al(m_csFile);
-						Initilize();
+						Transfer();
 					}
 				break;
 				case SFile::idUploadCompleted:
@@ -261,7 +257,7 @@ namespace SPA {
 						if (upl)
 							upl(this, 0, L"");
 						CAutoLock al(m_csFile);
-						Initilize();
+						Transfer();
 					}
 				break;
 				default:
@@ -290,14 +286,14 @@ namespace SPA {
 				return uploadings;
 			}
 
-			bool Initilize() {
+			bool Transfer() {
 				size_t index = 0;
 				ResultHandler rh;
 				DServerException se;
 				CClientSocket *cs = GetAttachedClientSocket();
 				if (!cs->Sendable())
 					return false;
-				unsigned int recv = cs->GetBytesInReceivingBuffer();
+				unsigned int recv = cs->GetBytesInSendingBuffer();
 				if (recv > 3 * SFile::STREAM_CHUNK_SIZE)
 					return true;
 				while (index < m_vContext.size()) {
@@ -363,7 +359,7 @@ namespace SPA {
 								}
 								if (ret < SFile::STREAM_CHUNK_SIZE)
 									break;
-								recv = cs->GetBytesInReceivingBuffer();
+								recv = cs->GetBytesInSendingBuffer();
 								if (recv >= 5 * SFile::STREAM_CHUNK_SIZE)
 									break;
 								context.m_if->read((char*)sb->GetBuffer(), SFile::STREAM_CHUNK_SIZE);
@@ -384,7 +380,7 @@ namespace SPA {
 							return false;
 						}
 						context.Sent = true;
-						recv = cs->GetBytesInReceivingBuffer();
+						recv = cs->GetBytesInSendingBuffer();
 						if (recv > 3 * SFile::STREAM_CHUNK_SIZE)
 							break;
 					}
