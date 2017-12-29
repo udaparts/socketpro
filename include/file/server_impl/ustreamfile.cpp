@@ -5,28 +5,29 @@ std::shared_ptr<SPA::ServerSide::CSFileService> g_pSqlite;
 std::wstring g_pathRoot;
 
 void WINAPI SetRootDirectory(const wchar_t *pathRoot) {
-	if (pathRoot && ::wcslen(pathRoot))
-		g_pathRoot = pathRoot;
+    if (pathRoot && ::wcslen(pathRoot))
+        g_pathRoot = pathRoot;
 #ifdef WIN32_64
-	if (g_pathRoot.back() != L'\\')
-		g_pathRoot += L'\\';
+    if (g_pathRoot.back() != L'\\')
+        g_pathRoot += L'\\';
 #else
-	if (g_pathRoot.back() != L'/')
-		g_pathRoot += L'/';
+    if (g_pathRoot.back() != L'/')
+        g_pathRoot += L'/';
 #endif
 }
 
 bool WINAPI InitServerLibrary(int param) {
-	SPA::CScopeUQueue sb;
+    SPA::CScopeUQueue sb;
 #ifdef WIN32_64
-	::GetCurrentDirectoryW(sb->GetMaxSize() / sizeof(wchar_t), (wchar_t*)sb->GetBuffer());
-	g_pathRoot = (const wchar_t*)sb->GetBuffer();
-	if (g_pathRoot.back() != L'\\')
-		g_pathRoot += L'\\';
+    ::GetCurrentDirectoryW(sb->GetMaxSize() / sizeof (wchar_t), (wchar_t*) sb->GetBuffer());
+    g_pathRoot = (const wchar_t*) sb->GetBuffer();
+    if (g_pathRoot.back() != L'\\')
+        g_pathRoot += L'\\';
 #else
-	g_pathRoot = (const wchar_t*)sb->GetBuffer();
-	if (g_pathRoot.back() != L'/')
-		g_pathRoot += L'/';
+    getcwd((char*) sb->GetBuffer(), sb->GetMaxSize());
+    g_pathRoot = SPA::Utilities::ToWide((const char*) sb->GetBuffer());
+    if (g_pathRoot.back() != L'/')
+        g_pathRoot += L'/';
 #endif
     g_pSqlite.reset(new SPA::ServerSide::CSFileService(SPA::SFile::sidFile, SPA::taNone));
     return true;
@@ -65,13 +66,13 @@ unsigned short WINAPI GetOneSlowRequestID(unsigned int serviceId, unsigned short
         case 0:
             return SPA::SFile::idDownload;
             break;
-		case 1:
+        case 1:
             return SPA::SFile::idUpload;
             break;
-		case 2:
+        case 2:
             return SPA::SFile::idUploadCompleted;
             break;
-		case 3:
+        case 3:
             return SPA::SFile::idUploading;
             break;
         default:
