@@ -1,4 +1,6 @@
-#pragma once
+
+#ifndef _SOCKETPRO_FILE_STREAMING_IMPL_H_
+#define _SOCKETPRO_FILE_STREAMING_IMPL_H_
 
 #include "../ufile_server.h"
 #include "../../aserverw.h"
@@ -42,3 +44,5 @@ namespace SPA {
 
     } //namespace ServerSide
 } //namespace SPA
+
+#endif

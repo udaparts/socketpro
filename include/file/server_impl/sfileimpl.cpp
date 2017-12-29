@@ -1,8 +1,6 @@
 
 #include "sfileimpl.h"
-#ifndef WIN32_64
 #include <system_error>
-#endif
 
 extern std::wstring g_pathRoot;
 
@@ -65,22 +63,22 @@ namespace SPA{
         }
 
         void CSFileImpl::UploadCompleted() {
-#ifndef NDEBUG
-            assert(m_of.is_open());
+            if (m_of.is_open()) {
 #ifdef WIN32_64
-            auto pos = m_of.tellp().seekpos();
+                auto pos = m_of.tellp().seekpos();
 #else
-            auto pos = m_of.tellp();
+                auto pos = m_of.tellp();
 #endif
-            assert(m_FileSize == (UINT64) pos);
-#endif
+                assert(m_FileSize == (UINT64) pos);
+                m_of.close();
+            }
             m_FileSize = 0;
-            m_of.close();
         }
 
         void CSFileImpl::Upload(const std::wstring &filePath, unsigned int flags, UINT64 fileSize, int &res, std::wstring & errMsg) {
             assert(!m_FileSize);
             assert(!m_of.is_open());
+            CleanOF();
             m_FileSize = fileSize;
             m_oPos = 0;
             try
@@ -111,28 +109,27 @@ namespace SPA{
                 res = e.code().value();
                 std::string msg = e.code().message();
                 errMsg = SPA::Utilities::ToWide(msg.c_str(), msg.size());
-                return;
             }
-			catch(std::runtime_error & e) {
+
+            catch(std::runtime_error & e) {
                 res = errno;
-				if (!res)
-					res = CANNOT_OPEN_LOCAL_FILE_FOR_WRITING;
+                if (!res)
+                    res = CANNOT_OPEN_LOCAL_FILE_FOR_WRITING;
                 std::string msg = e.what();
                 errMsg = SPA::Utilities::ToWide(msg.c_str(), msg.size());
-                return;
             }
-			catch(std::exception & e) {
+
+            catch(std::exception & e) {
                 res = errno;
-				if (!res)
-					res = CANNOT_OPEN_LOCAL_FILE_FOR_WRITING;
+                if (!res)
+                    res = CANNOT_OPEN_LOCAL_FILE_FOR_WRITING;
                 std::string msg = e.what();
                 errMsg = SPA::Utilities::ToWide(msg.c_str(), msg.size());
-                return;
             }
+
             catch(...) {
                 res = UNKNOWN_ERROR;
-                errMsg = L"Unknown error";
-                return;
+                errMsg = L"Unknown error when creating a file for writing at server side";
             }
         }
 
@@ -191,28 +188,27 @@ namespace SPA{
                 res = e.code().value();
                 std::string msg = e.code().message();
                 errMsg = SPA::Utilities::ToWide(msg.c_str(), msg.size());
-                return;
             }
-			catch(std::runtime_error & e) {
+
+            catch(std::runtime_error & e) {
                 res = errno;
-				if (!res)
-					res = CANNOT_OPEN_LOCAL_FILE_FOR_READING;
+                if (!res)
+                    res = CANNOT_OPEN_LOCAL_FILE_FOR_READING;
                 std::string msg = e.what();
                 errMsg = SPA::Utilities::ToWide(msg.c_str(), msg.size());
-                return;
             }
-			catch(std::exception & e) {
+
+            catch(std::exception & e) {
                 res = errno;
-				if (!res)
-					res = CANNOT_OPEN_LOCAL_FILE_FOR_READING;
+                if (!res)
+                    res = CANNOT_OPEN_LOCAL_FILE_FOR_READING;
                 std::string msg = e.what();
                 errMsg = SPA::Utilities::ToWide(msg.c_str(), msg.size());
-                return;
             }
+
             catch(...) {
                 res = UNKNOWN_ERROR;
-                errMsg = L"Unknown error";
-                return;
+                errMsg = L"Unknown error when reading a file for downloading at server side";
             }
         }
     } //namespace ServerSide

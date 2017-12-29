@@ -27,7 +27,7 @@ int main(int argc, char* argv[]) {
     std::wstring RemoteFile;
     std::getline(std::wcin, RemoteFile);
     std::string LocalFile("spfile.test");
-	//test both downloading and uploading files in file stream (it is different from byte stream)
+    //test both downloading and uploading files in file stream (it is different from byte stream)
     //downloading test
     ok = rf->Download(LocalFile.c_str(), RemoteFile.c_str(), [RemoteFile](CStreamingFile *file, int res, const std::wstring & errMsg) {
         if (res) {
@@ -35,10 +35,10 @@ int main(int argc, char* argv[]) {
         } else
             std::wcout << L"Downloading " << RemoteFile << L" completed" << std::endl;
     }, [](CStreamingFile *file, SPA::UINT64 downloaded) {
-		//downloading progress
+        //downloading progress
         std::cout << "Downloading rate: " << (downloaded * 100) / file->GetFileSize() << "%" << std::endl;
     });
-	//uploading test
+    //uploading test
     RemoteFile += L".copy";
     ok = rf->Upload(LocalFile.c_str(), RemoteFile.c_str(), [RemoteFile](CStreamingFile *file, int res, const std::wstring & errMsg) {
         if (res) {
@@ -47,7 +47,7 @@ int main(int argc, char* argv[]) {
             std::wcout << L"Uploading " << RemoteFile << L" completed" << std::endl;
         }
     }, [](CStreamingFile *file, SPA::UINT64 uploaded) {
-		//uploading progress
+        //uploading progress
         std::cout << "Uploading rate: " << (uploaded * 100) / file->GetFileSize() << "%" << std::endl;
     });
     ok = rf->WaitAll();
