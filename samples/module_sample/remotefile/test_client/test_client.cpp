@@ -25,9 +25,8 @@ int main(int argc, char* argv[]) {
     auto rf = spRf.Seek();
     std::cout << "Input a remote file to download ......" << std::endl;
     std::wstring RemoteFile;
-    std::getline(std::wcin, RemoteFile);
+    std::getline(std::wcin, RemoteFile); //jvm.lib
 
-	RemoteFile = L"jvm.lib";
     std::string LocalFile("spfile1.test");
     //test both downloading and uploading files in file stream (it is different from byte stream)
     //downloading test
@@ -50,7 +49,6 @@ int main(int argc, char* argv[]) {
         } else
             std::wcout << L"Downloading " << RemoteFile << L" completed" << std::endl;
     }, [](CStreamingFile *file, SPA::UINT64 downloaded) {
-        //downloading progress
         //std::cout << "Downloading rate: " << (downloaded * 100) / file->GetFileSize() << "%" << std::endl;
     });
     
@@ -63,7 +61,6 @@ int main(int argc, char* argv[]) {
         } else
             std::wcout << L"Downloading " << RemoteFile << L" completed" << std::endl;
     }, [](CStreamingFile *file, SPA::UINT64 downloaded) {
-        //downloading progress
         //std::cout << "Downloading rate: " << (downloaded * 100) / file->GetFileSize() << "%" << std::endl;
     });
     
@@ -76,7 +73,6 @@ int main(int argc, char* argv[]) {
         } else
             std::wcout << L"Downloading " << RemoteFile << L" completed" << std::endl;
     }, [](CStreamingFile *file, SPA::UINT64 downloaded) {
-        //downloading progress
         //std::cout << "Downloading rate: " << (downloaded * 100) / file->GetFileSize() << "%" << std::endl;
     });
     
@@ -89,7 +85,6 @@ int main(int argc, char* argv[]) {
         } else
             std::wcout << L"Downloading " << RemoteFile << L" completed" << std::endl;
     }, [](CStreamingFile *file, SPA::UINT64 downloaded) {
-        //downloading progress
         //std::cout << "Downloading rate: " << (downloaded * 100) / file->GetFileSize() << "%" << std::endl;
     });
 	ok = rf->WaitAll();
@@ -108,7 +103,6 @@ int main(int argc, char* argv[]) {
         //std::cout << "Uploading rate: " << (uploaded * 100) / file->GetFileSize() << "%" << std::endl;
     });
 
-	//uploading test
 	LocalFile = "spfile2.test";
     RemoteFile = L"libboost_wave-vc100-mt-sgd-1_60_copy.lib";
     ok = rf->Upload(LocalFile.c_str(), RemoteFile.c_str(), [RemoteFile](CStreamingFile *file, int res, const std::wstring & errMsg) {
@@ -118,12 +112,10 @@ int main(int argc, char* argv[]) {
             std::wcout << L"Uploading " << RemoteFile << L" completed" << std::endl;
         }
     }, [](CStreamingFile *file, SPA::UINT64 uploaded) {
-        //uploading progress
         //std::cout << "Uploading rate: " << (uploaded * 100) / file->GetFileSize() << "%" << std::endl;
     });
 
 	LocalFile = "spfile3.test";
-	//uploading test
     RemoteFile = L"libboost_coroutine-vc100-mt-s-1_60_copy.lib";
     ok = rf->Upload(LocalFile.c_str(), RemoteFile.c_str(), [RemoteFile](CStreamingFile *file, int res, const std::wstring & errMsg) {
         if (res) {
@@ -132,12 +124,10 @@ int main(int argc, char* argv[]) {
             std::wcout << L"Uploading " << RemoteFile << L" completed" << std::endl;
         }
     }, [](CStreamingFile *file, SPA::UINT64 uploaded) {
-        //uploading progress
         //std::cout << "Uploading rate: " << (uploaded * 100) / file->GetFileSize() << "%" << std::endl;
     });
 
 	LocalFile = "spfile4.test";
-	//uploading test
     RemoteFile = L"libboost_serialization-vc100-mt-s-1_60_copy.lib";
     ok = rf->Upload(LocalFile.c_str(), RemoteFile.c_str(), [RemoteFile](CStreamingFile *file, int res, const std::wstring & errMsg) {
         if (res) {
@@ -146,7 +136,6 @@ int main(int argc, char* argv[]) {
             std::wcout << L"Uploading " << RemoteFile << L" completed" << std::endl;
         }
     }, [](CStreamingFile *file, SPA::UINT64 uploaded) {
-        //uploading progress
         //std::cout << "Uploading rate: " << (uploaded * 100) / file->GetFileSize() << "%" << std::endl;
     });
 
@@ -160,7 +149,6 @@ int main(int argc, char* argv[]) {
             std::wcout << L"Uploading " << RemoteFile << L" completed" << std::endl;
         }
     }, [](CStreamingFile *file, SPA::UINT64 uploaded) {
-        //uploading progress
         //std::cout << "Uploading rate: " << (uploaded * 100) / file->GetFileSize() << "%" << std::endl;
     });
     ok = rf->WaitAll();

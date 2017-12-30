@@ -63,7 +63,7 @@ namespace SPA {
                 return file_size;
             }
 
-            bool Upload(const char *localFile, const wchar_t *remoteFile, DUpload up, DTransferring trans, DCanceled aborted = DCanceled(), unsigned int flags = 0) {
+            bool Upload(const char *localFile, const wchar_t *remoteFile, DUpload up, DTransferring trans, DCanceled aborted = DCanceled(), unsigned int flags = SFile::FILE_OPEN_TRUNCACTED) {
                 if (!localFile || !::strlen(localFile))
                     return false;
                 if (!remoteFile || !::wcslen(remoteFile))
@@ -79,7 +79,7 @@ namespace SPA {
                 return Transfer();
             }
 
-            bool Download(const char *localFile, const wchar_t *remoteFile, DDownload dl, DTransferring trans, DCanceled aborted = DCanceled(), unsigned int flags = 0) {
+            bool Download(const char *localFile, const wchar_t *remoteFile, DDownload dl, DTransferring trans, DCanceled aborted = DCanceled(), unsigned int flags = SFile::FILE_OPEN_TRUNCACTED) {
                 if (!localFile || !::strlen(localFile))
                     return false;
                 if (!remoteFile || !::wcslen(remoteFile))
@@ -140,7 +140,12 @@ namespace SPA {
                             assert(!context.m_of);
                             mc >> context.FileSize;
                             context.m_of = new std::ofstream;
-                            context.m_of->open(context.LocalFile, std::ios::out | std::ios::binary | std::ios::trunc);
+							auto mode = (std::ios::out | std::ios::binary);
+							if ((context.Flags & SFile::FILE_OPEN_TRUNCACTED))
+								mode |= std::ios::trunc;
+							else if ((context.Flags & SFile::FILE_OPEN_APPENDED))
+								mode |= std::ios::app;
+                            context.m_of->open(context.LocalFile, mode);
                         } else {
 							assert(false);
                             mc.SetSize(0);
@@ -269,8 +274,8 @@ namespace SPA {
                 CClientSocket *cs = GetAttachedClientSocket();
                 if (!cs->Sendable())
                     return false;
-                unsigned int recv = cs->GetBytesInSendingBuffer();
-                if (recv > 3 * SFile::STREAM_CHUNK_SIZE)
+                unsigned int sent_buffer_size = cs->GetBytesInSendingBuffer();
+                if (sent_buffer_size > 3 * SFile::STREAM_CHUNK_SIZE)
                     return true;
                 while (index < m_vContext.size()) {
                     CContext &context = m_vContext[index];
@@ -285,8 +290,6 @@ namespace SPA {
                                 context.Download(this, SFile::CANNOT_OPEN_LOCAL_FILE_FOR_READING, L"Cannot open a local file for reading data");
                             }
                             m_vContext.erase(m_vContext.begin() + index);
-                            if (!cs->Sendable())
-                                return false;
                         } else {
                             ++index;
                         }
@@ -295,7 +298,7 @@ namespace SPA {
                     if (context.Uploading) {
                         if (!context.m_if) {
                             context.m_if = new std::ifstream;
-                            context.m_if->open(context.LocalFile, std::ios::binary);
+                            context.m_if->open(context.LocalFile, std::ios::in | std::ios::binary);
                             if (context.m_if->is_open()) {
                                 context.m_if->seekg(0, std::ios_base::end);
                                 context.FileSize = CheckPos(context.m_if);
@@ -323,32 +326,30 @@ namespace SPA {
                                 ++index;
                             }
                             continue;
-                        } else if (context.FileSize > CheckPos(context.m_if)) {
+                        } else {
                             CScopeUQueue sb(MY_OPERATION_SYSTEM, IsBigEndian(), SFile::STREAM_CHUNK_SIZE);
                             context.m_if->read((char*) sb->GetBuffer(), SFile::STREAM_CHUNK_SIZE);
-							UINT64 pos = CheckPos(context.m_if);
                             unsigned int ret = (unsigned int) context.m_if->gcount();
                             while (ret > 0) {
                                 if (!SendRequest(SFile::idUploading, sb->GetBuffer(), ret, rh, context.Aborted, se)) {
                                     return false;
                                 }
-								pos = CheckPos(context.m_if);
+								sent_buffer_size = cs->GetBytesInSendingBuffer();
                                 if (ret < SFile::STREAM_CHUNK_SIZE)
                                     break;
-                                recv = cs->GetBytesInSendingBuffer();
-                                if (recv >= 5 * SFile::STREAM_CHUNK_SIZE)
+                                if (sent_buffer_size >= 5 * SFile::STREAM_CHUNK_SIZE)
                                     break;
                                 context.m_if->read((char*) sb->GetBuffer(), SFile::STREAM_CHUNK_SIZE);
                                 ret = (unsigned int) context.m_if->gcount();
                             }
-                            if (ret < SFile::STREAM_CHUNK_SIZE || pos == 0 || pos == context.FileSize) {
+                            if (ret < SFile::STREAM_CHUNK_SIZE) {
                                 context.Sent = true;
 								context.m_if->close();
                                 if (!SendRequest(SFile::idUploadCompleted, (const unsigned char*) nullptr, (unsigned int) 0, rh, context.Aborted, se)) {
                                     return false;
                                 }
                             }
-                            if (recv >= 4 * SFile::STREAM_CHUNK_SIZE)
+                            if (sent_buffer_size >= 4 * SFile::STREAM_CHUNK_SIZE)
                                 break;
                         }
                     } else {
@@ -356,8 +357,8 @@ namespace SPA {
                             return false;
                         }
                         context.Sent = true;
-                        recv = cs->GetBytesInSendingBuffer();
-                        if (recv > 3 * SFile::STREAM_CHUNK_SIZE)
+                        sent_buffer_size = cs->GetBytesInSendingBuffer();
+                        if (sent_buffer_size > 3 * SFile::STREAM_CHUNK_SIZE)
                             break;
                     }
                     ++index;

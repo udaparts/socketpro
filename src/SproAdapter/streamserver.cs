@@ -3,6 +3,7 @@ using System.IO;
 
 namespace SocketProAdapter.ServerSide
 {
+    [ObsoleteAttribute]
     public static class CStreamHelper
     {
         /// <summary>

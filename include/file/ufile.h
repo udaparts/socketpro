@@ -10,13 +10,19 @@ namespace SPA {
 
         static const unsigned int STREAM_CHUNK_SIZE = 10240;
 
+		//request ids
         static const unsigned short idDownload = 0x7F70;
         static const unsigned short idStartDownloading = 0x7F71;
         static const unsigned short idDownloading = 0x7F72;
-
         static const unsigned short idUpload = 0x7F73;
         static const unsigned short idUploading = 0x7F74;
         static const unsigned short idUploadCompleted = 0x7F75;
+
+		//file open flags
+        static const unsigned int FILE_OPEN_TRUNCACTED = 1;
+        static const unsigned int FILE_OPEN_APPENDED = 2;
+        static const unsigned int FILE_OPEN_SHARE_READ = 4;
+        static const unsigned int FILE_OPEN_SHARE_WRITE = 8;
 
         //error code
         static const int UNKNOWN_ERROR = -1;

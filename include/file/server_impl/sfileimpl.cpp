@@ -7,7 +7,13 @@ extern std::wstring g_pathRoot;
 namespace SPA{
     namespace ServerSide
     {
-        CSFileImpl::CSFileImpl() : m_oFileSize(0), m_oPos(0) {
+        CSFileImpl::CSFileImpl() : m_oFileSize(0), m_oPos(0),
+#ifdef WIN32_64
+			m_of(INVALID_HANDLE_VALUE)
+#else
+
+#endif
+		{
         }
 
         void CSFileImpl::OnReleaseSource(bool bClosing, unsigned int info) {
@@ -39,177 +45,163 @@ namespace SPA{
         }
 
         void CSFileImpl::CleanOF() {
-            if (m_of.is_open()) {
-                m_of.close();
 #ifdef WIN32_64
+			if (m_of != INVALID_HANDLE_VALUE) {
+				::CloseHandle(m_of);
                 ::DeleteFileW(m_oFilePath.c_str());
+				m_of = INVALID_HANDLE_VALUE;
+			}
 #else
+			if (m_of != INVALID_HANDLE_VALUE) {
                 std::string path = SPA::Utilities::ToUTF8(m_oFilePath.c_str(), m_oFilePath.size());
                 unlink(path.c_str());
-#endif
             }
+#endif
             m_oFileSize = 0;
         }
 
         void CSFileImpl::Uploading(UINT64 & pos) {
+#ifdef WIN32_64
+			if (m_of != INVALID_HANDLE_VALUE) {
+				DWORD dw = m_UQueue.GetSize(), dwWritten;
+				BOOL ok = ::WriteFile(m_of, m_UQueue.GetBuffer(), dw, &dwWritten, nullptr);
+				assert(ok);
+				assert(dw == dwWritten);
+				m_oPos += m_UQueue.GetSize();
+				pos = m_oPos;
+			}
+#else
             if (m_of.is_open()) {
                 m_of.write((const char*) m_UQueue.GetBuffer(), m_UQueue.GetSize());
                 m_oPos += m_UQueue.GetSize();
                 pos = m_oPos;
-            } else {
+            } 
+#endif
+			else {
                 pos = (~0);
             }
             m_UQueue.SetSize(0);
         }
 
         void CSFileImpl::UploadCompleted() {
-            if (m_of.is_open()) {
 #ifdef WIN32_64
-                auto pos = m_of.tellp().seekpos();
+			if (m_of != INVALID_HANDLE_VALUE) {
+				::CloseHandle(m_of);
+				m_of = INVALID_HANDLE_VALUE;
+			}
 #else
+			if (m_of.is_open()) {
                 auto pos = m_of.tellp();
-#endif
                 assert(m_oFileSize == (UINT64) pos);
                 m_of.close();
             }
+#endif
             m_oFileSize = 0;
         }
 
         void CSFileImpl::Upload(const std::wstring &filePath, unsigned int flags, UINT64 fileSize, int &res, std::wstring & errMsg) {
-            assert(!m_oFileSize);
-            assert(!m_of.is_open());
+            bool absoulute;
+			assert(!m_oFileSize);
+#ifdef WIN32_64
+            assert(m_of == INVALID_HANDLE_VALUE);
+#else
+
+#endif
             CleanOF();
             m_oFileSize = fileSize;
             m_oPos = 0;
-            try
-            {
-                bool absoulute;
-                res = 0;
-                m_of.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+            res = 0;
 #ifdef WIN32_64
-                std::size_t pos = filePath.find(L":\\");
-                absoulute = (pos != std::wstring::npos && pos > 0);
+			std::size_t pos = filePath.find(L":\\");
+            absoulute = (pos != std::wstring::npos && pos > 0);
 #else
-                absoulute = (filePath.front() == L'/');
+			absoulute = (filePath.front() == L'/');
 #endif
-                if (absoulute) {
-                    m_oFilePath = filePath;
-                } else {
-                    m_oFilePath = g_pathRoot + filePath;
-                }
+			if (absoulute) {
+                m_oFilePath = filePath;
+            } else {
+                m_oFilePath = g_pathRoot + filePath;
+            }
+
 #ifdef WIN32_64
-                m_of.open(m_oFilePath, std::ios::binary | std::ios::trunc);
+			DWORD sm = 0;
+			if ((flags & FILE_OPEN_SHARE_WRITE) == FILE_OPEN_SHARE_WRITE)
+				sm |= FILE_SHARE_WRITE;
+			if ((flags & FILE_OPEN_SHARE_READ) == FILE_OPEN_SHARE_READ)
+				sm |= FILE_SHARE_READ;
+			DWORD create = OPEN_ALWAYS;
+			m_of = ::CreateFileW(m_oFilePath.c_str(), GENERIC_WRITE, sm, nullptr, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+			if (m_of == INVALID_HANDLE_VALUE) {
+				res = (int)::GetLastError();
+				errMsg = Utilities::GetErrorMessage((DWORD)res);
+			}
+			else {
+				if ((flags & FILE_OPEN_TRUNCACTED) == FILE_OPEN_TRUNCACTED)
+				{
+					create = ::SetFilePointer(m_of, 0, nullptr, FILE_BEGIN);
+					BOOL ok = ::SetEndOfFile(m_of);
+					assert(ok);
+				}
+				else if ((flags & FILE_OPEN_APPENDED) == FILE_OPEN_APPENDED) {
+					create = ::SetFilePointer(m_of, 0, nullptr, FILE_END);
+				}
+			}
 #else
-                std::string s = SPA::Utilities::ToUTF8(m_oFilePath.c_str(), m_oFilePath.size());
-                m_of.open(s, std::ios::binary | std::ios::trunc);
+			 std::string s = SPA::Utilities::ToUTF8(m_oFilePath.c_str(), m_oFilePath.size());
 #endif
-            }
-
-            catch(std::system_error & e) {
-                res = e.code().value();
-                std::string msg = e.code().message();
-                errMsg = SPA::Utilities::ToWide(msg.c_str(), msg.size());
-            }
-
-            catch(std::runtime_error & e) {
-                res = errno;
-                if (!res)
-                    res = CANNOT_OPEN_LOCAL_FILE_FOR_WRITING;
-                std::string msg = e.what();
-                errMsg = SPA::Utilities::ToWide(msg.c_str(), msg.size());
-            }
-
-            catch(std::exception & e) {
-                res = errno;
-                if (!res)
-                    res = CANNOT_OPEN_LOCAL_FILE_FOR_WRITING;
-                std::string msg = e.what();
-                errMsg = SPA::Utilities::ToWide(msg.c_str(), msg.size());
-            }
-
-            catch(...) {
-                res = UNKNOWN_ERROR;
-                errMsg = L"Unknown error when creating a file for saving at server side";
-            }
         }
 
         void CSFileImpl::Download(const std::wstring &filePath, unsigned int flags, int &res, std::wstring & errMsg) {
-            std::ifstream reader;
-            try
-            {
-                bool absoulute;
-                res = 0;
-                reader.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+			 bool absoulute;
+             res = 0;
 #ifdef WIN32_64
                 std::size_t pos = filePath.find(L":\\");
                 absoulute = (pos != std::wstring::npos && pos > 0);
 #else
                 absoulute = (filePath.front() == L'/');
 #endif
-                std::wstring path;
+				std::wstring path;
                 if (absoulute) {
                     path = filePath;
                 } else {
                     path = g_pathRoot + filePath;
                 }
 #ifdef WIN32_64
-                reader.open(path, std::ios::binary);
+			HANDLE h = ::CreateFileW(path.c_str(), GENERIC_READ, 0, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
+			if (h == INVALID_HANDLE_VALUE) {
+				res = (int)::GetLastError();
+				errMsg = Utilities::GetErrorMessage((DWORD)res);
+				return;
+			}
+			DWORD dwHigh = 0;
+			DWORD dwLow = ::GetFileSize(h, &dwHigh);
+			UINT64 StreamSize = dwHigh;
+			StreamSize <<= 32;
+			StreamSize += dwLow;
+			if (SendResult(idStartDownloading, StreamSize) != sizeof (StreamSize)) {
+				::CloseHandle(h);
+				return; //socket closed or canceled
+			}
+			CScopeUQueue sb(MY_OPERATION_SYSTEM, IsBigEndian(), STREAM_CHUNK_SIZE);
+			unsigned int size = (unsigned int )((StreamSize > STREAM_CHUNK_SIZE) ? STREAM_CHUNK_SIZE : StreamSize);
+			DWORD dwRead = 0;
+			BOOL ok = ::ReadFile(h, (LPVOID)sb->GetBuffer(), size, &dwRead, nullptr);
+			assert(ok);
+			while (dwRead > 0) {
+				if (SendResult(idDownloading, sb->GetBuffer(), (unsigned int)dwRead) != dwRead) {
+					::CloseHandle(h);
+					return; //socket closed or canceled
+				}
+				StreamSize -= dwRead;
+				size = (unsigned int )((StreamSize > STREAM_CHUNK_SIZE) ? STREAM_CHUNK_SIZE : StreamSize);
+				dwRead = 0;
+				ok = ::ReadFile(h, (LPVOID)sb->GetBuffer(), size, &dwRead, nullptr);
+				assert(ok);
+			}
+			::CloseHandle(h);
 #else
-                std::string s = SPA::Utilities::ToUTF8(path.c_str(), path.size());
-                reader.open(s, std::ios::binary);
+
 #endif
-                reader.seekg(0, std::ios::end);
-#ifdef WIN32_64
-                UINT64 StreamSize = reader.tellg().seekpos();
-#else
-                static_assert(sizeof (std::streampos) >= sizeof (INT64), "Large file not supported");
-                UINT64 StreamSize = reader.tellg();
-#endif
-                if (SendResult(idStartDownloading, StreamSize) != sizeof (StreamSize))
-                    return; //socket closed or canceled
-                if (StreamSize) {
-                    reader.seekg(0, std::ios_base::beg);
-                    CScopeUQueue sb(MY_OPERATION_SYSTEM, IsBigEndian(), STREAM_CHUNK_SIZE);
-                    std::streamsize size = ((StreamSize > STREAM_CHUNK_SIZE) ? STREAM_CHUNK_SIZE : StreamSize);
-                    reader.read((char*) sb->GetBuffer(), size);
-                    unsigned int ret = (unsigned int) reader.gcount();
-                    while (ret > 0) {
-                        if (SendResult(idDownloading, sb->GetBuffer(), ret) != ret)
-                            return; //socket closed or canceled
-                        StreamSize -= ret;
-                        size = ((StreamSize > STREAM_CHUNK_SIZE) ? STREAM_CHUNK_SIZE : StreamSize);
-                        reader.read((char*) sb->GetBuffer(), size);
-                        ret = (unsigned int) reader.gcount();
-                    }
-                }
-            }
-
-            catch(std::system_error & e) {
-                res = e.code().value();
-                std::string msg = e.code().message();
-                errMsg = SPA::Utilities::ToWide(msg.c_str(), msg.size());
-            }
-
-            catch(std::runtime_error & e) {
-                res = errno;
-                if (!res)
-                    res = CANNOT_OPEN_LOCAL_FILE_FOR_READING;
-                std::string msg = e.what();
-                errMsg = SPA::Utilities::ToWide(msg.c_str(), msg.size());
-            }
-
-            catch(std::exception & e) {
-                res = errno;
-                if (!res)
-                    res = CANNOT_OPEN_LOCAL_FILE_FOR_READING;
-                std::string msg = e.what();
-                errMsg = SPA::Utilities::ToWide(msg.c_str(), msg.size());
-            }
-
-            catch(...) {
-                res = UNKNOWN_ERROR;
-                errMsg = L"Unknown error when reading a file for downloading at server side";
-            }
         }
     } //namespace ServerSide
 } //namespace SPA

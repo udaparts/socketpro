@@ -4,7 +4,6 @@
 
 #include "../ufile_server.h"
 #include "../../aserverw.h"
-#include <fstream>
 
 using namespace SPA::SFile;
 
@@ -32,12 +31,18 @@ namespace SPA {
             void Uploading(UINT64 &pos);
             void UploadCompleted();
             void CleanOF();
+			
 
         private:
             UINT64 m_oFileSize;
-            std::ofstream m_of;
-            std::wstring m_oFilePath;
+			std::wstring m_oFilePath;
             UINT64 m_oPos;
+#ifdef WIN32_64
+            HANDLE m_of;
+			
+#else
+
+#endif  
         };
 
         typedef CSocketProService<CSFileImpl> CSFileService;
