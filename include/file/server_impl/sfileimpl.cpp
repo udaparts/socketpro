@@ -7,7 +7,7 @@ extern std::wstring g_pathRoot;
 namespace SPA{
     namespace ServerSide
     {
-        CSFileImpl::CSFileImpl() : m_FileSize(0), m_oPos(0) {
+        CSFileImpl::CSFileImpl() : m_oFileSize(0), m_oPos(0) {
         }
 
         void CSFileImpl::OnReleaseSource(bool bClosing, unsigned int info) {
@@ -48,7 +48,7 @@ namespace SPA{
                 unlink(path.c_str());
 #endif
             }
-            m_FileSize = 0;
+            m_oFileSize = 0;
         }
 
         void CSFileImpl::Uploading(UINT64 & pos) {
@@ -69,17 +69,17 @@ namespace SPA{
 #else
                 auto pos = m_of.tellp();
 #endif
-                assert(m_FileSize == (UINT64) pos);
+                assert(m_oFileSize == (UINT64) pos);
                 m_of.close();
             }
-            m_FileSize = 0;
+            m_oFileSize = 0;
         }
 
         void CSFileImpl::Upload(const std::wstring &filePath, unsigned int flags, UINT64 fileSize, int &res, std::wstring & errMsg) {
-            assert(!m_FileSize);
+            assert(!m_oFileSize);
             assert(!m_of.is_open());
             CleanOF();
-            m_FileSize = fileSize;
+            m_oFileSize = fileSize;
             m_oPos = 0;
             try
             {
@@ -129,7 +129,7 @@ namespace SPA{
 
             catch(...) {
                 res = UNKNOWN_ERROR;
-                errMsg = L"Unknown error when creating a file for writing at server side";
+                errMsg = L"Unknown error when creating a file for saving at server side";
             }
         }
 

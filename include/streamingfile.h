@@ -75,10 +75,7 @@ namespace SPA {
                 context.FilePath = remoteFile;
                 context.LocalFile = localFile;
                 CAutoLock al(m_csFile);
-                unsigned int uploadings = CheckUploadings();
                 m_vContext.push_back(context);
-                if (uploadings)
-                    return true;
                 return Transfer();
             }
 
@@ -94,11 +91,7 @@ namespace SPA {
                 context.FilePath = remoteFile;
                 context.LocalFile = localFile;
                 CAutoLock al(m_csFile);
-                unsigned int uploadings = CheckUploadings();
                 m_vContext.push_back(context);
-                if (uploadings) {
-                    return true;
-                }
                 return Transfer();
             }
 
@@ -136,8 +129,6 @@ namespace SPA {
                             if (dl)
                                 dl(this, res, errMsg);
                         }
-                        CAutoLock al(m_csFile);
-                        Transfer();
                     }
                         break;
                     case SFile::idStartDownloading:
@@ -151,8 +142,8 @@ namespace SPA {
                             context.m_of = new std::ofstream;
                             context.m_of->open(context.LocalFile, std::ios::out | std::ios::binary | std::ios::trunc);
                         } else {
+							assert(false);
                             mc.SetSize(0);
-                            assert(false);
                         }
                     }
                         break;
@@ -224,8 +215,6 @@ namespace SPA {
                         }
                         if (trans)
                             trans(this, uploaded);
-                        CAutoLock al(m_csFile);
-                        Transfer();
                     }
                         break;
                     case SFile::idUploadCompleted:
@@ -251,14 +240,14 @@ namespace SPA {
                         }
                         if (upl)
                             upl(this, 0, L"");
-                        CAutoLock al(m_csFile);
-                        Transfer();
                     }
                         break;
                     default:
                         CAsyncServiceHandler::OnResultReturned(reqId, mc);
                         break;
                 }
+				CAutoLock al(m_csFile);
+                Transfer();
             }
 
         private:
@@ -271,15 +260,6 @@ namespace SPA {
                 pos = (UINT64) ifs->tellg();
 #endif
                 return pos;
-            }
-
-            unsigned int CheckUploadings() {
-                unsigned int uploadings = 0;
-                for (auto it = m_vContext.begin(), end = m_vContext.end(); it != end; ++it) {
-                    if (it->Uploading)
-                        ++uploadings;
-                }
-                return uploadings;
             }
 
             bool Transfer() {
@@ -325,6 +305,7 @@ namespace SPA {
                                 }
                                 if (!context.FileSize) {
                                     context.Sent = true;
+									context.m_if->close();
                                     if (!SendRequest(SFile::idUploadCompleted, (const unsigned char*) nullptr, (unsigned int) 0, rh, context.Aborted, se)) {
                                         return false;
                                     }
@@ -345,11 +326,13 @@ namespace SPA {
                         } else if (context.FileSize > CheckPos(context.m_if)) {
                             CScopeUQueue sb(MY_OPERATION_SYSTEM, IsBigEndian(), SFile::STREAM_CHUNK_SIZE);
                             context.m_if->read((char*) sb->GetBuffer(), SFile::STREAM_CHUNK_SIZE);
+							UINT64 pos = CheckPos(context.m_if);
                             unsigned int ret = (unsigned int) context.m_if->gcount();
                             while (ret > 0) {
                                 if (!SendRequest(SFile::idUploading, sb->GetBuffer(), ret, rh, context.Aborted, se)) {
                                     return false;
                                 }
+								pos = CheckPos(context.m_if);
                                 if (ret < SFile::STREAM_CHUNK_SIZE)
                                     break;
                                 recv = cs->GetBytesInSendingBuffer();
@@ -358,13 +341,14 @@ namespace SPA {
                                 context.m_if->read((char*) sb->GetBuffer(), SFile::STREAM_CHUNK_SIZE);
                                 ret = (unsigned int) context.m_if->gcount();
                             }
-                            if (ret && (ret < SFile::STREAM_CHUNK_SIZE || CheckPos(context.m_if) == 0)) {
+                            if (ret < SFile::STREAM_CHUNK_SIZE || pos == 0 || pos == context.FileSize) {
                                 context.Sent = true;
+								context.m_if->close();
                                 if (!SendRequest(SFile::idUploadCompleted, (const unsigned char*) nullptr, (unsigned int) 0, rh, context.Aborted, se)) {
                                     return false;
                                 }
                             }
-                            if (recv > 5 * SFile::STREAM_CHUNK_SIZE)
+                            if (recv >= 4 * SFile::STREAM_CHUNK_SIZE)
                                 break;
                         }
                     } else {

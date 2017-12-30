@@ -38,6 +38,7 @@ int main(int argc, char* argv[]) {
 		//downloading progress
         std::cout << "Downloading rate: " << (downloaded * 100) / file->GetFileSize() << "%" << std::endl;
     });
+	ok = rf->WaitAll();
 	//uploading test
     RemoteFile += L".copy";
     ok = rf->Upload(LocalFile.c_str(), RemoteFile.c_str(), [RemoteFile](CStreamingFile *file, int res, const std::wstring & errMsg) {

@@ -34,7 +34,7 @@ namespace SPA {
             void CleanOF();
 
         private:
-            UINT64 m_FileSize;
+            UINT64 m_oFileSize;
             std::ofstream m_of;
             std::wstring m_oFilePath;
             UINT64 m_oPos;
@@ -46,3 +46,4 @@ namespace SPA {
 } //namespace SPA
 
 #endif
+ 
