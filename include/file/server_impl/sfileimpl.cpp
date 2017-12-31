@@ -107,7 +107,6 @@ namespace SPA{
 
         void CSFileImpl::Upload(const std::wstring &filePath, unsigned int flags, UINT64 fileSize, int &res, std::wstring & errMsg) {
             bool absoulute;
-            assert(!m_oFileSize);
 #ifdef WIN32_64
             assert(m_of == INVALID_HANDLE_VALUE);
 #else
@@ -150,13 +149,14 @@ namespace SPA{
             }
 #else
             std::string s = Utilities::ToUTF8(m_oFilePath.c_str(), m_oFilePath.size());
-            auto mode = O_WRONLY | O_CREAT | O_BINARY;
+            int mode = (O_WRONLY | O_CREAT);
             if ((flags & FILE_OPEN_TRUNCACTED) == FILE_OPEN_TRUNCACTED) {
                 mode |= O_TRUNC;
             } else if ((flags & FILE_OPEN_APPENDED) == FILE_OPEN_APPENDED) {
                 mode |= O_APPEND;
             }
-            m_of = ::open(s.c_str(), mode);
+            mode_t m = (S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
+            m_of = ::open(s.c_str(), mode, m);
             if (m_of == -1) {
                 res = errno;
                 std::string err = strerror(res);
@@ -216,7 +216,7 @@ namespace SPA{
             ::CloseHandle(h);
 #else
             std::string s = Utilities::ToUTF8(path.c_str(), path.size());
-            int h = ::open(s.c_str(), O_RDONLY | O_BINARY);
+            int h = ::open(s.c_str(), O_RDONLY);
             if (h == -1) {
                 res = errno;
                 std::string err = strerror(res);
@@ -225,12 +225,12 @@ namespace SPA{
             }
             struct stat st;
             if (::fstat(h, &st) == -1) {
-				res = errno;
+                res = errno;
                 std::string err = strerror(res);
                 errMsg = Utilities::ToWide(err.c_str(), err.size());
-				::close(h);
+                ::close(h);
                 return;
-			}
+            }
             static_assert(sizeof (st.st_size) >= sizeof (UINT64), "Big file not supported");
             UINT64 StreamSize = st.st_size;
             if (SendResult(idStartDownloading, StreamSize) != sizeof (StreamSize)) {
