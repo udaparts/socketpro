@@ -142,7 +142,6 @@ namespace SPA{
                 errMsg = Utilities::GetErrorMessage((DWORD) res);
             } else {
                 if ((flags & FILE_OPEN_TRUNCACTED) == FILE_OPEN_TRUNCACTED) {
-                    create = ::SetFilePointer(m_of, 0, nullptr, FILE_BEGIN);
                     BOOL ok = ::SetEndOfFile(m_of);
                     assert(ok);
                 } else if ((flags & FILE_OPEN_APPENDED) == FILE_OPEN_APPENDED) {
@@ -151,7 +150,7 @@ namespace SPA{
             }
 #else
             std::string s = Utilities::ToUTF8(m_oFilePath.c_str(), m_oFilePath.size());
-            auto mode = O_WRONLY | O_CREAT;
+            auto mode = O_WRONLY | O_CREAT | O_BINARY;
             if ((flags & FILE_OPEN_TRUNCACTED) == FILE_OPEN_TRUNCACTED) {
                 mode |= O_TRUNC;
             } else if ((flags & FILE_OPEN_APPENDED) == FILE_OPEN_APPENDED) {
@@ -217,7 +216,7 @@ namespace SPA{
             ::CloseHandle(h);
 #else
             std::string s = Utilities::ToUTF8(path.c_str(), path.size());
-            int h = ::open(s.c_str(), O_RDONLY);
+            int h = ::open(s.c_str(), O_RDONLY | O_BINARY);
             if (h == -1) {
                 res = errno;
                 std::string err = strerror(res);
@@ -225,7 +224,13 @@ namespace SPA{
                 return;
             }
             struct stat st;
-            ::fstat(h, &st);
+            if (::fstat(h, &st) == -1) {
+				res = errno;
+                std::string err = strerror(res);
+                errMsg = Utilities::ToWide(err.c_str(), err.size());
+				::close(h);
+                return;
+			}
             static_assert(sizeof (st.st_size) >= sizeof (UINT64), "Big file not supported");
             UINT64 StreamSize = st.st_size;
             if (SendResult(idStartDownloading, StreamSize) != sizeof (StreamSize)) {
