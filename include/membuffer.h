@@ -29,7 +29,7 @@ namespace SPA {
 #else
 #ifdef WIN32_64
         BSTR ToBSTR(const char *utf8, size_t chars = (size_t) (~0));
-		std::wstring GetErrorMessage(DWORD dwError);
+        std::wstring GetErrorMessage(DWORD dwError);
 #else
         BSTR ToBSTR(const char *utf8, size_t chars);
 #endif

@@ -63,7 +63,7 @@ namespace SPA {
                 return file_size;
             }
 
-            bool Upload(const char *localFile, const wchar_t *remoteFile, DUpload up, DTransferring trans, DCanceled aborted = DCanceled(), unsigned int flags = SFile::FILE_OPEN_TRUNCACTED) {
+            bool Upload(const char *localFile, const wchar_t *remoteFile, DUpload up = nullptr, DTransferring trans = nullptr, DCanceled aborted = nullptr, unsigned int flags = SFile::FILE_OPEN_TRUNCACTED) {
                 if (!localFile || !::strlen(localFile))
                     return false;
                 if (!remoteFile || !::wcslen(remoteFile))
@@ -79,7 +79,7 @@ namespace SPA {
                 return Transfer();
             }
 
-            bool Download(const char *localFile, const wchar_t *remoteFile, DDownload dl, DTransferring trans, DCanceled aborted = DCanceled(), unsigned int flags = SFile::FILE_OPEN_TRUNCACTED) {
+            bool Download(const char *localFile, const wchar_t *remoteFile, DDownload dl = nullptr, DTransferring trans = nullptr, DCanceled aborted = nullptr, unsigned int flags = SFile::FILE_OPEN_TRUNCACTED) {
                 if (!localFile || !::strlen(localFile))
                     return false;
                 if (!remoteFile || !::wcslen(remoteFile))
@@ -140,14 +140,14 @@ namespace SPA {
                             assert(!context.m_of);
                             mc >> context.FileSize;
                             context.m_of = new std::ofstream;
-							auto mode = (std::ios::out | std::ios::binary);
-							if ((context.Flags & SFile::FILE_OPEN_TRUNCACTED))
-								mode |= std::ios::trunc;
-							else if ((context.Flags & SFile::FILE_OPEN_APPENDED))
-								mode |= std::ios::app;
+                            auto mode = (std::ios::out | std::ios::binary);
+                            if ((context.Flags & SFile::FILE_OPEN_TRUNCACTED))
+                                mode |= std::ios::trunc;
+                            else if ((context.Flags & SFile::FILE_OPEN_APPENDED))
+                                mode |= std::ios::app;
                             context.m_of->open(context.LocalFile, mode);
                         } else {
-							assert(false);
+                            assert(false);
                             mc.SetSize(0);
                         }
                     }
@@ -251,7 +251,7 @@ namespace SPA {
                         CAsyncServiceHandler::OnResultReturned(reqId, mc);
                         break;
                 }
-				CAutoLock al(m_csFile);
+                CAutoLock al(m_csFile);
                 Transfer();
             }
 
@@ -308,7 +308,7 @@ namespace SPA {
                                 }
                                 if (!context.FileSize) {
                                     context.Sent = true;
-									context.m_if->close();
+                                    context.m_if->close();
                                     if (!SendRequest(SFile::idUploadCompleted, (const unsigned char*) nullptr, (unsigned int) 0, rh, context.Aborted, se)) {
                                         return false;
                                     }
@@ -334,7 +334,7 @@ namespace SPA {
                                 if (!SendRequest(SFile::idUploading, sb->GetBuffer(), ret, rh, context.Aborted, se)) {
                                     return false;
                                 }
-								sent_buffer_size = cs->GetBytesInSendingBuffer();
+                                sent_buffer_size = cs->GetBytesInSendingBuffer();
                                 if (ret < SFile::STREAM_CHUNK_SIZE)
                                     break;
                                 if (sent_buffer_size >= 5 * SFile::STREAM_CHUNK_SIZE)
@@ -344,7 +344,7 @@ namespace SPA {
                             }
                             if (ret < SFile::STREAM_CHUNK_SIZE) {
                                 context.Sent = true;
-								context.m_if->close();
+                                context.m_if->close();
                                 if (!SendRequest(SFile::idUploadCompleted, (const unsigned char*) nullptr, (unsigned int) 0, rh, context.Aborted, se)) {
                                     return false;
                                 }
