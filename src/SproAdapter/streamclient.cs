@@ -324,7 +324,27 @@ namespace SocketProAdapter.ClientSide
             }
         }
 
-        public virtual bool Upload(string localFile, string remoteFile, DUpload up = null, DTransferring trans = null, DCanceled aborted = null, uint flags = FILE_OPEN_TRUNCACTED)
+        public bool Upload(string localFile, string remoteFile)
+        {
+            return Upload(localFile, remoteFile, null, null, null, FILE_OPEN_TRUNCACTED);
+        }
+
+        public bool Upload(string localFile, string remoteFile, DUpload up)
+        {
+            return Upload(localFile, remoteFile, up, null, null, FILE_OPEN_TRUNCACTED);
+        }
+
+        public bool Upload(string localFile, string remoteFile, DUpload up, DTransferring trans)
+        {
+            return Upload(localFile, remoteFile, up, trans, null, FILE_OPEN_TRUNCACTED);
+        }
+
+        public bool Upload(string localFile, string remoteFile, DUpload up, DTransferring trans, DCanceled aborted)
+        {
+            return Upload(localFile, remoteFile, up, trans, aborted, FILE_OPEN_TRUNCACTED);
+        }
+
+        public virtual bool Upload(string localFile, string remoteFile, DUpload up, DTransferring trans, DCanceled aborted, uint flags)
         {
             if (localFile == null || localFile.Length == 0)
                 return false;
@@ -343,7 +363,27 @@ namespace SocketProAdapter.ClientSide
             }
         }
 
-        public virtual bool Download(string localFile, string remoteFile, DDownload dl = null, DTransferring trans = null, DCanceled aborted = null, uint flags = FILE_OPEN_TRUNCACTED)
+        public bool Download(string localFile, string remoteFile)
+        {
+            return Download(localFile, remoteFile, null, null, null, FILE_OPEN_TRUNCACTED);
+        }
+
+        public bool Download(string localFile, string remoteFile, DDownload dl)
+        {
+            return Download(localFile, remoteFile, dl, null, null, FILE_OPEN_TRUNCACTED);
+        }
+
+        public bool Download(string localFile, string remoteFile, DDownload dl, DTransferring trans)
+        {
+            return Download(localFile, remoteFile, dl, trans, null, FILE_OPEN_TRUNCACTED);
+        }
+
+        public bool Download(string localFile, string remoteFile, DDownload dl, DTransferring trans, DCanceled aborted)
+        {
+            return Download(localFile, remoteFile, dl, trans, aborted, FILE_OPEN_TRUNCACTED);
+        }
+
+        public virtual bool Download(string localFile, string remoteFile, DDownload dl, DTransferring trans, DCanceled aborted, uint flags)
         {
             if (localFile == null || localFile.Length == 0)
                 return false;

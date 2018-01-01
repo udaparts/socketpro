@@ -1,12 +1,23 @@
 ﻿using System;
-using SocketProAdapter;
+using System.Runtime.InteropServices;
 using SocketProAdapter.ServerSide;
 
 public class CMySocketProServer : CSocketProServer
 {
-    [ServiceAttr(RemFileConst.sidRemotingFile)]
-    private CSocketProService<RemotingFilePeer> m_RemotingFile = new CSocketProService<RemotingFilePeer>();
-    //One SocketPro server supports any number of services. You can list them here!
+    [DllImport("ustreamfile")]
+    static extern void SetRootDirectory([In] [MarshalAs(UnmanagedType.LPWStr)] string root);
+
+    protected override bool OnSettingServer()
+    {
+        //load SocketPro file streaming server plugin located at the directory ../socketpro/bin
+        IntPtr p = CSocketProServer.DllManager.AddALibrary("ustreamfile");
+        if (p.ToInt64() != 0)
+        {
+            SetRootDirectory("C:\\boost_1_60_0\\stage\\lib64");
+            return true;
+        }
+        return false;
+    }
 
     static void Main(string[] args)
     {
@@ -17,6 +28,4 @@ public class CMySocketProServer : CSocketProServer
         Console.ReadLine();
         MySocketProServer.StopSocketProServer(); //or MySocketProServer.Dispose();
     }
-
 }
-

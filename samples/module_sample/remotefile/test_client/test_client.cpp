@@ -6,7 +6,8 @@ using namespace SPA::ClientSide;
 
 int main(int argc, char* argv[]) {
     CConnectionContext cc;
-    cc.Host = "localhost";
+	std::cout << "Remote SocketPro file streaming server:" << std::endl;
+	std::getline(std::cin, cc.Host);
     cc.Port = 20901;
     cc.UserId = L"MyUserId";
     cc.Password = L"MyPassword";
@@ -23,12 +24,9 @@ int main(int argc, char* argv[]) {
         return -1;
     }
     auto rf = spRf.Seek();
-    std::cout << "Input a remote file to download ......" << std::endl;
-    std::wstring RemoteFile;
-    std::getline(std::wcin, RemoteFile); //jvm.lib
-
+	//test both downloading and uploading files in file stream (it is different from byte stream)
+    std::wstring RemoteFile = L"jvm.lib";
     std::string LocalFile("spfile1.test");
-    //test both downloading and uploading files in file stream (it is different from byte stream)
     //downloading test
     ok = rf->Download(LocalFile.c_str(), RemoteFile.c_str(), [RemoteFile](CStreamingFile *file, int res, const std::wstring & errMsg) {
         if (res) {
@@ -37,7 +35,7 @@ int main(int argc, char* argv[]) {
             std::wcout << L"Downloading " << RemoteFile << L" completed" << std::endl;
     }, [](CStreamingFile *file, SPA::UINT64 downloaded) {
         //downloading progress
-        //std::cout << "Downloading rate: " << (downloaded * 100) / file->GetFileSize() << "%" << std::endl;
+        std::cout << "Downloading rate: " << (downloaded * 100) / file->GetFileSize() << "%" << std::endl;
     });
 
     LocalFile = "spfile2.test";
@@ -100,7 +98,7 @@ int main(int argc, char* argv[]) {
         }
     }, [](CStreamingFile *file, SPA::UINT64 uploaded) {
         //uploading progress
-        //std::cout << "Uploading rate: " << (uploaded * 100) / file->GetFileSize() << "%" << std::endl;
+        std::cout << "Uploading rate: " << (uploaded * 100) / file->GetFileSize() << "%" << std::endl;
     });
 
     LocalFile = "spfile2.test";

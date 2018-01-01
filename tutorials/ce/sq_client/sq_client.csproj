@@ -54,14 +54,8 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\csharp\server_queue\SQueue_i.cs">
-      <Link>SQueue_i.cs</Link>
-    </Compile>
     <Compile Include="..\..\csharp\server_queue\sq_client\Program.cs">
       <Link>Program.cs</Link>
-    </Compile>
-    <Compile Include="..\..\csharp\server_queue\sq_client\SQueue.cs">
-      <Link>SQueue.cs</Link>
     </Compile>
   </ItemGroup>
   <ItemGroup>

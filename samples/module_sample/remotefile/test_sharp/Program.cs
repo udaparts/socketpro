@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using SocketProAdapter;
 using SocketProAdapter.ClientSide;
 
@@ -9,7 +6,8 @@ class Program
 {
     static void Main(string[] args)
     {
-        CConnectionContext cc = new CConnectionContext("localhost", 20901, "MyUserId", "MyPassword");
+        Console.WriteLine("Remote SocketPro file streaming server:");
+        CConnectionContext cc = new CConnectionContext(Console.ReadLine(), 20901, "MyUserId", "MyPassword");
         using (CSocketPool<CStreamingFile> spRf = new CSocketPool<CStreamingFile>())
         {
             bool ok = spRf.StartSocketPool(cc, 1, 1);
@@ -20,10 +18,11 @@ class Program
                 return;
             }
             CStreamingFile rf = spRf.Seek();
-            Console.WriteLine("Input a remote file to download ......");
-            string RemoteFile1 = Console.ReadLine(); //jvm.lib
-            string LocalFile = "spfile1.test";
+
             //test both downloading and uploading files in file stream (it is different from byte stream)
+
+            string RemoteFile1 = "jvm.lib";
+            string LocalFile = "spfile1.test";
             //downloading test
             ok = rf.Download(LocalFile, RemoteFile1, (file, res, errMsg) =>
             {
@@ -103,7 +102,7 @@ class Program
                 //uploading progress
                 Console.WriteLine("Uploading rate: {0}%", downloaded * 100 / file.FileSize);
             });
-            
+
             LocalFile = "spfile2.test";
             RemoteFile2 = "libboost_wave-vc100-mt-sgd-1_60_copy.lib";
             ok = rf.Upload(LocalFile, RemoteFile2, (file, res, errMsg) =>
@@ -155,7 +154,7 @@ class Program
             {
                 //Console.WriteLine("Uploading rate: {0}%", downloaded * 100 / file.FileSize);
             });
-            
+
             ok = rf.WaitAll();
             Console.WriteLine("Press key ENTER to shutdown the demo application ......");
             Console.ReadLine();

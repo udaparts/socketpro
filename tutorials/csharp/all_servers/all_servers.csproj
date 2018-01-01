@@ -40,7 +40,6 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
   </ItemGroup>
@@ -65,12 +64,6 @@
     </Compile>
     <Compile Include="..\rado\rado_server\radoImpl.cs">
       <Link>radoImpl.cs</Link>
-    </Compile>
-    <Compile Include="..\remote_file\RemFile_i.cs">
-      <Link>RemFile_i.cs</Link>
-    </Compile>
-    <Compile Include="..\remote_file\rf_server\RemFileImpl.cs">
-      <Link>RemFileImpl.cs</Link>
     </Compile>
     <Compile Include="..\uqueue_demo\mystruct.cs">
       <Link>mystruct.cs</Link>

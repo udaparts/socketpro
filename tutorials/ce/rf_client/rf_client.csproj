@@ -54,14 +54,8 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\csharp\remote_file\RemFile_i.cs">
-      <Link>RemFile_i.cs</Link>
-    </Compile>
     <Compile Include="..\..\csharp\remote_file\rf_client\Program.cs">
       <Link>Program.cs</Link>
-    </Compile>
-    <Compile Include="..\..\csharp\remote_file\rf_client\RemFile.cs">
-      <Link>RemFile.cs</Link>
     </Compile>
   </ItemGroup>
   <ItemGroup>
