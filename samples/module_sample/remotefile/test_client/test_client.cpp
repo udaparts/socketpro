@@ -6,8 +6,8 @@ using namespace SPA::ClientSide;
 
 int main(int argc, char* argv[]) {
     CConnectionContext cc;
-	std::cout << "Remote SocketPro file streaming server:" << std::endl;
-	std::getline(std::cin, cc.Host);
+    std::cout << "Remote SocketPro file streaming server:" << std::endl;
+    std::getline(std::cin, cc.Host);
     cc.Port = 20901;
     cc.UserId = L"MyUserId";
     cc.Password = L"MyPassword";
@@ -24,7 +24,7 @@ int main(int argc, char* argv[]) {
         return -1;
     }
     auto rf = spRf.Seek();
-	//test both downloading and uploading files in file stream (it is different from byte stream)
+    //test both downloading and uploading files in file stream (it is different from byte stream)
     std::wstring RemoteFile = L"jvm.lib";
     std::string LocalFile("spfile1.test");
     //downloading test
