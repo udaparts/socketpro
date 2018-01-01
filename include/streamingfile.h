@@ -14,9 +14,14 @@ namespace SPA {
         public:
             typedef std::function<void(CStreamingFile *file, int res, const std::wstring &errMsg) > DDownload;
             typedef DDownload DUpload;
-            typedef std::function<void(CStreamingFile *file, UINT64 downloaded) > DTransferring;
+            typedef std::function<void(CStreamingFile *file, UINT64 transferred) > DTransferring;
 
             CStreamingFile(CClientSocket * cs = nullptr) : CAsyncServiceHandler(SFile::sidFile, cs) {
+            }
+
+		protected:
+			//You may use the protected constructor when extending this class
+			CStreamingFile(unsigned int sid, CClientSocket * cs = nullptr) : CAsyncServiceHandler(sid, cs) {
             }
 
         private:

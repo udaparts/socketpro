@@ -14,8 +14,17 @@ namespace SPA {
 			static const unsigned int ONE_MEGA_BYTES = 0x100000;
 			static const unsigned int BLOB_LENGTH_NOT_AVAILABLE = 0xffffffe0;
 
-		public:
+		protected:
+			//you may use this constructor for extending the class
+			CAsyncDBHandler(unsigned int sid, CClientSocket *cs = nullptr)
+				: CAsyncServiceHandler(sid, cs),
+				m_affected(-1), m_dbErrCode(0), m_lastReqId(0),
+				m_nCall(0), m_indexRowset(0), m_indexProc(0), m_ms(msUnknown), m_flags(0),
+				m_parameters(0), m_outputs(0), m_bCallReturn(false) {
+				m_Blob.Utf8ToW(true);
+			}
 
+		public:
 			CAsyncDBHandler(CClientSocket *cs = nullptr)
 				: CAsyncServiceHandler(serviceId, cs),
 				m_affected(-1), m_dbErrCode(0), m_lastReqId(0),

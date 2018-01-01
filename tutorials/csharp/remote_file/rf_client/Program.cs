@@ -1,5 +1,4 @@
 ﻿using System;
-using SocketProAdapter;
 using SocketProAdapter.ClientSide;
 
 class Program
@@ -30,7 +29,7 @@ class Program
                 if (res != 0)
                     Console.WriteLine("Error code: {0}, error message: {1}", res, errMsg);
                 else
-                    Console.WriteLine("Downloading {0} completed", RemoteFile);
+                    Console.WriteLine("Downloading {0} completed", file.RemoteFile);
             }, (file, downloaded) =>
             {
                 //downloading progress
@@ -45,7 +44,7 @@ class Program
                 if (res != 0)
                     Console.WriteLine("Error code: {0}, error message: {1}", res, errMsg);
                 else
-                    Console.WriteLine("Uploading {0} completed", RemoteFile);
+                    Console.WriteLine("Uploading {0} completed", file.RemoteFile);
             }, (file, downloaded) =>
             {
                 //uploading progress

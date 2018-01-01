@@ -7,4 +7,13 @@ public class CSqlServer extends CAsyncDBHandler {
     public CSqlServer() {
         super(sidMsSql);
     }
+
+    /**
+     * You may use the protected constructor when extending this class
+     *
+     * @param sid a service id
+     */
+    protected CSqlServer(int sid) {
+        super(sid);
+    }
 }

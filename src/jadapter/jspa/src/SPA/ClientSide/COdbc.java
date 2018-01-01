@@ -10,6 +10,15 @@ public class COdbc extends CAsyncDBHandler {
         super(sidOdbc);
     }
 
+    /**
+     * You may use the protected constructor when extending this class
+     *
+     * @param sid a service id
+     */
+    protected COdbc(int sid) {
+        super(sid);
+    }
+
     //meta recordsets
     public static final short idSQLColumnPrivileges = 0x7f00 + 100;
     public static final short idSQLColumns = 0x7f00 + 101;

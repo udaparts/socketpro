@@ -1,5 +1,6 @@
 package SPA.ClientSide;
 
+@Deprecated
 public class CStreamHelper {
 
     private final CStreamHelper m_this = this;

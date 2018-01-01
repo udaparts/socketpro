@@ -643,6 +643,12 @@
             Hosting service handler
             </summary>
         </member>
+        <member name="M:SocketProAdapter.ClientSide.CStreamingFile.#ctor(System.UInt32)">
+            <summary>
+            You may use the protected constructor when extending this class
+            </summary>
+            <param name="sid">A service id</param>
+        </member>
         <member name="M:SocketProAdapter.ServerSide.CSocketProServer.SetLastCallInfo(System.String)">
             <summary>
             Use the method for debugging crash within cross development environments.
@@ -1520,10 +1526,22 @@
             <param name="canceled">a callback for tracking cancel or socket closed event</param>
             <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
         </member>
+        <member name="M:SocketProAdapter.ClientSide.CSqlServer.#ctor(System.UInt32)">
+            <summary>
+            You may use the protected constructor when extending this class
+            </summary>
+            <param name="sid">A service id</param>
+        </member>
         <member name="F:SocketProAdapter.ClientSide.CSqlite.DATABASE_AUTO_ATTACHED">
             <summary>
             A flag used with the method CAsyncDBHandler.Open for automatically attaching the opening database onto current session
             </summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CSqlite.#ctor(System.UInt32)">
+            <summary>
+            You may use the protected constructor when extending this class
+            </summary>
+            <param name="sid">A service id</param>
         </member>
         <member name="F:SocketProAdapter.ClientSide.CMysql.USE_REMOTE_MYSQL">
             <summary>
@@ -1531,6 +1549,12 @@
             Use this const value for the input parameter flags with the method of CAsyncDBHandler::Open at client side
             to open a connection to remote Mysql server at SocketPro server instead of embedded Mysql
             </summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CMysql.#ctor(System.UInt32)">
+            <summary>
+            You may use the protected constructor when extending this class
+            </summary>
+            <param name="sid">A service id</param>
         </member>
         <member name="F:SocketProAdapter.ServerSide.Sqlite.ENABLE_GLOBAL_SQLITE_UPDATE_HOOK">
             <summary>
@@ -1756,6 +1780,12 @@
             <param name="buffer">The last chunk of data</param>
             <returns>The data size in byte</returns>
             <remarks>You must call the method StartChunkResponse before calling this method</remarks>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.COdbc.#ctor(System.UInt32)">
+            <summary>
+            You may use the protected constructor when extending this class
+            </summary>
+            <param name="sid">A service id</param>
         </member>
         <member name="F:SocketProAdapter.UDB.tagRollbackPlan.rpDefault">
             <summary>

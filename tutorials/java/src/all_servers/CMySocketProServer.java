@@ -3,7 +3,6 @@ package all_servers;
 import SPA.ServerSide.*;
 import pub_sub.server.HelloWorldPeer;
 import loading_balance.piConst;
-import remote_file.server.RemotingFilePeer;
 
 import webdemo.CMyHttpPeer;
 
@@ -17,9 +16,6 @@ public class CMySocketProServer extends CSocketProServer {
     private final CSocketProService<CClientPeer> m_Pi = new CSocketProService<>(CClientPeer.class);
     @ServiceAttr(ServiceID = piConst.sidPiWorker)
     private final CSocketProService<CClientPeer> m_PiWorker = new CSocketProService<>(CClientPeer.class);
-
-    @ServiceAttr(ServiceID = remote_file.RemFileConst.sidRemotingFile)
-    private final CSocketProService<RemotingFilePeer> m_RemotingFile = new CSocketProService<>(RemotingFilePeer.class);
 
     @ServiceAttr(ServiceID = SPA.BaseServiceID.sidHTTP)
     private final CSocketProService<CMyHttpPeer> m_http = new CSocketProService<>(CMyHttpPeer.class);
@@ -46,13 +42,19 @@ public class CMySocketProServer extends CSocketProServer {
         CMySocketProServer MySocketProServer = new CMySocketProServer();
 
         //CSocketProServer.QueueManager.setMessageQueuePassword("MyPasswordForMsgQueue");
-
         //load socketpro async sqlite and queue server libraries located at the directory ../socketpro/bin
         long handle = CSocketProServer.DllManager.AddALibrary("ssqlite");
         if (handle != 0) {
             Sqlite.SetSqliteDBGlobalConnectionString("usqlite.db+sakila.db.actor;sakila.db.language;sakila.db.category;sakila.db.country;sakila.db.film_actor");
         }
         handle = CSocketProServer.DllManager.AddALibrary("uasyncqueue", 16 * 1024); //16 * 1024 batch dequeuing size in bytes
+
+        handle = CSocketProServer.DllManager.AddALibrary("ustreamfile");
+        if (handle != 0) {
+            if (SPA.CUQueue.DEFAULT_OS == SPA.tagOperationSystem.osWin) {
+                Sfile.SetRootDirectory("C:\\boost_1_60_0\\stage\\lib64");
+            }
+        }
 
         //test certificate, private key and DH params files are located at ../SocketProRoot/bin
         //MySocketProServer.UseSSL("server.pem", "server.pem", "test", "dh512.pem");

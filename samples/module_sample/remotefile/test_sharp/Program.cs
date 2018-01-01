@@ -21,15 +21,15 @@ class Program
 
             //test both downloading and uploading files in file stream (it is different from byte stream)
 
-            string RemoteFile1 = "jvm.lib";
+            string RemoteFile = "jvm.lib";
             string LocalFile = "spfile1.test";
             //downloading test
-            ok = rf.Download(LocalFile, RemoteFile1, (file, res, errMsg) =>
+            ok = rf.Download(LocalFile, RemoteFile, (file, res, errMsg) =>
             {
                 if (res != 0)
                     Console.WriteLine("Error code: {0}, error message: {1}", res, errMsg);
                 else
-                    Console.WriteLine("Downloading {0} completed", RemoteFile1);
+                    Console.WriteLine("Downloading {0} completed", file.RemoteFile);
             }, (file, downloaded) =>
             {
                 //downloading progress
@@ -37,52 +37,52 @@ class Program
             });
 
             LocalFile = "spfile2.test";
-            string RemoteFile2 = "libboost_wave-vc100-mt-sgd-1_60.lib";
-            ok = rf.Download(LocalFile, RemoteFile2, (file, res, errMsg) =>
+            RemoteFile = "libboost_wave-vc100-mt-sgd-1_60.lib";
+            ok = rf.Download(LocalFile, RemoteFile, (file, res, errMsg) =>
             {
                 if (res != 0)
                     Console.WriteLine("Error code: {0}, error message: {1}", res, errMsg);
                 else
-                    Console.WriteLine("Downloading {0} completed", RemoteFile2);
+                    Console.WriteLine("Downloading {0} completed", file.RemoteFile);
             }, (file, downloaded) =>
             {
                 //Console.WriteLine("Downloading rate: {0}%", downloaded * 100 / file.FileSize);
             });
 
             LocalFile = "spfile3.test";
-            string RemoteFile3 = "libboost_coroutine-vc100-mt-s-1_60.lib";
-            ok = rf.Download(LocalFile, RemoteFile3, (file, res, errMsg) =>
+            RemoteFile = "libboost_coroutine-vc100-mt-s-1_60.lib";
+            ok = rf.Download(LocalFile, RemoteFile, (file, res, errMsg) =>
             {
                 if (res != 0)
                     Console.WriteLine("Error code: {0}, error message: {1}", res, errMsg);
                 else
-                    Console.WriteLine("Downloading {0} completed", RemoteFile3);
+                    Console.WriteLine("Downloading {0} completed", file.RemoteFile);
             }, (file, downloaded) =>
             {
                 //Console.WriteLine("Downloading rate: {0}%", downloaded * 100 / file.FileSize);
             });
 
             LocalFile = "spfile4.test";
-            string RemoteFile4 = "libboost_serialization-vc100-mt-s-1_60.lib";
-            ok = rf.Download(LocalFile, RemoteFile4, (file, res, errMsg) =>
+            RemoteFile = "libboost_serialization-vc100-mt-s-1_60.lib";
+            ok = rf.Download(LocalFile, RemoteFile, (file, res, errMsg) =>
             {
                 if (res != 0)
                     Console.WriteLine("Error code: {0}, error message: {1}", res, errMsg);
                 else
-                    Console.WriteLine("Downloading {0} completed", RemoteFile4);
+                    Console.WriteLine("Downloading {0} completed", file.RemoteFile);
             }, (file, downloaded) =>
             {
                 //Console.WriteLine("Downloading rate: {0}%", downloaded * 100 / file.FileSize);
             });
 
             LocalFile = "spfile5.test";
-            string RemoteFile5 = "libboost_math_tr1f-vc100-mt-sgd-1_60.lib";
-            ok = rf.Download(LocalFile, RemoteFile5, (file, res, errMsg) =>
+            RemoteFile = "libboost_math_tr1f-vc100-mt-sgd-1_60.lib";
+            ok = rf.Download(LocalFile, RemoteFile, (file, res, errMsg) =>
             {
                 if (res != 0)
                     Console.WriteLine("Error code: {0}, error message: {1}", res, errMsg);
                 else
-                    Console.WriteLine("Downloading {0} completed", RemoteFile5);
+                    Console.WriteLine("Downloading {0} completed", file.RemoteFile);
             }, (file, downloaded) =>
             {
                 //Console.WriteLine("Downloading rate: {0}%", downloaded * 100 / file.FileSize);
@@ -90,69 +90,69 @@ class Program
             ok = rf.WaitAll();
 
             LocalFile = "spfile1.test";
-            RemoteFile1 = "jvm_copy.lib";
-            ok = rf.Upload(LocalFile, RemoteFile1, (file, res, errMsg) =>
+            RemoteFile = "jvm_copy.lib";
+            ok = rf.Upload(LocalFile, RemoteFile, (file, res, errMsg) =>
             {
                 if (res != 0)
                     Console.WriteLine("Error code: {0}, error message: {1}", res, errMsg);
                 else
-                    Console.WriteLine("Uploading {0} completed", RemoteFile1);
-            }, (file, downloaded) =>
+                    Console.WriteLine("Uploading {0} completed", file.RemoteFile);
+            }, (file, uploaded) =>
             {
                 //uploading progress
-                Console.WriteLine("Uploading rate: {0}%", downloaded * 100 / file.FileSize);
+                Console.WriteLine("Uploading rate: {0}%", uploaded * 100 / file.FileSize);
             });
 
             LocalFile = "spfile2.test";
-            RemoteFile2 = "libboost_wave-vc100-mt-sgd-1_60_copy.lib";
-            ok = rf.Upload(LocalFile, RemoteFile2, (file, res, errMsg) =>
+            RemoteFile = "libboost_wave-vc100-mt-sgd-1_60_copy.lib";
+            ok = rf.Upload(LocalFile, RemoteFile, (file, res, errMsg) =>
             {
                 if (res != 0)
                     Console.WriteLine("Error code: {0}, error message: {1}", res, errMsg);
                 else
-                    Console.WriteLine("Uploading {0} completed", RemoteFile2);
-            }, (file, downloaded) =>
+                    Console.WriteLine("Uploading {0} completed", file.RemoteFile);
+            }, (file, uploaded) =>
             {
-                //Console.WriteLine("Uploading rate: {0}%", downloaded * 100 / file.FileSize);
+                //Console.WriteLine("Uploading rate: {0}%", uploaded * 100 / file.FileSize);
             });
 
             LocalFile = "spfile3.test";
-            RemoteFile3 = "libboost_coroutine-vc100-mt-s-1_60_copy.lib";
-            ok = rf.Upload(LocalFile, RemoteFile3, (file, res, errMsg) =>
+            RemoteFile = "libboost_coroutine-vc100-mt-s-1_60_copy.lib";
+            ok = rf.Upload(LocalFile, RemoteFile, (file, res, errMsg) =>
             {
                 if (res != 0)
                     Console.WriteLine("Error code: {0}, error message: {1}", res, errMsg);
                 else
-                    Console.WriteLine("Uploading {0} completed", RemoteFile3);
-            }, (file, downloaded) =>
+                    Console.WriteLine("Uploading {0} completed", file.RemoteFile);
+            }, (file, uploaded) =>
             {
-                //Console.WriteLine("Uploading rate: {0}%", downloaded * 100 / file.FileSize);
+                //Console.WriteLine("Uploading rate: {0}%", uploaded * 100 / file.FileSize);
             });
 
             LocalFile = "spfile4.test";
-            RemoteFile4 = "libboost_serialization-vc100-mt-s-1_60_copy.lib";
-            ok = rf.Upload(LocalFile, RemoteFile4, (file, res, errMsg) =>
+            RemoteFile = "libboost_serialization-vc100-mt-s-1_60_copy.lib";
+            ok = rf.Upload(LocalFile, RemoteFile, (file, res, errMsg) =>
             {
                 if (res != 0)
                     Console.WriteLine("Error code: {0}, error message: {1}", res, errMsg);
                 else
-                    Console.WriteLine("Uploading {0} completed", RemoteFile4);
-            }, (file, downloaded) =>
+                    Console.WriteLine("Uploading {0} completed", file.RemoteFile);
+            }, (file, uploaded) =>
             {
-                //Console.WriteLine("Uploading rate: {0}%", downloaded * 100 / file.FileSize);
+                //Console.WriteLine("Uploading rate: {0}%", uploaded * 100 / file.FileSize);
             });
 
             LocalFile = "spfile5.test";
-            RemoteFile5 = "libboost_math_tr1f-vc100-mt-sgd-1_60_copy.lib";
-            ok = rf.Upload(LocalFile, RemoteFile5, (file, res, errMsg) =>
+            RemoteFile = "libboost_math_tr1f-vc100-mt-sgd-1_60_copy.lib";
+            ok = rf.Upload(LocalFile, RemoteFile, (file, res, errMsg) =>
             {
                 if (res != 0)
                     Console.WriteLine("Error code: {0}, error message: {1}", res, errMsg);
                 else
-                    Console.WriteLine("Uploading {0} completed", RemoteFile5);
-            }, (file, downloaded) =>
+                    Console.WriteLine("Uploading {0} completed", file.RemoteFile);
+            }, (file, uploaded) =>
             {
-                //Console.WriteLine("Uploading rate: {0}%", downloaded * 100 / file.FileSize);
+                //Console.WriteLine("Uploading rate: {0}%", uploaded * 100 / file.FileSize);
             });
 
             ok = rf.WaitAll();

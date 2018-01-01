@@ -14,6 +14,15 @@ public class CSqlite extends CAsyncDBHandler {
         super(sidSqlite);
     }
 
+    /**
+     * You may use the protected constructor when extending this class
+     *
+     * @param sid a service id
+     */
+    protected CSqlite(int sid) {
+        super(sid);
+    }
+
     public final static int SQLITE_OK = 0; /* Successful result */
 
     /* beginning-of-error-codes */

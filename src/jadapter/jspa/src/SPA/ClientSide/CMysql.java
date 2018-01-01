@@ -29,4 +29,13 @@ public class CMysql extends CAsyncDBHandler {
     public CMysql() {
         super(sidMysql);
     }
+
+    /**
+     * You may use the protected constructor when extending this class
+     *
+     * @param sid a service id
+     */
+    protected CMysql(int sid) {
+        super(sid);
+    }
 }

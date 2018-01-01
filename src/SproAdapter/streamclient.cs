@@ -243,7 +243,7 @@ namespace SocketProAdapter.ClientSide
 
         public delegate void DDownload(CStreamingFile file, int res, string errMsg);
         public delegate void DUpload(CStreamingFile file, int res, string errMsg);
-        public delegate void DTransferring(CStreamingFile file, long downloaded);
+        public delegate void DTransferring(CStreamingFile file, long transferred);
 
         public const uint STREAM_CHUNK_SIZE = 10240;
 
@@ -271,6 +271,15 @@ namespace SocketProAdapter.ClientSide
         {
         }
 
+        /// <summary>
+        /// You may use the protected constructor when extending this class
+        /// </summary>
+        /// <param name="sid">A service id</param>
+        protected CStreamingFile(uint sid)
+            : base(sid)
+        {
+        }
+
         class CContext
         {
             public CContext(bool uplaod, uint flags)
@@ -290,6 +299,7 @@ namespace SocketProAdapter.ClientSide
             public DCanceled Aborted = null;
             public FileStream File = null;
             public bool Tried = false;
+            public string ErrMsg = "";
         };
 
         protected object m_csFile = new object();
@@ -320,6 +330,32 @@ namespace SocketProAdapter.ClientSide
                     if (m_vContext.Count == 0)
                         return -1;
                     return m_vContext[0].FileSize;
+                }
+            }
+        }
+
+        public string LocalFile
+        {
+            get
+            {
+                lock (m_csFile)
+                {
+                    if (m_vContext.Count == 0)
+                        return null;
+                    return m_vContext[0].LocalFile;
+                }
+            }
+        }
+
+        public string RemoteFile
+        {
+            get
+            {
+                lock (m_csFile)
+                {
+                    if (m_vContext.Count == 0)
+                        return null;
+                    return m_vContext[0].FilePath;
                 }
             }
         }
@@ -414,7 +450,7 @@ namespace SocketProAdapter.ClientSide
                         DDownload dl;
                         lock (m_csFile)
                         {
-                            CContext context = m_vContext.RemoveFromFront();
+                            CContext context = m_vContext[0];
                             if (context.File != null)
                                 context.File.Close();
                             else if (res == 0)
@@ -426,6 +462,10 @@ namespace SocketProAdapter.ClientSide
                         }
                         if (dl != null)
                             dl(this, res, errMsg);
+                        lock (m_csFile)
+                        {
+                            m_vContext.RemoveFromFront();
+                        }
                     }
                     break;
                 case idStartDownloading:
@@ -448,6 +488,10 @@ namespace SocketProAdapter.ClientSide
                             else if ((context.Flags & FILE_OPEN_SHARE_READ) == FILE_OPEN_SHARE_READ)
                                 fs = FileShare.Read;
                             context.File = new FileStream(context.LocalFile, fm, FileAccess.Write, fs);
+                        }
+                        catch (Exception err)
+                        {
+                            context.ErrMsg = err.Message;
                         }
                         finally { }
                     }
@@ -474,6 +518,7 @@ namespace SocketProAdapter.ClientSide
                     break;
                 case idUpload:
                     {
+                        bool removed = false;
                         DUpload upl = null;
                         int res;
                         string errMsg;
@@ -482,7 +527,8 @@ namespace SocketProAdapter.ClientSide
                         {
                             lock (m_csFile)
                             {
-                                CContext context = m_vContext.RemoveFromFront();
+                                CContext context = m_vContext[0];
+                                removed = true;
                                 upl = context.Upload;
                                 if (context.File != null)
                                 {
@@ -492,6 +538,13 @@ namespace SocketProAdapter.ClientSide
                         }
                         if (upl != null)
                             upl(this, res, errMsg);
+                        if (removed)
+                        {
+                            lock (m_csFile)
+                            {
+                                m_vContext.RemoveFromFront();
+                            }
+                        }
                     }
                     break;
                 case idUploading:
@@ -513,7 +566,7 @@ namespace SocketProAdapter.ClientSide
                         DUpload upl = null;
                         lock (m_csFile)
                         {
-                            CContext context = m_vContext.RemoveFromFront();
+                            CContext context = m_vContext[0];
                             upl = context.Upload;
                             if (context.File != null)
                             {
@@ -522,6 +575,10 @@ namespace SocketProAdapter.ClientSide
                         }
                         if (upl != null)
                             upl(this, 0, "");
+                        lock (m_csFile)
+                        {
+                            m_vContext.RemoveFromFront();
+                        }
                     }
                     break;
                 default:
@@ -557,9 +614,9 @@ namespace SocketProAdapter.ClientSide
                 {
                     if (index == 0)
                     {
-                        if (context.Download != null)
+                        if (context.Upload != null)
                         {
-                            context.Download(this, CANNOT_OPEN_LOCAL_FILE_FOR_READING, "Cannot open a local file for reading data");
+                            context.Upload(this, CANNOT_OPEN_LOCAL_FILE_FOR_READING, context.ErrMsg);
                         }
                         m_vContext.RemoveFromFront();
                     }
@@ -585,12 +642,10 @@ namespace SocketProAdapter.ClientSide
                             context.FileSize = context.File.Length;
                             if (!SendRequest(idUpload, context.FilePath, context.Flags, context.FileSize, rh, context.Aborted, se))
                                 return false;
-                            if (context.FileSize == 0)
-                            {
-                                context.Sent = true;
-                                if (!SendRequest(idUploadCompleted, rh, context.Aborted, se))
-                                    return false;
-                            }
+                        }
+                        catch (Exception err)
+                        {
+                            context.ErrMsg = err.Message;
                         }
                         finally { }
                     }
@@ -598,9 +653,9 @@ namespace SocketProAdapter.ClientSide
                     {
                         if (index == 0)
                         {
-                            if (context.Download != null)
+                            if (context.Upload != null)
                             {
-                                context.Download(this, CANNOT_OPEN_LOCAL_FILE_FOR_READING, "Cannot open a local file for reading data");
+                                context.Upload(this, CANNOT_OPEN_LOCAL_FILE_FOR_READING, context.ErrMsg);
                             }
                             m_vContext.RemoveFromFront();
                         }

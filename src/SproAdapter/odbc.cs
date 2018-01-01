@@ -14,6 +14,16 @@ namespace SocketProAdapter
             {
             }
 
+            /// <summary>
+            /// You may use the protected constructor when extending this class
+            /// </summary>
+            /// <param name="sid">A service id</param>
+            protected COdbc(uint sid)
+                : base(sid)
+            {
+
+            }
+
             //meta recordsets
             public const ushort idSQLColumnPrivileges = 0x7f00 + 100;
             public const ushort idSQLColumns = 0x7f00 + 101;

@@ -1482,6 +1482,13 @@ JNIEXPORT void JNICALL Java_SPA_ServerSide_Sqlite_SetSqliteDBGlobalConnectionStr
 
 
 /*
+ * Class:     SPA_ServerSide_Sfile
+ * Method:    SetRootDirectory
+ * Signature: (Ljava/lang/String;)V
+ */
+JNIEXPORT void JNICALL Java_SPA_ServerSide_Sfile_SetRootDirectory(JNIEnv *env, jclass pClass, jstring root);
+
+/*
  * Class:     SPA_ServerSide_Mysql
  * Method:    SetMysqlDBGlobalConnectionString
  * Signature: (Ljava/lang/String;Z)V

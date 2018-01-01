@@ -1567,6 +1567,31 @@ JNIEXPORT void JNICALL Java_SPA_ServerSide_Sqlite_SetSqliteDBGlobalConnectionStr
     }
 }
 
+HINSTANCE g_hStreamFile = nullptr;
+typedef void (WINAPI *PSetRootDirectory)(const wchar_t *root);
+PSetRootDirectory SetRootDirectory = nullptr;
+
+JNIEXPORT void JNICALL Java_SPA_ServerSide_Sfile_SetRootDirectory(JNIEnv *env, jclass pClass, jstring root) {
+    SPA::CAutoLock al(g_co);
+    if (!g_hStreamFile) {
+#ifdef WIN32_64
+        g_hStreamFile = ::LoadLibraryW(L"ustreamfile.dll");
+#else
+        g_hStreamFile = ::dlopen("libustreamfile.so", RTLD_LAZY);
+#endif
+    }
+    if (g_hStreamFile && !SetRootDirectory) {
+        SetRootDirectory = (PSetRootDirectory)::GetProcAddress(g_hStreamFile, "SetRootDirectory");
+    }
+    if (g_hStreamFile && SetRootDirectory && root) {
+        jsize len = env->GetStringLength(root);
+        const jchar *p = env->GetStringChars(root, nullptr);
+        std::wstring s(p, p + len);
+        SetRootDirectory(s.c_str());
+        env->ReleaseStringChars(root, p);
+    }
+}
+
 HINSTANCE g_hOdbc = nullptr;
 typedef void (WINAPI *PSetOdbcDBGlobalConnectionString)(const wchar_t *dbConnection);
 static PSetOdbcDBGlobalConnectionString SetOdbcDBGlobalConnectionString = nullptr;
