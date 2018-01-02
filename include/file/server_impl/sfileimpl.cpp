@@ -166,8 +166,8 @@ namespace SPA{
                 fl.l_start = 0;
                 fl.l_len = 0;
                 fl.l_type = F_WRLCK;
-                fl.l_pid = getpid();
-                if (fcntl(m_of, F_SETLKW, &fl) == -1) {
+                fl.l_pid = ::getpid();
+                if (::fcntl(m_of, F_SETLKW, &fl) == -1) {
                     res = errno;
                     std::string err = strerror(res);
                     errMsg = Utilities::ToWide(err.c_str(), err.size());
@@ -242,8 +242,8 @@ namespace SPA{
                 fl.l_start = 0;
                 fl.l_len = 0;
                 fl.l_type = F_RDLCK;
-                fl.l_pid = getpid();
-                if (fcntl(h, F_SETLKW, &fl) == -1) {
+                fl.l_pid = ::getpid();
+                if (::fcntl(h, F_SETLKW, &fl) == -1) {
                     res = errno;
                     std::string err = strerror(res);
                     errMsg = Utilities::ToWide(err.c_str(), err.size());
