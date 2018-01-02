@@ -163,28 +163,19 @@ namespace SPA{
                 errMsg = Utilities::ToWide(err.c_str(), err.size());
                 return;
             }
-			struct flock fl = {};
-			fl.l_whence = SEEK_SET;
-			fl.l_start = 0;
-			fl.l_len = 0;
-			if ((flags & FILE_OPEN_SHARE_READ) == 0) {
-				fl.l_type = F_RDLCK;
-				if (fcntl(m_of, F_SETLKW, &fl) == -1) {
-					res = errno;
-					std::string err = strerror(res);
-					errMsg = Utilities::ToWide(err.c_str(), err.size());
-					return;
-				}
-			}
-			if ((flags & FILE_OPEN_SHARE_WRITE) == 0) {
-				struct flock fl = {};
-				fl.l_type = F_WRLCK;
-				if (fcntl(m_of, F_SETLKW, &fl) == -1) {
-					res = errno;
-					std::string err = strerror(res);
-					errMsg = Utilities::ToWide(err.c_str(), err.size());
-				}
-			}
+            if ((flags & FILE_OPEN_SHARE_WRITE) == 0) {
+                struct flock fl;
+                ::memset(&fl, 0, sizeof (fl));
+                fl.l_whence = SEEK_SET;
+                fl.l_start = 0;
+                fl.l_len = 0;
+                fl.l_type = F_WRLCK;
+                if (fcntl(m_of, F_SETLKW, &fl) == -1) {
+                    res = errno;
+                    std::string err = strerror(res);
+                    errMsg = Utilities::ToWide(err.c_str(), err.size());
+                }
+            }
 #endif
         }
 
