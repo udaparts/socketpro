@@ -25,7 +25,6 @@ namespace SPA {
         static const unsigned int FILE_OPEN_SHARE_WRITE = 8;
 
         //error code
-        static const int UNKNOWN_ERROR = -1;
         static const int CANNOT_OPEN_LOCAL_FILE_FOR_WRITING = -2;
         static const int CANNOT_OPEN_LOCAL_FILE_FOR_READING = -3;
 

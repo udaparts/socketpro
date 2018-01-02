@@ -29,8 +29,15 @@ namespace SPA {
             struct CContext {
 
                 CContext(bool uplaod, unsigned int flags)
-                : Uploading(uplaod), FileSize(~0), Flags(flags), Sent(false), m_if(nullptr), m_of(nullptr) {
+                : Tried(false), Uploading(uplaod), FileSize(~0), Flags(flags), Sent(false), 
+#ifdef WIN32_64
+				File(INVALID_HANDLE_VALUE)
+#else
+				File(-1)
+#endif
+				{
                 }
+				bool Tried;
                 bool Uploading;
                 UINT64 FileSize;
                 unsigned int Flags;
@@ -40,8 +47,12 @@ namespace SPA {
                 DDownload Download;
                 DTransferring Transferring;
                 DCanceled Aborted;
-                std::ifstream *m_if;
-                std::ofstream *m_of;
+#ifdef WIN32_64
+				HANDLE File;
+#else
+				int File;
+#endif
+				std::wstring ErrMsg;
             };
 
         public:
@@ -50,10 +61,13 @@ namespace SPA {
                 {
                     CAutoLock al(m_csFile);
                     for (auto it = m_vContext.begin(), end = m_vContext.end(); it != end; ++it) {
-                        if (it->m_if)
-                            delete it->m_if;
-                        if (it->m_of)
-                            delete it->m_of;
+#ifdef WIN32_64
+						if (it->File != INVALID_HANDLE_VALUE)
+							::CloseHandle(it->File);
+#else
+						if (it->File != -1)
+							::close(it->File);
+#endif
                     }
                     m_vContext.clear();
                 }
@@ -115,17 +129,21 @@ namespace SPA {
                             if (m_vContext.size()) {
                                 CContext &context = m_vContext.front();
                                 assert(!context.Uploading);
-                                if (context.m_of) {
-                                    if (context.m_of->is_open())
-                                        context.m_of->close();
-                                    else if (!res) {
-                                        res = SFile::CANNOT_OPEN_LOCAL_FILE_FOR_WRITING;
-                                        errMsg = L"Cannot open a local file for writing data";
-                                    }
-                                    delete context.m_of;
-                                } else {
-                                    assert(res != 0);
+#ifdef WIN32_64
+								if (context.File != INVALID_HANDLE_VALUE) {
+									::CloseHandle(context.File);
+									context.File = INVALID_HANDLE_VALUE;
+								}
+#else
+                                if (context.File != -1) {
+									::close(it->File);
+									context.File = -1;
                                 }
+#endif
+								else {
+									res = SFile::CANNOT_OPEN_LOCAL_FILE_FOR_WRITING;
+                                    errMsg = context.ErrMsg;
+								}
                                 dl = context.Download;
                                 m_vContext.pop_front();
                             } else {
@@ -142,15 +160,49 @@ namespace SPA {
                         if (m_vContext.size()) {
                             CContext &context = m_vContext.front();
                             assert(!context.Uploading);
-                            assert(!context.m_of);
                             mc >> context.FileSize;
-                            context.m_of = new std::ofstream;
-                            auto mode = (std::ios::out | std::ios::binary);
-                            if ((context.Flags & SFile::FILE_OPEN_TRUNCACTED))
-                                mode |= std::ios::trunc;
-                            else if ((context.Flags & SFile::FILE_OPEN_APPENDED))
-                                mode |= std::ios::app;
-                            context.m_of->open(context.LocalFile, mode);
+#ifdef WIN32_64
+							DWORD sm = 0;
+							if ((context.Flags & SFile::FILE_OPEN_SHARE_WRITE) == SFile::FILE_OPEN_SHARE_WRITE)
+								sm |= FILE_SHARE_WRITE;
+							context.File = ::CreateFileW(context.FilePath.c_str(), GENERIC_WRITE, sm, nullptr, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+							if (context.File == INVALID_HANDLE_VALUE) {
+								context.ErrMsg = Utilities::GetErrorMessage(::GetLastError());
+							} else {
+								if ((context.Flags & SFile::FILE_OPEN_TRUNCACTED) == SFile::FILE_OPEN_TRUNCACTED) {
+									BOOL ok = ::SetEndOfFile(context.File);
+									assert(ok);
+								} else if ((context.Flags & SFile::FILE_OPEN_APPENDED) == SFile::FILE_OPEN_APPENDED) {
+									sm = ::SetFilePointer(context.File, 0, nullptr, FILE_END);
+								}
+							}
+#else
+							std::string s = Utilities::ToUTF8(context.FilePath.c_str(), context.FilePath.size());
+                            int mode = (O_WRONLY | O_CREAT);
+							if ((context.Flags & SFile::FILE_OPEN_TRUNCACTED) == SFile::FILE_OPEN_TRUNCACTED) {
+								mode |= O_TRUNC;
+							} else if ((context.Flags & SFile::FILE_OPEN_APPENDED) == SFile::FILE_OPEN_APPENDED) {
+								mode |= O_APPEND;
+							}
+							mode_t m = (S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
+							context.File = ::open(s.c_str(), mode, m);
+							if (context.File == -1) {
+								std::string err = strerror(res);
+								context.ErrMsg = Utilities::ToWide(err.c_str(), err.size());
+							}
+							else if ((context.Flags & SFile::FILE_OPEN_SHARE_WRITE) == 0) {
+								struct flock fl;
+								fl.l_whence = SEEK_SET;
+								fl.l_start = 0;
+								fl.l_len = 0;
+								fl.l_type = F_WRLCK;
+								fl.l_pid = getpid();
+								if (fcntl(context.File, F_SETLKW, &fl) == -1) {
+									std::string err = strerror(res);
+									context.ErrMsg = Utilities::ToWide(err.c_str(), err.size());
+								}
+							}
+#endif
                         } else {
                             assert(false);
                             mc.SetSize(0);
@@ -160,20 +212,39 @@ namespace SPA {
                     case SFile::idDownloading:
                     {
                         DTransferring trans;
-                        UINT64 downloaded = (~0);
+                        UINT64 downloaded = 0;
                         {
                             CAutoLock al(m_csFile);
                             if (m_vContext.size()) {
                                 CContext &context = m_vContext.front();
                                 assert(!context.Uploading);
                                 trans = context.Transferring;
-                                if (context.m_of->is_open()) {
-                                    context.m_of->write((const char*) mc.GetBuffer(), mc.GetSize());
-                                    downloaded = context.m_of->tellp();
+#ifdef WIN32_64
+								if (context.File != INVALID_HANDLE_VALUE) {
+									DWORD dw = mc.GetSize(), dwWritten;
+									BOOL ok = ::WriteFile(context.File, mc.GetBuffer(), dw, &dwWritten, nullptr);
+									assert(ok);
+									assert(dwWritten == mc.GetSize());
+									dwWritten = 0;
+									dw = ::GetFileSize(context.File, &dwWritten);
+									downloaded = dwWritten;
+									downloaded <<= 32;
+									downloaded += dw;
+								}
+#else
+                                if (context.File != -1) {
+                                    auto ret = ::write(context.File, mc.GetBuffer(), mc.GetSize());
+									assert((unsigned int) ret == mc.GetSize());
+									struct stat st;
+									static_assert(sizeof (st.st_size) >= sizeof (UINT64), "Big file not supported");
+									auto res = ::fstat(h, &st);
+									assert(res != -1);
+									downloaded = st.st_size;
                                 }
-                            } else {
-                                assert(false);
-                            }
+#endif
+							} else {
+								assert(false);
+							}
                         }
                         if (trans)
                             trans(this, downloaded);
@@ -191,13 +262,17 @@ namespace SPA {
                             if (m_vContext.size()) {
                                 CContext &context = m_vContext.front();
                                 assert(context.Uploading);
-                                if (context.m_if) {
-                                    if (context.m_if->is_open())
-                                        context.m_if->close();
-                                    delete context.m_of;
-                                } else {
-                                    assert(false);
-                                }
+#ifdef WIN32_64
+								if (context.File != INVALID_HANDLE_VALUE) {
+									::CloseHandle(context.File);
+									context.File = INVALID_HANDLE_VALUE;
+								}
+#else
+                                if (context.File != -1) {
+									::close(context.File);
+									context.File = -1;
+								}
+#endif
                                 upl = context.Download;
                                 m_vContext.pop_front();
                             } else {
@@ -235,13 +310,17 @@ namespace SPA {
                             if (m_vContext.size()) {
                                 CContext &context = m_vContext.front();
                                 assert(context.Uploading);
-                                if (context.m_if) {
-                                    if (context.m_if->is_open())
-                                        context.m_if->close();
-                                    delete context.m_of;
-                                } else {
-                                    assert(false);
-                                }
+#ifdef WIN32_64
+								if (context.File != INVALID_HANDLE_VALUE) {
+									::CloseHandle(context.File);
+									context.File = INVALID_HANDLE_VALUE;
+								}
+#else
+                                if (context.File != -1) {
+									::close(context.File);
+									context.File = -1;
+								}
+#endif
                                 upl = context.Download;
                                 m_vContext.pop_front();
                             } else {
@@ -261,16 +340,13 @@ namespace SPA {
             }
 
         private:
-
-            static UINT64 CheckPos(std::ifstream *ifs) {
-                UINT64 pos;
+			static bool IsOpened(const CContext &context) {
 #ifdef WIN32_64
-                pos = (UINT64) ifs->tellg().seekpos();
+				return (context.File != INVALID_HANDLE_VALUE);
 #else
-                pos = (UINT64) ifs->tellg();
+				return (context.File != -1);
 #endif
-                return pos;
-            }
+			}
 
             bool Transfer() {
                 size_t index = 0;
@@ -288,11 +364,10 @@ namespace SPA {
                         ++index;
                         continue;
                     }
-                    if (context.Uploading && context.m_if && !context.m_if->is_open()) {
+                    if (context.Uploading && context.Tried && !IsOpened(context)) {
                         if (index == 0) {
-                            delete context.m_if;
                             if (context.Download) {
-                                context.Download(this, SFile::CANNOT_OPEN_LOCAL_FILE_FOR_READING, L"Cannot open a local file for reading data");
+                                context.Download(this, SFile::CANNOT_OPEN_LOCAL_FILE_FOR_READING, context.ErrMsg);
                             }
                             m_vContext.erase(m_vContext.begin() + index);
                         } else {
@@ -301,30 +376,71 @@ namespace SPA {
                         continue;
                     }
                     if (context.Uploading) {
-                        if (!context.m_if) {
-                            context.m_if = new std::ifstream;
-                            context.m_if->open(context.LocalFile, std::ios::in | std::ios::binary);
-                            if (context.m_if->is_open()) {
-                                context.m_if->seekg(0, std::ios_base::end);
-                                context.FileSize = CheckPos(context.m_if);
-                                context.m_if->seekg(0, std::ios_base::beg);
+                        if (!context.Tried) {
+							context.Tried = true;
+#ifdef WIN32_64
+							DWORD sm = 0;
+							if ((context.Flags & SFile::FILE_OPEN_SHARE_READ) == SFile::FILE_OPEN_SHARE_READ)
+								sm |= FILE_SHARE_READ;
+							context.File = ::CreateFileW(context.FilePath.c_str(), GENERIC_READ, sm, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
+							if (context.File == INVALID_HANDLE_VALUE) {
+								context.ErrMsg = Utilities::GetErrorMessage(::GetLastError());
+							}
+#else
+							std::string s = Utilities::ToUTF8(context.FilePath.c_str(), context.FilePath.size());
+							context.File = ::open(s.c_str(), O_RDONLY);
+							if (context.File == -1) {
+								std::string s = strerror(errno);
+								context.ErrMsg = Utilities::ToWide(err.c_str(), err.size());
+							}
+#endif
+                            if (IsOpened(context)) {
+#ifdef WIN32_64
+								DWORD dwHigh = 0;
+								DWORD dw = ::GetFileSize(context.File, &dwHigh);
+								context.FileSize = dwHigh;
+								context.FileSize <<= 32;
+								context.FileSize += dw;
+#else
+								int res;
+								if ((context.Flags & SFile::FILE_OPEN_SHARE_READ) == 0) {
+									struct flock fl;
+									fl.l_whence = SEEK_SET;
+									fl.l_start = 0;
+									fl.l_len = 0;
+									fl.l_type = F_RDLCK;
+									fl.l_pid = getpid();
+									res = fcntl(m_of, F_SETLKW, &fl);
+									assert(res != -1);
+								}
+								struct stat st;
+								static_assert(sizeof (st.st_size) >= sizeof (UINT64), "Big file not supported");
+								res = ::fstat(context.File, &st);
+								assert(res != -1);
+								context.FileSize = st.st_size;
+#endif
                                 if (!SendRequest(SFile::idUpload, context.FilePath.c_str(), context.Flags, context.FileSize, rh, context.Aborted, se)) {
                                     return false;
                                 }
                                 if (!context.FileSize) {
                                     context.Sent = true;
-                                    context.m_if->close();
+#ifdef WIN32_64
+									::CloseHandle(context.File);
+									context.File = INVALID_HANDLE_VALUE;
+#else
+									::CloseHandle(context.File);
+									context.File = -1;
+#endif
                                     if (!SendRequest(SFile::idUploadCompleted, (const unsigned char*) nullptr, (unsigned int) 0, rh, context.Aborted, se)) {
                                         return false;
                                     }
                                 }
                             }
                         }
-                        if (!context.m_if->is_open()) {
+                        if (!IsOpened(context)) {
                             if (index == 0) {
-                                delete context.m_if;
                                 if (context.Download) {
-                                    context.Download(this, SFile::CANNOT_OPEN_LOCAL_FILE_FOR_READING, L"Cannot open a local file for reading data");
+                                    context.Download(this, SFile::CANNOT_OPEN_LOCAL_FILE_FOR_READING, context.ErrMsg);
                                 }
                                 m_vContext.erase(m_vContext.begin() + index);
                             } else {
@@ -333,10 +449,16 @@ namespace SPA {
                             continue;
                         } else {
                             CScopeUQueue sb(MY_OPERATION_SYSTEM, IsBigEndian(), SFile::STREAM_CHUNK_SIZE);
-                            context.m_if->read((char*) sb->GetBuffer(), SFile::STREAM_CHUNK_SIZE);
-                            unsigned int ret = (unsigned int) context.m_if->gcount();
+#ifdef WIN32_64
+							DWORD ret = 0;
+							BOOL ok = ::ReadFile(context.File, (LPVOID) sb->GetBuffer(), SFile::STREAM_CHUNK_SIZE, &ret, nullptr);
+							assert(ok);
+#else
+							int ret = ::read(context.File, (void*) sb->GetBuffer(), SFile::STREAM_CHUNK_SIZE);
+							assert(ret != -1);
+#endif
                             while (ret > 0) {
-                                if (!SendRequest(SFile::idUploading, sb->GetBuffer(), ret, rh, context.Aborted, se)) {
+                                if (!SendRequest(SFile::idUploading, sb->GetBuffer(), (unsigned int)ret, rh, context.Aborted, se)) {
                                     return false;
                                 }
                                 sent_buffer_size = cs->GetBytesInSendingBuffer();
@@ -344,12 +466,24 @@ namespace SPA {
                                     break;
                                 if (sent_buffer_size >= 5 * SFile::STREAM_CHUNK_SIZE)
                                     break;
-                                context.m_if->read((char*) sb->GetBuffer(), SFile::STREAM_CHUNK_SIZE);
-                                ret = (unsigned int) context.m_if->gcount();
+#ifdef WIN32_64
+								ret = 0;
+								ok = ::ReadFile(context.File, (LPVOID) sb->GetBuffer(), SFile::STREAM_CHUNK_SIZE, &ret, nullptr);
+								assert(ok);
+#else
+								ret = ::read(context.File, (void*) sb->GetBuffer(), SFile::STREAM_CHUNK_SIZE);
+								assert(ret != -1);
+#endif
                             }
                             if (ret < SFile::STREAM_CHUNK_SIZE) {
                                 context.Sent = true;
-                                context.m_if->close();
+#ifdef WIN32_64
+								::CloseHandle(context.File);
+								context.File = INVALID_HANDLE_VALUE;
+#else
+								::CloseHandle(context.File);
+								context.File = -1;
+#endif
                                 if (!SendRequest(SFile::idUploadCompleted, (const unsigned char*) nullptr, (unsigned int) 0, rh, context.Aborted, se)) {
                                     return false;
                                 }

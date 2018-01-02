@@ -41,7 +41,6 @@ public class CStreamingFile extends CAsyncServiceHandler {
     public final static int FILE_OPEN_SHARE_WRITE = 8;
 
     //error code
-    public final static int UNKNOWN_ERROR = -1;
     public final static int CANNOT_OPEN_LOCAL_FILE_FOR_WRITING = -2;
     public final static int CANNOT_OPEN_LOCAL_FILE_FOR_READING = -3;
 
@@ -134,7 +133,7 @@ public class CStreamingFile extends CAsyncServiceHandler {
             case idDownload: {
                 int res = mc.LoadInt();
                 String errMsg = mc.LoadString();
-                DDownload dl = null;
+                DDownload dl;
                 synchronized (m_csFile) {
                     CContext context = m_vContext.getFirst();
                     if (context.File != null) {
@@ -171,7 +170,7 @@ public class CStreamingFile extends CAsyncServiceHandler {
                         if ((context.Flags & FILE_OPEN_TRUNCACTED) == FILE_OPEN_TRUNCACTED) {
                             context.File.truncate(0);
                         }
-                        if ((context.Flags & FILE_OPEN_APPENDED) == FILE_OPEN_APPENDED) {
+                        else if ((context.Flags & FILE_OPEN_APPENDED) == FILE_OPEN_APPENDED) {
                             context.File.position(context.File.size());
                         }
                     } catch (IOException err) {
@@ -192,7 +191,7 @@ public class CStreamingFile extends CAsyncServiceHandler {
                 break;
             case idDownloading: {
                 long downloaded = -1;
-                DTransferring trans = null;
+                DTransferring trans;
                 synchronized (m_cs) {
                     CContext context = m_vContext.getFirst();
                     trans = context.Transferring;
@@ -241,7 +240,7 @@ public class CStreamingFile extends CAsyncServiceHandler {
             }
             break;
             case idUploading: {
-                DTransferring trans = null;
+                DTransferring trans;
                 long uploaded = mc.LoadLong();
                 synchronized (m_csFile) {
                     CContext context = m_vContext.getFirst();
@@ -253,7 +252,7 @@ public class CStreamingFile extends CAsyncServiceHandler {
             }
             break;
             case idUploadCompleted: {
-                DUpload upl = null;
+                DUpload upl;
                 synchronized (m_csFile) {
                     CContext context = m_vContext.getFirst();
                     upl = context.Upload;

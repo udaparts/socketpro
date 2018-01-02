@@ -132,9 +132,6 @@ namespace SPA{
             DWORD sm = 0;
             if ((flags & FILE_OPEN_SHARE_WRITE) == FILE_OPEN_SHARE_WRITE)
                 sm |= FILE_SHARE_WRITE;
-            if ((flags & FILE_OPEN_SHARE_READ) == FILE_OPEN_SHARE_READ)
-                sm |= FILE_SHARE_READ;
-            DWORD create = OPEN_ALWAYS;
             m_of = ::CreateFileW(m_oFilePath.c_str(), GENERIC_WRITE, sm, nullptr, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
             if (m_of == INVALID_HANDLE_VALUE) {
                 res = (int) ::GetLastError();
@@ -144,7 +141,7 @@ namespace SPA{
                     BOOL ok = ::SetEndOfFile(m_of);
                     assert(ok);
                 } else if ((flags & FILE_OPEN_APPENDED) == FILE_OPEN_APPENDED) {
-                    create = ::SetFilePointer(m_of, 0, nullptr, FILE_END);
+                    sm = ::SetFilePointer(m_of, 0, nullptr, FILE_END);
                 }
             }
 #else
@@ -165,11 +162,11 @@ namespace SPA{
             }
             if ((flags & FILE_OPEN_SHARE_WRITE) == 0) {
                 struct flock fl;
-                ::memset(&fl, 0, sizeof (fl));
                 fl.l_whence = SEEK_SET;
                 fl.l_start = 0;
                 fl.l_len = 0;
                 fl.l_type = F_WRLCK;
+				fl.l_pid = getpid();
                 if (fcntl(m_of, F_SETLKW, &fl) == -1) {
                     res = errno;
                     std::string err = strerror(res);
@@ -195,7 +192,10 @@ namespace SPA{
                 path = g_pathRoot + filePath;
             }
 #ifdef WIN32_64
-            HANDLE h = ::CreateFileW(path.c_str(), GENERIC_READ, 0, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
+			DWORD sm = 0;
+            if ((flags & FILE_OPEN_SHARE_READ) == FILE_OPEN_SHARE_READ)
+                sm |= FILE_SHARE_READ;
+            HANDLE h = ::CreateFileW(path.c_str(), GENERIC_READ, sm, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
             if (h == INVALID_HANDLE_VALUE) {
                 res = (int) ::GetLastError();
                 errMsg = Utilities::GetErrorMessage((DWORD) res);
@@ -235,6 +235,21 @@ namespace SPA{
                 std::string err = strerror(res);
                 errMsg = Utilities::ToWide(err.c_str(), err.size());
                 return;
+            }
+			if ((flags & FILE_OPEN_SHARE_READ) == 0) {
+                struct flock fl;
+                fl.l_whence = SEEK_SET;
+                fl.l_start = 0;
+                fl.l_len = 0;
+                fl.l_type = F_RDLCK;
+				fl.l_pid = getpid();
+                if (fcntl(m_of, F_SETLKW, &fl) == -1) {
+                    res = errno;
+                    std::string err = strerror(res);
+                    errMsg = Utilities::ToWide(err.c_str(), err.size());
+					::close(h);
+					return;
+                }
             }
             struct stat st;
             if (::fstat(h, &st) == -1) {

@@ -262,7 +262,6 @@ namespace SocketProAdapter.ClientSide
         public const uint FILE_OPEN_SHARE_WRITE = 8;
 
         //error code
-        public const int UNKNOWN_ERROR = -1;
         public const int CANNOT_OPEN_LOCAL_FILE_FOR_WRITING = -2;
         public const int CANNOT_OPEN_LOCAL_FILE_FOR_READING = -3;
 
@@ -484,9 +483,7 @@ namespace SocketProAdapter.ClientSide
                                 fm = FileMode.OpenOrCreate;
                             FileShare fs = FileShare.None;
                             if ((context.Flags & FILE_OPEN_SHARE_WRITE) == FILE_OPEN_SHARE_WRITE)
-                                fs = FileShare.ReadWrite;
-                            else if ((context.Flags & FILE_OPEN_SHARE_READ) == FILE_OPEN_SHARE_READ)
-                                fs = FileShare.Read;
+                                fs = FileShare.Write;
                             context.File = new FileStream(context.LocalFile, fm, FileAccess.Write, fs);
                         }
                         catch (Exception err)
@@ -634,9 +631,7 @@ namespace SocketProAdapter.ClientSide
                         try
                         {
                             FileShare fs = FileShare.None;
-                            if ((context.Flags & FILE_OPEN_SHARE_WRITE) == FILE_OPEN_SHARE_WRITE)
-                                fs = FileShare.ReadWrite;
-                            else if ((context.Flags & FILE_OPEN_SHARE_READ) == FILE_OPEN_SHARE_READ)
+                            if ((context.Flags & FILE_OPEN_SHARE_READ) == FILE_OPEN_SHARE_READ)
                                 fs = FileShare.Read;
                             context.File = new FileStream(context.LocalFile, FileMode.Open, FileAccess.Read, fs);
                             context.FileSize = context.File.Length;
