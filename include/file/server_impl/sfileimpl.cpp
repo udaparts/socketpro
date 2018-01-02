@@ -166,7 +166,7 @@ namespace SPA{
                 fl.l_start = 0;
                 fl.l_len = 0;
                 fl.l_type = F_WRLCK;
-				fl.l_pid = getpid();
+                fl.l_pid = getpid();
                 if (fcntl(m_of, F_SETLKW, &fl) == -1) {
                     res = errno;
                     std::string err = strerror(res);
@@ -192,7 +192,7 @@ namespace SPA{
                 path = g_pathRoot + filePath;
             }
 #ifdef WIN32_64
-			DWORD sm = 0;
+            DWORD sm = 0;
             if ((flags & FILE_OPEN_SHARE_READ) == FILE_OPEN_SHARE_READ)
                 sm |= FILE_SHARE_READ;
             HANDLE h = ::CreateFileW(path.c_str(), GENERIC_READ, sm, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
@@ -236,19 +236,19 @@ namespace SPA{
                 errMsg = Utilities::ToWide(err.c_str(), err.size());
                 return;
             }
-			if ((flags & FILE_OPEN_SHARE_READ) == 0) {
+            if ((flags & FILE_OPEN_SHARE_READ) == 0) {
                 struct flock fl;
                 fl.l_whence = SEEK_SET;
                 fl.l_start = 0;
                 fl.l_len = 0;
                 fl.l_type = F_RDLCK;
-				fl.l_pid = getpid();
-                if (fcntl(m_of, F_SETLKW, &fl) == -1) {
+                fl.l_pid = getpid();
+                if (fcntl(h, F_SETLKW, &fl) == -1) {
                     res = errno;
                     std::string err = strerror(res);
                     errMsg = Utilities::ToWide(err.c_str(), err.size());
-					::close(h);
-					return;
+                    ::close(h);
+                    return;
                 }
             }
             struct stat st;
