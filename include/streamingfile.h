@@ -42,7 +42,7 @@ namespace SPA {
                 UINT64 FileSize;
                 unsigned int Flags;
                 bool Sent;
-                std::string LocalFile;
+                std::wstring LocalFile;
                 std::wstring FilePath;
                 DDownload Download;
                 DTransferring Transferring;
@@ -82,8 +82,8 @@ namespace SPA {
                 return file_size;
             }
 
-            bool Upload(const char *localFile, const wchar_t *remoteFile, DUpload up = nullptr, DTransferring trans = nullptr, DCanceled aborted = nullptr, unsigned int flags = SFile::FILE_OPEN_TRUNCACTED) {
-                if (!localFile || !::strlen(localFile))
+            bool Upload(const wchar_t *localFile, const wchar_t *remoteFile, DUpload up = nullptr, DTransferring trans = nullptr, DCanceled aborted = nullptr, unsigned int flags = SFile::FILE_OPEN_TRUNCACTED) {
+                if (!localFile || !::wcslen(localFile))
                     return false;
                 if (!remoteFile || !::wcslen(remoteFile))
                     return false;
@@ -98,8 +98,8 @@ namespace SPA {
                 return Transfer();
             }
 
-            bool Download(const char *localFile, const wchar_t *remoteFile, DDownload dl = nullptr, DTransferring trans = nullptr, DCanceled aborted = nullptr, unsigned int flags = SFile::FILE_OPEN_TRUNCACTED) {
-                if (!localFile || !::strlen(localFile))
+            bool Download(const wchar_t *localFile, const wchar_t *remoteFile, DDownload dl = nullptr, DTransferring trans = nullptr, DCanceled aborted = nullptr, unsigned int flags = SFile::FILE_OPEN_TRUNCACTED) {
+                if (!localFile || !::wcslen(localFile))
                     return false;
                 if (!remoteFile || !::wcslen(remoteFile))
                     return false;
@@ -165,7 +165,7 @@ namespace SPA {
 							DWORD sm = 0;
 							if ((context.Flags & SFile::FILE_OPEN_SHARE_WRITE) == SFile::FILE_OPEN_SHARE_WRITE)
 								sm |= FILE_SHARE_WRITE;
-							context.File = ::CreateFileW(context.FilePath.c_str(), GENERIC_WRITE, sm, nullptr, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+							context.File = ::CreateFileW(context.LocalFile.c_str(), GENERIC_WRITE, sm, nullptr, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
 							if (context.File == INVALID_HANDLE_VALUE) {
 								context.ErrMsg = Utilities::GetErrorMessage(::GetLastError());
 							} else {
@@ -177,7 +177,7 @@ namespace SPA {
 								}
 							}
 #else
-							std::string s = Utilities::ToUTF8(context.FilePath.c_str(), context.FilePath.size());
+							std::string s = Utilities::ToUTF8(context.LocalFile.c_str(), context.LocalFile.size());
                             int mode = (O_WRONLY | O_CREAT);
 							if ((context.Flags & SFile::FILE_OPEN_TRUNCACTED) == SFile::FILE_OPEN_TRUNCACTED) {
 								mode |= O_TRUNC;
@@ -382,12 +382,12 @@ namespace SPA {
 							DWORD sm = 0;
 							if ((context.Flags & SFile::FILE_OPEN_SHARE_READ) == SFile::FILE_OPEN_SHARE_READ)
 								sm |= FILE_SHARE_READ;
-							context.File = ::CreateFileW(context.FilePath.c_str(), GENERIC_READ, sm, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
+							context.File = ::CreateFileW(context.LocalFile.c_str(), GENERIC_READ, sm, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
 							if (context.File == INVALID_HANDLE_VALUE) {
 								context.ErrMsg = Utilities::GetErrorMessage(::GetLastError());
 							}
 #else
-							std::string s = Utilities::ToUTF8(context.FilePath.c_str(), context.FilePath.size());
+							std::string s = Utilities::ToUTF8(context.LocalFile.c_str(), context.LocalFile.size());
 							context.File = ::open(s.c_str(), O_RDONLY);
 							if (context.File == -1) {
 								std::string s = strerror(errno);
@@ -421,19 +421,6 @@ namespace SPA {
 #endif
                                 if (!SendRequest(SFile::idUpload, context.FilePath.c_str(), context.Flags, context.FileSize, rh, context.Aborted, se)) {
                                     return false;
-                                }
-                                if (!context.FileSize) {
-                                    context.Sent = true;
-#ifdef WIN32_64
-									::CloseHandle(context.File);
-									context.File = INVALID_HANDLE_VALUE;
-#else
-									::CloseHandle(context.File);
-									context.File = -1;
-#endif
-                                    if (!SendRequest(SFile::idUploadCompleted, (const unsigned char*) nullptr, (unsigned int) 0, rh, context.Aborted, se)) {
-                                        return false;
-                                    }
                                 }
                             }
                         }
@@ -477,13 +464,6 @@ namespace SPA {
                             }
                             if (ret < SFile::STREAM_CHUNK_SIZE) {
                                 context.Sent = true;
-#ifdef WIN32_64
-								::CloseHandle(context.File);
-								context.File = INVALID_HANDLE_VALUE;
-#else
-								::CloseHandle(context.File);
-								context.File = -1;
-#endif
                                 if (!SendRequest(SFile::idUploadCompleted, (const unsigned char*) nullptr, (unsigned int) 0, rh, context.Aborted, se)) {
                                     return false;
                                 }

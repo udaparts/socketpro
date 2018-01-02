@@ -164,7 +164,7 @@ public class CStreamingFile extends CAsyncServiceHandler {
                     try {
                         File file = new File(context.LocalFile);
                         context.File = new RandomAccessFile(file, "rw").getChannel();
-                        if ((context.Flags & (FILE_OPEN_SHARE_WRITE | FILE_OPEN_SHARE_READ)) == 0) {
+                        if ((context.Flags & FILE_OPEN_SHARE_WRITE) == 0) {
                             context.File.lock();
                         }
                         if ((context.Flags & FILE_OPEN_TRUNCACTED) == FILE_OPEN_TRUNCACTED) {
