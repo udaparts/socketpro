@@ -262,8 +262,8 @@ namespace SocketProAdapter.ClientSide
         public const uint FILE_OPEN_SHARE_WRITE = 8;
 
         //error code
-        public const int CANNOT_OPEN_LOCAL_FILE_FOR_WRITING = -2;
-        public const int CANNOT_OPEN_LOCAL_FILE_FOR_READING = -3;
+        public const int CANNOT_OPEN_LOCAL_FILE_FOR_WRITING = -1;
+        public const int CANNOT_OPEN_LOCAL_FILE_FOR_READING = -2;
 
         public CStreamingFile()
             : base(sidFile)
