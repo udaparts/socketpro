@@ -12,8 +12,9 @@
 	- Well support on modern language development features such as anonymous function, closure, Lambda expression, async/await, future, promise, yield and so on
     - Great maintainability, modularity and version control
 
-4.	Highly performance Plug-ins with opened source codes
-    - High performance asynchronous message persistent queue (free)
+4.	High performance Plug-ins with opened source codes
+    - Superior performance asynchronous message persistent queue (free)
+    - High performance file streaming
 	- SQL streaming for SQLite 3.11.1 or later (free)
 	- SQL streaming for MySQL 5.7.18 or later (free)
 	- SQL streaming for MS SQL server 2008 or later

@@ -1,5 +1,6 @@
 55.	SocketPro Version 6.0.4.7
 	(a) Fix server router auto-recovery (fault-tolerance) issue at client side.
+	(b) .NET Adapter and demo examples updated with support of file streaming plugin.
 
 54.	SocketPro Version 6.0.4.6
 	(a) SocketPro adapters upgraded with new feature master/slave pools for enterprise applications and their demo examples
