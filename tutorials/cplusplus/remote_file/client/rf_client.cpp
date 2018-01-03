@@ -26,7 +26,7 @@ int main(int argc, char* argv[]) {
     std::cout << "Input a remote file to download ......" << std::endl;
     std::wstring RemoteFile;
     std::getline(std::wcin, RemoteFile);
-    std::string LocalFile("spfile.test");
+    std::wstring LocalFile(L"spfile.test");
     //test both downloading and uploading files in file stream (it is different from byte stream)
     //downloading test
     ok = rf->Download(LocalFile.c_str(), RemoteFile.c_str(), [RemoteFile](CStreamingFile *file, int res, const std::wstring & errMsg) {

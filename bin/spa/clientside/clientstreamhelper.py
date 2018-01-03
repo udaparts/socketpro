@@ -41,7 +41,7 @@ class CStreamingFile(CAsyncServiceHandler):
     CANNOT_OPEN_LOCAL_FILE_FOR_WRITING = -1
     CANNOT_OPEN_LOCAL_FILE_FOR_READING = -2
 
-    def __init__(self, sid=CStreamingFile.sidFile):
+    def __init__(self, sid=sidFile):
         super(CStreamingFile, self).__init__(sid)
         self._csFile = threading.Lock()
         self._vContext = deque() # protected by self._csFile
@@ -77,7 +77,7 @@ class CStreamingFile(CAsyncServiceHandler):
                 return None
             return self._vContext[0].FilePath
 
-    def Upload(self, localFile, remoteFile, up=None, trans=None, aborted=None, flags=CStreamingFile.FILE_OPEN_TRUNCACTED):
+    def Upload(self, localFile, remoteFile, up=None, trans=None, aborted=None, flags=FILE_OPEN_TRUNCACTED):
         if not localFile:
             return False
         if not remoteFile:
@@ -92,7 +92,7 @@ class CStreamingFile(CAsyncServiceHandler):
             self._vContext.append(context)
             return self._Transfer()
 
-    def Download(self, localFile, remoteFile, dl=None, trans=None, aborted=None, flags=CStreamingFile.FILE_OPEN_TRUNCACTED):
+    def Download(self, localFile, remoteFile, dl=None, trans=None, aborted=None, flags=FILE_OPEN_TRUNCACTED):
         if not localFile:
             return False
         if not remoteFile:
@@ -134,6 +134,7 @@ class CStreamingFile(CAsyncServiceHandler):
                 elif (context.Flags & CStreamingFile.FILE_OPEN_APPENDED) == CStreamingFile.FILE_OPEN_APPENDED:
                     mode = 'ab'
                 try:
+                    print(context.LocalFile)
                     context.File = open(context.LocalFile, mode)
                 except IOError as e:
                     context.ErrMsg = e.strerror
@@ -222,7 +223,7 @@ class CStreamingFile(CAsyncServiceHandler):
                         context.File.seek(0, io.SEEK_END)
                         context.FileSize = context.File.tell()
                         context.File.seek(0, io.SEEK_SET)
-                        with CScopeUQueue as q:
+                        with CScopeUQueue() as q:
                             q.SaveString(context.FilePath).SaveUInt(context.Flags).SaveULong(context.FileSize)
                             if not self.SendRequest(CStreamingFile.idUpload, q, rh, context.Aborted, se):
                                 return False
@@ -255,7 +256,7 @@ class CStreamingFile(CAsyncServiceHandler):
                     if sent_buffer_size >= 4 * CStreamingFile.STREAM_CHUNK_SIZE:
                         break
             else:
-                with CScopeUQueue as q:
+                with CScopeUQueue() as q:
                     q.SaveString(context.FilePath).SaveUInt(context.Flags)
                     if not self.SendRequest(CStreamingFile.idDownload, q, rh, context.Aborted, se):
                         return False
