@@ -455,7 +455,7 @@ namespace SocketProAdapter.ClientSide
                             else if (res == 0)
                             {
                                 res = CANNOT_OPEN_LOCAL_FILE_FOR_WRITING;
-                                errMsg = "Cannot open a local file for writing data";
+                                errMsg = context.ErrMsg;
                             }
                             dl = context.Download;
                         }
