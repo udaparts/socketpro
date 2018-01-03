@@ -1,148 +1,267 @@
 
-from spa import CUQueue, CStreamSerializationHelper as ssh
+from spa import CUQueue, BaseServiceID, CScopeUQueue
 import threading
 from spa.clientside.asynchandler import CAsyncServiceHandler
+from collections import deque
+import io
 
+class CContext(object):
+    def __init__(self, upload, flags):
+        self.Uploading = upload
+        self.FileSize = -1
+        self.Flags = flags
+        self.Sent = False
+        self.LocalFile = ''
+        self.FilePath = ''
+        self.Download = None
+        self.Transferring = None
+        self.File = None
+        self.Tried = False
+        self.ErrMsg = ''
 
-class CStreamHelper(ssh):
-    def __init__(self, ash):
-        if not isinstance(ash, CAsyncServiceHandler):
-            raise ValueError('A valid service handler required')
-        self._m_ash = ash
-        self._m_s = None
-        self._m_nDownloadFileSize = -1
-        self._m_nPos = 0
-        self.Progress = None
-        self._lock_ = threading.Lock()
+class CStreamingFile(CAsyncServiceHandler):
+    sidFile = BaseServiceID.sidReserved + 0x6FFFFFF3 # asynchronous file streaming service id
+    STREAM_CHUNK_SIZE = 10240
 
-    #<summary>
-    #Hosting service handler
-    #</summary>
+    # request ids
+    idDownload = 0x7F70
+    idStartDownloading = 0x7F71
+    idDownloading = 0x7F72
+    idUpload = 0x7F73
+    idUploading = 0x7F74
+    idUploadCompleted = 0x7F75
+
+    # file open flags
+    FILE_OPEN_TRUNCACTED = 1
+    FILE_OPEN_APPENDED = 2
+    FILE_OPEN_SHARE_READ = 4
+    FILE_OPEN_SHARE_WRITE = 8
+
+    # error code
+    CANNOT_OPEN_LOCAL_FILE_FOR_WRITING = -1
+    CANNOT_OPEN_LOCAL_FILE_FOR_READING = -2
+
+    def __init__(self, sid=CStreamingFile.sidFile):
+        super(CStreamingFile, self).__init__(sid)
+        self._csFile = threading.Lock()
+        self._vContext = deque() # protected by self._csFile
+
+    def CleanCallbacks(self):
+        with self._csFile:
+            for c in self._vContext:
+                if c.File:
+                    c.File.close()
+                    c.File = None
+            self._vContext = deque()
+        return super(CStreamingFile, self).CleanCallbacks()
+
     @property
-    def AsyncServiceHandler(self):
-        return self._m_ash
+    def FileSize(self):
+        with self._csFile:
+            if len(self._vContext) == 0:
+                return -1
+            return self._vContext[0].FileSize
+
 
     @property
-    def DownloadingStreamSize(self):
-        return self._m_nDownloadFileSize
+    def LocalFile(self):
+        with self._csFile:
+            if len(self._vContext) == 0:
+                return None
+            return self._vContext[0].LocalFile
 
-    def Reset(self):
-        with self._lock_:
-            self._m_s = None
+    @property
+    def RemoteFile(self):
+        with self._csFile:
+            if len(self._vContext) == 0:
+                return None
+            return self._vContext[0].FilePath
 
-    def _DataFromServerToClient(self, reqId, qData):
-        processed = False
-        if reqId == ssh.idReadDataFromServerToClient:
-            if qData.GetSize() > 0:
-                with self._lock_:
-                    ssh.Write(self._m_s, qData)
-                    if not self.Progress is None:
-                        self.Progress(self, self._m_s.tell())
-                qData.SetSize(0)
-            processed = True
-        return processed
+    def Upload(self, localFile, remoteFile, up=None, trans=None, aborted=None, flags=CStreamingFile.FILE_OPEN_TRUNCACTED):
+        if not localFile:
+            return False
+        if not remoteFile:
+            return False
+        context = CContext(True, flags)
+        context.Download = up
+        context.Transferring = trans
+        context.Aborted = aborted
+        context.FilePath = remoteFile
+        context.LocalFile = localFile
+        with self._csFile:
+            self._vContext.append(context)
+            return self._Transfer()
 
-    def Download(self, receiver, remotePath):
-        remotePath = remotePath.strip()
-        with self._lock_:
-            if not self._m_s is None:
-                raise Exception('A stream during transaction')
-            if not hasattr(receiver, 'write'):
-                raise ValueError('A writable target stream required')
-            self._m_s = receiver
-        self._m_ash.ResultReturned = self._DataFromServerToClient
-        self._res = ''
-        def callBack(ar):
-            self._m_nDownloadFileSize = ar.LoadULong()
-            self._res = ar.LoadString()
-        ok = self._m_ash.SendRequest(ssh.idStartDownloading, CUQueue().SaveString(remotePath), callBack) and self._m_ash.WaitAll()
-        with self._lock_:
-            if not self._res is None and len(self._res) > 0:
-                self._m_s = None
-                return self._res
-            elif self._res is None:
-                self._res = ''
-            if not ok and not self._m_ash.AttachedClientSocket.Sendable:
-                self._m_s = None
-                return self._m_ash.AttachedClientSocket.ErrorMsg
-            if not self.Progress is None:
-                self.Progress(self, self._m_s.tell())
-            def dc(ar):
-                with self._lock_:
-                    if not self.Progress is None:
-                        self.Progress(self, self._m_s.tell())
-                    self._m_s = None
-                self._m_ash.ResultReturned = None
-            if not self._m_ash.SendRequest(ssh.idDownloadCompleted, None, dc):
-                self._m_s = None
-                return self._m_ash.AttachedClientSocket.ErrorMsg
-        return self._res
+    def Download(self, localFile, remoteFile, dl=None, trans=None, aborted=None, flags=CStreamingFile.FILE_OPEN_TRUNCACTED):
+        if not localFile:
+            return False
+        if not remoteFile:
+            return False
+        context = CContext(False, flags)
+        context.Download = dl
+        context.Transferring = trans
+        context.Aborted = aborted
+        context.FilePath = remoteFile
+        context.LocalFile = localFile
+        with self._csFile:
+            self._vContext.append(context)
+            return self._Transfer()
 
-    def _SendDataFromClientToServer(self):
-        if self._m_ash.AttachedClientSocket.BytesInSendingBuffer > ssh.STREAM_CHUNK_SIZE:
-            return 0
-        if self._m_s is None:
-            return 0
-        send = 0
-        bytes = ssh.Read(self._m_s)
-        read = len(bytes)
-        while read > 0:
-            def callBack(ar):
-                self._SendDataFromClientToServer()
-            ok = self._m_ash.SendRequest(ssh.idWriteDataFromClientToServer, CUQueue(bytearray(bytes)), callBack)
-            if not ok:
-                self._m_s = None
-                return send
-            if not self.Progress is None:
-                self.Progress(self, self._m_s.tell())
-            send += read
-            if self._m_ash.AttachedClientSocket.BytesInSendingBuffer > 10 * ssh.STREAM_CHUNK_SIZE:
-                break
-            bytes = ssh.Read(self._m_s)
-            read = len(bytes)
-            if read == 0:
-                def dc(ar):
-                    with self._lock_:
-                        if not self.Progress is None:
-                            self.Progress(self, self._m_s.tell())
-                        self._m_s = None
-                if not self._m_ash.SendRequest(ssh.idUploadCompleted, None, dc):
-                    self._m_s = None
-        return send
+    def OnResultReturned(self, reqId, mc):
+        if reqId == CStreamingFile.idDownload:
+            res = mc.LoadInt()
+            errMsg = mc.LoadString()
+            dl = None
+            with self._csFile:
+                context = self._vContext[0]
+                if context.File:
+                    context.File.close()
+                elif res==0:
+                    res = CStreamingFile.CANNOT_OPEN_LOCAL_FILE_FOR_WRITING
+                    errMsg = context.ErrMsg
+                dl = context.Download
+            if dl:
+                dl(self, res, errMsg)
+            with self._csFile:
+                self._vContext.popleft()
+        elif reqId == CStreamingFile.idStartDownloading:
+            with self._csFile:
+                context = self._vContext[0]
+                context.FileSize = mc.LoadULong()
+                mode = 'xb'
+                if (context.Flags & CStreamingFile.FILE_OPEN_TRUNCACTED) == CStreamingFile.FILE_OPEN_TRUNCACTED:
+                    mode = 'wb'
+                elif (context.Flags & CStreamingFile.FILE_OPEN_APPENDED) == CStreamingFile.FILE_OPEN_APPENDED:
+                    mode = 'ab'
+                try:
+                    context.File = open(context.LocalFile, mode)
+                except IOError as e:
+                    context.ErrMsg = e.strerror
+                    context.File = None
+        elif reqId == CStreamingFile.idDownloading:
+            downloaded = -1
+            trans = None
+            with self._csFile:
+                context = self._vContext[0]
+                trans = context.Transferring
+                if context.File:
+                    context.File.write(mc.GetBuffer())
+                    downloaded = context.File.tell()
+            mc.SetSize(0)
+            if trans:
+                trans(self, downloaded)
+        elif reqId == CStreamingFile.idUpload:
+            removed = False
+            upl = None
+            res = mc.LoadInt()
+            errMsg = mc.LoadString()
+            if res != 0:
+                with self._csFile:
+                    context = self._vContext[0]
+                    removed = True
+                    upl = context.Download
+                    if context.File:
+                        context.File.close()
+            if upl:
+                upl(self, res, errMsg)
+            if removed:
+                with self._csFile:
+                    self._vContext.popleft()
+        elif reqId == CStreamingFile.idUploading:
+            trans = None
+            uploaded = mc.LoadULong()
+            with self._csFile:
+                context = self._vContext[0]
+                trans = context.Transferring
+            if trans:
+                trans(self, uploaded)
+        elif reqId == CStreamingFile.idUploadCompleted:
+            upl = None
+            with self._csFile:
+                context = self._vContext[0]
+                upl = context.Download
+                if context.File:
+                    context.File.close()
+            if upl:
+                upl(self, 0, '')
+            with self._csFile:
+                self._vContext.popleft()
+        else:
+            super(CStreamingFile, self).OnResultReturned(reqId, mc)
+        with self._csFile:
+            self._Transfer()
 
-    def Upload(self, source, remotePath):
-        remotePath = remotePath.strip()
-        self._m_ash.ResultReturned = None
-        with self._lock_:
-            if not self._m_s is None:
-                raise Exception('A stream during transaction')
-        if not hasattr(source, 'read'):
-                raise ValueError('A readable source stream required')
-        self._res = ''
-        def callBack(ar):
-            self._res = ar.LoadString()
-        ok = self._m_ash.SendRequest(ssh.idStartUploading, CUQueue().SaveString(remotePath), callBack) and self._m_ash.WaitAll()
-        if not self._res is None and len(self._res) > 0:
-            self._m_s = None
-            return self._res
-        elif self._res is None:
-            self._res = ''
-        if not ok and not self._m_ash.AttachedClientSocket.Sendable:
-            return self._m_ash.AttachedClientSocket.ErrorMsg
-        with self._lock_:
-            if not self._m_s is None:
-                raise Exception('A stream during transaction')
-            self._m_s = source
-            if not self.Progress is None:
-                self.Progress(self, self._m_s.tell())
-            if self._SendDataFromClientToServer() == 0:
-                def dc(ar):
-                    with self._lock_:
-                        if not self.Progress is None and not self._m_s is None:
-                            self.Progress(self, self._m_s.tell())
-                        self._m_s = None
-                if not self._m_ash.SendRequest(ssh.idUploadCompleted, None, dc):
-                    self._m_s = None
-                    if not self._m_ash.AttachedClientSocket.Sendable:
-                        return self._m_ash.AttachedClientSocket.ErrorMsg
-        return self._res
+    def _Transfer(self):
+        index = 0
+        rh = None
+        se = None
+        cs = self.AttachedClientSocket
+        if not cs.Sendable:
+            return False
+        sent_buffer_size = cs.BytesInSendingBuffer
+        if sent_buffer_size > 3 * CStreamingFile.STREAM_CHUNK_SIZE:
+            return True
+        while index < len(self._vContext):
+            context = self._vContext[index]
+            if context.Sent:
+                index += 1
+                continue
+            if context.Uploading and context.Tried and not context.File:
+                if index == 0:
+                    if context.Download:
+                        context.Download(self, CStreamingFile.CANNOT_OPEN_LOCAL_FILE_FOR_READING, context.ErrMsg)
+                    self._vContext.popleft()
+                else:
+                    index += 1
+                continue
+            if context.Uploading:
+                if not context.Tried:
+                    context.Tried = True
+                    try:
+                        context.File = open(context.LocalFile, 'rb')
+                        context.File.seek(0, io.SEEK_END)
+                        context.FileSize = context.File.tell()
+                        context.File.seek(0, io.SEEK_SET)
+                        with CScopeUQueue as q:
+                            q.SaveString(context.FilePath).SaveUInt(context.Flags).SaveULong(context.FileSize)
+                            if not self.SendRequest(CStreamingFile.idUpload, q, rh, context.Aborted, se):
+                                return False
+                    except IOError as e:
+                        context.ErrMsg = e.strerror
+                        context.File = None
+                if not context.File:
+                    if index == 0:
+                        if context.Download:
+                            context.Download(self, CStreamingFile.CANNOT_OPEN_LOCAL_FILE_FOR_READING, context.ErrMsg)
+                        self._vContext.popleft()
+                    else:
+                        index += 1
+                    continue
+                else:
+                    ret = bytearray(context.File.read(CStreamingFile.STREAM_CHUNK_SIZE))
+                    while len(ret) > 0:
+                        if not self.SendRequest(CStreamingFile.idUploading, CUQueue(ret), rh, context.Aborted, se):
+                            return False
+                        sent_buffer_size = cs.BytesInSendingBuffer;
+                        if len(ret) < CStreamingFile.STREAM_CHUNK_SIZE:
+                            break
+                        if sent_buffer_size >= 5 * CStreamingFile.STREAM_CHUNK_SIZE:
+                            break;
+                        ret = bytearray(context.File.read(CStreamingFile.STREAM_CHUNK_SIZE))
+                    if len(ret) < CStreamingFile.STREAM_CHUNK_SIZE:
+                        context.Sent = True
+                        if not self.SendRequest(CStreamingFile.idUploadCompleted, None, rh, context.Aborted, se):
+                            return False
+                    if sent_buffer_size >= 4 * CStreamingFile.STREAM_CHUNK_SIZE:
+                        break
+            else:
+                with CScopeUQueue as q:
+                    q.SaveString(context.FilePath).SaveUInt(context.Flags)
+                    if not self.SendRequest(CStreamingFile.idDownload, q, rh, context.Aborted, se):
+                        return False
+                    context.Sent = True
+                    sent_buffer_size = cs.BytesInSendingBuffer
+                    if sent_buffer_size > 3 * CStreamingFile.STREAM_CHUNK_SIZE:
+                        return True
+            index += 1
+        return True

@@ -74,7 +74,7 @@ from spa.clientside.conncontext import CConnectionContext
 from spa.clientside.asynchandler import CAsyncResult, CAsyncServiceHandler
 from spa.clientside.socketpool import CSocketPool
 from spa.clientside.replication import ReplicationSetting, CReplication
-from spa.clientside.clientstreamhelper import CStreamHelper
+from spa.clientside.clientstreamhelper import CStreamingFile
 from spa.clientside.sqlite import CSqlite
 from spa.clientside.mysql import CMysql, CSqlServer
 from spa.clientside.odbc import COdbc
