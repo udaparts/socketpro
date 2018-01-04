@@ -1,6 +1,5 @@
 
 from spa.clientside import *
-import os
 
 with CSocketPool(CStreamingFile) as spFile:
     print('Remote SocketPro file streaming server:')

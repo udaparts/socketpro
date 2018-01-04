@@ -19,7 +19,7 @@ SetRootDirectory.restype = None
 with CSocketProServer() as server:
     handle = CSocketProServer.DllManager.AddALibrary('ustreamfile')
     if handle:
-        SetRootDirectory(u'C:\\udaparts\\boost_1_60_0\\stage\\lib64')
+        SetRootDirectory('C:\\boost_1_60_0\\stage\\lib64')
     ok = server.Run(20901)
     if not ok:
         print('Error message = ' + CSocketProServer.ErrorMessage)
