@@ -1,6 +1,4 @@
 ﻿Imports System
-Imports System.Collections.Generic
-Imports SocketProAdapter
 Imports SocketProAdapter.ClientSide
 
 Friend Class Program

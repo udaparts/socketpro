@@ -1,55 +1,50 @@
 ﻿Imports System
-Imports SocketProAdapter
 Imports SocketProAdapter.ClientSide
-Imports System.IO
+
 
 Friend Class Program
     Shared Sub Main(ByVal args() As String)
-        Dim cc As New CConnectionContext("localhost", 20901, "MyUserId", "MyPassword")
-        Using spRf As New CSocketPool(Of RemotingFile)()
-            Do
-                Dim ok As Boolean = spRf.StartSocketPool(cc, 1, 1)
-                If Not ok Then
-                    Console.WriteLine("Can not connect to remote server")
-                    Exit Do
-                End If
+        Console.WriteLine("Remote SocketPro file streaming server:")
+        Dim cc As New CConnectionContext(Console.ReadLine(), 20901, "MyUserId", "MyPassword")
+        Using spRf As New CSocketPool(Of CStreamingFile)()
+            Dim ok As Boolean = spRf.StartSocketPool(cc, 1, 1)
+            If Not ok Then
+                Console.WriteLine("Can not connect to remote server, and press key ENTER to shutdown the demo application ......")
+                Console.ReadLine()
+                Return
+            End If
+            Dim rf As CStreamingFile = spRf.Seek()
+            Console.WriteLine("Input a remote file to download ......")
+            Dim RemoteFile As String = Console.ReadLine()
+            Dim LocalFile As String = "spfile.test"
+            Dim cbDownload As CStreamingFile.DDownload = Sub(file, res, errMsg)
+                                                             If res <> 0 Then
+                                                                 Console.WriteLine("Error code: {0}, error message: {1}", res, errMsg)
+                                                             Else
+                                                                 Console.WriteLine("Downloading {0} completed", file.RemoteFile)
+                                                             End If
+                                                         End Sub
+            Dim cbDProgress As CStreamingFile.DTransferring = Sub(file, downloaded)
+                                                                  'downloading progress
+                                                                  Console.WriteLine("Downloading rate: {0}%", (downloaded * 100) / file.FileSize)
+                                                              End Sub
+            ok = rf.Download(LocalFile, RemoteFile, cbDownload, cbDProgress)
+            ok = rf.WaitAll()
 
-                Dim rf As RemotingFile = spRf.Seek()
-
-                'downloading test
-                Dim progress As CStreamHelper.DProgress = Sub(sender, pos)
-                                                              Console.WriteLine("Downloading progress = " & (pos * 100) / sender.DownloadingStreamSize)
-                                                          End Sub
-                AddHandler rf.StreamHelper.Progress, progress
-
-                Console.WriteLine("Input a remote file to download ......")
-                Dim RemoteFile As String = Console.ReadLine()
-                Dim LocalFile As String = "spfile.test"
-                Dim s As Stream = New FileStream(LocalFile, FileMode.Append)
-                Dim res As String = rf.StreamHelper.Download(s, RemoteFile)
-                If res.Length = 0 AndAlso rf.WaitAll() Then
-                    Console.WriteLine("Successful to download file " & RemoteFile)
-                Else
-                    Console.WriteLine("Failed to download file " & RemoteFile)
-                End If
-                s.Close()
-                RemoveHandler rf.StreamHelper.Progress, progress 'remove the callback
-
-                'uploading test
-                RemoteFile = "spfile.testr"
-                s = New FileStream(LocalFile, FileMode.Open)
-                Dim FileSize As ULong = CULng(s.Length)
-                AddHandler rf.StreamHelper.Progress, Sub(sender, pos)
-                                                         Console.WriteLine("Uploading progress = " & (pos * 100) / FileSize)
+            Dim cbUpload As CStreamingFile.DUpload = Sub(file, res, errMsg)
+                                                         If res <> 0 Then
+                                                             Console.WriteLine("Error code: {0}, error message: {1}", res, errMsg)
+                                                         Else
+                                                             Console.WriteLine("Uploading {0} completed", file.RemoteFile)
+                                                         End If
                                                      End Sub
-                res = rf.StreamHelper.Upload(s, RemoteFile)
-                If res = "" AndAlso rf.WaitAll() Then
-                    Console.WriteLine("Successful to upload file " & LocalFile)
-                Else
-                    Console.WriteLine("Failed to upload file " & LocalFile)
-                End If
-                s.Close()
-            Loop While False
+            Dim cbUProgress As CStreamingFile.DTransferring = Sub(file, uploaded)
+                                                                  'uploading progress
+                                                                  Console.WriteLine("Uploading rate: {0}%", (uploaded * 100) / file.FileSize)
+                                                              End Sub
+            RemoteFile += ".copy"
+            ok = rf.Upload(LocalFile, RemoteFile, cbUpload, cbUProgress)
+            ok = rf.WaitAll()
             Console.WriteLine("Press key ENTER to shutdown the demo application ......")
             Console.ReadLine()
         End Using

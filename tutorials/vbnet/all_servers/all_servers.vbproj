@@ -82,12 +82,6 @@
     <Compile Include="..\rado\rado_server\radoImpl.vb">
       <Link>radoImpl.vb</Link>
     </Compile>
-    <Compile Include="..\remote_file\RemFile_i.vb">
-      <Link>RemFile_i.vb</Link>
-    </Compile>
-    <Compile Include="..\remote_file\rf_server\RemFileImpl.vb">
-      <Link>RemFileImpl.vb</Link>
-    </Compile>
     <Compile Include="..\uqueue_demo\mystruct.vb">
       <Link>mystruct.vb</Link>
     </Compile>

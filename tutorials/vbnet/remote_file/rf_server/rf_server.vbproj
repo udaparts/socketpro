@@ -51,11 +51,7 @@
     <Import Include="System" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\RemFile_i.vb">
-      <Link>RemFile_i.vb</Link>
-    </Compile>
     <Compile Include="Program.vb" />
-    <Compile Include="RemFileImpl.vb" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="My Project\" />
