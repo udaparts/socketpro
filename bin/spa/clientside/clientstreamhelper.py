@@ -134,7 +134,6 @@ class CStreamingFile(CAsyncServiceHandler):
                 elif (context.Flags & CStreamingFile.FILE_OPEN_APPENDED) == CStreamingFile.FILE_OPEN_APPENDED:
                     mode = 'ab'
                 try:
-                    print(context.LocalFile)
                     context.File = open(context.LocalFile, mode)
                 except IOError as e:
                     context.ErrMsg = e.strerror

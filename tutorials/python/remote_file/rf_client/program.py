@@ -29,7 +29,7 @@ with CSocketPool(CStreamingFile) as spFile:
             else:
                 print('Uploading ' + file.RemoteFile + ' completed')
         def cbUProgress(file, uploaded):
-            print('Downloading rate: ' + str(uploaded * 100 / file.FileSize) + '%')
+            print('Uploading rate: ' + str(uploaded * 100 / file.FileSize) + '%')
         ok = rf.Upload(LocalFile, RemoteFile, cbUpload, cbUProgress)
         ok = rf.WaitAll()
 
