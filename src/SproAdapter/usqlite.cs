@@ -13,6 +13,15 @@ namespace SocketProAdapter
                 : base(sidMsSql)
             {
             }
+
+            /// <summary>
+            /// You may use the protected constructor when extending this class
+            /// </summary>
+            /// <param name="sid">A service id</param>
+            protected CSqlServer(uint sid)
+                : base(sid)
+            {
+            }
         }
 
         public class CSqlite : CAsyncDBHandler
@@ -127,6 +136,16 @@ namespace SocketProAdapter
                 : base(sidSqlite)
             {
             }
+
+            /// <summary>
+            /// You may use the protected constructor when extending this class
+            /// </summary>
+            /// <param name="sid">A service id</param>
+            protected CSqlite(uint sid)
+                : base(sid)
+            {
+
+            }
         }
 
         public class CMysql : ClientSide.CAsyncDBHandler
@@ -135,6 +154,16 @@ namespace SocketProAdapter
 
             public CMysql()
                 : base(sidMysql)
+            {
+
+            }
+
+            /// <summary>
+            /// You may use the protected constructor when extending this class
+            /// </summary>
+            /// <param name="sid">A service id</param>
+            protected CMysql(uint sid)
+                : base(sid)
             {
 
             }

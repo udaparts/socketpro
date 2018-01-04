@@ -138,7 +138,6 @@
     <ClInclude Include="..\..\..\include\aserverw.h" />
     <ClInclude Include="..\..\..\include\membuffer.h" />
     <ClInclude Include="..\pub_sub\server\HWImpl.h" />
-    <ClInclude Include="..\remote_file\server\RemFileImpl.h" />
     <ClInclude Include="..\server_queue\server\SQueueImpl.h" />
     <ClInclude Include="..\uqueue_demo\mystruct.h" />
     <ClInclude Include="..\webdemo\httppeer.h" />

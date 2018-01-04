@@ -1,59 +1,56 @@
 ﻿using System;
-using SocketProAdapter;
 using SocketProAdapter.ClientSide;
-using System.IO;
 
 class Program
 {
     static void Main(string[] args)
     {
-        CConnectionContext cc = new CConnectionContext("localhost", 20901, "MyUserId", "MyPassword");
-        using (CSocketPool<RemotingFile> spRf = new CSocketPool<RemotingFile>())
+        Console.WriteLine("Remote SocketPro file streaming server:");
+        CConnectionContext cc = new CConnectionContext(Console.ReadLine(), 20901, "MyUserId", "MyPassword");
+        using (CSocketPool<CStreamingFile> spRf = new CSocketPool<CStreamingFile>())
         {
-            do
+            bool ok = spRf.StartSocketPool(cc, 1, 1);
+            if (!ok)
             {
-                bool ok = spRf.StartSocketPool(cc, 1, 1);
-                if (!ok)
-                {
-                    Console.WriteLine("Can not connect to remote server");
-                    break;
-                }
+                Console.WriteLine("Can not connect to remote server and press ENTER key to shutdown the application ......");
+                Console.ReadLine();
+                return;
+            }
+            CStreamingFile rf = spRf.Seek();
 
-                RemotingFile rf = spRf.Seek();
+            Console.WriteLine("Input a remote file path:");
+            //test both downloading and uploading files in file stream (it is different from byte stream)
 
-                //downloading test
-                CStreamHelper.DProgress progress = (sender, pos) =>
-                {
-                    Console.WriteLine("Downloading progress = " + (pos * 100) / sender.DownloadingStreamSize);
-                };
-                rf.StreamHelper.Progress += progress;
-                Console.WriteLine("Input a remote file to download ......");
-                string RemoteFile = Console.ReadLine();
-                string LocalFile = "spfile.test";
-                Stream s = new FileStream(LocalFile, FileMode.Append);
-                string res = rf.StreamHelper.Download(s, RemoteFile);
-                if (res.Length == 0 && rf.WaitAll())
-                    Console.WriteLine("Successful to download file " + RemoteFile);
+            string RemoteFile = Console.ReadLine();
+            string LocalFile = "spfile1.test";
+            //downloading test
+            ok = rf.Download(LocalFile, RemoteFile, (file, res, errMsg) =>
+            {
+                if (res != 0)
+                    Console.WriteLine("Error code: {0}, error message: {1}", res, errMsg);
                 else
-                    Console.WriteLine("Failed to download file " + RemoteFile);
-                s.Close();
-                rf.StreamHelper.Progress -= progress; //remove the callback
+                    Console.WriteLine("Downloading {0} completed", file.RemoteFile);
+            }, (file, downloaded) =>
+            {
+                //downloading progress
+                Console.WriteLine("Downloading rate: {0}%", downloaded * 100 / file.FileSize);
+            });
+            ok = rf.WaitAll();
 
-                //uploading test
-                RemoteFile = "spfile.testr";
-                s = new FileStream(LocalFile, FileMode.Open);
-                ulong FileSize = (ulong)s.Length;
-                rf.StreamHelper.Progress += (sender, pos) =>
-                {
-                    Console.WriteLine("Uploading progress = " + (pos * 100) / FileSize);
-                };
-                res = rf.StreamHelper.Upload(s, RemoteFile);
-                if (res == "" && rf.WaitAll())
-                    Console.WriteLine("Successful to upload file " + LocalFile);
+            //uploading test
+            RemoteFile += ".copy";
+            ok = rf.Upload(LocalFile, RemoteFile, (file, res, errMsg) =>
+            {
+                if (res != 0)
+                    Console.WriteLine("Error code: {0}, error message: {1}", res, errMsg);
                 else
-                    Console.WriteLine("Failed to upload file " + LocalFile);
-                s.Close();
-            } while (false);
+                    Console.WriteLine("Uploading {0} completed", file.RemoteFile);
+            }, (file, downloaded) =>
+            {
+                //uploading progress
+                Console.WriteLine("Uploading rate: {0}%", downloaded * 100 / file.FileSize);
+            });
+            ok = rf.WaitAll();
             Console.WriteLine("Press key ENTER to shutdown the demo application ......");
             Console.ReadLine();
         }

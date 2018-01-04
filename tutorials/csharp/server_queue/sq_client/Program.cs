@@ -98,8 +98,8 @@ class Program
             if (!spAq.StartSocketPool(cc, 1, 1))
             {
                 Console.WriteLine("Failed in connecting to remote async queue server");
-                Console.WriteLine("Press any key to close the application ......");
-                Console.Read();
+                Console.WriteLine("Press key ENTER to close the application ......");
+                Console.ReadLine();
                 return;
             }
             CAsyncQueue aq = spAq.Seek();
@@ -107,8 +107,8 @@ class Program
             TestEnqueue(aq);
             TestDequeue(aq);
 
-            Console.WriteLine("Press any key to close the application ......");
-            Console.Read();
+            Console.WriteLine("Press key ENTER to close the application ......");
+            Console.ReadLine();
         }
     }
 }

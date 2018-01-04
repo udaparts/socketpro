@@ -657,6 +657,22 @@ namespace SPA
     }
 
     namespace Utilities{
+#ifdef WIN32_64
+        std::wstring GetErrorMessage(DWORD dwError) {
+            wchar_t *lpMsgBuf = nullptr;
+            DWORD res = ::FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_IGNORE_INSERTS,
+            nullptr,
+            dwError,
+            MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), // Default language
+            (LPWSTR) & lpMsgBuf,
+            0,
+            nullptr);
+            std::wstring s(lpMsgBuf ? lpMsgBuf : L"");
+            if (lpMsgBuf)
+                LocalFree(lpMsgBuf);
+            return s;
+        }
+#endif
 
         unsigned int GetLen(const UTF16 * chars) {
             if (!chars) {

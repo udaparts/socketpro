@@ -4,9 +4,16 @@ import SPA.ServerSide.*;
 
 public class CMySocketProServer extends CSocketProServer {
 
-    @ServiceAttr(ServiceID = remote_file.RemFileConst.sidRemotingFile)
-    private final CSocketProService<RemotingFilePeer> m_RemotingFile = new CSocketProService<>(RemotingFilePeer.class);
-    //One SocketPro server supports any number of services. You can list them here!
+    @Override
+    protected boolean OnSettingServer() {
+        long handle = CSocketProServer.DllManager.AddALibrary("ustreamfile");
+        if (handle != 0) {
+            if (SPA.CUQueue.DEFAULT_OS == SPA.tagOperationSystem.osWin) {
+                Sfile.SetRootDirectory("C:\\boost_1_60_0\\stage\\lib64");
+            }
+        }
+        return true;
+    }
 
     public static void main(String[] args) {
         CMySocketProServer MySocketProServer = new CMySocketProServer();

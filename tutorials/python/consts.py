@@ -7,9 +7,6 @@ class hwConst:
     idSleepHelloWorld = idSayHelloHelloWorld + 1
     idEchoHelloWorld = idSleepHelloWorld + 1
 
-class RemFileConst:
-    sidRemotingFile = BaseServiceID.sidReserved + 2
-
 class piConst:
     sidPi = BaseServiceID.sidReserved + 5
     sidPiWorker = sidPi + 1

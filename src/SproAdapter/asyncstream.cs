@@ -3,6 +3,7 @@ using System.IO;
 
 namespace SocketProAdapter
 {
+    [ObsoleteAttribute]
     public static class CStreamSerializationHelper
     {
         public const int STREAM_CHUNK_SIZE = 10240;

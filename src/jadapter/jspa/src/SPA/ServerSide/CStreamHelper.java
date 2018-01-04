@@ -1,5 +1,6 @@
 package SPA.ServerSide;
 
+@Deprecated
 public final class CStreamHelper {
 
     /**

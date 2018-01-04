@@ -12,7 +12,11 @@ Public Class CMySocketProServer
     Const USE_SHARED_CACHE_MODE As Integer = 2
     Const USE_UTF16_ENCODING As Integer = 4
     <DllImport("ssqlite")> _
-    Shared Sub SetSqliteDBGlobalConnectionString(ByRef sqliteDbFile As String)
+    Shared Sub SetSqliteDBGlobalConnectionString(<MarshalAs(UnmanagedType.LPWStr)> ByVal sqliteDbFile As String)
+    End Sub
+
+    <DllImport("ustreamfile")> _
+    Shared Sub SetRootDirectory(<MarshalAs(UnmanagedType.LPWStr)> ByVal root As String)
     End Sub
 
     <ServiceAttr(hwConst.sidHelloWorld)>
@@ -30,9 +34,6 @@ Public Class CMySocketProServer
 
     <ServiceAttr(radoConst.sidRAdo)>
     Private m_RAdo As New CSocketProService(Of RAdoPeer)()
-
-    <ServiceAttr(RemFileConst.sidRemotingFile)>
-    Private m_RemotingFile As New CSocketProService(Of RemotingFilePeer)()
 
     <ServiceAttr(BaseServiceID.sidHTTP)>
     Private m_http As New CSocketProService(Of CMyHttpPeer)()
@@ -74,6 +75,11 @@ Public Class CMySocketProServer
             SetSqliteDBGlobalConnectionString("usqlite.db+sakila.db.actor;sakila.db.language;sakila.db.category;sakila.db.country;sakila.db.film_actor")
         End If
         p = CSocketProServer.DllManager.AddALibrary("uasyncqueue", 24 * 1024) '24 * 1024 batch dequeuing size in bytes
+
+        p = CSocketProServer.DllManager.AddALibrary("ustreamfile")
+        If p.ToInt64 <> 0 Then
+            SetRootDirectory("C:\boost_1_60_0\stage\lib64")
+        End If
 
         Return True 'true -- ok; false -- no listening server
     End Function

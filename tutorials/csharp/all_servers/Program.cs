@@ -13,6 +13,9 @@ public class CMySocketProServer : CSocketProServer
     [DllImport("ssqlite")]
     static extern void SetSqliteDBGlobalConnectionString([In] [MarshalAs(UnmanagedType.LPWStr)] string sqliteDbFile);
 
+    [DllImport("ustreamfile")]
+    static extern void SetRootDirectory([In] [MarshalAs(UnmanagedType.LPWStr)] string root);
+
     [ServiceAttr(hwConst.sidHelloWorld)]
     private CSocketProService<HelloWorldPeer> m_HelloWorld = new CSocketProService<HelloWorldPeer>();
 
@@ -28,9 +31,6 @@ public class CMySocketProServer : CSocketProServer
 
     [ServiceAttr(radoConst.sidRAdo)]
     private CSocketProService<RAdoPeer> m_RAdo = new CSocketProService<RAdoPeer>();
-
-    [ServiceAttr(RemFileConst.sidRemotingFile)]
-    private CSocketProService<RemotingFilePeer> m_RemotingFile = new CSocketProService<RemotingFilePeer>();
 
     [ServiceAttr(BaseServiceID.sidHTTP)]
     private CSocketProService<CMyHttpPeer> m_http = new CSocketProService<CMyHttpPeer>();
@@ -69,13 +69,22 @@ public class CMySocketProServer : CSocketProServer
         PushManager.AddAChatGroup(3, "Management Department");
         PushManager.AddAChatGroup(7, "HR Department");
 
-        //load socketpro async sqlite and queue server libraries located at the directory ../socketpro/bin
+        //load socketpro async sqlite server plugin located at the directory ../socketpro/bin
         IntPtr p = CSocketProServer.DllManager.AddALibrary("ssqlite");
         if (p.ToInt64() != 0) 
         {
+            //monitoring sakila.db table events (DELETE, INSERT and UPDATE) for tables actor, language, category, country and film_actor
             SetSqliteDBGlobalConnectionString("usqlite.db+sakila.db.actor;sakila.db.language;sakila.db.category;sakila.db.country;sakila.db.film_actor");
         }
+        //load socketpro async queue server plugin located at the directory ../socketpro/bin
         p = CSocketProServer.DllManager.AddALibrary("uasyncqueue", 24 * 1024); //24 * 1024 batch dequeuing size in bytes
+
+        //load SocketPro file streaming server plugin located at the directory ../socketpro/bin
+        p = CSocketProServer.DllManager.AddALibrary("ustreamfile");
+        if (p.ToInt64() != 0)
+        {
+            SetRootDirectory("C:\\boost_1_60_0\\stage\\lib64");
+        }
 
         return true; //true -- ok; false -- no listening server
     }

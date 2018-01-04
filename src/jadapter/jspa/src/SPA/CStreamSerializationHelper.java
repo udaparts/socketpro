@@ -2,6 +2,7 @@ package SPA;
 
 import java.io.IOException;
 
+@Deprecated
 public final class CStreamSerializationHelper {
 
     public static final int STREAM_CHUNK_SIZE = 10240;

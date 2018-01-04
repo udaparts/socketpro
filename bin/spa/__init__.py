@@ -435,23 +435,6 @@ from spa.memqueue import CUQueue, CScopeUQueue
 isVersion3 = (sys.version_info[0] >= 3)
 isVersion342 = (sys.version_info[0] * 100 + sys.version_info[1] * 10 + sys.version_info[2] >= 342)
 
-class CStreamSerializationHelper(object):
-    STREAM_CHUNK_SIZE = 10240
-    idStartDownloading = 0x7F7F
-    idDownloadCompleted = 0x7F7E
-    idStartUploading = 0x7F7D
-    idUploadCompleted = 0x7F7C
-    idReadDataFromServerToClient = 0x7F7B
-    idWriteDataFromClientToServer = 0x7F7A
-
-    @staticmethod
-    def Write(f, q):
-       f.write(q.GetBuffer())
-
-    @staticmethod
-    def Read(f):
-        return f.read(CStreamSerializationHelper.STREAM_CHUNK_SIZE)
-
 from spa.dataset import CTable, CDataSet
 from spa.poolbase import CMasterSlaveBase
 from spa.sqlpool import CSqlMasterPool

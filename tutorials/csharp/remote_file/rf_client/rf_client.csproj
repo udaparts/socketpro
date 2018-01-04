@@ -40,11 +40,7 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\RemFile_i.cs">
-      <Link>RemFile_i.cs</Link>
-    </Compile>
     <Compile Include="Program.cs" />
-    <Compile Include="RemFile.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Properties\" />

@@ -1,6 +1,8 @@
 83.	SocketPro Version 6.0.4.7
 	(a) Fix server router auto-recovery (fault-tolerance) issue at client side.
 	(b) SQL stream plugin for MS SQL Server is implemented.
+	(c) File streaming plugin for windows and linux platforms.
+	(d) Adapters and demo examples updated with support of file streaming plugin.
 	
 82.	SocketPro Version 6.0.4.6
 	(a) SocketPro adapters upgraded with new feature master/slave pools for enterprise applications and their demo examples
