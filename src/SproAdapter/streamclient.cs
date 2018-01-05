@@ -549,10 +549,13 @@ namespace SocketProAdapter.ClientSide
                         DTransferring trans = null;
                         long uploaded;
                         mc.Load(out uploaded);
-                        lock (m_csFile)
+                        if (uploaded > 0)
                         {
-                            CContext context = m_vContext[0];
-                            trans = context.Transferring;
+                            lock (m_csFile)
+                            {
+                                CContext context = m_vContext[0];
+                                trans = context.Transferring;
+                            }
                         }
                         if (trans != null)
                             trans(this, uploaded);

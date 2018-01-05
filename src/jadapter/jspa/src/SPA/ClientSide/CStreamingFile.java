@@ -169,8 +169,7 @@ public class CStreamingFile extends CAsyncServiceHandler {
                         }
                         if ((context.Flags & FILE_OPEN_TRUNCACTED) == FILE_OPEN_TRUNCACTED) {
                             context.File.truncate(0);
-                        }
-                        else if ((context.Flags & FILE_OPEN_APPENDED) == FILE_OPEN_APPENDED) {
+                        } else if ((context.Flags & FILE_OPEN_APPENDED) == FILE_OPEN_APPENDED) {
                             context.File.position(context.File.size());
                         }
                     } catch (IOException err) {
@@ -240,11 +239,13 @@ public class CStreamingFile extends CAsyncServiceHandler {
             }
             break;
             case idUploading: {
-                DTransferring trans;
+                DTransferring trans = null;
                 long uploaded = mc.LoadLong();
-                synchronized (m_csFile) {
-                    CContext context = m_vContext.getFirst();
-                    trans = context.Transferring;
+                if (uploaded > 0) {
+                    synchronized (m_csFile) {
+                        CContext context = m_vContext.getFirst();
+                        trans = context.Transferring;
+                    }
                 }
                 if (trans != null) {
                     trans.invoke(this, uploaded);
