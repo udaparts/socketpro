@@ -169,10 +169,11 @@ class CStreamingFile(CAsyncServiceHandler):
                     self._vContext.popleft()
         elif reqId == CStreamingFile.idUploading:
             trans = None
-            uploaded = mc.LoadULong()
-            with self._csFile:
-                context = self._vContext[0]
-                trans = context.Transferring
+            uploaded = mc.LoadLong()
+            if uploaded > 0:
+                with self._csFile:
+                    context = self._vContext[0]
+                    trans = context.Transferring
             if trans:
                 trans(self, uploaded)
         elif reqId == CStreamingFile.idUploadCompleted:

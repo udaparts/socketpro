@@ -798,17 +798,6 @@
             <param name="index">The zero-based view index at which the element should be inserted. This index is guaranteed to be valid.</param>
             <param name="item">The element to store in the list.</param>
         </member>
-<<<<<<< HEAD
-        <member name="T:SocketProAdapter.Deque`1">
-            <summary>
-            A double-ended queue (deque), which provides O(1) indexed access, O(1) removals from the front and back, amortized O(1) insertions to the front and back, and O(N) insertions and removals anywhere else (with the operations getting slower as the index approaches the middle).
-            </summary>
-            <typeparam name="T">The type of elements contained in the deque.</typeparam>
-        </member>
-        <member name="F:SocketProAdapter.Deque`1.DefaultCapacity">
-            <summary>
-            The default capacity.
-=======
         <member name="M:SocketProAdapter.Deque`1.DoRemoveAt(System.Int32)">
             <summary>
             Removes an element at the specified view index.
@@ -818,53 +807,23 @@
         <member name="M:SocketProAdapter.Deque`1.PostIncrement(System.Int32)">
             <summary>
             Increments <see cref="F:SocketProAdapter.Deque`1.offset"/> by <paramref name="value"/> using modulo-<see cref="P:SocketProAdapter.Deque`1.Capacity"/> arithmetic.
->>>>>>> 346a31739e30850995323aafe6d36553752d8c0b
             </summary>
             <param name="value">The value by which to increase <see cref="F:SocketProAdapter.Deque`1.offset"/>. May not be negative.</param>
             <returns>The value of <see cref="F:SocketProAdapter.Deque`1.offset"/> after it was incremented.</returns>
         </member>
-<<<<<<< HEAD
-        <member name="F:SocketProAdapter.Deque`1.buffer">
-            <summary>
-            The circular buffer that holds the view.
-=======
         <member name="M:SocketProAdapter.Deque`1.PreDecrement(System.Int32)">
             <summary>
             Decrements <see cref="F:SocketProAdapter.Deque`1.offset"/> by <paramref name="value"/> using modulo-<see cref="P:SocketProAdapter.Deque`1.Capacity"/> arithmetic.
->>>>>>> 346a31739e30850995323aafe6d36553752d8c0b
             </summary>
             <param name="value">The value by which to reduce <see cref="F:SocketProAdapter.Deque`1.offset"/>. May not be negative or greater than <see cref="P:SocketProAdapter.Deque`1.Capacity"/>.</param>
             <returns>The value of <see cref="F:SocketProAdapter.Deque`1.offset"/> before it was decremented.</returns>
         </member>
-<<<<<<< HEAD
-        <member name="F:SocketProAdapter.Deque`1.offset">
-            <summary>
-            The offset into <see cref="F:SocketProAdapter.Deque`1.buffer"/> where the view begins.
-=======
         <member name="M:SocketProAdapter.Deque`1.DoAddToBack(`0)">
             <summary>
             Inserts a single element to the back of the view. <see cref="P:SocketProAdapter.Deque`1.IsFull"/> must be false when this method is called.
->>>>>>> 346a31739e30850995323aafe6d36553752d8c0b
             </summary>
             <param name="value">The element to insert.</param>
         </member>
-<<<<<<< HEAD
-        <member name="M:SocketProAdapter.Deque`1.#ctor(System.Int32)">
-            <summary>
-            Initializes a new instance of the <see cref="T:SocketProAdapter.Deque`1"/> class with the specified capacity.
-            </summary>
-            <param name="capacity">The initial capacity. Must be greater than <c>0</c>.</param>
-        </member>
-        <member name="M:SocketProAdapter.Deque`1.#ctor(System.Collections.Generic.IEnumerable{`0})">
-            <summary>
-            Initializes a new instance of the <see cref="T:SocketProAdapter.Deque`1"/> class with the elements from the specified collection.
-            </summary>
-            <param name="collection">The collection.</param>
-        </member>
-        <member name="M:SocketProAdapter.Deque`1.#ctor">
-            <summary>
-            Initializes a new instance of the <see cref="T:SocketProAdapter.Deque`1"/> class.
-=======
         <member name="M:SocketProAdapter.Deque`1.DoAddToFront(`0)">
             <summary>
             Inserts a single element to the front of the view. <see cref="P:SocketProAdapter.Deque`1.IsFull"/> must be false when this method is called.
@@ -880,40 +839,9 @@
         <member name="M:SocketProAdapter.Deque`1.DoRemoveFromFront">
             <summary>
             Removes and returns the first element in the view. <see cref="P:SocketProAdapter.Deque`1.IsEmpty"/> must be false when this method is called.
->>>>>>> 346a31739e30850995323aafe6d36553752d8c0b
             </summary>
             <returns>The former first element.</returns>
         </member>
-<<<<<<< HEAD
-        <member name="M:SocketProAdapter.Deque`1.Insert(System.Int32,`0)">
-            <summary>
-            Inserts an item to this list at the specified index.
-            </summary>
-            <param name="index">The zero-based index at which <paramref name="item"/> should be inserted.</param>
-            <param name="item">The object to insert into this list.</param>
-            <exception cref="T:System.ArgumentOutOfRangeException">
-            <paramref name="index"/> is not a valid index in this list.
-            </exception>
-            <exception cref="T:System.NotSupportedException">
-            This list is read-only.
-            </exception>
-        </member>
-        <member name="M:SocketProAdapter.Deque`1.RemoveAt(System.Int32)">
-            <summary>
-            Removes the item at the specified index.
-            </summary>
-            <param name="index">The zero-based index of the item to remove.</param>
-            <exception cref="T:System.ArgumentOutOfRangeException">
-            <paramref name="index"/> is not a valid index in this list.
-            </exception>
-            <exception cref="T:System.NotSupportedException">
-            This list is read-only.
-            </exception>
-        </member>
-        <member name="M:SocketProAdapter.Deque`1.IndexOf(`0)">
-            <summary>
-            Determines the index of a specific item in this list.
-=======
         <member name="M:SocketProAdapter.Deque`1.DoInsertRange(System.Int32,System.Collections.Generic.IEnumerable{`0},System.Int32)">
             <summary>
             Inserts a range of elements into the view.
@@ -932,14 +860,8 @@
         <member name="M:SocketProAdapter.Deque`1.EnsureCapacityForOneElement">
             <summary>
             Doubles the capacity if necessary to make room for one more element. When this method returns, <see cref="P:SocketProAdapter.Deque`1.IsFull"/> is false.
->>>>>>> 346a31739e30850995323aafe6d36553752d8c0b
             </summary>
-            <param name="item">The object to locate in this list.</param>
-            <returns>The index of <paramref name="item"/> if found in this list; otherwise, -1.</returns>
         </member>
-<<<<<<< HEAD
-        <member name="M:SocketProAdapter.Deque`1.System#Collections#Generic#ICollection{T}#Add(`0)">
-=======
         <member name="M:SocketProAdapter.Deque`1.AddToBack(`0)">
             <summary>
             Inserts a single element at the back of this deque.
@@ -1043,425 +965,6 @@
             <summary>
             A DBNull
             </summary>
-        </member>
-        <member name="F:SocketProAdapter.tagDataTypeSupported.dtUDT">
-            <summary>
-            User defined data type or complex data type. All of data converted into string
-            </summary>
-        </member>
-        <member name="M:SocketProAdapter.CAdoSerializationHelper.FinalizeRecords">
-            <summary>
-            Call the methods EndLoadData and BeginLoadData one time for loaded records during fetching records.
-            This method is usually called at client side for reduction of latency and fast displaying beginning records.
-            </summary>
-        </member>
-        <member name="P:SocketProAdapter.CAdoSerializationHelper.BatchSize">
-            <summary>
-            The size of a batch of records in byte.
-            </summary>
-        </member>
-        <member name="P:SocketProAdapter.CAdoSerializationHelper.Affected">
-            <summary>
-            The number of rows, records or tables affected.
-            </summary>
-        </member>
-        <member name="P:SocketProAdapter.CAdoSerializationHelper.CurrentDataTable">
-            <summary>
-            The datatable that is being fetched or has been just transferred.
-            </summary>
-        </member>
-        <member name="P:SocketProAdapter.CAdoSerializationHelper.CurrentDataSet">
-            <summary>
-            The DataSet that is being fetched or has been just transferred.
-            </summary>
-        </member>
-        <member name="F:SocketProAdapter.ClientSide.ReplicationSetting.QueueDir">
-            <summary>
-            An absolute path to a directory containing message queue files.
-            </summary>
-        </member>
-        <member name="F:SocketProAdapter.ClientSide.ReplicationSetting.NoAutoConn">
->>>>>>> 346a31739e30850995323aafe6d36553752d8c0b
-            <summary>
-            Adds an item to the end of this list.
-            </summary>
-            <param name="item">The object to add to this list.</param>
-            <exception cref="T:System.NotSupportedException">
-            This list is read-only.
-            </exception>
-        </member>
-        <member name="M:SocketProAdapter.Deque`1.System#Collections#Generic#ICollection{T}#Contains(`0)">
-            <summary>
-            Determines whether this list contains a specific value.
-            </summary>
-            <param name="item">The object to locate in this list.</param>
-            <returns>
-            true if <paramref name="item"/> is found in this list; otherwise, false.
-            </returns>
-        </member>
-        <member name="M:SocketProAdapter.Deque`1.System#Collections#Generic#ICollection{T}#CopyTo(`0[],System.Int32)">
-            <summary>
-            Copies the elements of this list to an <see cref="T:System.Array"/>, starting at a particular <see cref="T:System.Array"/> index.
-            </summary>
-            <param name="array">The one-dimensional <see cref="T:System.Array"/> that is the destination of the elements copied from this slice. The <see cref="T:System.Array"/> must have zero-based indexing.</param>
-            <param name="arrayIndex">The zero-based index in <paramref name="array"/> at which copying begins.</param>
-            <exception cref="T:System.ArgumentNullException">
-            <paramref name="array"/> is null.
-            </exception>
-            <exception cref="T:System.ArgumentOutOfRangeException">
-            <paramref name="arrayIndex"/> is less than 0.
-            </exception>
-            <exception cref="T:System.ArgumentException">
-            <paramref name="arrayIndex"/> is equal to or greater than the length of <paramref name="array"/>.
-            -or-
-            The number of elements in the source <see cref="T:System.Collections.Generic.ICollection`1"/> is greater than the available space from <paramref name="arrayIndex"/> to the end of the destination <paramref name="array"/>.
-            </exception>
-        </member>
-        <member name="M:SocketProAdapter.Deque`1.Remove(`0)">
-            <summary>
-            Removes the first occurrence of a specific object from this list.
-            </summary>
-            <param name="item">The object to remove from this list.</param>
-            <returns>
-            true if <paramref name="item"/> was successfully removed from this list; otherwise, false. This method also returns false if <paramref name="item"/> is not found in this list.
-            </returns>
-            <exception cref="T:System.NotSupportedException">
-            This list is read-only.
-            </exception>
-        </member>
-        <member name="M:SocketProAdapter.Deque`1.GetEnumerator">
-            <summary>
-            Returns an enumerator that iterates through the collection.
-            </summary>
-            <returns>
-            A <see cref="T:System.Collections.Generic.IEnumerator`1"/> that can be used to iterate through the collection.
-            </returns>
-        </member>
-        <member name="M:SocketProAdapter.Deque`1.System#Collections#IEnumerable#GetEnumerator">
-            <summary>
-            Returns an enumerator that iterates through a collection.
-            </summary>
-            <returns>
-            An <see cref="T:System.Collections.IEnumerator"/> object that can be used to iterate through the collection.
-            </returns>
-        </member>
-        <member name="M:SocketProAdapter.Deque`1.ObjectIsT(System.Object)">
-            <summary>
-            Returns whether or not the type of a given item indicates it is appropriate for storing in this container.
-            </summary>
-            <param name="item">The item to test.</param>
-            <returns><c>true</c> if the item is appropriate to store in this container; otherwise, <c>false</c>.</returns>
-        </member>
-        <member name="M:SocketProAdapter.Deque`1.CheckNewIndexArgument(System.Int32,System.Int32)">
-            <summary>
-            Checks the <paramref name="index"/> argument to see if it refers to a valid insertion point in a source of a given length.
-            </summary>
-            <param name="sourceLength">The length of the source. This parameter is not checked for validity.</param>
-            <param name="index">The index into the source.</param>
-            <exception cref="T:System.ArgumentOutOfRangeException"><paramref name="index"/> is not a valid index to an insertion point for the source.</exception>
-        </member>
-        <member name="M:SocketProAdapter.Deque`1.CheckExistingIndexArgument(System.Int32,System.Int32)">
-            <summary>
-            Checks the <paramref name="index"/> argument to see if it refers to an existing element in a source of a given length.
-            </summary>
-            <param name="sourceLength">The length of the source. This parameter is not checked for validity.</param>
-            <param name="index">The index into the source.</param>
-            <exception cref="T:System.ArgumentOutOfRangeException"><paramref name="index"/> is not a valid index to an existing element for the source.</exception>
-        </member>
-        <member name="M:SocketProAdapter.Deque`1.CheckRangeArguments(System.Int32,System.Int32,System.Int32)">
-            <summary>
-            Checks the <paramref name="offset"/> and <paramref name="count"/> arguments for validity when applied to a source of a given length. Allows 0-element ranges, including a 0-element range at the end of the source.
-            </summary>
-            <param name="sourceLength">The length of the source. This parameter is not checked for validity.</param>
-            <param name="offset">The index into source at which the range begins.</param>
-            <param name="count">The number of elements in the range.</param>
-            <exception cref="T:System.ArgumentOutOfRangeException">Either <paramref name="offset"/> or <paramref name="count"/> is less than 0.</exception>
-            <exception cref="T:System.ArgumentException">The range [offset, offset + count) is not within the range [0, sourceLength).</exception>
-        </member>
-        <member name="M:SocketProAdapter.Deque`1.DequeIndexToBufferIndex(System.Int32)">
-            <summary>
-            Applies the offset to <paramref name="index"/>, resulting in a buffer index.
-            </summary>
-            <param name="index">The deque index.</param>
-            <returns>The buffer index.</returns>
-        </member>
-        <member name="M:SocketProAdapter.Deque`1.DoGetItem(System.Int32)">
-            <summary>
-            Gets an element at the specified view index.
-            </summary>
-            <param name="index">The zero-based view index of the element to get. This index is guaranteed to be valid.</param>
-            <returns>The element at the specified index.</returns>
-        </member>
-        <member name="M:SocketProAdapter.Deque`1.DoSetItem(System.Int32,`0)">
-            <summary>
-            Sets an element at the specified view index.
-            </summary>
-            <param name="index">The zero-based view index of the element to get. This index is guaranteed to be valid.</param>
-            <param name="item">The element to store in the list.</param>
-        </member>
-        <member name="M:SocketProAdapter.Deque`1.DoInsert(System.Int32,`0)">
-            <summary>
-            Inserts an element at the specified view index.
-            </summary>
-            <param name="index">The zero-based view index at which the element should be inserted. This index is guaranteed to be valid.</param>
-            <param name="item">The element to store in the list.</param>
-        </member>
-        <member name="M:SocketProAdapter.Deque`1.DoRemoveAt(System.Int32)">
-            <summary>
-            Removes an element at the specified view index.
-            </summary>
-            <param name="index">The zero-based view index of the element to remove. This index is guaranteed to be valid.</param>
-        </member>
-        <member name="M:SocketProAdapter.Deque`1.PostIncrement(System.Int32)">
-            <summary>
-            Increments <see cref="F:SocketProAdapter.Deque`1.offset"/> by <paramref name="value"/> using modulo-<see cref="P:SocketProAdapter.Deque`1.Capacity"/> arithmetic.
-            </summary>
-            <param name="value">The value by which to increase <see cref="F:SocketProAdapter.Deque`1.offset"/>. May not be negative.</param>
-            <returns>The value of <see cref="F:SocketProAdapter.Deque`1.offset"/> after it was incremented.</returns>
-        </member>
-        <member name="M:SocketProAdapter.Deque`1.PreDecrement(System.Int32)">
-            <summary>
-            Decrements <see cref="F:SocketProAdapter.Deque`1.offset"/> by <paramref name="value"/> using modulo-<see cref="P:SocketProAdapter.Deque`1.Capacity"/> arithmetic.
-            </summary>
-            <param name="value">The value by which to reduce <see cref="F:SocketProAdapter.Deque`1.offset"/>. May not be negative or greater than <see cref="P:SocketProAdapter.Deque`1.Capacity"/>.</param>
-            <returns>The value of <see cref="F:SocketProAdapter.Deque`1.offset"/> before it was decremented.</returns>
-        </member>
-        <member name="M:SocketProAdapter.Deque`1.DoAddToBack(`0)">
-            <summary>
-            Inserts a single element to the back of the view. <see cref="P:SocketProAdapter.Deque`1.IsFull"/> must be false when this method is called.
-            </summary>
-            <param name="value">The element to insert.</param>
-        </member>
-        <member name="M:SocketProAdapter.Deque`1.DoAddToFront(`0)">
-            <summary>
-            Inserts a single element to the front of the view. <see cref="P:SocketProAdapter.Deque`1.IsFull"/> must be false when this method is called.
-            </summary>
-            <param name="value">The element to insert.</param>
-        </member>
-        <member name="M:SocketProAdapter.Deque`1.DoRemoveFromBack">
-            <summary>
-            Removes and returns the last element in the view. <see cref="P:SocketProAdapter.Deque`1.IsEmpty"/> must be false when this method is called.
-            </summary>
-            <returns>The former last element.</returns>
-        </member>
-        <member name="M:SocketProAdapter.Deque`1.DoRemoveFromFront">
-            <summary>
-            Removes and returns the first element in the view. <see cref="P:SocketProAdapter.Deque`1.IsEmpty"/> must be false when this method is called.
-            </summary>
-            <returns>The former first element.</returns>
-        </member>
-        <member name="M:SocketProAdapter.Deque`1.DoInsertRange(System.Int32,System.Collections.Generic.IEnumerable{`0},System.Int32)">
-            <summary>
-            Inserts a range of elements into the view.
-            </summary>
-            <param name="index">The index into the view at which the elements are to be inserted.</param>
-            <param name="collection">The elements to insert.</param>
-            <param name="collectionCount">The number of elements in <paramref name="collection"/>. Must be greater than zero, and the sum of <paramref name="collectionCount"/> and <see cref="P:SocketProAdapter.Deque`1.Count"/> must be less than or equal to <see cref="P:SocketProAdapter.Deque`1.Capacity"/>.</param>
-        </member>
-        <member name="M:SocketProAdapter.Deque`1.DoRemoveRange(System.Int32,System.Int32)">
-            <summary>
-            Removes a range of elements from the view.
-            </summary>
-            <param name="index">The index into the view at which the range begins.</param>
-            <param name="collectionCount">The number of elements in the range. This must be greater than 0 and less than or equal to <see cref="P:SocketProAdapter.Deque`1.Count"/>.</param>
-        </member>
-<<<<<<< HEAD
-        <member name="M:SocketProAdapter.Deque`1.EnsureCapacityForOneElement">
-=======
-        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Execute(SocketProAdapter.UDB.CDBVariantArray,SocketProAdapter.ClientSide.CAsyncDBHandler.DExecuteResult,SocketProAdapter.ClientSide.CAsyncDBHandler.DRows,SocketProAdapter.ClientSide.CAsyncDBHandler.DRowsetHeader,System.Boolean,System.Boolean,SocketProAdapter.ClientSide.CAsyncServiceHandler.DCanceled)">
-            <summary>
-            Process one or more sets of prepared statements with an array of parameter data asynchronously
-            </summary>
-            <param name="vParam">an array of parameter data which will be bounded to previously prepared parameters</param>
-            <param name="handler">a callback for tracking final result</param>
-            <param name="row">a callback for tracking record or output parameter returned data</param>
-            <param name="rh">a callback for tracking row set of header column informations. Note that there will be NO row set data or its column informations returned if NO such a callback is set</param>
-            <param name="meta">a boolean value for better or more detailed column meta details such as unique, not null, primary key, and so on. It defaults to true</param>
-            <param name="lastInsertId">a boolean value for last insert record identification number. It defaults to true</param>
-            <param name="canceled">a callback for tracking cancel or socket closed event</param>
-            <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
-        </member>
-        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Execute(System.String)">
->>>>>>> 346a31739e30850995323aafe6d36553752d8c0b
-            <summary>
-            Doubles the capacity if necessary to make room for one more element. When this method returns, <see cref="P:SocketProAdapter.Deque`1.IsFull"/> is false.
-            </summary>
-        </member>
-        <member name="M:SocketProAdapter.Deque`1.AddToBack(`0)">
-            <summary>
-            Inserts a single element at the back of this deque.
-            </summary>
-            <param name="value">The element to insert.</param>
-        </member>
-        <member name="M:SocketProAdapter.Deque`1.AddToFront(`0)">
-            <summary>
-            Inserts a single element at the front of this deque.
-            </summary>
-            <param name="value">The element to insert.</param>
-        </member>
-        <member name="M:SocketProAdapter.Deque`1.InsertRange(System.Int32,System.Collections.Generic.IEnumerable{`0})">
-            <summary>
-            Inserts a collection of elements into this deque.
-            </summary>
-            <param name="index">The index at which the collection is inserted.</param>
-            <param name="collection">The collection of elements to insert.</param>
-            <exception cref="T:System.ArgumentOutOfRangeException"><paramref name="index"/> is not a valid index to an insertion point for the source.</exception>
-        </member>
-        <member name="M:SocketProAdapter.Deque`1.RemoveRange(System.Int32,System.Int32)">
-            <summary>
-            Removes a range of elements from this deque.
-            </summary>
-            <param name="offset">The index into the deque at which the range begins.</param>
-            <param name="count">The number of elements to remove.</param>
-            <exception cref="T:System.ArgumentOutOfRangeException">Either <paramref name="offset"/> or <paramref name="count"/> is less than 0.</exception>
-            <exception cref="T:System.ArgumentException">The range [<paramref name="offset"/>, <paramref name="offset"/> + <paramref name="count"/>) is not within the range [0, <see cref="P:SocketProAdapter.Deque`1.Count"/>).</exception>
-        </member>
-<<<<<<< HEAD
-        <member name="M:SocketProAdapter.Deque`1.RemoveFromBack">
-=======
-        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Execute(System.String,SocketProAdapter.ClientSide.CAsyncDBHandler.DExecuteResult,SocketProAdapter.ClientSide.CAsyncDBHandler.DRows,SocketProAdapter.ClientSide.CAsyncDBHandler.DRowsetHeader,System.Boolean,System.Boolean,SocketProAdapter.ClientSide.CAsyncServiceHandler.DCanceled)">
-            <summary>
-            Process a complex SQL statement which may be combined with multiple basic SQL statements asynchronously
-            </summary>
-            <param name="sql">a complex SQL statement which may be combined with multiple basic SQL statements</param>
-            <param name="handler">a callback for tracking final result</param>
-            <param name="row">a callback for receiving records of data</param>
-            <param name="rh">a callback for tracking row set of header column informations. Note that there will be NO row set data or its column informations returned if NO such a callback is set</param>
-            <param name="meta">a boolean value for better or more detailed column meta details such as unique, not null, primary key, and so on. It defaults to true</param>
-            <param name="lastInsertId">a boolean value for last insert record identification number. It defaults to true</param>
-            <param name="canceled">a callback for tracking cancel or socket closed event</param>
-            <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
-        </member>
-        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Open(System.String,SocketProAdapter.ClientSide.CAsyncDBHandler.DResult)">
->>>>>>> 346a31739e30850995323aafe6d36553752d8c0b
-            <summary>
-            Removes and returns the last element of this deque.
-            </summary>
-            <returns>The former last element.</returns>
-            <exception cref="T:System.InvalidOperationException">The deque is empty.</exception>
-        </member>
-        <member name="M:SocketProAdapter.Deque`1.RemoveFromFront">
-            <summary>
-            Removes and returns the first element of this deque.
-            </summary>
-            <returns>The former first element.</returns>
-            <exception cref="T:System.InvalidOperationException">The deque is empty.</exception>
-        </member>
-<<<<<<< HEAD
-        <member name="M:SocketProAdapter.Deque`1.Clear">
-=======
-        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Open(System.String,SocketProAdapter.ClientSide.CAsyncDBHandler.DResult,System.UInt32,SocketProAdapter.ClientSide.CAsyncServiceHandler.DCanceled)">
-            <summary>
-            Open a database connection at server side asynchronously
-            </summary>
-            <param name="strConnection">a database connection string. The database connection string can be an empty string if its server side supports global database connection string</param>
-            <param name="handler">a callback for database connecting result</param>
-            <param name="flags">a set of flags transferred to server to indicate how to build database connection at server side. It defaults to zero</param>
-            <param name="canceled">a callback for tracking cancel or socket closed event</param>
-            <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
-        </member>
-        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Prepare(System.String)">
->>>>>>> 346a31739e30850995323aafe6d36553752d8c0b
-            <summary>
-            Removes all items from this deque.
-            </summary>
-        </member>
-        <member name="P:SocketProAdapter.Deque`1.System#Collections#Generic#ICollection{T}#IsReadOnly">
-            <summary>
-            Gets a value indicating whether this list is read-only. This implementation always returns <c>false</c>.
-            </summary>
-            <returns>true if this list is read-only; otherwise, false.</returns>
-        </member>
-        <member name="P:SocketProAdapter.Deque`1.Item(System.Int32)">
-            <summary>
-            Gets or sets the item at the specified index.
-            </summary>
-            <param name="index">The index of the item to get or set.</param>
-            <exception cref="T:System.ArgumentOutOfRangeException"><paramref name="index"/> is not a valid index in this list.</exception>
-            <exception cref="T:System.NotSupportedException">This property is set and the list is read-only.</exception>
-        </member>
-<<<<<<< HEAD
-        <member name="P:SocketProAdapter.Deque`1.IsEmpty">
-=======
-        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Prepare(System.String,SocketProAdapter.ClientSide.CAsyncDBHandler.DResult,SocketProAdapter.UDB.CParameterInfo[],SocketProAdapter.ClientSide.CAsyncServiceHandler.DCanceled)">
-            <summary>
-            Send a parameterized SQL statement for preparing with a given array of parameter informations asynchronously
-            </summary>
-            <param name="sql">a parameterized SQL statement</param>
-            <param name="handler">a callback for SQL preparing result</param>
-            <param name="vParameterInfo">a given array of parameter informations</param>
-            <param name="canceled">a callback for tracking cancel or socket closed event</param>
-            <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
-        </member>
-        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.EndTrans">
->>>>>>> 346a31739e30850995323aafe6d36553752d8c0b
-            <summary>
-            Gets a value indicating whether this instance is empty.
-            </summary>
-        </member>
-        <member name="P:SocketProAdapter.Deque`1.IsFull">
-            <summary>
-            Gets a value indicating whether this instance is at full capacity.
-            </summary>
-        </member>
-        <member name="P:SocketProAdapter.Deque`1.IsSplit">
-            <summary>
-            Gets a value indicating whether the buffer is "split" (meaning the beginning of the view is at a later index in <see cref="F:SocketProAdapter.Deque`1.buffer"/> than the end).
-            </summary>
-        </member>
-<<<<<<< HEAD
-        <member name="P:SocketProAdapter.Deque`1.Capacity">
-=======
-        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.EndTrans(SocketProAdapter.UDB.tagRollbackPlan,SocketProAdapter.ClientSide.CAsyncDBHandler.DResult,SocketProAdapter.ClientSide.CAsyncServiceHandler.DCanceled)">
-            <summary>
-            End a manual transaction with a given rollback plan. Note the transaction will be associated with SocketPro client message queue if available to avoid possible transaction lose
-            </summary>
-            <param name="plan">a value for computing how included transactions should be rollback at server side. It defaults to tagRollbackPlan.rpDefault</param>
-            <param name="handler">a callback for tracking its response result</param>
-            <param name="canceled">a callback for tracking cancel or socket closed event</param>
-            <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
-        </member>
-        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.BeginTrans">
->>>>>>> 346a31739e30850995323aafe6d36553752d8c0b
-            <summary>
-            Gets or sets the capacity for this deque. This value must always be greater than zero, and this property cannot be set to a value less than <see cref="P:SocketProAdapter.Deque`1.Count"/>.
-            </summary>
-            <exception cref="T:System.InvalidOperationException"><c>Capacity</c> cannot be set to a value less than <see cref="P:SocketProAdapter.Deque`1.Count"/>.</exception>
-        </member>
-        <member name="P:SocketProAdapter.Deque`1.Count">
-            <summary>
-            Gets the number of elements contained in this deque.
-            </summary>
-            <returns>The number of elements contained in this deque.</returns>
-        </member>
-        <member name="F:SocketProAdapter.tagDataTypeSupported.dtValue">
-            <summary>
-            An object
-            </summary>
-        </member>
-<<<<<<< HEAD
-        <member name="F:SocketProAdapter.tagDataTypeSupported.dtValues">
-            <summary>
-            An array of objects
-            </summary>
-        </member>
-        <member name="F:SocketProAdapter.tagDataTypeSupported.dtNull">
-=======
-        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.BeginTrans(SocketProAdapter.UDB.tagTransactionIsolation,SocketProAdapter.ClientSide.CAsyncDBHandler.DResult,SocketProAdapter.ClientSide.CAsyncServiceHandler.DCanceled)">
-            <summary>
-            Start a manual transaction with a given isolation asynchronously. Note the transaction will be associated with SocketPro client message queue if available to avoid possible transaction lose
-            </summary>
-            <param name="isolation">a value for transaction isolation. It defaults to tagTransactionIsolation.tiReadCommited</param>
-            <param name="handler">a callback for tracking its response result</param>
-            <param name="canceled">a callback for tracking cancel or socket closed event</param>
-            <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
-        </member>
-        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Close">
->>>>>>> 346a31739e30850995323aafe6d36553752d8c0b
-            <summary>
-            A DBNull
-            </summary>
-<<<<<<< HEAD
         </member>
         <member name="F:SocketProAdapter.tagDataTypeSupported.dtUDT">
             <summary>
@@ -1617,6 +1120,19 @@
             <param name="lastInsertId">a boolean value for last insert record identification number. It defaults to true</param>
             <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
         </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Execute(SocketProAdapter.UDB.CDBVariantArray,SocketProAdapter.ClientSide.CAsyncDBHandler.DExecuteResult,SocketProAdapter.ClientSide.CAsyncDBHandler.DRows,SocketProAdapter.ClientSide.CAsyncDBHandler.DRowsetHeader,System.Boolean,System.Boolean,SocketProAdapter.ClientSide.CAsyncServiceHandler.DCanceled)">
+            <summary>
+            Process one or more sets of prepared statements with an array of parameter data asynchronously
+            </summary>
+            <param name="vParam">an array of parameter data which will be bounded to previously prepared parameters</param>
+            <param name="handler">a callback for tracking final result</param>
+            <param name="row">a callback for tracking record or output parameter returned data</param>
+            <param name="rh">a callback for tracking row set of header column informations. Note that there will be NO row set data or its column informations returned if NO such a callback is set</param>
+            <param name="meta">a boolean value for better or more detailed column meta details such as unique, not null, primary key, and so on. It defaults to true</param>
+            <param name="lastInsertId">a boolean value for last insert record identification number. It defaults to true</param>
+            <param name="canceled">a callback for tracking cancel or socket closed event</param>
+            <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
+        </member>
         <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Execute(System.String)">
             <summary>
             Asynchronously process a complex SQL statement which may be combined with multiple basic SQL statements, and don't expect any data returned
@@ -1665,6 +1181,19 @@
             <param name="lastInsertId">a boolean value for last insert record identification number. It defaults to true</param>
             <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
         </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Execute(System.String,SocketProAdapter.ClientSide.CAsyncDBHandler.DExecuteResult,SocketProAdapter.ClientSide.CAsyncDBHandler.DRows,SocketProAdapter.ClientSide.CAsyncDBHandler.DRowsetHeader,System.Boolean,System.Boolean,SocketProAdapter.ClientSide.CAsyncServiceHandler.DCanceled)">
+            <summary>
+            Process a complex SQL statement which may be combined with multiple basic SQL statements asynchronously
+            </summary>
+            <param name="sql">a complex SQL statement which may be combined with multiple basic SQL statements</param>
+            <param name="handler">a callback for tracking final result</param>
+            <param name="row">a callback for receiving records of data</param>
+            <param name="rh">a callback for tracking row set of header column informations. Note that there will be NO row set data or its column informations returned if NO such a callback is set</param>
+            <param name="meta">a boolean value for better or more detailed column meta details such as unique, not null, primary key, and so on. It defaults to true</param>
+            <param name="lastInsertId">a boolean value for last insert record identification number. It defaults to true</param>
+            <param name="canceled">a callback for tracking cancel or socket closed event</param>
+            <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
+        </member>
         <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Open(System.String,SocketProAdapter.ClientSide.CAsyncDBHandler.DResult)">
             <summary>
             Open a database connection at server side asynchronously
@@ -1680,6 +1209,16 @@
             <param name="strConnection">a database connection string. The database connection string can be an empty string if its server side supports global database connection string</param>
             <param name="handler">a callback for database connecting result</param>
             <param name="flags">a set of flags transferred to server to indicate how to build database connection at server side. It defaults to zero</param>
+            <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Open(System.String,SocketProAdapter.ClientSide.CAsyncDBHandler.DResult,System.UInt32,SocketProAdapter.ClientSide.CAsyncServiceHandler.DCanceled)">
+            <summary>
+            Open a database connection at server side asynchronously
+            </summary>
+            <param name="strConnection">a database connection string. The database connection string can be an empty string if its server side supports global database connection string</param>
+            <param name="handler">a callback for database connecting result</param>
+            <param name="flags">a set of flags transferred to server to indicate how to build database connection at server side. It defaults to zero</param>
+            <param name="canceled">a callback for tracking cancel or socket closed event</param>
             <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
         </member>
         <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Prepare(System.String)">
@@ -1706,6 +1245,16 @@
             <param name="vParameterInfo">a given array of parameter informations</param>
             <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
         </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Prepare(System.String,SocketProAdapter.ClientSide.CAsyncDBHandler.DResult,SocketProAdapter.UDB.CParameterInfo[],SocketProAdapter.ClientSide.CAsyncServiceHandler.DCanceled)">
+            <summary>
+            Send a parameterized SQL statement for preparing with a given array of parameter informations asynchronously
+            </summary>
+            <param name="sql">a parameterized SQL statement</param>
+            <param name="handler">a callback for SQL preparing result</param>
+            <param name="vParameterInfo">a given array of parameter informations</param>
+            <param name="canceled">a callback for tracking cancel or socket closed event</param>
+            <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
+        </member>
         <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.EndTrans">
             <summary>
             End a manual transaction with a given rollback plan tagRollbackPlan.rpDefault. Note the transaction will be associated with SocketPro client message queue if available to avoid possible transaction lose
@@ -1725,6 +1274,15 @@
             </summary>
             <param name="plan">a value for computing how included transactions should be rollback at server side. It defaults to tagRollbackPlan.rpDefault</param>
             <param name="handler">a callback for tracking its response result</param>
+            <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.EndTrans(SocketProAdapter.UDB.tagRollbackPlan,SocketProAdapter.ClientSide.CAsyncDBHandler.DResult,SocketProAdapter.ClientSide.CAsyncServiceHandler.DCanceled)">
+            <summary>
+            End a manual transaction with a given rollback plan. Note the transaction will be associated with SocketPro client message queue if available to avoid possible transaction lose
+            </summary>
+            <param name="plan">a value for computing how included transactions should be rollback at server side. It defaults to tagRollbackPlan.rpDefault</param>
+            <param name="handler">a callback for tracking its response result</param>
+            <param name="canceled">a callback for tracking cancel or socket closed event</param>
             <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
         </member>
         <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.BeginTrans">
@@ -1748,14 +1306,19 @@
             <param name="handler">a callback for tracking its response result</param>
             <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
         </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.BeginTrans(SocketProAdapter.UDB.tagTransactionIsolation,SocketProAdapter.ClientSide.CAsyncDBHandler.DResult,SocketProAdapter.ClientSide.CAsyncServiceHandler.DCanceled)">
+            <summary>
+            Start a manual transaction with a given isolation asynchronously. Note the transaction will be associated with SocketPro client message queue if available to avoid possible transaction lose
+            </summary>
+            <param name="isolation">a value for transaction isolation. It defaults to tagTransactionIsolation.tiReadCommited</param>
+            <param name="handler">a callback for tracking its response result</param>
+            <param name="canceled">a callback for tracking cancel or socket closed event</param>
+            <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
+        </member>
         <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Close">
             <summary>
             Notify connected remote server to close database connection string asynchronously
             </summary>
-            <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
-        </member>
-        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Close(SocketProAdapter.ClientSide.CAsyncDBHandler.DResult)">
-=======
             <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
         </member>
         <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Close(SocketProAdapter.ClientSide.CAsyncDBHandler.DResult)">
@@ -1766,28 +1329,10 @@
             <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
         </member>
         <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Close(SocketProAdapter.ClientSide.CAsyncDBHandler.DResult,SocketProAdapter.ClientSide.CAsyncServiceHandler.DCanceled)">
->>>>>>> 346a31739e30850995323aafe6d36553752d8c0b
             <summary>
             Notify connected remote server to close database connection string asynchronously
             </summary>
             <param name="handler">a callback for closing result, which should be OK always as long as there is network or queue available </param>
-<<<<<<< HEAD
-            <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
-        </member>
-        <member name="F:SocketProAdapter.ClientSide.CMysql.USE_REMOTE_MYSQL">
-            <summary>
-            Use Mysql embedded at SocketPro server side by default.
-            Use this const value for the input parameter flags with the method of CAsyncDBHandler::Open at client side
-            to open a connection to remote Mysql server at SocketPro server instead of embedded Mysql
-            </summary>
-        </member>
-        <member name="T:SocketProAdapter.UDateTime">
-            <summary>
-            database datetime with accuracy micro-second
-            </summary>
-        </member>
-        <member name="F:SocketProAdapter.UDateTime.m_time">
-=======
             <param name="canceled">a callback for tracking cancel or socket closed event</param>
             <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
         </member>
@@ -1822,49 +1367,10 @@
             <param name="sid">A service id</param>
         </member>
         <member name="T:SocketProAdapter.UDateTime">
->>>>>>> 346a31739e30850995323aafe6d36553752d8c0b
             <summary>
             database datetime with accuracy micro-second
             </summary>
         </member>
-<<<<<<< HEAD
-        <member name="M:SocketProAdapter.UDateTime.ToString">
-            <summary>
-            Call the method to get database datetime string
-            </summary>
-            <returns>a database datetime string</returns>
-        </member>
-        <member name="M:SocketProAdapter.CUQueue.GetBuffer">
-            <summary>
-            Get a new array of bytes containing the packed data.
-            </summary>
-            <returns>An array of bytes</returns>
-        </member>
-        <member name="M:SocketProAdapter.CUQueue.GetBuffer(System.UInt32)">
-            <summary>
-            Get a new array of bytes containing the packed data.
-            </summary>
-            <param name="offset">An integer for position offset which defaults to zero</param>
-            <returns>An array of bytes</returns>
-        </member>
-        <member name="M:SocketProAdapter.CUQueue.Push(System.String)">
-            <summary>
-            Save a string into this memory buffer without regarding its length. In general, don't use this method directly but the method Save instead
-            </summary>
-            <param name="str">a string</param>
-            <returns>a reference to this memory buffer</returns>
-        </member>
-        <member name="M:SocketProAdapter.CUQueue.Push(System.Byte[],System.UInt32,System.UInt32)">
-            <summary>
-            Save an array of bytes into this memory buffer. In general, don't use this method directly but the method Save instead
-            </summary>
-            <param name="bytes">an array of bytes</param>
-            <param name="offset">offset length in byte</param>
-            <param name="len">length in byte</param>
-            <returns>a reference to this memory buffer</returns>
-        </member>
-        <member name="M:SocketProAdapter.CUQueue.Push(System.Byte[],System.UInt32)">
-=======
         <member name="F:SocketProAdapter.UDateTime.m_time">
             <summary>
             database datetime with accuracy micro-second
@@ -1897,40 +1403,19 @@
             <returns>a reference to this memory buffer</returns>
         </member>
         <member name="M:SocketProAdapter.CUQueue.Push(System.Byte[],System.UInt32,System.UInt32)">
->>>>>>> 346a31739e30850995323aafe6d36553752d8c0b
             <summary>
             Save an array of bytes into this memory buffer without saving its length. In general, don't use this method directly but the method Save instead
             </summary>
             <param name="bytes">an array of bytes</param>
-<<<<<<< HEAD
-            <param name="len">length in byte</param>
-            <returns>a reference to this memory buffer</returns>
-        </member>
-        <member name="M:SocketProAdapter.CUQueue.Push(System.Byte[])">
-=======
             <param name="offset">offset length in byte</param>
             <param name="len">length in byte</param>
             <returns>a reference to this memory buffer</returns>
         </member>
         <member name="M:SocketProAdapter.CUQueue.Push(System.Byte[],System.UInt32)">
->>>>>>> 346a31739e30850995323aafe6d36553752d8c0b
             <summary>
             Save an array of bytes into this memory buffer without saving its length. In general, don't use this method directly but the method Save instead
             </summary>
             <param name="bytes">an array of bytes</param>
-<<<<<<< HEAD
-            <returns>a reference to this memory buffer</returns>
-        </member>
-        <member name="M:SocketProAdapter.CUQueue.Push(System.SByte[],System.UInt32)">
-            <summary>
-            Save an array of ANSCII chars into this memory buffer. In general, don't use this method directly but the method Save instead
-            </summary>
-            <param name="bytes">an array of ANSCII chars</param>
-            <param name="len">length in byte</param>
-            <returns>a reference to this memory buffer</returns>
-        </member>
-        <member name="M:SocketProAdapter.CUQueue.Push(System.SByte[])">
-=======
             <param name="len">length in byte</param>
             <returns>a reference to this memory buffer</returns>
         </member>
@@ -1942,60 +1427,10 @@
             <returns>a reference to this memory buffer</returns>
         </member>
         <member name="M:SocketProAdapter.CUQueue.Push(System.SByte[],System.UInt32)">
->>>>>>> 346a31739e30850995323aafe6d36553752d8c0b
             <summary>
             Save an array of ANSCII chars into this memory buffer without saving its length. In general, don't use this method directly but the method Save instead
             </summary>
             <param name="bytes">an array of ANSCII chars</param>
-<<<<<<< HEAD
-            <returns>a reference to this memory buffer</returns>
-        </member>
-        <member name="M:SocketProAdapter.CUQueue.Push(SocketProAdapter.IUSerializer)">
-            <summary>
-            Save data into this memory buffer. In general, don't use this method directly but the method Serialize or Save instead
-            </summary>
-            <param name="USerializer">an interface to an object</param>
-            <returns>a reference to this memory buffer</returns>
-        </member>
-        <member name="M:SocketProAdapter.CUQueue.Pop(System.Byte[]@,System.UInt32)">
-            <summary>
-            Read an array of bytes from this memory buffer. In general, don't use this method but the method Load instead
-            </summary>
-            <param name="Bytes">an array of bytes receiving data</param>
-            <param name="nLen">expected length in bytes</param>
-            <returns>a reference to this memory buffer</returns>
-        </member>
-        <member name="M:SocketProAdapter.CUQueue.Pop(System.SByte[]@,System.UInt32)">
-            <summary>
-            Read an array of ANSCII chars from this memory buffer. In general, don't use this method but the method Load instead
-            </summary>
-            <param name="sBytes">an array of ANSCII bytes receiving data</param>
-            <param name="nLen">expected length in bytes</param>
-            <returns>a reference to this memory buffer</returns>
-        </member>
-        <member name="M:SocketProAdapter.CUQueue.Pop(System.Byte[]@)">
-            <summary>
-            Read an array of bytes from this memory buffer. In general, don't use this method but the method Load instead
-            </summary>
-            <param name="Bytes">an array of bytes receiving data</param>
-            <returns>a reference to this memory buffer</returns>
-        </member>
-        <member name="M:SocketProAdapter.CUQueue.Pop(System.SByte[]@)">
-            <summary>
-            Read an array of ANSCII bytes from this memory buffer. In general, don't use this method but the method Load instead
-            </summary>
-            <param name="sBytes">an array of ANSCII receiving data</param>
-            <returns>a reference to this memory buffer</returns>
-        </member>
-        <member name="M:SocketProAdapter.CUQueue.Pop(System.String@)">
-            <summary>
-            Read string out from this memory buffer. In general, don't use this method but the method Load instead
-            </summary>
-            <param name="strData">a string receiving data</param>
-            <returns>a reference to this memory buffer</returns>
-        </member>
-        <member name="M:SocketProAdapter.CUQueue.Pop(System.String@,System.UInt32)">
-=======
             <param name="len">length in byte</param>
             <returns>a reference to this memory buffer</returns>
         </member>
@@ -2060,45 +1495,10 @@
             <returns>a reference to this memory buffer</returns>
         </member>
         <member name="M:SocketProAdapter.CUQueue.Pop(System.String@)">
->>>>>>> 346a31739e30850995323aafe6d36553752d8c0b
             <summary>
             Read string out from this memory buffer. In general, don't use this method but the method Load instead
             </summary>
             <param name="strData">a string receiving data</param>
-<<<<<<< HEAD
-            <param name="nBytes">a given number of bytes</param>
-            <returns>a reference to this memory buffer</returns>
-        </member>
-        <member name="M:SocketProAdapter.CUQueue.Pop``1(``0@)">
-            <summary>
-            Read an object implemented with the interface USerializer out from this memory buffer. In general, don't use this method but the method Deserialize or Load instead
-            </summary>
-            <typeparam name="T">a type of classes implemented with the interface USerializer</typeparam>
-            <param name="USerializer">an object implemented with the interface USerializer</param>
-            <returns>a reference to this memory buffer</returns>
-        </member>
-        <member name="P:SocketProAdapter.CUQueue.IntenalBuffer">
-            <summary>
-            A property for internal buffer which contains actual data in binary format. It is more efficient than the method GetBuffer, but you must pay attention to the property HeadPosition.
-            </summary>
-        </member>
-        <member name="P:SocketProAdapter.CUQueue.HeadPosition">
-            <summary>
-            An integer value for next popping position
-            </summary>
-        </member>
-        <member name="P:SocketProAdapter.CUQueue.TailSize">
-            <summary>
-            An integer value for unused bytes
-            </summary>
-        </member>
-        <member name="F:SocketProAdapter.UDB.tagRollbackPlan.rpDefault">
-            <summary>
-            Manual transaction will rollback whenever there is an error by default
-            </summary>
-        </member>
-        <member name="F:SocketProAdapter.UDB.tagRollbackPlan.rpRollbackErrorAny">
-=======
             <returns>a reference to this memory buffer</returns>
         </member>
         <member name="M:SocketProAdapter.CUQueue.Pop(System.String@,System.UInt32)">
@@ -2139,50 +1539,10 @@
             <param name="sid">A service id</param>
         </member>
         <member name="F:SocketProAdapter.UDB.tagRollbackPlan.rpDefault">
->>>>>>> 346a31739e30850995323aafe6d36553752d8c0b
             <summary>
             Manual transaction will rollback whenever there is an error by default
             </summary>
         </member>
-<<<<<<< HEAD
-        <member name="F:SocketProAdapter.UDB.tagRollbackPlan.rpRollbackErrorLess">
-            <summary>
-            Manual transaction will rollback as long as the number of errors is less than the number of ok processing statements
-            </summary>
-        </member>
-        <member name="F:SocketProAdapter.UDB.tagRollbackPlan.rpRollbackErrorEqual">
-            <summary>
-            Manual transaction will rollback as long as the number of errors is less or equal than the number of ok processing statements
-            </summary>
-        </member>
-        <member name="F:SocketProAdapter.UDB.tagRollbackPlan.rpRollbackErrorMore">
-            <summary>
-            Manual transaction will rollback as long as the number of errors is more than the number of ok processing statements
-            </summary>
-        </member>
-        <member name="F:SocketProAdapter.UDB.tagRollbackPlan.rpRollbackErrorAll">
-            <summary>
-            Manual transaction will rollback only if all the processing statements are failed
-            </summary>
-        </member>
-        <member name="F:SocketProAdapter.UDB.tagRollbackPlan.rpRollbackAlways">
-            <summary>
-            Manual transaction will rollback always no matter what happens.
-            </summary>
-        </member>
-        <member name="F:SocketProAdapter.UDB.tagUpdateEvent.ueInsert">
-            <summary>
-            An event for inserting a record into a table
-            </summary>
-        </member>
-        <member name="F:SocketProAdapter.UDB.tagUpdateEvent.ueUpdate">
-            <summary>
-            An event for updating a record of a table
-            </summary>
-        </member>
-        <member name="F:SocketProAdapter.UDB.tagUpdateEvent.ueDelete">
-            <summary>
-=======
         <member name="F:SocketProAdapter.UDB.tagRollbackPlan.rpRollbackErrorAny">
             <summary>
             Manual transaction will rollback whenever there is an error by default
@@ -2225,7 +1585,6 @@
         </member>
         <member name="F:SocketProAdapter.UDB.tagUpdateEvent.ueDelete">
             <summary>
->>>>>>> 346a31739e30850995323aafe6d36553752d8c0b
             An event for deleting a record from a table
             </summary>
         </member>

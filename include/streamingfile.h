@@ -289,9 +289,9 @@ namespace SPA {
                     case SFile::idUploading:
                     {
                         DTransferring trans;
-                        UINT64 uploaded;
+                        INT64 uploaded;
                         mc >> uploaded;
-                        {
+                        if (uploaded > 0) {
                             CAutoLock al(m_csFile);
                             if (m_vContext.size()) {
                                 CContext &context = m_vContext.front();
@@ -302,7 +302,7 @@ namespace SPA {
                             }
                         }
                         if (trans)
-                            trans(this, uploaded);
+                            trans(this, (UINT64) uploaded);
                     }
                         break;
                     case SFile::idUploadCompleted:
