@@ -138,10 +138,16 @@ namespace SocketProAdapter
                 return ClientCoreLoader.CommitBatching(h, (byte)(bBatchingAtServerSide ? 1 : 0)) != 0;
             }
 
+            protected virtual void MergeTo(CAsyncServiceHandler to)
+            {
+
+            }
+
             internal void AppendTo(CAsyncServiceHandler to)
             {
                 lock (to.m_cs)
                 {
+                    MergeTo(to);
                     lock (m_cs)
                     {
                         to.m_kvCallback.InsertRange(to.m_kvCallback.Count, m_kvCallback);
@@ -2298,6 +2304,17 @@ namespace SocketProAdapter
             private object m_csSend = new object();
             private Deque<KeyValuePair<ushort, CResultCb>> m_kvCallback = new Deque<KeyValuePair<ushort, CResultCb>>();
             private Deque<KeyValuePair<ushort, CResultCb>> m_kvBatching = new Deque<KeyValuePair<ushort, CResultCb>>();
+
+            public int Remaining
+            {
+                get
+                {
+                    lock (m_cs)
+                    {
+                        return m_kvCallback.Count;
+                    }
+                }
+            }
 
             internal Deque<KeyValuePair<ushort, CResultCb>> GetCallbacks()
             {

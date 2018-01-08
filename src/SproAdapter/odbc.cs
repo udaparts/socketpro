@@ -144,12 +144,15 @@ namespace SocketProAdapter
             public bool Statistics(string CatalogName, string SchemaName, string TableName, ushort unique, ushort reserved, DExecuteResult handler, DRows row, DRowsetHeader rh, DCanceled canceled)
             {
                 ulong index;
+                lock (m_csCallIndex)
+                {
+                    index = ++m_nCall;
+                }
                 //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
                 //in case a client asynchronously sends lots of requests without use of client side queue.
                 lock (m_csDB)
                 {
-                    index = ++m_nCall;
-                    m_mapRowset[m_nCall] = new KeyValuePair<DRowsetHeader, DRows>(rh, row);
+                    m_mapRowset[index] = new KeyValuePair<DRowsetHeader, DRows>(rh, row);
                 }
                 if (!SendRequest(idSQLStatistics, CatalogName, SchemaName, TableName, unique, reserved, index, (ar) =>
                 {
@@ -163,7 +166,7 @@ namespace SocketProAdapter
                         m_affected = 0;
                         m_dbErrCode = res;
                         m_dbErrMsg = errMsg;
-                        m_mapRowset.Remove(m_indexRowset);
+                        m_mapRowset.Remove(index);
                     }
                     if (handler != null)
                         handler(this, res, errMsg, 0, fail_ok, null);
@@ -201,12 +204,15 @@ namespace SocketProAdapter
             private bool DoMeta(ushort id, string s0, string s1, string s2, string s3, DExecuteResult handler, DRows row, DRowsetHeader rh, DCanceled canceled)
             {
                 ulong index;
+                lock (m_csCallIndex)
+                {
+                    index = ++m_nCall;
+                }
                 //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
                 //in case a client asynchronously sends lots of requests without use of client side queue.
                 lock (m_csDB)
                 {
-                    index = ++m_nCall;
-                    m_mapRowset[m_nCall] = new KeyValuePair<DRowsetHeader, DRows>(rh, row);
+                    m_mapRowset[index] = new KeyValuePair<DRowsetHeader, DRows>(rh, row);
                 }
                 if (!SendRequest(id, s0, s1, s2, s3, index, (ar) =>
                 {
@@ -220,7 +226,7 @@ namespace SocketProAdapter
                         m_affected = 0;
                         m_dbErrCode = res;
                         m_dbErrMsg = errMsg;
-                        m_mapRowset.Remove(m_indexRowset);
+                        m_mapRowset.Remove(index);
                     }
                     if (handler != null)
                         handler(this, res, errMsg, 0, fail_ok, null);
@@ -238,12 +244,16 @@ namespace SocketProAdapter
             private bool DoMeta(ushort id, string s0, string s1, string s2, DExecuteResult handler, DRows row, DRowsetHeader rh, DCanceled canceled)
             {
                 ulong index;
+                lock (m_csCallIndex)
+                {
+                    index = ++m_nCall;
+                }
+
                 //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
                 //in case a client asynchronously sends lots of requests without use of client side queue.
                 lock (m_csDB)
                 {
-                    index = ++m_nCall;
-                    m_mapRowset[m_nCall] = new KeyValuePair<DRowsetHeader, DRows>(rh, row);
+                    m_mapRowset[index] = new KeyValuePair<DRowsetHeader, DRows>(rh, row);
                 }
                 if (!SendRequest(id, s0, s1, s2, index, (ar) =>
                 {
@@ -257,7 +267,7 @@ namespace SocketProAdapter
                         m_affected = 0;
                         m_dbErrCode = res;
                         m_dbErrMsg = errMsg;
-                        m_mapRowset.Remove(m_indexRowset);
+                        m_mapRowset.Remove(index);
                     }
                     if (handler != null)
                         handler(this, res, errMsg, 0, fail_ok, null);
@@ -275,12 +285,15 @@ namespace SocketProAdapter
             private bool DoMeta<T0, T1, T2>(ushort id, T0 t0, string s0, string s1, string s2, T1 t1, T2 t2, DExecuteResult handler, DRows row, DRowsetHeader rh, DCanceled canceled)
             {
                 ulong index;
+                lock (m_csCallIndex)
+                {
+                    index = ++m_nCall;
+                }
                 //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
                 //in case a client asynchronously sends lots of requests without use of client side queue.
                 lock (m_csDB)
                 {
-                    index = ++m_nCall;
-                    m_mapRowset[m_nCall] = new KeyValuePair<DRowsetHeader, DRows>(rh, row);
+                    m_mapRowset[index] = new KeyValuePair<DRowsetHeader, DRows>(rh, row);
                 }
                 if (!SendRequest(id, t0, s0, s1, s2, t1, t2, index, (ar) =>
                 {
@@ -294,7 +307,7 @@ namespace SocketProAdapter
                         m_affected = 0;
                         m_dbErrCode = res;
                         m_dbErrMsg = errMsg;
-                        m_mapRowset.Remove(m_indexRowset);
+                        m_mapRowset.Remove(index);
                     }
                     if (handler != null)
                         handler(this, res, errMsg, 0, fail_ok, null);

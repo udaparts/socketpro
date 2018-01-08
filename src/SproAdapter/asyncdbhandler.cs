@@ -387,7 +387,10 @@ namespace SocketProAdapter
             protected int m_dbErrCode = 0;
             protected string m_dbErrMsg = "";
             protected ushort m_lastReqId = 0;
-            protected ulong m_nCall = 0;
+
+            protected static object m_csCallIndex = new object();
+            protected static ulong m_nCall = 0; //protected by m_csCallIndex
+
             protected Dictionary<ulong, KeyValuePair<DRowsetHeader, DRows>> m_mapRowset = new Dictionary<ulong, KeyValuePair<DRowsetHeader, DRows>>();
             private Dictionary<ulong, CDBVariantArray> m_mapParameterCall = new Dictionary<ulong, CDBVariantArray>();
             protected ulong m_indexRowset = 0;
@@ -399,6 +402,17 @@ namespace SocketProAdapter
             private uint m_indexProc = 0;
             private uint m_output = 0;
             private bool m_bCallReturn = false;
+
+            public ushort LastDBRequestId
+            {
+                get
+                {
+                    lock (m_csDB)
+                    {
+                        return m_lastReqId;
+                    }
+                }
+            }
 
             public int LastDBErrorCode
             {
@@ -763,6 +777,11 @@ namespace SocketProAdapter
                 if (!rowset)
                     meta = false;
                 ulong callIndex;
+                lock (m_csCallIndex)
+                {
+                    ++m_nCall;
+                    callIndex = m_nCall;
+                }
 
                 //make sure all parameter data sendings and ExecuteParameters sending as one combination sending
                 //to avoid possible request sending overlapping within multiple threading environment
@@ -777,13 +796,11 @@ namespace SocketProAdapter
                     //in case a client asynchronously sends lots of requests without use of client side queue.
                     lock (m_csDB)
                     {
-                        ++m_nCall;
-                        callIndex = m_nCall;
                         if (rowset)
                         {
-                            m_mapRowset[m_nCall] = new KeyValuePair<DRowsetHeader, DRows>(rh, row);
+                            m_mapRowset[callIndex] = new KeyValuePair<DRowsetHeader, DRows>(rh, row);
                         }
-                        m_mapParameterCall[m_nCall] = vParam;
+                        m_mapParameterCall[callIndex] = vParam;
                     }
                     if (!SendRequest(DB_CONSTS.idExecuteParameters, rowset, meta, lastInsertId, callIndex, (ar) =>
                     {
@@ -795,7 +812,7 @@ namespace SocketProAdapter
                         ar.Load(out affected).Load(out res).Load(out errMsg).Load(out vtId).Load(out fail_ok);
                         lock (m_csDB)
                         {
-                            m_lastReqId = DB_CONSTS.idExecute;
+                            m_lastReqId = DB_CONSTS.idExecuteParameters;
                             m_affected = affected;
                             m_dbErrCode = res;
                             m_dbErrMsg = errMsg;
@@ -901,14 +918,17 @@ namespace SocketProAdapter
                 bool rowset = (rh != null) ? true : false;
                 if (!rowset)
                     meta = false;
-                //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
-                //in case a client asynchronously sends lots of requests without use of client side queue.
-                lock (m_csDB)
+                lock (m_csCallIndex)
                 {
                     index = ++m_nCall;
-                    if (rowset)
+                }
+                //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
+                //in case a client asynchronously sends lots of requests without use of client side queue.
+                if (rowset)
+                {
+                    lock (m_csDB)
                     {
-                        m_mapRowset[m_nCall] = new KeyValuePair<DRowsetHeader, DRows>(rh, row);
+                        m_mapRowset[index] = new KeyValuePair<DRowsetHeader, DRows>(rh, row);
                     }
                 }
                 if (!SendRequest(DB_CONSTS.idExecute, sql, rowset, meta, lastInsertId, index, (ar) =>
@@ -925,7 +945,7 @@ namespace SocketProAdapter
                         m_affected = affected;
                         m_dbErrCode = res;
                         m_dbErrMsg = errMsg;
-                        m_mapRowset.Remove(m_indexRowset);
+                        m_mapRowset.Remove(index);
                     }
                     if (handler != null)
                         handler(this, res, errMsg, affected, fail_ok, vtId);
@@ -1313,6 +1333,28 @@ namespace SocketProAdapter
                         handler(this, res, errMsg);
                     }
                 }, canceled, null);
+            }
+
+            protected override void MergeTo(CAsyncServiceHandler to)
+            {
+                CAsyncDBHandler dbTo = (CAsyncDBHandler)to;
+                lock (dbTo.m_csDB)
+                {
+                    lock (m_csDB)
+                    {
+                        foreach (ulong callIndex in m_mapRowset.Keys)
+                        {
+                            dbTo.m_mapRowset.Add(callIndex, m_mapRowset[callIndex]);
+                        }
+                        m_mapRowset.Clear();
+                        foreach (ulong callIndex in m_mapParameterCall.Keys)
+                        {
+                            dbTo.m_mapParameterCall.Add(callIndex, m_mapParameterCall[callIndex]);
+                        }
+                        m_mapParameterCall.Clear();
+                    }
+                    Clean();
+                }
             }
 
             protected override void OnResultReturned(ushort reqId, CUQueue mc)

@@ -24,7 +24,8 @@ namespace SocketProAdapter
             protected CUQueue m_Blob = new CUQueue();
             protected CDBVariantArray m_vData = new CDBVariantArray();
             protected object m_csCache = new object();
-            protected ulong m_nCall = 0;
+            protected static object m_csCallIndex = new object();
+            protected static ulong m_nCall = 0; //protected by m_csCallIndex
             protected ulong m_indexRowset = 0;
 
             private UDB.tagManagementSystem m_ms = tagManagementSystem.msUnknown;
@@ -161,12 +162,15 @@ namespace SocketProAdapter
             public virtual bool GetCachedTables(string defaultDb, DResult handler, DRows row, DRowsetHeader rh, uint flags)
             {
                 ulong index;
+                lock (m_csCallIndex)
+                {
+                    ++m_nCall;
+                    index = m_nCall;
+                }
                 lock (m_csCache)
                 {
                     //don't make m_csCache locked across calling SendRequest, which may lead to cross-SendRequest dead-lock
                     //in case a client asynchronously sends lots of requests without use of client side queue.
-                    ++m_nCall;
-                    index = m_nCall;
                     m_mapRowset[index] = new KeyValuePair<DRowsetHeader, DRows>(rh, row);
                 }
                 if (!SendRequest(DB_CONSTS.idGetCachedTables, defaultDb, flags, index, (ar) =>

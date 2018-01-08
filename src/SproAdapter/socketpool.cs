@@ -21,6 +21,77 @@ namespace SocketProAdapter
             private SocketPoolCallback m_spc = null;
             private uint m_ServiceId = 0;
             private CConnectionContext[,] m_mcc;
+            private string m_qName = "";
+            public string QueueName
+            {
+                get
+                {
+                    lock (m_cs)
+                    {
+                        return m_qName;
+                    }
+                }
+                set
+                {
+                    lock (m_cs)
+                    {
+                        string s = value;
+                        if (s != null)
+                            s = s.Trim();
+                        else
+                            s = "";
+                        if (m_qName != s)
+                            StopPoolQueue();
+                        m_qName = s;
+                        if (m_qName.Length > 0)
+                        {
+                            StartPoolQueue(m_qName);
+                        }
+                    }
+                }
+            }
+
+            private void StopPoolQueue()
+            {
+                foreach (CClientSocket cs in m_dicSocketHandler.Keys)
+                {
+                    if (cs.ClientQueue != null && cs.ClientQueue.Available)
+                        cs.ClientQueue.StopQueue();
+                }
+            }
+
+            private void StartPoolQueue(string qName)
+            {
+                int index = 0;
+                foreach (CClientSocket cs in m_dicSocketHandler.Keys)
+                {
+                    bool ok = cs.ClientQueue.StartQueue(qName + index.ToString(), 240 * 3600, cs.EncryptionMethod != tagEncryptionMethod.NoEncryption);
+                    ++index;
+                }
+            }
+
+            private void SetQueue(CClientSocket socket)
+            {
+                int index = 0;
+                foreach (CClientSocket cs in m_dicSocketHandler.Keys)
+                {
+                    if (cs == socket)
+                    {
+                        if (m_qName.Length > 0)
+                        {
+                            if (!cs.ClientQueue.Available)
+                                cs.ClientQueue.StartQueue(m_qName + index.ToString(), 240 * 3600, cs.EncryptionMethod != tagEncryptionMethod.NoEncryption);
+                        }
+                        else
+                        {
+                            if (cs.ClientQueue.Available)
+                                cs.ClientQueue.StopQueue();
+                        }
+                        break;
+                    }
+                    ++index;
+                }
+            }
 
             public static uint SocketPools
             {
@@ -785,6 +856,7 @@ namespace SocketProAdapter
                             ClientCoreLoader.SetPassword(h, cs.ConnectionContext.GetPassword());
                             bool ok = ClientCoreLoader.StartBatching(h) != 0;
                             ok = ClientCoreLoader.SwitchTo(h, handler.SvsID) != 0;
+                            SetQueue(cs);
                             if (ok)
                             {
                                 ok = ClientCoreLoader.TurnOnZipAtSvr(h, (byte)(cs.ConnectionContext.Zip ? 1 : 0)) != 0;
