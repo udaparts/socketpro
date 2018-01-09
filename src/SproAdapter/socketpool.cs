@@ -869,6 +869,14 @@ namespace SocketProAdapter
                         break;
                     case tagSocketPoolEvent.speQueueMergedFrom:
                         m_pHFrom = MapToHandler(h);
+#if DEBUG
+                        IClientQueue cq = m_pHFrom.AttachedClientSocket.ClientQueue;
+                        uint remaining = (uint)m_pHFrom.Remaining;
+                        if (cq.MessageCount != remaining)
+                        {
+                            Console.WriteLine("From: Messages = {0}, remaining requests = {1}", cq.MessageCount, remaining);
+                        }
+#endif
                         break;
                     case tagSocketPoolEvent.speQueueMergedTo:
                         {

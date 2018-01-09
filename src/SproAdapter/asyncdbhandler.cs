@@ -1337,10 +1337,10 @@ namespace SocketProAdapter
 
             protected override void MergeTo(CAsyncServiceHandler to)
             {
-                CAsyncDBHandler dbTo = (CAsyncDBHandler)to;
-                lock (dbTo.m_csDB)
+                lock (m_csDB)
                 {
-                    lock (m_csDB)
+                    CAsyncDBHandler dbTo = (CAsyncDBHandler)to;
+                    lock (dbTo)
                     {
                         foreach (ulong callIndex in m_mapRowset.Keys)
                         {
@@ -1354,7 +1354,7 @@ namespace SocketProAdapter
                         m_mapParameterCall.Clear();
                     }
                     Clean();
-                }
+                }    
             }
 
             protected override void OnResultReturned(ushort reqId, CUQueue mc)

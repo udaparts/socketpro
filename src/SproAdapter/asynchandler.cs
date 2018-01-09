@@ -147,9 +147,9 @@ namespace SocketProAdapter
             {
                 lock (to.m_cs)
                 {
-                    MergeTo(to);
                     lock (m_cs)
                     {
+                        MergeTo(to);
                         to.m_kvCallback.InsertRange(to.m_kvCallback.Count, m_kvCallback);
                         m_kvCallback.Clear();
                     }
@@ -315,6 +315,9 @@ namespace SocketProAdapter
 
             internal void OnSE(ushort reqId, string errMessage, string errWhere, int errCode)
             {
+#if DEBUG
+                Console.WriteLine("OnSE reqId = {0}, errMsge = {1}, errWhere = {2}, errCode = {3}", reqId, errMessage, errWhere, errCode);
+#endif
                 KeyValuePair<ushort, CResultCb> p = GetAsyncResultHandler(reqId);
                 OnExceptionFromServer(reqId, errMessage, errWhere, errCode);
                 CResultCb rcb = p.Value;
