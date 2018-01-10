@@ -388,7 +388,6 @@ namespace SocketProAdapter
             protected string m_dbErrMsg = "";
             protected ushort m_lastReqId = 0;
 
-            protected static object m_csCallIndex = new object();
             protected static ulong m_nCall = 0; //protected by m_csCallIndex
 
             protected Dictionary<ulong, KeyValuePair<DRowsetHeader, DRows>> m_mapRowset = new Dictionary<ulong, KeyValuePair<DRowsetHeader, DRows>>();

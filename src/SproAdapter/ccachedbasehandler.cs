@@ -24,7 +24,6 @@ namespace SocketProAdapter
             protected CUQueue m_Blob = new CUQueue();
             protected CDBVariantArray m_vData = new CDBVariantArray();
             protected object m_csCache = new object();
-            protected static object m_csCallIndex = new object();
             protected static ulong m_nCall = 0; //protected by m_csCallIndex
             protected ulong m_indexRowset = 0;
 

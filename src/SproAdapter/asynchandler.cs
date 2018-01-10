@@ -2307,6 +2307,7 @@ namespace SocketProAdapter
             private object m_csSend = new object();
             private Deque<KeyValuePair<ushort, CResultCb>> m_kvCallback = new Deque<KeyValuePair<ushort, CResultCb>>();
             private Deque<KeyValuePair<ushort, CResultCb>> m_kvBatching = new Deque<KeyValuePair<ushort, CResultCb>>();
+            protected static object m_csCallIndex = new object();
 
             public int Remaining
             {
