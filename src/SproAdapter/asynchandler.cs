@@ -138,7 +138,7 @@ namespace SocketProAdapter
                 return ClientCoreLoader.CommitBatching(h, (byte)(bBatchingAtServerSide ? 1 : 0)) != 0;
             }
 
-            protected virtual void MergeTo(CAsyncServiceHandler to)
+            protected virtual void OnMergeTo(CAsyncServiceHandler to)
             {
 
             }
@@ -149,7 +149,7 @@ namespace SocketProAdapter
                 {
                     lock (m_cs)
                     {
-                        MergeTo(to);
+                        OnMergeTo(to);
                         to.m_kvCallback.InsertRange(to.m_kvCallback.Count, m_kvCallback);
                         m_kvCallback.Clear();
                     }
@@ -2308,22 +2308,23 @@ namespace SocketProAdapter
             private Deque<KeyValuePair<ushort, CResultCb>> m_kvCallback = new Deque<KeyValuePair<ushort, CResultCb>>();
             private Deque<KeyValuePair<ushort, CResultCb>> m_kvBatching = new Deque<KeyValuePair<ushort, CResultCb>>();
             private static object m_csCallIndex = new object();
+            private static ulong m_CallIndex = 0;
 
             /// <summary>
-            /// An object used for call index synchronization
+            /// Get an unique increment call index number
             /// </summary>
-            public object IndexLocker
+            public static ulong GetCallIndex()
             {
-                get
+                lock (m_csCallIndex)
                 {
-                    return m_csCallIndex;
+                    return ++m_CallIndex;
                 }
             }
 
             /// <summary>
             /// A property for the number of requests queued inside asynchronous handler
             /// </summary>
-            public int Remaining
+            public int RequestsQueued
             {
                 get
                 {

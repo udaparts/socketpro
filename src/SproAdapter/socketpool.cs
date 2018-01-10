@@ -871,7 +871,7 @@ namespace SocketProAdapter
                         m_pHFrom = MapToHandler(h);
 #if DEBUG
                         IClientQueue cq = m_pHFrom.AttachedClientSocket.ClientQueue;
-                        uint remaining = (uint)m_pHFrom.Remaining;
+                        uint remaining = (uint)m_pHFrom.RequestsQueued;
                         if (cq.MessageCount != remaining)
                         {
                             Console.WriteLine("From: Messages = {0}, remaining requests = {1}", cq.MessageCount, remaining);

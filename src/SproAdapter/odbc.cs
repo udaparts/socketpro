@@ -143,11 +143,7 @@ namespace SocketProAdapter
 
             public bool Statistics(string CatalogName, string SchemaName, string TableName, ushort unique, ushort reserved, DExecuteResult handler, DRows row, DRowsetHeader rh, DCanceled canceled)
             {
-                ulong index;
-                lock (IndexLocker)
-                {
-                    index = ++m_nCall;
-                }
+                ulong index = GetCallIndex();
                 //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
                 //in case a client asynchronously sends lots of requests without use of client side queue.
                 lock (m_csDB)
@@ -203,11 +199,7 @@ namespace SocketProAdapter
 
             private bool DoMeta(ushort id, string s0, string s1, string s2, string s3, DExecuteResult handler, DRows row, DRowsetHeader rh, DCanceled canceled)
             {
-                ulong index;
-                lock (IndexLocker)
-                {
-                    index = ++m_nCall;
-                }
+                ulong index = GetCallIndex();
                 //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
                 //in case a client asynchronously sends lots of requests without use of client side queue.
                 lock (m_csDB)
@@ -243,12 +235,7 @@ namespace SocketProAdapter
 
             private bool DoMeta(ushort id, string s0, string s1, string s2, DExecuteResult handler, DRows row, DRowsetHeader rh, DCanceled canceled)
             {
-                ulong index;
-                lock (IndexLocker)
-                {
-                    index = ++m_nCall;
-                }
-
+                ulong index = GetCallIndex();
                 //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
                 //in case a client asynchronously sends lots of requests without use of client side queue.
                 lock (m_csDB)
@@ -284,11 +271,7 @@ namespace SocketProAdapter
 
             private bool DoMeta<T0, T1, T2>(ushort id, T0 t0, string s0, string s1, string s2, T1 t1, T2 t2, DExecuteResult handler, DRows row, DRowsetHeader rh, DCanceled canceled)
             {
-                ulong index;
-                lock (IndexLocker)
-                {
-                    index = ++m_nCall;
-                }
+                ulong index = GetCallIndex();
                 //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
                 //in case a client asynchronously sends lots of requests without use of client side queue.
                 lock (m_csDB)

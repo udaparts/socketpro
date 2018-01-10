@@ -387,12 +387,9 @@ namespace SocketProAdapter
             protected int m_dbErrCode = 0;
             protected string m_dbErrMsg = "";
             protected ushort m_lastReqId = 0;
-
-            protected static ulong m_nCall = 0; //protected by m_csCallIndex
-
             protected Dictionary<ulong, KeyValuePair<DRowsetHeader, DRows>> m_mapRowset = new Dictionary<ulong, KeyValuePair<DRowsetHeader, DRows>>();
             private Dictionary<ulong, CDBVariantArray> m_mapParameterCall = new Dictionary<ulong, CDBVariantArray>();
-            protected ulong m_indexRowset = 0;
+            private ulong m_indexRowset = 0;
             private CUQueue m_Blob = new CUQueue();
             private CDBVariantArray m_vData = new CDBVariantArray();
             private tagManagementSystem m_ms = tagManagementSystem.msUnknown;
@@ -723,7 +720,7 @@ namespace SocketProAdapter
             /// <param name="vParam">an array of parameter data which will be bounded to previously prepared parameters</param>
             /// <param name="handler">a callback for tracking final result</param>
             /// <param name="row">a callback for tracking record or output parameter returned data</param>
-            /// <param name="rh">a callback for tracking row set of header column informations. Note that there will be NO row set data or its column informations returned if NO such a callback is set</param>
+            /// <param name="rh">a callback for tracking row set of header column informations</param>
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
             public bool Execute(CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh)
             {
@@ -736,7 +733,7 @@ namespace SocketProAdapter
             /// <param name="vParam">an array of parameter data which will be bounded to previously prepared parameters</param>
             /// <param name="handler">a callback for tracking final result</param>
             /// <param name="row">a callback for tracking record or output parameter returned data</param>
-            /// <param name="rh">a callback for tracking row set of header column informations. Note that there will be NO row set data or its column informations returned if NO such a callback is set</param>
+            /// <param name="rh">a callback for tracking row set of header column informations</param>
             /// <param name="meta">a boolean value for better or more detailed column meta details such as unique, not null, primary key, and so on. It defaults to true</param>
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
             public bool Execute(CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh, bool meta)
@@ -750,7 +747,7 @@ namespace SocketProAdapter
             /// <param name="vParam">an array of parameter data which will be bounded to previously prepared parameters</param>
             /// <param name="handler">a callback for tracking final result</param>
             /// <param name="row">a callback for tracking record or output parameter returned data</param>
-            /// <param name="rh">a callback for tracking row set of header column informations. Note that there will be NO row set data or its column informations returned if NO such a callback is set</param>
+            /// <param name="rh">a callback for tracking row set of header column informations</param>
             /// <param name="meta">a boolean value for better or more detailed column meta details such as unique, not null, primary key, and so on. It defaults to true</param>
             /// <param name="lastInsertId">a boolean value for last insert record identification number. It defaults to true</param>
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
@@ -765,23 +762,17 @@ namespace SocketProAdapter
             /// <param name="vParam">an array of parameter data which will be bounded to previously prepared parameters</param>
             /// <param name="handler">a callback for tracking final result</param>
             /// <param name="row">a callback for tracking record or output parameter returned data</param>
-            /// <param name="rh">a callback for tracking row set of header column informations. Note that there will be NO row set data or its column informations returned if NO such a callback is set</param>
+            /// <param name="rh">a callback for tracking row set of header column informations</param>
             /// <param name="meta">a boolean value for better or more detailed column meta details such as unique, not null, primary key, and so on. It defaults to true</param>
             /// <param name="lastInsertId">a boolean value for last insert record identification number. It defaults to true</param>
             /// <param name="canceled">a callback for tracking cancel or socket closed event</param>
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
             public virtual bool Execute(CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh, bool meta, bool lastInsertId, DCanceled canceled)
             {
-                bool rowset = (rh != null) ? true : false;
+                bool rowset = (rh != null || row != null) ? true : false;
                 if (!rowset)
                     meta = false;
-                ulong callIndex;
-                lock (IndexLocker)
-                {
-                    ++m_nCall;
-                    callIndex = m_nCall;
-                }
-
+                ulong callIndex = GetCallIndex();
                 //make sure all parameter data sendings and ExecuteParameters sending as one combination sending
                 //to avoid possible request sending overlapping within multiple threading environment
                 lock (m_csOneSending)
@@ -864,7 +855,19 @@ namespace SocketProAdapter
             /// <param name="sql">a complex SQL statement which may be combined with multiple basic SQL statements</param>
             /// <param name="handler">a callback for tracking final result</param>
             /// <param name="row">a callback for receiving records of data</param>
-            /// <param name="rh">a callback for tracking row set of header column informations. Note that there will be NO row set data or its column informations returned if NO such a callback is set</param>
+            /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
+            public bool Execute(string sql, DExecuteResult handler, DRows row)
+            {
+                return Execute(sql, handler, row, null, true, true, null);
+            }
+
+            /// <summary>
+            /// Process a complex SQL statement which may be combined with multiple basic SQL statements asynchronously
+            /// </summary>
+            /// <param name="sql">a complex SQL statement which may be combined with multiple basic SQL statements</param>
+            /// <param name="handler">a callback for tracking final result</param>
+            /// <param name="row">a callback for receiving records of data</param>
+            /// <param name="rh">a callback for tracking row set of header column informations</param>
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
             public bool Execute(string sql, DExecuteResult handler, DRows row, DRowsetHeader rh)
             {
@@ -877,7 +880,7 @@ namespace SocketProAdapter
             /// <param name="sql">a complex SQL statement which may be combined with multiple basic SQL statements</param>
             /// <param name="handler">a callback for tracking final result</param>
             /// <param name="row">a callback for receiving records of data</param>
-            /// <param name="rh">a callback for tracking row set of header column informations. Note that there will be NO row set data or its column informations returned if NO such a callback is set</param>
+            /// <param name="rh">a callback for tracking row set of header column informations</param>
             /// <param name="meta">a boolean value for better or more detailed column meta details such as unique, not null, primary key, and so on. It defaults to true</param>
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
             public bool Execute(string sql, DExecuteResult handler, DRows row, DRowsetHeader rh, bool meta)
@@ -891,7 +894,7 @@ namespace SocketProAdapter
             /// <param name="sql">a complex SQL statement which may be combined with multiple basic SQL statements</param>
             /// <param name="handler">a callback for tracking final result</param>
             /// <param name="row">a callback for receiving records of data</param>
-            /// <param name="rh">a callback for tracking row set of header column informations. Note that there will be NO row set data or its column informations returned if NO such a callback is set</param>
+            /// <param name="rh">a callback for tracking row set of header column informations</param>
             /// <param name="meta">a boolean value for better or more detailed column meta details such as unique, not null, primary key, and so on. It defaults to true</param>
             /// <param name="lastInsertId">a boolean value for last insert record identification number. It defaults to true</param>
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
@@ -906,21 +909,17 @@ namespace SocketProAdapter
             /// <param name="sql">a complex SQL statement which may be combined with multiple basic SQL statements</param>
             /// <param name="handler">a callback for tracking final result</param>
             /// <param name="row">a callback for receiving records of data</param>
-            /// <param name="rh">a callback for tracking row set of header column informations. Note that there will be NO row set data or its column informations returned if NO such a callback is set</param>
+            /// <param name="rh">a callback for tracking row set of header column informations</param>
             /// <param name="meta">a boolean value for better or more detailed column meta details such as unique, not null, primary key, and so on. It defaults to true</param>
             /// <param name="lastInsertId">a boolean value for last insert record identification number. It defaults to true</param>
             /// <param name="canceled">a callback for tracking cancel or socket closed event</param>
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
             public virtual bool Execute(string sql, DExecuteResult handler, DRows row, DRowsetHeader rh, bool meta, bool lastInsertId, DCanceled canceled)
             {
-                ulong index;
-                bool rowset = (rh != null) ? true : false;
+                bool rowset = (rh != null || row != null) ? true : false;
                 if (!rowset)
                     meta = false;
-                lock (IndexLocker)
-                {
-                    index = ++m_nCall;
-                }
+                ulong index = GetCallIndex();
                 //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
                 //in case a client asynchronously sends lots of requests without use of client side queue.
                 if (rowset)
@@ -1334,12 +1333,12 @@ namespace SocketProAdapter
                 }, canceled, null);
             }
 
-            protected override void MergeTo(CAsyncServiceHandler to)
+            protected override void OnMergeTo(CAsyncServiceHandler to)
             {
-                lock (m_csDB)
+                CAsyncDBHandler dbTo = (CAsyncDBHandler)to;
+                lock (dbTo.m_csDB)
                 {
-                    CAsyncDBHandler dbTo = (CAsyncDBHandler)to;
-                    lock (dbTo)
+                    lock (m_csDB)
                     {
                         foreach (ulong callIndex in m_mapRowset.Keys)
                         {
@@ -1351,9 +1350,9 @@ namespace SocketProAdapter
                             dbTo.m_mapParameterCall.Add(callIndex, m_mapParameterCall[callIndex]);
                         }
                         m_mapParameterCall.Clear();
+                        Clean();
                     }
-                    Clean();
-                }    
+                }
             }
 
             protected override void OnResultReturned(ushort reqId, CUQueue mc)

@@ -263,7 +263,7 @@ namespace SPA {
 			 */
 			virtual bool Execute(CDBVariantArray &vParam, DExecuteResult handler = DExecuteResult(), DRows row = DRows(), DRowsetHeader rh = DRowsetHeader(), bool meta = true, bool lastInsertId = true, DCanceled canceled = nullptr) {
 				UINT64 callIndex;
-				bool rowset = rh ? true : false;
+				bool rowset = (rh || row) ? true : false;
 				if (!rowset) {
 					meta = false;
 				}
@@ -277,9 +277,7 @@ namespace SPA {
 						Clean();
 						return false;
 					}
-					IndexLocker.lock();
-					callIndex = ++CallIndex;
-					IndexLocker.unlock();
+					callIndex = GetCallIndex();
 					//don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
 					CAutoLock al(m_csDB);
 					if (rowset) {
@@ -337,15 +335,12 @@ namespace SPA {
 			 * @return true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
 			 */
 			virtual bool Execute(const wchar_t* sql, DExecuteResult handler = DExecuteResult(), DRows row = DRows(), DRowsetHeader rh = DRowsetHeader(), bool meta = true, bool lastInsertId = true, DCanceled canceled = nullptr) {
-				UINT64 index;
-				bool rowset = rh ? true : false;
+				bool rowset = (rh || row) ? true : false;
 				if (!rowset) {
 					meta = false;
 				}
 				CScopeUQueue sb;
-				IndexLocker.lock();
-				index = ++CallIndex;
-				IndexLocker.unlock();
+				UINT64 index = GetCallIndex();
 				{
 					//don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
 					//in case a client asynchronously sends lots of requests without use of client side queue.
@@ -590,6 +585,23 @@ namespace SPA {
 			}
 
 		protected:
+
+			virtual void OnMergeTo(CAsyncServiceHandler & to) {
+				CAsyncDBHandler &dbTo = (CAsyncDBHandler&)to;
+				CAutoLock al0(dbTo.m_csDB);
+				{
+					CAutoLock al1(m_csDB);
+					for (auto it = m_mapRowset.begin(), end = m_mapRowset.end(); it != end; ++it) {
+						dbTo.m_mapRowset[it->first] = it->second;
+					}
+					m_mapRowset.clear();
+					for (auto it = m_mapParameterCall.begin(), end = m_mapParameterCall.end(); it != end; ++it) {
+						dbTo.m_mapParameterCall[it->first] = it->second;
+					}
+					m_mapParameterCall.clear();
+				}
+				Clean();
+			}
 
 			virtual void OnResultReturned(unsigned short reqId, CUQueue &mc) {
 				switch (reqId) {

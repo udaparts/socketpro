@@ -10,7 +10,6 @@ class Program
         const int sessions_per_host = 2;
         const int cycles = 10000;
         string[] vHost = { "localhost", "ws-yye-1" };
-
         using (CSocketPool<CSqlite> sp = new CSocketPool<CSqlite>())
         {
             sp.QueueName = "ar_sharp";
@@ -48,27 +47,20 @@ class Program
             }
             int returned = 0;
             double dmax = 0.0, dmin = 0.0, davg = 0.0;
-            object[] vData = {0.0, 0.0, 0.0};
             CAsyncDBHandler.DExecuteResult er = (h, res, errMsg, affected, fail_ok, lastId) =>
             {
                 if (res != 0)
-                {
                     Console.WriteLine("Error code: {0}, error message: {1}", res, errMsg);
-                }
-                else
-                {
-                    dmax += double.Parse(vData[0].ToString());
-                    dmin += double.Parse(vData[1].ToString());
-                    davg += double.Parse(vData[2].ToString());
-                    ++returned;
-                }
+                ++returned;
             };
             CAsyncDBHandler.DRows r = (h, row) =>
             {
-                vData = row.ToArray();
+                dmax += double.Parse(row[0].ToString());
+                dmin += double.Parse(row[1].ToString());
+                davg += double.Parse(row[2].ToString());
             };
             CSqlite sqlite = sp.Seek();
-            ok = sqlite.Execute(sql, er, r, (h) => { });
+            ok = sqlite.Execute(sql, er, r);
             ok = sqlite.WaitAll();
             Console.WriteLine("Result: max = {0}, min = {1}, avg = {2}", dmax, dmin, davg);
             returned = 0;
@@ -77,10 +69,7 @@ class Program
             for (int n = 0; n < cycles; ++n)
             {
                 sqlite = sp.Seek();
-                ok = sqlite.Execute(sql, er, r, (h) => { }, true, true, () =>
-                {
-                    Console.WriteLine("Socket closed or request canceled");
-                });
+                ok = sqlite.Execute(sql, er, r);
             }
             v = sp.AsyncHandlers;
             foreach (var h in v)

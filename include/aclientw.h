@@ -446,7 +446,6 @@ namespace SPA {
             virtual void OnAllProcessed();
 
         public:
-			static CUCriticalSection IndexLocker;
             DResultReturned ResultReturned;
             DServerException ServerException;
 
@@ -470,6 +469,7 @@ namespace SPA {
             bool IsRouteeRequest();
             static void ClearResultCallbackPool(size_t remaining);
             static size_t CountResultCallbacksInPool();
+			static UINT64 GetCallIndex();
 
             bool ProcessR0(unsigned short reqId) {
                 CScopeUQueue su;
@@ -1515,6 +1515,7 @@ namespace SPA {
             void AppendTo(CAsyncServiceHandler &from);
 
         protected:
+			virtual void OnMergeTo(CAsyncServiceHandler & to);
             virtual bool SendRouteeResult(const unsigned char *buffer, unsigned int len, unsigned short reqId = 0);
             bool SendRouteeResult(unsigned short reqId = 0);
             bool SendRouteeResult(const CUQueue &mc, unsigned short reqId = 0);
@@ -1555,7 +1556,7 @@ namespace SPA {
                 return SendRouteeResult(sb->GetBuffer(), sb->GetSize(), usRequestID);
             }
 		protected:
-			static UINT64 CallIndex; //should be protected by IndexLocker;
+			
 
         private:
             CUCriticalSection m_cs;
@@ -1564,6 +1565,8 @@ namespace SPA {
             unsigned int m_nServiceId;
             CClientSocket *m_pClientSocket;
             CUCriticalSection m_csSend;
+			static CUCriticalSection m_csIndex;
+			static UINT64 m_CallIndex; //should be protected by IndexLocker;
             friend class CClientSocket;
             template<typename THandler, typename TCS>
             friend class CSocketPool; // unbound friend class
@@ -1571,6 +1574,8 @@ namespace SPA {
 
         template<typename THandler, typename TCS = CClientSocket>
         class CSocketPool {
+			const static unsigned int DEFAULT_QUEUE_TIME_TO_LIVE = 240 * 3600; //10 days
+
         public:
             typedef std::shared_ptr<THandler> PHandler;
             typedef std::shared_ptr<TCS> PClientSocket;
@@ -1779,6 +1784,7 @@ namespace SPA {
 
             inline void SetQueueAutoMerge(bool autoMerger) {
                 CAutoLock al(m_cs);
+				assert(m_nPoolId); //don't call the function before socket pool is started!
                 ClientCoreLoader.SetQueueAutoMergeByPool(m_nPoolId, autoMerger);
             }
 
@@ -1894,6 +1900,30 @@ namespace SPA {
                 m_nPoolId = 0;
             }
 
+			std::string GetQueueName() {
+				CAutoLock al(m_cs);
+				return m_qName;
+			}
+
+			void SetQueueName(const char *qName) {
+				std::string s(qName ? qName : "");
+				while(s.size() && ::isspace(s.back())) {
+					s.pop_back();
+				}
+				while(s.size() && ::isspace(s.front())) {
+					s.erase(s.begin());
+				}
+#ifdef WIN32_64
+				std::transform(s.begin(), s.end(), s.begin(), ::tolower);
+#endif
+				CAutoLock al(m_cs);
+				if (m_qName != s)
+					StopPoolQueue();
+				m_qName = s;
+				if (m_qName.size())
+					StartPoolQueue(m_qName.c_str());
+			}
+
             inline unsigned int GetThreadsCreated() {
                 CAutoLock al(m_cs);
                 return ClientCoreLoader.GetThreadCount(m_nPoolId);
@@ -1949,6 +1979,46 @@ namespace SPA {
             }
 
         private:
+
+			void StopPoolQueue() {
+				for (auto it = m_mapSocketHandler.begin(), end = m_mapSocketHandler.end(); it != end; ++it) {
+					IClientQueue &cq = it->first->GetClientQueue();
+					if (cq.IsAvailable())
+						cq.StopQueue();
+				}
+			}
+
+			void StartPoolQueue(const char *qname) {
+				UINT64 index = 0;
+				std::string s = qname;
+				for (auto it = m_mapSocketHandler.begin(), end = m_mapSocketHandler.end(); it != end; ++it) {
+					IClientQueue &cq = it->first->GetClientQueue();
+					bool ok = cq.StartQueue((s + std::to_string(index)).c_str(), DEFAULT_QUEUE_TIME_TO_LIVE, it->first->GetEncryptionMethod() != NoEncryption);
+					assert(ok);
+					++index;
+				}
+			}
+			
+			void SetQueue(PClientSocket socket) {
+				UINT64 index = 0;
+				for (auto it = m_mapSocketHandler.begin(), end = m_mapSocketHandler.end(); it != end; ++it) {
+					if (socket == it->first) {
+						IClientQueue &cq = it->first->GetClientQueue();
+						if (m_qName.size()) {
+							if (!cq.IsAvailable()) {
+								bool ok = cq.StartQueue((m_qName + std::to_string(index)).c_str(), DEFAULT_QUEUE_TIME_TO_LIVE, it->first->GetEncryptionMethod() != NoEncryption);
+								assert(ok);
+							}
+						}
+						else {
+							if (cq.IsAvailable())
+								cq.StopQueue();
+						}
+					}
+					++index;
+				}
+			}
+			
 
             bool PostProcess(CConnectionContext **ppCCs) {
                 bool ok;
@@ -2099,6 +2169,7 @@ namespace SPA {
                             ClientCoreLoader.SetPassword(h, sp->MapToSocket(h)->m_cc.Password.c_str());
                             bool ok = ClientCoreLoader.StartBatching(h);
                             ok = ClientCoreLoader.SwitchTo(h, sp->MapToHandler(h)->GetSvsID());
+							sp->SetQueue(sp->MapToSocket(h));
                             if (ok) {
                                 ok = ClientCoreLoader.TurnOnZipAtSvr(h, sp->MapToSocket(h)->m_cc.Zip);
                                 ok = ClientCoreLoader.SetSockOptAtSvr(h, soRcvBuf, 116800, slSocket);
@@ -2108,11 +2179,23 @@ namespace SPA {
                         }
                         break;
                     case speQueueMergedFrom:
-                        if (sp)
-                            sp->m_pHFrom = sp->MapToHandler(h);
+                        assert(sp);
+                        sp->m_pHFrom = sp->MapToHandler(h);
+						{
+							IClientQueue &cq = sp->m_pHFrom->GetAttachedClientSocket()->GetClientQueue();
+							unsigned int remaining = sp->m_pHFrom->GetRequestsQueued();
+							UINT64 messages = cq.GetMessageCount();
+							if (messages != remaining) {
+//#ifndef NDEBUG
+								std::cout << "From: Messages = " << messages << ", remaining requests = " << remaining << std::endl;
+//#endif
+							}
+						}
+
                         break;
                     case speQueueMergedTo:
-                        if (sp) {
+                        assert(sp);
+						{
                             PHandler to = sp->MapToHandler(h);
                             sp->m_pHFrom->AppendTo(*to);
                             sp->m_pHFrom.reset();
@@ -2140,6 +2223,7 @@ namespace SPA {
             unsigned int m_connTimeout;
             unsigned int m_nServiceId;
             PHandler m_pHFrom;
+			std::string m_qName;
             static std::vector<CSocketPool*> m_vPool; //protected by g_csSpPool
         };
 

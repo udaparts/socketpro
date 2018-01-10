@@ -312,7 +312,15 @@ namespace SocketProAdapter.ClientSide
                 {
                     if (c.File != null)
                     {
-                        c.File.Dispose();
+                        c.File.Close();
+                        if (!c.Uploading)
+                        {
+                            try
+                            {
+                                System.IO.File.Delete(c.LocalFile);
+                            }
+                            finally { }
+                        }
                     }
                 }
                 m_vContext.Clear();
@@ -451,7 +459,10 @@ namespace SocketProAdapter.ClientSide
                         {
                             CContext context = m_vContext[0];
                             if (context.File != null)
+                            {
                                 context.File.Close();
+                                context.File = null;
+                            }
                             else if (res == 0)
                             {
                                 res = CANNOT_OPEN_LOCAL_FILE_FOR_WRITING;
@@ -571,6 +582,7 @@ namespace SocketProAdapter.ClientSide
                             if (context.File != null)
                             {
                                 context.File.Close();
+                                context.File = null;
                             }
                         }
                         if (upl != null)

@@ -24,7 +24,6 @@ namespace SocketProAdapter
             protected CUQueue m_Blob = new CUQueue();
             protected CDBVariantArray m_vData = new CDBVariantArray();
             protected object m_csCache = new object();
-            protected static ulong m_nCall = 0; //protected by m_csCallIndex
             protected ulong m_indexRowset = 0;
 
             private UDB.tagManagementSystem m_ms = tagManagementSystem.msUnknown;
@@ -46,6 +45,22 @@ namespace SocketProAdapter
                     m_mapRowset.Clear();
                 }
                 return base.CleanCallbacks();
+            }
+
+            protected override void OnMergeTo(CAsyncServiceHandler to)
+            {
+                CCachedBaseHandler dbTo = (CCachedBaseHandler)to;
+                lock (dbTo.m_csCache)
+                {
+                    lock (m_csCache)
+                    {
+                        foreach (ulong callIndex in m_mapRowset.Keys)
+                        {
+                            dbTo.m_mapRowset.Add(callIndex, m_mapRowset[callIndex]);
+                        }
+                        m_mapRowset.Clear();
+                    }
+                }
             }
 
             protected override void OnResultReturned(ushort reqId, CUQueue mc)
@@ -160,12 +175,7 @@ namespace SocketProAdapter
 
             public virtual bool GetCachedTables(string defaultDb, DResult handler, DRows row, DRowsetHeader rh, uint flags)
             {
-                ulong index;
-                lock (IndexLocker)
-                {
-                    ++m_nCall;
-                    index = m_nCall;
-                }
+                ulong index = GetCallIndex();
                 lock (m_csCache)
                 {
                     //don't make m_csCache locked across calling SendRequest, which may lead to cross-SendRequest dead-lock

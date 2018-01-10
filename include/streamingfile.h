@@ -68,9 +68,15 @@ namespace SPA {
 #ifdef WIN32_64
                         if (it->File != INVALID_HANDLE_VALUE)
                             ::CloseHandle(it->File);
+						if (!it->Uploading)
+							::DeleteFileW(it->LocalFile.c_str());
 #else
                         if (it->File != -1)
                             ::close(it->File);
+						if (!it->Uploading) {
+							std::string path = Utilities::ToUTF8(it->LocalFile.c_str(), it->LocalFile.size());
+							unlink(path.c_str());
+						}
 #endif
                     }
                     m_vContext.clear();
