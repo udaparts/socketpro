@@ -446,6 +446,7 @@ namespace SPA {
             virtual void OnAllProcessed();
 
         public:
+			static CUCriticalSection IndexLocker;
             DResultReturned ResultReturned;
             DServerException ServerException;
 
@@ -1553,6 +1554,8 @@ namespace SPA {
                 sb << data0 << data1 << data2 << data3 << data4;
                 return SendRouteeResult(sb->GetBuffer(), sb->GetSize(), usRequestID);
             }
+		protected:
+			static UINT64 CallIndex; //should be protected by IndexLocker;
 
         private:
             CUCriticalSection m_cs;

@@ -53,12 +53,13 @@ namespace SPA {
 			}
 
 			virtual bool Statistics(const wchar_t *CatalogName, const wchar_t *SchemaName, const wchar_t *TableName, unsigned short unique, unsigned short reserved, DExecuteResult handler, DRows row, DRowsetHeader rh, DCanceled canceled = nullptr) {
-				UINT64 index;
+				IndexLocker.lock();
+				UINT64 index = ++CallIndex;
+				IndexLocker.unlock();
 				CScopeUQueue sb;
 				//don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
 				m_csDB.lock();
-				index = ++m_nCall;
-				m_mapRowset[m_nCall] = CRowsetHandler(rh, row);
+				m_mapRowset[index] = CRowsetHandler(rh, row);
 				m_csDB.unlock();
 				sb << CatalogName << SchemaName << TableName << unique << reserved << index;
 				ResultHandler arh = [handler, this](CAsyncResult & ar) {
@@ -74,9 +75,6 @@ namespace SPA {
 					auto it = this->m_mapRowset.find(this->m_indexRowset);
 					if (it != this->m_mapRowset.end()) {
 						this->m_mapRowset.erase(it);
-					}
-					if (!this->m_mapRowset.size()) {
-						this->m_nCall = 0;
 					}
 					this->m_csDB.unlock();
 					if (handler) {
@@ -136,12 +134,13 @@ namespace SPA {
 		private:
 
 			bool DoMeta(unsigned short id, const wchar_t *s0, const wchar_t *s1, const wchar_t *s2, DExecuteResult handler, DRows row, DRowsetHeader rh, DCanceled canceled) {
-				UINT64 index;
+				IndexLocker.lock();
+				UINT64 index = ++CallIndex;
+				IndexLocker.unlock();
 				CScopeUQueue sb;
 				//don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
 				m_csDB.lock();
-				index = ++m_nCall;
-				m_mapRowset[m_nCall] = CRowsetHandler(rh, row);
+				m_mapRowset[index] = CRowsetHandler(rh, row);
 				m_csDB.unlock();
 				sb << s0 << s1 << s2 << index;
 				ResultHandler arh = [id, handler, this](CAsyncResult & ar) {
@@ -157,9 +156,6 @@ namespace SPA {
 					auto it = this->m_mapRowset.find(this->m_indexRowset);
 					if (it != this->m_mapRowset.end()) {
 						this->m_mapRowset.erase(it);
-					}
-					if (!this->m_mapRowset.size()) {
-						this->m_nCall = 0;
 					}
 					this->m_csDB.unlock();
 					if (handler) {
@@ -177,12 +173,13 @@ namespace SPA {
 			}
 
 			bool DoMeta(unsigned short id, const wchar_t *s0, const wchar_t *s1, const wchar_t *s2, const wchar_t *s3, DExecuteResult handler, DRows row, DRowsetHeader rh, DCanceled canceled) {
-				UINT64 index;
+				IndexLocker.lock();
+				UINT64 index = ++CallIndex;
+				IndexLocker.unlock();
 				CScopeUQueue sb;
 				//don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
 				m_csDB.lock();
-				index = ++m_nCall;
-				m_mapRowset[m_nCall] = CRowsetHandler(rh, row);
+				m_mapRowset[index] = CRowsetHandler(rh, row);
 				m_csDB.unlock();
 				sb << s0 << s1 << s2 << s3 << index;
 				ResultHandler arh = [id, handler, this](CAsyncResult & ar) {
@@ -198,9 +195,6 @@ namespace SPA {
 					auto it = this->m_mapRowset.find(this->m_indexRowset);
 					if (it != this->m_mapRowset.end()) {
 						this->m_mapRowset.erase(it);
-					}
-					if (!this->m_mapRowset.size()) {
-						this->m_nCall = 0;
 					}
 					this->m_csDB.unlock();
 					if (handler) {
@@ -219,12 +213,13 @@ namespace SPA {
 
 			template<typename T0, typename T1, typename T2>
 			bool DoMeta(unsigned short id, const T0 &t0, const wchar_t *s0, const wchar_t *s1, const wchar_t *s2, const T1 &t1, const T2 &t2, DExecuteResult handler, DRows row, DRowsetHeader rh, DCanceled canceled) {
-				UINT64 index;
+				IndexLocker.lock();
+				UINT64 index = ++CallIndex;
+				IndexLocker.unlock();
 				CScopeUQueue sb;
 				//don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
 				m_csDB.lock();
-				index = ++m_nCall;
-				m_mapRowset[m_nCall] = CRowsetHandler(rh, row);
+				m_mapRowset[index] = CRowsetHandler(rh, row);
 				m_csDB.unlock();
 				sb << t0 << s0 << s1 << s2 << t1 << t2 << index;
 				ResultHandler arh = [id, handler, this](CAsyncResult & ar) {
@@ -240,9 +235,6 @@ namespace SPA {
 					auto it = this->m_mapRowset.find(this->m_indexRowset);
 					if (it != this->m_mapRowset.end()) {
 						this->m_mapRowset.erase(it);
-					}
-					if (!this->m_mapRowset.size()) {
-						this->m_nCall = 0;
 					}
 					this->m_csDB.unlock();
 					if (handler) {

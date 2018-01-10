@@ -17,7 +17,7 @@ namespace SPA {
 		public:
 
 			CCachedBaseHandler(CClientSocket *cs = nullptr)
-				: CAsyncServiceHandler(serviceId, cs), m_nCall(0), m_indexRowset(0), m_ms(UDB::msUnknown) {
+				: CAsyncServiceHandler(serviceId, cs), m_indexRowset(0), m_ms(UDB::msUnknown) {
 				m_Blob.Utf8ToW(true);
 			}
 
@@ -44,15 +44,14 @@ namespace SPA {
 			}
 
 			virtual bool GetCachedTables(const wchar_t *defaultDb, DResult handler, DRows row, DRowsetHeader rh, unsigned int flags = SPA::UDB::ENABLE_TABLE_UPDATE_MESSAGES) {
-				UINT64 index;
-				{
-					//don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
-					//in case a client asynchronously sends lots of requests without use of client side queue.
-					CAutoLock al(m_csCache);
-					++m_nCall;
-					index = m_nCall;
-					m_mapRowset[index] = CRowsetHandler(rh, row);
-				}
+				IndexLocker.lock();
+				UINT64 index = ++CallIndex;
+				IndexLocker.unlock();
+				//don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
+				//in case a client asynchronously sends lots of requests without use of client side queue.
+				m_csCache.lock();
+				m_mapRowset[index] = CRowsetHandler(rh, row);
+				m_csCache.unlock();
 
 				if (!SendRequest(idGetCachedTables, defaultDb, flags, index, [index, handler, this](CAsyncResult & ar) {
 					int res, dbMS;
@@ -189,7 +188,6 @@ namespace SPA {
 			std::unordered_map<UINT64, CRowsetHandler> m_mapRowset;
 			CDBVariantArray m_vData;
 			CUQueue m_Blob;
-			UINT64 m_nCall;
 			UINT64 m_indexRowset;
 			UDB::tagManagementSystem m_ms;
 		};

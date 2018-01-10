@@ -15,6 +15,9 @@ namespace SPA
         CUCriticalSection CAsyncServiceHandler::m_csRR;
         std::vector<CAsyncServiceHandler::PRR_PAIR> CAsyncServiceHandler::m_vRR;
 
+		CUCriticalSection CAsyncServiceHandler::IndexLocker;
+		UINT64 CAsyncServiceHandler::CallIndex = 0; //should be protected by IndexLocker
+
         CAsyncServiceHandler::CAsyncServiceHandler(unsigned int nServiceId, CClientSocket * cs)
         : m_vCallback(*m_suCallback), m_vBatching(*m_suBatching), m_nServiceId(nServiceId), m_pClientSocket(nullptr) {
             if (cs)

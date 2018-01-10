@@ -28,7 +28,7 @@ namespace SPA {
 			CAsyncDBHandler(CClientSocket *cs = nullptr)
 				: CAsyncServiceHandler(serviceId, cs),
 				m_affected(-1), m_dbErrCode(0), m_lastReqId(0),
-				m_nCall(0), m_indexRowset(0), m_indexProc(0), m_ms(msUnknown), m_flags(0),
+				m_indexRowset(0), m_indexProc(0), m_ms(msUnknown), m_flags(0),
 				m_parameters(0), m_outputs(0), m_bCallReturn(false) {
 				m_Blob.Utf8ToW(true);
 			}
@@ -277,14 +277,15 @@ namespace SPA {
 						Clean();
 						return false;
 					}
+					IndexLocker.lock();
+					callIndex = ++CallIndex;
+					IndexLocker.unlock();
 					//don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
 					CAutoLock al(m_csDB);
-					++m_nCall;
-					callIndex = m_nCall;
 					if (rowset) {
-						m_mapRowset[m_nCall] = CRowsetHandler(rh, row);
+						m_mapRowset[callIndex] = CRowsetHandler(rh, row);
 					}
-					m_mapParameterCall[m_nCall] = &vParam;
+					m_mapParameterCall[callIndex] = &vParam;
 				}
 				sb << rowset << meta << lastInsertId << callIndex;
 				ResultHandler arh = [callIndex, handler, this](CAsyncResult & ar) {
@@ -295,7 +296,7 @@ namespace SPA {
 					CDBVariant vtId;
 					ar >> affected >> res >> errMsg >> vtId >> fail_ok;
 					this->m_csDB.lock();
-					this->m_lastReqId = idExecute;
+					this->m_lastReqId = idExecuteParameters;
 					this->m_affected = affected;
 					this->m_dbErrCode = res;
 					this->m_dbErrMsg = errMsg;
@@ -342,13 +343,15 @@ namespace SPA {
 					meta = false;
 				}
 				CScopeUQueue sb;
+				IndexLocker.lock();
+				index = ++CallIndex;
+				IndexLocker.unlock();
 				{
 					//don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
 					//in case a client asynchronously sends lots of requests without use of client side queue.
 					CAutoLock al(m_csDB);
-					index = ++m_nCall;
 					if (rowset) {
-						m_mapRowset[m_nCall] = CRowsetHandler(rh, row);
+						m_mapRowset[index] = CRowsetHandler(rh, row);
 					}
 				}
 				sb << sql << rowset << meta << lastInsertId << index;
@@ -780,9 +783,8 @@ namespace SPA {
 			int m_dbErrCode;
 			std::wstring m_dbErrMsg;
 			unsigned short m_lastReqId;
-			UINT64 m_nCall;
 			UINT64 m_indexRowset;
-
+			
 		private:
 			std::wstring m_strConnection;
 			std::unordered_map<UINT64, CDBVariantArray*> m_mapParameterCall;
