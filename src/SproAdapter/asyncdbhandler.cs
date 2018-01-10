@@ -776,7 +776,7 @@ namespace SocketProAdapter
                 if (!rowset)
                     meta = false;
                 ulong callIndex;
-                lock (m_csCallIndex)
+                lock (IndexLocker)
                 {
                     ++m_nCall;
                     callIndex = m_nCall;
@@ -917,7 +917,7 @@ namespace SocketProAdapter
                 bool rowset = (rh != null) ? true : false;
                 if (!rowset)
                     meta = false;
-                lock (m_csCallIndex)
+                lock (IndexLocker)
                 {
                     index = ++m_nCall;
                 }

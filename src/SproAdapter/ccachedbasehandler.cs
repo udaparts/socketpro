@@ -161,7 +161,7 @@ namespace SocketProAdapter
             public virtual bool GetCachedTables(string defaultDb, DResult handler, DRows row, DRowsetHeader rh, uint flags)
             {
                 ulong index;
-                lock (m_csCallIndex)
+                lock (IndexLocker)
                 {
                     ++m_nCall;
                     index = m_nCall;

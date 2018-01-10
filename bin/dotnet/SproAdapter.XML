@@ -185,6 +185,16 @@
             A client side class for easy accessing remote persistent message queues by use of SocketPro communication framework
             </summary>
         </member>
+        <member name="P:SocketProAdapter.ClientSide.CAsyncServiceHandler.IndexLocker">
+            <summary>
+            An object used for call index synchronization
+            </summary>
+        </member>
+        <member name="P:SocketProAdapter.ClientSide.CAsyncServiceHandler.Remaining">
+            <summary>
+            A property for the number of requests queued inside asynchronous handler
+            </summary>
+        </member>
         <member name="M:SocketProAdapter.ClientSide.CAsyncQueue.StartQueueTrans(System.Byte[],SocketProAdapter.ClientSide.CAsyncQueue.DQueueTrans)">
             <summary>
             Start enqueuing messages with transaction style. Currently, total size of queued messages must be less than 4 G bytes

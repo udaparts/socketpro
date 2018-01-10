@@ -12,8 +12,7 @@ class CWebAsyncHandler : CCachedBaseHandler
 
     public delegate void DMyCanceled(ulong index);
 
-    private static object m_csSS = new object();
-    private static ulong m_ssIndex = 0; //protected by m_csSS
+    private static ulong m_ssIndex = 0; //protected by IndexLocker
 
     public delegate void DMaxMinAvg(ulong index, ss.CMaxMinAvg mma, int res, string errMsg);
     private Dictionary<ulong, KeyValuePair<DMaxMinAvg, DMyCanceled>> m_mapMMA = new Dictionary<ulong, KeyValuePair<DMaxMinAvg, DMyCanceled>>();
@@ -36,7 +35,7 @@ class CWebAsyncHandler : CCachedBaseHandler
                 p.Key.Invoke(index, m_m_a, res, errMsg);
         };
         ulong callIndex;
-        lock (m_csSS)
+        lock (IndexLocker)
         {
             callIndex = ++m_ssIndex;
         }
@@ -86,7 +85,7 @@ class CWebAsyncHandler : CCachedBaseHandler
                 p.Key.Invoke(index, master_connections, slave_conenctions);
         };
         ulong callIndex;
-        lock (m_csSS)
+        lock (IndexLocker)
         {
             callIndex = ++m_ssIndex;
         }
@@ -138,7 +137,7 @@ class CWebAsyncHandler : CCachedBaseHandler
                 p.Key.Invoke(index, errCode, errMsg, vId);
         };
         ulong callIndex;
-        lock (m_csSS)
+        lock (IndexLocker)
         {
             callIndex = ++m_ssIndex;
         }
@@ -190,7 +189,7 @@ class CWebAsyncHandler : CCachedBaseHandler
                 p.Key.Invoke(index, dates, errCode, errMsg);
         };
         ulong callIndex;
-        lock (m_csSS)
+        lock (IndexLocker)
         {
             callIndex = ++m_ssIndex;
         }

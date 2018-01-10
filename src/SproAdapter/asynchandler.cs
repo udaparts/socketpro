@@ -2307,8 +2307,22 @@ namespace SocketProAdapter
             private object m_csSend = new object();
             private Deque<KeyValuePair<ushort, CResultCb>> m_kvCallback = new Deque<KeyValuePair<ushort, CResultCb>>();
             private Deque<KeyValuePair<ushort, CResultCb>> m_kvBatching = new Deque<KeyValuePair<ushort, CResultCb>>();
-            protected static object m_csCallIndex = new object();
+            private static object m_csCallIndex = new object();
 
+            /// <summary>
+            /// An object used for call index synchronization
+            /// </summary>
+            public object IndexLocker
+            {
+                get
+                {
+                    return m_csCallIndex;
+                }
+            }
+
+            /// <summary>
+            /// A property for the number of requests queued inside asynchronous handler
+            /// </summary>
             public int Remaining
             {
                 get
