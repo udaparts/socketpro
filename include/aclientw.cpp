@@ -15,8 +15,8 @@ namespace SPA
         CUCriticalSection CAsyncServiceHandler::m_csRR;
         std::vector<CAsyncServiceHandler::PRR_PAIR> CAsyncServiceHandler::m_vRR;
 
-		CUCriticalSection CAsyncServiceHandler::m_csIndex;
-		UINT64 CAsyncServiceHandler::m_CallIndex = 0; //should be protected by IndexLocker
+        CUCriticalSection CAsyncServiceHandler::m_csIndex;
+        UINT64 CAsyncServiceHandler::m_CallIndex = 0; //should be protected by m_csIndex
 
         CAsyncServiceHandler::CAsyncServiceHandler(unsigned int nServiceId, CClientSocket * cs)
         : m_vCallback(*m_suCallback), m_vBatching(*m_suBatching), m_nServiceId(nServiceId), m_pClientSocket(nullptr) {
@@ -33,12 +33,12 @@ namespace SPA
                 m_pClientSocket->Detach(this);
         }
 
-		UINT64 CAsyncServiceHandler::GetCallIndex() {
-			m_csIndex.lock();
-			UINT64 index = ++m_CallIndex;
-			m_csIndex.unlock();
-			return index;
-		}
+        UINT64 CAsyncServiceHandler::GetCallIndex() {
+            m_csIndex.lock();
+            UINT64 index = ++m_CallIndex;
+            m_csIndex.unlock();
+            return index;
+        }
 
         void CAsyncServiceHandler::CleanQueue(CUQueue & q) {
             unsigned int count = q.GetSize() / sizeof (PRR_PAIR);
@@ -259,15 +259,15 @@ namespace SPA
             m_pClientSocket = nullptr;
         }
 
-		void CAsyncServiceHandler::OnMergeTo(CAsyncServiceHandler & to) {
-			
-		}
+        void CAsyncServiceHandler::OnMergeTo(CAsyncServiceHandler & to) {
+
+        }
 
         void CAsyncServiceHandler::AppendTo(CAsyncServiceHandler & to) {
             CAutoLock al0(to.m_cs);
             {
                 CAutoLock al1(m_cs);
-				OnMergeTo(to);
+                OnMergeTo(to);
                 to.m_vCallback.Push(m_vCallback.GetBuffer(), m_vCallback.GetSize());
                 m_vCallback.SetSize(0);
             }
