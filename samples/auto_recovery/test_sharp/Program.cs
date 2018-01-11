@@ -47,17 +47,23 @@ class Program
             }
             int returned = 0;
             double dmax = 0.0, dmin = 0.0, davg = 0.0;
+            SocketProAdapter.UDB.CDBVariantArray row = new SocketProAdapter.UDB.CDBVariantArray();
             CAsyncDBHandler.DExecuteResult er = (h, res, errMsg, affected, fail_ok, lastId) =>
             {
                 if (res != 0)
                     Console.WriteLine("Error code: {0}, error message: {1}", res, errMsg);
+                else
+                {
+                    dmax += double.Parse(row[0].ToString());
+                    dmin += double.Parse(row[1].ToString());
+                    davg += double.Parse(row[2].ToString());
+                }
                 ++returned;
             };
-            CAsyncDBHandler.DRows r = (h, row) =>
+            CAsyncDBHandler.DRows r = (h, vData) =>
             {
-                dmax += double.Parse(row[0].ToString());
-                dmin += double.Parse(row[1].ToString());
-                davg += double.Parse(row[2].ToString());
+                row.Clear();
+                row.AddRange(vData);
             };
             CSqlite sqlite = sp.Seek();
             ok = sqlite.Execute(sql, er, r);
