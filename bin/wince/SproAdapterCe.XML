@@ -185,12 +185,12 @@
             A client side class for easy accessing remote persistent message queues by use of SocketPro communication framework
             </summary>
         </member>
-        <member name="P:SocketProAdapter.ClientSide.CAsyncServiceHandler.IndexLocker">
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.GetCallIndex">
             <summary>
-            An object used for call index synchronization
+            Get an unique increment call index number
             </summary>
         </member>
-        <member name="P:SocketProAdapter.ClientSide.CAsyncServiceHandler.Remaining">
+        <member name="P:SocketProAdapter.ClientSide.CAsyncServiceHandler.RequestsQueued">
             <summary>
             A property for the number of requests queued inside asynchronous handler
             </summary>
@@ -1104,7 +1104,7 @@
             <param name="vParam">an array of parameter data which will be bounded to previously prepared parameters</param>
             <param name="handler">a callback for tracking final result</param>
             <param name="row">a callback for tracking record or output parameter returned data</param>
-            <param name="rh">a callback for tracking row set of header column informations. Note that there will be NO row set data or its column informations returned if NO such a callback is set</param>
+            <param name="rh">a callback for tracking row set of header column informations</param>
             <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
         </member>
         <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Execute(SocketProAdapter.UDB.CDBVariantArray,SocketProAdapter.ClientSide.CAsyncDBHandler.DExecuteResult,SocketProAdapter.ClientSide.CAsyncDBHandler.DRows,SocketProAdapter.ClientSide.CAsyncDBHandler.DRowsetHeader,System.Boolean)">
@@ -1114,7 +1114,7 @@
             <param name="vParam">an array of parameter data which will be bounded to previously prepared parameters</param>
             <param name="handler">a callback for tracking final result</param>
             <param name="row">a callback for tracking record or output parameter returned data</param>
-            <param name="rh">a callback for tracking row set of header column informations. Note that there will be NO row set data or its column informations returned if NO such a callback is set</param>
+            <param name="rh">a callback for tracking row set of header column informations</param>
             <param name="meta">a boolean value for better or more detailed column meta details such as unique, not null, primary key, and so on. It defaults to true</param>
             <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
         </member>
@@ -1125,7 +1125,7 @@
             <param name="vParam">an array of parameter data which will be bounded to previously prepared parameters</param>
             <param name="handler">a callback for tracking final result</param>
             <param name="row">a callback for tracking record or output parameter returned data</param>
-            <param name="rh">a callback for tracking row set of header column informations. Note that there will be NO row set data or its column informations returned if NO such a callback is set</param>
+            <param name="rh">a callback for tracking row set of header column informations</param>
             <param name="meta">a boolean value for better or more detailed column meta details such as unique, not null, primary key, and so on. It defaults to true</param>
             <param name="lastInsertId">a boolean value for last insert record identification number. It defaults to true</param>
             <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
@@ -1137,7 +1137,7 @@
             <param name="vParam">an array of parameter data which will be bounded to previously prepared parameters</param>
             <param name="handler">a callback for tracking final result</param>
             <param name="row">a callback for tracking record or output parameter returned data</param>
-            <param name="rh">a callback for tracking row set of header column informations. Note that there will be NO row set data or its column informations returned if NO such a callback is set</param>
+            <param name="rh">a callback for tracking row set of header column informations</param>
             <param name="meta">a boolean value for better or more detailed column meta details such as unique, not null, primary key, and so on. It defaults to true</param>
             <param name="lastInsertId">a boolean value for last insert record identification number. It defaults to true</param>
             <param name="canceled">a callback for tracking cancel or socket closed event</param>
@@ -1158,6 +1158,15 @@
             <param name="handler">a callback for tracking final result</param>
             <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
         </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Execute(System.String,SocketProAdapter.ClientSide.CAsyncDBHandler.DExecuteResult,SocketProAdapter.ClientSide.CAsyncDBHandler.DRows)">
+            <summary>
+            Process a complex SQL statement which may be combined with multiple basic SQL statements asynchronously
+            </summary>
+            <param name="sql">a complex SQL statement which may be combined with multiple basic SQL statements</param>
+            <param name="handler">a callback for tracking final result</param>
+            <param name="row">a callback for receiving records of data</param>
+            <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
+        </member>
         <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Execute(System.String,SocketProAdapter.ClientSide.CAsyncDBHandler.DExecuteResult,SocketProAdapter.ClientSide.CAsyncDBHandler.DRows,SocketProAdapter.ClientSide.CAsyncDBHandler.DRowsetHeader)">
             <summary>
             Process a complex SQL statement which may be combined with multiple basic SQL statements asynchronously
@@ -1165,7 +1174,7 @@
             <param name="sql">a complex SQL statement which may be combined with multiple basic SQL statements</param>
             <param name="handler">a callback for tracking final result</param>
             <param name="row">a callback for receiving records of data</param>
-            <param name="rh">a callback for tracking row set of header column informations. Note that there will be NO row set data or its column informations returned if NO such a callback is set</param>
+            <param name="rh">a callback for tracking row set of header column informations</param>
             <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
         </member>
         <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Execute(System.String,SocketProAdapter.ClientSide.CAsyncDBHandler.DExecuteResult,SocketProAdapter.ClientSide.CAsyncDBHandler.DRows,SocketProAdapter.ClientSide.CAsyncDBHandler.DRowsetHeader,System.Boolean)">
@@ -1175,7 +1184,7 @@
             <param name="sql">a complex SQL statement which may be combined with multiple basic SQL statements</param>
             <param name="handler">a callback for tracking final result</param>
             <param name="row">a callback for receiving records of data</param>
-            <param name="rh">a callback for tracking row set of header column informations. Note that there will be NO row set data or its column informations returned if NO such a callback is set</param>
+            <param name="rh">a callback for tracking row set of header column informations</param>
             <param name="meta">a boolean value for better or more detailed column meta details such as unique, not null, primary key, and so on. It defaults to true</param>
             <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
         </member>
@@ -1186,7 +1195,7 @@
             <param name="sql">a complex SQL statement which may be combined with multiple basic SQL statements</param>
             <param name="handler">a callback for tracking final result</param>
             <param name="row">a callback for receiving records of data</param>
-            <param name="rh">a callback for tracking row set of header column informations. Note that there will be NO row set data or its column informations returned if NO such a callback is set</param>
+            <param name="rh">a callback for tracking row set of header column informations</param>
             <param name="meta">a boolean value for better or more detailed column meta details such as unique, not null, primary key, and so on. It defaults to true</param>
             <param name="lastInsertId">a boolean value for last insert record identification number. It defaults to true</param>
             <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
@@ -1198,7 +1207,7 @@
             <param name="sql">a complex SQL statement which may be combined with multiple basic SQL statements</param>
             <param name="handler">a callback for tracking final result</param>
             <param name="row">a callback for receiving records of data</param>
-            <param name="rh">a callback for tracking row set of header column informations. Note that there will be NO row set data or its column informations returned if NO such a callback is set</param>
+            <param name="rh">a callback for tracking row set of header column informations</param>
             <param name="meta">a boolean value for better or more detailed column meta details such as unique, not null, primary key, and so on. It defaults to true</param>
             <param name="lastInsertId">a boolean value for last insert record identification number. It defaults to true</param>
             <param name="canceled">a callback for tracking cancel or socket closed event</param>

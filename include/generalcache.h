@@ -44,9 +44,7 @@ namespace SPA {
 			}
 
 			virtual bool GetCachedTables(const wchar_t *defaultDb, DResult handler, DRows row, DRowsetHeader rh, unsigned int flags = SPA::UDB::ENABLE_TABLE_UPDATE_MESSAGES) {
-				IndexLocker.lock();
-				UINT64 index = ++CallIndex;
-				IndexLocker.unlock();
+				UINT64 index = GetCallIndex();
 				//don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
 				//in case a client asynchronously sends lots of requests without use of client side queue.
 				m_csCache.lock();

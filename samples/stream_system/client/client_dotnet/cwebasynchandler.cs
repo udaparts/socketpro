@@ -12,8 +12,6 @@ class CWebAsyncHandler : CCachedBaseHandler
 
     public delegate void DMyCanceled(ulong index);
 
-    private static ulong m_ssIndex = 0; //protected by IndexLocker
-
     public delegate void DMaxMinAvg(ulong index, ss.CMaxMinAvg mma, int res, string errMsg);
     private Dictionary<ulong, KeyValuePair<DMaxMinAvg, DMyCanceled>> m_mapMMA = new Dictionary<ulong, KeyValuePair<DMaxMinAvg, DMyCanceled>>();
     public ulong QueryPaymentMaxMinAvgs(string filter, DMaxMinAvg mma, DMyCanceled canceled = null)
@@ -34,11 +32,7 @@ class CWebAsyncHandler : CCachedBaseHandler
             if (p.Key != null)
                 p.Key.Invoke(index, m_m_a, res, errMsg);
         };
-        ulong callIndex;
-        lock (IndexLocker)
-        {
-            callIndex = ++m_ssIndex;
-        }
+        ulong callIndex = GetCallIndex();
         lock (m_csCache)
         {
             m_mapMMA[callIndex] = new KeyValuePair<DMaxMinAvg, DMyCanceled>(mma, canceled);
@@ -84,11 +78,7 @@ class CWebAsyncHandler : CCachedBaseHandler
             if (p.Key != null)
                 p.Key.Invoke(index, master_connections, slave_conenctions);
         };
-        ulong callIndex;
-        lock (IndexLocker)
-        {
-            callIndex = ++m_ssIndex;
-        }
+        ulong callIndex = GetCallIndex();
         lock (m_csCache)
         {
             m_mapSession[callIndex] = new KeyValuePair<DConnectedSessions, DMyCanceled>(cs, canceled);
@@ -136,11 +126,7 @@ class CWebAsyncHandler : CCachedBaseHandler
             if (p.Key != null)
                 p.Key.Invoke(index, errCode, errMsg, vId);
         };
-        ulong callIndex;
-        lock (IndexLocker)
-        {
-            callIndex = ++m_ssIndex;
-        }
+        ulong callIndex = GetCallIndex();
         lock (m_csCache)
         {
             m_mapUpload[callIndex] = new KeyValuePair<DUploadEmployees, DMyCanceled>(res, canceled);
@@ -188,11 +174,7 @@ class CWebAsyncHandler : CCachedBaseHandler
             if (p.Key != null)
                 p.Key.Invoke(index, dates, errCode, errMsg);
         };
-        ulong callIndex;
-        lock (IndexLocker)
-        {
-            callIndex = ++m_ssIndex;
-        }
+        ulong callIndex = GetCallIndex();
         lock (m_csCache)
         {
             m_mapRentalDateTimes[callIndex] = new KeyValuePair<DRentalDateTimes, DMyCanceled>(rdt, canceled);

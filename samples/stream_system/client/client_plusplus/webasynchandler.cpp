@@ -2,9 +2,6 @@
 #include "stdafx.h"
 #include "webasynchandler.h"
 
-SPA::CUCriticalSection CWebAsyncHandler::m_csSS;
-SPA::UINT64 CWebAsyncHandler::m_ssIndex = 0;
-
 CWebAsyncHandler::CWebAsyncHandler(CClientSocket *pClientSocket)
 	: CCachedBaseHandler<sidStreamSystem>(pClientSocket) {
 }
@@ -25,9 +22,7 @@ SPA::UINT64 CWebAsyncHandler::QueryPaymentMaxMinAvgs(const wchar_t *filter, DMax
 		if (p.first)
 			p.first(index, m_m_a, res, errMsg);
 	};
-	m_csSS.lock();
-	SPA::UINT64 index = ++m_ssIndex;
-	m_csSS.unlock();
+	SPA::UINT64 index = GetCallIndex();
 	{
 		SPA::CAutoLock al(this->m_csCache);
 		m_mapMMA[index] = std::pair<DMaxMinAvg, DMyCanceled>(mma, canceled);
@@ -67,9 +62,7 @@ SPA::UINT64 CWebAsyncHandler::GetRentalDateTimes(SPA::INT64 rentalId, DRentalDat
 		if (p.first)
 			p.first(index, rdt, res, errMsg);
 	};
-	m_csSS.lock();
-	SPA::UINT64 index = ++m_ssIndex;
-	m_csSS.unlock();
+	SPA::UINT64 index = GetCallIndex();
 	{
 		SPA::CAutoLock al(this->m_csCache);
 		m_mapRentalDateTimes[index] = std::pair<DRentalDateTimes, DMyCanceled>(rdt, canceled);
@@ -107,9 +100,7 @@ SPA::UINT64 CWebAsyncHandler::GetMasterSlaveConnectedSessions(DConnectedSessions
 		if (p.first)
 			p.first(index, master_connections, slave_conenctions);
 	};
-	m_csSS.lock();
-	SPA::UINT64 index = ++m_ssIndex;
-	m_csSS.unlock();
+	SPA::UINT64 index = GetCallIndex();
 	{
 		SPA::CAutoLock al(this->m_csCache);
 		m_mapSession[index] = std::pair<DConnectedSessions, DMyCanceled>(cs, canceled);
@@ -149,9 +140,7 @@ SPA::UINT64 CWebAsyncHandler::UploadEmployees(const SPA::UDB::CDBVariantArray &v
 		if (p.first)
 			p.first(index, errCode, errMsg, vId);
 	};
-	m_csSS.lock();
-	SPA::UINT64 index = ++m_ssIndex;
-	m_csSS.unlock();
+	SPA::UINT64 index = GetCallIndex();
 	{
 		SPA::CAutoLock al(this->m_csCache);
 		m_mapUpload[index] = std::pair<DUploadEmployees, DMyCanceled>(res, canceled);
