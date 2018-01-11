@@ -2184,12 +2184,11 @@ namespace SPA {
                         unsigned int remaining = sp->m_pHFrom->GetRequestsQueued();
                         UINT64 messages = cq.GetMessageCount();
                         if (messages != remaining) {
-                            //#ifndef NDEBUG
+#ifndef NDEBUG
                             std::cout << "From: Messages = " << messages << ", remaining requests = " << remaining << std::endl;
-                            //#endif
+#endif
                         }
                     }
-
                         break;
                     case speQueueMergedTo:
                         assert(sp);
