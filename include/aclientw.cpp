@@ -1163,6 +1163,8 @@ namespace SPA
             }
             CAsyncServiceHandler *ash = p->Seek(ClientCoreLoader.GetCurrentServiceId(handler));
             if (ash) {
+				if (ash->BaseRequestProcessed)
+					ash->BaseRequestProcessed(ash, requestId);
                 ash->OnBaseRequestprocessed(requestId);
                 if (requestId == SPA::idCancel)
                     ash->CleanCallbacks();

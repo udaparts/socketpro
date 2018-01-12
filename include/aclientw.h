@@ -394,6 +394,7 @@ namespace SPA {
 
         public:
             virtual ~CAsyncServiceHandler();
+			typedef std::function<void(CAsyncServiceHandler *ash, unsigned short) > DBaseRequestProcessed;
             typedef std::function<bool(CAsyncServiceHandler *ash, unsigned short, CUQueue&) > DResultReturned;
             typedef std::function<void(CAsyncServiceHandler *ash, unsigned short requestId, const wchar_t *errMessage, const char* errWhere, unsigned int errCode) > DServerException;
             typedef std::function<void() > DCanceled;
@@ -446,6 +447,7 @@ namespace SPA {
             virtual void OnAllProcessed();
 
         public:
+			DBaseRequestProcessed BaseRequestProcessed;
             DResultReturned ResultReturned;
             DServerException ServerException;
 

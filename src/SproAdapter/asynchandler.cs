@@ -82,8 +82,10 @@ namespace SocketProAdapter
             public delegate void DAsyncResultHandler(CAsyncResult AsyncResult);
             public delegate bool DOnResultReturned(CAsyncServiceHandler sender, ushort reqId, CUQueue qData);
             public delegate void DOnExceptionFromServer(CAsyncServiceHandler sender, ushort reqId, string errMessage, string errWhere, int errCode);
+            public delegate void DOnBaseRequestProcessed(CAsyncServiceHandler sender, ushort reqId);
             public event DOnResultReturned ResultReturned;
             public event DOnExceptionFromServer ServerException;
+            public event DOnBaseRequestProcessed BaseRequestProcessed;
 
             protected CAsyncServiceHandler(uint nServiceId)
             {
@@ -356,6 +358,8 @@ namespace SocketProAdapter
 
             internal void OnBProcessed(ushort reqId)
             {
+                if (BaseRequestProcessed != null)
+                    BaseRequestProcessed(this, reqId);
                 OnBaseRequestProcessed(reqId);
             }
 
