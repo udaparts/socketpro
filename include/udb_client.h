@@ -592,7 +592,7 @@ namespace SPA {
                         dbTo.m_mapParameterCall[it->first] = it->second;
                     }
                     m_mapParameterCall.clear();
-					Clean();
+                    Clean();
                 }
             }
 
