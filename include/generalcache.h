@@ -74,6 +74,17 @@ namespace SPA {
             }
 
         protected:
+			virtual void OnMergeTo(CAsyncServiceHandler & to) {
+				CCachedBaseHandler &dbTo = (CCachedBaseHandler&)to;
+				CAutoLock al0(dbTo.m_csCache);
+				{
+					CAutoLock al1(m_csCache);
+					for (auto it = m_mapRowset.begin(), end = m_mapRowset.end(); it != end; ++it) {
+						dbTo.m_mapRowset[it->first] = it->second;
+					}
+					m_mapRowset.clear();
+				}
+			}
 
             virtual void OnResultReturned(unsigned short reqId, CUQueue &mc) {
                 switch (reqId) {
