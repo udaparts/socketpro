@@ -28,7 +28,6 @@ class Program
                 Console.Read();
                 return;
             }
-            sp.QueueAutoMerge = true;
             string sql = "SELECT max(amount), min(amount), avg(amount) FROM payment";
             Console.WriteLine("Input a filter for payment_id");
             string filter = Console.ReadLine();

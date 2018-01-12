@@ -33,7 +33,6 @@ int main(int argc, char* argv[])
 			::getchar();
 			break;
 		}
-		sp.SetQueueAutoMerge(true);
 		std::wstring sql = L"SELECT max(amount), min(amount), avg(amount) FROM payment";
 		std::cout << "Input a filter for payment_id" << std::endl;
 		std::wstring filter;
