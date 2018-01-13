@@ -761,9 +761,22 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * basic SQL statements
      * @param handler a callback for tracking final result
      * @param row a callback for receiving records of data
+     * @return true if request is successfully sent or queued; and false if
+     * request is NOT successfully sent or queued
+     */
+    public final boolean Execute(String sql, DExecuteResult handler, DRows row) {
+        return Execute(sql, handler, row, null, true, true, null);
+    }
+
+    /**
+     * Process a complex SQL statement which may be combined with multiple basic
+     * SQL statements asynchronously
+     *
+     * @param sql a complex SQL statement which may be combined with multiple
+     * basic SQL statements
+     * @param handler a callback for tracking final result
+     * @param row a callback for receiving records of data
      * @param rh a callback for tracking row set of header column informations.
-     * Note that there will be NO row set data or its column informations
-     * returned if NO such a callback is set
      * @return true if request is successfully sent or queued; and false if
      * request is NOT successfully sent or queued
      */
@@ -779,9 +792,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * basic SQL statements
      * @param handler a callback for tracking final result
      * @param row a callback for receiving records of data
-     * @param rh a callback for tracking row set of header column informations.
-     * Note that there will be NO row set data or its column informations
-     * returned if NO such a callback is set
+     * @param rh a callback for tracking row set of header column informations
      * @param meta a boolean second for better or more detailed column meta
      * details such as unique, not null, primary first, and so on. It defaults
      * to true
@@ -801,9 +812,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @param handler a callback for tracking final result
      * @param row a callback for tracking record or output parameter returned
      * data
-     * @param rh a callback for tracking row set of header column informations.
-     * Note that there will be NO row set data or its column informations
-     * returned if NO such a callback is set
+     * @param rh a callback for tracking row set of header column informations
      * @param meta a boolean second for better or more detailed column meta
      * details such as unique, not null, primary first, and so on. It defaults
      * to true
@@ -825,9 +834,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @param handler a callback for tracking final result
      * @param row a callback for tracking record or output parameter returned
      * data
-     * @param rh a callback for tracking row set of header column informations.
-     * Note that there will be NO row set data or its column informations
-     * returned if NO such a callback is set
+     * @param rh a callback for tracking row set of header column informations
      * @param meta a boolean second for better or more detailed column meta
      * details such as unique, not null, primary first, and so on. It defaults
      * to true
@@ -928,9 +935,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @param handler a callback for tracking final result
      * @param row a callback for tracking record or output parameter returned
      * data
-     * @param rh a callback for tracking row set of header column informations.
-     * Note that there will be NO row set data or its column informations
-     * returned if NO such a callback is set
+     * @param rh a callback for tracking row set of header column informations
      * @return true if request is successfully sent or queued; and false if
      * request is NOT successfully sent or queued
      */
@@ -947,9 +952,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @param handler a callback for tracking final result
      * @param row a callback for tracking record or output parameter returned
      * data
-     * @param rh a callback for tracking row set of header column informations.
-     * Note that there will be NO row set data or its column informations
-     * returned if NO such a callback is set
+     * @param rh a callback for tracking row set of header column informations
      * @param meta a boolean second for better or more detailed column meta
      * details such as unique, not null, primary first, and so on. It defaults
      * to true
@@ -969,9 +972,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @param handler a callback for tracking final result
      * @param row a callback for tracking record or output parameter returned
      * data
-     * @param rh a callback for tracking row set of header column informations.
-     * Note that there will be NO row set data or its column informations
-     * returned if NO such a callback is set
+     * @param rh a callback for tracking row set of header column informations
      * @param meta a boolean second for better or more detailed column meta
      * details such as unique, not null, primary first, and so on. It defaults
      * to true
@@ -993,9 +994,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @param handler a callback for tracking final result
      * @param row a callback for tracking record or output parameter returned
      * data
-     * @param rh a callback for tracking row set of header column informations.
-     * Note that there will be NO row set data or its column informations
-     * returned if NO such a callback is set
+     * @param rh a callback for tracking row set of header column informations
      * @param meta a boolean second for better or more detailed column meta
      * details such as unique, not null, primary first, and so on. It defaults
      * to true

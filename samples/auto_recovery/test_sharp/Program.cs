@@ -76,7 +76,6 @@ class Program
                 sqlite = sp.Seek();
                 ok = sqlite.Execute(sql, er, r);
             }
-            v = sp.AsyncHandlers;
             foreach (var h in v)
             {
                 ok = h.WaitAll();
@@ -87,4 +86,3 @@ class Program
         }
     }
 }
-

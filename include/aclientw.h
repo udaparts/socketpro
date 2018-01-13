@@ -2001,16 +2001,6 @@ namespace SPA {
                     case speQueueMergedFrom:
                         assert(sp);
                         sp->m_pHFrom = sp->MapToHandler(h);
-                    {
-                        IClientQueue &cq = sp->m_pHFrom->GetAttachedClientSocket()->GetClientQueue();
-                        unsigned int remaining = sp->m_pHFrom->GetRequestsQueued();
-                        UINT64 messages = cq.GetMessageCount();
-                        if (messages != remaining) {
-#ifndef NDEBUG
-                            std::cout << "From: Messages = " << messages << ", remaining requests = " << remaining << std::endl;
-#endif
-                        }
-                    }
                         break;
                     case speQueueMergedTo:
                         assert(sp);
