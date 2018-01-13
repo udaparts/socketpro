@@ -6,9 +6,9 @@ public class Test_java {
     public static void main(String[] args) {
         final int sessions_per_host = 2;
         final int cycles = 10000;
-        String[] vHost = {"localhost", "ws-yye-1"};
+        String[] vHost = {"localhost", "192.168.2.172"};
         java.util.Scanner scanner = new java.util.Scanner(System.in);
-        CSocketPool<CSqlite> sp = new CSocketPool<CSqlite>(CSqlite.class);
+        CSocketPool<CSqlite> sp = new CSocketPool<>(CSqlite.class);
         sp.setQueueName("ar_java");
         CConnectionContext[][] ppCc = new CConnectionContext[1][vHost.length * sessions_per_host]; //one thread enough
         for (int n = 0; n < vHost.length; ++n) {
@@ -35,16 +35,17 @@ public class Test_java {
                     System.out.println("Error code: " + res + ", error message: " + errMsg);
                 }
             });
+            h.WaitAll();
         }
-
         class CContext {
 
             public int returned = 0;
-            public double dmax = 0.0, dmin = 0.0, davg = 0.0;
+            public double dmax = 0.0;
+            public double dmin = 0.0;
+            public double davg = 0.0;
             public SPA.UDB.CDBVariantArray row = new SPA.UDB.CDBVariantArray();
         }
         final CContext context = new CContext();
-
         CAsyncDBHandler.DExecuteResult er = (h, res, errMsg, affected, fail_ok, lastId) -> {
             if (res != 0) {
                 System.out.println("Error code: " + res + ", error message: " + errMsg);
@@ -62,9 +63,21 @@ public class Test_java {
         CSqlite sqlite = sp.Seek();
         ok = sqlite.Execute(sql, er, r);
         ok = sqlite.WaitAll();
-
+        System.out.println("Result: max = " + context.dmax + ", min = " + context.dmin + ", avg = " + context.davg);
+        context.returned = 0;
+        context.dmax = 0.0;
+        context.dmin = 0.0;
+        context.davg = 0.0;
+        System.out.println("Going to get " + cycles + " queries for max, min and avg");
+        for (int n = 0; n < cycles; ++n) {
+            sqlite = sp.Seek();
+            ok = sqlite.Execute(sql, er, r);
+        }
+        for (CSqlite h : v) {
+            ok = h.WaitAll();
+        }
+        System.out.println("Returned = " + context.returned + ", max = " + context.dmax + ", min = " + context.dmin + ", avg = " + context.davg);
         System.out.println("Press key ENTER to shutdown the demo application ......");
         scanner.nextLine();
     }
-
 }

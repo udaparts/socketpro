@@ -143,6 +143,10 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
         CAsyncDBHandler dbTo = (CAsyncDBHandler) to;
         synchronized (dbTo.m_csDB) {
             synchronized (m_csDB) {
+                dbTo.m_deqResult.addAll(m_deqResult);
+                m_deqResult.clear();
+                dbTo.m_deqExecuteResult.addAll(m_deqExecuteResult);
+                m_deqExecuteResult.clear();
                 for (long callIndex : m_mapRowset.keySet()) {
                     dbTo.m_mapRowset.put(callIndex, m_mapRowset.get(callIndex));
                 }

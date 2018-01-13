@@ -9,7 +9,7 @@ class Program
     {
         const int sessions_per_host = 2;
         const int cycles = 10000;
-        string[] vHost = { "localhost", "ws-yye-1" };
+        string[] vHost = { "localhost", "192.168.2.172" };
         using (CSocketPool<CSqlite> sp = new CSocketPool<CSqlite>())
         {
             sp.QueueName = "ar_sharp";
