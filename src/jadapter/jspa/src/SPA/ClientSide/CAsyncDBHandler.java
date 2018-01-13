@@ -132,6 +132,8 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
         m_mapParameterCall.clear();
         m_lastReqId = 0;
         m_Blob.SetSize(0);
+        m_deqExecuteResult.clear();
+        m_deqResult.clear();
         if (m_Blob.getMaxBufferSize() > DB_CONSTS.DEFAULT_BIG_FIELD_CHUNK_SIZE) {
             m_Blob.Realloc(DB_CONSTS.DEFAULT_BIG_FIELD_CHUNK_SIZE);
         }

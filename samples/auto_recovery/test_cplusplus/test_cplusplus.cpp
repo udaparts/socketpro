@@ -7,7 +7,7 @@ int main(int argc, char* argv[])
 	const int cycles = 10000;
 	const int sessions_per_host = 2;
 	const int HOSTS = 2;
-	std::string vHost[HOSTS] = { "localhost", "ws-yye-1" };
+	std::string vHost[HOSTS] = { "localhost", "192.168.2.172" };
 
 	typedef CConnectionContext* PCConnectionContext;
 	PCConnectionContext ppCc[THREADS];
