@@ -1323,8 +1323,8 @@ namespace SPA {
                     ok = false;
                 };
                 if (!SendRequest(reqId, qSender.GetBuffer(), qSender.GetSize(), rh, discarded, nullptr)) {
-                return false;
-            }
+                    return false;
+                }
                 return (WaitAll() && ok);
             }
 
@@ -1740,10 +1740,10 @@ namespace SPA {
                 CAutoLock al(m_cs);
                 if (m_qName != s) {
                     StopPoolQueue();
-					m_qName = s;
-					if (m_qName.size())
-						StartPoolQueue(m_qName.c_str());
-				}
+                    m_qName = s;
+                    if (m_qName.size())
+                        StartPoolQueue(m_qName.c_str());
+                }
             }
 
             inline unsigned int GetThreadsCreated() {

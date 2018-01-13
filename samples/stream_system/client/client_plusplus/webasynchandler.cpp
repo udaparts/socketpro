@@ -27,7 +27,7 @@ SPA::UINT64 CWebAsyncHandler::QueryPaymentMaxMinAvgs(const wchar_t *filter, DMax
         SPA::CAutoLock al(this->m_csCache);
         m_mapMMA[index] = std::pair<DMaxMinAvg, DMyCanceled>(mma, canceled);
     }
-	if (!SendRequest(idQueryMaxMinAvgs, index, filter, arh, [index, this](CAsyncServiceHandler *h, bool canceled) {
+    if (!SendRequest(idQueryMaxMinAvgs, index, filter, arh, [index, this](CAsyncServiceHandler * h, bool canceled) {
             //socket closed or request canceled after request is put on wire
             std::pair<DMaxMinAvg, DMyCanceled> p;
             {
@@ -67,7 +67,7 @@ SPA::UINT64 CWebAsyncHandler::GetRentalDateTimes(SPA::INT64 rentalId, DRentalDat
         SPA::CAutoLock al(this->m_csCache);
         m_mapRentalDateTimes[index] = std::pair<DRentalDateTimes, DMyCanceled>(rdt, canceled);
     }
-	if (!SendRequest(idGetRentalDateTimes, index, rentalId, arh, [index, this](CAsyncServiceHandler *h, bool canceled) {
+    if (!SendRequest(idGetRentalDateTimes, index, rentalId, arh, [index, this](CAsyncServiceHandler * h, bool canceled) {
             //socket closed or request canceled after request is put on wire
             std::pair<DRentalDateTimes, DMyCanceled> p;
             {
@@ -105,7 +105,7 @@ SPA::UINT64 CWebAsyncHandler::GetMasterSlaveConnectedSessions(DConnectedSessions
         SPA::CAutoLock al(this->m_csCache);
         m_mapSession[index] = std::pair<DConnectedSessions, DMyCanceled>(cs, canceled);
     }
-	if (!SendRequest(idGetMasterSlaveConnectedSessions, index, arh, [index, this](CAsyncServiceHandler *h, bool canceled) {
+    if (!SendRequest(idGetMasterSlaveConnectedSessions, index, arh, [index, this](CAsyncServiceHandler * h, bool canceled) {
             //socket closed or request canceled after request is put on wire
             std::pair<DConnectedSessions, DMyCanceled> p;
             {
@@ -145,7 +145,7 @@ SPA::UINT64 CWebAsyncHandler::UploadEmployees(const SPA::UDB::CDBVariantArray &v
         SPA::CAutoLock al(this->m_csCache);
         m_mapUpload[index] = std::pair<DUploadEmployees, DMyCanceled>(res, canceled);
     }
-	if (!SendRequest(idUploadEmployees, index, vData, arh, [index, this](CAsyncServiceHandler *h, bool canceled) {
+    if (!SendRequest(idUploadEmployees, index, vData, arh, [index, this](CAsyncServiceHandler * h, bool canceled) {
             //socket closed or request canceled after request is put on wire
             std::pair<DUploadEmployees, DMyCanceled> p;
             {
