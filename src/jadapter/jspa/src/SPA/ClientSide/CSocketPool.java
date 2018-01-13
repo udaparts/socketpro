@@ -20,6 +20,8 @@ public class CSocketPool<THandler extends CAsyncServiceHandler> {
 
     private THandler m_hFrom = null;
 
+    private String m_qName = "";
+
     private void invoke(int poolId, int spc, long h) throws InstantiationException, IllegalAccessException, IllegalArgumentException, java.lang.reflect.InvocationTargetException {
         THandler handler = MapToHandler(h);
         tagSocketPoolEvent event = tagSocketPoolEvent.forValue(spc);
@@ -78,6 +80,7 @@ public class CSocketPool<THandler extends CAsyncServiceHandler> {
                     ClientCoreLoader.SetSockOpt(h, SPA.tagSocketOption.soTcpNoDelay.getValue(), 1, SPA.tagSocketLevel.slTcp.getValue());
                     ClientCoreLoader.StartBatching(h);
                     boolean ok = ClientCoreLoader.SwitchTo(h, handler.getSvsID());
+                    SetQueue(cs);
                     if (ok) {
                         ClientCoreLoader.TurnOnZipAtSvr(h, cs.ConnectionContext.Zip);
                         ClientCoreLoader.SetSockOptAtSvr(h, SPA.tagSocketOption.soRcvBuf.getValue(), 116800, SPA.tagSocketLevel.slSocket.getValue());
@@ -331,6 +334,70 @@ public class CSocketPool<THandler extends CAsyncServiceHandler> {
                     }
                 }
             }
+        }
+    }
+
+    public String getQueueName() {
+        synchronized (m_cs) {
+            return m_qName;
+        }
+    }
+
+    public void setQueueName(String qName) {
+        String s = qName;
+        if (s != null) {
+            s = s.trim();
+        } else {
+            s = "";
+        }
+        if (SPA.CUQueue.DEFAULT_OS == SPA.tagOperationSystem.osWin || SPA.CUQueue.DEFAULT_OS == SPA.tagOperationSystem.osWinCE) {
+            s = s.toLowerCase();
+        }
+        synchronized (m_cs) {
+            if (!m_qName.equals(s)) {
+                StopPoolQueue();
+                m_qName = s;
+                if (m_qName.length() > 0) {
+                    StartPoolQueue(m_qName);
+                }
+            }
+        }
+    }
+
+    private void StopPoolQueue() {
+        for (CClientSocket cs : m_dicSocketHandler.keySet()) {
+            if (cs.getClientQueue() != null && cs.getClientQueue().getAvailable()) {
+                cs.getClientQueue().StopQueue();
+            }
+        }
+    }
+
+    private static final int DEFAULT_QUEUE_TIME_TO_LIVE = 240 * 3600;
+
+    private void StartPoolQueue(String qName) {
+        int index = 0;
+        for (CClientSocket cs : m_dicSocketHandler.keySet()) {
+            final boolean ok = cs.getClientQueue().StartQueue(qName + index, DEFAULT_QUEUE_TIME_TO_LIVE, cs.getEncryptionMethod() != SPA.tagEncryptionMethod.NoEncryption);
+            ++index;
+        }
+    }
+
+    private void SetQueue(CClientSocket socket) {
+        int index = 0;
+        for (CClientSocket cs : m_dicSocketHandler.keySet()) {
+            if (cs == socket) {
+                if (m_qName.length() > 0) {
+                    if (!cs.getClientQueue().getAvailable()) {
+                        cs.getClientQueue().StartQueue(m_qName + index, DEFAULT_QUEUE_TIME_TO_LIVE, cs.getEncryptionMethod() != SPA.tagEncryptionMethod.NoEncryption);
+                    }
+                } else {
+                    if (cs.getClientQueue().getAvailable()) {
+                        cs.getClientQueue().StopQueue();
+                    }
+                }
+                break;
+            }
+            ++index;
         }
     }
 

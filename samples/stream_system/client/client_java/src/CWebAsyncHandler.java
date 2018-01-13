@@ -45,7 +45,7 @@ public class CWebAsyncHandler extends CCachedBaseHandler {
             m_mapMMA.put(callIndex, new Pair<>(mma, canceled));
         }
         q.Save(callIndex).Save(filter);
-        boolean ok = SendRequest(Consts.idQueryMaxMinAvgs, q, arh, () -> {
+        boolean ok = SendRequest(Consts.idQueryMaxMinAvgs, q, arh, (h, c) -> {
             Pair<DMaxMinAvg, DMyCanceled> p;
             synchronized (m_csCache) {
                 p = m_mapMMA.remove(callIndex);
@@ -96,7 +96,7 @@ public class CWebAsyncHandler extends CCachedBaseHandler {
             m_mapSession.put(callIndex, new Pair<>(cs, canceled));
         }
         q.Save(callIndex);
-        boolean ok = SendRequest(Consts.idGetMasterSlaveConnectedSessions, q, arh, () -> {
+        boolean ok = SendRequest(Consts.idGetMasterSlaveConnectedSessions, q, arh, (h, c) -> {
             Pair<DConnectedSessions, DMyCanceled> p;
             synchronized (m_csCache) {
                 p = m_mapSession.remove(callIndex);
@@ -152,7 +152,7 @@ public class CWebAsyncHandler extends CCachedBaseHandler {
         }
         q.Save(callIndex);
         vData.SaveTo(q);
-        boolean ok = SendRequest(Consts.idUploadEmployees, q, arh, () -> {
+        boolean ok = SendRequest(Consts.idUploadEmployees, q, arh, (h, c) -> {
             Pair<DUploadEmployees, DMyCanceled> p;
             synchronized (m_csCache) {
                 p = m_mapUpload.remove(callIndex);
@@ -204,7 +204,7 @@ public class CWebAsyncHandler extends CCachedBaseHandler {
             m_mapRentalDateTimes.put(callIndex, new Pair<>(rdt, canceled));
         }
         q.Save(callIndex).Save(rentalId);
-        boolean ok = SendRequest(Consts.idGetRentalDateTimes, q, arh, () -> {
+        boolean ok = SendRequest(Consts.idGetRentalDateTimes, q, arh, (h, c) -> {
             Pair<DRentalDateTimes, DMyCanceled> p;
             synchronized (m_csCache) {
                 p = m_mapRentalDateTimes.remove(callIndex);

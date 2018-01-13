@@ -11,7 +11,7 @@ typedef std::vector<CPColumnRowset> CRowsetArray;
 
 /*
 //This is bad implementation for original SPA::ClientSide::CAsyncDBHandler::Open method!!!!
-virtual bool Open(const wchar_t* strConnection, DResult handler, unsigned int flags = 0, DCanceled canceled = nullptr) {
+virtual bool Open(const wchar_t* strConnection, DResult handler, unsigned int flags = 0, DCanceled dicarded = nullptr) {
 std::wstring s;
 CAutoLock al(m_csDB); //start lock here
 m_flags = flags;
@@ -43,7 +43,7 @@ this->m_csDB.unlock();
 if (handler) {
 handler(*this, res, errMsg);
 }
-}, canceled, nullptr)) {
+}, dicarded, nullptr)) {
 return true;
 }
 if (strConnection) {
@@ -282,10 +282,10 @@ std::future<bool> DoFuture(CMyPool &sp) {
 				std::wcout << errMsg << std::endl;
 			}
 			prom->set_value(true);
-		}, [prom]() {
+		}, [prom](SPA::ClientSide::CAsyncServiceHandler *h, bool canceled) {
 			{
 				SPA::CAutoLock al(m_csConsole);
-				std::cout << "Canceled" << std::endl;
+				std::cout << (canceled ? "Request canceled" : "Socket closed") << std::endl;
 			}
 			//std::exception ex("Canceled");
 			//prom->set_exception(std::make_exception_ptr(ex));

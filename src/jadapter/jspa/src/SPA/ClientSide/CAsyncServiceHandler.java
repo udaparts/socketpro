@@ -19,16 +19,43 @@ public class CAsyncServiceHandler {
     }
     public volatile DOnExceptionFromServer ServerException = null;
 
-    public interface DCanceled {
+    public interface DDiscarded {
 
-        void invoke();
+        void invoke(CAsyncServiceHandler sender, boolean discarded);
     }
+
+    public interface DOnBaseRequestProcessed {
+
+        void invoke(CAsyncServiceHandler sender, short reqId);
+    }
+
+    public DOnBaseRequestProcessed BaseRequestProcessed = null;
 
     class CResultCb {
 
         public DAsyncResultHandler AsyncResultHandler = null;
-        public DCanceled Canceled = null;
+        public DDiscarded Discarded = null;
         public DOnExceptionFromServer ExceptionFromServer = null;
+    }
+
+    private static final Object m_csCallIndex = new Object();
+    private static long m_CallIndex = 0;
+
+    public static long GetCallIndex() {
+        synchronized (m_csCallIndex) {
+            return ++m_CallIndex;
+        }
+    }
+
+    /**
+     * Check the number of requests queued inside asynchronous handler
+     *
+     * @return the number of requests queued inside asynchronous handler
+     */
+    public int getRequestsQueued() {
+        synchronized (m_cs) {
+            return m_kvCallback.size();
+        }
     }
 
     public final CClientSocket getAttachedClientSocket() {
@@ -86,8 +113,8 @@ public class CAsyncServiceHandler {
         }
         while (count > 0) {
             java.util.Map.Entry<Short, CResultCb> p = m_kvCallback.removeLast();
-            if (p.getValue().Canceled != null) {
-                p.getValue().Canceled.invoke();
+            if (p.getValue().Discarded != null) {
+                p.getValue().Discarded.invoke(this, true);
             }
             --count;
         }
@@ -97,11 +124,11 @@ public class CAsyncServiceHandler {
         return SendRequest(reqId, data, len, ash, null, null);
     }
 
-    public final boolean SendRequest(short reqId, byte[] data, int len, DAsyncResultHandler ash, DCanceled canceled) {
-        return SendRequest(reqId, data, len, ash, canceled, null);
+    public final boolean SendRequest(short reqId, byte[] data, int len, DAsyncResultHandler ash, DDiscarded discarded) {
+        return SendRequest(reqId, data, len, ash, discarded, null);
     }
 
-    public boolean SendRequest(short reqId, byte[] data, int len, DAsyncResultHandler ash, DCanceled canceled, DOnExceptionFromServer exception) {
+    public boolean SendRequest(short reqId, byte[] data, int len, DAsyncResultHandler ash, DDiscarded discarded, DOnExceptionFromServer exception) {
         if (data == null) {
             data = new byte[0];
             len = 0;
@@ -115,10 +142,10 @@ public class CAsyncServiceHandler {
         boolean batching = false;
         CResultCb rcb = null;
         synchronized (m_csSend) {
-            if (ash != null || canceled != null || exception != null) {
+            if (ash != null || discarded != null || exception != null) {
                 rcb = new CResultCb();
                 rcb.AsyncResultHandler = ash;
-                rcb.Canceled = canceled;
+                rcb.Discarded = discarded;
                 rcb.ExceptionFromServer = exception;
                 java.util.Map.Entry<Short, CResultCb> kv = new java.util.AbstractMap.SimpleEntry<>(reqId, rcb);
                 synchronized (m_cs) {
@@ -150,44 +177,44 @@ public class CAsyncServiceHandler {
         return SendRequest(reqId, q, ash, null, null);
     }
 
-    public final boolean SendRequest(short reqId, SPA.CUQueue q, DAsyncResultHandler ash, DCanceled canceled) {
-        return SendRequest(reqId, q, ash, canceled, null);
+    public final boolean SendRequest(short reqId, SPA.CUQueue q, DAsyncResultHandler ash, DDiscarded discarded) {
+        return SendRequest(reqId, q, ash, discarded, null);
     }
 
-    public final boolean SendRequest(short reqId, SPA.CUQueue q, DAsyncResultHandler ash, DCanceled canceled, DOnExceptionFromServer exception) {
+    public final boolean SendRequest(short reqId, SPA.CUQueue q, DAsyncResultHandler ash, DDiscarded discarded, DOnExceptionFromServer exception) {
         if (q == null) {
-            return SendRequest(reqId, (byte[]) null, (int) 0, ash, canceled, exception);
+            return SendRequest(reqId, (byte[]) null, (int) 0, ash, discarded, exception);
         } else if (q.getHeadPosition() > 0) {
-            return SendRequest(reqId, q.GetBuffer(), q.GetSize(), ash, canceled, exception);
+            return SendRequest(reqId, q.GetBuffer(), q.GetSize(), ash, discarded, exception);
         }
-        return SendRequest(reqId, q.getIntenalBuffer(), q.GetSize(), ash, canceled, exception);
+        return SendRequest(reqId, q.getIntenalBuffer(), q.GetSize(), ash, discarded, exception);
     }
 
     public final boolean SendRequest(short reqId, SPA.CScopeUQueue q, DAsyncResultHandler ash) {
         return SendRequest(reqId, q, ash, null, null);
     }
 
-    public final boolean SendRequest(short reqId, SPA.CScopeUQueue q, DAsyncResultHandler ash, DCanceled canceled) {
-        return SendRequest(reqId, q, ash, canceled, null);
+    public final boolean SendRequest(short reqId, SPA.CScopeUQueue q, DAsyncResultHandler ash, DDiscarded discarded) {
+        return SendRequest(reqId, q, ash, discarded, null);
     }
 
-    public final boolean SendRequest(short reqId, SPA.CScopeUQueue q, DAsyncResultHandler ash, DCanceled canceled, DOnExceptionFromServer exception) {
+    public final boolean SendRequest(short reqId, SPA.CScopeUQueue q, DAsyncResultHandler ash, DDiscarded discarded, DOnExceptionFromServer exception) {
         if (q == null) {
-            return SendRequest(reqId, (byte[]) null, (int) 0, ash, canceled, exception);
+            return SendRequest(reqId, (byte[]) null, (int) 0, ash, discarded, exception);
         }
-        return SendRequest(reqId, q.getUQueue(), ash, canceled, exception);
+        return SendRequest(reqId, q.getUQueue(), ash, discarded, exception);
     }
 
     public final boolean SendRequest(short reqId, DAsyncResultHandler ash) {
         return SendRequest(reqId, (byte[]) null, (int) 0, ash, null, null);
     }
 
-    public final boolean SendRequest(short reqId, DAsyncResultHandler ash, DCanceled canceled) {
-        return SendRequest(reqId, (byte[]) null, (int) 0, ash, canceled, null);
+    public final boolean SendRequest(short reqId, DAsyncResultHandler ash, DDiscarded discarded) {
+        return SendRequest(reqId, (byte[]) null, (int) 0, ash, discarded, null);
     }
 
-    public final boolean SendRequest(short reqId, DAsyncResultHandler ash, DCanceled canceled, DOnExceptionFromServer exception) {
-        return SendRequest(reqId, (byte[]) null, (int) 0, ash, canceled, exception);
+    public final boolean SendRequest(short reqId, DAsyncResultHandler ash, DDiscarded discarded, DOnExceptionFromServer exception) {
+        return SendRequest(reqId, (byte[]) null, (int) 0, ash, discarded, exception);
     }
 
     protected boolean SendRouteeResult(byte[] data, int len, short reqId) {
@@ -276,9 +303,14 @@ public class CAsyncServiceHandler {
         return ClientCoreLoader.CommitBatching(h, bBatchingAtServerSide);
     }
 
+    protected void OnMergeTo(CAsyncServiceHandler to) {
+
+    }
+
     void AppendTo(CAsyncServiceHandler to) {
         synchronized (to.m_cs) {
             synchronized (m_cs) {
+                OnMergeTo(to);
                 to.m_kvCallback.addAll(m_kvCallback);
                 m_kvCallback.clear();
             }
@@ -360,8 +392,8 @@ public class CAsyncServiceHandler {
         synchronized (m_cs) {
             for (java.util.Map.Entry<Short, CResultCb> p : m_kvBatching) {
                 CResultCb rcb = p.getValue();
-                if (rcb.Canceled != null) {
-                    rcb.Canceled.invoke();
+                if (rcb.Discarded != null) {
+                    rcb.Discarded.invoke(this, true);
                 }
             }
             m_kvBatching.clear();
@@ -414,15 +446,15 @@ public class CAsyncServiceHandler {
             int size = m_kvBatching.size() + m_kvCallback.size();
             for (java.util.Map.Entry<Short, CResultCb> p : m_kvBatching) {
                 CResultCb rcb = p.getValue();
-                if (rcb.Canceled != null) {
-                    rcb.Canceled.invoke();
+                if (rcb.Discarded != null) {
+                    rcb.Discarded.invoke(this, getAttachedClientSocket().getCurrentRequestID() == SPA.tagBaseRequestID.idCancel.getValue());
                 }
             }
             m_kvBatching.clear();
             for (java.util.Map.Entry<Short, CResultCb> p : m_kvCallback) {
                 CResultCb rcb = p.getValue();
-                if (rcb.Canceled != null) {
-                    rcb.Canceled.invoke();
+                if (rcb.Discarded != null) {
+                    rcb.Discarded.invoke(this, getAttachedClientSocket().getCurrentRequestID() == SPA.tagBaseRequestID.idCancel.getValue());
                 }
             }
             m_kvCallback.clear();

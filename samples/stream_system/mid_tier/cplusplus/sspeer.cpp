@@ -125,7 +125,7 @@ void CYourPeerOne::UploadEmployees(SPA::CUQueue &q) {
 				if (peer_handle == this->GetSocketHandle()) {
 					unsigned int ret = this->SendResult(idUploadEmployees, index, pError->first, pError->second, *pId);
 				}
-			}, [index, pData, this, peer_handle]() {
+			}, [index, pData, this, peer_handle](SPA::ClientSide::CAsyncServiceHandler *h, bool canceled) {
 #ifndef NDEBUG
 					{
 						SPA::CAutoLock al(m_csConsole);
@@ -180,7 +180,7 @@ void CYourPeerOne::GetRentalDateTimes(SPA::UINT64 index, SPA::INT64 rental_id, S
 			dates.LastUpdate = vData[3].ullVal;
 		}, [](CSQLHandler & h) {
 			assert(h.GetColumnInfo().size() == 4);
-		}, true, true, [prom]() {
+		}, true, true, [prom](SPA::ClientSide::CAsyncServiceHandler *h, bool canceled) {
 			//socket closed after sending
 			prom->set_value(false);
 		})) {
@@ -256,7 +256,7 @@ void CYourPeerOne::QueryPaymentMaxMinAvgs(SPA::CUQueue &q) {
 			pmma->Avg = temp.dblVal;
 		}, [](CSQLHandler & h) {
 			assert(h.GetColumnInfo().size() == 3);
-		}, true, true, [peer_handle, index, filter, this]() {
+		}, true, true, [peer_handle, index, filter, this](SPA::ClientSide::CAsyncServiceHandler *h, bool canceled) {
 			//socket closed after sending
 
 			//front peer not closed yet
@@ -319,7 +319,7 @@ void CYourPeerOne::GetCachedTables(const std::wstring &defaultDb, unsigned int f
 			this->SendRows(vData);
 		}, [this, index](CSQLHandler & h) {
 			this->SendMeta(h.GetColumnInfo(), index);
-		}, true, true, [prom, &res, &errMsg]() {
+		}, true, true, [prom, &res, &errMsg](SPA::ClientSide::CAsyncServiceHandler *h, bool canceled) {
 			res = -2;
 			errMsg = L"Request canceled or socket closed";
 			prom->set_value();

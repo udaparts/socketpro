@@ -51,7 +51,7 @@ class CYourPeerOne : CCacheBasePeer
                 pmma.Max = double.Parse(vData[0].ToString());
                 pmma.Min = double.Parse(vData[1].ToString());
                 pmma.Avg = double.Parse(vData[2].ToString());
-            }, (h) => { }, true, true, () =>
+            }, (h) => { }, true, true, (h, canceled) =>
             {
                 //retry if front peer not closed yet
                 if (peer_handle == Handle)
@@ -147,7 +147,7 @@ class CYourPeerOne : CCacheBasePeer
                     //send result if front peer not closed yet
                     if (peer_handle == Handle)
                         ret = SendResult(ss.Consts.idUploadEmployees, index, error.Key, error.Value, vId);
-                }, () =>
+                }, (h, canceled) =>
                 {
                     //retry if front peer not closed yet
                     if (peer_handle == Handle)
@@ -229,7 +229,7 @@ class CYourPeerOne : CCacheBasePeer
             }, (h) =>
             {
                 SendMeta(h.ColumnInfo, index);
-            }, true, true, () =>
+            }, true, true, (h, canceled) =>
             {
                 tcs.SetResult(-2);
             }))
@@ -286,7 +286,7 @@ class CYourPeerOne : CCacheBasePeer
             }, (h) =>
             {
                 //rowset meta
-            }, true, true, () =>
+            }, true, true, (h, canceled) =>
             {
                 //socket closed after sending
                 tcs.SetResult(0);

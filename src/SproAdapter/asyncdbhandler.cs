@@ -765,9 +765,9 @@ namespace SocketProAdapter
             /// <param name="rh">a callback for tracking row set of header column informations</param>
             /// <param name="meta">a boolean value for better or more detailed column meta details such as unique, not null, primary key, and so on. It defaults to true</param>
             /// <param name="lastInsertId">a boolean value for last insert record identification number. It defaults to true</param>
-            /// <param name="canceled">a callback for tracking cancel or socket closed event</param>
+            /// <param name="discarded">a callback for tracking cancel or socket closed event</param>
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
-            public virtual bool Execute(CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh, bool meta, bool lastInsertId, DCanceled canceled)
+            public virtual bool Execute(CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh, bool meta, bool lastInsertId, DDiscarded discarded)
             {
                 bool rowset = (rh != null || row != null) ? true : false;
                 if (!rowset)
@@ -812,7 +812,7 @@ namespace SocketProAdapter
                         }
                         if (handler != null)
                             handler(this, res, errMsg, affected, fail_ok, vtId);
-                    }, canceled, null))
+                    }, discarded, null))
                     {
                         lock (m_csDB)
                         {
@@ -912,9 +912,9 @@ namespace SocketProAdapter
             /// <param name="rh">a callback for tracking row set of header column informations</param>
             /// <param name="meta">a boolean value for better or more detailed column meta details such as unique, not null, primary key, and so on. It defaults to true</param>
             /// <param name="lastInsertId">a boolean value for last insert record identification number. It defaults to true</param>
-            /// <param name="canceled">a callback for tracking cancel or socket closed event</param>
+            /// <param name="discarded">a callback for tracking cancel or socket closed event</param>
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
-            public virtual bool Execute(string sql, DExecuteResult handler, DRows row, DRowsetHeader rh, bool meta, bool lastInsertId, DCanceled canceled)
+            public virtual bool Execute(string sql, DExecuteResult handler, DRows row, DRowsetHeader rh, bool meta, bool lastInsertId, DDiscarded discarded)
             {
                 bool rowset = (rh != null || row != null) ? true : false;
                 if (!rowset)
@@ -947,7 +947,7 @@ namespace SocketProAdapter
                     }
                     if (handler != null)
                         handler(this, res, errMsg, affected, fail_ok, vtId);
-                }, canceled, null))
+                }, discarded, null))
                 {
                     lock (m_csDB)
                     {
@@ -987,9 +987,9 @@ namespace SocketProAdapter
             /// <param name="strConnection">a database connection string. The database connection string can be an empty string if its server side supports global database connection string</param>
             /// <param name="handler">a callback for database connecting result</param>
             /// <param name="flags">a set of flags transferred to server to indicate how to build database connection at server side. It defaults to zero</param>
-            /// <param name="canceled">a callback for tracking cancel or socket closed event</param>
+            /// <param name="discarded">a callback for tracking cancel or socket closed event</param>
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
-            public virtual bool Open(string strConnection, DResult handler, uint flags, DCanceled canceled)
+            public virtual bool Open(string strConnection, DResult handler, uint flags, DDiscarded discarded)
             {
                 string s = null;
                 //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
@@ -1031,7 +1031,7 @@ namespace SocketProAdapter
                     {
                         handler(this, res, errMsg);
                     }
-                }, canceled, null))
+                }, discarded, null))
                 {
                     return true;
                 }
@@ -1084,9 +1084,9 @@ namespace SocketProAdapter
             /// <param name="sql">a parameterized SQL statement</param>
             /// <param name="handler">a callback for SQL preparing result</param>
             /// <param name="vParameterInfo">a given array of parameter informations</param>
-            /// <param name="canceled">a callback for tracking cancel or socket closed event</param>
+            /// <param name="discarded">a callback for tracking cancel or socket closed event</param>
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
-            public virtual bool Prepare(string sql, DResult handler, CParameterInfo[] vParameterInfo, DCanceled canceled)
+            public virtual bool Prepare(string sql, DResult handler, CParameterInfo[] vParameterInfo, DDiscarded discarded)
             {
                 using (CScopeUQueue sb = new CScopeUQueue())
                 {
@@ -1124,7 +1124,7 @@ namespace SocketProAdapter
                         {
                             handler(this, res, errMsg);
                         }
-                    }, canceled, null))
+                    }, discarded, null))
                     {
                         return false;
                     }
@@ -1167,9 +1167,9 @@ namespace SocketProAdapter
             /// </summary>
             /// <param name="plan">a value for computing how included transactions should be rollback at server side. It defaults to tagRollbackPlan.rpDefault</param>
             /// <param name="handler">a callback for tracking its response result</param>
-            /// <param name="canceled">a callback for tracking cancel or socket closed event</param>
+            /// <param name="discarded">a callback for tracking cancel or socket closed event</param>
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
-            public virtual bool EndTrans(tagRollbackPlan plan, DResult handler, DCanceled canceled)
+            public virtual bool EndTrans(tagRollbackPlan plan, DResult handler, DDiscarded discarded)
             {
                 //make sure EndTrans sending and underlying client persistent message queue as one combination sending
                 //to avoid possible request sending/client message writing overlapping within multiple threading environment
@@ -1190,7 +1190,7 @@ namespace SocketProAdapter
                         {
                             handler(this, res, errMsg);
                         }
-                    }, canceled, null))
+                    }, discarded, null))
                     {
                         //associate end transaction with underlying client persistent message queue
                         AttachedClientSocket.ClientQueue.EndJob();
@@ -1235,9 +1235,9 @@ namespace SocketProAdapter
             /// </summary>
             /// <param name="isolation">a value for transaction isolation. It defaults to tagTransactionIsolation.tiReadCommited</param>
             /// <param name="handler">a callback for tracking its response result</param>
-            /// <param name="canceled">a callback for tracking cancel or socket closed event</param>
+            /// <param name="discarded">a callback for tracking cancel or socket closed event</param>
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
-            public virtual bool BeginTrans(tagTransactionIsolation isolation, DResult handler, DCanceled canceled)
+            public virtual bool BeginTrans(tagTransactionIsolation isolation, DResult handler, DDiscarded discarded)
             {
                 uint flags;
                 string connection;
@@ -1275,7 +1275,7 @@ namespace SocketProAdapter
                         {
                             handler(this, res, errMsg);
                         }
-                    }, canceled, null);
+                    }, discarded, null);
                     if (!ok && queueOk)
                     {
                         AttachedClientSocket.ClientQueue.AbortJob();
@@ -1307,9 +1307,9 @@ namespace SocketProAdapter
             /// Notify connected remote server to close database connection string asynchronously
             /// </summary>
             /// <param name="handler">a callback for closing result, which should be OK always as long as there is network or queue available </param>
-            /// <param name="canceled">a callback for tracking cancel or socket closed event</param>
+            /// <param name="discarded">a callback for tracking cancel or socket closed event</param>
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
-            public virtual bool Close(DResult handler, DCanceled canceled)
+            public virtual bool Close(DResult handler, DDiscarded discarded)
             {
                 return SendRequest(DB_CONSTS.idClose, (ar) =>
                 {
@@ -1330,7 +1330,7 @@ namespace SocketProAdapter
                     {
                         handler(this, res, errMsg);
                     }
-                }, canceled, null);
+                }, discarded, null);
             }
 
             protected override void OnMergeTo(CAsyncServiceHandler to)

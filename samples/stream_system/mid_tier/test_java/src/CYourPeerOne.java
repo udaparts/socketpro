@@ -41,7 +41,7 @@ public class CYourPeerOne extends CCacheBasePeer {
                 pmma.Min = Double.parseDouble(vData.get(1).toString());
                 pmma.Avg = Double.parseDouble(vData.get(2).toString());
             }, (h) -> {
-            }, true, true, () -> {
+            }, true, true, (h, canceled) -> {
                 //socket closed after sending
 
                 //retry if front peer not closed yet
@@ -127,7 +127,7 @@ public class CYourPeerOne extends CCacheBasePeer {
                             SendResult(Consts.idUploadEmployees, sb0.Save(index).Save(p.first).Save(p.second).Save(vId));
                             CScopeUQueue.Unlock(sb0);
                         }
-                    }, () -> {
+                    }, (h, canceled) -> {
                         //socket closed after sending
 
                         //retry if front peer not closed yet
@@ -195,7 +195,7 @@ public class CYourPeerOne extends CCacheBasePeer {
                 myDates.LastUpdate = (java.sql.Timestamp) vData.get(3);
             }, (h) -> {
                 //rowset meta
-            }, true, true, () -> {
+            }, true, true, (h, canceled) -> {
                 //socket closed after sending
                 f.set(0);
             })) {
@@ -262,9 +262,9 @@ public class CYourPeerOne extends CCacheBasePeer {
                 SendRows(vData);
             }, (h) -> {
                 SendMeta(h.getColumnInfo(), index);
-            }, true, true, () -> {
+            }, true, true, (h, canceled) -> {
                 res.res = -2;
-                res.errMsg = "Request canceled or socket closed";
+                res.errMsg = canceled ? "Request canceled" : "Socket closed";
                 f.set(-2);
             })) {
                 res.res = handler.getAttachedClientSocket().getErrorCode();

@@ -325,6 +325,9 @@ public final class CClientSocket {
         }
         CAsyncServiceHandler ash = cs.Seek(cs.getCurrentServiceID());
         if (ash != null) {
+            if (ash.BaseRequestProcessed != null) {
+                ash.BaseRequestProcessed.invoke(ash, reqId);
+            }
             ash.OnBaseRequestProcessed(reqId);
             if (reqId == SPA.tagBaseRequestID.idCancel.getValue()) {
                 ash.CleanCallbacks();

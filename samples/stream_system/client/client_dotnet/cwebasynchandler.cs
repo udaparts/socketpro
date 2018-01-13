@@ -37,7 +37,7 @@ class CWebAsyncHandler : CCachedBaseHandler
         {
             m_mapMMA[callIndex] = new KeyValuePair<DMaxMinAvg, DMyCanceled>(mma, canceled);
         }
-        if (!SendRequest(ss.Consts.idQueryMaxMinAvgs, callIndex, filter, arh, () =>
+        if (!SendRequest(ss.Consts.idQueryMaxMinAvgs, callIndex, filter, arh, (h, c) =>
         {
             //socket closed or request canceled after request is put on wire
             KeyValuePair<DMaxMinAvg, DMyCanceled> p;
@@ -83,7 +83,7 @@ class CWebAsyncHandler : CCachedBaseHandler
         {
             m_mapSession[callIndex] = new KeyValuePair<DConnectedSessions, DMyCanceled>(cs, canceled);
         }
-        if (!SendRequest(ss.Consts.idGetMasterSlaveConnectedSessions, callIndex, arh, () =>
+        if (!SendRequest(ss.Consts.idGetMasterSlaveConnectedSessions, callIndex, arh, (h, c) =>
         {
             //socket closed or request canceled after request is put on wire
             KeyValuePair<DConnectedSessions, DMyCanceled> p;
@@ -131,7 +131,7 @@ class CWebAsyncHandler : CCachedBaseHandler
         {
             m_mapUpload[callIndex] = new KeyValuePair<DUploadEmployees, DMyCanceled>(res, canceled);
         }
-        if (!SendRequest(ss.Consts.idUploadEmployees, callIndex, vData, arh, () =>
+        if (!SendRequest(ss.Consts.idUploadEmployees, callIndex, vData, arh, (h, c) =>
         {
             //socket closed or request canceled after request is put on wire
             KeyValuePair<DUploadEmployees, DMyCanceled> p;
@@ -179,7 +179,7 @@ class CWebAsyncHandler : CCachedBaseHandler
         {
             m_mapRentalDateTimes[callIndex] = new KeyValuePair<DRentalDateTimes, DMyCanceled>(rdt, canceled);
         }
-        if (!SendRequest(ss.Consts.idGetRentalDateTimes, callIndex, rentalId, arh, () =>
+        if (!SendRequest(ss.Consts.idGetRentalDateTimes, callIndex, rentalId, arh, (h, c) =>
         {
             //socket closed or request canceled after request is put on wire
             KeyValuePair<DRentalDateTimes, DMyCanceled> p;

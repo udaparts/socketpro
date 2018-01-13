@@ -6,7 +6,7 @@ import java.util.concurrent.*;
 
 /*
  //This is bad implementation for original SPA.ClientSide.CAsyncDBHandler.Open method!!!!
- public boolean Open(String strConnection, DResult handler, int flags, DCanceled canceled) {
+ public boolean Open(String strConnection, DResult handler, int flags, DDiscarded discarded) {
  String str = null;
  MyCallback<DResult> cb = new MyCallback<>(DB_CONSTS.idOpen, handler);
  CUQueue sb = CScopeUQueue.Lock();
@@ -22,7 +22,7 @@ import java.util.concurrent.*;
  }
  m_deqResult.add(cb);
  //cross SendRequest dead lock here
- if (SendRequest(DB_CONSTS.idOpen, sb, null, canceled)) {
+ if (SendRequest(DB_CONSTS.idOpen, sb, null, discarded)) {
  CScopeUQueue.Unlock(sb);
  return true;
  } else {
@@ -246,9 +246,9 @@ public class Java_demo {
                     }
                 }
                 f.set(true);
-            }, () -> {
+            }, (h, canceled) -> {
                 synchronized (m_csConsole) {
-                    System.out.println("EndTrans: Request canceled or socket closed");
+                    System.out.println("EndTrans: " + (canceled ? "Request canceled" : "Socket closed"));
                 }
                 f.set(false);
             })) {

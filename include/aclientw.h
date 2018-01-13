@@ -397,7 +397,7 @@ namespace SPA {
             typedef std::function<void(CAsyncServiceHandler *ash, unsigned short) > DBaseRequestProcessed;
             typedef std::function<bool(CAsyncServiceHandler *ash, unsigned short, CUQueue&) > DResultReturned;
             typedef std::function<void(CAsyncServiceHandler *ash, unsigned short requestId, const wchar_t *errMessage, const char* errWhere, unsigned int errCode) > DServerException;
-            typedef std::function<void() > DCanceled;
+            typedef std::function<void(CAsyncServiceHandler *ash, bool canceled) > DDiscarded;
 
         protected:
             CAsyncServiceHandler(unsigned int nServiceId, CClientSocket *cs = nullptr);
@@ -414,25 +414,25 @@ namespace SPA {
                 CResultCb(const ResultHandler &rh) : AsyncResultHandler(rh) {
                 }
 
-                CResultCb(const ResultHandler &rh, const DCanceled& canceled, const DServerException &exceptionFromServer)
-                : AsyncResultHandler(rh), Canceled(canceled), ExceptionFromServer(exceptionFromServer) {
+                CResultCb(const ResultHandler &rh, const DDiscarded& discarded, const DServerException &exceptionFromServer)
+                : AsyncResultHandler(rh), Discarded(discarded), ExceptionFromServer(exceptionFromServer) {
                 }
 
                 CResultCb(const CResultCb &rcb)
-                : AsyncResultHandler(rcb.AsyncResultHandler), Canceled(rcb.Canceled), ExceptionFromServer(rcb.ExceptionFromServer) {
+                : AsyncResultHandler(rcb.AsyncResultHandler), Discarded(rcb.Discarded), ExceptionFromServer(rcb.ExceptionFromServer) {
                 }
 
                 CResultCb& operator=(const CResultCb &rcb) {
                     if (this != &rcb) {
                         AsyncResultHandler = rcb.AsyncResultHandler;
-                        Canceled = rcb.Canceled;
+                        Discarded = rcb.Discarded;
                         ExceptionFromServer = rcb.ExceptionFromServer;
                     }
                     return *this;
                 }
 
                 ResultHandler AsyncResultHandler;
-                DCanceled Canceled;
+                DDiscarded Discarded;
                 DServerException ExceptionFromServer;
             };
             typedef std::pair<unsigned short, CResultCb>* PRR_PAIR;
@@ -456,8 +456,8 @@ namespace SPA {
             void ShrinkDeque();
             unsigned int GetSvsID() const;
             void SetSvsID(unsigned int serviceId);
-            virtual bool SendRequest(unsigned short reqId, const unsigned char *pBuffer, unsigned int size, ResultHandler rh, DCanceled canceled = nullptr, DServerException serverException = nullptr);
-            bool SendRequest(unsigned short reqId, ResultHandler rh, DCanceled canceled = nullptr, DServerException se = nullptr);
+            virtual bool SendRequest(unsigned short reqId, const unsigned char *pBuffer, unsigned int size, ResultHandler rh, DDiscarded discarded = nullptr, DServerException serverException = nullptr);
+            bool SendRequest(unsigned short reqId, ResultHandler rh, DDiscarded discarded = nullptr, DServerException se = nullptr);
             CClientSocket *GetAttachedClientSocket();
             virtual bool WaitAll(unsigned int timeOut = (~0));
             bool StartBatching();
@@ -939,73 +939,73 @@ namespace SPA {
             }
 
             template<typename T0>
-            bool SendRequest(unsigned short reqId, const T0 &t0, const ResultHandler &rh, DCanceled canceled = nullptr, DServerException se = nullptr) {
+            bool SendRequest(unsigned short reqId, const T0 &t0, const ResultHandler &rh, DDiscarded discarded = nullptr, DServerException se = nullptr) {
                 CScopeUQueue sb;
                 sb << t0;
-                return SendRequest(reqId, sb->GetBuffer(), sb->GetSize(), rh, canceled, se);
+                return SendRequest(reqId, sb->GetBuffer(), sb->GetSize(), rh, discarded, se);
             }
 
             template<typename T0, typename T1>
-            bool SendRequest(unsigned short reqId, const T0 &t0, const T1 &t1, const ResultHandler &rh, DCanceled canceled = nullptr, DServerException se = nullptr) {
+            bool SendRequest(unsigned short reqId, const T0 &t0, const T1 &t1, const ResultHandler &rh, DDiscarded discarded = nullptr, DServerException se = nullptr) {
                 CScopeUQueue sb;
                 sb << t0 << t1;
-                return SendRequest(reqId, sb->GetBuffer(), sb->GetSize(), rh, canceled, se);
+                return SendRequest(reqId, sb->GetBuffer(), sb->GetSize(), rh, discarded, se);
             }
 
             template<typename T0, typename T1, typename T2>
-            bool SendRequest(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const ResultHandler &rh, DCanceled canceled = nullptr, DServerException se = nullptr) {
+            bool SendRequest(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const ResultHandler &rh, DDiscarded discarded = nullptr, DServerException se = nullptr) {
                 CScopeUQueue sb;
                 sb << t0 << t1 << t2;
-                return SendRequest(reqId, sb->GetBuffer(), sb->GetSize(), rh, canceled, se);
+                return SendRequest(reqId, sb->GetBuffer(), sb->GetSize(), rh, discarded, se);
             }
 
             template<typename T0, typename T1, typename T2, typename T3>
-            bool SendRequest(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const ResultHandler &rh, DCanceled canceled = nullptr, DServerException se = nullptr) {
+            bool SendRequest(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const ResultHandler &rh, DDiscarded discarded = nullptr, DServerException se = nullptr) {
                 CScopeUQueue sb;
                 sb << t0 << t1 << t2 << t3;
-                return SendRequest(reqId, sb->GetBuffer(), sb->GetSize(), rh, canceled, se);
+                return SendRequest(reqId, sb->GetBuffer(), sb->GetSize(), rh, discarded, se);
             }
 
             template<typename T0, typename T1, typename T2, typename T3, typename T4>
-            bool SendRequest(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const ResultHandler &rh, DCanceled canceled = nullptr, DServerException se = nullptr) {
+            bool SendRequest(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const ResultHandler &rh, DDiscarded discarded = nullptr, DServerException se = nullptr) {
                 CScopeUQueue sb;
                 sb << t0 << t1 << t2 << t3 << t4;
-                return SendRequest(reqId, sb->GetBuffer(), sb->GetSize(), rh, canceled, se);
+                return SendRequest(reqId, sb->GetBuffer(), sb->GetSize(), rh, discarded, se);
             }
 
             template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5>
-            bool SendRequest(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const ResultHandler &rh, DCanceled canceled = nullptr, DServerException se = nullptr) {
+            bool SendRequest(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const ResultHandler &rh, DDiscarded discarded = nullptr, DServerException se = nullptr) {
                 CScopeUQueue sb;
                 sb << t0 << t1 << t2 << t3 << t4 << t5;
-                return SendRequest(reqId, sb->GetBuffer(), sb->GetSize(), rh, canceled, se);
+                return SendRequest(reqId, sb->GetBuffer(), sb->GetSize(), rh, discarded, se);
             }
 
             template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6>
-            bool SendRequest(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const T6 &t6, const ResultHandler &rh, DCanceled canceled = nullptr, DServerException se = nullptr) {
+            bool SendRequest(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const T6 &t6, const ResultHandler &rh, DDiscarded discarded = nullptr, DServerException se = nullptr) {
                 CScopeUQueue sb;
                 sb << t0 << t1 << t2 << t3 << t4 << t5 << t6;
-                return SendRequest(reqId, sb->GetBuffer(), sb->GetSize(), rh, canceled, se);
+                return SendRequest(reqId, sb->GetBuffer(), sb->GetSize(), rh, discarded, se);
             }
 
             template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7>
-            bool SendRequest(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const T6 &t6, const T7 &t7, const ResultHandler &rh, DCanceled canceled = nullptr, DServerException se = nullptr) {
+            bool SendRequest(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const T6 &t6, const T7 &t7, const ResultHandler &rh, DDiscarded discarded = nullptr, DServerException se = nullptr) {
                 CScopeUQueue sb;
                 sb << t0 << t1 << t2 << t3 << t4 << t5 << t6 << t7;
-                return SendRequest(reqId, sb->GetBuffer(), sb->GetSize(), rh, canceled, se);
+                return SendRequest(reqId, sb->GetBuffer(), sb->GetSize(), rh, discarded, se);
             }
 
             template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8>
-            bool SendRequest(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const T6 &t6, const T7 &t7, const T8 &t8, const ResultHandler &rh, DCanceled canceled = nullptr, DServerException se = nullptr) {
+            bool SendRequest(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const T6 &t6, const T7 &t7, const T8 &t8, const ResultHandler &rh, DDiscarded discarded = nullptr, DServerException se = nullptr) {
                 CScopeUQueue sb;
                 sb << t0 << t1 << t2 << t3 << t4 << t5 << t6 << t7 << t8;
-                return SendRequest(reqId, sb->GetBuffer(), sb->GetSize(), rh, canceled, se);
+                return SendRequest(reqId, sb->GetBuffer(), sb->GetSize(), rh, discarded, se);
             }
 
             template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8, typename T9>
-            bool SendRequest(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const T6 &t6, const T7 &t7, const T8 &t8, const T9 &t9, const ResultHandler &rh, DCanceled canceled = nullptr, DServerException se = nullptr) {
+            bool SendRequest(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const T6 &t6, const T7 &t7, const T8 &t8, const T9 &t9, const ResultHandler &rh, DDiscarded discarded = nullptr, DServerException se = nullptr) {
                 CScopeUQueue sb;
                 sb << t0 << t1 << t2 << t3 << t4 << t5 << t6 << t7 << t8 << t9;
-                return SendRequest(reqId, sb->GetBuffer(), sb->GetSize(), rh, canceled, se);
+                return SendRequest(reqId, sb->GetBuffer(), sb->GetSize(), rh, discarded, se);
             }
 
 #if defined(_FUTURE_) || defined(_GLIBCXX_FUTURE)
@@ -1014,9 +1014,9 @@ namespace SPA {
                 std::shared_ptr<std::promise<void> > prom(new std::promise<void>, [](std::promise<void> *p) {
                     delete p;
                 });
-                DCanceled canceled = [prom, reqId]() {
+                DDiscarded discarded = [prom, reqId](CAsyncServiceHandler *h, bool canceled) {
                     try {
-                        prom->set_exception(std::make_exception_ptr(CUException("Task aborted", __FILE__, reqId, __FUNCTION__, MB_REQUEST_ABORTED)));
+                        prom->set_exception(std::make_exception_ptr(CUException(canceled ? "Request canceled" : "Socket closed", __FILE__, reqId, __FUNCTION__, MB_REQUEST_ABORTED)));
                     } catch (...) {
 
                     }
@@ -1038,7 +1038,7 @@ namespace SPA {
                 ResultHandler rh = [prom](CAsyncResult & ar) {
                     prom->set_value();
                 };
-                if (!SendRequest(reqId, pBuffer, size, rh, canceled, se)) {
+                if (!SendRequest(reqId, pBuffer, size, rh, discarded, se)) {
                     throw CUException(GetAttachedClientSocket()->GetErrorMsg().c_str(), __FILE__, reqId, __FUNCTION__, GetAttachedClientSocket()->GetErrorCode());
                 }
                 return prom->get_future();
@@ -1123,9 +1123,9 @@ namespace SPA {
                 std::shared_ptr<std::promise<R> > prom(new std::promise<R>, [](std::promise<R> *p) {
                     delete p;
                 });
-                DCanceled canceled = [prom, reqId]() {
+                DDiscarded discarded = [prom, reqId](CAsyncServiceHandler *h, bool canceled) {
                     try {
-                        prom->set_exception(std::make_exception_ptr(CUException("Task aborted", __FILE__, reqId, __FUNCTION__, MB_REQUEST_ABORTED)));
+                        prom->set_exception(std::make_exception_ptr(CUException(canceled ? "Request canceled" : "Socket closed", __FILE__, reqId, __FUNCTION__, MB_REQUEST_ABORTED)));
                     } catch (...) {
                     }
                 };
@@ -1152,7 +1152,7 @@ namespace SPA {
                         prom->set_exception(std::current_exception());
                     }
                 };
-                if (!SendRequest(reqId, pBuffer, size, rh, canceled, se)) {
+                if (!SendRequest(reqId, pBuffer, size, rh, discarded, se)) {
                     throw CUException(GetAttachedClientSocket()->GetErrorMsg().c_str(), __FILE__, reqId, __FUNCTION__, GetAttachedClientSocket()->GetErrorCode());
                 }
                 return prom->get_future();
@@ -1240,193 +1240,14 @@ namespace SPA {
 
             USocket_Client_Handle GetClientSocketHandle() const;
 
-#if 0 //defined(_CONDITION_VARIABLE_)
-            std::mutex m_m;
-            std::condition_variable m_cv;
-
-            bool P_Internal(unsigned short reqId, const CUQueue &qSender, ResultHandler arh, DCanceled c, DServerException se) {
-                std::unique_lock<std::mutex> al(m_m);
-                if (!SendRequest(reqId, qSender.GetBuffer(), qSender.GetSize(), arh, c, se)) {
-                    return false;
-                }
-                return (m_cv.wait_for(al, std::chrono::milliseconds(0x7FFFFFFF)) != std::cv_status::timeout);
-            }
-
-            bool P(unsigned short reqId, const CUQueue &qSender) {
-                ResultHandler arh = [this](CAsyncResult & ar) {
-                    std::unique_lock<std::mutex> a(this->m_m);
-                    this->m_cv.notify_one();
-                };
-                std::exception_ptr p_error;
-                DCanceled c = [&p_error, this]() {
-                    p_error = std::make_exception_ptr(std::runtime_error("Canceled or closed"));
-                    std::unique_lock<std::mutex> a(this->m_m);
-                    this->m_cv.notify_one();
-                };
-                DServerException se = [&p_error, this](CAsyncServiceHandler *ash, unsigned short requestId, const wchar_t *errMessage, const char* errWhere, unsigned int errCode) {
-                    p_error = std::make_exception_ptr(std::runtime_error(SPA::Utilities::ToUTF8(errMessage)));
-                    std::unique_lock<std::mutex> a(this->m_m);
-                    this->m_cv.notify_one();
-                };
-                bool ok = P_Internal(reqId, qSender, arh, c, se);
-                if (p_error)
-                    std::rethrow_exception(p_error);
-                if (!ok) {
-                    p_error = std::make_exception_ptr(std::runtime_error("Timed out"));
-                    std::rethrow_exception(p_error);
-                }
-                return ok;
-            }
-
-            template<typename R0>
-            bool P(unsigned short reqId, const CUQueue &qSender, R0 &r0) {
-                ResultHandler arh = [&r0, this](CAsyncResult & ar) {
-                    ar >> r0;
-                    std::unique_lock<std::mutex> a(this->m_m);
-                    this->m_cv.notify_one();
-                };
-                std::exception_ptr p_error;
-                DCanceled c = [&p_error, this]() {
-                    p_error = std::make_exception_ptr(std::runtime_error("Canceled or closed"));
-                    std::unique_lock<std::mutex> a(this->m_m);
-                    this->m_cv.notify_one();
-                };
-                DServerException se = [&p_error, this](CAsyncServiceHandler *ash, unsigned short requestId, const wchar_t *errMessage, const char* errWhere, unsigned int errCode) {
-                    p_error = std::make_exception_ptr(std::runtime_error(SPA::Utilities::ToUTF8(errMessage)));
-                    std::unique_lock<std::mutex> a(this->m_m);
-                    this->m_cv.notify_one();
-                };
-                bool ok = P_Internal(reqId, qSender, arh, c, se);
-                if (p_error)
-                    std::rethrow_exception(p_error);
-                if (!ok) {
-                    p_error = std::make_exception_ptr(std::runtime_error("Timed out"));
-                    std::rethrow_exception(p_error);
-                }
-                return ok;
-            }
-
-            template<typename R0, typename R1>
-            bool P(unsigned short reqId, const CUQueue &qSender, R0 &r0, R1 &r1) {
-                ResultHandler arh = [&r0, &r1, this](CAsyncResult & ar) {
-                    ar >> r0 >> r1;
-                    std::unique_lock<std::mutex> a(this->m_m);
-                    this->m_cv.notify_one();
-                };
-                std::exception_ptr p_error;
-                DCanceled c = [&p_error, this]() {
-                    p_error = std::make_exception_ptr(std::runtime_error("Canceled or closed"));
-                    std::unique_lock<std::mutex> a(this->m_m);
-                    this->m_cv.notify_one();
-                };
-                DServerException se = [&p_error, this](CAsyncServiceHandler *ash, unsigned short requestId, const wchar_t *errMessage, const char* errWhere, unsigned int errCode) {
-                    p_error = std::make_exception_ptr(std::runtime_error(SPA::Utilities::ToUTF8(errMessage)));
-                    std::unique_lock<std::mutex> a(this->m_m);
-                    this->m_cv.notify_one();
-                };
-                bool ok = P_Internal(reqId, qSender, arh, c, se);
-                if (p_error)
-                    std::rethrow_exception(p_error);
-                if (!ok) {
-                    p_error = std::make_exception_ptr(std::runtime_error("Timed out"));
-                    std::rethrow_exception(p_error);
-                }
-                return ok;
-            }
-
-            template<typename R0, typename R1, typename R2>
-            bool P(unsigned short reqId, const CUQueue &qSender, R0 &r0, R1 &r1, R2 &r2) {
-                ResultHandler arh = [&r0, &r1, &r2, this](CAsyncResult & ar) {
-                    ar >> r0 >> r1 >> r2;
-                    std::unique_lock<std::mutex> a(this->m_m);
-                    this->m_cv.notify_one();
-                };
-                std::exception_ptr p_error;
-                DCanceled c = [&p_error, this]() {
-                    p_error = std::make_exception_ptr(std::runtime_error("Canceled or closed"));
-                    std::unique_lock<std::mutex> a(this->m_m);
-                    this->m_cv.notify_one();
-                };
-                DServerException se = [&p_error, this](CAsyncServiceHandler *ash, unsigned short requestId, const wchar_t *errMessage, const char* errWhere, unsigned int errCode) {
-                    p_error = std::make_exception_ptr(std::runtime_error(SPA::Utilities::ToUTF8(errMessage)));
-                    std::unique_lock<std::mutex> a(this->m_m);
-                    this->m_cv.notify_one();
-                };
-                bool ok = P_Internal(reqId, qSender, arh, c, se);
-                if (p_error)
-                    std::rethrow_exception(p_error);
-                if (!ok) {
-                    p_error = std::make_exception_ptr(std::runtime_error("Timed out"));
-                    std::rethrow_exception(p_error);
-                }
-                return ok;
-            }
-
-            template<typename R0, typename R1, typename R2, typename R3>
-            bool P(unsigned short reqId, const CUQueue &qSender, R0 &r0, R1 &r1, R2 &r2, R3 &r3) {
-                ResultHandler arh = [&r0, &r1, &r2, &r3, this](CAsyncResult & ar) {
-                    ar >> r0 >> r1 >> r2 >> r3;
-                    std::unique_lock<std::mutex> a(this->m_m);
-                    this->m_cv.notify_one();
-                };
-                std::exception_ptr p_error;
-                DCanceled c = [&p_error, this]() {
-                    p_error = std::make_exception_ptr(std::runtime_error("Canceled or closed"));
-                    std::unique_lock<std::mutex> a(this->m_m);
-                    this->m_cv.notify_one();
-                };
-                DServerException se = [&p_error, this](CAsyncServiceHandler *ash, unsigned short requestId, const wchar_t *errMessage, const char* errWhere, unsigned int errCode) {
-                    p_error = std::make_exception_ptr(std::runtime_error(SPA::Utilities::ToUTF8(errMessage)));
-                    std::unique_lock<std::mutex> a(this->m_m);
-                    this->m_cv.notify_one();
-                };
-                bool ok = P_Internal(reqId, qSender, arh, c, se);
-                if (p_error)
-                    std::rethrow_exception(p_error);
-                if (!ok) {
-                    p_error = std::make_exception_ptr(std::runtime_error("Timed out"));
-                    std::rethrow_exception(p_error);
-                }
-                return ok;
-            }
-
-            template<typename R0, typename R1, typename R2, typename R3, typename R4>
-            bool P(unsigned short reqId, const CUQueue &qSender, R0 &r0, R1 &r1, R2 &r2, R3 &r3, R4 &r4) {
-                ResultHandler arh = [&r0, &r1, &r2, &r3, &r4, this](CAsyncResult & ar) {
-                    ar >> r0 >> r1 >> r2 >> r3 >> r4;
-                    std::unique_lock<std::mutex> a(this->m_m);
-                    this->m_cv.notify_one();
-                };
-                std::exception_ptr p_error;
-                DCanceled c = [&p_error, this]() {
-                    p_error = std::make_exception_ptr(std::runtime_error("Canceled or closed"));
-                    std::unique_lock<std::mutex> a(this->m_m);
-                    this->m_cv.notify_one();
-                };
-                DServerException se = [&p_error, this](CAsyncServiceHandler *ash, unsigned short requestId, const wchar_t *errMessage, const char* errWhere, unsigned int errCode) {
-                    p_error = std::make_exception_ptr(std::runtime_error(SPA::Utilities::ToUTF8(errMessage)));
-                    std::unique_lock<std::mutex> a(this->m_m);
-                    this->m_cv.notify_one();
-                };
-                bool ok = P_Internal(reqId, qSender, arh, c, se);
-                if (p_error)
-                    std::rethrow_exception(p_error);
-                if (!ok) {
-                    p_error = std::make_exception_ptr(std::runtime_error("Timed out"));
-                    std::rethrow_exception(p_error);
-                }
-                return ok;
-            }
-#endif
-
             bool P(unsigned short reqId, const CUQueue &qSender) {
                 bool ok = true;
                 ResultHandler rh = [](CAsyncResult & ar) {
                 };
-                DCanceled canceled = [&ok]() {
+                DDiscarded discarded = [&ok](CAsyncServiceHandler *h, bool canceled) {
                     ok = false;
                 };
-                if (!SendRequest(reqId, qSender.GetBuffer(), qSender.GetSize(), rh, canceled, nullptr)) {
+                if (!SendRequest(reqId, qSender.GetBuffer(), qSender.GetSize(), rh, discarded, nullptr)) {
                     return false;
                 }
                 return (WaitAll() && ok);
@@ -1438,10 +1259,10 @@ namespace SPA {
                 ResultHandler rh = [&r0](CAsyncResult & ar) {
                     ar >> r0;
                 };
-                DCanceled canceled = [&ok]() {
+                DDiscarded discarded = [&ok](CAsyncServiceHandler *h, bool canceled) {
                     ok = false;
                 };
-                if (!SendRequest(reqId, qSender.GetBuffer(), qSender.GetSize(), rh, canceled, nullptr)) {
+                if (!SendRequest(reqId, qSender.GetBuffer(), qSender.GetSize(), rh, discarded, nullptr)) {
                     return false;
                 }
                 return (WaitAll() && ok);
@@ -1453,10 +1274,10 @@ namespace SPA {
                 ResultHandler rh = [&r0, &r1](CAsyncResult & ar) {
                     ar >> r0 >> r1;
                 };
-                DCanceled canceled = [&ok]() {
+                DDiscarded discarded = [&ok](CAsyncServiceHandler *h, bool canceled) {
                     ok = false;
                 };
-                if (!SendRequest(reqId, qSender.GetBuffer(), qSender.GetSize(), rh, canceled, nullptr)) {
+                if (!SendRequest(reqId, qSender.GetBuffer(), qSender.GetSize(), rh, discarded, nullptr)) {
                     return false;
                 }
                 return (WaitAll() && ok);
@@ -1468,10 +1289,10 @@ namespace SPA {
                 ResultHandler rh = [&r0, &r1, &r2](CAsyncResult & ar) {
                     ar >> r0 >> r1 >> r2;
                 };
-                DCanceled canceled = [&ok]() {
+                DDiscarded discarded = [&ok](CAsyncServiceHandler *h, bool canceled) {
                     ok = false;
                 };
-                if (!SendRequest(reqId, qSender.GetBuffer(), qSender.GetSize(), rh, canceled, nullptr)) {
+                if (!SendRequest(reqId, qSender.GetBuffer(), qSender.GetSize(), rh, discarded, nullptr)) {
                     return false;
                 }
                 return (WaitAll() && ok);
@@ -1483,10 +1304,10 @@ namespace SPA {
                 ResultHandler rh = [&r0, &r1, &r2, &r3](CAsyncResult & ar) {
                     ar >> r0 >> r1 >> r2 >> r3;
                 };
-                DCanceled canceled = [&ok]() {
+                DDiscarded discarded = [&ok](CAsyncServiceHandler *h, bool canceled) {
                     ok = false;
                 };
-                if (!SendRequest(reqId, qSender.GetBuffer(), qSender.GetSize(), rh, canceled, nullptr)) {
+                if (!SendRequest(reqId, qSender.GetBuffer(), qSender.GetSize(), rh, discarded, nullptr)) {
                     return false;
                 }
                 return (WaitAll() && ok);
@@ -1498,12 +1319,10 @@ namespace SPA {
                 ResultHandler rh = [&r0, &r1, &r2, &r3, &r4](CAsyncResult & ar) {
                     ar >> r0 >> r1 >> r2 >> r3 >> r4;
                 };
-                DCanceled canceled = [&ok]() {
+                DDiscarded discarded = [&ok](CAsyncServiceHandler *h, bool canceled) {
                     ok = false;
                 };
-                if (!SendRequest(reqId, qSender.GetBuffer(), qSender.GetSize(), rh, [&ok]() {
-                        ok = false;
-                    }, nullptr)) {
+                if (!SendRequest(reqId, qSender.GetBuffer(), qSender.GetSize(), rh, discarded, nullptr)) {
                 return false;
             }
                 return (WaitAll() && ok);
@@ -1919,11 +1738,12 @@ namespace SPA {
                 std::transform(s.begin(), s.end(), s.begin(), ::tolower);
 #endif
                 CAutoLock al(m_cs);
-                if (m_qName != s)
+                if (m_qName != s) {
                     StopPoolQueue();
-                m_qName = s;
-                if (m_qName.size())
-                    StartPoolQueue(m_qName.c_str());
+					m_qName = s;
+					if (m_qName.size())
+						StartPoolQueue(m_qName.c_str());
+				}
             }
 
             inline unsigned int GetThreadsCreated() {

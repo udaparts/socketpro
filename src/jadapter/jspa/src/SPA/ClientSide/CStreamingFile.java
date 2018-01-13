@@ -74,7 +74,7 @@ public class CStreamingFile extends CAsyncServiceHandler {
         public DDownload Download = null;
         public DUpload Upload = null;
         public DTransferring Transferring = null;
-        public DCanceled Aborted = null;
+        public DDiscarded Discarded = null;
         public FileChannel File = null;
         public boolean Tried = false;
         public String ErrMsg = "";
@@ -114,9 +114,15 @@ public class CStreamingFile extends CAsyncServiceHandler {
     public int CleanCallbacks() {
         synchronized (m_csFile) {
             for (CContext c : m_vContext) {
-                if (c.File != null && c.File.isOpen()) {
+                if (c.File != null) {
                     try {
-                        c.File.close();
+                        if (c.File.isOpen()) {
+                            c.File.close();
+                        }
+                        if (!c.Uploading) {
+                            java.nio.file.Path path = java.nio.file.Paths.get(c.LocalFile);
+                            java.nio.file.Files.deleteIfExists(path);
+                        }
                     } catch (IOException err) {
                     } finally {
                     }
@@ -293,11 +299,11 @@ public class CStreamingFile extends CAsyncServiceHandler {
         return Download(localFile, remoteFile, dl, trans, null, FILE_OPEN_TRUNCACTED);
     }
 
-    public boolean Download(String localFile, String remoteFile, DDownload dl, DTransferring trans, DCanceled aborted) {
-        return Download(localFile, remoteFile, dl, trans, aborted, FILE_OPEN_TRUNCACTED);
+    public boolean Download(String localFile, String remoteFile, DDownload dl, DTransferring trans, DDiscarded discarded) {
+        return Download(localFile, remoteFile, dl, trans, discarded, FILE_OPEN_TRUNCACTED);
     }
 
-    public boolean Download(String localFile, String remoteFile, DDownload dl, DTransferring trans, DCanceled aborted, int flags) {
+    public boolean Download(String localFile, String remoteFile, DDownload dl, DTransferring trans, DDiscarded discarded, int flags) {
         if (localFile == null || localFile.length() == 0) {
             return false;
         }
@@ -307,7 +313,7 @@ public class CStreamingFile extends CAsyncServiceHandler {
         CContext context = new CContext(false, flags);
         context.Download = dl;
         context.Transferring = trans;
-        context.Aborted = aborted;
+        context.Discarded = discarded;
         context.FilePath = remoteFile;
         context.LocalFile = localFile;
         synchronized (m_csFile) {
@@ -328,11 +334,11 @@ public class CStreamingFile extends CAsyncServiceHandler {
         return Upload(localFile, remoteFile, up, trans, null, FILE_OPEN_TRUNCACTED);
     }
 
-    public boolean Upload(String localFile, String remoteFile, DUpload up, DTransferring trans, DCanceled aborted) {
-        return Upload(localFile, remoteFile, up, trans, aborted, FILE_OPEN_TRUNCACTED);
+    public boolean Upload(String localFile, String remoteFile, DUpload up, DTransferring trans, DDiscarded discarded) {
+        return Upload(localFile, remoteFile, up, trans, discarded, FILE_OPEN_TRUNCACTED);
     }
 
-    public boolean Upload(String localFile, String remoteFile, DUpload up, DTransferring trans, DCanceled aborted, int flags) {
+    public boolean Upload(String localFile, String remoteFile, DUpload up, DTransferring trans, DDiscarded discarded, int flags) {
         if (localFile == null || localFile.length() == 0) {
             return false;
         }
@@ -342,7 +348,7 @@ public class CStreamingFile extends CAsyncServiceHandler {
         CContext context = new CContext(true, flags);
         context.Upload = up;
         context.Transferring = trans;
-        context.Aborted = aborted;
+        context.Discarded = discarded;
         context.FilePath = remoteFile;
         context.LocalFile = localFile;
         synchronized (m_csFile) {
@@ -390,7 +396,7 @@ public class CStreamingFile extends CAsyncServiceHandler {
                         context.FileSize = context.File.size();
                         sb.SetSize(0);
                         sb.Save(context.FilePath).Save(context.Flags).Save(context.FileSize);
-                        if (!SendRequest(idUpload, sb, rh, context.Aborted, se)) {
+                        if (!SendRequest(idUpload, sb, rh, context.Discarded, se)) {
                             CScopeUQueue.Unlock(sb);
                             return false;
                         }
@@ -417,7 +423,7 @@ public class CStreamingFile extends CAsyncServiceHandler {
                     try {
                         int ret = context.File.read(bytes);
                         while (ret > 0) {
-                            if (!SendRequest(idUploading, buffer, ret, rh, context.Aborted, se)) {
+                            if (!SendRequest(idUploading, buffer, ret, rh, context.Discarded, se)) {
                                 CScopeUQueue.Unlock(sb);
                                 return false;
                             }
@@ -433,7 +439,7 @@ public class CStreamingFile extends CAsyncServiceHandler {
                         }
                         if (ret < STREAM_CHUNK_SIZE) {
                             context.Sent = true;
-                            if (!SendRequest(idUploadCompleted, rh, context.Aborted, se)) {
+                            if (!SendRequest(idUploadCompleted, rh, context.Discarded, se)) {
                                 CScopeUQueue.Unlock(sb);
                                 return false;
                             }
@@ -447,7 +453,7 @@ public class CStreamingFile extends CAsyncServiceHandler {
             } else {
                 sb.SetSize(0);
                 sb.Save(context.FilePath).Save(context.Flags);
-                if (!SendRequest(idDownload, sb, rh, context.Aborted, se)) {
+                if (!SendRequest(idDownload, sb, rh, context.Discarded, se)) {
                     CScopeUQueue.Unlock(sb);
                     return false;
                 }

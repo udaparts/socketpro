@@ -9,7 +9,7 @@ class Program
 {
     /*
     //Bad implementation for original SocketProAdapter.ClientSide.CAsyncDBHandler.Open method!!!!
-    public virtual bool Open(string strConnection, DResult handler, uint flags, DCanceled canceled) {
+    public virtual bool Open(string strConnection, DResult handler, uint flags, DDiscarded discarded) {
         string s = null;
         lock (m_csDB) { //start locking here
             m_flags = flags;
@@ -33,7 +33,7 @@ class Program
                 }
                 if (handler != null)
                     handler(this, res, errMsg);
-            }, canceled, null)) {
+            }, discarded, null)) {
                 return true;
             }
             if (strConnection != null)
@@ -195,9 +195,9 @@ class Program
             {
                 if (res != 0) lock (m_csConsole) Console.WriteLine("EndTrans: Error code={0}, message={1}", res, errMsg);
                 tcs.SetResult(true);
-            }, () =>
+            }, (h, canceled) =>
             {
-                lock (m_csConsole) Console.WriteLine("EndTrans: Request canceled or socket closed");
+                lock (m_csConsole) Console.WriteLine("EndTrans: " + (canceled ? "Request canceled" : "Socket closed"));
                 tcs.SetResult(false);
             })) break;
             ok = true;

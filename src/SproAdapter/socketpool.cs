@@ -33,19 +33,29 @@ namespace SocketProAdapter
                 }
                 set
                 {
+                    string s = value;
+                    if (s != null)
+                        s = s.Trim();
+                    else
+                        s = "";
+#if WINCE
+                    if (System.Environment.OSVersion.Platform != PlatformID.Unix)
+#else
+                    if (System.Environment.OSVersion.Platform != PlatformID.Unix && System.Environment.OSVersion.Platform != PlatformID.MacOSX)
+#endif
+                    {
+                        s = s.ToLower();
+                    }
                     lock (m_cs)
                     {
-                        string s = value;
-                        if (s != null)
-                            s = s.Trim();
-                        else
-                            s = "";
                         if (m_qName != s)
-                            StopPoolQueue();
-                        m_qName = s;
-                        if (m_qName.Length > 0)
                         {
-                            StartPoolQueue(m_qName);
+                            StopPoolQueue();
+                            m_qName = s;
+                            if (m_qName.Length > 0)
+                            {
+                                StartPoolQueue(m_qName);
+                            }
                         }
                     }
                 }
@@ -60,12 +70,14 @@ namespace SocketProAdapter
                 }
             }
 
+            private const uint DEFAULT_QUEUE_TIME_TO_LIVE = 240 * 3600;
+
             private void StartPoolQueue(string qName)
             {
                 int index = 0;
                 foreach (CClientSocket cs in m_dicSocketHandler.Keys)
                 {
-                    bool ok = cs.ClientQueue.StartQueue(qName + index.ToString(), 240 * 3600, cs.EncryptionMethod != tagEncryptionMethod.NoEncryption);
+                    bool ok = cs.ClientQueue.StartQueue(qName + index.ToString(), DEFAULT_QUEUE_TIME_TO_LIVE, cs.EncryptionMethod != tagEncryptionMethod.NoEncryption);
                     ++index;
                 }
             }
@@ -80,7 +92,7 @@ namespace SocketProAdapter
                         if (m_qName.Length > 0)
                         {
                             if (!cs.ClientQueue.Available)
-                                cs.ClientQueue.StartQueue(m_qName + index.ToString(), 240 * 3600, cs.EncryptionMethod != tagEncryptionMethod.NoEncryption);
+                                cs.ClientQueue.StartQueue(m_qName + index.ToString(), DEFAULT_QUEUE_TIME_TO_LIVE, cs.EncryptionMethod != tagEncryptionMethod.NoEncryption);
                         }
                         else
                         {
