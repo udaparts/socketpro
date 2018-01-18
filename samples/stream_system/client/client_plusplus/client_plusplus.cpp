@@ -39,7 +39,7 @@ int main(int argc, char* argv[]) {
     };
     master.DoSslServerAuthentication = cb;
 
-    bool ok = master.StartSocketPool(cc, 4, 1);
+    bool ok = master.StartSocketPool(cc, 1, 1);
     if (!ok) {
         std::cout << "Failed in connecting to remote middle tier server, and press any key to close the application ......" << std::endl;
         ::getchar();
@@ -111,9 +111,9 @@ int main(int argc, char* argv[]) {
     });
     if (ok) {
         //Use wait_for instead of handler->WaitAll() for better completion event as a session may be shared by multiple threads
-        auto status = prom->get_future().wait_for(std::chrono::seconds(5));
+        auto status = prom->get_future().wait_for(std::chrono::seconds(500));
         if (status == std::future_status::timeout) {
-            std::cout << "The above requests are not completed in 5 seconds" << std::endl;
+            std::cout << "The above requests are not completed in 500 seconds" << std::endl;
         }
     } else
         std::cout << "Socket already closed before sending request" << std::endl;
@@ -123,7 +123,7 @@ int main(int argc, char* argv[]) {
     CMaxMinAvg sum_mma;
     ::memset(&sum_mma, 0, sizeof (sum_mma));
     auto start = std::chrono::system_clock::now();
-    for (unsigned int n = 0; n < 10000; ++n) {
+    for (unsigned int n = 0; n < 1000; ++n) {
         ok = handler->QueryPaymentMaxMinAvgs(filter.c_str(), [&sum_mma](const CMaxMinAvg & mma, int res, const std::wstring & errMsg) {
             if (res) {
                 std::cout << "Error code: " << res << ", error message: ";
@@ -158,7 +158,7 @@ int main(int argc, char* argv[]) {
         }
     };
     //all requests should be returned in sequence
-    for (unsigned int n = 0; n < 1000; ++n) {
+    for (unsigned int n = 0; n < 100; ++n) {
         ok = handler->GetRentalDateTimes(n + 1, rdt);
         if (!ok) {
             std::cout << "Socket closed" << std::endl;
