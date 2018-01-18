@@ -94,11 +94,6 @@ namespace SocketProAdapter
                             if (!cs.ClientQueue.Available)
                                 cs.ClientQueue.StartQueue(m_qName + index.ToString(), DEFAULT_QUEUE_TIME_TO_LIVE, cs.EncryptionMethod != tagEncryptionMethod.NoEncryption);
                         }
-                        else
-                        {
-                            if (cs.ClientQueue.Available)
-                                cs.ClientQueue.StopQueue();
-                        }
                         break;
                     }
                     ++index;

@@ -1824,16 +1824,11 @@ namespace SPA {
             void SetQueue(PClientSocket socket) {
                 UINT64 index = 0;
                 for (auto it = m_mapSocketHandler.begin(), end = m_mapSocketHandler.end(); it != end; ++it) {
-                    if (socket == it->first) {
-                        IClientQueue &cq = it->first->GetClientQueue();
-                        if (m_qName.size()) {
-                            if (!cq.IsAvailable()) {
-                                bool ok = cq.StartQueue((m_qName + std::to_string(index)).c_str(), DEFAULT_QUEUE_TIME_TO_LIVE, it->first->GetEncryptionMethod() != NoEncryption);
-                                assert(ok);
-                            }
-                        } else {
-                            if (cq.IsAvailable())
-                                cq.StopQueue();
+                    IClientQueue &cq = it->first->GetClientQueue();
+                    if (m_qName.size()) {
+                        if (!cq.IsAvailable()) {
+                            bool ok = cq.StartQueue((m_qName + std::to_string(index)).c_str(), DEFAULT_QUEUE_TIME_TO_LIVE, it->first->GetEncryptionMethod() != NoEncryption);
+                            assert(ok);
                         }
                     }
                     ++index;

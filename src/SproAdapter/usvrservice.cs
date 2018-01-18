@@ -320,7 +320,8 @@ namespace SocketProAdapter
                         else
                         {
                             object[] args = new object[] { cp.m_dicDel[usRequestID] };
-                            m_dicMethod[usRequestID].Invoke(cp, args);
+                            object res = m_dicMethod[usRequestID].Invoke(cp, args);
+                            res = null;
                         }
                     }
                 }
@@ -343,6 +344,7 @@ namespace SocketProAdapter
                 if (bsNew != null)
                 {
                     CSocketPeer sp = bsNew.CreatePeer(hSocket, newServiceId);
+                    sp.m_bRandom = bsNew.ReturnRandom;
                     if (newServiceId == BaseServiceID.sidHTTP)
                     {
                         CHttpPeerBase hp = (CHttpPeerBase)sp;
@@ -380,7 +382,8 @@ namespace SocketProAdapter
                         else
                         {
                             object[] args = new object[] { cp.m_dicDel[usRequestID] };
-                            m_dicMethod[usRequestID].Invoke(cp, args);
+                            object res = m_dicMethod[usRequestID].Invoke(cp, args);
+                            res = null;
                         }
                     }
                 }

@@ -1,9 +1,8 @@
 
 #include "aclientw.h"
 
-namespace SPA
-{
-    namespace ClientSide{
+namespace SPA {
+    namespace ClientSide {
 
         CUCriticalSection g_csSpPool;
 
@@ -493,8 +492,7 @@ namespace SPA
         }
 
         void SetLastCallInfo(const char *str, int data, const char *func) {
-            char buff[4097] =
-            { 0};
+            char buff[4097] = {0};
 #ifdef WIN32_64
             _snprintf_s(buff, sizeof (buff), sizeof (buff), "lf: %s, what: %s, data: %d", func, str, data);
 #else
@@ -623,8 +621,7 @@ namespace SPA
         }
 
         std::string CClientSocket::GetPeerName(unsigned int *port) const {
-            char ipAddr[256] =
-            { 0};
+            char ipAddr[256] = {0};
             ClientCoreLoader.GetPeerName(m_hSocket, port, ipAddr, sizeof (ipAddr));
             return ipAddr;
         }
@@ -657,7 +654,7 @@ namespace SPA
             ClientCoreLoader.SetZip(m_hSocket, zip);
         }
 
-        bool CClientSocket::operator == (const CClientSocket & cs) const {
+        bool CClientSocket::operator==(const CClientSocket & cs) const {
             return (m_hSocket == cs.m_hSocket);
         }
 
@@ -929,8 +926,7 @@ namespace SPA
         }
 
         std::string CClientSocket::GetErrorMsg() const {
-            char strErrorMsg[1025] =
-            { 0};
+            char strErrorMsg[1025] = {0};
             ClientCoreLoader.GetErrorMessage(m_hSocket, strErrorMsg, sizeof (strErrorMsg));
             return strErrorMsg;
         }
