@@ -1821,17 +1821,14 @@ namespace SPA {
                 }
             }
 
-            void SetQueue(PClientSocket socket) {
-                UINT64 index = 0;
-                for (auto it = m_mapSocketHandler.begin(), end = m_mapSocketHandler.end(); it != end; ++it) {
-                    IClientQueue &cq = it->first->GetClientQueue();
-                    if (m_qName.size()) {
-                        if (!cq.IsAvailable()) {
-                            bool ok = cq.StartQueue((m_qName + std::to_string(index)).c_str(), DEFAULT_QUEUE_TIME_TO_LIVE, it->first->GetEncryptionMethod() != NoEncryption);
-                            assert(ok);
-                        }
+            void SetQueue(PClientSocket socket, unsigned int pos) {
+                UINT64 index = pos;
+				IClientQueue &cq = socket->GetClientQueue();
+				if (m_qName.size()) {
+                    if (!cq.IsAvailable()) {
+                        bool ok = cq.StartQueue((m_qName + std::to_string(index)).c_str(), DEFAULT_QUEUE_TIME_TO_LIVE, socket->GetEncryptionMethod() != NoEncryption);
+                        assert(ok);
                     }
-                    ++index;
                 }
             }
 
@@ -1894,11 +1891,13 @@ namespace SPA {
                 return PHandler();
             }
 
-            PClientSocket MapToSocket(USocket_Client_Handle h) {
+            PClientSocket MapToSocket(USocket_Client_Handle h, unsigned int &index) {
+				index = 0;
                 CAutoLock al(m_cs);
                 for (auto it = m_mapSocketHandler.begin(), end = m_mapSocketHandler.end(); it != end; ++it) {
                     if (it->first->GetHandle() == h)
                         return it->first;
+					++index;
                 }
                 return PClientSocket();
             }
@@ -1975,18 +1974,20 @@ namespace SPA {
                         break;
                     case speConnected:
                         if (sp && ClientCoreLoader.IsOpened(h)) {
+							unsigned int index = 0;
                             ClientCoreLoader.SetSockOpt(h, soRcvBuf, 116800, slSocket);
                             ClientCoreLoader.SetSockOpt(h, soSndBuf, 116800, slSocket);
+							PClientSocket pcs = sp->MapToSocket(h, index);
                             if (sp->DoSslServerAuthentication) {
-                                if (ClientCoreLoader.GetEncryptionMethod(h) == TLSv1 && !sp->DoSslServerAuthentication(sp, sp->MapToSocket(h).get()))
+                                if (ClientCoreLoader.GetEncryptionMethod(h) == TLSv1 && !sp->DoSslServerAuthentication(sp, pcs.get()))
                                     return;
                             }
-                            ClientCoreLoader.SetPassword(h, sp->MapToSocket(h)->m_cc.Password.c_str());
+                            ClientCoreLoader.SetPassword(h, pcs->m_cc.Password.c_str());
                             bool ok = ClientCoreLoader.StartBatching(h);
                             ok = ClientCoreLoader.SwitchTo(h, sp->MapToHandler(h)->GetSvsID());
-                            sp->SetQueue(sp->MapToSocket(h));
+                            sp->SetQueue(pcs, index);
                             if (ok) {
-                                ok = ClientCoreLoader.TurnOnZipAtSvr(h, sp->MapToSocket(h)->m_cc.Zip);
+                                ok = ClientCoreLoader.TurnOnZipAtSvr(h, pcs->m_cc.Zip);
                                 ok = ClientCoreLoader.SetSockOptAtSvr(h, soRcvBuf, 116800, slSocket);
                                 ok = ClientCoreLoader.SetSockOptAtSvr(h, soSndBuf, 116800, slSocket);
                             }
