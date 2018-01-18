@@ -42,7 +42,7 @@ void CYourPeerOne::GetMasterSlaveConnectedSessions(unsigned int &m_connections, 
 	s_connections = CYourServer::Slave->GetConnectedSockets();
 }
 
-void CYourPeerOne::UploadEmployees(SPA::CUQueue &q, UINT64 reqIndex) {
+void CYourPeerOne::UploadEmployees(SPA::CUQueue &q, SPA::UINT64 reqIndex) {
 	unsigned int ret;
 	std::shared_ptr<SPA::UDB::CDBVariantArray> pData(new SPA::UDB::CDBVariantArray);
 	q >> *pData;
@@ -140,7 +140,7 @@ void CYourPeerOne::UploadEmployees(SPA::CUQueue &q, UINT64 reqIndex) {
 	} while (redo);
 }
 
-void CYourPeerOne::GetRentalDateTimes(SPA::CUQueue &q, UINT64 reqIndex) {
+void CYourPeerOne::GetRentalDateTimes(SPA::CUQueue &q, SPA::UINT64 reqIndex) {
 	SPA::INT64 rental_id;
 	//assuming slave pool has queue name set (request backup)
 	assert(CYourServer::Slave->GetQueueName().size());
@@ -168,7 +168,7 @@ void CYourPeerOne::GetRentalDateTimes(SPA::CUQueue &q, UINT64 reqIndex) {
 	assert(ok); //should always be true because slave pool has queue name set for request backup
 }
 
-void CYourPeerOne::QueryPaymentMaxMinAvgs(SPA::CUQueue &q, UINT64 reqIndex) {
+void CYourPeerOne::QueryPaymentMaxMinAvgs(SPA::CUQueue &q, SPA::UINT64 reqIndex) {
 	std::wstring filter;
 	//assuming slave pool has queue name set (request backup)
 	assert(CYourServer::Slave->GetQueueName().size());

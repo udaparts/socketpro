@@ -16,9 +16,9 @@ protected:
 
 private:
     void GetMasterSlaveConnectedSessions(unsigned int &m_connections, unsigned int &s_connections);
-    void QueryPaymentMaxMinAvgs(SPA::CUQueue &q, UINT64 reqIndex);
-    void UploadEmployees(SPA::CUQueue &q, UINT64 reqIndex);
-    void GetRentalDateTimes(SPA::CUQueue &q, UINT64 reqIndex);
+    void QueryPaymentMaxMinAvgs(SPA::CUQueue &q, SPA::UINT64 reqIndex);
+    void UploadEmployees(SPA::CUQueue &q, SPA::UINT64 reqIndex);
+    void GetRentalDateTimes(SPA::CUQueue &q, SPA::UINT64 reqIndex);
 
 private:
     CYourPeerOne(const CYourPeerOne &p);

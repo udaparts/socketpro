@@ -26,7 +26,7 @@ int main(int argc, char* argv[]) {
 #ifndef NDEBUG
     CWebMasterPool master(L"", 3000000); //for your easy debug
 #else
-	CWebMasterPool master(L"");
+    CWebMasterPool master(L"");
 #endif
 
     //CA file is located at the directory ../socketpro/bin
@@ -117,7 +117,7 @@ int main(int argc, char* argv[]) {
 #ifndef NDEBUG
         auto status = prom->get_future().wait_for(std::chrono::seconds(500));
 #else
-		auto status = prom->get_future().wait_for(std::chrono::seconds(5));
+        auto status = prom->get_future().wait_for(std::chrono::seconds(5));
 #endif
         if (status == std::future_status::timeout) {
             std::cout << "The above requests are not completed in 500 seconds" << std::endl;
@@ -153,23 +153,22 @@ int main(int argc, char* argv[]) {
     std::cout << "QueryPaymentMaxMinAvgs sum_max: " << sum_mma.Max << ", sum_min: " << sum_mma.Min << ", sum_avg: " << sum_mma.Avg << std::endl;
     std::cout << "Press a key to test sequence returning ......" << std::endl;
     ::getchar();
-	SPA::INT64 prev_rental_id = 0;
-	CWebAsyncHandler::DRentalDateTimes rdt = [&prev_rental_id](const CRentalDateTimes &dates, int res, const std::wstring & errMsg) {
+    SPA::INT64 prev_rental_id = 0;
+    CWebAsyncHandler::DRentalDateTimes rdt = [&prev_rental_id](const CRentalDateTimes &dates, int res, const std::wstring & errMsg) {
         if (res) {
             std::cout << "GetRentalDateTimes error code: " << res << ", error message: ";
             std::wcout << errMsg.c_str() << std::endl;
-			prev_rental_id = 0;
+            prev_rental_id = 0;
         } else if (dates.Rental == 0 && dates.Return == 0 && dates.LastUpdate == 0) {
             std::cout << "GetRentalDateTimes rental_id = " << dates.rental_id << " not available" << std::endl;
-			prev_rental_id = 0;
+            prev_rental_id = 0;
         } else {
             SPA::UDateTime rental_date(dates.Rental), return_date(dates.Return), laste_update(dates.LastUpdate);
-			if (0 == prev_rental_id || dates.rental_id == prev_rental_id + 1) {
-				std::cout << "GetRentalDateTimes rental_id = " << dates.rental_id << " and dates (" << rental_date.ToDBString() << ", " << return_date.ToDBString() << ", " << laste_update.ToDBString() << ")" << std::endl;
-			}
-			else
-				std::cout << "****** GetRentalDateTimes returned out of order ******" << std::endl;
-			prev_rental_id = dates.rental_id;
+            if (0 == prev_rental_id || dates.rental_id == prev_rental_id + 1) {
+                //std::cout << "GetRentalDateTimes rental_id = " << dates.rental_id << " and dates (" << rental_date.ToDBString() << ", " << return_date.ToDBString() << ", " << laste_update.ToDBString() << ")" << std::endl;
+            } else
+                std::cout << "****** GetRentalDateTimes returned out of order ******" << std::endl;
+            prev_rental_id = dates.rental_id;
         }
     };
     //all requests should be returned in sequence (max rental_id = 16049)
