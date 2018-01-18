@@ -385,6 +385,14 @@ JNIEXPORT jint JNICALL Java_SPA_ServerSide_ServerCoreLoader_SendReturnData
 
 /*
  * Class:     SPA_ServerSide_ServerCoreLoader
+ * Method:    SendReturnDataIndex
+ * Signature: (JJSI[B)I
+ */
+JNIEXPORT jint JNICALL Java_SPA_ServerSide_ServerCoreLoader_SendReturnDataIndex
+  (JNIEnv *, jclass, jlong, jlong, jshort, jint, jbyteArray);
+
+/*
+ * Class:     SPA_ServerSide_ServerCoreLoader
  * Method:    GetSvsID
  * Signature: (J)I
  */
@@ -657,6 +665,14 @@ JNIEXPORT jlong JNICALL Java_SPA_ServerSide_ServerCoreLoader_GetSocketNativeHand
 
 /*
  * Class:     SPA_ServerSide_ServerCoreLoader
+ * Method:    GetCurrentRequestIndex
+ * Signature: (J)J
+ */
+JNIEXPORT jlong JNICALL Java_SPA_ServerSide_ServerCoreLoader_GetCurrentRequestIndex
+  (JNIEnv *, jclass, jlong);
+
+/*
+ * Class:     SPA_ServerSide_ServerCoreLoader
  * Method:    GetPeerOs
  * Signature: (J[ZI)B
  */
@@ -670,6 +686,14 @@ JNIEXPORT jbyte JNICALL Java_SPA_ServerSide_ServerCoreLoader_GetPeerOs
  */
 JNIEXPORT jint JNICALL Java_SPA_ServerSide_ServerCoreLoader_SendExceptionResult
   (JNIEnv *, jclass, jlong, jstring, jbyteArray, jshort, jint);
+
+/*
+ * Class:     SPA_ServerSide_ServerCoreLoader
+ * Method:    SendExceptionResultIndex
+ * Signature: (JLLjava/lang/String;[BSI)I
+ */
+JNIEXPORT jint JNICALL Java_SPA_ServerSide_ServerCoreLoader_SendExceptionResultIndex
+  (JNIEnv *, jclass, jlong, jlong, jstring, jbyteArray, jshort, jint);
 
 /*
  * Class:     SPA_ServerSide_ServerCoreLoader
