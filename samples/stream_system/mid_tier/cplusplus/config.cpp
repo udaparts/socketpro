@@ -40,7 +40,7 @@ void CConfig::GetConfig() {
 #else
     m_slave_default_db = L"sakila.db";
 #endif
-	m_slave_queue_name = "db_sakila";
+    m_slave_queue_name = "db_sakila";
     SPA::ClientSide::CConnectionContext cc = m_ccMaster;
     cc.Host = "35.226.214.231";
     m_vccSlave.push_back(cc);

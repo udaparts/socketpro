@@ -1823,8 +1823,8 @@ namespace SPA {
 
             void SetQueue(PClientSocket socket, unsigned int pos) {
                 UINT64 index = pos;
-				IClientQueue &cq = socket->GetClientQueue();
-				if (m_qName.size()) {
+                IClientQueue &cq = socket->GetClientQueue();
+                if (m_qName.size()) {
                     if (!cq.IsAvailable()) {
                         bool ok = cq.StartQueue((m_qName + std::to_string(index)).c_str(), DEFAULT_QUEUE_TIME_TO_LIVE, socket->GetEncryptionMethod() != NoEncryption);
                         assert(ok);
@@ -1892,12 +1892,12 @@ namespace SPA {
             }
 
             PClientSocket MapToSocket(USocket_Client_Handle h, unsigned int &index) {
-				index = 0;
+                index = 0;
                 CAutoLock al(m_cs);
                 for (auto it = m_mapSocketHandler.begin(), end = m_mapSocketHandler.end(); it != end; ++it) {
                     if (it->first->GetHandle() == h)
                         return it->first;
-					++index;
+                    ++index;
                 }
                 return PClientSocket();
             }
@@ -1974,10 +1974,10 @@ namespace SPA {
                         break;
                     case speConnected:
                         if (sp && ClientCoreLoader.IsOpened(h)) {
-							unsigned int index = 0;
+                            unsigned int index = 0;
                             ClientCoreLoader.SetSockOpt(h, soRcvBuf, 116800, slSocket);
                             ClientCoreLoader.SetSockOpt(h, soSndBuf, 116800, slSocket);
-							PClientSocket pcs = sp->MapToSocket(h, index);
+                            PClientSocket pcs = sp->MapToSocket(h, index);
                             if (sp->DoSslServerAuthentication) {
                                 if (ClientCoreLoader.GetEncryptionMethod(h) == TLSv1 && !sp->DoSslServerAuthentication(sp, pcs.get()))
                                     return;

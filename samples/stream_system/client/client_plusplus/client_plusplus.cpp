@@ -62,7 +62,7 @@ int main(int argc, char* argv[]) {
             std::cout << "QueryPaymentMaxMinAvgs max: " << mma.Max << ", min: " << mma.Min << ", avg: " << mma.Avg << std::endl;
         }
     });
-	
+
     SYSTEMTIME st;
     CDBVariantArray vData;
 
@@ -105,8 +105,8 @@ int main(int argc, char* argv[]) {
             }
         }
         prom->set_value();
-	}, [prom](CAsyncServiceHandler *ash, bool canceled) {
-		std::cout << "Socket closed" << std::endl;
+    }, [prom](CAsyncServiceHandler *ash, bool canceled) {
+        std::cout << "Socket closed" << std::endl;
         prom->set_value();
     });
     if (ok) {
@@ -117,7 +117,7 @@ int main(int argc, char* argv[]) {
         }
     } else
         std::cout << "Socket already closed before sending request" << std::endl;
-	
+
     std::cout << "Press a key to test random returning ......" << std::endl;
     ::getchar();
     CMaxMinAvg sum_mma;
@@ -134,13 +134,13 @@ int main(int argc, char* argv[]) {
                 sum_mma.Min += mma.Min;
             }
         });
-		if (!ok) {
-			std::cout << "Socket closed" << std::endl;
-			break;
-		}
+        if (!ok) {
+            std::cout << "Socket closed" << std::endl;
+            break;
+        }
     }
-	if (ok)
-		ok = handler->WaitAll();
+    if (ok)
+        ok = handler->WaitAll();
     std::chrono::duration<double> diff = (std::chrono::system_clock::now() - start);
     std::cout << "Time required: " << diff.count() << " seconds" << std::endl;
     std::cout << "QueryPaymentMaxMinAvgs sum_max: " << sum_mma.Max << ", sum_min: " << sum_mma.Min << ", sum_avg: " << sum_mma.Avg << std::endl;
@@ -160,14 +160,14 @@ int main(int argc, char* argv[]) {
     //all requests should be returned in sequence
     for (unsigned int n = 0; n < 1000; ++n) {
         ok = handler->GetRentalDateTimes(n + 1, rdt);
-		if (!ok) {
-			std::cout << "Socket closed" << std::endl;
-		}
+        if (!ok) {
+            std::cout << "Socket closed" << std::endl;
+        }
     }
     ok = handler->WaitAll();
-	if (!ok) {
-		std::cout << "Socket closed" << std::endl;
-	}
+    if (!ok) {
+        std::cout << "Socket closed" << std::endl;
+    }
     std::cout << "Press a key to shutdown the demo application ......" << std::endl;
     ::getchar();
     return 0;
