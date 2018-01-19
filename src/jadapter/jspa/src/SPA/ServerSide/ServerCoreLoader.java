@@ -103,9 +103,13 @@ final class ServerCoreLoader {
 
     static native int SendReturnData(long h, short requestId, int bufferSize, byte[] buffer);
 
+    static native int SendReturnDataIndex(long h, long index, short requestId, int bufferSize, byte[] buffer);
+
     static native int GetSvsID(long h);
 
     static native int GetServerSocketErrorCode(long h);
+
+    static native long GetCurrentRequestIndex(long h);
 
     static native int GetServerSocketErrorMessage(long h, byte[] str, int bufferLen);
 
@@ -174,6 +178,8 @@ final class ServerCoreLoader {
     static native byte GetPeerOs(long handler, boolean[] endian, int n);
 
     static native int SendExceptionResult(long handler, String errMessage, byte[] errWhere, short requestId, int errCode);
+
+    static native int SendExceptionResultIndex(long handler, long index, String errMessage, byte[] errWhere, short requestId, int errCode);
 
     static native boolean MakeRequest(long handler, short requestId, byte[] request, int size);
 

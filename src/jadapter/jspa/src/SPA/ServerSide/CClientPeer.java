@@ -109,13 +109,29 @@ public class CClientPeer extends CSocketPeer {
         return SendResult(reqId, (byte[]) null, 0);
     }
 
+    protected final int SendResultIndex(short reqId, long reqIndex) {
+        return SendResultIndex(reqId, reqIndex, (byte[]) null, 0);
+    }
+
     protected int SendResult(short reqId, byte[] data, int len) {
         if (data == null) {
             len = 0;
         } else if (len > data.length) {
             len = data.length;
         }
+        if (getRandom()) {
+            return ServerCoreLoader.SendReturnDataIndex(getHandle(), getCurrentRequestIndex(), reqId, len, data);
+        }
         return ServerCoreLoader.SendReturnData(getHandle(), reqId, len, data);
+    }
+
+    protected int SendResultIndex(short reqId, long reqIndex, byte[] data, int len) {
+        if (data == null) {
+            len = 0;
+        } else if (len > data.length) {
+            len = data.length;
+        }
+        return ServerCoreLoader.SendReturnDataIndex(getHandle(), reqIndex, reqId, len, data);
     }
 
     protected final int SendResult(short reqId, SPA.CUQueue q) {
@@ -128,11 +144,28 @@ public class CClientPeer extends CSocketPeer {
         return SendResult(reqId, bytes, bytes.length);
     }
 
+    protected final int SendResultIndex(short reqId, long reqIndex, SPA.CUQueue q) {
+        if (q == null) {
+            return SendResultIndex(reqId, reqIndex, (byte[]) null, 0);
+        } else if (q.getHeadPosition() == 0) {
+            return SendResultIndex(reqId, reqIndex, q.getIntenalBuffer(), q.GetSize());
+        }
+        byte[] bytes = q.GetBuffer();
+        return SendResultIndex(reqId, reqIndex, bytes, bytes.length);
+    }
+
     protected final int SendResult(short reqId, SPA.CScopeUQueue su) {
         if (su == null) {
             return SendResult(reqId, (byte[]) null, 0);
         }
         return SendResult(reqId, su.getUQueue());
+    }
+
+    protected final int SendResultIndex(short reqId, long reqIndex, SPA.CScopeUQueue su) {
+        if (su == null) {
+            return SendResultIndex(reqId, reqIndex, (byte[]) null, 0);
+        }
+        return SendResultIndex(reqId, reqIndex, su.getUQueue());
     }
 
     /**
