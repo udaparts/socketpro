@@ -88,7 +88,7 @@ class Program
             else
                 Console.WriteLine("Socket already closed before sending request");
 
-            Console.WriteLine("Press a key to test random returning ......");
+            Console.WriteLine("Press ENTER key to test requests parallel processing and fault tolerance at server side ......");
             Console.ReadLine();
             ss.CMaxMinAvg sum_mma = new ss.CMaxMinAvg();
             DateTime start = DateTime.Now;
@@ -112,17 +112,28 @@ class Program
             Console.WriteLine("Time required: {0} seconds for {1} requests", (DateTime.Now - start).TotalSeconds, returned);
             Console.WriteLine("QueryPaymentMaxMinAvgs sum_max: {0}, sum_min: {1}, sum_avg: {2}", sum_mma.Max, sum_mma.Min, sum_mma.Avg);
 
-            Console.WriteLine("Press a key to test sequence returning ......");
+            Console.WriteLine("Press ENTER key to test requests server parallel processing, fault tolerance and sequence returning ......");
             Console.ReadLine();
+			long prev_rental_id = 0
             CWebAsyncHandler.DRentalDateTimes rdt = (dates, res, errMsg) =>
             {
-                if (res != 0)
+                if (res != 0) {
                     Console.WriteLine("GetRentalDateTimes call error code: {0}, error message: {1}", res, errMsg);
-                else if (dates.rental_id == 0)
+					prev_rental_id = 0
+				}
+                else if (dates.rental_id == 0) {
                     Console.WriteLine("GetRentalDateTimes call rental_id={0} not available", dates.rental_id);
-                else
-                    Console.WriteLine("GetRentalDateTimes call rental_id={0} and dates ({1}, {2}, {3})", dates.rental_id, dates.Rental, dates.Return, dates.LastUpdate);
+					prev_rental_id = 0
+				}
+                else {
+					if (0 == prev_rental_id || dates.rental_id == prev_rental_id + 1)
+						Console.WriteLine("GetRentalDateTimes call rental_id={0} and dates ({1}, {2}, {3})", dates.rental_id, dates.Rental, dates.Return, dates.LastUpdate);
+					else
+						Console.WriteLine("****** GetRentalDateTimes returned out of order ******");
+					prev_rental_id = dates.rental_id;
+				}
             };
+			//all requests should be returned in sequence (max rental_id = 16049)
             for (int n = 0; n < 1000; ++n)
             {
                 ok = handler.GetRentalDateTimes(n + 1, rdt);
