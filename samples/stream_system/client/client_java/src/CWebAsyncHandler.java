@@ -1,7 +1,6 @@
 
 import SPA.ClientSide.*;
 import SPA.*;
-import java.util.HashMap;
 import SPA.UDB.CDBVariantArray;
 
 public class CWebAsyncHandler extends CCachedBaseHandler {

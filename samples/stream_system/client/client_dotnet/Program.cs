@@ -114,26 +114,29 @@ class Program
 
             Console.WriteLine("Press ENTER key to test requests server parallel processing, fault tolerance and sequence returning ......");
             Console.ReadLine();
-			long prev_rental_id = 0
+            long prev_rental_id = 0;
             CWebAsyncHandler.DRentalDateTimes rdt = (dates, res, errMsg) =>
             {
-                if (res != 0) {
+                if (res != 0)
+                {
                     Console.WriteLine("GetRentalDateTimes call error code: {0}, error message: {1}", res, errMsg);
-					prev_rental_id = 0
-				}
-                else if (dates.rental_id == 0) {
+                    prev_rental_id = 0;
+                }
+                else if (dates.rental_id == 0)
+                {
                     Console.WriteLine("GetRentalDateTimes call rental_id={0} not available", dates.rental_id);
-					prev_rental_id = 0
-				}
-                else {
-					if (0 == prev_rental_id || dates.rental_id == prev_rental_id + 1)
-						Console.WriteLine("GetRentalDateTimes call rental_id={0} and dates ({1}, {2}, {3})", dates.rental_id, dates.Rental, dates.Return, dates.LastUpdate);
-					else
-						Console.WriteLine("****** GetRentalDateTimes returned out of order ******");
-					prev_rental_id = dates.rental_id;
-				}
+                    prev_rental_id = 0;
+                }
+                else
+                {
+                    if (0 == prev_rental_id || dates.rental_id == prev_rental_id + 1)
+                        Console.WriteLine("GetRentalDateTimes call rental_id={0} and dates ({1}, {2}, {3})", dates.rental_id, dates.Rental, dates.Return, dates.LastUpdate);
+                    else
+                        Console.WriteLine("****** GetRentalDateTimes returned out of order ******");
+                    prev_rental_id = dates.rental_id;
+                }
             };
-			//all requests should be returned in sequence (max rental_id = 16049)
+            //all requests should be returned in sequence (max rental_id = 16049)
             for (int n = 0; n < 1000; ++n)
             {
                 ok = handler.GetRentalDateTimes(n + 1, rdt);

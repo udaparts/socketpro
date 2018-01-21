@@ -12,87 +12,102 @@ class CYourPeerOne : CCacheBasePeer
     {
         if (reqId == ss.Consts.idQueryMaxMinAvgs)
         {
-            QueryPaymentMaxMinAvgs(UQueue);
+            QueryPaymentMaxMinAvgs(UQueue, CurrentRequestIndex);
+        }
+        else if (reqId == ss.Consts.idGetRentalDateTimes)
+        {
+            GetRentalDateTimes(UQueue, CurrentRequestIndex);
         }
         else if (reqId == ss.Consts.idUploadEmployees)
         {
-            UploadEmployees(UQueue);
+            UploadEmployees(UQueue, CurrentRequestIndex);
         }
     }
 
-    void QueryPaymentMaxMinAvgs(CUQueue q)
+    [RequestAttr(ss.Consts.idGetMasterSlaveConnectedSessions)]
+    uint GetMasterSlaveConnectedSessions(out uint masters)
+    {
+        masters = CYourServer.Master.ConnectedSockets;
+        return CYourServer.Slave.ConnectedSockets;
+    }
+
+    void QueryPaymentMaxMinAvgs(CUQueue q, ulong reqIndex)
     {
         uint ret;
-        ulong index;
-        ss.CMaxMinAvg pmma = new ss.CMaxMinAvg();
         string filter;
-        q.Load(out index).Load(out filter);
+        q.Load(out filter);
+        //assuming slave pool has queue name set (request backup)
+        System.Diagnostics.Debug.Assert(CYourServer.Slave.QueueName.Length > 0);
+        ss.CMaxMinAvg pmma = new ss.CMaxMinAvg();
         string sql = "SELECT MAX(amount),MIN(amount),AVG(amount) FROM payment";
         if (filter != null && filter.Length > 0)
             sql += (" WHERE " + filter);
-        int redo = 0;
-        do
+        var handler = CYourServer.Slave.Seek();
+        if (handler == null)
         {
-            var handler = CYourServer.Slave.Seek();
-            if (handler == null)
-            {
-                ret = SendResult(ss.Consts.idQueryMaxMinAvgs, index, (int)-1, "No connection to a slave database", pmma);
-                return;
-            }
-            ++redo;
-            ulong peer_handle = Handle;
-            if (handler.Execute(sql, (h, r, err, affected, fail_ok, vtId) =>
-            {
-                //send result if front peer not closed yet
-                if (peer_handle == Handle)
-                    ret = SendResult(ss.Consts.idQueryMaxMinAvgs, index, r, err, pmma);
-            }, (h, vData) =>
-            {
-                pmma.Max = double.Parse(vData[0].ToString());
-                pmma.Min = double.Parse(vData[1].ToString());
-                pmma.Avg = double.Parse(vData[2].ToString());
-            }, (h) => { }, true, true, (h, canceled) =>
-            {
-                //retry if front peer not closed yet
-                if (peer_handle == Handle)
-                {
-#if DEBUG
-                    //socket closed after sending
-                    lock (m_csConsole)
-                    {
-                        Console.WriteLine("Retry rental date times ......");
-                    }
-#endif
-                    using (CScopeUQueue sb = new CScopeUQueue())
-                    {
-                        //repack original request data and retry
-                        sb.Save(index).Save(filter);
-                        QueryPaymentMaxMinAvgs(sb.UQueue); //this will not cause recursive stack-overflow exeption
-                    }
-                }
-            }))
-            {
-                redo = 0; //disable redo once request is put on wire
-            }
-        } while (redo > 0);
+            ret = SendResultIndex(reqIndex, ss.Consts.idQueryMaxMinAvgs, (int)-1, "No connection to a slave database", pmma);
+            return;
+        }
+        ulong peer_handle = Handle;
+        bool ok = handler.Execute(sql, (h, r, err, affected, fail_ok, vtId) =>
+        {
+            //send result if front peer not closed yet
+            if (peer_handle == Handle)
+                ret = SendResultIndex(reqIndex, ss.Consts.idQueryMaxMinAvgs, r, err, pmma);
+        }, (h, vData) =>
+        {
+            pmma.Max = double.Parse(vData[0].ToString());
+            pmma.Min = double.Parse(vData[1].ToString());
+            pmma.Avg = double.Parse(vData[2].ToString());
+        });
+        System.Diagnostics.Debug.Assert(ok);
     }
 
-    void UploadEmployees(CUQueue q)
+    void GetRentalDateTimes(CUQueue q, ulong reqIndex)
     {
         uint ret;
-        ulong index;
+        long rental_id;
+        q.Load(out rental_id);
+        //assuming slave pool has queue name set (request backup)
+        System.Diagnostics.Debug.Assert(CYourServer.Slave.QueueName.Length > 0);
+        ss.CRentalDateTimes myDates = new ss.CRentalDateTimes(rental_id);
+        string sql = "SELECT rental_id,rental_date,return_date,last_update FROM rental where rental_id=" + rental_id;
+        var handler = CYourServer.Slave.Seek();
+        if (handler == null)
+        {
+            ret = SendResultIndex(reqIndex, ss.Consts.idGetRentalDateTimes, myDates, (int)-1, "No connection to a slave database");
+            return;
+        }
+        ulong peer_handle = Handle;
+        bool ok = handler.Execute(sql, (h, res, errMsg, affected, fail_ok, vtId) =>
+        {
+            //retry if front peer not closed yet
+            if (peer_handle == Handle)
+                ret = SendResultIndex(reqIndex, ss.Consts.idGetRentalDateTimes, myDates, res, errMsg);
+        }, (h, vData) =>
+        {
+            myDates.Rental = (DateTime)vData[1];
+            myDates.Return = (DateTime)vData[2];
+            myDates.LastUpdate = (DateTime)vData[3];
+        });
+        System.Diagnostics.Debug.Assert(ok);
+    }
+
+    void UploadEmployees(CUQueue q, ulong reqIndex)
+    {
+        uint ret;
         KeyValuePair<int, string> error = new KeyValuePair<int, string>();
         ss.CInt64Array vId = new ss.CInt64Array();
         SocketProAdapter.UDB.CDBVariantArray vData;
-        q.Load(out index).Load(out vData);
+        q.Load(out vData);
         if (vData.Count == 0)
         {
-            ret = SendResult(ss.Consts.idUploadEmployees, index, (int)0, "", new ss.CInt64Array());
+            ret = SendResultIndex(reqIndex, ss.Consts.idUploadEmployees, (int)0, "", new ss.CInt64Array());
             return;
         }
         else if ((vData.Count % 3) != 0)
         {
-            ret = SendResult(ss.Consts.idUploadEmployees, index, (int)-1, "Data array size is wrong", new ss.CInt64Array());
+            ret = SendResultIndex(reqIndex, ss.Consts.idUploadEmployees, (int)-1, "Data array size is wrong", new ss.CInt64Array());
             return;
         }
         int redo = 0;
@@ -102,7 +117,7 @@ class CYourPeerOne : CCacheBasePeer
             var handler = CYourServer.Master.Lock(); //use Lock and Unlock to avoid SQL stream overlap on a session within a multi-thread environment
             if (handler == null)
             {
-                ret = SendResult(ss.Consts.idUploadEmployees, index, (int)-2, "No connection to a master database", new ss.CInt64Array());
+                ret = SendResultIndex(reqIndex, ss.Consts.idUploadEmployees, (int)-2, "No connection to a master database", new ss.CInt64Array());
                 return;
             }
             ++redo;
@@ -146,7 +161,7 @@ class CYourPeerOne : CCacheBasePeer
                         error = new KeyValuePair<int, string>(res, errMsg);
                     //send result if front peer not closed yet
                     if (peer_handle == Handle)
-                        ret = SendResult(ss.Consts.idUploadEmployees, index, error.Key, error.Value, vId);
+                        ret = SendResultIndex(reqIndex, ss.Consts.idUploadEmployees, error.Key, error.Value, vId);
                 }, (h, canceled) =>
                 {
                     //retry if front peer not closed yet
@@ -162,8 +177,8 @@ class CYourPeerOne : CCacheBasePeer
                         using (CScopeUQueue sb = new CScopeUQueue())
                         {
                             //repack original request data and retry
-                            sb.Save(index).Save(vData);
-                            UploadEmployees(sb.UQueue); //this will not cause recursive stack-overflow exeption
+                            sb.Save(vData);
+                            UploadEmployees(sb.UQueue, reqIndex); //this will not cause recursive stack-overflow exeption
                         }
                     }
                 }))
@@ -177,14 +192,6 @@ class CYourPeerOne : CCacheBasePeer
                 }
             } while (false);
         } while (redo > 0);
-    }
-
-    [RequestAttr(ss.Consts.idGetMasterSlaveConnectedSessions)]
-    uint GetMasterSlaveConnectedSessions(ulong index, out ulong retIndex, out uint masters)
-    {
-        retIndex = index;
-        masters = CYourServer.Master.ConnectedSockets;
-        return CYourServer.Slave.ConnectedSockets;
     }
 
     protected override string GetCachedTables(string defaultDb, uint flags, ulong index, out int dbMS, out int res)
@@ -251,81 +258,6 @@ class CYourPeerOne : CCacheBasePeer
                 errMsg = "Request canceled or socket closed";
             }
         } while (false);
-        return errMsg;
-    }
-
-    [RequestAttr(ss.Consts.idGetRentalDateTimes, true)]
-    string GetRentalDateTimes(ulong index, long rental_id, out ulong retIndex, out ss.CRentalDateTimes dates, out int res)
-    {
-        retIndex = index;
-        ss.CRentalDateTimes myDates = new ss.CRentalDateTimes(rental_id);
-        res = 0;
-        string errMsg = "";
-        string sql = "SELECT rental_id,rental_date,return_date,last_update FROM rental where rental_id=" + rental_id;
-        int redo = 0;
-        do
-        {
-            var handler = CYourServer.Slave.Seek();
-            if (handler == null)
-            {
-                res = -1;
-                errMsg = "No connection to a slave database";
-                break;
-            }
-            ++redo;
-            TaskCompletionSource<int> tcs = new TaskCompletionSource<int>();
-            if (handler.Execute(sql, (h, r, err, affected, fail_ok, vtId) =>
-            {
-                errMsg = err;
-                tcs.SetResult(1);
-            }, (h, vData) =>
-            {
-                myDates.Rental = (DateTime)vData[1];
-                myDates.Return = (DateTime)vData[2];
-                myDates.LastUpdate = (DateTime)vData[3];
-            }, (h) =>
-            {
-                //rowset meta
-            }, true, true, (h, canceled) =>
-            {
-                //socket closed after sending
-                tcs.SetResult(0);
-            }))
-            {
-                //don't use handle->WaitAll() for better completion event as a session may be shared by multiple threads
-                if (!tcs.Task.Wait(20000))
-                {
-                    res = -2;
-                    errMsg = "Querying rental date times timed out";
-                    redo = 0; //no redo because of timed-out
-                }
-                else if (tcs.Task.Result > 0)
-                {
-                    redo = 0; //disable redo after result returned
-                }
-                else
-                {
-#if DEBUG
-                    //socket closed after sending
-                    lock (m_csConsole)
-                    {
-                        Console.WriteLine("Retry rental date times ......");
-                    }
-#endif
-                }
-            }
-            else
-            {
-#if DEBUG
-                //socket closed when sending SQL
-                lock (m_csConsole)
-                {
-                    Console.WriteLine("Retry rental date times ......");
-                }
-#endif
-            }
-        } while (redo > 0);
-        dates = myDates;
         return errMsg;
     }
 }

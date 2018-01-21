@@ -165,7 +165,7 @@ int main(int argc, char* argv[]) {
         } else {
             SPA::UDateTime rental_date(dates.Rental), return_date(dates.Return), laste_update(dates.LastUpdate);
             if (0 == prev_rental_id || dates.rental_id == prev_rental_id + 1) {
-                //std::cout << "GetRentalDateTimes rental_id = " << dates.rental_id << " and dates (" << rental_date.ToDBString() << ", " << return_date.ToDBString() << ", " << laste_update.ToDBString() << ")" << std::endl;
+                std::cout << "GetRentalDateTimes rental_id = " << dates.rental_id << " and dates (" << rental_date.ToDBString() << ", " << return_date.ToDBString() << ", " << laste_update.ToDBString() << ")" << std::endl;
             } else
                 std::cout << "****** GetRentalDateTimes returned out of order ******" << std::endl;
             prev_rental_id = dates.rental_id;
