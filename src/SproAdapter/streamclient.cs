@@ -367,6 +367,19 @@ namespace SocketProAdapter.ClientSide
             }
         }
 
+        protected override void OnMergeTo(CAsyncServiceHandler to)
+        {
+            CStreamingFile fTo = (CStreamingFile)to;
+            lock (fTo.m_csFile)
+            {
+                lock (m_csFile)
+                {
+                    fTo.m_vContext.InsertRange(fTo.m_vContext.Count, m_vContext);
+                    m_vContext.Clear();
+                }
+            }
+        }
+
         public bool Upload(string localFile, string remoteFile)
         {
             return Upload(localFile, remoteFile, null, null, null, FILE_OPEN_TRUNCACTED);
@@ -650,6 +663,16 @@ namespace SocketProAdapter.ClientSide
                                 fs = FileShare.Read;
                             context.File = new FileStream(context.LocalFile, FileMode.Open, FileAccess.Read, fs);
                             context.FileSize = context.File.Length;
+                            IClientQueue cq = AttachedClientSocket.ClientQueue;
+                            if (cq.Available)
+                            {
+                                if (!cq.StartJob())
+                                {
+                                    context.File.Close();
+                                    context.File = null;
+                                    throw new Exception("Cannot start queue job");
+                                }
+                            }
                             if (!SendRequest(idUpload, context.FilePath, context.Flags, context.FileSize, rh, context.Discarded, se))
                                 return false;
                         }
@@ -697,6 +720,9 @@ namespace SocketProAdapter.ClientSide
                                 context.Sent = true;
                                 if (!SendRequest(idUploadCompleted, rh, context.Discarded, se))
                                     return false;
+                                IClientQueue cq = AttachedClientSocket.ClientQueue;
+                                if (cq.Available)
+                                    cq.EndJob();
                             }
                             if (sent_buffer_size >= 4 * STREAM_CHUNK_SIZE)
                                 break;

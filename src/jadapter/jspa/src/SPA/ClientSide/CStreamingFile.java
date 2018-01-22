@@ -83,6 +83,17 @@ public class CStreamingFile extends CAsyncServiceHandler {
     protected final Object m_csFile = new Object();
     final private ArrayDeque<CContext> m_vContext = new ArrayDeque<>(); //protected by m_csFile;
 
+    @Override
+    protected void OnMergeTo(CAsyncServiceHandler to) {
+        CStreamingFile fTo = (CStreamingFile) to;
+        synchronized (fTo.m_csFile) {
+            synchronized (m_csFile) {
+                fTo.m_vContext.addAll(m_vContext);
+                m_vContext.clear();
+            }
+        }
+    }
+
     public long getFileSize() {
         synchronized (m_csFile) {
             if (m_vContext.isEmpty()) {
@@ -396,6 +407,14 @@ public class CStreamingFile extends CAsyncServiceHandler {
                         context.FileSize = context.File.size();
                         sb.SetSize(0);
                         sb.Save(context.FilePath).Save(context.Flags).Save(context.FileSize);
+                        IClientQueue cq = getAttachedClientSocket().getClientQueue();
+                        if (cq.getAvailable()) {
+                            if (!cq.StartJob()) {
+                                context.File.close();
+                                context.File = null;
+                                throw new IOException("Cannot start queue job");
+                            }
+                        }
                         if (!SendRequest(idUpload, sb, rh, context.Discarded, se)) {
                             CScopeUQueue.Unlock(sb);
                             return false;
@@ -442,6 +461,10 @@ public class CStreamingFile extends CAsyncServiceHandler {
                             if (!SendRequest(idUploadCompleted, rh, context.Discarded, se)) {
                                 CScopeUQueue.Unlock(sb);
                                 return false;
+                            }
+                            IClientQueue cq = getAttachedClientSocket().getClientQueue();
+                            if (cq.getAvailable()) {
+                                cq.EndJob();
                             }
                         }
                         if (sent_buffer_size >= 4 * STREAM_CHUNK_SIZE) {

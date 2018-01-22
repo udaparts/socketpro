@@ -126,6 +126,18 @@ namespace SPA {
 
         protected:
 
+            virtual void OnMergeTo(CAsyncServiceHandler & to) {
+                CStreamingFile &fTo = (CStreamingFile &) to;
+                CAutoLock al0(fTo.m_csFile);
+                {
+                    CAutoLock al1(m_csFile);
+                    for (auto it = m_vContext.begin(), end = m_vContext.end(); it != end; ++it) {
+                        fTo.m_vContext.push_back(*it);
+                    }
+                    m_vContext.clear();
+                }
+            }
+
             virtual void OnResultReturned(unsigned short reqId, CUQueue &mc) {
                 switch (reqId) {
                     case SFile::idDownload:
@@ -429,6 +441,11 @@ namespace SPA {
                                 assert(res != -1);
                                 context.FileSize = st.st_size;
 #endif
+                                IClientQueue &cq = GetAttachedClientSocket()->GetClientQueue();
+                                if (cq.IsAvailable()) {
+                                    bool ok = cq.StartJob();
+                                    assert(ok);
+                                }
                                 if (!SendRequest(SFile::idUpload, context.FilePath.c_str(), context.Flags, context.FileSize, rh, context.Discarded, se)) {
                                     return false;
                                 }
@@ -476,6 +493,11 @@ namespace SPA {
                                 context.Sent = true;
                                 if (!SendRequest(SFile::idUploadCompleted, (const unsigned char*) nullptr, (unsigned int) 0, rh, context.Discarded, se)) {
                                     return false;
+                                }
+                                IClientQueue &cq = GetAttachedClientSocket()->GetClientQueue();
+                                if (cq.IsAvailable()) {
+                                    ok = cq.EndJob();
+                                    assert(ok);
                                 }
                             }
                             if (sent_buffer_size >= 4 * SFile::STREAM_CHUNK_SIZE)
