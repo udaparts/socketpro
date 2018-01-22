@@ -70,7 +70,7 @@ class CYourPeerOne : CCacheBasePeer
         q.Load(out rental_id);
         //assuming slave pool has queue name set (request backup)
         System.Diagnostics.Debug.Assert(CYourServer.Slave.QueueName.Length > 0);
-        ss.CRentalDateTimes myDates = new ss.CRentalDateTimes(rental_id);
+        ss.CRentalDateTimes myDates = new ss.CRentalDateTimes();
         string sql = "SELECT rental_id,rental_date,return_date,last_update FROM rental where rental_id=" + rental_id;
         var handler = CYourServer.Slave.Seek();
         if (handler == null)
@@ -81,11 +81,12 @@ class CYourPeerOne : CCacheBasePeer
         ulong peer_handle = Handle;
         bool ok = handler.Execute(sql, (h, res, errMsg, affected, fail_ok, vtId) =>
         {
-            //retry if front peer not closed yet
+            //send result if front peer not closed yet
             if (peer_handle == Handle)
                 ret = SendResultIndex(reqIndex, ss.Consts.idGetRentalDateTimes, myDates, res, errMsg);
         }, (h, vData) =>
         {
+            myDates.rental_id = (long)vData[0];
             myDates.Rental = (DateTime)vData[1];
             myDates.Return = (DateTime)vData[2];
             myDates.LastUpdate = (DateTime)vData[3];
