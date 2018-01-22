@@ -287,7 +287,7 @@ namespace SocketProAdapter
             /// <summary>
             /// Seek an async handler on the min number of requests queued and its associated socket connection
             /// </summary>
-            /// <returns>An async handler if found; and null or nothing if no queue is available</returns>
+            /// <returns>An async handler if found; and null or nothing if no proper queue is available</returns>
             public virtual THandler SeekByQueue()
             {
                 THandler h = null;
@@ -298,7 +298,7 @@ namespace SocketProAdapter
                     {
                         if (automerge && h != null && !cs.Connected)
                             continue;
-                        if (!cs.ClientQueue.Available)
+                        if (!cs.ClientQueue.Available || cs.ClientQueue.JobSize > 0/*queue is in transaction at this time*/)
                             continue;
                         if (h == null)
                             h = m_dicSocketHandler[cs];

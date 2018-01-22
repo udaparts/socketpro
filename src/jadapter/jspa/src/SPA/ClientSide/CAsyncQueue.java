@@ -284,6 +284,10 @@ public class CAsyncQueue extends CAsyncServiceHandler {
         if (key == null) {
             key = new byte[0];
         }
+        IClientQueue cq = this.getAttachedClientSocket().getClientQueue();
+        if (cq.getAvailable()) {
+            cq.StartJob();
+        }
         CUQueue sq = CScopeUQueue.Lock();
         sq.Save(key);
         boolean ok = SendRequest(idStartTrans, sq, new CAsyncServiceHandler.DAsyncResultHandler() {
@@ -344,6 +348,14 @@ public class CAsyncQueue extends CAsyncServiceHandler {
             }
         });
         CScopeUQueue.Unlock(sq);
+        IClientQueue cq = this.getAttachedClientSocket().getClientQueue();
+        if (cq.getAvailable()) {
+            if (rollback) {
+                cq.AbortJob();
+            } else {
+                cq.EndJob();
+            }
+        }
         return ok;
     }
 

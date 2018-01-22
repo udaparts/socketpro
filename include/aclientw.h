@@ -1542,7 +1542,7 @@ namespace SPA {
                     IClientQueue &cq = it->first->GetClientQueue();
                     if (automerge && h && !it->first->IsConnected())
                         continue;
-                    if (!cq.IsAvailable())
+                    if (!cq.IsAvailable() || cq.GetJobSize()/*queue is in transaction at this time*/)
                         continue;
                     if (!h)
                         h = it->second;

@@ -80,6 +80,9 @@ namespace SPA {
              * @return true for sending the request successfully, and false for failure
              */
             bool StartQueueTrans(const char *key, const DQueueTrans &qt) {
+                IClientQueue &cq = GetAttachedClientSocket()->GetClientQueue();
+                if (cq.IsAvailable())
+                    cq.StartJob();
                 return SendRequest(Queue::idStartTrans, key, [qt](CAsyncResult & ar) {
                     if (qt) {
                         int errCode;
@@ -98,7 +101,7 @@ namespace SPA {
              * @return true for sending the request successfully, and false for failure
              */
             bool EndQueueTrans(bool rollback = false, const DQueueTrans &qt = DQueueTrans()) {
-                return SendRequest(Queue::idEndTrans, rollback, [qt](CAsyncResult & ar) {
+                bool ok = SendRequest(Queue::idEndTrans, rollback, [qt](CAsyncResult & ar) {
                     if (qt) {
                         int errCode;
                         ar >> errCode;
@@ -107,6 +110,14 @@ namespace SPA {
                         ar.UQueue.SetSize(0);
                     }
                 });
+                IClientQueue &cq = GetAttachedClientSocket()->GetClientQueue();
+                if (cq.IsAvailable()) {
+                    if (rollback)
+                        cq.AbortJob();
+                    else
+                        cq.EndJob();
+                }
+                return ok;
             }
 
             /**

@@ -461,6 +461,9 @@ namespace SocketProAdapter
             {
                 if (key == null)
                     key = new byte[0];
+                IClientQueue cq = AttachedClientSocket.ClientQueue;
+                if (cq.Available)
+                    cq.StartJob();
                 using (CScopeUQueue sq = new CScopeUQueue())
                 {
                     sq.UQueue.Save(key);
@@ -507,7 +510,7 @@ namespace SocketProAdapter
             /// <returns>true for sending the request successfully, and false for failure</returns>
             public bool EndQueueTrans(bool rollback, DQueueTrans qt)
             {
-                return SendRequest(idEndTrans, rollback, (ar) =>
+                bool ok = SendRequest(idEndTrans, rollback, (ar) =>
                 {
                     if (qt != null)
                     {
@@ -520,6 +523,15 @@ namespace SocketProAdapter
                         ar.UQueue.SetSize(0);
                     }
                 });
+                IClientQueue cq = AttachedClientSocket.ClientQueue;
+                if (cq.Available)
+                {
+                    if (rollback)
+                        cq.AbortJob();
+                    else
+                        cq.EndJob();
+                }
+                return ok;
             }
 
             /// <summary>

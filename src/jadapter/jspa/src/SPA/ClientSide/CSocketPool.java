@@ -732,8 +732,8 @@ public class CSocketPool<THandler extends CAsyncServiceHandler> {
      * Seek an async handler on the min number of requests queued and its
      * associated socket connection
      *
-     * @return An async handler if found; and null or nothing if no queue is
-     * available
+     * @return An async handler if found; and null or nothing if no proper queue
+     * is available
      */
     public final THandler SeekByQueue() {
         THandler h = null;
@@ -743,7 +743,8 @@ public class CSocketPool<THandler extends CAsyncServiceHandler> {
                 if (automerge && h != null && !cs.getConnected()) {
                     continue;
                 }
-                if (!cs.getClientQueue().getAvailable()) {
+                IClientQueue cq = cs.getClientQueue();
+                if (!cq.getAvailable() || cq.getJobSize() > 0/*queue is in transaction at this time*/) {
                     continue;
                 }
                 if (h == null) {
