@@ -572,7 +572,7 @@ namespace SocketProAdapter
             /// <returns>true for sending the request successfully, and false for failure</returns>
             public bool CloseQueue(byte[] key, DClose c)
             {
-                return CloseQueue(key, c, false);
+                return CloseQueue(key, c, false, null);
             }
 
             /// <summary>
@@ -583,6 +583,19 @@ namespace SocketProAdapter
             /// <param name="permanent">true for deleting a queue file, and false for closing a queue file</param>
             /// <returns>true for sending the request successfully, and false for failure</returns>
             public bool CloseQueue(byte[] key, DClose c, bool permanent)
+            {
+                return CloseQueue(key, c, permanent, null);
+            }
+
+            /// <summary>
+            /// Try to close or delete a persistent queue opened at server side
+            /// </summary>
+            /// <param name="key">An ASCII string for identifying a queue at server side</param>
+            /// <param name="c">A callback for tracking returning error code, which can be one of QUEUE_OK, QUEUE_DEQUEUING, and so on</param>
+            /// <param name="permanent">true for deleting a queue file, and false for closing a queue file</param>
+            /// <param name="discarded">a callback for tracking cancel or socket closed event</param>
+            /// <returns>true for sending the request successfully, and false for failure</returns>
+            public virtual bool CloseQueue(byte[] key, DClose c, bool permanent, DDiscarded discarded)
             {
                 if (key == null)
                     key = new byte[0];
@@ -598,7 +611,7 @@ namespace SocketProAdapter
                     {
                         ar.UQueue.SetSize(0);
                     }
-                });
+                }, discarded, (DOnExceptionFromServer)null);
             }
 
             /// <summary>
@@ -609,7 +622,7 @@ namespace SocketProAdapter
             /// <returns>true for sending the request successfully, and false for failure</returns>
             public bool FlushQueue(byte[] key, DFlush f)
             {
-                return FlushQueue(key, f, tagOptimistic.oMemoryCached);
+                return FlushQueue(key, f, tagOptimistic.oMemoryCached, null);
             }
 
             /// <summary>
@@ -620,6 +633,19 @@ namespace SocketProAdapter
             /// <param name="option">one of options, oMemoryCached, oSystemMemoryCached and oDiskCommitted</param>
             /// <returns>true for sending the request successfully, and false for failure</returns>
             public bool FlushQueue(byte[] key, DFlush f, tagOptimistic option)
+            {
+                return FlushQueue(key, f, option, null);
+            }
+
+            /// <summary>
+            /// May flush memory data into either operation system memory or hard disk, and return message count and queue file size in bytes. Note the method only returns message count and queue file size in bytes if the option is oMemoryCached
+            /// </summary>
+            /// <param name="key">An ASCII string for identifying a queue at server side</param>
+            /// <param name="f">A callback for tracking returning message count and queue file size in bytes</param>
+            /// <param name="option">one of options, oMemoryCached, oSystemMemoryCached and oDiskCommitted</param>
+            /// <param name="discarded">a callback for tracking cancel or socket closed event</param>
+            /// <returns>true for sending the request successfully, and false for failure</returns>
+            public virtual bool FlushQueue(byte[] key, DFlush f, tagOptimistic option, DDiscarded discarded)
             {
                 if (key == null)
                     key = new byte[0];
@@ -635,7 +661,7 @@ namespace SocketProAdapter
                     {
                         ar.UQueue.SetSize(0);
                     }
-                });
+                }, discarded, (DOnExceptionFromServer)null);
             }
 
             /// <summary>
@@ -646,7 +672,7 @@ namespace SocketProAdapter
             /// <returns>true for sending the request successfully, and false for failure</returns>
             public bool Dequeue(byte[] key, DDequeue d)
             {
-                return Dequeue(key, d, 0);
+                return Dequeue(key, d, 0, null);
             }
 
             /// <summary>
@@ -657,6 +683,19 @@ namespace SocketProAdapter
             /// <param name="timeout">A time-out number in milliseconds</param>
             /// <returns>true for sending the request successfully, and false for failure</returns>
             public bool Dequeue(byte[] key, DDequeue d, uint timeout)
+            {
+                return Dequeue(key, d, timeout, null);
+            }
+
+            /// <summary>
+            /// Dequeue messages from a persistent message queue file at server side in batch
+            /// </summary>
+            /// <param name="key">An ASCII string for identifying a queue at server side</param>
+            /// <param name="d">A callback for tracking data like remaining message count within a server queue file, queue file size in bytes, message dequeued within this batch and bytes dequeued within this batch</param>
+            /// <param name="timeout">A time-out number in milliseconds</param>
+            /// <param name="discarded">a callback for tracking cancel or socket closed event</param>
+            /// <returns>true for sending the request successfully, and false for failure</returns>
+            public virtual bool Dequeue(byte[] key, DDequeue d, uint timeout, DDiscarded discarded)
             {
                 DAsyncResultHandler rh = null;
                 if (key == null)
@@ -680,11 +719,11 @@ namespace SocketProAdapter
                     {
                         m_dDequeue = null;
                     }
-                }
-                using (CScopeUQueue sb = new CScopeUQueue())
-                {
-                    sb.Save(key).Save(timeout);
-                    return SendRequest(idDequeue, sb, rh);
+                    using (CScopeUQueue sb = new CScopeUQueue())
+                    {
+                        sb.Save(key).Save(timeout);
+                        return SendRequest(idDequeue, sb, rh, discarded, (DOnExceptionFromServer)null);
+                    }
                 }
             }
 

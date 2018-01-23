@@ -252,7 +252,7 @@ namespace SPA {
              * @param rh a callback for tracking row set of header column informations
              * @param meta a boolean for better or more detailed column meta details such as unique, not null, primary key, and so on
              * @param lastInsertId a boolean for last insert record identification number
-             * @param discarded a callback for tracking socket closed or request canceled event
+             * @param discarded a callback for tracking socket closed or request cancelled event
              * @return true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
              */
             virtual bool Execute(CDBVariantArray &vParam, DExecuteResult handler = DExecuteResult(), DRows row = DRows(), DRowsetHeader rh = DRowsetHeader(), bool meta = true, bool lastInsertId = true, DDiscarded discarded = nullptr) {
@@ -325,7 +325,7 @@ namespace SPA {
              * @param rh a callback for tracking row set of header column informations
              * @param meta a boolean for better or more detailed column meta details such as unique, not null, primary key, and so on
              * @param lastInsertId a boolean for last insert record identification number
-             * @param discarded a callback for tracking socket closed or request canceled event
+             * @param discarded a callback for tracking socket closed or request cancelled event
              * @return true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
              */
             virtual bool Execute(const wchar_t* sql, DExecuteResult handler = DExecuteResult(), DRows row = DRows(), DRowsetHeader rh = DRowsetHeader(), bool meta = true, bool lastInsertId = true, DDiscarded discarded = nullptr) {
@@ -378,7 +378,7 @@ namespace SPA {
              * @param strConnection a database connection string. The database connection string can be an empty string if its server side supports global database connection string
              * @param handler a callback for database connecting result
              * @param flags a set of flags transferred to server to indicate how to build database connection
-             * @param discarded a callback for tracking socket closed or request canceled event
+             * @param discarded a callback for tracking socket closed or request cancelled event
              * @return true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
              */
             virtual bool Open(const wchar_t* strConnection, DResult handler, unsigned int flags = 0, DDiscarded discarded = nullptr) {
@@ -433,7 +433,7 @@ namespace SPA {
              * @param sql a parameterized SQL statement
              * @param handler a callback for SQL preparing result
              * @param vParameterInfo a given array of parameter informations
-             * @param discarded a callback for tracking socket closed or request canceled event
+             * @param discarded a callback for tracking socket closed or request cancelled event
              * @return true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
              */
             virtual bool Prepare(const wchar_t *sql, DResult handler = nullptr, const CParameterInfoArray& vParameterInfo = CParameterInfoArray(), DDiscarded discarded = nullptr) {
@@ -463,7 +463,7 @@ namespace SPA {
             /**
              * Notify connected remote server to close database connection string asynchronously
              * @param handler a callback for closing result, which should be OK always as long as there is network or queue available
-             * @param discarded a callback for tracking socket closed or request canceled event
+             * @param discarded a callback for tracking socket closed or request cancelled event
              * @return true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
              */
             virtual bool Close(DResult handler = nullptr, DDiscarded discarded = nullptr) {
@@ -491,7 +491,7 @@ namespace SPA {
              * Start a manual transaction with a given isolation asynchronously. Note the transaction will be associated with SocketPro client message queue if available to avoid possible transaction lose
              * @param isolation a value for isolation
              * @param handler a callback for tracking its response result
-             * @param discarded a callback for tracking socket closed or request canceled event
+             * @param discarded a callback for tracking socket closed or request cancelled event
              * @return true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
              */
             virtual bool BeginTrans(tagTransactionIsolation isolation = tiReadCommited, DResult handler = nullptr, DDiscarded discarded = nullptr) {
@@ -544,7 +544,7 @@ namespace SPA {
              * End a manual transaction with a given rollback plan. Note the transaction will be associated with SocketPro client message queue if available to avoid possible transaction lose
              * @param plan a value for computing how included transactions should be rollback
              * @param handler a callback for tracking its response result
-             * @param discarded a callback for tracking socket closed or request canceled event
+             * @param discarded a callback for tracking socket closed or request cancelled event
              * @return true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
              */
             virtual bool EndTrans(tagRollbackPlan plan = rpDefault, DResult handler = nullptr, DDiscarded discarded = nullptr) {
