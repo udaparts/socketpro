@@ -53,11 +53,11 @@ namespace SPA {
             /**
              * Query queue keys opened at server side
              * @param gk A callback for tracking a list of key names
-			 * @param discarded a callback for tracking socket closed or request cancelled event
+             * @param discarded a callback for tracking socket closed or request cancelled event
              * @return true for sending the request successfully, and false for failure
              */
             bool GetKeys(const DGetKeys & gk, DDiscarded discarded = nullptr) {
-				ResultHandler rh = [gk](CAsyncResult & ar) {
+                ResultHandler rh = [gk](CAsyncResult & ar) {
                     if (gk) {
                         unsigned int size;
                         std::vector<std::string> v;
@@ -79,14 +79,16 @@ namespace SPA {
              * Start enqueuing message with transaction style. Currently, total size of queued messages must be less than 4 G bytes
              * @param key An ASCII string for identifying a queue at server side
              * @param qt A callback for tracking returning error code, which can be one of QUEUE_OK, QUEUE_TRANS_ALREADY_STARTED, and so on
-			 * @param discarded a callback for tracking socket closed or request cancelled event
+             * @param discarded a callback for tracking socket closed or request cancelled event
              * @return true for sending the request successfully, and false for failure
              */
             bool StartQueueTrans(const char *key, DQueueTrans qt = nullptr, DDiscarded discarded = nullptr) {
                 IClientQueue &cq = GetAttachedClientSocket()->GetClientQueue();
-                if (cq.IsAvailable())
-                    cq.StartJob();
-				ResultHandler rh = [qt](CAsyncResult & ar) {
+                if (cq.IsAvailable()) {
+                    bool ok = cq.StartJob();
+                    assert(ok);
+                }
+                ResultHandler rh = [qt](CAsyncResult & ar) {
                     if (qt) {
                         int errCode;
                         ar >> errCode;
@@ -102,7 +104,7 @@ namespace SPA {
              * End enqueuing messages with transaction style. Currently, total size of queued messages must be less than 4 G bytes
              * @param rollback true for rollback, and false for committing
              * @param qt A callback for tracking returning error code, which can be one of QUEUE_OK, QUEUE_TRANS_NOT_STARTED_YET, and so on
-			 * @param discarded a callback for tracking socket closed or request cancelled event
+             * @param discarded a callback for tracking socket closed or request cancelled event
              * @return true for sending the request successfully, and false for failure
              */
             bool EndQueueTrans(bool rollback = false, DQueueTrans qt = nullptr, DDiscarded discarded = nullptr) {
@@ -115,13 +117,15 @@ namespace SPA {
                         ar.UQueue.SetSize(0);
                     }
                 };
-				bool ok = SendRequest(Queue::idEndTrans, rollback, rh, discarded);
+                bool ok = SendRequest(Queue::idEndTrans, rollback, rh, discarded);
                 IClientQueue &cq = GetAttachedClientSocket()->GetClientQueue();
                 if (cq.IsAvailable()) {
+                    bool ok;
                     if (rollback)
-                        cq.AbortJob();
+                        ok = cq.AbortJob();
                     else
-                        cq.EndJob();
+                        ok = cq.EndJob();
+                    assert(ok);
                 }
                 return ok;
             }
@@ -131,7 +135,7 @@ namespace SPA {
              * @param key An ASCII string for identifying a queue at server side
              * @param c A callback for tracking returning error code, which can be one of QUEUE_OK, QUEUE_DEQUEUING, and so on
              * @param permanent true for deleting a queue file, and false for closing a queue file
-			 * @param discarded a callback for tracking socket closed or request cancelled event
+             * @param discarded a callback for tracking socket closed or request cancelled event
              * @return true for sending the request successfully, and false for failure
              */
             bool CloseQueue(const char *key, DClose c = nullptr, bool permanent = false, DDiscarded discarded = nullptr) {
@@ -144,7 +148,7 @@ namespace SPA {
                         ar.UQueue.SetSize(0);
                     }
                 };
-				return SendRequest(Queue::idClose, key, permanent, rh, discarded);
+                return SendRequest(Queue::idClose, key, permanent, rh, discarded);
             }
 
             /**
@@ -152,7 +156,7 @@ namespace SPA {
              * @param key An ASCII string for identifying a queue at server side
              * @param f A callback for tracking returning message count and queue file size in bytes
              * @param option one of options, oMemoryCached, oSystemMemoryCached and oDiskCommitted
-			 * @param discarded a callback for tracking socket closed or request cancelled event
+             * @param discarded a callback for tracking socket closed or request cancelled event
              * @return true for sending the request successfully, and false for failure
              */
             bool FlushQueue(const char *key, DFlush f, tagOptimistic option = oMemoryCached, DDiscarded discarded = nullptr) {
@@ -165,7 +169,7 @@ namespace SPA {
                         ar.UQueue.SetSize(0);
                     }
                 };
-				return SendRequest(Queue::idFlush, key, (int) option, rh, discarded);
+                return SendRequest(Queue::idFlush, key, (int) option, rh, discarded);
             }
 
             /**
@@ -173,7 +177,7 @@ namespace SPA {
              * @param key An ASCII string for identifying a queue at server side
              * @param d A callback for tracking data like remaining message count within a server queue file, queue file size in bytes, message dequeued within this batch and bytes dequeued within this batch
              * @param timeout A time-out number in milliseconds
-			 * @param discarded a callback for tracking socket closed or request cancelled event
+             * @param discarded a callback for tracking socket closed or request cancelled event
              * @return true for sending the request successfully, and false for failure
              */
             bool Dequeue(const char *key, DDequeue d, unsigned int timeout = 0, DDiscarded discarded = nullptr) {
