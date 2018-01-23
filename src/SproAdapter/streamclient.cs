@@ -395,12 +395,12 @@ namespace SocketProAdapter.ClientSide
             return Upload(localFile, remoteFile, up, trans, null, FILE_OPEN_TRUNCACTED);
         }
 
-        public bool Upload(string localFile, string remoteFile, DUpload up, DTransferring trans, DDiscarded dicarded)
+        public bool Upload(string localFile, string remoteFile, DUpload up, DTransferring trans, DDiscarded discarded)
         {
-            return Upload(localFile, remoteFile, up, trans, dicarded, FILE_OPEN_TRUNCACTED);
+            return Upload(localFile, remoteFile, up, trans, discarded, FILE_OPEN_TRUNCACTED);
         }
 
-        public virtual bool Upload(string localFile, string remoteFile, DUpload up, DTransferring trans, DDiscarded dicarded, uint flags)
+        public virtual bool Upload(string localFile, string remoteFile, DUpload up, DTransferring trans, DDiscarded discarded, uint flags)
         {
             if (localFile == null || localFile.Length == 0)
                 return false;
@@ -409,7 +409,7 @@ namespace SocketProAdapter.ClientSide
             CContext context = new CContext(true, flags);
             context.Upload = up;
             context.Transferring = trans;
-            context.Discarded = dicarded;
+            context.Discarded = discarded;
             context.FilePath = remoteFile;
             context.LocalFile = localFile;
             lock (m_csFile)
@@ -434,12 +434,12 @@ namespace SocketProAdapter.ClientSide
             return Download(localFile, remoteFile, dl, trans, null, FILE_OPEN_TRUNCACTED);
         }
 
-        public bool Download(string localFile, string remoteFile, DDownload dl, DTransferring trans, DDiscarded aborted)
+        public bool Download(string localFile, string remoteFile, DDownload dl, DTransferring trans, DDiscarded discarded)
         {
-            return Download(localFile, remoteFile, dl, trans, aborted, FILE_OPEN_TRUNCACTED);
+            return Download(localFile, remoteFile, dl, trans, discarded, FILE_OPEN_TRUNCACTED);
         }
 
-        public virtual bool Download(string localFile, string remoteFile, DDownload dl, DTransferring trans, DDiscarded aborted, uint flags)
+        public virtual bool Download(string localFile, string remoteFile, DDownload dl, DTransferring trans, DDiscarded discarded, uint flags)
         {
             if (localFile == null || localFile.Length == 0)
                 return false;
@@ -448,7 +448,7 @@ namespace SocketProAdapter.ClientSide
             CContext context = new CContext(false, flags);
             context.Download = dl;
             context.Transferring = trans;
-            context.Discarded = aborted;
+            context.Discarded = discarded;
             context.FilePath = remoteFile;
             context.LocalFile = localFile;
             lock (m_csFile)
