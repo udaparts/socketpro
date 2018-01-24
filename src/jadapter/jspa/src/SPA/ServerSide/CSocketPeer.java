@@ -3,7 +3,7 @@ package SPA.ServerSide;
 public abstract class CSocketPeer {
 
     private volatile SPA.CUQueue m_qBuffer = new SPA.CUQueue();
-    long m_sh = 0;
+    volatile long m_sh = 0;
     private boolean m_bRandom = false;
     CBaseService m_Service;
     public static final int SOCKET_NOT_FOUND = -1;

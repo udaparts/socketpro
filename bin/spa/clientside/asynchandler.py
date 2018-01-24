@@ -128,7 +128,7 @@ class CAsyncServiceHandler(object):
         bytes = (c_ubyte * q.GetSize()).from_buffer(q._m_bytes_, q._m_position_)
         return ccl.SendRouteeResult(h, reqId, bytes, q.GetSize())
 
-    def SendRequest(self, reqId, q, arh, discarded = None, efs = None):
+    def SendRequest(self, reqId, q, arh, discarded=None, efs=None):
         if q is None:
             q = CUQueue(bytearray(0))
         if isinstance(q, CScopeUQueue):

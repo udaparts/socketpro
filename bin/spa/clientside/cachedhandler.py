@@ -12,7 +12,6 @@ class CCachedBaseHandler(CAsyncServiceHandler):
     def __init__(self, serviceId):
         super(CCachedBaseHandler, self).__init__(serviceId)
         self._csCache = threading.Lock()
-        self._nCall = 0
         self._mapRowset = {}
         self._indexRowset = 0
         self._Blob = CUQueue()
@@ -31,12 +30,18 @@ class CCachedBaseHandler(CAsyncServiceHandler):
             self._mapHandler = {}
         return super(CCachedBaseHandler, self).CleanCallbacks()
 
+    def OnMergeTo(self, dbTo):
+        with dbTo._csDB:
+            with self._csDB:
+                dbTo._mapRowset.update(self._mapRowset)
+                self._mapRowset = {}
+                dbTo._mapHandler.update(self._mapHandler)
+                self._mapHandler = {}
+
     def GetCachedTables(self, defaultDb, handler, row, rh, flags=DB_CONSTS.ENABLE_TABLE_UPDATE_MESSAGES):
         q = CScopeUQueue.Lock()
-        index = 0;
+        index = self.GetCallIndex();
         with self._csCache:
-            self._nCall += 1
-            index = self._nCall
             self._mapRowset[index] = Pair(rh, row)
             self._mapHandler[index] = handler
         q.SaveString(defaultDb).SaveUInt(flags).SaveULong(index)
@@ -103,7 +108,7 @@ class CCachedBaseHandler(CAsyncServiceHandler):
                 self._Blob.Push(mc.GetBuffer(), mc.GetSize())
                 mc.SetSize(0)
                 content_len = self._Blob.PeakUInt(2)
-                if content_len >= DB_CONSTS.BLOB_LENGTH_NOT_AVAILABLE:
+                if content_len >= CCachedBaseHandler.BLOB_LENGTH_NOT_AVAILABLE:
                     content_len = self._Blob.GetSize() - 6 #sizeof(VARTYPE) + sizeof(unsigned int)
                     self._Blob.ResetUInt(content_len, 2)
                 vt = self._Blob.LoadObject()
