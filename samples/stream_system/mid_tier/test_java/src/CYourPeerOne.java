@@ -14,7 +14,7 @@ public class CYourPeerOne extends CCacheBasePeer {
         if (filter != null && filter.length() > 0) {
             sql += (" WHERE " + filter);
         }
-        CSqlite handler = CYourServer.Slave.Seek();
+        CSqlite handler = CYourServer.Slave.SeekByQueue();
         if (handler == null) {
             CUQueue sb = CScopeUQueue.Lock();
             sb.Save((int) -1).Save("No connection to a slave database").Save(pmma);
@@ -151,7 +151,7 @@ public class CYourPeerOne extends CCacheBasePeer {
         long rental_id = q.LoadLong();
         CRentalDateTimes myDates = new CRentalDateTimes();
         String sql = "SELECT rental_id,rental_date,return_date,last_update FROM rental where rental_id=" + rental_id;
-        CSqlite handler = CYourServer.Slave.Seek();
+        CSqlite handler = CYourServer.Slave.SeekByQueue();
         if (handler == null) {
             CUQueue sb = CScopeUQueue.Lock();
             sb.Save(myDates).Save((int) -1).Save("No connection to a slave database");
