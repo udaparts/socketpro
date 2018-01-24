@@ -60,6 +60,7 @@ class CYourPeerOne : CCacheBasePeer
             pmma.Min = double.Parse(vData[1].ToString());
             pmma.Avg = double.Parse(vData[2].ToString());
         });
+        //should always be true because slave pool has queue name set for request backup
         System.Diagnostics.Debug.Assert(ok);
     }
 
@@ -91,6 +92,7 @@ class CYourPeerOne : CCacheBasePeer
             myDates.Return = (DateTime)vData[2];
             myDates.LastUpdate = (DateTime)vData[3];
         });
+        //should always be true because slave pool has queue name set for request backup
         System.Diagnostics.Debug.Assert(ok);
     }
 

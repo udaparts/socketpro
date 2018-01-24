@@ -36,6 +36,7 @@ public class CYourPeerOne extends CCacheBasePeer {
             pmma.Min = Double.parseDouble(vData.get(1).toString());
             pmma.Avg = Double.parseDouble(vData.get(2).toString());
         });
+        assert ok; //always be true if pool has local queue for request backup
     }
 
     private void UploadEmployees(CUQueue q, long reqIndex) {
@@ -174,6 +175,7 @@ public class CYourPeerOne extends CCacheBasePeer {
             myDates.Return = (java.sql.Timestamp) vData.get(2);
             myDates.LastUpdate = (java.sql.Timestamp) vData.get(3);
         });
+        assert ok; //always be true if pool has local queue for request backup
     }
 
     @Override
