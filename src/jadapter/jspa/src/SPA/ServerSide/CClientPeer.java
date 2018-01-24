@@ -1,9 +1,5 @@
 package SPA.ServerSide;
 
-import SPA.*;
-
-import SPA.CScopeUQueue;
-
 public class CClientPeer extends CSocketPeer {
 
     class CServerPushExImpl implements SPA.IUPushEx {

@@ -42,7 +42,7 @@ class CYourPeerOne : CCacheBasePeer
         string sql = "SELECT MAX(amount),MIN(amount),AVG(amount) FROM payment";
         if (filter != null && filter.Length > 0)
             sql += (" WHERE " + filter);
-        var handler = CYourServer.Slave.Seek();
+        var handler = CYourServer.Slave.SeekByQueue();
         if (handler == null)
         {
             ret = SendResultIndex(reqIndex, ss.Consts.idQueryMaxMinAvgs, (int)-1, "No connection to a slave database", pmma);
@@ -72,7 +72,7 @@ class CYourPeerOne : CCacheBasePeer
         System.Diagnostics.Debug.Assert(CYourServer.Slave.QueueName.Length > 0);
         ss.CRentalDateTimes myDates = new ss.CRentalDateTimes();
         string sql = "SELECT rental_id,rental_date,return_date,last_update FROM rental where rental_id=" + rental_id;
-        var handler = CYourServer.Slave.Seek();
+        var handler = CYourServer.Slave.SeekByQueue();
         if (handler == null)
         {
             ret = SendResultIndex(reqIndex, ss.Consts.idGetRentalDateTimes, myDates, (int)-1, "No connection to a slave database");

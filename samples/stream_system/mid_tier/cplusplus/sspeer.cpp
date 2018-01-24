@@ -146,7 +146,7 @@ void CYourPeerOne::GetRentalDateTimes(SPA::CUQueue &q, SPA::UINT64 reqIndex) {
 	assert(CYourServer::Slave->GetQueueName().size());
 	q >> rental_id;
 	std::wstring sql = L"SELECT rental_id,rental_date,return_date,last_update FROM rental where rental_id=" + std::to_wstring(rental_id);
-	std::shared_ptr<CSQLHandler> handler = CYourServer::Slave->Seek();
+	std::shared_ptr<CSQLHandler> handler = CYourServer::Slave->SeekByQueue();
 	if (!handler) {
 		CRentalDateTimes dates;
 		unsigned int res = SendResultIndex(reqIndex, idGetRentalDateTimes, dates, (int)-1, L"No connection to a slave database");
@@ -176,7 +176,7 @@ void CYourPeerOne::QueryPaymentMaxMinAvgs(SPA::CUQueue &q, SPA::UINT64 reqIndex)
 	std::wstring sql = L"SELECT MAX(amount),MIN(amount),AVG(amount) FROM payment";
 	if (filter.size())
 		sql += (L" WHERE " + filter);
-	std::shared_ptr<CSQLHandler> handler = CYourServer::Slave->Seek();
+	std::shared_ptr<CSQLHandler> handler = CYourServer::Slave->SeekByQueue();
 	if (!handler) {
 		CMaxMinAvg mma;
 		unsigned int ret = SendResultIndex(reqIndex, idQueryMaxMinAvgs, (int)-1, L"No connection to a slave database", mma);

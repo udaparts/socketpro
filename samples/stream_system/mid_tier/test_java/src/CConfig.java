@@ -64,7 +64,7 @@ public class CConfig {
         //m_config.m_slave_default_db = "sakila";
 
         CConnectionContext cc = new CConnectionContext();
-        cc.Host = "35.202.171.128";
+        cc.Host = "35.202.62.6";
         cc.Port = 20901;
         cc.UserId = "root";
         cc.Password = "Smash123";

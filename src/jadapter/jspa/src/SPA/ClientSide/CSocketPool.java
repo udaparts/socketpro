@@ -749,7 +749,7 @@ public class CSocketPool<THandler extends CAsyncServiceHandler> {
                 }
                 if (h == null) {
                     h = m_dicSocketHandler.get(cs);
-                } else if ((cs.getClientQueue().getMessageCount() < h.getAttachedClientSocket().getClientQueue().getMessageCount()) || (cs.getConnected() && !h.getAttachedClientSocket().getConnected())) {
+                } else if ((cq.getMessageCount() < h.getAttachedClientSocket().getClientQueue().getMessageCount()) || (cs.getConnected() && !h.getAttachedClientSocket().getConnected())) {
                     h = m_dicSocketHandler.get(cs);
                 }
             }
