@@ -24,7 +24,6 @@ class CYourServer(CSocketProServer):
     def Run(self, port, maxBacklog, v6Supported):
         mapIdMethod = {
             idGetMasterSlaveConnectedSessions: 'GetMasterSlaveConnectedSessions',
-            idGetRentalDateTimes: ['GetRentalDateTimes', True],  # or ('GetRentalDateTimes', True)
             DB_CONSTS.idGetCachedTables: ('GetCachedTables', True)  # True -- slow request
         }
         self.YourPeerService = CSocketProService(CYourPeer, sidStreamSystem, mapIdMethod)
@@ -50,6 +49,8 @@ class CYourServer(CSocketProServer):
     def StartMySQLPools():
         config = CConfig.getConfig()
         CYourPeer.Master = CMaster(CSqlite, config.m_master_default_db, True)
+        if len(config.m_master_queue_name) > 0:
+            CYourPeer.Master.QueueName = config.m_master_queue_name
 
         # These case-sensitivities depends on your DB running platform and sensitivity settings.
         # All of them are false or case-insensitive by default
@@ -64,6 +65,9 @@ class CYourServer(CSocketProServer):
         threads = int(config.m_nSlaveSessions / sockets_per_thread)
 
         CYourPeer.Slave = CMaster.CSlavePool(CSqlite, config.m_slave_default_db)
+        if len(config.m_slave_queue_name) > 0:
+            CYourPeer.Slave.QueueName = config.m_slave_queue_name
+
         mcc = [[0 for i in range(sockets_per_thread)] for i in range(threads)]
         while threads >= 0:
             threads -= 1

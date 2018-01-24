@@ -56,5 +56,3 @@ with CYourServer() as server:
     CYourPeer.Slave.ShutdownPool()
     CYourPeer.Master.ShutdownPool()
 
-
-

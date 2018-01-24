@@ -10,11 +10,13 @@ class CConfig(object):
         self.m_master_default_db = ''
         self.m_nMasterSessions = 2
         self.m_ccMaster = None
+        self.m_master_queue_name = ''
 
         # slave
         self.m_slave_default_db = ''
         self.m_nSlaveSessions = 0
         self.m_vccSlave = []
+        self.m_slave_queue_name = ''
 
         # middle tier server
         self.m_main_threads = 1
@@ -47,11 +49,12 @@ class CConfig(object):
         config.m_ccMaster = CConnectionContext('localhost', 20901, 'root', 'Smash123')
 
         config.m_slave_default_db = 'sakila.db'
-        cc = CConnectionContext('104.154.160.127', 20901, 'root', 'Smash123')
+        cc = CConnectionContext('35.202.209.70', 20901, 'root', 'Smash123')
         config.m_vccSlave.append(cc)
         # treat master as last salve
         config.m_vccSlave.append(config.m_ccMaster)
         config.m_nSlaveSessions = 4
+        config.m_slave_queue_name = 'db_sakila'
 
         # middle tier
         # test certificate and private key files are located at the directory ../socketpro/bin

@@ -101,7 +101,7 @@ class CAsyncDBHandler(CAsyncServiceHandler):
             with self._csDB:
                 dbTo._mapRowset.update(self._mapRowset)
                 self._mapRowset = {}
-                dbTo._mapParameterCal.update(self._mapParameterCall)
+                dbTo._mapParameterCall.update(self._mapParameterCall)
                 self._mapParameterCall = {}
                 dbTo._deqResult.extend(self._deqResult)
                 self._deqResult = collections.deque()
