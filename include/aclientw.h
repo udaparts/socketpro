@@ -1505,7 +1505,7 @@ namespace SPA {
                 PHandler h;
                 CAutoLock al(m_cs);
                 for (auto it = m_mapSocketHandler.begin(), end = m_mapSocketHandler.end(); it != end; ++it) {
-                    if (it->first->GetConnectionState() != csSwitched)
+                    if (it->first->GetConnectionState() < csSwitched)
                         continue;
                     if (!h)
                         h = it->second;
@@ -1539,9 +1539,9 @@ namespace SPA {
                 CAutoLock al(m_cs);
                 bool automerge = ClientCoreLoader.GetQueueAutoMergeByPool(m_nPoolId);
                 for (auto it = m_mapSocketHandler.begin(), end = m_mapSocketHandler.end(); it != end; ++it) {
-                    IClientQueue &cq = it->first->GetClientQueue();
-                    if (automerge && h && !it->first->IsConnected())
+                    if (automerge && it->first->GetConnectionState() < csSwitched)
                         continue;
+                    IClientQueue &cq = it->first->GetClientQueue();
                     if (!cq.IsAvailable() || cq.GetJobSize()/*queue is in transaction at this time*/)
                         continue;
                     if (!h)
@@ -1985,13 +1985,11 @@ namespace SPA {
                             ClientCoreLoader.SetPassword(h, pcs->m_cc.Password.c_str());
                             bool ok = ClientCoreLoader.StartBatching(h);
                             ok = ClientCoreLoader.SwitchTo(h, sp->MapToHandler(h)->GetSvsID());
-                            if (ok) {
-                                ok = ClientCoreLoader.TurnOnZipAtSvr(h, pcs->m_cc.Zip);
-                                ok = ClientCoreLoader.SetSockOptAtSvr(h, soRcvBuf, 116800, slSocket);
-                                ok = ClientCoreLoader.SetSockOptAtSvr(h, soSndBuf, 116800, slSocket);
-                            }
-                            ok = ClientCoreLoader.CommitBatching(h, false);
+                            ok = ClientCoreLoader.TurnOnZipAtSvr(h, pcs->m_cc.Zip);
+                            ok = ClientCoreLoader.SetSockOptAtSvr(h, soRcvBuf, 116800, slSocket);
+                            ok = ClientCoreLoader.SetSockOptAtSvr(h, soSndBuf, 116800, slSocket);
                             sp->SetQueue(pcs, index);
+                            ok = ClientCoreLoader.CommitBatching(h, false);
                         }
                         break;
                     case speQueueMergedFrom:

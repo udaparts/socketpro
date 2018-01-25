@@ -80,14 +80,12 @@ public class CSocketPool<THandler extends CAsyncServiceHandler> {
                     ClientCoreLoader.SetSockOpt(h, SPA.tagSocketOption.soTcpNoDelay.getValue(), 1, SPA.tagSocketLevel.slTcp.getValue());
                     ClientCoreLoader.StartBatching(h);
                     boolean ok = ClientCoreLoader.SwitchTo(h, handler.getSvsID());
-                    if (ok) {
-                        ClientCoreLoader.TurnOnZipAtSvr(h, cs.ConnectionContext.Zip);
-                        ClientCoreLoader.SetSockOptAtSvr(h, SPA.tagSocketOption.soRcvBuf.getValue(), 116800, SPA.tagSocketLevel.slSocket.getValue());
-                        ClientCoreLoader.SetSockOptAtSvr(h, SPA.tagSocketOption.soSndBuf.getValue(), 116800, SPA.tagSocketLevel.slSocket.getValue());
-                        ClientCoreLoader.SetSockOptAtSvr(h, SPA.tagSocketOption.soTcpNoDelay.getValue(), 1, SPA.tagSocketLevel.slTcp.getValue());
-                    }
-                    ok = ClientCoreLoader.CommitBatching(h, false);
+                    ok = ClientCoreLoader.TurnOnZipAtSvr(h, cs.ConnectionContext.Zip);
+                    ok = ClientCoreLoader.SetSockOptAtSvr(h, SPA.tagSocketOption.soRcvBuf.getValue(), 116800, SPA.tagSocketLevel.slSocket.getValue());
+                    ok = ClientCoreLoader.SetSockOptAtSvr(h, SPA.tagSocketOption.soSndBuf.getValue(), 116800, SPA.tagSocketLevel.slSocket.getValue());
+                    ok = ClientCoreLoader.SetSockOptAtSvr(h, SPA.tagSocketOption.soTcpNoDelay.getValue(), 1, SPA.tagSocketLevel.slTcp.getValue());
                     SetQueue(cs);
+                    ok = ClientCoreLoader.CommitBatching(h, false);
                 }
                 break;
             case speQueueMergedFrom:
@@ -740,7 +738,7 @@ public class CSocketPool<THandler extends CAsyncServiceHandler> {
         synchronized (m_cs) {
             boolean automerge = ClientCoreLoader.GetQueueAutoMergeByPool(m_nPoolId);
             for (CClientSocket cs : m_dicSocketHandler.keySet()) {
-                if (automerge && h != null && !cs.getConnected()) {
+                if (automerge && cs.getConnectionState().getValue() < tagConnectionState.csSwitched.getValue()) {
                     continue;
                 }
                 IClientQueue cq = cs.getClientQueue();

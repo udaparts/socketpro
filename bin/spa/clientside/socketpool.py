@@ -223,13 +223,12 @@ class CSocketPool(object):
                 ccl.SetPassword(h, cs.ConnectionContext._Password_)
                 ok = ccl.StartBatching(h)
                 ok = ccl.SwitchTo(h, handler.SvsID)
-                if ok:
-                    ok = ccl.TurnOnZipAtSvr(h, cs.ConnectionContext.Zip)
-                    ok = ccl.SetSockOptAtSvr(h, tagSocketOption.soRcvBuf, 116800, tagSocketLevel.slSocket)
-                    ok = ccl.SetSockOptAtSvr(h, tagSocketOption.soSndBuf, 116800, tagSocketLevel.slSocket)
-                    ok = ccl.SetSockOptAtSvr(h, tagSocketOption.soTcpNoDelay, 1, tagSocketLevel.slTcp)
-                ok = ccl.CommitBatching(h, False)
+                ok = ccl.TurnOnZipAtSvr(h, cs.ConnectionContext.Zip)
+                ok = ccl.SetSockOptAtSvr(h, tagSocketOption.soRcvBuf, 116800, tagSocketLevel.slSocket)
+                ok = ccl.SetSockOptAtSvr(h, tagSocketOption.soSndBuf, 116800, tagSocketLevel.slSocket)
+                ok = ccl.SetSockOptAtSvr(h, tagSocketOption.soTcpNoDelay, 1, tagSocketLevel.slTcp)
                 self._SetQueue_(cs)
+                ok = ccl.CommitBatching(h, False)
         elif spe == tagSocketPoolEvent.speQueueMergedFrom:
             self._hFrom = handler
         elif spe == tagSocketPoolEvent.speQueueMergedTo:
@@ -289,7 +288,7 @@ class CSocketPool(object):
         h = None
         with self._lock_:
             for cs in self._m_dicSocketHandler_.keys():
-                if cs.ConnectionState != tagConnectionState.csSwitched:
+                if cs.ConnectionState < tagConnectionState.csSwitched:
                     continue
                 if h is None:
                     h = self._m_dicSocketHandler_[cs]
@@ -311,23 +310,25 @@ class CSocketPool(object):
     """
     def SeekByQueue(self, queueName=''):
         h = None
-        with self._lock_:
-            if queueName is None or len(queueName) == 0:
+        if queueName is None or len(queueName) == 0:
+            with self._lock_:
                 merge = ccl.GetQueueAutoMergeByPool(self._PoolId_)
                 for cs in self._m_dicSocketHandler_.keys():
-                    if merge and (h is None) and (not cs.Connected):
+                    if merge and cs.ConnectionState < tagConnectionState.csSwitched:
                         continue
-                    if not cs.ClientQueue.Available:
+                    cq = cs.ClientQueue
+                    if not cq.Available:
                         continue
                     if h is None:
                         h = self._m_dicSocketHandler_[cs]
-                    elif (cs.ClientQueue.MessageCount < h.AttachedClientSocket.ClientQueue.MessageCount) or ((not h.AttachedClientSocket.Connected) and cs.Connected):
+                    elif (cq.MessageCount < h.AttachedClientSocket.ClientQueue.MessageCount) or ((not h.AttachedClientSocket.Connected) and cs.Connected):
                         h = self._m_dicSocketHandler_[cs]
-            else:
-                if CUQueue.DEFAULT_OS == tagOperationSystem.osWin:
-                    queueName = queueName.lower()
-                rawName = ''
-                appName = ccl.GetClientWorkDirectory().decode('latin-1')
+        else:
+            if CUQueue.DEFAULT_OS == tagOperationSystem.osWin:
+                queueName = queueName.lower()
+            rawName = ''
+            appName = ccl.GetClientWorkDirectory().decode('latin-1')
+            with self._lock_:
                 for cs in self._m_dicSocketHandler_.keys():
                     if not cs.ClientQueue.Available:
                         continue

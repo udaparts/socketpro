@@ -266,7 +266,7 @@ namespace SocketProAdapter
                 {
                     foreach (CClientSocket cs in m_dicSocketHandler.Keys)
                     {
-                        if (cs.ConnectionState != tagConnectionState.csSwitched)
+                        if (cs.ConnectionState < tagConnectionState.csSwitched)
                             continue;
                         if (h == null)
                             h = m_dicSocketHandler[cs];
@@ -296,13 +296,14 @@ namespace SocketProAdapter
                     bool automerge = (ClientCoreLoader.GetQueueAutoMergeByPool(m_nPoolId) > 0);
                     foreach (CClientSocket cs in m_dicSocketHandler.Keys)
                     {
-                        if (automerge && h != null && !cs.Connected)
+                        if (automerge && cs.ConnectionState < tagConnectionState.csSwitched)
                             continue;
-                        if (!cs.ClientQueue.Available || cs.ClientQueue.JobSize > 0/*queue is in transaction at this time*/)
+                        IClientQueue cq = cs.ClientQueue;
+                        if (!cq.Available || cq.JobSize > 0/*queue is in transaction at this time*/)
                             continue;
                         if (h == null)
                             h = m_dicSocketHandler[cs];
-                        else if ((cs.ClientQueue.MessageCount < h.AttachedClientSocket.ClientQueue.MessageCount) || (cs.Connected && !h.AttachedClientSocket.Connected))
+                        else if ((cq.MessageCount < h.AttachedClientSocket.ClientQueue.MessageCount) || (cs.Connected && !h.AttachedClientSocket.Connected))
                             h = m_dicSocketHandler[cs];
                     }
                 }
@@ -863,15 +864,12 @@ namespace SocketProAdapter
                             ClientCoreLoader.SetPassword(h, cs.ConnectionContext.GetPassword());
                             bool ok = ClientCoreLoader.StartBatching(h) != 0;
                             ok = ClientCoreLoader.SwitchTo(h, handler.SvsID) != 0;
-                            if (ok)
-                            {
-                                ok = ClientCoreLoader.TurnOnZipAtSvr(h, (byte)(cs.ConnectionContext.Zip ? 1 : 0)) != 0;
-                                ok = ClientCoreLoader.SetSockOptAtSvr(h, tagSocketOption.soRcvBuf, 116800, tagSocketLevel.slSocket) != 0;
-                                ok = ClientCoreLoader.SetSockOptAtSvr(h, tagSocketOption.soSndBuf, 116800, tagSocketLevel.slSocket) != 0;
-                                ok = ClientCoreLoader.SetSockOptAtSvr(h, tagSocketOption.soTcpNoDelay, 1, tagSocketLevel.slTcp) != 0;
-                            }
-                            ok = (ClientCoreLoader.CommitBatching(h, (byte)0) != 0);
+                            ok = ClientCoreLoader.TurnOnZipAtSvr(h, (byte)(cs.ConnectionContext.Zip ? 1 : 0)) != 0;
+                            ok = ClientCoreLoader.SetSockOptAtSvr(h, tagSocketOption.soRcvBuf, 116800, tagSocketLevel.slSocket) != 0;
+                            ok = ClientCoreLoader.SetSockOptAtSvr(h, tagSocketOption.soSndBuf, 116800, tagSocketLevel.slSocket) != 0;
+                            ok = ClientCoreLoader.SetSockOptAtSvr(h, tagSocketOption.soTcpNoDelay, 1, tagSocketLevel.slTcp) != 0;
                             SetQueue(cs);
+                            ok = (ClientCoreLoader.CommitBatching(h, (byte)0) != 0);
                         }
                         break;
                     case tagSocketPoolEvent.speQueueMergedFrom:
