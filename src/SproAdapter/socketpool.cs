@@ -863,7 +863,6 @@ namespace SocketProAdapter
                             ClientCoreLoader.SetPassword(h, cs.ConnectionContext.GetPassword());
                             bool ok = ClientCoreLoader.StartBatching(h) != 0;
                             ok = ClientCoreLoader.SwitchTo(h, handler.SvsID) != 0;
-                            SetQueue(cs);
                             if (ok)
                             {
                                 ok = ClientCoreLoader.TurnOnZipAtSvr(h, (byte)(cs.ConnectionContext.Zip ? 1 : 0)) != 0;
@@ -871,7 +870,8 @@ namespace SocketProAdapter
                                 ok = ClientCoreLoader.SetSockOptAtSvr(h, tagSocketOption.soSndBuf, 116800, tagSocketLevel.slSocket) != 0;
                                 ok = ClientCoreLoader.SetSockOptAtSvr(h, tagSocketOption.soTcpNoDelay, 1, tagSocketLevel.slTcp) != 0;
                             }
-                            ok = ClientCoreLoader.CommitBatching(h, (byte)0) != 0;
+                            ok = (ClientCoreLoader.CommitBatching(h, (byte)0) != 0);
+                            SetQueue(cs);
                         }
                         break;
                     case tagSocketPoolEvent.speQueueMergedFrom:

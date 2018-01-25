@@ -80,14 +80,14 @@ public class CSocketPool<THandler extends CAsyncServiceHandler> {
                     ClientCoreLoader.SetSockOpt(h, SPA.tagSocketOption.soTcpNoDelay.getValue(), 1, SPA.tagSocketLevel.slTcp.getValue());
                     ClientCoreLoader.StartBatching(h);
                     boolean ok = ClientCoreLoader.SwitchTo(h, handler.getSvsID());
-                    SetQueue(cs);
                     if (ok) {
                         ClientCoreLoader.TurnOnZipAtSvr(h, cs.ConnectionContext.Zip);
                         ClientCoreLoader.SetSockOptAtSvr(h, SPA.tagSocketOption.soRcvBuf.getValue(), 116800, SPA.tagSocketLevel.slSocket.getValue());
                         ClientCoreLoader.SetSockOptAtSvr(h, SPA.tagSocketOption.soSndBuf.getValue(), 116800, SPA.tagSocketLevel.slSocket.getValue());
                         ClientCoreLoader.SetSockOptAtSvr(h, SPA.tagSocketOption.soTcpNoDelay.getValue(), 1, SPA.tagSocketLevel.slTcp.getValue());
                     }
-                    ClientCoreLoader.CommitBatching(h, false);
+                    ok = ClientCoreLoader.CommitBatching(h, false);
+                    SetQueue(cs);
                 }
                 break;
             case speQueueMergedFrom:

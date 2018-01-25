@@ -223,13 +223,13 @@ class CSocketPool(object):
                 ccl.SetPassword(h, cs.ConnectionContext._Password_)
                 ok = ccl.StartBatching(h)
                 ok = ccl.SwitchTo(h, handler.SvsID)
-                self._SetQueue_(cs)
                 if ok:
                     ok = ccl.TurnOnZipAtSvr(h, cs.ConnectionContext.Zip)
                     ok = ccl.SetSockOptAtSvr(h, tagSocketOption.soRcvBuf, 116800, tagSocketLevel.slSocket)
                     ok = ccl.SetSockOptAtSvr(h, tagSocketOption.soSndBuf, 116800, tagSocketLevel.slSocket)
                     ok = ccl.SetSockOptAtSvr(h, tagSocketOption.soTcpNoDelay, 1, tagSocketLevel.slTcp)
                 ok = ccl.CommitBatching(h, False)
+                self._SetQueue_(cs)
         elif spe == tagSocketPoolEvent.speQueueMergedFrom:
             self._hFrom = handler
         elif spe == tagSocketPoolEvent.speQueueMergedTo:
