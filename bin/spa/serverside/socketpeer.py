@@ -86,8 +86,7 @@ class CSocketPeer(object):
 
     @property
     def Handle(self):
-        with self._m_Service._m_cs:
-            return self._m_sh
+        return self._m_sh
 
     @property
     def SSL(self):
