@@ -1985,13 +1985,13 @@ namespace SPA {
                             ClientCoreLoader.SetPassword(h, pcs->m_cc.Password.c_str());
                             bool ok = ClientCoreLoader.StartBatching(h);
                             ok = ClientCoreLoader.SwitchTo(h, sp->MapToHandler(h)->GetSvsID());
-                            sp->SetQueue(pcs, index);
                             if (ok) {
                                 ok = ClientCoreLoader.TurnOnZipAtSvr(h, pcs->m_cc.Zip);
                                 ok = ClientCoreLoader.SetSockOptAtSvr(h, soRcvBuf, 116800, slSocket);
                                 ok = ClientCoreLoader.SetSockOptAtSvr(h, soSndBuf, 116800, slSocket);
                             }
                             ok = ClientCoreLoader.CommitBatching(h, false);
+                            sp->SetQueue(pcs, index);
                         }
                         break;
                     case speQueueMergedFrom:
