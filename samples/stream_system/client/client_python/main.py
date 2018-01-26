@@ -7,7 +7,7 @@ from webasynchandler import CWebAsyncHandler
 CClientSocket.SSL.SetVerifyLocation('ca.cert.pem')
 
 with CMasterPool(CWebAsyncHandler, '', False) as sp:
-    cc = CConnectionContext(input('Remote host: '), 20911, 'PythonUser', 'TooMuchSecret', tagEncryptionMethod.TLSv1)
+    cc = CConnectionContext(input('Remote middle tier host: '), 20911, 'PythonUser', 'TooMuchSecret', tagEncryptionMethod.TLSv1)
 
     def ssl_server_authentication(pool, cs):
         cert = cs.UCert

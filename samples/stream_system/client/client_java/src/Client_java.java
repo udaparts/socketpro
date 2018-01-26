@@ -7,7 +7,7 @@ import java.util.concurrent.*;
 public class Client_java {
 
     public static void main(String[] args) {
-        System.out.println("Remote host: ");
+        System.out.println("Remote middle tier host: ");
         java.util.Scanner in = new java.util.Scanner(System.in);
         String host = in.nextLine();
         System.out.println("Sakila.payment filter: ");

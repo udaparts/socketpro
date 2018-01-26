@@ -41,7 +41,91 @@ public class CYourPeerOne extends CCacheBasePeer {
 
     private void UploadEmployees(CUQueue q, long reqIndex) {
         int ret;
-        final Pair<Integer, String> p = new Pair<>(0, "");
+        Pair<Integer, String> p = new Pair<>(0, "");
+        CDBVariantArray vData = new CDBVariantArray();
+        vData.LoadFrom(q);
+        CLongArray vId = new CLongArray();
+        CUQueue sb = CScopeUQueue.Lock();
+        if (vData.isEmpty()) {
+            ret = SendResultIndex(reqIndex, Consts.idUploadEmployees, sb.Save((int) 0).Save("").Save(vId));
+        } else if (vData.size() % 3 != 0) {
+            ret = SendResultIndex(reqIndex, Consts.idUploadEmployees, sb.Save((int) -1).Save("Data array size is wrong").Save(vId));
+        } else {
+            do {
+                CSqlite handler = CYourServer.Master.Lock(); //use Lock and Unlock to avoid SQL stream overlap on a session within a multi-thread environment
+                if (handler == null) {
+                    ret = SendResultIndex(reqIndex, Consts.idUploadEmployees, sb.Save((int) -2).Save("No connection to a master database").Save(vId));
+                    break;
+                }
+                CClientSocket cs = handler.getAttachedClientSocket();
+                if (!handler.BeginTrans() || !handler.Prepare("INSERT INTO mysample.EMPLOYEE(CompanyId,Name,JoinDate)VALUES(?,?,?)")) {
+                    ret = SendResultIndex(reqIndex, Consts.idUploadEmployees, sb.Save(cs.getErrorCode()).Save(cs.getErrorMsg()).Save(vId));
+                    break;
+                }
+                boolean ok = false;
+                CDBVariantArray v = new CDBVariantArray();
+                int rows = vData.size() / 3;
+                for (int n = 0; n < rows; ++n) {
+                    v.add(vData.get(n * 3 + 0));
+                    v.add(vData.get(n * 3 + 1));
+                    v.add(vData.get(n * 3 + 2));
+                    ok = handler.Execute(v, (h, r, err, affected, fail_ok, vtId) -> {
+                        if (r != 0) {
+                            if (p.first == 0) {
+                                p.first = r;
+                                p.second = err;
+                            }
+                            vId.add((long) -1);
+                        } else {
+                            vId.add(Long.parseLong(vtId.toString()));
+                        }
+                    });
+                    if (!ok) {
+                        break;
+                    }
+                    v.clear();
+                }
+                if (!ok) {
+                    ret = SendResultIndex(reqIndex, Consts.idUploadEmployees, sb.Save(cs.getErrorCode()).Save(cs.getErrorMsg()).Save(vId));
+                    break;
+                }
+                long peer_handle = getHandle();
+                if (!handler.EndTrans(tagRollbackPlan.rpRollbackErrorAll, (h, res, errMsg) -> {
+                    if (res != 0 && p.first == 0) {
+                        p.first = res;
+                        p.second = errMsg;
+                    }
+                    //send result if front peer not closed yet
+                    if (peer_handle == getHandle()) {
+                        CUQueue sb0 = CScopeUQueue.Lock();
+                        SendResultIndex(reqIndex, Consts.idUploadEmployees, sb0.Save(p.first).Save(p.second).Save(vId));
+                        CScopeUQueue.Unlock(sb0);
+                    }
+                }, (h, canceled) -> {
+                    //socket closed after requests are put on wire
+
+                    //send result if front peer not closed yet
+                    if (peer_handle == getHandle()) {
+                        CUQueue sb0 = CScopeUQueue.Lock();
+                        SendResultIndex(reqIndex, Consts.idUploadEmployees, sb0.Save(cs.getErrorCode()).Save(cs.getErrorMsg()).Save(vId));
+                        CScopeUQueue.Unlock(sb0);
+                    }
+                })) {
+                    ret = SendResultIndex(reqIndex, Consts.idUploadEmployees, sb.Save(cs.getErrorCode()).Save(cs.getErrorMsg()).Save(vId));
+                    break;
+                }
+                //put handler back into pool as soon as possible for reuse, as long as socket connection is not closed yet
+                CYourServer.Master.Unlock(handler);
+            } while (false);
+        }
+        CScopeUQueue.Unlock(sb);
+    }
+
+    //manual retry for better fault tolerance
+    /*
+    private void UploadEmployees(CUQueue q, long reqIndex) {
+        int ret;
+        Pair<Integer, String> p = new Pair<>(0, "");
         CDBVariantArray vData = new CDBVariantArray();
         vData.LoadFrom(q);
         CLongArray vId = new CLongArray();
@@ -108,7 +192,7 @@ public class CYourPeerOne extends CCacheBasePeer {
                             CScopeUQueue.Unlock(sb0);
                         }
                     }, (h, canceled) -> {
-                        //socket closed after sending
+                        //socket closed after requests are put on wire
 
                         //retry if front peer not closed yet
                         if (peer_handle == getHandle()) {
@@ -120,6 +204,7 @@ public class CYourPeerOne extends CCacheBasePeer {
                         }
                     })) {
                         redo = 0; //disable redo once request is put on wire
+                        //put handler back into pool as soon as possible for reuse, as long as socket connection is not closed yet
                         CYourServer.Master.Unlock(handler);
                     } else {
                         //socket closed when sending
@@ -129,7 +214,8 @@ public class CYourPeerOne extends CCacheBasePeer {
         }
         CScopeUQueue.Unlock(sb);
     }
-
+    */
+    
     @Override
     protected void OnFastRequestArrive(short reqId, int len) {
         if (reqId == Consts.idQueryMaxMinAvgs) {

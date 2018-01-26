@@ -65,6 +65,94 @@ class CYourPeer(CCacheBasePeer):
             elif len(vData) % 3 != 0:
                 res = -1
                 errMsg = 'Data array size is wrong'
+                break
+            handler = CYourPeer.Master.Lock()
+            if not handler:
+                res = -2
+                errMsg = 'No connection to a master database'
+                break
+            cs = handler.AttachedClientSocket
+            if not handler.BeginTrans() or not handler.Prepare('INSERT INTO mysample.EMPLOYEE(CompanyId,Name,JoinDate)VALUES(?,?,?)'):
+                res = cs.ErrorCode
+                errMsg = cs.ErrorMsg
+                break
+            rows = len(vData) / 3
+            r = 0
+            ok = False
+            while r < rows:
+                v = []
+                v.append(vData[r * 3 + 0])
+                v.append(vData[r * 3 + 1])
+                v.append(vData[r * 3 + 2])
+                r += 1
+
+                def ares(h, r, err, affected, fail_ok, vtId):
+                    if r != 0:
+                        res = r
+                        errMsg = err
+                        vId.list.append(-1)
+                    else:
+                        vId.list.append(vtId)
+                ok = handler.Execute(v, ares)
+                if not ok:
+                    break
+            if not ok:
+                res = cs.ErrorCode
+                errMsg = cs.ErrorMsg
+                break
+            peer_handle = self.Handle
+
+            def et(h, r, err):
+                if r == 0:
+                    res = r
+                    errMsg = err
+                # send result if front peer not closed yet
+                if peer_handle == self.Handle:
+                    with CScopeUQueue() as sb0:
+                        sb0.SaveInt(res).SaveString(errMsg)
+                        vId.SaveTo(sb0.UQueue)
+                        self.SendResultIndex(reqIndex, sb0, idUploadEmployees)
+
+            def closed(h, canceled):
+                # retry if front peer not closed yet
+                if peer_handle == self.Handle:
+                    res = cs.ErrorCode
+                    errMsg = cs.ErrorMsg
+                    with CScopeUQueue() as sb0:
+                        sb0.SaveInt(res).SaveString(errMsg)
+                        vId.SaveTo(sb0.UQueue)
+                        self.SendResultIndex(reqIndex, sb0, idUploadEmployees)
+            if not handler.EndTrans(tagRollbackPlan.rpRollbackErrorAll, et, closed):
+                res = cs.ErrorCode
+                errMsg = cs.ErrorMsg
+                break
+            # put handler back into pool for reuse as soon as possible, as long as socket is not closed yet
+            CYourPeer.Master.Unlock(handler)
+            # all requests are successfully put on wire and don't use the below to send result
+            return
+
+        with CScopeUQueue() as sb:
+            sb.SaveInt(res).SaveString(errMsg)
+            vId.SaveTo(sb.UQueue)
+            self.SendResultIndex(reqIndex, sb, idUploadEmployees)
+
+    """
+    # manual retry for better fault tolerance
+    def UploadEmployees(self, q, reqIndex):
+        vData = []
+        count = q.LoadUInt()
+        while count > 0:
+            vData.append(q.LoadObject())
+            count -= 1
+        res = 0
+        errMsg = ''
+        vId = CLongArray()
+        while True:
+            if len(vData) == 0:
+                break  # no retry
+            elif len(vData) % 3 != 0:
+                res = -1
+                errMsg = 'Data array size is wrong'
                 break  # no retry
             # use master for insert, update and delete
             # use Lock and Unlock to avoid SQL stream overlap on a session within a multi-thread environment
@@ -101,7 +189,7 @@ class CYourPeer(CCacheBasePeer):
                         break
                 if not ok:
                     break  # re-seek a handler and retry as socket is closed when sending request
-
+                peer_handle = self.Handle
                 def et(h, r, err):
                     if r == 0:
                         res = r
@@ -113,7 +201,6 @@ class CYourPeer(CCacheBasePeer):
                             sb0.SaveInt(res).SaveString(errMsg)
                             vId.SaveTo(sb0.UQueue)
                             self.SendResultIndex(reqIndex, sb0, idUploadEmployees)
-
                 def closed(h, canceled):
                     # retry if front peer not closed yet
                     if peer_handle == self.Handle:
@@ -123,8 +210,6 @@ class CYourPeer(CCacheBasePeer):
                             for d in vData:
                                 sb0.SaveObject(d)
                             self.UploadEmployees(sb0.UQueue, reqIndex)
-
-                peer_handle = self.Handle
                 if handler.EndTrans(tagRollbackPlan.rpRollbackErrorAll, et, closed):
                     CYourPeer.Master.Unlock(handler)  # put handler back into pool for reuse as soon as possible
                     return  # disable redo if requests are put on wire
@@ -135,6 +220,7 @@ class CYourPeer(CCacheBasePeer):
             sb.SaveInt(res).SaveString(errMsg)
             vId.SaveTo(sb.UQueue)
             self.SendResultIndex(reqIndex, sb, idUploadEmployees)
+    """
 
     def GetRentalDateTimes(self, q, reqIndex):
         rental_id = q.LoadLong()
