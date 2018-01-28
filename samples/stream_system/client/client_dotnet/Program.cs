@@ -11,7 +11,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        Console.WriteLine("Remote host: ");
+        Console.WriteLine("Remote middle tier host: ");
         string host = Console.ReadLine();
         Console.WriteLine("Sakila.payment filter: ");
         string filter = Console.ReadLine();

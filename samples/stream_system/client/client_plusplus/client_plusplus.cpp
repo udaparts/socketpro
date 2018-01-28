@@ -8,7 +8,7 @@ typedef SPA::ClientSide::CSocketPool<CWebAsyncHandler> CMyPool;
 int main(int argc, char* argv[]) {
     std::wstring filter;
     CConnectionContext cc;
-    std::cout << "Remote host: " << std::endl;
+    std::cout << "Remote middle tier host: " << std::endl;
     std::getline(std::cin, cc.Host);
     std::cout << "Sakila.payment filter: " << std::endl;
 #ifdef WIN32_64

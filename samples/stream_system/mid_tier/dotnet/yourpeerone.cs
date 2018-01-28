@@ -1,6 +1,7 @@
 ﻿using System;
 using SocketProAdapter;
 using SocketProAdapter.ServerSide;
+using SocketProAdapter.ClientSide;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using SocketProAdapter.UDB;
@@ -101,16 +102,103 @@ class CYourPeerOne : CCacheBasePeer
         uint ret;
         KeyValuePair<int, string> error = new KeyValuePair<int, string>();
         ss.CInt64Array vId = new ss.CInt64Array();
-        SocketProAdapter.UDB.CDBVariantArray vData;
+        CDBVariantArray vData;
         q.Load(out vData);
         if (vData.Count == 0)
         {
-            ret = SendResultIndex(reqIndex, ss.Consts.idUploadEmployees, (int)0, "", new ss.CInt64Array());
+            ret = SendResultIndex(reqIndex, ss.Consts.idUploadEmployees, (int)0, "", vId);
             return;
         }
         else if ((vData.Count % 3) != 0)
         {
-            ret = SendResultIndex(reqIndex, ss.Consts.idUploadEmployees, (int)-1, "Data array size is wrong", new ss.CInt64Array());
+            ret = SendResultIndex(reqIndex, ss.Consts.idUploadEmployees, (int)-1, "Data array size is wrong", vId);
+            return;
+        }
+        //use master for insert, update and delete
+        var handler = CYourServer.Master.Lock(); //use Lock and Unlock to avoid SQL stream overlap on a session within a multi-thread environment
+        if (handler == null)
+        {
+            ret = SendResultIndex(reqIndex, ss.Consts.idUploadEmployees, (int)-2, "No connection to a master database", vId);
+            return;
+        }
+        CClientSocket cs = handler.AttachedClientSocket;
+        do
+        {
+            if (!handler.BeginTrans() || !handler.Prepare("INSERT INTO mysample.EMPLOYEE(CompanyId,Name,JoinDate)VALUES(?,?,?)"))
+                break;
+            bool ok = true;
+            CDBVariantArray v = new CDBVariantArray();
+            int rows = vData.Count / 3;
+            for (int n = 0; n < rows; ++n)
+            {
+                v.Add(vData[n * 3 + 0]);
+                v.Add(vData[n * 3 + 1]);
+                v.Add(vData[n * 3 + 2]);
+                ok = handler.Execute(v, (h, r, err, affected, fail_ok, vtId) =>
+                {
+                    if (r != 0)
+                    {
+                        if (error.Key == 0)
+                        {
+                            error = new KeyValuePair<int, string>(r, err);
+                        }
+                        vId.Add(-1);
+                    }
+                    else
+                    {
+                        vId.Add(long.Parse(vtId.ToString()));
+                    }
+                });
+                if (!ok)
+                    break;
+                v.Clear();
+            }
+            if (!ok)
+                break;
+            ulong peer_handle = Handle;
+            if (!handler.EndTrans(tagRollbackPlan.rpRollbackErrorAll, (h, res, errMsg) =>
+            {
+                if (res != 0 && error.Key == 0)
+                    error = new KeyValuePair<int, string>(res, errMsg);
+                //send result if front peer not closed yet
+                if (peer_handle == Handle)
+                    ret = SendResultIndex(reqIndex, ss.Consts.idUploadEmployees, error.Key, error.Value, vId);
+            }, (h, canceled) =>
+            {
+                //socket closed after requests are put on wire
+                if (error.Key == 0)
+                    error = new KeyValuePair<int, string>(cs.ErrorCode, cs.ErrorMsg);
+                //send error message if front peer not closed yet
+                if (peer_handle == Handle)
+                    ret = SendResultIndex(reqIndex, ss.Consts.idUploadEmployees, error.Key, error.Value, vId);
+            }))
+                break;
+            //put handler back into pool as soon as possible for reuse as long as socket connection is not closed yet
+            CYourServer.Master.Unlock(handler);
+            return;
+        } while (false);
+        if (error.Key == 0)
+            error = new KeyValuePair<int, string>(cs.ErrorCode, cs.ErrorMsg);
+        ret = SendResultIndex(reqIndex, ss.Consts.idUploadEmployees, error.Key, error.Value, vId);
+    }
+
+    //manual retry for better fault tolerance
+    /*
+    void UploadEmployees(CUQueue q, ulong reqIndex)
+    {
+        uint ret;
+        KeyValuePair<int, string> error = new KeyValuePair<int, string>();
+        ss.CInt64Array vId = new ss.CInt64Array();
+        CDBVariantArray vData;
+        q.Load(out vData);
+        if (vData.Count == 0)
+        {
+            ret = SendResultIndex(reqIndex, ss.Consts.idUploadEmployees, (int)0, "", vId);
+            return;
+        }
+        else if ((vData.Count % 3) != 0)
+        {
+            ret = SendResultIndex(reqIndex, ss.Consts.idUploadEmployees, (int)-1, "Data array size is wrong", vId);
             return;
         }
         int redo = 0;
@@ -120,15 +208,15 @@ class CYourPeerOne : CCacheBasePeer
             var handler = CYourServer.Master.Lock(); //use Lock and Unlock to avoid SQL stream overlap on a session within a multi-thread environment
             if (handler == null)
             {
-                ret = SendResultIndex(reqIndex, ss.Consts.idUploadEmployees, (int)-2, "No connection to a master database", new ss.CInt64Array());
+                ret = SendResultIndex(reqIndex, ss.Consts.idUploadEmployees, (int)-2, "No connection to a master database", vId);
                 return;
             }
             ++redo;
             do
             {
-                bool ok = false;
-                if (!handler.BeginTrans()) break;
-                if (!handler.Prepare("INSERT INTO mysample.EMPLOYEE(CompanyId,Name,JoinDate)VALUES(?,?,?)")) break;
+                bool ok = true;
+                if (!handler.BeginTrans() || !handler.Prepare("INSERT INTO mysample.EMPLOYEE(CompanyId,Name,JoinDate)VALUES(?,?,?)"))
+                    break;
                 SocketProAdapter.UDB.CDBVariantArray v = new SocketProAdapter.UDB.CDBVariantArray();
                 int rows = vData.Count / 3;
                 for (int n = 0; n < rows; ++n)
@@ -158,7 +246,7 @@ class CYourPeerOne : CCacheBasePeer
                 if (!ok)
                     break;
                 ulong peer_handle = Handle;
-                if (handler.EndTrans(SocketProAdapter.UDB.tagRollbackPlan.rpRollbackErrorAll, (h, res, errMsg) =>
+                if (handler.EndTrans(tagRollbackPlan.rpRollbackErrorAll, (h, res, errMsg) =>
                 {
                     if (res != 0 && error.Key == 0)
                         error = new KeyValuePair<int, string>(res, errMsg);
@@ -171,7 +259,7 @@ class CYourPeerOne : CCacheBasePeer
                     if (peer_handle == Handle)
                     {
 #if DEBUG
-                        //socket closed after sending
+                        //socket closed after requests are put on wire
                         lock (m_csConsole)
                         {
                             Console.WriteLine("Retry UploadEmployees ......");
@@ -187,15 +275,17 @@ class CYourPeerOne : CCacheBasePeer
                 }))
                 {
                     redo = 0;
+                    //put handler back into pool as soon as possible for reuse, as long as socket connection is not closed yet
                     CYourServer.Master.Unlock(handler);
                 }
                 else
                 {
-                    //socket closed when sending
+                    //socket just closed when sending last request EndTrans
                 }
             } while (false);
         } while (redo > 0);
     }
+    */
 
     protected override string GetCachedTables(string defaultDb, uint flags, ulong index, out int dbMS, out int res)
     {

@@ -42,6 +42,7 @@ void CYourPeerOne::GetMasterSlaveConnectedSessions(unsigned int &m_connections, 
 	s_connections = CYourServer::Slave->GetConnectedSockets();
 }
 
+//manual retry for better fault tolerance
 void CYourPeerOne::UploadEmployees(SPA::CUQueue &q, SPA::UINT64 reqIndex) {
 	unsigned int ret;
 	std::shared_ptr<SPA::UDB::CDBVariantArray> pData(new SPA::UDB::CDBVariantArray);
