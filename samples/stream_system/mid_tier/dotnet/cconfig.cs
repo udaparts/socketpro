@@ -66,7 +66,7 @@ public class CConfig
         cc.Port = 20902;
 #endif
         m_config.m_slave_queue_name = "db_sakila";
-        cc.Host = "35.202.62.6";
+        cc.Host = "192.168.1.111";
         cc.UserId = "root";
         cc.Password = "Smash123";
         m_config.m_vccSlave.Add(cc);

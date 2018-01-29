@@ -27,14 +27,14 @@ void CYourPeerOne::OnFastRequestArrive(unsigned short reqId, unsigned int len) {
 	}
 	BEGIN_SWITCH(reqId)
 		M_I0_R2(idGetMasterSlaveConnectedSessions, GetMasterSlaveConnectedSessions, unsigned int, unsigned int)
-	END_SWITCH
+		END_SWITCH
 }
 
 int CYourPeerOne::OnSlowRequestArrive(unsigned short reqId, unsigned int len) {
 	BEGIN_SWITCH(reqId)
 		M_I3_R3(SPA::UDB::idGetCachedTables, GetCachedTables, std::wstring, unsigned int, SPA::UINT64, int, int, std::wstring)
-	END_SWITCH
-	return 0;
+		END_SWITCH
+		return 0;
 }
 
 void CYourPeerOne::GetMasterSlaveConnectedSessions(unsigned int &m_connections, unsigned int &s_connections) {
@@ -42,6 +42,96 @@ void CYourPeerOne::GetMasterSlaveConnectedSessions(unsigned int &m_connections, 
 	s_connections = CYourServer::Slave->GetConnectedSockets();
 }
 
+#if 1
+void CYourPeerOne::UploadEmployees(SPA::CUQueue &q, SPA::UINT64 reqIndex) {
+	unsigned int ret;
+	std::shared_ptr<SPA::UDB::CDBVariantArray> pData(new SPA::UDB::CDBVariantArray);
+	q >> *pData;
+	//assuming there is no local queue (no request backup) for master
+	assert(CYourServer::Master->GetQueueName().size() == 0);
+	std::shared_ptr<std::pair<int, std::wstring> > pError(new std::pair<int, std::wstring>(0, L""));
+	std::shared_ptr<CInt64Array> pId(new CInt64Array);
+	if (!pData->size()) {
+		ret = SendResultIndex(reqIndex, idUploadEmployees, pError->first, pError->second, *pId);
+		return;
+	}
+	else if ((pData->size() % 3)) {
+		pError->first = -1;
+		pError->second = L"Data array size is wrong";
+		ret = SendResultIndex(reqIndex, idUploadEmployees, pError->first, pError->second, *pId);
+		return;
+	}
+	//use master for insert, update and delete
+	auto handler = CYourServer::Master->Lock(); //use Lock and Unlock to avoid SQL stream overlap on a session within a multi-thread environment
+	if (!handler) {
+		pError->first = -2;
+		pError->second = L"No connection to a master database";
+		ret = SendResultIndex(reqIndex, idUploadEmployees, pError->first, pError->second, *pId);
+		return;
+	}
+	CClientSocket *cs = handler->GetAttachedClientSocket();
+	do {
+		if (!handler->BeginTrans() || !handler->Prepare(L"INSERT INTO mysample.EMPLOYEE(CompanyId,Name,JoinDate)VALUES(?,?,?)")) break;
+		bool ok = true;
+		SPA::UDB::CDBVariantArray v;
+		for (auto it = pData->cbegin(), end = pData->cend(); it != end;) {
+			v.push_back(*it);
+			v.push_back(*(it + 1));
+			v.push_back(*(it + 2));
+			ok = handler->Execute(v, [pError, pId](CSQLHandler &h, int r, const std::wstring &err, SPA::INT64 affected, SPA::UINT64 fail_ok, SPA::UDB::CDBVariant & vtId) {
+				if (r) {
+					if (!pError->first) {
+						//we only report the first error back to front caller
+						pError->first = r;
+						pError->second = err;
+					}
+					pId->push_back(-1);
+				}
+				else {
+					assert(affected == 1);
+					assert(!err.size());
+					assert(fail_ok == 1);
+					pId->push_back(vtId.llVal);
+				}
+			});
+			if (!ok) break;
+			v.clear();
+			it += 3;
+		}
+		if (!ok) break;
+		auto peer_handle = GetSocketHandle();
+		if (!handler->EndTrans(SPA::UDB::rpRollbackErrorAll, [reqIndex, peer_handle, pError, pId, this](CSQLHandler & h, int r, const std::wstring & err) {
+			//send result if front socket is not closed yet
+			if (peer_handle == this->GetSocketHandle()) {
+				if (r) {
+					if (!pError->first) {
+						//we only report the first error back to front caller
+						pError->first = r;
+						pError->second = err;
+					}
+				}
+				unsigned int ret = this->SendResultIndex(reqIndex, idUploadEmployees, pError->first, pError->second, *pId);
+			}
+		}, [reqIndex, pId, this, peer_handle, pError](SPA::ClientSide::CAsyncServiceHandler *h, bool canceled) {
+			if (peer_handle == this->GetSocketHandle()) {
+				CClientSocket *cs = h->GetAttachedClientSocket();
+				pError->first = cs->GetErrorCode();
+				std::string err_msg = cs->GetErrorMsg();
+				pError->second = SPA::Utilities::ToWide(err_msg.c_str(), err_msg.size());
+				unsigned int ret = this->SendResultIndex(reqIndex, idUploadEmployees, pError->first, pError->second, *pId);
+			}
+		}))
+			break;
+		//put back locked handler and its socket back into pool for reuse as soon as possible
+		CYourServer::Master->Unlock(handler);
+		return;
+	} while (false);
+	pError->first = cs->GetErrorCode();
+	std::string err_msg = cs->GetErrorMsg();
+	pError->second = SPA::Utilities::ToWide(err_msg.c_str(), err_msg.size());
+	ret = SendResultIndex(reqIndex, idUploadEmployees, pError->first, pError->second, *pId);
+}
+#else
 //manual retry for better fault tolerance
 void CYourPeerOne::UploadEmployees(SPA::CUQueue &q, SPA::UINT64 reqIndex) {
 	unsigned int ret;
@@ -104,32 +194,32 @@ void CYourPeerOne::UploadEmployees(SPA::CUQueue &q, SPA::UINT64 reqIndex) {
 			if (!ok) break;
 			auto peer_handle = GetSocketHandle();
 			if (handler->EndTrans(SPA::UDB::rpRollbackErrorAll, [reqIndex, peer_handle, pError, pId, this](CSQLHandler & h, int r, const std::wstring & err) {
-				if (r) {
-					if (!pError->first) {
-						//we only report the first error back to front caller
-						pError->first = r;
-						pError->second = err;
-					}
-				}
 				//send result if front socket is not closed yet
 				if (peer_handle == this->GetSocketHandle()) {
+					if (r) {
+						if (!pError->first) {
+							//we only report the first error back to front caller
+							pError->first = r;
+							pError->second = err;
+						}
+					}
 					unsigned int ret = this->SendResultIndex(reqIndex, idUploadEmployees, pError->first, pError->second, *pId);
 				}
 			}, [reqIndex, pData, this, peer_handle](SPA::ClientSide::CAsyncServiceHandler *h, bool canceled) {
+				//we need to retry as long as front socket is not closed yet
+				if (peer_handle == this->GetSocketHandle()) {
 #ifndef NDEBUG
-					{
-						SPA::CAutoLock al(m_csConsole);
-						//socket closed after sending
-						std::cout << "Retrying UploadEmployees ......" << std::endl;
-					}
+						{
+							SPA::CAutoLock al(m_csConsole);
+							//socket closed after sending
+							std::cout << "Retrying UploadEmployees ......" << std::endl;
+						}
 #endif
-					//we need to retry as long as front socket is not closed yet
-					if (peer_handle == this->GetSocketHandle()) {
 						SPA::CScopeUQueue sq;
 						//repack original request data and retry if socket is closed after sending
 						sq << *pData;
 						this->UploadEmployees(*sq, reqIndex); //this will not cause recursive stack-overflow exeption
-					}
+				}
 			})) {
 				CYourServer::Master->Unlock(handler); //put back locked handler and its socket back into pool for reuse as soon as possible
 				redo = 0; //disable redo only if all requests are successfully put onto wire
@@ -140,6 +230,7 @@ void CYourPeerOne::UploadEmployees(SPA::CUQueue &q, SPA::UINT64 reqIndex) {
 		} while (false);
 	} while (redo);
 }
+#endif
 
 void CYourPeerOne::GetRentalDateTimes(SPA::CUQueue &q, SPA::UINT64 reqIndex) {
 	SPA::INT64 rental_id;

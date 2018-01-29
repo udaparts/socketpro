@@ -42,7 +42,7 @@ void CConfig::GetConfig() {
 #endif
     m_slave_queue_name = "db_sakila";
     SPA::ClientSide::CConnectionContext cc = m_ccMaster;
-    cc.Host = "35.202.209.70";
+    cc.Host = "192.168.1.111";
     m_vccSlave.push_back(cc);
     //treat master as last salve
     m_vccSlave.push_back(m_ccMaster);

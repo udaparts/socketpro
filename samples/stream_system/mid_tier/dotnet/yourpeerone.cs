@@ -96,7 +96,7 @@ class CYourPeerOne : CCacheBasePeer
         //should always be true because slave pool has queue name set for request backup
         System.Diagnostics.Debug.Assert(ok);
     }
-
+    
     void UploadEmployees(CUQueue q, ulong reqIndex)
     {
         uint ret;
@@ -158,30 +158,32 @@ class CYourPeerOne : CCacheBasePeer
             ulong peer_handle = Handle;
             if (!handler.EndTrans(tagRollbackPlan.rpRollbackErrorAll, (h, res, errMsg) =>
             {
-                if (res != 0 && error.Key == 0)
-                    error = new KeyValuePair<int, string>(res, errMsg);
                 //send result if front peer not closed yet
                 if (peer_handle == Handle)
+                {
+                    if (res != 0 && error.Key == 0)
+                        error = new KeyValuePair<int, string>(res, errMsg);
                     ret = SendResultIndex(reqIndex, ss.Consts.idUploadEmployees, error.Key, error.Value, vId);
+                }
             }, (h, canceled) =>
             {
-                //socket closed after requests are put on wire
-                if (error.Key == 0)
-                    error = new KeyValuePair<int, string>(cs.ErrorCode, cs.ErrorMsg);
                 //send error message if front peer not closed yet
                 if (peer_handle == Handle)
+                {
+                    //socket closed after requests are put on wire
+                    if (error.Key == 0)
+                        error = new KeyValuePair<int, string>(cs.ErrorCode, cs.ErrorMsg);
                     ret = SendResultIndex(reqIndex, ss.Consts.idUploadEmployees, error.Key, error.Value, vId);
+                }
             }))
                 break;
             //put handler back into pool as soon as possible for reuse as long as socket connection is not closed yet
             CYourServer.Master.Unlock(handler);
             return;
         } while (false);
-        if (error.Key == 0)
-            error = new KeyValuePair<int, string>(cs.ErrorCode, cs.ErrorMsg);
-        ret = SendResultIndex(reqIndex, ss.Consts.idUploadEmployees, error.Key, error.Value, vId);
+        ret = SendResultIndex(reqIndex, ss.Consts.idUploadEmployees, cs.ErrorCode, cs.ErrorMsg, vId);
     }
-
+    
     //manual retry for better fault tolerance
     /*
     void UploadEmployees(CUQueue q, ulong reqIndex)
@@ -246,13 +248,15 @@ class CYourPeerOne : CCacheBasePeer
                 if (!ok)
                     break;
                 ulong peer_handle = Handle;
-                if (handler.EndTrans(tagRollbackPlan.rpRollbackErrorAll, (h, res, errMsg) =>
+                if (!handler.EndTrans(tagRollbackPlan.rpRollbackErrorAll, (h, res, errMsg) =>
                 {
-                    if (res != 0 && error.Key == 0)
-                        error = new KeyValuePair<int, string>(res, errMsg);
                     //send result if front peer not closed yet
                     if (peer_handle == Handle)
+                    {
+                        if (res != 0 && error.Key == 0)
+                            error = new KeyValuePair<int, string>(res, errMsg);
                         ret = SendResultIndex(reqIndex, ss.Consts.idUploadEmployees, error.Key, error.Value, vId);
+                    }
                 }, (h, canceled) =>
                 {
                     //retry if front peer not closed yet
@@ -274,19 +278,18 @@ class CYourPeerOne : CCacheBasePeer
                     }
                 }))
                 {
-                    redo = 0;
-                    //put handler back into pool as soon as possible for reuse, as long as socket connection is not closed yet
-                    CYourServer.Master.Unlock(handler);
+                    //socket just closed when sending last request EndTrans
                 }
                 else
                 {
-                    //socket just closed when sending last request EndTrans
+                    redo = 0; //no redo as all requests are successfully put on wire
+                    //put handler back into pool as soon as possible for reuse, as long as socket connection is not closed yet
+                    CYourServer.Master.Unlock(handler);
                 }
             } while (false);
         } while (redo > 0);
     }
     */
-
     protected override string GetCachedTables(string defaultDb, uint flags, ulong index, out int dbMS, out int res)
     {
         res = 0;
