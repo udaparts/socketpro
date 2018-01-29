@@ -10,118 +10,7 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="FileEditorManager">
-    <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="main.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/mid_tier/test_python/main.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="17">
-              <caret line="1" column="0" lean-forward="false" selection-start-line="1" selection-start-column="0" selection-end-line="1" selection-end-column="0" />
-              <folding>
-                <element signature="e#1#27#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="socketpool.py" pinned="false" current-in-tab="false">
-        <entry file="file://C:/Python34/Lib/spa/clientside/socketpool.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="238">
-              <caret line="208" column="18" lean-forward="true" selection-start-line="208" selection-start-column="8" selection-end-line="208" selection-end-column="20" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="config.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/mid_tier/test_python/config.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1173">
-              <caret line="69" column="55" lean-forward="true" selection-start-line="69" selection-start-column="55" selection-end-line="69" selection-end-column="55" />
-              <folding>
-                <element signature="e#0#43#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="yourpeer.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/mid_tier/test_python/yourpeer.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="489">
-              <caret line="287" column="0" lean-forward="true" selection-start-line="287" selection-start-column="0" selection-end-line="287" selection-end-column="0" />
-              <folding>
-                <element signature="e#1#42#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="baseservice.py" pinned="false" current-in-tab="false">
-        <entry file="file://C:/Python34/Lib/spa/serverside/baseservice.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1853">
-              <caret line="112" column="0" lean-forward="false" selection-start-line="112" selection-start-column="0" selection-end-line="112" selection-end-column="0" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="main.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/client/client_python/main.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="343">
-              <caret line="99" column="19" lean-forward="true" selection-start-line="99" selection-start-column="19" selection-end-line="99" selection-end-column="19" />
-              <folding>
-                <element signature="e#0#69#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="asyncdbhandler.py" pinned="false" current-in-tab="true">
-        <entry file="file://C:/Python34/Lib/spa/clientside/asyncdbhandler.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="95">
-              <caret line="506" column="46" lean-forward="true" selection-start-line="506" selection-start-column="46" selection-end-line="506" selection-end-column="46" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="__init__.py" pinned="false" current-in-tab="false">
-        <entry file="file://C:/Python34/Lib/spa/clientside/__init__.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-939">
-              <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="__init__.py" pinned="false" current-in-tab="false">
-        <entry file="file://C:/Python34/Lib/spa/serverside/__init__.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="285">
-              <caret line="61" column="52" lean-forward="true" selection-start-line="61" selection-start-column="52" selection-end-line="61" selection-end-column="52" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="yourserver.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/mid_tier/test_python/yourserver.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="71">
-              <caret line="54" column="24" lean-forward="true" selection-start-line="54" selection-start-column="8" selection-end-line="54" selection-end-column="24" />
-              <folding>
-                <element signature="e#0#41#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-    </leaf>
+    <leaf />
   </component>
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
@@ -152,13 +41,13 @@
         <option value="C:/Python33/Lib/spa/serverside/baseservice.py" />
         <option value="C:/Python33/Lib/spa/serverside/cachebpeer.py" />
         <option value="$PROJECT_DIR$/shared/sharedstruct.py" />
-        <option value="$PROJECT_DIR$/client/client_python/main.py" />
-        <option value="$PROJECT_DIR$/mid_tier/test_python/config.py" />
         <option value="$PROJECT_DIR$/mid_tier/test_python/yourserver.py" />
         <option value="C:/Python34/Lib/spa/serverside/__init__.py" />
-        <option value="$PROJECT_DIR$/mid_tier/test_python/yourpeer.py" />
         <option value="$PROJECT_DIR$/mid_tier/test_python/main.py" />
         <option value="C:/Python34/Lib/spa/clientside/asyncdbhandler.py" />
+        <option value="$PROJECT_DIR$/client/client_python/main.py" />
+        <option value="$PROJECT_DIR$/mid_tier/test_python/yourpeer.py" />
+        <option value="$PROJECT_DIR$/mid_tier/test_python/config.py" />
       </list>
     </option>
   </component>
@@ -183,13 +72,22 @@
     </navigator>
     <panes>
       <pane id="Scratches" />
-      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
             <path>
               <item name="stream_system" type="b2602c69:ProjectViewProjectNode" />
-              <item name="stream_system" type="462c0819:PsiDirectoryNode" />
+              <item name="stream_system" type="47feb1d3:ProjectViewModuleNode" />
+            </path>
+            <path>
+              <item name="stream_system" type="b2602c69:ProjectViewProjectNode" />
+              <item name="stream_system" type="47feb1d3:ProjectViewModuleNode" />
+              <item name="client_python" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="stream_system" type="b2602c69:ProjectViewProjectNode" />
+              <item name="stream_system" type="47feb1d3:ProjectViewModuleNode" />
+              <item name="test_python" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="stream_system" type="b2602c69:ProjectViewProjectNode" />
@@ -199,6 +97,7 @@
           <select />
         </subPane>
       </pane>
+      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -277,18 +176,18 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="-8" y="-8" width="1936" height="1096" extended-state="6" />
+    <frame x="-8" y="-8" width="1936" height="1056" extended-state="6" />
     <layout>
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.20989583" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.16822916" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
-      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.5922921" sideWeight="0.35416666" order="7" side_tool="true" content_ui="tabs" />
+      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.42344245" sideWeight="0.36197916" order="7" side_tool="true" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.42344245" sideWeight="0.6380208" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.5922921" sideWeight="0.6458333" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.38493723" sideWeight="0.7135417" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Data View" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
@@ -328,54 +227,18 @@
     </watches-manager>
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://C:/Python33/Lib/spa/memqueue.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1173">
-          <caret line="75" column="4" lean-forward="false" selection-start-line="75" selection-start-column="4" selection-end-line="75" selection-end-column="4" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/shared/sharedstruct.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="748">
-          <caret line="45" column="35" lean-forward="true" selection-start-line="45" selection-start-column="35" selection-end-line="45" selection-end-column="35" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/mid_tier/test_python/yourserver.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="884">
-          <caret line="55" column="0" lean-forward="false" selection-start-line="55" selection-start-column="0" selection-end-line="55" selection-end-column="0" />
-          <folding>
-            <element signature="e#0#41#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/mid_tier/test_python/main.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="85">
           <caret line="5" column="0" lean-forward="false" selection-start-line="5" selection-start-column="0" selection-end-line="5" selection-end-column="0" />
-          <folding>
-            <element signature="e#1#27#0" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://C:/Python33/Lib/codecs.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="5134">
-          <caret line="302" column="25" lean-forward="true" selection-start-line="302" selection-start-column="25" selection-end-line="302" selection-end-column="25" />
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://C:/Python33/Lib/codecs.py" />
     <entry file="file://$PROJECT_DIR$/client/client_python/main.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="187">
           <caret line="11" column="44" lean-forward="false" selection-start-line="11" selection-start-column="44" selection-end-line="11" selection-end-column="44" />
-          <folding>
-            <element signature="e#0#69#0" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -383,33 +246,15 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="85">
           <caret line="5" column="4" lean-forward="false" selection-start-line="5" selection-start-column="4" selection-end-line="5" selection-end-column="8" />
-          <folding>
-            <element signature="e#1#42#0" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://C:/Python33/Lib/spa/serverside/socketpeer.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2601">
-          <caret line="156" column="27" lean-forward="false" selection-start-line="156" selection-start-column="8" selection-end-line="156" selection-end-column="27" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://C:/Python33/Lib/spa/serverside/baseservice.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1598">
-          <caret line="97" column="50" lean-forward="true" selection-start-line="97" selection-start-column="50" selection-end-line="97" selection-end-column="50" />
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://C:/Python33/Lib/spa/serverside/socketpeer.py" />
+    <entry file="file://C:/Python33/Lib/spa/serverside/baseservice.py" />
     <entry file="file://$PROJECT_DIR$/mid_tier/test_python/main.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="340">
           <caret line="21" column="13" lean-forward="false" selection-start-line="21" selection-start-column="13" selection-end-line="21" selection-end-column="13" />
-          <folding>
-            <element signature="e#1#27#0" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -417,9 +262,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="136">
           <caret line="11" column="44" lean-forward="true" selection-start-line="11" selection-start-column="44" selection-end-line="11" selection-end-column="44" />
-          <folding>
-            <element signature="e#0#69#0" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -427,9 +269,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
           <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding>
-            <element signature="e#1#27#0" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -448,122 +287,25 @@
       </provider>
     </entry>
     <entry file="file://C:/python363/Lib/spa/memqueue.py" />
-    <entry file="file://C:/python363/Lib/spa/clientside/asynchandler.py" />
     <entry file="file://C:/python363/Lib/spa/serverside/reqattr.py" />
     <entry file="file://C:/python363/Lib/spa/serverside/__init__.py" />
     <entry file="file://C:/python363/Lib/spa/serverside/serviceattr.py" />
-    <entry file="file://C:/Python33/Lib/spa/serverside/spserver.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="195">
-          <caret line="112" column="24" lean-forward="false" selection-start-line="112" selection-start-column="12" selection-end-line="112" selection-end-column="24" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://C:/Python33/Lib/spa/masterpool.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="457">
-          <caret line="85" column="40" lean-forward="false" selection-start-line="85" selection-start-column="40" selection-end-line="85" selection-end-column="40" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://C:/Python33/Lib/codecs.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="222">
-          <caret line="300" column="0" lean-forward="false" selection-start-line="300" selection-start-column="0" selection-end-line="300" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://C:/Python33/Lib/spa/__init__.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-3009">
-          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://C:/Python33/Lib/spa/dataset.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-6956">
-          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://C:/Python33/Lib/spa/udb/__init__.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-1989">
-          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://C:/Python33/Lib/spa/serverside/baseservice.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="289">
-          <caret line="98" column="37" lean-forward="true" selection-start-line="98" selection-start-column="37" selection-end-line="98" selection-end-column="37" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://C:/Python33/Lib/threading.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="507">
-          <caret line="207" column="25" lean-forward="true" selection-start-line="207" selection-start-column="25" selection-end-line="207" selection-end-column="25" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://C:/Python33/Lib/spa/clientside/ufuture.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="502">
-          <caret line="69" column="0" lean-forward="true" selection-start-line="69" selection-start-column="0" selection-end-line="69" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://C:/Python33/Lib/spa/clientside/cachedhandler.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="184">
-          <caret line="108" column="0" lean-forward="false" selection-start-line="108" selection-start-column="0" selection-end-line="108" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://C:/Python33/Lib/spa/serverside/socketpeer.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-725">
-          <caret line="156" column="27" lean-forward="false" selection-start-line="156" selection-start-column="8" selection-end-line="156" selection-end-column="27" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://C:/Python33/Lib/spa/serverside/cachebpeer.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1513">
-          <caret line="94" column="34" lean-forward="false" selection-start-line="94" selection-start-column="34" selection-end-line="94" selection-end-column="34" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://C:/Python33/Lib/spa/memqueue.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="255">
-          <caret line="21" column="0" lean-forward="false" selection-start-line="21" selection-start-column="0" selection-end-line="21" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://C:/Python33/Lib/datetime.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="187">
-          <caret line="12" column="0" lean-forward="false" selection-start-line="12" selection-start-column="0" selection-end-line="12" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://C:/Python33/Lib/spa/serverside/clientpeer.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="309">
-          <caret line="66" column="8" lean-forward="false" selection-start-line="66" selection-start-column="8" selection-end-line="66" selection-end-column="8" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://C:/Python33/Lib/spa/clientside/asyncdbhandler.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="10455">
-          <caret line="620" column="21" lean-forward="false" selection-start-line="620" selection-start-column="8" selection-end-line="620" selection-end-column="25" />
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://C:/Python33/Lib/spa/serverside/spserver.py" />
+    <entry file="file://C:/Python33/Lib/spa/masterpool.py" />
+    <entry file="file://C:/Python33/Lib/codecs.py" />
+    <entry file="file://C:/Python33/Lib/spa/__init__.py" />
+    <entry file="file://C:/Python33/Lib/spa/dataset.py" />
+    <entry file="file://C:/Python33/Lib/spa/udb/__init__.py" />
+    <entry file="file://C:/Python33/Lib/spa/serverside/baseservice.py" />
+    <entry file="file://C:/Python33/Lib/threading.py" />
+    <entry file="file://C:/Python33/Lib/spa/clientside/ufuture.py" />
+    <entry file="file://C:/Python33/Lib/spa/clientside/cachedhandler.py" />
+    <entry file="file://C:/Python33/Lib/spa/serverside/socketpeer.py" />
+    <entry file="file://C:/Python33/Lib/spa/serverside/cachebpeer.py" />
+    <entry file="file://C:/Python33/Lib/spa/memqueue.py" />
+    <entry file="file://C:/Python33/Lib/datetime.py" />
+    <entry file="file://C:/Python33/Lib/spa/serverside/clientpeer.py" />
+    <entry file="file://C:/Python33/Lib/spa/clientside/asyncdbhandler.py" />
     <entry file="file://$PROJECT_DIR$/shared/sharedstruct.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="510">
@@ -571,131 +313,83 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://C:/Python33/Lib/spa/clientside/conncontext.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="85">
-          <caret line="5" column="8" lean-forward="false" selection-start-line="5" selection-start-column="8" selection-end-line="5" selection-end-column="8" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://C:/Python33/Lib/spa/sqlpool.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1360">
-          <caret line="83" column="0" lean-forward="false" selection-start-line="83" selection-start-column="0" selection-end-line="83" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://C:/Python33/Lib/spa/clientside/socketpool.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="6409">
-          <caret line="385" column="37" lean-forward="false" selection-start-line="385" selection-start-column="37" selection-end-line="385" selection-end-column="37" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://C:/Python34/Lib/spa/clientside/asynchandler.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="3621">
-          <caret line="217" column="0" lean-forward="false" selection-start-line="217" selection-start-column="0" selection-end-line="217" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://C:/Python33/Lib/spa/clientside/conncontext.py" />
+    <entry file="file://C:/Python33/Lib/spa/sqlpool.py" />
+    <entry file="file://C:/Python33/Lib/spa/clientside/socketpool.py" />
+    <entry file="file://C:/Python34/Lib/spa/clientside/asynchandler.py" />
     <entry file="file://$PROJECT_DIR$/client/client_python/webasynchandler.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="850">
           <caret line="53" column="0" lean-forward="false" selection-start-line="53" selection-start-column="0" selection-end-line="53" selection-end-column="0" />
-          <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://C:/Python34/Lib/spa/serverside/baseservice.py">
+    <entry file="file://C:/Python34/Lib/spa/serverside/baseservice.py" />
+    <entry file="file://$PROJECT_DIR$/mid_tier/test_python/yourserver.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1853">
-          <caret line="112" column="0" lean-forward="false" selection-start-line="112" selection-start-column="0" selection-end-line="112" selection-end-column="0" />
+        <state relative-caret-position="816">
+          <caret line="54" column="24" lean-forward="false" selection-start-line="54" selection-start-column="8" selection-end-line="54" selection-end-column="24" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://C:/Python34/Lib/spa/clientside/socketpool.py" />
+    <entry file="file://C:/Python34/Lib/spa/clientside/__init__.py" />
+    <entry file="file://C:/Python34/Lib/spa/serverside/__init__.py" />
+    <entry file="file://$PROJECT_DIR$/mid_tier/test_python/main.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="238">
+          <caret line="14" column="33" lean-forward="true" selection-start-line="14" selection-start-column="33" selection-end-line="14" selection-end-column="33" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://C:/Python34/Lib/spa/clientside/asyncdbhandler.py" />
+    <entry file="file://C:/python363/Lib/spa/clientside/cachedhandler.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="119">
+          <caret line="30" column="0" lean-forward="false" selection-start-line="30" selection-start-column="0" selection-end-line="30" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://C:/python363/Lib/spa/clientside/clientsocket.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="119">
+          <caret line="332" column="0" lean-forward="false" selection-start-line="332" selection-start-column="0" selection-end-line="332" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://C:/python363/Lib/spa/clientside/asynchandler.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="112">
+          <caret line="242" column="0" lean-forward="false" selection-start-line="242" selection-start-column="0" selection-end-line="242" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://C:/python363/Lib/spa/clientside/socketpool.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="374">
+          <caret line="162" column="25" lean-forward="true" selection-start-line="162" selection-start-column="25" selection-end-line="162" selection-end-column="25" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/client/client_python/main.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="121">
+          <caret line="97" column="88" lean-forward="false" selection-start-line="97" selection-start-column="88" selection-end-line="97" selection-end-column="88" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/mid_tier/test_python/yourpeer.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="5287">
+          <caret line="317" column="0" lean-forward="true" selection-start-line="317" selection-start-column="0" selection-end-line="317" selection-end-column="0" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/mid_tier/test_python/config.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1173">
-          <caret line="69" column="55" lean-forward="true" selection-start-line="69" selection-start-column="55" selection-end-line="69" selection-end-column="55" />
-          <folding>
-            <element signature="e#0#43#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/mid_tier/test_python/yourserver.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="71">
-          <caret line="54" column="24" lean-forward="true" selection-start-line="54" selection-start-column="8" selection-end-line="54" selection-end-column="24" />
-          <folding>
-            <element signature="e#0#41#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://C:/Python34/Lib/spa/clientside/socketpool.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="238">
-          <caret line="208" column="18" lean-forward="true" selection-start-line="208" selection-start-column="8" selection-end-line="208" selection-end-column="20" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/client/client_python/main.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="343">
-          <caret line="99" column="19" lean-forward="true" selection-start-line="99" selection-start-column="19" selection-end-line="99" selection-end-column="19" />
-          <folding>
-            <element signature="e#0#69#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://C:/Python34/Lib/spa/clientside/__init__.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-939">
-          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://C:/Python34/Lib/spa/serverside/__init__.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="285">
-          <caret line="61" column="52" lean-forward="true" selection-start-line="61" selection-start-column="52" selection-end-line="61" selection-end-column="52" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/mid_tier/test_python/yourpeer.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="489">
-          <caret line="287" column="0" lean-forward="true" selection-start-line="287" selection-start-column="0" selection-end-line="287" selection-end-column="0" />
-          <folding>
-            <element signature="e#1#42#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/mid_tier/test_python/main.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="17">
-          <caret line="1" column="0" lean-forward="false" selection-start-line="1" selection-start-column="0" selection-end-line="1" selection-end-column="0" />
-          <folding>
-            <element signature="e#1#27#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://C:/Python34/Lib/spa/clientside/asyncdbhandler.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="95">
-          <caret line="506" column="46" lean-forward="true" selection-start-line="506" selection-start-column="46" selection-end-line="506" selection-end-column="46" />
+        <state relative-caret-position="319">
+          <caret line="53" column="36" lean-forward="true" selection-start-line="53" selection-start-column="36" selection-end-line="53" selection-end-column="36" />
           <folding />
         </state>
       </provider>
