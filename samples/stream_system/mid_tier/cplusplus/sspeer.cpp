@@ -324,10 +324,6 @@ void CYourPeerOne::GetCachedTables(const std::wstring &defaultDb, unsigned int f
 		if (!handler->Execute(sql.c_str(), [prom, &res, &errMsg](CSQLHandler & h, int r, const std::wstring & err, SPA::INT64 affected, SPA::UINT64 fail_ok, SPA::UDB::CDBVariant & vtId) {
 			res = r;
 			errMsg = err;
-#ifndef NDEBUG
-			std::cout << "CYourPeerOne::GetCachedTables: error code = " << res << ", error message = ";
-			std::wcout << errMsg.c_str() << std::endl;
-#endif
 			prom->set_value();
 		}, [this](CSQLHandler &h, SPA::UDB::CDBVariantArray & vData) {
 			this->SendRows(vData);
