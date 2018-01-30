@@ -81,16 +81,6 @@ class CStreamingFile(CAsyncServiceHandler):
                 return None
             return self._vContext[0].FilePath
 
-    def CancelOne(self):
-        with self._csFile:
-            if len(self._vContext) == 0:
-                return False
-            cc = self._vContext.pop()
-            if cc.Tried:
-                self._vContext.append(cc)
-                return false;
-            return True
-
     def OnMergeTo(self, to):
         with to._csFile:
             with self._csFile:

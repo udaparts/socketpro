@@ -1988,8 +1988,8 @@ namespace SPA {
                             ok = ClientCoreLoader.TurnOnZipAtSvr(h, pcs->m_cc.Zip);
                             ok = ClientCoreLoader.SetSockOptAtSvr(h, soRcvBuf, 116800, slSocket);
                             ok = ClientCoreLoader.SetSockOptAtSvr(h, soSndBuf, 116800, slSocket);
-                            sp->SetQueue(pcs, index);
                             ok = ClientCoreLoader.CommitBatching(h, false);
+                            sp->SetQueue(pcs, index);
                         }
                         break;
                     case speQueueMergedFrom:

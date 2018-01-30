@@ -868,8 +868,8 @@ namespace SocketProAdapter
                             ok = ClientCoreLoader.SetSockOptAtSvr(h, tagSocketOption.soRcvBuf, 116800, tagSocketLevel.slSocket) != 0;
                             ok = ClientCoreLoader.SetSockOptAtSvr(h, tagSocketOption.soSndBuf, 116800, tagSocketLevel.slSocket) != 0;
                             ok = ClientCoreLoader.SetSockOptAtSvr(h, tagSocketOption.soTcpNoDelay, 1, tagSocketLevel.slTcp) != 0;
-                            SetQueue(cs);
                             ok = (ClientCoreLoader.CommitBatching(h, (byte)0) != 0);
+                            SetQueue(cs);
                         }
                         break;
                     case tagSocketPoolEvent.speQueueMergedFrom:

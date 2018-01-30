@@ -95,24 +95,6 @@ public class CStreamingFile extends CAsyncServiceHandler {
     }
 
     /**
-     * Remove the last queued file from queue
-     *
-     * @return true if successful. Otherwise, false
-     */
-    public boolean CancelOne() {
-        synchronized (m_csFile) {
-            if (m_vContext.size() > 0) {
-                CContext cc = m_vContext.getLast();
-                if (!cc.Tried) {
-                    m_vContext.removeLast();
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    /**
      * Get the number of files queued
      *
      * @return the number of files queued

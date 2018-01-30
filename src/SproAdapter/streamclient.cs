@@ -390,27 +390,6 @@ namespace SocketProAdapter.ClientSide
             }
         }
 
-        /// <summary>
-        /// Remove the last queued file from queue
-        /// </summary>
-        /// <returns>True if successful. Otherwise, false</returns>
-        public bool CancelOne()
-        {
-            lock (m_csFile)
-            {
-                if (m_vContext.Count > 0)
-                {
-                    CContext cc = m_vContext[m_vContext.Count - 1];
-                    if (!cc.Tried)
-                    {
-                        m_vContext.RemoveFromBack();
-                        return true;
-                    }
-                }
-            }
-            return false;
-        }
-
         protected override void OnMergeTo(CAsyncServiceHandler to)
         {
             CStreamingFile fTo = (CStreamingFile)to;

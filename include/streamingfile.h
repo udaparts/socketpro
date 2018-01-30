@@ -89,18 +89,6 @@ namespace SPA {
                 return m_vContext.size();
             }
 
-            bool CancelOne() {
-                CAutoLock al(m_csFile);
-                if (m_vContext.size()) {
-                    const CContext &cc = m_vContext.back();
-                    if (!cc.Tried) {
-                        m_vContext.pop_back();
-                        return true;
-                    }
-                }
-                return false;
-            }
-
             UINT64 GetFileSize() {
                 UINT64 file_size = (~0);
                 CAutoLock al(m_csFile);
