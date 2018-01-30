@@ -59,7 +59,7 @@ public class CStreamingFile extends CAsyncServiceHandler {
         void invoke(CStreamingFile file, long transferred);
     }
 
-    class CContext {
+    private class CContext {
 
         public CContext(boolean uplaod, int flags) {
             Uploading = uplaod;
@@ -94,6 +94,40 @@ public class CStreamingFile extends CAsyncServiceHandler {
         }
     }
 
+    /**
+     * Remove the last queued file from queue
+     *
+     * @return true if successful. Otherwise, false
+     */
+    public boolean CancelOne() {
+        synchronized (m_csFile) {
+            if (m_vContext.size() > 0) {
+                CContext cc = m_vContext.getLast();
+                if (!cc.Tried) {
+                    m_vContext.removeLast();
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Get the number of files queued
+     *
+     * @return the number of files queued
+     */
+    public int getFilesQueued() {
+        synchronized (m_csFile) {
+            return m_vContext.size();
+        }
+    }
+
+    /**
+     * Get the file size in bytes for current file being in transaction
+     *
+     * @return file size in bytes
+     */
     public long getFileSize() {
         synchronized (m_csFile) {
             if (m_vContext.isEmpty()) {
@@ -103,6 +137,11 @@ public class CStreamingFile extends CAsyncServiceHandler {
         }
     }
 
+    /**
+     * Get local file name of current file being in transaction
+     *
+     * @return a string for local file name
+     */
     public String getLocalFile() {
         synchronized (m_csFile) {
             if (m_vContext.isEmpty()) {
@@ -112,6 +151,11 @@ public class CStreamingFile extends CAsyncServiceHandler {
         }
     }
 
+    /**
+     * Get remote file name of current file being in transaction
+     *
+     * @return a string for remote file name
+     */
     public String getRemoteFile() {
         synchronized (m_csFile) {
             if (m_vContext.isEmpty()) {
@@ -480,6 +524,7 @@ public class CStreamingFile extends CAsyncServiceHandler {
                     CScopeUQueue.Unlock(sb);
                     return false;
                 }
+                context.Tried = true;
                 context.Sent = true;
                 sent_buffer_size = cs.getBytesInSendingBuffer();
                 if (sent_buffer_size > 3 * STREAM_CHUNK_SIZE) {

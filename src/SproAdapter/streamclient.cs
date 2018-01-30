@@ -279,7 +279,7 @@ namespace SocketProAdapter.ClientSide
         {
         }
 
-        class CContext
+        private class CContext
         {
             public CContext(bool uplaod, uint flags)
             {
@@ -328,6 +328,23 @@ namespace SocketProAdapter.ClientSide
             return base.CleanCallbacks();
         }
 
+        /// <summary>
+        /// The number of files queued
+        /// </summary>
+        public uint FilesQueued
+        {
+            get
+            {
+                lock (m_csFile)
+                {
+                    return (uint)m_vContext.Count;
+                }
+            }
+        }
+
+        /// <summary>
+        /// The file size in bytes for current file being in transaction
+        /// </summary>
         public long FileSize
         {
             get
@@ -341,6 +358,9 @@ namespace SocketProAdapter.ClientSide
             }
         }
 
+        /// <summary>
+        /// Local file name of current file being in transaction
+        /// </summary>
         public string LocalFile
         {
             get
@@ -354,6 +374,9 @@ namespace SocketProAdapter.ClientSide
             }
         }
 
+        /// <summary>
+        /// Remote file name of current file being in transaction
+        /// </summary>
         public string RemoteFile
         {
             get
@@ -365,6 +388,27 @@ namespace SocketProAdapter.ClientSide
                     return m_vContext[0].FilePath;
                 }
             }
+        }
+
+        /// <summary>
+        /// Remove the last queued file from queue
+        /// </summary>
+        /// <returns>True if successful. Otherwise, false</returns>
+        public bool CancelOne()
+        {
+            lock (m_csFile)
+            {
+                if (m_vContext.Count > 0)
+                {
+                    CContext cc = m_vContext[m_vContext.Count - 1];
+                    if (!cc.Tried)
+                    {
+                        m_vContext.RemoveFromBack();
+                        return true;
+                    }
+                }
+            }
+            return false;
         }
 
         protected override void OnMergeTo(CAsyncServiceHandler to)
@@ -734,6 +778,7 @@ namespace SocketProAdapter.ClientSide
                     if (!SendRequest(idDownload, context.FilePath, context.Flags, rh, context.Discarded, se))
                         return false;
                     context.Sent = true;
+                    context.Tried = true;
                     sent_buffer_size = cs.BytesInSendingBuffer;
                     if (sent_buffer_size > 3 * STREAM_CHUNK_SIZE)
                         break;
@@ -744,3 +789,4 @@ namespace SocketProAdapter.ClientSide
         }
     }
 }
+
