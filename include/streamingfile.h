@@ -50,7 +50,7 @@ namespace SPA {
                 std::wstring FilePath;
                 DDownload Download;
                 DTransferring Transferring;
-                DCanceled Aborted;
+                DDiscarded Discarded;
 #ifdef WIN32_64
                 HANDLE File;
 #else
@@ -68,9 +68,15 @@ namespace SPA {
 #ifdef WIN32_64
                         if (it->File != INVALID_HANDLE_VALUE)
                             ::CloseHandle(it->File);
+                        if (!it->Uploading)
+                            ::DeleteFileW(it->LocalFile.c_str());
 #else
                         if (it->File != -1)
                             ::close(it->File);
+                        if (!it->Uploading) {
+                            std::string path = Utilities::ToUTF8(it->LocalFile.c_str(), it->LocalFile.size());
+                            unlink(path.c_str());
+                        }
 #endif
                     }
                     m_vContext.clear();
@@ -86,7 +92,7 @@ namespace SPA {
                 return file_size;
             }
 
-            bool Upload(const wchar_t *localFile, const wchar_t *remoteFile, DUpload up = nullptr, DTransferring trans = nullptr, DCanceled aborted = nullptr, unsigned int flags = SFile::FILE_OPEN_TRUNCACTED) {
+            bool Upload(const wchar_t *localFile, const wchar_t *remoteFile, DUpload up = nullptr, DTransferring trans = nullptr, DDiscarded aborted = nullptr, unsigned int flags = SFile::FILE_OPEN_TRUNCACTED) {
                 if (!localFile || !::wcslen(localFile))
                     return false;
                 if (!remoteFile || !::wcslen(remoteFile))
@@ -94,7 +100,7 @@ namespace SPA {
                 CContext context(true, flags);
                 context.Download = up;
                 context.Transferring = trans;
-                context.Aborted = aborted;
+                context.Discarded = aborted;
                 context.FilePath = remoteFile;
                 context.LocalFile = localFile;
                 CAutoLock al(m_csFile);
@@ -102,7 +108,7 @@ namespace SPA {
                 return Transfer();
             }
 
-            bool Download(const wchar_t *localFile, const wchar_t *remoteFile, DDownload dl = nullptr, DTransferring trans = nullptr, DCanceled aborted = nullptr, unsigned int flags = SFile::FILE_OPEN_TRUNCACTED) {
+            bool Download(const wchar_t *localFile, const wchar_t *remoteFile, DDownload dl = nullptr, DTransferring trans = nullptr, DDiscarded aborted = nullptr, unsigned int flags = SFile::FILE_OPEN_TRUNCACTED) {
                 if (!localFile || !::wcslen(localFile))
                     return false;
                 if (!remoteFile || !::wcslen(remoteFile))
@@ -110,7 +116,7 @@ namespace SPA {
                 CContext context(false, flags);
                 context.Download = dl;
                 context.Transferring = trans;
-                context.Aborted = aborted;
+                context.Discarded = aborted;
                 context.FilePath = remoteFile;
                 context.LocalFile = localFile;
                 CAutoLock al(m_csFile);
@@ -119,6 +125,18 @@ namespace SPA {
             }
 
         protected:
+
+            virtual void OnMergeTo(CAsyncServiceHandler & to) {
+                CStreamingFile &fTo = (CStreamingFile &) to;
+                CAutoLock al0(fTo.m_csFile);
+                {
+                    CAutoLock al1(m_csFile);
+                    for (auto it = m_vContext.begin(), end = m_vContext.end(); it != end; ++it) {
+                        fTo.m_vContext.push_back(*it);
+                    }
+                    m_vContext.clear();
+                }
+            }
 
             virtual void OnResultReturned(unsigned short reqId, CUQueue &mc) {
                 switch (reqId) {
@@ -423,7 +441,12 @@ namespace SPA {
                                 assert(res != -1);
                                 context.FileSize = st.st_size;
 #endif
-                                if (!SendRequest(SFile::idUpload, context.FilePath.c_str(), context.Flags, context.FileSize, rh, context.Aborted, se)) {
+                                IClientQueue &cq = GetAttachedClientSocket()->GetClientQueue();
+                                if (cq.IsAvailable()) {
+                                    bool ok = cq.StartJob();
+                                    assert(ok);
+                                }
+                                if (!SendRequest(SFile::idUpload, context.FilePath.c_str(), context.Flags, context.FileSize, rh, context.Discarded, se)) {
                                     return false;
                                 }
                             }
@@ -449,7 +472,7 @@ namespace SPA {
                             assert(ret != -1);
 #endif
                             while (ret > 0) {
-                                if (!SendRequest(SFile::idUploading, sb->GetBuffer(), (unsigned int) ret, rh, context.Aborted, se)) {
+                                if (!SendRequest(SFile::idUploading, sb->GetBuffer(), (unsigned int) ret, rh, context.Discarded, se)) {
                                     return false;
                                 }
                                 sent_buffer_size = cs->GetBytesInSendingBuffer();
@@ -468,15 +491,20 @@ namespace SPA {
                             }
                             if ((unsigned int) ret < SFile::STREAM_CHUNK_SIZE) {
                                 context.Sent = true;
-                                if (!SendRequest(SFile::idUploadCompleted, (const unsigned char*) nullptr, (unsigned int) 0, rh, context.Aborted, se)) {
+                                if (!SendRequest(SFile::idUploadCompleted, (const unsigned char*) nullptr, (unsigned int) 0, rh, context.Discarded, se)) {
                                     return false;
+                                }
+                                IClientQueue &cq = GetAttachedClientSocket()->GetClientQueue();
+                                if (cq.IsAvailable()) {
+                                    ok = cq.EndJob();
+                                    assert(ok);
                                 }
                             }
                             if (sent_buffer_size >= 4 * SFile::STREAM_CHUNK_SIZE)
                                 break;
                         }
                     } else {
-                        if (!SendRequest(SFile::idDownload, context.FilePath.c_str(), context.Flags, rh, context.Aborted, se)) {
+                        if (!SendRequest(SFile::idDownload, context.FilePath.c_str(), context.Flags, rh, context.Discarded, se)) {
                             return false;
                         }
                         context.Sent = true;

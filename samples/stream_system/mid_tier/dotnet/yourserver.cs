@@ -92,12 +92,16 @@ class CYourServer : CSocketProServer
 
         //start master pool for cache and update accessing
         bool ok = CYourServer.Master.StartSocketPool(config.m_ccMaster, config.m_nMasterSessions, 1); //one thread enough
-        
+        if (config.m_master_queue_name != null && config.m_master_queue_name.Length > 0)
+            CYourServer.Master.QueueName = config.m_master_queue_name;
+
         //compute threads and sockets_per_thread
         uint threads = config.m_nSlaveSessions / (uint)config.m_vccSlave.Count;
         uint sockets_per_thread = (uint)config.m_vccSlave.Count;
 
         CYourServer.Slave = new CMaster.CSlavePool(config.m_slave_default_db);
+        if (config.m_slave_queue_name != null && config.m_slave_queue_name.Length > 0)
+            CYourServer.Slave.QueueName = config.m_slave_queue_name;
 
         CConnectionContext[,] ppCC = new CConnectionContext[threads, sockets_per_thread];
         for (uint i = 0; i < threads; ++i)

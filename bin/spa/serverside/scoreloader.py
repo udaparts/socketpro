@@ -1045,6 +1045,21 @@ class SCoreLoader(object):
     GetMainThreads.argtypes = []
     GetMainThreads.restype = c_uint
 
+    #unsigned int WINAPI SendReturnDataIndex(USocket_Server_Handle h, SPA::UINT64 index, unsigned short usReqId, unsigned int ulBufferSize, const unsigned char *pBuffer);
+    SendReturnDataIndex = _ussLib_.SendReturnDataIndex
+    SendReturnDataIndex.argtypes = [c_uint64, c_uint64, c_ushort, c_uint, POINTER(c_ubyte)]
+    SendReturnDataIndex.restype = c_uint
+
+    #unsigned int WINAPI SendExceptionResultIndex(USocket_Server_Handle h, SPA::UINT64 index, const wchar_t* errMessage, const char* errWhere, unsigned short requestId, unsigned int errCode);
+    SendExceptionResultIndex = _ussLib_.SendExceptionResultIndex
+    SendExceptionResultIndex.argtypes = [c_uint64, c_uint64, c_wchar_p, c_char_p, c_ushort, c_uint]
+    SendExceptionResultIndex.restype = c_uint
+
+    #SPA::UINT64 WINAPI GetCurrentRequestIndex(USocket_Server_Handle h);
+    GetCurrentRequestIndex = _ussLib_.GetCurrentRequestIndex
+    GetCurrentRequestIndex.argtypes = [c_uint64]
+    GetCurrentRequestIndex.restype = c_uint64
+
 class CSvsContext(Structure):
     _fields_ = [("m_ta", c_int), #required with a worker thread only on window platforms
                 ("m_OnSwitchTo", SCoreLoader.POnSwitchTo),

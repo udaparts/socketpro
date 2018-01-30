@@ -189,7 +189,7 @@ public class CAsyncQueue extends CAsyncServiceHandler {
         BatchMessage(idMessage, message, len, q);
     }
 
-    public boolean EnqueueBatch(byte[] key, CUQueue q, final DEnqueue e) {
+    public boolean EnqueueBatch(byte[] key, CUQueue q, DEnqueue e, DDiscarded discarded) {
         if (key == null) {
             key = new byte[0];
         }
@@ -197,74 +197,87 @@ public class CAsyncQueue extends CAsyncServiceHandler {
             throw new java.lang.IllegalArgumentException("Bad operation");
         }
         CUQueue b = CScopeUQueue.Lock();
-        b.Save(key).Push(q.getIntenalBuffer(), q.getHeadPosition(), q.GetSize());
+        b.Save(key).Push(q.getIntenalBuffer(), q.getHeadPosition(), q.getSize());
         q.SetSize(0);
-        boolean ok = SendRequest(idEnqueueBatch, b, GetRH(e));
+        boolean ok = SendRequest(idEnqueueBatch, b, GetRH(e), discarded);
         CScopeUQueue.Unlock(b);
         return ok;
     }
 
+    public boolean EnqueueBatch(byte[] key, CUQueue q, DEnqueue e) {
+        return EnqueueBatch(key, q, e, null);
+    }
+
     public boolean EnqueueBatch(byte[] key, CUQueue q) {
-        return EnqueueBatch(key, q, null);
+        return EnqueueBatch(key, q, null, null);
+    }
+
+    public boolean Enqueue(byte[] key, short idMessage) {
+        return Enqueue(key, idMessage, (byte[]) null, null, null);
+    }
+
+    public boolean Enqueue(byte[] key, short idMessage, DEnqueue e) {
+        return Enqueue(key, idMessage, (byte[]) null, e, null);
+    }
+
+    public boolean Enqueue(byte[] key, short idMessage, DEnqueue e, DDiscarded discarded) {
+        return Enqueue(key, idMessage, (byte[]) null, e, discarded);
     }
 
     public boolean Enqueue(byte[] key, short idMessage, byte[] bytes) {
-        return Enqueue(key, idMessage, bytes, null);
+        return Enqueue(key, idMessage, bytes, null, null);
     }
 
-    public boolean Enqueue(byte[] key, short idMessage, byte[] bytes, final DEnqueue e) {
+    public boolean Enqueue(byte[] key, short idMessage, byte[] bytes, DEnqueue e) {
+        return Enqueue(key, idMessage, bytes, e, null);
+    }
+
+    public boolean Enqueue(byte[] key, short idMessage, byte[] bytes, DEnqueue e, DDiscarded discarded) {
         if (key == null) {
             key = new byte[0];
         }
         CUQueue q = CScopeUQueue.Lock();
         q.Save(key).Save(idMessage).Push(bytes);
-        boolean ok = SendRequest(idEnqueue, q, GetRH(e));
+        boolean ok = SendRequest(idEnqueue, q, GetRH(e), discarded);
         CScopeUQueue.Unlock(q);
         return ok;
     }
 
     public boolean Enqueue(byte[] key, short idMessage, CUQueue q) {
-        return Enqueue(key, idMessage, q, null);
+        return Enqueue(key, idMessage, q, null, null);
     }
 
-    public boolean Enqueue(byte[] key, short idMessage, CUQueue q, final DEnqueue e) {
+    public boolean Enqueue(byte[] key, short idMessage, CUQueue q, DEnqueue e) {
+        return Enqueue(key, idMessage, q, e, null);
+    }
+
+    public boolean Enqueue(byte[] key, short idMessage, CUQueue q, DEnqueue e, DDiscarded discarded) {
         if (key == null) {
             key = new byte[0];
         }
         CUQueue sq = CScopeUQueue.Lock();
-        sq.Save(key).Save(idMessage).Push(q.getIntenalBuffer(), q.getHeadPosition(), q.GetSize());
-        boolean ok = SendRequest(idEnqueue, sq, GetRH(e));
+        sq.Save(key).Save(idMessage).Push(q.getIntenalBuffer(), q.getHeadPosition(), q.getSize());
+        boolean ok = SendRequest(idEnqueue, sq, GetRH(e), discarded);
         CScopeUQueue.Unlock(sq);
         return ok;
     }
 
     public boolean Enqueue(byte[] key, short idMessage, CScopeUQueue q) {
-        return Enqueue(key, idMessage, q, null);
+        return Enqueue(key, idMessage, q, null, null);
     }
 
-    public boolean Enqueue(byte[] key, short idMessage, CScopeUQueue q, final DEnqueue e) {
+    public boolean Enqueue(byte[] key, short idMessage, CScopeUQueue q, DEnqueue e) {
+        return Enqueue(key, idMessage, q, e, null);
+    }
+
+    public boolean Enqueue(byte[] key, short idMessage, CScopeUQueue q, DEnqueue e, DDiscarded discarded) {
         if (key == null) {
             key = new byte[0];
         }
         CUQueue src = q.getUQueue();
         CUQueue sq = CScopeUQueue.Lock();
-        sq.Save(key).Save(idMessage).Push(src.getIntenalBuffer(), src.getHeadPosition(), src.GetSize());
-        boolean ok = SendRequest(idEnqueue, sq, GetRH(e));
-        CScopeUQueue.Unlock(sq);
-        return ok;
-    }
-
-    public boolean Enqueue(byte[] key, short idMessage) {
-        return Enqueue(key, idMessage, (DEnqueue) null);
-    }
-
-    public boolean Enqueue(byte[] key, short idMessage, final DEnqueue e) {
-        if (key == null) {
-            key = new byte[0];
-        }
-        CUQueue sq = CScopeUQueue.Lock();
-        sq.Save(key).Save(idMessage);
-        boolean ok = SendRequest(idEnqueue, sq, GetRH(e));
+        sq.Save(key).Save(idMessage).Push(src.getIntenalBuffer(), src.getHeadPosition(), src.getSize());
+        boolean ok = SendRequest(idEnqueue, sq, GetRH(e), discarded);
         CScopeUQueue.Unlock(sq);
         return ok;
     }
@@ -276,13 +289,43 @@ public class CAsyncQueue extends CAsyncServiceHandler {
      * queued messages must be less than 4 G bytes
      *
      * @param key An ASCII string for identifying a queue at server side
+     * @return true for sending the request successfully, and false for failure
+     */
+    public boolean StartQueueTrans(byte[] key) {
+        return StartQueueTrans(key, null, null);
+    }
+
+    /**
+     * Start enqueuing messages with transaction style. Currently, total size of
+     * queued messages must be less than 4 G bytes
+     *
+     * @param key An ASCII string for identifying a queue at server side
      * @param qt A callback for tracking returning error code, which can be one
      * of QUEUE_OK, QUEUE_TRANS_ALREADY_STARTED, and so on
      * @return true for sending the request successfully, and false for failure
      */
-    public boolean StartQueueTrans(byte[] key, final DQueueTrans qt) {
+    public boolean StartQueueTrans(byte[] key, DQueueTrans qt) {
+        return StartQueueTrans(key, qt, null);
+    }
+
+    /**
+     * Start enqueuing messages with transaction style. Currently, total size of
+     * queued messages must be less than 4 G bytes
+     *
+     * @param key An ASCII string for identifying a queue at server side
+     * @param qt A callback for tracking returning error code, which can be one
+     * of QUEUE_OK, QUEUE_TRANS_ALREADY_STARTED, and so on
+     * @param discarded a callback for tracking socket closed or request cancel
+     * event
+     * @return true for sending the request successfully, and false for failure
+     */
+    public boolean StartQueueTrans(byte[] key, final DQueueTrans qt, DDiscarded discarded) {
         if (key == null) {
             key = new byte[0];
+        }
+        IClientQueue cq = this.getAttachedClientSocket().getClientQueue();
+        if (cq.getAvailable()) {
+            cq.StartJob();
         }
         CUQueue sq = CScopeUQueue.Lock();
         sq.Save(key);
@@ -295,7 +338,7 @@ public class CAsyncQueue extends CAsyncServiceHandler {
                     ar.getUQueue().SetSize(0);
                 }
             }
-        });
+        }, discarded);
         CScopeUQueue.Unlock(sq);
         return ok;
     }
@@ -307,7 +350,7 @@ public class CAsyncQueue extends CAsyncServiceHandler {
      * @return true for sending the request successfully, and false for failure
      */
     public boolean EndQueueTrans() {
-        return EndQueueTrans(false, null);
+        return EndQueueTrans(false, null, null);
     }
 
     /**
@@ -318,7 +361,7 @@ public class CAsyncQueue extends CAsyncServiceHandler {
      * @return true for sending the request successfully, and false for failure
      */
     public boolean EndQueueTrans(boolean rollback) {
-        return EndQueueTrans(rollback, null);
+        return EndQueueTrans(rollback, null, null);
     }
 
     /**
@@ -330,7 +373,22 @@ public class CAsyncQueue extends CAsyncServiceHandler {
      * of QUEUE_OK, QUEUE_TRANS_NOT_STARTED_YET, and so on
      * @return true for sending the request successfully, and false for failure
      */
-    public boolean EndQueueTrans(boolean rollback, final DQueueTrans qt) {
+    public boolean EndQueueTrans(boolean rollback, DQueueTrans qt) {
+        return EndQueueTrans(rollback, qt, null);
+    }
+
+    /**
+     * End enqueuing messages with transaction style. Currently, total size of
+     * queued messages must be less than 4 G bytes
+     *
+     * @param rollback true for rollback, and false for committing
+     * @param qt A callback for tracking returning error code, which can be one
+     * of QUEUE_OK, QUEUE_TRANS_NOT_STARTED_YET, and so on
+     * @param discarded a callback for tracking socket closed or request cancel
+     * event
+     * @return true for sending the request successfully, and false for failure
+     */
+    public boolean EndQueueTrans(boolean rollback, final DQueueTrans qt, DDiscarded discarded) {
         CUQueue sq = CScopeUQueue.Lock();
         sq.Save(rollback);
         boolean ok = SendRequest(idEndTrans, sq, new CAsyncServiceHandler.DAsyncResultHandler() {
@@ -342,8 +400,16 @@ public class CAsyncQueue extends CAsyncServiceHandler {
                     ar.getUQueue().SetSize(0);
                 }
             }
-        });
+        }, discarded);
         CScopeUQueue.Unlock(sq);
+        IClientQueue cq = this.getAttachedClientSocket().getClientQueue();
+        if (cq.getAvailable()) {
+            if (rollback) {
+                cq.AbortJob();
+            } else {
+                cq.EndJob();
+            }
+        }
         return ok;
     }
 
@@ -353,7 +419,19 @@ public class CAsyncQueue extends CAsyncServiceHandler {
      * @param gk A callback for tracking a list of key names
      * @return true for sending the request successfully, and false for failure
      */
-    public boolean GetKeys(final DGetKeys gk) {
+    public boolean GetKeys(DGetKeys gk) {
+        return GetKeys(gk, null);
+    }
+
+    /**
+     * Query queue keys opened at server side
+     *
+     * @param gk A callback for tracking a list of key names
+     * @param discarded a callback for tracking socket closed or request cancel
+     * event
+     * @return true for sending the request successfully, and false for failure
+     */
+    public boolean GetKeys(final DGetKeys gk, DDiscarded discarded) {
         return SendRequest(idGetKeys, new CAsyncServiceHandler.DAsyncResultHandler() {
             @Override
             public void invoke(CAsyncResult ar) {
@@ -369,7 +447,18 @@ public class CAsyncQueue extends CAsyncServiceHandler {
                     ar.getUQueue().SetSize(0);
                 }
             }
-        });
+        }, discarded);
+    }
+
+    /**
+     * *
+     * Try to close a persistent queue opened at server side
+     *
+     * @param key An ASCII string for identifying a queue at server side
+     * @return true for sending the request successfully, and false for failure
+     */
+    public boolean CloseQueue(byte[] key) {
+        return CloseQueue(key, null, null, false);
     }
 
     /**
@@ -382,7 +471,7 @@ public class CAsyncQueue extends CAsyncServiceHandler {
      * @return true for sending the request successfully, and false for failure
      */
     public boolean CloseQueue(byte[] key, DClose c) {
-        return CloseQueue(key, c, false);
+        return CloseQueue(key, c, null, false);
     }
 
     /**
@@ -391,11 +480,27 @@ public class CAsyncQueue extends CAsyncServiceHandler {
      * @param key An ASCII string for identifying a queue at server side
      * @param c A callback for tracking returning error code, which can be one
      * of QUEUE_OK, QUEUE_DEQUEUING, and so on
+     * @param discarded a callback for tracking socket closed or request cancel
+     * event
+     * @return true for sending the request successfully, and false for failure
+     */
+    public boolean CloseQueue(byte[] key, DClose c, DDiscarded discarded) {
+        return CloseQueue(key, c, discarded, false);
+    }
+
+    /**
+     * Try to close or delete a persistent queue opened at server side
+     *
+     * @param key An ASCII string for identifying a queue at server side
+     * @param c A callback for tracking returning error code, which can be one
+     * of QUEUE_OK, QUEUE_DEQUEUING, and so on
+     * @param discarded a callback for tracking socket closed or request cancel
+     * event
      * @param permanent true for deleting a queue file, and false for closing a
      * queue file
      * @return true for sending the request successfully, and false for failure
      */
-    public boolean CloseQueue(byte[] key, final DClose c, boolean permanent) {
+    public boolean CloseQueue(byte[] key, final DClose c, DDiscarded discarded, boolean permanent) {
         if (key == null) {
             key = new byte[0];
         }
@@ -410,9 +515,19 @@ public class CAsyncQueue extends CAsyncServiceHandler {
                     ar.getUQueue().SetSize(0);
                 }
             }
-        });
+        }, discarded);
         CScopeUQueue.Unlock(sq);
         return ok;
+    }
+
+    /**
+     * Just get message count and queue file size in bytes only
+     *
+     * @param key An ASCII string for identifying a queue at server side
+     * @return true for sending the request successfully, and false for failure
+     */
+    public boolean FlushQueue(byte[] key) {
+        return FlushQueue(key, null, tagOptimistic.oMemoryCached, null);
     }
 
     /**
@@ -424,7 +539,7 @@ public class CAsyncQueue extends CAsyncServiceHandler {
      * @return true for sending the request successfully, and false for failure
      */
     public boolean FlushQueue(byte[] key, DFlush f) {
-        return FlushQueue(key, f, tagOptimistic.oMemoryCached);
+        return FlushQueue(key, f, tagOptimistic.oMemoryCached, null);
     }
 
     /**
@@ -440,7 +555,26 @@ public class CAsyncQueue extends CAsyncServiceHandler {
      * oDiskCommitted
      * @return true for sending the request successfully, and false for failure
      */
-    public boolean FlushQueue(byte[] key, final DFlush f, tagOptimistic option) {
+    public boolean FlushQueue(byte[] key, DFlush f, tagOptimistic option) {
+        return FlushQueue(key, f, option, null);
+    }
+
+    /**
+     * May flush memory data into either operation system memory or hard disk,
+     * and return message count and queue file size in bytes. Note the method
+     * only returns message count and queue file size in bytes if the option is
+     * oMemoryCached
+     *
+     * @param key An ASCII string for identifying a queue at server side
+     * @param f A callback for tracking returning message count and queue file
+     * size in bytes
+     * @param option one of options, oMemoryCached, oSystemMemoryCached and
+     * oDiskCommitted
+     * @param discarded a callback for tracking socket closed or request cancel
+     * event
+     * @return true for sending the request successfully, and false for failure
+     */
+    public boolean FlushQueue(byte[] key, final DFlush f, tagOptimistic option, DDiscarded discarded) {
         if (key == null) {
             key = new byte[0];
         }
@@ -457,7 +591,7 @@ public class CAsyncQueue extends CAsyncServiceHandler {
                     ar.getUQueue().SetSize(0);
                 }
             }
-        });
+        }, discarded);
         CScopeUQueue.Unlock(sq);
         return ok;
     }
@@ -473,7 +607,7 @@ public class CAsyncQueue extends CAsyncServiceHandler {
      * @return true for sending the request successfully, and false for failure
      */
     public boolean Dequeue(byte[] key, DDequeue d) {
-        return Dequeue(key, d, 0);
+        return Dequeue(key, d, 0, null);
     }
 
     /**
@@ -487,7 +621,25 @@ public class CAsyncQueue extends CAsyncServiceHandler {
      * @param timeout A time-out number in milliseconds
      * @return true for sending the request successfully, and false for failure
      */
-    public boolean Dequeue(byte[] key, final DDequeue d, int timeout) {
+    public boolean Dequeue(byte[] key, DDequeue d, int timeout) {
+        return Dequeue(key, d, timeout, null);
+    }
+
+    /**
+     * *
+     * Dequeue messages from a persistent message queue file at server side in
+     * batch
+     *
+     * @param key An ASCII string for identifying a queue at server side
+     * @param d A callback for tracking data like remaining message count within
+     * a server queue file, queue file size in bytes, message dequeued within
+     * this batch and bytes dequeued within this batch
+     * @param timeout A time-out number in milliseconds
+     * @param discarded a callback for tracking socket closed or request cancel
+     * event
+     * @return true for sending the request successfully, and false for failure
+     */
+    public boolean Dequeue(byte[] key, final DDequeue d, int timeout, DDiscarded discarded) {
         DAsyncResultHandler rh = null;
         if (key == null) {
             key = new byte[0];
@@ -508,10 +660,12 @@ public class CAsyncQueue extends CAsyncServiceHandler {
             } else {
                 m_dDequeue = null;
             }
+            CUQueue sq = CScopeUQueue.Lock();
+            sq.Save(key).Save(timeout);
+            boolean ok = SendRequest(idDequeue, sq, rh, discarded);
+            CScopeUQueue.Unlock(sq);
+            return ok;
         }
-        CScopeUQueue sq = new CScopeUQueue();
-        sq.getUQueue().Save(key).Save(timeout);
-        return SendRequest(idDequeue, sq, rh);
     }
 
     @Override

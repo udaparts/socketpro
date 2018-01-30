@@ -10,11 +10,13 @@ public class CConfig
     public string m_master_default_db = "";
     public uint m_nMasterSessions = 2;
     public SocketProAdapter.ClientSide.CConnectionContext m_ccMaster = new SocketProAdapter.ClientSide.CConnectionContext();
+    public string m_master_queue_name = "";
 
     //slave
     public string m_slave_default_db = "";
     public uint m_nSlaveSessions = 0;
     public List<SocketProAdapter.ClientSide.CConnectionContext> m_vccSlave = new List<SocketProAdapter.ClientSide.CConnectionContext>();
+    public string m_slave_queue_name = "";
 
     //middle tier server
     public byte m_main_threads = 1;
@@ -63,7 +65,8 @@ public class CConfig
         m_config.m_slave_default_db = "sakila";
         cc.Port = 20902;
 #endif
-        cc.Host = "104.154.160.127";
+        m_config.m_slave_queue_name = "db_sakila";
+        cc.Host = "192.168.1.111";
         cc.UserId = "root";
         cc.Password = "Smash123";
         m_config.m_vccSlave.Add(cc);

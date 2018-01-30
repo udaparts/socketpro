@@ -9,7 +9,8 @@
     - Integrated multiple communication patterns such as client-server, subscribe/publish, persistent message queue and load balancing as well as routing and replication
     - Rich features with many unique ones because of its unique design
     - Superior performance and scalability
-	- Well support on modern language development features such as anonymous function, closure, Lambda expression, async/await, future, promise, yield and so on
+    - Great fault tolerance, no message/request loss, and connection auto recovery
+    - Well support on modern language development features such as anonymous function, closure, Lambda expression, async/await, future, promise, yield and so on
     - Great maintainability, modularity and version control
 
 4.	High performance Plug-ins with opened source codes

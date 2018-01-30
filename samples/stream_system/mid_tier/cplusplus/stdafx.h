@@ -16,6 +16,8 @@ typedef CMySQLMasterPool::CSlavePool CMySQLSlavePool;
 typedef CMySQLMasterPool::CSQLHandler CSQLHandler;
 
 using namespace SPA::ServerSide;
+using namespace SPA::ClientSide;
+using namespace SPA::UDB;
 
 #ifdef WIN32_64
 

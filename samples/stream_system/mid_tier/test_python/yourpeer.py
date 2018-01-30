@@ -14,66 +14,131 @@ class CYourPeer(CCacheBasePeer):
 
     def OnFastRequestArrive(self, reqId, len):
         if reqId == idQueryMaxMinAvgs:
-            self.QueryMaxMinAvgs(self.UQueue)
+            self.QueryMaxMinAvgs(self.UQueue, self.CurrentRequestIndex)
         elif reqId == idUploadEmployees:
-            self.UploadEmployees(self.UQueue)
+            self.UploadEmployees(self.UQueue, self.CurrentRequestIndex)
+        elif reqId == idGetRentalDateTimes:
+            self.GetRentalDateTimes(self.UQueue, self.CurrentRequestIndex)
         else:
             assert False  # not implemented
 
-    def QueryMaxMinAvgs(self, q):
-        index = q.LoadULong()
+    def QueryMaxMinAvgs(self, q, reqIndex):
         filter = q.LoadString()
         pmma = CMaxMinAvg()
         sql = "SELECT MAX(amount),MIN(amount),AVG(amount) FROM payment"
         if filter and len(filter) > 0:
             sql += (' WHERE ' + filter)
-        res = 0
-        errMsg = ''
-        while True:
-            handler = CYourPeer.Slave.Seek()
-            if not handler:
-                res = -1
-                errMsg = 'No connection to a slave database'
-                break
+        handler = CYourPeer.Slave.SeekByQueue()
+        if not handler:
+            with CScopeUQueue() as sb:
+                sb.SaveInt(-1).SaveString('No connection to a slave database')
+                pmma.SaveTo(sb.UQueue)
+                self.SendResultIndex(reqIndex, sb, idQueryMaxMinAvgs)
+        else:
             peer_handle = self.Handle
-
             def ares(h, r, err, affected, fail_ok, vtId):
                 # send result if front peer not closed yet
                 if peer_handle == self.Handle:
-                    with CScopeUQueue() as sb0:
-                        sb0.SaveULong(index).SaveInt(res).SaveString(errMsg)
-                        pmma.SaveTo(sb0.UQueue)
-                        self.SendResult(sb0, idQueryMaxMinAvgs)
-
+                    with CScopeUQueue() as sb:
+                        sb.SaveInt(r).SaveString(err)
+                        pmma.SaveTo(sb.UQueue)
+                        self.SendResultIndex(reqIndex, sb, idQueryMaxMinAvgs)
             def rows(h, vData):
                 pmma.Max = float(vData[0])
                 pmma.Min = float(vData[1])
                 pmma.Avg = float(vData[2])
+            ok = handler.Execute(sql, ares, rows)
+            assert ok # should be always true if pool has local queue for request backup
 
-            def meta(h):
-                pass
+    def UploadEmployees(self, q, reqIndex):
+        vData = []
+        count = q.LoadUInt()
+        while count > 0:
+            vData.append(q.LoadObject())
+            count -= 1
+        res = 0
+        errMsg = ''
+        vId = CLongArray()
+        while True:
+            if len(vData) == 0:
+                break  # no retry
+            elif len(vData) % 3 != 0:
+                res = -1
+                errMsg = 'Data array size is wrong'
+                break
+            handler = CYourPeer.Master.Lock()
+            if not handler:
+                res = -2
+                errMsg = 'No connection to a master database'
+                break
+            cs = handler.AttachedClientSocket
+            if not handler.BeginTrans() or not handler.Prepare('INSERT INTO mysample.EMPLOYEE(CompanyId,Name,JoinDate)VALUES(?,?,?)'):
+                res = cs.ErrorCode
+                errMsg = cs.ErrorMsg
+                break
+            rows = len(vData) / 3
+            r = 0
+            ok = False
+            while r < rows:
+                v = []
+                v.append(vData[r * 3 + 0])
+                v.append(vData[r * 3 + 1])
+                v.append(vData[r * 3 + 2])
+                r += 1
 
-            def closed():
-                # retry if front peer not closed yet
+                def ares(h, r, err, affected, fail_ok, vtId):
+                    if r != 0:
+                        res = r
+                        errMsg = err
+                        vId.list.append(-1)
+                    else:
+                        vId.list.append(vtId)
+                ok = handler.Execute(v, ares)
+                if not ok:
+                    break
+            if not ok:
+                res = cs.ErrorCode
+                errMsg = cs.ErrorMsg
+                break
+            peer_handle = self.Handle
+
+            def et(h, r, err):
+                if r == 0:
+                    res = r
+                    errMsg = err
+                # send result if front peer not closed yet
                 if peer_handle == self.Handle:
                     with CScopeUQueue() as sb0:
-                        sb0.SaveULong(index).SaveInt(filter)
-                        self.QueryMaxMinAvgs(sb0.UQueue)
+                        sb0.SaveInt(res).SaveString(errMsg)
+                        vId.SaveTo(sb0.UQueue)
+                        self.SendResultIndex(reqIndex, sb0, idUploadEmployees)
 
-            if handler.Execute(sql, ares, rows, meta, True, True, closed):
-                # disable redo once request is put on wire
-                return
-
-            # re-seek a handler and retry as socket is closed when sending the request
+            def closed(h, canceled):
+                # retry if front peer not closed yet
+                if peer_handle == self.Handle:
+                    res = cs.ErrorCode
+                    errMsg = cs.ErrorMsg
+                    with CScopeUQueue() as sb0:
+                        sb0.SaveInt(res).SaveString(errMsg)
+                        vId.SaveTo(sb0.UQueue)
+                        self.SendResultIndex(reqIndex, sb0, idUploadEmployees)
+            if not handler.EndTrans(tagRollbackPlan.rpRollbackErrorAll, et, closed):
+                res = cs.ErrorCode
+                errMsg = cs.ErrorMsg
+                break
+            # put handler back into pool for reuse as soon as possible, as long as socket is not closed yet
+            CYourPeer.Master.Unlock(handler)
+            # all requests are successfully put on wire and don't use the below to send result
+            return
 
         with CScopeUQueue() as sb:
-            sb.SaveULong(index).SaveInt(res).SaveString(errMsg)
-            pmma.SaveTo(sb.UQueue)
-            self.SendResult(sb, idQueryMaxMinAvgs)
+            sb.SaveInt(res).SaveString(errMsg)
+            vId.SaveTo(sb.UQueue)
+            self.SendResultIndex(reqIndex, sb, idUploadEmployees)
 
-
-    def UploadEmployees(self, q):
-        index = q.LoadULong()
+    """
+    # manual retry for better fault tolerance
+    def UploadEmployees(self, q, reqIndex):
         vData = []
         count = q.LoadUInt()
         while count > 0:
@@ -124,7 +189,7 @@ class CYourPeer(CCacheBasePeer):
                         break
                 if not ok:
                     break  # re-seek a handler and retry as socket is closed when sending request
-
+                peer_handle = self.Handle
                 def et(h, r, err):
                     if r == 0:
                         res = r
@@ -133,22 +198,18 @@ class CYourPeer(CCacheBasePeer):
                     # send result if front peer not closed yet
                     if peer_handle == self.Handle:
                         with CScopeUQueue() as sb0:
-                            sb0.SaveULong(index).SaveInt(res).SaveString(errMsg)
+                            sb0.SaveInt(res).SaveString(errMsg)
                             vId.SaveTo(sb0.UQueue)
-                            self.SendResult(sb0, idUploadEmployees)
-
-                def closed():
+                            self.SendResultIndex(reqIndex, sb0, idUploadEmployees)
+                def closed(h, canceled):
                     # retry if front peer not closed yet
                     if peer_handle == self.Handle:
                         with CScopeUQueue() as sb0:
                             # repack original data
-                            sb0.SaveULong(index)
                             count = len(vData)
                             for d in vData:
                                 sb0.SaveObject(d)
-                            self.UploadEmployees(sb0.UQueue)
-
-                peer_handle = self.Handle
+                            self.UploadEmployees(sb0.UQueue, reqIndex)
                 if handler.EndTrans(tagRollbackPlan.rpRollbackErrorAll, et, closed):
                     CYourPeer.Master.Unlock(handler)  # put handler back into pool for reuse as soon as possible
                     return  # disable redo if requests are put on wire
@@ -156,71 +217,40 @@ class CYourPeer(CCacheBasePeer):
                     pass  # re-seek a handler and retry as socket is closed when sending request
 
         with CScopeUQueue() as sb:
-            sb.SaveULong(index).SaveInt(res).SaveString(errMsg)
+            sb.SaveInt(res).SaveString(errMsg)
             vId.SaveTo(sb.UQueue)
-            self.SendResult(sb, idUploadEmployees)
+            self.SendResultIndex(reqIndex, sb, idUploadEmployees)
+    """
 
-    def GetRentalDateTimes(self):
-        index = self.UQueue.LoadLong()
-        rental_id = self.UQueue.LoadLong()
-        myDates = CRentalDateTimes(rental_id)
-        res = 0
-        errMsg = u''
+    def GetRentalDateTimes(self, q, reqIndex):
+        rental_id = q.LoadLong()
+        myDates = CRentalDateTimes()
         sql = u'SELECT rental_id,rental_date,return_date,last_update FROM rental where rental_id=' + str(rental_id)
-        redo = 1
-
-        sb = CScopeUQueue()
-        sb.SaveLong(index)
-        while redo > 0:
-            handler = CYourPeer.Slave.Seek()
-            if not handler:
-                res = -1
-                errMsg = 'No connection to a slave database'
-                break
-            f = UFuture()
+        handler = CYourPeer.Slave.SeekByQueue()
+        if not handler:
+            with CScopeUQueue() as sb:
+                myDates.SaveTo(sb.UQueue)
+                sb.SaveInt(-1).SaveString('No connection to a slave database')
+                self.SendResultIndex(reqIndex, sb, idGetRentalDateTimes)
+        else:
             def ares(h, r, err, affected, fail_ok, vtId):
-                res = r
-                errMsg = err
-                f.set(1)
-
+                with CScopeUQueue() as sb:
+                    myDates.SaveTo(sb.UQueue)
+                    sb.SaveInt(r).SaveString(err)
+                    self.SendResultIndex(reqIndex, sb, idGetRentalDateTimes)
             def rows(h, vData):
+                myDates.rental_id = vData[0]
                 myDates.Rental = vData[1]
                 myDates.Return = vData[2]
                 myDates.LastUpdate = vData[3]
-
-            def meta(h):
-                assert len(h.ColumnInfo) == 4
-
-            def closed():
-                res = -2
-                errMsg = 'Request canceled or socket closed'
-                f.set(-1)
-
-            if handler.Execute(sql, ares, rows, meta, True, True, closed):
-                ret = f.get(20)
-                if not ret:
-                    # don't use handle->WaitAll() for better completion event as a session may be shared by multiple threads
-                    res = -2
-                    errMsg = 'Querying rental date times timed out'
-                    redo = 0  # no redo because of timed - out
-                elif ret > 0:
-                    redo = 0  # disable redo after result returned successfully
-                else:
-                    # socket closed after sending
-                    redo = 1
-            else:
-                # socket closed when sending SQL, re-seek a new handler and retry
-                redo = 1
-        myDates.SaveTo(sb.UQueue)
-        sb.SaveInt(res).SaveString(errMsg)
-        return sb
+            ok = handler.Execute(sql, ares, rows)
+            assert ok # should be always true if pool has local queue for request backup
 
     def GetMasterSlaveConnectedSessions(self):
-        index = self.UQueue.LoadLong()
         mc = CYourPeer.Master.ConnectedSockets
         sc = CYourPeer.Slave.ConnectedSockets
         sb = CScopeUQueue()
-        sb.SaveLong(index).SaveUInt(mc).SaveUInt(sc)
+        sb.SaveUInt(mc).SaveUInt(sc)
         return sb
 
     def GetCachedTables(self):

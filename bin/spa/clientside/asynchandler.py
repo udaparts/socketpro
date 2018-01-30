@@ -1,5 +1,6 @@
 
 import threading
+from spa import tagBaseRequestID
 from spa.memqueue import CUQueue, CScopeUQueue
 from spa.clientside.ccoreloader import CCoreLoader as ccl
 from ctypes import c_ubyte
@@ -77,12 +78,20 @@ class CAsyncResult(object):
         return self.UQueue.LoadByClass(cls)
 
 class CResultCb(object):
-    def __init__(self, arh = None, canceled = None, efs = None):
+    def __init__(self, arh = None, discarded = None, efs = None):
         self.AsyncResultHandler = arh
-        self.Canceled = canceled
+        self.Discarded = discarded
         self.ExceptionFromServer = efs
 
 class CAsyncServiceHandler(object):
+    _csCallIndex_ = threading.Lock()
+    _CallIndex_ = 0
+
+    def GetCallIndex():
+        with CAsyncServiceHandler._csCallIndex_:
+            CAsyncServiceHandler._CallIndex_ += 1
+            return CAsyncServiceHandler._CallIndex_
+
     def __init__(self, serviceId):
         self._m_nServiceId_ = serviceId
         self._lock_ = threading.Lock()
@@ -92,6 +101,12 @@ class CAsyncServiceHandler(object):
         self.ServerException = None
         self.ResultReturned = None
         self._lock_Send_ = threading.Lock()
+
+
+    def GetCallIndex(self):
+        with CAsyncServiceHandler._csCallIndex_:
+            CAsyncServiceHandler._CallIndex_ += 1
+            return CAsyncServiceHandler._CallIndex_
 
     def _GetAsyncResultHandler_(self, reqId):
         if self._m_ClientSocket_._m_random_:
@@ -113,7 +128,7 @@ class CAsyncServiceHandler(object):
         bytes = (c_ubyte * q.GetSize()).from_buffer(q._m_bytes_, q._m_position_)
         return ccl.SendRouteeResult(h, reqId, bytes, q.GetSize())
 
-    def SendRequest(self, reqId, q, arh, canceled = None, efs = None):
+    def SendRequest(self, reqId, q, arh, discarded=None, efs=None):
         if q is None:
             q = CUQueue(bytearray(0))
         if isinstance(q, CScopeUQueue):
@@ -128,8 +143,8 @@ class CAsyncServiceHandler(object):
         kv = None
         batching = False
         with self._lock_Send_:
-            if arh or canceled or efs:
-                kv = (reqId, CResultCb(arh, canceled, efs))
+            if arh or discarded or efs:
+                kv = (reqId, CResultCb(arh, discarded, efs))
                 with self._lock_:
                     batching = ccl.IsBatching(h)
                     if batching:
@@ -145,6 +160,12 @@ class CAsyncServiceHandler(object):
                     else:
                         self._m_kvCallback_.pop()
             return False
+
+
+    @property
+    def RequestsQueued(self):
+        with self._lock_:
+           return len(self._m_kvCallback_)
 
     @property
     def Batching(self):
@@ -183,8 +204,8 @@ class CAsyncServiceHandler(object):
     def AbortBatching(self):
         with self._lock_:
             for kv in self._m_kvBatching_:
-                if kv[1].Canceled:
-                    kv[1].Canceled()
+                if kv[1].Discarded:
+                    kv[1].Discarded(self, True)
             self._m_kvBatching_.clear()
         h = self._m_ClientSocket_.Handle
         return ccl.AbortBatching(h)
@@ -193,9 +214,13 @@ class CAsyncServiceHandler(object):
         h = self._m_ClientSocket_.Handle
         ccl.AbortDequeuedMessage(h)
 
+    def OnMergeTo(self, to):
+        pass
+
     def _AppendTo_(self, to):
         with to._lock_:
             with self._lock_:
+                self.OnMergeTo(to)
                 to._m_kvCallback_ += self._m_kvCallback_
                 self._m_kvCallback_.clear()
 
@@ -210,12 +235,12 @@ class CAsyncServiceHandler(object):
         with self._lock_:
             size = len(self._m_kvBatching_) + len(self._m_kvCallback_)
             for kv in self._m_kvBatching_:
-                if kv[1].Canceled:
-                    kv[1].Canceled()
+                if kv[1].Discarded:
+                    kv[1].Discarded(self, AttachedClientSocket.CurrentRequestID == tagBaseRequestID.idCancel)
             self._m_kvBatching_.clear()
             for kv in self._m_kvCallback_:
-                if kv[1].Canceled:
-                    kv[1].Canceled()
+                if kv[1].Discarded:
+                    kv[1].Discarded(self, AttachedClientSocket.CurrentRequestID == tagBaseRequestID.idCancel)
             self._m_kvCallback_.clear()
             return size
 

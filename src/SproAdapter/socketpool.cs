@@ -21,6 +21,84 @@ namespace SocketProAdapter
             private SocketPoolCallback m_spc = null;
             private uint m_ServiceId = 0;
             private CConnectionContext[,] m_mcc;
+            private string m_qName = "";
+            public string QueueName
+            {
+                get
+                {
+                    lock (m_cs)
+                    {
+                        return m_qName;
+                    }
+                }
+                set
+                {
+                    string s = value;
+                    if (s != null)
+                        s = s.Trim();
+                    else
+                        s = "";
+#if WINCE
+                    if (System.Environment.OSVersion.Platform != PlatformID.Unix)
+#else
+                    if (System.Environment.OSVersion.Platform != PlatformID.Unix && System.Environment.OSVersion.Platform != PlatformID.MacOSX)
+#endif
+                    {
+                        s = s.ToLower();
+                    }
+                    lock (m_cs)
+                    {
+                        if (m_qName != s)
+                        {
+                            StopPoolQueue();
+                            m_qName = s;
+                            if (m_qName.Length > 0)
+                            {
+                                StartPoolQueue(m_qName);
+                            }
+                        }
+                    }
+                }
+            }
+
+            private void StopPoolQueue()
+            {
+                foreach (CClientSocket cs in m_dicSocketHandler.Keys)
+                {
+                    if (cs.ClientQueue != null && cs.ClientQueue.Available)
+                        cs.ClientQueue.StopQueue();
+                }
+            }
+
+            private const uint DEFAULT_QUEUE_TIME_TO_LIVE = 240 * 3600;
+
+            private void StartPoolQueue(string qName)
+            {
+                int index = 0;
+                foreach (CClientSocket cs in m_dicSocketHandler.Keys)
+                {
+                    bool ok = cs.ClientQueue.StartQueue(qName + index.ToString(), DEFAULT_QUEUE_TIME_TO_LIVE, cs.EncryptionMethod != tagEncryptionMethod.NoEncryption);
+                    ++index;
+                }
+            }
+
+            private void SetQueue(CClientSocket socket)
+            {
+                int index = 0;
+                foreach (CClientSocket cs in m_dicSocketHandler.Keys)
+                {
+                    if (cs == socket)
+                    {
+                        if (m_qName.Length > 0)
+                        {
+                            if (!cs.ClientQueue.Available)
+                                cs.ClientQueue.StartQueue(m_qName + index.ToString(), DEFAULT_QUEUE_TIME_TO_LIVE, cs.EncryptionMethod != tagEncryptionMethod.NoEncryption);
+                        }
+                        break;
+                    }
+                    ++index;
+                }
+            }
 
             public static uint SocketPools
             {
@@ -188,7 +266,7 @@ namespace SocketProAdapter
                 {
                     foreach (CClientSocket cs in m_dicSocketHandler.Keys)
                     {
-                        if (cs.ConnectionState != tagConnectionState.csSwitched)
+                        if (cs.ConnectionState < tagConnectionState.csSwitched)
                             continue;
                         if (h == null)
                             h = m_dicSocketHandler[cs];
@@ -209,7 +287,7 @@ namespace SocketProAdapter
             /// <summary>
             /// Seek an async handler on the min number of requests queued and its associated socket connection
             /// </summary>
-            /// <returns>An async handler if found; and null or nothing if no queue is available</returns>
+            /// <returns>An async handler if found; and null or nothing if no proper queue is available</returns>
             public virtual THandler SeekByQueue()
             {
                 THandler h = null;
@@ -218,13 +296,14 @@ namespace SocketProAdapter
                     bool automerge = (ClientCoreLoader.GetQueueAutoMergeByPool(m_nPoolId) > 0);
                     foreach (CClientSocket cs in m_dicSocketHandler.Keys)
                     {
-                        if (automerge && h != null && !cs.Connected)
+                        if (automerge && cs.ConnectionState < tagConnectionState.csSwitched)
                             continue;
-                        if (!cs.ClientQueue.Available)
+                        IClientQueue cq = cs.ClientQueue;
+                        if (!cq.Available || cq.JobSize > 0/*queue is in transaction at this time*/)
                             continue;
                         if (h == null)
                             h = m_dicSocketHandler[cs];
-                        else if ((cs.ClientQueue.MessageCount < h.AttachedClientSocket.ClientQueue.MessageCount) || (cs.Connected && !h.AttachedClientSocket.Connected))
+                        else if ((cq.MessageCount < h.AttachedClientSocket.ClientQueue.MessageCount) || (cs.Connected && !h.AttachedClientSocket.Connected))
                             h = m_dicSocketHandler[cs];
                     }
                 }
@@ -785,18 +864,24 @@ namespace SocketProAdapter
                             ClientCoreLoader.SetPassword(h, cs.ConnectionContext.GetPassword());
                             bool ok = ClientCoreLoader.StartBatching(h) != 0;
                             ok = ClientCoreLoader.SwitchTo(h, handler.SvsID) != 0;
-                            if (ok)
-                            {
-                                ok = ClientCoreLoader.TurnOnZipAtSvr(h, (byte)(cs.ConnectionContext.Zip ? 1 : 0)) != 0;
-                                ok = ClientCoreLoader.SetSockOptAtSvr(h, tagSocketOption.soRcvBuf, 116800, tagSocketLevel.slSocket) != 0;
-                                ok = ClientCoreLoader.SetSockOptAtSvr(h, tagSocketOption.soSndBuf, 116800, tagSocketLevel.slSocket) != 0;
-                                ok = ClientCoreLoader.SetSockOptAtSvr(h, tagSocketOption.soTcpNoDelay, 1, tagSocketLevel.slTcp) != 0;
-                            }
-                            ok = ClientCoreLoader.CommitBatching(h, (byte)0) != 0;
+                            ok = ClientCoreLoader.TurnOnZipAtSvr(h, (byte)(cs.ConnectionContext.Zip ? 1 : 0)) != 0;
+                            ok = ClientCoreLoader.SetSockOptAtSvr(h, tagSocketOption.soRcvBuf, 116800, tagSocketLevel.slSocket) != 0;
+                            ok = ClientCoreLoader.SetSockOptAtSvr(h, tagSocketOption.soSndBuf, 116800, tagSocketLevel.slSocket) != 0;
+                            ok = ClientCoreLoader.SetSockOptAtSvr(h, tagSocketOption.soTcpNoDelay, 1, tagSocketLevel.slTcp) != 0;
+                            SetQueue(cs);
+                            ok = (ClientCoreLoader.CommitBatching(h, (byte)0) != 0);
                         }
                         break;
                     case tagSocketPoolEvent.speQueueMergedFrom:
                         m_pHFrom = MapToHandler(h);
+#if DEBUG
+                        IClientQueue cq = m_pHFrom.AttachedClientSocket.ClientQueue;
+                        uint remaining = (uint)m_pHFrom.RequestsQueued;
+                        if (cq.MessageCount != remaining)
+                        {
+                            Console.WriteLine("From: Messages = {0}, remaining requests = {1}", cq.MessageCount, remaining);
+                        }
+#endif
                         break;
                     case tagSocketPoolEvent.speQueueMergedTo:
                         {

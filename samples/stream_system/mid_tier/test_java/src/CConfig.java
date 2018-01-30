@@ -10,11 +10,13 @@ public class CConfig {
     public String m_master_default_db = "";
     public int m_nMasterSessions = 2;
     public CConnectionContext m_ccMaster = new CConnectionContext();
+    public String m_master_queue_name = "";
 
     //slave
     public String m_slave_default_db = "";
     public int m_nSlaveSessions = 0;
     public ArrayList<CConnectionContext> m_vccSlave = new ArrayList<>();
+    public String m_slave_queue_name = "";
 
     //middle tier server
     public byte m_main_threads = 1;
@@ -41,13 +43,7 @@ public class CConfig {
         m_config = new CConfig();
 
         //load the following settings from a configuration file
-        if (SPA.CUQueue.DEFAULT_OS == SPA.tagOperationSystem.osWin) {
-            //m_main_threads would be 1 for windows platforms if you use OnFastRequestArrive.
-            //Otherwise, random responses may be lost for a unknown reason. This is a known flaw for window platforms
-            m_config.m_main_threads = 4;
-        } else {
-            m_config.m_main_threads = 4;
-        }
+        m_config.m_main_threads = 4;
 
         //master
         m_config.m_ccMaster.Port = 20901;
@@ -63,11 +59,12 @@ public class CConfig {
         m_config.m_ccMaster.Password = "Smash123";
 
         m_config.m_slave_default_db = "sakila.db";
+        m_config.m_slave_queue_name = "db_sakila";
         //MySQL plugin
         //m_config.m_slave_default_db = "sakila";
 
         CConnectionContext cc = new CConnectionContext();
-        cc.Host = "104.154.160.127";
+        cc.Host = "35.202.62.6";
         cc.Port = 20901;
         cc.UserId = "root";
         cc.Password = "Smash123";

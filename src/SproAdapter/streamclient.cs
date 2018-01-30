@@ -295,7 +295,7 @@ namespace SocketProAdapter.ClientSide
             public DDownload Download = null;
             public DUpload Upload = null;
             public DTransferring Transferring = null;
-            public DCanceled Aborted = null;
+            public DDiscarded Discarded = null;
             public FileStream File = null;
             public bool Tried = false;
             public string ErrMsg = "";
@@ -312,7 +312,15 @@ namespace SocketProAdapter.ClientSide
                 {
                     if (c.File != null)
                     {
-                        c.File.Dispose();
+                        c.File.Close();
+                        if (!c.Uploading)
+                        {
+                            try
+                            {
+                                System.IO.File.Delete(c.LocalFile);
+                            }
+                            finally { }
+                        }
                     }
                 }
                 m_vContext.Clear();
@@ -359,6 +367,19 @@ namespace SocketProAdapter.ClientSide
             }
         }
 
+        protected override void OnMergeTo(CAsyncServiceHandler to)
+        {
+            CStreamingFile fTo = (CStreamingFile)to;
+            lock (fTo.m_csFile)
+            {
+                lock (m_csFile)
+                {
+                    fTo.m_vContext.InsertRange(fTo.m_vContext.Count, m_vContext);
+                    m_vContext.Clear();
+                }
+            }
+        }
+
         public bool Upload(string localFile, string remoteFile)
         {
             return Upload(localFile, remoteFile, null, null, null, FILE_OPEN_TRUNCACTED);
@@ -374,12 +395,12 @@ namespace SocketProAdapter.ClientSide
             return Upload(localFile, remoteFile, up, trans, null, FILE_OPEN_TRUNCACTED);
         }
 
-        public bool Upload(string localFile, string remoteFile, DUpload up, DTransferring trans, DCanceled aborted)
+        public bool Upload(string localFile, string remoteFile, DUpload up, DTransferring trans, DDiscarded discarded)
         {
-            return Upload(localFile, remoteFile, up, trans, aborted, FILE_OPEN_TRUNCACTED);
+            return Upload(localFile, remoteFile, up, trans, discarded, FILE_OPEN_TRUNCACTED);
         }
 
-        public virtual bool Upload(string localFile, string remoteFile, DUpload up, DTransferring trans, DCanceled aborted, uint flags)
+        public virtual bool Upload(string localFile, string remoteFile, DUpload up, DTransferring trans, DDiscarded discarded, uint flags)
         {
             if (localFile == null || localFile.Length == 0)
                 return false;
@@ -388,7 +409,7 @@ namespace SocketProAdapter.ClientSide
             CContext context = new CContext(true, flags);
             context.Upload = up;
             context.Transferring = trans;
-            context.Aborted = aborted;
+            context.Discarded = discarded;
             context.FilePath = remoteFile;
             context.LocalFile = localFile;
             lock (m_csFile)
@@ -413,12 +434,12 @@ namespace SocketProAdapter.ClientSide
             return Download(localFile, remoteFile, dl, trans, null, FILE_OPEN_TRUNCACTED);
         }
 
-        public bool Download(string localFile, string remoteFile, DDownload dl, DTransferring trans, DCanceled aborted)
+        public bool Download(string localFile, string remoteFile, DDownload dl, DTransferring trans, DDiscarded discarded)
         {
-            return Download(localFile, remoteFile, dl, trans, aborted, FILE_OPEN_TRUNCACTED);
+            return Download(localFile, remoteFile, dl, trans, discarded, FILE_OPEN_TRUNCACTED);
         }
 
-        public virtual bool Download(string localFile, string remoteFile, DDownload dl, DTransferring trans, DCanceled aborted, uint flags)
+        public virtual bool Download(string localFile, string remoteFile, DDownload dl, DTransferring trans, DDiscarded discarded, uint flags)
         {
             if (localFile == null || localFile.Length == 0)
                 return false;
@@ -427,7 +448,7 @@ namespace SocketProAdapter.ClientSide
             CContext context = new CContext(false, flags);
             context.Download = dl;
             context.Transferring = trans;
-            context.Aborted = aborted;
+            context.Discarded = discarded;
             context.FilePath = remoteFile;
             context.LocalFile = localFile;
             lock (m_csFile)
@@ -451,7 +472,10 @@ namespace SocketProAdapter.ClientSide
                         {
                             CContext context = m_vContext[0];
                             if (context.File != null)
+                            {
                                 context.File.Close();
+                                context.File = null;
+                            }
                             else if (res == 0)
                             {
                                 res = CANNOT_OPEN_LOCAL_FILE_FOR_WRITING;
@@ -571,6 +595,7 @@ namespace SocketProAdapter.ClientSide
                             if (context.File != null)
                             {
                                 context.File.Close();
+                                context.File = null;
                             }
                         }
                         if (upl != null)
@@ -638,7 +663,17 @@ namespace SocketProAdapter.ClientSide
                                 fs = FileShare.Read;
                             context.File = new FileStream(context.LocalFile, FileMode.Open, FileAccess.Read, fs);
                             context.FileSize = context.File.Length;
-                            if (!SendRequest(idUpload, context.FilePath, context.Flags, context.FileSize, rh, context.Aborted, se))
+                            IClientQueue cq = AttachedClientSocket.ClientQueue;
+                            if (cq.Available)
+                            {
+                                if (!cq.StartJob())
+                                {
+                                    context.File.Close();
+                                    context.File = null;
+                                    throw new Exception("Cannot start queue job");
+                                }
+                            }
+                            if (!SendRequest(idUpload, context.FilePath, context.Flags, context.FileSize, rh, context.Discarded, se))
                                 return false;
                         }
                         catch (Exception err)
@@ -671,7 +706,7 @@ namespace SocketProAdapter.ClientSide
                             int ret = context.File.Read(buffer, 0, (int)STREAM_CHUNK_SIZE);
                             while (ret > 0)
                             {
-                                if (!SendRequest(idUploading, buffer, (uint)ret, rh, context.Aborted, se))
+                                if (!SendRequest(idUploading, buffer, (uint)ret, rh, context.Discarded, se))
                                     return false;
                                 sent_buffer_size = cs.BytesInSendingBuffer;
                                 if (ret < (int)STREAM_CHUNK_SIZE)
@@ -683,8 +718,11 @@ namespace SocketProAdapter.ClientSide
                             if (ret < (int)STREAM_CHUNK_SIZE)
                             {
                                 context.Sent = true;
-                                if (!SendRequest(idUploadCompleted, rh, context.Aborted, se))
+                                if (!SendRequest(idUploadCompleted, rh, context.Discarded, se))
                                     return false;
+                                IClientQueue cq = AttachedClientSocket.ClientQueue;
+                                if (cq.Available)
+                                    cq.EndJob();
                             }
                             if (sent_buffer_size >= 4 * STREAM_CHUNK_SIZE)
                                 break;
@@ -693,7 +731,7 @@ namespace SocketProAdapter.ClientSide
                 }
                 else
                 {
-                    if (!SendRequest(idDownload, context.FilePath, context.Flags, rh, context.Aborted, se))
+                    if (!SendRequest(idDownload, context.FilePath, context.Flags, rh, context.Discarded, se))
                         return false;
                     context.Sent = true;
                     sent_buffer_size = cs.BytesInSendingBuffer;

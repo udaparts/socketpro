@@ -15,10 +15,10 @@ protected:
     virtual void GetCachedTables(const std::wstring &defaultDb, unsigned int flags, SPA::UINT64 index, int &dbMS, int &res, std::wstring &errMsg);
 
 private:
-    void GetRentalDateTimes(SPA::UINT64 index, SPA::INT64 rentalId, SPA::UINT64 &retIndex, CRentalDateTimes &dates, int &res, std::wstring &errMsg);
-    void GetMasterSlaveConnectedSessions(SPA::UINT64 index, SPA::UINT64 &retIndex, unsigned int &m_connections, unsigned int &s_connections);
-    void QueryPaymentMaxMinAvgs(SPA::CUQueue &q);
-    void UploadEmployees(SPA::CUQueue &q);
+    void GetMasterSlaveConnectedSessions(unsigned int &m_connections, unsigned int &s_connections);
+    void QueryPaymentMaxMinAvgs(SPA::CUQueue &q, SPA::UINT64 reqIndex);
+    void UploadEmployees(SPA::CUQueue &q, SPA::UINT64 reqIndex);
+    void GetRentalDateTimes(SPA::CUQueue &q, SPA::UINT64 reqIndex);
 
 private:
     CYourPeerOne(const CYourPeerOne &p);

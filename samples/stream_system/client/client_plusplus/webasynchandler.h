@@ -11,29 +11,22 @@ public:
     CWebAsyncHandler(CClientSocket *pClientSocket = nullptr);
 
 public:
-    typedef std::function<void(SPA::UINT64 index) > DMyCanceled;
-    typedef std::function<void(SPA::UINT64 index, const CMaxMinAvg &mma, int res, const std::wstring &errMsg) > DMaxMinAvg;
-    typedef std::function<void(SPA::UINT64 index, unsigned int m_connections, unsigned int s_connections) > DConnectedSessions;
-    typedef std::function<void(SPA::UINT64 index, int res, const std::wstring &errMsg, CInt64Array &vId) > DUploadEmployees;
-    typedef std::function<void(SPA::UINT64 index, const CRentalDateTimes &dates, int res, const std::wstring &errMsg) > DRentalDateTimes;
+    typedef CAsyncServiceHandler::DDiscarded DMyDiscarded;
 
 public:
-    SPA::UINT64 QueryPaymentMaxMinAvgs(const wchar_t *filter, DMaxMinAvg mma, DMyCanceled canceled = nullptr);
-    SPA::UINT64 GetMasterSlaveConnectedSessions(DConnectedSessions cs, DMyCanceled canceled = nullptr);
-    SPA::UINT64 UploadEmployees(const SPA::UDB::CDBVariantArray &vData, DUploadEmployees res, DMyCanceled canceled = nullptr);
-    SPA::UINT64 GetRentalDateTimes(SPA::INT64 rentalId, DRentalDateTimes rdt, DMyCanceled canceled = nullptr);
+    typedef std::function<void(const CMaxMinAvg &mma, int res, const std::wstring &errMsg) > DMaxMinAvg;
+    bool QueryPaymentMaxMinAvgs(const wchar_t *filter, DMaxMinAvg mma, DMyDiscarded discarded = nullptr);
+
+    typedef std::function<void(unsigned int m_connections, unsigned int s_connections) > DConnectedSessions;
+    bool GetMasterSlaveConnectedSessions(DConnectedSessions cs, DMyDiscarded discarded = DMyDiscarded());
+
+    typedef std::function<void(int res, const std::wstring &errMsg, CInt64Array &vId) > DUploadEmployees;
+    bool UploadEmployees(const SPA::UDB::CDBVariantArray &vData, DUploadEmployees res, DMyDiscarded discarded = nullptr);
+
+    typedef std::function<void(const CRentalDateTimes &dates, int res, const std::wstring &errMsg) > DRentalDateTimes;
+    bool GetRentalDateTimes(SPA::INT64 rentalId, DRentalDateTimes rdt, DMyDiscarded discarded = nullptr);
 
 private:
     CWebAsyncHandler(const CWebAsyncHandler &wah);
     CWebAsyncHandler& operator=(const CWebAsyncHandler &wah);
-
-private:
-    static SPA::CUCriticalSection m_csSS;
-    static SPA::UINT64 m_ssIndex; //protected by m_csSS
-
-    //following members protected by m_csChache
-    std::unordered_map<SPA::UINT64, std::pair<DMaxMinAvg, DMyCanceled> > m_mapMMA;
-    std::unordered_map<SPA::UINT64, std::pair<DConnectedSessions, DMyCanceled> > m_mapSession;
-    std::unordered_map<SPA::UINT64, std::pair<DUploadEmployees, DMyCanceled> > m_mapUpload;
-    std::unordered_map<SPA::UINT64, std::pair<DRentalDateTimes, DMyCanceled> > m_mapRentalDateTimes;
 };

@@ -295,8 +295,8 @@ namespace SPA {
             unsigned int QueryRequestsInQueue() const;
             unsigned int GetCountOfJoinedChatGroups() const;
             std::vector<unsigned int> GetChatGroups() const;
-            unsigned int SendExceptionResult(const wchar_t* errMessage, const char* errWhere, unsigned int errCode = 0, unsigned short requestId = 0) const;
-            unsigned int SendExceptionResult(const char* errMessage, const char* errWhere, unsigned int errCode = 0, unsigned short requestId = 0) const;
+            unsigned int SendExceptionResult(const wchar_t* errMessage, const char* errWhere, unsigned int errCode = 0, unsigned short requestId = 0, UINT64 callIndex = INVALID_NUMBER) const;
+            unsigned int SendExceptionResult(const char* errMessage, const char* errWhere, unsigned int errCode = 0, unsigned short requestId = 0, UINT64 callIndex = INVALID_NUMBER) const;
             bool MakeRequest(unsigned short requestId, const unsigned char *request, unsigned int size) const;
             static bool IsMainThread();
             static UINT64 GetRequestCount();
@@ -304,6 +304,7 @@ namespace SPA {
             bool IsCanceled() const;
             void* GetSSL() const;
             void DropCurrentSlowRequest() const;
+            UINT64 GetCurrentRequestIndex() const;
 
         protected:
             virtual void OnReleaseSource(bool bClosing, unsigned int info);
@@ -327,6 +328,7 @@ namespace SPA {
 
         protected:
             CUQueue &m_UQueue;
+            bool m_bRandom;
 
         private:
             friend class CBaseService;
@@ -606,6 +608,11 @@ namespace SPA {
             unsigned int SendResult(unsigned short reqId, const CUQueue &mc) const;
             unsigned int SendResult(unsigned short reqId, const CScopeUQueue &sb) const;
             unsigned int SendResult(unsigned short reqId) const;
+            unsigned int SendResultIndex(UINT64 callIndex, unsigned short reqId, const unsigned char* pResult, unsigned int size) const;
+            unsigned int SendResultIndex(UINT64 callIndex, unsigned short reqId, const CUQueue &mc) const;
+            unsigned int SendResultIndex(UINT64 callIndex, unsigned short reqId, const CScopeUQueue &sb) const;
+            unsigned int SendResultIndex(UINT64 callIndex, unsigned short reqId) const;
+
             UINT64 Dequeue(unsigned int qHandle, unsigned int messageCount, bool bNotifiedWhenAvailable, unsigned int waitTime = 0) const;
             UINT64 Dequeue(unsigned int qHandle, bool bNotifiedWhenAvailable, unsigned int maxBytes = 8 * 1024, unsigned int waitTime = 0) const;
             void EnableClientDequeue(bool enable) const;
@@ -617,11 +624,25 @@ namespace SPA {
                 return SendResult(usRequestID, sb->GetBuffer(), sb->GetSize());
             }
 
+            template<class ctype0>
+            unsigned int SendResultIndex(UINT64 callIndex, unsigned short usRequestID, const ctype0& data0) const {
+                CScopeUQueue sb;
+                sb << data0;
+                return SendResultIndex(callIndex, usRequestID, sb->GetBuffer(), sb->GetSize());
+            }
+
             template<class ctype0, class ctype1>
             unsigned int SendResult(unsigned short usRequestID, const ctype0& data0, const ctype1& data1) const {
                 CScopeUQueue sb;
                 sb << data0 << data1;
                 return SendResult(usRequestID, sb->GetBuffer(), sb->GetSize());
+            }
+
+            template<class ctype0, class ctype1>
+            unsigned int SendResultIndex(UINT64 callIndex, unsigned short usRequestID, const ctype0& data0, const ctype1& data1) const {
+                CScopeUQueue sb;
+                sb << data0 << data1;
+                return SendResultIndex(callIndex, usRequestID, sb->GetBuffer(), sb->GetSize());
             }
 
             template<class ctype0, class ctype1, class ctype2>
@@ -631,6 +652,13 @@ namespace SPA {
                 return SendResult(usRequestID, sb->GetBuffer(), sb->GetSize());
             }
 
+            template<class ctype0, class ctype1, class ctype2>
+            unsigned int SendResultIndex(UINT64 callIndex, unsigned short usRequestID, const ctype0& data0, const ctype1& data1, const ctype2& data2) const {
+                CScopeUQueue sb;
+                sb << data0 << data1 << data2;
+                return SendResultIndex(callIndex, usRequestID, sb->GetBuffer(), sb->GetSize());
+            }
+
             template<class ctype0, class ctype1, class ctype2, class ctype3>
             unsigned int SendResult(unsigned short usRequestID, const ctype0& data0, const ctype1& data1, const ctype2& data2, const ctype3& data3) const {
                 CScopeUQueue sb;
@@ -638,11 +666,25 @@ namespace SPA {
                 return SendResult(usRequestID, sb->GetBuffer(), sb->GetSize());
             }
 
+            template<class ctype0, class ctype1, class ctype2, class ctype3>
+            unsigned int SendResultIndex(UINT64 callIndex, unsigned short usRequestID, const ctype0& data0, const ctype1& data1, const ctype2& data2, const ctype3& data3) const {
+                CScopeUQueue sb;
+                sb << data0 << data1 << data2 << data3;
+                return SendResultIndex(callIndex, usRequestID, sb->GetBuffer(), sb->GetSize());
+            }
+
             template<class ctype0, class ctype1, class ctype2, class ctype3, class ctype4>
             unsigned int SendResult(unsigned short usRequestID, const ctype0& data0, const ctype1& data1, const ctype2& data2, const ctype3& data3, const ctype4& data4) const {
                 CScopeUQueue sb;
                 sb << data0 << data1 << data2 << data3 << data4;
                 return SendResult(usRequestID, sb->GetBuffer(), sb->GetSize());
+            }
+
+            template<class ctype0, class ctype1, class ctype2, class ctype3, class ctype4>
+            unsigned int SendResultIndex(UINT64 callIndex, unsigned short usRequestID, const ctype0& data0, const ctype1& data1, const ctype2& data2, const ctype3& data3, const ctype4& data4) const {
+                CScopeUQueue sb;
+                sb << data0 << data1 << data2 << data3 << data4;
+                return SendResultIndex(callIndex, usRequestID, sb->GetBuffer(), sb->GetSize());
             }
 
         private:

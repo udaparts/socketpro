@@ -41,7 +41,6 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
     protected int m_dbErrCode = 0;
     protected String m_dbErrMsg = "";
     protected short m_lastReqId = 0;
-    protected long m_nCall = 0;
 
     protected final java.util.HashMap<Long, Pair<DRowsetHeader, DRows>> m_mapRowset = new java.util.HashMap<>();
     private final java.util.HashMap<Long, CDBVariantArray> m_mapParameterCall = new java.util.HashMap<>();
@@ -133,10 +132,34 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
         m_mapParameterCall.clear();
         m_lastReqId = 0;
         m_Blob.SetSize(0);
+        m_deqExecuteResult.clear();
+        m_deqResult.clear();
         if (m_Blob.getMaxBufferSize() > DB_CONSTS.DEFAULT_BIG_FIELD_CHUNK_SIZE) {
             m_Blob.Realloc(DB_CONSTS.DEFAULT_BIG_FIELD_CHUNK_SIZE);
         }
         m_vData.clear();
+    }
+
+    @Override
+    protected void OnMergeTo(CAsyncServiceHandler to) {
+        CAsyncDBHandler dbTo = (CAsyncDBHandler) to;
+        synchronized (dbTo.m_csDB) {
+            synchronized (m_csDB) {
+                dbTo.m_deqResult.addAll(m_deqResult);
+                m_deqResult.clear();
+                dbTo.m_deqExecuteResult.addAll(m_deqExecuteResult);
+                m_deqExecuteResult.clear();
+                for (long callIndex : m_mapRowset.keySet()) {
+                    dbTo.m_mapRowset.put(callIndex, m_mapRowset.get(callIndex));
+                }
+                m_mapRowset.clear();
+                for (long callIndex : m_mapParameterCall.keySet()) {
+                    dbTo.m_mapParameterCall.put(callIndex, m_mapParameterCall.get(callIndex));
+                }
+                m_mapParameterCall.clear();
+                Clean();
+            }
+        }
     }
 
     @Override
@@ -341,11 +364,11 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      *
      * @param handler a callback for closing result, which should be OK always
      * as long as there is network or queue available
-     * @param canceled a callback for tracking cancel or socket closed event
+     * @param discarded a callback for tracking cancel or socket closed event
      * @return true if request is successfully sent or queued; and false if
      * request is NOT successfully sent or queued
      */
-    public boolean Close(DResult handler, DCanceled canceled) {
+    public boolean Close(DResult handler, DDiscarded discarded) {
         MyCallback<DResult> cb = new MyCallback<>(DB_CONSTS.idClose, handler);
         synchronized (m_csOneSending) {
             //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
@@ -353,7 +376,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
             synchronized (m_csDB) {
                 m_deqResult.add(cb);
             }
-            if (!SendRequest(DB_CONSTS.idClose, null, canceled)) {
+            if (!SendRequest(DB_CONSTS.idClose, null, discarded)) {
                 synchronized (m_csDB) {
                     m_deqResult.remove(cb);
                 }
@@ -413,11 +436,11 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @param isolation a second for transaction isolation. It defaults to
      * tagTransactionIsolation.tiReadCommited
      * @param handler a callback for tracking its response result
-     * @param canceled a callback for tracking cancel or socket closed event
+     * @param discarded a callback for tracking cancel or socket closed event
      * @return true if request is successfully sent or queued; and false if
      * request is NOT successfully sent or queued
      */
-    public boolean BeginTrans(tagTransactionIsolation isolation, DResult handler, DCanceled canceled) {
+    public boolean BeginTrans(tagTransactionIsolation isolation, DResult handler, DDiscarded discarded) {
         MyCallback<DResult> cb = new MyCallback<>(DB_CONSTS.idBeginTrans, handler);
         CUQueue sb = CScopeUQueue.Lock();
         //make sure BeginTrans sending and underlying client persistent message queue as one combination sending
@@ -432,7 +455,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                 sb.Save(isolation.getValue()).Save(m_strConnection).Save(m_flags);
                 m_deqResult.add(cb);
             }
-            if (!SendRequest(DB_CONSTS.idBeginTrans, sb, null, canceled)) {
+            if (!SendRequest(DB_CONSTS.idBeginTrans, sb, null, discarded)) {
                 synchronized (m_csDB) {
                     m_deqResult.remove(cb);
                 }
@@ -497,11 +520,11 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @param plan a second for computing how included transactions should be
      * rollback at server side. It defaults to tagRollbackPlan.rpDefault
      * @param handler a callback for tracking its response result
-     * @param canceled a callback for tracking cancel or socket closed event
+     * @param discarded a callback for tracking cancel or socket closed event
      * @return true if request is successfully sent or queued; and false if
      * request is NOT successfully sent or queued
      */
-    public boolean EndTrans(tagRollbackPlan plan, DResult handler, DCanceled canceled) {
+    public boolean EndTrans(tagRollbackPlan plan, DResult handler, DDiscarded discarded) {
         boolean ok = true;
         MyCallback<DResult> cb = new MyCallback<>(DB_CONSTS.idEndTrans, handler);
         CUQueue sb = CScopeUQueue.Lock();
@@ -514,7 +537,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
             synchronized (m_csDB) {
                 m_deqResult.add(cb);
             }
-            ok = SendRequest(DB_CONSTS.idEndTrans, sb, null, canceled);
+            ok = SendRequest(DB_CONSTS.idEndTrans, sb, null, discarded);
             if (ok) {
                 //associate end transaction with underlying client persistent message queue
                 getAttachedClientSocket().getClientQueue().EndJob();
@@ -591,11 +614,11 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @param handler a callback for database connecting result
      * @param flags a set of flags transferred to server to indicate how to
      * build database connection at server side. It defaults to zero
-     * @param canceled a callback for tracking cancel or socket closed event
+     * @param discarded a callback for tracking cancel or socket closed event
      * @return true if request is successfully sent or queued; and false if
      * request is NOT successfully sent or queued
      */
-    public boolean Open(String strConnection, DResult handler, int flags, DCanceled canceled) {
+    public boolean Open(String strConnection, DResult handler, int flags, DDiscarded discarded) {
         String str = null;
         MyCallback<DResult> cb = new MyCallback<>(DB_CONSTS.idOpen, handler);
         CUQueue sb = CScopeUQueue.Lock();
@@ -611,7 +634,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                 }
                 m_deqResult.add(cb);
             }
-            if (SendRequest(DB_CONSTS.idOpen, sb, null, canceled)) {
+            if (SendRequest(DB_CONSTS.idOpen, sb, null, discarded)) {
                 CScopeUQueue.Unlock(sb);
                 return true;
             } else {
@@ -671,11 +694,11 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @param sql a parameterized SQL statement
      * @param handler a callback for SQL preparing result
      * @param vParameterInfo a given array of parameter informations
-     * @param canceled a callback for tracking cancel or socket closed event
+     * @param discarded a callback for tracking cancel or socket closed event
      * @return true if request is successfully sent or queued; and false if
      * request is NOT successfully sent or queued
      */
-    public boolean Prepare(String sql, DResult handler, CParameterInfo[] vParameterInfo, DCanceled canceled) {
+    public boolean Prepare(String sql, DResult handler, CParameterInfo[] vParameterInfo, DDiscarded discarded) {
         CUQueue sb = CScopeUQueue.Lock();
         sb.Save(sql);
         int count = 0;
@@ -696,7 +719,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
             synchronized (m_csDB) {
                 m_deqResult.add(cb);
             }
-            if (SendRequest(DB_CONSTS.idPrepare, sb, null, canceled)) {
+            if (SendRequest(DB_CONSTS.idPrepare, sb, null, discarded)) {
                 ok = true;
             } else {
                 ok = false;
@@ -744,9 +767,22 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * basic SQL statements
      * @param handler a callback for tracking final result
      * @param row a callback for receiving records of data
+     * @return true if request is successfully sent or queued; and false if
+     * request is NOT successfully sent or queued
+     */
+    public final boolean Execute(String sql, DExecuteResult handler, DRows row) {
+        return Execute(sql, handler, row, null, true, true, null);
+    }
+
+    /**
+     * Process a complex SQL statement which may be combined with multiple basic
+     * SQL statements asynchronously
+     *
+     * @param sql a complex SQL statement which may be combined with multiple
+     * basic SQL statements
+     * @param handler a callback for tracking final result
+     * @param row a callback for receiving records of data
      * @param rh a callback for tracking row set of header column informations.
-     * Note that there will be NO row set data or its column informations
-     * returned if NO such a callback is set
      * @return true if request is successfully sent or queued; and false if
      * request is NOT successfully sent or queued
      */
@@ -762,9 +798,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * basic SQL statements
      * @param handler a callback for tracking final result
      * @param row a callback for receiving records of data
-     * @param rh a callback for tracking row set of header column informations.
-     * Note that there will be NO row set data or its column informations
-     * returned if NO such a callback is set
+     * @param rh a callback for tracking row set of header column informations
      * @param meta a boolean second for better or more detailed column meta
      * details such as unique, not null, primary first, and so on. It defaults
      * to true
@@ -784,9 +818,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @param handler a callback for tracking final result
      * @param row a callback for tracking record or output parameter returned
      * data
-     * @param rh a callback for tracking row set of header column informations.
-     * Note that there will be NO row set data or its column informations
-     * returned if NO such a callback is set
+     * @param rh a callback for tracking row set of header column informations
      * @param meta a boolean second for better or more detailed column meta
      * details such as unique, not null, primary first, and so on. It defaults
      * to true
@@ -808,44 +840,40 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @param handler a callback for tracking final result
      * @param row a callback for tracking record or output parameter returned
      * data
-     * @param rh a callback for tracking row set of header column informations.
-     * Note that there will be NO row set data or its column informations
-     * returned if NO such a callback is set
+     * @param rh a callback for tracking row set of header column informations
      * @param meta a boolean second for better or more detailed column meta
      * details such as unique, not null, primary first, and so on. It defaults
      * to true
      * @param lastInsertId a boolean second for last insert record
      * identification number. It defaults to true
-     * @param canceled a callback for tracking cancel or socket closed event
+     * @param discarded a callback for tracking cancel or socket closed event
      * @return true if request is successfully sent or queued; and false if
      * request is NOT successfully sent or queued
      */
-    public boolean Execute(String sql, DExecuteResult handler, DRows row, DRowsetHeader rh, boolean meta, boolean lastInsertId, DCanceled canceled) {
-        boolean rowset = (rh != null);
+    public boolean Execute(String sql, DExecuteResult handler, DRows row, DRowsetHeader rh, boolean meta, boolean lastInsertId, DDiscarded discarded) {
+        boolean rowset = (rh != null || row != null);
         if (!rowset) {
             meta = false;
         }
-        long index;
         MyCallback<DExecuteResult> cb = new MyCallback<>(DB_CONSTS.idExecute, handler);
         CUQueue sb = CScopeUQueue.Lock();
         sb.Save(sql);
         sb.Save(rowset);
         sb.Save(meta);
         sb.Save(lastInsertId);
+        final long index = GetCallIndex();
+        sb.Save(index);
 
         synchronized (m_csOneSending) {
             //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
             //in case a client asynchronously sends lots of requests without use of client side queue.
             synchronized (m_csDB) {
-                ++m_nCall;
-                sb.Save(m_nCall);
                 if (rowset) {
-                    m_mapRowset.put(m_nCall, new Pair<>(rh, row));
+                    m_mapRowset.put(index, new Pair<>(rh, row));
                 }
                 m_deqExecuteResult.add(cb);
-                index = m_nCall;
             }
-            if (!SendRequest(DB_CONSTS.idExecute, sb, null, canceled)) {
+            if (!SendRequest(DB_CONSTS.idExecute, sb, null, discarded)) {
                 synchronized (m_csDB) {
                     m_deqExecuteResult.remove(cb);
                     if (rowset) {
@@ -913,9 +941,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @param handler a callback for tracking final result
      * @param row a callback for tracking record or output parameter returned
      * data
-     * @param rh a callback for tracking row set of header column informations.
-     * Note that there will be NO row set data or its column informations
-     * returned if NO such a callback is set
+     * @param rh a callback for tracking row set of header column informations
      * @return true if request is successfully sent or queued; and false if
      * request is NOT successfully sent or queued
      */
@@ -932,9 +958,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @param handler a callback for tracking final result
      * @param row a callback for tracking record or output parameter returned
      * data
-     * @param rh a callback for tracking row set of header column informations.
-     * Note that there will be NO row set data or its column informations
-     * returned if NO such a callback is set
+     * @param rh a callback for tracking row set of header column informations
      * @param meta a boolean second for better or more detailed column meta
      * details such as unique, not null, primary first, and so on. It defaults
      * to true
@@ -954,9 +978,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @param handler a callback for tracking final result
      * @param row a callback for tracking record or output parameter returned
      * data
-     * @param rh a callback for tracking row set of header column informations.
-     * Note that there will be NO row set data or its column informations
-     * returned if NO such a callback is set
+     * @param rh a callback for tracking row set of header column informations
      * @param meta a boolean second for better or more detailed column meta
      * details such as unique, not null, primary first, and so on. It defaults
      * to true
@@ -978,26 +1000,22 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @param handler a callback for tracking final result
      * @param row a callback for tracking record or output parameter returned
      * data
-     * @param rh a callback for tracking row set of header column informations.
-     * Note that there will be NO row set data or its column informations
-     * returned if NO such a callback is set
+     * @param rh a callback for tracking row set of header column informations
      * @param meta a boolean second for better or more detailed column meta
      * details such as unique, not null, primary first, and so on. It defaults
      * to true
      * @param lastInsertId a boolean second for last insert record
      * identification number. It defaults to true
-     * @param canceled a callback for tracking cancel or socket closed event
+     * @param discarded a callback for tracking cancel or socket closed event
      * @return true if request is successfully sent or queued; and false if
      * request is NOT successfully sent or queued
      */
-    public boolean Execute(CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh, boolean meta, boolean lastInsertId, DCanceled canceled) {
-        boolean rowset = (rh != null);
+    public boolean Execute(CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh, boolean meta, boolean lastInsertId, DDiscarded discarded) {
+        boolean rowset = (rh != null || row != null);
         if (!rowset) {
             meta = false;
         }
-        long index;
         MyCallback<DExecuteResult> cb = new MyCallback<>(DB_CONSTS.idExecuteParameters, handler);
-        CUQueue sb = CScopeUQueue.Lock();
 
         //make sure all parameter data sendings and ExecuteParameters sending as one combination sending
         //to avoid possible request sending overlapping within multiple threading environment
@@ -1005,23 +1023,23 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
             if (!SendParametersData(vParam)) {
                 return false;
             }
+            final long index = GetCallIndex();
+            CUQueue sb = CScopeUQueue.Lock();
             sb.Save(rowset);
             sb.Save(meta);
             sb.Save(lastInsertId);
+            sb.Save(index);
 
             //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
             //in case a client asynchronously sends lots of requests without use of client side queue.
             synchronized (m_csDB) {
-                ++m_nCall;
-                sb.Save(m_nCall);
                 if (rowset) {
-                    m_mapRowset.put(m_nCall, new Pair<>(rh, row));
+                    m_mapRowset.put(index, new Pair<>(rh, row));
                 }
                 m_deqExecuteResult.add(cb);
-                m_mapParameterCall.put(m_nCall, vParam);
-                index = m_nCall;
+                m_mapParameterCall.put(index, vParam);
             }
-            if (!SendRequest(DB_CONSTS.idExecuteParameters, sb, null, canceled)) {
+            if (!SendRequest(DB_CONSTS.idExecuteParameters, sb, null, discarded)) {
                 synchronized (m_csDB) {
                     m_mapParameterCall.remove(index);
                     m_deqExecuteResult.remove(cb);
@@ -1032,8 +1050,8 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                 CScopeUQueue.Unlock(sb);
                 return false;
             }
+            CScopeUQueue.Unlock(sb);
         }
-        CScopeUQueue.Unlock(sb);
         return true;
     }
 

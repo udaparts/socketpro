@@ -19,6 +19,8 @@ void CYourServer::StartMySQLPools() {
     CYourServer::Master->Cache.SetTableNameCaseSensitive(false);
     CYourServer::Master->Cache.SetDBNameCaseSensitive(false);
 
+    if (g_config.m_master_queue_name.size())
+        CYourServer::Master->SetQueueName(g_config.m_master_queue_name.c_str());
     //start master pool for cache and update accessing
     bool ok = CYourServer::Master->StartSocketPool(g_config.m_ccMaster, (unsigned int) g_config.m_nMasterSessions, 1); //one thread enough
 
@@ -38,6 +40,9 @@ void CYourServer::StartMySQLPools() {
             pcc[s] = g_config.m_vccSlave[s];
         }
     }
+
+    if (g_config.m_slave_queue_name.size())
+        CYourServer::Slave->SetQueueName(g_config.m_slave_queue_name.c_str());
     //start slave pool for query accessing
     ok = CYourServer::Slave->StartSocketPool(ppCCs, threads, sockets_per_thread);
 
@@ -78,9 +83,8 @@ bool CYourServer::AddServices() {
     if (!ok)
         return false;
     ok = m_SSPeer.AddSlowRequest(SPA::UDB::idGetCachedTables);
-    ok = m_SSPeer.AddSlowRequest(idGetRentalDateTimes);
 
-    //tell caller that all results could be returned randomly (not in order)
+    //tell this service that all results could be returned randomly (not in order)
     m_SSPeer.SetReturnRandom(true);
     return true;
 }

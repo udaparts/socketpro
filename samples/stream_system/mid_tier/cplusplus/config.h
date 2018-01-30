@@ -8,11 +8,13 @@ struct CConfig {
     std::wstring m_master_default_db;
     size_t m_nMasterSessions;
     SPA::ClientSide::CConnectionContext m_ccMaster;
+    std::string m_master_queue_name;
 
     //slave
     std::wstring m_slave_default_db;
     size_t m_nSlaveSessions;
     std::vector<SPA::ClientSide::CConnectionContext> m_vccSlave;
+    std::string m_slave_queue_name;
 
     //middle tier server
     unsigned char m_main_threads;

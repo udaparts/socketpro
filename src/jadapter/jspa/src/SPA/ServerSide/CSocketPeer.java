@@ -3,12 +3,17 @@ package SPA.ServerSide;
 public abstract class CSocketPeer {
 
     private volatile SPA.CUQueue m_qBuffer = new SPA.CUQueue();
-    long m_sh = 0;
+    volatile long m_sh = 0;
+    private boolean m_bRandom = false;
     CBaseService m_Service;
     public static final int SOCKET_NOT_FOUND = -1;
     public static final int REQUEST_CANCELED = -2;
     public static final int BAD_OPERATION = -3;
     public static final int RESULT_SENDING_FAILED = -4;
+
+    protected boolean getRandom() {
+        return m_bRandom;
+    }
 
     static String getStack(StackTraceElement[] stes) {
         String s = "";
@@ -73,6 +78,7 @@ public abstract class CSocketPeer {
                     sp.m_qBuffer.setOS(sp.m_os);
                     sp.m_endian = endian[0];
                     sp.m_qBuffer.setEndian(endian[0]);
+                    sp.m_bRandom = bsNew.getReturnRandom();
                 }
                 sp.OnSwitchFrom(oldServiceId);
             }
@@ -282,6 +288,10 @@ public abstract class CSocketPeer {
         return ServerCoreLoader.GetBytesSent(m_sh);
     }
 
+    public final long getCurrentRequestIndex() {
+        return ServerCoreLoader.GetCurrentRequestIndex(m_sh);
+    }
+
     public final int getCountOfJoinedChatGroups() {
         return ServerCoreLoader.GetCountOfJoinedChatGroups(m_sh);
     }
@@ -334,9 +344,7 @@ public abstract class CSocketPeer {
     }
 
     public final long getHandle() {
-        synchronized (m_Service.m_cs) {
-            return m_sh;
-        }
+        return m_sh;
     }
 
     public final long getSSL() {
@@ -410,7 +418,22 @@ public abstract class CSocketPeer {
         if (errWhere != null) {
             where = errWhere.getBytes();
         }
-        return ServerCoreLoader.SendExceptionResult(m_sh, errMessage, where, requestId, errCode);
+        long reqIndex = ServerCoreLoader.GetCurrentRequestIndex(m_sh);
+        if (reqIndex == -1) {
+            return ServerCoreLoader.SendExceptionResult(m_sh, errMessage, where, requestId, errCode);
+        }
+        return ServerCoreLoader.SendExceptionResultIndex(m_sh, reqIndex, errMessage, where, requestId, errCode);
+    }
+
+    public final int SendExceptionResult(String errMessage, String errWhere, int errCode, short requestId, long reqIndex) {
+        byte[] where = {};
+        if (errWhere != null) {
+            where = errWhere.getBytes();
+        }
+        if (reqIndex == -1) {
+            return ServerCoreLoader.SendExceptionResult(m_sh, errMessage, where, requestId, errCode);
+        }
+        return ServerCoreLoader.SendExceptionResultIndex(m_sh, reqIndex, errMessage, where, requestId, errCode);
     }
 
     protected void OnSwitchFrom(int oldServiceId) {

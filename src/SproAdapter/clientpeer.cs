@@ -3199,6 +3199,7 @@ namespace SocketProAdapter
 
             protected virtual uint SendResult(ushort reqId, byte[] data, uint len, uint offset)
             {
+                ulong index = Random ? CurrentRequestIndex : ulong.MaxValue;
                 if (data == null || len == 0 || offset >= (uint)data.LongLength)
                 {
                     if (data == null)
@@ -3207,7 +3208,9 @@ namespace SocketProAdapter
                     {
                         fixed (byte* buffer = data)
                         {
-                            return ServerCoreLoader.SendReturnData(Handle, reqId, 0, buffer);
+                            if (index == ulong.MaxValue)
+                                return ServerCoreLoader.SendReturnData(Handle, reqId, 0, buffer);
+                            return ServerCoreLoader.SendReturnDataIndex(Handle, index, reqId, 0, buffer);
                         }
                     }
                 }
@@ -3217,7 +3220,34 @@ namespace SocketProAdapter
                         len = (uint)data.LongLength - offset;
                     fixed (byte* buffer = &(data[offset]))
                     {
-                        return ServerCoreLoader.SendReturnData(Handle, reqId, len, buffer);
+                        if (index == ulong.MaxValue)
+                            return ServerCoreLoader.SendReturnData(Handle, reqId, len, buffer);
+                        return ServerCoreLoader.SendReturnDataIndex(Handle, index, reqId, len, buffer);
+                    }
+                }
+            }
+
+            protected virtual uint SendResultIndex(ulong reqIndex, ushort reqId, byte[] data, uint len, uint offset)
+            {
+                if (data == null || len == 0 || offset >= (uint)data.LongLength)
+                {
+                    if (data == null)
+                        data = new byte[1];
+                    unsafe
+                    {
+                        fixed (byte* buffer = data)
+                        {
+                            return ServerCoreLoader.SendReturnDataIndex(Handle, reqIndex, reqId, 0, buffer);
+                        }
+                    }
+                }
+                unsafe
+                {
+                    if (len + offset > (uint)data.LongLength)
+                        len = (uint)data.LongLength - offset;
+                    fixed (byte* buffer = &(data[offset]))
+                    {
+                        return ServerCoreLoader.SendReturnDataIndex(Handle, reqIndex, reqId, len, buffer);
                     }
                 }
             }
@@ -3228,9 +3258,30 @@ namespace SocketProAdapter
                     len = (uint)data.Length;
                 unsafe
                 {
+                    if (Random)
+                    {
+                        ulong index = CurrentRequestIndex;
+                        fixed (byte* buffer = data)
+                        {
+                            return ServerCoreLoader.SendReturnDataIndex(Handle, index, reqId, len, buffer);
+                        }
+                    }
                     fixed (byte* buffer = data)
                     {
                         return ServerCoreLoader.SendReturnData(Handle, reqId, len, buffer);
+                    }
+                }
+            }
+
+            protected virtual uint SendResultIndex(ulong reqIndex, ushort reqId, byte[] data, uint len)
+            {
+                if (data != null && len > (uint)data.Length)
+                    len = (uint)data.Length;
+                unsafe
+                {
+                    fixed (byte* buffer = data)
+                    {
+                        return ServerCoreLoader.SendReturnDataIndex(Handle, reqIndex, reqId, len, buffer);
                     }
                 }
             }
@@ -3242,6 +3293,13 @@ namespace SocketProAdapter
                 return SendResult(reqId, q.IntenalBuffer, q.GetSize(), q.HeadPosition);
             }
 
+            protected uint SendResultIndex(ulong reqIndex, ushort reqId, CUQueue q)
+            {
+                if (q == null)
+                    return SendResultIndex(reqIndex, reqId);
+                return SendResultIndex(reqIndex, reqId, q.IntenalBuffer, q.GetSize(), q.HeadPosition);
+            }
+
             protected uint SendResult(ushort reqId, CScopeUQueue su)
             {
                 if (su == null || su.UQueue == null)
@@ -3249,9 +3307,66 @@ namespace SocketProAdapter
                 return SendResult(reqId, su.UQueue);
             }
 
+            protected uint SendResultIndex(ulong reqIndex, ushort reqId, CScopeUQueue su)
+            {
+                if (su == null || su.UQueue == null)
+                    return SendResultIndex(reqIndex, reqId);
+                return SendResultIndex(reqIndex, reqId, su.UQueue);
+            }
+
             protected uint SendResult(ushort reqId)
             {
                 return SendResult(reqId, (byte[])null, (uint)0);
+            }
+
+            protected uint SendResultIndex(ulong reqIndex, ushort reqId)
+            {
+                return SendResultIndex(reqIndex, reqId, (byte[])null, (uint)0);
+            }
+
+            protected uint SendResultIndex<T0>(ulong reqIndex, ushort reqId, T0 t0)
+            {
+                CUQueue su = CScopeUQueue.Lock();
+                su.Save(t0);
+                uint res = SendResultIndex(reqIndex, reqId, su);
+                CScopeUQueue.Unlock(su);
+                return res;
+            }
+
+            protected uint SendResultIndex<T0, T1>(ulong reqIndex, ushort reqId, T0 t0, T1 t1)
+            {
+                CUQueue su = CScopeUQueue.Lock();
+                su.Save(t0).Save(t1);
+                uint res = SendResultIndex(reqIndex, reqId, su);
+                CScopeUQueue.Unlock(su);
+                return res;
+            }
+
+            protected uint SendResultIndex<T0, T1, T2>(ulong reqIndex, ushort reqId, T0 t0, T1 t1, T2 t2)
+            {
+                CUQueue su = CScopeUQueue.Lock();
+                su.Save(t0).Save(t1).Save(t2);
+                uint res = SendResultIndex(reqIndex, reqId, su);
+                CScopeUQueue.Unlock(su);
+                return res;
+            }
+
+            protected uint SendResultIndex<T0, T1, T2, T3>(ulong reqIndex, ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3)
+            {
+                CUQueue su = CScopeUQueue.Lock();
+                su.Save(t0).Save(t1).Save(t2).Save(t3);
+                uint res = SendResultIndex(reqIndex, reqId, su);
+                CScopeUQueue.Unlock(su);
+                return res;
+            }
+
+            protected uint SendResultIndex<T0, T1, T2, T3, T4>(ulong reqIndex, ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4)
+            {
+                CUQueue su = CScopeUQueue.Lock();
+                su.Save(t0).Save(t1).Save(t2).Save(t3).Save(t4);
+                uint res = SendResultIndex(reqIndex, reqId, su);
+                CScopeUQueue.Unlock(su);
+                return res;
             }
 
             protected uint SendResult<T0>(ushort reqId, T0 t0)

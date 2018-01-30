@@ -4,15 +4,14 @@
 #include "aserverw.h"
 #include <algorithm>
 
-namespace SPA
-{
-    namespace ServerSide{
+namespace SPA {
+    namespace ServerSide {
 
         Internal::CServerCoreLoader ServerCoreLoader;
 
         CSocketProServer * CSocketProServer::m_pServer = nullptr;
 
-        CSocketPeer::CSocketPeer() : m_hHandler(0), m_pBase(nullptr), m_UQueue(*m_sb) {
+        CSocketPeer::CSocketPeer() : m_hHandler(0), m_pBase(nullptr), m_UQueue(*m_sb), m_bRandom(false) {
 
         }
 
@@ -252,8 +251,7 @@ namespace SPA
         }
 
         std::string CSocketPeer::GetPeerName(unsigned int *port) const {
-            char strIpAddr[128] =
-            {0};
+            char strIpAddr[128] = {0};
             ServerCoreLoader.GetPeerName(m_hHandler, port, strIpAddr, sizeof (strIpAddr));
             return strIpAddr;
         }
@@ -356,6 +354,10 @@ namespace SPA
             return ServerCoreLoader.GetCountOfJoinedChatGroups(m_hHandler);
         }
 
+        UINT64 CSocketPeer::GetCurrentRequestIndex() const {
+            return ServerCoreLoader.GetCurrentRequestIndex(m_hHandler);
+        }
+
         std::vector<unsigned int> CSocketPeer::GetChatGroups() const {
             CScopeUQueue sb;
             std::vector<unsigned int> vChatGroups;
@@ -388,14 +390,16 @@ namespace SPA
             return ServerCoreLoader.GetPeerOs(GetSocketHandle(), endian);
         }
 
-        unsigned int CSocketPeer::SendExceptionResult(const wchar_t* errMessage, const char* errWhere, unsigned int errCode, unsigned short requestId) const {
-            return ServerCoreLoader.SendExceptionResult(m_hHandler, errMessage, errWhere, requestId, errCode);
+        unsigned int CSocketPeer::SendExceptionResult(const wchar_t* errMessage, const char* errWhere, unsigned int errCode, unsigned short requestId, UINT64 index) const {
+            if (index == INVALID_NUMBER)
+                return ServerCoreLoader.SendExceptionResult(m_hHandler, errMessage, errWhere, requestId, errCode);
+            return ServerCoreLoader.SendExceptionResultIndex(m_hHandler, index, errMessage, errWhere, requestId, errCode);
         }
 
-        unsigned int CSocketPeer::SendExceptionResult(const char* errMessage, const char* errWhere, unsigned int errCode, unsigned short requestId) const {
+        unsigned int CSocketPeer::SendExceptionResult(const char* errMessage, const char* errWhere, unsigned int errCode, unsigned short requestId, UINT64 index) const {
             CScopeUQueue q;
             Utilities::ToWide(errMessage, ::strlen(errMessage), *q);
-            return SendExceptionResult((const wchar_t*) q->GetBuffer(), errWhere, errCode, requestId);
+            return SendExceptionResult((const wchar_t*) q->GetBuffer(), errWhere, errCode, requestId, index);
         }
 
         UINT64 CSocketPeer::GetSocketNativeHandle() const {
@@ -467,7 +471,9 @@ namespace SPA
         }
 
         unsigned int CClientPeer::SendResult(unsigned short reqId, const unsigned char* pResult, unsigned int size) const {
-            return ServerCoreLoader.SendReturnData(GetSocketHandle(), reqId, size, pResult);
+            if (!m_bRandom)
+                return ServerCoreLoader.SendReturnData(GetSocketHandle(), reqId, size, pResult);
+            return ServerCoreLoader.SendReturnDataIndex(GetSocketHandle(), GetCurrentRequestIndex(), reqId, size, pResult);
         }
 
         unsigned int CClientPeer::SendResult(unsigned short reqId, const CUQueue & mc) const {
@@ -480,6 +486,22 @@ namespace SPA
 
         unsigned int CClientPeer::SendResult(unsigned short reqId) const {
             return SendResult(reqId, (const unsigned char*) nullptr, (unsigned int) 0);
+        }
+
+        unsigned int CClientPeer::SendResultIndex(UINT64 callIndex, unsigned short reqId, const unsigned char* pResult, unsigned int size) const {
+            return ServerCoreLoader.SendReturnDataIndex(GetSocketHandle(), callIndex, reqId, size, pResult);
+        }
+
+        unsigned int CClientPeer::SendResultIndex(UINT64 callIndex, unsigned short reqId, const CUQueue &mc) const {
+            return SendResultIndex(callIndex, reqId, mc.GetBuffer(), mc.GetSize());
+        }
+
+        unsigned int CClientPeer::SendResultIndex(UINT64 callIndex, unsigned short reqId, const CScopeUQueue &sb) const {
+            return SendResultIndex(callIndex, reqId, sb->GetBuffer(), sb->GetSize());
+        }
+
+        unsigned int CClientPeer::SendResultIndex(UINT64 callIndex, unsigned short reqId) const {
+            return SendResultIndex(callIndex, reqId, (const unsigned char*) nullptr, (unsigned int) 0);
         }
 
         unsigned int CBaseService::m_nMainThreads = (~0);
@@ -567,20 +589,14 @@ namespace SPA
             CSocketPeer *p = pService->Seek(hSocket);
             if (p) {
                 len = p->m_UQueue.GetSize();
-                try{
+                try {
                     p->OnFastRequestArrive(usRequestID, len);
-                }
-
-                catch(const CUException & err) {
-                    p->SendExceptionResult(err.what(), err.GetStack().c_str(), (unsigned int) err.GetErrCode(), usRequestID);
-                }
-
-                catch(const std::exception & err) {
-                    p->SendExceptionResult(err.what(), __FUNCTION__, MB_STL_EXCEPTION, usRequestID);
-                }
-
-                catch(...) {
-                    p->SendExceptionResult(L"Unknown exception caught", __FUNCTION__, MB_UNKNOWN_EXCEPTION, usRequestID);
+                } catch (const CUException & err) {
+                    p->SendExceptionResult(err.what(), err.GetStack().c_str(), (unsigned int) err.GetErrCode(), usRequestID, p->GetCurrentRequestIndex());
+                } catch (const std::exception & err) {
+                    p->SendExceptionResult(err.what(), __FUNCTION__, MB_STL_EXCEPTION, usRequestID, p->GetCurrentRequestIndex());
+                } catch (...) {
+                    p->SendExceptionResult(L"Unknown exception caught", __FUNCTION__, MB_UNKNOWN_EXCEPTION, usRequestID, p->GetCurrentRequestIndex());
                 }
             }
         }
@@ -597,6 +613,7 @@ namespace SPA
             p = SeekService(newServiceId);
             if (p) {
                 CSocketPeer *pPeer = ((CBaseService*) p)->CreatePeer(hSocket, newServiceId);
+                pPeer->m_bRandom = p->GetReturnRandom();
                 if (newServiceId == sidHTTP) {
                     CHttpPeerBase *pCHttpPeer = (CHttpPeerBase*) pPeer;
                     pCHttpPeer->m_PushImpl.m_hSocket = hSocket;
@@ -623,20 +640,14 @@ namespace SPA
             CSocketPeer *p = pService->Seek(hSocket);
             if (p) {
                 len = p->m_UQueue.GetSize();
-                try{
+                try {
                     res = p->OnSlowRequestArrive(usRequestID, len);
-                }
-
-                catch(const SPA::CUException & err) {
-                    p->SendExceptionResult(err.what(), err.GetStack().c_str(), (unsigned int) err.GetErrCode(), usRequestID);
-                }
-
-                catch(const std::exception & err) {
-                    p->SendExceptionResult(err.what(), __FUNCTION__, MB_STL_EXCEPTION, usRequestID);
-                }
-
-                catch(...) {
-                    p->SendExceptionResult(L"Unknown exception caught", __FUNCTION__, MB_UNKNOWN_EXCEPTION, usRequestID);
+                } catch (const SPA::CUException & err) {
+                    p->SendExceptionResult(err.what(), err.GetStack().c_str(), (unsigned int) err.GetErrCode(), usRequestID, p->GetCurrentRequestIndex());
+                } catch (const std::exception & err) {
+                    p->SendExceptionResult(err.what(), __FUNCTION__, MB_STL_EXCEPTION, usRequestID, p->GetCurrentRequestIndex());
+                } catch (...) {
+                    p->SendExceptionResult(L"Unknown exception caught", __FUNCTION__, MB_UNKNOWN_EXCEPTION, usRequestID, p->GetCurrentRequestIndex());
                 }
             }
             return res;
@@ -1051,8 +1062,7 @@ namespace SPA
         }
 
         std::wstring CSocketProServer::PushManager::GetAChatGroupDescription(unsigned int groupId) {
-            wchar_t description[4097] =
-            {0};
+            wchar_t description[4097] = {0};
             ServerCoreLoader.GetAChatGroup(groupId, description, sizeof (description) / sizeof (wchar_t));
             return description;
         }
@@ -1388,8 +1398,7 @@ namespace SPA
         }
 
         std::string CSocketProServer::GetLocalName() {
-            char localname[256] =
-            {0};
+            char localname[256] = {0};
             ServerCoreLoader.GetLocalName(localname, sizeof (localname));
             return localname;
         }
@@ -1399,8 +1408,7 @@ namespace SPA
         }
 
         void SetLastCallInfo(const char *str, int data, const char *func) {
-            char buff[4097] =
-            {0};
+            char buff[4097] = {0};
 #ifdef WIN32_64
             _snprintf_s(buff, sizeof (buff), sizeof (buff), "lf: %s, what: %s, data: %d", func, str, data);
 #else
@@ -1414,15 +1422,13 @@ namespace SPA
         }
 
         std::wstring CSocketProServer::CredentialManager::GetUserID(USocket_Server_Handle h) {
-            wchar_t str[256] =
-            {0};
+            wchar_t str[256] = {0};
             ServerCoreLoader.GetUID(h, str, sizeof (str) / sizeof (wchar_t));
             return str;
         }
 
         std::wstring CSocketProServer::CredentialManager::GetPassword(USocket_Server_Handle h) {
-            wchar_t str[256] =
-            {0};
+            wchar_t str[256] = {0};
             ServerCoreLoader.GetPassword(h, str, sizeof (str) / sizeof (wchar_t));
             return str;
         }

@@ -14,6 +14,15 @@ class CSocketPeer(object):
         self._m_qBuffer = None
         self._m_sh = 0
         self._m_Service = None
+        self._m_random = False
+
+    @property
+    def Random(self):
+        return self._m_random
+
+    @property
+    def CurrentRequestIndex(self):
+        return scl.GetCurrentRequestIndex(self._m_sh)
 
     @property
     def CurrentRequestID(self):
@@ -77,8 +86,7 @@ class CSocketPeer(object):
 
     @property
     def Handle(self):
-        with self._m_Service._m_cs:
-            return self._m_sh
+        return self._m_sh
 
     @property
     def SSL(self):
@@ -133,8 +141,12 @@ class CSocketPeer(object):
     def RequestsInQueue(self):
         return scl.QueryRequestsInQueue(self._m_sh)
 
-    def SendExceptionResult(self, errMessage, errWhere, errCode=0, reqId=0):
-        return scl.SendExceptionResult(self._m_sh, errMessage, errWhere, reqId, errCode)
+    def SendExceptionResult(self, errMessage, errWhere, errCode=0, reqId=0, reqIndex=-1):
+        if reqIndex == -1:
+            if self.Random:
+                return scl.SendExceptionResultIndex(self._m_sh, self.CurrentRequestIndex, errMessage, errWhere, reqId, errCode)
+            return scl.SendExceptionResult(self._m_sh, errMessage, errWhere, reqId, errCode)
+        return scl.SendExceptionResultIndex(self._m_sh, reqIndex, errMessage, errWhere, reqId, errCode)
 
     def OnSwitchFrom(self, oldServiceId):
         pass

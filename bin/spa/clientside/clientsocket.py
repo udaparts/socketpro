@@ -164,8 +164,8 @@ class CClientSocket:
                 if ccl.AbortJob(self._m_cs_.Handle):
                     while aborted > 0:
                         p = ash._m_kvCallback_.pop()
-                        if p and p[1] and p[1].Canceled:
-                            p[1].Canceled()
+                        if p and p[1] and p[1].Discarded:
+                            p[1].Discarded(ash, True)
                         aborted -= 1
                     return True
             return False

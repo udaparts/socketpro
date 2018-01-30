@@ -43,11 +43,9 @@ public class CCachedBaseHandler extends CAsyncServiceHandler {
     }
 
     public boolean GetCachedTables(String defaultDb, DResult handler, DRows row, DRowsetHeader rh, int flags) {
-        long index;
+        final long index = GetCallIndex();
         CUQueue q = CScopeUQueue.Lock();
         synchronized (m_csCache) {
-            ++m_nCall;
-            index = m_nCall;
             m_mapRowset.put(index, new Pair<>(rh, row));
             m_mapHandler.put(index, handler);
         }
@@ -61,6 +59,23 @@ public class CCachedBaseHandler extends CAsyncServiceHandler {
             }
         }
         return ok;
+    }
+
+    @Override
+    protected void OnMergeTo(CAsyncServiceHandler to) {
+        CCachedBaseHandler dbTo = (CCachedBaseHandler) to;
+        synchronized (dbTo.m_csCache) {
+            synchronized (m_csCache) {
+                for (long callIndex : m_mapRowset.keySet()) {
+                    dbTo.m_mapRowset.put(callIndex, m_mapRowset.get(callIndex));
+                }
+                m_mapRowset.clear();
+                for (long callIndex : m_mapHandler.keySet()) {
+                    dbTo.m_mapHandler.put(callIndex, m_mapHandler.get(callIndex));
+                }
+                m_mapHandler.clear();
+            }
+        }
     }
 
     @Override
@@ -185,6 +200,5 @@ public class CCachedBaseHandler extends CAsyncServiceHandler {
     private final CUQueue m_Blob = new CUQueue();
     private final CDBVariantArray m_vData = new CDBVariantArray();
     private tagManagementSystem m_ms = tagManagementSystem.msUnknown;
-    private long m_nCall = 0;
     protected final Object m_csCache = new Object();
 }

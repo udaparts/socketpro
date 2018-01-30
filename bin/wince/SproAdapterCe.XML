@@ -21,7 +21,7 @@
             <summary>
             Seek an async handler on the min number of requests queued and its associated socket connection
             </summary>
-            <returns>An async handler if found; and null or nothing if no queue is available</returns>
+            <returns>An async handler if found; and null or nothing if no proper queue is available</returns>
         </member>
         <member name="M:SocketProAdapter.ClientSide.CSocketPool`1.Lock">
             <summary>
@@ -185,6 +185,16 @@
             A client side class for easy accessing remote persistent message queues by use of SocketPro communication framework
             </summary>
         </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.GetCallIndex">
+            <summary>
+            Get an unique increment call index number
+            </summary>
+        </member>
+        <member name="P:SocketProAdapter.ClientSide.CAsyncServiceHandler.RequestsQueued">
+            <summary>
+            A property for the number of requests queued inside asynchronous handler
+            </summary>
+        </member>
         <member name="M:SocketProAdapter.ClientSide.CAsyncQueue.StartQueueTrans(System.Byte[],SocketProAdapter.ClientSide.CAsyncQueue.DQueueTrans)">
             <summary>
             Start enqueuing messages with transaction style. Currently, total size of queued messages must be less than 4 G bytes
@@ -214,11 +224,35 @@
             <param name="qt">A callback for tracking returning error code, which can be one of QUEUE_OK, QUEUE_TRANS_NOT_STARTED_YET, and so on</param>
             <returns>true for sending the request successfully, and false for failure</returns>
         </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncQueue.EndQueueTrans(System.Boolean,SocketProAdapter.ClientSide.CAsyncQueue.DQueueTrans,SocketProAdapter.ClientSide.CAsyncServiceHandler.DDiscarded)">
+            <summary>
+            End enqueuing messages with transaction style. Currently, total size of queued messages must be less than 4 G bytes
+            </summary>
+            <param name="rollback">true for rollback, and false for committing</param>
+            <param name="qt">A callback for tracking returning error code, which can be one of QUEUE_OK, QUEUE_TRANS_NOT_STARTED_YET, and so on</param>
+            <param name="discarded">a callback for tracking cancel or socket closed event</param>
+            <returns>true for sending the request successfully, and false for failure</returns>
+        </member>
         <member name="M:SocketProAdapter.ClientSide.CAsyncQueue.GetKeys(SocketProAdapter.ClientSide.CAsyncQueue.DGetKeys)">
             <summary>
             Query queue keys opened at server side
             </summary>
             <param name="gk">A callback for tracking a list of key names</param>
+            <returns>true for sending the request successfully, and false for failure</returns>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncQueue.GetKeys(SocketProAdapter.ClientSide.CAsyncQueue.DGetKeys,SocketProAdapter.ClientSide.CAsyncServiceHandler.DDiscarded)">
+            <summary>
+            Query queue keys opened at server side
+            </summary>
+            <param name="gk">A callback for tracking a list of key names</param>
+            <param name="discarded">a callback for tracking cancel or socket closed event</param>
+            <returns>true for sending the request successfully, and false for failure</returns>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncQueue.CloseQueue(System.Byte[])">
+            <summary>
+            Try to close a persistent queue opened at server side
+            </summary>
+            <param name="key">An ASCII string for identifying a queue at server side</param>
             <returns>true for sending the request successfully, and false for failure</returns>
         </member>
         <member name="M:SocketProAdapter.ClientSide.CAsyncQueue.CloseQueue(System.Byte[],SocketProAdapter.ClientSide.CAsyncQueue.DClose)">
@@ -229,12 +263,22 @@
             <param name="c">A callback for tracking returning error code, which can be one of QUEUE_OK, QUEUE_DEQUEUING, and so on</param>
             <returns>true for sending the request successfully, and false for failure</returns>
         </member>
-        <member name="M:SocketProAdapter.ClientSide.CAsyncQueue.CloseQueue(System.Byte[],SocketProAdapter.ClientSide.CAsyncQueue.DClose,System.Boolean)">
+        <member name="M:SocketProAdapter.ClientSide.CAsyncQueue.CloseQueue(System.Byte[],SocketProAdapter.ClientSide.CAsyncQueue.DClose,SocketProAdapter.ClientSide.CAsyncServiceHandler.DDiscarded)">
             <summary>
             Try to close or delete a persistent queue opened at server side
             </summary>
             <param name="key">An ASCII string for identifying a queue at server side</param>
             <param name="c">A callback for tracking returning error code, which can be one of QUEUE_OK, QUEUE_DEQUEUING, and so on</param>
+            <param name="discarded">a callback for tracking cancel or socket closed event</param>
+            <returns>true for sending the request successfully, and false for failure</returns>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncQueue.CloseQueue(System.Byte[],SocketProAdapter.ClientSide.CAsyncQueue.DClose,SocketProAdapter.ClientSide.CAsyncServiceHandler.DDiscarded,System.Boolean)">
+            <summary>
+            Try to close or delete a persistent queue opened at server side
+            </summary>
+            <param name="key">An ASCII string for identifying a queue at server side</param>
+            <param name="c">A callback for tracking returning error code, which can be one of QUEUE_OK, QUEUE_DEQUEUING, and so on</param>
+            <param name="discarded">a callback for tracking cancel or socket closed event</param>
             <param name="permanent">true for deleting a queue file, and false for closing a queue file</param>
             <returns>true for sending the request successfully, and false for failure</returns>
         </member>
@@ -255,6 +299,16 @@
             <param name="option">one of options, oMemoryCached, oSystemMemoryCached and oDiskCommitted</param>
             <returns>true for sending the request successfully, and false for failure</returns>
         </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncQueue.FlushQueue(System.Byte[],SocketProAdapter.ClientSide.CAsyncQueue.DFlush,SocketProAdapter.tagOptimistic,SocketProAdapter.ClientSide.CAsyncServiceHandler.DDiscarded)">
+            <summary>
+            May flush memory data into either operation system memory or hard disk, and return message count and queue file size in bytes. Note the method only returns message count and queue file size in bytes if the option is oMemoryCached
+            </summary>
+            <param name="key">An ASCII string for identifying a queue at server side</param>
+            <param name="f">A callback for tracking returning message count and queue file size in bytes</param>
+            <param name="option">one of options, oMemoryCached, oSystemMemoryCached and oDiskCommitted</param>
+            <param name="discarded">a callback for tracking cancel or socket closed event</param>
+            <returns>true for sending the request successfully, and false for failure</returns>
+        </member>
         <member name="M:SocketProAdapter.ClientSide.CAsyncQueue.Dequeue(System.Byte[],SocketProAdapter.ClientSide.CAsyncQueue.DDequeue)">
             <summary>
             Dequeue messages from a persistent message queue file at server side in batch without waiting
@@ -270,6 +324,16 @@
             <param name="key">An ASCII string for identifying a queue at server side</param>
             <param name="d">A callback for tracking data like remaining message count within a server queue file, queue file size in bytes, message dequeued within this batch and bytes dequeued within this batch</param>
             <param name="timeout">A time-out number in milliseconds</param>
+            <returns>true for sending the request successfully, and false for failure</returns>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncQueue.Dequeue(System.Byte[],SocketProAdapter.ClientSide.CAsyncQueue.DDequeue,System.UInt32,SocketProAdapter.ClientSide.CAsyncServiceHandler.DDiscarded)">
+            <summary>
+            Dequeue messages from a persistent message queue file at server side in batch
+            </summary>
+            <param name="key">An ASCII string for identifying a queue at server side</param>
+            <param name="d">A callback for tracking data like remaining message count within a server queue file, queue file size in bytes, message dequeued within this batch and bytes dequeued within this batch</param>
+            <param name="timeout">A time-out number in milliseconds</param>
+            <param name="discarded">a callback for tracking cancel or socket closed event</param>
             <returns>true for sending the request successfully, and false for failure</returns>
         </member>
         <member name="E:SocketProAdapter.ClientSide.CAsyncQueue.MessageQueued">
@@ -1094,7 +1158,7 @@
             <param name="vParam">an array of parameter data which will be bounded to previously prepared parameters</param>
             <param name="handler">a callback for tracking final result</param>
             <param name="row">a callback for tracking record or output parameter returned data</param>
-            <param name="rh">a callback for tracking row set of header column informations. Note that there will be NO row set data or its column informations returned if NO such a callback is set</param>
+            <param name="rh">a callback for tracking row set of header column informations</param>
             <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
         </member>
         <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Execute(SocketProAdapter.UDB.CDBVariantArray,SocketProAdapter.ClientSide.CAsyncDBHandler.DExecuteResult,SocketProAdapter.ClientSide.CAsyncDBHandler.DRows,SocketProAdapter.ClientSide.CAsyncDBHandler.DRowsetHeader,System.Boolean)">
@@ -1104,7 +1168,7 @@
             <param name="vParam">an array of parameter data which will be bounded to previously prepared parameters</param>
             <param name="handler">a callback for tracking final result</param>
             <param name="row">a callback for tracking record or output parameter returned data</param>
-            <param name="rh">a callback for tracking row set of header column informations. Note that there will be NO row set data or its column informations returned if NO such a callback is set</param>
+            <param name="rh">a callback for tracking row set of header column informations</param>
             <param name="meta">a boolean value for better or more detailed column meta details such as unique, not null, primary key, and so on. It defaults to true</param>
             <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
         </member>
@@ -1115,22 +1179,22 @@
             <param name="vParam">an array of parameter data which will be bounded to previously prepared parameters</param>
             <param name="handler">a callback for tracking final result</param>
             <param name="row">a callback for tracking record or output parameter returned data</param>
-            <param name="rh">a callback for tracking row set of header column informations. Note that there will be NO row set data or its column informations returned if NO such a callback is set</param>
+            <param name="rh">a callback for tracking row set of header column informations</param>
             <param name="meta">a boolean value for better or more detailed column meta details such as unique, not null, primary key, and so on. It defaults to true</param>
             <param name="lastInsertId">a boolean value for last insert record identification number. It defaults to true</param>
             <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
         </member>
-        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Execute(SocketProAdapter.UDB.CDBVariantArray,SocketProAdapter.ClientSide.CAsyncDBHandler.DExecuteResult,SocketProAdapter.ClientSide.CAsyncDBHandler.DRows,SocketProAdapter.ClientSide.CAsyncDBHandler.DRowsetHeader,System.Boolean,System.Boolean,SocketProAdapter.ClientSide.CAsyncServiceHandler.DCanceled)">
+        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Execute(SocketProAdapter.UDB.CDBVariantArray,SocketProAdapter.ClientSide.CAsyncDBHandler.DExecuteResult,SocketProAdapter.ClientSide.CAsyncDBHandler.DRows,SocketProAdapter.ClientSide.CAsyncDBHandler.DRowsetHeader,System.Boolean,System.Boolean,SocketProAdapter.ClientSide.CAsyncServiceHandler.DDiscarded)">
             <summary>
             Process one or more sets of prepared statements with an array of parameter data asynchronously
             </summary>
             <param name="vParam">an array of parameter data which will be bounded to previously prepared parameters</param>
             <param name="handler">a callback for tracking final result</param>
             <param name="row">a callback for tracking record or output parameter returned data</param>
-            <param name="rh">a callback for tracking row set of header column informations. Note that there will be NO row set data or its column informations returned if NO such a callback is set</param>
+            <param name="rh">a callback for tracking row set of header column informations</param>
             <param name="meta">a boolean value for better or more detailed column meta details such as unique, not null, primary key, and so on. It defaults to true</param>
             <param name="lastInsertId">a boolean value for last insert record identification number. It defaults to true</param>
-            <param name="canceled">a callback for tracking cancel or socket closed event</param>
+            <param name="discarded">a callback for tracking cancel or socket closed event</param>
             <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
         </member>
         <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Execute(System.String)">
@@ -1148,6 +1212,15 @@
             <param name="handler">a callback for tracking final result</param>
             <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
         </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Execute(System.String,SocketProAdapter.ClientSide.CAsyncDBHandler.DExecuteResult,SocketProAdapter.ClientSide.CAsyncDBHandler.DRows)">
+            <summary>
+            Process a complex SQL statement which may be combined with multiple basic SQL statements asynchronously
+            </summary>
+            <param name="sql">a complex SQL statement which may be combined with multiple basic SQL statements</param>
+            <param name="handler">a callback for tracking final result</param>
+            <param name="row">a callback for receiving records of data</param>
+            <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
+        </member>
         <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Execute(System.String,SocketProAdapter.ClientSide.CAsyncDBHandler.DExecuteResult,SocketProAdapter.ClientSide.CAsyncDBHandler.DRows,SocketProAdapter.ClientSide.CAsyncDBHandler.DRowsetHeader)">
             <summary>
             Process a complex SQL statement which may be combined with multiple basic SQL statements asynchronously
@@ -1155,7 +1228,7 @@
             <param name="sql">a complex SQL statement which may be combined with multiple basic SQL statements</param>
             <param name="handler">a callback for tracking final result</param>
             <param name="row">a callback for receiving records of data</param>
-            <param name="rh">a callback for tracking row set of header column informations. Note that there will be NO row set data or its column informations returned if NO such a callback is set</param>
+            <param name="rh">a callback for tracking row set of header column informations</param>
             <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
         </member>
         <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Execute(System.String,SocketProAdapter.ClientSide.CAsyncDBHandler.DExecuteResult,SocketProAdapter.ClientSide.CAsyncDBHandler.DRows,SocketProAdapter.ClientSide.CAsyncDBHandler.DRowsetHeader,System.Boolean)">
@@ -1165,7 +1238,7 @@
             <param name="sql">a complex SQL statement which may be combined with multiple basic SQL statements</param>
             <param name="handler">a callback for tracking final result</param>
             <param name="row">a callback for receiving records of data</param>
-            <param name="rh">a callback for tracking row set of header column informations. Note that there will be NO row set data or its column informations returned if NO such a callback is set</param>
+            <param name="rh">a callback for tracking row set of header column informations</param>
             <param name="meta">a boolean value for better or more detailed column meta details such as unique, not null, primary key, and so on. It defaults to true</param>
             <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
         </member>
@@ -1176,22 +1249,22 @@
             <param name="sql">a complex SQL statement which may be combined with multiple basic SQL statements</param>
             <param name="handler">a callback for tracking final result</param>
             <param name="row">a callback for receiving records of data</param>
-            <param name="rh">a callback for tracking row set of header column informations. Note that there will be NO row set data or its column informations returned if NO such a callback is set</param>
+            <param name="rh">a callback for tracking row set of header column informations</param>
             <param name="meta">a boolean value for better or more detailed column meta details such as unique, not null, primary key, and so on. It defaults to true</param>
             <param name="lastInsertId">a boolean value for last insert record identification number. It defaults to true</param>
             <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
         </member>
-        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Execute(System.String,SocketProAdapter.ClientSide.CAsyncDBHandler.DExecuteResult,SocketProAdapter.ClientSide.CAsyncDBHandler.DRows,SocketProAdapter.ClientSide.CAsyncDBHandler.DRowsetHeader,System.Boolean,System.Boolean,SocketProAdapter.ClientSide.CAsyncServiceHandler.DCanceled)">
+        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Execute(System.String,SocketProAdapter.ClientSide.CAsyncDBHandler.DExecuteResult,SocketProAdapter.ClientSide.CAsyncDBHandler.DRows,SocketProAdapter.ClientSide.CAsyncDBHandler.DRowsetHeader,System.Boolean,System.Boolean,SocketProAdapter.ClientSide.CAsyncServiceHandler.DDiscarded)">
             <summary>
             Process a complex SQL statement which may be combined with multiple basic SQL statements asynchronously
             </summary>
             <param name="sql">a complex SQL statement which may be combined with multiple basic SQL statements</param>
             <param name="handler">a callback for tracking final result</param>
             <param name="row">a callback for receiving records of data</param>
-            <param name="rh">a callback for tracking row set of header column informations. Note that there will be NO row set data or its column informations returned if NO such a callback is set</param>
+            <param name="rh">a callback for tracking row set of header column informations</param>
             <param name="meta">a boolean value for better or more detailed column meta details such as unique, not null, primary key, and so on. It defaults to true</param>
             <param name="lastInsertId">a boolean value for last insert record identification number. It defaults to true</param>
-            <param name="canceled">a callback for tracking cancel or socket closed event</param>
+            <param name="discarded">a callback for tracking cancel or socket closed event</param>
             <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
         </member>
         <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Open(System.String,SocketProAdapter.ClientSide.CAsyncDBHandler.DResult)">
@@ -1211,14 +1284,14 @@
             <param name="flags">a set of flags transferred to server to indicate how to build database connection at server side. It defaults to zero</param>
             <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
         </member>
-        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Open(System.String,SocketProAdapter.ClientSide.CAsyncDBHandler.DResult,System.UInt32,SocketProAdapter.ClientSide.CAsyncServiceHandler.DCanceled)">
+        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Open(System.String,SocketProAdapter.ClientSide.CAsyncDBHandler.DResult,System.UInt32,SocketProAdapter.ClientSide.CAsyncServiceHandler.DDiscarded)">
             <summary>
             Open a database connection at server side asynchronously
             </summary>
             <param name="strConnection">a database connection string. The database connection string can be an empty string if its server side supports global database connection string</param>
             <param name="handler">a callback for database connecting result</param>
             <param name="flags">a set of flags transferred to server to indicate how to build database connection at server side. It defaults to zero</param>
-            <param name="canceled">a callback for tracking cancel or socket closed event</param>
+            <param name="discarded">a callback for tracking cancel or socket closed event</param>
             <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
         </member>
         <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Prepare(System.String)">
@@ -1245,14 +1318,14 @@
             <param name="vParameterInfo">a given array of parameter informations</param>
             <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
         </member>
-        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Prepare(System.String,SocketProAdapter.ClientSide.CAsyncDBHandler.DResult,SocketProAdapter.UDB.CParameterInfo[],SocketProAdapter.ClientSide.CAsyncServiceHandler.DCanceled)">
+        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Prepare(System.String,SocketProAdapter.ClientSide.CAsyncDBHandler.DResult,SocketProAdapter.UDB.CParameterInfo[],SocketProAdapter.ClientSide.CAsyncServiceHandler.DDiscarded)">
             <summary>
             Send a parameterized SQL statement for preparing with a given array of parameter informations asynchronously
             </summary>
             <param name="sql">a parameterized SQL statement</param>
             <param name="handler">a callback for SQL preparing result</param>
             <param name="vParameterInfo">a given array of parameter informations</param>
-            <param name="canceled">a callback for tracking cancel or socket closed event</param>
+            <param name="discarded">a callback for tracking cancel or socket closed event</param>
             <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
         </member>
         <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.EndTrans">
@@ -1276,13 +1349,13 @@
             <param name="handler">a callback for tracking its response result</param>
             <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
         </member>
-        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.EndTrans(SocketProAdapter.UDB.tagRollbackPlan,SocketProAdapter.ClientSide.CAsyncDBHandler.DResult,SocketProAdapter.ClientSide.CAsyncServiceHandler.DCanceled)">
+        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.EndTrans(SocketProAdapter.UDB.tagRollbackPlan,SocketProAdapter.ClientSide.CAsyncDBHandler.DResult,SocketProAdapter.ClientSide.CAsyncServiceHandler.DDiscarded)">
             <summary>
             End a manual transaction with a given rollback plan. Note the transaction will be associated with SocketPro client message queue if available to avoid possible transaction lose
             </summary>
             <param name="plan">a value for computing how included transactions should be rollback at server side. It defaults to tagRollbackPlan.rpDefault</param>
             <param name="handler">a callback for tracking its response result</param>
-            <param name="canceled">a callback for tracking cancel or socket closed event</param>
+            <param name="discarded">a callback for tracking cancel or socket closed event</param>
             <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
         </member>
         <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.BeginTrans">
@@ -1306,13 +1379,13 @@
             <param name="handler">a callback for tracking its response result</param>
             <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
         </member>
-        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.BeginTrans(SocketProAdapter.UDB.tagTransactionIsolation,SocketProAdapter.ClientSide.CAsyncDBHandler.DResult,SocketProAdapter.ClientSide.CAsyncServiceHandler.DCanceled)">
+        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.BeginTrans(SocketProAdapter.UDB.tagTransactionIsolation,SocketProAdapter.ClientSide.CAsyncDBHandler.DResult,SocketProAdapter.ClientSide.CAsyncServiceHandler.DDiscarded)">
             <summary>
             Start a manual transaction with a given isolation asynchronously. Note the transaction will be associated with SocketPro client message queue if available to avoid possible transaction lose
             </summary>
             <param name="isolation">a value for transaction isolation. It defaults to tagTransactionIsolation.tiReadCommited</param>
             <param name="handler">a callback for tracking its response result</param>
-            <param name="canceled">a callback for tracking cancel or socket closed event</param>
+            <param name="discarded">a callback for tracking cancel or socket closed event</param>
             <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
         </member>
         <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Close">
@@ -1328,12 +1401,12 @@
             <param name="handler">a callback for closing result, which should be OK always as long as there is network or queue available </param>
             <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
         </member>
-        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Close(SocketProAdapter.ClientSide.CAsyncDBHandler.DResult,SocketProAdapter.ClientSide.CAsyncServiceHandler.DCanceled)">
+        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Close(SocketProAdapter.ClientSide.CAsyncDBHandler.DResult,SocketProAdapter.ClientSide.CAsyncServiceHandler.DDiscarded)">
             <summary>
             Notify connected remote server to close database connection string asynchronously
             </summary>
             <param name="handler">a callback for closing result, which should be OK always as long as there is network or queue available </param>
-            <param name="canceled">a callback for tracking cancel or socket closed event</param>
+            <param name="discarded">a callback for tracking cancel or socket closed event</param>
             <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
         </member>
         <member name="M:SocketProAdapter.ClientSide.CSqlServer.#ctor(System.UInt32)">

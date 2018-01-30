@@ -455,6 +455,16 @@ JNIEXPORT jint JNICALL Java_SPA_ServerSide_ServerCoreLoader_SendReturnData(JNIEn
     return res;
 }
 
+JNIEXPORT jint JNICALL Java_SPA_ServerSide_ServerCoreLoader_SendReturnDataIndex(JNIEnv *env, jclass, jlong h, jlong index, jshort reqId, jint len, jbyteArray buffer) {
+    jbyte *p = nullptr;
+    if (buffer && len)
+        p = env->GetByteArrayElements(buffer, nullptr);
+    jint res = (jint) SendReturnDataIndex((USocket_Server_Handle) h, (SPA::UINT64) index, (unsigned short) reqId, (unsigned int) len, (const unsigned char*) p);
+    if (p)
+        env->ReleaseByteArrayElements(buffer, p, JNI_ABORT);
+    return res;
+}
+
 JNIEXPORT void JNICALL Java_SPA_ServerSide_ServerCoreLoader_SetLastCallInfo(JNIEnv *env, jclass, jbyteArray buffer, jint len) {
     jbyte *p = nullptr;
     std::string s;
@@ -788,6 +798,10 @@ JNIEXPORT jlong JNICALL Java_SPA_ServerSide_ServerCoreLoader_GetSocketNativeHand
     return (jlong) GetSocketNativeHandle((USocket_Server_Handle) h);
 }
 
+JNIEXPORT jlong JNICALL Java_SPA_ServerSide_ServerCoreLoader_GetCurrentRequestIndex(JNIEnv *, jclass, jlong h) {
+    return (jlong) GetCurrentRequestIndex((USocket_Server_Handle) h);
+}
+
 JNIEXPORT jbyte JNICALL Java_SPA_ServerSide_ServerCoreLoader_GetPeerOs(JNIEnv *env, jclass, jlong h, jbooleanArray endian, jint count) {
     bool end;
     jboolean *b = nullptr;
@@ -799,6 +813,29 @@ JNIEXPORT jbyte JNICALL Java_SPA_ServerSide_ServerCoreLoader_GetPeerOs(JNIEnv *e
         env->ReleaseBooleanArrayElements(endian, b, 0);
     }
     return (jbyte) os;
+}
+
+JNIEXPORT jint JNICALL Java_SPA_ServerSide_ServerCoreLoader_SendExceptionResultIndex(JNIEnv *env, jclass, jlong h, jlong index, jstring errMessage, jbyteArray errWhere, jshort reqId, jint errCode) {
+    const jchar *errMsg = nullptr;
+    jbyte *errPos = nullptr;
+    std::vector<jchar> vMsg;
+    std::string vWhere;
+    if (errMessage) {
+        jsize len = env->GetStringLength(errMessage);
+        errMsg = env->GetStringChars(errMessage, nullptr);
+        vMsg.assign(errMsg, errMsg + len);
+    }
+    if (errWhere) {
+        jsize len = env->GetArrayLength(errWhere);
+        errPos = env->GetByteArrayElements(errWhere, nullptr);
+        vWhere.assign((const char*) errPos, (const char*) errPos + len);
+    }
+    unsigned int res = SendExceptionResultIndex((USocket_Server_Handle) h, (SPA::UINT64) index, (const wchar_t*) vMsg.data(), vWhere.c_str(), (unsigned short) reqId, (unsigned int) errCode);
+    if (errPos)
+        env->ReleaseByteArrayElements(errWhere, errPos, JNI_ABORT);
+    if (errMsg)
+        env->ReleaseStringChars(errMessage, errMsg);
+    return (jint) res;
 }
 
 JNIEXPORT jint JNICALL Java_SPA_ServerSide_ServerCoreLoader_SendExceptionResult(JNIEnv *env, jclass, jlong h, jstring errMessage, jbyteArray errWhere, jshort reqId, jint errCode) {

@@ -134,7 +134,7 @@ namespace SocketProAdapter
             internal static extern uint GetCountOfServices();
 
             [DllImport(SERVER_CORE_DLL)]
-            internal static unsafe extern uint GetServices(uint *serviceIds, uint count);
+            internal static unsafe extern uint GetServices(uint* serviceIds, uint count);
 
             [DllImport(SERVER_CORE_DLL)]
             internal static extern uint GetCountOfSlowRequests(uint serviceId);
@@ -143,7 +143,7 @@ namespace SocketProAdapter
             internal static extern void RemoveAllSlowRequests(uint serviceId);
 
             [DllImport(SERVER_CORE_DLL)]
-            internal static unsafe extern uint GetAllSlowRequestIds(uint serviceId, ushort *requestIds, uint count);
+            internal static unsafe extern uint GetAllSlowRequestIds(uint serviceId, ushort* requestIds, uint count);
 
             [DllImport(SERVER_CORE_DLL)]
             internal static extern IntPtr AddADll([MarshalAs(UnmanagedType.LPStr)]string libFile, int nParam);
@@ -293,7 +293,7 @@ namespace SocketProAdapter
 
             [DllImport(SERVER_CORE_DLL)]
             [return: MarshalAs(UnmanagedType.I1)]
-            internal static unsafe extern bool Speak(ulong h, byte* message, uint size, uint *chatGroupIds, uint count);
+            internal static unsafe extern bool Speak(ulong h, byte* message, uint size, uint* chatGroupIds, uint count);
 
             [DllImport(SERVER_CORE_DLL)]
             [return: MarshalAs(UnmanagedType.I1)]
@@ -433,7 +433,7 @@ namespace SocketProAdapter
             internal static extern bool SetHTTPResponseHeader(ulong h, [MarshalAs(UnmanagedType.LPStr)]string uft8Header, [MarshalAs(UnmanagedType.LPStr)]string utf8Value);
 
             [DllImport(SERVER_CORE_DLL)]
-            internal static unsafe extern uint SendHTTPReturnDataA(ulong h, byte *str, int chars);
+            internal static unsafe extern uint SendHTTPReturnDataA(ulong h, byte* str, int chars);
 
             [DllImport(SERVER_CORE_DLL)]
             internal static extern uint SendHTTPReturnDataW(ulong h, [MarshalAs(UnmanagedType.LPWStr)]string str, uint chars);
@@ -523,10 +523,10 @@ namespace SocketProAdapter
             internal static extern void AbortDequeuedMessage(ulong h);
 
             [DllImport(SERVER_CORE_DLL)]
-            internal static unsafe extern uint SendHTTPChunk(ulong h, byte *buffer, uint len);
+            internal static unsafe extern uint SendHTTPChunk(ulong h, byte* buffer, uint len);
 
             [DllImport(SERVER_CORE_DLL)]
-            internal static unsafe extern uint EndHTTPChunkResponse(ulong h, byte *buffer, uint len);
+            internal static unsafe extern uint EndHTTPChunkResponse(ulong h, byte* buffer, uint len);
 
             [DllImport(SERVER_CORE_DLL)]
             [return: MarshalAs(UnmanagedType.I1)]
@@ -692,6 +692,15 @@ namespace SocketProAdapter
 
             [DllImport(SERVER_CORE_DLL)]
             internal static extern IntPtr GetRequestBuffer(ulong h);
+
+            [DllImport(SERVER_CORE_DLL)]
+            internal static extern ulong GetCurrentRequestIndex(ulong h);
+
+            [DllImport(SERVER_CORE_DLL)]
+            internal static extern uint SendExceptionResultIndex(ulong handler, ulong index, [MarshalAs(UnmanagedType.LPWStr)]string errMessage, [MarshalAs(UnmanagedType.LPStr)] string errWhere, ushort requestId, uint errCode);
+
+            [DllImport(SERVER_CORE_DLL)]
+            internal static unsafe extern uint SendReturnDataIndex(ulong h, ulong index, ushort requestId, uint bufferSize, byte* buffer);
         }
     }
 }

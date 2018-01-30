@@ -1,9 +1,8 @@
 
 #include "aclientw.h"
 
-namespace SPA
-{
-    namespace ClientSide{
+namespace SPA {
+    namespace ClientSide {
 
         CUCriticalSection g_csSpPool;
 
@@ -14,6 +13,9 @@ namespace SPA
 
         CUCriticalSection CAsyncServiceHandler::m_csRR;
         std::vector<CAsyncServiceHandler::PRR_PAIR> CAsyncServiceHandler::m_vRR;
+
+        CUCriticalSection CAsyncServiceHandler::m_csIndex;
+        UINT64 CAsyncServiceHandler::m_CallIndex = 0; //should be protected by m_csIndex
 
         CAsyncServiceHandler::CAsyncServiceHandler(unsigned int nServiceId, CClientSocket * cs)
         : m_vCallback(*m_suCallback), m_vBatching(*m_suBatching), m_nServiceId(nServiceId), m_pClientSocket(nullptr) {
@@ -28,6 +30,13 @@ namespace SPA
             CAutoLock al(m_cs);
             if (m_pClientSocket)
                 m_pClientSocket->Detach(this);
+        }
+
+        UINT64 CAsyncServiceHandler::GetCallIndex() {
+            m_csIndex.lock();
+            UINT64 index = ++m_CallIndex;
+            m_csIndex.unlock();
+            return index;
         }
 
         void CAsyncServiceHandler::CleanQueue(CUQueue & q) {
@@ -202,20 +211,20 @@ namespace SPA
             return ClientCoreLoader.IsBatching(GetClientSocketHandle());
         }
 
-        bool CAsyncServiceHandler::SendRequest(unsigned short reqId, const unsigned char *pBuffer, unsigned int size, ResultHandler rh, DCanceled canceled, DServerException serverException) {
+        bool CAsyncServiceHandler::SendRequest(unsigned short reqId, const unsigned char *pBuffer, unsigned int size, ResultHandler rh, DDiscarded discarded, DServerException serverException) {
             PRR_PAIR p = nullptr;
             bool batching = false;
             USocket_Client_Handle h = GetClientSocketHandle();
             CAutoLock alSend(m_csSend);
-            if (rh || canceled || serverException) {
+            if (rh || discarded || serverException) {
                 p = Reuse();
                 if (p) {
                     p->first = reqId;
                     p->second.AsyncResultHandler = rh;
-                    p->second.Canceled = canceled;
+                    p->second.Discarded = discarded;
                     p->second.ExceptionFromServer = serverException;
                 } else {
-                    p = new std::pair<unsigned short, CResultCb>(reqId, CResultCb(rh, canceled, serverException));
+                    p = new std::pair<unsigned short, CResultCb>(reqId, CResultCb(rh, discarded, serverException));
                 }
                 CAutoLock al(m_cs);
                 batching = ClientCoreLoader.IsBatching(h);
@@ -249,10 +258,15 @@ namespace SPA
             m_pClientSocket = nullptr;
         }
 
+        void CAsyncServiceHandler::OnMergeTo(CAsyncServiceHandler & to) {
+
+        }
+
         void CAsyncServiceHandler::AppendTo(CAsyncServiceHandler & to) {
             CAutoLock al0(to.m_cs);
             {
                 CAutoLock al1(m_cs);
+                OnMergeTo(to);
                 to.m_vCallback.Push(m_vCallback.GetBuffer(), m_vCallback.GetSize());
                 m_vCallback.SetSize(0);
             }
@@ -265,16 +279,16 @@ namespace SPA
             PRR_PAIR *pp = (PRR_PAIR*) m_vCallback.GetBuffer();
             unsigned int start = total - count;
             for (; start != count; ++start) {
-                if (pp[start]->second.Canceled) {
-                    pp[start]->second.Canceled();
+                if (pp[start]->second.Discarded) {
+                    pp[start]->second.Discarded(this, true);
                 }
                 Recycle(pp[start]);
             }
             m_vCallback.SetSize(m_vCallback.GetSize() - count * sizeof (PRR_PAIR));
         }
 
-        bool CAsyncServiceHandler::SendRequest(unsigned short reqId, ResultHandler rh, DCanceled canceled, DServerException se) {
-            return SendRequest(reqId, (const unsigned char *) nullptr, (unsigned int) 0, rh, canceled, se);
+        bool CAsyncServiceHandler::SendRequest(unsigned short reqId, ResultHandler rh, DDiscarded discarded, DServerException se) {
+            return SendRequest(reqId, (const unsigned char *) nullptr, (unsigned int) 0, rh, discarded, se);
         }
 
         void CAsyncServiceHandler::OnSE(unsigned short requestId, const wchar_t *errMessage, const char* errWhere, unsigned int errCode) {
@@ -325,16 +339,16 @@ namespace SPA
             unsigned int total = count;
             PRR_PAIR *pp = (PRR_PAIR*) m_vBatching.GetBuffer();
             for (unsigned int it = 0; it < count; ++it) {
-                if (pp[it]->second.Canceled) {
-                    pp[it]->second.Canceled();
+                if (pp[it]->second.Discarded) {
+                    pp[it]->second.Discarded(this, GetAttachedClientSocket()->GetCurrentRequestID() == idCancel);
                 }
             }
             CleanQueue(m_vBatching);
             count = m_vCallback.GetSize() / sizeof (PRR_PAIR);
             pp = (PRR_PAIR*) m_vCallback.GetBuffer();
             for (unsigned int it = 0; it < count; ++it) {
-                if (pp[it]->second.Canceled) {
-                    pp[it]->second.Canceled();
+                if (pp[it]->second.Discarded) {
+                    pp[it]->second.Discarded(this, GetAttachedClientSocket()->GetCurrentRequestID() == idCancel);
                 }
             }
             CleanQueue(m_vCallback);
@@ -478,8 +492,7 @@ namespace SPA
         }
 
         void SetLastCallInfo(const char *str, int data, const char *func) {
-            char buff[4097] =
-            { 0};
+            char buff[4097] = {0};
 #ifdef WIN32_64
             _snprintf_s(buff, sizeof (buff), sizeof (buff), "lf: %s, what: %s, data: %d", func, str, data);
 #else
@@ -608,8 +621,7 @@ namespace SPA
         }
 
         std::string CClientSocket::GetPeerName(unsigned int *port) const {
-            char ipAddr[256] =
-            { 0};
+            char ipAddr[256] = {0};
             ClientCoreLoader.GetPeerName(m_hSocket, port, ipAddr, sizeof (ipAddr));
             return ipAddr;
         }
@@ -642,7 +654,7 @@ namespace SPA
             ClientCoreLoader.SetZip(m_hSocket, zip);
         }
 
-        bool CClientSocket::operator == (const CClientSocket & cs) const {
+        bool CClientSocket::operator==(const CClientSocket & cs) const {
             return (m_hSocket == cs.m_hSocket);
         }
 
@@ -914,8 +926,7 @@ namespace SPA
         }
 
         std::string CClientSocket::GetErrorMsg() const {
-            char strErrorMsg[1025] =
-            { 0};
+            char strErrorMsg[1025] = {0};
             ClientCoreLoader.GetErrorMessage(m_hSocket, strErrorMsg, sizeof (strErrorMsg));
             return strErrorMsg;
         }
@@ -1148,6 +1159,8 @@ namespace SPA
             }
             CAsyncServiceHandler *ash = p->Seek(ClientCoreLoader.GetCurrentServiceId(handler));
             if (ash) {
+                if (ash->BaseRequestProcessed)
+                    ash->BaseRequestProcessed(ash, requestId);
                 ash->OnBaseRequestprocessed(requestId);
                 if (requestId == SPA::idCancel)
                     ash->CleanCallbacks();

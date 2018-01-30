@@ -72,7 +72,19 @@ class CClientPeer(CSocketPeer):
         if q is None:
             q = CUQueue()
         buffer = (c_ubyte * q.GetSize()).from_buffer(q._m_bytes_, q._m_position_)
+        if self.Random:
+            return scl.SendReturnData(self.Handle, self.CurrentRequestIndex, reqId, q.GetSize(), buffer)
         return scl.SendReturnData(self.Handle, reqId, q.GetSize(), buffer)
+
+    def SendResultIndex(self, reqIndex, q, reqId):
+        if reqId == 0:
+            reqId = self.CurrentRequestID
+        if isinstance(q, CScopeUQueue):
+            q = q.UQueue
+        if q is None:
+            q = CUQueue()
+        buffer = (c_ubyte * q.GetSize()).from_buffer(q._m_bytes_, q._m_position_)
+        return scl.SendReturnDataIndex(self.Handle, reqIndex, reqId, q.GetSize(), buffer)
 
     def MakeRequest(self, reqId, q):
         if q is None:

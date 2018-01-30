@@ -432,6 +432,9 @@ extern "C" {
     bool WINAPI SendUserMessagePush(const wchar_t *userId, const unsigned char *message, unsigned int size);
     void WINAPI RegisterMe(unsigned int svsId, SPA::UINT64 secretNumber);
     SPA::UINT64 WINAPI BatchEnqueue(unsigned int qHandle, unsigned int count, const unsigned char *msgStruct);
+    unsigned int WINAPI SendReturnDataIndex(USocket_Server_Handle h, SPA::UINT64 index, unsigned short usReqId, unsigned int ulBufferSize, const unsigned char *pBuffer);
+    unsigned int WINAPI SendExceptionResultIndex(USocket_Server_Handle h, SPA::UINT64 index, const wchar_t* errMessage, const char* errWhere, unsigned short requestId, unsigned int errCode);
+    SPA::UINT64 WINAPI GetCurrentRequestIndex(USocket_Server_Handle h);
 
 #ifdef __cplusplus
 }

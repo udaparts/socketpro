@@ -8,6 +8,7 @@ namespace SocketProAdapter
         public class CSocketPeer
         {
             internal CUQueue m_qBuffer = new CUQueue();
+            internal bool m_bRandom = false;
             internal ulong m_sh = 0;
             internal CBaseService m_Service;
 
@@ -152,6 +153,14 @@ namespace SocketProAdapter
                 }
             }
 
+            protected bool Random
+            {
+                get
+                {
+                    return m_bRandom;
+                }
+            }
+
             protected CUQueue UQueue
             {
                 get
@@ -223,6 +232,14 @@ namespace SocketProAdapter
                 }
             }
 
+            public ulong CurrentRequestIndex
+            {
+                get
+                {
+                    return ServerCoreLoader.GetCurrentRequestIndex(m_sh);
+                }
+            }
+
             public static bool IsMainThread
             {
                 get
@@ -269,17 +286,33 @@ namespace SocketProAdapter
 
             public uint SendExceptionResult(string errMessage, string errWhere)
             {
-                return ServerCoreLoader.SendExceptionResult(m_sh, errMessage, errWhere, 0, 0);
+                ulong reqIndex = CurrentRequestIndex;
+                if (reqIndex == ulong.MaxValue)
+                    return ServerCoreLoader.SendExceptionResult(m_sh, errMessage, errWhere, 0, 0);
+                return ServerCoreLoader.SendExceptionResultIndex(m_sh, reqIndex, errMessage, errWhere, 0, 0);
             }
 
             public uint SendExceptionResult(string errMessage, string errWhere, uint errCode)
             {
-                return ServerCoreLoader.SendExceptionResult(m_sh, errMessage, errWhere, 0, errCode);
+                ulong reqIndex = CurrentRequestIndex;
+                if (reqIndex == ulong.MaxValue)
+                    return ServerCoreLoader.SendExceptionResult(m_sh, errMessage, errWhere, 0, errCode);
+                return ServerCoreLoader.SendExceptionResultIndex(m_sh, reqIndex, errMessage, errWhere, 0, errCode);
             }
 
             public uint SendExceptionResult(string errMessage, string errWhere, uint errCode, ushort requestId)
             {
-                return ServerCoreLoader.SendExceptionResult(m_sh, errMessage, errWhere, requestId, errCode);
+                ulong reqIndex = CurrentRequestIndex;
+                if (reqIndex == ulong.MaxValue)
+                    return ServerCoreLoader.SendExceptionResult(m_sh, errMessage, errWhere, requestId, errCode);
+                return ServerCoreLoader.SendExceptionResultIndex(m_sh, reqIndex, errMessage, errWhere, requestId, errCode);
+            }
+
+            public uint SendExceptionResult(string errMessage, string errWhere, uint errCode, ushort requestId, ulong reqIndex)
+            {
+                if (reqIndex == ulong.MaxValue)
+                    return ServerCoreLoader.SendExceptionResult(m_sh, errMessage, errWhere, requestId, errCode);
+                return ServerCoreLoader.SendExceptionResultIndex(m_sh, reqIndex, errMessage, errWhere, requestId, errCode);
             }
 
             protected virtual void OnSwitchFrom(uint oldServiceId)

@@ -24,13 +24,11 @@ class CMysql(CAsyncDBHandler):
     ER_SERVICE_COMMAND_ERROR = 1989
     ER_MYSQL_LIBRARY_NOT_INITIALIZED = 1990
 
-    def __init__(self):
-        super(CMysql, self).__init__(CMysql.sidMysql)
-
-
+    def __init__(self, sid=sidMysql):
+        super(CMysql, self).__init__(sid)
 
 class CSqlServer(CAsyncDBHandler):
     sidMsSql = BaseServiceID.sidReserved + 0x6FFFFFF2  # asynchronous MS SQL stream service id
 
-    def __init__(self):
-        super(CSqlServer, self).__init__(CSqlServer.sidMsSql)
+    def __init__(self, sid=sidMsSql):
+        super(CSqlServer, self).__init__(sid)

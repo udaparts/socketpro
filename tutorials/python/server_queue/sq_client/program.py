@@ -46,7 +46,7 @@ def TestDequeue(aq):
     print('Going to dequeue messages ......')
     aq.Dequeue(TEST_QUEUE_KEY, cbDequeue)
 
-    # optionally, add one extra to improve processing concurrency at both client and server sides for better performance and through-output
+    #optionally, add one extra to improve processing concurrency at both client and server sides for better performance and through-output
     aq.Dequeue(TEST_QUEUE_KEY, cbDequeue)
 
 with CSocketPool(CAsyncQueue) as spAq:
@@ -61,7 +61,7 @@ with CSocketPool(CAsyncQueue) as spAq:
     #Optionally, you can enqueue messages with transaction style by calling the methods StartQueueTrans and EndQueueTrans in pair
     #aq.StartQueueTrans(TEST_QUEUE_KEY, lambda errCode: print('errCode=' + str(errCode)))
     TestEnqueue(aq)
-    #aq.EndQueueTrans(False)
+    #aq.EndQueueTrans()
     TestDequeue(aq)
 
     print('Press any key to close the application ......')

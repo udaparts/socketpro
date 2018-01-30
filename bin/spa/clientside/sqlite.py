@@ -108,5 +108,5 @@ class CSqlite(CAsyncDBHandler):
     SQLITE_WARNING_AUTOINDEX = (SQLITE_WARNING | (1 << 8))
     SQLITE_AUTH_USER = (SQLITE_AUTH | (1 << 8))
 
-    def __init__(self):
-        super(CSqlite, self).__init__(CSqlite.sidSqlite)
+    def __init__(self, sid=sidSqlite):
+        super(CSqlite, self).__init__(sid)
