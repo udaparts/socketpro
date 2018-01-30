@@ -661,12 +661,6 @@
             </summary>
             <param name="sid">A service id</param>
         </member>
-        <member name="M:SocketProAdapter.ClientSide.CStreamingFile.CancelOne">
-            <summary>
-            Remove the last queued file from queue
-            </summary>
-            <returns>True if successful. Otherwise, false</returns>
-        </member>
         <member name="P:SocketProAdapter.ClientSide.CStreamingFile.FilesQueued">
             <summary>
             The number of files queued
