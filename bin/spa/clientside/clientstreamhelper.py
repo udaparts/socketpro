@@ -62,6 +62,10 @@ class CStreamingFile(CAsyncServiceHandler):
                 return -1
             return self._vContext[0].FileSize
 
+    @property
+    def FilesQueued(self):
+        with self._csFile:
+            return len(self._vContext)
 
     @property
     def LocalFile(self):
@@ -273,6 +277,7 @@ class CStreamingFile(CAsyncServiceHandler):
                     if not self.SendRequest(CStreamingFile.idDownload, q, rh, context.Discarded, se):
                         return False
                     context.Sent = True
+                    context.Tried = True
                     sent_buffer_size = cs.BytesInSendingBuffer
                     if sent_buffer_size > 3 * CStreamingFile.STREAM_CHUNK_SIZE:
                         return True

@@ -84,6 +84,11 @@ namespace SPA {
                 return CAsyncServiceHandler::CleanCallbacks();
             }
 
+            size_t GetFilesQueued() {
+                CAutoLock al(m_csFile);
+                return m_vContext.size();
+            }
+
             UINT64 GetFileSize() {
                 UINT64 file_size = (~0);
                 CAutoLock al(m_csFile);
@@ -508,6 +513,7 @@ namespace SPA {
                             return false;
                         }
                         context.Sent = true;
+                        context.Tried = true;
                         sent_buffer_size = cs->GetBytesInSendingBuffer();
                         if (sent_buffer_size > 3 * SFile::STREAM_CHUNK_SIZE)
                             break;

@@ -1946,5 +1946,25 @@
             </summary>
             <param name="sid">A service id</param>
         </member>
+        <member name="P:SocketProAdapter.ClientSide.CStreamingFile.FilesQueued">
+            <summary>
+            The number of files queued
+            </summary>
+        </member>
+        <member name="P:SocketProAdapter.ClientSide.CStreamingFile.FileSize">
+            <summary>
+            The file size in bytes for current file being in transaction
+            </summary>
+        </member>
+        <member name="P:SocketProAdapter.ClientSide.CStreamingFile.LocalFile">
+            <summary>
+            Local file name of current file being in transaction
+            </summary>
+        </member>
+        <member name="P:SocketProAdapter.ClientSide.CStreamingFile.RemoteFile">
+            <summary>
+            Remote file name of current file being in transaction
+            </summary>
+        </member>
     </members>
 </doc>

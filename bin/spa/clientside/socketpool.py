@@ -227,8 +227,8 @@ class CSocketPool(object):
                 ok = ccl.SetSockOptAtSvr(h, tagSocketOption.soRcvBuf, 116800, tagSocketLevel.slSocket)
                 ok = ccl.SetSockOptAtSvr(h, tagSocketOption.soSndBuf, 116800, tagSocketLevel.slSocket)
                 ok = ccl.SetSockOptAtSvr(h, tagSocketOption.soTcpNoDelay, 1, tagSocketLevel.slTcp)
-                self._SetQueue_(cs)
                 ok = ccl.CommitBatching(h, False)
+                self._SetQueue_(cs)
         elif spe == tagSocketPoolEvent.speQueueMergedFrom:
             self._hFrom = handler
         elif spe == tagSocketPoolEvent.speQueueMergedTo:
