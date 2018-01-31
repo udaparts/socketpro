@@ -236,11 +236,11 @@ class CAsyncServiceHandler(object):
             size = len(self._m_kvBatching_) + len(self._m_kvCallback_)
             for kv in self._m_kvBatching_:
                 if kv[1].Discarded:
-                    kv[1].Discarded(self, AttachedClientSocket.CurrentRequestID == tagBaseRequestID.idCancel)
+                    kv[1].Discarded(self, self.AttachedClientSocket.CurrentRequestID == tagBaseRequestID.idCancel)
             self._m_kvBatching_.clear()
             for kv in self._m_kvCallback_:
                 if kv[1].Discarded:
-                    kv[1].Discarded(self, AttachedClientSocket.CurrentRequestID == tagBaseRequestID.idCancel)
+                    kv[1].Discarded(self, self.AttachedClientSocket.CurrentRequestID == tagBaseRequestID.idCancel)
             self._m_kvCallback_.clear()
             return size
 
