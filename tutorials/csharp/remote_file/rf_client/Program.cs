@@ -13,14 +13,11 @@ class Program
             if (!ok)
             {
                 Console.WriteLine("Can not connect to remote server and press ENTER key to shutdown the application ......");
-                Console.ReadLine();
-                return;
+                Console.ReadLine(); return;
             }
             CStreamingFile rf = spRf.Seek();
-
             Console.WriteLine("Input a remote file path:");
             //test both downloading and uploading files in file stream (it is different from byte stream)
-
             string RemoteFile = Console.ReadLine();
             string LocalFile = "spfile1.test";
             //downloading test
@@ -45,10 +42,10 @@ class Program
                     Console.WriteLine("Error code: {0}, error message: {1}", res, errMsg);
                 else
                     Console.WriteLine("Uploading {0} completed", file.RemoteFile);
-            }, (file, downloaded) =>
+            }, (file, uploaded) =>
             {
                 //uploading progress
-                Console.WriteLine("Uploading rate: {0}%", downloaded * 100 / file.FileSize);
+                Console.WriteLine("Uploading rate: {0}%", uploaded * 100 / file.FileSize);
             });
             ok = rf.WaitAll();
             Console.WriteLine("Press key ENTER to shutdown the demo application ......");
