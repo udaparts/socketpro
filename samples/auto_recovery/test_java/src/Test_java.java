@@ -9,7 +9,7 @@ public class Test_java {
         String[] vHost = {"localhost", "192.168.2.172"};
         java.util.Scanner scanner = new java.util.Scanner(System.in);
         CSocketPool<CSqlite> sp = new CSocketPool<>(CSqlite.class);
-        sp.setQueueName("ar_java");
+        sp.setQueueName("ar_java"); //set a local queue to backup requests for auto fault recovery
         CConnectionContext[][] ppCc = new CConnectionContext[1][vHost.length * sessions_per_host]; //one thread enough
         for (int n = 0; n < vHost.length; ++n) {
             for (int j = 0; j < sessions_per_host; ++j) {
@@ -60,8 +60,8 @@ public class Test_java {
             context.row.clear();
             context.row.addAll(vData);
         };
-        CSqlite sqlite = sp.Seek();
-        ok = sqlite.Execute(sql, er, r);
+        CSqlite sqlite = sp.SeekByQueue();
+        ok = sqlite.Execute(sql, er, r); // get one record for comparison
         ok = sqlite.WaitAll();
         System.out.println("Result: max = " + context.dmax + ", min = " + context.dmin + ", avg = " + context.davg);
         context.returned = 0;
@@ -70,7 +70,7 @@ public class Test_java {
         context.davg = 0.0;
         System.out.println("Going to get " + cycles + " queries for max, min and avg");
         for (int n = 0; n < cycles; ++n) {
-            sqlite = sp.Seek();
+            sqlite = sp.SeekByQueue();
             ok = sqlite.Execute(sql, er, r);
         }
         for (CSqlite h : v) {

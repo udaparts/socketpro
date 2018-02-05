@@ -12,7 +12,7 @@ class Program
         string[] vHost = { "localhost", "192.168.2.172" };
         using (CSocketPool<CSqlite> sp = new CSocketPool<CSqlite>())
         {
-            sp.QueueName = "ar_sharp";
+            sp.QueueName = "ar_sharp"; //set a local message queue to backup requests for auto fault recovery
             CConnectionContext[,] ppCc = new CConnectionContext[1, vHost.Length * sessions_per_host]; //one thread enough
             for (int n = 0; n < vHost.Length; ++n)
             {
@@ -25,23 +25,19 @@ class Program
             if (!ok)
             {
                 Console.WriteLine("There is no connection and press any key to close the application ......");
-                Console.Read();
-                return;
+                Console.Read(); return;
             }
             string sql = "SELECT max(amount), min(amount), avg(amount) FROM payment";
             Console.WriteLine("Input a filter for payment_id");
             string filter = Console.ReadLine();
-            if (filter.Length > 0)
-                sql += (" WHERE " + filter);
+            if (filter.Length > 0) sql += (" WHERE " + filter);
             var v = sp.AsyncHandlers;
             foreach (var h in v)
             {
                 ok = h.Open("sakila.db", (hsqlite, res, errMsg) =>
                 {
                     if (res != 0)
-                    {
                         Console.WriteLine("Error code: {0}, error message: {1}", res, errMsg);
-                    }
                 });
             }
             int returned = 0;
@@ -64,7 +60,7 @@ class Program
                 row.Clear();
                 row.AddRange(vData);
             };
-            CSqlite sqlite = sp.Seek();
+            CSqlite sqlite = sp.SeekByQueue(); //get one handler for querying one record
             ok = sqlite.Execute(sql, er, r);
             ok = sqlite.WaitAll();
             Console.WriteLine("Result: max = {0}, min = {1}, avg = {2}", dmax, dmin, davg);
@@ -73,7 +69,7 @@ class Program
             Console.WriteLine("Going to get {0} queries for max, min and avg", cycles);
             for (int n = 0; n < cycles; ++n)
             {
-                sqlite = sp.Seek();
+                sqlite = sp.SeekByQueue();
                 ok = sqlite.Execute(sql, er, r);
             }
             foreach (var h in v)
@@ -81,8 +77,7 @@ class Program
                 ok = h.WaitAll();
             }
             Console.WriteLine("Returned = {0}, max = {1}, min = {2}, avg = {3}", returned, dmax, dmin, davg);
-            Console.WriteLine("Press any key to close the application ......");
-            Console.Read();
+            Console.WriteLine("Press any key to close the application ......"); Console.Read();
         }
     }
 }

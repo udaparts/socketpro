@@ -24,14 +24,13 @@ int main(int argc, char* argv[])
 			}
 		}
 	}
-	sp.SetQueueName("ar_cpp");
+	sp.SetQueueName("ar_cpp"); //set a local message queue to backup requests for auto fault recovery
 	bool ok = sp.StartSocketPool(ppCc, THREADS, HOSTS * sessions_per_host);
 	do
 	{
 		if (!ok) {
 			std::cout << "There is no connection and press any key to close the application ......" << std::endl;
-			::getchar();
-			break;
+			::getchar(); break;
 		}
 		std::wstring sql = L"SELECT max(amount), min(amount), avg(amount) FROM payment";
 		std::cout << "Input a filter for payment_id" << std::endl;
@@ -43,8 +42,7 @@ int main(int argc, char* argv[])
 		while (filter.size() && ::isspace(filter.front())) {
 			filter.erase(filter.begin());
 		}
-		if (filter.size())
-			sql += (L" WHERE " + filter);
+		if (filter.size()) sql += (L" WHERE " + filter);
 		auto v = sp.GetAsyncHandlers();
 		for (auto it = v.begin(), end = v.end(); it != end; ++it) {
 			ok = (*it)->Open(L"sakila.db", [](CSql &h, int res, const std::wstring &errMsg){
@@ -69,7 +67,7 @@ int main(int argc, char* argv[])
 		CSql::DRows r = [&row](CSql &h, SPA::UDB::CDBVariantArray &r) {
 			row = r;
 		};
-		auto asql = sp.Seek();
+		auto asql = sp.SeekByQueue(); //get one handler for querying one record
 		ok = asql->Execute(sql.c_str(), er, r);
 		assert(ok);
 		ok = asql->WaitAll();
@@ -79,7 +77,7 @@ int main(int argc, char* argv[])
 		std::cout << "Going to get " << cycles << " queries for max, min and avg" << std::endl;
 		for (int n = 0; n < cycles; ++n)
         {
-            asql = sp.Seek();
+            asql = sp.SeekByQueue();
             ok = asql->Execute(sql.c_str(), er, r);
 			assert(ok);
         }
