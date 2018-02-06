@@ -228,7 +228,6 @@ class CSocketPool(object):
                 ok = ccl.SetSockOptAtSvr(h, tagSocketOption.soSndBuf, 116800, tagSocketLevel.slSocket)
                 ok = ccl.SetSockOptAtSvr(h, tagSocketOption.soTcpNoDelay, 1, tagSocketLevel.slTcp)
                 ok = ccl.CommitBatching(h, False)
-                self._SetQueue_(cs)
         elif spe == tagSocketPoolEvent.speQueueMergedFrom:
             self._hFrom = handler
         elif spe == tagSocketPoolEvent.speQueueMergedTo:
@@ -236,7 +235,11 @@ class CSocketPool(object):
             self._hFrom = None
         else:
             pass
+        if self.SocketPoolEvent:
+            self.SocketPoolEvent(self, spe, handler)
         self.OnSocketPoolEvent(spe, handler)
+        if spe == tagSocketPoolEvent.speConnected and ccl.IsOpened(h):
+            self._SetQueue_(handler.AttachedClientSocket)
 
     def _start_(self, sockets_per_thread, thread=0, avg=True, ta=0):
         with self._lock_:

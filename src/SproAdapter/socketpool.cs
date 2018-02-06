@@ -869,7 +869,6 @@ namespace SocketProAdapter
                             ok = ClientCoreLoader.SetSockOptAtSvr(h, tagSocketOption.soSndBuf, 116800, tagSocketLevel.slSocket) != 0;
                             ok = ClientCoreLoader.SetSockOptAtSvr(h, tagSocketOption.soTcpNoDelay, 1, tagSocketLevel.slTcp) != 0;
                             ok = (ClientCoreLoader.CommitBatching(h, (byte)0) != 0);
-                            SetQueue(cs);
                         }
                         break;
                     case tagSocketPoolEvent.speQueueMergedFrom:
@@ -893,12 +892,11 @@ namespace SocketProAdapter
                     default:
                         break;
                 }
-                lock (m_cs)
-                {
-                    if (SocketPoolEvent != null)
-                        SocketPoolEvent.Invoke(this, spe, handler);
-                }
+                if (SocketPoolEvent != null)
+                    SocketPoolEvent.Invoke(this, spe, handler);
                 OnSocketPoolEvent(spe, handler);
+                if (spe == tagSocketPoolEvent.speConnected && ClientCoreLoader.IsOpened(h) != 0)
+                    SetQueue(handler.AttachedClientSocket);
             }
 
             private void CleanUp()

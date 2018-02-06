@@ -1921,6 +1921,8 @@ namespace SPA {
             }
 
             static void CALLBACK SPE(unsigned int poolId, SPA::ClientSide::tagSocketPoolEvent spe, USocket_Client_Handle h) {
+                PClientSocket pcs;
+                unsigned int index = 0;
                 CSocketPool *sp = Seek(poolId);
                 switch (spe) {
                     case speTimer:
@@ -1974,10 +1976,9 @@ namespace SPA {
                         break;
                     case speConnected:
                         if (sp && ClientCoreLoader.IsOpened(h)) {
-                            unsigned int index = 0;
                             ClientCoreLoader.SetSockOpt(h, soRcvBuf, 116800, slSocket);
                             ClientCoreLoader.SetSockOpt(h, soSndBuf, 116800, slSocket);
-                            PClientSocket pcs = sp->MapToSocket(h, index);
+                            pcs = sp->MapToSocket(h, index);
                             if (sp->DoSslServerAuthentication) {
                                 if (ClientCoreLoader.GetEncryptionMethod(h) == TLSv1 && !sp->DoSslServerAuthentication(sp, pcs.get()))
                                     return;
@@ -1989,7 +1990,6 @@ namespace SPA {
                             ok = ClientCoreLoader.SetSockOptAtSvr(h, soRcvBuf, 116800, slSocket);
                             ok = ClientCoreLoader.SetSockOptAtSvr(h, soSndBuf, 116800, slSocket);
                             ok = ClientCoreLoader.CommitBatching(h, false);
-                            sp->SetQueue(pcs, index);
                         }
                         break;
                     case speQueueMergedFrom:
@@ -2013,6 +2013,8 @@ namespace SPA {
                 if (sp->SocketPoolEvent)
                     sp->SocketPoolEvent(sp, spe, handler.get());
                 sp->OnSocketPoolEvent(spe, handler);
+                if (spe == speConnected && ClientCoreLoader.IsOpened(h))
+                    sp->SetQueue(pcs, index);
             }
 
         protected:

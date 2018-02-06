@@ -10,7 +10,7 @@ class Program {
             CConnectionContext[,] ppCc = new CConnectionContext[1, vHost.Length * sessions_per_host]; //one thread enough
             for (int n = 0; n < vHost.Length; ++n) {
                 for (int j = 0; j < sessions_per_host; ++j) {
-                    ppCc[0, n * sessions_per_host + j] = new CConnectionContext(vHost[n], 20901, "AClientUserId", "Mypassword");
+                    ppCc[0, n * sessions_per_host + j] = new CConnectionContext(vHost[n], 20902, "root", "Smash123");
                 }
             }
             bool ok = sp.StartSocketPool(ppCc);
