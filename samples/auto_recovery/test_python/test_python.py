@@ -21,7 +21,7 @@ with CSocketPool(CSqlite) as sp:
     threads = 1
     vHost = ['localhost', 'ws-yye-1']
     channels = sessions_per_host * len(vHost)
-    sp.QueueName = 'ar_python'
+    sp.QueueName = 'ar_python' # set a local queue to backup requests for auto fault recovery
     mcc = [[0 for i in range(channels)] for i in range(threads)]
     m = 0
     while m < threads:
@@ -62,7 +62,7 @@ with CSocketPool(CSqlite) as sp:
             mystruct.davg += mystruct.row[2]
         mystruct.returned += 1
     h = sp.SeekByQueue()
-    ok = h.Execute(sql, er, r)
+    ok = h.Execute(sql, er, r) # get a one record data for comparison
     ok = h.WaitAll()
     print('Result: max = %f, min = %f, avg = %f' % ( mystruct.dmax, mystruct.dmin, mystruct.davg))
     mystruct.reset()
