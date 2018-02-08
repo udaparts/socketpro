@@ -76,7 +76,8 @@ namespace SPA {
             Password(cc.Password),
             EncrytionMethod(cc.EncrytionMethod),
             V6(cc.V6),
-            Zip(cc.Zip) {
+            Zip(cc.Zip),
+            AnyData(cc.AnyData) {
             }
 
             CConnectionContext& operator=(const CConnectionContext &cc) {
@@ -88,6 +89,7 @@ namespace SPA {
                     EncrytionMethod = cc.EncrytionMethod;
                     V6 = cc.V6;
                     Zip = cc.Zip;
+                    AnyData = cc.AnyData;
                 }
                 return *this;
             }
@@ -101,7 +103,8 @@ namespace SPA {
                         Password == cc.Password &&
                         EncrytionMethod == cc.EncrytionMethod &&
                         V6 == cc.V6 &&
-                        Zip == cc.Zip);
+                        Zip == cc.Zip &&
+                        IsEqual(AnyData, cc.AnyData));
             }
 
             std::string Host;
@@ -111,6 +114,7 @@ namespace SPA {
             tagEncryptionMethod EncrytionMethod;
             bool V6;
             bool Zip;
+            UVariant AnyData;
         };
 
         struct IClientQueue : public IMessageQueueBasic {
@@ -287,6 +291,7 @@ namespace SPA {
             bool IsConnected() const;
             void SetEncryptionMethod(tagEncryptionMethod em) const;
             USocket_Client_Handle GetHandle() const;
+            const CConnectionContext& GetConnectionContext() const;
             static CClientSocket* Seek(USocket_Client_Handle h);
 
             //If socket is closed, batching requests or timed out, it will return false

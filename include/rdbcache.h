@@ -163,14 +163,16 @@ namespace SPA {
             //open default database and subscribe for table update events (update, delete and insert) by setting flag UDB::ENABLE_TABLE_UPDATE_MESSAGES
             bool ok = asyncSQL->Open(this->GetDefaultDBName().c_str(), [this](CSQLHandler &h, int res, const std::wstring & errMsg) {
                 if (!res) {
-                    this->m_cache.SetDBServerName(nullptr);
                     this->m_cache.SetUpdater(nullptr);
                     this->m_cache.Empty();
+                    h.Utf8ToW(true);
                     unsigned int port;
                     std::string ip = h.GetAttachedClientSocket()->GetPeerName(&port);
                     ip += ":";
                     ip += std::to_string(port);
-                    h.Utf8ToW(true);
+                    std::string host = h.GetAttachedClientSocket()->GetConnectionContext().Host;
+                    std::wstring s = Utilities::ToWide(host.c_str(), host.size());
+                    this->m_cache.SetDBServerName(s.c_str());
                     this->m_cache.Set(ip.c_str(), h.GetDBManagementSystem());
                 }
             }, UDB::ENABLE_TABLE_UPDATE_MESSAGES);

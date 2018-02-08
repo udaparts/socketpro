@@ -1,4 +1,3 @@
-
 package SPA.ClientSide;
 
 public class CConnectionContext {
@@ -40,11 +39,13 @@ public class CConnectionContext {
         Zip = zip;
         V6 = v6;
     }
+
     public String Host;
     public int Port;
     public String UserId;
     public String Password;
-    SPA.tagEncryptionMethod EncrytionMethod = SPA.tagEncryptionMethod.NoEncryption;
-    boolean V6 = false;
-    boolean Zip = false;
+    public SPA.tagEncryptionMethod EncrytionMethod = SPA.tagEncryptionMethod.NoEncryption;
+    public boolean V6 = false;
+    public boolean Zip = false;
+    public Object AnyData = null;
 }

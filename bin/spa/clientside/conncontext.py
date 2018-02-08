@@ -11,3 +11,4 @@ class CConnectionContext(object):
         self.EncrytionMethod = em
         self.Zip = zip
         self.V6 = v6
+        self.AnyData = None

@@ -71,7 +71,6 @@ namespace SocketProAdapter
                         ServerSide.CSocketProServer.PushManager.Publish(vtMessage, UDB.DB_CONSTS.CACHE_UPDATE_CHAT_GROUP_ID);
                     }
 #endif
-                    m_cache.DBServerName = "";
                     m_cache.Updater = "";
                     m_cache.Empty();
                     SetInitialCache();
@@ -200,6 +199,7 @@ namespace SocketProAdapter
                 ip += ":";
                 ip += port;
                 m_cache.Set(ip, m_hander.DBManagementSystem);
+                m_cache.DBServerName = m_hander.AttachedClientSocket.ConnectionContext.Host;
                 if (res == 0)
                 {
                     m_MasterCache.Swap(m_cache); //exchange between master Cache and this m_cache

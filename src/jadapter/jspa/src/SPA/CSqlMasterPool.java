@@ -61,9 +61,9 @@ public class CSqlMasterPool<THandler extends CAsyncDBHandler> extends CMasterSla
         boolean ok = m_hander.Open(getDefaultDBName(), new CAsyncDBHandler.DResult() {
             @Override
             public void invoke(CAsyncDBHandler h, int res, String errMsg) {
-                m_cache.setDBServerName("");
                 m_cache.setUpdater("");
                 m_cache.Empty();
+                m_cache.setDBServerName(h.getAttachedClientSocket().getConnectionContext().Host);
                 SPA.RefObject<Integer> port = new SPA.RefObject<>(0);
                 String ip = m_hander.getAttachedClientSocket().GetPeerName(port);
                 ip += ":";

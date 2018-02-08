@@ -22,12 +22,11 @@ class CSqlMasterPool(CMasterSlaveBase):
         return self._midTier_
 
     def _SetInitialCache_(self):
-
-        self._m_cache_.DBServerName = ""
         self._m_cache_.Updater = ""
         self._m_cache_.Empty()
 
         def rh(h, res, errMsg):
+            self._m_cache_.DBServerName = h.AttachedClientSocket.ConnectionContext.Host
             ip, port = h.AttachedClientSocket.GetPeerName()
             ip += ":"
             ip += str(port)

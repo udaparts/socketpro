@@ -57,6 +57,7 @@ public class CMasterPool<THandler extends CCachedBaseHandler> extends CMasterSla
                 ip += ":";
                 ip += port.Value;
                 m_cache.Set(ip, m_hander.getDBManagementSystem());
+                m_cache.setDBServerName(m_hander.getAttachedClientSocket().getConnectionContext().Host);
                 if (res == 0) {
                     Cache.Swap(m_cache); //exchange between master Cache and this m_cache
                     m_cache.Set(ip, m_hander.getDBManagementSystem());

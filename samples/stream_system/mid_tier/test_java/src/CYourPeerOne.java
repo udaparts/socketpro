@@ -269,14 +269,14 @@ public class CYourPeerOne extends CCacheBasePeer {
     protected CachedTableResult GetCachedTables(String defaultDb, int flags, long index) {
         CachedTableResult res = this.new CachedTableResult();
         do {
-            CConfig config = CConfig.getConfig();
-            if (config.m_vFrontCachedTable.isEmpty()) {
-                break;
-            }
             if ((flags & DB_CONSTS.ENABLE_TABLE_UPDATE_MESSAGES) == DB_CONSTS.ENABLE_TABLE_UPDATE_MESSAGES) {
                 if (!getPush().Subscribe(DB_CONSTS.CACHE_UPDATE_CHAT_GROUP_ID, DB_CONSTS.STREAMING_SQL_CHAT_GROUP_ID)) {
                     res.errMsg = "Failed in subscribing for table events"; //warning message
                 }
+            }
+            CConfig config = CConfig.getConfig();
+            if (config.m_vFrontCachedTable.isEmpty() || flags == 0) {
+                break;
             }
             String sql = "";
             for (String s : config.m_vFrontCachedTable) {
