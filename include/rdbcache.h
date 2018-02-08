@@ -170,7 +170,7 @@ namespace SPA {
                     std::string ip = h.GetAttachedClientSocket()->GetPeerName(&port);
                     ip += ":";
                     ip += std::to_string(port);
-                    std::string host = h->GetAttachedClientSocket().GetConnectionContext().Host;
+                    std::string host = h.GetAttachedClientSocket()->GetConnectionContext().Host;
                     std::wstring s = Utilities::ToWide(host.c_str(), host.size());
                     this->m_cache.SetDBServerName(s.c_str());
                     this->m_cache.Set(ip.c_str(), h.GetDBManagementSystem());
