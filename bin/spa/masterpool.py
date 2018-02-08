@@ -27,6 +27,7 @@ class CMasterPool(CMasterSlaveBase):
             ip, port = self._handler_.AttachedClientSocket.GetPeerName()
             ip += ":"
             ip += str(port)
+            self._m_cache_.DBServerName = self._handler_.AttachedClientSocket.ConnectionContext.Host
             self._m_cache_.Set(ip, self._handler_.DBManagementSystem)
             if res == 0:
                 self._msTool_.Swap(self._m_cache_) # exchange between master Cache and this m_cache
@@ -39,7 +40,6 @@ class CMasterPool(CMasterSlaveBase):
             self._m_meta_ = meta
             self._m_cache_.AddEmptyRowset(meta)
 
-        self._m_cache_.DBServerName = ''
         self._m_cache_.Updater = ''
         self._m_cache_.Empty()
         ok = self._handler_.GetCachedTables(self.DefaultDBName, sql_result, sql_data, sql_meta, DB_CONSTS.ENABLE_TABLE_UPDATE_MESSAGES)

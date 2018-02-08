@@ -535,6 +535,7 @@ namespace SocketProAdapter
             public tagEncryptionMethod EncrytionMethod;
             public bool Zip = false;
             public bool V6 = false;
+            public object AnyData = null;
         }
 
         public struct CMessageSender

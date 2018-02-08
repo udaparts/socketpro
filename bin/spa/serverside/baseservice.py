@@ -39,6 +39,7 @@ class CBaseService(object):
             sp = self.GetPeerSocket()
         sp._m_Service = self
         sp._m_sh = hSocket
+        sp._m_random = self.ReturnRandom
         with self._m_cs:
             self._m_lstPeer.append(sp)
         return sp

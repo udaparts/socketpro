@@ -193,13 +193,13 @@ namespace SocketProAdapter
             //open default database and subscribe for table update events (update, delete and insert) by setting flag ClientSide.CAsyncDBHandler.ENABLE_TABLE_UPDATE_MESSAGES
             bool ok = m_hander.Open(DefaultDBName, (h, res, errMsg) =>
             {
-                m_cache.DBServerName = "";
                 m_cache.Updater = "";
                 m_cache.Empty();
                 uint port;
                 string ip = h.AttachedClientSocket.GetPeerName(out port);
                 ip += ":";
                 ip += port;
+                m_cache.DBServerName = h.AttachedClientSocket.ConnectionContext.Host;
                 m_cache.Set(ip, h.DBManagementSystem);
             }, UDB.DB_CONSTS.ENABLE_TABLE_UPDATE_MESSAGES);
             //bring all cached table data into m_cache first for initial cache, and exchange it with Cache if there is no error

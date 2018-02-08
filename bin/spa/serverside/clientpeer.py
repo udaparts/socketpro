@@ -73,7 +73,7 @@ class CClientPeer(CSocketPeer):
             q = CUQueue()
         buffer = (c_ubyte * q.GetSize()).from_buffer(q._m_bytes_, q._m_position_)
         if self.Random:
-            return scl.SendReturnData(self.Handle, self.CurrentRequestIndex, reqId, q.GetSize(), buffer)
+            return scl.SendReturnDataIndex(self.Handle, self.CurrentRequestIndex, reqId, q.GetSize(), buffer)
         return scl.SendReturnData(self.Handle, reqId, q.GetSize(), buffer)
 
     def SendResultIndex(self, reqIndex, q, reqId):

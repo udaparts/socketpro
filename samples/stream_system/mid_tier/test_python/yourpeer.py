@@ -267,12 +267,12 @@ class CYourPeer(CCacheBasePeer):
             if (flags & DB_CONSTS.ENABLE_TABLE_UPDATE_MESSAGES) == DB_CONSTS.ENABLE_TABLE_UPDATE_MESSAGES:
                 if not self.Push.Subscribe([DB_CONSTS.CACHE_UPDATE_CHAT_GROUP_ID, DB_CONSTS.STREAMING_SQL_CHAT_GROUP_ID]):
                     errMsg = 'Failed in subscribing for table events' # warning message
-            if len(config.m_vFrontCachedTable) == 0:
+            if len(config.m_vFrontCachedTable) == 0 or flags == 0:
                 break
             sql = ''
             v = config.m_vFrontCachedTable
             for s in v:
-                if (len(s)) > 0:
+                if (len(sql)) > 0:
                     sql += ';'
                 sql += ('SELECT * FROM ' + s)
             # use Lock and Unlock to avoid SQL stream overlap on a session within a multi-thread environment
