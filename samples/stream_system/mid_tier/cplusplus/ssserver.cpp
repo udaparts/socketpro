@@ -21,7 +21,7 @@ void CYourServer::StartMySQLPools() {
     bool ok = CYourServer::Master->StartSocketPool(g_config.m_ccMaster, (unsigned int) g_config.m_nMasterSessions, 1); //one thread enough
 
     //compute threads and sockets_per_thread
-	unsigned int threads = (unsigned int)g_config.m_slave_threads;
+    unsigned int threads = (unsigned int) g_config.m_slave_threads;
     unsigned int sockets_per_thread = (unsigned int) (g_config.m_vccSlave.size() * g_config.m_sessions_per_host);
     CYourServer::Slave.reset(new CMySQLSlavePool(g_config.m_slave_default_db.c_str()));
 
@@ -32,11 +32,11 @@ void CYourServer::StartMySQLPools() {
     for (unsigned int t = 0; t < threads; ++t) {
         SPA::ClientSide::CConnectionContext *pcc = new SPA::ClientSide::CConnectionContext[sockets_per_thread];
         ppCCs[t] = pcc;
-		for (unsigned int j = 0; j < g_config.m_vccSlave.size(); ++j) {
-			for (unsigned int n = 0; n < g_config.m_sessions_per_host; ++n) {
-				pcc[j * g_config.m_sessions_per_host + n] = g_config.m_vccSlave[j];
-			}
-		}
+        for (unsigned int j = 0; j < g_config.m_vccSlave.size(); ++j) {
+            for (unsigned int n = 0; n < g_config.m_sessions_per_host; ++n) {
+                pcc[j * g_config.m_sessions_per_host + n] = g_config.m_vccSlave[j];
+            }
+        }
     }
 
     if (g_config.m_slave_queue_name.size())

@@ -48,8 +48,8 @@ void CConfig::GetConfig() {
     //treat master as last salve
     m_vccSlave.push_back(m_ccMaster);
 
-	m_slave_threads = 2;
-	m_sessions_per_host = 3;
+    m_slave_threads = 2;
+    m_sessions_per_host = 3;
 
     //middle tier
     //test certificate and private key files are located at the directory ../socketpro/bin

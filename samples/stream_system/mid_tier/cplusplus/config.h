@@ -12,8 +12,8 @@ struct CConfig {
 
     //slave
     std::wstring m_slave_default_db;
-	size_t m_slave_threads;
-	size_t m_sessions_per_host;
+    size_t m_slave_threads;
+    size_t m_sessions_per_host;
     std::vector<SPA::ClientSide::CConnectionContext> m_vccSlave;
     std::string m_slave_queue_name;
 
