@@ -96,8 +96,8 @@ class CYourServer : CSocketProServer
             CYourServer.Master.QueueName = config.m_master_queue_name;
 
         //compute threads and sockets_per_thread
-        uint threads = config.m_nSlaveSessions / (uint)config.m_vccSlave.Count;
-        uint sockets_per_thread = (uint)config.m_vccSlave.Count;
+        uint threads = config.m_slave_threads;
+        uint sockets_per_thread = (uint)config.m_vccSlave.Count * config.m_sessions_per_host;
 
         CYourServer.Slave = new CMaster.CSlavePool(config.m_slave_default_db);
         if (config.m_slave_queue_name != null && config.m_slave_queue_name.Length > 0)
@@ -106,9 +106,12 @@ class CYourServer : CSocketProServer
         CConnectionContext[,] ppCC = new CConnectionContext[threads, sockets_per_thread];
         for (uint i = 0; i < threads; ++i)
         {
-            for (uint j = 0; j < sockets_per_thread; ++j)
+            for (uint j = 0; j < (uint)config.m_vccSlave.Count; ++j)
             {
-                ppCC[i, j] = config.m_vccSlave[(int)j];
+                for (uint n = 0; n < config.m_sessions_per_host; ++n)
+                {
+                    ppCC[i, j * config.m_sessions_per_host + n] = config.m_vccSlave[(int)j];
+                }
             }
         }
         //start slave pool for query accessing

@@ -17,7 +17,7 @@ class Program
     {
         //load settings from some configuration file
         CConfig config = CConfig.GetConfig();
-        if (config.m_vccSlave.Count == 0 || config.m_nMasterSessions == 0 || config.m_nSlaveSessions == 0)
+        if (config.m_vccSlave.Count == 0 || config.m_nMasterSessions == 0 || config.m_slave_threads == 0 || config.m_sessions_per_host == 0)
         {
             Console.WriteLine("Wrong settings for remote MySQL master and slave servers, and press any key to stop the server ......");
             Console.ReadLine();
