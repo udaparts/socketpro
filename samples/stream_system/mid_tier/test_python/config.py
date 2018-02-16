@@ -14,9 +14,10 @@ class CConfig(object):
 
         # slave
         self.m_slave_default_db = ''
-        self.m_nSlaveSessions = 0
         self.m_vccSlave = []
         self.m_slave_queue_name = ''
+        self.m_sessions_per_host = 1
+        self.m_slave_threads = 1
 
         # middle tier server
         self.m_main_threads = 1
@@ -45,16 +46,19 @@ class CConfig(object):
 
         # master
         config.m_master_default_db = 'sakila.db'
-        config.m_nMasterSessions = 1  # one session enough
+        config.m_nMasterSessions = 1  # one session enough for SQLite
         config.m_ccMaster = CConnectionContext('localhost', 20901, 'root', 'Smash123')
 
         config.m_slave_default_db = 'sakila.db'
-        cc = CConnectionContext('35.202.209.70', 20901, 'root', 'Smash123')
+        cc = CConnectionContext('104.154.160.127', 20901, 'root', 'Smash123')
         config.m_vccSlave.append(cc)
+
         # treat master as last salve
         config.m_vccSlave.append(config.m_ccMaster)
-        config.m_nSlaveSessions = 4
+
         config.m_slave_queue_name = 'db_sakila'
+        config.m_sessions_per_host = 3
+        config.m_slave_threads = 2
 
         # middle tier
         # test certificate and private key files are located at the directory ../socketpro/bin

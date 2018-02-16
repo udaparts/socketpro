@@ -7,7 +7,7 @@ from spa import CTable, CDataSet, CScopeUQueue
 from datetime import datetime
 
 config = CConfig.getConfig()
-if len(config.m_vccSlave) == 0 or config.m_nMasterSessions == 0 or config.m_nSlaveSessions == 0:
+if len(config.m_vccSlave) == 0 or config.m_sessions_per_host == 0 or config.m_slave_threads == 0 or config.m_nMasterSessions == 0:
     input('Wrong settings for remote SQLite master and slave servers, and press any key to stop the server ......')
     exit(1)
 
