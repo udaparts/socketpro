@@ -6,7 +6,8 @@ CConfig g_config;
 
 CConfig::CConfig()
 : m_nMasterSessions(2),
-m_nSlaveSessions(0),
+m_slave_threads(1),
+m_sessions_per_host(2),
 m_main_threads(1),
 m_nPort(20911),
 m_bNoIpV6(false) {
@@ -42,11 +43,13 @@ void CConfig::GetConfig() {
 #endif
     m_slave_queue_name = "db_sakila";
     SPA::ClientSide::CConnectionContext cc = m_ccMaster;
-    cc.Host = "192.168.1.111";
+    cc.Host = "104.154.160.127";
     m_vccSlave.push_back(cc);
     //treat master as last salve
     m_vccSlave.push_back(m_ccMaster);
-    m_nSlaveSessions = 4;
+
+    m_slave_threads = 2;
+    m_sessions_per_host = 3;
 
     //middle tier
     //test certificate and private key files are located at the directory ../socketpro/bin

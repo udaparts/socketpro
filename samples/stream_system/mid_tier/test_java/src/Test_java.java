@@ -9,7 +9,7 @@ public class Test_java {
         java.util.Scanner in = new java.util.Scanner(System.in);
         //load settings from some configuration file
         CConfig config = CConfig.getConfig();
-        if (config.m_vccSlave.isEmpty() || config.m_nMasterSessions == 0 || config.m_nSlaveSessions == 0) {
+        if (config.m_vccSlave.isEmpty() || config.m_slave_threads == 0 || config.m_sessions_per_host == 0 || config.m_nMasterSessions == 0) {
             System.out.println("Wrong settings for remote MySQL master and slave servers, and press any key to stop the server ......");
             in.nextLine();
             return;
@@ -37,7 +37,7 @@ public class Test_java {
         CTable tbl = new CTable();
         int res = cache.Find("main", "actor", 0, CTable.Operator.less, 12, tbl);
         res = cache.Between("main", "actor", 0, 1, 12, tbl);
-        
+
         CDBVariantArray v = new CDBVariantArray();
         v.add(1);
         v.add(10);

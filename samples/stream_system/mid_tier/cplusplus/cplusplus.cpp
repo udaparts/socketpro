@@ -6,7 +6,7 @@
 int main(int argc, char* argv[]) {
     //get configuration settings
     g_config.GetConfig();
-    if (!g_config.m_vccSlave.size() || !g_config.m_nMasterSessions || !g_config.m_nSlaveSessions) { //check requirements
+    if (!g_config.m_vccSlave.size() || !g_config.m_nMasterSessions || !g_config.m_slave_threads || !g_config.m_slave_threads) { //check requirements
         std::cout << "Wrong settings for remote MySQL master and slave servers, and press any key to stop the server ......" << std::endl;
         ::getchar();
         return 1;
