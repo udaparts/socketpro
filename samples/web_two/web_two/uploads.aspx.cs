@@ -37,6 +37,7 @@ namespace web_two {
                 if (res != 0) s = errMsg;
                 tcs.SetResult(s);
             });
+            Global.Master.UnlockByMyAlgorithm(handler); //put handler back into pool for reuse
             /* you can asynchronously execute other SQL statements here and push results onto browsers
              * by ASP.NET SignalR to improve web response
              */
