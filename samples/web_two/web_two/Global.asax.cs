@@ -21,6 +21,16 @@ namespace web_two {
         private static void StartPools() {
             StartPool(true); //start master pool
             StartPool(false); //start slave pool
+            CSql handler = Master.SeekByQueue();
+            if (handler != null) {
+                string sql = @"DROP DATABASE mysample;CREATE DATABASE mysample character set utf8 collate utf8_general_ci;
+                USE mysample;CREATE TABLE COMPANY(ID BIGINT PRIMARY KEY NOT NULL,Name CHAR(64)NOT NULL);
+                CREATE TABLE EMPLOYEE(EMPLOYEEID BIGINT PRIMARY KEY AUTO_INCREMENT,CompanyId BIGINT NOT NULL,Name NCHAR(64)
+                NOT NULL,JoinDate DATETIME(6)DEFAULT NULL,FOREIGN KEY(CompanyId)REFERENCES COMPANY(id));USE sakila";
+                bool ok = handler.Execute(sql);
+                sql = "INSERT INTO mysample.COMPANY(ID,Name)VALUES(1,'Google Inc.'),(2,'Microsoft Inc.'),(3,'Amazon Inc.')";
+                ok = handler.Execute(sql);
+            }
         }
         private static bool StartPool(bool master) {
             uint threads, sessions_per_host; bool ok = false;
