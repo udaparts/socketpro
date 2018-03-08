@@ -18,22 +18,15 @@ namespace web_two {
             }
             TaskCompletionSource<bool> tcs = new TaskCompletionSource<bool>();
             bool ok = handler.Execute(sql, (h, r, err, affected, fail_ok, vtId) => {
-                if (r != 0) {
+                if (r != 0)
                     txtResults.Text = err;
-                    tcs.SetResult(false);
-                } else
-                    tcs.SetResult(true);
+                tcs.SetResult(true);
             }, (h, vData) => {
                 txtResults.Text = string.Format("Max={0}, Min={1}, Avg={2}", vData[0], vData[1], vData[2]);
             });
             Task<bool> task = tcs.Task;
-            //don't use WaitAll because it is designed for easy async to sync in single thread environment
-            if (!task.Wait(5000)) txtResults.Text = "Querying max, min and avg timed out";
-            else {
-                /* you can asynchronously execute other SQL statements here and push results onto browsers
-                 * by ASP.NET SignalR to improve web response
-                */
-            }
+            if (!task.Wait(5000))
+                txtResults.Text = "Querying max, min and avg timed out";
         }
     }
 }

@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic; using System.Configuration; using SocketProAdapter.ClientSide;
+﻿using System.Collections.Generic;
+using System.Configuration;
+using SocketProAdapter.ClientSide;
 namespace SPA {
     public class CPoolConfig {
         public string DefaultDB = "";

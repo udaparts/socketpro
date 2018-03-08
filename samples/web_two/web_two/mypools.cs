@@ -1,4 +1,4 @@
-﻿using System; using SocketProAdapter.ClientSide; using System.Threading;
+﻿using SocketProAdapter.ClientSide;
 namespace SPA {
     using CSql = SocketProAdapter.ClientSide.CMysql; //point to one of CMysql, CSqlServer and CSQLite
     public class CMyMaster : SocketProAdapter.CSqlMasterPool<CSql, SocketProAdapter.CDataSet> {
@@ -28,7 +28,7 @@ namespace SPA {
         /// <returns>A SQL handler from socket pool</returns>
         public CSql LockByMyAlgorithm(int timeout) {
             CSql sql = null;
-            Monitor.Enter(m_cs);
+            System.Threading.Monitor.Enter(m_cs);
             while (true) {
                 CClientSocket ret = null;
                 foreach (CClientSocket cs in m_dicSocketHandler.Keys) {
@@ -41,11 +41,8 @@ namespace SPA {
                             ret = cs;
                         else if (cq.MessageCount < ret.ClientQueue.MessageCount)
                             ret = cs;
-                    } else {
-                        if (!ret.Connected && cq.MessageCount < ret.ClientQueue.MessageCount) {
-                            ret = cs;
-                        }
-                    }
+                    } else if (!ret.Connected && cq.MessageCount < ret.ClientQueue.MessageCount)
+                        ret = cs;
                 }
                 if (ret != null) {
                     sql = m_dicSocketHandler[ret];
@@ -53,14 +50,14 @@ namespace SPA {
                 }
                 if (sql != null)
                     break;
-                DateTime dtNow = DateTime.Now;
-                bool ok = Monitor.Wait(m_cs, timeout);
-                int ts = (int)(DateTime.Now - dtNow).TotalMilliseconds;
+                System.DateTime dtNow = System.DateTime.Now;
+                bool ok = System.Threading.Monitor.Wait(m_cs, timeout);
+                int ts = (int)(System.DateTime.Now - dtNow).TotalMilliseconds;
                 if (!ok || timeout <= ts)
                     break;
                 timeout -= ts;
             }
-            Monitor.Exit(m_cs);
+            System.Threading.Monitor.Exit(m_cs);
             return sql; //A null handler may return in case time-out
         }
         /// <summary>
@@ -74,7 +71,7 @@ namespace SPA {
             lock (m_cs) {
                 if (!m_dicSocketHandler.ContainsKey(cs)) {
                     m_dicSocketHandler[cs] = sql;
-                    Monitor.PulseAll(m_cs);
+                    System.Threading.Monitor.PulseAll(m_cs);
                 }
             }
         }
