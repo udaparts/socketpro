@@ -1,6 +1,6 @@
 ﻿using SocketProAdapter.ClientSide;
 namespace SPA {
-    using CSql = SocketProAdapter.ClientSide.CMysql; //point to one of CMysql, CSqlServer and CSQLite
+    using CSql = CMysql; //point to one of CMysql, CSqlServer and CSQLite
     public class CMyMaster : SocketProAdapter.CSqlMasterPool<CSql, SocketProAdapter.CDataSet> {
         public CMyMaster(string defaultDB) : base(defaultDB) { }
         public CMyMaster(string defaultDB, bool midTier) : base(defaultDB, midTier) { }

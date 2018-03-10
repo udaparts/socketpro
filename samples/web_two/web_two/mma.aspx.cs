@@ -1,11 +1,10 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 namespace web_two {
     public partial class CMma : System.Web.UI.Page {
-        protected void Page_Load(object sender, EventArgs e) {
+        protected void Page_Load(object sender, System.EventArgs e) {
             if (!IsPostBack) ExecuteSql();
         }
-        protected void txtExecute_Click(object sender, EventArgs e) {
+        protected void txtExecute_Click(object sender, System.EventArgs e) {
             ExecuteSql();
         }
         private void ExecuteSql() {
@@ -17,16 +16,14 @@ namespace web_two {
                 txtResults.Text = "All hosts are inaccessible at this time now"; return;
             }
             TaskCompletionSource<bool> tcs = new TaskCompletionSource<bool>();
-            bool ok = handler.Execute(sql, (h, r, err, affected, fail_ok, vtId) => {
-                if (r != 0)
-                    txtResults.Text = err;
+            bool ok = handler.Execute(sql, (h, res, errMsg, affected, fail_ok, vtId) => {
+                if (res != 0) txtResults.Text = errMsg;
                 tcs.SetResult(true);
             }, (h, vData) => {
                 txtResults.Text = string.Format("Max={0}, Min={1}, Avg={2}", vData[0], vData[1], vData[2]);
             });
             Task<bool> task = tcs.Task;
-            if (!task.Wait(5000))
-                txtResults.Text = "Querying max, min and avg timed out";
+            if (!task.Wait(5000)) txtResults.Text = "Querying max, min and avg timed out";
         }
     }
 }

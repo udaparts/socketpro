@@ -21,7 +21,7 @@ namespace web_two {
             BindSelectedTable2GridView(lstTables.SelectedIndex);
         }
         private void BindSelectedTable2GridView(int index) {
-            var item = lstTables.Items[index]; string[] v = item.Text.Split('.');
+            string[] v = lstTables.Items[index].Text.Split('.');
             //find source table data from real-time update cache instead of backend database
             System.Data.DataTable dt = Global.Cache.Find(v[0], v[1]);
             gvTable.Columns.Clear(); gvTable.DataSource = dt;

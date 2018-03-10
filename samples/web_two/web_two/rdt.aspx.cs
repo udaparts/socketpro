@@ -17,16 +17,14 @@ namespace web_two {
         }
         private Task<string> DoSql() {
             TaskCompletionSource<string> tcs = new TaskCompletionSource<string>();
-            string text = txtRentalId.Text;
-            long rental_id = long.Parse(text);
+            long rental_id = long.Parse(txtRentalId.Text);
             string sql = "SELECT rental_id,rental_date,return_date,last_update FROM rental where rental_id=" + rental_id;
             var handler = Global.Slave.SeekByQueue();
             if (handler == null) {
                 tcs.SetResult("No connection to anyone of slave databases");
                 return tcs.Task;
             }
-            string s = "";
-            bool ok = handler.Execute(sql, (h, res, errMsg, affected, fail_ok, vtId) => {
+            string s = ""; bool ok = handler.Execute(sql, (h, res, errMsg, affected, fail_ok, vtId) => {
                 if (res != 0) s = errMsg;
                 tcs.SetResult(s);
             }, (h, vData) => {

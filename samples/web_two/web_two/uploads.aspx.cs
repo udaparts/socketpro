@@ -1,25 +1,19 @@
-﻿using System;
-using System.Threading.Tasks;
-using System.Web.UI;
+﻿using System.Threading.Tasks;
 using SocketProAdapter.UDB;
 namespace web_two {
     public partial class CUploads : System.Web.UI.Page {
         protected void Page_Load(object sender, System.EventArgs e) {
-            if (!IsPostBack) RegisterAsyncTask(new PageAsyncTask(ExecuteSql));
+            if (!IsPostBack) RegisterAsyncTask(new System.Web.UI.PageAsyncTask(ExecuteSql));
         }
-        protected void btnDoit_Click(object sender, EventArgs e) {
-            RegisterAsyncTask(new PageAsyncTask(ExecuteSql));
+        protected void btnDoit_Click(object sender, System.EventArgs e) {
+            RegisterAsyncTask(new System.Web.UI.PageAsyncTask(ExecuteSql));
         }
         private async Task ExecuteSql() {
-            try {
-                CDBVariantArray v = new CDBVariantArray();
-                v.Add(1);/*Google id*/ v.Add("Ted Cruz"); v.Add(DateTime.Now);
-                v.Add(1);/*Google id*/ v.Add("Donald Trump"); v.Add(DateTime.Now);
-                v.Add(2);/*Microsoft id*/ v.Add("Hillary Clinton"); v.Add(DateTime.Now);
-                txtResult.Text = await DoInserts(v);
-            } catch (Exception err) {
-                txtResult.Text = err.Message;
-            }
+            CDBVariantArray v = new CDBVariantArray();
+            v.Add(1);/*Google id*/ v.Add("Ted Cruz"); v.Add(System.DateTime.Now);
+            v.Add(1);/*Google id*/ v.Add("Donald Trump"); v.Add(System.DateTime.Now);
+            v.Add(2);/*Microsoft id*/ v.Add("Hillary Clinton"); v.Add(System.DateTime.Now);
+            txtResult.Text = await DoInserts(v);
         }
         private Task<string> DoInserts(CDBVariantArray v) {
             TaskCompletionSource<string> tcs = new TaskCompletionSource<string>();
@@ -28,11 +22,10 @@ namespace web_two {
                 tcs.SetResult("No connection to anyone of master databases");
                 return tcs.Task;
             }
-            string s = "";
-            bool ok = handler.BeginTrans(); //start streaming multiple requests
+            string s = ""; bool ok = handler.BeginTrans(); //start streaming multiple requests
             ok = handler.Prepare("INSERT INTO mysample.EMPLOYEE(CompanyId, Name, JoinDate)VALUES(?,?,?)");
-            ok = handler.Execute(v, (h, r, err, affected, fail_ok, vtId) => {
-                if (r != 0) s = err;
+            ok = handler.Execute(v, (h, res, errMsg, affected, fail_ok, vtId) => {
+                if (res != 0) s = errMsg;
                 else s = "Last employeeid=" + vtId.ToString();
             });
             ok = handler.EndTrans(tagRollbackPlan.rpRollbackErrorAll, (h, res, errMsg) => {
