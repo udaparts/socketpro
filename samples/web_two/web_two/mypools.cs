@@ -29,7 +29,7 @@ namespace SPA {
         public CSql LockByMyAlgorithm(int timeout) {
             CSql sql = null;
             System.Threading.Monitor.Enter(m_cs);
-            while (true) {
+            while (timeout >= 0) {
                 CClientSocket ret = null;
                 foreach (CClientSocket cs in m_dicSocketHandler.Keys) {
                     IClientQueue cq = cs.ClientQueue;
@@ -48,13 +48,11 @@ namespace SPA {
                     sql = m_dicSocketHandler[ret];
                     m_dicSocketHandler.Remove(ret);
                 }
-                if (sql != null)
-                    break;
+                if (sql != null) break;
                 System.DateTime dtNow = System.DateTime.Now;
                 bool ok = System.Threading.Monitor.Wait(m_cs, timeout);
                 int ts = (int)(System.DateTime.Now - dtNow).TotalMilliseconds;
-                if (!ok || timeout <= ts)
-                    break;
+                if (!ok || timeout <= ts) break;
                 timeout -= ts;
             }
             System.Threading.Monitor.Exit(m_cs);
@@ -67,7 +65,6 @@ namespace SPA {
         public void UnlockByMyAlgorithm(CSql sql) {
             if (sql == null) return;
             CClientSocket cs = sql.AttachedClientSocket;
-            if (cs == null) return;
             lock (m_cs) {
                 if (!m_dicSocketHandler.ContainsKey(cs)) {
                     m_dicSocketHandler[cs] = sql;
