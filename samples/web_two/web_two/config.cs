@@ -28,8 +28,9 @@ namespace SPA {
         private void SetPoolConfig(CPoolConfig config, string setting) {
             string[] vItem = setting.Split('|');
             foreach (string s in vItem) {
-                if (s.IndexOf("hosts=") == 0) {
-                    string str = s.Substring(6);
+                string temp = s.Trim();
+                if (temp.IndexOf("hosts=") == 0) {
+                    string str = temp.Substring(6);
                     string[] vHost = str.Split('+');
                     foreach (string h in vHost) {
                         CConnectionContext cc = new CConnectionContext();
@@ -37,26 +38,26 @@ namespace SPA {
                         foreach (string item in entries) {
                             string[] v = item.Split('=');
                             if (v.Length == 2) {
-                                switch (v[0]) {
+                                switch (v[0].Trim()) {
                                     case "host":
-                                        cc.Host = v[1];
+                                        cc.Host = v[1].Trim();
                                         break;
                                     case "port":
-                                        uint.TryParse(v[1], out cc.Port);
+                                        uint.TryParse(v[1].Trim(), out cc.Port);
                                         break;
                                     case "uid":
-                                        cc.UserId = v[1];
+                                        cc.UserId = v[1].Trim();
                                         break;
                                     case "pwd":
-                                        cc.Password = v[1];
+                                        cc.Password = v[1].Trim();
                                         break;
                                     case "zip":
                                         cc.Zip = true;
-                                        cc.AnyData = v[1];
+                                        cc.AnyData = v[1].Trim();
                                         break;
                                     case "ca":
                                         cc.EncrytionMethod = SocketProAdapter.tagEncryptionMethod.TLSv1;
-                                        CClientSocket.SSL.SetVerifyLocation(v[1]);
+                                        CClientSocket.SSL.SetVerifyLocation(v[1].Trim());
                                         break;
                                     default:
                                         break;
@@ -68,18 +69,18 @@ namespace SPA {
                 } else {
                     string[] v = s.Split('=');
                     if (v.Length == 2) {
-                        switch (v[0]) {
+                        switch (v[0].Trim()) {
                             case "threads":
-                                uint.TryParse(v[1], out config.Threads);
+                                uint.TryParse(v[1].Trim(), out config.Threads);
                                 break;
                             case "sessions_per_host":
-                                uint.TryParse(v[1], out config.Sessions_Per_Host);
+                                uint.TryParse(v[1].Trim(), out config.Sessions_Per_Host);
                                 break;
                             case "default_db":
-                                config.DefaultDB = v[1];
+                                config.DefaultDB = v[1].Trim();
                                 break;
                             case "timeout":
-                                uint.TryParse(v[1], out config.RecvTimeout);
+                                uint.TryParse(v[1].Trim(), out config.RecvTimeout);
                                 break;
                             default:
                                 break;
