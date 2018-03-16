@@ -10,8 +10,7 @@ namespace web_two {
                 foreach (KeyValuePair<string, string> p in vP)
                     list.Add(p.Key + '.' + p.Value);
                 lstTables.DataSource = list; lstTables.DataBind();
-                if (list.Count > 0)
-                    BindSelectedTable2GridView((lstTables.SelectedIndex = 0));
+                if (list.Count > 0) BindSelectedTable2GridView((lstTables.SelectedIndex = 0));
             }
         }
         protected void lstTables_SelectedIndexChanged(object sender, System.EventArgs e) {
