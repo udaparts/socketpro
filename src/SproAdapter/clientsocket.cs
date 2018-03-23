@@ -600,7 +600,7 @@ namespace SocketProAdapter
                 }
             }
 
-            tagZipLevel ZipLevel
+            public tagZipLevel ZipLevel
             {
                 get
                 {

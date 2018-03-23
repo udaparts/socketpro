@@ -608,6 +608,7 @@ namespace SocketProAdapter
                                 c.UserId = src.UserId;
                                 c.V6 = src.V6;
                                 c.Zip = src.Zip;
+                                c.AnyData = src.AnyData;
                                 m_mcc[n, m] = c;
                             }
                         }
