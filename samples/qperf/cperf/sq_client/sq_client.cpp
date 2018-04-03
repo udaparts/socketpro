@@ -29,30 +29,33 @@ int main(int argc, char* argv[]) {
         ::getchar();
         return 1;
     }
+    int wan = 0;
+    std::cout << "Wide Area Network (yes -- 1 or no -- 0)? " << std::endl;
+    std::cin >> wan;
     auto sq = spSq.Seek();
 
     std::string s4("Sock");
-    EnqueueToServer(sq, s4, 200000000);
+    EnqueueToServer(sq, s4, wan ? 200000 : 200000000);
     DequeueFromServer(sq);
 
     //batching small messages improves throughput
-    EnqueueToServerBatch(sq, s4, 200000000, 1024 * 8);
+    EnqueueToServerBatch(sq, s4, wan ? 200000 : 200000000, 1024 * 8);
     DequeueFromServer(sq);
 
     std::string s32("SocketPro is a world-leading pac");
-    EnqueueToServer(sq, s32, 200000000);
+    EnqueueToServer(sq, s32, wan ? 200000 : 200000000);
     DequeueFromServer(sq);
 
     //batching small messages improves throughput
-    EnqueueToServerBatch(sq, s32, 200000000, 1024 * 8);
+    EnqueueToServerBatch(sq, s32, wan ? 200000 : 200000000, 1024 * 8);
     DequeueFromServer(sq);
 
     std::string s("SocketPro is a world-leading package of secured communication software components written with request batching, asynchrony and parallel computation in mind. It offers superior performance and scalabi");
-    EnqueueToServer(sq, s, 50000000);
+    EnqueueToServer(sq, s, wan ? 500000 : 50000000);
     DequeueFromServer(sq);
 
     //batching small messages improves throughput
-    EnqueueToServerBatch(sq, s, 50000000, 1024 * 8);
+    EnqueueToServerBatch(sq, s, wan ? 500000 : 50000000, 1024 * 8);
     DequeueFromServer(sq);
 
     std::string s1024(s);
@@ -60,17 +63,18 @@ int main(int argc, char* argv[]) {
         s1024 += s;
     }
     s1024 = s1024.substr(0, 1024);
-    EnqueueToServer(sq, s1024, 10000000);
+    EnqueueToServer(sq, s1024, wan ? 100000 : 10000000);
     DequeueFromServer(sq);
 
     std::string s10240;
     for (int n = 0; n < 10; ++n) {
         s10240 += s1024;
     }
-    EnqueueToServer(sq, s10240, 1000000);
+    EnqueueToServer(sq, s10240, wan ? 10000 : 1000000);
     DequeueFromServer(sq);
 
     std::cout << "Press a key to shutdown the application ......" << std::endl;
+    std::getchar();
     std::getchar();
     return 0;
 }

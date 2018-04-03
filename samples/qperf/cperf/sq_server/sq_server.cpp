@@ -6,11 +6,8 @@ int main(int argc, char* argv[]) {
     CMySocketProServer MySocketProServer;
 
     //Optionally, set a work directory where server queue files will be created
-#ifdef WIN32_64
-    CSocketProServer::QueueManager::SetWorkDirectory("c:\\sp_test");
-#else
-    CSocketProServer::QueueManager::SetWorkDirectory("/home/yye/sp_test");
-#endif
+    //CSocketProServer::QueueManager::SetWorkDirectory("sp_test");
+
     //pre-open a queue file, which may take long time if the existing queue file is very large
     CServerQueue sq = CSocketProServer::QueueManager::StartQueue("qperf", 24 * 3600);
 

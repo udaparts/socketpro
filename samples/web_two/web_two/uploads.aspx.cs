@@ -17,11 +17,7 @@ namespace web_two {
         }
         private Task<string> DoInserts(CDBVariantArray v) {
             TaskCompletionSource<string> tcs = new TaskCompletionSource<string>();
-            var handler = Global.Master.LockByMyAlgorithm(60000);
-            if (handler == null) {
-                tcs.SetResult("No connection to anyone of master databases");
-                return tcs.Task;
-            }
+            var handler = Global.Master.LockByMyAlgorithm(6000); //6 seconds
             string s = ""; bool ok = handler.BeginTrans(); //start streaming multiple requests
             ok = handler.Prepare("INSERT INTO mysample.EMPLOYEE(CompanyId, Name, JoinDate)VALUES(?,?,?)");
             ok = handler.Execute(v, (h, res, errMsg, affected, fail_ok, vtId) => {
@@ -32,6 +28,8 @@ namespace web_two {
                 if (res != 0) s = errMsg;
                 tcs.SetResult(s);
             });
+            if (!handler.AttachedClientSocket.Connected)
+                tcs.SetResult("No connection to anyone of master databases but request queued for processing later");
             Global.Master.UnlockByMyAlgorithm(handler); //put handler back into pool for reuse
             return tcs.Task;
         }
