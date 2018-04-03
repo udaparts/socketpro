@@ -29,9 +29,9 @@ int main(int argc, char* argv[]) {
         ::getchar();
         return 1;
     }
-	int wan = 0;
-	std::cout << "Wide Area Network (yes -- 1 or no -- 0)? " << std::endl;
-	std::cin >> wan;
+    int wan = 0;
+    std::cout << "Wide Area Network (yes -- 1 or no -- 0)? " << std::endl;
+    std::cin >> wan;
     auto sq = spSq.Seek();
 
     std::string s4("Sock");
@@ -74,7 +74,8 @@ int main(int argc, char* argv[]) {
     DequeueFromServer(sq);
 
     std::cout << "Press a key to shutdown the application ......" << std::endl;
-    std::getchar(); std::getchar();
+    std::getchar();
+    std::getchar();
     return 0;
 }
 
