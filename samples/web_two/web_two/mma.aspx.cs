@@ -13,7 +13,7 @@ namespace web_two {
             if (filter.Length > 0) sql += (" WHERE " + filter);
             var handler = Global.Slave.SeekByQueue(); //seek a handler from socket pool
             if (handler == null) {
-                txtResults.Text = "All hosts are inaccessible at this time now"; return;
+                txtResults.Text = "All slaves are inaccessible at this time now"; return;
             }
             TaskCompletionSource<bool> tcs = new TaskCompletionSource<bool>();
             bool ok = handler.Execute(sql, (h, res, errMsg, affected, fail_ok, vtId) => {
