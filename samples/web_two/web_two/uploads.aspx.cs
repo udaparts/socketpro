@@ -26,10 +26,12 @@ namespace web_two {
             });
             ok = handler.EndTrans(tagRollbackPlan.rpRollbackErrorAll, (h, res, errMsg) => {
                 if (res != 0) s = errMsg;
-                tcs.SetResult(s);
+                try {
+                    tcs.SetResult(s);
+                } catch(System.Exception) { } //exception may happen when there is master auto reconnection
             });
             if (!handler.AttachedClientSocket.Connected)
-                tcs.SetResult("No connection to anyone of master databases but request queued for processing later");
+                tcs.SetResult("No session to master DB now but request is safely saved for processing later");
             Global.Master.UnlockByMyAlgorithm(handler); //put handler back into pool for reuse
             return tcs.Task;
         }
