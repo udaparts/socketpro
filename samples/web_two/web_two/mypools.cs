@@ -22,7 +22,7 @@ namespace SPA {
             base.OnSocketPoolEvent(spe, handler);
         }
         /// <summary>
-        /// Lock an asynchronous handler from socket pool. You must call this method with UnlockByMyAlgorithm in pair
+        /// Lock a handler from socket pool. You must call this method with UnlockByMyAlgorithm in pair
         /// </summary>
         /// <param name="timeout">The max time for locking a handler in ms</param>
         /// <returns>A SQL handler from socket pool</returns>
@@ -59,7 +59,7 @@ namespace SPA {
             return sql; //A null handler may return in case time-out
         }
         /// <summary>
-        /// Put back original asynchronous handler into socket pool for reuse. You must call this method after calling LockByMyAlgorithm
+        /// Put original handler back into socket pool for reuse. You must call this method after calling LockByMyAlgorithm
         /// </summary>
         /// <param name="sql">A handler originated from LockByMyAlgorithm</param>
         public void UnlockByMyAlgorithm(CSql sql) {
