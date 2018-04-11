@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using SocketProAdapter.ClientSide;
+﻿using SocketProAdapter.ClientSide;
 namespace web_two {
     using CSql = CMysql; //point to one of CMysql, CSqlServer and CSQLite
     public class Global : System.Web.HttpApplication {
@@ -35,7 +34,7 @@ namespace web_two {
         }
         private static bool StartPool(bool master) {
             uint threads, sessions_per_host; bool ok = false;
-            List<CConnectionContext> Hosts; CSocketPool<CSql> pool;
+            System.Collections.Generic.List<CConnectionContext> Hosts; CSocketPool<CSql> pool;
             if (master) {
                 Master = new SPA.CMyMaster(Config.Master.DefaultDB, false, Config.Master.RecvTimeout);
                 Master.QueueName = "qmaster"; pool = Master; threads = Config.Master.Threads;
