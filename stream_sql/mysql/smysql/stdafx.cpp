@@ -4,7 +4,7 @@
 #include "umysql_udf.h"
 #include <algorithm>
 
-my_bool PublishDBEvent_init(UDF_INIT *initid, UDF_ARGS *args, char *message) {
+bool PublishDBEvent_init(UDF_INIT *initid, UDF_ARGS *args, char *message) {
     initid->maybe_null = 0;
     initid->const_item = 0;
     initid->ptr = nullptr;

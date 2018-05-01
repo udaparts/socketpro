@@ -6,22 +6,15 @@
 #include "../../../include/udatabase.h"
 #include "../../../include/mysql/umysql.h"
 
-#include "include/my_config.h"
+#ifdef WIN32_64
+typedef int socklen_t;
+#endif
 
+#include "my_config.h"
 #ifdef HAVE_PSI_SOCKET_INTERFACE
 #undef HAVE_PSI_SOCKET_INTERFACE
 #endif
-
-#ifdef WIN32_64
-#ifdef HAVE_STRUCT_TIMESPEC
-#undef HAVE_STRUCT_TIMESPEC
-#endif
-#endif
-
-#include "include/my_global.h"
-#include "include/mysql_time.h"
-#include "include/plugin.h"
-
+#include "mysql/plugin.h"
 
 #define STREAMING_DB_PORT			"port"
 #define STREAMING_DB_MAIN_THREADS	"main_threads"
@@ -190,7 +183,6 @@ namespace SPA {
             static const int MYSQL_TINYBLOB = 0xff;
             static const int MYSQL_BLOB = 0xffff;
             static const int MYSQL_MIDBLOB = 0xffffff;
-            static my_bool B_IS_NULL;
 
             static const wchar_t* NO_DB_OPENED_YET;
             static const wchar_t* BAD_END_TRANSTACTION_PLAN;

@@ -3,7 +3,7 @@
 
 #include "mysqlimpl.h"
 #include "httppeer.h"
-#include "include/my_thread.h"
+#include "my_thread.h"
 
 struct CService {
     unsigned int ServiceId;

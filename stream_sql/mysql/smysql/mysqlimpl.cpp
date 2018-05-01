@@ -5,13 +5,12 @@
 #include <iostream>
 #endif
 #include "streamingserver.h"
-#include "include/mysqld_error.h"
+#include "mysqld_error.h"
 #include "../../../include/server_functions.h"
 
 namespace SPA
 {
     namespace ServerSide{
-        my_bool CMysqlImpl::B_IS_NULL = 1;
 
         const wchar_t * CMysqlImpl::NO_DB_OPENED_YET = L"No mysql database opened yet";
         const wchar_t * CMysqlImpl::BAD_END_TRANSTACTION_PLAN = L"Bad end transaction plan";
@@ -68,7 +67,7 @@ namespace SPA
 
         void CALLBACK CMysqlImpl::OnThreadEvent(SPA::ServerSide::tagThreadEvent te) {
             if (te == SPA::ServerSide::teStarted) {
-                my_bool fail = srv_session_init_thread(CSetGlobals::Globals.Plugin);
+                int fail = srv_session_init_thread(CSetGlobals::Globals.Plugin);
                 assert(!fail);
             } else {
                 srv_session_deinit_thread();
@@ -117,7 +116,7 @@ namespace SPA
             if (reqId == idExecuteParameters)
                 m_vParam.clear();
             if (m_pMysql) {
-                my_bool fail = srv_session_detach(m_pMysql.get());
+                int fail = srv_session_detach(m_pMysql.get());
             }
             return 0;
         }
@@ -726,13 +725,13 @@ namespace SPA
                 return false;
             m_pMysql.reset(st_session, [](MYSQL_SESSION mysql) {
                 if (mysql) {
-                    my_bool fail = srv_session_detach(mysql);
+                    int fail = srv_session_detach(mysql);
                     //assert(!fail);
                     fail = srv_session_close(mysql);
                     assert(!fail);
                 }
             });
-            my_bool fail = srv_session_info_set_connection_type(st_session, VIO_TYPE_PLUGIN);
+            int fail = srv_session_info_set_connection_type(st_session, VIO_TYPE_PLUGIN);
             assert(!fail);
             if (fail)
                 return false;
@@ -1009,7 +1008,7 @@ namespace SPA
             std::wstring user = GetUID();
             OpenSession(user, ip);
             InitMysqlSession();
-            my_bool fail = 0;
+            int fail = 0;
             if (strConnection.size()) {
                 std::string db = SPA::Utilities::ToUTF8(strConnection.c_str(), strConnection.size());
                 COM_DATA cmd;
@@ -1051,7 +1050,7 @@ namespace SPA
                 ::memset(&cmd, 0, sizeof (cmd));
                 InitMysqlSession();
                 cmd.com_stmt_close.stmt_id = m_stmt.stmt_id;
-                my_bool fail = command_service_run_command(m_pMysql.get(), COM_STMT_CLOSE, &cmd, CSetGlobals::Globals.utf8_general_ci, &m_sql_cbs, CS_BINARY_REPRESENTATION, nullptr);
+                int fail = command_service_run_command(m_pMysql.get(), COM_STMT_CLOSE, &cmd, CSetGlobals::Globals.utf8_general_ci, &m_sql_cbs, CS_BINARY_REPRESENTATION, nullptr);
                 assert(!fail);
                 m_stmt.prepared = false;
 
@@ -1123,7 +1122,7 @@ namespace SPA
                 InitMysqlSession();
                 cmd.com_query.query = sql.c_str();
                 cmd.com_query.length = (unsigned int) sql.size();
-                my_bool fail = command_service_run_command(m_pMysql.get(), COM_QUERY, &cmd, CSetGlobals::Globals.utf8_general_ci, &m_sql_cbs, CS_BINARY_REPRESENTATION, this);
+                int fail = command_service_run_command(m_pMysql.get(), COM_QUERY, &cmd, CSetGlobals::Globals.utf8_general_ci, &m_sql_cbs, CS_BINARY_REPRESENTATION, this);
                 if (m_sql_errno) {
                     res = m_sql_errno;
                     errMsg = m_err_msg;
@@ -1187,7 +1186,7 @@ namespace SPA
             InitMysqlSession();
             cmd.com_query.query = sql.c_str();
             cmd.com_query.length = (unsigned int) sql.size();
-            my_bool fail = command_service_run_command(m_pMysql.get(), COM_QUERY, &cmd, CSetGlobals::Globals.utf8_general_ci, &m_sql_cbs, CS_BINARY_REPRESENTATION, this);
+            int fail = command_service_run_command(m_pMysql.get(), COM_QUERY, &cmd, CSetGlobals::Globals.utf8_general_ci, &m_sql_cbs, CS_BINARY_REPRESENTATION, this);
             if (m_sql_errno) {
                 res = m_sql_errno;
                 errMsg = m_err_msg;
@@ -1326,7 +1325,7 @@ namespace SPA
             ::memset(&cmd, 0, sizeof (cmd));
             cmd.com_query.query = sql.c_str();
             cmd.com_query.length = (unsigned int) sql.size();
-            my_bool fail = command_service_run_command(m_pMysql.get(), COM_QUERY, &cmd, CSetGlobals::Globals.utf8_general_ci, &m_sql_cbs, CS_BINARY_REPRESENTATION, this);
+            int fail = command_service_run_command(m_pMysql.get(), COM_QUERY, &cmd, CSetGlobals::Globals.utf8_general_ci, &m_sql_cbs, CS_BINARY_REPRESENTATION, this);
             if (m_sql_errno) {
                 res = m_sql_errno;
                 errMsg = m_err_msg;
@@ -1364,7 +1363,7 @@ namespace SPA
             InitMysqlSession();
             cmd.com_stmt_prepare.query = sqlUtf8;
             cmd.com_stmt_prepare.length = sb->GetSize();
-            my_bool fail = command_service_run_command(m_pMysql.get(), COM_STMT_PREPARE, &cmd, CSetGlobals::Globals.utf8_general_ci, &m_sql_cbs, CS_BINARY_REPRESENTATION, this);
+            int fail = command_service_run_command(m_pMysql.get(), COM_STMT_PREPARE, &cmd, CSetGlobals::Globals.utf8_general_ci, &m_sql_cbs, CS_BINARY_REPRESENTATION, this);
             ++m_stmt.stmt_id; //always increase statement id by one
             if (m_sql_errno) {
                 res = m_sql_errno;
@@ -1751,9 +1750,9 @@ namespace SPA
                 ::memset(&cmd, 0, sizeof (cmd));
                 InitMysqlSession();
                 cmd.com_stmt_execute.stmt_id = m_stmt.stmt_id;
-                cmd.com_stmt_execute.params = (unsigned char *) buffer.GetBuffer();
-                cmd.com_stmt_execute.params_length = buffer.GetSize();
-                my_bool fail = command_service_run_command(m_pMysql.get(), COM_STMT_EXECUTE, &cmd, CSetGlobals::Globals.utf8_general_ci, &m_sql_cbs, CS_BINARY_REPRESENTATION, this);
+                //cmd.com_stmt_execute.parameters = (unsigned char *) buffer.GetBuffer();
+                //cmd.com_stmt_execute.parameter_count = buffer.GetSize();
+                int fail = command_service_run_command(m_pMysql.get(), COM_STMT_EXECUTE, &cmd, CSetGlobals::Globals.utf8_general_ci, &m_sql_cbs, CS_BINARY_REPRESENTATION, this);
                 if (m_sql_errno) {
                     ++m_fails;
                     if (!res) {

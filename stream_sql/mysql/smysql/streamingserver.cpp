@@ -156,10 +156,10 @@ bool CSetGlobals::StartListening() {
 }
 
 void* CSetGlobals::ThreadProc(void *lpParameter) {
-    my_bool fail = srv_session_init_thread(CSetGlobals::Globals.Plugin);
+    int fail = srv_session_init_thread(CSetGlobals::Globals.Plugin);
     assert(!fail);
     {
-        my_bool available = srv_session_server_is_available();
+        int available = srv_session_server_is_available();
         while (!available) {
 #ifdef WIN32_64
             ::Sleep(50);
