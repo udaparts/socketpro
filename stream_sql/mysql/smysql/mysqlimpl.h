@@ -38,11 +38,11 @@ namespace SPA {
 
             struct Stmt {
 
-                Stmt(unsigned long id, bool ok, size_t params = 0) : stmt_id(id), parameters(params), prepared(ok) {
+                Stmt(unsigned long id, bool ok, size_t params = 0) : stmt_id(id), parameters(params) {
                 }
                 unsigned long stmt_id;
                 size_t parameters;
-                bool prepared;
+				std::shared_ptr<PS_PARAM> m_pParam;
             };
 
             struct PriKey {
@@ -95,8 +95,7 @@ namespace SPA {
             void ResetMemories();
             void InitMysqlSession();
             void CloseStmt();
-            int StoreParamTypes(CUQueue& buffer, int row, std::wstring & errMsg);
-            void StoreParamDatas(CUQueue& buffer, int row);
+            int SetParams(int row, std::wstring & errMsg);
             bool OpenSession(const std::wstring &userName, const std::string &ip);
             void RemoveUnusedTriggers(const std::vector<std::string> &vecTables);
             void CreateTriggers(const std::string &schema, const std::string &table);
