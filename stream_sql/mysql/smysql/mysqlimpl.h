@@ -102,7 +102,6 @@ namespace SPA {
 
             static std::wstring GetCreateTriggerSQL(const wchar_t *db, const wchar_t *table, const CPriKeyArray &vPriKey, SPA::UDB::tagUpdateEvent eventType);
             static std::string ToString(const CDBVariant &vtUTF8);
-            static size_t ComputeParameters(const std::wstring &sql);
             static UINT64 ConvertBitsToInt(const unsigned char *s, unsigned int bytes);
             static UINT64 ToUDateTime(const MYSQL_TIME &td);
             static int sql_start_result_metadata(void *ctx, uint num_cols, uint flags, const CHARSET_INFO *resultcs);
@@ -125,20 +124,6 @@ namespace SPA {
             static void sql_handle_error(void * ctx, uint sql_errno, const char * const err_msg, const char * const sqlstate);
             static void sql_shutdown(void *ctx, int shutdown_server);
             static void ToDecimal(const decimal_t &src, bool large, DECIMAL &dec);
-            static void ReserveNullBytesPlus(CUQueue& buffer, unsigned int parameters);
-            static void StoreParamNull(CUQueue& buffer, unsigned int pos);
-
-            template<typename T>
-            static void StoreFixedParam(CUQueue& buffer, T t) {
-                buffer << t;
-            }
-            static void StoreFixedParam(CUQueue& buffer, char c);
-            static void StoreFixedParam(CUQueue& buffer, unsigned char c);
-            static void StoreParamTime(CUQueue& buffer, const MYSQL_TIME &dt);
-            static void StoreParamDateTime(CUQueue& buffer, const MYSQL_TIME &dt);
-            static void StoreParam(CUQueue& buffer, const unsigned char *str, unsigned int length);
-            static void StoreParamDecimal(CUQueue& buffer, const DECIMAL &dec);
-            static uchar *net_store_length(uchar *packet, ulonglong length);
 
         protected:
             bool m_EnableMessages;
@@ -175,6 +160,7 @@ namespace SPA {
             std::string m_sqlstate;
             UINT64 m_indexCall;
             bool m_bBlob;
+			enum_server_command m_cmd;
 
             static st_command_service_cbs m_sql_cbs;
 

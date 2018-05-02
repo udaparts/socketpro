@@ -50,9 +50,9 @@ namespace SPA
 		CMysqlImpl::CMysqlImpl()
 			: m_EnableMessages(false), m_oks(0), m_fails(0), m_ti(tiUnspecified),
 			m_qSend(*m_sb), m_stmt(0, false), m_bExecutingParameters(false), m_NoSending(false), m_sql_errno(0),
-			m_sc(nullptr), m_sql_resultcs(nullptr), m_ColIndex(0),
-			m_sql_flags(0), m_affected_rows(0), m_last_insert_id(0),
-			m_server_status(0), m_statement_warn_count(0), m_indexCall(0), m_bBlob(false) {
+			m_sc(nullptr), m_sql_resultcs(nullptr), m_ColIndex(0), m_sql_flags(0), m_affected_rows(0),
+			m_last_insert_id(0), m_server_status(0), m_statement_warn_count(0), m_indexCall(0),
+			m_bBlob(false), m_cmd(COM_SLEEP) {
 			m_qSend.ToUtf8(true);
 			m_UQueue.ToUtf8(true);
 		}
@@ -417,6 +417,10 @@ namespace SPA
 			}
 			CMysqlImpl *impl = (CMysqlImpl *)ctx;
 			impl->m_vColInfo.push_back(info);
+			if (impl->m_cmd == COM_STMT_PREPARE) {
+				if (info.DisplayName == L"?")
+					impl->m_stmt.parameters += 1;
+			}
 			return 0;
 		}
 
@@ -474,6 +478,9 @@ namespace SPA
 
 		int CMysqlImpl::sql_get_integer(void * ctx, longlong value) {
 			CMysqlImpl *impl = (CMysqlImpl *)ctx;
+			if (impl->m_cmd == COM_STMT_PREPARE && impl->m_ColIndex == 0) {
+					impl->m_stmt.stmt_id = (unsigned long)value;
+			}
 			CUQueue &q = impl->m_qSend;
 			const CDBColumnInfo &info = impl->m_vColInfo[impl->m_ColIndex];
 			q << info.DataType;
@@ -552,7 +559,7 @@ namespace SPA
 			char str[64] =
 			{ 0 };
 			int len = sizeof(str);
-			CSetGlobals::Globals.decimal2string(&src, str, &len, 0, 0, 0);
+			decimal2string(&src, str, &len, 0, 0, 0);
 			if (large) {
 				SPA::ParseDec_long(str, dec);
 			}
@@ -702,7 +709,7 @@ namespace SPA
 			if (!impl)
 				return;
 			CUQueue &q = impl->m_qSend;
-			if ((impl->m_server_status & SERVER_PS_OUT_PARAMS) == SERVER_PS_OUT_PARAMS) {
+			if ((server_status & SERVER_PS_OUT_PARAMS) == SERVER_PS_OUT_PARAMS) {
 				//tell output parameter data
 				unsigned int sent = impl->SendResult(idOutputParameter, q.GetBuffer(), q.GetSize());
 				if (sent == REQUEST_CANCELED || sent == SOCKET_NOT_FOUND) {
@@ -1001,6 +1008,11 @@ namespace SPA
 			if (!impl->OpenSession(userName, ip)) {
 				return false;
 			}
+			/*
+			char to[64] = { 0 };
+			std::string pwd = SPA::Utilities::ToUTF8(password);
+			make_scrambled_password(to, pwd.c_str());
+
 			std::string user = SPA::Utilities::ToUTF8(userName.c_str(), userName.size());
 			std::wstring wsql(L"select host from mysql.user where password_expired='N' and account_locked='N' and user='");
 			wsql += (userName + L"' and authentication_string=password('");
@@ -1017,6 +1029,7 @@ namespace SPA
 				CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Authentication failed as password mismatched for user %s(errCode=%d; errMsg=%s)", user.c_str(), res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()).c_str());
 				return false;
 			}
+			*/
 			return true;
 		}
 
@@ -1038,7 +1051,8 @@ namespace SPA
 				COM_DATA cmd;
 				cmd.com_init_db.db_name = db.c_str();
 				cmd.com_init_db.length = (unsigned long)db.size();
-				fail = command_service_run_command(m_pMysql.get(), COM_INIT_DB, &cmd, CSetGlobals::Globals.utf8_general_ci, &m_sql_cbs, CS_BINARY_REPRESENTATION, nullptr);
+				m_cmd = COM_INIT_DB;
+				fail = command_service_run_command(m_pMysql.get(), COM_INIT_DB, &cmd, &my_charset_utf8_general_ci, &m_sql_cbs, CS_BINARY_REPRESENTATION, nullptr);
 			}
 			if (m_sql_errno) {
 				res = m_sql_errno;
@@ -1076,11 +1090,12 @@ namespace SPA
 				::memset(&cmd, 0, sizeof(cmd));
 				InitMysqlSession();
 				cmd.com_stmt_close.stmt_id = m_stmt.stmt_id;
-				int fail = command_service_run_command(m_pMysql.get(), COM_STMT_CLOSE, &cmd, CSetGlobals::Globals.utf8_general_ci, &m_sql_cbs, CS_BINARY_REPRESENTATION, nullptr);
+				m_cmd = COM_STMT_CLOSE;
+				int fail = command_service_run_command(m_pMysql.get(), COM_STMT_CLOSE, &cmd, &my_charset_utf8_general_ci, &m_sql_cbs, CS_BINARY_REPRESENTATION, nullptr);
 				assert(!fail);
-				m_stmt.stmt_id = (~0);
 				m_stmt.m_pParam.reset();
 			}
+			m_stmt.stmt_id = (~0);
 		}
 
 		void CMysqlImpl::CleanDBObjects() {
@@ -1148,7 +1163,8 @@ namespace SPA
 				InitMysqlSession();
 				cmd.com_query.query = sql.c_str();
 				cmd.com_query.length = (unsigned int)sql.size();
-				int fail = command_service_run_command(m_pMysql.get(), COM_QUERY, &cmd, CSetGlobals::Globals.utf8_general_ci, &m_sql_cbs, CS_BINARY_REPRESENTATION, this);
+				m_cmd = COM_QUERY;
+				int fail = command_service_run_command(m_pMysql.get(), COM_QUERY, &cmd, &my_charset_utf8_general_ci, &m_sql_cbs, CS_BINARY_REPRESENTATION, this);
 				if (m_sql_errno) {
 					res = m_sql_errno;
 					errMsg = m_err_msg;
@@ -1214,7 +1230,8 @@ namespace SPA
 			InitMysqlSession();
 			cmd.com_query.query = sql.c_str();
 			cmd.com_query.length = (unsigned int)sql.size();
-			int fail = command_service_run_command(m_pMysql.get(), COM_QUERY, &cmd, CSetGlobals::Globals.utf8_general_ci, &m_sql_cbs, CS_BINARY_REPRESENTATION, this);
+			m_cmd = COM_QUERY;
+			int fail = command_service_run_command(m_pMysql.get(), COM_QUERY, &cmd, &my_charset_utf8_general_ci, &m_sql_cbs, CS_BINARY_REPRESENTATION, this);
 			if (m_sql_errno) {
 				res = m_sql_errno;
 				errMsg = m_err_msg;
@@ -1356,7 +1373,8 @@ namespace SPA
 			::memset(&cmd, 0, sizeof(cmd));
 			cmd.com_query.query = sql.c_str();
 			cmd.com_query.length = (unsigned int)sql.size();
-			int fail = command_service_run_command(m_pMysql.get(), COM_QUERY, &cmd, CSetGlobals::Globals.utf8_general_ci, &m_sql_cbs, CS_BINARY_REPRESENTATION, this);
+			m_cmd = COM_QUERY;
+			int fail = command_service_run_command(m_pMysql.get(), COM_QUERY, &cmd, &my_charset_utf8_general_ci, &m_sql_cbs, CS_BINARY_REPRESENTATION, this);
 			if (m_sql_errno) {
 				res = m_sql_errno;
 				errMsg = m_err_msg;
@@ -1396,7 +1414,10 @@ namespace SPA
 			InitMysqlSession();
 			cmd.com_stmt_prepare.query = sqlUtf8;
 			cmd.com_stmt_prepare.length = sb->GetSize();
-			int fail = command_service_run_command(m_pMysql.get(), COM_STMT_PREPARE, &cmd, CSetGlobals::Globals.utf8_general_ci, &m_sql_cbs, CS_BINARY_REPRESENTATION, this);
+			m_cmd = COM_STMT_PREPARE;
+			m_NoSending = true;
+			int fail = command_service_run_command(m_pMysql.get(), COM_STMT_PREPARE, &cmd, &my_charset_utf8_general_ci, &m_sql_cbs, CS_BINARY_REPRESENTATION, this);
+			m_NoSending = false;
 			if (m_sql_errno) {
 				res = m_sql_errno;
 				errMsg = m_err_msg;
@@ -1406,7 +1427,6 @@ namespace SPA
 				res = SPA::Mysql::ER_SERVICE_COMMAND_ERROR;
 			}
 			else {
-				m_stmt.parameters = ComputeParameters(wsql);
 				parameters = (unsigned int)m_stmt.parameters;
 				if (parameters == 0) {
 					res = SPA::Mysql::ER_NO_PARAMETER_SPECIFIED;
@@ -1420,32 +1440,6 @@ namespace SPA
 					});
 				}
 			}
-		}
-
-		size_t CMysqlImpl::ComputeParameters(const std::wstring & sql) {
-			const wchar_t coma = '\'', slash = '\\', question = '?', at = '@';
-			bool b_slash = false, balanced = true;
-			size_t params = 0, len = sql.size();
-			for (size_t n = 0; n < len; ++n) {
-				const wchar_t &c = sql[n];
-				if (c == slash) {
-					b_slash = true;
-					continue;
-				}
-				if (c == coma && b_slash) {
-					b_slash = false;
-					continue; //ignore a coma if there is a slash ahead
-				}
-				b_slash = false;
-				if (c == coma) {
-					balanced = (!balanced);
-					continue;
-				}
-				if (balanced) {
-					params += ((c == question || c == at) ? 1 : 0);
-				}
-			}
-			return params;
 		}
 
 		UINT64 CMysqlImpl::ToUDateTime(const MYSQL_TIME & td) {
@@ -1464,111 +1458,6 @@ namespace SPA
 			date.tm_min = td.minute;
 			date.tm_sec = td.second;
 			return SPA::UDateTime(date, td.second_part).time;
-		}
-
-		void CMysqlImpl::ReserveNullBytesPlus(CUQueue& buffer, unsigned int parameters) {
-			unsigned int null_bytes = (parameters + 7) / 8;
-			buffer.SetSize(0);
-			buffer.CleanTrack();
-			buffer.SetSize(null_bytes + 1);
-			unsigned char *header = (unsigned char*)buffer.GetBuffer();
-			header[null_bytes] = 1; //always send types to server
-		}
-
-		void CMysqlImpl::StoreParamNull(CUQueue& buffer, unsigned int pos) {
-			unsigned char *header = (unsigned char*)buffer.GetBuffer();
-			header[pos / 8] |= (unsigned char)(1 << (pos & 7));
-		}
-
-		void CMysqlImpl::StoreFixedParam(CUQueue& buffer, char c) {
-			buffer.Push((const unsigned char*)&c, sizeof(c));
-		}
-
-		void CMysqlImpl::StoreFixedParam(CUQueue& buffer, unsigned char c) {
-			buffer.Push((const unsigned char*)&c, sizeof(c));
-		}
-
-		void CMysqlImpl::StoreParamTime(CUQueue& buffer, const MYSQL_TIME & dt) {
-			const MYSQL_TIME *tm = &dt;
-			uchar buff[13], *pos;
-			pos = buff + 1;
-			pos[0] = tm->neg ? 1 : 0;
-			int4store(pos + 1, tm->day);
-			pos[5] = (uchar)tm->hour;
-			pos[6] = (uchar)tm->minute;
-			pos[7] = (uchar)tm->second;
-			int4store(pos + 8, tm->second_part);
-			uint length;
-			if (tm->second_part)
-				length = 12;
-			else if (tm->hour || tm->minute || tm->second || tm->day)
-				length = 8;
-			else
-				length = 0;
-			buff[0] = (char)length++;
-			buffer.Push(buff, length);
-		}
-
-		void CMysqlImpl::StoreParamDateTime(CUQueue& buffer, const MYSQL_TIME & dt) {
-			const MYSQL_TIME *tm = &dt;
-			uchar buff[12], *pos;
-			pos = buff + 1;
-			int2store(pos, tm->year);
-			pos[2] = (uchar)tm->month;
-			pos[3] = (uchar)tm->day;
-			pos[4] = (uchar)tm->hour;
-			pos[5] = (uchar)tm->minute;
-			pos[6] = (uchar)tm->second;
-			int4store(pos + 7, tm->second_part);
-			uint length;
-			if (tm->second_part)
-				length = 11;
-			else if (tm->hour || tm->minute || tm->second)
-				length = 7;
-			else if (tm->year || tm->month || tm->day)
-				length = 4;
-			else
-				length = 0;
-			buff[0] = (char)length++;
-			buffer.Push(buff, length);
-		}
-
-		uchar * CMysqlImpl::net_store_length(uchar *packet, ulonglong length) {
-			if (length < (ulonglong)251LL) {
-				*packet = (uchar)length;
-				return packet + 1;
-			}
-			/* 251 is reserved for NULL */
-			if (length < (ulonglong)65536LL) {
-				*packet++ = 252;
-				int2store(packet, (uint)length);
-				return packet + 2;
-			}
-			if (length < (ulonglong)16777216LL) {
-				*packet++ = 253;
-				int3store(packet, (ulong)length);
-				return packet + 3;
-			}
-			*packet++ = 254;
-			int8store(packet, length);
-			return packet + 8;
-		}
-
-		void CMysqlImpl::StoreParamDecimal(CUQueue& buffer, const DECIMAL & dec) {
-			std::string s = dec.Hi32 ? SPA::ToString_long(dec) : SPA::ToString(dec);
-			StoreParam(buffer, (const unsigned char *)s.c_str(), (unsigned int)s.size());
-		}
-
-		void CMysqlImpl::StoreParam(CUQueue& buffer, const unsigned char *str, unsigned int length) {
-			unsigned int tail = buffer.GetTailSize();
-			if (tail < (length + sizeof(UINT64))) {
-				buffer.ReallocBuffer(buffer.GetSize() + length + sizeof(UINT64));
-			}
-			uchar *begin = (uchar*)buffer.GetBuffer(buffer.GetSize());
-			uchar *to = net_store_length(begin, length);
-			unsigned int increase = (unsigned int)(to - begin);
-			buffer.SetSize(buffer.GetSize() + increase);
-			buffer.Push(str, length);
 		}
 
 		int CMysqlImpl::SetParams(int row, std::wstring & errMsg) {
@@ -1590,70 +1479,94 @@ namespace SPA
 					pParam->value = nullptr;
 					break;
 				case VT_I1:
-				case VT_UI1:
-				case VT_BOOL:
-					pParam->length = 1;
+					pParam->length = sizeof(char);
 					pParam->type = MYSQL_TYPE_TINY;
+					pParam->value = (const unsigned char *)&data.cVal;
+					break;
+				case VT_UI1:
+					pParam->length = sizeof(unsigned char);
+					pParam->type = MYSQL_TYPE_TINY;
+					pParam->value = &data.bVal;
+					pParam->unsigned_type = true;
+					break;
+				case VT_BOOL:
+					pParam->length = sizeof(unsigned char);
+					pParam->type = MYSQL_TYPE_TINY;
+					data.bVal = data.boolVal ? 1 : 0;
 					pParam->value = &data.bVal;
 					break;
 				case VT_I2:
-					pParam->length = 2;
+					pParam->length = sizeof(short);
 					pParam->type = MYSQL_TYPE_SHORT;
 					pParam->value = (const unsigned char *)&data.iVal;
 					break;
 				case VT_UI2:
-					pParam->length = 2;
+					pParam->length = sizeof(unsigned short);
 					pParam->type = MYSQL_TYPE_SHORT;
 					pParam->value = (const unsigned char *)&data.uiVal;
 					pParam->unsigned_type = true;
 					break;
 				case VT_INT:
 				case VT_I4:
-					pParam->length = 4;
+					pParam->length = sizeof(int);
 					pParam->type = MYSQL_TYPE_LONG;
 					pParam->value = (const unsigned char *)&data.intVal;
 					break;
 				case VT_UINT:
 				case VT_UI4:
-					pParam->length = 4;
+					pParam->length = sizeof(unsigned int);
 					pParam->type = MYSQL_TYPE_LONG;
 					pParam->value = (const unsigned char *)&data.uintVal;
 					pParam->unsigned_type = true;
 					break;
 				case VT_I8:
-					pParam->length = 8;
+					pParam->length = sizeof(SPA::INT64);
 					pParam->type = MYSQL_TYPE_LONGLONG;
 					pParam->value = (const unsigned char *)&data.llVal;
 					break;
 				case VT_UI8:
-					pParam->length = 8;
+					pParam->length = sizeof(SPA::UINT64);
 					pParam->type = MYSQL_TYPE_LONGLONG;
 					pParam->value = (const unsigned char *)&data.ullVal;
 					pParam->unsigned_type = true;
 					break;
 				case VT_R4:
-					pParam->length = 4;
+					pParam->length = sizeof(float);
 					pParam->type = MYSQL_TYPE_FLOAT;
 					pParam->value = (const unsigned char *)&data.fltVal;
 					break;
 				case VT_R8:
-					pParam->length = 8;
+					pParam->length = sizeof(double);
 					pParam->type = MYSQL_TYPE_DOUBLE;
 					pParam->value = (const unsigned char *)&data.dblVal;
 					break;
+				/*
 				case VT_DECIMAL:
 					pParam->type = MYSQL_TYPE_NEWDECIMAL;
 					break;
 				case VT_DATE:
 					pParam->type = MYSQL_TYPE_DATETIME;
 					break;
+				*/
 				case VT_STR:
 				case (VT_ARRAY | VT_I1):
 					pParam->type = MYSQL_TYPE_VAR_STRING;
+					{
+						SAFEARRAY *parray = data.parray;
+						pParam->length = parray->rgsabound->cElements;
+						::SafeArrayAccessData(parray, (void**)&pParam->value);
+						::SafeArrayUnaccessData(parray);
+					}
 					break;
 				case VT_BYTES:
 				case (VT_ARRAY | VT_UI1):
 					pParam->type = MYSQL_TYPE_BLOB;
+					{
+						SAFEARRAY *parray = data.parray;
+						pParam->length = parray->rgsabound->cElements;
+						::SafeArrayAccessData(parray, (void**)&pParam->value);
+						::SafeArrayUnaccessData(parray);
+					}
 					break;
 				default:
 					assert(false); //not implemented
@@ -1713,12 +1626,19 @@ namespace SPA
 				COM_DATA cmd;
 				::memset(&cmd, 0, sizeof(cmd));
 				InitMysqlSession();
+				int ret = SetParams(row, errMsg);
+				if (ret) {
+					if (!res)
+						res = ret;
+					continue;
+				}
 				cmd.com_stmt_execute.stmt_id = m_stmt.stmt_id;
 				cmd.com_stmt_execute.parameters = m_stmt.m_pParam.get();
 				cmd.com_stmt_execute.parameter_count = (unsigned long) m_stmt.parameters;
 				cmd.com_stmt_execute.has_new_types = true;
 				cmd.com_stmt_execute.open_cursor = false;
-				int fail = command_service_run_command(m_pMysql.get(), COM_STMT_EXECUTE, &cmd, CSetGlobals::Globals.utf8_general_ci, &m_sql_cbs, CS_BINARY_REPRESENTATION, this);
+				m_cmd = COM_STMT_EXECUTE;
+				int fail = command_service_run_command(m_pMysql.get(), COM_STMT_EXECUTE, &cmd, &my_charset_utf8_general_ci, &m_sql_cbs, CS_BINARY_REPRESENTATION, this);
 				if (m_sql_errno) {
 					++m_fails;
 					if (!res) {
@@ -1791,9 +1711,24 @@ namespace SPA
 				m_vParam.push_back(CDBVariant());
 				CDBVariant &vt = m_vParam.back();
 				q >> vt;
+				switch (vt.vt)
+				{
+				case VT_DATE:
+				{
+					char str[64] = { 0 };
+					SPA::UDateTime dt(vt.ullVal);
+					dt.ToDBString(str, sizeof(str));
+					vt = (const char*)str;
+				}
+					break;
+				case VT_DECIMAL:
+					vt = SPA::ToString(vt.decVal).c_str();
+					break;
+				default:
+					break;
+				}
 			}
 			assert(q.GetSize() == 0);
 		}
-
 	} //namespace ServerSide
 } //namespace SPA

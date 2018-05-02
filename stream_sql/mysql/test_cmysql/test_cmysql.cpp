@@ -25,7 +25,11 @@ int main(int argc, char* argv[]) {
     cc.Port = 20902;
     cc.UserId = L"root";
     cc.Password = L"Smash123";
+#ifndef NDEBUG
     CMyPool spMysql(true, (~0));
+#else
+	CMyPool spMysql;
+#endif
     bool ok = spMysql.StartSocketPool(cc, 1, 1);
     if (!ok) {
         std::cout << "Failed in connecting to remote async mysql server" << std::endl;

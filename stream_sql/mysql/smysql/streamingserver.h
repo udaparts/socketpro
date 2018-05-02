@@ -60,10 +60,6 @@ public:
     bool DisableV6;
     unsigned int Port;
     const char *server_version;
-    CHARSET_INFO *utf8_general_ci;
-    pdecimal2string decimal2string;
-    pmy_thread_create my_thread_create;
-    pmy_thread_join my_thread_join;
     st_mysql_daemon async_sql_plugin;
     HINSTANCE m_hModule;
     const void *Plugin;
