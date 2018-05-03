@@ -39,9 +39,8 @@ private:
 
 extern CStreamingServer *g_pStreamingServer;
 
-typedef int (*pdecimal2string) (const decimal_t *from, char *to, int *to_len, int fixed_precision, int fixed_decimals, char filler);
-typedef int (*pmy_thread_create) (my_thread_handle *thread, const my_thread_attr_t *attr, my_start_routine func, void *arg);
-typedef int (*pmy_thread_join) (my_thread_handle *thread, void **value_ptr);
+typedef plugin_ref(*Pplugin_lock_by_name)(THD *thd, const LEX_CSTRING &name, int type);
+typedef void (*Pplugin_unlock)(THD *thd, plugin_ref plugin);
 
 class CSetGlobals {
 private:
@@ -59,6 +58,8 @@ public:
     int m_nParam;
     bool DisableV6;
     unsigned int Port;
+	Pplugin_lock_by_name plugin_lock_by_name;
+	Pplugin_unlock plugin_unlock;
     const char *server_version;
     st_mysql_daemon async_sql_plugin;
     HINSTANCE m_hModule;

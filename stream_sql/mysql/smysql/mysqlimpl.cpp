@@ -7,6 +7,7 @@
 #include "streamingserver.h"
 #include "mysqld_error.h"
 #include "../../../include/server_functions.h"
+#include "mysql/plugin_auth.h"
 
 namespace SPA
 {
@@ -977,6 +978,7 @@ namespace SPA
 			if (!impl->OpenSession(L"root", "localhost")) {
 				return false;
 			}
+			/*
 			std::wstring wsql(L"select host from mysql.user where password_expired='N' and account_locked='N' and user='");
 			wsql += (userName + L"' and authentication_string=password('");
 			wsql += password;
@@ -999,7 +1001,7 @@ namespace SPA
 				std::string user = SPA::Utilities::ToUTF8(userName.c_str(), userName.size());
 				CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Authentication failed as service %d is not set for user %s yet(errCode=%d; errMsg=%s)", svsId, user.c_str(), res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()).c_str());
 				return false;
-			}
+			}*/
 			return true;
 		}
 
@@ -1008,16 +1010,20 @@ namespace SPA
 			if (!impl->OpenSession(userName, ip)) {
 				return false;
 			}
-			/*
-			char to[64] = { 0 };
-			std::string pwd = SPA::Utilities::ToUTF8(password);
-			make_scrambled_password(to, pwd.c_str());
+			
+			const char *hash = "";
+
+			LEX_CSTRING strAuth;
+			strAuth.str = "caching_sha2_password";
+			strAuth.length = 21;
+			plugin_ref auth_plugin = CSetGlobals::Globals.plugin_lock_by_name(nullptr, strAuth, MYSQL_AUTHENTICATION_PLUGIN);
+			st_mysql_auth *auth = (st_mysql_auth*)plugin_decl(auth_plugin)->info;
+			int is_error = 0;
+			int ret = auth->compare_password_with_hash(hash, 70, "Smash123", 8, &is_error);
 
 			std::string user = SPA::Utilities::ToUTF8(userName.c_str(), userName.size());
-			std::wstring wsql(L"select host from mysql.user where password_expired='N' and account_locked='N' and user='");
-			wsql += (userName + L"' and authentication_string=password('");
-			wsql += password;
-			wsql += L"')";
+			std::wstring wsql(L"select authentication_string, host from mysql.user where password_expired='N' and account_locked='N' and user='");
+			wsql += (userName + L"'");
 			int res = 0;
 			INT64 affected;
 			SPA::UDB::CDBVariant vtId;
@@ -1029,7 +1035,10 @@ namespace SPA
 				CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Authentication failed as password mismatched for user %s(errCode=%d; errMsg=%s)", user.c_str(), res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()).c_str());
 				return false;
 			}
-			*/
+			SPA::UDB::CDBVariant vtAuth, vtHost;
+			impl->m_qSend >> vtAuth >> vtHost;
+
+
 			return true;
 		}
 
