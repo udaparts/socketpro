@@ -58,8 +58,6 @@ public:
     int m_nParam;
     bool DisableV6;
     unsigned int Port;
-	Pplugin_lock_by_name plugin_lock_by_name;
-	Pplugin_unlock plugin_unlock;
     const char *server_version;
     st_mysql_daemon async_sql_plugin;
     HINSTANCE m_hModule;

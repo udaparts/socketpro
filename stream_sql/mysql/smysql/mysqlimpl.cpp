@@ -8,6 +8,7 @@
 #include "mysqld_error.h"
 #include "../../../include/server_functions.h"
 #include "mysql/plugin_auth.h"
+#include "crypt_genhash_impl.h"
 
 namespace SPA
 {
@@ -971,18 +972,16 @@ namespace SPA
 
 		bool CMysqlImpl::Authenticate(const std::wstring &userName, const wchar_t *password, const std::string &ip, unsigned int svsId) {
 			std::unique_ptr<CMysqlImpl> impl(new CMysqlImpl);
-			if (!impl->OpenSession(userName, ip)) {
-				return false;
-			}
-			impl->m_pMysql.reset();
 			if (!impl->OpenSession(L"root", "localhost")) {
+				CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Authentication failed as root account not available");
 				return false;
 			}
-			/*
-			std::wstring wsql(L"select host from mysql.user where password_expired='N' and account_locked='N' and user='");
-			wsql += (userName + L"' and authentication_string=password('");
-			wsql += password;
-			wsql += L"')";
+			std::wstring host = L"localhost";
+			if (ip != "localhost")
+				host = L"%";
+			std::string user = SPA::Utilities::ToUTF8(userName.c_str(), userName.size());
+			std::wstring wsql(L"select authentication_string from mysql.user where password_expired='N' and account_locked='N' and user='");
+			wsql += (userName + L"' and host='" + host + L"'");
 			int res = 0;
 			INT64 affected;
 			SPA::UDB::CDBVariant vtId;
@@ -991,55 +990,51 @@ namespace SPA
 			std::wstring errMsg;
 			impl->Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
 			if (res || !impl->m_qSend.GetSize()) {
-				std::string user = SPA::Utilities::ToUTF8(userName.c_str(), userName.size());
-				CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Authentication failed as password mismatched for user %s(errCode=%d; errMsg=%s)", user.c_str(), res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()).c_str());
+				CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Authentication failed as user %s not found (errCode=%d; errMsg=%s)", user.c_str(), res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()).c_str());
 				return false;
 			}
+			SPA::UDB::CDBVariant vtAuth;
+			impl->m_qSend >> vtAuth;
+			char *auth_id = nullptr;
+			::SafeArrayAccessData(vtAuth.parray, (void**)&auth_id);
+			std::string hash((const char*)auth_id, vtAuth.parray->rgsabound->cElements);
+			::SafeArrayUnaccessData(vtAuth.parray);
+			if (!DoAuthentication(password, hash)) {
+				CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Authentication failed as wrong password for user %s (errCode=%d; errMsg=%s)", user.c_str(), res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()).c_str());
+				return false;
+			}
+			if (svsId == SPA::Mysql::sidMysql)
+				return true;
 			wsql = L"SELECT user from sp_streaming_db.permission,sp_streaming_db.service where svsid=id AND svsid=" + std::to_wstring((UINT64)svsId) + L" AND user='" + userName + L"'";
 			impl->Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
 			if (res || !impl->m_qSend.GetSize()) {
 				std::string user = SPA::Utilities::ToUTF8(userName.c_str(), userName.size());
-				CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Authentication failed as service %d is not set for user %s yet(errCode=%d; errMsg=%s)", svsId, user.c_str(), res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()).c_str());
+				CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Authentication failed as service %d is not set for user %s yet (errCode=%d; errMsg=%s)", svsId, user.c_str(), res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()).c_str());
 				return false;
-			}*/
+			}
 			return true;
 		}
 
-		bool CMysqlImpl::Authenticate(const std::wstring &userName, const wchar_t *password, const std::string & ip) {
-			std::unique_ptr<CMysqlImpl> impl(new CMysqlImpl);
-			if (!impl->OpenSession(userName, ip)) {
+		bool CMysqlImpl::DoAuthentication(const wchar_t *password, const std::string &hash) {
+			if (hash.size() != 70) {
+				CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Authentication failed as wrong hash length (expected length=70; found length=%d)", hash.size());
 				return false;
 			}
-			
-			const char *hash = "";
-
-			LEX_CSTRING strAuth;
-			strAuth.str = "caching_sha2_password";
-			strAuth.length = 21;
-			plugin_ref auth_plugin = CSetGlobals::Globals.plugin_lock_by_name(nullptr, strAuth, MYSQL_AUTHENTICATION_PLUGIN);
-			st_mysql_auth *auth = (st_mysql_auth*)plugin_decl(auth_plugin)->info;
-			int is_error = 0;
-			int ret = auth->compare_password_with_hash(hash, 70, "Smash123", 8, &is_error);
-
-			std::string user = SPA::Utilities::ToUTF8(userName.c_str(), userName.size());
-			std::wstring wsql(L"select authentication_string, host from mysql.user where password_expired='N' and account_locked='N' and user='");
-			wsql += (userName + L"'");
-			int res = 0;
-			INT64 affected;
-			SPA::UDB::CDBVariant vtId;
-			UINT64 fail_ok;
-			impl->m_NoSending = true;
-			std::wstring errMsg;
-			impl->Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
-			if (res || !impl->m_qSend.GetSize()) {
-				CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Authentication failed as password mismatched for user %s(errCode=%d; errMsg=%s)", user.c_str(), res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()).c_str());
+			std::string pwd = SPA::Utilities::ToUTF8(password);
+			std::string header = hash.substr(0, 7);
+			if (header != "$A$005$") {
+				CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Authentication failed as wrong hash algorithm (expected=$A$005$; this=%s)", header.c_str());
 				return false;
 			}
-			SPA::UDB::CDBVariant vtAuth, vtHost;
-			impl->m_qSend >> vtAuth >> vtHost;
-
-
-			return true;
+			std::string salt = hash.substr(7, 20);
+			std::string digest = hash.substr(27);
+			char buffer[CRYPT_MAX_PASSWORD_SIZE + 1] = { 0 };
+			unsigned int iterations = 5000; //CACHING_SHA2_PASSWORD_ITERATIONS;
+			my_crypt_genhash(buffer, CRYPT_MAX_PASSWORD_SIZE, pwd.c_str(), pwd.length(), salt.c_str(), nullptr, &iterations);
+			std::string s(buffer);
+			size_t pos = s.rfind('$');
+			s = s.substr(pos + 1);
+			return (digest == s);
 		}
 
 		void CMysqlImpl::Open(const std::wstring &strConnection, unsigned int flags, int &res, std::wstring &errMsg, int &ms) {

@@ -30,8 +30,6 @@ int async_sql_plugin_deinit(void *p) {
 }
 
 CSetGlobals::CSetGlobals() : m_fLog(nullptr), m_nParam(0), DisableV6(false), Port(20902),
-plugin_lock_by_name(nullptr),
-plugin_unlock(nullptr),
 server_version(nullptr),
 m_hModule(nullptr), Plugin(nullptr), enable_http_websocket(false) {
     //defaults
@@ -44,12 +42,6 @@ m_hModule(nullptr), Plugin(nullptr), enable_http_websocket(false) {
         server_version = (const char*) ::GetProcAddress(m_hModule, "server_version");
         if (!server_version)
             LogMsg(__FILE__, __LINE__, "Variable server_version not found inside mysqld application");
-		plugin_lock_by_name = (Pplugin_lock_by_name) ::GetProcAddress(m_hModule, "?plugin_lock_by_name@@YAPEAUst_plugin_int@@PEAVTHD@@AEBUMYSQL_LEX_CSTRING@@H@Z");
-		if (!plugin_lock_by_name)
-			LogMsg(__FILE__, __LINE__, "Function plugin_lock_by_name not available");
-		plugin_unlock = (Pplugin_unlock) ::GetProcAddress(m_hModule, "?plugin_unlock@@YAXPEAVTHD@@PEAUst_plugin_int@@@Z");
-		if (!plugin_unlock)
-			LogMsg(__FILE__, __LINE__, "Function plugin_unlock not available");
     } else {
         assert(false);
     }
@@ -352,18 +344,10 @@ bool CStreamingServer::OnIsPermitted(USocket_Server_Handle h, const wchar_t* use
         ip = "localhost";
     switch (serviceId) {
         case SPA::Mysql::sidMysql:
-			if (!CSetGlobals::Globals.plugin_lock_by_name || !CSetGlobals::Globals.plugin_unlock) {
-				CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Authentication failed because Function plugin_lock_by_name or plugin_unlock is not available");
-				return false;
-			}
             return SPA::ServerSide::CMysqlImpl::Authenticate(userId, password, ip);
         case SPA::sidHTTP:
             break;
         default:
-			if (!CSetGlobals::Globals.plugin_lock_by_name || !CSetGlobals::Globals.plugin_unlock) {
-				CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Authentication failed because Function plugin_lock_by_name or plugin_unlock is not available");
-				return false;
-			}
             return SPA::ServerSide::CMysqlImpl::Authenticate(userId, password, ip, serviceId);
             break;
     }

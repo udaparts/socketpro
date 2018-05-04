@@ -55,8 +55,7 @@ namespace SPA {
             CMysqlImpl();
             ~CMysqlImpl();
             unsigned int GetParameters() const;
-            static bool Authenticate(const std::wstring &userName, const wchar_t *password, const std::string &ip, unsigned int svsId);
-            static bool Authenticate(const std::wstring &userName, const wchar_t *password, const std::string &ip);
+            static bool Authenticate(const std::wstring &userName, const wchar_t *password, const std::string &ip, unsigned int svsId = SPA::Mysql::sidMysql);
             static void CALLBACK OnThreadEvent(SPA::ServerSide::tagThreadEvent te);
             static std::unordered_map<std::string, std::string> ConfigStreamingDB(CMysqlImpl &impl);
             static void CreateTriggers(CMysqlImpl &impl, const std::vector<std::string> &vecTables);
@@ -124,6 +123,7 @@ namespace SPA {
             static void sql_handle_error(void * ctx, uint sql_errno, const char * const err_msg, const char * const sqlstate);
             static void sql_shutdown(void *ctx, int shutdown_server);
             static void ToDecimal(const decimal_t &src, bool large, DECIMAL &dec);
+			static bool DoAuthentication(const wchar_t *password, const std::string &hash);
 
         protected:
             bool m_EnableMessages;
