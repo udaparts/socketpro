@@ -3,7 +3,6 @@
 
 #include "mysqlimpl.h"
 #include "httppeer.h"
-#include "my_thread.h"
 
 struct CService {
     unsigned int ServiceId;
@@ -15,15 +14,11 @@ struct CService {
 class CStreamingServer : public SPA::ServerSide::CSocketProServer {
 public:
     CStreamingServer(int nParam = 0);
-    ~CStreamingServer();
 
 protected:
-    virtual void OnAccept(USocket_Server_Handle h, int errCode);
     virtual bool OnSettingServer(unsigned int listeningPort, unsigned int maxBacklog, bool v6);
     virtual bool OnIsPermitted(USocket_Server_Handle h, const wchar_t* userId, const wchar_t *password, unsigned int serviceId);
-    virtual void OnClose(USocket_Server_Handle h, int errCode);
     virtual void OnIdle(SPA::INT64 milliseconds);
-    virtual void OnSSLShakeCompleted(USocket_Server_Handle h, int errCode);
 
 private:
     bool AddService();
@@ -38,9 +33,6 @@ private:
 };
 
 extern CStreamingServer *g_pStreamingServer;
-
-typedef plugin_ref(*Pplugin_lock_by_name)(THD *thd, const LEX_CSTRING &name, int type);
-typedef void (*Pplugin_unlock)(THD *thd, plugin_ref plugin);
 
 class CSetGlobals {
 private:

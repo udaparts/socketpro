@@ -42,7 +42,7 @@ namespace SPA {
                 }
                 unsigned long stmt_id;
                 size_t parameters;
-				std::shared_ptr<PS_PARAM> m_pParam;
+                std::shared_ptr<PS_PARAM> m_pParam;
             };
 
             struct PriKey {
@@ -123,7 +123,7 @@ namespace SPA {
             static void sql_handle_error(void * ctx, uint sql_errno, const char * const err_msg, const char * const sqlstate);
             static void sql_shutdown(void *ctx, int shutdown_server);
             static void ToDecimal(const decimal_t &src, bool large, DECIMAL &dec);
-			static bool DoAuthentication(const wchar_t *password, const std::string &hash);
+            static bool DoAuthentication(const wchar_t *password, const std::string &hash);
 
         protected:
             bool m_EnableMessages;
@@ -160,7 +160,7 @@ namespace SPA {
             std::string m_sqlstate;
             UINT64 m_indexCall;
             bool m_bBlob;
-			enum_server_command m_cmd;
+            enum_server_command m_cmd;
 
             static st_command_service_cbs m_sql_cbs;
 

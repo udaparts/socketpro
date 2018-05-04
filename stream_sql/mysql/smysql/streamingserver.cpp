@@ -265,14 +265,6 @@ CStreamingServer::CStreamingServer(int nParam)
 : SPA::ServerSide::CSocketProServer(nParam) {
 }
 
-CStreamingServer::~CStreamingServer() {
-
-}
-
-void CStreamingServer::OnClose(USocket_Server_Handle h, int errCode) {
-
-}
-
 bool CHttpPeer::DoAuthentication(const wchar_t *userId, const wchar_t *password) {
     if (GetTransport() != SPA::ServerSide::tWebSocket)
         return true;
@@ -343,8 +335,6 @@ bool CStreamingServer::OnIsPermitted(USocket_Server_Handle h, const wchar_t* use
     if (ip == "127.0.0.1" || ip == "::ffff:127.0.0.1" || ip == "::1")
         ip = "localhost";
     switch (serviceId) {
-        case SPA::Mysql::sidMysql:
-            return SPA::ServerSide::CMysqlImpl::Authenticate(userId, password, ip);
         case SPA::sidHTTP:
             break;
         default:
@@ -356,14 +346,6 @@ bool CStreamingServer::OnIsPermitted(USocket_Server_Handle h, const wchar_t* use
 
 void CStreamingServer::OnIdle(SPA::INT64 milliseconds) {
     CSetGlobals::Globals.UpdateLog();
-}
-
-void CStreamingServer::OnSSLShakeCompleted(USocket_Server_Handle h, int errCode) {
-
-}
-
-void CStreamingServer::OnAccept(USocket_Server_Handle h, int errCode) {
-
 }
 
 bool CStreamingServer::OnSettingServer(unsigned int listeningPort, unsigned int maxBacklog, bool v6) {
