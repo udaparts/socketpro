@@ -53,7 +53,7 @@ namespace SPA
         m_qSend(*m_sb), m_stmt(0, false), m_bExecutingParameters(false), m_NoSending(false), m_sql_errno(0),
         m_sc(nullptr), m_sql_resultcs(nullptr), m_ColIndex(0), m_sql_flags(0), m_affected_rows(0),
         m_last_insert_id(0), m_server_status(0), m_statement_warn_count(0), m_indexCall(0),
-        m_bBlob(false), m_cmd(COM_SLEEP) {
+        m_bBlob(false), m_cmd(COM_SLEEP), m_NoRowset(false) {
             m_qSend.ToUtf8(true);
             m_UQueue.ToUtf8(true);
         }
@@ -124,8 +124,6 @@ namespace SPA
 
         int CMysqlImpl::sql_start_result_metadata(void *ctx, uint num_cols, uint flags, const CHARSET_INFO * resultcs) {
             CMysqlImpl *impl = (CMysqlImpl *) ctx;
-            if (!impl)
-                return 1;
             impl->m_sql_resultcs = resultcs;
             impl->m_sql_flags = flags;
             impl->m_vColInfo.clear();
@@ -417,6 +415,9 @@ namespace SPA
                 q << impl->m_vColInfo << impl->m_indexCall;
                 if ((server_status & SERVER_PS_OUT_PARAMS) == SERVER_PS_OUT_PARAMS) {
                     q << (unsigned int) impl->m_vColInfo.size();
+                } else if (impl->m_NoRowset) {
+                    q.SetSize(0);
+                    return 0;
                 }
                 unsigned int ret = impl->SendResult(idRowsetHeader, q.GetBuffer(), q.GetSize());
                 q.SetSize(0);
@@ -435,6 +436,8 @@ namespace SPA
 
         int CMysqlImpl::sql_end_row(void *ctx) {
             CMysqlImpl *impl = (CMysqlImpl *) ctx;
+            if (impl->m_NoRowset && !(impl->m_server_status & SERVER_PS_OUT_PARAMS))
+                return 0;
             CUQueue &q = impl->m_qSend;
             if ((q.GetSize() >= DEFAULT_RECORD_BATCH_SIZE || impl->m_bBlob) && !impl->SendRows(q)) {
                 return 1;
@@ -454,6 +457,8 @@ namespace SPA
 
         int CMysqlImpl::sql_get_null(void *ctx) {
             CMysqlImpl *impl = (CMysqlImpl *) ctx;
+            if (impl->m_NoRowset && !(impl->m_server_status & SERVER_PS_OUT_PARAMS))
+                return 0;
             CUQueue &q = impl->m_qSend;
             q << (VARTYPE) VT_NULL;
             ++impl->m_ColIndex;
@@ -464,7 +469,8 @@ namespace SPA
             CMysqlImpl *impl = (CMysqlImpl *) ctx;
             if (impl->m_cmd == COM_STMT_PREPARE && impl->m_ColIndex == 0) {
                 impl->m_stmt.stmt_id = (unsigned long) value;
-            }
+            } else if (impl->m_NoRowset && !(impl->m_server_status & SERVER_PS_OUT_PARAMS))
+                return 0;
             CUQueue &q = impl->m_qSend;
             const CDBColumnInfo &info = impl->m_vColInfo[impl->m_ColIndex];
             q << info.DataType;
@@ -503,6 +509,8 @@ namespace SPA
 
         int CMysqlImpl::sql_get_longlong(void * ctx, longlong value, uint is_unsigned) {
             CMysqlImpl *impl = (CMysqlImpl *) ctx;
+            if (impl->m_NoRowset && !(impl->m_server_status & SERVER_PS_OUT_PARAMS))
+                return 0;
             CUQueue &q = impl->m_qSend;
             const CDBColumnInfo &info = impl->m_vColInfo[impl->m_ColIndex];
             q << info.DataType;
@@ -552,8 +560,10 @@ namespace SPA
         }
 
         int CMysqlImpl::sql_get_decimal(void * ctx, const decimal_t * value) {
-            DECIMAL dec;
             CMysqlImpl *impl = (CMysqlImpl *) ctx;
+            if (impl->m_NoRowset && !(impl->m_server_status & SERVER_PS_OUT_PARAMS))
+                return 0;
+            DECIMAL dec;
             const CDBColumnInfo &info = impl->m_vColInfo[impl->m_ColIndex];
             ToDecimal(*value, info.Precision > 19, dec);
             CUQueue &q = impl->m_qSend;
@@ -564,6 +574,8 @@ namespace SPA
 
         int CMysqlImpl::sql_get_double(void * ctx, double value, uint32 decimals) {
             CMysqlImpl *impl = (CMysqlImpl *) ctx;
+            if (impl->m_NoRowset && !(impl->m_server_status & SERVER_PS_OUT_PARAMS))
+                return 0;
             CUQueue &q = impl->m_qSend;
             const CDBColumnInfo &info = impl->m_vColInfo[impl->m_ColIndex];
             q << info.DataType;
@@ -584,6 +596,8 @@ namespace SPA
 
         int CMysqlImpl::sql_get_date(void * ctx, const MYSQL_TIME * value) {
             CMysqlImpl *impl = (CMysqlImpl *) ctx;
+            if (impl->m_NoRowset && !(impl->m_server_status & SERVER_PS_OUT_PARAMS))
+                return 0;
             CUQueue &q = impl->m_qSend;
             q << (VARTYPE) VT_DATE << ToUDateTime(*value);
             ++impl->m_ColIndex;
@@ -592,6 +606,8 @@ namespace SPA
 
         int CMysqlImpl::sql_get_time(void * ctx, const MYSQL_TIME * value, uint decimals) {
             CMysqlImpl *impl = (CMysqlImpl *) ctx;
+            if (impl->m_NoRowset && !(impl->m_server_status & SERVER_PS_OUT_PARAMS))
+                return 0;
             CUQueue &q = impl->m_qSend;
             q << (VARTYPE) VT_DATE << ToUDateTime(*value);
             ++impl->m_ColIndex;
@@ -600,6 +616,8 @@ namespace SPA
 
         int CMysqlImpl::sql_get_datetime(void * ctx, const MYSQL_TIME * value, uint decimals) {
             CMysqlImpl *impl = (CMysqlImpl *) ctx;
+            if (impl->m_NoRowset && !(impl->m_server_status & SERVER_PS_OUT_PARAMS))
+                return 0;
             CUQueue &q = impl->m_qSend;
             q << (VARTYPE) VT_DATE << ToUDateTime(*value);
             ++impl->m_ColIndex;
@@ -608,6 +626,8 @@ namespace SPA
 
         int CMysqlImpl::sql_get_string(void * ctx, const char * const value, size_t length, const CHARSET_INFO * const valuecs) {
             CMysqlImpl *impl = (CMysqlImpl *) ctx;
+            if (impl->m_NoRowset && !(impl->m_server_status & SERVER_PS_OUT_PARAMS))
+                return 0;
             CUQueue &q = impl->m_qSend;
             const CDBColumnInfo &info = impl->m_vColInfo[impl->m_ColIndex];
             if (info.DeclaredType == L"BIT") {
@@ -1346,6 +1366,7 @@ namespace SPA
             cmd.com_query.query = sql.c_str();
             cmd.com_query.length = (unsigned int) sql.size();
             m_cmd = COM_QUERY;
+            m_NoRowset = !rowset;
             int fail = command_service_run_command(m_pMysql.get(), COM_QUERY, &cmd, &my_charset_utf8_general_ci, &m_sql_cbs, CS_BINARY_REPRESENTATION, this);
             if (m_sql_errno) {
                 res = m_sql_errno;
@@ -1366,6 +1387,7 @@ namespace SPA
         }
 
         void CMysqlImpl::Prepare(const std::wstring& wsql, CParameterInfoArray& params, int &res, std::wstring &errMsg, unsigned int &parameters) {
+            m_NoRowset = false;
             ResetMemories();
             parameters = 0;
             if (!m_pMysql) {
@@ -1603,6 +1625,7 @@ namespace SPA
                 cmd.com_stmt_execute.parameter_count = (unsigned long) m_stmt.parameters;
                 cmd.com_stmt_execute.has_new_types = true;
                 cmd.com_stmt_execute.open_cursor = false;
+                m_NoRowset = !rowset;
                 m_cmd = COM_STMT_EXECUTE;
                 int fail = command_service_run_command(m_pMysql.get(), COM_STMT_EXECUTE, &cmd, &my_charset_utf8_general_ci, &m_sql_cbs, CS_BINARY_REPRESENTATION, this);
                 if (m_sql_errno) {

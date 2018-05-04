@@ -161,7 +161,7 @@ namespace SPA {
             UINT64 m_indexCall;
             bool m_bBlob;
             enum_server_command m_cmd;
-
+            bool m_NoRowset;
             static st_command_service_cbs m_sql_cbs;
 
             static const int IS_BINARY = 63;
