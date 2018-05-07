@@ -70,32 +70,32 @@ ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libsmysql.${CND_DLIB_EXT}: ${OBJECTFI
 ${OBJECTDIR}/_ext/932346631/aserverw.o: ../../../include/aserverw.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/932346631
 	${RM} "$@.d"
-	$(COMPILE.c) -g -DMYSQL_DYNAMIC_PLUGIN -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/932346631/aserverw.o ../../../include/aserverw.cpp
+	$(COMPILE.c) -g -DMYSQL_DYNAMIC_PLUGIN -I../../../../mysql-8.0.11/include -I../../../../mysql-8.0.11 -I../../../../mysql-8.0.11/libbinlogevents/export -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/932346631/aserverw.o ../../../include/aserverw.cpp
 
 ${OBJECTDIR}/_ext/932346631/membuffer.o: ../../../include/membuffer.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/932346631
 	${RM} "$@.d"
-	$(COMPILE.c) -g -DMYSQL_DYNAMIC_PLUGIN -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/932346631/membuffer.o ../../../include/membuffer.cpp
+	$(COMPILE.c) -g -DMYSQL_DYNAMIC_PLUGIN -I../../../../mysql-8.0.11/include -I../../../../mysql-8.0.11 -I../../../../mysql-8.0.11/libbinlogevents/export -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/932346631/membuffer.o ../../../include/membuffer.cpp
 
 ${OBJECTDIR}/mysqlimpl.o: mysqlimpl.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.c) -g -DMYSQL_DYNAMIC_PLUGIN -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/mysqlimpl.o mysqlimpl.cpp
+	$(COMPILE.c) -g -DMYSQL_DYNAMIC_PLUGIN -I../../../../mysql-8.0.11/include -I../../../../mysql-8.0.11 -I../../../../mysql-8.0.11/libbinlogevents/export -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/mysqlimpl.o mysqlimpl.cpp
 
 ${OBJECTDIR}/smysql.o: smysql.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.c) -g -DMYSQL_DYNAMIC_PLUGIN -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/smysql.o smysql.cpp
+	$(COMPILE.c) -g -DMYSQL_DYNAMIC_PLUGIN -I../../../../mysql-8.0.11/include -I../../../../mysql-8.0.11 -I../../../../mysql-8.0.11/libbinlogevents/export -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/smysql.o smysql.cpp
 
 ${OBJECTDIR}/stdafx.o: stdafx.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.c) -g -DMYSQL_DYNAMIC_PLUGIN -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/stdafx.o stdafx.cpp
+	$(COMPILE.c) -g -DMYSQL_DYNAMIC_PLUGIN -I../../../../mysql-8.0.11/include -I../../../../mysql-8.0.11 -I../../../../mysql-8.0.11/libbinlogevents/export -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/stdafx.o stdafx.cpp
 
 ${OBJECTDIR}/streamingserver.o: streamingserver.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.c) -g -DMYSQL_DYNAMIC_PLUGIN -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/streamingserver.o streamingserver.cpp
+	$(COMPILE.c) -g -DMYSQL_DYNAMIC_PLUGIN -I../../../../mysql-8.0.11/include -I../../../../mysql-8.0.11 -I../../../../mysql-8.0.11/libbinlogevents/export -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/streamingserver.o streamingserver.cpp
 
 # Subprojects
 .build-subprojects:
