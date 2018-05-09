@@ -1,7 +1,0 @@
-
-LIBRARY		sporaclepush
-
-EXPORTS
-	SetConnectionString @1
-	NotifyDatabaseEvent @2
-	GetConnections @3
