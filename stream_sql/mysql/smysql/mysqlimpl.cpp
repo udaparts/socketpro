@@ -54,8 +54,8 @@ namespace SPA
         m_sc(nullptr), m_sql_resultcs(nullptr), m_ColIndex(0), m_sql_flags(0), m_affected_rows(0),
         m_last_insert_id(0), m_server_status(0), m_statement_warn_count(0), m_indexCall(0),
         m_bBlob(false), m_cmd(COM_SLEEP), m_NoRowset(false) {
-            m_qSend.ToUtf8(true);
-            m_UQueue.ToUtf8(true);
+            m_qSend.ToUtf8(true); //convert UNICODE into UTF8 automatically
+            m_UQueue.ToUtf8(true); //convert UNICODE into UTF8 automatically
         }
 
         CMysqlImpl::~CMysqlImpl() {
@@ -116,9 +116,6 @@ namespace SPA
             END_SWITCH
             if (reqId == idExecuteParameters)
                 m_vParam.clear();
-            if (m_pMysql) {
-                int fail = srv_session_detach(m_pMysql.get());
-            }
             return 0;
         }
 
@@ -1703,12 +1700,12 @@ namespace SPA
                     {
                         char str[64] = {0};
                         SPA::UDateTime dt(vt.ullVal);
-                        dt.ToDBString(str, sizeof (str));
+                        dt.ToDBString(str, sizeof (str)); //date time to ASCII DB string 
                         vt = (const char*) str;
                     }
                         break;
                     case VT_DECIMAL:
-                        vt = SPA::ToString(vt.decVal).c_str();
+                        vt = SPA::ToString(vt.decVal).c_str(); //decimal to ASCII string
                         break;
                     default:
                         break;
