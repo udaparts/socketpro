@@ -18,8 +18,7 @@ int async_sql_plugin_init(void *p) {
 int async_sql_plugin_deinit(void *p) {
     if (g_pStreamingServer) {
         g_pStreamingServer->PostQuit();
-        if (CSetGlobals::Globals.my_thread_join)
-            CSetGlobals::Globals.my_thread_join(&CSetGlobals::Globals.m_thread, nullptr);
+        my_thread_join(&CSetGlobals::Globals.m_thread, nullptr);
         delete g_pStreamingServer;
         g_pStreamingServer = nullptr;
     }
@@ -31,8 +30,8 @@ int async_sql_plugin_deinit(void *p) {
 }
 
 CSetGlobals::CSetGlobals() : m_fLog(nullptr), m_nParam(0), DisableV6(false), Port(20902),
-server_version(nullptr), utf8_general_ci(nullptr), decimal2string(nullptr), my_thread_create(nullptr),
-my_thread_join(nullptr), m_hModule(nullptr), Plugin(nullptr), enable_http_websocket(false) {
+server_version(nullptr),
+m_hModule(nullptr), Plugin(nullptr), enable_http_websocket(false) {
     //defaults
 #ifdef WIN32_64
     m_hModule = ::GetModuleHandle(nullptr);
@@ -40,19 +39,6 @@ my_thread_join(nullptr), m_hModule(nullptr), Plugin(nullptr), enable_http_websoc
     m_hModule = ::dlopen(nullptr, RTLD_LAZY);
 #endif
     if (m_hModule) {
-        void *v = ::GetProcAddress(m_hModule, "my_charset_utf8_general_ci");
-        utf8_general_ci = (CHARSET_INFO*) v;
-        if (!utf8_general_ci)
-            LogMsg(__FILE__, __LINE__, "Variable utf8_general_ci not found inside mysqld application");
-        decimal2string = (pdecimal2string)::GetProcAddress(m_hModule, "decimal2string");
-        if (!decimal2string)
-            LogMsg(__FILE__, __LINE__, "Function decimal2string not found inside mysqld application");
-        my_thread_create = (pmy_thread_create)::GetProcAddress(m_hModule, "my_thread_create");
-        if (!my_thread_create)
-            LogMsg(__FILE__, __LINE__, "Function my_thread_create not found inside mysqld application");
-        my_thread_join = (pmy_thread_join)::GetProcAddress(m_hModule, "my_thread_join");
-        if (!my_thread_create)
-            LogMsg(__FILE__, __LINE__, "Function my_thread_join not found inside mysqld application");
         server_version = (const char*) ::GetProcAddress(m_hModule, "server_version");
         if (!server_version)
             LogMsg(__FILE__, __LINE__, "Variable server_version not found inside mysqld application");
@@ -149,17 +135,17 @@ bool CSetGlobals::StartListening() {
     my_thread_attr_init(&attr);
     (void) my_thread_attr_setdetachstate(&attr, MY_THREAD_CREATE_JOINABLE);
     ::memset(&m_thread, 0, sizeof (m_thread));
-    if (my_thread_create && my_thread_create(&m_thread, &attr, ThreadProc, this)) {
+    if (my_thread_create(&m_thread, &attr, ThreadProc, this)) {
         return false;
     }
     return true;
 }
 
 void* CSetGlobals::ThreadProc(void *lpParameter) {
-    my_bool fail = srv_session_init_thread(CSetGlobals::Globals.Plugin);
+    int fail = srv_session_init_thread(CSetGlobals::Globals.Plugin);
     assert(!fail);
     {
-        my_bool available = srv_session_server_is_available();
+        int available = srv_session_server_is_available();
         while (!available) {
 #ifdef WIN32_64
             ::Sleep(50);
@@ -279,14 +265,6 @@ CStreamingServer::CStreamingServer(int nParam)
 : SPA::ServerSide::CSocketProServer(nParam) {
 }
 
-CStreamingServer::~CStreamingServer() {
-
-}
-
-void CStreamingServer::OnClose(USocket_Server_Handle h, int errCode) {
-
-}
-
 bool CHttpPeer::DoAuthentication(const wchar_t *userId, const wchar_t *password) {
     if (GetTransport() != SPA::ServerSide::tWebSocket)
         return true;
@@ -357,8 +335,6 @@ bool CStreamingServer::OnIsPermitted(USocket_Server_Handle h, const wchar_t* use
     if (ip == "127.0.0.1" || ip == "::ffff:127.0.0.1" || ip == "::1")
         ip = "localhost";
     switch (serviceId) {
-        case SPA::Mysql::sidMysql:
-            return SPA::ServerSide::CMysqlImpl::Authenticate(userId, password, ip);
         case SPA::sidHTTP:
             break;
         default:
@@ -370,14 +346,6 @@ bool CStreamingServer::OnIsPermitted(USocket_Server_Handle h, const wchar_t* use
 
 void CStreamingServer::OnIdle(SPA::INT64 milliseconds) {
     CSetGlobals::Globals.UpdateLog();
-}
-
-void CStreamingServer::OnSSLShakeCompleted(USocket_Server_Handle h, int errCode) {
-
-}
-
-void CStreamingServer::OnAccept(USocket_Server_Handle h, int errCode) {
-
 }
 
 bool CStreamingServer::OnSettingServer(unsigned int listeningPort, unsigned int maxBacklog, bool v6) {

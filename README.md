@@ -17,7 +17,7 @@
     - Superior performance asynchronous message persistent queue (free)
     - High performance file streaming
 	- SQL streaming for SQLite 3.11.1 or later (free)
-	- SQL streaming for MySQL 5.7.18 or later (free)
+	- SQL streaming for MySQL 8.0.11 or later (free)
 	- SQL streaming for MS SQL server 2008 or later
 	- SQL streaming for anyone of databases having ODBC driver (free)
 

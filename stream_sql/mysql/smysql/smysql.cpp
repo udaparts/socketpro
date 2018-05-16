@@ -9,11 +9,12 @@ mysql_declare_plugin(async_sql) {
             "Async SQL Real-time Streaming Processing",
             PLUGIN_LICENSE_PROPRIETARY,
             async_sql_plugin_init, /* Plugin Init */
+            nullptr,
             async_sql_plugin_deinit, /* Plugin Deinit */
             0x0100 /* 1.0 */,
-            NULL, /* status variables */
-            NULL, /* system variables */
-            NULL, /* config options */
+            nullptr, /* status variables */
+            nullptr, /* system variables */
+            nullptr, /* config options */
             0, /* flags */
 }
 mysql_declare_plugin_end;

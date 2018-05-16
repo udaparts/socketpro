@@ -6,22 +6,15 @@
 #include "../../../include/udatabase.h"
 #include "../../../include/mysql/umysql.h"
 
-#include "include/my_config.h"
+#ifdef WIN32_64
+typedef int socklen_t;
+#endif
 
+#include "my_config.h"
 #ifdef HAVE_PSI_SOCKET_INTERFACE
 #undef HAVE_PSI_SOCKET_INTERFACE
 #endif
-
-#ifdef WIN32_64
-#ifdef HAVE_STRUCT_TIMESPEC
-#undef HAVE_STRUCT_TIMESPEC
-#endif
-#endif
-
-#include "include/my_global.h"
-#include "include/mysql_time.h"
-#include "include/plugin.h"
-
+#include "mysql/plugin.h"
 
 #define STREAMING_DB_PORT			"port"
 #define STREAMING_DB_MAIN_THREADS	"main_threads"
@@ -45,11 +38,11 @@ namespace SPA {
 
             struct Stmt {
 
-                Stmt(unsigned long id, bool ok, size_t params = 0) : stmt_id(id), parameters(params), prepared(ok) {
+                Stmt(unsigned long id, bool ok, size_t params = 0) : stmt_id(id), parameters(params) {
                 }
                 unsigned long stmt_id;
                 size_t parameters;
-                bool prepared;
+                std::shared_ptr<PS_PARAM> m_pParam;
             };
 
             struct PriKey {
@@ -62,8 +55,7 @@ namespace SPA {
             CMysqlImpl();
             ~CMysqlImpl();
             unsigned int GetParameters() const;
-            static bool Authenticate(const std::wstring &userName, const wchar_t *password, const std::string &ip, unsigned int svsId);
-            static bool Authenticate(const std::wstring &userName, const wchar_t *password, const std::string &ip);
+            static bool Authenticate(const std::wstring &userName, const wchar_t *password, const std::string &ip, unsigned int svsId = SPA::Mysql::sidMysql);
             static void CALLBACK OnThreadEvent(SPA::ServerSide::tagThreadEvent te);
             static std::unordered_map<std::string, std::string> ConfigStreamingDB(CMysqlImpl &impl);
             static void CreateTriggers(CMysqlImpl &impl, const std::vector<std::string> &vecTables);
@@ -102,15 +94,13 @@ namespace SPA {
             void ResetMemories();
             void InitMysqlSession();
             void CloseStmt();
-            int StoreParamTypes(CUQueue& buffer, int row, std::wstring & errMsg);
-            void StoreParamDatas(CUQueue& buffer, int row);
+            int SetParams(int row, std::wstring & errMsg);
             bool OpenSession(const std::wstring &userName, const std::string &ip);
             void RemoveUnusedTriggers(const std::vector<std::string> &vecTables);
             void CreateTriggers(const std::string &schema, const std::string &table);
 
             static std::wstring GetCreateTriggerSQL(const wchar_t *db, const wchar_t *table, const CPriKeyArray &vPriKey, SPA::UDB::tagUpdateEvent eventType);
             static std::string ToString(const CDBVariant &vtUTF8);
-            static size_t ComputeParameters(const std::wstring &sql);
             static UINT64 ConvertBitsToInt(const unsigned char *s, unsigned int bytes);
             static UINT64 ToUDateTime(const MYSQL_TIME &td);
             static int sql_start_result_metadata(void *ctx, uint num_cols, uint flags, const CHARSET_INFO *resultcs);
@@ -133,20 +123,7 @@ namespace SPA {
             static void sql_handle_error(void * ctx, uint sql_errno, const char * const err_msg, const char * const sqlstate);
             static void sql_shutdown(void *ctx, int shutdown_server);
             static void ToDecimal(const decimal_t &src, bool large, DECIMAL &dec);
-            static void ReserveNullBytesPlus(CUQueue& buffer, unsigned int parameters);
-            static void StoreParamNull(CUQueue& buffer, unsigned int pos);
-
-            template<typename T>
-            static void StoreFixedParam(CUQueue& buffer, T t) {
-                buffer << t;
-            }
-            static void StoreFixedParam(CUQueue& buffer, char c);
-            static void StoreFixedParam(CUQueue& buffer, unsigned char c);
-            static void StoreParamTime(CUQueue& buffer, const MYSQL_TIME &dt);
-            static void StoreParamDateTime(CUQueue& buffer, const MYSQL_TIME &dt);
-            static void StoreParam(CUQueue& buffer, const unsigned char *str, unsigned int length);
-            static void StoreParamDecimal(CUQueue& buffer, const DECIMAL &dec);
-            static uchar *net_store_length(uchar *packet, ulonglong length);
+            static bool DoAuthentication(const wchar_t *password, const std::string &hash);
 
         protected:
             bool m_EnableMessages;
@@ -183,14 +160,14 @@ namespace SPA {
             std::string m_sqlstate;
             UINT64 m_indexCall;
             bool m_bBlob;
-
+            enum_server_command m_cmd;
+            bool m_NoRowset;
             static st_command_service_cbs m_sql_cbs;
 
             static const int IS_BINARY = 63;
             static const int MYSQL_TINYBLOB = 0xff;
             static const int MYSQL_BLOB = 0xffff;
             static const int MYSQL_MIDBLOB = 0xffffff;
-            static my_bool B_IS_NULL;
 
             static const wchar_t* NO_DB_OPENED_YET;
             static const wchar_t* BAD_END_TRANSTACTION_PLAN;

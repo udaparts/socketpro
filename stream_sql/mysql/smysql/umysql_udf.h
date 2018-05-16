@@ -6,7 +6,7 @@
 #undef HAVE_PSI_SOCKET_INTERFACE
 #endif
 
-#include "include/mysql_com.h"
+#include "mysql_com.h"
 
 #define STREAMING_DB_TRIGGER_PREFIX  L"sp_streaming_db_trigger_"
 
@@ -14,7 +14,7 @@
 extern "C" {
 #endif
 
-    my_bool PublishDBEvent_init(UDF_INIT *initid, UDF_ARGS *args, char *message);
+    bool PublishDBEvent_init(UDF_INIT *initid, UDF_ARGS *args, char *message);
     void PublishDBEvent_deinit(UDF_INIT *initid);
     long long PublishDBEvent(UDF_INIT *initid, UDF_ARGS *args, char *is_null, char *error);
 

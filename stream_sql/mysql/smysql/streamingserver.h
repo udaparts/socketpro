@@ -3,7 +3,6 @@
 
 #include "mysqlimpl.h"
 #include "httppeer.h"
-#include "include/my_thread.h"
 
 struct CService {
     unsigned int ServiceId;
@@ -15,15 +14,11 @@ struct CService {
 class CStreamingServer : public SPA::ServerSide::CSocketProServer {
 public:
     CStreamingServer(int nParam = 0);
-    ~CStreamingServer();
 
 protected:
-    virtual void OnAccept(USocket_Server_Handle h, int errCode);
     virtual bool OnSettingServer(unsigned int listeningPort, unsigned int maxBacklog, bool v6);
     virtual bool OnIsPermitted(USocket_Server_Handle h, const wchar_t* userId, const wchar_t *password, unsigned int serviceId);
-    virtual void OnClose(USocket_Server_Handle h, int errCode);
     virtual void OnIdle(SPA::INT64 milliseconds);
-    virtual void OnSSLShakeCompleted(USocket_Server_Handle h, int errCode);
 
 private:
     bool AddService();
@@ -38,10 +33,6 @@ private:
 };
 
 extern CStreamingServer *g_pStreamingServer;
-
-typedef int (*pdecimal2string) (const decimal_t *from, char *to, int *to_len, int fixed_precision, int fixed_decimals, char filler);
-typedef int (*pmy_thread_create) (my_thread_handle *thread, const my_thread_attr_t *attr, my_start_routine func, void *arg);
-typedef int (*pmy_thread_join) (my_thread_handle *thread, void **value_ptr);
 
 class CSetGlobals {
 private:
@@ -60,10 +51,6 @@ public:
     bool DisableV6;
     unsigned int Port;
     const char *server_version;
-    CHARSET_INFO *utf8_general_ci;
-    pdecimal2string decimal2string;
-    pmy_thread_create my_thread_create;
-    pmy_thread_join my_thread_join;
     st_mysql_daemon async_sql_plugin;
     HINSTANCE m_hModule;
     const void *Plugin;
