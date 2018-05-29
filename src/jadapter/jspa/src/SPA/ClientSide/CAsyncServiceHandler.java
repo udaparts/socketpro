@@ -139,6 +139,7 @@ public class CAsyncServiceHandler {
         if (h == 0) {
             return false;
         }
+        boolean sent;
         boolean batching = false;
         CResultCb rcb = null;
         synchronized (m_csSend) {
@@ -157,20 +158,21 @@ public class CAsyncServiceHandler {
                     }
                 }
             }
-            if (ClientCoreLoader.SendRequest(h, reqId, data, len)) {
-                return true;
-            }
-            if (rcb != null) {
-                synchronized (m_cs) {
-                    if (batching) {
-                        m_kvBatching.removeLast();
-                    } else {
-                        m_kvCallback.removeLast();
-                    }
+            sent = ClientCoreLoader.SendRequest(h, reqId, data, len);
+        }
+        if (sent) {
+            return true;
+        }
+        if (rcb != null) {
+            synchronized (m_cs) {
+                if (batching) {
+                    m_kvBatching.removeLast();
+                } else {
+                    m_kvCallback.removeLast();
                 }
             }
-            return false;
         }
+        return false;
     }
 
     public final boolean SendRequest(short reqId, SPA.CUQueue q, DAsyncResultHandler ash) {

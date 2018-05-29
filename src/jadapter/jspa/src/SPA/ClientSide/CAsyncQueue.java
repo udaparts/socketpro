@@ -115,7 +115,9 @@ public class CAsyncQueue extends CAsyncServiceHandler {
      * @return last dequeue callback
      */
     public final DDequeue getLastDequeueCallback() {
-        return m_dDequeue;
+        synchronized (m_csQ) {
+            return m_dDequeue;
+        }
     }
 
     private DAsyncResultHandler GetRH(final DEnqueue e) {
@@ -660,23 +662,27 @@ public class CAsyncQueue extends CAsyncServiceHandler {
             } else {
                 m_dDequeue = null;
             }
-            CUQueue sq = CScopeUQueue.Lock();
-            sq.Save(key).Save(timeout);
-            boolean ok = SendRequest(idDequeue, sq, rh, discarded);
-            CScopeUQueue.Unlock(sq);
-            return ok;
         }
+        CUQueue sq = CScopeUQueue.Lock();
+        sq.Save(key).Save(timeout);
+        boolean ok = SendRequest(idDequeue, sq, rh, discarded);
+        CScopeUQueue.Unlock(sq);
+        return ok;
     }
 
     @Override
     protected void OnBaseRequestProcessed(short reqId) {
         switch (reqId) {
             case 24: //tagBaseRequestID.idMessageQueued.getValue()
+                DDequeue deq;
+                byte[] key;
                 synchronized (m_csQ) {
-                    if (m_dDequeue != null) {
-                        //we send a request to dequeue messages after a notification message arrives that a new message is enqueued at server side
-                        Dequeue(m_keyDequeue, m_dDequeue, 0);
-                    }
+                    deq = m_dDequeue;
+                    key = m_keyDequeue;
+                }
+                if (deq != null) {
+                    //we send a request to dequeue messages after a notification message arrives that a new message is enqueued at server side
+                    Dequeue(key, deq, 0);
                 }
                 if (MessageQueued != null) {
                     MessageQueued.invoke();
