@@ -86,7 +86,9 @@ namespace SocketProAdapter {
             /// </summary>
             public DDequeue LastDequeueCallback {
                 get {
-                    return m_dDequeue;
+                    lock (m_csQ) {
+                        return m_dDequeue;
+                    }
                 }
             }
 
