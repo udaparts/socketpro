@@ -180,6 +180,11 @@
             Enable (true) or disable (false) automatically merging requests queued inside a local/client file to a connected session within a pool of sockets when a session is disconnected. The property defaults to false.
             </summary>
         </member>
+        <member name="T:SocketProAdapter.ClientSide.CAsyncQueue">
+            <summary>
+            A client side class for easy accessing remote persistent message queues by use of SocketPro communication framework
+            </summary>
+        </member>
         <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.GetCallIndex">
             <summary>
             Get an unique increment call index number
@@ -188,11 +193,6 @@
         <member name="P:SocketProAdapter.ClientSide.CAsyncServiceHandler.RequestsQueued">
             <summary>
             A property for the number of requests queued inside asynchronous handler
-            </summary>
-        </member>
-        <member name="T:SocketProAdapter.ClientSide.CAsyncQueue">
-            <summary>
-            A client side class for easy accessing remote persistent message queues by use of SocketPro communication framework
             </summary>
         </member>
         <member name="M:SocketProAdapter.ClientSide.CAsyncQueue.StartQueueTrans(System.Byte[],SocketProAdapter.ClientSide.CAsyncQueue.DQueueTrans)">
@@ -400,399 +400,112 @@
             <param name="tc">A valid Dataset object</param>
             <remarks>Track cache data initialization event by overriding this method</remarks>
         </member>
-        <member name="M:SocketProAdapter.ServerSide.CStreamHelper.ReadDataFromServerToClient(System.UInt64,System.IO.Stream)">
+        <member name="M:SocketProAdapter.ServerSide.CClientPeer.Dequeue(System.UInt32,System.UInt32,System.Boolean)">
             <summary>
-            Read data from a source stream at server side and send its content onto a client
+            Dequeue messages from a persistent message queue
             </summary>
-            <param name="PeerHandle">A peer socket handle to represent a client</param>
-            <param name="source">A stream to a source file or other object</param>
-            <returns>The number of data sent in bytes</returns>
+            <param name="qHandle">A handle representing a server persistent message queue</param>
+            <param name="messageCount">An expected count of messages</param>
+            <param name="bNotifiedWhenAvailable">A boolean value if this peer client will be notified once a message is available</param>
+            <returns>A 8-byte long value. Its high-order 4-byte integer represents the actual bytes of dequeued messages; and its low-order 4-byte integer is the number of dequeued messages</returns>
         </member>
-        <member name="M:SocketProAdapter.ServerSide.CStreamHelper.WriteDataFromClientToServer(SocketProAdapter.CUQueue,System.IO.Stream)">
+        <member name="M:SocketProAdapter.ServerSide.CClientPeer.Dequeue(System.UInt32,System.UInt32,System.Boolean,System.UInt32)">
             <summary>
-            Write data from client to this server
+            Dequeue messages from a persistent message queue
             </summary>
-            <param name="q">A memory queue containing data from a client</param>
-            <param name="receiver">A stream at server side to receive data from a client</param>
+            <param name="qHandle">A handle representing a server persistent message queue</param>
+            <param name="messageCount">An expected count of messages</param>
+            <param name="bNotifiedWhenAvailable">A boolean value if this peer client will be notified once a message is available</param>
+            <param name="waitTime">A time-out value in ms for waiting for a message. It defaults to zero.</param>
+            <returns>A 8-byte long value. Its high-order 4-byte integer represents the actual bytes of dequeued messages; and its low-order 4-byte integer is the number of dequeued messages</returns>
         </member>
-        <member name="M:SocketProAdapter.ServerSide.CStreamHelper.Download(System.UInt64,System.IO.Stream,System.UInt64@,System.String@)">
+        <member name="M:SocketProAdapter.ServerSide.CClientPeer.Dequeue(System.UInt32,System.Boolean)">
             <summary>
-            Download a stream from server to a client. Internally, it will also fake an empty request (CStreamSerializationHelper.idReadDataFromServerToClient) on behalf on the client
+             Dequeue messages from a persistent message queue
             </summary>
-            <param name="PeerHandle">A peer socket handle to represent a client</param>
-            <param name="source">A valid stream at server side</param>
-            <param name="fileSize">File size in bytes. It will be -1 if there is error</param>
-            <param name="errMsg">An error message. It will be empty string with zero length if no error is found</param>
+            <param name="qHandle">A handle representing a server persistent message queue</param>
+            <param name="bNotifiedWhenAvailable">A boolean value if this peer client will be notified once a message is available</param>
+            <returns>A 8-byte long value. Its high-order 4-byte integer represents the actual bytes of dequeued messages; and its low-order 4-byte integer is the number of dequeued messages</returns>
         </member>
-        <member name="M:SocketProAdapter.ServerSide.CStreamHelper.DownloadFile(System.UInt64,System.String,System.UInt64@,System.String@)">
+        <member name="M:SocketProAdapter.ServerSide.CClientPeer.Dequeue(System.UInt32,System.Boolean,System.UInt32)">
             <summary>
-            Download a file from server to a client. Internally, it will also fake an empty request (CStreamSerializationHelper.idReadDataFromServerToClient) on behalf on the client
+             Dequeue messages from a persistent message queue
             </summary>
-            <param name="PeerHandle">A peer socket handle to represent a client</param>
-            <param name="RemoteFilePath">A path to a file</param>
-            <param name="fileSize">File size in bytes. It will be -1 if there is error</param>
-            <param name="errMsg">An error message. It will be empty string with zero length if no error is found</param>
-            <returns>A file stream</returns>
+            <param name="qHandle">A handle representing a server persistent message queue</param>
+            <param name="bNotifiedWhenAvailable">A boolean value if this peer client will be notified once a message is available</param>
+            <param name="maxBytes">The max number of message bytes. It defaults to 8 kilobytes</param>
+            <returns>A 8-byte long value. Its high-order 4-byte integer represents the actual bytes of dequeued messages; and its low-order 4-byte integer is the number of dequeued messages</returns>
         </member>
-        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Execute(SocketProAdapter.UDB.CDBVariantArray)">
+        <member name="M:SocketProAdapter.ServerSide.CClientPeer.Dequeue(System.UInt32,System.Boolean,System.UInt32,System.UInt32)">
             <summary>
-            Process one or more sets of prepared statements with an array of parameter data asynchronously, and don't expect any data returned
+            Dequeue messages from a persistent message queue
             </summary>
-            <param name="vParam"></param>
-            <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
+            <param name="qHandle">A handle representing a server persistent message queue</param>
+            <param name="bNotifiedWhenAvailable">A boolean value if this peer client will be notified once a message is available</param>
+            <param name="maxBytes">The max number of message bytes. It defaults to 8 kilobytes</param>
+            <param name="waitTime">A time-out value in ms for waiting for a message. It defaults to zero</param>
+            <returns>A 8-byte long value. Its high-order 4-byte integer represents the actual bytes of dequeued messages; and its low-order 4-byte integer is the number of dequeued messages</returns>
         </member>
-        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Execute(SocketProAdapter.UDB.CDBVariantArray,SocketProAdapter.ClientSide.CAsyncDBHandler.DExecuteResult)">
+        <member name="M:SocketProAdapter.ServerSide.CClientPeer.EnableClientDequeue(System.Boolean)">
             <summary>
-            Process one or more sets of prepared statements with an array of parameter data asynchronously, and don't expect any rowsets or outputs returned 
+            Enable or disable client side dequeue from server side
             </summary>
-            <param name="vParam">an array of parameter data which will be bounded to previously prepared parameters</param>
-            <param name="handler">a callback for tracking final result</param>
-            <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
+            <param name="enable">True for enabling client side dequeue; and false for disabling client side dequeue</param>
         </member>
-        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Execute(SocketProAdapter.UDB.CDBVariantArray,SocketProAdapter.ClientSide.CAsyncDBHandler.DExecuteResult,SocketProAdapter.ClientSide.CAsyncDBHandler.DRows)">
-            <summary>
-            Process one or more sets of prepared statements with an array of parameter data asynchronously, and don't expect any rowsets returned
-            </summary>
-            <param name="vParam">an array of parameter data which will be bounded to previously prepared parameters</param>
-            <param name="handler">a callback for tracking final result</param>
-            <param name="row">a callback for tracking output parameter returned data</param>
-            <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
+        <!-- Badly formed XML comment ignored for member "F:SocketProAdapter.tagOperationSystem.osWinPhone" -->
+        <member name="F:SocketProAdapter.tagThreadApartment.taNone">
+            no COM apartment involved
         </member>
-        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Execute(SocketProAdapter.UDB.CDBVariantArray,SocketProAdapter.ClientSide.CAsyncDBHandler.DExecuteResult,SocketProAdapter.ClientSide.CAsyncDBHandler.DRows,SocketProAdapter.ClientSide.CAsyncDBHandler.DRowsetHeader)">
-            <summary>
-            Process one or more sets of prepared statements with an array of parameter data asynchronously
-            </summary>
-            <param name="vParam">an array of parameter data which will be bounded to previously prepared parameters</param>
-            <param name="handler">a callback for tracking final result</param>
-            <param name="row">a callback for tracking record or output parameter returned data</param>
-            <param name="rh">a callback for tracking row set of header column informations</param>
-            <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
+        <member name="F:SocketProAdapter.tagThreadApartment.taApartment">
+            STA apartment
         </member>
-        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Execute(SocketProAdapter.UDB.CDBVariantArray,SocketProAdapter.ClientSide.CAsyncDBHandler.DExecuteResult,SocketProAdapter.ClientSide.CAsyncDBHandler.DRows,SocketProAdapter.ClientSide.CAsyncDBHandler.DRowsetHeader,System.Boolean)">
-            <summary>
-            Process one or more sets of prepared statements with an array of parameter data asynchronously
-            </summary>
-            <param name="vParam">an array of parameter data which will be bounded to previously prepared parameters</param>
-            <param name="handler">a callback for tracking final result</param>
-            <param name="row">a callback for tracking record or output parameter returned data</param>
-            <param name="rh">a callback for tracking row set of header column informations</param>
-            <param name="meta">a boolean value for better or more detailed column meta details such as unique, not null, primary key, and so on. It defaults to true</param>
-            <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
+        <member name="F:SocketProAdapter.tagThreadApartment.taFree">
+            MTA (free) or neutral apartments
         </member>
-        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Execute(SocketProAdapter.UDB.CDBVariantArray,SocketProAdapter.ClientSide.CAsyncDBHandler.DExecuteResult,SocketProAdapter.ClientSide.CAsyncDBHandler.DRows,SocketProAdapter.ClientSide.CAsyncDBHandler.DRowsetHeader,System.Boolean,System.Boolean)">
+        <member name="F:SocketProAdapter.tagQueueStatus.qsNormal">
             <summary>
-            Process one or more sets of prepared statements with an array of parameter data asynchronously
-            </summary>
-            <param name="vParam">an array of parameter data which will be bounded to previously prepared parameters</param>
-            <param name="handler">a callback for tracking final result</param>
-            <param name="row">a callback for tracking record or output parameter returned data</param>
-            <param name="rh">a callback for tracking row set of header column informations</param>
-            <param name="meta">a boolean value for better or more detailed column meta details such as unique, not null, primary key, and so on. It defaults to true</param>
-            <param name="lastInsertId">a boolean value for last insert record identification number. It defaults to true</param>
-            <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
-        </member>
-        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Execute(SocketProAdapter.UDB.CDBVariantArray,SocketProAdapter.ClientSide.CAsyncDBHandler.DExecuteResult,SocketProAdapter.ClientSide.CAsyncDBHandler.DRows,SocketProAdapter.ClientSide.CAsyncDBHandler.DRowsetHeader,System.Boolean,System.Boolean,SocketProAdapter.ClientSide.CAsyncServiceHandler.DDiscarded)">
-            <summary>
-            Process one or more sets of prepared statements with an array of parameter data asynchronously
-            </summary>
-            <param name="vParam">an array of parameter data which will be bounded to previously prepared parameters</param>
-            <param name="handler">a callback for tracking final result</param>
-            <param name="row">a callback for tracking record or output parameter returned data</param>
-            <param name="rh">a callback for tracking row set of header column informations</param>
-            <param name="meta">a boolean value for better or more detailed column meta details such as unique, not null, primary key, and so on. It defaults to true</param>
-            <param name="lastInsertId">a boolean value for last insert record identification number. It defaults to true</param>
-            <param name="discarded">a callback for tracking cancel or socket closed event</param>
-            <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
-        </member>
-        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Execute(System.String)">
-            <summary>
-            Asynchronously process a complex SQL statement which may be combined with multiple basic SQL statements, and don't expect any data returned
-            </summary>
-            <param name="sql">a complex SQL statement which may be combined with multiple basic SQL statements</param>
-            <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
-        </member>
-        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Execute(System.String,SocketProAdapter.ClientSide.CAsyncDBHandler.DExecuteResult)">
-            <summary>
-            Asynchronously process a complex SQL statement which may be combined with multiple basic SQL statements, and don't expect any records returned 
-            </summary>
-            <param name="sql">a complex SQL statement which may be combined with multiple basic SQL statements</param>
-            <param name="handler">a callback for tracking final result</param>
-            <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
-        </member>
-        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Execute(System.String,SocketProAdapter.ClientSide.CAsyncDBHandler.DExecuteResult,SocketProAdapter.ClientSide.CAsyncDBHandler.DRows)">
-            <summary>
-            Process a complex SQL statement which may be combined with multiple basic SQL statements asynchronously
-            </summary>
-            <param name="sql">a complex SQL statement which may be combined with multiple basic SQL statements</param>
-            <param name="handler">a callback for tracking final result</param>
-            <param name="row">a callback for receiving records of data</param>
-            <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
-        </member>
-        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Execute(System.String,SocketProAdapter.ClientSide.CAsyncDBHandler.DExecuteResult,SocketProAdapter.ClientSide.CAsyncDBHandler.DRows,SocketProAdapter.ClientSide.CAsyncDBHandler.DRowsetHeader)">
-            <summary>
-            Process a complex SQL statement which may be combined with multiple basic SQL statements asynchronously
-            </summary>
-            <param name="sql">a complex SQL statement which may be combined with multiple basic SQL statements</param>
-            <param name="handler">a callback for tracking final result</param>
-            <param name="row">a callback for receiving records of data</param>
-            <param name="rh">a callback for tracking row set of header column informations</param>
-            <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
-        </member>
-        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Execute(System.String,SocketProAdapter.ClientSide.CAsyncDBHandler.DExecuteResult,SocketProAdapter.ClientSide.CAsyncDBHandler.DRows,SocketProAdapter.ClientSide.CAsyncDBHandler.DRowsetHeader,System.Boolean)">
-            <summary>
-            Process a complex SQL statement which may be combined with multiple basic SQL statements asynchronously
-            </summary>
-            <param name="sql">a complex SQL statement which may be combined with multiple basic SQL statements</param>
-            <param name="handler">a callback for tracking final result</param>
-            <param name="row">a callback for receiving records of data</param>
-            <param name="rh">a callback for tracking row set of header column informations</param>
-            <param name="meta">a boolean value for better or more detailed column meta details such as unique, not null, primary key, and so on. It defaults to true</param>
-            <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
-        </member>
-        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Execute(System.String,SocketProAdapter.ClientSide.CAsyncDBHandler.DExecuteResult,SocketProAdapter.ClientSide.CAsyncDBHandler.DRows,SocketProAdapter.ClientSide.CAsyncDBHandler.DRowsetHeader,System.Boolean,System.Boolean)">
-            <summary>
-            Process a complex SQL statement which may be combined with multiple basic SQL statements asynchronously
-            </summary>
-            <param name="sql">a complex SQL statement which may be combined with multiple basic SQL statements</param>
-            <param name="handler">a callback for tracking final result</param>
-            <param name="row">a callback for receiving records of data</param>
-            <param name="rh">a callback for tracking row set of header column informations</param>
-            <param name="meta">a boolean value for better or more detailed column meta details such as unique, not null, primary key, and so on. It defaults to true</param>
-            <param name="lastInsertId">a boolean value for last insert record identification number. It defaults to true</param>
-            <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
-        </member>
-        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Execute(System.String,SocketProAdapter.ClientSide.CAsyncDBHandler.DExecuteResult,SocketProAdapter.ClientSide.CAsyncDBHandler.DRows,SocketProAdapter.ClientSide.CAsyncDBHandler.DRowsetHeader,System.Boolean,System.Boolean,SocketProAdapter.ClientSide.CAsyncServiceHandler.DDiscarded)">
-            <summary>
-            Process a complex SQL statement which may be combined with multiple basic SQL statements asynchronously
-            </summary>
-            <param name="sql">a complex SQL statement which may be combined with multiple basic SQL statements</param>
-            <param name="handler">a callback for tracking final result</param>
-            <param name="row">a callback for receiving records of data</param>
-            <param name="rh">a callback for tracking row set of header column informations</param>
-            <param name="meta">a boolean value for better or more detailed column meta details such as unique, not null, primary key, and so on. It defaults to true</param>
-            <param name="lastInsertId">a boolean value for last insert record identification number. It defaults to true</param>
-            <param name="discarded">a callback for tracking cancel or socket closed event</param>
-            <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
-        </member>
-        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Open(System.String,SocketProAdapter.ClientSide.CAsyncDBHandler.DResult)">
-            <summary>
-            Open a database connection at server side asynchronously
-            </summary>
-            <param name="strConnection">a database connection string. The database connection string can be an empty string if its server side supports global database connection string</param>
-            <param name="handler">a callback for database connecting result</param>
-            <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
-        </member>
-        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Open(System.String,SocketProAdapter.ClientSide.CAsyncDBHandler.DResult,System.UInt32)">
-            <summary>
-            Open a database connection at server side asynchronously
-            </summary>
-            <param name="strConnection">a database connection string. The database connection string can be an empty string if its server side supports global database connection string</param>
-            <param name="handler">a callback for database connecting result</param>
-            <param name="flags">a set of flags transferred to server to indicate how to build database connection at server side. It defaults to zero</param>
-            <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
-        </member>
-        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Open(System.String,SocketProAdapter.ClientSide.CAsyncDBHandler.DResult,System.UInt32,SocketProAdapter.ClientSide.CAsyncServiceHandler.DDiscarded)">
-            <summary>
-            Open a database connection at server side asynchronously
-            </summary>
-            <param name="strConnection">a database connection string. The database connection string can be an empty string if its server side supports global database connection string</param>
-            <param name="handler">a callback for database connecting result</param>
-            <param name="flags">a set of flags transferred to server to indicate how to build database connection at server side. It defaults to zero</param>
-            <param name="discarded">a callback for tracking cancel or socket closed event</param>
-            <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
-        </member>
-        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Prepare(System.String)">
-            <summary>
-            Send a parameterized SQL statement for preparing asynchronously
-            </summary>
-            <param name="sql">a parameterized SQL statement</param>
-            <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
-        </member>
-        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Prepare(System.String,SocketProAdapter.ClientSide.CAsyncDBHandler.DResult)">
-            <summary>
-            Send a parameterized SQL statement for preparing asynchronously
-            </summary>
-            <param name="sql">a parameterized SQL statement</param>
-            <param name="handler">a callback for SQL preparing result</param>
-            <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
-        </member>
-        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Prepare(System.String,SocketProAdapter.ClientSide.CAsyncDBHandler.DResult,SocketProAdapter.UDB.CParameterInfo[])">
-            <summary>
-            Send a parameterized SQL statement for preparing with a given array of parameter informations asynchronously
-            </summary>
-            <param name="sql">a parameterized SQL statement</param>
-            <param name="handler">a callback for SQL preparing result</param>
-            <param name="vParameterInfo">a given array of parameter informations</param>
-            <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
-        </member>
-        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Prepare(System.String,SocketProAdapter.ClientSide.CAsyncDBHandler.DResult,SocketProAdapter.UDB.CParameterInfo[],SocketProAdapter.ClientSide.CAsyncServiceHandler.DDiscarded)">
-            <summary>
-            Send a parameterized SQL statement for preparing with a given array of parameter informations asynchronously
-            </summary>
-            <param name="sql">a parameterized SQL statement</param>
-            <param name="handler">a callback for SQL preparing result</param>
-            <param name="vParameterInfo">a given array of parameter informations</param>
-            <param name="discarded">a callback for tracking cancel or socket closed event</param>
-            <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
-        </member>
-        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.EndTrans">
-            <summary>
-            End a manual transaction with a given rollback plan tagRollbackPlan.rpDefault. Note the transaction will be associated with SocketPro client message queue if available to avoid possible transaction lose
-            </summary>
-            <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
-        </member>
-        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.EndTrans(SocketProAdapter.UDB.tagRollbackPlan)">
-            <summary>
-            End a manual transaction with a given rollback plan. Note the transaction will be associated with SocketPro client message queue if available to avoid possible transaction lose
-            </summary>
-            <param name="plan">a value for computing how included transactions should be rollback at server side. It defaults to tagRollbackPlan.rpDefault</param>
-            <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
-        </member>
-        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.EndTrans(SocketProAdapter.UDB.tagRollbackPlan,SocketProAdapter.ClientSide.CAsyncDBHandler.DResult)">
-            <summary>
-            End a manual transaction with a given rollback plan. Note the transaction will be associated with SocketPro client message queue if available to avoid possible transaction lose
-            </summary>
-            <param name="plan">a value for computing how included transactions should be rollback at server side. It defaults to tagRollbackPlan.rpDefault</param>
-            <param name="handler">a callback for tracking its response result</param>
-            <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
-        </member>
-        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.EndTrans(SocketProAdapter.UDB.tagRollbackPlan,SocketProAdapter.ClientSide.CAsyncDBHandler.DResult,SocketProAdapter.ClientSide.CAsyncServiceHandler.DDiscarded)">
-            <summary>
-            End a manual transaction with a given rollback plan. Note the transaction will be associated with SocketPro client message queue if available to avoid possible transaction lose
-            </summary>
-            <param name="plan">a value for computing how included transactions should be rollback at server side. It defaults to tagRollbackPlan.rpDefault</param>
-            <param name="handler">a callback for tracking its response result</param>
-            <param name="discarded">a callback for tracking cancel or socket closed event</param>
-            <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
-        </member>
-        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.BeginTrans">
-            <summary>
-            Start a manual transaction with a given isolation tagTransactionIsolation.tiReadCommited asynchronously. Note the transaction will be associated with SocketPro client message queue if available to avoid possible transaction lose
-            </summary>
-            <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
-        </member>
-        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.BeginTrans(SocketProAdapter.UDB.tagTransactionIsolation)">
-            <summary>
-            Start a manual transaction with a given isolation asynchronously. Note the transaction will be associated with SocketPro client message queue if available to avoid possible transaction lose
-            </summary>
-            <param name="isolation">a value for transaction isolation. It defaults to tagTransactionIsolation.tiReadCommited</param>
-            <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
-        </member>
-        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.BeginTrans(SocketProAdapter.UDB.tagTransactionIsolation,SocketProAdapter.ClientSide.CAsyncDBHandler.DResult)">
-            <summary>
-            Start a manual transaction with a given isolation asynchronously. Note the transaction will be associated with SocketPro client message queue if available to avoid possible transaction lose
-            </summary>
-            <param name="isolation">a value for transaction isolation. It defaults to tagTransactionIsolation.tiReadCommited</param>
-            <param name="handler">a callback for tracking its response result</param>
-            <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
-        </member>
-        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.BeginTrans(SocketProAdapter.UDB.tagTransactionIsolation,SocketProAdapter.ClientSide.CAsyncDBHandler.DResult,SocketProAdapter.ClientSide.CAsyncServiceHandler.DDiscarded)">
-            <summary>
-            Start a manual transaction with a given isolation asynchronously. Note the transaction will be associated with SocketPro client message queue if available to avoid possible transaction lose
-            </summary>
-            <param name="isolation">a value for transaction isolation. It defaults to tagTransactionIsolation.tiReadCommited</param>
-            <param name="handler">a callback for tracking its response result</param>
-            <param name="discarded">a callback for tracking cancel or socket closed event</param>
-            <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
-        </member>
-        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Close">
-            <summary>
-            Notify connected remote server to close database connection string asynchronously
-            </summary>
-            <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
-        </member>
-        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Close(SocketProAdapter.ClientSide.CAsyncDBHandler.DResult)">
-            <summary>
-            Notify connected remote server to close database connection string asynchronously
-            </summary>
-            <param name="handler">a callback for closing result, which should be OK always as long as there is network or queue available </param>
-            <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
-        </member>
-        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Close(SocketProAdapter.ClientSide.CAsyncDBHandler.DResult,SocketProAdapter.ClientSide.CAsyncServiceHandler.DDiscarded)">
-            <summary>
-            Notify connected remote server to close database connection string asynchronously
-            </summary>
-            <param name="handler">a callback for closing result, which should be OK always as long as there is network or queue available </param>
-            <param name="discarded">a callback for tracking cancel or socket closed event</param>
-            <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
-        </member>
-        <member name="M:SocketProAdapter.ClientSide.CSqlServer.#ctor(System.UInt32)">
-            <summary>
-            You may use the protected constructor when extending this class
-            </summary>
-            <param name="sid">A service id</param>
-        </member>
-        <member name="F:SocketProAdapter.ClientSide.CSqlite.DATABASE_AUTO_ATTACHED">
-            <summary>
-            A flag used with the method CAsyncDBHandler.Open for automatically attaching the opening database onto current session
+            everything is fine
             </summary>
         </member>
-        <member name="M:SocketProAdapter.ClientSide.CSqlite.#ctor(System.UInt32)">
+        <member name="F:SocketProAdapter.tagQueueStatus.qsMergeComplete">
             <summary>
-            You may use the protected constructor when extending this class
-            </summary>
-            <param name="sid">A service id</param>
-        </member>
-        <member name="F:SocketProAdapter.ClientSide.CMysql.USE_REMOTE_MYSQL">
-            <summary>
-            Use Mysql embedded at SocketPro server side by default.
-            Use this const value for the input parameter flags with the method of CAsyncDBHandler::Open at client side
-            to open a connection to remote Mysql server at SocketPro server instead of embedded Mysql
+            Queued messages merged completely
             </summary>
         </member>
-        <member name="M:SocketProAdapter.ClientSide.CMysql.#ctor(System.UInt32)">
+        <member name="F:SocketProAdapter.tagQueueStatus.qsMergePushing">
             <summary>
-            You may use the protected constructor when extending this class
-            </summary>
-            <param name="sid">A service id</param>
-        </member>
-        <member name="F:SocketProAdapter.ServerSide.Sqlite.ENABLE_GLOBAL_SQLITE_UPDATE_HOOK">
-            <summary>
-            Don't use sqlite update hook at server side by default.
-            If update hook is enabled, all connected clients will be notified when there is a record insert, update or delete.
-            For details, refer to the documentation of sqlite function sqlite3_update_hook
+            Message replication started but not completed yet
             </summary>
         </member>
-        <member name="F:SocketProAdapter.ServerSide.Sqlite.USE_SHARED_CACHE_MODE">
+        <member name="F:SocketProAdapter.tagQueueStatus.qsMergeIncomplete">
             <summary>
-            Don't use sqlite shared cache at server side by default
+            Message replicated incompletely from a source queue
             </summary>
         </member>
-        <member name="F:SocketProAdapter.ServerSide.Sqlite.DO_NOT_USE_EXTENDED_ERROR_CODE">
+        <member name="F:SocketProAdapter.tagQueueStatus.qsJobIncomplete">
             <summary>
-            Sqlite server will return extended error codes to client by default
+            A set of messages as a job are incompletely queued 
             </summary>
         </member>
-        <member name="F:SocketProAdapter.ServerSide.Sqlite.USE_UTF16_ENCODING">
+        <member name="F:SocketProAdapter.tagQueueStatus.qsCrash">
             <summary>
-            Sqlite server will use utf8 encoding by default
+            A message queued incompletely because of application crash or unexpected termination
             </summary>
         </member>
-        <member name="M:SocketProAdapter.ServerSide.Mysql.SetMysqlDBGlobalConnectionString(System.String,System.Boolean)">
+        <member name="F:SocketProAdapter.tagQueueStatus.qsFileError">
             <summary>
-            Set mysql global or default string for either embedded mysql database name or remote mysql connection string
+            Queue file open error
             </summary>
-            <param name="dbConnection">a global or default string for either embedded mysql database name or remote mysql connection string</param>
-            <param name="remote">true for setting a connection string to a remote mysql database; and false for setting an embedded mysql database name</param>
         </member>
-        <member name="M:SocketProAdapter.ServerSide.Mysql.SetMysqlEmbeddedOptions(System.String)">
+        <member name="F:SocketProAdapter.tagQueueStatus.qsBadPassword">
             <summary>
-            Set embedded mysql server initial options
+            Queue file opened but can not decrypt existing queued messages beacuse of bad password found
             </summary>
-            <param name="options">Embedded mysql initial options string like 'datadir=.;language=./share;default-storage-engine=MyISAM;skip-innodb;key-buffer-size=64M;console'. If the string is null or empty, the options string will not be changed</param>
-            <returns>options string for embedded mysql server initialization</returns>
         </member>
-        <member name="M:SocketProAdapter.ClientSide.COdbc.#ctor(System.UInt32)">
+        <member name="F:SocketProAdapter.tagQueueStatus.qsDuplicateName">
             <summary>
-            You may use the protected constructor when extending this class
+            Duplicate name error
             </summary>
-            <param name="sid">A service id</param>
-        </member>
-        <member name="M:SocketProAdapter.ClientSide.CClientSocket.SetLastCallInfo(System.String)">
-            <summary>
-            Use the method for debugging crash within cross development environments.
-            </summary>
-            <param name="str">A string will be sent to client core library to be output into a crash text file</param>
         </member>
         <member name="M:SocketProAdapter.IMessageQueueBasic.StopQueue">
             <summary>
@@ -963,303 +676,62 @@
             If there are multiple worker application instances running, you should not set this property to true! Otherwise, SocketPro may function incorrectly in dequeuing messages.
             </summary>
         </member>
-        <member name="M:SocketProAdapter.ServerSide.CClientPeer.Dequeue(System.UInt32,System.UInt32,System.Boolean)">
+        <member name="M:SocketProAdapter.ClientSide.CStreamHelper.Reset">
             <summary>
-            Dequeue messages from a persistent message queue
-            </summary>
-            <param name="qHandle">A handle representing a server persistent message queue</param>
-            <param name="messageCount">An expected count of messages</param>
-            <param name="bNotifiedWhenAvailable">A boolean value if this peer client will be notified once a message is available</param>
-            <returns>A 8-byte long value. Its high-order 4-byte integer represents the actual bytes of dequeued messages; and its low-order 4-byte integer is the number of dequeued messages</returns>
-        </member>
-        <member name="M:SocketProAdapter.ServerSide.CClientPeer.Dequeue(System.UInt32,System.UInt32,System.Boolean,System.UInt32)">
-            <summary>
-            Dequeue messages from a persistent message queue
-            </summary>
-            <param name="qHandle">A handle representing a server persistent message queue</param>
-            <param name="messageCount">An expected count of messages</param>
-            <param name="bNotifiedWhenAvailable">A boolean value if this peer client will be notified once a message is available</param>
-            <param name="waitTime">A time-out value in ms for waiting for a message. It defaults to zero.</param>
-            <returns>A 8-byte long value. Its high-order 4-byte integer represents the actual bytes of dequeued messages; and its low-order 4-byte integer is the number of dequeued messages</returns>
-        </member>
-        <member name="M:SocketProAdapter.ServerSide.CClientPeer.Dequeue(System.UInt32,System.Boolean)">
-            <summary>
-             Dequeue messages from a persistent message queue
-            </summary>
-            <param name="qHandle">A handle representing a server persistent message queue</param>
-            <param name="bNotifiedWhenAvailable">A boolean value if this peer client will be notified once a message is available</param>
-            <returns>A 8-byte long value. Its high-order 4-byte integer represents the actual bytes of dequeued messages; and its low-order 4-byte integer is the number of dequeued messages</returns>
-        </member>
-        <member name="M:SocketProAdapter.ServerSide.CClientPeer.Dequeue(System.UInt32,System.Boolean,System.UInt32)">
-            <summary>
-             Dequeue messages from a persistent message queue
-            </summary>
-            <param name="qHandle">A handle representing a server persistent message queue</param>
-            <param name="bNotifiedWhenAvailable">A boolean value if this peer client will be notified once a message is available</param>
-            <param name="maxBytes">The max number of message bytes. It defaults to 8 kilobytes</param>
-            <returns>A 8-byte long value. Its high-order 4-byte integer represents the actual bytes of dequeued messages; and its low-order 4-byte integer is the number of dequeued messages</returns>
-        </member>
-        <member name="M:SocketProAdapter.ServerSide.CClientPeer.Dequeue(System.UInt32,System.Boolean,System.UInt32,System.UInt32)">
-            <summary>
-            Dequeue messages from a persistent message queue
-            </summary>
-            <param name="qHandle">A handle representing a server persistent message queue</param>
-            <param name="bNotifiedWhenAvailable">A boolean value if this peer client will be notified once a message is available</param>
-            <param name="maxBytes">The max number of message bytes. It defaults to 8 kilobytes</param>
-            <param name="waitTime">A time-out value in ms for waiting for a message. It defaults to zero</param>
-            <returns>A 8-byte long value. Its high-order 4-byte integer represents the actual bytes of dequeued messages; and its low-order 4-byte integer is the number of dequeued messages</returns>
-        </member>
-        <member name="M:SocketProAdapter.ServerSide.CClientPeer.EnableClientDequeue(System.Boolean)">
-            <summary>
-            Enable or disable client side dequeue from server side
-            </summary>
-            <param name="enable">True for enabling client side dequeue; and false for disabling client side dequeue</param>
-        </member>
-        <member name="F:SocketProAdapter.ClientSide.ReplicationSetting.QueueDir">
-            <summary>
-            An absolute path to a directory containing message queue files.
+            Nullize stream
             </summary>
         </member>
-        <member name="F:SocketProAdapter.ClientSide.ReplicationSetting.NoAutoConn">
+        <member name="M:SocketProAdapter.ClientSide.CStreamHelper.Download(System.IO.Stream,System.String)">
             <summary>
-            False for auto socket connecting. Otherwise, there is no auto connection.
+            Get a stream from remote server onto a receiving stream at client side
+            </summary>
+            <param name="receiver">A stream at client side for receiving data from remote server</param>
+            <param name="RemotePath">A string for finding an arbuturay file or other object</param>
+            <returns>An empty string if successful. Otherwise, an error message if failed</returns>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CStreamHelper.Upload(System.IO.Stream,System.String)">
+            <summary>
+            Send a stream from client to remote server
+            </summary>
+            <param name="source">A source stream at client side</param>
+            <param name="RemotePath">A string sent to server for a file name or other object which will receive this stream data</param>
+            <returns>An empty string if successful. Otherwise, an error message if failed</returns>
+        </member>
+        <member name="P:SocketProAdapter.ClientSide.CStreamHelper.DownloadingStreamSize">
+            <summary>
+            Remote stream size in bytes. It will be -1 if not available.
             </summary>
         </member>
-        <member name="F:SocketProAdapter.ClientSide.ReplicationSetting.TTL">
+        <member name="P:SocketProAdapter.ClientSide.CStreamHelper.AsyncServiceHandler">
             <summary>
-            Time-to-live in seconds. It is ignored if persistent message queue feature is not used. If the value is not set or zero, the value will default to DEFAULT_TTL (30 days).
+            Hosting service handler
             </summary>
         </member>
-        <member name="F:SocketProAdapter.ClientSide.ReplicationSetting.RecvTimeout">
+        <member name="M:SocketProAdapter.ClientSide.CStreamingFile.#ctor(System.UInt32)">
             <summary>
-            A timeout for receiving result from remote SocketPro server. If the value is not set or it is zero, the value will default to CClientSocket.DEFAULT_RECV_TIMEOUT (30 seconds).
+            You may use the protected constructor when extending this class
+            </summary>
+            <param name="sid">A service id</param>
+        </member>
+        <member name="P:SocketProAdapter.ClientSide.CStreamingFile.FilesQueued">
+            <summary>
+            The number of files queued
             </summary>
         </member>
-        <member name="F:SocketProAdapter.ClientSide.ReplicationSetting.ConnTimeout">
+        <member name="P:SocketProAdapter.ClientSide.CStreamingFile.FileSize">
             <summary>
-            A timeout for connecting to remote SocketPro server. If the value is not set or it is zero, the value will default to CClientSocket.DEFAULT_CONN_TIMEOUT (30 seconds).
+            The file size in bytes for current file being in transaction
             </summary>
         </member>
-        <member name="M:SocketProAdapter.ClientSide.CReplication`1.Start(System.Collections.Generic.Dictionary{System.String,SocketProAdapter.ClientSide.CConnectionContext})">
+        <member name="P:SocketProAdapter.ClientSide.CStreamingFile.LocalFile">
             <summary>
-            Start a socket pool for replication
-            </summary>
-            <param name="mapQueueConn">A dictionary for message queue name and connecting context. a unique name must be specified for each of connecting contexts</param>
-            <returns>True if there is at least one connection established; and false if there is no connection</returns>
-        </member>
-        <member name="M:SocketProAdapter.ClientSide.CReplication`1.Start(System.Collections.Generic.Dictionary{System.String,SocketProAdapter.ClientSide.CConnectionContext},System.String)">
-            <summary>
-            Start a socket pool for replication
-            </summary>
-            <param name="mapQueueConn">A dictionary for message queue name and connecting context. a unique name must be specified for each of connecting contexts</param>
-            <param name="rootQueueName">A string for root replication queue name. It is ignored if it is not replicable</param>
-            <returns>True if there is at least one connection established; and false if there is no connection</returns>
-        </member>
-        <member name="M:SocketProAdapter.ClientSide.CReplication`1.Start(System.Collections.Generic.Dictionary{System.String,SocketProAdapter.ClientSide.CConnectionContext},System.String,SocketProAdapter.tagThreadApartment)">
-            <summary>
-            Start a socket pool for replication
-            </summary>
-            <param name="mapQueueConn">A dictionary for message queue name and connecting context. a unique name must be specified for each of connecting contexts</param>
-            <param name="rootQueueName">A string for root replication queue name. It is ignored if it is not replicable</param>
-            <param name="ta">COM thread apartment; and it defaults to taNone. It is ignored on non-window platforms</param>
-            <returns>True if there is at least one connection established; and false if there is no connection</returns>
-        </member>
-        <member name="M:SocketProAdapter.ClientSide.CReplication`1.#ctor(SocketProAdapter.ClientSide.ReplicationSetting)">
-            <summary>
-            Construct a CSqlReplication instance
-            </summary>
-            <param name="qms">A structure for setting its underlying socket pool and message queue directory as well as password for source queue</param>
-        </member>
-        <member name="M:SocketProAdapter.ClientSide.CReplication`1.DoReplication">
-            <summary>
-            Make a replication. An invalid operation exception will be thrown if not replicable.
-            </summary>
-            <returns>True for success; and false for failure</returns>
-        </member>
-        <member name="P:SocketProAdapter.ClientSide.CReplication`1.Replicable">
-            <summary>
-            Check if it is replicable.
+            Local file name of current file being in transaction
             </summary>
         </member>
-        <member name="F:SocketProAdapter.UDB.tagRollbackPlan.rpDefault">
+        <member name="P:SocketProAdapter.ClientSide.CStreamingFile.RemoteFile">
             <summary>
-            Manual transaction will rollback whenever there is an error by default
+            Remote file name of current file being in transaction
             </summary>
-        </member>
-        <member name="F:SocketProAdapter.UDB.tagRollbackPlan.rpRollbackErrorAny">
-            <summary>
-            Manual transaction will rollback whenever there is an error by default
-            </summary>
-        </member>
-        <member name="F:SocketProAdapter.UDB.tagRollbackPlan.rpRollbackErrorLess">
-            <summary>
-            Manual transaction will rollback as long as the number of errors is less than the number of ok processing statements
-            </summary>
-        </member>
-        <member name="F:SocketProAdapter.UDB.tagRollbackPlan.rpRollbackErrorEqual">
-            <summary>
-            Manual transaction will rollback as long as the number of errors is less or equal than the number of ok processing statements
-            </summary>
-        </member>
-        <member name="F:SocketProAdapter.UDB.tagRollbackPlan.rpRollbackErrorMore">
-            <summary>
-            Manual transaction will rollback as long as the number of errors is more than the number of ok processing statements
-            </summary>
-        </member>
-        <member name="F:SocketProAdapter.UDB.tagRollbackPlan.rpRollbackErrorAll">
-            <summary>
-            Manual transaction will rollback only if all the processing statements are failed
-            </summary>
-        </member>
-        <member name="F:SocketProAdapter.UDB.tagRollbackPlan.rpRollbackAlways">
-            <summary>
-            Manual transaction will rollback always no matter what happens.
-            </summary>
-        </member>
-        <member name="F:SocketProAdapter.UDB.tagUpdateEvent.ueInsert">
-            <summary>
-            An event for inserting a record into a table
-            </summary>
-        </member>
-        <member name="F:SocketProAdapter.UDB.tagUpdateEvent.ueUpdate">
-            <summary>
-            An event for updating a record of a table
-            </summary>
-        </member>
-        <member name="F:SocketProAdapter.UDB.tagUpdateEvent.ueDelete">
-            <summary>
-            An event for deleting a record from a table
-            </summary>
-        </member>
-        <member name="F:SocketProAdapter.UDB.DB_CONSTS.idOpen">
-            <summary>
-            Async database client/server just requires the following request identification numbers 
-            </summary>
-        </member>
-        <member name="F:SocketProAdapter.UDB.DB_CONSTS.idDBUpdate">
-            <summary>
-            the request identification numbers used for message push from server to client
-            </summary>
-        </member>
-        <member name="F:SocketProAdapter.UDB.DB_CONSTS.idBeginRows">
-            <summary>
-            Internal request/response identification numbers used for data communication between client and server
-            </summary>
-        </member>
-        <member name="F:SocketProAdapter.UDB.DB_CONSTS.DEFAULT_BIG_FIELD_CHUNK_SIZE">
-            <summary>
-            Whenever a data size in bytes is about twice larger than the defined value,
-            the data will be treated in large object and transferred in chunks for reducing memory foot print
-            </summary>
-        </member>
-        <member name="F:SocketProAdapter.UDB.DB_CONSTS.DEFAULT_RECORD_BATCH_SIZE">
-            <summary>
-            A record data size in bytes is approximately equal to or slightly larger than the defined constant
-            </summary>
-        </member>
-        <member name="F:SocketProAdapter.UDB.DB_CONSTS.ENABLE_TABLE_UPDATE_MESSAGES">
-            <summary>
-            A flag used with idOpen for tracing database table update events
-            </summary>
-        </member>
-        <member name="F:SocketProAdapter.UDB.DB_CONSTS.STREAMING_SQL_CHAT_GROUP_ID">
-            <summary>
-            A chat group id used at SocketPro server side for notifying database events from server to connected clients
-            </summary>
-        </member>
-        <member name="M:SocketProAdapter.ServerSide.IServerQueue.AppendTo(SocketProAdapter.ServerSide.IServerQueue)">
-            <summary>
-            Replicate all messages within this queue onto one target queue
-            </summary>
-            <param name="serverQueue">A target queue for appending messages from this queue</param>
-            <returns>True for success; and false for fail. To make the call success, a target queue should be already opened and available</returns>
-        </member>
-        <member name="M:SocketProAdapter.ServerSide.IServerQueue.AppendTo(SocketProAdapter.ServerSide.IServerQueue[])">
-            <summary>
-            Replicate all messages within this queue onto an array of queues
-            </summary>
-            <param name="serverQueues">An array of target queues for appending messages from this queue</param>
-            <returns>True for success; and false for fail. To make the call success, all of target queues should be already opened and available</returns>
-        </member>
-        <member name="M:SocketProAdapter.ServerSide.IServerQueue.AppendTo(System.UInt32[])">
-            <summary>
-            Replicate all messages within this queue onto an array of queues
-            </summary>
-            <param name="queueHandles">An array of target queues for appending messages from this queue</param>
-            <returns>True for success; and false for fail. To make the call success, all of target queues should be already opened and available</returns>
-        </member>
-        <member name="M:SocketProAdapter.ServerSide.IServerQueue.EnsureAppending(SocketProAdapter.ServerSide.IServerQueue)">
-            <summary>
-            Ensure previous replication in case an application was crashed previously. Call this method one time only and as early as possible
-            </summary>
-            <param name="serverQueue">A target queue for appending messages from this queue </param>
-            <returns>True for success; and false for fail. To make the call success, a target queue should be already opened and available</returns>
-        </member>
-        <member name="M:SocketProAdapter.ServerSide.IServerQueue.EnsureAppending(SocketProAdapter.ServerSide.IServerQueue[])">
-            <summary>
-            Ensure previous replication in case an application was crashed previously. Call this method one time only and as early as possible
-            </summary>
-            <param name="serverQueues">An array of target queues for appending messages from this queue</param>
-            <returns>True for success; and false for fail. To make the call success, all of target queues should be already opened and available</returns>
-        </member>
-        <member name="M:SocketProAdapter.ServerSide.IServerQueue.EnsureAppending(System.UInt32[])">
-            <summary>
-            Ensure previous replication in case an application was crashed previously. Call this method one time only and as early as possible
-            </summary>
-            <param name="queueHandles">An array of target queues for appending messages from this queue</param>
-            <returns>True for success; and false for fail. To make the call success, all of target queues should be already opened and available</returns>
-        </member>
-        <member name="M:SocketProAdapter.ServerSide.CBaseService.AddMe(System.UInt32)">
-            <summary>
-            Register a service
-            </summary>
-            <param name="svsId">A service id</param>
-            <returns>True if successful. Otherwise false if failed</returns>
-        </member>
-        <member name="M:SocketProAdapter.ServerSide.CBaseService.AddMe(System.UInt32,SocketProAdapter.tagThreadApartment)">
-            <summary>
-            Register a service
-            </summary>
-            <param name="svsId">A service id</param>
-            <param name="ta">Thread apartment for windows default to tagThreadApartment.taNone. It is ignored on non-windows platforms</param>
-            <returns>True if successful. Otherwise false if failed</returns>
-        </member>
-        <member name="M:SocketProAdapter.ServerSide.CBaseService.AddSlowRequest(System.UInt16)">
-            <summary>
-            Register a slow request
-            </summary>
-            <param name="reqId">A request id</param>
-            <returns>True if successful. Otherwise false if failed</returns>
-        </member>
-        <member name="M:SocketProAdapter.ServerSide.CBaseService.AddAlphaRequest(System.UInt16)">
-            <summary>
-            Make a request processed at router for a routee
-            </summary>
-            <param name="reqId">A request id</param>
-            <returns>True if successful. Otherwise, false if failed</returns>
-        </member>
-        <member name="M:SocketProAdapter.ServerSide.CHttpPeerBase.StartChunkResponse">
-            <summary>
-            Begin to send HTTP result in chunk
-            </summary>
-            <returns>The data size in bytes</returns>
-            <remarks>The method EndChunkResponse should be called at the end after this method is called</remarks>
-        </member>
-        <member name="M:SocketProAdapter.ServerSide.CHttpPeerBase.SendChunk(System.Byte[])">
-            <summary>
-            Send a chunk of data after calling the method StartChunkResponse
-            </summary>
-            <param name="buffer">A buffer data</param>
-            <returns>The data size in byte</returns>
-            <remarks>You must call the method StartChunkResponse before calling this method</remarks>
-        </member>
-        <member name="M:SocketProAdapter.ServerSide.CHttpPeerBase.EndChunkResponse(System.Byte[])">
-            <summary>
-            Send the last chunk of data and indicate the HTTP response is ended
-            </summary>
-            <param name="buffer">The last chunk of data</param>
-            <returns>The data size in byte</returns>
-            <remarks>You must call the method StartChunkResponse before calling this method</remarks>
         </member>
         <member name="M:SocketProAdapter.ServerSide.CSocketProServer.SetLastCallInfo(System.String)">
             <summary>
@@ -1294,106 +766,74 @@
             <param name="serviceId">A given service id</param>
             <returns>A valid routee service id if this service id is valid and set to be routed</returns>
         </member>
-        <member name="F:SocketProAdapter.tagDataTypeSupported.dtValue">
+        <member name="M:SocketProAdapter.ServerSide.CBaseService.AddMe(System.UInt32)">
             <summary>
-            An object
+            Register a service
             </summary>
+            <param name="svsId">A service id</param>
+            <returns>True if successful. Otherwise false if failed</returns>
         </member>
-        <member name="F:SocketProAdapter.tagDataTypeSupported.dtValues">
+        <member name="M:SocketProAdapter.ServerSide.CBaseService.AddMe(System.UInt32,SocketProAdapter.tagThreadApartment)">
             <summary>
-            An array of objects
+            Register a service
             </summary>
+            <param name="svsId">A service id</param>
+            <param name="ta">Thread apartment for windows default to tagThreadApartment.taNone. It is ignored on non-windows platforms</param>
+            <returns>True if successful. Otherwise false if failed</returns>
         </member>
-        <member name="F:SocketProAdapter.tagDataTypeSupported.dtNull">
+        <member name="M:SocketProAdapter.ServerSide.CBaseService.AddSlowRequest(System.UInt16)">
             <summary>
-            A DBNull
+            Register a slow request
             </summary>
+            <param name="reqId">A request id</param>
+            <returns>True if successful. Otherwise false if failed</returns>
         </member>
-        <member name="F:SocketProAdapter.tagDataTypeSupported.dtUDT">
+        <member name="M:SocketProAdapter.ServerSide.CBaseService.AddAlphaRequest(System.UInt16)">
             <summary>
-            User defined data type or complex data type. All of data converted into string
+            Make a request processed at router for a routee
             </summary>
+            <param name="reqId">A request id</param>
+            <returns>True if successful. Otherwise, false if failed</returns>
         </member>
-        <member name="M:SocketProAdapter.CAdoSerializationHelper.FinalizeRecords">
+        <member name="M:SocketProAdapter.ServerSide.CStreamHelper.ReadDataFromServerToClient(System.UInt64,System.IO.Stream)">
             <summary>
-            Call the methods EndLoadData and BeginLoadData one time for loaded records during fetching records.
-            This method is usually called at client side for reduction of latency and fast displaying beginning records.
+            Read data from a source stream at server side and send its content onto a client
             </summary>
+            <param name="PeerHandle">A peer socket handle to represent a client</param>
+            <param name="source">A stream to a source file or other object</param>
+            <returns>The number of data sent in bytes</returns>
         </member>
-        <member name="P:SocketProAdapter.CAdoSerializationHelper.BatchSize">
+        <member name="M:SocketProAdapter.ServerSide.CStreamHelper.WriteDataFromClientToServer(SocketProAdapter.CUQueue,System.IO.Stream)">
             <summary>
-            The size of a batch of records in byte.
+            Write data from client to this server
             </summary>
+            <param name="q">A memory queue containing data from a client</param>
+            <param name="receiver">A stream at server side to receive data from a client</param>
         </member>
-        <member name="P:SocketProAdapter.CAdoSerializationHelper.Affected">
+        <member name="M:SocketProAdapter.ServerSide.CStreamHelper.Download(System.UInt64,System.IO.Stream,System.UInt64@,System.String@)">
             <summary>
-            The number of rows, records or tables affected.
+            Download a stream from server to a client. Internally, it will also fake an empty request (CStreamSerializationHelper.idReadDataFromServerToClient) on behalf on the client
             </summary>
+            <param name="PeerHandle">A peer socket handle to represent a client</param>
+            <param name="source">A valid stream at server side</param>
+            <param name="fileSize">File size in bytes. It will be -1 if there is error</param>
+            <param name="errMsg">An error message. It will be empty string with zero length if no error is found</param>
         </member>
-        <member name="P:SocketProAdapter.CAdoSerializationHelper.CurrentDataTable">
+        <member name="M:SocketProAdapter.ServerSide.CStreamHelper.DownloadFile(System.UInt64,System.String,System.UInt64@,System.String@)">
             <summary>
-            The datatable that is being fetched or has been just transferred.
+            Download a file from server to a client. Internally, it will also fake an empty request (CStreamSerializationHelper.idReadDataFromServerToClient) on behalf on the client
             </summary>
+            <param name="PeerHandle">A peer socket handle to represent a client</param>
+            <param name="RemoteFilePath">A path to a file</param>
+            <param name="fileSize">File size in bytes. It will be -1 if there is error</param>
+            <param name="errMsg">An error message. It will be empty string with zero length if no error is found</param>
+            <returns>A file stream</returns>
         </member>
-        <member name="P:SocketProAdapter.CAdoSerializationHelper.CurrentDataSet">
+        <member name="M:SocketProAdapter.ClientSide.CClientSocket.SetLastCallInfo(System.String)">
             <summary>
-            The DataSet that is being fetched or has been just transferred.
+            Use the method for debugging crash within cross development environments.
             </summary>
-        </member>
-        <!-- Badly formed XML comment ignored for member "F:SocketProAdapter.tagOperationSystem.osWinPhone" -->
-        <member name="F:SocketProAdapter.tagThreadApartment.taNone">
-            no COM apartment involved
-        </member>
-        <member name="F:SocketProAdapter.tagThreadApartment.taApartment">
-            STA apartment
-        </member>
-        <member name="F:SocketProAdapter.tagThreadApartment.taFree">
-            MTA (free) or neutral apartments
-        </member>
-        <member name="F:SocketProAdapter.tagQueueStatus.qsNormal">
-            <summary>
-            everything is fine
-            </summary>
-        </member>
-        <member name="F:SocketProAdapter.tagQueueStatus.qsMergeComplete">
-            <summary>
-            Queued messages merged completely
-            </summary>
-        </member>
-        <member name="F:SocketProAdapter.tagQueueStatus.qsMergePushing">
-            <summary>
-            Message replication started but not completed yet
-            </summary>
-        </member>
-        <member name="F:SocketProAdapter.tagQueueStatus.qsMergeIncomplete">
-            <summary>
-            Message replicated incompletely from a source queue
-            </summary>
-        </member>
-        <member name="F:SocketProAdapter.tagQueueStatus.qsJobIncomplete">
-            <summary>
-            A set of messages as a job are incompletely queued 
-            </summary>
-        </member>
-        <member name="F:SocketProAdapter.tagQueueStatus.qsCrash">
-            <summary>
-            A message queued incompletely because of application crash or unexpected termination
-            </summary>
-        </member>
-        <member name="F:SocketProAdapter.tagQueueStatus.qsFileError">
-            <summary>
-            Queue file open error
-            </summary>
-        </member>
-        <member name="F:SocketProAdapter.tagQueueStatus.qsBadPassword">
-            <summary>
-            Queue file opened but can not decrypt existing queued messages beacuse of bad password found
-            </summary>
-        </member>
-        <member name="F:SocketProAdapter.tagQueueStatus.qsDuplicateName">
-            <summary>
-            Duplicate name error
-            </summary>
+            <param name="str">A string will be sent to client core library to be output into a crash text file</param>
         </member>
         <member name="T:SocketProAdapter.Deque`1">
             <summary>
@@ -1743,6 +1183,508 @@
             </summary>
             <returns>The number of elements contained in this deque.</returns>
         </member>
+        <member name="F:SocketProAdapter.tagDataTypeSupported.dtValue">
+            <summary>
+            An object
+            </summary>
+        </member>
+        <member name="F:SocketProAdapter.tagDataTypeSupported.dtValues">
+            <summary>
+            An array of objects
+            </summary>
+        </member>
+        <member name="F:SocketProAdapter.tagDataTypeSupported.dtNull">
+            <summary>
+            A DBNull
+            </summary>
+        </member>
+        <member name="F:SocketProAdapter.tagDataTypeSupported.dtUDT">
+            <summary>
+            User defined data type or complex data type. All of data converted into string
+            </summary>
+        </member>
+        <member name="M:SocketProAdapter.CAdoSerializationHelper.FinalizeRecords">
+            <summary>
+            Call the methods EndLoadData and BeginLoadData one time for loaded records during fetching records.
+            This method is usually called at client side for reduction of latency and fast displaying beginning records.
+            </summary>
+        </member>
+        <member name="P:SocketProAdapter.CAdoSerializationHelper.BatchSize">
+            <summary>
+            The size of a batch of records in byte.
+            </summary>
+        </member>
+        <member name="P:SocketProAdapter.CAdoSerializationHelper.Affected">
+            <summary>
+            The number of rows, records or tables affected.
+            </summary>
+        </member>
+        <member name="P:SocketProAdapter.CAdoSerializationHelper.CurrentDataTable">
+            <summary>
+            The datatable that is being fetched or has been just transferred.
+            </summary>
+        </member>
+        <member name="P:SocketProAdapter.CAdoSerializationHelper.CurrentDataSet">
+            <summary>
+            The DataSet that is being fetched or has been just transferred.
+            </summary>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.IServerQueue.AppendTo(SocketProAdapter.ServerSide.IServerQueue)">
+            <summary>
+            Replicate all messages within this queue onto one target queue
+            </summary>
+            <param name="serverQueue">A target queue for appending messages from this queue</param>
+            <returns>True for success; and false for fail. To make the call success, a target queue should be already opened and available</returns>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.IServerQueue.AppendTo(SocketProAdapter.ServerSide.IServerQueue[])">
+            <summary>
+            Replicate all messages within this queue onto an array of queues
+            </summary>
+            <param name="serverQueues">An array of target queues for appending messages from this queue</param>
+            <returns>True for success; and false for fail. To make the call success, all of target queues should be already opened and available</returns>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.IServerQueue.AppendTo(System.UInt32[])">
+            <summary>
+            Replicate all messages within this queue onto an array of queues
+            </summary>
+            <param name="queueHandles">An array of target queues for appending messages from this queue</param>
+            <returns>True for success; and false for fail. To make the call success, all of target queues should be already opened and available</returns>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.IServerQueue.EnsureAppending(SocketProAdapter.ServerSide.IServerQueue)">
+            <summary>
+            Ensure previous replication in case an application was crashed previously. Call this method one time only and as early as possible
+            </summary>
+            <param name="serverQueue">A target queue for appending messages from this queue </param>
+            <returns>True for success; and false for fail. To make the call success, a target queue should be already opened and available</returns>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.IServerQueue.EnsureAppending(SocketProAdapter.ServerSide.IServerQueue[])">
+            <summary>
+            Ensure previous replication in case an application was crashed previously. Call this method one time only and as early as possible
+            </summary>
+            <param name="serverQueues">An array of target queues for appending messages from this queue</param>
+            <returns>True for success; and false for fail. To make the call success, all of target queues should be already opened and available</returns>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.IServerQueue.EnsureAppending(System.UInt32[])">
+            <summary>
+            Ensure previous replication in case an application was crashed previously. Call this method one time only and as early as possible
+            </summary>
+            <param name="queueHandles">An array of target queues for appending messages from this queue</param>
+            <returns>True for success; and false for fail. To make the call success, all of target queues should be already opened and available</returns>
+        </member>
+        <member name="F:SocketProAdapter.ClientSide.ReplicationSetting.QueueDir">
+            <summary>
+            An absolute path to a directory containing message queue files.
+            </summary>
+        </member>
+        <member name="F:SocketProAdapter.ClientSide.ReplicationSetting.NoAutoConn">
+            <summary>
+            False for auto socket connecting. Otherwise, there is no auto connection.
+            </summary>
+        </member>
+        <member name="F:SocketProAdapter.ClientSide.ReplicationSetting.TTL">
+            <summary>
+            Time-to-live in seconds. It is ignored if persistent message queue feature is not used. If the value is not set or zero, the value will default to DEFAULT_TTL (30 days).
+            </summary>
+        </member>
+        <member name="F:SocketProAdapter.ClientSide.ReplicationSetting.RecvTimeout">
+            <summary>
+            A timeout for receiving result from remote SocketPro server. If the value is not set or it is zero, the value will default to CClientSocket.DEFAULT_RECV_TIMEOUT (30 seconds).
+            </summary>
+        </member>
+        <member name="F:SocketProAdapter.ClientSide.ReplicationSetting.ConnTimeout">
+            <summary>
+            A timeout for connecting to remote SocketPro server. If the value is not set or it is zero, the value will default to CClientSocket.DEFAULT_CONN_TIMEOUT (30 seconds).
+            </summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CReplication`1.Start(System.Collections.Generic.Dictionary{System.String,SocketProAdapter.ClientSide.CConnectionContext})">
+            <summary>
+            Start a socket pool for replication
+            </summary>
+            <param name="mapQueueConn">A dictionary for message queue name and connecting context. a unique name must be specified for each of connecting contexts</param>
+            <returns>True if there is at least one connection established; and false if there is no connection</returns>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CReplication`1.Start(System.Collections.Generic.Dictionary{System.String,SocketProAdapter.ClientSide.CConnectionContext},System.String)">
+            <summary>
+            Start a socket pool for replication
+            </summary>
+            <param name="mapQueueConn">A dictionary for message queue name and connecting context. a unique name must be specified for each of connecting contexts</param>
+            <param name="rootQueueName">A string for root replication queue name. It is ignored if it is not replicable</param>
+            <returns>True if there is at least one connection established; and false if there is no connection</returns>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CReplication`1.Start(System.Collections.Generic.Dictionary{System.String,SocketProAdapter.ClientSide.CConnectionContext},System.String,SocketProAdapter.tagThreadApartment)">
+            <summary>
+            Start a socket pool for replication
+            </summary>
+            <param name="mapQueueConn">A dictionary for message queue name and connecting context. a unique name must be specified for each of connecting contexts</param>
+            <param name="rootQueueName">A string for root replication queue name. It is ignored if it is not replicable</param>
+            <param name="ta">COM thread apartment; and it defaults to taNone. It is ignored on non-window platforms</param>
+            <returns>True if there is at least one connection established; and false if there is no connection</returns>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CReplication`1.#ctor(SocketProAdapter.ClientSide.ReplicationSetting)">
+            <summary>
+            Construct a CSqlReplication instance
+            </summary>
+            <param name="qms">A structure for setting its underlying socket pool and message queue directory as well as password for source queue</param>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CReplication`1.DoReplication">
+            <summary>
+            Make a replication. An invalid operation exception will be thrown if not replicable.
+            </summary>
+            <returns>True for success; and false for failure</returns>
+        </member>
+        <member name="P:SocketProAdapter.ClientSide.CReplication`1.Replicable">
+            <summary>
+            Check if it is replicable.
+            </summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Execute(SocketProAdapter.UDB.CDBVariantArray)">
+            <summary>
+            Process one or more sets of prepared statements with an array of parameter data asynchronously, and don't expect any data returned
+            </summary>
+            <param name="vParam"></param>
+            <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Execute(SocketProAdapter.UDB.CDBVariantArray,SocketProAdapter.ClientSide.CAsyncDBHandler.DExecuteResult)">
+            <summary>
+            Process one or more sets of prepared statements with an array of parameter data asynchronously, and don't expect any rowsets or outputs returned 
+            </summary>
+            <param name="vParam">an array of parameter data which will be bounded to previously prepared parameters</param>
+            <param name="handler">a callback for tracking final result</param>
+            <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Execute(SocketProAdapter.UDB.CDBVariantArray,SocketProAdapter.ClientSide.CAsyncDBHandler.DExecuteResult,SocketProAdapter.ClientSide.CAsyncDBHandler.DRows)">
+            <summary>
+            Process one or more sets of prepared statements with an array of parameter data asynchronously, and don't expect any rowsets returned
+            </summary>
+            <param name="vParam">an array of parameter data which will be bounded to previously prepared parameters</param>
+            <param name="handler">a callback for tracking final result</param>
+            <param name="row">a callback for tracking output parameter returned data</param>
+            <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Execute(SocketProAdapter.UDB.CDBVariantArray,SocketProAdapter.ClientSide.CAsyncDBHandler.DExecuteResult,SocketProAdapter.ClientSide.CAsyncDBHandler.DRows,SocketProAdapter.ClientSide.CAsyncDBHandler.DRowsetHeader)">
+            <summary>
+            Process one or more sets of prepared statements with an array of parameter data asynchronously
+            </summary>
+            <param name="vParam">an array of parameter data which will be bounded to previously prepared parameters</param>
+            <param name="handler">a callback for tracking final result</param>
+            <param name="row">a callback for tracking record or output parameter returned data</param>
+            <param name="rh">a callback for tracking row set of header column informations</param>
+            <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Execute(SocketProAdapter.UDB.CDBVariantArray,SocketProAdapter.ClientSide.CAsyncDBHandler.DExecuteResult,SocketProAdapter.ClientSide.CAsyncDBHandler.DRows,SocketProAdapter.ClientSide.CAsyncDBHandler.DRowsetHeader,System.Boolean)">
+            <summary>
+            Process one or more sets of prepared statements with an array of parameter data asynchronously
+            </summary>
+            <param name="vParam">an array of parameter data which will be bounded to previously prepared parameters</param>
+            <param name="handler">a callback for tracking final result</param>
+            <param name="row">a callback for tracking record or output parameter returned data</param>
+            <param name="rh">a callback for tracking row set of header column informations</param>
+            <param name="meta">a boolean value for better or more detailed column meta details such as unique, not null, primary key, and so on. It defaults to true</param>
+            <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Execute(SocketProAdapter.UDB.CDBVariantArray,SocketProAdapter.ClientSide.CAsyncDBHandler.DExecuteResult,SocketProAdapter.ClientSide.CAsyncDBHandler.DRows,SocketProAdapter.ClientSide.CAsyncDBHandler.DRowsetHeader,System.Boolean,System.Boolean)">
+            <summary>
+            Process one or more sets of prepared statements with an array of parameter data asynchronously
+            </summary>
+            <param name="vParam">an array of parameter data which will be bounded to previously prepared parameters</param>
+            <param name="handler">a callback for tracking final result</param>
+            <param name="row">a callback for tracking record or output parameter returned data</param>
+            <param name="rh">a callback for tracking row set of header column informations</param>
+            <param name="meta">a boolean value for better or more detailed column meta details such as unique, not null, primary key, and so on. It defaults to true</param>
+            <param name="lastInsertId">a boolean value for last insert record identification number. It defaults to true</param>
+            <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Execute(SocketProAdapter.UDB.CDBVariantArray,SocketProAdapter.ClientSide.CAsyncDBHandler.DExecuteResult,SocketProAdapter.ClientSide.CAsyncDBHandler.DRows,SocketProAdapter.ClientSide.CAsyncDBHandler.DRowsetHeader,System.Boolean,System.Boolean,SocketProAdapter.ClientSide.CAsyncServiceHandler.DDiscarded)">
+            <summary>
+            Process one or more sets of prepared statements with an array of parameter data asynchronously
+            </summary>
+            <param name="vParam">an array of parameter data which will be bounded to previously prepared parameters</param>
+            <param name="handler">a callback for tracking final result</param>
+            <param name="row">a callback for tracking record or output parameter returned data</param>
+            <param name="rh">a callback for tracking row set of header column informations</param>
+            <param name="meta">a boolean value for better or more detailed column meta details such as unique, not null, primary key, and so on. It defaults to true</param>
+            <param name="lastInsertId">a boolean value for last insert record identification number. It defaults to true</param>
+            <param name="discarded">a callback for tracking cancel or socket closed event</param>
+            <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Execute(System.String)">
+            <summary>
+            Asynchronously process a complex SQL statement which may be combined with multiple basic SQL statements, and don't expect any data returned
+            </summary>
+            <param name="sql">a complex SQL statement which may be combined with multiple basic SQL statements</param>
+            <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Execute(System.String,SocketProAdapter.ClientSide.CAsyncDBHandler.DExecuteResult)">
+            <summary>
+            Asynchronously process a complex SQL statement which may be combined with multiple basic SQL statements, and don't expect any records returned 
+            </summary>
+            <param name="sql">a complex SQL statement which may be combined with multiple basic SQL statements</param>
+            <param name="handler">a callback for tracking final result</param>
+            <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Execute(System.String,SocketProAdapter.ClientSide.CAsyncDBHandler.DExecuteResult,SocketProAdapter.ClientSide.CAsyncDBHandler.DRows)">
+            <summary>
+            Process a complex SQL statement which may be combined with multiple basic SQL statements asynchronously
+            </summary>
+            <param name="sql">a complex SQL statement which may be combined with multiple basic SQL statements</param>
+            <param name="handler">a callback for tracking final result</param>
+            <param name="row">a callback for receiving records of data</param>
+            <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Execute(System.String,SocketProAdapter.ClientSide.CAsyncDBHandler.DExecuteResult,SocketProAdapter.ClientSide.CAsyncDBHandler.DRows,SocketProAdapter.ClientSide.CAsyncDBHandler.DRowsetHeader)">
+            <summary>
+            Process a complex SQL statement which may be combined with multiple basic SQL statements asynchronously
+            </summary>
+            <param name="sql">a complex SQL statement which may be combined with multiple basic SQL statements</param>
+            <param name="handler">a callback for tracking final result</param>
+            <param name="row">a callback for receiving records of data</param>
+            <param name="rh">a callback for tracking row set of header column informations</param>
+            <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Execute(System.String,SocketProAdapter.ClientSide.CAsyncDBHandler.DExecuteResult,SocketProAdapter.ClientSide.CAsyncDBHandler.DRows,SocketProAdapter.ClientSide.CAsyncDBHandler.DRowsetHeader,System.Boolean)">
+            <summary>
+            Process a complex SQL statement which may be combined with multiple basic SQL statements asynchronously
+            </summary>
+            <param name="sql">a complex SQL statement which may be combined with multiple basic SQL statements</param>
+            <param name="handler">a callback for tracking final result</param>
+            <param name="row">a callback for receiving records of data</param>
+            <param name="rh">a callback for tracking row set of header column informations</param>
+            <param name="meta">a boolean value for better or more detailed column meta details such as unique, not null, primary key, and so on. It defaults to true</param>
+            <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Execute(System.String,SocketProAdapter.ClientSide.CAsyncDBHandler.DExecuteResult,SocketProAdapter.ClientSide.CAsyncDBHandler.DRows,SocketProAdapter.ClientSide.CAsyncDBHandler.DRowsetHeader,System.Boolean,System.Boolean)">
+            <summary>
+            Process a complex SQL statement which may be combined with multiple basic SQL statements asynchronously
+            </summary>
+            <param name="sql">a complex SQL statement which may be combined with multiple basic SQL statements</param>
+            <param name="handler">a callback for tracking final result</param>
+            <param name="row">a callback for receiving records of data</param>
+            <param name="rh">a callback for tracking row set of header column informations</param>
+            <param name="meta">a boolean value for better or more detailed column meta details such as unique, not null, primary key, and so on. It defaults to true</param>
+            <param name="lastInsertId">a boolean value for last insert record identification number. It defaults to true</param>
+            <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Execute(System.String,SocketProAdapter.ClientSide.CAsyncDBHandler.DExecuteResult,SocketProAdapter.ClientSide.CAsyncDBHandler.DRows,SocketProAdapter.ClientSide.CAsyncDBHandler.DRowsetHeader,System.Boolean,System.Boolean,SocketProAdapter.ClientSide.CAsyncServiceHandler.DDiscarded)">
+            <summary>
+            Process a complex SQL statement which may be combined with multiple basic SQL statements asynchronously
+            </summary>
+            <param name="sql">a complex SQL statement which may be combined with multiple basic SQL statements</param>
+            <param name="handler">a callback for tracking final result</param>
+            <param name="row">a callback for receiving records of data</param>
+            <param name="rh">a callback for tracking row set of header column informations</param>
+            <param name="meta">a boolean value for better or more detailed column meta details such as unique, not null, primary key, and so on. It defaults to true</param>
+            <param name="lastInsertId">a boolean value for last insert record identification number. It defaults to true</param>
+            <param name="discarded">a callback for tracking cancel or socket closed event</param>
+            <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Open(System.String,SocketProAdapter.ClientSide.CAsyncDBHandler.DResult)">
+            <summary>
+            Open a database connection at server side asynchronously
+            </summary>
+            <param name="strConnection">a database connection string. The database connection string can be an empty string if its server side supports global database connection string</param>
+            <param name="handler">a callback for database connecting result</param>
+            <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Open(System.String,SocketProAdapter.ClientSide.CAsyncDBHandler.DResult,System.UInt32)">
+            <summary>
+            Open a database connection at server side asynchronously
+            </summary>
+            <param name="strConnection">a database connection string. The database connection string can be an empty string if its server side supports global database connection string</param>
+            <param name="handler">a callback for database connecting result</param>
+            <param name="flags">a set of flags transferred to server to indicate how to build database connection at server side. It defaults to zero</param>
+            <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Open(System.String,SocketProAdapter.ClientSide.CAsyncDBHandler.DResult,System.UInt32,SocketProAdapter.ClientSide.CAsyncServiceHandler.DDiscarded)">
+            <summary>
+            Open a database connection at server side asynchronously
+            </summary>
+            <param name="strConnection">a database connection string. The database connection string can be an empty string if its server side supports global database connection string</param>
+            <param name="handler">a callback for database connecting result</param>
+            <param name="flags">a set of flags transferred to server to indicate how to build database connection at server side. It defaults to zero</param>
+            <param name="discarded">a callback for tracking cancel or socket closed event</param>
+            <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Prepare(System.String)">
+            <summary>
+            Send a parameterized SQL statement for preparing asynchronously
+            </summary>
+            <param name="sql">a parameterized SQL statement</param>
+            <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Prepare(System.String,SocketProAdapter.ClientSide.CAsyncDBHandler.DResult)">
+            <summary>
+            Send a parameterized SQL statement for preparing asynchronously
+            </summary>
+            <param name="sql">a parameterized SQL statement</param>
+            <param name="handler">a callback for SQL preparing result</param>
+            <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Prepare(System.String,SocketProAdapter.ClientSide.CAsyncDBHandler.DResult,SocketProAdapter.UDB.CParameterInfo[])">
+            <summary>
+            Send a parameterized SQL statement for preparing with a given array of parameter informations asynchronously
+            </summary>
+            <param name="sql">a parameterized SQL statement</param>
+            <param name="handler">a callback for SQL preparing result</param>
+            <param name="vParameterInfo">a given array of parameter informations</param>
+            <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Prepare(System.String,SocketProAdapter.ClientSide.CAsyncDBHandler.DResult,SocketProAdapter.UDB.CParameterInfo[],SocketProAdapter.ClientSide.CAsyncServiceHandler.DDiscarded)">
+            <summary>
+            Send a parameterized SQL statement for preparing with a given array of parameter informations asynchronously
+            </summary>
+            <param name="sql">a parameterized SQL statement</param>
+            <param name="handler">a callback for SQL preparing result</param>
+            <param name="vParameterInfo">a given array of parameter informations</param>
+            <param name="discarded">a callback for tracking cancel or socket closed event</param>
+            <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.EndTrans">
+            <summary>
+            End a manual transaction with a given rollback plan tagRollbackPlan.rpDefault. Note the transaction will be associated with SocketPro client message queue if available to avoid possible transaction lose
+            </summary>
+            <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.EndTrans(SocketProAdapter.UDB.tagRollbackPlan)">
+            <summary>
+            End a manual transaction with a given rollback plan. Note the transaction will be associated with SocketPro client message queue if available to avoid possible transaction lose
+            </summary>
+            <param name="plan">a value for computing how included transactions should be rollback at server side. It defaults to tagRollbackPlan.rpDefault</param>
+            <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.EndTrans(SocketProAdapter.UDB.tagRollbackPlan,SocketProAdapter.ClientSide.CAsyncDBHandler.DResult)">
+            <summary>
+            End a manual transaction with a given rollback plan. Note the transaction will be associated with SocketPro client message queue if available to avoid possible transaction lose
+            </summary>
+            <param name="plan">a value for computing how included transactions should be rollback at server side. It defaults to tagRollbackPlan.rpDefault</param>
+            <param name="handler">a callback for tracking its response result</param>
+            <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.EndTrans(SocketProAdapter.UDB.tagRollbackPlan,SocketProAdapter.ClientSide.CAsyncDBHandler.DResult,SocketProAdapter.ClientSide.CAsyncServiceHandler.DDiscarded)">
+            <summary>
+            End a manual transaction with a given rollback plan. Note the transaction will be associated with SocketPro client message queue if available to avoid possible transaction lose
+            </summary>
+            <param name="plan">a value for computing how included transactions should be rollback at server side. It defaults to tagRollbackPlan.rpDefault</param>
+            <param name="handler">a callback for tracking its response result</param>
+            <param name="discarded">a callback for tracking cancel or socket closed event</param>
+            <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.BeginTrans">
+            <summary>
+            Start a manual transaction with a given isolation tagTransactionIsolation.tiReadCommited asynchronously. Note the transaction will be associated with SocketPro client message queue if available to avoid possible transaction lose
+            </summary>
+            <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.BeginTrans(SocketProAdapter.UDB.tagTransactionIsolation)">
+            <summary>
+            Start a manual transaction with a given isolation asynchronously. Note the transaction will be associated with SocketPro client message queue if available to avoid possible transaction lose
+            </summary>
+            <param name="isolation">a value for transaction isolation. It defaults to tagTransactionIsolation.tiReadCommited</param>
+            <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.BeginTrans(SocketProAdapter.UDB.tagTransactionIsolation,SocketProAdapter.ClientSide.CAsyncDBHandler.DResult)">
+            <summary>
+            Start a manual transaction with a given isolation asynchronously. Note the transaction will be associated with SocketPro client message queue if available to avoid possible transaction lose
+            </summary>
+            <param name="isolation">a value for transaction isolation. It defaults to tagTransactionIsolation.tiReadCommited</param>
+            <param name="handler">a callback for tracking its response result</param>
+            <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.BeginTrans(SocketProAdapter.UDB.tagTransactionIsolation,SocketProAdapter.ClientSide.CAsyncDBHandler.DResult,SocketProAdapter.ClientSide.CAsyncServiceHandler.DDiscarded)">
+            <summary>
+            Start a manual transaction with a given isolation asynchronously. Note the transaction will be associated with SocketPro client message queue if available to avoid possible transaction lose
+            </summary>
+            <param name="isolation">a value for transaction isolation. It defaults to tagTransactionIsolation.tiReadCommited</param>
+            <param name="handler">a callback for tracking its response result</param>
+            <param name="discarded">a callback for tracking cancel or socket closed event</param>
+            <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Close">
+            <summary>
+            Notify connected remote server to close database connection string asynchronously
+            </summary>
+            <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Close(SocketProAdapter.ClientSide.CAsyncDBHandler.DResult)">
+            <summary>
+            Notify connected remote server to close database connection string asynchronously
+            </summary>
+            <param name="handler">a callback for closing result, which should be OK always as long as there is network or queue available </param>
+            <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Close(SocketProAdapter.ClientSide.CAsyncDBHandler.DResult,SocketProAdapter.ClientSide.CAsyncServiceHandler.DDiscarded)">
+            <summary>
+            Notify connected remote server to close database connection string asynchronously
+            </summary>
+            <param name="handler">a callback for closing result, which should be OK always as long as there is network or queue available </param>
+            <param name="discarded">a callback for tracking cancel or socket closed event</param>
+            <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CSqlServer.#ctor(System.UInt32)">
+            <summary>
+            You may use the protected constructor when extending this class
+            </summary>
+            <param name="sid">A service id</param>
+        </member>
+        <member name="F:SocketProAdapter.ClientSide.CSqlite.DATABASE_AUTO_ATTACHED">
+            <summary>
+            A flag used with the method CAsyncDBHandler.Open for automatically attaching the opening database onto current session
+            </summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CSqlite.#ctor(System.UInt32)">
+            <summary>
+            You may use the protected constructor when extending this class
+            </summary>
+            <param name="sid">A service id</param>
+        </member>
+        <member name="F:SocketProAdapter.ClientSide.CMysql.USE_REMOTE_MYSQL">
+            <summary>
+            Use Mysql embedded at SocketPro server side by default.
+            Use this const value for the input parameter flags with the method of CAsyncDBHandler::Open at client side
+            to open a connection to remote Mysql server at SocketPro server instead of embedded Mysql
+            </summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CMysql.#ctor(System.UInt32)">
+            <summary>
+            You may use the protected constructor when extending this class
+            </summary>
+            <param name="sid">A service id</param>
+        </member>
+        <member name="F:SocketProAdapter.ServerSide.Sqlite.ENABLE_GLOBAL_SQLITE_UPDATE_HOOK">
+            <summary>
+            Don't use sqlite update hook at server side by default.
+            If update hook is enabled, all connected clients will be notified when there is a record insert, update or delete.
+            For details, refer to the documentation of sqlite function sqlite3_update_hook
+            </summary>
+        </member>
+        <member name="F:SocketProAdapter.ServerSide.Sqlite.USE_SHARED_CACHE_MODE">
+            <summary>
+            Don't use sqlite shared cache at server side by default
+            </summary>
+        </member>
+        <member name="F:SocketProAdapter.ServerSide.Sqlite.DO_NOT_USE_EXTENDED_ERROR_CODE">
+            <summary>
+            Sqlite server will return extended error codes to client by default
+            </summary>
+        </member>
+        <member name="F:SocketProAdapter.ServerSide.Sqlite.USE_UTF16_ENCODING">
+            <summary>
+            Sqlite server will use utf8 encoding by default
+            </summary>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.Mysql.SetMysqlDBGlobalConnectionString(System.String,System.Boolean)">
+            <summary>
+            Set mysql global or default string for either embedded mysql database name or remote mysql connection string
+            </summary>
+            <param name="dbConnection">a global or default string for either embedded mysql database name or remote mysql connection string</param>
+            <param name="remote">true for setting a connection string to a remote mysql database; and false for setting an embedded mysql database name</param>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.Mysql.SetMysqlEmbeddedOptions(System.String)">
+            <summary>
+            Set embedded mysql server initial options
+            </summary>
+            <param name="options">Embedded mysql initial options string like 'datadir=.;language=./share;default-storage-engine=MyISAM;skip-innodb;key-buffer-size=64M;console'. If the string is null or empty, the options string will not be changed</param>
+            <returns>options string for embedded mysql server initialization</returns>
+        </member>
         <member name="T:SocketProAdapter.UDateTime">
             <summary>
             database datetime with accuracy micro-second
@@ -1909,61 +1851,119 @@
             An integer value for unused bytes
             </summary>
         </member>
-        <member name="M:SocketProAdapter.ClientSide.CStreamHelper.Reset">
+        <member name="M:SocketProAdapter.ServerSide.CHttpPeerBase.StartChunkResponse">
             <summary>
-            Nullize stream
+            Begin to send HTTP result in chunk
             </summary>
+            <returns>The data size in bytes</returns>
+            <remarks>The method EndChunkResponse should be called at the end after this method is called</remarks>
         </member>
-        <member name="M:SocketProAdapter.ClientSide.CStreamHelper.Download(System.IO.Stream,System.String)">
+        <member name="M:SocketProAdapter.ServerSide.CHttpPeerBase.SendChunk(System.Byte[])">
             <summary>
-            Get a stream from remote server onto a receiving stream at client side
+            Send a chunk of data after calling the method StartChunkResponse
             </summary>
-            <param name="receiver">A stream at client side for receiving data from remote server</param>
-            <param name="RemotePath">A string for finding an arbuturay file or other object</param>
-            <returns>An empty string if successful. Otherwise, an error message if failed</returns>
+            <param name="buffer">A buffer data</param>
+            <returns>The data size in byte</returns>
+            <remarks>You must call the method StartChunkResponse before calling this method</remarks>
         </member>
-        <member name="M:SocketProAdapter.ClientSide.CStreamHelper.Upload(System.IO.Stream,System.String)">
+        <member name="M:SocketProAdapter.ServerSide.CHttpPeerBase.EndChunkResponse(System.Byte[])">
             <summary>
-            Send a stream from client to remote server
+            Send the last chunk of data and indicate the HTTP response is ended
             </summary>
-            <param name="source">A source stream at client side</param>
-            <param name="RemotePath">A string sent to server for a file name or other object which will receive this stream data</param>
-            <returns>An empty string if successful. Otherwise, an error message if failed</returns>
+            <param name="buffer">The last chunk of data</param>
+            <returns>The data size in byte</returns>
+            <remarks>You must call the method StartChunkResponse before calling this method</remarks>
         </member>
-        <member name="P:SocketProAdapter.ClientSide.CStreamHelper.DownloadingStreamSize">
-            <summary>
-            Remote stream size in bytes. It will be -1 if not available.
-            </summary>
-        </member>
-        <member name="P:SocketProAdapter.ClientSide.CStreamHelper.AsyncServiceHandler">
-            <summary>
-            Hosting service handler
-            </summary>
-        </member>
-        <member name="M:SocketProAdapter.ClientSide.CStreamingFile.#ctor(System.UInt32)">
+        <member name="M:SocketProAdapter.ClientSide.COdbc.#ctor(System.UInt32)">
             <summary>
             You may use the protected constructor when extending this class
             </summary>
             <param name="sid">A service id</param>
         </member>
-        <member name="P:SocketProAdapter.ClientSide.CStreamingFile.FilesQueued">
+        <member name="F:SocketProAdapter.UDB.tagRollbackPlan.rpDefault">
             <summary>
-            The number of files queued
+            Manual transaction will rollback whenever there is an error by default
             </summary>
         </member>
-        <member name="P:SocketProAdapter.ClientSide.CStreamingFile.FileSize">
+        <member name="F:SocketProAdapter.UDB.tagRollbackPlan.rpRollbackErrorAny">
             <summary>
-            The file size in bytes for current file being in transaction
+            Manual transaction will rollback whenever there is an error by default
             </summary>
         </member>
-        <member name="P:SocketProAdapter.ClientSide.CStreamingFile.LocalFile">
+        <member name="F:SocketProAdapter.UDB.tagRollbackPlan.rpRollbackErrorLess">
             <summary>
-            Local file name of current file being in transaction
+            Manual transaction will rollback as long as the number of errors is less than the number of ok processing statements
             </summary>
         </member>
-        <member name="P:SocketProAdapter.ClientSide.CStreamingFile.RemoteFile">
+        <member name="F:SocketProAdapter.UDB.tagRollbackPlan.rpRollbackErrorEqual">
             <summary>
-            Remote file name of current file being in transaction
+            Manual transaction will rollback as long as the number of errors is less or equal than the number of ok processing statements
+            </summary>
+        </member>
+        <member name="F:SocketProAdapter.UDB.tagRollbackPlan.rpRollbackErrorMore">
+            <summary>
+            Manual transaction will rollback as long as the number of errors is more than the number of ok processing statements
+            </summary>
+        </member>
+        <member name="F:SocketProAdapter.UDB.tagRollbackPlan.rpRollbackErrorAll">
+            <summary>
+            Manual transaction will rollback only if all the processing statements are failed
+            </summary>
+        </member>
+        <member name="F:SocketProAdapter.UDB.tagRollbackPlan.rpRollbackAlways">
+            <summary>
+            Manual transaction will rollback always no matter what happens.
+            </summary>
+        </member>
+        <member name="F:SocketProAdapter.UDB.tagUpdateEvent.ueInsert">
+            <summary>
+            An event for inserting a record into a table
+            </summary>
+        </member>
+        <member name="F:SocketProAdapter.UDB.tagUpdateEvent.ueUpdate">
+            <summary>
+            An event for updating a record of a table
+            </summary>
+        </member>
+        <member name="F:SocketProAdapter.UDB.tagUpdateEvent.ueDelete">
+            <summary>
+            An event for deleting a record from a table
+            </summary>
+        </member>
+        <member name="F:SocketProAdapter.UDB.DB_CONSTS.idOpen">
+            <summary>
+            Async database client/server just requires the following request identification numbers 
+            </summary>
+        </member>
+        <member name="F:SocketProAdapter.UDB.DB_CONSTS.idDBUpdate">
+            <summary>
+            the request identification numbers used for message push from server to client
+            </summary>
+        </member>
+        <member name="F:SocketProAdapter.UDB.DB_CONSTS.idBeginRows">
+            <summary>
+            Internal request/response identification numbers used for data communication between client and server
+            </summary>
+        </member>
+        <member name="F:SocketProAdapter.UDB.DB_CONSTS.DEFAULT_BIG_FIELD_CHUNK_SIZE">
+            <summary>
+            Whenever a data size in bytes is about twice larger than the defined value,
+            the data will be treated in large object and transferred in chunks for reducing memory foot print
+            </summary>
+        </member>
+        <member name="F:SocketProAdapter.UDB.DB_CONSTS.DEFAULT_RECORD_BATCH_SIZE">
+            <summary>
+            A record data size in bytes is approximately equal to or slightly larger than the defined constant
+            </summary>
+        </member>
+        <member name="F:SocketProAdapter.UDB.DB_CONSTS.ENABLE_TABLE_UPDATE_MESSAGES">
+            <summary>
+            A flag used with idOpen for tracing database table update events
+            </summary>
+        </member>
+        <member name="F:SocketProAdapter.UDB.DB_CONSTS.STREAMING_SQL_CHAT_GROUP_ID">
+            <summary>
+            A chat group id used at SocketPro server side for notifying database events from server to connected clients
             </summary>
         </member>
     </members>

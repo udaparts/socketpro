@@ -153,14 +153,13 @@ class CAsyncServiceHandler(object):
                         self._m_kvCallback_.append(kv)
             if ccl.SendRequest(h, reqId, bytes, q.GetSize()):
                 return True
-            if kv:
-                with self._lock_:
-                    if batching:
-                        self._m_kvBatching_.pop()
-                    else:
-                        self._m_kvCallback_.pop()
-            return False
-
+        if kv:
+            with self._lock_:
+                if batching:
+                    self._m_kvBatching_.pop()
+                else:
+                    self._m_kvCallback_.pop()
+        return False
 
     @property
     def RequestsQueued(self):
