@@ -182,22 +182,22 @@ namespace SPA {
              */
             bool Dequeue(const char *key, DDequeue d, unsigned int timeout = 0, DDiscarded discarded = nullptr) {
                 ResultHandler rh;
-				{
-					CAutoLock al(m_csQ);
-					m_keyDequeue = key ? key : "";
-					if (d) {
-						rh = [d](CAsyncResult & ar) {
-							UINT64 messageCount, fileSize, ret;
-							ar >> messageCount >> fileSize >> ret;
-							unsigned int messages = (unsigned int) ret;
-							unsigned int bytes = (unsigned int) (ret >> 32);
-							d(messageCount, fileSize, messages, bytes);
-						};
-						m_dDequeue = d;
-					} else {
-						m_dDequeue = DDequeue();
-					}
-				}
+                {
+                    CAutoLock al(m_csQ);
+                    m_keyDequeue = key ? key : "";
+                    if (d) {
+                        rh = [d](CAsyncResult & ar) {
+                            UINT64 messageCount, fileSize, ret;
+                            ar >> messageCount >> fileSize >> ret;
+                            unsigned int messages = (unsigned int) ret;
+                            unsigned int bytes = (unsigned int) (ret >> 32);
+                            d(messageCount, fileSize, messages, bytes);
+                        };
+                        m_dDequeue = d;
+                    } else {
+                        m_dDequeue = DDequeue();
+                    }
+                }
                 return SendRequest(Queue::idDequeue, key, timeout, rh, discarded);
             }
 
