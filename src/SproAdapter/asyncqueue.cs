@@ -350,11 +350,11 @@ namespace SocketProAdapter
 
             public bool Enqueue<T0, T1>(byte[] key, ushort idMessage, T0 t0, T1 t1)
             {
-                return Enqueue(key, idMessage, t0, t1, (DEnqueue)null, ( DDiscarded)null);
+                return Enqueue(key, idMessage, t0, t1, (DEnqueue)null, (DDiscarded)null);
             }
             public bool Enqueue<T0, T1>(byte[] key, ushort idMessage, T0 t0, T1 t1, DEnqueue e)
             {
-                return Enqueue(key, idMessage, t0, t1, e, ( DDiscarded)null);
+                return Enqueue(key, idMessage, t0, t1, e, (DDiscarded)null);
             }
             public bool Enqueue<T0, T1>(byte[] key, ushort idMessage, T0 t0, T1 t1, DEnqueue e, DDiscarded discarded)
             {

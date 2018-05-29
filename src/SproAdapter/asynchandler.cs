@@ -2001,12 +2001,12 @@ namespace SocketProAdapter
                                 m_kvCallback.AddToBack(kv);
                             }
                         }
-                    }
-                    unsafe
-                    {
-                        fixed (byte* buffer = data)
+                        unsafe
                         {
-                            sent = (ClientCoreLoader.SendRequest(h, reqId, buffer, len) != 0);
+                            fixed (byte* buffer = data)
+                            {
+                                sent = (ClientCoreLoader.SendRequest(h, reqId, buffer, len) != 0);
+                            }
                         }
                     }
                     if (sent)
