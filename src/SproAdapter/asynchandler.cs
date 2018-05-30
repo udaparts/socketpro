@@ -1733,15 +1733,15 @@ namespace SocketProAdapter {
                 IntPtr h = m_ClientSocket.Handle;
                 if (data != null && len > (uint)data.Length)
                     len = (uint)data.Length;
-                lock (m_csSend) {
-                    if (ash != null || discarded != null || exception != null) {
-                        rcb = new CResultCb();
-                        rcb.AsyncResultHandler = ash;
-                        rcb.Discarded = discarded;
-                        rcb.ExceptionFromServer = exception;
-                        KeyValuePair<ushort, CResultCb> kv = new KeyValuePair<ushort, CResultCb>(reqId, rcb);
+                if (ash != null || discarded != null || exception != null) {
+                    rcb = new CResultCb();
+                    rcb.AsyncResultHandler = ash;
+                    rcb.Discarded = discarded;
+                    rcb.ExceptionFromServer = exception;
+                    KeyValuePair<ushort, CResultCb> kv = new KeyValuePair<ushort, CResultCb>(reqId, rcb);
+                    batching = ClientCoreLoader.IsBatching(h);
+                    lock (m_csSend) {
                         lock (m_cs) {
-                            batching = ClientCoreLoader.IsBatching(h);
                             if (batching != 0) {
                                 m_kvBatching.AddToBack(kv);
                             } else {
@@ -1752,6 +1752,12 @@ namespace SocketProAdapter {
                             fixed (byte* buffer = data) {
                                 sent = (ClientCoreLoader.SendRequest(h, reqId, buffer, len) != 0);
                             }
+                        }
+                    }
+                } else {
+                    unsafe {
+                        fixed (byte* buffer = data) {
+                            sent = (ClientCoreLoader.SendRequest(h, reqId, buffer, len) != 0);
                         }
                     }
                 }

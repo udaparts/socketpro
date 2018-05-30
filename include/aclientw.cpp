@@ -217,20 +217,20 @@ namespace SPA
             bool batching = false;
             bool sent = false;
             USocket_Client_Handle h = GetClientSocketHandle();
-            {
+            if (rh || discarded || serverException) {
+                p = Reuse();
+                if (p) {
+                    p->first = reqId;
+                    p->second.AsyncResultHandler = rh;
+                    p->second.Discarded = discarded;
+                    p->second.ExceptionFromServer = serverException;
+                } else {
+                    p = new std::pair<unsigned short, CResultCb>(reqId, CResultCb(rh, discarded, serverException));
+                }
+                batching = ClientCoreLoader.IsBatching(h);
                 CAutoLock alSend(m_csSend);
-                if (rh || discarded || serverException) {
-                    p = Reuse();
-                    if (p) {
-                        p->first = reqId;
-                        p->second.AsyncResultHandler = rh;
-                        p->second.Discarded = discarded;
-                        p->second.ExceptionFromServer = serverException;
-                    } else {
-                        p = new std::pair<unsigned short, CResultCb>(reqId, CResultCb(rh, discarded, serverException));
-                    }
+                {
                     CAutoLock al(m_cs);
-                    batching = ClientCoreLoader.IsBatching(h);
                     if (batching) {
                         if (m_vBatching.GetTailSize() < sizeof (PRR_PAIR) && m_vBatching.GetHeadPosition() > m_vBatching.GetSize()) {
                             m_vBatching.SetHeadPosition();
@@ -244,6 +244,8 @@ namespace SPA
                         m_vCallback << p;
                     }
                 }
+                sent = ClientCoreLoader.SendRequest(h, reqId, pBuffer, size);
+            } else {
                 sent = ClientCoreLoader.SendRequest(h, reqId, pBuffer, size);
             }
             if (!sent) {
