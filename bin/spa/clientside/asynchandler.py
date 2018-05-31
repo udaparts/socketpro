@@ -142,15 +142,18 @@ class CAsyncServiceHandler(object):
             return False
         kv = None
         batching = False
-        with self._lock_Send_:
-            if arh or discarded or efs:
-                kv = (reqId, CResultCb(arh, discarded, efs))
+        if arh or discarded or efs:
+            kv = (reqId, CResultCb(arh, discarded, efs))
+            batching = ccl.IsBatching(h)
+            with self._lock_Send_:
                 with self._lock_:
-                    batching = ccl.IsBatching(h)
                     if batching:
                         self._m_kvBatching_.append(kv)
                     else:
                         self._m_kvCallback_.append(kv)
+                if ccl.SendRequest(h, reqId, bytes, q.GetSize()):
+                    return True
+        else:
             if ccl.SendRequest(h, reqId, bytes, q.GetSize()):
                 return True
         if kv:
