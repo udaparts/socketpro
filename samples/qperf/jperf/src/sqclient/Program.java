@@ -53,6 +53,9 @@ public class Program {
                 if (messageCount > 0) {
                     //there are more messages left at server queue, we re-send a request to dequeue
                     sq.Dequeue(TEST_QUEUE_KEY, sq.getLastDequeueCallback());
+                } else {
+                    //set dequeue callback to null and stop dequeuing
+                    sq.setLastDequeueCallback(null);
                 }
             }
         };

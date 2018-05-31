@@ -18,8 +18,8 @@ void DequeueFromServer(CMyPool::PHandler sq);
 int main(int argc, char* argv[]) {
     CConnectionContext cc;
     cc.Port = 20901;
-    cc.UserId = L"MyUserId";
-    cc.Password = L"MyPassword";
+    cc.UserId = L"root";
+    cc.Password = L"Smash123";
     std::cout << "Tell me the remote server address: " << std::endl;
     std::getline(std::cin, cc.Host);
     CMyPool spSq;
@@ -143,6 +143,9 @@ void DequeueFromServer(CMyPool::PHandler sq) {
         if (messageCount > 0) {
             //there are more messages left at server queue, we re-send a request to dequeue
             sq->Dequeue(TEST_QUEUE_KEY, sq->GetLastDequeueCallback());
+        } else {
+            //set dequeue callback to null and stop dequeuing
+            sq->SetLastDequeueCallback(nullptr);
         }
     };
     sq->ResultReturned = [&messages_dequeued](CAsyncServiceHandler *sender, unsigned short reqId, CUQueue & q) -> bool {

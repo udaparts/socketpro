@@ -90,6 +90,11 @@ namespace SocketProAdapter {
                         return m_dDequeue;
                     }
                 }
+                set {
+                    lock (m_csQ) {
+                        m_dDequeue = value;
+                    }
+                }
             }
 
             private DAsyncResultHandler GetRH(DEnqueue e) {

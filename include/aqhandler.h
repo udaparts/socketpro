@@ -43,11 +43,19 @@ namespace SPA {
             }
 
             /**
-             * Last dequeue callback
+             * Get last dequeue callback
              */
             DDequeue GetLastDequeueCallback() {
                 CAutoLock al(m_csQ);
                 return m_dDequeue;
+            }
+
+            /**
+             * set last dequeue callback
+             */
+            void SetLastDequeueCallback(DDequeue deq = nullptr) {
+                CAutoLock al(m_csQ);
+                m_dDequeue = deq;
             }
 
             /**

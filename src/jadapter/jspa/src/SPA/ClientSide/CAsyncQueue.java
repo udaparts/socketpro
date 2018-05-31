@@ -120,6 +120,18 @@ public class CAsyncQueue extends CAsyncServiceHandler {
         }
     }
 
+    /**
+     * Set dequeue callback
+     *
+     * @param deq a callback for monitoring queue attributes at a server queue
+     * file
+     */
+    public final void setLastDequeueCallback(DDequeue deq) {
+        synchronized (m_csQ) {
+            m_dDequeue = deq;
+        }
+    }
+
     private DAsyncResultHandler GetRH(final DEnqueue e) {
         if (e != null) {
             return new CAsyncServiceHandler.DAsyncResultHandler() {
