@@ -5,12 +5,8 @@ using SocketProAdapter.ClientSide;
 using System.Text;
 
 class Program {
-    static byte[] TEST_QUEUE_KEY;
+    static byte[] TEST_QUEUE_KEY = System.Text.Encoding.UTF8.GetBytes("qperf");
     const ushort idMessage = (ushort)tagBaseRequestID.idReservedTwo + 128;
-
-    static Program() {
-        TEST_QUEUE_KEY = System.Text.Encoding.UTF8.GetBytes("qperf");
-    }
 
     static void EnqueueToServer(CAsyncQueue sq, string message, int cycles) {
         Console.WriteLine("Going to enqueue " + cycles + " messages ......");
@@ -18,7 +14,7 @@ class Program {
         System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
         sw.Start();
         for (int n = 0; n < cycles; ++n) {
-            sq.Enqueue(TEST_QUEUE_KEY, idMessage, utf8, null);
+            sq.Enqueue(TEST_QUEUE_KEY, idMessage, utf8);
         }
         sq.WaitAll();
         sw.Stop();
@@ -35,15 +31,11 @@ class Program {
             for (int n = 0; n < cycles; ++n) {
                 CAsyncQueue.BatchMessage(idMessage, utf8, q);
                 if (q.GetSize() >= batchSize) {
-                    sq.EnqueueBatch(TEST_QUEUE_KEY, q, (res) => {
-
-                    });
+                    sq.EnqueueBatch(TEST_QUEUE_KEY, q);
                 }
             }
             if (q.GetSize() > 0) {
-                sq.EnqueueBatch(TEST_QUEUE_KEY, q, (res) => {
-
-                });
+                sq.EnqueueBatch(TEST_QUEUE_KEY, q);
             }
             sq.WaitAll();
             sw.Stop();
@@ -83,7 +75,7 @@ class Program {
         sw.Start();
         bool ok = sq.Dequeue(TEST_QUEUE_KEY, d);
 
-        //optionally, add one or two extra to improve processing concurrency at both client and server sides for better performance and through-output
+        //optionally, add one or two extra to improve processing concurrency at both client and server sides for better performance and throughput
         ok = sq.Dequeue(TEST_QUEUE_KEY, d);
         ok = sq.Dequeue(TEST_QUEUE_KEY, d);
         sq.WaitAll();
@@ -94,11 +86,10 @@ class Program {
     static void Main(string[] args) {
         Console.WriteLine("Remote host: ");
         string host = Console.ReadLine();
-        CConnectionContext cc = new CConnectionContext(host, 20901, "async_queue_client", "pwd_for_async_queue");
+        CConnectionContext cc = new CConnectionContext(host, 20902, "root", "Smash123");
         using (CSocketPool<CAsyncQueue> spAq = new CSocketPool<CAsyncQueue>()) {
             if (!spAq.StartSocketPool(cc, 1, 1)) {
-                Console.WriteLine("Failed in connecting to remote async queue server");
-                Console.WriteLine("Press any key to close the application ......");
+                Console.WriteLine("Failed in connecting to remote async queue server, and press any key to close the application ......");
                 Console.Read();
                 return;
             }
@@ -109,7 +100,7 @@ class Program {
             EnqueueToServer(sq, s4, 200000000);
             DequeueFromServer(sq);
 
-            //Manually batching messages improves throughput for high volume of small messages
+            //Manually batching messages improves throughput for high volume of tiny messages
             EnqueueToServerBatch(sq, s4, 200000000, 8 * 1024);
             DequeueFromServer(sq);
 
@@ -126,7 +117,7 @@ class Program {
             EnqueueToServer(sq, s, 50000000);
             DequeueFromServer(sq);
 
-            //Batching messages improves thorughput for high volume of small massages
+            //Batching messages improves throughput for high volume of middle size massages
             EnqueueToServerBatch(sq, s, 50000000, 8 * 1024);
             DequeueFromServer(sq);
 
@@ -145,7 +136,7 @@ class Program {
             EnqueueToServer(sq, s10240, 1000000);
             DequeueFromServer(sq);
 
-            Console.WriteLine("Press key ENTER to complete dequeuing messages from server ......");
+            Console.WriteLine("Press key ENTER to complete the application ......");
             Console.ReadLine();
         }
     }
