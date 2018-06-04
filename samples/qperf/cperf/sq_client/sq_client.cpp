@@ -38,7 +38,7 @@ int main(int argc, char* argv[]) {
     EnqueueToServer(sq, s4, wan ? 10000000 : 200000000);
     DequeueFromServer(sq);
 
-    //batching small messages improves throughput
+    //batching tiny messages improves throughput
     EnqueueToServerBatch(sq, s4, wan ? 10000000 : 200000000, 1024 * 8);
     DequeueFromServer(sq);
 
@@ -54,7 +54,7 @@ int main(int argc, char* argv[]) {
     EnqueueToServer(sq, s, wan ? 2500000 : 50000000);
     DequeueFromServer(sq);
 
-    //batching small messages improves throughput
+    //batching middle messages improves throughput
     EnqueueToServerBatch(sq, s, wan ? 2500000 : 50000000, 1024 * 8);
     DequeueFromServer(sq);
 

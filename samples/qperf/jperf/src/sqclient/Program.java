@@ -112,7 +112,7 @@ public class Program {
         EnqueueToServer(sq, s4, 200000000);
         DequeueFromServer(sq);
 
-        //Manually batching messages improves throughput for high volume of small messages
+        //Manually batching improves throughput for high volume of tiny messages
         EnqueueToServerBatch(sq, s4, 200000000, 8 * 1024);
         DequeueFromServer(sq);
 
@@ -120,7 +120,7 @@ public class Program {
         EnqueueToServer(sq, s32, 200000000);
         DequeueFromServer(sq);
 
-        //Manually batching messages improves throughput for high volume of small messages
+        //Manually batching improves throughput for high volume of small messages
         EnqueueToServerBatch(sq, s32, 200000000, 8 * 1024);
         DequeueFromServer(sq);
 
@@ -128,7 +128,7 @@ public class Program {
         EnqueueToServer(sq, s, 50000000);
         DequeueFromServer(sq);
 
-        //Manually batching messages improves throughput for high volume of small messages
+        //Manually batching improves throughput for high volume of middle messages
         EnqueueToServerBatch(sq, s, 50000000, 8 * 1024);
         DequeueFromServer(sq);
 
