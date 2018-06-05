@@ -750,17 +750,11 @@ namespace SPA
                 return false;
             m_pMysql.reset(st_session, [](MYSQL_SESSION mysql) {
                 if (mysql) {
-                    int fail = srv_session_detach(mysql);
-                    //assert(!fail);
-                    fail = srv_session_close(mysql);
+                    int fail = srv_session_close(mysql);
                     assert(!fail);
                 }
             });
-            int fail = srv_session_info_set_connection_type(st_session, VIO_TYPE_PLUGIN);
-            assert(!fail);
-            if (fail)
-                return false;
-            fail = thd_get_security_context(srv_session_info_get_thd(st_session), &m_sc);
+            int fail = thd_get_security_context(srv_session_info_get_thd(st_session), &m_sc);
             assert(!fail);
             if (fail)
                 return false;
