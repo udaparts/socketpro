@@ -731,7 +731,6 @@ namespace SPA
             CMysqlImpl *impl = (CMysqlImpl *) ctx;
             if (!impl)
                 return;
-            ++impl->m_fails;
             impl->m_sql_errno = (int) sql_errno;
             impl->m_err_msg = SPA::Utilities::ToWide(err_msg);
             if (sqlstate)
@@ -1229,7 +1228,6 @@ namespace SPA
                 m_fails = 0;
                 m_oks = 0;
             }
-
         }
 
         bool CMysqlImpl::SendRows(CUQueue& sb, bool transferring) {
@@ -1363,6 +1361,7 @@ namespace SPA
                 errMsg = m_err_msg;
                 affected = 0;
                 vtId = (SPA::UINT64)m_last_insert_id;
+                ++m_fails;
             } else if (fail) {
                 errMsg = SERVICE_COMMAND_ERROR;
                 res = SPA::Mysql::ER_SERVICE_COMMAND_ERROR;
@@ -1371,6 +1370,7 @@ namespace SPA
                 affected = (SPA::INT64) m_affected_rows;
                 if (lastInsertId)
                     vtId = (SPA::UINT64)m_last_insert_id;
+                ++m_oks;
             }
             fail_ok = ((m_fails - fails) << 32);
             fail_ok += (unsigned int) (m_oks - oks);
@@ -1625,6 +1625,7 @@ namespace SPA
                     }
                     if (m_last_insert_id && lastInsertId)
                         vtId = (SPA::UINT64)m_last_insert_id;
+                    ++m_fails;
                 } else if (fail) {
                     if (!res) {
                         errMsg = SERVICE_COMMAND_ERROR;
