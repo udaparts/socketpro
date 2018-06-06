@@ -1440,7 +1440,6 @@ namespace SPA
 
         int CMysqlImpl::SetParams(int row, std::wstring & errMsg) {
             int res = 0;
-            errMsg.clear();
             PS_PARAM *pParam = m_stmt.m_pParam.get();
             for (size_t n = 0; n < m_stmt.parameters; ++n, ++pParam) {
                 pParam->null_bit = false;
@@ -1608,6 +1607,7 @@ namespace SPA
                 if (ret) {
                     if (!res)
                         res = ret;
+                    ++m_fails;
                     continue;
                 }
                 cmd.com_stmt_execute.stmt_id = m_stmt.stmt_id;
