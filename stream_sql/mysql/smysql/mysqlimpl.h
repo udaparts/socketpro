@@ -141,7 +141,6 @@ namespace SPA {
 
             //parameterized statement
             Stmt m_stmt;
-            bool m_bExecutingParameters;
 
             CDBColumnInfoArray m_vColInfo;
             bool m_NoSending;

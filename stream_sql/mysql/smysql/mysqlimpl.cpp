@@ -50,7 +50,7 @@ namespace SPA
 
         CMysqlImpl::CMysqlImpl()
         : m_EnableMessages(false), m_oks(0), m_fails(0), m_ti(tiUnspecified),
-        m_qSend(*m_sb), m_bExecutingParameters(false), m_NoSending(false), m_sql_errno(0),
+        m_qSend(*m_sb), m_NoSending(false), m_sql_errno(0),
         m_sc(nullptr), m_sql_resultcs(nullptr), m_ColIndex(0), m_sql_flags(0), m_affected_rows(0),
         m_last_insert_id(0), m_server_status(0), m_statement_warn_count(0), m_indexCall(0),
         m_bBlob(false), m_cmd(COM_SLEEP), m_NoRowset(false) {
@@ -719,8 +719,6 @@ namespace SPA
             impl->m_statement_warn_count = statement_warn_count;
             impl->m_affected_rows += affected_rows;
             impl->m_last_insert_id = last_insert_id;
-            if (!impl->m_bExecutingParameters)
-                ++impl->m_oks;
             if (message)
                 impl->m_err_msg = SPA::Utilities::ToWide(message);
             else
@@ -1094,7 +1092,6 @@ namespace SPA
         }
 
         void CMysqlImpl::OnBaseRequestArrive(unsigned short requestId) {
-            m_bExecutingParameters = false;
             switch (requestId) {
                 case idCancel:
 #ifndef NDEBUG
@@ -1593,7 +1590,6 @@ namespace SPA
                 fail_ok <<= 32;
                 return;
             }
-            m_bExecutingParameters = true;
             fail_ok = 0;
             res = 0;
             UINT64 fails = m_fails;
@@ -1642,7 +1638,6 @@ namespace SPA
                     }
                 }
             }
-            m_bExecutingParameters = false;
             fail_ok = ((m_fails - fails) << 32);
             fail_ok += (unsigned int) (m_oks - oks);
         }
