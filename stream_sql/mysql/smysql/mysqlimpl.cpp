@@ -1544,7 +1544,7 @@ namespace SPA
                         break;
                     default:
                         assert(false); //not implemented
-                        if (!res) {
+                        if (!res && !errMsg.size()) {
                             res = SPA::Mysql::ER_DATA_TYPE_NOT_SUPPORTED;
                             errMsg = DATA_TYPE_NOT_SUPPORTED;
                         }
