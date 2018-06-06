@@ -38,7 +38,7 @@ namespace SPA {
 
             struct Stmt {
 
-                Stmt(unsigned long id, bool ok, size_t params = 0) : stmt_id(id), parameters(params) {
+                Stmt() : stmt_id(0), parameters(0) {
                 }
                 unsigned long stmt_id;
                 size_t parameters;

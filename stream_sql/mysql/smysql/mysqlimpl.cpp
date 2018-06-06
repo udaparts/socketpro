@@ -50,7 +50,7 @@ namespace SPA
 
         CMysqlImpl::CMysqlImpl()
         : m_EnableMessages(false), m_oks(0), m_fails(0), m_ti(tiUnspecified),
-        m_qSend(*m_sb), m_stmt(0, false), m_bExecutingParameters(false), m_NoSending(false), m_sql_errno(0),
+        m_qSend(*m_sb), m_bExecutingParameters(false), m_NoSending(false), m_sql_errno(0),
         m_sc(nullptr), m_sql_resultcs(nullptr), m_ColIndex(0), m_sql_flags(0), m_affected_rows(0),
         m_last_insert_id(0), m_server_status(0), m_statement_warn_count(0), m_indexCall(0),
         m_bBlob(false), m_cmd(COM_SLEEP), m_NoRowset(false) {
@@ -1084,13 +1084,12 @@ namespace SPA
                 assert(!fail);
                 m_stmt.m_pParam.reset();
             }
-            m_stmt.stmt_id = (~0);
+            m_stmt.stmt_id = 0;
         }
 
         void CMysqlImpl::CleanDBObjects() {
             CloseStmt();
             m_pMysql.reset();
-            m_stmt.stmt_id = 0;
             m_vParam.clear();
             ResetMemories();
         }
@@ -1409,7 +1408,7 @@ namespace SPA
                 res = SPA::Mysql::ER_SERVICE_COMMAND_ERROR;
             } else {
                 parameters = (unsigned int) m_stmt.parameters;
-                if (parameters == 0) {
+                if (parameters == 0 || m_stmt.stmt_id == 0) {
                     res = SPA::Mysql::ER_NO_PARAMETER_SPECIFIED;
                     errMsg = NO_PARAMETER_SPECIFIED;
                     CloseStmt();
@@ -1583,7 +1582,7 @@ namespace SPA
                 res = SPA::Mysql::ER_BAD_PARAMETER_DATA_ARRAY_SIZE;
                 errMsg = BAD_PARAMETER_DATA_ARRAY_SIZE;
                 m_fails += (m_vParam.size() / m_stmt.parameters);
-                fail_ok = 1;
+                fail_ok = (m_vParam.size() / m_stmt.parameters);
                 fail_ok <<= 32;
                 return;
             }
@@ -1591,7 +1590,7 @@ namespace SPA
                 res = SPA::Mysql::ER_NO_DB_OPENED_YET;
                 errMsg = NO_DB_OPENED_YET;
                 m_fails += (m_vParam.size() / m_stmt.parameters);
-                fail_ok = 1;
+                fail_ok = (m_vParam.size() / m_stmt.parameters);
                 fail_ok <<= 32;
                 return;
             }
@@ -1620,7 +1619,6 @@ namespace SPA
                 m_cmd = COM_STMT_EXECUTE;
                 int fail = command_service_run_command(m_pMysql.get(), COM_STMT_EXECUTE, &cmd, &my_charset_utf8_general_ci, &m_sql_cbs, CS_BINARY_REPRESENTATION, this);
                 if (m_sql_errno) {
-                    ++m_fails;
                     if (!res) {
                         res = m_sql_errno;
                         errMsg = m_err_msg;
