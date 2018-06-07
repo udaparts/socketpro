@@ -1140,7 +1140,7 @@ namespace SPA
                 }
                 if (sql.size())
                     sql += ";";
-                sql += "SET AUTOCOMMIT=0;START TRANSACTION";
+                sql += "START TRANSACTION";
                 COM_DATA cmd;
                 ::memset(&cmd, 0, sizeof (cmd));
                 InitMysqlSession();
@@ -1205,7 +1205,6 @@ namespace SPA
                     break;
             }
             std::string sql(rollback ? "ROLLBACK" : "COMMIT");
-            sql += ";SET AUTOCOMMIT=1";
             COM_DATA cmd;
             ::memset(&cmd, 0, sizeof (cmd));
             InitMysqlSession();
