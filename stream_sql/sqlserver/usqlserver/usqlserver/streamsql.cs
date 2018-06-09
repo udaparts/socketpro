@@ -950,41 +950,23 @@ class CStreamSql : CClientPeer
     [RequestAttr(DB_CONSTS.idBeginTrans, true)]
     private int BeginTrans(int isolation, string strConnection, uint flags, out int res, out string errMsg)
     {
+        res = 0;
+        errMsg = m_conn.Database;
+        if (strConnection == null)
+            strConnection = "";
         int ms = (int)tagManagementSystem.msMsSQL;
-        if (m_conn.State != ConnectionState.Open)
+        if (m_defaultDB.Length == 0 && strConnection.Length > 0)
         {
-            m_trans = null;
-            try
-            {
-                m_conn.Open();
-                res = 0;
-                errMsg = "";
-            }
-            catch (SqlException err)
-            {
-                res = err.ErrorCode;
-                errMsg = err.Message;
-            }
-            catch (Exception err)
-            {
-                res = -1;
-                errMsg = err.Message;
-            }
-            if (res != 0)
-                return ms;
             ms = Open(strConnection, flags, out res, out errMsg);
             if (res != 0)
                 return ms;
+            errMsg = strConnection;
         }
-        else if (m_trans != null)
+        if (m_trans != null)
         {
             res = -2;
             errMsg = "Transaction already started";
-        }
-        else
-        {
-            res = 0;
-            errMsg = m_defaultDB;
+            return ms;
         }
         try
         {
@@ -1042,18 +1024,17 @@ class CStreamSql : CClientPeer
     private int Open(string strConnection, uint flags, out int res, out string errMsg)
     {
         res = 0;
-        errMsg = "";
+        m_defaultDB = m_conn.Database;
         if ((flags & DB_CONSTS.ENABLE_TABLE_UPDATE_MESSAGES) == DB_CONSTS.ENABLE_TABLE_UPDATE_MESSAGES)
             m_EnableMessages = Push.Subscribe(DB_CONSTS.STREAMING_SQL_CHAT_GROUP_ID);
-        SqlCommand cmd = new SqlCommand("select DB_NAME()", m_conn);
-        m_defaultDB = m_conn.Database;
         if (strConnection != null && strConnection.Length > 0)
         {
-            string sql = "USE " + strConnection;
             try
             {
-                cmd = new SqlCommand(sql, m_conn);
+                string sql = "USE " + strConnection;
+                SqlCommand cmd = new SqlCommand(sql, m_conn);
                 int affected = cmd.ExecuteNonQuery();
+                errMsg = strConnection;
             }
             catch (SqlException err)
             {
@@ -1066,11 +1047,13 @@ class CStreamSql : CClientPeer
                 errMsg = err.Message;
             }
         }
-        if (res == 0)
+        else
+        {
+            errMsg = "";
             errMsg = m_defaultDB;
+        }
         return (int)tagManagementSystem.msMsSQL;
     }
-
 
     [RequestAttr(DB_CONSTS.idStartBLOB)]
     private void StartBLOB(uint lenExpected)
@@ -1162,7 +1145,6 @@ class CStreamSql : CClientPeer
                     errMsg = err.Message;
                     res = -1;
                 }
-                finally { }
             }
         }
         ResetMemories();
@@ -1171,6 +1153,7 @@ class CStreamSql : CClientPeer
             Push.Unsubscribe();
             m_EnableMessages = false;
         }
+        m_defaultDB = "";
         return errMsg;
     }
 
