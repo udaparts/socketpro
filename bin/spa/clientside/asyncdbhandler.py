@@ -32,6 +32,7 @@ class CAsyncDBHandler(CAsyncServiceHandler):
         self._mapParameterCall = {}
         self._bCallReturn = False
         self._csOneSending = threading.Lock()
+        self._queueOk = False
 
     def OnAllProcessed(self):
         with self._csDB:
@@ -365,13 +366,11 @@ class CAsyncDBHandler(CAsyncServiceHandler):
                 q.SaveInt(isolation).SaveString(self._strConnection).SaveUInt(self._flags)
                 self._deqResult.append(cb)
             #associate begin transaction with underlying client persistent message queue
-            queueOk = self.AttachedClientSocket.ClientQueue.StartJob()
+            self._queueOk = self.AttachedClientSocket.ClientQueue.StartJob()
             ok = self.SendRequest(DB_CONSTS.idBeginTrans, q, None, discarded)
             if not ok:
                 with self._csDB:
                     self._deqResult.remove(cb)
-                if (queueOk):
-                    self.AttachedClientSocket.ClientQueue.AbortJob()
         CScopeUQueue.Unlock(q)
         return ok
 
@@ -396,8 +395,10 @@ class CAsyncDBHandler(CAsyncServiceHandler):
                 self._deqResult.append(cb)
             ok = self.SendRequest(DB_CONSTS.idEndTrans, q, None, discarded)
             if ok:
-                #associate end transaction with underlying client persistent message queue
-                self.AttachedClientSocket.ClientQueue.EndJob()
+                if self._queueOk:
+                    #associate end transaction with underlying client persistent message queue
+                    self.AttachedClientSocket.ClientQueue.EndJob()
+                    self._queueOk = False
             else:
                 with self._csDB:
                     self._deqResult.remove(cb)

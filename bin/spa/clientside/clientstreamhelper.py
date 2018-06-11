@@ -18,6 +18,7 @@ class CContext(object):
         self.File = None
         self.Tried = False
         self.ErrMsg = ''
+        self.QueueOk = False
 
 class CStreamingFile(CAsyncServiceHandler):
     sidFile = BaseServiceID.sidReserved + 0x6FFFFFF3 # asynchronous file streaming service id
@@ -233,9 +234,7 @@ class CStreamingFile(CAsyncServiceHandler):
                         context.File.seek(0, io.SEEK_END)
                         context.FileSize = context.File.tell()
                         context.File.seek(0, io.SEEK_SET)
-                        cq = self.AttachedClientSocket.ClientQueue
-                        if cq.Available:
-                            cq.StartJob()
+                        context.QueueOk = self.AttachedClientSocket.ClientQueue.StartJob()
                         with CScopeUQueue() as q:
                             q.SaveString(context.FilePath).SaveUInt(context.Flags).SaveULong(context.FileSize)
                             if not self.SendRequest(CStreamingFile.idUpload, q, rh, context.Discarded, se):
@@ -266,9 +265,9 @@ class CStreamingFile(CAsyncServiceHandler):
                         context.Sent = True
                         if not self.SendRequest(CStreamingFile.idUploadCompleted, None, rh, context.Discarded, se):
                             return False
-                        cq = self.AttachedClientSocket.ClientQueue
-                        if cq.Available:
-                            cq.EndJob()
+                        if context.QueueOk:
+                            self.AttachedClientSocket.ClientQueue.EndJob()
+                            context.QueueOk = False
                     if sent_buffer_size >= 4 * CStreamingFile.STREAM_CHUNK_SIZE:
                         break
             else:

@@ -21,7 +21,7 @@ namespace SPA {
             : CAsyncServiceHandler(sid, cs),
             m_affected(-1), m_dbErrCode(0), m_lastReqId(0),
             m_indexRowset(0), m_indexProc(0), m_ms(msUnknown), m_flags(0),
-            m_parameters(0), m_outputs(0), m_bCallReturn(false) {
+            m_parameters(0), m_outputs(0), m_bCallReturn(false), m_queueOk(false) {
                 m_Blob.Utf8ToW(true);
             }
 
@@ -31,7 +31,7 @@ namespace SPA {
             : CAsyncServiceHandler(serviceId, cs),
             m_affected(-1), m_dbErrCode(0), m_lastReqId(0),
             m_indexRowset(0), m_indexProc(0), m_ms(msUnknown), m_flags(0),
-            m_parameters(0), m_outputs(0), m_bCallReturn(false) {
+            m_parameters(0), m_outputs(0), m_bCallReturn(false), m_queueOk(false) {
                 m_Blob.Utf8ToW(true);
             }
 
@@ -532,9 +532,9 @@ namespace SPA {
                     }
                 };
                 //associate begin transaction with underlying client persistent message queue
-                bool queueOk = GetAttachedClientSocket()->GetClientQueue().StartJob();
+                m_queueOk = GetAttachedClientSocket()->GetClientQueue().StartJob();
                 bool ok = SendRequest(idBeginTrans, sb->GetBuffer(), sb->GetSize(), arh, discarded, nullptr);
-                if (!ok && queueOk) {
+                if (!ok && m_queueOk) {
                     GetAttachedClientSocket()->GetClientQueue().AbortJob();
                 }
                 return ok;
@@ -570,8 +570,11 @@ namespace SPA {
                 CAutoLock alOne(m_csOneSending);
 
                 if (SendRequest(idEndTrans, sb->GetBuffer(), sb->GetSize(), arh, discarded, nullptr)) {
-                    //associate end transaction with underlying client persistent message queue
-                    GetAttachedClientSocket()->GetClientQueue().EndJob();
+                    if (m_queueOk) {
+                        //associate end transaction with underlying client persistent message queue
+                        GetAttachedClientSocket()->GetClientQueue().EndJob();
+                        m_queueOk = false;
+                    }
                     return true;
                 }
                 return false;
@@ -799,6 +802,7 @@ namespace SPA {
             unsigned int m_outputs;
             bool m_bCallReturn;
             CUCriticalSection m_csOneSending;
+            bool m_queueOk;
         };
     } //namespace ClientSide
 } //namespace SPA
