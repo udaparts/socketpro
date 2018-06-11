@@ -280,6 +280,11 @@ public static class USqlStream
                     }
                     ++row;
                 }
+                if (dr != null)
+                {
+                    dr.Close();
+                    dr = null;
+                }
                 if (eq)
                     return p.Value + "." + p.Key;
             }

@@ -72,7 +72,8 @@ class CAsyncQueue(CAsyncServiceHandler):
         """
         :return: last dequeue callback
         """
-        return self._dDequeue_
+        with self._csQ_:
+            return self._dDequeue_
 
     def Enqueue(self, key, idMessage, q, e=None, discarded=None):
         """

@@ -398,7 +398,7 @@ namespace SocketProAdapter
             private uint m_indexProc = 0;
             private uint m_output = 0;
             private bool m_bCallReturn = false;
-
+            private bool m_queueOk = false;
             public ushort LastDBRequestId
             {
                 get
@@ -1192,8 +1192,12 @@ namespace SocketProAdapter
                         }
                     }, discarded, null))
                     {
-                        //associate end transaction with underlying client persistent message queue
-                        AttachedClientSocket.ClientQueue.EndJob();
+                        if (m_queueOk) 
+                        {
+                            //associate end transaction with underlying client persistent message queue
+                            AttachedClientSocket.ClientQueue.EndJob();
+                            m_queueOk = true;
+                        }
                         return true;
                     }
                     return false;
@@ -1253,7 +1257,7 @@ namespace SocketProAdapter
                         flags = m_flags;
                     }
                     //associate begin transaction with underlying client persistent message queue
-                    bool queueOk = AttachedClientSocket.ClientQueue.StartJob();
+                    m_queueOk = AttachedClientSocket.ClientQueue.StartJob();
                     bool ok = SendRequest(DB_CONSTS.idBeginTrans, (int)isolation, connection, flags, (ar) =>
                     {
                         int res, ms;
@@ -1276,7 +1280,7 @@ namespace SocketProAdapter
                             handler(this, res, errMsg);
                         }
                     }, discarded, null);
-                    if (!ok && queueOk)
+                    if (!ok && m_queueOk)
                     {
                         AttachedClientSocket.ClientQueue.AbortJob();
                     }

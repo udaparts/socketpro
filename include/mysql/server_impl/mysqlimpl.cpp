@@ -162,7 +162,7 @@ namespace SPA
             }
         }
 
-        CMysqlImpl::CMysqlImpl() : m_oks(0), m_fails(0), m_ti(tiUnspecified), m_pLib(nullptr), m_global(true), m_Blob(*m_sb), m_parameters(0), m_bCall(false) {
+        CMysqlImpl::CMysqlImpl() : m_oks(0), m_fails(0), m_ti(tiUnspecified), m_pLib(nullptr), m_global(true), m_Blob(*m_sb), m_parameters(0), m_bCall(false), m_bManual(false) {
             m_Blob.ToUtf8(true);
 #ifdef WIN32_64
             m_UQueue.TimeEx(true); //use high-precision datetime
@@ -325,6 +325,7 @@ namespace SPA
             m_oks = 0;
             m_fails = 0;
             m_ti = tiUnspecified;
+            m_bManual = false;
         }
 
         void CMysqlImpl::OnFastRequestArrive(unsigned short reqId, unsigned int len) {
@@ -484,6 +485,8 @@ namespace SPA
             m_vParam.clear();
             m_parameters = 0;
             ResetMemories();
+            m_bManual = false;
+            m_ti = tiUnspecified;
         }
 
         void CMysqlImpl::OnBaseRequestArrive(unsigned short requestId) {
@@ -502,10 +505,9 @@ namespace SPA
                             std::string sqlKill = "KILL QUERY " + std::to_string((UINT64) id);
                             status = m_pLib->mysql_query(mysql, sqlKill.c_str());
                         }
-                        if (m_ti == tiUnspecified)
+                        if (!m_bManual)
                             break;
                         status = m_pLib->mysql_rollback(mysql);
-                        m_ti = tiUnspecified;
                     } while (false);
                     break;
                 default:
@@ -515,7 +517,7 @@ namespace SPA
 
         void CMysqlImpl::BeginTrans(int isolation, const std::wstring &dbConn, unsigned int flags, int &res, std::wstring &errMsg, int &ms) {
             ms = msMysql;
-            if (m_ti != tiUnspecified || isolation == (int) tiUnspecified) {
+            if (m_bManual) {
                 errMsg = BAD_MANUAL_TRANSACTION_STATE;
                 res = SPA::Mysql::ER_BAD_MANUAL_TRANSACTION_STATE;
                 return;
@@ -525,8 +527,9 @@ namespace SPA
                 if (!m_pMysql) {
                     return;
                 }
-            } else {
-                std::string sql;
+            }
+            std::string sql;
+            if ((int) m_ti != isolation) {
                 switch ((tagTransactionIsolation) isolation) {
                     case tiReadUncommited:
                         sql = "SET SESSION TRANSACTION ISOLATION LEVEL READ UNCOMMITTED";
@@ -541,38 +544,39 @@ namespace SPA
                         sql = "SET SESSION TRANSACTION ISOLATION LEVEL SERIALIZABLE";
                         break;
                     default:
-                        break;
-                }
-                if (sql.size()) {
-                    int status = m_pLib->mysql_real_query(m_pMysql.get(), sql.c_str(), (unsigned long) sql.size());
-                    if (status) {
-                        res = m_pLib->mysql_errno(m_pMysql.get());
-                        errMsg = Utilities::ToWide(m_pLib->mysql_error(m_pMysql.get()));
+                        errMsg = BAD_MANUAL_TRANSACTION_STATE;
+                        res = SPA::Mysql::ER_BAD_MANUAL_TRANSACTION_STATE;
                         return;
-                    }
-                } else {
-                    //ignored for unsupported isolation level
                 }
-                my_bool fail = m_pLib->mysql_autocommit(m_pMysql.get(), 0);
-                if (!fail) {
-                    res = 0;
-                    m_fails = 0;
-                    m_oks = 0;
-                    m_ti = (tagTransactionIsolation) isolation;
-                    if (!m_global) {
-                        errMsg = dbConn;
-                    } else {
-                        errMsg = MYSQL_GLOBAL_CONNECTION_STRING;
-                    }
-                } else {
+            }
+            if (sql.size()) {
+                int status = m_pLib->mysql_real_query(m_pMysql.get(), sql.c_str(), (unsigned long) sql.size());
+                if (status) {
                     res = m_pLib->mysql_errno(m_pMysql.get());
                     errMsg = Utilities::ToWide(m_pLib->mysql_error(m_pMysql.get()));
+                    return;
                 }
+            }
+            my_bool fail = m_pLib->mysql_autocommit(m_pMysql.get(), 0);
+            if (!fail) {
+                res = 0;
+                m_fails = 0;
+                m_oks = 0;
+                m_ti = (tagTransactionIsolation) isolation;
+                if (!m_global) {
+                    errMsg = dbConn;
+                } else {
+                    errMsg = MYSQL_GLOBAL_CONNECTION_STRING;
+                }
+                m_bManual = true;
+            } else {
+                res = m_pLib->mysql_errno(m_pMysql.get());
+                errMsg = Utilities::ToWide(m_pLib->mysql_error(m_pMysql.get()));
             }
         }
 
         void CMysqlImpl::EndTrans(int plan, int &res, std::wstring & errMsg) {
-            if (m_ti == tiUnspecified) {
+            if (!m_bManual) {
                 errMsg = BAD_MANUAL_TRANSACTION_STATE;
                 res = SPA::Mysql::ER_BAD_MANUAL_TRANSACTION_STATE;
                 return;
@@ -623,10 +627,10 @@ namespace SPA
                 errMsg = Utilities::ToWide(m_pLib->mysql_error(m_pMysql.get()));
             } else {
                 res = 0;
-                m_ti = tiUnspecified;
                 m_fails = 0;
                 m_oks = 0;
             }
+            m_bManual = false;
         }
 
         void CMysqlImpl::ExecuteSqlWithoutRowset(int &res, std::wstring &errMsg, INT64 & affected) {

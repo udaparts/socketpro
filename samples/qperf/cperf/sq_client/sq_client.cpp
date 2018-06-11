@@ -18,8 +18,8 @@ void DequeueFromServer(CMyPool::PHandler sq);
 int main(int argc, char* argv[]) {
     CConnectionContext cc;
     cc.Port = 20901;
-    cc.UserId = L"MyUserId";
-    cc.Password = L"MyPassword";
+    cc.UserId = L"root";
+    cc.Password = L"Smash123";
     std::cout << "Tell me the remote server address: " << std::endl;
     std::getline(std::cin, cc.Host);
     CMyPool spSq;
@@ -38,7 +38,7 @@ int main(int argc, char* argv[]) {
     EnqueueToServer(sq, s4, wan ? 10000000 : 200000000);
     DequeueFromServer(sq);
 
-    //batching small messages improves throughput
+    //batching tiny messages improves throughput
     EnqueueToServerBatch(sq, s4, wan ? 10000000 : 200000000, 1024 * 8);
     DequeueFromServer(sq);
 
@@ -54,7 +54,7 @@ int main(int argc, char* argv[]) {
     EnqueueToServer(sq, s, wan ? 2500000 : 50000000);
     DequeueFromServer(sq);
 
-    //batching small messages improves throughput
+    //batching middle messages improves throughput
     EnqueueToServerBatch(sq, s, wan ? 2500000 : 50000000, 1024 * 8);
     DequeueFromServer(sq);
 
@@ -143,6 +143,9 @@ void DequeueFromServer(CMyPool::PHandler sq) {
         if (messageCount > 0) {
             //there are more messages left at server queue, we re-send a request to dequeue
             sq->Dequeue(TEST_QUEUE_KEY, sq->GetLastDequeueCallback());
+        } else {
+            //set dequeue callback to null and stop dequeuing
+            sq->SetLastDequeueCallback(nullptr);
         }
     };
     sq->ResultReturned = [&messages_dequeued](CAsyncServiceHandler *sender, unsigned short reqId, CUQueue & q) -> bool {

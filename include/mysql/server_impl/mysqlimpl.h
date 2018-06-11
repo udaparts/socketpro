@@ -171,6 +171,7 @@ namespace SPA {
             bool m_bCall;
             std::string m_sqlPrepare;
             std::string m_procName;
+            bool m_bManual;
 
             static const int IS_BINARY = 63;
             static const int MYSQL_TINYBLOB = 0xff;

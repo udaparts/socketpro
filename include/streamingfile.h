@@ -33,7 +33,7 @@ namespace SPA {
             struct CContext {
 
                 CContext(bool uplaod, unsigned int flags)
-                : Tried(false), Uploading(uplaod), FileSize(~0), Flags(flags), Sent(false),
+                : Tried(false), Uploading(uplaod), FileSize(~0), Flags(flags), Sent(false), QueueOk(false),
 #ifdef WIN32_64
                 File(INVALID_HANDLE_VALUE)
 #else
@@ -51,6 +51,7 @@ namespace SPA {
                 DDownload Download;
                 DTransferring Transferring;
                 DDiscarded Discarded;
+                bool QueueOk;
 #ifdef WIN32_64
                 HANDLE File;
 #else
@@ -446,11 +447,7 @@ namespace SPA {
                                 assert(res != -1);
                                 context.FileSize = st.st_size;
 #endif
-                                IClientQueue &cq = GetAttachedClientSocket()->GetClientQueue();
-                                if (cq.IsAvailable()) {
-                                    bool ok = cq.StartJob();
-                                    assert(ok);
-                                }
+                                context.QueueOk = GetAttachedClientSocket()->GetClientQueue().StartJob();
                                 if (!SendRequest(SFile::idUpload, context.FilePath.c_str(), context.Flags, context.FileSize, rh, context.Discarded, se)) {
                                     return false;
                                 }
@@ -499,10 +496,9 @@ namespace SPA {
                                 if (!SendRequest(SFile::idUploadCompleted, (const unsigned char*) nullptr, (unsigned int) 0, rh, context.Discarded, se)) {
                                     return false;
                                 }
-                                IClientQueue &cq = GetAttachedClientSocket()->GetClientQueue();
-                                if (cq.IsAvailable()) {
-                                    ok = cq.EndJob();
-                                    assert(ok);
+                                if (context.QueueOk) {
+                                    GetAttachedClientSocket()->GetClientQueue().EndJob();
+                                    context.QueueOk = false;
                                 }
                             }
                             if (sent_buffer_size >= 4 * SFile::STREAM_CHUNK_SIZE)
