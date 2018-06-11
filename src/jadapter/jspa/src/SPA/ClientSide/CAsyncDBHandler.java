@@ -55,6 +55,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
     private int m_indexProc = 0;
     private int m_output = 0;
     private boolean m_bCallReturn = false;
+    private boolean m_queueOk = false;
 
     public final String getConnection() {
         synchronized (m_csDB) {
@@ -446,22 +447,23 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
         //make sure BeginTrans sending and underlying client persistent message queue as one combination sending
         //to avoid possible request sending/client message writing overlapping within multiple threading environment
         synchronized (m_csOneSending) {
-            boolean queueOk;
             //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
             //in case a client asynchronously sends lots of requests without use of client side queue.
+
+            //associate begin transaction with underlying client persistent message queue
+            m_queueOk = getAttachedClientSocket().getClientQueue().StartJob();
+
             synchronized (m_csDB) {
-                //associate begin transaction with underlying client persistent message queue
-                queueOk = getAttachedClientSocket().getClientQueue().StartJob();
                 sb.Save(isolation.getValue()).Save(m_strConnection).Save(m_flags);
                 m_deqResult.add(cb);
             }
             if (!SendRequest(DB_CONSTS.idBeginTrans, sb, null, discarded)) {
+                CScopeUQueue.Unlock(sb);
                 synchronized (m_csDB) {
                     m_deqResult.remove(cb);
-                }
-                CScopeUQueue.Unlock(sb);
-                if (queueOk) {
-                    getAttachedClientSocket().getClientQueue().AbortJob();
+                    if (m_queueOk) {
+                        getAttachedClientSocket().getClientQueue().AbortJob();
+                    }
                 }
                 return false;
             }
@@ -539,8 +541,11 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
             }
             ok = SendRequest(DB_CONSTS.idEndTrans, sb, null, discarded);
             if (ok) {
-                //associate end transaction with underlying client persistent message queue
-                getAttachedClientSocket().getClientQueue().EndJob();
+                if (m_queueOk) {
+                    //associate end transaction with underlying client persistent message queue
+                    getAttachedClientSocket().getClientQueue().EndJob();
+                    m_queueOk = false;
+                }
             } else {
                 synchronized (m_csDB) {
                     m_deqResult.remove(cb);

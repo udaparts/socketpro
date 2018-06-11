@@ -148,14 +148,13 @@ namespace SPA {
             static void StoreParamDecimal(CUQueue& buffer, const DECIMAL &dec);
             static uchar *net_store_length(uchar *packet, ulonglong length);
 
-        protected:
+        private:
             bool m_EnableMessages;
             UINT64 m_oks;
             UINT64 m_fails;
             tagTransactionIsolation m_ti;
+            bool m_bManual;
             CDBVariantArray m_vParam;
-
-        private:
             SPA::CScopeUQueue m_sb;
             CUQueue &m_qSend;
 
@@ -164,7 +163,6 @@ namespace SPA {
 
             //parameterized statement
             Stmt m_stmt;
-            bool m_bExecutingParameters;
 
             CDBColumnInfoArray m_vColInfo;
             bool m_NoSending;

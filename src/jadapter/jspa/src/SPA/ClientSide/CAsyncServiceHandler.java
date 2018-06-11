@@ -139,38 +139,42 @@ public class CAsyncServiceHandler {
         if (h == 0) {
             return false;
         }
+        boolean sent;
         boolean batching = false;
         CResultCb rcb = null;
-        synchronized (m_csSend) {
-            if (ash != null || discarded != null || exception != null) {
-                rcb = new CResultCb();
-                rcb.AsyncResultHandler = ash;
-                rcb.Discarded = discarded;
-                rcb.ExceptionFromServer = exception;
-                java.util.Map.Entry<Short, CResultCb> kv = new java.util.AbstractMap.SimpleEntry<>(reqId, rcb);
+        if (ash != null || discarded != null || exception != null) {
+            rcb = new CResultCb();
+            rcb.AsyncResultHandler = ash;
+            rcb.Discarded = discarded;
+            rcb.ExceptionFromServer = exception;
+            java.util.Map.Entry<Short, CResultCb> kv = new java.util.AbstractMap.SimpleEntry<>(reqId, rcb);
+            batching = ClientCoreLoader.IsBatching(h);
+            synchronized (m_csSend) {
                 synchronized (m_cs) {
-                    batching = ClientCoreLoader.IsBatching(h);
                     if (batching) {
                         m_kvBatching.add(kv);
                     } else {
                         m_kvCallback.add(kv);
                     }
                 }
+                sent = ClientCoreLoader.SendRequest(h, reqId, data, len);
             }
-            if (ClientCoreLoader.SendRequest(h, reqId, data, len)) {
-                return true;
-            }
-            if (rcb != null) {
-                synchronized (m_cs) {
-                    if (batching) {
-                        m_kvBatching.removeLast();
-                    } else {
-                        m_kvCallback.removeLast();
-                    }
+        } else {
+            sent = ClientCoreLoader.SendRequest(h, reqId, data, len);
+        }
+        if (sent) {
+            return true;
+        }
+        if (rcb != null) {
+            synchronized (m_cs) {
+                if (batching) {
+                    m_kvBatching.removeLast();
+                } else {
+                    m_kvCallback.removeLast();
                 }
             }
-            return false;
         }
+        return false;
     }
 
     public final boolean SendRequest(short reqId, SPA.CUQueue q, DAsyncResultHandler ash) {

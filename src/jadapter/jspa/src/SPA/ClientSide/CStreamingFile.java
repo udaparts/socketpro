@@ -78,6 +78,7 @@ public class CStreamingFile extends CAsyncServiceHandler {
         public FileChannel File = null;
         public boolean Tried = false;
         public String ErrMsg = "";
+        public boolean QueueOk = false;
     };
 
     protected final Object m_csFile = new Object();
@@ -433,14 +434,7 @@ public class CStreamingFile extends CAsyncServiceHandler {
                         context.FileSize = context.File.size();
                         sb.SetSize(0);
                         sb.Save(context.FilePath).Save(context.Flags).Save(context.FileSize);
-                        IClientQueue cq = getAttachedClientSocket().getClientQueue();
-                        if (cq.getAvailable()) {
-                            if (!cq.StartJob()) {
-                                context.File.close();
-                                context.File = null;
-                                throw new IOException("Cannot start queue job");
-                            }
-                        }
+                        context.QueueOk = getAttachedClientSocket().getClientQueue().StartJob();
                         if (!SendRequest(idUpload, sb, rh, context.Discarded, se)) {
                             CScopeUQueue.Unlock(sb);
                             return false;
@@ -488,9 +482,9 @@ public class CStreamingFile extends CAsyncServiceHandler {
                                 CScopeUQueue.Unlock(sb);
                                 return false;
                             }
-                            IClientQueue cq = getAttachedClientSocket().getClientQueue();
-                            if (cq.getAvailable()) {
-                                cq.EndJob();
+                            if (context.QueueOk) {
+                                getAttachedClientSocket().getClientQueue().EndJob();
+                                context.QueueOk = false;
                             }
                         }
                         if (sent_buffer_size >= 4 * STREAM_CHUNK_SIZE) {
