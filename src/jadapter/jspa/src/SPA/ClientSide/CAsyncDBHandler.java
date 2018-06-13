@@ -459,9 +459,6 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                 CScopeUQueue.Unlock(sb);
                 synchronized (m_csDB) {
                     m_deqResult.remove(cb);
-                    if (m_queueOk) {
-                        getAttachedClientSocket().getClientQueue().AbortJob();
-                    }
                 }
                 return false;
             }

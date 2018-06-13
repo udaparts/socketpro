@@ -535,11 +535,7 @@ namespace SPA {
                 };
                 //associate begin transaction with underlying client persistent message queue
                 m_queueOk = GetAttachedClientSocket()->GetClientQueue().StartJob();
-                bool ok = SendRequest(idBeginTrans, sb->GetBuffer(), sb->GetSize(), arh, discarded, nullptr);
-                if (!ok && m_queueOk) {
-                    GetAttachedClientSocket()->GetClientQueue().AbortJob();
-                }
-                return ok;
+                return SendRequest(idBeginTrans, sb->GetBuffer(), sb->GetSize(), arh, discarded, nullptr);
             }
 
             /**

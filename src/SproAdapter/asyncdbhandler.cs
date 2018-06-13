@@ -1027,7 +1027,7 @@ namespace SocketProAdapter {
                         if (m_queueOk) {
                             //associate end transaction with underlying client persistent message queue
                             AttachedClientSocket.ClientQueue.EndJob();
-                            m_queueOk = true;
+                            m_queueOk = false;
                         }
                         return true;
                     }
@@ -1083,7 +1083,7 @@ namespace SocketProAdapter {
                     }
                     //associate begin transaction with underlying client persistent message queue
                     m_queueOk = AttachedClientSocket.ClientQueue.StartJob();
-                    bool ok = SendRequest(DB_CONSTS.idBeginTrans, (int)isolation, connection, flags, (ar) => {
+                    return SendRequest(DB_CONSTS.idBeginTrans, (int)isolation, connection, flags, (ar) => {
                         int res, ms;
                         string errMsg;
                         ar.Load(out res).Load(out errMsg).Load(out ms);
@@ -1101,10 +1101,6 @@ namespace SocketProAdapter {
                             handler(this, res, errMsg);
                         }
                     }, discarded, null);
-                    if (!ok && m_queueOk) {
-                        AttachedClientSocket.ClientQueue.AbortJob();
-                    }
-                    return ok;
                 }
             }
 
