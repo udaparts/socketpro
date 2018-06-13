@@ -2,7 +2,7 @@
 #include "stdafx.h"
 #include <iostream>
 
-#include "../../../../include/odbc/uodbc_server.h"
+#include "../../../include/odbc/uodbc_server.h"
 
 class CMySocketProServer : public SPA::ServerSide::CSocketProServer
 {
