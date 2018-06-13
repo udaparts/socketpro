@@ -12,10 +12,10 @@
 	
 2.	After creating such a library, you can load it at runtime by calling the method SocketProAdapter.ServerSide.CSocketProServer.DllManager.AddALibrary in C#. You can do so for all other development environments similarly.
 
-3.	There two reusable SocketPro server plugins available for you to study at this time.
+3.	There are two reusable SocketPro server plugins available for you to study at this time.
 	- uodbc: Async ODBC plugin to support SQL-stream processing. Its pre-compiled plugin is free to the public
 	- usqlite: Async SQLite plugin to support SQL-stream processing. Its pre-compiled plugin is free to the public
 	
-4.	There two reusable database plugins for you to study at this time.
+4.	There are two reusable database plugins for you to study at this time.
 	- umysql: A MySQL server plugin to support SQL-stream processing. Its pre-compiled plugin is free to the public
 	- sqlserver: A MS SQL server plugin written from C# to support SQL-stream processing

@@ -12,5 +12,5 @@
 	
 2.	After creating such a library, you can load it at runtime by calling the method SocketProAdapter.ServerSide.CSocketProServer.DllManager.AddALibrary in C#. You can do so for all other development environments similarly.
 
-3.	There one samples available for you to study at this time.
+3.	There is one samples available for you to study at this time.
 	- HelloWorld: The simpliest tutorial for SocketPro server plug-in development with C/C++
