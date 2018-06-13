@@ -2,7 +2,7 @@
 #ifndef _TEST_ASYNC_QUEUE_DEFINES_H_
 #define _TEST_ASYNC_QUEUE_DEFINES_H_
 
-#include "../../../include/ucomm.h"
+#include "../../include/ucomm.h"
 
 namespace SPA {
     static const unsigned short idMessage0 = idReservedTwo + 100;

@@ -4,8 +4,8 @@
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
                    projectFiles="true">
-      <itemPath>../../../../include/aserverw.h</itemPath>
-      <itemPath>../../../../include/membuffer.h</itemPath>
+      <itemPath>../../../include/aserverw.h</itemPath>
+      <itemPath>../../../include/membuffer.h</itemPath>
     </logicalFolder>
     <logicalFolder name="ResourceFiles"
                    displayName="Resource Files"
@@ -14,9 +14,9 @@
     <logicalFolder name="SourceFiles"
                    displayName="Source Files"
                    projectFiles="true">
-      <itemPath>../../../../include/aserverw.cpp</itemPath>
-      <itemPath>../../../../include/error_code.cpp</itemPath>
-      <itemPath>../../../../include/membuffer.cpp</itemPath>
+      <itemPath>../../../include/aserverw.cpp</itemPath>
+      <itemPath>../../../include/error_code.cpp</itemPath>
+      <itemPath>../../../include/membuffer.cpp</itemPath>
       <itemPath>test_squeue.cpp</itemPath>
     </logicalFolder>
     <logicalFolder name="TestFiles"
@@ -55,15 +55,15 @@
           <commandLine>-std=c++11</commandLine>
         </linkerTool>
       </compileType>
-      <item path="../../../../include/aserverw.cpp" ex="false" tool="0" flavor2="0">
+      <item path="../../../include/aserverw.cpp" ex="false" tool="0" flavor2="0">
       </item>
-      <item path="../../../../include/aserverw.h" ex="false" tool="3" flavor2="0">
+      <item path="../../../include/aserverw.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../../../include/error_code.cpp" ex="false" tool="0" flavor2="0">
+      <item path="../../../include/error_code.cpp" ex="false" tool="0" flavor2="0">
       </item>
-      <item path="../../../../include/membuffer.cpp" ex="false" tool="0" flavor2="0">
+      <item path="../../../include/membuffer.cpp" ex="false" tool="0" flavor2="0">
       </item>
-      <item path="../../../../include/membuffer.h" ex="false" tool="3" flavor2="0">
+      <item path="../../../include/membuffer.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="test_squeue.cpp" ex="false" tool="0" flavor2="0">
       </item>
@@ -101,15 +101,15 @@
           <commandLine>-std=c++11</commandLine>
         </linkerTool>
       </compileType>
-      <item path="../../../../include/aserverw.cpp" ex="false" tool="0" flavor2="0">
+      <item path="../../../include/aserverw.cpp" ex="false" tool="0" flavor2="0">
       </item>
-      <item path="../../../../include/aserverw.h" ex="false" tool="3" flavor2="0">
+      <item path="../../../include/aserverw.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../../../include/error_code.cpp" ex="false" tool="0" flavor2="0">
+      <item path="../../../include/error_code.cpp" ex="false" tool="0" flavor2="0">
       </item>
-      <item path="../../../../include/membuffer.cpp" ex="false" tool="0" flavor2="0">
+      <item path="../../../include/membuffer.cpp" ex="false" tool="0" flavor2="0">
       </item>
-      <item path="../../../../include/membuffer.h" ex="false" tool="3" flavor2="0">
+      <item path="../../../include/membuffer.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="test_squeue.cpp" ex="false" tool="0" flavor2="0">
       </item>

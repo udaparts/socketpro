@@ -4,11 +4,11 @@
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
                    projectFiles="true">
-      <itemPath>../../../../include/aserverw.h</itemPath>
-      <itemPath>../../../../include/queue/server_impl/asyncqueueimpl.h</itemPath>
-      <itemPath>../../../../include/membuffer.h</itemPath>
-      <itemPath>../../../../include/queue/uasyncqueue.h</itemPath>
-      <itemPath>../../../../include/queue/uasyncqueue_server.h</itemPath>
+      <itemPath>../../../include/aserverw.h</itemPath>
+      <itemPath>../../../include/queue/server_impl/asyncqueueimpl.h</itemPath>
+      <itemPath>../../../include/membuffer.h</itemPath>
+      <itemPath>../../../include/queue/uasyncqueue.h</itemPath>
+      <itemPath>../../../include/queue/uasyncqueue_server.h</itemPath>
     </logicalFolder>
     <logicalFolder name="ResourceFiles"
                    displayName="Resource Files"
@@ -17,10 +17,10 @@
     <logicalFolder name="SourceFiles"
                    displayName="Source Files"
                    projectFiles="true">
-      <itemPath>../../../../include/aserverw.cpp</itemPath>
-      <itemPath>../../../../include/queue/server_impl/asyncqueueimpl.cpp</itemPath>
-      <itemPath>../../../../include/membuffer.cpp</itemPath>
-      <itemPath>../../../../include/queue/server_impl/uasyncqueue.cpp</itemPath>
+      <itemPath>../../../include/aserverw.cpp</itemPath>
+      <itemPath>../../../include/queue/server_impl/asyncqueueimpl.cpp</itemPath>
+      <itemPath>../../../include/membuffer.cpp</itemPath>
+      <itemPath>../../../include/queue/server_impl/uasyncqueue.cpp</itemPath>
     </logicalFolder>
     <logicalFolder name="TestFiles"
                    displayName="Test Files"
@@ -57,35 +57,35 @@
           <commandLine>-std=c++11 -static-libgcc -static-libstdc++</commandLine>
         </linkerTool>
       </compileType>
-      <item path="../../../../include/aserverw.cpp" ex="false" tool="0" flavor2="0">
+      <item path="../../../include/aserverw.cpp" ex="false" tool="0" flavor2="0">
       </item>
-      <item path="../../../../include/aserverw.h" ex="false" tool="3" flavor2="0">
+      <item path="../../../include/aserverw.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../../../include/membuffer.cpp" ex="false" tool="0" flavor2="0">
+      <item path="../../../include/membuffer.cpp" ex="false" tool="0" flavor2="0">
       </item>
-      <item path="../../../../include/membuffer.h" ex="false" tool="3" flavor2="0">
+      <item path="../../../include/membuffer.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../../../include/queue/server_impl/asyncqueueimpl.cpp"
+      <item path="../../../include/queue/server_impl/asyncqueueimpl.cpp"
             ex="false"
             tool="0"
             flavor2="0">
       </item>
-      <item path="../../../../include/queue/server_impl/asyncqueueimpl.h"
+      <item path="../../../include/queue/server_impl/asyncqueueimpl.h"
             ex="false"
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../../../include/queue/server_impl/uasyncqueue.cpp"
+      <item path="../../../include/queue/server_impl/uasyncqueue.cpp"
             ex="false"
             tool="0"
             flavor2="0">
       </item>
-      <item path="../../../../include/queue/uasyncqueue.h"
+      <item path="../../../include/queue/uasyncqueue.h"
             ex="false"
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../../../include/queue/uasyncqueue_server.h"
+      <item path="../../../include/queue/uasyncqueue_server.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -129,35 +129,35 @@
           <commandLine>-std=c++11 -static-libgcc -static-libstdc++</commandLine>
         </linkerTool>
       </compileType>
-      <item path="../../../../include/aserverw.cpp" ex="false" tool="0" flavor2="0">
+      <item path="../../../include/aserverw.cpp" ex="false" tool="0" flavor2="0">
       </item>
-      <item path="../../../../include/aserverw.h" ex="false" tool="3" flavor2="0">
+      <item path="../../../include/aserverw.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../../../include/membuffer.cpp" ex="false" tool="0" flavor2="0">
+      <item path="../../../include/membuffer.cpp" ex="false" tool="0" flavor2="0">
       </item>
-      <item path="../../../../include/membuffer.h" ex="false" tool="3" flavor2="0">
+      <item path="../../../include/membuffer.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../../../include/queue/server_impl/asyncqueueimpl.cpp"
+      <item path="../../../include/queue/server_impl/asyncqueueimpl.cpp"
             ex="false"
             tool="0"
             flavor2="0">
       </item>
-      <item path="../../../../include/queue/server_impl/asyncqueueimpl.h"
+      <item path="../../../include/queue/server_impl/asyncqueueimpl.h"
             ex="false"
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../../../include/queue/server_impl/uasyncqueue.cpp"
+      <item path="../../../include/queue/server_impl/uasyncqueue.cpp"
             ex="false"
             tool="0"
             flavor2="0">
       </item>
-      <item path="../../../../include/queue/uasyncqueue.h"
+      <item path="../../../include/queue/uasyncqueue.h"
             ex="false"
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../../../include/queue/uasyncqueue_server.h"
+      <item path="../../../include/queue/uasyncqueue_server.h"
             ex="false"
             tool="3"
             flavor2="0">

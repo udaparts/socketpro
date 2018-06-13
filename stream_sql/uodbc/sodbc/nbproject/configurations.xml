@@ -4,16 +4,14 @@
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
                    projectFiles="true">
-      <itemPath>../../../../include/aserverw.h</itemPath>
-      <itemPath>../../../../include/bvariant.h</itemPath>
-      <itemPath>../../../../include/membuffer.h</itemPath>
-      <itemPath>../../../../include/nixcommutil.h</itemPath>
-      <itemPath>../../../../include/odbc/server_impl/odbcimpl.h</itemPath>
-      <itemPath>../../../../include/scloader.h</itemPath>
+      <itemPath>../../../include/aserverw.h</itemPath>
+      <itemPath>../../../include/bvariant.h</itemPath>
+      <itemPath>../../../include/membuffer.h</itemPath>
+      <itemPath>../../../include/odbc/server_impl/odbcimpl.h</itemPath>
       <itemPath>stdafx.h</itemPath>
-      <itemPath>../../../../include/udatabase.h</itemPath>
-      <itemPath>../../../../include/odbc/uodbc.h</itemPath>
-      <itemPath>../../../../include/odbc/uodbc_server.h</itemPath>
+      <itemPath>../../../include/udatabase.h</itemPath>
+      <itemPath>../../../include/odbc/uodbc.h</itemPath>
+      <itemPath>../../../include/odbc/uodbc_server.h</itemPath>
     </logicalFolder>
     <logicalFolder name="ResourceFiles"
                    displayName="Resource Files"
@@ -22,10 +20,10 @@
     <logicalFolder name="SourceFiles"
                    displayName="Source Files"
                    projectFiles="true">
-      <itemPath>../../../../include/aserverw.cpp</itemPath>
-      <itemPath>../../../../include/membuffer.cpp</itemPath>
-      <itemPath>../../../../include/odbc/server_impl/odbcimpl.cpp</itemPath>
-      <itemPath>../../../../include/odbc/server_impl/sodbc.cpp</itemPath>
+      <itemPath>../../../include/aserverw.cpp</itemPath>
+      <itemPath>../../../include/membuffer.cpp</itemPath>
+      <itemPath>../../../include/odbc/server_impl/odbcimpl.cpp</itemPath>
+      <itemPath>../../../include/odbc/server_impl/sodbc.cpp</itemPath>
       <itemPath>stdafx.cpp</itemPath>
     </logicalFolder>
     <logicalFolder name="TestFiles"
@@ -64,43 +62,39 @@
           <commandLine>-std=c++11 -static-libgcc -static-libstdc++</commandLine>
         </linkerTool>
       </compileType>
-      <item path="../../../../include/aserverw.cpp" ex="false" tool="0" flavor2="0">
+      <item path="../../../include/aserverw.cpp" ex="false" tool="0" flavor2="0">
       </item>
-      <item path="../../../../include/aserverw.h" ex="false" tool="3" flavor2="0">
+      <item path="../../../include/aserverw.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../../../include/bvariant.h" ex="false" tool="3" flavor2="0">
+      <item path="../../../include/bvariant.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../../../include/membuffer.cpp" ex="false" tool="0" flavor2="0">
+      <item path="../../../include/membuffer.cpp" ex="false" tool="0" flavor2="0">
       </item>
-      <item path="../../../../include/membuffer.h" ex="false" tool="3" flavor2="0">
+      <item path="../../../include/membuffer.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../../../include/nixcommutil.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../../../include/odbc/server_impl/odbcimpl.cpp"
+      <item path="../../../include/odbc/server_impl/odbcimpl.cpp"
             ex="false"
             tool="0"
             flavor2="0">
       </item>
-      <item path="../../../../include/odbc/server_impl/odbcimpl.h"
+      <item path="../../../include/odbc/server_impl/odbcimpl.h"
             ex="false"
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../../../include/odbc/server_impl/sodbc.cpp"
+      <item path="../../../include/odbc/server_impl/sodbc.cpp"
             ex="false"
             tool="0"
             flavor2="0">
       </item>
-      <item path="../../../../include/odbc/uodbc.h" ex="false" tool="3" flavor2="0">
+      <item path="../../../include/odbc/uodbc.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../../../include/odbc/uodbc_server.h"
+      <item path="../../../include/odbc/uodbc_server.h"
             ex="false"
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../../../include/scloader.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../../../include/udatabase.h" ex="false" tool="3" flavor2="0">
+      <item path="../../../include/udatabase.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="stdafx.cpp" ex="false" tool="0" flavor2="0">
       </item>
@@ -146,43 +140,39 @@
           <commandLine>-std=c++11 -static-libgcc -static-libstdc++</commandLine>
         </linkerTool>
       </compileType>
-      <item path="../../../../include/aserverw.cpp" ex="false" tool="0" flavor2="0">
+      <item path="../../../include/aserverw.cpp" ex="false" tool="0" flavor2="0">
       </item>
-      <item path="../../../../include/aserverw.h" ex="false" tool="3" flavor2="0">
+      <item path="../../../include/aserverw.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../../../include/bvariant.h" ex="false" tool="3" flavor2="0">
+      <item path="../../../include/bvariant.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../../../include/membuffer.cpp" ex="false" tool="0" flavor2="0">
+      <item path="../../../include/membuffer.cpp" ex="false" tool="0" flavor2="0">
       </item>
-      <item path="../../../../include/membuffer.h" ex="false" tool="3" flavor2="0">
+      <item path="../../../include/membuffer.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../../../include/nixcommutil.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../../../include/odbc/server_impl/odbcimpl.cpp"
+      <item path="../../../include/odbc/server_impl/odbcimpl.cpp"
             ex="false"
             tool="0"
             flavor2="0">
       </item>
-      <item path="../../../../include/odbc/server_impl/odbcimpl.h"
+      <item path="../../../include/odbc/server_impl/odbcimpl.h"
             ex="false"
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../../../include/odbc/server_impl/sodbc.cpp"
+      <item path="../../../include/odbc/server_impl/sodbc.cpp"
             ex="false"
             tool="0"
             flavor2="0">
       </item>
-      <item path="../../../../include/odbc/uodbc.h" ex="false" tool="3" flavor2="0">
+      <item path="../../../include/odbc/uodbc.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../../../include/odbc/uodbc_server.h"
+      <item path="../../../include/odbc/uodbc_server.h"
             ex="false"
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../../../include/scloader.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../../../include/udatabase.h" ex="false" tool="3" flavor2="0">
+      <item path="../../../include/udatabase.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="stdafx.cpp" ex="false" tool="0" flavor2="0">
       </item>

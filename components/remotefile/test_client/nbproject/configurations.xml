@@ -4,9 +4,9 @@
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
                    projectFiles="true">
-      <itemPath>../../../../include/aclientw.h</itemPath>
-      <itemPath>../../../../include/membuffer.h</itemPath>
-      <itemPath>../../../../include/streamingfile.h</itemPath>
+      <itemPath>../../../include/aclientw.h</itemPath>
+      <itemPath>../../../include/membuffer.h</itemPath>
+      <itemPath>../../../include/streamingfile.h</itemPath>
     </logicalFolder>
     <logicalFolder name="ResourceFiles"
                    displayName="Resource Files"
@@ -15,9 +15,9 @@
     <logicalFolder name="SourceFiles"
                    displayName="Source Files"
                    projectFiles="true">
-      <itemPath>../../../../include/aclientw.cpp</itemPath>
-      <itemPath>../../../../include/error_code.cpp</itemPath>
-      <itemPath>../../../../include/membuffer.cpp</itemPath>
+      <itemPath>../../../include/aclientw.cpp</itemPath>
+      <itemPath>../../../include/error_code.cpp</itemPath>
+      <itemPath>../../../include/membuffer.cpp</itemPath>
       <itemPath>test_client.cpp</itemPath>
     </logicalFolder>
     <logicalFolder name="TestFiles"
@@ -55,20 +55,17 @@
           <commandLine>-lstdc++</commandLine>
         </linkerTool>
       </compileType>
-      <item path="../../../../include/aclientw.cpp" ex="false" tool="0" flavor2="0">
+      <item path="../../../include/aclientw.cpp" ex="false" tool="0" flavor2="0">
       </item>
-      <item path="../../../../include/aclientw.h" ex="false" tool="3" flavor2="0">
+      <item path="../../../include/aclientw.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../../../include/error_code.cpp" ex="false" tool="0" flavor2="0">
+      <item path="../../../include/error_code.cpp" ex="false" tool="0" flavor2="0">
       </item>
-      <item path="../../../../include/membuffer.cpp" ex="false" tool="0" flavor2="0">
+      <item path="../../../include/membuffer.cpp" ex="false" tool="0" flavor2="0">
       </item>
-      <item path="../../../../include/membuffer.h" ex="false" tool="3" flavor2="0">
+      <item path="../../../include/membuffer.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../../../include/streamingfile.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
+      <item path="../../../include/streamingfile.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="test_client.cpp" ex="false" tool="0" flavor2="0">
       </item>
@@ -111,20 +108,17 @@
           <commandLine>-lstdc++</commandLine>
         </linkerTool>
       </compileType>
-      <item path="../../../../include/aclientw.cpp" ex="false" tool="0" flavor2="0">
+      <item path="../../../include/aclientw.cpp" ex="false" tool="0" flavor2="0">
       </item>
-      <item path="../../../../include/aclientw.h" ex="false" tool="3" flavor2="0">
+      <item path="../../../include/aclientw.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../../../include/error_code.cpp" ex="false" tool="0" flavor2="0">
+      <item path="../../../include/error_code.cpp" ex="false" tool="0" flavor2="0">
       </item>
-      <item path="../../../../include/membuffer.cpp" ex="false" tool="0" flavor2="0">
+      <item path="../../../include/membuffer.cpp" ex="false" tool="0" flavor2="0">
       </item>
-      <item path="../../../../include/membuffer.h" ex="false" tool="3" flavor2="0">
+      <item path="../../../include/membuffer.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../../../include/streamingfile.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
+      <item path="../../../include/streamingfile.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="test_client.cpp" ex="false" tool="0" flavor2="0">
       </item>
