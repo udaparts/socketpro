@@ -2,7 +2,7 @@
 
 #include "stdafx.h"
 #include <iostream>
-#include "../../../../../include/sqlite/usqlite.h"
+#include "../../../../include/sqlite/usqlite.h"
 
 
 using namespace SPA::UDB;

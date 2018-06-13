@@ -2,8 +2,8 @@
 #include "stdafx.h"
 #include <iostream>
 
-#include "../../../../include/sqlite/usqlite_server.h"
-#include "../../../../include/udatabase.h"
+#include "../../../include/sqlite/usqlite_server.h"
+#include "../../../include/udatabase.h"
 
 class CMySocketProServer : public SPA::ServerSide::CSocketProServer
 {

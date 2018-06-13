@@ -136,21 +136,18 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <None Include="ReadMe.txt" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="..\..\..\..\include\aclientw.h" />
-    <ClInclude Include="..\..\..\..\include\async_sqlite.h" />
-    <ClInclude Include="..\..\..\..\include\membuffer.h" />
-    <ClInclude Include="..\..\..\..\include\sqlite\usqlite.h" />
-    <ClInclude Include="..\..\..\..\include\udatabase.h" />
-    <ClInclude Include="..\..\..\..\include\udb_client.h" />
+    <ClInclude Include="..\..\..\include\aclientw.h" />
+    <ClInclude Include="..\..\..\include\async_sqlite.h" />
+    <ClInclude Include="..\..\..\include\membuffer.h" />
+    <ClInclude Include="..\..\..\include\sqlite\usqlite.h" />
+    <ClInclude Include="..\..\..\include\udatabase.h" />
+    <ClInclude Include="..\..\..\include\udb_client.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\..\include\aclientw.cpp" />
-    <ClCompile Include="..\..\..\..\include\membuffer.cpp" />
+    <ClCompile Include="..\..\..\include\aclientw.cpp" />
+    <ClCompile Include="..\..\..\include\membuffer.cpp" />
     <ClCompile Include="stdafx.cpp" />
     <ClCompile Include="test_csqlite.cpp" />
   </ItemGroup>
