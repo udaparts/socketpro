@@ -1,6 +1,6 @@
 
 #include "stdafx.h"
-#include "../../../../include/file/ufile_server.h"
+#include "../../../include/file/ufile_server.h"
 
 class CMySocketProServer : public SPA::ServerSide::CSocketProServer
 {

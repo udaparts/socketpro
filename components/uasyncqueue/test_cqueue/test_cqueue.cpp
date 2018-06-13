@@ -1,6 +1,5 @@
 
 #include "stdafx.h"
-#include "../../../../include/aqhandler.h"
 #include "../test_queue.h"
 
 #define TEST_QUEUE_KEY  "queue_name_0"

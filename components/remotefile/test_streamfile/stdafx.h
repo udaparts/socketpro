@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "../../../../include/aserverw.h"
+#include "../../../include/aserverw.h"
 
 #ifdef WIN32_64
 
