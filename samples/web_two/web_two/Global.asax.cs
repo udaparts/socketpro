@@ -3,7 +3,7 @@ namespace web_two {
     using CSql = CMysql; //point to one of CMysql, CSqlServer and CSQLite
     public class Global : System.Web.HttpApplication {
         public static SPA.CMyMaster Master = null;
-        public static SPA.CMySlave Slave = null;
+        public static SPA.CMyMaster.CSlavePool Slave = null;
         public static SPA.CConfig Config = new SPA.CConfig();
         public static SocketProAdapter.CDataSet Cache {
             get {
@@ -39,7 +39,7 @@ namespace web_two {
                 Master.QueueName = "qmaster"; pool = Master; threads = Config.Master.Threads;
                 sessions_per_host = Config.Master.Sessions_Per_Host; Hosts = Config.Master.Hosts;
             } else {
-                Slave = new SPA.CMySlave(Config.Slave.DefaultDB, Config.Slave.RecvTimeout);
+                Slave = new SPA.CMyMaster.CSlavePool(Config.Slave.DefaultDB, Config.Slave.RecvTimeout);
                 Slave.QueueName = "qslave"; pool = Slave; threads = Config.Slave.Threads;
                 sessions_per_host = Config.Slave.Sessions_Per_Host; Hosts = Config.Slave.Hosts;
             }

@@ -5,22 +5,7 @@ namespace SPA {
         public CMyMaster(string defaultDB) : base(defaultDB) { }
         public CMyMaster(string defaultDB, bool midTier) : base(defaultDB, midTier) { }
         public CMyMaster(string defaultDB, bool midTier, uint recvTimeout) : base(defaultDB, midTier, recvTimeout) { }
-        protected override void OnSocketPoolEvent(tagSocketPoolEvent spe, CSql handler) {
-            switch (spe) {
-                case tagSocketPoolEvent.speConnected: {
-                        CConnectionContext cc = handler.AttachedClientSocket.ConnectionContext;
-                        if (cc.Zip && cc.AnyData != null && cc.AnyData.ToString() == "fast") {
-                            //turn on fast compression for both client and server sides
-                            handler.AttachedClientSocket.ZipLevel = SocketProAdapter.tagZipLevel.zlBestSpeed;
-                            handler.AttachedClientSocket.SetZipLevelAtSvr(SocketProAdapter.tagZipLevel.zlBestSpeed);
-                        }
-                    }
-                    break;
-                default:
-                    break;
-            }
-            base.OnSocketPoolEvent(spe, handler);
-        }
+
         /// <summary>
         /// Lock a handler from socket pool. You must call this method with UnlockByMyAlgorithm in pair
         /// </summary>
@@ -71,26 +56,6 @@ namespace SPA {
                     System.Threading.Monitor.PulseAll(m_cs);
                 }
             }
-        }
-    }
-    public class CMySlave : SocketProAdapter.CSqlMasterPool<CSql, SocketProAdapter.CDataSet>.CSlavePool {
-        public CMySlave(string defaultDb) : base(defaultDb) { }
-        public CMySlave(string defaultDb, uint recvTimeout) : base(defaultDb, recvTimeout) { }
-        protected override void OnSocketPoolEvent(tagSocketPoolEvent spe, CSql handler) {
-            switch (spe) {
-                case tagSocketPoolEvent.speConnected: {
-                        CConnectionContext cc = handler.AttachedClientSocket.ConnectionContext;
-                        if (cc.Zip && cc.AnyData != null && cc.AnyData.ToString() == "fast") {
-                            //turn on fast compression for both client and server sides
-                            handler.AttachedClientSocket.ZipLevel = SocketProAdapter.tagZipLevel.zlBestSpeed;
-                            handler.AttachedClientSocket.SetZipLevelAtSvr(SocketProAdapter.tagZipLevel.zlBestSpeed);
-                        }
-                    }
-                    break;
-                default:
-                    break;
-            }
-            base.OnSocketPoolEvent(spe, handler);
         }
     }
 }
