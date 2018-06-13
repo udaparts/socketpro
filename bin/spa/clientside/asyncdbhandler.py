@@ -317,6 +317,8 @@ class CAsyncDBHandler(CAsyncServiceHandler):
         if self._Blob.MaxBufferSize > DB_CONSTS.DEFAULT_BIG_FIELD_CHUNK_SIZE:
             self._Blob.Realloc(DB_CONSTS.DEFAULT_BIG_FIELD_CHUNK_SIZE)
         self._vData = []
+        self._deqResult = collections.deque()
+        self._mapParameterCall = {}
 
     def _CleanRowset(self, size = 0):
         if ((len(self._mapRowset) > 0 or len(self._vColInfo) > 0) and self.AttachedClientSocket.Sendable and self.AttachedClientSocket.CountOfRequestsInQueue <= size and self.AttachedClientSocket.ClientQueue.MessageCount <= size):
@@ -603,8 +605,10 @@ class CAsyncDBHandler(CAsyncServiceHandler):
         to avoid possible request sending overlapping within multiple threading environment
         """
         with self._csOneSending:
+            queueOk = self.AttachedClientSocket.ClientQueue.StartJob()
             if not self._SendParametersData(vParam):
                 CScopeUQueue.Unlock(q)
+                self._Clean()
                 return False
             #don't make self._csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
             with self._csDB:
@@ -619,5 +623,7 @@ class CAsyncDBHandler(CAsyncServiceHandler):
                         self._mapRowset.pop(index)
                     self._mapParameterCall.pop(index)
                     self._deqResult.remove(cb)
+            if queueOk:
+                self.AttachedClientSocket.ClientQueue.EndJob()
         CScopeUQueue.Unlock(q)
         return ok

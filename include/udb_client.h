@@ -265,7 +265,7 @@ namespace SPA {
                 //make sure all parameter data sendings and ExecuteParameters sending as one combination sending
                 //to avoid possible request sending overlapping within multiple threading environment
                 CAutoLock alOne(m_csOneSending);
-
+                bool queueOk = GetAttachedClientSocket()->GetClientQueue().StartJob();
                 {
                     if (!SendParametersData(vParam)) {
                         Clean();
@@ -314,6 +314,8 @@ namespace SPA {
                     }
                     return false;
                 }
+                if (queueOk)
+                    GetAttachedClientSocket()->GetClientQueue().EndJob();
                 return true;
             }
 
@@ -595,7 +597,6 @@ namespace SPA {
                         dbTo.m_mapParameterCall[it->first] = it->second;
                     }
                     m_mapParameterCall.clear();
-                    Clean();
                 }
             }
 
@@ -764,6 +765,7 @@ namespace SPA {
             void Clean() {
                 m_strConnection.clear();
                 m_mapRowset.clear();
+                m_mapParameterCall.clear();
                 m_vColInfo.clear();
                 m_lastReqId = 0;
                 m_Blob.SetSize(0);

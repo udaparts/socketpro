@@ -46,6 +46,11 @@
       </toolsSet>
       <compileType>
         <cTool>
+          <incDir>
+            <pElem>../../../../mysql-8.0.11/include</pElem>
+            <pElem>../../../../mysql-8.0.11</pElem>
+            <pElem>../../../../mysql-8.0.11/libbinlogevents/export</pElem>
+          </incDir>
           <commandLine>-std=c++11 -static-libgcc -static-libstdc++ -Wall</commandLine>
           <preprocessorList>
             <Elem>MYSQL_DYNAMIC_PLUGIN</Elem>
@@ -101,6 +106,11 @@
         <cTool>
           <developmentMode>5</developmentMode>
           <stripSymbols>true</stripSymbols>
+          <incDir>
+            <pElem>../../../../mysql-8.0.11/include</pElem>
+            <pElem>../../../../mysql-8.0.11</pElem>
+            <pElem>../../../../mysql-8.0.11/libbinlogevents/export</pElem>
+          </incDir>
           <commandLine>-std=c++11 -static-libgcc -static-libstdc++</commandLine>
           <preprocessorList>
             <Elem>MYSQL_DYNAMIC_PLUGIN</Elem>

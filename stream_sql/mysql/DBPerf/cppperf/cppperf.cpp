@@ -125,7 +125,6 @@ int main(int argc, char* argv[]) {
     std::cout << "Time required = " << diff << " milliseconds for " << obtained << " query requests" << std::endl;
 
     ok = pMysql->Execute(L"USE mysqldb;delete from company where id > 3");
-    ok = pMysql->Execute(L"delete from company where id > 3");
     const wchar_t *sql_insert_parameter = L"INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?)";
     ok = pMysql->Prepare(sql_insert_parameter, dr);
     ok = pMysql->WaitAll();

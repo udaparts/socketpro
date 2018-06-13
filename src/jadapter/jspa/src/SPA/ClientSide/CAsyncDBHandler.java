@@ -147,7 +147,6 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
         synchronized (dbTo.m_csDB) {
             synchronized (m_csDB) {
                 dbTo.m_deqResult.addAll(m_deqResult);
-                m_deqResult.clear();
                 dbTo.m_deqExecuteResult.addAll(m_deqExecuteResult);
                 m_deqExecuteResult.clear();
                 for (long callIndex : m_mapRowset.keySet()) {
@@ -158,7 +157,6 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                     dbTo.m_mapParameterCall.put(callIndex, m_mapParameterCall.get(callIndex));
                 }
                 m_mapParameterCall.clear();
-                Clean();
             }
         }
     }
@@ -1025,7 +1023,9 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
         //make sure all parameter data sendings and ExecuteParameters sending as one combination sending
         //to avoid possible request sending overlapping within multiple threading environment
         synchronized (m_csOneSending) {
+            boolean queueOk = getAttachedClientSocket().getClientQueue().StartJob();
             if (!SendParametersData(vParam)) {
+                Clean();
                 return false;
             }
             final long index = GetCallIndex();
@@ -1054,6 +1054,9 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                 }
                 CScopeUQueue.Unlock(sb);
                 return false;
+            }
+            if (queueOk) {
+                getAttachedClientSocket().getClientQueue().EndJob();
             }
             CScopeUQueue.Unlock(sb);
         }

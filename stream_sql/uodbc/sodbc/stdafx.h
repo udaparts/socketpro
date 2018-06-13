@@ -1,0 +1,18 @@
+
+#pragma once
+
+#include "../../../include/aserverw.h"
+
+#ifdef WIN32_64
+
+#include "targetver.h"
+
+#define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
+// Windows Header Files:
+#include <windows.h>
+
+#else
+
+#endif
+
+// TODO: reference additional headers your program requires here
