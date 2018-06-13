@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Data;
-//using MySql.Data.MySqlClient;
 using System.Data.Odbc;
 
 class Program

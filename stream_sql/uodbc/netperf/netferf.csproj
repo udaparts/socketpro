@@ -51,7 +51,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="SproAdapter">
-      <HintPath>..\..\..\..\bin\dotnet\SproAdapter.dll</HintPath>
+      <HintPath>..\..\..\bin\dotnet\SproAdapter.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />

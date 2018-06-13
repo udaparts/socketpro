@@ -11,7 +11,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "test_sodbc", "test_sodbc\te
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "netferf", "netperf\netferf.csproj", "{43A07740-F644-4FCF-A006-2C9CCF822CAD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "mysqlperf", "onperf\mysqlperf.csproj", "{848291AB-8DF7-40D9-815F-5669FAB71B18}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "odbcperf", "onperf\odbcperf.csproj", "{848291AB-8DF7-40D9-815F-5669FAB71B18}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
