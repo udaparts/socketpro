@@ -90,6 +90,7 @@ namespace SPA {
             virtual void Execute(const std::wstring& sql, bool rowset, bool meta, bool lastInsertId, UINT64 index, INT64 &affected, int &res, std::wstring &errMsg, CDBVariant &vtId, UINT64 &fail_ok);
             virtual void Prepare(const std::wstring& sql, const CParameterInfoArray& params, int &res, std::wstring &errMsg, unsigned int &parameters);
             virtual void ExecuteParameters(bool rowset, bool meta, bool lastInsertId, UINT64 index, INT64 &affected, int &res, std::wstring &errMsg, CDBVariant &vtId, UINT64 &fail_ok);
+			virtual void ExecuteBatch(const std::wstring& sql, const std::wstring& delimiter, int isolation, int plan, bool rowset, bool meta, bool lastInsertId, const std::wstring &dbConn, unsigned int flags, UINT64 index, INT64 &affected, int &res, std::wstring &errMsg, CDBVariant &vtId, UINT64 &fail_ok);
 
         private:
             void ReleaseArray();
@@ -109,7 +110,7 @@ namespace SPA {
             void ExecuteSqlWithRowset(const char* sql, bool meta, bool lastInsertId, UINT64 index, int &res, std::wstring &errMsg, CDBVariant &vtId);
             void ExecuteSqlWithoutRowset(const char* sql, bool lastInsertId, int &res, std::wstring &errMsg, CDBVariant &vtId);
             void ResetMemories();
-
+			
             //sqlite specific functions
             CDBColumnInfoArray GetColInfo(bool meta, sqlite3_stmt *stmt);
             void SetOtherColumnInfoFlags(CDBColumnInfoArray &vCol);
@@ -121,6 +122,9 @@ namespace SPA {
             int DoSafeOpen(const std::wstring &strConnection, unsigned int flags);
             void Clean();
             bool SubscribeForEvents(sqlite3 *db, const std::wstring &strConnection);
+
+			static std::vector<std::wstring> Split(const std::wstring &sql, const std::wstring &delimiter);
+			static size_t ComputeParameters(const std::wstring &sql);
 
             static int DoStep(sqlite3_stmt *stmt);
             static int DoFinalize(sqlite3_stmt *stmt);
@@ -145,7 +149,7 @@ namespace SPA {
             static void DropATrigger(sqlite3 *db, const std::string &sql);
             static size_t HasKey(const std::vector<std::pair<std::string, char> > &vCol);
             static void XFunc(sqlite3_context *context, int count, sqlite3_value **pp);
-
+			
 
         protected:
             bool m_EnableMessages;
