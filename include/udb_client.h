@@ -244,7 +244,8 @@ namespace SPA {
 
         public:
 
-			virtual bool ExecuteBatch(CDBVariantArray &vParam, const wchar_t *sql, const wchar_t *delimiter, tagTransactionIsolation isolation = tiUnspecified, tagRollbackPlan plan = rpDefault,
+			virtual bool ExecuteBatch(CDBVariantArray &vParam, const wchar_t *sql, const wchar_t *delimiter, const CParameterInfoArray& vPInfo = CParameterInfoArray(),
+				tagTransactionIsolation isolation = tiUnspecified, tagRollbackPlan plan = rpDefault,
 				DExecuteResult handler = nullptr, DRows row = nullptr, DRowsetHeader rh = nullptr, DResult batchHeader = nullptr, DDiscarded discarded = nullptr,
 				bool meta = true, bool lastInsertId = true) {
                 bool rowset = (rh || row) ? true : false;
@@ -275,7 +276,7 @@ namespace SPA {
 					m_mapHandler[callIndex] = batchHeader;
 					sb << m_strConnection << m_flags;
                 }
-                sb << callIndex;
+                sb << callIndex << vPInfo;
                 ResultHandler arh = [callIndex, handler, this](CAsyncResult & ar) {
                     INT64 affected;
                     UINT64 fail_ok;

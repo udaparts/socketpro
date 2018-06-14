@@ -52,6 +52,23 @@ namespace SPA
             rtrim(s);
         }
 
+		void CSqliteImpl::ltrim_w(std::wstring & s) {
+            s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](int ch) {
+                return (!std::isspace(ch) || ch != L';');
+            }));
+        }
+
+        void CSqliteImpl::rtrim_w(std::wstring & s) {
+            s.erase(std::find_if(s.rbegin(), s.rend(), [](int ch) {
+                return (!std::isspace(ch) || ch != L';');
+            }).base(), s.end());
+        }
+
+        void CSqliteImpl::trim_w(std::wstring & s) {
+            ltrim_w(s);
+            rtrim_w(s);
+        }
+
         void CSqliteImpl::SetCacheTables(const std::wstring & str) {
             std::istringstream f(SPA::Utilities::ToUTF8(str.c_str(), str.size()));
             std::string s;
@@ -824,6 +841,20 @@ namespace SPA
         }
 
 		void CSqliteImpl::ExecuteBatch(const std::wstring& sql, const std::wstring& delimiter, int isolation, int plan, bool rowset, bool meta, bool lastInsertId, const std::wstring &dbConn, unsigned int flags, UINT64 callIndex, INT64 &affected, int &res, std::wstring &errMsg, CDBVariant &vtId, UINT64 &fail_ok) {
+			INT64 aff;
+			int r;
+			UINT64 fo;
+			size_t rows = 0;
+			size_t pos = 0;
+			CParameterInfoArray vPInfo;
+			m_UQueue >> vPInfo;
+			if (lastInsertId)
+				vtId = (INT64)0;
+			CDBVariant id;
+			if (lastInsertId)
+				id = (INT64)0;
+			std::wstring err;
+			res = 0;
 			fail_ok = 0;
             affected = 0;
 			if (!m_pSqlite) {
@@ -868,6 +899,9 @@ namespace SPA
 				SendResult(idSqlBatchHeader, res, errMsg, (int)msSqlite, callIndex);
                 return;
             }
+			if (parameters)
+				rows = m_vParam.size() / parameters;
+
 			if (isolation != (int) tiUnspecified) {
 				int ms;
 				BeginTrans(isolation, dbConn, flags, res, errMsg, ms);
@@ -891,31 +925,50 @@ namespace SPA
 			}
 			SendResult(idSqlBatchHeader, res, errMsg, (int)msSqlite, callIndex);
 			errMsg.clear();
+			CDBVariantArray vAll;
+			m_vParam.swap(vAll);
 			std::vector<std::wstring> vSql = Split(sql, delimiter);
-			for (auto it = vSql.cbegin(), end = vSql.cend(); it != end; ++it) {
+			for (auto it = vSql.begin(), end = vSql.end(); it != end; ++it) {
+				trim_w(*it);
+				if (!it->size()) {
+					continue;
+				}
 				size_t ps = ComputeParameters(*it);
-				if (ps) {
-
+				if (ps) { //prepared statements
+					unsigned int my_ps = 0;
+					Prepare(*it, vPInfo, r, err, my_ps);
+					if (r) {
+						fail_ok += (((UINT64)rows) << 32);
+						if (!res) {
+							res = r;
+							errMsg = err;
+						}
+						continue;
+					}
+					assert(ps == my_ps);
+					m_vParam.clear();
+					for(size_t j = 0; j < rows; ++j) {
+						for(size_t m = pos; m < pos + ps; ++m) {
+							CDBVariant &vt= vAll[parameters * j + m];
+							m_vParam.push_back((CDBVariant&&)vt);
+						}
+					}
+					ExecuteParameters(rowset, meta, lastInsertId, callIndex, aff, r, err, id, fo);
+					pos += ps;
 				}
 				else {
-					INT64 aff;
-					int r;
-					std::wstring err;
-					CDBVariant id;
-					UINT64 fo = 0;
-					ExecuteParameters(rowset, meta, lastInsertId, callIndex, aff, r, err, id, fo);
-					if (r && !res) {
-						res = r;
-						errMsg = err;
-					}
-					if (id.Type() == VT_I8) {
-
-					}
+					Execute(*it, rowset, meta, lastInsertId, callIndex, aff, r, err, id, fo);
 				}
+				if (r && !res) {
+					res = r;
+					errMsg = err;
+				}
+				if (lastInsertId && id.llVal)
+					vtId = id;
+				affected += aff;
+				fail_ok += fo;
 			}
 			if (isolation != (int) tiUnspecified) {
-				int r;
-				std::wstring err;
 				EndTrans(plan, r, err);
 				if (r && !res) {
 					res = r;
@@ -989,7 +1042,7 @@ namespace SPA
             }
             affected = sqlite3_total_changes(m_pSqlite.get()) - start;
             if (lastInsertId) {
-                vtId = (INT64) sqlite3_last_insert_rowid(m_pSqlite.get());
+				vtId = (INT64) sqlite3_last_insert_rowid(m_pSqlite.get());
             }
             fail_ok = ((m_fails - fails) << 32);
             fail_ok += (unsigned int) (m_oks - oks);
@@ -1066,7 +1119,7 @@ namespace SPA
                 sbRowset->SetSize(0);
             } while (true);
             if (lastInsertId) {
-                vtId = (INT64) sqlite3_last_insert_rowid(db);
+				vtId = (INT64) sqlite3_last_insert_rowid(db);
             }
             res = last_error;
             if (last_error) {
@@ -1135,7 +1188,7 @@ namespace SPA
                 }
             } while (tail && strlen(tail));
             if (lastInsertId) {
-                vtId = (INT64) sqlite3_last_insert_rowid(db);
+				vtId = (INT64) sqlite3_last_insert_rowid(db);
             }
             if (last_error) {
                 res = last_error;
