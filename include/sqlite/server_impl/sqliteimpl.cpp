@@ -52,7 +52,7 @@ namespace SPA
             rtrim(s);
         }
 
-		void CSqliteImpl::ltrim_w(std::wstring & s) {
+        void CSqliteImpl::ltrim_w(std::wstring & s) {
             s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](int ch) {
                 return (!std::isspace(ch) || ch != L';');
             }));
@@ -433,7 +433,7 @@ namespace SPA
 
         void CSqliteImpl::Clean() {
             ReleaseArray();
-			m_vParam.clear();
+            m_vParam.clear();
             m_vPreparedStatements.clear();
             m_pSqlite.reset();
             ResetMemories();
@@ -476,25 +476,24 @@ namespace SPA
             }
         }
 
-		std::vector<std::wstring> CSqliteImpl::Split(const std::wstring &sql, const std::wstring &delimiter) {
-			std::vector<std::wstring> v;
-			size_t start = 0, len = delimiter.size();
-			if (len) {
-				size_t pos = sql.find(delimiter, start);
-				while (pos != std::wstring::npos) {
-					v.push_back(sql.substr(start, pos - start));
-					start = pos + len;
-					pos = sql.find(delimiter, start);
-				}
-				v.push_back(sql.substr(start, sql.size()));
-			}
-			else {
-				v.push_back(sql);
-			}
-			return v;
-		}
+        std::vector<std::wstring> CSqliteImpl::Split(const std::wstring &sql, const std::wstring & delimiter) {
+            std::vector<std::wstring> v;
+            size_t start = 0, len = delimiter.size();
+            if (len) {
+                size_t pos = sql.find(delimiter, start);
+                while (pos != std::wstring::npos) {
+                    v.push_back(sql.substr(start, pos - start));
+                    start = pos + len;
+                    pos = sql.find(delimiter, start);
+                }
+                v.push_back(sql.substr(start, sql.size()));
+            } else {
+                v.push_back(sql);
+            }
+            return v;
+        }
 
-		size_t CSqliteImpl::ComputeParameters(const std::wstring & sql) {
+        size_t CSqliteImpl::ComputeParameters(const std::wstring & sql) {
             const wchar_t coma = '\'', slash = '\\', question = '?';
             bool b_slash = false, balanced = true;
             size_t params = 0, len = sql.size();
@@ -546,7 +545,7 @@ namespace SPA
             M_I5_R5(idExecute, Execute, std::wstring, bool, bool, bool, UINT64, INT64, int, std::wstring, CDBVariant, UINT64)
             M_I2_R3(idPrepare, Prepare, std::wstring, CParameterInfoArray, int, std::wstring, unsigned int)
             M_I4_R5(idExecuteParameters, ExecuteParameters, bool, bool, bool, UINT64, INT64, int, std::wstring, CDBVariant, UINT64)
-			M_I10_R5(idExecuteBatch, ExecuteBatch, std::wstring, std::wstring, int, int, bool, bool, bool, std::wstring, unsigned int, UINT64, INT64, int, std::wstring, CDBVariant, UINT64)
+            M_I10_R5(idExecuteBatch, ExecuteBatch, std::wstring, std::wstring, int, int, bool, bool, bool, std::wstring, unsigned int, UINT64, INT64, int, std::wstring, CDBVariant, UINT64)
             END_SWITCH
             if (reqId == idExecuteParameters || reqId == idExecuteBatch) {
                 ReleaseArray();
@@ -847,24 +846,24 @@ namespace SPA
             return true;
         }
 
-		void CSqliteImpl::ExecuteBatch(const std::wstring& sql, const std::wstring& delimiter, int isolation, int plan, bool rowset, bool meta, bool lastInsertId, const std::wstring &dbConn, unsigned int flags, UINT64 callIndex, INT64 &affected, int &res, std::wstring &errMsg, CDBVariant &vtId, UINT64 &fail_ok) {
-			INT64 aff;
-			int r;
-			UINT64 fo;
-			size_t rows = 0;
-			size_t pos = 0;
-			CParameterInfoArray vPInfo;
-			m_UQueue >> vPInfo;
-			if (lastInsertId)
-				vtId = (INT64)0;
-			CDBVariant id;
-			if (lastInsertId)
-				id = (INT64)0;
-			std::wstring err;
-			res = 0;
-			fail_ok = 0;
+        void CSqliteImpl::ExecuteBatch(const std::wstring& sql, const std::wstring& delimiter, int isolation, int plan, bool rowset, bool meta, bool lastInsertId, const std::wstring &dbConn, unsigned int flags, UINT64 callIndex, INT64 &affected, int &res, std::wstring &errMsg, CDBVariant &vtId, UINT64 & fail_ok) {
+            INT64 aff;
+            int r;
+            UINT64 fo;
+            size_t rows = 0;
+            size_t pos = 0;
+            CParameterInfoArray vPInfo;
+            m_UQueue >> vPInfo;
+            if (lastInsertId)
+                vtId = (INT64) 0;
+            CDBVariant id;
+            if (lastInsertId)
+                id = (INT64) 0;
+            std::wstring err;
+            res = 0;
+            fail_ok = 0;
             affected = 0;
-			if (!m_pSqlite) {
+            if (!m_pSqlite) {
                 std::wstring s = dbConn;
 #ifdef WIN32_64
                 std::transform(s.begin(), s.end(), s.begin(), ::tolower);
@@ -878,111 +877,109 @@ namespace SPA
                     res = DoSafeOpen(s, flags);
                 }
             }
+            size_t parameters = ComputeParameters(sql);
             if (!m_pSqlite) {
                 res = SPA::Sqlite::SQLITE_DB_NOT_OPENED_YET;
                 errMsg = NO_DB_OPENED_YET;
                 ++m_fails;
                 fail_ok = 1;
                 fail_ok <<= 32;
-				SendResult(idSqlBatchHeader, res, errMsg, (int)msSqlite, callIndex);
+                SendResult(idSqlBatchHeader, res, errMsg, (int) msSqlite, (unsigned int) parameters, callIndex);
                 return;
             }
-			size_t parameters = ComputeParameters(sql);
-			if (parameters && !m_vParam.size()) {
-				res = SPA::Sqlite::SQLITE_NO_PARAMETER_SPECIFIED;
+            if (parameters && !m_vParam.size()) {
+                res = SPA::Sqlite::SQLITE_NO_PARAMETER_SPECIFIED;
                 errMsg = NO_PARAMETER_SPECIFIED;
                 ++m_fails;
                 fail_ok = 1;
                 fail_ok <<= 32;
-				SendResult(idSqlBatchHeader, res, errMsg, (int)msSqlite, callIndex);
+                SendResult(idSqlBatchHeader, res, errMsg, (int) msSqlite, (unsigned int) parameters, callIndex);
                 return;
-			}
-			if (parameters && (m_vParam.size() % parameters)) {
+            }
+            if (parameters && (m_vParam.size() % parameters)) {
                 res = SPA::Sqlite::SQLITE_BAD_PARAMETER_DATA_ARRAY_SIZE;
                 errMsg = BAD_PARAMETER_DATA_ARRAY_SIZE;
                 ++m_fails;
                 fail_ok = 1;
                 fail_ok <<= 32;
-				SendResult(idSqlBatchHeader, res, errMsg, (int)msSqlite, callIndex);
+                SendResult(idSqlBatchHeader, res, errMsg, (int) msSqlite, (unsigned int) parameters, callIndex);
                 return;
             }
-			if (parameters)
-				rows = m_vParam.size() / parameters;
+            if (parameters)
+                rows = m_vParam.size() / parameters;
 
-			if (isolation != (int) tiUnspecified) {
-				int ms;
-				BeginTrans(isolation, dbConn, flags, res, errMsg, ms);
-				if (res) {
-					++m_fails;
-					fail_ok = 1;
-					fail_ok <<= 32;
-					SendResult(idSqlBatchHeader, res, errMsg, (int)msSqlite, callIndex);
-					return;
-				}
-			}
-			else {
-				if (!m_global) {
-					const char *str = sqlite3_db_filename(m_pSqlite.get(), nullptr);
-					errMsg = Utilities::ToWide(str);
-				} else {
-					m_csPeer.lock();
-					errMsg = m_strGlobalConnection;
-					m_csPeer.unlock();
-				}
-			}
-			SendResult(idSqlBatchHeader, res, errMsg, (int)msSqlite, callIndex);
-			errMsg.clear();
-			CDBVariantArray vAll;
-			m_vParam.swap(vAll);
-			std::vector<std::wstring> vSql = Split(sql, delimiter);
-			for (auto it = vSql.begin(), end = vSql.end(); it != end; ++it) {
-				trim_w(*it);
-				if (!it->size()) {
-					continue;
-				}
-				size_t ps = ComputeParameters(*it);
-				if (ps) { //prepared statements
-					unsigned int my_ps = 0;
-					Prepare(*it, vPInfo, r, err, my_ps);
-					if (r) {
-						fail_ok += (((UINT64)rows) << 32);
-						if (!res) {
-							res = r;
-							errMsg = err;
-						}
-						continue;
-					}
-					assert(ps == my_ps);
-					m_vParam.clear();
-					for(size_t j = 0; j < rows; ++j) {
-						for(size_t m = pos; m < pos + ps; ++m) {
-							CDBVariant &vt= vAll[parameters * j + m];
-							m_vParam.push_back((CDBVariant&&)vt);
-						}
-					}
-					ExecuteParameters(rowset, meta, lastInsertId, callIndex, aff, r, err, id, fo);
-					pos += ps;
-				}
-				else {
-					Execute(*it, rowset, meta, lastInsertId, callIndex, aff, r, err, id, fo);
-				}
-				if (r && !res) {
-					res = r;
-					errMsg = err;
-				}
-				if (lastInsertId && id.llVal)
-					vtId = id;
-				affected += aff;
-				fail_ok += fo;
-			}
-			if (isolation != (int) tiUnspecified) {
-				EndTrans(plan, r, err);
-				if (r && !res) {
-					res = r;
-					errMsg = err;
-				}
-			}
-		}
+            if (isolation != (int) tiUnspecified) {
+                int ms;
+                BeginTrans(isolation, dbConn, flags, res, errMsg, ms);
+                if (res) {
+                    ++m_fails;
+                    fail_ok = 1;
+                    fail_ok <<= 32;
+                    SendResult(idSqlBatchHeader, res, errMsg, (int) msSqlite, (unsigned int) parameters, callIndex);
+                    return;
+                }
+            } else {
+                if (!m_global) {
+                    const char *str = sqlite3_db_filename(m_pSqlite.get(), nullptr);
+                    errMsg = Utilities::ToWide(str);
+                } else {
+                    m_csPeer.lock();
+                    errMsg = m_strGlobalConnection;
+                    m_csPeer.unlock();
+                }
+            }
+            SendResult(idSqlBatchHeader, res, errMsg, (int) msSqlite, (unsigned int) parameters, callIndex);
+            errMsg.clear();
+            CDBVariantArray vAll;
+            m_vParam.swap(vAll);
+            std::vector<std::wstring> vSql = Split(sql, delimiter);
+            for (auto it = vSql.begin(), end = vSql.end(); it != end; ++it) {
+                trim_w(*it);
+                if (!it->size()) {
+                    continue;
+                }
+                size_t ps = ComputeParameters(*it);
+                if (ps) { //prepared statements
+                    unsigned int my_ps = 0;
+                    Prepare(*it, vPInfo, r, err, my_ps);
+                    if (r) {
+                        fail_ok += (((UINT64) rows) << 32);
+                        if (!res) {
+                            res = r;
+                            errMsg = err;
+                        }
+                        continue;
+                    }
+                    assert(ps == my_ps);
+                    m_vParam.clear();
+                    for (size_t j = 0; j < rows; ++j) {
+                        for (size_t m = pos; m < pos + ps; ++m) {
+                            CDBVariant &vt = vAll[parameters * j + m];
+                            m_vParam.push_back((CDBVariant&&)vt);
+                        }
+                    }
+                    ExecuteParameters(rowset, meta, lastInsertId, callIndex, aff, r, err, id, fo);
+                    pos += ps;
+                } else {
+                    Execute(*it, rowset, meta, lastInsertId, callIndex, aff, r, err, id, fo);
+                }
+                if (r && !res) {
+                    res = r;
+                    errMsg = err;
+                }
+                if (lastInsertId && id.llVal)
+                    vtId = id;
+                affected += aff;
+                fail_ok += fo;
+            }
+            if (isolation != (int) tiUnspecified) {
+                EndTrans(plan, r, err);
+                if (r && !res) {
+                    res = r;
+                    errMsg = err;
+                }
+            }
+        }
 
         void CSqliteImpl::ExecuteParameters(bool rowset, bool meta, bool lastInsertId, UINT64 index, INT64 &affected, int &res, std::wstring &errMsg, CDBVariant &vtId, UINT64 & fail_ok) {
             fail_ok = 0;
@@ -1049,7 +1046,7 @@ namespace SPA
             }
             affected = sqlite3_total_changes(m_pSqlite.get()) - start;
             if (lastInsertId) {
-				vtId = (INT64) sqlite3_last_insert_rowid(m_pSqlite.get());
+                vtId = (INT64) sqlite3_last_insert_rowid(m_pSqlite.get());
             }
             fail_ok = ((m_fails - fails) << 32);
             fail_ok += (unsigned int) (m_oks - oks);
@@ -1126,7 +1123,7 @@ namespace SPA
                 sbRowset->SetSize(0);
             } while (true);
             if (lastInsertId) {
-				vtId = (INT64) sqlite3_last_insert_rowid(db);
+                vtId = (INT64) sqlite3_last_insert_rowid(db);
             }
             res = last_error;
             if (last_error) {
@@ -1195,7 +1192,7 @@ namespace SPA
                 }
             } while (tail && strlen(tail));
             if (lastInsertId) {
-				vtId = (INT64) sqlite3_last_insert_rowid(db);
+                vtId = (INT64) sqlite3_last_insert_rowid(db);
             }
             if (last_error) {
                 res = last_error;
@@ -1339,7 +1336,7 @@ namespace SPA
             res = 0;
             m_vPreparedStatements.clear();
             m_pSqlite.reset();
-			ReleaseArray();
+            ReleaseArray();
             m_vParam.clear();
             m_global = true;
             ResetMemories();
