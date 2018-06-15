@@ -22,7 +22,11 @@ int main(int argc, char* argv[]) {
     cc.Port = 20901;
     cc.UserId = L"MyUserId";
     cc.Password = L"MyPassword";
-    CMyPool spSqlite;
+#ifdef NDEBUG
+	CMyPool spSqlite;
+#else
+    CMyPool spSqlite(true, 3600000);
+#endif
     bool ok = spSqlite.StartSocketPool(cc, 1, 1);
     if (!ok) {
         std::cout << "Failed in connecting to remote async sqlite server" << std::endl;
@@ -45,6 +49,69 @@ int main(int argc, char* argv[]) {
     TestPreparedStatements(pSqlite, rowset_array);
     InsertBLOBByPreparedStatement(pSqlite, rowset_array);
     ok = pSqlite->EndTrans();
+	CDBVariantArray vParam;
+	vParam.push_back(1); //ID
+	vParam.push_back(2); //EMPLOYEEID
+	//there is no manual transaction if isolation is tiUnspecified
+	ok = pSqlite->ExecuteBatch(tiUnspecified, L"Select datetime('now');select * from COMPANY where ID=?;select * from EMPLOYEE where EMPLOYEEID=?",
+		L"", vParam, [](CMyHandler &handler, int res, const std::wstring &errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & vtId) {
+        std::cout << "affected = " << affected << ", fails = " << (unsigned int) (fail_ok >> 32) << ", oks = " << (unsigned int) fail_ok << ", res = " << res << ", errMsg: ";
+        std::wcout << errMsg;
+        if (!res) {
+            std::cout << ", last insert id = ";
+                    std::cout << vtId.llVal;
+        }
+        std::cout << std::endl;
+    }, [&rowset_array](CMyHandler &handler, CDBVariantArray & vData) {
+        //rowset data come here
+        assert((vData.size() % handler.GetColumnInfo().size()) == 0);
+        CDBVariantArray &row_data = rowset_array.back().second;
+        for (size_t n = 0; n < vData.size(); ++n) {
+            auto &d = vData[n];
+            row_data.push_back(std::move(d)); //avoid memory repeatedly allocation/de-allocation for better performance
+        }
+    }, [&rowset_array](CMyHandler & handler) {
+        //rowset header comes here
+        auto &vColInfo = handler.GetColumnInfo();
+        CPColumnRowset column_rowset_pair;
+        column_rowset_pair.first = vColInfo;
+        rowset_array.push_back(column_rowset_pair);
+    });
+
+	vParam.clear();
+	vParam.push_back(1); //ID
+	vParam.push_back(2); //EMPLOYEEID
+	vParam.push_back(2); //ID
+	vParam.push_back(3); //EMPLOYEEID
+	//Same as pSqlite->BeginTrans();
+	//Select datetime('now');select * from COMPANY where ID=1;select * from COMPANY where ID=2;Select datetime('now');
+	//select * from EMPLOYEE where EMPLOYEEID=2;select * from EMPLOYEE where EMPLOYEEID=3
+	//ok = pSqlite->EndTrans();
+	ok = pSqlite->ExecuteBatch(tiReadCommited,
+		L"Select datetime('now')@@select * from COMPANY where ID=?@@Select datetime('now')@@select * from EMPLOYEE where EMPLOYEEID=?",
+		L"@@", vParam, [](CMyHandler &handler, int res, const std::wstring &errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & vtId) {
+        std::cout << "affected = " << affected << ", fails = " << (unsigned int) (fail_ok >> 32) << ", oks = " << (unsigned int) fail_ok << ", res = " << res << ", errMsg: ";
+        std::wcout << errMsg;
+        if (!res) {
+            std::cout << ", last insert id = ";
+            std::cout << vtId.llVal;
+        }
+        std::cout << std::endl;
+    }, [&rowset_array](CMyHandler &handler, CDBVariantArray & vData) {
+        //rowset data come here
+        assert((vData.size() % handler.GetColumnInfo().size()) == 0);
+        CDBVariantArray &row_data = rowset_array.back().second;
+        for (size_t n = 0; n < vData.size(); ++n) {
+            auto &d = vData[n];
+            row_data.push_back(std::move(d)); //avoid memory repeatedly allocation/de-allocation for better performance
+        }
+    }, [&rowset_array](CMyHandler & handler) {
+        //rowset header comes here
+        auto &vColInfo = handler.GetColumnInfo();
+        CPColumnRowset column_rowset_pair;
+        column_rowset_pair.first = vColInfo;
+        rowset_array.push_back(column_rowset_pair);
+    });
     ok = pSqlite->WaitAll();
 
     //print out all received rowsets

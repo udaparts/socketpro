@@ -478,8 +478,15 @@ namespace SPA
 
 		std::vector<std::wstring> CSqliteImpl::Split(const std::wstring &sql, const std::wstring &delimiter) {
 			std::vector<std::wstring> v;
-			if (delimiter.size()) {
-
+			size_t start = 0, len = delimiter.size();
+			if (len) {
+				size_t pos = sql.find(delimiter, start);
+				while (pos != std::wstring::npos) {
+					v.push_back(sql.substr(start, pos - start));
+					start = pos + len;
+					pos = sql.find(delimiter, start);
+				}
+				v.push_back(sql.substr(start, sql.size()));
 			}
 			else {
 				v.push_back(sql);
@@ -795,7 +802,7 @@ namespace SPA
                 if (r == SQLITE_DONE) {
                     r = SQLITE_OK;
                 }
-                if (r) {
+                if (r && r != SQLITE_ROW) {
                     ++m_fails;
                     if (!res) {
                         if ((m_nParam & Sqlite::DO_NOT_USE_EXTENDED_ERROR_CODE) == Sqlite::DO_NOT_USE_EXTENDED_ERROR_CODE) {

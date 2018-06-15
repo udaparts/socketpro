@@ -244,9 +244,9 @@ namespace SPA {
 
         public:
 
-			virtual bool ExecuteBatch(CDBVariantArray &vParam, const wchar_t *sql, const wchar_t *delimiter, const CParameterInfoArray& vPInfo = CParameterInfoArray(),
-				tagTransactionIsolation isolation = tiUnspecified, tagRollbackPlan plan = rpDefault,
-				DExecuteResult handler = nullptr, DRows row = nullptr, DRowsetHeader rh = nullptr, DResult batchHeader = nullptr, DDiscarded discarded = nullptr,
+			virtual bool ExecuteBatch(tagTransactionIsolation isolation, const wchar_t *sql, const wchar_t *delimiter, CDBVariantArray &vParam=CDBVariantArray(), 
+				DExecuteResult handler=nullptr, DRows row=nullptr, DRowsetHeader rh=nullptr, DResult batchHeader=nullptr,
+				const CParameterInfoArray& vPInfo = CParameterInfoArray(), tagRollbackPlan plan = rpDefault, DDiscarded discarded = nullptr,
 				bool meta = true, bool lastInsertId = true) {
                 bool rowset = (rh || row) ? true : false;
                 if (!rowset) {
