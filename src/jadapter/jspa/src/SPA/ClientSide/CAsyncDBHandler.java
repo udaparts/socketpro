@@ -1022,13 +1022,16 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
         }
         MyCallback<DExecuteResult> cb = new MyCallback<>(DB_CONSTS.idExecuteParameters, handler);
 
+        boolean queueOk = false;
         //make sure all parameter data sendings and ExecuteParameters sending as one combination sending
         //to avoid possible request sending overlapping within multiple threading environment
         synchronized (m_csOneSending) {
-            boolean queueOk = getAttachedClientSocket().getClientQueue().StartJob();
-            if (!SendParametersData(vParam)) {
-                Clean();
-                return false;
+            if (vParam != null && !vParam.isEmpty()) {
+                queueOk = getAttachedClientSocket().getClientQueue().StartJob();
+                if (!SendParametersData(vParam)) {
+                    Clean();
+                    return false;
+                }
             }
             final long index = GetCallIndex();
             CUQueue sb = CScopeUQueue.Lock();
@@ -1342,7 +1345,6 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                 }
             }
             final long index = GetCallIndex();
-            sb.Save(index);
             //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
             //in case a client asynchronously sends lots of requests without use of client side queue.
             synchronized (m_csDB) {

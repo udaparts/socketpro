@@ -36,6 +36,7 @@ public class test_java {
         TestPreparedStatements(sqlite, lstRowset);
         InsertBLOBByPreparedStatement(sqlite, lstRowset);
         ok = sqlite.EndTrans();
+        TestBatch(sqlite, lstRowset);
         sqlite.WaitAll();
         int index = 0;
         System.out.println();
@@ -54,6 +55,75 @@ public class test_java {
         System.out.println();
         System.out.println("Press any key to close the application ......");
         in.nextLine();
+    }
+
+    static void TestBatch(CSqlite sqlite, final java.util.ArrayList<Pair<CDBColumnInfoArray, CDBVariantArray>> ra) {
+        CDBVariantArray vParam = new CDBVariantArray();
+        vParam.add(1); //ID
+        vParam.add(2); //EMPLOYEEID
+        //there is no manual transaction if isolation is tiUnspecified
+        boolean ok = sqlite.ExecuteBatch(tagTransactionIsolation.tiUnspecified,
+                "Select datetime('now');select * from COMPANY where ID=?;select * from EMPLOYEE where EMPLOYEEID=?", "", vParam,
+                new CSqlite.DExecuteResult() {
+                    @Override
+                    public void invoke(CAsyncDBHandler dbHandler, int res, String errMsg, long affected, long fail_ok, Object lastRowId) {
+                        System.out.format("affected = %d, fails = %d, oks = %d, res = %d, errMsg: %s, last insert id = %s", affected, (int) (fail_ok >> 32), (int) fail_ok, res, errMsg, lastRowId.toString());
+                        System.out.println();
+                    }
+                }, new CSqlite.DRows() {
+                    //rowset data come here
+                    @Override
+                    public void invoke(CAsyncDBHandler dbHandler, CDBVariantArray lstData) {
+                        int last = ra.size() - 1;
+                        Pair<CDBColumnInfoArray, CDBVariantArray> item = ra.get(last);
+                        item.second.addAll(lstData);
+                    }
+                }, new CSqlite.DRowsetHeader() {
+                    @Override
+                    public void invoke(CAsyncDBHandler dbHandler) {
+                        //rowset header comes here
+                        CDBColumnInfoArray vColInfo = dbHandler.getColumnInfo();
+                        CDBVariantArray vData = new CDBVariantArray();
+                        Pair<CDBColumnInfoArray, CDBVariantArray> item = new Pair<>(vColInfo, vData);
+                        ra.add(item);
+                    }
+                });
+        vParam.clear();
+        vParam.add(1); //ID
+        vParam.add(2); //EMPLOYEEID
+        vParam.add(2); //ID
+        vParam.add(3); //EMPLOYEEID
+        //Same as sqlite.BeginTrans();
+        //Select datetime('now');select * from COMPANY where ID=1;select * from COMPANY where ID=2;Select datetime('now');
+        //select * from EMPLOYEE where EMPLOYEEID=2;select * from EMPLOYEE where EMPLOYEEID=3
+        //ok = sqlite.EndTrans();
+        ok = sqlite.ExecuteBatch(tagTransactionIsolation.tiReadCommited,
+                "Select datetime('now')@@select * from COMPANY where ID=?@@Select datetime('now')@@select * from EMPLOYEE where EMPLOYEEID=?",
+                "@@", vParam,
+                new CSqlite.DExecuteResult() {
+                    @Override
+                    public void invoke(CAsyncDBHandler dbHandler, int res, String errMsg, long affected, long fail_ok, Object lastRowId) {
+                        System.out.format("affected = %d, fails = %d, oks = %d, res = %d, errMsg: %s, last insert id = %s", affected, (int) (fail_ok >> 32), (int) fail_ok, res, errMsg, lastRowId.toString());
+                        System.out.println();
+                    }
+                }, new CSqlite.DRows() {
+                    //rowset data come here
+                    @Override
+                    public void invoke(CAsyncDBHandler dbHandler, CDBVariantArray lstData) {
+                        int last = ra.size() - 1;
+                        Pair<CDBColumnInfoArray, CDBVariantArray> item = ra.get(last);
+                        item.second.addAll(lstData);
+                    }
+                }, new CSqlite.DRowsetHeader() {
+                    @Override
+                    public void invoke(CAsyncDBHandler dbHandler) {
+                        //rowset header comes here
+                        CDBColumnInfoArray vColInfo = dbHandler.getColumnInfo();
+                        CDBVariantArray vData = new CDBVariantArray();
+                        Pair<CDBColumnInfoArray, CDBVariantArray> item = new Pair<>(vColInfo, vData);
+                        ra.add(item);
+                    }
+                });
     }
 
     static void TestPreparedStatements(CSqlite sqlite, final java.util.ArrayList<Pair<CDBColumnInfoArray, CDBVariantArray>> ra) {
