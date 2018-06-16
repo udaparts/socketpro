@@ -916,6 +916,7 @@ namespace SocketProAdapter {
                             }
                             m_mapParameterCall[callIndex] = vParam;
                             m_mapHandler[callIndex] = batchHeader;
+                            sb.Save(m_strConnection).Save(m_flags);
                         }
                         sb.Save(callIndex).Save(vPInfo);
                         if (!SendRequest(DB_CONSTS.idExecuteBatch, sb.IntenalBuffer, sb.GetSize(), (ar) => {

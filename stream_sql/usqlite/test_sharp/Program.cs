@@ -45,7 +45,7 @@ class Program
             InsertBLOBByPreparedStatement(sqlite, lstRowset);
 
             ok = sqlite.EndTrans(); //end manual transaction
-
+            TestBatch(sqlite, lstRowset);
             sqlite.WaitAll();
 
             //display received rowsets
@@ -66,6 +66,59 @@ class Program
             Console.WriteLine("Press any key to close the application ......");
             Console.Read();
         }
+    }
+
+    static void TestBatch(CSqlite sqlite, List<KeyValuePair<CDBColumnInfoArray, CDBVariantArray>> ra)
+    {
+        CDBVariantArray vParam = new CDBVariantArray();
+        vParam.Add(1); //ID
+        vParam.Add(2); //EMPLOYEEID
+        //there is no manual transaction if isolation is tiUnspecified
+        bool ok = sqlite.ExecuteBatch(tagTransactionIsolation.tiUnspecified,
+            "Select datetime('now');select * from COMPANY where ID=?;select * from EMPLOYEE where EMPLOYEEID=?",
+            "", vParam, (handler, res, errMsg, affected, fail_ok, id) =>
+        {
+            Console.WriteLine("affected = {0}, fails = {1}, oks = {2}, res = {3}, errMsg: {4}, last insert id = {5}",
+                affected, (uint)(fail_ok >> 32), (uint)fail_ok, res, errMsg, id);
+        }, (handler, rowData) =>
+        {
+            //rowset data come here
+            int last = ra.Count - 1;
+            KeyValuePair<CDBColumnInfoArray, CDBVariantArray> item = ra[last];
+            item.Value.AddRange(rowData);
+        }, (handler) =>
+        {
+            //rowset header meta info comes here
+            KeyValuePair<CDBColumnInfoArray, CDBVariantArray> item = new KeyValuePair<CDBColumnInfoArray, CDBVariantArray>(handler.ColumnInfo, new CDBVariantArray());
+            ra.Add(item);
+        });
+        vParam.Clear();
+        vParam.Add(1); //ID
+        vParam.Add(2); //EMPLOYEEID
+        vParam.Add(2); //ID
+        vParam.Add(3); //EMPLOYEEID
+        //Same as sqlite.BeginTrans();
+        //Select datetime('now');select * from COMPANY where ID=1;select * from COMPANY where ID=2;Select datetime('now');
+        //select * from EMPLOYEE where EMPLOYEEID=2;select * from EMPLOYEE where EMPLOYEEID=3
+        //ok = sqlite.EndTrans();
+        ok = sqlite.ExecuteBatch(tagTransactionIsolation.tiReadCommited,
+            "Select datetime('now')@@select * from COMPANY where ID=?@@Select datetime('now')@@select * from EMPLOYEE where EMPLOYEEID=?",
+            "@@", vParam, (handler, res, errMsg, affected, fail_ok, id) =>
+            {
+                Console.WriteLine("affected = {0}, fails = {1}, oks = {2}, res = {3}, errMsg: {4}, last insert id = {5}",
+                    affected, (uint)(fail_ok >> 32), (uint)fail_ok, res, errMsg, id);
+            }, (handler, rowData) =>
+            {
+                //rowset data come here
+                int last = ra.Count - 1;
+                KeyValuePair<CDBColumnInfoArray, CDBVariantArray> item = ra[last];
+                item.Value.AddRange(rowData);
+            }, (handler) =>
+            {
+                //rowset header meta info comes here
+                KeyValuePair<CDBColumnInfoArray, CDBVariantArray> item = new KeyValuePair<CDBColumnInfoArray, CDBVariantArray>(handler.ColumnInfo, new CDBVariantArray());
+                ra.Add(item);
+            });
     }
 
     static void TestPreparedStatements(CSqlite sqlite, List<KeyValuePair<CDBColumnInfoArray, CDBVariantArray>> ra)
