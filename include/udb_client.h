@@ -362,15 +362,18 @@ namespace SPA {
                 sb << rowset << meta << lastInsertId;
 
                 UINT64 callIndex;
+				bool queueOk = false;
                 //make sure all parameter data sending and ExecuteParameters sending as one combination sending
                 //to avoid possible request sending overlapping within multiple threading environment
                 CAutoLock alOne(m_csOneSending);
-                bool queueOk = GetAttachedClientSocket()->GetClientQueue().StartJob();
                 {
-                    if (!SendParametersData(vParam)) {
-                        Clean();
-                        return false;
-                    }
+					if (vParam.size()) {
+						queueOk = GetAttachedClientSocket()->GetClientQueue().StartJob();
+						if (!SendParametersData(vParam)) {
+							Clean();
+							return false;
+						}
+					}
                     callIndex = GetCallIndex();
                     //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
                     CAutoLock al(m_csDB);
@@ -436,6 +439,7 @@ namespace SPA {
                     meta = false;
                 }
                 CScopeUQueue sb;
+				CAutoLock alOne(m_csOneSending);
                 UINT64 index = GetCallIndex();
                 {
                     //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock

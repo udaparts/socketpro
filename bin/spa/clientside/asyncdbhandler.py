@@ -33,12 +33,15 @@ class CAsyncDBHandler(CAsyncServiceHandler):
         self._bCallReturn = False
         self._csOneSending = threading.Lock()
         self._queueOk = False
+        self._mapHandler = {}
 
     def OnAllProcessed(self):
         with self._csDB:
             self._mapParameterCall = {}
             while len(self._mapRowset) > 16:
                 self._mapRowset.popitem()
+            self._mapHandler = {}
+            self._deqResult = collections.deque()
 
     def _GetResultHandler(self, reqId):
         if self.AttachedClientSocket.Random:
@@ -80,7 +83,7 @@ class CAsyncDBHandler(CAsyncServiceHandler):
     @property
     def ColumnInfo(self):
         with self._csDB:
-            return self._vColInfo
+            return self._vColInfo[:]
 
     @property
     def LastAffected(self):
@@ -106,6 +109,8 @@ class CAsyncDBHandler(CAsyncServiceHandler):
                 self._mapParameterCall = {}
                 dbTo._deqResult.extend(self._deqResult)
                 self._deqResult = collections.deque()
+                dbTo._mapHandler.update(self._mapHandler)
+                self._mapHandler = {}
 
     def CleanCallbacks(self):
         with self._csDB:
@@ -113,7 +118,51 @@ class CAsyncDBHandler(CAsyncServiceHandler):
         return super(CAsyncDBHandler, self).CleanCallbacks()
 
     def OnResultReturned(self, reqId, mc):
-        if reqId == DB_CONSTS.idExecuteParameters or reqId == DB_CONSTS.idExecute:
+        if reqId == DB_CONSTS.idExecuteBatch:
+            affected = mc.LoadULong()
+            res = mc.LoadInt()
+            errMsg = mc.LoadString()
+            vtId = mc.LoadObject()
+            fail_ok = mc.LoadULong()
+            t = self._GetResultHandler(reqId)
+            with self._csDB:
+                self._lastReqId = reqId
+                self._affected = affected
+                self._dbError = res
+                self._dbErrorMsg = errMsg
+                self._indexProc = 0
+                if self._indexRowset in self._mapRowset:
+                    self._mapRowset.pop(self._indexRowset)
+                if self._indexRowset in self._mapParameterCall:
+                    self._mapParameterCall.pop(self._indexRowset)
+                if self._indexRowset in self._mapHandler:
+                    self._mapHandler.pop(self._indexRowset)
+            if t and t.second:
+                t.second(self, res, errMsg, affected, fail_ok, vtId)
+
+        elif reqId == DB_CONSTS.idSqlBatchHeader:
+            cb = None
+            res = mc.LoadUInt()
+            errMsg = mc.LoadString();
+            ms = mc.LoadUInt();
+            parameters = mc.LoadUInt();
+            with self._csDB:
+                self._indexRowset = mc.LoadULong();
+                self._lastReqId = reqId
+                self._parameters = (parameters & 0xffff)
+                self._output = (parameters >> 16)
+                if res == 0:
+                    self._strConnection = errMsg
+                    errMsg = ""
+                self._dbError = res
+                self._dbErrorMsg = errMsg
+                self._ms = ms
+                if self._indexRowset in self._mapHandler:
+                    cb = self._mapHandler[self._indexRowset]
+            if cb:
+                cb(self, res, errMsg)
+
+        elif reqId == DB_CONSTS.idExecuteParameters or reqId == DB_CONSTS.idExecute:
             affected = mc.LoadLong()
             res = mc.LoadInt()
             errMsg = mc.LoadString()
@@ -132,7 +181,7 @@ class CAsyncDBHandler(CAsyncServiceHandler):
                     self._mapParameterCall.pop(self._indexRowset)
                 elif self.AttachedClientSocket.CountOfRequestsInQueue == 1:
                     self._mapParameterCall = {}
-            if not t is None and not t.second is None:
+            if t and t.second:
                 t.second(self, res, errMsg, affected, fail_ok, vtId)
 
         elif reqId == DB_CONSTS.idPrepare:
@@ -148,7 +197,7 @@ class CAsyncDBHandler(CAsyncServiceHandler):
                 self._parameters = (parameters & 0xffff)
                 self._output = (parameters >> 16)
                 self._bCallReturn = False
-            if not t is None and not t.second is None:
+            if t and t.second:
                 t.second(self, res, errMsg)
 
         elif reqId == DB_CONSTS.idOpen:
@@ -157,7 +206,6 @@ class CAsyncDBHandler(CAsyncServiceHandler):
             ms = mc.LoadInt()
             t = self._GetResultHandler(reqId)
             with self._csDB:
-                self._CleanRowset()
                 self._dbError = res
                 self._lastReqId = reqId
                 if res == 0:
@@ -172,7 +220,7 @@ class CAsyncDBHandler(CAsyncServiceHandler):
                 self._output = 0
                 if self.AttachedClientSocket.CountOfRequestsInQueue == 1:
                     self._mapParameterCall = {}
-            if not t is None and not t.second is None:
+            if t and t.second:
                 t.second(self, res, errMsg)
 
         elif reqId == DB_CONSTS.idEndTrans:
@@ -183,10 +231,9 @@ class CAsyncDBHandler(CAsyncServiceHandler):
                 self._lastReqId = reqId
                 self._dbError = res
                 self._dbErrorMsg = errMsg
-                self._CleanRowset()
                 if self.AttachedClientSocket.CountOfRequestsInQueue == 1:
                     self._mapParameterCall = {}
-            if not t is None and not t.second is None:
+            if t and t.second:
                 t.second(self, res, errMsg)
 
         elif reqId == DB_CONSTS.idBeginTrans:
@@ -195,7 +242,6 @@ class CAsyncDBHandler(CAsyncServiceHandler):
             ms = mc.LoadInt()
             t = self._GetResultHandler(reqId)
             with self._csDB:
-                self._CleanRowset()
                 if res == 0:
                     self._strConnection = errMsg
                     errMsg = u''
@@ -203,7 +249,7 @@ class CAsyncDBHandler(CAsyncServiceHandler):
                 self._dbError = res
                 self._dbErrorMsg = errMsg
                 self._ms = ms
-            if not t is None and not t.second is None:
+            if t and t.second:
                 t.second(self, res, errMsg)
 
         elif reqId == DB_CONSTS.idClose:
@@ -214,13 +260,12 @@ class CAsyncDBHandler(CAsyncServiceHandler):
                 self._lastReqId = reqId
                 self._dbError = res
                 self._dbErrorMsg = errMsg
-                self._CleanRowset()
                 self._indexProc = 0
                 self._parameters = 0
                 self._output = 0
                 if self.AttachedClientSocket.CountOfRequestsInQueue == 1:
                     self._mapParameterCall = {}
-            if not t is None and not t.second is None:
+            if t and t.second:
                 t.second(self, res, errMsg)
 
         elif reqId == DB_CONSTS.idRowsetHeader:
@@ -239,7 +284,7 @@ class CAsyncDBHandler(CAsyncServiceHandler):
                 if self._output == 0 and len(self._vColInfo) > 0:
                     if self._indexRowset in self._mapRowset:
                         header = self._mapRowset.get(self._indexRowset).first
-            if not header is None:
+            if header:
                 header(self)
         elif reqId == DB_CONSTS.idCallReturn:
             vt = mc.LoadObject()
@@ -311,6 +356,7 @@ class CAsyncDBHandler(CAsyncServiceHandler):
     def _Clean(self):
         self._strConnection = u''
         self._mapRowset = {}
+        self._mapHandler = {}
         self._vColInfo = CDBColumnInfoArray()
         self._lastReqId = 0
         self._Blob.SetSize(0)
@@ -319,11 +365,6 @@ class CAsyncDBHandler(CAsyncServiceHandler):
         self._vData = []
         self._deqResult = collections.deque()
         self._mapParameterCall = {}
-
-    def _CleanRowset(self, size = 0):
-        if ((len(self._mapRowset) > 0 or len(self._vColInfo) > 0) and self.AttachedClientSocket.Sendable and self.AttachedClientSocket.CountOfRequestsInQueue <= size and self.AttachedClientSocket.ClientQueue.MessageCount <= size):
-            self._mapRowset = {}
-            self._vColInfo = CDBColumnInfoArray()
 
     def Close(self, handler = None, discarded = None):
         """
@@ -600,16 +641,18 @@ class CAsyncDBHandler(CAsyncServiceHandler):
         if not rowset:
             meta = False
         q = CScopeUQueue.Lock().SaveBool(rowset).SaveBool(meta).SaveBool(lastInsertId).SaveULong(index)
+        queueOk = False
         """
         make sure all parameter data sendings and ExecuteParameters sending as one combination sending
         to avoid possible request sending overlapping within multiple threading environment
         """
         with self._csOneSending:
-            queueOk = self.AttachedClientSocket.ClientQueue.StartJob()
-            if not self._SendParametersData(vParam):
-                CScopeUQueue.Unlock(q)
-                self._Clean()
-                return False
+            if vParam and len(vParam):
+                queueOk = self.AttachedClientSocket.ClientQueue.StartJob()
+                if not self._SendParametersData(vParam):
+                    CScopeUQueue.Unlock(q)
+                    self._Clean()
+                    return False
             #don't make self._csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
             with self._csDB:
                 self._deqResult.append(cb)
@@ -623,6 +666,71 @@ class CAsyncDBHandler(CAsyncServiceHandler):
                         self._mapRowset.pop(index)
                     self._mapParameterCall.pop(index)
                     self._deqResult.remove(cb)
+            if queueOk:
+                self.AttachedClientSocket.ClientQueue.EndJob()
+        CScopeUQueue.Unlock(q)
+        return ok
+
+    def ExecuteBatch(self, isolation, sql, delimiter, vParam, handler = None, row = None, rh = None, batchHeader = None, vPInfo = None, plan = tagRollbackPlan.rpDefault, discarded = None, meta = True, lastInsertId = True):
+        """
+        Execute a batch of SQL statements on one single call
+        :param isolation: a value for manual transaction isolation. Specifically, there is no manual transaction around the batch SQL statements if it is tiUnspecified
+        :param sql: a SQL statement having a batch of individual SQL statements
+        :param delimiter: a delimiter string used for separating the batch SQL statements into individual SQL statements at server side for processing
+        :param vParam: an array of parameter data which will be bounded to previously prepared parameters. The array size can be 0 if the given batch SQL statement doesn't having any prepared statement
+        :param handler: a callback for tracking final result
+        :param row: a callback for receiving records of data
+        :param rh: a callback for tracking row set of header column informations
+        :param batchHeader: a callback for tracking returning batch start error messages
+        :param vPInfo: a given array of parameter informations which may be empty to some of database management systems
+        :param plan: a value for computing how included transactions should be rollback
+        :param discarded: a callback for tracking socket closed or request canceled event
+        :param meta: a boolean for better or more detailed column meta details such as unique, not null, primary key, and so on
+        :param lastInsertId: a boolean for last insert record identification number
+        :return: true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
+        """
+        ok = True
+        rowset = (rh or row)
+        cb = Pair(DB_CONSTS.idExecuteParameters, handler)
+        if not rowset:
+            meta = False
+        if not vPInfo:
+            vPInfo = []
+
+        q = CScopeUQueue.Lock().SaveString(sql).SaveString(delimiter).SaveInt(isolation).SaveInt(plan).SaveBool(rowset).SaveBool(meta).SaveBool(lastInsertId)
+        queueOk = False
+        """
+        make sure all parameter data sendings and ExecuteParameters sending as one combination sending
+        to avoid possible request sending overlapping within multiple threading environment
+        """
+        with self._csOneSending:
+            if vParam and len(vParam):
+                queueOk = self.AttachedClientSocket.ClientQueue.StartJob()
+                if not self._SendParametersData(vParam):
+                    CScopeUQueue.Unlock(q)
+                    self._Clean()
+                    return False
+            index = self.GetCallIndex()
+            #don't make self._csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
+            with self._csDB:
+                self._deqResult.append(cb)
+                self._mapParameterCall[index] = vParam
+                if rowset:
+                    self._mapRowset[index] = Pair(rh, row)
+                self._mapHandler[index] = batchHeader
+                q.SaveString(self._strConnection).SaveUInt(self._flags)
+            q.SaveULong(index)
+            q.SaveUInt(len(vPInfo))
+            for one in vPInfo:
+                one.SaveTo(q)
+            ok = self.SendRequest(DB_CONSTS.idExecuteBatch, q, None, discarded)
+            if not ok:
+                with self._csDB:
+                    if rowset:
+                        self._mapRowset.pop(index)
+                    self._mapParameterCall.pop(index)
+                    self._deqResult.remove(cb)
+                    self._mapHandler.pop(index)
             if queueOk:
                 self.AttachedClientSocket.ClientQueue.EndJob()
         CScopeUQueue.Unlock(q)

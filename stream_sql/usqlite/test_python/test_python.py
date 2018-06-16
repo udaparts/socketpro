@@ -28,12 +28,12 @@ with CSocketPool(CSqlite) as spSqlite:
 
     ra = []
 
-    def cbRows(sqlite, lstData):
-        index = len(ra) - 1
-        ra[index].second.append(lstData)
+    def cbRows(db, lstData):
+        back = len(ra) - 1
+        ra[back].second.append(lstData)
 
-    def cbRowHeader(sqlite):
-        vColInfo = sqlite.ColumnInfo
+    def cbRowHeader(db):
+        vColInfo = db.ColumnInfo
         ra.append(Pair(vColInfo, []))
 
     def TestPreparedStatements():
@@ -109,6 +109,21 @@ with CSocketPool(CSqlite) as spSqlite:
 
         return sqlite.ExecuteParameters(vData, cbExecute, cbRows, cbRowHeader)
 
+    def TestBatch():
+        vParam = []
+        vParam.append(1)  # ID
+        vParam.append(2)  # EMPLOYEEID
+        #there is no manual transaction if isolation is tiUnspecified
+        ok = sqlite.ExecuteBatch(tagTransactionIsolation.tiUnspecified, "Select datetime('now');select * from COMPANY where ID=?;select * from EMPLOYEE where EMPLOYEEID=?", "", vParam, cbExecute, cbRows, cbRowHeader)
+        vParam = []
+        vParam.append(1)  # ID
+        vParam.append(2)  # EMPLOYEEID
+        vParam.append(2)  # ID
+        vParam.append(3)  # EMPLOYEEID
+        # Same as sqlite.BeginTrans()
+        # Select datetime('now');select * from COMPANY where ID=1;select * from COMPANY where ID=2;Select datetime('now');select * from EMPLOYEE where EMPLOYEEID=2;select * from EMPLOYEE where EMPLOYEEID=3
+        # ok=sqlite.EndTrans();
+        ok = sqlite.ExecuteBatch(tagTransactionIsolation.tiReadCommited, "Select datetime('now')@@select * from COMPANY where ID=?@@Select datetime('now')@@select * from EMPLOYEE where EMPLOYEEID=?", "@@", vParam, cbExecute, cbRows, cbRowHeader)
 
     ok = sqlite.Open(u'', cb)
     ok = TestCreateTables()
@@ -116,6 +131,7 @@ with CSocketPool(CSqlite) as spSqlite:
     ok = TestPreparedStatements()
     ok = InsertBLOBByPreparedStatement()
     ok = sqlite.EndTrans(tagRollbackPlan.rpDefault, cb)
+    TestBatch()
     sqlite.WaitAll()
     print('')
     print('+++++ Start rowsets +++')

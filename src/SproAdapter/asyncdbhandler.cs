@@ -661,15 +661,21 @@ namespace SocketProAdapter {
                 bool rowset = (rh != null || row != null) ? true : false;
                 if (!rowset)
                     meta = false;
+                bool queueOk = false;
                 //make sure all parameter data sending and ExecuteParameters sending as one combination sending
                 //to avoid possible request sending overlapping within multiple threading environment
                 lock (m_csOneSending) {
-                    bool queueOk = AttachedClientSocket.ClientQueue.StartJob();
-                    if (!SendParametersData(vParam)) {
-                        lock (m_csDB) {
-                            Clean();
+                    if (vParam != null && vParam.Count > 0)
+                    {
+                        queueOk = AttachedClientSocket.ClientQueue.StartJob();
+                        if (!SendParametersData(vParam))
+                        {
+                            lock (m_csDB)
+                            {
+                                Clean();
+                            }
+                            return false;
                         }
-                        return false;
                     }
                     ulong callIndex = GetCallIndex();
                     //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
