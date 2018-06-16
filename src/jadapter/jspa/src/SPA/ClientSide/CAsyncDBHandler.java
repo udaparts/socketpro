@@ -44,6 +44,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
 
     protected final java.util.HashMap<Long, Pair<DRowsetHeader, DRows>> m_mapRowset = new java.util.HashMap<>();
     private final java.util.HashMap<Long, CDBVariantArray> m_mapParameterCall = new java.util.HashMap<>();
+    private final java.util.HashMap<Long, DResult> m_mapHandler = new java.util.HashMap<>();
 
     protected long m_indexRowset = 0;
     private final CUQueue m_Blob = new CUQueue();
@@ -131,6 +132,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
         m_mapRowset.clear();
         m_vColInfo.clear();
         m_mapParameterCall.clear();
+        m_mapHandler.clear();
         m_lastReqId = 0;
         m_Blob.SetSize(0);
         m_deqExecuteResult.clear();
@@ -157,6 +159,11 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                     dbTo.m_mapParameterCall.put(callIndex, m_mapParameterCall.get(callIndex));
                 }
                 m_mapParameterCall.clear();
+
+                for (long callIndex : m_mapHandler.keySet()) {
+                    dbTo.m_mapHandler.put(callIndex, m_mapHandler.get(callIndex));
+                }
+                m_mapHandler.clear();
             }
         }
     }
@@ -170,6 +177,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                 m_mapRowset.remove((Long) (arr[n]));
             }
             m_mapParameterCall.clear();
+            m_mapHandler.clear();
         }
     }
 
@@ -701,15 +709,12 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
     public boolean Prepare(String sql, DResult handler, CParameterInfo[] vParameterInfo, DDiscarded discarded) {
         CUQueue sb = CScopeUQueue.Lock();
         sb.Save(sql);
-        int count = 0;
-        if (vParameterInfo != null) {
-            count = vParameterInfo.length;
+        if (vParameterInfo == null) {
+            vParameterInfo = new CParameterInfo[0];
         }
-        sb.Save(count);
-        if (count > 0) {
-            for (CParameterInfo info : vParameterInfo) {
-                info.SaveTo(sb);
-            }
+        sb.Save(vParameterInfo.length);
+        for (CParameterInfo info : vParameterInfo) {
+            info.SaveTo(sb);
         }
         boolean ok;
         MyCallback<DResult> cb = new MyCallback<>(DB_CONSTS.idPrepare, handler);
@@ -1060,11 +1065,370 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
         return true;
     }
 
+    /**
+     * Execute a batch of SQL statements on one single call
+     *
+     * @param isolation a value for manual transaction isolation. Specifically,
+     * there is no manual transaction around the batch SQL statements if it is
+     * tiUnspecified
+     * @param sql a SQL statement having a batch of individual SQL statements
+     * @param delimiter a delimiter string used for separating the batch SQL
+     * statements into individual SQL statements at server side for processing
+     * @param vParam an array of parameter data which will be bounded to
+     * previously prepared parameters. The array size can be 0 if the given
+     * batch SQL statement doesn't having any prepared statement
+     * @return true if request is successfully sent or queued; and false if
+     * request is NOT successfully sent or queued
+     */
+    public boolean ExecuteBatch(tagTransactionIsolation isolation, String sql, String delimiter, CDBVariantArray vParam) {
+        return ExecuteBatch(isolation, sql, delimiter, vParam, null, null, null, null, null, tagRollbackPlan.rpDefault, null, true, true);
+    }
+
+    /**
+     * Execute a batch of SQL statements on one single call
+     *
+     * @param isolation a value for manual transaction isolation. Specifically,
+     * there is no manual transaction around the batch SQL statements if it is
+     * tiUnspecified
+     * @param sql a SQL statement having a batch of individual SQL statements
+     * @param delimiter a delimiter string used for separating the batch SQL
+     * statements into individual SQL statements at server side for processing
+     * @param vParam an array of parameter data which will be bounded to
+     * previously prepared parameters. The array size can be 0 if the given
+     * batch SQL statement doesn't having any prepared statement
+     * @param handler a callback for tracking final result
+     * @return true if request is successfully sent or queued; and false if
+     * request is NOT successfully sent or queued
+     */
+    public boolean ExecuteBatch(tagTransactionIsolation isolation, String sql, String delimiter, CDBVariantArray vParam, DExecuteResult handler) {
+        return ExecuteBatch(isolation, sql, delimiter, vParam, handler, null, null, null, null, tagRollbackPlan.rpDefault, null, true, true);
+    }
+
+    /**
+     * Execute a batch of SQL statements on one single call
+     *
+     * @param isolation a value for manual transaction isolation. Specifically,
+     * there is no manual transaction around the batch SQL statements if it is
+     * tiUnspecified
+     * @param sql a SQL statement having a batch of individual SQL statements
+     * @param delimiter a delimiter string used for separating the batch SQL
+     * statements into individual SQL statements at server side for processing
+     * @param vParam an array of parameter data which will be bounded to
+     * previously prepared parameters. The array size can be 0 if the given
+     * batch SQL statement doesn't having any prepared statement
+     * @param handler a callback for tracking final result
+     * @param row a callback for receiving records of data
+     * @return true if request is successfully sent or queued; and false if
+     * request is NOT successfully sent or queued
+     */
+    public boolean ExecuteBatch(tagTransactionIsolation isolation, String sql, String delimiter, CDBVariantArray vParam, DExecuteResult handler, DRows row) {
+        return ExecuteBatch(isolation, sql, delimiter, vParam, handler, row, null, null, null, tagRollbackPlan.rpDefault, null, true, true);
+    }
+
+    /**
+     * Execute a batch of SQL statements on one single call
+     *
+     * @param isolation a value for manual transaction isolation. Specifically,
+     * there is no manual transaction around the batch SQL statements if it is
+     * tiUnspecified
+     * @param sql a SQL statement having a batch of individual SQL statements
+     * @param delimiter a delimiter string used for separating the batch SQL
+     * statements into individual SQL statements at server side for processing
+     * @param vParam an array of parameter data which will be bounded to
+     * previously prepared parameters. The array size can be 0 if the given
+     * batch SQL statement doesn't having any prepared statement
+     * @param handler a callback for tracking final result
+     * @param row a callback for receiving records of data
+     * @param rh a callback for tracking row set of header column informations
+     * @return true if request is successfully sent or queued; and false if
+     * request is NOT successfully sent or queued
+     */
+    public boolean ExecuteBatch(tagTransactionIsolation isolation, String sql, String delimiter, CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh) {
+        return ExecuteBatch(isolation, sql, delimiter, vParam, handler, row, rh, null, null, tagRollbackPlan.rpDefault, null, true, true);
+    }
+
+    /**
+     * Execute a batch of SQL statements on one single call
+     *
+     * @param isolation a value for manual transaction isolation. Specifically,
+     * there is no manual transaction around the batch SQL statements if it is
+     * tiUnspecified
+     * @param sql a SQL statement having a batch of individual SQL statements
+     * @param delimiter a delimiter string used for separating the batch SQL
+     * statements into individual SQL statements at server side for processing
+     * @param vParam an array of parameter data which will be bounded to
+     * previously prepared parameters. The array size can be 0 if the given
+     * batch SQL statement doesn't having any prepared statement
+     * @param handler a callback for tracking final result
+     * @param row a callback for receiving records of data
+     * @param rh a callback for tracking row set of header column informations
+     * @param batchHeader a callback for tracking returning batch start error
+     * messages
+     * @return true if request is successfully sent or queued; and false if
+     * request is NOT successfully sent or queued
+     */
+    public boolean ExecuteBatch(tagTransactionIsolation isolation, String sql, String delimiter, CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh, DResult batchHeader) {
+        return ExecuteBatch(isolation, sql, delimiter, vParam, handler, row, rh, batchHeader, null, tagRollbackPlan.rpDefault, null, true, true);
+    }
+
+    /**
+     * Execute a batch of SQL statements on one single call
+     *
+     * @param isolation a value for manual transaction isolation. Specifically,
+     * there is no manual transaction around the batch SQL statements if it is
+     * tiUnspecified
+     * @param sql a SQL statement having a batch of individual SQL statements
+     * @param delimiter a delimiter string used for separating the batch SQL
+     * statements into individual SQL statements at server side for processing
+     * @param vParam an array of parameter data which will be bounded to
+     * previously prepared parameters. The array size can be 0 if the given
+     * batch SQL statement doesn't having any prepared statement
+     * @param handler a callback for tracking final result
+     * @param row a callback for receiving records of data
+     * @param rh a callback for tracking row set of header column informations
+     * @param batchHeader a callback for tracking returning batch start error
+     * messages
+     * @param vPInfo a given array of parameter informations which may be empty
+     * to some of database management systems
+     * @return true if request is successfully sent or queued; and false if
+     * request is NOT successfully sent or queued
+     */
+    public boolean ExecuteBatch(tagTransactionIsolation isolation, String sql, String delimiter, CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh, DResult batchHeader, CParameterInfo[] vPInfo) {
+        return ExecuteBatch(isolation, sql, delimiter, vParam, handler, row, rh, batchHeader, vPInfo, tagRollbackPlan.rpDefault, null, true, true);
+    }
+
+    /**
+     * Execute a batch of SQL statements on one single call
+     *
+     * @param isolation a value for manual transaction isolation. Specifically,
+     * there is no manual transaction around the batch SQL statements if it is
+     * tiUnspecified
+     * @param sql a SQL statement having a batch of individual SQL statements
+     * @param delimiter a delimiter string used for separating the batch SQL
+     * statements into individual SQL statements at server side for processing
+     * @param vParam an array of parameter data which will be bounded to
+     * previously prepared parameters. The array size can be 0 if the given
+     * batch SQL statement doesn't having any prepared statement
+     * @param handler a callback for tracking final result
+     * @param row a callback for receiving records of data
+     * @param rh a callback for tracking row set of header column informations
+     * @param batchHeader a callback for tracking returning batch start error
+     * messages
+     * @param vPInfo a given array of parameter informations which may be empty
+     * to some of database management systems
+     * @param plan a value for computing how included transactions should be
+     * rollback
+     * @return true if request is successfully sent or queued; and false if
+     * request is NOT successfully sent or queued
+     */
+    public boolean ExecuteBatch(tagTransactionIsolation isolation, String sql, String delimiter, CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh, DResult batchHeader, CParameterInfo[] vPInfo, tagRollbackPlan plan) {
+        return ExecuteBatch(isolation, sql, delimiter, vParam, handler, row, rh, batchHeader, vPInfo, plan, null, true, true);
+    }
+
+    /**
+     * Execute a batch of SQL statements on one single call
+     *
+     * @param isolation a value for manual transaction isolation. Specifically,
+     * there is no manual transaction around the batch SQL statements if it is
+     * tiUnspecified
+     * @param sql a SQL statement having a batch of individual SQL statements
+     * @param delimiter a delimiter string used for separating the batch SQL
+     * statements into individual SQL statements at server side for processing
+     * @param vParam an array of parameter data which will be bounded to
+     * previously prepared parameters. The array size can be 0 if the given
+     * batch SQL statement doesn't having any prepared statement
+     * @param handler a callback for tracking final result
+     * @param row a callback for receiving records of data
+     * @param rh a callback for tracking row set of header column informations
+     * @param batchHeader a callback for tracking returning batch start error
+     * messages
+     * @param vPInfo a given array of parameter informations which may be empty
+     * to some of database management systems
+     * @param plan a value for computing how included transactions should be
+     * rollback
+     * @param discarded a callback for tracking socket closed or request
+     * canceled event
+     * @return true if request is successfully sent or queued; and false if
+     * request is NOT successfully sent or queued
+     */
+    public boolean ExecuteBatch(tagTransactionIsolation isolation, String sql, String delimiter, CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh, DResult batchHeader, CParameterInfo[] vPInfo, tagRollbackPlan plan, DDiscarded discarded) {
+        return ExecuteBatch(isolation, sql, delimiter, vParam, handler, row, rh, batchHeader, vPInfo, plan, discarded, true, true);
+    }
+
+    /**
+     * Execute a batch of SQL statements on one single call
+     *
+     * @param isolation a value for manual transaction isolation. Specifically,
+     * there is no manual transaction around the batch SQL statements if it is
+     * tiUnspecified
+     * @param sql a SQL statement having a batch of individual SQL statements
+     * @param delimiter a delimiter string used for separating the batch SQL
+     * statements into individual SQL statements at server side for processing
+     * @param vParam an array of parameter data which will be bounded to
+     * previously prepared parameters. The array size can be 0 if the given
+     * batch SQL statement doesn't having any prepared statement
+     * @param handler a callback for tracking final result
+     * @param row a callback for receiving records of data
+     * @param rh a callback for tracking row set of header column informations
+     * @param batchHeader a callback for tracking returning batch start error
+     * messages
+     * @param vPInfo a given array of parameter informations which may be empty
+     * to some of database management systems
+     * @param plan a value for computing how included transactions should be
+     * rollback
+     * @param discarded a callback for tracking socket closed or request
+     * canceled event
+     * @param meta a boolean for better or more detailed column meta details
+     * such as unique, not null, primary key, and so on
+     * @return true if request is successfully sent or queued; and false if
+     * request is NOT successfully sent or queued
+     */
+    public boolean ExecuteBatch(tagTransactionIsolation isolation, String sql, String delimiter, CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh, DResult batchHeader, CParameterInfo[] vPInfo, tagRollbackPlan plan, DDiscarded discarded, boolean meta) {
+        return ExecuteBatch(isolation, sql, delimiter, vParam, handler, row, rh, batchHeader, vPInfo, plan, discarded, meta, true);
+    }
+
+    /**
+     * Execute a batch of SQL statements on one single call
+     *
+     * @param isolation a value for manual transaction isolation. Specifically,
+     * there is no manual transaction around the batch SQL statements if it is
+     * tiUnspecified
+     * @param sql a SQL statement having a batch of individual SQL statements
+     * @param delimiter a delimiter string used for separating the batch SQL
+     * statements into individual SQL statements at server side for processing
+     * @param vParam an array of parameter data which will be bounded to
+     * previously prepared parameters. The array size can be 0 if the given
+     * batch SQL statement doesn't having any prepared statement
+     * @param handler a callback for tracking final result
+     * @param row a callback for receiving records of data
+     * @param rh a callback for tracking row set of header column informations
+     * @param batchHeader a callback for tracking returning batch start error
+     * messages
+     * @param vPInfo a given array of parameter informations which may be empty
+     * to some of database management systems
+     * @param plan a value for computing how included transactions should be
+     * rollback
+     * @param discarded a callback for tracking socket closed or request
+     * canceled event
+     * @param meta a boolean for better or more detailed column meta details
+     * such as unique, not null, primary key, and so on
+     * @param lastInsertId a boolean for last insert record identification
+     * number
+     * @return true if request is successfully sent or queued; and false if
+     * request is NOT successfully sent or queued
+     */
+    public boolean ExecuteBatch(tagTransactionIsolation isolation, String sql, String delimiter, CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh, DResult batchHeader, CParameterInfo[] vPInfo, tagRollbackPlan plan, DDiscarded discarded, boolean meta, boolean lastInsertId) {
+        boolean queueOk = false;
+        boolean rowset = (rh != null || row != null);
+        if (!rowset) {
+            meta = false;
+        }
+        if (vPInfo == null) {
+            vPInfo = new CParameterInfo[0];
+        }
+        MyCallback<DExecuteResult> cb = new MyCallback<>(DB_CONSTS.idExecuteParameters, handler);
+        CUQueue sb = CScopeUQueue.Lock();
+        sb.Save(sql).Save(delimiter).Save(isolation.getValue()).Save(plan.getValue()).Save(rowset).Save(meta).Save(lastInsertId);
+
+        //make sure all parameter data sendings and ExecuteParameters sending as one combination sending
+        //to avoid possible request sending overlapping within multiple threading environment
+        synchronized (m_csOneSending) {
+            if (vParam != null && vParam.size() > 0) {
+                queueOk = getAttachedClientSocket().getClientQueue().StartJob();
+                if (!SendParametersData(vParam)) {
+                    Clean();
+                    CScopeUQueue.Unlock(sb);
+                    return false;
+                }
+            }
+            final long index = GetCallIndex();
+            sb.Save(index);
+            //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
+            //in case a client asynchronously sends lots of requests without use of client side queue.
+            synchronized (m_csDB) {
+                if (rowset) {
+                    m_mapRowset.put(index, new Pair<>(rh, row));
+                }
+                m_deqExecuteResult.add(cb);
+                m_mapParameterCall.put(index, vParam);
+                m_mapHandler.put(index, batchHeader);
+                sb.Save(m_strConnection).Save(m_flags);
+            }
+            sb.Save(index);
+            sb.Save(vPInfo.length);
+            for (CParameterInfo info : vPInfo) {
+                info.SaveTo(sb);
+            }
+            if (!SendRequest(DB_CONSTS.idExecuteBatch, sb.getIntenalBuffer(), sb.GetSize(), null, discarded)) {
+                synchronized (m_csDB) {
+                    m_mapParameterCall.remove(index);
+                    m_deqExecuteResult.remove(cb);
+                    if (rowset) {
+                        m_mapRowset.remove(index);
+                    }
+                    m_mapHandler.remove(index);
+                }
+                CScopeUQueue.Unlock(sb);
+                return false;
+            }
+            if (queueOk) {
+                getAttachedClientSocket().getClientQueue().EndJob();
+            }
+            CScopeUQueue.Unlock(sb);
+        }
+        return true;
+    }
+
     final protected Object m_csOneSending = new Object();
 
     @Override
     protected void OnResultReturned(short reqId, CUQueue mc) {
         switch (reqId) {
+            case DB_CONSTS.idExecuteBatch: {
+                long affected = mc.LoadLong();
+                int res = mc.LoadInt();
+                String errMsg = mc.LoadString();
+                Object vtId = mc.LoadObject();
+                long fail_ok = mc.LoadLong();
+                synchronized (m_csDB) {
+                    m_lastReqId = reqId;
+                    m_affected = affected;
+                    m_dbErrCode = res;
+                    m_dbErrMsg = errMsg;
+                    m_mapRowset.remove(m_indexRowset);
+                    m_mapParameterCall.remove(m_indexRowset);
+                    m_mapHandler.remove(m_indexRowset);
+                    m_indexProc = 0;
+                }
+            }
+            break;
+            case DB_CONSTS.idSqlBatchHeader: {
+                DResult cb = null;
+                int res = mc.LoadInt();
+                String errMsg = mc.LoadString();
+                int ms = mc.LoadInt();
+                int parameters = mc.LoadInt();
+                m_indexRowset = mc.LoadLong();
+                synchronized (m_csDB) {
+                    m_lastReqId = reqId;
+                    m_parameters = (parameters & 0xffff);
+                    m_output = (parameters >> 16);
+                    if (res == 0) {
+                        m_strConnection = errMsg;
+                        errMsg = "";
+                    }
+                    m_dbErrCode = res;
+                    m_dbErrMsg = errMsg;
+                    m_ms = tagManagementSystem.forValue(ms);
+                    if (m_mapHandler.containsKey(m_indexRowset)) {
+                        cb = m_mapHandler.get(m_indexRowset);
+                    }
+                }
+                if (cb != null) {
+                    cb.invoke(this, res, errMsg);
+                }
+            }
+            break;
             case DB_CONSTS.idExecuteParameters:
             case DB_CONSTS.idExecute: {
                 long affected = mc.LoadLong();
