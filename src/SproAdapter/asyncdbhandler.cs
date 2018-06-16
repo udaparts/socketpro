@@ -114,6 +114,37 @@ namespace SocketProAdapter {
             #endregion
         }
 
+        public class CPosArray : List<uint>, IUSerializer
+        {
+            #region IUSerializer Members
+
+            public void LoadFrom(CUQueue UQueue)
+            {
+                int size;
+                Clear();
+                UQueue.Load(out size);
+                while (size > 0)
+                {
+                    uint n;
+                    UQueue.Load(out n);
+                    Add(n);
+                    --size;
+                }
+            }
+
+            public void SaveTo(CUQueue UQueue)
+            {
+                int size = Count;
+                UQueue.Save(size);
+                foreach (int data in this)
+                {
+                    UQueue.Save(data);
+                }
+            }
+
+            #endregion
+        }
+
         public class CDBColumnInfo : IUSerializer {
             public const uint FLAG_NOT_NULL = 0x1;
             public const uint FLAG_UNIQUE = 0x2;
@@ -362,6 +393,7 @@ namespace SocketProAdapter {
             private uint m_output = 0;
             private bool m_bCallReturn = false;
             private bool m_queueOk = false;
+            private CPosArray m_vPos = new CPosArray();
             public ushort LastDBRequestId {
                 get {
                     lock (m_csDB) {
@@ -1444,6 +1476,8 @@ namespace SocketProAdapter {
                             DResult cb = null;
                             string errMsg;
                             mc.Load(out res).Load(out errMsg).Load(out ms).Load(out parameters).Load(out callIndex);
+                            if (mc.GetSize() > 0)
+                                m_vPos.LoadFrom(mc);
                             lock (m_csDB) {
                                 m_indexProc = 0;
                                 m_lastReqId = reqId;
@@ -1537,8 +1571,8 @@ namespace SocketProAdapter {
                                             vParam[(int)pos] = obj;
                                             ++pos;
                                         }
+                                        ++m_indexProc;
                                     }
-                                    ++m_indexProc;
                                 }
                             } else {
                                 DRows row = null;

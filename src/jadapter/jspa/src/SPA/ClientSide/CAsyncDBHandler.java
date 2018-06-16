@@ -320,6 +320,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
         }
     }
     private final java.util.ArrayDeque<MyCallback<DResult>> m_deqResult = new java.util.ArrayDeque<>();
+    private final CPosArray m_vPos = new CPosArray();
 
     private MyCallback<DResult> GetResultHandler(short reqId) {
         if (m_ClientSocket.getRandom()) {
@@ -1411,6 +1412,9 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                 int ms = mc.LoadInt();
                 int parameters = mc.LoadInt();
                 m_indexRowset = mc.LoadLong();
+                if (mc.GetSize() > 0) {
+                    m_vPos.LoadFrom(mc);
+                }
                 synchronized (m_csDB) {
                     m_indexProc = 0;
                     m_lastReqId = reqId;

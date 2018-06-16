@@ -876,6 +876,27 @@ namespace SPA {
             }
             return q;
         }
+		
+		typedef std::vector<unsigned int> CPosArray;
+		static CUQueue& operator<<(CUQueue &q, const CPosArray &arr) {
+            unsigned int size = (unsigned int) arr.size();
+            q << size;
+            for (unsigned int n = 0; n < size; ++n) {
+                q << arr[n];
+            }
+            return q;
+        }
+
+        static CUQueue& operator>>(CUQueue &q, CPosArray &arr) {
+            unsigned int size, data;
+            arr.clear();
+            q >> size;
+            for (unsigned int n = 0; n < size; ++n) {
+				q >> data;
+                arr.push_back(data);
+            }
+            return q;
+        }
 
         enum tagParameterDirection {
             pdUnknown = 0,

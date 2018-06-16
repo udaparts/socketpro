@@ -722,6 +722,8 @@ namespace SPA {
                         DResult cb = nullptr;
                         std::wstring errMsg;
                         mc >> res >> errMsg >> ms >> params >> callIndex;
+						if (mc.GetSize())
+							mc >> m_vPos;
                         {
                             CAutoLock al(m_csDB);
 							m_indexProc = 0;
@@ -831,24 +833,24 @@ namespace SPA {
                             if (Utf8ToW)
                                 mc.Utf8ToW(false);
                             if (reqId == idOutputParameter) {
-                                {
-                                    CAutoLock al(m_csDB);
-                                    if (!m_outputs) {
-                                        m_outputs = (unsigned int) m_vData.size();
-                                    } else {
-                                        assert(m_outputs == (unsigned int) m_vData.size() + (unsigned int) m_bCallReturn);
-                                    }
-                                    auto it = m_mapParameterCall.find(m_indexRowset);
-                                    if (it != m_mapParameterCall.end()) {
-                                        //crash? make sure that vParam is valid after calling the method Execute
-                                        CDBVariantArray &vParam = *(it->second);
-                                        size_t pos = m_parameters * m_indexProc + (m_parameters - (unsigned int) m_vData.size());
-                                        for (auto start = m_vData.begin(), end = m_vData.end(); start != end; ++start, ++pos) {
-                                            vParam[pos] = std::move(*start);
-                                        }
-                                    }
-                                    ++m_indexProc;
+                                CAutoLock al(m_csDB);
+                                if (!m_outputs) {
+                                    m_outputs = (unsigned int) m_vData.size();
+                                } else {
+                                    assert(m_outputs == (unsigned int) m_vData.size() + (unsigned int) m_bCallReturn);
                                 }
+                                auto it = m_mapParameterCall.find(m_indexRowset);
+								if (it != m_mapParameterCall.cend()) {
+									//crash? make sure that vParam is valid after calling the method Execute
+									CDBVariantArray &vParam = *(it->second);
+									size_t pos = m_parameters * m_indexProc + (m_parameters - (unsigned int) m_vData.size());
+									for (auto start = m_vData.begin(), end = m_vData.end(); start != end; ++start, ++pos) {
+										vParam[pos] = std::move(*start);
+									}
+									++m_indexProc;
+									if (m_indexProc == m_mapParameterCall.size() / m_parameters)
+										m_indexProc = 0;
+								}
                             } else {
                                 DRows row;
                                 {
@@ -943,6 +945,7 @@ namespace SPA {
             CUCriticalSection m_csOneSending;
             bool m_queueOk;
             std::unordered_map<UINT64, DResult> m_mapHandler;
+			CPosArray m_vPos;
         };
     } //namespace ClientSide
 } //namespace SPA
