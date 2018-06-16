@@ -1412,6 +1412,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                 int parameters = mc.LoadInt();
                 m_indexRowset = mc.LoadLong();
                 synchronized (m_csDB) {
+                    m_indexProc = 0;
                     m_lastReqId = reqId;
                     m_parameters = (parameters & 0xffff);
                     m_output = (parameters >> 16);

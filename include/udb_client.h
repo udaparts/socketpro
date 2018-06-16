@@ -724,6 +724,7 @@ namespace SPA {
                         mc >> res >> errMsg >> ms >> params >> callIndex;
                         {
                             CAutoLock al(m_csDB);
+							m_indexProc = 0;
                             m_lastReqId = idSqlBatchHeader;
                             m_parameters = (params & 0xffff);
                             m_outputs = (params >> 16);

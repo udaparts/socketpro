@@ -1445,6 +1445,7 @@ namespace SocketProAdapter {
                             string errMsg;
                             mc.Load(out res).Load(out errMsg).Load(out ms).Load(out parameters).Load(out callIndex);
                             lock (m_csDB) {
+                                m_indexProc = 0;
                                 m_lastReqId = reqId;
                                 m_parameters = (parameters & (uint)0xffff);
                                 m_output = (parameters >> 16);

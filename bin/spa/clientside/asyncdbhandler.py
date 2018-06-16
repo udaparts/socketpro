@@ -83,7 +83,7 @@ class CAsyncDBHandler(CAsyncServiceHandler):
     @property
     def ColumnInfo(self):
         with self._csDB:
-            return self._vColInfo[:]
+            return self._vColInfo
 
     @property
     def LastAffected(self):
@@ -147,6 +147,7 @@ class CAsyncDBHandler(CAsyncServiceHandler):
             ms = mc.LoadUInt();
             parameters = mc.LoadUInt();
             with self._csDB:
+                self._indexProc = 0
                 self._indexRowset = mc.LoadULong();
                 self._lastReqId = reqId
                 self._parameters = (parameters & 0xffff)
@@ -275,6 +276,8 @@ class CAsyncDBHandler(CAsyncServiceHandler):
             self._vData = []
             header = None
             with self._csDB:
+                # make sure new array of column meta data
+                self._vColInfo = CDBColumnInfoArray()
                 self._vColInfo.LoadFrom(mc)
                 self._indexRowset = mc.LoadULong()
                 if mc.GetSize() > 0:
