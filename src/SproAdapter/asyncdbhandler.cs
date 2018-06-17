@@ -6,9 +6,12 @@ using SocketProAdapter.ClientSide;
 #endif
 using System.Data;
 
-namespace SocketProAdapter {
-    namespace UDB {
-        public enum tagTransactionIsolation {
+namespace SocketProAdapter
+{
+    namespace UDB
+    {
+        public enum tagTransactionIsolation
+        {
             tiUnspecified = -1,
             tiChaos = 0,
             tiReadUncommited = 1,
@@ -20,7 +23,8 @@ namespace SocketProAdapter {
             tiIsolated = 6
         };
 
-        public enum tagRollbackPlan {
+        public enum tagRollbackPlan
+        {
             /// <summary>
             /// Manual transaction will rollback whenever there is an error by default
             /// </summary>
@@ -57,7 +61,8 @@ namespace SocketProAdapter {
             rpRollbackAlways = 5
         };
 
-        public enum tagUpdateEvent {
+        public enum tagUpdateEvent
+        {
             ueUnknown = -1,
 
             /// <summary>
@@ -76,7 +81,8 @@ namespace SocketProAdapter {
             ueDelete = 2,
         };
 
-        public enum tagManagementSystem {
+        public enum tagManagementSystem
+        {
             msUnknown = -1,
             msSqlite = 0,
             msMysql = 1,
@@ -88,33 +94,7 @@ namespace SocketProAdapter {
             msMongoDB = 7
         };
 
-        public class CDBVariantArray : List<object>, IUSerializer {
-            #region IUSerializer Members
-
-            public void LoadFrom(CUQueue UQueue) {
-                int size;
-                Clear();
-                UQueue.Load(out size);
-                while (size > 0) {
-                    object obj;
-                    UQueue.Load(out obj);
-                    Add(obj);
-                    --size;
-                }
-            }
-
-            public void SaveTo(CUQueue UQueue) {
-                int size = Count;
-                UQueue.Save(size);
-                foreach (object data in this) {
-                    UQueue.Save(data);
-                }
-            }
-
-            #endregion
-        }
-
-        public class CPosArray : List<uint>, IUSerializer
+        public class CDBVariantArray : List<object>, IUSerializer
         {
             #region IUSerializer Members
 
@@ -125,9 +105,9 @@ namespace SocketProAdapter {
                 UQueue.Load(out size);
                 while (size > 0)
                 {
-                    uint n;
-                    UQueue.Load(out n);
-                    Add(n);
+                    object obj;
+                    UQueue.Load(out obj);
+                    Add(obj);
                     --size;
                 }
             }
@@ -136,7 +116,7 @@ namespace SocketProAdapter {
             {
                 int size = Count;
                 UQueue.Save(size);
-                foreach (int data in this)
+                foreach (object data in this)
                 {
                     UQueue.Save(data);
                 }
@@ -145,7 +125,8 @@ namespace SocketProAdapter {
             #endregion
         }
 
-        public class CDBColumnInfo : IUSerializer {
+        public class CDBColumnInfo : IUSerializer
+        {
             public const uint FLAG_NOT_NULL = 0x1;
             public const uint FLAG_UNIQUE = 0x2;
             public const uint FLAG_PRIMARY_KEY = 0x4;
@@ -174,7 +155,8 @@ namespace SocketProAdapter {
 
             #region IUSerializer Members
 
-            public void LoadFrom(CUQueue UQueue) {
+            public void LoadFrom(CUQueue UQueue)
+            {
                 UQueue.Load(out DBPath).Load(out TablePath).Load(out DisplayName).Load(out OriginalName).Load(out DeclaredType).Load(out Collation).Load(out ColumnSize).Load(out Flags);
                 ushort dt;
                 UQueue.Load(out dt);
@@ -182,7 +164,8 @@ namespace SocketProAdapter {
                 UQueue.Load(out Precision).Load(out Scale);
             }
 
-            public void SaveTo(CUQueue UQueue) {
+            public void SaveTo(CUQueue UQueue)
+            {
                 UQueue.Save(DBPath).Save(TablePath).Save(DisplayName).Save(OriginalName).Save(DeclaredType).Save(Collation).Save(ColumnSize).Save(Flags);
                 UQueue.Save((ushort)DataType);
                 UQueue.Save(Precision).Save(Scale);
@@ -191,14 +174,17 @@ namespace SocketProAdapter {
             #endregion
         }
 
-        public class CDBColumnInfoArray : List<CDBColumnInfo>, IUSerializer {
+        public class CDBColumnInfoArray : List<CDBColumnInfo>, IUSerializer
+        {
             #region IUSerializer Members
 
-            public void LoadFrom(CUQueue UQueue) {
+            public void LoadFrom(CUQueue UQueue)
+            {
                 int size;
                 Clear();
                 UQueue.Load(out size);
-                while (size > 0) {
+                while (size > 0)
+                {
                     CDBColumnInfo info = new CDBColumnInfo();
                     info.LoadFrom(UQueue);
                     Add(info);
@@ -206,10 +192,12 @@ namespace SocketProAdapter {
                 }
             }
 
-            public void SaveTo(CUQueue UQueue) {
+            public void SaveTo(CUQueue UQueue)
+            {
                 int size = Count;
                 UQueue.Save(size);
-                foreach (CDBColumnInfo info in this) {
+                foreach (CDBColumnInfo info in this)
+                {
                     info.SaveTo(UQueue);
                 }
             }
@@ -217,7 +205,8 @@ namespace SocketProAdapter {
             #endregion
         }
 
-        public enum tagParameterDirection {
+        public enum tagParameterDirection
+        {
             pdUnknown = 0,
             pdInput = 1,
             pdOutput = 2,
@@ -225,7 +214,8 @@ namespace SocketProAdapter {
             pdReturnValue = 4
         };
 
-        public class CParameterInfo : IUSerializer {
+        public class CParameterInfo : IUSerializer
+        {
             public tagParameterDirection Direction = tagParameterDirection.pdInput; //required
             public tagVariantDataType DataType = tagVariantDataType.sdVT_NULL; //required! for example, VT_I4, VT_BSTR, VT_I1|VT_ARRAY (UTF8 string), ....
             public uint ColumnSize; //-1 BLOB, string len or binary bytes; ignored for other data types
@@ -235,30 +225,41 @@ namespace SocketProAdapter {
 
             #region IUSerializer Members
 
-            public void LoadFrom(CUQueue UQueue) {
+            public void LoadFrom(CUQueue UQueue)
+            {
                 int data;
                 UQueue.Load(out data);
                 Direction = (tagParameterDirection)data;
                 ushort dt;
                 UQueue.Load(out dt);
-                if ((dt & (ushort)tagVariantDataType.sdVT_ARRAY) == (ushort)tagVariantDataType.sdVT_ARRAY) {
-                    if ((dt & (ushort)tagVariantDataType.sdVT_UI1) == (ushort)tagVariantDataType.sdVT_UI1) {
+                if ((dt & (ushort)tagVariantDataType.sdVT_ARRAY) == (ushort)tagVariantDataType.sdVT_ARRAY)
+                {
+                    if ((dt & (ushort)tagVariantDataType.sdVT_UI1) == (ushort)tagVariantDataType.sdVT_UI1)
+                    {
                         DataType = tagVariantDataType.sdVT_UI1 | tagVariantDataType.sdVT_ARRAY;
-                    } else {
+                    }
+                    else
+                    {
                         //will convert all ASCII/UTF8 string into Unicode string at run time
                         DataType = tagVariantDataType.sdVT_BSTR;
                     }
-                } else {
+                }
+                else
+                {
                     DataType = (tagVariantDataType)(dt);
                 }
                 UQueue.Load(out ColumnSize).Load(out Precision).Load(out Scale).Load(out ParameterName);
             }
 
-            public void SaveTo(CUQueue UQueue) {
+            public void SaveTo(CUQueue UQueue)
+            {
                 UQueue.Save((int)Direction);
-                if (DataType == tagVariantDataType.sdVT_BYTES) {
+                if (DataType == tagVariantDataType.sdVT_BYTES)
+                {
                     UQueue.Save((ushort)tagVariantDataType.sdVT_ARRAY | (ushort)tagVariantDataType.sdVT_UI1);
-                } else {
+                }
+                else
+                {
                     UQueue.Save((ushort)DataType);
                 }
                 UQueue.Save(ColumnSize).Save(Precision).Save(Scale).Save(ParameterName);
@@ -267,14 +268,17 @@ namespace SocketProAdapter {
             #endregion
         }
 
-        public class CParameterInfoArray : List<CParameterInfo>, IUSerializer {
+        public class CParameterInfoArray : List<CParameterInfo>, IUSerializer
+        {
             #region IUSerializer Members
 
-            public void LoadFrom(CUQueue UQueue) {
+            public void LoadFrom(CUQueue UQueue)
+            {
                 int count;
                 Clear();
                 UQueue.Load(out count);
-                while (count > 0) {
+                while (count > 0)
+                {
                     CParameterInfo info = new CParameterInfo();
                     info.LoadFrom(UQueue);
                     Add(info);
@@ -282,9 +286,11 @@ namespace SocketProAdapter {
                 }
             }
 
-            public void SaveTo(CUQueue UQueue) {
+            public void SaveTo(CUQueue UQueue)
+            {
                 UQueue.Save(this.Count);
-                foreach (CParameterInfo info in this) {
+                foreach (CParameterInfo info in this)
+                {
                     info.SaveTo(UQueue);
                 }
             }
@@ -292,7 +298,8 @@ namespace SocketProAdapter {
             #endregion
         }
 
-        public static class DB_CONSTS {
+        public static class DB_CONSTS
+        {
             /// <summary>
             /// Async database client/server just requires the following request identification numbers 
             /// </summary>
@@ -326,6 +333,7 @@ namespace SocketProAdapter {
 
             public const ushort idSqlBatchHeader = idGetCachedTables + 1;
             public const ushort idExecuteBatch = idSqlBatchHeader + 1;
+            public const ushort idParameterPostion = idExecuteBatch + 1;
 
             /// <summary>
             /// Whenever a data size in bytes is about twice larger than the defined value,
@@ -355,9 +363,11 @@ namespace SocketProAdapter {
 #if USQLSERVER
 
 #else
-    namespace ClientSide {
+    namespace ClientSide
+    {
         using UDB;
-        public class CAsyncDBHandler : CAsyncServiceHandler {
+        public class CAsyncDBHandler : CAsyncServiceHandler
+        {
             private const uint ONE_MEGA_BYTES = 0x100000;
             private const uint BLOB_LENGTH_NOT_AVAILABLE = 0xffffffe0;
 
@@ -367,7 +377,8 @@ namespace SocketProAdapter {
             public delegate void DRows(CAsyncDBHandler dbHandler, CDBVariantArray lstData);
 
             protected CAsyncDBHandler(uint ServiceId)
-                : base(ServiceId) {
+                : base(ServiceId)
+            {
 
             }
 
@@ -393,103 +404,139 @@ namespace SocketProAdapter {
             private uint m_output = 0;
             private bool m_bCallReturn = false;
             private bool m_queueOk = false;
-            private CPosArray m_vPos = new CPosArray();
-            public ushort LastDBRequestId {
-                get {
-                    lock (m_csDB) {
+            private uint m_nParamPos = 0;
+            public ushort LastDBRequestId
+            {
+                get
+                {
+                    lock (m_csDB)
+                    {
                         return m_lastReqId;
                     }
                 }
             }
 
-            public int LastDBErrorCode {
-                get {
-                    lock (m_csDB) {
+            public int LastDBErrorCode
+            {
+                get
+                {
+                    lock (m_csDB)
+                    {
                         return m_dbErrCode;
                     }
                 }
             }
 
-            public uint Outputs {
-                get {
-                    lock (m_csDB) {
+            public uint Outputs
+            {
+                get
+                {
+                    lock (m_csDB)
+                    {
                         return m_output;
                     }
                 }
             }
 
-            public tagManagementSystem DBManagementSystem {
-                get {
-                    lock (m_csDB) {
+            public tagManagementSystem DBManagementSystem
+            {
+                get
+                {
+                    lock (m_csDB)
+                    {
                         return m_ms;
                     }
                 }
             }
 
-            public bool Opened {
-                get {
-                    lock (m_csDB) {
+            public bool Opened
+            {
+                get
+                {
+                    lock (m_csDB)
+                    {
                         return (m_strConnection != null && m_strConnection.Length > 0 && m_lastReqId > 0);
                     }
                 }
             }
 
-            public CDBColumnInfoArray ColumnInfo {
-                get {
-                    lock (m_csDB) {
+            public CDBColumnInfoArray ColumnInfo
+            {
+                get
+                {
+                    lock (m_csDB)
+                    {
                         return m_vColInfo;
                     }
                 }
             }
 
-            public long LastAffected {
-                get {
-                    lock (m_csDB) {
+            public long LastAffected
+            {
+                get
+                {
+                    lock (m_csDB)
+                    {
                         return m_affected;
                     }
                 }
             }
 
-            public string LastDBErrorMessage {
-                get {
-                    lock (m_csDB) {
+            public string LastDBErrorMessage
+            {
+                get
+                {
+                    lock (m_csDB)
+                    {
                         return m_dbErrMsg;
                     }
                 }
             }
 
-            public string Connection {
-                get {
-                    lock (m_csDB) {
+            public string Connection
+            {
+                get
+                {
+                    lock (m_csDB)
+                    {
                         return m_strConnection;
                     }
                 }
             }
 
-            public override uint CleanCallbacks() {
-                lock (m_csDB) {
+            public override uint CleanCallbacks()
+            {
+                lock (m_csDB)
+                {
                     Clean();
                 }
                 return base.CleanCallbacks();
             }
 
-            public uint Parameters {
-                get {
-                    lock (m_csDB) {
+            public uint Parameters
+            {
+                get
+                {
+                    lock (m_csDB)
+                    {
                         return m_parameters;
                     }
                 }
             }
 
-            public bool CallReturn {
-                get {
-                    lock (m_csDB) {
+            public bool CallReturn
+            {
+                get
+                {
+                    lock (m_csDB)
+                    {
                         return m_bCallReturn;
                     }
                 }
             }
 
-            private void Clean() {
+            private void Clean()
+            {
                 m_strConnection = "";
                 m_mapRowset.Clear();
                 m_mapParameterCall.Clear();
@@ -502,52 +549,72 @@ namespace SocketProAdapter {
                 m_vData.Clear();
             }
 
-            private bool Send(CScopeUQueue sb, ref bool firstRow) {
+            private bool Send(CScopeUQueue sb, ref bool firstRow)
+            {
                 CUQueue q = sb.UQueue;
-                if (q.GetSize() > 0) {
-                    if (firstRow) {
+                if (q.GetSize() > 0)
+                {
+                    if (firstRow)
+                    {
                         firstRow = false;
-                        if (!SendRequest(DB_CONSTS.idBeginRows, q.IntenalBuffer, q.GetSize(), null)) {
+                        if (!SendRequest(DB_CONSTS.idBeginRows, q.IntenalBuffer, q.GetSize(), null))
+                        {
                             return false;
                         }
-                    } else {
-                        if (!SendRequest(DB_CONSTS.idTransferring, q.IntenalBuffer, q.GetSize(), null)) {
+                    }
+                    else
+                    {
+                        if (!SendRequest(DB_CONSTS.idTransferring, q.IntenalBuffer, q.GetSize(), null))
+                        {
                             return false;
                         }
                     }
                     q.SetSize(0);
-                } else if (firstRow) {
+                }
+                else if (firstRow)
+                {
                     firstRow = false;
-                    if (!SendRequest(DB_CONSTS.idBeginRows, null)) {
+                    if (!SendRequest(DB_CONSTS.idBeginRows, null))
+                    {
                         return false;
                     }
                 }
                 return true;
             }
 
-            private bool SendBlob(CScopeUQueue sb) {
+            private bool SendBlob(CScopeUQueue sb)
+            {
                 CUQueue q = sb.UQueue;
-                if (q.GetSize() > 0) {
+                if (q.GetSize() > 0)
+                {
                     byte[] bytes = null;
                     bool start = true;
-                    while (q.GetSize() > 0) {
+                    while (q.GetSize() > 0)
+                    {
                         uint send = (q.GetSize() >= DB_CONSTS.DEFAULT_BIG_FIELD_CHUNK_SIZE) ? DB_CONSTS.DEFAULT_BIG_FIELD_CHUNK_SIZE : q.GetSize();
                         q.Pop(send, ref bytes);
-                        if (start) {
-                            if (!SendRequest(DB_CONSTS.idStartBLOB, bytes, send, null)) {
+                        if (start)
+                        {
+                            if (!SendRequest(DB_CONSTS.idStartBLOB, bytes, send, null))
+                            {
                                 return false;
                             }
                             start = false;
-                        } else {
-                            if (!SendRequest(DB_CONSTS.idChunk, bytes, send, null)) {
+                        }
+                        else
+                        {
+                            if (!SendRequest(DB_CONSTS.idChunk, bytes, send, null))
+                            {
                                 return false;
                             }
                         }
-                        if (q.GetSize() < DB_CONSTS.DEFAULT_BIG_FIELD_CHUNK_SIZE) {
+                        if (q.GetSize() < DB_CONSTS.DEFAULT_BIG_FIELD_CHUNK_SIZE)
+                        {
                             break;
                         }
                     }
-                    if (!SendRequest(DB_CONSTS.idEndBLOB, q.GetBuffer(), q.GetSize(), null)) {
+                    if (!SendRequest(DB_CONSTS.idEndBLOB, q.GetBuffer(), q.GetSize(), null))
+                    {
                         return false;
                     }
                     q.SetSize(0);
@@ -555,50 +622,63 @@ namespace SocketProAdapter {
                 return true;
             }
 
-            private bool SendParametersData(CDBVariantArray vParam) {
+            private bool SendParametersData(CDBVariantArray vParam)
+            {
                 if (vParam == null)
                     return true;
                 int size = vParam.Count;
                 if (size == 0)
                     return true;
                 bool firstRow = true;
-                using (CScopeUQueue sb = new CScopeUQueue()) {
-                    for (int n = 0; n < size; ++n) {
+                using (CScopeUQueue sb = new CScopeUQueue())
+                {
+                    for (int n = 0; n < size; ++n)
+                    {
                         object vt = vParam[n];
-                        if (vt is string/*UNICODE string*/) {
+                        if (vt is string/*UNICODE string*/)
+                        {
                             string s = (string)vt;
                             uint len = (uint)(s.Length);
                             if (len < DB_CONSTS.DEFAULT_BIG_FIELD_CHUNK_SIZE)
                                 sb.Save(vt);
-                            else {
+                            else
+                            {
                                 if (!Send(sb, ref firstRow))
                                     return false;
                                 uint bytes = len;
                                 bytes *= sizeof(char);
                                 bytes += 6; //sizeof(ushort) + sizeof(uint)
                                 sb.Save(bytes).Save(vt);
-                                if (!SendBlob(sb)) {
+                                if (!SendBlob(sb))
+                                {
                                     return false;
                                 }
                             }
-                        } else if (vt is byte[]) {
+                        }
+                        else if (vt is byte[])
+                        {
                             byte[] bytes = (byte[])vt;
                             uint len = (uint)bytes.Length;
                             if (len < 2 * DB_CONSTS.DEFAULT_BIG_FIELD_CHUNK_SIZE)
                                 sb.Save(vt);
-                            else {
+                            else
+                            {
                                 if (!Send(sb, ref firstRow))
                                     return false;
                                 len += 6; //sizeof(ushort) + sizeof(uint)
                                 sb.Save(len).Save(vt);
-                                if (!SendBlob(sb)) {
+                                if (!SendBlob(sb))
+                                {
                                     return false;
                                 }
                             }
-                        } else {
+                        }
+                        else
+                        {
                             sb.Save(vt);
                         }
-                        if (sb.UQueue.GetSize() >= DB_CONSTS.DEFAULT_RECORD_BATCH_SIZE) {
+                        if (sb.UQueue.GetSize() >= DB_CONSTS.DEFAULT_RECORD_BATCH_SIZE)
+                        {
                             if (!Send(sb, ref firstRow))
                                 return false;
                         }
@@ -614,7 +694,8 @@ namespace SocketProAdapter {
             /// </summary>
             /// <param name="vParam"></param>
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
-            public bool Execute(CDBVariantArray vParam) {
+            public bool Execute(CDBVariantArray vParam)
+            {
                 return Execute(vParam, null, null, null, false, false, null);
             }
 
@@ -624,7 +705,8 @@ namespace SocketProAdapter {
             /// <param name="vParam">an array of parameter data which will be bounded to previously prepared parameters</param>
             /// <param name="handler">a callback for tracking final result</param>
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
-            public bool Execute(CDBVariantArray vParam, DExecuteResult handler) {
+            public bool Execute(CDBVariantArray vParam, DExecuteResult handler)
+            {
                 return Execute(vParam, handler, null, null, true, true, null);
             }
 
@@ -635,7 +717,8 @@ namespace SocketProAdapter {
             /// <param name="handler">a callback for tracking final result</param>
             /// <param name="row">a callback for tracking output parameter returned data</param>
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
-            public bool Execute(CDBVariantArray vParam, DExecuteResult handler, DRows row) {
+            public bool Execute(CDBVariantArray vParam, DExecuteResult handler, DRows row)
+            {
                 return Execute(vParam, handler, row, null, true, true, null);
             }
 
@@ -647,7 +730,8 @@ namespace SocketProAdapter {
             /// <param name="row">a callback for tracking record or output parameter returned data</param>
             /// <param name="rh">a callback for tracking row set of header column informations</param>
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
-            public bool Execute(CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh) {
+            public bool Execute(CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh)
+            {
                 return Execute(vParam, handler, row, rh, true, true, null);
             }
 
@@ -660,7 +744,8 @@ namespace SocketProAdapter {
             /// <param name="rh">a callback for tracking row set of header column informations</param>
             /// <param name="meta">a boolean value for better or more detailed column meta details such as unique, not null, primary key, and so on. It defaults to true</param>
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
-            public bool Execute(CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh, bool meta) {
+            public bool Execute(CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh, bool meta)
+            {
                 return Execute(vParam, handler, row, rh, meta, true, null);
             }
 
@@ -674,7 +759,8 @@ namespace SocketProAdapter {
             /// <param name="meta">a boolean value for better or more detailed column meta details such as unique, not null, primary key, and so on. It defaults to true</param>
             /// <param name="lastInsertId">a boolean value for last insert record identification number. It defaults to true</param>
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
-            public bool Execute(CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh, bool meta, bool lastInsertId) {
+            public bool Execute(CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh, bool meta, bool lastInsertId)
+            {
                 return Execute(vParam, handler, row, rh, meta, lastInsertId, null);
             }
 
@@ -689,14 +775,16 @@ namespace SocketProAdapter {
             /// <param name="lastInsertId">a boolean value for last insert record identification number. It defaults to true</param>
             /// <param name="discarded">a callback for tracking cancel or socket closed event</param>
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
-            public virtual bool Execute(CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh, bool meta, bool lastInsertId, DDiscarded discarded) {
+            public virtual bool Execute(CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh, bool meta, bool lastInsertId, DDiscarded discarded)
+            {
                 bool rowset = (rh != null || row != null) ? true : false;
                 if (!rowset)
                     meta = false;
                 bool queueOk = false;
                 //make sure all parameter data sending and ExecuteParameters sending as one combination sending
                 //to avoid possible request sending overlapping within multiple threading environment
-                lock (m_csOneSending) {
+                lock (m_csOneSending)
+                {
                     if (vParam != null && vParam.Count > 0)
                     {
                         queueOk = AttachedClientSocket.ClientQueue.StartJob();
@@ -712,20 +800,24 @@ namespace SocketProAdapter {
                     ulong callIndex = GetCallIndex();
                     //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
                     //in case a client asynchronously sends lots of requests without use of client side queue.
-                    lock (m_csDB) {
-                        if (rowset) {
+                    lock (m_csDB)
+                    {
+                        if (rowset)
+                        {
                             m_mapRowset[callIndex] = new KeyValuePair<DRowsetHeader, DRows>(rh, row);
                         }
                         m_mapParameterCall[callIndex] = vParam;
                     }
-                    if (!SendRequest(DB_CONSTS.idExecuteParameters, rowset, meta, lastInsertId, callIndex, (ar) => {
+                    if (!SendRequest(DB_CONSTS.idExecuteParameters, rowset, meta, lastInsertId, callIndex, (ar) =>
+                    {
                         long affected;
                         ulong fail_ok;
                         int res;
                         string errMsg;
                         object vtId;
                         ar.Load(out affected).Load(out res).Load(out errMsg).Load(out vtId).Load(out fail_ok);
-                        lock (m_csDB) {
+                        lock (m_csDB)
+                        {
                             m_lastReqId = DB_CONSTS.idExecuteParameters;
                             m_affected = affected;
                             m_dbErrCode = res;
@@ -736,10 +828,13 @@ namespace SocketProAdapter {
                         }
                         if (handler != null)
                             handler(this, res, errMsg, affected, fail_ok, vtId);
-                    }, discarded, null)) {
-                        lock (m_csDB) {
+                    }, discarded, null))
+                    {
+                        lock (m_csDB)
+                        {
                             m_mapParameterCall.Remove(callIndex);
-                            if (rowset) {
+                            if (rowset)
+                            {
                                 m_mapRowset.Remove(callIndex);
                             }
                         }
@@ -756,9 +851,10 @@ namespace SocketProAdapter {
             /// </summary>
             /// <param name="isolation">a value for manual transaction isolation. Specifically, there is no manual transaction around the batch SQL statements if it is tiUnspecified</param>
             /// <param name="sql">a SQL statement having a batch of individual SQL statements</param>
-            /// <param name="delimiter">a delimiter string used for separating the batch SQL statements into individual SQL statements at server side for processing</param>
+            /// <param name="delimiter">a case-sensitive delimiter string used for separating the batch SQL statements into individual SQL statements at server side for processing</param>
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
-            public bool ExecuteBatch(tagTransactionIsolation isolation, string sql, string delimiter) {
+            public bool ExecuteBatch(tagTransactionIsolation isolation, string sql, string delimiter)
+            {
                 return ExecuteBatch(isolation, sql, delimiter, null, null, null, null, null, null, tagRollbackPlan.rpDefault, null, true, true);
             }
 
@@ -767,10 +863,11 @@ namespace SocketProAdapter {
             /// </summary>
             /// <param name="isolation">a value for manual transaction isolation. Specifically, there is no manual transaction around the batch SQL statements if it is tiUnspecified</param>
             /// <param name="sql">a SQL statement having a batch of individual SQL statements</param>
-            /// <param name="delimiter">a delimiter string used for separating the batch SQL statements into individual SQL statements at server side for processing</param>
+            /// <param name="delimiter">a case-sensitive delimiter string used for separating the batch SQL statements into individual SQL statements at server side for processing</param>
             /// <param name="vParam">an array of parameter data which will be bounded to previously prepared parameters. The array size can be 0 if the given batch SQL statement doesn't having any prepared statement</param>
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
-            public bool ExecuteBatch(tagTransactionIsolation isolation, string sql, string delimiter, CDBVariantArray vParam) {
+            public bool ExecuteBatch(tagTransactionIsolation isolation, string sql, string delimiter, CDBVariantArray vParam)
+            {
                 return ExecuteBatch(isolation, sql, delimiter, vParam, null, null, null, null, null, tagRollbackPlan.rpDefault, null, true, true);
             }
 
@@ -779,11 +876,12 @@ namespace SocketProAdapter {
             /// </summary>
             /// <param name="isolation">a value for manual transaction isolation. Specifically, there is no manual transaction around the batch SQL statements if it is tiUnspecified</param>
             /// <param name="sql">a SQL statement having a batch of individual SQL statements</param>
-            /// <param name="delimiter">a delimiter string used for separating the batch SQL statements into individual SQL statements at server side for processing</param>
+            /// <param name="delimiter">a case-sensitive delimiter string used for separating the batch SQL statements into individual SQL statements at server side for processing</param>
             /// <param name="vParam">an array of parameter data which will be bounded to previously prepared parameters. The array size can be 0 if the given batch SQL statement doesn't having any prepared statement</param>
             /// <param name="handler">a callback for tracking final result</param>
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
-            public bool ExecuteBatch(tagTransactionIsolation isolation, string sql, string delimiter, CDBVariantArray vParam, DExecuteResult handler) {
+            public bool ExecuteBatch(tagTransactionIsolation isolation, string sql, string delimiter, CDBVariantArray vParam, DExecuteResult handler)
+            {
                 return ExecuteBatch(isolation, sql, delimiter, vParam, handler, null, null, null, null, tagRollbackPlan.rpDefault, null, true, true);
             }
 
@@ -792,12 +890,13 @@ namespace SocketProAdapter {
             /// </summary>
             /// <param name="isolation">a value for manual transaction isolation. Specifically, there is no manual transaction around the batch SQL statements if it is tiUnspecified</param>
             /// <param name="sql">a SQL statement having a batch of individual SQL statements</param>
-            /// <param name="delimiter">a delimiter string used for separating the batch SQL statements into individual SQL statements at server side for processing</param>
+            /// <param name="delimiter">a case-sensitive delimiter string used for separating the batch SQL statements into individual SQL statements at server side for processing</param>
             /// <param name="vParam">an array of parameter data which will be bounded to previously prepared parameters. The array size can be 0 if the given batch SQL statement doesn't having any prepared statement</param>
             /// <param name="handler">a callback for tracking final result</param>
             /// <param name="row">a callback for receiving records of data</param>
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
-            public bool ExecuteBatch(tagTransactionIsolation isolation, string sql, string delimiter, CDBVariantArray vParam, DExecuteResult handler, DRows row) {
+            public bool ExecuteBatch(tagTransactionIsolation isolation, string sql, string delimiter, CDBVariantArray vParam, DExecuteResult handler, DRows row)
+            {
                 return ExecuteBatch(isolation, sql, delimiter, vParam, handler, row, null, null, null, tagRollbackPlan.rpDefault, null, true, true);
             }
 
@@ -806,13 +905,14 @@ namespace SocketProAdapter {
             /// </summary>
             /// <param name="isolation">a value for manual transaction isolation. Specifically, there is no manual transaction around the batch SQL statements if it is tiUnspecified</param>
             /// <param name="sql">a SQL statement having a batch of individual SQL statements</param>
-            /// <param name="delimiter">a delimiter string used for separating the batch SQL statements into individual SQL statements at server side for processing</param>
+            /// <param name="delimiter">a case-sensitive delimiter string used for separating the batch SQL statements into individual SQL statements at server side for processing</param>
             /// <param name="vParam">an array of parameter data which will be bounded to previously prepared parameters. The array size can be 0 if the given batch SQL statement doesn't having any prepared statement</param>
             /// <param name="handler">a callback for tracking final result</param>
             /// <param name="row">a callback for receiving records of data</param>
             /// <param name="rh">a callback for tracking row set of header column informations</param>
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
-            public bool ExecuteBatch(tagTransactionIsolation isolation, string sql, string delimiter, CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh) {
+            public bool ExecuteBatch(tagTransactionIsolation isolation, string sql, string delimiter, CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh)
+            {
                 return ExecuteBatch(isolation, sql, delimiter, vParam, handler, row, rh, null, null, tagRollbackPlan.rpDefault, null, true, true);
             }
 
@@ -821,14 +921,15 @@ namespace SocketProAdapter {
             /// </summary>
             /// <param name="isolation">a value for manual transaction isolation. Specifically, there is no manual transaction around the batch SQL statements if it is tiUnspecified</param>
             /// <param name="sql">a SQL statement having a batch of individual SQL statements</param>
-            /// <param name="delimiter">a delimiter string used for separating the batch SQL statements into individual SQL statements at server side for processing</param>
+            /// <param name="delimiter">a case-sensitive delimiter string used for separating the batch SQL statements into individual SQL statements at server side for processing</param>
             /// <param name="vParam">an array of parameter data which will be bounded to previously prepared parameters. The array size can be 0 if the given batch SQL statement doesn't having any prepared statement</param>
             /// <param name="handler">a callback for tracking final result</param>
             /// <param name="row">a callback for receiving records of data</param>
             /// <param name="rh">a callback for tracking row set of header column informations</param>
             /// <param name="batchHeader">a callback for tracking returning batch start error messages</param>
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
-            public bool ExecuteBatch(tagTransactionIsolation isolation, string sql, string delimiter, CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh, DResult batchHeader) {
+            public bool ExecuteBatch(tagTransactionIsolation isolation, string sql, string delimiter, CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh, DResult batchHeader)
+            {
                 return ExecuteBatch(isolation, sql, delimiter, vParam, handler, row, rh, batchHeader, null, tagRollbackPlan.rpDefault, null, true, true);
             }
 
@@ -837,7 +938,7 @@ namespace SocketProAdapter {
             /// </summary>
             /// <param name="isolation">a value for manual transaction isolation. Specifically, there is no manual transaction around the batch SQL statements if it is tiUnspecified</param>
             /// <param name="sql">a SQL statement having a batch of individual SQL statements</param>
-            /// <param name="delimiter">a delimiter string used for separating the batch SQL statements into individual SQL statements at server side for processing</param>
+            /// <param name="delimiter">a case-sensitive delimiter string used for separating the batch SQL statements into individual SQL statements at server side for processing</param>
             /// <param name="vParam">an array of parameter data which will be bounded to previously prepared parameters. The array size can be 0 if the given batch SQL statement doesn't having any prepared statement</param>
             /// <param name="handler">a callback for tracking final result</param>
             /// <param name="row">a callback for receiving records of data</param>
@@ -845,7 +946,8 @@ namespace SocketProAdapter {
             /// <param name="batchHeader">a callback for tracking returning batch start error messages</param>
             /// <param name="vPInfo">a given array of parameter informations which may be empty to some of database management systems</param>
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
-            public bool ExecuteBatch(tagTransactionIsolation isolation, string sql, string delimiter, CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh, DResult batchHeader, CParameterInfoArray vPInfo) {
+            public bool ExecuteBatch(tagTransactionIsolation isolation, string sql, string delimiter, CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh, DResult batchHeader, CParameterInfoArray vPInfo)
+            {
                 return ExecuteBatch(isolation, sql, delimiter, vParam, handler, row, rh, batchHeader, vPInfo, tagRollbackPlan.rpDefault, null, true, true);
             }
 
@@ -854,7 +956,7 @@ namespace SocketProAdapter {
             /// </summary>
             /// <param name="isolation">a value for manual transaction isolation. Specifically, there is no manual transaction around the batch SQL statements if it is tiUnspecified</param>
             /// <param name="sql">a SQL statement having a batch of individual SQL statements</param>
-            /// <param name="delimiter">a delimiter string used for separating the batch SQL statements into individual SQL statements at server side for processing</param>
+            /// <param name="delimiter">a case-sensitive delimiter string used for separating the batch SQL statements into individual SQL statements at server side for processing</param>
             /// <param name="vParam">an array of parameter data which will be bounded to previously prepared parameters. The array size can be 0 if the given batch SQL statement doesn't having any prepared statement</param>
             /// <param name="handler">a callback for tracking final result</param>
             /// <param name="row">a callback for receiving records of data</param>
@@ -863,7 +965,8 @@ namespace SocketProAdapter {
             /// <param name="vPInfo">a given array of parameter informations which may be empty to some of database management systems</param>
             /// <param name="plan">a value for computing how included transactions should be rollback</param>
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
-            public bool ExecuteBatch(tagTransactionIsolation isolation, string sql, string delimiter, CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh, DResult batchHeader, CParameterInfoArray vPInfo, tagRollbackPlan plan) {
+            public bool ExecuteBatch(tagTransactionIsolation isolation, string sql, string delimiter, CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh, DResult batchHeader, CParameterInfoArray vPInfo, tagRollbackPlan plan)
+            {
                 return ExecuteBatch(isolation, sql, delimiter, vParam, handler, row, rh, batchHeader, vPInfo, plan, null, true, true);
             }
 
@@ -872,7 +975,7 @@ namespace SocketProAdapter {
             /// </summary>
             /// <param name="isolation">a value for manual transaction isolation. Specifically, there is no manual transaction around the batch SQL statements if it is tiUnspecified</param>
             /// <param name="sql">a SQL statement having a batch of individual SQL statements</param>
-            /// <param name="delimiter">a delimiter string used for separating the batch SQL statements into individual SQL statements at server side for processing</param>
+            /// <param name="delimiter">a case-sensitive delimiter string used for separating the batch SQL statements into individual SQL statements at server side for processing</param>
             /// <param name="vParam">an array of parameter data which will be bounded to previously prepared parameters. The array size can be 0 if the given batch SQL statement doesn't having any prepared statement</param>
             /// <param name="handler">a callback for tracking final result</param>
             /// <param name="row">a callback for receiving records of data</param>
@@ -882,7 +985,8 @@ namespace SocketProAdapter {
             /// <param name="plan">a value for computing how included transactions should be rollback</param>
             /// <param name="discarded">a callback for tracking socket closed or request canceled event</param>
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
-            public bool ExecuteBatch(tagTransactionIsolation isolation, string sql, string delimiter, CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh, DResult batchHeader, CParameterInfoArray vPInfo, tagRollbackPlan plan, DDiscarded discarded) {
+            public bool ExecuteBatch(tagTransactionIsolation isolation, string sql, string delimiter, CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh, DResult batchHeader, CParameterInfoArray vPInfo, tagRollbackPlan plan, DDiscarded discarded)
+            {
                 return ExecuteBatch(isolation, sql, delimiter, vParam, handler, row, rh, batchHeader, vPInfo, plan, discarded, true, true);
             }
 
@@ -891,7 +995,7 @@ namespace SocketProAdapter {
             /// </summary>
             /// <param name="isolation">a value for manual transaction isolation. Specifically, there is no manual transaction around the batch SQL statements if it is tiUnspecified</param>
             /// <param name="sql">a SQL statement having a batch of individual SQL statements</param>
-            /// <param name="delimiter">a delimiter string used for separating the batch SQL statements into individual SQL statements at server side for processing</param>
+            /// <param name="delimiter">a case-sensitive delimiter string used for separating the batch SQL statements into individual SQL statements at server side for processing</param>
             /// <param name="vParam">an array of parameter data which will be bounded to previously prepared parameters. The array size can be 0 if the given batch SQL statement doesn't having any prepared statement</param>
             /// <param name="handler">a callback for tracking final result</param>
             /// <param name="row">a callback for receiving records of data</param>
@@ -902,7 +1006,8 @@ namespace SocketProAdapter {
             /// <param name="discarded">a callback for tracking socket closed or request canceled event</param>
             /// <param name="meta">a boolean for better or more detailed column meta details such as unique, not null, primary key, and so on</param>
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
-            public bool ExecuteBatch(tagTransactionIsolation isolation, string sql, string delimiter, CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh, DResult batchHeader, CParameterInfoArray vPInfo, tagRollbackPlan plan, DDiscarded discarded, bool meta) {
+            public bool ExecuteBatch(tagTransactionIsolation isolation, string sql, string delimiter, CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh, DResult batchHeader, CParameterInfoArray vPInfo, tagRollbackPlan plan, DDiscarded discarded, bool meta)
+            {
                 return ExecuteBatch(isolation, sql, delimiter, vParam, handler, row, rh, batchHeader, vPInfo, plan, discarded, meta, true);
             }
 
@@ -911,7 +1016,7 @@ namespace SocketProAdapter {
             /// </summary>
             /// <param name="isolation">a value for manual transaction isolation. Specifically, there is no manual transaction around the batch SQL statements if it is tiUnspecified</param>
             /// <param name="sql">a SQL statement having a batch of individual SQL statements</param>
-            /// <param name="delimiter">a delimiter string used for separating the batch SQL statements into individual SQL statements at server side for processing</param>
+            /// <param name="delimiter">a case-sensitive delimiter string used for separating the batch SQL statements into individual SQL statements at server side for processing</param>
             /// <param name="vParam">an array of parameter data which will be bounded to previously prepared parameters. The array size can be 0 if the given batch SQL statement doesn't having any prepared statement</param>
             /// <param name="handler">a callback for tracking final result</param>
             /// <param name="row">a callback for receiving records of data</param>
@@ -923,23 +1028,29 @@ namespace SocketProAdapter {
             /// <param name="meta">a boolean for better or more detailed column meta details such as unique, not null, primary key, and so on</param>
             /// <param name="lastInsertId">a boolean for last insert record identification number</param>
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
-            public virtual bool ExecuteBatch(tagTransactionIsolation isolation, string sql, string delimiter, CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh, DResult batchHeader, CParameterInfoArray vPInfo, tagRollbackPlan plan, DDiscarded discarded, bool meta, bool lastInsertId) {
+            public virtual bool ExecuteBatch(tagTransactionIsolation isolation, string sql, string delimiter, CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh, DResult batchHeader, CParameterInfoArray vPInfo, tagRollbackPlan plan, DDiscarded discarded, bool meta, bool lastInsertId)
+            {
                 if (vPInfo == null)
                     vPInfo = new CParameterInfoArray();
                 bool rowset = (rh != null || row != null) ? true : false;
                 if (!rowset)
                     meta = false;
-                using (CScopeUQueue sub = new CScopeUQueue()) {
+                using (CScopeUQueue sub = new CScopeUQueue())
+                {
                     bool queueOk = false;
                     CUQueue sb = sub.UQueue;
                     sb.Save(sql).Save(delimiter).Save((int)isolation).Save((int)plan).Save(rowset).Save(meta).Save(lastInsertId);
                     //make sure all parameter data sending and ExecuteParameters sending as one combination sending
                     //to avoid possible request sending overlapping within multiple threading environment
-                    lock (m_csOneSending) {
-                        if (vParam != null && vParam.Count > 0) {
+                    lock (m_csOneSending)
+                    {
+                        if (vParam != null && vParam.Count > 0)
+                        {
                             queueOk = AttachedClientSocket.ClientQueue.StartJob();
-                            if (!SendParametersData(vParam)) {
-                                lock (m_csDB) {
+                            if (!SendParametersData(vParam))
+                            {
+                                lock (m_csDB)
+                                {
                                     Clean();
                                 }
                                 return false;
@@ -948,8 +1059,10 @@ namespace SocketProAdapter {
                         ulong callIndex = GetCallIndex();
                         //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
                         //in case a client asynchronously sends lots of requests without use of client side queue.
-                        lock (m_csDB) {
-                            if (rowset) {
+                        lock (m_csDB)
+                        {
+                            if (rowset)
+                            {
                                 m_mapRowset[callIndex] = new KeyValuePair<DRowsetHeader, DRows>(rh, row);
                             }
                             m_mapParameterCall[callIndex] = vParam;
@@ -957,14 +1070,16 @@ namespace SocketProAdapter {
                             sb.Save(m_strConnection).Save(m_flags);
                         }
                         sb.Save(callIndex).Save(vPInfo);
-                        if (!SendRequest(DB_CONSTS.idExecuteBatch, sb.IntenalBuffer, sb.GetSize(), (ar) => {
+                        if (!SendRequest(DB_CONSTS.idExecuteBatch, sb.IntenalBuffer, sb.GetSize(), (ar) =>
+                        {
                             long affected;
                             ulong fail_ok;
                             int res;
                             string errMsg;
                             object vtId;
                             ar.Load(out affected).Load(out res).Load(out errMsg).Load(out vtId).Load(out fail_ok);
-                            lock (m_csDB) {
+                            lock (m_csDB)
+                            {
                                 m_lastReqId = DB_CONSTS.idExecuteBatch;
                                 m_affected = affected;
                                 m_dbErrCode = res;
@@ -976,11 +1091,14 @@ namespace SocketProAdapter {
                             }
                             if (handler != null)
                                 handler(this, res, errMsg, affected, fail_ok, vtId);
-                        }, discarded, null)) {
-                            lock (m_csDB) {
+                        }, discarded, null))
+                        {
+                            lock (m_csDB)
+                            {
                                 m_mapHandler.Remove(callIndex);
                                 m_mapParameterCall.Remove(callIndex);
-                                if (rowset) {
+                                if (rowset)
+                                {
                                     m_mapRowset.Remove(callIndex);
                                 }
                             }
@@ -1000,7 +1118,8 @@ namespace SocketProAdapter {
             /// </summary>
             /// <param name="sql">a complex SQL statement which may be combined with multiple basic SQL statements</param>
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
-            public bool Execute(string sql) {
+            public bool Execute(string sql)
+            {
                 return Execute(sql, null, null, null, true, true, null);
             }
 
@@ -1010,7 +1129,8 @@ namespace SocketProAdapter {
             /// <param name="sql">a complex SQL statement which may be combined with multiple basic SQL statements</param>
             /// <param name="handler">a callback for tracking final result</param>
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
-            public bool Execute(string sql, DExecuteResult handler) {
+            public bool Execute(string sql, DExecuteResult handler)
+            {
                 return Execute(sql, handler, null, null, true, true, null);
             }
 
@@ -1021,7 +1141,8 @@ namespace SocketProAdapter {
             /// <param name="handler">a callback for tracking final result</param>
             /// <param name="row">a callback for receiving records of data</param>
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
-            public bool Execute(string sql, DExecuteResult handler, DRows row) {
+            public bool Execute(string sql, DExecuteResult handler, DRows row)
+            {
                 return Execute(sql, handler, row, null, true, true, null);
             }
 
@@ -1033,7 +1154,8 @@ namespace SocketProAdapter {
             /// <param name="row">a callback for receiving records of data</param>
             /// <param name="rh">a callback for tracking row set of header column informations</param>
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
-            public bool Execute(string sql, DExecuteResult handler, DRows row, DRowsetHeader rh) {
+            public bool Execute(string sql, DExecuteResult handler, DRows row, DRowsetHeader rh)
+            {
                 return Execute(sql, handler, row, rh, true, true, null);
             }
 
@@ -1046,7 +1168,8 @@ namespace SocketProAdapter {
             /// <param name="rh">a callback for tracking row set of header column informations</param>
             /// <param name="meta">a boolean value for better or more detailed column meta details such as unique, not null, primary key, and so on. It defaults to true</param>
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
-            public bool Execute(string sql, DExecuteResult handler, DRows row, DRowsetHeader rh, bool meta) {
+            public bool Execute(string sql, DExecuteResult handler, DRows row, DRowsetHeader rh, bool meta)
+            {
                 return Execute(sql, handler, row, rh, meta, true, null);
             }
 
@@ -1060,7 +1183,8 @@ namespace SocketProAdapter {
             /// <param name="meta">a boolean value for better or more detailed column meta details such as unique, not null, primary key, and so on. It defaults to true</param>
             /// <param name="lastInsertId">a boolean value for last insert record identification number. It defaults to true</param>
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
-            public bool Execute(string sql, DExecuteResult handler, DRows row, DRowsetHeader rh, bool meta, bool lastInsertId) {
+            public bool Execute(string sql, DExecuteResult handler, DRows row, DRowsetHeader rh, bool meta, bool lastInsertId)
+            {
                 return Execute(sql, handler, row, rh, meta, lastInsertId, null);
             }
 
@@ -1075,26 +1199,31 @@ namespace SocketProAdapter {
             /// <param name="lastInsertId">a boolean value for last insert record identification number. It defaults to true</param>
             /// <param name="discarded">a callback for tracking cancel or socket closed event</param>
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
-            public virtual bool Execute(string sql, DExecuteResult handler, DRows row, DRowsetHeader rh, bool meta, bool lastInsertId, DDiscarded discarded) {
+            public virtual bool Execute(string sql, DExecuteResult handler, DRows row, DRowsetHeader rh, bool meta, bool lastInsertId, DDiscarded discarded)
+            {
                 bool rowset = (rh != null || row != null) ? true : false;
                 if (!rowset)
                     meta = false;
                 ulong index = GetCallIndex();
                 //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
                 //in case a client asynchronously sends lots of requests without use of client side queue.
-                if (rowset) {
-                    lock (m_csDB) {
+                if (rowset)
+                {
+                    lock (m_csDB)
+                    {
                         m_mapRowset[index] = new KeyValuePair<DRowsetHeader, DRows>(rh, row);
                     }
                 }
-                if (!SendRequest(DB_CONSTS.idExecute, sql, rowset, meta, lastInsertId, index, (ar) => {
+                if (!SendRequest(DB_CONSTS.idExecute, sql, rowset, meta, lastInsertId, index, (ar) =>
+                {
                     long affected;
                     ulong fail_ok;
                     int res;
                     string errMsg;
                     object vtId;
                     ar.Load(out affected).Load(out res).Load(out errMsg).Load(out vtId).Load(out fail_ok);
-                    lock (m_csDB) {
+                    lock (m_csDB)
+                    {
                         m_lastReqId = DB_CONSTS.idExecute;
                         m_affected = affected;
                         m_dbErrCode = res;
@@ -1103,8 +1232,10 @@ namespace SocketProAdapter {
                     }
                     if (handler != null)
                         handler(this, res, errMsg, affected, fail_ok, vtId);
-                }, discarded, null)) {
-                    lock (m_csDB) {
+                }, discarded, null))
+                {
+                    lock (m_csDB)
+                    {
                         m_mapRowset.Remove(index);
                     }
                     return false;
@@ -1118,7 +1249,8 @@ namespace SocketProAdapter {
             /// <param name="strConnection">a database connection string. The database connection string can be an empty string if its server side supports global database connection string</param>
             /// <param name="handler">a callback for database connecting result</param>
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
-            public bool Open(string strConnection, DResult handler) {
+            public bool Open(string strConnection, DResult handler)
+            {
                 return Open(strConnection, handler, 0, null);
             }
 
@@ -1129,7 +1261,8 @@ namespace SocketProAdapter {
             /// <param name="handler">a callback for database connecting result</param>
             /// <param name="flags">a set of flags transferred to server to indicate how to build database connection at server side. It defaults to zero</param>
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
-            public bool Open(string strConnection, DResult handler, uint flags) {
+            public bool Open(string strConnection, DResult handler, uint flags)
+            {
                 return Open(strConnection, handler, flags, null);
             }
 
@@ -1141,28 +1274,36 @@ namespace SocketProAdapter {
             /// <param name="flags">a set of flags transferred to server to indicate how to build database connection at server side. It defaults to zero</param>
             /// <param name="discarded">a callback for tracking cancel or socket closed event</param>
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
-            public virtual bool Open(string strConnection, DResult handler, uint flags, DDiscarded discarded) {
+            public virtual bool Open(string strConnection, DResult handler, uint flags, DDiscarded discarded)
+            {
                 string s = null;
                 //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
                 //in case a client asynchronously sends lots of requests without use of client side queue.
-                lock (m_csDB) {
+                lock (m_csDB)
+                {
                     m_flags = flags;
-                    if (strConnection != null) {
+                    if (strConnection != null)
+                    {
                         s = m_strConnection;
                         m_strConnection = strConnection;
                     }
                 }
-                if (SendRequest(DB_CONSTS.idOpen, strConnection, flags, (ar) => {
+                if (SendRequest(DB_CONSTS.idOpen, strConnection, flags, (ar) =>
+                {
                     int res, ms;
                     string errMsg;
                     ar.Load(out res).Load(out errMsg).Load(out ms);
-                    lock (m_csDB) {
+                    lock (m_csDB)
+                    {
                         m_dbErrCode = res;
                         m_lastReqId = DB_CONSTS.idOpen;
-                        if (res == 0) {
+                        if (res == 0)
+                        {
                             m_strConnection = errMsg;
                             errMsg = "";
-                        } else {
+                        }
+                        else
+                        {
                             m_strConnection = "";
                         }
                         m_dbErrMsg = errMsg;
@@ -1171,14 +1312,18 @@ namespace SocketProAdapter {
                         m_indexProc = 0;
                         m_output = 0;
                     }
-                    if (handler != null) {
+                    if (handler != null)
+                    {
                         handler(this, res, errMsg);
                     }
-                }, discarded, null)) {
+                }, discarded, null))
+                {
                     return true;
                 }
-                lock (m_csDB) {
-                    if (strConnection != null) {
+                lock (m_csDB)
+                {
+                    if (strConnection != null)
+                    {
                         m_strConnection = s;
                     }
                 }
@@ -1190,7 +1335,8 @@ namespace SocketProAdapter {
             /// </summary>
             /// <param name="sql">a parameterized SQL statement</param>
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
-            public bool Prepare(string sql) {
+            public bool Prepare(string sql)
+            {
                 return Prepare(sql, null, null, null);
             }
 
@@ -1200,7 +1346,8 @@ namespace SocketProAdapter {
             /// <param name="sql">a parameterized SQL statement</param>
             /// <param name="handler">a callback for SQL preparing result</param>
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
-            public bool Prepare(string sql, DResult handler) {
+            public bool Prepare(string sql, DResult handler)
+            {
                 return Prepare(sql, handler, null, null);
             }
 
@@ -1211,7 +1358,8 @@ namespace SocketProAdapter {
             /// <param name="handler">a callback for SQL preparing result</param>
             /// <param name="vParameterInfo">a given array of parameter informations</param>
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
-            public bool Prepare(string sql, DResult handler, CParameterInfo[] vParameterInfo) {
+            public bool Prepare(string sql, DResult handler, CParameterInfo[] vParameterInfo)
+            {
                 return Prepare(sql, handler, vParameterInfo, null);
             }
 
@@ -1223,25 +1371,32 @@ namespace SocketProAdapter {
             /// <param name="vParameterInfo">a given array of parameter informations</param>
             /// <param name="discarded">a callback for tracking cancel or socket closed event</param>
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
-            public virtual bool Prepare(string sql, DResult handler, CParameterInfo[] vParameterInfo, DDiscarded discarded) {
-                using (CScopeUQueue sb = new CScopeUQueue()) {
+            public virtual bool Prepare(string sql, DResult handler, CParameterInfo[] vParameterInfo, DDiscarded discarded)
+            {
+                using (CScopeUQueue sb = new CScopeUQueue())
+                {
                     sb.Save(sql);
                     int count = 0;
-                    if (vParameterInfo != null) {
+                    if (vParameterInfo != null)
+                    {
                         count = vParameterInfo.Length;
                     }
                     sb.Save(count);
-                    if (count > 0) {
-                        foreach (CParameterInfo info in vParameterInfo) {
+                    if (count > 0)
+                    {
+                        foreach (CParameterInfo info in vParameterInfo)
+                        {
                             info.SaveTo(sb.UQueue);
                         }
                     }
-                    if (!SendRequest(DB_CONSTS.idPrepare, sb.UQueue.IntenalBuffer, sb.UQueue.GetSize(), (ar) => {
+                    if (!SendRequest(DB_CONSTS.idPrepare, sb.UQueue.IntenalBuffer, sb.UQueue.GetSize(), (ar) =>
+                    {
                         int res;
                         string errMsg;
                         uint parameters;
                         ar.Load(out res).Load(out errMsg).Load(out parameters);
-                        lock (m_csDB) {
+                        lock (m_csDB)
+                        {
                             m_bCallReturn = false;
                             m_lastReqId = DB_CONSTS.idPrepare;
                             m_dbErrCode = res;
@@ -1250,10 +1405,12 @@ namespace SocketProAdapter {
                             m_indexProc = 0;
                             m_output = (parameters >> 16);
                         }
-                        if (handler != null) {
+                        if (handler != null)
+                        {
                             handler(this, res, errMsg);
                         }
-                    }, discarded, null)) {
+                    }, discarded, null))
+                    {
                         return false;
                     }
                 }
@@ -1264,7 +1421,8 @@ namespace SocketProAdapter {
             /// End a manual transaction with a given rollback plan tagRollbackPlan.rpDefault. Note the transaction will be associated with SocketPro client message queue if available to avoid possible transaction lose
             /// </summary>
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
-            public bool EndTrans() {
+            public bool EndTrans()
+            {
                 return EndTrans(tagRollbackPlan.rpDefault, null, null);
             }
 
@@ -1273,7 +1431,8 @@ namespace SocketProAdapter {
             /// </summary>
             /// <param name="plan">a value for computing how included transactions should be rollback at server side. It defaults to tagRollbackPlan.rpDefault</param>
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
-            public bool EndTrans(tagRollbackPlan plan) {
+            public bool EndTrans(tagRollbackPlan plan)
+            {
                 return EndTrans(plan, null, null);
             }
 
@@ -1283,7 +1442,8 @@ namespace SocketProAdapter {
             /// <param name="plan">a value for computing how included transactions should be rollback at server side. It defaults to tagRollbackPlan.rpDefault</param>
             /// <param name="handler">a callback for tracking its response result</param>
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
-            public bool EndTrans(tagRollbackPlan plan, DResult handler) {
+            public bool EndTrans(tagRollbackPlan plan, DResult handler)
+            {
                 return EndTrans(plan, handler, null);
             }
 
@@ -1294,24 +1454,31 @@ namespace SocketProAdapter {
             /// <param name="handler">a callback for tracking its response result</param>
             /// <param name="discarded">a callback for tracking cancel or socket closed event</param>
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
-            public virtual bool EndTrans(tagRollbackPlan plan, DResult handler, DDiscarded discarded) {
+            public virtual bool EndTrans(tagRollbackPlan plan, DResult handler, DDiscarded discarded)
+            {
                 //make sure EndTrans sending and underlying client persistent message queue as one combination sending
                 //to avoid possible request sending/client message writing overlapping within multiple threading environment
-                lock (m_csOneSending) {
-                    if (SendRequest(DB_CONSTS.idEndTrans, (int)plan, (ar) => {
+                lock (m_csOneSending)
+                {
+                    if (SendRequest(DB_CONSTS.idEndTrans, (int)plan, (ar) =>
+                    {
                         int res;
                         string errMsg;
                         ar.Load(out res).Load(out errMsg);
-                        lock (m_csDB) {
+                        lock (m_csDB)
+                        {
                             m_lastReqId = DB_CONSTS.idEndTrans;
                             m_dbErrCode = res;
                             m_dbErrMsg = errMsg;
                         }
-                        if (handler != null) {
+                        if (handler != null)
+                        {
                             handler(this, res, errMsg);
                         }
-                    }, discarded, null)) {
-                        if (m_queueOk) {
+                    }, discarded, null))
+                    {
+                        if (m_queueOk)
+                        {
                             //associate end transaction with underlying client persistent message queue
                             AttachedClientSocket.ClientQueue.EndJob();
                             m_queueOk = false;
@@ -1326,7 +1493,8 @@ namespace SocketProAdapter {
             /// Start a manual transaction with a given isolation tagTransactionIsolation.tiReadCommited asynchronously. Note the transaction will be associated with SocketPro client message queue if available to avoid possible transaction lose
             /// </summary>
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
-            public bool BeginTrans() {
+            public bool BeginTrans()
+            {
                 return BeginTrans(tagTransactionIsolation.tiReadCommited, null, null);
             }
 
@@ -1335,7 +1503,8 @@ namespace SocketProAdapter {
             /// </summary>
             /// <param name="isolation">a value for transaction isolation. It defaults to tagTransactionIsolation.tiReadCommited</param>
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
-            public bool BeginTrans(tagTransactionIsolation isolation) {
+            public bool BeginTrans(tagTransactionIsolation isolation)
+            {
                 return BeginTrans(isolation, null, null);
             }
 
@@ -1345,7 +1514,8 @@ namespace SocketProAdapter {
             /// <param name="isolation">a value for transaction isolation. It defaults to tagTransactionIsolation.tiReadCommited</param>
             /// <param name="handler">a callback for tracking its response result</param>
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
-            public bool BeginTrans(tagTransactionIsolation isolation, DResult handler) {
+            public bool BeginTrans(tagTransactionIsolation isolation, DResult handler)
+            {
                 return BeginTrans(isolation, handler, null);
             }
 
@@ -1356,26 +1526,32 @@ namespace SocketProAdapter {
             /// <param name="handler">a callback for tracking its response result</param>
             /// <param name="discarded">a callback for tracking cancel or socket closed event</param>
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
-            public virtual bool BeginTrans(tagTransactionIsolation isolation, DResult handler, DDiscarded discarded) {
+            public virtual bool BeginTrans(tagTransactionIsolation isolation, DResult handler, DDiscarded discarded)
+            {
                 uint flags;
                 string connection;
                 //make sure BeginTrans sending and underlying client persistent message queue as one combination sending
                 //to avoid possible request sending/client message writing overlapping within multiple threading environment
-                lock (m_csOneSending) {
+                lock (m_csOneSending)
+                {
                     //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
                     //in case a client asynchronously sends lots of requests without use of client side queue.
-                    lock (m_csDB) {
+                    lock (m_csDB)
+                    {
                         connection = m_strConnection;
                         flags = m_flags;
                     }
                     //associate begin transaction with underlying client persistent message queue
                     m_queueOk = AttachedClientSocket.ClientQueue.StartJob();
-                    return SendRequest(DB_CONSTS.idBeginTrans, (int)isolation, connection, flags, (ar) => {
+                    return SendRequest(DB_CONSTS.idBeginTrans, (int)isolation, connection, flags, (ar) =>
+                    {
                         int res, ms;
                         string errMsg;
                         ar.Load(out res).Load(out errMsg).Load(out ms);
-                        lock (m_csDB) {
-                            if (res == 0) {
+                        lock (m_csDB)
+                        {
+                            if (res == 0)
+                            {
                                 m_strConnection = errMsg;
                                 errMsg = "";
                             }
@@ -1384,7 +1560,8 @@ namespace SocketProAdapter {
                             m_dbErrMsg = errMsg;
                             m_ms = (tagManagementSystem)ms;
                         }
-                        if (handler != null) {
+                        if (handler != null)
+                        {
                             handler(this, res, errMsg);
                         }
                     }, discarded, null);
@@ -1395,7 +1572,8 @@ namespace SocketProAdapter {
             /// Notify connected remote server to close database connection string asynchronously
             /// </summary>
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
-            public bool Close() {
+            public bool Close()
+            {
                 return Close(null, null);
             }
 
@@ -1404,7 +1582,8 @@ namespace SocketProAdapter {
             /// </summary>
             /// <param name="handler">a callback for closing result, which should be OK always as long as there is network or queue available </param>
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
-            public bool Close(DResult handler) {
+            public bool Close(DResult handler)
+            {
                 return Close(handler, null);
             }
 
@@ -1414,12 +1593,15 @@ namespace SocketProAdapter {
             /// <param name="handler">a callback for closing result, which should be OK always as long as there is network or queue available </param>
             /// <param name="discarded">a callback for tracking cancel or socket closed event</param>
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
-            public virtual bool Close(DResult handler, DDiscarded discarded) {
-                return SendRequest(DB_CONSTS.idClose, (ar) => {
+            public virtual bool Close(DResult handler, DDiscarded discarded)
+            {
+                return SendRequest(DB_CONSTS.idClose, (ar) =>
+                {
                     int res;
                     string errMsg;
                     ar.Load(out res).Load(out errMsg);
-                    lock (m_csDB) {
+                    lock (m_csDB)
+                    {
                         m_lastReqId = DB_CONSTS.idClose;
                         m_strConnection = "";
                         m_dbErrCode = res;
@@ -1428,38 +1610,48 @@ namespace SocketProAdapter {
                         m_indexProc = 0;
                         m_output = 0;
                     }
-                    if (handler != null) {
+                    if (handler != null)
+                    {
                         handler(this, res, errMsg);
                     }
                 }, discarded, null);
             }
 
-            protected override void OnAllProcessed() {
-                lock (m_csDB) {
+            protected override void OnAllProcessed()
+            {
+                lock (m_csDB)
+                {
                     m_mapRowset.Clear();
                     m_mapParameterCall.Clear();
                     m_mapHandler.Clear();
                     m_vData.Clear();
                     m_Blob.SetSize(0);
-                    if (m_Blob.MaxBufferSize > DB_CONSTS.DEFAULT_BIG_FIELD_CHUNK_SIZE) {
+                    if (m_Blob.MaxBufferSize > DB_CONSTS.DEFAULT_BIG_FIELD_CHUNK_SIZE)
+                    {
                         m_Blob.Realloc(DB_CONSTS.DEFAULT_BIG_FIELD_CHUNK_SIZE);
                     }
                 }
             }
 
-            protected override void OnMergeTo(CAsyncServiceHandler to) {
+            protected override void OnMergeTo(CAsyncServiceHandler to)
+            {
                 CAsyncDBHandler dbTo = (CAsyncDBHandler)to;
-                lock (dbTo.m_csDB) {
-                    lock (m_csDB) {
-                        foreach (ulong callIndex in m_mapRowset.Keys) {
+                lock (dbTo.m_csDB)
+                {
+                    lock (m_csDB)
+                    {
+                        foreach (ulong callIndex in m_mapRowset.Keys)
+                        {
                             dbTo.m_mapRowset.Add(callIndex, m_mapRowset[callIndex]);
                         }
                         m_mapRowset.Clear();
-                        foreach (ulong callIndex in m_mapParameterCall.Keys) {
+                        foreach (ulong callIndex in m_mapParameterCall.Keys)
+                        {
                             dbTo.m_mapParameterCall.Add(callIndex, m_mapParameterCall[callIndex]);
                         }
                         m_mapParameterCall.Clear();
-                        foreach (ulong callIndex in m_mapHandler.Keys) {
+                        foreach (ulong callIndex in m_mapHandler.Keys)
+                        {
                             dbTo.m_mapHandler.Add(callIndex, m_mapHandler[callIndex]);
                         }
                         m_mapHandler.Clear();
@@ -1467,23 +1659,33 @@ namespace SocketProAdapter {
                 }
             }
 
-            protected override void OnResultReturned(ushort reqId, CUQueue mc) {
-                switch (reqId) {
-                    case DB_CONSTS.idSqlBatchHeader: {
+            protected override void OnResultReturned(ushort reqId, CUQueue mc)
+            {
+                switch (reqId)
+                {
+                    case DB_CONSTS.idParameterPostion:
+                        mc.Load(out m_nParamPos);
+                        lock (m_csDB)
+                        {
+                            m_indexProc = 0;
+                        }
+                        break;
+                    case DB_CONSTS.idSqlBatchHeader:
+                        {
                             ulong callIndex;
                             int res, ms;
                             uint parameters;
                             DResult cb = null;
                             string errMsg;
                             mc.Load(out res).Load(out errMsg).Load(out ms).Load(out parameters).Load(out callIndex);
-                            if (mc.GetSize() > 0)
-                                m_vPos.LoadFrom(mc);
-                            lock (m_csDB) {
+                            lock (m_csDB)
+                            {
                                 m_indexProc = 0;
                                 m_lastReqId = reqId;
                                 m_parameters = (parameters & (uint)0xffff);
                                 m_output = (parameters >> 16);
-                                if (res == 0) {
+                                if (res == 0)
+                                {
                                     m_strConnection = errMsg;
                                     errMsg = "";
                                 }
@@ -1497,40 +1699,52 @@ namespace SocketProAdapter {
                                 cb(this, res, errMsg);
                         }
                         break;
-                    case DB_CONSTS.idRowsetHeader: {
+                    case DB_CONSTS.idRowsetHeader:
+                        {
                             m_Blob.SetSize(0);
-                            if (m_Blob.MaxBufferSize > ONE_MEGA_BYTES) {
+                            if (m_Blob.MaxBufferSize > ONE_MEGA_BYTES)
+                            {
                                 m_Blob.Realloc(ONE_MEGA_BYTES);
                             }
                             m_vData.Clear();
                             DRowsetHeader header = null;
-                            lock (m_csDB) {
+                            lock (m_csDB)
+                            {
                                 m_vColInfo = new CDBColumnInfoArray();
                                 m_vColInfo.LoadFrom(mc);
                                 mc.Load(out m_indexRowset);
-                                if (mc.GetSize() > 0) {
+                                if (mc.GetSize() > 0)
+                                {
                                     mc.Load(out m_output);
-                                } else {
+                                }
+                                else
+                                {
                                     m_output = 0;
                                 }
-                                if (m_output == 0 && m_vColInfo.Count > 0) {
-                                    if (m_mapRowset.ContainsKey(m_indexRowset)) {
+                                if (m_output == 0 && m_vColInfo.Count > 0)
+                                {
+                                    if (m_mapRowset.ContainsKey(m_indexRowset))
+                                    {
                                         header = m_mapRowset[m_indexRowset].Key;
                                     }
                                 }
                             }
-                            if (header != null) {
+                            if (header != null)
+                            {
                                 header(this);
                             }
                         }
                         break;
-                    case DB_CONSTS.idCallReturn: {
+                    case DB_CONSTS.idCallReturn:
+                        {
                             object vt;
                             mc.Load(out vt);
-                            lock (m_csDB) {
-                                if (m_mapParameterCall.ContainsKey(m_indexRowset)) {
+                            lock (m_csDB)
+                            {
+                                if (m_mapParameterCall.ContainsKey(m_indexRowset))
+                                {
                                     CDBVariantArray vParam = m_mapParameterCall[m_indexRowset];
-                                    uint pos = m_parameters * m_indexProc;
+                                    uint pos = m_parameters * m_indexProc + (m_nParamPos >> 16);
                                     vParam[(int)pos] = vt;
                                 }
                                 m_bCallReturn = true;
@@ -1540,14 +1754,17 @@ namespace SocketProAdapter {
                     case DB_CONSTS.idBeginRows:
                         m_Blob.SetSize(0);
                         m_vData.Clear();
-                        if (mc.GetSize() > 0) {
-                            lock (m_csDB) {
+                        if (mc.GetSize() > 0)
+                        {
+                            lock (m_csDB)
+                            {
                                 mc.Load(out m_indexRowset);
                             }
                         }
                         break;
                     case DB_CONSTS.idTransferring:
-                        while (mc.GetSize() > 0) {
+                        while (mc.GetSize() > 0)
+                        {
                             object vt;
                             mc.Load(out vt);
                             m_vData.Add(vt);
@@ -1555,33 +1772,44 @@ namespace SocketProAdapter {
                         break;
                     case DB_CONSTS.idOutputParameter:
                     case DB_CONSTS.idEndRows:
-                        if (mc.GetSize() > 0 || m_vData.Count > 0) {
+                        if (mc.GetSize() > 0 || m_vData.Count > 0)
+                        {
                             object vt;
-                            while (mc.GetSize() > 0) {
+                            while (mc.GetSize() > 0)
+                            {
                                 mc.Load(out vt);
                                 m_vData.Add(vt);
                             }
-                            if (reqId == DB_CONSTS.idOutputParameter) {
-                                lock (m_csDB) {
+                            if (reqId == DB_CONSTS.idOutputParameter)
+                            {
+                                lock (m_csDB)
+                                {
                                     m_output = (uint)(m_vData.Count + (m_bCallReturn ? 1 : 0));
-                                    if (m_mapParameterCall.ContainsKey(m_indexRowset)) {
+                                    if (m_mapParameterCall.ContainsKey(m_indexRowset))
+                                    {
                                         CDBVariantArray vParam = m_mapParameterCall[m_indexRowset];
-                                        uint pos = m_parameters * m_indexProc + m_parameters - (uint)m_vData.Count;
-                                        foreach (object obj in m_vData) {
+                                        uint pos = m_parameters * m_indexProc + m_parameters + (m_nParamPos >> 16) - (uint)m_vData.Count;
+                                        foreach (object obj in m_vData)
+                                        {
                                             vParam[(int)pos] = obj;
                                             ++pos;
                                         }
-                                        ++m_indexProc;
                                     }
                                 }
-                            } else {
+                                ++m_indexProc;
+                            }
+                            else
+                            {
                                 DRows row = null;
-                                lock (m_csDB) {
-                                    if (m_mapRowset.ContainsKey(m_indexRowset)) {
+                                lock (m_csDB)
+                                {
+                                    if (m_mapRowset.ContainsKey(m_indexRowset))
+                                    {
                                         row = m_mapRowset[m_indexRowset].Value;
                                     }
                                 }
-                                if (row != null) {
+                                if (row != null)
+                                {
                                     row(this, m_vData);
                                 }
                             }
@@ -1589,7 +1817,8 @@ namespace SocketProAdapter {
                         m_vData.Clear();
                         break;
                     case DB_CONSTS.idStartBLOB:
-                        if (mc.GetSize() > 0) {
+                        if (mc.GetSize() > 0)
+                        {
                             m_Blob.SetSize(0);
                             uint len;
                             mc.Load(out len);
@@ -1600,19 +1829,24 @@ namespace SocketProAdapter {
                         }
                         break;
                     case DB_CONSTS.idChunk:
-                        if (mc.GetSize() > 0) {
+                        if (mc.GetSize() > 0)
+                        {
                             m_Blob.Push(mc.IntenalBuffer, mc.GetSize());
                             mc.SetSize(0);
                         }
                         break;
                     case DB_CONSTS.idEndBLOB:
-                        if (mc.GetSize() > 0 || m_Blob.GetSize() > 0) {
+                        if (mc.GetSize() > 0 || m_Blob.GetSize() > 0)
+                        {
                             m_Blob.Push(mc.IntenalBuffer, mc.GetSize());
                             mc.SetSize(0);
-                            unsafe {
-                                fixed (byte* p = m_Blob.IntenalBuffer) {
+                            unsafe
+                            {
+                                fixed (byte* p = m_Blob.IntenalBuffer)
+                                {
                                     uint* len = (uint*)(p + m_Blob.HeadPosition + sizeof(ushort));
-                                    if (*len >= BLOB_LENGTH_NOT_AVAILABLE) {
+                                    if (*len >= BLOB_LENGTH_NOT_AVAILABLE)
+                                    {
                                         //length should be reset if BLOB length not available from server side at beginning
                                         *len = (m_Blob.GetSize() - sizeof(ushort) - sizeof(uint));
                                     }
@@ -1629,8 +1863,10 @@ namespace SocketProAdapter {
                 base.OnResultReturned(reqId, mc);
             }
 
-            private static Type GetType(tagVariantDataType vt) {
-                switch (vt) {
+            private static Type GetType(tagVariantDataType vt)
+            {
+                switch (vt)
+                {
                     case tagVariantDataType.sdVT_BOOL:
                         return typeof(bool);
                     case tagVariantDataType.sdVT_WSTR:
@@ -1672,10 +1908,12 @@ namespace SocketProAdapter {
                 }
             }
 
-            public static DataTable MakeDataTable(CDBColumnInfoArray vColumn, string tableName) {
+            public static DataTable MakeDataTable(CDBColumnInfoArray vColumn, string tableName)
+            {
                 DataTable dt = new DataTable(tableName);
                 List<DataColumn> lstPrimaryKey = new List<DataColumn>();
-                foreach (CDBColumnInfo col in vColumn) {
+                foreach (CDBColumnInfo col in vColumn)
+                {
                     DataColumn dc = new DataColumn(col.OriginalName, GetType(col.DataType));
                     bool b = ((col.Flags & CDBColumnInfo.FLAG_AUTOINCREMENT) == CDBColumnInfo.FLAG_AUTOINCREMENT);
                     dc.AutoIncrement = b;
@@ -1684,54 +1922,64 @@ namespace SocketProAdapter {
                     dc.Caption = col.DisplayName;
                     dc.ReadOnly = ((col.Flags & CDBColumnInfo.FLAG_NOT_WRITABLE) == CDBColumnInfo.FLAG_NOT_WRITABLE);
                     dc.Unique = ((col.Flags & CDBColumnInfo.FLAG_UNIQUE) == CDBColumnInfo.FLAG_UNIQUE || (col.Flags & CDBColumnInfo.FLAG_ROWID) == CDBColumnInfo.FLAG_ROWID || dc.AutoIncrement);
-                    if (dc.DataType == typeof(string) || dc.DataType == typeof(byte[])) {
+                    if (dc.DataType == typeof(string) || dc.DataType == typeof(byte[]))
+                    {
                         dc.MaxLength = (int)col.ColumnSize;
                     }
                     uint flag = (col.Flags & CDBColumnInfo.FLAG_PRIMARY_KEY);
-                    if (flag == CDBColumnInfo.FLAG_PRIMARY_KEY) {
+                    if (flag == CDBColumnInfo.FLAG_PRIMARY_KEY)
+                    {
                         lstPrimaryKey.Add(dc);
                     }
                     dt.Columns.Add(dc);
                 }
-                if (lstPrimaryKey.Count > 0) {
+                if (lstPrimaryKey.Count > 0)
+                {
                     dt.PrimaryKey = lstPrimaryKey.ToArray();
                 }
                 return dt;
             }
 
-            public static DataTable MakeDataTable(CDBColumnInfoArray vColumn) {
+            public static DataTable MakeDataTable(CDBColumnInfoArray vColumn)
+            {
                 return MakeDataTable(vColumn, "");
             }
 
-            public static void AppendRowDataIntoDataTable(List<object> vtData, DataTable dt) {
+            public static void AppendRowDataIntoDataTable(List<object> vtData, DataTable dt)
+            {
                 int index = 0;
                 int cols = dt.Columns.Count;
                 int count = vtData.Count;
                 object[] row = new object[cols];
-                for (int n = 0; n < count; ++n) {
+                for (int n = 0; n < count; ++n)
+                {
                     if (vtData[n] == null)
                         row[index] = DBNull.Value;
                     else
                         row[index] = vtData[n];
                     ++index;
-                    if (index == cols) {
+                    if (index == cols)
+                    {
                         dt.Rows.Add(row);
                         index = 0;
                     }
                 }
             }
-            public static void AppendRowDataIntoDataTable(object[] vtData, DataTable dt) {
+            public static void AppendRowDataIntoDataTable(object[] vtData, DataTable dt)
+            {
                 int index = 0;
                 int cols = dt.Columns.Count;
                 int count = vtData.Length;
                 object[] row = new object[cols];
-                for (int n = 0; n < count; ++n) {
+                for (int n = 0; n < count; ++n)
+                {
                     if (vtData[n] == null)
                         row[index] = DBNull.Value;
                     else
                         row[index] = vtData[n];
                     ++index;
-                    if (index == cols) {
+                    if (index == cols)
+                    {
                         dt.Rows.Add(row);
                         index = 0;
                     }

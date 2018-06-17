@@ -21,7 +21,7 @@ namespace SPA {
             : CAsyncServiceHandler(sid, cs),
             m_affected(-1), m_dbErrCode(0), m_lastReqId(0),
             m_indexRowset(0), m_indexProc(0), m_ms(msUnknown), m_flags(0),
-            m_parameters(0), m_outputs(0), m_bCallReturn(false), m_queueOk(false) {
+            m_parameters(0), m_outputs(0), m_bCallReturn(false), m_queueOk(false), m_nParamPos(0) {
                 m_Blob.Utf8ToW(true);
             }
 
@@ -31,7 +31,7 @@ namespace SPA {
             : CAsyncServiceHandler(serviceId, cs),
             m_affected(-1), m_dbErrCode(0), m_lastReqId(0),
             m_indexRowset(0), m_indexProc(0), m_ms(msUnknown), m_flags(0),
-            m_parameters(0), m_outputs(0), m_bCallReturn(false), m_queueOk(false) {
+            m_parameters(0), m_outputs(0), m_bCallReturn(false), m_queueOk(false), m_nParamPos(0) {
                 m_Blob.Utf8ToW(true);
             }
 
@@ -248,7 +248,7 @@ namespace SPA {
              * Execute a batch of SQL statements on one single call
              * @param isolation a value for manual transaction isolation. Specifically, there is no manual transaction around the batch SQL statements if it is tiUnspecified
              * @param sql a SQL statement having a batch of individual SQL statements
-             * @param delimiter a delimiter string used for separating the batch SQL statements into individual SQL statements at server side for processing
+             * @param delimiter a case-sensitive delimiter string used for separating the batch SQL statements into individual SQL statements at server side for processing
              * @param vParam an array of parameter data which will be bounded to previously prepared parameters. The array size can be 0 if the given batch SQL statement doesn't having any prepared statement
              * @param handler a callback for tracking final result
              * @param row a callback for receiving records of data
@@ -714,6 +714,12 @@ namespace SPA {
 
             virtual void OnResultReturned(unsigned short reqId, CUQueue &mc) {
                 switch (reqId) {
+					case idParameterPostion:
+						mc >> m_nParamPos;
+						m_csDB.lock();
+						m_indexProc = 0;
+						m_csDB.unlock();
+						break;
                     case idSqlBatchHeader:
                     {
                         UINT64 callIndex;
@@ -722,8 +728,6 @@ namespace SPA {
                         DResult cb = nullptr;
                         std::wstring errMsg;
                         mc >> res >> errMsg >> ms >> params >> callIndex;
-						if (mc.GetSize())
-							mc >> m_vPos;
                         {
                             CAutoLock al(m_csDB);
 							m_indexProc = 0;
@@ -784,7 +788,7 @@ namespace SPA {
                         if (it != m_mapParameterCall.end()) {
                             //crash? make sure that vParam is valid after calling the method Execute
                             CDBVariantArray &vParam = *(it->second);
-                            size_t pos = m_parameters * m_indexProc;
+                            size_t pos = m_parameters * m_indexProc + (m_nParamPos >> 16);
                             vParam[pos] = vt;
                         }
                         m_bCallReturn = true;
@@ -843,14 +847,12 @@ namespace SPA {
 								if (it != m_mapParameterCall.cend()) {
 									//crash? make sure that vParam is valid after calling the method Execute
 									CDBVariantArray &vParam = *(it->second);
-									size_t pos = m_parameters * m_indexProc + (m_parameters - (unsigned int) m_vData.size());
+									size_t pos = m_parameters * m_indexProc + m_parameters + (m_nParamPos >> 16) - (unsigned int) m_vData.size();
 									for (auto start = m_vData.begin(), end = m_vData.end(); start != end; ++start, ++pos) {
 										vParam[pos] = std::move(*start);
 									}
-									++m_indexProc;
-									if (m_indexProc == m_mapParameterCall.size() / m_parameters)
-										m_indexProc = 0;
 								}
+								++m_indexProc;
                             } else {
                                 DRows row;
                                 {
@@ -945,7 +947,7 @@ namespace SPA {
             CUCriticalSection m_csOneSending;
             bool m_queueOk;
             std::unordered_map<UINT64, DResult> m_mapHandler;
-			CPosArray m_vPos;
+			unsigned int m_nParamPos;
         };
     } //namespace ClientSide
 } //namespace SPA

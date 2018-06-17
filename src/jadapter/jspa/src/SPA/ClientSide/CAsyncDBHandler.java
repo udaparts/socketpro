@@ -320,7 +320,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
         }
     }
     private final java.util.ArrayDeque<MyCallback<DResult>> m_deqResult = new java.util.ArrayDeque<>();
-    private final CPosArray m_vPos = new CPosArray();
+    private int m_nParamPos = 0;
 
     private MyCallback<DResult> GetResultHandler(short reqId) {
         if (m_ClientSocket.getRandom()) {
@@ -1387,6 +1387,12 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
     @Override
     protected void OnResultReturned(short reqId, CUQueue mc) {
         switch (reqId) {
+            case DB_CONSTS.idParameterPostion:
+                m_nParamPos = mc.LoadInt();
+                synchronized (m_csDB) {
+                    m_indexProc = 0;
+                }
+                break;
             case DB_CONSTS.idExecuteBatch: {
                 long affected = mc.LoadLong();
                 int res = mc.LoadInt();
@@ -1412,9 +1418,6 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                 int ms = mc.LoadInt();
                 int parameters = mc.LoadInt();
                 m_indexRowset = mc.LoadLong();
-                if (mc.GetSize() > 0) {
-                    m_vPos.LoadFrom(mc);
-                }
                 synchronized (m_csDB) {
                     m_indexProc = 0;
                     m_lastReqId = reqId;
@@ -1604,7 +1607,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                 synchronized (m_csDB) {
                     if (m_mapParameterCall.containsKey(m_indexRowset)) {
                         CDBVariantArray vParam = m_mapParameterCall.get(m_indexRowset);
-                        int pos = m_parameters * m_indexProc;
+                        int pos = m_parameters * m_indexProc + (m_nParamPos >> 16);
                         vParam.set(pos, vt);
                     }
                     m_bCallReturn = true;
@@ -1639,14 +1642,14 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                             m_output = m_vData.size() + (m_bCallReturn ? 1 : 0);
                             if (m_mapParameterCall.containsKey(m_indexRowset)) {
                                 CDBVariantArray vParam = m_mapParameterCall.get(m_indexRowset);
-                                int pos = m_parameters * m_indexProc + m_parameters - m_output;
+                                int pos = m_parameters * m_indexProc + m_parameters + (m_nParamPos >> 16) - m_output;
                                 for (int n = 0; n < m_output; ++n) {
                                     vParam.set(pos, m_vData.get(n));
                                     ++pos;
                                 }
                             }
-                            ++m_indexProc;
                         }
+                        ++m_indexProc;
                     } else {
                         DRows row = null;
                         synchronized (m_csDB) {

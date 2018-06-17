@@ -176,7 +176,7 @@
             </summary>
             <param name="isolation">a value for manual transaction isolation. Specifically, there is no manual transaction around the batch SQL statements if it is tiUnspecified</param>
             <param name="sql">a SQL statement having a batch of individual SQL statements</param>
-            <param name="delimiter">a delimiter string used for separating the batch SQL statements into individual SQL statements at server side for processing</param>
+            <param name="delimiter">a case-sensitive delimiter string used for separating the batch SQL statements into individual SQL statements at server side for processing</param>
             <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
         </member>
         <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.ExecuteBatch(SocketProAdapter.UDB.tagTransactionIsolation,System.String,System.String,SocketProAdapter.UDB.CDBVariantArray)">
@@ -185,7 +185,7 @@
             </summary>
             <param name="isolation">a value for manual transaction isolation. Specifically, there is no manual transaction around the batch SQL statements if it is tiUnspecified</param>
             <param name="sql">a SQL statement having a batch of individual SQL statements</param>
-            <param name="delimiter">a delimiter string used for separating the batch SQL statements into individual SQL statements at server side for processing</param>
+            <param name="delimiter">a case-sensitive delimiter string used for separating the batch SQL statements into individual SQL statements at server side for processing</param>
             <param name="vParam">an array of parameter data which will be bounded to previously prepared parameters. The array size can be 0 if the given batch SQL statement doesn't having any prepared statement</param>
             <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
         </member>
@@ -195,7 +195,7 @@
             </summary>
             <param name="isolation">a value for manual transaction isolation. Specifically, there is no manual transaction around the batch SQL statements if it is tiUnspecified</param>
             <param name="sql">a SQL statement having a batch of individual SQL statements</param>
-            <param name="delimiter">a delimiter string used for separating the batch SQL statements into individual SQL statements at server side for processing</param>
+            <param name="delimiter">a case-sensitive delimiter string used for separating the batch SQL statements into individual SQL statements at server side for processing</param>
             <param name="vParam">an array of parameter data which will be bounded to previously prepared parameters. The array size can be 0 if the given batch SQL statement doesn't having any prepared statement</param>
             <param name="handler">a callback for tracking final result</param>
             <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
@@ -206,7 +206,7 @@
             </summary>
             <param name="isolation">a value for manual transaction isolation. Specifically, there is no manual transaction around the batch SQL statements if it is tiUnspecified</param>
             <param name="sql">a SQL statement having a batch of individual SQL statements</param>
-            <param name="delimiter">a delimiter string used for separating the batch SQL statements into individual SQL statements at server side for processing</param>
+            <param name="delimiter">a case-sensitive delimiter string used for separating the batch SQL statements into individual SQL statements at server side for processing</param>
             <param name="vParam">an array of parameter data which will be bounded to previously prepared parameters. The array size can be 0 if the given batch SQL statement doesn't having any prepared statement</param>
             <param name="handler">a callback for tracking final result</param>
             <param name="row">a callback for receiving records of data</param>
@@ -218,7 +218,7 @@
             </summary>
             <param name="isolation">a value for manual transaction isolation. Specifically, there is no manual transaction around the batch SQL statements if it is tiUnspecified</param>
             <param name="sql">a SQL statement having a batch of individual SQL statements</param>
-            <param name="delimiter">a delimiter string used for separating the batch SQL statements into individual SQL statements at server side for processing</param>
+            <param name="delimiter">a case-sensitive delimiter string used for separating the batch SQL statements into individual SQL statements at server side for processing</param>
             <param name="vParam">an array of parameter data which will be bounded to previously prepared parameters. The array size can be 0 if the given batch SQL statement doesn't having any prepared statement</param>
             <param name="handler">a callback for tracking final result</param>
             <param name="row">a callback for receiving records of data</param>
@@ -231,7 +231,7 @@
             </summary>
             <param name="isolation">a value for manual transaction isolation. Specifically, there is no manual transaction around the batch SQL statements if it is tiUnspecified</param>
             <param name="sql">a SQL statement having a batch of individual SQL statements</param>
-            <param name="delimiter">a delimiter string used for separating the batch SQL statements into individual SQL statements at server side for processing</param>
+            <param name="delimiter">a case-sensitive delimiter string used for separating the batch SQL statements into individual SQL statements at server side for processing</param>
             <param name="vParam">an array of parameter data which will be bounded to previously prepared parameters. The array size can be 0 if the given batch SQL statement doesn't having any prepared statement</param>
             <param name="handler">a callback for tracking final result</param>
             <param name="row">a callback for receiving records of data</param>
@@ -245,7 +245,7 @@
             </summary>
             <param name="isolation">a value for manual transaction isolation. Specifically, there is no manual transaction around the batch SQL statements if it is tiUnspecified</param>
             <param name="sql">a SQL statement having a batch of individual SQL statements</param>
-            <param name="delimiter">a delimiter string used for separating the batch SQL statements into individual SQL statements at server side for processing</param>
+            <param name="delimiter">a case-sensitive delimiter string used for separating the batch SQL statements into individual SQL statements at server side for processing</param>
             <param name="vParam">an array of parameter data which will be bounded to previously prepared parameters. The array size can be 0 if the given batch SQL statement doesn't having any prepared statement</param>
             <param name="handler">a callback for tracking final result</param>
             <param name="row">a callback for receiving records of data</param>
@@ -260,7 +260,7 @@
             </summary>
             <param name="isolation">a value for manual transaction isolation. Specifically, there is no manual transaction around the batch SQL statements if it is tiUnspecified</param>
             <param name="sql">a SQL statement having a batch of individual SQL statements</param>
-            <param name="delimiter">a delimiter string used for separating the batch SQL statements into individual SQL statements at server side for processing</param>
+            <param name="delimiter">a case-sensitive delimiter string used for separating the batch SQL statements into individual SQL statements at server side for processing</param>
             <param name="vParam">an array of parameter data which will be bounded to previously prepared parameters. The array size can be 0 if the given batch SQL statement doesn't having any prepared statement</param>
             <param name="handler">a callback for tracking final result</param>
             <param name="row">a callback for receiving records of data</param>
@@ -276,7 +276,7 @@
             </summary>
             <param name="isolation">a value for manual transaction isolation. Specifically, there is no manual transaction around the batch SQL statements if it is tiUnspecified</param>
             <param name="sql">a SQL statement having a batch of individual SQL statements</param>
-            <param name="delimiter">a delimiter string used for separating the batch SQL statements into individual SQL statements at server side for processing</param>
+            <param name="delimiter">a case-sensitive delimiter string used for separating the batch SQL statements into individual SQL statements at server side for processing</param>
             <param name="vParam">an array of parameter data which will be bounded to previously prepared parameters. The array size can be 0 if the given batch SQL statement doesn't having any prepared statement</param>
             <param name="handler">a callback for tracking final result</param>
             <param name="row">a callback for receiving records of data</param>
@@ -293,7 +293,7 @@
             </summary>
             <param name="isolation">a value for manual transaction isolation. Specifically, there is no manual transaction around the batch SQL statements if it is tiUnspecified</param>
             <param name="sql">a SQL statement having a batch of individual SQL statements</param>
-            <param name="delimiter">a delimiter string used for separating the batch SQL statements into individual SQL statements at server side for processing</param>
+            <param name="delimiter">a case-sensitive delimiter string used for separating the batch SQL statements into individual SQL statements at server side for processing</param>
             <param name="vParam">an array of parameter data which will be bounded to previously prepared parameters. The array size can be 0 if the given batch SQL statement doesn't having any prepared statement</param>
             <param name="handler">a callback for tracking final result</param>
             <param name="row">a callback for receiving records of data</param>
@@ -311,7 +311,7 @@
             </summary>
             <param name="isolation">a value for manual transaction isolation. Specifically, there is no manual transaction around the batch SQL statements if it is tiUnspecified</param>
             <param name="sql">a SQL statement having a batch of individual SQL statements</param>
-            <param name="delimiter">a delimiter string used for separating the batch SQL statements into individual SQL statements at server side for processing</param>
+            <param name="delimiter">a case-sensitive delimiter string used for separating the batch SQL statements into individual SQL statements at server side for processing</param>
             <param name="vParam">an array of parameter data which will be bounded to previously prepared parameters. The array size can be 0 if the given batch SQL statement doesn't having any prepared statement</param>
             <param name="handler">a callback for tracking final result</param>
             <param name="row">a callback for receiving records of data</param>

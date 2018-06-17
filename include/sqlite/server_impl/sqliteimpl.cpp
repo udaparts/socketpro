@@ -476,7 +476,8 @@ namespace SPA
             }
         }
 
-        std::vector<std::wstring> CSqliteImpl::Split(const std::wstring &sql, const std::wstring & delimiter) {
+		/*
+		std::vector<std::wstring> CSqliteImpl::Split(const std::wstring &sql, const std::wstring & delimiter) {
             std::vector<std::wstring> v;
             size_t start = 0, len = delimiter.size();
             if (len) {
@@ -492,9 +493,48 @@ namespace SPA
             }
             return v;
         }
+		*/
+
+        std::vector<std::wstring> CSqliteImpl::Split(const std::wstring &sql, const std::wstring & delimiter) {
+			std::vector<std::wstring> v;
+			size_t d_len = delimiter.size();
+            if (d_len) {
+				const wchar_t quote = '\'', slash = '\\', done = delimiter[0];
+				size_t params = 0, len = sql.size();
+				bool b_slash = false, balanced = true;
+                for (size_t n = 0; n < len; ++n) {
+					const wchar_t &c = sql[n];
+					if (c == slash) {
+						b_slash = true;
+						continue;
+					}
+					if (c == quote && b_slash) {
+						b_slash = false;
+						continue; //ignore a quote if there is a slash ahead
+					}
+					b_slash = false;
+					if (c == quote) {
+						balanced = (!balanced);
+						continue;
+					}
+					if (balanced && c == done) {
+						size_t pos = sql.find(delimiter, n);
+						if (pos == n) {
+							v.push_back(sql.substr(params, n - params));
+							n += d_len;
+							params = n;
+						}
+					}
+				}
+				v.push_back(sql.substr(params));
+            } else {
+                v.push_back(sql);
+            }
+            return v;
+        }
 
         size_t CSqliteImpl::ComputeParameters(const std::wstring & sql) {
-            const wchar_t coma = '\'', slash = '\\', question = '?';
+            const wchar_t quote = '\'', slash = '\\', question = '?';
             bool b_slash = false, balanced = true;
             size_t params = 0, len = sql.size();
             for (size_t n = 0; n < len; ++n) {
@@ -503,12 +543,12 @@ namespace SPA
                     b_slash = true;
                     continue;
                 }
-                if (c == coma && b_slash) {
+                if (c == quote && b_slash) {
                     b_slash = false;
-                    continue; //ignore a coma if there is a slash ahead
+                    continue; //ignore a quote if there is a slash ahead
                 }
                 b_slash = false;
-                if (c == coma) {
+                if (c == quote) {
                     balanced = (!balanced);
                     continue;
                 }
