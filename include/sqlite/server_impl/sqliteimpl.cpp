@@ -476,8 +476,8 @@ namespace SPA
             }
         }
 
-		/*
-		std::vector<std::wstring> CSqliteImpl::Split(const std::wstring &sql, const std::wstring & delimiter) {
+        /*
+        std::vector<std::wstring> CSqliteImpl::Split(const std::wstring &sql, const std::wstring & delimiter) {
             std::vector<std::wstring> v;
             size_t start = 0, len = delimiter.size();
             if (len) {
@@ -493,40 +493,40 @@ namespace SPA
             }
             return v;
         }
-		*/
+         */
 
         std::vector<std::wstring> CSqliteImpl::Split(const std::wstring &sql, const std::wstring & delimiter) {
-			std::vector<std::wstring> v;
-			size_t d_len = delimiter.size();
+            std::vector<std::wstring> v;
+            size_t d_len = delimiter.size();
             if (d_len) {
-				const wchar_t quote = '\'', slash = '\\', done = delimiter[0];
-				size_t params = 0, len = sql.size();
-				bool b_slash = false, balanced = true;
+                const wchar_t quote = '\'', slash = '\\', done = delimiter[0];
+                size_t params = 0, len = sql.size();
+                bool b_slash = false, balanced = true;
                 for (size_t n = 0; n < len; ++n) {
-					const wchar_t &c = sql[n];
-					if (c == slash) {
-						b_slash = true;
-						continue;
-					}
-					if (c == quote && b_slash) {
-						b_slash = false;
-						continue; //ignore a quote if there is a slash ahead
-					}
-					b_slash = false;
-					if (c == quote) {
-						balanced = (!balanced);
-						continue;
-					}
-					if (balanced && c == done) {
-						size_t pos = sql.find(delimiter, n);
-						if (pos == n) {
-							v.push_back(sql.substr(params, n - params));
-							n += d_len;
-							params = n;
-						}
-					}
-				}
-				v.push_back(sql.substr(params));
+                    const wchar_t &c = sql[n];
+                    if (c == slash) {
+                        b_slash = true;
+                        continue;
+                    }
+                    if (c == quote && b_slash) {
+                        b_slash = false;
+                        continue; //ignore a quote if there is a slash ahead
+                    }
+                    b_slash = false;
+                    if (c == quote) {
+                        balanced = (!balanced);
+                        continue;
+                    }
+                    if (balanced && c == done) {
+                        size_t pos = sql.find(delimiter, n);
+                        if (pos == n) {
+                            v.push_back(sql.substr(params, n - params));
+                            n += d_len;
+                            params = n;
+                        }
+                    }
+                }
+                v.push_back(sql.substr(params));
             } else {
                 v.push_back(sql);
             }
@@ -917,11 +917,11 @@ namespace SPA
                     res = DoSafeOpen(s, flags);
                 }
             }
-			size_t parameters = 0;
-			std::vector<std::wstring> vSql = Split(sql, delimiter);
-			for (auto it = vSql.cbegin(), end = vSql.cend(); it != end; ++it) {
-				parameters += ComputeParameters(*it);
-			}
+            size_t parameters = 0;
+            std::vector<std::wstring> vSql = Split(sql, delimiter);
+            for (auto it = vSql.cbegin(), end = vSql.cend(); it != end; ++it) {
+                parameters += ComputeParameters(*it);
+            }
             if (!m_pSqlite) {
                 res = SPA::Sqlite::SQLITE_DB_NOT_OPENED_YET;
                 errMsg = NO_DB_OPENED_YET;
@@ -931,27 +931,27 @@ namespace SPA
                 SendResult(idSqlBatchHeader, res, errMsg, (int) msSqlite, (unsigned int) parameters, callIndex);
                 return;
             }
-			if (parameters) {
-				if (!m_vParam.size()) {
-					res = SPA::Sqlite::SQLITE_NO_PARAMETER_SPECIFIED;
-					errMsg = NO_PARAMETER_SPECIFIED;
-					++m_fails;
-					fail_ok = 1;
-					fail_ok <<= 32;
-					SendResult(idSqlBatchHeader, res, errMsg, (int) msSqlite, (unsigned int) parameters, callIndex);
-					return;
-				}
-				if ((m_vParam.size() % parameters)) {
-					res = SPA::Sqlite::SQLITE_BAD_PARAMETER_DATA_ARRAY_SIZE;
-					errMsg = BAD_PARAMETER_DATA_ARRAY_SIZE;
-					++m_fails;
-					fail_ok = 1;
-					fail_ok <<= 32;
-					SendResult(idSqlBatchHeader, res, errMsg, (int) msSqlite, (unsigned int) parameters, callIndex);
-					return;
-				}
+            if (parameters) {
+                if (!m_vParam.size()) {
+                    res = SPA::Sqlite::SQLITE_NO_PARAMETER_SPECIFIED;
+                    errMsg = NO_PARAMETER_SPECIFIED;
+                    ++m_fails;
+                    fail_ok = 1;
+                    fail_ok <<= 32;
+                    SendResult(idSqlBatchHeader, res, errMsg, (int) msSqlite, (unsigned int) parameters, callIndex);
+                    return;
+                }
+                if ((m_vParam.size() % parameters)) {
+                    res = SPA::Sqlite::SQLITE_BAD_PARAMETER_DATA_ARRAY_SIZE;
+                    errMsg = BAD_PARAMETER_DATA_ARRAY_SIZE;
+                    ++m_fails;
+                    fail_ok = 1;
+                    fail_ok <<= 32;
+                    SendResult(idSqlBatchHeader, res, errMsg, (int) msSqlite, (unsigned int) parameters, callIndex);
+                    return;
+                }
                 rows = m_vParam.size() / parameters;
-			}
+            }
             if (isolation != (int) tiUnspecified) {
                 int ms;
                 BeginTrans(isolation, dbConn, flags, res, errMsg, ms);

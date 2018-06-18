@@ -61,7 +61,7 @@ unsigned short WINAPI GetOneSlowRequestID(unsigned int serviceId, unsigned short
             return SPA::UDB::idPrepare;
         case 6:
             return SPA::UDB::idExecuteParameters;
-		case 7:
+        case 7:
             return SPA::UDB::idExecuteBatch;
         default:
             break;

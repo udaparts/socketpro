@@ -256,7 +256,7 @@ namespace SPA {
              * @param vPInfo a given array of parameter informations which may be empty to some of database management systems
              * @param plan a value for computing how included transactions should be rollback
              * @param discarded a callback for tracking socket closed or request canceled event
-			 * @param delimiter a case-sensitive delimiter string used for separating the batch SQL statements into individual SQL statements at server side for processing
+             * @param delimiter a case-sensitive delimiter string used for separating the batch SQL statements into individual SQL statements at server side for processing
              * @param meta a boolean for better or more detailed column meta details such as unique, not null, primary key, and so on
              * @param lastInsertId a boolean for last insert record identification number
              * @return true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
@@ -264,7 +264,7 @@ namespace SPA {
             virtual bool ExecuteBatch(tagTransactionIsolation isolation, const wchar_t *sql, CDBVariantArray &vParam = CDBVariantArray(),
                     DExecuteResult handler = nullptr, DRows row = nullptr, DRowsetHeader rh = nullptr, DResult batchHeader = nullptr,
                     const CParameterInfoArray& vPInfo = CParameterInfoArray(), tagRollbackPlan plan = rpDefault, DDiscarded discarded = nullptr,
-					const wchar_t *delimiter = L";", bool meta = true, bool lastInsertId = true) {
+                    const wchar_t *delimiter = L";", bool meta = true, bool lastInsertId = true) {
                 bool rowset = (rh || row) ? true : false;
                 if (!rowset) {
                     meta = false;
@@ -362,18 +362,18 @@ namespace SPA {
                 sb << rowset << meta << lastInsertId;
 
                 UINT64 callIndex;
-				bool queueOk = false;
+                bool queueOk = false;
                 //make sure all parameter data sending and ExecuteParameters sending as one combination sending
                 //to avoid possible request sending overlapping within multiple threading environment
                 CAutoLock alOne(m_csOneSending);
                 {
-					if (vParam.size()) {
-						queueOk = GetAttachedClientSocket()->GetClientQueue().StartJob();
-						if (!SendParametersData(vParam)) {
-							Clean();
-							return false;
-						}
-					}
+                    if (vParam.size()) {
+                        queueOk = GetAttachedClientSocket()->GetClientQueue().StartJob();
+                        if (!SendParametersData(vParam)) {
+                            Clean();
+                            return false;
+                        }
+                    }
                     callIndex = GetCallIndex();
                     //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
                     CAutoLock al(m_csDB);
@@ -439,7 +439,7 @@ namespace SPA {
                     meta = false;
                 }
                 CScopeUQueue sb;
-				CAutoLock alOne(m_csOneSending);
+                CAutoLock alOne(m_csOneSending);
                 UINT64 index = GetCallIndex();
                 {
                     //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
@@ -714,12 +714,12 @@ namespace SPA {
 
             virtual void OnResultReturned(unsigned short reqId, CUQueue &mc) {
                 switch (reqId) {
-					case idParameterPosition:
-						mc >> m_nParamPos;
-						m_csDB.lock();
-						m_indexProc = 0;
-						m_csDB.unlock();
-						break;
+                    case idParameterPosition:
+                        mc >> m_nParamPos;
+                        m_csDB.lock();
+                        m_indexProc = 0;
+                        m_csDB.unlock();
+                        break;
                     case idSqlBatchHeader:
                     {
                         UINT64 callIndex;
@@ -730,7 +730,7 @@ namespace SPA {
                         mc >> res >> errMsg >> ms >> params >> callIndex;
                         {
                             CAutoLock al(m_csDB);
-							m_indexProc = 0;
+                            m_indexProc = 0;
                             m_lastReqId = idSqlBatchHeader;
                             m_parameters = (params & 0xffff);
                             m_outputs = (params >> 16);
@@ -844,15 +844,15 @@ namespace SPA {
                                     assert(m_outputs == (unsigned int) m_vData.size() + (unsigned int) m_bCallReturn);
                                 }
                                 auto it = m_mapParameterCall.find(m_indexRowset);
-								if (it != m_mapParameterCall.cend()) {
-									//crash? make sure that vParam is valid after calling the method Execute
-									CDBVariantArray &vParam = *(it->second);
-									size_t pos = m_parameters * m_indexProc + m_parameters + (m_nParamPos >> 16) - (unsigned int) m_vData.size();
-									for (auto start = m_vData.begin(), end = m_vData.end(); start != end; ++start, ++pos) {
-										vParam[pos] = std::move(*start);
-									}
-								}
-								++m_indexProc;
+                                if (it != m_mapParameterCall.cend()) {
+                                    //crash? make sure that vParam is valid after calling the method Execute
+                                    CDBVariantArray &vParam = *(it->second);
+                                    size_t pos = m_parameters * m_indexProc + m_parameters + (m_nParamPos >> 16) - (unsigned int) m_vData.size();
+                                    for (auto start = m_vData.begin(), end = m_vData.end(); start != end; ++start, ++pos) {
+                                        vParam[pos] = std::move(*start);
+                                    }
+                                }
+                                ++m_indexProc;
                             } else {
                                 DRows row;
                                 {
@@ -947,7 +947,7 @@ namespace SPA {
             CUCriticalSection m_csOneSending;
             bool m_queueOk;
             std::unordered_map<UINT64, DResult> m_mapHandler;
-			unsigned int m_nParamPos;
+            unsigned int m_nParamPos;
         };
     } //namespace ClientSide
 } //namespace SPA
