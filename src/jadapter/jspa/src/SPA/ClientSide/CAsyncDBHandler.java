@@ -1387,7 +1387,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
     @Override
     protected void OnResultReturned(short reqId, CUQueue mc) {
         switch (reqId) {
-            case DB_CONSTS.idParameterPostion:
+            case DB_CONSTS.idParameterPosition:
                 m_nParamPos = mc.LoadInt();
                 synchronized (m_csDB) {
                     m_indexProc = 0;

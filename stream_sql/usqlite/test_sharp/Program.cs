@@ -76,7 +76,7 @@ class Program
         //there is no manual transaction if isolation is tiUnspecified
         bool ok = sqlite.ExecuteBatch(tagTransactionIsolation.tiUnspecified,
             "Select datetime('now');select * from COMPANY where ID=?;select * from EMPLOYEE where EMPLOYEEID=?",
-            "", vParam, (handler, res, errMsg, affected, fail_ok, id) =>
+            vParam, (handler, res, errMsg, affected, fail_ok, id) =>
         {
             Console.WriteLine("affected = {0}, fails = {1}, oks = {2}, res = {3}, errMsg: {4}, last insert id = {5}",
                 affected, (uint)(fail_ok >> 32), (uint)fail_ok, res, errMsg, id);
@@ -102,8 +102,8 @@ class Program
         //select * from EMPLOYEE where EMPLOYEEID=2;select * from EMPLOYEE where EMPLOYEEID=3
         //ok = sqlite.EndTrans();
         ok = sqlite.ExecuteBatch(tagTransactionIsolation.tiReadCommited,
-            "Select datetime('now')@@select * from COMPANY where ID=?@@Select datetime('now')@@select * from EMPLOYEE where EMPLOYEEID=?",
-            "@@", vParam, (handler, res, errMsg, affected, fail_ok, id) =>
+            "Select datetime('now');select * from COMPANY where ID=?;Select datetime('now');select * from EMPLOYEE where EMPLOYEEID=?",
+            vParam, (handler, res, errMsg, affected, fail_ok, id) =>
             {
                 Console.WriteLine("affected = {0}, fails = {1}, oks = {2}, res = {3}, errMsg: {4}, last insert id = {5}",
                     affected, (uint)(fail_ok >> 32), (uint)fail_ok, res, errMsg, id);

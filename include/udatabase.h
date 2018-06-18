@@ -126,7 +126,7 @@ namespace SPA {
 
         static const unsigned short idSqlBatchHeader = idGetCachedTables + 1;
         static const unsigned short idExecuteBatch = idSqlBatchHeader + 1;
-		static const unsigned short idParameterPostion = idExecuteBatch + 1;
+		static const unsigned short idParameterPosition = idExecuteBatch + 1;
 
         /**
          * Whenever a data size in bytes is about twice larger than the defined value,

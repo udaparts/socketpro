@@ -248,7 +248,6 @@ namespace SPA {
              * Execute a batch of SQL statements on one single call
              * @param isolation a value for manual transaction isolation. Specifically, there is no manual transaction around the batch SQL statements if it is tiUnspecified
              * @param sql a SQL statement having a batch of individual SQL statements
-             * @param delimiter a case-sensitive delimiter string used for separating the batch SQL statements into individual SQL statements at server side for processing
              * @param vParam an array of parameter data which will be bounded to previously prepared parameters. The array size can be 0 if the given batch SQL statement doesn't having any prepared statement
              * @param handler a callback for tracking final result
              * @param row a callback for receiving records of data
@@ -257,14 +256,15 @@ namespace SPA {
              * @param vPInfo a given array of parameter informations which may be empty to some of database management systems
              * @param plan a value for computing how included transactions should be rollback
              * @param discarded a callback for tracking socket closed or request canceled event
+			 * @param delimiter a case-sensitive delimiter string used for separating the batch SQL statements into individual SQL statements at server side for processing
              * @param meta a boolean for better or more detailed column meta details such as unique, not null, primary key, and so on
              * @param lastInsertId a boolean for last insert record identification number
              * @return true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
              */
-            virtual bool ExecuteBatch(tagTransactionIsolation isolation, const wchar_t *sql, const wchar_t *delimiter, CDBVariantArray &vParam = CDBVariantArray(),
+            virtual bool ExecuteBatch(tagTransactionIsolation isolation, const wchar_t *sql, CDBVariantArray &vParam = CDBVariantArray(),
                     DExecuteResult handler = nullptr, DRows row = nullptr, DRowsetHeader rh = nullptr, DResult batchHeader = nullptr,
                     const CParameterInfoArray& vPInfo = CParameterInfoArray(), tagRollbackPlan plan = rpDefault, DDiscarded discarded = nullptr,
-                    bool meta = true, bool lastInsertId = true) {
+					const wchar_t *delimiter = L";", bool meta = true, bool lastInsertId = true) {
                 bool rowset = (rh || row) ? true : false;
                 if (!rowset) {
                     meta = false;
@@ -714,7 +714,7 @@ namespace SPA {
 
             virtual void OnResultReturned(unsigned short reqId, CUQueue &mc) {
                 switch (reqId) {
-					case idParameterPostion:
+					case idParameterPosition:
 						mc >> m_nParamPos;
 						m_csDB.lock();
 						m_indexProc = 0;

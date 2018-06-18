@@ -917,7 +917,11 @@ namespace SPA
                     res = DoSafeOpen(s, flags);
                 }
             }
-            size_t parameters = ComputeParameters(sql);
+			size_t parameters = 0;
+			std::vector<std::wstring> vSql = Split(sql, delimiter);
+			for (auto it = vSql.cbegin(), end = vSql.cend(); it != end; ++it) {
+				parameters += ComputeParameters(*it);
+			}
             if (!m_pSqlite) {
                 res = SPA::Sqlite::SQLITE_DB_NOT_OPENED_YET;
                 errMsg = NO_DB_OPENED_YET;
@@ -927,27 +931,27 @@ namespace SPA
                 SendResult(idSqlBatchHeader, res, errMsg, (int) msSqlite, (unsigned int) parameters, callIndex);
                 return;
             }
-            if (parameters && !m_vParam.size()) {
-                res = SPA::Sqlite::SQLITE_NO_PARAMETER_SPECIFIED;
-                errMsg = NO_PARAMETER_SPECIFIED;
-                ++m_fails;
-                fail_ok = 1;
-                fail_ok <<= 32;
-                SendResult(idSqlBatchHeader, res, errMsg, (int) msSqlite, (unsigned int) parameters, callIndex);
-                return;
-            }
-            if (parameters && (m_vParam.size() % parameters)) {
-                res = SPA::Sqlite::SQLITE_BAD_PARAMETER_DATA_ARRAY_SIZE;
-                errMsg = BAD_PARAMETER_DATA_ARRAY_SIZE;
-                ++m_fails;
-                fail_ok = 1;
-                fail_ok <<= 32;
-                SendResult(idSqlBatchHeader, res, errMsg, (int) msSqlite, (unsigned int) parameters, callIndex);
-                return;
-            }
-            if (parameters)
+			if (parameters) {
+				if (!m_vParam.size()) {
+					res = SPA::Sqlite::SQLITE_NO_PARAMETER_SPECIFIED;
+					errMsg = NO_PARAMETER_SPECIFIED;
+					++m_fails;
+					fail_ok = 1;
+					fail_ok <<= 32;
+					SendResult(idSqlBatchHeader, res, errMsg, (int) msSqlite, (unsigned int) parameters, callIndex);
+					return;
+				}
+				if ((m_vParam.size() % parameters)) {
+					res = SPA::Sqlite::SQLITE_BAD_PARAMETER_DATA_ARRAY_SIZE;
+					errMsg = BAD_PARAMETER_DATA_ARRAY_SIZE;
+					++m_fails;
+					fail_ok = 1;
+					fail_ok <<= 32;
+					SendResult(idSqlBatchHeader, res, errMsg, (int) msSqlite, (unsigned int) parameters, callIndex);
+					return;
+				}
                 rows = m_vParam.size() / parameters;
-
+			}
             if (isolation != (int) tiUnspecified) {
                 int ms;
                 BeginTrans(isolation, dbConn, flags, res, errMsg, ms);
@@ -972,7 +976,6 @@ namespace SPA
             errMsg.clear();
             CDBVariantArray vAll;
             m_vParam.swap(vAll);
-            std::vector<std::wstring> vSql = Split(sql, delimiter);
             for (auto it = vSql.begin(), end = vSql.end(); it != end; ++it) {
                 trim_w(*it);
                 if (!it->size()) {

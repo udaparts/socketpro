@@ -25,6 +25,87 @@ class CStreamSql : CClientPeer
     protected ulong m_fails = 0;
     protected SqlTransaction m_trans = null;
 
+    private static List<string> Split(string sql, string delimiter)
+    {
+        List<string> v = new List<string>();
+        int d_len = delimiter.Length;
+        if (d_len > 0)
+        {
+            const char quote = '\'', slash = '\\';
+            char done = delimiter[0];
+            int ps = 0, len = sql.Length;
+            bool b_slash = false, balanced = true;
+            for (int n = 0; n < len; ++n)
+            {
+                char c = sql[n];
+                if (c == slash)
+                {
+                    b_slash = true;
+                    continue;
+                }
+                if (c == quote && b_slash)
+                {
+                    b_slash = false;
+                    continue; //ignore a quote if there is a slash ahead
+                }
+                b_slash = false;
+                if (c == quote)
+                {
+                    balanced = (!balanced);
+                    continue;
+                }
+                if (balanced && c == done)
+                {
+                    int pos = sql.IndexOf(delimiter, n);
+                    if (pos == n)
+                    {
+                        v.Add(sql.Substring(ps, n - ps));
+                        n += d_len;
+                        ps = n;
+                    }
+                }
+            }
+            v.Add(sql.Substring(ps));
+        }
+        else
+        {
+            v.Add(sql);
+        }
+        return v;
+    }
+
+    private static uint ComputeParameters(string sql)
+    {
+        const char quote = '\'', slash = '\\', question = '?';
+        bool b_slash = false, balanced = true;
+        int ps = 0, len = sql.Length;
+        for (int n = 0; n < len; ++n)
+        {
+            char c = sql[n];
+            if (c == slash)
+            {
+                b_slash = true;
+                continue;
+            }
+            if (c == quote && b_slash)
+            {
+                b_slash = false;
+                continue; //ignore a quote if there is a slash ahead
+            }
+            b_slash = false;
+            if (c == quote)
+            {
+                balanced = (!balanced);
+                continue;
+            }
+            if (balanced)
+            {
+                ps += ((c == question) ? 1 : 0);
+            }
+        }
+        return (uint)ps;
+    }
+
     protected override void OnBaseRequestCame(tagBaseRequestID reqId)
     {
         switch (reqId)
@@ -587,6 +668,147 @@ class CStreamSql : CClientPeer
         }
         fail_ok = ((m_fails - fails) << 32);
         fail_ok += (m_oks - oks);
+        return fail_ok;
+    }
+
+    [RequestAttr(DB_CONSTS.idExecuteBatch, true)]
+    private ulong ExecuteBatch(string sql, string delimiter, int isolation, int plan, bool rowset, bool meta, bool lastInsertId, string dbConn, uint flags, ulong callIndex, out long affected, out int res, out string errMsg, out object vtId)
+    {
+        if (sql == null)
+            sql = "";
+        if (dbConn == null)
+            dbConn = "";
+        if (delimiter == null)
+            delimiter = "";
+        m_indexCall = callIndex;
+        affected = 0;
+        res = 0;
+        ulong fail_ok = 0;
+        CParameterInfoArray vPInfo = new CParameterInfoArray();
+        vPInfo.LoadFrom(UQueue);
+        vtId = null;
+        object id;
+        if (lastInsertId)
+            id = (long)0;
+        else
+            id = null;
+        do
+        {
+            if (m_defaultDB.Length == 0)
+            {
+                int ms = Open(dbConn, flags, out res, out errMsg);
+                if (res == 0)
+                    errMsg = m_conn.Database;
+            }
+            else
+            {
+                errMsg = m_conn.Database;
+            }
+            uint parameters = 0;
+            List<string> vSql = Split(sql, delimiter);
+            foreach (string s in vSql)
+            {
+                parameters += ComputeParameters(s);
+            }
+            if (m_defaultDB == "")
+            {
+                ++m_fails;
+                fail_ok = 1;
+                fail_ok <<= 32;
+                SendResult(DB_CONSTS.idSqlBatchHeader, res, errMsg, (int)tagManagementSystem.msMsSQL, parameters, callIndex);
+                break;
+            }
+            uint rows = 0;
+            if (parameters > 0)
+            {
+                if (m_vParam.Count == 0)
+                {
+                    res = -2;
+                    errMsg = "No parameter specified";
+                    ++m_fails;
+                    fail_ok = 1;
+                    fail_ok <<= 32;
+                    SendResult(DB_CONSTS.idSqlBatchHeader, res, errMsg, (int)tagManagementSystem.msMsSQL, parameters, callIndex);
+                    break;
+                }
+                if (((uint)m_vParam.Count % parameters) > 0)
+                {
+                    res = -2;
+                    errMsg = "Bad parameter data array size";
+                    ++m_fails;
+                    fail_ok = 1;
+                    fail_ok <<= 32;
+                    SendResult(DB_CONSTS.idSqlBatchHeader, res, errMsg, (int)tagManagementSystem.msMsSQL, parameters, callIndex);
+                    break;
+                }
+                rows = (uint)m_vParam.Count / parameters;
+            }
+            if (isolation != (int)tagTransactionIsolation.tiUnspecified)
+            {
+                int ms = BeginTrans(isolation, dbConn, flags, out res, out errMsg);
+                if (res != 0)
+                {
+                    ++m_fails;
+                    fail_ok = 1;
+                    fail_ok <<= 32;
+                    SendResult(DB_CONSTS.idSqlBatchHeader, res, errMsg, (int)tagManagementSystem.msMsSQL, parameters, callIndex);
+                    break;
+                }
+            }
+            SendResult(DB_CONSTS.idSqlBatchHeader, res, errMsg, (int)tagManagementSystem.msMsSQL, parameters, callIndex);
+            errMsg = "";
+            CDBVariantArray vAll = m_vParam;
+            m_vParam = new CDBVariantArray();
+            
+            long aff = 0;
+            int r = 0;
+            string err = "";
+            ulong fo = 0;
+            uint pos = 0;
+            foreach (string it in vSql)
+            {
+                it.Trim(' ', '\t', '\r', '\n', ';');
+                if (it.Length == 0)
+                    continue;
+                uint ps = ComputeParameters(it);
+                if (ps > 0)
+                {
+                    //prepared statements
+                    uint my_ps = Prepare(it, vPInfo, out r, out err);
+                    if (r != 0)
+                    {
+                        fail_ok += (((ulong)rows) << 32);
+                        if (res != 0)
+                        {
+                            res = r;
+                            errMsg = err;
+                        } 
+                        continue;
+                    }
+                    m_vParam.Clear();
+                }
+                else
+                {
+                    fo = Execute(it, rowset, meta, lastInsertId, callIndex, out aff, out r, out err, out id);
+                }
+                if (r != 0 && res == 0)
+                {
+                    res = r;
+                    errMsg = err;
+                }
+                affected += aff;
+                fail_ok += fo;
+            }
+            if (isolation != (int)tagTransactionIsolation.tiUnspecified)
+            {
+                err = EndTrans(plan, out r);
+                if (r != 0 && res == 0)
+                {
+                    res = r;
+                    errMsg = err;
+                }
+            }
+        } while (false);
         return fail_ok;
     }
 
