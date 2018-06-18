@@ -671,14 +671,12 @@ class CStreamSql : CClientPeer {
             ulong fo = 0;
             uint pos = 0;
             foreach (string it in vSql) {
-                it.Trim(' ', '\t', '\r', '\n', ';');
-                if (it.Length == 0)
-                    continue;
                 uint ps = ComputeParameters(it);
+                string s = it.Trim(' ', '\t', '\r', '\n', ';', '@');
                 if (ps > 0) {
                     CParameterInfoArray vP = GetVInfo(vPInfo, pos, ps);
                     //prepared statements
-                    uint my_ps = Prepare(it, vP, out r, out err);
+                    uint my_ps = Prepare(s, vP, out r, out err);
                     if (r != 0) {
                         fail_ok += (((ulong)rows) << 32);
                     } else {
@@ -689,7 +687,7 @@ class CStreamSql : CClientPeer {
                     }
                     pos += ps;
                 } else {
-                    fo = Execute(it, rowset, meta, lastInsertId, callIndex, out aff, out r, out err, out vtId);
+                    fo = Execute(s, rowset, meta, lastInsertId, callIndex, out aff, out r, out err, out vtId);
                 }
                 if (r != 0 && res == 0) {
                     res = r;

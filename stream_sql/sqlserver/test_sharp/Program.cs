@@ -28,7 +28,7 @@ class Program {
         string create_table = "IF NOT EXISTS(SELECT * FROM sys.tables WHERE name='company') create table company(ID bigint PRIMARY KEY NOT NULL, name CHAR(64) NOT NULL, ADDRESS varCHAR(256) not null, Income float not null)";
         ok = sql.Execute(create_table, er);
 
-        create_table = "IF NOT EXISTS(SELECT * FROM sys.tables WHERE name='employee') create table employee(EMPLOYEEID bigint IDENTITY(1,1) PRIMARY KEY NOT NULL, CompanyId bigint not null, name CHAR(64) NOT NULL, JoinDate DATETIME2(3) default null, MyIMAGE varbinary(max), DESCRIPTION nvarchar(max), Salary decimal(15,2), FOREIGN KEY(CompanyId) REFERENCES company(id))";
+        create_table = "IF NOT EXISTS(SELECT * FROM sys.tables WHERE name='employee') create table employee(EMPLOYEEID bigint PRIMARY KEY NOT NULL, CompanyId bigint not null, name CHAR(64) NOT NULL, JoinDate DATETIME2(3) default null, MyIMAGE varbinary(max), DESCRIPTION nvarchar(max), Salary decimal(15,2), FOREIGN KEY(CompanyId) REFERENCES company(id))";
         ok = sql.Execute(create_table, er);
 
         create_table = "IF NOT EXISTS(SELECT * FROM sys.tables WHERE name='test_rare1') CREATE TABLE test_rare1(testid int IDENTITY(1,1) NOT NULL,myguid uniqueidentifier DEFAULT newid() NULL,mydate date DEFAULT getdate() NULL,mybool bit DEFAULT 0 NOT NULL,mymoney money default 0 NULL,mytinyint tinyint default 0 NULL,myxml xml DEFAULT '<myxml_root />' NULL,myvariant sql_variant DEFAULT 'my_variant_default' NOT NULL,mydateimeoffset datetimeoffset(4) NULL,PRIMARY KEY(testid))";
@@ -148,10 +148,14 @@ class Program {
         while (str.Length < 256 * 1024) {
             str += "The epic takedown of his opponent on an all-important voting day was extraordinary even by the standards of the 2016 campaign -- and quickly drew a scathing response from Trump.";
         }
-        string sqlInsert = "insert into employee(CompanyId,name,JoinDate,myimage,DESCRIPTION,Salary)values(@CompanyId,@name,@JoinDate,@myimage,@DESCRIPTION,@Salary)";
+        string sqlInsert = "insert into employee(EMPLOYEEID, CompanyId,name,JoinDate,myimage,DESCRIPTION,Salary)values(@EMPLOYEEID,@CompanyId,@name,@JoinDate,@myimage,@DESCRIPTION,@Salary)";
 
         CParameterInfoArray vInfo = new CParameterInfoArray();
         CParameterInfo info = new CParameterInfo();
+        info.ParameterName = "@EMPLOYEEID";
+        info.DataType = tagVariantDataType.sdVT_INT;
+        vInfo.Add(info);
+        info = new CParameterInfo();
         info.ParameterName = "@CompanyId";
         info.DataType = tagVariantDataType.sdVT_INT;
         vInfo.Add(info);
@@ -188,6 +192,7 @@ class Program {
         using (CScopeUQueue sbBlob = new CScopeUQueue()) {
 
             //first set of data
+            vData.Add(1);
             vData.Add(1); //google company id
             vData.Add("Ted Cruz");
             vData.Add(DateTime.Now);
@@ -198,6 +203,7 @@ class Program {
             vData.Add(254000.2460d);
 
             //second set of data
+            vData.Add(2);
             vData.Add(1); //google company id
             vData.Add("Donald Trump");
             vData.Add(DateTime.Now);
@@ -209,6 +215,7 @@ class Program {
             vData.Add(20254000.197d);
 
             //third set of data
+            vData.Add(3);
             vData.Add(2); //Microsoft company id
             vData.Add("Hillary Clinton");
             vData.Add(DateTime.Now);
@@ -261,9 +268,74 @@ class Program {
         });
     }
 
-    static void TestBatch2(CSqlServer sql, List<KeyValuePair<CDBColumnInfoArray, CDBVariantArray>> ra) {
+    static CDBVariantArray TestBatch2(CSqlServer sql, List<KeyValuePair<CDBColumnInfoArray, CDBVariantArray>> ra) {
 
+        CParameterInfoArray vPInfo = new CParameterInfoArray();
+        CParameterInfo info = new CParameterInfo();
+        info.ParameterName = "@ID";
+        info.DataType = tagVariantDataType.sdVT_INT;
+        vPInfo.Add(info);
 
+        info = new CParameterInfo();
+        info.ParameterName = "RetVal";
+        info.DataType = tagVariantDataType.sdVT_INT;
+        info.Direction = tagParameterDirection.pdReturnValue;
+        vPInfo.Add(info);
+
+        info = new CParameterInfo();
+        info.ParameterName = "@p_company_id";
+        info.DataType = tagVariantDataType.sdVT_INT;
+        vPInfo.Add(info);
+        //return direction can be ignorable
+
+        info = new CParameterInfo();
+        info.ParameterName = "@p_sum_salary";
+        info.DataType = tagVariantDataType.sdVT_R8;
+        info.Direction = tagParameterDirection.pdInputOutput;
+        vPInfo.Add(info);
+
+        info = new CParameterInfo();
+        info.ParameterName = "@p_last_dt";
+        info.DataType = tagVariantDataType.sdVT_DATE;
+        info.Direction = tagParameterDirection.pdOutput;
+        vPInfo.Add(info);
+
+        info = new CParameterInfo();
+        info.ParameterName = "@EMPLOYEEID";
+        info.DataType = tagVariantDataType.sdVT_INT;
+        vPInfo.Add(info);
+
+        CDBVariantArray vParam = new CDBVariantArray();
+        //first set
+        vParam.Add(1); //ID
+        vParam.Add(0); //retval
+        vParam.Add(1);
+        vParam.Add(21.2);
+        vParam.Add(null);
+        vParam.Add(2); //EMPLOYEEID
+
+        //2nd set
+        vParam.Add(2); //ID
+        vParam.Add(0); //retval
+        vParam.Add(2);
+        vParam.Add(11.42);
+        vParam.Add(null);
+        vParam.Add(3); //EMPLOYEEID
+
+        //there is no manual transaction if isolation is tiUnspecified
+        sql.ExecuteBatch(tagTransactionIsolation.tiUnspecified,
+            "select getdate();select * from company where id=@ID;@sqltestdb.dbo.sp_TestProc@@@;select * from employee where EMPLOYEEID=@EMPLOYEEID",
+        vParam, er, (h, v) => {
+            KeyValuePair<CDBColumnInfoArray, CDBVariantArray> p = ra[ra.Count - 1];
+            p.Value.AddRange(v);
+        }, (h) => {
+            CDBColumnInfoArray v = h.ColumnInfo;
+            ra.Add(new KeyValuePair<CDBColumnInfoArray, CDBVariantArray>(v, new CDBVariantArray()));
+            Console.WriteLine("dbPath={0}, tablePath={1}", v[0].DBPath, v[0].TablePath);
+        }, (h) => {
+
+        }, vPInfo);
+        return vParam;
     }
 
     static void TestStoredProcedure_2(CSqlServer sql, List<KeyValuePair<CDBColumnInfoArray, CDBVariantArray>> ra, CDBVariantArray vPData) {
@@ -454,7 +526,7 @@ class Program {
             vPData.Add(false); //@myvar
             TestStoredProcedure_2(sql, ra, vPData);
             TestBatch(sql, ra);
-            TestBatch2(sql, ra);
+            CDBVariantArray vRet = TestBatch2(sql, ra);
             sql.WaitAll();
             int index = 0;
             Console.WriteLine("+++++ Start rowsets +++");
