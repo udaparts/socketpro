@@ -76,7 +76,7 @@ class CStreamSql : CClientPeer
 
     private static uint ComputeParameters(string sql)
     {
-        const char quote = '\'', slash = '\\', question = '?';
+        const char quote = '\'', slash = '\\', question = '@';
         bool b_slash = false, balanced = true;
         int ps = 0, len = sql.Length;
         for (int n = 0; n < len; ++n)
@@ -671,6 +671,13 @@ class CStreamSql : CClientPeer
         return fail_ok;
     }
 
+    private CParameterInfoArray SetVParamAndPInfo(uint pos, uint ps) {
+        CParameterInfoArray vPInfo = new CParameterInfoArray();
+
+        return vPInfo;
+    }
+
+
     [RequestAttr(DB_CONSTS.idExecuteBatch, true)]
     private ulong ExecuteBatch(string sql, string delimiter, int isolation, int plan, bool rowset, bool meta, bool lastInsertId, string dbConn, uint flags, ulong callIndex, out long affected, out int res, out string errMsg, out object vtId)
     {
@@ -742,6 +749,15 @@ class CStreamSql : CClientPeer
                     break;
                 }
                 rows = (uint)m_vParam.Count / parameters;
+                if (parameters != (uint)vPInfo.Count) {
+                    res = -2;
+                    errMsg = "Bad parameter information array size";
+                    m_fails += rows * parameters;
+                    fail_ok = rows * parameters;
+                    fail_ok <<= 32;
+                    SendResult(DB_CONSTS.idSqlBatchHeader, res, errMsg, (int)tagManagementSystem.msMsSQL, parameters, callIndex);
+                    break;
+                }
             }
             if (isolation != (int)tagTransactionIsolation.tiUnspecified)
             {
@@ -773,8 +789,9 @@ class CStreamSql : CClientPeer
                 uint ps = ComputeParameters(it);
                 if (ps > 0)
                 {
+                    CParameterInfoArray vP = SetVParamAndPInfo(pos, ps);
                     //prepared statements
-                    uint my_ps = Prepare(it, vPInfo, out r, out err);
+                    uint my_ps = Prepare(it, vP, out r, out err);
                     if (r != 0)
                     {
                         fail_ok += (((ulong)rows) << 32);
@@ -786,6 +803,7 @@ class CStreamSql : CClientPeer
                         continue;
                     }
                     m_vParam.Clear();
+                    pos += ps;
                 }
                 else
                 {
