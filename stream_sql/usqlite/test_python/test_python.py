@@ -114,7 +114,7 @@ with CSocketPool(CSqlite) as spSqlite:
         vParam.append(1)  # ID
         vParam.append(2)  # EMPLOYEEID
         #there is no manual transaction if isolation is tiUnspecified
-        ok = sqlite.ExecuteBatch(tagTransactionIsolation.tiUnspecified, "Select datetime('now');select * from COMPANY where ID=?;select * from EMPLOYEE where EMPLOYEEID=?", "", vParam, cbExecute, cbRows, cbRowHeader)
+        ok = sqlite.ExecuteBatch(tagTransactionIsolation.tiUnspecified, "Select datetime('now');select * from COMPANY where ID=?;select * from EMPLOYEE where EMPLOYEEID=?", vParam, cbExecute, cbRows, cbRowHeader)
         vParam = []
         vParam.append(1)  # ID
         vParam.append(2)  # EMPLOYEEID
@@ -123,7 +123,7 @@ with CSocketPool(CSqlite) as spSqlite:
         # Same as sqlite.BeginTrans()
         # Select datetime('now');select * from COMPANY where ID=1;select * from COMPANY where ID=2;Select datetime('now');select * from EMPLOYEE where EMPLOYEEID=2;select * from EMPLOYEE where EMPLOYEEID=3
         # ok=sqlite.EndTrans();
-        ok = sqlite.ExecuteBatch(tagTransactionIsolation.tiReadCommited, "Select datetime('now')@@select * from COMPANY where ID=?@@Select datetime('now')@@select * from EMPLOYEE where EMPLOYEEID=?", "@@", vParam, cbExecute, cbRows, cbRowHeader)
+        ok = sqlite.ExecuteBatch(tagTransactionIsolation.tiReadCommited, "Select datetime('now');select * from COMPANY where ID=?;Select datetime('now');select * from EMPLOYEE where EMPLOYEEID=?", vParam, cbExecute, cbRows, cbRowHeader)
 
     ok = sqlite.Open(u'', cb)
     ok = TestCreateTables()

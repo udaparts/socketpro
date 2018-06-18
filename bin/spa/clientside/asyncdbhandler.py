@@ -34,6 +34,7 @@ class CAsyncDBHandler(CAsyncServiceHandler):
         self._csOneSending = threading.Lock()
         self._queueOk = False
         self._mapHandler = {}
+        self._nParamPos = 0
 
     def OnAllProcessed(self):
         with self._csDB:
@@ -118,7 +119,12 @@ class CAsyncDBHandler(CAsyncServiceHandler):
         return super(CAsyncDBHandler, self).CleanCallbacks()
 
     def OnResultReturned(self, reqId, mc):
-        if reqId == DB_CONSTS.idExecuteBatch:
+        if reqId == DB_CONSTS.idParameterPosition:
+            self._nParamPos = mc.LoadUInt()
+            with self._csDB:
+                self._indexProc = 0
+
+        elif reqId == DB_CONSTS.idExecuteBatch:
             affected = mc.LoadULong()
             res = mc.LoadInt()
             errMsg = mc.LoadString()
@@ -161,7 +167,7 @@ class CAsyncDBHandler(CAsyncServiceHandler):
                 if self._indexRowset in self._mapHandler:
                     cb = self._mapHandler[self._indexRowset]
             if cb:
-                cb(self, res, errMsg)
+                cb(self)
 
         elif reqId == DB_CONSTS.idExecuteParameters or reqId == DB_CONSTS.idExecute:
             affected = mc.LoadLong()
@@ -294,7 +300,7 @@ class CAsyncDBHandler(CAsyncServiceHandler):
             with self._csDB:
                 if self._indexRowset in self._mapParameterCall:
                     vParam = self._mapParameterCall[self._indexRowset]
-                    pos = self._parametersm * self._indexProc
+                    pos = self._parametersm * self._indexProc + (self._nParamPos & 0xffff)
                     vParam[pos] = vt
                 self._bCallReturn = True
 
@@ -318,11 +324,11 @@ class CAsyncDBHandler(CAsyncServiceHandler):
                         self._output = len(self._vData)
                         if self._indexRowset in self._mapParameterCall:
                             vParam = self._mapParameterCall[self._indexRowset]
-                            pos = self._parameters * self._indexProc + self._parameters - self._output
+                            pos = self._parameters * self._indexProc + self._parameters + (self._nParamPos & 0xffff) - self._output
                             for obj in self._vData:
                                 vParam[pos] = obj
                                 pos += 1
-                        self._indexProc += 1
+                    self._indexProc += 1
                 else:
                     row = None
                     with self._csDB:
@@ -674,12 +680,11 @@ class CAsyncDBHandler(CAsyncServiceHandler):
         CScopeUQueue.Unlock(q)
         return ok
 
-    def ExecuteBatch(self, isolation, sql, delimiter, vParam, handler = None, row = None, rh = None, batchHeader = None, vPInfo = None, plan = tagRollbackPlan.rpDefault, discarded = None, meta = True, lastInsertId = True):
+    def ExecuteBatch(self, isolation, sql, vParam, handler = None, row = None, rh = None, batchHeader = None, vPInfo = None, plan = tagRollbackPlan.rpDefault, discarded = None, delimiter = ';', meta = True, lastInsertId = True):
         """
         Execute a batch of SQL statements on one single call
         :param isolation: a value for manual transaction isolation. Specifically, there is no manual transaction around the batch SQL statements if it is tiUnspecified
         :param sql: a SQL statement having a batch of individual SQL statements
-        :param delimiter: a delimiter string used for separating the batch SQL statements into individual SQL statements at server side for processing
         :param vParam: an array of parameter data which will be bounded to previously prepared parameters. The array size can be 0 if the given batch SQL statement doesn't having any prepared statement
         :param handler: a callback for tracking final result
         :param row: a callback for receiving records of data
@@ -688,10 +693,13 @@ class CAsyncDBHandler(CAsyncServiceHandler):
         :param vPInfo: a given array of parameter informations which may be empty to some of database management systems
         :param plan: a value for computing how included transactions should be rollback
         :param discarded: a callback for tracking socket closed or request canceled event
+        :param delimiter: a delimiter string used for separating the batch SQL statements into individual SQL statements at server side for processing
         :param meta: a boolean for better or more detailed column meta details such as unique, not null, primary key, and so on
         :param lastInsertId: a boolean for last insert record identification number
         :return: true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
         """
+        if not delimiter:
+            delimiter = ';'
         ok = True
         rowset = (rh or row)
         cb = Pair(DB_CONSTS.idExecuteParameters, handler)
