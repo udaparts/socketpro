@@ -684,6 +684,45 @@ namespace SocketProAdapter
                                 break;
                         }
                         break;
+                    case 10:
+                        switch (outputs) {
+                            case 0:
+                                delType = typeof(DM_I10_R0<,,,,,,,,,>);
+                                break;
+                            case 1:
+                                if (isVoid)
+                                    delType = typeof(DM_I10_R1<,,,,,,,,,,>);
+                                else
+                                    delType = typeof(DRM_I10_R1<,,,,,,,,,,>);
+                                break;
+                            case 2:
+                                if (isVoid)
+                                    delType = typeof(DM_I10_R2<,,,,,,,,,,,>);
+                                else
+                                    delType = typeof(DRM_I10_R2<,,,,,,,,,,,>);
+                                break;
+                            case 3:
+                                if (isVoid)
+                                    delType = typeof(DM_I10_R3<,,,,,,,,,,,,>);
+                                else
+                                    delType = typeof(DRM_I10_R3<,,,,,,,,,,,,>);
+                                break;
+                            case 4:
+                                if (isVoid)
+                                    delType = typeof(DM_I10_R4<,,,,,,,,,,,,,>);
+                                else
+                                    delType = typeof(DRM_I10_R4<,,,,,,,,,,,,,>);
+                                break;
+                            case 5:
+                                if (isVoid)
+                                    delType = typeof(DM_I10_R5<,,,,,,,,,,,,,,>);
+                                else
+                                    delType = typeof(DRM_I10_R5<,,,,,,,,,,,,,,>);
+                                break;
+                            default:
+                                break;
+                        }
+                        break;
                     default:
                         break;
                 }
