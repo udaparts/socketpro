@@ -63,7 +63,7 @@ public class test_java {
         vParam.add(2); //EMPLOYEEID
         //there is no manual transaction if isolation is tiUnspecified
         boolean ok = sqlite.ExecuteBatch(tagTransactionIsolation.tiUnspecified,
-                "Select datetime('now');select * from COMPANY where ID=?;select * from EMPLOYEE where EMPLOYEEID=?", "", vParam,
+                "Select datetime('now');select * from COMPANY where ID=?;select * from EMPLOYEE where EMPLOYEEID=?", vParam,
                 new CSqlite.DExecuteResult() {
                     @Override
                     public void invoke(CAsyncDBHandler dbHandler, int res, String errMsg, long affected, long fail_ok, Object lastRowId) {
@@ -98,8 +98,7 @@ public class test_java {
         //select * from EMPLOYEE where EMPLOYEEID=2;select * from EMPLOYEE where EMPLOYEEID=3
         //ok = sqlite.EndTrans();
         ok = sqlite.ExecuteBatch(tagTransactionIsolation.tiReadCommited,
-                "Select datetime('now')@@select * from COMPANY where ID=?@@Select datetime('now')@@select * from EMPLOYEE where EMPLOYEEID=?",
-                "@@", vParam,
+                "Select datetime('now');select * from COMPANY where ID=?;Select datetime('now');select * from EMPLOYEE where EMPLOYEEID=?", vParam,
                 new CSqlite.DExecuteResult() {
                     @Override
                     public void invoke(CAsyncDBHandler dbHandler, int res, String errMsg, long affected, long fail_ok, Object lastRowId) {

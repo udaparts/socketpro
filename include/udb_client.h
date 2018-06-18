@@ -262,7 +262,7 @@ namespace SPA {
              * @return true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
              */
             virtual bool ExecuteBatch(tagTransactionIsolation isolation, const wchar_t *sql, CDBVariantArray &vParam = CDBVariantArray(),
-                    DExecuteResult handler = nullptr, DRows row = nullptr, DRowsetHeader rh = nullptr, DResult batchHeader = nullptr,
+                    DExecuteResult handler = nullptr, DRows row = nullptr, DRowsetHeader rh = nullptr, DRowsetHeader batchHeader = nullptr,
                     const CParameterInfoArray& vPInfo = CParameterInfoArray(), tagRollbackPlan plan = rpDefault, DDiscarded discarded = nullptr,
                     const wchar_t *delimiter = L";", bool meta = true, bool lastInsertId = true) {
                 bool rowset = (rh || row) ? true : false;
@@ -725,7 +725,7 @@ namespace SPA {
                         UINT64 callIndex;
                         int res, ms;
                         unsigned int params;
-                        DResult cb = nullptr;
+                        DRowsetHeader cb = nullptr;
                         std::wstring errMsg;
                         mc >> res >> errMsg >> ms >> params >> callIndex;
                         {
@@ -747,7 +747,7 @@ namespace SPA {
                             }
                         }
                         if (cb) {
-                            cb(*this, res, errMsg);
+                            cb(*this);
                         }
                     }
                         break;
@@ -946,7 +946,7 @@ namespace SPA {
             bool m_bCallReturn;
             CUCriticalSection m_csOneSending;
             bool m_queueOk;
-            std::unordered_map<UINT64, DResult> m_mapHandler;
+            std::unordered_map<UINT64, DRowsetHeader> m_mapHandler;
             unsigned int m_nParamPos;
         };
     } //namespace ClientSide
