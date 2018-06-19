@@ -2,7 +2,7 @@
 
 #include "stdafx.h"
 #include <iostream>
-#include "../../../../include/async_odbc.h"
+#include "../../../include/async_odbc.h"
 
 using namespace SPA::UDB;
 
@@ -27,8 +27,8 @@ int main(int argc, char* argv[]) {
     std::getline(std::cin, cc.Host);
     //cc.Host = "localhost";
     cc.Port = 20901;
-    cc.UserId = L"MyUserId";
-    cc.Password = L"MyPassword";
+    cc.UserId = L"sa";
+    cc.Password = L"Smash123";
     CMyPool spOdbc;
     bool ok = spOdbc.StartSocketPool(cc, 1, 1);
     if (!ok) {
@@ -127,9 +127,9 @@ int main(int argc, char* argv[]) {
     std::cout << std::endl;
     std::cout << "There are " << pOdbc->GetOutputs() * oks << " output data returned" << std::endl;
 
-    ok = pOdbc->Tables(L"AdventureWorks2012", L"%", L"%", L"TABLE", er, r, rh);
+    ok = pOdbc->Tables(L"AdventureWorks", L"%", L"%", L"TABLE", er, r, rh);
     pOdbc->WaitAll();
-    ok = pOdbc->Execute(L"use AdventureWorks2012", er);
+    ok = pOdbc->Execute(L"use AdventureWorks", er);
 
     auto pTables = ra.back();
     size_t columns = pTables.first.size();
@@ -140,9 +140,9 @@ int main(int argc, char* argv[]) {
     }
     pOdbc->WaitAll();
 
-    ok = pOdbc->Tables(L"AdventureWorksDW2012", L"%", L"%", L"TABLE", er, r, rh);
+    ok = pOdbc->Tables(L"AdventureWorksDW", L"%", L"%", L"TABLE", er, r, rh);
     pOdbc->WaitAll();
-    ok = pOdbc->Execute(L"use AdventureWorksDW2012", er);
+    ok = pOdbc->Execute(L"use AdventureWorksDW", er);
 
     pTables = ra.back();
     columns = pTables.first.size();
@@ -468,8 +468,8 @@ void TestStoredProcedure(std::shared_ptr<CMyHandler> pOdbc, CRowsetArray&ra, CDB
 
     CParameterInfo info;
     info.DataType = VT_I4;
+	info.Direction = pdInput;
     vPInfo.push_back(info);
-    //return direction can be ignorable
 
     info.DataType = VT_R8;
     info.Direction = pdOutput;

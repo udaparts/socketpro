@@ -1449,6 +1449,7 @@ namespace SocketProAdapter {
                     case DB_CONSTS.idParameterPosition:
                         mc.Load(out m_nParamPos);
                         lock (m_csDB) {
+                            m_bCallReturn = false;
                             m_indexProc = 0;
                         }
                         break;
@@ -1545,10 +1546,7 @@ namespace SocketProAdapter {
                             if (reqId == DB_CONSTS.idOutputParameter) {
                                 lock (m_csDB) {
                                     if (m_output == 0)
-                                        m_output = (uint)m_vData.Count;
-                                    else {
-                                        //m_output == (uint)(m_vData.Count + (m_bCallReturn ? 1 : 0))
-                                    }
+                                        m_output = (uint)(m_vData.Count + (m_bCallReturn ? 1 : 0));
                                     if (m_mapParameterCall.ContainsKey(m_indexRowset)) {
                                         CDBVariantArray vParam = m_mapParameterCall[m_indexRowset];
                                         uint pos;

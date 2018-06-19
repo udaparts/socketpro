@@ -717,6 +717,7 @@ namespace SPA {
                     case idParameterPosition:
                         mc >> m_nParamPos;
                         m_csDB.lock();
+                        m_bCallReturn = false;
                         m_indexProc = 0;
                         m_csDB.unlock();
                         break;
@@ -839,9 +840,7 @@ namespace SPA {
                             if (reqId == idOutputParameter) {
                                 CAutoLock al(m_csDB);
                                 if (!m_outputs) {
-                                    m_outputs = (unsigned int) m_vData.size();
-                                } else {
-                                    assert(m_outputs == (unsigned int) m_vData.size() + (unsigned int) m_bCallReturn);
+                                    m_outputs = ((unsigned int) m_vData.size() + (unsigned int) m_bCallReturn);
                                 }
                                 auto it = m_mapParameterCall.find(m_indexRowset);
                                 if (it != m_mapParameterCall.cend()) {

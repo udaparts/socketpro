@@ -1419,6 +1419,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                 m_nParamPos = mc.LoadInt();
                 synchronized (m_csDB) {
                     m_indexProc = 0;
+                    m_bCallReturn = false;
                 }
                 break;
             case DB_CONSTS.idExecuteBatch: {
@@ -1668,9 +1669,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                     if (reqId == DB_CONSTS.idOutputParameter) {
                         synchronized (m_csDB) {
                             if (m_output == 0) {
-                                m_output = m_vData.size();
-                            } else {
-                                //m_output == (m_vData.size() + (m_bCallReturn ? 1 : 0))
+                                m_output = m_vData.size() + (m_bCallReturn ? 1 : 0);
                             }
                             if (m_mapParameterCall.containsKey(m_indexRowset)) {
                                 CDBVariantArray vParam = m_mapParameterCall.get(m_indexRowset);

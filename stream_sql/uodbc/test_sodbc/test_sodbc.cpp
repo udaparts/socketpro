@@ -13,7 +13,7 @@ protected:
         if (m_h) {
             PSetOdbcDBGlobalConnectionString SetOdbcDBGlobalConnectionString = (PSetOdbcDBGlobalConnectionString) GetProcAddress(m_h, "SetOdbcDBGlobalConnectionString");
 #ifdef WIN32_64
-            SetOdbcDBGlobalConnectionString(L"dsn=ToSqlServer32;uid=mass;pwd=smash1");
+            SetOdbcDBGlobalConnectionString(L"dsn=ToSqlServer64;uid=sa;pwd=Smash123");
 #else
             SetOdbcDBGlobalConnectionString(L"dsn=ToMySQL;uid=root;pwd=Smash123");
 #endif

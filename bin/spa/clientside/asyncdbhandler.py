@@ -30,7 +30,7 @@ class CAsyncDBHandler(CAsyncServiceHandler):
         self._indexProc = 0
         self._output = 0
         self._mapParameterCall = {}
-        self._bCallReturn = False
+        self._bCallReturn = 0
         self._csOneSending = threading.Lock()
         self._queueOk = False
         self._mapHandler = {}
@@ -123,6 +123,7 @@ class CAsyncDBHandler(CAsyncServiceHandler):
             self._nParamPos = mc.LoadUInt()
             with self._csDB:
                 self._indexProc = 0
+                self._bCallReturn = 0
 
         elif reqId == DB_CONSTS.idExecuteBatch:
             affected = mc.LoadULong()
@@ -203,7 +204,7 @@ class CAsyncDBHandler(CAsyncServiceHandler):
                 self._indexProc = 0
                 self._parameters = (parameters & 0xffff)
                 self._output = (parameters >> 16)
-                self._bCallReturn = False
+                self._bCallReturn = 0
             if t and t.second:
                 t.second(self, res, errMsg)
 
@@ -302,7 +303,7 @@ class CAsyncDBHandler(CAsyncServiceHandler):
                     vParam = self._mapParameterCall[self._indexRowset]
                     pos = self._parametersm * self._indexProc + (self._nParamPos & 0xffff)
                     vParam[pos] = vt
-                self._bCallReturn = True
+                self._bCallReturn = 1
 
         elif reqId == DB_CONSTS.idBeginRows:
             self._Blob.SetSize(0)
@@ -322,9 +323,7 @@ class CAsyncDBHandler(CAsyncServiceHandler):
                 if reqId == DB_CONSTS.idOutputParameter:
                     with self._csDB:
                         if self._output == 0:
-                            self._output = len(self._vData)
-                        else:
-                            assert self._output == (len(self._vData) + self._bCallReturn)
+                            self._output = len(self._vData) + self._bCallReturn
                         if self._indexRowset in self._mapParameterCall:
                             vParam = self._mapParameterCall[self._indexRowset]
                             pos = 0
