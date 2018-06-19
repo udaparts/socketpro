@@ -1667,11 +1667,20 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                     }
                     if (reqId == DB_CONSTS.idOutputParameter) {
                         synchronized (m_csDB) {
-                            m_output = m_vData.size() + (m_bCallReturn ? 1 : 0);
+                            if (m_output == 0) {
+                                m_output = m_vData.size();
+                            } else {
+                                //m_output == (m_vData.size() + (m_bCallReturn ? 1 : 0))
+                            }
                             if (m_mapParameterCall.containsKey(m_indexRowset)) {
                                 CDBVariantArray vParam = m_mapParameterCall.get(m_indexRowset);
-                                int pos = m_parameters * m_indexProc + m_parameters + (m_nParamPos >> 16) - m_output;
-                                for (int n = 0; n < m_output; ++n) {
+                                int pos;
+                                if (this.m_lastReqId == DB_CONSTS.idSqlBatchHeader) {
+                                    pos = m_parameters * m_indexProc + (m_nParamPos & 0xffff) + (m_nParamPos >> 16) - m_vData.size();
+                                } else {
+                                    pos = m_parameters * m_indexProc + m_parameters - m_vData.size();
+                                }
+                                for (int n = 0; n < m_vData.size(); ++n) {
                                     vParam.set(pos, m_vData.get(n));
                                     ++pos;
                                 }

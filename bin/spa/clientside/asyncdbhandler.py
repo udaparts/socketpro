@@ -321,10 +321,17 @@ class CAsyncDBHandler(CAsyncServiceHandler):
                     self._vData.append(vt)
                 if reqId == DB_CONSTS.idOutputParameter:
                     with self._csDB:
-                        self._output = len(self._vData)
+                        if self._output == 0:
+                            self._output = len(self._vData)
+                        else:
+                            assert self._output == (len(self._vData) + self._bCallReturn)
                         if self._indexRowset in self._mapParameterCall:
                             vParam = self._mapParameterCall[self._indexRowset]
-                            pos = self._parameters * self._indexProc + self._parameters + (self._nParamPos & 0xffff) - self._output
+                            pos = 0
+                            if self._lastReqId == DB_CONSTS.idSqlBatchHeader:
+                                pos = self._parameters * self._indexProc + (self._nParamPos >> 16) + (self._nParamPos & 0xffff) - self._output
+                            else:
+                                pos = self._parameters * self._indexProc + self._parameters - self._output
                             for obj in self._vData:
                                 vParam[pos] = obj
                                 pos += 1
