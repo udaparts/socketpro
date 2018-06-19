@@ -268,8 +268,8 @@ class Program {
         });
     }
 
-    static CDBVariantArray TestBatch2(CSqlServer sql, List<KeyValuePair<CDBColumnInfoArray, CDBVariantArray>> ra) {
-
+    static void TestBatch2(CSqlServer sql, List<KeyValuePair<CDBColumnInfoArray, CDBVariantArray>> ra, CDBVariantArray vParam)
+    {
         CParameterInfoArray vPInfo = new CParameterInfoArray();
         CParameterInfo info = new CParameterInfo();
         info.ParameterName = "@ID";
@@ -305,22 +305,7 @@ class Program {
         info.DataType = tagVariantDataType.sdVT_INT;
         vPInfo.Add(info);
 
-        CDBVariantArray vParam = new CDBVariantArray();
-        //first set
-        vParam.Add(1); //ID
-        vParam.Add(0); //retval
-        vParam.Add(1);
-        vParam.Add(21.2);
-        vParam.Add(null);
-        vParam.Add(2); //EMPLOYEEID
-
-        //2nd set
-        vParam.Add(2); //ID
-        vParam.Add(0); //retval
-        vParam.Add(2);
-        vParam.Add(11.42);
-        vParam.Add(null);
-        vParam.Add(3); //EMPLOYEEID
+        //@sqltestdb.dbo.sp_TestProc@@@ -- one return (@) plus three parameters (@@@)
 
         //there is no manual transaction if isolation is tiUnspecified
         sql.ExecuteBatch(tagTransactionIsolation.tiUnspecified,
@@ -333,9 +318,7 @@ class Program {
             ra.Add(new KeyValuePair<CDBColumnInfoArray, CDBVariantArray>(v, new CDBVariantArray()));
             Console.WriteLine("dbPath={0}, tablePath={1}", v[0].DBPath, v[0].TablePath);
         }, (h) => {
-
         }, vPInfo);
-        return vParam;
     }
 
     static void TestStoredProcedure_2(CSqlServer sql, List<KeyValuePair<CDBColumnInfoArray, CDBVariantArray>> ra, CDBVariantArray vPData) {
@@ -412,7 +395,6 @@ class Program {
             ra.Add(new KeyValuePair<CDBColumnInfoArray, CDBVariantArray>(v, new CDBVariantArray()));
             Console.WriteLine("dbPath={0}, tablePath={1}", v[0].DBPath, v[0].TablePath);
         }, (h) => {
-
         }, vPInfo);
 
         vParam = new CDBVariantArray();
@@ -432,7 +414,6 @@ class Program {
             ra.Add(new KeyValuePair<CDBColumnInfoArray, CDBVariantArray>(v, new CDBVariantArray()));
             Console.WriteLine("dbPath={0}, tablePath={1}", v[0].DBPath, v[0].TablePath);
         }, (h) => {
-
         }, vPInfo);
     }
 
@@ -526,7 +507,30 @@ class Program {
             vPData.Add(false); //@myvar
             TestStoredProcedure_2(sql, ra, vPData);
             TestBatch(sql, ra);
-            CDBVariantArray vRet = TestBatch2(sql, ra);
+
+            CDBVariantArray vParam = new CDBVariantArray();
+            //first set
+            vParam.Add(1); //ID
+
+            vParam.Add(0); //retval
+            //last three data will be updated with outputs
+            vParam.Add(1); //input @p_company_id, output retval
+            vParam.Add(21.2); //input @p_sum_salary, output @p_sum_salary
+            vParam.Add(null); //output @p_last_dt
+
+            vParam.Add(2); //EMPLOYEEID
+
+            //2nd set
+            vParam.Add(2); //ID
+
+            vParam.Add(0); //retval
+            //last three data will be updated with outputs
+            vParam.Add(2); //input @p_company_id, output retval
+            vParam.Add(11.42); //input @p_sum_salary, output @p_sum_salary
+            vParam.Add(null); //output @p_last_dt
+
+            vParam.Add(3); //EMPLOYEEID
+            TestBatch2(sql, ra, vParam);
             sql.WaitAll();
             int index = 0;
             Console.WriteLine("+++++ Start rowsets +++");

@@ -1799,7 +1799,11 @@ namespace SocketProAdapter
                                     if (m_mapParameterCall.ContainsKey(m_indexRowset))
                                     {
                                         CDBVariantArray vParam = m_mapParameterCall[m_indexRowset];
-                                        uint pos = m_parameters * m_indexProc + m_parameters + (m_nParamPos >> 16) - (uint)m_vData.Count;
+                                        uint pos;
+                                        if (m_lastReqId == DB_CONSTS.idSqlBatchHeader)
+                                            pos = m_parameters * m_indexProc + (m_nParamPos & 0xffff) + (m_nParamPos >> 16) - (uint)m_vData.Count;
+                                        else
+                                            pos = m_parameters * m_indexProc + m_parameters - (uint)m_vData.Count;
                                         foreach (object obj in m_vData)
                                         {
                                             vParam[(int)pos] = obj;
