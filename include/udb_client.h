@@ -847,7 +847,11 @@ namespace SPA {
                                 if (it != m_mapParameterCall.cend()) {
                                     //crash? make sure that vParam is valid after calling the method Execute
                                     CDBVariantArray &vParam = *(it->second);
-                                    size_t pos = m_parameters * m_indexProc + m_parameters + (m_nParamPos >> 16) - (unsigned int) m_vData.size();
+									size_t pos;
+									if (m_lastReqId == idSqlBatchHeader)
+										pos = m_parameters * m_indexProc + (m_nParamPos & 0xffff) + (m_nParamPos >> 16) - (unsigned int) m_vData.size();
+									else
+										pos = m_parameters * m_indexProc + m_parameters - (unsigned int) m_vData.size();
                                     for (auto start = m_vData.begin(), end = m_vData.end(); start != end; ++start, ++pos) {
                                         vParam[pos] = std::move(*start);
                                     }
