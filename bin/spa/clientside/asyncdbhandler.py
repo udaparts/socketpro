@@ -158,7 +158,7 @@ class CAsyncDBHandler(CAsyncServiceHandler):
                 self._indexRowset = mc.LoadULong();
                 self._lastReqId = reqId
                 self._parameters = (parameters & 0xffff)
-                self._output = (parameters >> 16)
+                self._output = 0
                 if res == 0:
                     self._strConnection = errMsg
                     errMsg = ""
@@ -269,14 +269,13 @@ class CAsyncDBHandler(CAsyncServiceHandler):
                 self._dbError = res
                 self._dbErrorMsg = errMsg
                 self._indexProc = 0
-                self._parameters = 0
-                self._output = 0
                 if self.AttachedClientSocket.CountOfRequestsInQueue == 1:
                     self._mapParameterCall = {}
             if t and t.second:
                 t.second(self, res, errMsg)
 
         elif reqId == DB_CONSTS.idRowsetHeader:
+            output = 0
             self._Blob.SetSize(0)
             if self._Blob.MaxBufferSize > CAsyncDBHandler.ONE_MEGA_BYTES:
                 self._Blob.Realloc(CAsyncDBHandler.ONE_MEGA_BYTES)
@@ -288,10 +287,8 @@ class CAsyncDBHandler(CAsyncServiceHandler):
                 self._vColInfo.LoadFrom(mc)
                 self._indexRowset = mc.LoadULong()
                 if mc.GetSize() > 0:
-                    self._output = mc.LoadUInt()
-                else:
-                    self._output = 0
-                if self._output == 0 and len(self._vColInfo) > 0:
+                    output = mc.LoadUInt()
+                if output == 0 and len(self._vColInfo) > 0:
                     if self._indexRowset in self._mapRowset:
                         header = self._mapRowset.get(self._indexRowset).first
             if header:
@@ -322,15 +319,19 @@ class CAsyncDBHandler(CAsyncServiceHandler):
                     self._vData.append(vt)
                 if reqId == DB_CONSTS.idOutputParameter:
                     with self._csDB:
-                        if self._output == 0:
-                            self._output = len(self._vData) + self._bCallReturn
+                        if self._lastReqId == DB_CONSTS.idSqlBatchHeader:
+                            if self._indexProc == 0:
+                                self._output += len(self._vData) + self._bCallReturn
+                        else:
+                            if self._output == 0:
+                                self._output = len(self._vData) + self._bCallReturn
                         if self._indexRowset in self._mapParameterCall:
                             vParam = self._mapParameterCall[self._indexRowset]
                             pos = 0
                             if self._lastReqId == DB_CONSTS.idSqlBatchHeader:
-                                pos = self._parameters * self._indexProc + (self._nParamPos >> 16) + (self._nParamPos & 0xffff) - self._output
+                                pos = self._parameters * self._indexProc + (self._nParamPos >> 16) + (self._nParamPos & 0xffff) - len(self._vData)
                             else:
-                                pos = self._parameters * self._indexProc + self._parameters - self._output
+                                pos = self._parameters * self._indexProc + self._parameters - len(self._vData)
                             for obj in self._vData:
                                 vParam[pos] = obj
                                 pos += 1

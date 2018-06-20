@@ -1436,7 +1436,6 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                     m_mapRowset.remove(m_indexRowset);
                     m_mapParameterCall.remove(m_indexRowset);
                     m_mapHandler.remove(m_indexRowset);
-                    m_indexProc = 0;
                 }
             }
             break;
@@ -1451,7 +1450,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                     m_indexProc = 0;
                     m_lastReqId = reqId;
                     m_parameters = (parameters & 0xffff);
-                    m_output = (parameters >> 16);
+                    m_output = 0;
                     if (res == 0) {
                         m_strConnection = errMsg;
                         errMsg = "";
@@ -1484,7 +1483,6 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                     if (m_mapRowset.containsKey(m_indexRowset)) {
                         m_mapRowset.remove(m_indexRowset);
                     }
-
                     m_indexProc = 0;
                     if (m_mapParameterCall.containsKey(m_indexRowset)) {
                         m_mapParameterCall.remove(m_indexRowset);
@@ -1592,8 +1590,6 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                     m_strConnection = "";
                     m_dbErrCode = res;
                     m_dbErrMsg = errMsg;
-                    m_parameters = 0;
-                    m_output = 0;
                     m_indexProc = 0;
                     if (getAttachedClientSocket().getCountOfRequestsInQueue() == 1) {
                         m_mapParameterCall.clear();
@@ -1605,6 +1601,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
             }
             break;
             case DB_CONSTS.idRowsetHeader: {
+                int output = 0;
                 m_Blob.SetSize(0);
                 if (m_Blob.getMaxBufferSize() > ONE_MEGA_BYTES) {
                     m_Blob.Realloc(ONE_MEGA_BYTES);
@@ -1616,11 +1613,9 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                     m_vColInfo.LoadFrom(mc);
                     m_indexRowset = mc.LoadLong();
                     if (mc.GetSize() > 0) {
-                        m_output = mc.LoadInt();
-                    } else {
-                        m_output = 0;
+                        output = mc.LoadInt();
                     }
-                    if (m_output == 0 && m_vColInfo.size() > 0) {
+                    if (output == 0 && m_vColInfo.size() > 0) {
                         if (m_mapRowset.containsKey(m_indexRowset)) {
                             header = m_mapRowset.get(m_indexRowset).first;
                         }
@@ -1668,13 +1663,19 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                     }
                     if (reqId == DB_CONSTS.idOutputParameter) {
                         synchronized (m_csDB) {
-                            if (m_output == 0) {
-                                m_output = m_vData.size() + (m_bCallReturn ? 1 : 0);
+                            if (m_lastReqId == DB_CONSTS.idSqlBatchHeader) {
+                                if (m_indexProc == 0) {
+                                    m_output += m_vData.size() + (m_bCallReturn ? 1 : 0);
+                                }
+                            } else {
+                                if (m_output == 0) {
+                                    m_output = m_vData.size() + (m_bCallReturn ? 1 : 0);
+                                }
                             }
                             if (m_mapParameterCall.containsKey(m_indexRowset)) {
                                 CDBVariantArray vParam = m_mapParameterCall.get(m_indexRowset);
                                 int pos;
-                                if (this.m_lastReqId == DB_CONSTS.idSqlBatchHeader) {
+                                if (m_lastReqId == DB_CONSTS.idSqlBatchHeader) {
                                     pos = m_parameters * m_indexProc + (m_nParamPos & 0xffff) + (m_nParamPos >> 16) - m_vData.size();
                                 } else {
                                     pos = m_parameters * m_indexProc + m_parameters - m_vData.size();
