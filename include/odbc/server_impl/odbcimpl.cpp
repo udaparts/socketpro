@@ -193,7 +193,7 @@ namespace SPA
             M_I5_R5(idExecute, Execute, std::wstring, bool, bool, bool, UINT64, INT64, int, std::wstring, CDBVariant, UINT64)
             M_I2_R3(idPrepare, Prepare, std::wstring, CParameterInfoArray, int, std::wstring, unsigned int)
             M_I4_R5(idExecuteParameters, ExecuteParameters, bool, bool, bool, UINT64, INT64, int, std::wstring, CDBVariant, UINT64)
-			M_I10_R5(idExecuteBatch, ExecuteBatch, std::wstring, std::wstring, int, int, bool, bool, bool, std::wstring, unsigned int, UINT64, INT64, int, std::wstring, CDBVariant, UINT64)
+            M_I10_R5(idExecuteBatch, ExecuteBatch, std::wstring, std::wstring, int, int, bool, bool, bool, std::wstring, unsigned int, UINT64, INT64, int, std::wstring, CDBVariant, UINT64)
             M_I5_R3(SPA::Odbc::idSQLColumnPrivileges, DoSQLColumnPrivileges, std::wstring, std::wstring, std::wstring, std::wstring, UINT64, int, std::wstring, UINT64)
             M_I5_R3(SPA::Odbc::idSQLColumns, DoSQLColumns, std::wstring, std::wstring, std::wstring, std::wstring, UINT64, int, std::wstring, UINT64)
             M_I7_R3(SPA::Odbc::idSQLForeignKeys, DoSQLForeignKeys, std::wstring, std::wstring, std::wstring, std::wstring, std::wstring, std::wstring, UINT64, int, std::wstring, UINT64)
@@ -207,7 +207,6 @@ namespace SPA
             END_SWITCH
             m_pExcuting.reset();
             if (reqId == idExecuteParameters || reqId == idExecuteBatch) {
-                ReleaseArray();
                 m_vParam.clear();
             }
             return 0;
@@ -234,14 +233,6 @@ namespace SPA
             }
         }
 
-        void COdbcImpl::ReleaseArray() {
-            for (auto it = m_vArray.begin(), end = m_vArray.end(); it != end; ++it) {
-                SAFEARRAY *arr = *it;
-                ::SafeArrayUnaccessData(arr);
-            }
-            m_vArray.clear();
-        }
-
         void COdbcImpl::CleanDBObjects() {
             m_pExcuting.reset();
             m_pPrepare.reset();
@@ -250,15 +241,15 @@ namespace SPA
             ResetMemories();
         }
 
-		 void COdbcImpl::ltrim_w(std::wstring & s) {
+        void COdbcImpl::ltrim_w(std::wstring & s) {
             s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](int ch) {
-                return (!std::isspace(ch) || ch != L';');
+                return (!(std::isspace(ch) || ch == L';'));
             }));
         }
 
         void COdbcImpl::rtrim_w(std::wstring & s) {
             s.erase(std::find_if(s.rbegin(), s.rend(), [](int ch) {
-                return (!std::isspace(ch) || ch != L';');
+                return (!(std::isspace(ch) || ch == L';'));
             }).base(), s.end());
         }
 
@@ -3387,7 +3378,7 @@ namespace SPA
                             dt.ToDBString(str, sizeof (str));
                             vtD = (const char*) str;
                             ::SafeArrayAccessData(vtD.parray, &ParameterValuePtr);
-                            m_vArray.push_back(vtD.parray);
+                            ::SafeArrayUnaccessData(vtD.parray);
                             ColumnSize = vtD.parray->rgsabound->cElements;
                             BufferLength = (SQLLEN) ColumnSize;
                             switch (vtD.parray->rgsabound->cElements) {
@@ -3461,7 +3452,7 @@ namespace SPA
                         } else {
                             ::SafeArrayAccessData(vtD.parray, &ParameterValuePtr);
                             BufferLength = (SQLLEN) ColumnSize * sizeof (SQLWCHAR);
-                            m_vArray.push_back(vtD.parray);
+                            ::SafeArrayUnaccessData(vtD.parray);
                         }
                         pLenInd[col] = ColumnSize * sizeof (SQLWCHAR);
 #endif
@@ -3496,7 +3487,7 @@ namespace SPA
                             bool point = vtD.decVal.scale ? true : false;
                             ConvertDecimalAString(vtD);
                             ::SafeArrayAccessData(vtD.parray, &ParameterValuePtr);
-                            m_vArray.push_back(vtD.parray);
+                            ::SafeArrayUnaccessData(vtD.parray);
                             ColumnSize = vtD.parray->rgsabound->cElements;
                             pLenInd[col] = (SQLLEN) ColumnSize;
                             BufferLength = (SQLLEN) ColumnSize;
@@ -3523,7 +3514,7 @@ namespace SPA
                             output_pos += (unsigned int) BufferLength;
                             ::SafeArrayUnaccessData(vtD.parray);
                         } else {
-                            m_vArray.push_back(vtD.parray);
+                            ::SafeArrayUnaccessData(vtD.parray);
                             BufferLength = (SQLLEN) ColumnSize;
                         }
                         pLenInd[col] = (SQLLEN) ColumnSize;
@@ -3553,7 +3544,7 @@ namespace SPA
                             ::SafeArrayUnaccessData(vtD.parray);
                         } else {
                             ::SafeArrayAccessData(vtD.parray, &ParameterValuePtr);
-                            m_vArray.push_back(vtD.parray);
+                            ::SafeArrayUnaccessData(vtD.parray);
                             BufferLength = (SQLLEN) ColumnSize;
                             pLenInd[col] = (SQLLEN) ColumnSize;
                         }
@@ -3588,7 +3579,7 @@ namespace SPA
             }
         }
 
-		std::vector<std::wstring> COdbcImpl::Split(const std::wstring &sql, const std::wstring & delimiter) {
+        std::vector<std::wstring> COdbcImpl::Split(const std::wstring &sql, const std::wstring & delimiter) {
             std::vector<std::wstring> v;
             size_t d_len = delimiter.size();
             if (d_len) {
@@ -3652,22 +3643,36 @@ namespace SPA
             return params;
         }
 
-		void COdbcImpl::ExecuteBatch(const std::wstring& sql, const std::wstring& delimiter, int isolation, int plan, bool rowset, bool meta, bool lastInsertId, const std::wstring &dbConn, unsigned int flags, UINT64 callIndex, INT64 &affected, int &res, std::wstring &errMsg, CDBVariant &vtId, UINT64 & fail_ok) {
-            INT64 aff;
-            int r;
-            UINT64 fo;
-            size_t rows = 0;
-            size_t pos = 0;
+        void COdbcImpl::SetVParam(CDBVariantArray& vAll, size_t parameters, size_t pos, size_t ps) {
+            m_vParam.clear();
+            size_t rows = vAll.size() / parameters;
+            for (size_t r = 0; r < rows; ++r) {
+                for (size_t p = 0; p < ps; ++p) {
+                    CDBVariant &vt = vAll[parameters * r + pos + p];
+                    m_vParam.push_back(std::move(vt));
+                }
+            }
+        }
+
+        CParameterInfoArray COdbcImpl::GetVInfo(const CParameterInfoArray& vPInfo, size_t pos, size_t ps) {
+            CParameterInfoArray v;
+            size_t count = vPInfo.size();
+            for (size_t n = 0; n < ps; ++n) {
+                v.push_back(vPInfo[pos + n]);
+            }
+            return v;
+        }
+
+        void COdbcImpl::ExecuteBatch(const std::wstring& sql, const std::wstring& delimiter, int isolation, int plan, bool rowset, bool meta, bool lastInsertId, const std::wstring &dbConn, unsigned int flags, UINT64 callIndex, INT64 &affected, int &res, std::wstring &errMsg, CDBVariant &vtId, UINT64 & fail_ok) {
             CParameterInfoArray vPInfo;
             m_UQueue >> vPInfo;
-            std::wstring err;
             res = 0;
             fail_ok = 0;
             affected = 0;
-			int ms = 0;
-			if (!m_pOdbc) {
+            int ms = 0;
+            if (!m_pOdbc) {
                 Open(dbConn, flags, res, errMsg, ms);
-			}
+            }
             size_t parameters = 0;
             std::vector<std::wstring> vSql = Split(sql, delimiter);
             for (auto it = vSql.cbegin(), end = vSql.cend(); it != end; ++it) {
@@ -3681,26 +3686,36 @@ namespace SPA
                 SendResult(idSqlBatchHeader, res, errMsg, (int) msODBC, (unsigned int) parameters, callIndex);
                 return;
             }
+            size_t rows = 0;
             if (parameters) {
-				if (!m_vParam.size()) {
+                if (!m_vParam.size()) {
                     res = SPA::Odbc::ER_BAD_PARAMETER_DATA_ARRAY_SIZE;
                     errMsg = BAD_PARAMETER_DATA_ARRAY_SIZE;
-					m_fails += vSql.size();
+                    m_fails += vSql.size();
                     fail_ok = vSql.size();
-					fail_ok <<= 32;
+                    fail_ok <<= 32;
                     SendResult(idSqlBatchHeader, res, errMsg, (int) msODBC, (unsigned int) parameters, callIndex);
-					return;
+                    return;
                 }
                 if ((m_vParam.size() % (unsigned short) parameters)) {
                     res = SPA::Odbc::ER_BAD_PARAMETER_DATA_ARRAY_SIZE;
                     errMsg = BAD_PARAMETER_DATA_ARRAY_SIZE;
-					m_fails += vSql.size();
+                    m_fails += vSql.size();
                     fail_ok = vSql.size();
-					fail_ok <<= 32;
+                    fail_ok <<= 32;
                     SendResult(idSqlBatchHeader, res, errMsg, (int) msODBC, (unsigned int) parameters, callIndex);
-					return;
+                    return;
                 }
                 rows = m_vParam.size() / parameters;
+                if (vPInfo.size() && parameters != vPInfo.size()) {
+                    res = SPA::Odbc::ER_CORRECT_PARAMETER_INFO_NOT_PROVIDED_YET;
+                    errMsg = CORRECT_PARAMETER_INFO_NOT_PROVIDED_YET;
+                    m_fails += vSql.size();
+                    fail_ok = vSql.size();
+                    fail_ok <<= 32;
+                    SendResult(idSqlBatchHeader, res, errMsg, (int) msODBC, (unsigned int) parameters, callIndex);
+                    return;
+                }
             }
             if (isolation != (int) tiUnspecified) {
                 int ms;
@@ -3723,6 +3738,11 @@ namespace SPA
             errMsg.clear();
             CDBVariantArray vAll;
             m_vParam.swap(vAll);
+            INT64 aff = 0;
+            int r = 0;
+            std::wstring err;
+            UINT64 fo = 0;
+            size_t pos = 0;
             for (auto it = vSql.begin(), end = vSql.end(); it != end; ++it) {
                 trim_w(*it);
                 if (!it->size()) {
@@ -3730,25 +3750,19 @@ namespace SPA
                 }
                 size_t ps = ComputeParameters(*it);
                 if (ps) { //prepared statements
+                    CParameterInfoArray vP = GetVInfo(vPInfo, pos, ps);
                     unsigned int my_ps = 0;
-                    Prepare(*it, vPInfo, r, err, my_ps);
+                    Prepare(*it, vP, r, err, my_ps);
                     if (r) {
                         fail_ok += (((UINT64) rows) << 32);
-                        if (!res) {
-                            res = r;
-                            errMsg = err;
-                        }
-                        continue;
+                    } else {
+                        assert(ps == (my_ps & 0xffff));
+                        m_vParam.clear();
+                        SetVParam(vAll, parameters, pos, ps);
+                        unsigned int nParamPos = (unsigned int) ((pos << 16) + ps);
+                        SendResult(idParameterPosition, nParamPos);
+                        ExecuteParameters(rowset, meta, lastInsertId, callIndex, aff, r, err, vtId, fo);
                     }
-                    assert(ps == my_ps);
-                    m_vParam.clear();
-                    for (size_t j = 0; j < rows; ++j) {
-                        for (size_t m = pos; m < pos + ps; ++m) {
-                            CDBVariant &vt = vAll[parameters * j + m];
-                            m_vParam.push_back((CDBVariant&&)vt);
-                        }
-                    }
-                    ExecuteParameters(rowset, meta, lastInsertId, callIndex, aff, r, err, vtId, fo);
                     pos += ps;
                 } else {
                     Execute(*it, rowset, meta, lastInsertId, callIndex, aff, r, err, vtId, fo);
@@ -3757,8 +3771,8 @@ namespace SPA
                     res = r;
                     errMsg = err;
                 }
-				if (r && isolation != (int) tiUnspecified && plan == (int)rpDefault)
-					break;
+                if (r && isolation != (int) tiUnspecified && plan == (int) rpDefault)
+                    break;
                 affected += aff;
                 fail_ok += fo;
             }
@@ -3866,7 +3880,7 @@ namespace SPA
                                         ret = SendResult(idRowsetHeader, sbRowset->GetBuffer(), sbRowset->GetSize());
                                     }
                                     if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
-										m_vParam.clear();
+                                        m_vParam.clear();
                                         return;
                                     }
                                     bool ok;
@@ -3876,7 +3890,7 @@ namespace SPA
                                         ok = PushRecords(m_pPrepare.get(), vInfo, output, temp, errTemp);
                                     output_sent = output;
                                     if (!ok) {
-										m_vParam.clear();
+                                        m_vParam.clear();
                                         return;
                                     }
                                     if (temp && !res) {
@@ -3924,12 +3938,12 @@ namespace SPA
                                     ret = SendResult(idRowsetHeader, sbRowset->GetBuffer(), sbRowset->GetSize());
                                 }
                                 if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
-									m_vParam.clear();
+                                    m_vParam.clear();
                                     return;
                                 }
                                 bool ok = PushRecords(m_pPrepare.get(), vInfo, false, res, errMsg);
                                 if (!ok) {
-									m_vParam.clear();
+                                    m_vParam.clear();
                                     return;
                                 }
                                 if (res) {
@@ -3952,7 +3966,7 @@ namespace SPA
             } while (false);
             fail_ok = ((m_fails - fails) << 32);
             fail_ok += (unsigned int) (m_oks - oks);
-			m_vParam.clear();
+            m_vParam.clear();
         }
 
         void COdbcImpl::StartBLOB(unsigned int lenExpected) {

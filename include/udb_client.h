@@ -313,7 +313,6 @@ namespace SPA {
                     if (it != this->m_mapRowset.end()) {
                         this->m_mapRowset.erase(it);
                     }
-                    this->m_indexProc = 0;
                     auto pit = this->m_mapParameterCall.find(callIndex);
                     if (pit != this->m_mapParameterCall.end()) {
                         this->m_mapParameterCall.erase(pit);
@@ -399,7 +398,6 @@ namespace SPA {
                     if (it != this->m_mapRowset.end()) {
                         this->m_mapRowset.erase(it);
                     }
-                    this->m_indexProc = 0;
                     auto pit = this->m_mapParameterCall.find(callIndex);
                     if (pit != this->m_mapParameterCall.end()) {
                         this->m_mapParameterCall.erase(pit);
@@ -581,8 +579,6 @@ namespace SPA {
                     this->m_strConnection.clear();
                     this->m_dbErrCode = res;
                     this->m_dbErrMsg = errMsg;
-                    this->m_parameters = 0;
-                    this->m_outputs = 0;
                     this->m_csDB.unlock();
                     if (handler) {
                         handler(*this, res, errMsg);
@@ -734,7 +730,7 @@ namespace SPA {
                             m_indexProc = 0;
                             m_lastReqId = idSqlBatchHeader;
                             m_parameters = (params & 0xffff);
-                            m_outputs = (params >> 16);
+                            m_outputs = 0;
                             if (!res) {
                                 m_strConnection = errMsg;
                                 errMsg.clear();
@@ -761,14 +757,13 @@ namespace SPA {
                         }
                         m_vData.clear();
                         {
+                            unsigned int outputs = 0;
                             CAutoLock al(m_csDB);
                             mc >> m_vColInfo >> m_indexRowset;
                             if (mc.GetSize()) {
-                                mc >> m_outputs;
-                            } else {
-                                m_outputs = 0;
+                                mc >> outputs;
                             }
-                            if (!m_outputs && m_vColInfo.size()) {
+                            if (!outputs && m_vColInfo.size()) {
                                 auto it = m_mapRowset.find(m_indexRowset);
                                 if (it != m_mapRowset.end()) {
                                     header = it->second.first;
@@ -839,8 +834,14 @@ namespace SPA {
                                 mc.Utf8ToW(false);
                             if (reqId == idOutputParameter) {
                                 CAutoLock al(m_csDB);
-                                if (!m_outputs) {
-                                    m_outputs = ((unsigned int) m_vData.size() + (unsigned int) m_bCallReturn);
+                                if (m_lastReqId == idSqlBatchHeader) {
+                                    if (!m_indexProc) {
+                                        m_outputs += ((unsigned int) m_vData.size() + (unsigned int) m_bCallReturn);
+                                    }
+                                } else {
+                                    if (!m_outputs) {
+                                        m_outputs = ((unsigned int) m_vData.size() + (unsigned int) m_bCallReturn);
+                                    }
                                 }
                                 auto it = m_mapParameterCall.find(m_indexRowset);
                                 if (it != m_mapParameterCall.cend()) {

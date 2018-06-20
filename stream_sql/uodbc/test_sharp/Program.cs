@@ -21,7 +21,7 @@ class Program
     {
         Console.WriteLine("Remote host: ");
         string host = Console.ReadLine();
-        CConnectionContext cc = new CConnectionContext(host, 20901, "umysql_client", "pwd_for_mysql");
+        CConnectionContext cc = new CConnectionContext(host, 20901, "sa", "Smash123");
 
         using (CSocketPool<COdbc> spOdbc = new CSocketPool<COdbc>())
         {
@@ -93,9 +93,9 @@ class Program
             Console.WriteLine();
             Console.WriteLine("There are {0} output data returned", odbc.Outputs * 2);
 
-            ok = odbc.Tables("AdventureWorks2012", "%", "%", "TABLE", er, r, rh);
+            ok = odbc.Tables("AdventureWorks", "%", "%", "TABLE", er, r, rh);
             ok = odbc.WaitAll();
-            ok = odbc.Execute("use AdventureWorks2012", er);
+            ok = odbc.Execute("use AdventureWorks", er);
             KeyValuePair<CDBColumnInfoArray, CDBVariantArray> tables = ra[ra.Count - 1];
             int columns = tables.Key.Count;
             int num_tables = tables.Value.Count / columns;
@@ -106,9 +106,9 @@ class Program
             }
             ok = odbc.WaitAll();
 
-            ok = odbc.Tables("AdventureWorksDW2012", "%", "%", "TABLE", er, r, rh);
+            ok = odbc.Tables("AdventureWorksDW", "%", "%", "TABLE", er, r, rh);
             ok = odbc.WaitAll();
-            ok = odbc.Execute("use AdventureWorksDW2012", er);
+            ok = odbc.Execute("use AdventureWorksDW", er);
             tables = ra[ra.Count - 1];
             columns = tables.Key.Count;
             num_tables = tables.Value.Count / columns;
@@ -146,7 +146,7 @@ class Program
         ok = odbc.Execute(use_database, er);
         string create_table = "IF NOT EXISTS(SELECT * FROM sys.tables WHERE name='company')create table company(ID bigint PRIMARY KEY NOT NULL, name CHAR(64) NOT NULL, ADDRESS varCHAR(256) not null, Income float not null)";
         ok = odbc.Execute(create_table, er);
-        create_table = "IF NOT EXISTS(SELECT * FROM sys.tables WHERE name='employee')create table employee(EMPLOYEEID bigint IDENTITY(1,1)PRIMARY KEY NOT NULL,CompanyId bigint not null,name CHAR(64) NOT NULL,JoinDate DATETIME2(3)default null,MyIMAGE varbinary(max),DESCRIPTION nvarchar(max),Salary decimal(15,2),FOREIGN KEY(CompanyId)REFERENCES company(id))";
+        create_table = "IF NOT EXISTS(SELECT * FROM sys.tables WHERE name='employee')create table employee(EMPLOYEEID bigint PRIMARY KEY NOT NULL,CompanyId bigint not null,name CHAR(64) NOT NULL,JoinDate DATETIME2(3)default null,MyIMAGE varbinary(max),DESCRIPTION nvarchar(max),Salary decimal(15,2),FOREIGN KEY(CompanyId)REFERENCES company(id))";
         ok = odbc.Execute(create_table, er);
         create_table = "IF NOT EXISTS(SELECT * FROM sys.tables WHERE name='test_rare1')CREATE TABLE test_rare1(testid int IDENTITY(1,1)NOT NULL,myguid uniqueidentifier DEFAULT newid() NULL,mydate date DEFAULT getdate() NULL,mybool bit DEFAULT 0 NOT NULL,mymoney money default 0 NULL,mytinyint tinyint default 0 NULL,myxml xml DEFAULT '<myxml_root />' NULL,myvariant sql_variant DEFAULT 'my_variant_default' NOT NULL,mydateimeoffset datetimeoffset(4)NULL,PRIMARY KEY(testid))";
         ok = odbc.Execute(create_table, er);
@@ -164,7 +164,7 @@ class Program
 
     static void TestPreparedStatements(COdbc odbc)
     {
-        string sql_insert_parameter = "INSERT INTO company(ID, NAME, ADDRESS, Income)VALUES (?, ?, ?, ?)";
+        string sql_insert_parameter = "INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?)";
         bool ok = odbc.Prepare(sql_insert_parameter, dr);
 
         CDBVariantArray vData = new CDBVariantArray();
@@ -243,12 +243,13 @@ class Program
         {
             str += "The epic takedown of his opponent on an all-important voting day was extraordinary even by the standards of the 2016 campaign -- and quickly drew a scathing response from Trump.";
         }
-        string sqlInsert = "insert into employee(CompanyId,name,JoinDate,myimage,DESCRIPTION,Salary)values(?,?,?,?,?,?)";
+        string sqlInsert = "insert into employee(EmployeeId,CompanyId,name,JoinDate,myimage,DESCRIPTION,Salary)values(?,?,?,?,?,?,?)";
         bool ok = odbc.Prepare(sqlInsert, dr);
         CDBVariantArray vData = new CDBVariantArray();
         using (CScopeUQueue sbBlob = new CScopeUQueue())
         {
             //first set of data
+            vData.Add(1);
             vData.Add(1); //google company id
             vData.Add("Ted Cruz");
             vData.Add(DateTime.Now);
@@ -258,6 +259,7 @@ class Program
             vData.Add(254000.24m);
 
             //second set of data
+            vData.Add(2);
             vData.Add(1); //google company id
             vData.Add("Donald Trump");
             vData.Add(DateTime.Now);
@@ -268,6 +270,7 @@ class Program
             vData.Add(20254000.15m);
 
             //third set of data
+            vData.Add(3);
             vData.Add(2); //Microsoft company id
             vData.Add("Hillary Clinton");
             vData.Add(DateTime.Now);
@@ -293,7 +296,7 @@ class Program
         vInfo[2].DataType = tagVariantDataType.sdVT_DATE;
         vInfo[2].Direction = tagParameterDirection.pdOutput;
 
-        bool ok = odbc.Prepare("{call sp_TestProc(?, ?, ?)}", dr, vInfo);
+        bool ok = odbc.Prepare("{call sp_TestProc(?,?,?)}", dr, vInfo);
         COdbc.DRows r = (handler, rowData) =>
         {
             //rowset data come here

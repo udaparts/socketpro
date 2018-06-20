@@ -20,6 +20,7 @@ void TestPreparedStatements_2(std::shared_ptr<CMyHandler> pOdbc);
 void InsertBLOBByPreparedStatement(std::shared_ptr<CMyHandler> pOdbc);
 void TestStoredProcedure(std::shared_ptr<CMyHandler> pOdbc, CRowsetArray&ra, CDBVariantArray &vPData, unsigned int &oks);
 void TestStoredProcedure_2(std::shared_ptr<CMyHandler> pOdbc, CRowsetArray&ra, CDBVariantArray &vPData, unsigned int &oks);
+void TestBatch(std::shared_ptr<CMyHandler> pOdbc, CRowsetArray&ra, CDBVariantArray &vPData);
 
 int main(int argc, char* argv[]) {
     CMyConnContext cc;
@@ -29,7 +30,11 @@ int main(int argc, char* argv[]) {
     cc.Port = 20901;
     cc.UserId = L"sa";
     cc.Password = L"Smash123";
+#ifndef NDEBUG
+    CMyPool spOdbc(true, 600000);
+#else
     CMyPool spOdbc;
+#endif
     bool ok = spOdbc.StartSocketPool(cc, 1, 1);
     if (!ok) {
         std::cout << "Failed in connecting to remote async mysql server" << std::endl;
@@ -96,15 +101,15 @@ int main(int argc, char* argv[]) {
     vPData.push_back(-1);
     unsigned int oks = 0;
     TestStoredProcedure(pOdbc, ra, vPData, oks);
-    pOdbc->WaitAll();
+    ok = pOdbc->WaitAll();
 
     std::cout << std::endl;
     std::cout << "There are " << pOdbc->GetOutputs() * oks << " output data returned" << std::endl;
 
     GUID guid;
     memset(&guid, 0, sizeof (guid));
-    vPData.clear();
 
+    vPData.clear();
     //first set
     guid.Data1 = 12345;
     vPData.push_back(-1); //return int
@@ -123,12 +128,40 @@ int main(int argc, char* argv[]) {
 
     oks = 0;
     TestStoredProcedure_2(pOdbc, ra, vPData, oks);
-    pOdbc->WaitAll();
+    ok = pOdbc->WaitAll();
     std::cout << std::endl;
     std::cout << "There are " << pOdbc->GetOutputs() * oks << " output data returned" << std::endl;
 
+    vPData.clear();
+    //first set
+    guid.Data1 = 12345;
+    vPData.push_back(-1); //return int
+    vPData.push_back(1); //@testid
+    vPData.push_back(L"<test_sqlserver />"); //@myxml
+    vPData.push_back(guid); //@tuuid
+    vPData.push_back(true); //@myvar
+    vPData.push_back(1);
+    //output not important, but they are used for receiving proper types of data from sql server
+    vPData.push_back(true);
+    vPData.push_back(1.1);
+
+    //second set
+    guid.Data1 = 1234578;
+    vPData.push_back(-2); //return int
+    vPData.push_back(4); //@testid
+    vPData.push_back(L"<test_sqlserver_again />"); //@myxml
+    vPData.push_back(guid); //@tuuid
+    vPData.push_back(false); //@myvar
+    vPData.push_back(2);
+    //output not important, but they are used for receiving proper types of data from sql server
+    vPData.push_back(0);
+    vPData.push_back(-1);
+    TestBatch(pOdbc, ra, vPData);
+    ok = pOdbc->WaitAll();
+    std::cout << std::endl;
+    std::cout << "There are " << pOdbc->GetOutputs() * 2 << " output data returned" << std::endl;
     ok = pOdbc->Tables(L"AdventureWorks", L"%", L"%", L"TABLE", er, r, rh);
-    pOdbc->WaitAll();
+    ok = pOdbc->WaitAll();
     ok = pOdbc->Execute(L"use AdventureWorks", er);
 
     auto pTables = ra.back();
@@ -138,10 +171,10 @@ int main(int argc, char* argv[]) {
         std::wstring sql = std::wstring(L"select * from ") + pTables.second[n * columns + 1].bstrVal + L"." + pTables.second[n * columns + 2].bstrVal;
         ok = pOdbc->Execute(sql.c_str(), er, r, rh);
     }
-    pOdbc->WaitAll();
+    ok = pOdbc->WaitAll();
 
     ok = pOdbc->Tables(L"AdventureWorksDW", L"%", L"%", L"TABLE", er, r, rh);
-    pOdbc->WaitAll();
+    ok = pOdbc->WaitAll();
     ok = pOdbc->Execute(L"use AdventureWorksDW", er);
 
     pTables = ra.back();
@@ -151,7 +184,7 @@ int main(int argc, char* argv[]) {
         std::wstring sql = std::wstring(L"select * from ") + pTables.second[n * columns + 1].bstrVal + L"." + pTables.second[n * columns + 2].bstrVal;
         ok = pOdbc->Execute(sql.c_str(), er, r, rh);
     }
-    pOdbc->WaitAll();
+    ok = pOdbc->WaitAll();
 
     //print out all received rowsets
     int index = 0;
@@ -173,6 +206,68 @@ int main(int argc, char* argv[]) {
     return 0;
 }
 
+void TestBatch(std::shared_ptr<CMyHandler> pOdbc, CRowsetArray&ra, CDBVariantArray &vPData) {
+    CMyHandler::DRows r = [&ra](CSender &handler, CDBVariantArray & vData) {
+        //rowset data come here
+        assert((vData.size() % handler.GetColumnInfo().size()) == 0);
+        CDBVariantArray &row_data = ra.back().second;
+        for (size_t n = 0; n < vData.size(); ++n) {
+            auto &d = vData[n];
+            row_data.push_back(std::move(d)); //avoid memory repeatedly allocation/de-allocation for better performance
+        }
+    };
+    CMyHandler::DRowsetHeader rh = [&ra](CSender & handler) {
+        //rowset header comes here
+        auto &vColInfo = handler.GetColumnInfo();
+        CPColumnRowset column_rowset_pair;
+        column_rowset_pair.first = vColInfo;
+        ra.push_back(column_rowset_pair);
+    };
+
+    CParameterInfoArray vPInfo;
+    CParameterInfo info;
+
+    info.DataType = VT_I4;
+    vPInfo.push_back(info);
+    //return direction can be ignorable
+
+    info.DataType = VT_I4;
+    info.Direction = pdInput;
+    vPInfo.push_back(info);
+
+    info.DataType = SPA::VT_XML;
+    info.Direction = pdInputOutput;
+    vPInfo.push_back(info);
+
+    info.DataType = VT_CLSID;
+    info.Direction = pdInputOutput;
+    vPInfo.push_back(info);
+
+    info.DataType = VT_VARIANT;
+    info.Direction = pdOutput;
+    vPInfo.push_back(info);
+
+    info.DataType = VT_I4;
+    info.Direction = pdInput;
+    vPInfo.push_back(info);
+
+    info.DataType = VT_R8;
+    info.Direction = pdOutput;
+    vPInfo.push_back(info);
+
+    info.DataType = VT_DATE;
+    info.Direction = pdOutput;
+    vPInfo.push_back(info);
+
+    //process multiple sets of parameters in one shot
+    bool ok = pOdbc->ExecuteBatch(tiUnspecified, L"select getdate();{?=call sp_TestRare1(?,?,?,?)};{call sqltestdb.dbo.sp_TestProc(?,?,?)}", vPData, [](CSender &handler, int res, const std::wstring &errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & vtId) {
+        std::cout << "affected = " << affected << ", fails = " << (unsigned int) (fail_ok >> 32) << ", oks = " << fail_ok << ", res = " << res << ", errMsg: ";
+        std::wcout << errMsg;
+                std::cout << std::endl;
+    }, r, rh, [](CSender & handler) {
+    }, vPInfo);
+}
+
 void InsertBLOBByPreparedStatement(std::shared_ptr<CMyHandler> pOdbc) {
     std::wstring wstr;
     while (wstr.size() < 128 * 1024) {
@@ -184,7 +279,7 @@ void InsertBLOBByPreparedStatement(std::shared_ptr<CMyHandler> pOdbc) {
         str += L"The epic takedown of his opponent on an all-important voting day was extraordinary even by the standards of the 2016 campaign -- and quickly drew a scathing response from Trump.";
     }
 
-    const wchar_t *sqlInsert = L"insert into employee(CompanyId, name, JoinDate, myimage, DESCRIPTION, Salary) values(?, ?, ?, ?, ?, ?)";
+    const wchar_t *sqlInsert = L"insert into employee(EmployeeId,CompanyId,name,JoinDate,myimage,DESCRIPTION,Salary) values(?,?,?,?,?,?,?)";
     bool ok = pOdbc->Prepare(sqlInsert, [](CSender &handler, int res, const std::wstring & errMsg) {
         std::cout << "res = " << res << ", errMsg: ";
         std::wcout << errMsg << std::endl;
@@ -195,6 +290,7 @@ void InsertBLOBByPreparedStatement(std::shared_ptr<CMyHandler> pOdbc) {
     SPA::CScopeUQueue sbBlob;
 
     //first set of data
+    vData.push_back(1);
     vData.push_back(1); //google company id
     vData.push_back("Ted Cruz");
 #ifdef WIN32_64
@@ -212,6 +308,7 @@ void InsertBLOBByPreparedStatement(std::shared_ptr<CMyHandler> pOdbc) {
     vData.push_back(dec);
 
     //second set of data
+    vData.push_back(2);
     vData.push_back(1); //google company id
     vData.push_back("Donald Trump");
 #ifdef WIN32_64
@@ -229,6 +326,7 @@ void InsertBLOBByPreparedStatement(std::shared_ptr<CMyHandler> pOdbc) {
     vData.push_back(dec);
 
     //third set of data
+    vData.push_back(3);
     vData.push_back(2); //Microsoft company id
     vData.push_back("Hillary Clinton");
 #ifdef WIN32_64
@@ -249,7 +347,7 @@ void InsertBLOBByPreparedStatement(std::shared_ptr<CMyHandler> pOdbc) {
     ok = pOdbc->Execute(vData, [](CSender &handler, int res, const std::wstring &errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & vtId) {
         std::cout << "affected = " << affected << ", fails = " << (unsigned int) (fail_ok >> 32) << ", oks = " << (unsigned int) fail_ok << ", res = " << res << ", errMsg: ";
         std::wcout << errMsg;
-        std::cout << std::endl;
+                std::cout << std::endl;
     });
 }
 
@@ -282,7 +380,7 @@ void TestPreparedStatements(std::shared_ptr<CMyHandler> pOdbc) {
     ok = pOdbc->Execute(vData, [](CSender &handler, int res, const std::wstring &errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & vtId) {
         std::cout << "affected = " << affected << ", fails = " << (unsigned int) (fail_ok >> 32) << ", oks = " << (unsigned int) fail_ok << ", res = " << res << ", errMsg: ";
         std::wcout << errMsg;
-        std::cout << std::endl;
+                std::cout << std::endl;
     });
 }
 
@@ -339,7 +437,7 @@ void TestPreparedStatements_2(std::shared_ptr<CMyHandler> pOdbc) {
     ok = pOdbc->Execute(vData, [](CSender &handler, int res, const std::wstring &errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & vtId) {
         std::cout << "affected = " << affected << ", fails = " << (unsigned int) (fail_ok >> 32) << ", oks = " << (unsigned int) fail_ok << ", res = " << res << ", errMsg: ";
         std::wcout << errMsg;
-        std::cout << std::endl;
+                std::cout << std::endl;
     });
 }
 
@@ -458,8 +556,8 @@ void TestStoredProcedure_2(std::shared_ptr<CMyHandler> pOdbc, CRowsetArray&ra, C
     ok = pOdbc->Execute(vPData, [&oks](CSender &handler, int res, const std::wstring &errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & vtId) {
         oks = (unsigned int) fail_ok;
         std::cout << "affected = " << affected << ", fails = " << (unsigned int) (fail_ok >> 32) << ", oks = " << oks << ", res = " << res << ", errMsg: ";
-        std::wcout << errMsg;
-        std::cout << std::endl;
+                std::wcout << errMsg;
+                std::cout << std::endl;
     }, r, rh);
 }
 
@@ -468,7 +566,7 @@ void TestStoredProcedure(std::shared_ptr<CMyHandler> pOdbc, CRowsetArray&ra, CDB
 
     CParameterInfo info;
     info.DataType = VT_I4;
-	info.Direction = pdInput;
+    info.Direction = pdInput;
     vPInfo.push_back(info);
 
     info.DataType = VT_R8;
@@ -507,7 +605,7 @@ void TestStoredProcedure(std::shared_ptr<CMyHandler> pOdbc, CRowsetArray&ra, CDB
     ok = pOdbc->Execute(vPData, [&oks](CSender &handler, int res, const std::wstring &errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & vtId) {
         oks = (unsigned int) fail_ok;
         std::cout << "affected = " << affected << ", fails = " << (unsigned int) (fail_ok >> 32) << ", oks = " << oks << ", res = " << res << ", errMsg: ";
-        std::wcout << errMsg;
-        std::cout << std::endl;
+                std::wcout << errMsg;
+                std::cout << std::endl;
     }, r, rh);
 }

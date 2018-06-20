@@ -268,8 +268,7 @@ class Program {
         });
     }
 
-    static void TestBatch2(CSqlServer sql, List<KeyValuePair<CDBColumnInfoArray, CDBVariantArray>> ra, CDBVariantArray vParam)
-    {
+    static void TestBatch2(CSqlServer sql, List<KeyValuePair<CDBColumnInfoArray, CDBVariantArray>> ra, CDBVariantArray vParam) {
         CParameterInfoArray vPInfo = new CParameterInfoArray();
         CParameterInfo info = new CParameterInfo();
         info.ParameterName = "@ID";

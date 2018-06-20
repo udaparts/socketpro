@@ -157,7 +157,7 @@ void InsertBLOBByPreparedStatement(std::shared_ptr<CMyHandler> pOdbc) {
     SPA::CScopeUQueue sbBlob;
 
     //first set of data
-	vData.push_back(1);
+    vData.push_back(1);
     vData.push_back(1); //google company id
     vData.push_back(L"Ted Cruz");
 #ifdef WIN32_64
@@ -172,7 +172,7 @@ void InsertBLOBByPreparedStatement(std::shared_ptr<CMyHandler> pOdbc) {
     vData.push_back(254000.12);
 
     //second set of data
-	vData.push_back(2);
+    vData.push_back(2);
     vData.push_back(1); //google company id
     vData.push_back("Donald Trump");
 #ifdef WIN32_64
@@ -188,7 +188,7 @@ void InsertBLOBByPreparedStatement(std::shared_ptr<CMyHandler> pOdbc) {
     vData.push_back(20254000.17);
 
     //third set of data
-	vData.push_back(3);
+    vData.push_back(3);
     vData.push_back(2); //Microsoft company id
     vData.push_back("Hillary Clinton");
 #ifdef WIN32_64

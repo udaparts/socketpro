@@ -1401,9 +1401,6 @@ namespace SocketProAdapter {
                         m_strConnection = "";
                         m_dbErrCode = res;
                         m_dbErrMsg = errMsg;
-                        m_parameters = 0;
-                        m_indexProc = 0;
-                        m_output = 0;
                     }
                     if (handler != null) {
                         handler(this, res, errMsg);
@@ -1464,7 +1461,7 @@ namespace SocketProAdapter {
                                 m_indexProc = 0;
                                 m_lastReqId = reqId;
                                 m_parameters = (parameters & (uint)0xffff);
-                                m_output = (parameters >> 16);
+                                m_output = 0;
                                 if (res == 0) {
                                     m_strConnection = errMsg;
                                     errMsg = "";
@@ -1480,6 +1477,7 @@ namespace SocketProAdapter {
                         }
                         break;
                     case DB_CONSTS.idRowsetHeader: {
+                            uint output = 0;
                             m_Blob.SetSize(0);
                             if (m_Blob.MaxBufferSize > ONE_MEGA_BYTES) {
                                 m_Blob.Realloc(ONE_MEGA_BYTES);
@@ -1491,11 +1489,9 @@ namespace SocketProAdapter {
                                 m_vColInfo.LoadFrom(mc);
                                 mc.Load(out m_indexRowset);
                                 if (mc.GetSize() > 0) {
-                                    mc.Load(out m_output);
-                                } else {
-                                    m_output = 0;
+                                    mc.Load(out output);
                                 }
-                                if (m_output == 0 && m_vColInfo.Count > 0) {
+                                if (output == 0 && m_vColInfo.Count > 0) {
                                     if (m_mapRowset.ContainsKey(m_indexRowset)) {
                                         header = m_mapRowset[m_indexRowset].Key;
                                     }
@@ -1545,8 +1541,13 @@ namespace SocketProAdapter {
                             }
                             if (reqId == DB_CONSTS.idOutputParameter) {
                                 lock (m_csDB) {
-                                    if (m_output == 0)
-                                        m_output = (uint)(m_vData.Count + (m_bCallReturn ? 1 : 0));
+                                    if (m_lastReqId == DB_CONSTS.idSqlBatchHeader) {
+                                        if (m_indexProc == 0)
+                                            m_output += (uint)(m_vData.Count + (m_bCallReturn ? 1 : 0));
+                                    } else {
+                                        if (m_output == 0)
+                                            m_output = (uint)(m_vData.Count + (m_bCallReturn ? 1 : 0));
+                                    }
                                     if (m_mapParameterCall.ContainsKey(m_indexRowset)) {
                                         CDBVariantArray vParam = m_mapParameterCall[m_indexRowset];
                                         uint pos;
