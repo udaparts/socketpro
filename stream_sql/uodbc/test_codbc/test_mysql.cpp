@@ -146,7 +146,7 @@ void InsertBLOBByPreparedStatement(std::shared_ptr<CMyHandler> pOdbc) {
         str += "The epic takedown of his opponent on an all-important voting day was extraordinary even by the standards of the 2016 campaign -- and quickly drew a scathing response from Trump.";
     }
 
-    const wchar_t *sqlInsert = L"insert into employee(CompanyId, name, JoinDate, image, DESCRIPTION, Salary) values(?, ?, ?, ?, ?, ?)";
+    const wchar_t *sqlInsert = L"insert into employee(EMPLOYEEID,CompanyId,name,JoinDate,image,DESCRIPTION,Salary)values(?,?,?,?,?,?,?)";
     bool ok = pOdbc->Prepare(sqlInsert, [](CSender &handler, int res, const std::wstring & errMsg) {
         std::cout << "res = " << res << ", errMsg: ";
         std::wcout << errMsg << std::endl;
@@ -157,6 +157,7 @@ void InsertBLOBByPreparedStatement(std::shared_ptr<CMyHandler> pOdbc) {
     SPA::CScopeUQueue sbBlob;
 
     //first set of data
+	vData.push_back(1);
     vData.push_back(1); //google company id
     vData.push_back(L"Ted Cruz");
 #ifdef WIN32_64
@@ -171,6 +172,7 @@ void InsertBLOBByPreparedStatement(std::shared_ptr<CMyHandler> pOdbc) {
     vData.push_back(254000.12);
 
     //second set of data
+	vData.push_back(2);
     vData.push_back(1); //google company id
     vData.push_back("Donald Trump");
 #ifdef WIN32_64
@@ -186,6 +188,7 @@ void InsertBLOBByPreparedStatement(std::shared_ptr<CMyHandler> pOdbc) {
     vData.push_back(20254000.17);
 
     //third set of data
+	vData.push_back(3);
     vData.push_back(2); //Microsoft company id
     vData.push_back("Hillary Clinton");
 #ifdef WIN32_64
@@ -208,7 +211,7 @@ void InsertBLOBByPreparedStatement(std::shared_ptr<CMyHandler> pOdbc) {
 }
 
 void TestPreparedStatements(std::shared_ptr<CMyHandler> pOdbc) {
-    const wchar_t *sql_insert_parameter = L"INSERT INTO company(ID, NAME, ADDRESS, Income) VALUES (?, ?, ?, ?)";
+    const wchar_t *sql_insert_parameter = L"INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?)";
     bool ok = pOdbc->Prepare(sql_insert_parameter, [](CSender &handler, int res, const std::wstring & errMsg) {
         std::cout << "res = " << res << ", errMsg: ";
         std::wcout << errMsg << std::endl;
