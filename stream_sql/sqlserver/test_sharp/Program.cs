@@ -317,7 +317,7 @@ class Program {
             ra.Add(new KeyValuePair<CDBColumnInfoArray, CDBVariantArray>(v, new CDBVariantArray()));
             Console.WriteLine("dbPath={0}, tablePath={1}", v[0].DBPath, v[0].TablePath);
         }, (h) => {
-        }, vPInfo);
+        }, vPInfo.ToArray());
     }
 
     static void TestStoredProcedure_2(CSqlServer sql, List<KeyValuePair<CDBColumnInfoArray, CDBVariantArray>> ra, CDBVariantArray vPData) {
@@ -394,7 +394,7 @@ class Program {
             ra.Add(new KeyValuePair<CDBColumnInfoArray, CDBVariantArray>(v, new CDBVariantArray()));
             Console.WriteLine("dbPath={0}, tablePath={1}", v[0].DBPath, v[0].TablePath);
         }, (h) => {
-        }, vPInfo);
+        }, vPInfo.ToArray());
 
         vParam = new CDBVariantArray();
         vParam.Add(1); //ID
@@ -413,7 +413,7 @@ class Program {
             ra.Add(new KeyValuePair<CDBColumnInfoArray, CDBVariantArray>(v, new CDBVariantArray()));
             Console.WriteLine("dbPath={0}, tablePath={1}", v[0].DBPath, v[0].TablePath);
         }, (h) => {
-        }, vPInfo);
+        }, vPInfo.ToArray());
     }
 
     static void Main(string[] args) {
@@ -505,6 +505,7 @@ class Program {
             vPData.Add(guid2); //@tuuid
             vPData.Add(false); //@myvar
             TestStoredProcedure_2(sql, ra, vPData);
+            sql.WaitAll();
             TestBatch(sql, ra);
 
             CDBVariantArray vParam = new CDBVariantArray();

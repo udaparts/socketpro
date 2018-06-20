@@ -1470,7 +1470,7 @@
             <param name="batchHeader">a callback for tracking returning batch start error messages</param>
             <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
         </member>
-        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.ExecuteBatch(SocketProAdapter.UDB.tagTransactionIsolation,System.String,SocketProAdapter.UDB.CDBVariantArray,SocketProAdapter.ClientSide.CAsyncDBHandler.DExecuteResult,SocketProAdapter.ClientSide.CAsyncDBHandler.DRows,SocketProAdapter.ClientSide.CAsyncDBHandler.DRowsetHeader,SocketProAdapter.ClientSide.CAsyncDBHandler.DRowsetHeader,SocketProAdapter.UDB.CParameterInfoArray)">
+        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.ExecuteBatch(SocketProAdapter.UDB.tagTransactionIsolation,System.String,SocketProAdapter.UDB.CDBVariantArray,SocketProAdapter.ClientSide.CAsyncDBHandler.DExecuteResult,SocketProAdapter.ClientSide.CAsyncDBHandler.DRows,SocketProAdapter.ClientSide.CAsyncDBHandler.DRowsetHeader,SocketProAdapter.ClientSide.CAsyncDBHandler.DRowsetHeader,SocketProAdapter.UDB.CParameterInfo[])">
             <summary>
             Execute a batch of SQL statements on one single call
             </summary>
@@ -1484,7 +1484,7 @@
             <param name="vPInfo">a given array of parameter informations which may be empty to some of database management systems</param>
             <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
         </member>
-        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.ExecuteBatch(SocketProAdapter.UDB.tagTransactionIsolation,System.String,SocketProAdapter.UDB.CDBVariantArray,SocketProAdapter.ClientSide.CAsyncDBHandler.DExecuteResult,SocketProAdapter.ClientSide.CAsyncDBHandler.DRows,SocketProAdapter.ClientSide.CAsyncDBHandler.DRowsetHeader,SocketProAdapter.ClientSide.CAsyncDBHandler.DRowsetHeader,SocketProAdapter.UDB.CParameterInfoArray,SocketProAdapter.UDB.tagRollbackPlan)">
+        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.ExecuteBatch(SocketProAdapter.UDB.tagTransactionIsolation,System.String,SocketProAdapter.UDB.CDBVariantArray,SocketProAdapter.ClientSide.CAsyncDBHandler.DExecuteResult,SocketProAdapter.ClientSide.CAsyncDBHandler.DRows,SocketProAdapter.ClientSide.CAsyncDBHandler.DRowsetHeader,SocketProAdapter.ClientSide.CAsyncDBHandler.DRowsetHeader,SocketProAdapter.UDB.CParameterInfo[],SocketProAdapter.UDB.tagRollbackPlan)">
             <summary>
             Execute a batch of SQL statements on one single call
             </summary>
@@ -1499,7 +1499,7 @@
             <param name="plan">a value for computing how included transactions should be rollback</param>
             <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
         </member>
-        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.ExecuteBatch(SocketProAdapter.UDB.tagTransactionIsolation,System.String,SocketProAdapter.UDB.CDBVariantArray,SocketProAdapter.ClientSide.CAsyncDBHandler.DExecuteResult,SocketProAdapter.ClientSide.CAsyncDBHandler.DRows,SocketProAdapter.ClientSide.CAsyncDBHandler.DRowsetHeader,SocketProAdapter.ClientSide.CAsyncDBHandler.DRowsetHeader,SocketProAdapter.UDB.CParameterInfoArray,SocketProAdapter.UDB.tagRollbackPlan,SocketProAdapter.ClientSide.CAsyncServiceHandler.DDiscarded)">
+        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.ExecuteBatch(SocketProAdapter.UDB.tagTransactionIsolation,System.String,SocketProAdapter.UDB.CDBVariantArray,SocketProAdapter.ClientSide.CAsyncDBHandler.DExecuteResult,SocketProAdapter.ClientSide.CAsyncDBHandler.DRows,SocketProAdapter.ClientSide.CAsyncDBHandler.DRowsetHeader,SocketProAdapter.ClientSide.CAsyncDBHandler.DRowsetHeader,SocketProAdapter.UDB.CParameterInfo[],SocketProAdapter.UDB.tagRollbackPlan,SocketProAdapter.ClientSide.CAsyncServiceHandler.DDiscarded)">
             <summary>
             Execute a batch of SQL statements on one single call
             </summary>
@@ -1515,7 +1515,7 @@
             <param name="discarded">a callback for tracking socket closed or request canceled event</param>
             <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
         </member>
-        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.ExecuteBatch(SocketProAdapter.UDB.tagTransactionIsolation,System.String,SocketProAdapter.UDB.CDBVariantArray,SocketProAdapter.ClientSide.CAsyncDBHandler.DExecuteResult,SocketProAdapter.ClientSide.CAsyncDBHandler.DRows,SocketProAdapter.ClientSide.CAsyncDBHandler.DRowsetHeader,SocketProAdapter.ClientSide.CAsyncDBHandler.DRowsetHeader,SocketProAdapter.UDB.CParameterInfoArray,SocketProAdapter.UDB.tagRollbackPlan,SocketProAdapter.ClientSide.CAsyncServiceHandler.DDiscarded,System.String)">
+        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.ExecuteBatch(SocketProAdapter.UDB.tagTransactionIsolation,System.String,SocketProAdapter.UDB.CDBVariantArray,SocketProAdapter.ClientSide.CAsyncDBHandler.DExecuteResult,SocketProAdapter.ClientSide.CAsyncDBHandler.DRows,SocketProAdapter.ClientSide.CAsyncDBHandler.DRowsetHeader,SocketProAdapter.ClientSide.CAsyncDBHandler.DRowsetHeader,SocketProAdapter.UDB.CParameterInfo[],SocketProAdapter.UDB.tagRollbackPlan,SocketProAdapter.ClientSide.CAsyncServiceHandler.DDiscarded,System.String)">
             <summary>
             Execute a batch of SQL statements on one single call
             </summary>
@@ -1532,7 +1532,7 @@
             <param name="delimiter">a case-sensitive delimiter string used for separating the batch SQL statements into individual SQL statements at server side for processing</param>
             <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
         </member>
-        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.ExecuteBatch(SocketProAdapter.UDB.tagTransactionIsolation,System.String,SocketProAdapter.UDB.CDBVariantArray,SocketProAdapter.ClientSide.CAsyncDBHandler.DExecuteResult,SocketProAdapter.ClientSide.CAsyncDBHandler.DRows,SocketProAdapter.ClientSide.CAsyncDBHandler.DRowsetHeader,SocketProAdapter.ClientSide.CAsyncDBHandler.DRowsetHeader,SocketProAdapter.UDB.CParameterInfoArray,SocketProAdapter.UDB.tagRollbackPlan,SocketProAdapter.ClientSide.CAsyncServiceHandler.DDiscarded,System.String,System.Boolean)">
+        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.ExecuteBatch(SocketProAdapter.UDB.tagTransactionIsolation,System.String,SocketProAdapter.UDB.CDBVariantArray,SocketProAdapter.ClientSide.CAsyncDBHandler.DExecuteResult,SocketProAdapter.ClientSide.CAsyncDBHandler.DRows,SocketProAdapter.ClientSide.CAsyncDBHandler.DRowsetHeader,SocketProAdapter.ClientSide.CAsyncDBHandler.DRowsetHeader,SocketProAdapter.UDB.CParameterInfo[],SocketProAdapter.UDB.tagRollbackPlan,SocketProAdapter.ClientSide.CAsyncServiceHandler.DDiscarded,System.String,System.Boolean)">
             <summary>
             Execute a batch of SQL statements on one single call
             </summary>
@@ -1550,7 +1550,7 @@
             <param name="meta">a boolean for better or more detailed column meta details such as unique, not null, primary key, and so on</param>
             <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
         </member>
-        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.ExecuteBatch(SocketProAdapter.UDB.tagTransactionIsolation,System.String,SocketProAdapter.UDB.CDBVariantArray,SocketProAdapter.ClientSide.CAsyncDBHandler.DExecuteResult,SocketProAdapter.ClientSide.CAsyncDBHandler.DRows,SocketProAdapter.ClientSide.CAsyncDBHandler.DRowsetHeader,SocketProAdapter.ClientSide.CAsyncDBHandler.DRowsetHeader,SocketProAdapter.UDB.CParameterInfoArray,SocketProAdapter.UDB.tagRollbackPlan,SocketProAdapter.ClientSide.CAsyncServiceHandler.DDiscarded,System.String,System.Boolean,System.Boolean)">
+        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.ExecuteBatch(SocketProAdapter.UDB.tagTransactionIsolation,System.String,SocketProAdapter.UDB.CDBVariantArray,SocketProAdapter.ClientSide.CAsyncDBHandler.DExecuteResult,SocketProAdapter.ClientSide.CAsyncDBHandler.DRows,SocketProAdapter.ClientSide.CAsyncDBHandler.DRowsetHeader,SocketProAdapter.ClientSide.CAsyncDBHandler.DRowsetHeader,SocketProAdapter.UDB.CParameterInfo[],SocketProAdapter.UDB.tagRollbackPlan,SocketProAdapter.ClientSide.CAsyncServiceHandler.DDiscarded,System.String,System.Boolean,System.Boolean)">
             <summary>
             Execute a batch of SQL statements on one single call
             </summary>
