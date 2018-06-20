@@ -7,7 +7,8 @@ using System.Data;
 using System.Data.SqlClient;
 using System.Data.SqlTypes;
 
-class CStreamSql : CClientPeer {
+class CStreamSql : CClientPeer
+{
     public const uint sidMsSql = BaseServiceID.sidReserved + 0x6FFFFFF2;
     private string m_defaultDB = "";
     private CUQueue m_Blob = new CUQueue();
@@ -24,32 +25,40 @@ class CStreamSql : CClientPeer {
     protected ulong m_fails = 0;
     protected SqlTransaction m_trans = null;
 
-    private static List<string> Split(string sql, string delimiter) {
+    private static List<string> Split(string sql, string delimiter)
+    {
         List<string> v = new List<string>();
         int d_len = delimiter.Length;
-        if (d_len > 0) {
+        if (d_len > 0)
+        {
             const char quote = '\'', slash = '\\';
             char done = delimiter[0];
             int ps = 0, len = sql.Length;
             bool b_slash = false, balanced = true;
-            for (int n = 0; n < len; ++n) {
+            for (int n = 0; n < len; ++n)
+            {
                 char c = sql[n];
-                if (c == slash) {
+                if (c == slash)
+                {
                     b_slash = true;
                     continue;
                 }
-                if (c == quote && b_slash) {
+                if (c == quote && b_slash)
+                {
                     b_slash = false;
                     continue; //ignore a quote if there is a slash ahead
                 }
                 b_slash = false;
-                if (c == quote) {
+                if (c == quote)
+                {
                     balanced = (!balanced);
                     continue;
                 }
-                if (balanced && c == done) {
+                if (balanced && c == done)
+                {
                     int pos = sql.IndexOf(delimiter, n);
-                    if (pos == n) {
+                    if (pos == n)
+                    {
                         v.Add(sql.Substring(ps, n - ps));
                         n += d_len;
                         ps = n;
@@ -57,45 +66,59 @@ class CStreamSql : CClientPeer {
                 }
             }
             v.Add(sql.Substring(ps));
-        } else {
+        }
+        else
+        {
             v.Add(sql);
         }
         return v;
     }
 
-    private static uint ComputeParameters(string sql) {
+    private static uint ComputeParameters(string sql)
+    {
         const char quote = '\'', slash = '\\', question = '@';
         bool b_slash = false, balanced = true;
         int ps = 0, len = sql.Length;
-        for (int n = 0; n < len; ++n) {
+        for (int n = 0; n < len; ++n)
+        {
             char c = sql[n];
-            if (c == slash) {
+            if (c == slash)
+            {
                 b_slash = true;
                 continue;
             }
-            if (c == quote && b_slash) {
+            if (c == quote && b_slash)
+            {
                 b_slash = false;
                 continue; //ignore a quote if there is a slash ahead
             }
             b_slash = false;
-            if (c == quote) {
+            if (c == quote)
+            {
                 balanced = (!balanced);
                 continue;
             }
-            if (balanced) {
+            if (balanced)
+            {
                 ps += ((c == question) ? 1 : 0);
             }
         }
         return (uint)ps;
     }
 
-    protected override void OnBaseRequestCame(tagBaseRequestID reqId) {
-        switch (reqId) {
+    protected override void OnBaseRequestCame(tagBaseRequestID reqId)
+    {
+        switch (reqId)
+        {
             case tagBaseRequestID.idCancel:
-                if (m_trans != null) {
-                    try {
+                if (m_trans != null)
+                {
+                    try
+                    {
                         m_trans.Rollback();
-                    } finally {
+                    }
+                    finally
+                    {
                         m_fails = 0;
                         m_oks = 0;
                         m_trans = null;
@@ -109,8 +132,10 @@ class CStreamSql : CClientPeer {
         }
     }
 
-    protected override void OnSlowRequestProcessed(ushort reqId) {
-        switch (reqId) {
+    protected override void OnSlowRequestProcessed(ushort reqId)
+    {
+        switch (reqId)
+        {
             case DB_CONSTS.idExecuteParameters:
             case DB_CONSTS.idExecuteBatch:
                 m_vParam.Clear();
@@ -121,33 +146,42 @@ class CStreamSql : CClientPeer {
         }
     }
 
-    protected override void OnSwitchFrom(uint oldServiceId) {
+    protected override void OnSwitchFrom(uint oldServiceId)
+    {
         m_oks = 0;
         m_fails = 0;
         ulong socket = Handle;
-        lock (m_csPeer) {
-            if (m_mapConnection.ContainsKey(socket)) {
+        lock (m_csPeer)
+        {
+            if (m_mapConnection.ContainsKey(socket))
+            {
                 m_conn = m_mapConnection[socket];
                 m_mapConnection.Remove(socket);
             }
         }
     }
 
-    protected override void OnReleaseResource(bool bClosing, uint info) {
+    protected override void OnReleaseResource(bool bClosing, uint info)
+    {
         int res;
         string errMsg = CloseDb(out res);
-        if (m_conn != null) {
+        if (m_conn != null)
+        {
             //we close a database session when a socket is closed
-            try {
+            try
+            {
                 m_conn.Close();
                 m_conn.Dispose();
-            } finally {
+            }
+            finally
+            {
                 m_conn = null;
             }
         }
     }
 
-    private bool PushRowsetHeader(SqlDataReader reader, bool meta, out CDBColumnInfoArray vCol) {
+    private bool PushRowsetHeader(SqlDataReader reader, bool meta, out CDBColumnInfoArray vCol)
+    {
         bool b;
         DataTable dt = null;
         DataRow dr = null;
@@ -155,9 +189,11 @@ class CStreamSql : CClientPeer {
         if (meta)
             dt = reader.GetSchemaTable();
         int cols = reader.FieldCount;
-        for (int n = 0; n < cols; ++n) {
+        for (int n = 0; n < cols; ++n)
+        {
             CDBColumnInfo info = new CDBColumnInfo();
-            if (meta) {
+            if (meta)
+            {
                 dr = dt.Rows[n];
                 b = (bool)dr["AllowDBNull"];
                 if (!b)
@@ -171,13 +207,15 @@ class CStreamSql : CClientPeer {
                     schema = "dbo";
                 info.TablePath = schema + "." + dr["BaseTableName"];
                 b = (bool)dr["IsAutoIncrement"];
-                if (b) {
+                if (b)
+                {
                     info.Flags |= CDBColumnInfo.FLAG_PRIMARY_KEY;
                     info.Flags |= CDBColumnInfo.FLAG_UNIQUE;
                     info.Flags |= CDBColumnInfo.FLAG_AUTOINCREMENT;
                 }
                 object isKey = dr["IsKey"];
-                if (!(isKey is DBNull)) {
+                if (!(isKey is DBNull))
+                {
                     b = (bool)isKey;
                     if (b)
                         info.Flags |= CDBColumnInfo.FLAG_PRIMARY_KEY;
@@ -193,7 +231,8 @@ class CStreamSql : CClientPeer {
             }
             string data_type = reader.GetDataTypeName(n);
             info.DeclaredType = data_type;
-            switch (data_type) {
+            switch (data_type)
+            {
                 case "bigint":
                     info.DataType = tagVariantDataType.sdVT_I8;
                     break;
@@ -235,7 +274,8 @@ class CStreamSql : CClientPeer {
                 case "money":
                 case "decimal":
                     info.DataType = tagVariantDataType.sdVT_DECIMAL;
-                    if (meta) {
+                    if (meta)
+                    {
                         info.Precision = byte.Parse(dr["NumericPrecision"].ToString());
                         info.Precision = byte.Parse(dr["NumericScale"].ToString());
                     }
@@ -258,13 +298,15 @@ class CStreamSql : CClientPeer {
                 case "varchar":
                 case "nvarchar":
                     info.DataType = tagVariantDataType.sdVT_BSTR;
-                    if (meta) {
+                    if (meta)
+                    {
                         b = (bool)dr["IsLong"];
                         if (b)
                             info.ColumnSize = uint.MaxValue;
                         else
                             info.ColumnSize = uint.Parse(dr["ColumnSize"].ToString());
-                    } else
+                    }
+                    else
                         info.ColumnSize = uint.MaxValue;
                     break;
                 case "real":
@@ -281,13 +323,15 @@ class CStreamSql : CClientPeer {
                     break;
                 case "varbinary":
                     info.DataType = (tagVariantDataType.sdVT_UI1 | tagVariantDataType.sdVT_ARRAY);
-                    if (meta) {
+                    if (meta)
+                    {
                         b = (bool)dr["IsLong"];
                         if (b)
                             info.ColumnSize = uint.MaxValue;
                         else
                             info.ColumnSize = uint.Parse(dr["ColumnSize"].ToString());
-                    } else
+                    }
+                    else
                         info.ColumnSize = uint.MaxValue;
                     break;
                 case "xml":
@@ -312,14 +356,16 @@ class CStreamSql : CClientPeer {
         return true;
     }
 
-    private bool PushToClient(SqlDataReader reader, bool meta) {
+    private bool PushToClient(SqlDataReader reader, bool meta)
+    {
         CDBColumnInfoArray vCol;
         if (!PushRowsetHeader(reader, meta, out vCol))
             return false;
         return PushRows(reader, vCol);
     }
 
-    private bool SendRows(CUQueue q, bool transferring) {
+    private bool SendRows(CUQueue q, bool transferring)
+    {
         uint ret;
         bool batching = (BytesBatched >= DB_CONSTS.DEFAULT_RECORD_BATCH_SIZE);
         if (batching)
@@ -333,17 +379,21 @@ class CStreamSql : CClientPeer {
         return true;
     }
 
-    private bool PushText(string text) {
-        using (CScopeUQueue sb = new CScopeUQueue()) {
+    private bool PushText(string text)
+    {
+        using (CScopeUQueue sb = new CScopeUQueue())
+        {
             CUQueue q = sb.UQueue;
             q.Push(text);
             return PushBlob(q.IntenalBuffer, q.GetSize(), (ushort)tagVariantDataType.sdVT_BSTR);
         }
     }
 
-    private bool PushBlob(byte[] buffer, uint len, ushort data_type = (ushort)(tagVariantDataType.sdVT_ARRAY | tagVariantDataType.sdVT_UI1)) {
+    private bool PushBlob(byte[] buffer, uint len, ushort data_type = (ushort)(tagVariantDataType.sdVT_ARRAY | tagVariantDataType.sdVT_UI1))
+    {
         bool batching = Batching;
-        try {
+        try
+        {
             if (batching)
                 CommitBatching();
             uint bytes = len;
@@ -352,7 +402,8 @@ class CStreamSql : CClientPeer {
             if (ret == SOCKET_NOT_FOUND || ret == REQUEST_CANCELED)
                 return false;
             uint offset = 0;
-            while (bytes > DB_CONSTS.DEFAULT_BIG_FIELD_CHUNK_SIZE) {
+            while (bytes > DB_CONSTS.DEFAULT_BIG_FIELD_CHUNK_SIZE)
+            {
                 ret = SendResult(DB_CONSTS.idChunk, buffer, DB_CONSTS.DEFAULT_BIG_FIELD_CHUNK_SIZE, offset);
                 if (ret != DB_CONSTS.DEFAULT_BIG_FIELD_CHUNK_SIZE)
                     return false;
@@ -361,49 +412,68 @@ class CStreamSql : CClientPeer {
             }
             ret = SendResult(DB_CONSTS.idEndBLOB, buffer, bytes, offset);
             return (ret == bytes);
-        } finally {
+        }
+        finally
+        {
             if (batching)
                 StartBatching();
         }
     }
 
-    private bool PushRows(SqlDataReader reader, CDBColumnInfoArray vCol) {
-        using (CScopeUQueue sb = new CScopeUQueue()) {
+    private bool PushRows(SqlDataReader reader, CDBColumnInfoArray vCol)
+    {
+        using (CScopeUQueue sb = new CScopeUQueue())
+        {
             CUQueue q = sb.UQueue;
-            while (reader.Read()) {
+            while (reader.Read())
+            {
                 if (q.GetSize() >= DB_CONSTS.DEFAULT_RECORD_BATCH_SIZE && !SendRows(q, false))
                     return false;
                 int col = 0;
-                foreach (CDBColumnInfo info in vCol) {
-                    if (reader.IsDBNull(col)) {
+                foreach (CDBColumnInfo info in vCol)
+                {
+                    if (reader.IsDBNull(col))
+                    {
                         q.Save((ushort)tagVariantDataType.sdVT_NULL);
                         ++col;
                         continue;
                     }
-                    switch (info.DataType) {
+                    switch (info.DataType)
+                    {
                         case tagVariantDataType.sdVT_BSTR:
-                            if (info.DeclaredType == "xml") {
+                            if (info.DeclaredType == "xml")
+                            {
                                 string xml = reader.GetSqlXml(col).Value;
-                                if (xml.Length <= DB_CONSTS.DEFAULT_BIG_FIELD_CHUNK_SIZE) {
+                                if (xml.Length <= DB_CONSTS.DEFAULT_BIG_FIELD_CHUNK_SIZE)
+                                {
                                     q.Save((ushort)info.DataType).Save(xml);
-                                } else {
+                                }
+                                else
+                                {
                                     if (q.GetSize() != 0 && !SendRows(q, true))
                                         return false;
                                     if (!PushText(xml))
                                         return false;
                                 }
-                            } else if (info.DeclaredType == "datetimeoffset") {
+                            }
+                            else if (info.DeclaredType == "datetimeoffset")
+                            {
                                 DateTimeOffset dto = reader.GetDateTimeOffset(col);
                                 q.Save((ushort)info.DataType).Save(dto.ToString());
-                            } else if (info.ColumnSize == 0) //for example, case "time"
+                            }
+                            else if (info.ColumnSize == 0) //for example, case "time"
                             {
                                 object obj = reader.GetValue(col);
                                 q.Save((ushort)info.DataType).Save(obj.ToString());
-                            } else {
+                            }
+                            else
+                            {
                                 string s = reader.GetString(col);
-                                if (s.Length <= DB_CONSTS.DEFAULT_BIG_FIELD_CHUNK_SIZE) {
+                                if (s.Length <= DB_CONSTS.DEFAULT_BIG_FIELD_CHUNK_SIZE)
+                                {
                                     q.Save((ushort)info.DataType).Save(s);
-                                } else ////text, ntext, varchar(max), nvarchar(max)
+                                }
+                                else ////text, ntext, varchar(max), nvarchar(max)
                                 {
                                     if (q.GetSize() != 0 && !SendRows(q, true))
                                         return false;
@@ -412,11 +482,14 @@ class CStreamSql : CClientPeer {
                                 }
                             }
                             break;
-                        case (tagVariantDataType.sdVT_UI1 | tagVariantDataType.sdVT_ARRAY): {
+                        case (tagVariantDataType.sdVT_UI1 | tagVariantDataType.sdVT_ARRAY):
+                            {
                                 SqlBinary bytes = reader.GetSqlBinary(col);
-                                if (bytes.Length <= 2 * DB_CONSTS.DEFAULT_BIG_FIELD_CHUNK_SIZE) {
+                                if (bytes.Length <= 2 * DB_CONSTS.DEFAULT_BIG_FIELD_CHUNK_SIZE)
+                                {
                                     q.Save((ushort)info.DataType).Save(bytes.Value);
-                                } else //image, varbinary(max) or file?
+                                }
+                                else //image, varbinary(max) or file?
                                 {
                                     if (q.GetSize() != 0 && !SendRows(q, true))
                                         return false;
@@ -476,26 +549,31 @@ class CStreamSql : CClientPeer {
         return true;
     }
 
-    private string GenerateSqlForCachedTables() {
+    private string GenerateSqlForCachedTables()
+    {
         string sqlCache = "";
         string current_db = m_conn.Database;
         List<string> vDB = new List<string>();
         SqlDataReader reader = null;
         string sql = "SELECT name FROM master.dbo.sysdatabases where name NOT IN('master','tempdb','model','msdb')";
-        try {
+        try
+        {
             SqlCommand cmd = new SqlCommand(sql, m_conn, m_trans);
             reader = cmd.ExecuteReader();
-            while (reader.Read()) {
+            while (reader.Read())
+            {
                 vDB.Add(reader.GetString(0));
             }
             reader.Close();
-            foreach (string db in vDB) {
+            foreach (string db in vDB)
+            {
                 cmd.CommandText = "USE " + db;
                 cmd.ExecuteNonQuery();
                 sql = "select object_schema_name(parent_id),OBJECT_NAME(parent_id)from sys.assembly_modules as am,sys.triggers as t where t.object_id=am.object_id and assembly_method like 'PublishDMLEvent%' and assembly_class='USqlStream'";
                 cmd.CommandText = sql;
                 reader = cmd.ExecuteReader();
-                while (reader.Read()) {
+                while (reader.Read())
+                {
                     if (sqlCache.Length > 0)
                         sqlCache += ";";
                     string schema = reader.GetString(0);
@@ -504,18 +582,23 @@ class CStreamSql : CClientPeer {
                 }
                 reader.Close();
             }
-        } finally {
+        }
+        finally
+        {
             if (reader != null)
                 reader.Close();
-            try {
+            try
+            {
                 SqlCommand cmd = new SqlCommand("USE " + current_db, m_conn, m_trans);
                 cmd.ExecuteNonQuery();
-            } finally { }
+            }
+            finally { }
         }
         return sqlCache;
     }
     [RequestAttr(DB_CONSTS.idExecute, true)]
-    private ulong Execute(string sql, bool rowset, bool meta, bool lastInsertId, ulong index, out long affected, out int res, out string errMsg, out object vtId) {
+    private ulong Execute(string sql, bool rowset, bool meta, bool lastInsertId, ulong index, out long affected, out int res, out string errMsg, out object vtId)
+    {
         ulong fail_ok = 0;
         m_indexCall = index;
         affected = 0;
@@ -527,14 +610,18 @@ class CStreamSql : CClientPeer {
         bool HeaderSent = false;
         bool ok = true;
         SqlDataReader reader = null;
-        try {
-            if ((sql == null || sql.Length == 0) && m_EnableMessages) {
+        try
+        {
+            if ((sql == null || sql.Length == 0) && m_EnableMessages)
+            {
                 sql = GenerateSqlForCachedTables();
             }
             SqlCommand cmd = new SqlCommand(sql, m_conn, m_trans);
-            if (rowset) {
+            if (rowset)
+            {
                 reader = cmd.ExecuteReader(meta ? CommandBehavior.KeyInfo : CommandBehavior.Default);
-                while (reader.FieldCount > 0 && ok) {
+                while (reader.FieldCount > 0 && ok)
+                {
                     ok = PushToClient(reader, meta);
                     HeaderSent = true;
                     if (!ok || !reader.NextResult())
@@ -543,29 +630,40 @@ class CStreamSql : CClientPeer {
                 if (reader.RecordsAffected > 0)
                     affected += reader.RecordsAffected;
                 reader.Close();
-            } else {
+            }
+            else
+            {
                 int ret = cmd.ExecuteNonQuery();
                 if (ret > 0)
                     affected += ret;
             }
             ++m_oks;
-        } catch (SqlException err) {
-            if (res == 0) {
+        }
+        catch (SqlException err)
+        {
+            if (res == 0)
+            {
                 res = err.ErrorCode;
                 errMsg = err.Message;
             }
             ++m_fails;
-        } catch (Exception err) {
-            if (res == 0) {
+        }
+        catch (Exception err)
+        {
+            if (res == 0)
+            {
                 res = -1;
                 errMsg = err.Message;
             }
             ++m_fails;
-        } finally {
+        }
+        finally
+        {
             if (reader != null)
                 reader.Close();
         }
-        if (!HeaderSent && ok) {
+        if (!HeaderSent && ok)
+        {
             CDBColumnInfoArray v = new CDBColumnInfoArray();
             SendResult(DB_CONSTS.idRowsetHeader, v, index);
         }
@@ -574,28 +672,34 @@ class CStreamSql : CClientPeer {
         return fail_ok;
     }
 
-    private void SetVParam(CDBVariantArray vAll, uint parameters, uint pos, uint ps) {
+    private void SetVParam(CDBVariantArray vAll, uint parameters, uint pos, uint ps)
+    {
         m_vParam.Clear();
         uint rows = (uint)vAll.Count / parameters;
-        for (uint r = 0; r < rows; ++r) {
-            for (uint p = 0; p < ps; ++p) {
+        for (uint r = 0; r < rows; ++r)
+        {
+            for (uint p = 0; p < ps; ++p)
+            {
                 object vt = vAll[(int)(parameters * r + pos + p)];
                 m_vParam.Add(vt);
             }
         }
     }
 
-    private CParameterInfoArray GetVInfo(CParameterInfoArray vPInfo, uint pos, uint ps) {
+    private CParameterInfoArray GetVInfo(CParameterInfoArray vPInfo, uint pos, uint ps)
+    {
         CParameterInfoArray v = new CParameterInfoArray();
         int count = vPInfo.Count;
-        for (int n = 0; n < (int)ps; ++n) {
+        for (int n = 0; n < (int)ps; ++n)
+        {
             v.Add(vPInfo[(int)pos + n]);
         }
         return v;
     }
 
     [RequestAttr(DB_CONSTS.idExecuteBatch, true)]
-    private ulong ExecuteBatch(string sql, string delimiter, int isolation, int plan, bool rowset, bool meta, bool lastInsertId, string dbConn, uint flags, ulong callIndex, out long affected, out int res, out string errMsg, out object vtId) {
+    private ulong ExecuteBatch(string sql, string delimiter, int isolation, int plan, bool rowset, bool meta, bool lastInsertId, string dbConn, uint flags, ulong callIndex, out long affected, out int res, out string errMsg, out object vtId)
+    {
         if (sql == null)
             sql = "";
         if (dbConn == null)
@@ -609,28 +713,36 @@ class CStreamSql : CClientPeer {
         CParameterInfoArray vPInfo = new CParameterInfoArray();
         vPInfo.LoadFrom(UQueue);
         vtId = null;
-        do {
-            if (m_defaultDB.Length == 0) {
+        do
+        {
+            if (m_defaultDB.Length == 0)
+            {
                 int ms = Open(dbConn, flags, out res, out errMsg);
                 if (res == 0)
                     errMsg = m_conn.Database;
-            } else {
+            }
+            else
+            {
                 errMsg = m_conn.Database;
             }
             uint parameters = 0;
             List<string> vSql = Split(sql, delimiter);
-            foreach (string s in vSql) {
+            foreach (string s in vSql)
+            {
                 parameters += ComputeParameters(s);
             }
-            if (m_defaultDB == "") {
+            if (m_defaultDB == "")
+            {
                 fail_ok = (uint)vSql.Count;
                 fail_ok <<= 32;
                 SendResult(DB_CONSTS.idSqlBatchHeader, res, errMsg, (int)tagManagementSystem.msMsSQL, parameters, callIndex);
                 break;
             }
             uint rows = 0;
-            if (parameters > 0) {
-                if (m_vParam.Count == 0) {
+            if (parameters > 0)
+            {
+                if (m_vParam.Count == 0)
+                {
                     res = -2;
                     errMsg = "No parameter specified";
                     m_fails += (uint)vSql.Count;
@@ -639,7 +751,8 @@ class CStreamSql : CClientPeer {
                     SendResult(DB_CONSTS.idSqlBatchHeader, res, errMsg, (int)tagManagementSystem.msMsSQL, parameters, callIndex);
                     break;
                 }
-                if (((uint)m_vParam.Count % parameters) > 0) {
+                if (((uint)m_vParam.Count % parameters) > 0)
+                {
                     res = -2;
                     errMsg = "Bad parameter data array size";
                     m_fails += (uint)vSql.Count;
@@ -650,9 +763,11 @@ class CStreamSql : CClientPeer {
                 }
                 rows = (uint)m_vParam.Count / parameters;
             }
-            if (isolation != (int)tagTransactionIsolation.tiUnspecified) {
+            if (isolation != (int)tagTransactionIsolation.tiUnspecified)
+            {
                 int ms = BeginTrans(isolation, dbConn, flags, out res, out errMsg);
-                if (res != 0) {
+                if (res != 0)
+                {
                     m_fails += (uint)vSql.Count;
                     fail_ok = (uint)vSql.Count;
                     fail_ok <<= 32;
@@ -669,35 +784,47 @@ class CStreamSql : CClientPeer {
             string err = "";
             ulong fo = 0;
             uint pos = 0;
-            foreach (string it in vSql) {
+            foreach (string it in vSql)
+            {
                 uint ps = ComputeParameters(it);
                 string s = it.Trim(' ', '\t', '\r', '\n', ';', '@');
-                if (ps > 0) {
+                if (ps > 0)
+                {
                     CParameterInfoArray vP = GetVInfo(vPInfo, pos, ps);
                     //prepared statements
                     uint my_ps = Prepare(s, vP, out r, out err);
-                    if (r != 0) {
+                    if (r != 0)
+                    {
                         fail_ok += (((ulong)rows) << 32);
-                    } else {
+                    }
+                    else
+                    {
                         SetVParam(vAll, parameters, pos, ps);
                         uint nParamPos = (pos << 16) + ps;
                         SendResult(DB_CONSTS.idParameterPosition, nParamPos);
                         fo = ExecuteParameters(rowset, meta, lastInsertId, callIndex, out aff, out r, out err, out vtId);
                     }
                     pos += ps;
-                } else {
+                }
+                else
+                {
                     fo = Execute(s, rowset, meta, lastInsertId, callIndex, out aff, out r, out err, out vtId);
                 }
-                if (r != 0 && res == 0) {
+                if (r != 0 && res == 0)
+                {
                     res = r;
                     errMsg = err;
                 }
                 affected += aff;
                 fail_ok += fo;
+                if (r != 0 && isolation != (int)tagTransactionIsolation.tiUnspecified && plan == (int)tagRollbackPlan.rpDefault)
+                    break;
             }
-            if (isolation != (int)tagTransactionIsolation.tiUnspecified) {
+            if (isolation != (int)tagTransactionIsolation.tiUnspecified)
+            {
                 err = EndTrans(plan, out r);
-                if (r != 0 && res == 0) {
+                if (r != 0 && res == 0)
+                {
                     res = r;
                     errMsg = err;
                 }
@@ -707,7 +834,8 @@ class CStreamSql : CClientPeer {
     }
 
     [RequestAttr(DB_CONSTS.idExecuteParameters, true)]
-    private ulong ExecuteParameters(bool rowset, bool meta, bool lastInsertId, ulong index, out long affected, out int res, out string errMsg, out object vtId) {
+    private ulong ExecuteParameters(bool rowset, bool meta, bool lastInsertId, ulong index, out long affected, out int res, out string errMsg, out object vtId)
+    {
         ulong fail_ok = 0;
         m_indexCall = index;
         affected = 0;
@@ -718,15 +846,18 @@ class CStreamSql : CClientPeer {
         ulong oks = m_oks;
         bool ok = true;
         bool HeaderSent = false;
-        do {
-            if (m_sqlPrepare == null || m_sqlPrepare.Parameters.Count == 0 || m_vParam.Count == 0) {
+        do
+        {
+            if (m_sqlPrepare == null || m_sqlPrepare.Parameters.Count == 0 || m_vParam.Count == 0)
+            {
                 res = -2;
                 errMsg = "No parameter specified";
                 ++m_fails;
                 break;
             }
             int cols = m_sqlPrepare.Parameters.Count;
-            if ((m_vParam.Count % cols) != 0) {
+            if ((m_vParam.Count % cols) != 0)
+            {
                 res = -2;
                 errMsg = "Bad parameter data array size";
                 ++m_fails;
@@ -735,16 +866,21 @@ class CStreamSql : CClientPeer {
             if (m_trans != null)
                 m_sqlPrepare.Transaction = m_trans;
             int rows = m_vParam.Count / cols;
-            for (int r = 0; r < rows; ++r) {
-                try {
+            for (int r = 0; r < rows; ++r)
+            {
+                try
+                {
                     int c = 0;
-                    foreach (SqlParameter p in m_sqlPrepare.Parameters) {
+                    foreach (SqlParameter p in m_sqlPrepare.Parameters)
+                    {
                         p.Value = m_vParam[r * cols + c];
                         ++c;
                     }
-                    if (rowset) {
+                    if (rowset)
+                    {
                         SqlDataReader reader = m_sqlPrepare.ExecuteReader(meta ? CommandBehavior.KeyInfo : CommandBehavior.Default);
-                        while (reader.FieldCount > 0) {
+                        while (reader.FieldCount > 0)
+                        {
                             ok = PushToClient(reader, meta);
                             HeaderSent = true;
                             if (reader.RecordsAffected > 0)
@@ -753,21 +889,28 @@ class CStreamSql : CClientPeer {
                                 break;
                         }
                         reader.Close();
-                    } else {
+                    }
+                    else
+                    {
                         int ret = m_sqlPrepare.ExecuteNonQuery();
                         if (ret > 0)
                             affected += ret;
                     }
-                    if (ok && m_outputs > 0) {
+                    if (ok && m_outputs > 0)
+                    {
                         CDBColumnInfoArray v = new CDBColumnInfoArray();
                         uint ret = SendResult(DB_CONSTS.idRowsetHeader, v, index, (uint)m_outputs);
                         ok = (ret != SOCKET_NOT_FOUND && ret != REQUEST_CANCELED);
                         HeaderSent = true;
-                        if (ok) {
-                            using (CScopeUQueue sb = new CScopeUQueue()) {
+                        if (ok)
+                        {
+                            using (CScopeUQueue sb = new CScopeUQueue())
+                            {
                                 CUQueue q = sb.UQueue;
-                                foreach (SqlParameter p in m_sqlPrepare.Parameters) {
-                                    if (p.Direction != ParameterDirection.Input) {
+                                foreach (SqlParameter p in m_sqlPrepare.Parameters)
+                                {
+                                    if (p.Direction != ParameterDirection.Input)
+                                    {
                                         q.Save(p.Value);
                                     }
                                 }
@@ -776,14 +919,20 @@ class CStreamSql : CClientPeer {
                         }
                     }
                     ++m_oks;
-                } catch (SqlException err) {
-                    if (res == 0) {
+                }
+                catch (SqlException err)
+                {
+                    if (res == 0)
+                    {
                         res = err.ErrorCode;
                         errMsg = err.Message;
                     }
                     ++m_fails;
-                } catch (Exception err) {
-                    if (res == 0) {
+                }
+                catch (Exception err)
+                {
+                    if (res == 0)
+                    {
                         res = -1;
                         errMsg = err.Message;
                     }
@@ -793,7 +942,8 @@ class CStreamSql : CClientPeer {
                     break;
             }
         } while (false);
-        if (!HeaderSent && ok) {
+        if (!HeaderSent && ok)
+        {
             CDBColumnInfoArray v = new CDBColumnInfoArray();
             SendResult(DB_CONSTS.idRowsetHeader, v, index);
         }
@@ -804,45 +954,56 @@ class CStreamSql : CClientPeer {
     }
 
     [RequestAttr(DB_CONSTS.idPrepare, true)]
-    private uint Prepare(string sql, CParameterInfoArray vColInfo, out int res, out string errMsg) {
+    private uint Prepare(string sql, CParameterInfoArray vColInfo, out int res, out string errMsg)
+    {
         res = 0;
         errMsg = "";
         m_outputs = 0;
         uint parameters = 0;
-        try {
+        try
+        {
             m_sqlPrepare = new SqlCommand(sql, m_conn, m_trans);
-            if (vColInfo != null) {
+            if (vColInfo != null)
+            {
                 SqlParameter param = null;
-                foreach (CParameterInfo info in vColInfo) {
-                    switch (info.DataType) {
+                foreach (CParameterInfo info in vColInfo)
+                {
+                    switch (info.DataType)
+                    {
                         case tagVariantDataType.sdVT_BYTES:
                         case tagVariantDataType.sdVT_ARRAY | tagVariantDataType.sdVT_UI1:
-                            if (info.ColumnSize == uint.MaxValue) {
+                            if (info.ColumnSize == uint.MaxValue)
+                            {
                                 if (info.Direction == tagParameterDirection.pdInput)
                                     param = new SqlParameter(info.ParameterName, SqlDbType.Image, int.MaxValue);
                                 else
                                     param = new SqlParameter(info.ParameterName, SqlDbType.Image, (int)DB_CONSTS.DEFAULT_BIG_FIELD_CHUNK_SIZE);
-                            } else
+                            }
+                            else
                                 param = new SqlParameter(info.ParameterName, SqlDbType.VarBinary, (int)info.ColumnSize);
                             break;
                         case tagVariantDataType.sdVT_STR:
                         case tagVariantDataType.sdVT_ARRAY | tagVariantDataType.sdVT_I1:
-                            if (info.ColumnSize == uint.MaxValue) {
+                            if (info.ColumnSize == uint.MaxValue)
+                            {
                                 if (info.Direction == tagParameterDirection.pdInput)
                                     param = new SqlParameter(info.ParameterName, SqlDbType.Text, int.MaxValue);
                                 else
                                     param = new SqlParameter(info.ParameterName, SqlDbType.Text, (int)DB_CONSTS.DEFAULT_BIG_FIELD_CHUNK_SIZE);
-                            } else
+                            }
+                            else
                                 param = new SqlParameter(info.ParameterName, SqlDbType.VarChar, (int)info.ColumnSize);
                             break;
                         case tagVariantDataType.sdVT_WSTR:
                         case tagVariantDataType.sdVT_BSTR:
-                            if (info.ColumnSize == uint.MaxValue) {
+                            if (info.ColumnSize == uint.MaxValue)
+                            {
                                 if (info.Direction == tagParameterDirection.pdInput)
                                     param = new SqlParameter(info.ParameterName, SqlDbType.NText, int.MaxValue);
                                 else
                                     param = new SqlParameter(info.ParameterName, SqlDbType.NText, (int)DB_CONSTS.DEFAULT_BIG_FIELD_CHUNK_SIZE);
-                            } else
+                            }
+                            else
                                 param = new SqlParameter(info.ParameterName, SqlDbType.NVarChar, (int)info.ColumnSize);
                             break;
                         case tagVariantDataType.sdVT_BOOL:
@@ -878,7 +1039,8 @@ class CStreamSql : CClientPeer {
                         case tagVariantDataType.sdVT_DATE:
                             if (info.Precision == 0)
                                 param = new SqlParameter(info.ParameterName, SqlDbType.DateTime);
-                            else {
+                            else
+                            {
                                 param = new SqlParameter(info.ParameterName, SqlDbType.DateTime2);
                                 param.Precision = info.Precision;
                             }
@@ -903,7 +1065,8 @@ class CStreamSql : CClientPeer {
                             parameters = 0;
                             return parameters;
                     }
-                    switch (info.Direction) {
+                    switch (info.Direction)
+                    {
                         case tagParameterDirection.pdInput:
                             param.Direction = ParameterDirection.Input;
                             break;
@@ -935,13 +1098,17 @@ class CStreamSql : CClientPeer {
             if (m_outputs > 0)
                 m_sqlPrepare.CommandType = CommandType.StoredProcedure;
             m_sqlPrepare.Prepare();
-        } catch (SqlException err) {
+        }
+        catch (SqlException err)
+        {
             res = err.ErrorCode;
             errMsg = err.Message;
             m_sqlPrepare = null;
             parameters = 0;
             m_outputs = 0;
-        } catch (Exception err) {
+        }
+        catch (Exception err)
+        {
             res = -1;
             errMsg = err.Message;
             m_sqlPrepare = null;
@@ -952,23 +1119,28 @@ class CStreamSql : CClientPeer {
     }
 
     [RequestAttr(DB_CONSTS.idEndTrans, true)]
-    private string EndTrans(int plan, out int res) {
+    private string EndTrans(int plan, out int res)
+    {
         res = 0;
         string errMsg = "";
-        do {
-            if (plan < 0 || plan > (int)tagRollbackPlan.rpRollbackAlways) {
+        do
+        {
+            if (plan < 0 || plan > (int)tagRollbackPlan.rpRollbackAlways)
+            {
                 res = -2;
                 errMsg = "Bad end transaction plan";
                 break;
             }
-            if (m_trans == null) {
+            if (m_trans == null)
+            {
                 res = -2;
                 errMsg = "Transaction not started yet";
                 break;
             }
             bool rollback = false;
             tagRollbackPlan rp = (tagRollbackPlan)plan;
-            switch (rp) {
+            switch (rp)
+            {
                 case tagRollbackPlan.rpRollbackErrorAny:
                     rollback = (m_fails > 0) ? true : false;
                     break;
@@ -990,18 +1162,25 @@ class CStreamSql : CClientPeer {
                 default:
                     break;
             }
-            try {
+            try
+            {
                 if (rollback)
                     m_trans.Rollback();
                 else
                     m_trans.Commit();
-            } catch (SqlException err) {
+            }
+            catch (SqlException err)
+            {
                 res = err.ErrorCode;
                 errMsg = err.Message;
-            } catch (Exception err) {
+            }
+            catch (Exception err)
+            {
                 res = -1;
                 errMsg = err.Message;
-            } finally {
+            }
+            finally
+            {
                 m_fails = 0;
                 m_oks = 0;
                 m_trans = null;
@@ -1013,25 +1192,30 @@ class CStreamSql : CClientPeer {
     }
 
     [RequestAttr(DB_CONSTS.idBeginTrans, true)]
-    private int BeginTrans(int isolation, string strConnection, uint flags, out int res, out string errMsg) {
+    private int BeginTrans(int isolation, string strConnection, uint flags, out int res, out string errMsg)
+    {
         res = 0;
         errMsg = m_conn.Database;
         if (strConnection == null)
             strConnection = "";
         int ms = (int)tagManagementSystem.msMsSQL;
-        if (m_defaultDB.Length == 0 && strConnection.Length > 0) {
+        if (m_defaultDB.Length == 0 && strConnection.Length > 0)
+        {
             ms = Open(strConnection, flags, out res, out errMsg);
             if (res != 0)
                 return ms;
             errMsg = strConnection;
         }
-        if (m_trans != null) {
+        if (m_trans != null)
+        {
             res = -2;
             errMsg = "Transaction already started";
             return ms;
         }
-        try {
-            switch ((tagTransactionIsolation)isolation) {
+        try
+        {
+            switch ((tagTransactionIsolation)isolation)
+            {
                 case tagTransactionIsolation.tiReadCommited:
                     m_trans = m_conn.BeginTransaction(IsolationLevel.ReadCommitted);
                     break;
@@ -1058,14 +1242,21 @@ class CStreamSql : CClientPeer {
                     errMsg = "Unknown isolation level";
                     break;
             }
-        } catch (SqlException err) {
+        }
+        catch (SqlException err)
+        {
             res = err.ErrorCode;
             errMsg = err.Message;
-        } catch (Exception err) {
+        }
+        catch (Exception err)
+        {
             res = -1;
             errMsg = err.Message;
-        } finally {
-            if (m_trans != null) {
+        }
+        finally
+        {
+            if (m_trans != null)
+            {
                 m_fails = 0;
                 m_oks = 0;
             }
@@ -1074,25 +1265,34 @@ class CStreamSql : CClientPeer {
     }
 
     [RequestAttr(DB_CONSTS.idOpen, true)]
-    private int Open(string strConnection, uint flags, out int res, out string errMsg) {
+    private int Open(string strConnection, uint flags, out int res, out string errMsg)
+    {
         res = 0;
         m_defaultDB = m_conn.Database;
         if ((flags & DB_CONSTS.ENABLE_TABLE_UPDATE_MESSAGES) == DB_CONSTS.ENABLE_TABLE_UPDATE_MESSAGES)
             m_EnableMessages = Push.Subscribe(DB_CONSTS.STREAMING_SQL_CHAT_GROUP_ID);
-        if (strConnection != null && strConnection.Length > 0) {
-            try {
+        if (strConnection != null && strConnection.Length > 0)
+        {
+            try
+            {
                 string sql = "USE " + strConnection;
                 SqlCommand cmd = new SqlCommand(sql, m_conn);
                 int affected = cmd.ExecuteNonQuery();
                 errMsg = strConnection;
-            } catch (SqlException err) {
+            }
+            catch (SqlException err)
+            {
                 res = err.ErrorCode;
                 errMsg = err.Message;
-            } catch (Exception err) {
+            }
+            catch (Exception err)
+            {
                 res = -1;
                 errMsg = err.Message;
             }
-        } else {
+        }
+        else
+        {
             errMsg = "";
             errMsg = m_defaultDB;
         }
@@ -1100,7 +1300,8 @@ class CStreamSql : CClientPeer {
     }
 
     [RequestAttr(DB_CONSTS.idStartBLOB)]
-    private void StartBLOB(uint lenExpected) {
+    private void StartBLOB(uint lenExpected)
+    {
         m_Blob.SetSize(0);
         if (lenExpected > m_Blob.MaxBufferSize)
             m_Blob.Realloc(lenExpected);
@@ -1109,16 +1310,19 @@ class CStreamSql : CClientPeer {
     }
 
     [RequestAttr(DB_CONSTS.idChunk)]
-    private void Chunk() {
+    private void Chunk()
+    {
         CUQueue q = UQueue;
-        if (q.GetSize() > 0) {
+        if (q.GetSize() > 0)
+        {
             m_Blob.Push(q.IntenalBuffer, q.GetSize());
             q.SetSize(0);
         }
     }
 
     [RequestAttr(DB_CONSTS.idEndBLOB)]
-    private void EndBLOB() {
+    private void EndBLOB()
+    {
         Chunk();
         object vt;
         m_Blob.Load(out vt);
@@ -1126,9 +1330,11 @@ class CStreamSql : CClientPeer {
     }
 
     [RequestAttr(DB_CONSTS.idTransferring)]
-    private void Transferring() {
+    private void Transferring()
+    {
         CUQueue q = UQueue;
-        while (q.GetSize() > 0) {
+        while (q.GetSize() > 0)
+        {
             object vt;
             q.Load(out vt);
             m_vParam.Add(vt);
@@ -1136,44 +1342,58 @@ class CStreamSql : CClientPeer {
     }
 
     [RequestAttr(DB_CONSTS.idBeginRows)]
-    private void BeginRows() {
+    private void BeginRows()
+    {
         Transferring();
     }
 
     [RequestAttr(DB_CONSTS.idEndRows)]
-    private void EndRows() {
+    private void EndRows()
+    {
         Transferring();
     }
 
     [RequestAttr(DB_CONSTS.idClose)]
-    private string CloseDb(out int res) {
+    private string CloseDb(out int res)
+    {
         //we don't close a database session when a client call the method but close it when a socket is closed, which we believe the approach is fit with client socket pool architecture
         string errMsg = "";
         res = 0;
         m_vParam.Clear();
-        try {
+        try
+        {
             if (m_trans != null)
                 m_trans.Rollback();
-        } finally {
+        }
+        finally
+        {
             m_trans = null;
         }
-        if (m_conn != null && m_conn.State != ConnectionState.Closed) {
-            if (m_defaultDB != null && m_defaultDB.Length > 0) {
-                try {
+        if (m_conn != null && m_conn.State != ConnectionState.Closed)
+        {
+            if (m_defaultDB != null && m_defaultDB.Length > 0)
+            {
+                try
+                {
                     //reset back to original default database
                     SqlCommand cmd = new SqlCommand("USE " + m_defaultDB, m_conn);
                     int ret = cmd.ExecuteNonQuery();
-                } catch (SqlException err) {
+                }
+                catch (SqlException err)
+                {
                     errMsg = err.Message;
                     res = err.ErrorCode;
-                } catch (Exception err) {
+                }
+                catch (Exception err)
+                {
                     errMsg = err.Message;
                     res = -1;
                 }
             }
         }
         ResetMemories();
-        if (m_EnableMessages) {
+        if (m_EnableMessages)
+        {
             Push.Unsubscribe();
             m_EnableMessages = false;
         }
@@ -1181,9 +1401,11 @@ class CStreamSql : CClientPeer {
         return errMsg;
     }
 
-    private void ResetMemories() {
+    private void ResetMemories()
+    {
         m_Blob.SetSize(0);
-        if (m_Blob.MaxBufferSize > DB_CONSTS.DEFAULT_BIG_FIELD_CHUNK_SIZE) {
+        if (m_Blob.MaxBufferSize > DB_CONSTS.DEFAULT_BIG_FIELD_CHUNK_SIZE)
+        {
             m_Blob.Realloc(DB_CONSTS.DEFAULT_BIG_FIELD_CHUNK_SIZE);
         }
     }

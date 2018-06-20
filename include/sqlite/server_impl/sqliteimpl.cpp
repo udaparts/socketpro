@@ -1011,6 +1011,8 @@ namespace SPA
 				}
 				if (lastInsertId && id.llVal)
 					vtId = id;
+				if (r && isolation != (int) tiUnspecified && plan == (int)rpDefault)
+					break;
 				affected += aff;
 				fail_ok += fo;
 			}

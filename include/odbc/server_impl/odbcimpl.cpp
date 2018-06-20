@@ -3757,6 +3757,8 @@ namespace SPA
                     res = r;
                     errMsg = err;
                 }
+				if (r && isolation != (int) tiUnspecified && plan == (int)rpDefault)
+					break;
                 affected += aff;
                 fail_ok += fo;
             }
