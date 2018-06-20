@@ -623,8 +623,7 @@ class CStreamSql : CClientPeer {
                 parameters += ComputeParameters(s);
             }
             if (m_defaultDB == "") {
-                ++m_fails;
-                fail_ok = 1;
+                fail_ok = (uint)vSql.Count;
                 fail_ok <<= 32;
                 SendResult(DB_CONSTS.idSqlBatchHeader, res, errMsg, (int)tagManagementSystem.msMsSQL, parameters, callIndex);
                 break;
@@ -634,8 +633,8 @@ class CStreamSql : CClientPeer {
                 if (m_vParam.Count == 0) {
                     res = -2;
                     errMsg = "No parameter specified";
-                    ++m_fails;
-                    fail_ok = 1;
+                    m_fails += (uint)vSql.Count;
+                    fail_ok = (uint)vSql.Count;
                     fail_ok <<= 32;
                     SendResult(DB_CONSTS.idSqlBatchHeader, res, errMsg, (int)tagManagementSystem.msMsSQL, parameters, callIndex);
                     break;
@@ -643,8 +642,8 @@ class CStreamSql : CClientPeer {
                 if (((uint)m_vParam.Count % parameters) > 0) {
                     res = -2;
                     errMsg = "Bad parameter data array size";
-                    ++m_fails;
-                    fail_ok = 1;
+                    m_fails += (uint)vSql.Count;
+                    fail_ok = (uint)vSql.Count;
                     fail_ok <<= 32;
                     SendResult(DB_CONSTS.idSqlBatchHeader, res, errMsg, (int)tagManagementSystem.msMsSQL, parameters, callIndex);
                     break;
@@ -654,8 +653,8 @@ class CStreamSql : CClientPeer {
             if (isolation != (int)tagTransactionIsolation.tiUnspecified) {
                 int ms = BeginTrans(isolation, dbConn, flags, out res, out errMsg);
                 if (res != 0) {
-                    ++m_fails;
-                    fail_ok = 1;
+                    m_fails += (uint)vSql.Count;
+                    fail_ok = (uint)vSql.Count;
                     fail_ok <<= 32;
                     SendResult(DB_CONSTS.idSqlBatchHeader, res, errMsg, (int)tagManagementSystem.msMsSQL, parameters, callIndex);
                     break;
