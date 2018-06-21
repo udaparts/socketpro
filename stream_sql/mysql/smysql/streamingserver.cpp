@@ -381,6 +381,9 @@ bool CStreamingServer::AddService() {
     ok = m_MySql.AddSlowRequest(SPA::UDB::idExecuteParameters);
     if (!ok)
         return false;
+    ok = m_MySql.AddSlowRequest(SPA::UDB::idExecuteBatch);
+    if (!ok)
+        return false;
     ok = m_MySql.AddSlowRequest(SPA::UDB::idClose);
     if (!ok)
         return false;

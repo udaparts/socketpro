@@ -78,6 +78,7 @@ namespace SPA {
             virtual void Execute(const std::wstring& sql, bool rowset, bool meta, bool lastInsertId, UINT64 index, INT64 &affected, int &res, std::wstring &errMsg, CDBVariant &vtId, UINT64 &fail_ok);
             virtual void Prepare(const std::wstring& sql, CParameterInfoArray& params, int &res, std::wstring &errMsg, unsigned int &parameters);
             virtual void ExecuteParameters(bool rowset, bool meta, bool lastInsertId, UINT64 index, INT64 &affected, int &res, std::wstring &errMsg, CDBVariant &vtId, UINT64 &fail_ok);
+            virtual void ExecuteBatch(const std::wstring& sql, const std::wstring& delimiter, int isolation, int plan, bool rowset, bool meta, bool lastInsertId, const std::wstring &dbConn, unsigned int flags, UINT64 index, INT64 &affected, int &res, std::wstring &errMsg, CDBVariant &vtId, UINT64 &fail_ok);
 
         private:
             void StartBLOB(unsigned int lenExpected);
@@ -98,7 +99,10 @@ namespace SPA {
             bool OpenSession(const std::wstring &userName, const std::string &ip);
             void RemoveUnusedTriggers(const std::vector<std::string> &vecTables);
             void CreateTriggers(const std::string &schema, const std::string &table);
-
+            void SetVParam(CDBVariantArray& vAll, size_t parameters, size_t pos, size_t ps);
+            static CParameterInfoArray GetVInfo(const CParameterInfoArray& vPInfo, size_t pos, size_t ps);
+            static std::vector<std::wstring> Split(const std::wstring &sql, const std::wstring &delimiter);
+            static size_t ComputeParameters(const std::wstring &sql);
             static std::wstring GetCreateTriggerSQL(const wchar_t *db, const wchar_t *table, const CPriKeyArray &vPriKey, SPA::UDB::tagUpdateEvent eventType);
             static std::string ToString(const CDBVariant &vtUTF8);
             static UINT64 ConvertBitsToInt(const unsigned char *s, unsigned int bytes);
@@ -124,6 +128,9 @@ namespace SPA {
             static void sql_shutdown(void *ctx, int shutdown_server);
             static void ToDecimal(const decimal_t &src, bool large, DECIMAL &dec);
             static bool DoAuthentication(const wchar_t *password, const std::string &hash);
+            static void ltrim_w(std::wstring &s);
+            static void rtrim_w(std::wstring &s);
+            static void trim_w(std::wstring &s);
 
         private:
             bool m_EnableMessages;
