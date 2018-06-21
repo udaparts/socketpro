@@ -60,7 +60,7 @@ with CSocketPool(CMysql) as spMysql:
         return mysql.ExecuteParameters(vData, cbExecute)
 
 
-    def cbBathHeader(mysql):
+    def cbBatchHeader(mysql):
         # called before rh, r and er
         pass
 
@@ -129,7 +129,7 @@ with CSocketPool(CMysql) as spMysql:
         # third, three sets of insert into employee(CompanyId,name,JoinDate,image,DESCRIPTION,Salary)values(?,?,?,?,?,?)
         # fourth, SELECT * from company;select * from employee;select curtime()
         # last, three sets of call sp_TestProc(?,?,?)
-        ok = mysql.ExecuteBatch(tagTransactionIsolation.tiUnspecified, sql, vData, cbExecute, cbRows, cbRowHeader, cbBathHeader, None, tagRollbackPlan.rpDefault, cbDiscarded, '|')
+        ok = mysql.ExecuteBatch(tagTransactionIsolation.tiUnspecified, sql, vData, cbExecute, cbRows, cbRowHeader, cbBatchHeader, None, tagRollbackPlan.rpDefault, cbDiscarded, '|')
         ok = mysql.WaitAll()
         print('') # put debug point here and see what happens to ra and vData
         print('There are ' + str(mysql.Outputs * 3) + ' output data returned')
