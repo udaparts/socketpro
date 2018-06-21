@@ -192,7 +192,7 @@ class Program
             vData.Add(sbBlob.UQueue.GetBuffer());
             vData.Add(wstr);
             vData.Add(6254000.0);
-            vData.Add(3);
+            vData.Add(0);
             vData.Add(4.5);
             vData.Add(0);
         }

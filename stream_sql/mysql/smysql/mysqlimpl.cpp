@@ -733,6 +733,7 @@ namespace SPA
             if ((server_status & SERVER_PS_OUT_PARAMS) == SERVER_PS_OUT_PARAMS) {
                 //tell output parameter data
                 unsigned int sent = impl->SendResult(idOutputParameter, q.GetBuffer(), q.GetSize());
+                q.SetSize(0);
                 if (sent == REQUEST_CANCELED || sent == SOCKET_NOT_FOUND) {
                     return;
                 }
