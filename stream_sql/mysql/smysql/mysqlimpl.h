@@ -100,7 +100,6 @@ namespace SPA {
             void RemoveUnusedTriggers(const std::vector<std::string> &vecTables);
             void CreateTriggers(const std::string &schema, const std::string &table);
             void SetVParam(CDBVariantArray& vAll, size_t parameters, size_t pos, size_t ps);
-            static CParameterInfoArray GetVInfo(const CParameterInfoArray& vPInfo, size_t pos, size_t ps);
             static std::vector<std::wstring> Split(const std::wstring &sql, const std::wstring &delimiter);
             static size_t ComputeParameters(const std::wstring &sql);
             static std::wstring GetCreateTriggerSQL(const wchar_t *db, const wchar_t *table, const CPriKeyArray &vPriKey, SPA::UDB::tagUpdateEvent eventType);

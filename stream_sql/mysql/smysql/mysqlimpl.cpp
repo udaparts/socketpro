@@ -145,6 +145,7 @@ namespace SPA
             impl->m_sql_flags = flags;
             impl->m_vColInfo.clear();
             impl->m_bBlob = false;
+            impl->m_ColIndex = 0;
             return 0;
         }
 
@@ -486,14 +487,19 @@ namespace SPA
             CMysqlImpl *impl = (CMysqlImpl *) ctx;
             if (impl->m_cmd == COM_STMT_PREPARE && impl->m_ColIndex == 0) {
                 impl->m_stmt.stmt_id = (unsigned long) value;
-            } else if (impl->m_NoRowset && !(impl->m_server_status & SERVER_PS_OUT_PARAMS))
+                ++impl->m_ColIndex;
                 return 0;
+            } else if (impl->m_NoRowset && !(impl->m_server_status & SERVER_PS_OUT_PARAMS)) {
+                return 0;
+            }
             CUQueue &q = impl->m_qSend;
             const CDBColumnInfo &info = impl->m_vColInfo[impl->m_ColIndex];
             q << info.DataType;
             switch (info.DataType) {
                 default:
-                    assert(false);
+                    if (impl->m_cmd != COM_STMT_PREPARE) {
+                        assert(false);
+                    }
                     break;
                 case VT_UI1:
                     q.Push((const unsigned char*) &value, sizeof (unsigned char));
@@ -1616,15 +1622,6 @@ namespace SPA
             }
         }
 
-        CParameterInfoArray CMysqlImpl::GetVInfo(const CParameterInfoArray& vPInfo, size_t pos, size_t ps) {
-            CParameterInfoArray v;
-            size_t count = vPInfo.size();
-            for (size_t n = 0; n < ps; ++n) {
-                v.push_back(vPInfo[pos + n]);
-            }
-            return v;
-        }
-
         std::vector<std::wstring> CMysqlImpl::Split(const std::wstring &sql, const std::wstring & delimiter) {
             std::vector<std::wstring> v;
             size_t d_len = delimiter.size();
@@ -1737,10 +1734,10 @@ namespace SPA
                     continue;
                 }
                 size_t ps = ComputeParameters(*it);
-                if (ps) { //prepared statements
-                    CParameterInfoArray vP = GetVInfo(vPInfo, pos, ps);
+                if (ps) {
+                    //prepared statements
                     unsigned int my_ps = 0;
-                    Prepare(*it, vP, r, err, my_ps);
+                    Prepare(*it, vPInfo, r, err, my_ps);
                     if (r) {
                         fail_ok += (((UINT64) rows) << 32);
                     } else {
