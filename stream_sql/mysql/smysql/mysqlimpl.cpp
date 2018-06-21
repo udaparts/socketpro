@@ -1354,7 +1354,6 @@ namespace SPA
             } else {
                 res = 0;
             }
-            vtId = (INT64) 0;
             UINT64 fails = m_fails;
             UINT64 oks = m_oks;
             std::string sql = SPA::Utilities::ToUTF8(wsql.c_str(), wsql.size());
@@ -1384,7 +1383,6 @@ namespace SPA
                 res = m_sql_errno;
                 errMsg = m_err_msg;
                 affected = 0;
-                vtId = (SPA::UINT64)m_last_insert_id;
                 ++m_fails;
             } else if (fail) {
                 errMsg = SERVICE_COMMAND_ERROR;
@@ -1778,7 +1776,6 @@ namespace SPA
         void CMysqlImpl::ExecuteParameters(bool rowset, bool meta, bool lastInsertId, UINT64 index, INT64 &affected, int &res, std::wstring &errMsg, CDBVariant &vtId, UINT64 & fail_ok) {
             affected = 0;
             m_indexCall = index;
-            vtId = (UINT64) 0;
             if (!m_stmt.m_pParam || !m_stmt.parameters) {
                 res = SPA::Mysql::ER_NO_PARAMETER_SPECIFIED;
                 errMsg = NO_PARAMETER_SPECIFIED;
@@ -1840,16 +1837,12 @@ namespace SPA
                         res = m_sql_errno;
                         errMsg = m_err_msg;
                     }
-                    if (m_last_insert_id && lastInsertId)
-                        vtId = (SPA::UINT64)m_last_insert_id;
                     ++m_fails;
                 } else if (fail) {
                     if (!res) {
                         errMsg = SERVICE_COMMAND_ERROR;
                         res = SPA::Mysql::ER_SERVICE_COMMAND_ERROR;
                     }
-                    if (m_last_insert_id && lastInsertId)
-                        vtId = (SPA::UINT64)m_last_insert_id;
                     ++m_fails;
                 } else {
                     ++m_oks;
