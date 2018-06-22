@@ -3749,8 +3749,11 @@ namespace SPA
                     continue;
                 }
                 size_t ps = ComputeParameters(*it);
-                if (ps) { //prepared statements
-                    CParameterInfoArray vP = GetVInfo(vPInfo, pos, ps);
+                if (ps) {
+                    //prepared statements
+                    CParameterInfoArray vP;
+                    if (vPInfo.size())
+                        vP = GetVInfo(vPInfo, pos, ps);
                     unsigned int my_ps = 0;
                     Prepare(*it, vP, r, err, my_ps);
                     if (r) {

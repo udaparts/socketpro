@@ -762,6 +762,16 @@ class CStreamSql : CClientPeer
                     break;
                 }
                 rows = (uint)m_vParam.Count / parameters;
+                if ((uint)vPInfo.Count != parameters)
+                {
+                    res = -2;
+                    errMsg = "No proper parameter information array not provided";
+                    m_fails += (uint)vSql.Count;
+                    fail_ok = (uint)vSql.Count;
+                    fail_ok <<= 32;
+                    SendResult(DB_CONSTS.idSqlBatchHeader, res, errMsg, (int)tagManagementSystem.msMsSQL, parameters, callIndex);
+                    break;
+                }
             }
             if (isolation != (int)tagTransactionIsolation.tiUnspecified)
             {
