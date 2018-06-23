@@ -3726,7 +3726,8 @@ namespace SPA
                     fail_ok <<= 32;
                     SendResult(idSqlBatchHeader, res, errMsg, (int) msODBC, (unsigned int) parameters, callIndex);
                     return;
-                }
+                } else if (IsCanceled() || !IsOpened())
+                    return;
             } else {
                 if (!m_global) {
                     errMsg = dbConn;
@@ -3734,7 +3735,10 @@ namespace SPA
                     errMsg = ODBC_GLOBAL_CONNECTION_STRING;
                 }
             }
-            SendResult(idSqlBatchHeader, res, errMsg, (int) msODBC, (unsigned int) parameters, callIndex);
+            unsigned int ret = SendResult(idSqlBatchHeader, res, errMsg, (int) msODBC, (unsigned int) parameters, callIndex);
+            if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
+                return;
+            }
             errMsg.clear();
             CDBVariantArray vAll;
             m_vParam.swap(vAll);
@@ -3756,6 +3760,8 @@ namespace SPA
                         vP = GetVInfo(vPInfo, pos, ps);
                     unsigned int my_ps = 0;
                     Prepare(*it, vP, r, err, my_ps);
+                    if (!IsOpened() || IsCanceled())
+                        return;
                     if (r) {
                         fail_ok += (((UINT64) rows) << 32);
                     } else {
@@ -3763,13 +3769,18 @@ namespace SPA
                         m_vParam.clear();
                         SetVParam(vAll, parameters, pos, ps);
                         unsigned int nParamPos = (unsigned int) ((pos << 16) + ps);
-                        SendResult(idParameterPosition, nParamPos);
+                        ret = SendResult(idParameterPosition, nParamPos);
+                        if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
+                            return;
+                        }
                         ExecuteParameters(rowset, meta, lastInsertId, callIndex, aff, r, err, vtId, fo);
                     }
                     pos += ps;
                 } else {
                     Execute(*it, rowset, meta, lastInsertId, callIndex, aff, r, err, vtId, fo);
                 }
+                if (!IsOpened() || IsCanceled())
+                    return;
                 if (r && !res) {
                     res = r;
                     errMsg = err;

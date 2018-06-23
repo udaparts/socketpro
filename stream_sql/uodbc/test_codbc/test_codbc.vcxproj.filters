@@ -21,7 +21,7 @@
     <ClCompile Include="..\..\..\include\membuffer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="test_sqlserver.cpp">
+    <ClCompile Include="test_mysql.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -266,7 +266,8 @@ class CStreamSql : CClientPeer
                         info.Precision = byte.Parse(dr["NumericPrecision"].ToString());
                     break;
                 case "datetimeoffset":
-                    info.DataType = tagVariantDataType.sdVT_BSTR; //!!!! use string instead GetDateTimeOffset()
+                    //!!!! use string instead GetDateTimeOffset()
+                    info.DataType = tagVariantDataType.sdVT_BSTR;
                     info.ColumnSize = 64;
                     break;
                 case "smallmoney":
@@ -283,7 +284,8 @@ class CStreamSql : CClientPeer
                 case "float":
                     info.DataType = tagVariantDataType.sdVT_R8;
                     break;
-                case "image": //!!!! FILESTREAM attribute 
+                case "image":
+                    //!!!! FILESTREAM attribute 
                     info.DataType = (tagVariantDataType.sdVT_UI1 | tagVariantDataType.sdVT_ARRAY);
                     info.ColumnSize = uint.MaxValue;
                     break;
@@ -335,7 +337,8 @@ class CStreamSql : CClientPeer
                         info.ColumnSize = uint.MaxValue;
                     break;
                 case "xml":
-                    info.DataType = tagVariantDataType.sdVT_BSTR; //!!!! use string instead GetSqlXml
+                    //!!!! use string instead GetSqlXml
+                    info.DataType = tagVariantDataType.sdVT_BSTR;
                     info.ColumnSize = uint.MaxValue;
                     info.Flags |= CDBColumnInfo.FLAG_XML;
                     break;
@@ -344,7 +347,8 @@ class CStreamSql : CClientPeer
                     break;
                 case "time":
                 default:
-                    info.DataType = tagVariantDataType.sdVT_BSTR; //!!!! use string instead GetValue
+                    //!!!! use string instead GetValue
+                    info.DataType = tagVariantDataType.sdVT_BSTR;
                     info.ColumnSize = 0; //default
                     break;
             }
@@ -397,8 +401,8 @@ class CStreamSql : CClientPeer
             if (batching)
                 CommitBatching();
             uint bytes = len;
-            uint ret = SendResult(DB_CONSTS.idStartBLOB, bytes + sizeof(ushort) + sizeof(uint) + sizeof(uint), //extra 4 bytes for string null termination
-                data_type, bytes);
+            //extra 4 bytes for string null termination
+            uint ret = SendResult(DB_CONSTS.idStartBLOB, bytes + sizeof(ushort) + sizeof(uint) + sizeof(uint), data_type, bytes);
             if (ret == SOCKET_NOT_FOUND || ret == REQUEST_CANCELED)
                 return false;
             uint offset = 0;
@@ -461,8 +465,9 @@ class CStreamSql : CClientPeer
                                 DateTimeOffset dto = reader.GetDateTimeOffset(col);
                                 q.Save((ushort)info.DataType).Save(dto.ToString());
                             }
-                            else if (info.ColumnSize == 0) //for example, case "time"
+                            else if (info.ColumnSize == 0)
                             {
+                                //for example, case "time"
                                 object obj = reader.GetValue(col);
                                 q.Save((ushort)info.DataType).Save(obj.ToString());
                             }
@@ -473,8 +478,9 @@ class CStreamSql : CClientPeer
                                 {
                                     q.Save((ushort)info.DataType).Save(s);
                                 }
-                                else ////text, ntext, varchar(max), nvarchar(max)
+                                else
                                 {
+                                    //text, ntext, varchar(max), nvarchar(max)
                                     if (q.GetSize() != 0 && !SendRows(q, true))
                                         return false;
                                     if (!PushText(s))
@@ -489,8 +495,9 @@ class CStreamSql : CClientPeer
                                 {
                                     q.Save((ushort)info.DataType).Save(bytes.Value);
                                 }
-                                else //image, varbinary(max) or file?
+                                else
                                 {
+                                    //image, varbinary(max) or file?
                                     if (q.GetSize() != 0 && !SendRows(q, true))
                                         return false;
                                     if (!PushBlob(bytes.Value, (uint)bytes.Length))
@@ -784,8 +791,12 @@ class CStreamSql : CClientPeer
                     SendResult(DB_CONSTS.idSqlBatchHeader, res, errMsg, (int)tagManagementSystem.msMsSQL, parameters, callIndex);
                     break;
                 }
+                else if (IsCanceled || !Connected)
+                    return fail_ok;
             }
-            SendResult(DB_CONSTS.idSqlBatchHeader, res, errMsg, (int)tagManagementSystem.msMsSQL, parameters, callIndex);
+            uint ret = SendResult(DB_CONSTS.idSqlBatchHeader, res, errMsg, (int)tagManagementSystem.msMsSQL, parameters, callIndex);
+            if (ret == CClientPeer.SOCKET_NOT_FOUND || ret == CClientPeer.REQUEST_CANCELED)
+                return fail_ok;
             errMsg = "";
             CDBVariantArray vAll = m_vParam;
             m_vParam = new CDBVariantArray();
@@ -803,6 +814,8 @@ class CStreamSql : CClientPeer
                     CParameterInfoArray vP = GetVInfo(vPInfo, pos, ps);
                     //prepared statements
                     uint my_ps = Prepare(s, vP, out r, out err);
+                    if (IsCanceled || !Connected)
+                        return fail_ok;
                     if (r != 0)
                     {
                         fail_ok += (((ulong)rows) << 32);
@@ -811,7 +824,9 @@ class CStreamSql : CClientPeer
                     {
                         SetVParam(vAll, parameters, pos, ps);
                         uint nParamPos = (pos << 16) + ps;
-                        SendResult(DB_CONSTS.idParameterPosition, nParamPos);
+                        ret = SendResult(DB_CONSTS.idParameterPosition, nParamPos);
+                        if (ret == CClientPeer.SOCKET_NOT_FOUND || ret == CClientPeer.REQUEST_CANCELED)
+                            return fail_ok;
                         fo = ExecuteParameters(rowset, meta, lastInsertId, callIndex, out aff, out r, out err, out vtId);
                     }
                     pos += ps;
@@ -827,6 +842,8 @@ class CStreamSql : CClientPeer
                 }
                 affected += aff;
                 fail_ok += fo;
+                if (IsCanceled || !Connected)
+                    return fail_ok;
                 if (r != 0 && isolation != (int)tagTransactionIsolation.tiUnspecified && plan == (int)tagRollbackPlan.rpDefault)
                     break;
             }

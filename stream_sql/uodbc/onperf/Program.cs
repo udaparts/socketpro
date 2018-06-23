@@ -19,7 +19,7 @@ class Program
             sql += " where " + filter;
         }
         Console.WriteLine("Computing ......");
-        uint count = 10000;
+        uint count = 500000;
         DateTime start = DateTime.Now;
         for (uint n = 0; n < count; ++n)
         {

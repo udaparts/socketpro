@@ -960,7 +960,8 @@ namespace SPA
                     fail_ok <<= 32;
                     SendResult(idSqlBatchHeader, res, errMsg, (int) msSqlite, (unsigned int) parameters, callIndex);
                     return;
-                }
+                } else if (IsCanceled() || !IsOpened())
+                    return;
             } else {
                 if (!m_global) {
                     const char *str = sqlite3_db_filename(m_pSqlite.get(), nullptr);
@@ -971,7 +972,10 @@ namespace SPA
                     m_csPeer.unlock();
                 }
             }
-            SendResult(idSqlBatchHeader, res, errMsg, (int) msSqlite, (unsigned int) parameters, callIndex);
+            unsigned int ret = SendResult(idSqlBatchHeader, res, errMsg, (int) msSqlite, (unsigned int) parameters, callIndex);
+            if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
+                return;
+            }
             errMsg.clear();
             CDBVariantArray vAll;
             m_vParam.swap(vAll);
@@ -984,6 +988,8 @@ namespace SPA
                 if (ps) { //prepared statements
                     unsigned int my_ps = 0;
                     Prepare(*it, vPInfo, r, err, my_ps);
+                    if (IsCanceled() || !IsOpened())
+                        return;
                     if (r) {
                         fail_ok += (((UINT64) rows) << 32);
                         if (!res) {
@@ -1013,6 +1019,8 @@ namespace SPA
                     vtId = id;
                 if (r && isolation != (int) tiUnspecified && plan == (int) rpDefault)
                     break;
+                if (IsCanceled() || !IsOpened())
+                    return;
                 affected += aff;
                 fail_ok += fo;
             }

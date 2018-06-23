@@ -12,11 +12,11 @@ typedef std::pair<CDBColumnInfoArray, CDBVariantArray> CPColumnRowset;
 typedef std::vector<CPColumnRowset> CRowsetArray;
 typedef SPA::ClientSide::COdbcBase CSender;
 
-
 void TestCreateTables(std::shared_ptr<CMyHandler> pOdbc);
 void TestPreparedStatements(std::shared_ptr<CMyHandler> pOdbc);
 void InsertBLOBByPreparedStatement(std::shared_ptr<CMyHandler> pOdbc);
 void TestStoredProcedure(std::shared_ptr<CMyHandler> pOdbc, CRowsetArray&ra, CDBVariantArray &vPData, unsigned int &oks);
+CDBVariantArray TestBatch(std::shared_ptr<CMyHandler> pOdbc, CRowsetArray&ra, unsigned int &oks);
 
 int main(int argc, char* argv[]) {
     CMyConnContext cc;
@@ -71,10 +71,13 @@ int main(int argc, char* argv[]) {
 
     ok = pOdbc->Open(L"dsn=ToMySQL;uid=root;pwd=Smash123", dr);
     TestCreateTables(pOdbc);
-    ok = pOdbc->Execute(L"delete from employee;delete from company", er);
+    ok = pOdbc->Execute(L"delete from employee", er);
+    ok = pOdbc->Execute(L"delete from company", er);
     TestPreparedStatements(pOdbc);
     InsertBLOBByPreparedStatement(pOdbc);
-    ok = pOdbc->Execute(L"SELECT * from company;select * from employee;select curtime()", er, r, rh);
+    ok = pOdbc->Execute(L"SELECT * from company", er, r, rh);
+    ok = pOdbc->Execute(L"select * from employee", er, r, rh);
+    ok = pOdbc->Execute(L"select curtime()", er, r, rh);
 
     CDBVariantArray vPData;
     DECIMAL dec;
@@ -97,12 +100,15 @@ int main(int argc, char* argv[]) {
 
     unsigned int oks = 0;
     TestStoredProcedure(pOdbc, ra, vPData, oks);
-    pOdbc->WaitAll();
+    ok = pOdbc->WaitAll();
     std::cout << std::endl;
     std::cout << "There are " << pOdbc->GetOutputs() * oks << " output data returned" << std::endl;
 
+    CDBVariantArray vData = TestBatch(pOdbc, ra, oks);
     ok = pOdbc->Tables(L"sakila", L"", L"%", L"TABLE", er, r, rh);
-    pOdbc->WaitAll();
+    ok = pOdbc->WaitAll();
+    std::cout << std::endl;
+    std::cout << "There are " << pOdbc->GetOutputs() * oks << " output data returned" << std::endl;
 
     ok = pOdbc->Execute(L"use sakila", er);
     auto pTables = ra.back();
@@ -112,7 +118,7 @@ int main(int argc, char* argv[]) {
         std::wstring sql = std::wstring(L"select * from ") + pTables.second[n * columns + 2].bstrVal;
         ok = pOdbc->Execute(sql.c_str(), er, r, rh);
     }
-    pOdbc->WaitAll();
+    ok = pOdbc->WaitAll();
 
     //print out all received rowsets
     int index = 0;
@@ -146,7 +152,7 @@ void InsertBLOBByPreparedStatement(std::shared_ptr<CMyHandler> pOdbc) {
         str += "The epic takedown of his opponent on an all-important voting day was extraordinary even by the standards of the 2016 campaign -- and quickly drew a scathing response from Trump.";
     }
 
-    const wchar_t *sqlInsert = L"insert into employee(EMPLOYEEID,CompanyId,name,JoinDate,image,DESCRIPTION,Salary)values(?,?,?,?,?,?,?)";
+    const wchar_t *sqlInsert = L"insert into employee(CompanyId,name,JoinDate,image,DESCRIPTION,Salary)values(?,?,?,?,?,?)";
     bool ok = pOdbc->Prepare(sqlInsert, [](CSender &handler, int res, const std::wstring & errMsg) {
         std::cout << "res = " << res << ", errMsg: ";
         std::wcout << errMsg << std::endl;
@@ -157,7 +163,6 @@ void InsertBLOBByPreparedStatement(std::shared_ptr<CMyHandler> pOdbc) {
     SPA::CScopeUQueue sbBlob;
 
     //first set of data
-    vData.push_back(1);
     vData.push_back(1); //google company id
     vData.push_back(L"Ted Cruz");
 #ifdef WIN32_64
@@ -172,7 +177,6 @@ void InsertBLOBByPreparedStatement(std::shared_ptr<CMyHandler> pOdbc) {
     vData.push_back(254000.12);
 
     //second set of data
-    vData.push_back(2);
     vData.push_back(1); //google company id
     vData.push_back("Donald Trump");
 #ifdef WIN32_64
@@ -188,7 +192,6 @@ void InsertBLOBByPreparedStatement(std::shared_ptr<CMyHandler> pOdbc) {
     vData.push_back(20254000.17);
 
     //third set of data
-    vData.push_back(3);
     vData.push_back(2); //Microsoft company id
     vData.push_back("Hillary Clinton");
 #ifdef WIN32_64
@@ -243,9 +246,192 @@ void TestPreparedStatements(std::shared_ptr<CMyHandler> pOdbc) {
     });
 }
 
+CDBVariantArray TestBatch(std::shared_ptr<CMyHandler> pOdbc, CRowsetArray&ra, unsigned int &oks) {
+    oks = 0;
+    //sql with delimiter ';'
+
+    //first, execute delete from employee;delete from company
+    //second, three sets of INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?)
+    //third, three sets of insert into employee(CompanyId,name,JoinDate,image,DESCRIPTION,Salary)values(?,?,?,?,?,?)
+    //fourth, SELECT * from company;select * from employee;select curtime()
+    //last, three sets of call sp_TestProc(?,?,?)
+    std::wstring sql = L"delete from employee;delete from company; \
+                        INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?); \
+                        insert into employee(CompanyId,name,JoinDate,image,DESCRIPTION,Salary)values(?,?,?,?,?,?); \
+                        SELECT * from company;select * from employee;select curtime() \
+                        call sp_TestProc(?,?,?)";
+    CParameterInfoArray vInfo;
+    CParameterInfo info;
+
+    info.DataType = VT_I4;
+    vInfo.push_back(info);
+    info.DataType = (VT_ARRAY | VT_I1);
+    vInfo.push_back(info);
+    info.DataType = (VT_ARRAY | VT_I1);
+    vInfo.push_back(info);
+    info.DataType = VT_R8;
+    vInfo.push_back(info);
+
+    info.DataType = VT_I4;
+    vInfo.push_back(info);
+    info.DataType = (VT_ARRAY | VT_I1);
+    vInfo.push_back(info);
+    info.DataType = VT_DATE;
+    vInfo.push_back(info);
+    info.DataType = (VT_ARRAY | VT_UI1);
+    info.ColumnSize = (~0); //BLOB
+    vInfo.push_back(info);
+    info.DataType = VT_BSTR;
+    info.ColumnSize = (~0); //TEXT
+    vInfo.push_back(info);
+    info.DataType = VT_DATE;
+    vInfo.push_back(info);
+
+    info.DataType = VT_I4;
+    vInfo.push_back(info);
+    info.DataType = VT_DECIMAL;
+    info.Direction = pdInputOutput;
+    info.Scale = 2;
+    vInfo.push_back(info);
+    info.DataType = VT_DATE;
+    info.Direction = pdOutput;
+    info.Scale = 0;
+    vInfo.push_back(info);
+
+    std::wstring wstr;
+    while (wstr.size() < 128 * 1024) {
+        wstr += L"广告做得不那么夸张的就不说了，看看这三家，都是正儿八经的公立三甲，附属医院，不是武警，也不是部队，更不是莆田，都在卫生部门直接监管下，照样明目张胆地骗人。";
+    }
+
+    std::string str;
+    while (str.size() < 256 * 1024) {
+        str += "The epic takedown of his opponent on an all-important voting day was extraordinary even by the standards of the 2016 campaign -- and quickly drew a scathing response from Trump.";
+    }
+
+    SYSTEMTIME st;
+    CDBVariantArray vData;
+    SPA::CScopeUQueue sbBlob;
+
+    //first set
+    vData.push_back(1);
+    vData.push_back("Google Inc.");
+    vData.push_back("1600 Amphitheatre Parkway, Mountain View, CA 94043, USA");
+    vData.push_back(66000000000.15);
+
+    vData.push_back(1); //google company id
+    vData.push_back(L"Ted Cruz");
+#ifdef WIN32_64
+    ::GetLocalTime(&st);
+#else
+    ::gettimeofday(&st, nullptr);
+#endif
+    vData.push_back(st);
+    sbBlob << wstr;
+    vData.push_back(CDBVariant(sbBlob->GetBuffer(), sbBlob->GetSize()));
+    vData.push_back(wstr.c_str());
+    vData.push_back(254000.12);
+
+    vData.push_back(1);
+    DECIMAL dec;
+    memset(&dec, 0, sizeof (dec));
+    dec.scale = 2;
+    dec.Lo64 = 235; //2.35
+    vData.push_back(dec);
+    //output not important, but they are used for receiving proper types of data on mysql
+    vData.push_back(1.2);
+
+    //second set
+    vData.push_back(2);
+    vData.push_back("Microsoft Inc.");
+    vData.push_back("700 Bellevue Way NE- 22nd Floor, Bellevue, WA 98804, USA");
+    vData.push_back(93600000000.24);
+
+    vData.push_back(1); //google company id
+    vData.push_back("Donald Trump");
+#ifdef WIN32_64
+    ::GetLocalTime(&st);
+#else
+    ::gettimeofday(&st, nullptr);
+#endif
+    vData.push_back(st);
+    sbBlob->SetSize(0);
+    sbBlob << str;
+    vData.push_back(CDBVariant(sbBlob->GetBuffer(), sbBlob->GetSize()));
+    vData.push_back(str.c_str());
+    vData.push_back(20254000.17);
+
+    vData.push_back(2);
+    dec.Lo64 = 15; //0.15
+    vData.push_back(dec);
+    //output not important, but they are used for receiving proper types of data on mysql
+    vData.push_back(true);
+
+    //third set
+    vData.push_back(3);
+    vData.push_back("Apple Inc.");
+    vData.push_back("1 Infinite Loop, Cupertino, CA 95014, USA");
+    vData.push_back(234000000000.05);
+
+    vData.push_back(2); //Microsoft company id
+    vData.push_back("Hillary Clinton");
+#ifdef WIN32_64
+    ::GetLocalTime(&st);
+#else
+    ::gettimeofday(&st, nullptr);
+#endif
+    vData.push_back(st);
+    sbBlob << wstr;
+    vData.push_back(CDBVariant(sbBlob->GetBuffer(), sbBlob->GetSize()));
+    vData.push_back(wstr.c_str());
+    vData.push_back(6254000.02);
+
+    vData.push_back(0);
+    dec.Lo64 = 215; //2.15
+    vData.push_back(dec);
+    //output not important, but they are used for receiving proper types of data on mysql
+    vData.push_back(true);
+
+    CMyHandler::DRows r = [&ra](CSender &handler, CDBVariantArray & vData) {
+        //rowset data come here
+        assert((vData.size() % handler.GetColumnInfo().size()) == 0);
+        CDBVariantArray &row_data = ra.back().second;
+        for (size_t n = 0; n < vData.size(); ++n) {
+            auto &d = vData[n];
+            row_data.push_back(std::move(d)); //avoid memory repeatedly allocation/de-allocation for better performance
+        }
+    };
+
+    CMyHandler::DRowsetHeader rh = [&ra](CSender & handler) {
+        //rowset header comes here
+        auto &vColInfo = handler.GetColumnInfo();
+        CPColumnRowset column_rowset_pair;
+        column_rowset_pair.first = vColInfo;
+        ra.push_back(column_rowset_pair);
+    };
+
+    if (pOdbc->ExecuteBatch(tiUnspecified, sql.c_str(), vData,
+            [](CSender & handler, int res, const std::wstring & errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & vtId) {
+                std::cout << "affected = " << affected << ", fails = " << (unsigned int) (fail_ok >> 32) << ", oks = " << (unsigned int) fail_ok << ", res = " << res << ", errMsg: ";
+                std::wcout << errMsg << std::endl;
+            }, r, rh, [](CSender & handler) {
+                //called before rh, r and er
+            }, vInfo, rpDefault, [](SPA::ClientSide::CAsyncServiceHandler *handler, bool canceled) {
+                //called when canceling or socket closed if client queue is NOT used
+            })) {
+    oks = 3;
+}
+    return vData;
+}
+
 void TestCreateTables(std::shared_ptr<CMyHandler> pOdbc) {
-    const wchar_t *create_database = L"Create database if not exists mysqldb character set utf8 collate utf8_general_ci;USE mysqldb";
+    const wchar_t *create_database = L"Create database if not exists mysqldb character set utf8 collate utf8_general_ci";
     bool ok = pOdbc->Execute(create_database, [](CSender &handler, int res, const std::wstring &errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & vtId) {
+        std::cout << "affected = " << affected << ", fails = " << (unsigned int) (fail_ok >> 32) << ", oks = " << (unsigned int) fail_ok << ", res = " << res << ", errMsg: ";
+        std::wcout << errMsg << std::endl;
+    });
+
+    const wchar_t *use_db = L"USE mysqldb";
+    ok = pOdbc->Execute(use_db, [](CSender &handler, int res, const std::wstring &errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & vtId) {
         std::cout << "affected = " << affected << ", fails = " << (unsigned int) (fail_ok >> 32) << ", oks = " << (unsigned int) fail_ok << ", res = " << res << ", errMsg: ";
         std::wcout << errMsg << std::endl;
     });
@@ -261,7 +447,14 @@ void TestCreateTables(std::shared_ptr<CMyHandler> pOdbc) {
         std::cout << "affected = " << affected << ", fails = " << (unsigned int) (fail_ok >> 32) << ", oks = " << (unsigned int) fail_ok << ", res = " << res << ", errMsg: ";
         std::wcout << errMsg << std::endl;
     });
-    const wchar_t *create_proc = L"DROP PROCEDURE IF EXISTS sp_TestProc;CREATE PROCEDURE sp_TestProc(in p_company_id int,inout p_sum_salary decimal(15,2),out p_last_dt datetime)BEGIN select * from employee where companyid >= p_company_id;select sum(salary)+p_sum_salary into p_sum_salary from employee where companyid>=p_company_id;select now()into p_last_dt;END";
+
+    const wchar_t *drop_proc = L"DROP PROCEDURE IF EXISTS sp_TestProc";
+    ok = pOdbc->Execute(drop_proc, [](CSender &handler, int res, const std::wstring &errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & vtId) {
+        std::cout << "affected = " << affected << ", fails = " << (unsigned int) (fail_ok >> 32) << ", oks = " << (unsigned int) fail_ok << ", res = " << res << ", errMsg: ";
+        std::wcout << errMsg << std::endl;
+    });
+
+    const wchar_t *create_proc = L"CREATE PROCEDURE sp_TestProc(in p_company_id int,inout p_sum_salary decimal(15,2),out p_last_dt datetime)BEGIN select * from employee where companyid >= p_company_id;select sum(salary)+p_sum_salary into p_sum_salary from employee where companyid>=p_company_id;select now()into p_last_dt;END";
     ok = pOdbc->Execute(create_proc, [](CSender &handler, int res, const std::wstring &errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & vtId) {
         std::cout << "affected = " << affected << ", fails = " << (unsigned int) (fail_ok >> 32) << ", oks = " << (unsigned int) fail_ok << ", res = " << res << ", errMsg: ";
         std::wcout << errMsg << std::endl;
@@ -285,7 +478,7 @@ void TestStoredProcedure(std::shared_ptr<CMyHandler> pOdbc, CRowsetArray&ra, CDB
     vInfo.push_back(info);
 
     //Not required to set input/output parameter structures for mysql ODBC driver as it always return output parameters as one recordset
-    bool ok = pOdbc->Prepare(L"{ call mysqldb.sp_TestProc(?, ?, ?) } ", [](CSender &handler, int res, const std::wstring & errMsg) {
+    bool ok = pOdbc->Prepare(L"{call mysqldb.sp_TestProc(?, ?, ?) } ", [](CSender &handler, int res, const std::wstring & errMsg) {
         std::cout << "res = " << res << ", errMsg: ";
         std::wcout << errMsg << std::endl;
     }, vInfo);
