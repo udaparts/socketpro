@@ -34,7 +34,7 @@ int main(int argc, char* argv[]) {
     std::getline(std::cin, s);
     int sync = std::atoi(s.c_str());
 
-    CMyPool spMysql;
+    CMyPool spMysql(true, 600000);
     bool ok = spMysql.StartSocketPool(cc, 1, 1);
     if (!ok) {
         std::cout << "Failed in connecting to remote async mysql server" << std::endl;
@@ -100,7 +100,7 @@ int main(int argc, char* argv[]) {
     if (filter.size() > 0) {
         sql += L" where " + filter;
     }
-    unsigned int count = 10000;
+    unsigned int count = 500000;
 #ifdef WIN32_64
     DWORD dwStart = ::GetTickCount();
 #else
@@ -129,7 +129,7 @@ int main(int argc, char* argv[]) {
     ok = pMysql->Prepare(sql_insert_parameter, dr);
     ok = pMysql->WaitAll();
     int index = 0;
-    count = 50000;
+    count = 2500000;
     std::cout << std::endl;
     std::cout << "Going to insert " << count << " records into the table mysqldb.company" << std::endl;
 #ifdef WIN32_64

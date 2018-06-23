@@ -10,7 +10,7 @@ class Program
         string tableName = Console.ReadLine();
         Console.WriteLine("sql filter: ");
         string filter = Console.ReadLine();
-        string mysql_conn = "DSN=ToMySQL;Uid=root;Pwd=Smash123";
+        string mysql_conn = "DSN=ToSqlServer64;Uid=sa;Pwd=Smash123";
         OdbcConnection conn = new OdbcConnection(mysql_conn);
         conn.Open();
         string sql = "select * from " + tableName;
