@@ -164,7 +164,7 @@ void InsertBLOBByPreparedStatement(std::shared_ptr<CMyHandler> pOdbc) {
 
     //first set of data
     vData.push_back(1); //google company id
-    vData.push_back(L"Ted Cruz");
+    vData.push_back("Ted Cruz");
 #ifdef WIN32_64
     ::GetLocalTime(&st);
 #else
@@ -188,7 +188,7 @@ void InsertBLOBByPreparedStatement(std::shared_ptr<CMyHandler> pOdbc) {
     sbBlob->SetSize(0);
     sbBlob << str;
     vData.push_back(CDBVariant(sbBlob->GetBuffer(), sbBlob->GetSize()));
-    vData.push_back(str.c_str());
+    vData.push_back(SPA::Utilities::ToWide(str.c_str(), str.size()).c_str());
     vData.push_back(20254000.17);
 
     //third set of data
