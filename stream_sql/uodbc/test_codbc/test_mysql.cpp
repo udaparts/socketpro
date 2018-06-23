@@ -258,8 +258,8 @@ CDBVariantArray TestBatch(std::shared_ptr<CMyHandler> pOdbc, CRowsetArray&ra, un
     std::wstring sql = L"delete from employee;delete from company; \
                         INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?); \
                         insert into employee(CompanyId,name,JoinDate,image,DESCRIPTION,Salary)values(?,?,?,?,?,?); \
-                        SELECT * from company;select * from employee;select curtime() \
-                        call sp_TestProc(?,?,?)";
+                        SELECT * from company;select * from employee;select curtime(); \
+						{call sp_TestProc(?,?,?)}";
     CParameterInfoArray vInfo;
     CParameterInfo info;
 
@@ -281,10 +281,10 @@ CDBVariantArray TestBatch(std::shared_ptr<CMyHandler> pOdbc, CRowsetArray&ra, un
     info.DataType = (VT_ARRAY | VT_UI1);
     info.ColumnSize = (~0); //BLOB
     vInfo.push_back(info);
-    info.DataType = VT_BSTR;
+    info.DataType = (VT_ARRAY | VT_I1);
     info.ColumnSize = (~0); //TEXT
     vInfo.push_back(info);
-    info.DataType = VT_DATE;
+    info.DataType = VT_R8;
     vInfo.push_back(info);
 
     info.DataType = VT_I4;
@@ -319,7 +319,7 @@ CDBVariantArray TestBatch(std::shared_ptr<CMyHandler> pOdbc, CRowsetArray&ra, un
     vData.push_back(66000000000.15);
 
     vData.push_back(1); //google company id
-    vData.push_back(L"Ted Cruz");
+    vData.push_back("Ted Cruz");
 #ifdef WIN32_64
     ::GetLocalTime(&st);
 #else
@@ -328,7 +328,7 @@ CDBVariantArray TestBatch(std::shared_ptr<CMyHandler> pOdbc, CRowsetArray&ra, un
     vData.push_back(st);
     sbBlob << wstr;
     vData.push_back(CDBVariant(sbBlob->GetBuffer(), sbBlob->GetSize()));
-    vData.push_back(wstr.c_str());
+    vData.push_back(SPA::Utilities::ToUTF8(wstr.c_str(), wstr.size()).c_str());
     vData.push_back(254000.12);
 
     vData.push_back(1);
@@ -382,7 +382,7 @@ CDBVariantArray TestBatch(std::shared_ptr<CMyHandler> pOdbc, CRowsetArray&ra, un
     vData.push_back(st);
     sbBlob << wstr;
     vData.push_back(CDBVariant(sbBlob->GetBuffer(), sbBlob->GetSize()));
-    vData.push_back(wstr.c_str());
+    vData.push_back(SPA::Utilities::ToUTF8(wstr.c_str(), wstr.size()).c_str());
     vData.push_back(6254000.02);
 
     vData.push_back(0);
