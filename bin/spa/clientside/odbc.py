@@ -1,7 +1,7 @@
 
 from spa.memqueue import CUQueue, CScopeUQueue
 from spa.clientside.asyncdbhandler import CAsyncDBHandler
-from spa import BaseServiceID, tagBaseRequestID
+from spa import BaseServiceID, tagBaseRequestID, Pair
 
 class COdbc(CAsyncDBHandler):
     sidOdbc = BaseServiceID.sidODBC # asynchronous ODBC service id
@@ -59,12 +59,12 @@ class COdbc(CAsyncDBHandler):
 
     def Statistics(self, CatalogName, SchemaName, TableName, unique, reserved, handler, row, rh, canceled = None):
         q = CScopeUQueue.Lock().SaveString(CatalogName).SaveString(SchemaName).SaveString(TableName).SaveUShort(unique).SaveUShort(reserved)
-        cb = CAsyncDBHandler.Pair(COdbc.idSQLStatistics, handler)
+        cb = Pair(COdbc.idSQLStatistics, handler)
         index = self.GetCallIndex()
         q.SaveULong(index)
         with self._csOneSending:
             with self._csDB:
-                self._mapRowset[index] = CAsyncDBHandler.Pair(rh, row)
+                self._mapRowset[index] = Pair(rh, row)
                 self._deqResult.append(cb)
             ok = self.SendRequest(COdbc.idSQLStatistics, q, None, canceled)
             if not ok:
@@ -76,13 +76,13 @@ class COdbc(CAsyncDBHandler):
 
     def SpecialColumns(self, identifierType, CatalogName, SchemaName, TableName, scope, nullable, handler, row, rh, canceled = None):
         q = CScopeUQueue.Lock().SaveShort(identifierType).SaveString(CatalogName).SaveString(SchemaName).SaveString(TableName).SaveShort(scope).SaveShort(nullable)
-        cb = CAsyncDBHandler.Pair(COdbc.idSQLSpecialColumns, handler)
+        cb = Pair(COdbc.idSQLSpecialColumns, handler)
         index = self.GetCallIndex()
         q.SaveULong(index)
         ok = True
         with self._csOneSending:
             with self._csDB:
-                self._mapRowset[index] = CAsyncDBHandler.Pair(rh, row)
+                self._mapRowset[index] = Pair(rh, row)
                 self._deqResult.append(cb)
             ok = self.SendRequest(COdbc.idSQLSpecialColumns, q, None, canceled)
             if not ok:
@@ -94,13 +94,13 @@ class COdbc(CAsyncDBHandler):
 
     def ForeignKeys(self, PKCatalogName, PKSchemaName, PKTableName, FKCatalogName, FKSchemaName, FKTableName, handler, row, rh, canceled = None):
         q = CScopeUQueue.Lock().SaveString(PKCatalogName).SaveString(PKSchemaName).SaveString(PKTableName).SaveString(FKCatalogName).SaveString(FKSchemaName).SaveString(FKTableName)
-        cb = CAsyncDBHandler.Pair(COdbc.idSQLForeignKeys, handler)
+        cb = Pair(COdbc.idSQLForeignKeys, handler)
         index = self.GetCallIndex()
         q.SaveULong(index)
         ok = True
         with self._csOneSending:
             with self._csDB:
-                self._mapRowset[index] = CAsyncDBHandler.Pair(rh, row)
+                self._mapRowset[index] = Pair(rh, row)
                 self._deqResult.append(cb)
             ok = self.SendRequest(COdbc.idSQLForeignKeys, q, None, canceled)
             if not ok:
@@ -112,13 +112,13 @@ class COdbc(CAsyncDBHandler):
 
     def _DoMeta3(self, id, s0, s1, s2, handler, row, rh, canceled):
         q = CScopeUQueue.Lock().SaveString(s0).SaveString(s1).SaveString(s2)
-        cb = CAsyncDBHandler.Pair(id, handler)
+        cb = Pair(id, handler)
         index = self.GetCallIndex()
         q.SaveULong(index)
         ok = True
         with self._csOneSending:
             with self._csDB:
-                self._mapRowset[index] = CAsyncDBHandler.Pair(rh, row)
+                self._mapRowset[index] = Pair(rh, row)
                 self._deqResult.append(cb)
             ok = self.SendRequest(id, q, None, canceled)
             if not ok:
@@ -130,13 +130,13 @@ class COdbc(CAsyncDBHandler):
 
     def _DoMeta4(self, id, s0, s1, s2, s3, handler, row, rh, canceled):
         q = CScopeUQueue.Lock().SaveString(s0).SaveString(s1).SaveString(s2).SaveString(s3)
-        cb = CAsyncDBHandler.Pair(id, handler)
+        cb = Pair(id, handler)
         index = self.GetCallIndex()
         q.SaveULong(index)
         ok = True
         with self._csOneSending:
             with self._csDB:
-                self._mapRowset[index] = CAsyncDBHandler.Pair(rh, row)
+                self._mapRowset[index] = Pair(rh, row)
                 self._deqResult.append(cb)
             ok = self.SendRequest(id, q, None, canceled)
             if not ok:
