@@ -69,7 +69,7 @@ class Program
             Console.WriteLine();
             Console.WriteLine("There are {0} output data returned", mysql.Outputs * 2);
 
-            TestBatch(mysql);
+            TestBatch(mysql, ra);
 
             int index = 0;
             Console.WriteLine();
@@ -130,7 +130,7 @@ class Program
         ok = mysql.Execute(vData, er);
     }
 
-    static void TestBatch(CMysql mysql) {
+    static void TestBatch(CMysql mysql, List<KeyValuePair<CDBColumnInfoArray, CDBVariantArray>> ra) {
         //sql with delimiter '|'
         string sql = @" delete from employee;delete from company|
                         INSERT INTO company(ID, NAME, ADDRESS, Income) VALUES (?, ?, ?, ?)|
@@ -196,7 +196,6 @@ class Program
             vData.Add(4.5);
             vData.Add(0);
         }
-        List<KeyValuePair<CDBColumnInfoArray, CDBVariantArray>> ra = new List<KeyValuePair<CDBColumnInfoArray, CDBVariantArray>>();
         CMysql.DRows r = (handler, rowData) => {
             //rowset data come here
             int last = ra.Count - 1;
@@ -215,7 +214,7 @@ class Program
         //last, three sets of call sp_TestProc(?,?,?)
         bool ok = mysql.ExecuteBatch(tagTransactionIsolation.tiUnspecified, sql, vData, er, r, rh, (h) => {
             //called before rh, r and er
-            ra.Clear();
+            //ra.Clear();
         }, null, tagRollbackPlan.rpDefault, (h, canceled)=> {
             //called when canceling or socket closed if client queue is NOT used
         }, "|");
