@@ -18,8 +18,8 @@ namespace web_two {
         private Task<string> DoInserts(CDBVariantArray v) {
             TaskCompletionSource<string> tcs = new TaskCompletionSource<string>();
             var handler = Global.Master.LockByMyAlgorithm(6000); //6 seconds
-            string sql = "INSERT INTO mysample.EMPLOYEE(CompanyId,Name,JoinDate)VALUES(?,?,?)";
-            bool ok = handler.ExecuteBatch(tagTransactionIsolation.tiReadCommited, sql,
+            bool ok = handler.ExecuteBatch(tagTransactionIsolation.tiReadCommited,
+                "INSERT INTO mysample.EMPLOYEE(CompanyId,Name,JoinDate)VALUES(?,?,?)",
                 v, (h, res, errMsg, affected, fail_ok, vtId) => {
                     if (res != 0) tcs.SetResult(errMsg);
                     else tcs.SetResult("Last employeeid=" + vtId.ToString());
