@@ -19,7 +19,7 @@ public class Test_java {
     static void InsertBLOBByPreparedStatement(CMysql mysql, CMysql.DResult dr, CMysql.DExecuteResult er) {
         String wstr = "";
         while (wstr.length() < 128 * 1024) {
-            wstr += "广告�?�得�?那么夸张的就�?说了，看看这三家，都是正儿八�?的公立三甲，附属医院，�?是武警，也�?是部队，更�?是莆田，都在�?�生部门直接监管下，照样明目张胆地骗人。";
+            wstr += "广告�?�得�?那么夸张的就�?说了，看看这三家，都是正儿八�?的公立三甲，附属医院，�?是武警，也�?是部队，更�?是莆田，都在�?�生部门直接监管下，照样明目张胆地骗人。";
         }
         String str = "";
         while (str.length() < 256 * 1024) {
@@ -158,6 +158,7 @@ public class Test_java {
         vPData.add(0);
 
         TestStoredProcedure(mysql, dr, er, ra, vPData);
+        CDBVariantArray vData = TestBatch(mysql, er, ra);
         ok = mysql.WaitAll();
         int index = 0;
         System.out.println();
@@ -176,6 +177,124 @@ public class Test_java {
         System.out.println();
         System.out.println("Press any key to close the application ......");
         in.nextLine();
+    }
+
+    static CDBVariantArray TestBatch(CMysql mysql, CMysql.DExecuteResult er, final java.util.ArrayList<Pair<CDBColumnInfoArray, CDBVariantArray>> ra) {
+        //sql with delimiter '|'
+        String sql = "delete from employee;delete from company|"
+                + "INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?)|"
+                + "insert into employee(CompanyId,name,JoinDate,image,DESCRIPTION,Salary)values(?,?,?,?,?,?)|"
+                + "SELECT * from company;select * from employee;select curtime()|"
+                + "call sp_TestProc(?,?,?)";
+        String wstr = "";
+        while (wstr.length() < 128 * 1024) {
+            wstr += "广告做得不那么夸张的就不说了，看看这三家，都是正儿八经的公立三甲，附属医院，不是武警，也不是部队，更不是莆田，都在卫生部门直接监管下，照样明目张胆地骗人。";
+        }
+        String str = "";
+        while (str.length() < 256 * 1024) {
+            str += "The epic takedown of his opponent on an all-important voting day was extraordinary even by the standards of the 2016 campaign -- and quickly drew a scathing response from Trump.";
+        }
+
+        CDBVariantArray vData = new CDBVariantArray();
+        CScopeUQueue sbBlob = new CScopeUQueue();
+
+        //first set
+        vData.add(1);
+        vData.add("Google Inc.");
+        vData.add("1600 Amphitheatre Parkway, Mountain View, CA 94043, USA");
+        vData.add(66000000000.12);
+
+        vData.add(1); //google company id
+        vData.add("Ted Cruz");
+        vData.add(new java.util.Date());
+        sbBlob.Save(wstr);
+        vData.add(sbBlob.getUQueue().GetBuffer());
+        vData.add(wstr);
+        vData.add(254000.15);
+
+        vData.add(1);
+        vData.add(1.52);
+        vData.add(0);
+
+        //second set
+        vData.add(2);
+        vData.add("Microsoft Inc.");
+        vData.add("700 Bellevue Way NE- 22nd Floor, Bellevue, WA 98804, USA");
+        vData.add(93600000000.21);
+
+        vData.add(1); //google company id
+        vData.add("Donald Trump");
+        vData.add(new java.util.Date());
+        sbBlob.getUQueue().SetSize(0);
+        sbBlob.Save(str);
+        vData.add(sbBlob.getUQueue().GetBuffer());
+        vData.add(str);
+        vData.add(20254000.09);
+
+        vData.add(2);
+        vData.add(2.11);
+        vData.add(0);
+
+        //third set
+        vData.add(3);
+        vData.add("Apple Inc.");
+        vData.add("1 Infinite Loop, Cupertino, CA 95014, USA");
+        vData.add(234000000000.14);
+
+        vData.add(2); //Microsoft company id
+        vData.add("Hillary Clinton");
+        vData.add(new java.util.Date());
+        sbBlob.Save(wstr);
+        vData.add(sbBlob.getUQueue().GetBuffer());
+        vData.add(wstr);
+        vData.add(6254000.12);
+
+        vData.add(0);
+        vData.add(6.16);
+        vData.add(0);
+
+        CMysql.DRows r = new CMysql.DRows() {
+            //rowset data come here
+            @Override
+            public void invoke(CAsyncDBHandler dbHandler, CDBVariantArray lstData) {
+                int last = ra.size() - 1;
+                Pair<CDBColumnInfoArray, CDBVariantArray> item = ra.get(last);
+                item.second.addAll(lstData);
+            }
+        };
+
+        CMysql.DRowsetHeader rh = new CMysql.DRowsetHeader() {
+            @Override
+            public void invoke(CAsyncDBHandler dbHandler) {
+                //rowset header comes here
+                CDBColumnInfoArray vColInfo = dbHandler.getColumnInfo();
+                CDBVariantArray vData = new CDBVariantArray();
+                Pair<CDBColumnInfoArray, CDBVariantArray> item = new Pair<>(vColInfo, vData);
+                ra.add(item);
+            }
+        };
+
+        CMysql.DRowsetHeader batchHeader = new CMysql.DRowsetHeader() {
+            @Override
+            public void invoke(CAsyncDBHandler dbHandler) {
+                //called one time only before calling rh, r and er
+            }
+        };
+
+        CMysql.DDiscarded discarded = new CMysql.DDiscarded() {
+            @Override
+            public void invoke(CAsyncServiceHandler dbHandler, boolean canceled) {
+                //called when canceling or socket closed if client queue is NOT used
+            }
+        };
+
+        //first, execute delete from employee;delete from company
+        //second, three sets of INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?)
+        //third, three sets of insert into employee(CompanyId,name,JoinDate,image,DESCRIPTION,Salary)values(?,?,?,?,?,?)
+        //fourth, SELECT * from company;select * from employee;select curtime()
+        //last, three sets of call sp_TestProc(?,?,?)
+        boolean ok = mysql.ExecuteBatch(tagTransactionIsolation.tiUnspecified, sql, vData, er, r, rh, batchHeader, null, tagRollbackPlan.rpDefault, discarded, "|");
+        return vData;
     }
 
     static void TestStoredProcedure(CMysql mysql, CMysql.DResult dr, CMysql.DExecuteResult er, final java.util.ArrayList<Pair<CDBColumnInfoArray, CDBVariantArray>> ra, CDBVariantArray vPData) {
