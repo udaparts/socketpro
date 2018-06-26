@@ -21,8 +21,9 @@ namespace web_two {
             bool ok = handler.ExecuteBatch(tagTransactionIsolation.tiReadCommited,
                 "INSERT INTO mysample.EMPLOYEE(CompanyId,Name,JoinDate)VALUES(?,?,?)",
                 v, (h, res, errMsg, affected, fail_ok, vtId) => {
-                    if (res != 0) tcs.SetResult(errMsg);
-                    else tcs.SetResult("Last employeeid=" + vtId.ToString());
+                    try {
+                        tcs.SetResult((res != 0) ? errMsg : "Last employeeid=" + vtId.ToString());
+                    } finally { }
                 });
             if (!handler.AttachedClientSocket.Connected)
                 tcs.SetResult("No session to master DB now but request is safely saved for processing later");
