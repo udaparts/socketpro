@@ -54,14 +54,14 @@ int main(int argc, char* argv[]) {
     //optionally start a persistent queue at client side for auto failure recovery and once-only delivery
     //ok = pSqlite->GetAttachedClientSocket()->GetClientQueue().StartQueue("sqlite_queue", 24 * 3600, false); //time-to-live 1 day and true for encryption
 
-    CMyHandler::DResult dr = [](CMyHandler &handler, int res, const std::wstring & errMsg){
+    CMyHandler::DResult dr = [](CMyHandler &handler, int res, const std::wstring & errMsg) {
         if (res) {
             std::cout << "res = " << res;
             std::wcout << L", errMsg: " << errMsg << std::endl;
         }
     };
 
-    CMyHandler::DExecuteResult er = [&obtained, &ra](CMyHandler &handler, int res, const std::wstring &errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & vtId){
+    CMyHandler::DExecuteResult er = [&obtained, &ra](CMyHandler &handler, int res, const std::wstring &errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & vtId) {
         if (res) {
             std::cout << "affected = " << affected << ", fails = " << (unsigned int) (fail_ok >> 32) << ", oks = " << (unsigned int) fail_ok << ", res = " << res << ", errMsg: ";
             std::wcout << errMsg;
@@ -71,7 +71,7 @@ int main(int argc, char* argv[]) {
         ++obtained;
     };
 
-    CMyHandler::DRows r = [&ra](CMyHandler &handler, CDBVariantArray & vData){
+    CMyHandler::DRows r = [&ra](CMyHandler &handler, CDBVariantArray & vData) {
         //rowset data come here
         assert((vData.size() % handler.GetColumnInfo().size()) == 0);
         CDBVariantArray &row_data = ra.back().second;
@@ -81,7 +81,7 @@ int main(int argc, char* argv[]) {
         }
     };
 
-    CMyHandler::DRowsetHeader rh = [&ra](CMyHandler & handler){
+    CMyHandler::DRowsetHeader rh = [&ra](CMyHandler & handler) {
         //rowset header comes here
         auto &vColInfo = handler.GetColumnInfo();
         CPColumnRowset column_rowset_pair;
