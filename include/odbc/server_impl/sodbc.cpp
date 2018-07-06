@@ -80,7 +80,7 @@ unsigned short WINAPI GetOneSlowRequestID(unsigned int serviceId, unsigned short
             return SPA::Odbc::idSQLTablePrivileges;
         case 16:
             return SPA::Odbc::idSQLTables;
-		case 17:
+        case 17:
             return SPA::UDB::idExecuteBatch;
         default:
             break;

@@ -109,13 +109,13 @@ namespace SPA {
             bool PushRecords(SQLHSTMT hstmt, int &res, std::wstring &errMsg);
             bool PushInfo(SQLHDBC hdbc);
             bool PreprocessPreparedStatement();
-            bool CheckInputParameterDataTypes();
             bool SetInputParamInfo();
             bool BindParameters(unsigned int r, SQLLEN *pLenInd);
             unsigned int ComputeOutputMaxSize();
             bool PushOutputParameters(unsigned int r, UINT64 index);
             void ResetMemories();
             void SetVParam(CDBVariantArray& vAll, size_t parameters, size_t pos, size_t ps);
+            void SetCallParams(int &res, std::wstring &errMsg);
             static CParameterInfoArray GetVInfo(const CParameterInfoArray& vPInfo, size_t pos, size_t ps);
             static std::vector<std::wstring> Split(const std::wstring &sql, const std::wstring &delimiter);
             static size_t ComputeParameters(const std::wstring &sql);
@@ -167,6 +167,7 @@ namespace SPA {
 
             std::vector<CBindInfo> m_vBindInfo;
             unsigned int m_nRecordSize;
+            SPA::CUQueue *m_pNoSending;
 
             static const wchar_t* NO_DB_OPENED_YET;
             static const wchar_t* BAD_END_TRANSTACTION_PLAN;

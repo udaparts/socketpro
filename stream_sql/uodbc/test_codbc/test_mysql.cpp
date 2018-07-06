@@ -15,8 +15,8 @@ typedef SPA::ClientSide::COdbcBase CSender;
 void TestCreateTables(std::shared_ptr<CMyHandler> pOdbc);
 void TestPreparedStatements(std::shared_ptr<CMyHandler> pOdbc);
 void InsertBLOBByPreparedStatement(std::shared_ptr<CMyHandler> pOdbc);
-void TestStoredProcedure(std::shared_ptr<CMyHandler> pOdbc, CRowsetArray&ra, CDBVariantArray &vPData, unsigned int &oks);
-CDBVariantArray TestBatch(std::shared_ptr<CMyHandler> pOdbc, CRowsetArray&ra, unsigned int &oks);
+void TestStoredProcedure(std::shared_ptr<CMyHandler> pOdbc, CRowsetArray&ra, CDBVariantArray &vData, unsigned int &oks);
+void TestBatch(std::shared_ptr<CMyHandler> pOdbc, CRowsetArray&ra, CDBVariantArray &vData, unsigned int &oks);
 
 int main(int argc, char* argv[]) {
     CMyConnContext cc;
@@ -79,32 +79,15 @@ int main(int argc, char* argv[]) {
     ok = pOdbc->Execute(L"select * from employee", er, r, rh);
     ok = pOdbc->Execute(L"select curtime()", er, r, rh);
 
-    CDBVariantArray vPData;
-    DECIMAL dec;
-    memset(&dec, 0, sizeof (dec));
-
-    //first set
-    vPData.push_back(1);
-    dec.scale = 2;
-    dec.Lo64 = 235; //2.35
-    vPData.push_back(dec);
-    //output not important, but they are used for receiving proper types of data on mysql
-    vPData.push_back(1.2);
-
-    //second set
-    vPData.push_back(2);
-    dec.Lo64 = 15; //0.15
-    vPData.push_back(dec);
-    //output not important, but they are used for receiving proper types of data on mysql
-    vPData.push_back(true);
-
     unsigned int oks = 0;
+    CDBVariantArray vPData;
     TestStoredProcedure(pOdbc, ra, vPData, oks);
     ok = pOdbc->WaitAll();
     std::cout << std::endl;
     std::cout << "There are " << pOdbc->GetOutputs() * oks << " output data returned" << std::endl;
 
-    CDBVariantArray vData = TestBatch(pOdbc, ra, oks);
+    CDBVariantArray vData;
+    TestBatch(pOdbc, ra, vData, oks);
     ok = pOdbc->Tables(L"sakila", L"", L"%", L"TABLE", er, r, rh);
     ok = pOdbc->WaitAll();
     std::cout << std::endl;
@@ -246,7 +229,7 @@ void TestPreparedStatements(std::shared_ptr<CMyHandler> pOdbc) {
     });
 }
 
-CDBVariantArray TestBatch(std::shared_ptr<CMyHandler> pOdbc, CRowsetArray&ra, unsigned int &oks) {
+void TestBatch(std::shared_ptr<CMyHandler> pOdbc, CRowsetArray&ra, CDBVariantArray &vData, unsigned int &oks) {
     oks = 0;
     //sql with delimiter ';'
 
@@ -261,43 +244,6 @@ CDBVariantArray TestBatch(std::shared_ptr<CMyHandler> pOdbc, CRowsetArray&ra, un
                         SELECT * from company;select * from employee;select curtime(); \
 						{call sp_TestProc(?,?,?)}";
     CParameterInfoArray vInfo;
-    CParameterInfo info;
-
-    info.DataType = VT_I4;
-    vInfo.push_back(info);
-    info.DataType = (VT_ARRAY | VT_I1);
-    vInfo.push_back(info);
-    info.DataType = (VT_ARRAY | VT_I1);
-    vInfo.push_back(info);
-    info.DataType = VT_R8;
-    vInfo.push_back(info);
-
-    info.DataType = VT_I4;
-    vInfo.push_back(info);
-    info.DataType = (VT_ARRAY | VT_I1);
-    vInfo.push_back(info);
-    info.DataType = VT_DATE;
-    vInfo.push_back(info);
-    info.DataType = (VT_ARRAY | VT_UI1);
-    info.ColumnSize = (~0); //BLOB
-    vInfo.push_back(info);
-    info.DataType = (VT_ARRAY | VT_I1);
-    info.ColumnSize = (~0); //TEXT
-    vInfo.push_back(info);
-    info.DataType = VT_R8;
-    vInfo.push_back(info);
-
-    info.DataType = VT_I4;
-    vInfo.push_back(info);
-    info.DataType = VT_DECIMAL;
-    info.Direction = pdInputOutput;
-    info.Scale = 2;
-    vInfo.push_back(info);
-    info.DataType = VT_DATE;
-    info.Direction = pdOutput;
-    info.Scale = 0;
-    vInfo.push_back(info);
-
     std::wstring wstr;
     while (wstr.size() < 128 * 1024) {
         wstr += L"广告做得不那么夸张的就不说了，看看这三家，都是正儿八经的公立三甲，附属医院，不是武警，也不是部队，更不是莆田，都在卫生部门直接监管下，照样明目张胆地骗人。";
@@ -309,8 +255,8 @@ CDBVariantArray TestBatch(std::shared_ptr<CMyHandler> pOdbc, CRowsetArray&ra, un
     }
 
     SYSTEMTIME st;
-    CDBVariantArray vData;
     SPA::CScopeUQueue sbBlob;
+    vData.clear();
 
     //first set
     vData.push_back(1);
@@ -420,7 +366,6 @@ CDBVariantArray TestBatch(std::shared_ptr<CMyHandler> pOdbc, CRowsetArray&ra, un
             })) {
     oks = 3;
 }
-    return vData;
 }
 
 void TestCreateTables(std::shared_ptr<CMyHandler> pOdbc) {
@@ -461,27 +406,13 @@ void TestCreateTables(std::shared_ptr<CMyHandler> pOdbc) {
     });
 }
 
-void TestStoredProcedure(std::shared_ptr<CMyHandler> pOdbc, CRowsetArray&ra, CDBVariantArray &vPData, unsigned int &oks) {
-    CParameterInfoArray vInfo;
-    CParameterInfo info;
-    info.DataType = VT_I4;
-    vInfo.push_back(info);
-
-    info.DataType = VT_DECIMAL;
-    info.Direction = pdInputOutput;
-    info.Scale = 2;
-    vInfo.push_back(info);
-
-    info.DataType = VT_DATE;
-    info.Direction = pdOutput;
-    info.Scale = 0;
-    vInfo.push_back(info);
-
-    //Not required to set input/output parameter structures for mysql ODBC driver as it always return output parameters as one recordset
+void TestStoredProcedure(std::shared_ptr<CMyHandler> pOdbc, CRowsetArray&ra, CDBVariantArray &vData, unsigned int &oks) {
     bool ok = pOdbc->Prepare(L"{call mysqldb.sp_TestProc(?, ?, ?) } ", [](CSender &handler, int res, const std::wstring & errMsg) {
-        std::cout << "res = " << res << ", errMsg: ";
-        std::wcout << errMsg << std::endl;
-    }, vInfo);
+        if (res) {
+            std::cout << "res = " << res << ", errMsg: ";
+            std::wcout << errMsg << std::endl;
+        }
+    });
     CMyHandler::DRows r = [&ra](CSender &handler, CDBVariantArray & vData) {
         //rowset data come here
         assert((vData.size() % handler.GetColumnInfo().size()) == 0);
@@ -491,7 +422,6 @@ void TestStoredProcedure(std::shared_ptr<CMyHandler> pOdbc, CRowsetArray&ra, CDB
             row_data.push_back(std::move(d)); //avoid memory repeatedly allocation/de-allocation for better performance
         }
     };
-
     CMyHandler::DRowsetHeader rh = [&ra](CSender & handler) {
         //rowset header comes here
         auto &vColInfo = handler.GetColumnInfo();
@@ -501,9 +431,28 @@ void TestStoredProcedure(std::shared_ptr<CMyHandler> pOdbc, CRowsetArray&ra, CDB
     };
 
     oks = 0;
+    vData.clear();
+
+    DECIMAL dec;
+    memset(&dec, 0, sizeof (dec));
+
+    //first set
+    vData.push_back(1);
+    dec.scale = 2;
+    dec.Lo64 = 235; //2.35
+    vData.push_back(dec);
+    //output not important, but they are used for receiving proper types of data on mysql
+    vData.push_back(1.2);
+
+    //second set
+    vData.push_back(2);
+    dec.Lo64 = 15; //0.15
+    vData.push_back(dec);
+    //output not important, but they are used for receiving proper types of data on mysql
+    vData.push_back(true);
 
     //process multiple sets of parameters in one shot
-    ok = pOdbc->Execute(vPData, [&oks](CSender &handler, int res, const std::wstring &errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & vtId) {
+    ok = pOdbc->Execute(vData, [&oks](CSender &handler, int res, const std::wstring &errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & vtId) {
         oks = (unsigned int) fail_ok;
         std::cout << "affected = " << affected << ", fails = " << (unsigned int) (fail_ok >> 32) << ", oks = " << oks << ", res = " << res << ", errMsg: ";
                 std::wcout << errMsg;

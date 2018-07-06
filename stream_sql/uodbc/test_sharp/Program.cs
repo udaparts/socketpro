@@ -19,7 +19,7 @@ class Program {
         string host = Console.ReadLine();
         CConnectionContext cc = new CConnectionContext(host, 20901, "sa", "Smash123");
 
-        using (CSocketPool<COdbc> spOdbc = new CSocketPool<COdbc>()) {
+        using (CSocketPool<COdbc> spOdbc = new CSocketPool<COdbc>(true, 600000)) {
             if (!spOdbc.StartSocketPool(cc, 1, 1)) {
                 Console.WriteLine("Failed in connecting to remote async odbc server");
                 Console.WriteLine("Press any key to close the application ......");
@@ -52,14 +52,16 @@ class Program {
             ok = odbc.Tables("sqltestdb", "%", "%", "TABLE", er, r, rh);
             CDBVariantArray vPData = new CDBVariantArray();
             //first set
+            vPData.Add(-1); //return
             vPData.Add(1);
             vPData.Add(2.35m);//input/output
-            vPData.Add(0);
+            vPData.Add(null);
 
             //second set
+            vPData.Add(-1); //return
             vPData.Add(2);
             vPData.Add(0.99m);//input/output
-            vPData.Add(0);
+            vPData.Add(null);
             TestStoredProcedure(odbc, ra, vPData);
             ok = odbc.WaitAll();
             Console.WriteLine();
@@ -72,14 +74,14 @@ class Program {
             vPData.Add(1); //@testid
             vPData.Add("<test_sqlserver />"); //@myxml
             vPData.Add(Guid.NewGuid()); //@tuuid
-            vPData.Add(-1); //@myvar. output parameter value not important. 
+            vPData.Add(null); //@myvar. output parameter. 
 
             //second set
-            vPData.Add(2); //return int. output parameter data type not important. 
+            vPData.Add(-1); //return int. data type not important. 
             vPData.Add(4); //@testid
             vPData.Add("<test_sqlserver_again />"); //@myxml
             vPData.Add(Guid.NewGuid()); //@tuuid
-            vPData.Add(2); //@myvar. output parameter value not important. 
+            vPData.Add(null); //@myvar. output parameter value. 
             TestStoredProcedure_2(odbc, ra, vPData);
             ok = odbc.WaitAll();
             Console.WriteLine();
@@ -87,25 +89,27 @@ class Program {
             vPData.Clear();
 
             //first set
-            vPData.Add(-1); //return int. output parameter value not important. 
+            vPData.Add(-1); //return int. data type not important. 
             vPData.Add(1); //@testid
             vPData.Add("<test_sqlserver />"); //@myxml
             vPData.Add(Guid.NewGuid()); //@tuuid
-            vPData.Add(-1); //@myvar. output parameter value not important. 
+            vPData.Add(null); //@myvar. output parameter 
+            vPData.Add(-1); //return int. data type not important
             vPData.Add(1);
             vPData.Add(2.35m);//input/output
-            vPData.Add(0);
+            vPData.Add(null);
 
 
             //second set
-            vPData.Add(2); //return int. output parameter data type not important. 
+            vPData.Add(2); //return int. data type not important. 
             vPData.Add(4); //@testid
             vPData.Add("<test_sqlserver_again />"); //@myxml
             vPData.Add(Guid.NewGuid()); //@tuuid
-            vPData.Add(2); //@myvar. output parameter value not important.
+            vPData.Add(null); //@myvar. output parameter value
+            vPData.Add(-1); //return int. data type not important. 
             vPData.Add(2);
             vPData.Add(0.99m);//input/output
-            vPData.Add(0);
+            vPData.Add(null);
             TestBatch(odbc, ra, vPData);
             ok = odbc.WaitAll();
             Console.WriteLine();
@@ -204,21 +208,8 @@ class Program {
     }
 
     static void TestPreparedStatements_2(COdbc odbc) {
-        CParameterInfo[] vInfo = new CParameterInfo[4];
-        vInfo[0] = new CParameterInfo();
-        vInfo[0].DataType = tagVariantDataType.sdVT_CLSID;
-
-        vInfo[1] = new CParameterInfo();
-        vInfo[1].DataType = tagVariantDataType.sdVT_BSTR;
-
-        vInfo[2] = new CParameterInfo();
-        vInfo[2].DataType = tagVariantDataType.sdVT_VARIANT;
-
-        vInfo[3] = new CParameterInfo();
-        vInfo[3].DataType = tagVariantDataType.sdVT_DATE;
-
         string sql_insert_parameter = "INSERT INTO test_rare1(myguid,myxml,myvariant,mydateimeoffset)VALUES(?,?,?,?)";
-        bool ok = odbc.Prepare(sql_insert_parameter, dr, vInfo);
+        bool ok = odbc.Prepare(sql_insert_parameter, dr);
 
         CDBVariantArray vData = new CDBVariantArray();
 
@@ -293,29 +284,6 @@ class Program {
     }
 
     static void TestBatch(COdbc odbc, List<KeyValuePair<CDBColumnInfoArray, CDBVariantArray>> ra, CDBVariantArray vPData) {
-        CParameterInfo[] vInfo = { new CParameterInfo(), new CParameterInfo(), new CParameterInfo(), new CParameterInfo(),
-                                     new CParameterInfo(), new CParameterInfo(), new CParameterInfo(), new CParameterInfo() };
-        vInfo[0].DataType = tagVariantDataType.sdVT_I4; //return direction can be ignorable
-
-        vInfo[1].DataType = tagVariantDataType.sdVT_I4;
-
-        vInfo[2].DataType = tagVariantDataType.sdVT_XML;
-        vInfo[2].Direction = tagParameterDirection.pdInputOutput;
-
-        vInfo[3].DataType = tagVariantDataType.sdVT_CLSID;
-        vInfo[3].Direction = tagParameterDirection.pdInputOutput;
-
-        vInfo[4].DataType = tagVariantDataType.sdVT_VARIANT;
-        vInfo[4].Direction = tagParameterDirection.pdOutput;
-
-        vInfo[5].DataType = tagVariantDataType.sdVT_I4;
-
-        vInfo[6].DataType = tagVariantDataType.sdVT_DECIMAL;
-        vInfo[6].Direction = tagParameterDirection.pdInputOutput;
-
-        vInfo[7].DataType = tagVariantDataType.sdVT_DATE;
-        vInfo[7].Direction = tagParameterDirection.pdOutput;
-
         COdbc.DRows r = (handler, rowData) => {
             //rowset data come here
             int last = ra.Count - 1;
@@ -329,22 +297,12 @@ class Program {
             ra.Add(item);
         };
 
-        bool ok = odbc.ExecuteBatch(tagTransactionIsolation.tiUnspecified, "select getdate();{?=call sp_TestRare1(?,?,?,?)};{call sqltestdb.dbo.sp_TestProc(?,?,?)}", vPData,
-            er, r, rh, (handler) => { }, vInfo);
+        bool ok = odbc.ExecuteBatch(tagTransactionIsolation.tiUnspecified, "select getdate();{?=call sqltestdb.dbo.sp_TestRare1(?,?,?,?)};{?=call sqltestdb.dbo.sp_TestProc(?,?,?)}", vPData,
+            er, r, rh, (handler) => { });
     }
 
     static void TestStoredProcedure(COdbc odbc, List<KeyValuePair<CDBColumnInfoArray, CDBVariantArray>> ra, CDBVariantArray vPData) {
-        CParameterInfo[] vInfo = { new CParameterInfo(), new CParameterInfo(), new CParameterInfo() };
-        vInfo[0].DataType = tagVariantDataType.sdVT_I4;
-
-        vInfo[1].DataType = tagVariantDataType.sdVT_DECIMAL;
-        vInfo[1].Direction = tagParameterDirection.pdInputOutput;
-        vInfo[1].Scale = 2;
-
-        vInfo[2].DataType = tagVariantDataType.sdVT_DATE;
-        vInfo[2].Direction = tagParameterDirection.pdOutput;
-
-        bool ok = odbc.Prepare("{call sp_TestProc(?,?,?)}", dr, vInfo);
+        bool ok = odbc.Prepare("{?=call sp_TestProc(?,?,?)}", dr);
         COdbc.DRows r = (handler, rowData) => {
             //rowset data come here
             int last = ra.Count - 1;
@@ -361,22 +319,7 @@ class Program {
     }
 
     static void TestStoredProcedure_2(COdbc odbc, List<KeyValuePair<CDBColumnInfoArray, CDBVariantArray>> ra, CDBVariantArray vPData) {
-        CParameterInfo[] vInfo = { new CParameterInfo(), new CParameterInfo(), new CParameterInfo(), new CParameterInfo(), new CParameterInfo() };
-        vInfo[0].DataType = tagVariantDataType.sdVT_I4;
-        //return direction can be ignorable
-
-        vInfo[1].DataType = tagVariantDataType.sdVT_I4;
-
-        vInfo[2].DataType = tagVariantDataType.sdVT_XML;
-        vInfo[2].Direction = tagParameterDirection.pdInputOutput;
-
-        vInfo[3].DataType = tagVariantDataType.sdVT_CLSID;
-        vInfo[3].Direction = tagParameterDirection.pdInputOutput;
-
-        vInfo[4].DataType = tagVariantDataType.sdVT_VARIANT;
-        vInfo[4].Direction = tagParameterDirection.pdOutput;
-
-        bool ok = odbc.Prepare("{?=call sp_TestRare1(?, ?, ?, ?)}", dr, vInfo);
+        bool ok = odbc.Prepare("{?=call sp_TestRare1(?, ?, ?, ?)}", dr);
         COdbc.DRows r = (handler, rowData) => {
             //rowset data come here
             int last = ra.Count - 1;
