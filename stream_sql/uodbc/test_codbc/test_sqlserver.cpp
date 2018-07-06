@@ -385,29 +385,12 @@ void TestPreparedStatements(std::shared_ptr<CMyHandler> pOdbc) {
 }
 
 void TestPreparedStatements_2(std::shared_ptr<CMyHandler> pOdbc) {
-
-    CParameterInfoArray vInfo;
-
-    CParameterInfo info;
-
-    info.DataType = VT_CLSID;
-    vInfo.push_back(info);
-
-    info.DataType = VT_BSTR;
-    vInfo.push_back(info);
-
-    info.DataType = VT_VARIANT;
-    vInfo.push_back(info);
-
-    info.DataType = VT_DATE;
-    vInfo.push_back(info);
-
     //if a prepared statement contains UUID or sql_variant, you must specify an array of parameter definitions
     const wchar_t *sql_insert_parameter = L"INSERT INTO test_rare1(myguid,myxml,myvariant,mydateimeoffset)VALUES(?,?,?,?)";
     bool ok = pOdbc->Prepare(sql_insert_parameter, [](CSender &handler, int res, const std::wstring & errMsg) {
         std::cout << "res = " << res << ", errMsg: ";
         std::wcout << errMsg << std::endl;
-    }, vInfo);
+    });
 
     CDBVariantArray vData;
     SYSTEMTIME st;
