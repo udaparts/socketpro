@@ -169,6 +169,8 @@ namespace SPA {
             unsigned int m_nRecordSize;
             SPA::CUQueue *m_pNoSending;
 
+            tagManagementSystem m_msDriver;
+
             static const wchar_t* NO_DB_OPENED_YET;
             static const wchar_t* BAD_END_TRANSTACTION_PLAN;
             static const wchar_t* NO_PARAMETER_SPECIFIED;

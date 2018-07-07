@@ -146,7 +146,7 @@ namespace SPA
         COdbcImpl::COdbcImpl()
         : m_oks(0), m_fails(0), m_ti(tiUnspecified), m_global(true),
         m_Blob(*m_sb), m_parameters(0), m_bCall(false), m_bReturn(false),
-        m_outputs(0), m_nRecordSize(0), m_pNoSending(nullptr) {
+        m_outputs(0), m_nRecordSize(0), m_pNoSending(nullptr), m_msDriver(msUnknown) {
 
         }
 
@@ -239,6 +239,7 @@ namespace SPA
             m_pOdbc.reset();
             m_vParam.clear();
             ResetMemories();
+            m_msDriver = msUnknown;
         }
 
         void COdbcImpl::ltrim_w(std::wstring & s) {
@@ -331,6 +332,12 @@ namespace SPA
                 } else {
                     errMsg = ODBC_GLOBAL_CONNECTION_STRING;
                 }
+                if (m_dbms == L"microsoft sql server")
+                    m_msDriver = msMsSQL;
+                else if (m_dbms == L"mysql")
+                    m_msDriver = msMysql;
+                else if (m_dbms == L"oracle")
+                    m_msDriver = msOracle;
             } while (false);
         }
 
@@ -2634,12 +2641,25 @@ namespace SPA
             if (res) {
                 return;
             }
-            if ((size_t) m_parameters != vData.size() / m_vBindInfo.size()) {
-                res = SPA::Odbc::ER_BAD_PARAMETER_COLUMN_SIZE;
-                errMsg = BAD_PARAMETER_COLUMN_SIZE;
-                return;
+            SQLSMALLINT start = 0;
+            switch (m_msDriver) {
+                case msMsSQL:
+                    start = m_bReturn ? 0 : 1;
+                    if ((size_t) (m_parameters + start) != vData.size() / m_vBindInfo.size()) {
+                        res = SPA::Odbc::ER_BAD_PARAMETER_COLUMN_SIZE;
+                        errMsg = BAD_PARAMETER_COLUMN_SIZE;
+                        return;
+                    }
+                    break;
+                default:
+                    if ((size_t) m_parameters != vData.size() / m_vBindInfo.size()) {
+                        res = SPA::Odbc::ER_BAD_PARAMETER_COLUMN_SIZE;
+                        errMsg = BAD_PARAMETER_COLUMN_SIZE;
+                        return;
+                    }
+                    break;
             }
-            for (SQLSMALLINT r = 0; r < m_parameters; ++r) {
+            for (SQLSMALLINT r = start; r < m_parameters + start; ++r) {
                 CParameterInfo pi;
                 unsigned int pos = (unsigned int) (r * m_vBindInfo.size() + 4);
                 CDBVariant &vt = vData[pos];
@@ -2820,8 +2840,7 @@ namespace SPA
                     res = SPA::Odbc::ER_ERROR;
                     GetErrMsg(SQL_HANDLE_STMT, hstmt, errMsg);
                     break;
-                }
-                else if (!m_parameters) {
+                } else if (!m_parameters) {
                     res = SPA::Odbc::ER_BAD_PARAMETER_COLUMN_SIZE;
                     errMsg = BAD_PARAMETER_COLUMN_SIZE;
                     break;
