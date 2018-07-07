@@ -110,6 +110,9 @@ public static class SQLConfig
                 case "working_directory":
                     m_WorkingDirectory = value;
                     break;
+                case "odbcdriver":
+                    m_odbc = value;
+                    break;
                 default:
                     break; //ignored
             }
@@ -227,6 +230,15 @@ public static class SQLConfig
         get
         {
             return m_Param;
+        }
+    }
+
+    private static string m_odbc = "{SQL Server}";
+    public static string ODBCDriver
+    {
+        get
+        {
+            return m_odbc;
         }
     }
 }
