@@ -9,6 +9,10 @@
 #include "../../../include/scloader.h"
 #include <cctype>
 
+#ifdef MSSQL_PLUGIN
+#include "../../../stream_sql/mssql/mssql/config.h"
+#endif
+
 namespace SPA
 {
     namespace ServerSide{
@@ -32,6 +36,45 @@ namespace SPA
 
         CUCriticalSection COdbcImpl::m_csPeer;
         std::wstring COdbcImpl::m_strGlobalConnection;
+
+#ifdef MSSQL_PLUGIN
+        std::unordered_map<USocket_Server_Handle, SQLHDBC> COdbcImpl::m_mapConnection;
+
+        bool COdbcImpl::DoDBAuthentication(USocket_Server_Handle hSocket, const wchar_t *userId, const wchar_t *password, unsigned nSvsId) {
+            SQLHDBC hdbc = nullptr;
+            if (!g_hEnv)
+                return false;
+            SQLRETURN retcode = SQLAllocHandle(SQL_HANDLE_DBC, g_hEnv, &hdbc);
+            if (!SQL_SUCCEEDED(retcode)) {
+                return false;
+            }
+            std::wstring conn = L"server=(local);uid=";
+            conn += (userId ? userId : L"");
+            conn += L";pwd=";
+            conn += (password ? password : L"");
+            conn += L";driver=";
+            String ^driver = SQLConfig::ODBCDriver;
+            if (driver) {
+                pin_ptr<const wchar_t> wch = PtrToStringChars(driver);
+                conn += wch;
+            }
+            SPA::CScopeUQueue sb;
+            SQLSMALLINT cbConnStrOut = 0;
+            retcode = SQLDriverConnectW(hdbc, nullptr, (SQLWCHAR*) conn.c_str(), (SQLSMALLINT) conn.size(), (SQLWCHAR*) sb->GetBuffer(), (SQLSMALLINT) sb->GetSize() / sizeof (SQLWCHAR), &cbConnStrOut, SQL_DRIVER_NOPROMPT);
+            if (!SQL_SUCCEEDED(retcode)) {
+                SQLFreeHandle(SQL_HANDLE_DBC, hdbc);
+                return false;
+            }
+            if (nSvsId == SPA::Odbc::sidOdbc) {
+                m_csPeer.lock();
+                m_mapConnection[hSocket] = hdbc;
+                m_csPeer.unlock();
+            } else {
+                SQLFreeHandle(SQL_HANDLE_DBC, hdbc);
+            }
+            return true;
+        }
+#endif
 
         bool COdbcImpl::SetODBCEnv(int param) {
             SQLRETURN retcode = SQLSetEnvAttr(nullptr, SQL_ATTR_CONNECTION_POOLING, (SQLPOINTER) SQL_CP_ONE_PER_DRIVER, SQL_IS_INTEGER);
@@ -170,6 +213,19 @@ namespace SPA
             m_oks = 0;
             m_fails = 0;
             m_ti = tiUnspecified;
+#ifdef MSSQL_PLUGIN
+            m_csPeer.lock();
+            SQLHDBC hdbc = m_mapConnection[GetSocketHandle()];
+            m_csPeer.unlock();
+            m_pOdbc.reset(hdbc, [](SQLHDBC h) {
+                if (h) {
+                    SQLRETURN ret = SQLDisconnect(h);
+                    assert(ret == SQL_SUCCESS);
+                    ret = SQLFreeHandle(SQL_HANDLE_DBC, h);
+                    assert(ret == SQL_SUCCESS);
+                }
+            });
+#endif
         }
 
         void COdbcImpl::OnFastRequestArrive(unsigned short reqId, unsigned int len) {
@@ -261,6 +317,27 @@ namespace SPA
 
         void COdbcImpl::Open(const std::wstring &strConnection, unsigned int flags, int &res, std::wstring &errMsg, int &ms) {
             ms = msODBC;
+#ifdef MSSQL_PLUGIN
+            PushInfo(m_pOdbc.get());
+            if (m_dbms == L"microsoft sql server")
+                m_msDriver = msMsSQL;
+            else if (m_dbms == L"mysql")
+                m_msDriver = msMysql;
+            else if (m_dbms == L"oracle")
+                m_msDriver = msOracle;
+            if (strConnection.size()) {
+                SPA::INT64 affected = 0;
+                std::wstring sql = L"USE " + strConnection;
+                SPA::UDB::CDBVariant vtId;
+                SPA::UINT64 fail_ok = 0;
+                Execute(sql, false, false, false, 0, affected, res, errMsg, vtId, fail_ok);
+                if (!res)
+                    errMsg = strConnection;
+            } else {
+                res = 0;
+                errMsg = L"master";
+            }
+#else
             CleanDBObjects();
             if (!g_hEnv) {
                 res = SPA::Odbc::ER_ODBC_ENVIRONMENT_NOT_INITIALIZED;
@@ -339,6 +416,7 @@ namespace SPA
                 else if (m_dbms == L"oracle")
                     m_msDriver = msOracle;
             } while (false);
+#endif
         }
 
         void COdbcImpl::CloseDb(int &res, std::wstring & errMsg) {
