@@ -166,21 +166,21 @@ class Program
 
     static void TestCreateTables(COdbc odbc)
     {
-        string create_database = "use master;IF NOT EXISTS(SELECT * FROM sys.databases WHERE name='sqltestdb') BEGIN CREATE DATABASE sqltestdb END";
+        string create_database = "use master;IF NOT EXISTS(SELECT * FROM sys.databases WHERE name='sqltestdb')BEGIN CREATE DATABASE sqltestdb END";
         bool ok = odbc.Execute(create_database, er);
         string use_database = "Use sqltestdb";
         ok = odbc.Execute(use_database, er);
-        string create_table = "IF NOT EXISTS(SELECT * FROM sys.tables WHERE name='company')create table company(ID bigint PRIMARY KEY NOT NULL, name CHAR(64) NOT NULL, ADDRESS varCHAR(256) not null, Income float not null)";
+        string create_table = "IF NOT EXISTS(SELECT * FROM sys.tables WHERE name='company')create table company(ID bigint PRIMARY KEY NOT NULL,name CHAR(64)NOT NULL,ADDRESS varCHAR(256)not null,Income float not null)";
         ok = odbc.Execute(create_table, er);
-        create_table = "IF NOT EXISTS(SELECT * FROM sys.tables WHERE name='employee')create table employee(EMPLOYEEID bigint PRIMARY KEY NOT NULL,CompanyId bigint not null,name CHAR(64) NOT NULL,JoinDate DATETIME2(3)default null,MyIMAGE varbinary(max),DESCRIPTION nvarchar(max),Salary decimal(15,2),FOREIGN KEY(CompanyId)REFERENCES company(id))";
+        create_table = "IF NOT EXISTS(SELECT * FROM sys.tables WHERE name='employee')create table employee(EMPLOYEEID bigint PRIMARY KEY NOT NULL,CompanyId bigint not null,name CHAR(64)NOT NULL,JoinDate DATETIME2(3)default null,MyIMAGE varbinary(max),DESCRIPTION nvarchar(max),Salary decimal(15,2),FOREIGN KEY(CompanyId)REFERENCES company(id))";
         ok = odbc.Execute(create_table, er);
-        create_table = "IF NOT EXISTS(SELECT * FROM sys.tables WHERE name='test_rare1')CREATE TABLE test_rare1(testid int IDENTITY(1,1)NOT NULL,myguid uniqueidentifier DEFAULT newid() NULL,mydate date DEFAULT getdate() NULL,mybool bit DEFAULT 0 NOT NULL,mymoney money default 0 NULL,mytinyint tinyint default 0 NULL,myxml xml DEFAULT '<myxml_root />' NULL,myvariant sql_variant DEFAULT 'my_variant_default' NOT NULL,mydateimeoffset datetimeoffset(4)NULL,PRIMARY KEY(testid))";
+        create_table = "IF NOT EXISTS(SELECT * FROM sys.tables WHERE name='test_rare1')CREATE TABLE test_rare1(testid int IDENTITY(1,1)NOT NULL,myguid uniqueidentifier DEFAULT newid()NULL,mydate date DEFAULT getdate()NULL,mybool bit DEFAULT 0 NOT NULL,mymoney money default 0 NULL,mytinyint tinyint default 0 NULL,myxml xml DEFAULT '<myxml_root />' NULL,myvariant sql_variant DEFAULT 'my_variant_default' NOT NULL,mydateimeoffset datetimeoffset(4)NULL,PRIMARY KEY(testid))";
         ok = odbc.Execute(create_table, er);
         create_table = "IF NOT EXISTS(SELECT * FROM sys.tables WHERE name='SpatialTable')CREATE TABLE SpatialTable(id int IDENTITY(1,1)NOT NULL,mygeometry geometry NULL,mygeography geography NULL,PRIMARY KEY(id))";
         ok = odbc.Execute(create_table, er);
         string drop_proc = "IF EXISTS(SELECT * FROM sys.procedures WHERE name='sp_TestProc')drop proc sp_TestProc";
         ok = odbc.Execute(drop_proc, er);
-        string create_proc = "CREATE PROCEDURE sp_TestProc(@p_company_id int, @p_sum_salary decimal(15,2) output, @p_last_dt datetime out) as select * from employee where companyid>=@p_company_id;select @p_sum_salary=sum(salary)+@p_sum_salary from employee where companyid>=@p_company_id;select @p_last_dt=SYSDATETIME()";
+        string create_proc = "CREATE PROCEDURE sp_TestProc(@p_company_id int,@p_sum_salary decimal(15,2)output,@p_last_dt datetime out)as select * from employee where companyid>=@p_company_id;select @p_sum_salary=sum(salary)+@p_sum_salary from employee where companyid>=@p_company_id;select @p_last_dt=SYSDATETIME()";
         ok = odbc.Execute(create_proc, er);
         drop_proc = "IF EXISTS(SELECT * FROM sys.procedures WHERE name='sp_TestRare1')drop proc sp_TestRare1";
         ok = odbc.Execute(drop_proc, er);
@@ -388,7 +388,7 @@ class Program
         vInfo[4].DataType = tagVariantDataType.sdVT_VARIANT;
         vInfo[4].Direction = tagParameterDirection.pdOutput;
 
-        bool ok = odbc.Prepare("{?=call sp_TestRare1(?, ?, ?, ?)}", dr, vInfo);
+        bool ok = odbc.Prepare("{?=call sp_TestRare1(?,?,?,?)}", dr, vInfo);
         COdbc.DRows r = (handler, rowData) =>
         {
             //rowset data come here

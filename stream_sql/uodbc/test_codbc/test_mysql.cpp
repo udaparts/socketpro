@@ -407,7 +407,7 @@ void TestCreateTables(std::shared_ptr<CMyHandler> pOdbc) {
 }
 
 void TestStoredProcedure(std::shared_ptr<CMyHandler> pOdbc, CRowsetArray&ra, CDBVariantArray &vData, unsigned int &oks) {
-    bool ok = pOdbc->Prepare(L"{call mysqldb.sp_TestProc(?, ?, ?) } ", [](CSender &handler, int res, const std::wstring & errMsg) {
+    bool ok = pOdbc->Prepare(L"{call mysqldb.sp_TestProc(?,?,?)}", [](CSender &handler, int res, const std::wstring & errMsg) {
         if (res) {
             std::cout << "res = " << res << ", errMsg: ";
             std::wcout << errMsg << std::endl;
