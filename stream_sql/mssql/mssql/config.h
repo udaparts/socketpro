@@ -39,9 +39,10 @@ private:
 
 private:
 	static void SetConfig(SqlDataReader ^reader);
+	
+public:
 	static String^ GetServerName(SqlConnection ^conn);
 
-public:
 	static property String^ Server
 	{
 		String^ get()

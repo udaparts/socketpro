@@ -1,0 +1,87 @@
+
+Create database sp_streaming_db
+GO
+
+EXEC sp_changedbowner 'sa' ALTER DATABASE sp_streaming_db SET TRUSTWORTHY ON
+GO
+
+USE sp_streaming_db
+GO
+
+-- set initial table config for configuration
+CREATE TABLE config(mykey nvarchar(32)primary key,value nvarchar(max)not null)
+GO
+INSERT INTO config VALUES('disable_ipv6','0')
+GO
+INSERT INTO config VALUES('main_threads','1')
+GO
+INSERT INTO config VALUES('enable_http_websocket','0')
+GO
+INSERT INTO config VALUES('port','20903')
+GO
+INSERT INTO config VALUES('services','')
+GO
+INSERT INTO config VALUES('store_or_pfx','')
+GO
+INSERT INTO config VALUES('subject_or_password','')
+GO
+INSERT INTO config VALUES('usql_streaming_last_error','')
+GO
+INSERT INTO config VALUES('working_directory','C:\ProgramData\MSSQL\')
+GO
+INSERT INTO config VALUES('odbcdriver','{SQL Server}')
+GO
+sp_configure 'clr enabled', 1
+GO
+
+RECONFIGURE
+GO
+
+-- Load usqlserver.dll into SQL server
+CREATE ASSEMBLY usqlserver
+AUTHORIZATION [dbo]
+FROM 'C:\my_directory\usqlserver.dll' -- make sure the path to usqlserver.dll is correct!
+WITH PERMISSION_SET = UNSAFE
+GO
+
+
+CREATE PROCEDURE StartSPServer(@res int output)As EXTERNAL NAME usqlserver.USqlStream.StartSPServer
+GO
+
+CREATE PROCEDURE StopSPServer(@res int output)As EXTERNAL NAME usqlserver.USqlStream.StopSPServer
+GO	
+
+CREATE TRIGGER tr_config ON config AFTER INSERT,DELETE,UPDATE AS EXTERNAL NAME usqlserver.USqlStream.PublishDMLEvent
+GO
+
+DECLARE @res int
+EXEC sp_streaming_db.dbo.StartSPServer @res OUTPUT -- assuming the procedure created within sp_streaming_db
+print @res
+GO
+
+DECLARE @res int
+EXEC sp_streaming_db.dbo.StopSPServer @res OUTPUT -- assuming the procedure created within sp_streaming_db
+print @res
+GO
+
+CREATE TRIGGER start_sp_server
+ON ALL SERVER
+FOR LOGON
+AS
+BEGIN
+	DECLARE @res int
+	EXEC sp_streaming_db.dbo.StartSPServer @res OUTPUT -- assuming the procedure created within sp_streaming_db
+	if @res < 0
+		BEGIN
+			ROLLBACK;
+		END
+END
+GO
+
+-- use cmd and execute the following to check port
+-- netstat -a
+
+sqlcmd -S LocalHost -d master -A
+DROP TRIGGER start_sp_server ON ALL SERVER
+GO
+exit
