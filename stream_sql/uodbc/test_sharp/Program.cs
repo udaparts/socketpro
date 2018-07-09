@@ -318,6 +318,8 @@ class Program
 
         vInfo[6].DataType = tagVariantDataType.sdVT_DECIMAL;
         vInfo[6].Direction = tagParameterDirection.pdInputOutput;
+        vInfo[6].Scale = 2;
+        vInfo[6].Precision = 15;
 
         vInfo[7].DataType = tagVariantDataType.sdVT_DATE;
         vInfo[7].Direction = tagParameterDirection.pdOutput;
@@ -350,6 +352,7 @@ class Program
         vInfo[1].DataType = tagVariantDataType.sdVT_DECIMAL;
         vInfo[1].Direction = tagParameterDirection.pdInputOutput;
         vInfo[1].Scale = 2;
+        vInfo[1].Precision = 15;
 
         vInfo[2].DataType = tagVariantDataType.sdVT_DATE;
         vInfo[2].Direction = tagParameterDirection.pdOutput;
