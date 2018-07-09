@@ -29,6 +29,9 @@
     <ClInclude Include="sqlplugin.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="usqstream.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="assemblyinfo.cpp">
@@ -47,6 +50,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="sqlplugin.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="usqlstream.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
