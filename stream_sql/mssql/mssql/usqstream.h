@@ -5,8 +5,7 @@ using namespace System::Collections::Generic;
 
 #include "sqlplugin.h"
 
-ref class USqlStream
-{
+ref class USqlStream {
 private:
 	static CSqlPlugin *Plugin = nullptr;
 	static SPA::CUCriticalSection *m_cs = new SPA::CUCriticalSection;

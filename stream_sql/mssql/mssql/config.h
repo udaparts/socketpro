@@ -39,94 +39,83 @@ private:
 
 private:
 	static void SetConfig(SqlDataReader ^reader);
-	
+
 public:
 	static String^ GetServerName(SqlConnection ^conn);
 
 	static property String^ Server
 	{
-		String^ get()
-		{
+		String^ get() {
 			return m_server;
 		}
 	}
 
 	static property String^ WorkingDirectory
 	{
-		String^ get()
-		{
+		String^ get() {
 			return m_WorkingDirectory;
 		}
 	}
 
 	static property String^ Services
 	{
-		String^ get()
-		{
+		String^ get() {
 			return m_services;
 		}
 	}
 
 	static property String^ StoreOrPfx
 	{
-		String^ get()
-		{
+		String^ get() {
 			return m_store_or_pfx;
 		}
 	}
 
 	static property String^ SubjectOrPassword
 	{
-		String^ get()
-		{
+		String^ get() {
 			return m_subject_or_password;
 		}
 	}
 
 	static property String^ ODBCDriver
 	{
-		String^ get()
-		{
+		String^ get() {
 			return m_odbc;
 		}
 	}
 
 	static property bool NoV6
 	{
-		bool get()
-		{
+		bool get() {
 			return m_bNoV6;
 		}
 	}
 
 	static property bool ReadOnly
 	{
-		bool get()
-		{
+		bool get() {
 			return m_readOnly;
 		}
 	}
 
 	static property bool HttpWebSocket
 	{
-		bool get()
-		{
+		bool get() {
 			return m_bWebSocket;
 		}
 	}
 
 	static property unsigned int Port
 	{
-		unsigned int get()
-		{
+		unsigned int get() {
 			return m_nPort;
 		}
 	}
 
 	static property int Param
 	{
-		int get()
-		{
+		int get() {
 			return m_Param;
 		}
 	}

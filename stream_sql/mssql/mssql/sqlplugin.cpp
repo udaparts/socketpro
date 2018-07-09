@@ -61,8 +61,7 @@ bool CSqlPlugin::OnSettingServer(unsigned int listeningPort, unsigned int maxBac
 }
 
 bool CSqlPlugin::OnIsPermitted(USocket_Server_Handle h, const wchar_t* userId, const wchar_t *password, unsigned int nSvsID) {
-	switch (nSvsID)
-	{
+	switch (nSvsID) {
 	case SPA::sidHTTP:
 		return true; //do authentication inside the method CMyHttpPeer.DoAuthentication
 	default:

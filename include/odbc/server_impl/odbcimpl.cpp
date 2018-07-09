@@ -9,10 +9,6 @@
 #include "../../../include/scloader.h"
 #include <cctype>
 
-#ifdef MSSQL_PLUGIN
-#include "../../../stream_sql/mssql/mssql/config.h"
-#endif
-
 namespace SPA
 {
     namespace ServerSide{
@@ -37,10 +33,8 @@ namespace SPA
         CUCriticalSection COdbcImpl::m_csPeer;
         std::wstring COdbcImpl::m_strGlobalConnection;
 
-#ifdef MSSQL_PLUGIN
         std::unordered_map<USocket_Server_Handle, SQLHDBC> COdbcImpl::m_mapConnection;
-
-        bool COdbcImpl::DoDBAuthentication(USocket_Server_Handle hSocket, const wchar_t *userId, const wchar_t *password, unsigned nSvsId) {
+        bool COdbcImpl::DoSQLAuthentication(USocket_Server_Handle hSocket, const wchar_t *userId, const wchar_t *password, unsigned nSvsId, const wchar_t *odbcDriver, const wchar_t *server) {
             SQLHDBC hdbc = nullptr;
             if (!g_hEnv)
                 return false;
@@ -48,16 +42,19 @@ namespace SPA
             if (!SQL_SUCCEEDED(retcode)) {
                 return false;
             }
-            std::wstring conn = L"server=(local);uid=";
+			std::wstring conn = L"server=";
+			if (server && ::wcslen(server))
+				conn += server;
+			else
+				conn += L"(local)";
+            conn += L";uid=";
             conn += (userId ? userId : L"");
             conn += L";pwd=";
             conn += (password ? password : L"");
-            conn += L";driver=";
-            String ^driver = SQLConfig::ODBCDriver;
-            if (driver) {
-                pin_ptr<const wchar_t> wch = PtrToStringChars(driver);
-                conn += wch;
-            }
+			if (odbcDriver && ::wcslen(odbcDriver)) {
+				conn += L";driver=";
+				conn += odbcDriver;
+			}
             SPA::CScopeUQueue sb;
             SQLSMALLINT cbConnStrOut = 0;
             retcode = SQLDriverConnectW(hdbc, nullptr, (SQLWCHAR*) conn.c_str(), (SQLSMALLINT) conn.size(), (SQLWCHAR*) sb->GetBuffer(), (SQLSMALLINT) sb->GetSize() / sizeof (SQLWCHAR), &cbConnStrOut, SQL_DRIVER_NOPROMPT);
@@ -74,7 +71,6 @@ namespace SPA
             }
             return true;
         }
-#endif
 
         bool COdbcImpl::SetODBCEnv(int param) {
             SQLRETURN retcode = SQLSetEnvAttr(nullptr, SQL_ATTR_CONNECTION_POOLING, (SQLPOINTER) SQL_CP_ONE_PER_DRIVER, SQL_IS_INTEGER);
@@ -213,19 +209,18 @@ namespace SPA
             m_oks = 0;
             m_fails = 0;
             m_ti = tiUnspecified;
-#ifdef MSSQL_PLUGIN
-            m_csPeer.lock();
+			CAutoLock al(m_csPeer);
             SQLHDBC hdbc = m_mapConnection[GetSocketHandle()];
-            m_csPeer.unlock();
-            m_pOdbc.reset(hdbc, [](SQLHDBC h) {
-                if (h) {
-                    SQLRETURN ret = SQLDisconnect(h);
-                    assert(ret == SQL_SUCCESS);
-                    ret = SQLFreeHandle(SQL_HANDLE_DBC, h);
-                    assert(ret == SQL_SUCCESS);
-                }
-            });
-#endif
+			if (hdbc) {
+				m_pOdbc.reset(hdbc, [](SQLHDBC h) {
+					if (h) {
+						SQLRETURN ret = SQLDisconnect(h);
+						assert(ret == SQL_SUCCESS);
+						ret = SQLFreeHandle(SQL_HANDLE_DBC, h);
+						assert(ret == SQL_SUCCESS);
+					}
+				});
+			}
         }
 
         void COdbcImpl::OnFastRequestArrive(unsigned short reqId, unsigned int len) {
@@ -317,106 +312,113 @@ namespace SPA
 
         void COdbcImpl::Open(const std::wstring &strConnection, unsigned int flags, int &res, std::wstring &errMsg, int &ms) {
             ms = msODBC;
-#ifdef MSSQL_PLUGIN
-            PushInfo(m_pOdbc.get());
-            if (m_dbms == L"microsoft sql server")
-                m_msDriver = msMsSQL;
-            else if (m_dbms == L"mysql")
-                m_msDriver = msMysql;
-            else if (m_dbms == L"oracle")
-                m_msDriver = msOracle;
-            if (strConnection.size()) {
-                SPA::INT64 affected = 0;
-                std::wstring sql = L"USE " + strConnection;
-                SPA::UDB::CDBVariant vtId;
-                SPA::UINT64 fail_ok = 0;
-                Execute(sql, false, false, false, 0, affected, res, errMsg, vtId, fail_ok);
-                if (!res)
-                    errMsg = strConnection;
-            } else {
-                res = 0;
-                errMsg = L"master";
-            }
-#else
-            CleanDBObjects();
-            if (!g_hEnv) {
-                res = SPA::Odbc::ER_ODBC_ENVIRONMENT_NOT_INITIALIZED;
-                errMsg = ODBC_ENVIRONMENT_NOT_INITIALIZED;
-                return;
-            } else {
-                res = SQL_SUCCESS;
-            }
-            do {
-                std::wstring db(strConnection);
-                if (!db.size() || db == ODBC_GLOBAL_CONNECTION_STRING) {
-                    m_csPeer.lock();
-                    db = m_strGlobalConnection;
-                    m_csPeer.unlock();
-                    m_global = true;
-                } else {
-                    m_global = false;
-                }
-                ODBC_CONNECTION_STRING ocs;
-                ocs.Parse(db.c_str());
-                SQLHDBC hdbc = nullptr;
-                SQLRETURN retcode = SQLAllocHandle(SQL_HANDLE_DBC, g_hEnv, &hdbc);
-                if (!SQL_SUCCEEDED(retcode)) {
-                    res = SPA::Odbc::ER_ERROR;
-                    GetErrMsg(SQL_HANDLE_ENV, g_hEnv, errMsg);
-                    break;
-                }
+			if (m_pOdbc.get()) {
+				PushInfo(m_pOdbc.get());
+				std::wstring sql;
+				if (m_dbms == L"microsoft sql server") {
+					m_msDriver = msMsSQL;
+					sql = L"USE " + strConnection;
+				}
+				else if (m_dbms == L"mysql") {
+					m_msDriver = msMysql;
+					sql = L"USE " + strConnection;
+				}
+				else if (m_dbms == L"oracle") {
+					m_msDriver = msOracle;
+				}
+				if (strConnection.size() && sql.size()) {
+					SPA::INT64 affected = 0;
+					SPA::UDB::CDBVariant vtId;
+					SPA::UINT64 fail_ok = 0;
+					Execute(sql, false, false, false, 0, affected, res, errMsg, vtId, fail_ok);
+					if (!res)
+						errMsg = strConnection;
+				} else {
+					res = 0;
+					if (m_dbms == L"microsoft sql server") {
+						errMsg = L"master";
+					}
+				}
+			}
+			else {
+				if (!g_hEnv) {
+					res = SPA::Odbc::ER_ODBC_ENVIRONMENT_NOT_INITIALIZED;
+					errMsg = ODBC_ENVIRONMENT_NOT_INITIALIZED;
+					return;
+				} else {
+					res = SQL_SUCCESS;
+				}
+				do {
+					std::wstring db(strConnection);
+					if (!db.size() || db == ODBC_GLOBAL_CONNECTION_STRING) {
+						m_csPeer.lock();
+						db = m_strGlobalConnection;
+						m_csPeer.unlock();
+						m_global = true;
+					} else {
+						m_global = false;
+					}
+					ODBC_CONNECTION_STRING ocs;
+					ocs.Parse(db.c_str());
+					SQLHDBC hdbc = nullptr;
+					SQLRETURN retcode = SQLAllocHandle(SQL_HANDLE_DBC, g_hEnv, &hdbc);
+					if (!SQL_SUCCEEDED(retcode)) {
+						res = SPA::Odbc::ER_ERROR;
+						GetErrMsg(SQL_HANDLE_ENV, g_hEnv, errMsg);
+						break;
+					}
 
-                if (ocs.timeout) {
-                    SQLPOINTER rgbValue = &ocs.timeout;
-                    retcode = SQLSetConnectAttr(hdbc, SQL_LOGIN_TIMEOUT, rgbValue, 0);
-                }
+					if (ocs.timeout) {
+						SQLPOINTER rgbValue = &ocs.timeout;
+						retcode = SQLSetConnectAttr(hdbc, SQL_LOGIN_TIMEOUT, rgbValue, 0);
+					}
 
-                if (ocs.database.size()) {
-                    std::string db = SPA::Utilities::ToUTF8(ocs.database.c_str(), ocs.database.size());
-                    retcode = SQLSetConnectAttr(hdbc, SQL_ATTR_CURRENT_CATALOG, (SQLPOINTER) db.c_str(), (SQLINTEGER) (db.size() * sizeof (SQLCHAR)));
-                }
+					if (ocs.database.size()) {
+						std::string db = SPA::Utilities::ToUTF8(ocs.database.c_str(), ocs.database.size());
+						retcode = SQLSetConnectAttr(hdbc, SQL_ATTR_CURRENT_CATALOG, (SQLPOINTER) db.c_str(), (SQLINTEGER) (db.size() * sizeof (SQLCHAR)));
+					}
 
-                //retcode = SQLSetConnectAttr(hdbc, SQL_ATTR_ASYNC_ENABLE, (SQLPOINTER) (ocs.async ? SQL_ASYNC_ENABLE_ON : SQL_ASYNC_ENABLE_OFF), 0);
-                //std::string host = SPA::Utilities::ToUTF8(ocs.host.c_str(), ocs.host.size());
-                //std::string user = SPA::Utilities::ToUTF8(ocs.user.c_str(), ocs.user.size());
-                //std::string pwd = SPA::Utilities::ToUTF8(ocs.password.c_str(), ocs.password.size());
+					//retcode = SQLSetConnectAttr(hdbc, SQL_ATTR_ASYNC_ENABLE, (SQLPOINTER) (ocs.async ? SQL_ASYNC_ENABLE_ON : SQL_ASYNC_ENABLE_OFF), 0);
+					//std::string host = SPA::Utilities::ToUTF8(ocs.host.c_str(), ocs.host.size());
+					//std::string user = SPA::Utilities::ToUTF8(ocs.user.c_str(), ocs.user.size());
+					//std::string pwd = SPA::Utilities::ToUTF8(ocs.password.c_str(), ocs.password.size());
 
-                std::string conn = SPA::Utilities::ToUTF8(ocs.connection_string.c_str(), ocs.connection_string.size());
+					std::string conn = SPA::Utilities::ToUTF8(ocs.connection_string.c_str(), ocs.connection_string.size());
 
-                SPA::CScopeUQueue sb;
-                SQLCHAR *ConnStrIn = (SQLCHAR *) conn.c_str();
-                SQLCHAR *ConnStrOut = (SQLCHAR *) sb->GetBuffer();
-                SQLSMALLINT cbConnStrOut;
-                retcode = SQLDriverConnect(hdbc, nullptr, ConnStrIn, (SQLSMALLINT) conn.size(), ConnStrOut, (SQLSMALLINT) sb->GetSize(), &cbConnStrOut, SQL_DRIVER_NOPROMPT);
-                //retcode = SQLConnect(hdbc, (SQLCHAR*) host.c_str(), (SQLSMALLINT) host.size(), (SQLCHAR *) user.c_str(), (SQLSMALLINT) user.size(), (SQLCHAR *) pwd.c_str(), (SQLSMALLINT) pwd.size());
-                if (!SQL_SUCCEEDED(retcode)) {
-                    res = SPA::Odbc::ER_ERROR;
-                    GetErrMsg(SQL_HANDLE_DBC, hdbc, errMsg);
-                    SQLFreeHandle(SQL_HANDLE_DBC, hdbc);
-                    break;
-                }
-                m_pOdbc.reset(hdbc, [](SQLHDBC h) {
-                    if (h) {
-                        SQLRETURN ret = SQLDisconnect(h);
-                        assert(ret == SQL_SUCCESS);
-                        ret = SQLFreeHandle(SQL_HANDLE_DBC, h);
-                        assert(ret == SQL_SUCCESS);
-                    }
-                });
-                PushInfo(hdbc);
-                if (!m_global) {
-                    errMsg = db;
-                } else {
-                    errMsg = ODBC_GLOBAL_CONNECTION_STRING;
-                }
-                if (m_dbms == L"microsoft sql server")
-                    m_msDriver = msMsSQL;
-                else if (m_dbms == L"mysql")
-                    m_msDriver = msMysql;
-                else if (m_dbms == L"oracle")
-                    m_msDriver = msOracle;
-            } while (false);
-#endif
+					SPA::CScopeUQueue sb;
+					SQLCHAR *ConnStrIn = (SQLCHAR *) conn.c_str();
+					SQLCHAR *ConnStrOut = (SQLCHAR *) sb->GetBuffer();
+					SQLSMALLINT cbConnStrOut;
+					retcode = SQLDriverConnect(hdbc, nullptr, ConnStrIn, (SQLSMALLINT) conn.size(), ConnStrOut, (SQLSMALLINT) sb->GetSize(), &cbConnStrOut, SQL_DRIVER_NOPROMPT);
+					//retcode = SQLConnect(hdbc, (SQLCHAR*) host.c_str(), (SQLSMALLINT) host.size(), (SQLCHAR *) user.c_str(), (SQLSMALLINT) user.size(), (SQLCHAR *) pwd.c_str(), (SQLSMALLINT) pwd.size());
+					if (!SQL_SUCCEEDED(retcode)) {
+						res = SPA::Odbc::ER_ERROR;
+						GetErrMsg(SQL_HANDLE_DBC, hdbc, errMsg);
+						SQLFreeHandle(SQL_HANDLE_DBC, hdbc);
+						break;
+					}
+					m_pOdbc.reset(hdbc, [](SQLHDBC h) {
+						if (h) {
+							SQLRETURN ret = SQLDisconnect(h);
+							assert(ret == SQL_SUCCESS);
+							ret = SQLFreeHandle(SQL_HANDLE_DBC, h);
+							assert(ret == SQL_SUCCESS);
+						}
+					});
+					PushInfo(hdbc);
+					if (!m_global) {
+						errMsg = db;
+					} else {
+						errMsg = ODBC_GLOBAL_CONNECTION_STRING;
+					}
+					if (m_dbms == L"microsoft sql server")
+						m_msDriver = msMsSQL;
+					else if (m_dbms == L"mysql")
+						m_msDriver = msMysql;
+					else if (m_dbms == L"oracle")
+						m_msDriver = msOracle;
+				} while (false);
+			}
         }
 
         void COdbcImpl::CloseDb(int &res, std::wstring & errMsg) {

@@ -3,8 +3,7 @@
 #include "../../../include/odbc/server_impl/odbcimpl.h"
 #include "httppeer.h"
 
-class CSqlPlugin : public CSocketProServer
-{
+class CSqlPlugin : public CSocketProServer {
 public:
 	CSqlPlugin(int param = 0);
 	~CSqlPlugin();
@@ -20,4 +19,3 @@ private:
 	CSocketProService<COdbcImpl> m_odbc;
 	CSocketProService<CHttpPeer> m_myHttp;
 };
-

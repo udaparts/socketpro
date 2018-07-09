@@ -7,15 +7,12 @@ String^ SQLConfig::GetServerName(SqlConnection ^conn) {
 		throw gcnew InvalidOperationException("An opened connection required");
 	String ^serverName = Environment::MachineName;
 	SqlDataReader ^dr = nullptr;
-	try
-	{
+	try {
 		String ^sqlCmd = "SELECT @@servername";
 		SqlCommand cmd(sqlCmd, conn);
 		dr = cmd.ExecuteReader();
-		if (dr->Read())
-		{
-			if (dr->IsDBNull(0))
-			{
+		if (dr->Read()) {
+			if (dr->IsDBNull(0)) {
 				dr->Close();
 				sqlCmd = "SELECT @@SERVICENAME";
 				cmd.CommandText = sqlCmd;
@@ -41,12 +38,10 @@ void SQLConfig::SetConfig(SqlDataReader ^reader) {
 		String ^value = reader->GetString(1);
 		key = key->ToLower();
 		if (key == "disable_ipv6") {
-			try
-			{
+			try {
 				m_bNoV6 = ((int::Parse(value) == 0) ? false : true);
 			}
-			catch (...)
-			{
+			catch (...) {
 				m_bNoV6 = false;
 			}
 		}
@@ -54,38 +49,31 @@ void SQLConfig::SetConfig(SqlDataReader ^reader) {
 			try {
 				m_readOnly = ((int::Parse(value) == 0) ? false : true);
 			}
-			catch (...)
-			{
+			catch (...) {
 				m_readOnly = true;
 			}
 		}
 		else if (key == "main_threads") {
-			try
-			{
+			try {
 				m_Param = int::Parse(value);
 			}
-			catch (...)
-			{
+			catch (...) {
 				m_Param = 1;
 			}
 		}
 		else if (key == "enable_http_websocket") {
-			try
-			{
+			try {
 				m_bWebSocket = ((int::Parse(value) == 0) ? false : true);
 			}
-			catch (...)
-			{
+			catch (...) {
 				m_bWebSocket = false;
 			}
 		}
 		else if (key == "port") {
-			try
-			{
+			try {
 				m_nPort = unsigned int::Parse(value);
 			}
-			catch (...)
-			{
+			catch (...) {
 				m_nPort = 20903;
 			}
 		}

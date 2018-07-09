@@ -63,9 +63,8 @@ namespace SPA {
             static bool SetODBCEnv(int param);
             static void FreeODBCEnv();
             static void SetGlobalConnectionString(const wchar_t *str);
-#ifdef MSSQL_PLUGIN
-            static bool DoDBAuthentication(USocket_Server_Handle hSocket, const wchar_t *userId, const wchar_t *password, unsigned nSvsId);
-#endif
+            static bool DoSQLAuthentication(USocket_Server_Handle hSocket, const wchar_t *userId, const wchar_t *password, unsigned nSvsId, const wchar_t *odbcDriver, const wchar_t *server);
+
         protected:
             virtual void OnFastRequestArrive(unsigned short reqId, unsigned int len);
             virtual int OnSlowRequestArrive(unsigned short reqId, unsigned int len);
@@ -192,9 +191,7 @@ namespace SPA {
 
             static CUCriticalSection m_csPeer;
             static std::wstring m_strGlobalConnection; //ODBC source, protected by m_csPeer
-#ifdef MSSQL_PLUGIN
             static std::unordered_map<USocket_Server_Handle, SQLHDBC> m_mapConnection; //protected by m_csPeer
-#endif
         };
 
         typedef CSocketProService<COdbcImpl> COdbcService;
