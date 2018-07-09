@@ -4,16 +4,16 @@ using SocketProAdapter;
 using SocketProAdapter.ServerSide;
 using SocketProAdapter.UDB;
 using System.Data.SqlClient;
+using System.Runtime.InteropServices;
 
-class CSqlPlugin : CSocketProServer
-{
+class CSqlPlugin : CSocketProServer {
     public CSqlPlugin(int param = 0)
-        : base(param)
-    {
+        : base(param) {
     }
 
-    [ServiceAttr(CStreamSql.sidMsSql)]
-    internal CSocketProService<CStreamSql> StreamSql = new CSocketProService<CStreamSql>();
+    [DllImport("sodbc")]
+    [return: MarshalAs(UnmanagedType.I1)]
+    private static extern bool DoODBCAuthentication(ulong hSocket, [MarshalAs(UnmanagedType.LPWStr)]string userId, [MarshalAs(UnmanagedType.LPWStr)]string password, uint nSvsId, [MarshalAs(UnmanagedType.LPWStr)]string odbcDriver, [MarshalAs(UnmanagedType.LPWStr)]string dsn);
 
 #if PLUGIN_DEV
 
@@ -21,16 +21,15 @@ class CSqlPlugin : CSocketProServer
     internal CSocketProService<CMyHttpPeer> m_http = new CSocketProService<CMyHttpPeer>();
 #endif
 
-    public override bool Run(uint port, uint maxBacklog, bool v6Supported)
-    {
+    public override bool Run(uint port, uint maxBacklog, bool v6Supported) {
+        IntPtr p = CSocketProServer.DllManager.AddALibrary("sodbc");
 #if PLUGIN_DEV
 
 #else
         if (SQLConfig.HttpWebSocket)
             m_http.AddMe(BaseServiceID.sidHTTP);
         string[] vService = SQLConfig.Services.Split(';');
-        foreach (string s in vService)
-        {
+        foreach (string s in vService) {
             if (s.Length > 0)
                 DllManager.AddALibrary(s);
         }
@@ -39,46 +38,14 @@ class CSqlPlugin : CSocketProServer
         return base.Run(port, maxBacklog, v6Supported);
     }
 
-    private bool DoDBAuthentication(ulong hSocket, string userId, string password)
-    {
+    protected override bool OnIsPermitted(ulong hSocket, string userId, string password, uint nSvsID) {
+        if (nSvsID == BaseServiceID.sidHTTP)
+            return true; //do authentication inside the method CMyHttpPeer.DoAuthentication
 #if PLUGIN_DEV
-        string connection = string.Format("Server={0};User Id={1};Password={2}", Environment.MachineName, userId, password);
+        return DoODBCAuthentication(hSocket, userId, password, nSvsID, "{SQL Server}", "");
 #else
-        string connection = string.Format("Server={0};User Id={1};Password={2}", SQLConfig.Server, userId, password);
+        string driver = SQLConfig.ODBCDriver;
+        return DoODBCAuthentication(hSocket, userId, password, nSvsID, driver, "");
 #endif
-        try
-        {
-            SqlConnection conn = new SqlConnection(connection);
-            conn.Open();
-            lock (CStreamSql.m_csPeer)
-            {
-                //Remember connection without re-connecting. The database session is closed when socket is closed
-                CStreamSql.m_mapConnection.Add(hSocket, conn);
-            }
-            return true;
-        }
-        catch { }
-        return false;
-    }
-
-    protected override bool OnIsPermitted(ulong hSocket, string userId, string password, uint nSvsID)
-    {
-        switch (nSvsID)
-        {
-            case CStreamSql.sidMsSql:
-                return DoDBAuthentication(hSocket, userId, password);
-#if PLUGIN_DEV
-
-#else
-            case BaseServiceID.sidHTTP:
-                return true; //do authentication inside the method CMyHttpPeer.DoAuthentication
-            case BaseServiceID.sidChat: //SocketPro async persistent message queue
-                break;
-#endif
-            default:
-                break;
-        }
-        return true;
     }
 }
-

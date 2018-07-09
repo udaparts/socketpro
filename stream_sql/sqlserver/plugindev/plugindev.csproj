@@ -44,9 +44,6 @@
     <Compile Include="..\usqlserver\usqlserver\myserver.cs">
       <Link>myserver.cs</Link>
     </Compile>
-    <Compile Include="..\usqlserver\usqlserver\streamsql.cs">
-      <Link>streamsql.cs</Link>
-    </Compile>
     <Compile Include="Program.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -21,7 +21,7 @@ class Program
     {
         Console.WriteLine("Remote host: ");
         string host = Console.ReadLine();
-        CConnectionContext cc = new CConnectionContext(host, 20901, "sa", "Smash123");
+        CConnectionContext cc = new CConnectionContext(host, 20903, "sa", "Smash123");
 
         using (CSocketPool<COdbc> spOdbc = new CSocketPool<COdbc>())
         {
@@ -321,6 +321,7 @@ class Program
 
         vInfo[7].DataType = tagVariantDataType.sdVT_DATE;
         vInfo[7].Direction = tagParameterDirection.pdOutput;
+        vInfo[7].Scale = 3;
 
         COdbc.DRows r = (handler, rowData) =>
         {
@@ -352,6 +353,7 @@ class Program
 
         vInfo[2].DataType = tagVariantDataType.sdVT_DATE;
         vInfo[2].Direction = tagParameterDirection.pdOutput;
+        vInfo[2].Scale = 3;
 
         bool ok = odbc.Prepare("{call sp_TestProc(?,?,?)}", dr, vInfo);
         COdbc.DRows r = (handler, rowData) =>
