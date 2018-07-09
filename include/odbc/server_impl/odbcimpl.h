@@ -143,7 +143,7 @@ namespace SPA {
             CDBVariantArray m_vParam;
 
         private:
-			std::wstring m_dbName;
+            std::wstring m_dbName;
             std::wstring m_dbms;
             CScopeUQueue m_sb;
             bool m_global;
