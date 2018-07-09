@@ -3390,7 +3390,7 @@ namespace SPA
                                     sql_type = SQL_TYPE_TIMESTAMP;
                                     ParameterValuePtr = (SQLPOINTER) (m_Blob.GetBuffer() + output_pos);
                                     BufferLength = info.ColumnSize;
-									ColumnSize = 20 + info.Scale;
+                                    ColumnSize = 20 + info.Scale;
                                     c_type = SQL_C_CHAR;
                                     output_pos += (unsigned int) BufferLength;
                                     DecimalDigits = info.Scale;
