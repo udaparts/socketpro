@@ -63,7 +63,7 @@ namespace SPA {
             static bool SetODBCEnv(int param);
             static void FreeODBCEnv();
             static void SetGlobalConnectionString(const wchar_t *str);
-            static bool DoSQLAuthentication(USocket_Server_Handle hSocket, const wchar_t *userId, const wchar_t *password, unsigned nSvsId, const wchar_t *odbcDriver, const wchar_t *server);
+            static bool DoSQLAuthentication(USocket_Server_Handle hSocket, const wchar_t *userId, const wchar_t *password, unsigned int nSvsId, const wchar_t *odbcDriver, const wchar_t *dsn);
 
         protected:
             virtual void OnFastRequestArrive(unsigned short reqId, unsigned int len);
@@ -143,6 +143,7 @@ namespace SPA {
             CDBVariantArray m_vParam;
 
         private:
+			std::wstring m_dbName;
             std::wstring m_dbms;
             CScopeUQueue m_sb;
             bool m_global;

@@ -34,7 +34,7 @@ namespace SPA
         std::wstring COdbcImpl::m_strGlobalConnection;
 
         std::unordered_map<USocket_Server_Handle, SQLHDBC> COdbcImpl::m_mapConnection;
-        bool COdbcImpl::DoSQLAuthentication(USocket_Server_Handle hSocket, const wchar_t *userId, const wchar_t *password, unsigned nSvsId, const wchar_t *odbcDriver, const wchar_t *server) {
+        bool COdbcImpl::DoSQLAuthentication(USocket_Server_Handle hSocket, const wchar_t *userId, const wchar_t *password, unsigned int nSvsId, const wchar_t *odbcDriver, const wchar_t *dsn) {
             SQLHDBC hdbc = nullptr;
             if (!g_hEnv)
                 return false;
@@ -42,22 +42,34 @@ namespace SPA
             if (!SQL_SUCCEEDED(retcode)) {
                 return false;
             }
-			std::wstring conn = L"server=";
-			if (server && ::wcslen(server))
-				conn += server;
-			else
+			std::wstring conn;
+			if (dsn && ::wcslen(dsn)) {
+				conn = dsn;
+			}
+			else {
+				//MS SQL Server
+				conn = L"Server=";
 				conn += L"(local)";
-            conn += L";uid=";
-            conn += (userId ? userId : L"");
-            conn += L";pwd=";
-            conn += (password ? password : L"");
+			}
+			if (userId && ::wcslen(userId)) {
+				conn += L";UID=";
+				conn += userId;
+			}
+			if (password && ::wcslen(password)) {
+				conn += L";PWD=";
+				conn += password;
+			}
 			if (odbcDriver && ::wcslen(odbcDriver)) {
-				conn += L";driver=";
+				conn += L";DRIVER=";
 				conn += odbcDriver;
 			}
             SPA::CScopeUQueue sb;
             SQLSMALLINT cbConnStrOut = 0;
+#ifdef WIN32_64
             retcode = SQLDriverConnectW(hdbc, nullptr, (SQLWCHAR*) conn.c_str(), (SQLSMALLINT) conn.size(), (SQLWCHAR*) sb->GetBuffer(), (SQLSMALLINT) sb->GetSize() / sizeof (SQLWCHAR), &cbConnStrOut, SQL_DRIVER_NOPROMPT);
+#else
+
+#endif
             if (!SQL_SUCCEEDED(retcode)) {
                 SQLFreeHandle(SQL_HANDLE_DBC, hdbc);
                 return false;
@@ -311,33 +323,34 @@ namespace SPA
         }
 
         void COdbcImpl::Open(const std::wstring &strConnection, unsigned int flags, int &res, std::wstring &errMsg, int &ms) {
-            ms = msODBC;
+            res = 0;
+			ms = msODBC;
 			if (m_pOdbc.get()) {
 				PushInfo(m_pOdbc.get());
-				std::wstring sql;
-				if (m_dbms == L"microsoft sql server") {
-					m_msDriver = msMsSQL;
-					sql = L"USE " + strConnection;
-				}
-				else if (m_dbms == L"mysql") {
-					m_msDriver = msMysql;
-					sql = L"USE " + strConnection;
-				}
-				else if (m_dbms == L"oracle") {
-					m_msDriver = msOracle;
-				}
-				if (strConnection.size() && sql.size()) {
-					SPA::INT64 affected = 0;
-					SPA::UDB::CDBVariant vtId;
-					SPA::UINT64 fail_ok = 0;
-					Execute(sql, false, false, false, 0, affected, res, errMsg, vtId, fail_ok);
-					if (!res)
-						errMsg = strConnection;
-				} else {
-					res = 0;
+				if (strConnection.size()) {
+					std::wstring sql;
 					if (m_dbms == L"microsoft sql server") {
-						errMsg = L"master";
+						m_msDriver = msMsSQL;
+						sql = L"USE " + strConnection;
 					}
+					else if (m_dbms == L"mysql") {
+						m_msDriver = msMysql;
+						sql = L"USE " + strConnection;
+					}
+					else if (m_dbms == L"oracle") {
+						m_msDriver = msOracle;
+					}
+					if (sql.size()) {
+						SPA::INT64 affected = 0;
+						SPA::UDB::CDBVariant vtId;
+						SPA::UINT64 fail_ok = 0;
+						Execute(sql, false, false, false, 0, affected, res, errMsg, vtId, fail_ok);
+						if (!res)
+							errMsg = strConnection;
+					}
+				}
+				if (!res && !errMsg.size()) {
+					errMsg = m_dbName;
 				}
 			}
 			else {
@@ -986,6 +999,11 @@ namespace SPA
             SetStringInfo(hdbc, SQL_ACCESSIBLE_PROCEDURES, mapInfo);
             SetStringInfo(hdbc, SQL_ACCESSIBLE_TABLES, mapInfo);
             SetStringInfo(hdbc, SQL_DATABASE_NAME, mapInfo);
+			if (mapInfo.find(SQL_DATABASE_NAME) != mapInfo.end()) {
+                m_dbName = mapInfo[SQL_DATABASE_NAME].bstrVal;
+            } else {
+                m_dbName.clear();
+            }
             SetStringInfo(hdbc, SQL_USER_NAME, mapInfo);
             SetStringInfo(hdbc, SQL_DATA_SOURCE_NAME, mapInfo);
             SetStringInfo(hdbc, SQL_DRIVER_NAME, mapInfo);

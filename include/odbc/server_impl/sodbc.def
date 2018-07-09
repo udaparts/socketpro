@@ -10,3 +10,4 @@ EXPORTS
     GetNumOfSlowRequests	@6
     GetOneSlowRequestID	@7
 	SetOdbcDBGlobalConnectionString @8
+	DoODBCAuthentication @9
