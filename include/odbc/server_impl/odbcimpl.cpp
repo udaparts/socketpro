@@ -3390,9 +3390,10 @@ namespace SPA
                                     sql_type = SQL_TYPE_TIMESTAMP;
                                     ParameterValuePtr = (SQLPOINTER) (m_Blob.GetBuffer() + output_pos);
                                     BufferLength = info.ColumnSize;
+									ColumnSize = 20 + info.Scale;
                                     c_type = SQL_C_CHAR;
                                     output_pos += (unsigned int) BufferLength;
-                                    DecimalDigits = 6;
+                                    DecimalDigits = info.Scale;
                                     break;
                                 case (VT_I1 | VT_ARRAY):
                                     sql_type = SQL_LONGVARCHAR;
