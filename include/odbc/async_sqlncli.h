@@ -28,6 +28,14 @@
 #define  SQL_DBCLOB                     -350
 #define  SQL_XML                        -370
 
+#define SQL_SOPT_SS_BASE                            1225
+#define SQL_SOPT_SS_HIDDEN_COLUMNS                  (SQL_SOPT_SS_BASE+2) // Expose FOR BROWSE hidden columns
+
+#define SQL_CA_SS_BASE                              1200
+#define SQL_CA_SS_COLUMN_KEY                        (SQL_CA_SS_BASE+12)  //  Column is key column (FOR BROWSE)
+
+#define SQL_HC_ON                           		1L           //  FOR BROWSE columns are exposed
+
 #endif
 
 #endif

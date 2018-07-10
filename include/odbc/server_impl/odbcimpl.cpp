@@ -194,7 +194,8 @@ namespace SPA
         COdbcImpl::COdbcImpl()
         : m_oks(0), m_fails(0), m_ti(tiUnspecified), m_global(true),
         m_Blob(*m_sb), m_parameters(0), m_bCall(false), m_bReturn(false),
-        m_outputs(0), m_nRecordSize(0), m_pNoSending(nullptr), m_msDriver(msUnknown), m_EnableMessages(false) {
+        m_outputs(0), m_nRecordSize(0), m_pNoSending(nullptr),
+        m_msDriver(msUnknown), m_EnableMessages(false) {
 
         }
 
@@ -677,7 +678,8 @@ namespace SPA
             m_vBindInfo.clear();
             bool hasBlob = false;
             bool hasVariant = false;
-            SQLCHAR colname[256] = {0}; // column name
+            SQLCHAR colname[256] =
+            {0}; // column name
             m_nRecordSize = 0;
             SQLSMALLINT colnamelen = 0; // length of column name
             SQLSMALLINT nullable = 0; // whether column can have NULL value
@@ -715,7 +717,6 @@ namespace SPA
                 retcode = SQLColAttribute(hstmt, (SQLUSMALLINT) (n + 1), SQL_DESC_BASE_TABLE_NAME, colname, sizeof (colname), &colnamelen, &displaysize);
                 assert(SQL_SUCCEEDED(retcode));
                 info.TablePath += SPA::Utilities::ToWide((const char*) colname, (size_t) colnamelen / sizeof (SQLCHAR)); //schema.table_name
-
                 retcode = SQLColAttribute(hstmt, (SQLUSMALLINT) (n + 1), SQL_DESC_TYPE_NAME, colname, sizeof (colname), &colnamelen, &displaysize);
                 assert(SQL_SUCCEEDED(retcode));
                 info.DeclaredType = SPA::Utilities::ToWide((const char*) colname, (size_t) colnamelen / sizeof (SQLCHAR)); //native data type
@@ -904,8 +905,18 @@ namespace SPA
                     info.Flags |= CDBColumnInfo::FLAG_PRIMARY_KEY;
                     info.Flags |= CDBColumnInfo::FLAG_NOT_NULL;
                     primary_key_set = true;
+                } else if (!primary_key_set) {
+                    switch (m_msDriver) {
+                        case msMsSQL:
+                            retcode = SQLColAttribute(hstmt, (SQLUSMALLINT) (n + 1), SQL_CA_SS_COLUMN_KEY, nullptr, 0, nullptr, &displaysize);
+                            if (displaysize) {
+                                info.Flags |= CDBColumnInfo::FLAG_PRIMARY_KEY;
+                            }
+                            break;
+                        default:
+                            break;
+                    }
                 }
-
                 retcode = SQLColAttribute(hstmt, (SQLUSMALLINT) (n + 1), SQL_DESC_UPDATABLE, nullptr, 0, nullptr, &displaysize);
                 assert(SQL_SUCCEEDED(retcode));
                 if (displaysize == SQL_ATTR_READONLY) {
@@ -919,7 +930,6 @@ namespace SPA
                     m_vBindInfo.push_back(bindinfo);
                 }
             }
-
             if (hasBlob || hasVariant) {
                 m_vBindInfo.clear();
                 m_nRecordSize = 0;
@@ -2236,14 +2246,15 @@ namespace SPA
                     ++m_fails;
                     break;
                 }
-                unsigned int ret;
                 SQLSMALLINT columns = 0;
                 retcode = SQLNumResultCols(hstmt, &columns);
                 assert(SQL_SUCCEEDED(retcode));
                 CDBColumnInfoArray vInfo = GetColInfo(hstmt, columns, true);
-                ret = SendResult(idRowsetHeader, vInfo, index);
-                if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
-                    return;
+                if (!m_pNoSending) {
+                    unsigned int ret = SendResult(idRowsetHeader, vInfo, index);
+                    if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
+                        return;
+                    }
                 }
                 bool ok;
                 if (m_nRecordSize)
@@ -2684,6 +2695,15 @@ namespace SPA
                     break;
                 }
                 m_pExcuting = pStmt;
+                if (meta) {
+                    switch (m_msDriver) {
+                        case msMsSQL:
+                            retcode = SQLSetStmtAttr(hstmt, SQL_SOPT_SS_HIDDEN_COLUMNS, (SQLPOINTER) SQL_HC_ON, 0);
+                            break;
+                        default:
+                            break;
+                    }
+                }
 #ifdef WIN32_64
                 retcode = SQLExecDirectW(hstmt, (SQLWCHAR*) sql.c_str(), (SQLINTEGER) sql.size());
 #else
@@ -4157,7 +4177,17 @@ namespace SPA
                             ++m_fails;
                             continue;
                         }
-                        SQLRETURN retcode = SQLExecute(m_pPrepare.get());
+                        SQLRETURN retcode;
+                        if (meta) {
+                            switch (m_msDriver) {
+                                case msMsSQL:
+                                    retcode = SQLSetStmtAttr(m_pPrepare.get(), SQL_SOPT_SS_HIDDEN_COLUMNS, (SQLPOINTER) SQL_HC_ON, 0);
+                                    break;
+                                default:
+                                    break;
+                            }
+                        }
+                        retcode = SQLExecute(m_pPrepare.get());
                         if (!SQL_SUCCEEDED(retcode)) {
                             if (!res) {
                                 res = SPA::Odbc::ER_ERROR;
