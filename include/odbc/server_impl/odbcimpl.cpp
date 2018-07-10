@@ -677,8 +677,7 @@ namespace SPA
             m_vBindInfo.clear();
             bool hasBlob = false;
             bool hasVariant = false;
-            SQLCHAR colname[128 + 1] =
-            {0}; // column name
+            SQLCHAR colname[256] = {0}; // column name
             m_nRecordSize = 0;
             SQLSMALLINT colnamelen = 0; // length of column name
             SQLSMALLINT nullable = 0; // whether column can have NULL value
@@ -2631,7 +2630,7 @@ namespace SPA
                         strSqlCache += vtSchema.bstrVal;
                         strSqlCache += L"].[";
                         strSqlCache += vtTable.bstrVal;
-                        strSqlCache.push_back(L']');
+                        strSqlCache += L"] FOR BROWSE";
                         if (q.GetSize())
                             strSqlCache.push_back(L';');
                     }
