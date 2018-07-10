@@ -13,7 +13,7 @@ class Program
         Console.WriteLine("SocketPro performance test against a remote MS SQL backend DB");
         Console.WriteLine("Remote host: ");
         string host = Console.ReadLine();
-        using (CSocketPool<CSqlServer> spSql = new CSocketPool<CSqlServer>())
+        using (CSocketPool<COdbc> spSql = new CSocketPool<COdbc>())
         {
             CConnectionContext cc = new CConnectionContext(host, 20903, "sa", "Smash123");
             if (!spSql.StartSocketPool(cc, 1, 1))
@@ -33,7 +33,7 @@ class Program
             bool sync = (Console.ReadKey().KeyChar != '0');
             Console.WriteLine("");
             Console.WriteLine("Computing ......");
-            CSqlServer mysql = spSql.Seek();
+            COdbc mysql = spSql.Seek();
             CAsyncDBHandler.DResult dr = (handler, res, errMsg) =>
             {
                 if (res != 0)
@@ -82,7 +82,7 @@ class Program
             {
                 sql += " where " + filter;
             }
-            int count = 10000;
+            int count = 50000;
             DateTime start = DateTime.Now;
             for (int n = 0; n < count; ++n)
             {
@@ -100,30 +100,11 @@ class Program
 
             //you need to compile and run the sample project test_sharp before running the below code
             ok = mysql.Execute("USE sqltestdb;delete from company where id > 3");
-            string sql_insert_parameter = "INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(@ID,@NAME,@ADDRESS,@Income)";
-            CParameterInfoArray vInfo = new CParameterInfoArray();
-            CParameterInfo info = new CParameterInfo();
-            info.ParameterName = "@ID";
-            info.DataType = tagVariantDataType.sdVT_INT;
-            vInfo.Add(info);
-            info = new CParameterInfo();
-            info.ParameterName = "@NAME";
-            info.DataType = tagVariantDataType.sdVT_BSTR;
-            info.ColumnSize = 64;
-            vInfo.Add(info);
-            info = new CParameterInfo();
-            info.ParameterName = "@ADDRESS";
-            info.DataType = tagVariantDataType.sdVT_BSTR;
-            info.ColumnSize = 256;
-            vInfo.Add(info);
-            info = new CParameterInfo();
-            info.ParameterName = "@Income";
-            info.DataType = tagVariantDataType.sdVT_R8; //double
-            vInfo.Add(info);
-            ok = mysql.Prepare(sql_insert_parameter, dr, vInfo.ToArray());
+            string sql_insert_parameter = "INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?)";
+            ok = mysql.Prepare(sql_insert_parameter, dr);
             ok = mysql.WaitAll();
             int index = 0;
-            count = 50000;
+            count = 250000;
             Console.WriteLine();
             Console.WriteLine("Going to insert {0} records into the table sqltestdb.company", count);
             start = DateTime.Now;

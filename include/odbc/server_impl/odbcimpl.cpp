@@ -65,11 +65,8 @@ namespace SPA
             }
             SPA::CScopeUQueue sb;
             SQLSMALLINT cbConnStrOut = 0;
-#ifdef WIN32_64
-            retcode = SQLDriverConnectW(hdbc, nullptr, (SQLWCHAR*) conn.c_str(), (SQLSMALLINT) conn.size(), (SQLWCHAR*) sb->GetBuffer(), (SQLSMALLINT) sb->GetSize() / sizeof (SQLWCHAR), &cbConnStrOut, SQL_DRIVER_NOPROMPT);
-#else
-
-#endif
+			std::string strConn = SPA::Utilities::ToUTF8(conn.c_str(), conn.size());
+            retcode = SQLDriverConnect(hdbc, nullptr, (SQLCHAR*) strConn.c_str(), (SQLSMALLINT) strConn.size(), (SQLCHAR*) sb->GetBuffer(), (SQLSMALLINT) sb->GetSize(), &cbConnStrOut, SQL_DRIVER_NOPROMPT);
             if (!SQL_SUCCEEDED(retcode)) {
                 SQLFreeHandle(SQL_HANDLE_DBC, hdbc);
                 return false;
@@ -3597,18 +3594,25 @@ namespace SPA
                             BufferLength = info.ColumnSize;
                             dt.ToDBString((char*) ParameterValuePtr, (unsigned int) BufferLength);
                             ColumnSize = ::strlen((const char*) ParameterValuePtr);
-                            pLenInd[col] = (SQLLEN) ColumnSize;
                             switch (ColumnSize) {
                                 case 10:
                                     sql_type = SQL_TYPE_DATE;
+									DecimalDigits = 0;
                                     break;
                                 case 8:
                                     sql_type = SQL_TYPE_TIME;
+									if (info.Scale)
+										DecimalDigits = info.Scale;
                                     break;
                                 default:
                                     sql_type = SQL_TYPE_TIMESTAMP;
+									if (info.Scale) {
+										DecimalDigits = info.Scale;
+										ColumnSize = 20 + info.Scale;
+									}
                                     break;
                             }
+							pLenInd[col] = (SQLLEN) ColumnSize;
                             output_pos += (unsigned int) BufferLength;
                         } else {
                             char str[32] = {0};
@@ -3621,12 +3625,19 @@ namespace SPA
                             switch (vtD.parray->rgsabound->cElements) {
                                 case 10:
                                     sql_type = SQL_TYPE_DATE;
+									DecimalDigits = 0;
                                     break;
                                 case 8:
                                     sql_type = SQL_TYPE_TIME;
+									if (info.Scale)
+										DecimalDigits = info.Scale;
                                     break;
                                 default:
                                     sql_type = SQL_TYPE_TIMESTAMP;
+									if (info.Scale) {
+										DecimalDigits = info.Scale;
+										ColumnSize = 20 + info.Scale;
+									}
                                     break;
                             }
                             pLenInd[col] = (SQLLEN) ColumnSize;

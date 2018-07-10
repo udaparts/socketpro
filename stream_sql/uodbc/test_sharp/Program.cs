@@ -23,7 +23,7 @@ class Program
         string host = Console.ReadLine();
         CConnectionContext cc = new CConnectionContext(host, 20903, "sa", "Smash123");
 
-        using (CSocketPool<COdbc> spOdbc = new CSocketPool<COdbc>())
+        using (CSocketPool<COdbc> spOdbc = new CSocketPool<COdbc>(true, 600000))
         {
             if (!spOdbc.StartSocketPool(cc, 1, 1))
             {

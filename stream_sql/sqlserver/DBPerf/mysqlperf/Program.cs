@@ -25,7 +25,7 @@ class Program
             sql += " where " + filter;
         }
         Console.WriteLine("Computing ......");
-        int count = 10000;
+        int count = 50000;
         DateTime start = DateTime.Now;
         for (int n = 0; n < count; ++n)
         {
@@ -54,7 +54,7 @@ class Program
         SqlTransaction sqlTran = conn.BeginTransaction();
         cmdSql.Transaction = sqlTran;
         int index = 0;
-        count = 50000;
+        count = 250000;
         Console.WriteLine();
         Console.WriteLine("Going to insert {0} records into the table sqltestdb.company", count);
         start = DateTime.Now;

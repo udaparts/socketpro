@@ -182,11 +182,10 @@ public static class SQLConfig {
         }
     }
 
-    private static string m_odbc = "{SQL Server}";
+    private static string m_odbc = "{SQL Server Native Client 11.0}";
     public static string ODBCDriver {
         get {
             return m_odbc;
         }
     }
 }
-
