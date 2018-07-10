@@ -65,7 +65,7 @@ namespace SPA
             }
             SPA::CScopeUQueue sb;
             SQLSMALLINT cbConnStrOut = 0;
-			std::string strConn = SPA::Utilities::ToUTF8(conn.c_str(), conn.size());
+            std::string strConn = SPA::Utilities::ToUTF8(conn.c_str(), conn.size());
             retcode = SQLDriverConnect(hdbc, nullptr, (SQLCHAR*) strConn.c_str(), (SQLSMALLINT) strConn.size(), (SQLCHAR*) sb->GetBuffer(), (SQLSMALLINT) sb->GetSize(), &cbConnStrOut, SQL_DRIVER_NOPROMPT);
             if (!SQL_SUCCEEDED(retcode)) {
                 SQLFreeHandle(SQL_HANDLE_DBC, hdbc);
@@ -334,6 +334,13 @@ namespace SPA
                         sql = L"USE " + strConnection;
                     } else if (m_dbms == L"oracle") {
                         m_msDriver = msOracle;
+                        sql = L"ALTER SESSION SET current_schema=" + strConnection;
+                    } else if (m_dbms.find(L"db2") != std::wstring::npos) {
+                        m_msDriver = msDB2;
+                        sql = L"SET SCHEMA " + strConnection;
+                    } else if (m_dbms.find(L"postgre") == 0) {
+                        m_msDriver = msPostgreSQL;
+                        sql = L"SET search_path=" + strConnection;
                     }
                     if (sql.size()) {
                         SPA::INT64 affected = 0;
@@ -424,6 +431,10 @@ namespace SPA
                         m_msDriver = msMysql;
                     else if (m_dbms == L"oracle")
                         m_msDriver = msOracle;
+                    else if (m_dbms.find(L"db2") != std::wstring::npos)
+                        m_msDriver = msDB2;
+                    else if (m_dbms.find(L"postgre") == 0)
+                        m_msDriver = msPostgreSQL;
                 } while (false);
             }
         }
@@ -668,7 +679,7 @@ namespace SPA
             SQLSMALLINT decimaldigits = 0; // no of digits if column is numeric
             SQLLEN displaysize = 0; // drivers column display size
             CDBColumnInfoArray vCols;
-            bool bPostgres = (m_dbms.find(L"postgre") == 0);
+            bool bPostgres = (m_msDriver == msPostgreSQL);
             for (SQLSMALLINT n = 0; n < columns; ++n) {
                 vCols.push_back(CDBColumnInfo());
                 CDBColumnInfo &info = vCols.back();
@@ -3390,7 +3401,10 @@ namespace SPA
                                     ColumnSize = 20 + info.Scale;
                                     c_type = SQL_C_CHAR;
                                     output_pos += (unsigned int) BufferLength;
-                                    DecimalDigits = info.Scale;
+                                    if (info.Scale)
+                                        DecimalDigits = info.Scale;
+                                    else
+                                        DecimalDigits = MAX_TIME_DIGITS;
                                     break;
                                 case (VT_I1 | VT_ARRAY):
                                     sql_type = SQL_LONGVARCHAR;
@@ -3418,7 +3432,7 @@ namespace SPA
                                     output_pos += (unsigned int) BufferLength;
                                     break;
                                 case SPA::VT_XML:
-                                    if (m_dbms.find(L"db2") != std::wstring::npos)
+                                    if (m_msDriver == msDB2)
                                         sql_type = SQL_XML;
                                     else
                                         sql_type = SQL_SS_XML;
@@ -3499,7 +3513,7 @@ namespace SPA
                                 case VT_DATE:
                                     sql_type = SQL_TYPE_TIMESTAMP;
                                     c_type = SQL_C_TIMESTAMP;
-                                    DecimalDigits = 6;
+                                    DecimalDigits = MAX_TIME_DIGITS;
                                     break;
                                 case (VT_I1 | VT_ARRAY):
                                     sql_type = SQL_LONGVARCHAR;
@@ -3523,7 +3537,7 @@ namespace SPA
                                     break;
                                 case SPA::VT_XML:
                                     c_type = SQL_C_WCHAR;
-                                    if (m_dbms.find(L"db2") != std::wstring::npos)
+                                    if (m_msDriver == msDB2)
                                         sql_type = SQL_XML;
                                     else
                                         sql_type = SQL_SS_XML;
@@ -3587,7 +3601,7 @@ namespace SPA
                     {
                         SPA::UDateTime dt(vtD.ullVal);
                         if (dt.HasMicrosecond()) {
-                            DecimalDigits = 6;
+                            DecimalDigits = MAX_TIME_DIGITS;
                         }
                         if (InputOutputType == SQL_PARAM_INPUT_OUTPUT) {
                             ParameterValuePtr = (SQLPOINTER) (m_Blob.GetBuffer() + output_pos);
@@ -3597,22 +3611,22 @@ namespace SPA
                             switch (ColumnSize) {
                                 case 10:
                                     sql_type = SQL_TYPE_DATE;
-									DecimalDigits = 0;
+                                    DecimalDigits = 0;
                                     break;
                                 case 8:
                                     sql_type = SQL_TYPE_TIME;
-									if (info.Scale)
-										DecimalDigits = info.Scale;
+                                    if (info.Scale)
+                                        DecimalDigits = info.Scale;
                                     break;
                                 default:
                                     sql_type = SQL_TYPE_TIMESTAMP;
-									if (info.Scale) {
-										DecimalDigits = info.Scale;
-										ColumnSize = 20 + info.Scale;
-									}
+                                    if (info.Scale) {
+                                        DecimalDigits = info.Scale;
+                                        ColumnSize = 20 + info.Scale;
+                                    }
                                     break;
                             }
-							pLenInd[col] = (SQLLEN) ColumnSize;
+                            pLenInd[col] = (SQLLEN) ColumnSize;
                             output_pos += (unsigned int) BufferLength;
                         } else {
                             char str[32] = {0};
@@ -3625,19 +3639,19 @@ namespace SPA
                             switch (vtD.parray->rgsabound->cElements) {
                                 case 10:
                                     sql_type = SQL_TYPE_DATE;
-									DecimalDigits = 0;
+                                    DecimalDigits = 0;
                                     break;
                                 case 8:
                                     sql_type = SQL_TYPE_TIME;
-									if (info.Scale)
-										DecimalDigits = info.Scale;
+                                    if (info.Scale)
+                                        DecimalDigits = info.Scale;
                                     break;
                                 default:
                                     sql_type = SQL_TYPE_TIMESTAMP;
-									if (info.Scale) {
-										DecimalDigits = info.Scale;
-										ColumnSize = 20 + info.Scale;
-									}
+                                    if (info.Scale) {
+                                        DecimalDigits = info.Scale;
+                                        ColumnSize = 20 + info.Scale;
+                                    }
                                     break;
                             }
                             pLenInd[col] = (SQLLEN) ColumnSize;
@@ -3650,7 +3664,7 @@ namespace SPA
                         if (info.DataType == VT_VARIANT) {
                             sql_type = SQL_WVARCHAR;
                         } else if (info.DataType == SPA::VT_XML) {
-                            if (m_dbms.find(L"db2") != std::wstring::npos)
+                            if (m_msDriver == msDB2)
                                 sql_type = SQL_XML;
                             else
                                 sql_type = SQL_SS_XML;
@@ -3681,7 +3695,7 @@ namespace SPA
                         if (info.DataType == VT_VARIANT) {
                             sql_type = SQL_WVARCHAR;
                         } else if (info.DataType == SPA::VT_XML) {
-                            if (m_dbms.find(L"db2") != std::wstring::npos)
+                            if (m_msDriver == msDB2)
                                 sql_type = SQL_XML;
                             else
                                 sql_type = SQL_SS_XML;

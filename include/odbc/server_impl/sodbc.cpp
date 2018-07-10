@@ -71,7 +71,6 @@ unsigned short WINAPI GetOneSlowRequestID(unsigned int serviceId, unsigned short
             return SPA::Odbc::idSQLForeignKeys;
         case 10:
             return SPA::Odbc::idSQLPrimaryKeys;
-            break;
         case 11:
             return SPA::Odbc::idSQLProcedureColumns;
         case 12:

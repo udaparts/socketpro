@@ -28,6 +28,7 @@ namespace SPA {
             static const unsigned char MAX_DECIMAL_PRECISION = 29;
             static const unsigned int DECIMAL_STRING_BUFFER_SIZE = 32;
             static const unsigned int DATETIME_STRING_BUFFER_SIZE = 32;
+            static const unsigned char MAX_TIME_DIGITS = 6;
 
             struct CBindInfo {
                 VARTYPE DataType;
