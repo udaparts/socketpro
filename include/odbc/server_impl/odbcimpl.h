@@ -73,7 +73,7 @@ namespace SPA {
             virtual void OnSwitchFrom(unsigned int nOldServiceId);
             virtual void OnBaseRequestArrive(unsigned short requestId);
 
-        protected:
+        private:
             virtual void Open(const std::wstring &strConnection, unsigned int flags, int &res, std::wstring &errMsg, int &ms);
             virtual void CloseDb(int &res, std::wstring &errMsg);
             virtual void BeginTrans(int isolation, const std::wstring &dbConn, unsigned int flags, int &res, std::wstring &errMsg, int &ms);
@@ -118,6 +118,7 @@ namespace SPA {
             void ResetMemories();
             void SetVParam(CDBVariantArray& vAll, size_t parameters, size_t pos, size_t ps);
             void SetCallParams(int &res, std::wstring &errMsg);
+            std::wstring GenerateMsSqlForCachedTables();
             static CParameterInfoArray GetVInfo(const CParameterInfoArray& vPInfo, size_t pos, size_t ps);
             static std::vector<std::wstring> Split(const std::wstring &sql, const std::wstring &delimiter);
             static size_t ComputeParameters(const std::wstring &sql);
@@ -173,6 +174,7 @@ namespace SPA {
             SPA::CUQueue *m_pNoSending;
 
             tagManagementSystem m_msDriver;
+            bool m_EnableMessages;
 
             static const wchar_t* NO_DB_OPENED_YET;
             static const wchar_t* BAD_END_TRANSTACTION_PLAN;

@@ -194,7 +194,7 @@ namespace SPA
         COdbcImpl::COdbcImpl()
         : m_oks(0), m_fails(0), m_ti(tiUnspecified), m_global(true),
         m_Blob(*m_sb), m_parameters(0), m_bCall(false), m_bReturn(false),
-        m_outputs(0), m_nRecordSize(0), m_pNoSending(nullptr), m_msDriver(msUnknown) {
+        m_outputs(0), m_nRecordSize(0), m_pNoSending(nullptr), m_msDriver(msUnknown), m_EnableMessages(false) {
 
         }
 
@@ -300,6 +300,7 @@ namespace SPA
             m_vParam.clear();
             ResetMemories();
             m_msDriver = msUnknown;
+            m_EnableMessages = false;
         }
 
         void COdbcImpl::ltrim_w(std::wstring & s) {
@@ -322,13 +323,15 @@ namespace SPA
         void COdbcImpl::Open(const std::wstring &strConnection, unsigned int flags, int &res, std::wstring &errMsg, int &ms) {
             res = 0;
             ms = msODBC;
+            if ((flags & ENABLE_TABLE_UPDATE_MESSAGES) == ENABLE_TABLE_UPDATE_MESSAGES)
+                m_EnableMessages = GetPush().Subscribe(&STREAMING_SQL_CHAT_GROUP_ID, 1);
             if (m_pOdbc.get()) {
                 PushInfo(m_pOdbc.get());
                 if (strConnection.size()) {
                     std::wstring sql;
                     if (m_dbms == L"microsoft sql server") {
                         m_msDriver = msMsSQL;
-                        sql = L"USE " + strConnection;
+                        sql = L"USE [" + strConnection + L"]";
                     } else if (m_dbms == L"mysql") {
                         m_msDriver = msMysql;
                         sql = L"USE " + strConnection;
@@ -347,8 +350,10 @@ namespace SPA
                         SPA::UDB::CDBVariant vtId;
                         SPA::UINT64 fail_ok = 0;
                         Execute(sql, false, false, false, 0, affected, res, errMsg, vtId, fail_ok);
-                        if (!res)
+                        if (!res) {
                             errMsg = strConnection;
+                            m_dbName = strConnection;
+                        }
                     }
                 }
                 if (!res && !errMsg.size()) {
@@ -440,6 +445,9 @@ namespace SPA
         }
 
         void COdbcImpl::CloseDb(int &res, std::wstring & errMsg) {
+            if (m_EnableMessages) {
+                GetPush().Unsubscribe();
+            }
             CleanDBObjects();
             res = SQL_SUCCESS;
         }
@@ -1966,11 +1974,7 @@ namespace SPA
                 retcode = SQLNumResultCols(hstmt, &columns);
                 assert(SQL_SUCCEEDED(retcode));
                 CDBColumnInfoArray vInfo = GetColInfo(hstmt, columns, true);
-                {
-                    CScopeUQueue sbRowset;
-                    sbRowset << vInfo << index;
-                    ret = SendResult(idRowsetHeader, sbRowset->GetBuffer(), sbRowset->GetSize());
-                }
+                ret = SendResult(idRowsetHeader, vInfo, index);
                 if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
                     return;
                 }
@@ -2037,11 +2041,7 @@ namespace SPA
                 retcode = SQLNumResultCols(hstmt, &columns);
                 assert(SQL_SUCCEEDED(retcode));
                 CDBColumnInfoArray vInfo = GetColInfo(hstmt, columns, true);
-                {
-                    CScopeUQueue sbRowset;
-                    sbRowset << vInfo << index;
-                    ret = SendResult(idRowsetHeader, sbRowset->GetBuffer(), sbRowset->GetSize());
-                }
+                ret = SendResult(idRowsetHeader, vInfo, index);
                 if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
                     return;
                 }
@@ -2108,11 +2108,7 @@ namespace SPA
                 retcode = SQLNumResultCols(hstmt, &columns);
                 assert(SQL_SUCCEEDED(retcode));
                 CDBColumnInfoArray vInfo = GetColInfo(hstmt, columns, true);
-                {
-                    CScopeUQueue sbRowset;
-                    sbRowset << vInfo << index;
-                    ret = SendResult(idRowsetHeader, sbRowset->GetBuffer(), sbRowset->GetSize());
-                }
+                ret = SendResult(idRowsetHeader, vInfo, index);
                 if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
                     return;
                 }
@@ -2175,18 +2171,15 @@ namespace SPA
                     ++m_fails;
                     break;
                 }
-                unsigned int ret;
                 SQLSMALLINT columns = 0;
                 retcode = SQLNumResultCols(hstmt, &columns);
                 assert(SQL_SUCCEEDED(retcode));
                 CDBColumnInfoArray vInfo = GetColInfo(hstmt, columns, true);
                 if (!m_pNoSending) {
-                    ret = SendResult(idRowsetHeader, vInfo, index);
-                } else {
-                    ret = 0;
-                }
-                if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
-                    return;
+                    unsigned int ret = SendResult(idRowsetHeader, vInfo, index);
+                    if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
+                        return;
+                    }
                 }
                 bool ok;
                 if (m_nRecordSize)
@@ -2249,11 +2242,7 @@ namespace SPA
                 retcode = SQLNumResultCols(hstmt, &columns);
                 assert(SQL_SUCCEEDED(retcode));
                 CDBColumnInfoArray vInfo = GetColInfo(hstmt, columns, true);
-                {
-                    CScopeUQueue sbRowset;
-                    sbRowset << vInfo << index;
-                    ret = SendResult(idRowsetHeader, sbRowset->GetBuffer(), sbRowset->GetSize());
-                }
+                ret = SendResult(idRowsetHeader, vInfo, index);
                 if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
                     return;
                 }
@@ -2318,11 +2307,7 @@ namespace SPA
                 retcode = SQLNumResultCols(hstmt, &columns);
                 assert(SQL_SUCCEEDED(retcode));
                 CDBColumnInfoArray vInfo = GetColInfo(hstmt, columns, true);
-                {
-                    CScopeUQueue sbRowset;
-                    sbRowset << vInfo << index;
-                    ret = SendResult(idRowsetHeader, sbRowset->GetBuffer(), sbRowset->GetSize());
-                }
+                ret = SendResult(idRowsetHeader, vInfo, index);
                 if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
                     return;
                 }
@@ -2387,11 +2372,7 @@ namespace SPA
                 retcode = SQLNumResultCols(hstmt, &columns);
                 assert(SQL_SUCCEEDED(retcode));
                 CDBColumnInfoArray vInfo = GetColInfo(hstmt, columns, true);
-                {
-                    CScopeUQueue sbRowset;
-                    sbRowset << vInfo << index;
-                    ret = SendResult(idRowsetHeader, sbRowset->GetBuffer(), sbRowset->GetSize());
-                }
+                ret = SendResult(idRowsetHeader, vInfo, index);
                 if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
                     return;
                 }
@@ -2456,11 +2437,7 @@ namespace SPA
                 retcode = SQLNumResultCols(hstmt, &columns);
                 assert(SQL_SUCCEEDED(retcode));
                 CDBColumnInfoArray vInfo = GetColInfo(hstmt, columns, true);
-                {
-                    CScopeUQueue sbRowset;
-                    sbRowset << vInfo << index;
-                    ret = SendResult(idRowsetHeader, sbRowset->GetBuffer(), sbRowset->GetSize());
-                }
+                ret = SendResult(idRowsetHeader, vInfo, index);
                 if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
                     return;
                 }
@@ -2525,11 +2502,7 @@ namespace SPA
                 retcode = SQLNumResultCols(hstmt, &columns);
                 assert(SQL_SUCCEEDED(retcode));
                 CDBColumnInfoArray vInfo = GetColInfo(hstmt, columns, true);
-                {
-                    CScopeUQueue sbRowset;
-                    sbRowset << vInfo << index;
-                    ret = SendResult(idRowsetHeader, sbRowset->GetBuffer(), sbRowset->GetSize());
-                }
+                ret = SendResult(idRowsetHeader, vInfo, index);
                 if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
                     return;
                 }
@@ -2600,11 +2573,7 @@ namespace SPA
                 retcode = SQLNumResultCols(hstmt, &columns);
                 assert(SQL_SUCCEEDED(retcode));
                 CDBColumnInfoArray vInfo = GetColInfo(hstmt, columns, true);
-                {
-                    CScopeUQueue sbRowset;
-                    sbRowset << vInfo << index;
-                    ret = SendResult(idRowsetHeader, sbRowset->GetBuffer(), sbRowset->GetSize());
-                }
+                ret = SendResult(idRowsetHeader, vInfo, index);
                 if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
                     return;
                 }
@@ -2622,6 +2591,58 @@ namespace SPA
             fail_ok += (unsigned int) (m_oks - oks);
         }
 
+        std::wstring COdbcImpl::GenerateMsSqlForCachedTables() {
+            CScopeUQueue sb;
+            CUQueue &q = *sb;
+            bool rowset = true, meta = true, lastInsertId = true;
+            UINT64 index = 0, fail_ok = 0;
+            INT64 affected = 0;
+            int res = 0;
+            std::wstring errMsg, strSqlCache;
+            CDBVariant vtId;
+            std::wstring sql = L"SELECT name FROM master.dbo.sysdatabases where name NOT IN('master','tempdb','model','msdb')";
+            m_pNoSending = &q;
+            do {
+                Execute(sql, rowset, meta, lastInsertId, index, affected, res, errMsg, vtId, fail_ok);
+                if (res)
+                    break;
+                SPA::UDB::CDBVariantArray vDb;
+                while (q.GetSize()) {
+                    CDBVariant vt;
+                    q >> vt;
+                    vDb.push_back(std::move(vt));
+                }
+                for (auto it = vDb.cbegin(), end = vDb.cend(); it != end; ++it) {
+                    sql = L"USE [";
+                    sql += it->bstrVal;
+                    sql += L"];";
+                    sql += L"select object_schema_name(parent_id),OBJECT_NAME(parent_id)from sys.assembly_modules as am,sys.triggers as t where t.object_id=am.object_id and assembly_method like 'PublishDMLEvent%' and assembly_class='USqlStream'";
+                    Execute(sql, rowset, meta, lastInsertId, index, affected, res, errMsg, vtId, fail_ok);
+                    if (res)
+                        continue;
+                    if (strSqlCache.size())
+                        strSqlCache.push_back(L';');
+                    CDBVariant vtSchema, vtTable;
+                    while (q.GetSize()) {
+                        q >> vtSchema >> vtTable;
+                        strSqlCache += L"SELECT * FROM [";
+                        strSqlCache += it->bstrVal;
+                        strSqlCache += L"].[";
+                        strSqlCache += vtSchema.bstrVal;
+                        strSqlCache += L"].[";
+                        strSqlCache += vtTable.bstrVal;
+                        strSqlCache.push_back(L']');
+                        if (q.GetSize())
+                            strSqlCache.push_back(L';');
+                    }
+                }
+            } while (false);
+            sql = L"USE [" + m_dbName + L"]";
+            Execute(sql, rowset, meta, lastInsertId, index, affected, res, errMsg, vtId, fail_ok);
+            m_pNoSending = nullptr;
+            return strSqlCache;
+        }
+
         void COdbcImpl::Execute(const std::wstring& wsql, bool rowset, bool meta, bool lastInsertId, UINT64 index, INT64 &affected, int &res, std::wstring &errMsg, CDBVariant &vtId, UINT64 & fail_ok) {
             affected = 0;
             fail_ok = 0;
@@ -2635,6 +2656,16 @@ namespace SPA
                 return;
             } else {
                 res = SQL_SUCCESS;
+            }
+            std::wstring sql = wsql;
+            if (m_EnableMessages && !sql.size()) {
+                switch (m_msDriver) {
+                    case msMsSQL:
+                        sql = GenerateMsSqlForCachedTables();
+                        break;
+                    default:
+                        break;
+                }
             }
             UINT64 fails = m_fails;
             UINT64 oks = m_oks;
@@ -2655,11 +2686,11 @@ namespace SPA
                 }
                 m_pExcuting = pStmt;
 #ifdef WIN32_64
-                retcode = SQLExecDirectW(hstmt, (SQLWCHAR*) wsql.c_str(), (SQLINTEGER) wsql.size());
+                retcode = SQLExecDirectW(hstmt, (SQLWCHAR*) sql.c_str(), (SQLINTEGER) sql.size());
 #else
                 {
                     CScopeUQueue sb;
-                    SPA::Utilities::ToUTF16(wsql.c_str(), wsql.size(), *sb);
+                    SPA::Utilities::ToUTF16(sql.c_str(), sql.size(), *sb);
                     retcode = SQLExecDirectW(hstmt, (SQLWCHAR*) sb->GetBuffer(), (SQLINTEGER) (sb->GetSize() / sizeof (SQLWCHAR)));
                 }
 #endif
@@ -2677,16 +2708,14 @@ namespace SPA
                     }
                     if (columns > 0) {
                         if (rowset) {
-                            unsigned int ret;
                             CDBColumnInfoArray vInfo = GetColInfo(hstmt, columns, meta);
-                            {
-                                CScopeUQueue sbRowset;
-                                sbRowset << vInfo << index;
-                                ret = SendResult(idRowsetHeader, sbRowset->GetBuffer(), sbRowset->GetSize());
+                            if (!m_pNoSending) {
+                                unsigned int ret = SendResult(idRowsetHeader, vInfo, index);
+                                if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
+                                    return;
+                                }
                             }
-                            if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
-                                return;
-                            }
+
                             bool ok;
                             if (m_nRecordSize)
                                 ok = PushRecords(hstmt, res, errMsg);
@@ -4150,12 +4179,7 @@ namespace SPA
                                 bool output = (m_bCall && vInfo[0].TablePath == m_procName && (size_t) m_parameters >= vInfo.size());
                                 if (output || rowset) {
                                     unsigned int outputs = output ? ((unsigned int) vInfo.size()) : 0;
-                                    unsigned int ret = 0;
-                                    {
-                                        CScopeUQueue sbRowset;
-                                        sbRowset << vInfo << index << outputs;
-                                        ret = SendResult(idRowsetHeader, sbRowset->GetBuffer(), sbRowset->GetSize());
-                                    }
+                                    unsigned int ret = SendResult(idRowsetHeader, vInfo, index, outputs);
                                     if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
                                         m_vParam.clear();
                                         return;
@@ -4209,11 +4233,7 @@ namespace SPA
                             if (rowset) {
                                 unsigned int ret;
                                 CDBColumnInfoArray vInfo = GetColInfo(m_pPrepare.get(), columns, meta);
-                                {
-                                    CScopeUQueue sbRowset;
-                                    sbRowset << vInfo << index;
-                                    ret = SendResult(idRowsetHeader, sbRowset->GetBuffer(), sbRowset->GetSize());
-                                }
+                                ret = SendResult(idRowsetHeader, vInfo, index);
                                 if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
                                     m_vParam.clear();
                                     return;
