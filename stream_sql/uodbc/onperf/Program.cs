@@ -10,7 +10,7 @@ class Program
         string tableName = Console.ReadLine();
         Console.WriteLine("sql filter: ");
         string filter = Console.ReadLine();
-        string mysql_conn = "DSN=ToSqlServer64;Uid=sa;Pwd=Smash123";
+        string mysql_conn = "DSN=ToSqlServer64;Uid=sa;Pwd=Smash123;Database=sakila";
         OdbcConnection conn = new OdbcConnection(mysql_conn);
         conn.Open();
         string sql = "select * from " + tableName;
@@ -19,7 +19,7 @@ class Program
             sql += " where " + filter;
         }
         Console.WriteLine("Computing ......");
-        uint count = 500000;
+        uint count = 50000;
         DateTime start = DateTime.Now;
         for (uint n = 0; n < count; ++n)
         {

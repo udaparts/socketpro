@@ -17,7 +17,7 @@ class Program
         string tableName = Console.ReadLine();
         Console.WriteLine("sql filter: ");
         string filter = Console.ReadLine();
-        CConnectionContext cc = new CConnectionContext(host, 20901, "sa", "Smash123");
+        CConnectionContext cc = new CConnectionContext(host, 20903, "sa", "Smash123");
         Console.WriteLine("Asynchronous execution (0) or synchronous execution (1) ?");
         bool sync = (Console.ReadKey().KeyChar != '0');
         using (CSocketPool<COdbc> spOdbc = new CSocketPool<COdbc>())
@@ -38,7 +38,7 @@ class Program
                     Console.WriteLine("res = {0}, errMsg: {1}", res, errMsg);
             };
             uint obtained = 0;
-            bool ok = odbc.Open("dsn=ToSqlServer64;uid=sa;pwd=Smash123", dr);
+            bool ok = odbc.Open("sakila", dr);
 #if USE_DATATABLE
             List<KeyValuePair<CDBColumnInfoArray, DataTable>> ra = new List<KeyValuePair<CDBColumnInfoArray, DataTable>>();
 #else
@@ -74,7 +74,6 @@ class Program
 #endif
                 ra.Add(item);
             };
-            odbc.Execute("use sakila", er);
             ok = odbc.WaitAll();
             obtained = 0;
             string sql = "select * from " + tableName;
@@ -82,7 +81,7 @@ class Program
             {
                 sql += " where " + filter;
             }
-            uint count = 500000;
+            uint count = 50000;
             DateTime start = DateTime.Now;
             for (uint n = 0; n < count; ++n)
             {
