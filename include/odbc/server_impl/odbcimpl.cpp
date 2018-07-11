@@ -76,7 +76,8 @@ namespace SPA
                 m_mapConnection[hSocket] = hdbc;
                 m_csPeer.unlock();
             } else {
-                SQLFreeHandle(SQL_HANDLE_DBC, hdbc);
+				retcode = SQLDisconnect(hdbc);
+                retcode = SQLFreeHandle(SQL_HANDLE_DBC, hdbc);
             }
             return true;
         }
