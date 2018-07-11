@@ -1,6 +1,6 @@
 ﻿using SocketProAdapter.ClientSide;
 namespace web_two {
-    using CSql = CMysql; //point to one of CMysql, CSqlServer and CSQLite
+    using CSql = CMysql; //point to one of CMysql, COdbc+MSSQL and CSQLite
     public class Global : System.Web.HttpApplication {
         public static SPA.CMyMaster Master = null;
         public static SPA.CMyMaster.CSlavePool Slave = null;
