@@ -18,4 +18,4 @@
 	
 4.	There are two reusable database plugins for you to study at this time.
 	- umysql: A MySQL server plugin to support SQL-stream processing. Its pre-compiled plugin is free to the public
-	- sqlserver: A MS SQL server plugin written from C# to support SQL-stream processing
+	- sqlserver: A MS SQL server plugin written from C# to support SQL-stream processing, which is completely free to the public
