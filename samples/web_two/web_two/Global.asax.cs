@@ -26,9 +26,9 @@ namespace web_two {
             if (MasterNotQueued != null) MasterNotQueued.ShutdownPool();
         }
         private static void StartPools() {
-            StartPool(MyCase.mcMasterWithClientQueue);
-            StartPool(MyCase.mcSlaveWithClientQueue);
-            StartPool(MyCase.mcMasterWithoutClientQueue);
+            bool ok = StartPool(MyCase.mcMasterWithClientQueue);
+            ok = StartPool(MyCase.mcSlaveWithClientQueue);
+            ok = StartPool(MyCase.mcMasterWithoutClientQueue);
             CSql handler = Master.SeekByQueue();
             if (handler != null) { //create a test database
                 string sql = @"CREATE DATABASE IF NOT EXISTS mysample character set utf8 collate utf8_general_ci;
@@ -36,7 +36,7 @@ namespace web_two {
                 CREATE TABLE EMPLOYEE(EMPLOYEEID BIGINT PRIMARY KEY AUTO_INCREMENT,CompanyId BIGINT NOT NULL,Name NCHAR(64)
                 NOT NULL,JoinDate DATETIME(6)DEFAULT NULL,FOREIGN KEY(CompanyId)REFERENCES COMPANY(id));USE sakila;
                 INSERT INTO mysample.COMPANY(ID,Name)VALUES(1,'Google Inc.'),(2,'Microsoft Inc.'),(3,'Amazon Inc.')";
-                bool ok = handler.Execute(sql);
+                ok = handler.Execute(sql);
             }
         }
         private static bool StartPool(MyCase mc) {
@@ -73,8 +73,8 @@ namespace web_two {
                         for (uint n = 0; n < sessions_per_host; ++n)
                             ppCC[i, j * sessions_per_host + n] = Hosts[(int)j];
                 ok = pool.StartSocketPool(ppCC);
-                //no automatcally merging requests saved in local/client message queue files in case master or one host
-                if (Hosts.Count < 2 || mc == MyCase.mcMasterWithClientQueue) pool.QueueAutoMerge = false;
+                //not automatcally merge requests saved in local/client message queue files in case there is one host only
+                if (Hosts.Count < 2) pool.QueueAutoMerge = false;
             }
             return ok;
         }
