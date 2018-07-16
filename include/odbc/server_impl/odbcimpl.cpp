@@ -196,7 +196,8 @@ namespace SPA
         : m_oks(0), m_fails(0), m_ti(tiUnspecified), m_global(true),
         m_Blob(*m_sb), m_parameters(0), m_bCall(false), m_bReturn(false),
         m_outputs(0), m_nRecordSize(0), m_pNoSending(nullptr),
-        m_msDriver(msUnknown), m_EnableMessages(false) {
+        m_msDriver(msUnknown), m_EnableMessages(false),
+        m_bPrimaryKeys(SQL_FALSE) {
 
         }
 
@@ -303,6 +304,7 @@ namespace SPA
             ResetMemories();
             m_msDriver = msUnknown;
             m_EnableMessages = false;
+            m_bPrimaryKeys = SQL_FALSE;
         }
 
         void COdbcImpl::ltrim_w(std::wstring & s) {
@@ -443,6 +445,9 @@ namespace SPA
                     else if (m_dbms.find(L"postgre") == 0)
                         m_msDriver = msPostgreSQL;
                 } while (false);
+            }
+            if (m_pOdbc) {
+                SQLGetFunctions(m_pOdbc.get(), SQL_API_SQLPRIMARYKEYS, &m_bPrimaryKeys);
             }
         }
 
@@ -674,7 +679,42 @@ namespace SPA
             return true;
         }
 
-        CDBColumnInfoArray COdbcImpl::GetColInfo(SQLHSTMT hstmt, SQLSMALLINT columns, bool meta) {
+        void COdbcImpl::SetPrimaryKey(const std::wstring &dbName, const std::wstring &schema, const std::wstring &tableName, CDBColumnInfoArray & vCol) {
+            CScopeUQueue sb;
+            CUQueue &q = *sb;
+            int res = 0;
+            std::wstring errMsg;
+            SPA::UINT64 fail_ok = 0;
+            do {
+                m_pNoSending = &q;
+                DoSQLPrimaryKeys(dbName, schema, tableName, 0, res, errMsg, fail_ok);
+                m_pNoSending = nullptr;
+                if (res || !q.GetSize())
+                    break;
+                CDBVariantArray vData;
+                while (q.GetSize()) {
+                    SPA::UDB::CDBVariant vt;
+                    q >> vt;
+                    vData.push_back(std::move(vt));
+                }
+                size_t rows = vData.size() / m_vBindInfo.size();
+                for (size_t r = 0; r < rows; ++r) {
+                    size_t pos = r * m_vBindInfo.size() + 3; //Primary key column name
+                    BSTR bstrVal = vData[pos].bstrVal;
+                    std::wstring colName = bstrVal ? bstrVal : L"";
+                    if (colName.size()) {
+                        for (auto it = vCol.begin(), end = vCol.end(); it != end; ++it) {
+                            if (it->DisplayName == colName) {
+                                it->Flags |= CDBColumnInfo::FLAG_PRIMARY_KEY;
+                                break;
+                            }
+                        }
+                    }
+                }
+            } while (false);
+        }
+
+        CDBColumnInfoArray COdbcImpl::GetColInfo(SQLHSTMT hstmt, SQLSMALLINT columns, bool primaryKey) {
             bool primary_key_set = false;
             m_vBindInfo.clear();
             bool hasBlob = false;
@@ -893,11 +933,9 @@ namespace SPA
                         bindinfo.BufferSize = DEFAULT_UNICODE_CHAR_SIZE * sizeof (SQLWCHAR);
                         break;
                 }
-
                 if (info.ColumnSize > DEFAULT_OUTPUT_BUFFER_SIZE) {
                     hasBlob = true;
                 }
-
                 retcode = SQLColAttribute(hstmt, (SQLUSMALLINT) (n + 1), SQL_DESC_AUTO_UNIQUE_VALUE, nullptr, 0, nullptr, &displaysize);
                 assert(SQL_SUCCEEDED(retcode));
                 if (displaysize == SQL_TRUE) {
@@ -915,6 +953,9 @@ namespace SPA
                             }
                             break;
                         default:
+                            if (primaryKey) {
+
+                            }
                             break;
                     }
                 }
@@ -923,7 +964,6 @@ namespace SPA
                 if (displaysize == SQL_ATTR_READONLY) {
                     info.Flags |= CDBColumnInfo::FLAG_NOT_WRITABLE;
                 }
-
                 if (!hasBlob) {
                     bindinfo.DataType = info.DataType;
                     bindinfo.Offset = m_nRecordSize;
@@ -934,6 +974,27 @@ namespace SPA
             if (hasBlob || hasVariant) {
                 m_vBindInfo.clear();
                 m_nRecordSize = 0;
+            }
+            if (!primary_key_set && primaryKey && m_bPrimaryKeys) {
+                switch (m_msDriver) {
+                    case msMsSQL:
+                        break;
+                    default:
+                        if (vCols.size() && vCols[0].TablePath.size()) {
+                            std::wstring schema, tableName;
+                            size_t pos = vCols[0].TablePath.rfind(L'.');
+                            if (pos == std::wstring::npos) {
+                                tableName = vCols[0].TablePath;
+                            } else {
+                                schema = vCols[0].TablePath.substr(0, pos);
+                                tableName = vCols[0].TablePath.substr(pos + 1);
+                            }
+                            std::vector<CBindInfo> bi = m_vBindInfo;
+                            SetPrimaryKey(vCols[0].DBPath, schema, tableName, vCols);
+                            m_vBindInfo = bi;
+                        }
+                        break;
+                }
             }
             return vCols;
         }
@@ -1983,7 +2044,7 @@ namespace SPA
                 SQLSMALLINT columns = 0;
                 retcode = SQLNumResultCols(hstmt, &columns);
                 assert(SQL_SUCCEEDED(retcode));
-                CDBColumnInfoArray vInfo = GetColInfo(hstmt, columns, true);
+                CDBColumnInfoArray vInfo = GetColInfo(hstmt, columns, false);
                 ret = SendResult(idRowsetHeader, vInfo, index);
                 if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
                     return;
@@ -2050,7 +2111,7 @@ namespace SPA
                 SQLSMALLINT columns = 0;
                 retcode = SQLNumResultCols(hstmt, &columns);
                 assert(SQL_SUCCEEDED(retcode));
-                CDBColumnInfoArray vInfo = GetColInfo(hstmt, columns, true);
+                CDBColumnInfoArray vInfo = GetColInfo(hstmt, columns, false);
                 ret = SendResult(idRowsetHeader, vInfo, index);
                 if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
                     return;
@@ -2117,7 +2178,7 @@ namespace SPA
                 SQLSMALLINT columns = 0;
                 retcode = SQLNumResultCols(hstmt, &columns);
                 assert(SQL_SUCCEEDED(retcode));
-                CDBColumnInfoArray vInfo = GetColInfo(hstmt, columns, true);
+                CDBColumnInfoArray vInfo = GetColInfo(hstmt, columns, false);
                 ret = SendResult(idRowsetHeader, vInfo, index);
                 if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
                     return;
@@ -2184,7 +2245,7 @@ namespace SPA
                 SQLSMALLINT columns = 0;
                 retcode = SQLNumResultCols(hstmt, &columns);
                 assert(SQL_SUCCEEDED(retcode));
-                CDBColumnInfoArray vInfo = GetColInfo(hstmt, columns, true);
+                CDBColumnInfoArray vInfo = GetColInfo(hstmt, columns, false);
                 if (!m_pNoSending) {
                     unsigned int ret = SendResult(idRowsetHeader, vInfo, index);
                     if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
@@ -2250,7 +2311,7 @@ namespace SPA
                 SQLSMALLINT columns = 0;
                 retcode = SQLNumResultCols(hstmt, &columns);
                 assert(SQL_SUCCEEDED(retcode));
-                CDBColumnInfoArray vInfo = GetColInfo(hstmt, columns, true);
+                CDBColumnInfoArray vInfo = GetColInfo(hstmt, columns, false);
                 if (!m_pNoSending) {
                     unsigned int ret = SendResult(idRowsetHeader, vInfo, index);
                     if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
@@ -2317,7 +2378,7 @@ namespace SPA
                 SQLSMALLINT columns = 0;
                 retcode = SQLNumResultCols(hstmt, &columns);
                 assert(SQL_SUCCEEDED(retcode));
-                CDBColumnInfoArray vInfo = GetColInfo(hstmt, columns, true);
+                CDBColumnInfoArray vInfo = GetColInfo(hstmt, columns, false);
                 ret = SendResult(idRowsetHeader, vInfo, index);
                 if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
                     return;
@@ -2382,7 +2443,7 @@ namespace SPA
                 SQLSMALLINT columns = 0;
                 retcode = SQLNumResultCols(hstmt, &columns);
                 assert(SQL_SUCCEEDED(retcode));
-                CDBColumnInfoArray vInfo = GetColInfo(hstmt, columns, true);
+                CDBColumnInfoArray vInfo = GetColInfo(hstmt, columns, false);
                 ret = SendResult(idRowsetHeader, vInfo, index);
                 if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
                     return;
@@ -2447,7 +2508,7 @@ namespace SPA
                 SQLSMALLINT columns = 0;
                 retcode = SQLNumResultCols(hstmt, &columns);
                 assert(SQL_SUCCEEDED(retcode));
-                CDBColumnInfoArray vInfo = GetColInfo(hstmt, columns, true);
+                CDBColumnInfoArray vInfo = GetColInfo(hstmt, columns, false);
                 ret = SendResult(idRowsetHeader, vInfo, index);
                 if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
                     return;
@@ -2512,7 +2573,7 @@ namespace SPA
                 SQLSMALLINT columns = 0;
                 retcode = SQLNumResultCols(hstmt, &columns);
                 assert(SQL_SUCCEEDED(retcode));
-                CDBColumnInfoArray vInfo = GetColInfo(hstmt, columns, true);
+                CDBColumnInfoArray vInfo = GetColInfo(hstmt, columns, false);
                 ret = SendResult(idRowsetHeader, vInfo, index);
                 if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
                     return;
@@ -2583,7 +2644,7 @@ namespace SPA
                 SQLSMALLINT columns = 0;
                 retcode = SQLNumResultCols(hstmt, &columns);
                 assert(SQL_SUCCEEDED(retcode));
-                CDBColumnInfoArray vInfo = GetColInfo(hstmt, columns, true);
+                CDBColumnInfoArray vInfo = GetColInfo(hstmt, columns, false);
                 ret = SendResult(idRowsetHeader, vInfo, index);
                 if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
                     return;
@@ -2605,7 +2666,7 @@ namespace SPA
         std::wstring COdbcImpl::GenerateMsSqlForCachedTables() {
             CScopeUQueue sb;
             CUQueue &q = *sb;
-            bool rowset = true, meta = true, lastInsertId = true;
+            bool rowset = true, lastInsertId = true;
             UINT64 index = 0, fail_ok = 0;
             INT64 affected = 0;
             int res = 0;
@@ -2614,7 +2675,7 @@ namespace SPA
             std::wstring sql = L"SELECT name FROM master.dbo.sysdatabases where name NOT IN('master','tempdb','model','msdb')";
             m_pNoSending = &q;
             do {
-                Execute(sql, rowset, meta, lastInsertId, index, affected, res, errMsg, vtId, fail_ok);
+                Execute(sql, rowset, false, lastInsertId, index, affected, res, errMsg, vtId, fail_ok);
                 if (res)
                     break;
                 SPA::UDB::CDBVariantArray vDb;
@@ -2628,7 +2689,7 @@ namespace SPA
                     sql += it->bstrVal;
                     sql += L"];";
                     sql += L"select object_schema_name(parent_id),OBJECT_NAME(parent_id)from sys.assembly_modules as am,sys.triggers as t where t.object_id=am.object_id and assembly_method like 'PublishDMLEvent%' and assembly_class='USqlStream'";
-                    Execute(sql, rowset, meta, lastInsertId, index, affected, res, errMsg, vtId, fail_ok);
+                    Execute(sql, rowset, false, lastInsertId, index, affected, res, errMsg, vtId, fail_ok);
                     if (res)
                         continue;
                     if (strSqlCache.size())
@@ -2649,7 +2710,7 @@ namespace SPA
                 }
             } while (false);
             sql = L"USE [" + m_dbName + L"]";
-            Execute(sql, rowset, meta, lastInsertId, index, affected, res, errMsg, vtId, fail_ok);
+            Execute(sql, false, false, lastInsertId, index, affected, res, errMsg, vtId, fail_ok);
             m_pNoSending = nullptr;
             return strSqlCache;
         }
@@ -2735,7 +2796,6 @@ namespace SPA
                                     return;
                                 }
                             }
-
                             bool ok;
                             if (m_nRecordSize)
                                 ok = PushRecords(hstmt, res, errMsg);

@@ -106,7 +106,7 @@ namespace SPA {
 
         private:
             void CleanDBObjects();
-            CDBColumnInfoArray GetColInfo(SQLHSTMT hstmt, SQLSMALLINT columns, bool meta);
+            CDBColumnInfoArray GetColInfo(SQLHSTMT hstmt, SQLSMALLINT columns, bool primaryKey);
             bool PushRecords(SQLHSTMT hstmt, const CDBColumnInfoArray &vColInfo, bool output, int &res, std::wstring &errMsg);
             bool PushRecords(SQLHSTMT hstmt, int &res, std::wstring &errMsg);
             bool PushInfo(SQLHDBC hdbc);
@@ -118,6 +118,7 @@ namespace SPA {
             void ResetMemories();
             void SetVParam(CDBVariantArray& vAll, size_t parameters, size_t pos, size_t ps);
             void SetCallParams(int &res, std::wstring &errMsg);
+            void SetPrimaryKey(const std::wstring &dbName, const std::wstring &schema, const std::wstring &tableName, CDBColumnInfoArray &vCol);
             std::wstring GenerateMsSqlForCachedTables();
             static CParameterInfoArray GetVInfo(const CParameterInfoArray& vPInfo, size_t pos, size_t ps);
             static std::vector<std::wstring> Split(const std::wstring &sql, const std::wstring &delimiter);
@@ -175,6 +176,7 @@ namespace SPA {
 
             tagManagementSystem m_msDriver;
             bool m_EnableMessages;
+            SQLUSMALLINT m_bPrimaryKeys;
 
             static const wchar_t* NO_DB_OPENED_YET;
             static const wchar_t* BAD_END_TRANSTACTION_PLAN;
