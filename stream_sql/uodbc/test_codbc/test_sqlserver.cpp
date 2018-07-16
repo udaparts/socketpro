@@ -95,7 +95,7 @@ int main(int argc, char* argv[]) {
 
     //second set
     vPData.push_back(2);
-    vPData.push_back(0);
+    vPData.push_back(2.41);
     vPData.push_back(CDBVariant());
     unsigned int oks = 0;
     TestStoredProcedure(pOdbc, ra, vPData, oks);

@@ -2854,18 +2854,22 @@ namespace SPA
             }
             SQLSMALLINT parameters = (SQLSMALLINT) (vData.size() / m_vBindInfo.size());
             for (SQLSMALLINT r = 0, k = 0; r < parameters; ++r, ++k) {
-                if (vPD[k] == pdUnknown)
-                    continue;
                 CParameterInfo pi;
                 unsigned int pos = (unsigned int) (r * m_vBindInfo.size() + 4);
                 CDBVariant &vt = vData[pos];
                 switch (vt.iVal) {
                     case SQL_PARAM_INPUT:
+                        if (vPD[k] == pdUnknown)
+                            continue;
                         break;
                     case SQL_PARAM_INPUT_OUTPUT:
+                        if (vPD[k] == pdUnknown)
+                            continue;
                         pi.Direction = pdInputOutput;
                         break;
                     case SQL_PARAM_OUTPUT:
+                        if (vPD[k] == pdUnknown)
+                            continue;
                         pi.Direction = pdOutput;
                         break;
                     case SQL_RETURN_VALUE:
