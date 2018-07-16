@@ -716,7 +716,7 @@ namespace SPA
             } while (false);
         }
 
-        CDBColumnInfoArray COdbcImpl::GetColInfo(SQLHSTMT hstmt, SQLSMALLINT columns, bool primaryKey) {
+        CDBColumnInfoArray COdbcImpl::GetColInfo(SQLHSTMT hstmt, SQLSMALLINT columns, bool meta) {
             bool primary_key_set = false;
             m_vBindInfo.clear();
             bool hasBlob = false;
@@ -955,9 +955,6 @@ namespace SPA
                             }
                             break;
                         default:
-                            if (primaryKey) {
-
-                            }
                             break;
                     }
                 }
@@ -977,7 +974,7 @@ namespace SPA
                 m_vBindInfo.clear();
                 m_nRecordSize = 0;
             }
-            if (!primary_key_set && primaryKey && m_bPrimaryKeys) {
+            /*if (!primary_key_set && meta && m_bPrimaryKeys) {
                 switch (m_msDriver) {
                     case msMsSQL:
                         break;
@@ -997,7 +994,7 @@ namespace SPA
                         }
                         break;
                 }
-            }
+            }*/
             return vCols;
         }
 
@@ -2718,8 +2715,6 @@ namespace SPA
         }
 
         void COdbcImpl::Execute(const std::wstring& wsql, bool rowset, bool meta, bool lastInsertId, UINT64 index, INT64 &affected, int &res, std::wstring &errMsg, CDBVariant &vtId, UINT64 & fail_ok) {
-            if (index && meta)
-                meta = false;
             affected = 0;
             fail_ok = 0;
             ResetMemories();
@@ -3064,6 +3059,11 @@ namespace SPA
                         }
                         SetCallParams(m_vPD, res, errMsg);
                         if (res) {
+                            break;
+                        }
+                        if (m_bCall && m_parameters != (SQLSMALLINT) m_vPInfo.size()) {
+                            res = SPA::Odbc::ER_BAD_PARAMETER_COLUMN_SIZE;
+                            errMsg = BAD_PARAMETER_COLUMN_SIZE;
                             break;
                         }
                     }
@@ -4220,8 +4220,6 @@ namespace SPA
         }
 
         void COdbcImpl::ExecuteParameters(bool rowset, bool meta, bool lastInsertId, UINT64 index, INT64 &affected, int &res, std::wstring &errMsg, CDBVariant &vtId, UINT64 & fail_ok) {
-            if (index && meta)
-                meta = false;
             fail_ok = 0;
             affected = 0;
             UINT64 fails = m_fails;

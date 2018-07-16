@@ -90,15 +90,13 @@ int main(int argc, char* argv[]) {
     CDBVariantArray vPData;
     //first set
     vPData.push_back(1);
-    //output not important, but they are used for receiving proper types of data from sql server
-    vPData.push_back(true);
-    vPData.push_back(1.1);
+    vPData.push_back(1.25);
+    vPData.push_back(CDBVariant());
 
     //second set
     vPData.push_back(2);
-    //output not important, but they are used for receiving proper types of data from sql server
     vPData.push_back(0);
-    vPData.push_back(-1);
+    vPData.push_back(CDBVariant());
     unsigned int oks = 0;
     TestStoredProcedure(pOdbc, ra, vPData, oks);
     ok = pOdbc->WaitAll();
@@ -545,25 +543,10 @@ void TestStoredProcedure_2(std::shared_ptr<CMyHandler> pOdbc, CRowsetArray&ra, C
 }
 
 void TestStoredProcedure(std::shared_ptr<CMyHandler> pOdbc, CRowsetArray&ra, CDBVariantArray &vPData, unsigned int &oks) {
-    CParameterInfoArray vPInfo;
-
-    CParameterInfo info;
-    info.DataType = VT_I4;
-    info.Direction = pdInput;
-    vPInfo.push_back(info);
-
-    info.DataType = VT_R8;
-    info.Direction = pdOutput;
-    vPInfo.push_back(info);
-
-    info.DataType = VT_DATE;
-    info.Direction = pdOutput;
-    vPInfo.push_back(info);
-
     bool ok = pOdbc->Prepare(L"{call sqltestdb.dbo.sp_TestProc(?, ?, ?)} ", [](CSender &handler, int res, const std::wstring & errMsg) {
         std::cout << "res = " << res << ", errMsg: ";
         std::wcout << errMsg << std::endl;
-    }, vPInfo);
+    });
     CMyHandler::DRows r = [&ra](CSender &handler, CDBVariantArray & vData) {
         //rowset data come here
         assert((vData.size() % handler.GetColumnInfo().size()) == 0);

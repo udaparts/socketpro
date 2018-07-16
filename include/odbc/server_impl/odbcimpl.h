@@ -106,7 +106,7 @@ namespace SPA {
 
         private:
             void CleanDBObjects();
-            CDBColumnInfoArray GetColInfo(SQLHSTMT hstmt, SQLSMALLINT columns, bool primaryKey);
+            CDBColumnInfoArray GetColInfo(SQLHSTMT hstmt, SQLSMALLINT columns, bool meta);
             bool PushRecords(SQLHSTMT hstmt, const CDBColumnInfoArray &vColInfo, bool output, int &res, std::wstring &errMsg);
             bool PushRecords(SQLHSTMT hstmt, int &res, std::wstring &errMsg);
             bool PushInfo(SQLHDBC hdbc);
