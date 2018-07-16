@@ -62,12 +62,12 @@ class Program
             //first set
             vPData.Add(1);
             vPData.Add(2.35m);//input/output
-            vPData.Add(0);
+            vPData.Add(null); //output
 
             //second set
             vPData.Add(2);
             vPData.Add(0.99m);//input/output
-            vPData.Add(0);
+            vPData.Add(null); //output
             TestStoredProcedure(odbc, ra, vPData);
             ok = odbc.WaitAll();
             Console.WriteLine();
@@ -343,16 +343,8 @@ class Program
 
     static void TestStoredProcedure(COdbc odbc, List<KeyValuePair<CDBColumnInfoArray, CDBVariantArray>> ra, CDBVariantArray vPData)
     {
-        CParameterInfo[] vInfo = { new CParameterInfo(), new CParameterInfo(), new CParameterInfo() };
-        vInfo[0].DataType = tagVariantDataType.sdVT_I4;
-
-        vInfo[1].DataType = tagVariantDataType.sdVT_DECIMAL;
-        vInfo[1].Direction = tagParameterDirection.pdInputOutput;
-
-        vInfo[2].DataType = tagVariantDataType.sdVT_DATE;
-        vInfo[2].Direction = tagParameterDirection.pdOutput;
-
-        bool ok = odbc.Prepare("{call sp_TestProc(?,?,?)}", dr, vInfo);
+        //Parameter info array can be ignored for some ODBC drivers like MySQL, MS SQL Server, etc but performance will be degraded for code simplicity
+        bool ok = odbc.Prepare("{call sp_TestProc(?,?,?)}", dr);
         COdbc.DRows r = (handler, rowData) =>
         {
             //rowset data come here
@@ -360,7 +352,6 @@ class Program
             KeyValuePair<CDBColumnInfoArray, CDBVariantArray> item = ra[last];
             item.Value.AddRange(rowData);
         };
-
         COdbc.DRowsetHeader rh = (handler) =>
         {
             //rowset header comes here
