@@ -197,7 +197,7 @@ namespace SPA
         m_Blob(*m_sb), m_parameters(0), m_bCall(false), m_bReturn(false),
         m_outputs(0), m_nRecordSize(0), m_pNoSending(nullptr),
         m_msDriver(msUnknown), m_EnableMessages(false),
-        m_bPrimaryKeys(SQL_FALSE) {
+        m_bPrimaryKeys(SQL_FALSE), m_bProcedureColumns(SQL_FALSE) {
 
         }
 
@@ -305,6 +305,7 @@ namespace SPA
             m_msDriver = msUnknown;
             m_EnableMessages = false;
             m_bPrimaryKeys = SQL_FALSE;
+            m_bProcedureColumns = SQL_FALSE;
         }
 
         void COdbcImpl::ltrim_w(std::wstring & s) {
@@ -448,6 +449,7 @@ namespace SPA
             }
             if (m_pOdbc) {
                 SQLGetFunctions(m_pOdbc.get(), SQL_API_SQLPRIMARYKEYS, &m_bPrimaryKeys);
+                SQLGetFunctions(m_pOdbc.get(), SQL_API_SQLPROCEDURECOLUMNS, &m_bProcedureColumns);
             }
         }
 
@@ -2716,6 +2718,8 @@ namespace SPA
         }
 
         void COdbcImpl::Execute(const std::wstring& wsql, bool rowset, bool meta, bool lastInsertId, UINT64 index, INT64 &affected, int &res, std::wstring &errMsg, CDBVariant &vtId, UINT64 & fail_ok) {
+            if (index && meta)
+                meta = false;
             affected = 0;
             fail_ok = 0;
             ResetMemories();
@@ -2828,7 +2832,7 @@ namespace SPA
             fail_ok += (unsigned int) (m_oks - oks);
         }
 
-        void COdbcImpl::SetCallParams(int &res, std::wstring & errMsg) {
+        void COdbcImpl::SetCallParams(const std::vector<tagParameterDirection> &vPD, int &res, std::wstring & errMsg) {
             res = 0;
             UINT64 index = 0, fail_ok = 0;
             std::wstring column, schema, catalog;
@@ -2844,34 +2848,19 @@ namespace SPA
             m_pNoSending = &q;
             CDBVariantArray vData;
             DoSQLProcedureColumns(catalog, schema, m_procName, column, index, res, errMsg, fail_ok);
-            while (res == 0 && q.GetSize()) {
-                CDBVariant vt;
-                q >> vt;
-                vData.push_back(std::move(vt));
-            }
             m_pNoSending = nullptr;
             if (res) {
                 return;
             }
-            SQLSMALLINT start = 0;
-            switch (m_msDriver) {
-                case msMsSQL:
-                    start = m_bReturn ? 0 : 1;
-                    if ((size_t) (m_parameters + start) != vData.size() / m_vBindInfo.size()) {
-                        res = SPA::Odbc::ER_BAD_PARAMETER_COLUMN_SIZE;
-                        errMsg = BAD_PARAMETER_COLUMN_SIZE;
-                        return;
-                    }
-                    break;
-                default:
-                    if ((size_t) m_parameters != vData.size() / m_vBindInfo.size()) {
-                        res = SPA::Odbc::ER_BAD_PARAMETER_COLUMN_SIZE;
-                        errMsg = BAD_PARAMETER_COLUMN_SIZE;
-                        return;
-                    }
-                    break;
+            while (q.GetSize()) {
+                CDBVariant vt;
+                q >> vt;
+                vData.push_back(std::move(vt));
             }
-            for (SQLSMALLINT r = start; r < m_parameters + start; ++r) {
+            SQLSMALLINT parameters = (SQLSMALLINT) (vData.size() / m_vBindInfo.size());
+            for (SQLSMALLINT r = 0, k = 0; r < parameters; ++r, ++k) {
+                if (vPD[k] == pdUnknown)
+                    continue;
                 CParameterInfo pi;
                 unsigned int pos = (unsigned int) (r * m_vBindInfo.size() + 4);
                 CDBVariant &vt = vData[pos];
@@ -2886,6 +2875,10 @@ namespace SPA
                         break;
                     case SQL_RETURN_VALUE:
                         pi.Direction = pdReturnValue;
+                        if (!m_bReturn) {
+                            --k;
+                            continue;
+                        }
                         break;
                     default: //SQL_PARAM_TYPE_UNKNOWN, SQL_RESULT_COL
                         assert(false); //unexpected
@@ -3063,8 +3056,13 @@ namespace SPA
                             errMsg = BAD_PARAMETER_COLUMN_SIZE;
                             break;
                         }
-                    } else if (m_bCall) {
-                        SetCallParams(res, errMsg);
+                    } else if (m_bCall && m_bProcedureColumns) {
+                        m_vPD = GetCallDirections(m_sqlPrepare);
+                        if (m_bReturn) {
+                            //{?=CALL .....}
+                            m_vPD.insert(m_vPD.begin(), pdInput);
+                        }
+                        SetCallParams(m_vPD, res, errMsg);
                         if (res) {
                             break;
                         }
@@ -3994,8 +3992,53 @@ namespace SPA
             return v;
         }
 
+        std::vector<tagParameterDirection> COdbcImpl::GetCallDirections(const std::wstring & sql) {
+            bool quest = false;
+            bool parenthesis = false;
+            bool not_empty = false;
+            std::vector<tagParameterDirection> vPD;
+            const wchar_t quote = L'\'', slash = L'\\', coma = L',', question = L'?';
+            bool b_slash = false, balanced = true;
+            size_t len = sql.size();
+            for (size_t n = 0; n < len; ++n) {
+                const wchar_t &c = sql[n];
+                if (!parenthesis && c == L'(') {
+                    parenthesis = true;
+                    quest = false;
+                    continue;
+                }
+                if (!not_empty && parenthesis && c != L')' && !::isspace(c))
+                    not_empty = true;
+                if (c == slash) {
+                    b_slash = true;
+                    continue;
+                }
+                if (c == quote && b_slash) {
+                    b_slash = false;
+                    continue; //ignore a quote if there is a slash ahead
+                }
+                b_slash = false;
+                if (c == quote) {
+                    balanced = (!balanced);
+                    continue;
+                }
+                if (balanced) {
+                    if (c == coma) {
+                        vPD.push_back(quest ? pdInput : pdUnknown);
+                        quest = false;
+                    } else if (c == question) {
+                        quest = true;
+                    }
+                }
+            }
+            if (not_empty) {
+                vPD.push_back(quest ? pdInput : pdUnknown);
+            }
+            return vPD;
+        }
+
         size_t COdbcImpl::ComputeParameters(const std::wstring & sql) {
-            const wchar_t quote = '\'', slash = '\\', question = '?';
+            const wchar_t quote = L'\'', slash = L'\\', question = L'?';
             bool b_slash = false, balanced = true;
             size_t params = 0, len = sql.size();
             for (size_t n = 0; n < len; ++n) {
@@ -4177,6 +4220,8 @@ namespace SPA
         }
 
         void COdbcImpl::ExecuteParameters(bool rowset, bool meta, bool lastInsertId, UINT64 index, INT64 &affected, int &res, std::wstring &errMsg, CDBVariant &vtId, UINT64 & fail_ok) {
+            if (index && meta)
+                meta = false;
             fail_ok = 0;
             affected = 0;
             UINT64 fails = m_fails;

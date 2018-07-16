@@ -117,7 +117,7 @@ namespace SPA {
             bool PushOutputParameters(unsigned int r, UINT64 index);
             void ResetMemories();
             void SetVParam(CDBVariantArray& vAll, size_t parameters, size_t pos, size_t ps);
-            void SetCallParams(int &res, std::wstring &errMsg);
+            void SetCallParams(const std::vector<tagParameterDirection> &vPD, int &res, std::wstring &errMsg);
             void SetPrimaryKey(const std::wstring &dbName, const std::wstring &schema, const std::wstring &tableName, CDBColumnInfoArray &vCol);
             std::wstring GenerateMsSqlForCachedTables();
             static CParameterInfoArray GetVInfo(const CParameterInfoArray& vPInfo, size_t pos, size_t ps);
@@ -138,6 +138,7 @@ namespace SPA {
             static void ltrim_w(std::wstring &s);
             static void rtrim_w(std::wstring &s);
             static void trim_w(std::wstring &s);
+            static std::vector<tagParameterDirection> GetCallDirections(const std::wstring &sql);
 
         protected:
             UINT64 m_oks;
@@ -177,6 +178,8 @@ namespace SPA {
             tagManagementSystem m_msDriver;
             bool m_EnableMessages;
             SQLUSMALLINT m_bPrimaryKeys;
+            SQLUSMALLINT m_bProcedureColumns;
+            std::vector<tagParameterDirection> m_vPD;
 
             static const wchar_t* NO_DB_OPENED_YET;
             static const wchar_t* BAD_END_TRANSTACTION_PLAN;
