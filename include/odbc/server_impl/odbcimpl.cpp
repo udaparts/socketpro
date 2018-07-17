@@ -3802,8 +3802,8 @@ namespace SPA
                                 if (ColumnSize >= info.ColumnSize) {
                                     ColumnSize = info.ColumnSize - 1;
                                 }
-                                BufferLength = (SQLULEN) info.ColumnSize * sizeof (SQLWCHAR);
                                 ::memcpy(ParameterValuePtr, (const void*) vtD.bstrVal, (ColumnSize + 1) * sizeof (SQLWCHAR));
+                                BufferLength = (SQLULEN) info.ColumnSize * sizeof (SQLWCHAR);
                             }
                             output_pos += (unsigned int) BufferLength;
                         } else {
@@ -3816,25 +3816,37 @@ namespace SPA
                     case (VT_UI2 | VT_ARRAY):
                         c_type = SQL_C_WCHAR;
                         if (info.DataType == VT_VARIANT) {
-                            sql_type = SQL_WVARCHAR;
+                            sql_type = SQL_SS_VARIANT;
                         } else if (info.DataType == SPA::VT_XML) {
                             if (m_msDriver == msDB2)
                                 sql_type = SQL_XML;
                             else
                                 sql_type = SQL_SS_XML;
                         } else {
-                            sql_type = SQL_WLONGVARCHAR;
+                            if (SysStringLen(vtD.bstrVal) < DEFAULT_UNICODE_CHAR_SIZE)
+                                sql_type = SQL_WVARCHAR;
+                            else
+                                sql_type = SQL_WLONGVARCHAR;
                         }
                         ColumnSize = vtD.parray->rgsabound->cElements;
                         if (InputOutputType == SQL_PARAM_INPUT_OUTPUT) {
                             ParameterValuePtr = (SQLPOINTER) (m_Blob.GetBuffer() + output_pos);
-                            if (ColumnSize > info.ColumnSize) {
-                                ColumnSize = info.ColumnSize;
-                            }
-                            BufferLength = (SQLULEN) info.ColumnSize * sizeof (SQLWCHAR);
                             unsigned short *data = nullptr;
                             ::SafeArrayAccessData(vtD.parray, (void**) &data);
-                            ::memcpy(ParameterValuePtr, data, ColumnSize * sizeof (unsigned short));
+                            if (info.DataType == VT_VARIANT) {
+                                if (ColumnSize >= info.ColumnSize / sizeof (SQLWCHAR)) {
+                                    ColumnSize = info.ColumnSize / sizeof (SQLWCHAR) - 1;
+                                }
+                                ::memcpy(ParameterValuePtr, data, (ColumnSize + 1) * sizeof (SQLWCHAR));
+                                BufferLength = info.ColumnSize;
+                                ColumnSize *= sizeof (SQLWCHAR);
+                            } else {
+                                if (ColumnSize >= info.ColumnSize) {
+                                    ColumnSize = info.ColumnSize - 1;
+                                }
+                                ::memcpy(ParameterValuePtr, (const void*) data, (ColumnSize + 1) * sizeof (SQLWCHAR));
+                                BufferLength = (SQLULEN) info.ColumnSize * sizeof (SQLWCHAR);
+                            }
                             ::SafeArrayUnaccessData(vtD.parray);
                             output_pos += (unsigned int) BufferLength;
                         } else {
@@ -3842,7 +3854,7 @@ namespace SPA
                             BufferLength = (SQLLEN) ColumnSize * sizeof (SQLWCHAR);
                             ::SafeArrayUnaccessData(vtD.parray);
                         }
-                        pLenInd[col] = ColumnSize * sizeof (SQLWCHAR);
+                        pLenInd[col] = SQL_NTS;
 #endif
                         break;
                     case VT_DECIMAL:
