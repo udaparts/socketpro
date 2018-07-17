@@ -25,6 +25,17 @@ typedef void *PVOID;
 #define VARIANT_TRUE ((VARIANT_BOOL)-1)
 #define VARIANT_FALSE ((VARIANT_BOOL)0)
 
+//
+// Generic test for success on any status value (non-negative numbers
+// indicate success).
+//
+#define SUCCEEDED(hr) (((HRESULT)(hr)) >= 0)
+
+//
+// and the inverse
+//
+#define FAILED(hr) (((HRESULT)(hr)) < 0)
+
 namespace SPA {
     namespace Utilities {
         BSTR ToBSTR(const char *str, size_t chars = (~0));
