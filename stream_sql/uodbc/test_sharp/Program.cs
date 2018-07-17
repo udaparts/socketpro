@@ -62,12 +62,12 @@ class Program
             //first set
             vPData.Add(1);
             vPData.Add(2.35m);//input/output
-            vPData.Add(null); //output
+            vPData.Add(null); //input/output
 
             //second set
             vPData.Add(2);
             vPData.Add(0.99m);//input/output
-            vPData.Add(null); //output
+            vPData.Add(null); //input/output
             TestStoredProcedure(odbc, ra, vPData);
             ok = odbc.WaitAll();
             Console.WriteLine();
@@ -99,21 +99,20 @@ class Program
             vPData.Add(1); //@testid
             vPData.Add("<test_sqlserver />"); //@myxml
             vPData.Add(Guid.NewGuid()); //@tuuid
-            vPData.Add(-1); //@myvar. output parameter value not important. 
+            vPData.Add(-1); //@myvar.
             vPData.Add(1);
             vPData.Add(2.35m);//input/output
-            vPData.Add(0);
-
+            vPData.Add(null);
 
             //second set
             vPData.Add(2); //return int. output parameter data type not important. 
             vPData.Add(4); //@testid
             vPData.Add("<test_sqlserver_again />"); //@myxml
             vPData.Add(Guid.NewGuid()); //@tuuid
-            vPData.Add(2); //@myvar. output parameter value not important.
+            vPData.Add(2); //@myvar.
             vPData.Add(2);
             vPData.Add(0.99m);//input/output
-            vPData.Add(0);
+            vPData.Add(null);
             TestBatch(odbc, ra, vPData);
             ok = odbc.WaitAll();
             Console.WriteLine();
@@ -299,29 +298,7 @@ class Program
 
     static void TestBatch(COdbc odbc, List<KeyValuePair<CDBColumnInfoArray, CDBVariantArray>> ra, CDBVariantArray vPData)
     {
-        CParameterInfo[] vInfo = { new CParameterInfo(), new CParameterInfo(), new CParameterInfo(), new CParameterInfo(),
-                                     new CParameterInfo(), new CParameterInfo(), new CParameterInfo(), new CParameterInfo() };
-        vInfo[0].DataType = tagVariantDataType.sdVT_I4; //return direction can be ignorable
-
-        vInfo[1].DataType = tagVariantDataType.sdVT_I4;
-
-        vInfo[2].DataType = tagVariantDataType.sdVT_XML;
-        vInfo[2].Direction = tagParameterDirection.pdInputOutput;
-
-        vInfo[3].DataType = tagVariantDataType.sdVT_CLSID;
-        vInfo[3].Direction = tagParameterDirection.pdInputOutput;
-
-        vInfo[4].DataType = tagVariantDataType.sdVT_VARIANT;
-        vInfo[4].Direction = tagParameterDirection.pdOutput;
-
-        vInfo[5].DataType = tagVariantDataType.sdVT_I4;
-
-        vInfo[6].DataType = tagVariantDataType.sdVT_DECIMAL;
-        vInfo[6].Direction = tagParameterDirection.pdInputOutput;
-
-        vInfo[7].DataType = tagVariantDataType.sdVT_DATE;
-        vInfo[7].Direction = tagParameterDirection.pdOutput;
-
+        //Parameter info array can be ignored for some ODBC drivers like MySQL, MS SQL Server, etc but performance will be degraded for code simplicity
         COdbc.DRows r = (handler, rowData) =>
         {
             //rowset data come here
@@ -338,7 +315,7 @@ class Program
         };
 
         bool ok = odbc.ExecuteBatch(tagTransactionIsolation.tiUnspecified, "select getdate();{?=call sp_TestRare1(?,?,?,?)};{call sqltestdb.dbo.sp_TestProc(?,?,?)}", vPData,
-            er, r, rh, (handler) => { }, vInfo);
+            er, r, rh, (handler) => { });
     }
 
     static void TestStoredProcedure(COdbc odbc, List<KeyValuePair<CDBColumnInfoArray, CDBVariantArray>> ra, CDBVariantArray vPData)
