@@ -70,7 +70,7 @@ int main(int argc, char* argv[]) {
         ra.push_back(column_rowset_pair);
     };
 
-    ok = pOdbc->Open(L"dsn=ToDB2;uid=root;pwd=Smash123", dr);
+    ok = pOdbc->Open(L"dsn=Db2;uid=db2admin;pwd=Smash123", dr);
     TestCreateTables(pOdbc);
     ok = pOdbc->Execute(L"delete from db2_employee;delete from company", er);
     TestPreparedStatements(pOdbc);
@@ -101,7 +101,7 @@ int main(int argc, char* argv[]) {
     std::cout << std::endl;
     std::cout << "There are " << pOdbc->GetOutputs() * oks << " output data returned" << std::endl;
 
-    ok = pOdbc->Tables(L"SAMPLE", L"ROOT", L"%", L"TABLE", er, r, rh);
+    ok = pOdbc->Tables(L"SAMPLE", L"DB2ADMIN", L"%", L"TABLE", er, r, rh);
     pOdbc->WaitAll();
 
     auto pTables = ra.back();
@@ -259,25 +259,11 @@ void TestCreateTables(std::shared_ptr<CMyHandler> pOdbc) {
 }
 
 void TestStoredProcedure(std::shared_ptr<CMyHandler> pOdbc, CRowsetArray&ra, CDBVariantArray &vPData, unsigned int &oks) {
-    CParameterInfoArray vPInfo;
-
-    CParameterInfo info;
-    info.DataType = VT_I4;
-    vPInfo.push_back(info);
-
-    info.DataType = VT_DECIMAL;
-    info.Direction = pdInputOutput;
-    info.Scale = (unsigned char) 2;
-    vPInfo.push_back(info);
-
-    info.DataType = VT_DATE;
-    info.Direction = pdOutput;
-    vPInfo.push_back(info);
-
-    bool ok = pOdbc->Prepare(L"{call sp_TestProc(?, ?, ?)}", [](CSender &handler, int res, const std::wstring & errMsg) {
+    //stored procedure name may be case-sensitive
+    bool ok = pOdbc->Prepare(L"{call SP_TESTPROC(?,?,?)}", [](CSender &handler, int res, const std::wstring & errMsg) {
         std::cout << "res = " << res << ", errMsg: ";
         std::wcout << errMsg << std::endl;
-    }, vPInfo);
+    });
     CMyHandler::DRows r = [&ra](CSender &handler, CDBVariantArray & vData) {
         //rowset data come here
         assert((vData.size() % handler.GetColumnInfo().size()) == 0);
