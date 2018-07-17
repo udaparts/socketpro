@@ -3419,9 +3419,12 @@ namespace SPA
                         assert(false);
                         break;
                 }
-                if (InputOutputType == SQL_PARAM_INPUT_OUTPUT && info.DataType == VT_VARIANT && vtD.vt > VT_NULL) {
-                    //sql_variant inputoutput parameter must be null when calling a stored procedure.
-                    return false;
+                if (InputOutputType == SQL_PARAM_INPUT_OUTPUT && info.DataType == VT_VARIANT && vtD.vt > VT_NULL && vtD.vt != VT_BSTR) {
+                    CDBVariant vt;
+                    HRESULT hr = VariantChangeType(&vt, &vtD, 0, VT_BSTR);
+                    if (FAILED(hr))
+                        return false;
+                    vtD = vt;
                 }
                 pLenInd[col] = 0;
                 SQLULEN ColumnSize = 0;
@@ -3773,7 +3776,7 @@ namespace SPA
                     case VT_BSTR:
                         c_type = SQL_C_WCHAR;
                         if (info.DataType == VT_VARIANT) {
-                            sql_type = SQL_WVARCHAR;
+                            sql_type = SQL_SS_VARIANT;
                         } else if (info.DataType == SPA::VT_XML) {
                             if (m_msDriver == msDB2)
                                 sql_type = SQL_XML;
@@ -3788,11 +3791,20 @@ namespace SPA
                         if (InputOutputType == SQL_PARAM_INPUT_OUTPUT) {
                             ParameterValuePtr = (SQLPOINTER) (m_Blob.GetBuffer() + output_pos);
                             ColumnSize = ::SysStringLen(vtD.bstrVal);
-                            if (ColumnSize > info.ColumnSize) {
-                                ColumnSize = info.ColumnSize;
+                            if (info.DataType == VT_VARIANT) {
+                                if (ColumnSize >= info.ColumnSize / sizeof (SQLWCHAR)) {
+                                    ColumnSize = info.ColumnSize / sizeof (SQLWCHAR) - 1;
+                                }
+                                ::memcpy(ParameterValuePtr, (const void*) vtD.bstrVal, (ColumnSize + 1) * sizeof (SQLWCHAR));
+                                BufferLength = info.ColumnSize;
+                                ColumnSize *= sizeof (SQLWCHAR);
+                            } else {
+                                if (ColumnSize >= info.ColumnSize) {
+                                    ColumnSize = info.ColumnSize - 1;
+                                }
+                                BufferLength = (SQLULEN) info.ColumnSize * sizeof (SQLWCHAR);
+                                ::memcpy(ParameterValuePtr, (const void*) vtD.bstrVal, (ColumnSize + 1) * sizeof (SQLWCHAR));
                             }
-                            BufferLength = (SQLULEN) info.ColumnSize * sizeof (SQLWCHAR);
-                            ::memcpy(ParameterValuePtr, (const void*) vtD.bstrVal, (ColumnSize + 1) * sizeof (SQLWCHAR));
                             output_pos += (unsigned int) BufferLength;
                         } else {
                             ParameterValuePtr = vtD.bstrVal;
