@@ -1414,9 +1414,6 @@ namespace SocketProAdapter {
 
             protected override void OnAllProcessed() {
                 lock (m_csDB) {
-                    m_mapRowset.Clear();
-                    m_mapParameterCall.Clear();
-                    m_mapHandler.Clear();
                     m_vData.Clear();
                     m_Blob.SetSize(0);
                     if (m_Blob.MaxBufferSize > DB_CONSTS.DEFAULT_BIG_FIELD_CHUNK_SIZE) {

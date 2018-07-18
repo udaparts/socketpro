@@ -678,9 +678,6 @@ namespace SPA {
 
             virtual void OnAllProcessed() {
                 CAutoLock al1(m_csDB);
-                m_mapRowset.clear();
-                m_mapParameterCall.clear();
-                m_mapHandler.clear();
                 m_vData.clear();
                 m_Blob.SetSize(0);
                 if (m_Blob.GetMaxSize() > DEFAULT_BIG_FIELD_CHUNK_SIZE) {
