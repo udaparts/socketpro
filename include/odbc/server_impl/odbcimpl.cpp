@@ -2853,7 +2853,8 @@ namespace SPA
                 vData.push_back(std::move(vt));
             }
             SQLSMALLINT parameters = (SQLSMALLINT) (vData.size() / m_vBindInfo.size());
-            if (parameters > (SQLSMALLINT) vPD.size()) return; //multiple stored procedures found ????
+            if (parameters > (SQLSMALLINT) vPD.size())
+                parameters = (SQLSMALLINT) vPD.size(); //multiple stored procedures found ????
             for (SQLSMALLINT r = 0, k = 0; r < parameters; ++r, ++k) {
                 CParameterInfo pi;
                 unsigned int pos = (unsigned int) (r * m_vBindInfo.size() + 4);
