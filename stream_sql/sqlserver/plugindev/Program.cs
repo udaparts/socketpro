@@ -1,5 +1,6 @@
 ﻿using System;
 using SocketProAdapter.ServerSide;
+#pragma warning disable 0436
 
 class Program {
     static void Main(string[] args) {

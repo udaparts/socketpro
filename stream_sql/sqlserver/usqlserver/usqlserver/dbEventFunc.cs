@@ -16,7 +16,7 @@ public static class USqlStream {
     private static object m_cs = new object();
     private static string ServerHost = null;
 
-    public static CSocketProServer Server {
+    public static CSqlPlugin Server {
         get {
             lock (m_cs) {
                 return Plugin;
