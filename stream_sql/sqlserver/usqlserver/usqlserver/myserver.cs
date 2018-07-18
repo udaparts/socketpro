@@ -40,7 +40,7 @@ public class CSqlPlugin : CSocketProServer {
         if (nSvsID == BaseServiceID.sidHTTP)
             return true; //do authentication inside the method CMyHttpPeer.DoAuthentication
 #if PLUGIN_DEV
-        return DoODBCAuthentication(hSocket, userId, password, nSvsID, "{SQL Server}", "");
+        return DoODBCAuthentication(hSocket, userId, password, nSvsID, "{SQL Server Native Client 11.0}", "");
 #else
         string driver = SQLConfig.ODBCDriver;
         return DoODBCAuthentication(hSocket, userId, password, nSvsID, driver, "");
