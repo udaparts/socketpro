@@ -75,41 +75,6 @@ public class Test_java {
                 + "SELECT * from company;select * from employee;select curtime();"
                 + "call sp_TestProc(?,?,?)";
 
-        CParameterInfo[] vInfo = new CParameterInfo[13];
-        vInfo[0] = new CParameterInfo();
-        vInfo[0].DataType = tagVariantDataType.sdVT_I4;
-        vInfo[1] = new CParameterInfo();
-        vInfo[1].DataType = tagVariantDataType.sdVT_BSTR;
-        vInfo[2] = new CParameterInfo();
-        vInfo[2].DataType = tagVariantDataType.sdVT_BSTR;
-        vInfo[3] = new CParameterInfo();
-        vInfo[3].DataType = tagVariantDataType.sdVT_R8;
-
-        vInfo[4] = new CParameterInfo();
-        vInfo[4].DataType = tagVariantDataType.sdVT_I4;
-        vInfo[5] = new CParameterInfo();
-        vInfo[5].DataType = tagVariantDataType.sdVT_BSTR;
-        vInfo[6] = new CParameterInfo();
-        vInfo[6].DataType = tagVariantDataType.sdVT_DATE;
-        vInfo[7] = new CParameterInfo();
-        vInfo[7].DataType = tagVariantDataType.sdVT_ARRAY | tagVariantDataType.sdVT_UI1; //binary array
-        vInfo[7].ColumnSize = -1;
-        vInfo[8] = new CParameterInfo();
-        vInfo[8].DataType = tagVariantDataType.sdVT_BSTR;
-        vInfo[8].ColumnSize = -1;
-        vInfo[9] = new CParameterInfo();
-        vInfo[9].DataType = tagVariantDataType.sdVT_R8;
-
-        vInfo[10] = new CParameterInfo();
-        vInfo[10].DataType = tagVariantDataType.sdVT_I4;
-        vInfo[11] = new CParameterInfo();
-        vInfo[11].DataType = tagVariantDataType.sdVT_DECIMAL;
-        vInfo[11].Direction = tagParameterDirection.pdInputOutput;
-        vInfo[11].Scale = 2;
-        vInfo[12] = new CParameterInfo();
-        vInfo[12].DataType = tagVariantDataType.sdVT_DATE;
-        vInfo[12].Direction = tagParameterDirection.pdOutput;
-
         CDBVariantArray vData = new CDBVariantArray();
         CUQueue sb = new CUQueue();
 
@@ -190,7 +155,7 @@ public class Test_java {
         //third, three sets of insert into employee(CompanyId,name,JoinDate,image,DESCRIPTION,Salary)values(?,?,?,?,?,?)
         //fourth, SELECT * from company;select * from employee;select curtime()
         //last, three sets of call sp_TestProc(?,?,?)
-        boolean ok = odbc.ExecuteBatch(tagTransactionIsolation.tiUnspecified, sql, vData, er, r, rh, batchHeader, vInfo, tagRollbackPlan.rpDefault, discarded);
+        boolean ok = odbc.ExecuteBatch(tagTransactionIsolation.tiUnspecified, sql, vData, er, r, rh, batchHeader, null, tagRollbackPlan.rpDefault, discarded);
         return vData;
     }
 
@@ -300,7 +265,8 @@ public class Test_java {
         ok = odbc.WaitAll();
 
         CDBVariantArray vData = TestBatch(odbc, er, r, rh, ra);
-
+        ok = odbc.WaitAll();
+        
         ok = odbc.Tables("sakila", "", "%", "TABLE", er, r, rh);
         ok = odbc.WaitAll();
 
@@ -334,21 +300,7 @@ public class Test_java {
     }
 
     static void TestStoredProcedure(COdbc odbc, COdbc.DResult dr, COdbc.DExecuteResult er, final java.util.ArrayList<Pair<CDBColumnInfoArray, CDBVariantArray>> ra, CDBVariantArray vPData) {
-        CParameterInfo[] vInfo = new CParameterInfo[3];
-
-        vInfo[0] = new CParameterInfo();
-        vInfo[0].DataType = tagVariantDataType.sdVT_I4;
-
-        vInfo[1] = new CParameterInfo();
-        vInfo[1].DataType = tagVariantDataType.sdVT_DECIMAL;
-        vInfo[1].Direction = tagParameterDirection.pdInputOutput;
-        vInfo[1].Scale = 2;
-
-        vInfo[2] = new CParameterInfo();
-        vInfo[2].DataType = tagVariantDataType.sdVT_DATE;
-        vInfo[2].Direction = tagParameterDirection.pdOutput;
-
-        boolean ok = odbc.Prepare("call sp_TestProc(?, ?, ?)", dr, vInfo);
+        boolean ok = odbc.Prepare("call sp_TestProc(?, ?, ?)", dr);
         COdbc.DRows r = new COdbc.DRows() {
             //rowset data come here
             @Override

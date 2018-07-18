@@ -1374,7 +1374,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
         if (vPInfo == null) {
             vPInfo = new CParameterInfo[0];
         }
-        MyCallback<DExecuteResult> cb = new MyCallback<>(DB_CONSTS.idExecuteParameters, handler);
+        MyCallback<DExecuteResult> cb = new MyCallback<>(DB_CONSTS.idExecuteBatch, handler);
         CUQueue sb = CScopeUQueue.Lock();
         sb.Save(sql).Save(delimiter).Save(isolation.getValue()).Save(plan.getValue()).Save(rowset).Save(meta).Save(lastInsertId);
 
@@ -1444,6 +1444,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                 String errMsg = mc.LoadString();
                 Object vtId = mc.LoadObject();
                 long fail_ok = mc.LoadLong();
+                MyCallback<DExecuteResult> t = GetExecuteResultHandler(reqId);
                 synchronized (m_csDB) {
                     m_lastReqId = reqId;
                     m_affected = affected;
@@ -1452,6 +1453,11 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                     m_mapRowset.remove(m_indexRowset);
                     m_mapParameterCall.remove(m_indexRowset);
                     m_mapHandler.remove(m_indexRowset);
+                }
+                if (t != null) {
+                    if (t.Callback != null) {
+                        t.Callback.invoke(this, res, errMsg, affected, fail_ok, vtId);
+                    }
                 }
             }
             break;
@@ -1496,15 +1502,9 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                     m_affected = affected;
                     m_dbErrCode = res;
                     m_dbErrMsg = errMsg;
-                    if (m_mapRowset.containsKey(m_indexRowset)) {
-                        m_mapRowset.remove(m_indexRowset);
-                    }
+                    m_mapRowset.remove(m_indexRowset);
                     m_indexProc = 0;
-                    if (m_mapParameterCall.containsKey(m_indexRowset)) {
-                        m_mapParameterCall.remove(m_indexRowset);
-                    } else if (getAttachedClientSocket().getCountOfRequestsInQueue() == 1) {
-                        m_mapParameterCall.clear();
-                    }
+                    m_mapParameterCall.remove(m_indexRowset);
                 }
                 if (t != null) {
                     if (t.Callback != null) {
