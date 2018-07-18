@@ -198,7 +198,6 @@ namespace SPA
         m_outputs(0), m_nRecordSize(0), m_pNoSending(nullptr),
         m_msDriver(msUnknown), m_EnableMessages(false),
         m_bPrimaryKeys(SQL_FALSE), m_bProcedureColumns(SQL_FALSE) {
-
         }
 
         void COdbcImpl::OnReleaseSource(bool bClosing, unsigned int info) {
@@ -2853,9 +2852,7 @@ namespace SPA
                 vData.push_back(std::move(vt));
             }
             SQLSMALLINT parameters = (SQLSMALLINT) (vData.size() / m_vBindInfo.size());
-            if (parameters > (SQLSMALLINT) vPD.size())
-                parameters = (SQLSMALLINT) vPD.size(); //multiple stored procedures found ????
-            for (SQLSMALLINT r = 0, k = 0; r < parameters; ++r, ++k) {
+            for (SQLSMALLINT r = 0, k = 0; r < parameters && k < (SQLSMALLINT) vPD.size(); ++r, ++k) {
                 CParameterInfo pi;
                 unsigned int pos = (unsigned int) (r * m_vBindInfo.size() + 4);
                 CDBVariant &vt = vData[pos];
