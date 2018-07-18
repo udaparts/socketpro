@@ -9,6 +9,7 @@ import math, uuid
 class CAsyncDBHandler(CAsyncServiceHandler):
     ONE_MEGA_BYTES = 0x100000
     BLOB_LENGTH_NOT_AVAILABLE = 0xffffffe0
+    LEFT = 8
 
     def __init__(self, serviceId):
         super(CAsyncDBHandler, self).__init__(serviceId)
@@ -38,10 +39,12 @@ class CAsyncDBHandler(CAsyncServiceHandler):
 
     def OnAllProcessed(self):
         with self._csDB:
-            self._mapParameterCall = {}
-            while len(self._mapRowset) > 16:
+            while len(self._mapParameterCall) > CAsyncDBHandler.LEFT:
+                self._mapParameterCall.popitem()
+            while len(self._mapRowset) > CAsyncDBHandler.LEFT:
                 self._mapRowset.popitem()
-            self._mapHandler = {}
+            while len(self._mapHandler) > CAsyncDBHandler.LEFT:
+                self._mapHandler.popitem()
             self._deqResult = collections.deque()
 
     def _GetResultHandler(self, reqId):

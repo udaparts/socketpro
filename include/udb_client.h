@@ -678,6 +678,15 @@ namespace SPA {
 
             virtual void OnAllProcessed() {
                 CAutoLock al1(m_csDB);
+                while (m_mapRowset.size() > LEFT) {
+                    m_mapRowset.erase(m_mapRowset.begin());
+                }
+                while (m_mapParameterCall.size() > LEFT) {
+                    m_mapParameterCall.erase(m_mapParameterCall.begin());
+                }
+                while (m_mapHandler.size() > LEFT) {
+                    m_mapHandler.erase(m_mapHandler.begin());
+                }
                 m_vData.clear();
                 m_Blob.SetSize(0);
                 if (m_Blob.GetMaxSize() > DEFAULT_BIG_FIELD_CHUNK_SIZE) {
@@ -949,6 +958,7 @@ namespace SPA {
             bool m_queueOk;
             std::unordered_map<UINT64, DRowsetHeader> m_mapHandler;
             unsigned int m_nParamPos;
+            static const size_t LEFT = 8;
         };
     } //namespace ClientSide
 } //namespace SPA

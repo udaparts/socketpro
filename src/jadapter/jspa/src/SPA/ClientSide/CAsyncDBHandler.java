@@ -168,16 +168,32 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
         }
     }
 
+    private static final int LEFT = 8;
+
     @Override
     protected void OnAllProcessed() {
         synchronized (m_csDB) {
-            Object[] arr = m_mapRowset.keySet().toArray();
-            int count = arr.length - 16;
-            for (int n = 0; n < count; ++n) {
-                m_mapRowset.remove((Long) (arr[n]));
+            if (m_mapRowset.size() > LEFT) {
+                Object[] arr = m_mapRowset.keySet().toArray();
+                int remain = arr.length - LEFT;
+                for (int n = 0; n < remain; ++n) {
+                    m_mapRowset.remove((long) arr[n]);
+                }
             }
-            m_mapParameterCall.clear();
-            m_mapHandler.clear();
+            if (m_mapParameterCall.size() > LEFT) {
+                Object[] arr = m_mapParameterCall.keySet().toArray();
+                int remain = arr.length - LEFT;
+                for (int n = 0; n < remain; ++n) {
+                    m_mapParameterCall.remove((long) arr[n]);
+                }
+            }
+            if (m_mapHandler.size() > LEFT) {
+                Object[] arr = m_mapHandler.keySet().toArray();
+                int remain = arr.length - LEFT;
+                for (int n = 0; n < remain; ++n) {
+                    m_mapHandler.remove((long) arr[n]);
+                }
+            }
         }
     }
 
