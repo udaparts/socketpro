@@ -298,33 +298,7 @@ namespace SPA {
                 }
                 sb << callIndex << vPInfo;
                 ResultHandler arh = [callIndex, handler, this](CAsyncResult & ar) {
-                    INT64 affected;
-                    UINT64 fail_ok;
-                    int res;
-                    std::wstring errMsg;
-                    CDBVariant vtId;
-                    ar >> affected >> res >> errMsg >> vtId >> fail_ok;
-                    this->m_csDB.lock();
-                    this->m_lastReqId = idExecuteBatch;
-                    this->m_affected = affected;
-                    this->m_dbErrCode = res;
-                    this->m_dbErrMsg = errMsg;
-                    auto it = this->m_mapRowset.find(callIndex);
-                    if (it != this->m_mapRowset.end()) {
-                        this->m_mapRowset.erase(it);
-                    }
-                    auto pit = this->m_mapParameterCall.find(callIndex);
-                    if (pit != this->m_mapParameterCall.end()) {
-                        this->m_mapParameterCall.erase(pit);
-                    }
-                    auto ph = this->m_mapHandler.find(callIndex);
-                    if (ph != this->m_mapHandler.end()) {
-                        this->m_mapHandler.erase(ph);
-                    }
-                    this->m_csDB.unlock();
-                    if (handler) {
-                        handler(*this, res, errMsg, affected, fail_ok, vtId);
-                    }
+                    this->Process(handler, ar, idExecuteBatch, callIndex);
                 };
                 if (!SendRequest(idExecuteBatch, sb->GetBuffer(), sb->GetSize(), arh, discarded, nullptr)) {
                     CAutoLock al(m_csDB);
@@ -383,29 +357,7 @@ namespace SPA {
                 }
                 sb << callIndex;
                 ResultHandler arh = [callIndex, handler, this](CAsyncResult & ar) {
-                    INT64 affected;
-                    UINT64 fail_ok;
-                    int res;
-                    std::wstring errMsg;
-                    CDBVariant vtId;
-                    ar >> affected >> res >> errMsg >> vtId >> fail_ok;
-                    this->m_csDB.lock();
-                    this->m_lastReqId = idExecuteParameters;
-                    this->m_affected = affected;
-                    this->m_dbErrCode = res;
-                    this->m_dbErrMsg = errMsg;
-                    auto it = this->m_mapRowset.find(callIndex);
-                    if (it != this->m_mapRowset.end()) {
-                        this->m_mapRowset.erase(it);
-                    }
-                    auto pit = this->m_mapParameterCall.find(callIndex);
-                    if (pit != this->m_mapParameterCall.end()) {
-                        this->m_mapParameterCall.erase(pit);
-                    }
-                    this->m_csDB.unlock();
-                    if (handler) {
-                        handler(*this, res, errMsg, affected, fail_ok, vtId);
-                    }
+                    this->Process(handler, ar, idExecuteParameters, callIndex);
                 };
                 if (!SendRequest(idExecuteParameters, sb->GetBuffer(), sb->GetSize(), arh, discarded, nullptr)) {
                     CAutoLock al(m_csDB);
@@ -449,25 +401,7 @@ namespace SPA {
                 }
                 sb << sql << rowset << meta << lastInsertId << index;
                 ResultHandler arh = [index, handler, this](CAsyncResult & ar) {
-                    INT64 affected;
-                    UINT64 fail_ok;
-                    int res;
-                    std::wstring errMsg;
-                    CDBVariant vtId;
-                    ar >> affected >> res >> errMsg >> vtId >> fail_ok;
-                    this->m_csDB.lock();
-                    this->m_lastReqId = idExecute;
-                    this->m_affected = affected;
-                    this->m_dbErrCode = res;
-                    this->m_dbErrMsg = errMsg;
-                    auto it = this->m_mapRowset.find(index);
-                    if (it != this->m_mapRowset.end()) {
-                        this->m_mapRowset.erase(it);
-                    }
-                    this->m_csDB.unlock();
-                    if (handler) {
-                        handler(*this, res, errMsg, affected, fail_ok, vtId);
-                    }
+                    this->Process(handler, ar, idExecute, index);
                 };
                 if (!SendRequest(idExecute, sb->GetBuffer(), sb->GetSize(), arh, discarded, nullptr)) {
                     CAutoLock al(m_csDB);
@@ -598,20 +532,6 @@ namespace SPA {
                 unsigned int flags;
                 std::wstring connection;
                 CScopeUQueue sb;
-
-                //make sure BeginTrans sending and underlying client persistent message queue as one combination sending
-                //to avoid possible request sending/client message writing overlapping within multiple threading environment
-                CAutoLock alOne(m_csOneSending);
-
-                {
-                    //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
-                    //in case a client asynchronously sends lots of requests without use of client side queue.
-                    CAutoLock al(m_csDB);
-                    connection = m_strConnection;
-                    flags = m_flags;
-                }
-
-                sb << (int) isolation << connection << flags;
                 ResultHandler arh = [handler, this](CAsyncResult & ar) {
                     int res, ms;
                     std::wstring errMsg;
@@ -630,6 +550,20 @@ namespace SPA {
                         handler(*this, res, errMsg);
                     }
                 };
+
+                //make sure BeginTrans sending and underlying client persistent message queue as one combination sending
+                //to avoid possible request sending/client message writing overlapping within multiple threading environment
+                CAutoLock alOne(m_csOneSending);
+
+                {
+                    //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
+                    //in case a client asynchronously sends lots of requests without use of client side queue.
+                    CAutoLock al(m_csDB);
+                    connection = m_strConnection;
+                    flags = m_flags;
+                }
+
+                sb << (int) isolation << connection << flags;
                 //associate begin transaction with underlying client persistent message queue
                 m_queueOk = GetAttachedClientSocket()->GetClientQueue().StartJob();
                 return SendRequest(idBeginTrans, sb->GetBuffer(), sb->GetSize(), arh, discarded, nullptr);
@@ -678,15 +612,6 @@ namespace SPA {
 
             virtual void OnAllProcessed() {
                 CAutoLock al1(m_csDB);
-                while (m_mapRowset.size() > LEFT) {
-                    m_mapRowset.erase(m_mapRowset.begin());
-                }
-                while (m_mapParameterCall.size() > LEFT) {
-                    m_mapParameterCall.erase(m_mapParameterCall.begin());
-                }
-                while (m_mapHandler.size() > LEFT) {
-                    m_mapHandler.erase(m_mapHandler.begin());
-                }
                 m_vData.clear();
                 m_Blob.SetSize(0);
                 if (m_Blob.GetMaxSize() > DEFAULT_BIG_FIELD_CHUNK_SIZE) {
@@ -920,6 +845,37 @@ namespace SPA {
 
         private:
 
+            void Process(DExecuteResult handler, CAsyncResult & ar, unsigned short reqId, UINT64 index) {
+                INT64 affected;
+                UINT64 fail_ok;
+                int res;
+                std::wstring errMsg;
+                CDBVariant vtId;
+                ar >> affected >> res >> errMsg >> vtId >> fail_ok;
+                {
+                    SPA::CAutoLock al(m_csDB);
+                    m_lastReqId = reqId;
+                    m_affected = affected;
+                    m_dbErrCode = res;
+                    m_dbErrMsg = errMsg;
+                    auto it = m_mapRowset.find(index);
+                    if (it != m_mapRowset.end()) {
+                        m_mapRowset.erase(it);
+                    }
+                    auto pit = m_mapParameterCall.find(index);
+                    if (pit != m_mapParameterCall.end()) {
+                        m_mapParameterCall.erase(pit);
+                    }
+                    auto ph = m_mapHandler.find(index);
+                    if (ph != m_mapHandler.end()) {
+                        this->m_mapHandler.erase(ph);
+                    }
+                }
+                if (handler) {
+                    handler(*this, res, errMsg, affected, fail_ok, vtId);
+                }
+            }
+
             void Clean() {
                 m_mapRowset.clear();
                 m_mapParameterCall.clear();
@@ -958,7 +914,6 @@ namespace SPA {
             bool m_queueOk;
             std::unordered_map<UINT64, DRowsetHeader> m_mapHandler;
             unsigned int m_nParamPos;
-            static const size_t LEFT = 8;
         };
     } //namespace ClientSide
 } //namespace SPA

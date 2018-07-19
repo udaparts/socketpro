@@ -111,26 +111,28 @@ public class COdbc extends CAsyncDBHandler {
         return Statistics(CatalogName, SchemaName, TableName, unique, reserved, handler, row, rh, null);
     }
 
-    public final boolean Statistics(String CatalogName, String SchemaName, String TableName, short unique, short reserved, DExecuteResult handler, DRows row, DRowsetHeader rh, DDiscarded discarded) {
-        MyCallback<DExecuteResult> cb = new MyCallback<>(idSQLStatistics, handler);
+    public final boolean Statistics(String CatalogName, String SchemaName, String TableName, short unique, short reserved, final DExecuteResult handler, DRows row, DRowsetHeader rh, DDiscarded discarded) {
         CUQueue sb = CScopeUQueue.Lock();
         sb.Save(CatalogName);
         sb.Save(SchemaName);
         sb.Save(TableName);
         sb.Save(unique);
         sb.Save(reserved);
-        final long index = GetCallIndex();
         synchronized (m_csOneSending) {
+            final long index = GetCallIndex();
             //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
             //in case a client asynchronously sends lots of requests without use of client side queue.
             synchronized (m_csDB) {
                 m_mapRowset.put(index, new Pair<>(rh, row));
-                m_deqExecuteResult.add(cb);
             }
             sb.Save(index);
-            if (!SendRequest(idSQLStatistics, sb, null, discarded)) {
+            if (!SendRequest(idSQLStatistics, sb, new DAsyncResultHandler() {
+                @Override
+                public void invoke(CAsyncResult ar) {
+                    ProcessODBC(handler, ar, idSQLStatistics, index);
+                }
+            }, discarded)) {
                 synchronized (m_csDB) {
-                    m_deqExecuteResult.remove(cb);
                     m_mapRowset.remove(index);
                 }
                 CScopeUQueue.Unlock(sb);
@@ -145,8 +147,7 @@ public class COdbc extends CAsyncDBHandler {
         return SpecialColumns(identifierType, CatalogName, SchemaName, TableName, scope, nullable, handler, row, rh, null);
     }
 
-    public final boolean SpecialColumns(short identifierType, String CatalogName, String SchemaName, String TableName, short scope, short nullable, DExecuteResult handler, DRows row, DRowsetHeader rh, DDiscarded discarded) {
-        MyCallback<DExecuteResult> cb = new MyCallback<>(idSQLSpecialColumns, handler);
+    public final boolean SpecialColumns(short identifierType, String CatalogName, String SchemaName, String TableName, short scope, short nullable, final DExecuteResult handler, DRows row, DRowsetHeader rh, DDiscarded discarded) {
         CUQueue sb = CScopeUQueue.Lock();
         sb.Save(identifierType);
         sb.Save(CatalogName);
@@ -154,18 +155,21 @@ public class COdbc extends CAsyncDBHandler {
         sb.Save(TableName);
         sb.Save(scope);
         sb.Save(nullable);
-        final long index = GetCallIndex();
         synchronized (m_csOneSending) {
+            final long index = GetCallIndex();
             //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
             //in case a client asynchronously sends lots of requests without use of client side queue.
             synchronized (m_csDB) {
                 m_mapRowset.put(index, new Pair<>(rh, row));
-                m_deqExecuteResult.add(cb);
             }
             sb.Save(index);
-            if (!SendRequest(idSQLSpecialColumns, sb, null, discarded)) {
+            if (!SendRequest(idSQLSpecialColumns, sb, new DAsyncResultHandler() {
+                @Override
+                public void invoke(CAsyncResult ar) {
+                    ProcessODBC(handler, ar, idSQLStatistics, index);
+                }
+            }, discarded)) {
                 synchronized (m_csDB) {
-                    m_deqExecuteResult.remove(cb);
                     m_mapRowset.remove(index);
                 }
                 CScopeUQueue.Unlock(sb);
@@ -180,8 +184,7 @@ public class COdbc extends CAsyncDBHandler {
         return ForeignKeys(PKCatalogName, PKSchemaName, PKTableName, FKCatalogName, FKSchemaName, FKTableName, handler, row, rh, null);
     }
 
-    public final boolean ForeignKeys(String PKCatalogName, String PKSchemaName, String PKTableName, String FKCatalogName, String FKSchemaName, String FKTableName, DExecuteResult handler, DRows row, DRowsetHeader rh, DDiscarded discarded) {
-        MyCallback<DExecuteResult> cb = new MyCallback<>(idSQLForeignKeys, handler);
+    public final boolean ForeignKeys(String PKCatalogName, String PKSchemaName, String PKTableName, String FKCatalogName, String FKSchemaName, String FKTableName, final DExecuteResult handler, DRows row, DRowsetHeader rh, DDiscarded discarded) {
         CUQueue sb = CScopeUQueue.Lock();
         sb.Save(PKCatalogName);
         sb.Save(PKSchemaName);
@@ -189,18 +192,22 @@ public class COdbc extends CAsyncDBHandler {
         sb.Save(FKCatalogName);
         sb.Save(FKSchemaName);
         sb.Save(FKTableName);
-        final long index = GetCallIndex();
+
         synchronized (m_csOneSending) {
+            final long index = GetCallIndex();
             //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
             //in case a client asynchronously sends lots of requests without use of client side queue.
             synchronized (m_csDB) {
                 m_mapRowset.put(index, new Pair<>(rh, row));
-                m_deqExecuteResult.add(cb);
             }
             sb.Save(index);
-            if (!SendRequest(idSQLForeignKeys, sb, null, discarded)) {
+            if (!SendRequest(idSQLForeignKeys, sb, new DAsyncResultHandler() {
+                @Override
+                public void invoke(CAsyncResult ar) {
+                    ProcessODBC(handler, ar, idSQLForeignKeys, index);
+                }
+            }, discarded)) {
                 synchronized (m_csDB) {
-                    m_deqExecuteResult.remove(cb);
                     m_mapRowset.remove(index);
                 }
                 CScopeUQueue.Unlock(sb);
@@ -211,25 +218,27 @@ public class COdbc extends CAsyncDBHandler {
         return true;
     }
 
-    private boolean DoMeta(short id, String s0, String s1, String s2, String s3, DExecuteResult handler, DRows row, DRowsetHeader rh, DDiscarded discarded) {
-        MyCallback<DExecuteResult> cb = new MyCallback<>(id, handler);
+    private boolean DoMeta(final short id, String s0, String s1, String s2, String s3, final DExecuteResult handler, DRows row, DRowsetHeader rh, DDiscarded discarded) {
         CUQueue sb = CScopeUQueue.Lock();
         sb.Save(s0);
         sb.Save(s1);
         sb.Save(s2);
         sb.Save(s3);
-        final long index = GetCallIndex();
         synchronized (m_csOneSending) {
+            final long index = GetCallIndex();
             //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
             //in case a client asynchronously sends lots of requests without use of client side queue.
             synchronized (m_csDB) {
                 m_mapRowset.put(index, new Pair<>(rh, row));
-                m_deqExecuteResult.add(cb);
             }
             sb.Save(index);
-            if (!SendRequest(id, sb, null, discarded)) {
+            if (!SendRequest(id, sb, new DAsyncResultHandler() {
+                @Override
+                public void invoke(CAsyncResult ar) {
+                    ProcessODBC(handler, ar, id, index);
+                }
+            }, discarded)) {
                 synchronized (m_csDB) {
-                    m_deqExecuteResult.remove(cb);
                     m_mapRowset.remove(index);
                 }
                 CScopeUQueue.Unlock(sb);
@@ -240,24 +249,43 @@ public class COdbc extends CAsyncDBHandler {
         return true;
     }
 
-    private boolean DoMeta(short id, String s0, String s1, String s2, DExecuteResult handler, DRows row, DRowsetHeader rh, DDiscarded discarded) {
-        MyCallback<DExecuteResult> cb = new MyCallback<>(id, handler);
+    private void ProcessODBC(DExecuteResult handler, CAsyncResult ar, short reqId, long index) {
+        CUQueue mc = ar.getUQueue();
+        int res = mc.LoadInt();
+        String errMsg = mc.LoadString();
+        long fail_ok = mc.LoadLong();
+        synchronized (m_csDB) {
+            m_lastReqId = reqId;
+            m_affected = 0;
+            m_dbErrCode = res;
+            m_dbErrMsg = errMsg;
+            m_mapRowset.remove(index);
+        }
+        if (handler != null) {
+            handler.invoke(this, res, errMsg, 0, fail_ok, null);
+        }
+    }
+
+    private boolean DoMeta(final short id, String s0, String s1, String s2, final DExecuteResult handler, DRows row, DRowsetHeader rh, DDiscarded discarded) {
         CUQueue sb = CScopeUQueue.Lock();
         sb.Save(s0);
         sb.Save(s1);
         sb.Save(s2);
-        final long index = GetCallIndex();
         synchronized (m_csOneSending) {
+            final long index = GetCallIndex();
             //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
             //in case a client asynchronously sends lots of requests without use of client side queue.
             synchronized (m_csDB) {
                 m_mapRowset.put(index, new Pair<>(rh, row));
-                m_deqExecuteResult.add(cb);
             }
             sb.Save(index);
-            if (!SendRequest(id, sb, null, discarded)) {
+            if (!SendRequest(id, sb, new DAsyncResultHandler() {
+                @Override
+                public void invoke(CAsyncResult ar) {
+                    ProcessODBC(handler, ar, id, index);
+                }
+            }, discarded)) {
                 synchronized (m_csDB) {
-                    m_deqExecuteResult.remove(cb);
                     m_mapRowset.remove(index);
                 }
                 CScopeUQueue.Unlock(sb);
@@ -279,24 +307,7 @@ public class COdbc extends CAsyncDBHandler {
 
     @Override
     protected void OnResultReturned(short reqId, CUQueue mc) {
-        if (reqId >= idSQLColumnPrivileges && reqId <= idSQLTables) {
-            long fail_ok = mc.LoadLong();
-            int res = mc.LoadInt();
-            String errMsg = mc.LoadString();
-            MyCallback<DExecuteResult> t = GetExecuteResultHandler(reqId);
-            synchronized (m_csDB) {
-                m_lastReqId = reqId;
-                m_affected = 0;
-                m_dbErrCode = res;
-                m_dbErrMsg = errMsg;
-                if (m_mapRowset.containsKey(m_indexRowset)) {
-                    m_mapRowset.remove(m_indexRowset);
-                }
-            }
-            if (t != null && t.Callback != null) {
-                t.Callback.invoke(this, res, errMsg, 0, fail_ok, null);
-            }
-        } else if (reqId == idSQLGetInfo) {
+        if (reqId == idSQLGetInfo) {
             synchronized (m_csDB) {
                 m_mapInfo.clear();
                 while (mc.GetSize() > 0) {

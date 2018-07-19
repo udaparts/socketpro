@@ -1412,34 +1412,8 @@ namespace SocketProAdapter {
                 }, discarded, null);
             }
 
-            private const int LEFT = 8;
-
             protected override void OnAllProcessed() {
                 lock (m_csDB) {
-                    if (m_mapRowset.Count > LEFT) {
-                        ulong[] arr = new ulong[m_mapRowset.Count];
-                        m_mapRowset.Keys.CopyTo(arr, 0);
-                        int remain = m_mapRowset.Count - LEFT;
-                        for (int n = 0; n < remain; ++n) {
-                            m_mapRowset.Remove(arr[n]);
-                        }
-                    }
-                    if (m_mapParameterCall.Count > LEFT) {
-                        ulong[] arr = new ulong[m_mapParameterCall.Count];
-                        m_mapParameterCall.Keys.CopyTo(arr, 0);
-                        int remain = m_mapParameterCall.Count - LEFT;
-                        for (int n = 0; n < remain; ++n) {
-                            m_mapParameterCall.Remove(arr[n]);
-                        }
-                    }
-                    if (m_mapHandler.Count > LEFT) {
-                        ulong[] arr = new ulong[m_mapHandler.Count];
-                        m_mapHandler.Keys.CopyTo(arr, 0);
-                        int remain = m_mapHandler.Count - LEFT;
-                        for (int n = 0; n < remain; ++n) {
-                            m_mapHandler.Remove(arr[n]);
-                        }
-                    }
                     m_vData.Clear();
                     m_Blob.SetSize(0);
                     if (m_Blob.MaxBufferSize > DB_CONSTS.DEFAULT_BIG_FIELD_CHUNK_SIZE) {

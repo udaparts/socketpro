@@ -46,7 +46,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
     private final java.util.HashMap<Long, CDBVariantArray> m_mapParameterCall = new java.util.HashMap<>();
     private final java.util.HashMap<Long, DRowsetHeader> m_mapHandler = new java.util.HashMap<>();
 
-    protected long m_indexRowset = 0;
+    private long m_indexRowset = 0;
     private final CUQueue m_Blob = new CUQueue();
     private final CDBVariantArray m_vData = new CDBVariantArray();
     private tagManagementSystem m_ms = tagManagementSystem.msUnknown;
@@ -135,7 +135,6 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
         m_mapHandler.clear();
         m_lastReqId = 0;
         m_Blob.SetSize(0);
-        m_deqExecuteResult.clear();
         m_deqResult.clear();
         if (m_Blob.getMaxBufferSize() > DB_CONSTS.DEFAULT_BIG_FIELD_CHUNK_SIZE) {
             m_Blob.Realloc(DB_CONSTS.DEFAULT_BIG_FIELD_CHUNK_SIZE);
@@ -149,8 +148,6 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
         synchronized (dbTo.m_csDB) {
             synchronized (m_csDB) {
                 dbTo.m_deqResult.addAll(m_deqResult);
-                dbTo.m_deqExecuteResult.addAll(m_deqExecuteResult);
-                m_deqExecuteResult.clear();
                 for (long callIndex : m_mapRowset.keySet()) {
                     dbTo.m_mapRowset.put(callIndex, m_mapRowset.get(callIndex));
                 }
@@ -171,30 +168,9 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
     @Override
     protected void OnAllProcessed() {
         synchronized (m_csDB) {
-            int n;
-            Object[] arr = m_mapRowset.keySet().toArray();
-            int count = arr.length;
-            for (n = 0; n < count; ++n) {
-                long index = (long) arr[n];
-                if (m_indexRowset > index) {
-                    m_mapRowset.remove(index);
-                }
-            }
-            arr = m_mapParameterCall.keySet().toArray();
-            count = arr.length;
-            for (n = 0; n < count; ++n) {
-                long index = (long) arr[n];
-                if (m_indexRowset > index) {
-                    m_mapParameterCall.remove(index);
-                }
-            }
-            arr = m_mapHandler.keySet().toArray();
-            count = arr.length;
-            for (n = 0; n < count; ++n) {
-                long index = (long) arr[n];
-                if (m_indexRowset > index) {
-                    m_mapHandler.remove(index);
-                }
+            m_vData.clear();
+            if (m_Blob.getMaxBufferSize() > DB_CONSTS.DEFAULT_BIG_FIELD_CHUNK_SIZE) {
+                m_Blob.Realloc(DB_CONSTS.DEFAULT_BIG_FIELD_CHUNK_SIZE);
             }
         }
     }
@@ -578,29 +554,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
         return ok;
     }
 
-    private final Charset UTF8_CHARSET = Charset.forName("UTF-8");
-
-    protected final java.util.ArrayDeque<MyCallback<DExecuteResult>> m_deqExecuteResult = new java.util.ArrayDeque<>();
-
-    protected MyCallback<DExecuteResult> GetExecuteResultHandler(short reqId) {
-        if (m_ClientSocket.getRandom()) {
-            synchronized (m_csDB) {
-                for (MyCallback<DExecuteResult> kv : m_deqExecuteResult) {
-                    if (kv.ReqId == reqId) {
-                        m_deqExecuteResult.remove(kv);
-                        return kv;
-                    }
-                }
-            }
-        } else {
-            synchronized (m_csDB) {
-                if (m_deqExecuteResult.size() > 0 && m_deqExecuteResult.getFirst().ReqId == reqId) {
-                    return m_deqExecuteResult.removeFirst();
-                }
-            }
-        }
-        return null;
-    }
+    private static final Charset UTF8_CHARSET = Charset.forName("UTF-8");
 
     /**
      * Open a database connection at server side asynchronously
@@ -874,32 +828,33 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @return true if request is successfully sent or queued; and false if
      * request is NOT successfully sent or queued
      */
-    public boolean Execute(String sql, DExecuteResult handler, DRows row, DRowsetHeader rh, boolean meta, boolean lastInsertId, DDiscarded discarded) {
+    public boolean Execute(String sql, final DExecuteResult handler, DRows row, DRowsetHeader rh, boolean meta, boolean lastInsertId, DDiscarded discarded) {
         boolean rowset = (rh != null || row != null);
         if (!rowset) {
             meta = false;
         }
-        MyCallback<DExecuteResult> cb = new MyCallback<>(DB_CONSTS.idExecute, handler);
         CUQueue sb = CScopeUQueue.Lock();
         sb.Save(sql);
         sb.Save(rowset);
         sb.Save(meta);
         sb.Save(lastInsertId);
-        final long index = GetCallIndex();
-        sb.Save(index);
-
         synchronized (m_csOneSending) {
+            final long index = GetCallIndex();
+            sb.Save(index);
             //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
             //in case a client asynchronously sends lots of requests without use of client side queue.
             synchronized (m_csDB) {
                 if (rowset) {
                     m_mapRowset.put(index, new Pair<>(rh, row));
                 }
-                m_deqExecuteResult.add(cb);
             }
-            if (!SendRequest(DB_CONSTS.idExecute, sb, null, discarded)) {
+            if (!SendRequest(DB_CONSTS.idExecute, sb, new DAsyncResultHandler() {
+                @Override
+                public void invoke(CAsyncResult ar) {
+                    Process(handler, ar, DB_CONSTS.idExecute, index);
+                }
+            }, discarded)) {
                 synchronized (m_csDB) {
-                    m_deqExecuteResult.remove(cb);
                     if (rowset) {
                         m_mapRowset.remove(index);
                     }
@@ -910,6 +865,28 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
         }
         CScopeUQueue.Unlock(sb);
         return true;
+    }
+
+    private void Process(DExecuteResult handler, CAsyncResult ar, short reqId, long index) {
+        CUQueue mc = ar.getUQueue();
+        long affected = mc.LoadLong();
+        int res = mc.LoadInt();
+        String errMsg = mc.LoadString();
+        Object vtId = mc.LoadObject();
+        long fail_ok = mc.LoadLong();
+        synchronized (m_csDB) {
+            m_lastReqId = reqId;
+            m_affected = affected;
+            m_dbErrCode = res;
+            m_dbErrMsg = errMsg;
+            m_indexProc = 0;
+            m_mapRowset.remove(index);
+            m_mapParameterCall.remove(index);
+            m_mapHandler.remove(index);
+        }
+        if (handler != null) {
+            handler.invoke(this, res, errMsg, affected, fail_ok, vtId);
+        }
     }
 
     /**
@@ -1034,13 +1011,11 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @return true if request is successfully sent or queued; and false if
      * request is NOT successfully sent or queued
      */
-    public boolean Execute(CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh, boolean meta, boolean lastInsertId, DDiscarded discarded) {
+    public boolean Execute(CDBVariantArray vParam, final DExecuteResult handler, DRows row, DRowsetHeader rh, boolean meta, boolean lastInsertId, DDiscarded discarded) {
         boolean rowset = (rh != null || row != null);
         if (!rowset) {
             meta = false;
         }
-        MyCallback<DExecuteResult> cb = new MyCallback<>(DB_CONSTS.idExecuteParameters, handler);
-
         boolean queueOk = false;
         //make sure all parameter data sendings and ExecuteParameters sending as one combination sending
         //to avoid possible request sending overlapping within multiple threading environment
@@ -1065,13 +1040,16 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                 if (rowset) {
                     m_mapRowset.put(index, new Pair<>(rh, row));
                 }
-                m_deqExecuteResult.add(cb);
                 m_mapParameterCall.put(index, vParam);
             }
-            if (!SendRequest(DB_CONSTS.idExecuteParameters, sb, null, discarded)) {
+            if (!SendRequest(DB_CONSTS.idExecuteParameters, sb, new DAsyncResultHandler() {
+                @Override
+                public void invoke(CAsyncResult ar) {
+                    Process(handler, ar, DB_CONSTS.idExecuteParameters, index);
+                }
+            }, discarded)) {
                 synchronized (m_csDB) {
                     m_mapParameterCall.remove(index);
-                    m_deqExecuteResult.remove(cb);
                     if (rowset) {
                         m_mapRowset.remove(index);
                     }
@@ -1367,7 +1345,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @return true if request is successfully sent or queued; and false if
      * request is NOT successfully sent or queued
      */
-    public boolean ExecuteBatch(tagTransactionIsolation isolation, String sql, CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh, DRowsetHeader batchHeader, CParameterInfo[] vPInfo, tagRollbackPlan plan, DDiscarded discarded, String delimiter, boolean meta, boolean lastInsertId) {
+    public boolean ExecuteBatch(tagTransactionIsolation isolation, String sql, CDBVariantArray vParam, final DExecuteResult handler, DRows row, DRowsetHeader rh, DRowsetHeader batchHeader, CParameterInfo[] vPInfo, tagRollbackPlan plan, DDiscarded discarded, String delimiter, boolean meta, boolean lastInsertId) {
         boolean queueOk = false;
         boolean rowset = (rh != null || row != null);
         if (!rowset) {
@@ -1376,7 +1354,6 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
         if (vPInfo == null) {
             vPInfo = new CParameterInfo[0];
         }
-        MyCallback<DExecuteResult> cb = new MyCallback<>(DB_CONSTS.idExecuteBatch, handler);
         CUQueue sb = CScopeUQueue.Lock();
         sb.Save(sql).Save(delimiter).Save(isolation.getValue()).Save(plan.getValue()).Save(rowset).Save(meta).Save(lastInsertId);
 
@@ -1398,7 +1375,6 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                 if (rowset) {
                     m_mapRowset.put(index, new Pair<>(rh, row));
                 }
-                m_deqExecuteResult.add(cb);
                 m_mapParameterCall.put(index, vParam);
                 m_mapHandler.put(index, batchHeader);
                 sb.Save(m_strConnection).Save(m_flags);
@@ -1408,10 +1384,14 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
             for (CParameterInfo info : vPInfo) {
                 info.SaveTo(sb);
             }
-            if (!SendRequest(DB_CONSTS.idExecuteBatch, sb.getIntenalBuffer(), sb.GetSize(), null, discarded)) {
+            if (!SendRequest(DB_CONSTS.idExecuteBatch, sb.getIntenalBuffer(), sb.GetSize(), new DAsyncResultHandler() {
+                @Override
+                public void invoke(CAsyncResult ar) {
+                    Process(handler, ar, DB_CONSTS.idExecuteBatch, index);
+                }
+            }, discarded)) {
                 synchronized (m_csDB) {
                     m_mapParameterCall.remove(index);
-                    m_deqExecuteResult.remove(cb);
                     if (rowset) {
                         m_mapRowset.remove(index);
                     }
@@ -1440,29 +1420,6 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                     m_bCallReturn = false;
                 }
                 break;
-            case DB_CONSTS.idExecuteBatch: {
-                long affected = mc.LoadLong();
-                int res = mc.LoadInt();
-                String errMsg = mc.LoadString();
-                Object vtId = mc.LoadObject();
-                long fail_ok = mc.LoadLong();
-                MyCallback<DExecuteResult> t = GetExecuteResultHandler(reqId);
-                synchronized (m_csDB) {
-                    m_lastReqId = reqId;
-                    m_affected = affected;
-                    m_dbErrCode = res;
-                    m_dbErrMsg = errMsg;
-                    m_mapRowset.remove(m_indexRowset);
-                    m_mapParameterCall.remove(m_indexRowset);
-                    m_mapHandler.remove(m_indexRowset);
-                }
-                if (t != null) {
-                    if (t.Callback != null) {
-                        t.Callback.invoke(this, res, errMsg, affected, fail_ok, vtId);
-                    }
-                }
-            }
-            break;
             case DB_CONSTS.idSqlBatchHeader: {
                 DRowsetHeader cb = null;
                 int res = mc.LoadInt();
@@ -1488,30 +1445,6 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                 }
                 if (cb != null) {
                     cb.invoke(this);
-                }
-            }
-            break;
-            case DB_CONSTS.idExecuteParameters:
-            case DB_CONSTS.idExecute: {
-                long affected = mc.LoadLong();
-                int res = mc.LoadInt();
-                String errMsg = mc.LoadString();
-                Object vtId = mc.LoadObject();
-                long fail_ok = mc.LoadLong();
-                MyCallback<DExecuteResult> t = GetExecuteResultHandler(reqId);
-                synchronized (m_csDB) {
-                    m_lastReqId = reqId;
-                    m_affected = affected;
-                    m_dbErrCode = res;
-                    m_dbErrMsg = errMsg;
-                    m_mapRowset.remove(m_indexRowset);
-                    m_indexProc = 0;
-                    m_mapParameterCall.remove(m_indexRowset);
-                }
-                if (t != null) {
-                    if (t.Callback != null) {
-                        t.Callback.invoke(this, res, errMsg, affected, fail_ok, vtId);
-                    }
                 }
             }
             break;
