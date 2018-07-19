@@ -686,23 +686,7 @@ namespace SocketProAdapter {
                         m_mapParameterCall[callIndex] = vParam;
                     }
                     if (!SendRequest(DB_CONSTS.idExecuteParameters, rowset, meta, lastInsertId, callIndex, (ar) => {
-                        long affected;
-                        ulong fail_ok;
-                        int res;
-                        string errMsg;
-                        object vtId;
-                        ar.Load(out affected).Load(out res).Load(out errMsg).Load(out vtId).Load(out fail_ok);
-                        lock (m_csDB) {
-                            m_lastReqId = DB_CONSTS.idExecuteParameters;
-                            m_affected = affected;
-                            m_dbErrCode = res;
-                            m_dbErrMsg = errMsg;
-                            m_mapRowset.Remove(callIndex);
-                            m_mapParameterCall.Remove(callIndex);
-                            m_indexProc = 0;
-                        }
-                        if (handler != null)
-                            handler(this, res, errMsg, affected, fail_ok, vtId);
+                        Process(handler, ar, DB_CONSTS.idExecuteParameters, callIndex);
                     }, discarded, null)) {
                         lock (m_csDB) {
                             m_mapParameterCall.Remove(callIndex);
@@ -939,24 +923,7 @@ namespace SocketProAdapter {
                             info.SaveTo(sb);
                         }
                         if (!SendRequest(DB_CONSTS.idExecuteBatch, sb.IntenalBuffer, sb.GetSize(), (ar) => {
-                            long affected;
-                            ulong fail_ok;
-                            int res;
-                            string errMsg;
-                            object vtId;
-                            ar.Load(out affected).Load(out res).Load(out errMsg).Load(out vtId).Load(out fail_ok);
-                            lock (m_csDB) {
-                                m_lastReqId = DB_CONSTS.idExecuteBatch;
-                                m_affected = affected;
-                                m_dbErrCode = res;
-                                m_dbErrMsg = errMsg;
-                                m_mapRowset.Remove(callIndex);
-                                m_mapParameterCall.Remove(callIndex);
-                                m_mapHandler.Remove(callIndex);
-                                m_indexProc = 0;
-                            }
-                            if (handler != null)
-                                handler(this, res, errMsg, affected, fail_ok, vtId);
+                            Process(handler, ar, DB_CONSTS.idExecuteBatch, callIndex);
                         }, discarded, null)) {
                             lock (m_csDB) {
                                 m_mapHandler.Remove(callIndex);
@@ -1069,21 +1036,7 @@ namespace SocketProAdapter {
                     }
                 }
                 if (!SendRequest(DB_CONSTS.idExecute, sql, rowset, meta, lastInsertId, index, (ar) => {
-                    long affected;
-                    ulong fail_ok;
-                    int res;
-                    string errMsg;
-                    object vtId;
-                    ar.Load(out affected).Load(out res).Load(out errMsg).Load(out vtId).Load(out fail_ok);
-                    lock (m_csDB) {
-                        m_lastReqId = DB_CONSTS.idExecute;
-                        m_affected = affected;
-                        m_dbErrCode = res;
-                        m_dbErrMsg = errMsg;
-                        m_mapRowset.Remove(index);
-                    }
-                    if (handler != null)
-                        handler(this, res, errMsg, affected, fail_ok, vtId);
+                    Process(handler, ar, DB_CONSTS.idExecute, index);
                 }, discarded, null)) {
                     lock (m_csDB) {
                         m_mapRowset.Remove(index);
@@ -1091,6 +1044,27 @@ namespace SocketProAdapter {
                     return false;
                 }
                 return true;
+            }
+
+            private void Process(DExecuteResult handler, CAsyncResult ar, ushort reqId, ulong index) {
+                long affected;
+                ulong fail_ok;
+                int res;
+                string errMsg;
+                object vtId;
+                ar.Load(out affected).Load(out res).Load(out errMsg).Load(out vtId).Load(out fail_ok);
+                lock (m_csDB) {
+                    m_lastReqId = reqId;
+                    m_affected = affected;
+                    m_dbErrCode = res;
+                    m_dbErrMsg = errMsg;
+                    m_indexProc = 0;
+                    m_mapRowset.Remove(index);
+                    m_mapParameterCall.Remove(index);
+                    m_mapHandler.Remove(index);
+                }
+                if (handler != null)
+                    handler(this, res, errMsg, affected, fail_ok, vtId);
             }
 
             /// <summary>
