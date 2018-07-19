@@ -168,30 +168,32 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
         }
     }
 
-    private static final int LEFT = 8;
-
     @Override
     protected void OnAllProcessed() {
         synchronized (m_csDB) {
-            if (m_mapRowset.size() > LEFT) {
-                Object[] arr = m_mapRowset.keySet().toArray();
-                int remain = arr.length - LEFT;
-                for (int n = 0; n < remain; ++n) {
-                    m_mapRowset.remove((long) arr[n]);
+            int n;
+            Object[] arr = m_mapRowset.keySet().toArray();
+            int count = arr.length;
+            for (n = 0; n < count; ++n) {
+                long index = (long) arr[n];
+                if (m_indexRowset > index) {
+                    m_mapRowset.remove(index);
                 }
             }
-            if (m_mapParameterCall.size() > LEFT) {
-                Object[] arr = m_mapParameterCall.keySet().toArray();
-                int remain = arr.length - LEFT;
-                for (int n = 0; n < remain; ++n) {
-                    m_mapParameterCall.remove((long) arr[n]);
+            arr = m_mapParameterCall.keySet().toArray();
+            count = arr.length;
+            for (n = 0; n < count; ++n) {
+                long index = (long) arr[n];
+                if (m_indexRowset > index) {
+                    m_mapParameterCall.remove(index);
                 }
             }
-            if (m_mapHandler.size() > LEFT) {
-                Object[] arr = m_mapHandler.keySet().toArray();
-                int remain = arr.length - LEFT;
-                for (int n = 0; n < remain; ++n) {
-                    m_mapHandler.remove((long) arr[n]);
+            arr = m_mapHandler.keySet().toArray();
+            count = arr.length;
+            for (n = 0; n < count; ++n) {
+                long index = (long) arr[n];
+                if (m_indexRowset > index) {
+                    m_mapHandler.remove(index);
                 }
             }
         }
@@ -1551,9 +1553,6 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                     m_parameters = 0;
                     m_output = 0;
                     m_indexProc = 0;
-                    if (getAttachedClientSocket().getCountOfRequestsInQueue() == 1) {
-                        m_mapParameterCall.clear();
-                    }
                 }
                 if (t != null && t.Callback != null) {
                     t.Callback.invoke(this, res, errMsg);
@@ -1568,9 +1567,6 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                     m_lastReqId = DB_CONSTS.idEndTrans;
                     m_dbErrCode = res;
                     m_dbErrMsg = errMsg;
-                    if (getAttachedClientSocket().getCountOfRequestsInQueue() == 1) {
-                        m_mapParameterCall.clear();
-                    }
                 }
                 if (t != null && t.Callback != null) {
                     t.Callback.invoke(this, res, errMsg);
@@ -1607,9 +1603,6 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                     m_dbErrCode = res;
                     m_dbErrMsg = errMsg;
                     m_indexProc = 0;
-                    if (getAttachedClientSocket().getCountOfRequestsInQueue() == 1) {
-                        m_mapParameterCall.clear();
-                    }
                 }
                 if (t != null && t.Callback != null) {
                     t.Callback.invoke(this, res, errMsg);
