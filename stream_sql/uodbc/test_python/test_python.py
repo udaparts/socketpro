@@ -115,24 +115,7 @@ with CSocketPool(COdbc) as spOdbc:
         return odbc.Execute(vData, cbExecute)
 
     def TestStoredProcedure(vData):
-        vInfo = []
-
-        info = CParameterInfo()
-        info.DataType = tagVariantDataType.sdVT_I4
-        vInfo.append(info)
-
-        info = CParameterInfo()
-        info.DataType = tagVariantDataType.sdVT_DECIMAL
-        info.Direction = tagParameterDirection.pdInputOutput
-        info.Scale = 2
-        vInfo.append(info)
-
-        info = CParameterInfo()
-        info.DataType = tagVariantDataType.sdVT_DATE
-        info.Direction = tagParameterDirection.pdOutput
-        vInfo.append(info)
-
-        ok = odbc.Prepare('call sp_TestProc(?, ?, ?)', cb, vInfo)
+        ok = odbc.Prepare('call sp_TestProc(?,?,?)', cb)
 
         #  send multiple sets of parameter data in one shot
         return odbc.Execute(vData, cbExecute, cbRows, cbRowHeader)
@@ -155,55 +138,6 @@ with CSocketPool(COdbc) as spOdbc:
                'select * from employee;'
                'select curtime();'
                '{call sp_TestProc(?, ?, ?)}')
-
-        vInfo = []
-
-        info = CParameterInfo()
-        info.DataType = tagVariantDataType.sdVT_I4
-        vInfo.append(info)
-        info = CParameterInfo()
-        info.DataType = tagVariantDataType.sdVT_BSTR
-        vInfo.append(info)
-        info = CParameterInfo()
-        info.DataType = tagVariantDataType.sdVT_BSTR
-        vInfo.append(info)
-        info = CParameterInfo()
-        info.DataType = tagVariantDataType.sdVT_R8
-        vInfo.append(info)
-
-        info = CParameterInfo()
-        info.DataType = tagVariantDataType.sdVT_I4
-        vInfo.append(info)
-        info = CParameterInfo()
-        info.DataType = tagVariantDataType.sdVT_BSTR
-        vInfo.append(info)
-        info = CParameterInfo()
-        info.DataType = tagVariantDataType.sdVT_DATE
-        vInfo.append(info)
-        info = CParameterInfo()
-        info.DataType = tagVariantDataType.sdVT_ARRAY | tagVariantDataType.sdVT_UI1
-        info.ColumnSize = 0xffffffff  # BLOB
-        vInfo.append(info)
-        info = CParameterInfo()
-        info.DataType = tagVariantDataType.sdVT_BSTR
-        info.ColumnSize = 0xffffffff  # TEXT
-        vInfo.append(info)
-        info = CParameterInfo()
-        info.DataType = tagVariantDataType.sdVT_R8
-        vInfo.append(info)
-
-        info = CParameterInfo()
-        info.DataType = tagVariantDataType.sdVT_I4
-        vInfo.append(info)
-        info = CParameterInfo()
-        info.DataType = tagVariantDataType.sdVT_DECIMAL
-        info.Direction = tagParameterDirection.pdInputOutput
-        info.Scale = 2
-        vInfo.append(info)
-        info = CParameterInfo()
-        info.DataType = tagVariantDataType.sdVT_DATE
-        info.Direction = tagParameterDirection.pdOutput
-        vInfo.append(info)
 
         wstr = u''
         while len(wstr) < 128 * 1024:
@@ -271,12 +205,12 @@ with CSocketPool(COdbc) as spOdbc:
         vData.append(Decimal('4.12'))
         vData.append(0)
 
-        if odbc.ExecuteBatch(tagTransactionIsolation.tiUnspecified, sqls, vData, cbExecute, cbRows, cbRowHeader, cbBatchHeader, vInfo, tagRollbackPlan.rpDefault, cbDiscarded):
+        if odbc.ExecuteBatch(tagTransactionIsolation.tiUnspecified, sqls, vData, cbExecute, cbRows, cbRowHeader, cbBatchHeader, None, tagRollbackPlan.rpDefault, cbDiscarded):
             return [vData, 3]
         return None
 
 
-    ok = odbc.Open(u'dsn=ToMySQL', cb)
+    ok = odbc.Open(u'dsn=ToMySQL;UID=root;PWD=Smash123', cb)
     ok = TestCreateTables()
     ok = odbc.Execute('delete from employee', cbExecute)
     ok = odbc.Execute('delete from company', cbExecute)

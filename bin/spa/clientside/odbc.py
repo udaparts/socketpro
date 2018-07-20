@@ -57,91 +57,92 @@ class COdbc(CAsyncDBHandler):
     def Tables(self, CatalogName, SchemaName, TableName, TableType, handler, row, rh, canceled = None):
         return self._DoMeta4(COdbc.idSQLTables, CatalogName, SchemaName, TableName, TableType, handler, row, rh, canceled)
 
+    def _ProcessODBC_(self, handler, ar, reqId, index):
+        mc = ar.UQueue;
+        res = mc.LoadInt()
+        errMsg = mc.LoadString()
+        fail_ok = mc.LoadULong()
+        with self._csDB:
+            self._dbError = res
+            self._dbErrorMsg = errMsg
+            self._lastReqId = reqId
+            self._affected = 0
+            if index in self._mapRowset:
+                self._mapRowset.pop(index)
+        if handler:
+            handler(self, res, errMsg, 0, fail_ok, None)
+
     def Statistics(self, CatalogName, SchemaName, TableName, unique, reserved, handler, row, rh, canceled = None):
         q = CScopeUQueue.Lock().SaveString(CatalogName).SaveString(SchemaName).SaveString(TableName).SaveUShort(unique).SaveUShort(reserved)
-        cb = Pair(COdbc.idSQLStatistics, handler)
-        index = self.GetCallIndex()
-        q.SaveULong(index)
+        ok = True
         with self._csOneSending:
+            index = self.GetCallIndex()
+            q.SaveULong(index)
             with self._csDB:
                 self._mapRowset[index] = Pair(rh, row)
-                self._deqResult.append(cb)
-            ok = self.SendRequest(COdbc.idSQLStatistics, q, None, canceled)
+            ok = self.SendRequest(COdbc.idSQLStatistics, q, lambda ar: self._ProcessODBC_(handler, ar, COdbc.idSQLStatistics, index), canceled)
             if not ok:
                 with self._csDB:
-                    self._deqResult.remove(cb)
                     self._mapRowset.pop(index)
         CScopeUQueue.Unlock(q)
         return ok
 
     def SpecialColumns(self, identifierType, CatalogName, SchemaName, TableName, scope, nullable, handler, row, rh, canceled = None):
         q = CScopeUQueue.Lock().SaveShort(identifierType).SaveString(CatalogName).SaveString(SchemaName).SaveString(TableName).SaveShort(scope).SaveShort(nullable)
-        cb = Pair(COdbc.idSQLSpecialColumns, handler)
-        index = self.GetCallIndex()
-        q.SaveULong(index)
         ok = True
         with self._csOneSending:
+            index = self.GetCallIndex()
+            q.SaveULong(index)
             with self._csDB:
                 self._mapRowset[index] = Pair(rh, row)
-                self._deqResult.append(cb)
-            ok = self.SendRequest(COdbc.idSQLSpecialColumns, q, None, canceled)
+            ok = self.SendRequest(COdbc.idSQLSpecialColumns, q, lambda ar: self._ProcessODBC_(handler, ar, COdbc.idSQLSpecialColumns, index), canceled)
             if not ok:
                 with self._csDB:
-                    self._deqResult.remove(cb)
                     self._mapRowset.pop(index)
         CScopeUQueue.Unlock(q)
         return ok
 
     def ForeignKeys(self, PKCatalogName, PKSchemaName, PKTableName, FKCatalogName, FKSchemaName, FKTableName, handler, row, rh, canceled = None):
         q = CScopeUQueue.Lock().SaveString(PKCatalogName).SaveString(PKSchemaName).SaveString(PKTableName).SaveString(FKCatalogName).SaveString(FKSchemaName).SaveString(FKTableName)
-        cb = Pair(COdbc.idSQLForeignKeys, handler)
-        index = self.GetCallIndex()
-        q.SaveULong(index)
         ok = True
         with self._csOneSending:
+            index = self.GetCallIndex()
+            q.SaveULong(index)
             with self._csDB:
                 self._mapRowset[index] = Pair(rh, row)
-                self._deqResult.append(cb)
-            ok = self.SendRequest(COdbc.idSQLForeignKeys, q, None, canceled)
+            ok = self.SendRequest(COdbc.idSQLForeignKeys, q, lambda ar: self._ProcessODBC_(handler, ar, COdbc.idSQLForeignKeys, index), canceled)
             if not ok:
                 with self._csDB:
-                    self._deqResult.remove(cb)
                     self._mapRowset.pop(index)
         CScopeUQueue.Unlock(q)
         return ok
 
     def _DoMeta3(self, id, s0, s1, s2, handler, row, rh, canceled):
         q = CScopeUQueue.Lock().SaveString(s0).SaveString(s1).SaveString(s2)
-        cb = Pair(id, handler)
-        index = self.GetCallIndex()
-        q.SaveULong(index)
         ok = True
         with self._csOneSending:
+            index = self.GetCallIndex()
+            q.SaveULong(index)
             with self._csDB:
                 self._mapRowset[index] = Pair(rh, row)
-                self._deqResult.append(cb)
-            ok = self.SendRequest(id, q, None, canceled)
+            ok = self.SendRequest(id, q, lambda ar: self._ProcessODBC_(handler, ar, id, index), canceled)
             if not ok:
                 with self._csDB:
-                    self._deqResult.remove(cb)
                     self._mapRowset.pop(index)
         CScopeUQueue.Unlock(q)
         return ok
 
     def _DoMeta4(self, id, s0, s1, s2, s3, handler, row, rh, canceled):
         q = CScopeUQueue.Lock().SaveString(s0).SaveString(s1).SaveString(s2).SaveString(s3)
-        cb = Pair(id, handler)
-        index = self.GetCallIndex()
-        q.SaveULong(index)
         ok = True
         with self._csOneSending:
+            index = self.GetCallIndex()
+            q.SaveULong(index)
             with self._csDB:
                 self._mapRowset[index] = Pair(rh, row)
-                self._deqResult.append(cb)
-            ok = self.SendRequest(id, q, None, canceled)
+            ok = self.SendRequest(id, q, lambda ar: self._ProcessODBC_(handler, ar, id, index), canceled)
             if not ok:
                 with self._csDB:
-                    self._deqResult.remove(cb)
                     self._mapRowset.pop(index)
         CScopeUQueue.Unlock(q)
         return ok
@@ -163,23 +164,6 @@ class COdbc(CAsyncDBHandler):
                     infoType = mc.LoadUShort()
                     vt = mc.LoadObject()
                     self._mapInfo[infoType] = vt
-
-        elif reqId >= COdbc.idSQLColumnPrivileges and reqId <= COdbc.idSQLTables:
-            fail_ok = mc.LoadULong()
-            res = mc.LoadInt()
-            errMsg = mc.LoadString()
-            t = self._GetResultHandler(reqId)
-            with self._csDB:
-                self._dbError = res
-                self._dbErrorMsg = errMsg
-                self._lastReqId = reqId
-                self._affected = 0
-                if self._indexRowset in self._mapRowset:
-                    self._mapRowset.pop(self._indexRowset)
-                if len(self._mapRowset) == 0:
-                    self._nCall = 0
-            if not t is None and not t.second is None:
-                t.second(self, res, errMsg, 0, fail_ok, None)
         else:
             super(COdbc, self).OnResultReturned(reqId, mc)
 
