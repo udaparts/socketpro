@@ -16,6 +16,17 @@ public static class USqlStream {
     private static object m_cs = new object();
     private static string ServerHost = null;
 
+    static USqlStream() {
+        AppDomain.CurrentDomain.AssemblyLoad += (sender, args) => {
+            SqlInt32 res;
+            StartSPServer(out res);
+        };
+        AppDomain.CurrentDomain.DomainUnload += (sender, e) => {
+            SqlInt32 res;
+            StopSPServer(out res);
+        };
+    }
+
     public static CSqlPlugin Server {
         get {
             lock (m_cs) {
