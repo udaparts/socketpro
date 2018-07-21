@@ -4,9 +4,11 @@ using SocketProAdapter;
 using SocketProAdapter.ServerSide;
 using System.Runtime.InteropServices;
 
-public class CSqlPlugin : CSocketProServer {
+public class CSqlPlugin : CSocketProServer
+{
     public CSqlPlugin(int param = 0)
-        : base(param) {
+        : base(param)
+    {
     }
 
     [DllImport("sodbc")]
@@ -19,7 +21,8 @@ public class CSqlPlugin : CSocketProServer {
     internal CSocketProService<CMyHttpPeer> m_http = new CSocketProService<CMyHttpPeer>();
 #endif
 
-    public override bool Run(uint port, uint maxBacklog, bool v6Supported) {
+    public override bool Run(uint port, uint maxBacklog, bool v6Supported)
+    {
         IntPtr p = CSocketProServer.DllManager.AddALibrary("sodbc");
 #if PLUGIN_DEV
 
@@ -27,7 +30,8 @@ public class CSqlPlugin : CSocketProServer {
         if (SQLConfig.HttpWebSocket)
             m_http.AddMe(BaseServiceID.sidHTTP);
         string[] vService = SQLConfig.Services.Split(';');
-        foreach (string s in vService) {
+        foreach (string s in vService)
+        {
             if (s.Length > 0)
                 DllManager.AddALibrary(s);
         }
@@ -36,7 +40,8 @@ public class CSqlPlugin : CSocketProServer {
         return base.Run(port, maxBacklog, v6Supported);
     }
 
-    protected override bool OnIsPermitted(ulong hSocket, string userId, string password, uint nSvsID) {
+    protected override bool OnIsPermitted(ulong hSocket, string userId, string password, uint nSvsID)
+    {
         if (nSvsID == BaseServiceID.sidHTTP)
             return true; //do authentication inside the method CMyHttpPeer.DoAuthentication
 #if PLUGIN_DEV
