@@ -108,11 +108,8 @@ public static class USqlStream
                 if (ServerCoreLoader.IsRunning())
                 {
                     AppDomain.CurrentDomain.DomainUnload += (sender, args) => {
-                        ServerCoreLoader.SetOnIdle(null); //avoid crash
-                        ServerCoreLoader.SetOnIsPermitted(null);
-                        ServerCoreLoader.SetOnAccept(null);
-                        ServerCoreLoader.SetOnClose(null);
-                        ServerCoreLoader.SetOnSSLHandShakeCompleted(null);
+                        ServerCoreLoader.StopSocketProServer();
+                        Plugin = null;
                     };
                     res += 1;
                 }
