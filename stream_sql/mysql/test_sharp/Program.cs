@@ -54,22 +54,16 @@ class Program
             TestPreparedStatements(mysql);
             InsertBLOBByPreparedStatement(mysql);
             ok = mysql.Execute("SELECT * from company;select * from employee;select curtime()", er, r, rh);
-            CDBVariantArray vPData = new CDBVariantArray();
-            //first set
-            vPData.Add(1);
-            vPData.Add(1.4);
-            vPData.Add(0);
 
-            //second set
-            vPData.Add(2);
-            vPData.Add(2.5);
-            vPData.Add(0);
-            TestStoredProcedure(mysql, ra, vPData);
+            CDBVariantArray vPData = TestStoredProcedure(mysql, ra);
             ok = mysql.WaitAll();
             Console.WriteLine();
             Console.WriteLine("There are {0} output data returned", mysql.Outputs * 2);
 
-            TestBatch(mysql, ra);
+            CDBVariantArray vData = TestBatch(mysql, ra);
+            ok = mysql.WaitAll();
+            Console.WriteLine();
+            Console.WriteLine("There are {0} output data returned", mysql.Outputs * 3);
 
             int index = 0;
             Console.WriteLine();
@@ -130,13 +124,13 @@ class Program
         ok = mysql.Execute(vData, er);
     }
 
-    static void TestBatch(CMysql mysql, List<KeyValuePair<CDBColumnInfoArray, CDBVariantArray>> ra) {
+    static CDBVariantArray TestBatch(CMysql mysql, List<KeyValuePair<CDBColumnInfoArray, CDBVariantArray>> ra) {
         //sql with delimiter '|'
         string sql = @" delete from employee;delete from company|
-                        INSERT INTO company(ID, NAME, ADDRESS, Income) VALUES (?, ?, ?, ?)|
-                        insert into employee(CompanyId, name,JoinDate, image, DESCRIPTION, Salary) values (?, ?, ?, ?, ?, ?)|
+                        INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?)|
+                        insert into employee(CompanyId,name,JoinDate,image,DESCRIPTION,Salary)values(?,?,?,?,?,?)|
                         SELECT * from company;select * from employee;select curtime()|
-                        call sp_TestProc(?, ?, ?)";
+                        call sp_TestProc(?,?,?)";
         string wstr = ""; //make test data
         while (wstr.Length < 128 * 1024) {
             wstr += "广告做得不那么夸张的就不说了，看看这三家，都是正儿八经的公立三甲，附属医院，不是武警，也不是部队，更不是莆田，都在卫生部门直接监管下，照样明目张胆地骗人。";
@@ -218,9 +212,7 @@ class Program
         }, null, tagRollbackPlan.rpDefault, (h, canceled)=> {
             //called when canceling or socket closed if client queue is NOT used
         }, "|");
-        ok = mysql.WaitAll();
-        Console.WriteLine(); //put debug point here and see what happens to ra and vData
-        Console.WriteLine("There are {0} output data returned", mysql.Outputs * 3);
+        return vData;
     }
 
     static void InsertBLOBByPreparedStatement(CMysql mysql)
@@ -273,8 +265,19 @@ class Program
         }
     }
 
-    static void TestStoredProcedure(CMysql mysql, List<KeyValuePair<CDBColumnInfoArray, CDBVariantArray>> ra, CDBVariantArray vPData)
+    static CDBVariantArray TestStoredProcedure(CMysql mysql, List<KeyValuePair<CDBColumnInfoArray, CDBVariantArray>> ra)
     {
+        CDBVariantArray vPData = new CDBVariantArray();
+        //first set
+        vPData.Add(1);
+        vPData.Add(1.4);
+        vPData.Add(0);
+
+        //second set
+        vPData.Add(2);
+        vPData.Add(2.5);
+        vPData.Add(0);
+
         bool ok = mysql.Prepare("call sp_TestProc(?, ?, ?)", dr);
         CMysql.DRows r = (handler, rowData) =>
         {
@@ -291,6 +294,7 @@ class Program
             ra.Add(item);
         };
         ok = mysql.Execute(vPData, er, r, rh);
+        return vPData;
     }
 }
 

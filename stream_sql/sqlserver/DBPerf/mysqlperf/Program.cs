@@ -2,13 +2,17 @@
 using System.Data;
 using System.Data.SqlClient;
 
-class Program
-{
-    static void Main(string[] args)
-    {
+class Program {
+    static void Main(string[] args) {
         Console.WriteLine("MS SQL .NET provider performance test against a remote MS SQL backend DB");
         Console.WriteLine("Remote host: ");
         string host = Console.ReadLine();
+        Console.WriteLine("Wide Arae Netork ? (1 or 0)");
+        string str = Console.ReadLine();
+        int wan = 0;
+        try {
+            wan = int.Parse(str);
+        } finally { }
         Console.WriteLine("Database name: ");
         string dbName = Console.ReadLine();
         string sql_conn = "Server=" + host;
@@ -20,15 +24,13 @@ class Program
         Console.WriteLine("sql filter: ");
         string filter = Console.ReadLine();
         string sql = "select * from " + tableName;
-        if (filter.Length > 0)
-        {
+        if (filter.Length > 0) {
             sql += " where " + filter;
         }
         Console.WriteLine("Computing ......");
-        int count = 50000;
+        int count = (wan == 0) ? 50000 : 5000;
         DateTime start = DateTime.Now;
-        for (int n = 0; n < count; ++n)
-        {
+        for (int n = 0; n < count; ++n) {
             DataTable dt = new DataTable();
             SqlCommand cmd = new SqlCommand(sql, conn);
             SqlDataAdapter adapter = new SqlDataAdapter(cmd);
@@ -40,6 +42,8 @@ class Program
         //you need to compile and run the sample project test_sharp before running the below code
         SqlCommand cmdSql = new SqlCommand("USE sqltestdb;delete from company where id > 3", conn);
         int res = cmdSql.ExecuteNonQuery();
+
+        //run the sample socketpro/stream_sql/uodbc/test_sharp first to create the test table before the following inserting test
         string sql_insert_parameter = "INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(@ID,@NAME,@ADDRESS,@Income)";
         SqlParameter id = new SqlParameter("@ID", SqlDbType.Int);
         SqlParameter name = new SqlParameter("@NAME", SqlDbType.Char, 64);
@@ -54,16 +58,14 @@ class Program
         SqlTransaction sqlTran = conn.BeginTransaction();
         cmdSql.Transaction = sqlTran;
         int index = 0;
-        count = 250000;
+        count = (wan == 0) ? 250000 : 25000;
         Console.WriteLine();
         Console.WriteLine("Going to insert {0} records into the table sqltestdb.company", count);
         start = DateTime.Now;
-        for (int n = 0; n < count; ++n)
-        {
+        for (int n = 0; n < count; ++n) {
             cmdSql.Parameters[0].Value = n + 4;
             int data = (n % 3);
-            switch (data)
-            {
+            switch (data) {
                 case 0:
                     cmdSql.Parameters[1].Value = "Google Inc.";
                     cmdSql.Parameters[2].Value = "1600 Amphitheatre Parkway, Mountain View, CA 94043, USA";
@@ -82,8 +84,7 @@ class Program
             }
             ++index;
             res = cmdSql.ExecuteNonQuery();
-            if (2000 == index)
-            {
+            if (2000 == index) {
                 sqlTran.Commit();
                 Console.WriteLine("Commit {0} records into the table sqltestdb.company", index);
                 sqlTran = conn.BeginTransaction();
@@ -100,4 +101,3 @@ class Program
         Console.ReadLine();
     }
 }
-
