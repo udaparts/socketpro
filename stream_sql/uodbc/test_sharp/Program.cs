@@ -21,8 +21,7 @@ class Program
     {
         Console.WriteLine("Remote host: ");
         string host = Console.ReadLine();
-        CConnectionContext cc = new CConnectionContext(host, 20903, "sa", "Smash123");
-
+        CConnectionContext cc = new CConnectionContext(host, 20903, "sa", "Smash123"); //20901 for plugindev
         using (CSocketPool<COdbc> spOdbc = new CSocketPool<COdbc>(true, 600000))
         {
             if (!spOdbc.StartSocketPool(cc, 1, 1))
@@ -33,7 +32,7 @@ class Program
                 return;
             }
             COdbc odbc = spOdbc.Seek();
-            bool ok = odbc.Open("", dr);
+            bool ok = odbc.Open("", dr); //use default database
             List<KeyValuePair<CDBColumnInfoArray, CDBVariantArray>> ra = new List<KeyValuePair<CDBColumnInfoArray, CDBVariantArray>>();
 
             COdbc.DRows r = (handler, rowData) =>
@@ -58,62 +57,15 @@ class Program
             InsertBLOBByPreparedStatement(odbc);
             ok = odbc.Execute("SELECT * from company;select * from employee;select CONVERT(datetime,SYSDATETIME());select * from test_rare1;select * from SpatialTable", er, r, rh);
             ok = odbc.Tables("sqltestdb", "%", "%", "TABLE", er, r, rh);
-            CDBVariantArray vPData = new CDBVariantArray();
-            //first set
-            vPData.Add(1);
-            vPData.Add(2.35m);//input/output
-            vPData.Add(null); //input/output
-
-            //second set
-            vPData.Add(2);
-            vPData.Add(0.99m);//input/output
-            vPData.Add(null); //input/output
-            TestStoredProcedure(odbc, ra, vPData);
+            CDBVariantArray vPData = TestStoredProcedure(odbc, ra);
             ok = odbc.WaitAll();
             Console.WriteLine();
             Console.WriteLine("There are {0} output data returned", odbc.Outputs * 2);
-
-            vPData.Clear();
-
-            //first set
-            vPData.Add(-1); //return int. output parameter value not important. 
-            vPData.Add(1); //@testid
-            vPData.Add("<test_sqlserver />"); //@myxml
-            vPData.Add(Guid.NewGuid()); //@tuuid
-            vPData.Add(-1); //@myvar. output parameter value not important. 
-
-            //second set
-            vPData.Add(2); //return int. output parameter data type not important. 
-            vPData.Add(4); //@testid
-            vPData.Add("<test_sqlserver_again />"); //@myxml
-            vPData.Add(Guid.NewGuid()); //@tuuid
-            vPData.Add(2); //@myvar. output parameter value not important. 
-            TestStoredProcedure_2(odbc, ra, vPData);
+            CDBVariantArray vPData2 = TestStoredProcedure_2(odbc, ra);
             ok = odbc.WaitAll();
             Console.WriteLine();
             Console.WriteLine("There are {0} output data returned", odbc.Outputs * 2);
-            vPData.Clear();
-
-            //first set
-            vPData.Add(-1); //return int. output parameter value not important. 
-            vPData.Add(1); //@testid
-            vPData.Add("<test_sqlserver />"); //@myxml
-            vPData.Add(Guid.NewGuid()); //@tuuid
-            vPData.Add(-1); //@myvar.
-            vPData.Add(1);
-            vPData.Add(2.35m);//input/output
-            vPData.Add(null);
-
-            //second set
-            vPData.Add(2); //return int. output parameter data type not important. 
-            vPData.Add(4); //@testid
-            vPData.Add("<test_sqlserver_again />"); //@myxml
-            vPData.Add(Guid.NewGuid()); //@tuuid
-            vPData.Add(2); //@myvar.
-            vPData.Add(2);
-            vPData.Add(0.99m);//input/output
-            vPData.Add(null);
-            TestBatch(odbc, ra, vPData);
+            CDBVariantArray vPData3 = TestBatch(odbc, ra);
             ok = odbc.WaitAll();
             Console.WriteLine();
             Console.WriteLine("There are {0} output data returned", odbc.Outputs * 2);
@@ -296,8 +248,30 @@ class Program
         }
     }
 
-    static void TestBatch(COdbc odbc, List<KeyValuePair<CDBColumnInfoArray, CDBVariantArray>> ra, CDBVariantArray vPData)
+    static CDBVariantArray TestBatch(COdbc odbc, List<KeyValuePair<CDBColumnInfoArray, CDBVariantArray>> ra)
     {
+        CDBVariantArray vPData = new CDBVariantArray();
+
+        //first set
+        vPData.Add(-1); //return int. output parameter value not important. 
+        vPData.Add(1); //@testid
+        vPData.Add("<test_sqlserver />"); //@myxml
+        vPData.Add(Guid.NewGuid()); //@tuuid
+        vPData.Add(-1); //@myvar.
+        vPData.Add(1);
+        vPData.Add(2.35m);//input/output
+        vPData.Add(null);
+
+        //second set
+        vPData.Add(2); //return int. output parameter data type not important. 
+        vPData.Add(4); //@testid
+        vPData.Add("<test_sqlserver_again />"); //@myxml
+        vPData.Add(Guid.NewGuid()); //@tuuid
+        vPData.Add(2); //@myvar.
+        vPData.Add(2);
+        vPData.Add(0.99m);//input/output
+        vPData.Add(null);
+
         //Parameter info array can be ignored for some ODBC drivers like MySQL, MS SQL Server, etc but performance will be degraded for code simplicity
         COdbc.DRows r = (handler, rowData) =>
         {
@@ -306,20 +280,29 @@ class Program
             KeyValuePair<CDBColumnInfoArray, CDBVariantArray> item = ra[last];
             item.Value.AddRange(rowData);
         };
-
         COdbc.DRowsetHeader rh = (handler) =>
         {
             //rowset header comes here
             KeyValuePair<CDBColumnInfoArray, CDBVariantArray> item = new KeyValuePair<CDBColumnInfoArray, CDBVariantArray>(handler.ColumnInfo, new CDBVariantArray());
             ra.Add(item);
         };
-
         bool ok = odbc.ExecuteBatch(tagTransactionIsolation.tiUnspecified, "select getdate();{?=call sp_TestRare1(?,?,?,?)};{call sqltestdb.dbo.sp_TestProc(?,?,?)}", vPData,
             er, r, rh, (handler) => { });
+        return vPData;
     }
 
-    static void TestStoredProcedure(COdbc odbc, List<KeyValuePair<CDBColumnInfoArray, CDBVariantArray>> ra, CDBVariantArray vPData)
+    static CDBVariantArray TestStoredProcedure(COdbc odbc, List<KeyValuePair<CDBColumnInfoArray, CDBVariantArray>> ra)
     {
+        CDBVariantArray vPData = new CDBVariantArray();
+        //first set
+        vPData.Add(1);
+        vPData.Add(2.35m);//input/output
+        vPData.Add(null); //input/output
+
+        //second set
+        vPData.Add(2);
+        vPData.Add(0.99m);//input/output
+        vPData.Add(null); //input/output
         //Parameter info array can be ignored for some ODBC drivers like MySQL, MS SQL Server, etc but performance will be degraded for code simplicity
         bool ok = odbc.Prepare("{call sp_TestProc(?,?,?)}", dr);
         COdbc.DRows r = (handler, rowData) =>
@@ -336,10 +319,12 @@ class Program
             ra.Add(item);
         };
         ok = odbc.Execute(vPData, er, r, rh);
+        return vPData;
     }
 
-    static void TestStoredProcedure_2(COdbc odbc, List<KeyValuePair<CDBColumnInfoArray, CDBVariantArray>> ra, CDBVariantArray vPData)
+    static CDBVariantArray TestStoredProcedure_2(COdbc odbc, List<KeyValuePair<CDBColumnInfoArray, CDBVariantArray>> ra)
     {
+        //vInfo is ignorable for MS SQL server ODBC drivers for code simplicity
         CParameterInfo[] vInfo = { new CParameterInfo(), new CParameterInfo(), new CParameterInfo(), new CParameterInfo(), new CParameterInfo() };
         vInfo[0].DataType = tagVariantDataType.sdVT_I4;
         //return direction can be ignorable
@@ -356,6 +341,21 @@ class Program
         vInfo[4].Direction = tagParameterDirection.pdOutput;
 
         bool ok = odbc.Prepare("{?=call sp_TestRare1(?,?,?,?)}", dr, vInfo);
+
+        CDBVariantArray vPData = new CDBVariantArray();
+        //first set
+        vPData.Add(-1); //return int. output parameter value not important. 
+        vPData.Add(1); //@testid
+        vPData.Add("<test_sqlserver />"); //@myxml
+        vPData.Add(Guid.NewGuid()); //@tuuid
+        vPData.Add(-1); //@myvar. output parameter value not important. 
+
+        //second set
+        vPData.Add(2); //return int. output parameter data type not important. 
+        vPData.Add(4); //@testid
+        vPData.Add("<test_sqlserver_again />"); //@myxml
+        vPData.Add(Guid.NewGuid()); //@tuuid
+        vPData.Add(2); //@myvar. output parameter value not important. 
         COdbc.DRows r = (handler, rowData) =>
         {
             //rowset data come here
@@ -371,5 +371,6 @@ class Program
             ra.Add(item);
         };
         ok = odbc.Execute(vPData, er, r, rh);
+        return vPData;
     }
 }

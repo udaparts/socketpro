@@ -42,11 +42,11 @@ public class CSqlPlugin : CSocketProServer
 
     protected override bool OnIsPermitted(ulong hSocket, string userId, string password, uint nSvsID)
     {
-        if (nSvsID == BaseServiceID.sidHTTP)
-            return true; //do authentication inside the method CMyHttpPeer.DoAuthentication
 #if PLUGIN_DEV
         return DoODBCAuthentication(hSocket, userId, password, nSvsID, "{SQL Server Native Client 11.0}", "");
 #else
+        if (nSvsID == BaseServiceID.sidHTTP)
+            return true; //do authentication inside the method CMyHttpPeer.DoAuthentication
         string driver = SQLConfig.ODBCDriver;
         return DoODBCAuthentication(hSocket, userId, password, nSvsID, driver, "");
 #endif
