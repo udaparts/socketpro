@@ -249,24 +249,13 @@ public class Test_java {
         ok = odbc.Execute("SELECT * from company", er, r, rh);
         ok = odbc.Execute("select * from employee", er, r, rh);
         ok = odbc.Execute("select curtime()", er, r, rh);
-        
-        CDBVariantArray vPData = new CDBVariantArray();
-        //first set
-        vPData.add(1);
-        vPData.add(new BigDecimal("2.35"));
-        vPData.add(0);
 
-        //second set
-        vPData.add(2);
-        vPData.add(new BigDecimal("0.12"));
-        vPData.add(0);
-
-        TestStoredProcedure(odbc, dr, er, ra, vPData);
+        final CDBVariantArray vPData = TestStoredProcedure(odbc, dr, er, ra);
         ok = odbc.WaitAll();
 
-        CDBVariantArray vData = TestBatch(odbc, er, r, rh, ra);
+        final CDBVariantArray vData = TestBatch(odbc, er, r, rh, ra);
         ok = odbc.WaitAll();
-        
+
         ok = odbc.Tables("sakila", "", "%", "TABLE", er, r, rh);
         ok = odbc.WaitAll();
 
@@ -299,8 +288,8 @@ public class Test_java {
         in.nextLine();
     }
 
-    static void TestStoredProcedure(COdbc odbc, COdbc.DResult dr, COdbc.DExecuteResult er, final java.util.ArrayList<Pair<CDBColumnInfoArray, CDBVariantArray>> ra, CDBVariantArray vPData) {
-        boolean ok = odbc.Prepare("call sp_TestProc(?, ?, ?)", dr);
+    static CDBVariantArray TestStoredProcedure(COdbc odbc, COdbc.DResult dr, COdbc.DExecuteResult er, final java.util.ArrayList<Pair<CDBColumnInfoArray, CDBVariantArray>> ra) {
+        boolean ok = odbc.Prepare("call sp_TestProc(?,?,?)", dr);
         COdbc.DRows r = new COdbc.DRows() {
             //rowset data come here
             @Override
@@ -310,7 +299,6 @@ public class Test_java {
                 item.second.addAll(lstData);
             }
         };
-
         COdbc.DRowsetHeader rh = new COdbc.DRowsetHeader() {
             @Override
             public void invoke(CAsyncDBHandler dbHandler) {
@@ -321,6 +309,17 @@ public class Test_java {
                 ra.add(item);
             }
         };
+        CDBVariantArray vPData = new CDBVariantArray();
+        //first set
+        vPData.add(1);
+        vPData.add(new BigDecimal("2.35"));
+        vPData.add(0);
+
+        //second set
+        vPData.add(2);
+        vPData.add(new BigDecimal("0.12"));
+        vPData.add(0);
         ok = odbc.Execute(vPData, er, r, rh);
+        return vPData;
     }
 }

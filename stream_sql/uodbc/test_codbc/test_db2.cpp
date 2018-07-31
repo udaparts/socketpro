@@ -40,19 +40,19 @@ int main(int argc, char* argv[]) {
     //optionally start a persistent queue at client side for auto failure recovery and once-only delivery
     //ok = pOdbc->GetAttachedClientSocket()->GetClientQueue().StartQueue("sqlite", 24 * 3600, false); //time-to-live 1 day and true for encryption
 
-    CMyHandler::DResult dr = [](CSender &handler, int res, const std::wstring & errMsg) {
+    CMyHandler::DResult dr = [](CSender &handler, int res, const std::wstring & errMsg){
         std::cout << "res = " << res;
         std::wcout << L", errMsg: " << errMsg << std::endl;
     };
 
-    CMyHandler::DExecuteResult er = [](CSender &handler, int res, const std::wstring &errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & vtId) {
+    CMyHandler::DExecuteResult er = [](CSender &handler, int res, const std::wstring &errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & vtId){
         std::cout << "affected = " << affected << ", fails = " << (unsigned int) (fail_ok >> 32) << ", oks = " << (unsigned int) fail_ok << ", res = " << res << ", errMsg: ";
         std::wcout << errMsg;
         std::cout << std::endl;
     };
 
     CRowsetArray ra;
-    CMyHandler::DRows r = [&ra](CSender &handler, CDBVariantArray & vData) {
+    CMyHandler::DRows r = [&ra](CSender &handler, CDBVariantArray & vData){
         //rowset data come here
         assert((vData.size() % handler.GetColumnInfo().size()) == 0);
         CDBVariantArray &row_data = ra.back().second;
@@ -62,7 +62,7 @@ int main(int argc, char* argv[]) {
         }
     };
 
-    CMyHandler::DRowsetHeader rh = [&ra](CSender & handler) {
+    CMyHandler::DRowsetHeader rh = [&ra](CSender & handler){
         //rowset header comes here
         auto &vColInfo = handler.GetColumnInfo();
         CPColumnRowset column_rowset_pair;
@@ -77,24 +77,6 @@ int main(int argc, char* argv[]) {
     InsertBLOBByPreparedStatement(pOdbc);
     ok = pOdbc->Execute(L"select * from company;select * from db2_employee;select current time from sysibm.sysdummy1", er, r, rh);
     CDBVariantArray vPData;
-    DECIMAL dec;
-    memset(&dec, 0, sizeof (dec));
-
-    //first set
-    vPData.push_back(1);
-    dec.Lo64 = 235;
-    dec.scale = (unsigned char) 2;
-    vPData.push_back(dec);
-    //output not important, but they are used for receiving proper types of data on mysql
-    vPData.push_back(1.2);
-
-    //second set
-    vPData.push_back(2);
-    dec.Lo64 = 801;
-    dec.scale = (unsigned char) 2;
-    vPData.push_back(dec);
-    //output not important, but they are used for receiving proper types of data on mysql
-    vPData.push_back(true);
     unsigned int oks = 0;
     TestStoredProcedure(pOdbc, ra, vPData, oks);
     pOdbc->WaitAll();
@@ -146,7 +128,7 @@ void InsertBLOBByPreparedStatement(std::shared_ptr<CMyHandler> pOdbc) {
     }
 
     const wchar_t *sqlInsert = L"insert into db2_employee(CompanyId, name, JoinDate, image, DESCRIPTION, Salary) values(?, ?, ?, ?, ?, ?)";
-    bool ok = pOdbc->Prepare(sqlInsert, [](CSender &handler, int res, const std::wstring & errMsg) {
+    bool ok = pOdbc->Prepare(sqlInsert, [](CSender &handler, int res, const std::wstring & errMsg){
         std::cout << "res = " << res << ", errMsg: ";
         std::wcout << errMsg << std::endl;
     });
@@ -199,7 +181,7 @@ void InsertBLOBByPreparedStatement(std::shared_ptr<CMyHandler> pOdbc) {
     vData.push_back(6254000.12);
 
     //execute multiple sets of parameter data in one short
-    ok = pOdbc->Execute(vData, [](CSender &handler, int res, const std::wstring &errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & vtId) {
+    ok = pOdbc->Execute(vData, [](CSender &handler, int res, const std::wstring &errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & vtId){
         std::cout << "affected = " << affected << ", fails = " << (unsigned int) (fail_ok >> 32) << ", oks = " << (unsigned int) fail_ok << ", res = " << res << ", errMsg: ";
         std::wcout << errMsg;
                 std::cout << std::endl;
@@ -208,7 +190,7 @@ void InsertBLOBByPreparedStatement(std::shared_ptr<CMyHandler> pOdbc) {
 
 void TestPreparedStatements(std::shared_ptr<CMyHandler> pOdbc) {
     const wchar_t *sql_insert_parameter = L"INSERT INTO company(ID, NAME, ADDRESS, Income) VALUES (?, ?, ?, ?)";
-    bool ok = pOdbc->Prepare(sql_insert_parameter, [](CSender &handler, int res, const std::wstring & errMsg) {
+    bool ok = pOdbc->Prepare(sql_insert_parameter, [](CSender &handler, int res, const std::wstring & errMsg){
         std::cout << "res = " << res << ", errMsg: ";
         std::wcout << errMsg << std::endl;
     });
@@ -232,7 +214,7 @@ void TestPreparedStatements(std::shared_ptr<CMyHandler> pOdbc) {
     vData.push_back("Apple Inc.");
     vData.push_back("1 Infinite Loop, Cupertino, CA 95014, USA");
     vData.push_back(234000000000.0);
-    ok = pOdbc->Execute(vData, [](CSender &handler, int res, const std::wstring &errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & vtId) {
+    ok = pOdbc->Execute(vData, [](CSender &handler, int res, const std::wstring &errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & vtId){
         std::cout << "affected = " << affected << ", fails = " << (unsigned int) (fail_ok >> 32) << ", oks = " << (unsigned int) fail_ok << ", res = " << res << ", errMsg: ";
         std::wcout << errMsg;
                 std::cout << std::endl;
@@ -241,30 +223,49 @@ void TestPreparedStatements(std::shared_ptr<CMyHandler> pOdbc) {
 
 void TestCreateTables(std::shared_ptr<CMyHandler> pOdbc) {
     const wchar_t *create_table = L"CREATE TABLE Company(ID bigint PRIMARY KEY NOT NULL, name CHAR(64) NOT NULL, ADDRESS varCHAR(256) not null, Income double not null)";
-    bool ok = pOdbc->Execute(create_table, [](CSender &handler, int res, const std::wstring &errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & vtId) {
+    bool ok = pOdbc->Execute(create_table, [](CSender &handler, int res, const std::wstring &errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & vtId){
         std::cout << "affected = " << affected << ", fails = " << (unsigned int) (fail_ok >> 32) << ", oks = " << (unsigned int) fail_ok << ", res = " << res << ", errMsg: ";
         std::wcout << errMsg << std::endl;
     });
 
     create_table = L"CREATE TABLE db2_employee(EMPLOYEEID bigint not null GENERATED ALWAYS AS IDENTITY (START WITH 1 INCREMENT BY 1), CompanyId bigint not null, name char(64) NOT NULL, JoinDate TIMESTAMP default null, IMAGE BLOB, DESCRIPTION DBCLOB, Salary DECIMAL(14,2), FOREIGN KEY(CompanyId) REFERENCES company(id))";
-    ok = pOdbc->Execute(create_table, [](CSender &handler, int res, const std::wstring &errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & vtId) {
+    ok = pOdbc->Execute(create_table, [](CSender &handler, int res, const std::wstring &errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & vtId){
         std::cout << "affected = " << affected << ", fails = " << (unsigned int) (fail_ok >> 32) << ", oks = " << (unsigned int) fail_ok << ", res = " << res << ", errMsg: ";
         std::wcout << errMsg << std::endl;
     });
     const wchar_t *create_proc = L"create or replace procedure sp_TestProc(in p_company_id int,inout p_sum_salary decimal(14,2),out p_last_dt timestamp)DYNAMIC RESULT SETS 1 LANGUAGE SQL BEGIN DECLARE C1 CURSOR FOR select * from db2_employee where companyid>=p_company_id;OPEN C1;select sum(salary)+p_sum_salary into p_sum_salary from db2_employee where companyid>=p_company_id;select current timestamp into p_last_dt from sysibm.sysdummy1;END";
-    ok = pOdbc->Execute(create_proc, [](CSender &handler, int res, const std::wstring &errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & vtId) {
+    ok = pOdbc->Execute(create_proc, [](CSender &handler, int res, const std::wstring &errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & vtId){
         std::cout << "affected = " << affected << ", fails = " << (unsigned int) (fail_ok >> 32) << ", oks = " << (unsigned int) fail_ok << ", res = " << res << ", errMsg: ";
         std::wcout << errMsg << std::endl;
     });
 }
 
 void TestStoredProcedure(std::shared_ptr<CMyHandler> pOdbc, CRowsetArray&ra, CDBVariantArray &vPData, unsigned int &oks) {
+    DECIMAL dec;
+    memset(&dec, 0, sizeof (dec));
+
+    //first set
+    vPData.push_back(1);
+    dec.Lo64 = 235;
+    dec.scale = (unsigned char) 2;
+    vPData.push_back(dec);
+    //output not important, but they are used for receiving proper types of data on mysql
+    vPData.push_back(1.2);
+
+    //second set
+    vPData.push_back(2);
+    dec.Lo64 = 801;
+    dec.scale = (unsigned char) 2;
+    vPData.push_back(dec);
+    //output not important, but they are used for receiving proper types of data on mysql
+    vPData.push_back(true);
+
     //stored procedure name may be case-sensitive
-    bool ok = pOdbc->Prepare(L"{call SP_TESTPROC(?,?,?)}", [](CSender &handler, int res, const std::wstring & errMsg) {
+    bool ok = pOdbc->Prepare(L"{call SP_TESTPROC(?,?,?)}", [](CSender &handler, int res, const std::wstring & errMsg){
         std::cout << "res = " << res << ", errMsg: ";
         std::wcout << errMsg << std::endl;
     });
-    CMyHandler::DRows r = [&ra](CSender &handler, CDBVariantArray & vData) {
+    CMyHandler::DRows r = [&ra](CSender &handler, CDBVariantArray & vData){
         //rowset data come here
         assert((vData.size() % handler.GetColumnInfo().size()) == 0);
         CDBVariantArray &row_data = ra.back().second;
@@ -274,7 +275,7 @@ void TestStoredProcedure(std::shared_ptr<CMyHandler> pOdbc, CRowsetArray&ra, CDB
         }
     };
 
-    CMyHandler::DRowsetHeader rh = [&ra](CSender & handler) {
+    CMyHandler::DRowsetHeader rh = [&ra](CSender & handler){
         //rowset header comes here
         auto &vColInfo = handler.GetColumnInfo();
         CPColumnRowset column_rowset_pair;
@@ -285,7 +286,7 @@ void TestStoredProcedure(std::shared_ptr<CMyHandler> pOdbc, CRowsetArray&ra, CDB
     oks = 0;
 
     //process multiple sets of parameters in one shot
-    ok = pOdbc->Execute(vPData, [&oks](CSender &handler, int res, const std::wstring &errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & vtId) {
+    ok = pOdbc->Execute(vPData, [&oks](CSender &handler, int res, const std::wstring &errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & vtId){
         oks = (unsigned int) fail_ok;
         std::cout << "affected = " << affected << ", fails = " << (unsigned int) (fail_ok >> 32) << ", oks = " << oks << ", res = " << res << ", errMsg: ";
                 std::wcout << errMsg;
