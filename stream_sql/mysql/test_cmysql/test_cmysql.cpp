@@ -16,7 +16,7 @@ void TestCreateTables(std::shared_ptr<CMyHandler> pMysql);
 void TestPreparedStatements(std::shared_ptr<CMyHandler> pMysql);
 void InsertBLOBByPreparedStatement(std::shared_ptr<CMyHandler> pMysql);
 void TestStoredProcedure(std::shared_ptr<CMyHandler> pMysql, CRowsetArray&ra, CDBVariantArray &vPData, unsigned int &oks);
-void TestBatch(std::shared_ptr<CMyHandler> pMysql, CRowsetArray&ra);
+void TestBatch(std::shared_ptr<CMyHandler> pMysql, CRowsetArray&ra, CDBVariantArray &vData, unsigned int &oks);
 
 int main(int argc, char* argv[]) {
     CMyConnContext cc;
@@ -84,25 +84,17 @@ int main(int argc, char* argv[]) {
     InsertBLOBByPreparedStatement(pMysql);
     ok = pMysql->Execute(L"SELECT * from company;select * from employee;select curtime()", er, r, rh);
     CDBVariantArray vPData;
-    //first set
-    vPData.push_back(1);
-    vPData.push_back(1.25);
-    //output not important, but they are used for receiving proper types of data on mysql
-    vPData.push_back(0);
-
-    //second set
-    vPData.push_back(2);
-    vPData.push_back(1.14);
-    //output not important, but they are used for receiving proper types of data on mysql
-    vPData.push_back(0);
     unsigned int oks = 0;
     TestStoredProcedure(pMysql, ra, vPData, oks);
     pMysql->WaitAll();
-
     std::cout << std::endl;
     std::cout << "There are " << pMysql->GetOutputs() * oks << " output data returned" << std::endl;
 
-    TestBatch(pMysql, ra);
+    CDBVariantArray vData;
+    TestBatch(pMysql, ra, vData, oks);
+    ok = pMysql->WaitAll();
+    std::cout << std::endl;
+    std::cout << "There are " << pMysql->GetOutputs() * oks << " output data returned" << std::endl;
 
     //print out all received rowsets
     int index = 0;
@@ -200,7 +192,7 @@ void InsertBLOBByPreparedStatement(std::shared_ptr<CMyHandler> pMysql) {
     });
 }
 
-void TestBatch(std::shared_ptr<CMyHandler> pMysql, CRowsetArray&ra) {
+void TestBatch(std::shared_ptr<CMyHandler> pMysql, CRowsetArray&ra, CDBVariantArray &vData, unsigned int &oks) {
     //sql with delimiter '|'
     std::wstring sql = L"delete from employee;delete from company| \
 		INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?)| \
@@ -218,7 +210,7 @@ void TestBatch(std::shared_ptr<CMyHandler> pMysql, CRowsetArray&ra) {
     SYSTEMTIME st;
     DECIMAL dec;
     memset(&dec, 0, sizeof (dec));
-    CDBVariantArray vData;
+    vData.clear();
     SPA::CScopeUQueue sbBlob;
 
     //first set
@@ -332,8 +324,8 @@ void TestBatch(std::shared_ptr<CMyHandler> pMysql, CRowsetArray&ra) {
     //third, three sets of insert into employee(CompanyId,name,JoinDate,image,DESCRIPTION,Salary)values(?,?,?,?,?,?)
     //fourth, SELECT * from company;select * from employee;select curtime()
     //last, three sets of call sp_TestProc(?,?,?)
-    bool ok = pMysql->ExecuteBatch(tiUnspecified, sql.c_str(), vData,
-            [](CMyHandler &handler, int res, const std::wstring &errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & vtId) {
+    if (pMysql->ExecuteBatch(tiUnspecified, sql.c_str(), vData,
+            [](CMyHandler & handler, int res, const std::wstring & errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & vtId) {
                 std::cout << "affected = " << affected << ", fails = " << (unsigned int) (fail_ok >> 32) << ", oks = " << (unsigned int) fail_ok << ", res = " << res << ", errMsg: ";
                 std::wcout << errMsg;
                 if (!res) {
@@ -341,10 +333,10 @@ void TestBatch(std::shared_ptr<CMyHandler> pMysql, CRowsetArray&ra) {
                             std::cout << vtId.llVal;
                 }
                 std::cout << std::endl;
-            }, r, rh, batchHeader, CParameterInfoArray(), rpDefault, discarded, L"|");
-    ok = pMysql->WaitAll();
-    std::cout << std::endl;
-    std::cout << "There are " << pMysql->GetOutputs() * 3 << " output data returned" << std::endl;
+            }, r, rh, batchHeader, CParameterInfoArray(), rpDefault, discarded, L"|"))
+            oks = 3;
+    else
+        oks = 0;
 }
 
 void TestPreparedStatements(std::shared_ptr<CMyHandler> pMysql) {
@@ -440,7 +432,18 @@ void TestStoredProcedure(std::shared_ptr<CMyHandler> pMysql, CRowsetArray&ra, CD
         column_rowset_pair.first = vColInfo;
         ra.push_back(column_rowset_pair);
     };
+    vPData.clear();
+    //first set
+    vPData.push_back(1);
+    vPData.push_back(1.25);
+    //output not important, but they are used for receiving proper types of data on mysql
+    vPData.push_back(0);
 
+    //second set
+    vPData.push_back(2);
+    vPData.push_back(1.14);
+    //output not important, but they are used for receiving proper types of data on mysql
+    vPData.push_back(0);
     oks = 0;
     //process multiple sets of parameters in one shot
     ok = pMysql->Execute(vPData, [&oks](CMyHandler &handler, int res, const std::wstring &errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & vtId) {

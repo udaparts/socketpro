@@ -130,9 +130,7 @@ with CSocketPool(CMysql) as spMysql:
         # fourth, SELECT * from company;select * from employee;select curtime()
         # last, three sets of call sp_TestProc(?,?,?)
         ok = mysql.ExecuteBatch(tagTransactionIsolation.tiUnspecified, sql, vData, cbExecute, cbRows, cbRowHeader, cbBatchHeader, None, tagRollbackPlan.rpDefault, cbDiscarded, '|')
-        ok = mysql.WaitAll()
-        print('') # put debug point here and see what happens to ra and vData
-        print('There are ' + str(mysql.Outputs * 3) + ' output data returned')
+        return vData
 
     def InsertBLOBByPreparedStatement():
         wstr = ""
@@ -176,10 +174,16 @@ with CSocketPool(CMysql) as spMysql:
         vData.append(6254000.0)
         return mysql.ExecuteParameters(vData, cbExecute)
 
-    def TestStoredProcedure(vData):
+    def TestStoredProcedure():
+        # two sets (2 * 3) of parameter data
+        # 1st set -- 1, 0, 0
+        # 2nd set -- 2, 0, 0
+        vData = [1, 1.5, 0, 2, 1.8, 0]
+
         ok = mysql.Prepare('call sp_TestProc(?,?,?)', cb)
         #send multiple sets of parameter data in one shot
-        return mysql.ExecuteParameters(vData, cbExecute, cbRows, cbRowHeader)
+        ok = mysql.ExecuteParameters(vData, cbExecute, cbRows, cbRowHeader)
+        return vData
 
     ok = mysql.Open(u'', cb)
     ok = TestCreateTables()
@@ -188,16 +192,17 @@ with CSocketPool(CMysql) as spMysql:
     ok = InsertBLOBByPreparedStatement()
     ok = mysql.ExecuteSql('SELECT * from company;select * from employee;select curtime()', cbExecute, cbRows, cbRowHeader)
 
-    #two sets (2 * 3) of parameter data
-    # 1st set -- 1, 0, 0
-    # 2nd set -- 2, 0, 0
-    vPData = [1, 1.5, 0, 2, 1.8, 0]
-    TestStoredProcedure(vPData)
-    mysql.WaitAll()
+    vPData = TestStoredProcedure()
+    ok = mysql.WaitAll()
+    print('vPData: ' + str(vPData))
     print('')
     print('There are ' + str(mysql.Outputs * 2) + ' output data returned')
 
-    TestBatch()
+    vData = TestBatch()
+    ok = mysql.WaitAll()
+    # print('vData: ' + str(vData))
+    print('')  # put debug point here and see what happens to ra and vData
+    print('There are ' + str(mysql.Outputs * 3) + ' output data returned')
     print('')
     print('+++++ Start rowsets +++')
     index = 0
@@ -209,8 +214,5 @@ with CSocketPool(CMysql) as spMysql:
         index += 1
     print('+++++ End rowsets +++')
     print('')
-
-    print('Parameters: ' + str(vPData))
-
     print('Press any key to close the application ......')
     sys.stdin.readline()

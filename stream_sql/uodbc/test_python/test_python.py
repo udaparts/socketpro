@@ -114,11 +114,17 @@ with CSocketPool(COdbc) as spOdbc:
         vData.append(6254000.12)
         return odbc.Execute(vData, cbExecute)
 
-    def TestStoredProcedure(vData):
+    def TestStoredProcedure():
         ok = odbc.Prepare('call sp_TestProc(?,?,?)', cb)
 
+        # two sets (2 * 3) of parameter data
+        # 1st set -- 1, 2.35, 0
+        # 2nd set -- 2, 1.22, 0
+        vData = [1, Decimal('2.35'), 0, 2, Decimal('1.22'), 0]
+
         #  send multiple sets of parameter data in one shot
-        return odbc.Execute(vData, cbExecute, cbRows, cbRowHeader)
+        ok = odbc.Execute(vData, cbExecute, cbRows, cbRowHeader)
+        return vData
 
     def TestBatch(odbc):
 
@@ -220,11 +226,7 @@ with CSocketPool(COdbc) as spOdbc:
     ok = odbc.Execute('select * from employee', cbExecute, cbRows, cbRowHeader)
     ok = odbc.Execute('select curtime()', cbExecute, cbRows, cbRowHeader)
 
-    #two sets (2 * 3) of parameter data
-    # 1st set -- 1, 2.35, 0
-    # 2nd set -- 2, 1.22, 0
-    vPData = [1, Decimal('2.35'), 0, 2, Decimal('1.22'), 0]
-    TestStoredProcedure(vPData)
+    vPData = TestStoredProcedure()
     ok = odbc.WaitAll()
     print('')
     print('Parameters: ' + str(vPData))

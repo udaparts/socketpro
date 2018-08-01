@@ -146,18 +146,9 @@ public class Test_java {
                 ra.add(item);
             }
         });
-        CDBVariantArray vPData = new CDBVariantArray();
-        //first set
-        vPData.add(1);
-        vPData.add(1.52);
-        vPData.add(0);
+        CDBVariantArray vPData = TestStoredProcedure(mysql, dr, er, ra);
+        ok = mysql.WaitAll();
 
-        //second set
-        vPData.add(2);
-        vPData.add(2.11);
-        vPData.add(0);
-
-        TestStoredProcedure(mysql, dr, er, ra, vPData);
         CDBVariantArray vData = TestBatch(mysql, er, ra);
         ok = mysql.WaitAll();
         int index = 0;
@@ -297,8 +288,10 @@ public class Test_java {
         return vData;
     }
 
-    static void TestStoredProcedure(CMysql mysql, CMysql.DResult dr, CMysql.DExecuteResult er, final java.util.ArrayList<Pair<CDBColumnInfoArray, CDBVariantArray>> ra, CDBVariantArray vPData) {
-        boolean ok = mysql.Prepare("call sp_TestProc(?,?,?)", dr);
+    static CDBVariantArray TestStoredProcedure(CMysql mysql, CMysql.DResult dr, CMysql.DExecuteResult er, final java.util.ArrayList<Pair<CDBColumnInfoArray, CDBVariantArray>> ra) {
+        if (!mysql.Prepare("call sp_TestProc(?,?,?)", dr)) {
+            return null;
+        }
         CMysql.DRows r = new CMysql.DRows() {
             //rowset data come here
             @Override
@@ -319,6 +312,16 @@ public class Test_java {
                 ra.add(item);
             }
         };
-        ok = mysql.Execute(vPData, er, r, rh);
+        CDBVariantArray vPData = new CDBVariantArray();
+        //first set
+        vPData.add(1);
+        vPData.add(1.52);
+        vPData.add(0);
+
+        //second set
+        vPData.add(2);
+        vPData.add(2.11);
+        vPData.add(0);
+        return mysql.Execute(vPData, er, r, rh) ? vPData : null;
     }
 }
