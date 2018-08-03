@@ -1166,7 +1166,9 @@ namespace SPA
             SetUIntInfo(hdbc, SQL_AGGREGATE_FUNCTIONS, mapInfo);
             SetUIntInfo(hdbc, SQL_ALTER_DOMAIN, mapInfo);
             SetUIntInfo(hdbc, SQL_ALTER_TABLE, mapInfo);
+#ifdef WIN32_64
             SetUIntInfo(hdbc, SQL_ASYNC_DBC_FUNCTIONS, mapInfo);
+#endif
             SetUIntInfo(hdbc, SQL_ASYNC_MODE, mapInfo);
             SetUIntInfo(hdbc, SQL_BATCH_ROW_COUNT, mapInfo);
             SetUIntInfo(hdbc, SQL_BATCH_SUPPORT, mapInfo);
