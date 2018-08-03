@@ -24,11 +24,14 @@ namespace SPA {
 
             static const unsigned int DEFAULT_UNICODE_CHAR_SIZE = 4 * 1024;
             static const unsigned int DEFAULT_OUTPUT_BUFFER_SIZE = 8 * 1024; //bytes
-            static const unsigned int MAX_OUTPUT_BLOB_BUFFER_SIZE = 1024 * 1024; //bytes
+
+            //8 mega bytes of binary or UTF8 string or 4 mega unicode string for inputout or output stored procedure
+            static const unsigned int MAX_OUTPUT_BLOB_BUFFER_SIZE = 8 * 1024 * 1024;
             static const unsigned char MAX_DECIMAL_PRECISION = 29;
             static const unsigned int DECIMAL_STRING_BUFFER_SIZE = 32;
             static const unsigned int DATETIME_STRING_BUFFER_SIZE = 32;
             static const unsigned char MAX_TIME_DIGITS = 6;
+            static const unsigned int MAX_ORACLE_VARCHAR2 = 32 * 1024;
 
             struct CBindInfo {
                 VARTYPE DataType;
@@ -118,6 +121,7 @@ namespace SPA {
             void ResetMemories();
             void SetVParam(CDBVariantArray& vAll, size_t parameters, size_t pos, size_t ps);
             void SetCallParams(const std::vector<tagParameterDirection> &vPD, int &res, std::wstring &errMsg);
+            void SetOracleCallParams(const std::vector<tagParameterDirection> &vPD, int &res, std::wstring &errMsg);
             void SetPrimaryKey(const std::wstring &dbName, const std::wstring &schema, const std::wstring &tableName, CDBColumnInfoArray &vCol);
             std::wstring GenerateMsSqlForCachedTables();
             static CParameterInfoArray GetVInfo(const CParameterInfoArray& vPInfo, size_t pos, size_t ps);
@@ -149,6 +153,7 @@ namespace SPA {
         private:
             std::wstring m_dbName;
             std::wstring m_dbms;
+            std::wstring m_userName;
             CScopeUQueue m_sb;
             bool m_global;
             CUQueue &m_Blob;

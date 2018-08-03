@@ -1087,6 +1087,11 @@ namespace SPA
                 m_dbName.clear();
             }
             SetStringInfo(hdbc, SQL_USER_NAME, mapInfo);
+            if (mapInfo.find(SQL_USER_NAME) != mapInfo.end()) {
+                m_userName = mapInfo[SQL_USER_NAME].bstrVal;
+            } else {
+                m_userName.clear();
+            }
             SetStringInfo(hdbc, SQL_DATA_SOURCE_NAME, mapInfo);
             SetStringInfo(hdbc, SQL_DRIVER_NAME, mapInfo);
             SetStringInfo(hdbc, SQL_DRIVER_VER, mapInfo);
@@ -2826,6 +2831,130 @@ namespace SPA
             fail_ok += (unsigned int) (m_oks - oks);
         }
 
+        void COdbcImpl::SetOracleCallParams(const std::vector<tagParameterDirection> &vPD, int &res, std::wstring & errMsg) {
+            std::wstring sql(L"SELECT in_out,data_type FROM SYS.ALL_ARGUMENTS WHERE data_type<>'REF CURSOR' AND owner='");
+            std::transform(m_userName.begin(), m_userName.end(), m_userName.begin(), ::toupper);
+            sql += m_userName;
+            sql += L"' AND object_name='";
+            std::transform(m_procName.begin(), m_procName.end(), m_procName.begin(), ::toupper);
+            sql += m_procName;
+            if (m_procCatalogSchema.size()) {
+                sql += L"' AND package_name='";
+                std::transform(m_procCatalogSchema.begin(), m_procCatalogSchema.end(), m_procCatalogSchema.begin(), ::toupper);
+                sql += m_procCatalogSchema;
+                sql += L"'";
+            } else {
+                sql += L"' AND package_name IS NULL";
+            }
+            sql += L" ORDER BY position";
+
+            CDBVariant vtId;
+            UINT64 index = 0, fail_ok = 0;
+            INT64 affected = 0;
+            SPA::CScopeUQueue sb;
+            SPA::CUQueue &q = *sb;
+            m_pNoSending = &q;
+            Execute(sql, true, true, false, index, affected, res, errMsg, vtId, fail_ok);
+            m_pNoSending = nullptr;
+            if (res) {
+                return;
+            }
+            CDBVariantArray vData;
+            while (q.GetSize()) {
+                CDBVariant vt;
+                q >> vt;
+                vData.push_back(std::move(vt));
+            }
+
+            static CDBVariant vtIN(L"IN");
+            static CDBVariant vtOUT(L"OUT");
+            static CDBVariant vtINOUT(L"IN/OUT");
+            size_t cols = m_vBindInfo.size();
+            SQLSMALLINT parameters = (SQLSMALLINT) (vData.size() / cols);
+            for (SQLSMALLINT r = 0, k = 0; r < parameters && k < (SQLSMALLINT) vPD.size(); ++r, ++k) {
+                CParameterInfo pi;
+                unsigned int pos = (unsigned int) (r * cols);
+                CDBVariant &vt = vData[pos];
+                if (vt == vtIN) {
+                    if (vPD[k] == pdUnknown)
+                        continue;
+                } else if (vt == vtOUT) {
+                    if (vPD[k] == pdUnknown)
+                        continue;
+                    pi.Direction = pdOutput;
+                } else if (vt == vtINOUT) {
+                    if (vPD[k] == pdUnknown)
+                        continue;
+                    pi.Direction = pdInputOutput;
+                } else {
+                    assert(false); //shouldn't come here
+                }
+                pos = (unsigned int) (r * cols + 1);
+                std::wstring dt = vData[pos].bstrVal;
+                if (dt == L"NUMBER") {
+                    pi.DataType = VT_DECIMAL;
+                    pi.Precision = MAX_DECIMAL_PRECISION;
+                } else if (dt == L"BINARY_FLOAT") {
+                    pi.DataType = VT_R4;
+                } else if (dt == L"BINARY_DOUBLE") {
+                    pi.DataType = VT_R8;
+                } else if (dt == L"CHAR") {
+                    pi.ColumnSize = DEFAULT_UNICODE_CHAR_SIZE;
+                    pi.DataType = (VT_ARRAY | VT_I1);
+                } else if (dt == L"VARCHAR") {
+                    pi.ColumnSize = DEFAULT_UNICODE_CHAR_SIZE;
+                    pi.DataType = (VT_ARRAY | VT_I1);
+                } else if (dt == L"VARCHAR2") {
+                    pi.ColumnSize = MAX_ORACLE_VARCHAR2;
+                    pi.DataType = (VT_ARRAY | VT_I1);
+                } else if (dt == L"NCHAR") {
+                    pi.DataType = VT_BSTR;
+                    pi.ColumnSize = DEFAULT_UNICODE_CHAR_SIZE;
+                } else if (dt == L"NVARCHAR2") {
+                    pi.DataType = VT_BSTR;
+                    pi.ColumnSize = DEFAULT_UNICODE_CHAR_SIZE;
+                } else if (dt == L"DATE") {
+                    pi.DataType = VT_DATE;
+                } else if (dt == L"TIMESTAMP") {
+                    pi.DataType = VT_DATE;
+                    pi.Scale = MAX_TIME_DIGITS;
+                } else if (dt == L"TIMESTAMP WITH TIME ZONE") {
+                    pi.DataType = VT_DATE;
+                    pi.Scale = MAX_TIME_DIGITS;
+                } else if (dt == L"TIMESTAMP WITH LOCAL TIME ZONE") {
+                    pi.DataType = VT_DATE;
+                    pi.Scale = MAX_TIME_DIGITS;
+                } else if (dt == L"LONG") {
+                    pi.ColumnSize = (~0);
+                    pi.DataType = (VT_ARRAY | VT_UI1);
+                } else if (dt == L"BLOB") {
+                    pi.ColumnSize = (~0);
+                    pi.DataType = (VT_ARRAY | VT_UI1);
+                } else if (dt == L"CLOB") {
+                    pi.ColumnSize = (~0);
+                    pi.DataType = (VT_ARRAY | VT_I1);
+                } else if (dt == L"NCLOB") {
+                    pi.ColumnSize = (~0);
+                    pi.DataType = VT_BSTR;
+                } else if (dt == L"RAW") {
+                    pi.ColumnSize = DEFAULT_UNICODE_CHAR_SIZE;
+                    pi.DataType = (VT_ARRAY | VT_UI1);
+                } else if (dt == L"LONG RAW") {
+                    pi.ColumnSize = (~0);
+                    pi.DataType = (VT_ARRAY | VT_UI1);
+                } else if (dt == L"ROWID") {
+                    pi.ColumnSize = DECIMAL_STRING_BUFFER_SIZE; //set to 32
+                    pi.DataType = (VT_ARRAY | VT_UI1);
+                } else if (dt == L"UROWID") {
+                    pi.ColumnSize = DECIMAL_STRING_BUFFER_SIZE; //set to 32
+                    pi.DataType = (VT_ARRAY | VT_UI1);
+                } else {
+                    continue; //not supported
+                }
+                m_vPInfo.push_back(pi);
+            }
+        }
+
         void COdbcImpl::SetCallParams(const std::vector<tagParameterDirection> &vPD, int &res, std::wstring & errMsg) {
             res = 0;
             UINT64 index = 0, fail_ok = 0;
@@ -2851,10 +2980,11 @@ namespace SPA
                 q >> vt;
                 vData.push_back(std::move(vt));
             }
-            SQLSMALLINT parameters = (SQLSMALLINT) (vData.size() / m_vBindInfo.size());
+            size_t cols = m_vBindInfo.size();
+            SQLSMALLINT parameters = (SQLSMALLINT) (vData.size() / cols);
             for (SQLSMALLINT r = 0, k = 0; r < parameters && k < (SQLSMALLINT) vPD.size(); ++r, ++k) {
                 CParameterInfo pi;
-                unsigned int pos = (unsigned int) (r * m_vBindInfo.size() + 4);
+                unsigned int pos = (unsigned int) (r * cols + 4);
                 CDBVariant &vt = vData[pos];
                 switch (vt.iVal) {
                     case SQL_PARAM_INPUT:
@@ -2882,12 +3012,12 @@ namespace SPA
                         assert(false); //unexpected
                         break;
                 }
-                pos = (unsigned int) (r * m_vBindInfo.size() + 7);
+                pos = (unsigned int) (r * cols + 7);
                 CDBVariant &vtSize = vData[pos];
                 if (vtSize.Type() > VT_NULL) {
                     pi.ColumnSize = vtSize.uintVal;
                 }
-                pos = (unsigned int) (r * m_vBindInfo.size() + 5);
+                pos = (unsigned int) (r * cols + 5);
                 CDBVariant &dt = vData[pos];
                 SQLSMALLINT coltype = dt.iVal;
                 switch (coltype) {
@@ -2979,7 +3109,7 @@ namespace SPA
                         pi.ColumnSize = DEFAULT_UNICODE_CHAR_SIZE;
                         break;
                 }
-                pos = (unsigned int) (r * m_vBindInfo.size() + 9);
+                pos = (unsigned int) (r * cols + 9);
                 CDBVariant &vtDigit = vData[pos];
                 if (vtDigit.Type() > VT_NULL) {
                     pi.Scale = vtDigit.bVal;
@@ -3060,7 +3190,16 @@ namespace SPA
                             //{?=CALL .....}
                             m_vPD.insert(m_vPD.begin(), pdInput);
                         }
-                        SetCallParams(m_vPD, res, errMsg);
+                        switch (m_msDriver) {
+                            case msOracle:
+                                SetOracleCallParams(m_vPD, res, errMsg);
+                                break;
+                            default:
+                                if (m_bProcedureColumns) {
+                                    SetCallParams(m_vPD, res, errMsg);
+                                }
+                                break;
+                        }
                         if (res) {
                             break;
                         }
