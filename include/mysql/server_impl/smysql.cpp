@@ -70,3 +70,7 @@ unsigned short WINAPI GetOneSlowRequestID(unsigned int serviceId, unsigned short
     }
     return 0;
 }
+
+bool WINAPI DoMySQLAuthentication(USocket_Server_Handle hSocket, const wchar_t *userId, const wchar_t *password, unsigned int nSvsId, const wchar_t *dbConnection) {
+    return SPA::ServerSide::CMysqlImpl::DoSQLAuthentication(hSocket, userId, password, nSvsId, dbConnection);
+}

@@ -33,6 +33,7 @@ namespace SPA
         unsigned int CMysqlImpl::m_nParam = 0;
 
         CMysqlLoader CMysqlImpl::m_remMysql;
+        CMysqlImpl::CMyMap CMysqlImpl::m_mapConnection;
 
         void CMysqlImpl::MYSQL_CONNECTION_STRING::Init() {
             timeout = 10;
@@ -111,7 +112,9 @@ namespace SPA
             }
         }
 
-        CMysqlImpl::CMysqlImpl() : m_oks(0), m_fails(0), m_ti(tiUnspecified), m_pLib(nullptr), m_global(true), m_Blob(*m_sb), m_parameters(0), m_bCall(false), m_bManual(false) {
+        CMysqlImpl::CMysqlImpl() : m_oks(0), m_fails(0), m_ti(tiUnspecified),
+        m_pLib(nullptr), m_global(true), m_Blob(*m_sb), m_parameters(0),
+        m_bCall(false), m_bManual(false), m_EnableMessages(false) {
             m_Blob.ToUtf8(true);
 #ifdef WIN32_64
             m_UQueue.TimeEx(true); //use high-precision datetime
@@ -204,6 +207,13 @@ namespace SPA
             m_fails = 0;
             m_ti = tiUnspecified;
             m_bManual = false;
+            USocket_Server_Handle hSocket = GetSocketHandle();
+            CAutoLock al(m_csPeer);
+            CMyMap::iterator it = m_mapConnection.find(hSocket);
+            if (it != m_mapConnection.end()) {
+                m_pMysql = it->second;
+                m_mapConnection.erase(hSocket);
+            }
         }
 
         void CMysqlImpl::OnFastRequestArrive(unsigned short reqId, unsigned int len) {
@@ -236,29 +246,50 @@ namespace SPA
 
         void CMysqlImpl::Open(const std::wstring &strConnection, unsigned int flags, int &res, std::wstring &errMsg, int &ms) {
             ms = msMysql;
-            CleanDBObjects();
+            if ((flags & ENABLE_TABLE_UPDATE_MESSAGES) == ENABLE_TABLE_UPDATE_MESSAGES) {
+                m_EnableMessages = GetPush().Subscribe(&STREAMING_SQL_CHAT_GROUP_ID, 1);
+            }
             if (!InitMySql()) {
                 res = SPA::Mysql::ER_MYSQL_LIBRARY_NOT_INITIALIZED;
                 errMsg = MYSQL_LIBRARY_NOT_INITIALIZED;
                 return;
             }
             m_pLib = &m_remMysql;
-            MYSQL *mysql = m_pLib->mysql_init(nullptr);
-            do {
-                std::wstring db(strConnection);
-                if (!db.size() || db == MYSQL_GLOBAL_CONNECTION_STRING) {
-                    m_csPeer.lock();
-                    db = m_strGlobalConnection;
-                    m_csPeer.unlock();
-                    m_global = true;
-                } else {
-                    m_global = false;
+            if (m_pMysql) {
+                res = 0;
+                if (strConnection.size()) {
+                    INT64 affected;
+                    CDBVariant vtId;
+                    UINT64 fail_ok;
+                    std::wstring sql(L"USE ");
+                    sql += strConnection;
+                    Execute(sql, false, false, false, 0, affected, res, errMsg, vtId, fail_ok);
+                    if (res) {
+                        int r;
+                        std::wstring err;
+                        CloseDb(r, err);
+                    }
                 }
-                m_pLib->mysql_options(mysql, MYSQL_SET_CHARSET_NAME, "utf8");
-                MYSQL_CONNECTION_STRING conn;
-                conn.Parse(Utilities::ToUTF8(db.c_str()).c_str());
-                m_pLib->mysql_options(mysql, MYSQL_OPT_CONNECT_TIMEOUT, &conn.timeout);
-                if (conn.IsSSL()) {
+                if (!res) {
+                    errMsg = strConnection;
+                }
+            } else {
+                MYSQL *mysql = m_pLib->mysql_init(nullptr);
+                do {
+                    std::wstring db(strConnection);
+                    if (!db.size() || db == MYSQL_GLOBAL_CONNECTION_STRING) {
+                        m_csPeer.lock();
+                        db = m_strGlobalConnection;
+                        m_csPeer.unlock();
+                        m_global = true;
+                    } else {
+                        m_global = false;
+                    }
+                    m_pLib->mysql_options(mysql, MYSQL_SET_CHARSET_NAME, "utf8");
+                    MYSQL_CONNECTION_STRING conn;
+                    conn.Parse(Utilities::ToUTF8(db.c_str()).c_str());
+                    m_pLib->mysql_options(mysql, MYSQL_OPT_CONNECT_TIMEOUT, &conn.timeout);
+                    if (conn.IsSSL()) {
 #if defined(MYSQL_VERSION_ID) && MYSQL_VERSION_ID < 50700
 #define MYSQL_OPT_SSL_KEY ((mysql_option) 25)
 #define MYSQL_OPT_SSL_CERT ((mysql_option) 26)
@@ -266,50 +297,54 @@ namespace SPA
 #define MYSQL_OPT_SSL_CAPATH ((mysql_option) 28)
 #define MYSQL_OPT_SSL_CIPHER ((mysql_option) 29)
 #endif
-                    if (m_pLib->mysql_get_client_version() > 50700) {
-                        if (conn.ssl_ca.size())
-                            m_pLib->mysql_options(mysql, MYSQL_OPT_SSL_CA, conn.ssl_ca.c_str());
-                        if (conn.ssl_capath.size())
-                            m_pLib->mysql_options(mysql, MYSQL_OPT_SSL_CAPATH, conn.ssl_capath.c_str());
-                        if (conn.ssl_cert.size())
-                            m_pLib->mysql_options(mysql, MYSQL_OPT_SSL_CERT, conn.ssl_cert.c_str());
-                        if (conn.ssl_cipher.size())
-                            m_pLib->mysql_options(mysql, MYSQL_OPT_SSL_CIPHER, conn.ssl_cipher.c_str());
-                        if (conn.ssl_key.size())
-                            m_pLib->mysql_options(mysql, MYSQL_OPT_SSL_KEY, conn.ssl_key.c_str());
+                        if (m_pLib->mysql_get_client_version() > 50700) {
+                            if (conn.ssl_ca.size())
+                                m_pLib->mysql_options(mysql, MYSQL_OPT_SSL_CA, conn.ssl_ca.c_str());
+                            if (conn.ssl_capath.size())
+                                m_pLib->mysql_options(mysql, MYSQL_OPT_SSL_CAPATH, conn.ssl_capath.c_str());
+                            if (conn.ssl_cert.size())
+                                m_pLib->mysql_options(mysql, MYSQL_OPT_SSL_CERT, conn.ssl_cert.c_str());
+                            if (conn.ssl_cipher.size())
+                                m_pLib->mysql_options(mysql, MYSQL_OPT_SSL_CIPHER, conn.ssl_cipher.c_str());
+                            if (conn.ssl_key.size())
+                                m_pLib->mysql_options(mysql, MYSQL_OPT_SSL_KEY, conn.ssl_key.c_str());
+                        } else {
+                            my_bool ssl_enabled = 1;
+                            m_pLib->mysql_options(mysql, MYSQL_OPT_SSL_VERIFY_SERVER_CERT, &ssl_enabled);
+                        }
+                    }
+                    MYSQL *ret = m_pLib->mysql_real_connect(mysql, conn.host.c_str(), conn.user.c_str(),
+                            conn.password.c_str(), conn.database.c_str(),
+                            conn.port, nullptr, CLIENT_MULTI_RESULTS | CLIENT_MULTI_STATEMENTS | CLIENT_LOCAL_FILES | CLIENT_IGNORE_SIGPIPE);
+                    if (!ret) {
+                        res = m_pLib->mysql_errno(mysql);
+                        errMsg = Utilities::ToWide(m_pLib->mysql_error(mysql));
+                        break;
                     } else {
-                        my_bool ssl_enabled = 1;
-                        m_pLib->mysql_options(mysql, MYSQL_OPT_SSL_VERIFY_SERVER_CERT, &ssl_enabled);
+                        res = 0;
                     }
-                }
-                MYSQL *ret = m_pLib->mysql_real_connect(mysql, conn.host.c_str(), conn.user.c_str(),
-                        conn.password.c_str(), conn.database.c_str(),
-                        conn.port, nullptr, CLIENT_MULTI_RESULTS | CLIENT_MULTI_STATEMENTS | CLIENT_LOCAL_FILES | CLIENT_IGNORE_SIGPIPE);
-                if (!ret) {
-                    res = m_pLib->mysql_errno(mysql);
-                    errMsg = Utilities::ToWide(m_pLib->mysql_error(mysql));
-                    break;
-                } else {
-                    res = 0;
-                }
-                if (!m_global) {
-                    errMsg = db;
-                } else {
-                    errMsg = MYSQL_GLOBAL_CONNECTION_STRING;
-                }
-            } while (false);
-            if (!res) {
-                m_pMysql.reset(mysql, [this](MYSQL * mysql) {
-                    if (mysql) {
-                        this->m_pLib->mysql_close(mysql);
+                    if (!m_global) {
+                        errMsg = db;
+                    } else {
+                        errMsg = MYSQL_GLOBAL_CONNECTION_STRING;
                     }
-                });
-            } else if (mysql) {
-                m_pLib->mysql_close(mysql);
+                } while (false);
+                if (!res) {
+                    m_pMysql.reset(mysql, [this](MYSQL * mysql) {
+                        if (mysql) {
+                            this->m_pLib->mysql_close(mysql);
+                        }
+                    });
+                } else if (mysql) {
+                    m_pLib->mysql_close(mysql);
+                }
             }
         }
 
         void CMysqlImpl::CloseDb(int &res, std::wstring & errMsg) {
+            if (m_EnableMessages) {
+                GetPush().Unsubscribe();
+            }
             CleanDBObjects();
             res = 0;
             m_pLib = nullptr;
@@ -323,6 +358,7 @@ namespace SPA
             ResetMemories();
             m_bManual = false;
             m_ti = tiUnspecified;
+            m_EnableMessages = false;
         }
 
         void CMysqlImpl::OnBaseRequestArrive(unsigned short requestId) {
@@ -2071,6 +2107,32 @@ namespace SPA
                 ConvertToUTF8OrDouble(vt);
             }
             assert(q.GetSize() == 0);
+        }
+
+        bool CMysqlImpl::DoSQLAuthentication(USocket_Server_Handle hSocket, const wchar_t *userId, const wchar_t *password, unsigned int nSvsId, const wchar_t * dbConnection) {
+            CMysqlImpl impl;
+            std::wstring db(dbConnection ? dbConnection : L"host=localhost;port=3306;timeout=30");
+            if (userId) {
+                db += L";uid=";
+                db += userId;
+            }
+            if (password) {
+                db += L";pwd=";
+                db += password;
+            }
+            int res = 0, ms = 0;
+            std::wstring errMsg;
+            impl.Open(db, 0, res, errMsg, ms);
+            if (res) {
+                return false;
+            }
+            if (nSvsId == SPA::Mysql::sidMysql) {
+                CAutoLock al(m_csPeer);
+                m_mapConnection[hSocket] = impl.m_pMysql;
+            } else {
+                impl.m_pMysql.reset();
+            }
+            return true;
         }
 
     } //namespace ServerSide

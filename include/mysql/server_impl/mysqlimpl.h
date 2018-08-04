@@ -5,6 +5,7 @@
 #include "../umysql_server.h"
 #include "../../udatabase.h"
 #include "../../aserverw.h"
+#include <unordered_map>
 
 namespace SPA {
     namespace ServerSide {
@@ -96,6 +97,7 @@ namespace SPA {
             static void SetDBGlobalConnectionString(const wchar_t *dbConnection, bool remote);
             static void UnloadMysql();
             static bool InitMySql();
+            static bool DoSQLAuthentication(USocket_Server_Handle hSocket, const wchar_t *userId, const wchar_t *password, unsigned int nSvsId, const wchar_t *dbConnection);
 
         protected:
             virtual void OnFastRequestArrive(unsigned short reqId, unsigned int len);
@@ -171,6 +173,8 @@ namespace SPA {
             std::string m_procName;
             bool m_bManual;
 
+            bool m_EnableMessages;
+
             static const int IS_BINARY = 63;
             static const int MYSQL_TINYBLOB = 0xff;
             static const int MYSQL_BLOB = 0xffff;
@@ -192,6 +196,8 @@ namespace SPA {
             static CUCriticalSection m_csPeer;
             static std::wstring m_strGlobalConnection; //remote mysql server, protected by m_csPeer
             static bool m_bInitMysql; //protected by m_csPeer
+            typedef std::unordered_map<USocket_Server_Handle, std::shared_ptr<MYSQL> > CMyMap;
+            static CMyMap m_mapConnection; //protected by m_csPeer
 
             static CMysqlLoader m_remMysql;
         public:

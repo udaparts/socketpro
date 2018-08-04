@@ -24,12 +24,15 @@ extern "C" {
      * @return options string for embedded mysql server initialization
      */
     const char* WINAPI SetMysqlEmbeddedOptions(const wchar_t *options);
+
+    bool WINAPI DoMySQLAuthentication(USocket_Server_Handle hSocket, const wchar_t *userId, const wchar_t *password, unsigned int nSvsId, const wchar_t *dbConnection);
 #ifdef __cplusplus
 }
 #endif
 
 typedef void (WINAPI *PSetMysqlDBGlobalConnectionString)(const wchar_t *dbConnection, bool remote);
 typedef const char* (WINAPI *PSetMysqlEmbeddedOptions)(const wchar_t *options);
+typedef bool (WINAPI *PDoMySQLAuthentication)(USocket_Server_Handle hSocket, const wchar_t *userId, const wchar_t *password, unsigned int nSvsId, const wchar_t *dbConnection);
 
 namespace SPA {
     namespace ServerSide {
