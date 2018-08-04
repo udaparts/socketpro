@@ -12,15 +12,7 @@ protected:
         m_h = SPA::ServerSide::CSocketProServer::DllManager::AddALibrary("smysql"/*, SPA::ServerSide::Mysql::DISABLE_REMOTE_MYSQL/*SPA::ServerSide::Mysql::DISABLE_EMBEDDED_MYSQL*/);
         if (m_h) {
             PSetMysqlDBGlobalConnectionString SetMysqlDBGlobalConnectionString = (PSetMysqlDBGlobalConnectionString) GetProcAddress(m_h, "SetMysqlDBGlobalConnectionString");
-            PSetMysqlEmbeddedOptions SetMysqlEmbeddedOptions = (PSetMysqlEmbeddedOptions) GetProcAddress(m_h, "SetMysqlEmbeddedOptions");
-
-            SetMysqlDBGlobalConnectionString(L"host=localhost;uid=root;database=sys;pwd=Smash123;port=3306;timeout=20", true);
-
-            //make sure sys sub directory exists for embedded mysql
-            SetMysqlDBGlobalConnectionString(L"sys", false);
-
-            std::cout << "Embedded settings:" << std::endl << std::endl;
-            std::cout << SetMysqlEmbeddedOptions(L"") << std::endl << std::endl;
+            SetMysqlDBGlobalConnectionString(L"host=localhost;uid=root;database=sakila;pwd=Smash123;port=3306;timeout=20", true);
         }
         return true;
     }

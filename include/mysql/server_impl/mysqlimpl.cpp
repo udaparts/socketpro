@@ -15,40 +15,7 @@ namespace SPA
         CUCriticalSection CMysqlImpl::m_csPeer;
         my_bool CMysqlImpl::B_IS_NULL = 1;
         std::wstring CMysqlImpl::m_strGlobalConnection;
-        std::wstring CMysqlImpl::m_strGlobalDB;
-        std::string CMysqlImpl::m_strOptions = "basedir=.;\ndatadir=data/;\nplugin_dir=./plugin;\ndefault-storage-engine=MyISAM;\ndefault-tmp-storage-engine=MyISAM;\ncharacter-set-server=utf8;\ninnodb=OFF;\nconsole;\n"
-        "key_buffer_size=64M;\n"
-        "read_buffer_size=128K;\n"
-        "loose-innodb-trx=0;\n"
-        "loose-innodb-locks=0;\n"
-        "loose-innodb-lock-waits=0;\n"
-        "loose-innodb-cmp=0;\n"
-        "loose-innodb-cmp-per-index=0;\n"
-        "loose-innodb-cmp-per-index-reset=0;\n"
-        "loose-innodb-cmp-reset=0;\n"
-        "loose-innodb-cmpmem=0;\n"
-        "loose-innodb-cmpmem-reset=0;\n"
-        "loose-innodb-buffer-page=0;\n"
-        "loose-innodb-buffer-page-lru=0;\n"
-        "loose-innodb-buffer-pool-stats=0;\n"
-        "loose-innodb-metrics=0;\n"
-        "loose-innodb-ft-default-stopword=0;\n"
-        "loose-innodb-ft-inserted=0;\n"
-        "loose-innodb-ft-deleted=0;\n"
-        "loose-innodb-ft-being-deleted=0;\n"
-        "loose-innodb-ft-config=0;\n"
-        "loose-innodb-ft-index-cache=0;\n"
-        "loose-innodb-ft-index-table=0;\n"
-        "loose-innodb-sys-tables=0;\n"
-        "loose-innodb-sys-tablestats=0;\n"
-        "loose-innodb-sys-indexes=0;\n"
-        "loose-innodb-sys-columns=0;\n"
-        "loose-innodb-sys-fields=0;\n"
-        "loose-innodb-sys-foreign=0;\n"
-        "loose-innodb-sys-foreign-cols=0";
-
         bool CMysqlImpl::m_bInitMysql = false;
-        bool CMysqlImpl::m_bInitEmbeddedMysql = false;
 
         const wchar_t * CMysqlImpl::NO_DB_OPENED_YET = L"No mysql database opened yet";
         const wchar_t * CMysqlImpl::BAD_END_TRANSTACTION_PLAN = L"Bad end transaction plan";
@@ -65,7 +32,6 @@ namespace SPA
         unsigned int CMysqlImpl::m_nParam = 0;
 
         CMysqlLoader CMysqlImpl::m_remMysql;
-        CMysqlLoader CMysqlImpl::m_embMysql;
 
         void CMysqlImpl::MYSQL_CONNECTION_STRING::Init() {
             timeout = 10;
@@ -79,24 +45,6 @@ namespace SPA
             ssl_cipher.clear();
             ssl_key.clear();
             user.clear();
-        }
-
-        std::vector<std::string> CMysqlImpl::ParseOptions() {
-            using namespace std;
-            m_csPeer.lock();
-            stringstream ss(m_strOptions);
-            m_csPeer.unlock();
-            string item;
-            vector<string> tokens;
-            while (getline(ss, item, ';')) {
-                CMysqlImpl::MYSQL_CONNECTION_STRING::Trim(item);
-                if (!item.size()) {
-                    continue;
-                }
-                item.insert(0, "--");
-                tokens.push_back(item);
-            }
-            return tokens;
         }
 
         void CMysqlImpl::MYSQL_CONNECTION_STRING::Parse(const char *s) {
@@ -201,47 +149,6 @@ namespace SPA
         void CMysqlImpl::UnloadMysql() {
             SPA::CAutoLock al(m_csPeer);
             m_remMysql.Unload();
-            m_embMysql.Unload();
-        }
-
-        bool CMysqlImpl::InitEmbeddedMySql() {
-            if ((m_nParam & Mysql::DISABLE_EMBEDDED_MYSQL) == Mysql::DISABLE_EMBEDDED_MYSQL) {
-                return false;
-            }
-            SPA::CAutoLock al(m_csPeer);
-            if (m_bInitEmbeddedMysql) {
-                return true;
-            }
-            if (m_embMysql.LoadMysql(false)) {
-                std::vector<std::string> options = ParseOptions();
-                std::shared_ptr<char*> pOptions(new char*[options.size() + 1], [](char **p) {
-                    delete []p;
-                });
-                char **pp = pOptions.get();
-                pp[0] = (char*) "umysql";
-                int index = 1;
-                for (auto it = options.begin(), end = options.end(); it != end; ++it, ++index) {
-                    pp[index] = (char*) it->c_str();
-                }
-                static char *groups[] = {
-                    (char*) "umysql",
-                    nullptr
-                };
-                m_bInitEmbeddedMysql = (m_embMysql.mysql_server_init((int) (options.size() + 1), pp, (char **) groups) == 0);
-                if (m_bInitEmbeddedMysql) {
-                    ServerCoreLoader.SetThreadEvent(OnThreadEventEmbedded);
-                }
-            }
-            return m_bInitEmbeddedMysql;
-        }
-
-        void CALLBACK CMysqlImpl::OnThreadEventEmbedded(SPA::ServerSide::tagThreadEvent te) {
-            if (te == SPA::ServerSide::teStarted) {
-                my_bool fail = m_embMysql.mysql_thread_init();
-                assert(!fail);
-            } else {
-                m_embMysql.mysql_thread_end();
-            }
         }
 
         void CALLBACK CMysqlImpl::OnThreadEvent(SPA::ServerSide::tagThreadEvent te) {
@@ -261,13 +168,8 @@ namespace SPA
             if (m_bInitMysql) {
                 return true;
             }
-            if (m_remMysql.LoadMysql(true)) {
+            if (m_remMysql.LoadMysql()) {
                 m_bInitMysql = (m_remMysql.mysql_server_init(0, nullptr, nullptr) == 0);
-                /*
-                if (m_bInitMysql) {
-                    ServerCoreLoader.SetThreadEvent(OnThreadEvent);
-                }
-                 */
             }
             return m_bInitMysql;
         }
@@ -282,29 +184,12 @@ namespace SPA
 
         void CMysqlImpl::SetDBGlobalConnectionString(const wchar_t *dbConnection, bool remote) {
             m_csPeer.lock();
-            if (remote) {
-                if (dbConnection) {
-                    m_strGlobalConnection = dbConnection;
-                } else {
-                    m_strGlobalConnection.clear();
-                }
+            if (dbConnection) {
+                m_strGlobalConnection = dbConnection;
             } else {
-                if (dbConnection) {
-                    m_strGlobalDB = dbConnection;
-                } else {
-                    m_strGlobalDB.clear();
-                }
+                m_strGlobalConnection.clear();
             }
             m_csPeer.unlock();
-        }
-
-        const char* CMysqlImpl::SetEmbeddedOptions(const wchar_t * options) {
-            std::string s = SPA::Utilities::ToUTF8(options);
-            SPA::CAutoLock al(m_csPeer);
-            if (s.size()) {
-                m_strOptions = s;
-            }
-            return m_strOptions.c_str();
         }
 
         void CMysqlImpl::OnReleaseSource(bool bClosing, unsigned int info) {
@@ -336,18 +221,7 @@ namespace SPA
             M_I0_R0(idBeginRows, BeginRows)
             M_I0_R0(idTransferring, Transferring)
             M_I0_R0(idEndRows, EndRows)
-            M_I0_R2(idClose, CloseDb, int, std::wstring)
-            M_I2_R3(idOpen, Open, std::wstring, unsigned int, int, std::wstring, int)
-            M_I3_R3(idBeginTrans, BeginTrans, int, std::wstring, unsigned int, int, std::wstring, int)
-            M_I1_R2(idEndTrans, EndTrans, int, int, std::wstring)
-            M_I5_R5(idExecute, Execute, std::wstring, bool, bool, bool, UINT64, INT64, int, std::wstring, CDBVariant, UINT64)
-            M_I2_R3(idPrepare, Prepare, std::wstring, CParameterInfoArray, int, std::wstring, unsigned int)
-            M_I4_R5(idExecuteParameters, ExecuteParameters, bool, bool, bool, UINT64, INT64, int, std::wstring, CDBVariant, UINT64)
             END_SWITCH
-            if (reqId == idExecuteParameters) {
-                ReleaseArray();
-                m_vParam.clear();
-            }
         }
 
         int CMysqlImpl::OnSlowRequestArrive(unsigned short reqId, unsigned int len) {
@@ -359,8 +233,9 @@ namespace SPA
             M_I5_R5(idExecute, Execute, std::wstring, bool, bool, bool, UINT64, INT64, int, std::wstring, CDBVariant, UINT64)
             M_I2_R3(idPrepare, Prepare, std::wstring, CParameterInfoArray, int, std::wstring, unsigned int)
             M_I4_R5(idExecuteParameters, ExecuteParameters, bool, bool, bool, UINT64, INT64, int, std::wstring, CDBVariant, UINT64)
+            M_I10_R5(idExecuteBatch, ExecuteBatch, std::wstring, std::wstring, int, int, bool, bool, bool, std::wstring, unsigned int, UINT64, INT64, int, std::wstring, CDBVariant, UINT64)
             END_SWITCH
-            if (reqId == idExecuteParameters) {
+            if (reqId == idExecuteParameters || reqId == idExecuteBatch) {
                 ReleaseArray();
                 m_vParam.clear();
             }
@@ -370,43 +245,28 @@ namespace SPA
         void CMysqlImpl::Open(const std::wstring &strConnection, unsigned int flags, int &res, std::wstring &errMsg, int &ms) {
             ms = msMysql;
             CleanDBObjects();
-            bool remote = (SPA::Mysql::USE_REMOTE_MYSQL == (flags & SPA::Mysql::USE_REMOTE_MYSQL));
-            if (remote) {
-                if (!InitMySql()) {
-                    res = SPA::Mysql::ER_MYSQL_LIBRARY_NOT_INITIALIZED;
-                    errMsg = MYSQL_LIBRARY_NOT_INITIALIZED;
-                    return;
-                }
-                m_pLib = &m_remMysql;
-            } else {
-                if (!InitEmbeddedMySql()) {
-                    res = SPA::Mysql::ER_MYSQL_LIBRARY_NOT_INITIALIZED;
-                    errMsg = MYSQL_LIBRARY_NOT_INITIALIZED;
-                    return;
-                }
-                m_pLib = &m_embMysql;
+            if (!InitMySql()) {
+                res = SPA::Mysql::ER_MYSQL_LIBRARY_NOT_INITIALIZED;
+                errMsg = MYSQL_LIBRARY_NOT_INITIALIZED;
+                return;
             }
+            m_pLib = &m_remMysql;
             MYSQL *mysql = m_pLib->mysql_init(nullptr);
             do {
                 std::wstring db(strConnection);
                 if (!db.size() || db == MYSQL_GLOBAL_CONNECTION_STRING) {
                     m_csPeer.lock();
-                    if (remote) {
-                        db = m_strGlobalConnection;
-                    } else {
-                        db = m_strGlobalDB;
-                    }
+                    db = m_strGlobalConnection;
                     m_csPeer.unlock();
                     m_global = true;
                 } else {
                     m_global = false;
                 }
                 m_pLib->mysql_options(mysql, MYSQL_SET_CHARSET_NAME, "utf8");
-                if (remote) {
-                    MYSQL_CONNECTION_STRING conn;
-                    conn.Parse(Utilities::ToUTF8(db.c_str()).c_str());
-                    m_pLib->mysql_options(mysql, MYSQL_OPT_CONNECT_TIMEOUT, &conn.timeout);
-                    if (conn.IsSSL()) {
+                MYSQL_CONNECTION_STRING conn;
+                conn.Parse(Utilities::ToUTF8(db.c_str()).c_str());
+                m_pLib->mysql_options(mysql, MYSQL_OPT_CONNECT_TIMEOUT, &conn.timeout);
+                if (conn.IsSSL()) {
 #if defined(MYSQL_VERSION_ID) && MYSQL_VERSION_ID < 50700
 #define MYSQL_OPT_SSL_KEY ((mysql_option) 25)
 #define MYSQL_OPT_SSL_CERT ((mysql_option) 26)
@@ -414,47 +274,31 @@ namespace SPA
 #define MYSQL_OPT_SSL_CAPATH ((mysql_option) 28)
 #define MYSQL_OPT_SSL_CIPHER ((mysql_option) 29)
 #endif
-                        if (m_pLib->mysql_get_client_version() > 50700) {
-                            if (conn.ssl_ca.size())
-                                m_pLib->mysql_options(mysql, MYSQL_OPT_SSL_CA, conn.ssl_ca.c_str());
-                            if (conn.ssl_capath.size())
-                                m_pLib->mysql_options(mysql, MYSQL_OPT_SSL_CAPATH, conn.ssl_capath.c_str());
-                            if (conn.ssl_cert.size())
-                                m_pLib->mysql_options(mysql, MYSQL_OPT_SSL_CERT, conn.ssl_cert.c_str());
-                            if (conn.ssl_cipher.size())
-                                m_pLib->mysql_options(mysql, MYSQL_OPT_SSL_CIPHER, conn.ssl_cipher.c_str());
-                            if (conn.ssl_key.size())
-                                m_pLib->mysql_options(mysql, MYSQL_OPT_SSL_KEY, conn.ssl_key.c_str());
-                        } else {
-                            my_bool ssl_enabled = 1;
-                            m_pLib->mysql_options(mysql, MYSQL_OPT_SSL_VERIFY_SERVER_CERT, &ssl_enabled);
-                        }
-                    }
-                    MYSQL *ret = m_pLib->mysql_real_connect(mysql, conn.host.c_str(), conn.user.c_str(),
-                            conn.password.c_str(), conn.database.c_str(),
-                            conn.port, nullptr, CLIENT_MULTI_RESULTS | CLIENT_MULTI_STATEMENTS | CLIENT_LOCAL_FILES | CLIENT_IGNORE_SIGPIPE);
-                    if (!ret) {
-                        res = m_pLib->mysql_errno(mysql);
-                        errMsg = Utilities::ToWide(m_pLib->mysql_error(mysql));
-                        break;
+                    if (m_pLib->mysql_get_client_version() > 50700) {
+                        if (conn.ssl_ca.size())
+                            m_pLib->mysql_options(mysql, MYSQL_OPT_SSL_CA, conn.ssl_ca.c_str());
+                        if (conn.ssl_capath.size())
+                            m_pLib->mysql_options(mysql, MYSQL_OPT_SSL_CAPATH, conn.ssl_capath.c_str());
+                        if (conn.ssl_cert.size())
+                            m_pLib->mysql_options(mysql, MYSQL_OPT_SSL_CERT, conn.ssl_cert.c_str());
+                        if (conn.ssl_cipher.size())
+                            m_pLib->mysql_options(mysql, MYSQL_OPT_SSL_CIPHER, conn.ssl_cipher.c_str());
+                        if (conn.ssl_key.size())
+                            m_pLib->mysql_options(mysql, MYSQL_OPT_SSL_KEY, conn.ssl_key.c_str());
                     } else {
-                        res = 0;
+                        my_bool ssl_enabled = 1;
+                        m_pLib->mysql_options(mysql, MYSQL_OPT_SSL_VERIFY_SERVER_CERT, &ssl_enabled);
                     }
+                }
+                MYSQL *ret = m_pLib->mysql_real_connect(mysql, conn.host.c_str(), conn.user.c_str(),
+                        conn.password.c_str(), conn.database.c_str(),
+                        conn.port, nullptr, CLIENT_MULTI_RESULTS | CLIENT_MULTI_STATEMENTS | CLIENT_LOCAL_FILES | CLIENT_IGNORE_SIGPIPE);
+                if (!ret) {
+                    res = m_pLib->mysql_errno(mysql);
+                    errMsg = Utilities::ToWide(m_pLib->mysql_error(mysql));
+                    break;
                 } else {
-                    res = m_pLib->mysql_options(mysql, MYSQL_OPT_USE_EMBEDDED_CONNECTION, nullptr);
-                    if (res) {
-                        res = m_pLib->mysql_errno(mysql);
-                        errMsg = SPA::Utilities::ToWide(m_pLib->mysql_error(mysql));
-                        break;
-                    }
-                    MYSQL *ret = m_pLib->mysql_real_connect(mysql, nullptr, nullptr, nullptr,
-                            SPA::Utilities::ToUTF8(db.c_str()).c_str(), 0, nullptr,
-                            CLIENT_MULTI_RESULTS | CLIENT_MULTI_STATEMENTS | CLIENT_LOCAL_FILES | CLIENT_IGNORE_SIGPIPE);
-                    if (!ret) {
-                        res = m_pLib->mysql_errno(mysql);
-                        errMsg = Utilities::ToWide(m_pLib->mysql_error(mysql));
-                        break;
-                    }
+                    res = 0;
                 }
                 if (!m_global) {
                     errMsg = db;
@@ -500,11 +344,9 @@ namespace SPA
                         if (!mysql)
                             break;
                         int status = 0;
-                        if (m_pLib->m_bRemote) {
-                            unsigned long id = m_pLib->mysql_thread_id(mysql);
-                            std::string sqlKill = "KILL QUERY " + std::to_string((UINT64) id);
-                            status = m_pLib->mysql_query(mysql, sqlKill.c_str());
-                        }
+                        unsigned long id = m_pLib->mysql_thread_id(mysql);
+                        std::string sqlKill = "KILL QUERY " + std::to_string((UINT64) id);
+                        status = m_pLib->mysql_query(mysql, sqlKill.c_str());
                         if (!m_bManual)
                             break;
                         status = m_pLib->mysql_rollback(mysql);
@@ -1377,21 +1219,7 @@ namespace SPA
             CMysqlImpl::MYSQL_CONNECTION_STRING::Trim(m_sqlPrepare);
             MYSQL_STMT *stmt = m_pLib->mysql_stmt_init(m_pMysql.get());
             PreprocessPreparedStatement();
-            my_bool fail;
-            do {
-                if (!m_pLib->m_bRemote && m_bCall) {
-                    //this is hack for embedded mysql store procedure to prevent the async mysql server library from crash
-                    unsigned long type = (unsigned long) CURSOR_TYPE_READ_ONLY;
-                    fail = m_pLib->mysql_stmt_attr_set(stmt, STMT_ATTR_CURSOR_TYPE, (const void *) &type);
-                    if (fail) {
-                        break;
-                    }
-                }
-                fail = m_pLib->mysql_stmt_prepare(stmt, m_sqlPrepare.c_str(), (unsigned long) m_sqlPrepare.size());
-                if (fail) {
-                    break;
-                }
-            } while (false);
+            my_bool fail = m_pLib->mysql_stmt_prepare(stmt, m_sqlPrepare.c_str(), (unsigned long) m_sqlPrepare.size());
             if (fail) {
                 res = m_pLib->mysql_stmt_errno(stmt);
                 errMsg = Utilities::ToWide(m_pLib->mysql_stmt_error(stmt));
@@ -1832,117 +1660,9 @@ namespace SPA
             return SPA::UDateTime(date, td.second_part).time;
         }
 
-#ifdef NO_PARAMETER_PREPARED_STATEMENT_SUPPORTED
+        void CMysqlImpl::ExecuteBatch(const std::wstring& sql, const std::wstring& delimiter, int isolation, int plan, bool rowset, bool meta, bool lastInsertId, const std::wstring &dbConn, unsigned int flags, UINT64 callIndex, INT64 &affected, int &res, std::wstring &errMsg, CDBVariant &vtId, UINT64 & fail_ok) {
 
-        void CMysqlImpl::ExecuteNoParameter(bool rowset, bool meta, bool lastInsertId, UINT64 index, INT64 &affected, int &res, std::wstring &errMsg, CDBVariant &vtId, UINT64 & fail_ok) {
-            int ret = m_pLib->mysql_stmt_execute(m_pPrepare.get());
-            if (ret) {
-                res = m_pLib->mysql_stmt_errno(m_pPrepare.get());
-                errMsg = Utilities::ToWide(m_pLib->mysql_stmt_error(m_pPrepare.get()));
-                fail_ok = 1;
-                fail_ok <<= 32;
-                ++m_fails;
-                return;
-            }
-            res = 0;
-            bool header_sent = false;
-            //For SELECT statements, mysql_stmt_affected_rows() works like mysql_num_rows().
-            my_ulonglong affected_rows = m_pLib->mysql_stmt_affected_rows(m_pPrepare.get());
-            if (affected_rows != (~0) && affected_rows) {
-                affected += affected_rows;
-            }
-            unsigned int cols = m_pLib->mysql_stmt_field_count(m_pPrepare.get());
-            bool output = (m_pMysql.get()->server_status & SERVER_PS_OUT_PARAMS) ? true : false;
-            MYSQL_RES *result = m_pLib->mysql_stmt_result_metadata(m_pPrepare.get());
-            while (result && cols) {
-                CDBColumnInfoArray vInfo = GetColInfo(result, cols, true);
-                if (!output && m_pLib->m_bRemote) {
-                    //Mysql server_status & SERVER_PS_OUT_PARAMS does NOT work correctly for an unknown reason
-                    //This is a hack solution for detecting output result, which may be wrong if a table name is EXACTLY the same as stored procedure name
-                    output = (m_bCall && (vInfo[0].TablePath == Utilities::ToWide(m_procName.c_str())));
-                }
-
-                //we push stored procedure output parameter meta data onto client to follow common approach for output parameter data
-                if (output || rowset) {
-                    CScopeUQueue sb;
-                    unsigned int outputs = 0;
-                    if (output) {
-                        outputs = (unsigned int) vInfo.size();
-                    }
-                    sb << vInfo << index << outputs;
-                    unsigned int sent = SendResult(idRowsetHeader, sb->GetBuffer(), sb->GetSize());
-                    header_sent = true;
-                    if (sent == REQUEST_CANCELED || sent == SOCKET_NOT_FOUND) {
-                        m_pLib->mysql_free_result(result);
-                        m_pLib->mysql_stmt_free_result(m_pPrepare.get());
-                        return;
-                    }
-                }
-                std::shared_ptr<MYSQL_BIND_RESULT_FIELD> fields;
-                std::shared_ptr<MYSQL_BIND> pBinds = PrepareBindResultBuffer(result, vInfo, res, errMsg, fields);
-                MYSQL_BIND *mybind = pBinds.get();
-                MYSQL_BIND_RESULT_FIELD *myfield = fields.get();
-                if (pBinds && (output || rowset)) {
-                    if (!PushRecords(index, mybind, myfield, vInfo, rowset, output, res, errMsg)) {
-                        m_pLib->mysql_free_result(result);
-                        m_pLib->mysql_stmt_free_result(m_pPrepare.get());
-                        return;
-                    }
-                }
-                m_pLib->mysql_free_result(result);
-                pBinds.reset();
-                fields.reset();
-                if (res) {
-                    break;
-                }
-                ret = m_pLib->mysql_stmt_next_result(m_pPrepare.get());
-                if (output) {
-                    break;
-                } else if (ret == 0) {
-                    //continue for the next set
-                } else if (ret == -1) {
-                    //no more result
-                    break;
-                } else if (ret > 0) {
-                    //error
-                    if (!res) {
-                        res = m_pLib->mysql_stmt_errno(m_pPrepare.get());
-                        errMsg = Utilities::ToWide(m_pLib->mysql_stmt_error(m_pPrepare.get()));
-                    }
-                    break;
-                } else {
-                    //should never come here
-                    assert(false);
-                }
-                cols = m_pLib->mysql_stmt_field_count(m_pPrepare.get());
-                output = (m_pMysql.get()->server_status & SERVER_PS_OUT_PARAMS) ? true : false;
-                result = m_pLib->mysql_stmt_result_metadata(m_pPrepare.get());
-            }
-            if (m_pLib->mysql_stmt_free_result(m_pPrepare.get())) {
-                if (!res) {
-                    res = m_pLib->mysql_stmt_errno(m_pPrepare.get());
-                    errMsg = Utilities::ToWide(m_pLib->mysql_stmt_error(m_pPrepare.get()));
-                }
-            }
-            if (!header_sent && rowset) {
-                SPA::CScopeUQueue sbRowset;
-                CDBColumnInfoArray vInfo;
-                sbRowset << vInfo << index;
-                SendResult(idRowsetHeader, sbRowset->GetBuffer(), sbRowset->GetSize());
-            }
-            if (res) {
-                fail_ok = 1;
-                fail_ok <<= 32;
-                ++m_fails;
-            } else {
-                fail_ok = 1;
-                ++m_oks;
-            }
-            if (lastInsertId) {
-                vtId = (INT64) m_pLib->mysql_stmt_insert_id(m_pPrepare.get());
-            }
         }
-#endif
 
         void CMysqlImpl::ExecuteParameters(bool rowset, bool meta, bool lastInsertId, UINT64 index, INT64 &affected, int &res, std::wstring &errMsg, CDBVariant &vtId, UINT64 & fail_ok) {
             fail_ok = 0;
@@ -1966,24 +1686,11 @@ namespace SPA
             }
 
             if (!m_parameters) {
-#ifdef NO_PARAMETER_PREPARED_STATEMENT_SUPPORTED
-                //Executing a prepared statement may crash if no parameter is provided!
-                if (m_vParam.size()) {
-                    res = SPA::Mysql::ER_BAD_PARAMETER_DATA_ARRAY_SIZE;
-                    errMsg = BAD_PARAMETER_DATA_ARRAY_SIZE;
-                    ++m_fails;
-                    fail_ok = 1;
-                    fail_ok <<= 32;
-                    return;
-                }
-                ExecuteNoParameter(rowset, meta, lastInsertId, index, affected, res, errMsg, vtId, fail_ok);
-#else
                 res = SPA::Mysql::ER_NO_PARAMETER_SPECIFIED;
                 errMsg = NO_PARAMETER_SPECIFIED;
                 ++m_fails;
                 fail_ok = 1;
                 fail_ok <<= 32;
-#endif
                 return;
             } else if ((m_vParam.size() % m_parameters) || (m_vParam.size() == 0)) {
                 res = SPA::Mysql::ER_BAD_PARAMETER_DATA_ARRAY_SIZE;

@@ -126,7 +126,7 @@ namespace SPA {
 
             public:
 
-                CMysqlLoader() : m_hMysql(nullptr), m_bRemote(false) {
+                CMysqlLoader() : m_hMysql(nullptr) {
 
                 }
 
@@ -195,29 +195,18 @@ namespace SPA {
                 Pmysql_get_client_version mysql_get_client_version;
                 Pmysql_query mysql_query;
 
-                bool m_bRemote;
-
-                bool LoadMysql(bool remote = false) {
+                bool LoadMysql() {
                     if (m_hMysql) {
                         return true;
                     }
-                    if (remote) {
 #ifdef WIN32_64
-                        m_hMysql = ::LoadLibraryW(L"libmysql.dll");
+                    m_hMysql = ::LoadLibraryW(L"libmysql.dll");
 #else
-                        m_hMysql = ::dlopen("libmysqlclient.so", RTLD_LAZY);
+                    m_hMysql = ::dlopen("libmysqlclient.so", RTLD_LAZY);
 #endif
-                    } else {
-#ifdef WIN32_64
-                        m_hMysql = ::LoadLibraryW(L"libmysqld.dll");
-#else
-                        m_hMysql = ::dlopen("libmysqld.so", RTLD_LAZY);
-#endif	
-                    }
                     if (!m_hMysql) {
                         return false;
                     }
-                    m_bRemote = remote;
                     mysql_server_init = (Pmysql_server_init)::GetProcAddress(m_hMysql, "mysql_server_init");
                     mysql_server_end = (Pmysql_server_end)::GetProcAddress(m_hMysql, "mysql_server_end");
                     mysql_num_rows = (Pmysql_num_rows)::GetProcAddress(m_hMysql, "mysql_num_rows");

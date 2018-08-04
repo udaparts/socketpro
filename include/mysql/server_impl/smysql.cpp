@@ -8,17 +8,12 @@ void WINAPI SetMysqlDBGlobalConnectionString(const wchar_t *dbConnection, bool r
 }
 
 const char* WINAPI SetMysqlEmbeddedOptions(const wchar_t *options) {
-    return SPA::ServerSide::CMysqlImpl::SetEmbeddedOptions(options);
+    return nullptr;
 }
 
 bool WINAPI InitServerLibrary(int param) {
-    SPA::ServerSide::CMysqlImpl::m_nParam = (unsigned int) param;
-    if (!(SPA::ServerSide::CMysqlImpl::m_nParam & SPA::ServerSide::Mysql::DISABLE_EMBEDDED_MYSQL)) {
-        SPA::ServerSide::CMysqlImpl::InitEmbeddedMySql();
-    }
-    if (!(SPA::ServerSide::CMysqlImpl::m_nParam & SPA::ServerSide::Mysql::DISABLE_REMOTE_MYSQL)) {
-        SPA::ServerSide::CMysqlImpl::InitMySql();
-    }
+    SPA::ServerSide::CMysqlImpl::m_nParam = 0;
+    SPA::ServerSide::CMysqlImpl::InitMySql();
     g_pMysql.reset(new SPA::ServerSide::CMysqlService(SPA::Mysql::sidMysql, SPA::taNone));
     return true;
 }
@@ -48,7 +43,7 @@ CSvsContext WINAPI GetOneSvsContext(unsigned int serviceId) {
 }
 
 unsigned short WINAPI GetNumOfSlowRequests(unsigned int serviceId) {
-    return 7; //The service only has seven slow requests
+    return 8; //The service only has seven slow requests
 }
 
 unsigned short WINAPI GetOneSlowRequestID(unsigned int serviceId, unsigned short index) {
@@ -56,25 +51,20 @@ unsigned short WINAPI GetOneSlowRequestID(unsigned int serviceId, unsigned short
     switch (index) {
         case 0:
             return SPA::UDB::idOpen;
-            break;
         case 1:
             return SPA::UDB::idBeginTrans;
-            break;
         case 2:
             return SPA::UDB::idEndTrans;
-            break;
         case 3:
             return SPA::UDB::idExecute;
-            break;
         case 4:
             return SPA::UDB::idClose;
-            break;
         case 5:
             return SPA::UDB::idPrepare;
-            break;
         case 6:
             return SPA::UDB::idExecuteParameters;
-            break;
+        case 7:
+            return SPA::UDB::idExecuteBatch;
         default:
             break;
     }

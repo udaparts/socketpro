@@ -1,3 +1,0 @@
-ar -x libmysqld.a
-g++ -shared *.o -o libmysqld.so -laio
-strip -s libmysqld.so
