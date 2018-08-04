@@ -21,7 +21,11 @@ class Program
     {
         Console.WriteLine("Remote host: ");
         string host = Console.ReadLine();
+#if FOR_MIDDLE_SERVER
+        CConnectionContext cc = new CConnectionContext(host, 20901, "root", "Smash123");
+#else
         CConnectionContext cc = new CConnectionContext(host, 20902, "root", "Smash123");
+#endif
         using (CSocketPool<CMysql> spMysql = new CSocketPool<CMysql>(true, 600000))
         {
             if (!spMysql.StartSocketPool(cc, 1, 1))

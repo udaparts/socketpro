@@ -112,10 +112,9 @@ namespace SPA {
             virtual void Execute(const std::wstring& sql, bool rowset, bool meta, bool lastInsertId, UINT64 index, INT64 &affected, int &res, std::wstring &errMsg, CDBVariant &vtId, UINT64 &fail_ok);
             virtual void Prepare(const std::wstring& sql, CParameterInfoArray& params, int &res, std::wstring &errMsg, unsigned int &parameters);
             virtual void ExecuteParameters(bool rowset, bool meta, bool lastInsertId, UINT64 index, INT64 &affected, int &res, std::wstring &errMsg, CDBVariant &vtId, UINT64 &fail_ok);
-			virtual void ExecuteBatch(const std::wstring& sql, const std::wstring& delimiter, int isolation, int plan, bool rowset, bool meta, bool lastInsertId, const std::wstring &dbConn, unsigned int flags, UINT64 index, INT64 &affected, int &res, std::wstring &errMsg, CDBVariant &vtId, UINT64 &fail_ok);
+            virtual void ExecuteBatch(const std::wstring& sql, const std::wstring& delimiter, int isolation, int plan, bool rowset, bool meta, bool lastInsertId, const std::wstring &dbConn, unsigned int flags, UINT64 index, INT64 &affected, int &res, std::wstring &errMsg, CDBVariant &vtId, UINT64 &fail_ok);
 
         private:
-            void ReleaseArray();
             void StartBLOB(unsigned int lenExpected);
             void Chunk();
             void EndBLOB();
@@ -136,12 +135,18 @@ namespace SPA {
             void PreprocessPreparedStatement();
             void CleanDBObjects();
             void ResetMemories();
+            void SetVParam(CDBVariantArray& vAll, size_t parameters, size_t pos, size_t ps);
 
             //mysql specific functions
             static UINT64 ConvertBitsToInt(const unsigned char *s, unsigned int bytes);
             static void ConvertToUTF8OrDouble(CDBVariant &vt);
             static void CALLBACK OnThreadEvent(SPA::ServerSide::tagThreadEvent te);
             static UINT64 ToUDateTime(const MYSQL_TIME &td);
+            static std::vector<std::wstring> Split(const std::wstring &sql, const std::wstring &delimiter);
+            static size_t ComputeParameters(const std::wstring &sql);
+            static void ltrim_w(std::wstring &s);
+            static void rtrim_w(std::wstring &s);
+            static void trim_w(std::wstring &s);
 
         protected:
             UINT64 m_oks;
@@ -152,7 +157,6 @@ namespace SPA {
 
         private:
             SPA::CScopeUQueue m_sb;
-            std::vector<SAFEARRAY *> m_vArray;
             bool m_global;
             CUQueue &m_Blob;
 

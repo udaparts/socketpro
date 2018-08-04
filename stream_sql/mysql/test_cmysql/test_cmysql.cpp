@@ -23,11 +23,15 @@ int main(int argc, char* argv[]) {
     std::cout << "Remote host: " << std::endl;
     std::getline(std::cin, cc.Host);
     //cc.Host = "localhost";
+#ifdef FOR_MIDDLE_SERVER
+    cc.Port = 20901;
+#else
     cc.Port = 20902;
+#endif
     cc.UserId = L"root";
     cc.Password = L"Smash123";
 #ifndef NDEBUG
-    CMyPool spMysql(true, (~0));
+    CMyPool spMysql(true, 600000); //600 seconds for your server debug
 #else
     CMyPool spMysql;
 #endif
@@ -411,7 +415,7 @@ void TestCreateTables(std::shared_ptr<CMyHandler> pMysql) {
 }
 
 void TestStoredProcedure(std::shared_ptr<CMyHandler> pMysql, CRowsetArray&ra, CDBVariantArray &vPData, unsigned int &oks) {
-    bool ok = pMysql->Prepare(L"call sp_TestProc(?,?,?)", [](CMyHandler &handler, int res, const std::wstring & errMsg) {
+    bool ok = pMysql->Prepare(L"call mysqldb.sp_TestProc(?,?,?)", [](CMyHandler &handler, int res, const std::wstring & errMsg) {
         std::cout << "res = " << res << ", errMsg: ";
         std::wcout << errMsg << std::endl;
     });
