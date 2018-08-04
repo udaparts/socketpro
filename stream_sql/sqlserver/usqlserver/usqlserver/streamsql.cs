@@ -25,6 +25,87 @@ class CStreamSql : CClientPeer
     protected ulong m_fails = 0;
     protected SqlTransaction m_trans = null;
 
+    private static List<string> Split(string sql, string delimiter)
+    {
+        List<string> v = new List<string>();
+        int d_len = delimiter.Length;
+        if (d_len > 0)
+        {
+            const char quote = '\'', slash = '\\';
+            char done = delimiter[0];
+            int ps = 0, len = sql.Length;
+            bool b_slash = false, balanced = true;
+            for (int n = 0; n < len; ++n)
+            {
+                char c = sql[n];
+                if (c == slash)
+                {
+                    b_slash = true;
+                    continue;
+                }
+                if (c == quote && b_slash)
+                {
+                    b_slash = false;
+                    continue; //ignore a quote if there is a slash ahead
+                }
+                b_slash = false;
+                if (c == quote)
+                {
+                    balanced = (!balanced);
+                    continue;
+                }
+                if (balanced && c == done)
+                {
+                    int pos = sql.IndexOf(delimiter, n);
+                    if (pos == n)
+                    {
+                        v.Add(sql.Substring(ps, n - ps));
+                        n += d_len;
+                        ps = n;
+                    }
+                }
+            }
+            v.Add(sql.Substring(ps));
+        }
+        else
+        {
+            v.Add(sql);
+        }
+        return v;
+    }
+
+    private static uint ComputeParameters(string sql)
+    {
+        const char quote = '\'', slash = '\\', question = '@';
+        bool b_slash = false, balanced = true;
+        int ps = 0, len = sql.Length;
+        for (int n = 0; n < len; ++n)
+        {
+            char c = sql[n];
+            if (c == slash)
+            {
+                b_slash = true;
+                continue;
+            }
+            if (c == quote && b_slash)
+            {
+                b_slash = false;
+                continue; //ignore a quote if there is a slash ahead
+            }
+            b_slash = false;
+            if (c == quote)
+            {
+                balanced = (!balanced);
+                continue;
+            }
+            if (balanced)
+            {
+                ps += ((c == question) ? 1 : 0);
+            }
+        }
+        return (uint)ps;
+    }
+
     protected override void OnBaseRequestCame(tagBaseRequestID reqId)
     {
         switch (reqId)
@@ -56,6 +137,7 @@ class CStreamSql : CClientPeer
         switch (reqId)
         {
             case DB_CONSTS.idExecuteParameters:
+            case DB_CONSTS.idExecuteBatch:
                 m_vParam.Clear();
                 ResetMemories();
                 break;
@@ -184,7 +266,8 @@ class CStreamSql : CClientPeer
                         info.Precision = byte.Parse(dr["NumericPrecision"].ToString());
                     break;
                 case "datetimeoffset":
-                    info.DataType = tagVariantDataType.sdVT_BSTR; //!!!! use string instead GetDateTimeOffset()
+                    //!!!! use string instead GetDateTimeOffset()
+                    info.DataType = tagVariantDataType.sdVT_BSTR;
                     info.ColumnSize = 64;
                     break;
                 case "smallmoney":
@@ -201,7 +284,8 @@ class CStreamSql : CClientPeer
                 case "float":
                     info.DataType = tagVariantDataType.sdVT_R8;
                     break;
-                case "image": //!!!! FILESTREAM attribute 
+                case "image":
+                    //!!!! FILESTREAM attribute 
                     info.DataType = (tagVariantDataType.sdVT_UI1 | tagVariantDataType.sdVT_ARRAY);
                     info.ColumnSize = uint.MaxValue;
                     break;
@@ -253,7 +337,8 @@ class CStreamSql : CClientPeer
                         info.ColumnSize = uint.MaxValue;
                     break;
                 case "xml":
-                    info.DataType = tagVariantDataType.sdVT_BSTR; //!!!! use string instead GetSqlXml
+                    //!!!! use string instead GetSqlXml
+                    info.DataType = tagVariantDataType.sdVT_BSTR;
                     info.ColumnSize = uint.MaxValue;
                     info.Flags |= CDBColumnInfo.FLAG_XML;
                     break;
@@ -262,7 +347,8 @@ class CStreamSql : CClientPeer
                     break;
                 case "time":
                 default:
-                    info.DataType = tagVariantDataType.sdVT_BSTR; //!!!! use string instead GetValue
+                    //!!!! use string instead GetValue
+                    info.DataType = tagVariantDataType.sdVT_BSTR;
                     info.ColumnSize = 0; //default
                     break;
             }
@@ -315,8 +401,8 @@ class CStreamSql : CClientPeer
             if (batching)
                 CommitBatching();
             uint bytes = len;
-            uint ret = SendResult(DB_CONSTS.idStartBLOB, bytes + sizeof(ushort) + sizeof(uint) + sizeof(uint), //extra 4 bytes for string null termination
-                data_type, bytes);
+            //extra 4 bytes for string null termination
+            uint ret = SendResult(DB_CONSTS.idStartBLOB, bytes + sizeof(ushort) + sizeof(uint) + sizeof(uint), data_type, bytes);
             if (ret == SOCKET_NOT_FOUND || ret == REQUEST_CANCELED)
                 return false;
             uint offset = 0;
@@ -379,8 +465,9 @@ class CStreamSql : CClientPeer
                                 DateTimeOffset dto = reader.GetDateTimeOffset(col);
                                 q.Save((ushort)info.DataType).Save(dto.ToString());
                             }
-                            else if (info.ColumnSize == 0) //for example, case "time"
+                            else if (info.ColumnSize == 0)
                             {
+                                //for example, case "time"
                                 object obj = reader.GetValue(col);
                                 q.Save((ushort)info.DataType).Save(obj.ToString());
                             }
@@ -391,8 +478,9 @@ class CStreamSql : CClientPeer
                                 {
                                     q.Save((ushort)info.DataType).Save(s);
                                 }
-                                else ////text, ntext, varchar(max), nvarchar(max)
+                                else
                                 {
+                                    //text, ntext, varchar(max), nvarchar(max)
                                     if (q.GetSize() != 0 && !SendRows(q, true))
                                         return false;
                                     if (!PushText(s))
@@ -407,8 +495,9 @@ class CStreamSql : CClientPeer
                                 {
                                     q.Save((ushort)info.DataType).Save(bytes.Value);
                                 }
-                                else //image, varbinary(max) or file?
+                                else
                                 {
+                                    //image, varbinary(max) or file?
                                     if (q.GetSize() != 0 && !SendRows(q, true))
                                         return false;
                                     if (!PushBlob(bytes.Value, (uint)bytes.Length))
@@ -590,6 +679,187 @@ class CStreamSql : CClientPeer
         return fail_ok;
     }
 
+    private void SetVParam(CDBVariantArray vAll, uint parameters, uint pos, uint ps)
+    {
+        m_vParam.Clear();
+        uint rows = (uint)vAll.Count / parameters;
+        for (uint r = 0; r < rows; ++r)
+        {
+            for (uint p = 0; p < ps; ++p)
+            {
+                object vt = vAll[(int)(parameters * r + pos + p)];
+                m_vParam.Add(vt);
+            }
+        }
+    }
+
+    private CParameterInfoArray GetVInfo(CParameterInfoArray vPInfo, uint pos, uint ps)
+    {
+        CParameterInfoArray v = new CParameterInfoArray();
+        int count = vPInfo.Count;
+        for (int n = 0; n < (int)ps; ++n)
+        {
+            v.Add(vPInfo[(int)pos + n]);
+        }
+        return v;
+    }
+
+    [RequestAttr(DB_CONSTS.idExecuteBatch, true)]
+    private ulong ExecuteBatch(string sql, string delimiter, int isolation, int plan, bool rowset, bool meta, bool lastInsertId, string dbConn, uint flags, ulong callIndex, out long affected, out int res, out string errMsg, out object vtId)
+    {
+        if (sql == null)
+            sql = "";
+        if (dbConn == null)
+            dbConn = "";
+        if (delimiter == null)
+            delimiter = "";
+        m_indexCall = callIndex;
+        affected = 0;
+        res = 0;
+        ulong fail_ok = 0;
+        CParameterInfoArray vPInfo = new CParameterInfoArray();
+        vPInfo.LoadFrom(UQueue);
+        vtId = null;
+        do
+        {
+            if (m_defaultDB.Length == 0)
+            {
+                int ms = Open(dbConn, flags, out res, out errMsg);
+                if (res == 0)
+                    errMsg = m_conn.Database;
+            }
+            else
+            {
+                errMsg = m_conn.Database;
+            }
+            uint parameters = 0;
+            List<string> vSql = Split(sql, delimiter);
+            foreach (string s in vSql)
+            {
+                parameters += ComputeParameters(s);
+            }
+            if (m_defaultDB == "")
+            {
+                fail_ok = (uint)vSql.Count;
+                fail_ok <<= 32;
+                SendResult(DB_CONSTS.idSqlBatchHeader, res, errMsg, (int)tagManagementSystem.msMsSQL, parameters, callIndex);
+                break;
+            }
+            uint rows = 0;
+            if (parameters > 0)
+            {
+                if (m_vParam.Count == 0)
+                {
+                    res = -2;
+                    errMsg = "No parameter specified";
+                    m_fails += (uint)vSql.Count;
+                    fail_ok = (uint)vSql.Count;
+                    fail_ok <<= 32;
+                    SendResult(DB_CONSTS.idSqlBatchHeader, res, errMsg, (int)tagManagementSystem.msMsSQL, parameters, callIndex);
+                    break;
+                }
+                if (((uint)m_vParam.Count % parameters) > 0)
+                {
+                    res = -2;
+                    errMsg = "Bad parameter data array size";
+                    m_fails += (uint)vSql.Count;
+                    fail_ok = (uint)vSql.Count;
+                    fail_ok <<= 32;
+                    SendResult(DB_CONSTS.idSqlBatchHeader, res, errMsg, (int)tagManagementSystem.msMsSQL, parameters, callIndex);
+                    break;
+                }
+                rows = (uint)m_vParam.Count / parameters;
+                if ((uint)vPInfo.Count != parameters)
+                {
+                    res = -2;
+                    errMsg = "No proper parameter information array not provided";
+                    m_fails += (uint)vSql.Count;
+                    fail_ok = (uint)vSql.Count;
+                    fail_ok <<= 32;
+                    SendResult(DB_CONSTS.idSqlBatchHeader, res, errMsg, (int)tagManagementSystem.msMsSQL, parameters, callIndex);
+                    break;
+                }
+            }
+            if (isolation != (int)tagTransactionIsolation.tiUnspecified)
+            {
+                int ms = BeginTrans(isolation, dbConn, flags, out res, out errMsg);
+                if (res != 0)
+                {
+                    m_fails += (uint)vSql.Count;
+                    fail_ok = (uint)vSql.Count;
+                    fail_ok <<= 32;
+                    SendResult(DB_CONSTS.idSqlBatchHeader, res, errMsg, (int)tagManagementSystem.msMsSQL, parameters, callIndex);
+                    break;
+                }
+                else if (IsCanceled || !Connected)
+                    return fail_ok;
+            }
+            uint ret = SendResult(DB_CONSTS.idSqlBatchHeader, res, errMsg, (int)tagManagementSystem.msMsSQL, parameters, callIndex);
+            if (ret == CClientPeer.SOCKET_NOT_FOUND || ret == CClientPeer.REQUEST_CANCELED)
+                return fail_ok;
+            errMsg = "";
+            CDBVariantArray vAll = m_vParam;
+            m_vParam = new CDBVariantArray();
+            long aff = 0;
+            int r = 0;
+            string err = "";
+            ulong fo = 0;
+            uint pos = 0;
+            foreach (string it in vSql)
+            {
+                uint ps = ComputeParameters(it);
+                string s = it.Trim(' ', '\t', '\r', '\n', ';', '@');
+                if (ps > 0)
+                {
+                    CParameterInfoArray vP = GetVInfo(vPInfo, pos, ps);
+                    //prepared statements
+                    uint my_ps = Prepare(s, vP, out r, out err);
+                    if (IsCanceled || !Connected)
+                        return fail_ok;
+                    if (r != 0)
+                    {
+                        fail_ok += (((ulong)rows) << 32);
+                    }
+                    else
+                    {
+                        SetVParam(vAll, parameters, pos, ps);
+                        uint nParamPos = (pos << 16) + ps;
+                        ret = SendResult(DB_CONSTS.idParameterPosition, nParamPos);
+                        if (ret == CClientPeer.SOCKET_NOT_FOUND || ret == CClientPeer.REQUEST_CANCELED)
+                            return fail_ok;
+                        fo = ExecuteParameters(rowset, meta, lastInsertId, callIndex, out aff, out r, out err, out vtId);
+                    }
+                    pos += ps;
+                }
+                else
+                {
+                    fo = Execute(s, rowset, meta, lastInsertId, callIndex, out aff, out r, out err, out vtId);
+                }
+                if (r != 0 && res == 0)
+                {
+                    res = r;
+                    errMsg = err;
+                }
+                affected += aff;
+                fail_ok += fo;
+                if (IsCanceled || !Connected)
+                    return fail_ok;
+                if (r != 0 && isolation != (int)tagTransactionIsolation.tiUnspecified && plan == (int)tagRollbackPlan.rpDefault)
+                    break;
+            }
+            if (isolation != (int)tagTransactionIsolation.tiUnspecified)
+            {
+                err = EndTrans(plan, out r);
+                if (r != 0 && res == 0)
+                {
+                    res = r;
+                    errMsg = err;
+                }
+            }
+        } while (false);
+        return fail_ok;
+    }
+
     [RequestAttr(DB_CONSTS.idExecuteParameters, true)]
     private ulong ExecuteParameters(bool rowset, bool meta, bool lastInsertId, ulong index, out long affected, out int res, out string errMsg, out object vtId)
     {
@@ -706,6 +976,7 @@ class CStreamSql : CClientPeer
         }
         fail_ok = ((m_fails - fails) << 32);
         fail_ok += (m_oks - oks);
+        m_vParam.Clear();
         return fail_ok;
     }
 

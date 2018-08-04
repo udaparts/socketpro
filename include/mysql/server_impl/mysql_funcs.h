@@ -3,7 +3,7 @@
 #define _UMYSQL_SOCKETPRO_FUNCTIONS_H_
 
 #include "../../userver.h"
-#include "../../../stream_sql/mysql/smysql/include/mysql.h"
+#include "../../mysql/include/mysql.h"
 #include <algorithm>
 
 namespace SPA {

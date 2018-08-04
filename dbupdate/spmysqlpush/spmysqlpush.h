@@ -2,7 +2,7 @@
 #ifndef __UDAPARTS_MYSQL_UPDATE_BASE_H__
 #define __UDAPARTS_MYSQL_UPDATE_BASE_H__
 
-#include "../../stream_sql/mysql/smysql/include/mysql.h"
+#include "../../include/mysql/include/mysql.h"
 
 #ifdef __cplusplus
 extern "C" {

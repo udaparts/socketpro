@@ -9,7 +9,6 @@ using SocketProAdapter;
 using SocketProAdapter.UDB;
 using SocketProAdapter.ServerSide;
 using System.IO;
-using System.Runtime.InteropServices;
 
 public static class USqlStream
 {
@@ -17,12 +16,7 @@ public static class USqlStream
     private static object m_cs = new object();
     private static string ServerHost = null;
 
-    static USqlStream()
-    {
-
-    }
-
-    public static CSocketProServer Server
+    public static CSqlPlugin Server
     {
         get
         {
@@ -44,14 +38,19 @@ public static class USqlStream
                 conn.Open();
                 lock (m_cs)
                 {
-                    if (IsRunning())
+                    if (Plugin != null)
                     {
-                        Plugin.StopSocketProServer();
-                        res += 10;
+                        if (ServerCoreLoader.IsRunning())
+                        {
+                            ServerCoreLoader.SetOnIdle(null);
+                            Plugin.StopSocketProServer();
+                            res += 10;
+                        }
+                        Plugin.Dispose();
+                        Plugin = null;
+                        res += 1;
                     }
-                    Plugin = null;
                 }
-                res += 1;
             }
             catch (Exception err)
             {
@@ -76,13 +75,12 @@ public static class USqlStream
                 {
                     if (Plugin == null)
                     {
-                        res += 100;
                         if (!Directory.Exists(SQLConfig.WorkingDirectory))
                             Directory.CreateDirectory(SQLConfig.WorkingDirectory);
                         Directory.SetCurrentDirectory(SQLConfig.WorkingDirectory);
                         Plugin = new CSqlPlugin(SQLConfig.Param);
                     }
-                    if (!IsRunning())
+                    if (!ServerCoreLoader.IsRunning())
                     {
                         res += 10;
                         if (SQLConfig.StoreOrPfx != null && SQLConfig.SubjectOrPassword != null && SQLConfig.StoreOrPfx.Length > 0 && SQLConfig.SubjectOrPassword.Length > 0)
@@ -97,8 +95,7 @@ public static class USqlStream
                                 Plugin.UseSSL(SQLConfig.StoreOrPfx, "", SQLConfig.SubjectOrPassword);
                             }
                         }
-                        if (Plugin.Run(SQLConfig.Port, 16, !SQLConfig.NoV6))
-                            res += 1;
+                        Plugin.Run(SQLConfig.Port, 16, !SQLConfig.NoV6);
                     }
                 }
             }
@@ -108,6 +105,14 @@ public static class USqlStream
             }
             finally
             {
+                if (ServerCoreLoader.IsRunning())
+                {
+                    AppDomain.CurrentDomain.DomainUnload += (sender, args) => {
+                        ServerCoreLoader.StopSocketProServer();
+                        Plugin = null;
+                    };
+                    res += 1;
+                }
                 conn.Close();
             }
         }
@@ -314,14 +319,6 @@ public static class USqlStream
         }
     }
 
-    [DllImport("uservercore")]
-    [return: MarshalAs(UnmanagedType.I1)]
-    private static unsafe extern bool SpeakPush(byte* message, uint size, uint* chatGroupIds, uint count);
-
-    [DllImport("uservercore")]
-    [return: MarshalAs(UnmanagedType.I1)]
-    private static extern bool IsRunning();
-
     private static bool Publish(object Message, params uint[] Groups)
     {
         uint len;
@@ -339,7 +336,7 @@ public static class USqlStream
                 {
                     fixed (uint* p = Groups)
                     {
-                        return SpeakPush(buffer, q.GetSize(), p, len);
+                        return ServerCoreLoader.SpeakPush(buffer, q.GetSize(), p, len);
                     }
                 }
             }
@@ -390,32 +387,36 @@ public static class USqlStream
         {
             try
             {
-                if (IsRunning())
+                DataTable dt = null;
+                List<object[]> rows = null;
+                string[] v = null;
+                lock (m_cs)
                 {
-                    conn.Open();
-                    string[] v = GetUSqlServerKeys(conn);
-                    List<object[]> rows = null;
-                    DataTable dt = null;
-                    switch (tc.TriggerAction)
+                    if (Plugin != null && ServerCoreLoader.IsRunning())
                     {
-                        case TriggerAction.Update:
-                            rows = GetUpdateRows(conn, out dt);
-                            if (dt == null)
-                                errMsg = "DELETED schema table not available";
-                            break;
-                        case TriggerAction.Delete:
-                            rows = GetRows(conn, true, out dt);
-                            if (dt == null)
-                                errMsg = "DELETED schema table not available";
-                            break;
-                        case TriggerAction.Insert:
-                            rows = GetRows(conn, false, out dt);
-                            if (dt == null)
-                                errMsg = "INSERTED schema table not available";
-                            break;
-                        default:
-                            errMsg = "Unknown DML event";
-                            break;
+                        conn.Open();
+                        v = GetUSqlServerKeys(conn);
+                        switch (tc.TriggerAction)
+                        {
+                            case TriggerAction.Update:
+                                rows = GetUpdateRows(conn, out dt);
+                                if (dt == null)
+                                    errMsg = "DELETED schema table not available";
+                                break;
+                            case TriggerAction.Delete:
+                                rows = GetRows(conn, true, out dt);
+                                if (dt == null)
+                                    errMsg = "DELETED schema table not available";
+                                break;
+                            case TriggerAction.Insert:
+                                rows = GetRows(conn, false, out dt);
+                                if (dt == null)
+                                    errMsg = "INSERTED schema table not available";
+                                break;
+                            default:
+                                errMsg = "Unknown DML event";
+                                break;
+                        }
                     }
                     do
                     {

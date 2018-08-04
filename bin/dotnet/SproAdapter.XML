@@ -1407,6 +1407,168 @@
             <param name="discarded">a callback for tracking cancel or socket closed event</param>
             <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
         </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.ExecuteBatch(SocketProAdapter.UDB.tagTransactionIsolation,System.String)">
+            <summary>
+            Execute a batch of SQL statements on one single call
+            </summary>
+            <param name="isolation">a value for manual transaction isolation. Specifically, there is no manual transaction around the batch SQL statements if it is tiUnspecified</param>
+            <param name="sql">a SQL statement having a batch of individual SQL statements</param>
+            <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.ExecuteBatch(SocketProAdapter.UDB.tagTransactionIsolation,System.String,SocketProAdapter.UDB.CDBVariantArray)">
+            <summary>
+            Execute a batch of SQL statements on one single call
+            </summary>
+            <param name="isolation">a value for manual transaction isolation. Specifically, there is no manual transaction around the batch SQL statements if it is tiUnspecified</param>
+            <param name="sql">a SQL statement having a batch of individual SQL statements</param>
+            <param name="vParam">an array of parameter data which will be bounded to previously prepared parameters. The array size can be 0 if the given batch SQL statement doesn't having any prepared statement</param>
+            <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.ExecuteBatch(SocketProAdapter.UDB.tagTransactionIsolation,System.String,SocketProAdapter.UDB.CDBVariantArray,SocketProAdapter.ClientSide.CAsyncDBHandler.DExecuteResult)">
+            <summary>
+            Execute a batch of SQL statements on one single call
+            </summary>
+            <param name="isolation">a value for manual transaction isolation. Specifically, there is no manual transaction around the batch SQL statements if it is tiUnspecified</param>
+            <param name="sql">a SQL statement having a batch of individual SQL statements</param>
+            <param name="vParam">an array of parameter data which will be bounded to previously prepared parameters. The array size can be 0 if the given batch SQL statement doesn't having any prepared statement</param>
+            <param name="handler">a callback for tracking final result</param>
+            <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.ExecuteBatch(SocketProAdapter.UDB.tagTransactionIsolation,System.String,SocketProAdapter.UDB.CDBVariantArray,SocketProAdapter.ClientSide.CAsyncDBHandler.DExecuteResult,SocketProAdapter.ClientSide.CAsyncDBHandler.DRows)">
+            <summary>
+            Execute a batch of SQL statements on one single call
+            </summary>
+            <param name="isolation">a value for manual transaction isolation. Specifically, there is no manual transaction around the batch SQL statements if it is tiUnspecified</param>
+            <param name="sql">a SQL statement having a batch of individual SQL statements</param>
+            <param name="vParam">an array of parameter data which will be bounded to previously prepared parameters. The array size can be 0 if the given batch SQL statement doesn't having any prepared statement</param>
+            <param name="handler">a callback for tracking final result</param>
+            <param name="row">a callback for receiving records of data</param>
+            <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.ExecuteBatch(SocketProAdapter.UDB.tagTransactionIsolation,System.String,SocketProAdapter.UDB.CDBVariantArray,SocketProAdapter.ClientSide.CAsyncDBHandler.DExecuteResult,SocketProAdapter.ClientSide.CAsyncDBHandler.DRows,SocketProAdapter.ClientSide.CAsyncDBHandler.DRowsetHeader)">
+            <summary>
+            Execute a batch of SQL statements on one single call
+            </summary>
+            <param name="isolation">a value for manual transaction isolation. Specifically, there is no manual transaction around the batch SQL statements if it is tiUnspecified</param>
+            <param name="sql">a SQL statement having a batch of individual SQL statements</param>
+            <param name="vParam">an array of parameter data which will be bounded to previously prepared parameters. The array size can be 0 if the given batch SQL statement doesn't having any prepared statement</param>
+            <param name="handler">a callback for tracking final result</param>
+            <param name="row">a callback for receiving records of data</param>
+            <param name="rh">a callback for tracking row set of header column informations</param>
+            <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.ExecuteBatch(SocketProAdapter.UDB.tagTransactionIsolation,System.String,SocketProAdapter.UDB.CDBVariantArray,SocketProAdapter.ClientSide.CAsyncDBHandler.DExecuteResult,SocketProAdapter.ClientSide.CAsyncDBHandler.DRows,SocketProAdapter.ClientSide.CAsyncDBHandler.DRowsetHeader,SocketProAdapter.ClientSide.CAsyncDBHandler.DRowsetHeader)">
+            <summary>
+            Execute a batch of SQL statements on one single call
+            </summary>
+            <param name="isolation">a value for manual transaction isolation. Specifically, there is no manual transaction around the batch SQL statements if it is tiUnspecified</param>
+            <param name="sql">a SQL statement having a batch of individual SQL statements</param>
+            <param name="vParam">an array of parameter data which will be bounded to previously prepared parameters. The array size can be 0 if the given batch SQL statement doesn't having any prepared statement</param>
+            <param name="handler">a callback for tracking final result</param>
+            <param name="row">a callback for receiving records of data</param>
+            <param name="rh">a callback for tracking row set of header column informations</param>
+            <param name="batchHeader">a callback for tracking returning batch start error messages</param>
+            <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.ExecuteBatch(SocketProAdapter.UDB.tagTransactionIsolation,System.String,SocketProAdapter.UDB.CDBVariantArray,SocketProAdapter.ClientSide.CAsyncDBHandler.DExecuteResult,SocketProAdapter.ClientSide.CAsyncDBHandler.DRows,SocketProAdapter.ClientSide.CAsyncDBHandler.DRowsetHeader,SocketProAdapter.ClientSide.CAsyncDBHandler.DRowsetHeader,SocketProAdapter.UDB.CParameterInfo[])">
+            <summary>
+            Execute a batch of SQL statements on one single call
+            </summary>
+            <param name="isolation">a value for manual transaction isolation. Specifically, there is no manual transaction around the batch SQL statements if it is tiUnspecified</param>
+            <param name="sql">a SQL statement having a batch of individual SQL statements</param>
+            <param name="vParam">an array of parameter data which will be bounded to previously prepared parameters. The array size can be 0 if the given batch SQL statement doesn't having any prepared statement</param>
+            <param name="handler">a callback for tracking final result</param>
+            <param name="row">a callback for receiving records of data</param>
+            <param name="rh">a callback for tracking row set of header column informations</param>
+            <param name="batchHeader">a callback for tracking returning batch start error messages</param>
+            <param name="vPInfo">a given array of parameter informations which may be empty to some of database management systems</param>
+            <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.ExecuteBatch(SocketProAdapter.UDB.tagTransactionIsolation,System.String,SocketProAdapter.UDB.CDBVariantArray,SocketProAdapter.ClientSide.CAsyncDBHandler.DExecuteResult,SocketProAdapter.ClientSide.CAsyncDBHandler.DRows,SocketProAdapter.ClientSide.CAsyncDBHandler.DRowsetHeader,SocketProAdapter.ClientSide.CAsyncDBHandler.DRowsetHeader,SocketProAdapter.UDB.CParameterInfo[],SocketProAdapter.UDB.tagRollbackPlan)">
+            <summary>
+            Execute a batch of SQL statements on one single call
+            </summary>
+            <param name="isolation">a value for manual transaction isolation. Specifically, there is no manual transaction around the batch SQL statements if it is tiUnspecified</param>
+            <param name="sql">a SQL statement having a batch of individual SQL statements</param>
+            <param name="vParam">an array of parameter data which will be bounded to previously prepared parameters. The array size can be 0 if the given batch SQL statement doesn't having any prepared statement</param>
+            <param name="handler">a callback for tracking final result</param>
+            <param name="row">a callback for receiving records of data</param>
+            <param name="rh">a callback for tracking row set of header column informations</param>
+            <param name="batchHeader">a callback for tracking returning batch start error messages</param>
+            <param name="vPInfo">a given array of parameter informations which may be empty to some of database management systems</param>
+            <param name="plan">a value for computing how included transactions should be rollback</param>
+            <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.ExecuteBatch(SocketProAdapter.UDB.tagTransactionIsolation,System.String,SocketProAdapter.UDB.CDBVariantArray,SocketProAdapter.ClientSide.CAsyncDBHandler.DExecuteResult,SocketProAdapter.ClientSide.CAsyncDBHandler.DRows,SocketProAdapter.ClientSide.CAsyncDBHandler.DRowsetHeader,SocketProAdapter.ClientSide.CAsyncDBHandler.DRowsetHeader,SocketProAdapter.UDB.CParameterInfo[],SocketProAdapter.UDB.tagRollbackPlan,SocketProAdapter.ClientSide.CAsyncServiceHandler.DDiscarded)">
+            <summary>
+            Execute a batch of SQL statements on one single call
+            </summary>
+            <param name="isolation">a value for manual transaction isolation. Specifically, there is no manual transaction around the batch SQL statements if it is tiUnspecified</param>
+            <param name="sql">a SQL statement having a batch of individual SQL statements</param>
+            <param name="vParam">an array of parameter data which will be bounded to previously prepared parameters. The array size can be 0 if the given batch SQL statement doesn't having any prepared statement</param>
+            <param name="handler">a callback for tracking final result</param>
+            <param name="row">a callback for receiving records of data</param>
+            <param name="rh">a callback for tracking row set of header column informations</param>
+            <param name="batchHeader">a callback for tracking returning batch start error messages</param>
+            <param name="vPInfo">a given array of parameter informations which may be empty to some of database management systems</param>
+            <param name="plan">a value for computing how included transactions should be rollback</param>
+            <param name="discarded">a callback for tracking socket closed or request canceled event</param>
+            <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.ExecuteBatch(SocketProAdapter.UDB.tagTransactionIsolation,System.String,SocketProAdapter.UDB.CDBVariantArray,SocketProAdapter.ClientSide.CAsyncDBHandler.DExecuteResult,SocketProAdapter.ClientSide.CAsyncDBHandler.DRows,SocketProAdapter.ClientSide.CAsyncDBHandler.DRowsetHeader,SocketProAdapter.ClientSide.CAsyncDBHandler.DRowsetHeader,SocketProAdapter.UDB.CParameterInfo[],SocketProAdapter.UDB.tagRollbackPlan,SocketProAdapter.ClientSide.CAsyncServiceHandler.DDiscarded,System.String)">
+            <summary>
+            Execute a batch of SQL statements on one single call
+            </summary>
+            <param name="isolation">a value for manual transaction isolation. Specifically, there is no manual transaction around the batch SQL statements if it is tiUnspecified</param>
+            <param name="sql">a SQL statement having a batch of individual SQL statements</param>
+            <param name="vParam">an array of parameter data which will be bounded to previously prepared parameters. The array size can be 0 if the given batch SQL statement doesn't having any prepared statement</param>
+            <param name="handler">a callback for tracking final result</param>
+            <param name="row">a callback for receiving records of data</param>
+            <param name="rh">a callback for tracking row set of header column informations</param>
+            <param name="batchHeader">a callback for tracking returning batch start error messages</param>
+            <param name="vPInfo">a given array of parameter informations which may be empty to some of database management systems</param>
+            <param name="plan">a value for computing how included transactions should be rollback</param>
+            <param name="discarded">a callback for tracking socket closed or request canceled event</param>
+            <param name="delimiter">a case-sensitive delimiter string used for separating the batch SQL statements into individual SQL statements at server side for processing</param>
+            <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.ExecuteBatch(SocketProAdapter.UDB.tagTransactionIsolation,System.String,SocketProAdapter.UDB.CDBVariantArray,SocketProAdapter.ClientSide.CAsyncDBHandler.DExecuteResult,SocketProAdapter.ClientSide.CAsyncDBHandler.DRows,SocketProAdapter.ClientSide.CAsyncDBHandler.DRowsetHeader,SocketProAdapter.ClientSide.CAsyncDBHandler.DRowsetHeader,SocketProAdapter.UDB.CParameterInfo[],SocketProAdapter.UDB.tagRollbackPlan,SocketProAdapter.ClientSide.CAsyncServiceHandler.DDiscarded,System.String,System.Boolean)">
+            <summary>
+            Execute a batch of SQL statements on one single call
+            </summary>
+            <param name="isolation">a value for manual transaction isolation. Specifically, there is no manual transaction around the batch SQL statements if it is tiUnspecified</param>
+            <param name="sql">a SQL statement having a batch of individual SQL statements</param>
+            <param name="vParam">an array of parameter data which will be bounded to previously prepared parameters. The array size can be 0 if the given batch SQL statement doesn't having any prepared statement</param>
+            <param name="handler">a callback for tracking final result</param>
+            <param name="row">a callback for receiving records of data</param>
+            <param name="rh">a callback for tracking row set of header column informations</param>
+            <param name="batchHeader">a callback for tracking returning batch start error messages</param>
+            <param name="vPInfo">a given array of parameter informations which may be empty to some of database management systems</param>
+            <param name="plan">a value for computing how included transactions should be rollback</param>
+            <param name="discarded">a callback for tracking socket closed or request canceled event</param>
+            <param name="delimiter">a case-sensitive delimiter string used for separating the batch SQL statements into individual SQL statements at server side for processing</param>
+            <param name="meta">a boolean for better or more detailed column meta details such as unique, not null, primary key, and so on</param>
+            <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.ExecuteBatch(SocketProAdapter.UDB.tagTransactionIsolation,System.String,SocketProAdapter.UDB.CDBVariantArray,SocketProAdapter.ClientSide.CAsyncDBHandler.DExecuteResult,SocketProAdapter.ClientSide.CAsyncDBHandler.DRows,SocketProAdapter.ClientSide.CAsyncDBHandler.DRowsetHeader,SocketProAdapter.ClientSide.CAsyncDBHandler.DRowsetHeader,SocketProAdapter.UDB.CParameterInfo[],SocketProAdapter.UDB.tagRollbackPlan,SocketProAdapter.ClientSide.CAsyncServiceHandler.DDiscarded,System.String,System.Boolean,System.Boolean)">
+            <summary>
+            Execute a batch of SQL statements on one single call
+            </summary>
+            <param name="isolation">a value for manual transaction isolation. Specifically, there is no manual transaction around the batch SQL statements if it is tiUnspecified</param>
+            <param name="sql">a SQL statement having a batch of individual SQL statements</param>
+            <param name="vParam">an array of parameter data which will be bounded to previously prepared parameters. The array size can be 0 if the given batch SQL statement doesn't having any prepared statement</param>
+            <param name="handler">a callback for tracking final result</param>
+            <param name="row">a callback for receiving records of data</param>
+            <param name="rh">a callback for tracking row set of header column informations</param>
+            <param name="batchHeader">a callback for tracking returning batch start error messages</param>
+            <param name="vPInfo">a given array of parameter informations which may be empty to some of database management systems</param>
+            <param name="plan">a value for computing how included transactions should be rollback</param>
+            <param name="discarded">a callback for tracking socket closed or request canceled event</param>
+            <param name="delimiter">a case-sensitive delimiter string used for separating the batch SQL statements into individual SQL statements at server side for processing</param>
+            <param name="meta">a boolean for better or more detailed column meta details such as unique, not null, primary key, and so on</param>
+            <param name="lastInsertId">a boolean for last insert record identification number</param>
+            <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
+        </member>
         <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Execute(System.String)">
             <summary>
             Asynchronously process a complex SQL statement which may be combined with multiple basic SQL statements, and don't expect any data returned

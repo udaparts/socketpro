@@ -60,25 +60,8 @@ namespace SPA {
                 m_mapRowset[index] = CRowsetHandler(rh, row);
                 m_csDB.unlock();
                 sb << CatalogName << SchemaName << TableName << unique << reserved << index;
-                ResultHandler arh = [handler, this](CAsyncResult & ar) {
-                    UINT64 fail_ok;
-                    int res;
-                    std::wstring errMsg;
-                    ar >> res >> errMsg >> fail_ok;
-                    this->m_csDB.lock();
-                    this->m_lastReqId = SPA::Odbc::idSQLStatistics;
-                    this->m_affected = 0;
-                    this->m_dbErrCode = res;
-                    this->m_dbErrMsg = errMsg;
-                    auto it = this->m_mapRowset.find(this->m_indexRowset);
-                    if (it != this->m_mapRowset.end()) {
-                        this->m_mapRowset.erase(it);
-                    }
-                    this->m_csDB.unlock();
-                    if (handler) {
-                        CDBVariant vtNull;
-                        handler(*this, res, errMsg, 0, fail_ok, vtNull);
-                    }
+                ResultHandler arh = [handler, this, index](CAsyncResult & ar) {
+                    this->ProcessODBC(handler, ar, SPA::Odbc::idSQLStatistics, index);
                 };
                 if (!SendRequest(SPA::Odbc::idSQLStatistics, sb->GetBuffer(), sb->GetSize(), arh, discarded, nullptr)) {
                     m_csDB.lock();
@@ -131,6 +114,27 @@ namespace SPA {
 
         private:
 
+            void ProcessODBC(DExecuteResult handler, CAsyncResult & ar, unsigned short reqId, UINT64 index) {
+                UINT64 fail_ok;
+                int res;
+                std::wstring errMsg;
+                ar >> res >> errMsg >> fail_ok;
+                m_csDB.lock();
+                m_lastReqId = reqId;
+                m_affected = 0;
+                m_dbErrCode = res;
+                m_dbErrMsg = errMsg;
+                auto it = m_mapRowset.find(index);
+                if (it != m_mapRowset.end()) {
+                    m_mapRowset.erase(it);
+                }
+                m_csDB.unlock();
+                if (handler) {
+                    CDBVariant vtNull;
+                    handler(*this, res, errMsg, 0, fail_ok, vtNull);
+                }
+            }
+
             bool DoMeta(unsigned short id, const wchar_t *s0, const wchar_t *s1, const wchar_t *s2, DExecuteResult handler, DRows row, DRowsetHeader rh, DDiscarded discarded) {
                 UINT64 index = GetCallIndex();
                 CScopeUQueue sb;
@@ -139,25 +143,8 @@ namespace SPA {
                 m_mapRowset[index] = CRowsetHandler(rh, row);
                 m_csDB.unlock();
                 sb << s0 << s1 << s2 << index;
-                ResultHandler arh = [id, handler, this](CAsyncResult & ar) {
-                    UINT64 fail_ok;
-                    int res;
-                    std::wstring errMsg;
-                    ar >> res >> errMsg >> fail_ok;
-                    this->m_csDB.lock();
-                    this->m_lastReqId = id;
-                    this->m_affected = 0;
-                    this->m_dbErrCode = res;
-                    this->m_dbErrMsg = errMsg;
-                    auto it = this->m_mapRowset.find(this->m_indexRowset);
-                    if (it != this->m_mapRowset.end()) {
-                        this->m_mapRowset.erase(it);
-                    }
-                    this->m_csDB.unlock();
-                    if (handler) {
-                        CDBVariant vtNull;
-                        handler(*this, res, errMsg, 0, fail_ok, vtNull);
-                    }
+                ResultHandler arh = [id, handler, this, index](CAsyncResult & ar) {
+                    this->ProcessODBC(handler, ar, id, index);
                 };
                 if (!SendRequest(id, sb->GetBuffer(), sb->GetSize(), arh, discarded, nullptr)) {
                     m_csDB.lock();
@@ -176,25 +163,8 @@ namespace SPA {
                 m_mapRowset[index] = CRowsetHandler(rh, row);
                 m_csDB.unlock();
                 sb << s0 << s1 << s2 << s3 << index;
-                ResultHandler arh = [id, handler, this](CAsyncResult & ar) {
-                    UINT64 fail_ok;
-                    int res;
-                    std::wstring errMsg;
-                    ar >> res >> errMsg >> fail_ok;
-                    this->m_csDB.lock();
-                    this->m_lastReqId = id;
-                    this->m_affected = 0;
-                    this->m_dbErrCode = res;
-                    this->m_dbErrMsg = errMsg;
-                    auto it = this->m_mapRowset.find(this->m_indexRowset);
-                    if (it != this->m_mapRowset.end()) {
-                        this->m_mapRowset.erase(it);
-                    }
-                    this->m_csDB.unlock();
-                    if (handler) {
-                        CDBVariant vtNull;
-                        handler(*this, res, errMsg, 0, fail_ok, vtNull);
-                    }
+                ResultHandler arh = [id, handler, this, index](CAsyncResult & ar) {
+                    this->ProcessODBC(handler, ar, id, index);
                 };
                 if (!SendRequest(id, sb->GetBuffer(), sb->GetSize(), arh, discarded, nullptr)) {
                     m_csDB.lock();
@@ -214,25 +184,8 @@ namespace SPA {
                 m_mapRowset[index] = CRowsetHandler(rh, row);
                 m_csDB.unlock();
                 sb << t0 << s0 << s1 << s2 << t1 << t2 << index;
-                ResultHandler arh = [id, handler, this](CAsyncResult & ar) {
-                    UINT64 fail_ok;
-                    int res;
-                    std::wstring errMsg;
-                    ar >> res >> errMsg >> fail_ok;
-                    this->m_csDB.lock();
-                    this->m_lastReqId = id;
-                    this->m_affected = 0;
-                    this->m_dbErrCode = res;
-                    this->m_dbErrMsg = errMsg;
-                    auto it = this->m_mapRowset.find(this->m_indexRowset);
-                    if (it != this->m_mapRowset.end()) {
-                        this->m_mapRowset.erase(it);
-                    }
-                    this->m_csDB.unlock();
-                    if (handler) {
-                        CDBVariant vtNull;
-                        handler(*this, res, errMsg, 0, fail_ok, vtNull);
-                    }
+                ResultHandler arh = [id, handler, this, index](CAsyncResult & ar) {
+                    this->ProcessODBC(handler, ar, id, index);
                 };
                 if (!SendRequest(id, sb->GetBuffer(), sb->GetSize(), arh, discarded, nullptr)) {
                     m_csDB.lock();

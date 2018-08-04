@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configurationDescriptor version="95">
+  <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
+    <logicalFolder name="HeaderFiles"
+                   displayName="Header Files"
+                   projectFiles="true">
+      <itemPath>../../../include/aserverw.h</itemPath>
+      <itemPath>../../../include/membuffer.h</itemPath>
+      <itemPath>../../../include/sqlite/server_impl/sqlite3.h</itemPath>
+      <itemPath>../../../include/sqlite/server_impl/sqliteimpl.h</itemPath>
+      <itemPath>../../../include/udatabase.h</itemPath>
+      <itemPath>../../../include/sqlite/usqlite.h</itemPath>
+      <itemPath>../../../include/sqlite/usqlite_server.h</itemPath>
+    </logicalFolder>
+    <logicalFolder name="ResourceFiles"
+                   displayName="Resource Files"
+                   projectFiles="true">
+    </logicalFolder>
+    <logicalFolder name="SourceFiles"
+                   displayName="Source Files"
+                   projectFiles="true">
+      <itemPath>../../../include/aserverw.cpp</itemPath>
+      <itemPath>../../../include/membuffer.cpp</itemPath>
+      <itemPath>../../../include/sqlite/server_impl/sqlite3.c</itemPath>
+      <itemPath>../../../include/sqlite/server_impl/sqliteimpl.cpp</itemPath>
+      <itemPath>../../../include/sqlite/server_impl/ssqlite.cpp</itemPath>
+    </logicalFolder>
+    <logicalFolder name="TestFiles"
+                   displayName="Test Files"
+                   projectFiles="false"
+                   kind="TEST_LOGICAL_FOLDER">
+    </logicalFolder>
+    <logicalFolder name="ExternalFiles"
+                   displayName="Important Files"
+                   projectFiles="false"
+                   kind="IMPORTANT_FILES_FOLDER">
+      <itemPath>Makefile</itemPath>
+    </logicalFolder>
+  </logicalFolder>
+  <projectmakefile>Makefile</projectmakefile>
+  <confs>
+    <conf name="Debug" type="2">
+      <toolsSet>
+        <compilerSet>default</compilerSet>
+        <dependencyChecking>true</dependencyChecking>
+        <rebuildPropChanged>false</rebuildPropChanged>
+      </toolsSet>
+      <compileType>
+        <cTool>
+          <commandLine>-std=c++11 -static-libgcc -static-libstdc++ -Wall</commandLine>
+          <preprocessorList>
+            <Elem>HAVE_GMTIME_R</Elem>
+            <Elem>HAVE_LOCALTIME_S</Elem>
+            <Elem>SQLITE_DEFAULT_FOREIGN_KEYS=1</Elem>
+            <Elem>SQLITE_ENABLE_COLUMN_METADATA</Elem>
+            <Elem>SQLITE_ENABLE_FTS4</Elem>
+            <Elem>SQLITE_ENABLE_JSON1</Elem>
+            <Elem>SQLITE_ENABLE_RTREE</Elem>
+            <Elem>SQLITE_OMIT_LOOKASIDE</Elem>
+            <Elem>SQLITE_THREADSAFE=1</Elem>
+          </preprocessorList>
+        </cTool>
+        <ccTool>
+          <commandLine>-std=c++11 -static-libgcc -static-libstdc++ -Wall</commandLine>
+          <preprocessorList>
+            <Elem>HAVE_GMTIME_R</Elem>
+            <Elem>HAVE_LOCALTIME_S</Elem>
+            <Elem>SQLITE_DEFAULT_FOREIGN_KEYS=1</Elem>
+            <Elem>SQLITE_ENABLE_COLUMN_METADATA</Elem>
+            <Elem>SQLITE_ENABLE_FTS4</Elem>
+            <Elem>SQLITE_ENABLE_JSON1</Elem>
+            <Elem>SQLITE_ENABLE_RTREE</Elem>
+            <Elem>SQLITE_OMIT_LOOKASIDE</Elem>
+            <Elem>SQLITE_THREADSAFE=1</Elem>
+          </preprocessorList>
+        </ccTool>
+        <linkerTool>
+          <commandlineTool>g++</commandlineTool>
+          <linkerLibItems>
+            <linkerLibLibItem>uservercore</linkerLibLibItem>
+          </linkerLibItems>
+          <commandLine>-std=c++11 -static-libgcc -static-libstdc++</commandLine>
+        </linkerTool>
+      </compileType>
+      <item path="../../../include/aserverw.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="../../../include/aserverw.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../include/membuffer.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="../../../include/membuffer.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../include/sqlite/server_impl/sqlite3.c"
+            ex="false"
+            tool="0"
+            flavor2="0">
+      </item>
+      <item path="../../../include/sqlite/server_impl/sqlite3.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../../include/sqlite/server_impl/sqliteimpl.cpp"
+            ex="false"
+            tool="0"
+            flavor2="0">
+      </item>
+      <item path="../../../include/sqlite/server_impl/sqliteimpl.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../../include/sqlite/server_impl/ssqlite.cpp"
+            ex="false"
+            tool="0"
+            flavor2="0">
+      </item>
+      <item path="../../../include/sqlite/usqlite.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../include/sqlite/usqlite_server.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../../include/udatabase.h" ex="false" tool="3" flavor2="0">
+      </item>
+    </conf>
+    <conf name="Release" type="2">
+      <toolsSet>
+        <compilerSet>default</compilerSet>
+        <dependencyChecking>true</dependencyChecking>
+        <rebuildPropChanged>false</rebuildPropChanged>
+      </toolsSet>
+      <compileType>
+        <cTool>
+          <developmentMode>5</developmentMode>
+          <stripSymbols>true</stripSymbols>
+          <commandLine>-std=c++11 -static-libgcc -static-libstdc++</commandLine>
+          <preprocessorList>
+            <Elem>HAVE_GMTIME_R</Elem>
+            <Elem>HAVE_LOCALTIME_S</Elem>
+            <Elem>NDEBUG</Elem>
+            <Elem>SQLITE_DEFAULT_FOREIGN_KEYS=1</Elem>
+            <Elem>SQLITE_ENABLE_COLUMN_METADATA</Elem>
+            <Elem>SQLITE_ENABLE_FTS4</Elem>
+            <Elem>SQLITE_ENABLE_JSON1</Elem>
+            <Elem>SQLITE_ENABLE_RTREE</Elem>
+            <Elem>SQLITE_OMIT_LOOKASIDE</Elem>
+            <Elem>SQLITE_THREADSAFE=1</Elem>
+          </preprocessorList>
+        </cTool>
+        <ccTool>
+          <developmentMode>5</developmentMode>
+          <stripSymbols>true</stripSymbols>
+          <commandLine>-std=c++11 -static-libgcc -static-libstdc++</commandLine>
+          <preprocessorList>
+            <Elem>HAVE_GMTIME_R</Elem>
+            <Elem>HAVE_LOCALTIME_S</Elem>
+            <Elem>NDEBUG</Elem>
+            <Elem>SQLITE_DEFAULT_FOREIGN_KEYS=1</Elem>
+            <Elem>SQLITE_ENABLE_COLUMN_METADATA</Elem>
+            <Elem>SQLITE_ENABLE_FTS4</Elem>
+            <Elem>SQLITE_ENABLE_JSON1</Elem>
+            <Elem>SQLITE_ENABLE_RTREE</Elem>
+            <Elem>SQLITE_OMIT_LOOKASIDE</Elem>
+            <Elem>SQLITE_THREADSAFE=1</Elem>
+          </preprocessorList>
+        </ccTool>
+        <fortranCompilerTool>
+          <developmentMode>5</developmentMode>
+        </fortranCompilerTool>
+        <asmTool>
+          <developmentMode>5</developmentMode>
+        </asmTool>
+        <linkerTool>
+          <stripSymbols>true</stripSymbols>
+          <commandlineTool>g++</commandlineTool>
+          <linkerLibItems>
+            <linkerLibLibItem>uservercore</linkerLibLibItem>
+          </linkerLibItems>
+          <commandLine>-std=c++11 -static-libgcc -static-libstdc++</commandLine>
+        </linkerTool>
+      </compileType>
+      <item path="../../../include/aserverw.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="../../../include/aserverw.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../include/membuffer.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="../../../include/membuffer.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../include/sqlite/server_impl/sqlite3.c"
+            ex="false"
+            tool="0"
+            flavor2="0">
+      </item>
+      <item path="../../../include/sqlite/server_impl/sqlite3.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../../include/sqlite/server_impl/sqliteimpl.cpp"
+            ex="false"
+            tool="0"
+            flavor2="0">
+      </item>
+      <item path="../../../include/sqlite/server_impl/sqliteimpl.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../../include/sqlite/server_impl/ssqlite.cpp"
+            ex="false"
+            tool="0"
+            flavor2="0">
+      </item>
+      <item path="../../../include/sqlite/usqlite.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../include/sqlite/usqlite_server.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../../include/udatabase.h" ex="false" tool="3" flavor2="0">
+      </item>
+    </conf>
+  </confs>
+</configurationDescriptor>

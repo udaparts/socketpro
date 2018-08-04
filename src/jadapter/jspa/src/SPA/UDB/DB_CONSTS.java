@@ -1,6 +1,7 @@
 package SPA.UDB;
 
 public class DB_CONSTS {
+
     /**
      * Async database client/server just requires the following request
      * identification numbers
@@ -34,6 +35,10 @@ public class DB_CONSTS {
     public static final short idCallReturn = idEndRows + 1;
 
     public static final short idGetCachedTables = idCallReturn + 1;
+
+    public static final short idSqlBatchHeader = idGetCachedTables + 1;
+    public static final short idExecuteBatch = idSqlBatchHeader + 1;
+    public static final short idParameterPosition = idExecuteBatch + 1;
 
     /**
      * Whenever a data size in bytes is about twice larger than the defined

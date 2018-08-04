@@ -110,6 +110,9 @@ public static class SQLConfig
                 case "working_directory":
                     m_WorkingDirectory = value;
                     break;
+                case "odbcdriver":
+                    m_odbc = value;
+                    break;
                 default:
                     break; //ignored
             }
@@ -137,7 +140,7 @@ public static class SQLConfig
                     reader.Close();
                 conn.Close();
             }
-        }
+        } 
     }
 
     private static string m_server = Environment.MachineName;
@@ -229,5 +232,13 @@ public static class SQLConfig
             return m_Param;
         }
     }
-}
 
+    private static string m_odbc = "{SQL Server Native Client 11.0}";
+    public static string ODBCDriver
+    {
+        get
+        {
+            return m_odbc;
+        }
+    }
+}

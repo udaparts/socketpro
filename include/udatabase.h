@@ -124,6 +124,10 @@ namespace SPA {
 
         static const unsigned short idGetCachedTables = idCallReturn + 1;
 
+        static const unsigned short idSqlBatchHeader = idGetCachedTables + 1;
+        static const unsigned short idExecuteBatch = idSqlBatchHeader + 1;
+        static const unsigned short idParameterPosition = idExecuteBatch + 1;
+
         /**
          * Whenever a data size in bytes is about twice larger than the defined value,
          * the data will be treated in large object and transferred in chunks for reducing memory foot print

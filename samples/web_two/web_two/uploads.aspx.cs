@@ -18,18 +18,13 @@ namespace web_two {
         private Task<string> DoInserts(CDBVariantArray v) {
             TaskCompletionSource<string> tcs = new TaskCompletionSource<string>();
             var handler = Global.Master.LockByMyAlgorithm(6000); //6 seconds
-            string s = ""; bool ok = handler.BeginTrans(); //start streaming multiple requests
-            ok = handler.Prepare("INSERT INTO mysample.EMPLOYEE(CompanyId, Name, JoinDate)VALUES(?,?,?)");
-            ok = handler.Execute(v, (h, res, errMsg, affected, fail_ok, vtId) => {
-                if (res != 0) s = errMsg;
-                else s = "Last employeeid=" + vtId.ToString();
-            });
-            ok = handler.EndTrans(tagRollbackPlan.rpRollbackErrorAll, (h, res, errMsg) => {
-                if (res != 0) s = errMsg;
-                try {
-                    tcs.SetResult(s);
-                } catch(System.Exception) { } //exception may happen when there is master auto reconnection
-            });
+            bool ok = handler.ExecuteBatch(tagTransactionIsolation.tiReadCommited,
+                "INSERT INTO mysample.EMPLOYEE(CompanyId,Name,JoinDate)VALUES(?,?,?)",
+                v, (h, res, errMsg, affected, fail_ok, vtId) => {
+                    try {
+                        tcs.SetResult((res != 0) ? errMsg : "Last employeeid=" + vtId.ToString());
+                    } finally { }
+                });
             if (!handler.AttachedClientSocket.Connected)
                 tcs.SetResult("No session to master DB now but request is safely saved for processing later");
             Global.Master.UnlockByMyAlgorithm(handler); //put handler back into pool for reuse

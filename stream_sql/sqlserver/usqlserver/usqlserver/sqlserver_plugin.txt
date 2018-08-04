@@ -29,7 +29,8 @@ INSERT INTO config VALUES('usql_streaming_last_error','')
 GO
 INSERT INTO config VALUES('working_directory','C:\ProgramData\MSSQL\')
 GO
-
+INSERT INTO config VALUES('odbcdriver','{SQL Server Native Client 11.0}')
+GO
 sp_configure 'clr enabled', 1
 GO
 

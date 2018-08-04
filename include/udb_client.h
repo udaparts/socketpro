@@ -21,7 +21,7 @@ namespace SPA {
             : CAsyncServiceHandler(sid, cs),
             m_affected(-1), m_dbErrCode(0), m_lastReqId(0),
             m_indexRowset(0), m_indexProc(0), m_ms(msUnknown), m_flags(0),
-            m_parameters(0), m_outputs(0), m_bCallReturn(false), m_queueOk(false) {
+            m_parameters(0), m_outputs(0), m_bCallReturn(false), m_queueOk(false), m_nParamPos(0) {
                 m_Blob.Utf8ToW(true);
             }
 
@@ -31,7 +31,7 @@ namespace SPA {
             : CAsyncServiceHandler(serviceId, cs),
             m_affected(-1), m_dbErrCode(0), m_lastReqId(0),
             m_indexRowset(0), m_indexProc(0), m_ms(msUnknown), m_flags(0),
-            m_parameters(0), m_outputs(0), m_bCallReturn(false), m_queueOk(false) {
+            m_parameters(0), m_outputs(0), m_bCallReturn(false), m_queueOk(false), m_nParamPos(0) {
                 m_Blob.Utf8ToW(true);
             }
 
@@ -245,6 +245,76 @@ namespace SPA {
         public:
 
             /**
+             * Execute a batch of SQL statements on one single call
+             * @param isolation a value for manual transaction isolation. Specifically, there is no manual transaction around the batch SQL statements if it is tiUnspecified
+             * @param sql a SQL statement having a batch of individual SQL statements
+             * @param vParam an array of parameter data which will be bounded to previously prepared parameters. The array size can be 0 if the given batch SQL statement doesn't having any prepared statement
+             * @param handler a callback for tracking final result
+             * @param row a callback for receiving records of data
+             * @param rh a callback for tracking row set of header column informations
+             * @param batchHeader a callback for tracking returning batch start error messages
+             * @param vPInfo a given array of parameter informations which may be empty to some of database management systems
+             * @param plan a value for computing how included transactions should be rollback
+             * @param discarded a callback for tracking socket closed or request canceled event
+             * @param delimiter a case-sensitive delimiter string used for separating the batch SQL statements into individual SQL statements at server side for processing
+             * @param meta a boolean for better or more detailed column meta details such as unique, not null, primary key, and so on
+             * @param lastInsertId a boolean for last insert record identification number
+             * @return true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
+             */
+            virtual bool ExecuteBatch(tagTransactionIsolation isolation, const wchar_t *sql, CDBVariantArray &vParam = CDBVariantArray(),
+                    DExecuteResult handler = nullptr, DRows row = nullptr, DRowsetHeader rh = nullptr, DRowsetHeader batchHeader = nullptr,
+                    const CParameterInfoArray& vPInfo = CParameterInfoArray(), tagRollbackPlan plan = rpDefault, DDiscarded discarded = nullptr,
+                    const wchar_t *delimiter = L";", bool meta = true, bool lastInsertId = true) {
+                bool rowset = (rh || row) ? true : false;
+                if (!rowset) {
+                    meta = false;
+                }
+                CScopeUQueue sb;
+                sb << sql << delimiter << (int) isolation << (int) plan << rowset << meta << lastInsertId;
+
+                UINT64 callIndex;
+                bool queueOk = false;
+
+                //make sure all parameter data sending and ExecuteParameters sending as one combination sending
+                //to avoid possible request sending overlapping within multiple threading environment
+                CAutoLock alOne(m_csOneSending);
+                if (vParam.size())
+                    queueOk = GetAttachedClientSocket()->GetClientQueue().StartJob();
+                {
+                    if (!SendParametersData(vParam)) {
+                        Clean();
+                        return false;
+                    }
+                    callIndex = GetCallIndex();
+                    //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock 
+                    //in case a client asynchronously sends lots of requests without use of client side queue.
+                    CAutoLock al(m_csDB);
+                    if (rowset) {
+                        m_mapRowset[callIndex] = CRowsetHandler(rh, row);
+                    }
+                    m_mapParameterCall[callIndex] = &vParam;
+                    m_mapHandler[callIndex] = batchHeader;
+                    sb << m_strConnection << m_flags;
+                }
+                sb << callIndex << vPInfo;
+                ResultHandler arh = [callIndex, handler, this](CAsyncResult & ar) {
+                    this->Process(handler, ar, idExecuteBatch, callIndex);
+                };
+                if (!SendRequest(idExecuteBatch, sb->GetBuffer(), sb->GetSize(), arh, discarded, nullptr)) {
+                    CAutoLock al(m_csDB);
+                    m_mapParameterCall.erase(callIndex);
+                    if (rowset) {
+                        m_mapRowset.erase(callIndex);
+                    }
+                    m_mapHandler.erase(callIndex);
+                    return false;
+                }
+                if (queueOk)
+                    GetAttachedClientSocket()->GetClientQueue().EndJob();
+                return true;
+            }
+
+            /**
              * Process one or more sets of prepared statements with an array of parameter data asynchronously
              * @param vParam an array of parameter data which will be bounded to previously prepared parameters
              * @param handler a callback for tracking final result
@@ -252,24 +322,30 @@ namespace SPA {
              * @param rh a callback for tracking row set of header column informations
              * @param meta a boolean for better or more detailed column meta details such as unique, not null, primary key, and so on
              * @param lastInsertId a boolean for last insert record identification number
-             * @param discarded a callback for tracking socket closed or request cancelled event
+             * @param discarded a callback for tracking socket closed or request canceled event
              * @return true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
              */
-            virtual bool Execute(CDBVariantArray &vParam, DExecuteResult handler = DExecuteResult(), DRows row = DRows(), DRowsetHeader rh = DRowsetHeader(), bool meta = true, bool lastInsertId = true, DDiscarded discarded = nullptr) {
-                UINT64 callIndex;
+            virtual bool Execute(CDBVariantArray &vParam, DExecuteResult handler = DExecuteResult(), DRows row = DRows(), DRowsetHeader rh = DRowsetHeader(),
+                    bool meta = true, bool lastInsertId = true, DDiscarded discarded = nullptr) {
                 bool rowset = (rh || row) ? true : false;
                 if (!rowset) {
                     meta = false;
                 }
                 CScopeUQueue sb;
-                //make sure all parameter data sendings and ExecuteParameters sending as one combination sending
+                sb << rowset << meta << lastInsertId;
+
+                UINT64 callIndex;
+                bool queueOk = false;
+                //make sure all parameter data sending and ExecuteParameters sending as one combination sending
                 //to avoid possible request sending overlapping within multiple threading environment
                 CAutoLock alOne(m_csOneSending);
-
                 {
-                    if (!SendParametersData(vParam)) {
-                        Clean();
-                        return false;
+                    if (vParam.size()) {
+                        queueOk = GetAttachedClientSocket()->GetClientQueue().StartJob();
+                        if (!SendParametersData(vParam)) {
+                            Clean();
+                            return false;
+                        }
                     }
                     callIndex = GetCallIndex();
                     //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
@@ -279,32 +355,9 @@ namespace SPA {
                     }
                     m_mapParameterCall[callIndex] = &vParam;
                 }
-                sb << rowset << meta << lastInsertId << callIndex;
+                sb << callIndex;
                 ResultHandler arh = [callIndex, handler, this](CAsyncResult & ar) {
-                    INT64 affected;
-                    UINT64 fail_ok;
-                    int res;
-                    std::wstring errMsg;
-                    CDBVariant vtId;
-                    ar >> affected >> res >> errMsg >> vtId >> fail_ok;
-                    this->m_csDB.lock();
-                    this->m_lastReqId = idExecuteParameters;
-                    this->m_affected = affected;
-                    this->m_dbErrCode = res;
-                    this->m_dbErrMsg = errMsg;
-                    auto it = this->m_mapRowset.find(callIndex);
-                    if (it != this->m_mapRowset.end()) {
-                        this->m_mapRowset.erase(it);
-                    }
-                    this->m_indexProc = 0;
-                    auto pit = this->m_mapParameterCall.find(callIndex);
-                    if (pit != this->m_mapParameterCall.end()) {
-                        this->m_mapParameterCall.erase(pit);
-                    }
-                    this->m_csDB.unlock();
-                    if (handler) {
-                        handler(*this, res, errMsg, affected, fail_ok, vtId);
-                    }
+                    this->Process(handler, ar, idExecuteParameters, callIndex);
                 };
                 if (!SendRequest(idExecuteParameters, sb->GetBuffer(), sb->GetSize(), arh, discarded, nullptr)) {
                     CAutoLock al(m_csDB);
@@ -314,6 +367,8 @@ namespace SPA {
                     }
                     return false;
                 }
+                if (queueOk)
+                    GetAttachedClientSocket()->GetClientQueue().EndJob();
                 return true;
             }
 
@@ -325,7 +380,7 @@ namespace SPA {
              * @param rh a callback for tracking row set of header column informations
              * @param meta a boolean for better or more detailed column meta details such as unique, not null, primary key, and so on
              * @param lastInsertId a boolean for last insert record identification number
-             * @param discarded a callback for tracking socket closed or request cancelled event
+             * @param discarded a callback for tracking socket closed or request canceled event
              * @return true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
              */
             virtual bool Execute(const wchar_t* sql, DExecuteResult handler = DExecuteResult(), DRows row = DRows(), DRowsetHeader rh = DRowsetHeader(), bool meta = true, bool lastInsertId = true, DDiscarded discarded = nullptr) {
@@ -334,6 +389,7 @@ namespace SPA {
                     meta = false;
                 }
                 CScopeUQueue sb;
+                CAutoLock alOne(m_csOneSending);
                 UINT64 index = GetCallIndex();
                 {
                     //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
@@ -345,25 +401,7 @@ namespace SPA {
                 }
                 sb << sql << rowset << meta << lastInsertId << index;
                 ResultHandler arh = [index, handler, this](CAsyncResult & ar) {
-                    INT64 affected;
-                    UINT64 fail_ok;
-                    int res;
-                    std::wstring errMsg;
-                    CDBVariant vtId;
-                    ar >> affected >> res >> errMsg >> vtId >> fail_ok;
-                    this->m_csDB.lock();
-                    this->m_lastReqId = idExecute;
-                    this->m_affected = affected;
-                    this->m_dbErrCode = res;
-                    this->m_dbErrMsg = errMsg;
-                    auto it = this->m_mapRowset.find(index);
-                    if (it != this->m_mapRowset.end()) {
-                        this->m_mapRowset.erase(it);
-                    }
-                    this->m_csDB.unlock();
-                    if (handler) {
-                        handler(*this, res, errMsg, affected, fail_ok, vtId);
-                    }
+                    this->Process(handler, ar, idExecute, index);
                 };
                 if (!SendRequest(idExecute, sb->GetBuffer(), sb->GetSize(), arh, discarded, nullptr)) {
                     CAutoLock al(m_csDB);
@@ -378,7 +416,7 @@ namespace SPA {
              * @param strConnection a database connection string. The database connection string can be an empty string if its server side supports global database connection string
              * @param handler a callback for database connecting result
              * @param flags a set of flags transferred to server to indicate how to build database connection
-             * @param discarded a callback for tracking socket closed or request cancelled event
+             * @param discarded a callback for tracking socket closed or request canceled event
              * @return true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
              */
             virtual bool Open(const wchar_t* strConnection, DResult handler, unsigned int flags = 0, DDiscarded discarded = nullptr) {
@@ -400,7 +438,6 @@ namespace SPA {
                     std::wstring errMsg;
                     ar >> res >> errMsg >> ms;
                     this->m_csDB.lock();
-                    this->CleanRowset();
                     this->m_dbErrCode = res;
                     this->m_lastReqId = idOpen;
                     if (res == 0) {
@@ -433,7 +470,7 @@ namespace SPA {
              * @param sql a parameterized SQL statement
              * @param handler a callback for SQL preparing result
              * @param vParameterInfo a given array of parameter informations
-             * @param discarded a callback for tracking socket closed or request cancelled event
+             * @param discarded a callback for tracking socket closed or request canceled event
              * @return true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
              */
             virtual bool Prepare(const wchar_t *sql, DResult handler = nullptr, const CParameterInfoArray& vParameterInfo = CParameterInfoArray(), DDiscarded discarded = nullptr) {
@@ -463,7 +500,7 @@ namespace SPA {
             /**
              * Notify connected remote server to close database connection string asynchronously
              * @param handler a callback for closing result, which should be OK always as long as there is network or queue available
-             * @param discarded a callback for tracking socket closed or request cancelled event
+             * @param discarded a callback for tracking socket closed or request canceled event
              * @return true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
              */
             virtual bool Close(DResult handler = nullptr, DDiscarded discarded = nullptr) {
@@ -476,9 +513,6 @@ namespace SPA {
                     this->m_strConnection.clear();
                     this->m_dbErrCode = res;
                     this->m_dbErrMsg = errMsg;
-                    this->m_parameters = 0;
-                    this->CleanRowset();
-                    this->m_outputs = 0;
                     this->m_csDB.unlock();
                     if (handler) {
                         handler(*this, res, errMsg);
@@ -491,13 +525,31 @@ namespace SPA {
              * Start a manual transaction with a given isolation asynchronously. Note the transaction will be associated with SocketPro client message queue if available to avoid possible transaction lose
              * @param isolation a value for isolation
              * @param handler a callback for tracking its response result
-             * @param discarded a callback for tracking socket closed or request cancelled event
+             * @param discarded a callback for tracking socket closed or request canceled event
              * @return true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
              */
             virtual bool BeginTrans(tagTransactionIsolation isolation = tiReadCommited, DResult handler = nullptr, DDiscarded discarded = nullptr) {
                 unsigned int flags;
                 std::wstring connection;
                 CScopeUQueue sb;
+                ResultHandler arh = [handler, this](CAsyncResult & ar) {
+                    int res, ms;
+                    std::wstring errMsg;
+                    ar >> res >> errMsg >> ms;
+                    this->m_csDB.lock();
+                    if (res == 0) {
+                        this->m_strConnection = errMsg;
+                        errMsg.clear();
+                    }
+                    this->m_lastReqId = idBeginTrans;
+                    this->m_dbErrCode = res;
+                    this->m_dbErrMsg = errMsg;
+                    this->m_ms = (tagManagementSystem) ms;
+                    this->m_csDB.unlock();
+                    if (handler) {
+                        handler(*this, res, errMsg);
+                    }
+                };
 
                 //make sure BeginTrans sending and underlying client persistent message queue as one combination sending
                 //to avoid possible request sending/client message writing overlapping within multiple threading environment
@@ -512,39 +564,16 @@ namespace SPA {
                 }
 
                 sb << (int) isolation << connection << flags;
-                ResultHandler arh = [handler, this](CAsyncResult & ar) {
-                    int res, ms;
-                    std::wstring errMsg;
-                    ar >> res >> errMsg >> ms;
-                    this->m_csDB.lock();
-                    this->CleanRowset();
-                    if (res == 0) {
-                        this->m_strConnection = errMsg;
-                        errMsg.clear();
-                    }
-                    this->m_lastReqId = idBeginTrans;
-                    this->m_dbErrCode = res;
-                    this->m_dbErrMsg = errMsg;
-                    this->m_ms = (tagManagementSystem) ms;
-                    this->m_csDB.unlock();
-                    if (handler) {
-                        handler(*this, res, errMsg);
-                    }
-                };
                 //associate begin transaction with underlying client persistent message queue
                 m_queueOk = GetAttachedClientSocket()->GetClientQueue().StartJob();
-                bool ok = SendRequest(idBeginTrans, sb->GetBuffer(), sb->GetSize(), arh, discarded, nullptr);
-                if (!ok && m_queueOk) {
-                    GetAttachedClientSocket()->GetClientQueue().AbortJob();
-                }
-                return ok;
+                return SendRequest(idBeginTrans, sb->GetBuffer(), sb->GetSize(), arh, discarded, nullptr);
             }
 
             /**
              * End a manual transaction with a given rollback plan. Note the transaction will be associated with SocketPro client message queue if available to avoid possible transaction lose
              * @param plan a value for computing how included transactions should be rollback
              * @param handler a callback for tracking its response result
-             * @param discarded a callback for tracking socket closed or request cancelled event
+             * @param discarded a callback for tracking socket closed or request canceled event
              * @return true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
              */
             virtual bool EndTrans(tagRollbackPlan plan = rpDefault, DResult handler = nullptr, DDiscarded discarded = nullptr) {
@@ -558,7 +587,6 @@ namespace SPA {
                     this->m_lastReqId = idEndTrans;
                     this->m_dbErrCode = res;
                     this->m_dbErrMsg = errMsg;
-                    this->CleanRowset();
                     this->m_csDB.unlock();
                     if (handler) {
                         handler(*this, res, errMsg);
@@ -582,6 +610,15 @@ namespace SPA {
 
         protected:
 
+            virtual void OnAllProcessed() {
+                CAutoLock al1(m_csDB);
+                m_vData.clear();
+                m_Blob.SetSize(0);
+                if (m_Blob.GetMaxSize() > DEFAULT_BIG_FIELD_CHUNK_SIZE) {
+                    m_Blob.ReallocBuffer(DEFAULT_BIG_FIELD_CHUNK_SIZE);
+                }
+            }
+
             virtual void OnMergeTo(CAsyncServiceHandler & to) {
                 CAsyncDBHandler &dbTo = (CAsyncDBHandler&) to;
                 CAutoLock al0(dbTo.m_csDB);
@@ -595,12 +632,53 @@ namespace SPA {
                         dbTo.m_mapParameterCall[it->first] = it->second;
                     }
                     m_mapParameterCall.clear();
-                    Clean();
+                    for (auto it = m_mapHandler.begin(), end = m_mapHandler.end(); it != end; ++it) {
+                        dbTo.m_mapHandler[it->first] = it->second;
+                    }
+                    m_mapHandler.clear();
                 }
             }
 
             virtual void OnResultReturned(unsigned short reqId, CUQueue &mc) {
                 switch (reqId) {
+                    case idParameterPosition:
+                        mc >> m_nParamPos;
+                        m_csDB.lock();
+                        m_bCallReturn = false;
+                        m_indexProc = 0;
+                        m_csDB.unlock();
+                        break;
+                    case idSqlBatchHeader:
+                    {
+                        UINT64 callIndex;
+                        int res, ms;
+                        unsigned int params;
+                        DRowsetHeader cb = nullptr;
+                        std::wstring errMsg;
+                        mc >> res >> errMsg >> ms >> params >> callIndex;
+                        {
+                            CAutoLock al(m_csDB);
+                            m_indexProc = 0;
+                            m_lastReqId = idSqlBatchHeader;
+                            m_parameters = (params & 0xffff);
+                            m_outputs = 0;
+                            if (!res) {
+                                m_strConnection = errMsg;
+                                errMsg.clear();
+                            }
+                            m_dbErrCode = res;
+                            m_dbErrMsg = errMsg;
+                            m_ms = (tagManagementSystem) ms;
+                            auto it = m_mapHandler.find(callIndex);
+                            if (it != m_mapHandler.end()) {
+                                cb = it->second;
+                            }
+                        }
+                        if (cb) {
+                            cb(*this);
+                        }
+                    }
+                        break;
                     case idRowsetHeader:
                     {
                         DRowsetHeader header;
@@ -610,14 +688,13 @@ namespace SPA {
                         }
                         m_vData.clear();
                         {
+                            unsigned int outputs = 0;
                             CAutoLock al(m_csDB);
                             mc >> m_vColInfo >> m_indexRowset;
                             if (mc.GetSize()) {
-                                mc >> m_outputs;
-                            } else {
-                                m_outputs = 0;
+                                mc >> outputs;
                             }
-                            if (!m_outputs && m_vColInfo.size()) {
+                            if (!outputs && m_vColInfo.size()) {
                                 auto it = m_mapRowset.find(m_indexRowset);
                                 if (it != m_mapRowset.end()) {
                                     header = it->second.first;
@@ -638,7 +715,7 @@ namespace SPA {
                         if (it != m_mapParameterCall.end()) {
                             //crash? make sure that vParam is valid after calling the method Execute
                             CDBVariantArray &vParam = *(it->second);
-                            size_t pos = m_parameters * m_indexProc;
+                            size_t pos = m_parameters * m_indexProc + (m_nParamPos >> 16);
                             vParam[pos] = vt;
                         }
                         m_bCallReturn = true;
@@ -687,24 +764,30 @@ namespace SPA {
                             if (Utf8ToW)
                                 mc.Utf8ToW(false);
                             if (reqId == idOutputParameter) {
-                                {
-                                    CAutoLock al(m_csDB);
+                                CAutoLock al(m_csDB);
+                                if (m_lastReqId == idSqlBatchHeader) {
+                                    if (!m_indexProc) {
+                                        m_outputs += ((unsigned int) m_vData.size() + (unsigned int) m_bCallReturn);
+                                    }
+                                } else {
                                     if (!m_outputs) {
-                                        m_outputs = (unsigned int) m_vData.size();
-                                    } else {
-                                        assert(m_outputs == (unsigned int) m_vData.size() + (unsigned int) m_bCallReturn);
+                                        m_outputs = ((unsigned int) m_vData.size() + (unsigned int) m_bCallReturn);
                                     }
-                                    auto it = m_mapParameterCall.find(m_indexRowset);
-                                    if (it != m_mapParameterCall.end()) {
-                                        //crash? make sure that vParam is valid after calling the method Execute
-                                        CDBVariantArray &vParam = *(it->second);
-                                        size_t pos = m_parameters * m_indexProc + (m_parameters - (unsigned int) m_vData.size());
-                                        for (auto start = m_vData.begin(), end = m_vData.end(); start != end; ++start, ++pos) {
-                                            vParam[pos] = std::move(*start);
-                                        }
-                                    }
-                                    ++m_indexProc;
                                 }
+                                auto it = m_mapParameterCall.find(m_indexRowset);
+                                if (it != m_mapParameterCall.cend()) {
+                                    //crash? make sure that vParam is valid after calling the method Execute
+                                    CDBVariantArray &vParam = *(it->second);
+                                    size_t pos;
+                                    if (m_lastReqId == idSqlBatchHeader)
+                                        pos = m_parameters * m_indexProc + (m_nParamPos & 0xffff) + (m_nParamPos >> 16) - (unsigned int) m_vData.size();
+                                    else
+                                        pos = m_parameters * m_indexProc + m_parameters - (unsigned int) m_vData.size();
+                                    for (auto start = m_vData.begin(), end = m_vData.end(); start != end; ++start, ++pos) {
+                                        vParam[pos] = std::move(*start);
+                                    }
+                                }
+                                ++m_indexProc;
                             } else {
                                 DRows row;
                                 {
@@ -759,11 +842,44 @@ namespace SPA {
                         break;
                 }
             }
+
         private:
 
+            void Process(DExecuteResult handler, CAsyncResult & ar, unsigned short reqId, UINT64 index) {
+                INT64 affected;
+                UINT64 fail_ok;
+                int res;
+                std::wstring errMsg;
+                CDBVariant vtId;
+                ar >> affected >> res >> errMsg >> vtId >> fail_ok;
+                {
+                    SPA::CAutoLock al(m_csDB);
+                    m_lastReqId = reqId;
+                    m_affected = affected;
+                    m_dbErrCode = res;
+                    m_dbErrMsg = errMsg;
+                    auto it = m_mapRowset.find(index);
+                    if (it != m_mapRowset.end()) {
+                        m_mapRowset.erase(it);
+                    }
+                    auto pit = m_mapParameterCall.find(index);
+                    if (pit != m_mapParameterCall.end()) {
+                        m_mapParameterCall.erase(pit);
+                    }
+                    auto ph = m_mapHandler.find(index);
+                    if (ph != m_mapHandler.end()) {
+                        this->m_mapHandler.erase(ph);
+                    }
+                }
+                if (handler) {
+                    handler(*this, res, errMsg, affected, fail_ok, vtId);
+                }
+            }
+
             void Clean() {
-                m_strConnection.clear();
                 m_mapRowset.clear();
+                m_mapParameterCall.clear();
+                m_mapHandler.clear();
                 m_vColInfo.clear();
                 m_lastReqId = 0;
                 m_Blob.SetSize(0);
@@ -771,13 +887,6 @@ namespace SPA {
                     m_Blob.ReallocBuffer(DEFAULT_BIG_FIELD_CHUNK_SIZE);
                 }
                 m_vData.clear();
-            }
-
-            void CleanRowset(unsigned int size = 0) {
-                if ((m_mapRowset.size() || m_vColInfo.size()) && GetAttachedClientSocket()->Sendable() && GetRequestsQueued() <= size && GetAttachedClientSocket()->GetClientQueue().GetMessageCount() <= size) {
-                    m_mapRowset.clear();
-                    m_vColInfo.clear();
-                }
             }
 
         protected:
@@ -803,6 +912,8 @@ namespace SPA {
             bool m_bCallReturn;
             CUCriticalSection m_csOneSending;
             bool m_queueOk;
+            std::unordered_map<UINT64, DRowsetHeader> m_mapHandler;
+            unsigned int m_nParamPos;
         };
     } //namespace ClientSide
 } //namespace SPA

@@ -90,6 +90,7 @@ namespace SPA {
             virtual void Execute(const std::wstring& sql, bool rowset, bool meta, bool lastInsertId, UINT64 index, INT64 &affected, int &res, std::wstring &errMsg, CDBVariant &vtId, UINT64 &fail_ok);
             virtual void Prepare(const std::wstring& sql, const CParameterInfoArray& params, int &res, std::wstring &errMsg, unsigned int &parameters);
             virtual void ExecuteParameters(bool rowset, bool meta, bool lastInsertId, UINT64 index, INT64 &affected, int &res, std::wstring &errMsg, CDBVariant &vtId, UINT64 &fail_ok);
+            virtual void ExecuteBatch(const std::wstring& sql, const std::wstring& delimiter, int isolation, int plan, bool rowset, bool meta, bool lastInsertId, const std::wstring &dbConn, unsigned int flags, UINT64 index, INT64 &affected, int &res, std::wstring &errMsg, CDBVariant &vtId, UINT64 &fail_ok);
 
         private:
             void ReleaseArray();
@@ -122,6 +123,9 @@ namespace SPA {
             void Clean();
             bool SubscribeForEvents(sqlite3 *db, const std::wstring &strConnection);
 
+            static std::vector<std::wstring> Split(const std::wstring &sql, const std::wstring &delimiter);
+            static size_t ComputeParameters(const std::wstring &sql);
+
             static int DoStep(sqlite3_stmt *stmt);
             static int DoFinalize(sqlite3_stmt *stmt);
             static void SetDataType(const char *str, CDBColumnInfo &info);
@@ -132,6 +136,9 @@ namespace SPA {
             static void ltrim(std::string &s);
             static void rtrim(std::string &s);
             static void trim(std::string &s);
+            static void ltrim_w(std::wstring &s);
+            static void rtrim_w(std::wstring &s);
+            static void trim_w(std::wstring &s);
             static void SetTriggers();
             static std::vector<std::pair<std::string, char> > GetKeys(sqlite3 *db, const std::string &tblName);
             static int cbGetKeys(void *p, int argc, char **argv, char **azColName);

@@ -41,7 +41,7 @@ CSvsContext WINAPI GetOneSvsContext(unsigned int serviceId) {
 }
 
 unsigned short WINAPI GetNumOfSlowRequests(unsigned int serviceId) {
-    return 7; //The service only has seven slow requests
+    return 8; //The service only has seven slow requests
 }
 
 unsigned short WINAPI GetOneSlowRequestID(unsigned int serviceId, unsigned short index) {
@@ -49,25 +49,20 @@ unsigned short WINAPI GetOneSlowRequestID(unsigned int serviceId, unsigned short
     switch (index) {
         case 0:
             return SPA::UDB::idOpen;
-            break;
         case 1:
             return SPA::UDB::idBeginTrans;
-            break;
         case 2:
             return SPA::UDB::idEndTrans;
-            break;
         case 3:
             return SPA::UDB::idExecute;
-            break;
         case 4:
             return SPA::UDB::idClose;
-            break;
         case 5:
             return SPA::UDB::idPrepare;
-            break;
         case 6:
             return SPA::UDB::idExecuteParameters;
-            break;
+        case 7:
+            return SPA::UDB::idExecuteBatch;
         default:
             break;
     }

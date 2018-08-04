@@ -1,9 +1,15 @@
 ﻿using SocketProAdapter.ClientSide;
 namespace web_two {
-    using CSql = CMysql; //point to one of CMysql, CSqlServer and CSQLite
+    using CSql = CMysql; //point to one of CMysql, COdbc+MSSQL and CSQLite
+    enum MyCase {
+        mcSlaveWithClientQueue = 0,
+        mcMasterWithClientQueue = 1,
+        mcMasterWithoutClientQueue = 2
+    }
     public class Global : System.Web.HttpApplication {
         public static SPA.CMyMaster Master = null;
-        public static SPA.CMySlave Slave = null;
+        public static SPA.CMyMaster.CSlavePool Slave = null;
+        public static SPA.CMyMaster.CSlavePool MasterNotQueued = null;
         public static SPA.CConfig Config = new SPA.CConfig();
         public static SocketProAdapter.CDataSet Cache {
             get {
@@ -17,10 +23,12 @@ namespace web_two {
         protected void Application_End(object sender, System.EventArgs e) {
             if (Slave != null) Slave.ShutdownPool();
             if (Master != null) Master.ShutdownPool();
+            if (MasterNotQueued != null) MasterNotQueued.ShutdownPool();
         }
         private static void StartPools() {
-            StartPool(true); //start master pool
-            StartPool(false); //start slave pool
+            bool ok = StartPool(MyCase.mcMasterWithClientQueue);
+            ok = StartPool(MyCase.mcSlaveWithClientQueue);
+            ok = StartPool(MyCase.mcMasterWithoutClientQueue);
             CSql handler = Master.SeekByQueue();
             if (handler != null) { //create a test database
                 string sql = @"CREATE DATABASE IF NOT EXISTS mysample character set utf8 collate utf8_general_ci;
@@ -28,20 +36,30 @@ namespace web_two {
                 CREATE TABLE EMPLOYEE(EMPLOYEEID BIGINT PRIMARY KEY AUTO_INCREMENT,CompanyId BIGINT NOT NULL,Name NCHAR(64)
                 NOT NULL,JoinDate DATETIME(6)DEFAULT NULL,FOREIGN KEY(CompanyId)REFERENCES COMPANY(id));USE sakila;
                 INSERT INTO mysample.COMPANY(ID,Name)VALUES(1,'Google Inc.'),(2,'Microsoft Inc.'),(3,'Amazon Inc.')";
-                bool ok = handler.Execute(sql);
+                ok = handler.Execute(sql);
             }
         }
-        private static bool StartPool(bool master) {
+        private static bool StartPool(MyCase mc) {
             uint threads, sessions_per_host; bool ok = false;
-            System.Collections.Generic.List<CConnectionContext> Hosts; CSocketPool<CSql> pool;
-            if (master) {
-                Master = new SPA.CMyMaster(Config.Master.DefaultDB, false, Config.Master.RecvTimeout);
-                Master.QueueName = "qmaster"; pool = Master; threads = Config.Master.Threads;
-                sessions_per_host = Config.Master.Sessions_Per_Host; Hosts = Config.Master.Hosts;
-            } else {
-                Slave = new SPA.CMySlave(Config.Slave.DefaultDB, Config.Slave.RecvTimeout);
-                Slave.QueueName = "qslave"; pool = Slave; threads = Config.Slave.Threads;
-                sessions_per_host = Config.Slave.Sessions_Per_Host; Hosts = Config.Slave.Hosts;
+            System.Collections.Generic.List<CConnectionContext> Hosts; CSocketPool<CSql> pool = null;
+            switch (mc) {
+                case MyCase.mcMasterWithClientQueue:
+                    Master = new SPA.CMyMaster(Config.Master.DefaultDB, false, Config.Master.RecvTimeout);
+                    Master.QueueName = "qmaster"; pool = Master; threads = Config.Master.Threads;
+                    sessions_per_host = Config.Master.Sessions_Per_Host; Hosts = Config.Master.Hosts;
+                    break;
+                case MyCase.mcSlaveWithClientQueue:
+                    Slave = new SPA.CMyMaster.CSlavePool(Config.Slave.DefaultDB, Config.Slave.RecvTimeout);
+                    Slave.QueueName = "qslave"; pool = Slave; threads = Config.Slave.Threads;
+                    sessions_per_host = Config.Slave.Sessions_Per_Host; Hosts = Config.Slave.Hosts;
+                    break;
+                case MyCase.mcMasterWithoutClientQueue:
+                    MasterNotQueued = new SPA.CMyMaster.CSlavePool(Config.Master.DefaultDB, Config.Master.RecvTimeout);
+                    pool = MasterNotQueued; threads = Config.Master.Threads;
+                    sessions_per_host = Config.Master.Sessions_Per_Host; Hosts = Config.Master.Hosts;
+                    break;
+                default:
+                    throw new System.NotImplementedException("Not implemented");
             }
             pool.DoSslServerAuthentication += (sender, cs) => {
                 int errCode; string res = cs.UCert.Verify(out errCode);
@@ -55,8 +73,8 @@ namespace web_two {
                         for (uint n = 0; n < sessions_per_host; ++n)
                             ppCC[i, j * sessions_per_host + n] = Hosts[(int)j];
                 ok = pool.StartSocketPool(ppCC);
-                //no automatcally merging requests saved in local/client message queue files in case master or one host
-                if (Hosts.Count < 2 || master) pool.QueueAutoMerge = false;
+                //not automatcally merge requests saved in local/client message queue files in case there is one host only
+                if (Hosts.Count < 2) pool.QueueAutoMerge = false;
             }
             return ok;
         }

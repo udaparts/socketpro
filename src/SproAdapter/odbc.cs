@@ -2,16 +2,12 @@
 using System;
 using System.Collections.Generic;
 
-namespace SocketProAdapter
-{
-    namespace ClientSide
-    {
-        public class COdbc : CAsyncDBHandler
-        {
+namespace SocketProAdapter {
+    namespace ClientSide {
+        public class COdbc : CAsyncDBHandler {
             public const uint sidOdbc = SocketProAdapter.BaseServiceID.sidODBC; //asynchronous ODBC service id
             public COdbc()
-                : base(sidOdbc)
-            {
+                : base(sidOdbc) {
             }
 
             /// <summary>
@@ -19,8 +15,7 @@ namespace SocketProAdapter
             /// </summary>
             /// <param name="sid">A service id</param>
             protected COdbc(uint sid)
-                : base(sid)
-            {
+                : base(sid) {
 
             }
 
@@ -56,120 +51,85 @@ namespace SocketProAdapter
 
             private Dictionary<ushort, object> m_mapInfo = new Dictionary<ushort, object>();
 
-            public object GetInfo(ushort infoType)
-            {
-                lock (m_csDB)
-                {
+            public object GetInfo(ushort infoType) {
+                lock (m_csDB) {
                     if (m_mapInfo.ContainsKey(infoType))
                         return m_mapInfo[infoType];
                     return null;
                 }
             }
 
-            public bool ColumnPrivileges(string CatalogName, string SchemaName, string TableName, string ColumnName, DExecuteResult handler, DRows row, DRowsetHeader rh)
-            {
+            public bool ColumnPrivileges(string CatalogName, string SchemaName, string TableName, string ColumnName, DExecuteResult handler, DRows row, DRowsetHeader rh) {
                 return DoMeta(idSQLColumnPrivileges, CatalogName, SchemaName, TableName, ColumnName, handler, row, rh, null);
             }
 
-            public bool ColumnPrivileges(string CatalogName, string SchemaName, string TableName, string ColumnName, DExecuteResult handler, DRows row, DRowsetHeader rh, DDiscarded discarded)
-            {
+            public bool ColumnPrivileges(string CatalogName, string SchemaName, string TableName, string ColumnName, DExecuteResult handler, DRows row, DRowsetHeader rh, DDiscarded discarded) {
                 return DoMeta(idSQLColumnPrivileges, CatalogName, SchemaName, TableName, ColumnName, handler, row, rh, discarded);
             }
 
-            public bool Columns(string CatalogName, string SchemaName, string TableName, string ColumnName, DExecuteResult handler, DRows row, DRowsetHeader rh)
-            {
+            public bool Columns(string CatalogName, string SchemaName, string TableName, string ColumnName, DExecuteResult handler, DRows row, DRowsetHeader rh) {
                 return DoMeta(idSQLColumns, CatalogName, SchemaName, TableName, ColumnName, handler, row, rh, null);
             }
 
-            public bool Columns(string CatalogName, string SchemaName, string TableName, string ColumnName, DExecuteResult handler, DRows row, DRowsetHeader rh, DDiscarded discarded)
-            {
+            public bool Columns(string CatalogName, string SchemaName, string TableName, string ColumnName, DExecuteResult handler, DRows row, DRowsetHeader rh, DDiscarded discarded) {
                 return DoMeta(idSQLColumns, CatalogName, SchemaName, TableName, ColumnName, handler, row, rh, discarded);
             }
 
-            public bool ProcedureColumns(string CatalogName, string SchemaName, string ProcName, string ColumnName, DExecuteResult handler, DRows row, DRowsetHeader rh)
-            {
+            public bool ProcedureColumns(string CatalogName, string SchemaName, string ProcName, string ColumnName, DExecuteResult handler, DRows row, DRowsetHeader rh) {
                 return DoMeta(idSQLProcedureColumns, CatalogName, SchemaName, ProcName, ColumnName, handler, row, rh, null);
             }
 
-            public bool ProcedureColumns(string CatalogName, string SchemaName, string ProcName, string ColumnName, DExecuteResult handler, DRows row, DRowsetHeader rh, DDiscarded discarded)
-            {
+            public bool ProcedureColumns(string CatalogName, string SchemaName, string ProcName, string ColumnName, DExecuteResult handler, DRows row, DRowsetHeader rh, DDiscarded discarded) {
                 return DoMeta(idSQLProcedureColumns, CatalogName, SchemaName, ProcName, ColumnName, handler, row, rh, discarded);
             }
 
-            public bool PrimaryKeys(string CatalogName, string SchemaName, string TableName, DExecuteResult handler, DRows row, DRowsetHeader rh)
-            {
+            public bool PrimaryKeys(string CatalogName, string SchemaName, string TableName, DExecuteResult handler, DRows row, DRowsetHeader rh) {
                 return DoMeta(idSQLPrimaryKeys, CatalogName, SchemaName, TableName, handler, row, rh, null);
             }
 
-            public bool PrimaryKeys(string CatalogName, string SchemaName, string TableName, DExecuteResult handler, DRows row, DRowsetHeader rh, DDiscarded discarded)
-            {
+            public bool PrimaryKeys(string CatalogName, string SchemaName, string TableName, DExecuteResult handler, DRows row, DRowsetHeader rh, DDiscarded discarded) {
                 return DoMeta(idSQLPrimaryKeys, CatalogName, SchemaName, TableName, handler, row, rh, discarded);
             }
 
-            public bool TablePrivileges(string CatalogName, string SchemaName, string TableName, DExecuteResult handler, DRows row, DRowsetHeader rh)
-            {
+            public bool TablePrivileges(string CatalogName, string SchemaName, string TableName, DExecuteResult handler, DRows row, DRowsetHeader rh) {
                 return DoMeta(idSQLTablePrivileges, CatalogName, SchemaName, TableName, handler, row, rh, null);
             }
 
-            public bool TablePrivileges(string CatalogName, string SchemaName, string TableName, DExecuteResult handler, DRows row, DRowsetHeader rh, DDiscarded discarded)
-            {
+            public bool TablePrivileges(string CatalogName, string SchemaName, string TableName, DExecuteResult handler, DRows row, DRowsetHeader rh, DDiscarded discarded) {
                 return DoMeta(idSQLTablePrivileges, CatalogName, SchemaName, TableName, handler, row, rh, discarded);
             }
 
-            public bool Procedures(string CatalogName, string SchemaName, string ProcName, DExecuteResult handler, DRows row, DRowsetHeader rh)
-            {
+            public bool Procedures(string CatalogName, string SchemaName, string ProcName, DExecuteResult handler, DRows row, DRowsetHeader rh) {
                 return DoMeta(idSQLProcedures, CatalogName, SchemaName, ProcName, handler, row, rh, null);
             }
 
-            public bool Procedures(string CatalogName, string SchemaName, string ProcName, DExecuteResult handler, DRows row, DRowsetHeader rh, DDiscarded discarded)
-            {
+            public bool Procedures(string CatalogName, string SchemaName, string ProcName, DExecuteResult handler, DRows row, DRowsetHeader rh, DDiscarded discarded) {
                 return DoMeta(idSQLProcedures, CatalogName, SchemaName, ProcName, handler, row, rh, discarded);
             }
 
-            public bool SpecialColumns(short identifierType, string CatalogName, string SchemaName, string TableName, short scope, short nullable, DExecuteResult handler, DRows row, DRowsetHeader rh)
-            {
+            public bool SpecialColumns(short identifierType, string CatalogName, string SchemaName, string TableName, short scope, short nullable, DExecuteResult handler, DRows row, DRowsetHeader rh) {
                 return DoMeta(idSQLSpecialColumns, identifierType, CatalogName, SchemaName, TableName, scope, nullable, handler, row, rh, null);
             }
 
-            public bool SpecialColumns(short identifierType, string CatalogName, string SchemaName, string TableName, short scope, short nullable, DExecuteResult handler, DRows row, DRowsetHeader rh, DDiscarded discarded)
-            {
+            public bool SpecialColumns(short identifierType, string CatalogName, string SchemaName, string TableName, short scope, short nullable, DExecuteResult handler, DRows row, DRowsetHeader rh, DDiscarded discarded) {
                 return DoMeta(idSQLSpecialColumns, identifierType, CatalogName, SchemaName, TableName, scope, nullable, handler, row, rh, discarded);
             }
 
-            public bool Statistics(string CatalogName, string SchemaName, string TableName, ushort unique, ushort reserved, DExecuteResult handler, DRows row, DRowsetHeader rh)
-            {
+            public bool Statistics(string CatalogName, string SchemaName, string TableName, ushort unique, ushort reserved, DExecuteResult handler, DRows row, DRowsetHeader rh) {
                 return Statistics(CatalogName, SchemaName, TableName, unique, reserved, handler, row, rh, null);
             }
 
-            public bool Statistics(string CatalogName, string SchemaName, string TableName, ushort unique, ushort reserved, DExecuteResult handler, DRows row, DRowsetHeader rh, DDiscarded discarded)
-            {
+            public bool Statistics(string CatalogName, string SchemaName, string TableName, ushort unique, ushort reserved, DExecuteResult handler, DRows row, DRowsetHeader rh, DDiscarded discarded) {
                 ulong index = GetCallIndex();
                 //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
                 //in case a client asynchronously sends lots of requests without use of client side queue.
-                lock (m_csDB)
-                {
+                lock (m_csDB) {
                     m_mapRowset[index] = new KeyValuePair<DRowsetHeader, DRows>(rh, row);
                 }
-                if (!SendRequest(idSQLStatistics, CatalogName, SchemaName, TableName, unique, reserved, index, (ar) =>
-                {
-                    ulong fail_ok;
-                    int res;
-                    string errMsg;
-                    ar.Load(out res).Load(out errMsg).Load(out fail_ok);
-                    lock (m_csDB)
-                    {
-                        m_lastReqId = idSQLStatistics;
-                        m_affected = 0;
-                        m_dbErrCode = res;
-                        m_dbErrMsg = errMsg;
-                        m_mapRowset.Remove(index);
-                    }
-                    if (handler != null)
-                        handler(this, res, errMsg, 0, fail_ok, null);
-                }, discarded, null))
-                {
-                    lock (m_csDB)
-                    {
+                if (!SendRequest(idSQLStatistics, CatalogName, SchemaName, TableName, unique, reserved, index, (ar) => {
+                    ProcessODBC(handler, ar, idSQLStatistics, index);
+                }, discarded, null)) {
+                    lock (m_csDB) {
                         m_mapRowset.Remove(index);
                     }
                     return false;
@@ -177,55 +137,49 @@ namespace SocketProAdapter
                 return true;
             }
 
-            public bool Tables(string CatalogName, string SchemaName, string TableName, string TableType, DExecuteResult handler, DRows row, DRowsetHeader rh)
-            {
+            public bool Tables(string CatalogName, string SchemaName, string TableName, string TableType, DExecuteResult handler, DRows row, DRowsetHeader rh) {
                 return DoMeta(idSQLTables, CatalogName, SchemaName, TableName, TableType, handler, row, rh, null);
             }
 
-            public bool Tables(string CatalogName, string SchemaName, string TableName, string TableType, DExecuteResult handler, DRows row, DRowsetHeader rh, DDiscarded discarded)
-            {
+            public bool Tables(string CatalogName, string SchemaName, string TableName, string TableType, DExecuteResult handler, DRows row, DRowsetHeader rh, DDiscarded discarded) {
                 return DoMeta(idSQLTables, CatalogName, SchemaName, TableName, TableType, handler, row, rh, discarded);
             }
 
-            public bool ForeignKeys(string PKCatalogName, string PKSchemaName, string PKTableName, string FKCatalogName, string FKSchemaName, string FKTableName, DExecuteResult handler, DRows row, DRowsetHeader rh)
-            {
+            public bool ForeignKeys(string PKCatalogName, string PKSchemaName, string PKTableName, string FKCatalogName, string FKSchemaName, string FKTableName, DExecuteResult handler, DRows row, DRowsetHeader rh) {
                 return DoMeta(idSQLForeignKeys, PKCatalogName, PKSchemaName, PKTableName, FKCatalogName, FKSchemaName, FKTableName, handler, row, rh, null);
             }
 
-            public bool ForeignKeys(string PKCatalogName, string PKSchemaName, string PKTableName, string FKCatalogName, string FKSchemaName, string FKTableName, DExecuteResult handler, DRows row, DRowsetHeader rh, DDiscarded discarded)
-            {
+            public bool ForeignKeys(string PKCatalogName, string PKSchemaName, string PKTableName, string FKCatalogName, string FKSchemaName, string FKTableName, DExecuteResult handler, DRows row, DRowsetHeader rh, DDiscarded discarded) {
                 return DoMeta(idSQLForeignKeys, PKCatalogName, PKSchemaName, PKTableName, FKCatalogName, FKSchemaName, FKTableName, handler, row, rh, discarded);
             }
 
-            private bool DoMeta(ushort id, string s0, string s1, string s2, string s3, DExecuteResult handler, DRows row, DRowsetHeader rh, DDiscarded discarded)
-            {
+            private void ProcessODBC(DExecuteResult handler, CAsyncResult ar, ushort reqId, ulong index) {
+                ulong fail_ok;
+                int res;
+                string errMsg;
+                ar.Load(out res).Load(out errMsg).Load(out fail_ok);
+                lock (m_csDB) {
+                    m_lastReqId = reqId;
+                    m_affected = 0;
+                    m_dbErrCode = res;
+                    m_dbErrMsg = errMsg;
+                    m_mapRowset.Remove(index);
+                }
+                if (handler != null)
+                    handler(this, res, errMsg, 0, fail_ok, null);
+            }
+
+            private bool DoMeta(ushort id, string s0, string s1, string s2, string s3, DExecuteResult handler, DRows row, DRowsetHeader rh, DDiscarded discarded) {
                 ulong index = GetCallIndex();
                 //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
                 //in case a client asynchronously sends lots of requests without use of client side queue.
-                lock (m_csDB)
-                {
+                lock (m_csDB) {
                     m_mapRowset[index] = new KeyValuePair<DRowsetHeader, DRows>(rh, row);
                 }
-                if (!SendRequest(id, s0, s1, s2, s3, index, (ar) =>
-                {
-                    ulong fail_ok;
-                    int res;
-                    string errMsg;
-                    ar.Load(out res).Load(out errMsg).Load(out fail_ok);
-                    lock (m_csDB)
-                    {
-                        m_lastReqId = id;
-                        m_affected = 0;
-                        m_dbErrCode = res;
-                        m_dbErrMsg = errMsg;
-                        m_mapRowset.Remove(index);
-                    }
-                    if (handler != null)
-                        handler(this, res, errMsg, 0, fail_ok, null);
-                }, discarded, null))
-                {
-                    lock (m_csDB)
-                    {
+                if (!SendRequest(id, s0, s1, s2, s3, index, (ar) => {
+                    ProcessODBC(handler, ar, id, index);
+                }, discarded, null)) {
+                    lock (m_csDB) {
                         m_mapRowset.Remove(index);
                     }
                     return false;
@@ -233,35 +187,17 @@ namespace SocketProAdapter
                 return true;
             }
 
-            private bool DoMeta(ushort id, string s0, string s1, string s2, DExecuteResult handler, DRows row, DRowsetHeader rh, DDiscarded discarded)
-            {
+            private bool DoMeta(ushort id, string s0, string s1, string s2, DExecuteResult handler, DRows row, DRowsetHeader rh, DDiscarded discarded) {
                 ulong index = GetCallIndex();
                 //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
                 //in case a client asynchronously sends lots of requests without use of client side queue.
-                lock (m_csDB)
-                {
+                lock (m_csDB) {
                     m_mapRowset[index] = new KeyValuePair<DRowsetHeader, DRows>(rh, row);
                 }
-                if (!SendRequest(id, s0, s1, s2, index, (ar) =>
-                {
-                    ulong fail_ok;
-                    int res;
-                    string errMsg;
-                    ar.Load(out res).Load(out errMsg).Load(out fail_ok);
-                    lock (m_csDB)
-                    {
-                        m_lastReqId = id;
-                        m_affected = 0;
-                        m_dbErrCode = res;
-                        m_dbErrMsg = errMsg;
-                        m_mapRowset.Remove(index);
-                    }
-                    if (handler != null)
-                        handler(this, res, errMsg, 0, fail_ok, null);
-                }, discarded, null))
-                {
-                    lock (m_csDB)
-                    {
+                if (!SendRequest(id, s0, s1, s2, index, (ar) => {
+                    ProcessODBC(handler, ar, id, index);
+                }, discarded, null)) {
+                    lock (m_csDB) {
                         m_mapRowset.Remove(index);
                     }
                     return false;
@@ -269,35 +205,17 @@ namespace SocketProAdapter
                 return true;
             }
 
-            private bool DoMeta<T0, T1, T2>(ushort id, T0 t0, string s0, string s1, string s2, T1 t1, T2 t2, DExecuteResult handler, DRows row, DRowsetHeader rh, DDiscarded discarded)
-            {
+            private bool DoMeta<T0, T1, T2>(ushort id, T0 t0, string s0, string s1, string s2, T1 t1, T2 t2, DExecuteResult handler, DRows row, DRowsetHeader rh, DDiscarded discarded) {
                 ulong index = GetCallIndex();
                 //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
                 //in case a client asynchronously sends lots of requests without use of client side queue.
-                lock (m_csDB)
-                {
+                lock (m_csDB) {
                     m_mapRowset[index] = new KeyValuePair<DRowsetHeader, DRows>(rh, row);
                 }
-                if (!SendRequest(id, t0, s0, s1, s2, t1, t2, index, (ar) =>
-                {
-                    ulong fail_ok;
-                    int res;
-                    string errMsg;
-                    ar.Load(out res).Load(out errMsg).Load(out fail_ok);
-                    lock (m_csDB)
-                    {
-                        m_lastReqId = id;
-                        m_affected = 0;
-                        m_dbErrCode = res;
-                        m_dbErrMsg = errMsg;
-                        m_mapRowset.Remove(index);
-                    }
-                    if (handler != null)
-                        handler(this, res, errMsg, 0, fail_ok, null);
-                }, discarded, null))
-                {
-                    lock (m_csDB)
-                    {
+                if (!SendRequest(id, t0, s0, s1, s2, t1, t2, index, (ar) => {
+                    ProcessODBC(handler, ar, id, index);
+                }, discarded, null)) {
+                    lock (m_csDB) {
                         m_mapRowset.Remove(index);
                     }
                     return false;
@@ -305,16 +223,12 @@ namespace SocketProAdapter
                 return true;
             }
 
-            protected override void OnResultReturned(ushort reqId, CUQueue mc)
-            {
-                switch (reqId)
-                {
+            protected override void OnResultReturned(ushort reqId, CUQueue mc) {
+                switch (reqId) {
                     case idSQLGetInfo:
-                        lock (m_csDB)
-                        {
+                        lock (m_csDB) {
                             m_mapInfo.Clear();
-                            while (mc.GetSize() > 0)
-                            {
+                            while (mc.GetSize() > 0) {
                                 ushort infoType;
                                 object infoValue;
                                 mc.Load(out infoType).Load(out infoValue);

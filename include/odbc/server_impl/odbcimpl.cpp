@@ -7,6 +7,7 @@
 #endif
 #include "../async_sqlncli.h"
 #include "../../../include/scloader.h"
+#include <cctype>
 
 namespace SPA
 {
@@ -31,6 +32,55 @@ namespace SPA
 
         CUCriticalSection COdbcImpl::m_csPeer;
         std::wstring COdbcImpl::m_strGlobalConnection;
+
+        std::unordered_map<USocket_Server_Handle, SQLHDBC> COdbcImpl::m_mapConnection;
+
+        bool COdbcImpl::DoSQLAuthentication(USocket_Server_Handle hSocket, const wchar_t *userId, const wchar_t *password, unsigned int nSvsId, const wchar_t *odbcDriver, const wchar_t * dsn) {
+            SQLHDBC hdbc = nullptr;
+            if (!g_hEnv)
+                return false;
+            SQLRETURN retcode = SQLAllocHandle(SQL_HANDLE_DBC, g_hEnv, &hdbc);
+            if (!SQL_SUCCEEDED(retcode)) {
+                return false;
+            }
+            std::wstring conn;
+            if (dsn && ::wcslen(dsn)) {
+                conn = dsn;
+            } else {
+                //MS SQL Server
+                conn = L"Server=";
+                conn += L"(local)";
+            }
+            if (userId && ::wcslen(userId)) {
+                conn += L";UID=";
+                conn += userId;
+            }
+            if (password && ::wcslen(password)) {
+                conn += L";PWD=";
+                conn += password;
+            }
+            if (odbcDriver && ::wcslen(odbcDriver)) {
+                conn += L";DRIVER=";
+                conn += odbcDriver;
+            }
+            SPA::CScopeUQueue sb;
+            SQLSMALLINT cbConnStrOut = 0;
+            std::string strConn = SPA::Utilities::ToUTF8(conn.c_str(), conn.size());
+            retcode = SQLDriverConnect(hdbc, nullptr, (SQLCHAR*) strConn.c_str(), (SQLSMALLINT) strConn.size(), (SQLCHAR*) sb->GetBuffer(), (SQLSMALLINT) sb->GetSize(), &cbConnStrOut, SQL_DRIVER_NOPROMPT);
+            if (!SQL_SUCCEEDED(retcode)) {
+                SQLFreeHandle(SQL_HANDLE_DBC, hdbc);
+                return false;
+            }
+            if (nSvsId == SPA::Odbc::sidOdbc) {
+                m_csPeer.lock();
+                m_mapConnection[hSocket] = hdbc;
+                m_csPeer.unlock();
+            } else {
+                retcode = SQLDisconnect(hdbc);
+                retcode = SQLFreeHandle(SQL_HANDLE_DBC, hdbc);
+            }
+            return true;
+        }
 
         bool COdbcImpl::SetODBCEnv(int param) {
             SQLRETURN retcode = SQLSetEnvAttr(nullptr, SQL_ATTR_CONNECTION_POOLING, (SQLPOINTER) SQL_CP_ONE_PER_DRIVER, SQL_IS_INTEGER);
@@ -145,8 +195,9 @@ namespace SPA
         COdbcImpl::COdbcImpl()
         : m_oks(0), m_fails(0), m_ti(tiUnspecified), m_global(true),
         m_Blob(*m_sb), m_parameters(0), m_bCall(false), m_bReturn(false),
-        m_outputs(0), m_nRecordSize(0) {
-
+        m_outputs(0), m_nRecordSize(0), m_pNoSending(nullptr),
+        m_msDriver(msUnknown), m_EnableMessages(false),
+        m_bPrimaryKeys(SQL_FALSE), m_bProcedureColumns(SQL_FALSE) {
         }
 
         void COdbcImpl::OnReleaseSource(bool bClosing, unsigned int info) {
@@ -169,6 +220,18 @@ namespace SPA
             m_oks = 0;
             m_fails = 0;
             m_ti = tiUnspecified;
+            CAutoLock al(m_csPeer);
+            SQLHDBC hdbc = m_mapConnection[GetSocketHandle()];
+            if (hdbc) {
+                m_pOdbc.reset(hdbc, [](SQLHDBC h) {
+                    if (h) {
+                        SQLRETURN ret = SQLDisconnect(h);
+                        assert(ret == SQL_SUCCESS);
+                        ret = SQLFreeHandle(SQL_HANDLE_DBC, h);
+                        assert(ret == SQL_SUCCESS);
+                    }
+                });
+            }
         }
 
         void COdbcImpl::OnFastRequestArrive(unsigned short reqId, unsigned int len) {
@@ -179,31 +242,8 @@ namespace SPA
             M_I0_R0(idBeginRows, BeginRows)
             M_I0_R0(idTransferring, Transferring)
             M_I0_R0(idEndRows, EndRows)
-            M_I0_R2(idClose, CloseDb, int, std::wstring)
-            M_I2_R3(idOpen, Open, std::wstring, unsigned int, int, std::wstring, int)
-            M_I3_R3(idBeginTrans, BeginTrans, int, std::wstring, unsigned int, int, std::wstring, int)
-            M_I1_R2(idEndTrans, EndTrans, int, int, std::wstring)
-            M_I5_R5(idExecute, Execute, std::wstring, bool, bool, bool, UINT64, INT64, int, std::wstring, CDBVariant, UINT64)
-            M_I2_R3(idPrepare, Prepare, std::wstring, CParameterInfoArray, int, std::wstring, unsigned int)
-            M_I4_R5(idExecuteParameters, ExecuteParameters, bool, bool, bool, UINT64, INT64, int, std::wstring, CDBVariant, UINT64)
-#if 0
-            M_I5_R3(SPA::Odbc::idSQLColumnPrivileges, DoSQLColumnPrivileges, std::wstring, std::wstring, std::wstring, std::wstring, UINT64, int, std::wstring, UINT64)
-            M_I5_R3(SPA::Odbc::idSQLColumns, DoSQLColumns, std::wstring, std::wstring, std::wstring, std::wstring, UINT64, int, std::wstring, UINT64)
-            M_I7_R3(SPA::Odbc::idSQLForeignKeys, DoSQLForeignKeys, std::wstring, std::wstring, std::wstring, std::wstring, std::wstring, std::wstring, UINT64, int, std::wstring, UINT64)
-            M_I4_R3(SPA::Odbc::idSQLPrimaryKeys, DoSQLPrimaryKeys, std::wstring, std::wstring, std::wstring, UINT64, int, std::wstring, UINT64)
-            M_I5_R3(SPA::Odbc::idSQLProcedureColumns, DoSQLProcedureColumns, std::wstring, std::wstring, std::wstring, std::wstring, UINT64, int, std::wstring, UINT64)
-            M_I4_R3(SPA::Odbc::idSQLProcedures, DoSQLProcedures, std::wstring, std::wstring, std::wstring, UINT64, int, std::wstring, UINT64)
-            M_I7_R3(SPA::Odbc::idSQLSpecialColumns, DoSQLSpecialColumns, SQLSMALLINT, std::wstring, std::wstring, std::wstring, SQLSMALLINT, SQLSMALLINT, UINT64, int, std::wstring, UINT64)
-            M_I6_R3(SPA::Odbc::idSQLStatistics, DoSQLStatistics, std::wstring, std::wstring, std::wstring, SQLUSMALLINT, SQLUSMALLINT, UINT64, int, std::wstring, UINT64)
-            M_I4_R3(SPA::Odbc::idSQLTablePrivileges, DoSQLTablePrivileges, std::wstring, std::wstring, std::wstring, UINT64, int, std::wstring, UINT64)
-            M_I5_R3(SPA::Odbc::idSQLTables, DoSQLTables, std::wstring, std::wstring, std::wstring, std::wstring, UINT64, int, std::wstring, UINT64)
-#endif
             END_SWITCH
             m_pExcuting.reset();
-            if (reqId == idExecuteParameters) {
-                ReleaseArray();
-                m_vParam.clear();
-            }
         }
 
         int COdbcImpl::OnSlowRequestArrive(unsigned short reqId, unsigned int len) {
@@ -215,6 +255,7 @@ namespace SPA
             M_I5_R5(idExecute, Execute, std::wstring, bool, bool, bool, UINT64, INT64, int, std::wstring, CDBVariant, UINT64)
             M_I2_R3(idPrepare, Prepare, std::wstring, CParameterInfoArray, int, std::wstring, unsigned int)
             M_I4_R5(idExecuteParameters, ExecuteParameters, bool, bool, bool, UINT64, INT64, int, std::wstring, CDBVariant, UINT64)
+            M_I10_R5(idExecuteBatch, ExecuteBatch, std::wstring, std::wstring, int, int, bool, bool, bool, std::wstring, unsigned int, UINT64, INT64, int, std::wstring, CDBVariant, UINT64)
             M_I5_R3(SPA::Odbc::idSQLColumnPrivileges, DoSQLColumnPrivileges, std::wstring, std::wstring, std::wstring, std::wstring, UINT64, int, std::wstring, UINT64)
             M_I5_R3(SPA::Odbc::idSQLColumns, DoSQLColumns, std::wstring, std::wstring, std::wstring, std::wstring, UINT64, int, std::wstring, UINT64)
             M_I7_R3(SPA::Odbc::idSQLForeignKeys, DoSQLForeignKeys, std::wstring, std::wstring, std::wstring, std::wstring, std::wstring, std::wstring, UINT64, int, std::wstring, UINT64)
@@ -227,8 +268,7 @@ namespace SPA
             M_I5_R3(SPA::Odbc::idSQLTables, DoSQLTables, std::wstring, std::wstring, std::wstring, std::wstring, UINT64, int, std::wstring, UINT64)
             END_SWITCH
             m_pExcuting.reset();
-            if (reqId == idExecuteParameters) {
-                ReleaseArray();
+            if (reqId == idExecuteParameters || reqId == idExecuteBatch) {
                 m_vParam.clear();
             }
             return 0;
@@ -255,99 +295,167 @@ namespace SPA
             }
         }
 
-        void COdbcImpl::ReleaseArray() {
-            for (auto it = m_vArray.begin(), end = m_vArray.end(); it != end; ++it) {
-                SAFEARRAY *arr = *it;
-                ::SafeArrayUnaccessData(arr);
-            }
-            m_vArray.clear();
-        }
-
         void COdbcImpl::CleanDBObjects() {
             m_pExcuting.reset();
             m_pPrepare.reset();
             m_pOdbc.reset();
             m_vParam.clear();
             ResetMemories();
+            m_msDriver = msUnknown;
+            m_EnableMessages = false;
+            m_bPrimaryKeys = SQL_FALSE;
+            m_bProcedureColumns = SQL_FALSE;
+        }
+
+        void COdbcImpl::ltrim_w(std::wstring & s) {
+            s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](int ch) {
+                return (!(std::isspace(ch) || ch == L';'));
+            }));
+        }
+
+        void COdbcImpl::rtrim_w(std::wstring & s) {
+            s.erase(std::find_if(s.rbegin(), s.rend(), [](int ch) {
+                return (!(std::isspace(ch) || ch == L';'));
+            }).base(), s.end());
+        }
+
+        void COdbcImpl::trim_w(std::wstring & s) {
+            ltrim_w(s);
+            rtrim_w(s);
         }
 
         void COdbcImpl::Open(const std::wstring &strConnection, unsigned int flags, int &res, std::wstring &errMsg, int &ms) {
+            res = 0;
             ms = msODBC;
-            CleanDBObjects();
-            if (!g_hEnv) {
-                res = SPA::Odbc::ER_ODBC_ENVIRONMENT_NOT_INITIALIZED;
-                errMsg = ODBC_ENVIRONMENT_NOT_INITIALIZED;
-                return;
-            } else {
-                res = SQL_SUCCESS;
-            }
-            do {
-                std::wstring db(strConnection);
-                if (!db.size() || db == ODBC_GLOBAL_CONNECTION_STRING) {
-                    m_csPeer.lock();
-                    db = m_strGlobalConnection;
-                    m_csPeer.unlock();
-                    m_global = true;
-                } else {
-                    m_global = false;
-                }
-                ODBC_CONNECTION_STRING ocs;
-                ocs.Parse(db.c_str());
-                SQLHDBC hdbc = nullptr;
-                SQLRETURN retcode = SQLAllocHandle(SQL_HANDLE_DBC, g_hEnv, &hdbc);
-                if (!SQL_SUCCEEDED(retcode)) {
-                    res = SPA::Odbc::ER_ERROR;
-                    GetErrMsg(SQL_HANDLE_ENV, g_hEnv, errMsg);
-                    break;
-                }
-
-                if (ocs.timeout) {
-                    SQLPOINTER rgbValue = &ocs.timeout;
-                    retcode = SQLSetConnectAttr(hdbc, SQL_LOGIN_TIMEOUT, rgbValue, 0);
-                }
-
-                if (ocs.database.size()) {
-                    std::string db = SPA::Utilities::ToUTF8(ocs.database.c_str(), ocs.database.size());
-                    retcode = SQLSetConnectAttr(hdbc, SQL_ATTR_CURRENT_CATALOG, (SQLPOINTER) db.c_str(), (SQLINTEGER) (db.size() * sizeof (SQLCHAR)));
-                }
-
-                //retcode = SQLSetConnectAttr(hdbc, SQL_ATTR_ASYNC_ENABLE, (SQLPOINTER) (ocs.async ? SQL_ASYNC_ENABLE_ON : SQL_ASYNC_ENABLE_OFF), 0);
-                //std::string host = SPA::Utilities::ToUTF8(ocs.host.c_str(), ocs.host.size());
-                //std::string user = SPA::Utilities::ToUTF8(ocs.user.c_str(), ocs.user.size());
-                //std::string pwd = SPA::Utilities::ToUTF8(ocs.password.c_str(), ocs.password.size());
-
-                std::string conn = SPA::Utilities::ToUTF8(ocs.connection_string.c_str(), ocs.connection_string.size());
-
-                SPA::CScopeUQueue sb;
-                SQLCHAR *ConnStrIn = (SQLCHAR *) conn.c_str();
-                SQLCHAR *ConnStrOut = (SQLCHAR *) sb->GetBuffer();
-                SQLSMALLINT cbConnStrOut;
-                retcode = SQLDriverConnect(hdbc, nullptr, ConnStrIn, (SQLSMALLINT) conn.size(), ConnStrOut, (SQLSMALLINT) sb->GetSize(), &cbConnStrOut, SQL_DRIVER_NOPROMPT);
-                //retcode = SQLConnect(hdbc, (SQLCHAR*) host.c_str(), (SQLSMALLINT) host.size(), (SQLCHAR *) user.c_str(), (SQLSMALLINT) user.size(), (SQLCHAR *) pwd.c_str(), (SQLSMALLINT) pwd.size());
-                if (!SQL_SUCCEEDED(retcode)) {
-                    res = SPA::Odbc::ER_ERROR;
-                    GetErrMsg(SQL_HANDLE_DBC, hdbc, errMsg);
-                    SQLFreeHandle(SQL_HANDLE_DBC, hdbc);
-                    break;
-                }
-                m_pOdbc.reset(hdbc, [](SQLHDBC h) {
-                    if (h) {
-                        SQLRETURN ret = SQLDisconnect(h);
-                        assert(ret == SQL_SUCCESS);
-                        ret = SQLFreeHandle(SQL_HANDLE_DBC, h);
-                        assert(ret == SQL_SUCCESS);
+            if ((flags & ENABLE_TABLE_UPDATE_MESSAGES) == ENABLE_TABLE_UPDATE_MESSAGES)
+                m_EnableMessages = GetPush().Subscribe(&STREAMING_SQL_CHAT_GROUP_ID, 1);
+            if (m_pOdbc.get()) {
+                PushInfo(m_pOdbc.get());
+                if (strConnection.size()) {
+                    std::wstring sql;
+                    if (m_dbms == L"microsoft sql server") {
+                        m_msDriver = msMsSQL;
+                        sql = L"USE [" + strConnection + L"]";
+                    } else if (m_dbms == L"mysql") {
+                        m_msDriver = msMysql;
+                        sql = L"USE " + strConnection;
+                    } else if (m_dbms == L"oracle") {
+                        m_msDriver = msOracle;
+                        sql = L"ALTER SESSION SET current_schema=" + strConnection;
+                    } else if (m_dbms.find(L"db2") != std::wstring::npos) {
+                        m_msDriver = msDB2;
+                        sql = L"SET SCHEMA " + strConnection;
+                    } else if (m_dbms.find(L"postgre") == 0) {
+                        m_msDriver = msPostgreSQL;
+                        sql = L"SET search_path=" + strConnection;
                     }
-                });
-                PushInfo(hdbc);
-                if (!m_global) {
-                    errMsg = db;
-                } else {
-                    errMsg = ODBC_GLOBAL_CONNECTION_STRING;
+                    if (sql.size()) {
+                        SPA::INT64 affected = 0;
+                        SPA::UDB::CDBVariant vtId;
+                        SPA::UINT64 fail_ok = 0;
+                        Execute(sql, false, false, false, 0, affected, res, errMsg, vtId, fail_ok);
+                        if (!res) {
+                            errMsg = strConnection;
+                            m_dbName = strConnection;
+                        }
+                    }
                 }
-            } while (false);
+                if (!res && !errMsg.size()) {
+                    errMsg = m_dbName;
+                }
+            } else {
+                if (!g_hEnv) {
+                    res = SPA::Odbc::ER_ODBC_ENVIRONMENT_NOT_INITIALIZED;
+                    errMsg = ODBC_ENVIRONMENT_NOT_INITIALIZED;
+                    return;
+                } else {
+                    res = SQL_SUCCESS;
+                }
+                do {
+                    std::wstring db(strConnection);
+                    if (!db.size() || db == ODBC_GLOBAL_CONNECTION_STRING) {
+                        m_csPeer.lock();
+                        db = m_strGlobalConnection;
+                        m_csPeer.unlock();
+                        m_global = true;
+                    } else {
+                        m_global = false;
+                    }
+                    ODBC_CONNECTION_STRING ocs;
+                    ocs.Parse(db.c_str());
+                    SQLHDBC hdbc = nullptr;
+                    SQLRETURN retcode = SQLAllocHandle(SQL_HANDLE_DBC, g_hEnv, &hdbc);
+                    if (!SQL_SUCCEEDED(retcode)) {
+                        res = SPA::Odbc::ER_ERROR;
+                        GetErrMsg(SQL_HANDLE_ENV, g_hEnv, errMsg);
+                        break;
+                    }
+
+                    if (ocs.timeout) {
+                        SQLPOINTER rgbValue = &ocs.timeout;
+                        retcode = SQLSetConnectAttr(hdbc, SQL_LOGIN_TIMEOUT, rgbValue, 0);
+                    }
+
+                    if (ocs.database.size()) {
+                        std::string db = SPA::Utilities::ToUTF8(ocs.database.c_str(), ocs.database.size());
+                        retcode = SQLSetConnectAttr(hdbc, SQL_ATTR_CURRENT_CATALOG, (SQLPOINTER) db.c_str(), (SQLINTEGER) (db.size() * sizeof (SQLCHAR)));
+                    }
+
+                    //retcode = SQLSetConnectAttr(hdbc, SQL_ATTR_ASYNC_ENABLE, (SQLPOINTER) (ocs.async ? SQL_ASYNC_ENABLE_ON : SQL_ASYNC_ENABLE_OFF), 0);
+                    //std::string host = SPA::Utilities::ToUTF8(ocs.host.c_str(), ocs.host.size());
+                    //std::string user = SPA::Utilities::ToUTF8(ocs.user.c_str(), ocs.user.size());
+                    //std::string pwd = SPA::Utilities::ToUTF8(ocs.password.c_str(), ocs.password.size());
+
+                    std::string conn = SPA::Utilities::ToUTF8(ocs.connection_string.c_str(), ocs.connection_string.size());
+
+                    SPA::CScopeUQueue sb;
+                    SQLCHAR *ConnStrIn = (SQLCHAR *) conn.c_str();
+                    SQLCHAR *ConnStrOut = (SQLCHAR *) sb->GetBuffer();
+                    SQLSMALLINT cbConnStrOut;
+                    retcode = SQLDriverConnect(hdbc, nullptr, ConnStrIn, (SQLSMALLINT) conn.size(), ConnStrOut, (SQLSMALLINT) sb->GetSize(), &cbConnStrOut, SQL_DRIVER_NOPROMPT);
+                    //retcode = SQLConnect(hdbc, (SQLCHAR*) host.c_str(), (SQLSMALLINT) host.size(), (SQLCHAR *) user.c_str(), (SQLSMALLINT) user.size(), (SQLCHAR *) pwd.c_str(), (SQLSMALLINT) pwd.size());
+                    if (!SQL_SUCCEEDED(retcode)) {
+                        res = SPA::Odbc::ER_ERROR;
+                        GetErrMsg(SQL_HANDLE_DBC, hdbc, errMsg);
+                        SQLFreeHandle(SQL_HANDLE_DBC, hdbc);
+                        break;
+                    }
+                    m_pOdbc.reset(hdbc, [](SQLHDBC h) {
+                        if (h) {
+                            SQLRETURN ret = SQLDisconnect(h);
+                            assert(ret == SQL_SUCCESS);
+                            ret = SQLFreeHandle(SQL_HANDLE_DBC, h);
+                            assert(ret == SQL_SUCCESS);
+                        }
+                    });
+                    PushInfo(hdbc);
+                    if (!m_global) {
+                        errMsg = db;
+                    } else {
+                        errMsg = ODBC_GLOBAL_CONNECTION_STRING;
+                    }
+                    if (m_dbms == L"microsoft sql server")
+                        m_msDriver = msMsSQL;
+                    else if (m_dbms == L"mysql")
+                        m_msDriver = msMysql;
+                    else if (m_dbms == L"oracle")
+                        m_msDriver = msOracle;
+                    else if (m_dbms.find(L"db2") != std::wstring::npos)
+                        m_msDriver = msDB2;
+                    else if (m_dbms.find(L"postgre") == 0)
+                        m_msDriver = msPostgreSQL;
+                } while (false);
+            }
+            if (m_pOdbc) {
+                SQLGetFunctions(m_pOdbc.get(), SQL_API_SQLPRIMARYKEYS, &m_bPrimaryKeys);
+                SQLGetFunctions(m_pOdbc.get(), SQL_API_SQLPROCEDURECOLUMNS, &m_bProcedureColumns);
+            }
         }
 
         void COdbcImpl::CloseDb(int &res, std::wstring & errMsg) {
+            if (m_EnableMessages) {
+                GetPush().Unsubscribe();
+            }
             CleanDBObjects();
             res = SQL_SUCCESS;
         }
@@ -459,6 +567,11 @@ namespace SPA
         }
 
         bool COdbcImpl::SendRows(CUQueue& sb, bool transferring) {
+            if (m_pNoSending) {
+                m_pNoSending->Push(sb.GetBuffer(), sb.GetSize());
+                sb.SetSize(0);
+                return true;
+            }
             bool batching = (GetBytesBatched() >= DEFAULT_RECORD_BATCH_SIZE);
             if (batching) {
                 CommitBatching();
@@ -475,6 +588,7 @@ namespace SPA
         }
 
         bool COdbcImpl::SendUText(SQLHSTMT hstmt, SQLUSMALLINT index, CUQueue &qTemp, CUQueue &q, bool & blob) {
+            assert(!m_pNoSending);
             assert((qTemp.GetMaxSize() % sizeof (SQLWCHAR)) == 0);
             qTemp.SetSize(0);
             SQLLEN len_or_null = 0;
@@ -519,6 +633,7 @@ namespace SPA
         }
 
         bool COdbcImpl::SendBlob(SQLHSTMT hstmt, SQLUSMALLINT index, VARTYPE vt, CUQueue &qTemp, CUQueue &q, bool & blob) {
+            assert(!m_pNoSending);
             qTemp.SetSize(0);
             SQLLEN len_or_null = 0;
             SQLRETURN retcode = SQLGetData(hstmt, index, SQL_C_BINARY, (SQLPOINTER) qTemp.GetBuffer(), qTemp.GetMaxSize(), &len_or_null);
@@ -565,12 +680,47 @@ namespace SPA
             return true;
         }
 
+        void COdbcImpl::SetPrimaryKey(const std::wstring &dbName, const std::wstring &schema, const std::wstring &tableName, CDBColumnInfoArray & vCol) {
+            CScopeUQueue sb;
+            CUQueue &q = *sb;
+            int res = 0;
+            std::wstring errMsg;
+            SPA::UINT64 fail_ok = 0;
+            do {
+                m_pNoSending = &q;
+                DoSQLPrimaryKeys(dbName, schema, tableName, 0, res, errMsg, fail_ok);
+                m_pNoSending = nullptr;
+                if (res || !q.GetSize())
+                    break;
+                CDBVariantArray vData;
+                while (q.GetSize()) {
+                    SPA::UDB::CDBVariant vt;
+                    q >> vt;
+                    vData.push_back(std::move(vt));
+                }
+                size_t rows = vData.size() / m_vBindInfo.size();
+                for (size_t r = 0; r < rows; ++r) {
+                    size_t pos = r * m_vBindInfo.size() + 3; //Primary key column name
+                    BSTR bstrVal = vData[pos].bstrVal;
+                    std::wstring colName = bstrVal ? bstrVal : L"";
+                    if (colName.size()) {
+                        for (auto it = vCol.begin(), end = vCol.end(); it != end; ++it) {
+                            if (it->DisplayName == colName) {
+                                it->Flags |= CDBColumnInfo::FLAG_PRIMARY_KEY;
+                                break;
+                            }
+                        }
+                    }
+                }
+            } while (false);
+        }
+
         CDBColumnInfoArray COdbcImpl::GetColInfo(SQLHSTMT hstmt, SQLSMALLINT columns, bool meta) {
             bool primary_key_set = false;
             m_vBindInfo.clear();
             bool hasBlob = false;
             bool hasVariant = false;
-            SQLCHAR colname[128 + 1] =
+            SQLCHAR colname[256] =
             {0}; // column name
             m_nRecordSize = 0;
             SQLSMALLINT colnamelen = 0; // length of column name
@@ -580,7 +730,7 @@ namespace SPA
             SQLSMALLINT decimaldigits = 0; // no of digits if column is numeric
             SQLLEN displaysize = 0; // drivers column display size
             CDBColumnInfoArray vCols;
-            bool bPostgres = (m_dbms.find(L"postgre") == 0);
+            bool bPostgres = (m_msDriver == msPostgreSQL);
             for (SQLSMALLINT n = 0; n < columns; ++n) {
                 vCols.push_back(CDBColumnInfo());
                 CDBColumnInfo &info = vCols.back();
@@ -609,7 +759,6 @@ namespace SPA
                 retcode = SQLColAttribute(hstmt, (SQLUSMALLINT) (n + 1), SQL_DESC_BASE_TABLE_NAME, colname, sizeof (colname), &colnamelen, &displaysize);
                 assert(SQL_SUCCEEDED(retcode));
                 info.TablePath += SPA::Utilities::ToWide((const char*) colname, (size_t) colnamelen / sizeof (SQLCHAR)); //schema.table_name
-
                 retcode = SQLColAttribute(hstmt, (SQLUSMALLINT) (n + 1), SQL_DESC_TYPE_NAME, colname, sizeof (colname), &colnamelen, &displaysize);
                 assert(SQL_SUCCEEDED(retcode));
                 info.DeclaredType = SPA::Utilities::ToWide((const char*) colname, (size_t) colnamelen / sizeof (SQLCHAR)); //native data type
@@ -785,11 +934,9 @@ namespace SPA
                         bindinfo.BufferSize = DEFAULT_UNICODE_CHAR_SIZE * sizeof (SQLWCHAR);
                         break;
                 }
-
                 if (info.ColumnSize > DEFAULT_OUTPUT_BUFFER_SIZE) {
                     hasBlob = true;
                 }
-
                 retcode = SQLColAttribute(hstmt, (SQLUSMALLINT) (n + 1), SQL_DESC_AUTO_UNIQUE_VALUE, nullptr, 0, nullptr, &displaysize);
                 assert(SQL_SUCCEEDED(retcode));
                 if (displaysize == SQL_TRUE) {
@@ -798,14 +945,23 @@ namespace SPA
                     info.Flags |= CDBColumnInfo::FLAG_PRIMARY_KEY;
                     info.Flags |= CDBColumnInfo::FLAG_NOT_NULL;
                     primary_key_set = true;
+                } else if (!primary_key_set) {
+                    switch (m_msDriver) {
+                        case msMsSQL:
+                            retcode = SQLColAttribute(hstmt, (SQLUSMALLINT) (n + 1), SQL_CA_SS_COLUMN_KEY, nullptr, 0, nullptr, &displaysize);
+                            if (displaysize) {
+                                info.Flags |= CDBColumnInfo::FLAG_PRIMARY_KEY;
+                            }
+                            break;
+                        default:
+                            break;
+                    }
                 }
-
                 retcode = SQLColAttribute(hstmt, (SQLUSMALLINT) (n + 1), SQL_DESC_UPDATABLE, nullptr, 0, nullptr, &displaysize);
                 assert(SQL_SUCCEEDED(retcode));
                 if (displaysize == SQL_ATTR_READONLY) {
                     info.Flags |= CDBColumnInfo::FLAG_NOT_WRITABLE;
                 }
-
                 if (!hasBlob) {
                     bindinfo.DataType = info.DataType;
                     bindinfo.Offset = m_nRecordSize;
@@ -813,11 +969,31 @@ namespace SPA
                     m_vBindInfo.push_back(bindinfo);
                 }
             }
-
             if (hasBlob || hasVariant) {
                 m_vBindInfo.clear();
                 m_nRecordSize = 0;
             }
+            /*if (!primary_key_set && meta && m_bPrimaryKeys) {
+                switch (m_msDriver) {
+                    case msMsSQL:
+                        break;
+                    default:
+                        if (vCols.size() && vCols[0].TablePath.size()) {
+                            std::wstring schema, tableName;
+                            size_t pos = vCols[0].TablePath.rfind(L'.');
+                            if (pos == std::wstring::npos) {
+                                tableName = vCols[0].TablePath;
+                            } else {
+                                schema = vCols[0].TablePath.substr(0, pos);
+                                tableName = vCols[0].TablePath.substr(pos + 1);
+                            }
+                            std::vector<CBindInfo> bi = m_vBindInfo;
+                            SetPrimaryKey(vCols[0].DBPath, schema, tableName, vCols);
+                            m_vBindInfo = bi;
+                        }
+                        break;
+                }
+            }*/
             return vCols;
         }
 
@@ -905,7 +1081,17 @@ namespace SPA
             SetStringInfo(hdbc, SQL_ACCESSIBLE_PROCEDURES, mapInfo);
             SetStringInfo(hdbc, SQL_ACCESSIBLE_TABLES, mapInfo);
             SetStringInfo(hdbc, SQL_DATABASE_NAME, mapInfo);
+            if (mapInfo.find(SQL_DATABASE_NAME) != mapInfo.end()) {
+                m_dbName = mapInfo[SQL_DATABASE_NAME].bstrVal;
+            } else {
+                m_dbName.clear();
+            }
             SetStringInfo(hdbc, SQL_USER_NAME, mapInfo);
+            if (mapInfo.find(SQL_USER_NAME) != mapInfo.end()) {
+                m_userName = mapInfo[SQL_USER_NAME].bstrVal;
+            } else {
+                m_userName.clear();
+            }
             SetStringInfo(hdbc, SQL_DATA_SOURCE_NAME, mapInfo);
             SetStringInfo(hdbc, SQL_DRIVER_NAME, mapInfo);
             SetStringInfo(hdbc, SQL_DRIVER_VER, mapInfo);
@@ -980,7 +1166,9 @@ namespace SPA
             SetUIntInfo(hdbc, SQL_AGGREGATE_FUNCTIONS, mapInfo);
             SetUIntInfo(hdbc, SQL_ALTER_DOMAIN, mapInfo);
             SetUIntInfo(hdbc, SQL_ALTER_TABLE, mapInfo);
+#ifdef WIN32_64
             SetUIntInfo(hdbc, SQL_ASYNC_DBC_FUNCTIONS, mapInfo);
+#endif
             SetUIntInfo(hdbc, SQL_ASYNC_MODE, mapInfo);
             SetUIntInfo(hdbc, SQL_BATCH_ROW_COUNT, mapInfo);
             SetUIntInfo(hdbc, SQL_BATCH_SUPPORT, mapInfo);
@@ -1861,12 +2049,8 @@ namespace SPA
                 SQLSMALLINT columns = 0;
                 retcode = SQLNumResultCols(hstmt, &columns);
                 assert(SQL_SUCCEEDED(retcode));
-                CDBColumnInfoArray vInfo = GetColInfo(hstmt, columns, true);
-                {
-                    CScopeUQueue sbRowset;
-                    sbRowset << vInfo << index;
-                    ret = SendResult(idRowsetHeader, sbRowset->GetBuffer(), sbRowset->GetSize());
-                }
+                CDBColumnInfoArray vInfo = GetColInfo(hstmt, columns, false);
+                ret = SendResult(idRowsetHeader, vInfo, index);
                 if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
                     return;
                 }
@@ -1932,12 +2116,8 @@ namespace SPA
                 SQLSMALLINT columns = 0;
                 retcode = SQLNumResultCols(hstmt, &columns);
                 assert(SQL_SUCCEEDED(retcode));
-                CDBColumnInfoArray vInfo = GetColInfo(hstmt, columns, true);
-                {
-                    CScopeUQueue sbRowset;
-                    sbRowset << vInfo << index;
-                    ret = SendResult(idRowsetHeader, sbRowset->GetBuffer(), sbRowset->GetSize());
-                }
+                CDBColumnInfoArray vInfo = GetColInfo(hstmt, columns, false);
+                ret = SendResult(idRowsetHeader, vInfo, index);
                 if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
                     return;
                 }
@@ -2003,12 +2183,8 @@ namespace SPA
                 SQLSMALLINT columns = 0;
                 retcode = SQLNumResultCols(hstmt, &columns);
                 assert(SQL_SUCCEEDED(retcode));
-                CDBColumnInfoArray vInfo = GetColInfo(hstmt, columns, true);
-                {
-                    CScopeUQueue sbRowset;
-                    sbRowset << vInfo << index;
-                    ret = SendResult(idRowsetHeader, sbRowset->GetBuffer(), sbRowset->GetSize());
-                }
+                CDBColumnInfoArray vInfo = GetColInfo(hstmt, columns, false);
+                ret = SendResult(idRowsetHeader, vInfo, index);
                 if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
                     return;
                 }
@@ -2060,28 +2236,26 @@ namespace SPA
                 std::string sn = SPA::Utilities::ToUTF8(schemaName.c_str(), schemaName.size());
                 std::string pn = SPA::Utilities::ToUTF8(procName.c_str(), procName.size());
                 std::string coln = SPA::Utilities::ToUTF8(columnName.c_str(), columnName.size());
-                retcode = SQLProcedureColumns(hstmt, (SQLCHAR*) cn.c_str(), (SQLSMALLINT) cn.size(),
-                        (SQLCHAR*) sn.c_str(), (SQLSMALLINT) sn.size(),
+                size_t col_size = coln.size();
+                retcode = SQLProcedureColumns(hstmt, cn.size() ? (SQLCHAR*) cn.c_str() : nullptr, (SQLSMALLINT) cn.size(),
+                        sn.size() ? (SQLCHAR*) sn.c_str() : nullptr, (SQLSMALLINT) sn.size(),
                         (SQLCHAR*) pn.c_str(), (SQLSMALLINT) pn.size(),
-                        (SQLCHAR*) coln.c_str(), (SQLSMALLINT) coln.size());
+                        col_size ? (SQLCHAR*) coln.c_str() : nullptr, (SQLSMALLINT) col_size);
                 if (!SQL_SUCCEEDED(retcode)) {
                     res = SPA::Odbc::ER_ERROR;
                     GetErrMsg(SQL_HANDLE_STMT, hstmt, errMsg);
                     ++m_fails;
                     break;
                 }
-                unsigned int ret;
                 SQLSMALLINT columns = 0;
                 retcode = SQLNumResultCols(hstmt, &columns);
                 assert(SQL_SUCCEEDED(retcode));
-                CDBColumnInfoArray vInfo = GetColInfo(hstmt, columns, true);
-                {
-                    CScopeUQueue sbRowset;
-                    sbRowset << vInfo << index;
-                    ret = SendResult(idRowsetHeader, sbRowset->GetBuffer(), sbRowset->GetSize());
-                }
-                if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
-                    return;
+                CDBColumnInfoArray vInfo = GetColInfo(hstmt, columns, false);
+                if (!m_pNoSending) {
+                    unsigned int ret = SendResult(idRowsetHeader, vInfo, index);
+                    if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
+                        return;
+                    }
                 }
                 bool ok;
                 if (m_nRecordSize)
@@ -2139,18 +2313,15 @@ namespace SPA
                     ++m_fails;
                     break;
                 }
-                unsigned int ret;
                 SQLSMALLINT columns = 0;
                 retcode = SQLNumResultCols(hstmt, &columns);
                 assert(SQL_SUCCEEDED(retcode));
-                CDBColumnInfoArray vInfo = GetColInfo(hstmt, columns, true);
-                {
-                    CScopeUQueue sbRowset;
-                    sbRowset << vInfo << index;
-                    ret = SendResult(idRowsetHeader, sbRowset->GetBuffer(), sbRowset->GetSize());
-                }
-                if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
-                    return;
+                CDBColumnInfoArray vInfo = GetColInfo(hstmt, columns, false);
+                if (!m_pNoSending) {
+                    unsigned int ret = SendResult(idRowsetHeader, vInfo, index);
+                    if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
+                        return;
+                    }
                 }
                 bool ok;
                 if (m_nRecordSize)
@@ -2212,12 +2383,8 @@ namespace SPA
                 SQLSMALLINT columns = 0;
                 retcode = SQLNumResultCols(hstmt, &columns);
                 assert(SQL_SUCCEEDED(retcode));
-                CDBColumnInfoArray vInfo = GetColInfo(hstmt, columns, true);
-                {
-                    CScopeUQueue sbRowset;
-                    sbRowset << vInfo << index;
-                    ret = SendResult(idRowsetHeader, sbRowset->GetBuffer(), sbRowset->GetSize());
-                }
+                CDBColumnInfoArray vInfo = GetColInfo(hstmt, columns, false);
+                ret = SendResult(idRowsetHeader, vInfo, index);
                 if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
                     return;
                 }
@@ -2281,12 +2448,8 @@ namespace SPA
                 SQLSMALLINT columns = 0;
                 retcode = SQLNumResultCols(hstmt, &columns);
                 assert(SQL_SUCCEEDED(retcode));
-                CDBColumnInfoArray vInfo = GetColInfo(hstmt, columns, true);
-                {
-                    CScopeUQueue sbRowset;
-                    sbRowset << vInfo << index;
-                    ret = SendResult(idRowsetHeader, sbRowset->GetBuffer(), sbRowset->GetSize());
-                }
+                CDBColumnInfoArray vInfo = GetColInfo(hstmt, columns, false);
+                ret = SendResult(idRowsetHeader, vInfo, index);
                 if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
                     return;
                 }
@@ -2350,12 +2513,8 @@ namespace SPA
                 SQLSMALLINT columns = 0;
                 retcode = SQLNumResultCols(hstmt, &columns);
                 assert(SQL_SUCCEEDED(retcode));
-                CDBColumnInfoArray vInfo = GetColInfo(hstmt, columns, true);
-                {
-                    CScopeUQueue sbRowset;
-                    sbRowset << vInfo << index;
-                    ret = SendResult(idRowsetHeader, sbRowset->GetBuffer(), sbRowset->GetSize());
-                }
+                CDBColumnInfoArray vInfo = GetColInfo(hstmt, columns, false);
+                ret = SendResult(idRowsetHeader, vInfo, index);
                 if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
                     return;
                 }
@@ -2419,12 +2578,8 @@ namespace SPA
                 SQLSMALLINT columns = 0;
                 retcode = SQLNumResultCols(hstmt, &columns);
                 assert(SQL_SUCCEEDED(retcode));
-                CDBColumnInfoArray vInfo = GetColInfo(hstmt, columns, true);
-                {
-                    CScopeUQueue sbRowset;
-                    sbRowset << vInfo << index;
-                    ret = SendResult(idRowsetHeader, sbRowset->GetBuffer(), sbRowset->GetSize());
-                }
+                CDBColumnInfoArray vInfo = GetColInfo(hstmt, columns, false);
+                ret = SendResult(idRowsetHeader, vInfo, index);
                 if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
                     return;
                 }
@@ -2494,12 +2649,8 @@ namespace SPA
                 SQLSMALLINT columns = 0;
                 retcode = SQLNumResultCols(hstmt, &columns);
                 assert(SQL_SUCCEEDED(retcode));
-                CDBColumnInfoArray vInfo = GetColInfo(hstmt, columns, true);
-                {
-                    CScopeUQueue sbRowset;
-                    sbRowset << vInfo << index;
-                    ret = SendResult(idRowsetHeader, sbRowset->GetBuffer(), sbRowset->GetSize());
-                }
+                CDBColumnInfoArray vInfo = GetColInfo(hstmt, columns, false);
+                ret = SendResult(idRowsetHeader, vInfo, index);
                 if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
                     return;
                 }
@@ -2517,6 +2668,58 @@ namespace SPA
             fail_ok += (unsigned int) (m_oks - oks);
         }
 
+        std::wstring COdbcImpl::GenerateMsSqlForCachedTables() {
+            CScopeUQueue sb;
+            CUQueue &q = *sb;
+            bool rowset = true, lastInsertId = true;
+            UINT64 index = 0, fail_ok = 0;
+            INT64 affected = 0;
+            int res = 0;
+            std::wstring errMsg, strSqlCache;
+            CDBVariant vtId;
+            std::wstring sql = L"SELECT name FROM master.dbo.sysdatabases where name NOT IN('master','tempdb','model','msdb')";
+            m_pNoSending = &q;
+            do {
+                Execute(sql, rowset, false, lastInsertId, index, affected, res, errMsg, vtId, fail_ok);
+                if (res)
+                    break;
+                SPA::UDB::CDBVariantArray vDb;
+                while (q.GetSize()) {
+                    CDBVariant vt;
+                    q >> vt;
+                    vDb.push_back(std::move(vt));
+                }
+                for (auto it = vDb.cbegin(), end = vDb.cend(); it != end; ++it) {
+                    sql = L"USE [";
+                    sql += it->bstrVal;
+                    sql += L"];";
+                    sql += L"select object_schema_name(parent_id),OBJECT_NAME(parent_id)from sys.assembly_modules as am,sys.triggers as t where t.object_id=am.object_id and assembly_method like 'PublishDMLEvent%' and assembly_class='USqlStream'";
+                    Execute(sql, rowset, false, lastInsertId, index, affected, res, errMsg, vtId, fail_ok);
+                    if (res)
+                        continue;
+                    if (strSqlCache.size())
+                        strSqlCache.push_back(L';');
+                    CDBVariant vtSchema, vtTable;
+                    while (q.GetSize()) {
+                        q >> vtSchema >> vtTable;
+                        strSqlCache += L"SELECT * FROM [";
+                        strSqlCache += it->bstrVal;
+                        strSqlCache += L"].[";
+                        strSqlCache += vtSchema.bstrVal;
+                        strSqlCache += L"].[";
+                        strSqlCache += vtTable.bstrVal;
+                        strSqlCache += L"] FOR BROWSE";
+                        if (q.GetSize())
+                            strSqlCache.push_back(L';');
+                    }
+                }
+            } while (false);
+            sql = L"USE [" + m_dbName + L"]";
+            Execute(sql, false, false, lastInsertId, index, affected, res, errMsg, vtId, fail_ok);
+            m_pNoSending = nullptr;
+            return strSqlCache;
+        }
+
         void COdbcImpl::Execute(const std::wstring& wsql, bool rowset, bool meta, bool lastInsertId, UINT64 index, INT64 &affected, int &res, std::wstring &errMsg, CDBVariant &vtId, UINT64 & fail_ok) {
             affected = 0;
             fail_ok = 0;
@@ -2530,6 +2733,16 @@ namespace SPA
                 return;
             } else {
                 res = SQL_SUCCESS;
+            }
+            std::wstring sql = wsql;
+            if (m_EnableMessages && !sql.size()) {
+                switch (m_msDriver) {
+                    case msMsSQL:
+                        sql = GenerateMsSqlForCachedTables();
+                        break;
+                    default:
+                        break;
+                }
             }
             UINT64 fails = m_fails;
             UINT64 oks = m_oks;
@@ -2549,12 +2762,21 @@ namespace SPA
                     break;
                 }
                 m_pExcuting = pStmt;
+                if (meta) {
+                    switch (m_msDriver) {
+                        case msMsSQL:
+                            retcode = SQLSetStmtAttr(hstmt, SQL_SOPT_SS_HIDDEN_COLUMNS, (SQLPOINTER) SQL_HC_ON, 0);
+                            break;
+                        default:
+                            break;
+                    }
+                }
 #ifdef WIN32_64
-                retcode = SQLExecDirectW(hstmt, (SQLWCHAR*) wsql.c_str(), (SQLINTEGER) wsql.size());
+                retcode = SQLExecDirectW(hstmt, (SQLWCHAR*) sql.c_str(), (SQLINTEGER) sql.size());
 #else
                 {
                     CScopeUQueue sb;
-                    SPA::Utilities::ToUTF16(wsql.c_str(), wsql.size(), *sb);
+                    SPA::Utilities::ToUTF16(sql.c_str(), sql.size(), *sb);
                     retcode = SQLExecDirectW(hstmt, (SQLWCHAR*) sb->GetBuffer(), (SQLINTEGER) (sb->GetSize() / sizeof (SQLWCHAR)));
                 }
 #endif
@@ -2572,15 +2794,12 @@ namespace SPA
                     }
                     if (columns > 0) {
                         if (rowset) {
-                            unsigned int ret;
                             CDBColumnInfoArray vInfo = GetColInfo(hstmt, columns, meta);
-                            {
-                                CScopeUQueue sbRowset;
-                                sbRowset << vInfo << index;
-                                ret = SendResult(idRowsetHeader, sbRowset->GetBuffer(), sbRowset->GetSize());
-                            }
-                            if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
-                                return;
+                            if (!m_pNoSending) {
+                                unsigned int ret = SendResult(idRowsetHeader, vInfo, index);
+                                if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
+                                    return;
+                                }
                             }
                             bool ok;
                             if (m_nRecordSize)
@@ -2614,6 +2833,293 @@ namespace SPA
             fail_ok += (unsigned int) (m_oks - oks);
         }
 
+        void COdbcImpl::SetOracleCallParams(const std::vector<tagParameterDirection> &vPD, int &res, std::wstring & errMsg) {
+            std::wstring sql(L"SELECT in_out,data_type FROM SYS.ALL_ARGUMENTS WHERE data_type<>'REF CURSOR' AND owner='");
+            std::transform(m_userName.begin(), m_userName.end(), m_userName.begin(), ::toupper);
+            sql += m_userName;
+            sql += L"' AND object_name='";
+            std::transform(m_procName.begin(), m_procName.end(), m_procName.begin(), ::toupper);
+            sql += m_procName;
+            if (m_procCatalogSchema.size()) {
+                sql += L"' AND package_name='";
+                std::transform(m_procCatalogSchema.begin(), m_procCatalogSchema.end(), m_procCatalogSchema.begin(), ::toupper);
+                sql += m_procCatalogSchema;
+                sql += L"'";
+            } else {
+                sql += L"' AND package_name IS NULL";
+            }
+            sql += L" ORDER BY position";
+
+            CDBVariant vtId;
+            UINT64 index = 0, fail_ok = 0;
+            INT64 affected = 0;
+            SPA::CScopeUQueue sb;
+            SPA::CUQueue &q = *sb;
+            m_pNoSending = &q;
+            Execute(sql, true, true, false, index, affected, res, errMsg, vtId, fail_ok);
+            m_pNoSending = nullptr;
+            if (res) {
+                return;
+            }
+            CDBVariantArray vData;
+            while (q.GetSize()) {
+                CDBVariant vt;
+                q >> vt;
+                vData.push_back(std::move(vt));
+            }
+
+            static CDBVariant vtIN(L"IN");
+            static CDBVariant vtOUT(L"OUT");
+            static CDBVariant vtINOUT(L"IN/OUT");
+            size_t cols = m_vBindInfo.size();
+            SQLSMALLINT parameters = (SQLSMALLINT) (vData.size() / cols);
+            for (SQLSMALLINT r = 0, k = 0; r < parameters && k < (SQLSMALLINT) vPD.size(); ++r, ++k) {
+                CParameterInfo pi;
+                unsigned int pos = (unsigned int) (r * cols);
+                CDBVariant &vt = vData[pos];
+                if (vt == vtIN) {
+                    if (vPD[k] == pdUnknown)
+                        continue;
+                } else if (vt == vtOUT) {
+                    if (vPD[k] == pdUnknown)
+                        continue;
+                    pi.Direction = pdOutput;
+                } else if (vt == vtINOUT) {
+                    if (vPD[k] == pdUnknown)
+                        continue;
+                    pi.Direction = pdInputOutput;
+                } else {
+                    assert(false); //shouldn't come here
+                }
+                pos = (unsigned int) (r * cols + 1);
+                std::wstring dt = vData[pos].bstrVal;
+                if (dt == L"NUMBER") {
+                    pi.DataType = VT_DECIMAL;
+                    pi.Precision = MAX_DECIMAL_PRECISION;
+                } else if (dt == L"BINARY_FLOAT") {
+                    pi.DataType = VT_R4;
+                } else if (dt == L"BINARY_DOUBLE") {
+                    pi.DataType = VT_R8;
+                } else if (dt == L"CHAR") {
+                    pi.ColumnSize = DEFAULT_UNICODE_CHAR_SIZE;
+                    pi.DataType = (VT_ARRAY | VT_I1);
+                } else if (dt == L"VARCHAR") {
+                    pi.ColumnSize = DEFAULT_UNICODE_CHAR_SIZE;
+                    pi.DataType = (VT_ARRAY | VT_I1);
+                } else if (dt == L"VARCHAR2") {
+                    pi.ColumnSize = MAX_ORACLE_VARCHAR2;
+                    pi.DataType = (VT_ARRAY | VT_I1);
+                } else if (dt == L"NCHAR") {
+                    pi.DataType = VT_BSTR;
+                    pi.ColumnSize = DEFAULT_UNICODE_CHAR_SIZE;
+                } else if (dt == L"NVARCHAR2") {
+                    pi.DataType = VT_BSTR;
+                    pi.ColumnSize = DEFAULT_UNICODE_CHAR_SIZE;
+                } else if (dt == L"DATE") {
+                    pi.DataType = VT_DATE;
+                } else if (dt == L"TIMESTAMP") {
+                    pi.DataType = VT_DATE;
+                    pi.Scale = MAX_TIME_DIGITS;
+                } else if (dt == L"TIMESTAMP WITH TIME ZONE") {
+                    pi.DataType = VT_DATE;
+                    pi.Scale = MAX_TIME_DIGITS;
+                } else if (dt == L"TIMESTAMP WITH LOCAL TIME ZONE") {
+                    pi.DataType = VT_DATE;
+                    pi.Scale = MAX_TIME_DIGITS;
+                } else if (dt == L"LONG") {
+                    pi.ColumnSize = (~0);
+                    pi.DataType = (VT_ARRAY | VT_UI1);
+                } else if (dt == L"BLOB") {
+                    pi.ColumnSize = (~0);
+                    pi.DataType = (VT_ARRAY | VT_UI1);
+                } else if (dt == L"CLOB") {
+                    pi.ColumnSize = (~0);
+                    pi.DataType = (VT_ARRAY | VT_I1);
+                } else if (dt == L"NCLOB") {
+                    pi.ColumnSize = (~0);
+                    pi.DataType = VT_BSTR;
+                } else if (dt == L"RAW") {
+                    pi.ColumnSize = DEFAULT_UNICODE_CHAR_SIZE;
+                    pi.DataType = (VT_ARRAY | VT_UI1);
+                } else if (dt == L"LONG RAW") {
+                    pi.ColumnSize = (~0);
+                    pi.DataType = (VT_ARRAY | VT_UI1);
+                } else if (dt == L"ROWID") {
+                    pi.ColumnSize = DECIMAL_STRING_BUFFER_SIZE; //set to 32
+                    pi.DataType = (VT_ARRAY | VT_UI1);
+                } else if (dt == L"UROWID") {
+                    pi.ColumnSize = DECIMAL_STRING_BUFFER_SIZE; //set to 32
+                    pi.DataType = (VT_ARRAY | VT_UI1);
+                } else {
+                    continue; //not supported
+                }
+                m_vPInfo.push_back(pi);
+            }
+        }
+
+        void COdbcImpl::SetCallParams(const std::vector<tagParameterDirection> &vPD, int &res, std::wstring & errMsg) {
+            res = 0;
+            UINT64 index = 0, fail_ok = 0;
+            std::wstring column, schema, catalog;
+            std::size_t pos = m_procCatalogSchema.find(L'.');
+            if (pos != std::wstring::npos) {
+                schema = m_procCatalogSchema.substr(pos + 1);
+                catalog = m_procCatalogSchema.substr(0, pos);
+            } else {
+                catalog = m_procCatalogSchema;
+            }
+            SPA::CScopeUQueue sb;
+            SPA::CUQueue &q = *sb;
+            m_pNoSending = &q;
+            CDBVariantArray vData;
+            DoSQLProcedureColumns(catalog, schema, m_procName, column, index, res, errMsg, fail_ok);
+            m_pNoSending = nullptr;
+            if (res) {
+                return;
+            }
+            while (q.GetSize()) {
+                CDBVariant vt;
+                q >> vt;
+                vData.push_back(std::move(vt));
+            }
+            size_t cols = m_vBindInfo.size();
+            SQLSMALLINT parameters = (SQLSMALLINT) (vData.size() / cols);
+            for (SQLSMALLINT r = 0, k = 0; r < parameters && k < (SQLSMALLINT) vPD.size(); ++r, ++k) {
+                CParameterInfo pi;
+                unsigned int pos = (unsigned int) (r * cols + 4);
+                CDBVariant &vt = vData[pos];
+                switch (vt.iVal) {
+                    case SQL_PARAM_INPUT:
+                        if (vPD[k] == pdUnknown)
+                            continue;
+                        break;
+                    case SQL_PARAM_INPUT_OUTPUT:
+                        if (vPD[k] == pdUnknown)
+                            continue;
+                        pi.Direction = pdInputOutput;
+                        break;
+                    case SQL_PARAM_OUTPUT:
+                        if (vPD[k] == pdUnknown)
+                            continue;
+                        pi.Direction = pdOutput;
+                        break;
+                    case SQL_RETURN_VALUE:
+                        pi.Direction = pdReturnValue;
+                        if (!m_bReturn) {
+                            --k;
+                            continue;
+                        }
+                        break;
+                    default: //SQL_PARAM_TYPE_UNKNOWN, SQL_RESULT_COL
+                        assert(false); //unexpected
+                        break;
+                }
+                pos = (unsigned int) (r * cols + 7);
+                CDBVariant &vtSize = vData[pos];
+                if (vtSize.Type() > VT_NULL) {
+                    pi.ColumnSize = vtSize.uintVal;
+                }
+                pos = (unsigned int) (r * cols + 5);
+                CDBVariant &dt = vData[pos];
+                SQLSMALLINT coltype = dt.iVal;
+                switch (coltype) {
+                    case SQL_CLOB: //IBM DB2
+                    case SQL_CHAR:
+                    case SQL_VARCHAR:
+                    case SQL_LONGVARCHAR:
+                        pi.DataType = (VT_ARRAY | VT_I1);
+                        if (!pi.ColumnSize)
+                            pi.ColumnSize = (~0);
+                        break;
+                    case SQL_GRAPHIC: //IBM DB2
+                    case SQL_VARGRAPHIC: //IBM DB2
+                    case SQL_LONGVARGRAPHIC: //IBM DB2
+                    case SQL_DBCLOB: //IBM DB2
+                    case SQL_WCHAR:
+                    case SQL_WVARCHAR:
+                    case SQL_WLONGVARCHAR:
+                        pi.DataType = VT_BSTR;
+                        if (!pi.ColumnSize)
+                            pi.ColumnSize = (~0);
+                        break;
+                    case SQL_BLOB:
+                    case SQL_BINARY:
+                    case SQL_VARBINARY:
+                    case SQL_LONGVARBINARY:
+                        pi.DataType = (VT_ARRAY | VT_UI1);
+                        break;
+                    case SQL_DECIMAL:
+                    case SQL_NUMERIC:
+                        pi.DataType = VT_DECIMAL;
+                        break;
+                    case SQL_SMALLINT:
+                        pi.DataType = VT_I2;
+                        break;
+                    case SQL_INTEGER:
+                        pi.DataType = VT_I4;
+                        break;
+                    case SQL_REAL:
+                        pi.DataType = VT_R4;
+                        break;
+                    case SQL_FLOAT:
+                    case SQL_DOUBLE:
+                        pi.DataType = VT_R8;
+                        break;
+                    case SQL_TINYINT:
+                        pi.DataType = VT_I1;
+                        break;
+                    case SQL_BIGINT:
+                        pi.DataType = VT_I8;
+                        break;
+                    case SQL_BIT:
+                        pi.DataType = VT_BOOL;
+                        break;
+                    case SQL_GUID:
+                        pi.DataType = VT_CLSID;
+                        break;
+                    case SQL_TYPE_DATE:
+                    case SQL_TYPE_TIME:
+                    case SQL_TYPE_TIMESTAMP:
+                        pi.DataType = VT_DATE;
+                        break;
+                    case SQL_INTERVAL_MONTH:
+                    case SQL_INTERVAL_YEAR:
+                    case SQL_INTERVAL_YEAR_TO_MONTH:
+                    case SQL_INTERVAL_DAY:
+                    case SQL_INTERVAL_HOUR:
+                    case SQL_INTERVAL_MINUTE:
+                    case SQL_INTERVAL_SECOND:
+                    case SQL_INTERVAL_DAY_TO_HOUR:
+                    case SQL_INTERVAL_DAY_TO_MINUTE:
+                    case SQL_INTERVAL_DAY_TO_SECOND:
+                    case SQL_INTERVAL_HOUR_TO_MINUTE:
+                    case SQL_INTERVAL_HOUR_TO_SECOND:
+                    case SQL_INTERVAL_MINUTE_TO_SECOND:
+                        pi.DataType = (VT_ARRAY | VT_I1);
+                        break;
+                    case SQL_XML: //IBM DB2
+                    case SQL_SS_XML: //SQL Server
+                        pi.DataType = SPA::VT_XML;
+                        pi.ColumnSize = (~0);
+                        break;
+                    case SQL_SS_VARIANT:
+                        pi.DataType = VT_VARIANT;
+                        pi.ColumnSize = DEFAULT_OUTPUT_BUFFER_SIZE;
+                        break;
+                    default:
+                        pi.DataType = VT_BSTR;
+                        pi.ColumnSize = DEFAULT_UNICODE_CHAR_SIZE;
+                        break;
+                }
+                pos = (unsigned int) (r * cols + 9);
+                CDBVariant &vtDigit = vData[pos];
+                if (vtDigit.Type() > VT_NULL) {
+                    pi.Scale = vtDigit.bVal;
+                }
+                m_vPInfo.push_back(pi);
+            }
+        }
+
         void COdbcImpl::Prepare(const std::wstring& wsql, CParameterInfoArray& params, int &res, std::wstring &errMsg, unsigned int &parameters) {
             ResetMemories();
             m_vPInfo = params;
@@ -2628,7 +3134,6 @@ namespace SPA
             m_parameters = 0;
             m_outputs = 0;
             m_pPrepare.reset();
-            m_vParam.clear();
             m_sqlPrepare = wsql;
             m_bCall = false;
             m_procName.clear();
@@ -2670,11 +3175,41 @@ namespace SPA
                     res = SPA::Odbc::ER_ERROR;
                     GetErrMsg(SQL_HANDLE_STMT, hstmt, errMsg);
                     break;
-                } else if (m_vPInfo.size()) {
-                    if (m_bCall && m_parameters != (SQLSMALLINT) m_vPInfo.size()) {
-                        res = SPA::Odbc::ER_BAD_PARAMETER_COLUMN_SIZE;
-                        errMsg = BAD_PARAMETER_COLUMN_SIZE;
-                        break;
+                } else if (!m_parameters) {
+                    res = SPA::Odbc::ER_BAD_PARAMETER_COLUMN_SIZE;
+                    errMsg = BAD_PARAMETER_COLUMN_SIZE;
+                    break;
+                } else {
+                    if (m_vPInfo.size()) {
+                        if (m_bCall && m_parameters != (SQLSMALLINT) m_vPInfo.size()) {
+                            res = SPA::Odbc::ER_BAD_PARAMETER_COLUMN_SIZE;
+                            errMsg = BAD_PARAMETER_COLUMN_SIZE;
+                            break;
+                        }
+                    } else if (m_bCall && m_bProcedureColumns) {
+                        m_vPD = GetCallDirections(m_sqlPrepare);
+                        if (m_bReturn) {
+                            //{?=CALL .....}
+                            m_vPD.insert(m_vPD.begin(), pdInput);
+                        }
+                        switch (m_msDriver) {
+                            case msOracle:
+                                SetOracleCallParams(m_vPD, res, errMsg);
+                                break;
+                            default:
+                                if (m_bProcedureColumns) {
+                                    SetCallParams(m_vPD, res, errMsg);
+                                }
+                                break;
+                        }
+                        if (res) {
+                            break;
+                        }
+                        if (m_bCall && m_parameters != (SQLSMALLINT) m_vPInfo.size()) {
+                            res = SPA::Odbc::ER_BAD_PARAMETER_COLUMN_SIZE;
+                            errMsg = BAD_PARAMETER_COLUMN_SIZE;
+                            break;
+                        }
                     }
                 }
                 for (auto it = m_vPInfo.begin(), end = m_vPInfo.end(); it != end; ++it) {
@@ -2718,10 +3253,6 @@ namespace SPA
                             break;
                         case pdInputOutput:
                             ++m_outputs;
-                            if (it->DataType == VT_VARIANT) {
-                                res = SPA::Odbc::ER_BAD_INPUT_PARAMETER_DATA_TYPE;
-                                errMsg = BAD_INPUT_PARAMETER_DATA_TYPE;
-                            }
                             break;
                         default:
                             ++m_outputs;
@@ -2749,56 +3280,6 @@ namespace SPA
             }
         }
 
-        bool COdbcImpl::CheckInputParameterDataTypes() {
-            unsigned int rows = (unsigned int) (m_vParam.size() / (unsigned short) m_parameters);
-            for (SQLSMALLINT n = 0; n < m_parameters; ++n) {
-                CParameterInfo &info = m_vPInfo[n];
-                if (info.DataType == VT_VARIANT || info.Direction == pdOutput || info.Direction == pdReturnValue)
-                    continue;
-                for (unsigned int r = 0; r < rows; ++r) {
-                    CDBVariant &d = m_vParam[(unsigned int) n + r * ((unsigned int) m_parameters)];
-                    VARTYPE vtP = d.vt;
-                    if (vtP == VT_NULL || vtP == VT_EMPTY) {
-                        continue;
-                    } else if (vteGuid == d.VtExt && (d.vt == (VT_ARRAY | VT_UI1)) && d.parray->rgsabound->cElements == sizeof (GUID)) {
-                        vtP = VT_CLSID;
-                    }
-#ifndef WIN32_64
-                    else if (vtP == (VT_UI2 | VT_ARRAY)) {
-                        vtP = VT_BSTR;
-                    }
-#endif
-                    //ignore signed/unsigned matching
-                    if (vtP == VT_UI1) {
-                        vtP = VT_I1;
-                    } else if (vtP == VT_UI2) {
-                        vtP = VT_I2;
-                    } else if (vtP == VT_UI4 || vtP == VT_INT || vtP == VT_UINT) {
-                        vtP = VT_I4;
-                    } else if (vtP == VT_UI8) {
-                        vtP = VT_I8;
-                    }
-                    VARTYPE vt = info.DataType;
-                    if (vt == VT_UI1) {
-                        vt = VT_I1;
-                    } else if (vt == VT_UI2) {
-                        vt = VT_I2;
-                    } else if (vt == VT_UI4 || vt == VT_INT || vt == VT_UINT) {
-                        vtP = VT_I4;
-                    } else if (vt == VT_UI8) {
-                        vt = VT_I8;
-                    } else if (vt == SPA::VT_XML) {
-                        vt = VT_BSTR;
-                    }
-
-                    if (vt != vtP) {
-                        return false;
-                    }
-                }
-            }
-            return true;
-        }
-
         bool COdbcImpl::SetInputParamInfo() {
             CParameterInfo info;
             unsigned int rows = (unsigned int) (m_vParam.size() / (unsigned short) m_parameters);
@@ -2806,7 +3287,7 @@ namespace SPA
                 info.DataType = (VT_I1 | VT_ARRAY);
                 for (unsigned int r = 0; r < rows; ++r) {
                     VARTYPE vt = m_vParam[r * (unsigned short) m_parameters + (unsigned short) col].vt;
-                    if (vt != VT_NULL && vt != VT_EMPTY) {
+                    if (vt > VT_NULL) {
                         switch (vt) {
                             case VT_I1:
                             case VT_UI1:
@@ -3078,9 +3559,12 @@ namespace SPA
                         assert(false);
                         break;
                 }
-                if (InputOutputType == SQL_PARAM_INPUT_OUTPUT && info.DataType == VT_VARIANT && (vtD.vt != VT_NULL && vtD.vt != VT_EMPTY)) {
-                    //sql_variant inputoutput parameter must be null when calling a stored procedure.
-                    return false;
+                if (InputOutputType == SQL_PARAM_INPUT_OUTPUT && info.DataType == VT_VARIANT && vtD.vt > VT_NULL && vtD.vt != VT_BSTR) {
+                    CDBVariant vt;
+                    HRESULT hr = VariantChangeType(&vt, &vtD, 0, VT_BSTR);
+                    if (FAILED(hr))
+                        return false;
+                    vtD = vt;
                 }
                 pLenInd[col] = 0;
                 SQLULEN ColumnSize = 0;
@@ -3168,9 +3652,13 @@ namespace SPA
                                     sql_type = SQL_TYPE_TIMESTAMP;
                                     ParameterValuePtr = (SQLPOINTER) (m_Blob.GetBuffer() + output_pos);
                                     BufferLength = info.ColumnSize;
+                                    ColumnSize = 20 + info.Scale;
                                     c_type = SQL_C_CHAR;
                                     output_pos += (unsigned int) BufferLength;
-                                    DecimalDigits = 6;
+                                    if (info.Scale)
+                                        DecimalDigits = info.Scale;
+                                    else
+                                        DecimalDigits = MAX_TIME_DIGITS;
                                     break;
                                 case (VT_I1 | VT_ARRAY):
                                     sql_type = SQL_LONGVARCHAR;
@@ -3198,7 +3686,7 @@ namespace SPA
                                     output_pos += (unsigned int) BufferLength;
                                     break;
                                 case SPA::VT_XML:
-                                    if (m_dbms.find(L"db2") != std::wstring::npos)
+                                    if (m_msDriver == msDB2)
                                         sql_type = SQL_XML;
                                     else
                                         sql_type = SQL_SS_XML;
@@ -3279,7 +3767,7 @@ namespace SPA
                                 case VT_DATE:
                                     sql_type = SQL_TYPE_TIMESTAMP;
                                     c_type = SQL_C_TIMESTAMP;
-                                    DecimalDigits = 6;
+                                    DecimalDigits = MAX_TIME_DIGITS;
                                     break;
                                 case (VT_I1 | VT_ARRAY):
                                     sql_type = SQL_LONGVARCHAR;
@@ -3303,7 +3791,7 @@ namespace SPA
                                     break;
                                 case SPA::VT_XML:
                                     c_type = SQL_C_WCHAR;
-                                    if (m_dbms.find(L"db2") != std::wstring::npos)
+                                    if (m_msDriver == msDB2)
                                         sql_type = SQL_XML;
                                     else
                                         sql_type = SQL_SS_XML;
@@ -3367,43 +3855,57 @@ namespace SPA
                     {
                         SPA::UDateTime dt(vtD.ullVal);
                         if (dt.HasMicrosecond()) {
-                            DecimalDigits = 6;
+                            DecimalDigits = MAX_TIME_DIGITS;
                         }
                         if (InputOutputType == SQL_PARAM_INPUT_OUTPUT) {
                             ParameterValuePtr = (SQLPOINTER) (m_Blob.GetBuffer() + output_pos);
                             BufferLength = info.ColumnSize;
                             dt.ToDBString((char*) ParameterValuePtr, (unsigned int) BufferLength);
                             ColumnSize = ::strlen((const char*) ParameterValuePtr);
-                            pLenInd[col] = (SQLLEN) ColumnSize;
                             switch (ColumnSize) {
                                 case 10:
                                     sql_type = SQL_TYPE_DATE;
+                                    DecimalDigits = 0;
                                     break;
                                 case 8:
                                     sql_type = SQL_TYPE_TIME;
+                                    if (info.Scale)
+                                        DecimalDigits = info.Scale;
                                     break;
                                 default:
                                     sql_type = SQL_TYPE_TIMESTAMP;
+                                    if (info.Scale) {
+                                        DecimalDigits = info.Scale;
+                                        ColumnSize = 20 + info.Scale;
+                                    }
                                     break;
                             }
+                            pLenInd[col] = (SQLLEN) ColumnSize;
                             output_pos += (unsigned int) BufferLength;
                         } else {
                             char str[32] = {0};
                             dt.ToDBString(str, sizeof (str));
                             vtD = (const char*) str;
                             ::SafeArrayAccessData(vtD.parray, &ParameterValuePtr);
-                            m_vArray.push_back(vtD.parray);
+                            ::SafeArrayUnaccessData(vtD.parray);
                             ColumnSize = vtD.parray->rgsabound->cElements;
                             BufferLength = (SQLLEN) ColumnSize;
                             switch (vtD.parray->rgsabound->cElements) {
                                 case 10:
                                     sql_type = SQL_TYPE_DATE;
+                                    DecimalDigits = 0;
                                     break;
                                 case 8:
                                     sql_type = SQL_TYPE_TIME;
+                                    if (info.Scale)
+                                        DecimalDigits = info.Scale;
                                     break;
                                 default:
                                     sql_type = SQL_TYPE_TIMESTAMP;
+                                    if (info.Scale) {
+                                        DecimalDigits = info.Scale;
+                                        ColumnSize = 20 + info.Scale;
+                                    }
                                     break;
                             }
                             pLenInd[col] = (SQLLEN) ColumnSize;
@@ -3414,23 +3916,35 @@ namespace SPA
                     case VT_BSTR:
                         c_type = SQL_C_WCHAR;
                         if (info.DataType == VT_VARIANT) {
-                            sql_type = SQL_WVARCHAR;
+                            sql_type = SQL_SS_VARIANT;
                         } else if (info.DataType == SPA::VT_XML) {
-                            if (m_dbms.find(L"db2") != std::wstring::npos)
+                            if (m_msDriver == msDB2)
                                 sql_type = SQL_XML;
                             else
                                 sql_type = SQL_SS_XML;
                         } else {
-                            sql_type = SQL_WLONGVARCHAR;
+                            if (SysStringLen(vtD.bstrVal) < DEFAULT_UNICODE_CHAR_SIZE)
+                                sql_type = SQL_WVARCHAR;
+                            else
+                                sql_type = SQL_WLONGVARCHAR;
                         }
                         if (InputOutputType == SQL_PARAM_INPUT_OUTPUT) {
                             ParameterValuePtr = (SQLPOINTER) (m_Blob.GetBuffer() + output_pos);
                             ColumnSize = ::SysStringLen(vtD.bstrVal);
-                            if (ColumnSize > info.ColumnSize) {
-                                ColumnSize = info.ColumnSize;
+                            if (info.DataType == VT_VARIANT) {
+                                if (ColumnSize >= info.ColumnSize / sizeof (SQLWCHAR)) {
+                                    ColumnSize = info.ColumnSize / sizeof (SQLWCHAR) - 1;
+                                }
+                                ::memcpy(ParameterValuePtr, (const void*) vtD.bstrVal, (ColumnSize + 1) * sizeof (SQLWCHAR));
+                                BufferLength = info.ColumnSize;
+                                ColumnSize *= sizeof (SQLWCHAR);
+                            } else {
+                                if (ColumnSize >= info.ColumnSize) {
+                                    ColumnSize = info.ColumnSize - 1;
+                                }
+                                ::memcpy(ParameterValuePtr, (const void*) vtD.bstrVal, (ColumnSize + 1) * sizeof (SQLWCHAR));
+                                BufferLength = (SQLULEN) info.ColumnSize * sizeof (SQLWCHAR);
                             }
-                            BufferLength = (SQLULEN) info.ColumnSize * sizeof (SQLWCHAR);
-                            ::memcpy(ParameterValuePtr, (const void*) vtD.bstrVal, (ColumnSize + 1) * sizeof (SQLWCHAR));
                             output_pos += (unsigned int) BufferLength;
                         } else {
                             ParameterValuePtr = vtD.bstrVal;
@@ -3442,33 +3956,45 @@ namespace SPA
                     case (VT_UI2 | VT_ARRAY):
                         c_type = SQL_C_WCHAR;
                         if (info.DataType == VT_VARIANT) {
-                            sql_type = SQL_WVARCHAR;
+                            sql_type = SQL_SS_VARIANT;
                         } else if (info.DataType == SPA::VT_XML) {
-                            if (m_dbms.find(L"db2") != std::wstring::npos)
+                            if (m_msDriver == msDB2)
                                 sql_type = SQL_XML;
                             else
                                 sql_type = SQL_SS_XML;
                         } else {
-                            sql_type = SQL_WLONGVARCHAR;
+                            if (SysStringLen(vtD.bstrVal) < DEFAULT_UNICODE_CHAR_SIZE)
+                                sql_type = SQL_WVARCHAR;
+                            else
+                                sql_type = SQL_WLONGVARCHAR;
                         }
                         ColumnSize = vtD.parray->rgsabound->cElements;
                         if (InputOutputType == SQL_PARAM_INPUT_OUTPUT) {
                             ParameterValuePtr = (SQLPOINTER) (m_Blob.GetBuffer() + output_pos);
-                            if (ColumnSize > info.ColumnSize) {
-                                ColumnSize = info.ColumnSize;
-                            }
-                            BufferLength = (SQLULEN) info.ColumnSize * sizeof (SQLWCHAR);
                             unsigned short *data = nullptr;
                             ::SafeArrayAccessData(vtD.parray, (void**) &data);
-                            ::memcpy(ParameterValuePtr, data, ColumnSize * sizeof (unsigned short));
+                            if (info.DataType == VT_VARIANT) {
+                                if (ColumnSize >= info.ColumnSize / sizeof (SQLWCHAR)) {
+                                    ColumnSize = info.ColumnSize / sizeof (SQLWCHAR) - 1;
+                                }
+                                ::memcpy(ParameterValuePtr, data, (ColumnSize + 1) * sizeof (SQLWCHAR));
+                                BufferLength = info.ColumnSize;
+                                ColumnSize *= sizeof (SQLWCHAR);
+                            } else {
+                                if (ColumnSize >= info.ColumnSize) {
+                                    ColumnSize = info.ColumnSize - 1;
+                                }
+                                ::memcpy(ParameterValuePtr, (const void*) data, (ColumnSize + 1) * sizeof (SQLWCHAR));
+                                BufferLength = (SQLULEN) info.ColumnSize * sizeof (SQLWCHAR);
+                            }
                             ::SafeArrayUnaccessData(vtD.parray);
                             output_pos += (unsigned int) BufferLength;
                         } else {
                             ::SafeArrayAccessData(vtD.parray, &ParameterValuePtr);
                             BufferLength = (SQLLEN) ColumnSize * sizeof (SQLWCHAR);
-                            m_vArray.push_back(vtD.parray);
+                            ::SafeArrayUnaccessData(vtD.parray);
                         }
-                        pLenInd[col] = ColumnSize * sizeof (SQLWCHAR);
+                        pLenInd[col] = SQL_NTS;
 #endif
                         break;
                     case VT_DECIMAL:
@@ -3501,7 +4027,7 @@ namespace SPA
                             bool point = vtD.decVal.scale ? true : false;
                             ConvertDecimalAString(vtD);
                             ::SafeArrayAccessData(vtD.parray, &ParameterValuePtr);
-                            m_vArray.push_back(vtD.parray);
+                            ::SafeArrayUnaccessData(vtD.parray);
                             ColumnSize = vtD.parray->rgsabound->cElements;
                             pLenInd[col] = (SQLLEN) ColumnSize;
                             BufferLength = (SQLLEN) ColumnSize;
@@ -3509,13 +4035,16 @@ namespace SPA
                         }
                         break;
                     case (VT_I1 | VT_ARRAY):
+                        ColumnSize = vtD.parray->rgsabound->cElements;
                         c_type = SQL_C_CHAR;
                         if (info.DataType == VT_VARIANT) {
                             sql_type = SQL_VARCHAR;
                         } else {
-                            sql_type = SQL_LONGVARCHAR;
+                            if (ColumnSize < DEFAULT_UNICODE_CHAR_SIZE)
+                                sql_type = SQL_VARCHAR;
+                            else
+                                sql_type = SQL_LONGVARCHAR;
                         }
-                        ColumnSize = vtD.parray->rgsabound->cElements;
                         ::SafeArrayAccessData(vtD.parray, &ParameterValuePtr);
                         if (InputOutputType == SQL_PARAM_INPUT_OUTPUT) {
                             if (ColumnSize > info.ColumnSize) {
@@ -3528,7 +4057,7 @@ namespace SPA
                             output_pos += (unsigned int) BufferLength;
                             ::SafeArrayUnaccessData(vtD.parray);
                         } else {
-                            m_vArray.push_back(vtD.parray);
+                            ::SafeArrayUnaccessData(vtD.parray);
                             BufferLength = (SQLLEN) ColumnSize;
                         }
                         pLenInd[col] = (SQLLEN) ColumnSize;
@@ -3558,7 +4087,7 @@ namespace SPA
                             ::SafeArrayUnaccessData(vtD.parray);
                         } else {
                             ::SafeArrayAccessData(vtD.parray, &ParameterValuePtr);
-                            m_vArray.push_back(vtD.parray);
+                            ::SafeArrayUnaccessData(vtD.parray);
                             BufferLength = (SQLLEN) ColumnSize;
                             pLenInd[col] = (SQLLEN) ColumnSize;
                         }
@@ -3590,6 +4119,271 @@ namespace SPA
                 else
                     s = SPA::ToString(vt.decVal);
                 vt = s.c_str();
+            }
+        }
+
+        std::vector<std::wstring> COdbcImpl::Split(const std::wstring &sql, const std::wstring & delimiter) {
+            std::vector<std::wstring> v;
+            size_t d_len = delimiter.size();
+            if (d_len) {
+                const wchar_t quote = '\'', slash = '\\', done = delimiter[0];
+                size_t params = 0, len = sql.size();
+                bool b_slash = false, balanced = true;
+                for (size_t n = 0; n < len; ++n) {
+                    const wchar_t &c = sql[n];
+                    if (c == slash) {
+                        b_slash = true;
+                        continue;
+                    }
+                    if (c == quote && b_slash) {
+                        b_slash = false;
+                        continue; //ignore a quote if there is a slash ahead
+                    }
+                    b_slash = false;
+                    if (c == quote) {
+                        balanced = (!balanced);
+                        continue;
+                    }
+                    if (balanced && c == done) {
+                        size_t pos = sql.find(delimiter, n);
+                        if (pos == n) {
+                            v.push_back(sql.substr(params, n - params));
+                            n += d_len;
+                            params = n;
+                        }
+                    }
+                }
+                v.push_back(sql.substr(params));
+            } else {
+                v.push_back(sql);
+            }
+            return v;
+        }
+
+        std::vector<tagParameterDirection> COdbcImpl::GetCallDirections(const std::wstring & sql) {
+            bool quest = false;
+            bool parenthesis = false;
+            bool not_empty = false;
+            std::vector<tagParameterDirection> vPD;
+            const wchar_t quote = L'\'', slash = L'\\', coma = L',', question = L'?';
+            bool b_slash = false, balanced = true;
+            size_t len = sql.size();
+            for (size_t n = 0; n < len; ++n) {
+                const wchar_t &c = sql[n];
+                if (!parenthesis && c == L'(') {
+                    parenthesis = true;
+                    quest = false;
+                    continue;
+                }
+                if (!not_empty && parenthesis && c != L')' && !::isspace(c))
+                    not_empty = true;
+                if (c == slash) {
+                    b_slash = true;
+                    continue;
+                }
+                if (c == quote && b_slash) {
+                    b_slash = false;
+                    continue; //ignore a quote if there is a slash ahead
+                }
+                b_slash = false;
+                if (c == quote) {
+                    balanced = (!balanced);
+                    continue;
+                }
+                if (balanced) {
+                    if (c == coma) {
+                        vPD.push_back(quest ? pdInput : pdUnknown);
+                        quest = false;
+                    } else if (c == question) {
+                        quest = true;
+                    }
+                }
+            }
+            if (not_empty) {
+                vPD.push_back(quest ? pdInput : pdUnknown);
+            }
+            return vPD;
+        }
+
+        size_t COdbcImpl::ComputeParameters(const std::wstring & sql) {
+            const wchar_t quote = L'\'', slash = L'\\', question = L'?';
+            bool b_slash = false, balanced = true;
+            size_t params = 0, len = sql.size();
+            for (size_t n = 0; n < len; ++n) {
+                const wchar_t &c = sql[n];
+                if (c == slash) {
+                    b_slash = true;
+                    continue;
+                }
+                if (c == quote && b_slash) {
+                    b_slash = false;
+                    continue; //ignore a quote if there is a slash ahead
+                }
+                b_slash = false;
+                if (c == quote) {
+                    balanced = (!balanced);
+                    continue;
+                }
+                if (balanced) {
+                    params += ((c == question) ? 1 : 0);
+                }
+            }
+            return params;
+        }
+
+        void COdbcImpl::SetVParam(CDBVariantArray& vAll, size_t parameters, size_t pos, size_t ps) {
+            m_vParam.clear();
+            size_t rows = vAll.size() / parameters;
+            for (size_t r = 0; r < rows; ++r) {
+                for (size_t p = 0; p < ps; ++p) {
+                    CDBVariant &vt = vAll[parameters * r + pos + p];
+                    m_vParam.push_back(std::move(vt));
+                }
+            }
+        }
+
+        CParameterInfoArray COdbcImpl::GetVInfo(const CParameterInfoArray& vPInfo, size_t pos, size_t ps) {
+            CParameterInfoArray v;
+            size_t count = vPInfo.size();
+            for (size_t n = 0; n < ps; ++n) {
+                v.push_back(vPInfo[pos + n]);
+            }
+            return v;
+        }
+
+        void COdbcImpl::ExecuteBatch(const std::wstring& sql, const std::wstring& delimiter, int isolation, int plan, bool rowset, bool meta, bool lastInsertId, const std::wstring &dbConn, unsigned int flags, UINT64 callIndex, INT64 &affected, int &res, std::wstring &errMsg, CDBVariant &vtId, UINT64 & fail_ok) {
+            CParameterInfoArray vPInfo;
+            m_UQueue >> vPInfo;
+            res = 0;
+            fail_ok = 0;
+            affected = 0;
+            int ms = 0;
+            if (!m_pOdbc) {
+                Open(dbConn, flags, res, errMsg, ms);
+            }
+            size_t parameters = 0;
+            std::vector<std::wstring> vSql = Split(sql, delimiter);
+            for (auto it = vSql.cbegin(), end = vSql.cend(); it != end; ++it) {
+                parameters += ComputeParameters(*it);
+            }
+            if (!m_pOdbc) {
+                res = SPA::Odbc::ER_NO_DB_OPENED_YET;
+                errMsg = NO_DB_OPENED_YET;
+                fail_ok = vSql.size();
+                fail_ok <<= 32;
+                SendResult(idSqlBatchHeader, res, errMsg, (int) msODBC, (unsigned int) parameters, callIndex);
+                return;
+            }
+            size_t rows = 0;
+            if (parameters) {
+                if (!m_vParam.size()) {
+                    res = SPA::Odbc::ER_BAD_PARAMETER_DATA_ARRAY_SIZE;
+                    errMsg = BAD_PARAMETER_DATA_ARRAY_SIZE;
+                    m_fails += vSql.size();
+                    fail_ok = vSql.size();
+                    fail_ok <<= 32;
+                    SendResult(idSqlBatchHeader, res, errMsg, (int) msODBC, (unsigned int) parameters, callIndex);
+                    return;
+                }
+                if ((m_vParam.size() % (unsigned short) parameters)) {
+                    res = SPA::Odbc::ER_BAD_PARAMETER_DATA_ARRAY_SIZE;
+                    errMsg = BAD_PARAMETER_DATA_ARRAY_SIZE;
+                    m_fails += vSql.size();
+                    fail_ok = vSql.size();
+                    fail_ok <<= 32;
+                    SendResult(idSqlBatchHeader, res, errMsg, (int) msODBC, (unsigned int) parameters, callIndex);
+                    return;
+                }
+                rows = m_vParam.size() / parameters;
+                if (vPInfo.size() && parameters != vPInfo.size()) {
+                    res = SPA::Odbc::ER_CORRECT_PARAMETER_INFO_NOT_PROVIDED_YET;
+                    errMsg = CORRECT_PARAMETER_INFO_NOT_PROVIDED_YET;
+                    m_fails += vSql.size();
+                    fail_ok = vSql.size();
+                    fail_ok <<= 32;
+                    SendResult(idSqlBatchHeader, res, errMsg, (int) msODBC, (unsigned int) parameters, callIndex);
+                    return;
+                }
+            }
+            if (isolation != (int) tiUnspecified) {
+                int ms;
+                BeginTrans(isolation, dbConn, flags, res, errMsg, ms);
+                if (res) {
+                    m_fails += vSql.size();
+                    fail_ok = vSql.size();
+                    fail_ok <<= 32;
+                    SendResult(idSqlBatchHeader, res, errMsg, (int) msODBC, (unsigned int) parameters, callIndex);
+                    return;
+                } else if (IsCanceled() || !IsOpened())
+                    return;
+            } else {
+                if (!m_global) {
+                    errMsg = dbConn;
+                } else {
+                    errMsg = ODBC_GLOBAL_CONNECTION_STRING;
+                }
+            }
+            unsigned int ret = SendResult(idSqlBatchHeader, res, errMsg, (int) msODBC, (unsigned int) parameters, callIndex);
+            if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
+                return;
+            }
+            errMsg.clear();
+            CDBVariantArray vAll;
+            m_vParam.swap(vAll);
+            INT64 aff = 0;
+            int r = 0;
+            std::wstring err;
+            UINT64 fo = 0;
+            size_t pos = 0;
+            for (auto it = vSql.begin(), end = vSql.end(); it != end; ++it) {
+                trim_w(*it);
+                if (!it->size()) {
+                    continue;
+                }
+                size_t ps = ComputeParameters(*it);
+                if (ps) {
+                    //prepared statements
+                    CParameterInfoArray vP;
+                    if (vPInfo.size())
+                        vP = GetVInfo(vPInfo, pos, ps);
+                    unsigned int my_ps = 0;
+                    Prepare(*it, vP, r, err, my_ps);
+                    if (!IsOpened() || IsCanceled())
+                        return;
+                    if (r) {
+                        fail_ok += (((UINT64) rows) << 32);
+                    } else {
+                        assert(ps == (my_ps & 0xffff));
+                        m_vParam.clear();
+                        SetVParam(vAll, parameters, pos, ps);
+                        unsigned int nParamPos = (unsigned int) ((pos << 16) + ps);
+                        ret = SendResult(idParameterPosition, nParamPos);
+                        if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
+                            return;
+                        }
+                        ExecuteParameters(rowset, meta, lastInsertId, callIndex, aff, r, err, vtId, fo);
+                    }
+                    pos += ps;
+                } else {
+                    Execute(*it, rowset, meta, lastInsertId, callIndex, aff, r, err, vtId, fo);
+                }
+                if (!IsOpened() || IsCanceled())
+                    return;
+                if (r && !res) {
+                    res = r;
+                    errMsg = err;
+                }
+                if (r && isolation != (int) tiUnspecified && plan == (int) rpDefault)
+                    break;
+                affected += aff;
+                fail_ok += fo;
+            }
+            if (isolation != (int) tiUnspecified) {
+                EndTrans(plan, r, err);
+                if (r && !res) {
+                    res = r;
+                    errMsg = err;
+                }
             }
         }
 
@@ -3625,11 +4419,6 @@ namespace SPA
                             ++m_fails;
                             break;
                         }
-                    } else if (!CheckInputParameterDataTypes()) {
-                        res = SPA::Odbc::ER_BAD_INPUT_PARAMETER_DATA_TYPE;
-                        errMsg = BAD_INPUT_PARAMETER_DATA_TYPE;
-                        ++m_fails;
-                        break;
                     }
                 }
                 res = SQL_SUCCESS;
@@ -3660,7 +4449,17 @@ namespace SPA
                             ++m_fails;
                             continue;
                         }
-                        SQLRETURN retcode = SQLExecute(m_pPrepare.get());
+                        SQLRETURN retcode;
+                        if (meta) {
+                            switch (m_msDriver) {
+                                case msMsSQL:
+                                    retcode = SQLSetStmtAttr(m_pPrepare.get(), SQL_SOPT_SS_HIDDEN_COLUMNS, (SQLPOINTER) SQL_HC_ON, 0);
+                                    break;
+                                default:
+                                    break;
+                            }
+                        }
+                        retcode = SQLExecute(m_pPrepare.get());
                         if (!SQL_SUCCEEDED(retcode)) {
                             if (!res) {
                                 res = SPA::Odbc::ER_ERROR;
@@ -3681,13 +4480,9 @@ namespace SPA
                                 bool output = (m_bCall && vInfo[0].TablePath == m_procName && (size_t) m_parameters >= vInfo.size());
                                 if (output || rowset) {
                                     unsigned int outputs = output ? ((unsigned int) vInfo.size()) : 0;
-                                    unsigned int ret = 0;
-                                    {
-                                        CScopeUQueue sbRowset;
-                                        sbRowset << vInfo << index << outputs;
-                                        ret = SendResult(idRowsetHeader, sbRowset->GetBuffer(), sbRowset->GetSize());
-                                    }
+                                    unsigned int ret = SendResult(idRowsetHeader, vInfo, index, outputs);
                                     if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
+                                        m_vParam.clear();
                                         return;
                                     }
                                     bool ok;
@@ -3697,6 +4492,7 @@ namespace SPA
                                         ok = PushRecords(m_pPrepare.get(), vInfo, output, temp, errTemp);
                                     output_sent = output;
                                     if (!ok) {
+                                        m_vParam.clear();
                                         return;
                                     }
                                     if (temp && !res) {
@@ -3738,16 +4534,14 @@ namespace SPA
                             if (rowset) {
                                 unsigned int ret;
                                 CDBColumnInfoArray vInfo = GetColInfo(m_pPrepare.get(), columns, meta);
-                                {
-                                    CScopeUQueue sbRowset;
-                                    sbRowset << vInfo << index;
-                                    ret = SendResult(idRowsetHeader, sbRowset->GetBuffer(), sbRowset->GetSize());
-                                }
+                                ret = SendResult(idRowsetHeader, vInfo, index);
                                 if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
+                                    m_vParam.clear();
                                     return;
                                 }
                                 bool ok = PushRecords(m_pPrepare.get(), vInfo, false, res, errMsg);
                                 if (!ok) {
+                                    m_vParam.clear();
                                     return;
                                 }
                                 if (res) {
@@ -3770,6 +4564,7 @@ namespace SPA
             } while (false);
             fail_ok = ((m_fails - fails) << 32);
             fail_ok += (unsigned int) (m_oks - oks);
+            m_vParam.clear();
         }
 
         void COdbcImpl::StartBLOB(unsigned int lenExpected) {
