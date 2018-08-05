@@ -9,7 +9,7 @@ class CMySocketProServer : public SPA::ServerSide::CSocketProServer
 
 protected:
     virtual bool OnSettingServer(unsigned int listeningPort, unsigned int maxBacklog, bool v6) {
-        m_h = SPA::ServerSide::CSocketProServer::DllManager::AddALibrary("smysql"/*, SPA::ServerSide::Mysql::DISABLE_REMOTE_MYSQL/*SPA::ServerSide::Mysql::DISABLE_EMBEDDED_MYSQL*/);
+        m_h = SPA::ServerSide::CSocketProServer::DllManager::AddALibrary("smysql");
         if (m_h) {
             PSetMysqlDBGlobalConnectionString SetMysqlDBGlobalConnectionString = (PSetMysqlDBGlobalConnectionString) GetProcAddress(m_h, "SetMysqlDBGlobalConnectionString");
             SetMysqlDBGlobalConnectionString(L"host=localhost;uid=root;database=sakila;pwd=Smash123;port=3306;timeout=20", true);
