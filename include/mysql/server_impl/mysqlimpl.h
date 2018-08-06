@@ -68,10 +68,6 @@ namespace SPA {
                 std::string ssl_key; //file_name
                 std::string user; //user | uid
 
-                bool IsRemote() const {
-                    return (host.size() > 0);
-                }
-
                 bool IsSSL() const {
                     return (ssl_ca.size() || ssl_capath.size() || ssl_cert.size() || ssl_cipher.size() || ssl_key.size());
                 }
