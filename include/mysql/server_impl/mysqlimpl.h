@@ -86,14 +86,6 @@ namespace SPA {
 
         public:
             CMysqlImpl();
-            unsigned int GetParameters() const;
-            MYSQL* GetDBHandle() const;
-            MYSQL_STMT* GetPreparedStatement() const;
-            bool IsGloballyConnected() const;
-            bool IsStoredProcedure() const;
-            const std::string& GetProcedureName() const;
-            CMysqlLoader* GetLib() const;
-
             static void SetDBGlobalConnectionString(const wchar_t *dbConnection, bool remote);
             static void UnloadMysql();
             static bool InitMySql();
@@ -106,7 +98,7 @@ namespace SPA {
             virtual void OnSwitchFrom(unsigned int nOldServiceId);
             virtual void OnBaseRequestArrive(unsigned short requestId);
 
-        protected:
+        private:
             virtual void Open(const std::wstring &strConnection, unsigned int flags, int &res, std::wstring &errMsg, int &ms);
             virtual void CloseDb(int &res, std::wstring &errMsg);
             virtual void BeginTrans(int isolation, const std::wstring &dbConn, unsigned int flags, int &res, std::wstring &errMsg, int &ms);
@@ -150,14 +142,13 @@ namespace SPA {
             static void rtrim_w(std::wstring &s);
             static void trim_w(std::wstring &s);
 
-        protected:
+        private:
             UINT64 m_oks;
             UINT64 m_fails;
             tagTransactionIsolation m_ti;
             CDBVariantArray m_vParam;
             CMysqlLoader *m_pLib;
 
-        private:
             SPA::CScopeUQueue m_sb;
             bool m_global;
             CUQueue &m_Blob;

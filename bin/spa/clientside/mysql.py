@@ -6,11 +6,9 @@ class CMysql(CAsyncDBHandler):
     sidMysql = BaseServiceID.sidReserved + 0x6FFFFFF1  # asynchronous mysql service id
 
     """
-    Use Mysql embedded at SocketPro server side by default.
-    Use this const value for the input parameter flags with the method of CAsyncDBHandler::Open at client side
-    to open a connection to remote Mysql server at SocketPro server instead of embedded Mysql
+    This define is reserved for future
     """
-    USE_REMOTE_MYSQL = 0x1
+    USE_REMOTE_MYSQL = 0x80000000
 
     # error codes from async mysql server library
     ER_NO_DB_OPENED_YET = 1981

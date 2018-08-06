@@ -122,34 +122,6 @@ namespace SPA
             m_UQueue.ToUtf8(true);
         }
 
-        unsigned int CMysqlImpl::GetParameters() const {
-            return (unsigned int) m_parameters;
-        }
-
-        MYSQL * CMysqlImpl::GetDBHandle() const {
-            return m_pMysql.get();
-        }
-
-        MYSQL_STMT * CMysqlImpl::GetPreparedStatement() const {
-            return m_pPrepare.get();
-        }
-
-        bool CMysqlImpl::IsGloballyConnected() const {
-            return m_global;
-        }
-
-        bool CMysqlImpl::IsStoredProcedure() const {
-            return m_bCall;
-        }
-
-        const std::string & CMysqlImpl::GetProcedureName() const {
-            return m_procName;
-        }
-
-        CMysqlLoader * CMysqlImpl::GetLib() const {
-            return m_pLib;
-        }
-
         void CMysqlImpl::UnloadMysql() {
             SPA::CAutoLock al(m_csPeer);
             m_remMysql.Unload();
@@ -2112,11 +2084,11 @@ namespace SPA
         bool CMysqlImpl::DoSQLAuthentication(USocket_Server_Handle hSocket, const wchar_t *userId, const wchar_t *password, unsigned int nSvsId, const wchar_t * dbConnection) {
             CMysqlImpl impl;
             std::wstring db(dbConnection ? dbConnection : L"host=localhost;port=3306;timeout=30");
-            if (userId) {
+            if (userId && ::wcslen(userId)) {
                 db += L";uid=";
                 db += userId;
             }
-            if (password) {
+            if (password && ::wcslen(password)) {
                 db += L";pwd=";
                 db += password;
             }

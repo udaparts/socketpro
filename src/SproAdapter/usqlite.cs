@@ -169,11 +169,9 @@ namespace SocketProAdapter
             }
 
             /// <summary>
-            /// Use Mysql embedded at SocketPro server side by default.
-            /// Use this const value for the input parameter flags with the method of CAsyncDBHandler::Open at client side
-            /// to open a connection to remote Mysql server at SocketPro server instead of embedded Mysql
+            /// This define is reserved for future.
             /// </summary>
-            public const uint USE_REMOTE_MYSQL = 0x1;
+            public const uint USE_REMOTE_MYSQL = 0x80000000;
 
             //error codes from async mysql server library
             public const int ER_NO_DB_OPENED_YET = 1981;

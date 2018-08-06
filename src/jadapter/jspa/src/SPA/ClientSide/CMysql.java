@@ -15,16 +15,12 @@ public class CMysql extends CAsyncDBHandler {
     public final static int ER_UNABLE_TO_SWITCH_TO_DATABASE = 1988;
     public final static int ER_SERVICE_COMMAND_ERROR = 1989;
 
-    //The following defines are required by non-plugin version MySQL/MariaDB SQL-stream technology
+    //The following defines are required by non MySQL database plugin and MariaDB SQL-stream technologies
     public final static int ER_MYSQL_LIBRARY_NOT_INITIALIZED = 1990;
     /**
-     * Use MySQL/MariaDB embedded at SocketPro server side by default. Use this
-     * constance value for the input parameter flags with the method of
-     * CAsyncDBHandler::Open at client side to open a connection to remote
-     * MySQL/MariaDB server at SocketPro server instead of embedded
-     * MySQL/MariaDB
+     * This define is reserved for future
      */
-    public final static int USE_REMOTE_MYSQL = 0x1;
+    public final static int USE_REMOTE_MYSQL = 0x80000000;
 
     public CMysql() {
         super(sidMysql);
