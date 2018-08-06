@@ -1,0 +1,10 @@
+
+LIBRARY		smysql
+
+EXPORTS
+	PublishDBEvent_init	@1
+	PublishDBEvent_deinit	@2
+	PublishDBEvent	@3
+	SetSQLStreamingPlugin_init	@4
+	SetSQLStreamingPlugin_deinit	@5
+	SetSQLStreamingPlugin	@6
