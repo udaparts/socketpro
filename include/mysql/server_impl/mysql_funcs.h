@@ -200,9 +200,13 @@ namespace SPA {
                         return true;
                     }
 #ifdef WIN32_64
-                    m_hMysql = ::LoadLibraryW(L"libmysql.dll");
+                    m_hMysql = ::LoadLibraryW(L"libmariadb.dll");
+                    if (!m_hMysql)
+                        m_hMysql = ::LoadLibraryW(L"libmysql.dll");
 #else
-                    m_hMysql = ::dlopen("libmysqlclient.so", RTLD_LAZY);
+                    m_hMysql = ::dlopen(L"libmariadb.so", RTLD_LAZY);
+                    if (!m_hMysql)
+                        m_hMysql = ::dlopen("libmysqlclient.so", RTLD_LAZY);
 #endif
                     if (!m_hMysql) {
                         return false;
