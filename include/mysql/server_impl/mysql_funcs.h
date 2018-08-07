@@ -116,6 +116,7 @@ namespace SPA {
             typedef my_bool(STDCALL *Pmysql_more_results)(MYSQL *mysql);
             typedef int (STDCALL *Pmysql_next_result)(MYSQL *mysql);
             typedef int (STDCALL *Pmysql_stmt_next_result)(MYSQL_STMT *stmt);
+            typedef my_bool(STDCALL *Pmysql_stmt_reset)(MYSQL_STMT * stmt);
             typedef void (STDCALL *Pmysql_close)(MYSQL *sock);
 
             struct CMysqlLoader {
@@ -194,19 +195,20 @@ namespace SPA {
                 Pmysql_stmt_attr_set mysql_stmt_attr_set;
                 Pmysql_get_client_version mysql_get_client_version;
                 Pmysql_query mysql_query;
+                Pmysql_stmt_reset mysql_stmt_reset;
 
                 bool LoadMysql() {
                     if (m_hMysql) {
                         return true;
                     }
 #ifdef WIN32_64
-                    m_hMysql = ::LoadLibraryW(L"libmariadb.dll");
+                    m_hMysql = ::LoadLibraryW(L"libmysql.dll");
                     if (!m_hMysql)
-                        m_hMysql = ::LoadLibraryW(L"libmysql.dll");
+                        m_hMysql = ::LoadLibraryW(L"libmariadb.dll");
 #else
-                    m_hMysql = ::dlopen(L"libmariadb.so", RTLD_LAZY);
+                    m_hMysql = ::dlopen("libmysqlclient.so", RTLD_LAZY);
                     if (!m_hMysql)
-                        m_hMysql = ::dlopen("libmysqlclient.so", RTLD_LAZY);
+                        m_hMysql = ::dlopen(L"libmariadb.so", RTLD_LAZY);
 #endif
                     if (!m_hMysql) {
                         return false;
@@ -261,7 +263,7 @@ namespace SPA {
                     mysql_stmt_attr_set = (Pmysql_stmt_attr_set)::GetProcAddress(m_hMysql, "mysql_stmt_attr_set");
                     mysql_get_client_version = (Pmysql_get_client_version)::GetProcAddress(m_hMysql, "mysql_get_client_version");
                     mysql_query = (Pmysql_query)::GetProcAddress(m_hMysql, "mysql_query");
-
+                    mysql_stmt_reset = (Pmysql_stmt_reset)::GetProcAddress(m_hMysql, "mysql_stmt_reset");
                     return true;
                 }
 

@@ -137,15 +137,13 @@ namespace SPA
         }
 
         bool CMysqlImpl::InitMySql() {
-            if ((m_nParam & Mysql::DISABLE_REMOTE_MYSQL) == Mysql::DISABLE_REMOTE_MYSQL) {
-                return false;
-            }
             SPA::CAutoLock al(m_csPeer);
             if (m_bInitMysql) {
                 return true;
             }
             if (m_remMysql.LoadMysql()) {
                 m_bInitMysql = (m_remMysql.mysql_server_init(0, nullptr, nullptr) == 0);
+                ServerCoreLoader.SetThreadEvent(OnThreadEvent);
             }
             return m_bInitMysql;
         }
@@ -163,7 +161,6 @@ namespace SPA
         void CMysqlImpl::OnReleaseSource(bool bClosing, unsigned int info) {
             CleanDBObjects();
             m_global = true;
-            m_pLib = nullptr;
             MYSQL_BIND_RESULT_FIELD::ShrinkMemoryPool();
         }
 
@@ -303,7 +300,7 @@ namespace SPA
                 } while (false);
                 if (!res) {
                     m_pMysql.reset(mysql, [this](MYSQL * mysql) {
-                        if (mysql) {
+                        if (mysql && this->m_pLib) {
                             this->m_pLib->mysql_close(mysql);
                         }
                     });
@@ -522,32 +519,36 @@ namespace SPA
                 vCols.push_back(CDBColumnInfo());
                 CDBColumnInfo &info = vCols.back();
                 MYSQL_FIELD &f = field[n];
-                info.DisplayName.assign(f.name, f.name + f.name_length);
-                if (f.org_name && f.org_name_length) {
-                    info.OriginalName.assign(f.org_name, f.org_name + f.org_name_length);
+                if (f.name) {
+                    info.DisplayName.assign(f.name, f.name + ::strlen(f.name));
+                } else {
+                    info.DisplayName.clear();
+                }
+                if (f.org_name) {
+                    info.OriginalName.assign(f.org_name, f.org_name + ::strlen(f.org_name));
                 } else {
                     info.OriginalName = info.DisplayName;
                 }
 
-                if (f.table && f.table_length) {
-                    info.TablePath.assign(f.table, f.table + f.table_length);
-                } else if (f.org_table && f.org_table_length) {
-                    info.TablePath.assign(f.org_table, f.org_table + f.org_table_length);
+                if (f.table) {
+                    info.TablePath.assign(f.table, f.table + ::strlen(f.table));
+                } else if (f.org_table) {
+                    info.TablePath.assign(f.org_table, f.org_table + ::strlen(f.org_table));
                 } else {
                     info.TablePath.clear();
                 }
-                if (f.db && f.db_length) {
-                    info.DBPath.assign(f.db, f.db + f.db_length);
+                if (f.db) {
+                    info.DBPath.assign(f.db, f.db + ::strlen(f.db));
                 } else {
                     info.DBPath.clear();
                 }
 
-                if (f.org_table && f.org_table_length && (f.org_table != f.table)) {
-                    info.Collation.assign(f.org_table, f.org_table + f.org_table_length);
-                } else if (f.catalog && f.catalog_length) {
-                    info.Collation.assign(f.catalog, f.catalog + f.catalog_length);
-                } else if (f.def && f.def_length) {
-                    info.Collation.assign(f.def, f.def + f.def_length);
+                if (f.org_table && (f.org_table != f.table)) {
+                    info.Collation.assign(f.org_table, f.org_table + ::strlen(f.org_table));
+                } else if (f.catalog) {
+                    info.Collation.assign(f.catalog, f.catalog + ::strlen(f.catalog));
+                } else if (f.def) {
+                    info.Collation.assign(f.def, f.def + ::strlen(f.def));
                 } else {
                     info.Collation.clear();
                 }
@@ -1078,14 +1079,12 @@ namespace SPA
 
         void CMysqlImpl::ExecuteSqlWithRowset(bool meta, UINT64 index, int &res, std::wstring &errMsg, INT64 & affected) {
             unsigned int ret;
-            CScopeUQueue sbRowset;
             do {
                 MYSQL_RES *result = m_pLib->mysql_use_result(m_pMysql.get());
                 if (result) {
                     unsigned int cols = m_pLib->mysql_num_fields(result);
                     CDBColumnInfoArray vInfo = GetColInfo(result, cols, false);
-                    sbRowset << vInfo << index;
-                    ret = SendResult(idRowsetHeader, sbRowset->GetBuffer(), sbRowset->GetSize());
+                    ret = SendResult(idRowsetHeader, vInfo, index);
                     if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
                         m_pLib->mysql_free_result(result);
                         return;
@@ -1102,8 +1101,7 @@ namespace SPA
                     }
                 } else {
                     CDBColumnInfoArray vInfo;
-                    sbRowset << vInfo << index;
-                    ret = SendResult(idRowsetHeader, sbRowset->GetBuffer(), sbRowset->GetSize());
+                    ret = SendResult(idRowsetHeader, vInfo, index);
                     if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
                         return;
                     }
@@ -1134,7 +1132,6 @@ namespace SPA
                 } else {
                     assert(false); //never come here
                 }
-                sbRowset->SetSize(0);
             } while (true);
         }
 
@@ -1228,7 +1225,7 @@ namespace SPA
                 res = 0;
                 m_parameters = m_pLib->mysql_stmt_param_count(stmt);
                 m_pPrepare.reset(stmt, [this](MYSQL_STMT * stmt) {
-                    if (stmt) {
+                    if (stmt && this->m_pLib) {
                         this->m_pLib->mysql_stmt_close(stmt);
                     }
                 });
@@ -1326,6 +1323,7 @@ namespace SPA
                         bind.buffer = (void*) &data.dblVal;
                         bind.buffer_length = sizeof (double);
                         break;
+
                     case VT_STR:
                     case (VT_ARRAY | VT_I1):
                         bind.buffer_type = MYSQL_TYPE_STRING;
@@ -1524,10 +1522,11 @@ namespace SPA
                                         ret = m_pLib->mysql_stmt_fetch_column(m_pPrepare.get(), &b, (unsigned int) i, offset);
                                         if (ret) {
                                             if (!res) {
+                                                //res == CR_NO_DATA or 2051, a libmariadb bug
                                                 res = m_pLib->mysql_stmt_errno(m_pPrepare.get());
                                                 errMsg = Utilities::ToWide(m_pLib->mysql_stmt_error(m_pPrepare.get()));
                                             }
-                                            return false;
+                                            return true;
                                         }
                                         if (remain < b.buffer_length) {
                                             obtain = remain;
@@ -1836,12 +1835,12 @@ namespace SPA
                         fail_ok += (((UINT64) rows) << 32);
                     } else {
                         assert(ps == (my_ps & 0xffff));
-                        m_vParam.clear();
                         SetVParam(vAll, parameters, pos, ps);
                         unsigned int nParamPos = (unsigned int) ((pos << 16) + ps);
                         SendResult(idParameterPosition, nParamPos);
                         last_id = (INT64) 0;
                         ExecuteParameters(rowset, meta, lastInsertId, callIndex, aff, r, err, last_id, fo);
+                        m_vParam.clear();
                         if (last_id.llVal != 0)
                             vtId = last_id;
                     }
@@ -1949,7 +1948,7 @@ namespace SPA
                 while (result && cols) {
                     CDBColumnInfoArray vInfo = GetColInfo(result, cols, true);
 
-                    if (!output/* && m_pLib->m_bRemote*/) {
+                    if (!output) {
                         //Mysql + Mariadb server_status & SERVER_PS_OUT_PARAMS does NOT work correctly for an unknown reason
                         //This is a hack solution for detecting output result, which may be wrong if a table name is EXACTLY the same as stored procedure name
                         output = (m_bCall && (vInfo[0].TablePath == Utilities::ToWide(m_procName.c_str())));
@@ -1957,16 +1956,13 @@ namespace SPA
 
                     //we push stored procedure output parameter meta data onto client to follow common approach for output parameter data
                     if (output || rowset) {
-                        CScopeUQueue sb;
                         unsigned int outputs = 0;
                         if (output) {
                             outputs = (unsigned int) vInfo.size();
                         }
-                        sb << vInfo << index << outputs;
-                        unsigned int sent = SendResult(idRowsetHeader, sb->GetBuffer(), sb->GetSize());
+                        unsigned int sent = SendResult(idRowsetHeader, vInfo, index, outputs);
                         header_sent = true;
                         if (sent == REQUEST_CANCELED || sent == SOCKET_NOT_FOUND) {
-                            m_pLib->mysql_free_result(result);
                             m_pLib->mysql_stmt_free_result(m_pPrepare.get());
                             return;
                         }
@@ -1976,20 +1972,27 @@ namespace SPA
                     MYSQL_BIND *mybind = pBinds.get();
                     MYSQL_BIND_RESULT_FIELD *myfield = fields.get();
                     if (pBinds && (output || rowset)) {
-                        if (!PushRecords(index, mybind, myfield, vInfo, rowset, output, res, errMsg)) {
-                            m_pLib->mysql_free_result(result);
-                            m_pLib->mysql_stmt_free_result(m_pPrepare.get());
+                        int my_res = 0;
+                        std::wstring err;
+                        if (!PushRecords(index, mybind, myfield, vInfo, rowset, output, my_res, err)) {
+                            ret = m_pLib->mysql_stmt_free_result(m_pPrepare.get());
                             return;
                         }
+                        if (my_res) {
+                            ret = m_pLib->mysql_stmt_free_result(m_pPrepare.get());
+                            if (!res) {
+                                res = my_res;
+                                errMsg = err;
+                            }
+                            ret = 1;
+                            break;
+                        }
                     }
-                    m_pLib->mysql_free_result(result);
+                    m_pLib->mysql_stmt_free_result(m_pPrepare.get());
                     pBinds.reset();
                     fields.reset();
                     ret = m_pLib->mysql_stmt_next_result(m_pPrepare.get());
-                    if (output) {
-                        ret = 0;
-                        break;
-                    } else if (ret == 0) {
+                    if (ret == 0) {
                         //continue for the next set
                     } else if (ret == -1) {
                         //no more result
@@ -2010,7 +2013,8 @@ namespace SPA
                     output = (m_pMysql.get()->server_status & SERVER_PS_OUT_PARAMS) ? true : false;
                     result = m_pLib->mysql_stmt_result_metadata(m_pPrepare.get());
                 }
-                if (m_pLib->mysql_stmt_free_result(m_pPrepare.get())) {
+                int ret2 = m_pLib->mysql_stmt_free_result(m_pPrepare.get());
+                if (ret2) {
                     ret = 1;
                     if (!res) {
                         res = m_pLib->mysql_stmt_errno(m_pPrepare.get());
@@ -2021,12 +2025,12 @@ namespace SPA
                     ++m_fails;
                 else
                     ++m_oks;
+                my_bool myfail = m_pLib->mysql_stmt_reset(m_pPrepare.get());
+                assert(!myfail);
             }
             if (!header_sent && rowset) {
-                SPA::CScopeUQueue sbRowset;
                 CDBColumnInfoArray vInfo;
-                sbRowset << vInfo << index;
-                SendResult(idRowsetHeader, sbRowset->GetBuffer(), sbRowset->GetSize());
+                SendResult(idRowsetHeader, vInfo, index);
             }
             if (lastInsertId) {
                 vtId = (INT64) m_pLib->mysql_stmt_insert_id(m_pPrepare.get());
