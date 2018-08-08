@@ -44,7 +44,6 @@ private:
     CSetGlobals();
     void LogEntry(const char* file, int fileLineNumber, const char* szBuf);
     static unsigned int GetVersion(const char *prog);
-    static void SetConfig(const std::unordered_map<std::string, std::string>& mapConfig);
 
 public:
     int m_nParam;
@@ -69,6 +68,7 @@ public:
     bool StartListening();
     void LogMsg(const char *file, int fileLineNumber, const char *format ...);
     void UpdateLog();
+    static void SetConfig(const std::unordered_map<std::string, std::string>& mapConfig);
 };
 
 int async_sql_plugin_init(void *p);

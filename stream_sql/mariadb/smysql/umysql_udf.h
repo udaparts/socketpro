@@ -18,7 +18,7 @@ extern "C" {
     void PublishDBEvent_deinit(UDF_INIT *initid);
     long long PublishDBEvent(UDF_INIT *initid, UDF_ARGS *args, char *is_null, char *error);
 
-	bool SetSQLStreamingPlugin_init(UDF_INIT *initid, UDF_ARGS *args, char *message);
+    bool SetSQLStreamingPlugin_init(UDF_INIT *initid, UDF_ARGS *args, char *message);
     void SetSQLStreamingPlugin_deinit(UDF_INIT *initid);
     long long SetSQLStreamingPlugin(UDF_INIT *initid, UDF_ARGS *args, char *is_null, char *error);
 

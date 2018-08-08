@@ -131,10 +131,10 @@ unsigned int CSetGlobals::GetVersion(const char *version) {
 }
 
 bool CSetGlobals::StartListening() {
-	if (!g_pStreamingServer) {
+    if (!g_pStreamingServer) {
         g_pStreamingServer = new CStreamingServer(CSetGlobals::Globals.m_nParam);
     }
-	if (CSetGlobals::Globals.ssl_key.size() && (CSetGlobals::Globals.ssl_cert.size() || CSetGlobals::Globals.ssl_pwd.size())) {
+    if (CSetGlobals::Globals.ssl_key.size() && (CSetGlobals::Globals.ssl_cert.size() || CSetGlobals::Globals.ssl_pwd.size())) {
         std::string key = CSetGlobals::Globals.ssl_key;
         std::transform(key.begin(), key.end(), key.begin(), ::tolower);
         auto pos = key.find_last_of(".pfx");
@@ -145,8 +145,9 @@ bool CSetGlobals::StartListening() {
         }
         CSetGlobals::Globals.ssl_pwd.clear();
     }
-	bool ok = g_pStreamingServer->Run(CSetGlobals::Globals.Port, 32, !CSetGlobals::Globals.DisableV6);
-	if (!ok) {
+    SPA::ServerSide::ServerCoreLoader.SetThreadEvent(SPA::ServerSide::CMysqlImpl::OnThreadEvent);
+    bool ok = g_pStreamingServer->Run(CSetGlobals::Globals.Port, 32, !CSetGlobals::Globals.DisableV6);
+    if (!ok) {
         CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Starting listening socket failed(errCode=%d; errMsg=%s)", g_pStreamingServer->GetErrorCode(), g_pStreamingServer->GetErrorMessage().c_str());
     }
     return ok;
@@ -340,6 +341,7 @@ bool CStreamingServer::AddService() {
     ok = m_MySql.AddSlowRequest(SPA::UDB::idClose);
     if (!ok)
         return false;
+#if 0
     if (!CSetGlobals::Globals.enable_http_websocket)
         return true;
     ok = m_myHttp.AddMe(SPA::sidHTTP);
@@ -354,5 +356,6 @@ bool CStreamingServer::AddService() {
     ok = m_myHttp.AddSlowRequest(SPA::ServerSide::idUserRequest);
     if (!ok)
         return false;
+#endif
     return true;
 }

@@ -97,12 +97,30 @@ namespace SPA {
 
         public:
             CMysqlImpl();
+
+            static void CALLBACK OnThreadEvent(SPA::ServerSide::tagThreadEvent te);
             static void SetDBGlobalConnectionString(const wchar_t *dbConnection, bool remote);
             static void UnloadMysql();
             static bool InitMySql();
             static bool DoSQLAuthentication(USocket_Server_Handle hSocket, const wchar_t *userId, const wchar_t *password, unsigned int nSvsId, const wchar_t *dbConnection);
+#ifdef MM_DB_SERVER_PLUGIN
             static void Trim(std::string &s);
+            static std::string ToString(const CDBVariant &vtUTF8);
+            static std::unordered_map<std::string, std::string> ConfigStreamingDB(const std::wstring &dbConnection, CMysqlImpl &impl);
+            static bool SetPublishDBEvent(CMysqlImpl &impl);
+            static bool CreateTriggers(CMysqlImpl &impl, const std::vector<std::string> &vecTables);
 
+        private:
+
+            struct PriKey {
+                std::string ColumnName;
+                bool Pri;
+            };
+            typedef std::vector<PriKey> CPriKeyArray;
+            bool RemoveUnusedTriggers(const std::vector<std::string> &vecTables);
+            bool CreateTriggers(const std::string &schema, const std::string &table);
+            std::wstring GetCreateTriggerSQL(const wchar_t *db, const wchar_t *table, const CPriKeyArray &vPriKey, SPA::UDB::tagUpdateEvent eventType);
+#endif
         protected:
             virtual void OnFastRequestArrive(unsigned short reqId, unsigned int len);
             virtual int OnSlowRequestArrive(unsigned short reqId, unsigned int len);
@@ -146,7 +164,6 @@ namespace SPA {
             //mysql specific functions
             static UINT64 ConvertBitsToInt(const unsigned char *s, unsigned int bytes);
             static void ConvertToUTF8OrDouble(CDBVariant &vt);
-            static void CALLBACK OnThreadEvent(SPA::ServerSide::tagThreadEvent te);
             static UINT64 ToUDateTime(const MYSQL_TIME &td);
             static std::vector<std::wstring> Split(const std::wstring &sql, const std::wstring &delimiter);
             static size_t ComputeParameters(const std::wstring &sql);

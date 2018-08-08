@@ -9,6 +9,12 @@
 #include "../../scloader.h"
 #include <cctype>
 
+#ifdef MM_DB_SERVER_PLUGIN
+#include "../../../stream_sql/mariadb/smysql/streamingserver.h"
+#include "../include/mysqld_error.h"
+#include "../../../stream_sql/mariadb/smysql/umysql_udf.h"
+#endif
+
 #if defined(MYSQL_VERSION_ID) && MYSQL_VERSION_ID < 50700
 #define MYSQL_OPT_SSL_KEY ((mysql_option) 25)
 #define MYSQL_OPT_SSL_CERT ((mysql_option) 26)
@@ -121,10 +127,321 @@ namespace SPA
                 pos = s.find_last_of(WHITESPACE);
             }
         }
+#ifdef MM_DB_SERVER_PLUGIN
 
         void CMysqlImpl::Trim(std::string & s) {
             MYSQL_CONNECTION_STRING::Trim(s);
         }
+
+        std::string CMysqlImpl::ToString(const CDBVariant & vtUTF8) {
+            assert(vtUTF8.Type() == (VT_I1 | VT_ARRAY));
+            const char *p;
+            ::SafeArrayAccessData(vtUTF8.parray, (void**) &p);
+            unsigned int len = vtUTF8.parray->rgsabound->cElements;
+            std::string s(p, p + len);
+            ::SafeArrayUnaccessData(vtUTF8.parray);
+            return s;
+        }
+
+        std::unordered_map<std::string, std::string> CMysqlImpl::ConfigStreamingDB(const std::wstring &dbConnection, CMysqlImpl & impl) {
+            std::unordered_map<std::string, std::string> map;
+            int res = 0, ms = 0;
+            std::wstring errMsg;
+            impl.Open(dbConnection, 0, res, errMsg, ms);
+            if (res) {
+                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Configuring streaming DB failed when connecting to local database (errCode=%d; errMsg=%s)", res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()).c_str());
+                return map;
+            }
+            std::wstring wsql = L"Create database if not exists sp_streaming_db character set utf8 collate utf8_general_ci;USE sp_streaming_db";
+            INT64 affected;
+            SPA::UDB::CDBVariant vtId;
+            UINT64 fail_ok;
+            impl.Execute(wsql, false, false, false, 0, affected, res, errMsg, vtId, fail_ok);
+            if (res) {
+                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Configuring streaming DB failed(errCode=%d; errMsg=%s)", res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()).c_str());
+                return map;
+            }
+            wsql = L"CREATE TABLE IF NOT EXISTS config(mykey varchar(32)PRIMARY KEY NOT NULL,value text not null)";
+            impl.Execute(wsql, false, false, false, 0, affected, res, errMsg, vtId, fail_ok);
+            if (res) {
+                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Configuring streaming DB failed(errCode=%d; errMsg=%s)", res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()).c_str());
+                return map;
+            }
+            wsql = L"select mykey,value from config";
+            CScopeUQueue sb;
+            CUQueue &q = *sb;
+            impl.m_pNoSending = &q;
+            impl.Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
+            impl.m_pNoSending = nullptr;
+            if (res) {
+                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Configuring streaming DB failed(errCode=%d; errMsg=%s)", res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()).c_str());
+                return map;
+            }
+            SPA::UDB::CDBVariant vtKey, vtValue;
+            while (q.GetSize() && !res) {
+                q >> vtKey >> vtValue;
+                std::string s0 = ToString(vtKey);
+                std::string s1 = ToString(vtValue);
+                std::transform(s0.begin(), s0.end(), s0.begin(), ::tolower);
+                Trim(s0);
+                Trim(s1);
+                map[s0] = s1;
+            }
+            std::unordered_map<std::string, std::string> &config = CSetGlobals::Globals.DefaultConfig;
+            for (auto it = config.begin(), end = config.end(); it != end; ++it) {
+                auto found = map.find(it->first);
+                if (found == map.end()) {
+                    wsql = L"insert into config values('" + Utilities::ToWide(it->first.c_str(), it->first.size()) + L"','" + Utilities::ToWide(it->second.c_str(), it->second.size()) + L"')";
+                    impl.Execute(wsql, false, false, false, 0, affected, res, errMsg, vtId, fail_ok);
+                    map[it->first] = it->second;
+                }
+            }
+            return map;
+        }
+
+        bool CMysqlImpl::SetPublishDBEvent(CMysqlImpl & impl) {
+#ifdef WIN32_64
+            std::wstring wsql = L"CREATE FUNCTION PublishDBEvent RETURNS INTEGER SONAME 'smysql.dll'";
+#else
+            std::wstring wsql = L"CREATE FUNCTION PublishDBEvent RETURNS INTEGER SONAME 'libsmysql.so'";
+#endif
+            int res = 0;
+            INT64 affected;
+            SPA::UDB::CDBVariant vtId;
+            UINT64 fail_ok;
+            std::wstring errMsg;
+            impl.Execute(wsql, false, false, false, 0, affected, res, errMsg, vtId, fail_ok);
+            //Setting streaming DB events failed(errCode=1125; errMsg=Function 'PublishDBEvent' already exists)
+            if (res && res != ER_UDF_EXISTS) {
+                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Setting streaming DB events failed(errCode=%d; errMsg=%s)", res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()).c_str());
+                return false;
+            }
+            return true;
+        }
+
+        bool CMysqlImpl::CreateTriggers(CMysqlImpl &impl, const std::vector<std::string> &vecTables) {
+            if (!impl.RemoveUnusedTriggers(vecTables))
+                return false;
+            for (auto it = vecTables.begin(), end = vecTables.end(); it != end; ++it) {
+                auto pos = it->find_last_of('.');
+                std::string schema = it->substr(0, pos);
+                std::string table = it->substr(pos + 1);
+                impl.CreateTriggers(schema, table);
+            }
+            return true;
+        }
+
+        bool CMysqlImpl::RemoveUnusedTriggers(const std::vector<std::string> &vecTables) {
+            std::wstring prefix(STREAMING_DB_TRIGGER_PREFIX);
+            std::wstring sql_existing = L"SELECT event_object_schema,trigger_name,EVENT_OBJECT_TABLE FROM INFORMATION_SCHEMA.TRIGGERS where TRIGGER_NAME like '" + prefix + L"%' order by event_object_schema,EVENT_OBJECT_TABLE";
+            int res = 0;
+            INT64 affected;
+            SPA::UDB::CDBVariant vtId;
+            UINT64 fail_ok;
+            std::wstring errMsg;
+            SPA::UDB::CDBVariant vtSchema, vtName, vtTable;
+            std::vector<std::string> vec = vecTables;
+            SPA::CScopeUQueue sb;
+            SPA::CUQueue &q = *sb;
+            m_pNoSending = &q;
+            Execute(sql_existing, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
+            m_pNoSending = nullptr;
+            if (res) {
+                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Querying SocketPro streaming db triggers failed(errCode=%d; errMsg=%s)", res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()).c_str());
+                return false;
+            }
+            while (q.GetSize() && !res) {
+                q >> vtSchema >> vtName >> vtTable;
+                std::string schema = ToString(vtSchema);
+                std::string name = ToString(vtName);
+                std::string table = ToString(vtTable);
+
+                std::string trigger_db_table = schema + "." + table;
+                auto ret = std::find_if(vec.begin(), vec.end(), [&trigger_db_table](const std::string & s) {
+                    return (trigger_db_table == s);
+                });
+                if (ret == vec.end()) {
+                    std::wstring wsql = L"USE `" + SPA::Utilities::ToWide(schema.c_str(), schema.size()) + L"`";
+                    Execute(wsql, false, false, false, 0, affected, res, errMsg, vtId, fail_ok);
+                    res = 0;
+
+                    //trigger not needed any more as it is not found inside sp_streaming_db.config.cached_tables
+                    wsql = L"drop trigger " + SPA::Utilities::ToWide(name.c_str(), name.size());
+                    Execute(wsql, false, false, false, 0, affected, res, errMsg, vtId, fail_ok);
+                    if (res) {
+                        CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Removing the unused trigger %s failed(errCode=%d; errMsg=%s)", name.c_str(), res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()).c_str());
+                        res = 0;
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+
+        bool CMysqlImpl::CreateTriggers(const std::string &schema, const std::string & table) {
+            bool bDelete = false, bInsert = false, bUpdate = false;
+            std::wstring wSchema = SPA::Utilities::ToWide(schema.c_str(), schema.size());
+            std::wstring wTable = SPA::Utilities::ToWide(table.c_str(), table.size());
+            std::wstring prefix(STREAMING_DB_TRIGGER_PREFIX);
+            std::wstring sql_existing = L"SELECT EVENT_MANIPULATION, TRIGGER_NAME FROM INFORMATION_SCHEMA.TRIGGERS WHERE ";
+            sql_existing += L"EVENT_OBJECT_SCHEMA='" + wSchema + L"'";
+            sql_existing += L" AND EVENT_OBJECT_TABLE='" + wTable + L"'";
+            sql_existing += L" AND ACTION_TIMING='AFTER'";
+            sql_existing += L" AND TRIGGER_NAME LIKE '" + prefix + L"%' ORDER BY EVENT_MANIPULATION";
+            int res = 0;
+            INT64 affected;
+            SPA::UDB::CDBVariant vtId;
+            UINT64 fail_ok;
+            std::wstring errMsg;
+            SPA::UDB::CDBVariant vtType, vtName;
+            SPA::CScopeUQueue sb;
+            SPA::CUQueue &q = *sb;
+            m_pNoSending = &q;
+            Execute(sql_existing, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
+            m_pNoSending = nullptr;
+            if (res) {
+                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Querying the table %s.%s triggers failed(errCode=%d; errMsg=%s)", schema.c_str(), table.c_str(), res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()).c_str());
+                return false;
+            }
+            while (q.GetSize() && !res) {
+                q >> vtType >> vtName;
+                std::string type = ToString(vtType);
+                std::string name = ToString(vtName);
+                if (type == "INSERT")
+                    bInsert = true;
+                else if (type == "DELETE")
+                    bDelete = true;
+                else if (type == "UPDATE")
+                    bUpdate = true;
+            }
+            if (bInsert && bDelete && bUpdate)
+                return false;
+            std::wstring sql = L"SELECT COLUMN_NAME,COLUMN_KEY FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='";
+            sql += (wSchema + L"' AND TABLE_NAME='");
+            sql += (wTable + L"' ORDER BY TABLE_NAME,ORDINAL_POSITION");
+            m_pNoSending = &q;
+            Execute(sql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
+            m_pNoSending = nullptr;
+            if (res) {
+                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Querying the table %s.%s failed for creating triggers(errCode=%d; errMsg=%s)", schema.c_str(), table.c_str(), res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()).c_str());
+                return false;
+            }
+            if (!q.GetSize()) {
+                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Unable to create triggers for the table %s.%s because it has no table or primary key defined", schema.c_str(), table.c_str());
+                return false;
+            }
+            CPriKeyArray vKey;
+            PriKey pk;
+            while (q.GetSize()) {
+                q >> vtName >> vtType;
+                pk.ColumnName = ToString(vtName);
+                std::string type = ToString(vtType);
+                if (type == "PRI")
+                    pk.Pri = true;
+                else
+                    pk.Pri = false;
+                vKey.push_back(pk);
+            }
+
+            sql = L"USE `" + wSchema + L"`";
+            Execute(sql, false, false, false, 0, affected, res, errMsg, vtId, fail_ok);
+            if (!bInsert) {
+                sql = GetCreateTriggerSQL(wSchema.c_str(), wTable.c_str(), vKey, SPA::UDB::ueInsert);
+                Execute(sql, false, false, false, 0, affected, res, errMsg, vtId, fail_ok);
+                if (res) {
+                    CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Unable to create insert trigger for the table %s.%s(errCode=%d; errMsg=%s)", schema.c_str(), table.c_str(), res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()).c_str());
+                    return false;
+                }
+            }
+            if (!bDelete) {
+                sql = GetCreateTriggerSQL(wSchema.c_str(), wTable.c_str(), vKey, SPA::UDB::ueDelete);
+                Execute(sql, false, false, false, 0, affected, res, errMsg, vtId, fail_ok);
+                if (res) {
+                    CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Unable to create delete trigger for the table %s.%s(errCode=%d; errMsg=%s)", schema.c_str(), table.c_str(), res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()).c_str());
+                    return false;
+                }
+            }
+            if (!bUpdate) {
+                sql = GetCreateTriggerSQL(wSchema.c_str(), wTable.c_str(), vKey, SPA::UDB::ueUpdate);
+                Execute(sql, false, false, false, 0, affected, res, errMsg, vtId, fail_ok);
+                if (res) {
+                    CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Unable to create update trigger for the table %s.%s(errCode=%d; errMsg=%s)", schema.c_str(), table.c_str(), res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()).c_str());
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        std::wstring CMysqlImpl::GetCreateTriggerSQL(const wchar_t *db, const wchar_t *table, const CPriKeyArray &vPriKey, SPA::UDB::tagUpdateEvent eventType) {
+            std::wstring sql;
+            CPriKeyArray vDelKey;
+            if (!vPriKey.size())
+                return sql;
+            const CPriKeyArray *pKey = &vPriKey;
+            std::wstring strDB(db), strTable(table);
+            for (auto it = strDB.begin(), end = strDB.end(); it != end; ++it) {
+                if (isspace(*it)) {
+                    *it = L'_';
+                }
+            }
+            for (auto it = strTable.begin(), end = strTable.end(); it != end; ++it) {
+                if (isspace(*it)) {
+                    *it = L'_';
+                }
+            }
+            sql = L"CREATE TRIGGER ";
+            sql += STREAMING_DB_TRIGGER_PREFIX;
+            sql += (strDB + L"_");
+            sql += (strTable + L"_");
+            switch (eventType) {
+                case SPA::UDB::ueDelete:
+                    sql += L"DELETE AFTER DELETE ON `";
+                    for (auto it = vPriKey.begin(), end = vPriKey.end(); it != end; ++it) {
+                        if (it->Pri) {
+                            vDelKey.push_back(*it);
+                        }
+                    }
+                    if (vDelKey.size()) {
+                        pKey = &vDelKey;
+                    }
+                    break;
+                case SPA::UDB::ueInsert:
+                    sql += L"INSERT AFTER INSERT ON `";
+                    break;
+                default: //update
+                    sql += L"UPDATE AFTER UPDATE ON `";
+                    break;
+            }
+            sql += db;
+            sql += L"`.`";
+            sql += table;
+            sql += L"` FOR EACH ROW BEGIN DECLARE res BIGINT;";
+            sql += L"SELECT PublishDBEvent(" + std::to_wstring((SPA::INT64)eventType);
+            sql += L",USER(),DATABASE(),'";
+            sql += table;
+            sql += L"'";
+            for (auto it = pKey->begin(), end = pKey->end(); it != end; ++it) {
+                switch (eventType) {
+                    case SPA::UDB::ueDelete:
+                        sql += L",old.`";
+                        break;
+                    case SPA::UDB::ueInsert:
+                        sql += L",new.`";
+                        break;
+                    default: //update
+                        sql += L",old.`";
+                        break;
+                }
+                sql += (SPA::Utilities::ToWide(it->ColumnName.c_str(), it->ColumnName.size()) + L"`");
+                if (eventType == SPA::UDB::ueUpdate) {
+                    sql += L",new.`";
+                    sql += (SPA::Utilities::ToWide(it->ColumnName.c_str(), it->ColumnName.size()) + L"`");
+                }
+            }
+            sql += L")INTO res;END";
+            return sql;
+        }
+#endif
 
         CMysqlImpl::CMysqlImpl() : m_oks(0), m_fails(0), m_ti(tiUnspecified),
         m_global(true), m_Blob(*m_sb), m_parameters(0),
@@ -1248,7 +1565,7 @@ namespace SPA
                     m_procName.pop_back();
                     m_procName.erase(m_procName.begin());
                 }
-                CMysqlImpl::MYSQL_CONNECTION_STRING::Trim(m_procName);
+                MYSQL_CONNECTION_STRING::Trim(m_procName);
             } else {
                 m_procName.clear();
             }
@@ -1266,7 +1583,7 @@ namespace SPA
             m_vParam.clear();
             m_parameters = 0;
             m_sqlPrepare = Utilities::ToUTF8(wsql.c_str(), wsql.size());
-            CMysqlImpl::MYSQL_CONNECTION_STRING::Trim(m_sqlPrepare);
+            MYSQL_CONNECTION_STRING::Trim(m_sqlPrepare);
             MYSQL_STMT *stmt = m_remMysql.mysql_stmt_init(m_pMysql.get());
             PreprocessPreparedStatement();
             my_bool fail = m_remMysql.mysql_stmt_prepare(stmt, m_sqlPrepare.c_str(), (unsigned long) m_sqlPrepare.size());
