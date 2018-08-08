@@ -3,6 +3,7 @@
 #include "../../../include/udatabase.h"
 #include "../../../include/aserverw.h"
 #include "umysql_udf.h"
+#include "streamingserver.h"
 
 bool PublishDBEvent_init(UDF_INIT *initid, UDF_ARGS *args, char *message) {
     initid->maybe_null = 0;
@@ -26,7 +27,7 @@ void PublishDBEvent_deinit(UDF_INIT *initid) {
 }
 
 long long PublishDBEvent(UDF_INIT *initid, UDF_ARGS *args, char *is_null, char *error) {
-	if (false/*!g_pStreamingServer*/)
+	if (!g_pStreamingServer)
         return 0;
     VARIANT *p = nullptr;
     long long eventType = *((long long*) (args->args[0]));
@@ -100,14 +101,27 @@ long long PublishDBEvent(UDF_INIT *initid, UDF_ARGS *args, char *is_null, char *
         }
     }
     SafeArrayUnaccessData(vtArray.parray);
-    if (true/*g_pStreamingServer*/) {
+    if (g_pStreamingServer) {
         return SPA::ServerSide::CSocketProServer::PushManager::Publish(vtArray, &SPA::UDB::STREAMING_SQL_CHAT_GROUP_ID, 1) ? 1 : 0;
     }
     return 0;
 }
 
 bool SetSQLStreamingPlugin_init(UDF_INIT *initid, UDF_ARGS *args, char *message) {
-	return 1;
+	initid->maybe_null = 0;
+    initid->const_item = 0;
+    initid->ptr = nullptr;
+    initid->decimals = 0;
+    initid->max_length = 1024;
+    if (args->arg_count < 2 || args->arg_type[0] != STRING_RESULT || args->arg_type[1] != STRING_RESULT) {
+#ifdef WIN32_64
+        strcpy_s(message, 1023, "SetSQLStreamingPlugin() requires user id and password to set triggers for publishing table update events");
+#else
+        strcpy(message, "SetSQLStreamingPlugin() requires user id and password to set triggers for publishing table update events");
+#endif
+        return 1;
+    }
+    return 0;
 }
 
 void SetSQLStreamingPlugin_deinit(UDF_INIT *initid) {
@@ -115,5 +129,14 @@ void SetSQLStreamingPlugin_deinit(UDF_INIT *initid) {
 }
 
 long long SetSQLStreamingPlugin(UDF_INIT *initid, UDF_ARGS *args, char *is_null, char *error) {
+	unsigned int len = (unsigned int) args->lengths[0];
+	char *str = args->args[0];
+	std::string uid(str, len);
+	len = args->lengths[1];
+	str = args->args[1];
+	std::string pwd(str, len);
+	if (!g_pStreamingServer)
+        return 0;
+
 	return 0;
 }

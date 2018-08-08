@@ -122,6 +122,10 @@ namespace SPA
             }
         }
 
+        void CMysqlImpl::Trim(std::string & s) {
+            MYSQL_CONNECTION_STRING::Trim(s);
+        }
+
         CMysqlImpl::CMysqlImpl() : m_oks(0), m_fails(0), m_ti(tiUnspecified),
         m_global(true), m_Blob(*m_sb), m_parameters(0),
         m_bCall(false), m_bManual(false), m_EnableMessages(false), m_pNoSending(nullptr) {

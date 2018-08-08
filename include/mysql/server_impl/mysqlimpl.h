@@ -7,6 +7,20 @@
 #include "../../aserverw.h"
 #include <unordered_map>
 
+#ifdef MM_DB_SERVER_PLUGIN
+
+#define STREAMING_DB_PORT			"port"
+#define STREAMING_DB_MAIN_THREADS	"main_threads"
+#define STREAMING_DB_NO_IPV6		"disable_ipv6"
+#define STREAMING_DB_SSL_KEY		"ssl_key_or_store"
+#define STREAMING_DB_SSL_CERT		"ssl_cert"
+#define STREAMING_DB_SSL_PASSWORD	"ssl_key_password"
+#define STREAMING_DB_CACHE_TABLES	"cached_tables"
+#define STREAMING_DB_SERVICES		"services"
+#define STREAMING_DB_HTTP_WEBSOCKET "enable_http_websocket"
+
+#endif
+
 namespace SPA {
     namespace ServerSide {
         using namespace UDB;
@@ -87,6 +101,7 @@ namespace SPA {
             static void UnloadMysql();
             static bool InitMySql();
             static bool DoSQLAuthentication(USocket_Server_Handle hSocket, const wchar_t *userId, const wchar_t *password, unsigned int nSvsId, const wchar_t *dbConnection);
+            static void Trim(std::string &s);
 
         protected:
             virtual void OnFastRequestArrive(unsigned short reqId, unsigned int len);
