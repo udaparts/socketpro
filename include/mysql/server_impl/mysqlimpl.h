@@ -67,6 +67,7 @@ namespace SPA {
                 std::string ssl_cipher; //cipher_list
                 std::string ssl_key; //file_name
                 std::string user; //user | uid
+                std::string socket;
 
                 bool IsSSL() const {
                     return (ssl_ca.size() || ssl_capath.size() || ssl_cert.size() || ssl_cipher.size() || ssl_key.size());
@@ -159,8 +160,9 @@ namespace SPA {
             std::string m_sqlPrepare;
             std::string m_procName;
             bool m_bManual;
-
             bool m_EnableMessages;
+            CUQueue *m_pNoSending;
+            std::wstring m_dbNameOpened;
 
             static const int IS_BINARY = 63;
             static const int MYSQL_TINYBLOB = 0xff;
@@ -183,7 +185,12 @@ namespace SPA {
             static CUCriticalSection m_csPeer;
             static std::wstring m_strGlobalConnection; //remote mysql server, protected by m_csPeer
             static bool m_bInitMysql; //protected by m_csPeer
-            typedef std::unordered_map<USocket_Server_Handle, std::shared_ptr<MYSQL> > CMyMap;
+
+            struct MyStruct {
+                std::shared_ptr<MYSQL> Handle;
+                std::wstring DefaultDB;
+            };
+            typedef std::unordered_map<USocket_Server_Handle, MyStruct> CMyMap;
             static CMyMap m_mapConnection; //protected by m_csPeer
 
             static CMysqlLoader m_remMysql;

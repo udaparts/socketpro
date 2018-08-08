@@ -49,8 +49,8 @@ namespace SPA {
 
             //The two following defines are reserved for the future use
 
-            static const unsigned int DISABLE_REMOTE_MYSQL = 0x1;
-            static const unsigned int DISABLE_EMBEDDED_MYSQL = 0x2;
+            static const unsigned int DISABLE_REMOTE_MYSQL = 0x80000000;
+            static const unsigned int DISABLE_EMBEDDED_MYSQL = 0x40000000;
 
         } //namespace Mysql
     } //namespace ServerSide
