@@ -24,8 +24,8 @@ int main(int argc, char* argv[]) {
     std::getline(std::cin, cc.Host);
     //cc.Host = "localhost";
     cc.Port = 20901;
-    cc.UserId = L"MyUserId";
-    cc.Password = L"MyPassword";
+    cc.UserId = L"root";
+    cc.Password = L"Smash123";
     CMyPool spOdbc;
     bool ok = spOdbc.StartSocketPool(cc, 1, 1);
     if (!ok) {
