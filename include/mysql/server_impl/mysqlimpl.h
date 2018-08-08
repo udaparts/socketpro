@@ -144,7 +144,6 @@ namespace SPA {
             UINT64 m_fails;
             tagTransactionIsolation m_ti;
             CDBVariantArray m_vParam;
-            CMysqlLoader *m_pLib;
 
             SPA::CScopeUQueue m_sb;
             bool m_global;
