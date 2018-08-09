@@ -8,12 +8,12 @@ mysql_declare_plugin(async_sql) {
             "UDAParts",
             "Async SQL Real-time Streaming Processing",
             PLUGIN_LICENSE_PROPRIETARY,
-            async_sql_plugin_init, /* Plugin Init */
-            async_sql_plugin_deinit, /* Plugin Deinit */
-            0x0100 /* 1.0 */,
-            nullptr, /* status variables */
-            nullptr, /* system variables */
-            nullptr, /* config options */
-            0, /* flags */
+            async_sql_plugin_init,			/* Plugin Init */
+            async_sql_plugin_deinit,		/* Plugin Deinit */
+            0x0100							/* 1.0 */,
+            nullptr,						/* status variables */
+            nullptr,						/* system variables */
+            "1.0",							/* string version */
+            MariaDB_PLUGIN_MATURITY_STABLE	/* maturity */
 }
 mysql_declare_plugin_end;
