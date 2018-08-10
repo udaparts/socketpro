@@ -170,7 +170,7 @@ namespace SPA
                 auto pos = it->find_last_of('.');
                 std::string schema = it->substr(0, pos);
                 std::string table = it->substr(pos + 1);
-                impl.CreateTriggers(schema, table);
+                if (!impl.CreateTriggers(schema, table)) return false;
             }
             return true;
         }
