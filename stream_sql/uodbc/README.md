@@ -25,5 +25,4 @@
     - Superior performance and scalability
     - Continuous SQL stream processing supported with inline request/response batching, asynchronous data transferring and parallel computation
     - Cancel supported fully
-    - Async ODBC service is totally free to you
     - Real-time cache for table update, insert and delete (MS SQL Server 2008 or later only at this writing time)

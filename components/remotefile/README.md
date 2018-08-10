@@ -22,3 +22,4 @@
     - Superior performance and scalability
     - Continuous file streaming downloading and uploading
     - Cancel supported fully
+    - Async file streaming service is totally free to you
