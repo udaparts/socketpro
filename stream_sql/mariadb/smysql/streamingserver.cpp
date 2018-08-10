@@ -3,12 +3,23 @@
 #include <algorithm>
 #include "../../../include/scloader.h"
 
-#define DEFAULT_LOCAL_CONNECTION_STRING		L"host=localhost;port=3306;timeout=30"
-#define STREAM_DB_LOG_FILE					"streaming_db.log"
+#define DEFAULT_LOCAL_CONNECTION_STRING     L"host=localhost;port=3306;timeout=30"
+#define STREAM_DB_LOG_FILE                  "streaming_db.log"
+
+#define STREAMING_DB_PORT		"port"
+#define STREAMING_DB_MAIN_THREADS	"main_threads"
+#define STREAMING_DB_NO_IPV6		"disable_ipv6"
+#define STREAMING_DB_SSL_KEY		"ssl_key_or_store"
+#define STREAMING_DB_SSL_CERT		"ssl_cert"
+#define STREAMING_DB_SSL_PASSWORD	"ssl_key_password"
+#define STREAMING_DB_CACHE_TABLES	"cached_tables"
+#define STREAMING_DB_SERVICES		"services"
+#define STREAMING_DB_HTTP_WEBSOCKET     "enable_http_websocket"
 
 CStreamingServer *g_pStreamingServer = nullptr;
 
 int async_sql_plugin_init(void *p) {
+    SPA::ServerSide::CMysqlImpl::InitMySql();
     CSetGlobals::Globals.Plugin = (const void *) p;
     if (!CSetGlobals::Globals.StartListening()) {
         return 1;
