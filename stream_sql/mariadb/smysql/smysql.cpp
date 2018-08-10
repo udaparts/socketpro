@@ -3,6 +3,7 @@
 
 #if 1
 //mariadb plugin declaration
+
 maria_declare_plugin(async_sql) {
     MYSQL_DAEMON_PLUGIN,
             &CSetGlobals::Globals.async_sql_plugin,
@@ -22,6 +23,7 @@ maria_declare_plugin_end;
 
 #else
 //mysql plugin declaration
+
 mysql_declare_plugin(async_sql) {
     MYSQL_DAEMON_PLUGIN,
             &CSetGlobals::Globals.async_sql_plugin,

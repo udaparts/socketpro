@@ -102,7 +102,7 @@ long long PublishDBEvent(UDF_INIT *initid, UDF_ARGS *args, char *is_null, char *
     }
     SafeArrayUnaccessData(vtArray.parray);
     if (g_pStreamingServer) {
-        return SPA::ServerSide::CSocketProServer::PushManager::Publish(vtArray, &SPA::UDB::STREAMING_SQL_CHAT_GROUP_ID, 1) ? 1 : 0;
+        return CSocketProServer::PushManager::Publish(vtArray, &SPA::UDB::STREAMING_SQL_CHAT_GROUP_ID, 1) ? 1 : 0;
     }
     return 0;
 }
@@ -134,13 +134,15 @@ long long SetSQLStreamingPlugin(UDF_INIT *initid, UDF_ARGS *args, char *is_null,
     unsigned int len = (unsigned int) args->lengths[0];
     char *str = args->args[0];
     std::wstring dbConn = SPA::Utilities::ToWide(str, len);
-    std::unique_ptr<SPA::ServerSide::CMysqlImpl> impl(new SPA::ServerSide::CMysqlImpl);
-    std::unordered_map<std::string, std::string> mapConfig = SPA::ServerSide::CMysqlImpl::ConfigStreamingDB(dbConn, *impl);
-    if (!mapConfig.size()) {
-        return 0;
+    dbConn += L";server=localhost";
+    CMysqlImpl impl;
+    int res = 0, ms = 0;
+    std::wstring errMsg;
+    impl.Open(dbConn, 0, res, errMsg, ms);
+    if (res) {
+        CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Configuring streaming DB failed when connecting to local database (errCode=%d; errMsg=%s)", res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()).c_str());
     }
-    CSetGlobals::SetConfig(mapConfig);
-    if (!SPA::ServerSide::CMysqlImpl::SetPublishDBEvent(*impl))
+    if (!CMysqlImpl::SetPublishDBEvent(impl))
         return 0;
-    return (SPA::ServerSide::CMysqlImpl::CreateTriggers(*impl, CSetGlobals::Globals.cached_tables) ? 1 : 0);
+    return (CMysqlImpl::CreateTriggers(impl, CSetGlobals::Globals.cached_tables) ? 1 : 0);
 }

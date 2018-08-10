@@ -143,62 +143,6 @@ namespace SPA
             return s;
         }
 
-        std::unordered_map<std::string, std::string> CMysqlImpl::ConfigStreamingDB(const std::wstring &dbConnection, CMysqlImpl & impl) {
-            std::unordered_map<std::string, std::string> map;
-            int res = 0, ms = 0;
-            std::wstring errMsg;
-            impl.Open(dbConnection, 0, res, errMsg, ms);
-            if (res) {
-                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Configuring streaming DB failed when connecting to local database (errCode=%d; errMsg=%s)", res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()).c_str());
-                return map;
-            }
-            std::wstring wsql = L"Create database if not exists sp_streaming_db character set utf8 collate utf8_general_ci;USE sp_streaming_db";
-            INT64 affected;
-            SPA::UDB::CDBVariant vtId;
-            UINT64 fail_ok;
-            impl.Execute(wsql, false, false, false, 0, affected, res, errMsg, vtId, fail_ok);
-            if (res) {
-                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Configuring streaming DB failed(errCode=%d; errMsg=%s)", res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()).c_str());
-                return map;
-            }
-            wsql = L"CREATE TABLE IF NOT EXISTS config(mykey varchar(32)PRIMARY KEY NOT NULL,value text not null)";
-            impl.Execute(wsql, false, false, false, 0, affected, res, errMsg, vtId, fail_ok);
-            if (res) {
-                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Configuring streaming DB failed(errCode=%d; errMsg=%s)", res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()).c_str());
-                return map;
-            }
-            wsql = L"select mykey,value from config";
-            CScopeUQueue sb;
-            CUQueue &q = *sb;
-            impl.m_pNoSending = &q;
-            impl.Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
-            impl.m_pNoSending = nullptr;
-            if (res) {
-                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Configuring streaming DB failed(errCode=%d; errMsg=%s)", res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()).c_str());
-                return map;
-            }
-            SPA::UDB::CDBVariant vtKey, vtValue;
-            while (q.GetSize() && !res) {
-                q >> vtKey >> vtValue;
-                std::string s0 = ToString(vtKey);
-                std::string s1 = ToString(vtValue);
-                std::transform(s0.begin(), s0.end(), s0.begin(), ::tolower);
-                Trim(s0);
-                Trim(s1);
-                map[s0] = s1;
-            }
-            std::unordered_map<std::string, std::string> &config = CSetGlobals::Globals.DefaultConfig;
-            for (auto it = config.begin(), end = config.end(); it != end; ++it) {
-                auto found = map.find(it->first);
-                if (found == map.end()) {
-                    wsql = L"insert into config values('" + Utilities::ToWide(it->first.c_str(), it->first.size()) + L"','" + Utilities::ToWide(it->second.c_str(), it->second.size()) + L"')";
-                    impl.Execute(wsql, false, false, false, 0, affected, res, errMsg, vtId, fail_ok);
-                    map[it->first] = it->second;
-                }
-            }
-            return map;
-        }
-
         bool CMysqlImpl::SetPublishDBEvent(CMysqlImpl & impl) {
 #ifdef WIN32_64
             std::wstring wsql = L"CREATE FUNCTION PublishDBEvent RETURNS INTEGER SONAME 'smysql.dll'";
@@ -458,8 +402,8 @@ namespace SPA
             m_remMysql.Unload();
         }
 
-        void CALLBACK CMysqlImpl::OnThreadEvent(SPA::ServerSide::tagThreadEvent te) {
-            if (te == SPA::ServerSide::teStarted) {
+        void CALLBACK CMysqlImpl::OnThreadEvent(tagThreadEvent te) {
+            if (te == teStarted) {
                 my_bool fail = m_remMysql.mysql_thread_init();
                 assert(!fail);
             } else {

@@ -83,16 +83,16 @@ namespace SPA {
 
         public:
             CMysqlImpl();
-
-            static void CALLBACK OnThreadEvent(SPA::ServerSide::tagThreadEvent te);
+            virtual void Open(const std::wstring &strConnection, unsigned int flags, int &res, std::wstring &errMsg, int &ms);
+            static void CALLBACK OnThreadEvent(tagThreadEvent te);
             static void SetDBGlobalConnectionString(const wchar_t *dbConnection, bool remote);
             static void UnloadMysql();
             static bool InitMySql();
             static bool DoSQLAuthentication(USocket_Server_Handle hSocket, const wchar_t *userId, const wchar_t *password, unsigned int nSvsId, const wchar_t *dbConnection);
+
 #ifdef MM_DB_SERVER_PLUGIN
             static void Trim(std::string &s);
             static std::string ToString(const CDBVariant &vtUTF8);
-            static std::unordered_map<std::string, std::string> ConfigStreamingDB(const std::wstring &dbConnection, CMysqlImpl &impl);
             static bool SetPublishDBEvent(CMysqlImpl &impl);
             static bool CreateTriggers(CMysqlImpl &impl, const std::vector<std::string> &vecTables);
 
@@ -115,7 +115,6 @@ namespace SPA {
             virtual void OnBaseRequestArrive(unsigned short requestId);
 
         private:
-            virtual void Open(const std::wstring &strConnection, unsigned int flags, int &res, std::wstring &errMsg, int &ms);
             virtual void CloseDb(int &res, std::wstring &errMsg);
             virtual void BeginTrans(int isolation, const std::wstring &dbConn, unsigned int flags, int &res, std::wstring &errMsg, int &ms);
             virtual void EndTrans(int plan, int &res, std::wstring &errMsg);

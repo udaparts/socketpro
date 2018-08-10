@@ -2,6 +2,7 @@
 #include "streamingserver.h"
 #include <algorithm>
 #include "../../../include/scloader.h"
+#include "config.h"
 
 #define DEFAULT_LOCAL_CONNECTION_STRING     L"host=localhost;port=3306;timeout=30"
 #define STREAM_DB_LOG_FILE                  "streaming_db.log"
@@ -19,7 +20,7 @@
 CStreamingServer *g_pStreamingServer = nullptr;
 
 int async_sql_plugin_init(void *p) {
-    SPA::ServerSide::CMysqlImpl::InitMySql();
+    CMysqlImpl::InitMySql();
     CSetGlobals::Globals.Plugin = (const void *) p;
     if (!CSetGlobals::Globals.StartListening()) {
         return 1;
@@ -67,6 +68,9 @@ m_hModule(nullptr), Plugin(nullptr), enable_http_websocket(false) {
     DefaultConfig[STREAMING_DB_SERVICES] = "";
     DefaultConfig[STREAMING_DB_HTTP_WEBSOCKET] = "0";
 
+    CConfig::Update(DefaultConfig);
+    SetConfig(DefaultConfig);
+
     unsigned int version = MYSQL_VERSION_ID;
     if (server_version && strlen(server_version)) {
         version = GetVersion(server_version);
@@ -105,7 +109,7 @@ void CSetGlobals::LogEntry(const char* file, int fileLineNumber, const char* szB
 #ifdef WIN32_64
         errno_t errCode = ::fopen_s(&m_fLog, STREAM_DB_LOG_FILE, "a+");
 #else
-        m_fLog = ::fopen("streaming_db.log", "a+");
+        m_fLog = ::fopen(STREAM_DB_LOG_FILE, "a+");
 #endif
     }
     if (!m_fLog) {
@@ -156,7 +160,7 @@ bool CSetGlobals::StartListening() {
         }
         CSetGlobals::Globals.ssl_pwd.clear();
     }
-    SPA::ServerSide::ServerCoreLoader.SetThreadEvent(SPA::ServerSide::CMysqlImpl::OnThreadEvent);
+    ServerCoreLoader.SetThreadEvent(CMysqlImpl::OnThreadEvent);
     bool ok = g_pStreamingServer->Run(CSetGlobals::Globals.Port, 32, !CSetGlobals::Globals.DisableV6);
     if (!ok) {
         CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Starting listening socket failed(errCode=%d; errMsg=%s)", g_pStreamingServer->GetErrorCode(), g_pStreamingServer->GetErrorMessage().c_str());
@@ -196,26 +200,26 @@ void CSetGlobals::SetConfig(const std::unordered_map<std::string, std::string>& 
     it = mapConfig.find(STREAMING_DB_SSL_KEY);
     if (it != mapConfig.end()) {
         CSetGlobals::Globals.ssl_key = it->second;
-        SPA::ServerSide::CMysqlImpl::Trim(CSetGlobals::Globals.ssl_key);
+        CMysqlImpl::Trim(CSetGlobals::Globals.ssl_key);
     }
     it = mapConfig.find(STREAMING_DB_SSL_CERT);
     if (it != mapConfig.end()) {
         CSetGlobals::Globals.ssl_cert = it->second;
-        SPA::ServerSide::CMysqlImpl::Trim(CSetGlobals::Globals.ssl_cert);
+        CMysqlImpl::Trim(CSetGlobals::Globals.ssl_cert);
     }
     it = mapConfig.find(STREAMING_DB_SSL_PASSWORD);
     if (it != mapConfig.end()) {
         CSetGlobals::Globals.ssl_pwd = it->second;
-        SPA::ServerSide::CMysqlImpl::Trim(CSetGlobals::Globals.ssl_pwd);
+        CMysqlImpl::Trim(CSetGlobals::Globals.ssl_pwd);
     }
     it = mapConfig.find(STREAMING_DB_CACHE_TABLES);
     if (it != mapConfig.end()) {
         std::string tok;
         std::string s = it->second;
-        SPA::ServerSide::CMysqlImpl::Trim(s);
+        CMysqlImpl::Trim(s);
         std::stringstream ss(s);
         while (std::getline(ss, tok, ';')) {
-            SPA::ServerSide::CMysqlImpl::Trim(tok);
+            CMysqlImpl::Trim(tok);
             if (tok.size())
                 CSetGlobals::Globals.cached_tables.push_back(tok);
         }
@@ -224,10 +228,10 @@ void CSetGlobals::SetConfig(const std::unordered_map<std::string, std::string>& 
     if (it != mapConfig.end()) {
         std::string tok;
         std::string s = it->second;
-        SPA::ServerSide::CMysqlImpl::Trim(s);
+        CMysqlImpl::Trim(s);
         std::stringstream ss(s);
         while (std::getline(ss, tok, ';')) {
-            SPA::ServerSide::CMysqlImpl::Trim(tok);
+            CMysqlImpl::Trim(tok);
             if (tok.size())
                 CSetGlobals::Globals.services.push_back(tok);
         }
@@ -236,25 +240,24 @@ void CSetGlobals::SetConfig(const std::unordered_map<std::string, std::string>& 
 
 CSetGlobals CSetGlobals::Globals;
 
-CStreamingServer::CStreamingServer(int nParam)
-: SPA::ServerSide::CSocketProServer(nParam) {
+CStreamingServer::CStreamingServer(int nParam) : CSocketProServer(nParam) {
 }
 
 bool CHttpPeer::DoAuthentication(const wchar_t *userId, const wchar_t *password) {
-    if (GetTransport() != SPA::ServerSide::tWebSocket)
+    if (GetTransport() != tWebSocket)
         return true;
-    return SPA::ServerSide::CMysqlImpl::DoSQLAuthentication(GetSocketHandle(), userId, password, SPA::sidHTTP, DEFAULT_LOCAL_CONNECTION_STRING);
+    return CMysqlImpl::DoSQLAuthentication(GetSocketHandle(), userId, password, SPA::sidHTTP, DEFAULT_LOCAL_CONNECTION_STRING);
 }
 
 void CHttpPeer::OnFastRequestArrive(unsigned short requestId, unsigned int len) {
     switch (requestId) {
-        case SPA::ServerSide::idDelete:
-        case SPA::ServerSide::idPut:
-        case SPA::ServerSide::idTrace:
-        case SPA::ServerSide::idOptions:
-        case SPA::ServerSide::idHead:
-        case SPA::ServerSide::idMultiPart:
-        case SPA::ServerSide::idConnect:
+        case idDelete:
+        case idPut:
+        case idTrace:
+        case idOptions:
+        case idHead:
+        case idMultiPart:
+        case idConnect:
             SetResponseCode(501);
             SendResult("Server doesn't support DELETE, PUT, TRACE, OPTIONS, HEAD, CONNECT and POST with multipart");
             break;
@@ -267,7 +270,7 @@ void CHttpPeer::OnFastRequestArrive(unsigned short requestId, unsigned int len) 
 
 int CHttpPeer::OnSlowRequestArrive(unsigned short requestId, unsigned int len) {
     switch (requestId) {
-        case SPA::ServerSide::idGet:
+        case idGet:
         {
             const char *path = GetPath();
             if (::strstr(path, "."))
@@ -276,10 +279,10 @@ int CHttpPeer::OnSlowRequestArrive(unsigned short requestId, unsigned int len) {
                 SendResult("Unsupported GET request");
         }
             break;
-        case SPA::ServerSide::idPost:
+        case idPost:
             SendResult("Unsupported POST request");
             break;
-        case SPA::ServerSide::idUserRequest:
+        case idUserRequest:
         {
             const std::string &RequestName = GetUserRequestName();
             if (RequestName == "subscribeTableEvents") {
@@ -303,10 +306,19 @@ bool CStreamingServer::OnIsPermitted(USocket_Server_Handle h, const wchar_t* use
         case SPA::sidHTTP:
             break;
         default:
-            return SPA::ServerSide::CMysqlImpl::DoSQLAuthentication(h, userId, password, serviceId, DEFAULT_LOCAL_CONNECTION_STRING);
+            return CMysqlImpl::DoSQLAuthentication(h, userId, password, serviceId, DEFAULT_LOCAL_CONNECTION_STRING);
             break;
     }
     return true;
+}
+
+void CStreamingServer::ConfigServices() {
+    for (auto p = CSetGlobals::Globals.services.begin(), end = CSetGlobals::Globals.services.end(); p != end; ++p) {
+        HINSTANCE hModule = CSocketProServer::DllManager::AddALibrary(p->c_str(), 0);
+        if (!hModule) {
+            CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Not able o load server plugin %s", p->c_str());
+        }
+    }
 }
 
 void CStreamingServer::OnIdle(SPA::INT64 milliseconds) {
@@ -315,10 +327,12 @@ void CStreamingServer::OnIdle(SPA::INT64 milliseconds) {
 
 bool CStreamingServer::OnSettingServer(unsigned int listeningPort, unsigned int maxBacklog, bool v6) {
     //amIntegrated and amMixed not supported yet
-    CSocketProServer::Config::SetAuthenticationMethod(SPA::ServerSide::amOwn);
+    CSocketProServer::Config::SetAuthenticationMethod(amOwn);
 
     //register streaming sql database events
     PushManager::AddAChatGroup(SPA::UDB::STREAMING_SQL_CHAT_GROUP_ID, L"Streaming SQL Database Events");
+
+    ConfigServices();
 
     //add MySQL streaming service into SocketPro server
     return AddService();
@@ -352,21 +366,19 @@ bool CStreamingServer::AddService() {
     ok = m_MySql.AddSlowRequest(SPA::UDB::idClose);
     if (!ok)
         return false;
-#if 0
     if (!CSetGlobals::Globals.enable_http_websocket)
         return true;
     ok = m_myHttp.AddMe(SPA::sidHTTP);
     if (!ok)
         return false;
-    ok = m_myHttp.AddSlowRequest(SPA::ServerSide::idGet);
+    ok = m_myHttp.AddSlowRequest(idGet);
     if (!ok)
         return false;
-    ok = m_myHttp.AddSlowRequest(SPA::ServerSide::idPost);
+    ok = m_myHttp.AddSlowRequest(idPost);
     if (!ok)
         return false;
-    ok = m_myHttp.AddSlowRequest(SPA::ServerSide::idUserRequest);
+    ok = m_myHttp.AddSlowRequest(idUserRequest);
     if (!ok)
         return false;
-#endif
     return true;
 }
