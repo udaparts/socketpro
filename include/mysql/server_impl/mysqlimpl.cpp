@@ -1469,6 +1469,7 @@ namespace SPA
             UINT64 oks = m_oks;
             std::string sql = SPA::Utilities::ToUTF8(wsql.c_str(), wsql.size());
             Trim(sql);
+#ifdef MM_DB_SERVER_PLUGIN
             if (m_EnableMessages && !sql.size()) {
                 //client side is asking for data from cached tables
                 for (auto it = CSetGlobals::Globals.cached_tables.begin(), end = CSetGlobals::Globals.cached_tables.end(); it != end; ++it) {
@@ -1483,6 +1484,7 @@ namespace SPA
                     sql += "`";
                 }
             }
+#endif
             const char *sqlUtf8 = (const char*) sql.c_str();
             int status = m_remMysql.mysql_real_query(m_pMysql.get(), sqlUtf8, (unsigned long) sql.size());
             if (status) {
