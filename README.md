@@ -21,6 +21,8 @@
     - SQL streaming database server plugin for MySQL 5.7.22 or older (free)
     - SQL streaming database server plugin for Mariadb (free)
     - SQL streaming for MySQL/Mariadb middle tier (free)
+    - SQL streaming for MS SQL server 2008 or later
+    - SQL streaming for anyone of databases having ODBC driver
 
 4.  Boost libraries (www.boost.org) are required for C/C++ development on non-window platforms. This is NOT required at all with Visual C++ development.
 
