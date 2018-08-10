@@ -127,11 +127,12 @@ namespace SPA
                 pos = s.find_last_of(WHITESPACE);
             }
         }
-#ifdef MM_DB_SERVER_PLUGIN
 
         void CMysqlImpl::Trim(std::string & s) {
             MYSQL_CONNECTION_STRING::Trim(s);
         }
+
+#ifdef MM_DB_SERVER_PLUGIN
 
         std::string CMysqlImpl::ToString(const CDBVariant & vtUTF8) {
             assert(vtUTF8.Type() == (VT_I1 | VT_ARRAY));
@@ -1466,10 +1467,24 @@ namespace SPA
             vtId = (INT64) 0;
             UINT64 fails = m_fails;
             UINT64 oks = m_oks;
-            CScopeUQueue sb;
-            Utilities::ToUTF8(wsql.c_str(), wsql.size(), *sb);
-            const char *sqlUtf8 = (const char*) sb->GetBuffer();
-            int status = m_remMysql.mysql_real_query(m_pMysql.get(), sqlUtf8, sb->GetSize());
+            std::string sql = SPA::Utilities::ToUTF8(wsql.c_str(), wsql.size());
+            Trim(sql);
+            if (m_EnableMessages && !sql.size()) {
+                //client side is asking for data from cached tables
+                for (auto it = CSetGlobals::Globals.cached_tables.begin(), end = CSetGlobals::Globals.cached_tables.end(); it != end; ++it) {
+                    if (sql.size())
+                        sql += ";";
+                    std::string s = *it;
+                    auto pos = s.find('.');
+                    sql += "select * from `";
+                    sql += s.substr(0, pos);
+                    sql += "`.`";
+                    sql += s.substr(pos + 1);
+                    sql += "`";
+                }
+            }
+            const char *sqlUtf8 = (const char*) sql.c_str();
+            int status = m_remMysql.mysql_real_query(m_pMysql.get(), sqlUtf8, (unsigned long) sql.size());
             if (status) {
                 res = m_remMysql.mysql_errno(m_pMysql.get());
                 errMsg = Utilities::ToWide(m_remMysql.mysql_error(m_pMysql.get()));

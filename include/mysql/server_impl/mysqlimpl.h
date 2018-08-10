@@ -89,9 +89,9 @@ namespace SPA {
             static void UnloadMysql();
             static bool InitMySql();
             static bool DoSQLAuthentication(USocket_Server_Handle hSocket, const wchar_t *userId, const wchar_t *password, unsigned int nSvsId, const wchar_t *dbConnection);
+            static void Trim(std::string &s);
 
 #ifdef MM_DB_SERVER_PLUGIN
-            static void Trim(std::string &s);
             static std::string ToString(const CDBVariant &vtUTF8);
             static bool SetPublishDBEvent(CMysqlImpl &impl);
             static bool CreateTriggers(CMysqlImpl &impl, const std::vector<std::string> &vecTables);
