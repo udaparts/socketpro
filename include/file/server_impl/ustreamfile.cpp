@@ -1,7 +1,7 @@
 
 #include "sfileimpl.h"
 
-std::shared_ptr<SPA::ServerSide::CSFileService> g_pSqlite;
+std::shared_ptr<SPA::ServerSide::CSFileService> g_pFile;
 std::wstring g_pathRoot;
 
 void WINAPI SetRootDirectory(const wchar_t *pathRoot) {
@@ -29,12 +29,12 @@ bool WINAPI InitServerLibrary(int param) {
     if (g_pathRoot.back() != L'/')
         g_pathRoot += L'/';
 #endif
-    g_pSqlite.reset(new SPA::ServerSide::CSFileService(SPA::SFile::sidFile, SPA::taNone));
+    g_pFile.reset(new SPA::ServerSide::CSFileService(SPA::SFile::sidFile, SPA::taNone));
     return true;
 }
 
 void WINAPI UninitServerLibrary() {
-    g_pSqlite.reset();
+    g_pFile.reset();
 }
 
 unsigned short WINAPI GetNumOfServices() {
@@ -49,8 +49,8 @@ unsigned int WINAPI GetAServiceID(unsigned short index) {
 
 CSvsContext WINAPI GetOneSvsContext(unsigned int serviceId) {
     CSvsContext sc;
-    if (g_pSqlite && serviceId == SPA::SFile::sidFile)
-        sc = g_pSqlite->GetSvsContext();
+    if (g_pFile && serviceId == SPA::SFile::sidFile)
+        sc = g_pFile->GetSvsContext();
     else
         memset(&sc, 0, sizeof (sc));
     return sc;
@@ -65,16 +65,12 @@ unsigned short WINAPI GetOneSlowRequestID(unsigned int serviceId, unsigned short
     switch (index) {
         case 0:
             return SPA::SFile::idDownload;
-            break;
         case 1:
             return SPA::SFile::idUpload;
-            break;
         case 2:
             return SPA::SFile::idUploadCompleted;
-            break;
         case 3:
             return SPA::SFile::idUploading;
-            break;
         default:
             break;
     }

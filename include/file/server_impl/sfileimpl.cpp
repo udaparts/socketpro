@@ -5,6 +5,7 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 #endif
+#include "../../scloader.h"
 
 extern std::wstring g_pathRoot;
 

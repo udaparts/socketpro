@@ -15,11 +15,12 @@
 
 4.	High performance Plug-ins with opened source codes
     - Superior performance asynchronous message persistent queue (free)
-    - High performance file streaming
-	- SQL streaming for SQLite 3.11.1 or later (free)
-	- SQL streaming for MySQL 8.0.11 or later (free)
-	- SQL streaming for MS SQL server 2008 or later (free)
-	- SQL streaming for anyone of databases having ODBC driver (free)
+    - High performance file streaming (free)
+    - SQL streaming for SQLite 3.11.1 or later (free)
+    - SQL streaming database server plugin for MySQL 8.0.11 or later (free)
+    - SQL streaming database server plugin for MySQL 5.7.22 or older (free)
+    - SQL streaming database server plugin for Mariadb (free)
+    - SQL streaming for MySQL/Mariadb middle tier (free)
 
 4.  Boost libraries (www.boost.org) are required for C/C++ development on non-window platforms. This is NOT required at all with Visual C++ development.
 

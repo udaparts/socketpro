@@ -6,7 +6,7 @@
 
 namespace SPA {
     namespace SFile {
-        static const unsigned int sidFile = (unsigned int) sidReserved + 0x6FFFFFF3; //asynchronous file streaming
+        static const unsigned int sidFile = (unsigned int) SPA::sidFile; //asynchronous file streaming
 
         static const unsigned int STREAM_CHUNK_SIZE = 10240;
 
