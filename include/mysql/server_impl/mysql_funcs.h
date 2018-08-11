@@ -208,7 +208,7 @@ namespace SPA {
 #else
                     m_hMysql = ::dlopen("libmysqlclient.so", RTLD_LAZY);
                     if (!m_hMysql)
-                        m_hMysql = ::dlopen(L"libmariadb.so", RTLD_LAZY);
+                        m_hMysql = ::dlopen("libmariadb.so", RTLD_LAZY);
 #endif
                     if (!m_hMysql) {
                         return false;

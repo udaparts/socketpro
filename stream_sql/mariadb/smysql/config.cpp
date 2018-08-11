@@ -15,7 +15,7 @@ void CConfig::Update(std::unordered_map<std::string, std::string> &mapConfig) {
         while (std::getline(input, line)) {
             auto pos = line.find('=');
             if (pos == std::string::npos) {
-                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Bad entry (%s) found in file %s", line, STREAM_DB_CONFIG_FILE);
+                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Bad entry (%s) found in file %s", line.c_str(), STREAM_DB_CONFIG_FILE);
                 continue;
             }
             std::string key = line.substr(0, pos);
@@ -27,13 +27,13 @@ void CConfig::Update(std::unordered_map<std::string, std::string> &mapConfig) {
                 continue;
             }
             if (!value.size()) {
-                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Empty value found in file %s for key (%s)", STREAM_DB_CONFIG_FILE, key);
+                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Empty value found in file %s for key (%s)", STREAM_DB_CONFIG_FILE, key.c_str());
                 continue;
             }
             std::transform(key.begin(), key.end(), key.begin(), ::tolower);
             auto it = mapConfig.find(key);
             if (it == mapConfig.end()) {
-                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Key (%s) not supported in file %s", key, STREAM_DB_CONFIG_FILE);
+                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Key (%s) not supported in file %s", key.c_str(), STREAM_DB_CONFIG_FILE);
                 continue;
             }
             it->second = value;

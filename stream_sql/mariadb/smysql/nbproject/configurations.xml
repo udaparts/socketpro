@@ -5,9 +5,13 @@
                    displayName="Header Files"
                    projectFiles="true">
       <itemPath>../../../include/aserverw.h</itemPath>
+      <itemPath>config.h</itemPath>
+      <itemPath>httppeer.h</itemPath>
       <itemPath>../../../include/membuffer.h</itemPath>
       <itemPath>../../../include/mysql/server_impl/mysqlimpl.h</itemPath>
+      <itemPath>streamingserver.h</itemPath>
       <itemPath>../../../include/mysql/umysql_server.h</itemPath>
+      <itemPath>umysql_udf.h</itemPath>
     </logicalFolder>
     <logicalFolder name="ResourceFiles"
                    displayName="Resource Files"
@@ -17,9 +21,12 @@
                    displayName="Source Files"
                    projectFiles="true">
       <itemPath>../../../include/aserverw.cpp</itemPath>
+      <itemPath>config.cpp</itemPath>
       <itemPath>../../../include/membuffer.cpp</itemPath>
       <itemPath>../../../include/mysql/server_impl/mysqlimpl.cpp</itemPath>
-      <itemPath>../../../include/mysql/server_impl/smysql.cpp</itemPath>
+      <itemPath>smysql.cpp</itemPath>
+      <itemPath>stdafx.cpp</itemPath>
+      <itemPath>streamingserver.cpp</itemPath>
     </logicalFolder>
     <logicalFolder name="TestFiles"
                    displayName="Test Files"
@@ -44,9 +51,17 @@
       <compileType>
         <cTool>
           <commandLine>-std=c++11 -static-libgcc -static-libstdc++ -Wall</commandLine>
+          <preprocessorList>
+            <Elem>MM_DB_SERVER_PLUGIN</Elem>
+            <Elem>MYSQL_DYNAMIC_PLUGIN</Elem>
+          </preprocessorList>
         </cTool>
         <ccTool>
           <commandLine>-std=c++11 -static-libgcc -static-libstdc++ -Wall</commandLine>
+          <preprocessorList>
+            <Elem>MM_DB_SERVER_PLUGIN</Elem>
+            <Elem>MYSQL_DYNAMIC_PLUGIN</Elem>
+          </preprocessorList>
         </ccTool>
         <linkerTool>
           <commandlineTool>g++</commandlineTool>
@@ -74,15 +89,26 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../../include/mysql/server_impl/smysql.cpp"
-            ex="false"
-            tool="0"
-            flavor2="0">
-      </item>
       <item path="../../../include/mysql/umysql_server.h"
             ex="false"
             tool="3"
             flavor2="0">
+      </item>
+      <item path="config.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="config.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="httppeer.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="smysql.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="stdafx.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="streamingserver.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="streamingserver.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="umysql_udf.h" ex="false" tool="3" flavor2="0">
       </item>
     </conf>
     <conf name="Release" type="2">
@@ -97,6 +123,8 @@
           <stripSymbols>true</stripSymbols>
           <commandLine>-std=c++11 -static-libgcc -static-libstdc++</commandLine>
           <preprocessorList>
+            <Elem>MM_DB_SERVER_PLUGIN</Elem>
+            <Elem>MYSQL_DYNAMIC_PLUGIN</Elem>
             <Elem>NDEBUG</Elem>
           </preprocessorList>
         </cTool>
@@ -105,6 +133,8 @@
           <stripSymbols>true</stripSymbols>
           <commandLine>-std=c++11 -static-libgcc -static-libstdc++ -Wall</commandLine>
           <preprocessorList>
+            <Elem>MM_DB_SERVER_PLUGIN</Elem>
+            <Elem>MYSQL_DYNAMIC_PLUGIN</Elem>
             <Elem>NDEBUG</Elem>
           </preprocessorList>
         </ccTool>
@@ -141,15 +171,26 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../../include/mysql/server_impl/smysql.cpp"
-            ex="false"
-            tool="0"
-            flavor2="0">
-      </item>
       <item path="../../../include/mysql/umysql_server.h"
             ex="false"
             tool="3"
             flavor2="0">
+      </item>
+      <item path="config.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="config.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="httppeer.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="smysql.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="stdafx.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="streamingserver.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="streamingserver.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="umysql_udf.h" ex="false" tool="3" flavor2="0">
       </item>
     </conf>
   </confs>
