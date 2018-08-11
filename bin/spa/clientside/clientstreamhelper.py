@@ -21,7 +21,7 @@ class CContext(object):
         self.QueueOk = False
 
 class CStreamingFile(CAsyncServiceHandler):
-    sidFile = BaseServiceID.sidReserved + 0x6FFFFFF3 # asynchronous file streaming service id
+    sidFile = BaseServiceID.sidFile # asynchronous file streaming service id
     STREAM_CHUNK_SIZE = 10240
 
     # request ids

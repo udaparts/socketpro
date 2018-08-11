@@ -9,7 +9,7 @@ import java.io.*;
 
 public class CStreamingFile extends CAsyncServiceHandler {
 
-    public final static int sidFile = SPA.BaseServiceID.sidReserved + 0x6FFFFFF3; //asynchronous file streaming service id
+    public final static int sidFile = SPA.BaseServiceID.sidFile; //asynchronous file streaming service id
 
     public CStreamingFile() {
         super(sidFile);

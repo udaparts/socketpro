@@ -199,7 +199,7 @@ namespace SocketProAdapter.ClientSide {
     }
 
     public class CStreamingFile : CAsyncServiceHandler {
-        public const uint sidFile = BaseServiceID.sidReserved + 0x6FFFFFF3; //asynchronous file streaming service id
+        public const uint sidFile = BaseServiceID.sidFile; //asynchronous file streaming service id
 
         public delegate void DDownload(CStreamingFile file, int res, string errMsg);
         public delegate void DUpload(CStreamingFile file, int res, string errMsg);

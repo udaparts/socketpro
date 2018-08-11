@@ -1,4 +1,4 @@
-# SQL streaming for MySQL on SocketPro communication framework
+# SQL streaming for MySQL 8.0.11 or later on SocketPro communication framework
 
 1. A public repository for implementation of async MySQL client/server application by use of SocketPro communication framework, which contains seven projects, smysql, test_cache, test_cmysql, test_java, test_sharp and test_python as well as DBPerf at this time.
 

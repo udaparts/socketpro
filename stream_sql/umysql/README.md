@@ -1,4 +1,4 @@
-# Async mysql and mariadb client/server applications on SocketPro communication framework
+# Async mysql and mariadb middle-tier applications on SocketPro communication framework
 
 1. A public repository for implementation of async mysql (mariadb) client/server application by use of SocketPro communication framework, which contains six projects, smysql, test_smysql, test_cmysql, test_java, test_sharp and test_python at this time.
 
