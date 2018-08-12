@@ -1595,12 +1595,15 @@ JNIEXPORT void JNICALL Java_SPA_ServerSide_Sqlite_SetSqliteDBGlobalConnectionStr
     if (g_hSqlite && !SetSqliteDBGlobalConnectionString) {
         SetSqliteDBGlobalConnectionString = (PSetSqliteDBGlobalConnectionString)::GetProcAddress(g_hSqlite, "SetSqliteDBGlobalConnectionString");
     }
-    if (g_hSqlite && SetSqliteDBGlobalConnectionString && dbString) {
-        jsize len = env->GetStringLength(dbString);
-        const jchar *p = env->GetStringChars(dbString, nullptr);
-        std::wstring s(p, p + len);
+    if (g_hSqlite && SetSqliteDBGlobalConnectionString) {
+        std::wstring s;
+        if (dbString) {
+            jsize len = env->GetStringLength(dbString);
+            const jchar *p = env->GetStringChars(dbString, nullptr);
+            s.assign(p, p + len);
+            env->ReleaseStringChars(dbString, p);
+        }
         SetSqliteDBGlobalConnectionString(s.c_str());
-        env->ReleaseStringChars(dbString, p);
     }
 }
 
@@ -1630,8 +1633,10 @@ JNIEXPORT void JNICALL Java_SPA_ServerSide_Sfile_SetRootDirectory(JNIEnv *env, j
 }
 
 HINSTANCE g_hOdbc = nullptr;
+typedef bool(WINAPI *PDoODBCAuthentication)(USocket_Server_Handle hSocket, const wchar_t *userId, const wchar_t *password, unsigned int nSvsId, const wchar_t *odbcDriver, const wchar_t *dsn);
 typedef void (WINAPI *PSetOdbcDBGlobalConnectionString)(const wchar_t *dbConnection);
 static PSetOdbcDBGlobalConnectionString SetOdbcDBGlobalConnectionString = nullptr;
+static PDoODBCAuthentication DoODBCAuthentication = nullptr;
 
 JNIEXPORT void JNICALL Java_SPA_ServerSide_Odbc_SetOdbcDBGlobalConnectionString(JNIEnv *env, jclass, jstring dbConnection) {
     SPA::CAutoLock al(g_co);
@@ -1646,19 +1651,69 @@ JNIEXPORT void JNICALL Java_SPA_ServerSide_Odbc_SetOdbcDBGlobalConnectionString(
         SetOdbcDBGlobalConnectionString = (PSetOdbcDBGlobalConnectionString)::GetProcAddress(g_hOdbc, "SetOdbcDBGlobalConnectionString");
     }
     if (g_hOdbc && SetOdbcDBGlobalConnectionString) {
-        jsize len = env->GetStringLength(dbConnection);
-        const jchar *p = env->GetStringChars(dbConnection, nullptr);
-        std::wstring s(p, p + len);
+        std::wstring s;
+        if (dbConnection) {
+            jsize len = env->GetStringLength(dbConnection);
+            const jchar *p = env->GetStringChars(dbConnection, nullptr);
+            s.assign(p, p + len);
+            env->ReleaseStringChars(dbConnection, p);
+        }
         SetOdbcDBGlobalConnectionString(s.c_str());
-        env->ReleaseStringChars(dbConnection, p);
     }
+}
+
+JNIEXPORT jboolean JNICALL Java_SPA_ServerSide_Odbc_DoODBCAuthentication(JNIEnv *env, jclass, jlong h, jstring uid, jstring pwd, jint svsId, jstring driver, jstring dsn) {
+    SPA::CAutoLock al(g_co);
+    if (!g_hOdbc) {
+#ifdef WIN32_64
+        g_hOdbc = ::LoadLibraryW(L"sodbc.dll");
+#else
+        g_hOdbc = ::dlopen("libsodbc.so", RTLD_LAZY);
+#endif
+    }
+    if (g_hOdbc && !DoODBCAuthentication) {
+        DoODBCAuthentication = (PDoODBCAuthentication)::GetProcAddress(g_hOdbc, "DoODBCAuthentication");
+    }
+    bool ok = false;
+    if (g_hOdbc && DoODBCAuthentication) {
+        jsize len;
+        std::wstring wuid, wpwd, wdriver, wdsn;
+        if (uid) {
+            len = env->GetStringLength(uid);
+            const jchar *puid = env->GetStringChars(uid, nullptr);
+            wuid.assign(puid, puid + len);
+            env->ReleaseStringChars(uid, puid);
+        }
+        if (pwd) {
+            len = env->GetStringLength(pwd);
+            const jchar *ppwd = env->GetStringChars(pwd, nullptr);
+            wpwd.assign(ppwd, ppwd + len);
+            env->ReleaseStringChars(pwd, ppwd);
+        }
+        if (dsn) {
+            len = env->GetStringLength(dsn);
+            const jchar *pdb = env->GetStringChars(dsn, nullptr);
+            wdsn.assign(pdb, pdb + len);
+            env->ReleaseStringChars(dsn, pdb);
+        }
+        if (driver) {
+            jsize len = env->GetStringLength(driver);
+            const jchar *p = env->GetStringChars(driver, nullptr);
+            wdriver.assign(p, p + len);
+            env->ReleaseStringChars(driver, p);
+        }
+        ok = DoODBCAuthentication((USocket_Server_Handle) h, wuid.c_str(), wpwd.c_str(), (unsigned int) svsId, wdriver.c_str(), wdsn.c_str());
+    }
+    return ok;
 }
 
 HINSTANCE g_hMysql = nullptr;
 typedef void (WINAPI *PSetMysqlDBGlobalConnectionString)(const wchar_t *dbConnection, bool remote);
 typedef const char* (WINAPI *PSetMysqlEmbeddedOptions)(const wchar_t *options);
+typedef bool(WINAPI *PDoMySQLAuthentication)(USocket_Server_Handle hSocket, const wchar_t *userId, const wchar_t *password, unsigned int nSvsId, const wchar_t *dbConnection);
 static PSetMysqlDBGlobalConnectionString SetMysqlDBGlobalConnectionString = nullptr;
 static PSetMysqlEmbeddedOptions SetMysqlEmbeddedOptions = nullptr;
+static PDoMySQLAuthentication DoMySQLAuthentication = nullptr;
 
 JNIEXPORT void JNICALL Java_SPA_ServerSide_Mysql_SetMysqlDBGlobalConnectionString(JNIEnv *env, jclass pClass, jstring dbConnection, jboolean remote) {
     SPA::CAutoLock al(g_co);
@@ -1673,15 +1728,22 @@ JNIEXPORT void JNICALL Java_SPA_ServerSide_Mysql_SetMysqlDBGlobalConnectionStrin
         SetMysqlDBGlobalConnectionString = (PSetMysqlDBGlobalConnectionString)::GetProcAddress(g_hMysql, "SetMysqlDBGlobalConnectionString");
     }
     if (g_hMysql && SetMysqlDBGlobalConnectionString) {
-        jsize len = env->GetStringLength(dbConnection);
-        const jchar *p = env->GetStringChars(dbConnection, nullptr);
-        std::wstring s(p, p + len);
+        std::wstring s;
+        if (dbConnection) {
+            jsize len = env->GetStringLength(dbConnection);
+            const jchar *p = env->GetStringChars(dbConnection, nullptr);
+            s.assign(p, p + len);
+            env->ReleaseStringChars(dbConnection, p);
+        }
         SetMysqlDBGlobalConnectionString(s.c_str(), remote ? true : false);
-        env->ReleaseStringChars(dbConnection, p);
     }
 }
 
 JNIEXPORT jstring JNICALL Java_SPA_ServerSide_Mysql_SetMysqlEmbeddedOptions(JNIEnv *env, jclass pClass, jstring options) {
+    return env->NewStringUTF("");
+}
+
+JNIEXPORT jboolean JNICALL Java_SPA_ServerSide_Mysql_DoMySQLAuthentication(JNIEnv *env, jclass, jlong h, jstring uid, jstring pwd, jint svsId, jstring db) {
     SPA::CAutoLock al(g_co);
     if (!g_hMysql) {
 #ifdef WIN32_64
@@ -1690,16 +1752,32 @@ JNIEXPORT jstring JNICALL Java_SPA_ServerSide_Mysql_SetMysqlEmbeddedOptions(JNIE
         g_hMysql = ::dlopen("libsmysql.so", RTLD_LAZY);
 #endif
     }
-    if (g_hMysql && !SetMysqlEmbeddedOptions) {
-        SetMysqlEmbeddedOptions = (PSetMysqlEmbeddedOptions)::GetProcAddress(g_hMysql, "SetMysqlEmbeddedOptions");
+    if (g_hMysql && !DoMySQLAuthentication) {
+        DoMySQLAuthentication = (PDoMySQLAuthentication)::GetProcAddress(g_hMysql, "DoMySQLAuthentication");
     }
-    if (g_hMysql && SetMysqlEmbeddedOptions) {
-        jsize len = env->GetStringLength(options);
-        const jchar *p = env->GetStringChars(options, nullptr);
-        std::wstring s(p, p + len);
-        jstring joptions = env->NewStringUTF(SetMysqlEmbeddedOptions(s.c_str()));
-        env->ReleaseStringChars(options, p);
-        return joptions;
+    bool ok = false;
+    if (g_hMysql && DoMySQLAuthentication) {
+        jsize len;
+        std::wstring wuid, wpwd, wdb;
+        if (uid) {
+            len = env->GetStringLength(uid);
+            const jchar *puid = env->GetStringChars(uid, nullptr);
+            wuid.assign(puid, puid + len);
+            env->ReleaseStringChars(uid, puid);
+        }
+        if (pwd) {
+            len = env->GetStringLength(pwd);
+            const jchar *ppwd = env->GetStringChars(pwd, nullptr);
+            wpwd.assign(ppwd, ppwd + len);
+            env->ReleaseStringChars(pwd, ppwd);
+        }
+        if (db) {
+            len = env->GetStringLength(db);
+            const jchar *pdb = env->GetStringChars(db, nullptr);
+            wdb.assign(pdb, pdb + len);
+            env->ReleaseStringChars(db, pdb);
+        }
+        ok = DoMySQLAuthentication((USocket_Server_Handle) h, wuid.c_str(), wpwd.c_str(), (unsigned int) svsId, wdb.c_str());
     }
-    return env->NewStringUTF("");
+    return ok;
 }

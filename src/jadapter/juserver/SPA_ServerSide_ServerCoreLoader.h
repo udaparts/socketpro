@@ -1528,13 +1528,19 @@ JNIEXPORT void JNICALL Java_SPA_ServerSide_Mysql_SetMysqlDBGlobalConnectionStrin
 JNIEXPORT jstring JNICALL Java_SPA_ServerSide_Mysql_SetMysqlEmbeddedOptions
   (JNIEnv *, jclass, jstring);
 
+
+JNIEXPORT jboolean JNICALL Java_SPA_ServerSide_Mysql_DoMySQLAuthentication(JNIEnv *, jclass, jlong, jstring, jstring, jint, jstring);
+
 /*
- * Class:     SPA_ServerSide_Mysql
- * Method:    SetMysqlDBGlobalConnectionString
+ * Class:     SPA_ServerSide_Odbc
+ * Method:    SetOdbcGlobalConnectionString
  * Signature: (Ljava/lang/String;Z)V
  */
 JNIEXPORT void JNICALL Java_SPA_ServerSide_Odbc_SetOdbcDBGlobalConnectionString
   (JNIEnv *, jclass, jstring);
+
+
+JNIEXPORT jboolean JNICALL Java_SPA_ServerSide_Odbc_DoODBCAuthentication(JNIEnv *, jclass, jlong, jstring, jstring, jint, jstring, jstring);
 
 #ifdef __cplusplus
 }
