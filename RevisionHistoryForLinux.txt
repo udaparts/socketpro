@@ -1,9 +1,10 @@
-21. SocketPro Version 6.1.0.1-3
+21. SocketPro Version 6.1.0.1-4
 	(a) Add new feature into SocketPro core libraries for automatic ordering on random returning requests
 	(b) Improve fault-tolerance, no message loss and connection auto recovery
 	(c) Use delegate DDiscarded to replace DCancel
 	(d) Upgrade adapters to support the above changes
 	(e) Add examples for demonstration
+	(f) Make file streaming free within SocketPro core libraries
 
 20.	SocketPro Version 6.0.4.7
 	(a) Fix server router auto-recovery (fault-tolerance) issue at client side.
