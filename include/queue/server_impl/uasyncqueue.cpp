@@ -2,13 +2,17 @@
 #include "asyncqueueimpl.h"
 
 std::shared_ptr<SPA::ServerSide::CSocketProService<SPA::ServerSide::CAsyncQueueImpl> > g_pAsyncQueue;
+static const unsigned int DEFAULT_DEQUEUE_BATCH_SIZE = 16384; //default dequeue batch size
+static const unsigned int MIN_DEQUEUE_BATCH_SIZE = 2048;
 
 bool WINAPI InitServerLibrary(int param) {
     unsigned options = (unsigned int) param;
     SPA::ServerSide::CAsyncQueueImpl::m_bNoAuto = (unsigned char) (options >> 24);
     unsigned int batchSize = (options & 0xffffff);
-    if (batchSize < 1024) {
-        batchSize = 1024;
+    if (!batchSize) {
+        batchSize = DEFAULT_DEQUEUE_BATCH_SIZE;
+    } else if (batchSize < MIN_DEQUEUE_BATCH_SIZE) {
+        batchSize = MIN_DEQUEUE_BATCH_SIZE;
     }
     SPA::ServerSide::CAsyncQueueImpl::m_nBatchSize = batchSize;
     g_pAsyncQueue.reset(new SPA::ServerSide::CSocketProService<SPA::ServerSide::CAsyncQueueImpl>(SPA::Queue::sidQueue, SPA::taNone));
