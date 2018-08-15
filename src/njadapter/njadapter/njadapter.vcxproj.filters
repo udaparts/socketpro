@@ -42,6 +42,9 @@
     <ClInclude Include="..\..\..\include\rdbcache.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="njobjects.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -60,6 +63,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\include\tablecache.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="njobjects.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
