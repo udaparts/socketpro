@@ -4,9 +4,9 @@
 namespace NJA {
 	using v8::Context;
 
-	Persistent<Function> MyObject::constructor;
+	Persistent<Function> NJAObjects::constructor;
 
-	MyObject::MyObject(double value) : value_(value) {
+	NJAObjects::NJAObjects(double value) : value_(value) {
 		uv_loop_t *main_loop = uv_default_loop();
 		/*
 		uv_async_t context;
@@ -17,39 +17,39 @@ namespace NJA {
 		main_loop = nullptr;
 	}
 
-	MyObject::~MyObject() {
+	NJAObjects::~NJAObjects() {
 		
 	}
 
-	void MyObject::Init(Local<Object> exports) {
+	void NJAObjects::Init(Local<Object> exports) {
 		Isolate* isolate = exports->GetIsolate();
 
 		// Prepare constructor template
 		Local<FunctionTemplate> tpl = FunctionTemplate::New(isolate, New);
-		tpl->SetClassName(String::NewFromUtf8(isolate, "MyObject"));
+		tpl->SetClassName(String::NewFromUtf8(isolate, "NJAObjects"));
 		tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
 		// Prototype
 		NODE_SET_PROTOTYPE_METHOD(tpl, "plusOne", PlusOne);
 		
 		constructor.Reset(isolate, tpl->GetFunction());
-		exports->Set(String::NewFromUtf8(isolate, "MyObject"), tpl->GetFunction());
+		exports->Set(String::NewFromUtf8(isolate, "NJAObjects"), tpl->GetFunction());
 	}
 
-	void MyObject::New(const FunctionCallbackInfo<Value>& args) {
+	void NJAObjects::New(const FunctionCallbackInfo<Value>& args) {
 		Isolate* isolate = args.GetIsolate();
 		
 		if (args.IsConstructCall()) {
-			// Invoked as constructor: `new MyObject(...)`
+			// Invoked as constructor: `new NJAObjects(...)`
 			double value = args[0]->IsNumber() ? args[0]->NumberValue() : 0;
-			MyObject* obj = new MyObject(value);
+			NJAObjects* obj = new NJAObjects(value);
 			obj->Wrap(args.This());
 			Local<Number> num = Number::New(isolate, 1.24);
 			args.This()->Set(String::NewFromUtf8(isolate, "msg"), num);
 			args.GetReturnValue().Set(args.This());
 		}
 		else {
-			// Invoked as plain function `MyObject(...)`, turn into construct call.
+			// Invoked as plain function `NJAObjects(...)`, turn into construct call.
 			Local<Value> argv[] = { args[0] };
 			Local<Context> context = isolate->GetCurrentContext();
 			Local<Function> cons = Local<Function>::New(isolate, constructor);
@@ -58,16 +58,16 @@ namespace NJA {
 		}
 	}
 
-	void MyObject::PlusOne(const FunctionCallbackInfo<Value>& args) {
+	void NJAObjects::PlusOne(const FunctionCallbackInfo<Value>& args) {
 		Isolate* isolate = args.GetIsolate();
 
-		MyObject* obj = ObjectWrap::Unwrap<MyObject>(args.Holder());
+		NJAObjects* obj = ObjectWrap::Unwrap<NJAObjects>(args.Holder());
 		obj->value_ += 1;
 
 		args.GetReturnValue().Set(Number::New(isolate, obj->value_));
 	}
 
-	void MyObject::At_Exit(void *arg) {
+	void NJAObjects::At_Exit(void *arg) {
 
 	}
 }

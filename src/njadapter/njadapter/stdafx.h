@@ -1,12 +1,7 @@
+#ifndef __SOCKETPRO_NODEJS_ADAPTER_STDAFX_H__
+#define __SOCKETPRO_NODEJS_ADAPTER_STDAFX_H__
 
-#pragma once
-
-#include "../../../include/streamingfile.h"
-#include "../../../include/async_odbc.h"
-#include "../../../include/async_sqlite.h"
-#include "../../../include/mysql/umysql.h"
-#include "../../../include/rdbcache.h"
-#include "../../../include/masterpool.h"
+#include "../../../include/definebase.h"
 
 #ifdef WIN32_64
 
@@ -23,6 +18,13 @@
 #include "../include/node.h"
 #include "../include/node_object_wrap.h"
 #include "../include/uv.h"
+
+#include "../../../include/streamingfile.h"
+#include "../../../include/async_odbc.h"
+#include "../../../include/async_sqlite.h"
+#include "../../../include/mysql/umysql.h"
+#include "../../../include/rdbcache.h"
+#include "../../../include/masterpool.h"
 
 namespace NJA {
 	using v8::Function;
@@ -42,3 +44,5 @@ namespace NJA {
 	using v8::Persistent;
 	using node::AtExit;
 };
+
+#endif

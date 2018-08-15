@@ -107,6 +107,10 @@ namespace SPA {
                         IsEqual(AnyData, cc.AnyData));
             }
 
+#ifdef SRC_NODE_H_
+
+
+#endif
             std::string Host;
             unsigned int Port;
             std::wstring UserId;
@@ -241,6 +245,10 @@ namespace SPA {
             };
 
         public:
+#ifdef SRC_NODE_H_
+
+
+#endif
             //the version of client core library
             static const char* GetVersion();
 
@@ -457,6 +465,11 @@ namespace SPA {
             DServerException ServerException;
 
         public:
+#ifdef SRC_NODE_H_
+
+
+#endif
+
             unsigned int GetRequestsQueued();
             void ShrinkDeque();
             unsigned int GetSvsID() const;
@@ -1463,7 +1476,17 @@ namespace SPA {
             CSocketPool& operator=(const CSocketPool &sp);
 
         public:
-
+#ifdef SRC_NODE_H_
+			virtual std::string GetProperties() {
+				return "AsyncHandlers;Avg;ConnectedSockets;DisconnectedSockets;IdleSockets;LockedSockets;PoolId;QueueAutoMerge:1;QueueName:1;Queues;Sockets;SocketsPerThread;Started;ThreadsCreated";
+			}
+			virtual std::string GetDelegates() {
+				return "DoSslServerAuthentication:1;SocketPoolEvent:1";
+			}
+			virtual std::string GetMethods() {
+				return "DisconnectAll;Lock;Seek;SeekByQueue;ShutdownPool;StartSocketPool;Unlock";
+			}
+#endif
             static unsigned int GetSocketPools() {
                 return ClientCoreLoader.GetNumberOfSocketPools();
             }
