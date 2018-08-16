@@ -4,7 +4,7 @@
 namespace NJA {
 
 	enum tagHandlerType {
-		htJS = 0,
+		htJS,
 		htCachedJS,
 		htSqlite,
 		htMySQL,
@@ -20,7 +20,10 @@ namespace NJA {
 	};
 
 	enum tagObjectType {
-		otPool = 0,
+		otSocketPool = 0,
+		otReplication,
+		otMasterPool,
+		otSQLMasterPool,
 		otBuffer,
 		otAsyncResult,
 		otColumnInfo,
@@ -34,10 +37,20 @@ namespace NJA {
 	};
 
 	struct CSPAObject {
-		CSPAObject() : Object(nullptr), ObjectType(otPool) {
+		CSPAObject() : OT(otSocketPool), HT(htJS), Obj(nullptr) {
 		}
-		void *Object;
-		tagObjectType ObjectType;
+		~CSPAObject() {
+			ReleaseObject();
+		}
+		void ReleaseObject() {
+
+		}
+		CSPAObject(const CSPAObject &obj) = delete;
+		CSPAObject& operator=(const CSPAObject &obj) = delete;
+
+		tagObjectType OT;
+		tagHandlerType HT;
+		void *Obj;
 	};
 }
 

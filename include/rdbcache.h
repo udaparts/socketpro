@@ -21,12 +21,6 @@ namespace SPA {
         TCache Cache; //real-time cache accessible from your code
         typedef ClientSide::CAsyncDBHandler<THandler::SQLStreamServiceId> CSQLHandler;
 
-#ifdef SRC_NODE_H_
-
-		//Cache
-
-#endif
-
         class CSlavePool : public CMasterSlaveBase < THandler, TCS > {
         public:
 

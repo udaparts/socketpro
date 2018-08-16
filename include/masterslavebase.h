@@ -18,10 +18,7 @@ namespace SPA {
         }
 
     public:
-#ifdef SRC_NODE_H_
 
-
-#endif
         inline const std::wstring& GetDefaultDBName() const {
             return m_dbDefalut;
         }

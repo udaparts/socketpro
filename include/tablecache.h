@@ -44,10 +44,6 @@ namespace SPA {
         CTable(const CTable &tbl);
 
     public:
-#ifdef SRC_NODE_H_
-
-
-#endif
         CTable& operator=(const CTable &tbl);
         const UDB::CDBColumnInfoArray& GetMeta() const;
         const CDataMatrix& GetDataMatrix() const;
@@ -93,10 +89,6 @@ namespace SPA {
         static const size_t INVALID_VALUE = ((size_t) (~0));
 
     public:
-#ifdef SRC_NODE_H_
-
-
-#endif
         std::vector<CPDbTable> GetDBTablePair();
         UDB::CDBColumnInfoArray GetColumMeta(const wchar_t *dbName, const wchar_t *tblName);
         size_t GetRowCount(const wchar_t *dbName, const wchar_t *tblName);

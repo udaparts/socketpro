@@ -175,11 +175,6 @@ namespace SPA {
 
     public:
 
-#ifdef SRC_NODE_H_
-
-
-#endif
-
         /**
          * Replace internal memory content with a new buffer
          * @param pos Memory start position

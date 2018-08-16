@@ -1,9 +1,8 @@
 #ifndef __SOCKETPRO_NODEJS_ADAPTER_STDAFX_H__
 #define __SOCKETPRO_NODEJS_ADAPTER_STDAFX_H__
 
-#include "../../../include/definebase.h"
 
-#ifdef WIN32_64
+#if defined(WIN32) || defined(_WIN64)
 
 #include "targetver.h"
 #define WIN32_LEAN_AND_MEAN		// Exclude rarely-used stuff from Windows headers
@@ -12,19 +11,12 @@
 
 #else
 
-
 #endif
 
 #include "../include/node.h"
 #include "../include/node_object_wrap.h"
 #include "../include/uv.h"
-
-#include "../../../include/streamingfile.h"
-#include "../../../include/async_odbc.h"
-#include "../../../include/async_sqlite.h"
-#include "../../../include/mysql/umysql.h"
-#include "../../../include/rdbcache.h"
-#include "../../../include/masterpool.h"
+#include "../include/node_buffer.h"
 
 namespace NJA {
 	using v8::Function;
@@ -43,6 +35,12 @@ namespace NJA {
 	using v8::FunctionTemplate;
 	using v8::Persistent;
 	using node::AtExit;
+
+	/**
+	using namespace SPA;
+	using namespace SPA::ClientSide;
+	using namespace SPA::UDB;
+	*/
 };
 
 #endif
