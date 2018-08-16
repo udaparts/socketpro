@@ -147,13 +147,17 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\include\aclientw.h" />
+    <ClInclude Include="..\..\..\include\async_odbc.h" />
+    <ClInclude Include="..\..\..\include\async_sqlite.h" />
     <ClInclude Include="..\..\..\include\masterpool.h" />
     <ClInclude Include="..\..\..\include\membuffer.h" />
     <ClInclude Include="..\..\..\include\rdbcache.h" />
+    <ClInclude Include="..\..\..\include\streamingfile.h" />
     <ClInclude Include="..\..\..\include\tablecache.h" />
     <ClInclude Include="..\..\..\include\udatabase.h" />
     <ClInclude Include="..\..\..\include\udb_client.h" />
     <ClInclude Include="njobjects.h" />
+    <ClInclude Include="objecttype.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
