@@ -2,6 +2,7 @@
 #include "stdafx.h"
 #include "njobjects.h"
 #include "spincludes.h"
+#include "njqueue.h"
 
 namespace NJA {
 
@@ -24,6 +25,7 @@ namespace NJA {
 		NODE_SET_METHOD(exports, "destroy", Destroy);
 		NODE_SET_METHOD(exports, "newbuffer", NewBuffer);
 		NODE_SET_METHOD(exports, "newPool", CreatePool);
+		NJQueue::Init(exports);
 		NJAObjects::Init(exports);
 		AtExit(NJAObjects::At_Exit, exports->GetIsolate());
 	}

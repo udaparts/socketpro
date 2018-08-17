@@ -11,7 +11,6 @@ namespace NJA {
 	private:
 		explicit NJAObjects(double value = 0);
 		~NJAObjects();
-
 		NJAObjects(const NJAObjects &obj) = delete;
 		NJAObjects& operator=(const NJAObjects &obj) = delete;
 

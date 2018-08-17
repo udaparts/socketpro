@@ -34,6 +34,13 @@ namespace NJA {
 	using v8::Exception;
 	using v8::FunctionTemplate;
 	using v8::Persistent;
+	using v8::Context;
+	using v8::Exception;
+	using v8::Int32;
+	using v8::Uint32;
+	using v8::Integer;
+	using v8::Date;
+
 	using node::AtExit;
 
 	/**

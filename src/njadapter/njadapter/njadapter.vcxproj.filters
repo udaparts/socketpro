@@ -33,6 +33,12 @@
     <ClInclude Include="..\..\..\include\tablecache.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="njqueue.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="njobjects.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -51,6 +57,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="njobjects.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="njqueue.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

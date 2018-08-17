@@ -10,10 +10,6 @@ To use the libraries, you need to complete the following three setps:
 The repository currently contains the following projects:
 
 1. spdb2push: a project for creating DB2 server plugin
-2. spmssqlpush: a project for creating ms sql server plugin
-3. spmysqlpush: a project for creating mysql server plugin
-4. sporaclepush: a project for creating oracle server plugin
-5. test_udbubase: a project for demonstration of usages of base library udbubase
-6. udbubase: a project for creating basic real-time notification library which can be used by any applications other than database server applications
-7. mysql_event: a sample SocketPro server real-time cache implemented on MySql/Mariadb
-
+2. sporaclepush: a project for creating oracle server plugin
+3. test_udbubase: a project for demonstration of usages of base library udbubase
+4. udbubase: a project for creating basic real-time notification library which can be used by any applications other than database server applications
