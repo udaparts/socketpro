@@ -1,5 +1,5 @@
 #pragma once
-#include "../../../include/membuffer.h"
+#include "../../../include/udatabase.h"
 
 namespace NJA {
 	using SPA::CUQueue;
@@ -17,8 +17,12 @@ namespace NJA {
 	private:
 		void Release();
 		void Ensure();
+		unsigned int Load(Isolate* isolate, SPA::UDB::CDBVariant &vt);
+		static Local<Value> ToDate(Isolate* isolate, SPA::UINT64 dt);
+
 		static void New(const FunctionCallbackInfo<Value>& args);
 		static Persistent<Function> constructor;
+		
 		template <class ctype>
 		unsigned int Load(Isolate* isolate, ctype &buffer) {
 			if (!m_Buffer) {
@@ -33,7 +37,7 @@ namespace NJA {
 			}
 			return 0;
 		}
-
+		
 		template <class ctype>
 		void Save(const FunctionCallbackInfo<Value>& args, const ctype &buffer) {
 			Ensure();
@@ -64,6 +68,7 @@ namespace NJA {
 		static void LoadDecimal(const FunctionCallbackInfo<Value>& args);
 		static void LoadDate(const FunctionCallbackInfo<Value>& args);
 		static void LoadUUID(const FunctionCallbackInfo<Value>& args);
+		static void LoadByClass(const FunctionCallbackInfo<Value>& args);
 		static void LoadObject(const FunctionCallbackInfo<Value>& args);
 		static void PopBytes(const FunctionCallbackInfo<Value>& args);
 
@@ -84,6 +89,7 @@ namespace NJA {
 		static void SaveDecimal(const FunctionCallbackInfo<Value>& args);
 		static void SaveDate(const FunctionCallbackInfo<Value>& args);
 		static void SaveUUID(const FunctionCallbackInfo<Value>& args);
+		static void SaveByClass(const FunctionCallbackInfo<Value>& args);
 		static void SaveObject(const FunctionCallbackInfo<Value>& args);
 
 	private:

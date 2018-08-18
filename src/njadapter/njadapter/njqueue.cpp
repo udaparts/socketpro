@@ -2,6 +2,7 @@
 #include "njqueue.h"
 #include <algorithm>
 
+
 namespace NJA {
 	using SPA::CScopeUQueue;
 	Persistent<Function> NJQueue::constructor;
@@ -9,6 +10,9 @@ namespace NJA {
 	NJQueue::NJQueue(unsigned int initialSize, unsigned int blockSize)
 		: m_initSize(initialSize), m_blockSize(blockSize),
 		m_Buffer(CScopeUQueue::Lock(SPA::GetOS(), SPA::IsBigEndian(), initialSize, blockSize)) {
+#ifndef WIN32
+		m_Buffer->ToUtf8(true);
+#endif
 	}
 
 	NJQueue::~NJQueue() {
@@ -23,6 +27,9 @@ namespace NJA {
 	void NJQueue::Ensure() {
 		if (!m_Buffer) {
 			m_Buffer = CScopeUQueue::Lock(SPA::GetOS(), SPA::IsBigEndian(), m_initSize, m_blockSize);
+#ifndef WIN32
+			m_Buffer->ToUtf8(true);
+#endif
 		}
 	}
 
@@ -59,6 +66,7 @@ namespace NJA {
 		NODE_SET_PROTOTYPE_METHOD(tpl, "LoadDate", LoadDate);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "LoadUUID", LoadUUID);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "LoadObject", LoadObject);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "LoadByClass", LoadByClass);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "PopBytes", PopBytes);
 
 		NODE_SET_PROTOTYPE_METHOD(tpl, "SaveBool", SaveBoolean);
@@ -79,6 +87,7 @@ namespace NJA {
 		NODE_SET_PROTOTYPE_METHOD(tpl, "SaveDate", SaveDate);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "SaveUUID", SaveUUID);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "SaveObject", SaveObject);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "SaveByClass", SaveByClass);
 
 		constructor.Reset(isolate, tpl->GetFunction());
 		exports->Set(String::NewFromUtf8(isolate, "CUQueue"), tpl->GetFunction());
@@ -221,14 +230,7 @@ namespace NJA {
 		Isolate* isolate = args.GetIsolate();
 		NJQueue* obj = ObjectWrap::Unwrap<NJQueue>(args.Holder());
 		if (obj->Load(isolate, date)) {
-			SPA::UDateTime dt(date);
-			unsigned int us;
-			std::tm tm = dt.GetCTime(&us);
-			double time = (double) std::mktime(&tm);
-			time *= 1000;
-			time += (us / 1000.0);
-			Local<Value> jsDate = Date::New(isolate, time);
-			args.GetReturnValue().Set(jsDate);
+			args.GetReturnValue().Set(ToDate(isolate, date));
 		}
 	}
 
@@ -606,27 +608,184 @@ namespace NJA {
 	}
 
 	void NJQueue::SaveDate(const FunctionCallbackInfo<Value>& args) {
+		Isolate* isolate = args.GetIsolate();
 		if (args.Length()) {
 			NJQueue* obj = ObjectWrap::Unwrap<NJQueue>(args.Holder());
 			obj->Ensure();
 			auto p = args[0];
-			if (p->IsNumber()) {
-				SPA::UINT64 millisSinceEpoch = (SPA::UINT64)(p->IntegerValue());
-				std::time_t t = millisSinceEpoch / 1000;
-				unsigned int ms = (unsigned int)(millisSinceEpoch % 1000);
-				std::tm *ltime = std::localtime(&t);
-				SPA::UDateTime dt(*ltime, ms * 1000);
-				*obj->m_Buffer << dt.time;
-				args.GetReturnValue().Set(args.Holder());
+			SPA::UINT64 millisSinceEpoch;
+			if (p->IsDate()) {
+				Date *dt = Date::Cast(*p);
+				millisSinceEpoch = (SPA::UINT64) dt->ValueOf();
+			}
+			else if (p->IsNumber()) {
+				millisSinceEpoch = (SPA::UINT64)(p->IntegerValue());
+			}
+			else {
+				isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Bad data type")));
 				return;
 			}
+			std::time_t t = millisSinceEpoch / 1000;
+			unsigned int ms = (unsigned int)(millisSinceEpoch % 1000);
+			std::tm *ltime = std::localtime(&t);
+			SPA::UDateTime dt(*ltime, ms * 1000);
+			*obj->m_Buffer << dt.time;
+			args.GetReturnValue().Set(args.Holder());
+			return;
 		}
-		Isolate* isolate = args.GetIsolate();
 		isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Bad data type")));
 	}
 
-	void NJQueue::LoadObject(const FunctionCallbackInfo<Value>& args) {
+	unsigned int NJQueue::Load(Isolate* isolate, SPA::UDB::CDBVariant &vt) {
+		if (!m_Buffer) {
+			isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "No buffer available")));
+			return 0;
+		}
+		try {
+			unsigned int start = m_Buffer->GetSize();
+			*m_Buffer >> vt;
+			return (start - m_Buffer->GetSize());
+		}
+		catch (std::exception &err) {
+			isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, err.what())));
+		}
+		return 0;
+	}
 
+	Local<Value> NJQueue::ToDate(Isolate* isolate, SPA::UINT64 datetime) {
+		SPA::UDateTime dt(datetime);
+		unsigned int us;
+		std::tm tm = dt.GetCTime(&us);
+		double time = (double)std::mktime(&tm);
+		time *= 1000;
+		time += (us / 1000.0);
+		return Date::New(isolate, time);
+	}
+
+	void NJQueue::LoadByClass(const FunctionCallbackInfo<Value>& args) {
+		Isolate* isolate = args.GetIsolate();
+		NJQueue* obj = ObjectWrap::Unwrap<NJQueue>(args.Holder());
+		if (!obj->m_Buffer) {
+			isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "No buffer available")));
+		}
+		else if (args[0]->IsFunction()) {
+			Local<Function> cb = Local<Function>::Cast(args[0]);
+			Local<Value> argv[] = { args.Holder() };
+			args.GetReturnValue().Set(cb->Call(Null(isolate), 1, argv));
+		}
+		else {
+			isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "An function expected for class or struct de-serialization")));
+		}
+	}
+
+	void NJQueue::LoadObject(const FunctionCallbackInfo<Value>& args) {
+		SPA::UDB::CDBVariant vt;
+		Isolate* isolate = args.GetIsolate();
+		NJQueue* obj = ObjectWrap::Unwrap<NJQueue>(args.Holder());
+		if (obj->m_Buffer && obj->m_Buffer->GetSize() >= sizeof(VARTYPE)) {
+			VARTYPE *pvt = (VARTYPE*)obj->m_Buffer->GetBuffer();
+			if (*pvt == SPA::VT_USERIALIZER_OBJECT) {
+				obj->m_Buffer->Pop((unsigned int)sizeof(VARTYPE));
+				LoadByClass(args);
+				return;
+			}
+		}
+		if (obj->Load(isolate, vt)) {
+			VARTYPE type = vt.Type();
+			switch (type)
+			{
+			case VT_NULL:
+			case VT_EMPTY:
+				args.GetReturnValue().Set(v8::Null(isolate));
+				break;
+			case VT_BOOL:
+				args.GetReturnValue().Set(Boolean::New(isolate, vt.boolVal ? true : false));
+				break;
+			case VT_I1:
+			case VT_I2:
+			case VT_INT:
+			case VT_I4:
+				args.GetReturnValue().Set(Int32::New(isolate, vt.lVal));
+				break;
+			case VT_I8:
+				args.GetReturnValue().Set(Number::New(isolate, (double)vt.llVal));
+				break;
+			case VT_UI1:
+			case VT_UI2:
+			case VT_UINT:
+			case VT_UI4:
+				args.GetReturnValue().Set(Uint32::New(isolate, vt.ulVal));
+				break;
+			case VT_UI8:
+				args.GetReturnValue().Set(Number::New(isolate, (double)vt.ullVal));
+				break;
+			case VT_R4:
+				args.GetReturnValue().Set(Number::New(isolate, vt.fltVal));
+				break;
+			case VT_R8:
+				args.GetReturnValue().Set(Number::New(isolate, vt.dblVal));
+				break;
+			case VT_CY:
+			{
+				double d = vt.llVal;
+				d /= 10000;
+				args.GetReturnValue().Set(Number::New(isolate, d));
+			}
+				break;
+			case VT_DECIMAL:
+				args.GetReturnValue().Set(String::NewFromUtf8(isolate, SPA::ToString(vt.decVal).c_str()));
+				break;
+			case VT_DATE:
+				args.GetReturnValue().Set(ToDate(isolate, vt.ullVal));
+				break;
+			case VT_BSTR:
+				if (vt.bstrVal) {
+					args.GetReturnValue().Set(String::NewFromTwoByte(isolate, (const uint16_t*)obj->m_Buffer->GetBuffer(), String::kNormalString, SysStringLen(vt.bstrVal)));
+				}
+				else {
+					args.GetReturnValue().Set(v8::Null(isolate));
+				}
+				break;
+			case (VT_I1|VT_ARRAY):
+			{
+				const char *str = nullptr;
+				unsigned int len = vt.parray->rgsabound->cElements;
+				::SafeArrayAccessData(vt.parray, (void**)&str);
+				args.GetReturnValue().Set(String::NewFromUtf8(isolate, str, String::kNormalString, (int)len));
+				::SafeArrayUnaccessData(vt.parray);
+			}
+				break;
+			case VT_CLSID:
+			case (VT_UI1 | VT_ARRAY):
+			{
+				char *str = nullptr;
+				unsigned int len = vt.parray->rgsabound->cElements;
+				::SafeArrayAccessData(vt.parray, (void**)&str);
+				args.GetReturnValue().Set(node::Buffer::New(isolate, str, len).ToLocalChecked());
+				::SafeArrayUnaccessData(vt.parray);
+			} 
+				break;
+			default:
+				isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Unsupported data type")));
+				break;
+			}
+		}
+	}
+
+	void NJQueue::SaveByClass(const FunctionCallbackInfo<Value>& args) {
+		Isolate* isolate = args.GetIsolate();
+		NJQueue* obj = ObjectWrap::Unwrap<NJQueue>(args.Holder());
+		obj->Ensure();
+		auto p0 = args[0];
+		if (p0->IsFunction()) {
+			Local<Function> cb = Local<Function>::Cast(args[0]);
+			Local<Value> argv[] = { args.Holder() };
+			cb->Call(Null(isolate), 1, argv);
+			args.GetReturnValue().Set(args.Holder());
+		}
+		else {
+			isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "A callback function expected")));
+		}
 	}
 
 	void NJQueue::SaveObject(const FunctionCallbackInfo<Value>& args) {
@@ -643,14 +802,6 @@ namespace NJA {
 		if (p0->IsNullOrUndefined()) {
 			vt = VT_NULL;
 			*obj->m_Buffer << vt;
-			args.GetReturnValue().Set(args.Holder());
-		}
-		else if (p0->IsFunction()) {
-			Local<Function> cb = Local<Function>::Cast(args[0]);
-			Local<Value> argv[] = { args.Holder() };
-			vt = SPA::VT_USERIALIZER_OBJECT;
-			*obj->m_Buffer << vt;
-			cb->Call(Null(isolate), 1, argv);
 			args.GetReturnValue().Set(args.Holder());
 		}
 		else if (node::Buffer::HasInstance(p0)) {
@@ -680,6 +831,16 @@ namespace NJA {
 				}
 			}
 			args.GetReturnValue().Set(args.Holder());
+		}
+		else if (p0->IsFunction()) {
+			vt = SPA::VT_USERIALIZER_OBJECT;
+			*obj->m_Buffer << vt;
+			SaveByClass(args);
+		}
+		else if (p0->IsDate()) {
+			vt = VT_DATE;
+			*obj->m_Buffer << vt;
+			SaveDate(args);
 		}
 		else if (p0->IsBoolean()) {
 			vt = VT_BOOL;
