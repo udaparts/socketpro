@@ -45,6 +45,7 @@ namespace NJA {
 		static void Empty(const FunctionCallbackInfo<Value>& args);
 		static void getSize(const FunctionCallbackInfo<Value>& args);
 		static void setSize(const FunctionCallbackInfo<Value>& args);
+		static void getOS(const FunctionCallbackInfo<Value>& args);
 
 		static void LoadBoolean(const FunctionCallbackInfo<Value>& args);
 		static void LoadByte(const FunctionCallbackInfo<Value>& args);
@@ -63,6 +64,7 @@ namespace NJA {
 		static void LoadDecimal(const FunctionCallbackInfo<Value>& args);
 		static void LoadDate(const FunctionCallbackInfo<Value>& args);
 		static void LoadUUID(const FunctionCallbackInfo<Value>& args);
+		static void LoadObject(const FunctionCallbackInfo<Value>& args);
 		static void PopBytes(const FunctionCallbackInfo<Value>& args);
 
 		static void SaveBoolean(const FunctionCallbackInfo<Value>& args);
@@ -82,6 +84,7 @@ namespace NJA {
 		static void SaveDecimal(const FunctionCallbackInfo<Value>& args);
 		static void SaveDate(const FunctionCallbackInfo<Value>& args);
 		static void SaveUUID(const FunctionCallbackInfo<Value>& args);
+		static void SaveObject(const FunctionCallbackInfo<Value>& args);
 
 	private:
 		unsigned int m_initSize;

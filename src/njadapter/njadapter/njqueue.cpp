@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "njqueue.h"
+#include <algorithm>
 
 namespace NJA {
 	using SPA::CScopeUQueue;
@@ -38,6 +39,7 @@ namespace NJA {
 		NODE_SET_PROTOTYPE_METHOD(tpl, "Empty", Empty);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getSize", getSize);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "setSize", setSize);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "getOS", getOS);
 
 		NODE_SET_PROTOTYPE_METHOD(tpl, "LoadBool", LoadBoolean);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "LoadByte", LoadByte);
@@ -56,6 +58,7 @@ namespace NJA {
 		NODE_SET_PROTOTYPE_METHOD(tpl, "LoadDecimal", LoadDecimal);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "LoadDate", LoadDate);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "LoadUUID", LoadUUID);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "LoadObject", LoadObject);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "PopBytes", PopBytes);
 
 		NODE_SET_PROTOTYPE_METHOD(tpl, "SaveBool", SaveBoolean);
@@ -75,9 +78,18 @@ namespace NJA {
 		NODE_SET_PROTOTYPE_METHOD(tpl, "SaveDecimal", SaveDecimal);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "SaveDate", SaveDate);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "SaveUUID", SaveUUID);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "SaveObject", SaveObject);
 
 		constructor.Reset(isolate, tpl->GetFunction());
 		exports->Set(String::NewFromUtf8(isolate, "CUQueue"), tpl->GetFunction());
+	}
+
+	void NJQueue::getOS(const FunctionCallbackInfo<Value>& args) {
+		NJQueue* obj = ObjectWrap::Unwrap<NJQueue>(args.Holder());
+		if (obj->m_Buffer)
+			args.GetReturnValue().Set(Int32::New(args.GetIsolate(), obj->m_Buffer->GetOS()));
+		else
+			args.GetReturnValue().Set(Int32::New(args.GetIsolate(), SPA::GetOS()));
 	}
 
 	void NJQueue::Discard(const FunctionCallbackInfo<Value>& args) {
@@ -86,7 +98,7 @@ namespace NJA {
 		if (obj->m_Buffer && args[0]->IsUint32()) {
 			ret = obj->m_Buffer->Pop((unsigned int)args[0]->Uint32Value());
 		}
-		args.GetReturnValue().Set(Number::New(args.GetIsolate(), ret));
+		args.GetReturnValue().Set(Uint32::New(args.GetIsolate(), ret));
 	}
 
 	void NJQueue::setSize(const FunctionCallbackInfo<Value>& args) {
@@ -103,7 +115,7 @@ namespace NJA {
 			obj->m_Buffer->SetSize(size);
 			ret = obj->m_Buffer->GetSize();
 		}
-		args.GetReturnValue().Set(Number::New(args.GetIsolate(), ret));
+		args.GetReturnValue().Set(Uint32::New(args.GetIsolate(), ret));
 	}
 
 	void NJQueue::getSize(const FunctionCallbackInfo<Value>& args) {
@@ -111,7 +123,7 @@ namespace NJA {
 		unsigned int ret = 0;
 		if (obj->m_Buffer)
 			ret = obj->m_Buffer->GetSize();
-		args.GetReturnValue().Set(Number::New(args.GetIsolate(), ret));
+		args.GetReturnValue().Set(Uint32::New(args.GetIsolate(), ret));
 	}
 
 	void NJQueue::LoadBoolean(const FunctionCallbackInfo<Value>& args) {
@@ -611,6 +623,178 @@ namespace NJA {
 		}
 		Isolate* isolate = args.GetIsolate();
 		isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Bad data type")));
+	}
+
+	void NJQueue::LoadObject(const FunctionCallbackInfo<Value>& args) {
+
+	}
+
+	void NJQueue::SaveObject(const FunctionCallbackInfo<Value>& args) {
+		Isolate* isolate = args.GetIsolate();
+		if (!args.Length()){
+			isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "An input data expected")));
+			return;
+		}
+		VARTYPE vt;
+		NJQueue* obj = ObjectWrap::Unwrap<NJQueue>(args.Holder());
+		obj->Ensure();
+		int argv = args.Length();
+		auto p0 = args[0];
+		if (p0->IsNullOrUndefined()) {
+			vt = VT_NULL;
+			*obj->m_Buffer << vt;
+			args.GetReturnValue().Set(args.Holder());
+		}
+		else if (p0->IsFunction()) {
+			Local<Function> cb = Local<Function>::Cast(args[0]);
+			Local<Value> argv[] = { args.Holder() };
+			vt = SPA::VT_USERIALIZER_OBJECT;
+			*obj->m_Buffer << vt;
+			cb->Call(Null(isolate), 1, argv);
+			args.GetReturnValue().Set(args.Holder());
+		}
+		else if (node::Buffer::HasInstance(p0)) {
+			char *bytes = node::Buffer::Data(p0);
+			unsigned int len = (unsigned int)node::Buffer::Length(p0);
+			if (len != sizeof(GUID) || argv == 1 || !args[1]->IsString()) {
+				vt = (VT_ARRAY | VT_UI1);
+				*obj->m_Buffer << vt << len;
+				obj->m_Buffer->Push((const unsigned char*)bytes, len);
+			}
+			else
+			{
+				auto p1 = args[1];
+				String::Utf8Value str(p1);
+				const char *s = *str;
+				std::string id(s);
+				std::transform(id.begin(), id.end(), id.begin(), ::tolower);
+				if (id == "u" || id == "uuid") {
+					vt = VT_CLSID;
+					*obj->m_Buffer << vt;
+					obj->m_Buffer->Push((const unsigned char*)bytes, len);
+				}
+				else {
+					vt = (VT_ARRAY | VT_UI1);
+					*obj->m_Buffer << vt << len;
+					obj->m_Buffer->Push((const unsigned char*)bytes, len);
+				}
+			}
+			args.GetReturnValue().Set(args.Holder());
+		}
+		else if (p0->IsBoolean()) {
+			vt = VT_BOOL;
+			short v = p0->IsTrue() ? -1 : 0;
+			*obj->m_Buffer << vt << v;
+			args.GetReturnValue().Set(args.Holder());
+		}
+		else if (p0->IsString()) {
+			if (argv > 1 && args[1]->IsString()) {
+				auto p1 = args[1];
+				String::Utf8Value str(p1);
+				const char *s = *str;
+				std::string id(s);
+				std::transform(id.begin(), id.end(), id.begin(), ::tolower);
+				if (id == "a" || id == "ascii")
+				{
+					vt = (VT_ARRAY | VT_I1);
+					*obj->m_Buffer << vt;
+					SaveAString(args);
+				}
+				else if (id == "dec" || id == "decimal") {
+					vt = VT_DECIMAL;
+					*obj->m_Buffer << vt;
+					SaveDecimal(args);
+				}
+				else {
+					vt = VT_BSTR;
+					*obj->m_Buffer << vt;
+					SaveString(args);
+				}
+			}
+			else {
+				vt = VT_BSTR;
+				*obj->m_Buffer << vt;
+				SaveString(args);
+			}
+		}
+		else if (p0->IsNumber()) {
+			if (argv > 1 && args[1]->IsString()) {
+				auto p1 = args[1];
+				String::Utf8Value str(p1);
+				const char *s = *str;
+				std::string id(s);
+				std::transform(id.begin(), id.end(), id.begin(), ::tolower);
+				if (id == "f" || id == "float") {
+					vt = VT_R4;
+					*obj->m_Buffer << vt;
+					SaveFloat(args);
+				}
+				else if (id == "d" || id == "double") {
+					vt = VT_R8;
+					*obj->m_Buffer << vt;
+					SaveDouble(args);
+				}
+				else if (id == "i" || id == "int") {
+					vt = VT_I4;
+					*obj->m_Buffer << vt;
+					SaveInt(args);
+				}
+				else if (id == "ui" || id == "uint") {
+					vt = VT_UI4;
+					*obj->m_Buffer << vt;
+					SaveUInt(args);
+				}
+				else if (id == "l" || id == "long") {
+					vt = VT_I8;
+					*obj->m_Buffer << vt;
+					SaveLong(args);
+				}
+				else if (id == "ul" || id == "ulong") {
+					vt = VT_UI8;
+					*obj->m_Buffer << vt;
+					SaveULong(args);
+				}
+				else if (id == "s" || id == "short") {
+					vt = VT_I2;
+					*obj->m_Buffer << vt;
+					SaveShort(args);
+				}
+				else if (id == "us" || id == "ushort") {
+					vt = VT_UI2;
+					*obj->m_Buffer << vt;
+					SaveUShort(args);
+				}
+				else if (id == "dec" || id == "decimal") {
+					vt = VT_DECIMAL;
+					*obj->m_Buffer << vt;
+					SaveDecimal(args);
+				}
+				else if (id == "c" || id == "char") {
+					vt = VT_I1;
+					*obj->m_Buffer << vt;
+					SaveAChar(args);
+				}
+				else if (id == "b" || id == "byte") {
+					vt = VT_UI1;
+					*obj->m_Buffer << vt;
+					SaveByte(args);
+				}
+				else if (id == "date") {
+					vt = VT_DATE;
+					*obj->m_Buffer << vt;
+					SaveDate(args);
+				}
+				else {
+					isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Unknown number type")));
+				}
+			}
+			else {
+				isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Unknown number type")));
+			}
+		}
+		else {
+			isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Unsupported data type")));
+		}
 	}
 
 	void NJQueue::Empty(const FunctionCallbackInfo<Value>& args) {
