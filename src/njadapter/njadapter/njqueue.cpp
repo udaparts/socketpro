@@ -66,7 +66,7 @@ namespace NJA {
 		NODE_SET_PROTOTYPE_METHOD(tpl, "LoadDate", LoadDate);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "LoadUUID", LoadUUID);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "LoadObject", LoadObject);
-		NODE_SET_PROTOTYPE_METHOD(tpl, "LoadByClass", LoadByClass);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "Load", LoadByClass);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "PopBytes", PopBytes);
 
 		NODE_SET_PROTOTYPE_METHOD(tpl, "SaveBool", SaveBoolean);
@@ -87,7 +87,7 @@ namespace NJA {
 		NODE_SET_PROTOTYPE_METHOD(tpl, "SaveDate", SaveDate);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "SaveUUID", SaveUUID);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "SaveObject", SaveObject);
-		NODE_SET_PROTOTYPE_METHOD(tpl, "SaveByClass", SaveByClass);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "Save", SaveByClass);
 
 		constructor.Reset(isolate, tpl->GetFunction());
 		exports->Set(String::NewFromUtf8(isolate, "CUQueue"), tpl->GetFunction());
