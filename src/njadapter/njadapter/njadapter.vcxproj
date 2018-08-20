@@ -155,6 +155,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\..\include\aclientw.h" />
     <ClInclude Include="..\..\..\include\membuffer.h" />
     <ClInclude Include="..\..\..\include\tablecache.h" />
     <ClInclude Include="..\include\node.h" />
