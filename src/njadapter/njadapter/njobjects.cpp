@@ -8,7 +8,8 @@ namespace NJA {
 
 	Persistent<Function> NJSocketPool::constructor;
 
-	NJSocketPool::NJSocketPool(unsigned int id, bool autoConn, unsigned int recvTimeout, unsigned int connTimeout) : SvsId(id) {
+	NJSocketPool::NJSocketPool(unsigned int id, bool autoConn, unsigned int recvTimeout, unsigned int connTimeout) 
+	: SvsId(id), m_isolate(nullptr) {
 		switch (id) {
 		case SPA::Sqlite::sidSqlite:
 		case SPA::Mysql::sidMysql:
@@ -98,6 +99,8 @@ namespace NJA {
 		NODE_SET_PROTOTYPE_METHOD(tpl, "ShutdownPool", ShutdownPool);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "StartSocketPool", StartSocketPool);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "Unlock", Unlock);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "setPoolEvent", setPoolEvent);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "setSSLAuthentication", setSSLAuthentication);
 
 		constructor.Reset(isolate, tpl->GetFunction());
 		exports->Set(String::NewFromUtf8(isolate, "CSocketPool"), tpl->GetFunction());
@@ -115,18 +118,45 @@ namespace NJA {
 				isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "A non-zero unsigned int service id required")));
 				return;
 			}
+			if (args[2]->IsBoolean())
+				autoConn = args[2]->BooleanValue();
+			if (args[3]->IsUint32())
+				recvTimeout = args[3]->Uint32Value();
+			if (args[5]->IsUint32())
+				connTimeout = args[5]->Uint32Value();
 
 			// Invoked as constructor: `new NJSocketPool(...)`
 			NJSocketPool* obj = new NJSocketPool(svsId, autoConn, recvTimeout, connTimeout);
+			obj->m_isolate = isolate;
+			if (args[1]->IsFunction())
+				obj->m_rr = Local<Function>::Cast(args[1]);
+			if (args[4]->IsFunction())
+				obj->m_mt = Local<Function>::Cast(args[4]);
+			if (args[6]->IsFunction())
+				obj->m_brp = Local<Function>::Cast(args[6]);
+			if (args[7]->IsFunction())
+				obj->m_se = Local<Function>::Cast(args[7]);
+			if (args[8]->IsFunction())
+				obj->m_ap = Local<Function>::Cast(args[8]);
 			obj->Wrap(args.This());
+			obj->Handler->DoSslServerAuthentication = [obj](CSocketPool<CAsyncHandler> *pool, SPA::ClientSide::CClientSocket *cs)->bool {
+				if (!obj->m_ssl->IsFunction())
+					return false;
+				return false;
+			};
+			obj->Handler->SocketPoolEvent = [obj](CSocketPool<CAsyncHandler> *pool, tagSocketPoolEvent spe, CAsyncHandler *handler) {
+				if (obj->m_evPool->IsFunction()) {
+
+				}
+			};
 			args.GetReturnValue().Set(args.This());
 		}
 		else {
 			// Invoked as plain function `NJSocketPool(...)`, turn into construct call.
-			Local<Value> argv[] = { args[0] };
+			Local<Value> argv[] = {args[0],args[1],args[2],args[3],args[4],args[5],args[6],args[7],args[8]};
 			Local<Context> context = isolate->GetCurrentContext();
 			Local<Function> cons = Local<Function>::New(isolate, constructor);
-			Local<Object> result = cons->NewInstance(context, 1, argv).ToLocalChecked();
+			Local<Object> result = cons->NewInstance(context, 9, argv).ToLocalChecked();
 			args.GetReturnValue().Set(result);
 		}
 	}
@@ -335,6 +365,34 @@ namespace NJA {
 		NJSocketPool* obj = ObjectWrap::Unwrap<NJSocketPool>(args.Holder());
 		if (obj->IsValid(isolate)) {
 
+		}
+	}
+
+	void NJSocketPool::setSSLAuthentication(const FunctionCallbackInfo<Value>& args) {
+		Isolate* isolate = args.GetIsolate();
+		NJSocketPool* obj = ObjectWrap::Unwrap<NJSocketPool>(args.Holder());
+		if (obj->IsValid(isolate)) {
+			auto p = args[0];
+			if (p->IsFunction()) {
+				obj->m_ssl = Local<Function>::Cast(p);
+			}
+			else {
+				isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "A callback expected for authenticating server certificate")));
+			}
+		}
+	}
+
+	void NJSocketPool::setPoolEvent(const FunctionCallbackInfo<Value>& args) {
+		Isolate* isolate = args.GetIsolate();
+		NJSocketPool* obj = ObjectWrap::Unwrap<NJSocketPool>(args.Holder());
+		if (obj->IsValid(isolate)) {
+			auto p = args[0];
+			if (p->IsFunction()) {
+				obj->m_ssl = Local<Function>::Cast(p);
+			}
+			else {
+				isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "A callback expected for tracking pool event")));
+			}
 		}
 	}
 }

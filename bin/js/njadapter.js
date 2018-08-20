@@ -117,8 +117,16 @@ exports.Optimistic={
 };
 
 exports.CS={
-	newPool : function(svsId, rr=null, autoConn=true, recvTimeout=30000, connTimeout=30000, brp=null, se=null) {
-		return new SPA.CSocketPool(svsId, rr, autoConn, recvTimeout, connTimeout, brp, se);
+	newPool : function(svsId, rr=null, autoConn=true, recvTimeout=30000, mt=null, connTimeout=30000, brp=null, se=null, ap=null) {
+		return new SPA.CSocketPool(svsId, //unsigned int service id
+		rr, //OnResultReturned
+		autoConn, //Auto Connecting
+		recvTimeout, //receiving timeout in millseconds
+		mt, //OnMergeTo
+		connTimeout, //connection timeout in millseconds
+		brp, //OnBaseRequestProcessed
+		se, //OnServerException
+		ap); //OnAllProcessed
 	},
 	newCC : function(host, port, userId, pwd, em=0, zip=false, anyData=null) {
 		return {Host:host,Port:port,UserId:userId,Password:pwd,EncryptionMethod:em,Zip:zip,V6:false,AnyData:anyData};

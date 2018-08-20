@@ -53,6 +53,9 @@ namespace NJA {
 		static void StartSocketPool(const FunctionCallbackInfo<Value>& args);
 		static void Unlock(const FunctionCallbackInfo<Value>& args);
 
+		static void setSSLAuthentication(const FunctionCallbackInfo<Value>& args);
+		static void setPoolEvent(const FunctionCallbackInfo<Value>& args);
+
 	private:
 		unsigned int SvsId;
 		union {
@@ -62,6 +65,14 @@ namespace NJA {
 			CSocketPool<CStreamingFile> *File; //File streaming
 			CSocketPool<CAsyncQueue> *Queue; //Persistent queue
 		};
+		Isolate* m_isolate;
+		Local<Function> m_rr;
+		Local<Function> m_mt;
+		Local<Function> m_brp;
+		Local<Function> m_se;
+		Local<Function> m_ap;
+		Local<Function> m_ssl;
+		Local<Function> m_evPool;
 	};
 }
 
