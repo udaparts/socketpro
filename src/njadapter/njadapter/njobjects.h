@@ -1,6 +1,10 @@
 #ifndef __SOCKETPRO_NODEJS_ADAPTER_NJOBJECTS_H__
 #define __SOCKETPRO_NODEJS_ADAPTER_NJOBJECTS_H__
 
+#include "asynchandler.h"
+#include "../../../include/async_odbc.h"
+#include "../../../include/aqhandler.h"
+#include "../../../include/streamingfile.h"
 
 namespace NJA {
 
@@ -9,15 +13,19 @@ namespace NJA {
 		static void Init(Local<Object> exports);
 
 	private:
-		NJSocketPool();
+		NJSocketPool(unsigned int id, bool autoConn = true, unsigned int recvTimeout = DEFAULT_RECV_TIMEOUT, unsigned int connTimeout = DEFAULT_CONN_TIMEOUT);
 		~NJSocketPool();
 
 		NJSocketPool(const NJSocketPool &obj) = delete;
 		NJSocketPool& operator=(const NJSocketPool &obj) = delete;
 
+		void Release();
+		bool IsValid(Isolate* isolate);
+
 		static void New(const FunctionCallbackInfo<Value>& args);
 		static Persistent<Function> constructor;
 
+		static void Dispose(const FunctionCallbackInfo<Value>& args);
 		static void DisconnectAll(const FunctionCallbackInfo<Value>& args);
 
 		static void getAsyncHandlers(const FunctionCallbackInfo<Value>& args);
@@ -46,8 +54,14 @@ namespace NJA {
 		static void Unlock(const FunctionCallbackInfo<Value>& args);
 
 	private:
-		unsigned int m_svsId;
-		void *m_pPool;
+		unsigned int SvsId;
+		union {
+			CSocketPool<CAsyncHandler> *Handler; //
+			CSocketPool<CAsyncDBHandler<0>> *Db; //SQL streaming
+			CSocketPool<COdbc> *Odbc; //ODBC streaming
+			CSocketPool<CStreamingFile> *File; //File streaming
+			CSocketPool<CAsyncQueue> *Queue; //Persistent queue
+		};
 	};
 }
 

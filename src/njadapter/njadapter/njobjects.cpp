@@ -1,24 +1,68 @@
 #include "stdafx.h"
 #include "njobjects.h"
+#include "../../../include/async_sqlite.h"
+#include "../../../include/mysql/umysql.h"
 
 namespace NJA {
 	using v8::Context;
 
 	Persistent<Function> NJSocketPool::constructor;
 
-	NJSocketPool::NJSocketPool() : m_pPool(nullptr) {
-		uv_loop_t *main_loop = uv_default_loop();
-		/*
-		uv_async_t context;
-		memset(&context, 0, sizeof(uv_async_t));
-
-		int err = uv_async_init(main_loop, &context, nullptr);
-		*/
-		main_loop = nullptr;
+	NJSocketPool::NJSocketPool(unsigned int id, bool autoConn, unsigned int recvTimeout, unsigned int connTimeout) : SvsId(id) {
+		switch (id) {
+		case SPA::Sqlite::sidSqlite:
+		case SPA::Mysql::sidMysql:
+			Db = new CSocketPool<CAsyncDBHandler<0>>(autoConn, recvTimeout, connTimeout, id);
+			break;
+		case SPA::Odbc::sidOdbc:
+			Odbc = new CSocketPool<COdbc>(autoConn, recvTimeout, connTimeout, id);
+			break;
+		case SPA::Queue::sidQueue:
+			Queue = new CSocketPool<CAsyncQueue>(autoConn, recvTimeout, connTimeout, id);
+			break;
+		case SPA::SFile::sidFile:
+			File = new CSocketPool<CStreamingFile>(autoConn, recvTimeout, connTimeout, id);
+			break;
+		default:
+			Handler = new CSocketPool<CAsyncHandler>(autoConn, recvTimeout, connTimeout, id);
+			break;
+		}
 	}
 
 	NJSocketPool::~NJSocketPool() {
-		
+		Release();
+	}
+
+	bool NJSocketPool::IsValid(Isolate* isolate) {
+		if (!Handler) {
+			isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "SocketPool object already disposed")));
+			return false;
+		}
+		return true;
+	}
+
+	void NJSocketPool::Release() {
+		if (Handler) {
+			switch (SvsId) {
+			case SPA::Sqlite::sidSqlite:
+			case SPA::Mysql::sidMysql:
+				delete Db;
+				break;
+			case SPA::Odbc::sidOdbc:
+				delete Odbc;
+				break;
+			case SPA::Queue::sidQueue:
+				delete Queue;
+				break;
+			case SPA::SFile::sidFile:
+				delete File;
+				break;
+			default:
+				delete Handler;
+				break;
+			}
+			Handler = nullptr;
+		}
 	}
 
 	void NJSocketPool::Init(Local<Object> exports) {
@@ -27,9 +71,10 @@ namespace NJA {
 		// Prepare constructor template
 		Local<FunctionTemplate> tpl = FunctionTemplate::New(isolate, New);
 		tpl->SetClassName(String::NewFromUtf8(isolate, "CSocketPool"));
-		tpl->InstanceTemplate()->SetInternalFieldCount(1);
+		tpl->InstanceTemplate()->SetInternalFieldCount(2);
 
 		//Prototype
+		NODE_SET_PROTOTYPE_METHOD(tpl, "Dispose", Dispose);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "DisconnectAll", DisconnectAll);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getAsyncHandlers", getAsyncHandlers);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getAvg", getAvg);
@@ -61,14 +106,19 @@ namespace NJA {
 	void NJSocketPool::New(const FunctionCallbackInfo<Value>& args) {
 		Isolate* isolate = args.GetIsolate();
 		if (args.IsConstructCall()) {
+			bool autoConn = true;
+			unsigned int svsId = 0, recvTimeout = SPA::ClientSide::DEFAULT_RECV_TIMEOUT, connTimeout = SPA::ClientSide::DEFAULT_CONN_TIMEOUT;
+			if (args[0]->IsUint32()) {
+				svsId = args[0]->Uint32Value();
+			}
+			if (!svsId) {
+				isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "A non-zero unsigned int service id required")));
+				return;
+			}
+
 			// Invoked as constructor: `new NJSocketPool(...)`
-			double value = args[0]->IsNumber() ? args[0]->NumberValue() : 0;
-			NJSocketPool* obj = new NJSocketPool();
+			NJSocketPool* obj = new NJSocketPool(svsId, autoConn, recvTimeout, connTimeout);
 			obj->Wrap(args.This());
-			/*
-			Local<Number> num = Number::New(isolate, 1.24);
-			args.This()->Set(String::NewFromUtf8(isolate, "msg"), num);
-			*/
 			args.GetReturnValue().Set(args.This());
 		}
 		else {
@@ -81,84 +131,210 @@ namespace NJA {
 		}
 	}
 
-	void NJSocketPool::DisconnectAll(const FunctionCallbackInfo<Value>& args) {
+	void NJSocketPool::Dispose(const FunctionCallbackInfo<Value>& args) {
+		NJSocketPool* obj = ObjectWrap::Unwrap<NJSocketPool>(args.Holder());
+		obj->Release();
+	}
 
+	void NJSocketPool::DisconnectAll(const FunctionCallbackInfo<Value>& args) {
+		Isolate* isolate = args.GetIsolate();
+		NJSocketPool* obj = ObjectWrap::Unwrap<NJSocketPool>(args.Holder());
+		if (obj->IsValid(isolate)) {
+			bool ok = obj->Handler->DisconnectAll();
+			args.GetReturnValue().Set(Boolean::New(isolate, ok));
+		}
 	}
 
 	void NJSocketPool::getAsyncHandlers(const FunctionCallbackInfo<Value>& args) {
+		Isolate* isolate = args.GetIsolate();
+		NJSocketPool* obj = ObjectWrap::Unwrap<NJSocketPool>(args.Holder());
+		if (obj->IsValid(isolate)) {
 
+		}
 	}
 
 	void NJSocketPool::getAvg(const FunctionCallbackInfo<Value>& args) {
-
+		Isolate* isolate = args.GetIsolate();
+		NJSocketPool* obj = ObjectWrap::Unwrap<NJSocketPool>(args.Holder());
+		if (obj->IsValid(isolate)) {
+			bool ok = obj->Handler->IsAvg();
+			args.GetReturnValue().Set(Boolean::New(isolate, ok));
+		}
 	}
 
 	void NJSocketPool::getConenctedSockets(const FunctionCallbackInfo<Value>& args) {
-
+		Isolate* isolate = args.GetIsolate();
+		NJSocketPool* obj = ObjectWrap::Unwrap<NJSocketPool>(args.Holder());
+		if (obj->IsValid(isolate)) {
+			unsigned int data = obj->Handler->GetConnectedSockets();
+			args.GetReturnValue().Set(Uint32::New(isolate, data));
+		}
 	}
 
 	void NJSocketPool::getDisconnectedSockets(const FunctionCallbackInfo<Value>& args) {
-
+		Isolate* isolate = args.GetIsolate();
+		NJSocketPool* obj = ObjectWrap::Unwrap<NJSocketPool>(args.Holder());
+		if (obj->IsValid(isolate)) {
+			unsigned int data = obj->Handler->GetDisconnectedSockets();
+			args.GetReturnValue().Set(Uint32::New(isolate, data));
+		}
 	}
 
 	void NJSocketPool::getIdleSockets(const FunctionCallbackInfo<Value>& args) {
-
+		Isolate* isolate = args.GetIsolate();
+		NJSocketPool* obj = ObjectWrap::Unwrap<NJSocketPool>(args.Holder());
+		if (obj->IsValid(isolate)) {
+			unsigned int data = obj->Handler->GetIdleSockets();
+			args.GetReturnValue().Set(Uint32::New(isolate, data));
+		}
 	}
 
 	void NJSocketPool::getLockedSockets(const FunctionCallbackInfo<Value>& args) {
-
+		Isolate* isolate = args.GetIsolate();
+		NJSocketPool* obj = ObjectWrap::Unwrap<NJSocketPool>(args.Holder());
+		if (obj->IsValid(isolate)) {
+			unsigned int data = obj->Handler->GetLockedSockets();
+			args.GetReturnValue().Set(Uint32::New(isolate, data));
+		}
 	}
 
 	void NJSocketPool::getPoolId(const FunctionCallbackInfo<Value>& args) {
-
+		Isolate* isolate = args.GetIsolate();
+		NJSocketPool* obj = ObjectWrap::Unwrap<NJSocketPool>(args.Holder());
+		if (obj->IsValid(isolate)) {
+			unsigned int data = obj->Handler->GetPoolId();
+			args.GetReturnValue().Set(Uint32::New(isolate, data));
+		}
 	}
 
 	void NJSocketPool::getQueueAutoMerge(const FunctionCallbackInfo<Value>& args) {
-
+		Isolate* isolate = args.GetIsolate();
+		NJSocketPool* obj = ObjectWrap::Unwrap<NJSocketPool>(args.Holder());
+		if (obj->IsValid(isolate)) {
+			bool ok = obj->Handler->GetQueueAutoMerge();
+			args.GetReturnValue().Set(Boolean::New(isolate, ok));
+		}
 	}
 
 	void NJSocketPool::setQueueAutoMerge(const FunctionCallbackInfo<Value>& args) {
-
+		Isolate* isolate = args.GetIsolate();
+		NJSocketPool* obj = ObjectWrap::Unwrap<NJSocketPool>(args.Holder());
+		if (obj->IsValid(isolate)) {
+			auto p = args[0];
+			if (p->IsBoolean()) {
+				bool b = p->BooleanValue();
+				obj->Handler->SetQueueAutoMerge(b);
+			}
+			else {
+				isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "A boolean value expected")));
+			}
+		}
 	}
-	void NJSocketPool::getQueueName(const FunctionCallbackInfo<Value>& args) {
 
+	void NJSocketPool::getQueueName(const FunctionCallbackInfo<Value>& args) {
+		Isolate* isolate = args.GetIsolate();
+		NJSocketPool* obj = ObjectWrap::Unwrap<NJSocketPool>(args.Holder());
+		if (obj->IsValid(isolate)) {
+			std::string queueName = obj->Handler->GetQueueName();
+			args.GetReturnValue().Set(String::NewFromUtf8(isolate, queueName.c_str()));
+		}
 	}
 	void NJSocketPool::setQueueName(const FunctionCallbackInfo<Value>& args) {
-
+		Isolate* isolate = args.GetIsolate();
+		NJSocketPool* obj = ObjectWrap::Unwrap<NJSocketPool>(args.Holder());
+		if (obj->IsValid(isolate)) {
+			auto p = args[0];
+			if (p->IsString()) {
+				String::Utf8Value str(p);
+				obj->Handler->SetQueueName(*str);
+			}
+			else {
+				isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "A boolean value expected")));
+			}
+		}
 	}
 	void NJSocketPool::getQueues(const FunctionCallbackInfo<Value>& args) {
-
+		Isolate* isolate = args.GetIsolate();
+		NJSocketPool* obj = ObjectWrap::Unwrap<NJSocketPool>(args.Holder());
+		if (obj->IsValid(isolate)) {
+			unsigned int data = obj->Handler->GetQueues();
+			args.GetReturnValue().Set(Uint32::New(isolate, data));
+		}
 	}
 	void NJSocketPool::getSockets(const FunctionCallbackInfo<Value>& args) {
+		Isolate* isolate = args.GetIsolate();
+		NJSocketPool* obj = ObjectWrap::Unwrap<NJSocketPool>(args.Holder());
+		if (obj->IsValid(isolate)) {
+			
+		}
 	}
 	void NJSocketPool::getSocketsPerThread(const FunctionCallbackInfo<Value>& args) {
-
+		Isolate* isolate = args.GetIsolate();
+		NJSocketPool* obj = ObjectWrap::Unwrap<NJSocketPool>(args.Holder());
+		if (obj->IsValid(isolate)) {
+			unsigned int data = obj->Handler->GetSocketsPerThread();
+			args.GetReturnValue().Set(Uint32::New(isolate, data));
+		}
 	}
 
 	void NJSocketPool::getStarted(const FunctionCallbackInfo<Value>& args) {
-
+		Isolate* isolate = args.GetIsolate();
+		NJSocketPool* obj = ObjectWrap::Unwrap<NJSocketPool>(args.Holder());
+		if (obj->IsValid(isolate)) {
+			bool ok = obj->Handler->IsStarted();
+			args.GetReturnValue().Set(Boolean::New(isolate, ok));
+		}
 	}
 
 	void NJSocketPool::getThreadsCreated(const FunctionCallbackInfo<Value>& args) {
-
+		Isolate* isolate = args.GetIsolate();
+		NJSocketPool* obj = ObjectWrap::Unwrap<NJSocketPool>(args.Holder());
+		if (obj->IsValid(isolate)) {
+			unsigned int data = obj->Handler->GetThreadsCreated();
+			args.GetReturnValue().Set(Uint32::New(isolate, data));
+		}
 	}
 
 	void NJSocketPool::Lock(const FunctionCallbackInfo<Value>& args) {
+		Isolate* isolate = args.GetIsolate();
+		NJSocketPool* obj = ObjectWrap::Unwrap<NJSocketPool>(args.Holder());
+		if (obj->IsValid(isolate)) {
 
+		}
 	}
 	void NJSocketPool::Seek(const FunctionCallbackInfo<Value>& args) {
+		Isolate* isolate = args.GetIsolate();
+		NJSocketPool* obj = ObjectWrap::Unwrap<NJSocketPool>(args.Holder());
+		if (obj->IsValid(isolate)) {
 
+		}
 	}
 	void NJSocketPool::SeekByQueue(const FunctionCallbackInfo<Value>& args) {
+		Isolate* isolate = args.GetIsolate();
+		NJSocketPool* obj = ObjectWrap::Unwrap<NJSocketPool>(args.Holder());
+		if (obj->IsValid(isolate)) {
 
+		}
 	}
 	void NJSocketPool::ShutdownPool(const FunctionCallbackInfo<Value>& args) {
-
+		Isolate* isolate = args.GetIsolate();
+		NJSocketPool* obj = ObjectWrap::Unwrap<NJSocketPool>(args.Holder());
+		if (obj->IsValid(isolate)) {
+			obj->Handler->ShutdownPool();
+		}
 	}
 	void NJSocketPool::StartSocketPool(const FunctionCallbackInfo<Value>& args) {
+		Isolate* isolate = args.GetIsolate();
+		NJSocketPool* obj = ObjectWrap::Unwrap<NJSocketPool>(args.Holder());
+		if (obj->IsValid(isolate)) {
 
+		}
 	}
 	void NJSocketPool::Unlock(const FunctionCallbackInfo<Value>& args) {
+		Isolate* isolate = args.GetIsolate();
+		NJSocketPool* obj = ObjectWrap::Unwrap<NJSocketPool>(args.Holder());
+		if (obj->IsValid(isolate)) {
 
+		}
 	}
 }

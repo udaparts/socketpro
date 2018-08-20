@@ -18,6 +18,8 @@
 #include "../include/uv.h"
 #include "../include/node_buffer.h"
 
+#include "../../../include/udb_client.h"
+
 namespace NJA {
 	using v8::Function;
 	using v8::FunctionCallbackInfo;
@@ -43,11 +45,9 @@ namespace NJA {
 
 	using node::AtExit;
 
-	/**
 	using namespace SPA;
 	using namespace SPA::ClientSide;
 	using namespace SPA::UDB;
-	*/
 };
 
 #endif
