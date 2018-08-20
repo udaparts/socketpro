@@ -50,6 +50,8 @@ namespace NJA {
 		static void getSize(const FunctionCallbackInfo<Value>& args);
 		static void setSize(const FunctionCallbackInfo<Value>& args);
 		static void getOS(const FunctionCallbackInfo<Value>& args);
+		static void getMaxBufferSize(const FunctionCallbackInfo<Value>& args);
+		static void Realloc(const FunctionCallbackInfo<Value>& args);
 
 		static void LoadBoolean(const FunctionCallbackInfo<Value>& args);
 		static void LoadByte(const FunctionCallbackInfo<Value>& args);

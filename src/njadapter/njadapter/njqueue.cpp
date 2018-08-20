@@ -47,6 +47,8 @@ namespace NJA {
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getSize", getSize);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "setSize", setSize);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getOS", getOS);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "Realloc", Realloc);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "getMaxBufferSize", getMaxBufferSize);
 
 		NODE_SET_PROTOTYPE_METHOD(tpl, "LoadBool", LoadBoolean);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "LoadByte", LoadByte);
@@ -125,6 +127,29 @@ namespace NJA {
 			ret = obj->m_Buffer->GetSize();
 		}
 		args.GetReturnValue().Set(Uint32::New(args.GetIsolate(), ret));
+	}
+
+	void NJQueue::getMaxBufferSize(const FunctionCallbackInfo<Value>& args) {
+		NJQueue* obj = ObjectWrap::Unwrap<NJQueue>(args.Holder());
+		unsigned int ret = 0;
+		if (obj->m_Buffer)
+			ret = obj->m_Buffer->GetMaxSize();
+		args.GetReturnValue().Set(Uint32::New(args.GetIsolate(), ret));
+	}
+
+	void NJQueue::Realloc(const FunctionCallbackInfo<Value>& args) {
+		unsigned int size = 0;
+		if (args.Length() && args[0]->IsUint32())
+			size = args[0]->Uint32Value();
+		else {
+			args.GetIsolate()->ThrowException(Exception::TypeError(String::NewFromUtf8(args.GetIsolate(), "Unsigned int expected")));
+			return;
+		}
+		NJQueue* obj = ObjectWrap::Unwrap<NJQueue>(args.Holder());
+		if (obj->m_Buffer)
+			obj->m_Buffer->ReallocBuffer(size);
+		else
+			obj->m_Buffer = CScopeUQueue::Lock(SPA::GetOS(), SPA::IsBigEndian(), size, obj->m_blockSize);
 	}
 
 	void NJQueue::getSize(const FunctionCallbackInfo<Value>& args) {
