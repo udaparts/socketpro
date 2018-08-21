@@ -48,6 +48,10 @@ namespace NJA {
 	using namespace SPA;
 	using namespace SPA::ClientSide;
 	using namespace SPA::UDB;
+
+	extern uv_loop_t *g_mainloop;
 };
+
+
 
 #endif

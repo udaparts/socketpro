@@ -752,7 +752,7 @@ namespace NJA {
 				break;
 			case VT_CY:
 			{
-				double d = vt.llVal;
+				double d = (double)vt.llVal;
 				d /= 10000;
 				args.GetReturnValue().Set(Number::New(isolate, d));
 			}

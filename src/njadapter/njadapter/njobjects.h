@@ -19,6 +19,11 @@ namespace NJA {
 		NJSocketPool(const NJSocketPool &obj) = delete;
 		NJSocketPool& operator=(const NJSocketPool &obj) = delete;
 
+		struct PoolEvent {
+			tagSocketPoolEvent Spe;
+			CAsyncHandler *Handler;
+		};
+
 		void Release();
 		bool IsValid(Isolate* isolate);
 
@@ -55,6 +60,7 @@ namespace NJA {
 
 		static void setSSLAuthentication(const FunctionCallbackInfo<Value>& args);
 		static void setPoolEvent(const FunctionCallbackInfo<Value>& args);
+		static void async_cb(uv_async_t* handle);
 
 	private:
 		unsigned int SvsId;
@@ -73,6 +79,10 @@ namespace NJA {
 		Local<Function> m_ap;
 		Local<Function> m_ssl;
 		Local<Function> m_evPool;
+		uv_async_t m_asyncType;
+		CUCriticalSection m_cs;
+		std::deque<PoolEvent> m_deqPoolEvent;
+		std::deque<CClientSocket*> m_deqSocket;
 	};
 }
 

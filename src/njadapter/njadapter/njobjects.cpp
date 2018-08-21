@@ -28,6 +28,8 @@ namespace NJA {
 			Handler = new CSocketPool<CAsyncHandler>(autoConn, recvTimeout, connTimeout, id);
 			break;
 		}
+		::memset(&m_asyncType, 0, sizeof(m_asyncType));
+		m_asyncType.data = this;
 	}
 
 	NJSocketPool::~NJSocketPool() {
@@ -145,10 +147,18 @@ namespace NJA {
 				return false;
 			};
 			obj->Handler->SocketPoolEvent = [obj](CSocketPool<CAsyncHandler> *pool, tagSocketPoolEvent spe, CAsyncHandler *handler) {
-				if (obj->m_evPool->IsFunction()) {
-
-				}
+				if (obj->m_evPool->IsFunction())
+					return;
+				PoolEvent pe;
+				pe.Spe = spe;
+				pe.Handler = handler;
+				SPA::CAutoLock al(obj->m_cs);
+				obj->m_deqPoolEvent.push_back(pe);
+				int fail = uv_async_send(&obj->m_asyncType);
+				assert(!fail);
 			};
+			int fail = uv_async_init(g_mainloop, &obj->m_asyncType, async_cb);
+			assert(!fail);
 			args.GetReturnValue().Set(args.This());
 		}
 		else {
@@ -158,6 +168,23 @@ namespace NJA {
 			Local<Function> cons = Local<Function>::New(isolate, constructor);
 			Local<Object> result = cons->NewInstance(context, 9, argv).ToLocalChecked();
 			args.GetReturnValue().Set(result);
+		}
+	}
+
+	void NJSocketPool::async_cb(uv_async_t* handle) {
+		NJSocketPool* obj = (NJSocketPool*)handle->data;
+		SPA::CAutoLock al(obj->m_cs);
+		while (obj->m_deqPoolEvent.size()) {
+			const PoolEvent &pe = obj->m_deqPoolEvent.front();
+			if (obj->m_evPool->IsFunction()) {
+				Local<Value> argv[] = {Int32::New(obj->m_isolate, pe.Spe)};
+				Local<Function> cb = Local<Function>::Cast(obj->m_evPool);
+				cb->Call(Null(obj->m_isolate), 1, argv);
+			}
+			obj->m_deqPoolEvent.pop_front();
+		}
+		if (!obj->Handler) {
+			uv_close((uv_handle_t*)handle, nullptr);
 		}
 	}
 
@@ -388,6 +415,7 @@ namespace NJA {
 		if (obj->IsValid(isolate)) {
 			auto p = args[0];
 			if (p->IsFunction()) {
+				SPA::CAutoLock al(obj->m_cs);
 				obj->m_ssl = Local<Function>::Cast(p);
 			}
 			else {
