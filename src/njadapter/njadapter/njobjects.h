@@ -40,6 +40,8 @@ namespace NJA {
 		static void getIdleSockets(const FunctionCallbackInfo<Value>& args);
 		static void getLockedSockets(const FunctionCallbackInfo<Value>& args);
 		static void getPoolId(const FunctionCallbackInfo<Value>& args);
+		static void getErrCode(const FunctionCallbackInfo<Value>& args);
+		static void getErrMsg(const FunctionCallbackInfo<Value>& args);
 
 		static void getQueueAutoMerge(const FunctionCallbackInfo<Value>& args);
 		static void setQueueAutoMerge(const FunctionCallbackInfo<Value>& args);
@@ -58,7 +60,6 @@ namespace NJA {
 		static void StartSocketPool(const FunctionCallbackInfo<Value>& args);
 		static void Unlock(const FunctionCallbackInfo<Value>& args);
 
-		static void setSSLAuthentication(const FunctionCallbackInfo<Value>& args);
 		static void setPoolEvent(const FunctionCallbackInfo<Value>& args);
 		static void async_cb(uv_async_t* handle);
 
@@ -77,12 +78,13 @@ namespace NJA {
 		Local<Function> m_brp;
 		Local<Function> m_se;
 		Local<Function> m_ap;
-		Local<Function> m_ssl;
 		Local<Function> m_evPool;
 		uv_async_t m_asyncType;
 		CUCriticalSection m_cs;
 		std::deque<PoolEvent> m_deqPoolEvent;
 		std::deque<CClientSocket*> m_deqSocket;
+		int m_errSSL;
+		std::string m_errMsg;
 	};
 }
 
