@@ -1598,6 +1598,22 @@ namespace SPA {
                 return h;
             }
 
+			inline void SetAutoConn(bool autoConn) {
+				m_autoConn = autoConn;
+			}
+
+			inline void SetRecvTimeout(unsigned int recvTimeout) {
+				if (recvTimeout < 1000)
+					recvTimeout = 1000;
+				m_recvTimeout = recvTimeout;
+			}
+
+			inline void SetConnTimeout(unsigned int connTimeout) {
+				if (connTimeout < 1000)
+					connTimeout = 1000;
+				m_connTimeout = connTimeout;
+			}
+
             inline bool IsAvg() {
                 CAutoLock al(m_cs);
                 return ClientCoreLoader.IsAvg(m_nPoolId);

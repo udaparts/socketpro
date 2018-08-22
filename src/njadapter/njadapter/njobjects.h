@@ -13,7 +13,7 @@ namespace NJA {
 		static void Init(Local<Object> exports);
 
 	private:
-		NJSocketPool(unsigned int id, bool autoConn = true, unsigned int recvTimeout = DEFAULT_RECV_TIMEOUT, unsigned int connTimeout = DEFAULT_CONN_TIMEOUT);
+		NJSocketPool(const wchar_t* defaultDb, unsigned int id, bool autoConn = true, unsigned int recvTimeout = DEFAULT_RECV_TIMEOUT, unsigned int connTimeout = DEFAULT_CONN_TIMEOUT);
 		~NJSocketPool();
 
 		NJSocketPool(const NJSocketPool &obj) = delete;
@@ -85,6 +85,7 @@ namespace NJA {
 		std::deque<CClientSocket*> m_deqSocket;
 		int m_errSSL;
 		std::string m_errMsg;
+		std::wstring m_defaultDb;
 	};
 }
 
