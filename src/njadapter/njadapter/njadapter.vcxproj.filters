@@ -57,6 +57,9 @@
     <ClInclude Include="..\..\..\include\rdbcache.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="njhandler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -81,6 +84,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="asynchandler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\include\aserverw.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="njhandler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

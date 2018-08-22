@@ -1,7 +1,6 @@
 #include "stdafx.h"
 #include "njobjects.h"
-#include "../../../include/async_sqlite.h"
-#include "../../../include/mysql/umysql.h"
+#include "njhandler.h"
 
 namespace NJA {
 	using v8::Context;
@@ -9,14 +8,25 @@ namespace NJA {
 	Persistent<Function> NJSocketPool::constructor;
 
 	NJSocketPool::NJSocketPool(const wchar_t* defaultDb, unsigned int id, bool autoConn, unsigned int recvTimeout, unsigned int connTimeout)
-	: SvsId(id), m_isolate(nullptr), m_errSSL(0), m_defaultDb(defaultDb ? defaultDb : L"") {
+	: SvsId(id), m_errSSL(0), m_defaultDb(defaultDb ? defaultDb : L"") {
 		switch (id) {
 		case SPA::Sqlite::sidSqlite:
+			if (m_defaultDb.size())
+				Sqlite = new CSQLMasterPool<false, CSqlite>(m_defaultDb.c_str(), recvTimeout);
+			else
+				Sqlite = new CSocketPool<CSqlite>(autoConn, recvTimeout, connTimeout, id);
+			break;
 		case SPA::Mysql::sidMysql:
-			Db = new CSocketPool<CAsyncDBHandler<0>>(autoConn, recvTimeout, connTimeout, id);
+			if (m_defaultDb.size())
+				Mysql = new CSQLMasterPool<false, CMySQL>(m_defaultDb.c_str(), recvTimeout);
+			else
+				Mysql = new CSocketPool<CMySQL>(autoConn, recvTimeout, connTimeout, id);
 			break;
 		case SPA::Odbc::sidOdbc:
-			Odbc = new CSocketPool<COdbc>(autoConn, recvTimeout, connTimeout, id);
+			if (m_defaultDb.size())
+				Odbc = new CSQLMasterPool<false, COdbc>(m_defaultDb.c_str(), recvTimeout);
+			else
+				Odbc = new CSocketPool<COdbc>(autoConn, recvTimeout, connTimeout, id);
 			break;
 		case SPA::Queue::sidQueue:
 			Queue = new CSocketPool<CAsyncQueue>(autoConn, recvTimeout, connTimeout, id);
@@ -25,7 +35,10 @@ namespace NJA {
 			File = new CSocketPool<CStreamingFile>(autoConn, recvTimeout, connTimeout, id);
 			break;
 		default:
-			Handler = new CSocketPool<CAsyncHandler>(autoConn, recvTimeout, connTimeout, id);
+			if (m_defaultDb.size())
+				Handler = new CMasterPool<false, CAsyncHandler>(m_defaultDb.c_str(), recvTimeout, id);
+			else
+				Handler = new CSocketPool<CAsyncHandler>(autoConn, recvTimeout, connTimeout, id);
 			break;
 		}
 		::memset(&m_asyncType, 0, sizeof(m_asyncType));
@@ -48,8 +61,10 @@ namespace NJA {
 		if (Handler) {
 			switch (SvsId) {
 			case SPA::Sqlite::sidSqlite:
+				delete Sqlite;
+				break;
 			case SPA::Mysql::sidMysql:
-				delete Db;
+				delete Mysql;
 				break;
 			case SPA::Odbc::sidOdbc:
 				delete Odbc;
@@ -74,7 +89,7 @@ namespace NJA {
 		// Prepare constructor template
 		Local<FunctionTemplate> tpl = FunctionTemplate::New(isolate, New);
 		tpl->SetClassName(String::NewFromUtf8(isolate, "CSocketPool"));
-		tpl->InstanceTemplate()->SetInternalFieldCount(15);
+		tpl->InstanceTemplate()->SetInternalFieldCount(12);
 
 		//Prototype
 		NODE_SET_PROTOTYPE_METHOD(tpl, "Dispose", Dispose);
@@ -86,6 +101,7 @@ namespace NJA {
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getIdleSockets", getIdleSockets);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getLockedSockets", getLockedSockets);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getPoolId", getPoolId);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "getSvsId", getSvsId);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getErrCode", getErrCode);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getAutoMerge", getQueueAutoMerge);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "setAutoMerge", setQueueAutoMerge);
@@ -120,6 +136,10 @@ namespace NJA {
 				isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "A valid unsigned int required for service id")));
 				return;
 			}
+			if (svsId == sidHTTP) {
+				isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "No support to HTTP/websocket at client side")));
+				return;
+			}
 			std::wstring db;
 			if (args[1]->IsString()) {
 				String::Value str(args[1]);
@@ -127,10 +147,20 @@ namespace NJA {
 				if (len)
 					db.assign(*str, *str + len);
 			}
-
+			if (db.size()) {
+				switch (svsId) {
+				case sidFile:
+					isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "File streaming doesn't support master-slave pool")));
+					return;
+				case sidChat:
+					isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Persistent queue doesn't support master-slave pool")));
+					return;
+				default:
+					break;
+				}
+			}
 			// Invoked as constructor: `new NJSocketPool(...)`
 			NJSocketPool* obj = new NJSocketPool(db.c_str(), svsId);
-			obj->m_isolate = isolate;
 			obj->Wrap(args.This());
 			obj->Handler->DoSslServerAuthentication = [obj](CSocketPool<CAsyncHandler> *pool, SPA::ClientSide::CClientSocket *cs)->bool {
 				IUcert *cert = cs->GetUCert();
@@ -139,7 +169,7 @@ namespace NJA {
 			};
 			obj->Handler->SocketPoolEvent = [obj](CSocketPool<CAsyncHandler> *pool, tagSocketPoolEvent spe, CAsyncHandler *handler) {
 				SPA::CAutoLock al(obj->m_cs);
-				if (!(*obj->m_evPool))
+				if (obj->m_evPool.IsEmpty())
 					return;
 				PoolEvent pe;
 				pe.Spe = spe;
@@ -163,13 +193,16 @@ namespace NJA {
 	}
 
 	void NJSocketPool::async_cb(uv_async_t* handle) {
+		Isolate* isolate = Isolate::GetCurrent();
+		v8::HandleScope handleScope(isolate); //required for Node 4.x
 		NJSocketPool* obj = (NJSocketPool*)handle->data;
 		SPA::CAutoLock al(obj->m_cs);
 		while (obj->m_deqPoolEvent.size()) {
 			const PoolEvent &pe = obj->m_deqPoolEvent.front();
-			if (*obj->m_evPool) {
-				Local<Value> argv[] = {Int32::New(obj->m_isolate, pe.Spe)};
-				obj->m_evPool->Call(Null(obj->m_isolate), 1, argv);
+			if (!obj->m_evPool.IsEmpty()) {
+				Local<Value> argv[] = {Int32::New(isolate, pe.Spe)};
+				Local<Function> cb = Local<Function>::New(isolate, obj->m_evPool);
+				cb->Call(Null(isolate), 1, argv);
 			}
 			obj->m_deqPoolEvent.pop_front();
 		}
@@ -245,6 +278,13 @@ namespace NJA {
 		}
 	}
 
+	void NJSocketPool::getSvsId(const FunctionCallbackInfo<Value>& args) {
+		Isolate* isolate = args.GetIsolate();
+		NJSocketPool* obj = ObjectWrap::Unwrap<NJSocketPool>(args.Holder());
+		unsigned int data = obj->SvsId;
+		args.GetReturnValue().Set(Uint32::New(isolate, data));
+	}
+
 	void NJSocketPool::getPoolId(const FunctionCallbackInfo<Value>& args) {
 		Isolate* isolate = args.GetIsolate();
 		NJSocketPool* obj = ObjectWrap::Unwrap<NJSocketPool>(args.Holder());
@@ -299,6 +339,7 @@ namespace NJA {
 			args.GetReturnValue().Set(String::NewFromUtf8(isolate, queueName.c_str()));
 		}
 	}
+
 	void NJSocketPool::setQueueName(const FunctionCallbackInfo<Value>& args) {
 		Isolate* isolate = args.GetIsolate();
 		NJSocketPool* obj = ObjectWrap::Unwrap<NJSocketPool>(args.Holder());
@@ -313,6 +354,7 @@ namespace NJA {
 			}
 		}
 	}
+
 	void NJSocketPool::getQueues(const FunctionCallbackInfo<Value>& args) {
 		Isolate* isolate = args.GetIsolate();
 		NJSocketPool* obj = ObjectWrap::Unwrap<NJSocketPool>(args.Holder());
@@ -321,6 +363,7 @@ namespace NJA {
 			args.GetReturnValue().Set(Uint32::New(isolate, data));
 		}
 	}
+
 	void NJSocketPool::getSockets(const FunctionCallbackInfo<Value>& args) {
 		Isolate* isolate = args.GetIsolate();
 		NJSocketPool* obj = ObjectWrap::Unwrap<NJSocketPool>(args.Holder());
@@ -328,6 +371,7 @@ namespace NJA {
 			
 		}
 	}
+
 	void NJSocketPool::getSocketsPerThread(const FunctionCallbackInfo<Value>& args) {
 		Isolate* isolate = args.GetIsolate();
 		NJSocketPool* obj = ObjectWrap::Unwrap<NJSocketPool>(args.Holder());
@@ -538,7 +582,11 @@ namespace NJA {
 			auto p = args[0];
 			if (p->IsFunction()) {
 				SPA::CAutoLock al(obj->m_cs);
-				obj->m_evPool = Local<Function>::Cast(p);
+				obj->m_evPool.Reset(isolate, Local<Function>::Cast(p));
+			}
+			else if (p->IsNullOrUndefined()) {
+				SPA::CAutoLock al(obj->m_cs);
+				obj->m_evPool.Empty();
 			}
 			else {
 				isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "A callback expected for tracking pool event")));

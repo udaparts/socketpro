@@ -13,8 +13,8 @@ namespace SPA {
     public:
         typedef CMasterSlaveBase < THandler, TCS > CBase;
 
-        CMasterPool(const wchar_t *defaultDb, unsigned int recvTimeout = ClientSide::DEFAULT_RECV_TIMEOUT)
-        : CBase(defaultDb, recvTimeout) {
+        CMasterPool(const wchar_t *defaultDb, unsigned int recvTimeout = ClientSide::DEFAULT_RECV_TIMEOUT, unsigned int svsId = 0)
+        : CBase(defaultDb, recvTimeout, svsId) {
         }
         typedef TCache CDataSet;
         TCache Cache; //real-time cache accessible from your code

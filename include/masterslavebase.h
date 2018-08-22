@@ -11,8 +11,8 @@ namespace SPA {
     public:
         typedef ClientSide::CSocketPool < THandler, TCS> CBase;
 
-        CMasterSlaveBase(const wchar_t *defaultDb, unsigned int recvTimeout = ClientSide::DEFAULT_RECV_TIMEOUT)
-        : CBase(true, recvTimeout),
+        CMasterSlaveBase(const wchar_t *defaultDb, unsigned int recvTimeout = ClientSide::DEFAULT_RECV_TIMEOUT, unsigned int svsId = 0)
+        : CBase(true, recvTimeout, ClientSide::DEFAULT_CONN_TIMEOUT, svsId),
         m_dbDefalut(defaultDb ? defaultDb : L""),
         m_nRecvTimeout(recvTimeout) {
         }
