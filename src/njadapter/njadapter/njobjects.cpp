@@ -80,28 +80,28 @@ namespace NJA {
 		NODE_SET_PROTOTYPE_METHOD(tpl, "Dispose", Dispose);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "DisconnectAll", DisconnectAll);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getAsyncHandlers", getAsyncHandlers);
-		NODE_SET_PROTOTYPE_METHOD(tpl, "getAvg", getAvg);
-		NODE_SET_PROTOTYPE_METHOD(tpl, "getConenctedSockets", getConenctedSockets);
+		//NODE_SET_PROTOTYPE_METHOD(tpl, "getAvg", getAvg);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "getConnectedSockets", getConnectedSockets);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getDisconnectedSockets", getDisconnectedSockets);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getIdleSockets", getIdleSockets);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getLockedSockets", getLockedSockets);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getPoolId", getPoolId);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getErrCode", getErrCode);
-		NODE_SET_PROTOTYPE_METHOD(tpl, "getQueueAutoMerge", getQueueAutoMerge);
-		NODE_SET_PROTOTYPE_METHOD(tpl, "setQueueAutoMerge", setQueueAutoMerge);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "getAutoMerge", getQueueAutoMerge);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "setAutoMerge", setQueueAutoMerge);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getQueueName", getQueueName);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "setQueueName", setQueueName);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getErrMsg", getErrMsg);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getQueues", getQueues);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getSockets", getSockets);
-		NODE_SET_PROTOTYPE_METHOD(tpl, "getSocketsPerThread", getSocketsPerThread);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "getTotalSockets", getSocketsPerThread);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getStarted", getStarted);
-		NODE_SET_PROTOTYPE_METHOD(tpl, "getThreadsCreated", getThreadsCreated);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "getThreads", getThreadsCreated);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "Lock", Lock);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "Seek", Seek);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "SeekByQueue", SeekByQueue);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "ShutdownPool", ShutdownPool);
-		NODE_SET_PROTOTYPE_METHOD(tpl, "StartSocketPool", StartSocketPool);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "StartPool", StartSocketPool);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "Unlock", Unlock);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "setPoolEvent", setPoolEvent);
 
@@ -116,8 +116,8 @@ namespace NJA {
 			if (args[0]->IsUint32()) {
 				svsId = args[0]->Uint32Value();
 			}
-			if (!svsId) {
-				isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "A non-zero unsigned int service id required")));
+			if (svsId < SPA::sidChat || (svsId > SPA::sidODBC && svsId <= SPA::sidReserved)) {
+				isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "A valid unsigned int required for service id")));
 				return;
 			}
 			std::wstring db;
@@ -138,12 +138,12 @@ namespace NJA {
 				return (obj->m_errSSL == 0); //true -- user id and password will be sent to server
 			};
 			obj->Handler->SocketPoolEvent = [obj](CSocketPool<CAsyncHandler> *pool, tagSocketPoolEvent spe, CAsyncHandler *handler) {
-				if (obj->m_evPool->IsFunction())
+				SPA::CAutoLock al(obj->m_cs);
+				if (!(*obj->m_evPool))
 					return;
 				PoolEvent pe;
 				pe.Spe = spe;
 				pe.Handler = handler;
-				SPA::CAutoLock al(obj->m_cs);
 				obj->m_deqPoolEvent.push_back(pe);
 				int fail = uv_async_send(&obj->m_asyncType);
 				assert(!fail);
@@ -154,10 +154,10 @@ namespace NJA {
 		}
 		else {
 			// Invoked as plain function `NJSocketPool(...)`, turn into construct call.
-			Local<Value> argv[] = {args[0],args[1],args[2]};
+			Local<Value> argv[] = {args[0],args[1]};
 			Local<Context> context = isolate->GetCurrentContext();
 			Local<Function> cons = Local<Function>::New(isolate, constructor);
-			Local<Object> result = cons->NewInstance(context, 3, argv).ToLocalChecked();
+			Local<Object> result = cons->NewInstance(context, 2, argv).ToLocalChecked();
 			args.GetReturnValue().Set(result);
 		}
 	}
@@ -167,10 +167,9 @@ namespace NJA {
 		SPA::CAutoLock al(obj->m_cs);
 		while (obj->m_deqPoolEvent.size()) {
 			const PoolEvent &pe = obj->m_deqPoolEvent.front();
-			if (obj->m_evPool->IsFunction()) {
+			if (*obj->m_evPool) {
 				Local<Value> argv[] = {Int32::New(obj->m_isolate, pe.Spe)};
-				Local<Function> cb = Local<Function>::Cast(obj->m_evPool);
-				cb->Call(Null(obj->m_isolate), 1, argv);
+				obj->m_evPool->Call(Null(obj->m_isolate), 1, argv);
 			}
 			obj->m_deqPoolEvent.pop_front();
 		}
@@ -210,7 +209,7 @@ namespace NJA {
 		}
 	}
 
-	void NJSocketPool::getConenctedSockets(const FunctionCallbackInfo<Value>& args) {
+	void NJSocketPool::getConnectedSockets(const FunctionCallbackInfo<Value>& args) {
 		Isolate* isolate = args.GetIsolate();
 		NJSocketPool* obj = ObjectWrap::Unwrap<NJSocketPool>(args.Holder());
 		if (obj->IsValid(isolate)) {
@@ -258,18 +257,14 @@ namespace NJA {
 	void NJSocketPool::getErrCode(const FunctionCallbackInfo<Value>& args) {
 		Isolate* isolate = args.GetIsolate();
 		NJSocketPool* obj = ObjectWrap::Unwrap<NJSocketPool>(args.Holder());
-		if (obj->IsValid(isolate)) {
-			int data = obj->m_errSSL;
-			args.GetReturnValue().Set(Int32::New(isolate, data));
-		}
+		int data = obj->m_errSSL;
+		args.GetReturnValue().Set(Int32::New(isolate, data));
 	}
 
 	void NJSocketPool::getErrMsg(const FunctionCallbackInfo<Value>& args) {
 		Isolate* isolate = args.GetIsolate();
 		NJSocketPool* obj = ObjectWrap::Unwrap<NJSocketPool>(args.Holder());
-		if (obj->IsValid(isolate)) {
-			args.GetReturnValue().Set(String::NewFromUtf8(isolate, obj->m_errMsg.c_str()));
-		}
+		args.GetReturnValue().Set(String::NewFromUtf8(isolate, obj->m_errMsg.c_str()));
 	}
 
 	void NJSocketPool::getQueueAutoMerge(const FunctionCallbackInfo<Value>& args) {
@@ -388,13 +383,146 @@ namespace NJA {
 			obj->Handler->ShutdownPool();
 		}
 	}
+
+	bool NJSocketPool::To(Isolate* isolate, const Local<Object> &obj, SPA::ClientSide::CConnectionContext &cc) 		{
+		Local<Array> props = obj->GetPropertyNames();
+		if (props->Length() != 8) {
+			isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Invalid connection context")));
+			return false;
+		}
+
+		auto v = obj->Get(props->Get(0));
+		if (!v->IsString()) {
+			isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Invalid host string")));
+			return false;
+		}
+		String::Value host(v);
+		cc.Host.assign(*host, *host + host.length());
+
+		v = obj->Get(props->Get(1));
+		if (!v->IsUint32()) {
+			isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Invalid port number")));
+			return false;
+		}
+		cc.Port = v->Uint32Value();
+
+		v = obj->Get(props->Get(2));
+		if (!v->IsString()) {
+			isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Invalid user id string")));
+			return false;
+		}
+		String::Value uid(v);
+		cc.UserId.assign(*uid, *uid + uid.length());
+
+		v = obj->Get(props->Get(3));
+		if (!v->IsString()) {
+			isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Invalid password string")));
+			return false;
+		}
+		String::Value pwd(v);
+		cc.Password.assign(*pwd, *pwd + pwd.length());
+
+		v = obj->Get(props->Get(4));
+		if (!v->IsUint32()) {
+			isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Encryption method expected")));
+			return false;
+		}
+		unsigned int em = v->Uint32Value();
+		if (em > 1) {
+			isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Invalid encryption method")));
+			return false;
+		}
+		cc.EncrytionMethod = (SPA::tagEncryptionMethod)em;
+
+		v = obj->Get(props->Get(5));
+		if (!v->IsBoolean()) {
+			isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Boolean value expected for Zip")));
+			return false;
+		}
+		cc.Zip = v->BooleanValue();
+
+		v = obj->Get(props->Get(6));
+		if (!v->IsBoolean()) {
+			isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Boolean value expected for V6")));
+			return false;
+		}
+		cc.V6 = v->BooleanValue();
+		
+		//v = obj->Get(props->Get(7)); //ignored at now
+
+		return true;
+	}
+
 	void NJSocketPool::StartSocketPool(const FunctionCallbackInfo<Value>& args) {
 		Isolate* isolate = args.GetIsolate();
 		NJSocketPool* obj = ObjectWrap::Unwrap<NJSocketPool>(args.Holder());
-		if (obj->IsValid(isolate)) {
-
+		if (!obj->IsValid(isolate))
+			return;
+		auto p1 = args[1];
+		if (!p1->IsUint32()) {
+			isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "An unsigned int number expected for client sockets")));
+			return;
 		}
+		unsigned int sessions = p1->Uint32Value();
+		if (!sessions) {
+			isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "The number of client sockets cannot be zero")));
+			return;
+		}
+		std::vector<SPA::ClientSide::CConnectionContext> vCC;
+		auto p0 = args[0];
+		if (p0->IsArray()) {
+			Local<Array> jsArr = Local<Array>::Cast(p0);
+			unsigned int count = jsArr->Length();
+			for (unsigned int n = 0; n < count; ++n) {
+				auto v = jsArr->Get(n);
+				if (!v->IsObject()) {
+					isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Invalid connection context found")));
+					return;
+				}
+				Local<Object> obj = jsArr->Get(n)->ToObject();
+				SPA::ClientSide::CConnectionContext cc;
+				if (!To(isolate, obj, cc)) {
+					return;
+				}
+				vCC.push_back(cc);
+			}
+		}
+		else if (p0->IsObject()) {
+			Local<Object> obj = p0->ToObject();
+			SPA::ClientSide::CConnectionContext cc;
+			if (!To(isolate, obj, cc)) {
+				return;
+			}
+			vCC.push_back(cc);
+		}
+		else {
+			isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "One or an array of connection contexts expected")));
+			return;
+		}
+		unsigned int remain = sessions % vCC.size();
+		sessions = (unsigned int)((sessions / vCC.size()) * vCC.size() + (remain ? vCC.size() : 0));
+		unsigned int repeats = (unsigned int)(sessions / vCC.size() - 1);
+		std::vector<SPA::ClientSide::CConnectionContext> vCCs = vCC;
+		for (unsigned int n = 0; n < repeats; ++n) {
+			for (auto it = vCC.begin(), end = vCC.end(); it != end; ++it) {
+				vCCs.push_back(*it);
+			}
+		}
+		typedef CConnectionContext* PCConnectionContext;
+		PCConnectionContext ppCCs[] = { vCCs.data() };
+		bool ok = obj->Handler->StartSocketPool(ppCCs, 1, sessions, true, SPA::tagThreadApartment::taNone);
+		if (!ok) {
+			auto cs = obj->Handler->GetSockets()[0];
+			obj->m_errSSL = cs->GetErrorCode();
+			obj->m_errMsg = cs->GetErrorMsg();
+		}
+		else {
+			obj->m_errSSL = 0;
+			obj->m_errMsg.clear();
+		}
+		args.GetReturnValue().Set(Boolean::New(isolate, ok));
 	}
+
 	void NJSocketPool::Unlock(const FunctionCallbackInfo<Value>& args) {
 		Isolate* isolate = args.GetIsolate();
 		NJSocketPool* obj = ObjectWrap::Unwrap<NJSocketPool>(args.Holder());

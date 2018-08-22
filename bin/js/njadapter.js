@@ -1,8 +1,10 @@
 var SPA=require('njadapter');
+
 exports.newBuffer=function(initSize=4096, blockSize=4096) {
 	return new SPA.CUQueue(initSize, blockSize);
 };
 
+//Base Request IDs
 exports.BaseID={
 	idUnknown : 0,
 	idSwitchTo : 1,
@@ -36,6 +38,7 @@ exports.BaseID={
 	idReservedTwo : 0x2001
 };
 
+//Online message or chat request IDs
 exports.ChatID={
 	idEnter : 65,
 	idSpeak : 66,
@@ -45,6 +48,7 @@ exports.ChatID={
 	idSendUserMessageEx : 70,
 };
 
+//Service IDs
 exports.BaseSID={
 	sidReserved1:1,
 	sidStartup:256,
@@ -58,11 +62,13 @@ exports.BaseSID={
     sidMysql:(0x10000000+0x6FFFFFF1)
 };
 
+//EM == EncryptionMethod
 exports.EM={
 	NoEncryption : 0,
 	TLSv1 : 1
 };
 
+//Persistent message queue status
 exports.QueueStatus={
 	/// <summary>
 	/// everything is fine
@@ -116,16 +122,18 @@ exports.Optimistic={
 	oDiskCommitted : 2
 };
 
+//CS == ClientSide
 exports.CS={
-	newPool : function(svsId, rr=null, autoConn=true, recvTimeout=30000, mt=null, connTimeout=30000, brp=null, se=null, ap=null) {
+	newPool : function(svsId,defaulDb) {
 		return new SPA.CSocketPool(	svsId, //a required unsigned int service id
-									rr, //OnResultReturned
-									defaultdb //master/slave with real-time update cache
+									defaulDb='' //master/slave with real-time update cache
 									);
 	},
-	newCC : function(host, port, userId, pwd, em=0, zip=false, anyData=null) {
-		return {Host:host,Port:port,UserId:userId,Password:pwd,EncryptionMethod:em,Zip:zip,V6:false,AnyData:anyData};
+	//CC == Connection Context
+	newCC : function(host,port,userId,pwd,em=0,zip=false,v6=false,anyData=null) {
+		return {Host:host,Port:port,User:userId,Pwd:pwd,EM:em,Zip:zip,V6:v6,AnyData:anyData};
 	},
+	//Connection State
 	ConnState:{
 		csClosed:0,
 		csConnecting:1,
@@ -134,6 +142,8 @@ exports.CS={
 		csConnected:4,
 		csSwitched:5
 	},
+	
+	//Socket Pool Event
 	PoolEvent:{
 		speUnknown:-1,
 		speStarted:0,

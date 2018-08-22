@@ -35,7 +35,7 @@ namespace NJA {
 
 		static void getAsyncHandlers(const FunctionCallbackInfo<Value>& args);
 		static void getAvg(const FunctionCallbackInfo<Value>& args);
-		static void getConenctedSockets(const FunctionCallbackInfo<Value>& args);
+		static void getConnectedSockets(const FunctionCallbackInfo<Value>& args);
 		static void getDisconnectedSockets(const FunctionCallbackInfo<Value>& args);
 		static void getIdleSockets(const FunctionCallbackInfo<Value>& args);
 		static void getLockedSockets(const FunctionCallbackInfo<Value>& args);
@@ -62,6 +62,7 @@ namespace NJA {
 
 		static void setPoolEvent(const FunctionCallbackInfo<Value>& args);
 		static void async_cb(uv_async_t* handle);
+		static bool To(Isolate* isolate, const Local<Object>& obj, SPA::ClientSide::CConnectionContext &cc);
 
 	private:
 		unsigned int SvsId;

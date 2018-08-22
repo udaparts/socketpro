@@ -1599,19 +1599,46 @@ namespace SPA {
             }
 
 			inline void SetAutoConn(bool autoConn) {
+				CAutoLock al(m_cs);
 				m_autoConn = autoConn;
+				for (auto it = m_mapSocketHandler.begin(), end = m_mapSocketHandler.end(); it != end; ++it) {
+					auto cs = it->first;
+					ClientCoreLoader.SetAutoConn(cs->GetHandle(), autoConn);
+				}
 			}
 
 			inline void SetRecvTimeout(unsigned int recvTimeout) {
-				if (recvTimeout < 1000)
-					recvTimeout = 1000;
-				m_recvTimeout = recvTimeout;
+				CAutoLock al(m_cs);
+				if (!m_mapSocketHandler.size()) 					{
+					m_recvTimeout = recvTimeout;
+					if (m_recvTimeout < 1000)
+						m_recvTimeout = 1000;
+				}
+				else {
+					for (auto it = m_mapSocketHandler.begin(), end = m_mapSocketHandler.end(); it != end; ++it) {
+						auto cs = it->first;
+						ClientCoreLoader.SetRecvTimeout(cs->GetHandle(), recvTimeout);
+						if (it == m_mapSocketHandler.begin())
+							m_recvTimeout = ClientCoreLoader.GetRecvTimeout(cs->GetHandle())
+					}
+				}
 			}
 
 			inline void SetConnTimeout(unsigned int connTimeout) {
-				if (connTimeout < 1000)
-					connTimeout = 1000;
-				m_connTimeout = connTimeout;
+				CAutoLock al(m_cs);
+				if (!m_mapSocketHandler.size()) {
+					m_connTimeout = recvTimeout;
+					if (m_connTimeout < 1000)
+						m_connTimeout = 1000;
+				}
+				else {
+					for (auto it = m_mapSocketHandler.begin(), end = m_mapSocketHandler.end(); it != end; ++it) {
+						auto cs = it->first;
+						ClientCoreLoader.SetConnTimeout(cs->GetHandle(), recvTimeout);
+						if (it == m_mapSocketHandler.begin())
+							m_connTimeout = ClientCoreLoader.GetConnTimeout(cs->GetHandle())
+					}
+				}
 			}
 
             inline bool IsAvg() {

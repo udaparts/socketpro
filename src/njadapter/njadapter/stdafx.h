@@ -42,6 +42,7 @@ namespace NJA {
 	using v8::Uint32;
 	using v8::Integer;
 	using v8::Date;
+	using v8::Array;
 
 	using node::AtExit;
 
