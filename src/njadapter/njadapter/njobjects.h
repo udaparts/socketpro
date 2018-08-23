@@ -1,9 +1,22 @@
 #ifndef __SOCKETPRO_NODEJS_ADAPTER_NJOBJECTS_H__
 #define __SOCKETPRO_NODEJS_ADAPTER_NJOBJECTS_H__
 
+#include<deque>
 #include "asynchandler.h"
 
 namespace NJA {
+
+	enum tagSocketEvent {
+		seAll = 0,
+		seResult,
+		seBaseRequest
+
+	};
+
+	struct SocketEvent {
+		tagSocketEvent Se;
+		SPA::CUQueue *QData;
+	};
 
 	class NJSocketPool : public node::ObjectWrap {
 	public:
@@ -11,14 +24,14 @@ namespace NJA {
 		bool IsValid(Isolate* isolate);
 
 	private:
-		NJSocketPool(const wchar_t* defaultDb, unsigned int id, bool autoConn = true, unsigned int recvTimeout = DEFAULT_RECV_TIMEOUT, unsigned int connTimeout = DEFAULT_CONN_TIMEOUT);
+		NJSocketPool(const wchar_t* defaultDb, unsigned int id, bool autoConn = true, unsigned int recvTimeout = SPA::ClientSide::DEFAULT_RECV_TIMEOUT, unsigned int connTimeout = SPA::ClientSide::DEFAULT_CONN_TIMEOUT);
 		~NJSocketPool();
 
 		NJSocketPool(const NJSocketPool &obj) = delete;
 		NJSocketPool& operator=(const NJSocketPool &obj) = delete;
 
 		struct PoolEvent {
-			tagSocketPoolEvent Spe;
+			SPA::ClientSide::tagSocketPoolEvent Spe;
 			CAsyncHandler *Handler;
 		};
 
@@ -61,30 +74,36 @@ namespace NJA {
 		static void setPoolEvent(const FunctionCallbackInfo<Value>& args);
 		static void async_cb(uv_async_t* handle);
 		static bool To(Isolate* isolate, const Local<Object>& obj, SPA::ClientSide::CConnectionContext &cc);
-
+		static void async_cs_cb(uv_async_t* handle);
 
 	private:
 		unsigned int SvsId;
 		union {
-			CSocketPool<CAsyncHandler> *Handler;
-			CSocketPool<CSqlite> *Sqlite;
-			CSocketPool<CMySQL> *Mysql;
-			CSocketPool<COdbc> *Odbc;
-			CSocketPool<CStreamingFile> *File; //File streaming
-			CSocketPool<CAsyncQueue> *Queue; //Persistent queue
+			SPA::ClientSide::CSocketPool<CAsyncHandler> *Handler;
+			SPA::ClientSide::CSocketPool<SPA::ClientSide::CSqlite> *Sqlite;
+			SPA::ClientSide::CSocketPool<SPA::ClientSide::CMysql> *Mysql;
+			SPA::ClientSide::CSocketPool<SPA::ClientSide::COdbc> *Odbc;
+			SPA::ClientSide::CSocketPool<SPA::ClientSide::CStreamingFile> *File;
+			SPA::ClientSide::CSocketPool<SPA::ClientSide::CAsyncQueue> *Queue;
 		};
-		CUCriticalSection m_cs;
+		SPA::CUCriticalSection m_cs;
 		Persistent<Function> m_rr; //OnResultReturned protected by m_cs
 		Persistent<Function> m_brp; //OnBaseRequestProcessed by m_cs
 		Persistent<Function> m_se; //OnServerException by m_cs
 		Persistent<Function> m_ap; //OnAllRequestsProcessed by m_cs
+		Persistent<Function> m_push; //OnAllRequestsProcessed by m_cs
 		Persistent<Function> m_evPool; //OnSocketPoolEvent by m_cs
 		uv_async_t m_asyncType;
-		std::deque<PoolEvent> m_deqPoolEvent;
+		std::deque<PoolEvent> m_deqPoolEvent; //Protected by m_cs;
+
+		uv_async_t m_csType;
+		std::deque<SocketEvent> m_deqSocketEvent; //Protected by m_cs;
+		
 		int m_errSSL;
 		std::string m_errMsg;
 		std::wstring m_defaultDb;
 		friend class NJHandler;
+		friend class SPA::ClientSide::CClientSocket;
 	};
 }
 

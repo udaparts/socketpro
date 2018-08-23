@@ -1,5 +1,4 @@
 #pragma once
-#include "../../../include/udatabase.h"
 
 namespace NJA {
 	using SPA::CUQueue;

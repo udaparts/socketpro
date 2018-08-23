@@ -6,9 +6,8 @@ namespace NJA {
 
 	Persistent<Function> NJHandler::constructor;
 
-	NJHandler::NJHandler(CAsyncServiceHandler *ash, NJSocketPool *pool) : m_ash(ash), m_Pool(pool) {
+	NJHandler::NJHandler(CAsyncServiceHandler *ash) : m_ash(ash) {
 		assert(ash);
-		assert(pool);
 	}
 
 	NJHandler::~NJHandler() {
@@ -16,10 +15,6 @@ namespace NJA {
 	}
 
 	bool NJHandler::IsValid(Isolate* isolate) {
-		if (!m_Pool || !m_Pool->IsValid(isolate)) {
-			isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "SocketPool object already disposed")));
-			return false;
-		}
 		if (!m_ash) {
 			isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Async handler disposed")));
 			return false;
@@ -69,7 +64,7 @@ namespace NJA {
 		Isolate* isolate = args.GetIsolate();
 		NJHandler* obj = ObjectWrap::Unwrap<NJHandler>(args.Holder());
 		if (obj->IsValid(isolate)) {
-			unsigned int data = obj->m_Pool->SvsId;
+			unsigned int data = obj->m_ash->GetSvsID();
 			args.GetReturnValue().Set(Uint32::New(isolate, data));
 		}
 	}

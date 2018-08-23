@@ -13,18 +13,19 @@
 
 #endif
 
-#include "../include/node.h"
-#include "../include/node_object_wrap.h"
-#include "../include/uv.h"
-#include "../include/node_buffer.h"
+#include <node.h>
+#include <node_object_wrap.h>
+#include <uv.h>
+#include <node_buffer.h>
 
 #include "../../../include/async_odbc.h"
 #include "../../../include/aqhandler.h"
 #include "../../../include/streamingfile.h"
 #include "../../../include/async_sqlite.h"
-#include "../../../include/mysql/umysql.h"
+#include "../../../include/async_mysql.h"
 #include "../../../include/rdbcache.h"
 #include "../../../include/masterpool.h"
+
 
 namespace NJA {
 	using v8::Function;
@@ -57,10 +58,6 @@ namespace NJA {
 	using namespace SPA;
 	using namespace SPA::ClientSide;
 	using namespace SPA::UDB;
-
-	typedef CAsyncDBHandler<SPA::Mysql::sidMysql> CMySQL;
-
-	extern uv_loop_t *g_mainloop;
 };
 
 

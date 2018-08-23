@@ -1,5 +1,28 @@
-
 #include "aclientw.h"
+
+#ifdef NODE_JS_ADAPTER_PROJECT
+#include <node.h>
+#include <node_object_wrap.h>
+#include <uv.h>
+
+using v8::Local;
+using v8::Object;
+using v8::Isolate;
+using v8::Value;
+using v8::FunctionCallbackInfo;
+using v8::Persistent;
+using v8::Function;
+
+#include "async_odbc.h"
+#include "aqhandler.h"
+#include "streamingfile.h"
+#include "async_sqlite.h"
+#include "async_mysql.h"
+#include "generalcache.h"
+
+#include "../src/njadapter/njadapter/njobjects.h"
+
+#endif
 
 namespace SPA
 {
@@ -397,6 +420,9 @@ namespace SPA
             m_mutex.lock();
             m_vClientSocket.push_back(this);
             m_mutex.unlock();
+#ifdef NODE_JS_ADAPTER_PROJECT
+			m_asyncType = nullptr;
+#endif
         }
 
         void CClientSocket::Set(USocket_Client_Handle h) {
@@ -1068,6 +1094,9 @@ namespace SPA
                 if (p->RequestProcessed)
                     p->RequestProcessed(p, requestId, q);
                 p->OnRequestProcessed(requestId, q);
+#ifdef NODE_JS_ADAPTER_PROJECT
+
+#endif
             }
         }
 
@@ -1075,40 +1104,55 @@ namespace SPA
             CClientSocket *p = Seek(handler);
             if (!p)
                 return;
+#ifdef NODE_JS_ADAPTER_PROJECT
+
+#else
             CPushImpl &push = p->GetPush();
             if (push.OnSubscribe)
                 push.OnSubscribe(p, sender, pGroup, count);
             p->OnSubscribe(sender, pGroup, count);
+#endif
         }
 
         void WINAPI CClientSocket::OnUnsubscribe(USocket_Client_Handle handler, CMessageSender sender, const unsigned int *pGroup, unsigned int count) {
             CClientSocket *p = Seek(handler);
             if (!p)
                 return;
+#ifdef NODE_JS_ADAPTER_PROJECT
+
+#else
             CPushImpl &push = p->GetPush();
             if (push.OnUnsubscribe)
                 push.OnUnsubscribe(p, sender, pGroup, count);
             p->OnUnsubscribe(sender, pGroup, count);
+#endif
         }
 
         void WINAPI WINAPI CClientSocket::OnBroadcast(USocket_Client_Handle handler, CMessageSender sender, const unsigned int *pGroup, unsigned int count, const unsigned char *pMessage, unsigned int size) {
             CClientSocket *p = Seek(handler);
             if (!p)
                 return;
+			CScopeUQueue sb;
+			sb->Push(pMessage, size);
+#ifdef NODE_JS_ADAPTER_PROJECT
+
+#else
             SPA::UVariant vtMessage;
-            CScopeUQueue sb;
-            sb->Push(pMessage, size);
             sb >> vtMessage;
             CPushImpl &push = p->GetPush();
             if (push.OnPublish)
                 push.OnPublish(p, sender, pGroup, count, vtMessage);
             p->OnPublish(sender, pGroup, count, vtMessage);
+#endif
         }
 
         void WINAPI CClientSocket::OnBroadcastEx(USocket_Client_Handle handler, CMessageSender sender, const unsigned int *pGroup, unsigned int count, const unsigned char *pMessage, unsigned int size) {
             CClientSocket *p = Seek(handler);
             if (!p)
                 return;
+#ifdef NODE_JS_ADAPTER_PROJECT
+
+#else
             CPushImpl &push = p->GetPush();
             if (push.OnPublishEx) {
 #if defined(WIN32_64) && _MSC_VER < 1800
@@ -1119,30 +1163,39 @@ namespace SPA
 #endif
             }
             p->OnPublishEx(sender, pGroup, count, pMessage, size);
+#endif
         }
 
         void WINAPI CClientSocket::OnPostUserMessage(USocket_Client_Handle handler, CMessageSender sender, const unsigned char *pMessage, unsigned int size) {
             CClientSocket *p = Seek(handler);
             if (!p)
                 return;
-            SPA::UVariant vtMessage;
             CScopeUQueue sb;
             sb->Push(pMessage, size);
+#ifdef NODE_JS_ADAPTER_PROJECT
+
+#else
+			SPA::UVariant vtMessage;
             sb >> vtMessage;
             CPushImpl &push = p->GetPush();
             if (push.OnSendUserMessage)
                 push.OnSendUserMessage(p, sender, vtMessage);
             p->OnSendUserMessage(sender, vtMessage);
+#endif
         }
 
         void WINAPI CClientSocket::OnPostUserMessageEx(USocket_Client_Handle handler, CMessageSender sender, const unsigned char *pMessage, unsigned int size) {
             CClientSocket *p = Seek(handler);
             if (!p)
                 return;
+#ifdef NODE_JS_ADAPTER_PROJECT
+
+#else
             CPushImpl &push = p->GetPush();
             if (push.OnSendUserMessageEx)
                 push.OnSendUserMessageEx(p, sender, pMessage, size);
             p->OnSendUserMessageEx(sender, pMessage, size);
+#endif
         }
 
         void CClientSocket::OnAllRequestsProcessed(unsigned short lastRequestId) {
@@ -1159,6 +1212,9 @@ namespace SPA
             if (p->AllRequestsProcessed)
                 p->AllRequestsProcessed(p, lastRequestId);
             p->OnAllRequestsProcessed(lastRequestId);
+#ifdef NODE_JS_ADAPTER_PROJECT
+
+#endif
         }
 
         void WINAPI CClientSocket::OnBaseRequestProcessed(USocket_Client_Handle handler, unsigned short requestId) {
@@ -1182,6 +1238,9 @@ namespace SPA
             if (p->BaseRequestProcessed)
                 p->BaseRequestProcessed(p, requestId);
             p->OnBaseRequestProcessed(requestId);
+#ifdef NODE_JS_ADAPTER_PROJECT
+
+#endif
         }
 
         void WINAPI CClientSocket::OnServerException(USocket_Client_Handle handler, unsigned short requestId, const wchar_t *errMessage, const char* errWhere, unsigned int errCode) {
@@ -1200,6 +1259,9 @@ namespace SPA
             if (ash)
                 ash->OnSE(requestId, errMessage, errWhere, errCode);
             p->OnExceptionFromServer(requestId, errMessage, errWhere, errCode);
+#ifdef NODE_JS_ADAPTER_PROJECT
+
+#endif
         }
     }//ClientSide
 }//SPA

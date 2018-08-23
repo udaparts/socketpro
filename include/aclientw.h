@@ -13,6 +13,10 @@
 #include <memory>
 #include <functional>
 
+#ifdef NODE_JS_ADAPTER_PROJECT
+#include<uv.h>
+#endif
+
 //this may be used for debug
 #define SET_CLIENT_CALL_INFO(str) SPA::ClientSide::SetLastCallInfo(str, __LINE__, __FUNCTION__)
 
@@ -389,6 +393,9 @@ namespace SPA {
             friend class CSocketPool;
             friend class CAsyncServiceHandler;
             friend class CPushImpl;
+#ifdef NODE_JS_ADAPTER_PROJECT
+			uv_async_t *m_asyncType;
+#endif
         };
 
         class CAsyncServiceHandler {

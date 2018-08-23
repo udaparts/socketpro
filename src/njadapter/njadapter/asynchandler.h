@@ -1,11 +1,9 @@
 #pragma once
 
-#include "../../../include/generalcache.h"
-
 namespace NJA {
 
-	class CAsyncHandler : public CCachedBaseHandler<0> {
+	class CAsyncHandler : public SPA::ClientSide::CCachedBaseHandler<0> {
 	public:
-		CAsyncHandler(CClientSocket *cs = nullptr);
+		CAsyncHandler(SPA::ClientSide::CClientSocket *cs = nullptr);
 	};
 }

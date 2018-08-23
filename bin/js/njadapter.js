@@ -122,11 +122,11 @@ exports.Optimistic={
 	oDiskCommitted : 2
 };
 
-//CS == ClientSide
+//CS == ClientSide namespace
 exports.CS={
-	newPool : function(svsId,defaulDb) {
+	newPool : function(svsId,defaulDb='') {
 		return new SPA.CSocketPool(	svsId, //a required unsigned int service id
-									defaulDb='' //master/slave with real-time update cache
+									defaulDb //master/slave with real-time update cache
 									);
 	},
 	//CC == Connection Context

@@ -2,6 +2,7 @@
 #include "njobjects.h"
 #include "njhandler.h"
 
+
 namespace NJA {
 	using v8::Context;
 
@@ -18,9 +19,9 @@ namespace NJA {
 			break;
 		case SPA::Mysql::sidMysql:
 			if (m_defaultDb.size())
-				Mysql = new CSQLMasterPool<false, CMySQL>(m_defaultDb.c_str(), recvTimeout);
+				Mysql = new CSQLMasterPool<false, CMysql>(m_defaultDb.c_str(), recvTimeout);
 			else
-				Mysql = new CSocketPool<CMySQL>(autoConn, recvTimeout, connTimeout, id);
+				Mysql = new CSocketPool<CMysql>(autoConn, recvTimeout, connTimeout, id);
 			break;
 		case SPA::Odbc::sidOdbc:
 			if (m_defaultDb.size())
@@ -43,6 +44,8 @@ namespace NJA {
 		}
 		::memset(&m_asyncType, 0, sizeof(m_asyncType));
 		m_asyncType.data = this;
+		::memset(&m_csType, 0, sizeof(m_csType));
+		m_csType.data = this;
 	}
 
 	NJSocketPool::~NJSocketPool() {
@@ -89,7 +92,7 @@ namespace NJA {
 		// Prepare constructor template
 		Local<FunctionTemplate> tpl = FunctionTemplate::New(isolate, New);
 		tpl->SetClassName(String::NewFromUtf8(isolate, "CSocketPool"));
-		tpl->InstanceTemplate()->SetInternalFieldCount(12);
+		tpl->InstanceTemplate()->SetInternalFieldCount(15);
 
 		//Prototype
 		NODE_SET_PROTOTYPE_METHOD(tpl, "Dispose", Dispose);
@@ -178,7 +181,9 @@ namespace NJA {
 				int fail = uv_async_send(&obj->m_asyncType);
 				assert(!fail);
 			};
-			int fail = uv_async_init(g_mainloop, &obj->m_asyncType, async_cb);
+			int fail = uv_async_init(uv_default_loop(), &obj->m_asyncType, async_cb);
+			assert(!fail);
+			fail = uv_async_init(uv_default_loop(), &obj->m_csType, async_cs_cb);
 			assert(!fail);
 			args.GetReturnValue().Set(args.This());
 		}
@@ -209,6 +214,10 @@ namespace NJA {
 		if (!obj->Handler) {
 			uv_close((uv_handle_t*)handle, nullptr);
 		}
+	}
+
+	void NJSocketPool::async_cs_cb(uv_async_t* handle) {
+
 	}
 
 	void NJSocketPool::Dispose(const FunctionCallbackInfo<Value>& args) {

@@ -1,12 +1,9 @@
 #pragma once
 
-#include "asynchandler.h"
-#include "njobjects.h"
-
 namespace NJA {
 	class NJHandler : public node::ObjectWrap {
 	public:
-		NJHandler(CAsyncServiceHandler *ash, NJSocketPool *pool);
+		NJHandler(CAsyncServiceHandler *ash);
 		NJHandler(const NJHandler &h)=delete;
 		~NJHandler();
 
@@ -33,6 +30,5 @@ namespace NJA {
 	private:
 		static Persistent<Function> constructor;
 		CAsyncServiceHandler *m_ash;
-		NJSocketPool *m_Pool;
 	};
 }
