@@ -17,7 +17,7 @@ namespace SPA {
         protected:
             //you may use this constructor for extending the class
 
-            CAsyncDBHandler(unsigned int sid, CClientSocket *cs = nullptr)
+            CAsyncDBHandler(unsigned int sid, CClientSocket *cs)
             : CAsyncServiceHandler(sid, cs),
             m_affected(-1), m_dbErrCode(0), m_lastReqId(0),
             m_indexRowset(0), m_indexProc(0), m_ms(msUnknown), m_flags(0),
@@ -27,7 +27,7 @@ namespace SPA {
 
         public:
 
-            CAsyncDBHandler(CClientSocket *cs = nullptr)
+            CAsyncDBHandler(CClientSocket *cs)
             : CAsyncServiceHandler(serviceId, cs),
             m_affected(-1), m_dbErrCode(0), m_lastReqId(0),
             m_indexRowset(0), m_indexProc(0), m_ms(msUnknown), m_flags(0),

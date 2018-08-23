@@ -16,7 +16,7 @@ namespace SPA {
 
         public:
 
-            CCachedBaseHandler(CClientSocket *cs = nullptr)
+            CCachedBaseHandler(CClientSocket *cs)
             : CAsyncServiceHandler(serviceId, cs), m_indexRowset(0), m_ms(UDB::msUnknown) {
                 m_Blob.Utf8ToW(true);
             }

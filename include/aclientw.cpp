@@ -1213,7 +1213,16 @@ namespace SPA
                 p->AllRequestsProcessed(p, lastRequestId);
             p->OnAllRequestsProcessed(lastRequestId);
 #ifdef NODE_JS_ADAPTER_PROJECT
-
+			CUQueue *q = CScopeUQueue::Lock();
+			NJA::SocketEvent se;
+			*q << lastRequestId;
+			se.QData = q;
+			se.Se = NJA::seAll;
+			NJA::NJSocketPool *pool = (NJA::NJSocketPool *)p->m_asyncType->data;
+			CAutoLock al(pool->m_cs);
+			pool->m_deqSocketEvent.push_back(se);
+			int fail = uv_async_send(p->m_asyncType);
+			assert(!fail);
 #endif
         }
 

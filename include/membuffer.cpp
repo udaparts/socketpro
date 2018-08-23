@@ -4,6 +4,13 @@
 
 namespace SPA
 {
+
+	template<unsigned int InitSize, unsigned int BlockSize, typename mb>
+	CUCriticalSection CScopeUQueueEx<InitSize, BlockSize, mb>::m_cs;
+
+	template<unsigned int InitSize, unsigned int BlockSize, typename mb>
+	std::vector<mb*> CScopeUQueueEx<InitSize, BlockSize, mb>::m_aUQueue;
+
     unsigned int SHARED_BUFFER_CLEAN_SIZE = 32 * 1024;
 
     void CUQueue::ChangeArrayInt(void *p, unsigned char sizePerInt, unsigned int count) {

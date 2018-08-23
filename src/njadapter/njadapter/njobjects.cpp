@@ -15,31 +15,31 @@ namespace NJA {
 			if (m_defaultDb.size())
 				Sqlite = new CSQLMasterPool<false, CSqlite>(m_defaultDb.c_str(), recvTimeout);
 			else
-				Sqlite = new CSocketPool<CSqlite>(autoConn, recvTimeout, connTimeout, id);
+				Sqlite = new CSocketPool<CSqlite>(autoConn, recvTimeout, connTimeout);
 			break;
 		case SPA::Mysql::sidMysql:
 			if (m_defaultDb.size())
 				Mysql = new CSQLMasterPool<false, CMysql>(m_defaultDb.c_str(), recvTimeout);
 			else
-				Mysql = new CSocketPool<CMysql>(autoConn, recvTimeout, connTimeout, id);
+				Mysql = new CSocketPool<CMysql>(autoConn, recvTimeout, connTimeout);
 			break;
 		case SPA::Odbc::sidOdbc:
 			if (m_defaultDb.size())
 				Odbc = new CSQLMasterPool<false, COdbc>(m_defaultDb.c_str(), recvTimeout);
 			else
-				Odbc = new CSocketPool<COdbc>(autoConn, recvTimeout, connTimeout, id);
+				Odbc = new CSocketPool<COdbc>(autoConn, recvTimeout, connTimeout);
 			break;
 		case SPA::Queue::sidQueue:
-			Queue = new CSocketPool<CAsyncQueue>(autoConn, recvTimeout, connTimeout, id);
+			Queue = new CSocketPool<CAsyncQueue>(autoConn, recvTimeout, connTimeout);
 			break;
 		case SPA::SFile::sidFile:
-			File = new CSocketPool<CStreamingFile>(autoConn, recvTimeout, connTimeout, id);
+			File = new CSocketPool<CStreamingFile>(autoConn, recvTimeout, connTimeout);
 			break;
 		default:
 			if (m_defaultDb.size())
 				Handler = new CMasterPool<false, CAsyncHandler>(m_defaultDb.c_str(), recvTimeout, id);
 			else
-				Handler = new CSocketPool<CAsyncHandler>(autoConn, recvTimeout, connTimeout, id);
+				Handler = new CSocketPool<CAsyncHandler>(autoConn, recvTimeout, connTimeout);
 			break;
 		}
 		::memset(&m_asyncType, 0, sizeof(m_asyncType));
@@ -171,6 +171,13 @@ namespace NJA {
 				return (obj->m_errSSL == 0); //true -- user id and password will be sent to server
 			};
 			obj->Handler->SocketPoolEvent = [obj](CSocketPool<CAsyncHandler> *pool, tagSocketPoolEvent spe, CAsyncHandler *handler) {
+				switch (spe) {
+				case SPA::ClientSide::speUSocketCreated:
+					handler->GetAttachedClientSocket()->m_asyncType = &obj->m_csType;
+					break;
+				default:
+					break;
+				}
 				SPA::CAutoLock al(obj->m_cs);
 				if (obj->m_evPool.IsEmpty())
 					return;
@@ -217,7 +224,26 @@ namespace NJA {
 	}
 
 	void NJSocketPool::async_cs_cb(uv_async_t* handle) {
-
+		Isolate* isolate = Isolate::GetCurrent();
+		v8::HandleScope handleScope(isolate); //required for Node 4.x
+		NJSocketPool* obj = (NJSocketPool*)handle->data;
+		SPA::CAutoLock al(obj->m_cs);
+		while (obj->m_deqSocketEvent.size()) {
+			const SocketEvent &se = obj->m_deqSocketEvent.front();
+			switch (se.Se)
+			{
+			case seAll:
+				break;
+			case seBaseRequest:
+				break;
+			case seResult:
+				break;
+			default:
+				break;
+			}
+			SPA::CScopeUQueue::Unlock(se.QData);
+			obj->m_deqSocketEvent.pop_front();
+		}
 	}
 
 	void NJSocketPool::Dispose(const FunctionCallbackInfo<Value>& args) {

@@ -4,7 +4,10 @@
 
 #include "udb_client.h"
 #include "masterslavebase.h"
-#include "aserverw.h"
+
+#ifndef NODE_JS_ADAPTER_PROJECT
+#include "aserverw.h" //don't need to distribute server code library if the below template midTier is false, even though the header file is required here
+#endif
 
 namespace SPA {
 
@@ -60,19 +63,22 @@ namespace SPA {
                             assert(groups[0] == UDB::STREAMING_SQL_CHAT_GROUP_ID || groups[0] == UDB::CACHE_UPDATE_CHAT_GROUP_ID);
 
                             if (groups[0] == UDB::CACHE_UPDATE_CHAT_GROUP_ID) {
+#ifndef NODE_JS_ADAPTER_PROJECT
                                 if (midTier) {
                                     UVariant vtMessage;
                                     //notify front clients to re-initialize cache
                                     ServerSide::CSocketProServer::PushManager::Publish(vtMessage, &UDB::CACHE_UPDATE_CHAT_GROUP_ID, 1);
                                 }
+#endif
                                 this->SetInitialCache(asyncSQL);
                                 return;
                             }
+#ifndef NODE_JS_ADAPTER_PROJECT
                             if (midTier) {
                                 //push message onto front clients which may be interested in the message
                                 ServerSide::CSocketProServer::PushManager::Publish(vtMsg, &UDB::STREAMING_SQL_CHAT_GROUP_ID, 1);
                             }
-
+#endif
                             VARIANT *vData;
                             size_t res;
                             //vData[0] == event type; vData[1] == host; vData[2] = database user; vData[3] == db name; vData[4] == table name
@@ -140,11 +146,12 @@ namespace SPA {
                             }
                             ::SafeArrayUnaccessData(vtMsg.parray);
                         };
-
+#ifndef NODE_JS_ADAPTER_PROJECT
                         if (midTier) {
                             UVariant vtMessage;
                             ServerSide::CSocketProServer::PushManager::Publish(vtMessage, &UDB::CACHE_UPDATE_CHAT_GROUP_ID, 1);
                         }
+#endif
                         SetInitialCache(asyncSQL);
                     } else {
                         asyncSQL->Utf8ToW(true);

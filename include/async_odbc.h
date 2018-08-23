@@ -18,7 +18,7 @@ namespace SPA {
 
         public:
 
-            COdbc(CClientSocket *cs = nullptr) : COdbcBase(cs) {
+            COdbc(CClientSocket *cs) : COdbcBase(cs) {
 
             }
 

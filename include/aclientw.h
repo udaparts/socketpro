@@ -14,7 +14,10 @@
 #include <functional>
 
 #ifdef NODE_JS_ADAPTER_PROJECT
-#include<uv.h>
+#include <uv.h>
+namespace NJA {
+	class NJSocketPool;
+}
 #endif
 
 //this may be used for debug
@@ -395,6 +398,7 @@ namespace SPA {
             friend class CPushImpl;
 #ifdef NODE_JS_ADAPTER_PROJECT
 			uv_async_t *m_asyncType;
+			friend class NJA::NJSocketPool;
 #endif
         };
 
@@ -412,7 +416,7 @@ namespace SPA {
             typedef std::function<void(CAsyncServiceHandler *ash, bool canceled) > DDiscarded;
 
         protected:
-            CAsyncServiceHandler(unsigned int nServiceId, CClientSocket *cs = nullptr);
+            CAsyncServiceHandler(unsigned int nServiceId, CClientSocket *cs);
 
         private:
             CAsyncServiceHandler(const CAsyncServiceHandler&);

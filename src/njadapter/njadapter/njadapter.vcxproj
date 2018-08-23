@@ -160,6 +160,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\include\aclientw.h" />
+    <ClInclude Include="..\..\..\include\async_odbc.h" />
     <ClInclude Include="..\..\..\include\generalcache.h" />
     <ClInclude Include="..\..\..\include\masterpool.h" />
     <ClInclude Include="..\..\..\include\membuffer.h" />
@@ -182,7 +183,6 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\..\..\include\aserverw.cpp" />
     <ClCompile Include="..\..\..\include\membuffer.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
