@@ -7,11 +7,11 @@ namespace NJA {
 	using SPA::CScopeUQueue;
 	Persistent<Function> NJQueue::constructor;
 
-	NJQueue::NJQueue(unsigned int initialSize, unsigned int blockSize)
-		: m_initSize(initialSize), m_blockSize(blockSize),
-		m_Buffer(CScopeUQueue::Lock(SPA::GetOS(), SPA::IsBigEndian(), initialSize, blockSize)) {
+	NJQueue::NJQueue(CUQueue *buffer, unsigned int initialSize, unsigned int blockSize) : m_Buffer(buffer), m_initSize(initialSize), m_blockSize(blockSize) {
 #ifndef WIN32
-		m_Buffer->ToUtf8(true);
+		if (m_Buffer) {
+			m_Buffer->ToUtf8(true);
+		}
 #endif
 	}
 
@@ -21,7 +21,6 @@ namespace NJA {
 
 	void NJQueue::Release() {
 		CScopeUQueue::Unlock(m_Buffer);
-		m_Buffer = nullptr;
 	}
 
 	void NJQueue::Ensure() {
@@ -988,18 +987,35 @@ namespace NJA {
 		obj->Release();
 	}
 
+	Local<Object> NJQueue::New(Isolate* isolate, PUQueue &q) {
+		SPA::UINT64 ptr = (SPA::UINT64)q;
+		Local<Value> argv[] = {Boolean::New(isolate, true), Number::New(isolate, (double)SECRECT_NUM), Number::New(isolate, (double)ptr)};
+		Local<Context> context = isolate->GetCurrentContext();
+		Local<Function> cons = Local<Function>::New(isolate, constructor);
+		q = nullptr;
+		return cons->NewInstance(context, 3, argv).ToLocalChecked();
+	}
+
 	void NJQueue::New(const FunctionCallbackInfo<Value>& args) {
 		if (args.IsConstructCall()) {
+			NJQueue* obj;
 			unsigned int initSize = SPA::DEFAULT_INITIAL_MEMORY_BUFFER_SIZE;
 			unsigned int blockSize = SPA::DEFAULT_MEMORY_BUFFER_BLOCK_SIZE;
-			if (args.Length() > 0 && args[0]->IsUint32()) {
-				initSize = args[0]->Uint32Value();
+			if (args[0]->IsBoolean() && args[0]->BooleanValue() && args[1]->IsNumber() && args[1]->IntegerValue() == SECRECT_NUM && args[2]->IsNumber()) {
+				SPA::INT64 ptr = args[2]->IntegerValue();
+				// Invoked as constructor: `new CUQueue(...)`
+				obj = new NJQueue((CUQueue*)ptr, initSize, blockSize);
 			}
-			if (args.Length() > 1 && args[1]->IsUint32()) {
-				blockSize = args[1]->Uint32Value();
+			else {
+				if (args.Length() > 0 && args[0]->IsUint32()) {
+					initSize = args[0]->Uint32Value();
+				}
+				if (args.Length() > 1 && args[1]->IsUint32()) {
+					blockSize = args[1]->Uint32Value();
+				}
+				// Invoked as constructor: `new CUQueue(...)`
+				obj = new NJQueue(nullptr, initSize, blockSize);
 			}
-			// Invoked as constructor: `new CUQueue(...)`
-			NJQueue* obj = new NJQueue(initSize, blockSize);
 			obj->Wrap(args.This());
 			args.GetReturnValue().Set(args.This());
 		}

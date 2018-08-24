@@ -49,7 +49,7 @@ exports.ChatID={
 };
 
 //Service IDs
-exports.BaseSID={
+exports.SID={
 	sidReserved1:1,
 	sidStartup:256,
 	sidChat:257,
@@ -58,8 +58,8 @@ exports.BaseSID={
 	sidFile:259,
 	sidOdbc:260,
 	sidReserved:0x10000000,
-	sidSqlite:(0x10000000+0x6FFFFFF0),
-    sidMysql:(0x10000000+0x6FFFFFF1)
+	sidSqlite:2147483632,
+    sidMysql:2147483633
 };
 
 //EM == EncryptionMethod

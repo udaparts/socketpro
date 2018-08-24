@@ -1409,6 +1409,8 @@ namespace SPA {
             friend class CSocketPool; // unbound friend class
         };
 
+		typedef CAsyncServiceHandler* PAsyncServiceHandler;
+
         template<typename THandler, typename TCS = CClientSocket>
         class CSocketPool {
             const static unsigned int DEFAULT_QUEUE_TIME_TO_LIVE = 240 * 3600; //10 days

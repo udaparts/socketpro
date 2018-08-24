@@ -52,6 +52,7 @@ namespace NJA {
 	using v8::Date;
 	using v8::Array;
 	using v8::FunctionCallback;
+	using v8::HandleScope;
 
 	using node::AtExit;
 

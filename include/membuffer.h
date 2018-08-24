@@ -1193,6 +1193,7 @@ namespace SPA {
         bool m_TimeEx;
 #endif
     };
+	typedef CUQueue* PUQueue;
 
     /**
      * Shared and reusable buffer size in kilobytes
@@ -1458,7 +1459,7 @@ namespace SPA {
          * Recycle a memory buffer object into pool for reuse
          * @param memoryChunk A pointer to a memory buffer object
          */
-        static void Unlock(mb *memoryChunk) {
+        static void Unlock(PMB &memoryChunk) {
             if (!memoryChunk) {
                 return;
             }
@@ -1466,6 +1467,7 @@ namespace SPA {
             m_cs.lock();
             m_aUQueue.push_back(memoryChunk);
             m_cs.unlock();
+			memoryChunk = nullptr;
         }
 
         /**

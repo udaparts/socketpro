@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "njobjects.h"
 #include "njhandler.h"
-
+#include "njqueue.h"
 
 namespace NJA {
 	using v8::Context;
@@ -123,6 +123,8 @@ namespace NJA {
 		NODE_SET_PROTOTYPE_METHOD(tpl, "StartPool", StartSocketPool);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "Unlock", Unlock);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "setPoolEvent", setPoolEvent);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "setReturned", setResultReturned);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "setAllProcessed", setAllProcessed);
 
 		constructor.Reset(isolate, tpl->GetFunction());
 		exports->Set(String::NewFromUtf8(isolate, "CSocketPool"), tpl->GetFunction());
@@ -206,7 +208,7 @@ namespace NJA {
 
 	void NJSocketPool::async_cb(uv_async_t* handle) {
 		Isolate* isolate = Isolate::GetCurrent();
-		v8::HandleScope handleScope(isolate); //required for Node 4.x
+		HandleScope handleScope(isolate); //required for Node 4.x
 		NJSocketPool* obj = (NJSocketPool*)handle->data;
 		SPA::CAutoLock al(obj->m_cs);
 		while (obj->m_deqPoolEvent.size()) {
@@ -224,26 +226,58 @@ namespace NJA {
 	}
 
 	void NJSocketPool::async_cs_cb(uv_async_t* handle) {
-		Isolate* isolate = Isolate::GetCurrent();
-		v8::HandleScope handleScope(isolate); //required for Node 4.x
+		unsigned short reqId;
+		unsigned int sid;
 		NJSocketPool* obj = (NJSocketPool*)handle->data;
+		assert(obj);
+		if (!obj)
+			return;
+		Isolate* isolate = Isolate::GetCurrent();
+		HandleScope handleScope(isolate); //required for Node 4.x or later
 		SPA::CAutoLock al(obj->m_cs);
 		while (obj->m_deqSocketEvent.size()) {
-			const SocketEvent &se = obj->m_deqSocketEvent.front();
-			switch (se.Se)
-			{
-			case seAllProcessed:
-				break;
-			case seBaseRequestProcessed:
-				break;
-			case seResultReturned:
-				break;
-			case seServerException:
-				break;
-			default:
-				break;
+			SocketEvent se = obj->m_deqSocketEvent.front();
+			SPA::ClientSide::PAsyncServiceHandler ash;
+			*se.QData >> ash >> reqId;
+			assert(ash);
+			assert(reqId);
+			Local<Value> jsReqId = Uint32::New(isolate, reqId);
+			if (ash) {
+				sid = ash->GetSvsID();
+				switch (se.Se) {
+				case seAllProcessed:
+					if (!obj->m_ap.IsEmpty()) {
+						Local<Function> cb = Local<Function>::New(isolate, obj->m_ap);
+						cb->Call(Null(isolate), 1, &jsReqId);
+					}
+					break;
+				case seBaseRequestProcessed:
+					if (!obj->m_brp.IsEmpty()) {
+						Local<Function> cb = Local<Function>::New(isolate, obj->m_brp);
+						cb->Call(Null(isolate), 1, &jsReqId);
+					}
+					break;
+				case seResultReturned:
+					if (!obj->m_rr.IsEmpty()) {
+						Local<Function> cb = Local<Function>::New(isolate, obj->m_rr);
+						if (se.QData->GetSize()) {
+							Local<Value> argv[2];
+							argv[0] = jsReqId;
+							argv[1] = NJQueue::New(isolate, se.QData);
+							cb->Call(Null(isolate), 2, argv);
+						}
+						else {
+							cb->Call(Null(isolate), 1, &jsReqId);
+						}
+					}
+					break;
+				case seServerException:
+					break;
+				default:
+					break;
+				}
 			}
-			SPA::CScopeUQueue::Unlock(se.QData);
+			CScopeUQueue::Unlock(se.QData);
 			obj->m_deqSocketEvent.pop_front();
 		}
 	}
@@ -627,6 +661,44 @@ namespace NJA {
 			}
 			else {
 				isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "A callback expected for tracking pool event")));
+			}
+		}
+	}
+
+	void NJSocketPool::setResultReturned(const FunctionCallbackInfo<Value>& args) {
+		Isolate* isolate = args.GetIsolate();
+		NJSocketPool* obj = ObjectWrap::Unwrap<NJSocketPool>(args.Holder());
+		if (obj->IsValid(isolate)) {
+			auto p = args[0];
+			if (p->IsFunction()) {
+				SPA::CAutoLock al(obj->m_cs);
+				obj->m_rr.Reset(isolate, Local<Function>::Cast(p));
+			}
+			else if (p->IsNullOrUndefined()) {
+				SPA::CAutoLock al(obj->m_cs);
+				obj->m_rr.Empty();
+			}
+			else {
+				isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "A callback expected for tracking request returned result")));
+			}
+		}
+	}
+
+	void NJSocketPool::setAllProcessed(const FunctionCallbackInfo<Value>& args) {
+		Isolate* isolate = args.GetIsolate();
+		NJSocketPool* obj = ObjectWrap::Unwrap<NJSocketPool>(args.Holder());
+		if (obj->IsValid(isolate)) {
+			auto p = args[0];
+			if (p->IsFunction()) {
+				SPA::CAutoLock al(obj->m_cs);
+				obj->m_ap.Reset(isolate, Local<Function>::Cast(p));
+			}
+			else if (p->IsNullOrUndefined()) {
+				SPA::CAutoLock al(obj->m_cs);
+				obj->m_ap.Empty();
+			}
+			else {
+				isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "A callback expected for tracking event that all requests are processed")));
 			}
 		}
 	}

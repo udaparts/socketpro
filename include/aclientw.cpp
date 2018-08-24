@@ -1088,7 +1088,7 @@ namespace SPA
                     const unsigned char *result = ClientCoreLoader.GetResultBuffer(p->m_hSocket);
                     q.Push(result, len);
                 }
-                CAsyncServiceHandler *ash = p->Seek(p->m_nCurrSvsId);
+				PAsyncServiceHandler ash = p->Seek(p->m_nCurrSvsId);
                 if (ash)
                     ash->OnRR(requestId, q);
                 if (p->RequestProcessed)
@@ -1103,7 +1103,7 @@ namespace SPA
 				if (pool->m_ap.IsEmpty())
 					return;
 				CUQueue *q2 = CScopeUQueue::Lock();
-				*q2 << ash << requestId << q.GetSize();
+				*q2 << ash << requestId;
 				q2->Push(q.GetBuffer(), q.GetSize());
 				se.QData = q2;
 				se.Se = NJA::seResultReturned;
@@ -1220,7 +1220,7 @@ namespace SPA
             CClientSocket *p = Seek(handler);
             if (!p)
                 return;
-            CAsyncServiceHandler *ash = p->Seek(ClientCoreLoader.GetCurrentServiceId(handler));
+			PAsyncServiceHandler ash = p->Seek(ClientCoreLoader.GetCurrentServiceId(handler));
             if (ash)
                 ash->OnAllProcessed();
             if (p->AllRequestsProcessed)
@@ -1254,7 +1254,7 @@ namespace SPA
                 p->m_nCurrSvsId = ClientCoreLoader.GetCurrentServiceId(handler);
                 p->m_routing = ClientCoreLoader.IsRouting(handler);
             }
-            CAsyncServiceHandler *ash = p->Seek(ClientCoreLoader.GetCurrentServiceId(handler));
+			PAsyncServiceHandler ash = p->Seek(ClientCoreLoader.GetCurrentServiceId(handler));
             if (ash) {
                 if (ash->BaseRequestProcessed)
                     ash->BaseRequestProcessed(ash, requestId);
@@ -1295,7 +1295,7 @@ namespace SPA
                 p->ExceptionFromServer(p, requestId, errMessage, errWhere, errCode);
 #endif
             }
-            CAsyncServiceHandler *ash = p->Seek(ClientCoreLoader.GetCurrentServiceId(handler));
+			PAsyncServiceHandler ash = p->Seek(ClientCoreLoader.GetCurrentServiceId(handler));
             if (ash)
                 ash->OnSE(requestId, errMessage, errWhere, errCode);
             p->OnExceptionFromServer(requestId, errMessage, errWhere, errCode);

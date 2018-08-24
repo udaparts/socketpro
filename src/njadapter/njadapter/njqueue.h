@@ -4,7 +4,7 @@ namespace NJA {
 	using SPA::CUQueue;
 	class NJQueue : public node::ObjectWrap {
 	public:
-		NJQueue(unsigned int initialSize, unsigned int blockSize);
+		NJQueue(CUQueue *buffer, unsigned int initialSize, unsigned int blockSize);
 		~NJQueue();
 
 	public:
@@ -12,9 +12,11 @@ namespace NJA {
 			return m_Buffer;
 		}
 		static void Init(Local<Object> exports);
+		static Local<Object> New(Isolate* isolate, PUQueue &q);
+		void Release();
 
 	private:
-		void Release();
+		static const SPA::INT64 SECRECT_NUM = 0x7ff12ff345ff12;
 		void Ensure();
 		unsigned int Load(Isolate* isolate, SPA::UDB::CDBVariant &vt);
 		static Local<Value> ToDate(Isolate* isolate, SPA::UINT64 dt);
@@ -94,9 +96,9 @@ namespace NJA {
 		static void SaveObject(const FunctionCallbackInfo<Value>& args);
 
 	private:
+		CUQueue *m_Buffer;
 		unsigned int m_initSize;
 		unsigned int m_blockSize;
-		CUQueue *m_Buffer;
 	};
 
 }

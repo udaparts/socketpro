@@ -81,6 +81,8 @@ namespace NJA {
 		static void async_cb(uv_async_t* handle);
 		static bool To(Isolate* isolate, const Local<Object>& obj, SPA::ClientSide::CConnectionContext &cc);
 		static void async_cs_cb(uv_async_t* handle);
+		static void setResultReturned(const FunctionCallbackInfo<Value>& args);
+		static void setAllProcessed(const FunctionCallbackInfo<Value>& args);
 
 	private:
 		unsigned int SvsId;
