@@ -232,11 +232,13 @@ namespace NJA {
 			const SocketEvent &se = obj->m_deqSocketEvent.front();
 			switch (se.Se)
 			{
-			case seAll:
+			case seAllProcessed:
 				break;
-			case seBaseRequest:
+			case seBaseRequestProcessed:
 				break;
-			case seResult:
+			case seResultReturned:
+				break;
+			case seServerException:
 				break;
 			default:
 				break;

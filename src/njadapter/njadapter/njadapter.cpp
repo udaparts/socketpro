@@ -14,7 +14,6 @@ namespace NJA {
 		NJQueue::Init(exports);
 		NJSocketPool::Init(exports);
 		NJHandler::Init(exports);
-		SPA::CScopeUQueue sb;
 	}
 	NODE_MODULE(NODE_GYP_MODULE_NAME, InitAll)
 }

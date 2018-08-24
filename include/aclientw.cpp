@@ -1095,7 +1095,21 @@ namespace SPA
                     p->RequestProcessed(p, requestId, q);
                 p->OnRequestProcessed(requestId, q);
 #ifdef NODE_JS_ADAPTER_PROJECT
-
+				NJA::NJSocketPool *pool = (NJA::NJSocketPool *)p->m_asyncType->data;
+				if (!pool)
+					return;
+				NJA::SocketEvent se;
+				CAutoLock al(pool->m_cs);
+				if (pool->m_ap.IsEmpty())
+					return;
+				CUQueue *q2 = CScopeUQueue::Lock();
+				*q2 << ash << requestId << q.GetSize();
+				q2->Push(q.GetBuffer(), q.GetSize());
+				se.QData = q2;
+				se.Se = NJA::seResultReturned;
+				pool->m_deqSocketEvent.push_back(se);
+				int fail = uv_async_send(p->m_asyncType);
+				assert(!fail);
 #endif
             }
         }
@@ -1213,13 +1227,17 @@ namespace SPA
                 p->AllRequestsProcessed(p, lastRequestId);
             p->OnAllRequestsProcessed(lastRequestId);
 #ifdef NODE_JS_ADAPTER_PROJECT
-			CUQueue *q = CScopeUQueue::Lock();
-			NJA::SocketEvent se;
-			*q << lastRequestId;
-			se.QData = q;
-			se.Se = NJA::seAll;
 			NJA::NJSocketPool *pool = (NJA::NJSocketPool *)p->m_asyncType->data;
+			if (!pool)
+				return;
+			NJA::SocketEvent se;
 			CAutoLock al(pool->m_cs);
+			if (pool->m_ap.IsEmpty())
+				return;
+			CUQueue *q = CScopeUQueue::Lock();
+			*q << ash << lastRequestId;
+			se.QData = q;
+			se.Se = NJA::seAllProcessed;
 			pool->m_deqSocketEvent.push_back(se);
 			int fail = uv_async_send(p->m_asyncType);
 			assert(!fail);
@@ -1248,7 +1266,20 @@ namespace SPA
                 p->BaseRequestProcessed(p, requestId);
             p->OnBaseRequestProcessed(requestId);
 #ifdef NODE_JS_ADAPTER_PROJECT
-
+			NJA::NJSocketPool *pool = (NJA::NJSocketPool *)p->m_asyncType->data;
+			if (!pool)
+				return;
+			NJA::SocketEvent se;
+			CAutoLock al(pool->m_cs);
+			if (pool->m_brp.IsEmpty())
+				return;
+			CUQueue *q = CScopeUQueue::Lock();
+			*q << ash << requestId;
+			se.QData = q;
+			se.Se = NJA::seBaseRequestProcessed;
+			pool->m_deqSocketEvent.push_back(se);
+			int fail = uv_async_send(p->m_asyncType);
+			assert(!fail);
 #endif
         }
 
@@ -1269,7 +1300,20 @@ namespace SPA
                 ash->OnSE(requestId, errMessage, errWhere, errCode);
             p->OnExceptionFromServer(requestId, errMessage, errWhere, errCode);
 #ifdef NODE_JS_ADAPTER_PROJECT
-
+			NJA::NJSocketPool *pool = (NJA::NJSocketPool *)p->m_asyncType->data;
+			if (!pool)
+				return;
+			NJA::SocketEvent se;
+			CAutoLock al(pool->m_cs);
+			if (pool->m_brp.IsEmpty())
+				return;
+			CUQueue *q = CScopeUQueue::Lock();
+			*q << ash << requestId << errMessage << errWhere << errCode;
+			se.QData = q;
+			se.Se = NJA::seServerException;
+			pool->m_deqSocketEvent.push_back(se);
+			int fail = uv_async_send(p->m_asyncType);
+			assert(!fail);
 #endif
         }
     }//ClientSide

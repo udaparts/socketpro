@@ -7,10 +7,16 @@
 namespace NJA {
 
 	enum tagSocketEvent {
-		seAll = 0,
-		seResult,
-		seBaseRequest
-
+		seAllProcessed = 0,
+		seResultReturned,
+		seBaseRequestProcessed,
+		seServerException,
+		seChatEnter,
+		seChatExit,
+		sePublish,
+		sePublishEx,
+		sePostUserMessage,
+		sePostUserMessageEx,
 	};
 
 	struct SocketEvent {
