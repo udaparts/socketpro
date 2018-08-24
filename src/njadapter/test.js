@@ -9,8 +9,13 @@ p.setReturned((reqId, q)=>{
 p.setAllProcessed((reqId)=>{
 	console.log(reqId);
 });
-
 p.StartPool([cs.newCC('localhost',20902,'root','Smash123'),cs.newCC('localhost',20902,'root','Smash123')],3);
+
+var file = p.Seek();
+file.getSvsId();
+file.getFilesQueued();
+file.getFileSize();
+
 var func = function(spe) {
 	console.log(spe);
 };

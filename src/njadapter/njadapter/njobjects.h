@@ -42,7 +42,7 @@ namespace NJA {
 		};
 
 		void Release();
-		
+
 		static void New(const FunctionCallbackInfo<Value>& args);
 		static Persistent<Function> constructor;
 
@@ -106,7 +106,7 @@ namespace NJA {
 
 		uv_async_t m_csType;
 		std::deque<SocketEvent> m_deqSocketEvent; //Protected by m_cs;
-		
+
 		int m_errSSL;
 		std::string m_errMsg;
 		std::wstring m_defaultDb;

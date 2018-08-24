@@ -3,6 +3,7 @@
 #include "njobjects.h"
 #include "njqueue.h"
 #include "njhandler.h"
+#include "njfile.h"
 
 namespace NJA {
 	void Destroy(const FunctionCallbackInfo<Value>& args) {
@@ -14,6 +15,7 @@ namespace NJA {
 		NJQueue::Init(exports);
 		NJSocketPool::Init(exports);
 		NJHandler::Init(exports);
+		NJFile::Init(exports);
 	}
 	NODE_MODULE(NODE_GYP_MODULE_NAME, InitAll)
 }

@@ -26,6 +26,8 @@
 #include "../../../include/rdbcache.h"
 #include "../../../include/masterpool.h"
 
+#include <deque>
+
 
 namespace NJA {
 	using v8::Function;
@@ -55,6 +57,12 @@ namespace NJA {
 	using v8::HandleScope;
 
 	using node::AtExit;
+
+	struct ReqCb {
+		Persistent<Function> Result;
+		Persistent<Function> Discard;
+		Persistent<Function> Exception;
+	};
 
 	using namespace SPA;
 	using namespace SPA::ClientSide;

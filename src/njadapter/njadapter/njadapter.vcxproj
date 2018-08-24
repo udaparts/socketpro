@@ -165,11 +165,14 @@
     <ClInclude Include="..\..\..\include\masterpool.h" />
     <ClInclude Include="..\..\..\include\membuffer.h" />
     <ClInclude Include="..\..\..\include\rdbcache.h" />
+    <ClInclude Include="..\..\..\include\streamingfile.h" />
     <ClInclude Include="..\..\..\include\tablecache.h" />
     <ClInclude Include="..\..\..\include\udb_client.h" />
     <ClInclude Include="..\include\node.h" />
     <ClInclude Include="asynchandler.h" />
+    <ClInclude Include="njfile.h" />
     <ClInclude Include="njhandler.h" />
+    <ClInclude Include="njhandlerroot.h" />
     <ClInclude Include="njobjects.h" />
     <ClInclude Include="njqueue.h" />
     <ClInclude Include="spincludes.h" />
@@ -202,7 +205,9 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="njfile.cpp" />
     <ClCompile Include="njhandler.cpp" />
+    <ClCompile Include="njhandlerroot.cpp" />
     <ClCompile Include="njobjects.cpp" />
     <ClCompile Include="njqueue.cpp" />
     <ClCompile Include="stdafx.cpp">

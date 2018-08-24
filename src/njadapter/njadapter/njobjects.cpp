@@ -2,6 +2,7 @@
 #include "njobjects.h"
 #include "njhandler.h"
 #include "njqueue.h"
+#include "njfile.h"
 
 namespace NJA {
 	using v8::Context;
@@ -9,7 +10,7 @@ namespace NJA {
 	Persistent<Function> NJSocketPool::constructor;
 
 	NJSocketPool::NJSocketPool(const wchar_t* defaultDb, unsigned int id, bool autoConn, unsigned int recvTimeout, unsigned int connTimeout)
-	: SvsId(id), m_errSSL(0), m_defaultDb(defaultDb ? defaultDb : L"") {
+		: SvsId(id), m_errSSL(0), m_defaultDb(defaultDb ? defaultDb : L"") {
 		switch (id) {
 		case SPA::Sqlite::sidSqlite:
 			if (m_defaultDb.size())
@@ -198,7 +199,7 @@ namespace NJA {
 		}
 		else {
 			// Invoked as plain function `NJSocketPool(...)`, turn into construct call.
-			Local<Value> argv[] = {args[0],args[1]};
+			Local<Value> argv[] = { args[0],args[1] };
 			Local<Context> context = isolate->GetCurrentContext();
 			Local<Function> cons = Local<Function>::New(isolate, constructor);
 			Local<Object> result = cons->NewInstance(context, 2, argv).ToLocalChecked();
@@ -210,11 +211,14 @@ namespace NJA {
 		Isolate* isolate = Isolate::GetCurrent();
 		HandleScope handleScope(isolate); //required for Node 4.x
 		NJSocketPool* obj = (NJSocketPool*)handle->data;
+		assert(obj);
+		if (!obj)
+			return;
 		SPA::CAutoLock al(obj->m_cs);
 		while (obj->m_deqPoolEvent.size()) {
 			const PoolEvent &pe = obj->m_deqPoolEvent.front();
 			if (!obj->m_evPool.IsEmpty()) {
-				Local<Value> argv[] = {Int32::New(isolate, pe.Spe)};
+				Local<Value> argv[] = { Int32::New(isolate, pe.Spe) };
 				Local<Function> cb = Local<Function>::New(isolate, obj->m_evPool);
 				cb->Call(Null(isolate), 1, argv);
 			}
@@ -279,6 +283,9 @@ namespace NJA {
 			}
 			CScopeUQueue::Unlock(se.QData);
 			obj->m_deqSocketEvent.pop_front();
+		}
+		if (!obj->Handler) {
+			uv_close((uv_handle_t*)handle, nullptr);
 		}
 	}
 
@@ -439,7 +446,7 @@ namespace NJA {
 		Isolate* isolate = args.GetIsolate();
 		NJSocketPool* obj = ObjectWrap::Unwrap<NJSocketPool>(args.Holder());
 		if (obj->IsValid(isolate)) {
-			
+
 		}
 	}
 
@@ -474,21 +481,128 @@ namespace NJA {
 		Isolate* isolate = args.GetIsolate();
 		NJSocketPool* obj = ObjectWrap::Unwrap<NJSocketPool>(args.Holder());
 		if (obj->IsValid(isolate)) {
-
+			unsigned int timeout = (~0);
+			if (args[0]->IsNumber()) {
+				timeout = args[0]->Uint32Value();
+			}
+			switch (obj->SvsId) {
+			case SPA::Queue::sidQueue:
+				break;
+			case SPA::Odbc::sidOdbc:
+				break;
+			case SPA::Sqlite::sidSqlite:
+				break;
+			case SPA::Mysql::sidMysql:
+				break;
+			case SPA::SFile::sidFile:
+			{
+				auto p = obj->File->Lock(timeout);
+				args.GetReturnValue().Set(NJFile::New(isolate, p.get(), true));
+			}
+				break;
+			default:
+			{
+				auto p = obj->Handler->Lock(timeout);
+				args.GetReturnValue().Set(NJHandler::New(isolate, p.get(), true));
+			}
+				break;
+			}
 		}
 	}
 	void NJSocketPool::Seek(const FunctionCallbackInfo<Value>& args) {
 		Isolate* isolate = args.GetIsolate();
 		NJSocketPool* obj = ObjectWrap::Unwrap<NJSocketPool>(args.Holder());
 		if (obj->IsValid(isolate)) {
-
+			switch (obj->SvsId) {
+			case SPA::Queue::sidQueue:
+				break;
+			case SPA::Odbc::sidOdbc:
+				break;
+			case SPA::Sqlite::sidSqlite:
+				break;
+			case SPA::Mysql::sidMysql:
+				break;
+			case SPA::SFile::sidFile:
+			{
+				auto p = obj->File->Seek();
+				if (p)
+					args.GetReturnValue().Set(NJFile::New(isolate, p.get(), true));
+			}
+			break;
+			default:
+			{
+				auto p = obj->Handler->Seek();
+				if (p)
+					args.GetReturnValue().Set(NJHandler::New(isolate, p.get(), true));
+			}
+			break;
+			}
 		}
 	}
 	void NJSocketPool::SeekByQueue(const FunctionCallbackInfo<Value>& args) {
 		Isolate* isolate = args.GetIsolate();
 		NJSocketPool* obj = ObjectWrap::Unwrap<NJSocketPool>(args.Holder());
 		if (obj->IsValid(isolate)) {
-
+			auto p = args[0];
+			if (p->IsNullOrUndefined()) {
+				switch (obj->SvsId) {
+				case SPA::Queue::sidQueue:
+					break;
+				case SPA::Odbc::sidOdbc:
+					break;
+				case SPA::Sqlite::sidSqlite:
+					break;
+				case SPA::Mysql::sidMysql:
+					break;
+				case SPA::SFile::sidFile:
+				{
+					auto p = obj->File->SeekByQueue();
+					if (p)
+						args.GetReturnValue().Set(NJFile::New(isolate, p.get(), true));
+				}
+				break;
+				default:
+				{
+					auto p = obj->Handler->SeekByQueue();
+					if (p)
+						args.GetReturnValue().Set(NJHandler::New(isolate, p.get(), true));
+				}
+				break;
+				}
+			}
+			else if (p->IsString()) {
+				std::string qname;
+				String::Utf8Value str(p);
+				qname = *str;
+				switch (obj->SvsId) {
+				case SPA::Queue::sidQueue:
+					break;
+				case SPA::Odbc::sidOdbc:
+					break;
+				case SPA::Sqlite::sidSqlite:
+					break;
+				case SPA::Mysql::sidMysql:
+					break;
+				case SPA::SFile::sidFile:
+				{
+					auto p = obj->File->SeekByQueue(qname);
+					if (p)
+						args.GetReturnValue().Set(NJFile::New(isolate, p.get(), true));
+				}
+				break;
+				default:
+				{
+					auto p = obj->Handler->SeekByQueue(qname);
+					if (p)
+						args.GetReturnValue().Set(NJHandler::New(isolate, p.get(), true));
+				}
+				break;
+				}
+			}
+			else {
+				isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "A string, undefined or null expected")));
+				return;
+			}
 		}
 	}
 	void NJSocketPool::ShutdownPool(const FunctionCallbackInfo<Value>& args) {
@@ -499,7 +613,7 @@ namespace NJA {
 		}
 	}
 
-	bool NJSocketPool::To(Isolate* isolate, const Local<Object> &obj, SPA::ClientSide::CConnectionContext &cc) 		{
+	bool NJSocketPool::To(Isolate* isolate, const Local<Object> &obj, SPA::ClientSide::CConnectionContext &cc) {
 		Local<Array> props = obj->GetPropertyNames();
 		if (props->Length() != 8) {
 			isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Invalid connection context")));
@@ -562,7 +676,7 @@ namespace NJA {
 			return false;
 		}
 		cc.V6 = v->BooleanValue();
-		
+
 		//v = obj->Get(props->Get(7)); //ignored at now
 
 		return true;

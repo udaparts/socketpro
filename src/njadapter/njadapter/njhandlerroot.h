@@ -1,21 +1,18 @@
 #pragma once
 
-#include "njhandlerroot.h"
-
 namespace NJA {
-	class NJHandler : public NJHandlerRoot {
+	class NJHandlerRoot : public node::ObjectWrap {
 	public:
-		NJHandler(CAsyncServiceHandler *ash);
-		NJHandler(const NJHandler &h)=delete;
+		NJHandlerRoot(CAsyncServiceHandler *ash);
+		~NJHandlerRoot();
 
-	public:
-		NJHandler& operator=(const NJHandler &h)=delete;
-		static void Init(Local<Object> exports);
-		static Local<Object> New(Isolate* isolate, CAsyncServiceHandler *ash, bool setCb);
-		
-	private:
-		static const SPA::INT64 SECRECT_NUM = 0x7fa12ff345fb12;
-		static void New(const FunctionCallbackInfo<Value>& args);
+	protected:
+		bool IsValid(Isolate* isolate);
+		void Release();
+		void SetCb();
+
+		static void Init(Local<Object> exports, Local<FunctionTemplate> &tpl);
+		static void req_cb(uv_async_t* handle);
 
 		static void getSvsId(const FunctionCallbackInfo<Value>& args);
 		static void AbortBatching(const FunctionCallbackInfo<Value>& args);
@@ -31,8 +28,12 @@ namespace NJA {
 		static void SendRequest(const FunctionCallbackInfo<Value>& args);
 		static void Dispose(const FunctionCallbackInfo<Value>& args);
 
-		
+	protected:
+		static SPA::CUCriticalSection m_cs;
+
 	private:
-		static Persistent<Function> constructor;
+		CAsyncServiceHandler *m_ash;
+		std::deque<ReqCb> m_deqReqCb; //protected by m_cs
+		uv_async_t m_typeReq; //protected by m_cs
 	};
 }

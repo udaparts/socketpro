@@ -63,6 +63,15 @@
     <ClInclude Include="..\..\..\include\async_odbc.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\include\streamingfile.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="njfile.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="njhandlerroot.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -90,6 +99,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="njhandler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="njfile.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="njhandlerroot.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

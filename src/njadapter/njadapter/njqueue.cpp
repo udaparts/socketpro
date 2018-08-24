@@ -43,6 +43,7 @@ namespace NJA {
 		// Prototype
 		NODE_SET_PROTOTYPE_METHOD(tpl, "Discard", Discard);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "Empty", Empty);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "Dispose", Empty);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getSize", getSize);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "setSize", setSize);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getOS", getOS);
@@ -573,7 +574,7 @@ namespace NJA {
 			obj->Ensure();
 			auto p = args[0];
 			if (p->IsNullOrUndefined()) {
-				*obj->m_Buffer << (const wchar_t *)nullptr;
+				*obj->m_Buffer << (const char*)nullptr;
 			}
 			else {
 				String::Utf8Value str(p->IsString() ? p : p->ToString());
