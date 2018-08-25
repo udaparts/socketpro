@@ -5,9 +5,8 @@
 namespace NJA {
 
 	Persistent<Function> NJFile::constructor;
-	SPA::CUCriticalSection NJFile::m_cs;
 
-	NJFile::NJFile(CStreamingFile *file) : m_ash(file) {
+	NJFile::NJFile(CStreamingFile *file) : NJHandlerRoot(file), m_file(file) {
 		assert(file);
 		::memset(&m_typeFile, 0, sizeof(m_typeFile));
 	}
@@ -17,11 +16,11 @@ namespace NJA {
 	}
 
 	bool NJFile::IsValid(Isolate* isolate) {
-		if (!m_ash) {
+		if (!m_file) {
 			isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "File handler disposed")));
 			return false;
 		}
-		return true;
+		return NJHandlerRoot::IsValid(isolate);
 	}
 
 	void NJFile::Init(Local<Object> exports) {
@@ -30,20 +29,9 @@ namespace NJA {
 		// Prepare constructor template
 		Local<FunctionTemplate> tpl = FunctionTemplate::New(isolate, New);
 		tpl->SetClassName(String::NewFromUtf8(isolate, "CAsyncFile"));
-		tpl->InstanceTemplate()->SetInternalFieldCount(6);
+		tpl->InstanceTemplate()->SetInternalFieldCount(4);
 
-		NODE_SET_PROTOTYPE_METHOD(tpl, "getSvsId", getSvsId);
-		NODE_SET_PROTOTYPE_METHOD(tpl, "AbortBatching", AbortBatching);
-		NODE_SET_PROTOTYPE_METHOD(tpl, "AbortDequeuedMessage", AbortDequeuedMessage);
-		NODE_SET_PROTOTYPE_METHOD(tpl, "CleanCallbacks", CleanCallbacks);
-		NODE_SET_PROTOTYPE_METHOD(tpl, "CommitBatching", CommitBatching);
-		NODE_SET_PROTOTYPE_METHOD(tpl, "getRequestsQueued", getRequestsQueued);
-		NODE_SET_PROTOTYPE_METHOD(tpl, "IsBatching", IsBatching);
-		NODE_SET_PROTOTYPE_METHOD(tpl, "IsDequeuedMessageAborted", IsDequeuedMessageAborted);
-		NODE_SET_PROTOTYPE_METHOD(tpl, "IsDequeuedResult", IsDequeuedResult);
-		NODE_SET_PROTOTYPE_METHOD(tpl, "IsRouteeResult", IsRouteeResult);
-		NODE_SET_PROTOTYPE_METHOD(tpl, "StartBatching", StartBatching);
-		NODE_SET_PROTOTYPE_METHOD(tpl, "Dispose", Dispose);
+		NJHandlerRoot::Init(exports, tpl);
 
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getFilesQueued", getFilesQueued);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getFileSize", getFileSize);
@@ -99,156 +87,21 @@ namespace NJA {
 	}
 
 	void NJFile::Release() {
-		SPA::CAutoLock al(m_cs);
-		if (m_ash) {
-			m_ash = nullptr;
-		}
-		m_deqFileCb.clear();
-	}
-
-	void NJFile::getSvsId(const FunctionCallbackInfo<Value>& args) {
-		Isolate* isolate = args.GetIsolate();
-		NJFile* obj = ObjectWrap::Unwrap<NJFile>(args.Holder());
-		if (obj->IsValid(isolate)) {
-			unsigned int data = obj->m_ash->GetSvsID();
-			args.GetReturnValue().Set(Uint32::New(isolate, data));
-		}
-	}
-
-	void NJFile::CommitBatching(const FunctionCallbackInfo<Value>& args) {
-		Isolate* isolate = args.GetIsolate();
-		NJFile* obj = ObjectWrap::Unwrap<NJFile>(args.Holder());
-		if (obj->IsValid(isolate)) {
-			bool server_commit = false;
-			auto p = args[0];
-			if (p->IsBoolean())
-				server_commit = p->BooleanValue();
-			else if (!p->IsNullOrUndefined()) {
-				isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "A boolean expected")));
-				return;
+		{
+			SPA::CAutoLock al(m_cs);
+			if (m_file) {
+				m_file = nullptr;
 			}
-			bool ok = obj->m_ash->CommitBatching(server_commit);
-			args.GetReturnValue().Set(Boolean::New(isolate, ok));
+			m_deqFileCb.clear();
 		}
-	}
-
-	void NJFile::getRequestsQueued(const FunctionCallbackInfo<Value>& args) {
-		Isolate* isolate = args.GetIsolate();
-		NJFile* obj = ObjectWrap::Unwrap<NJFile>(args.Holder());
-		if (obj->IsValid(isolate)) {
-			unsigned int data = obj->m_ash->GetRequestsQueued();
-			args.GetReturnValue().Set(Uint32::New(isolate, data));
-		}
-	}
-
-	void NJFile::AbortBatching(const FunctionCallbackInfo<Value>& args) {
-		Isolate* isolate = args.GetIsolate();
-		NJFile* obj = ObjectWrap::Unwrap<NJFile>(args.Holder());
-		if (obj->IsValid(isolate)) {
-			bool ok = obj->m_ash->AbortBatching();
-			args.GetReturnValue().Set(Boolean::New(isolate, ok));
-		}
-	}
-
-	void NJFile::StartBatching(const FunctionCallbackInfo<Value>& args) {
-		Isolate* isolate = args.GetIsolate();
-		NJFile* obj = ObjectWrap::Unwrap<NJFile>(args.Holder());
-		if (obj->IsValid(isolate)) {
-			bool ok = obj->m_ash->StartBatching();
-			args.GetReturnValue().Set(Boolean::New(isolate, ok));
-		}
-	}
-
-	void NJFile::SendRequest(const FunctionCallbackInfo<Value>& args) {
-		Isolate* isolate = args.GetIsolate();
-		NJFile* obj = ObjectWrap::Unwrap<NJFile>(args.Holder());
-		if (obj->IsValid(isolate)) {
-			auto p0 = args[0];
-			if (!p0->IsUint32()) {
-				isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "A request id expected")));
-				return;
-			}
-			unsigned int reqId = p0->Uint32Value();
-			if (reqId > 0xffff || reqId <= SPA::tagBaseRequestID::idReservedTwo) {
-				isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "An unsigned short request id expected")));
-				return;
-			}
-			auto p1 = args[1];
-
-			ResultHandler rh;
-			auto p2 = args[2];
-			CAsyncServiceHandler::DDiscarded abort;
-			auto p3 = args[3];
-
-			bool ok = false;
-			args.GetReturnValue().Set(Boolean::New(isolate, ok));
-		}
-	}
-
-	void NJFile::Dispose(const FunctionCallbackInfo<Value>& args) {
-		Isolate* isolate = args.GetIsolate();
-		NJFile* obj = ObjectWrap::Unwrap<NJFile>(args.Holder());
-		obj->Release();
-	}
-
-	void NJFile::IsBatching(const FunctionCallbackInfo<Value>& args) {
-		Isolate* isolate = args.GetIsolate();
-		NJFile* obj = ObjectWrap::Unwrap<NJFile>(args.Holder());
-		if (obj->IsValid(isolate)) {
-			bool ok = obj->m_ash->IsBatching();
-			args.GetReturnValue().Set(Boolean::New(isolate, ok));
-		}
-	}
-
-	void NJFile::IsDequeuedMessageAborted(const FunctionCallbackInfo<Value>& args) {
-		Isolate* isolate = args.GetIsolate();
-		NJFile* obj = ObjectWrap::Unwrap<NJFile>(args.Holder());
-		if (obj->IsValid(isolate)) {
-			bool ok = obj->m_ash->IsDequeuedMessageAborted();
-			args.GetReturnValue().Set(Boolean::New(isolate, ok));
-		}
-	}
-
-	void NJFile::IsDequeuedResult(const FunctionCallbackInfo<Value>& args) {
-		Isolate* isolate = args.GetIsolate();
-		NJFile* obj = ObjectWrap::Unwrap<NJFile>(args.Holder());
-		if (obj->IsValid(isolate)) {
-			bool ok = obj->m_ash->IsDequeuedResult();
-			args.GetReturnValue().Set(Boolean::New(isolate, ok));
-		}
-	}
-
-	void NJFile::IsRouteeResult(const FunctionCallbackInfo<Value>& args) {
-		Isolate* isolate = args.GetIsolate();
-		NJFile* obj = ObjectWrap::Unwrap<NJFile>(args.Holder());
-		if (obj->IsValid(isolate)) {
-			bool ok = obj->m_ash->IsRouteeRequest();
-			args.GetReturnValue().Set(Boolean::New(isolate, ok));
-		}
-	}
-
-	void NJFile::AbortDequeuedMessage(const FunctionCallbackInfo<Value>& args) {
-		Isolate* isolate = args.GetIsolate();
-		NJFile* obj = ObjectWrap::Unwrap<NJFile>(args.Holder());
-		if (obj->IsValid(isolate)) {
-			obj->m_ash->AbortDequeuedMessage();
-		}
-	}
-
-	void NJFile::CleanCallbacks(const FunctionCallbackInfo<Value>& args) {
-		Isolate* isolate = args.GetIsolate();
-		NJFile* obj = ObjectWrap::Unwrap<NJFile>(args.Holder());
-		if (obj->IsValid(isolate)) {
-			unsigned int data = obj->m_ash->CleanCallbacks();
-			args.GetReturnValue().Set(Uint32::New(isolate, data));
-		}
+		NJHandlerRoot::Release();
 	}
 
 	void NJFile::getFilesQueued(const FunctionCallbackInfo<Value>& args) {
 		Isolate* isolate = args.GetIsolate();
 		NJFile* obj = ObjectWrap::Unwrap<NJFile>(args.Holder());
 		if (obj->IsValid(isolate)) {
-			size_t data = obj->m_ash->GetFilesQueued();
+			size_t data = obj->m_file->GetFilesQueued();
 			args.GetReturnValue().Set(Number::New(isolate, (double)data));
 		}
 	}
@@ -257,7 +110,7 @@ namespace NJA {
 		Isolate* isolate = args.GetIsolate();
 		NJFile* obj = ObjectWrap::Unwrap<NJFile>(args.Holder());
 		if (obj->IsValid(isolate)) {
-			SPA::UINT64 data = obj->m_ash->GetFileSize();
+			SPA::UINT64 data = obj->m_file->GetFileSize();
 			args.GetReturnValue().Set(Number::New(isolate, (double)data));
 		}
 	}

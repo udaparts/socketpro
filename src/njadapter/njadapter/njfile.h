@@ -1,7 +1,10 @@
 
 #pragma once
+
+#include "njhandlerroot.h"
+
 namespace NJA {
-	class NJFile : public node::ObjectWrap, public CTable {
+	class NJFile : public NJHandlerRoot {
 	public:
 		NJFile(CStreamingFile *file);
 		NJFile(const NJFile &h) = delete;
@@ -26,20 +29,6 @@ namespace NJA {
 		static void file_cb(uv_async_t* handle);
 		static void New(const FunctionCallbackInfo<Value>& args);
 
-		static void getSvsId(const FunctionCallbackInfo<Value>& args);
-		static void AbortBatching(const FunctionCallbackInfo<Value>& args);
-		static void AbortDequeuedMessage(const FunctionCallbackInfo<Value>& args);
-		static void CleanCallbacks(const FunctionCallbackInfo<Value>& args);
-		static void CommitBatching(const FunctionCallbackInfo<Value>& args);
-		static void getRequestsQueued(const FunctionCallbackInfo<Value>& args);
-		static void IsBatching(const FunctionCallbackInfo<Value>& args);
-		static void IsDequeuedMessageAborted(const FunctionCallbackInfo<Value>& args);
-		static void IsDequeuedResult(const FunctionCallbackInfo<Value>& args);
-		static void IsRouteeResult(const FunctionCallbackInfo<Value>& args);
-		static void StartBatching(const FunctionCallbackInfo<Value>& args);
-		static void SendRequest(const FunctionCallbackInfo<Value>& args);
-		static void Dispose(const FunctionCallbackInfo<Value>& args);
-
 		static void getFilesQueued(const FunctionCallbackInfo<Value>& args);
 		static void getFileSize(const FunctionCallbackInfo<Value>& args);
 		static void Upload(const FunctionCallbackInfo<Value>& args);
@@ -47,8 +36,7 @@ namespace NJA {
 
 	private:
 		static Persistent<Function> constructor;
-		static SPA::CUCriticalSection m_cs;
-		CStreamingFile *m_ash;
+		CStreamingFile *m_file;
 		std::deque<FileCb> m_deqFileCb; //protected by m_cs
 		uv_async_t m_typeFile; //protected by m_cs
 	};

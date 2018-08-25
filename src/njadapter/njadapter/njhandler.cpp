@@ -16,7 +16,7 @@ namespace NJA {
 		// Prepare constructor template
 		Local<FunctionTemplate> tpl = FunctionTemplate::New(isolate, New);
 		tpl->SetClassName(String::NewFromUtf8(isolate, "CAsyncHandler"));
-		tpl->InstanceTemplate()->SetInternalFieldCount(3);
+		tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
 		NJHandlerRoot::Init(exports, tpl);
 

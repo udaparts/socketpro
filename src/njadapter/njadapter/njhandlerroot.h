@@ -7,8 +7,8 @@ namespace NJA {
 		~NJHandlerRoot();
 
 	protected:
-		bool IsValid(Isolate* isolate);
-		void Release();
+		virtual bool IsValid(Isolate* isolate);
+		virtual void Release();
 
 		static void Init(Local<Object> exports, Local<FunctionTemplate> &tpl);
 		
