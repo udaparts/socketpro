@@ -9,11 +9,9 @@ namespace NJA {
 	protected:
 		bool IsValid(Isolate* isolate);
 		void Release();
-		void SetCb();
 
 		static void Init(Local<Object> exports, Local<FunctionTemplate> &tpl);
-		static void req_cb(uv_async_t* handle);
-
+		
 		static void getSvsId(const FunctionCallbackInfo<Value>& args);
 		static void AbortBatching(const FunctionCallbackInfo<Value>& args);
 		static void AbortDequeuedMessage(const FunctionCallbackInfo<Value>& args);
@@ -33,7 +31,6 @@ namespace NJA {
 
 	private:
 		CAsyncServiceHandler *m_ash;
-		std::deque<ReqCb> m_deqReqCb; //protected by m_cs
-		uv_async_t m_typeReq; //protected by m_cs
+		
 	};
 }

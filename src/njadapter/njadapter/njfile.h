@@ -23,7 +23,6 @@ namespace NJA {
 		bool IsValid(Isolate* isolate);
 
 		static const SPA::INT64 SECRECT_NUM = 0x7fa114ff2345;
-		static void req_cb(uv_async_t* handle);
 		static void file_cb(uv_async_t* handle);
 		static void New(const FunctionCallbackInfo<Value>& args);
 
@@ -50,8 +49,6 @@ namespace NJA {
 		static Persistent<Function> constructor;
 		static SPA::CUCriticalSection m_cs;
 		CStreamingFile *m_ash;
-		std::deque<ReqCb> m_deqReqCb; //protected by m_cs
-		uv_async_t m_typeReq; //protected by m_cs
 		std::deque<FileCb> m_deqFileCb; //protected by m_cs
 		uv_async_t m_typeFile; //protected by m_cs
 	};

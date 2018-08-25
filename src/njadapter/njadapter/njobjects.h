@@ -41,6 +41,12 @@ namespace NJA {
 			CAsyncHandler *Handler;
 		};
 
+		struct ReqCb {
+			Persistent<Function> Result;
+			Persistent<Function> Discard;
+			Persistent<Function> Exception;
+		};
+
 		void Release();
 
 		static void New(const FunctionCallbackInfo<Value>& args);
@@ -78,11 +84,15 @@ namespace NJA {
 		static void Unlock(const FunctionCallbackInfo<Value>& args);
 
 		static void setPoolEvent(const FunctionCallbackInfo<Value>& args);
-		static void async_cb(uv_async_t* handle);
+		
 		static bool To(Isolate* isolate, const Local<Object>& obj, SPA::ClientSide::CConnectionContext &cc);
-		static void async_cs_cb(uv_async_t* handle);
+		
 		static void setResultReturned(const FunctionCallbackInfo<Value>& args);
 		static void setAllProcessed(const FunctionCallbackInfo<Value>& args);
+
+		static void async_cs_cb(uv_async_t* handle); //socket events
+		static void async_cb(uv_async_t* handle); //pool events
+		static void req_cb(uv_async_t* handle); //request events
 
 	private:
 		unsigned int SvsId;
@@ -106,6 +116,9 @@ namespace NJA {
 
 		uv_async_t m_csType;
 		std::deque<SocketEvent> m_deqSocketEvent; //Protected by m_cs;
+
+		std::deque<ReqCb> m_deqReqCb; //protected by m_cs
+		uv_async_t m_typeReq; //protected by m_cs
 
 		int m_errSSL;
 		std::string m_errMsg;

@@ -29,7 +29,7 @@ namespace NJA {
 
 		// Prepare constructor template
 		Local<FunctionTemplate> tpl = FunctionTemplate::New(isolate, New);
-		tpl->SetClassName(String::NewFromUtf8(isolate, "CAsyncHandler"));
+		tpl->SetClassName(String::NewFromUtf8(isolate, "CAsyncFile"));
 		tpl->InstanceTemplate()->SetInternalFieldCount(6);
 
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getSvsId", getSvsId);
@@ -51,10 +51,7 @@ namespace NJA {
 		NODE_SET_PROTOTYPE_METHOD(tpl, "Download", Download);
 
 		constructor.Reset(isolate, tpl->GetFunction());
-		exports->Set(String::NewFromUtf8(isolate, "CAsyncHandler"), tpl->GetFunction());
-	}
-	void NJFile::req_cb(uv_async_t* handle) {
-
+		exports->Set(String::NewFromUtf8(isolate, "CAsyncFile"), tpl->GetFunction());
 	}
 
 	void  NJFile::file_cb(uv_async_t* handle) {
@@ -62,11 +59,8 @@ namespace NJA {
 	}
 
 	void NJFile::SetCb() {
-		m_typeReq.data = this;
-		int fail = uv_async_init(uv_default_loop(), &m_typeReq, req_cb);
-		assert(!fail);
 		m_typeFile.data = this;
-		fail = uv_async_init(uv_default_loop(), &m_typeFile, file_cb);
+		int fail = uv_async_init(uv_default_loop(), &m_typeFile, file_cb);
 		assert(!fail);
 	}
 
@@ -96,7 +90,7 @@ namespace NJA {
 			}
 		}
 		else {
-			// Invoked as plain function `NJFile()`, turn into construct call.
+			// Invoked as plain function `CAsyncFile()`, turn into construct call.
 			Local<Context> context = isolate->GetCurrentContext();
 			Local<Function> cons = Local<Function>::New(isolate, constructor);
 			Local<Object> result = cons->NewInstance(context, 0, nullptr).ToLocalChecked();
@@ -109,7 +103,6 @@ namespace NJA {
 		if (m_ash) {
 			m_ash = nullptr;
 		}
-		m_deqReqCb.clear();
 		m_deqFileCb.clear();
 	}
 

@@ -40,13 +40,15 @@ namespace NJA {
 			if (m_defaultDb.size())
 				Handler = new CMasterPool<false, CAsyncHandler>(m_defaultDb.c_str(), recvTimeout, id);
 			else
-				Handler = new CSocketPool<CAsyncHandler>(autoConn, recvTimeout, connTimeout);
+				Handler = new CSocketPool<CAsyncHandler>(autoConn, recvTimeout, connTimeout, id);
 			break;
 		}
 		::memset(&m_asyncType, 0, sizeof(m_asyncType));
 		m_asyncType.data = this;
 		::memset(&m_csType, 0, sizeof(m_csType));
 		m_csType.data = this;
+		::memset(&m_typeReq, 0, sizeof(m_typeReq));
+		m_typeReq.data = this;
 	}
 
 	NJSocketPool::~NJSocketPool() {
@@ -101,7 +103,7 @@ namespace NJA {
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getAsyncHandlers", getAsyncHandlers);
 		//NODE_SET_PROTOTYPE_METHOD(tpl, "getAvg", getAvg);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getConnectedSockets", getConnectedSockets);
-		NODE_SET_PROTOTYPE_METHOD(tpl, "getDisconnectedSockets", getDisconnectedSockets);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "getClosedSockets", getDisconnectedSockets);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getIdleSockets", getIdleSockets);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getLockedSockets", getLockedSockets);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getPoolId", getPoolId);
@@ -195,6 +197,8 @@ namespace NJA {
 			assert(!fail);
 			fail = uv_async_init(uv_default_loop(), &obj->m_csType, async_cs_cb);
 			assert(!fail);
+			fail = uv_async_init(uv_default_loop(), &obj->m_typeReq, req_cb);
+			assert(!fail);
 			args.GetReturnValue().Set(args.This());
 		}
 		else {
@@ -287,6 +291,10 @@ namespace NJA {
 		if (!obj->Handler) {
 			uv_close((uv_handle_t*)handle, nullptr);
 		}
+	}
+
+	void NJSocketPool::req_cb(uv_async_t* handle) {
+
 	}
 
 	void NJSocketPool::Dispose(const FunctionCallbackInfo<Value>& args) {

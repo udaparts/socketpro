@@ -48,7 +48,7 @@ namespace NJA {
 		NODE_SET_PROTOTYPE_METHOD(tpl, "setSize", setSize);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getOS", getOS);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "Realloc", Realloc);
-		NODE_SET_PROTOTYPE_METHOD(tpl, "getMaxBufferSize", getMaxBufferSize);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "getBufferSize", getMaxBufferSize);
 
 		NODE_SET_PROTOTYPE_METHOD(tpl, "LoadBool", LoadBoolean);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "LoadByte", LoadByte);

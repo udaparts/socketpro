@@ -58,12 +58,6 @@ namespace NJA {
 
 	using node::AtExit;
 
-	struct ReqCb {
-		Persistent<Function> Result;
-		Persistent<Function> Discard;
-		Persistent<Function> Exception;
-	};
-
 	using namespace SPA;
 	using namespace SPA::ClientSide;
 	using namespace SPA::UDB;

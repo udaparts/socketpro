@@ -8,7 +8,6 @@ namespace NJA {
 
 	NJHandlerRoot::NJHandlerRoot(CAsyncServiceHandler *ash) : m_ash(ash) {
 		assert(ash);
-		::memset(&m_typeReq, 0, sizeof(m_typeReq));
 	}
 
 	NJHandlerRoot::~NJHandlerRoot() {
@@ -21,16 +20,6 @@ namespace NJA {
 			return false;
 		}
 		return true;
-	}
-
-	void NJHandlerRoot::req_cb(uv_async_t* handle) {
-
-	}
-
-	void NJHandlerRoot::SetCb() {
-		m_typeReq.data = this;
-		int fail = uv_async_init(uv_default_loop(), &m_typeReq, req_cb);
-		assert(!fail);
 	}
 
 	void NJHandlerRoot::Init(Local<Object> exports, Local<FunctionTemplate> &tpl) {
@@ -54,7 +43,6 @@ namespace NJA {
 		if (m_ash) {
 			m_ash = nullptr;
 		}
-		m_deqReqCb.clear();
 	}
 
 	void NJHandlerRoot::getSvsId(const FunctionCallbackInfo<Value>& args) {

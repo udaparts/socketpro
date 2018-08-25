@@ -39,9 +39,6 @@ namespace NJA {
 				bool setCb = args[0]->BooleanValue();
 				SPA::INT64 ptr = args[2]->IntegerValue();
 				NJHandler *obj = new NJHandler((CAsyncServiceHandler*)ptr);
-				if (setCb) {
-					obj->SetCb();
-				}
 				obj->Wrap(args.This());
 				args.GetReturnValue().Set(args.This());
 			}
@@ -50,7 +47,7 @@ namespace NJA {
 			}
 		}
 		else {
-			// Invoked as plain function `CUQueue(...)`, turn into construct call.
+			// Invoked as plain function `CAsyncHandler()`, turn into construct call.
 			Local<Context> context = isolate->GetCurrentContext();
 			Local<Function> cons = Local<Function>::New(isolate, constructor);
 			Local<Object> result = cons->NewInstance(context, 0, nullptr).ToLocalChecked();
