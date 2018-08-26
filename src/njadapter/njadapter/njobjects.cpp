@@ -47,8 +47,6 @@ namespace NJA {
 		m_asyncType.data = this;
 		::memset(&m_csType, 0, sizeof(m_csType));
 		m_csType.data = this;
-		::memset(&m_typeReq, 0, sizeof(m_typeReq));
-		m_typeReq.data = this;
 	}
 
 	NJSocketPool::~NJSocketPool() {
@@ -197,8 +195,6 @@ namespace NJA {
 			assert(!fail);
 			fail = uv_async_init(uv_default_loop(), &obj->m_csType, async_cs_cb);
 			assert(!fail);
-			fail = uv_async_init(uv_default_loop(), &obj->m_typeReq, req_cb);
-			assert(!fail);
 			args.GetReturnValue().Set(args.This());
 		}
 		else {
@@ -249,6 +245,22 @@ namespace NJA {
 			*se.QData >> ash >> reqId;
 			assert(ash);
 			assert(reqId);
+			Local<Object> njAsh;
+			switch (reqId)
+			{
+			case SPA::Sqlite::sidSqlite:
+				break;
+			case SPA::Mysql::sidMysql:
+				break;
+			case SPA::Odbc::sidOdbc:
+				break;
+			case SPA::Queue::sidQueue:
+				break;
+			case SPA::SFile::sidFile:
+				break;
+			default:
+				break;
+			}
 			Local<Value> jsReqId = Uint32::New(isolate, reqId);
 			if (ash) {
 				sid = ash->GetSvsID();
@@ -271,8 +283,11 @@ namespace NJA {
 						if (se.QData->GetSize()) {
 							Local<Value> argv[2];
 							argv[0] = jsReqId;
-							argv[1] = NJQueue::New(isolate, se.QData);
-							cb->Call(Null(isolate), 2, argv);
+							auto q = NJQueue::New(isolate, se.QData);
+							argv[1] = q;
+							auto ret = cb->Call(Null(isolate), 2, argv);
+							auto obj = ObjectWrap::Unwrap<NJQueue>(q);
+							obj->Release();
 						}
 						else {
 							cb->Call(Null(isolate), 1, &jsReqId);
@@ -291,10 +306,6 @@ namespace NJA {
 		if (!obj->Handler) {
 			uv_close((uv_handle_t*)handle, nullptr);
 		}
-	}
-
-	void NJSocketPool::req_cb(uv_async_t* handle) {
-
 	}
 
 	void NJSocketPool::Dispose(const FunctionCallbackInfo<Value>& args) {

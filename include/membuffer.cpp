@@ -4,12 +4,13 @@
 
 namespace SPA
 {
-
+#ifdef NODE_JS_ADAPTER_PROJECT
 	template<unsigned int InitSize, unsigned int BlockSize, typename mb>
 	CUCriticalSection CScopeUQueueEx<InitSize, BlockSize, mb>::m_cs;
 
 	template<unsigned int InitSize, unsigned int BlockSize, typename mb>
 	std::vector<mb*> CScopeUQueueEx<InitSize, BlockSize, mb>::m_aUQueue;
+#endif
 
     unsigned int SHARED_BUFFER_CLEAN_SIZE = 32 * 1024;
 

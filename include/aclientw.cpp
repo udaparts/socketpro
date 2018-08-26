@@ -21,6 +21,7 @@ using v8::Function;
 #include "generalcache.h"
 
 #include "../src/njadapter/njadapter/njobjects.h"
+#include "../src/njadapter/njadapter/njqueue.h"
 
 #endif
 
@@ -41,12 +42,172 @@ namespace SPA
         CUCriticalSection CAsyncServiceHandler::m_csIndex;
         UINT64 CAsyncServiceHandler::m_CallIndex = 0; //should be protected by m_csIndex
 
+#ifdef NODE_JS_ADAPTER_PROJECT
+		UINT64 CAsyncServiceHandler::SendRequest(v8::Isolate* isolate, int args, v8::Local<v8::Value> *argv, unsigned short reqId, const unsigned char *pBuffer, unsigned int size) {
+			if (!argv) args = 0;
+			ResultHandler rh;
+			DServerException se;
+			DDiscarded dd;
+			UINT64 CallIndex = GetCallIndex();
+			if (args > 0) { 
+				if (argv[0]->IsFunction()) {
+					std::shared_ptr<CNJFunc> func(new CNJFunc);
+					func->Reset(isolate, v8::Local<v8::Function>::Cast(argv[0]));
+					rh = [this, func, CallIndex](CAsyncResult &ar) {
+						ReqCb cb;
+						cb.CallIndex = CallIndex;
+						cb.ReqId = ar.RequestId;
+						cb.Type = eResult;
+						cb.Func = func;
+						PAsyncServiceHandler h = ar.AsyncServiceHandler;
+						cb.Buffer = CScopeUQueue::Lock(ar.UQueue.GetOS(), ar.UQueue.GetEndian());
+						*cb.Buffer << h;
+						cb.Buffer->Push(ar.UQueue.GetBuffer(), ar.UQueue.GetSize());
+						ar.UQueue.SetSize(0);
+						CAutoLock al(this->m_cs);
+						this->m_deqReqCb.push_back(cb);
+						int fail = uv_async_send(&this->m_typeReq);
+						assert(!fail);
+					};
+				}
+				else if (argv[0]->IsNullOrUndefined()) {
+				}
+				else {
+					isolate->ThrowException(v8::Exception::TypeError(v8::String::NewFromUtf8(isolate, "A callback expected for tracking returned results")));
+					return 0;
+				}
+			}
+			if (args > 1) {
+				if (argv[1]->IsFunction()) {
+					std::shared_ptr<CNJFunc> func(new CNJFunc);
+					func->Reset(isolate, v8::Local<v8::Function>::Cast(argv[1]));
+					dd = [this, func, CallIndex, reqId](CAsyncServiceHandler *ash, bool canceled) {
+						ReqCb cb;
+						cb.CallIndex = CallIndex;
+						cb.ReqId = reqId;
+						cb.Type = eDiscarded;
+						cb.Func = func;
+						PAsyncServiceHandler h = ash;
+						bool bigEndian;
+						tagOperationSystem os = ash->GetAttachedClientSocket()->GetPeerOs(&bigEndian);
+						cb.Buffer = CScopeUQueue::Lock(os, bigEndian);
+						*cb.Buffer << h << canceled;
+						CAutoLock al(this->m_cs);
+						this->m_deqReqCb.push_back(cb);
+						int fail = uv_async_send(&this->m_typeReq);
+						assert(!fail);
+					};
+				}
+				else if (argv[1]->IsNullOrUndefined()) {
+				}
+				else {
+					isolate->ThrowException(v8::Exception::TypeError(v8::String::NewFromUtf8(isolate, "A callback expected for tracking socket closed or canceled events")));
+					return 0;
+				}
+			}
+			if (args > 2) {
+				if (argv[2]->IsFunction()) {
+					std::shared_ptr<CNJFunc> func(new CNJFunc);
+					func->Reset(isolate, v8::Local<v8::Function>::Cast(argv[2]));
+					se = [this, func, CallIndex](CAsyncServiceHandler *ash, unsigned short reqId, const wchar_t *errMsg, const char *errWhere, unsigned int errCode) {
+						ReqCb cb;
+						cb.CallIndex = CallIndex;
+						cb.ReqId = reqId;
+						cb.Type = eException;
+						cb.Func = func;
+						PAsyncServiceHandler h = ash;
+						bool bigEndian;
+						tagOperationSystem os = ash->GetAttachedClientSocket()->GetPeerOs(&bigEndian);
+						cb.Buffer = CScopeUQueue::Lock(os, bigEndian);
+						*cb.Buffer << h << errMsg << errWhere << errCode;
+						CAutoLock al(this->m_cs);
+						this->m_deqReqCb.push_back(cb);
+						int fail = uv_async_send(&this->m_typeReq);
+						assert(!fail);
+					};
+				}
+				else if (argv[2]->IsNullOrUndefined()) {
+				}
+				else {
+					isolate->ThrowException(v8::Exception::TypeError(v8::String::NewFromUtf8(isolate, "A callback expected for tracking exceptions from server")));
+					return 0;
+				}
+			}
+			return (SendRequest(reqId, pBuffer, size, rh, dd, se) ? CallIndex : INVALID_NUMBER);
+		}
+
+		void CAsyncServiceHandler::req_cb(uv_async_t* handle) {
+			v8::Isolate* isolate = v8::Isolate::GetCurrent();
+			v8::HandleScope handleScope(isolate); //required for Node 4.x
+			CAsyncServiceHandler* obj = (CAsyncServiceHandler*)handle->data; //sender
+			assert(obj);
+			if (!obj)
+				return;
+			SPA::CAutoLock al(obj->m_cs);
+			while (obj->m_deqReqCb.size()) {
+				ReqCb &cb = obj->m_deqReqCb.front();
+				PAsyncServiceHandler processor;
+				*cb.Buffer >> processor;
+				assert(!processor);
+				Local<Value> jsReqId = v8::Uint32::New(isolate, cb.ReqId);
+				Local<Function> func = Local<Function>::New(isolate, *cb.Func);
+				switch (cb.Type)
+				{
+				case eResult:
+				{
+					Local<v8::Object> q = NJA::NJQueue::New(isolate, cb.Buffer);
+					Local<Value> argv[] = { jsReqId, q };
+					auto ret = func->Call(Null(isolate), 2, argv);
+					auto obj = node::ObjectWrap::Unwrap<NJA::NJQueue>(q);
+					obj->Release();
+				}
+					break;
+				case eDiscarded:
+				{
+					bool canceled;
+					*cb.Buffer >> canceled;
+					Local<Value> argv[] = {jsReqId, v8::Boolean::New(isolate, canceled) };
+					auto ret = func->Call(Null(isolate), 2, argv);
+				}
+					break;
+				case eException:
+				{
+					std::wstring errMsg;
+					std::string errWhere;
+					unsigned int errCode;
+					*cb.Buffer >> errMsg >> errWhere >> errCode;
+#ifdef WIN32_64
+					Local<v8::String> jsMsg = v8::String::NewFromTwoByte(isolate, (const uint16_t*)errMsg.c_str(), v8::String::kNormalString, (int)errMsg.size());
+#else
+					
+#endif
+					Local<v8::String> jsWhere = v8::String::NewFromUtf8(isolate, errWhere.c_str());
+					Local<Value> jsCode = v8::Number::New(isolate, errCode);
+					Local<Value> argv[] = {jsReqId, jsMsg, jsWhere, jsCode};
+					auto ret = func->Call(Null(isolate), 4, argv);
+				}
+					break;
+				default:
+					assert(false); //shouldn't come here
+					break;
+				}
+				obj->m_deqReqCb.pop_front();
+			}
+		}
+#endif
         CAsyncServiceHandler::CAsyncServiceHandler(unsigned int nServiceId, CClientSocket * cs)
         : m_vCallback(*m_suCallback), m_vBatching(*m_suBatching), m_nServiceId(nServiceId), m_pClientSocket(nullptr) {
             if (cs)
                 Attach(cs);
             m_vCallback.SetBlockSize(128 * 1024);
             m_vCallback.ReallocBuffer(128 * 1024);
+
+#ifdef NODE_JS_ADAPTER_PROJECT
+			::memset(&m_typeReq, 0, sizeof(m_typeReq));
+			m_typeReq.data = this;
+			int fail = uv_async_init(uv_default_loop(), &m_typeReq, req_cb);
+			assert(!fail);
+#endif
         }
 
         CAsyncServiceHandler::~CAsyncServiceHandler() {
@@ -1100,7 +1261,7 @@ namespace SPA
 					return;
 				NJA::SocketEvent se;
 				CAutoLock al(pool->m_cs);
-				if (pool->m_ap.IsEmpty())
+				if (pool->m_rr.IsEmpty())
 					return;
 				CUQueue *q2 = CScopeUQueue::Lock();
 				*q2 << ash << requestId;

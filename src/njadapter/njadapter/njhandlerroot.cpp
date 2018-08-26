@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "njhandlerroot.h"
 #include "njfile.h"
+#include "njqueue.h"
 
 namespace NJA {
 
@@ -35,6 +36,7 @@ namespace NJA {
 		NODE_SET_PROTOTYPE_METHOD(tpl, "IsDequeuedResult", IsDequeuedResult);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "IsRouteeResult", IsRouteeResult);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "StartBatching", StartBatching);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "SendRequest", SendRequest);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "Dispose", Dispose);
 	}
 
@@ -104,7 +106,7 @@ namespace NJA {
 		if (obj->IsValid(isolate)) {
 			auto p0 = args[0];
 			if (!p0->IsUint32()) {
-				isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "A request id expected")));
+				isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "A request id expected for the 1st input")));
 				return;
 			}
 			unsigned int reqId = p0->Uint32Value();
@@ -112,14 +114,32 @@ namespace NJA {
 				isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "An unsigned short request id expected")));
 				return;
 			}
+			NJQueue *njq = nullptr;
+			const unsigned char *buffer = nullptr;
+			unsigned int bytes = 0;
+			int index = 1;
 			auto p1 = args[1];
-
-			ResultHandler rh;
-			auto p2 = args[2];
-			CAsyncServiceHandler::DDiscarded abort;
-			auto p3 = args[3];
-
-			bool ok = false;
+			if (p1->IsObject()) {
+				njq = ObjectWrap::Unwrap<NJQueue>(p1->ToObject());
+				SPA::CUQueue *q = njq->get();
+				if (q) {
+					buffer = q->GetBuffer();
+					bytes = q->GetSize();
+				}
+				++index;
+			}
+			Local<Value> argv[3];
+			argv[0] = args[index];
+			++index;
+			argv[1] = args[index];
+			++index;
+			argv[2] = args[index];
+			SPA::UINT64 callindex = obj->m_ash->SendRequest(isolate, 3, argv, reqId, buffer, bytes);
+			if (njq)
+				njq->Release();
+			if (!callindex)
+				return;
+			bool ok = (callindex != INVALID_NUMBER);
 			args.GetReturnValue().Set(Boolean::New(isolate, ok));
 		}
 	}

@@ -1490,6 +1490,14 @@ namespace SPA {
         static U_MODULE_HIDDEN std::vector<mb*> m_aUQueue;
     };
 
+#ifndef NODE_JS_ADAPTER_PROJECT
+	template<unsigned int InitSize, unsigned int BlockSize, typename mb>
+	CUCriticalSection CScopeUQueueEx<InitSize, BlockSize, mb>::m_cs;
+
+	template<unsigned int InitSize, unsigned int BlockSize, typename mb>
+	std::vector<mb*> CScopeUQueueEx<InitSize, BlockSize, mb>::m_aUQueue;
+#endif
+
     typedef CScopeUQueueEx<DEFAULT_INITIAL_MEMORY_BUFFER_SIZE, DEFAULT_MEMORY_BUFFER_BLOCK_SIZE> CScopeUQueue;
 
 }; //namespace SPA

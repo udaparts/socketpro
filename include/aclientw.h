@@ -15,6 +15,9 @@
 
 #ifdef NODE_JS_ADAPTER_PROJECT
 #include <uv.h>
+#include <v8.h>
+#include <deque>
+
 namespace NJA {
 	class NJSocketPool;
 }
@@ -1392,9 +1395,29 @@ namespace SPA {
                 sb << data0 << data1 << data2 << data3 << data4;
                 return SendRouteeResult(sb->GetBuffer(), sb->GetSize(), usRequestID);
             }
-        protected:
 
+#ifdef NODE_JS_ADAPTER_PROJECT
+		public:
+			virtual UINT64 SendRequest(v8::Isolate* isolate, int args, v8::Local<v8::Value> *argv, unsigned short reqId, const unsigned char *pBuffer, unsigned int size);
 
+		private:
+			typedef v8::Persistent<v8::Function> CNJFunc;
+			enum tagEvent {
+				eResult = 0,
+				eDiscarded,
+				eException
+			};
+			static void req_cb(uv_async_t* handle);
+			struct ReqCb {
+				unsigned short ReqId;
+				UINT64 CallIndex;
+				tagEvent Type;
+				PUQueue Buffer;
+				std::shared_ptr<CNJFunc> Func;
+			};
+			std::deque<ReqCb> m_deqReqCb; //protected by m_cs;
+			uv_async_t m_typeReq; //SendRequest events
+#endif
         private:
             CUCriticalSection m_cs;
             CUQueue &m_vCallback;

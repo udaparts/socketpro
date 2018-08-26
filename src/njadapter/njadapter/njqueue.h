@@ -12,7 +12,7 @@ namespace NJA {
 			return m_Buffer;
 		}
 		static void Init(Local<Object> exports);
-		static Local<Object> New(Isolate* isolate, PUQueue &q);
+		static Local<Object> New(Isolate* isolate, SPA::PUQueue &q);
 		void Release();
 
 	private:
