@@ -3,11 +3,11 @@ var p=SPA.CS.newPool(268435457);
 var cs = SPA.CS;
 p.StartPool(cs.newCC('localhost',20901,'root','Smash123'),1);
 var hw = p.Seek();
-hw.SendRequest(8194, SPA.newBuffer().SaveString('Jack').SaveString('Smith'), (reqId, buffer)=>{
+hw.SendRequest(8194, SPA.newBuffer().SaveString('Jack').SaveString('Smith'), (buffer)=>{
 	console.log(buffer.LoadString());
 });
 hw.SendRequest(8195, SPA.newBuffer().SaveUInt(30000));
-hw.SendRequest(8194, SPA.newBuffer().SaveString('Hilary').SaveString('Clinton'), (reqId, buffer)=>{
+hw.SendRequest(8194, SPA.newBuffer().SaveString('Hilary').SaveString('Clinton'), (buffer)=>{
 	console.log(buffer.LoadString());
 });
 

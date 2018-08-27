@@ -22,6 +22,12 @@ using v8::Function;
 
 #include "../src/njadapter/njadapter/njobjects.h"
 #include "../src/njadapter/njadapter/njqueue.h"
+#include "../src/njadapter/njadapter/njfile.h"
+#include "../src/njadapter/njadapter/njhandler.h"
+#include "../src/njadapter/njadapter/njasyncqueue.h"
+#include "../src/njadapter/njadapter/njodbc.h"
+#include "../src/njadapter/njadapter/njmysql.h"
+#include "../src/njadapter/njadapter/njsqlite.h"
 
 #endif
 
@@ -146,6 +152,28 @@ namespace SPA
 				PAsyncServiceHandler processor;
 				*cb.Buffer >> processor;
 				assert(!processor);
+				Local<v8::Object> njAsh;
+				unsigned int sid = processor->GetSvsID();
+				switch (sid) {
+				case SPA::Sqlite::sidSqlite:
+					njAsh = NJA::NJSqlite::New(isolate, (SPA::ClientSide::CSqlite*)processor, true);
+					break;
+				case SPA::Mysql::sidMysql:
+					njAsh = NJA::NJMysql::New(isolate, (SPA::ClientSide::CMysql*)processor, true);
+					break;
+				case SPA::Odbc::sidOdbc:
+					njAsh = NJA::NJOdbc::New(isolate, (SPA::ClientSide::COdbc*)processor, true);
+					break;
+				case SPA::Queue::sidQueue:
+					njAsh = NJA::NJAsyncQueue::New(isolate, (SPA::ClientSide::CAsyncQueue*)processor, true);
+					break;
+				case SPA::SFile::sidFile:
+					njAsh = NJA::NJFile::New(isolate, (SPA::ClientSide::CStreamingFile*)processor, true);
+					break;
+				default:
+					njAsh = NJA::NJHandler::New(isolate, processor, true);
+					break;
+				}
 				Local<Value> jsReqId = v8::Uint32::New(isolate, cb.ReqId);
 				Local<Function> func = Local<Function>::New(isolate, *cb.Func);
 				bool isFunc = func->IsFunction();
@@ -154,8 +182,8 @@ namespace SPA
 				case eResult:
 				{
 					Local<v8::Object> q = NJA::NJQueue::New(isolate, cb.Buffer);
-					Local<Value> argv[] = { jsReqId, q };
-					func->Call(Null(isolate), 2, argv);
+					Local<Value> argv[] = {q, func, jsReqId};
+					func->Call(Null(isolate), 3, argv);
 					auto obj = node::ObjectWrap::Unwrap<NJA::NJQueue>(q);
 					obj->Release();
 				}
@@ -166,8 +194,8 @@ namespace SPA
 					*cb.Buffer >> canceled;
 					assert(!cb.Buffer->GetSize());
 					CScopeUQueue::Unlock(cb.Buffer);
-					Local<Value> argv[] = {jsReqId, v8::Boolean::New(isolate, canceled) };
-					auto ret = func->Call(Null(isolate), 2, argv);
+					Local<Value> argv[] = {v8::Boolean::New(isolate, canceled), func, jsReqId};
+					auto ret = func->Call(Null(isolate), 3, argv);
 				}
 					break;
 				case eException:
@@ -185,8 +213,8 @@ namespace SPA
 #endif
 					Local<v8::String> jsWhere = v8::String::NewFromUtf8(isolate, errWhere.c_str());
 					Local<Value> jsCode = v8::Number::New(isolate, errCode);
-					Local<Value> argv[] = {jsReqId, jsMsg, jsWhere, jsCode};
-					auto ret = func->Call(Null(isolate), 4, argv);
+					Local<Value> argv[] = {jsMsg, jsCode, func, jsWhere, jsReqId};
+					auto ret = func->Call(Null(isolate), 5, argv);
 				}
 					break;
 				default:
@@ -1468,7 +1496,7 @@ namespace SPA
 				return;
 			NJA::SocketEvent se;
 			CAutoLock al(pool->m_cs);
-			if (pool->m_brp.IsEmpty())
+			if (pool->m_se.IsEmpty())
 				return;
 			CUQueue *q = CScopeUQueue::Lock();
 			*q << ash << requestId << errMessage << errWhere << errCode;

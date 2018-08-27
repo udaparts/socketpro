@@ -5,13 +5,13 @@
 namespace NJA {
 	class NJHandler : public NJHandlerRoot {
 	public:
-		NJHandler(CAsyncServiceHandler *ash);
+		NJHandler(SPA::ClientSide::CAsyncServiceHandler *ash);
 		NJHandler(const NJHandler &h)=delete;
 
 	public:
 		NJHandler& operator=(const NJHandler &h)=delete;
 		static void Init(Local<Object> exports);
-		static Local<Object> New(Isolate* isolate, CAsyncServiceHandler *ash, bool setCb);
+		static Local<Object> New(Isolate* isolate, SPA::ClientSide::CAsyncServiceHandler *ash, bool setCb);
 		
 	private:
 		static const SPA::INT64 SECRECT_NUM = 0x7fa12ff345fb;

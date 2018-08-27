@@ -1,12 +1,14 @@
 
 #pragma once
 
+
+#include "../../../include/streamingfile.h"
 #include "njhandlerroot.h"
 
 namespace NJA {
 	class NJFile : public NJHandlerRoot {
 	public:
-		NJFile(CStreamingFile *file);
+		NJFile(SPA::ClientSide::CStreamingFile *file);
 		NJFile(const NJFile &h) = delete;
 		~NJFile();
 
@@ -18,7 +20,7 @@ namespace NJA {
 	public:
 		NJFile& operator=(const NJFile &h) = delete;
 		static void Init(Local<Object> exports);
-		static Local<Object> New(Isolate* isolate, CStreamingFile *ash, bool setCb);
+		static Local<Object> New(Isolate* isolate, SPA::ClientSide::CStreamingFile *ash, bool setCb);
 
 	private:
 		void Release();
@@ -36,7 +38,7 @@ namespace NJA {
 
 	private:
 		static Persistent<Function> constructor;
-		CStreamingFile *m_file;
+		SPA::ClientSide::CStreamingFile *m_file;
 		std::deque<FileCb> m_deqFileCb; //protected by m_cs
 		uv_async_t m_typeFile; //protected by m_cs
 	};

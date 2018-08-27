@@ -3,6 +3,10 @@
 #include "njhandler.h"
 #include "njqueue.h"
 #include "njfile.h"
+#include "njasyncqueue.h"
+#include "njodbc.h"
+#include "njmysql.h"
+#include "njsqlite.h"
 
 namespace NJA {
 	using v8::Context;
@@ -231,7 +235,6 @@ namespace NJA {
 
 	void NJSocketPool::async_cs_cb(uv_async_t* handle) {
 		unsigned short reqId;
-		unsigned int sid;
 		NJSocketPool* obj = (NJSocketPool*)handle->data;
 		assert(obj);
 		if (!obj)
@@ -246,19 +249,26 @@ namespace NJA {
 			assert(ash);
 			assert(reqId);
 			Local<Object> njAsh;
-			switch (reqId)
+			unsigned int sid = ash->GetSvsID();
+			switch (sid)
 			{
 			case SPA::Sqlite::sidSqlite:
+				njAsh = NJSqlite::New(isolate, (CSqlite*)ash, true);
 				break;
 			case SPA::Mysql::sidMysql:
+				njAsh = NJMysql::New(isolate, (CMysql*)ash, true);
 				break;
 			case SPA::Odbc::sidOdbc:
+				njAsh = NJOdbc::New(isolate, (COdbc*)ash, true);
 				break;
 			case SPA::Queue::sidQueue:
+				njAsh = NJAsyncQueue::New(isolate, (CAsyncQueue*)ash, true);
 				break;
 			case SPA::SFile::sidFile:
+				njAsh = NJFile::New(isolate, (CStreamingFile*)ash, true);
 				break;
 			default:
+				njAsh = NJHandler::New(isolate, (CAsyncHandler*)ash, true);
 				break;
 			}
 			Local<Value> jsReqId = Uint32::New(isolate, reqId);
@@ -267,34 +277,54 @@ namespace NJA {
 				switch (se.Se) {
 				case seAllProcessed:
 					if (!obj->m_ap.IsEmpty()) {
+						Local<Value> argv[2] = {njAsh, jsReqId};
 						Local<Function> cb = Local<Function>::New(isolate, obj->m_ap);
-						cb->Call(Null(isolate), 1, &jsReqId);
+						cb->Call(Null(isolate), 2, argv);
 					}
 					break;
 				case seBaseRequestProcessed:
 					if (!obj->m_brp.IsEmpty()) {
+						Local<Value> argv[2] = {njAsh, jsReqId };
 						Local<Function> cb = Local<Function>::New(isolate, obj->m_brp);
-						cb->Call(Null(isolate), 1, &jsReqId);
+						cb->Call(Null(isolate), 2, argv);
 					}
 					break;
 				case seResultReturned:
 					if (!obj->m_rr.IsEmpty()) {
 						Local<Function> cb = Local<Function>::New(isolate, obj->m_rr);
 						if (se.QData->GetSize()) {
-							Local<Value> argv[2];
-							argv[0] = jsReqId;
+							Local<Value> argv[3];
+							argv[0] = njAsh;
+							argv[1] = jsReqId;
 							auto q = NJQueue::New(isolate, se.QData);
-							argv[1] = q;
-							auto ret = cb->Call(Null(isolate), 2, argv);
+							argv[2] = q;
+							cb->Call(Null(isolate), 3, argv);
 							auto obj = ObjectWrap::Unwrap<NJQueue>(q);
 							obj->Release();
 						}
 						else {
-							cb->Call(Null(isolate), 1, &jsReqId);
+							Local<Value> argv[2] = {njAsh , jsReqId};
+							cb->Call(Null(isolate), 2, argv);
 						}
 					}
 					break;
 				case seServerException:
+					if (!obj->m_se.IsEmpty()) {
+						std::wstring errMsg;
+						std::string errWhere;
+						unsigned int errCode = 0;
+						*se.QData >> errMsg >> errWhere >> errCode;
+#ifdef WIN32_64
+						Local<String> jsMsg = String::NewFromTwoByte(isolate, (const uint16_t*)errMsg.c_str(), v8::String::kNormalString, (int)errMsg.size());
+#else
+
+#endif
+						Local<String> jsWhere = String::NewFromUtf8(isolate, errWhere.c_str());
+						Local<Value> jsCode = Number::New(isolate, errCode);
+						Local<Value> argv[5] = {njAsh, jsReqId, jsMsg, jsCode, jsWhere};
+						Local<Function> cb = Local<Function>::New(isolate, obj->m_se);
+						cb->Call(Null(isolate), 5, argv);
+					}
 					break;
 				default:
 					break;
@@ -506,12 +536,28 @@ namespace NJA {
 			}
 			switch (obj->SvsId) {
 			case SPA::Queue::sidQueue:
+			{
+				auto p = obj->Queue->Lock(timeout);
+				args.GetReturnValue().Set(NJAsyncQueue::New(isolate, p.get(), true));
+			}
 				break;
 			case SPA::Odbc::sidOdbc:
+			{
+				auto p = obj->Odbc->Lock(timeout);
+				args.GetReturnValue().Set(NJOdbc::New(isolate, p.get(), true));
+			}
 				break;
 			case SPA::Sqlite::sidSqlite:
+			{
+				auto p = obj->Sqlite->Lock(timeout);
+				args.GetReturnValue().Set(NJSqlite::New(isolate, p.get(), true));
+			}
 				break;
 			case SPA::Mysql::sidMysql:
+			{
+				auto p = obj->Mysql->Lock(timeout);
+				args.GetReturnValue().Set(NJMysql::New(isolate, p.get(), true));
+			}
 				break;
 			case SPA::SFile::sidFile:
 			{
@@ -534,12 +580,32 @@ namespace NJA {
 		if (obj->IsValid(isolate)) {
 			switch (obj->SvsId) {
 			case SPA::Queue::sidQueue:
+			{
+				auto p = obj->Queue->Seek();
+				if (p)
+					args.GetReturnValue().Set(NJAsyncQueue::New(isolate, p.get(), true));
+			}
 				break;
 			case SPA::Odbc::sidOdbc:
+			{
+				auto p = obj->Odbc->Seek();
+				if (p)
+					args.GetReturnValue().Set(NJOdbc::New(isolate, p.get(), true));
+			}
 				break;
 			case SPA::Sqlite::sidSqlite:
+			{
+				auto p = obj->Sqlite->Seek();
+				if (p)
+					args.GetReturnValue().Set(NJSqlite::New(isolate, p.get(), true));
+			}
 				break;
 			case SPA::Mysql::sidMysql:
+			{
+				auto p = obj->Mysql->Seek();
+				if (p)
+					args.GetReturnValue().Set(NJMysql::New(isolate, p.get(), true));
+			}
 				break;
 			case SPA::SFile::sidFile:
 			{
@@ -566,12 +632,32 @@ namespace NJA {
 			if (p->IsNullOrUndefined()) {
 				switch (obj->SvsId) {
 				case SPA::Queue::sidQueue:
+				{
+					auto p = obj->Queue->SeekByQueue();
+					if (p)
+						args.GetReturnValue().Set(NJAsyncQueue::New(isolate, p.get(), true));
+				}
 					break;
 				case SPA::Odbc::sidOdbc:
+				{
+					auto p = obj->Odbc->SeekByQueue();
+					if (p)
+						args.GetReturnValue().Set(NJOdbc::New(isolate, p.get(), true));
+				}
 					break;
 				case SPA::Sqlite::sidSqlite:
+				{
+					auto p = obj->Sqlite->SeekByQueue();
+					if (p)
+						args.GetReturnValue().Set(NJSqlite::New(isolate, p.get(), true));
+				}
 					break;
 				case SPA::Mysql::sidMysql:
+				{
+					auto p = obj->Mysql->SeekByQueue();
+					if (p)
+						args.GetReturnValue().Set(NJMysql::New(isolate, p.get(), true));
+				}
 					break;
 				case SPA::SFile::sidFile:
 				{
@@ -595,12 +681,32 @@ namespace NJA {
 				qname = *str;
 				switch (obj->SvsId) {
 				case SPA::Queue::sidQueue:
+				{
+					auto p = obj->Queue->SeekByQueue(qname);
+					if (p)
+						args.GetReturnValue().Set(NJAsyncQueue::New(isolate, p.get(), true));
+				}
 					break;
 				case SPA::Odbc::sidOdbc:
+				{
+					auto p = obj->Odbc->SeekByQueue(qname);
+					if (p)
+						args.GetReturnValue().Set(NJOdbc::New(isolate, p.get(), true));
+				}
 					break;
 				case SPA::Sqlite::sidSqlite:
+				{
+					auto p = obj->Sqlite->SeekByQueue(qname);
+					if (p)
+						args.GetReturnValue().Set(NJSqlite::New(isolate, p.get(), true));
+				}
 					break;
 				case SPA::Mysql::sidMysql:
+				{
+					auto p = obj->Mysql->SeekByQueue(qname);
+					if (p)
+						args.GetReturnValue().Set(NJMysql::New(isolate, p.get(), true));
+				}
 					break;
 				case SPA::SFile::sidFile:
 				{
@@ -832,6 +938,44 @@ namespace NJA {
 			}
 			else {
 				isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "A callback expected for tracking event that all requests are processed")));
+			}
+		}
+	}
+
+	void NJSocketPool::setServerException(const FunctionCallbackInfo<Value>& args) {
+		Isolate* isolate = args.GetIsolate();
+		NJSocketPool* obj = ObjectWrap::Unwrap<NJSocketPool>(args.Holder());
+		if (obj->IsValid(isolate)) {
+			auto p = args[0];
+			if (p->IsFunction()) {
+				SPA::CAutoLock al(obj->m_cs);
+				obj->m_se.Reset(isolate, Local<Function>::Cast(p));
+			}
+			else if (p->IsNullOrUndefined()) {
+				SPA::CAutoLock al(obj->m_cs);
+				obj->m_se.Empty();
+			}
+			else {
+				isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "A callback expected for tracking exception from server")));
+			}
+		}
+	}
+
+	void NJSocketPool::setBaseRequestProcessed(const FunctionCallbackInfo<Value>& args) {
+		Isolate* isolate = args.GetIsolate();
+		NJSocketPool* obj = ObjectWrap::Unwrap<NJSocketPool>(args.Holder());
+		if (obj->IsValid(isolate)) {
+			auto p = args[0];
+			if (p->IsFunction()) {
+				SPA::CAutoLock al(obj->m_cs);
+				obj->m_brp.Reset(isolate, Local<Function>::Cast(p));
+			}
+			else if (p->IsNullOrUndefined()) {
+				SPA::CAutoLock al(obj->m_cs);
+				obj->m_brp.Empty();
+			}
+			else {
+				isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "A callback expected for tracking the event of base request processed")));
 			}
 		}
 	}

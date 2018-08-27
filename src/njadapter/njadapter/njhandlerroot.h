@@ -3,14 +3,14 @@
 namespace NJA {
 	class NJHandlerRoot : public node::ObjectWrap {
 	public:
-		NJHandlerRoot(CAsyncServiceHandler *ash);
+		NJHandlerRoot(SPA::ClientSide::CAsyncServiceHandler *ash);
 		~NJHandlerRoot();
 
 	protected:
 		virtual bool IsValid(Isolate* isolate);
 		virtual void Release();
 
-		static void Init(Local<Object> exports, Local<FunctionTemplate> &tpl);
+		static void Init(Local<Object> exports, Local<v8::FunctionTemplate> &tpl);
 		
 		static void getSvsId(const FunctionCallbackInfo<Value>& args);
 		static void AbortBatching(const FunctionCallbackInfo<Value>& args);
@@ -30,7 +30,7 @@ namespace NJA {
 		static SPA::CUCriticalSection m_cs;
 
 	private:
-		CAsyncServiceHandler *m_ash;
+		SPA::ClientSide::CAsyncServiceHandler *m_ash;
 		
 	};
 }

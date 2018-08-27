@@ -156,6 +156,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>../lib/x64/node.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>C:\cyetest\socketpro\src\njadapter\node_modules\njadapter.node</OutputFile>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -170,11 +171,15 @@
     <ClInclude Include="..\..\..\include\udb_client.h" />
     <ClInclude Include="..\include\node.h" />
     <ClInclude Include="asynchandler.h" />
+    <ClInclude Include="njasyncqueue.h" />
     <ClInclude Include="njfile.h" />
     <ClInclude Include="njhandler.h" />
     <ClInclude Include="njhandlerroot.h" />
+    <ClInclude Include="njmysql.h" />
     <ClInclude Include="njobjects.h" />
+    <ClInclude Include="njodbc.h" />
     <ClInclude Include="njqueue.h" />
+    <ClInclude Include="njsqlite.h" />
     <ClInclude Include="spincludes.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
@@ -205,11 +210,15 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="njasyncqueue.cpp" />
     <ClCompile Include="njfile.cpp" />
     <ClCompile Include="njhandler.cpp" />
     <ClCompile Include="njhandlerroot.cpp" />
+    <ClCompile Include="njmysql.cpp" />
     <ClCompile Include="njobjects.cpp" />
+    <ClCompile Include="njodbc.cpp" />
     <ClCompile Include="njqueue.cpp" />
+    <ClCompile Include="njsqlite.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>

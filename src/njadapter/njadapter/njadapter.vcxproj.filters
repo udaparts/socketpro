@@ -72,6 +72,18 @@
     <ClInclude Include="njhandlerroot.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="njasyncqueue.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="njodbc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="njmysql.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="njsqlite.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -105,6 +117,18 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="njhandlerroot.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="njasyncqueue.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="njodbc.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="njmysql.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="njsqlite.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
