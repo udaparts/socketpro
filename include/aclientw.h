@@ -14,8 +14,20 @@
 #include <functional>
 
 #ifdef NODE_JS_ADAPTER_PROJECT
+
 #include <uv.h>
 #include <v8.h>
+#include <node.h>
+#include <node_object_wrap.h>
+
+using v8::Local;
+using v8::Object;
+using v8::Isolate;
+using v8::Value;
+using v8::FunctionCallbackInfo;
+using v8::Persistent;
+using v8::Function;
+
 #include <deque>
 
 namespace NJA {
@@ -28,13 +40,13 @@ namespace NJA {
 
 namespace SPA {
     namespace ClientSide {
+
         //this may be used for debug
         void SetLastCallInfo(const char *str, int data, const char *func);
 
         extern CUCriticalSection g_csSpPool;
 
         class CAsyncServiceHandler;
-
         class CAsyncResult;
 
         typedef std::function<void(CAsyncResult&) > ResultHandler;
@@ -1400,8 +1412,10 @@ namespace SPA {
 		public:
 			virtual UINT64 SendRequest(v8::Isolate* isolate, int args, v8::Local<v8::Value> *argv, unsigned short reqId, const unsigned char *pBuffer, unsigned int size);
 
-		private:
+		protected:
 			typedef v8::Persistent<v8::Function> CNJFunc;
+
+		private:
 			enum tagEvent {
 				eResult = 0,
 				eDiscarded,

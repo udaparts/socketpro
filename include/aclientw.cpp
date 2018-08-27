@@ -1,17 +1,6 @@
 #include "aclientw.h"
 
 #ifdef NODE_JS_ADAPTER_PROJECT
-#include <node.h>
-#include <node_object_wrap.h>
-#include <uv.h>
-
-using v8::Local;
-using v8::Object;
-using v8::Isolate;
-using v8::Value;
-using v8::FunctionCallbackInfo;
-using v8::Persistent;
-using v8::Function;
 
 #include "async_odbc.h"
 #include "aqhandler.h"
@@ -140,7 +129,7 @@ namespace SPA
 		}
 
 		void CAsyncServiceHandler::req_cb(uv_async_t* handle) {
-			v8::Isolate* isolate = v8::Isolate::GetCurrent();
+			Isolate* isolate = Isolate::GetCurrent();
 			v8::HandleScope handleScope(isolate); //required for Node 4.x
 			CAsyncServiceHandler* obj = (CAsyncServiceHandler*)handle->data; //sender
 			assert(obj);
@@ -176,14 +165,13 @@ namespace SPA
 				}
 				Local<Value> jsReqId = v8::Uint32::New(isolate, cb.ReqId);
 				Local<Function> func = Local<Function>::New(isolate, *cb.Func);
-				bool isFunc = func->IsFunction();
 				switch (cb.Type)
 				{
 				case eResult:
 				{
 					Local<v8::Object> q = NJA::NJQueue::New(isolate, cb.Buffer);
-					Local<Value> argv[] = {q, func, jsReqId};
-					func->Call(Null(isolate), 3, argv);
+					Local<Value> argv[] = {q, func, njAsh, jsReqId};
+					func->Call(Null(isolate), 4, argv);
 					auto obj = node::ObjectWrap::Unwrap<NJA::NJQueue>(q);
 					obj->Release();
 				}
@@ -194,8 +182,8 @@ namespace SPA
 					*cb.Buffer >> canceled;
 					assert(!cb.Buffer->GetSize());
 					CScopeUQueue::Unlock(cb.Buffer);
-					Local<Value> argv[] = {v8::Boolean::New(isolate, canceled), func, jsReqId};
-					auto ret = func->Call(Null(isolate), 3, argv);
+					Local<Value> argv[] = {v8::Boolean::New(isolate, canceled), njAsh, jsReqId};
+					func->Call(Null(isolate), 3, argv);
 				}
 					break;
 				case eException:
@@ -213,8 +201,8 @@ namespace SPA
 #endif
 					Local<v8::String> jsWhere = v8::String::NewFromUtf8(isolate, errWhere.c_str());
 					Local<Value> jsCode = v8::Number::New(isolate, errCode);
-					Local<Value> argv[] = {jsMsg, jsCode, func, jsWhere, jsReqId};
-					auto ret = func->Call(Null(isolate), 5, argv);
+					Local<Value> argv[] = {jsMsg, jsCode, jsWhere, func, njAsh, jsReqId};
+					func->Call(Null(isolate), 6, argv);
 				}
 					break;
 				default:

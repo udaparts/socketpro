@@ -7,8 +7,7 @@ namespace NJA {
 	Persistent<Function> NJFile::constructor;
 
 	NJFile::NJFile(CStreamingFile *file) : NJHandlerRoot(file), m_file(file) {
-		assert(file);
-		::memset(&m_typeFile, 0, sizeof(m_typeFile));
+		
 	}
 
 	NJFile::~NJFile() {
@@ -42,16 +41,6 @@ namespace NJA {
 		exports->Set(String::NewFromUtf8(isolate, "CAsyncFile"), tpl->GetFunction());
 	}
 
-	void  NJFile::file_cb(uv_async_t* handle) {
-
-	}
-
-	void NJFile::SetCb() {
-		m_typeFile.data = this;
-		int fail = uv_async_init(uv_default_loop(), &m_typeFile, file_cb);
-		assert(!fail);
-	}
-
 	Local<Object> NJFile::New(Isolate* isolate, CStreamingFile *ash, bool setCb) {
 		SPA::UINT64 ptr = (SPA::UINT64)ash;
 		Local<Value> argv[] = { Boolean::New(isolate, setCb), Number::New(isolate, (double)SECRECT_NUM), Number::New(isolate, (double)ptr) };
@@ -67,9 +56,6 @@ namespace NJA {
 				bool setCb = args[0]->BooleanValue();
 				SPA::INT64 ptr = args[2]->IntegerValue();
 				NJFile *obj = new NJFile((CStreamingFile*)ptr);
-				if (setCb) {
-					obj->SetCb();
-				}
 				obj->Wrap(args.This());
 				args.GetReturnValue().Set(args.This());
 			}
@@ -92,7 +78,6 @@ namespace NJA {
 			if (m_file) {
 				m_file = nullptr;
 			}
-			m_deqFileCb.clear();
 		}
 		NJHandlerRoot::Release();
 	}
@@ -116,18 +101,41 @@ namespace NJA {
 	}
 
 	void NJFile::Upload(const FunctionCallbackInfo<Value>& args) {
+		Exchange(false, args);
+	}
+
+	void NJFile::Exchange(bool download, const FunctionCallbackInfo<Value>& args) {
 		Isolate* isolate = args.GetIsolate();
 		NJFile* obj = ObjectWrap::Unwrap<NJFile>(args.Holder());
 		if (obj->IsValid(isolate)) {
-
+			unsigned int flags = SPA::SFile::FILE_OPEN_TRUNCACTED;
+			std::wstring local, remote;
+			auto p0 = args[0];
+			if (!p0->IsString()) {
+				isolate->ThrowException(v8::Exception::TypeError(v8::String::NewFromUtf8(isolate, "A local file path required")));
+				return;
+			}
+			auto p1 = args[1];
+			if (!p0->IsString()) {
+				isolate->ThrowException(v8::Exception::TypeError(v8::String::NewFromUtf8(isolate, "A remote file path required")));
+				return;
+			}
+			Local<Value> argv[] = {args[2], args[3], args[4]};
+			auto p2 = args[5];
+			if (p2->IsUint32())
+				flags = p2->Uint32Value();
+			else {
+				isolate->ThrowException(v8::Exception::TypeError(v8::String::NewFromUtf8(isolate, "Unsigned int required for file creating flags")));
+				return;
+			}
+			SPA::UINT64 index = obj->m_file->Exchange(isolate, 3, argv, false, local.c_str(), remote.c_str(), flags);
+			if (index) {
+				args.GetReturnValue().Set(Boolean::New(isolate, index != INVALID_NUMBER));
+			}
 		}
 	}
 
 	void NJFile::Download(const FunctionCallbackInfo<Value>& args) {
-		Isolate* isolate = args.GetIsolate();
-		NJFile* obj = ObjectWrap::Unwrap<NJFile>(args.Holder());
-		if (obj->IsValid(isolate)) {
-
-		}
+		Exchange(true, args);
 	}
 }

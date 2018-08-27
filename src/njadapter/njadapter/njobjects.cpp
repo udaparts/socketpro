@@ -7,6 +7,7 @@
 #include "njodbc.h"
 #include "njmysql.h"
 #include "njsqlite.h"
+#include "njsocket.h"
 
 namespace NJA {
 	using v8::Context;

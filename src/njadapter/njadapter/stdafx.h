@@ -18,9 +18,9 @@
 #include <uv.h>
 #include <node_buffer.h>
 
+#include "../../../include/streamingfile.h"
 #include "../../../include/async_odbc.h"
 #include "../../../include/aqhandler.h"
-#include "../../../include/streamingfile.h"
 #include "../../../include/async_sqlite.h"
 #include "../../../include/async_mysql.h"
 #include "../../../include/rdbcache.h"

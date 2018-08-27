@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "njhandlerroot.h"
-#include "njfile.h"
 #include "njqueue.h"
+#include "njsocket.h"
 
 namespace NJA {
 
@@ -37,6 +37,7 @@ namespace NJA {
 		NODE_SET_PROTOTYPE_METHOD(tpl, "IsRouteeResult", IsRouteeResult);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "StartBatching", StartBatching);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "SendRequest", SendRequest);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "getSocket", getSocket);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "Dispose", Dispose);
 	}
 
@@ -97,6 +98,15 @@ namespace NJA {
 		if (obj->IsValid(isolate)) {
 			bool ok = obj->m_ash->StartBatching();
 			args.GetReturnValue().Set(Boolean::New(isolate, ok));
+		}
+	}
+
+	void NJHandlerRoot::getSocket(const FunctionCallbackInfo<Value>& args) {
+		Isolate* isolate = args.GetIsolate();
+		NJHandlerRoot* obj = ObjectWrap::Unwrap<NJHandlerRoot>(args.Holder());
+		if (obj->IsValid(isolate)) {
+			Local<Object> njSocket = NJSocket::New(isolate, obj->m_ash->GetAttachedClientSocket(), true);
+			args.GetReturnValue().Set(njSocket);
 		}
 	}
 

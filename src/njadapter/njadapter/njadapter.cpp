@@ -8,6 +8,7 @@
 #include "njodbc.h"
 #include "njmysql.h"
 #include "njsqlite.h"
+#include "njsocket.h"
 
 namespace NJA {
 	void Destroy(const FunctionCallbackInfo<Value>& args) {
@@ -24,6 +25,7 @@ namespace NJA {
 		NJOdbc::Init(exports);
 		NJMysql::Init(exports);
 		NJSqlite::Init(exports);
+		NJSocket::Init(exports);
 	}
 	NODE_MODULE(NODE_GYP_MODULE_NAME, InitAll)
 }

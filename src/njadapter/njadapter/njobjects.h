@@ -1,10 +1,11 @@
 #ifndef __SOCKETPRO_NODEJS_ADAPTER_NJOBJECTS_H__
 #define __SOCKETPRO_NODEJS_ADAPTER_NJOBJECTS_H__
 
-#include<deque>
-#include "asynchandler.h"
+#include "../../../include/generalcache.h"
 
 namespace NJA {
+
+	typedef SPA::ClientSide::CCachedBaseHandler<0> CAsyncHandler;
 
 	enum tagSocketEvent {
 		seAllProcessed = 0,

@@ -42,9 +42,6 @@
     <ClInclude Include="..\..\..\include\aclientw.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="asynchandler.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\include\udb_client.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -84,6 +81,15 @@
     <ClInclude Include="njsqlite.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="njsocket.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\async_mysql.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\async_sqlite.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -107,9 +113,6 @@
     <ClCompile Include="njqueue.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="asynchandler.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="njhandler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -129,6 +132,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="njsqlite.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="njsocket.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
