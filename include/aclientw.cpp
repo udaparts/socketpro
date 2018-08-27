@@ -48,14 +48,13 @@ namespace SPA
 			ResultHandler rh;
 			DServerException se;
 			DDiscarded dd;
-			UINT64 CallIndex = GetCallIndex();
+			UINT64 callIndex = GetCallIndex();
 			if (args > 0) { 
 				if (argv[0]->IsFunction()) {
 					std::shared_ptr<CNJFunc> func(new CNJFunc);
 					func->Reset(isolate, v8::Local<v8::Function>::Cast(argv[0]));
-					rh = [this, func, CallIndex](CAsyncResult &ar) {
+					rh = [this, func](CAsyncResult &ar) {
 						ReqCb cb;
-						cb.CallIndex = CallIndex;
 						cb.ReqId = ar.RequestId;
 						cb.Type = eResult;
 						cb.Func = func;
@@ -81,9 +80,8 @@ namespace SPA
 				if (argv[1]->IsFunction()) {
 					std::shared_ptr<CNJFunc> func(new CNJFunc);
 					func->Reset(isolate, v8::Local<v8::Function>::Cast(argv[1]));
-					dd = [this, func, CallIndex, reqId](CAsyncServiceHandler *ash, bool canceled) {
+					dd = [this, func, reqId](CAsyncServiceHandler *ash, bool canceled) {
 						ReqCb cb;
-						cb.CallIndex = CallIndex;
 						cb.ReqId = reqId;
 						cb.Type = eDiscarded;
 						cb.Func = func;
@@ -109,9 +107,8 @@ namespace SPA
 				if (argv[2]->IsFunction()) {
 					std::shared_ptr<CNJFunc> func(new CNJFunc);
 					func->Reset(isolate, v8::Local<v8::Function>::Cast(argv[2]));
-					se = [this, func, CallIndex](CAsyncServiceHandler *ash, unsigned short reqId, const wchar_t *errMsg, const char *errWhere, unsigned int errCode) {
+					se = [this, func](CAsyncServiceHandler *ash, unsigned short reqId, const wchar_t *errMsg, const char *errWhere, unsigned int errCode) {
 						ReqCb cb;
-						cb.CallIndex = CallIndex;
 						cb.ReqId = reqId;
 						cb.Type = eException;
 						cb.Func = func;
@@ -133,7 +130,7 @@ namespace SPA
 					return 0;
 				}
 			}
-			return (SendRequest(reqId, pBuffer, size, rh, dd, se) ? CallIndex : INVALID_NUMBER);
+			return (SendRequest(reqId, pBuffer, size, rh, dd, se) ? callIndex : INVALID_NUMBER);
 		}
 
 		void CAsyncServiceHandler::req_cb(uv_async_t* handle) {
@@ -151,13 +148,14 @@ namespace SPA
 				assert(!processor);
 				Local<Value> jsReqId = v8::Uint32::New(isolate, cb.ReqId);
 				Local<Function> func = Local<Function>::New(isolate, *cb.Func);
+				bool isFunc = func->IsFunction();
 				switch (cb.Type)
 				{
 				case eResult:
 				{
 					Local<v8::Object> q = NJA::NJQueue::New(isolate, cb.Buffer);
 					Local<Value> argv[] = { jsReqId, q };
-					auto ret = func->Call(Null(isolate), 2, argv);
+					func->Call(Null(isolate), 2, argv);
 					auto obj = node::ObjectWrap::Unwrap<NJA::NJQueue>(q);
 					obj->Release();
 				}
@@ -166,6 +164,8 @@ namespace SPA
 				{
 					bool canceled;
 					*cb.Buffer >> canceled;
+					assert(!cb.Buffer->GetSize());
+					CScopeUQueue::Unlock(cb.Buffer);
 					Local<Value> argv[] = {jsReqId, v8::Boolean::New(isolate, canceled) };
 					auto ret = func->Call(Null(isolate), 2, argv);
 				}
@@ -176,6 +176,8 @@ namespace SPA
 					std::string errWhere;
 					unsigned int errCode;
 					*cb.Buffer >> errMsg >> errWhere >> errCode;
+					assert(!cb.Buffer->GetSize());
+					CScopeUQueue::Unlock(cb.Buffer);
 #ifdef WIN32_64
 					Local<v8::String> jsMsg = v8::String::NewFromTwoByte(isolate, (const uint16_t*)errMsg.c_str(), v8::String::kNormalString, (int)errMsg.size());
 #else

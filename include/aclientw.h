@@ -1410,7 +1410,6 @@ namespace SPA {
 			static void req_cb(uv_async_t* handle);
 			struct ReqCb {
 				unsigned short ReqId;
-				UINT64 CallIndex;
 				tagEvent Type;
 				PUQueue Buffer;
 				std::shared_ptr<CNJFunc> Func;

@@ -16,7 +16,7 @@ namespace NJA {
 		void Release();
 
 	private:
-		static const SPA::INT64 SECRECT_NUM = 0x7ff12ff345ff12;
+		static const SPA::INT64 SECRECT_NUM = 0x7ff12ff345ff;
 		void Ensure();
 		unsigned int Load(Isolate* isolate, SPA::UDB::CDBVariant &vt);
 		static Local<Value> ToDate(Isolate* isolate, SPA::UINT64 dt);
