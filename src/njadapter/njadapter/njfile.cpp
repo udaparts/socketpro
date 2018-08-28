@@ -115,20 +115,33 @@ namespace NJA {
 				isolate->ThrowException(v8::Exception::TypeError(v8::String::NewFromUtf8(isolate, "A local file path required")));
 				return;
 			}
+			String::Value str0(p0);
+#ifdef WIN32_64
+			local = (const wchar_t *)*str0;
+#else
+#endif
+
 			auto p1 = args[1];
 			if (!p0->IsString()) {
 				isolate->ThrowException(v8::Exception::TypeError(v8::String::NewFromUtf8(isolate, "A remote file path required")));
 				return;
 			}
+			String::Value str1(p1);
+#ifdef WIN32_64
+			remote = (const wchar_t *)*str1;
+#else
+#endif
 			Local<Value> argv[] = {args[2], args[3], args[4]};
 			auto p2 = args[5];
 			if (p2->IsUint32())
 				flags = p2->Uint32Value();
+			else if (p2->IsNullOrUndefined()) {
+			}
 			else {
 				isolate->ThrowException(v8::Exception::TypeError(v8::String::NewFromUtf8(isolate, "Unsigned int required for file creating flags")));
 				return;
 			}
-			SPA::UINT64 index = obj->m_file->Exchange(isolate, 3, argv, false, local.c_str(), remote.c_str(), flags);
+			SPA::UINT64 index = obj->m_file->Exchange(isolate, 3, argv, download, local.c_str(), remote.c_str(), flags);
 			if (index) {
 				args.GetReturnValue().Set(Boolean::New(isolate, index != INVALID_NUMBER));
 			}

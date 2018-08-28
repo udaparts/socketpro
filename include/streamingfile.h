@@ -196,7 +196,7 @@ namespace SPA {
 							tagOperationSystem os = cs->GetPeerOs(&endian);
 							fcb.Buffer = CScopeUQueue::Lock(os, endian);
 							PStreamingFile f = file;
-							*fcb.Buffer << f << transferred;
+							*fcb.Buffer << f << transferred << file->GetFileSize();
 							CAutoLock al(this->m_csFile);
 							this->m_deqFileCb.push_back(fcb);
 							int fail = uv_async_send(&this->m_fileType);
@@ -703,11 +703,11 @@ namespace SPA {
 						break;
 					case feTrans:
 					{
-						UINT64 pos;
-						*cb.Buffer >> pos;
+						UINT64 pos, size;
+						*cb.Buffer >> pos >> size;
 						assert(!cb.Buffer->GetSize());
-						Local<Value> argv[] = { v8::Number::New(isolate, (double)pos), njFile };
-						func->Call(Null(isolate), 2, argv);
+						Local<Value> argv[] = { v8::Number::New(isolate, (double)pos), v8::Number::New(isolate, (double)size), download, njFile };
+						func->Call(Null(isolate), 4, argv);
 					}
 						break;
 					case feDiscarded:
@@ -715,8 +715,8 @@ namespace SPA {
 						bool canceled;
 						*cb.Buffer >> canceled;
 						assert(!cb.Buffer->GetSize());
-						Local<Value> argv[] = { v8::Boolean::New(isolate, canceled), njFile };
-						func->Call(Null(isolate), 2, argv);
+						Local<Value> argv[] = { v8::Boolean::New(isolate, canceled), download, njFile };
+						func->Call(Null(isolate), 3, argv);
 					}
 						break;
 					default:
@@ -739,4 +739,4 @@ namespace SPA {
 	}; //ClientSide
 }; //SPA
 
-#endif 
+#endif

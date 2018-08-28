@@ -102,7 +102,7 @@ namespace NJA {
 
 		//Prototype
 		NODE_SET_PROTOTYPE_METHOD(tpl, "Dispose", Dispose);
-		NODE_SET_PROTOTYPE_METHOD(tpl, "DisconnectAll", DisconnectAll);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "CloseAll", DisconnectAll);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getAsyncHandlers", getAsyncHandlers);
 		//NODE_SET_PROTOTYPE_METHOD(tpl, "getAvg", getAvg);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getConnectedSockets", getConnectedSockets);
@@ -125,8 +125,8 @@ namespace NJA {
 		NODE_SET_PROTOTYPE_METHOD(tpl, "Lock", Lock);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "Seek", Seek);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "SeekByQueue", SeekByQueue);
-		NODE_SET_PROTOTYPE_METHOD(tpl, "ShutdownPool", ShutdownPool);
-		NODE_SET_PROTOTYPE_METHOD(tpl, "StartPool", StartSocketPool);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "Shutdown", ShutdownPool);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "Start", StartSocketPool);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "Unlock", Unlock);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "setPoolEvent", setPoolEvent);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "setReturned", setResultReturned);
