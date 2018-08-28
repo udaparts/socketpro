@@ -1,14 +1,6 @@
 
 #include "stdafx.h"
 #include "njobjects.h"
-#include "njqueue.h"
-#include "njhandler.h"
-#include "njfile.h"
-#include "njasyncqueue.h"
-#include "njodbc.h"
-#include "njmysql.h"
-#include "njsqlite.h"
-#include "njsocket.h"
 
 namespace NJA {
 	void Destroy(const FunctionCallbackInfo<Value>& args) {

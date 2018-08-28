@@ -2,6 +2,17 @@
 #define __SOCKETPRO_NODEJS_ADAPTER_NJOBJECTS_H__
 
 #include "../../../include/generalcache.h"
+#include <node.h>
+#include <node_object_wrap.h>
+
+#include "njhandler.h"
+#include "njqueue.h"
+#include "njfile.h"
+#include "njasyncqueue.h"
+#include "njodbc.h"
+#include "njmysql.h"
+#include "njsqlite.h"
+#include "njsocket.h"
 
 namespace NJA {
 
@@ -96,7 +107,7 @@ namespace NJA {
 			SPA::ClientSide::CSocketPool<SPA::ClientSide::CSqlite> *Sqlite;
 			SPA::ClientSide::CSocketPool<SPA::ClientSide::CMysql> *Mysql;
 			SPA::ClientSide::CSocketPool<SPA::ClientSide::COdbc> *Odbc;
-			SPA::ClientSide::CSocketPool<SPA::ClientSide::CStreamingFile> *File;
+			SPA::ClientSide::CSocketPool<CSFile> *File;
 			SPA::ClientSide::CSocketPool<SPA::ClientSide::CAsyncQueue> *Queue;
 		};
 		SPA::CUCriticalSection m_cs;

@@ -11,18 +11,17 @@ namespace NJA {
 		inline CUQueue* get() const {
 			return m_Buffer;
 		}
-		static void Init(Local<Object> exports);
-		static Local<Object> New(Isolate* isolate, SPA::PUQueue &q);
 		void Release();
 
+		static void Init(Local<Object> exports);
+		static Local<Object> New(Isolate* isolate, SPA::PUQueue &q);
+
 	private:
-		static const SPA::INT64 SECRECT_NUM = 0x7ff12ff345ff;
 		void Ensure();
 		unsigned int Load(Isolate* isolate, SPA::UDB::CDBVariant &vt);
+		static const SPA::INT64 SECRECT_NUM = 0x7ff12ff345ff;
 		static Local<Value> ToDate(Isolate* isolate, SPA::UINT64 dt);
-
 		static void New(const FunctionCallbackInfo<Value>& args);
-		static Persistent<Function> constructor;
 		
 		template <class ctype>
 		unsigned int Load(Isolate* isolate, ctype &buffer) {
@@ -96,9 +95,9 @@ namespace NJA {
 		static void SaveObject(const FunctionCallbackInfo<Value>& args);
 
 	private:
+		static Persistent<Function> constructor;
 		CUQueue *m_Buffer;
 		unsigned int m_initSize;
 		unsigned int m_blockSize;
 	};
-
 }

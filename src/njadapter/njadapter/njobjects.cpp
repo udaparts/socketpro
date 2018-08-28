@@ -1,13 +1,7 @@
 #include "stdafx.h"
 #include "njobjects.h"
-#include "njhandler.h"
-#include "njqueue.h"
-#include "njfile.h"
-#include "njasyncqueue.h"
-#include "njodbc.h"
-#include "njmysql.h"
-#include "njsqlite.h"
-#include "njsocket.h"
+#include "../../../include/rdbcache.h"
+#include "../../../include/masterpool.h"
 
 namespace NJA {
 	using v8::Context;
@@ -39,7 +33,7 @@ namespace NJA {
 			Queue = new CSocketPool<CAsyncQueue>(autoConn, recvTimeout, connTimeout);
 			break;
 		case SPA::SFile::sidFile:
-			File = new CSocketPool<CStreamingFile>(autoConn, recvTimeout, connTimeout);
+			File = new CSocketPool<CSFile>(autoConn, recvTimeout, connTimeout);
 			break;
 		default:
 			if (m_defaultDb.size())
@@ -266,7 +260,7 @@ namespace NJA {
 				njAsh = NJAsyncQueue::New(isolate, (CAsyncQueue*)ash, true);
 				break;
 			case SPA::SFile::sidFile:
-				njAsh = NJFile::New(isolate, (CStreamingFile*)ash, true);
+				njAsh = NJFile::New(isolate, (CSFile*)ash, true);
 				break;
 			default:
 				njAsh = NJHandler::New(isolate, (CAsyncHandler*)ash, true);

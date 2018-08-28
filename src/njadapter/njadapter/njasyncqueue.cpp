@@ -76,4 +76,22 @@ namespace NJA {
 		}
 		NJHandlerRoot::Release();
 	}
+
+	void NJAsyncQueue::getDequeueBatchSize(const FunctionCallbackInfo<Value>& args) {
+		Isolate* isolate = args.GetIsolate();
+		NJAsyncQueue* obj = ObjectWrap::Unwrap<NJAsyncQueue>(args.Holder());
+		if (obj->IsValid(isolate)) {
+			unsigned int size = obj->m_aq->GetDequeueBatchSize();
+			args.GetReturnValue().Set(Number::New(isolate, size));
+		}
+	}
+
+	void NJAsyncQueue::getEnqueueNotified(const FunctionCallbackInfo<Value>& args) {
+		Isolate* isolate = args.GetIsolate();
+		NJAsyncQueue* obj = ObjectWrap::Unwrap<NJAsyncQueue>(args.Holder());
+		if (obj->IsValid(isolate)) {
+			bool notify = obj->m_aq->GetEnqueueNotified();
+			args.GetReturnValue().Set(Boolean::New(isolate, notify));
+		}
+	}
 }

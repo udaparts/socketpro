@@ -6,7 +6,7 @@ namespace NJA {
 
 	Persistent<Function> NJFile::constructor;
 
-	NJFile::NJFile(CStreamingFile *file) : NJHandlerRoot(file), m_file(file) {
+	NJFile::NJFile(CSFile *file) : NJHandlerRoot(file), m_file(file) {
 		
 	}
 
@@ -33,7 +33,7 @@ namespace NJA {
 		NJHandlerRoot::Init(exports, tpl);
 
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getFilesQueued", getFilesQueued);
-		NODE_SET_PROTOTYPE_METHOD(tpl, "getFileSize", getFileSize);
+		//NODE_SET_PROTOTYPE_METHOD(tpl, "getFileSize", getFileSize);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "Upload", Upload);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "Download", Download);
 
@@ -41,7 +41,7 @@ namespace NJA {
 		exports->Set(String::NewFromUtf8(isolate, "CAsyncFile"), tpl->GetFunction());
 	}
 
-	Local<Object> NJFile::New(Isolate* isolate, CStreamingFile *ash, bool setCb) {
+	Local<Object> NJFile::New(Isolate* isolate, CSFile *ash, bool setCb) {
 		SPA::UINT64 ptr = (SPA::UINT64)ash;
 		Local<Value> argv[] = { Boolean::New(isolate, setCb), Number::New(isolate, (double)SECRECT_NUM), Number::New(isolate, (double)ptr) };
 		Local<Context> context = isolate->GetCurrentContext();
@@ -55,7 +55,7 @@ namespace NJA {
 			if (args[0]->IsBoolean() && args[1]->IsNumber() && args[1]->IntegerValue() == SECRECT_NUM && args[2]->IsNumber()) {
 				bool setCb = args[0]->BooleanValue();
 				SPA::INT64 ptr = args[2]->IntegerValue();
-				NJFile *obj = new NJFile((CStreamingFile*)ptr);
+				NJFile *obj = new NJFile((CSFile*)ptr);
 				obj->Wrap(args.This());
 				args.GetReturnValue().Set(args.This());
 			}

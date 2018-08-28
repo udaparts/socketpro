@@ -2,21 +2,7 @@
 
 #ifdef NODE_JS_ADAPTER_PROJECT
 
-#include "async_odbc.h"
-#include "aqhandler.h"
-#include "streamingfile.h"
-#include "async_sqlite.h"
-#include "async_mysql.h"
-#include "generalcache.h"
-
 #include "../src/njadapter/njadapter/njobjects.h"
-#include "../src/njadapter/njadapter/njqueue.h"
-#include "../src/njadapter/njadapter/njfile.h"
-#include "../src/njadapter/njadapter/njhandler.h"
-#include "../src/njadapter/njadapter/njasyncqueue.h"
-#include "../src/njadapter/njadapter/njodbc.h"
-#include "../src/njadapter/njadapter/njmysql.h"
-#include "../src/njadapter/njadapter/njsqlite.h"
 
 #endif
 
@@ -38,7 +24,7 @@ namespace SPA
         UINT64 CAsyncServiceHandler::m_CallIndex = 0; //should be protected by m_csIndex
 
 #ifdef NODE_JS_ADAPTER_PROJECT
-		UINT64 CAsyncServiceHandler::SendRequest(v8::Isolate* isolate, int args, v8::Local<v8::Value> *argv, unsigned short reqId, const unsigned char *pBuffer, unsigned int size) {
+		UINT64 CAsyncServiceHandler::SendRequest(Isolate* isolate, int args, Local<Value> *argv, unsigned short reqId, const unsigned char *pBuffer, unsigned int size) {
 			if (!argv) args = 0;
 			ResultHandler rh;
 			DServerException se;
@@ -47,7 +33,7 @@ namespace SPA
 			if (args > 0) { 
 				if (argv[0]->IsFunction()) {
 					std::shared_ptr<CNJFunc> func(new CNJFunc);
-					func->Reset(isolate, v8::Local<v8::Function>::Cast(argv[0]));
+					func->Reset(isolate, Local<Function>::Cast(argv[0]));
 					rh = [this, func](CAsyncResult &ar) {
 						ReqCb cb;
 						cb.ReqId = ar.RequestId;
@@ -74,7 +60,7 @@ namespace SPA
 			if (args > 1) {
 				if (argv[1]->IsFunction()) {
 					std::shared_ptr<CNJFunc> func(new CNJFunc);
-					func->Reset(isolate, v8::Local<v8::Function>::Cast(argv[1]));
+					func->Reset(isolate, Local<Function>::Cast(argv[1]));
 					dd = [this, func, reqId](CAsyncServiceHandler *ash, bool canceled) {
 						ReqCb cb;
 						cb.ReqId = reqId;
@@ -94,14 +80,14 @@ namespace SPA
 				else if (argv[1]->IsNullOrUndefined()) {
 				}
 				else {
-					isolate->ThrowException(v8::Exception::TypeError(v8::String::NewFromUtf8(isolate, "A callback expected for tracking socket closed or canceled events")));
+					isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "A callback expected for tracking socket closed or canceled events")));
 					return 0;
 				}
 			}
 			if (args > 2) {
 				if (argv[2]->IsFunction()) {
 					std::shared_ptr<CNJFunc> func(new CNJFunc);
-					func->Reset(isolate, v8::Local<v8::Function>::Cast(argv[2]));
+					func->Reset(isolate, Local<Function>::Cast(argv[2]));
 					se = [this, func](CAsyncServiceHandler *ash, unsigned short reqId, const wchar_t *errMsg, const char *errWhere, unsigned int errCode) {
 						ReqCb cb;
 						cb.ReqId = reqId;
@@ -121,7 +107,7 @@ namespace SPA
 				else if (argv[2]->IsNullOrUndefined()) {
 				}
 				else {
-					isolate->ThrowException(v8::Exception::TypeError(v8::String::NewFromUtf8(isolate, "A callback expected for tracking exceptions from server")));
+					isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "A callback expected for tracking exceptions from server")));
 					return 0;
 				}
 			}
@@ -130,7 +116,7 @@ namespace SPA
 
 		void CAsyncServiceHandler::req_cb(uv_async_t* handle) {
 			Isolate* isolate = Isolate::GetCurrent();
-			v8::HandleScope handleScope(isolate); //required for Node 4.x
+			HandleScope handleScope(isolate); //required for Node 4.x
 			CAsyncServiceHandler* obj = (CAsyncServiceHandler*)handle->data; //sender
 			assert(obj);
 			if (!obj)
@@ -145,19 +131,19 @@ namespace SPA
 				unsigned int sid = processor->GetSvsID();
 				switch (sid) {
 				case SPA::Sqlite::sidSqlite:
-					njAsh = NJA::NJSqlite::New(isolate, (SPA::ClientSide::CSqlite*)processor, true);
+					njAsh = NJA::NJSqlite::New(isolate, (CSqlite*)processor, true);
 					break;
 				case SPA::Mysql::sidMysql:
-					njAsh = NJA::NJMysql::New(isolate, (SPA::ClientSide::CMysql*)processor, true);
+					njAsh = NJA::NJMysql::New(isolate, (CMysql*)processor, true);
 					break;
 				case SPA::Odbc::sidOdbc:
-					njAsh = NJA::NJOdbc::New(isolate, (SPA::ClientSide::COdbc*)processor, true);
+					njAsh = NJA::NJOdbc::New(isolate, (COdbc*)processor, true);
 					break;
 				case SPA::Queue::sidQueue:
-					njAsh = NJA::NJAsyncQueue::New(isolate, (SPA::ClientSide::CAsyncQueue*)processor, true);
+					njAsh = NJA::NJAsyncQueue::New(isolate, (CAsyncQueue*)processor, true);
 					break;
 				case SPA::SFile::sidFile:
-					njAsh = NJA::NJFile::New(isolate, (SPA::ClientSide::CStreamingFile*)processor, true);
+					njAsh = NJA::NJFile::New(isolate, (NJA::CSFile*)processor, true);
 					break;
 				default:
 					njAsh = NJA::NJHandler::New(isolate, processor, true);
@@ -169,7 +155,7 @@ namespace SPA
 				{
 				case eResult:
 				{
-					Local<v8::Object> q = NJA::NJQueue::New(isolate, cb.Buffer);
+					Local<Object> q = NJA::NJQueue::New(isolate, cb.Buffer);
 					Local<Value> argv[] = {q, func, njAsh, jsReqId};
 					func->Call(Null(isolate), 4, argv);
 					auto obj = node::ObjectWrap::Unwrap<NJA::NJQueue>(q);
@@ -182,7 +168,7 @@ namespace SPA
 					*cb.Buffer >> canceled;
 					assert(!cb.Buffer->GetSize());
 					CScopeUQueue::Unlock(cb.Buffer);
-					Local<Value> argv[] = {v8::Boolean::New(isolate, canceled), njAsh, jsReqId};
+					Local<Value> argv[] = {Boolean::New(isolate, canceled), njAsh, jsReqId};
 					func->Call(Null(isolate), 3, argv);
 				}
 					break;
@@ -195,11 +181,11 @@ namespace SPA
 					assert(!cb.Buffer->GetSize());
 					CScopeUQueue::Unlock(cb.Buffer);
 #ifdef WIN32_64
-					Local<v8::String> jsMsg = v8::String::NewFromTwoByte(isolate, (const uint16_t*)errMsg.c_str(), v8::String::kNormalString, (int)errMsg.size());
+					Local<String> jsMsg = String::NewFromTwoByte(isolate, (const uint16_t*)errMsg.c_str(), String::kNormalString, (int)errMsg.size());
 #else
 					
 #endif
-					Local<v8::String> jsWhere = v8::String::NewFromUtf8(isolate, errWhere.c_str());
+					Local<String> jsWhere = String::NewFromUtf8(isolate, errWhere.c_str());
 					Local<Value> jsCode = v8::Number::New(isolate, errCode);
 					Local<Value> argv[] = {jsMsg, jsCode, jsWhere, func, njAsh, jsReqId};
 					func->Call(Null(isolate), 6, argv);

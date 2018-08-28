@@ -15,10 +15,11 @@
 
 #ifdef NODE_JS_ADAPTER_PROJECT
 
+#include <deque>
+
 #include <uv.h>
 #include <v8.h>
-#include <node.h>
-#include <node_object_wrap.h>
+
 
 using v8::Local;
 using v8::Object;
@@ -27,8 +28,12 @@ using v8::Value;
 using v8::FunctionCallbackInfo;
 using v8::Persistent;
 using v8::Function;
-
-#include <deque>
+using v8::Exception;
+using v8::String;
+using v8::Number;
+using v8::Boolean;
+using v8::Uint32;
+using v8::HandleScope;
 
 namespace NJA {
 	class NJSocketPool;
@@ -416,6 +421,8 @@ namespace SPA {
 			friend class NJA::NJSocketPool;
 #endif
         };
+
+		typedef CClientSocket* PClientSocket;
 
         class CAsyncServiceHandler {
             SPA::CScopeUQueue m_suCallback;
@@ -1410,10 +1417,10 @@ namespace SPA {
 
 #ifdef NODE_JS_ADAPTER_PROJECT
 		public:
-			virtual UINT64 SendRequest(v8::Isolate* isolate, int args, v8::Local<v8::Value> *argv, unsigned short reqId, const unsigned char *pBuffer, unsigned int size);
+			virtual UINT64 SendRequest(Isolate* isolate, int args, Local<Value> *argv, unsigned short reqId, const unsigned char *pBuffer, unsigned int size);
 
 		protected:
-			typedef v8::Persistent<v8::Function> CNJFunc;
+			typedef Persistent<Function> CNJFunc;
 
 		private:
 			enum tagEvent {
