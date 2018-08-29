@@ -454,9 +454,11 @@ namespace SPA {
              */
             DMessageQueued MessageQueued;
 
+		protected:
+			SPA::CUCriticalSection m_csQ;
+
         private:
             unsigned int m_nBatchSize;
-            SPA::CUCriticalSection m_csQ;
             std::string m_keyDequeue; //protected by m_csQ
             DDequeue m_dDequeue; //protected by m_csQ
         };

@@ -93,6 +93,9 @@
     <ClInclude Include="sfile.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="aqueue.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -141,6 +144,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="sfile.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="aqueue.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
