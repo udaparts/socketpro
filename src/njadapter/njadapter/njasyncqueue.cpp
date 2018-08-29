@@ -107,25 +107,136 @@ namespace NJA {
 	}
 
 	void NJAsyncQueue::GetKeys(const FunctionCallbackInfo<Value>& args) {
+		Isolate* isolate = args.GetIsolate();
+		NJAsyncQueue* obj = ObjectWrap::Unwrap<NJAsyncQueue>(args.Holder());
+		if (obj->IsValid(isolate)) {
+			Local<Value> argv[] = { args[0], args[1] };
+			SPA::UINT64 index = obj->m_aq->GetKeys(isolate, 2, argv);
+			if (index) {
+				args.GetReturnValue().Set(Boolean::New(isolate, index != INVALID_NUMBER));
+			}
+		}
+	}
 
+	std::string NJAsyncQueue::GetKey(Isolate* isolate, Local<Value> jsKey) {
+		if (!jsKey->IsString()) {
+			isolate->ThrowException(v8::Exception::TypeError(v8::String::NewFromUtf8(isolate, "A valid key string required to find a queue file at server side")));
+			return "";
+		}
+		String::Utf8Value str(jsKey);
+		std::string s(*str);
+		if (!s.size()) {
+			isolate->ThrowException(v8::Exception::TypeError(v8::String::NewFromUtf8(isolate, "A valid key string required to find a queue file at server side")));
+		}
+		return s;
 	}
 
 	void NJAsyncQueue::StartQueueTrans(const FunctionCallbackInfo<Value>& args) {
-
+		Isolate* isolate = args.GetIsolate();
+		NJAsyncQueue* obj = ObjectWrap::Unwrap<NJAsyncQueue>(args.Holder());
+		if (obj->IsValid(isolate)) {
+			std::string key = GetKey(isolate, args[0]);
+			if (!key.size())
+				return;
+			Local<Value> argv[] = { args[1], args[2] };
+			SPA::UINT64 index = obj->m_aq->StartQueueTrans(isolate, 2, argv, key.c_str());
+			if (index) {
+				args.GetReturnValue().Set(Boolean::New(isolate, index != INVALID_NUMBER));
+			}
+		}
 	}
+
 	void NJAsyncQueue::EndQueueTrans(const FunctionCallbackInfo<Value>& args) {
-
+		Isolate* isolate = args.GetIsolate();
+		NJAsyncQueue* obj = ObjectWrap::Unwrap<NJAsyncQueue>(args.Holder());
+		if (obj->IsValid(isolate)) {
+			bool rollback = false;
+			auto p0 = args[0];
+			if (p0->IsBoolean())
+				rollback = p0->BooleanValue();
+			else if (!p0->IsNullOrUndefined()) {
+				isolate->ThrowException(v8::Exception::TypeError(v8::String::NewFromUtf8(isolate, "Boolean value expected for rollback")));
+				return;
+			}
+			Local<Value> argv[] = { args[1], args[2] };
+			SPA::UINT64 index = obj->m_aq->EndQueueTrans(isolate, 2, argv, rollback);
+			if (index) {
+				args.GetReturnValue().Set(Boolean::New(isolate, index != INVALID_NUMBER));
+			}
+		}
 	}
-	void NJAsyncQueue::CloseQueue(const FunctionCallbackInfo<Value>& args) {
 
+	void NJAsyncQueue::CloseQueue(const FunctionCallbackInfo<Value>& args) {
+		Isolate* isolate = args.GetIsolate();
+		NJAsyncQueue* obj = ObjectWrap::Unwrap<NJAsyncQueue>(args.Holder());
+		if (obj->IsValid(isolate)) {
+			std::string key = GetKey(isolate, args[0]);
+			if (!key.size())
+				return;
+			Local<Value> argv[] = { args[1], args[2] };
+			auto p = args[3];
+			bool perm = false;
+			if (p->IsBoolean())
+				perm = p->BooleanValue();
+			else if (!p->IsNullOrUndefined()) {
+				isolate->ThrowException(v8::Exception::TypeError(v8::String::NewFromUtf8(isolate, "Boolean value expected for permanent delete")));
+				return;
+			}
+			SPA::UINT64 index = obj->m_aq->CloseQueue(isolate, 2, argv, key.c_str(), perm);
+			if (index) {
+				args.GetReturnValue().Set(Boolean::New(isolate, index != INVALID_NUMBER));
+			}
+		}
 	}
 
 	void NJAsyncQueue::FlushQueue(const FunctionCallbackInfo<Value>& args) {
-
+		Isolate* isolate = args.GetIsolate();
+		NJAsyncQueue* obj = ObjectWrap::Unwrap<NJAsyncQueue>(args.Holder());
+		if (obj->IsValid(isolate)) {
+			std::string key = GetKey(isolate, args[0]);
+			if (!key.size())
+				return;
+			Local<Value> argv[] = { args[1], args[2] };
+			auto p = args[3];
+			int option = 0;
+			if (p->IsInt32())
+				option = p->Int32Value();
+			else if (!p->IsNullOrUndefined()) {
+				isolate->ThrowException(v8::Exception::TypeError(v8::String::NewFromUtf8(isolate, "Integer value expected for flush option")));
+				return;
+			}
+			if (option < 0 || option > SPA::oDiskCommitted) {
+				isolate->ThrowException(v8::Exception::TypeError(v8::String::NewFromUtf8(isolate, "Bad option value")));
+				return;
+			}
+			SPA::UINT64 index = obj->m_aq->FlushQueue(isolate, 2, argv, key.c_str(), (SPA::tagOptimistic)option);
+			if (index) {
+				args.GetReturnValue().Set(Boolean::New(isolate, index != INVALID_NUMBER));
+			}
+		}
 	}
 
 	void NJAsyncQueue::Dequeue(const FunctionCallbackInfo<Value>& args) {
-
+		Isolate* isolate = args.GetIsolate();
+		NJAsyncQueue* obj = ObjectWrap::Unwrap<NJAsyncQueue>(args.Holder());
+		if (obj->IsValid(isolate)) {
+			std::string key = GetKey(isolate, args[0]);
+			if (!key.size())
+				return;
+			Local<Value> argv[] = { args[1], args[2] };
+			auto p = args[3];
+			unsigned int timeout = 0;
+			if (p->IsUint32())
+				timeout = p->Uint32Value();
+			else if (!p->IsNullOrUndefined()) {
+				isolate->ThrowException(v8::Exception::TypeError(v8::String::NewFromUtf8(isolate, "Unsigned int value expected for dequeue timeout in millsecond")));
+				return;
+			}
+			SPA::UINT64 index = obj->m_aq->Dequeue(isolate, 2, argv, key.c_str(), timeout);
+			if (index) {
+				args.GetReturnValue().Set(Boolean::New(isolate, index != INVALID_NUMBER));
+			}
+		}
 	}
 
 	void NJAsyncQueue::Enqueue(const FunctionCallbackInfo<Value>& args) {
