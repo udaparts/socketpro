@@ -6,7 +6,7 @@ namespace NJA {
 
 	Persistent<Function> NJAsyncQueue::constructor;
 
-	NJAsyncQueue::NJAsyncQueue(CAsyncQueue *aq) : NJHandlerRoot(aq), m_aq(aq) {
+	NJAsyncQueue::NJAsyncQueue(CAQueue *aq) : NJHandlerRoot(aq), m_aq(aq) {
 
 	}
 
@@ -32,11 +32,22 @@ namespace NJA {
 
 		NJHandlerRoot::Init(exports, tpl);
 
+		NODE_SET_PROTOTYPE_METHOD(tpl, "getDeqBatchSize", getDequeueBatchSize);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "getEnqNotified", getEnqueueNotified);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "GetKeys", GetKeys);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "StartTrans", StartQueueTrans);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "EndTrans", EndQueueTrans);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "Close", CloseQueue);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "Flush", FlushQueue);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "Dequeue", Dequeue);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "Enqueue", Enqueue);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "EnqueueBatch", EnqueueBatch);
+
 		constructor.Reset(isolate, tpl->GetFunction());
 		exports->Set(String::NewFromUtf8(isolate, "CAsyncQueue"), tpl->GetFunction());
 	}
 
-	Local<Object> NJAsyncQueue::New(Isolate* isolate, CAsyncQueue *ash, bool setCb) {
+	Local<Object> NJAsyncQueue::New(Isolate* isolate, CAQueue *ash, bool setCb) {
 		SPA::UINT64 ptr = (SPA::UINT64)ash;
 		Local<Value> argv[] = { Boolean::New(isolate, setCb), Number::New(isolate, (double)SECRECT_NUM), Number::New(isolate, (double)ptr) };
 		Local<Context> context = isolate->GetCurrentContext();
@@ -50,7 +61,7 @@ namespace NJA {
 			if (args[0]->IsBoolean() && args[1]->IsNumber() && args[1]->IntegerValue() == SECRECT_NUM && args[2]->IsNumber()) {
 				bool setCb = args[0]->BooleanValue();
 				SPA::INT64 ptr = args[2]->IntegerValue();
-				NJAsyncQueue *obj = new NJAsyncQueue((CAsyncQueue*)ptr);
+				NJAsyncQueue *obj = new NJAsyncQueue((CAQueue*)ptr);
 				obj->Wrap(args.This());
 				args.GetReturnValue().Set(args.This());
 			}
@@ -93,5 +104,35 @@ namespace NJA {
 			bool notify = obj->m_aq->GetEnqueueNotified();
 			args.GetReturnValue().Set(Boolean::New(isolate, notify));
 		}
+	}
+
+	void NJAsyncQueue::GetKeys(const FunctionCallbackInfo<Value>& args) {
+
+	}
+
+	void NJAsyncQueue::StartQueueTrans(const FunctionCallbackInfo<Value>& args) {
+
+	}
+	void NJAsyncQueue::EndQueueTrans(const FunctionCallbackInfo<Value>& args) {
+
+	}
+	void NJAsyncQueue::CloseQueue(const FunctionCallbackInfo<Value>& args) {
+
+	}
+
+	void NJAsyncQueue::FlushQueue(const FunctionCallbackInfo<Value>& args) {
+
+	}
+
+	void NJAsyncQueue::Dequeue(const FunctionCallbackInfo<Value>& args) {
+
+	}
+
+	void NJAsyncQueue::Enqueue(const FunctionCallbackInfo<Value>& args) {
+
+	}
+
+	void NJAsyncQueue::EnqueueBatch(const FunctionCallbackInfo<Value>& args) {
+
 	}
 }

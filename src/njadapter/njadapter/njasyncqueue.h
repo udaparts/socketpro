@@ -1,21 +1,20 @@
 
 #pragma once
 
-
-#include "../../../include/aqhandler.h"
+#include "aqueue.h"
 #include "njhandlerroot.h"
 
 namespace NJA {
 	class NJAsyncQueue : public NJHandlerRoot {
 	public:
-		NJAsyncQueue(SPA::ClientSide::CAsyncQueue *aq);
+		NJAsyncQueue(CAQueue *aq);
 		NJAsyncQueue(const NJAsyncQueue &h) = delete;
 		~NJAsyncQueue();
 
 	public:
 		NJAsyncQueue& operator=(const NJAsyncQueue &h) = delete;
 		static void Init(Local<Object> exports);
-		static Local<Object> New(Isolate* isolate, SPA::ClientSide::CAsyncQueue *ash, bool setCb);
+		static Local<Object> New(Isolate* isolate, CAQueue *ash, bool setCb);
 
 	private:
 		void Release();
@@ -26,8 +25,17 @@ namespace NJA {
 		static void getDequeueBatchSize(const FunctionCallbackInfo<Value>& args);
 		static void getEnqueueNotified(const FunctionCallbackInfo<Value>& args);
 
+		static void GetKeys(const FunctionCallbackInfo<Value>& args);
+		static void StartQueueTrans(const FunctionCallbackInfo<Value>& args);
+		static void EndQueueTrans(const FunctionCallbackInfo<Value>& args);
+		static void CloseQueue(const FunctionCallbackInfo<Value>& args);
+		static void FlushQueue(const FunctionCallbackInfo<Value>& args);
+		static void Dequeue(const FunctionCallbackInfo<Value>& args);
+		static void Enqueue(const FunctionCallbackInfo<Value>& args);
+		static void EnqueueBatch(const FunctionCallbackInfo<Value>& args);
+
 	private:
 		static Persistent<Function> constructor;
-		SPA::ClientSide::CAsyncQueue *m_aq;
+		CAQueue *m_aq;
 	};
 }

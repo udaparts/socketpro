@@ -9,11 +9,33 @@ namespace NJA {
 		CAQueue(SPA::ClientSide::CClientSocket *cs);
 		~CAQueue();
 
+		typedef CAQueue* PAQueue;
+
+	public:
+		SPA::UINT64 GetKeys(Isolate* isolate, int args, Local<Value> *argv);
+		SPA::UINT64 StartQueueTrans(Isolate* isolate, int args, Local<Value> *argv, const char *key);
+		SPA::UINT64 EndQueueTrans(Isolate* isolate, int args, Local<Value> *argv, bool rollback);
+		SPA::UINT64 CloseQueue(Isolate* isolate, int args, Local<Value> *argv, const char *key, bool permanent);
+		SPA::UINT64 FlushQueue(Isolate* isolate, int args, Local<Value> *argv, const char *key, SPA::tagOptimistic option);
+		SPA::UINT64 Dequeue(Isolate* isolate, int args, Local<Value> *argv, const char *key, unsigned int timeout);
+		SPA::UINT64 Enqueue(Isolate* isolate, int args, Local<Value> *argv, const char *key, unsigned short idMessage, const unsigned char *pBuffer, unsigned int size);
+		SPA::UINT64 EnqueueBatch(Isolate* isolate, int args, Local<Value> *argv, const char *key, const unsigned char *pBuffer, unsigned int size);
+
+	private:
+		static void queue_cb(uv_async_t* handle);
+		DDiscarded Get(Isolate* isolate, Local<Value> abort, bool &bad);
+
 	private:
 		enum tagQueueEvent {
 			qeGetKeys = 0,
 			qeEnqueue,
-
+			qeStartQueueTrans,
+			qeEndQueueTrans,
+			qeCloseQueue,
+			qeFlushQueue,
+			qeDequeue,
+			qeEnqueueBatch,
+			qeDiscarded
 		};
 
 		struct QueueCb {

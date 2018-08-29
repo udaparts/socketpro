@@ -108,7 +108,7 @@ namespace NJA {
 			SPA::ClientSide::CSocketPool<SPA::ClientSide::CMysql> *Mysql;
 			SPA::ClientSide::CSocketPool<SPA::ClientSide::COdbc> *Odbc;
 			SPA::ClientSide::CSocketPool<CSFile> *File;
-			SPA::ClientSide::CSocketPool<SPA::ClientSide::CAsyncQueue> *Queue;
+			SPA::ClientSide::CSocketPool<CAQueue> *Queue;
 		};
 		SPA::CUCriticalSection m_cs;
 		Persistent<Function> m_rr; //OnResultReturned protected by m_cs

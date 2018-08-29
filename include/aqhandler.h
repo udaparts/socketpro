@@ -317,17 +317,24 @@ namespace SPA {
             }
 
             bool EnqueueBatch(const char *key, CUQueue &q, DEnqueue e = nullptr, DDiscarded discarded = nullptr) {
-                if (q.GetSize() < 2 * sizeof (unsigned int)) {
-                    //bad operation!
-                    assert(false);
-                    return false;
-                }
-                CScopeUQueue sb;
-                sb << key;
-                sb->Push(q.GetBuffer(), q.GetSize());
-                q.SetSize(0);
-                return SendRequest(Queue::idEnqueueBatch, sb->GetBuffer(), sb->GetSize(), GetRH(e), discarded);
+				if (EnqueueBatch(key, q.GetBuffer(), q.GetSize(), e, discarded)) 					{
+					q.SetSize(0);
+					return true;
+				}
+				return false;
             }
+
+			virtual bool EnqueueBatch(const char *key, const unsigned char *buffer, unsigned int size, DEnqueue e = nullptr, DDiscarded discarded = nullptr) {
+				if (!buffer || size < 2 * sizeof(unsigned int)) {
+					//bad operation!
+					assert(false);
+					return false;
+				}
+				CScopeUQueue sb;
+				sb << key;
+				sb->Push(buffer, size);
+				return SendRequest(Queue::idEnqueueBatch, sb->GetBuffer(), sb->GetSize(), GetRH(e), discarded);
+			}
 
             bool Enqueue(const char *key, unsigned short idMessage, const unsigned char *buffer, unsigned int size, DEnqueue e = nullptr, DDiscarded discarded = nullptr) {
                 CScopeUQueue sb;

@@ -10,6 +10,8 @@ namespace NJA {
 
 
 	CSFile::~CSFile() {
+		SPA::CAutoLock al(m_csFile);
+		uv_close((uv_handle_t*)&m_fileType, nullptr);
 	}
 
 	SPA::UINT64 CSFile::Exchange(Isolate* isolate, int args, Local<Value> *argv, bool download, const wchar_t *localFile, const wchar_t *remoteFile, unsigned int flags) {

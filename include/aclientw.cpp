@@ -140,7 +140,7 @@ namespace SPA
 					njAsh = NJA::NJOdbc::New(isolate, (COdbc*)processor, true);
 					break;
 				case SPA::Queue::sidQueue:
-					njAsh = NJA::NJAsyncQueue::New(isolate, (CAsyncQueue*)processor, true);
+					njAsh = NJA::NJAsyncQueue::New(isolate, (NJA::CAQueue*)processor, true);
 					break;
 				case SPA::SFile::sidFile:
 					njAsh = NJA::NJFile::New(isolate, (NJA::CSFile*)processor, true);
@@ -215,10 +215,13 @@ namespace SPA
         }
 
         CAsyncServiceHandler::~CAsyncServiceHandler() {
-            CleanCallbacks();
+			CleanCallbacks();
             CAutoLock al(m_cs);
             if (m_pClientSocket)
                 m_pClientSocket->Detach(this);
+#ifdef NODE_JS_ADAPTER_PROJECT         
+			uv_close((uv_handle_t*)&m_typeReq, nullptr);
+#endif
         }
 
         UINT64 CAsyncServiceHandler::GetCallIndex() {

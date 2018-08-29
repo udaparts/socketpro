@@ -30,7 +30,7 @@ namespace NJA {
 				Odbc = new CSocketPool<COdbc>(autoConn, recvTimeout, connTimeout);
 			break;
 		case SPA::Queue::sidQueue:
-			Queue = new CSocketPool<CAsyncQueue>(autoConn, recvTimeout, connTimeout);
+			Queue = new CSocketPool<CAQueue>(autoConn, recvTimeout, connTimeout);
 			break;
 		case SPA::SFile::sidFile:
 			File = new CSocketPool<CSFile>(autoConn, recvTimeout, connTimeout);
@@ -61,6 +61,7 @@ namespace NJA {
 	}
 
 	void NJSocketPool::Release() {
+		SPA::CAutoLock al(m_cs);
 		if (Handler) {
 			switch (SvsId) {
 			case SPA::Sqlite::sidSqlite:
@@ -83,6 +84,8 @@ namespace NJA {
 				break;
 			}
 			Handler = nullptr;
+			uv_close((uv_handle_t*)&m_asyncType, nullptr);
+			uv_close((uv_handle_t*)&m_csType, nullptr);
 		}
 	}
 
@@ -223,9 +226,6 @@ namespace NJA {
 			}
 			obj->m_deqPoolEvent.pop_front();
 		}
-		if (!obj->Handler) {
-			uv_close((uv_handle_t*)handle, nullptr);
-		}
 	}
 
 	void NJSocketPool::async_cs_cb(uv_async_t* handle) {
@@ -257,7 +257,7 @@ namespace NJA {
 				njAsh = NJOdbc::New(isolate, (COdbc*)ash, true);
 				break;
 			case SPA::Queue::sidQueue:
-				njAsh = NJAsyncQueue::New(isolate, (CAsyncQueue*)ash, true);
+				njAsh = NJAsyncQueue::New(isolate, (CAQueue*)ash, true);
 				break;
 			case SPA::SFile::sidFile:
 				njAsh = NJFile::New(isolate, (CSFile*)ash, true);
@@ -327,9 +327,6 @@ namespace NJA {
 			}
 			CScopeUQueue::Unlock(se.QData);
 			obj->m_deqSocketEvent.pop_front();
-		}
-		if (!obj->Handler) {
-			uv_close((uv_handle_t*)handle, nullptr);
 		}
 	}
 
