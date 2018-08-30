@@ -50,9 +50,7 @@ namespace SPA
 						assert(!fail);
 					};
 				}
-				else if (argv[0]->IsNullOrUndefined()) {
-				}
-				else {
+				else if (!argv[0]->IsNullOrUndefined()) {
 					isolate->ThrowException(v8::Exception::TypeError(v8::String::NewFromUtf8(isolate, "A callback expected for tracking returned results")));
 					return 0;
 				}
@@ -77,9 +75,7 @@ namespace SPA
 						assert(!fail);
 					};
 				}
-				else if (argv[1]->IsNullOrUndefined()) {
-				}
-				else {
+				else if (!argv[1]->IsNullOrUndefined()) {
 					isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "A callback expected for tracking socket closed or canceled events")));
 					return 0;
 				}
@@ -104,9 +100,7 @@ namespace SPA
 						assert(!fail);
 					};
 				}
-				else if (argv[2]->IsNullOrUndefined()) {
-				}
-				else {
+				else if (!argv[2]->IsNullOrUndefined()) {
 					isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "A callback expected for tracking exceptions from server")));
 					return 0;
 				}

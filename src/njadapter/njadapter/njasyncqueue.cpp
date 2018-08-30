@@ -1,6 +1,7 @@
 
 #include "stdafx.h"
 #include "njasyncqueue.h"
+#include "njqueue.h"
 
 namespace NJA {
 
@@ -240,10 +241,77 @@ namespace NJA {
 	}
 
 	void NJAsyncQueue::Enqueue(const FunctionCallbackInfo<Value>& args) {
-
+		Isolate* isolate = args.GetIsolate();
+		NJAsyncQueue* obj = ObjectWrap::Unwrap<NJAsyncQueue>(args.Holder());
+		if (obj->IsValid(isolate)) {
+			std::string key = GetKey(isolate, args[0]);
+			if (!key.size())
+				return;
+			auto p = args[1];
+			unsigned int reqId = 0;
+			if (p->IsUint32())
+				reqId = p->Uint32Value();
+			else {
+				isolate->ThrowException(v8::Exception::TypeError(v8::String::NewFromUtf8(isolate, "Unsigned short value expected for message request id")));
+				return;
+			}
+			int pos = 0;
+			p = args[2];
+			NJQueue *njq = nullptr;
+			unsigned int size = 0;
+			const unsigned char *buffer = nullptr;
+			if (p->IsObject()) {
+				njq = ObjectWrap::Unwrap<NJQueue>(p->ToObject());
+				SPA::CUQueue *q = njq->get();
+				if (q) {
+					buffer = q->GetBuffer();
+					size = q->GetSize();
+				}
+				++pos;
+			}
+			Local<Value> argv[] = { args[2 + pos], args[3 + pos] };
+			SPA::UINT64 index = obj->m_aq->Enqueue(isolate, 2, argv, key.c_str(), (unsigned short)reqId, buffer, size);
+			if (njq)
+				njq->Release();
+			if (index) {
+				args.GetReturnValue().Set(Boolean::New(isolate, index != INVALID_NUMBER));
+			}
+		}
 	}
 
 	void NJAsyncQueue::EnqueueBatch(const FunctionCallbackInfo<Value>& args) {
+		Isolate* isolate = args.GetIsolate();
+		NJAsyncQueue* obj = ObjectWrap::Unwrap<NJAsyncQueue>(args.Holder());
+		if (obj->IsValid(isolate)) {
+			std::string key = GetKey(isolate, args[0]);
+			if (!key.size())
+				return;
+			auto p = args[1];
+			NJQueue *njq = nullptr;
+			unsigned int size = 0;
+			const unsigned char *buffer = nullptr;
+			if (p->IsObject()) {
+				njq = ObjectWrap::Unwrap<NJQueue>(p->ToObject());
+				SPA::CUQueue *q = njq->get();
+				if (q) {
+					buffer = q->GetBuffer();
+					size = q->GetSize();
+				}
+				if (size) {
 
+				}
+			}
+			else {
+				isolate->ThrowException(v8::Exception::TypeError(v8::String::NewFromUtf8(isolate, "A innstance of CUQueue object expected")));
+				return;
+			}
+			Local<Value> argv[] = { args[2], args[3] };
+			SPA::UINT64 index = obj->m_aq->EnqueueBatch(isolate, 2, argv, key.c_str(), buffer, size);
+			if (njq)
+				njq->Release();
+			if (index) {
+				args.GetReturnValue().Set(Boolean::New(isolate, index != INVALID_NUMBER));
+			}
+		}
 	}
 }

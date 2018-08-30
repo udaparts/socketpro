@@ -1,10 +1,11 @@
 
 #include "stdafx.h"
 #include "aqueue.h"
+#include "njasyncqueue.h"
 
 namespace NJA {
 
-	CAQueue::CAQueue(SPA::ClientSide::CClientSocket *cs) 
+	CAQueue::CAQueue(SPA::ClientSide::CClientSocket *cs)
 		: CAsyncQueue(cs)
 	{
 		::memset(&m_qType, 0, sizeof(m_qType));
@@ -41,9 +42,7 @@ namespace NJA {
 				assert(!fail);
 			};
 		}
-		else if (abort->IsNullOrUndefined()) {
-		}
-		else {
+		else if (!abort->IsNullOrUndefined()) {
 			isolate->ThrowException(v8::Exception::TypeError(v8::String::NewFromUtf8(isolate, "A callback expected for tracking socket closed or canceled events")));
 			bad = true;
 		}
@@ -51,7 +50,104 @@ namespace NJA {
 	}
 
 	void CAQueue::queue_cb(uv_async_t* handle) {
-
+		Isolate* isolate = Isolate::GetCurrent();
+		v8::HandleScope handleScope(isolate); //required for Node 4.x
+		CAQueue* obj = (CAQueue*)handle->data; //sender
+		assert(obj);
+		if (!obj)
+			return;
+		SPA::CAutoLock al(obj->m_csQ);
+		while (obj->m_deqQCb.size()) {
+			QueueCb &cb = obj->m_deqQCb.front();
+			PAQueue processor;
+			*cb.Buffer >> processor;
+			Local<Function> func = Local<Function>::New(isolate, *cb.Func);
+			Local<Object> njQ = NJAsyncQueue::New(isolate, processor, true);
+			switch (cb.EventType) {
+			case qeDiscarded:
+			{
+				bool canceled;
+				*cb.Buffer >> canceled;
+				assert(!cb.Buffer->GetSize());
+				Local<Value> argv[] = { v8::Boolean::New(isolate, canceled), njQ };
+				func->Call(Null(isolate), 2, argv);
+			}
+			break;
+			case qeGetKeys:
+			{
+				unsigned int size;
+				*cb.Buffer >> size;
+				unsigned int index = 0;
+				Local<Array> jsKeys = Array::New(isolate);
+				while (cb.Buffer->GetSize())
+				{
+					std::string s;
+					*cb.Buffer >> s;
+					auto str = String::NewFromUtf8(isolate, s.c_str());
+					bool ok = jsKeys->Set(index, str);
+					assert(ok);
+					++index;
+				}
+				assert(index == size);
+				Local<Value> argv[] = { jsKeys, njQ };
+				func->Call(Null(isolate), 2, argv);
+			}
+			break;
+			case qeEnqueueBatch:
+			case qeEnqueue:
+			{
+				SPA::UINT64 indexMessage;
+				*cb.Buffer >> indexMessage;
+				assert(!cb.Buffer->GetSize());
+				Local<Value> im = Number::New(isolate, (double)indexMessage);
+				Local<Value> argv[] = { im, njQ };
+				func->Call(Null(isolate), 2, argv);
+			}
+			break;
+			case qeCloseQueue:
+			case qeEndQueueTrans:
+			case qeStartQueueTrans:
+			{
+				int errCode;
+				*cb.Buffer >> errCode;
+				assert(!cb.Buffer->GetSize());
+				Local<Value> jsCode = Int32::New(isolate, errCode);
+				Local<Value> argv[] = { jsCode, njQ };
+				func->Call(Null(isolate), 2, argv);
+			}
+			break;
+			case qeFlushQueue:
+			{
+				SPA::UINT64 messageCount, fileSize;
+				*cb.Buffer >> messageCount >> fileSize;
+				assert(!cb.Buffer->GetSize());
+				Local<Value> mc = Number::New(isolate, (double)messageCount);
+				Local<Value> fs = Number::New(isolate, (double)fileSize);
+				Local<Value> argv[] = { mc, fs, njQ };
+				func->Call(Null(isolate), 3, argv);
+			}
+			break;
+			case qeDequeue:
+			{
+				SPA::UINT64 messageCount, fileSize;
+				unsigned int messagesDequeuedInBatch, bytesDequeuedInBatch;
+				*cb.Buffer >> messageCount >> fileSize >> messagesDequeuedInBatch >> bytesDequeuedInBatch;
+				assert(!cb.Buffer->GetSize());
+				Local<Value> mc = Number::New(isolate, (double)messageCount);
+				Local<Value> fs = Number::New(isolate, (double)fileSize);
+				Local<Value> mdib = Uint32::New(isolate, messagesDequeuedInBatch);
+				Local<Value> bdib = Uint32::New(isolate, bytesDequeuedInBatch);
+				Local<Value> argv[] = { mc, fs, mdib, bdib, njQ };
+				func->Call(Null(isolate), 5, argv);
+			}
+			break;
+			default:
+				assert(false); //shouldn't come here
+				break;
+			}
+			CScopeUQueue::Unlock(cb.Buffer);
+			obj->m_deqQCb.pop_front();
+		}
 	}
 
 	SPA::UINT64 CAQueue::GetKeys(Isolate* isolate, int args, Local<Value> *argv) {
@@ -81,16 +177,14 @@ namespace NJA {
 					assert(!fail);
 				};
 			}
-			else if (argv[0]->IsNullOrUndefined()) {
-			}
-			else {
+			else if (!argv[0]->IsNullOrUndefined()) {
 				isolate->ThrowException(v8::Exception::TypeError(v8::String::NewFromUtf8(isolate, "A callback expected for GetKeys end result")));
 				return 0;
 			}
 		}
 		if (args > 1) {
 			bool bad;
-			dd = Get(isolate, argv[1],bad);
+			dd = Get(isolate, argv[1], bad);
 			if (bad)
 				return 0;
 		}
@@ -121,9 +215,7 @@ namespace NJA {
 					assert(!fail);
 				};
 			}
-			else if (argv[0]->IsNullOrUndefined()) {
-			}
-			else {
+			else if (!argv[0]->IsNullOrUndefined()) {
 				isolate->ThrowException(v8::Exception::TypeError(v8::String::NewFromUtf8(isolate, "A callback expected for StartTrans end result")));
 				return 0;
 			}
@@ -161,9 +253,7 @@ namespace NJA {
 					assert(!fail);
 				};
 			}
-			else if (argv[0]->IsNullOrUndefined()) {
-			}
-			else {
+			else if (!argv[0]->IsNullOrUndefined()) {
 				isolate->ThrowException(v8::Exception::TypeError(v8::String::NewFromUtf8(isolate, "A callback expected for EndTrans end result")));
 				return 0;
 			}
@@ -201,9 +291,7 @@ namespace NJA {
 					assert(!fail);
 				};
 			}
-			else if (argv[0]->IsNullOrUndefined()) {
-			}
-			else {
+			else if (!argv[0]->IsNullOrUndefined()) {
 				isolate->ThrowException(v8::Exception::TypeError(v8::String::NewFromUtf8(isolate, "A callback expected for Close end result")));
 				return 0;
 			}
@@ -241,9 +329,7 @@ namespace NJA {
 					assert(!fail);
 				};
 			}
-			else if (argv[0]->IsNullOrUndefined()) {
-			}
-			else {
+			else if (!argv[0]->IsNullOrUndefined()) {
 				isolate->ThrowException(v8::Exception::TypeError(v8::String::NewFromUtf8(isolate, "A callback expected for Flush end result")));
 				return 0;
 			}
@@ -281,9 +367,7 @@ namespace NJA {
 					assert(!fail);
 				};
 			}
-			else if (argv[0]->IsNullOrUndefined()) {
-			}
-			else {
+			else if (!argv[0]->IsNullOrUndefined()) {
 				isolate->ThrowException(v8::Exception::TypeError(v8::String::NewFromUtf8(isolate, "A callback expected for Dequeue end result")));
 				return 0;
 			}
@@ -321,9 +405,7 @@ namespace NJA {
 					assert(!fail);
 				};
 			}
-			else if (argv[0]->IsNullOrUndefined()) {
-			}
-			else {
+			else if (!argv[0]->IsNullOrUndefined()) {
 				isolate->ThrowException(v8::Exception::TypeError(v8::String::NewFromUtf8(isolate, "A callback expected for Enqueue end result")));
 				return 0;
 			}
@@ -361,9 +443,7 @@ namespace NJA {
 					assert(!fail);
 				};
 			}
-			else if (argv[0]->IsNullOrUndefined()) {
-			}
-			else {
+			else if (!argv[0]->IsNullOrUndefined()) {
 				isolate->ThrowException(v8::Exception::TypeError(v8::String::NewFromUtf8(isolate, "A callback expected for EnqueueBatch end result")));
 				return 0;
 			}
