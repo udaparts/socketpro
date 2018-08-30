@@ -37,7 +37,7 @@ def TestDequeue(aq):
             return True
         return False #not processed
     aq.ResultReturned = cbResultReturned
-    def cbDequeue(messageCount, fileSize, messages, bytes):
+    def cbDequeue(aq, messageCount, fileSize, messages, bytes):
         s = 'Total message count=' + str(messageCount) + ', queue file size=' + str(fileSize) + ', messages dequeued=' + str(messages) + ', message bytes dequeued=' + str(bytes)
         print(s)
         if messageCount > 0:
