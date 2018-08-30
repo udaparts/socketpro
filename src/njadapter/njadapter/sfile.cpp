@@ -23,20 +23,20 @@ namespace NJA {
 			if (argv[0]->IsFunction()) {
 				std::shared_ptr<CNJFunc> func(new CNJFunc);
 				func->Reset(isolate, Local<Function>::Cast(argv[0]));
-				dd = [this, func, download](CStreamingFile *file, int res, const std::wstring &errMsg) {
+				dd = [func, download](CStreamingFile *file, int res, const std::wstring &errMsg) {
 					FileCb fcb;
 					fcb.Download = download;
 					fcb.EventType = feExchange;
 					fcb.Func = func;
-					auto cs = this->GetAttachedClientSocket();
+					auto cs = file->GetAttachedClientSocket();
 					bool endian;
 					tagOperationSystem os = cs->GetPeerOs(&endian);
 					fcb.Buffer = CScopeUQueue::Lock(os, endian);
 					PSFile f = (PSFile)file;
 					*fcb.Buffer << f << res << errMsg;
-					CAutoLock al(this->m_csFile);
-					this->m_deqFileCb.push_back(fcb);
-					int fail = uv_async_send(&this->m_fileType);
+					CAutoLock al(f->m_csFile);
+					f->m_deqFileCb.push_back(fcb);
+					int fail = uv_async_send(&f->m_fileType);
 					assert(!fail);
 				};
 			}
@@ -49,20 +49,20 @@ namespace NJA {
 			if (argv[1]->IsFunction()) {
 				std::shared_ptr<CNJFunc> func(new CNJFunc);
 				func->Reset(isolate, Local<Function>::Cast(argv[1]));
-				trans = [this, func, download](CStreamingFile *file, SPA::UINT64 transferred) {
+				trans = [func, download](CStreamingFile *file, SPA::UINT64 transferred) {
 					FileCb fcb;
 					fcb.Download = download;
 					fcb.EventType = feTrans;
 					fcb.Func = func;
-					auto cs = this->GetAttachedClientSocket();
+					auto cs = file->GetAttachedClientSocket();
 					bool endian;
 					tagOperationSystem os = cs->GetPeerOs(&endian);
 					fcb.Buffer = CScopeUQueue::Lock(os, endian);
 					PSFile f = (PSFile)file;
 					*fcb.Buffer << f << transferred << file->GetFileSize();
-					CAutoLock al(this->m_csFile);
-					this->m_deqFileCb.push_back(fcb);
-					int fail = uv_async_send(&this->m_fileType);
+					CAutoLock al(f->m_csFile);
+					f->m_deqFileCb.push_back(fcb);
+					int fail = uv_async_send(&f->m_fileType);
 					assert(!fail);
 				};
 			}
@@ -75,20 +75,20 @@ namespace NJA {
 			if (argv[2]->IsFunction()) {
 				std::shared_ptr<CNJFunc> func(new CNJFunc);
 				func->Reset(isolate, Local<Function>::Cast(argv[2]));
-				aborted = [this, func, download](CAsyncServiceHandler *file, bool canceled) {
+				aborted = [func, download](CAsyncServiceHandler *file, bool canceled) {
 					FileCb fcb;
 					fcb.Download = download;
 					fcb.EventType = feDiscarded;
 					fcb.Func = func;
-					auto cs = this->GetAttachedClientSocket();
+					auto cs = file->GetAttachedClientSocket();
 					bool endian;
 					tagOperationSystem os = cs->GetPeerOs(&endian);
 					fcb.Buffer = CScopeUQueue::Lock(os, endian);
 					PSFile f = (PSFile)file;
 					*fcb.Buffer << f << canceled;
-					CAutoLock al(this->m_csFile);
-					this->m_deqFileCb.push_back(fcb);
-					int fail = uv_async_send(&this->m_fileType);
+					CAutoLock al(f->m_csFile);
+					f->m_deqFileCb.push_back(fcb);
+					int fail = uv_async_send(&f->m_fileType);
 					assert(!fail);
 				};
 			}

@@ -119,19 +119,20 @@ namespace SPA {
                 int res;
                 std::wstring errMsg;
                 ar >> res >> errMsg >> fail_ok;
-                m_csDB.lock();
-                m_lastReqId = reqId;
-                m_affected = 0;
-                m_dbErrCode = res;
-                m_dbErrMsg = errMsg;
-                auto it = m_mapRowset.find(index);
-                if (it != m_mapRowset.end()) {
-                    m_mapRowset.erase(it);
+				COdbc *ash = (COdbc *)ar.AsyncServiceHandler;
+                ash->m_csDB.lock();
+                ash->m_lastReqId = reqId;
+                ash->m_affected = 0;
+                ash->m_dbErrCode = res;
+                ash->m_dbErrMsg = errMsg;
+                auto it = ash->m_mapRowset.find(index);
+                if (it != ash->m_mapRowset.end()) {
+                     ash->m_mapRowset.erase(it);
                 }
-                m_csDB.unlock();
+                ash->m_csDB.unlock();
                 if (handler) {
                     CDBVariant vtNull;
-                    handler(*this, res, errMsg, 0, fail_ok, vtNull);
+                    handler(*ash, res, errMsg, 0, fail_ok, vtNull);
                 }
             }
 

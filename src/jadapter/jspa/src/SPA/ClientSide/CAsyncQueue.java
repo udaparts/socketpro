@@ -46,37 +46,37 @@ public class CAsyncQueue extends CAsyncServiceHandler {
     //callback definitions
     public interface DQueueTrans {
 
-        void invoke(int errCode);
+        void invoke(CAsyncQueue aq, int errCode);
     }
 
     public interface DGetKeys {
 
-        void invoke(String[] vKey);
+        void invoke(CAsyncQueue aq, String[] vKey);
     }
 
     public interface DFlush {
 
-        void invoke(long messageCount, long fileSize);
+        void invoke(CAsyncQueue aq, long messageCount, long fileSize);
     }
 
     public interface DEnqueue {
 
-        void invoke(long indexMessage);
+        void invoke(CAsyncQueue aq, long indexMessage);
     }
 
     public interface DClose {
 
-        void invoke(int errCode);
+        void invoke(CAsyncQueue aq, int errCode);
     }
 
     public interface DDequeue {
 
-        void invoke(long messageCount, long fileSize, int messagesDequeuedInBatch, int bytesDequeuedInBatch);
+        void invoke(CAsyncQueue aq, long messageCount, long fileSize, int messagesDequeuedInBatch, int bytesDequeuedInBatch);
     }
 
     public interface DMessageQueued {
 
-        void invoke();
+        void invoke(CAsyncQueue aq);
     }
 
     private int m_nBatchSize = 0;
@@ -137,7 +137,7 @@ public class CAsyncQueue extends CAsyncServiceHandler {
             return new CAsyncServiceHandler.DAsyncResultHandler() {
                 @Override
                 public void invoke(CAsyncResult ar) {
-                    e.invoke(ar.LoadLong());
+                    e.invoke((CAsyncQueue) ar.getAsyncServiceHandler(), ar.LoadLong());
                 }
             };
         }
@@ -347,7 +347,7 @@ public class CAsyncQueue extends CAsyncServiceHandler {
             @Override
             public void invoke(CAsyncResult ar) {
                 if (qt != null) {
-                    qt.invoke(ar.LoadInt());
+                    qt.invoke((CAsyncQueue) ar.getAsyncServiceHandler(), ar.LoadInt());
                 } else {
                     ar.getUQueue().SetSize(0);
                 }
@@ -409,7 +409,7 @@ public class CAsyncQueue extends CAsyncServiceHandler {
             @Override
             public void invoke(CAsyncResult ar) {
                 if (qt != null) {
-                    qt.invoke(ar.LoadInt());
+                    qt.invoke((CAsyncQueue) ar.getAsyncServiceHandler(), ar.LoadInt());
                 } else {
                     ar.getUQueue().SetSize(0);
                 }
@@ -456,7 +456,7 @@ public class CAsyncQueue extends CAsyncServiceHandler {
                         byte[] bytes = ar.LoadBytes();
                         v[n] = new String(bytes, UTF8_CHARSET);
                     }
-                    gk.invoke(v);
+                    gk.invoke((CAsyncQueue) ar.getAsyncServiceHandler(), v);
                 } else {
                     ar.getUQueue().SetSize(0);
                 }
@@ -524,7 +524,7 @@ public class CAsyncQueue extends CAsyncServiceHandler {
             @Override
             public void invoke(CAsyncResult ar) {
                 if (c != null) {
-                    c.invoke(ar.LoadInt());
+                    c.invoke((CAsyncQueue) ar.getAsyncServiceHandler(), ar.LoadInt());
                 } else {
                     ar.getUQueue().SetSize(0);
                 }
@@ -600,7 +600,7 @@ public class CAsyncQueue extends CAsyncServiceHandler {
                 if (f != null) {
                     long messageCount = ar.LoadLong();
                     long fileSize = ar.LoadLong();
-                    f.invoke(messageCount, fileSize);
+                    f.invoke((CAsyncQueue) ar.getAsyncServiceHandler(), messageCount, fileSize);
                 } else {
                     ar.getUQueue().SetSize(0);
                 }
@@ -667,7 +667,7 @@ public class CAsyncQueue extends CAsyncServiceHandler {
                         long messageCount = ar.LoadLong(), fileSize = ar.LoadLong(), ret = ar.LoadLong();
                         int messages = (int) ret;
                         int bytes = (int) (ret >> 32);
-                        d.invoke(messageCount, fileSize, messages, bytes);
+                        d.invoke((CAsyncQueue) ar.getAsyncServiceHandler(), messageCount, fileSize, messages, bytes);
                     }
                 };
                 m_dDequeue = d;
@@ -697,7 +697,7 @@ public class CAsyncQueue extends CAsyncServiceHandler {
                     Dequeue(key, deq, 0);
                 }
                 if (MessageQueued != null) {
-                    MessageQueued.invoke();
+                    MessageQueued.invoke(this);
                 }
                 break;
             default:

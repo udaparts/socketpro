@@ -1053,18 +1053,19 @@ namespace SocketProAdapter {
                 string errMsg;
                 object vtId;
                 ar.Load(out affected).Load(out res).Load(out errMsg).Load(out vtId).Load(out fail_ok);
-                lock (m_csDB) {
-                    m_lastReqId = reqId;
-                    m_affected = affected;
-                    m_dbErrCode = res;
-                    m_dbErrMsg = errMsg;
-                    m_indexProc = 0;
-                    m_mapRowset.Remove(index);
-                    m_mapParameterCall.Remove(index);
-                    m_mapHandler.Remove(index);
+                CAsyncDBHandler adb = (CAsyncDBHandler)ar.AsyncServiceHandler;
+                lock (adb.m_csDB) {
+                    adb.m_lastReqId = reqId;
+                    adb.m_affected = affected;
+                    adb.m_dbErrCode = res;
+                    adb.m_dbErrMsg = errMsg;
+                    adb.m_indexProc = 0;
+                    adb.m_mapRowset.Remove(index);
+                    adb.m_mapParameterCall.Remove(index);
+                    adb.m_mapHandler.Remove(index);
                 }
                 if (handler != null)
-                    handler(this, res, errMsg, affected, fail_ok, vtId);
+                    handler(adb, res, errMsg, affected, fail_ok, vtId);
             }
 
             /// <summary>
@@ -1111,23 +1112,24 @@ namespace SocketProAdapter {
                     int res, ms;
                     string errMsg;
                     ar.Load(out res).Load(out errMsg).Load(out ms);
-                    lock (m_csDB) {
-                        m_dbErrCode = res;
-                        m_lastReqId = DB_CONSTS.idOpen;
+                    CAsyncDBHandler adb = (CAsyncDBHandler)ar.AsyncServiceHandler;
+                    lock (adb.m_csDB) {
+                        adb.m_dbErrCode = res;
+                        adb.m_lastReqId = DB_CONSTS.idOpen;
                         if (res == 0) {
-                            m_strConnection = errMsg;
+                            adb.m_strConnection = errMsg;
                             errMsg = "";
                         } else {
-                            m_strConnection = "";
+                            adb.m_strConnection = "";
                         }
-                        m_dbErrMsg = errMsg;
-                        m_ms = (tagManagementSystem)ms;
-                        m_parameters = 0;
-                        m_indexProc = 0;
-                        m_output = 0;
+                        adb.m_dbErrMsg = errMsg;
+                        adb.m_ms = (tagManagementSystem)ms;
+                        adb.m_parameters = 0;
+                        adb.m_indexProc = 0;
+                        adb.m_output = 0;
                     }
                     if (handler != null) {
-                        handler(this, res, errMsg);
+                        handler(adb, res, errMsg);
                     }
                 }, discarded, null)) {
                     return true;
@@ -1196,17 +1198,18 @@ namespace SocketProAdapter {
                         string errMsg;
                         uint parameters;
                         ar.Load(out res).Load(out errMsg).Load(out parameters);
-                        lock (m_csDB) {
-                            m_bCallReturn = false;
-                            m_lastReqId = DB_CONSTS.idPrepare;
-                            m_dbErrCode = res;
-                            m_dbErrMsg = errMsg;
-                            m_parameters = (parameters & 0xffff);
-                            m_indexProc = 0;
-                            m_output = (parameters >> 16);
+                        CAsyncDBHandler adb = (CAsyncDBHandler)ar.AsyncServiceHandler;
+                        lock (adb.m_csDB) {
+                            adb.m_bCallReturn = false;
+                            adb.m_lastReqId = DB_CONSTS.idPrepare;
+                            adb.m_dbErrCode = res;
+                            adb.m_dbErrMsg = errMsg;
+                            adb.m_parameters = (parameters & 0xffff);
+                            adb.m_indexProc = 0;
+                            adb.m_output = (parameters >> 16);
                         }
                         if (handler != null) {
-                            handler(this, res, errMsg);
+                            handler(adb, res, errMsg);
                         }
                     }, discarded, null)) {
                         return false;
@@ -1257,13 +1260,14 @@ namespace SocketProAdapter {
                         int res;
                         string errMsg;
                         ar.Load(out res).Load(out errMsg);
-                        lock (m_csDB) {
-                            m_lastReqId = DB_CONSTS.idEndTrans;
-                            m_dbErrCode = res;
-                            m_dbErrMsg = errMsg;
+                        CAsyncDBHandler adb = (CAsyncDBHandler)ar.AsyncServiceHandler;
+                        lock (adb.m_csDB) {
+                            adb.m_lastReqId = DB_CONSTS.idEndTrans;
+                            adb.m_dbErrCode = res;
+                            adb.m_dbErrMsg = errMsg;
                         }
                         if (handler != null) {
-                            handler(this, res, errMsg);
+                            handler(adb, res, errMsg);
                         }
                     }, discarded, null)) {
                         if (m_queueOk) {
@@ -1329,18 +1333,19 @@ namespace SocketProAdapter {
                         int res, ms;
                         string errMsg;
                         ar.Load(out res).Load(out errMsg).Load(out ms);
-                        lock (m_csDB) {
+                        CAsyncDBHandler adb = (CAsyncDBHandler)ar.AsyncServiceHandler;
+                        lock (adb.m_csDB) {
                             if (res == 0) {
-                                m_strConnection = errMsg;
+                                adb.m_strConnection = errMsg;
                                 errMsg = "";
                             }
-                            m_lastReqId = DB_CONSTS.idBeginTrans;
-                            m_dbErrCode = res;
-                            m_dbErrMsg = errMsg;
-                            m_ms = (tagManagementSystem)ms;
+                            adb.m_lastReqId = DB_CONSTS.idBeginTrans;
+                            adb.m_dbErrCode = res;
+                            adb.m_dbErrMsg = errMsg;
+                            adb.m_ms = (tagManagementSystem)ms;
                         }
                         if (handler != null) {
-                            handler(this, res, errMsg);
+                            handler(adb, res, errMsg);
                         }
                     }, discarded, null);
                 }
@@ -1374,14 +1379,15 @@ namespace SocketProAdapter {
                     int res;
                     string errMsg;
                     ar.Load(out res).Load(out errMsg);
-                    lock (m_csDB) {
-                        m_lastReqId = DB_CONSTS.idClose;
-                        m_strConnection = "";
-                        m_dbErrCode = res;
-                        m_dbErrMsg = errMsg;
+                    CAsyncDBHandler adb = (CAsyncDBHandler)ar.AsyncServiceHandler;
+                    lock (adb.m_csDB) {
+                        adb.m_lastReqId = DB_CONSTS.idClose;
+                        adb.m_strConnection = "";
+                        adb.m_dbErrCode = res;
+                        adb.m_dbErrMsg = errMsg;
                     }
                     if (handler != null) {
-                        handler(this, res, errMsg);
+                        handler(adb, res, errMsg);
                     }
                 }, discarded, null);
             }

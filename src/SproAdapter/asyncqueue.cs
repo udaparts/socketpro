@@ -35,13 +35,13 @@ namespace SocketProAdapter {
             public const int QUEUE_ENQUEUING_FAILED = 8;
 
             //callback definitions
-            public delegate void DQueueTrans(int errCode);
-            public delegate void DGetKeys(string[] vKey);
-            public delegate void DFlush(ulong messageCount, ulong fileSize);
-            public delegate void DEnqueue(ulong indexMessage);
-            public delegate void DClose(int errCode);
-            public delegate void DDequeue(ulong messageCount, ulong fileSize, uint messagesDequeuedInBatch, uint bytesDequeuedInBatch);
-            public delegate void DMessageQueued();
+            public delegate void DQueueTrans(CAsyncQueue aq, int errCode);
+            public delegate void DGetKeys(CAsyncQueue aq, string[] vKey);
+            public delegate void DFlush(CAsyncQueue aq, ulong messageCount, ulong fileSize);
+            public delegate void DEnqueue(CAsyncQueue aq, ulong indexMessage);
+            public delegate void DClose(CAsyncQueue aq, int errCode);
+            public delegate void DDequeue(CAsyncQueue aq, ulong messageCount, ulong fileSize, uint messagesDequeuedInBatch, uint bytesDequeuedInBatch);
+            public delegate void DMessageQueued(CAsyncQueue aq);
 
             /// <summary>
             /// An event for tracking message queued notification from server side
@@ -103,7 +103,7 @@ namespace SocketProAdapter {
                     rh = (ar) => {
                         ulong index;
                         ar.Load(out index);
-                        e(index);
+                        e((CAsyncQueue)ar.AsyncServiceHandler, index);
                     };
                 }
                 return rh;
@@ -454,7 +454,7 @@ namespace SocketProAdapter {
                         if (qt != null) {
                             int errCode;
                             ar.Load(out errCode);
-                            qt(errCode);
+                            qt((CAsyncQueue)ar.AsyncServiceHandler, errCode);
                         } else {
                             ar.UQueue.SetSize(0);
                         }
@@ -501,7 +501,7 @@ namespace SocketProAdapter {
                     if (qt != null) {
                         int errCode;
                         ar.Load(out errCode);
-                        qt(errCode);
+                        qt((CAsyncQueue)ar.AsyncServiceHandler, errCode);
                     } else {
                         ar.UQueue.SetSize(0);
                     }
@@ -543,7 +543,7 @@ namespace SocketProAdapter {
                             if (bytes != null)
                                 v[n] = Encoding.UTF8.GetString(bytes, 0, bytes.Length);
                         }
-                        gk(v);
+                        gk((CAsyncQueue)ar.AsyncServiceHandler, v);
                     } else {
                         ar.UQueue.SetSize(0);
                     }
@@ -595,7 +595,7 @@ namespace SocketProAdapter {
                     if (c != null) {
                         int errCode;
                         ar.Load(out errCode);
-                        c(errCode);
+                        c((CAsyncQueue)ar.AsyncServiceHandler, errCode);
                     } else {
                         ar.UQueue.SetSize(0);
                     }
@@ -638,7 +638,7 @@ namespace SocketProAdapter {
                     if (f != null) {
                         ulong messageCount, fileSize;
                         ar.Load(out messageCount).Load(out fileSize);
-                        f(messageCount, fileSize);
+                        f((CAsyncQueue)ar.AsyncServiceHandler, messageCount, fileSize);
                     } else {
                         ar.UQueue.SetSize(0);
                     }
@@ -686,7 +686,7 @@ namespace SocketProAdapter {
                             ar.Load(out messageCount).Load(out fileSize).Load(out ret);
                             uint messages = (uint)ret;
                             uint bytes = (uint)(ret >> 32);
-                            d(messageCount, fileSize, messages, bytes);
+                            d((CAsyncQueue)ar.AsyncServiceHandler, messageCount, fileSize, messages, bytes);
                         };
                         m_dDequeue = d;
                     } else {
@@ -713,7 +713,7 @@ namespace SocketProAdapter {
                             Dequeue(key, deq, 0);
                         }
                         if (MessageQueued != null) {
-                            MessageQueued();
+                            MessageQueued(this);
                         }
                         break;
                     default:

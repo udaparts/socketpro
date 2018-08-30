@@ -433,26 +433,27 @@ namespace SPA {
                     }
                 }
                 sb << strConnection << flags;
-                ResultHandler arh = [handler, this](CAsyncResult & ar) {
+                ResultHandler arh = [handler](CAsyncResult & ar) {
                     int res, ms;
                     std::wstring errMsg;
                     ar >> res >> errMsg >> ms;
-                    this->m_csDB.lock();
-                    this->m_dbErrCode = res;
-                    this->m_lastReqId = idOpen;
+					CAsyncDBHandler<serviceId> *ash = (CAsyncDBHandler<serviceId>*)ar.AsyncServiceHandler;
+                    ash->m_csDB.lock();
+                    ash->m_dbErrCode = res;
+                    ash->m_lastReqId = idOpen;
                     if (res == 0) {
-                        this->m_strConnection = std::move(errMsg);
+                        ash->m_strConnection = std::move(errMsg);
                         errMsg.clear();
                     } else {
-                        this->m_strConnection.clear();
+                        ash->m_strConnection.clear();
                     }
-                    this->m_dbErrMsg = errMsg;
-                    this->m_ms = (tagManagementSystem) ms;
-                    this->m_parameters = 0;
-                    this->m_outputs = 0;
-                    this->m_csDB.unlock();
+                    ash->m_dbErrMsg = errMsg;
+                    ash->m_ms = (tagManagementSystem) ms;
+                    ash->m_parameters = 0;
+                    ash->m_outputs = 0;
+                    ash->m_csDB.unlock();
                     if (handler) {
-                        handler(*this, res, errMsg);
+                        handler(*ash, res, errMsg);
                     }
                 };
                 if (SendRequest(UDB::idOpen, sb->GetBuffer(), sb->GetSize(), arh, discarded, nullptr)) {
@@ -475,22 +476,23 @@ namespace SPA {
              */
             virtual bool Prepare(const wchar_t *sql, DResult handler = nullptr, const CParameterInfoArray& vParameterInfo = CParameterInfoArray(), DDiscarded discarded = nullptr) {
                 CScopeUQueue sb;
-                ResultHandler arh = [handler, this](CAsyncResult & ar) {
+                ResultHandler arh = [handler](CAsyncResult & ar) {
                     int res;
                     std::wstring errMsg;
                     unsigned int parameters;
                     ar >> res >> errMsg >> parameters;
-                    this->m_csDB.lock();
-                    this->m_bCallReturn = false;
-                    this->m_lastReqId = idPrepare;
-                    this->m_dbErrCode = res;
-                    this->m_dbErrMsg = errMsg;
-                    this->m_parameters = (parameters & 0xffff);
-                    this->m_outputs = (parameters >> 16);
-                    this->m_indexProc = 0;
-                    this->m_csDB.unlock();
+					CAsyncDBHandler<serviceId> *ash = (CAsyncDBHandler<serviceId>*)ar.AsyncServiceHandler;
+                    ash->m_csDB.lock();
+                    ash->m_bCallReturn = false;
+                    ash->m_lastReqId = idPrepare;
+                    ash->m_dbErrCode = res;
+                    ash->m_dbErrMsg = errMsg;
+                    ash->m_parameters = (parameters & 0xffff);
+                    ash->m_outputs = (parameters >> 16);
+                    ash->m_indexProc = 0;
+                    ash->m_csDB.unlock();
                     if (handler) {
-                        handler(*this, res, errMsg);
+                        handler(*ash, res, errMsg);
                     }
                 };
                 sb << sql << vParameterInfo;
@@ -504,18 +506,19 @@ namespace SPA {
              * @return true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
              */
             virtual bool Close(DResult handler = nullptr, DDiscarded discarded = nullptr) {
-                ResultHandler arh = [handler, this](CAsyncResult & ar) {
+                ResultHandler arh = [handler](CAsyncResult & ar) {
                     int res;
                     std::wstring errMsg;
                     ar >> res >> errMsg;
-                    this->m_csDB.lock();
-                    this->m_lastReqId = idClose;
-                    this->m_strConnection.clear();
-                    this->m_dbErrCode = res;
-                    this->m_dbErrMsg = errMsg;
-                    this->m_csDB.unlock();
+					CAsyncDBHandler<serviceId> *ash = (CAsyncDBHandler<serviceId>*)ar.AsyncServiceHandler;
+                    ash->m_csDB.lock();
+                    ash->m_lastReqId = idClose;
+                    ash->m_strConnection.clear();
+                    ash->m_dbErrCode = res;
+                    ash->m_dbErrMsg = errMsg;
+                    ash->m_csDB.unlock();
                     if (handler) {
-                        handler(*this, res, errMsg);
+                        handler(*ash, res, errMsg);
                     }
                 };
                 return SendRequest(idClose, (const unsigned char*) nullptr, (unsigned int) 0, arh, discarded, nullptr);
@@ -532,22 +535,23 @@ namespace SPA {
                 unsigned int flags;
                 std::wstring connection;
                 CScopeUQueue sb;
-                ResultHandler arh = [handler, this](CAsyncResult & ar) {
+                ResultHandler arh = [handler](CAsyncResult & ar) {
                     int res, ms;
                     std::wstring errMsg;
                     ar >> res >> errMsg >> ms;
-                    this->m_csDB.lock();
+					CAsyncDBHandler<serviceId> *ash = (CAsyncDBHandler<serviceId>*)ar.AsyncServiceHandler;
+                    ash->m_csDB.lock();
                     if (res == 0) {
-                        this->m_strConnection = errMsg;
+                        ash->m_strConnection = errMsg;
                         errMsg.clear();
                     }
-                    this->m_lastReqId = idBeginTrans;
-                    this->m_dbErrCode = res;
-                    this->m_dbErrMsg = errMsg;
-                    this->m_ms = (tagManagementSystem) ms;
-                    this->m_csDB.unlock();
+                    ash->m_lastReqId = idBeginTrans;
+                    ash->m_dbErrCode = res;
+                    ash->m_dbErrMsg = errMsg;
+                    ash->m_ms = (tagManagementSystem) ms;
+                    ash->m_csDB.unlock();
                     if (handler) {
-                        handler(*this, res, errMsg);
+                        handler(*ash, res, errMsg);
                     }
                 };
 
@@ -579,17 +583,18 @@ namespace SPA {
             virtual bool EndTrans(tagRollbackPlan plan = rpDefault, DResult handler = nullptr, DDiscarded discarded = nullptr) {
                 CScopeUQueue sb;
                 sb << (int) plan;
-                ResultHandler arh = [handler, this](CAsyncResult & ar) {
+                ResultHandler arh = [handler](CAsyncResult & ar) {
                     int res;
                     std::wstring errMsg;
                     ar >> res >> errMsg;
-                    this->m_csDB.lock();
-                    this->m_lastReqId = idEndTrans;
-                    this->m_dbErrCode = res;
-                    this->m_dbErrMsg = errMsg;
-                    this->m_csDB.unlock();
+					CAsyncDBHandler<serviceId> *ash = (CAsyncDBHandler<serviceId>*)ar.AsyncServiceHandler;
+                    ash->m_csDB.lock();
+                    ash->m_lastReqId = idEndTrans;
+                    ash->m_dbErrCode = res;
+                    ash->m_dbErrMsg = errMsg;
+                    ash->m_csDB.unlock();
                     if (handler) {
-                        handler(*this, res, errMsg);
+                        handler(*ash, res, errMsg);
                     }
                 };
 
@@ -851,6 +856,7 @@ namespace SPA {
                 int res;
                 std::wstring errMsg;
                 CDBVariant vtId;
+				CAsyncDBHandler<serviceId> *ash = (CAsyncDBHandler<serviceId>*)ar.AsyncServiceHandler;
                 ar >> affected >> res >> errMsg >> vtId >> fail_ok;
                 {
                     SPA::CAutoLock al(m_csDB);
@@ -868,11 +874,11 @@ namespace SPA {
                     }
                     auto ph = m_mapHandler.find(index);
                     if (ph != m_mapHandler.end()) {
-                        this->m_mapHandler.erase(ph);
+                        ash->m_mapHandler.erase(ph);
                     }
                 }
                 if (handler) {
-                    handler(*this, res, errMsg, affected, fail_ok, vtId);
+                    handler(*ash, res, errMsg, affected, fail_ok, vtId);
                 }
             }
 

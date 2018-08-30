@@ -18,13 +18,13 @@ namespace SPA {
             }
 
             //callback definitions
-            typedef std::function<void(int errCode) > DQueueTrans;
-            typedef std::function<void(std::vector<std::string>& v) > DGetKeys;
-            typedef std::function<void(UINT64 messageCount, UINT64 fileSize) > DFlush;
-            typedef std::function<void(UINT64 indexMessage) > DEnqueue;
-            typedef std::function<void(int errCode) > DClose;
-            typedef std::function<void(UINT64 messageCount, UINT64 fileSize, unsigned int messagesDequeuedInBatch, unsigned int bytesDequeuedInBatch) > DDequeue;
-            typedef std::function<void() > DMessageQueued;
+            typedef std::function<void(CAsyncQueue *aq, int errCode) > DQueueTrans;
+            typedef std::function<void(CAsyncQueue *aq, std::vector<std::string>& v) > DGetKeys;
+            typedef std::function<void(CAsyncQueue *aq, UINT64 messageCount, UINT64 fileSize) > DFlush;
+            typedef std::function<void(CAsyncQueue *aq, UINT64 indexMessage) > DEnqueue;
+            typedef std::function<void(CAsyncQueue *aq, int errCode) > DClose;
+            typedef std::function<void(CAsyncQueue *aq, UINT64 messageCount, UINT64 fileSize, unsigned int messagesDequeuedInBatch, unsigned int bytesDequeuedInBatch) > DDequeue;
+            typedef std::function<void(CAsyncQueue *aq) > DMessageQueued;
 
         public:
 
@@ -75,7 +75,7 @@ namespace SPA {
                             ar >> s;
                             v.push_back(s);
                         }
-                        gk(v);
+                        gk((CAsyncQueue*)ar.AsyncServiceHandler, v);
                     } else {
                         ar.UQueue.SetSize(0);
                     }
@@ -100,7 +100,7 @@ namespace SPA {
                     if (qt) {
                         int errCode;
                         ar >> errCode;
-                        qt(errCode);
+                        qt((CAsyncQueue*)ar.AsyncServiceHandler, errCode);
                     } else {
                         ar.UQueue.SetSize(0);
                     }
@@ -120,7 +120,7 @@ namespace SPA {
                     if (qt) {
                         int errCode;
                         ar >> errCode;
-                        qt(errCode);
+                        qt((CAsyncQueue*)ar.AsyncServiceHandler, errCode);
                     } else {
                         ar.UQueue.SetSize(0);
                     }
@@ -151,7 +151,7 @@ namespace SPA {
                     if (c) {
                         int errCode;
                         ar >> errCode;
-                        c(errCode);
+                        c((CAsyncQueue*)ar.AsyncServiceHandler, errCode);
                     } else {
                         ar.UQueue.SetSize(0);
                     }
@@ -172,7 +172,7 @@ namespace SPA {
                     if (f) {
                         UINT64 messageCount, fileSize;
                         ar >> messageCount >> fileSize;
-                        f(messageCount, fileSize);
+                        f((CAsyncQueue*)ar.AsyncServiceHandler, messageCount, fileSize);
                     } else {
                         ar.UQueue.SetSize(0);
                     }
@@ -199,7 +199,7 @@ namespace SPA {
                             ar >> messageCount >> fileSize >> ret;
                             unsigned int messages = (unsigned int) ret;
                             unsigned int bytes = (unsigned int) (ret >> 32);
-                            d(messageCount, fileSize, messages, bytes);
+                            d((CAsyncQueue*)ar.AsyncServiceHandler, messageCount, fileSize, messages, bytes);
                         };
                         m_dDequeue = d;
                     } else {
@@ -217,7 +217,7 @@ namespace SPA {
                     rh = [e](CAsyncResult & ar) {
                         UINT64 index;
                         ar >> index;
-                        e(index);
+                        e((CAsyncQueue*)ar.AsyncServiceHandler, index);
                     };
                 }
                 return rh;
@@ -433,7 +433,7 @@ namespace SPA {
                         }
                     }
                         if (MessageQueued) {
-                            MessageQueued();
+                            MessageQueued(this);
                         }
                         break;
                     default:

@@ -26,19 +26,19 @@ namespace NJA {
 		if (abort->IsFunction()) {
 			std::shared_ptr<CNJFunc> func(new CNJFunc);
 			func->Reset(isolate, Local<Function>::Cast(abort));
-			dd = [this, func](CAsyncServiceHandler *aq, bool canceled) {
+			dd = [func](CAsyncServiceHandler *aq, bool canceled) {
 				QueueCb qcb;
 				qcb.EventType = qeDiscarded;
 				qcb.Func = func;
-				auto cs = this->GetAttachedClientSocket();
+				auto cs = aq->GetAttachedClientSocket();
 				bool endian;
 				tagOperationSystem os = cs->GetPeerOs(&endian);
 				qcb.Buffer = CScopeUQueue::Lock(os, endian);
 				PAQueue ash = (PAQueue)aq;
 				*qcb.Buffer << ash << canceled;
-				CAutoLock al(this->m_csQ);
-				this->m_deqQCb.push_back(qcb);
-				int fail = uv_async_send(&this->m_qType);
+				CAutoLock al(ash->m_csQ);
+				ash->m_deqQCb.push_back(qcb);
+				int fail = uv_async_send(&ash->m_qType);
 				assert(!fail);
 			};
 		}
@@ -158,22 +158,22 @@ namespace NJA {
 			if (argv[0]->IsFunction()) {
 				std::shared_ptr<CNJFunc> func(new CNJFunc);
 				func->Reset(isolate, Local<Function>::Cast(argv[0]));
-				gk = [this, func](std::vector<std::string>& v) {
+				gk = [func](CAsyncQueue *aq, std::vector<std::string>& v) {
 					QueueCb qcb;
 					qcb.EventType = qeGetKeys;
 					qcb.Func = func;
-					auto cs = this->GetAttachedClientSocket();
+					auto cs = aq->GetAttachedClientSocket();
 					bool endian;
 					tagOperationSystem os = cs->GetPeerOs(&endian);
 					qcb.Buffer = CScopeUQueue::Lock(os, endian);
-					PAQueue ash = this;
+					PAQueue ash = (PAQueue)aq;
 					*qcb.Buffer << ash << (unsigned int)v.size();
 					for (auto it = v.begin(), end = v.end(); it != end; ++it) {
 						*qcb.Buffer << *it;
 					}
-					CAutoLock al(this->m_csQ);
-					this->m_deqQCb.push_back(qcb);
-					int fail = uv_async_send(&this->m_qType);
+					CAutoLock al(ash->m_csQ);
+					ash->m_deqQCb.push_back(qcb);
+					int fail = uv_async_send(&ash->m_qType);
 					assert(!fail);
 				};
 			}
@@ -199,19 +199,19 @@ namespace NJA {
 			if (argv[0]->IsFunction()) {
 				std::shared_ptr<CNJFunc> func(new CNJFunc);
 				func->Reset(isolate, Local<Function>::Cast(argv[0]));
-				qt = [this, func](int errCode) {
+				qt = [func](CAsyncQueue *aq, int errCode) {
 					QueueCb qcb;
 					qcb.EventType = qeStartQueueTrans;
 					qcb.Func = func;
-					auto cs = this->GetAttachedClientSocket();
+					auto cs = aq->GetAttachedClientSocket();
 					bool endian;
 					tagOperationSystem os = cs->GetPeerOs(&endian);
 					qcb.Buffer = CScopeUQueue::Lock(os, endian);
-					PAQueue ash = this;
+					PAQueue ash = (PAQueue)aq;
 					*qcb.Buffer << ash << errCode;
-					CAutoLock al(this->m_csQ);
-					this->m_deqQCb.push_back(qcb);
-					int fail = uv_async_send(&this->m_qType);
+					CAutoLock al(ash->m_csQ);
+					ash->m_deqQCb.push_back(qcb);
+					int fail = uv_async_send(&ash->m_qType);
 					assert(!fail);
 				};
 			}
@@ -237,19 +237,19 @@ namespace NJA {
 			if (argv[0]->IsFunction()) {
 				std::shared_ptr<CNJFunc> func(new CNJFunc);
 				func->Reset(isolate, Local<Function>::Cast(argv[0]));
-				qt = [this, func](int errCode) {
+				qt = [func](CAsyncQueue *aq, int errCode) {
 					QueueCb qcb;
 					qcb.EventType = qeEndQueueTrans;
 					qcb.Func = func;
-					auto cs = this->GetAttachedClientSocket();
+					auto cs = aq->GetAttachedClientSocket();
 					bool endian;
 					tagOperationSystem os = cs->GetPeerOs(&endian);
 					qcb.Buffer = CScopeUQueue::Lock(os, endian);
-					PAQueue ash = this;
+					PAQueue ash = (PAQueue)aq;
 					*qcb.Buffer << ash << errCode;
-					CAutoLock al(this->m_csQ);
-					this->m_deqQCb.push_back(qcb);
-					int fail = uv_async_send(&this->m_qType);
+					CAutoLock al(ash->m_csQ);
+					ash->m_deqQCb.push_back(qcb);
+					int fail = uv_async_send(&ash->m_qType);
 					assert(!fail);
 				};
 			}
@@ -275,19 +275,19 @@ namespace NJA {
 			if (argv[0]->IsFunction()) {
 				std::shared_ptr<CNJFunc> func(new CNJFunc);
 				func->Reset(isolate, Local<Function>::Cast(argv[0]));
-				c = [this, func](int errCode) {
+				c = [func](CAsyncQueue *aq, int errCode) {
 					QueueCb qcb;
 					qcb.EventType = qeCloseQueue;
 					qcb.Func = func;
-					auto cs = this->GetAttachedClientSocket();
+					auto cs = aq->GetAttachedClientSocket();
 					bool endian;
 					tagOperationSystem os = cs->GetPeerOs(&endian);
 					qcb.Buffer = CScopeUQueue::Lock(os, endian);
-					PAQueue ash = this;
+					PAQueue ash = (PAQueue)aq;
 					*qcb.Buffer << ash << errCode;
-					CAutoLock al(this->m_csQ);
-					this->m_deqQCb.push_back(qcb);
-					int fail = uv_async_send(&this->m_qType);
+					CAutoLock al(ash->m_csQ);
+					ash->m_deqQCb.push_back(qcb);
+					int fail = uv_async_send(&ash->m_qType);
 					assert(!fail);
 				};
 			}
@@ -313,19 +313,19 @@ namespace NJA {
 			if (argv[0]->IsFunction()) {
 				std::shared_ptr<CNJFunc> func(new CNJFunc);
 				func->Reset(isolate, Local<Function>::Cast(argv[0]));
-				f = [this, func](SPA::UINT64 messageCount, SPA::UINT64 fileSize) {
+				f = [func](CAsyncQueue *aq, SPA::UINT64 messageCount, SPA::UINT64 fileSize) {
 					QueueCb qcb;
 					qcb.EventType = qeFlushQueue;
 					qcb.Func = func;
-					auto cs = this->GetAttachedClientSocket();
+					auto cs = aq->GetAttachedClientSocket();
 					bool endian;
 					tagOperationSystem os = cs->GetPeerOs(&endian);
 					qcb.Buffer = CScopeUQueue::Lock(os, endian);
-					PAQueue ash = this;
+					PAQueue ash = (PAQueue)aq;
 					*qcb.Buffer << ash << messageCount << fileSize;
-					CAutoLock al(this->m_csQ);
-					this->m_deqQCb.push_back(qcb);
-					int fail = uv_async_send(&this->m_qType);
+					CAutoLock al(ash->m_csQ);
+					ash->m_deqQCb.push_back(qcb);
+					int fail = uv_async_send(&ash->m_qType);
 					assert(!fail);
 				};
 			}
@@ -351,19 +351,19 @@ namespace NJA {
 			if (argv[0]->IsFunction()) {
 				std::shared_ptr<CNJFunc> func(new CNJFunc);
 				func->Reset(isolate, Local<Function>::Cast(argv[0]));
-				d = [this, func](SPA::UINT64 messageCount, SPA::UINT64 fileSize, unsigned int messagesDequeuedInBatch, unsigned int bytesDequeuedInBatch) {
+				d = [func](CAsyncQueue *aq, SPA::UINT64 messageCount, SPA::UINT64 fileSize, unsigned int messagesDequeuedInBatch, unsigned int bytesDequeuedInBatch) {
 					QueueCb qcb;
 					qcb.EventType = qeDequeue;
 					qcb.Func = func;
-					auto cs = this->GetAttachedClientSocket();
+					auto cs = aq->GetAttachedClientSocket();
 					bool endian;
 					tagOperationSystem os = cs->GetPeerOs(&endian);
 					qcb.Buffer = CScopeUQueue::Lock(os, endian);
-					PAQueue ash = this;
+					PAQueue ash = (PAQueue)aq;
 					*qcb.Buffer << ash << messageCount << fileSize << messagesDequeuedInBatch << bytesDequeuedInBatch;
-					CAutoLock al(this->m_csQ);
-					this->m_deqQCb.push_back(qcb);
-					int fail = uv_async_send(&this->m_qType);
+					CAutoLock al(ash->m_csQ);
+					ash->m_deqQCb.push_back(qcb);
+					int fail = uv_async_send(&ash->m_qType);
 					assert(!fail);
 				};
 			}
@@ -389,19 +389,19 @@ namespace NJA {
 			if (argv[0]->IsFunction()) {
 				std::shared_ptr<CNJFunc> func(new CNJFunc);
 				func->Reset(isolate, Local<Function>::Cast(argv[0]));
-				e = [this, func](SPA::UINT64 indexMessage) {
+				e = [func](CAsyncQueue *aq, SPA::UINT64 indexMessage) {
 					QueueCb qcb;
 					qcb.EventType = qeEnqueue;
 					qcb.Func = func;
-					auto cs = this->GetAttachedClientSocket();
+					auto cs = aq->GetAttachedClientSocket();
 					bool endian;
 					tagOperationSystem os = cs->GetPeerOs(&endian);
 					qcb.Buffer = CScopeUQueue::Lock(os, endian);
-					PAQueue ash = this;
+					PAQueue ash = (PAQueue)aq;
 					*qcb.Buffer << ash << indexMessage;
-					CAutoLock al(this->m_csQ);
-					this->m_deqQCb.push_back(qcb);
-					int fail = uv_async_send(&this->m_qType);
+					CAutoLock al(ash->m_csQ);
+					ash->m_deqQCb.push_back(qcb);
+					int fail = uv_async_send(&ash->m_qType);
 					assert(!fail);
 				};
 			}
@@ -427,19 +427,19 @@ namespace NJA {
 			if (argv[0]->IsFunction()) {
 				std::shared_ptr<CNJFunc> func(new CNJFunc);
 				func->Reset(isolate, Local<Function>::Cast(argv[0]));
-				e = [this, func](SPA::UINT64 indexMessage) {
+				e = [func](CAsyncQueue *aq, SPA::UINT64 indexMessage) {
 					QueueCb qcb;
 					qcb.EventType = qeEnqueueBatch;
 					qcb.Func = func;
-					auto cs = this->GetAttachedClientSocket();
+					auto cs = aq->GetAttachedClientSocket();
 					bool endian;
 					tagOperationSystem os = cs->GetPeerOs(&endian);
 					qcb.Buffer = CScopeUQueue::Lock(os, endian);
-					PAQueue ash = this;
+					PAQueue ash = (PAQueue)aq;
 					*qcb.Buffer << ash << indexMessage;
-					CAutoLock al(this->m_csQ);
-					this->m_deqQCb.push_back(qcb);
-					int fail = uv_async_send(&this->m_qType);
+					CAutoLock al(ash->m_csQ);
+					ash->m_deqQCb.push_back(qcb);
+					int fail = uv_async_send(&ash->m_qType);
 					assert(!fail);
 				};
 			}

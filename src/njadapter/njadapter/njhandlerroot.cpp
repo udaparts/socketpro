@@ -130,13 +130,16 @@ namespace NJA {
 			int index = 1;
 			auto p1 = args[1];
 			if (p1->IsObject()) {
-				njq = ObjectWrap::Unwrap<NJQueue>(p1->ToObject());
-				SPA::CUQueue *q = njq->get();
-				if (q) {
-					buffer = q->GetBuffer();
-					bytes = q->GetSize();
+				auto qObj = p1->ToObject();
+				if (NJQueue::IsUQueue(qObj)) {
+					njq = ObjectWrap::Unwrap<NJQueue>(qObj);
+					SPA::CUQueue *q = njq->get();
+					if (q) {
+						buffer = q->GetBuffer();
+						bytes = q->GetSize();
+					}
+					++index;
 				}
-				++index;
 			}
 			Local<Value> argv[3];
 			argv[0] = args[index];

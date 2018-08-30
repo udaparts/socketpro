@@ -254,15 +254,16 @@ public class COdbc extends CAsyncDBHandler {
         int res = mc.LoadInt();
         String errMsg = mc.LoadString();
         long fail_ok = mc.LoadLong();
-        synchronized (m_csDB) {
-            m_lastReqId = reqId;
-            m_affected = 0;
-            m_dbErrCode = res;
-            m_dbErrMsg = errMsg;
-            m_mapRowset.remove(index);
+        COdbc odbc = (COdbc) ar.getAsyncServiceHandler();
+        synchronized (odbc.m_csDB) {
+            odbc.m_lastReqId = reqId;
+            odbc.m_affected = 0;
+            odbc.m_dbErrCode = res;
+            odbc.m_dbErrMsg = errMsg;
+            odbc.m_mapRowset.remove(index);
         }
         if (handler != null) {
-            handler.invoke(this, res, errMsg, 0, fail_ok, null);
+            handler.invoke(odbc, res, errMsg, 0, fail_ok, null);
         }
     }
 

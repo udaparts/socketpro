@@ -49,7 +49,7 @@ public class Program {
         //prepare a callback for processing returned result of dequeue request
         CAsyncQueue.DDequeue d = new CAsyncQueue.DDequeue() {
             @Override
-            public void invoke(long messageCount, long fileSize, int messagesDequeuedInBatch, int bytesDequeuedInBatch) {
+            public void invoke(CAsyncQueue sq, long messageCount, long fileSize, int messagesDequeuedInBatch, int bytesDequeuedInBatch) {
                 if (messageCount > 0) {
                     //there are more messages left at server queue, we re-send a request to dequeue
                     sq.Dequeue(TEST_QUEUE_KEY, sq.getLastDequeueCallback());

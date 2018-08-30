@@ -56,11 +56,11 @@ Class Program
                                       End Function
 
         'prepare a callback for processing returned result of dequeue request
-        Dim d As CAsyncQueue.DDequeue = Sub(messageCount, fileSize, messages, bytes)
+        Dim d As CAsyncQueue.DDequeue = Sub(asyncqueue, messageCount, fileSize, messages, bytes)
                                             Console.WriteLine("Total message count={0}, queue file size={1}, messages dequeued={2}, message bytes dequeued={3}", messageCount, fileSize, messages, bytes)
                                             If messageCount > 0 Then
                                                 'there are more messages left at server queue, we re-send a request to dequeue
-                                                aq.Dequeue(TEST_QUEUE_KEY, aq.LastDequeueCallback)
+                                                asyncqueue.Dequeue(TEST_QUEUE_KEY, asyncqueue.LastDequeueCallback)
                                             End If
                                         End Sub
 

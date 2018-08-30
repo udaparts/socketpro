@@ -6,6 +6,7 @@
 namespace NJA {
 	using SPA::CScopeUQueue;
 	Persistent<Function> NJQueue::constructor;
+	Persistent<FunctionTemplate> NJQueue::m_tpl;
 
 	NJQueue::NJQueue(CUQueue *buffer, unsigned int initialSize, unsigned int blockSize) : m_Buffer(buffer), m_initSize(initialSize), m_blockSize(blockSize) {
 #ifndef WIN32
@@ -30,6 +31,13 @@ namespace NJA {
 			m_Buffer->ToUtf8(true);
 #endif
 		}
+	}
+
+	bool NJQueue::IsUQueue(Local<Object> obj) {
+		Isolate* isolate = Isolate::GetCurrent();
+		HandleScope handleScope(isolate); //required for Node 4.x or later
+		Local<FunctionTemplate> cb = Local<FunctionTemplate>::New(isolate, m_tpl);
+		return cb->HasInstance(obj);
 	}
 
 	void NJQueue::Init(Local<Object> exports) {
@@ -93,6 +101,7 @@ namespace NJA {
 
 		constructor.Reset(isolate, tpl->GetFunction());
 		exports->Set(String::NewFromUtf8(isolate, "CUQueue"), tpl->GetFunction());
+		m_tpl.Reset(isolate, tpl);
 	}
 
 	void NJQueue::getOS(const FunctionCallbackInfo<Value>& args) {

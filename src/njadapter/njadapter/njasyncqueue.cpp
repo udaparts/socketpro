@@ -261,13 +261,16 @@ namespace NJA {
 			unsigned int size = 0;
 			const unsigned char *buffer = nullptr;
 			if (p->IsObject()) {
-				njq = ObjectWrap::Unwrap<NJQueue>(p->ToObject());
-				SPA::CUQueue *q = njq->get();
-				if (q) {
-					buffer = q->GetBuffer();
-					size = q->GetSize();
+				auto qObj = p->ToObject();
+				if (NJQueue::IsUQueue(qObj)) {
+					njq = ObjectWrap::Unwrap<NJQueue>(qObj);
+					SPA::CUQueue *q = njq->get();
+					if (q) {
+						buffer = q->GetBuffer();
+						size = q->GetSize();
+					}
+					++pos;
 				}
-				++pos;
 			}
 			Local<Value> argv[] = { args[2 + pos], args[3 + pos] };
 			SPA::UINT64 index = obj->m_aq->Enqueue(isolate, 2, argv, key.c_str(), (unsigned short)reqId, buffer, size);
@@ -291,14 +294,18 @@ namespace NJA {
 			unsigned int size = 0;
 			const unsigned char *buffer = nullptr;
 			if (p->IsObject()) {
-				njq = ObjectWrap::Unwrap<NJQueue>(p->ToObject());
-				SPA::CUQueue *q = njq->get();
-				if (q) {
-					buffer = q->GetBuffer();
-					size = q->GetSize();
-				}
-				if (size) {
-
+				auto qObj = p->ToObject();
+				if (NJQueue::IsUQueue(qObj)) {
+					njq = ObjectWrap::Unwrap<NJQueue>(qObj);
+					SPA::CUQueue *q = njq->get();
+					if (q) {
+						buffer = q->GetBuffer();
+						size = q->GetSize();
+						if (size < 2 * sizeof(unsigned int)) {
+							isolate->ThrowException(v8::Exception::TypeError(v8::String::NewFromUtf8(isolate, "Wrong batch queue data")));
+							return;
+						}
+					}
 				}
 			}
 			else {

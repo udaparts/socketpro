@@ -46,13 +46,13 @@ class Program {
     static void DequeueFromServer(CAsyncQueue sq) {
         uint messages_dequeued = 0;
         System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
-        CAsyncQueue.DDequeue d = (messageCount, fileSize, messages, bytes) => {
+        CAsyncQueue.DDequeue d = (aq, messageCount, fileSize, messages, bytes) => {
             if (messageCount > 0) {
                 //there are more messages left at server queue, we re-send a request to dequeue
-                sq.Dequeue(TEST_QUEUE_KEY, sq.LastDequeueCallback);
+                aq.Dequeue(TEST_QUEUE_KEY, sq.LastDequeueCallback);
             } else {
                 //set dequeue callback to null and stop dequeuing
-                sq.LastDequeueCallback = null;
+                aq.LastDequeueCallback = null;
             }
         };
 

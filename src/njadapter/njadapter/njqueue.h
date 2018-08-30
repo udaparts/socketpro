@@ -12,6 +12,7 @@ namespace NJA {
 			return m_Buffer;
 		}
 		void Release();
+		static bool IsUQueue(Local<Object> obj);
 
 		static void Init(Local<Object> exports);
 		static Local<Object> New(Isolate* isolate, SPA::PUQueue &q);
@@ -96,6 +97,8 @@ namespace NJA {
 
 	private:
 		static Persistent<Function> constructor;
+		static Persistent<v8::FunctionTemplate> m_tpl;
+
 		CUQueue *m_Buffer;
 		unsigned int m_initSize;
 		unsigned int m_blockSize;

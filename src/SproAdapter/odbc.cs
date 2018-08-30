@@ -158,15 +158,16 @@ namespace SocketProAdapter {
                 int res;
                 string errMsg;
                 ar.Load(out res).Load(out errMsg).Load(out fail_ok);
-                lock (m_csDB) {
-                    m_lastReqId = reqId;
-                    m_affected = 0;
-                    m_dbErrCode = res;
-                    m_dbErrMsg = errMsg;
-                    m_mapRowset.Remove(index);
+                COdbc odbc = (COdbc)ar.AsyncServiceHandler;
+                lock (odbc.m_csDB) {
+                    odbc.m_lastReqId = reqId;
+                    odbc.m_affected = 0;
+                    odbc.m_dbErrCode = res;
+                    odbc.m_dbErrMsg = errMsg;
+                    odbc.m_mapRowset.Remove(index);
                 }
                 if (handler != null)
-                    handler(this, res, errMsg, 0, fail_ok, null);
+                    handler(odbc, res, errMsg, 0, fail_ok, null);
             }
 
             private bool DoMeta(ushort id, string s0, string s1, string s2, string s3, DExecuteResult handler, DRows row, DRowsetHeader rh, DDiscarded discarded) {

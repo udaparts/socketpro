@@ -4,14 +4,14 @@ import SPA.*;
 import SPA.ClientSide.*;
 
 public class Program {
-    
+
     private final static byte[] TEST_QUEUE_KEY = "queue_name_0".getBytes(java.nio.charset.Charset.forName("UTF-8"));
     private final static short idMessage0 = tagBaseRequestID.idReservedTwo + 100;
     private final static short idMessage1 = tagBaseRequestID.idReservedTwo + 101;
     private final static short idMessage2 = tagBaseRequestID.idReservedTwo + 102;
-    
+
     public static void main(String[] args) {
-       CConnectionContext cc = new CConnectionContext();
+        CConnectionContext cc = new CConnectionContext();
         System.out.println("Remote host: ");
         java.util.Scanner in = new java.util.Scanner(System.in);
         cc.Host = in.nextLine();
@@ -30,11 +30,11 @@ public class Program {
 
         ok = TestEnqueue(aq);
         TestDequeue(aq);
-        
+
         System.out.println("Press a key to complete dequeuing messages from server ......");
         in.nextLine();
     }
-    
+
     private static boolean TestEnqueue(CAsyncQueue aq) {
         boolean ok = true;
         System.out.println("Going to enqueue 1024 messages ......");
@@ -92,7 +92,7 @@ public class Program {
         //prepare a callback for processing returned result of dequeue request
         CAsyncQueue.DDequeue d = new CAsyncQueue.DDequeue() {
             @Override
-            public void invoke(long messageCount, long fileSize, int messagesDequeuedInBatch, int bytesDequeuedInBatch) {
+            public void invoke(CAsyncQueue aq, long messageCount, long fileSize, int messagesDequeuedInBatch, int bytesDequeuedInBatch) {
                 System.out.print("Total message count=" + messageCount);
                 System.out.print(", queue file size=" + fileSize);
                 System.out.print(", messages dequeued=" + messagesDequeuedInBatch);

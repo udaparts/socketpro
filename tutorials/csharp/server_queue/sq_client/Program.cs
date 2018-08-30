@@ -71,13 +71,13 @@ class Program
         };
 
         //prepare a callback for processing returned result of dequeue request
-        CAsyncQueue.DDequeue d = (messageCount, fileSize, messages, bytes) =>
+        CAsyncQueue.DDequeue d = (asyncqueue, messageCount, fileSize, messages, bytes) =>
         {
             Console.WriteLine("Total message count={0}, queue file size={1}, messages dequeued={2}, message bytes dequeued={3}", messageCount, fileSize, messages, bytes);
             if (messageCount > 0)
             {
                 //there are more messages left at server queue, we re-send a request to dequeue
-                aq.Dequeue(TEST_QUEUE_KEY, aq.LastDequeueCallback);
+                asyncqueue.Dequeue(TEST_QUEUE_KEY, asyncqueue.LastDequeueCallback);
             }
         };
 

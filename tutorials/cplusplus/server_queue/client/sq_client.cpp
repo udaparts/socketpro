@@ -84,7 +84,7 @@ void TestDequeue(CMyPool::PHandler &sq) {
     };
 
     //prepare a callback for processing returned result of dequeue request
-    CAsyncQueue::DDequeue d = [sq](SPA::UINT64 messageCount, SPA::UINT64 fileSize, unsigned int messages, unsigned int bytes) {
+    CAsyncQueue::DDequeue d = [](CAsyncQueue *aq, SPA::UINT64 messageCount, SPA::UINT64 fileSize, unsigned int messages, unsigned int bytes) {
         std::cout << "Total message count=" << messageCount
                 << ", queue file size=" << fileSize
                 << ", messages dequeued=" << messages
@@ -92,7 +92,7 @@ void TestDequeue(CMyPool::PHandler &sq) {
                 << std::endl;
         if (messageCount > 0) {
             //there are more messages left at server queue, we re-send a request to dequeue
-            sq->Dequeue(TEST_QUEUE_KEY, sq->GetLastDequeueCallback());
+            aq->Dequeue(TEST_QUEUE_KEY, aq->GetLastDequeueCallback());
         }
     };
 

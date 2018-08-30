@@ -139,13 +139,13 @@ void DequeueFromServer(CMyPool::PHandler sq) {
     unsigned int messages_dequeued = 0;
 
     //prepare a callback for processing returned result of dequeue request
-    CAsyncQueue::DDequeue d = [sq](SPA::UINT64 messageCount, SPA::UINT64 fileSize, unsigned int messages, unsigned int bytes) {
+    CAsyncQueue::DDequeue d = [](CAsyncQueue *aq, SPA::UINT64 messageCount, SPA::UINT64 fileSize, unsigned int messages, unsigned int bytes) {
         if (messageCount > 0) {
             //there are more messages left at server queue, we re-send a request to dequeue
-            sq->Dequeue(TEST_QUEUE_KEY, sq->GetLastDequeueCallback());
+            aq->Dequeue(TEST_QUEUE_KEY, aq->GetLastDequeueCallback());
         } else {
             //set dequeue callback to null and stop dequeuing
-            sq->SetLastDequeueCallback(nullptr);
+            aq->SetLastDequeueCallback(nullptr);
         }
     };
     sq->ResultReturned = [&messages_dequeued](CAsyncServiceHandler *sender, unsigned short reqId, CUQueue & q) -> bool {
