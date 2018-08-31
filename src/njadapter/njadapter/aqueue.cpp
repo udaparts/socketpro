@@ -188,7 +188,7 @@ namespace NJA {
 			if (bad)
 				return 0;
 		}
-		return CAsyncQueue::GetKeys(gk, dd) ? INVALID_NUMBER : index;
+		return CAsyncQueue::GetKeys(gk, dd) ? index : INVALID_NUMBER;
 	}
 
 	SPA::UINT64 CAQueue::StartQueueTrans(Isolate* isolate, int args, Local<Value> *argv, const char *key) {
@@ -226,7 +226,7 @@ namespace NJA {
 			if (bad)
 				return 0;
 		}
-		return CAsyncQueue::StartQueueTrans(key, qt, dd) ? INVALID_NUMBER : index;
+		return CAsyncQueue::StartQueueTrans(key, qt, dd) ? index : INVALID_NUMBER;
 	}
 
 	SPA::UINT64 CAQueue::EndQueueTrans(Isolate* isolate, int args, Local<Value> *argv, bool rollback) {
@@ -264,7 +264,7 @@ namespace NJA {
 			if (bad)
 				return 0;
 		}
-		return CAsyncQueue::EndQueueTrans(rollback, qt, dd) ? INVALID_NUMBER : index;
+		return CAsyncQueue::EndQueueTrans(rollback, qt, dd) ? index : INVALID_NUMBER;
 	}
 
 	SPA::UINT64 CAQueue::CloseQueue(Isolate* isolate, int args, Local<Value> *argv, const char *key, bool permanent) {
@@ -302,7 +302,7 @@ namespace NJA {
 			if (bad)
 				return 0;
 		}
-		return CAsyncQueue::CloseQueue(key, c, permanent, dd) ? INVALID_NUMBER : index;
+		return CAsyncQueue::CloseQueue(key, c, permanent, dd) ? index : INVALID_NUMBER;
 	}
 
 	SPA::UINT64 CAQueue::FlushQueue(Isolate* isolate, int args, Local<Value> *argv, const char *key, tagOptimistic option) {
@@ -340,7 +340,7 @@ namespace NJA {
 			if (bad)
 				return 0;
 		}
-		return CAsyncQueue::FlushQueue(key, f, option, dd) ? INVALID_NUMBER : index;
+		return CAsyncQueue::FlushQueue(key, f, option, dd) ? index : INVALID_NUMBER;
 	}
 
 	SPA::UINT64 CAQueue::Dequeue(Isolate* isolate, int args, Local<Value> *argv, const char *key, unsigned int timeout) {
@@ -378,7 +378,7 @@ namespace NJA {
 			if (bad)
 				return 0;
 		}
-		return CAsyncQueue::Dequeue(key, d, timeout, dd) ? INVALID_NUMBER : index;
+		return CAsyncQueue::Dequeue(key, d, timeout, dd) ? index : INVALID_NUMBER;
 	}
 
 	SPA::UINT64 CAQueue::Enqueue(Isolate* isolate, int args, Local<Value> *argv, const char *key, unsigned short idMessage, const unsigned char *pBuffer, unsigned int size) {
@@ -416,7 +416,7 @@ namespace NJA {
 			if (bad)
 				return 0;
 		}
-		return CAsyncQueue::Enqueue(key, idMessage, pBuffer, size, e, dd) ? INVALID_NUMBER : index;
+		return CAsyncQueue::Enqueue(key, idMessage, pBuffer, size, e, dd) ? index : INVALID_NUMBER;
 	}
 
 	SPA::UINT64 CAQueue::EnqueueBatch(Isolate* isolate, int args, Local<Value> *argv, const char *key, const unsigned char *pBuffer, unsigned int size) {
@@ -454,6 +454,6 @@ namespace NJA {
 			if (bad)
 				return 0;
 		}
-		return CAsyncQueue::EnqueueBatch(key, pBuffer, size, e, dd) ? INVALID_NUMBER : index;
+		return CAsyncQueue::EnqueueBatch(key, pBuffer, size, e, dd) ? index : INVALID_NUMBER;
 	}
 }

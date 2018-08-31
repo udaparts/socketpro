@@ -215,5 +215,4 @@ namespace NJA {
 			args.GetReturnValue().Set(Uint32::New(isolate, data));
 		}
 	}
-
 }
