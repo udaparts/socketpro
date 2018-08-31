@@ -5,21 +5,29 @@
 namespace SPA {
 	namespace ClientSide {
 
-		UINT64 CAsyncServiceHandler::SendRequest(Isolate* isolate, int args, Local<Value> *argv, unsigned short reqId, const unsigned char *pBuffer, unsigned int size) {
+		CAsyncServiceHandler::CNJResolver CAsyncServiceHandler::SendRequest(Isolate* isolate, int args, Local<Value> *argv, unsigned short reqId, const unsigned char *pBuffer, unsigned int size) {
 			if (!argv) args = 0;
 			ResultHandler rh;
 			DServerException se;
 			DDiscarded dd;
 			UINT64 callIndex = GetCallIndex();
+			std::shared_ptr<CNJFunc> func;
+			CNJResolver res;
+			std::shared_ptr<CPResolver> resolver;
 			if (args > 0) {
-				if (argv[0]->IsFunction()) {
-					std::shared_ptr<CNJFunc> func(new CNJFunc);
-					func->Reset(isolate, Local<Function>::Cast(argv[0]));
-					rh = [this, func](CAsyncResult &ar) {
+				if (argv[0]->IsFunction() || argv[0]->IsNullOrUndefined()) {
+					res = Promise::Resolver::New(isolate);
+					resolver.reset(new CPResolver(isolate, res));
+					if (argv[0]->IsFunction()) {
+						func.reset(new CNJFunc);
+						func->Reset(isolate, Local<Function>::Cast(argv[0]));
+					}
+					rh = [this, func, resolver](CAsyncResult &ar) {
 						ReqCb cb;
 						cb.ReqId = ar.RequestId;
 						cb.Type = eResult;
 						cb.Func = func;
+						cb.Resolver = resolver;
 						PAsyncServiceHandler h = ar.AsyncServiceHandler;
 						cb.Buffer = CScopeUQueue::Lock(ar.UQueue.GetOS(), ar.UQueue.GetEndian());
 						*cb.Buffer << h;
@@ -31,20 +39,30 @@ namespace SPA {
 						assert(!fail);
 					};
 				}
-				else if (!argv[0]->IsNullOrUndefined()) {
+				else {
 					isolate->ThrowException(v8::Exception::TypeError(v8::String::NewFromUtf8(isolate, "A callback expected for tracking returned results")));
-					return 0;
+					return res;
 				}
 			}
 			if (args > 1) {
-				if (argv[1]->IsFunction()) {
-					std::shared_ptr<CNJFunc> func(new CNJFunc);
-					func->Reset(isolate, Local<Function>::Cast(argv[1]));
-					dd = [this, func, reqId](CAsyncServiceHandler *ash, bool canceled) {
+				if (argv[1]->IsFunction() || argv[1]->IsNullOrUndefined()) {
+					if (!resolver) {
+						res = Promise::Resolver::New(isolate);
+						resolver.reset(new CPResolver(isolate, res));
+					}
+					if (argv[1]->IsFunction()) {
+						func.reset(new CNJFunc);
+						func->Reset(isolate, Local<Function>::Cast(argv[1]));
+					}
+					else {
+						func.reset();
+					}
+					dd = [this, func, reqId, resolver](CAsyncServiceHandler *ash, bool canceled) {
 						ReqCb cb;
 						cb.ReqId = reqId;
 						cb.Type = eDiscarded;
 						cb.Func = func;
+						cb.Resolver = resolver;
 						PAsyncServiceHandler h = ash;
 						bool bigEndian;
 						tagOperationSystem os = ash->GetAttachedClientSocket()->GetPeerOs(&bigEndian);
@@ -56,20 +74,31 @@ namespace SPA {
 						assert(!fail);
 					};
 				}
-				else if (!argv[1]->IsNullOrUndefined()) {
+				else {
+					res.Clear();
 					isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "A callback expected for tracking socket closed or canceled events")));
-					return 0;
+					return res;
 				}
 			}
 			if (args > 2) {
-				if (argv[2]->IsFunction()) {
-					std::shared_ptr<CNJFunc> func(new CNJFunc);
-					func->Reset(isolate, Local<Function>::Cast(argv[2]));
-					se = [this, func](CAsyncServiceHandler *ash, unsigned short reqId, const wchar_t *errMsg, const char *errWhere, unsigned int errCode) {
+				if (argv[2]->IsFunction() || argv[2]->IsNullOrUndefined()) {
+					if (!resolver) {
+						res = Promise::Resolver::New(isolate);
+						resolver.reset(new CPResolver(isolate, res));
+					}
+					if (argv[2]->IsFunction()) {
+						func.reset(new CNJFunc);
+						func->Reset(isolate, Local<Function>::Cast(argv[2]));
+					}
+					else {
+						func.reset();
+					}
+					se = [this, func, resolver](CAsyncServiceHandler *ash, unsigned short reqId, const wchar_t *errMsg, const char *errWhere, unsigned int errCode) {
 						ReqCb cb;
 						cb.ReqId = reqId;
 						cb.Type = eException;
 						cb.Func = func;
+						cb.Resolver = resolver;
 						PAsyncServiceHandler h = ash;
 						bool bigEndian;
 						tagOperationSystem os = ash->GetAttachedClientSocket()->GetPeerOs(&bigEndian);
@@ -81,12 +110,19 @@ namespace SPA {
 						assert(!fail);
 					};
 				}
-				else if (!argv[2]->IsNullOrUndefined()) {
+				else {
+					res.Clear();
 					isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "A callback expected for tracking exceptions from server")));
-					return 0;
+					return res;
 				}
 			}
-			return (SendRequest(reqId, pBuffer, size, rh, dd, se) ? callIndex : INVALID_NUMBER);
+			if (!SendRequest(reqId, pBuffer, size, rh, dd, se)) {
+				Local<Object> obj = Object::New(isolate);
+				obj->Set(String::NewFromUtf8(isolate, "errCode"), Int32::New(isolate, GetAttachedClientSocket()->GetErrorCode()));
+				obj->Set(String::NewFromUtf8(isolate, "errMsg"), String::NewFromUtf8(isolate, GetAttachedClientSocket()->GetErrorMsg().c_str()));
+				res->Resolve(obj);
+			}
+			return res;
 		}
 
 		void CAsyncServiceHandler::req_cb(uv_async_t* handle) {
@@ -125,15 +161,22 @@ namespace SPA {
 					break;
 				}
 				Local<Value> jsReqId = v8::Uint32::New(isolate, cb.ReqId);
-				Local<Function> func = Local<Function>::New(isolate, *cb.Func);
+				Local<Function> func;
+				if (cb.Func)
+					func = Local<Function>::New(isolate, *cb.Func);
+				auto resolver = CNJResolver::New(isolate, *cb.Resolver);
 				switch (cb.Type) {
 				case eResult:
 				{
 					Local<Object> q = NJA::NJQueue::New(isolate, cb.Buffer);
-					Local<Value> argv[] = { q, func, njAsh, jsReqId };
-					func->Call(Null(isolate), 4, argv);
+					if (!func.IsEmpty()) {
+						Local<Value> argv[] = { q, func, njAsh, jsReqId };
+						func->Call(Null(isolate), 4, argv);
+					}
+					resolver->Resolve(q);
 					auto obj = node::ObjectWrap::Unwrap<NJA::NJQueue>(q);
-					obj->Release();
+					if (obj && !obj->get()->GetSize())
+						obj->Release();
 				}
 				break;
 				case eDiscarded:
@@ -142,8 +185,15 @@ namespace SPA {
 					*cb.Buffer >> canceled;
 					assert(!cb.Buffer->GetSize());
 					CScopeUQueue::Unlock(cb.Buffer);
-					Local<Value> argv[] = { Boolean::New(isolate, canceled), njAsh, jsReqId };
-					func->Call(Null(isolate), 3, argv);
+					auto b = Boolean::New(isolate, canceled);
+					if (!func.IsEmpty()) {
+						Local<Value> argv[] = { Boolean::New(isolate, canceled), njAsh, jsReqId };
+						func->Call(Null(isolate), 3, argv);
+					}
+					Local<Object> obj = Object::New(isolate);
+					obj->Set(String::NewFromUtf8(isolate, "canceled"), b);
+					obj->Set(String::NewFromUtf8(isolate, "reqId"), jsReqId);
+					resolver->Resolve(obj);
 				}
 				break;
 				case eException:
@@ -161,8 +211,15 @@ namespace SPA {
 #endif
 					Local<String> jsWhere = String::NewFromUtf8(isolate, errWhere.c_str());
 					Local<Value> jsCode = v8::Number::New(isolate, errCode);
-					Local<Value> argv[] = { jsMsg, jsCode, jsWhere, func, njAsh, jsReqId };
-					func->Call(Null(isolate), 6, argv);
+					if (!func.IsEmpty()) {
+						Local<Value> argv[] = { jsMsg, jsCode, jsWhere, func, njAsh, jsReqId };
+						func->Call(Null(isolate), 6, argv);
+					}
+					Local<Object> obj = Object::New(isolate);
+					obj->Set(String::NewFromUtf8(isolate, "errCode"), jsCode);
+					obj->Set(String::NewFromUtf8(isolate, "errMsg"), jsMsg);
+					obj->Set(String::NewFromUtf8(isolate, "where"), jsWhere);
+					resolver->Resolve(obj);
 				}
 				break;
 				default:

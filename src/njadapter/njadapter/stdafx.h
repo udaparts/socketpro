@@ -26,6 +26,7 @@ namespace NJA {
 	using v8::Int32;
 	using v8::Date;
 	using v8::Array;
+	using v8::Promise;
 
 	using node::AtExit;
 

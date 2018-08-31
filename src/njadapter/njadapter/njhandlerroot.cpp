@@ -147,13 +147,12 @@ namespace NJA {
 			argv[1] = args[index];
 			++index;
 			argv[2] = args[index];
-			SPA::UINT64 callindex = obj->m_ash->SendRequest(isolate, 3, argv, reqId, buffer, bytes);
+			auto res = obj->m_ash->SendRequest(isolate, 3, argv, reqId, buffer, bytes);
 			if (njq)
 				njq->Release();
-			if (!callindex)
+			if (res.IsEmpty())
 				return;
-			bool ok = (callindex != INVALID_NUMBER);
-			args.GetReturnValue().Set(Boolean::New(isolate, ok));
+			args.GetReturnValue().Set(res);
 		}
 	}
 
