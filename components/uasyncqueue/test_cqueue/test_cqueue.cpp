@@ -27,7 +27,7 @@ int main(int argc, char* argv[]) {
     auto sq = spSq.Seek();
 
     //Optionally, you can enqueue messages with transaction style by calling the methods StartQueueTrans and EndQueueTrans in pair
-    sq->StartQueueTrans(TEST_QUEUE_KEY, [](int errCode) {
+    sq->StartQueueTrans(TEST_QUEUE_KEY, [](CAsyncQueue *aq, int errCode) {
         //error code could be one of CAsyncQueue::QUEUE_OK, CAsyncQueue::QUEUE_TRANS_ALREADY_STARTED, ......
     });
     bool ok = TestEnqueue(sq);
@@ -45,17 +45,17 @@ int main(int argc, char* argv[]) {
 
     //test GetKeys
     std::vector<std::string> vKey;
-    ok = sq->GetKeys([&vKey](std::vector<std::string>& keys) {
+    ok = sq->GetKeys([&vKey](CAsyncQueue *aq, std::vector<std::string>& keys) {
         vKey = keys;
     });
 
     //get a queue key two parameters, message count and queue file size by default option oMemoryCached
-    ok = sq->FlushQueue(TEST_QUEUE_KEY, [](SPA::UINT64 messageCount, SPA::UINT64 fileSize) {
+    ok = sq->FlushQueue(TEST_QUEUE_KEY, [](CAsyncQueue *aq, SPA::UINT64 messageCount, SPA::UINT64 fileSize) {
         std::cout << "Total message count=" << messageCount << ", queue file size=" << fileSize << std::endl;
     });
 
     //test CloseQueue
-    ok = sq->CloseQueue(TEST_QUEUE_KEY, [](int errCode) {
+    ok = sq->CloseQueue(TEST_QUEUE_KEY, [](CAsyncQueue *aq, int errCode) {
         //error code could be one of CAsyncQueue::QUEUE_OK, CAsyncQueue::QUEUE_DEQUEUING, ......
     });
 
@@ -134,7 +134,7 @@ void TestDequeue(CMyPool::PHandler &sq) {
     };
 
     //prepare a callback for processing returned result of dequeue request
-    CAsyncQueue::DDequeue d = [sq](SPA::UINT64 messageCount, SPA::UINT64 fileSize, unsigned int messages, unsigned int bytes) {
+    CAsyncQueue::DDequeue d = [sq](CAsyncQueue *aq, SPA::UINT64 messageCount, SPA::UINT64 fileSize, unsigned int messages, unsigned int bytes) {
         std::cout << "Total message count=" << messageCount
                 << ", queue file size=" << fileSize
                 << ", messages dequeued=" << messages

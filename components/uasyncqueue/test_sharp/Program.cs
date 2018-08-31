@@ -89,13 +89,13 @@ class Program
         };
 
         //prepare a callback for processing returned result of dequeue request
-        CAsyncQueue.DDequeue d = (messageCount, fileSize, messages, bytes) =>
+        CAsyncQueue.DDequeue d = (sender, messageCount, fileSize, messages, bytes) =>
         {
             Console.WriteLine("Total message count={0}, queue file size={1}, messages dequeued={2}, message bytes dequeued={3}", messageCount, fileSize, messages, bytes);
             if (messageCount > 0)
             {
                 //there are more messages left at server queue, we re-send a request to dequeue
-                aq.Dequeue(TEST_QUEUE_KEY, aq.LastDequeueCallback);
+                sender.Dequeue(TEST_QUEUE_KEY, sender.LastDequeueCallback);
             }
         };
 
@@ -110,7 +110,7 @@ class Program
     {
         Console.WriteLine("Remote host: ");
         string host = Console.ReadLine();
-        CConnectionContext cc = new CConnectionContext(host, 20901, "async_queue_client", "pwd_for_async_queue");
+        CConnectionContext cc = new CConnectionContext(host, 20902, "async_queue_client", "pwd_for_async_queue");
         using (CSocketPool<CAsyncQueue> spAq = new CSocketPool<CAsyncQueue>())
         {
             if (!spAq.StartSocketPool(cc, 1, 1))
@@ -123,7 +123,7 @@ class Program
             CAsyncQueue aq = spAq.Seek();
 
             //Optionally, you can enqueue messages with transaction style by calling the methods StartQueueTrans and EndQueueTrans in pair
-            aq.StartQueueTrans(TEST_QUEUE_KEY, (errCode) =>
+            aq.StartQueueTrans(TEST_QUEUE_KEY, (sender, errCode) =>
             {
                 //error code could be one of CAsyncQueue.QUEUE_OK, CAsyncQueue.QUEUE_TRANS_ALREADY_STARTED, ......
             });
@@ -135,7 +135,7 @@ class Program
                 CUQueue q = sb.UQueue;
                 CAsyncQueue.BatchMessage(idMessage3, "Hello", "World", q);
                 CAsyncQueue.BatchMessage(idMessage4, true, 234.456, "MyTestWhatever", q);
-                aq.EnqueueBatch(TEST_QUEUE_KEY, q, (res) =>
+                aq.EnqueueBatch(TEST_QUEUE_KEY, q, (sender, res) =>
                 {
                     System.Diagnostics.Debug.Assert(res == 2);
                 });
@@ -145,17 +145,17 @@ class Program
             aq.WaitAll();
 
             //get a queue key two parameters, message count and queue file size by default option oMemoryCached
-            aq.FlushQueue(TEST_QUEUE_KEY, (messageCount, fileSize) =>
+            aq.FlushQueue(TEST_QUEUE_KEY, (sender, messageCount, fileSize) =>
             {
                 Console.WriteLine("Total message count={0}, queue file size={1}", messageCount, fileSize);
             });
 
-            aq.GetKeys((keys) =>
+            aq.GetKeys((sender, keys) =>
             {
                 keys = null;
             });
 
-            aq.CloseQueue(TEST_QUEUE_KEY, (errCode) =>
+            aq.CloseQueue(TEST_QUEUE_KEY, (sender, errCode) =>
             {
                 //error code could be one of CAsyncQueue.QUEUE_OK, CAsyncQueue.QUEUE_TRANS_ALREADY_STARTED, ......
             });

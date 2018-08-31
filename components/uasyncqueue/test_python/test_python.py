@@ -39,12 +39,12 @@ def TestDequeue(aq):
             return True
         return False #not processed
     aq.ResultReturned = cbResultReturned
-    def cbDequeue(messageCount, fileSize, messages, bytes):
+    def cbDequeue(sender, messageCount, fileSize, messages, bytes):
         s = 'Total message count=' + str(messageCount) + ', queue file size=' + str(fileSize) + ', messages dequeued=' + str(messages) + ', message bytes dequeued=' + str(bytes)
         print(s)
         if messageCount > 0:
             # there are more messages left at server queue, we re-send a request to dequeue
-            aq.Dequeue(TEST_QUEUE_KEY, aq.LastDequeueCallback)
+            sender.Dequeue(TEST_QUEUE_KEY, sender.LastDequeueCallback)
     print('Going to dequeue messages ......')
     aq.Dequeue(TEST_QUEUE_KEY, cbDequeue)
 
@@ -53,7 +53,7 @@ def TestDequeue(aq):
 
 with CSocketPool(CAsyncQueue) as spAq:
     print('Remote async queue server host: ')
-    cc = CConnectionContext(sys.stdin.readline(), 20901, 'PythonUser', 'TooMuchSecret')
+    cc = CConnectionContext(sys.stdin.readline(), 20901, 'SomeUserId', 'APassword')
     ok = spAq.StartSocketPool(cc, 1, 1)
     aq = spAq.AsyncHandlers[0]
     if not ok:
@@ -61,17 +61,17 @@ with CSocketPool(CAsyncQueue) as spAq:
         exit(0)
 
     #Optionally, you can enqueue messages with transaction style by calling the methods StartQueueTrans and EndQueueTrans in pair
-    aq.StartQueueTrans(TEST_QUEUE_KEY, lambda errCode: print('errCode=' + str(errCode)))
+    aq.StartQueueTrans(TEST_QUEUE_KEY, lambda sender, errCode: print('errCode=' + str(errCode)))
     TestEnqueue(aq)
     aq.EndQueueTrans()
     TestDequeue(aq)
     aq.WaitAll()
 
     # get a queue key two parameters, message count and queue file size by default option oMemoryCached
-    aq.FlushQueue(TEST_QUEUE_KEY, lambda messageCount, fileSize: print('Total message count=' + str(messageCount) + ', , queue file size=' + str(fileSize)))
+    aq.FlushQueue(TEST_QUEUE_KEY, lambda sender, messageCount, fileSize: print('Total message count=' + str(messageCount) + ', , queue file size=' + str(fileSize)))
 
-    aq.GetKeys(lambda vKey: print(vKey))
+    aq.GetKeys(lambda sender, vKey: print(vKey))
 
-    aq.CloseQueue(TEST_QUEUE_KEY, lambda errCode: print('errCode=' + str(errCode)))
+    aq.CloseQueue(TEST_QUEUE_KEY, lambda sender, errCode: print('errCode=' + str(errCode)))
     print('Press any key to close the application ......')
     sys.stdin.readline()

@@ -158,7 +158,7 @@ class CAsyncQueue(CAsyncServiceHandler):
             while size > 0:
                 v.append(ar.LoadAString())
                 size -= 1
-            gk(v)
+            gk(ar.AsyncServiceHandler, v)
         return self.SendRequest(CAsyncQueue.idGetKeys, None, cb, discarded)
 
     def CloseQueue(self, key, c=None, discarded=None, permanent=False):
@@ -192,7 +192,7 @@ class CAsyncQueue(CAsyncServiceHandler):
         """
         if not key:
             key = ''
-        buffer = CScopeUQueue.Lock().SaveAString(key)
+        buffer = CScopeUQueue.Lock().SaveAString(key).SaveInt(option)
         ok = None
         if not f:
             ok = self.SendRequest(CAsyncQueue.idFlush, buffer, None, discarded)
@@ -232,7 +232,7 @@ class CAsyncQueue(CAsyncServiceHandler):
             if d:
                 self.Dequeue(key, d, 0)
             if self.MessageQueued:
-                self.MessageQueued()
+                self.MessageQueued(self)
 
     def OnResultReturned(self, reqId, mc):
         if reqId == CAsyncQueue.idBatchSizeNotified:

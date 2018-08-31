@@ -30,7 +30,7 @@ public class Test_java {
         //Optionally, you can enqueue messages with transaction style by calling the methods StartQueueTrans and EndQueueTrans in pair
         aq.StartQueueTrans(TEST_QUEUE_KEY, new CAsyncQueue.DQueueTrans() {
             @Override
-            public void invoke(int errCode) {
+            public void invoke(CAsyncQueue sender, int errCode) {
                 //error code could be one of CAsyncQueue::QUEUE_OK, CAsyncQueue::QUEUE_TRANS_ALREADY_STARTED, ......
             }
         });
@@ -44,7 +44,7 @@ public class Test_java {
         final java.util.ArrayList<String> vKey = new java.util.ArrayList<>();
         ok = aq.GetKeys(new CAsyncQueue.DGetKeys() {
             @Override
-            public void invoke(String[] v) {
+            public void invoke(CAsyncQueue sender, String[] v) {
                 for (String s : v) {
                     vKey.add(s);
                 }
@@ -54,7 +54,7 @@ public class Test_java {
         //get a queue key two parameters, message count and queue file size by default option oMemoryCached
         ok = aq.FlushQueue(TEST_QUEUE_KEY, new CAsyncQueue.DFlush() {
             @Override
-            public void invoke(long messageCount, long fileSize) {
+            public void invoke(CAsyncQueue sender, long messageCount, long fileSize) {
                 System.out.print("Total message count=" + messageCount);
                 System.out.println(", queue file size=" + fileSize);
             }
@@ -62,7 +62,7 @@ public class Test_java {
 
         ok = aq.CloseQueue(TEST_QUEUE_KEY, new CAsyncQueue.DClose() {
             @Override
-            public void invoke(int errCode) {
+            public void invoke(CAsyncQueue sender, int errCode) {
                 //error code could be one of CAsyncQueue::QUEUE_OK, CAsyncQueue::QUEUE_DEQUEUING, ......
             }
         });
@@ -127,14 +127,14 @@ public class Test_java {
         //prepare a callback for processing returned result of dequeue request
         CAsyncQueue.DDequeue d = new CAsyncQueue.DDequeue() {
             @Override
-            public void invoke(long messageCount, long fileSize, int messagesDequeuedInBatch, int bytesDequeuedInBatch) {
+            public void invoke(CAsyncQueue sender, long messageCount, long fileSize, int messagesDequeuedInBatch, int bytesDequeuedInBatch) {
                 System.out.print("Total message count=" + messageCount);
                 System.out.print(", queue file size=" + fileSize);
                 System.out.print(", messages dequeued=" + messagesDequeuedInBatch);
                 System.out.println(", message bytes dequeued=" + bytesDequeuedInBatch);
                 if (messageCount > 0) {
                     //there are more messages left at server queue, we re-send a request to dequeue
-                    aq.Dequeue(TEST_QUEUE_KEY, aq.getLastDequeueCallback());
+                    sender.Dequeue(TEST_QUEUE_KEY, sender.getLastDequeueCallback());
                 }
             }
         };
