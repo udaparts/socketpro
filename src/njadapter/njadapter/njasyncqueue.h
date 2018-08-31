@@ -33,10 +33,13 @@ namespace NJA {
 		static void Dequeue(const FunctionCallbackInfo<Value>& args);
 		static void Enqueue(const FunctionCallbackInfo<Value>& args);
 		static void EnqueueBatch(const FunctionCallbackInfo<Value>& args);
+		static void BatchMessage(const FunctionCallbackInfo<Value>& args);
+
 		static std::string GetKey(Isolate* isolate, Local<Value> jsKey);
 
 	private:
 		static Persistent<Function> constructor;
 		CAQueue *m_aq;
+		SPA::CUQueue *m_qBatch;
 	};
 }

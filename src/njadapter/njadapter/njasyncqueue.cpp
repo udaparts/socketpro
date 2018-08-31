@@ -7,7 +7,7 @@ namespace NJA {
 
 	Persistent<Function> NJAsyncQueue::constructor;
 
-	NJAsyncQueue::NJAsyncQueue(CAQueue *aq) : NJHandlerRoot(aq), m_aq(aq) {
+	NJAsyncQueue::NJAsyncQueue(CAQueue *aq) : NJHandlerRoot(aq), m_aq(aq), m_qBatch(nullptr) {
 
 	}
 
@@ -43,6 +43,7 @@ namespace NJA {
 		NODE_SET_PROTOTYPE_METHOD(tpl, "Dequeue", Dequeue);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "Enqueue", Enqueue);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "EnqueueBatch", EnqueueBatch);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "BatchMessage", BatchMessage);
 
 		constructor.Reset(isolate, tpl->GetFunction());
 		exports->Set(String::NewFromUtf8(isolate, "CAsyncQueue"), tpl->GetFunction());
@@ -80,6 +81,9 @@ namespace NJA {
 	}
 
 	void NJAsyncQueue::Release() {
+		if (m_qBatch) {
+			CScopeUQueue::Unlock(m_qBatch);
+		}
 		{
 			SPA::CAutoLock al(m_cs);
 			if (m_aq) {
@@ -282,6 +286,57 @@ namespace NJA {
 		}
 	}
 
+	void NJAsyncQueue::BatchMessage(const FunctionCallbackInfo<Value>& args) {
+		Isolate* isolate = args.GetIsolate();
+		NJAsyncQueue* obj = ObjectWrap::Unwrap<NJAsyncQueue>(args.Holder());
+		if (obj->IsValid(isolate)) {
+			auto p0 = args[0];
+			if (!p0->IsUint32()) {
+				isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "A valid request id expected for the 1st input")));
+				return;
+			}
+			unsigned int reqId = p0->Uint32Value();
+			if (reqId > 0xffff || reqId <= SPA::tagBaseRequestID::idReservedTwo) {
+				isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "A valid unsigned short request id expected")));
+				return;
+			}
+			if (!obj->m_qBatch) {
+				obj->m_qBatch = CScopeUQueue::Lock();
+			}
+			auto p1 = args[1];
+			if (p1->IsNullOrUndefined()) {
+				CAsyncQueue::BatchMessage(reqId, (const unsigned char*)nullptr, 0, *obj->m_qBatch);
+				return;
+			}
+			else if (!p1->IsFunction()) {
+				isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "A function expected for the 2nd input to serialize data")));
+				return;
+			}
+			Local<Function> cb = Local<Function>::Cast(p1);
+			Local<Value> msg = cb->Call(Null(isolate), 0, nullptr);
+			if (msg->IsNullOrUndefined()) {
+				CAsyncQueue::BatchMessage(reqId, (const unsigned char*)nullptr, 0, *obj->m_qBatch);
+				return;
+			}
+			else if (msg->IsObject()) {
+				auto qObj = msg->ToObject();
+				if (NJQueue::IsUQueue(qObj)) {
+					NJQueue *njq = ObjectWrap::Unwrap<NJQueue>(qObj);
+					SPA::CUQueue *q = njq->get();
+					if (q) {
+						CAsyncQueue::BatchMessage(reqId, q->GetBuffer(), q->GetSize(), *obj->m_qBatch);
+					}
+					else {
+						CAsyncQueue::BatchMessage(reqId, (const unsigned char*)nullptr, 0, *obj->m_qBatch);
+					}
+					njq->Release();
+					return;
+				}
+			}
+			isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "A CUQueue instance, null or undefined value expected")));
+		}
+	}
+
 	void NJAsyncQueue::EnqueueBatch(const FunctionCallbackInfo<Value>& args) {
 		Isolate* isolate = args.GetIsolate();
 		NJAsyncQueue* obj = ObjectWrap::Unwrap<NJAsyncQueue>(args.Holder());
@@ -289,33 +344,14 @@ namespace NJA {
 			std::string key = GetKey(isolate, args[0]);
 			if (!key.size())
 				return;
-			auto p = args[1];
-			NJQueue *njq = nullptr;
-			unsigned int size = 0;
-			const unsigned char *buffer = nullptr;
-			if (p->IsObject()) {
-				auto qObj = p->ToObject();
-				if (NJQueue::IsUQueue(qObj)) {
-					njq = ObjectWrap::Unwrap<NJQueue>(qObj);
-					SPA::CUQueue *q = njq->get();
-					if (q) {
-						buffer = q->GetBuffer();
-						size = q->GetSize();
-						if (size < 2 * sizeof(unsigned int)) {
-							isolate->ThrowException(v8::Exception::TypeError(v8::String::NewFromUtf8(isolate, "Wrong batch queue data")));
-							return;
-						}
-					}
-				}
-			}
-			else {
-				isolate->ThrowException(v8::Exception::TypeError(v8::String::NewFromUtf8(isolate, "A innstance of CUQueue object expected")));
+			if (obj->m_qBatch || !obj->m_qBatch->GetSize()) {
+				isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "No messages batched yet")));
+				CScopeUQueue::Unlock(obj->m_qBatch);
 				return;
 			}
-			Local<Value> argv[] = { args[2], args[3] };
-			SPA::UINT64 index = obj->m_aq->EnqueueBatch(isolate, 2, argv, key.c_str(), buffer, size);
-			if (njq)
-				njq->Release();
+			Local<Value> argv[] = { args[1], args[2] };
+			SPA::UINT64 index = obj->m_aq->EnqueueBatch(isolate, 2, argv, key.c_str(), obj->m_qBatch->GetBuffer(), obj->m_qBatch->GetSize());
+			CScopeUQueue::Unlock(obj->m_qBatch);
 			if (index) {
 				args.GetReturnValue().Set(Boolean::New(isolate, index != INVALID_NUMBER));
 			}

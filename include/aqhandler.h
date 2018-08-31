@@ -325,8 +325,8 @@ namespace SPA {
             }
 
 			virtual bool EnqueueBatch(const char *key, const unsigned char *buffer, unsigned int size, DEnqueue e = nullptr, DDiscarded discarded = nullptr) {
-				if (!buffer || size < 2 * sizeof(unsigned int)) {
-					//bad operation!
+				if (!buffer || size < 2 * sizeof(unsigned int) + sizeof(unsigned short)) {
+					//bad operation because no message batched yet!
 					assert(false);
 					return false;
 				}
