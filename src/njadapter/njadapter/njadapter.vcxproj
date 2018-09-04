@@ -156,7 +156,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>../lib/x64/node.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <OutputFile>c:\cyetest\socketpro\src\njadapter\node_modules\njadapter.node</OutputFile>
+      <OutputFile>d:\cyetest\socketpro\src\njadapter\node_modules\njadapter.node</OutputFile>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>

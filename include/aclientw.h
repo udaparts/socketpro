@@ -34,7 +34,6 @@ using v8::Number;
 using v8::Boolean;
 using v8::Uint32;
 using v8::HandleScope;
-using v8::Promise;
 using v8::Int32;
 
 namespace NJA {
@@ -1419,14 +1418,12 @@ namespace SPA {
 
 #ifdef NODE_JS_ADAPTER_PROJECT
 		public:
-			typedef Local<Promise::Resolver> CNJResolver;
-			virtual CNJResolver SendRequest(Isolate* isolate, int args, Local<Value> *argv, unsigned short reqId, const unsigned char *pBuffer, unsigned int size);
+			virtual SPA::UINT64 SendRequest(Isolate* isolate, int args, Local<Value> *argv, unsigned short reqId, const unsigned char *pBuffer, unsigned int size);
 
 		protected:
 			typedef Persistent<Function> CNJFunc;
 			
 		private:
-			typedef Persistent<Promise::Resolver> CPResolver;
 			enum tagEvent {
 				eResult = 0,
 				eDiscarded,
@@ -1438,7 +1435,6 @@ namespace SPA {
 				tagEvent Type;
 				PUQueue Buffer;
 				std::shared_ptr<CNJFunc> Func;
-				std::shared_ptr<CPResolver> Resolver;
 			};
 			std::deque<ReqCb> m_deqReqCb; //protected by m_cs;
 			uv_async_t m_typeReq; //SendRequest events

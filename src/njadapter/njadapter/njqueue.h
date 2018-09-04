@@ -20,23 +20,29 @@ namespace NJA {
 	private:
 		void Ensure();
 		unsigned int Load(Isolate* isolate, SPA::UDB::CDBVariant &vt);
+
+		enum tagDataType {
+			dtUnknown = 0,
+			dtString,
+			dtBool,
+			dtDate,
+		};
+
 		static const SPA::INT64 SECRECT_NUM = 0x7ff12ff345ff;
 		static Local<Value> ToDate(Isolate* isolate, SPA::UINT64 dt);
 		static void New(const FunctionCallbackInfo<Value>& args);
 		
 		template <class ctype>
 		unsigned int Load(Isolate* isolate, ctype &buffer) {
-			if (!m_Buffer) {
+			if (!m_Buffer || m_Buffer->GetSize() < sizeof(ctype)) {
 				isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "No buffer available")));
+				Release();
 				return 0;
 			}
-			try {
-				return m_Buffer->Pop((unsigned char*)&buffer, sizeof(ctype), 0);
-			}
-			catch (std::exception &err) {
-				isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, err.what())));
-			}
-			return 0;
+			unsigned int size = size = m_Buffer->Pop((unsigned char*)&buffer, sizeof(ctype), 0);
+			if (!m_Buffer->GetSize())
+				Release();
+			return size;
 		}
 		
 		template <class ctype>

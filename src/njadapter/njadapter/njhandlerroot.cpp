@@ -150,9 +150,7 @@ namespace NJA {
 			auto res = obj->m_ash->SendRequest(isolate, 3, argv, reqId, buffer, bytes);
 			if (njq)
 				njq->Release();
-			if (res.IsEmpty())
-				return;
-			args.GetReturnValue().Set(res);
+			args.GetReturnValue().Set(Boolean::New(isolate, (res && res != INVALID_NUMBER)));
 		}
 	}
 
