@@ -178,7 +178,6 @@ namespace SPA {
 					assert(false); //shouldn't come here
 					break;
 				}
-				assert(ok);
 				obj->m_deqReqCb.pop_front();
 			}
 		}

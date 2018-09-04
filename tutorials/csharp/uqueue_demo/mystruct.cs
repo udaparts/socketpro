@@ -53,16 +53,15 @@ public class CMyStruct : IUSerializer
     {
         UQueue.Save(NullString) //4 bytes for length
             .Save(ObjectNull) //2 bytes for data type
-            .Save(ADateTime) //8 bytes for double, and all micro/nano seconds are lost
+            .Save(ADateTime) //8 bytes for ulong with accuracy to 1 micro-second
             .Save(ADouble) //8 bytes
             .Save(ABool) //1 byte
             .Save(UnicodeString) //4 bytes for string length + (length * 2) bytes for string data -- UTF16-lowendian
             .Save(AsciiString) //4 bytes for ASCII string length + length bytes for string data
             .Save(ObjBool) //2 bytes for data type + 2 bytes for variant bool
             .Save(ObjString) //2 bytes for data type + 4 bytes for string length + (length * 2) bytes for string data -- UTF16-lowendian
-            .Save(objArrString) //2 bytes for data type + 4 bytes for array size + (string length + (length * 2) bytes for string data) * arraysize -- UTF16-lowendian
+            .Save(objArrString) //2 bytes for data type + 4 bytes for array size + (4 bytes for string length + (length * 2) bytes for string data) * arraysize -- UTF16-lowendian
             .Save(objArrInt) //2 bytes for data type + 4 bytes for array size + arraysize * 4 bytes for int data
             ;
     }
 }
-

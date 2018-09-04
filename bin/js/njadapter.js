@@ -166,3 +166,114 @@ exports.CS={
 		speQueueMergedTo:17,
 	}
 };
+
+//UDB namespace
+exports.UDB={
+	ManagementSystem : {
+		Unknown:-1,
+		Sqlite:0,
+		Mysql:1,
+		ODBC:2,
+		MsSQL:3,
+		Oracle:4,
+		DB2:5,
+		PostgreSQL:6,
+		MongoDB:7
+	},
+	RollbackPlan:{
+		/// <summary>
+		/// Manual transaction will rollback whenever there is an error by default
+		/// </summary>
+		rpDefault:0,
+		
+		/// <summary>
+		/// Manual transaction will rollback whenever there is an error by default
+		/// </summary>
+		rpErrorAny:0,
+
+		/// <summary>
+		/// Manual transaction will rollback as long as the number of errors is less than the number of ok processing statements
+		/// </summary>
+		rpErrorLess:1,
+
+		/// <summary>
+		/// Manual transaction will rollback as long as the number of errors is less or equal than the number of ok processing statements
+		/// </summary>
+		rpErrorEqual:2,
+
+		/// <summary>
+		/// Manual transaction will rollback as long as the number of errors is more than the number of ok processing statements
+		/// </summary>
+		rpErrorMore:3,
+
+		/// <summary>
+		/// Manual transaction will rollback only if all the processing statements are failed
+		/// </summary>
+		rpErrorAll:4,
+
+		/// <summary>
+		/// Manual transaction will rollback always no matter what happens.
+		/// </summary>
+		rpAlways:5
+	},
+	TransIsolation : {
+		Unspecified:-1,
+		Chaos:0,
+		ReadUncommited:1,
+		Browse:2,
+		CursorStability:3,
+		ReadCommited:3,
+		RepeatableRead:4,
+		Serializable:5,
+		Isolated:6
+	},
+	Reqs:{
+		/// <summary>
+		/// Async database client/server just requires the following request identification numbers 
+		/// </summary>
+		idOpen:0x7E7F,
+		idClose:0x7E80,
+		idBeginTrans:0x7E81,
+		idEndTrans:0x7E82,
+		idExecute:0x7E83,
+		idPrepare:0x7E84,
+		idExecuteParameters:0x7E85,
+
+		/// <summary>
+		/// the request identification numbers used for message push from server to client
+		/// </summary>
+		idDBUpdate:0x7E86, //server ==> client only
+		idRowsetHeader:0x7E87, //server ==> client only
+		idOutputParameter:0x7E88, //server ==> client only
+
+		/// <summary>
+		/// Internal request/response identification numbers used for data communication between client and server
+		/// </summary>
+		idBeginRows:0x7E89,
+		idTransferring:0x7E8A,
+		idStartBLOB:0x7E8B,
+		idChunk:0x7E8C,
+		idEndBLOB:0x7E8D,
+		idEndRows:0x7E8E,
+		idCallReturn:0x7E8F,
+
+		idGetCachedTables:0x7E90,
+
+		idSqlBatchHeader:0x7E91,
+		idExecuteBatch:0x7E92,
+		idParameterPosition:0x7E93
+	},
+	Cache:{
+		/// <summary>
+		/// A flag used with idOpen for tracing database table update events
+		/// </summary>
+		ENABLE_TABLE_UPDATE_MESSAGES:1,
+		
+		/// <summary>
+		/// A chat group id used at SocketPro server side for notifying database events from server to connected clients
+		/// </summary>
+		STREAMING_SQL_CHAT_GROUP_ID:0x1fffffff,
+		
+		CACHE_UPDATE_CHAT_GROUP_ID:0x20000000
+	}
+};

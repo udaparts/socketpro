@@ -104,14 +104,14 @@ public:
 	void SaveTo(SPA::CUQueue &q) const {
 		q << NullString //4 bytes for length
 			<< ObjectNull //2 bytes for data type
-			<< ADateTime //8 bytes for double
+			<< ADateTime //8 bytes for unsigned __int64 with accuracy to 1 micro-second
 			<< ADouble //8 bytes
 			<< ABool //1 byte
 			<< UnicodeString //4 bytes for string length + (length * 2) bytes for string data -- UTF16-lowendian
 			<< AsciiString //4 bytes for ASCII string length + length bytes for string data
 			<< ObjBool //2 bytes for data type + 2 bytes for variant bool
 			<< ObjString //2 bytes for data type + 4 bytes for string length + (length * 2) bytes for string data -- UTF16-lowendian
-			<< objArrString //2 bytes for data type + 4 bytes for array size + (string length + (length * 2) bytes for string data) * arraysize -- UTF16-lowendian
+			<< objArrString //2 bytes for data type + 4 bytes for array size + (4 bytes for string length + (length * 2) bytes for string data) * arraysize -- UTF16-lowendian
 			<< objArrInt //2 bytes for data type + 4 bytes for array size + arraysize * 4 bytes for int data
 			;
 	}
