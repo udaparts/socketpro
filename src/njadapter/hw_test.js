@@ -47,21 +47,22 @@ var ok = hw.SendRequest(idEcho, SPA.newBuffer().Save(q=>{
 		q.SaveObject(data.objArrString); //2 bytes for data type + 4 bytes for array size + (4 bytes for string length + (length * 2) bytes for string data) * arraysize -- UTF16-lowendian
 		q.SaveObject(data.objArrInt); //2 bytes for data type + 4 bytes for array size + arraysize * 4 bytes for int data
 	}), q=>{
-	//de-serialize once result comes from server
-	var d = {	nullStr:q.LoadString(),
-				objNull:q.LoadObject(),
-				aDate:q.LoadDate(),
-				aDouble:q.LoadDouble(),
-				aBool:q.LoadBool(),
-				unicodeStr:q.LoadString(),
-				asciiStr:q.LoadAString(),
-				objBool:q.LoadObject(),
-				objString:q.LoadObject(),
-				objArrString:q.LoadObject(),
-				objArrInt:q.LoadObject()
-			};
-	console.log(d);
-});
+		//de-serialize once result comes from server
+		var d = {nullStr:q.LoadString(),
+			objNull:q.LoadObject(),
+			aDate:q.LoadDate(),
+			aDouble:q.LoadDouble(),
+			aBool:q.LoadBool(),
+			unicodeStr:q.LoadString(),
+			asciiStr:q.LoadAString(),
+			objBool:q.LoadObject(),
+			objString:q.LoadObject(),
+			objArrString:q.LoadObject(),
+			objArrInt:q.LoadObject()
+		};
+		console.log(d);
+	}
+);
 
 ok = hw.SendRequest(idSayHello, SPA.newBuffer().SaveString('Mary').SaveString('Smith'), q=>{
 	console.log(q.LoadString());
