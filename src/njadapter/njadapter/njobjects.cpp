@@ -222,7 +222,7 @@ namespace NJA {
 			if (!obj->m_evPool.IsEmpty()) {
 				Local<Value> argv[] = { Int32::New(isolate, pe.Spe) };
 				Local<Function> cb = Local<Function>::New(isolate, obj->m_evPool);
-				cb->Call(Null(isolate), 1, argv);
+				cb->Call(isolate->GetCurrentContext(), Null(isolate), 1, argv);
 			}
 			obj->m_deqPoolEvent.pop_front();
 		}
@@ -274,14 +274,14 @@ namespace NJA {
 					if (!obj->m_ap.IsEmpty()) {
 						Local<Value> argv[2] = {njAsh, jsReqId};
 						Local<Function> cb = Local<Function>::New(isolate, obj->m_ap);
-						cb->Call(Null(isolate), 2, argv);
+						cb->Call(isolate->GetCurrentContext(), Null(isolate), 2, argv);
 					}
 					break;
 				case seBaseRequestProcessed:
 					if (!obj->m_brp.IsEmpty()) {
 						Local<Value> argv[2] = {njAsh, jsReqId };
 						Local<Function> cb = Local<Function>::New(isolate, obj->m_brp);
-						cb->Call(Null(isolate), 2, argv);
+						cb->Call(isolate->GetCurrentContext(), Null(isolate), 2, argv);
 					}
 					break;
 				case seResultReturned:
@@ -293,13 +293,13 @@ namespace NJA {
 							argv[1] = jsReqId;
 							auto q = NJQueue::New(isolate, se.QData);
 							argv[2] = q;
-							cb->Call(Null(isolate), 3, argv);
+							cb->Call(isolate->GetCurrentContext(), Null(isolate), 3, argv);
 							auto obj = ObjectWrap::Unwrap<NJQueue>(q);
 							obj->Release();
 						}
 						else {
 							Local<Value> argv[2] = {njAsh , jsReqId};
-							cb->Call(Null(isolate), 2, argv);
+							cb->Call(isolate->GetCurrentContext(), Null(isolate), 2, argv);
 						}
 					}
 					break;
@@ -318,7 +318,7 @@ namespace NJA {
 						Local<Value> jsCode = Number::New(isolate, errCode);
 						Local<Value> argv[5] = {njAsh, jsReqId, jsMsg, jsCode, jsWhere};
 						Local<Function> cb = Local<Function>::New(isolate, obj->m_se);
-						cb->Call(Null(isolate), 5, argv);
+						cb->Call(isolate->GetCurrentContext(), Null(isolate), 5, argv);
 					}
 					break;
 				default:

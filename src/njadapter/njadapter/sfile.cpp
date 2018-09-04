@@ -130,7 +130,7 @@ namespace NJA {
 
 #endif
 				Local<Value> argv[] = { jsMsg, jsRes, download, njFile };
-				func->Call(Null(isolate), 4, argv);
+				func->Call(isolate->GetCurrentContext(), Null(isolate), 4, argv);
 			}
 			break;
 			case feTrans:
@@ -139,7 +139,7 @@ namespace NJA {
 				*cb.Buffer >> pos >> size;
 				assert(!cb.Buffer->GetSize());
 				Local<Value> argv[] = { v8::Number::New(isolate, (double)pos), v8::Number::New(isolate, (double)size), download, njFile };
-				func->Call(Null(isolate), 4, argv);
+				func->Call(isolate->GetCurrentContext(), Null(isolate), 4, argv);
 			}
 			break;
 			case feDiscarded:
@@ -148,7 +148,7 @@ namespace NJA {
 				*cb.Buffer >> canceled;
 				assert(!cb.Buffer->GetSize());
 				Local<Value> argv[] = { v8::Boolean::New(isolate, canceled), download, njFile };
-				func->Call(Null(isolate), 3, argv);
+				func->Call(isolate->GetCurrentContext(), Null(isolate), 3, argv);
 			}
 			break;
 			default:

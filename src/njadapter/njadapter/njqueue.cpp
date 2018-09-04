@@ -726,7 +726,7 @@ namespace NJA {
 		else if (args[0]->IsFunction()) {
 			Local<Function> cb = Local<Function>::Cast(args[0]);
 			Local<Value> argv[] = { args.Holder() };
-			args.GetReturnValue().Set(cb->Call(Null(isolate), 1, argv));
+			args.GetReturnValue().Set(cb->Call(isolate->GetCurrentContext(), Null(isolate), 1, argv).ToLocalChecked());
 			if (!obj->m_Buffer->GetSize())
 				obj->Release();
 		}
@@ -1056,7 +1056,7 @@ namespace NJA {
 		if (p0->IsFunction()) {
 			Local<Function> cb = Local<Function>::Cast(args[0]);
 			Local<Value> argv[] = { args.Holder() };
-			cb->Call(Null(isolate), 1, argv);
+			cb->Call(isolate->GetCurrentContext(), Null(isolate), 1, argv);
 			args.GetReturnValue().Set(args.Holder());
 		}
 		else {

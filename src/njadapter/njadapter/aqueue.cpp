@@ -70,7 +70,7 @@ namespace NJA {
 				*cb.Buffer >> canceled;
 				assert(!cb.Buffer->GetSize());
 				Local<Value> argv[] = { v8::Boolean::New(isolate, canceled), njQ };
-				func->Call(Null(isolate), 2, argv);
+				func->Call(isolate->GetCurrentContext(), Null(isolate), 2, argv);
 			}
 			break;
 			case qeGetKeys:
@@ -90,7 +90,7 @@ namespace NJA {
 				}
 				assert(index == size);
 				Local<Value> argv[] = { jsKeys, njQ };
-				func->Call(Null(isolate), 2, argv);
+				func->Call(isolate->GetCurrentContext(), Null(isolate), 2, argv);
 			}
 			break;
 			case qeEnqueueBatch:
@@ -101,7 +101,7 @@ namespace NJA {
 				assert(!cb.Buffer->GetSize());
 				Local<Value> im = Number::New(isolate, (double)indexMessage);
 				Local<Value> argv[] = { im, njQ };
-				func->Call(Null(isolate), 2, argv);
+				func->Call(isolate->GetCurrentContext(), Null(isolate), 2, argv);
 			}
 			break;
 			case qeCloseQueue:
@@ -113,7 +113,7 @@ namespace NJA {
 				assert(!cb.Buffer->GetSize());
 				Local<Value> jsCode = Int32::New(isolate, errCode);
 				Local<Value> argv[] = { jsCode, njQ };
-				func->Call(Null(isolate), 2, argv);
+				func->Call(isolate->GetCurrentContext(), Null(isolate), 2, argv);
 			}
 			break;
 			case qeFlushQueue:
@@ -124,7 +124,7 @@ namespace NJA {
 				Local<Value> mc = Number::New(isolate, (double)messageCount);
 				Local<Value> fs = Number::New(isolate, (double)fileSize);
 				Local<Value> argv[] = { mc, fs, njQ };
-				func->Call(Null(isolate), 3, argv);
+				func->Call(isolate->GetCurrentContext(), Null(isolate), 3, argv);
 			}
 			break;
 			case qeDequeue:
@@ -138,7 +138,7 @@ namespace NJA {
 				Local<Value> mdib = Uint32::New(isolate, messagesDequeuedInBatch);
 				Local<Value> bdib = Uint32::New(isolate, bytesDequeuedInBatch);
 				Local<Value> argv[] = { mc, fs, mdib, bdib, njQ };
-				func->Call(Null(isolate), 5, argv);
+				func->Call(isolate->GetCurrentContext(), Null(isolate), 5, argv);
 			}
 			break;
 			default:

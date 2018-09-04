@@ -136,7 +136,7 @@ namespace SPA {
 					Local<Object> q = NJA::NJQueue::New(isolate, cb.Buffer);
 					if (!func.IsEmpty()) {
 						Local<Value> argv[] = { q, func, njAsh, jsReqId };
-						func->Call(Null(isolate), 4, argv);
+						func->Call(isolate->GetCurrentContext(), Null(isolate), 4, argv);
 					}
 				}
 				break;
@@ -149,7 +149,7 @@ namespace SPA {
 					auto b = Boolean::New(isolate, canceled);
 					if (!func.IsEmpty()) {
 						Local<Value> argv[] = { Boolean::New(isolate, canceled), njAsh, jsReqId };
-						func->Call(Null(isolate), 3, argv);
+						func->Call(isolate->GetCurrentContext(), Null(isolate), 3, argv);
 					}
 				}
 				break;
@@ -170,7 +170,7 @@ namespace SPA {
 					Local<Value> jsCode = v8::Number::New(isolate, errCode);
 					if (!func.IsEmpty()) {
 						Local<Value> argv[] = { jsMsg, jsCode, jsWhere, func, njAsh, jsReqId };
-						func->Call(Null(isolate), 6, argv);
+						func->Call(isolate->GetCurrentContext(), Null(isolate), 6, argv);
 					}
 				}
 				break;
@@ -178,6 +178,8 @@ namespace SPA {
 					assert(false); //shouldn't come here
 					break;
 				}
+				if (cb.Func)
+					cb.Func->Reset();
 				obj->m_deqReqCb.pop_front();
 			}
 		}

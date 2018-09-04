@@ -313,7 +313,7 @@ namespace NJA {
 				return;
 			}
 			Local<Function> cb = Local<Function>::Cast(p1);
-			Local<Value> msg = cb->Call(Null(isolate), 0, nullptr);
+			Local<Value> msg = cb->Call(isolate->GetCurrentContext(), Null(isolate), 0, nullptr).ToLocalChecked();
 			if (msg->IsNullOrUndefined()) {
 				CAsyncQueue::BatchMessage(reqId, (const unsigned char*)nullptr, 0, *obj->m_qBatch);
 				return;
