@@ -1,4 +1,4 @@
-var SPA=require('njadapter.js');
+var SPA=require('nja.js');
 
 var p=SPA.CS.newPool(257);
 var cs = SPA.CS;

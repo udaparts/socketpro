@@ -799,7 +799,7 @@ namespace NJA {
 			case VT_BSTR:
 				if (vt.bstrVal) {
 #ifdef WIN32_64
-					args.GetReturnValue().Set(String::NewFromTwoByte(isolate, (const uint16_t*)obj->m_Buffer->GetBuffer(), String::kNormalString, SysStringLen(vt.bstrVal)));
+					args.GetReturnValue().Set(String::NewFromTwoByte(isolate, (const uint16_t*)vt.bstrVal, String::kNormalString, SysStringLen(vt.bstrVal)));
 #else
 
 #endif

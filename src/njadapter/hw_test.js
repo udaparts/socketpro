@@ -1,4 +1,4 @@
-var SPA=require('njadapter.js');
+var SPA=require('nja.js');
 const sid = SPA.SID.sidReserved + 1;
 const idSayHello = SPA.BaseID.idReservedTwo + 1;
 const idSleep = idSayHello + 1;
@@ -69,9 +69,35 @@ ok = hw.SendRequest(idSayHello, SPA.newBuffer().SaveString('Mary').SaveString('S
 
 //sleep 5000 ms
 ok = hw.SendRequest(idSleep, SPA.newBuffer().SaveInt(5000), q=>{
-	console.log('sleep returned');
+	console.log('Sleep returned');
 });
 
 ok = hw.SendRequest(idSayHello, SPA.newBuffer().SaveString('Jone').SaveString('Dole'), q=>{
 	console.log(q.LoadString());
 });
+
+function asycFunc(hw, fName, lName) {
+	return new Promise((res, rej)=>{
+		var ok = hw.SendRequest(idSayHello, SPA.newBuffer().SaveString(fName).SaveString(lName), q=> {
+			res(q.LoadAString());
+		}, canceled=>{
+			rej(canceled ? 'Connection canceled' : 'Connection closed');
+		}, errMsg=>{
+			rej(errMsg);
+		});
+		if (!ok) {
+			rej('Connection closed');
+		}
+	});
+}
+async function asyncWait(hw, fName, lName) {
+	var result;
+	try {
+		result = await asycFunc(hw, fName, lName);
+	} catch (err) {
+		console.error(err);
+		throw err;
+	}
+	console.log(result);
+}
+asyncWait(hw, 'Charlie', 'Ye');

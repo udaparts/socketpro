@@ -1,9 +1,14 @@
-var SPA=require('njadapter.js');
+var SPA=require('nja.js');
 var buf = SPA.newBuffer();
 
 var now = new Date();
 console.log(now);
 var res = buf.SaveObject(now).LoadObject();
+console.log(res);
+
+var str= 'Hello SocketPro!';
+console.log(str);
+var res = buf.SaveObject(str).LoadObject();
 console.log(res);
 
 var arrStr = ['Hello', ' my world!'];

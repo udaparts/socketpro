@@ -11,9 +11,9 @@ namespace SPA {
 			DServerException se;
 			DDiscarded dd;
 			UINT64 callIndex = GetCallIndex();
+			std::shared_ptr<CNJFunc> func(new CNJFunc);
 			if (args > 0) {
 				if (argv[0]->IsFunction()) {
-					std::shared_ptr<CNJFunc> func(new CNJFunc);
 					func->Reset(isolate, Local<Function>::Cast(argv[0]));
 					rh = [this, func](CAsyncResult &ar) {
 						ReqCb cb;
@@ -38,8 +38,8 @@ namespace SPA {
 			}
 			if (args > 1) {
 				if (argv[1]->IsFunction()) {
-					std::shared_ptr<CNJFunc> func(new CNJFunc);
-					func->Reset(isolate, Local<Function>::Cast(argv[1]));
+					if (func->IsEmpty())
+						func->Reset(isolate, Local<Function>::Cast(argv[1]));
 					dd = [this, func, reqId](CAsyncServiceHandler *ash, bool canceled) {
 						ReqCb cb;
 						cb.ReqId = reqId;
@@ -63,8 +63,8 @@ namespace SPA {
 			}
 			if (args > 2) {
 				if (argv[2]->IsFunction()) {
-					std::shared_ptr<CNJFunc> func(new CNJFunc);
-					func->Reset(isolate, Local<Function>::Cast(argv[2]));
+					if (func->IsEmpty())
+						func->Reset(isolate, Local<Function>::Cast(argv[2]));
 					se = [this, func](CAsyncServiceHandler *ash, unsigned short reqId, const wchar_t *errMsg, const char *errWhere, unsigned int errCode) {
 						ReqCb cb;
 						cb.ReqId = reqId;
@@ -86,7 +86,12 @@ namespace SPA {
 					return 0;
 				}
 			}
-			return (SendRequest(reqId, pBuffer, size, rh, dd, se) ? callIndex : INVALID_NUMBER);
+			if (!SendRequest(reqId, pBuffer, size, rh, dd, se)) {
+				if (!func->IsEmpty())
+					func->Reset();
+				return INVALID_NUMBER;
+			}
+			return callIndex;
 		}
 
 		void CAsyncServiceHandler::req_cb(uv_async_t* handle) {
