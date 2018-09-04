@@ -183,8 +183,10 @@ namespace SPA {
 					assert(false); //shouldn't come here
 					break;
 				}
-				if (cb.Func)
+				if (cb.Func) {
 					cb.Func->Reset();
+					isolate->RunMicrotasks();
+				}
 				obj->m_deqReqCb.pop_front();
 			}
 		}
