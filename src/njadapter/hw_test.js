@@ -100,4 +100,4 @@ async function asyncWait(hw, fName, lName) {
 	}
 	console.log(result);
 }
-asyncWait(hw, 'Charlie', 'Ye');
+asyncWait(hw, 'Hillary', 'Clinton');
