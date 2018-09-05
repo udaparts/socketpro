@@ -11,9 +11,9 @@ namespace SPA {
 			DServerException se;
 			DDiscarded dd;
 			UINT64 callIndex = GetCallIndex();
-			std::shared_ptr<CNJFunc> func(new CNJFunc);
 			if (args > 0) {
 				if (argv[0]->IsFunction()) {
+					std::shared_ptr<CNJFunc> func(new CNJFunc);
 					func->Reset(isolate, Local<Function>::Cast(argv[0]));
 					rh = [this, func](CAsyncResult &ar) {
 						ReqCb cb;
@@ -38,8 +38,8 @@ namespace SPA {
 			}
 			if (args > 1) {
 				if (argv[1]->IsFunction()) {
-					if (func->IsEmpty())
-						func->Reset(isolate, Local<Function>::Cast(argv[1]));
+					std::shared_ptr<CNJFunc> func(new CNJFunc);
+					func->Reset(isolate, Local<Function>::Cast(argv[1]));
 					dd = [this, func, reqId](CAsyncServiceHandler *ash, bool canceled) {
 						ReqCb cb;
 						cb.ReqId = reqId;
@@ -63,8 +63,8 @@ namespace SPA {
 			}
 			if (args > 2) {
 				if (argv[2]->IsFunction()) {
-					if (func->IsEmpty())
-						func->Reset(isolate, Local<Function>::Cast(argv[2]));
+					std::shared_ptr<CNJFunc> func(new CNJFunc);
+					func->Reset(isolate, Local<Function>::Cast(argv[2]));
 					se = [this, func](CAsyncServiceHandler *ash, unsigned short reqId, const wchar_t *errMsg, const char *errWhere, unsigned int errCode) {
 						ReqCb cb;
 						cb.ReqId = reqId;
@@ -87,8 +87,6 @@ namespace SPA {
 				}
 			}
 			if (!SendRequest(reqId, pBuffer, size, rh, dd, se)) {
-				if (!func->IsEmpty())
-					func->Reset();
 				return INVALID_NUMBER;
 			}
 			return callIndex;
@@ -99,96 +97,93 @@ namespace SPA {
 			assert(obj);
 			if (!obj)
 				return;
-			SPA::CAutoLock al(obj->m_cs);
-			if (!obj->m_deqReqCb.size())
-				return;
 			Isolate* isolate = Isolate::GetCurrent();
 			HandleScope handleScope(isolate); //required for Node 4.x
-			while (obj->m_deqReqCb.size()) {
-				ReqCb &cb = obj->m_deqReqCb.front();
-				PAsyncServiceHandler processor;
-				*cb.Buffer >> processor;
-				assert(!processor);
-				Local<v8::Object> njAsh;
-				unsigned int sid = processor->GetSvsID();
-				switch (sid) {
-				case SPA::Sqlite::sidSqlite:
-					njAsh = NJA::NJSqlite::New(isolate, (CSqlite*)processor, true);
-					break;
-				case SPA::Mysql::sidMysql:
-					njAsh = NJA::NJMysql::New(isolate, (CMysql*)processor, true);
-					break;
-				case SPA::Odbc::sidOdbc:
-					njAsh = NJA::NJOdbc::New(isolate, (COdbc*)processor, true);
-					break;
-				case SPA::Queue::sidQueue:
-					njAsh = NJA::NJAsyncQueue::New(isolate, (NJA::CAQueue*)processor, true);
-					break;
-				case SPA::SFile::sidFile:
-					njAsh = NJA::NJFile::New(isolate, (NJA::CSFile*)processor, true);
-					break;
-				default:
-					njAsh = NJA::NJHandler::New(isolate, processor, true);
-					break;
-				}
-				Local<Value> jsReqId = v8::Uint32::New(isolate, cb.ReqId);
-				Local<Function> func;
-				if (cb.Func)
-					func = Local<Function>::New(isolate, *cb.Func);
-				switch (cb.Type) {
-				case eResult:
-				{
-					Local<Object> q = NJA::NJQueue::New(isolate, cb.Buffer);
-					if (!func.IsEmpty()) {
-						Local<Value> argv[] = { q, func, njAsh, jsReqId };
-						func->Call(isolate->GetCurrentContext(), Null(isolate), 4, argv);
+			{
+				SPA::CAutoLock al(obj->m_cs);
+				while (obj->m_deqReqCb.size()) {
+					ReqCb &cb = obj->m_deqReqCb.front();
+					PAsyncServiceHandler processor;
+					*cb.Buffer >> processor;
+					assert(!processor);
+					Local<v8::Object> njAsh;
+					unsigned int sid = processor->GetSvsID();
+					switch (sid) {
+					case SPA::Sqlite::sidSqlite:
+						njAsh = NJA::NJSqlite::New(isolate, (CSqlite*)processor, true);
+						break;
+					case SPA::Mysql::sidMysql:
+						njAsh = NJA::NJMysql::New(isolate, (CMysql*)processor, true);
+						break;
+					case SPA::Odbc::sidOdbc:
+						njAsh = NJA::NJOdbc::New(isolate, (COdbc*)processor, true);
+						break;
+					case SPA::Queue::sidQueue:
+						njAsh = NJA::NJAsyncQueue::New(isolate, (NJA::CAQueue*)processor, true);
+						break;
+					case SPA::SFile::sidFile:
+						njAsh = NJA::NJFile::New(isolate, (NJA::CSFile*)processor, true);
+						break;
+					default:
+						njAsh = NJA::NJHandler::New(isolate, processor, true);
+						break;
 					}
-				}
-				break;
-				case eDiscarded:
-				{
-					bool canceled;
-					*cb.Buffer >> canceled;
-					assert(!cb.Buffer->GetSize());
-					CScopeUQueue::Unlock(cb.Buffer);
-					auto b = Boolean::New(isolate, canceled);
-					if (!func.IsEmpty()) {
-						Local<Value> argv[] = { Boolean::New(isolate, canceled), njAsh, jsReqId };
-						func->Call(isolate->GetCurrentContext(), Null(isolate), 3, argv);
+					Local<Value> jsReqId = v8::Uint32::New(isolate, cb.ReqId);
+					Local<Function> func;
+					if (cb.Func)
+						func = Local<Function>::New(isolate, *cb.Func);
+					switch (cb.Type) {
+					case eResult:
+					{
+						Local<Object> q = NJA::NJQueue::New(isolate, cb.Buffer);
+						if (!func.IsEmpty()) {
+							Local<Value> argv[] = { q, func, njAsh, jsReqId };
+							func->Call(isolate->GetCurrentContext(), Null(isolate), 4, argv);
+						}
 					}
-				}
-				break;
-				case eException:
-				{
-					std::wstring errMsg;
-					std::string errWhere;
-					unsigned int errCode;
-					*cb.Buffer >> errMsg >> errWhere >> errCode;
-					assert(!cb.Buffer->GetSize());
-					CScopeUQueue::Unlock(cb.Buffer);
+					break;
+					case eDiscarded:
+					{
+						bool canceled;
+						*cb.Buffer >> canceled;
+						assert(!cb.Buffer->GetSize());
+						CScopeUQueue::Unlock(cb.Buffer);
+						auto b = Boolean::New(isolate, canceled);
+						if (!func.IsEmpty()) {
+							Local<Value> argv[] = { Boolean::New(isolate, canceled), njAsh, jsReqId };
+							func->Call(isolate->GetCurrentContext(), Null(isolate), 3, argv);
+						}
+					}
+					break;
+					case eException:
+					{
+						std::wstring errMsg;
+						std::string errWhere;
+						unsigned int errCode;
+						*cb.Buffer >> errMsg >> errWhere >> errCode;
+						assert(!cb.Buffer->GetSize());
+						CScopeUQueue::Unlock(cb.Buffer);
 #ifdef WIN32_64
-					Local<String> jsMsg = String::NewFromTwoByte(isolate, (const uint16_t*)errMsg.c_str(), String::kNormalString, (int)errMsg.size());
+						Local<String> jsMsg = String::NewFromTwoByte(isolate, (const uint16_t*)errMsg.c_str(), String::kNormalString, (int)errMsg.size());
 #else
 
 #endif
-					Local<String> jsWhere = String::NewFromUtf8(isolate, errWhere.c_str());
-					Local<Value> jsCode = v8::Number::New(isolate, errCode);
-					if (!func.IsEmpty()) {
-						Local<Value> argv[] = { jsMsg, jsCode, jsWhere, func, njAsh, jsReqId };
-						func->Call(isolate->GetCurrentContext(), Null(isolate), 6, argv);
+						Local<String> jsWhere = String::NewFromUtf8(isolate, errWhere.c_str());
+						Local<Value> jsCode = v8::Number::New(isolate, errCode);
+						if (!func.IsEmpty()) {
+							Local<Value> argv[] = { jsMsg, jsCode, jsWhere, func, njAsh, jsReqId };
+							func->Call(isolate->GetCurrentContext(), Null(isolate), 6, argv);
+						}
 					}
-				}
-				break;
-				default:
-					assert(false); //shouldn't come here
 					break;
+					default:
+						assert(false); //shouldn't come here
+						break;
+					}
+					obj->m_deqReqCb.pop_front();
 				}
-				if (cb.Func) {
-					cb.Func->Reset();
-					isolate->RunMicrotasks();
-				}
-				obj->m_deqReqCb.pop_front();
 			}
+			isolate->RunMicrotasks();
 		}
 	}
 }

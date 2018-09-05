@@ -122,9 +122,62 @@ exports.Optimistic={
 	oDiskCommitted : 2
 };
 
+exports.ShutdownType={
+	receive:0,
+	send:1,
+	both:2
+};
+
+exports.ZipLevel={
+	zlDefault:0,
+	zlBestSpeed:1,
+	zlBestCompression:2
+};
+
+exports.OperationSystem={
+	osWin:0,
+	osApple:1,
+	osMac:1,
+	osUnix:2,
+	osLinux:2,
+	osBSD:2,
+	osAndroid:3,
+	osWinCE:4, /**< Old window pocket pc, ce or smart phone devices*/
+	osWinPhone:4
+};
+
 //CS == ClientSide namespace
 exports.CS={
+	version : SPA.getVersion(), //client core library version string
+	getPools : function() {
+		//return number of socket pools created
+		return SPA.getPools();
+	},
+	setCA : function(caPath) {
+		//set SSL/TLS CA certification store
+		//return true if successful; Otherwise, false
+		return SPA.setCA(caPath);
+	},
+	
+	//client persistent message queue
+	Queue : {
+		getWorkingDir : function() {
+			//find current working directory
+			return SPA.getWorkingDir();
+		},
+		setWorkingDir : function(dir) {
+			//set current working directory
+			SPA.setWorkingDir(dir);
+		}
+		setPwd : function(pwd) {
+			//set a password to protect client message queue 
+			SPA.setPassword(pwd);
+		}
+	},
+	
 	newPool : function(svsId,defaulDb='') {
+		//create a regular socket or master/slave pool
+		//can create multiple pools for different services
 		return new SPA.CSocketPool(	svsId, //a required unsigned int service id
 									defaulDb //master/slave with real-time update cache
 									);

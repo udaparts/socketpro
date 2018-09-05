@@ -6,6 +6,7 @@
 namespace NJA {
 
 	SPA::CUCriticalSection NJHandlerRoot::m_cs;
+	Persistent<v8::FunctionTemplate> NJHandlerRoot::m_tpl;
 
 	NJHandlerRoot::NJHandlerRoot(CAsyncServiceHandler *ash) : m_ash(ash) {
 		assert(ash);
@@ -13,6 +14,13 @@ namespace NJA {
 
 	NJHandlerRoot::~NJHandlerRoot() {
 		Release();
+	}
+
+	bool NJHandlerRoot::IsHandler(Local<Object> obj) {
+		Isolate* isolate = Isolate::GetCurrent();
+		HandleScope handleScope(isolate); //required for Node 4.x or later
+		Local<FunctionTemplate> cb = Local<FunctionTemplate>::New(isolate, m_tpl);
+		return cb->HasInstance(obj);
 	}
 
 	bool NJHandlerRoot::IsValid(Isolate* isolate) {
@@ -39,6 +47,9 @@ namespace NJA {
 		NODE_SET_PROTOTYPE_METHOD(tpl, "SendRequest", SendRequest);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getSocket", getSocket);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "Dispose", Dispose);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "IsSame", IsSame);
+		
+		m_tpl.Reset(exports->GetIsolate(), tpl);
 	}
 
 	void NJHandlerRoot::Release() {
@@ -46,6 +57,21 @@ namespace NJA {
 		if (m_ash) {
 			m_ash = nullptr;
 		}
+	}
+
+	void NJHandlerRoot::IsSame(const FunctionCallbackInfo<Value>& args) {
+		Isolate* isolate = args.GetIsolate();
+		NJHandlerRoot* obj = ObjectWrap::Unwrap<NJHandlerRoot>(args.Holder());
+		auto p0 = args[0];
+		if (p0->IsObject()) {
+			auto objH = p0->ToObject();
+			if (IsHandler(objH)) {
+				NJHandlerRoot* p = ObjectWrap::Unwrap<NJHandlerRoot>(objH);
+				args.GetReturnValue().Set(Boolean::New(isolate, p->m_ash == obj->m_ash));
+				return;
+			}
+		}
+		args.GetReturnValue().Set(Boolean::New(isolate, false));
 	}
 
 	void NJHandlerRoot::getSvsId(const FunctionCallbackInfo<Value>& args) {

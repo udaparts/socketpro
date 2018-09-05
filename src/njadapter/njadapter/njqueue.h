@@ -16,6 +16,7 @@ namespace NJA {
 
 		static void Init(Local<Object> exports);
 		static Local<Object> New(Isolate* isolate, SPA::PUQueue &q);
+		static Local<Value> From(Isolate* isolate, const VARIANT &vt, bool strForDec = false);
 
 	private:
 		void Ensure();
@@ -59,6 +60,7 @@ namespace NJA {
 		static void getOS(const FunctionCallbackInfo<Value>& args);
 		static void getMaxBufferSize(const FunctionCallbackInfo<Value>& args);
 		static void Realloc(const FunctionCallbackInfo<Value>& args);
+		static void UseStrForDec(const FunctionCallbackInfo<Value>& args);
 
 		static void LoadBoolean(const FunctionCallbackInfo<Value>& args);
 		static void LoadByte(const FunctionCallbackInfo<Value>& args);
@@ -108,5 +110,6 @@ namespace NJA {
 		CUQueue *m_Buffer;
 		unsigned int m_initSize;
 		unsigned int m_blockSize;
+		bool m_StrForDec;
 	};
 }

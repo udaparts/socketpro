@@ -6,6 +6,9 @@ namespace NJA {
 		NJHandlerRoot(SPA::ClientSide::CAsyncServiceHandler *ash);
 		~NJHandlerRoot();
 
+	public:
+		static bool IsHandler(Local<Object> obj);
+
 	protected:
 		virtual bool IsValid(Isolate* isolate);
 		virtual void Release();
@@ -26,12 +29,13 @@ namespace NJA {
 		static void SendRequest(const FunctionCallbackInfo<Value>& args);
 		static void getSocket(const FunctionCallbackInfo<Value>& args);
 		static void Dispose(const FunctionCallbackInfo<Value>& args);
+		static void IsSame(const FunctionCallbackInfo<Value>& args);
 
 	protected:
 		static SPA::CUCriticalSection m_cs;
 
 	private:
 		SPA::ClientSide::CAsyncServiceHandler *m_ash;
-		
+		static Persistent<v8::FunctionTemplate> m_tpl;
 	};
 }

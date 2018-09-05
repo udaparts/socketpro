@@ -216,16 +216,19 @@ namespace NJA {
 		assert(obj);
 		if (!obj)
 			return;
-		SPA::CAutoLock al(obj->m_cs);
-		while (obj->m_deqPoolEvent.size()) {
-			const PoolEvent &pe = obj->m_deqPoolEvent.front();
-			if (!obj->m_evPool.IsEmpty()) {
-				Local<Value> argv[] = { Int32::New(isolate, pe.Spe) };
-				Local<Function> cb = Local<Function>::New(isolate, obj->m_evPool);
-				cb->Call(isolate->GetCurrentContext(), Null(isolate), 1, argv);
+		{
+			SPA::CAutoLock al(obj->m_cs);
+			while (obj->m_deqPoolEvent.size()) {
+				const PoolEvent &pe = obj->m_deqPoolEvent.front();
+				if (!obj->m_evPool.IsEmpty()) {
+					Local<Value> argv[] = { Int32::New(isolate, pe.Spe) };
+					Local<Function> cb = Local<Function>::New(isolate, obj->m_evPool);
+					cb->Call(isolate->GetCurrentContext(), Null(isolate), 1, argv);
+				}
+				obj->m_deqPoolEvent.pop_front();
 			}
-			obj->m_deqPoolEvent.pop_front();
 		}
+		isolate->RunMicrotasks();
 	}
 
 	void NJSocketPool::async_cs_cb(uv_async_t* handle) {
@@ -236,98 +239,100 @@ namespace NJA {
 			return;
 		Isolate* isolate = Isolate::GetCurrent();
 		HandleScope handleScope(isolate); //required for Node 4.x or later
-		SPA::CAutoLock al(obj->m_cs);
-		while (obj->m_deqSocketEvent.size()) {
-			SocketEvent se = obj->m_deqSocketEvent.front();
-			SPA::ClientSide::PAsyncServiceHandler ash;
-			*se.QData >> ash >> reqId;
-			assert(ash);
-			assert(reqId);
-			Local<Object> njAsh;
-			unsigned int sid = ash->GetSvsID();
-			switch (sid)
-			{
-			case SPA::Sqlite::sidSqlite:
-				njAsh = NJSqlite::New(isolate, (CSqlite*)ash, true);
-				break;
-			case SPA::Mysql::sidMysql:
-				njAsh = NJMysql::New(isolate, (CMysql*)ash, true);
-				break;
-			case SPA::Odbc::sidOdbc:
-				njAsh = NJOdbc::New(isolate, (COdbc*)ash, true);
-				break;
-			case SPA::Queue::sidQueue:
-				njAsh = NJAsyncQueue::New(isolate, (CAQueue*)ash, true);
-				break;
-			case SPA::SFile::sidFile:
-				njAsh = NJFile::New(isolate, (CSFile*)ash, true);
-				break;
-			default:
-				njAsh = NJHandler::New(isolate, (CAsyncHandler*)ash, true);
-				break;
-			}
-			Local<Value> jsReqId = Uint32::New(isolate, reqId);
-			if (ash) {
-				sid = ash->GetSvsID();
-				switch (se.Se) {
-				case seAllProcessed:
-					if (!obj->m_ap.IsEmpty()) {
-						Local<Value> argv[2] = {njAsh, jsReqId};
-						Local<Function> cb = Local<Function>::New(isolate, obj->m_ap);
-						cb->Call(isolate->GetCurrentContext(), Null(isolate), 2, argv);
-					}
+		{
+			SPA::CAutoLock al(obj->m_cs);
+			while (obj->m_deqSocketEvent.size()) {
+				SocketEvent se = obj->m_deqSocketEvent.front();
+				SPA::ClientSide::PAsyncServiceHandler ash;
+				*se.QData >> ash >> reqId;
+				assert(ash);
+				assert(reqId);
+				Local<Object> njAsh;
+				unsigned int sid = ash->GetSvsID();
+				switch (sid) {
+				case SPA::Sqlite::sidSqlite:
+					njAsh = NJSqlite::New(isolate, (CSqlite*)ash, true);
 					break;
-				case seBaseRequestProcessed:
-					if (!obj->m_brp.IsEmpty()) {
-						Local<Value> argv[2] = {njAsh, jsReqId };
-						Local<Function> cb = Local<Function>::New(isolate, obj->m_brp);
-						cb->Call(isolate->GetCurrentContext(), Null(isolate), 2, argv);
-					}
+				case SPA::Mysql::sidMysql:
+					njAsh = NJMysql::New(isolate, (CMysql*)ash, true);
 					break;
-				case seResultReturned:
-					if (!obj->m_rr.IsEmpty()) {
-						Local<Function> cb = Local<Function>::New(isolate, obj->m_rr);
-						if (se.QData->GetSize()) {
-							Local<Value> argv[3];
-							argv[0] = njAsh;
-							argv[1] = jsReqId;
-							auto q = NJQueue::New(isolate, se.QData);
-							argv[2] = q;
-							cb->Call(isolate->GetCurrentContext(), Null(isolate), 3, argv);
-							auto obj = ObjectWrap::Unwrap<NJQueue>(q);
-							obj->Release();
-						}
-						else {
-							Local<Value> argv[2] = {njAsh , jsReqId};
+				case SPA::Odbc::sidOdbc:
+					njAsh = NJOdbc::New(isolate, (COdbc*)ash, true);
+					break;
+				case SPA::Queue::sidQueue:
+					njAsh = NJAsyncQueue::New(isolate, (CAQueue*)ash, true);
+					break;
+				case SPA::SFile::sidFile:
+					njAsh = NJFile::New(isolate, (CSFile*)ash, true);
+					break;
+				default:
+					njAsh = NJHandler::New(isolate, (CAsyncHandler*)ash, true);
+					break;
+				}
+				Local<Value> jsReqId = Uint32::New(isolate, reqId);
+				if (ash) {
+					sid = ash->GetSvsID();
+					switch (se.Se) {
+					case seAllProcessed:
+						if (!obj->m_ap.IsEmpty()) {
+							Local<Value> argv[2] = { njAsh, jsReqId };
+							Local<Function> cb = Local<Function>::New(isolate, obj->m_ap);
 							cb->Call(isolate->GetCurrentContext(), Null(isolate), 2, argv);
 						}
-					}
-					break;
-				case seServerException:
-					if (!obj->m_se.IsEmpty()) {
-						std::wstring errMsg;
-						std::string errWhere;
-						unsigned int errCode = 0;
-						*se.QData >> errMsg >> errWhere >> errCode;
+						break;
+					case seBaseRequestProcessed:
+						if (!obj->m_brp.IsEmpty()) {
+							Local<Value> argv[2] = { njAsh, jsReqId };
+							Local<Function> cb = Local<Function>::New(isolate, obj->m_brp);
+							cb->Call(isolate->GetCurrentContext(), Null(isolate), 2, argv);
+						}
+						break;
+					case seResultReturned:
+						if (!obj->m_rr.IsEmpty()) {
+							Local<Function> cb = Local<Function>::New(isolate, obj->m_rr);
+							if (se.QData->GetSize()) {
+								Local<Value> argv[3];
+								argv[0] = njAsh;
+								argv[1] = jsReqId;
+								auto q = NJQueue::New(isolate, se.QData);
+								argv[2] = q;
+								cb->Call(isolate->GetCurrentContext(), Null(isolate), 3, argv);
+								auto obj = ObjectWrap::Unwrap<NJQueue>(q);
+								obj->Release();
+							}
+							else {
+								Local<Value> argv[2] = { njAsh , jsReqId };
+								cb->Call(isolate->GetCurrentContext(), Null(isolate), 2, argv);
+							}
+						}
+						break;
+					case seServerException:
+						if (!obj->m_se.IsEmpty()) {
+							std::wstring errMsg;
+							std::string errWhere;
+							unsigned int errCode = 0;
+							*se.QData >> errMsg >> errWhere >> errCode;
 #ifdef WIN32_64
-						Local<String> jsMsg = String::NewFromTwoByte(isolate, (const uint16_t*)errMsg.c_str(), v8::String::kNormalString, (int)errMsg.size());
+							Local<String> jsMsg = String::NewFromTwoByte(isolate, (const uint16_t*)errMsg.c_str(), v8::String::kNormalString, (int)errMsg.size());
 #else
 
 #endif
-						Local<String> jsWhere = String::NewFromUtf8(isolate, errWhere.c_str());
-						Local<Value> jsCode = Number::New(isolate, errCode);
-						Local<Value> argv[5] = {njAsh, jsReqId, jsMsg, jsCode, jsWhere};
-						Local<Function> cb = Local<Function>::New(isolate, obj->m_se);
-						cb->Call(isolate->GetCurrentContext(), Null(isolate), 5, argv);
+							Local<String> jsWhere = String::NewFromUtf8(isolate, errWhere.c_str());
+							Local<Value> jsCode = Number::New(isolate, errCode);
+							Local<Value> argv[5] = { njAsh, jsReqId, jsMsg, jsCode, jsWhere };
+							Local<Function> cb = Local<Function>::New(isolate, obj->m_se);
+							cb->Call(isolate->GetCurrentContext(), Null(isolate), 5, argv);
+						}
+						break;
+					default:
+						break;
 					}
-					break;
-				default:
-					break;
 				}
+				CScopeUQueue::Unlock(se.QData);
+				obj->m_deqSocketEvent.pop_front();
 			}
-			CScopeUQueue::Unlock(se.QData);
-			obj->m_deqSocketEvent.pop_front();
 		}
+		isolate->RunMicrotasks();
 	}
 
 	void NJSocketPool::Dispose(const FunctionCallbackInfo<Value>& args) {
@@ -348,7 +353,59 @@ namespace NJA {
 		Isolate* isolate = args.GetIsolate();
 		NJSocketPool* obj = ObjectWrap::Unwrap<NJSocketPool>(args.Holder());
 		if (obj->IsValid(isolate)) {
-
+			unsigned int index = 0;
+			Local<Array> v = Array::New(isolate);
+			switch (obj->SvsId) {
+			case SPA::Queue::sidQueue:
+			{
+				auto handlers = obj->Queue->GetAsyncHandlers();
+				for (auto it = handlers.begin(), end = handlers.end(); it != end; ++it, ++index) {
+					v->Set(index, NJAsyncQueue::New(isolate, it->get(), true));
+				}
+			}
+			break;
+			case SPA::Odbc::sidOdbc:
+			{
+				auto handlers = obj->Odbc->GetAsyncHandlers();
+				for (auto it = handlers.begin(), end = handlers.end(); it != end; ++it, ++index) {
+					v->Set(index, NJOdbc::New(isolate, it->get(), true));
+				}
+			}
+			break;
+			case SPA::Sqlite::sidSqlite:
+			{
+				auto handlers = obj->Sqlite->GetAsyncHandlers();
+				for (auto it = handlers.begin(), end = handlers.end(); it != end; ++it, ++index) {
+					v->Set(index, NJSqlite::New(isolate, it->get(), true));
+				}
+			}
+			break;
+			case SPA::Mysql::sidMysql:
+			{
+				auto handlers = obj->Mysql->GetAsyncHandlers();
+				for (auto it = handlers.begin(), end = handlers.end(); it != end; ++it, ++index) {
+					v->Set(index, NJMysql::New(isolate, it->get(), true));
+				}
+			}
+			break;
+			case SPA::SFile::sidFile:
+			{
+				auto handlers = obj->File->GetAsyncHandlers();
+				for (auto it = handlers.begin(), end = handlers.end(); it != end; ++it, ++index) {
+					v->Set(index, NJFile::New(isolate, it->get(), true));
+				}
+			}
+			break;
+			default:
+			{
+				auto handlers = obj->Handler->GetAsyncHandlers();
+				for (auto it = handlers.begin(), end = handlers.end(); it != end; ++it, ++index) {
+					v->Set(index, NJHandler::New(isolate, it->get(), true));
+				}
+			}
+			break;
+			}
+			args.GetReturnValue().Set(v);
 		}
 	}
 
@@ -487,7 +544,14 @@ namespace NJA {
 		Isolate* isolate = args.GetIsolate();
 		NJSocketPool* obj = ObjectWrap::Unwrap<NJSocketPool>(args.Holder());
 		if (obj->IsValid(isolate)) {
-
+			Local<Array> v = Array::New(isolate);
+			auto sockets = obj->Handler->GetSockets();
+			unsigned int index = 0;
+			for (auto it = sockets.begin(), end = sockets.end(); it != end; ++it, ++index) {
+				auto s = it->get();
+				v->Set(index, NJSocket::New(isolate, s, true));
+			}
+			args.GetReturnValue().Set(v);
 		}
 	}
 
