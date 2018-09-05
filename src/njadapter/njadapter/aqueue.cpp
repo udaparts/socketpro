@@ -2,6 +2,7 @@
 #include "stdafx.h"
 #include "aqueue.h"
 #include "njasyncqueue.h"
+#include "njqueue.h"
 
 namespace NJA {
 
@@ -141,6 +142,18 @@ namespace NJA {
 					func->Call(isolate->GetCurrentContext(), Null(isolate), 5, argv);
 				}
 				break;
+				case qeResultReturned:
+				{
+					unsigned short reqId;
+					*cb.Buffer >> reqId;
+					Local<Value> jsReqid = Uint32::New(isolate, reqId);
+					auto q = NJQueue::New(isolate, cb.Buffer);
+					Local<Value> argv[] = { jsReqid, q, njQ };
+					func->Call(isolate->GetCurrentContext(), Null(isolate), 3, argv);
+					auto obj = node::ObjectWrap::Unwrap<NJQueue>(q);
+					obj->Release();
+				}
+				break;
 				default:
 					assert(false); //shouldn't come here
 					break;
@@ -150,6 +163,42 @@ namespace NJA {
 			}
 		}
 		isolate->RunMicrotasks();
+	}
+
+	void CAQueue::SetRR(Isolate* isolate, Local<Value> rr) {
+		if (rr->IsFunction()) {
+			CAutoLock al(m_csQ);
+			m_rr.reset(new CNJFunc);
+			m_rr->Reset(isolate, Local<Function>::Cast(rr));
+		}
+		else if (rr->IsNullOrUndefined()) {
+			CAutoLock al(m_csQ);
+			m_rr.reset();
+		}
+	}
+
+	void CAQueue::OnResultReturned(unsigned short reqId, CUQueue &mc) {
+		if (reqId > Queue::idEnqueueBatch && reqId != Queue::idBatchSizeNotified) {
+			CAutoLock al(m_csQ);
+			if (m_rr) {
+				QueueCb qcb;
+				qcb.EventType = qeResultReturned;
+				auto cs = GetAttachedClientSocket();
+				bool endian;
+				tagOperationSystem os = cs->GetPeerOs(&endian);
+				qcb.Buffer = CScopeUQueue::Lock(os, endian);
+				PAQueue ash = this;
+				*qcb.Buffer << ash << reqId;
+				qcb.Buffer->Push(mc.GetBuffer(), mc.GetSize());
+				qcb.Func = m_rr;
+				ash->m_deqQCb.push_back(qcb);
+				int fail = uv_async_send(&ash->m_qType);
+				assert(!fail);
+			}
+		}
+		else {
+			CAsyncQueue::OnResultReturned(reqId, mc);
+		}
 	}
 
 	SPA::UINT64 CAQueue::GetKeys(Isolate* isolate, int args, Local<Value> *argv) {
@@ -384,6 +433,10 @@ namespace NJA {
 	}
 
 	SPA::UINT64 CAQueue::Enqueue(Isolate* isolate, int args, Local<Value> *argv, const char *key, unsigned short idMessage, const unsigned char *pBuffer, unsigned int size) {
+		if (idMessage <= Queue::idEnqueueBatch || idMessage == Queue::idBatchSizeNotified) {
+			isolate->ThrowException(v8::Exception::TypeError(v8::String::NewFromUtf8(isolate, "Bad message request id")));
+			return 0;
+		}
 		SPA::UINT64 index = GetCallIndex();
 		DEnqueue e;
 		DDiscarded dd;

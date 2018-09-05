@@ -93,6 +93,23 @@ namespace NJA {
 		NJHandlerRoot::Release();
 	}
 
+	void NJAsyncQueue::setResultReturned(const FunctionCallbackInfo<Value>& args) {
+		Isolate* isolate = args.GetIsolate();
+		NJAsyncQueue* obj = ObjectWrap::Unwrap<NJAsyncQueue>(args.Holder());
+		if (obj->IsValid(isolate)) {
+			auto p = args[0];
+			if (p->IsFunction()) {
+				obj->m_aq->SetRR(isolate, p);
+			}
+			else if (p->IsNullOrUndefined()) {
+				obj->m_aq->SetRR(isolate, p);
+			}
+			else {
+				isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "A callback expected for tracking request returned result")));
+			}
+		}
+	}
+
 	void NJAsyncQueue::getDequeueBatchSize(const FunctionCallbackInfo<Value>& args) {
 		Isolate* isolate = args.GetIsolate();
 		NJAsyncQueue* obj = ObjectWrap::Unwrap<NJAsyncQueue>(args.Holder());
@@ -300,6 +317,12 @@ namespace NJA {
 				isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "A valid unsigned short request id expected")));
 				return;
 			}
+
+			if (reqId <= Queue::idEnqueueBatch || reqId == Queue::idBatchSizeNotified) {
+				isolate->ThrowException(v8::Exception::TypeError(v8::String::NewFromUtf8(isolate, "Cannot use reserved message request ids")));
+				return;
+			}
+
 			if (!obj->m_qBatch) {
 				obj->m_qBatch = CScopeUQueue::Lock();
 			}

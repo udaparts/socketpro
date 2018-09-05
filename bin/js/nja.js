@@ -68,54 +68,6 @@ exports.EM={
 	TLSv1 : 1
 };
 
-//Persistent message queue status
-exports.QueueStatus={
-	/// <summary>
-	/// everything is fine
-	/// </summary>
-	qsNormal:0,
-
-	/// <summary>
-	/// Queued messages merged completely
-	/// </summary>
-	qsMergeComplete:1,
-
-	/// <summary>
-	/// Message replication started but not completed yet
-	/// </summary>
-	qsMergePushing:2,
-
-	/// <summary>
-	/// Message replicated incompletely from a source queue
-	/// </summary>
-	qsMergeIncomplete:3,
-
-	/// <summary>
-	/// A set of messages as a job are incompletely queued 
-	/// </summary>
-	qsJobIncomplete:4,
-
-	/// <summary>
-	/// A message queued incompletely because of application crash or unexpected termination
-	/// </summary>
-	qsCrash:5,
-
-	/// <summary>
-	/// Queue file open error
-	/// </summary>
-	qsFileError:6,
-
-	/// <summary>
-	/// Queue file opened but can not decrypt existing queued messages beacuse of bad password found
-	/// </summary>
-	qsBadPassword:7,
-
-	/// <summary>
-	/// Duplicate name error
-	/// </summary>
-	qsDuplicateName:8,
-};
-
 exports.Optimistic={
 	oMemoryCached : 0,
 	oSystemMemoryCached : 1,
@@ -168,11 +120,80 @@ exports.CS={
 		setWorkingDir : function(dir) {
 			//set current working directory
 			SPA.setWorkingDir(dir);
-		}
+		},
 		setPwd : function(pwd) {
 			//set a password to protect client message queue 
 			SPA.setPassword(pwd);
-		}
+		},
+		ReqIds : {
+			idEnqueue:0x2001 + 1,
+			idDequeue:0x2001 + 2,
+			idStartTrans:0x2001 + 3,
+			idEndTrans:0x2001 + 4,
+			idFlush:0x2001 + 5,
+			idClose:0x2001 + 6,
+			idGetKeys:0x2001 + 7,
+			idEnqueueBatch:0x2001 + 8,
+			idBatchSizeNotified:0x2001 + 20
+		},
+		ErrorCode:{
+			OK:0,
+			TRANS_ALREADY_STARTED:1,
+			TRANS_STARTING_FAILED:2,
+			TRANS_NOT_STARTED_YET:3,
+			TRANS_COMMITTING_FAILED:4,
+			DEQUEUING:5,
+			OTHER_WORKING_WITH_SAME_QUEUE:6,
+			CLOSE_FAILED:7,
+			ENQUEUING_FAILED:8
+		},
+		//Persistent message queue status
+		Status : {
+			/// <summary>
+			/// everything is fine
+			/// </summary>
+			qsNormal:0,
+
+			/// <summary>
+			/// Queued messages merged completely
+			/// </summary>
+			qsMergeComplete:1,
+
+			/// <summary>
+			/// Message replication started but not completed yet
+			/// </summary>
+			qsMergePushing:2,
+
+			/// <summary>
+			/// Message replicated incompletely from a source queue
+			/// </summary>
+			qsMergeIncomplete:3,
+
+			/// <summary>
+			/// A set of messages as a job are incompletely queued 
+			/// </summary>
+			qsJobIncomplete:4,
+
+			/// <summary>
+			/// A message queued incompletely because of application crash or unexpected termination
+			/// </summary>
+			qsCrash:5,
+
+			/// <summary>
+			/// Queue file open error
+			/// </summary>
+			qsFileError:6,
+
+			/// <summary>
+			/// Queue file opened but can not decrypt existing queued messages beacuse of bad password found
+			/// </summary>
+			qsBadPassword:7,
+
+			/// <summary>
+			/// Duplicate name error
+			/// </summary>
+			qsDuplicateName:8
+		}	
 	},
 	
 	newPool : function(svsId,defaulDb='') {

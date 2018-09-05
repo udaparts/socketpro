@@ -20,6 +20,10 @@ namespace NJA {
 		SPA::UINT64 Dequeue(Isolate* isolate, int args, Local<Value> *argv, const char *key, unsigned int timeout);
 		SPA::UINT64 Enqueue(Isolate* isolate, int args, Local<Value> *argv, const char *key, unsigned short idMessage, const unsigned char *pBuffer, unsigned int size);
 		SPA::UINT64 EnqueueBatch(Isolate* isolate, int args, Local<Value> *argv, const char *key, const unsigned char *pBuffer, unsigned int size);
+		void SetRR(Isolate* isolate, Local<Value> rr);
+
+	protected:
+		virtual void OnResultReturned(unsigned short reqId, CUQueue &mc);
 
 	private:
 		static void queue_cb(uv_async_t* handle);
@@ -35,6 +39,7 @@ namespace NJA {
 			qeFlushQueue,
 			qeDequeue,
 			qeEnqueueBatch,
+			qeResultReturned,
 			qeDiscarded
 		};
 
@@ -45,5 +50,6 @@ namespace NJA {
 		};
 		uv_async_t m_qType;
 		std::deque<QueueCb> m_deqQCb; //Protected by m_csQ;
+		std::shared_ptr<CNJFunc> m_rr; //OnResultReturned protected by m_csQ
 	};
 }
