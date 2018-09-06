@@ -798,22 +798,22 @@ namespace NJA {
 			return false;
 		}
 
-		auto v = obj->Get(props->Get(0));
+		auto v = obj->Get(String::NewFromUtf8(isolate, "Host"));
 		if (!v->IsString()) {
 			isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Invalid host string")));
 			return false;
 		}
 		String::Utf8Value host(v);
-		cc.Host.assign(*host, *host + host.length());
+		cc.Host = *host;
 
-		v = obj->Get(props->Get(1));
+		v = obj->Get(String::NewFromUtf8(isolate, "Port"));
 		if (!v->IsUint32()) {
 			isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Invalid port number")));
 			return false;
 		}
 		cc.Port = v->Uint32Value();
 
-		v = obj->Get(props->Get(2));
+		v = obj->Get(String::NewFromUtf8(isolate, "User"));
 		if (!v->IsString()) {
 			isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Invalid user id string")));
 			return false;
@@ -821,7 +821,7 @@ namespace NJA {
 		String::Utf8Value uid(v);
 		cc.UserId = Utilities::ToWide(*uid);
 
-		v = obj->Get(props->Get(3));
+		v = obj->Get(String::NewFromUtf8(isolate, "Pwd"));
 		if (!v->IsString()) {
 			isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Invalid password string")));
 			return false;
@@ -829,7 +829,7 @@ namespace NJA {
 		String::Utf8Value pwd(v);
 		cc.Password = Utilities::ToWide(*pwd);
 
-		v = obj->Get(props->Get(4));
+		v = obj->Get(String::NewFromUtf8(isolate, "EM"));
 		if (!v->IsUint32()) {
 			isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Encryption method expected")));
 			return false;
@@ -841,21 +841,21 @@ namespace NJA {
 		}
 		cc.EncrytionMethod = (SPA::tagEncryptionMethod)em;
 
-		v = obj->Get(props->Get(5));
+		v = obj->Get(String::NewFromUtf8(isolate, "Zip"));
 		if (!v->IsBoolean()) {
 			isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Boolean value expected for Zip")));
 			return false;
 		}
 		cc.Zip = v->BooleanValue();
 
-		v = obj->Get(props->Get(6));
+		v = obj->Get(String::NewFromUtf8(isolate, "V6"));
 		if (!v->IsBoolean()) {
 			isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Boolean value expected for V6")));
 			return false;
 		}
 		cc.V6 = v->BooleanValue();
 
-		//v = obj->Get(props->Get(7)); //ignored at now
+		//cc.AnyData not used
 
 		return true;
 	}

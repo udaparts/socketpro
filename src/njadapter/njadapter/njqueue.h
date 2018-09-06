@@ -17,6 +17,8 @@ namespace NJA {
 		static void Init(Local<Object> exports);
 		static Local<Object> New(Isolate* isolate, SPA::PUQueue &q);
 		static Local<Value> From(Isolate* isolate, const VARIANT &vt, bool strForDec = false);
+		static bool From(const Local<Value>& v, const std::string &hint, SPA::UDB::CDBVariant &vt);
+		static SPA::UINT64 ToDate(const Local<Value>& d);
 
 	private:
 		void Ensure();

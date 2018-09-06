@@ -666,33 +666,41 @@ namespace NJA {
 		isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Bad data type")));
 	}
 
+	SPA::UINT64 NJQueue::ToDate(const Local<Value>& d) {
+		SPA::UINT64 millisSinceEpoch;
+		if (d->IsDate()) {
+			Date *dt = Date::Cast(*d);
+			millisSinceEpoch = (SPA::UINT64) dt->ValueOf();
+		}
+		else if (d->IsNumber()) {
+			millisSinceEpoch = (SPA::UINT64)(d->IntegerValue());
+		}
+		else {
+			return INVALID_NUMBER;
+		}
+		std::time_t t = millisSinceEpoch / 1000;
+		unsigned int ms = (unsigned int)(millisSinceEpoch % 1000);
+		std::tm *ltime = std::localtime(&t);
+		SPA::UDateTime dt(*ltime, ms * 1000);
+		return dt.time;
+	}
+
 	void NJQueue::SaveDate(const FunctionCallbackInfo<Value>& args) {
 		Isolate* isolate = args.GetIsolate();
 		if (args.Length()) {
 			NJQueue* obj = ObjectWrap::Unwrap<NJQueue>(args.Holder());
 			obj->Ensure();
 			auto p = args[0];
-			SPA::UINT64 millisSinceEpoch;
-			if (p->IsDate()) {
-				Date *dt = Date::Cast(*p);
-				millisSinceEpoch = (SPA::UINT64) dt->ValueOf();
-			}
-			else if (p->IsNumber()) {
-				millisSinceEpoch = (SPA::UINT64)(p->IntegerValue());
-			}
-			else {
+			SPA::UINT64 d = ToDate(p);
+			if (d == INVALID_NUMBER) {
 				isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Bad data type")));
 				return;
 			}
-			std::time_t t = millisSinceEpoch / 1000;
-			unsigned int ms = (unsigned int)(millisSinceEpoch % 1000);
-			std::tm *ltime = std::localtime(&t);
-			SPA::UDateTime dt(*ltime, ms * 1000);
-			*obj->m_Buffer << dt.time;
+			*obj->m_Buffer << d;
 			args.GetReturnValue().Set(args.Holder());
 			return;
 		}
-		isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Bad data type")));
+		isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "No date provided")));
 	}
 
 	unsigned int NJQueue::Load(Isolate* isolate, SPA::UDB::CDBVariant &vt) {
@@ -868,7 +876,8 @@ namespace NJA {
 #ifdef WIN32_64
 								auto s = String::NewFromTwoByte(isolate, (const uint16_t*)p[n], String::kNormalString, (int)::SysStringLen(p[n]));
 #else
-
+								std::string str = SPA::Utilities::ToUTF8(p[n]);
+								auto s = String::NewFromUtf8(isolate, str.c_str()));
 #endif
 
 								v->Set(n, s);
@@ -1015,6 +1024,279 @@ namespace NJA {
 		else {
 			isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "A callback function expected")));
 		}
+	}
+
+	bool NJQueue::From(const Local<Value>& v, const std::string &id, CDBVariant &vt) {
+		vt.Clear();
+		if (v->IsNullOrUndefined())
+			vt.vt = VT_NULL;
+		else if (v->IsDate()) {
+			vt.vt = VT_DATE;
+			vt.ullVal = ToDate(v);
+		}
+		else if (v->IsBoolean()) {
+			vt.vt = VT_BOOL;
+			vt.boolVal = v->BooleanValue() ? VARIANT_TRUE : VARIANT_FALSE;
+		}
+		else if (v->IsString()) {
+			if (id == "a" || id == "ascii") {
+				char *p;
+				vt.vt = (VT_ARRAY | VT_I1);
+				String::Utf8Value str(v);
+				unsigned int len = (unsigned int)str.length();
+				SAFEARRAYBOUND sab[] = { len, 0 };
+				vt.parray = SafeArrayCreate(VT_I1, 1, sab);
+				SafeArrayAccessData(vt.parray, (void**)&p);
+				memcpy(p, *str, len);
+				SafeArrayUnaccessData(vt.parray);
+			}
+			else if (id == "dec" || id == "decimal") {
+				String::Utf8Value str(v);
+				vt.vt = VT_DECIMAL;
+				SPA::ParseDec(*str, vt.decVal);
+			}
+			else {
+				vt.vt = VT_BSTR;
+				String::Value str(v);
+#ifdef WIN32_64
+				vt.bstrVal = SysAllocString((const wchar_t*)*str);
+#else
+				vt.bstrVal = SPA::Utilities::SysAllocString(*str, (unsigned int)str.length());
+#endif
+			}
+		}
+		else if (v->IsNumber()) {
+			if (id == "f" || id == "float") {
+				vt.vt = VT_R4;
+				vt.fltVal = (float)v->NumberValue();
+			}
+			else if (id == "d" || id == "double") {
+				vt.vt = VT_R8;
+				vt.dblVal = v->NumberValue();
+			}
+			else if (id == "i" || id == "int") {
+				vt.vt = VT_I4;
+				vt.lVal = v->Int32Value();
+			}
+			else if (id == "ui" || id == "uint") {
+				vt.vt = VT_UI4;
+				vt.ulVal = v->Uint32Value();
+			}
+			else if (id == "l" || id == "long") {
+				vt.vt = VT_I8;
+				vt.llVal = (SPA::INT64)v->NumberValue();
+			}
+			else if (id == "ul" || id == "ulong") {
+				vt.vt = VT_UI8;
+				vt.ullVal = (SPA::UINT64)v->NumberValue();
+			}
+			else if (id == "s" || id == "short") {
+				vt.vt = VT_I2;
+				vt.iVal = (short)v->Int32Value();
+			}
+			else if (id == "us" || id == "ushort") {
+				vt.vt = VT_UI2;
+				vt.iVal = (unsigned short)v->Uint32Value();
+			}
+			else if (id == "dec" || id == "decimal") {
+				vt.vt = VT_DECIMAL;
+				String::Utf8Value str(v);
+				ParseDec(*str, vt.decVal);
+			}
+			else if (id == "c" || id == "char") {
+				vt.vt = VT_I1;
+				vt.cVal = (char)v->Int32Value();
+			}
+			else if (id == "b" || id == "byte") {
+				vt.vt = VT_UI1;
+				vt.bVal = (unsigned char)v->Uint32Value();
+			}
+			else if (id == "date") {
+				vt.vt = VT_DATE;
+				vt.ullVal = (SPA::UINT64)v->NumberValue();
+			}
+			else {
+				assert(false);
+				return false;
+			}
+		}
+		else if (v->IsInt8Array()) {
+			char *p;
+			vt.vt = (VT_ARRAY | VT_I1);
+			char *bytes = node::Buffer::Data(v);
+			unsigned int len = (unsigned int)node::Buffer::Length(v);
+			SAFEARRAYBOUND sab[] = { len, 0 };
+			vt.parray = SafeArrayCreate(VT_I1, 1, sab);
+			SafeArrayAccessData(vt.parray, (void**)&p);
+			memcpy(p, bytes, len);
+			SafeArrayUnaccessData(vt.parray);
+		}
+		else if (v->IsInt16Array()) {
+			short *p;
+			vt.vt = (VT_ARRAY | VT_I2);
+			char *bytes = node::Buffer::Data(v);
+			Local<v8::Int16Array> vInt = Local<v8::Int16Array>::Cast(v);
+			unsigned int len = (unsigned int)vInt->Length();
+			SAFEARRAYBOUND sab[] = { len, 0 };
+			vt.parray = SafeArrayCreate(VT_I2, 1, sab);
+			SafeArrayAccessData(vt.parray, (void**)&p);
+			memcpy(p, bytes, len * sizeof(short));
+			SafeArrayUnaccessData(vt.parray);
+		}
+		else if (v->IsUint16Array()) {
+			unsigned short *p;
+			vt.vt = (VT_ARRAY | VT_UI2);
+			char *bytes = node::Buffer::Data(v);
+			Local<v8::Uint16Array> vInt = Local<v8::Uint16Array>::Cast(v);
+			unsigned int len = (unsigned int)vInt->Length();
+			SAFEARRAYBOUND sab[] = { len, 0 };
+			vt.parray = SafeArrayCreate(VT_UI2, 1, sab);
+			SafeArrayAccessData(vt.parray, (void**)&p);
+			memcpy(p, bytes, len * sizeof(unsigned short));
+			SafeArrayUnaccessData(vt.parray);
+		}
+		else if (v->IsInt32Array()) {
+			int *p;
+			vt.vt = (VT_ARRAY | VT_I4);
+			char *bytes = node::Buffer::Data(v);
+			Local<v8::Int32Array> vInt = Local<v8::Int32Array>::Cast(v);
+			unsigned int len = (unsigned int)vInt->Length();
+			SAFEARRAYBOUND sab[] = { len, 0 };
+			vt.parray = SafeArrayCreate(VT_I4, 1, sab);
+			SafeArrayAccessData(vt.parray, (void**)&p);
+			memcpy(p, bytes, len * sizeof(int));
+			SafeArrayUnaccessData(vt.parray);
+		}
+		else if (v->IsUint32Array()) {
+			unsigned int *p;
+			vt = (VT_ARRAY | VT_UI4);
+			char *bytes = node::Buffer::Data(v);
+			Local<v8::Uint32Array> vInt = Local<v8::Uint32Array>::Cast(v);
+			unsigned int len = (unsigned int)vInt->Length();
+			SAFEARRAYBOUND sab[] = { len, 0 };
+			vt.parray = SafeArrayCreate(VT_UI4, 1, sab);
+			SafeArrayAccessData(vt.parray, (void**)&p);
+			memcpy(p, bytes, len * sizeof(unsigned int));
+			SafeArrayUnaccessData(vt.parray);
+		}
+		else if (v->IsFloat32Array()) {
+			float *p;
+			vt.vt = (VT_ARRAY | VT_R4);
+			char *bytes = node::Buffer::Data(v);
+			Local<v8::Float32Array> vInt = Local<v8::Float32Array>::Cast(v);
+			unsigned int len = (unsigned int)vInt->Length();
+			SAFEARRAYBOUND sab[] = { len, 0 };
+			vt.parray = SafeArrayCreate(VT_R4, 1, sab);
+			SafeArrayAccessData(vt.parray, (void**)&p);
+			memcpy(p, bytes, len * sizeof(float));
+			SafeArrayUnaccessData(vt.parray);
+		}
+		else if (v->IsFloat64Array()) {
+			double *p;
+			vt.vt = (VT_ARRAY | VT_R8);
+			char *bytes = node::Buffer::Data(v);
+			Local<v8::Float64Array> vInt = Local<v8::Float64Array>::Cast(v);
+			unsigned int len = (unsigned int)vInt->Length();
+			SAFEARRAYBOUND sab[] = { len, 0 };
+			vt.parray = SafeArrayCreate(VT_R8, 1, sab);
+			SafeArrayAccessData(vt.parray, (void**)&p);
+			memcpy(p, bytes, len * sizeof(double));
+			SafeArrayUnaccessData(vt.parray);
+		}
+		else if (node::Buffer::HasInstance(v)) {
+			char *p;
+			char *bytes = node::Buffer::Data(v);
+			unsigned int len = (unsigned int)node::Buffer::Length(v);
+			vt.vt = (VT_ARRAY | VT_UI1);
+			SAFEARRAYBOUND sab[] = { len, 0 };
+			vt.parray = SafeArrayCreate(VT_UI1, 1, sab);
+			SafeArrayAccessData(vt.parray, (void**)&p);
+			memcpy(p, bytes, len);
+			SafeArrayUnaccessData(vt.parray);
+			if (len == sizeof(GUID) && (id == "u" || id == "uuid")) {
+				vt.vt = VT_CLSID;
+			}
+		}
+		else if (v->IsArray()) {
+			tagDataType dt = dtUnknown;
+			Local<Array> jsArr = Local<Array>::Cast(v);
+			unsigned int count = jsArr->Length();
+			for (unsigned int n = 0; n < count; ++n) {
+				auto d = jsArr->Get(n);
+				if (d->IsBoolean()) {
+					if (dt && dt != dtBool) {
+						return false;
+					}
+					else
+						dt = dtBool;
+				}
+				else if (d->IsDate()) {
+					if (dt && dt != dtDate) {
+						return false;
+					}
+					else
+						dt = dtDate;
+				}
+				else if (d->IsString()) {
+					if (dt && dt != dtString) {
+						return false;
+					}
+					else
+						dt = dtString;
+				}
+				else {
+					return false;
+				}
+			}
+			VARTYPE vtType;
+			switch (dt) {
+			case dtString:
+				vtType = VT_BSTR;
+				break;
+			case dtBool:
+				vtType = VT_BOOL;
+				break;
+			case dtDate:
+				vtType = VT_DATE;
+				break;
+			default:
+				assert(false); //shouldn't come here
+				break;
+			}
+			void *p;
+			vt.vt = (VT_ARRAY | vtType);
+			SAFEARRAYBOUND sab[] = { count, 0 };
+			vt.parray = SafeArrayCreate(vtType, 1, sab);
+			SafeArrayAccessData(vt.parray, &p);
+			for (unsigned int n = 0; n < count; ++n) {
+				auto d = jsArr->Get(n);
+				if (d->IsBoolean()) {
+					VARIANT_BOOL *pb = (VARIANT_BOOL *)p;
+					pb[n] = d->BooleanValue() ? VARIANT_TRUE : VARIANT_FALSE;
+				}
+				else if (d->IsDate()) {
+					SPA::UINT64 *pd = (SPA::UINT64*)p;
+					pd[n] = ToDate(d);
+				}
+				else if (d->IsString()) {
+					BSTR *pbstr = (BSTR*)p;
+					String::Value str(d);
+#ifdef WIN32_64
+					pbstr[n] = ::SysAllocString((const wchar_t *)*str);
+#else
+					pbstr[n] = SPA::Utilities::SysAllocString(*str, (unsigned int)str.length());
+#endif
+				}
+				else {
+					assert(false);
+				}
+			}
+			SafeArrayUnaccessData(vt.parray);
+		}
+		else {
+			return false; //not supported
+		}
+		return true;
 	}
 
 	void NJQueue::SaveObject(const FunctionCallbackInfo<Value>& args) {
@@ -1259,13 +1541,8 @@ namespace NJA {
 					}
 					else
 						dt = dtDate;
-					Date *dt = Date::Cast(*d);
-					SPA::UINT64 millisSinceEpoch = (SPA::UINT64) dt->ValueOf();
-					std::time_t t = millisSinceEpoch / 1000;
-					unsigned int ms = (unsigned int)(millisSinceEpoch % 1000);
-					std::tm *ltime = std::localtime(&t);
-					SPA::UDateTime udt(*ltime, ms * 1000);
-					sb << udt.time;
+					SPA::UINT64 time = ToDate(d);
+					sb << time;
 				}
 				else if (d->IsString()) {
 					if (dt && dt != dtString) {

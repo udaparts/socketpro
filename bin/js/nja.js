@@ -38,7 +38,7 @@ exports.BaseID={
 	idReservedTwo : 0x2001
 };
 
-//Online message or chat request IDs
+//online message or chat request IDs
 exports.ChatID={
 	idEnter : 65,
 	idSpeak : 66,
@@ -48,15 +48,15 @@ exports.ChatID={
 	idSendUserMessageEx : 70,
 };
 
-//Service IDs
+//reserved service IDs
 exports.SID={
 	sidReserved1:1,
 	sidStartup:256,
 	sidChat:257,
-	sidQueue:257,
-	sidHTTP: 258,
-	sidFile:259,
-	sidOdbc:260,
+	sidQueue:257, //persistent message queue service
+	sidHTTP: 258, //not supported at client side
+	sidFile:259, //files streaming service
+	sidOdbc:260, //ODBC SQL-streaming service
 	sidReserved:0x10000000,
 	sidSqlite:2147483632,
     sidMysql:2147483633
@@ -66,12 +66,6 @@ exports.SID={
 exports.EM={
 	NoEncryption : 0,
 	TLSv1 : 1
-};
-
-exports.Optimistic={
-	oMemoryCached : 0,
-	oSystemMemoryCached : 1,
-	oDiskCommitted : 2
 };
 
 exports.ShutdownType={
@@ -98,15 +92,15 @@ exports.OperationSystem={
 	osWinPhone:4
 };
 
-//CS == ClientSide namespace
+//CS == Client side namespace
 exports.CS={
-	version : SPA.getVersion(), //client core library version string
+	version : SPA.getVersion(), //client core library version string, a static function
 	getPools : function() {
-		//return number of socket pools created
+		//return number of socket pools created, a static function
 		return SPA.getPools();
 	},
 	setCA : function(caPath) {
-		//set SSL/TLS CA certification store
+		//set SSL/TLS CA certification store, a static function
 		//return true if successful; Otherwise, false
 		return SPA.setCA(caPath);
 	},
@@ -114,17 +108,26 @@ exports.CS={
 	//client persistent message queue
 	Queue : {
 		getWorkingDir : function() {
-			//find current working directory
+			//find current working directory, a static function
 			return SPA.getWorkingDir();
 		},
 		setWorkingDir : function(dir) {
-			//set current working directory
+			//set current working directory, a static function
 			SPA.setWorkingDir(dir);
 		},
 		setPwd : function(pwd) {
-			//set a password to protect client message queue 
+			//set a password to protect client message queue, a static function 
 			SPA.setPassword(pwd);
 		},
+		
+		//queue flush options
+		Optimistic : {
+			oMemoryCached : 0,
+			oSystemMemoryCached : 1,
+			oDiskCommitted : 2
+		},
+		
+		//reserved persistent queue request IDs
 		ReqIds : {
 			idEnqueue:0x2001 + 1,
 			idDequeue:0x2001 + 2,
@@ -136,6 +139,8 @@ exports.CS={
 			idEnqueueBatch:0x2001 + 8,
 			idBatchSizeNotified:0x2001 + 20
 		},
+		
+		//possible error codes from server persistent queue
 		ErrorCode:{
 			OK:0,
 			TRANS_ALREADY_STARTED:1,
@@ -147,7 +152,8 @@ exports.CS={
 			CLOSE_FAILED:7,
 			ENQUEUING_FAILED:8
 		},
-		//Persistent message queue status
+		
+		//persistent message queue status
 		Status : {
 			/// <summary>
 			/// everything is fine
@@ -197,8 +203,8 @@ exports.CS={
 	},
 	
 	newPool : function(svsId,defaulDb='') {
-		//create a regular socket or master/slave pool
-		//can create multiple pools for different services
+		//create a regular socket or master/slave pool.
+		//you can create multiple pools for different services
 		return new SPA.CSocketPool(	svsId, //a required unsigned int service id
 									defaulDb //master/slave with real-time update cache
 									);
@@ -207,7 +213,7 @@ exports.CS={
 	newCC : function(host,port,userId,pwd,em=0,zip=false,v6=false,anyData=null) {
 		return {Host:host,Port:port,User:userId,Pwd:pwd,EM:em,Zip:zip,V6:v6,AnyData:anyData};
 	},
-	//Connection State
+	//Socket Connection State
 	ConnState:{
 		csClosed:0,
 		csConnecting:1,
@@ -241,8 +247,8 @@ exports.CS={
 	}
 };
 
-//UDB namespace
-exports.UDB={
+//DB namespace
+exports.DB={
 	ManagementSystem : {
 		Unknown:-1,
 		Sqlite:0,
@@ -301,7 +307,9 @@ exports.UDB={
 		Serializable:5,
 		Isolated:6
 	},
-	Reqs:{
+	
+	//reserved DB operational request IDs
+	ReqIds:{
 		/// <summary>
 		/// Async database client/server just requires the following request identification numbers 
 		/// </summary>
@@ -329,13 +337,13 @@ exports.UDB={
 		idChunk:0x7E8C,
 		idEndBLOB:0x7E8D,
 		idEndRows:0x7E8E,
-		idCallReturn:0x7E8F,
+		idCallReturn:0x7E8F, //server ==> client only
 
 		idGetCachedTables:0x7E90,
 
-		idSqlBatchHeader:0x7E91,
+		idSqlBatchHeader:0x7E91, //server ==> client only
 		idExecuteBatch:0x7E92,
-		idParameterPosition:0x7E93
+		idParameterPosition:0x7E93 //server ==> client only
 	},
 	Cache:{
 		/// <summary>
