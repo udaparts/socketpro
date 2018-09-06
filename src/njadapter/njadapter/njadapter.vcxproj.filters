@@ -99,6 +99,15 @@
     <ClInclude Include="..\..\..\include\aqhandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="njclientqueue.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="njpush.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="njcert.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -150,6 +159,15 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="aqueue.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="njclientqueue.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="njpush.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="njcert.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

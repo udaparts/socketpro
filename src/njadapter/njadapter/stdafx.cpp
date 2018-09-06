@@ -1,6 +1,9 @@
 
 #include "stdafx.h"
 #include "njobjects.h"
+#include "njsqlite.h"
+#include "njmysql.h"
+#include "njodbc.h"
 
 namespace SPA {
 	namespace ClientSide {
@@ -151,7 +154,7 @@ namespace SPA {
 						CScopeUQueue::Unlock(cb.Buffer);
 						auto b = Boolean::New(isolate, canceled);
 						if (!func.IsEmpty()) {
-							Local<Value> argv[] = { Boolean::New(isolate, canceled), njAsh, jsReqId };
+							Local<Value> argv[] = { b, njAsh, jsReqId };
 							func->Call(isolate->GetCurrentContext(), Null(isolate), 3, argv);
 						}
 					}
@@ -182,6 +185,26 @@ namespace SPA {
 				}
 			}
 			isolate->RunMicrotasks();
+		}
+
+		Local<v8::Object> CreateDb(Isolate* isolate, CAsyncServiceHandler *ash) {
+			Local<v8::Object> njDB;
+			unsigned int sid = ash->GetSvsID();
+			switch (sid) {
+			case SPA::Sqlite::sidSqlite:
+				njDB = NJA::NJSqlite::New(isolate, (CSqlite*)ash, true);
+				break;
+			case SPA::Mysql::sidMysql:
+				njDB = NJA::NJMysql::New(isolate, (CMysql*)ash, true);
+				break;
+			case SPA::Odbc::sidOdbc:
+				njDB = NJA::NJOdbc::New(isolate, (COdbc*)ash, true);
+				break;
+			default:
+				assert(false);
+				break;
+			}
+			return njDB;
 		}
 	}
 }

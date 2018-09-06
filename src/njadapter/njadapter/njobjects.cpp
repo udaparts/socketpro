@@ -855,8 +855,11 @@ namespace NJA {
 		}
 		cc.V6 = v->BooleanValue();
 
-		//cc.AnyData not used
-
+		v = obj->Get(String::NewFromUtf8(isolate, "AnyData"));
+		if (!NJQueue::From(v, "", cc.AnyData)) {
+			isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Invalid data for AnyData")));
+			return false;
+		}
 		return true;
 	}
 

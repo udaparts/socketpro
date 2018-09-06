@@ -1026,7 +1026,7 @@ namespace NJA {
 		}
 	}
 
-	bool NJQueue::From(const Local<Value>& v, const std::string &id, CDBVariant &vt) {
+	bool NJQueue::From(const Local<Value>& v, const std::string &id, CComVariant &vt) {
 		vt.Clear();
 		if (v->IsNullOrUndefined())
 			vt.vt = VT_NULL;

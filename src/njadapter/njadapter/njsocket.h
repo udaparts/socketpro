@@ -56,6 +56,12 @@ namespace NJA {
 		static void getUserId(const FunctionCallbackInfo<Value>& args);
 		static void getPeerOs(const FunctionCallbackInfo<Value>& args);
 		static void getPeerAddr(const FunctionCallbackInfo<Value>& args);
+		static void Cancel(const FunctionCallbackInfo<Value>& args);
+		static void DoEcho(const FunctionCallbackInfo<Value>& args);
+		static void TurnOnZipAtSvr(const FunctionCallbackInfo<Value>& args);
+		static void SetZipLevelAtSvr(const FunctionCallbackInfo<Value>& args);
+		static void getPush(const FunctionCallbackInfo<Value>& args);
+		static void getQueue(const FunctionCallbackInfo<Value>& args);
 
 	private:
 		static SPA::CUCriticalSection m_cs;

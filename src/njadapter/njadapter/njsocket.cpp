@@ -2,6 +2,9 @@
 #include "stdafx.h"
 #include "njsocket.h"
 #include "njqueue.h"
+#include "njclientqueue.h"
+#include "njpush.h"
+#include "njcert.h"
 
 namespace NJA {
 	
@@ -69,6 +72,12 @@ namespace NJA {
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getUserId", getUserId);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getPeerOs", getPeerOs);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getPeerAddr", getPeerAddr);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "Cancel", Cancel);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "Echo", DoEcho);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "SetSvrZip", TurnOnZipAtSvr);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "SetSvrZiplevel", SetZipLevelAtSvr);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "getPush", getPush);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "getQueue", getQueue);
 
 		constructor.Reset(isolate, tpl->GetFunction());
 		exports->Set(String::NewFromUtf8(isolate, "CSocket"), tpl->GetFunction());
@@ -286,7 +295,28 @@ namespace NJA {
 	}
 
 	void NJSocket::getCert(const FunctionCallbackInfo<Value>& args) {
+		Isolate* isolate = args.GetIsolate();
+		NJSocket* obj = ObjectWrap::Unwrap<NJSocket>(args.Holder());
+		if (obj->IsValid(isolate)) {
+			if (obj->m_socket->GetUCert())
+				args.GetReturnValue().Set(NJCert::New(isolate, obj->m_socket->GetUCert(), true));
+		}
+	}
 
+	void NJSocket::getPush(const FunctionCallbackInfo<Value>& args) {
+		Isolate* isolate = args.GetIsolate();
+		NJSocket* obj = ObjectWrap::Unwrap<NJSocket>(args.Holder());
+		if (obj->IsValid(isolate)) {
+			args.GetReturnValue().Set(NJPush::New(isolate, &obj->m_socket->GetPush(), true));
+		}
+	}
+
+	void NJSocket::getQueue(const FunctionCallbackInfo<Value>& args) {
+		Isolate* isolate = args.GetIsolate();
+		NJSocket* obj = ObjectWrap::Unwrap<NJSocket>(args.Holder());
+		if (obj->IsValid(isolate)) {
+			args.GetReturnValue().Set(NJClientQueue::New(isolate, &obj->m_socket->GetClientQueue(), true));
+		}
 	}
 
 	void NJSocket::getConnState(const FunctionCallbackInfo<Value>& args) {
@@ -488,4 +518,55 @@ namespace NJA {
 		}
 	}
 
+	void NJSocket::Cancel(const FunctionCallbackInfo<Value>& args) {
+		Isolate* isolate = args.GetIsolate();
+		NJSocket* obj = ObjectWrap::Unwrap<NJSocket>(args.Holder());
+		if (obj->IsValid(isolate)) {
+			args.GetReturnValue().Set(Boolean::New(isolate, obj->m_socket->Cancel()));
+		}
+	}
+	void NJSocket::DoEcho(const FunctionCallbackInfo<Value>& args) {
+		Isolate* isolate = args.GetIsolate();
+		NJSocket* obj = ObjectWrap::Unwrap<NJSocket>(args.Holder());
+		if (obj->IsValid(isolate)) {
+			args.GetReturnValue().Set(Boolean::New(isolate, obj->m_socket->DoEcho()));
+		}
+	}
+
+	void NJSocket::TurnOnZipAtSvr(const FunctionCallbackInfo<Value>& args) {
+		Isolate* isolate = args.GetIsolate();
+		NJSocket* obj = ObjectWrap::Unwrap<NJSocket>(args.Holder());
+		if (obj->IsValid(isolate)) {
+			bool zip = false;
+			auto p = args[0];
+			if (p->IsBoolean())
+				zip = p->BooleanValue();
+			else if (!p->IsNullOrUndefined()) {
+				isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Bad data type")));
+				return;
+			}
+			args.GetReturnValue().Set(Boolean::New(isolate, obj->m_socket->TurnOnZipAtSvr(zip)));
+		}
+	}
+
+	void NJSocket::SetZipLevelAtSvr(const FunctionCallbackInfo<Value>& args) {
+		Isolate* isolate = args.GetIsolate();
+		NJSocket* obj = ObjectWrap::Unwrap<NJSocket>(args.Holder());
+		if (obj->IsValid(isolate)) {
+			int zl = SPA::zlDefault;
+			auto p = args[0];
+			if (p->IsInt32()) {
+				zl = p->Int32Value();
+			}
+			else if (!p->IsNullOrUndefined()) {
+				isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Bad data type")));
+				return;
+			}
+			if (zl > SPA::zlBestCompression) {
+				isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Bad zip level value")));
+				return;
+			}
+			args.GetReturnValue().Set(Boolean::New(isolate, obj->m_socket->SetZipLevelAtSvr((SPA::tagZipLevel)zl)));
+		}
+	}
 }

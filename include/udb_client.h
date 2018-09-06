@@ -23,6 +23,12 @@ namespace SPA {
             m_indexRowset(0), m_indexProc(0), m_ms(msUnknown), m_flags(0),
             m_parameters(0), m_outputs(0), m_bCallReturn(false), m_queueOk(false), m_nParamPos(0) {
                 m_Blob.Utf8ToW(true);
+#ifdef NODE_JS_ADAPTER_PROJECT
+				::memset(&m_typeDB, 0, sizeof(m_typeDB));
+				m_typeDB.data = this;
+				int fail = uv_async_init(uv_default_loop(), &m_typeDB, req_cb);
+				assert(!fail);
+#endif
             }
 
         public:
@@ -33,11 +39,19 @@ namespace SPA {
             m_indexRowset(0), m_indexProc(0), m_ms(msUnknown), m_flags(0),
             m_parameters(0), m_outputs(0), m_bCallReturn(false), m_queueOk(false), m_nParamPos(0) {
                 m_Blob.Utf8ToW(true);
+#ifdef NODE_JS_ADAPTER_PROJECT
+				::memset(&m_typeDB, 0, sizeof(m_typeDB));
+				m_typeDB.data = this;
+				int fail = uv_async_init(uv_default_loop(), &m_typeDB, req_cb);
+				assert(!fail);
+#endif
             }
 
             virtual ~CAsyncDBHandler() {
                 CleanCallbacks();
             }
+
+			typedef CAsyncDBHandler* PAsyncDBHandler;
 
             static const unsigned int SQLStreamServiceId = serviceId;
 
@@ -920,6 +934,33 @@ namespace SPA {
             bool m_queueOk;
             std::unordered_map<UINT64, DRowsetHeader> m_mapHandler;
             unsigned int m_nParamPos;
+
+#ifdef NODE_JS_ADAPTER_PROJECT
+		public:
+			
+
+		protected:
+			enum tagDBEvent {
+				eResult = 0,
+				eExecuteResult,
+				eRowsetHeader,
+				eRows,
+				eDiscarded
+			};
+
+			struct DBCb {
+				tagDBEvent Type;
+				PUQueue Buffer;
+				std::shared_ptr<CNJFunc> Func;
+			};
+
+			std::deque<DBCb> m_deqDBCb; //protected by m_csDB;
+			uv_async_t m_typeDB; //DB request events
+
+		private:
+			static void req_cb(uv_async_t* handle);
+#endif
+	
         };
     } //namespace ClientSide
 } //namespace SPA

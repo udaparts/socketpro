@@ -14,7 +14,7 @@
 
 #endif
 
-#include "../../../include/udb_client.h"
+#include "dbreqcb.h"
 
 #include <node.h>
 #include <node_object_wrap.h>

@@ -175,12 +175,15 @@
     <ClInclude Include="..\include\node.h" />
     <ClInclude Include="aqueue.h" />
     <ClInclude Include="njasyncqueue.h" />
+    <ClInclude Include="njcert.h" />
+    <ClInclude Include="njclientqueue.h" />
     <ClInclude Include="njfile.h" />
     <ClInclude Include="njhandler.h" />
     <ClInclude Include="njhandlerroot.h" />
     <ClInclude Include="njmysql.h" />
     <ClInclude Include="njobjects.h" />
     <ClInclude Include="njodbc.h" />
+    <ClInclude Include="njpush.h" />
     <ClInclude Include="njqueue.h" />
     <ClInclude Include="njsocket.h" />
     <ClInclude Include="njsqlite.h" />
@@ -216,12 +219,15 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="njasyncqueue.cpp" />
+    <ClCompile Include="njcert.cpp" />
+    <ClCompile Include="njclientqueue.cpp" />
     <ClCompile Include="njfile.cpp" />
     <ClCompile Include="njhandler.cpp" />
     <ClCompile Include="njhandlerroot.cpp" />
     <ClCompile Include="njmysql.cpp" />
     <ClCompile Include="njobjects.cpp" />
     <ClCompile Include="njodbc.cpp" />
+    <ClCompile Include="njpush.cpp" />
     <ClCompile Include="njqueue.cpp" />
     <ClCompile Include="njsocket.cpp" />
     <ClCompile Include="njsqlite.cpp" />
