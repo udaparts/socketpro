@@ -109,28 +109,20 @@ namespace NJA {
 		NJFile* obj = ObjectWrap::Unwrap<NJFile>(args.Holder());
 		if (obj->IsValid(isolate)) {
 			unsigned int flags = SPA::SFile::FILE_OPEN_TRUNCACTED;
-			std::wstring local, remote;
 			auto p0 = args[0];
 			if (!p0->IsString()) {
 				isolate->ThrowException(v8::Exception::TypeError(v8::String::NewFromUtf8(isolate, "A local file path required")));
 				return;
 			}
-			String::Value str0(p0);
-#ifdef WIN32_64
-			local = (const wchar_t *)*str0;
-#else
-#endif
-
+			String::Utf8Value str0(p0);
+			std::wstring local = Utilities::ToWide(*str0);
 			auto p1 = args[1];
 			if (!p0->IsString()) {
 				isolate->ThrowException(v8::Exception::TypeError(v8::String::NewFromUtf8(isolate, "A remote file path required")));
 				return;
 			}
-			String::Value str1(p1);
-#ifdef WIN32_64
-			remote = (const wchar_t *)*str1;
-#else
-#endif
+			String::Utf8Value str1(p1);
+			std::wstring remote = Utilities::ToWide(*str1);
 			Local<Value> argv[] = {args[2], args[3], args[4]};
 			auto p2 = args[5];
 			if (p2->IsUint32())

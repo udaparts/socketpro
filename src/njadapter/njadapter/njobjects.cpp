@@ -312,11 +312,8 @@ namespace NJA {
 							std::string errWhere;
 							unsigned int errCode = 0;
 							*se.QData >> errMsg >> errWhere >> errCode;
-#ifdef WIN32_64
-							Local<String> jsMsg = String::NewFromTwoByte(isolate, (const uint16_t*)errMsg.c_str(), v8::String::kNormalString, (int)errMsg.size());
-#else
-
-#endif
+							std::string strMsg = Utilities::ToUTF8(errMsg.c_str(), errMsg.size());
+							Local<String> jsMsg = String::NewFromUtf8(isolate, strMsg.c_str());
 							Local<String> jsWhere = String::NewFromUtf8(isolate, errWhere.c_str());
 							Local<Value> jsCode = Number::New(isolate, errCode);
 							Local<Value> argv[5] = { njAsh, jsReqId, jsMsg, jsCode, jsWhere };
@@ -806,7 +803,7 @@ namespace NJA {
 			isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Invalid host string")));
 			return false;
 		}
-		String::Value host(v);
+		String::Utf8Value host(v);
 		cc.Host.assign(*host, *host + host.length());
 
 		v = obj->Get(props->Get(1));
@@ -821,16 +818,16 @@ namespace NJA {
 			isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Invalid user id string")));
 			return false;
 		}
-		String::Value uid(v);
-		cc.UserId.assign(*uid, *uid + uid.length());
+		String::Utf8Value uid(v);
+		cc.UserId = Utilities::ToWide(*uid);
 
 		v = obj->Get(props->Get(3));
 		if (!v->IsString()) {
 			isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Invalid password string")));
 			return false;
 		}
-		String::Value pwd(v);
-		cc.Password.assign(*pwd, *pwd + pwd.length());
+		String::Utf8Value pwd(v);
+		cc.Password = Utilities::ToWide(*pwd);
 
 		v = obj->Get(props->Get(4));
 		if (!v->IsUint32()) {

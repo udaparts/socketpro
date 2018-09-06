@@ -125,11 +125,8 @@ namespace NJA {
 					std::wstring errMsg;
 					*cb.Buffer >> res >> errMsg;
 					Local<Value> jsRes = v8::Int32::New(isolate, res);
-#ifdef WIN32_64
-					Local<v8::String> jsMsg = v8::String::NewFromTwoByte(isolate, (const uint16_t*)errMsg.c_str(), v8::String::kNormalString, (int)errMsg.size());
-#else
-
-#endif
+					std::string strMsg = Utilities::ToUTF8(errMsg.c_str(), errMsg.size());
+					Local<v8::String> jsMsg = String::NewFromUtf8(isolate, strMsg.c_str());
 					Local<Value> argv[] = { jsMsg, jsRes, download, njFile };
 					func->Call(isolate->GetCurrentContext(), Null(isolate), 4, argv);
 				}

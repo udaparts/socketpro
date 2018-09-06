@@ -128,8 +128,9 @@ namespace SPA {
 						njAsh = NJA::NJHandler::New(isolate, processor, true);
 						break;
 					}
-					Local<Value> jsReqId = v8::Uint32::New(isolate, cb.ReqId);
+					Local<Value> jsReqId = Uint32::New(isolate, cb.ReqId);
 					Local<Function> func;
+					assert(cb.Func);
 					if (cb.Func)
 						func = Local<Function>::New(isolate, *cb.Func);
 					switch (cb.Type) {
@@ -162,12 +163,9 @@ namespace SPA {
 						unsigned int errCode;
 						*cb.Buffer >> errMsg >> errWhere >> errCode;
 						assert(!cb.Buffer->GetSize());
+						std::string strMsg = Utilities::ToUTF8(errMsg.c_str(), strMsg.size());
 						CScopeUQueue::Unlock(cb.Buffer);
-#ifdef WIN32_64
-						Local<String> jsMsg = String::NewFromTwoByte(isolate, (const uint16_t*)errMsg.c_str(), String::kNormalString, (int)errMsg.size());
-#else
-
-#endif
+						Local<String> jsMsg = String::NewFromUtf8(isolate, strMsg.c_str());
 						Local<String> jsWhere = String::NewFromUtf8(isolate, errWhere.c_str());
 						Local<Value> jsCode = v8::Number::New(isolate, errCode);
 						if (!func.IsEmpty()) {
