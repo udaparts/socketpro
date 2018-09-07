@@ -171,9 +171,11 @@
     <ClInclude Include="..\..\..\include\rdbcache.h" />
     <ClInclude Include="..\..\..\include\streamingfile.h" />
     <ClInclude Include="..\..\..\include\tablecache.h" />
+    <ClInclude Include="..\..\..\include\udatabase.h" />
     <ClInclude Include="..\..\..\include\udb_client.h" />
     <ClInclude Include="..\include\node.h" />
     <ClInclude Include="aqueue.h" />
+    <ClInclude Include="dbreqcb.h" />
     <ClInclude Include="njasyncqueue.h" />
     <ClInclude Include="njcert.h" />
     <ClInclude Include="njclientqueue.h" />

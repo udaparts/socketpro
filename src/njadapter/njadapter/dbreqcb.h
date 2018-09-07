@@ -5,6 +5,7 @@
 
 namespace SPA {
 	namespace ClientSide {
+		using namespace NJA;
 
 		Local<v8::Object> CreateDb(Isolate* isolate, CAsyncServiceHandler *ash);
 
@@ -34,11 +35,10 @@ namespace SPA {
 						int res;
 						std::wstring errMsg;
 						*cb.Buffer >> res >> errMsg;
-						std::string strMsg = SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size());
 						assert(!cb.Buffer->GetSize());
 						CScopeUQueue::Unlock(cb.Buffer);
 						auto njRes = Int32::New(isolate, res);
-						auto njMsg = String::NewFromUtf8(isolate, strMsg.c_str());
+						auto njMsg = ToStr(isolate, errMsg.c_str());
 						if (!func.IsEmpty()) {
 							Local<Value> argv[] = {njRes, njMsg, njDB };
 							func->Call(isolate->GetCurrentContext(), Null(isolate), 3, argv);
@@ -47,13 +47,30 @@ namespace SPA {
 					break;
 					case eRowsetHeader:
 					{
+						bool ok;
+						CDBColumnInfoArray v;
+						*cb.Buffer >> v;
 						assert(!cb.Buffer->GetSize());
 						CScopeUQueue::Unlock(cb.Buffer);
-						Local<Object> meta = Object::New(isolate);
-						meta->Set(String::NewFromUtf8(isolate, "DBPath"), String::NewFromUtf8(isolate, ""));
-
+						Local<Array> jsMeta = Array::New(isolate);
+						unsigned int index = 0;
+						for (auto it = v.begin(), end = v.end(); it != end; ++it, ++index) {
+							Local<Object> meta = Object::New(isolate);
+							ok = meta->Set(ToStr(isolate, "DBPath"), ToStr(isolate, it->DBPath.c_str()));
+							ok = meta->Set(ToStr(isolate, "TablePath"), ToStr(isolate, it->TablePath.c_str()));
+							ok = meta->Set(ToStr(isolate, "DisplayName"), ToStr(isolate, it->DisplayName.c_str()));
+							ok = meta->Set(ToStr(isolate, "OriginalName"), ToStr(isolate, it->OriginalName.c_str()));
+							ok = meta->Set(ToStr(isolate, "DeclaredType"), ToStr(isolate, it->DeclaredType.c_str()));
+							ok = meta->Set(ToStr(isolate, "Collation"), ToStr(isolate, it->Collation.c_str()));
+							ok = meta->Set(ToStr(isolate, "ColumnSize"), Uint32::New(isolate, it->ColumnSize));
+							ok = meta->Set(ToStr(isolate, "Flags"), Uint32::New(isolate, it->Flags));
+							ok = meta->Set(ToStr(isolate, "DataType"), Uint32::New(isolate, it->DataType));
+							ok = meta->Set(ToStr(isolate, "Precision"), Uint32::New(isolate, it->Precision));
+							ok = meta->Set(ToStr(isolate, "Scale"), Uint32::New(isolate, it->Scale));
+							ok = jsMeta->Set(index, meta);
+						}
 						if (!func.IsEmpty()) {
-							Local<Value> argv[] = { meta, njDB };
+							Local<Value> argv[] = { jsMeta, njDB };
 							func->Call(isolate->GetCurrentContext(), Null(isolate), 2, argv);
 						}
 					}
@@ -75,9 +92,6 @@ namespace SPA {
 						assert(false);
 						break;
 					}
-					
-
-
 					obj->m_deqDBCb.pop_front();
 				}
 			}

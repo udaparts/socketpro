@@ -17,7 +17,7 @@ namespace NJA {
 
 	bool NJAsyncQueue::IsValid(Isolate* isolate) {
 		if (!m_aq) {
-			isolate->ThrowException(Exception::TypeError(ToStr(isolate, "Async client queue handler disposed")));
+			ThrowException(isolate, "Async client queue handler disposed");
 			return false;
 		}
 		return NJHandlerRoot::IsValid(isolate);
@@ -105,7 +105,7 @@ namespace NJA {
 				obj->m_aq->SetRR(isolate, p);
 			}
 			else {
-				isolate->ThrowException(Exception::TypeError(ToStr(isolate, "A callback expected for tracking request returned result")));
+				ThrowException(isolate, "A callback expected for tracking request returned result");
 			}
 		}
 	}
@@ -142,13 +142,13 @@ namespace NJA {
 
 	std::string NJAsyncQueue::GetKey(Isolate* isolate, Local<Value> jsKey) {
 		if (!jsKey->IsString()) {
-			isolate->ThrowException(v8::Exception::TypeError(ToStr(isolate, "A valid key string required to find a queue file at server side")));
+			ThrowException(isolate, "A valid key string required to find a queue file at server side");
 			return "";
 		}
 		String::Utf8Value str(jsKey);
 		std::string s(*str);
 		if (!s.size()) {
-			isolate->ThrowException(v8::Exception::TypeError(ToStr(isolate, "A valid key string required to find a queue file at server side")));
+			ThrowException(isolate, "A valid key string required to find a queue file at server side");
 		}
 		return s;
 	}
@@ -177,7 +177,7 @@ namespace NJA {
 			if (p0->IsBoolean())
 				rollback = p0->BooleanValue();
 			else if (!p0->IsNullOrUndefined()) {
-				isolate->ThrowException(v8::Exception::TypeError(ToStr(isolate, "Boolean value expected for rollback")));
+				ThrowException(isolate, "Boolean value expected for rollback");
 				return;
 			}
 			Local<Value> argv[] = { args[1], args[2] };
@@ -201,7 +201,7 @@ namespace NJA {
 			if (p->IsBoolean())
 				perm = p->BooleanValue();
 			else if (!p->IsNullOrUndefined()) {
-				isolate->ThrowException(v8::Exception::TypeError(ToStr(isolate, "Boolean value expected for permanent delete")));
+				ThrowException(isolate, "Boolean value expected for permanent delete");
 				return;
 			}
 			SPA::UINT64 index = obj->m_aq->CloseQueue(isolate, 2, argv, key.c_str(), perm);
@@ -224,11 +224,11 @@ namespace NJA {
 			if (p->IsInt32())
 				option = p->Int32Value();
 			else if (!p->IsNullOrUndefined()) {
-				isolate->ThrowException(v8::Exception::TypeError(ToStr(isolate, "Integer value expected for flush option")));
+				ThrowException(isolate, "Integer value expected for flush option");
 				return;
 			}
 			if (option < 0 || option > SPA::oDiskCommitted) {
-				isolate->ThrowException(v8::Exception::TypeError(ToStr(isolate, "Bad option value")));
+				ThrowException(isolate, "Bad option value");
 				return;
 			}
 			SPA::UINT64 index = obj->m_aq->FlushQueue(isolate, 2, argv, key.c_str(), (SPA::tagOptimistic)option);
@@ -251,7 +251,7 @@ namespace NJA {
 			if (p->IsUint32())
 				timeout = p->Uint32Value();
 			else if (!p->IsNullOrUndefined()) {
-				isolate->ThrowException(v8::Exception::TypeError(ToStr(isolate, "Unsigned int value expected for dequeue timeout in millsecond")));
+				ThrowException(isolate, "Unsigned int value expected for dequeue timeout in millsecond");
 				return;
 			}
 			SPA::UINT64 index = obj->m_aq->Dequeue(isolate, 2, argv, key.c_str(), timeout);
@@ -273,7 +273,7 @@ namespace NJA {
 			if (p->IsUint32())
 				reqId = p->Uint32Value();
 			else {
-				isolate->ThrowException(v8::Exception::TypeError(ToStr(isolate, "Unsigned short value expected for message request id")));
+				ThrowException(isolate, "Unsigned short value expected for message request id");
 				return;
 			}
 			int pos = 0;
@@ -309,17 +309,17 @@ namespace NJA {
 		if (obj->IsValid(isolate)) {
 			auto p0 = args[0];
 			if (!p0->IsUint32()) {
-				isolate->ThrowException(Exception::TypeError(ToStr(isolate, "A valid request id expected for the 1st input")));
+				ThrowException(isolate, "A valid request id expected for the 1st input");
 				return;
 			}
 			unsigned int reqId = p0->Uint32Value();
 			if (reqId > 0xffff || reqId <= SPA::tagBaseRequestID::idReservedTwo) {
-				isolate->ThrowException(Exception::TypeError(ToStr(isolate, "A valid unsigned short request id expected")));
+				ThrowException(isolate, "A valid unsigned short request id expected");
 				return;
 			}
 
 			if (reqId <= Queue::idEnqueueBatch || reqId == Queue::idBatchSizeNotified) {
-				isolate->ThrowException(v8::Exception::TypeError(ToStr(isolate, "Cannot use reserved message request ids")));
+				ThrowException(isolate, "Cannot use reserved message request ids");
 				return;
 			}
 
@@ -332,7 +332,7 @@ namespace NJA {
 				return;
 			}
 			else if (!p1->IsFunction()) {
-				isolate->ThrowException(Exception::TypeError(ToStr(isolate, "A function expected for the 2nd input to serialize data")));
+				ThrowException(isolate, "A function expected for the 2nd input to serialize data");
 				return;
 			}
 			Local<Function> cb = Local<Function>::Cast(p1);
@@ -356,7 +356,7 @@ namespace NJA {
 					return;
 				}
 			}
-			isolate->ThrowException(Exception::TypeError(ToStr(isolate, "A CUQueue instance, null or undefined value expected")));
+			ThrowException(isolate, "A CUQueue instance, null or undefined value expected");
 		}
 	}
 
@@ -368,7 +368,7 @@ namespace NJA {
 			if (!key.size())
 				return;
 			if (obj->m_qBatch || !obj->m_qBatch->GetSize()) {
-				isolate->ThrowException(Exception::TypeError(ToStr(isolate, "No messages batched yet")));
+				ThrowException(isolate, "No messages batched yet");
 				CScopeUQueue::Unlock(obj->m_qBatch);
 				return;
 			}

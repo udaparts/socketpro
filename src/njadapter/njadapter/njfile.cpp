@@ -16,7 +16,7 @@ namespace NJA {
 
 	bool NJFile::IsValid(Isolate* isolate) {
 		if (!m_file) {
-			isolate->ThrowException(Exception::TypeError(ToStr(isolate, "File handler disposed")));
+			ThrowException(isolate, "File handler disposed");
 			return false;
 		}
 		return NJHandlerRoot::IsValid(isolate);
@@ -111,14 +111,14 @@ namespace NJA {
 			unsigned int flags = SPA::SFile::FILE_OPEN_TRUNCACTED;
 			auto p0 = args[0];
 			if (!p0->IsString()) {
-				isolate->ThrowException(v8::Exception::TypeError(ToStr(isolate, "A local file path required")));
+				ThrowException(isolate, "A local file path required");
 				return;
 			}
 			String::Utf8Value str0(p0);
 			std::wstring local = Utilities::ToWide(*str0);
 			auto p1 = args[1];
 			if (!p0->IsString()) {
-				isolate->ThrowException(v8::Exception::TypeError(ToStr(isolate, "A remote file path required")));
+				ThrowException(isolate, "A remote file path required");
 				return;
 			}
 			String::Utf8Value str1(p1);
@@ -128,7 +128,7 @@ namespace NJA {
 			if (p2->IsUint32())
 				flags = p2->Uint32Value();
 			else if (!p2->IsNullOrUndefined()) {
-				isolate->ThrowException(v8::Exception::TypeError(ToStr(isolate, "Unsigned int required for file creating flags")));
+				ThrowException(isolate, "Unsigned int required for file creating flags");
 				return;
 			}
 			SPA::UINT64 index = obj->m_file->Exchange(isolate, 3, argv, download, local.c_str(), remote.c_str(), flags);

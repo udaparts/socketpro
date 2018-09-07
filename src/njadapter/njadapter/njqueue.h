@@ -26,7 +26,7 @@ namespace NJA {
 		template <class ctype>
 		unsigned int Load(Isolate* isolate, ctype &buffer) {
 			if (!m_Buffer || m_Buffer->GetSize() < sizeof(ctype)) {
-				isolate->ThrowException(Exception::TypeError(ToStr(isolate, "No buffer available")));
+				ThrowException(isolate, "No buffer available");
 				Release();
 				return 0;
 			}

@@ -41,7 +41,7 @@ namespace NJA {
 				};
 			}
 			else if (!argv[0]->IsNullOrUndefined()) {
-				isolate->ThrowException(v8::Exception::TypeError(ToStr(isolate, "A callback expected for file exchange end result")));
+				ThrowException(isolate, "A callback expected for file exchange end result");
 				return 0;
 			}
 		}
@@ -67,7 +67,7 @@ namespace NJA {
 				};
 			}
 			else if (!argv[1]->IsNullOrUndefined()) {
-				isolate->ThrowException(v8::Exception::TypeError(ToStr(isolate, "A callback expected for monitoring file transferring progress")));
+				ThrowException(isolate, "A callback expected for monitoring file transferring progress");
 				return 0;
 			}
 		}
@@ -93,7 +93,7 @@ namespace NJA {
 				};
 			}
 			else if (!argv[2]->IsNullOrUndefined()) {
-				isolate->ThrowException(v8::Exception::TypeError(ToStr(isolate, "A callback expected for tracking socket closed or canceled events")));
+				ThrowException(isolate, "A callback expected for tracking socket closed or canceled events");
 				return 0;
 			}
 		}

@@ -131,7 +131,7 @@ namespace NJA {
 		if (args.Length() && args[0]->IsUint32())
 			size = args[0]->Uint32Value();
 		else {
-			args.GetIsolate()->ThrowException(Exception::TypeError(ToStr(args.GetIsolate(), "Unsigned int expected")));
+			ThrowException(args.GetIsolate(), "Unsigned int expected");
 			return;
 		}
 		unsigned int ret = 0;
@@ -155,7 +155,7 @@ namespace NJA {
 		if (args.Length() && args[0]->IsUint32())
 			size = args[0]->Uint32Value();
 		else {
-			args.GetIsolate()->ThrowException(Exception::TypeError(ToStr(args.GetIsolate(), "Unsigned int expected")));
+			ThrowException(args.GetIsolate(), "Unsigned int expected");
 			return;
 		}
 		NJQueue* obj = ObjectWrap::Unwrap<NJQueue>(args.Holder());
@@ -172,7 +172,7 @@ namespace NJA {
 		else if (args[0]->IsNullOrUndefined())
 			obj->m_StrForDec = false;
 		else
-			args.GetIsolate()->ThrowException(Exception::TypeError(ToStr(args.GetIsolate(), "Wrong argument")));
+			ThrowException(args.GetIsolate(), "A boolean value expected");
 	}
 
 	void NJQueue::getSize(const FunctionCallbackInfo<Value>& args) {
@@ -336,7 +336,7 @@ namespace NJA {
 		Isolate* isolate = args.GetIsolate();
 		NJQueue* obj = ObjectWrap::Unwrap<NJQueue>(args.Holder());
 		if (!obj->m_Buffer) {
-			isolate->ThrowException(Exception::TypeError(ToStr(isolate, "No buffer available")));
+			ThrowException(isolate, "No buffer available");
 			return;
 		}
 		try {
@@ -352,7 +352,7 @@ namespace NJA {
 				}
 				else {
 					obj->m_Buffer->Pop(len);
-					isolate->ThrowException(Exception::TypeError(ToStr(isolate, "Bad data for loading byte array")));
+					ThrowException(isolate, "Bad data for loading byte array");
 				}
 			}
 			if (!obj->m_Buffer->GetSize())
@@ -360,7 +360,7 @@ namespace NJA {
 		}
 		catch (std::exception &err) {
 			obj->Release();
-			isolate->ThrowException(Exception::TypeError(ToStr(isolate, err.what())));
+			ThrowException(isolate, err.what());
 		}
 	}
 
@@ -368,7 +368,7 @@ namespace NJA {
 		Isolate* isolate = args.GetIsolate();
 		NJQueue* obj = ObjectWrap::Unwrap<NJQueue>(args.Holder());
 		if (!obj->m_Buffer) {
-			isolate->ThrowException(Exception::TypeError(ToStr(isolate, "No buffer available")));
+			ThrowException(isolate, "No buffer available");
 			return;
 		}
 		try {
@@ -384,7 +384,7 @@ namespace NJA {
 				}
 				else {
 					obj->m_Buffer->Pop(len);
-					isolate->ThrowException(Exception::TypeError(ToStr(isolate, "Bad data for loading ASCII string")));
+					ThrowException(isolate, "Bad data for loading ASCII string");
 				}
 			}
 			if (!obj->m_Buffer->GetSize())
@@ -392,7 +392,7 @@ namespace NJA {
 		}
 		catch (std::exception &err) {
 			obj->Release();
-			isolate->ThrowException(Exception::TypeError(ToStr(isolate, err.what())));
+			ThrowException(isolate, err.what());
 		}
 	}
 
@@ -400,31 +400,38 @@ namespace NJA {
 		Isolate* isolate = args.GetIsolate();
 		NJQueue* obj = ObjectWrap::Unwrap<NJQueue>(args.Holder());
 		if (!obj->m_Buffer) {
-			isolate->ThrowException(Exception::TypeError(ToStr(isolate, "No buffer available")));
+			ThrowException(isolate, "No buffer available");
 			return;
 		}
 		try {
-			unsigned int len;
+			unsigned long len;
 			*obj->m_Buffer >> len;
 			if (len == (~0)) {
-				args.GetReturnValue().SetNull();
+				args.GetReturnValue().Set(Null(isolate));
+			}
+			else if (len <= obj->m_Buffer->GetSize()) {
+				const UTF16 *str = (const UTF16 *)obj->m_Buffer->GetBuffer();
+#if 0
+				SPA::CScopeUQueue sb;
+#ifdef WIN32_64
+				SPA::Utilities::ToUTF8((const wchar_t *)str, len / sizeof(SPA::UTF16), *sb);
+#else
+				SPA::Utilities::ToUTF8(str, len / sizeof(SPA::UTF16), *sb);
+#endif
+#endif
+				obj->m_Buffer->Pop(len);
+				args.GetReturnValue().Set(ToStr(isolate, str, len / sizeof(SPA::UTF16)));
 			}
 			else {
-				if (len <= obj->m_Buffer->GetSize()) {
-					args.GetReturnValue().Set(ToStr(isolate, (const uint16_t*)obj->m_Buffer->GetBuffer(), (int)(len / sizeof(uint16_t))));
-					obj->m_Buffer->Pop(len);
-				}
-				else {
-					obj->m_Buffer->Pop(len);
-					isolate->ThrowException(Exception::TypeError(ToStr(isolate, "Bad data for loading UNICODE string")));
-				}
+				ThrowException(isolate, "Bad unicode string found");
+				obj->m_Buffer->SetSize(0);
 			}
 			if (!obj->m_Buffer->GetSize())
 				obj->Release();
 		}
 		catch (std::exception &err) {
 			obj->Release();
-			isolate->ThrowException(Exception::TypeError(ToStr(isolate, err.what())));
+			ThrowException(isolate, err.what());
 		}
 	}
 
@@ -436,7 +443,7 @@ namespace NJA {
 		}
 		else {
 			Isolate* isolate = args.GetIsolate();
-			isolate->ThrowException(Exception::TypeError(ToStr(isolate, "Bad data type")));
+			ThrowException(isolate, "Bad data type");
 		}
 	}
 
@@ -448,7 +455,7 @@ namespace NJA {
 		}
 		else {
 			Isolate* isolate = args.GetIsolate();
-			isolate->ThrowException(Exception::TypeError(ToStr(isolate, "Bad data type")));
+			ThrowException(isolate, "Bad data type");
 		}
 	}
 
@@ -460,7 +467,7 @@ namespace NJA {
 		}
 		else {
 			Isolate* isolate = args.GetIsolate();
-			isolate->ThrowException(Exception::TypeError(ToStr(isolate, "Bad data type")));
+			ThrowException(isolate, "Bad data type");
 		}
 	}
 
@@ -472,7 +479,7 @@ namespace NJA {
 		}
 		else {
 			Isolate* isolate = args.GetIsolate();
-			isolate->ThrowException(Exception::TypeError(ToStr(isolate, "Bad data type")));
+			ThrowException(isolate, "Bad data type");
 		}
 	}
 
@@ -484,7 +491,7 @@ namespace NJA {
 		}
 		else {
 			Isolate* isolate = args.GetIsolate();
-			isolate->ThrowException(Exception::TypeError(ToStr(isolate, "Bad data type")));
+			ThrowException(isolate, "Bad data type");
 		}
 	}
 
@@ -496,7 +503,7 @@ namespace NJA {
 		}
 		else {
 			Isolate* isolate = args.GetIsolate();
-			isolate->ThrowException(Exception::TypeError(ToStr(isolate, "Bad data type")));
+			ThrowException(isolate, "Bad data type");
 		}
 	}
 
@@ -508,7 +515,7 @@ namespace NJA {
 		}
 		else {
 			Isolate* isolate = args.GetIsolate();
-			isolate->ThrowException(Exception::TypeError(ToStr(isolate, "Bad data type")));
+			ThrowException(isolate, "Bad data type");
 		}
 	}
 
@@ -520,7 +527,7 @@ namespace NJA {
 		}
 		else {
 			Isolate* isolate = args.GetIsolate();
-			isolate->ThrowException(Exception::TypeError(ToStr(isolate, "Bad data type")));
+			ThrowException(isolate, "Bad data type");
 		}
 	}
 
@@ -532,7 +539,7 @@ namespace NJA {
 		}
 		else {
 			Isolate* isolate = args.GetIsolate();
-			isolate->ThrowException(Exception::TypeError(ToStr(isolate, "Bad data type")));
+			ThrowException(isolate, "Bad data type");
 		}
 	}
 
@@ -544,7 +551,7 @@ namespace NJA {
 		}
 		else {
 			Isolate* isolate = args.GetIsolate();
-			isolate->ThrowException(Exception::TypeError(ToStr(isolate, "Bad data type")));
+			ThrowException(isolate, "Bad data type");
 		}
 	}
 
@@ -556,7 +563,7 @@ namespace NJA {
 		}
 		else {
 			Isolate* isolate = args.GetIsolate();
-			isolate->ThrowException(Exception::TypeError(ToStr(isolate, "Bad data type")));
+			ThrowException(isolate, "Bad data type");
 		}
 	}
 
@@ -580,7 +587,7 @@ namespace NJA {
 			}
 		}
 		Isolate* isolate = args.GetIsolate();
-		isolate->ThrowException(Exception::TypeError(ToStr(isolate, "Invalid Node.js Buffer object")));
+		ThrowException(isolate, "Invalid Node.js Buffer object");
 	}
 
 	void NJQueue::SaveUUID(const FunctionCallbackInfo<Value>& args) {
@@ -599,7 +606,7 @@ namespace NJA {
 			}
 		}
 		Isolate* isolate = args.GetIsolate();
-		isolate->ThrowException(Exception::TypeError(ToStr(isolate, "Invalid UUID Node.js Buffer object")));
+		ThrowException(isolate, "Invalid UUID Node.js Buffer object");
 	}
 
 	void NJQueue::SaveAString(const FunctionCallbackInfo<Value>& args) {
@@ -620,7 +627,7 @@ namespace NJA {
 		}
 		else {
 			Isolate* isolate = args.GetIsolate();
-			isolate->ThrowException(Exception::TypeError(ToStr(isolate, "Bad data type")));
+			ThrowException(isolate, "Bad data type");
 		}
 	}
 
@@ -643,7 +650,7 @@ namespace NJA {
 		}
 		else {
 			Isolate* isolate = args.GetIsolate();
-			isolate->ThrowException(Exception::TypeError(ToStr(isolate, "Bad data type")));
+			ThrowException(isolate, "Bad data type");
 		}
 	}
 
@@ -663,7 +670,7 @@ namespace NJA {
 			}
 		}
 		Isolate* isolate = args.GetIsolate();
-		isolate->ThrowException(Exception::TypeError(ToStr(isolate, "Bad data type")));
+		ThrowException(isolate, "Bad data type");
 	}
 
 	void NJQueue::SaveDate(const FunctionCallbackInfo<Value>& args) {
@@ -674,19 +681,19 @@ namespace NJA {
 			auto p = args[0];
 			SPA::UINT64 d = ToDate(p);
 			if (d == INVALID_NUMBER) {
-				isolate->ThrowException(Exception::TypeError(ToStr(isolate, "Bad data type")));
+				ThrowException(isolate, "Bad data type");
 				return;
 			}
 			*obj->m_Buffer << d;
 			args.GetReturnValue().Set(args.Holder());
 			return;
 		}
-		isolate->ThrowException(Exception::TypeError(ToStr(isolate, "No date provided")));
+		ThrowException(isolate, "No date provided");
 	}
 
 	unsigned int NJQueue::Load(Isolate* isolate, SPA::UDB::CDBVariant &vt) {
 		if (!m_Buffer) {
-			isolate->ThrowException(Exception::TypeError(ToStr(isolate, "No buffer available")));
+			ThrowException(isolate, "No buffer available");
 			return 0;
 		}
 		try {
@@ -699,7 +706,7 @@ namespace NJA {
 		}
 		catch (std::exception &err) {
 			Release();
-			isolate->ThrowException(Exception::TypeError(ToStr(isolate, err.what())));
+			ThrowException(isolate, err.what());
 		}
 		return 0;
 	}
@@ -708,7 +715,7 @@ namespace NJA {
 		Isolate* isolate = args.GetIsolate();
 		NJQueue* obj = ObjectWrap::Unwrap<NJQueue>(args.Holder());
 		if (!obj->m_Buffer) {
-			isolate->ThrowException(Exception::TypeError(ToStr(isolate, "No buffer available")));
+			ThrowException(isolate, "No buffer available");
 		}
 		else if (args[0]->IsFunction()) {
 			Local<Function> cb = Local<Function>::Cast(args[0]);
@@ -719,7 +726,7 @@ namespace NJA {
 		}
 		else {
 			obj->Release();
-			isolate->ThrowException(Exception::TypeError(ToStr(isolate, "An function expected for class or struct de-serialization")));
+			ThrowException(isolate, "An function expected for class or struct de-serialization");
 		}
 	}
 
@@ -738,7 +745,7 @@ namespace NJA {
 		if (obj->Load(isolate, vt)) {
 			auto v = From(isolate, vt, obj->m_StrForDec);
 			if (v->IsUndefined())
-				isolate->ThrowException(Exception::TypeError(ToStr(isolate, "Unsupported object data type")));
+				ThrowException(isolate, "Unsupported object data type");
 			else
 				args.GetReturnValue().Set(v);
 		}
@@ -756,14 +763,14 @@ namespace NJA {
 			args.GetReturnValue().Set(args.Holder());
 		}
 		else {
-			isolate->ThrowException(Exception::TypeError(ToStr(isolate, "A callback function expected")));
+			ThrowException(isolate, "A callback function expected");
 		}
 	}
 
 	void NJQueue::SaveObject(const FunctionCallbackInfo<Value>& args) {
 		Isolate* isolate = args.GetIsolate();
 		if (!args.Length()) {
-			isolate->ThrowException(Exception::TypeError(ToStr(isolate, "An input data expected")));
+			ThrowException(isolate, "An input data expected");
 			return;
 		}
 		VARTYPE vt;
@@ -887,11 +894,11 @@ namespace NJA {
 					SaveDate(args);
 				}
 				else {
-					isolate->ThrowException(Exception::TypeError(ToStr(isolate, "Unknown number type")));
+					ThrowException(isolate, "Unknown number type");
 				}
 			}
 			else {
-				isolate->ThrowException(Exception::TypeError(ToStr(isolate, "Unknown number type")));
+				ThrowException(isolate, "Unknown number type");
 			}
 		}
 		else if (p0->IsInt8Array()) {
@@ -987,7 +994,7 @@ namespace NJA {
 				auto d = jsArr->Get(n);
 				if (d->IsBoolean()) {
 					if (dt && dt != dtBool) {
-						isolate->ThrowException(Exception::TypeError(ToStr(isolate, "Unsupported data array type")));
+						ThrowException(isolate, "Unsupported data array type");
 						return;
 					}
 					else
@@ -997,7 +1004,7 @@ namespace NJA {
 				}
 				else if (d->IsDate()) {
 					if (dt && dt != dtDate) {
-						isolate->ThrowException(Exception::TypeError(ToStr(isolate, "Unsupported data array type")));
+						ThrowException(isolate, "Unsupported data array type");
 						return;
 					}
 					else
@@ -1007,7 +1014,7 @@ namespace NJA {
 				}
 				else if (d->IsString()) {
 					if (dt && dt != dtString) {
-						isolate->ThrowException(Exception::TypeError(ToStr(isolate, "Unsupported data array type")));
+						ThrowException(isolate, "Unsupported data array type");
 						return;
 					}
 					else
@@ -1019,7 +1026,7 @@ namespace NJA {
 					sb->Push((const unsigned char*)(*str), len);
 				}
 				else {
-					isolate->ThrowException(Exception::TypeError(ToStr(isolate, "Unsupported data array type")));
+					ThrowException(isolate, "Unsupported data array type");
 					return;
 				}
 			}
@@ -1043,7 +1050,7 @@ namespace NJA {
 			args.GetReturnValue().Set(args.Holder());
 		}
 		else {
-			isolate->ThrowException(Exception::TypeError(ToStr(isolate, "Unsupported data type")));
+			ThrowException(isolate, "Unsupported data type");
 		}
 	}
 

@@ -52,4 +52,5 @@ console.log(f64View);
 res = buf.SaveObject(f64View).LoadObject();
 console.log(res);
 
-buf.getSize();
+console.log(buf.SaveString('MyTestForAllBinaryData').PopBytes());
+console.log('Data size = ' + buf.getSize());

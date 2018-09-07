@@ -16,7 +16,7 @@ namespace NJA {
 
 	bool NJMysql::IsValid(Isolate* isolate) {
 		if (!m_mysql) {
-			isolate->ThrowException(Exception::TypeError(ToStr(isolate, "Async MySQL handler disposed")));
+			ThrowException(isolate, "Async MySQL handler disposed");
 			return false;
 		}
 		return NJHandlerRoot::IsValid(isolate);

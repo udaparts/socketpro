@@ -44,7 +44,7 @@ namespace NJA {
 			};
 		}
 		else if (!abort->IsNullOrUndefined()) {
-			isolate->ThrowException(v8::Exception::TypeError(ToStr(isolate, "A callback expected for tracking socket closed or canceled events")));
+			ThrowException(isolate, "A callback expected for tracking socket closed or canceled events");
 			bad = true;
 		}
 		return dd;
@@ -229,7 +229,7 @@ namespace NJA {
 				};
 			}
 			else if (!argv[0]->IsNullOrUndefined()) {
-				isolate->ThrowException(v8::Exception::TypeError(ToStr(isolate, "A callback expected for GetKeys end result")));
+				ThrowException(isolate, "A callback expected for GetKeys end result");
 				return 0;
 			}
 		}
@@ -267,7 +267,7 @@ namespace NJA {
 				};
 			}
 			else if (!argv[0]->IsNullOrUndefined()) {
-				isolate->ThrowException(v8::Exception::TypeError(ToStr(isolate, "A callback expected for StartTrans end result")));
+				ThrowException(isolate, "A callback expected for StartTrans end result");
 				return 0;
 			}
 		}
@@ -305,7 +305,7 @@ namespace NJA {
 				};
 			}
 			else if (!argv[0]->IsNullOrUndefined()) {
-				isolate->ThrowException(v8::Exception::TypeError(ToStr(isolate, "A callback expected for EndTrans end result")));
+				ThrowException(isolate, "A callback expected for EndTrans end result");
 				return 0;
 			}
 		}
@@ -343,7 +343,7 @@ namespace NJA {
 				};
 			}
 			else if (!argv[0]->IsNullOrUndefined()) {
-				isolate->ThrowException(v8::Exception::TypeError(ToStr(isolate, "A callback expected for Close end result")));
+				ThrowException(isolate, "A callback expected for Close end result");
 				return 0;
 			}
 		}
@@ -381,7 +381,7 @@ namespace NJA {
 				};
 			}
 			else if (!argv[0]->IsNullOrUndefined()) {
-				isolate->ThrowException(v8::Exception::TypeError(ToStr(isolate, "A callback expected for Flush end result")));
+				ThrowException(isolate, "A callback expected for Flush end result");
 				return 0;
 			}
 		}
@@ -419,7 +419,7 @@ namespace NJA {
 				};
 			}
 			else if (!argv[0]->IsNullOrUndefined()) {
-				isolate->ThrowException(v8::Exception::TypeError(ToStr(isolate, "A callback expected for Dequeue end result")));
+				ThrowException(isolate, "A callback expected for Dequeue end result");
 				return 0;
 			}
 		}
@@ -434,7 +434,7 @@ namespace NJA {
 
 	SPA::UINT64 CAQueue::Enqueue(Isolate* isolate, int args, Local<Value> *argv, const char *key, unsigned short idMessage, const unsigned char *pBuffer, unsigned int size) {
 		if (idMessage <= Queue::idEnqueueBatch || idMessage == Queue::idBatchSizeNotified) {
-			isolate->ThrowException(v8::Exception::TypeError(ToStr(isolate, "Bad message request id")));
+			ThrowException(isolate, "Bad message request id");
 			return 0;
 		}
 		SPA::UINT64 index = GetCallIndex();
@@ -461,7 +461,7 @@ namespace NJA {
 				};
 			}
 			else if (!argv[0]->IsNullOrUndefined()) {
-				isolate->ThrowException(v8::Exception::TypeError(ToStr(isolate, "A callback expected for Enqueue end result")));
+				ThrowException(isolate, "A callback expected for Enqueue end result");
 				return 0;
 			}
 		}
@@ -499,7 +499,7 @@ namespace NJA {
 				};
 			}
 			else if (!argv[0]->IsNullOrUndefined()) {
-				isolate->ThrowException(v8::Exception::TypeError(ToStr(isolate, "A callback expected for EnqueueBatch end result")));
+				ThrowException(isolate, "A callback expected for EnqueueBatch end result");
 				return 0;
 			}
 		}

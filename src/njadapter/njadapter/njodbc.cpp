@@ -16,7 +16,7 @@ namespace NJA {
 
 	bool NJOdbc::IsValid(Isolate* isolate) {
 		if (!m_odbc) {
-			isolate->ThrowException(Exception::TypeError(ToStr(isolate, "Async ODBC handler disposed")));
+			ThrowException(isolate, "Async ODBC handler disposed");
 			return false;
 		}
 		return NJHandlerRoot::IsValid(isolate);

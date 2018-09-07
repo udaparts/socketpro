@@ -58,8 +58,8 @@ exports.SID={
 	sidFile:259, //files streaming service
 	sidOdbc:260, //ODBC SQL-streaming service
 	sidReserved:0x10000000,
-	sidSqlite:2147483632,
-    sidMysql:2147483633
+	sidSqlite:2147483632, //SQLite SQL-streaming services
+    sidMysql:2147483633 //MySQL/Mariadb SQL-streaming services
 };
 
 //EM == EncryptionMethod
@@ -68,12 +68,14 @@ exports.EM={
 	TLSv1 : 1
 };
 
+//socket shutdown type
 exports.ShutdownType={
 	receive:0,
 	send:1,
 	both:2
 };
 
+//compression options
 exports.ZipLevel={
 	zlDefault:0,
 	zlBestSpeed:1,
@@ -84,6 +86,7 @@ exports.OperationSystem={
 	osWin:0,
 	osApple:1,
 	osMac:1,
+	osIphone:1,
 	osUnix:2,
 	osLinux:2,
 	osBSD:2,
@@ -99,10 +102,19 @@ exports.CS={
 		//return number of socket pools created, a static function
 		return SPA.getPools();
 	},
-	setCA : function(caPath) {
-		//set SSL/TLS CA certification store, a static function
-		//return true if successful; Otherwise, false
-		return SPA.setCA(caPath);
+	
+	//SSL/TLS server certificate authentication
+	TLS : {
+		setCA : function(caPath) {
+			//set SSL/TLS CA certification store, a static function
+			//return true if successful; Otherwise, false
+			return SPA.setCA(caPath);
+		},
+		
+		//self signed certificate is disabled by default
+		enableSelfSigned : function(enabled=false) {
+			return SPA.EnableSelfSigned(enabled);
+		}
 	},
 	
 	//client persistent message queue
@@ -249,6 +261,8 @@ exports.CS={
 
 //DB namespace
 exports.DB={
+	
+	//defined DB management systems
 	ManagementSystem : {
 		Unknown:-1,
 		Sqlite:0,
@@ -260,6 +274,8 @@ exports.DB={
 		PostgreSQL:6,
 		MongoDB:7
 	},
+	
+	//rollback hints defined for ending a manual transaction asynchronously
 	RollbackPlan:{
 		/// <summary>
 		/// Manual transaction will rollback whenever there is an error by default
@@ -296,6 +312,8 @@ exports.DB={
 		/// </summary>
 		rpAlways:5
 	},
+	
+	//DB transaction isolation levels
 	TransIsolation : {
 		Unspecified:-1,
 		Chaos:0,
@@ -345,6 +363,8 @@ exports.DB={
 		idExecuteBatch:0x7E92,
 		idParameterPosition:0x7E93 //server ==> client only
 	},
+	
+	//real-time updateable data cache
 	Cache:{
 		/// <summary>
 		/// A flag used with idOpen for tracing database table update events

@@ -8,6 +8,8 @@
 namespace SPA {
 	namespace ClientSide {
 
+		using namespace NJA;
+
 		SPA::UINT64 CAsyncServiceHandler::SendRequest(Isolate* isolate, int args, Local<Value> *argv, unsigned short reqId, const unsigned char *pBuffer, unsigned int size) {
 			if (!argv) args = 0;
 			ResultHandler rh;
@@ -35,7 +37,7 @@ namespace SPA {
 					};
 				}
 				else if (!argv[0]->IsNullOrUndefined()) {
-					isolate->ThrowException(v8::Exception::TypeError(NJA::ToStr(isolate, "A callback expected for tracking returned results")));
+					ThrowException(isolate, "A callback expected for tracking returned results");
 					return 0;
 				}
 			}
@@ -60,7 +62,7 @@ namespace SPA {
 					};
 				}
 				else if (!argv[1]->IsNullOrUndefined()) {
-					isolate->ThrowException(Exception::TypeError(NJA::ToStr(isolate, "A callback expected for tracking socket closed or canceled events")));
+					ThrowException(isolate, "A callback expected for tracking socket closed or canceled events");
 					return 0;
 				}
 			}
@@ -85,7 +87,7 @@ namespace SPA {
 					};
 				}
 				else if (!argv[2]->IsNullOrUndefined()) {
-					isolate->ThrowException(Exception::TypeError(NJA::ToStr(isolate, "A callback expected for tracking exceptions from server")));
+					ThrowException(isolate, "A callback expected for tracking exceptions from server");
 					return 0;
 				}
 			}
@@ -113,22 +115,22 @@ namespace SPA {
 					unsigned int sid = processor->GetSvsID();
 					switch (sid) {
 					case SPA::Sqlite::sidSqlite:
-						njAsh = NJA::NJSqlite::New(isolate, (CSqlite*)processor, true);
+						njAsh = NJSqlite::New(isolate, (CSqlite*)processor, true);
 						break;
 					case SPA::Mysql::sidMysql:
-						njAsh = NJA::NJMysql::New(isolate, (CMysql*)processor, true);
+						njAsh = NJMysql::New(isolate, (CMysql*)processor, true);
 						break;
 					case SPA::Odbc::sidOdbc:
-						njAsh = NJA::NJOdbc::New(isolate, (COdbc*)processor, true);
+						njAsh = NJOdbc::New(isolate, (COdbc*)processor, true);
 						break;
 					case SPA::Queue::sidQueue:
-						njAsh = NJA::NJAsyncQueue::New(isolate, (NJA::CAQueue*)processor, true);
+						njAsh = NJAsyncQueue::New(isolate, (CAQueue*)processor, true);
 						break;
 					case SPA::SFile::sidFile:
-						njAsh = NJA::NJFile::New(isolate, (NJA::CSFile*)processor, true);
+						njAsh = NJFile::New(isolate, (CSFile*)processor, true);
 						break;
 					default:
-						njAsh = NJA::NJHandler::New(isolate, processor, true);
+						njAsh = NJHandler::New(isolate, processor, true);
 						break;
 					}
 					Local<Value> jsReqId = Uint32::New(isolate, cb.ReqId);
@@ -139,7 +141,7 @@ namespace SPA {
 					switch (cb.Type) {
 					case eResult:
 					{
-						Local<Object> q = NJA::NJQueue::New(isolate, cb.Buffer);
+						Local<Object> q = NJQueue::New(isolate, cb.Buffer);
 						if (!func.IsEmpty()) {
 							Local<Value> argv[] = { q, func, njAsh, jsReqId };
 							func->Call(isolate->GetCurrentContext(), Null(isolate), 4, argv);
@@ -167,9 +169,9 @@ namespace SPA {
 						*cb.Buffer >> errMsg >> errWhere >> errCode;
 						assert(!cb.Buffer->GetSize());
 						CScopeUQueue::Unlock(cb.Buffer);
-						Local<String> jsMsg = NJA::ToStr(isolate, errMsg.c_str());
-						Local<String> jsWhere = NJA::ToStr(isolate, errWhere.c_str());
-						Local<Value> jsCode = v8::Number::New(isolate, errCode);
+						Local<String> jsMsg = ToStr(isolate, errMsg.c_str());
+						Local<String> jsWhere = ToStr(isolate, errWhere.c_str());
+						Local<Value> jsCode = Number::New(isolate, errCode);
 						if (!func.IsEmpty()) {
 							Local<Value> argv[] = { jsMsg, jsCode, jsWhere, func, njAsh, jsReqId };
 							func->Call(isolate->GetCurrentContext(), Null(isolate), 6, argv);
@@ -186,18 +188,18 @@ namespace SPA {
 			isolate->RunMicrotasks();
 		}
 
-		Local<v8::Object> CreateDb(Isolate* isolate, CAsyncServiceHandler *ash) {
-			Local<v8::Object> njDB;
+		Local<Object> CreateDb(Isolate* isolate, CAsyncServiceHandler *ash) {
+			Local<Object> njDB;
 			unsigned int sid = ash->GetSvsID();
 			switch (sid) {
 			case SPA::Sqlite::sidSqlite:
-				njDB = NJA::NJSqlite::New(isolate, (CSqlite*)ash, true);
+				njDB = NJSqlite::New(isolate, (CSqlite*)ash, true);
 				break;
 			case SPA::Mysql::sidMysql:
-				njDB = NJA::NJMysql::New(isolate, (CMysql*)ash, true);
+				njDB = NJMysql::New(isolate, (CMysql*)ash, true);
 				break;
 			case SPA::Odbc::sidOdbc:
-				njDB = NJA::NJOdbc::New(isolate, (COdbc*)ash, true);
+				njDB = NJOdbc::New(isolate, (COdbc*)ash, true);
 				break;
 			default:
 				assert(false);
@@ -209,6 +211,9 @@ namespace SPA {
 }
 
 namespace NJA {
+	void ThrowException(Isolate* isolate, const char *str) {
+		isolate->ThrowException(Exception::TypeError(ToStr(isolate, str)));
+	}
 
 	Local<String> ToStr(Isolate* isolate, const char *str, size_t len) {
 		return String::NewFromUtf8(isolate, str, v8::NewStringType::kNormal, (int)len).ToLocalChecked();
@@ -220,7 +225,7 @@ namespace NJA {
 #else
 		SPA::CScopeUQueue sb;
 		SPA::Utilities::ToUTF16(str, len, *sb);
-		return String::NewFromTwoByte(isolate, (const uint16_t *)sb->GetBuffer(), v8::NewStringType::kNormal, (int)sb->GetSize()/sizeof(uint16_t)).ToLocalChecked();
+		return String::NewFromTwoByte(isolate, (const uint16_t *)sb->GetBuffer(), v8::NewStringType::kNormal, (int)sb->GetSize() / sizeof(uint16_t)).ToLocalChecked();
 #endif
 	}
 
@@ -776,4 +781,6 @@ namespace NJA {
 		}
 		return v8::Undefined(isolate);
 	}
+
+	std::atomic_bool g_bSelfSigned = false;
 }

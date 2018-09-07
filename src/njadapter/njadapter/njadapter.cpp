@@ -22,13 +22,13 @@ namespace NJA {
 		auto isolate = args.GetIsolate();
 		auto p0 = args[0];
 		if (!p0->IsString()) {
-			isolate->ThrowException(v8::Exception::TypeError(ToStr(isolate, "A CA store location string required")));
+			ThrowException(isolate, "A CA store location string required");
 			return;
 		}
 		String::Utf8Value str(p0);
 		unsigned int len = (unsigned int)str.length();
 		if (!len) {
-			isolate->ThrowException(v8::Exception::TypeError(ToStr(isolate, "A CA store location string cannot be empty")));
+			ThrowException(isolate, "A CA store location string cannot be empty");
 			return;
 		}
 		bool ok = ClientCoreLoader.SetVerifyLocation(*str);
@@ -45,13 +45,13 @@ namespace NJA {
 		auto isolate = args.GetIsolate();
 		auto p0 = args[0];
 		if (!p0->IsString()) {
-			isolate->ThrowException(v8::Exception::TypeError(ToStr(isolate, "A working directory string required")));
+			ThrowException(isolate, "A working directory string required");
 			return;
 		}
 		String::Utf8Value str(p0);
 		unsigned int len = (unsigned int)str.length();
 		if (!len) {
-			isolate->ThrowException(v8::Exception::TypeError(ToStr(isolate, "A working directory string cannot be empty")));
+			ThrowException(isolate, "A working directory string cannot be empty");
 			return;
 		}
 		ClientCoreLoader.SetClientWorkDirectory(*str);
@@ -61,11 +61,27 @@ namespace NJA {
 		auto isolate = args.GetIsolate();
 		auto p0 = args[0];
 		if (!p0->IsString()) {
-			isolate->ThrowException(v8::Exception::TypeError(ToStr(isolate, "A password string required")));
+			ThrowException(isolate, "A password string required");
 			return;
 		}
 		String::Utf8Value str(p0);
 		ClientCoreLoader.SetMessageQueuePassword(*str);
+	}
+
+	void EnableSelfSigned(const FunctionCallbackInfo<Value>& args) {
+		auto isolate = args.GetIsolate();
+		auto p0 = args[0];
+		if (p0->IsBoolean()) {
+			g_bSelfSigned = p0->BooleanValue();
+			args.GetReturnValue().Set(p0);
+		}
+		else if (p0->IsNullOrUndefined()) {
+			g_bSelfSigned = false;
+			args.GetReturnValue().Set(Boolean::New(isolate, false));
+		}
+		else {
+			ThrowException(isolate, "A boolean value required");
+		}
 	}
 
 	void InitAll(Local<Object> exports) {
@@ -75,6 +91,7 @@ namespace NJA {
 		NODE_SET_METHOD(exports, "getWorkingDir", GetWorkingDir);
 		NODE_SET_METHOD(exports, "setWorkingDir", SetWorkingDir);
 		NODE_SET_METHOD(exports, "setPassword", SetMessageQueuePassword);
+		NODE_SET_METHOD(exports, "EnableSelfSigned", EnableSelfSigned);
 		NJQueue::Init(exports);
 		NJSocketPool::Init(exports);
 		NJHandler::Init(exports);
