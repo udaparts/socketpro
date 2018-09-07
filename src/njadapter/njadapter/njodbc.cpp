@@ -16,7 +16,7 @@ namespace NJA {
 
 	bool NJOdbc::IsValid(Isolate* isolate) {
 		if (!m_odbc) {
-			isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Async ODBC handler disposed")));
+			isolate->ThrowException(Exception::TypeError(ToStr(isolate, "Async ODBC handler disposed")));
 			return false;
 		}
 		return NJHandlerRoot::IsValid(isolate);
@@ -27,13 +27,13 @@ namespace NJA {
 
 		// Prepare constructor template
 		Local<FunctionTemplate> tpl = FunctionTemplate::New(isolate, New);
-		tpl->SetClassName(String::NewFromUtf8(isolate, "COdbc"));
+		tpl->SetClassName(ToStr(isolate, "COdbc"));
 		tpl->InstanceTemplate()->SetInternalFieldCount(3);
 
 		NJHandlerRoot::Init(exports, tpl);
 
 		constructor.Reset(isolate, tpl->GetFunction());
-		exports->Set(String::NewFromUtf8(isolate, "COdbc"), tpl->GetFunction());
+		exports->Set(ToStr(isolate, "COdbc"), tpl->GetFunction());
 	}
 
 	Local<Object> NJOdbc::New(Isolate* isolate, COdbc *ash, bool setCb) {

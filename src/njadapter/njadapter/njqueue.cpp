@@ -47,7 +47,7 @@ namespace NJA {
 
 		// Prepare constructor template
 		Local<FunctionTemplate> tpl = FunctionTemplate::New(isolate, New);
-		tpl->SetClassName(String::NewFromUtf8(isolate, "CUQueue"));
+		tpl->SetClassName(ToStr(isolate, "CUQueue"));
 		tpl->InstanceTemplate()->SetInternalFieldCount(3);
 
 		// Prototype
@@ -104,7 +104,7 @@ namespace NJA {
 		NODE_SET_PROTOTYPE_METHOD(tpl, "Save", SaveByClass);
 
 		constructor.Reset(isolate, tpl->GetFunction());
-		exports->Set(String::NewFromUtf8(isolate, "CUQueue"), tpl->GetFunction());
+		exports->Set(ToStr(isolate, "CUQueue"), tpl->GetFunction());
 		m_tpl.Reset(isolate, tpl);
 	}
 
@@ -131,7 +131,7 @@ namespace NJA {
 		if (args.Length() && args[0]->IsUint32())
 			size = args[0]->Uint32Value();
 		else {
-			args.GetIsolate()->ThrowException(Exception::TypeError(String::NewFromUtf8(args.GetIsolate(), "Unsigned int expected")));
+			args.GetIsolate()->ThrowException(Exception::TypeError(ToStr(args.GetIsolate(), "Unsigned int expected")));
 			return;
 		}
 		unsigned int ret = 0;
@@ -155,7 +155,7 @@ namespace NJA {
 		if (args.Length() && args[0]->IsUint32())
 			size = args[0]->Uint32Value();
 		else {
-			args.GetIsolate()->ThrowException(Exception::TypeError(String::NewFromUtf8(args.GetIsolate(), "Unsigned int expected")));
+			args.GetIsolate()->ThrowException(Exception::TypeError(ToStr(args.GetIsolate(), "Unsigned int expected")));
 			return;
 		}
 		NJQueue* obj = ObjectWrap::Unwrap<NJQueue>(args.Holder());
@@ -172,7 +172,7 @@ namespace NJA {
 		else if (args[0]->IsNullOrUndefined())
 			obj->m_StrForDec = false;
 		else
-			args.GetIsolate()->ThrowException(Exception::TypeError(String::NewFromUtf8(args.GetIsolate(), "Wrong argument")));
+			args.GetIsolate()->ThrowException(Exception::TypeError(ToStr(args.GetIsolate(), "Wrong argument")));
 	}
 
 	void NJQueue::getSize(const FunctionCallbackInfo<Value>& args) {
@@ -287,7 +287,7 @@ namespace NJA {
 		Isolate* isolate = args.GetIsolate();
 		NJQueue* obj = ObjectWrap::Unwrap<NJQueue>(args.Holder());
 		if (obj->Load(isolate, b)) {
-			args.GetReturnValue().Set(String::NewFromUtf8(isolate, SPA::ToString(b).c_str()));
+			args.GetReturnValue().Set(ToStr(isolate, SPA::ToString(b).c_str()));
 		}
 	}
 
@@ -336,7 +336,7 @@ namespace NJA {
 		Isolate* isolate = args.GetIsolate();
 		NJQueue* obj = ObjectWrap::Unwrap<NJQueue>(args.Holder());
 		if (!obj->m_Buffer) {
-			isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "No buffer available")));
+			isolate->ThrowException(Exception::TypeError(ToStr(isolate, "No buffer available")));
 			return;
 		}
 		try {
@@ -352,7 +352,7 @@ namespace NJA {
 				}
 				else {
 					obj->m_Buffer->Pop(len);
-					isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Bad data for loading byte array")));
+					isolate->ThrowException(Exception::TypeError(ToStr(isolate, "Bad data for loading byte array")));
 				}
 			}
 			if (!obj->m_Buffer->GetSize())
@@ -360,7 +360,7 @@ namespace NJA {
 		}
 		catch (std::exception &err) {
 			obj->Release();
-			isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, err.what())));
+			isolate->ThrowException(Exception::TypeError(ToStr(isolate, err.what())));
 		}
 	}
 
@@ -368,7 +368,7 @@ namespace NJA {
 		Isolate* isolate = args.GetIsolate();
 		NJQueue* obj = ObjectWrap::Unwrap<NJQueue>(args.Holder());
 		if (!obj->m_Buffer) {
-			isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "No buffer available")));
+			isolate->ThrowException(Exception::TypeError(ToStr(isolate, "No buffer available")));
 			return;
 		}
 		try {
@@ -379,12 +379,12 @@ namespace NJA {
 			}
 			else {
 				if (len <= obj->m_Buffer->GetSize()) {
-					args.GetReturnValue().Set(String::NewFromUtf8(isolate, (const char*)obj->m_Buffer->GetBuffer(), String::kNormalString, (int)len));
+					args.GetReturnValue().Set(ToStr(isolate, (const char*)obj->m_Buffer->GetBuffer(), len));
 					obj->m_Buffer->Pop(len);
 				}
 				else {
 					obj->m_Buffer->Pop(len);
-					isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Bad data for loading ASCII string")));
+					isolate->ThrowException(Exception::TypeError(ToStr(isolate, "Bad data for loading ASCII string")));
 				}
 			}
 			if (!obj->m_Buffer->GetSize())
@@ -392,7 +392,7 @@ namespace NJA {
 		}
 		catch (std::exception &err) {
 			obj->Release();
-			isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, err.what())));
+			isolate->ThrowException(Exception::TypeError(ToStr(isolate, err.what())));
 		}
 	}
 
@@ -400,7 +400,7 @@ namespace NJA {
 		Isolate* isolate = args.GetIsolate();
 		NJQueue* obj = ObjectWrap::Unwrap<NJQueue>(args.Holder());
 		if (!obj->m_Buffer) {
-			isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "No buffer available")));
+			isolate->ThrowException(Exception::TypeError(ToStr(isolate, "No buffer available")));
 			return;
 		}
 		try {
@@ -411,12 +411,12 @@ namespace NJA {
 			}
 			else {
 				if (len <= obj->m_Buffer->GetSize()) {
-					args.GetReturnValue().Set(String::NewFromTwoByte(isolate, (const uint16_t*)obj->m_Buffer->GetBuffer(), String::kNormalString, (int)(len / sizeof(uint16_t))));
+					args.GetReturnValue().Set(ToStr(isolate, (const uint16_t*)obj->m_Buffer->GetBuffer(), (int)(len / sizeof(uint16_t))));
 					obj->m_Buffer->Pop(len);
 				}
 				else {
 					obj->m_Buffer->Pop(len);
-					isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Bad data for loading UNICODE string")));
+					isolate->ThrowException(Exception::TypeError(ToStr(isolate, "Bad data for loading UNICODE string")));
 				}
 			}
 			if (!obj->m_Buffer->GetSize())
@@ -424,7 +424,7 @@ namespace NJA {
 		}
 		catch (std::exception &err) {
 			obj->Release();
-			isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, err.what())));
+			isolate->ThrowException(Exception::TypeError(ToStr(isolate, err.what())));
 		}
 	}
 
@@ -436,7 +436,7 @@ namespace NJA {
 		}
 		else {
 			Isolate* isolate = args.GetIsolate();
-			isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Bad data type")));
+			isolate->ThrowException(Exception::TypeError(ToStr(isolate, "Bad data type")));
 		}
 	}
 
@@ -448,7 +448,7 @@ namespace NJA {
 		}
 		else {
 			Isolate* isolate = args.GetIsolate();
-			isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Bad data type")));
+			isolate->ThrowException(Exception::TypeError(ToStr(isolate, "Bad data type")));
 		}
 	}
 
@@ -460,7 +460,7 @@ namespace NJA {
 		}
 		else {
 			Isolate* isolate = args.GetIsolate();
-			isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Bad data type")));
+			isolate->ThrowException(Exception::TypeError(ToStr(isolate, "Bad data type")));
 		}
 	}
 
@@ -472,7 +472,7 @@ namespace NJA {
 		}
 		else {
 			Isolate* isolate = args.GetIsolate();
-			isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Bad data type")));
+			isolate->ThrowException(Exception::TypeError(ToStr(isolate, "Bad data type")));
 		}
 	}
 
@@ -484,7 +484,7 @@ namespace NJA {
 		}
 		else {
 			Isolate* isolate = args.GetIsolate();
-			isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Bad data type")));
+			isolate->ThrowException(Exception::TypeError(ToStr(isolate, "Bad data type")));
 		}
 	}
 
@@ -496,7 +496,7 @@ namespace NJA {
 		}
 		else {
 			Isolate* isolate = args.GetIsolate();
-			isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Bad data type")));
+			isolate->ThrowException(Exception::TypeError(ToStr(isolate, "Bad data type")));
 		}
 	}
 
@@ -508,7 +508,7 @@ namespace NJA {
 		}
 		else {
 			Isolate* isolate = args.GetIsolate();
-			isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Bad data type")));
+			isolate->ThrowException(Exception::TypeError(ToStr(isolate, "Bad data type")));
 		}
 	}
 
@@ -520,7 +520,7 @@ namespace NJA {
 		}
 		else {
 			Isolate* isolate = args.GetIsolate();
-			isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Bad data type")));
+			isolate->ThrowException(Exception::TypeError(ToStr(isolate, "Bad data type")));
 		}
 	}
 
@@ -532,7 +532,7 @@ namespace NJA {
 		}
 		else {
 			Isolate* isolate = args.GetIsolate();
-			isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Bad data type")));
+			isolate->ThrowException(Exception::TypeError(ToStr(isolate, "Bad data type")));
 		}
 	}
 
@@ -544,7 +544,7 @@ namespace NJA {
 		}
 		else {
 			Isolate* isolate = args.GetIsolate();
-			isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Bad data type")));
+			isolate->ThrowException(Exception::TypeError(ToStr(isolate, "Bad data type")));
 		}
 	}
 
@@ -556,7 +556,7 @@ namespace NJA {
 		}
 		else {
 			Isolate* isolate = args.GetIsolate();
-			isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Bad data type")));
+			isolate->ThrowException(Exception::TypeError(ToStr(isolate, "Bad data type")));
 		}
 	}
 
@@ -580,7 +580,7 @@ namespace NJA {
 			}
 		}
 		Isolate* isolate = args.GetIsolate();
-		isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Invalid Node.js Buffer object")));
+		isolate->ThrowException(Exception::TypeError(ToStr(isolate, "Invalid Node.js Buffer object")));
 	}
 
 	void NJQueue::SaveUUID(const FunctionCallbackInfo<Value>& args) {
@@ -599,7 +599,7 @@ namespace NJA {
 			}
 		}
 		Isolate* isolate = args.GetIsolate();
-		isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Invalid UUID Node.js Buffer object")));
+		isolate->ThrowException(Exception::TypeError(ToStr(isolate, "Invalid UUID Node.js Buffer object")));
 	}
 
 	void NJQueue::SaveAString(const FunctionCallbackInfo<Value>& args) {
@@ -620,7 +620,7 @@ namespace NJA {
 		}
 		else {
 			Isolate* isolate = args.GetIsolate();
-			isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Bad data type")));
+			isolate->ThrowException(Exception::TypeError(ToStr(isolate, "Bad data type")));
 		}
 	}
 
@@ -643,7 +643,7 @@ namespace NJA {
 		}
 		else {
 			Isolate* isolate = args.GetIsolate();
-			isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Bad data type")));
+			isolate->ThrowException(Exception::TypeError(ToStr(isolate, "Bad data type")));
 		}
 	}
 
@@ -663,26 +663,7 @@ namespace NJA {
 			}
 		}
 		Isolate* isolate = args.GetIsolate();
-		isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Bad data type")));
-	}
-
-	SPA::UINT64 NJQueue::ToDate(const Local<Value>& d) {
-		SPA::UINT64 millisSinceEpoch;
-		if (d->IsDate()) {
-			Date *dt = Date::Cast(*d);
-			millisSinceEpoch = (SPA::UINT64) dt->ValueOf();
-		}
-		else if (d->IsNumber()) {
-			millisSinceEpoch = (SPA::UINT64)(d->IntegerValue());
-		}
-		else {
-			return INVALID_NUMBER;
-		}
-		std::time_t t = millisSinceEpoch / 1000;
-		unsigned int ms = (unsigned int)(millisSinceEpoch % 1000);
-		std::tm *ltime = std::localtime(&t);
-		SPA::UDateTime dt(*ltime, ms * 1000);
-		return dt.time;
+		isolate->ThrowException(Exception::TypeError(ToStr(isolate, "Bad data type")));
 	}
 
 	void NJQueue::SaveDate(const FunctionCallbackInfo<Value>& args) {
@@ -693,19 +674,19 @@ namespace NJA {
 			auto p = args[0];
 			SPA::UINT64 d = ToDate(p);
 			if (d == INVALID_NUMBER) {
-				isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Bad data type")));
+				isolate->ThrowException(Exception::TypeError(ToStr(isolate, "Bad data type")));
 				return;
 			}
 			*obj->m_Buffer << d;
 			args.GetReturnValue().Set(args.Holder());
 			return;
 		}
-		isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "No date provided")));
+		isolate->ThrowException(Exception::TypeError(ToStr(isolate, "No date provided")));
 	}
 
 	unsigned int NJQueue::Load(Isolate* isolate, SPA::UDB::CDBVariant &vt) {
 		if (!m_Buffer) {
-			isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "No buffer available")));
+			isolate->ThrowException(Exception::TypeError(ToStr(isolate, "No buffer available")));
 			return 0;
 		}
 		try {
@@ -718,28 +699,16 @@ namespace NJA {
 		}
 		catch (std::exception &err) {
 			Release();
-			isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, err.what())));
+			isolate->ThrowException(Exception::TypeError(ToStr(isolate, err.what())));
 		}
 		return 0;
-	}
-
-	Local<Value> NJQueue::ToDate(Isolate* isolate, SPA::UINT64 datetime) {
-		SPA::UDateTime dt(datetime);
-		unsigned int us;
-		std::tm tm = dt.GetCTime(&us);
-		double time = (double)std::mktime(&tm);
-		time *= 1000;
-		time += (us / 1000.0);
-		if (tm.tm_isdst)
-			time -= 3600000;
-		return Date::New(isolate, time);
 	}
 
 	void NJQueue::LoadByClass(const FunctionCallbackInfo<Value>& args) {
 		Isolate* isolate = args.GetIsolate();
 		NJQueue* obj = ObjectWrap::Unwrap<NJQueue>(args.Holder());
 		if (!obj->m_Buffer) {
-			isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "No buffer available")));
+			isolate->ThrowException(Exception::TypeError(ToStr(isolate, "No buffer available")));
 		}
 		else if (args[0]->IsFunction()) {
 			Local<Function> cb = Local<Function>::Cast(args[0]);
@@ -750,243 +719,8 @@ namespace NJA {
 		}
 		else {
 			obj->Release();
-			isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "An function expected for class or struct de-serialization")));
+			isolate->ThrowException(Exception::TypeError(ToStr(isolate, "An function expected for class or struct de-serialization")));
 		}
-	}
-
-	Local<Value> NJQueue::From(Isolate* isolate, const VARIANT &vt, bool strForDec) {
-		VARTYPE type = vt.vt;
-		switch (type) {
-		case VT_NULL:
-		case VT_EMPTY:
-			return Null(isolate);
-		case VT_BOOL:
-			return Boolean::New(isolate, vt.boolVal ? true : false);
-		case VT_I1:
-		case VT_I2:
-		case VT_INT:
-		case VT_I4:
-			return Int32::New(isolate, vt.lVal);
-		case VT_I8:
-			return Number::New(isolate, (double)vt.llVal);
-		case VT_UI1:
-		case VT_UI2:
-		case VT_UINT:
-		case VT_UI4:
-			return Uint32::New(isolate, vt.ulVal);
-		case VT_UI8:
-			return Number::New(isolate, (double)vt.ullVal);
-		case VT_R4:
-			return Number::New(isolate, vt.fltVal);
-		case VT_R8:
-			return Number::New(isolate, vt.dblVal);
-		case VT_CY:
-		{
-			double d = (double)vt.llVal;
-			d /= 10000;
-			return Number::New(isolate, d);
-		}
-		case VT_DECIMAL:
-			if (strForDec)
-				return String::NewFromUtf8(isolate, SPA::ToString(vt.decVal).c_str());
-			return Number::New(isolate, ToDouble(vt.decVal));
-		case VT_DATE:
-			return ToDate(isolate, vt.ullVal);
-		case (VT_I1 | VT_ARRAY):
-		{
-			const char *str = nullptr;
-			unsigned int len = vt.parray->rgsabound->cElements;
-			::SafeArrayAccessData(vt.parray, (void**)&str);
-			auto s = String::NewFromUtf8(isolate, str, String::kNormalString, (int)len);
-			::SafeArrayUnaccessData(vt.parray);
-			return s;
-		}
-		case VT_CLSID:
-		case (VT_UI1 | VT_ARRAY):
-		{
-			char *str = nullptr;
-			unsigned int len = vt.parray->rgsabound->cElements;
-			::SafeArrayAccessData(vt.parray, (void**)&str);
-			auto bytes = node::Buffer::New(isolate, str, len).ToLocalChecked();
-			::SafeArrayUnaccessData(vt.parray);
-			return bytes;
-		}
-		case VT_BSTR:
-			assert(false);
-			break;
-		default:
-		{
-			bool is_array = ((type & VT_ARRAY) == VT_ARRAY);
-			if (is_array) {
-				void *pvt;
-				bool ok = true;
-				unsigned int count = vt.parray->rgsabound->cElements;
-				::SafeArrayAccessData(vt.parray, &pvt);
-				type = (type & (~VT_ARRAY));
-				switch (type) {
-				case VT_BOOL:
-				case VT_BSTR:
-				case VT_DATE:
-				case VT_I8:
-				case VT_UI8:
-				case VT_CY:
-				case VT_DECIMAL:
-				case VT_VARIANT:
-				{
-					Local<Array> v = Array::New(isolate);
-					for (unsigned int n = 0; n < count; ++n) {
-						switch (type) {
-						case VT_BOOL:
-						{
-							VARIANT_BOOL *p = (VARIANT_BOOL *)pvt;
-							v->Set(n, Boolean::New(isolate, (p[n] == VARIANT_FALSE) ? false : true));
-						}
-						break;
-						case VT_UI8:
-						{
-							SPA::UINT64 *p = (SPA::UINT64 *)pvt;
-							v->Set(n, Number::New(isolate, (double)(p[n])));
-						}
-						break;
-						case VT_I8:
-						{
-							SPA::INT64 *p = (SPA::INT64 *)pvt;
-							v->Set(n, Number::New(isolate, (double)(p[n])));
-						}
-						break;
-						case VT_CY:
-						{
-							SPA::INT64 *p = (SPA::INT64 *)pvt;
-							v->Set(n, Number::New(isolate, ((double)p[n]) / 10000));
-						}
-						break;
-						case VT_DECIMAL:
-						{
-							DECIMAL *p = (DECIMAL *)pvt;
-							if (strForDec)
-								v->Set(n, String::NewFromUtf8(isolate, SPA::ToString(p[n]).c_str()));
-							else
-								v->Set(n, Number::New(isolate, SPA::ToDouble(p[n])));
-						}
-						break;
-						case VT_BSTR:
-						{
-							BSTR *p = (BSTR *)pvt;
-							if (p[n]) {
-#ifdef WIN32_64
-								auto s = String::NewFromTwoByte(isolate, (const uint16_t*)p[n], String::kNormalString, (int)::SysStringLen(p[n]));
-#else
-								std::string str = SPA::Utilities::ToUTF8(p[n]);
-								auto s = String::NewFromUtf8(isolate, str.c_str()));
-#endif
-
-								v->Set(n, s);
-							}
-							else
-								v->Set(n, Null(isolate));
-						}
-						break;
-						case VT_DATE:
-						{
-							SPA::UINT64 *p = (SPA::UINT64 *)pvt;
-							v->Set(n, ToDate(isolate, p[n]));
-						}
-						break;
-						case VT_VARIANT:
-						{
-							Local<Array> v = Array::New(isolate);
-							for (unsigned int n = 0; n < count; ++n) {
-								VARIANT *p = (VARIANT *)pvt;
-								v->Set(n, From(isolate, p[n], strForDec));
-							}
-							::SafeArrayUnaccessData(vt.parray);
-							return v;
-						}
-						default:
-							assert(false); //shouldn't come here
-							break;
-						}
-					}
-					::SafeArrayUnaccessData(vt.parray);
-					return v;
-				}
-				case VT_I4:
-				case VT_INT:
-				{
-					Local<v8::ArrayBuffer> buf = v8::ArrayBuffer::New(isolate, count * sizeof(int));
-					Local<v8::Int32Array> v = v8::Int32Array::New(buf, 0, count);
-					Local<Value> p = v;
-					char *bytes = node::Buffer::Data(p);
-					memcpy(bytes, pvt, count * sizeof(int));
-					::SafeArrayUnaccessData(vt.parray);
-					return v;
-				}
-				break;
-				case VT_UI4:
-				case VT_UINT:
-				{
-					Local<v8::ArrayBuffer> buf = v8::ArrayBuffer::New(isolate, count * sizeof(unsigned int));
-					Local<v8::Uint32Array> v = v8::Uint32Array::New(buf, 0, count);
-					Local<Value> p = v;
-					char *bytes = node::Buffer::Data(p);
-					memcpy(bytes, pvt, count * sizeof(unsigned int));
-					::SafeArrayUnaccessData(vt.parray);
-					return v;
-				}
-				break;
-				case VT_I2:
-				{
-					Local<v8::ArrayBuffer> buf = v8::ArrayBuffer::New(isolate, count * sizeof(short));
-					Local<v8::Int16Array> v = v8::Int16Array::New(buf, 0, count);
-					Local<Value> p = v;
-					char *bytes = node::Buffer::Data(p);
-					memcpy(bytes, pvt, count * sizeof(short));
-					::SafeArrayUnaccessData(vt.parray);
-					return v;
-				}
-				break;
-				case VT_UI2:
-				{
-					Local<v8::ArrayBuffer> buf = v8::ArrayBuffer::New(isolate, count * sizeof(unsigned short));
-					Local<v8::Uint16Array> v = v8::Uint16Array::New(buf, 0, count);
-					Local<Value> p = v;
-					char *bytes = node::Buffer::Data(p);
-					memcpy(bytes, pvt, count * sizeof(unsigned short));
-					::SafeArrayUnaccessData(vt.parray);
-					return v;
-				}
-				break;
-				case VT_R4:
-				{
-					Local<v8::ArrayBuffer> buf = v8::ArrayBuffer::New(isolate, count * sizeof(float));
-					Local<v8::Float32Array> v = v8::Float32Array::New(buf, 0, count);
-					Local<Value> p = v;
-					char *bytes = node::Buffer::Data(p);
-					memcpy(bytes, pvt, count * sizeof(float));
-					::SafeArrayUnaccessData(vt.parray);
-					return v;
-				}
-				break;
-				case VT_R8:
-				{
-					Local<v8::ArrayBuffer> buf = v8::ArrayBuffer::New(isolate, count * sizeof(double));
-					Local<v8::Float64Array> v = v8::Float64Array::New(buf, 0, count);
-					Local<Value> p = v;
-					char *bytes = node::Buffer::Data(p);
-					memcpy(bytes, pvt, count * sizeof(double));
-					::SafeArrayUnaccessData(vt.parray);
-					return v;
-				}
-				break;
-				default:
-					break;
-				}
-				::SafeArrayUnaccessData(vt.parray);
-			}
-		}
-		break;
-		}
-		return v8::Undefined(isolate);
 	}
 
 	void NJQueue::LoadObject(const FunctionCallbackInfo<Value>& args) {
@@ -1004,7 +738,7 @@ namespace NJA {
 		if (obj->Load(isolate, vt)) {
 			auto v = From(isolate, vt, obj->m_StrForDec);
 			if (v->IsUndefined())
-				isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Unsupported object data type")));
+				isolate->ThrowException(Exception::TypeError(ToStr(isolate, "Unsupported object data type")));
 			else
 				args.GetReturnValue().Set(v);
 		}
@@ -1022,287 +756,14 @@ namespace NJA {
 			args.GetReturnValue().Set(args.Holder());
 		}
 		else {
-			isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "A callback function expected")));
+			isolate->ThrowException(Exception::TypeError(ToStr(isolate, "A callback function expected")));
 		}
-	}
-
-	bool NJQueue::From(const Local<Value>& v, const std::string &id, CComVariant &vt) {
-		vt.Clear();
-		if (v->IsNullOrUndefined())
-			vt.vt = VT_NULL;
-		else if (v->IsDate()) {
-			vt.vt = VT_DATE;
-			vt.ullVal = ToDate(v);
-		}
-		else if (v->IsBoolean()) {
-			vt.vt = VT_BOOL;
-			vt.boolVal = v->BooleanValue() ? VARIANT_TRUE : VARIANT_FALSE;
-		}
-		else if (v->IsString()) {
-			if (id == "a" || id == "ascii") {
-				char *p;
-				vt.vt = (VT_ARRAY | VT_I1);
-				String::Utf8Value str(v);
-				unsigned int len = (unsigned int)str.length();
-				SAFEARRAYBOUND sab[] = { len, 0 };
-				vt.parray = SafeArrayCreate(VT_I1, 1, sab);
-				SafeArrayAccessData(vt.parray, (void**)&p);
-				memcpy(p, *str, len);
-				SafeArrayUnaccessData(vt.parray);
-			}
-			else if (id == "dec" || id == "decimal") {
-				String::Utf8Value str(v);
-				vt.vt = VT_DECIMAL;
-				SPA::ParseDec(*str, vt.decVal);
-			}
-			else {
-				vt.vt = VT_BSTR;
-				String::Value str(v);
-#ifdef WIN32_64
-				vt.bstrVal = SysAllocString((const wchar_t*)*str);
-#else
-				vt.bstrVal = SPA::Utilities::SysAllocString(*str, (unsigned int)str.length());
-#endif
-			}
-		}
-		else if (v->IsNumber()) {
-			if (id == "f" || id == "float") {
-				vt.vt = VT_R4;
-				vt.fltVal = (float)v->NumberValue();
-			}
-			else if (id == "d" || id == "double") {
-				vt.vt = VT_R8;
-				vt.dblVal = v->NumberValue();
-			}
-			else if (id == "i" || id == "int") {
-				vt.vt = VT_I4;
-				vt.lVal = v->Int32Value();
-			}
-			else if (id == "ui" || id == "uint") {
-				vt.vt = VT_UI4;
-				vt.ulVal = v->Uint32Value();
-			}
-			else if (id == "l" || id == "long") {
-				vt.vt = VT_I8;
-				vt.llVal = (SPA::INT64)v->NumberValue();
-			}
-			else if (id == "ul" || id == "ulong") {
-				vt.vt = VT_UI8;
-				vt.ullVal = (SPA::UINT64)v->NumberValue();
-			}
-			else if (id == "s" || id == "short") {
-				vt.vt = VT_I2;
-				vt.iVal = (short)v->Int32Value();
-			}
-			else if (id == "us" || id == "ushort") {
-				vt.vt = VT_UI2;
-				vt.iVal = (unsigned short)v->Uint32Value();
-			}
-			else if (id == "dec" || id == "decimal") {
-				vt.vt = VT_DECIMAL;
-				String::Utf8Value str(v);
-				ParseDec(*str, vt.decVal);
-			}
-			else if (id == "c" || id == "char") {
-				vt.vt = VT_I1;
-				vt.cVal = (char)v->Int32Value();
-			}
-			else if (id == "b" || id == "byte") {
-				vt.vt = VT_UI1;
-				vt.bVal = (unsigned char)v->Uint32Value();
-			}
-			else if (id == "date") {
-				vt.vt = VT_DATE;
-				vt.ullVal = (SPA::UINT64)v->NumberValue();
-			}
-			else {
-				assert(false);
-				return false;
-			}
-		}
-		else if (v->IsInt8Array()) {
-			char *p;
-			vt.vt = (VT_ARRAY | VT_I1);
-			char *bytes = node::Buffer::Data(v);
-			unsigned int len = (unsigned int)node::Buffer::Length(v);
-			SAFEARRAYBOUND sab[] = { len, 0 };
-			vt.parray = SafeArrayCreate(VT_I1, 1, sab);
-			SafeArrayAccessData(vt.parray, (void**)&p);
-			memcpy(p, bytes, len);
-			SafeArrayUnaccessData(vt.parray);
-		}
-		else if (v->IsInt16Array()) {
-			short *p;
-			vt.vt = (VT_ARRAY | VT_I2);
-			char *bytes = node::Buffer::Data(v);
-			Local<v8::Int16Array> vInt = Local<v8::Int16Array>::Cast(v);
-			unsigned int len = (unsigned int)vInt->Length();
-			SAFEARRAYBOUND sab[] = { len, 0 };
-			vt.parray = SafeArrayCreate(VT_I2, 1, sab);
-			SafeArrayAccessData(vt.parray, (void**)&p);
-			memcpy(p, bytes, len * sizeof(short));
-			SafeArrayUnaccessData(vt.parray);
-		}
-		else if (v->IsUint16Array()) {
-			unsigned short *p;
-			vt.vt = (VT_ARRAY | VT_UI2);
-			char *bytes = node::Buffer::Data(v);
-			Local<v8::Uint16Array> vInt = Local<v8::Uint16Array>::Cast(v);
-			unsigned int len = (unsigned int)vInt->Length();
-			SAFEARRAYBOUND sab[] = { len, 0 };
-			vt.parray = SafeArrayCreate(VT_UI2, 1, sab);
-			SafeArrayAccessData(vt.parray, (void**)&p);
-			memcpy(p, bytes, len * sizeof(unsigned short));
-			SafeArrayUnaccessData(vt.parray);
-		}
-		else if (v->IsInt32Array()) {
-			int *p;
-			vt.vt = (VT_ARRAY | VT_I4);
-			char *bytes = node::Buffer::Data(v);
-			Local<v8::Int32Array> vInt = Local<v8::Int32Array>::Cast(v);
-			unsigned int len = (unsigned int)vInt->Length();
-			SAFEARRAYBOUND sab[] = { len, 0 };
-			vt.parray = SafeArrayCreate(VT_I4, 1, sab);
-			SafeArrayAccessData(vt.parray, (void**)&p);
-			memcpy(p, bytes, len * sizeof(int));
-			SafeArrayUnaccessData(vt.parray);
-		}
-		else if (v->IsUint32Array()) {
-			unsigned int *p;
-			vt = (VT_ARRAY | VT_UI4);
-			char *bytes = node::Buffer::Data(v);
-			Local<v8::Uint32Array> vInt = Local<v8::Uint32Array>::Cast(v);
-			unsigned int len = (unsigned int)vInt->Length();
-			SAFEARRAYBOUND sab[] = { len, 0 };
-			vt.parray = SafeArrayCreate(VT_UI4, 1, sab);
-			SafeArrayAccessData(vt.parray, (void**)&p);
-			memcpy(p, bytes, len * sizeof(unsigned int));
-			SafeArrayUnaccessData(vt.parray);
-		}
-		else if (v->IsFloat32Array()) {
-			float *p;
-			vt.vt = (VT_ARRAY | VT_R4);
-			char *bytes = node::Buffer::Data(v);
-			Local<v8::Float32Array> vInt = Local<v8::Float32Array>::Cast(v);
-			unsigned int len = (unsigned int)vInt->Length();
-			SAFEARRAYBOUND sab[] = { len, 0 };
-			vt.parray = SafeArrayCreate(VT_R4, 1, sab);
-			SafeArrayAccessData(vt.parray, (void**)&p);
-			memcpy(p, bytes, len * sizeof(float));
-			SafeArrayUnaccessData(vt.parray);
-		}
-		else if (v->IsFloat64Array()) {
-			double *p;
-			vt.vt = (VT_ARRAY | VT_R8);
-			char *bytes = node::Buffer::Data(v);
-			Local<v8::Float64Array> vInt = Local<v8::Float64Array>::Cast(v);
-			unsigned int len = (unsigned int)vInt->Length();
-			SAFEARRAYBOUND sab[] = { len, 0 };
-			vt.parray = SafeArrayCreate(VT_R8, 1, sab);
-			SafeArrayAccessData(vt.parray, (void**)&p);
-			memcpy(p, bytes, len * sizeof(double));
-			SafeArrayUnaccessData(vt.parray);
-		}
-		else if (node::Buffer::HasInstance(v)) {
-			char *p;
-			char *bytes = node::Buffer::Data(v);
-			unsigned int len = (unsigned int)node::Buffer::Length(v);
-			vt.vt = (VT_ARRAY | VT_UI1);
-			SAFEARRAYBOUND sab[] = { len, 0 };
-			vt.parray = SafeArrayCreate(VT_UI1, 1, sab);
-			SafeArrayAccessData(vt.parray, (void**)&p);
-			memcpy(p, bytes, len);
-			SafeArrayUnaccessData(vt.parray);
-			if (len == sizeof(GUID) && (id == "u" || id == "uuid")) {
-				vt.vt = VT_CLSID;
-			}
-		}
-		else if (v->IsArray()) {
-			tagDataType dt = dtUnknown;
-			Local<Array> jsArr = Local<Array>::Cast(v);
-			unsigned int count = jsArr->Length();
-			for (unsigned int n = 0; n < count; ++n) {
-				auto d = jsArr->Get(n);
-				if (d->IsBoolean()) {
-					if (dt && dt != dtBool) {
-						return false;
-					}
-					else
-						dt = dtBool;
-				}
-				else if (d->IsDate()) {
-					if (dt && dt != dtDate) {
-						return false;
-					}
-					else
-						dt = dtDate;
-				}
-				else if (d->IsString()) {
-					if (dt && dt != dtString) {
-						return false;
-					}
-					else
-						dt = dtString;
-				}
-				else {
-					return false;
-				}
-			}
-			VARTYPE vtType;
-			switch (dt) {
-			case dtString:
-				vtType = VT_BSTR;
-				break;
-			case dtBool:
-				vtType = VT_BOOL;
-				break;
-			case dtDate:
-				vtType = VT_DATE;
-				break;
-			default:
-				assert(false); //shouldn't come here
-				break;
-			}
-			void *p;
-			vt.vt = (VT_ARRAY | vtType);
-			SAFEARRAYBOUND sab[] = { count, 0 };
-			vt.parray = SafeArrayCreate(vtType, 1, sab);
-			SafeArrayAccessData(vt.parray, &p);
-			for (unsigned int n = 0; n < count; ++n) {
-				auto d = jsArr->Get(n);
-				if (d->IsBoolean()) {
-					VARIANT_BOOL *pb = (VARIANT_BOOL *)p;
-					pb[n] = d->BooleanValue() ? VARIANT_TRUE : VARIANT_FALSE;
-				}
-				else if (d->IsDate()) {
-					SPA::UINT64 *pd = (SPA::UINT64*)p;
-					pd[n] = ToDate(d);
-				}
-				else if (d->IsString()) {
-					BSTR *pbstr = (BSTR*)p;
-					String::Value str(d);
-#ifdef WIN32_64
-					pbstr[n] = ::SysAllocString((const wchar_t *)*str);
-#else
-					pbstr[n] = SPA::Utilities::SysAllocString(*str, (unsigned int)str.length());
-#endif
-				}
-				else {
-					assert(false);
-				}
-			}
-			SafeArrayUnaccessData(vt.parray);
-		}
-		else {
-			return false; //not supported
-		}
-		return true;
 	}
 
 	void NJQueue::SaveObject(const FunctionCallbackInfo<Value>& args) {
 		Isolate* isolate = args.GetIsolate();
 		if (!args.Length()) {
-			isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "An input data expected")));
+			isolate->ThrowException(Exception::TypeError(ToStr(isolate, "An input data expected")));
 			return;
 		}
 		VARTYPE vt;
@@ -1426,11 +887,11 @@ namespace NJA {
 					SaveDate(args);
 				}
 				else {
-					isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Unknown number type")));
+					isolate->ThrowException(Exception::TypeError(ToStr(isolate, "Unknown number type")));
 				}
 			}
 			else {
-				isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Unknown number type")));
+				isolate->ThrowException(Exception::TypeError(ToStr(isolate, "Unknown number type")));
 			}
 		}
 		else if (p0->IsInt8Array()) {
@@ -1526,7 +987,7 @@ namespace NJA {
 				auto d = jsArr->Get(n);
 				if (d->IsBoolean()) {
 					if (dt && dt != dtBool) {
-						isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Unsupported data array type")));
+						isolate->ThrowException(Exception::TypeError(ToStr(isolate, "Unsupported data array type")));
 						return;
 					}
 					else
@@ -1536,7 +997,7 @@ namespace NJA {
 				}
 				else if (d->IsDate()) {
 					if (dt && dt != dtDate) {
-						isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Unsupported data array type")));
+						isolate->ThrowException(Exception::TypeError(ToStr(isolate, "Unsupported data array type")));
 						return;
 					}
 					else
@@ -1546,7 +1007,7 @@ namespace NJA {
 				}
 				else if (d->IsString()) {
 					if (dt && dt != dtString) {
-						isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Unsupported data array type")));
+						isolate->ThrowException(Exception::TypeError(ToStr(isolate, "Unsupported data array type")));
 						return;
 					}
 					else
@@ -1558,7 +1019,7 @@ namespace NJA {
 					sb->Push((const unsigned char*)(*str), len);
 				}
 				else {
-					isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Unsupported data array type")));
+					isolate->ThrowException(Exception::TypeError(ToStr(isolate, "Unsupported data array type")));
 					return;
 				}
 			}
@@ -1582,7 +1043,7 @@ namespace NJA {
 			args.GetReturnValue().Set(args.Holder());
 		}
 		else {
-			isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Unsupported data type")));
+			isolate->ThrowException(Exception::TypeError(ToStr(isolate, "Unsupported data type")));
 		}
 	}
 

@@ -41,7 +41,7 @@ namespace NJA {
 				};
 			}
 			else if (!argv[0]->IsNullOrUndefined()) {
-				isolate->ThrowException(v8::Exception::TypeError(v8::String::NewFromUtf8(isolate, "A callback expected for file exchange end result")));
+				isolate->ThrowException(v8::Exception::TypeError(ToStr(isolate, "A callback expected for file exchange end result")));
 				return 0;
 			}
 		}
@@ -67,7 +67,7 @@ namespace NJA {
 				};
 			}
 			else if (!argv[1]->IsNullOrUndefined()) {
-				isolate->ThrowException(v8::Exception::TypeError(v8::String::NewFromUtf8(isolate, "A callback expected for monitoring file transferring progress")));
+				isolate->ThrowException(v8::Exception::TypeError(ToStr(isolate, "A callback expected for monitoring file transferring progress")));
 				return 0;
 			}
 		}
@@ -93,7 +93,7 @@ namespace NJA {
 				};
 			}
 			else if (!argv[2]->IsNullOrUndefined()) {
-				isolate->ThrowException(v8::Exception::TypeError(v8::String::NewFromUtf8(isolate, "A callback expected for tracking socket closed or canceled events")));
+				isolate->ThrowException(v8::Exception::TypeError(ToStr(isolate, "A callback expected for tracking socket closed or canceled events")));
 				return 0;
 			}
 		}
@@ -125,8 +125,7 @@ namespace NJA {
 					std::wstring errMsg;
 					*cb.Buffer >> res >> errMsg;
 					Local<Value> jsRes = v8::Int32::New(isolate, res);
-					std::string strMsg = Utilities::ToUTF8(errMsg.c_str(), errMsg.size());
-					Local<v8::String> jsMsg = String::NewFromUtf8(isolate, strMsg.c_str());
+					Local<v8::String> jsMsg = ToStr(isolate, errMsg.c_str());
 					Local<Value> argv[] = { jsMsg, jsRes, download, njFile };
 					func->Call(isolate->GetCurrentContext(), Null(isolate), 4, argv);
 				}

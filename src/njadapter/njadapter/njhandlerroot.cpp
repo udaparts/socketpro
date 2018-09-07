@@ -25,7 +25,7 @@ namespace NJA {
 
 	bool NJHandlerRoot::IsValid(Isolate* isolate) {
 		if (!m_ash) {
-			isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Async handler disposed")));
+			isolate->ThrowException(Exception::TypeError(ToStr(isolate, "Async handler disposed")));
 			return false;
 		}
 		return true;
@@ -92,7 +92,7 @@ namespace NJA {
 			if (p->IsBoolean())
 				server_commit = p->BooleanValue();
 			else if (!p->IsNullOrUndefined()) {
-				isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "A boolean expected")));
+				isolate->ThrowException(Exception::TypeError(ToStr(isolate, "A boolean expected")));
 				return;
 			}
 			bool ok = obj->m_ash->CommitBatching(server_commit);
@@ -142,12 +142,12 @@ namespace NJA {
 		if (obj->IsValid(isolate)) {
 			auto p0 = args[0];
 			if (!p0->IsUint32()) {
-				isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "A request id expected for the 1st input")));
+				isolate->ThrowException(Exception::TypeError(ToStr(isolate, "A request id expected for the 1st input")));
 				return;
 			}
 			unsigned int reqId = p0->Uint32Value();
 			if (reqId > 0xffff || reqId <= SPA::tagBaseRequestID::idReservedTwo) {
-				isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "An unsigned short request id expected")));
+				isolate->ThrowException(Exception::TypeError(ToStr(isolate, "An unsigned short request id expected")));
 				return;
 			}
 			NJQueue *njq = nullptr;

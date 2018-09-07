@@ -16,7 +16,7 @@ namespace NJA {
 
 	bool NJMysql::IsValid(Isolate* isolate) {
 		if (!m_mysql) {
-			isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Async MySQL handler disposed")));
+			isolate->ThrowException(Exception::TypeError(ToStr(isolate, "Async MySQL handler disposed")));
 			return false;
 		}
 		return NJHandlerRoot::IsValid(isolate);
@@ -27,13 +27,13 @@ namespace NJA {
 
 		// Prepare constructor template
 		Local<FunctionTemplate> tpl = FunctionTemplate::New(isolate, New);
-		tpl->SetClassName(String::NewFromUtf8(isolate, "CMysql"));
+		tpl->SetClassName(ToStr(isolate, "CMysql"));
 		tpl->InstanceTemplate()->SetInternalFieldCount(3);
 
 		NJHandlerRoot::Init(exports, tpl);
 
 		constructor.Reset(isolate, tpl->GetFunction());
-		exports->Set(String::NewFromUtf8(isolate, "CMysql"), tpl->GetFunction());
+		exports->Set(ToStr(isolate, "CMysql"), tpl->GetFunction());
 	}
 
 	Local<Object> NJMysql::New(Isolate* isolate, CMysql *ash, bool setCb) {

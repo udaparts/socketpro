@@ -54,7 +54,7 @@ namespace NJA {
 
 	bool NJSocketPool::IsValid(Isolate* isolate) {
 		if (!Handler) {
-			isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "SocketPool object already disposed")));
+			isolate->ThrowException(Exception::TypeError(ToStr(isolate, "SocketPool object already disposed")));
 			return false;
 		}
 		return true;
@@ -94,7 +94,7 @@ namespace NJA {
 
 		// Prepare constructor template
 		Local<FunctionTemplate> tpl = FunctionTemplate::New(isolate, New);
-		tpl->SetClassName(String::NewFromUtf8(isolate, "CSocketPool"));
+		tpl->SetClassName(ToStr(isolate, "CSocketPool"));
 		tpl->InstanceTemplate()->SetInternalFieldCount(15);
 
 		//Prototype
@@ -130,7 +130,7 @@ namespace NJA {
 		NODE_SET_PROTOTYPE_METHOD(tpl, "setAllProcessed", setAllProcessed);
 
 		constructor.Reset(isolate, tpl->GetFunction());
-		exports->Set(String::NewFromUtf8(isolate, "CSocketPool"), tpl->GetFunction());
+		exports->Set(ToStr(isolate, "CSocketPool"), tpl->GetFunction());
 	}
 
 	void NJSocketPool::New(const FunctionCallbackInfo<Value>& args) {
@@ -141,11 +141,11 @@ namespace NJA {
 				svsId = args[0]->Uint32Value();
 			}
 			if (svsId < SPA::sidChat || (svsId > SPA::sidODBC && svsId <= SPA::sidReserved)) {
-				isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "A valid unsigned int required for service id")));
+				isolate->ThrowException(Exception::TypeError(ToStr(isolate, "A valid unsigned int required for service id")));
 				return;
 			}
 			if (svsId == sidHTTP) {
-				isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "No support to HTTP/websocket at client side")));
+				isolate->ThrowException(Exception::TypeError(ToStr(isolate, "No support to HTTP/websocket at client side")));
 				return;
 			}
 			std::wstring db;
@@ -158,10 +158,10 @@ namespace NJA {
 			if (db.size()) {
 				switch (svsId) {
 				case sidFile:
-					isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "File streaming doesn't support master-slave pool")));
+					isolate->ThrowException(Exception::TypeError(ToStr(isolate, "File streaming doesn't support master-slave pool")));
 					return;
 				case sidChat:
-					isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Persistent queue doesn't support master-slave pool")));
+					isolate->ThrowException(Exception::TypeError(ToStr(isolate, "Persistent queue doesn't support master-slave pool")));
 					return;
 				default:
 					break;
@@ -312,9 +312,8 @@ namespace NJA {
 							std::string errWhere;
 							unsigned int errCode = 0;
 							*se.QData >> errMsg >> errWhere >> errCode;
-							std::string strMsg = Utilities::ToUTF8(errMsg.c_str(), errMsg.size());
-							Local<String> jsMsg = String::NewFromUtf8(isolate, strMsg.c_str());
-							Local<String> jsWhere = String::NewFromUtf8(isolate, errWhere.c_str());
+							Local<String> jsMsg = ToStr(isolate, errMsg.c_str());
+							Local<String> jsWhere = ToStr(isolate, errWhere.c_str());
 							Local<Value> jsCode = Number::New(isolate, errCode);
 							Local<Value> argv[5] = { njAsh, jsReqId, jsMsg, jsCode, jsWhere };
 							Local<Function> cb = Local<Function>::New(isolate, obj->m_se);
@@ -477,7 +476,7 @@ namespace NJA {
 	void NJSocketPool::getErrMsg(const FunctionCallbackInfo<Value>& args) {
 		Isolate* isolate = args.GetIsolate();
 		NJSocketPool* obj = ObjectWrap::Unwrap<NJSocketPool>(args.Holder());
-		args.GetReturnValue().Set(String::NewFromUtf8(isolate, obj->m_errMsg.c_str()));
+		args.GetReturnValue().Set(ToStr(isolate, obj->m_errMsg.c_str()));
 	}
 
 	void NJSocketPool::getQueueAutoMerge(const FunctionCallbackInfo<Value>& args) {
@@ -499,7 +498,7 @@ namespace NJA {
 				obj->Handler->SetQueueAutoMerge(b);
 			}
 			else {
-				isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "A boolean value expected")));
+				isolate->ThrowException(Exception::TypeError(ToStr(isolate, "A boolean value expected")));
 			}
 		}
 	}
@@ -509,7 +508,7 @@ namespace NJA {
 		NJSocketPool* obj = ObjectWrap::Unwrap<NJSocketPool>(args.Holder());
 		if (obj->IsValid(isolate)) {
 			std::string queueName = obj->Handler->GetQueueName();
-			args.GetReturnValue().Set(String::NewFromUtf8(isolate, queueName.c_str()));
+			args.GetReturnValue().Set(ToStr(isolate, queueName.c_str()));
 		}
 	}
 
@@ -523,7 +522,7 @@ namespace NJA {
 				obj->Handler->SetQueueName(*str);
 			}
 			else {
-				isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "A boolean value expected")));
+				isolate->ThrowException(Exception::TypeError(ToStr(isolate, "A boolean value expected")));
 			}
 		}
 	}
@@ -778,7 +777,7 @@ namespace NJA {
 				}
 			}
 			else {
-				isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "A string, undefined or null expected")));
+				isolate->ThrowException(Exception::TypeError(ToStr(isolate, "A string, undefined or null expected")));
 				return;
 			}
 		}
@@ -794,70 +793,70 @@ namespace NJA {
 	bool NJSocketPool::To(Isolate* isolate, const Local<Object> &obj, SPA::ClientSide::CConnectionContext &cc) {
 		Local<Array> props = obj->GetPropertyNames();
 		if (props->Length() != 8) {
-			isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Invalid connection context")));
+			isolate->ThrowException(Exception::TypeError(ToStr(isolate, "Invalid connection context")));
 			return false;
 		}
 
-		auto v = obj->Get(String::NewFromUtf8(isolate, "Host"));
+		auto v = obj->Get(ToStr(isolate, "Host"));
 		if (!v->IsString()) {
-			isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Invalid host string")));
+			isolate->ThrowException(Exception::TypeError(ToStr(isolate, "Invalid host string")));
 			return false;
 		}
 		String::Utf8Value host(v);
 		cc.Host = *host;
 
-		v = obj->Get(String::NewFromUtf8(isolate, "Port"));
+		v = obj->Get(ToStr(isolate, "Port"));
 		if (!v->IsUint32()) {
-			isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Invalid port number")));
+			isolate->ThrowException(Exception::TypeError(ToStr(isolate, "Invalid port number")));
 			return false;
 		}
 		cc.Port = v->Uint32Value();
 
-		v = obj->Get(String::NewFromUtf8(isolate, "User"));
+		v = obj->Get(ToStr(isolate, "User"));
 		if (!v->IsString()) {
-			isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Invalid user id string")));
+			isolate->ThrowException(Exception::TypeError(ToStr(isolate, "Invalid user id string")));
 			return false;
 		}
 		String::Utf8Value uid(v);
 		cc.UserId = Utilities::ToWide(*uid);
 
-		v = obj->Get(String::NewFromUtf8(isolate, "Pwd"));
+		v = obj->Get(ToStr(isolate, "Pwd"));
 		if (!v->IsString()) {
-			isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Invalid password string")));
+			isolate->ThrowException(Exception::TypeError(ToStr(isolate, "Invalid password string")));
 			return false;
 		}
 		String::Utf8Value pwd(v);
 		cc.Password = Utilities::ToWide(*pwd);
 
-		v = obj->Get(String::NewFromUtf8(isolate, "EM"));
+		v = obj->Get(ToStr(isolate, "EM"));
 		if (!v->IsUint32()) {
-			isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Encryption method expected")));
+			isolate->ThrowException(Exception::TypeError(ToStr(isolate, "Encryption method expected")));
 			return false;
 		}
 		unsigned int em = v->Uint32Value();
 		if (em > 1) {
-			isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Invalid encryption method")));
+			isolate->ThrowException(Exception::TypeError(ToStr(isolate, "Invalid encryption method")));
 			return false;
 		}
 		cc.EncrytionMethod = (SPA::tagEncryptionMethod)em;
 
-		v = obj->Get(String::NewFromUtf8(isolate, "Zip"));
+		v = obj->Get(ToStr(isolate, "Zip"));
 		if (!v->IsBoolean()) {
-			isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Boolean value expected for Zip")));
+			isolate->ThrowException(Exception::TypeError(ToStr(isolate, "Boolean value expected for Zip")));
 			return false;
 		}
 		cc.Zip = v->BooleanValue();
 
-		v = obj->Get(String::NewFromUtf8(isolate, "V6"));
+		v = obj->Get(ToStr(isolate, "V6"));
 		if (!v->IsBoolean()) {
-			isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Boolean value expected for V6")));
+			isolate->ThrowException(Exception::TypeError(ToStr(isolate, "Boolean value expected for V6")));
 			return false;
 		}
 		cc.V6 = v->BooleanValue();
 
-		v = obj->Get(String::NewFromUtf8(isolate, "AnyData"));
-		if (!NJQueue::From(v, "", cc.AnyData)) {
-			isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Invalid data for AnyData")));
+		v = obj->Get(ToStr(isolate, "AnyData"));
+		if (!From(v, "", cc.AnyData)) {
+			isolate->ThrowException(Exception::TypeError(ToStr(isolate, "Invalid data for AnyData")));
 			return false;
 		}
 		return true;
@@ -870,12 +869,12 @@ namespace NJA {
 			return;
 		auto p1 = args[1];
 		if (!p1->IsUint32()) {
-			isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "An unsigned int number expected for client sockets")));
+			isolate->ThrowException(Exception::TypeError(ToStr(isolate, "An unsigned int number expected for client sockets")));
 			return;
 		}
 		unsigned int sessions = p1->Uint32Value();
 		if (!sessions) {
-			isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "The number of client sockets cannot be zero")));
+			isolate->ThrowException(Exception::TypeError(ToStr(isolate, "The number of client sockets cannot be zero")));
 			return;
 		}
 		std::vector<SPA::ClientSide::CConnectionContext> vCC;
@@ -886,7 +885,7 @@ namespace NJA {
 			for (unsigned int n = 0; n < count; ++n) {
 				auto v = jsArr->Get(n);
 				if (!v->IsObject()) {
-					isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Invalid connection context found")));
+					isolate->ThrowException(Exception::TypeError(ToStr(isolate, "Invalid connection context found")));
 					return;
 				}
 				Local<Object> obj = jsArr->Get(n)->ToObject();
@@ -906,7 +905,7 @@ namespace NJA {
 			vCC.push_back(cc);
 		}
 		else {
-			isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "One or an array of connection contexts expected")));
+			isolate->ThrowException(Exception::TypeError(ToStr(isolate, "One or an array of connection contexts expected")));
 			return;
 		}
 		unsigned int remain = sessions % vCC.size();
@@ -955,7 +954,7 @@ namespace NJA {
 				obj->m_evPool.Empty();
 			}
 			else {
-				isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "A callback expected for tracking pool event")));
+				isolate->ThrowException(Exception::TypeError(ToStr(isolate, "A callback expected for tracking pool event")));
 			}
 		}
 	}
@@ -974,7 +973,7 @@ namespace NJA {
 				obj->m_rr.Empty();
 			}
 			else {
-				isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "A callback expected for tracking request returned result")));
+				isolate->ThrowException(Exception::TypeError(ToStr(isolate, "A callback expected for tracking request returned result")));
 			}
 		}
 	}
@@ -993,7 +992,7 @@ namespace NJA {
 				obj->m_ap.Empty();
 			}
 			else {
-				isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "A callback expected for tracking event that all requests are processed")));
+				isolate->ThrowException(Exception::TypeError(ToStr(isolate, "A callback expected for tracking event that all requests are processed")));
 			}
 		}
 	}
@@ -1012,7 +1011,7 @@ namespace NJA {
 				obj->m_se.Empty();
 			}
 			else {
-				isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "A callback expected for tracking exception from server")));
+				isolate->ThrowException(Exception::TypeError(ToStr(isolate, "A callback expected for tracking exception from server")));
 			}
 		}
 	}
@@ -1031,7 +1030,7 @@ namespace NJA {
 				obj->m_brp.Empty();
 			}
 			else {
-				isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "A callback expected for tracking the event of base request processed")));
+				isolate->ThrowException(Exception::TypeError(ToStr(isolate, "A callback expected for tracking the event of base request processed")));
 			}
 		}
 	}

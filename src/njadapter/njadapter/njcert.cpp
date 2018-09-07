@@ -16,11 +16,11 @@ namespace NJA {
 
 		// Prepare constructor template
 		Local<FunctionTemplate> tpl = FunctionTemplate::New(isolate, New);
-		tpl->SetClassName(String::NewFromUtf8(isolate, "CCert"));
+		tpl->SetClassName(ToStr(isolate, "CCert"));
 		tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
 		constructor.Reset(isolate, tpl->GetFunction());
-		exports->Set(String::NewFromUtf8(isolate, "CCert"), tpl->GetFunction());
+		exports->Set(ToStr(isolate, "CCert"), tpl->GetFunction());
 	}
 
 	Local<Object> NJCert::New(Isolate* isolate, SPA::IUcert *c, bool setCb) {

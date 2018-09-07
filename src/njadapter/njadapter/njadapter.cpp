@@ -8,7 +8,7 @@
 namespace NJA {
 	void GetVersion(const FunctionCallbackInfo<Value>& args) {
 		auto isolate = args.GetIsolate();
-		auto v = String::NewFromUtf8(isolate, ClientCoreLoader.GetUClientSocketVersion());
+		auto v = ToStr(isolate, ClientCoreLoader.GetUClientSocketVersion());
 		args.GetReturnValue().Set(v);
 	}
 
@@ -22,13 +22,13 @@ namespace NJA {
 		auto isolate = args.GetIsolate();
 		auto p0 = args[0];
 		if (!p0->IsString()) {
-			isolate->ThrowException(v8::Exception::TypeError(v8::String::NewFromUtf8(isolate, "A CA store location string required")));
+			isolate->ThrowException(v8::Exception::TypeError(ToStr(isolate, "A CA store location string required")));
 			return;
 		}
 		String::Utf8Value str(p0);
 		unsigned int len = (unsigned int)str.length();
 		if (!len) {
-			isolate->ThrowException(v8::Exception::TypeError(v8::String::NewFromUtf8(isolate, "A CA store location string cannot be empty")));
+			isolate->ThrowException(v8::Exception::TypeError(ToStr(isolate, "A CA store location string cannot be empty")));
 			return;
 		}
 		bool ok = ClientCoreLoader.SetVerifyLocation(*str);
@@ -37,7 +37,7 @@ namespace NJA {
 
 	void GetWorkingDir(const FunctionCallbackInfo<Value>& args) {
 		auto isolate = args.GetIsolate();
-		auto v = String::NewFromUtf8(isolate, ClientCoreLoader.GetClientWorkDirectory());
+		auto v = ToStr(isolate, ClientCoreLoader.GetClientWorkDirectory());
 		args.GetReturnValue().Set(v);
 	}
 
@@ -45,13 +45,13 @@ namespace NJA {
 		auto isolate = args.GetIsolate();
 		auto p0 = args[0];
 		if (!p0->IsString()) {
-			isolate->ThrowException(v8::Exception::TypeError(v8::String::NewFromUtf8(isolate, "A working directory string required")));
+			isolate->ThrowException(v8::Exception::TypeError(ToStr(isolate, "A working directory string required")));
 			return;
 		}
 		String::Utf8Value str(p0);
 		unsigned int len = (unsigned int)str.length();
 		if (!len) {
-			isolate->ThrowException(v8::Exception::TypeError(v8::String::NewFromUtf8(isolate, "A working directory string cannot be empty")));
+			isolate->ThrowException(v8::Exception::TypeError(ToStr(isolate, "A working directory string cannot be empty")));
 			return;
 		}
 		ClientCoreLoader.SetClientWorkDirectory(*str);
@@ -61,7 +61,7 @@ namespace NJA {
 		auto isolate = args.GetIsolate();
 		auto p0 = args[0];
 		if (!p0->IsString()) {
-			isolate->ThrowException(v8::Exception::TypeError(v8::String::NewFromUtf8(isolate, "A password string required")));
+			isolate->ThrowException(v8::Exception::TypeError(ToStr(isolate, "A password string required")));
 			return;
 		}
 		String::Utf8Value str(p0);

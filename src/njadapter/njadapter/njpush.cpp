@@ -16,11 +16,11 @@ namespace NJA {
 
 		// Prepare constructor template
 		Local<FunctionTemplate> tpl = FunctionTemplate::New(isolate, New);
-		tpl->SetClassName(String::NewFromUtf8(isolate, "CPush"));
+		tpl->SetClassName(ToStr(isolate, "CPush"));
 		tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
 		constructor.Reset(isolate, tpl->GetFunction());
-		exports->Set(String::NewFromUtf8(isolate, "CPush"), tpl->GetFunction());
+		exports->Set(ToStr(isolate, "CPush"), tpl->GetFunction());
 	}
 
 	Local<Object> NJPush::New(Isolate* isolate, SPA::IPushEx *p, bool setCb) {

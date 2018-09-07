@@ -16,7 +16,7 @@ namespace NJA {
 
 	bool NJSqlite::IsValid(Isolate* isolate) {
 		if (!m_sqlite) {
-			isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Async MySQL handler disposed")));
+			isolate->ThrowException(Exception::TypeError(ToStr(isolate, "Async MySQL handler disposed")));
 			return false;
 		}
 		return NJHandlerRoot::IsValid(isolate);
@@ -27,13 +27,13 @@ namespace NJA {
 
 		// Prepare constructor template
 		Local<FunctionTemplate> tpl = FunctionTemplate::New(isolate, New);
-		tpl->SetClassName(String::NewFromUtf8(isolate, "CSqlite"));
+		tpl->SetClassName(ToStr(isolate, "CSqlite"));
 		tpl->InstanceTemplate()->SetInternalFieldCount(3);
 
 		NJHandlerRoot::Init(exports, tpl);
 
 		constructor.Reset(isolate, tpl->GetFunction());
-		exports->Set(String::NewFromUtf8(isolate, "CSqlite"), tpl->GetFunction());
+		exports->Set(ToStr(isolate, "CSqlite"), tpl->GetFunction());
 	}
 
 	Local<Object> NJSqlite::New(Isolate* isolate, CSqlite *ash, bool setCb) {

@@ -20,7 +20,7 @@ namespace NJA {
 
 	bool NJSocket::IsValid(Isolate* isolate) {
 		if (!m_socket) {
-			isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Socket handle disposed")));
+			isolate->ThrowException(Exception::TypeError(ToStr(isolate, "Socket handle disposed")));
 			return false;
 		}
 		return true;
@@ -31,7 +31,7 @@ namespace NJA {
 
 		// Prepare constructor template
 		Local<FunctionTemplate> tpl = FunctionTemplate::New(isolate, New);
-		tpl->SetClassName(String::NewFromUtf8(isolate, "CSocket"));
+		tpl->SetClassName(ToStr(isolate, "CSocket"));
 		tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
 		NODE_SET_PROTOTYPE_METHOD(tpl, "Dispose", Dispose);
@@ -80,7 +80,7 @@ namespace NJA {
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getQueue", getQueue);
 
 		constructor.Reset(isolate, tpl->GetFunction());
-		exports->Set(String::NewFromUtf8(isolate, "CSocket"), tpl->GetFunction());
+		exports->Set(ToStr(isolate, "CSocket"), tpl->GetFunction());
 	}
 
 	Local<Object> NJSocket::New(Isolate* isolate, CClientSocket *ash, bool setCb) {
@@ -144,7 +144,7 @@ namespace NJA {
 			if (p->IsInt32()) {
 				SPA::INT64 data = p->IntegerValue();
 				if (data < 0 || data > SPA::stBoth) {
-					isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Bad shutdown value")));
+					isolate->ThrowException(Exception::TypeError(ToStr(isolate, "Bad shutdown value")));
 					return;
 				}
 				st = (SPA::tagShutdownType)data;
@@ -162,7 +162,7 @@ namespace NJA {
 			if (p->IsBoolean())
 				zip = p->BooleanValue();
 			else if (!p->IsNullOrUndefined()) {
-				isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Bad data type")));
+				isolate->ThrowException(Exception::TypeError(ToStr(isolate, "Bad data type")));
 				return;
 			}
 			obj->m_socket->SetZip(zip);
@@ -187,13 +187,13 @@ namespace NJA {
 			if (p->IsInt32()) {
 				SPA::UINT64 data = p->IntegerValue();
 				if (data < 0 || data > zlBestCompression) {
-					isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Bad zip level value")));
+					isolate->ThrowException(Exception::TypeError(ToStr(isolate, "Bad zip level value")));
 					return;
 				}
 				zip = (tagZipLevel)data;
 			}
 			else if (!p->IsNullOrUndefined()) {
-				isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Bad data type")));
+				isolate->ThrowException(Exception::TypeError(ToStr(isolate, "Bad data type")));
 				return;
 			}
 			obj->m_socket->SetZipLevel(zip);
@@ -219,7 +219,7 @@ namespace NJA {
 				timeout = p->Uint32Value();
 			}
 			else if (!p->IsNullOrUndefined()) {
-				isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Bad data type")));
+				isolate->ThrowException(Exception::TypeError(ToStr(isolate, "Bad data type")));
 				return;
 			}
 			obj->m_socket->SetConnTimeout(timeout);
@@ -245,7 +245,7 @@ namespace NJA {
 				timeout = p->Uint32Value();
 			}
 			else if (!p->IsNullOrUndefined()) {
-				isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Bad data type")));
+				isolate->ThrowException(Exception::TypeError(ToStr(isolate, "Bad data type")));
 				return;
 			}
 			obj->m_socket->SetRecvTimeout(timeout);
@@ -270,7 +270,7 @@ namespace NJA {
 			if (p->IsBoolean())
 				ac = p->BooleanValue();
 			else if (!p->IsNullOrUndefined()) {
-				isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Bad data type")));
+				isolate->ThrowException(Exception::TypeError(ToStr(isolate, "Bad data type")));
 				return;
 			}
 			obj->m_socket->SetAutoConn(ac);
@@ -333,12 +333,12 @@ namespace NJA {
 		if (obj->IsValid(isolate)) {
 			auto p = args[0];
 			if (!p->IsUint32()) {
-				isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "A request id expected for the 1st input")));
+				isolate->ThrowException(Exception::TypeError(ToStr(isolate, "A request id expected for the 1st input")));
 				return;
 			}
 			unsigned int reqId = p->Uint32Value();
 			if (reqId > 0xffff || reqId <= SPA::tagBaseRequestID::idReservedTwo) {
-				isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "An unsigned short request id expected")));
+				isolate->ThrowException(Exception::TypeError(ToStr(isolate, "An unsigned short request id expected")));
 				return;
 			}
 			bool ok = obj->m_socket->IgnoreLastRequest((unsigned short)reqId);
@@ -414,7 +414,7 @@ namespace NJA {
 		Isolate* isolate = args.GetIsolate();
 		NJSocket* obj = ObjectWrap::Unwrap<NJSocket>(args.Holder());
 		if (obj->IsValid(isolate)) {
-			args.GetReturnValue().Set(String::NewFromUtf8(isolate, obj->m_socket->GetErrorMsg().c_str()));
+			args.GetReturnValue().Set(ToStr(isolate, obj->m_socket->GetErrorMsg().c_str()));
 		}
 	}
 
@@ -432,14 +432,14 @@ namespace NJA {
 		if (obj->IsValid(isolate)) {
 			auto cc = obj->m_socket->GetConnectionContext();
 			Local<Object> objCC = Object::New(isolate);
-			objCC->Set(String::NewFromUtf8(isolate, "Host"), String::NewFromUtf8(isolate, cc.Host.c_str()));
-			objCC->Set(String::NewFromUtf8(isolate, "Port"), Number::New(isolate, cc.Port));
-			objCC->Set(String::NewFromUtf8(isolate, "User"), String::NewFromUtf8(isolate, Utilities::ToUTF8(cc.UserId.c_str(), cc.UserId.size()).c_str()));
-			objCC->Set(String::NewFromUtf8(isolate, "EM"), Number::New(isolate, cc.EncrytionMethod));
-			objCC->Set(String::NewFromUtf8(isolate, "Zip"), Boolean::New(isolate, cc.Zip));
-			objCC->Set(String::NewFromUtf8(isolate, "V6"), Boolean::New(isolate, cc.V6));
-			objCC->Set(String::NewFromUtf8(isolate, "AnyData"), NJQueue::From(isolate, cc.AnyData));
-			objCC->Set(String::NewFromUtf8(isolate, "Pwd"), Null(isolate));
+			objCC->Set(ToStr(isolate, "Host"), ToStr(isolate, cc.Host.c_str()));
+			objCC->Set(ToStr(isolate, "Port"), Number::New(isolate, cc.Port));
+			objCC->Set(ToStr(isolate, "User"), ToStr(isolate, Utilities::ToUTF8(cc.UserId.c_str(), cc.UserId.size()).c_str()));
+			objCC->Set(ToStr(isolate, "EM"), Number::New(isolate, cc.EncrytionMethod));
+			objCC->Set(ToStr(isolate, "Zip"), Boolean::New(isolate, cc.Zip));
+			objCC->Set(ToStr(isolate, "V6"), Boolean::New(isolate, cc.V6));
+			objCC->Set(ToStr(isolate, "AnyData"), From(isolate, cc.AnyData));
+			objCC->Set(ToStr(isolate, "Pwd"), Null(isolate));
 			args.GetReturnValue().Set(objCC);
 		}
 	}
@@ -497,7 +497,7 @@ namespace NJA {
 		NJSocket* obj = ObjectWrap::Unwrap<NJSocket>(args.Holder());
 		if (obj->IsValid(isolate)) {
 			auto uid = obj->m_socket->GetUID();
-			args.GetReturnValue().Set(String::NewFromUtf8(isolate, Utilities::ToUTF8(uid.c_str(), uid.size()).c_str()));
+			args.GetReturnValue().Set(ToStr(isolate, Utilities::ToUTF8(uid.c_str(), uid.size()).c_str()));
 		}
 	}
 
@@ -514,7 +514,7 @@ namespace NJA {
 		NJSocket* obj = ObjectWrap::Unwrap<NJSocket>(args.Holder());
 		if (obj->IsValid(isolate)) {
 			unsigned int port = 0;
-			args.GetReturnValue().Set(String::NewFromUtf8(isolate, obj->m_socket->GetPeerName(&port).c_str()));
+			args.GetReturnValue().Set(ToStr(isolate, obj->m_socket->GetPeerName(&port).c_str()));
 		}
 	}
 
@@ -542,7 +542,7 @@ namespace NJA {
 			if (p->IsBoolean())
 				zip = p->BooleanValue();
 			else if (!p->IsNullOrUndefined()) {
-				isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Bad data type")));
+				isolate->ThrowException(Exception::TypeError(ToStr(isolate, "Bad data type")));
 				return;
 			}
 			args.GetReturnValue().Set(Boolean::New(isolate, obj->m_socket->TurnOnZipAtSvr(zip)));
@@ -559,11 +559,11 @@ namespace NJA {
 				zl = p->Int32Value();
 			}
 			else if (!p->IsNullOrUndefined()) {
-				isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Bad data type")));
+				isolate->ThrowException(Exception::TypeError(ToStr(isolate, "Bad data type")));
 				return;
 			}
 			if (zl > SPA::zlBestCompression) {
-				isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Bad zip level value")));
+				isolate->ThrowException(Exception::TypeError(ToStr(isolate, "Bad zip level value")));
 				return;
 			}
 			args.GetReturnValue().Set(Boolean::New(isolate, obj->m_socket->SetZipLevelAtSvr((SPA::tagZipLevel)zl)));

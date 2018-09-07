@@ -16,29 +16,17 @@ namespace NJA {
 
 		static void Init(Local<Object> exports);
 		static Local<Object> New(Isolate* isolate, SPA::PUQueue &q);
-		static Local<Value> From(Isolate* isolate, const VARIANT &vt, bool strForDec = false);
-		static bool From(const Local<Value>& v, const std::string &hint, CComVariant &vt);
-		static SPA::UINT64 ToDate(const Local<Value>& d);
-
+		
 	private:
 		void Ensure();
 		unsigned int Load(Isolate* isolate, SPA::UDB::CDBVariant &vt);
-
-		enum tagDataType {
-			dtUnknown = 0,
-			dtString,
-			dtBool,
-			dtDate,
-		};
-
 		static const SPA::INT64 SECRECT_NUM = 0x7ff12ff345ff;
-		static Local<Value> ToDate(Isolate* isolate, SPA::UINT64 dt);
 		static void New(const FunctionCallbackInfo<Value>& args);
 		
 		template <class ctype>
 		unsigned int Load(Isolate* isolate, ctype &buffer) {
 			if (!m_Buffer || m_Buffer->GetSize() < sizeof(ctype)) {
-				isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "No buffer available")));
+				isolate->ThrowException(Exception::TypeError(ToStr(isolate, "No buffer available")));
 				Release();
 				return 0;
 			}

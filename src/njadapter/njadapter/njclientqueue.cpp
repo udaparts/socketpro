@@ -16,11 +16,11 @@ namespace NJA {
 
 		// Prepare constructor template
 		Local<FunctionTemplate> tpl = FunctionTemplate::New(isolate, New);
-		tpl->SetClassName(String::NewFromUtf8(isolate, "CClientQueue"));
+		tpl->SetClassName(ToStr(isolate, "CClientQueue"));
 		tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
 		constructor.Reset(isolate, tpl->GetFunction());
-		exports->Set(String::NewFromUtf8(isolate, "CClientQueue"), tpl->GetFunction());
+		exports->Set(ToStr(isolate, "CClientQueue"), tpl->GetFunction());
 	}
 
 	Local<Object> NJClientQueue::New(Isolate* isolate, SPA::ClientSide::IClientQueue *cq, bool setCb) {

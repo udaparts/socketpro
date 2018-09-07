@@ -15,13 +15,13 @@ namespace NJA {
 
 		// Prepare constructor template
 		Local<FunctionTemplate> tpl = FunctionTemplate::New(isolate, New);
-		tpl->SetClassName(String::NewFromUtf8(isolate, "CAsyncHandler"));
+		tpl->SetClassName(ToStr(isolate, "CAsyncHandler"));
 		tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
 		NJHandlerRoot::Init(exports, tpl);
 
 		constructor.Reset(isolate, tpl->GetFunction());
-		exports->Set(String::NewFromUtf8(isolate, "CAsyncHandler"), tpl->GetFunction());
+		exports->Set(ToStr(isolate, "CAsyncHandler"), tpl->GetFunction());
 	}
 
 	Local<Object> NJHandler::New(Isolate* isolate, CAsyncServiceHandler *ash, bool setCb) {
