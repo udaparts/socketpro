@@ -30,68 +30,95 @@ namespace SPA {
 					if (cb.Func)
 						func = Local<Function>::New(isolate, *cb.Func);
 					switch (cb.Type) {
-					case eResult:
-					{
-						int res;
-						std::wstring errMsg;
-						*cb.Buffer >> res >> errMsg;
-						assert(!cb.Buffer->GetSize());
-						CScopeUQueue::Unlock(cb.Buffer);
-						auto njRes = Int32::New(isolate, res);
-						auto njMsg = ToStr(isolate, errMsg.c_str());
+					case eRows:
 						if (!func.IsEmpty()) {
-							Local<Value> argv[] = {njRes, njMsg, njDB };
+							bool bProc;
+							*cb.Buffer >> bProc;
+							Local<Array> v = Array::New(isolate);
+							if (cb.VData) {
+								unsigned int index = 0;
+								const CDBVariantArray &vData = *cb.VData;
+								for (auto it = vData.begin(), end = vData.end(); it != end; ++it, ++index) {
+									auto d = From(isolate, *it);
+									v->Set(index, d);
+								}
+							}
+							Local<Value> argv[] = { Boolean::New(isolate, bProc), v, njDB };
 							func->Call(isolate->GetCurrentContext(), Null(isolate), 3, argv);
 						}
-					}
-					break;
-					case eRowsetHeader:
-					{
-						bool ok;
-						CDBColumnInfoArray v;
-						*cb.Buffer >> v;
-						assert(!cb.Buffer->GetSize());
-						CScopeUQueue::Unlock(cb.Buffer);
-						Local<Array> jsMeta = Array::New(isolate);
-						unsigned int index = 0;
-						for (auto it = v.begin(), end = v.end(); it != end; ++it, ++index) {
-							Local<Object> meta = Object::New(isolate);
-							ok = meta->Set(ToStr(isolate, "DBPath"), ToStr(isolate, it->DBPath.c_str()));
-							ok = meta->Set(ToStr(isolate, "TablePath"), ToStr(isolate, it->TablePath.c_str()));
-							ok = meta->Set(ToStr(isolate, "DisplayName"), ToStr(isolate, it->DisplayName.c_str()));
-							ok = meta->Set(ToStr(isolate, "OriginalName"), ToStr(isolate, it->OriginalName.c_str()));
-							ok = meta->Set(ToStr(isolate, "DeclaredType"), ToStr(isolate, it->DeclaredType.c_str()));
-							ok = meta->Set(ToStr(isolate, "Collation"), ToStr(isolate, it->Collation.c_str()));
-							ok = meta->Set(ToStr(isolate, "ColumnSize"), Uint32::New(isolate, it->ColumnSize));
-							ok = meta->Set(ToStr(isolate, "Flags"), Uint32::New(isolate, it->Flags));
-							ok = meta->Set(ToStr(isolate, "DataType"), Uint32::New(isolate, it->DataType));
-							ok = meta->Set(ToStr(isolate, "Precision"), Uint32::New(isolate, it->Precision));
-							ok = meta->Set(ToStr(isolate, "Scale"), Uint32::New(isolate, it->Scale));
-							ok = jsMeta->Set(index, meta);
-						}
+						break;
+					case eExecuteResult:
 						if (!func.IsEmpty()) {
+							int res;
+							std::wstring errMsg;
+							INT64 affected; 
+							unsigned int fails, oks;
+							CDBVariant vtId;
+							*cb.Buffer >> res >> errMsg >> affected >> fails >> oks >> vtId;
+							auto njRes = Int32::New(isolate, res);
+							auto njMsg = ToStr(isolate, errMsg.c_str());
+							auto njAffected = Number::New(isolate, (double)affected);
+							auto njFails = Number::New(isolate, fails);
+							auto njOks = Number::New(isolate, oks);
+							auto njId = From(isolate, vtId);
+							Local<Value> argv[] = { njRes, njMsg, njAffected, njFails, njOks, njId, njDB };
+							func->Call(isolate->GetCurrentContext(), Null(isolate), 7, argv);
+						}
+						break;
+					case eResult:
+						if (!func.IsEmpty()) {
+							int res;
+							std::wstring errMsg;
+							*cb.Buffer >> res >> errMsg;
+							assert(!cb.Buffer->GetSize());
+							auto njRes = Int32::New(isolate, res);
+							auto njMsg = ToStr(isolate, errMsg.c_str());
+							Local<Value> argv[] = { njRes, njMsg, njDB };
+							func->Call(isolate->GetCurrentContext(), Null(isolate), 3, argv);
+						}
+						break;
+					case eRowsetHeader:
+						if (!func.IsEmpty()) {
+							bool ok;
+							CDBColumnInfoArray v;
+							*cb.Buffer >> v;
+							assert(!cb.Buffer->GetSize());
+							Local<Array> jsMeta = Array::New(isolate);
+							unsigned int index = 0;
+							for (auto it = v.begin(), end = v.end(); it != end; ++it, ++index) {
+								Local<Object> meta = Object::New(isolate);
+								ok = meta->Set(ToStr(isolate, "DBPath"), ToStr(isolate, it->DBPath.c_str()));
+								ok = meta->Set(ToStr(isolate, "TablePath"), ToStr(isolate, it->TablePath.c_str()));
+								ok = meta->Set(ToStr(isolate, "DisplayName"), ToStr(isolate, it->DisplayName.c_str()));
+								ok = meta->Set(ToStr(isolate, "OriginalName"), ToStr(isolate, it->OriginalName.c_str()));
+								ok = meta->Set(ToStr(isolate, "DeclaredType"), ToStr(isolate, it->DeclaredType.c_str()));
+								ok = meta->Set(ToStr(isolate, "Collation"), ToStr(isolate, it->Collation.c_str()));
+								ok = meta->Set(ToStr(isolate, "ColumnSize"), Uint32::New(isolate, it->ColumnSize));
+								ok = meta->Set(ToStr(isolate, "Flags"), Uint32::New(isolate, it->Flags));
+								ok = meta->Set(ToStr(isolate, "DataType"), Uint32::New(isolate, it->DataType));
+								ok = meta->Set(ToStr(isolate, "Precision"), Uint32::New(isolate, it->Precision));
+								ok = meta->Set(ToStr(isolate, "Scale"), Uint32::New(isolate, it->Scale));
+								ok = jsMeta->Set(index, meta);
+							}
 							Local<Value> argv[] = { jsMeta, njDB };
 							func->Call(isolate->GetCurrentContext(), Null(isolate), 2, argv);
 						}
-					}
-					break;
+						break;
 					case eDiscarded:
-					{
-						bool canceled;
-						*cb.Buffer >> canceled;
-						assert(!cb.Buffer->GetSize());
-						CScopeUQueue::Unlock(cb.Buffer);
-						auto b = Boolean::New(isolate, canceled);
 						if (!func.IsEmpty()) {
-							Local<Value> argv[] = { b, njDB};
+							bool canceled;
+							*cb.Buffer >> canceled;
+							assert(!cb.Buffer->GetSize());
+							auto b = Boolean::New(isolate, canceled);
+							Local<Value> argv[] = { b, njDB };
 							func->Call(isolate->GetCurrentContext(), Null(isolate), 2, argv);
 						}
-					}
-					break;
+						break;
 					default:
 						assert(false);
 						break;
 					}
+					CScopeUQueue::Unlock(cb.Buffer);
 					obj->m_deqDBCb.pop_front();
 				}
 			}
