@@ -1,7 +1,6 @@
 
 #pragma once
 
-
 #include "../../../include/async_mysql.h"
 #include "njhandlerroot.h"
 
@@ -26,6 +25,6 @@ namespace NJA {
 
 	private:
 		static Persistent<Function> constructor;
-		SPA::ClientSide::CMysql *m_mysql;
+		SPA::ClientSide::CMysql *m_db;
 	};
 }

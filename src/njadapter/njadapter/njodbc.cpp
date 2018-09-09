@@ -6,7 +6,7 @@ namespace NJA {
 
 	Persistent<Function> NJOdbc::constructor;
 
-	NJOdbc::NJOdbc(COdbc *odbc) : NJHandlerRoot(odbc), m_odbc(odbc) {
+	NJOdbc::NJOdbc(COdbc *odbc) : NJHandlerRoot(odbc), m_db(odbc) {
 
 	}
 
@@ -15,7 +15,7 @@ namespace NJA {
 	}
 
 	bool NJOdbc::IsValid(Isolate* isolate) {
-		if (!m_odbc) {
+		if (!m_db) {
 			ThrowException(isolate, "Async ODBC handler disposed");
 			return false;
 		}
@@ -70,8 +70,8 @@ namespace NJA {
 	void NJOdbc::Release() {
 		{
 			SPA::CAutoLock al(m_cs);
-			if (m_odbc) {
-				m_odbc = nullptr;
+			if (m_db) {
+				m_db = nullptr;
 			}
 		}
 		NJHandlerRoot::Release();

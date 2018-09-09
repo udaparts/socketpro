@@ -163,7 +163,6 @@
     <ClInclude Include="..\..\..\include\aclientw.h" />
     <ClInclude Include="..\..\..\include\aqhandler.h" />
     <ClInclude Include="..\..\..\include\async_mysql.h" />
-    <ClInclude Include="..\..\..\include\async_odbc.h" />
     <ClInclude Include="..\..\..\include\async_sqlite.h" />
     <ClInclude Include="..\..\..\include\generalcache.h" />
     <ClInclude Include="..\..\..\include\masterpool.h" />

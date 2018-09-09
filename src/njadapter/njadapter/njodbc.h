@@ -1,21 +1,24 @@
 
 #pragma once
 
-
-#include "../../../include/async_odbc.h"
+#include "../../../include/odbc/uodbc.h"
+#include "../../../include/udb_client.h"
 #include "njhandlerroot.h"
 
 namespace NJA {
+	
+	typedef SPA::ClientSide::CAsyncDBHandler<SPA::Odbc::sidOdbc> COdbc;
+
 	class NJOdbc : public NJHandlerRoot {
 	public:
-		NJOdbc(SPA::ClientSide::COdbc *odbc);
+		NJOdbc(COdbc *odbc);
 		NJOdbc(const NJOdbc &h) = delete;
 		~NJOdbc();
 
 	public:
 		NJOdbc& operator=(const NJOdbc &h) = delete;
 		static void Init(Local<Object> exports);
-		static Local<Object> New(Isolate* isolate, SPA::ClientSide::COdbc *ash, bool setCb);
+		static Local<Object> New(Isolate* isolate, COdbc *ash, bool setCb);
 
 	private:
 		void Release();
@@ -26,6 +29,6 @@ namespace NJA {
 
 	private:
 		static Persistent<Function> constructor;
-		SPA::ClientSide::COdbc *m_odbc;
+		COdbc *m_db;
 	};
 }

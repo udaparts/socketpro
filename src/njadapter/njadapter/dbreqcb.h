@@ -30,10 +30,18 @@ namespace SPA {
 					if (cb.Func)
 						func = Local<Function>::New(isolate, *cb.Func);
 					switch (cb.Type) {
+					case eBatchHeader:
+					{
+						assert(!cb.Buffer->GetSize());
+						Local<Value> argv[] = { njDB };
+						func->Call(isolate->GetCurrentContext(), Null(isolate), 1, argv);
+					}
+					break;
 					case eRows:
 						if (!func.IsEmpty()) {
 							bool bProc;
 							*cb.Buffer >> bProc;
+							assert(!cb.Buffer->GetSize());
 							Local<Array> v = Array::New(isolate);
 							if (cb.VData) {
 								unsigned int index = 0;
@@ -55,6 +63,7 @@ namespace SPA {
 							unsigned int fails, oks;
 							CDBVariant vtId;
 							*cb.Buffer >> res >> errMsg >> affected >> fails >> oks >> vtId;
+							assert(!cb.Buffer->GetSize());
 							auto njRes = Int32::New(isolate, res);
 							auto njMsg = ToStr(isolate, errMsg.c_str());
 							auto njAffected = Number::New(isolate, (double)affected);

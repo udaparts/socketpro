@@ -13,7 +13,7 @@ namespace NJA {
 		}
 		void Release();
 		static bool IsUQueue(Local<Object> obj);
-
+		static bool ToParamArray(NJQueue *obj, SPA::UDB::CDBVariantArray &vParam);
 		static void Init(Local<Object> exports);
 		static Local<Object> New(Isolate* isolate, SPA::PUQueue &q);
 		

@@ -28,10 +28,7 @@ namespace NJA {
 					fcb.Download = download;
 					fcb.EventType = feExchange;
 					fcb.Func = func;
-					auto cs = file->GetAttachedClientSocket();
-					bool endian;
-					tagOperationSystem os = cs->GetPeerOs(&endian);
-					fcb.Buffer = CScopeUQueue::Lock(os, endian);
+					fcb.Buffer = CScopeUQueue::Lock();
 					PSFile f = (PSFile)file;
 					*fcb.Buffer << f << res << errMsg;
 					CAutoLock al(f->m_csFile);
@@ -54,10 +51,7 @@ namespace NJA {
 					fcb.Download = download;
 					fcb.EventType = feTrans;
 					fcb.Func = func;
-					auto cs = file->GetAttachedClientSocket();
-					bool endian;
-					tagOperationSystem os = cs->GetPeerOs(&endian);
-					fcb.Buffer = CScopeUQueue::Lock(os, endian);
+					fcb.Buffer = CScopeUQueue::Lock();
 					PSFile f = (PSFile)file;
 					*fcb.Buffer << f << transferred << file->GetFileSize();
 					CAutoLock al(f->m_csFile);
@@ -80,10 +74,7 @@ namespace NJA {
 					fcb.Download = download;
 					fcb.EventType = feDiscarded;
 					fcb.Func = func;
-					auto cs = file->GetAttachedClientSocket();
-					bool endian;
-					tagOperationSystem os = cs->GetPeerOs(&endian);
-					fcb.Buffer = CScopeUQueue::Lock(os, endian);
+					fcb.Buffer = CScopeUQueue::Lock();
 					PSFile f = (PSFile)file;
 					*fcb.Buffer << f << canceled;
 					CAutoLock al(f->m_csFile);

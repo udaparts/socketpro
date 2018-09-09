@@ -106,7 +106,7 @@ namespace NJA {
 			SPA::ClientSide::CSocketPool<CAsyncHandler> *Handler;
 			SPA::ClientSide::CSocketPool<SPA::ClientSide::CSqlite> *Sqlite;
 			SPA::ClientSide::CSocketPool<SPA::ClientSide::CMysql> *Mysql;
-			SPA::ClientSide::CSocketPool<SPA::ClientSide::COdbc> *Odbc;
+			SPA::ClientSide::CSocketPool<COdbc> *Odbc;
 			SPA::ClientSide::CSocketPool<CSFile> *File;
 			SPA::ClientSide::CSocketPool<CAQueue> *Queue;
 		};

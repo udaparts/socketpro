@@ -57,9 +57,6 @@
     <ClInclude Include="njhandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\include\async_odbc.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\include\streamingfile.h">
       <Filter>Header Files</Filter>
     </ClInclude>

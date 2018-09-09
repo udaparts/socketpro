@@ -6,7 +6,7 @@ namespace NJA {
 
 	Persistent<Function> NJMysql::constructor;
 
-	NJMysql::NJMysql(CMysql *mysql) : NJHandlerRoot(mysql), m_mysql(mysql) {
+	NJMysql::NJMysql(CMysql *mysql) : NJHandlerRoot(mysql), m_db(mysql) {
 
 	}
 
@@ -15,7 +15,7 @@ namespace NJA {
 	}
 
 	bool NJMysql::IsValid(Isolate* isolate) {
-		if (!m_mysql) {
+		if (!m_db) {
 			ThrowException(isolate, "Async MySQL handler disposed");
 			return false;
 		}
@@ -70,8 +70,8 @@ namespace NJA {
 	void NJMysql::Release() {
 		{
 			SPA::CAutoLock al(m_cs);
-			if (m_mysql) {
-				m_mysql = nullptr;
+			if (m_db) {
+				m_db = nullptr;
 			}
 		}
 		NJHandlerRoot::Release();

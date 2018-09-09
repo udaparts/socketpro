@@ -5,6 +5,12 @@
 #include "udatabase.h"
 #include "aclientw.h"
 
+#ifdef NODE_JS_ADAPTER_PROJECT
+namespace NJA {
+	void ThrowException(Isolate* isolate, const char *str);
+}
+#endif
+
 namespace SPA {
 	namespace ClientSide {
 		using namespace UDB;
@@ -829,6 +835,7 @@ namespace SPA {
 										m_outputs = ((unsigned int)m_vData.size() + (unsigned int)m_bCallReturn);
 									}
 								}
+#ifndef NODE_JS_ADAPTER_PROJECT
 								auto it = m_mapParameterCall.find(m_indexRowset);
 								if (it != m_mapParameterCall.cend()) {
 									//crash? make sure that vParam is valid after calling the method Execute
@@ -842,6 +849,7 @@ namespace SPA {
 										vParam[pos] = *start;
 									}
 								}
+#endif
 								++m_indexProc;
 							}
 #ifdef NODE_JS_ADAPTER_PROJECT
@@ -985,7 +993,169 @@ namespace SPA {
 			bool m_bProc;
 
 		public:
+			UINT64 BeginTrans(Isolate* isolate, int args, Local<Value> *argv, tagTransactionIsolation isolation) {
+				bool bad;
+				SPA::UINT64 index = GetCallIndex();
+				DResult result;
+				DDiscarded dd;
+				if (args > 0) {
+					result = GetResult(isolate, argv[0], bad);
+					if (bad) return 0;
+				}
+				if (args > 1) {
+					dd = Get(isolate, argv[1], bad);
+					if (bad) return 0;
+				}
+				return BeginTrans(isolation, result, dd) ? index : INVALID_NUMBER;
+			}
 
+			UINT64 Close(Isolate* isolate, int args, Local<Value> *argv) {
+				bool bad;
+				SPA::UINT64 index = GetCallIndex();
+				DResult result;
+				DDiscarded dd;
+				if (args > 0) {
+					result = GetResult(isolate, argv[0], bad);
+					if (bad) return 0;
+				}
+				if (args > 1) {
+					dd = Get(isolate, argv[1], bad);
+					if (bad) return 0;
+				}
+				return Close(result, dd) ? index : INVALID_NUMBER;
+			}
+
+			UINT64 EndTrans(Isolate* isolate, int args, Local<Value> *argv, tagRollbackPlan plan) {
+				bool bad;
+				SPA::UINT64 index = GetCallIndex();
+				DResult result;
+				DDiscarded dd;
+				if (args > 0) {
+					result = GetResult(isolate, argv[0], bad);
+					if (bad) return 0;
+				}
+				if (args > 1) {
+					bool bad;
+					dd = Get(isolate, argv[1], bad);
+					if (bad) return 0;
+				}
+				return EndTrans(plan, result, dd) ? index : INVALID_NUMBER;
+			}
+
+			UINT64 Execute(Isolate* isolate, int args, Local<Value> *argv, CDBVariantArray &vParam) {
+				bool bad;
+				SPA::UINT64 index = GetCallIndex();
+				DExecuteResult result;
+				DDiscarded dd;
+				DRows r;
+				DRowsetHeader rh;
+				if (args > 0) {
+					result = GetExecuteResult(isolate, argv[0], bad);
+					if (bad) return 0;
+				}
+				if (args > 1) {
+					r = GetRows(isolate, argv[1], bad);
+					if (bad) return 0;
+				}
+				if (args > 2) {
+					rh = GetRowsetHeader(isolate, argv[2], bad);
+					if (bad) return 0;
+				}
+				if (args > 3) {
+					dd = Get(isolate, argv[3], bad);
+					if (bad) return 0;
+				}
+				return Execute(vParam, result, r, rh, true, true, dd) ? index : INVALID_NUMBER;
+			}
+
+			UINT64 Execute(Isolate* isolate, int args, Local<Value> *argv, const wchar_t *sql) {
+				bool bad;
+				SPA::UINT64 index = GetCallIndex();
+				DExecuteResult result;
+				DDiscarded dd;
+				DRows r;
+				DRowsetHeader rh;
+				if (args > 0) {
+					result = GetExecuteResult(isolate, argv[0], bad);
+					if (bad) return 0;
+				}
+				if (args > 1) {
+					r = GetRows(isolate, argv[1], bad);
+					if (bad) return 0;
+				}
+				if (args > 2) {
+					rh = GetRowsetHeader(isolate, argv[2], bad);
+					if (bad) return 0;
+				}
+				if (args > 3) {
+					dd = Get(isolate, argv[3], bad);
+					if (bad) return 0;
+				}
+				return Execute(sql, result, r, rh, true, true, dd) ? index : INVALID_NUMBER;
+			}
+
+			UINT64 ExecuteBatch(Isolate* isolate, int args, Local<Value> *argv, tagTransactionIsolation isolation, const wchar_t *sql, CDBVariantArray &vParam, tagRollbackPlan plan, const wchar_t *delimiter, const CParameterInfoArray& vPInfo) {
+				bool bad;
+				SPA::UINT64 index = GetCallIndex();
+				DExecuteResult result;
+				DDiscarded dd;
+				DRows r;
+				DRowsetHeader rh;
+				DRowsetHeader bh;
+				if (args > 0) {
+					result = GetExecuteResult(isolate, argv[0], bad);
+					if (bad) return 0;
+				}
+				if (args > 1) {
+					r = GetRows(isolate, argv[1], bad);
+					if (bad) return 0;
+				}
+				if (args > 2) {
+					rh = GetRowsetHeader(isolate, argv[2], bad);
+					if (bad) return 0;
+				}
+				if (args > 3) {
+					bh = GetBatchHeader(isolate, argv[3], bad);
+					if (bad) return 0;
+				}
+				if (args > 4) {
+					dd = Get(isolate, argv[4], bad);
+					if (bad) return 0;
+				}
+				return ExecuteBatch(isolation, sql, vParam, result, r, rh, bh, vPInfo, plan, dd, delimiter) ? index : INVALID_NUMBER;
+			}
+
+			UINT64 Open(Isolate* isolate, int args, Local<Value> *argv, const wchar_t* strConnection, unsigned int flags) {
+				bool bad;
+				SPA::UINT64 index = GetCallIndex();
+				DResult result;
+				DDiscarded dd;
+				if (args > 0) {
+					result = GetResult(isolate, argv[0], bad);
+					if (bad) return 0;
+				}
+				if (args > 1) {
+					dd = Get(isolate, argv[1], bad);
+					if (bad) return 0;
+				}
+				return Open(strConnection, result, flags, dd) ? index : INVALID_NUMBER;
+			}
+
+			UINT64 Prepare(Isolate* isolate, int args, Local<Value> *argv, const wchar_t *sql, const CParameterInfoArray& vParameterInfo) {
+				bool bad;
+				SPA::UINT64 index = GetCallIndex();
+				DResult result;
+				DDiscarded dd;
+				if (args > 0) {
+					result = GetResult(isolate, argv[0], bad);
+					if (bad) return 0;
+				}
+				if (args > 1) {
+					dd = Get(isolate, argv[1], bad);
+					if (bad) return 0;
+				}
+				return Prepare(sql, result, vParameterInfo, dd) ? index : INVALID_NUMBER;
+			}
 
 		protected:
 			enum tagDBEvent {
@@ -993,6 +1163,7 @@ namespace SPA {
 				eExecuteResult,
 				eRowsetHeader,
 				eRows,
+				eBatchHeader,
 				eDiscarded
 			};
 
@@ -1006,10 +1177,170 @@ namespace SPA {
 			std::deque<DBCb> m_deqDBCb; //protected by m_csDB;
 			uv_async_t m_typeDB; //DB request events
 
+			DRowsetHeader GetBatchHeader(Isolate* isolate, Local<Value> header, bool &bad) {
+				bad = false;
+				DRowsetHeader rh;
+				if (header->IsFunction()) {
+					std::shared_ptr<CNJFunc> func(new CNJFunc);
+					func->Reset(isolate, Local<Function>::Cast(header));
+					rh = [func](CAsyncDBHandler &db) {
+						DBCb cb;
+						cb.Type = eBatchHeader;
+						cb.Func = func;
+						cb.Buffer = CScopeUQueue::Lock();
+						PAsyncDBHandler ash = &db;
+						*cb.Buffer << ash;
+						CAutoLock al(ash->m_csDB);
+						ash->m_deqDBCb.push_back(cb);
+						int fail = uv_async_send(&ash->m_typeDB);
+						assert(!fail);
+					};
+				}
+				else if (!header->IsNullOrUndefined()) {
+					NJA::ThrowException(isolate, "A callback expected for batch header");
+					bad = true;
+				}
+				return rh;
+			}
+
+			DRowsetHeader GetRowsetHeader(Isolate* isolate, Local<Value> header, bool &bad) {
+				bad = false;
+				DRowsetHeader rh;
+				if (header->IsFunction()) {
+					std::shared_ptr<CNJFunc> func(new CNJFunc);
+					func->Reset(isolate, Local<Function>::Cast(header));
+					rh = [func](CAsyncDBHandler &db) {
+						DBCb cb;
+						cb.Type = eRowsetHeader;
+						cb.Func = func;
+						cb.Buffer = CScopeUQueue::Lock();
+						PAsyncDBHandler ash = &db;
+						*cb.Buffer << ash;
+						CAutoLock al(ash->m_csDB);
+						ash->m_deqDBCb.push_back(cb);
+						int fail = uv_async_send(&ash->m_typeDB);
+						assert(!fail);
+					};
+				}
+				else if (!header->IsNullOrUndefined()) {
+					NJA::ThrowException(isolate, "A callback expected for record meta");
+					bad = true;
+				}
+				return rh;
+			}
+
+			DRows GetRows(Isolate* isolate, Local<Value> r, bool &bad) {
+				bad = false;
+				DRows rows;
+				if (r->IsFunction()) {
+					std::shared_ptr<CNJFunc> func(new CNJFunc);
+					func->Reset(isolate, Local<Function>::Cast(r));
+					rows = [func](CAsyncDBHandler &db, CDBVariantArray &vData) {
+						DBCb cb;
+						cb.Type = eRows;
+						cb.Func = func;
+						cb.Buffer = CScopeUQueue::Lock();
+						cb.VData.reset(new CDBVariantArray);
+						vData.swap(*cb.VData);
+						PAsyncDBHandler ash = &db;
+						bool proc = db.IsProc();
+						if (proc && db.GetCallReturn())
+							cb.VData->insert(cb.VData->begin(), db.GetRetValue());
+						*cb.Buffer << ash << proc;
+						CAutoLock al(ash->m_csDB);
+						ash->m_deqDBCb.push_back(cb);
+						int fail = uv_async_send(&ash->m_typeDB);
+						assert(!fail);
+					};
+				}
+				else if (!r->IsNullOrUndefined()) {
+					NJA::ThrowException(isolate, "A callback expected for row data");
+					bad = true;
+				}
+				return rows;
+			}
+
+			DExecuteResult GetExecuteResult(Isolate* isolate, Local<Value> er, bool &bad) {
+				bad = false;
+				DExecuteResult result;
+				if (er->IsFunction()) {
+					std::shared_ptr<CNJFunc> func(new CNJFunc);
+					func->Reset(isolate, Local<Function>::Cast(er));
+					result = [func](CAsyncDBHandler &db, int errCode, const std::wstring &errMsg, INT64 affected, UINT64 fail_ok, CDBVariant &vtId) {
+						DBCb cb;
+						cb.Type = eExecuteResult;
+						cb.Func = func;
+						cb.Buffer = CScopeUQueue::Lock();
+						PAsyncDBHandler ash = &db;
+						*cb.Buffer << ash << errCode << errMsg << affected << fail_ok << vtId;
+						CAutoLock al(ash->m_csDB);
+						ash->m_deqDBCb.push_back(cb);
+						int fail = uv_async_send(&ash->m_typeDB);
+						assert(!fail);
+					};
+				}
+				else if (!er->IsNullOrUndefined()) {
+					NJA::ThrowException(isolate, "A callback expected for Execute end result");
+					bad = true;
+				}
+				return result;
+			}
+
+			DResult GetResult(Isolate* isolate, Local<Value> res, bool &bad) {
+				bad = false;
+				DResult result;
+				if (res->IsFunction()) {
+					std::shared_ptr<CNJFunc> func(new CNJFunc);
+					func->Reset(isolate, Local<Function>::Cast(res));
+					result = [func](CAsyncDBHandler &db, int errCode, const std::wstring &errMsg) {
+						DBCb cb;
+						cb.Type = eResult;
+						cb.Func = func;
+						cb.Buffer = CScopeUQueue::Lock();
+						PAsyncDBHandler ash = &db;
+						*cb.Buffer << ash << errCode << errMsg;
+						CAutoLock al(ash->m_csDB);
+						ash->m_deqDBCb.push_back(cb);
+						int fail = uv_async_send(&ash->m_typeDB);
+						assert(!fail);
+					};
+				}
+				else if (!res->IsNullOrUndefined()) {
+					NJA::ThrowException(isolate, "A callback expected for end result");
+					bad = true;
+				}
+				return result;
+			}
+
+			DDiscarded Get(Isolate* isolate, Local<Value> abort, bool &bad) {
+				bad = false;
+				DDiscarded dd;
+				if (abort->IsFunction()) {
+					std::shared_ptr<CNJFunc> func(new CNJFunc);
+					func->Reset(isolate, Local<Function>::Cast(abort));
+					dd = [func](CAsyncServiceHandler *db, bool canceled) {
+						DBCb cb;
+						cb.Type = eDiscarded;
+						cb.Func = func;
+						cb.Buffer = CScopeUQueue::Lock();
+						PAsyncDBHandler ash = (PAsyncDBHandler)db;
+						*cb.Buffer << ash << canceled;
+						CAutoLock al(ash->m_csDB);
+						ash->m_deqDBCb.push_back(cb);
+						int fail = uv_async_send(&ash->m_typeDB);
+						assert(!fail);
+					};
+				}
+				else if (!abort->IsNullOrUndefined()) {
+					NJA::ThrowException(isolate, "A callback expected for tracking socket closed or canceled events");
+					bad = true;
+				}
+				return dd;
+			}
+
 		private:
 			static void req_cb(uv_async_t* handle);
 #endif
-
 		};
 	} //namespace ClientSide
 } //namespace SPA

@@ -31,10 +31,7 @@ namespace NJA {
 				QueueCb qcb;
 				qcb.EventType = qeDiscarded;
 				qcb.Func = func;
-				auto cs = aq->GetAttachedClientSocket();
-				bool endian;
-				tagOperationSystem os = cs->GetPeerOs(&endian);
-				qcb.Buffer = CScopeUQueue::Lock(os, endian);
+				qcb.Buffer = CScopeUQueue::Lock();
 				PAQueue ash = (PAQueue)aq;
 				*qcb.Buffer << ash << canceled;
 				CAutoLock al(ash->m_csQ);
@@ -183,14 +180,12 @@ namespace NJA {
 			if (m_rr) {
 				QueueCb qcb;
 				qcb.EventType = qeResultReturned;
-				auto cs = GetAttachedClientSocket();
-				bool endian;
-				tagOperationSystem os = cs->GetPeerOs(&endian);
-				qcb.Buffer = CScopeUQueue::Lock(os, endian);
+				qcb.Buffer = CScopeUQueue::Lock();
 				PAQueue ash = this;
 				*qcb.Buffer << ash << reqId;
 				qcb.Buffer->Push(mc.GetBuffer(), mc.GetSize());
 				qcb.Func = m_rr;
+				mc.SetSize(0);
 				ash->m_deqQCb.push_back(qcb);
 				int fail = uv_async_send(&ash->m_qType);
 				assert(!fail);
@@ -213,10 +208,7 @@ namespace NJA {
 					QueueCb qcb;
 					qcb.EventType = qeGetKeys;
 					qcb.Func = func;
-					auto cs = aq->GetAttachedClientSocket();
-					bool endian;
-					tagOperationSystem os = cs->GetPeerOs(&endian);
-					qcb.Buffer = CScopeUQueue::Lock(os, endian);
+					qcb.Buffer = CScopeUQueue::Lock();
 					PAQueue ash = (PAQueue)aq;
 					*qcb.Buffer << ash << (unsigned int)v.size();
 					for (auto it = v.begin(), end = v.end(); it != end; ++it) {
@@ -254,10 +246,7 @@ namespace NJA {
 					QueueCb qcb;
 					qcb.EventType = qeStartQueueTrans;
 					qcb.Func = func;
-					auto cs = aq->GetAttachedClientSocket();
-					bool endian;
-					tagOperationSystem os = cs->GetPeerOs(&endian);
-					qcb.Buffer = CScopeUQueue::Lock(os, endian);
+					qcb.Buffer = CScopeUQueue::Lock();
 					PAQueue ash = (PAQueue)aq;
 					*qcb.Buffer << ash << errCode;
 					CAutoLock al(ash->m_csQ);
@@ -292,10 +281,7 @@ namespace NJA {
 					QueueCb qcb;
 					qcb.EventType = qeEndQueueTrans;
 					qcb.Func = func;
-					auto cs = aq->GetAttachedClientSocket();
-					bool endian;
-					tagOperationSystem os = cs->GetPeerOs(&endian);
-					qcb.Buffer = CScopeUQueue::Lock(os, endian);
+					qcb.Buffer = CScopeUQueue::Lock();
 					PAQueue ash = (PAQueue)aq;
 					*qcb.Buffer << ash << errCode;
 					CAutoLock al(ash->m_csQ);
@@ -330,10 +316,7 @@ namespace NJA {
 					QueueCb qcb;
 					qcb.EventType = qeCloseQueue;
 					qcb.Func = func;
-					auto cs = aq->GetAttachedClientSocket();
-					bool endian;
-					tagOperationSystem os = cs->GetPeerOs(&endian);
-					qcb.Buffer = CScopeUQueue::Lock(os, endian);
+					qcb.Buffer = CScopeUQueue::Lock();
 					PAQueue ash = (PAQueue)aq;
 					*qcb.Buffer << ash << errCode;
 					CAutoLock al(ash->m_csQ);
@@ -368,10 +351,7 @@ namespace NJA {
 					QueueCb qcb;
 					qcb.EventType = qeFlushQueue;
 					qcb.Func = func;
-					auto cs = aq->GetAttachedClientSocket();
-					bool endian;
-					tagOperationSystem os = cs->GetPeerOs(&endian);
-					qcb.Buffer = CScopeUQueue::Lock(os, endian);
+					qcb.Buffer = CScopeUQueue::Lock();
 					PAQueue ash = (PAQueue)aq;
 					*qcb.Buffer << ash << messageCount << fileSize;
 					CAutoLock al(ash->m_csQ);
@@ -406,10 +386,7 @@ namespace NJA {
 					QueueCb qcb;
 					qcb.EventType = qeDequeue;
 					qcb.Func = func;
-					auto cs = aq->GetAttachedClientSocket();
-					bool endian;
-					tagOperationSystem os = cs->GetPeerOs(&endian);
-					qcb.Buffer = CScopeUQueue::Lock(os, endian);
+					qcb.Buffer = CScopeUQueue::Lock();
 					PAQueue ash = (PAQueue)aq;
 					*qcb.Buffer << ash << messageCount << fileSize << messagesDequeuedInBatch << bytesDequeuedInBatch;
 					CAutoLock al(ash->m_csQ);
@@ -448,10 +425,7 @@ namespace NJA {
 					QueueCb qcb;
 					qcb.EventType = qeEnqueue;
 					qcb.Func = func;
-					auto cs = aq->GetAttachedClientSocket();
-					bool endian;
-					tagOperationSystem os = cs->GetPeerOs(&endian);
-					qcb.Buffer = CScopeUQueue::Lock(os, endian);
+					qcb.Buffer = CScopeUQueue::Lock();
 					PAQueue ash = (PAQueue)aq;
 					*qcb.Buffer << ash << indexMessage;
 					CAutoLock al(ash->m_csQ);
@@ -486,10 +460,7 @@ namespace NJA {
 					QueueCb qcb;
 					qcb.EventType = qeEnqueueBatch;
 					qcb.Func = func;
-					auto cs = aq->GetAttachedClientSocket();
-					bool endian;
-					tagOperationSystem os = cs->GetPeerOs(&endian);
-					qcb.Buffer = CScopeUQueue::Lock(os, endian);
+					qcb.Buffer = CScopeUQueue::Lock();
 					PAQueue ash = (PAQueue)aq;
 					*qcb.Buffer << ash << indexMessage;
 					CAutoLock al(ash->m_csQ);

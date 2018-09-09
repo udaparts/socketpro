@@ -35,6 +35,24 @@ namespace NJA {
 		}
 	}
 
+	bool NJQueue::ToParamArray(NJQueue *obj, CDBVariantArray &vParam) {
+		CDBVariant vt;
+		vParam.clear();
+		if (obj && obj->m_Buffer) {
+			try {
+				SPA::CUQueue &q = *obj->m_Buffer;
+				while (q.GetSize()) {
+					vParam.push_back(vt);
+					q >> vParam.back();
+				}
+			}
+			catch (...) {
+				return false;
+			}
+		}
+		return true;
+	}
+
 	bool NJQueue::IsUQueue(Local<Object> obj) {
 		Isolate* isolate = Isolate::GetCurrent();
 		HandleScope handleScope(isolate); //required for Node 4.x or later

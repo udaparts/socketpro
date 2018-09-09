@@ -51,9 +51,7 @@ namespace SPA {
 						cb.Type = eDiscarded;
 						cb.Func = func;
 						PAsyncServiceHandler h = ash;
-						bool bigEndian;
-						tagOperationSystem os = ash->GetAttachedClientSocket()->GetPeerOs(&bigEndian);
-						cb.Buffer = CScopeUQueue::Lock(os, bigEndian);
+						cb.Buffer = CScopeUQueue::Lock();
 						*cb.Buffer << h << canceled;
 						CAutoLock al(this->m_cs);
 						this->m_deqReqCb.push_back(cb);
@@ -76,9 +74,7 @@ namespace SPA {
 						cb.Type = eException;
 						cb.Func = func;
 						PAsyncServiceHandler h = ash;
-						bool bigEndian;
-						tagOperationSystem os = ash->GetAttachedClientSocket()->GetPeerOs(&bigEndian);
-						cb.Buffer = CScopeUQueue::Lock(os, bigEndian);
+						cb.Buffer = CScopeUQueue::Lock();
 						*cb.Buffer << h << errMsg << errWhere << errCode;
 						CAutoLock al(this->m_cs);
 						this->m_deqReqCb.push_back(cb);
@@ -780,6 +776,97 @@ namespace NJA {
 		break;
 		}
 		return v8::Undefined(isolate);
+	}
+
+	bool ToPInfoArray(Isolate* isolate, const Local<Value> &p0, CParameterInfoArray &vInfo) {
+		vInfo.clear();
+		if (p0->IsArray()) {
+			Local<Array> jsArr = Local<Array>::Cast(p0);
+			unsigned int count = jsArr->Length();
+			for (unsigned int n = 0; n < count; ++n) {
+				auto jsP = jsArr->Get(n);
+				if (!jsP->IsObject()) {
+					ThrowException(isolate, "Invalid parameter meta found");
+					return false;
+				}
+				auto pi = jsP->ToObject();
+				CParameterInfo pInfo;
+				auto v = pi->Get(ToStr(isolate, "Direction"));
+				if (v->IsInt32()) {
+					int d = v->Int32Value();
+					if (d < pdInput || d > pdReturnValue) {
+						ThrowException(isolate, "Bad parameter direction value found");
+						return false;
+					}
+					pInfo.Direction = (tagParameterDirection)d;
+				}
+				else if (!v->IsNullOrUndefined()) {
+					ThrowException(isolate, "An integer value expected for parameter direction");
+					return false;
+				}
+				v = pi->Get(ToStr(isolate, "DataType"));
+				if (v->IsInt32()) {
+					int d = v->Int32Value();
+					pInfo.DataType = (VARTYPE)d;
+				}
+				else if (!v->IsNullOrUndefined()) {
+					ThrowException(isolate, "An integer value expected for parameter data type");
+					return false;
+				}
+				v = pi->Get(ToStr(isolate, "ColumnSize"));
+				if (v->IsInt32()) {
+					int d = v->Int32Value();
+					if (d < -1) {
+						ThrowException(isolate, "Bad parameter column size value found");
+						return false;
+					}
+					pInfo.ColumnSize = (unsigned int)d;
+				}
+				else if (!v->IsNullOrUndefined()) {
+					ThrowException(isolate, "An integer value expected for parameter column size");
+					return false;
+				}
+				v = pi->Get(ToStr(isolate, "Precision"));
+				if (v->IsInt32()) {
+					int d = v->Int32Value();
+					if (d < 0 || d > 64) {
+						ThrowException(isolate, "Bad parameter precision value found");
+						return false;
+					}
+					pInfo.Precision = (unsigned char)d;
+				}
+				else if (!v->IsNullOrUndefined()) {
+					ThrowException(isolate, "An integer value expected for parameter data precision");
+					return false;
+				}
+				v = pi->Get(ToStr(isolate, "Scale"));
+				if (v->IsInt32()) {
+					int d = v->Int32Value();
+					if (d < 0 || d > 64) {
+						ThrowException(isolate, "Bad parameter scale value found");
+						return false;
+					}
+					pInfo.Precision = (unsigned char)d;
+				}
+				else if (!v->IsNullOrUndefined()) {
+					ThrowException(isolate, "An integer value expected for parameter data scale");
+					return false;
+				}
+				v = pi->Get(ToStr(isolate, "ParameterName"));
+				if (v->IsString()) {
+					pInfo.ParameterName = ToStr(v);
+				}
+				else if (!v->IsNullOrUndefined()) {
+					ThrowException(isolate, "An integer value expected for parameter data scale");
+					return false;
+				}
+			}
+		}
+		else if (!p0->IsNullOrUndefined()) {
+			ThrowException(isolate, "An array of parameter meta data expected");
+			return false;
+		}
+		return true;
 	}
 
 	std::atomic_bool g_bSelfSigned = false;

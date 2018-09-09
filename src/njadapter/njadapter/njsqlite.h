@@ -23,9 +23,17 @@ namespace NJA {
 
 		static const SPA::INT64 SECRECT_NUM = 0x7fa0b0ffe0a5;
 		static void New(const FunctionCallbackInfo<Value>& args);
+		static void BeginTrans(const FunctionCallbackInfo<Value>& args);
+		static void Close(const FunctionCallbackInfo<Value>& args);
+		static void EndTrans(const FunctionCallbackInfo<Value>& args);
+		static void Open(const FunctionCallbackInfo<Value>& args);
+		static void Prepare(const FunctionCallbackInfo<Value>& args);
+		static void Execute(const FunctionCallbackInfo<Value>& args);
+		static void ExecuteBatch(const FunctionCallbackInfo<Value>& args);
+		static void IsOpened(const FunctionCallbackInfo<Value>& args);
 
 	private:
 		static Persistent<Function> constructor;
-		SPA::ClientSide::CSqlite *m_sqlite;
+		SPA::ClientSide::CSqlite *m_db;
 	};
 }
