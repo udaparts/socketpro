@@ -219,7 +219,7 @@ namespace NJA {
 				timeout = p->Uint32Value();
 			}
 			else if (!p->IsNullOrUndefined()) {
-				ThrowException(isolate, "A unsigned int value expected");
+				ThrowException(isolate, "An unsigned int value expected");
 				return;
 			}
 			obj->m_socket->SetConnTimeout(timeout);
@@ -245,7 +245,7 @@ namespace NJA {
 				timeout = p->Uint32Value();
 			}
 			else if (!p->IsNullOrUndefined()) {
-				ThrowException(isolate, "A unsigned int valaue expected");
+				ThrowException(isolate, "An unsigned int valaue expected");
 				return;
 			}
 			obj->m_socket->SetRecvTimeout(timeout);

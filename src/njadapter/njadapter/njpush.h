@@ -18,6 +18,10 @@ namespace NJA {
 	private:
 		static const SPA::INT64 SECRECT_NUM = 0x7f1bb0fce4a5;
 		static void New(const FunctionCallbackInfo<Value>& args);
+		static void Publish(const FunctionCallbackInfo<Value>& args);
+		static void Subscribe(const FunctionCallbackInfo<Value>& args);
+		static void Unsubscribe(const FunctionCallbackInfo<Value>& args);
+		static void SendUserMessage(const FunctionCallbackInfo<Value>& args);
 
 	private:
 		static Persistent<Function> constructor;

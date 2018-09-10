@@ -16,10 +16,10 @@ namespace NJA {
 		static bool ToParamArray(NJQueue *obj, SPA::UDB::CDBVariantArray &vParam);
 		static void Init(Local<Object> exports);
 		static Local<Object> New(Isolate* isolate, SPA::PUQueue &q);
+		unsigned int Load(Isolate* isolate, SPA::UDB::CDBVariant &vt);
 		
 	private:
 		void Ensure();
-		unsigned int Load(Isolate* isolate, SPA::UDB::CDBVariant &vt);
 		static const SPA::INT64 SECRECT_NUM = 0x7ff12ff345ff;
 		static void New(const FunctionCallbackInfo<Value>& args);
 		

@@ -69,9 +69,6 @@
     <ClInclude Include="njasyncqueue.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="njmysql.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="njsqlite.h">
       <Filter>Header Files</Filter>
     </ClInclude>

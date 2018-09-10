@@ -179,7 +179,6 @@
     <ClInclude Include="njfile.h" />
     <ClInclude Include="njhandler.h" />
     <ClInclude Include="njhandlerroot.h" />
-    <ClInclude Include="njmysql.h" />
     <ClInclude Include="njobjects.h" />
     <ClInclude Include="njpush.h" />
     <ClInclude Include="njqueue.h" />

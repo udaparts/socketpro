@@ -55,6 +55,7 @@ namespace NJA {
 	std::string ToAStr(const Local<Value> &s);
 	void ThrowException(Isolate* isolate, const char *str);
 	bool ToPInfoArray(Isolate* isolate, const Local<Value> &pInfo, CParameterInfoArray &vInfo);
+	std::vector<unsigned int>ToGroups(const Local<Value>& p);
 
 	extern std::atomic_bool g_bSelfSigned;
 };

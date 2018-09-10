@@ -205,6 +205,14 @@ namespace NJA {
 		isolate->ThrowException(Exception::TypeError(ToStr(isolate, str)));
 	}
 
+	std::vector<unsigned int>ToGroups(const Local<Value>& p) {
+		unsigned int *groups = (unsigned int *)node::Buffer::Data(p);
+		Local<v8::Uint32Array> vInt = Local<v8::Uint32Array>::Cast(p);
+		unsigned int count = (unsigned int)vInt->Length();
+		std::vector<unsigned int> v(groups, groups + count);
+		return v;
+	}
+
 	Local<String> ToStr(Isolate* isolate, const char *str, size_t len) {
 		return String::NewFromUtf8(isolate, str, v8::NewStringType::kNormal, (int)len).ToLocalChecked();
 	}
