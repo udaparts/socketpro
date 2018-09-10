@@ -9,8 +9,6 @@
 #include "njqueue.h"
 #include "njfile.h"
 #include "njasyncqueue.h"
-#include "njodbc.h"
-#include "njmysql.h"
 #include "njsqlite.h"
 #include "njsocket.h"
 
@@ -104,9 +102,7 @@ namespace NJA {
 		unsigned int SvsId;
 		union {
 			SPA::ClientSide::CSocketPool<CAsyncHandler> *Handler;
-			SPA::ClientSide::CSocketPool<SPA::ClientSide::CSqlite> *Sqlite;
-			SPA::ClientSide::CSocketPool<SPA::ClientSide::CMysql> *Mysql;
-			SPA::ClientSide::CSocketPool<COdbc> *Odbc;
+			SPA::ClientSide::CSocketPool<CNjDb> *Db;
 			SPA::ClientSide::CSocketPool<CSFile> *File;
 			SPA::ClientSide::CSocketPool<CAQueue> *Queue;
 		};

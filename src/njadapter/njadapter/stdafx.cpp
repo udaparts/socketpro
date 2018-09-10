@@ -1,9 +1,11 @@
 
 #include "stdafx.h"
 #include "njobjects.h"
+#include "../../../include/sqlite/usqlite.h"
+#include "../../../include/mysql/umysql.h"
+#include "../../../include/odbc/uodbc.h"
 #include "njsqlite.h"
-#include "njmysql.h"
-#include "njodbc.h"
+
 
 namespace SPA {
 	namespace ClientSide {
@@ -110,14 +112,10 @@ namespace SPA {
 					Local<v8::Object> njAsh;
 					unsigned int sid = processor->GetSvsID();
 					switch (sid) {
-					case SPA::Sqlite::sidSqlite:
-						njAsh = NJSqlite::New(isolate, (CSqlite*)processor, true);
-						break;
-					case SPA::Mysql::sidMysql:
-						njAsh = NJMysql::New(isolate, (CMysql*)processor, true);
-						break;
 					case SPA::Odbc::sidOdbc:
-						njAsh = NJOdbc::New(isolate, (COdbc*)processor, true);
+					case SPA::Mysql::sidMysql:
+					case SPA::Sqlite::sidSqlite:
+						njAsh = NJSqlite::New(isolate, (CNjDb*)processor, true);
 						break;
 					case SPA::Queue::sidQueue:
 						njAsh = NJAsyncQueue::New(isolate, (CAQueue*)processor, true);
@@ -188,14 +186,10 @@ namespace SPA {
 			Local<Object> njDB;
 			unsigned int sid = ash->GetSvsID();
 			switch (sid) {
-			case SPA::Sqlite::sidSqlite:
-				njDB = NJSqlite::New(isolate, (CSqlite*)ash, true);
-				break;
-			case SPA::Mysql::sidMysql:
-				njDB = NJMysql::New(isolate, (CMysql*)ash, true);
-				break;
 			case SPA::Odbc::sidOdbc:
-				njDB = NJOdbc::New(isolate, (COdbc*)ash, true);
+			case SPA::Mysql::sidMysql:
+			case SPA::Sqlite::sidSqlite:
+				njDB = NJSqlite::New(isolate, (CNjDb*)ash, true);
 				break;
 			default:
 				assert(false);

@@ -162,8 +162,6 @@
   <ItemGroup>
     <ClInclude Include="..\..\..\include\aclientw.h" />
     <ClInclude Include="..\..\..\include\aqhandler.h" />
-    <ClInclude Include="..\..\..\include\async_mysql.h" />
-    <ClInclude Include="..\..\..\include\async_sqlite.h" />
     <ClInclude Include="..\..\..\include\generalcache.h" />
     <ClInclude Include="..\..\..\include\masterpool.h" />
     <ClInclude Include="..\..\..\include\membuffer.h" />
@@ -183,7 +181,6 @@
     <ClInclude Include="njhandlerroot.h" />
     <ClInclude Include="njmysql.h" />
     <ClInclude Include="njobjects.h" />
-    <ClInclude Include="njodbc.h" />
     <ClInclude Include="njpush.h" />
     <ClInclude Include="njqueue.h" />
     <ClInclude Include="njsocket.h" />
@@ -225,9 +222,7 @@
     <ClCompile Include="njfile.cpp" />
     <ClCompile Include="njhandler.cpp" />
     <ClCompile Include="njhandlerroot.cpp" />
-    <ClCompile Include="njmysql.cpp" />
     <ClCompile Include="njobjects.cpp" />
-    <ClCompile Include="njodbc.cpp" />
     <ClCompile Include="njpush.cpp" />
     <ClCompile Include="njqueue.cpp" />
     <ClCompile Include="njsocket.cpp" />

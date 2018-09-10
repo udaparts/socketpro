@@ -1,5 +1,8 @@
 #include "stdafx.h"
 #include "njobjects.h"
+#include "../../../include/sqlite/usqlite.h"
+#include "../../../include/mysql/umysql.h"
+#include "../../../include/odbc/uodbc.h"
 #include "../../../include/rdbcache.h"
 #include "../../../include/masterpool.h"
 
@@ -11,23 +14,13 @@ namespace NJA {
 	NJSocketPool::NJSocketPool(const wchar_t* defaultDb, unsigned int id, bool autoConn, unsigned int recvTimeout, unsigned int connTimeout)
 		: SvsId(id), m_errSSL(0), m_defaultDb(defaultDb ? defaultDb : L"") {
 		switch (id) {
+		case SPA::Mysql::sidMysql:
+		case SPA::Odbc::sidOdbc:
 		case SPA::Sqlite::sidSqlite:
 			if (m_defaultDb.size())
-				Sqlite = new CSQLMasterPool<false, CSqlite>(m_defaultDb.c_str(), recvTimeout);
+				Db = new CSQLMasterPool<false, CNjDb>(m_defaultDb.c_str(), recvTimeout, id);
 			else
-				Sqlite = new CSocketPool<CSqlite>(autoConn, recvTimeout, connTimeout);
-			break;
-		case SPA::Mysql::sidMysql:
-			if (m_defaultDb.size())
-				Mysql = new CSQLMasterPool<false, CMysql>(m_defaultDb.c_str(), recvTimeout);
-			else
-				Mysql = new CSocketPool<CMysql>(autoConn, recvTimeout, connTimeout);
-			break;
-		case SPA::Odbc::sidOdbc:
-			if (m_defaultDb.size())
-				Odbc = new CSQLMasterPool<false, COdbc>(m_defaultDb.c_str(), recvTimeout);
-			else
-				Odbc = new CSocketPool<COdbc>(autoConn, recvTimeout, connTimeout);
+				Db = new CSocketPool<CNjDb>(autoConn, recvTimeout, connTimeout, id);
 			break;
 		case SPA::Queue::sidQueue:
 			Queue = new CSocketPool<CAQueue>(autoConn, recvTimeout, connTimeout);
@@ -65,13 +58,9 @@ namespace NJA {
 		if (Handler) {
 			switch (SvsId) {
 			case SPA::Sqlite::sidSqlite:
-				delete Sqlite;
-				break;
 			case SPA::Mysql::sidMysql:
-				delete Mysql;
-				break;
 			case SPA::Odbc::sidOdbc:
-				delete Odbc;
+				delete Db;
 				break;
 			case SPA::Queue::sidQueue:
 				delete Queue;
@@ -250,14 +239,10 @@ namespace NJA {
 				Local<Object> njAsh;
 				unsigned int sid = ash->GetSvsID();
 				switch (sid) {
-				case SPA::Sqlite::sidSqlite:
-					njAsh = NJSqlite::New(isolate, (CSqlite*)ash, true);
-					break;
-				case SPA::Mysql::sidMysql:
-					njAsh = NJMysql::New(isolate, (CMysql*)ash, true);
-					break;
 				case SPA::Odbc::sidOdbc:
-					njAsh = NJOdbc::New(isolate, (COdbc*)ash, true);
+				case SPA::Mysql::sidMysql:
+				case SPA::Sqlite::sidSqlite:
+					njAsh = NJSqlite::New(isolate, (CNjDb*)ash, true);
 					break;
 				case SPA::Queue::sidQueue:
 					njAsh = NJAsyncQueue::New(isolate, (CAQueue*)ash, true);
@@ -360,29 +345,16 @@ namespace NJA {
 				}
 			}
 			break;
+			case SPA::Mysql::sidMysql:
 			case SPA::Odbc::sidOdbc:
-			{
-				auto handlers = obj->Odbc->GetAsyncHandlers();
-				for (auto it = handlers.begin(), end = handlers.end(); it != end; ++it, ++index) {
-					v->Set(index, NJOdbc::New(isolate, it->get(), true));
-				}
-			}
-			break;
 			case SPA::Sqlite::sidSqlite:
 			{
-				auto handlers = obj->Sqlite->GetAsyncHandlers();
+				auto handlers = obj->Db->GetAsyncHandlers();
 				for (auto it = handlers.begin(), end = handlers.end(); it != end; ++it, ++index) {
 					v->Set(index, NJSqlite::New(isolate, it->get(), true));
 				}
 			}
 			break;
-			case SPA::Mysql::sidMysql:
-			{
-				auto handlers = obj->Mysql->GetAsyncHandlers();
-				for (auto it = handlers.begin(), end = handlers.end(); it != end; ++it, ++index) {
-					v->Set(index, NJMysql::New(isolate, it->get(), true));
-				}
-			}
 			break;
 			case SPA::SFile::sidFile:
 			{
@@ -593,22 +565,12 @@ namespace NJA {
 				args.GetReturnValue().Set(NJAsyncQueue::New(isolate, p.get(), true));
 			}
 				break;
+			case SPA::Mysql::sidMysql:
 			case SPA::Odbc::sidOdbc:
-			{
-				auto p = obj->Odbc->Lock(timeout);
-				args.GetReturnValue().Set(NJOdbc::New(isolate, p.get(), true));
-			}
-				break;
 			case SPA::Sqlite::sidSqlite:
 			{
-				auto p = obj->Sqlite->Lock(timeout);
+				auto p = obj->Db->Lock(timeout);
 				args.GetReturnValue().Set(NJSqlite::New(isolate, p.get(), true));
-			}
-				break;
-			case SPA::Mysql::sidMysql:
-			{
-				auto p = obj->Mysql->Lock(timeout);
-				args.GetReturnValue().Set(NJMysql::New(isolate, p.get(), true));
 			}
 				break;
 			case SPA::SFile::sidFile:
@@ -638,25 +600,13 @@ namespace NJA {
 					args.GetReturnValue().Set(NJAsyncQueue::New(isolate, p.get(), true));
 			}
 				break;
+			case SPA::Mysql::sidMysql:
 			case SPA::Odbc::sidOdbc:
-			{
-				auto p = obj->Odbc->Seek();
-				if (p)
-					args.GetReturnValue().Set(NJOdbc::New(isolate, p.get(), true));
-			}
-				break;
 			case SPA::Sqlite::sidSqlite:
 			{
-				auto p = obj->Sqlite->Seek();
+				auto p = obj->Db->Seek();
 				if (p)
 					args.GetReturnValue().Set(NJSqlite::New(isolate, p.get(), true));
-			}
-				break;
-			case SPA::Mysql::sidMysql:
-			{
-				auto p = obj->Mysql->Seek();
-				if (p)
-					args.GetReturnValue().Set(NJMysql::New(isolate, p.get(), true));
 			}
 				break;
 			case SPA::SFile::sidFile:
@@ -691,24 +641,12 @@ namespace NJA {
 				}
 					break;
 				case SPA::Odbc::sidOdbc:
-				{
-					auto p = obj->Odbc->SeekByQueue();
-					if (p)
-						args.GetReturnValue().Set(NJOdbc::New(isolate, p.get(), true));
-				}
-					break;
+				case SPA::Mysql::sidMysql:
 				case SPA::Sqlite::sidSqlite:
 				{
-					auto p = obj->Sqlite->SeekByQueue();
+					auto p = obj->Db->SeekByQueue();
 					if (p)
 						args.GetReturnValue().Set(NJSqlite::New(isolate, p.get(), true));
-				}
-					break;
-				case SPA::Mysql::sidMysql:
-				{
-					auto p = obj->Mysql->SeekByQueue();
-					if (p)
-						args.GetReturnValue().Set(NJMysql::New(isolate, p.get(), true));
 				}
 					break;
 				case SPA::SFile::sidFile:
@@ -739,25 +677,13 @@ namespace NJA {
 						args.GetReturnValue().Set(NJAsyncQueue::New(isolate, p.get(), true));
 				}
 					break;
+				case SPA::Mysql::sidMysql:
 				case SPA::Odbc::sidOdbc:
-				{
-					auto p = obj->Odbc->SeekByQueue(qname);
-					if (p)
-						args.GetReturnValue().Set(NJOdbc::New(isolate, p.get(), true));
-				}
-					break;
 				case SPA::Sqlite::sidSqlite:
 				{
-					auto p = obj->Sqlite->SeekByQueue(qname);
+					auto p = obj->Db->SeekByQueue(qname);
 					if (p)
 						args.GetReturnValue().Set(NJSqlite::New(isolate, p.get(), true));
-				}
-					break;
-				case SPA::Mysql::sidMysql:
-				{
-					auto p = obj->Mysql->SeekByQueue(qname);
-					if (p)
-						args.GetReturnValue().Set(NJMysql::New(isolate, p.get(), true));
 				}
 					break;
 				case SPA::SFile::sidFile:

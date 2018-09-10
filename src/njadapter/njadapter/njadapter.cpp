@@ -97,8 +97,6 @@ namespace NJA {
 		NJHandler::Init(exports);
 		NJFile::Init(exports);
 		NJAsyncQueue::Init(exports);
-		NJOdbc::Init(exports);
-		NJMysql::Init(exports);
 		NJSqlite::Init(exports);
 		NJSocket::Init(exports);
 		NJClientQueue::Init(exports);

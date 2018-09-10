@@ -69,9 +69,6 @@
     <ClInclude Include="njasyncqueue.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="njodbc.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="njmysql.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -79,12 +76,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="njsocket.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\include\async_mysql.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\include\async_sqlite.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="sfile.h">
@@ -144,12 +135,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="njasyncqueue.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="njodbc.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="njmysql.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="njsqlite.cpp">

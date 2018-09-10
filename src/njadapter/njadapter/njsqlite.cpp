@@ -7,7 +7,7 @@ namespace NJA {
 
 	Persistent<Function> NJSqlite::constructor;
 
-	NJSqlite::NJSqlite(CSqlite *sqlite) : NJHandlerRoot(sqlite), m_db(sqlite) {
+	NJSqlite::NJSqlite(CNjDb *db) : NJHandlerRoot(db), m_db(db) {
 
 	}
 
@@ -17,7 +17,7 @@ namespace NJA {
 
 	bool NJSqlite::IsValid(Isolate* isolate) {
 		if (!m_db) {
-			ThrowException(isolate, "Async Sqlite handler disposed");
+			ThrowException(isolate, "Async DB handler disposed");
 			return false;
 		}
 		return NJHandlerRoot::IsValid(isolate);
@@ -28,7 +28,7 @@ namespace NJA {
 
 		// Prepare constructor template
 		Local<FunctionTemplate> tpl = FunctionTemplate::New(isolate, New);
-		tpl->SetClassName(ToStr(isolate, "CSqlite"));
+		tpl->SetClassName(ToStr(isolate, "CDb"));
 		tpl->InstanceTemplate()->SetInternalFieldCount(3);
 
 		NJHandlerRoot::Init(exports, tpl);
@@ -36,16 +36,17 @@ namespace NJA {
 		NODE_SET_PROTOTYPE_METHOD(tpl, "BeginTrans", BeginTrans);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "Close", Close);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "EndTrans", EndTrans);
-		NODE_SET_PROTOTYPE_METHOD(tpl, "Open", Open);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "Execute", Execute);
-		NODE_SET_PROTOTYPE_METHOD(tpl, "ExecuteBatch", Execute);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "ExecuteBatch", ExecuteBatch);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "IsOpened", IsOpened);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "Open", Open);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "Prepare", Prepare);
 
 		constructor.Reset(isolate, tpl->GetFunction());
-		exports->Set(ToStr(isolate, "CSqlite"), tpl->GetFunction());
+		exports->Set(ToStr(isolate, "CDb"), tpl->GetFunction());
 	}
 
-	Local<Object> NJSqlite::New(Isolate* isolate, CSqlite *ash, bool setCb) {
+	Local<Object> NJSqlite::New(Isolate* isolate, CNjDb *ash, bool setCb) {
 		SPA::UINT64 ptr = (SPA::UINT64)ash;
 		Local<Value> argv[] = { Boolean::New(isolate, setCb), Number::New(isolate, (double)SECRECT_NUM), Number::New(isolate, (double)ptr) };
 		Local<Context> context = isolate->GetCurrentContext();
@@ -59,7 +60,7 @@ namespace NJA {
 			if (args[0]->IsBoolean() && args[1]->IsNumber() && args[1]->IntegerValue() == SECRECT_NUM && args[2]->IsNumber()) {
 				bool setCb = args[0]->BooleanValue();
 				SPA::INT64 ptr = args[2]->IntegerValue();
-				NJSqlite *obj = new NJSqlite((CSqlite*)ptr);
+				NJSqlite *obj = new NJSqlite((CNjDb*)ptr);
 				obj->Wrap(args.This());
 				args.GetReturnValue().Set(args.This());
 			}
