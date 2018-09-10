@@ -38,6 +38,8 @@ using v8::Int32;
 
 namespace NJA {
 	class NJSocketPool;
+	Local<String> ToStr(Isolate* isolate, const char *str, size_t len = (size_t)INVALID_NUMBER);
+	Local<String> ToStr(Isolate* isolate, const wchar_t *str, size_t len = (size_t)INVALID_NUMBER);
 }
 #endif
 
@@ -86,6 +88,30 @@ namespace SPA {
 
             friend class CAsyncServiceHandler;
         };
+
+#ifdef NODE_JS_ADAPTER_PROJECT
+
+		static CUQueue& operator<<(CUQueue &q, const CMessageSender &ms) {
+			q << ms.UserId << ms.IpAddress << ms.Port << ms.ServiceId << ms.SelfMessage;
+			return q;
+		}
+
+		static Local<Object> ToMessageSender(Isolate *isolate, CUQueue &q) {
+			std::wstring user;
+			std::string ipAddr;
+			unsigned short Port;
+			unsigned int ServiceId;
+			bool SelfMessage;
+			q >> user >> ipAddr >> Port >> ServiceId >> SelfMessage;
+			Local<Object> obj = Object::New(isolate);
+			bool ok = obj->Set(NJA::ToStr(isolate, "UserId"), NJA::ToStr(isolate, user.c_str()));
+			ok = obj->Set(NJA::ToStr(isolate, "IpAddr"), NJA::ToStr(isolate, ipAddr.c_str()));
+			ok = obj->Set(NJA::ToStr(isolate, "Port"), Uint32::New(isolate, Port));
+			ok = obj->Set(NJA::ToStr(isolate, "SvsId"), Number::New(isolate, ServiceId));
+			ok = obj->Set(NJA::ToStr(isolate, "Self"), Boolean::New(isolate, SelfMessage));
+			return obj;
+		}
+#endif		
 
         struct CConnectionContext {
 

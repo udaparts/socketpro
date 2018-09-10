@@ -79,6 +79,7 @@ namespace NJA {
 					bool ok = obj->m_p->Publish(vtMsg, groups.data(), (unsigned int)groups.size());
 					args.GetReturnValue().Set(Boolean::New(isolate, ok));
 				}
+				njq->Release();
 			}
 			else {
 				ThrowException(isolate, "Bad message to be published");
@@ -135,6 +136,7 @@ namespace NJA {
 					bool ok = obj->m_p->SendUserMessage(vtMsg, user.c_str());
 					args.GetReturnValue().Set(Boolean::New(isolate, ok));
 				}
+				njq->Release();
 			}
 			else {
 				ThrowException(isolate, "Bad message to be psent");
