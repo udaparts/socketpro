@@ -117,6 +117,7 @@ namespace NJA {
 		NODE_SET_PROTOTYPE_METHOD(tpl, "setPoolEvent", setPoolEvent);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "setReturned", setResultReturned);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "setAllProcessed", setAllProcessed);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "setPush", setPush);
 
 		constructor.Reset(isolate, tpl->GetFunction());
 		exports->Set(ToStr(isolate, "CSocketPool"), tpl->GetFunction());
@@ -258,16 +259,98 @@ namespace NJA {
 				if (ash) {
 					sid = ash->GetSvsID();
 					switch (se.Se) {
+					case seChatEnter:
+						if (!obj->m_push.IsEmpty()) {
+							Local<String> jsName = ToStr(isolate, "Subscribe");
+							auto sender = ToMessageSender(isolate, *se.QData);
+							CComVariant vt;
+							*se.QData >> vt;
+							assert(!se.QData->GetSize());
+							auto groups = From(isolate, vt);
+							Local<Value> argv[] = { jsName, groups, sender, njAsh };
+							Local<Function> cb = Local<Function>::New(isolate, obj->m_push);
+							cb->Call(isolate->GetCurrentContext(), Null(isolate), 4, argv);
+						}
+						break;
+					case seChatExit:
+						if (!obj->m_push.IsEmpty()) {
+							Local<String> jsName = ToStr(isolate, "Unsubscribe");
+							auto sender = ToMessageSender(isolate, *se.QData);
+							CComVariant vt;
+							*se.QData >> vt;
+							assert(!se.QData->GetSize());
+							auto groups = From(isolate, vt);
+							Local<Value> argv[] = { jsName, groups, sender, njAsh };
+							Local<Function> cb = Local<Function>::New(isolate, obj->m_push);
+							cb->Call(isolate->GetCurrentContext(), Null(isolate), 4, argv);
+						}
+						break;
+					case sePublish:
+						if (!obj->m_push.IsEmpty()) {
+							Local<String> jsName = ToStr(isolate, "Publish");
+							auto sender = ToMessageSender(isolate, *se.QData);
+							CComVariant vt;
+							*se.QData >> vt;
+							auto groups = From(isolate, vt);
+							vt.Clear();
+							*se.QData >> vt;
+							assert(!se.QData->GetSize());
+							auto msg = From(isolate, vt);
+							Local<Value> argv[] = { jsName, groups, msg, sender, njAsh };
+							Local<Function> cb = Local<Function>::New(isolate, obj->m_push);
+							cb->Call(isolate->GetCurrentContext(), Null(isolate), 5, argv);
+						}
+						break;
+					case sePublishEx:
+						if (!obj->m_push.IsEmpty()) {
+							Local<String> jsName = ToStr(isolate, "PublishEx");
+							auto sender = ToMessageSender(isolate, *se.QData);
+							CComVariant vt;
+							*se.QData >> vt;
+							auto groups = From(isolate, vt);
+							unsigned int len = se.QData->GetSize();
+							auto bytes = node::Buffer::New(isolate, (char*)se.QData->GetBuffer(), len).ToLocalChecked();
+							se.QData->SetSize(0);
+							Local<Value> argv[] = { jsName, groups, bytes, sender, njAsh };
+							Local<Function> cb = Local<Function>::New(isolate, obj->m_push);
+							cb->Call(isolate->GetCurrentContext(), Null(isolate), 5, argv);
+						}
+						break;
+					case sePostUserMessage:
+						if (!obj->m_push.IsEmpty()) {
+							Local<String> jsName = ToStr(isolate, "SendMessage");
+							auto sender = ToMessageSender(isolate, *se.QData);
+							CComVariant vt;
+							*se.QData >> vt;
+							auto msg = From(isolate, vt);
+							assert(!se.QData->GetSize());
+							Local<Value> argv[] = { jsName, msg, sender, njAsh };
+							Local<Function> cb = Local<Function>::New(isolate, obj->m_push);
+							cb->Call(isolate->GetCurrentContext(), Null(isolate), 4, argv);
+						}
+						break;
+					case sePostUserMessageEx:
+						if (!obj->m_push.IsEmpty()) {
+							Local<String> jsName = ToStr(isolate, "SendMessageEx");
+							auto sender = ToMessageSender(isolate, *se.QData);
+							unsigned int len = se.QData->GetSize();
+							auto bytes = node::Buffer::New(isolate, (char*)se.QData->GetBuffer(), len).ToLocalChecked();
+							se.QData->SetSize(0);
+							Local<Value> argv[] = { jsName, bytes, sender, njAsh };
+							Local<Function> cb = Local<Function>::New(isolate, obj->m_push);
+							cb->Call(isolate->GetCurrentContext(), Null(isolate), 4, argv);
+						}
+						break;
 					case seAllProcessed:
 						if (!obj->m_ap.IsEmpty()) {
-							Local<Value> argv[2] = { njAsh, jsReqId };
+							Local<Value> argv[] = { njAsh, jsReqId };
 							Local<Function> cb = Local<Function>::New(isolate, obj->m_ap);
 							cb->Call(isolate->GetCurrentContext(), Null(isolate), 2, argv);
 						}
 						break;
 					case seBaseRequestProcessed:
 						if (!obj->m_brp.IsEmpty()) {
-							Local<Value> argv[2] = { njAsh, jsReqId };
+							Local<Value> argv[] = { njAsh, jsReqId };
 							Local<Function> cb = Local<Function>::New(isolate, obj->m_brp);
 							cb->Call(isolate->GetCurrentContext(), Null(isolate), 2, argv);
 						}
@@ -286,7 +369,7 @@ namespace NJA {
 								obj->Release();
 							}
 							else {
-								Local<Value> argv[2] = { njAsh , jsReqId };
+								Local<Value> argv[] = { njAsh , jsReqId };
 								cb->Call(isolate->GetCurrentContext(), Null(isolate), 2, argv);
 							}
 						}
@@ -300,7 +383,7 @@ namespace NJA {
 							Local<String> jsMsg = ToStr(isolate, errMsg.c_str());
 							Local<String> jsWhere = ToStr(isolate, errWhere.c_str());
 							Local<Value> jsCode = Number::New(isolate, errCode);
-							Local<Value> argv[5] = { njAsh, jsReqId, jsMsg, jsCode, jsWhere };
+							Local<Value> argv[] = { njAsh, jsReqId, jsMsg, jsCode, jsWhere };
 							Local<Function> cb = Local<Function>::New(isolate, obj->m_se);
 							cb->Call(isolate->GetCurrentContext(), Null(isolate), 5, argv);
 						}
@@ -564,7 +647,7 @@ namespace NJA {
 				auto p = obj->Queue->Lock(timeout);
 				args.GetReturnValue().Set(NJAsyncQueue::New(isolate, p.get(), true));
 			}
-				break;
+			break;
 			case SPA::Mysql::sidMysql:
 			case SPA::Odbc::sidOdbc:
 			case SPA::Sqlite::sidSqlite:
@@ -572,19 +655,19 @@ namespace NJA {
 				auto p = obj->Db->Lock(timeout);
 				args.GetReturnValue().Set(NJSqlite::New(isolate, p.get(), true));
 			}
-				break;
+			break;
 			case SPA::SFile::sidFile:
 			{
 				auto p = obj->File->Lock(timeout);
 				args.GetReturnValue().Set(NJFile::New(isolate, p.get(), true));
 			}
-				break;
+			break;
 			default:
 			{
 				auto p = obj->Handler->Lock(timeout);
 				args.GetReturnValue().Set(NJHandler::New(isolate, p.get(), true));
 			}
-				break;
+			break;
 			}
 		}
 	}
@@ -599,7 +682,7 @@ namespace NJA {
 				if (p)
 					args.GetReturnValue().Set(NJAsyncQueue::New(isolate, p.get(), true));
 			}
-				break;
+			break;
 			case SPA::Mysql::sidMysql:
 			case SPA::Odbc::sidOdbc:
 			case SPA::Sqlite::sidSqlite:
@@ -608,7 +691,7 @@ namespace NJA {
 				if (p)
 					args.GetReturnValue().Set(NJSqlite::New(isolate, p.get(), true));
 			}
-				break;
+			break;
 			case SPA::SFile::sidFile:
 			{
 				auto p = obj->File->Seek();
@@ -639,7 +722,7 @@ namespace NJA {
 					if (p)
 						args.GetReturnValue().Set(NJAsyncQueue::New(isolate, p.get(), true));
 				}
-					break;
+				break;
 				case SPA::Odbc::sidOdbc:
 				case SPA::Mysql::sidMysql:
 				case SPA::Sqlite::sidSqlite:
@@ -648,7 +731,7 @@ namespace NJA {
 					if (p)
 						args.GetReturnValue().Set(NJSqlite::New(isolate, p.get(), true));
 				}
-					break;
+				break;
 				case SPA::SFile::sidFile:
 				{
 					auto p = obj->File->SeekByQueue();
@@ -676,7 +759,7 @@ namespace NJA {
 					if (p)
 						args.GetReturnValue().Set(NJAsyncQueue::New(isolate, p.get(), true));
 				}
-					break;
+				break;
 				case SPA::Mysql::sidMysql:
 				case SPA::Odbc::sidOdbc:
 				case SPA::Sqlite::sidSqlite:
@@ -685,7 +768,7 @@ namespace NJA {
 					if (p)
 						args.GetReturnValue().Set(NJSqlite::New(isolate, p.get(), true));
 				}
-					break;
+				break;
 				case SPA::SFile::sidFile:
 				{
 					auto p = obj->File->SeekByQueue(qname);
@@ -919,6 +1002,25 @@ namespace NJA {
 			}
 			else {
 				ThrowException(isolate, "A callback expected for tracking event that all requests are processed");
+			}
+		}
+	}
+
+	void NJSocketPool::setPush(const FunctionCallbackInfo<Value>& args) {
+		Isolate* isolate = args.GetIsolate();
+		NJSocketPool* obj = ObjectWrap::Unwrap<NJSocketPool>(args.Holder());
+		if (obj->IsValid(isolate)) {
+			auto p = args[0];
+			if (p->IsFunction()) {
+				SPA::CAutoLock al(obj->m_cs);
+				obj->m_push.Reset(isolate, Local<Function>::Cast(p));
+			}
+			else if (p->IsNullOrUndefined()) {
+				SPA::CAutoLock al(obj->m_cs);
+				obj->m_push.Empty();
+			}
+			else {
+				ThrowException(isolate, "A callback expected for tracking online message from server");
 			}
 		}
 	}

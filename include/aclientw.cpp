@@ -1112,15 +1112,16 @@ namespace SPA
             if (!p)
                 return;
 #ifdef NODE_JS_ADAPTER_PROJECT
+			VARTYPE vt = (VT_ARRAY | VT_UI4);
 			unsigned short reqId = idEnter;
 			NJA::NJSocketPool *pool = (NJA::NJSocketPool *)p->m_asyncType->data;
 			if (!pool)
 				return;
 			CAutoLock al(pool->m_cs);
-			if (pool->m_se.IsEmpty())
+			if (pool->m_push.IsEmpty())
 				return;
 			CUQueue *q = CScopeUQueue::Lock();
-			*q << p->GetCurrentHandler() << reqId << sender << count;
+			*q << p->GetCurrentHandler() << reqId << sender << vt << count;
 			q->Push((const unsigned char*)pGroup, count * sizeof(unsigned int));
 			NJA::SocketEvent se;
 			se.QData = q;
@@ -1141,15 +1142,16 @@ namespace SPA
             if (!p)
                 return;
 #ifdef NODE_JS_ADAPTER_PROJECT
+			VARTYPE vt = (VT_ARRAY | VT_UI4);
 			unsigned short reqId = idExit;
 			NJA::NJSocketPool *pool = (NJA::NJSocketPool *)p->m_asyncType->data;
 			if (!pool)
 				return;
 			CAutoLock al(pool->m_cs);
-			if (pool->m_se.IsEmpty())
+			if (pool->m_push.IsEmpty())
 				return;
 			CUQueue *q = CScopeUQueue::Lock();
-			*q << p->GetCurrentHandler() << reqId << sender << count;
+			*q << p->GetCurrentHandler() << reqId << sender << vt << count;
 			q->Push((const unsigned char*)pGroup, count * sizeof(unsigned int));
 			NJA::SocketEvent se;
 			se.QData = q;
@@ -1169,20 +1171,18 @@ namespace SPA
             CClientSocket *p = Seek(handler);
             if (!p)
                 return;
-			CScopeUQueue sb;
-			sb->Push(pMessage, size);
 #ifdef NODE_JS_ADAPTER_PROJECT
+			VARTYPE vt = (VT_ARRAY | VT_UI4);
 			unsigned short reqId = idSpeak;
 			NJA::NJSocketPool *pool = (NJA::NJSocketPool *)p->m_asyncType->data;
 			if (!pool)
 				return;
 			CAutoLock al(pool->m_cs);
-			if (pool->m_se.IsEmpty())
+			if (pool->m_push.IsEmpty())
 				return;
 			CUQueue *q = CScopeUQueue::Lock();
-			*q << p->GetCurrentHandler() << reqId << sender << count;
+			*q << p->GetCurrentHandler() << reqId << sender << vt << count;
 			q->Push((const unsigned char*)pGroup, count * sizeof(unsigned int));
-			*q << size;
 			q->Push(pMessage, size);
 			NJA::SocketEvent se;
 			se.QData = q;
@@ -1191,6 +1191,8 @@ namespace SPA
 			int fail = uv_async_send(p->m_asyncType);
 			assert(!fail);
 #else
+			CScopeUQueue sb;
+			sb->Push(pMessage, size);
             SPA::UVariant vtMessage;
             sb >> vtMessage;
             CPushImpl &push = p->GetPush();
@@ -1205,17 +1207,17 @@ namespace SPA
             if (!p)
                 return;
 #ifdef NODE_JS_ADAPTER_PROJECT
+			VARTYPE vt = (VT_ARRAY | VT_UI4);
 			unsigned short reqId = idSpeakEx;
 			NJA::NJSocketPool *pool = (NJA::NJSocketPool *)p->m_asyncType->data;
 			if (!pool)
 				return;
 			CAutoLock al(pool->m_cs);
-			if (pool->m_se.IsEmpty())
+			if (pool->m_push.IsEmpty())
 				return;
 			CUQueue *q = CScopeUQueue::Lock();
-			*q << p->GetCurrentHandler() << reqId << sender << count;
+			*q << p->GetCurrentHandler() << reqId << sender << vt << count;
 			q->Push((const unsigned char*)pGroup, count * sizeof(unsigned int));
-			*q << size;
 			q->Push(pMessage, size);
 			NJA::SocketEvent se;
 			se.QData = q;
@@ -1241,18 +1243,16 @@ namespace SPA
             CClientSocket *p = Seek(handler);
             if (!p)
                 return;
-            CScopeUQueue sb;
-            sb->Push(pMessage, size);
 #ifdef NODE_JS_ADAPTER_PROJECT
 			unsigned short reqId = idSendUserMessage;
 			NJA::NJSocketPool *pool = (NJA::NJSocketPool *)p->m_asyncType->data;
 			if (!pool)
 				return;
 			CAutoLock al(pool->m_cs);
-			if (pool->m_se.IsEmpty())
+			if (pool->m_push.IsEmpty())
 				return;
 			CUQueue *q = CScopeUQueue::Lock();
-			*q << p->GetCurrentHandler() << reqId << sender << size;
+			*q << p->GetCurrentHandler() << reqId << sender;
 			q->Push(pMessage, size);
 			NJA::SocketEvent se;
 			se.QData = q;
@@ -1261,6 +1261,8 @@ namespace SPA
 			int fail = uv_async_send(p->m_asyncType);
 			assert(!fail);
 #else
+			CScopeUQueue sb;
+			sb->Push(pMessage, size);
 			SPA::UVariant vtMessage;
             sb >> vtMessage;
             CPushImpl &push = p->GetPush();
@@ -1281,7 +1283,7 @@ namespace SPA
 				return;
 			NJA::SocketEvent se;
 			CAutoLock al(pool->m_cs);
-			if (pool->m_se.IsEmpty())
+			if (pool->m_push.IsEmpty())
 				return;
 			CUQueue *q = CScopeUQueue::Lock();
 			*q << p->GetCurrentHandler() << reqId << sender << size;

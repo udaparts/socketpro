@@ -609,8 +609,7 @@ namespace NJA {
 			return bytes;
 		}
 		case VT_BSTR:
-			assert(false);
-			break;
+			return ToStr(isolate, vt.bstrVal);
 		default:
 		{
 			bool is_array = ((type & VT_ARRAY) == VT_ARRAY);

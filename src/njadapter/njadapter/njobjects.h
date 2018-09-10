@@ -95,6 +95,9 @@ namespace NJA {
 		static void setAllProcessed(const FunctionCallbackInfo<Value>& args);
 		static void setServerException(const FunctionCallbackInfo<Value>& args);
 		static void setBaseRequestProcessed(const FunctionCallbackInfo<Value>& args);
+		static void setPush(const FunctionCallbackInfo<Value>& args);
+
+
 		static void async_cs_cb(uv_async_t* handle); //socket events
 		static void async_cb(uv_async_t* handle); //pool events
 
