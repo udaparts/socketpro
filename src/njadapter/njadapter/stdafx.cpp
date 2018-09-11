@@ -214,10 +214,14 @@ namespace NJA {
 	}
 
 	Local<String> ToStr(Isolate* isolate, const char *str, size_t len) {
+		if (!str)
+			str = "";
 		return String::NewFromUtf8(isolate, str, v8::NewStringType::kNormal, (int)len).ToLocalChecked();
 	}
 
 	Local<String> ToStr(Isolate* isolate, const wchar_t *str, size_t len) {
+		if (!str)
+			str = L"";
 #ifdef WIN32_64
 		return String::NewFromTwoByte(isolate, (const uint16_t *)str, v8::NewStringType::kNormal, (int)len).ToLocalChecked();
 #else
@@ -228,6 +232,8 @@ namespace NJA {
 	}
 
 	Local<String> ToStr(Isolate* isolate, const uint16_t *str, size_t len) {
+		if (!str)
+			str = (const uint16_t *)L"";
 		return String::NewFromTwoByte(isolate, str, v8::NewStringType::kNormal, (int)len).ToLocalChecked();
 	}
 

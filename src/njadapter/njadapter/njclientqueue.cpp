@@ -19,6 +19,7 @@ namespace NJA {
 		tpl->SetClassName(ToStr(isolate, "CClientQueue"));
 		tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
+		//methods
 		NODE_SET_PROTOTYPE_METHOD(tpl, "StartQueue", StartQueue);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "StopQueue", StopQueue);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "AbortJob", AbortJob);
@@ -26,6 +27,8 @@ namespace NJA {
 		NODE_SET_PROTOTYPE_METHOD(tpl, "EndJob", EndJob);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "RemoveByTTL", RemoveByTTL);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "Reset", Reset);
+
+		//properties
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getMessagesInDequeuing", getMessagesInDequeuing);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getMessageCount", getMessageCount);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getSize", getQueueSize);
@@ -262,7 +265,6 @@ namespace NJA {
 		NJClientQueue* obj = ObjectWrap::Unwrap<NJClientQueue>(args.Holder());
 		SPA::UINT64 milliseconds = obj->m_cq->GetLastMessageTime();
 		milliseconds *= 1000;
-		milliseconds += 13596948000000; //2013,1,1
 		args.GetReturnValue().Set(Date::New(isolate, (double)milliseconds));
 	}
 

@@ -34,9 +34,17 @@ namespace NJA {
 		tpl->SetClassName(ToStr(isolate, "CSocket"));
 		tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
+		//methods
 		NODE_SET_PROTOTYPE_METHOD(tpl, "Dispose", Dispose);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "Close", Close);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "Shutdown", Shutdown);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "IgnoreLastRequest", IgnoreLastRequest);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "Cancel", Cancel);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "Echo", DoEcho);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "SetSvrZip", TurnOnZipAtSvr);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "SetSvrZiplevel", SetZipLevelAtSvr);
+		
+		//properties
 		NODE_SET_PROTOTYPE_METHOD(tpl, "setZip", setZip);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getZip", getZip);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "setZipLevel", setZipLevel);
@@ -50,7 +58,6 @@ namespace NJA {
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getSendable", getSendable);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getCert", getCert);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getConnState", getConnState);
-		NODE_SET_PROTOTYPE_METHOD(tpl, "IgnoreLastRequest", IgnoreLastRequest);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getRouteeCount", getRouteeCount);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "isRouting", isRouting);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getReqsQueued", getRequestsInQueue);
@@ -72,10 +79,6 @@ namespace NJA {
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getUserId", getUserId);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getPeerOs", getPeerOs);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getPeerAddr", getPeerAddr);
-		NODE_SET_PROTOTYPE_METHOD(tpl, "Cancel", Cancel);
-		NODE_SET_PROTOTYPE_METHOD(tpl, "Echo", DoEcho);
-		NODE_SET_PROTOTYPE_METHOD(tpl, "SetSvrZip", TurnOnZipAtSvr);
-		NODE_SET_PROTOTYPE_METHOD(tpl, "SetSvrZiplevel", SetZipLevelAtSvr);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getPush", getPush);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getQueue", getQueue);
 
@@ -298,8 +301,12 @@ namespace NJA {
 		Isolate* isolate = args.GetIsolate();
 		NJSocket* obj = ObjectWrap::Unwrap<NJSocket>(args.Holder());
 		if (obj->IsValid(isolate)) {
-			if (obj->m_socket->GetUCert())
+			if (obj->m_socket->GetUCert()) {
 				args.GetReturnValue().Set(NJCert::New(isolate, obj->m_socket->GetUCert(), true));
+			}
+			else {
+				args.GetReturnValue().Set(Null(isolate));
+			}
 		}
 	}
 

@@ -86,15 +86,20 @@ namespace NJA {
 		tpl->SetClassName(ToStr(isolate, "CSocketPool"));
 		tpl->InstanceTemplate()->SetInternalFieldCount(15);
 
-		//Prototype
+		//methods
 		NODE_SET_PROTOTYPE_METHOD(tpl, "Dispose", Dispose);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "CloseAll", DisconnectAll);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "Seek", Seek);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "SeekByQueue", SeekByQueue);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "Shutdown", ShutdownPool);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "Start", StartSocketPool);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "Unlock", Unlock);
+		
+		//properties
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getAsyncHandlers", getAsyncHandlers);
-		//NODE_SET_PROTOTYPE_METHOD(tpl, "getAvg", getAvg);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getConnectedSockets", getConnectedSockets);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getClosedSockets", getDisconnectedSockets);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getIdleSockets", getIdleSockets);
-		NODE_SET_PROTOTYPE_METHOD(tpl, "getLockedSockets", getLockedSockets);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getPoolId", getPoolId);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getSvsId", getSvsId);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getErrCode", getErrCode);
@@ -108,16 +113,14 @@ namespace NJA {
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getTotalSockets", getSocketsPerThread);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getStarted", getStarted);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getThreads", getThreadsCreated);
-		NODE_SET_PROTOTYPE_METHOD(tpl, "Lock", Lock);
-		NODE_SET_PROTOTYPE_METHOD(tpl, "Seek", Seek);
-		NODE_SET_PROTOTYPE_METHOD(tpl, "SeekByQueue", SeekByQueue);
-		NODE_SET_PROTOTYPE_METHOD(tpl, "Shutdown", ShutdownPool);
-		NODE_SET_PROTOTYPE_METHOD(tpl, "Start", StartSocketPool);
-		NODE_SET_PROTOTYPE_METHOD(tpl, "Unlock", Unlock);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "setPoolEvent", setPoolEvent);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "setReturned", setResultReturned);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "setAllProcessed", setAllProcessed);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "setPush", setPush);
+
+		//NODE_SET_PROTOTYPE_METHOD(tpl, "getAvg", getAvg);
+		//NODE_SET_PROTOTYPE_METHOD(tpl, "getLockedSockets", getLockedSockets);
+		//NODE_SET_PROTOTYPE_METHOD(tpl, "Lock", Lock);
 
 		constructor.Reset(isolate, tpl->GetFunction());
 		exports->Set(ToStr(isolate, "CSocketPool"), tpl->GetFunction());

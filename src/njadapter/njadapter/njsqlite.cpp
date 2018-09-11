@@ -33,14 +33,18 @@ namespace NJA {
 
 		NJHandlerRoot::Init(exports, tpl);
 
+		//methods
 		NODE_SET_PROTOTYPE_METHOD(tpl, "BeginTrans", BeginTrans);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "Close", Close);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "EndTrans", EndTrans);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "Execute", Execute);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "ExecuteBatch", ExecuteBatch);
-		NODE_SET_PROTOTYPE_METHOD(tpl, "IsOpened", IsOpened);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "Open", Open);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "Prepare", Prepare);
+
+		//properties
+		NODE_SET_PROTOTYPE_METHOD(tpl, "getDbMS", getMS);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "isOpened", IsOpened);
 
 		constructor.Reset(isolate, tpl->GetFunction());
 		exports->Set(ToStr(isolate, "CDb"), tpl->GetFunction());
@@ -310,6 +314,14 @@ namespace NJA {
 			if (index) {
 				args.GetReturnValue().Set(Boolean::New(isolate, index != INVALID_NUMBER));
 			}
+		}
+	}
+
+	void NJSqlite::getMS(const FunctionCallbackInfo<Value>& args) {
+		Isolate* isolate = args.GetIsolate();
+		NJSqlite* obj = ObjectWrap::Unwrap<NJSqlite>(args.Holder());
+		if (obj->IsValid(isolate)) {
+			args.GetReturnValue().Set(Int32::New(isolate, obj->m_db->GetDBManagementSystem()));
 		}
 	}
 

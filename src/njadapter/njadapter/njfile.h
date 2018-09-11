@@ -22,9 +22,7 @@ namespace NJA {
 
 		static const SPA::INT64 SECRECT_NUM = 0x7fa114ff2345;
 		static void New(const FunctionCallbackInfo<Value>& args);
-
 		static void getFilesQueued(const FunctionCallbackInfo<Value>& args);
-		static void getFileSize(const FunctionCallbackInfo<Value>& args);
 		static void Upload(const FunctionCallbackInfo<Value>& args);
 		static void Download(const FunctionCallbackInfo<Value>& args);
 		static void Exchange(bool download, const FunctionCallbackInfo<Value>& args);

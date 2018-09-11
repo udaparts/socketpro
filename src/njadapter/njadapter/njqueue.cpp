@@ -68,18 +68,7 @@ namespace NJA {
 		tpl->SetClassName(ToStr(isolate, "CUQueue"));
 		tpl->InstanceTemplate()->SetInternalFieldCount(3);
 
-		// Prototype
-		NODE_SET_PROTOTYPE_METHOD(tpl, "Discard", Discard);
-		NODE_SET_PROTOTYPE_METHOD(tpl, "Reset", Empty);
-		NODE_SET_PROTOTYPE_METHOD(tpl, "Empty", Empty);
-		NODE_SET_PROTOTYPE_METHOD(tpl, "Dispose", Empty);
-		NODE_SET_PROTOTYPE_METHOD(tpl, "getSize", getSize);
-		NODE_SET_PROTOTYPE_METHOD(tpl, "setSize", setSize);
-		NODE_SET_PROTOTYPE_METHOD(tpl, "getOS", getOS);
-		NODE_SET_PROTOTYPE_METHOD(tpl, "Realloc", Realloc);
-		NODE_SET_PROTOTYPE_METHOD(tpl, "getBufferSize", getMaxBufferSize);
-		NODE_SET_PROTOTYPE_METHOD(tpl, "UseStrForDec", UseStrForDec);
-
+		//methods
 		NODE_SET_PROTOTYPE_METHOD(tpl, "LoadBool", LoadBoolean);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "LoadByte", LoadByte);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "LoadAChar", LoadAChar);
@@ -120,6 +109,18 @@ namespace NJA {
 		NODE_SET_PROTOTYPE_METHOD(tpl, "SaveUUID", SaveUUID);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "SaveObject", SaveObject);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "Save", SaveByClass);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "Discard", Discard);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "Reset", Empty);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "Empty", Empty);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "Dispose", Empty);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "Realloc", Realloc);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "UseStrForDec", UseStrForDec);
+
+		//properties
+		NODE_SET_PROTOTYPE_METHOD(tpl, "getBufferSize", getMaxBufferSize);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "getSize", getSize);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "setSize", setSize);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "getOS", getOS);
 
 		constructor.Reset(isolate, tpl->GetFunction());
 		exports->Set(ToStr(isolate, "CUQueue"), tpl->GetFunction());
@@ -189,8 +190,11 @@ namespace NJA {
 			obj->m_StrForDec = args[0]->BooleanValue();
 		else if (args[0]->IsNullOrUndefined())
 			obj->m_StrForDec = false;
-		else
+		else {
 			ThrowException(args.GetIsolate(), "A boolean value expected");
+			return;
+		}
+		args.GetReturnValue().Set(Boolean::New(args.GetIsolate(), obj->m_StrForDec));
 	}
 
 	void NJQueue::getSize(const FunctionCallbackInfo<Value>& args) {

@@ -16,6 +16,7 @@ namespace NJA {
 		tpl->SetClassName(ToStr(isolate, "CCert"));
 		tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
+		//method
 		NODE_SET_PROTOTYPE_METHOD(tpl, "Verify", Verify);
 
 		constructor.Reset(isolate, tpl->GetFunction());
@@ -39,6 +40,8 @@ namespace NJA {
 		Local<Context> context = isolate->GetCurrentContext();
 		Local<Function> cons = Local<Function>::New(isolate, constructor);
 		auto jsCert = cons->NewInstance(context, 3, argv).ToLocalChecked();
+		
+		//properties
 		jsCert->Set(ToStr(isolate, "Issuer"), ToStr(isolate, c->Issuer));
 		jsCert->Set(ToStr(isolate, "Subject"), ToStr(isolate, c->Subject));
 		jsCert->Set(ToStr(isolate, "NotBefore"), ToStr(isolate, c->NotBefore));
@@ -50,6 +53,7 @@ namespace NJA {
 		jsCert->Set(ToStr(isolate, "PublicKey"), node::Buffer::New(isolate, (char*)c->PublicKey, c->PKSize).ToLocalChecked());
 		jsCert->Set(ToStr(isolate, "Algorithm"), node::Buffer::New(isolate, (char*)c->Algorithm, c->AlgSize).ToLocalChecked());
 		jsCert->Set(ToStr(isolate, "SerialNumber"), node::Buffer::New(isolate, (char*)c->SerialNumber, c->SNSize).ToLocalChecked());
+
 		return jsCert;
 	}
 

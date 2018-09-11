@@ -33,8 +33,7 @@ namespace NJA {
 
 		NJHandlerRoot::Init(exports, tpl);
 
-		NODE_SET_PROTOTYPE_METHOD(tpl, "getDeqBatchSize", getDequeueBatchSize);
-		NODE_SET_PROTOTYPE_METHOD(tpl, "getEnqNotified", getEnqueueNotified);
+		//methods
 		NODE_SET_PROTOTYPE_METHOD(tpl, "GetKeys", GetKeys);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "StartTrans", StartQueueTrans);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "EndTrans", EndQueueTrans);
@@ -45,6 +44,10 @@ namespace NJA {
 		NODE_SET_PROTOTYPE_METHOD(tpl, "EnqueueBatch", EnqueueBatch);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "BatchMessage", BatchMessage);
 
+		//properties
+		NODE_SET_PROTOTYPE_METHOD(tpl, "getDeqBatchSize", getDequeueBatchSize);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "getEnqNotified", getEnqueueNotified);
+		
 		constructor.Reset(isolate, tpl->GetFunction());
 		exports->Set(ToStr(isolate, "CAsyncQueue"), tpl->GetFunction());
 	}

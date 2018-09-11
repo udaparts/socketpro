@@ -20,6 +20,7 @@ namespace NJA {
 		tpl->SetClassName(ToStr(isolate, "CPush"));
 		tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
+		//methods
 		NODE_SET_PROTOTYPE_METHOD(tpl, "Publish", Publish);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "Subscribe", Subscribe);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "Unsubscribe", Unsubscribe);

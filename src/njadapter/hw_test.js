@@ -4,6 +4,7 @@ const idSayHello = SPA.BaseID.idReservedTwo + 1;
 const idSleep = idSayHello + 1;
 const idEcho = idSleep + 1;
 var p=SPA.CS.newPool(sid);
+p.setQueueName('hwtest');
 p.setPush((name, p0, p1, p2)=>{
 	console.log(name);console.log(p0);console.log(p1);console.log(p2);
 });
@@ -11,6 +12,7 @@ p.setPush((name, p0, p1, p2)=>{
 var cs = SPA.CS;
 p.Start(cs.newCC('localhost',20901,'root','Smash123'),1);
 var hw = p.Seek();
+var cq = hw.getSocket().getQueue();
 
 var buffer = new ArrayBuffer(8);
 var int32View = new Int32Array(buffer);
@@ -106,3 +108,19 @@ async function asyncWait(hw, fName, lName) {
 	console.log(result);
 }
 asyncWait(hw, 'Hillary', 'Clinton');
+console.log(cq.getAvailable());
+console.log(cq.getMessagesInDequeuing());
+console.log(cq.getMessageCount());
+console.log(cq.getSize());
+console.log(cq.getSecure());
+console.log(cq.getFileName());
+console.log(cq.getName());
+console.log(cq.getEnabled());
+console.log(cq.getJobSize());
+console.log(cq.getLastIndex());
+console.log(cq.getShared());
+console.log(cq.getTTL());
+console.log(cq.getStatus());
+console.log(cq.getRoutingIndex());
+console.log(cq.getOptimistic());
+console.log(cq.getLastMessageTime());

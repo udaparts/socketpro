@@ -33,21 +33,24 @@ namespace NJA {
 
 	void NJHandlerRoot::Init(Local<Object> exports, Local<FunctionTemplate> &tpl) {
 		
-		NODE_SET_PROTOTYPE_METHOD(tpl, "getSvsId", getSvsId);
+		//methods
+		NODE_SET_PROTOTYPE_METHOD(tpl, "Dispose", Dispose);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "StartBatching", StartBatching);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "SendRequest", SendRequest);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "AbortBatching", AbortBatching);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "AbortDequeuedMessage", AbortDequeuedMessage);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "CleanCallbacks", CleanCallbacks);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "CommitBatching", CommitBatching);
+
+		//properties
+		NODE_SET_PROTOTYPE_METHOD(tpl, "getSvsId", getSvsId);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getRequestsQueued", getRequestsQueued);
-		NODE_SET_PROTOTYPE_METHOD(tpl, "IsBatching", IsBatching);
-		NODE_SET_PROTOTYPE_METHOD(tpl, "IsDequeuedMessageAborted", IsDequeuedMessageAborted);
-		NODE_SET_PROTOTYPE_METHOD(tpl, "IsDequeuedResult", IsDequeuedResult);
-		NODE_SET_PROTOTYPE_METHOD(tpl, "IsRouteeResult", IsRouteeResult);
-		NODE_SET_PROTOTYPE_METHOD(tpl, "StartBatching", StartBatching);
-		NODE_SET_PROTOTYPE_METHOD(tpl, "SendRequest", SendRequest);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "isBatching", IsBatching);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "isDequeuedMessageAborted", IsDequeuedMessageAborted);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "isDequeuedResult", IsDequeuedResult);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "isRouteeResult", IsRouteeResult);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getSocket", getSocket);
-		NODE_SET_PROTOTYPE_METHOD(tpl, "Dispose", Dispose);
-		NODE_SET_PROTOTYPE_METHOD(tpl, "IsSame", IsSame);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "isSame", IsSame);
 		
 		m_tpl.Reset(exports->GetIsolate(), tpl);
 	}

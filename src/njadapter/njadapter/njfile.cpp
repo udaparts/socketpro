@@ -32,10 +32,12 @@ namespace NJA {
 
 		NJHandlerRoot::Init(exports, tpl);
 
-		NODE_SET_PROTOTYPE_METHOD(tpl, "getFilesQueued", getFilesQueued);
-		//NODE_SET_PROTOTYPE_METHOD(tpl, "getFileSize", getFileSize);
+		//methods
 		NODE_SET_PROTOTYPE_METHOD(tpl, "Upload", Upload);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "Download", Download);
+
+		//property
+		NODE_SET_PROTOTYPE_METHOD(tpl, "getFilesQueued", getFilesQueued);
 
 		constructor.Reset(isolate, tpl->GetFunction());
 		exports->Set(ToStr(isolate, "CAsyncFile"), tpl->GetFunction());
@@ -87,15 +89,6 @@ namespace NJA {
 		NJFile* obj = ObjectWrap::Unwrap<NJFile>(args.Holder());
 		if (obj->IsValid(isolate)) {
 			size_t data = obj->m_file->GetFilesQueued();
-			args.GetReturnValue().Set(Number::New(isolate, (double)data));
-		}
-	}
-
-	void NJFile::getFileSize(const FunctionCallbackInfo<Value>& args) {
-		Isolate* isolate = args.GetIsolate();
-		NJFile* obj = ObjectWrap::Unwrap<NJFile>(args.Holder());
-		if (obj->IsValid(isolate)) {
-			SPA::UINT64 data = obj->m_file->GetFileSize();
 			args.GetReturnValue().Set(Number::New(isolate, (double)data));
 		}
 	}

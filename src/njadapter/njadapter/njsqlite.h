@@ -33,6 +33,7 @@ namespace NJA {
 		static void IsOpened(const FunctionCallbackInfo<Value>& args);
 		static void Open(const FunctionCallbackInfo<Value>& args);
 		static void Prepare(const FunctionCallbackInfo<Value>& args);
+		static void getMS(const FunctionCallbackInfo<Value>& args);
 		
 	private:
 		static Persistent<Function> constructor;

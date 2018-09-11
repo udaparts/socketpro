@@ -1139,11 +1139,6 @@ namespace SPA {
             ::memset(&tm, 0, sizeof (tm));
             tm.tm_year = 113;
             tm.tm_mday = 1;
-#ifdef WIN32_64
-            tm.tm_isdst = 1;
-#else
-            tm.tm_isdst = -1;
-#endif
             return std::mktime(&tm) + ServerCoreLoader.GetLastQueueMessageTime(m_handle);
         }
 
