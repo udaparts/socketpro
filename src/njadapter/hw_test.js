@@ -4,6 +4,10 @@ const idSayHello = SPA.BaseID.idReservedTwo + 1;
 const idSleep = idSayHello + 1;
 const idEcho = idSleep + 1;
 var p=SPA.CS.newPool(sid);
+p.setPush((name, p0, p1, p2)=>{
+	console.log(name);console.log(p0);console.log(p1);console.log(p2);
+});
+
 var cs = SPA.CS;
 p.Start(cs.newCC('localhost',20901,'root','Smash123'),1);
 var hw = p.Seek();

@@ -1286,7 +1286,7 @@ namespace SPA
 			if (pool->m_push.IsEmpty())
 				return;
 			CUQueue *q = CScopeUQueue::Lock();
-			*q << p->GetCurrentHandler() << reqId << sender << size;
+			*q << p->GetCurrentHandler() << reqId << sender;
 			q->Push(pMessage, size);
 			se.QData = q;
 			se.Se = NJA::sePostUserMessageEx;
