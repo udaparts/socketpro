@@ -1,7 +1,0 @@
-D:\cyetest\socketpro\components\uasyncqueue\test_sharp\bin\Release\test_sharp.exe
-D:\cyetest\socketpro\components\uasyncqueue\test_sharp\bin\Release\test_sharp.pdb
-D:\cyetest\socketpro\components\uasyncqueue\test_sharp\bin\Release\SproAdapter.dll
-D:\cyetest\socketpro\components\uasyncqueue\test_sharp\bin\Release\SproAdapter.xml
-D:\cyetest\socketpro\components\uasyncqueue\test_sharp\obj\Release\test_sharp.exe
-D:\cyetest\socketpro\components\uasyncqueue\test_sharp\obj\Release\test_sharp.pdb
-D:\cyetest\socketpro\components\uasyncqueue\test_sharp\obj\Release\test_sharp.csprojResolveAssemblyReference.cache

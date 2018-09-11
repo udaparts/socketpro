@@ -1,6 +1,0 @@
-D:\cyetest\socketpro\components\remotefile\test_sharp\bin\Debug\test_sharp.exe
-D:\cyetest\socketpro\components\remotefile\test_sharp\bin\Debug\test_sharp.pdb
-D:\cyetest\socketpro\components\remotefile\test_sharp\bin\Debug\SproAdapter.dll
-D:\cyetest\socketpro\components\remotefile\test_sharp\bin\Debug\SproAdapter.xml
-D:\cyetest\socketpro\components\remotefile\test_sharp\obj\Debug\test_sharp.exe
-D:\cyetest\socketpro\components\remotefile\test_sharp\obj\Debug\test_sharp.pdb
