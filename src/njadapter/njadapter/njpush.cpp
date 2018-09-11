@@ -71,7 +71,13 @@ namespace NJA {
 			return;
 		}
 		auto groups = ToGroups(p1);
-		if (p0->IsObject()) {
+		if (node::Buffer::HasInstance(p0)) {
+			char *bytes = node::Buffer::Data(p0);
+			size_t len = node::Buffer::Length(p0);
+			bool ok = obj->m_p->PublishEx((const unsigned char*)bytes, (unsigned int)len, groups.data(), (unsigned int)groups.size());
+			args.GetReturnValue().Set(Boolean::New(isolate, ok));
+		}
+		else if (p0->IsObject()) {
 			Local<Object> qObj = p0->ToObject();
 			if (NJQueue::IsUQueue(qObj)) {
 				NJQueue* njq = ObjectWrap::Unwrap<NJQueue>(qObj);
@@ -85,12 +91,6 @@ namespace NJA {
 			else {
 				ThrowException(isolate, "Bad message to be published");
 			}
-		}
-		else if (node::Buffer::HasInstance(p0)) {
-			char *bytes = node::Buffer::Data(p0);
-			size_t len = node::Buffer::Length(p0);
-			bool ok = obj->m_p->PublishEx((const unsigned char*)bytes, (unsigned int)len, groups.data(), (unsigned int)groups.size());
-			args.GetReturnValue().Set(Boolean::New(isolate, ok));
 		}
 		else {
 			ThrowException(isolate, "Bad message to be published");
@@ -123,12 +123,18 @@ namespace NJA {
 		if (p0->IsString()) {
 			user = ToStr(p0);
 		}
-		if (user.size()) {
+		if (!user.size()) {
 			ThrowException(isolate, "A non-empty string expected for user id");
 			return;
 		}
 		auto p1 = args[1];
-		if (p1->IsObject()) {
+		if (node::Buffer::HasInstance(p1)) {
+			char *bytes = node::Buffer::Data(p1);
+			size_t len = node::Buffer::Length(p1);
+			bool ok = obj->m_p->SendUserMessageEx(user.c_str(), (const unsigned char*)bytes, (unsigned int)len);
+			args.GetReturnValue().Set(Boolean::New(isolate, ok));
+		}
+		else if (p1->IsObject()) {
 			Local<Object> qObj = p1->ToObject();
 			if (NJQueue::IsUQueue(qObj)) {
 				NJQueue* njq = ObjectWrap::Unwrap<NJQueue>(qObj);
@@ -142,12 +148,6 @@ namespace NJA {
 			else {
 				ThrowException(isolate, "Bad message to be psent");
 			}
-		}
-		else if (node::Buffer::HasInstance(p1)) {
-			char *bytes = node::Buffer::Data(p1);
-			size_t len = node::Buffer::Length(p1);
-			bool ok = obj->m_p->SendUserMessageEx(user.c_str(), (const unsigned char*)bytes, (unsigned int)len);
-			args.GetReturnValue().Set(Boolean::New(isolate, ok));
 		}
 		else {
 			ThrowException(isolate, "Bad message to be sent");

@@ -66,8 +66,7 @@ namespace NJA {
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getServerPingTime", getServerPingTime);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getEM", getEncryptionMethod);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getSendable", getSendable);
-		NODE_SET_PROTOTYPE_METHOD(tpl, "getErrorCode", getErrorCode);
-		NODE_SET_PROTOTYPE_METHOD(tpl, "getErrorMsg", getErrorMsg);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "getError", getError);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "isConnected", getConnected);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getConnContext", getConnContext);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "isRandom", isRandom);
@@ -409,19 +408,14 @@ namespace NJA {
 		}
 	}
 
-	void NJSocket::getErrorCode(const FunctionCallbackInfo<Value>& args) {
+	void NJSocket::getError(const FunctionCallbackInfo<Value>& args) {
 		Isolate* isolate = args.GetIsolate();
 		NJSocket* obj = ObjectWrap::Unwrap<NJSocket>(args.Holder());
 		if (obj->IsValid(isolate)) {
-			args.GetReturnValue().Set(Int32::New(isolate, obj->m_socket->GetErrorCode()));
-		}
-	}
-
-	void NJSocket::getErrorMsg(const FunctionCallbackInfo<Value>& args) {
-		Isolate* isolate = args.GetIsolate();
-		NJSocket* obj = ObjectWrap::Unwrap<NJSocket>(args.Holder());
-		if (obj->IsValid(isolate)) {
-			args.GetReturnValue().Set(ToStr(isolate, obj->m_socket->GetErrorMsg().c_str()));
+			Local<Object> errObj = Object::New(isolate);
+			errObj->Set(ToStr(isolate, "errCode"), Int32::New(isolate, obj->m_socket->GetErrorCode()));
+			errObj->Set(ToStr(isolate, "errMsg"), ToStr(isolate, obj->m_socket->GetErrorMsg().c_str()));
+			args.GetReturnValue().Set(errObj);
 		}
 	}
 

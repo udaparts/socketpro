@@ -67,9 +67,7 @@ namespace NJA {
 		static void getLockedSockets(const FunctionCallbackInfo<Value>& args);
 		static void getPoolId(const FunctionCallbackInfo<Value>& args);
 		static void getSvsId(const FunctionCallbackInfo<Value>& args);
-		static void getErrCode(const FunctionCallbackInfo<Value>& args);
-		static void getErrMsg(const FunctionCallbackInfo<Value>& args);
-
+		static void getError(const FunctionCallbackInfo<Value>& args);
 		static void getQueueAutoMerge(const FunctionCallbackInfo<Value>& args);
 		static void setQueueAutoMerge(const FunctionCallbackInfo<Value>& args);
 		static void getQueueName(const FunctionCallbackInfo<Value>& args);

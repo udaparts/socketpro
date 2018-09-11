@@ -43,8 +43,7 @@ namespace NJA {
 		static void getCurrSvsId(const FunctionCallbackInfo<Value>& args);
 		static void getServerPingTime(const FunctionCallbackInfo<Value>& args);
 		static void getEncryptionMethod(const FunctionCallbackInfo<Value>& args);
-		static void getErrorCode(const FunctionCallbackInfo<Value>& args);
-		static void getErrorMsg(const FunctionCallbackInfo<Value>& args);
+		static void getError(const FunctionCallbackInfo<Value>& args);
 		static void getConnected(const FunctionCallbackInfo<Value>& args);
 		static void getConnContext(const FunctionCallbackInfo<Value>& args);
 		static void isRandom(const FunctionCallbackInfo<Value>& args);

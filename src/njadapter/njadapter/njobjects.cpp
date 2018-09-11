@@ -96,28 +96,28 @@ namespace NJA {
 		NODE_SET_PROTOTYPE_METHOD(tpl, "Unlock", Unlock);
 		
 		//properties
-		NODE_SET_PROTOTYPE_METHOD(tpl, "getAsyncHandlers", getAsyncHandlers);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "getHandlers", getAsyncHandlers);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getConnectedSockets", getConnectedSockets);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getClosedSockets", getDisconnectedSockets);
-		NODE_SET_PROTOTYPE_METHOD(tpl, "getIdleSockets", getIdleSockets);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getPoolId", getPoolId);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getSvsId", getSvsId);
-		NODE_SET_PROTOTYPE_METHOD(tpl, "getErrCode", getErrCode);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "getError", getError);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getAutoMerge", getQueueAutoMerge);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "setAutoMerge", setQueueAutoMerge);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getQueueName", getQueueName);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "setQueueName", setQueueName);
-		NODE_SET_PROTOTYPE_METHOD(tpl, "getErrMsg", getErrMsg);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getQueues", getQueues);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getSockets", getSockets);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getTotalSockets", getSocketsPerThread);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getStarted", getStarted);
-		NODE_SET_PROTOTYPE_METHOD(tpl, "getThreads", getThreadsCreated);
+		
 		NODE_SET_PROTOTYPE_METHOD(tpl, "setPoolEvent", setPoolEvent);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "setReturned", setResultReturned);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "setAllProcessed", setAllProcessed);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "setPush", setPush);
 
+		//NODE_SET_PROTOTYPE_METHOD(tpl, "getThreads", getThreadsCreated);
+		//NODE_SET_PROTOTYPE_METHOD(tpl, "getIdleSockets", getIdleSockets);
 		//NODE_SET_PROTOTYPE_METHOD(tpl, "getAvg", getAvg);
 		//NODE_SET_PROTOTYPE_METHOD(tpl, "getLockedSockets", getLockedSockets);
 		//NODE_SET_PROTOTYPE_METHOD(tpl, "Lock", Lock);
@@ -165,9 +165,16 @@ namespace NJA {
 			obj->Wrap(args.This());
 			obj->Handler->DoSslServerAuthentication = [obj](CSocketPool<CAsyncHandler> *pool, SPA::ClientSide::CClientSocket *cs)->bool {
 				IUcert *cert = cs->GetUCert();
+				SPA::CAutoLock al(obj->m_cs);
+				if (!cert->Validity) {
+					obj->m_errMsg = "Certificate not valid";
+					obj->m_errSSL = -1;
+					return false;
+				}
 				obj->m_errMsg = cert->Verify(&obj->m_errSSL);
 				return (obj->m_errSSL == 0); //true -- user id and password will be sent to server
 			};
+
 			obj->Handler->SocketPoolEvent = [obj](CSocketPool<CAsyncHandler> *pool, tagSocketPoolEvent spe, CAsyncHandler *handler) {
 				switch (spe) {
 				case SPA::ClientSide::speUSocketCreated:
@@ -524,17 +531,15 @@ namespace NJA {
 		}
 	}
 
-	void NJSocketPool::getErrCode(const FunctionCallbackInfo<Value>& args) {
+	void NJSocketPool::getError(const FunctionCallbackInfo<Value>& args) {
 		Isolate* isolate = args.GetIsolate();
 		NJSocketPool* obj = ObjectWrap::Unwrap<NJSocketPool>(args.Holder());
-		int data = obj->m_errSSL;
-		args.GetReturnValue().Set(Int32::New(isolate, data));
-	}
-
-	void NJSocketPool::getErrMsg(const FunctionCallbackInfo<Value>& args) {
-		Isolate* isolate = args.GetIsolate();
-		NJSocketPool* obj = ObjectWrap::Unwrap<NJSocketPool>(args.Holder());
-		args.GetReturnValue().Set(ToStr(isolate, obj->m_errMsg.c_str()));
+		Local<Object> errObj = Object::New(isolate);
+		obj->m_cs.lock();
+		errObj->Set(ToStr(isolate, "errCode"), Int32::New(isolate, obj->m_errSSL));
+		errObj->Set(ToStr(isolate, "errMsg"), ToStr(isolate, obj->m_errMsg.c_str()));
+		obj->m_cs.unlock();
+		args.GetReturnValue().Set(errObj);
 	}
 
 	void NJSocketPool::getQueueAutoMerge(const FunctionCallbackInfo<Value>& args) {
@@ -929,17 +934,15 @@ namespace NJA {
 				vCCs.push_back(*it);
 			}
 		}
+		obj->m_errSSL = 0;
+		obj->m_errMsg.clear();
 		typedef CConnectionContext* PCConnectionContext;
 		PCConnectionContext ppCCs[] = { vCCs.data() };
 		bool ok = obj->Handler->StartSocketPool(ppCCs, 1, sessions, true, SPA::tagThreadApartment::taNone);
-		if (!ok) {
+		if (!ok && !obj->m_errSSL) {
 			auto cs = obj->Handler->GetSockets()[0];
 			obj->m_errSSL = cs->GetErrorCode();
 			obj->m_errMsg = cs->GetErrorMsg();
-		}
-		else {
-			obj->m_errSSL = 0;
-			obj->m_errMsg.clear();
 		}
 		args.GetReturnValue().Set(Boolean::New(isolate, ok));
 	}
