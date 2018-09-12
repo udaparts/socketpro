@@ -1,4 +1,5 @@
 var SPA=require('nja.js');
+SPA.CS.TLS.setCA('C:\\cyetest\\socketpro\\bin\\ca.cert.pem');
 const sid = SPA.SID.sidReserved + 1;
 const idSayHello = SPA.BaseID.idReservedTwo + 1;
 const idSleep = idSayHello + 1;
@@ -9,7 +10,10 @@ p.setPush((name, p0, p1, p2)=>{
 	console.log(name);console.log(p0);console.log(p1);console.log(p2);
 });
 var cs = SPA.CS;
-p.Start(cs.newCC('localhost',20901,'root','Smash123'),1);
+if (!p.Start(cs.newCC('localhost',20901,'root','Smash123',1),1)) {
+	console.log(p.getError());
+	return;
+}
 var hw = p.Seek();
 var push = hw.getSocket().getPush();
 var buffer = new ArrayBuffer(8);

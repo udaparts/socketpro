@@ -1986,7 +1986,9 @@ namespace SPA {
                     //we build connections asynchronously for all the sockets except the very first one
                     if (first) {
                         m_cs.unlock();
-                        ok = (ClientCoreLoader.Connect(h, cs->m_cc.Host.c_str(), cs->m_cc.Port, true, cs->m_cc.V6) && ClientCoreLoader.WaitAll(h, (~0)));
+                        ok = (ClientCoreLoader.Connect(h, cs->m_cc.Host.c_str(), cs->m_cc.Port, true, cs->m_cc.V6) &&
+								ClientCoreLoader.WaitAll(h, (~0)) &&
+								ClientCoreLoader.GetConnectionState(h) > csConnected);
                         m_cs.lock();
                         if (poolId != m_nPoolId || size != m_mapSocketHandler.size()) {
                             //stop here under extremely cases that other threads have just done something 

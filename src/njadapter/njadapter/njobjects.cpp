@@ -172,7 +172,13 @@ namespace NJA {
 					return false;
 				}
 				obj->m_errMsg = cert->Verify(&obj->m_errSSL);
-				return (obj->m_errSSL == 0); //true -- user id and password will be sent to server
+				bool ok = (obj->m_errSSL == 0); //true -- user id and password will be sent to server
+				if (ok) {
+					return true;
+				}
+
+
+				return false;
 			};
 
 			obj->Handler->SocketPoolEvent = [obj](CSocketPool<CAsyncHandler> *pool, tagSocketPoolEvent spe, CAsyncHandler *handler) {
@@ -689,6 +695,8 @@ namespace NJA {
 				auto p = obj->Queue->Seek();
 				if (p)
 					args.GetReturnValue().Set(NJAsyncQueue::New(isolate, p.get(), true));
+				else
+					args.GetReturnValue().SetNull();
 			}
 			break;
 			case SPA::Mysql::sidMysql:
@@ -698,6 +706,8 @@ namespace NJA {
 				auto p = obj->Db->Seek();
 				if (p)
 					args.GetReturnValue().Set(NJSqlite::New(isolate, p.get(), true));
+				else
+					args.GetReturnValue().SetNull();
 			}
 			break;
 			case SPA::SFile::sidFile:
@@ -705,6 +715,8 @@ namespace NJA {
 				auto p = obj->File->Seek();
 				if (p)
 					args.GetReturnValue().Set(NJFile::New(isolate, p.get(), true));
+				else
+					args.GetReturnValue().SetNull();
 			}
 			break;
 			default:
@@ -712,6 +724,8 @@ namespace NJA {
 				auto p = obj->Handler->Seek();
 				if (p)
 					args.GetReturnValue().Set(NJHandler::New(isolate, p.get(), true));
+				else
+					args.GetReturnValue().SetNull();
 			}
 			break;
 			}
@@ -729,6 +743,8 @@ namespace NJA {
 					auto p = obj->Queue->SeekByQueue();
 					if (p)
 						args.GetReturnValue().Set(NJAsyncQueue::New(isolate, p.get(), true));
+					else
+						args.GetReturnValue().SetNull();
 				}
 				break;
 				case SPA::Odbc::sidOdbc:
@@ -738,6 +754,8 @@ namespace NJA {
 					auto p = obj->Db->SeekByQueue();
 					if (p)
 						args.GetReturnValue().Set(NJSqlite::New(isolate, p.get(), true));
+					else
+						args.GetReturnValue().SetNull();
 				}
 				break;
 				case SPA::SFile::sidFile:
@@ -745,6 +763,8 @@ namespace NJA {
 					auto p = obj->File->SeekByQueue();
 					if (p)
 						args.GetReturnValue().Set(NJFile::New(isolate, p.get(), true));
+					else
+						args.GetReturnValue().SetNull();
 				}
 				break;
 				default:
@@ -752,6 +772,8 @@ namespace NJA {
 					auto p = obj->Handler->SeekByQueue();
 					if (p)
 						args.GetReturnValue().Set(NJHandler::New(isolate, p.get(), true));
+					else
+						args.GetReturnValue().SetNull();
 				}
 				break;
 				}
@@ -766,6 +788,8 @@ namespace NJA {
 					auto p = obj->Queue->SeekByQueue(qname);
 					if (p)
 						args.GetReturnValue().Set(NJAsyncQueue::New(isolate, p.get(), true));
+					else
+						args.GetReturnValue().SetNull();
 				}
 				break;
 				case SPA::Mysql::sidMysql:
@@ -775,6 +799,8 @@ namespace NJA {
 					auto p = obj->Db->SeekByQueue(qname);
 					if (p)
 						args.GetReturnValue().Set(NJSqlite::New(isolate, p.get(), true));
+					else
+						args.GetReturnValue().SetNull();
 				}
 				break;
 				case SPA::SFile::sidFile:
@@ -782,6 +808,8 @@ namespace NJA {
 					auto p = obj->File->SeekByQueue(qname);
 					if (p)
 						args.GetReturnValue().Set(NJFile::New(isolate, p.get(), true));
+					else
+						args.GetReturnValue().SetNull();
 				}
 				break;
 				default:
@@ -789,13 +817,14 @@ namespace NJA {
 					auto p = obj->Handler->SeekByQueue(qname);
 					if (p)
 						args.GetReturnValue().Set(NJHandler::New(isolate, p.get(), true));
+					else
+						args.GetReturnValue().SetNull();
 				}
 				break;
 				}
 			}
 			else {
 				ThrowException(isolate, "A string, undefined or null expected");
-				return;
 			}
 		}
 	}
@@ -939,11 +968,16 @@ namespace NJA {
 		typedef CConnectionContext* PCConnectionContext;
 		PCConnectionContext ppCCs[] = { vCCs.data() };
 		bool ok = obj->Handler->StartSocketPool(ppCCs, 1, sessions, true, SPA::tagThreadApartment::taNone);
+		obj->m_cs.lock();
 		if (!ok && !obj->m_errSSL) {
 			auto cs = obj->Handler->GetSockets()[0];
 			obj->m_errSSL = cs->GetErrorCode();
 			obj->m_errMsg = cs->GetErrorMsg();
 		}
+		else if (obj->m_errSSL) {
+			ok = false;
+		}
+		obj->m_cs.unlock();
 		args.GetReturnValue().Set(Boolean::New(isolate, ok));
 	}
 
