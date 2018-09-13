@@ -4,8 +4,9 @@
 #include "aserverw.h"
 #include <algorithm>
 
-namespace SPA {
-    namespace ServerSide {
+namespace SPA
+{
+    namespace ServerSide{
 
         Internal::CServerCoreLoader ServerCoreLoader;
 
@@ -251,7 +252,8 @@ namespace SPA {
         }
 
         std::string CSocketPeer::GetPeerName(unsigned int *port) const {
-            char strIpAddr[128] = {0};
+            char strIpAddr[128] =
+            {0};
             ServerCoreLoader.GetPeerName(m_hHandler, port, strIpAddr, sizeof (strIpAddr));
             return strIpAddr;
         }
@@ -492,11 +494,11 @@ namespace SPA {
             return ServerCoreLoader.SendReturnDataIndex(GetSocketHandle(), callIndex, reqId, size, pResult);
         }
 
-        unsigned int CClientPeer::SendResultIndex(UINT64 callIndex, unsigned short reqId, const CUQueue &mc) const {
+        unsigned int CClientPeer::SendResultIndex(UINT64 callIndex, unsigned short reqId, const CUQueue & mc) const {
             return SendResultIndex(callIndex, reqId, mc.GetBuffer(), mc.GetSize());
         }
 
-        unsigned int CClientPeer::SendResultIndex(UINT64 callIndex, unsigned short reqId, const CScopeUQueue &sb) const {
+        unsigned int CClientPeer::SendResultIndex(UINT64 callIndex, unsigned short reqId, const CScopeUQueue & sb) const {
             return SendResultIndex(callIndex, reqId, sb->GetBuffer(), sb->GetSize());
         }
 
@@ -589,13 +591,19 @@ namespace SPA {
             CSocketPeer *p = pService->Seek(hSocket);
             if (p) {
                 len = p->m_UQueue.GetSize();
-                try {
+                try{
                     p->OnFastRequestArrive(usRequestID, len);
-                } catch (const CUException & err) {
+                }
+
+                catch(const CUException & err) {
                     p->SendExceptionResult(err.what(), err.GetStack().c_str(), (unsigned int) err.GetErrCode(), usRequestID, p->GetCurrentRequestIndex());
-                } catch (const std::exception & err) {
+                }
+
+                catch(const std::exception & err) {
                     p->SendExceptionResult(err.what(), __FUNCTION__, MB_STL_EXCEPTION, usRequestID, p->GetCurrentRequestIndex());
-                } catch (...) {
+                }
+
+                catch(...) {
                     p->SendExceptionResult(L"Unknown exception caught", __FUNCTION__, MB_UNKNOWN_EXCEPTION, usRequestID, p->GetCurrentRequestIndex());
                 }
             }
@@ -640,13 +648,19 @@ namespace SPA {
             CSocketPeer *p = pService->Seek(hSocket);
             if (p) {
                 len = p->m_UQueue.GetSize();
-                try {
+                try{
                     res = p->OnSlowRequestArrive(usRequestID, len);
-                } catch (const SPA::CUException & err) {
+                }
+
+                catch(const SPA::CUException & err) {
                     p->SendExceptionResult(err.what(), err.GetStack().c_str(), (unsigned int) err.GetErrCode(), usRequestID, p->GetCurrentRequestIndex());
-                } catch (const std::exception & err) {
+                }
+
+                catch(const std::exception & err) {
                     p->SendExceptionResult(err.what(), __FUNCTION__, MB_STL_EXCEPTION, usRequestID, p->GetCurrentRequestIndex());
-                } catch (...) {
+                }
+
+                catch(...) {
                     p->SendExceptionResult(L"Unknown exception caught", __FUNCTION__, MB_UNKNOWN_EXCEPTION, usRequestID, p->GetCurrentRequestIndex());
                 }
             }
@@ -1062,7 +1076,8 @@ namespace SPA {
         }
 
         std::wstring CSocketProServer::PushManager::GetAChatGroupDescription(unsigned int groupId) {
-            wchar_t description[4097] = {0};
+            wchar_t description[4097] =
+            {0};
             ServerCoreLoader.GetAChatGroup(groupId, description, sizeof (description) / sizeof (wchar_t));
             return description;
         }
@@ -1393,7 +1408,8 @@ namespace SPA {
         }
 
         std::string CSocketProServer::GetLocalName() {
-            char localname[256] = {0};
+            char localname[256] =
+            {0};
             ServerCoreLoader.GetLocalName(localname, sizeof (localname));
             return localname;
         }
@@ -1403,7 +1419,8 @@ namespace SPA {
         }
 
         void SetLastCallInfo(const char *str, int data, const char *func) {
-            char buff[4097] = {0};
+            char buff[4097] =
+            {0};
 #ifdef WIN32_64
             _snprintf_s(buff, sizeof (buff), sizeof (buff), "lf: %s, what: %s, data: %d", func, str, data);
 #else
@@ -1417,13 +1434,15 @@ namespace SPA {
         }
 
         std::wstring CSocketProServer::CredentialManager::GetUserID(USocket_Server_Handle h) {
-            wchar_t str[256] = {0};
+            wchar_t str[256] =
+            {0};
             ServerCoreLoader.GetUID(h, str, sizeof (str) / sizeof (wchar_t));
             return str;
         }
 
         std::wstring CSocketProServer::CredentialManager::GetPassword(USocket_Server_Handle h) {
-            wchar_t str[256] = {0};
+            wchar_t str[256] =
+            {0};
             ServerCoreLoader.GetPassword(h, str, sizeof (str) / sizeof (wchar_t));
             return str;
         }

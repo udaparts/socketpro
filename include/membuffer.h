@@ -1193,7 +1193,7 @@ namespace SPA {
         bool m_TimeEx;
 #endif
     };
-	typedef CUQueue* PUQueue;
+    typedef CUQueue* PUQueue;
 
     /**
      * Shared and reusable buffer size in kilobytes
@@ -1467,7 +1467,7 @@ namespace SPA {
             m_cs.lock();
             m_aUQueue.push_back(memoryChunk);
             m_cs.unlock();
-			memoryChunk = nullptr;
+            memoryChunk = nullptr;
         }
 
         /**
@@ -1491,11 +1491,11 @@ namespace SPA {
     };
 
 #ifndef NODE_JS_ADAPTER_PROJECT
-	template<unsigned int InitSize, unsigned int BlockSize, typename mb>
-	CUCriticalSection CScopeUQueueEx<InitSize, BlockSize, mb>::m_cs;
+    template<unsigned int InitSize, unsigned int BlockSize, typename mb>
+    CUCriticalSection CScopeUQueueEx<InitSize, BlockSize, mb>::m_cs;
 
-	template<unsigned int InitSize, unsigned int BlockSize, typename mb>
-	std::vector<mb*> CScopeUQueueEx<InitSize, BlockSize, mb>::m_aUQueue;
+    template<unsigned int InitSize, unsigned int BlockSize, typename mb>
+    std::vector<mb*> CScopeUQueueEx<InitSize, BlockSize, mb>::m_aUQueue;
 #endif
 
     typedef CScopeUQueueEx<DEFAULT_INITIAL_MEMORY_BUFFER_SIZE, DEFAULT_MEMORY_BUFFER_BLOCK_SIZE> CScopeUQueue;

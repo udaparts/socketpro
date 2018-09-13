@@ -1,5 +1,5 @@
 var SPA=require('nja.js');
-SPA.CS.TLS.setCA('C:\\cyetest\\socketpro\\bin\\ca.cert.pem');
+SPA.CS.TLS.setCA('root');
 const sid = SPA.SID.sidReserved + 1;
 const idSayHello = SPA.BaseID.idReservedTwo + 1;
 const idSleep = idSayHello + 1;

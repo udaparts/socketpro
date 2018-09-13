@@ -9,9 +9,9 @@ print('Input your user id ......')
 cc = CConnectionContext('localhost', 20901, sys.stdin.readline().strip(), 'MyPassword', tagEncryptionMethod.TLSv1)
 
 #CA file is located at the directory ..\SocketProRoot\bin
-CClientSocket.SSL.SetVerifyLocation('ca.cert.pem')
+CClientSocket.SSL.SetVerifyLocation('ca.cert.pem') #linux
 
-#for windows platforms, you can also use windows system store instead
+#for windows platforms, you can use windows system store instead
 #CClientSocket.SSL.SetVerifyLocation("my"); #or "root", "my@currentuser", "root@localmachine"
 
 with CSocketPool(CHelloWorld) as sp:

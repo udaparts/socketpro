@@ -37,9 +37,9 @@ using v8::HandleScope;
 using v8::Int32;
 
 namespace NJA {
-	class NJSocketPool;
-	Local<String> ToStr(Isolate* isolate, const char *str, size_t len = (size_t)INVALID_NUMBER);
-	Local<String> ToStr(Isolate* isolate, const wchar_t *str, size_t len = (size_t)INVALID_NUMBER);
+    class NJSocketPool;
+    Local<String> ToStr(Isolate* isolate, const char *str, size_t len = (size_t) INVALID_NUMBER);
+    Local<String> ToStr(Isolate* isolate, const wchar_t *str, size_t len = (size_t) INVALID_NUMBER);
 }
 #endif
 
@@ -91,26 +91,26 @@ namespace SPA {
 
 #ifdef NODE_JS_ADAPTER_PROJECT
 
-		static CUQueue& operator<<(CUQueue &q, const CMessageSender &ms) {
-			q << ms.UserId << ms.IpAddress << ms.Port << ms.ServiceId << ms.SelfMessage;
-			return q;
-		}
+        static CUQueue& operator<<(CUQueue &q, const CMessageSender &ms) {
+            q << ms.UserId << ms.IpAddress << ms.Port << ms.ServiceId << ms.SelfMessage;
+            return q;
+        }
 
-		static Local<Object> ToMessageSender(Isolate *isolate, CUQueue &q) {
-			std::wstring user;
-			std::string ipAddr;
-			unsigned short Port;
-			unsigned int ServiceId;
-			bool SelfMessage;
-			q >> user >> ipAddr >> Port >> ServiceId >> SelfMessage;
-			Local<Object> obj = Object::New(isolate);
-			bool ok = obj->Set(NJA::ToStr(isolate, "UserId"), NJA::ToStr(isolate, user.c_str()));
-			ok = obj->Set(NJA::ToStr(isolate, "IpAddr"), NJA::ToStr(isolate, ipAddr.c_str()));
-			ok = obj->Set(NJA::ToStr(isolate, "Port"), Uint32::New(isolate, Port));
-			ok = obj->Set(NJA::ToStr(isolate, "SvsId"), Number::New(isolate, ServiceId));
-			ok = obj->Set(NJA::ToStr(isolate, "Self"), Boolean::New(isolate, SelfMessage));
-			return obj;
-		}
+        static Local<Object> ToMessageSender(Isolate *isolate, CUQueue &q) {
+            std::wstring user;
+            std::string ipAddr;
+            unsigned short Port;
+            unsigned int ServiceId;
+            bool SelfMessage;
+            q >> user >> ipAddr >> Port >> ServiceId >> SelfMessage;
+            Local<Object> obj = Object::New(isolate);
+            bool ok = obj->Set(NJA::ToStr(isolate, "UserId"), NJA::ToStr(isolate, user.c_str()));
+            ok = obj->Set(NJA::ToStr(isolate, "IpAddr"), NJA::ToStr(isolate, ipAddr.c_str()));
+            ok = obj->Set(NJA::ToStr(isolate, "Port"), Uint32::New(isolate, Port));
+            ok = obj->Set(NJA::ToStr(isolate, "SvsId"), Number::New(isolate, ServiceId));
+            ok = obj->Set(NJA::ToStr(isolate, "Self"), Boolean::New(isolate, SelfMessage));
+            return obj;
+        }
 #endif		
 
         struct CConnectionContext {
@@ -444,12 +444,12 @@ namespace SPA {
             friend class CAsyncServiceHandler;
             friend class CPushImpl;
 #ifdef NODE_JS_ADAPTER_PROJECT
-			uv_async_t *m_asyncType;
-			friend class NJA::NJSocketPool;
+            uv_async_t *m_asyncType;
+            friend class NJA::NJSocketPool;
 #endif
         };
 
-		typedef CClientSocket* PClientSocket;
+        typedef CClientSocket* PClientSocket;
 
         class CAsyncServiceHandler {
             SPA::CScopeUQueue m_suCallback;
@@ -1443,27 +1443,29 @@ namespace SPA {
             }
 
 #ifdef NODE_JS_ADAPTER_PROJECT
-		public:
-			virtual SPA::UINT64 SendRequest(Isolate* isolate, int args, Local<Value> *argv, unsigned short reqId, const unsigned char *pBuffer, unsigned int size);
+        public:
+            virtual SPA::UINT64 SendRequest(Isolate* isolate, int args, Local<Value> *argv, unsigned short reqId, const unsigned char *pBuffer, unsigned int size);
 
-		protected:
-			typedef Persistent<Function> CNJFunc;
-			
-		private:
-			enum tagEvent {
-				eResult = 0,
-				eDiscarded,
-				eException
-			};
-			static void req_cb(uv_async_t* handle);
-			struct ReqCb {
-				unsigned short ReqId;
-				tagEvent Type;
-				PUQueue Buffer;
-				std::shared_ptr<CNJFunc> Func;
-			};
-			std::deque<ReqCb> m_deqReqCb; //protected by m_cs;
-			uv_async_t m_typeReq; //SendRequest events
+        protected:
+            typedef Persistent<Function> CNJFunc;
+
+        private:
+
+            enum tagEvent {
+                eResult = 0,
+                eDiscarded,
+                eException
+            };
+            static void req_cb(uv_async_t* handle);
+
+            struct ReqCb {
+                unsigned short ReqId;
+                tagEvent Type;
+                PUQueue Buffer;
+                std::shared_ptr<CNJFunc> Func;
+            };
+            std::deque<ReqCb> m_deqReqCb; //protected by m_cs;
+            uv_async_t m_typeReq; //SendRequest events
 #endif
         private:
             CUCriticalSection m_cs;
@@ -1479,7 +1481,7 @@ namespace SPA {
             friend class CSocketPool; // unbound friend class
         };
 
-		typedef CAsyncServiceHandler* PAsyncServiceHandler;
+        typedef CAsyncServiceHandler* PAsyncServiceHandler;
 
         template<typename THandler, typename TCS = CClientSocket>
         class CSocketPool {
@@ -1681,48 +1683,46 @@ namespace SPA {
                 return h;
             }
 
-			inline void SetAutoConn(bool autoConn) {
-				CAutoLock al(m_cs);
-				m_autoConn = autoConn;
-				for (auto it = m_mapSocketHandler.begin(), end = m_mapSocketHandler.end(); it != end; ++it) {
-					auto cs = it->first;
-					ClientCoreLoader.SetAutoConn(cs->GetHandle(), autoConn);
-				}
-			}
+            inline void SetAutoConn(bool autoConn) {
+                CAutoLock al(m_cs);
+                m_autoConn = autoConn;
+                for (auto it = m_mapSocketHandler.begin(), end = m_mapSocketHandler.end(); it != end; ++it) {
+                    auto cs = it->first;
+                    ClientCoreLoader.SetAutoConn(cs->GetHandle(), autoConn);
+                }
+            }
 
-			inline void SetRecvTimeout(unsigned int recvTimeout) {
-				CAutoLock al(m_cs);
-				if (!m_mapSocketHandler.size()) 					{
-					m_recvTimeout = recvTimeout;
-					if (m_recvTimeout < 1000)
-						m_recvTimeout = 1000;
-				}
-				else {
-					for (auto it = m_mapSocketHandler.begin(), end = m_mapSocketHandler.end(); it != end; ++it) {
-						auto cs = it->first;
-						ClientCoreLoader.SetRecvTimeout(cs->GetHandle(), recvTimeout);
-						if (it == m_mapSocketHandler.begin())
-							m_recvTimeout = ClientCoreLoader.GetRecvTimeout(cs->GetHandle())
-					}
-				}
-			}
+            inline void SetRecvTimeout(unsigned int recvTimeout) {
+                CAutoLock al(m_cs);
+                if (!m_mapSocketHandler.size()) {
+                    m_recvTimeout = recvTimeout;
+                    if (m_recvTimeout < 1000)
+                        m_recvTimeout = 1000;
+                } else {
+                    for (auto it = m_mapSocketHandler.begin(), end = m_mapSocketHandler.end(); it != end; ++it) {
+                        auto cs = it->first;
+                        ClientCoreLoader.SetRecvTimeout(cs->GetHandle(), recvTimeout);
+                        if (it == m_mapSocketHandler.begin())
+                            m_recvTimeout = ClientCoreLoader.GetRecvTimeout(cs->GetHandle())
+                        }
+                }
+            }
 
-			inline void SetConnTimeout(unsigned int connTimeout) {
-				CAutoLock al(m_cs);
-				if (!m_mapSocketHandler.size()) {
-					m_connTimeout = recvTimeout;
-					if (m_connTimeout < 1000)
-						m_connTimeout = 1000;
-				}
-				else {
-					for (auto it = m_mapSocketHandler.begin(), end = m_mapSocketHandler.end(); it != end; ++it) {
-						auto cs = it->first;
-						ClientCoreLoader.SetConnTimeout(cs->GetHandle(), recvTimeout);
-						if (it == m_mapSocketHandler.begin())
-							m_connTimeout = ClientCoreLoader.GetConnTimeout(cs->GetHandle())
-					}
-				}
-			}
+            inline void SetConnTimeout(unsigned int connTimeout) {
+                CAutoLock al(m_cs);
+                if (!m_mapSocketHandler.size()) {
+                    m_connTimeout = recvTimeout;
+                    if (m_connTimeout < 1000)
+                        m_connTimeout = 1000;
+                } else {
+                    for (auto it = m_mapSocketHandler.begin(), end = m_mapSocketHandler.end(); it != end; ++it) {
+                        auto cs = it->first;
+                        ClientCoreLoader.SetConnTimeout(cs->GetHandle(), recvTimeout);
+                        if (it == m_mapSocketHandler.begin())
+                            m_connTimeout = ClientCoreLoader.GetConnTimeout(cs->GetHandle())
+                        }
+                }
+            }
 
             inline bool IsAvg() {
                 CAutoLock al(m_cs);
@@ -1987,8 +1987,8 @@ namespace SPA {
                     if (first) {
                         m_cs.unlock();
                         ok = (ClientCoreLoader.Connect(h, cs->m_cc.Host.c_str(), cs->m_cc.Port, true, cs->m_cc.V6) &&
-								ClientCoreLoader.WaitAll(h, (~0)) &&
-								ClientCoreLoader.GetConnectionState(h) > csConnected);
+                                ClientCoreLoader.WaitAll(h, (~0)) &&
+                                ClientCoreLoader.GetConnectionState(h) > csConnected);
                         m_cs.lock();
                         if (poolId != m_nPoolId || size != m_mapSocketHandler.size()) {
                             //stop here under extremely cases that other threads have just done something 

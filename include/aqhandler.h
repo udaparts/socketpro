@@ -75,7 +75,7 @@ namespace SPA {
                             ar >> s;
                             v.push_back(s);
                         }
-                        gk((CAsyncQueue*)ar.AsyncServiceHandler, v);
+                        gk((CAsyncQueue*) ar.AsyncServiceHandler, v);
                     } else {
                         ar.UQueue.SetSize(0);
                     }
@@ -100,7 +100,7 @@ namespace SPA {
                     if (qt) {
                         int errCode;
                         ar >> errCode;
-                        qt((CAsyncQueue*)ar.AsyncServiceHandler, errCode);
+                        qt((CAsyncQueue*) ar.AsyncServiceHandler, errCode);
                     } else {
                         ar.UQueue.SetSize(0);
                     }
@@ -120,7 +120,7 @@ namespace SPA {
                     if (qt) {
                         int errCode;
                         ar >> errCode;
-                        qt((CAsyncQueue*)ar.AsyncServiceHandler, errCode);
+                        qt((CAsyncQueue*) ar.AsyncServiceHandler, errCode);
                     } else {
                         ar.UQueue.SetSize(0);
                     }
@@ -151,7 +151,7 @@ namespace SPA {
                     if (c) {
                         int errCode;
                         ar >> errCode;
-                        c((CAsyncQueue*)ar.AsyncServiceHandler, errCode);
+                        c((CAsyncQueue*) ar.AsyncServiceHandler, errCode);
                     } else {
                         ar.UQueue.SetSize(0);
                     }
@@ -172,7 +172,7 @@ namespace SPA {
                     if (f) {
                         UINT64 messageCount, fileSize;
                         ar >> messageCount >> fileSize;
-                        f((CAsyncQueue*)ar.AsyncServiceHandler, messageCount, fileSize);
+                        f((CAsyncQueue*) ar.AsyncServiceHandler, messageCount, fileSize);
                     } else {
                         ar.UQueue.SetSize(0);
                     }
@@ -199,7 +199,7 @@ namespace SPA {
                             ar >> messageCount >> fileSize >> ret;
                             unsigned int messages = (unsigned int) ret;
                             unsigned int bytes = (unsigned int) (ret >> 32);
-                            d((CAsyncQueue*)ar.AsyncServiceHandler, messageCount, fileSize, messages, bytes);
+                            d((CAsyncQueue*) ar.AsyncServiceHandler, messageCount, fileSize, messages, bytes);
                         };
                         m_dDequeue = d;
                     } else {
@@ -217,7 +217,7 @@ namespace SPA {
                     rh = [e](CAsyncResult & ar) {
                         UINT64 index;
                         ar >> index;
-                        e((CAsyncQueue*)ar.AsyncServiceHandler, index);
+                        e((CAsyncQueue*) ar.AsyncServiceHandler, index);
                     };
                 }
                 return rh;
@@ -317,24 +317,24 @@ namespace SPA {
             }
 
             bool EnqueueBatch(const char *key, CUQueue &q, DEnqueue e = nullptr, DDiscarded discarded = nullptr) {
-				if (EnqueueBatch(key, q.GetBuffer(), q.GetSize(), e, discarded)) 					{
-					q.SetSize(0);
-					return true;
-				}
-				return false;
+                if (EnqueueBatch(key, q.GetBuffer(), q.GetSize(), e, discarded)) {
+                    q.SetSize(0);
+                    return true;
+                }
+                return false;
             }
 
-			virtual bool EnqueueBatch(const char *key, const unsigned char *buffer, unsigned int size, DEnqueue e = nullptr, DDiscarded discarded = nullptr) {
-				if (!buffer || size < 2 * sizeof(unsigned int) + sizeof(unsigned short)) {
-					//bad operation because no message batched yet!
-					assert(false);
-					return false;
-				}
-				CScopeUQueue sb;
-				sb << key;
-				sb->Push(buffer, size);
-				return SendRequest(Queue::idEnqueueBatch, sb->GetBuffer(), sb->GetSize(), GetRH(e), discarded);
-			}
+            virtual bool EnqueueBatch(const char *key, const unsigned char *buffer, unsigned int size, DEnqueue e = nullptr, DDiscarded discarded = nullptr) {
+                if (!buffer || size < 2 * sizeof (unsigned int) + sizeof (unsigned short)) {
+                    //bad operation because no message batched yet!
+                    assert(false);
+                    return false;
+                }
+                CScopeUQueue sb;
+                sb << key;
+                sb->Push(buffer, size);
+                return SendRequest(Queue::idEnqueueBatch, sb->GetBuffer(), sb->GetSize(), GetRH(e), discarded);
+            }
 
             bool Enqueue(const char *key, unsigned short idMessage, const unsigned char *buffer, unsigned int size, DEnqueue e = nullptr, DDiscarded discarded = nullptr) {
                 CScopeUQueue sb;
@@ -461,8 +461,8 @@ namespace SPA {
              */
             DMessageQueued MessageQueued;
 
-		protected:
-			SPA::CUCriticalSection m_csQ;
+        protected:
+            SPA::CUCriticalSection m_csQ;
 
         private:
             unsigned int m_nBatchSize;

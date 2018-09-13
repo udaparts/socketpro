@@ -27,11 +27,8 @@ Friend Class Program
         Dim cc As New CConnectionContext("localhost", 20901, Console.ReadLine(), "MyPassword", tagEncryptionMethod.TLSv1)
         'Dim cc As New CConnectionContext("localhost", 20901, Console.ReadLine(), "MyPassword")
 
-        'CA file is located at the directory ..\SocketProRoot\bin
-        CClientSocket.SSL.SetVerifyLocation("ca.cert.pem")
-
-        'for windows platforms, you can also use windows system store instead
-        'CClientSocket.SSL.SetVerifyLocation("my"); 'or "root", "my@currentuser", "root@localmachine"
+        'for windows platforms, you can use windows system store instead
+        CClientSocket.SSL.SetVerifyLocation("root") 'or "my", "my@currentuser", "root@localmachine"
 
         Using spHw As New CSocketPool(Of HelloWorld)() 'true -- automatic reconnecting
             AddHandler spHw.DoSslServerAuthentication, Function(sender, cs)

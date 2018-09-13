@@ -119,7 +119,7 @@ namespace SPA {
                 int res;
                 std::wstring errMsg;
                 ar >> res >> errMsg >> fail_ok;
-				COdbc *ash = (COdbc *)ar.AsyncServiceHandler;
+                COdbc *ash = (COdbc *) ar.AsyncServiceHandler;
                 ash->m_csDB.lock();
                 ash->m_lastReqId = reqId;
                 ash->m_affected = 0;
@@ -127,7 +127,7 @@ namespace SPA {
                 ash->m_dbErrMsg = errMsg;
                 auto it = ash->m_mapRowset.find(index);
                 if (it != ash->m_mapRowset.end()) {
-                     ash->m_mapRowset.erase(it);
+                    ash->m_mapRowset.erase(it);
                 }
                 ash->m_csDB.unlock();
                 if (handler) {

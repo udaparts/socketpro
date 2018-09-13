@@ -32,15 +32,13 @@ int main(int argc, char* argv[]) {
 	cc.Password = L"MyPassword";
 	cc.EncrytionMethod = TLSv1;
 
-	//CA file is located at the directory ..\SocketProRoot\bin
-	CClientSocket::SSL::SetVerifyLocation("ca.cert.pem");
-
-	/*
 	//for windows platforms, you can also use windows system store instead
 #ifdef WIN32_64
-	CClientSocket::SSL::SetVerifyLocation("my"); //or "root", "my@currentuser", "root@localmachine"
+	CClientSocket::SSL::SetVerifyLocation("root"); //or "my", "my@currentuser", "root@localmachine"
+#else
+	//CA file is located at the directory ..\SocketProRoot\bin
+	CClientSocket::SSL::SetVerifyLocation("ca.cert.pem"); //linux
 #endif
-	*/
 	typedef CSocketPool<HelloWorld, CClientSocket> CMyPool;
 	CMyPool spHw;
 
