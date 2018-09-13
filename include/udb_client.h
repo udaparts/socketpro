@@ -57,6 +57,9 @@ namespace SPA {
 
             virtual ~CAsyncDBHandler() {
                 CleanCallbacks();
+#ifdef NODE_JS_ADAPTER_PROJECT
+                uv_close((uv_handle_t*) & m_typeDB, nullptr);
+#endif
             }
 
             typedef CAsyncDBHandler* PAsyncDBHandler;
