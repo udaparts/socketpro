@@ -47,6 +47,7 @@ namespace NJA {
 		//properties
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getDeqBatchSize", getDequeueBatchSize);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getEnqNotified", getEnqueueNotified);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "setResultReturned", setResultReturned);
 		
 		constructor.Reset(isolate, tpl->GetFunction());
 		exports->Set(ToStr(isolate, "CAsyncQueue"), tpl->GetFunction());
@@ -334,18 +335,8 @@ namespace NJA {
 				CAsyncQueue::BatchMessage(reqId, (const unsigned char*)nullptr, 0, *obj->m_qBatch);
 				return;
 			}
-			else if (!p1->IsFunction()) {
-				ThrowException(isolate, "A function expected for the 2nd input to serialize data");
-				return;
-			}
-			Local<Function> cb = Local<Function>::Cast(p1);
-			Local<Value> msg = cb->Call(isolate->GetCurrentContext(), Null(isolate), 0, nullptr).ToLocalChecked();
-			if (msg->IsNullOrUndefined()) {
-				CAsyncQueue::BatchMessage(reqId, (const unsigned char*)nullptr, 0, *obj->m_qBatch);
-				return;
-			}
-			else if (msg->IsObject()) {
-				auto qObj = msg->ToObject();
+			else if (p1->IsObject()) {
+				auto qObj = p1->ToObject();
 				if (NJQueue::IsUQueue(qObj)) {
 					NJQueue *njq = ObjectWrap::Unwrap<NJQueue>(qObj);
 					SPA::CUQueue *q = njq->get();
@@ -370,7 +361,7 @@ namespace NJA {
 			std::string key = GetKey(isolate, args[0]);
 			if (!key.size())
 				return;
-			if (obj->m_qBatch || !obj->m_qBatch->GetSize()) {
+			if (!obj->m_qBatch || !obj->m_qBatch->GetSize()) {
 				ThrowException(isolate, "No messages batched yet");
 				CScopeUQueue::Unlock(obj->m_qBatch);
 				return;

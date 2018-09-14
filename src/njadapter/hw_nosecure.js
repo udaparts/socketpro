@@ -1,24 +1,29 @@
+//loading SocketPro adapter (nja.js + njadapter.node) for nodejs
 var SPA=require('nja.js');
-const sid = SPA.SID.sidReserved + 1;
+
+const sid = SPA.SID.sidReserved + 1; //hello world service id
+
+//hello world service supports the following three requests
 const idSayHello = SPA.BaseID.idReservedTwo + 1;
 const idSleep = idSayHello + 1;
 const idEcho = idSleep + 1;
 
-//create a socket pool object and let it be global
-var p=SPA.CS.newPool(sid);
+var cs = SPA.CS; //CS == Client side
+
+//create a global socket pool object
+var p=cs.newPool(sid);
 global.socketpool = p;
 
-p.setQueueName('hwtest');
-p.setPush((name, p0, p1, p2)=>{
-	console.log(name);console.log(p0);console.log(p1);console.log(p2);
-});
-var cs = SPA.CS;
-if (!p.Start(cs.newCC('localhost',20901,'root','Smash123',1),1)) {
+//create a connection context
+var cc = cs.newCC('localhost',20901,'root','Smash123');
+
+//start a socket pool having one session to a remote server
+if (!p.Start(cc,1)) {
 	console.log(p.getError());
 	return;
 }
-var hw = p.Seek();
-var push = hw.getSocket().getPush();
+var hw = p.Seek(); //seek an async hello world handler
+
 var buffer = new ArrayBuffer(8);
 var int32View = new Int32Array(buffer);
 int32View[0] = 1;
@@ -38,6 +43,8 @@ var data = {
 	objArrInt:int32View
 };
 console.log(data);
+
+//streaming all the following five requests without waiting server responses
 
 //serialize and de-serialize a complex structure with a specific order,
 //pay attention to both serialization and de-serialization,
@@ -79,7 +86,7 @@ ok = hw.SendRequest(idSayHello, SPA.newBuffer().SaveString('Mary').SaveString('S
 	console.log(q.LoadString());
 });
 
-//sleep 5000 ms
+//sleep 5000 ms at server side
 ok = hw.SendRequest(idSleep, SPA.newBuffer().SaveInt(5000), q=>{
 	console.log('Sleep returned');
 });
@@ -112,5 +119,6 @@ async function asyncWait(hw, fName, lName) {
 	}
 	console.log(result);
 }
+
+//send a request by use of Promise, async and await
 asyncWait(hw, 'Hillary', 'Clinton');
-push.SendUserMessage('root',new Uint32Array([21,31,1,8]));
