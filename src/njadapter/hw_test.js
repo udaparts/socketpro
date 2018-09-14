@@ -4,7 +4,7 @@ const idSayHello = SPA.BaseID.idReservedTwo + 1;
 const idSleep = idSayHello + 1;
 const idEcho = idSleep + 1;
 
-//create a socket pool object and let it be global
+//create a global socket pool object
 var p=SPA.CS.newPool(sid);
 global.socketpool = p;
 

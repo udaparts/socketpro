@@ -91,7 +91,7 @@ function testDequeue(sq) {
 }
 
 do {
-	b = sq.StartTrans(TEST_QUEUE_KEY, (errCode)=>{console.log('errCode=' + errCode);});
+	b = sq.StartTrans(TEST_QUEUE_KEY);
 	if (!b) break;
 	b = testEnqueue(sq);
 	if (!b) break;
