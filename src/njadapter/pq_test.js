@@ -11,7 +11,7 @@ const TEST_QUEUE_KEY = 'queue_name_0';
 
 var cs = SPA.CS; //CS == Client side
 
-//create a socket pool object and let it be global
+//create a global socket pool object
 var p = cs.newPool(SPA.SID.sidQueue);
 global.socketpool = p;
 
