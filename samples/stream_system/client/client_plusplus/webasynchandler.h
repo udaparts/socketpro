@@ -18,7 +18,7 @@ public:
     bool QueryPaymentMaxMinAvgs(const wchar_t *filter, DMaxMinAvg mma, DMyDiscarded discarded = nullptr);
 
     typedef std::function<void(unsigned int m_connections, unsigned int s_connections) > DConnectedSessions;
-    bool GetMasterSlaveConnectedSessions(DConnectedSessions cs, DMyDiscarded discarded = DMyDiscarded());
+    bool GetMasterSlaveConnectedSessions(DConnectedSessions cs, DMyDiscarded discarded = nullptr);
 
     typedef std::function<void(int res, const std::wstring &errMsg, CInt64Array &vId) > DUploadEmployees;
     bool UploadEmployees(const SPA::UDB::CDBVariantArray &vData, DUploadEmployees res, DMyDiscarded discarded = nullptr);
