@@ -1,4 +1,7 @@
+//loading SocketPro adapter (nja.js + njadapter.node) for nodejs
 var SPA=require('nja.js');
+
+//create a memory buffer or queue for data serialization and de-serialization
 var buf = SPA.newBuffer();
 
 var now = new Date();

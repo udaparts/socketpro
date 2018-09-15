@@ -165,19 +165,23 @@ namespace NJA {
 			obj->Wrap(args.This());
 			obj->Handler->DoSslServerAuthentication = [obj](CSocketPool<CAsyncHandler> *pool, SPA::ClientSide::CClientSocket *cs)->bool {
 				IUcert *cert = cs->GetUCert();
-				SPA::CAutoLock al(obj->m_cs);
-				if (!cert->Validity) {
-					obj->m_errMsg = "Certificate not valid";
-					obj->m_errSSL = -1;
-					return false;
+				{
+					SPA::CAutoLock al(obj->m_cs);
+					if (!cert->Validity) {
+						obj->m_errMsg = "Certificate not valid";
+						obj->m_errSSL = -1;
+						return false;
+					}
+					obj->m_errMsg = cert->Verify(&obj->m_errSSL);
+					bool ok = (obj->m_errSSL == 0);
+					if (ok) {
+						return true;
+					}
 				}
-				obj->m_errMsg = cert->Verify(&obj->m_errSSL);
-				bool ok = (obj->m_errSSL == 0); //true -- user id and password will be sent to server
-				if (ok) {
-					return true;
+				SPA::CAutoLock al(g_cs);
+				if (cert->PKSize && g_KeyAllowed.GetSize() == cert->PKSize) {
+					return (::memcmp(g_KeyAllowed.GetBuffer(), cert->PublicKey, cert->PKSize) == 0);
 				}
-
-
 				return false;
 			};
 

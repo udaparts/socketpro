@@ -14,8 +14,6 @@
 
 #endif
 
-#include <atomic>
-
 #include "dbreqcb.h"
 
 #include <node.h>
@@ -55,8 +53,8 @@ namespace NJA {
 	bool ToPInfoArray(Isolate* isolate, const Local<Value> &pInfo, CParameterInfoArray &vInfo);
 	std::vector<unsigned int>ToGroups(const Local<Value>& p);
 
-	extern std::atomic_bool g_bSelfSigned;
+	extern SPA::CUCriticalSection g_cs;
+	extern SPA::CUQueue g_KeyAllowed;
 };
-
 
 #endif

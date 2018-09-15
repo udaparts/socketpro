@@ -389,8 +389,7 @@ namespace SPA {
                 while (index < m_vContext.size()) {
                     CContext &context = m_vContext[index];
                     if (context.Sent) {
-                        ++index;
-                        continue;
+						return true;
                     }
                     if (context.Uploading && context.Tried && !IsOpened(context)) {
                         if (index == 0) {

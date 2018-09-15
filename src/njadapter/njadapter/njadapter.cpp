@@ -71,29 +71,42 @@ namespace NJA {
 	void EnableSelfSigned(const FunctionCallbackInfo<Value>& args) {
 		auto isolate = args.GetIsolate();
 		auto p0 = args[0];
-		if (p0->IsBoolean()) {
-			g_bSelfSigned = p0->BooleanValue();
+		if (node::Buffer::HasInstance(p0)) {
+			char *bytes = node::Buffer::Data(p0);
+			unsigned int len = (unsigned int)node::Buffer::Length(p0);
+			{
+				SPA::CAutoLock al(g_cs);
+				g_KeyAllowed.SetSize(0);
+				g_KeyAllowed.Push((const unsigned char*)bytes, len);
+			}
 			args.GetReturnValue().Set(p0);
 		}
 		else if (p0->IsNullOrUndefined()) {
-			g_bSelfSigned = false;
-			args.GetReturnValue().Set(Boolean::New(isolate, false));
+			{
+				SPA::CAutoLock al(g_cs);
+				g_KeyAllowed.SetSize(0);
+			}
+			args.GetReturnValue().SetNull();
 		}
 		else {
-			ThrowException(isolate, "A boolean value required");
+			ThrowException(isolate, "A buffer containing an array of bytes expected for a public key");
 		}
 	}
 
 	void InitAll(Local<Object> exports) {
 		NODE_SET_METHOD(exports, "getVersion", GetVersion);
 		NODE_SET_METHOD(exports, "getPools", GetPools);
+#ifndef WIN32_64
 		NODE_SET_METHOD(exports, "setCA", SetVerifyLocation);
+#endif
 		NODE_SET_METHOD(exports, "getWorkingDir", GetWorkingDir);
 		NODE_SET_METHOD(exports, "setWorkingDir", SetWorkingDir);
 		NODE_SET_METHOD(exports, "setPassword", SetMessageQueuePassword);
-		NODE_SET_METHOD(exports, "EnableSelfSigned", EnableSelfSigned);
+		NODE_SET_METHOD(exports, "KeyAllowed", EnableSelfSigned);
 		NJQueue::Init(exports);
 		NJSocketPool::Init(exports);
+
+		//Cannot create following objects from JavaScript code
 		NJHandler::Init(exports);
 		NJFile::Init(exports);
 		NJAsyncQueue::Init(exports);

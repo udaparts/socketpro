@@ -876,5 +876,6 @@ namespace NJA {
 		return true;
 	}
 
-	std::atomic_bool g_bSelfSigned = false;
+	SPA::CUCriticalSection g_cs;
+	SPA::CUQueue g_KeyAllowed;
 }
