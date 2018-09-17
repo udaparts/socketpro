@@ -92,23 +92,7 @@ namespace SPA {
 							CDBColumnInfoArray v;
 							*cb.Buffer >> v;
 							assert(!cb.Buffer->GetSize());
-							Local<Array> jsMeta = Array::New(isolate);
-							unsigned int index = 0;
-							for (auto it = v.begin(), end = v.end(); it != end; ++it, ++index) {
-								Local<Object> meta = Object::New(isolate);
-								ok = meta->Set(ToStr(isolate, "DBPath"), ToStr(isolate, it->DBPath.c_str()));
-								ok = meta->Set(ToStr(isolate, "TablePath"), ToStr(isolate, it->TablePath.c_str()));
-								ok = meta->Set(ToStr(isolate, "DisplayName"), ToStr(isolate, it->DisplayName.c_str()));
-								ok = meta->Set(ToStr(isolate, "OriginalName"), ToStr(isolate, it->OriginalName.c_str()));
-								ok = meta->Set(ToStr(isolate, "DeclaredType"), ToStr(isolate, it->DeclaredType.c_str()));
-								ok = meta->Set(ToStr(isolate, "Collation"), ToStr(isolate, it->Collation.c_str()));
-								ok = meta->Set(ToStr(isolate, "ColumnSize"), Uint32::New(isolate, it->ColumnSize));
-								ok = meta->Set(ToStr(isolate, "Flags"), Uint32::New(isolate, it->Flags));
-								ok = meta->Set(ToStr(isolate, "DataType"), Uint32::New(isolate, it->DataType));
-								ok = meta->Set(ToStr(isolate, "Precision"), Uint32::New(isolate, it->Precision));
-								ok = meta->Set(ToStr(isolate, "Scale"), Uint32::New(isolate, it->Scale));
-								ok = jsMeta->Set(index, meta);
-							}
+							Local<Array> jsMeta = ToMeta(isolate, v);
 							Local<Value> argv[] = { jsMeta, njDB };
 							func->Call(isolate->GetCurrentContext(), Null(isolate), 2, argv);
 						}

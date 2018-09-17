@@ -144,7 +144,7 @@
       <WarningLevel>Level3</WarningLevel>
       <PrecompiledHeader>
       </PrecompiledHeader>
-      <Optimization>Disabled</Optimization>
+      <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>NODE_JS_ADAPTER_PROJECT;_WIN64;NDEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -154,9 +154,9 @@
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
       <AdditionalDependencies>../lib/x64/node.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <OutputFile>d:\cyetest\socketpro\src\njadapter\node_modules\njadapter.node</OutputFile>
+      <OutputFile>c:\cyetest\socketpro\src\njadapter\node_modules\njadapter.node</OutputFile>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -174,6 +174,7 @@
     <ClInclude Include="aqueue.h" />
     <ClInclude Include="dbreqcb.h" />
     <ClInclude Include="njasyncqueue.h" />
+    <ClInclude Include="njcache.h" />
     <ClInclude Include="njcert.h" />
     <ClInclude Include="njclientqueue.h" />
     <ClInclude Include="njfile.h" />
@@ -184,6 +185,7 @@
     <ClInclude Include="njqueue.h" />
     <ClInclude Include="njsocket.h" />
     <ClInclude Include="njsqlite.h" />
+    <ClInclude Include="njtable.h" />
     <ClInclude Include="sfile.h" />
     <ClInclude Include="spincludes.h" />
     <ClInclude Include="stdafx.h" />
@@ -216,6 +218,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="njasyncqueue.cpp" />
+    <ClCompile Include="njcache.cpp" />
     <ClCompile Include="njcert.cpp" />
     <ClCompile Include="njclientqueue.cpp" />
     <ClCompile Include="njfile.cpp" />
@@ -226,6 +229,7 @@
     <ClCompile Include="njqueue.cpp" />
     <ClCompile Include="njsocket.cpp" />
     <ClCompile Include="njsqlite.cpp" />
+    <ClCompile Include="njtable.cpp" />
     <ClCompile Include="sfile.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>

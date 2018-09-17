@@ -2,6 +2,7 @@
 #define __SOCKETPRO_NODEJS_ADAPTER_STDAFX_H__
 
 #include "../../../include/definebase.h"
+#include "../../../include/tablecache.h"
 
 #if defined(WIN32) || defined(_WIN64)
 
@@ -52,6 +53,9 @@ namespace NJA {
 	void ThrowException(Isolate* isolate, const char *str);
 	bool ToPInfoArray(Isolate* isolate, const Local<Value> &pInfo, CParameterInfoArray &vInfo);
 	std::vector<unsigned int>ToGroups(const Local<Value>& p);
+	Local<Array> ToMeta(Isolate* isolate, const CDBColumnInfoArray &v);
+	Local<Array> ToMeta(Isolate* isolate, const SPA::CKeyMap &mapkey);
+
 	int time_offset();
 
 	extern SPA::CUCriticalSection g_cs;

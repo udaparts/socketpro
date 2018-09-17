@@ -99,6 +99,12 @@
     <ClInclude Include="..\..\..\include\udatabase.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="njcache.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="njtable.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -153,6 +159,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="njcert.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="njcache.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="njtable.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

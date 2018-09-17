@@ -4,6 +4,8 @@
 #include "njclientqueue.h"
 #include "njpush.h"
 #include "njcert.h"
+#include "njcache.h"
+#include "njtable.h"
 
 namespace NJA {
 	void GetVersion(const FunctionCallbackInfo<Value>& args) {
@@ -113,6 +115,8 @@ namespace NJA {
 		NJClientQueue::Init(exports);
 		NJPush::Init(exports);
 		NJCert::Init(exports);
+		NJCache::Init(exports);
+		NJTable::Init(exports);
 	}
 	NODE_MODULE(NODE_GYP_MODULE_NAME, InitAll)
 }
