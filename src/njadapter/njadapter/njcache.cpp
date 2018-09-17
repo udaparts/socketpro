@@ -1,6 +1,7 @@
 
 #include "stdafx.h"
 #include "njcache.h"
+#include "njtable.h"
 
 namespace NJA {
 

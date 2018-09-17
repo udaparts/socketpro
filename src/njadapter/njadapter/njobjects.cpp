@@ -5,6 +5,7 @@
 #include "../../../include/odbc/uodbc.h"
 #include "../../../include/rdbcache.h"
 #include "../../../include/masterpool.h"
+#include "njcache.h"
 
 namespace NJA {
 	using v8::Context;
@@ -78,6 +79,35 @@ namespace NJA {
 		}
 	}
 
+	void NJSocketPool::getCache(const FunctionCallbackInfo<Value>& args) {
+		Isolate* isolate = args.GetIsolate();
+		NJSocketPool* obj = ObjectWrap::Unwrap<NJSocketPool>(args.Holder());
+		if (obj->IsValid(isolate)) {
+			switch (obj->SvsId) {
+			case SPA::Mysql::sidMysql:
+			case SPA::Odbc::sidOdbc:
+			case SPA::Sqlite::sidSqlite:
+				if (obj->m_defaultDb.size()) {
+					auto pool = (CSQLMasterPool<false, CNjDb>*) obj->Db;
+					args.GetReturnValue().Set(NJCache::New(isolate, &pool->Cache, true));
+					return;
+				}
+				break;
+			case SPA::Queue::sidQueue:
+			case SPA::SFile::sidFile:
+				break;
+			default:
+				if (obj->m_defaultDb.size()) {
+					auto pool = (CMasterPool<false, CAsyncHandler>*) obj->Handler;
+					args.GetReturnValue().Set(NJCache::New(isolate, &pool->Cache, true));
+					return;
+				}
+				break;
+			}
+			args.GetReturnValue().SetNull();
+		}
+	}
+
 	void NJSocketPool::Init(Local<Object> exports) {
 		Isolate* isolate = exports->GetIsolate();
 
@@ -110,6 +140,7 @@ namespace NJA {
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getSockets", getSockets);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getTotalSockets", getSocketsPerThread);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getStarted", getStarted);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "getCache", getCache);
 		
 		NODE_SET_PROTOTYPE_METHOD(tpl, "setPoolEvent", setPoolEvent);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "setReturned", setResultReturned);

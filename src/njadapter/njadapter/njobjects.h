@@ -77,6 +77,7 @@ namespace NJA {
 		static void getSocketsPerThread(const FunctionCallbackInfo<Value>& args);
 		static void getStarted(const FunctionCallbackInfo<Value>& args);
 		static void getThreadsCreated(const FunctionCallbackInfo<Value>& args);
+		static void getCache(const FunctionCallbackInfo<Value>& args);
 
 		static void Lock(const FunctionCallbackInfo<Value>& args);
 		static void Seek(const FunctionCallbackInfo<Value>& args);
