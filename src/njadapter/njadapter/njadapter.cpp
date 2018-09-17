@@ -68,7 +68,7 @@ namespace NJA {
 		ClientCoreLoader.SetMessageQueuePassword(*str);
 	}
 
-	void EnableSelfSigned(const FunctionCallbackInfo<Value>& args) {
+	void KeyAllowed(const FunctionCallbackInfo<Value>& args) {
 		auto isolate = args.GetIsolate();
 		auto p0 = args[0];
 		if (node::Buffer::HasInstance(p0)) {
@@ -96,13 +96,11 @@ namespace NJA {
 	void InitAll(Local<Object> exports) {
 		NODE_SET_METHOD(exports, "getVersion", GetVersion);
 		NODE_SET_METHOD(exports, "getPools", GetPools);
-#ifndef WIN32_64
 		NODE_SET_METHOD(exports, "setCA", SetVerifyLocation);
-#endif
 		NODE_SET_METHOD(exports, "getWorkingDir", GetWorkingDir);
 		NODE_SET_METHOD(exports, "setWorkingDir", SetWorkingDir);
 		NODE_SET_METHOD(exports, "setPassword", SetMessageQueuePassword);
-		NODE_SET_METHOD(exports, "KeyAllowed", EnableSelfSigned);
+		NODE_SET_METHOD(exports, "setKey", KeyAllowed);
 		NJQueue::Init(exports);
 		NJSocketPool::Init(exports);
 
