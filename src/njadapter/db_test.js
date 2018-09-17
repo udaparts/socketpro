@@ -72,6 +72,8 @@ function TestPreparedStatements(db) {
 	//'f' = float, 'd' == double
 	//'a' = ASCII or UTF8 string. Otherwsie, unicode string
 	//'dec' = decimal
+	//true or false for boolean doesn't require any hint
+	//Buffer for byte array doesn't require any hint
 	
 	//1st set 'i' = int, 'a' = ASCII chars, 'd' = double
 	buff.SaveObject(1, 'i').SaveObject('Google Inc.', 'a').SaveObject('1600 Amphitheatre Parkway, Mountain View, CA 94043, USA').SaveObject(66000000000.15, 'd');
@@ -138,7 +140,6 @@ if (!InsertBLOBByPreparedStatement(db)) {
 	return;
 }
 
-//ok = pMysql->Execute(L"SELECT * from company;select * from employee;select curtime()", er, r, rh);
 if (!db.Execute('SELECT * from company;select * from employee;select curtime()', (res, err, affected, fails, oks, id)=>{
 		console.log({errCode:res, errMsg:err, affected:affected, oks:oks, fails:fails, lastId:id});
 	}, data=>{
