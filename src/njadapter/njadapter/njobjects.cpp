@@ -187,6 +187,11 @@ namespace NJA {
 
 			obj->Handler->SocketPoolEvent = [obj](CSocketPool<CAsyncHandler> *pool, tagSocketPoolEvent spe, CAsyncHandler *handler) {
 				switch (spe) {
+				case SPA::ClientSide::speTimer:
+					g_cs.lock();
+					g_TimeOffset = time_offset();
+					g_cs.unlock();
+					break;
 				case SPA::ClientSide::speUSocketCreated:
 					handler->GetAttachedClientSocket()->m_asyncType = &obj->m_csType;
 					break;

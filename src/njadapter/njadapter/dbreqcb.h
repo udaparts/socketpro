@@ -51,7 +51,7 @@ namespace SPA {
 									v->Set(index, d);
 								}
 							}
-							Local<Value> argv[] = { Boolean::New(isolate, bProc), v, njDB };
+							Local<Value> argv[] = { v, Boolean::New(isolate, bProc), njDB };
 							func->Call(isolate->GetCurrentContext(), Null(isolate), 3, argv);
 						}
 						break;
@@ -70,7 +70,7 @@ namespace SPA {
 							auto njFails = Number::New(isolate, fails);
 							auto njOks = Number::New(isolate, oks);
 							auto njId = From(isolate, vtId);
-							Local<Value> argv[] = { njRes, njMsg, njAffected, njFails, njOks, njId, njDB };
+							Local<Value> argv[] = { njRes, njMsg, njAffected, njOks, njFails, njId, njDB };
 							func->Call(isolate->GetCurrentContext(), Null(isolate), 7, argv);
 						}
 						break;

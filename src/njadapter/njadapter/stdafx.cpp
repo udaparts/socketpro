@@ -201,6 +201,27 @@ namespace SPA {
 }
 
 namespace NJA {
+
+	int time_offset()
+	{
+		time_t gmt, rawtime = time(NULL);
+		struct tm *ptm;
+
+#ifndef WIN32_64
+		struct tm gbuf;
+		ptm = gmtime_r(&rawtime, &gbuf);
+#else
+		ptm = gmtime(&rawtime);
+#endif
+		// Request that mktime() looksup dst in timezone database
+		ptm->tm_isdst = -1;
+		gmt = mktime(ptm);
+
+		return (int)difftime(rawtime, gmt);
+	}
+
+	int g_TimeOffset = time_offset();
+
 	void ThrowException(Isolate* isolate, const char *str) {
 		isolate->ThrowException(Exception::TypeError(ToStr(isolate, str)));
 	}
@@ -214,26 +235,32 @@ namespace NJA {
 	}
 
 	Local<String> ToStr(Isolate* isolate, const char *str, size_t len) {
-		if (!str)
+		if (!str) {
 			str = "";
+			len = 0;
+		}
 		return String::NewFromUtf8(isolate, str, v8::NewStringType::kNormal, (int)len).ToLocalChecked();
 	}
 
 	Local<String> ToStr(Isolate* isolate, const wchar_t *str, size_t len) {
-		if (!str)
+		if (!str) {
 			str = L"";
+			len = 0;
+		}
 #ifdef WIN32_64
-		return String::NewFromTwoByte(isolate, (const uint16_t *)str, v8::NewStringType::kNormal, (int)len).ToLocalChecked();
+		return String::NewFromTwoByte(isolate, (const uint16_t *)str, v8::NewStringType::kInternalized, (int)len).ToLocalChecked(); //v8::NewStringType::kNormal will crash if length is large
 #else
 		SPA::CScopeUQueue sb;
 		SPA::Utilities::ToUTF16(str, len, *sb);
-		return String::NewFromTwoByte(isolate, (const uint16_t *)sb->GetBuffer(), v8::NewStringType::kNormal, (int)sb->GetSize() / sizeof(uint16_t)).ToLocalChecked();
+		return String::NewFromTwoByte(isolate, (const uint16_t *)sb->GetBuffer(), v8::NewStringType::kInternalized, (int)sb->GetSize() / sizeof(uint16_t)).ToLocalChecked();
 #endif
 	}
 
 	Local<String> ToStr(Isolate* isolate, const uint16_t *str, size_t len) {
-		if (!str)
+		if (!str) {
 			str = (const uint16_t *)L"";
+			len = 0;
+		}
 		return String::NewFromTwoByte(isolate, str, v8::NewStringType::kNormal, (int)len).ToLocalChecked();
 	}
 
@@ -257,10 +284,17 @@ namespace NJA {
 		SPA::UDateTime dt(datetime);
 		unsigned int us;
 		std::tm tm = dt.GetCTime(&us);
+		if (!tm.tm_mday) {
+			//time only, convert it to js string
+			return String::NewFromUtf8(isolate, dt.ToDBString().c_str());
+		}
 		double time = (double)std::mktime(&tm);
+		g_cs.lock();
+		time += g_TimeOffset;
+		g_cs.unlock();
 		time *= 1000;
 		time += (us / 1000.0);
-		if (tm.tm_isdst)
+		if (tm.tm_isdst > 0)
 			time -= 3600000;
 		return Date::New(isolate, time);
 	}
@@ -615,7 +649,7 @@ namespace NJA {
 			return bytes;
 		}
 		case VT_BSTR:
-			return ToStr(isolate, vt.bstrVal);
+			return ToStr(isolate, vt.bstrVal, SysStringLen(vt.bstrVal));
 		default:
 		{
 			bool is_array = ((type & VT_ARRAY) == VT_ARRAY);

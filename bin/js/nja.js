@@ -107,13 +107,15 @@ exports.CS={
 	TLS : {
 		setCA : function(caPath) {
 			//set SSL/TLS CA certification store, a static function
-			//return true if successful; Otherwise, false
+			//return true if successful; Otherwise, false.
+
+			//it works only on Linux to a pem file through openssl
 			return SPA.setCA(caPath);
 		},
 		
-		//self signed certificate is disabled by default
-		enableSelfSigned : function(enabled=false) {
-			return SPA.EnableSelfSigned(enabled);
+		//authenticate server certificate by a public key (an array of bytes) in case certificate chain verification failed
+		setKey : function(pk) {
+			return SPA.setKey(pk);
 		}
 	},
 	

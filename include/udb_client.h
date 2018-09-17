@@ -1210,7 +1210,7 @@ namespace SPA {
                         cb.Func = func;
                         cb.Buffer = CScopeUQueue::Lock();
                         PAsyncDBHandler ash = &db;
-                        *cb.Buffer << ash;
+                        *cb.Buffer << ash << db.GetColumnInfo();
                         CAutoLock al(ash->m_csDB);
                         ash->m_deqDBCb.push_back(cb);
                         int fail = uv_async_send(&ash->m_typeDB);
