@@ -412,7 +412,7 @@ public class CStreamingFile extends CAsyncServiceHandler {
             CContext context = (CContext) m_vContext.toArray()[index];
             if (context.Sent) {
                 ++index;
-                continue;
+                return true;
             }
             if (context.Uploading && context.Tried && context.File == null) {
                 if (index == 0) {

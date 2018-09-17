@@ -217,7 +217,7 @@ class CStreamingFile(CAsyncServiceHandler):
             context = self._vContext[index]
             if context.Sent:
                 index += 1
-                continue
+                return True
             if context.Uploading and context.Tried and not context.File:
                 if index == 0:
                     if context.Download:

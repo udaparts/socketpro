@@ -546,7 +546,7 @@ namespace SocketProAdapter.ClientSide {
                 CContext context = m_vContext[index];
                 if (context.Sent) {
                     ++index;
-                    continue;
+                    return true;
                 }
                 if (context.Uploading && context.Tried && context.File == null) {
                     if (index == 0) {

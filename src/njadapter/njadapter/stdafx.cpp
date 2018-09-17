@@ -204,7 +204,7 @@ namespace NJA {
 
 	int time_offset()
 	{
-		time_t gmt, rawtime = time(NULL);
+		time_t gmt, rawtime = time(nullptr);
 		struct tm *ptm;
 
 #ifndef WIN32_64
