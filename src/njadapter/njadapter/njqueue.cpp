@@ -685,7 +685,7 @@ namespace NJA {
 				String::Utf8Value str(p->IsString() ? p : p->ToString());
 				const char *s = *str;
 				DECIMAL dec;
-				SPA::ParseDec(s, dec);
+				SPA::ParseDec_long(s, dec);
 				*obj->m_Buffer << dec;
 				args.GetReturnValue().Set(args.Holder());
 				return;
