@@ -42,7 +42,10 @@ namespace NJA {
 		static void FindKeys(const FunctionCallbackInfo<Value>& args);
 		static void FindOrdinal(const FunctionCallbackInfo<Value>& args);
 		static void Find(const FunctionCallbackInfo<Value>& args);
-
+		static void FindNull(const FunctionCallbackInfo<Value>& args);
+		static void In(const FunctionCallbackInfo<Value>& args);
+		static void Between(const FunctionCallbackInfo<Value>& args);
+		static void NotIn(const FunctionCallbackInfo<Value>& args);
 	private:
 		static bool GetDTPair(const FunctionCallbackInfo<Value>& args, SPA::CPDbTable &p);
 

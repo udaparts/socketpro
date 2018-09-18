@@ -39,6 +39,11 @@ namespace NJA {
 		NODE_SET_PROTOTYPE_METHOD(tpl, "GetRowCount", GetRowCount);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "GetFields", GetColumnCount);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "FindOrdinal", FindOrdinal);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "Find", Find);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "FindNull", FindNull);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "In", In);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "Between", Between);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "NotIn", NotIn);
 
 		//properties
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getDbIp", GetDBServerIp);
@@ -264,6 +269,64 @@ namespace NJA {
 		}
 	}
 
+	void NJCache::FindNull(const FunctionCallbackInfo<Value>& args) {
+		Isolate* isolate = args.GetIsolate();
+		NJCache* obj = ObjectWrap::Unwrap<NJCache>(args.Holder());
+		if (obj->IsValid(isolate)) {
+			SPA::CPDbTable p;
+			if (GetDTPair(args, p)) {
+				auto p2 = args[2];
+				if (!p2->IsUint32()) {
+					ThrowException(isolate, "Column ordinal expected");
+					return;
+				}
+				unsigned int ordinal = p2->Uint32Value();
+				SPA::CTable *pTable = new SPA::CTable;
+				int res = obj->m_ds->FindNull(p.first.c_str(), p.second.c_str(), ordinal, *pTable);
+				if (res < 0) {
+					delete pTable;
+					Local<Value> jsRes = Int32::New(isolate, res);
+					args.GetReturnValue().Set(jsRes);
+				}
+				else {
+					Local<Value> jsTable = NJTable::New(isolate, pTable, true);
+					args.GetReturnValue().Set(jsTable);
+				}
+			}
+		}
+	}
+
+	void NJCache::Between(const FunctionCallbackInfo<Value>& args) {
+		Isolate* isolate = args.GetIsolate();
+		NJCache* obj = ObjectWrap::Unwrap<NJCache>(args.Holder());
+		if (obj->IsValid(isolate)) {
+			SPA::CPDbTable p;
+			if (GetDTPair(args, p)) {
+				auto p2 = args[2];
+				if (!p2->IsUint32()) {
+					ThrowException(isolate, "Column ordinal expected");
+					return;
+				}
+				unsigned int ordinal = p2->Uint32Value();
+				CComVariant vt0, vt1;
+				if (!From(args[3], "", vt0) || !From(args[4], "", vt1) || vt0.vt <= VT_NULL || vt1.vt <= VT_NULL) {
+					ThrowException(isolate, "Fourth and fifth argurments expected");
+				}
+				SPA::CTable *pTable = new SPA::CTable;
+				int res = obj->m_ds->Between(p.first.c_str(), p.second.c_str(), ordinal, vt0, vt1, *pTable);
+				if (res < 0) {
+					delete pTable;
+					Local<Value> jsRes = Int32::New(isolate, res);
+					args.GetReturnValue().Set(jsRes);
+				}
+				else {
+					Local<Value> jsTable = NJTable::New(isolate, pTable, true);
+					args.GetReturnValue().Set(jsTable);
+				}
+			}
+		}
+	}
+
 	void NJCache::Find(const FunctionCallbackInfo<Value>& args) {
 		Isolate* isolate = args.GetIsolate();
 		NJCache* obj = ObjectWrap::Unwrap<NJCache>(args.Holder());
@@ -303,11 +366,105 @@ namespace NJA {
 				}
 				SPA::CTable *pTable = new SPA::CTable;
 				int res = obj->m_ds->Find(p.first.c_str(), p.second.c_str(), ordinal, op, vt, *pTable);
-				if (res) {
+				if (res < 0) {
 					delete pTable;
-					Local<Value> jsOrdinal = Int32::New(isolate, res);
+					Local<Value> jsRes = Int32::New(isolate, res);
+					args.GetReturnValue().Set(jsRes);
 				}
+				else {
+					Local<Value> jsTable = NJTable::New(isolate, pTable, true);
+					args.GetReturnValue().Set(jsTable);
+				}
+			}
+		}
+	}
 
+	void NJCache::NotIn(const FunctionCallbackInfo<Value>& args) {
+		Isolate* isolate = args.GetIsolate();
+		NJCache* obj = ObjectWrap::Unwrap<NJCache>(args.Holder());
+		if (obj->IsValid(isolate)) {
+			SPA::CPDbTable p;
+			if (GetDTPair(args, p)) {
+				auto p2 = args[2];
+				if (!p2->IsUint32()) {
+					ThrowException(isolate, "Column ordinal expected");
+					return;
+				}
+				unsigned int ordinal = p2->Uint32Value();
+				SPA::UDB::CDBVariantArray v;
+				auto p3 = args[3];
+				SPA::UDB::CDBVariant vt;
+				if (!From(p3, "", vt)) {
+					ThrowException(isolate, "An array of data expected");
+					return;
+				}
+				bool is_array = ((vt.vt & VT_ARRAY) == VT_ARRAY);
+				VARTYPE type = (vt.vt & (~VT_ARRAY));
+				if (!is_array || type == VT_I1 || type == VT_UI1) {
+					v.push_back(std::move(vt));
+				}
+				else if (type == VT_VARIANT) {
+
+				}
+				else {
+
+				}
+				SPA::CTable *pTable = new SPA::CTable;
+				int res = obj->m_ds->In(p.first.c_str(), p.second.c_str(), ordinal, v, *pTable);
+				if (res < 0) {
+					delete pTable;
+					Local<Value> jsRes = Int32::New(isolate, res);
+					args.GetReturnValue().Set(jsRes);
+				}
+				else {
+					Local<Value> jsTable = NJTable::New(isolate, pTable, true);
+					args.GetReturnValue().Set(jsTable);
+				}
+			}
+		}
+	}
+
+	void NJCache::In(const FunctionCallbackInfo<Value>& args) {
+		Isolate* isolate = args.GetIsolate();
+		NJCache* obj = ObjectWrap::Unwrap<NJCache>(args.Holder());
+		if (obj->IsValid(isolate)) {
+			SPA::CPDbTable p;
+			if (GetDTPair(args, p)) {
+				auto p2 = args[2];
+				if (!p2->IsUint32()) {
+					ThrowException(isolate, "Column ordinal expected");
+					return;
+				}
+				unsigned int ordinal = p2->Uint32Value();
+				SPA::UDB::CDBVariantArray v;
+				auto p3 = args[3];
+				SPA::UDB::CDBVariant vt;
+				if (!From(p3, "", vt)) {
+					ThrowException(isolate, "An array of data expected");
+					return;
+				}
+				bool is_array = ((vt.vt & VT_ARRAY) == VT_ARRAY);
+				VARTYPE type = (vt.vt & (~VT_ARRAY));
+				if (!is_array || type == VT_I1 || type == VT_UI1) {
+					v.push_back(std::move(vt));
+				}
+				else if (type == VT_VARIANT){
+
+				}
+				else {
+
+				}
+				SPA::CTable *pTable = new SPA::CTable;
+				int res = obj->m_ds->In(p.first.c_str(), p.second.c_str(), ordinal, v, *pTable);
+				if (res < 0) {
+					delete pTable;
+					Local<Value> jsRes = Int32::New(isolate, res);
+					args.GetReturnValue().Set(jsRes);
+				}
+				else {
+					Local<Value> jsTable = NJTable::New(isolate, pTable, true);
+					args.GetReturnValue().Set(jsTable);
+				}
 			}
 		}
 	}

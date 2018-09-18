@@ -9,6 +9,7 @@ namespace NJA {
 	}
 
 	NJTable::~NJTable() {
+		Release();
 	}
 
 	bool NJTable::IsValid(Isolate* isolate) {
@@ -20,7 +21,10 @@ namespace NJA {
 	}
 
 	void NJTable::Release() {
-		m_table = nullptr;
+		if (m_table) {
+			delete m_table;
+			m_table = nullptr;
+		}
 	}
 
 	void NJTable::Init(Local<Object> exports) {
