@@ -95,7 +95,7 @@ namespace NJA {
 			if (p->IsBoolean())
 				server_commit = p->BooleanValue();
 			else if (!p->IsNullOrUndefined()) {
-				ThrowException(isolate, "A boolean expected");
+				ThrowException(isolate, BOOLEAN_EXPECTED);
 				return;
 			}
 			bool ok = obj->m_ash->CommitBatching(server_commit);

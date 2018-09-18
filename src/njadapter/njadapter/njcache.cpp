@@ -262,8 +262,8 @@ namespace NJA {
 					return;
 				}
 				std::wstring colName = ToStr(p2);
-				unsigned int ordinal = obj->m_ds->FindOrdinal(p.first.c_str(), p.second.c_str(), colName.c_str());
-				Local<Value> jsOrdinal = Number::New(isolate, ordinal);
+				int ordinal = (int)obj->m_ds->FindOrdinal(p.first.c_str(), p.second.c_str(), colName.c_str());
+				Local<Value> jsOrdinal = Int32::New(isolate, ordinal);
 				args.GetReturnValue().Set(jsOrdinal);
 			}
 		}
@@ -277,16 +277,15 @@ namespace NJA {
 			if (GetDTPair(args, p)) {
 				auto p2 = args[2];
 				if (!p2->IsUint32()) {
-					ThrowException(isolate, "Column ordinal expected");
+					ThrowException(isolate, NJTable::COLUMN_ORDINAL_EXPECTED);
 					return;
 				}
 				unsigned int ordinal = p2->Uint32Value();
 				SPA::CTable *pTable = new SPA::CTable;
 				int res = obj->m_ds->FindNull(p.first.c_str(), p.second.c_str(), ordinal, *pTable);
-				if (res < 0) {
+				if (res <= 0) {
 					delete pTable;
-					Local<Value> jsRes = Int32::New(isolate, res);
-					args.GetReturnValue().Set(jsRes);
+					NJTable::ThrowException(res, isolate);
 				}
 				else {
 					Local<Object> jsTable = NJTable::New(isolate, pTable, true);
@@ -304,7 +303,7 @@ namespace NJA {
 			if (GetDTPair(args, p)) {
 				auto p2 = args[2];
 				if (!p2->IsUint32()) {
-					ThrowException(isolate, "Column ordinal expected");
+					ThrowException(isolate, NJTable::COLUMN_ORDINAL_EXPECTED);
 					return;
 				}
 				unsigned int ordinal = p2->Uint32Value();
@@ -314,10 +313,9 @@ namespace NJA {
 				}
 				SPA::CTable *pTable = new SPA::CTable;
 				int res = obj->m_ds->Between(p.first.c_str(), p.second.c_str(), ordinal, vt0, vt1, *pTable);
-				if (res < 0) {
+				if (res <= 0) {
 					delete pTable;
-					Local<Value> jsRes = Int32::New(isolate, res);
-					args.GetReturnValue().Set(jsRes);
+					NJTable::ThrowException(res, isolate);
 				}
 				else {
 					Local<Object> jsTable = NJTable::New(isolate, pTable, true);
@@ -335,18 +333,18 @@ namespace NJA {
 			if (GetDTPair(args, p)) {
 				auto p2 = args[2];
 				if (!p2->IsUint32()) {
-					ThrowException(isolate, "Column ordinal expected");
+					ThrowException(isolate, NJTable::COLUMN_ORDINAL_EXPECTED);
 					return;
 				}
 				unsigned int ordinal = p2->Uint32Value();
 				auto p3 = args[3];
 				if (!p3->IsUint32()) {
-					ThrowException(isolate, "Operation value expected");
+					ThrowException(isolate, NJTable::OPERATION_EXPECTED);
 					return;
 				}
 				unsigned int data = p3->Uint32Value();
 				if (data > SPA::CTable::is_null) {
-					ThrowException(isolate, "Bad operation value");
+					ThrowException(isolate, NJTable::BAD_OPERATION);
 					return;
 				}
 				std::string hint;
@@ -361,15 +359,14 @@ namespace NJA {
 				}
 				CComVariant vt;
 				if (!From(p5, hint, vt)) {
-					ThrowException(isolate, "Unsupported data type value");
+					ThrowException(isolate, UNSUPPORTED_TYPE);
 					return;
 				}
 				SPA::CTable *pTable = new SPA::CTable;
 				int res = obj->m_ds->Find(p.first.c_str(), p.second.c_str(), ordinal, op, vt, *pTable);
 				if (res < 0) {
 					delete pTable;
-					Local<Value> jsRes = Int32::New(isolate, res);
-					args.GetReturnValue().Set(jsRes);
+					NJTable::ThrowException(res, isolate);
 				}
 				else {
 					Local<Object> jsTable = NJTable::New(isolate, pTable, true);
@@ -387,7 +384,7 @@ namespace NJA {
 			if (GetDTPair(args, p)) {
 				auto p2 = args[2];
 				if (!p2->IsUint32()) {
-					ThrowException(isolate, "Column ordinal expected");
+					ThrowException(isolate, NJTable::COLUMN_ORDINAL_EXPECTED);
 					return;
 				}
 				unsigned int ordinal = p2->Uint32Value();
@@ -400,8 +397,7 @@ namespace NJA {
 				int res = obj->m_ds->NotIn(p.first.c_str(), p.second.c_str(), ordinal, v, *pTable);
 				if (res <= 0) {
 					delete pTable;
-					Local<Value> jsRes = Int32::New(isolate, res);
-					args.GetReturnValue().Set(jsRes);
+					NJTable::ThrowException(res, isolate);
 				}
 				else {
 					Local<Object> jsTable = NJTable::New(isolate, pTable, true);
@@ -419,7 +415,7 @@ namespace NJA {
 			if (GetDTPair(args, p)) {
 				auto p2 = args[2];
 				if (!p2->IsUint32()) {
-					ThrowException(isolate, "Column ordinal expected");
+					ThrowException(isolate, NJTable::COLUMN_ORDINAL_EXPECTED);
 					return;
 				}
 				unsigned int ordinal = p2->Uint32Value();
@@ -432,8 +428,7 @@ namespace NJA {
 				int res = obj->m_ds->In(p.first.c_str(), p.second.c_str(), ordinal, v, *pTable);
 				if (res <= 0) {
 					delete pTable;
-					Local<Value> jsRes = Int32::New(isolate, res);
-					args.GetReturnValue().Set(jsRes);
+					NJTable::ThrowException(res, isolate);
 				}
 				else {
 					Local<Object> jsTable = NJTable::New(isolate, pTable, true);

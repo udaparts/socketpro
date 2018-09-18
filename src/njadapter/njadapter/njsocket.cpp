@@ -146,7 +146,7 @@ namespace NJA {
 			if (p->IsInt32()) {
 				SPA::INT64 data = p->IntegerValue();
 				if (data < 0 || data > SPA::stBoth) {
-					ThrowException(isolate, "An integer value expected");
+					ThrowException(isolate, INTEGER_EXPECTED);
 					return;
 				}
 				st = (SPA::tagShutdownType)data;
@@ -164,7 +164,7 @@ namespace NJA {
 			if (p->IsBoolean())
 				zip = p->BooleanValue();
 			else if (!p->IsNullOrUndefined()) {
-				ThrowException(isolate, "A boolean value expected");
+				ThrowException(isolate, BOOLEAN_EXPECTED);
 				return;
 			}
 			obj->m_socket->SetZip(zip);
@@ -195,7 +195,7 @@ namespace NJA {
 				zip = (tagZipLevel)data;
 			}
 			else if (!p->IsNullOrUndefined()) {
-				ThrowException(isolate, "An integer value expected");
+				ThrowException(isolate, INTEGER_EXPECTED);
 				return;
 			}
 			obj->m_socket->SetZipLevel(zip);
@@ -272,7 +272,7 @@ namespace NJA {
 			if (p->IsBoolean())
 				ac = p->BooleanValue();
 			else if (!p->IsNullOrUndefined()) {
-				ThrowException(isolate, "A boolean value expected");
+				ThrowException(isolate, BOOLEAN_EXPECTED);
 				return;
 			}
 			obj->m_socket->SetAutoConn(ac);
@@ -544,7 +544,7 @@ namespace NJA {
 			if (p->IsBoolean())
 				zip = p->BooleanValue();
 			else if (!p->IsNullOrUndefined()) {
-				ThrowException(isolate, "A boolean value expected");
+				ThrowException(isolate, BOOLEAN_EXPECTED);
 				return;
 			}
 			args.GetReturnValue().Set(Boolean::New(isolate, obj->m_socket->TurnOnZipAtSvr(zip)));
@@ -561,7 +561,7 @@ namespace NJA {
 				zl = p->Int32Value();
 			}
 			else if (!p->IsNullOrUndefined()) {
-				ThrowException(isolate, "An integer value expected");
+				ThrowException(isolate, INTEGER_EXPECTED);
 				return;
 			}
 			if (zl > SPA::zlBestCompression) {

@@ -6,6 +6,10 @@ namespace NJA {
 	Persistent<Function> NJTable::constructor;
 	Persistent<v8::FunctionTemplate> NJTable::m_tpl;
 
+	const char* NJTable::COLUMN_ORDINAL_EXPECTED = "A column ordinal number expected";
+	const char* NJTable::OPERATION_EXPECTED = "Operation value expected";
+	const char* NJTable::BAD_OPERATION = "Bad operation value found";
+
 	NJTable::NJTable(SPA::CTable *tbl) : m_table(tbl) {
 	}
 
@@ -15,7 +19,7 @@ namespace NJA {
 
 	bool NJTable::IsValid(Isolate* isolate) {
 		if (!m_table) {
-			ThrowException(isolate, "Table handler disposed");
+			NJA::ThrowException(isolate, "Table handler disposed");
 			return false;
 		}
 		return true;
@@ -87,6 +91,32 @@ namespace NJA {
 		}
 	}
 
+	void NJTable::ThrowException(int errCode, Isolate *isolate) {
+		switch (errCode) {
+		case CTable::BAD_ORDINAL:
+			NJA::ThrowException(isolate, "Bad ordinal number");
+			break;
+		case CTable::BAD_DATA_TYPE:
+			NJA::ThrowException(isolate, BAD_DATA_TYPE);
+			break;
+		case CTable::OPERATION_NOT_SUPPORTED:
+			NJA::ThrowException(isolate, "Operation not supported");
+			break;
+		case CTable::COMPARISON_NOT_SUPPORTED:
+			NJA::ThrowException(isolate, "Comparation not supported");
+			break;
+		case CTable::NO_TABLE_NAME_GIVEN:
+			NJA::ThrowException(isolate, "Table name not given");
+			break;
+		case CTable::NO_TABLE_FOUND:
+			NJA::ThrowException(isolate, "Table not found");
+			break;
+		default:
+			NJA::ThrowException(isolate, "Unknown table operation problem");
+			break;
+		}
+	}
+
 	void NJTable::Dispose(const FunctionCallbackInfo<Value>& args) {
 		Isolate* isolate = args.GetIsolate();
 		NJTable* obj = ObjectWrap::Unwrap<NJTable>(args.Holder());
@@ -143,12 +173,17 @@ namespace NJA {
 					NJTable* table = ObjectWrap::Unwrap<NJTable>(jsObj);
 					if (table->IsValid(isolate)) {
 						int res = obj->m_table->Append(*table->m_table);
-						args.GetReturnValue().Set(Int32::New(isolate, res));
+						if (res <= 0) {
+							ThrowException(res, isolate);
+						}
+						else {
+							args.GetReturnValue().Set(Boolean::New(isolate, true));
+						}
 						return;
 					}
 				}
 			}
-			ThrowException(isolate, "A valid table object expected");
+			NJA::ThrowException(isolate, "A valid table object expected");
 		}
 	}
 
@@ -158,7 +193,7 @@ namespace NJA {
 		if (obj->IsValid(isolate)) {
 			auto p0 = args[0];
 			if (!p0->Uint32Value()) {
-				ThrowException(isolate, "A column ordinal number expected");
+				NJA::ThrowException(isolate, COLUMN_ORDINAL_EXPECTED);
 				return;
 			}
 			unsigned int ordinal = p0->Uint32Value();
@@ -168,11 +203,16 @@ namespace NJA {
 				desc = p1->BooleanValue();
 			}
 			else if (!p1->IsNullOrUndefined()) {
-				ThrowException(isolate, "A boolean value expected");
+				NJA::ThrowException(isolate, BOOLEAN_EXPECTED);
 				return;
 			}
 			int res = obj->m_table->Sort(ordinal, desc);
-			args.GetReturnValue().Set(Int32::New(isolate, res));
+			if (res <= 0) {
+				ThrowException(res, isolate);
+			}
+			else {
+				args.GetReturnValue().Set(Boolean::New(isolate, true));
+			}
 		}
 	}
 
@@ -187,7 +227,7 @@ namespace NJA {
 				args.GetReturnValue().Set(Int32::New(isolate, res));
 			}
 			else {
-				ThrowException(isolate, "A column name expected");
+				NJA::ThrowException(isolate, "A column name expected");
 			}
 		}
 	}
@@ -198,24 +238,24 @@ namespace NJA {
 		if (obj->IsValid(isolate)) {
 			auto p0 = args[0];
 			if (!p0->Uint32Value()) {
-				ThrowException(isolate, "A column ordinal number expected");
+				NJA::ThrowException(isolate, COLUMN_ORDINAL_EXPECTED);
 				return;
 			}
 			unsigned int ordinal = p0->Uint32Value();
 			auto p1 = args[1];
 			if (!p1->IsUint32()) {
-				ThrowException(isolate, "Operation value expected");
+				NJA::ThrowException(isolate, OPERATION_EXPECTED);
 				return;
 			}
 			unsigned int data = p1->Uint32Value();
 			if (data > SPA::CTable::is_null) {
-				ThrowException(isolate, "Bad operation value");
+				NJA::ThrowException(isolate, BAD_OPERATION);
 				return;
 			}
 			auto p2 = args[2];
 			CComVariant vt;
 			if (!From(p2, "", vt)) {
-				ThrowException(isolate, "Unsupported data type value");
+				NJA::ThrowException(isolate, UNSUPPORTED_TYPE);
 				return;
 			}
 			auto p3 = args[3];
@@ -224,15 +264,14 @@ namespace NJA {
 				copy = p3->BooleanValue();
 			}
 			else if (!p3->IsNullOrUndefined()) {
-				ThrowException(isolate, "A boolean value expected");
+				NJA::ThrowException(isolate, BOOLEAN_EXPECTED);
 				return;
 			}
 			SPA::CTable *pTable = new SPA::CTable;
 			int res = obj->m_table->Find(ordinal, (CTable::Operator)data, vt, *pTable, copy);
 			if (res <= 0) {
 				delete pTable;
-				Local<Value> jsRes = Int32::New(isolate, res);
-				args.GetReturnValue().Set(jsRes);
+				ThrowException(res, isolate);
 			}
 			else {
 				Local<Object> jsTable = NJTable::New(isolate, pTable, true);
@@ -247,7 +286,7 @@ namespace NJA {
 		if (obj->IsValid(isolate)) {
 			auto p0 = args[0];
 			if (!p0->Uint32Value()) {
-				ThrowException(isolate, "A column ordinal number expected");
+				NJA::ThrowException(isolate, COLUMN_ORDINAL_EXPECTED);
 				return;
 			}
 			unsigned int ordinal = p0->Uint32Value();
@@ -257,15 +296,14 @@ namespace NJA {
 				copy = p1->BooleanValue();
 			}
 			else if (!p1->IsNullOrUndefined()) {
-				ThrowException(isolate, "A boolean value expected");
+				NJA::ThrowException(isolate, BOOLEAN_EXPECTED);
 				return;
 			}
 			SPA::CTable *pTable = new SPA::CTable;
 			int res = obj->m_table->FindNull(ordinal, *pTable, copy);
 			if (res <= 0) {
 				delete pTable;
-				Local<Value> jsRes = Int32::New(isolate, res);
-				args.GetReturnValue().Set(jsRes);
+				ThrowException(res, isolate);
 			}
 			else {
 				Local<Object> jsTable = NJTable::New(isolate, pTable, true);
@@ -280,7 +318,7 @@ namespace NJA {
 		if (obj->IsValid(isolate)) {
 			auto p0 = args[0];
 			if (!p0->Uint32Value()) {
-				ThrowException(isolate, "A column ordinal number expected");
+				NJA::ThrowException(isolate, COLUMN_ORDINAL_EXPECTED);
 				return;
 			}
 			unsigned int ordinal = p0->Uint32Value();
@@ -295,15 +333,14 @@ namespace NJA {
 				copy = p2->BooleanValue();
 			}
 			else if (!p2->IsNullOrUndefined()) {
-				ThrowException(isolate, "A boolean value expected");
+				NJA::ThrowException(isolate, BOOLEAN_EXPECTED);
 				return;
 			}
 			SPA::CTable *pTable = new SPA::CTable;
 			int res = obj->m_table->In(ordinal, v, *pTable, copy);
 			if (res <= 0) {
 				delete pTable;
-				Local<Value> jsRes = Int32::New(isolate, res);
-				args.GetReturnValue().Set(jsRes);
+				ThrowException(res, isolate);
 			}
 			else {
 				Local<Object> jsTable = NJTable::New(isolate, pTable, true);
@@ -318,7 +355,7 @@ namespace NJA {
 		if (obj->IsValid(isolate)) {
 			auto p0 = args[0];
 			if (!p0->Uint32Value()) {
-				ThrowException(isolate, "A column ordinal number expected");
+				NJA::ThrowException(isolate, COLUMN_ORDINAL_EXPECTED);
 				return;
 			}
 			unsigned int ordinal = p0->Uint32Value();
@@ -326,14 +363,14 @@ namespace NJA {
 			auto p1 = args[1];
 			CComVariant vt0;
 			if (!From(p1, "", vt0)) {
-				ThrowException(isolate, "Unsupported data type value");
+				NJA::ThrowException(isolate, UNSUPPORTED_TYPE);
 				return;
 			}
 
 			auto p2 = args[2];
 			CComVariant vt1;
 			if (!From(p2, "", vt1)) {
-				ThrowException(isolate, "Unsupported data type value");
+				NJA::ThrowException(isolate, UNSUPPORTED_TYPE);
 				return;
 			}
 			auto p3 = args[3];
@@ -342,15 +379,14 @@ namespace NJA {
 				copy = p3->BooleanValue();
 			}
 			else if (!p3->IsNullOrUndefined()) {
-				ThrowException(isolate, "A boolean value expected");
+				NJA::ThrowException(isolate, BOOLEAN_EXPECTED);
 				return;
 			}
 			SPA::CTable *pTable = new SPA::CTable;
 			int res = obj->m_table->Between(ordinal, vt0, vt1, *pTable, copy);
 			if (res <= 0) {
 				delete pTable;
-				Local<Value> jsRes = Int32::New(isolate, res);
-				args.GetReturnValue().Set(jsRes);
+				ThrowException(res, isolate);
 			}
 			else {
 				Local<Object> jsTable = NJTable::New(isolate, pTable, true);
@@ -365,7 +401,7 @@ namespace NJA {
 		if (obj->IsValid(isolate)) {
 			auto p0 = args[0];
 			if (!p0->Uint32Value()) {
-				ThrowException(isolate, "A column ordinal number expected");
+				NJA::ThrowException(isolate, COLUMN_ORDINAL_EXPECTED);
 				return;
 			}
 			unsigned int ordinal = p0->Uint32Value();
@@ -380,15 +416,14 @@ namespace NJA {
 				copy = p2->BooleanValue();
 			}
 			else if (!p2->IsNullOrUndefined()) {
-				ThrowException(isolate, "A boolean value expected");
+				NJA::ThrowException(isolate, BOOLEAN_EXPECTED);
 				return;
 			}
 			SPA::CTable *pTable = new SPA::CTable;
 			int res = obj->m_table->NotIn(ordinal, v, *pTable, copy);
 			if (res <= 0) {
 				delete pTable;
-				Local<Value> jsRes = Int32::New(isolate, res);
-				args.GetReturnValue().Set(jsRes);
+				ThrowException(res, isolate);
 			}
 			else {
 				Local<Object> jsTable = NJTable::New(isolate, pTable, true);

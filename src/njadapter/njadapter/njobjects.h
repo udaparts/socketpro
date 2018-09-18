@@ -40,7 +40,7 @@ namespace NJA {
 		bool IsValid(Isolate* isolate);
 
 	private:
-		NJSocketPool(const wchar_t* defaultDb, unsigned int id, bool autoConn = true, unsigned int recvTimeout = SPA::ClientSide::DEFAULT_RECV_TIMEOUT, unsigned int connTimeout = SPA::ClientSide::DEFAULT_CONN_TIMEOUT);
+		NJSocketPool(const wchar_t* defaultDb, unsigned int id, bool slave);
 		~NJSocketPool();
 
 		NJSocketPool(const NJSocketPool &obj) = delete;
@@ -48,9 +48,11 @@ namespace NJA {
 
 		struct PoolEvent {
 			SPA::ClientSide::tagSocketPoolEvent Spe;
-			CAsyncHandler *Handler;
+			SPA::ClientSide::PAsyncServiceHandler Handler;
 		};
 
+		bool DoAuthentication(SPA::IUcert *cert);
+		void SendPoolEvent(SPA::ClientSide::tagSocketPoolEvent spe, SPA::ClientSide::PAsyncServiceHandler handler);
 		void Release();
 
 		static void New(const FunctionCallbackInfo<Value>& args);
@@ -85,6 +87,7 @@ namespace NJA {
 		static void ShutdownPool(const FunctionCallbackInfo<Value>& args);
 		static void StartSocketPool(const FunctionCallbackInfo<Value>& args);
 		static void Unlock(const FunctionCallbackInfo<Value>& args);
+		static void newSlave(const FunctionCallbackInfo<Value>& args);
 
 		static void setPoolEvent(const FunctionCallbackInfo<Value>& args);
 		
@@ -95,7 +98,6 @@ namespace NJA {
 		static void setServerException(const FunctionCallbackInfo<Value>& args);
 		static void setBaseRequestProcessed(const FunctionCallbackInfo<Value>& args);
 		static void setPush(const FunctionCallbackInfo<Value>& args);
-
 
 		static void async_cs_cb(uv_async_t* handle); //socket events
 		static void async_cb(uv_async_t* handle); //pool events

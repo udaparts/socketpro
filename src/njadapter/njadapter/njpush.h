@@ -14,6 +14,7 @@ namespace NJA {
 		NJPush& operator=(const NJPush &p) = delete;
 		static void Init(Local<Object> exports);
 		static Local<Object> New(Isolate* isolate, SPA::IPushEx *p, bool setCb);
+		static const char *BAD_MESSAGE_SENT;
 
 	private:
 		static const SPA::INT64 SECRECT_NUM = 0x7f1bb0fce4a5;

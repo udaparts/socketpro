@@ -131,7 +131,7 @@ namespace NJA {
 			permanent = p->BooleanValue();
 		}
 		else if (!p->IsNullOrUndefined()) {
-			ThrowException(isolate, "A boolean value expected");
+			ThrowException(isolate, BOOLEAN_EXPECTED);
 			return;
 		}
 		obj->m_cq->StopQueue(permanent);
@@ -277,7 +277,7 @@ namespace NJA {
 			enabled = p->BooleanValue();
 		}
 		else if (!p->IsNullOrUndefined()) {
-			ThrowException(isolate, "A boolean value expected");
+			ThrowException(isolate, BOOLEAN_EXPECTED);
 			return;
 		}
 		obj->m_cq->EnableRoutingQueueIndex(enabled);

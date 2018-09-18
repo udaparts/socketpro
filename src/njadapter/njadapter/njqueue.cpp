@@ -8,6 +8,8 @@ namespace NJA {
 	Persistent<Function> NJQueue::constructor;
 	Persistent<FunctionTemplate> NJQueue::m_tpl;
 
+	const char* NJQueue::NO_BUFFER_AVAILABLE = "No buffer available";
+
 	NJQueue::NJQueue(CUQueue *buffer, unsigned int initialSize, unsigned int blockSize) : m_Buffer(buffer), m_initSize(initialSize), m_blockSize(blockSize), m_StrForDec(false) {
 		if (m_Buffer) {
 			m_Buffer->ToUtf8(true);
@@ -191,7 +193,7 @@ namespace NJA {
 		else if (args[0]->IsNullOrUndefined())
 			obj->m_StrForDec = false;
 		else {
-			ThrowException(args.GetIsolate(), "A boolean value expected");
+			ThrowException(args.GetIsolate(), BOOLEAN_EXPECTED);
 			return;
 		}
 		args.GetReturnValue().Set(Boolean::New(args.GetIsolate(), obj->m_StrForDec));
@@ -358,7 +360,7 @@ namespace NJA {
 		Isolate* isolate = args.GetIsolate();
 		NJQueue* obj = ObjectWrap::Unwrap<NJQueue>(args.Holder());
 		if (!obj->m_Buffer) {
-			ThrowException(isolate, "No buffer available");
+			ThrowException(isolate, NO_BUFFER_AVAILABLE);
 			return;
 		}
 		try {
@@ -390,7 +392,7 @@ namespace NJA {
 		Isolate* isolate = args.GetIsolate();
 		NJQueue* obj = ObjectWrap::Unwrap<NJQueue>(args.Holder());
 		if (!obj->m_Buffer) {
-			ThrowException(isolate, "No buffer available");
+			ThrowException(isolate, NO_BUFFER_AVAILABLE);
 			return;
 		}
 		try {
@@ -422,7 +424,7 @@ namespace NJA {
 		Isolate* isolate = args.GetIsolate();
 		NJQueue* obj = ObjectWrap::Unwrap<NJQueue>(args.Holder());
 		if (!obj->m_Buffer) {
-			ThrowException(isolate, "No buffer available");
+			ThrowException(isolate, NO_BUFFER_AVAILABLE);
 			return;
 		}
 		try {
@@ -465,7 +467,7 @@ namespace NJA {
 		}
 		else {
 			Isolate* isolate = args.GetIsolate();
-			ThrowException(isolate, "Bad data type");
+			ThrowException(isolate, BAD_DATA_TYPE);
 		}
 	}
 
@@ -477,7 +479,7 @@ namespace NJA {
 		}
 		else {
 			Isolate* isolate = args.GetIsolate();
-			ThrowException(isolate, "Bad data type");
+			ThrowException(isolate, BAD_DATA_TYPE);
 		}
 	}
 
@@ -489,7 +491,7 @@ namespace NJA {
 		}
 		else {
 			Isolate* isolate = args.GetIsolate();
-			ThrowException(isolate, "Bad data type");
+			ThrowException(isolate, BAD_DATA_TYPE);
 		}
 	}
 
@@ -501,7 +503,7 @@ namespace NJA {
 		}
 		else {
 			Isolate* isolate = args.GetIsolate();
-			ThrowException(isolate, "Bad data type");
+			ThrowException(isolate, BAD_DATA_TYPE);
 		}
 	}
 
@@ -513,7 +515,7 @@ namespace NJA {
 		}
 		else {
 			Isolate* isolate = args.GetIsolate();
-			ThrowException(isolate, "Bad data type");
+			ThrowException(isolate, BAD_DATA_TYPE);
 		}
 	}
 
@@ -525,7 +527,7 @@ namespace NJA {
 		}
 		else {
 			Isolate* isolate = args.GetIsolate();
-			ThrowException(isolate, "Bad data type");
+			ThrowException(isolate, BAD_DATA_TYPE);
 		}
 	}
 
@@ -537,7 +539,7 @@ namespace NJA {
 		}
 		else {
 			Isolate* isolate = args.GetIsolate();
-			ThrowException(isolate, "Bad data type");
+			ThrowException(isolate, BAD_DATA_TYPE);
 		}
 	}
 
@@ -549,7 +551,7 @@ namespace NJA {
 		}
 		else {
 			Isolate* isolate = args.GetIsolate();
-			ThrowException(isolate, "Bad data type");
+			ThrowException(isolate, BAD_DATA_TYPE);
 		}
 	}
 
@@ -561,7 +563,7 @@ namespace NJA {
 		}
 		else {
 			Isolate* isolate = args.GetIsolate();
-			ThrowException(isolate, "Bad data type");
+			ThrowException(isolate, BAD_DATA_TYPE);
 		}
 	}
 
@@ -573,7 +575,7 @@ namespace NJA {
 		}
 		else {
 			Isolate* isolate = args.GetIsolate();
-			ThrowException(isolate, "Bad data type");
+			ThrowException(isolate, BAD_DATA_TYPE);
 		}
 	}
 
@@ -585,7 +587,7 @@ namespace NJA {
 		}
 		else {
 			Isolate* isolate = args.GetIsolate();
-			ThrowException(isolate, "Bad data type");
+			ThrowException(isolate, BAD_DATA_TYPE);
 		}
 	}
 
@@ -649,7 +651,7 @@ namespace NJA {
 		}
 		else {
 			Isolate* isolate = args.GetIsolate();
-			ThrowException(isolate, "Bad data type");
+			ThrowException(isolate, BAD_DATA_TYPE);
 		}
 	}
 
@@ -672,7 +674,7 @@ namespace NJA {
 		}
 		else {
 			Isolate* isolate = args.GetIsolate();
-			ThrowException(isolate, "Bad data type");
+			ThrowException(isolate, BAD_DATA_TYPE);
 		}
 	}
 
@@ -692,7 +694,7 @@ namespace NJA {
 			}
 		}
 		Isolate* isolate = args.GetIsolate();
-		ThrowException(isolate, "Bad data type");
+		ThrowException(isolate, BAD_DATA_TYPE);
 	}
 
 	void NJQueue::SaveDate(const FunctionCallbackInfo<Value>& args) {
@@ -703,7 +705,7 @@ namespace NJA {
 			auto p = args[0];
 			SPA::UINT64 d = ToDate(p);
 			if (d == INVALID_NUMBER) {
-				ThrowException(isolate, "Bad data type");
+				ThrowException(isolate, BAD_DATA_TYPE);
 				return;
 			}
 			*obj->m_Buffer << d;
@@ -715,7 +717,7 @@ namespace NJA {
 
 	unsigned int NJQueue::Load(Isolate* isolate, SPA::UDB::CDBVariant &vt) {
 		if (!m_Buffer) {
-			ThrowException(isolate, "No buffer available");
+			ThrowException(isolate, NO_BUFFER_AVAILABLE);
 			return 0;
 		}
 		try {
@@ -737,7 +739,7 @@ namespace NJA {
 		Isolate* isolate = args.GetIsolate();
 		NJQueue* obj = ObjectWrap::Unwrap<NJQueue>(args.Holder());
 		if (!obj->m_Buffer) {
-			ThrowException(isolate, "No buffer available");
+			ThrowException(isolate, NO_BUFFER_AVAILABLE);
 		}
 		else if (args[0]->IsFunction()) {
 			Local<Function> cb = Local<Function>::Cast(args[0]);
@@ -767,7 +769,7 @@ namespace NJA {
 		if (obj->Load(isolate, vt)) {
 			auto v = From(isolate, vt, obj->m_StrForDec);
 			if (v->IsUndefined())
-				ThrowException(isolate, "Unsupported object data type");
+				ThrowException(isolate, UNSUPPORTED_TYPE);
 			else
 				args.GetReturnValue().Set(v);
 		}
@@ -1016,7 +1018,7 @@ namespace NJA {
 				auto d = jsArr->Get(n);
 				if (d->IsBoolean()) {
 					if (dt && dt != dtBool) {
-						ThrowException(isolate, "Unsupported data array type");
+						ThrowException(isolate, UNSUPPORTED_ARRAY_TYPE);
 						return;
 					}
 					else
@@ -1026,7 +1028,7 @@ namespace NJA {
 				}
 				else if (d->IsDate()) {
 					if (dt && dt != dtDate) {
-						ThrowException(isolate, "Unsupported data array type");
+						ThrowException(isolate, UNSUPPORTED_ARRAY_TYPE);
 						return;
 					}
 					else
@@ -1036,7 +1038,7 @@ namespace NJA {
 				}
 				else if (d->IsString()) {
 					if (dt && dt != dtString) {
-						ThrowException(isolate, "Unsupported data array type");
+						ThrowException(isolate, UNSUPPORTED_ARRAY_TYPE);
 						return;
 					}
 					else
@@ -1048,7 +1050,7 @@ namespace NJA {
 					sb->Push((const unsigned char*)(*str), len);
 				}
 				else {
-					ThrowException(isolate, "Unsupported data array type");
+					ThrowException(isolate, UNSUPPORTED_ARRAY_TYPE);
 					return;
 				}
 			}
@@ -1072,7 +1074,7 @@ namespace NJA {
 			args.GetReturnValue().Set(args.Holder());
 		}
 		else {
-			ThrowException(isolate, "Unsupported data type");
+			ThrowException(isolate, UNSUPPORTED_TYPE);
 		}
 	}
 

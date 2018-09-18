@@ -5,6 +5,7 @@
 namespace NJA {
 
 	Persistent<Function> NJPush::constructor;
+	const char* NJPush::BAD_MESSAGE_SENT = "Bad message to be sent";
 
 	NJPush::NJPush(SPA::IPushEx *p) : m_p(p) {
 	}
@@ -89,11 +90,11 @@ namespace NJA {
 				njq->Release();
 			}
 			else {
-				ThrowException(isolate, "Bad message to be published");
+				ThrowException(isolate, BAD_MESSAGE_SENT);
 			}
 		}
 		else {
-			ThrowException(isolate, "Bad message to be published");
+			ThrowException(isolate, BAD_MESSAGE_SENT);
 		}
 	}
 
@@ -146,11 +147,11 @@ namespace NJA {
 				njq->Release();
 			}
 			else {
-				ThrowException(isolate, "Bad message to be psent");
+				ThrowException(isolate, BAD_MESSAGE_SENT);
 			}
 		}
 		else {
-			ThrowException(isolate, "Bad message to be sent");
+			ThrowException(isolate, BAD_MESSAGE_SENT);
 		}
 	}
 }

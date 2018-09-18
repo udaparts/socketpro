@@ -12,43 +12,129 @@ namespace NJA {
 
 	Persistent<Function> NJSocketPool::constructor;
 
-	NJSocketPool::NJSocketPool(const wchar_t* defaultDb, unsigned int id, bool autoConn, unsigned int recvTimeout, unsigned int connTimeout)
-		: SvsId(id), m_errSSL(0), m_defaultDb(defaultDb ? defaultDb : L"") {
+	NJSocketPool::NJSocketPool(const wchar_t* defaultDb, unsigned int id, bool slave)
+		: SvsId(id), m_errSSL(0) {
+		std::wstring dfltDb(defaultDb ? defaultDb : L"");
 		switch (id) {
 		case SPA::Mysql::sidMysql:
 		case SPA::Odbc::sidOdbc:
 		case SPA::Sqlite::sidSqlite:
-			if (m_defaultDb.size())
-				Db = new CSQLMasterPool<false, CNjDb>(m_defaultDb.c_str(), recvTimeout, id);
+			if (dfltDb.size()) {
+				if (slave)
+					Db = new CSQLMasterPool<false, CNjDb>::CSlavePool(dfltDb.c_str(), SPA::ClientSide::DEFAULT_RECV_TIMEOUT, id);
+				else {
+					Db = new CSQLMasterPool<false, CNjDb>(dfltDb.c_str(), SPA::ClientSide::DEFAULT_RECV_TIMEOUT, id);
+					m_defaultDb = dfltDb;
+				}
+			}
 			else
-				Db = new CSocketPool<CNjDb>(autoConn, recvTimeout, connTimeout, id);
+				Db = new CSocketPool<CNjDb>(true, SPA::ClientSide::DEFAULT_RECV_TIMEOUT, SPA::ClientSide::DEFAULT_CONN_TIMEOUT, id);
+			Db->DoSslServerAuthentication = [this](CSocketPool<CNjDb> *pool, SPA::ClientSide::CClientSocket *cs)->bool {
+				return this->DoAuthentication(cs->GetUCert());
+			};
+			Db->SocketPoolEvent = [this](CSocketPool<CNjDb> *pool, tagSocketPoolEvent spe, CNjDb *handler) {
+				this->SendPoolEvent(spe, handler);
+			};
 			break;
 		case SPA::Queue::sidQueue:
-			Queue = new CSocketPool<CAQueue>(autoConn, recvTimeout, connTimeout);
+			Queue = new CSocketPool<CAQueue>(true, SPA::ClientSide::DEFAULT_RECV_TIMEOUT, SPA::ClientSide::DEFAULT_CONN_TIMEOUT);
+			Queue->DoSslServerAuthentication = [this](CSocketPool<CAQueue> *pool, SPA::ClientSide::CClientSocket *cs)->bool {
+				return this->DoAuthentication(cs->GetUCert());
+			};
+			Queue->SocketPoolEvent = [this](CSocketPool<CAQueue> *pool, tagSocketPoolEvent spe, CAQueue *handler) {
+				this->SendPoolEvent(spe, handler);
+			};
 			break;
 		case SPA::SFile::sidFile:
-			File = new CSocketPool<CSFile>(autoConn, recvTimeout, connTimeout);
+			File = new CSocketPool<CSFile>(true, SPA::ClientSide::DEFAULT_RECV_TIMEOUT, SPA::ClientSide::DEFAULT_CONN_TIMEOUT);
+			File->DoSslServerAuthentication = [this](CSocketPool<CSFile> *pool, SPA::ClientSide::CClientSocket *cs)->bool {
+				return this->DoAuthentication(cs->GetUCert());
+			};
+			File->SocketPoolEvent = [this](CSocketPool<CSFile> *pool, tagSocketPoolEvent spe, CSFile *handler) {
+				this->SendPoolEvent(spe, handler);
+			};
 			break;
 		default:
-			if (m_defaultDb.size())
-				Handler = new CMasterPool<false, CAsyncHandler>(m_defaultDb.c_str(), recvTimeout, id);
+			if (dfltDb.size()) {
+				if (slave)
+					Handler = new CMasterPool<false, CAsyncHandler>::CSlavePool(dfltDb.c_str(), SPA::ClientSide::DEFAULT_RECV_TIMEOUT, id);
+				else {
+					Handler = new CMasterPool<false, CAsyncHandler>(dfltDb.c_str(), SPA::ClientSide::DEFAULT_RECV_TIMEOUT, id);
+					m_defaultDb = dfltDb;
+				}
+			}
 			else
-				Handler = new CSocketPool<CAsyncHandler>(autoConn, recvTimeout, connTimeout, id);
+				Handler = new CSocketPool<CAsyncHandler>(true, SPA::ClientSide::DEFAULT_RECV_TIMEOUT, SPA::ClientSide::DEFAULT_CONN_TIMEOUT, id);
+			Handler->DoSslServerAuthentication = [this](CSocketPool<CAsyncHandler> *pool, SPA::ClientSide::CClientSocket *cs)->bool {
+				return this->DoAuthentication(cs->GetUCert());
+			};
+			Handler->SocketPoolEvent = [this](CSocketPool<CAsyncHandler> *pool, tagSocketPoolEvent spe, CAsyncHandler *handler) {
+				this->SendPoolEvent(spe, handler);
+			};
 			break;
 		}
 		::memset(&m_asyncType, 0, sizeof(m_asyncType));
 		m_asyncType.data = this;
 		::memset(&m_csType, 0, sizeof(m_csType));
 		m_csType.data = this;
+		int fail = uv_async_init(uv_default_loop(), &m_asyncType, async_cb);
+		assert(!fail);
+		fail = uv_async_init(uv_default_loop(), &m_csType, async_cs_cb);
+		assert(!fail);
 	}
 
 	NJSocketPool::~NJSocketPool() {
 		Release();
 	}
 
+	void NJSocketPool::SendPoolEvent(tagSocketPoolEvent spe, SPA::ClientSide::PAsyncServiceHandler handler) {
+		switch (spe) {
+		case SPA::ClientSide::speTimer:
+			g_cs.lock();
+			g_TimeOffset = time_offset();
+			g_cs.unlock();
+			break;
+		case SPA::ClientSide::speUSocketCreated:
+			handler->GetAttachedClientSocket()->m_asyncType = &m_csType;
+			break;
+		default:
+			break;
+		}
+		SPA::CAutoLock al(m_cs);
+		if (m_evPool.IsEmpty())
+			return;
+		PoolEvent pe;
+		pe.Spe = spe;
+		pe.Handler = handler;
+		m_deqPoolEvent.push_back(pe);
+		int fail = uv_async_send(&m_asyncType);
+		assert(!fail);
+	}
+
+	bool NJSocketPool::DoAuthentication(IUcert *cert) {
+		{
+			SPA::CAutoLock al(m_cs);
+			if (!cert->Validity) {
+				m_errMsg = "Certificate not valid";
+				m_errSSL = -1;
+				return false;
+			}
+			m_errMsg = cert->Verify(&m_errSSL);
+			bool ok = (m_errSSL == 0);
+			if (ok) {
+				return true;
+			}
+		}
+		SPA::CAutoLock al(g_cs);
+		if (cert->PKSize && g_KeyAllowed.GetSize() == cert->PKSize) {
+			return (::memcmp(g_KeyAllowed.GetBuffer(), cert->PublicKey, cert->PKSize) == 0);
+		}
+		return false;
+	}
+
 	bool NJSocketPool::IsValid(Isolate* isolate) {
 		if (!Handler) {
-			ThrowException(isolate, "SocketPool object already disposed");
+			ThrowException(isolate, "Socket Pool object already disposed");
 			return false;
 		}
 		return true;
@@ -104,7 +190,7 @@ namespace NJA {
 				}
 				break;
 			}
-			args.GetReturnValue().SetNull();
+			ThrowException(isolate, "Real-time updateable cache not available");
 		}
 	}
 
@@ -118,13 +204,12 @@ namespace NJA {
 
 		//methods
 		NODE_SET_PROTOTYPE_METHOD(tpl, "Dispose", Dispose);
-		NODE_SET_PROTOTYPE_METHOD(tpl, "CloseAll", DisconnectAll);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "Seek", Seek);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "SeekByQueue", SeekByQueue);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "Shutdown", ShutdownPool);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "Start", StartSocketPool);
-		NODE_SET_PROTOTYPE_METHOD(tpl, "Unlock", Unlock);
-		
+		NODE_SET_PROTOTYPE_METHOD(tpl, "NewSlave", newSlave);
+
 		//properties
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getHandlers", getAsyncHandlers);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getConnectedSockets", getConnectedSockets);
@@ -141,7 +226,7 @@ namespace NJA {
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getTotalSockets", getSocketsPerThread);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getStarted", getStarted);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getCache", getCache);
-		
+
 		NODE_SET_PROTOTYPE_METHOD(tpl, "setPoolEvent", setPoolEvent);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "setReturned", setResultReturned);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "setAllProcessed", setAllProcessed);
@@ -152,9 +237,26 @@ namespace NJA {
 		//NODE_SET_PROTOTYPE_METHOD(tpl, "getAvg", getAvg);
 		//NODE_SET_PROTOTYPE_METHOD(tpl, "getLockedSockets", getLockedSockets);
 		//NODE_SET_PROTOTYPE_METHOD(tpl, "Lock", Lock);
+		//NODE_SET_PROTOTYPE_METHOD(tpl, "Unlock", Unlock);
+		//NODE_SET_PROTOTYPE_METHOD(tpl, "CloseAll", DisconnectAll);
 
 		constructor.Reset(isolate, tpl->GetFunction());
 		exports->Set(ToStr(isolate, "CSocketPool"), tpl->GetFunction());
+	}
+
+	void NJSocketPool::newSlave(const FunctionCallbackInfo<Value>& args) {
+		Isolate* isolate = args.GetIsolate();
+		NJSocketPool* obj = ObjectWrap::Unwrap<NJSocketPool>(args.Holder());
+		if (obj->IsValid(isolate)) {
+			if (!obj->m_defaultDb.size()) {
+				ThrowException(isolate, "Cannot create a slave pool from a non-master pool");
+				return;
+			}
+			NJSocketPool* poolSlave = new NJSocketPool(L"", obj->SvsId, true);
+			Local<Object> objSlave = Object::New(isolate);
+			poolSlave->Wrap(objSlave);
+			args.GetReturnValue().Set(objSlave);
+		}
 	}
 
 	void NJSocketPool::New(const FunctionCallbackInfo<Value>& args) {
@@ -192,57 +294,8 @@ namespace NJA {
 				}
 			}
 			// Invoked as constructor: `new NJSocketPool(...)`
-			NJSocketPool* obj = new NJSocketPool(db.c_str(), svsId);
+			NJSocketPool* obj = new NJSocketPool(db.c_str(), svsId, false);
 			obj->Wrap(args.This());
-			obj->Handler->DoSslServerAuthentication = [obj](CSocketPool<CAsyncHandler> *pool, SPA::ClientSide::CClientSocket *cs)->bool {
-				IUcert *cert = cs->GetUCert();
-				{
-					SPA::CAutoLock al(obj->m_cs);
-					if (!cert->Validity) {
-						obj->m_errMsg = "Certificate not valid";
-						obj->m_errSSL = -1;
-						return false;
-					}
-					obj->m_errMsg = cert->Verify(&obj->m_errSSL);
-					bool ok = (obj->m_errSSL == 0);
-					if (ok) {
-						return true;
-					}
-				}
-				SPA::CAutoLock al(g_cs);
-				if (cert->PKSize && g_KeyAllowed.GetSize() == cert->PKSize) {
-					return (::memcmp(g_KeyAllowed.GetBuffer(), cert->PublicKey, cert->PKSize) == 0);
-				}
-				return false;
-			};
-
-			obj->Handler->SocketPoolEvent = [obj](CSocketPool<CAsyncHandler> *pool, tagSocketPoolEvent spe, CAsyncHandler *handler) {
-				switch (spe) {
-				case SPA::ClientSide::speTimer:
-					g_cs.lock();
-					g_TimeOffset = time_offset();
-					g_cs.unlock();
-					break;
-				case SPA::ClientSide::speUSocketCreated:
-					handler->GetAttachedClientSocket()->m_asyncType = &obj->m_csType;
-					break;
-				default:
-					break;
-				}
-				SPA::CAutoLock al(obj->m_cs);
-				if (obj->m_evPool.IsEmpty())
-					return;
-				PoolEvent pe;
-				pe.Spe = spe;
-				pe.Handler = handler;
-				obj->m_deqPoolEvent.push_back(pe);
-				int fail = uv_async_send(&obj->m_asyncType);
-				assert(!fail);
-			};
-			int fail = uv_async_init(uv_default_loop(), &obj->m_asyncType, async_cb);
-			assert(!fail);
-			fail = uv_async_init(uv_default_loop(), &obj->m_csType, async_cs_cb);
-			assert(!fail);
 			args.GetReturnValue().Set(args.This());
 		}
 		else {
@@ -267,9 +320,33 @@ namespace NJA {
 			while (obj->m_deqPoolEvent.size()) {
 				const PoolEvent &pe = obj->m_deqPoolEvent.front();
 				if (!obj->m_evPool.IsEmpty()) {
-					Local<Value> argv[] = { Int32::New(isolate, pe.Spe) };
+					Local<Value> argv[2];
+					argv[0] = Int32::New(isolate, pe.Spe);
+					auto handler = pe.Handler;
+					if (handler) {
+						unsigned int svsId = handler->GetSvsID();
+						switch (svsId) {
+						case SPA::Queue::sidQueue:
+							argv[1] = NJAsyncQueue::New(isolate, (NJA::CAQueue*)handler, true);
+							break;
+						case SPA::Mysql::sidMysql:
+						case SPA::Odbc::sidOdbc:
+						case SPA::Sqlite::sidSqlite:
+							argv[1] = NJSqlite::New(isolate, (NJA::CNjDb*)handler, true);
+							break;
+						case SPA::SFile::sidFile:
+							argv[1] = NJFile::New(isolate, (NJA::CSFile*)handler, true);
+							break;
+						default:
+							argv[1] = NJHandler::New(isolate, handler, true);
+							break;
+						}
+					}
+					else {
+						argv[1] = Null(isolate);
+					}
 					Local<Function> cb = Local<Function>::New(isolate, obj->m_evPool);
-					cb->Call(isolate->GetCurrentContext(), Null(isolate), 1, argv);
+					cb->Call(isolate->GetCurrentContext(), Null(isolate), 2, argv);
 				}
 				obj->m_deqPoolEvent.pop_front();
 			}
@@ -308,7 +385,7 @@ namespace NJA {
 					njAsh = NJFile::New(isolate, (CSFile*)ash, true);
 					break;
 				default:
-					njAsh = NJHandler::New(isolate, (CAsyncHandler*)ash, true);
+					njAsh = NJHandler::New(isolate, ash, true);
 					break;
 				}
 				Local<Value> jsReqId = Uint32::New(isolate, reqId);
@@ -607,7 +684,7 @@ namespace NJA {
 				obj->Handler->SetQueueAutoMerge(b);
 			}
 			else {
-				ThrowException(isolate, "A boolean value expected");
+				ThrowException(isolate, BOOLEAN_EXPECTED);
 			}
 		}
 	}
@@ -631,7 +708,7 @@ namespace NJA {
 				obj->Handler->SetQueueName(*str);
 			}
 			else {
-				ThrowException(isolate, "A boolean value expected");
+				ThrowException(isolate, BOOLEAN_EXPECTED);
 			}
 		}
 	}
@@ -961,6 +1038,10 @@ namespace NJA {
 		unsigned int sessions = p1->Uint32Value();
 		if (!sessions) {
 			ThrowException(isolate, "The number of client sockets cannot be zero");
+			return;
+		}
+		if (obj->Handler->IsStarted()) {
+			ThrowException(isolate, "The socket pool already started");
 			return;
 		}
 		std::vector<SPA::ClientSide::CConnectionContext> vCC;

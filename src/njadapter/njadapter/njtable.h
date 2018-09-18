@@ -15,6 +15,12 @@ namespace NJA {
 		static void Init(Local<Object> exports);
 		static Local<Object> New(Isolate* isolate, SPA::CTable *tbl, bool setCb);
 
+		static void ThrowException(int errCode, Isolate *isolate);
+
+		static const char *COLUMN_ORDINAL_EXPECTED;
+		static const char *OPERATION_EXPECTED;
+		static const char *BAD_OPERATION;
+
 	private:
 		NJTable& operator=(const NJTable &tbl) = delete;
 		bool IsValid(Isolate* isolate);

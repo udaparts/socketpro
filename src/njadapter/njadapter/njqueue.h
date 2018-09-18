@@ -17,6 +17,7 @@ namespace NJA {
 		static void Init(Local<Object> exports);
 		static Local<Object> New(Isolate* isolate, SPA::PUQueue &q);
 		unsigned int Load(Isolate* isolate, SPA::UDB::CDBVariant &vt);
+		static const char *NO_BUFFER_AVAILABLE;
 		
 	private:
 		void Ensure();
@@ -26,7 +27,7 @@ namespace NJA {
 		template <class ctype>
 		unsigned int Load(Isolate* isolate, ctype &buffer) {
 			if (!m_Buffer || m_Buffer->GetSize() < sizeof(ctype)) {
-				ThrowException(isolate, "No buffer available");
+				ThrowException(isolate, NO_BUFFER_AVAILABLE);
 				Release();
 				return 0;
 			}

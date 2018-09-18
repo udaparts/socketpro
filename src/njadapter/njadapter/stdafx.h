@@ -64,6 +64,11 @@ namespace NJA {
 	extern SPA::CUCriticalSection g_cs;
 	extern SPA::CUQueue g_KeyAllowed;
 	extern int g_TimeOffset;
+	extern const char* UNSUPPORTED_TYPE;
+	extern const char* UNSUPPORTED_ARRAY_TYPE;
+	extern const char* BOOLEAN_EXPECTED;
+	extern const char* BAD_DATA_TYPE;
+	extern const char* INTEGER_EXPECTED;
 };
 
 #endif

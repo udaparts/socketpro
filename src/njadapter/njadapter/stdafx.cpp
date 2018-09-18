@@ -917,7 +917,7 @@ namespace NJA {
 				}
 			}
 			if (!ok) {
-				ThrowException(isolate, "Invalid data array found");
+				ThrowException(isolate, UNSUPPORTED_ARRAY_TYPE);
 				return false;
 			}
 			for (unsigned int n = 0; n < count; ++n) {
@@ -950,7 +950,7 @@ namespace NJA {
 			}
 		}
 		else {
-			ThrowException(isolate, "Invalid data array found");
+			ThrowException(isolate, UNSUPPORTED_ARRAY_TYPE);
 			return false;
 		}
 		return true;
@@ -1096,4 +1096,9 @@ namespace NJA {
 
 	SPA::CUCriticalSection g_cs;
 	SPA::CUQueue g_KeyAllowed;
+	const char* UNSUPPORTED_TYPE = "Unsupported data type";
+	const char* UNSUPPORTED_ARRAY_TYPE = "Unsupported data array type";
+	const char* BOOLEAN_EXPECTED = "A boolean value expected";
+	const char* BAD_DATA_TYPE = "Bad data type";
+	const char* INTEGER_EXPECTED = "An integer value expected";
 }

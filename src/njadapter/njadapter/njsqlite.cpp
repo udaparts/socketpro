@@ -183,7 +183,7 @@ namespace NJA {
 				flags = p0->Uint32Value();
 			}
 			else if (!p0->IsNullOrUndefined()) {
-				ThrowException(isolate, "An unsigned integer value expected for DB open flags");
+				ThrowException(isolate, "An unsigned int value expected for DB open flags");
 				return;
 			}
 			SPA::UINT64 index = obj->m_db->Open(isolate, 2, argv, strConnection.c_str(), flags);
