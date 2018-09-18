@@ -88,7 +88,6 @@ namespace SPA {
 						break;
 					case eRowsetHeader:
 						if (!func.IsEmpty()) {
-							bool ok;
 							CDBColumnInfoArray v;
 							*cb.Buffer >> v;
 							assert(!cb.Buffer->GetSize());

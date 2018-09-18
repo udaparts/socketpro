@@ -37,9 +37,11 @@ namespace NJA {
 
 	enum tagDataType {
 		dtUnknown = 0,
-		dtString,
-		dtBool,
+		dtString = 1,
+		dtBool = 2,
 		dtDate,
+		dtInt64,
+		dtDouble
 	};
 
 	//internal utility methods
@@ -55,6 +57,7 @@ namespace NJA {
 	std::vector<unsigned int>ToGroups(const Local<Value>& p);
 	Local<Array> ToMeta(Isolate* isolate, const CDBColumnInfoArray &v);
 	Local<Array> ToMeta(Isolate* isolate, const SPA::CKeyMap &mapkey);
+	bool ToArray(Isolate* isolate, const Local<Value> &data, CDBVariantArray &v);
 
 	int time_offset();
 

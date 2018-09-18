@@ -819,6 +819,143 @@ namespace NJA {
 		return v8::Undefined(isolate);
 	}
 
+	template<typename T>
+	void ToArray(const T *p, unsigned int len, CDBVariantArray &v) {
+		for (unsigned int n = 0; n < len; ++n) {
+			v.push_back(p[n]);
+		}
+	}
+
+	bool ToArray(Isolate* isolate, const Local<Value> &data, CDBVariantArray &v) {
+		if (data->IsInt32Array()) {
+			int *p = (int*)node::Buffer::Data(data);
+			Local<v8::Int32Array> vInt = Local<v8::Int32Array>::Cast(data);
+			unsigned int len = (unsigned int)vInt->Length();
+			ToArray(p, len, v);
+		}
+		else if (data->IsFloat64Array()) {
+			double *p = (double*)node::Buffer::Data(data);
+			Local<v8::Float64Array> vDouble = Local<v8::Float64Array>::Cast(data);
+			unsigned int len = (unsigned int)vDouble->Length();
+			ToArray(p, len, v);
+		}
+		else if (data->IsFloat32Array()) {
+			float *p = (float*)node::Buffer::Data(data);
+			Local<v8::Float32Array> vDouble = Local<v8::Float32Array>::Cast(data);
+			unsigned int len = (unsigned int)vDouble->Length();
+			ToArray(p, len, v);
+		}
+		else if (data->IsInt16Array()) {
+			short *p = (short*)node::Buffer::Data(data);
+			Local<v8::Int16Array> vInt = Local<v8::Int16Array>::Cast(data);
+			unsigned int len = (unsigned int)vInt->Length();
+			ToArray(p, len, v);
+		}
+		else if (data->IsInt8Array()) {
+			char *p = node::Buffer::Data(data);
+			Local<v8::Int8Array> vInt = Local<v8::Int8Array>::Cast(data);
+			unsigned int len = (unsigned int)vInt->Length();
+			ToArray(p, len, v);
+		}
+		else if (data->IsUint8Array()) {
+			unsigned char *p = (unsigned char*)node::Buffer::Data(data);
+			Local<v8::Uint8Array> vInt = Local<v8::Uint8Array>::Cast(data);
+			unsigned int len = (unsigned int)vInt->Length();
+			ToArray(p, len, v);
+		}
+		else if (data->IsUint32Array()) {
+			unsigned int *p = (unsigned int*)node::Buffer::Data(data);
+			Local<v8::Uint32Array> vInt = Local<v8::Uint32Array>::Cast(data);
+			unsigned int len = (unsigned int)vInt->Length();
+			ToArray(p, len, v);
+		}
+		else if (data->IsUint16Array()) {
+			unsigned short *p = (unsigned short*)node::Buffer::Data(data);
+			Local<v8::Uint16Array> vInt = Local<v8::Uint16Array>::Cast(data);
+			unsigned int len = (unsigned int)vInt->Length();
+			ToArray(p, len, v);
+		}
+		else if (data->IsArray()) {
+			bool ok = true;
+			tagDataType dt = dtUnknown;
+			Local<Array> jsArr = Local<Array>::Cast(data);
+			unsigned int count = jsArr->Length();
+			for (unsigned int n = 0; n < count && ok; ++n) {
+				auto d = jsArr->Get(n);
+				if (d->IsBoolean()) {
+					if (dt && dt != dtBool)
+						ok = false;
+					else
+						dt = dtBool;
+				}
+				else if (d->IsDate()) {
+					if (dt && dt != dtDate)
+						ok = false;
+					else
+						dt = dtDate;
+				}
+				else if (d->IsString()) {
+					if (dt && dt != dtString)
+						ok = false;
+					else
+						dt = dtString;
+				}
+				else if (d->IsNumber()) {
+					if (dt && dt != dtInt64 && dt != dtDouble)
+						ok = false;
+					else {
+						auto myint64 = d->IntegerValue();
+						auto jsInt64 = Number::New(isolate, (double)myint64);
+						if (d->Equals(jsInt64) && dt <= dtInt64)
+							dt = dtInt64;
+						else
+							dt = dtDouble;
+					}
+				}
+				else {
+					ok = false;
+				}
+			}
+			if (!ok) {
+				ThrowException(isolate, "Invalid data array found");
+				return false;
+			}
+			for (unsigned int n = 0; n < count; ++n) {
+				auto d = jsArr->Get(n);
+				switch (dt) {
+				case NJA::dtString:
+					v.push_back(ToStr(d).c_str());
+					break;
+				case NJA::dtBool:
+					v.push_back(d->BooleanValue());
+					break;
+				case NJA::dtDate:
+				{
+					CDBVariant vt;
+					vt.ullVal = ToDate(d);
+					vt.vt = VT_DATE;
+					v.push_back(vt);
+				}
+					break;
+				case NJA::dtInt64:
+					v.push_back(d->IntegerValue());
+					break;
+				case NJA::dtDouble:
+					v.push_back(d->NumberValue());
+					break;
+				default:
+					assert(false);
+					break;
+				}
+			}
+		}
+		else {
+			ThrowException(isolate, "Invalid data array found");
+			return false;
+		}
+		return true;
+	}
+
 	bool ToPInfoArray(Isolate* isolate, const Local<Value> &p0, CParameterInfoArray &vInfo) {
 		vInfo.clear();
 		if (p0->IsArray()) {

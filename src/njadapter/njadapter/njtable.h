@@ -19,12 +19,29 @@ namespace NJA {
 		NJTable& operator=(const NJTable &tbl) = delete;
 		bool IsValid(Isolate* isolate);
 		void Release();
+		static bool IsTable(Local<Object> obj);
 		
 		static const SPA::INT64 SECRECT_NUM = 0x4f25b02ce415;
 		static void New(const FunctionCallbackInfo<Value>& args);
 
+		static void getMeta(const FunctionCallbackInfo<Value>& args);
+		static void getData(const FunctionCallbackInfo<Value>& args);
+		static void getKeys(const FunctionCallbackInfo<Value>& args);
+
+		static void Append(const FunctionCallbackInfo<Value>& args);
+		static void Sort(const FunctionCallbackInfo<Value>& args);
+		static void FindOrdinal(const FunctionCallbackInfo<Value>& args);
+		static void Find(const FunctionCallbackInfo<Value>& args);
+		static void FindNull(const FunctionCallbackInfo<Value>& args);
+		static void In(const FunctionCallbackInfo<Value>& args);
+		static void Between(const FunctionCallbackInfo<Value>& args);
+		static void NotIn(const FunctionCallbackInfo<Value>& args);
+		static void Dispose(const FunctionCallbackInfo<Value>& args);
+
 	private:
 		static Persistent<Function> constructor;
+		static Persistent<v8::FunctionTemplate> m_tpl;
+
 		SPA::CTable *m_table;
 	};
 

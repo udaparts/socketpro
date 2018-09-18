@@ -289,7 +289,7 @@ namespace NJA {
 					args.GetReturnValue().Set(jsRes);
 				}
 				else {
-					Local<Value> jsTable = NJTable::New(isolate, pTable, true);
+					Local<Object> jsTable = NJTable::New(isolate, pTable, true);
 					args.GetReturnValue().Set(jsTable);
 				}
 			}
@@ -320,7 +320,7 @@ namespace NJA {
 					args.GetReturnValue().Set(jsRes);
 				}
 				else {
-					Local<Value> jsTable = NJTable::New(isolate, pTable, true);
+					Local<Object> jsTable = NJTable::New(isolate, pTable, true);
 					args.GetReturnValue().Set(jsTable);
 				}
 			}
@@ -372,7 +372,7 @@ namespace NJA {
 					args.GetReturnValue().Set(jsRes);
 				}
 				else {
-					Local<Value> jsTable = NJTable::New(isolate, pTable, true);
+					Local<Object> jsTable = NJTable::New(isolate, pTable, true);
 					args.GetReturnValue().Set(jsTable);
 				}
 			}
@@ -393,31 +393,18 @@ namespace NJA {
 				unsigned int ordinal = p2->Uint32Value();
 				SPA::UDB::CDBVariantArray v;
 				auto p3 = args[3];
-				SPA::UDB::CDBVariant vt;
-				if (!From(p3, "", vt)) {
-					ThrowException(isolate, "An array of data expected");
+				if (!ToArray(isolate, p3, v)) {
 					return;
 				}
-				bool is_array = ((vt.vt & VT_ARRAY) == VT_ARRAY);
-				VARTYPE type = (vt.vt & (~VT_ARRAY));
-				if (!is_array || type == VT_I1 || type == VT_UI1) {
-					v.push_back(std::move(vt));
-				}
-				else if (type == VT_VARIANT) {
-
-				}
-				else {
-
-				}
 				SPA::CTable *pTable = new SPA::CTable;
-				int res = obj->m_ds->In(p.first.c_str(), p.second.c_str(), ordinal, v, *pTable);
-				if (res < 0) {
+				int res = obj->m_ds->NotIn(p.first.c_str(), p.second.c_str(), ordinal, v, *pTable);
+				if (res <= 0) {
 					delete pTable;
 					Local<Value> jsRes = Int32::New(isolate, res);
 					args.GetReturnValue().Set(jsRes);
 				}
 				else {
-					Local<Value> jsTable = NJTable::New(isolate, pTable, true);
+					Local<Object> jsTable = NJTable::New(isolate, pTable, true);
 					args.GetReturnValue().Set(jsTable);
 				}
 			}
@@ -438,31 +425,18 @@ namespace NJA {
 				unsigned int ordinal = p2->Uint32Value();
 				SPA::UDB::CDBVariantArray v;
 				auto p3 = args[3];
-				SPA::UDB::CDBVariant vt;
-				if (!From(p3, "", vt)) {
-					ThrowException(isolate, "An array of data expected");
+				if (!ToArray(isolate, p3, v)) {
 					return;
-				}
-				bool is_array = ((vt.vt & VT_ARRAY) == VT_ARRAY);
-				VARTYPE type = (vt.vt & (~VT_ARRAY));
-				if (!is_array || type == VT_I1 || type == VT_UI1) {
-					v.push_back(std::move(vt));
-				}
-				else if (type == VT_VARIANT){
-
-				}
-				else {
-
 				}
 				SPA::CTable *pTable = new SPA::CTable;
 				int res = obj->m_ds->In(p.first.c_str(), p.second.c_str(), ordinal, v, *pTable);
-				if (res < 0) {
+				if (res <= 0) {
 					delete pTable;
 					Local<Value> jsRes = Int32::New(isolate, res);
 					args.GetReturnValue().Set(jsRes);
 				}
 				else {
-					Local<Value> jsTable = NJTable::New(isolate, pTable, true);
+					Local<Object> jsTable = NJTable::New(isolate, pTable, true);
 					args.GetReturnValue().Set(jsTable);
 				}
 			}
