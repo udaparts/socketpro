@@ -39,7 +39,8 @@ namespace NJA {
 
 	void GetWorkingDir(const FunctionCallbackInfo<Value>& args) {
 		auto isolate = args.GetIsolate();
-		auto v = ToStr(isolate, ClientCoreLoader.GetClientWorkDirectory());
+		std::string dir(ClientCoreLoader.GetClientWorkDirectory());
+		auto v = ToStr(isolate, dir.c_str(), dir.size());
 		args.GetReturnValue().Set(v);
 	}
 

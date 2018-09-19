@@ -30,7 +30,7 @@ namespace NJA {
 
 		// Prepare constructor template
 		Local<FunctionTemplate> tpl = FunctionTemplate::New(isolate, New);
-		tpl->SetClassName(ToStr(isolate, "NJCache"));
+		tpl->SetClassName(ToStr(isolate, "CCache"));
 		tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
 		//methods
@@ -58,7 +58,7 @@ namespace NJA {
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getDbTable", getDbTable);
 
 		constructor.Reset(isolate, tpl->GetFunction());
-		exports->Set(ToStr(isolate, "NJCache"), tpl->GetFunction());
+		exports->Set(ToStr(isolate, "CCache"), tpl->GetFunction());
 	}
 
 	Local<Object> NJCache::New(Isolate* isolate, SPA::CDataSet *ds, bool setCb) {
@@ -84,7 +84,7 @@ namespace NJA {
 			}
 		}
 		else {
-			// Invoked as plain function `NJCache()`, turn into construct call.
+			// Invoked as plain function `CCache()`, turn into construct call.
 			Local<Context> context = isolate->GetCurrentContext();
 			Local<Function> cons = Local<Function>::New(isolate, constructor);
 			Local<Object> result = cons->NewInstance(context, 0, nullptr).ToLocalChecked();

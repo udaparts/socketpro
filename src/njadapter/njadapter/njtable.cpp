@@ -37,7 +37,7 @@ namespace NJA {
 
 		// Prepare constructor template
 		Local<FunctionTemplate> tpl = FunctionTemplate::New(isolate, New);
-		tpl->SetClassName(ToStr(isolate, "NJTable"));
+		tpl->SetClassName(ToStr(isolate, "CTable"));
 		tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
 		//methods
@@ -56,7 +56,7 @@ namespace NJA {
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getMeta", getMeta);
 
 		constructor.Reset(isolate, tpl->GetFunction());
-		exports->Set(ToStr(isolate, "NJTable"), tpl->GetFunction());
+		exports->Set(ToStr(isolate, "CTable"), tpl->GetFunction());
 		m_tpl.Reset(isolate, tpl);
 	}
 
@@ -83,7 +83,7 @@ namespace NJA {
 			}
 		}
 		else {
-			// Invoked as plain function `NJTable()`, turn into construct call.
+			// Invoked as plain function `CTable()`, turn into construct call.
 			Local<Context> context = isolate->GetCurrentContext();
 			Local<Function> cons = Local<Function>::New(isolate, constructor);
 			Local<Object> result = cons->NewInstance(context, 0, nullptr).ToLocalChecked();
