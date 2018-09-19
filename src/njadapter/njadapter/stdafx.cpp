@@ -202,11 +202,9 @@ namespace SPA {
 
 namespace NJA {
 
-	int time_offset()
-	{
-		time_t gmt, rawtime = time(nullptr);
+	int time_offset(time_t rawtime) {
+		time_t gmt;
 		struct tm *ptm;
-
 #ifndef WIN32_64
 		struct tm gbuf;
 		ptm = gmtime_r(&rawtime, &gbuf);
@@ -219,8 +217,6 @@ namespace NJA {
 
 		return (int)difftime(rawtime, gmt);
 	}
-
-	int g_TimeOffset = time_offset();
 
 	void ThrowException(Isolate* isolate, const char *str) {
 		isolate->ThrowException(Exception::TypeError(ToStr(isolate, str)));
@@ -288,14 +284,13 @@ namespace NJA {
 			//time only, convert it to js string
 			return String::NewFromUtf8(isolate, dt.ToDBString().c_str());
 		}
-		double time = (double)std::mktime(&tm);
-		g_cs.lock();
-		time += g_TimeOffset;
-		g_cs.unlock();
+		tm.tm_isdst = -1; //set daylight saving time flag to no information available
+		time_t rawtime = std::mktime(&tm);
+		double time = (double)rawtime;
+		int offset = time_offset(rawtime);
+		time += offset;
 		time *= 1000;
 		time += (us / 1000.0);
-		if (tm.tm_isdst > 0)
-			time -= 3600000;
 		return Date::New(isolate, time);
 	}
 
@@ -313,7 +308,7 @@ namespace NJA {
 		}
 		std::time_t t = millisSinceEpoch / 1000;
 		unsigned int ms = (unsigned int)(millisSinceEpoch % 1000);
-		std::tm *ltime = std::localtime(&t);
+		std::tm *ltime = std::gmtime(&t);
 		SPA::UDateTime dt(*ltime, ms * 1000);
 		return dt.time;
 	}

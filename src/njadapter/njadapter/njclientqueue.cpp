@@ -42,7 +42,7 @@ namespace NJA {
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getShared", getDequeueShared);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getTTL", getTTL);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getStatus", getQueueStatus);
-		NODE_SET_PROTOTYPE_METHOD(tpl, "getLastMessageTime", getLastMessageTime);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "getLastMsgTime", getLastMessageTime);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "setRoutingIndex", setRoutingQueueIndex);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getRoutingIndex", getRoutingQueueIndex);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getOptimistic", getOptimistic);
@@ -264,6 +264,7 @@ namespace NJA {
 		Isolate* isolate = args.GetIsolate();
 		NJClientQueue* obj = ObjectWrap::Unwrap<NJClientQueue>(args.Holder());
 		SPA::UINT64 milliseconds = obj->m_cq->GetLastMessageTime();
+		milliseconds += time_offset((time_t)milliseconds);
 		milliseconds *= 1000;
 		args.GetReturnValue().Set(Date::New(isolate, (double)milliseconds));
 	}

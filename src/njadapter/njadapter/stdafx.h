@@ -59,11 +59,10 @@ namespace NJA {
 	Local<Array> ToMeta(Isolate* isolate, const SPA::CKeyMap &mapkey);
 	bool ToArray(Isolate* isolate, const Local<Value> &data, CDBVariantArray &v);
 
-	int time_offset();
+	int time_offset(time_t rawtime);
 
 	extern SPA::CUCriticalSection g_cs;
 	extern SPA::CUQueue g_KeyAllowed;
-	extern int g_TimeOffset;
 	extern const char* UNSUPPORTED_TYPE;
 	extern const char* UNSUPPORTED_ARRAY_TYPE;
 	extern const char* BOOLEAN_EXPECTED;

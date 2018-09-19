@@ -89,11 +89,6 @@ namespace NJA {
 
 	void NJSocketPool::SendPoolEvent(tagSocketPoolEvent spe, SPA::ClientSide::PAsyncServiceHandler handler) {
 		switch (spe) {
-		case SPA::ClientSide::speTimer:
-			g_cs.lock();
-			g_TimeOffset = time_offset();
-			g_cs.unlock();
-			break;
 		case SPA::ClientSide::speUSocketCreated:
 			handler->GetAttachedClientSocket()->m_asyncType = &m_csType;
 			break;
