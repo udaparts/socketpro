@@ -694,7 +694,7 @@ namespace SPA
                 if (info.DataType == VT_DECIMAL) {
                     q << info.DataType;
                     DECIMAL dec;
-                    if (length <= 20) {
+                    if (length <= 19) {
                         ParseDec(value, dec);
                     } else {
                         ParseDec_long(value, dec);

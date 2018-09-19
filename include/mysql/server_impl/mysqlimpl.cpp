@@ -1233,7 +1233,7 @@ namespace SPA
                             {
                                 if (colInfo.Precision && colInfo.Precision <= 29) {
                                     DECIMAL dec;
-                                    if (len <= 18)
+                                    if (len <= 19)
                                         ParseDec(data, dec);
                                     else
                                         ParseDec_long(data, dec);
@@ -1868,7 +1868,7 @@ namespace SPA
                                     }
                                 } else if (colInfo.Precision && colInfo.Precision <= 29) {
                                     DECIMAL dec;
-                                    if (len <= 18)
+                                    if (len <= 19)
                                         ParseDec((const char*) b.buffer, dec);
                                     else
                                         ParseDec_long((const char*) b.buffer, dec);

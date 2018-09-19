@@ -86,7 +86,7 @@ long long PublishDBEvent(UDF_INIT *initid, UDF_ARGS *args, char *is_null, char *
             case DECIMAL_RESULT:
             {
                 unsigned long len = args->lengths[n];
-                if (len < 20) {
+                if (len <= 19) {
                     SPA::ParseDec(args->args[n], p[n].decVal);
                 } else {
                     SPA::ParseDec_long(args->args[n], p[n].decVal);
