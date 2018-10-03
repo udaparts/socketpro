@@ -21,9 +21,9 @@ namespace SPA {
 				SPA::CAutoLock al(obj->m_csDB);
 				while (obj->m_deqDBCb.size()) {
 					DBCb &cb = obj->m_deqDBCb.front();
-					PAsyncDBHandler processor;
+					PAsyncDBHandler processor = nullptr;
 					*cb.Buffer >> processor;
-					assert(!processor);
+					assert(processor);
 					Local<v8::Object> njDB = CreateDb(isolate, processor);
 					Local<Function> func;
 					assert(cb.Func);
