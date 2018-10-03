@@ -13,8 +13,7 @@ namespace SPA {
 		void CAsyncDBHandler<serviceId>::req_cb(uv_async_t* handle) {
 			CAsyncDBHandler<serviceId>* obj = (CAsyncDBHandler<serviceId>*)handle->data; //sender
 			assert(obj);
-			if (!obj)
-				return;
+			if (!obj) return;
 			Isolate* isolate = Isolate::GetCurrent();
 			HandleScope handleScope(isolate); //required for Node 4.x
 			{

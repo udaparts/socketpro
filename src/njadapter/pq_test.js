@@ -127,10 +127,9 @@ async function asyncKeys(sq) {
 	let result;
 	try {
 		result = await getKeys(sq);
+		console.log(result);
 	} catch (err) {
 		console.error(err);
-		throw err;
 	}
-	return result;
 }
 console.log(asyncKeys(sq));

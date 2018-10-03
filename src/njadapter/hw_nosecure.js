@@ -10,9 +10,49 @@ const idEcho = idSleep + 1;
 
 var cs = SPA.CS; //CS == Client side
 
+function onLineMessage() {
+	process.stdout.write('Online Message Push: ');
+	console.log(arguments);
+}
+
+function onPoolEvent(spe) {
+	if (spe != SPA.CS.PoolEvent.speTimer) {
+		process.stdout.write('PoolEvent: ');
+		console.log(arguments);
+	}
+}
+
+function onAllProcessed() {
+	process.stdout.write('AllProcessed: ');
+	console.log(arguments);
+}
+
+function onResultReturned() {
+	process.stdout.write('ResultReturned: ');
+	console.log(arguments);
+}
+
+function onBaseRequestProcessed() {
+	process.stdout.write('BaseRequestProcessed: ');
+	console.log(arguments);
+}
+
+function onServerException() {
+	process.stdout.write('ServerException: ');
+	console.log(arguments);
+}
+
 //create a global socket pool object
 var p=cs.newPool(sid);
 global.socketpool = p;
+
+//track various events if neccessary
+p.setPoolEvent(onPoolEvent);
+p.setReturned(onResultReturned);
+p.setAllProcessed(onAllProcessed);
+p.setPush(onLineMessage);
+p.setBaseReqProcessed(onBaseRequestProcessed);
+p.setServerException(onServerException);
 
 //create a connection context
 var cc = cs.newCC('localhost',20901,'root','Smash123');
@@ -58,7 +98,7 @@ var ok = hw.SendRequest(idEcho, SPA.newBuffer().Save(q=>{
 		q.SaveDate(data.aDate); //8 bytes for ulong with accuracy to 1 micro-second
 		q.SaveDouble(data.aDouble); //8 bytes
 		q.SaveBool(data.aBool); //1 byte
-		q.SaveString(data.unicodeStr); //4 bytes for string length + (length * 2) bytes for string data -- UTF16-lowendian
+		q.SaveString(data.unicodeStr); //4 bytes for string length + (length * 2) bytes for string data -- UTF16 low-endian
 		q.SaveAString(data.asciiStr); //4 bytes for ASCII string length + length bytes for string data
 		q.SaveObject(data.objBool); //2 bytes for data type + 2 bytes for variant bool
 		q.SaveObject(data.objString); //2 bytes for data type + 4 bytes for string length + (length * 2) bytes for string data -- UTF16-lowendian
@@ -110,14 +150,12 @@ function asycFunc(hw, fName, lName) {
 	});
 }
 async function asyncWait(hw, fName, lName) {
-	var result;
 	try {
-		result = await asycFunc(hw, fName, lName);
+		var result = await asycFunc(hw, fName, lName);
+		console.log(result);
 	} catch (err) {
 		console.error(err);
-		throw err;
 	}
-	console.log(result);
 }
 
 //send a request by use of Promise, async and await

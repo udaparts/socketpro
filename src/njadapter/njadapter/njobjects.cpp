@@ -226,6 +226,8 @@ namespace NJA {
 		NODE_SET_PROTOTYPE_METHOD(tpl, "setReturned", setResultReturned);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "setAllProcessed", setAllProcessed);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "setPush", setPush);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "setBaseReqProcessed", setBaseRequestProcessed);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "setServerException", setServerException);
 
 		//NODE_SET_PROTOTYPE_METHOD(tpl, "getThreads", getThreadsCreated);
 		//NODE_SET_PROTOTYPE_METHOD(tpl, "getIdleSockets", getIdleSockets);
@@ -308,8 +310,7 @@ namespace NJA {
 		HandleScope handleScope(isolate); //required for Node 4.x
 		NJSocketPool* obj = (NJSocketPool*)handle->data;
 		assert(obj);
-		if (!obj)
-			return;
+		if (!obj) return;
 		{
 			SPA::CAutoLock al(obj->m_cs);
 			while (obj->m_deqPoolEvent.size()) {
@@ -353,15 +354,14 @@ namespace NJA {
 		unsigned short reqId;
 		NJSocketPool* obj = (NJSocketPool*)handle->data;
 		assert(obj);
-		if (!obj)
-			return;
+		if (!obj) return;
 		Isolate* isolate = Isolate::GetCurrent();
 		HandleScope handleScope(isolate); //required for Node 4.x or later
 		{
 			SPA::CAutoLock al(obj->m_cs);
 			while (obj->m_deqSocketEvent.size()) {
 				SocketEvent se = obj->m_deqSocketEvent.front();
-				SPA::ClientSide::PAsyncServiceHandler ash;
+				SPA::ClientSide::PAsyncServiceHandler ash = nullptr;
 				*se.QData >> ash >> reqId;
 				assert(ash);
 				assert(reqId);
@@ -486,20 +486,21 @@ namespace NJA {
 					case seResultReturned:
 						if (!obj->m_rr.IsEmpty()) {
 							Local<Function> cb = Local<Function>::New(isolate, obj->m_rr);
+							Local<Value> argv[3];
+							argv[0] = njAsh;
+							argv[1] = jsReqId;
+							Local<Object> q;
 							if (se.QData->GetSize()) {
-								Local<Value> argv[3];
-								argv[0] = njAsh;
-								argv[1] = jsReqId;
-								auto q = NJQueue::New(isolate, se.QData);
-								argv[2] = q;
-								cb->Call(isolate->GetCurrentContext(), Null(isolate), 3, argv);
-								auto obj = ObjectWrap::Unwrap<NJQueue>(q);
-								obj->Release();
+								q = NJQueue::New(isolate, se.QData);
 							}
 							else {
-								Local<Value> argv[] = { njAsh , jsReqId };
-								cb->Call(isolate->GetCurrentContext(), Null(isolate), 2, argv);
+								SPA::PUQueue buffer = nullptr;
+								q = NJQueue::New(isolate, buffer);
 							}
+							argv[2] = q;
+							cb->Call(isolate->GetCurrentContext(), Null(isolate), 3, argv);
+							auto objQueue = ObjectWrap::Unwrap<NJQueue>(q);
+							objQueue->Release();
 						}
 						break;
 					case seServerException:

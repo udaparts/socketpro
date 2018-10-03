@@ -50,16 +50,16 @@ namespace NJA {
 	void CAQueue::queue_cb(uv_async_t* handle) {
 		CAQueue* obj = (CAQueue*)handle->data; //sender
 		assert(obj);
-		if (!obj)
-			return;
+		if (!obj) return;
 		Isolate* isolate = Isolate::GetCurrent();
 		v8::HandleScope handleScope(isolate); //required for Node 4.x
 		{
 			SPA::CAutoLock al(obj->m_csQ);
 			while (obj->m_deqQCb.size()) {
 				QueueCb &cb = obj->m_deqQCb.front();
-				PAQueue processor;
+				PAQueue processor = nullptr;
 				*cb.Buffer >> processor;
+				assert(processor);
 				Local<Function> func = Local<Function>::New(isolate, *cb.Func);
 				Local<Object> njQ = NJAsyncQueue::New(isolate, processor, true);
 				switch (cb.EventType) {

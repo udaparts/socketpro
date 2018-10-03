@@ -96,8 +96,7 @@ namespace NJA {
 	void CSFile::file_cb(uv_async_t* handle) {
 		CSFile* obj = (CSFile*)handle->data; //sender
 		assert(obj);
-		if (!obj)
-			return;
+		if (!obj) return;
 		Isolate* isolate = Isolate::GetCurrent();
 		v8::HandleScope handleScope(isolate); //required for Node 4.x
 		{
@@ -106,6 +105,7 @@ namespace NJA {
 				FileCb &cb = obj->m_deqFileCb.front();
 				PSFile processor;
 				*cb.Buffer >> processor;
+				assert(processor);
 				Local<Function> func = Local<Function>::New(isolate, *cb.Func);
 				Local<Object> njFile = NJFile::New(isolate, processor, true);
 				Local<v8::Boolean> download = v8::Boolean::New(isolate, cb.Download);

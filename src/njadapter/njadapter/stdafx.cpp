@@ -98,17 +98,16 @@ namespace SPA {
 		void CAsyncServiceHandler::req_cb(uv_async_t* handle) {
 			CAsyncServiceHandler* obj = (CAsyncServiceHandler*)handle->data; //sender
 			assert(obj);
-			if (!obj)
-				return;
+			if (!obj) return;
 			Isolate* isolate = Isolate::GetCurrent();
 			HandleScope handleScope(isolate); //required for Node 4.x
 			{
 				SPA::CAutoLock al(obj->m_cs);
 				while (obj->m_deqReqCb.size()) {
 					ReqCb &cb = obj->m_deqReqCb.front();
-					PAsyncServiceHandler processor;
+					PAsyncServiceHandler processor = nullptr;
 					*cb.Buffer >> processor;
-					assert(!processor);
+					assert(processor);
 					Local<v8::Object> njAsh;
 					unsigned int sid = processor->GetSvsID();
 					switch (sid) {
