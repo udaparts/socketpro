@@ -54,7 +54,7 @@ sq.setResultReturned((id, q)=>{
 		case idMessage0:
 		case idMessage1:
 		case idMessage2:
-			 //parse a dequeued message which should be the same as the above enqueued message (two unicode strings and one int)
+			//parse a dequeued message which should be the same as the above enqueued message (two unicode strings and one int)
 			var name = q.LoadString();
 			var str = q.LoadString();
 			var index = q.LoadInt();
