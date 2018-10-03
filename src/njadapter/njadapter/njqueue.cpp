@@ -75,6 +75,7 @@ namespace NJA {
 		NODE_SET_PROTOTYPE_METHOD(tpl, "LoadByte", LoadByte);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "LoadAChar", LoadAChar);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "LoadShort", LoadShort);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "LoadChar", LoadUShort);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "LoadInt", LoadInt);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "LoadLong", LoadLong);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "LoadFloat", LoadFloat);
@@ -96,6 +97,7 @@ namespace NJA {
 		NODE_SET_PROTOTYPE_METHOD(tpl, "SaveByte", SaveByte);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "SaveAChar", SaveAChar);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "SaveShort", SaveShort);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "SaveChar", SaveUShort);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "SaveInt", SaveInt);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "SaveLong", SaveLong);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "SaveFloat", SaveFloat);
