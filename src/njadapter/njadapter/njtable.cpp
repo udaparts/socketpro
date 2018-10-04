@@ -49,6 +49,8 @@ namespace NJA {
 		NODE_SET_PROTOTYPE_METHOD(tpl, "NotIn", NotIn);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "Append", Append);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "Sort", Sort);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "Dispose", Dispose);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "Empty", Dispose);
 
 		//properties
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getData", getData);

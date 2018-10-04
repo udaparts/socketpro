@@ -364,20 +364,31 @@ exports.DB={
 		idSqlBatchHeader:0x7E91, //server ==> client only
 		idExecuteBatch:0x7E92,
 		idParameterPosition:0x7E93 //server ==> client only
-	},
+	}
+};
+
+//real-time updateable data cache
+exports.Cache={
+	/// <summary>
+	/// A flag used with idOpen for tracing database table update events
+	/// </summary>
+	ENABLE_TABLE_UPDATE_MESSAGES:1,
 	
-	//real-time updateable data cache
-	Cache:{
-		/// <summary>
-		/// A flag used with idOpen for tracing database table update events
-		/// </summary>
-		ENABLE_TABLE_UPDATE_MESSAGES:1,
-		
-		/// <summary>
-		/// A chat group id used at SocketPro server side for notifying database events from server to connected clients
-		/// </summary>
-		STREAMING_SQL_CHAT_GROUP_ID:0x1fffffff,
-		
-		CACHE_UPDATE_CHAT_GROUP_ID:0x20000000
+	/// <summary>
+	/// A chat group id used at SocketPro server side for notifying database events from server to connected clients
+	/// </summary>
+	STREAMING_SQL_CHAT_GROUP_ID:0x1fffffff,
+	
+	CACHE_UPDATE_CHAT_GROUP_ID:0x20000000,
+	
+	//operator
+	Op : {
+		eq:0, //equal
+		gt:1, //great
+		lt:2, //less
+		ge:3, //great_equal
+		le:4, //less_equal
+		ne:5, //not_equal
+		is_null:6 //is_null
 	}
 };

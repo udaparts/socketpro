@@ -34,11 +34,12 @@ namespace NJA {
 		tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
 		//methods
-		NODE_SET_PROTOTYPE_METHOD(tpl, "Empty", Empty);
+		//NODE_SET_PROTOTYPE_METHOD(tpl, "Empty", Empty);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "GetMeta", GetMeta);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "GetRowCount", GetRowCount);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "GetFields", GetColumnCount);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "FindOrdinal", FindOrdinal);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "FindKeys", FindKeys);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "Find", Find);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "FindNull", FindNull);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "In", In);
@@ -351,20 +352,19 @@ namespace NJA {
 				SPA::CTable::Operator op = (SPA::CTable::Operator)data;
 				auto p4 = args[4];
 				auto p5 = args[5];
-				auto p6 = args[6];
-				if (p6->IsString()) {
-					String::Utf8Value str(p6);
+				if (p5->IsString()) {
+					String::Utf8Value str(p5);
 					hint = *str;
 					std::transform(hint.begin(), hint.end(), hint.begin(), ::tolower);
 				}
 				CComVariant vt;
-				if (!From(p5, hint, vt)) {
+				if (!From(p4, hint, vt)) {
 					ThrowException(isolate, UNSUPPORTED_TYPE);
 					return;
 				}
 				SPA::CTable *pTable = new SPA::CTable;
 				int res = obj->m_ds->Find(p.first.c_str(), p.second.c_str(), ordinal, op, vt, *pTable);
-				if (res < 0) {
+				if (res <= 0) {
 					delete pTable;
 					NJTable::ThrowException(res, isolate);
 				}

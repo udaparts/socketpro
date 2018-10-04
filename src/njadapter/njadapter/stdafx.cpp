@@ -402,8 +402,8 @@ namespace NJA {
 				vt.ullVal = (SPA::UINT64)v->NumberValue();
 			}
 			else {
-				assert(false);
-				return false;
+				vt.vt = VT_R8;
+				vt.dblVal = v->NumberValue();
 			}
 		}
 		else if (v->IsInt8Array()) {
