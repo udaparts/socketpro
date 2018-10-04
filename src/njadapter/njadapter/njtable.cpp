@@ -56,6 +56,8 @@ namespace NJA {
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getData", getData);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getKeys", getKeys);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "getMeta", getMeta);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "getRows", getRows);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "getColumns", getColumns);
 
 		constructor.Reset(isolate, tpl->GetFunction());
 		exports->Set(ToStr(isolate, "CTable"), tpl->GetFunction());
@@ -164,6 +166,24 @@ namespace NJA {
 		}
 	}
 
+	void NJTable::getRows(const FunctionCallbackInfo<Value>& args) {
+		Isolate* isolate = args.GetIsolate();
+		NJTable* obj = ObjectWrap::Unwrap<NJTable>(args.Holder());
+		if (obj->IsValid(isolate)) {
+			Local<Value> jsRows = Uint32::New(isolate, (int)(obj->m_table->GetDataMatrix().size()/obj->m_table->GetMeta().size()));
+			args.GetReturnValue().Set(jsRows);
+		}
+	}
+
+	void NJTable::getColumns(const FunctionCallbackInfo<Value>& args) {
+		Isolate* isolate = args.GetIsolate();
+		NJTable* obj = ObjectWrap::Unwrap<NJTable>(args.Holder());
+		if (obj->IsValid(isolate)) {
+			Local<Value> jsCols = Uint32::New(isolate, (int)obj->m_table->GetMeta().size());
+			args.GetReturnValue().Set(jsCols);
+		}
+	}
+
 	void NJTable::Append(const FunctionCallbackInfo<Value>& args) {
 		Isolate* isolate = args.GetIsolate();
 		NJTable* obj = ObjectWrap::Unwrap<NJTable>(args.Holder());
@@ -194,7 +214,7 @@ namespace NJA {
 		NJTable* obj = ObjectWrap::Unwrap<NJTable>(args.Holder());
 		if (obj->IsValid(isolate)) {
 			auto p0 = args[0];
-			if (!p0->Uint32Value()) {
+			if (!p0->IsUint32()) {
 				NJA::ThrowException(isolate, COLUMN_ORDINAL_EXPECTED);
 				return;
 			}
@@ -239,7 +259,7 @@ namespace NJA {
 		NJTable* obj = ObjectWrap::Unwrap<NJTable>(args.Holder());
 		if (obj->IsValid(isolate)) {
 			auto p0 = args[0];
-			if (!p0->Uint32Value()) {
+			if (!p0->IsUint32()) {
 				NJA::ThrowException(isolate, COLUMN_ORDINAL_EXPECTED);
 				return;
 			}
@@ -319,7 +339,7 @@ namespace NJA {
 		NJTable* obj = ObjectWrap::Unwrap<NJTable>(args.Holder());
 		if (obj->IsValid(isolate)) {
 			auto p0 = args[0];
-			if (!p0->Uint32Value()) {
+			if (!p0->IsUint32()) {
 				NJA::ThrowException(isolate, COLUMN_ORDINAL_EXPECTED);
 				return;
 			}
@@ -356,7 +376,7 @@ namespace NJA {
 		NJTable* obj = ObjectWrap::Unwrap<NJTable>(args.Holder());
 		if (obj->IsValid(isolate)) {
 			auto p0 = args[0];
-			if (!p0->Uint32Value()) {
+			if (!p0->IsUint32()) {
 				NJA::ThrowException(isolate, COLUMN_ORDINAL_EXPECTED);
 				return;
 			}
@@ -402,7 +422,7 @@ namespace NJA {
 		NJTable* obj = ObjectWrap::Unwrap<NJTable>(args.Holder());
 		if (obj->IsValid(isolate)) {
 			auto p0 = args[0];
-			if (!p0->Uint32Value()) {
+			if (!p0->IsUint32()) {
 				NJA::ThrowException(isolate, COLUMN_ORDINAL_EXPECTED);
 				return;
 			}

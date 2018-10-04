@@ -3,29 +3,20 @@ var SPA=require('nja.js');
 var cs = SPA.CS; //CS == Client side
 
 //create a global socket pool object
-p=cs.newPool(SPA.SID.sidMysql, 'sakila'); //or sidOdbc, sidSqlite
+master=cs.newPool(SPA.SID.sidMysql, 'sakila'); //or sidOdbc, sidSqlite
 
 //create a connection context
-var cc = cs.newCC('localhost',20902,'root','Smash123');
+var cc_master = cs.newCC('localhost',20902,'root','Smash123');
 
-//start a socket pool having one session to a remote server
-if (!p.Start(cc,4)) {
-	console.log(p.getError());
+//start a socket pool having two sessions to a remote master server
+if (!master.Start(cc_master,2)) {
+	console.log(master.getError());
 	return;
 }
-var db = p.Seek(); //seek an async DB handler
-var cache = p.getCache();
+var db = master.Seek(); //seek an async DB handler from master pool
+var cache = master.getCache();
 
-var dbIp = cache.getDbIp();
-var dbName= cache.getDbName();
-var updater= cache.getUpdater();
-var ms = cache.getMS();
 var dbTable = cache.getDbTable();
-
-console.log(dbIp);
-console.log(dbName);
-console.log(updater);
-console.log(ms);
 console.log(dbTable);
 
 var keys = cache.FindKeys('sakila', 'actor');
@@ -40,11 +31,34 @@ console.log(columns);
 var ordinal = cache.FindOrdinal('sakila', 'actor', 'last_name');
 console.log(ordinal);
 
-var tbl = cache.Find('sakila', 'actor', 0, SPA.Cache.Op.gt, 20);
-meta = tbl.getMeta();
-console.log(meta);
-tbl.Dispose();
+var tbl = cache.Between('sakila', 'actor', 0, 5, 35);
+var data = tbl.getData();
+console.log(data);
 
+var ok = tbl.Sort(0, true);
+data = tbl.getData();
+console.log(data);
+
+var sub = tbl.In(0, [9,10]);
+data = sub.getData();
+console.log(data);
+
+tbl.Append(sub);
+data = tbl.getData();
+console.log(data);
+
+sub = tbl.NotIn(0, [24, 9, 10]);
+data = sub.getData();
+console.log(data);
+
+slave = master.NewSlave();
+var cc_slave = cs.newCC('ws-yye-1',20902,'root','Smash123');
+//start a socket pool having four sessions to remote slave servers
+if (!slave.Start([cc_slave, cc_master],4)) {
+	console.log(slave.getError());
+	return;
+}
+db = slave.Seek();
 
 
 

@@ -33,6 +33,8 @@ namespace NJA {
 		static void getMeta(const FunctionCallbackInfo<Value>& args);
 		static void getData(const FunctionCallbackInfo<Value>& args);
 		static void getKeys(const FunctionCallbackInfo<Value>& args);
+		static void getRows(const FunctionCallbackInfo<Value>& args);
+		static void getColumns(const FunctionCallbackInfo<Value>& args);
 
 		static void Append(const FunctionCallbackInfo<Value>& args);
 		static void Sort(const FunctionCallbackInfo<Value>& args);

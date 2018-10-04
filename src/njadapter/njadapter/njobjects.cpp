@@ -20,15 +20,15 @@ namespace NJA {
 		case SPA::Odbc::sidOdbc:
 		case SPA::Sqlite::sidSqlite:
 			if (dfltDb.size()) {
-				if (slave)
-					Db = new CSQLMasterPool<false, CNjDb>::CSlavePool(dfltDb.c_str(), SPA::ClientSide::DEFAULT_RECV_TIMEOUT, id);
-				else {
-					Db = new CSQLMasterPool<false, CNjDb>(dfltDb.c_str(), SPA::ClientSide::DEFAULT_RECV_TIMEOUT, id);
-					m_defaultDb = dfltDb;
-				}
+				Db = new CSQLMasterPool<false, CNjDb>(dfltDb.c_str(), SPA::ClientSide::DEFAULT_RECV_TIMEOUT, id);
+				m_defaultDb = dfltDb;
 			}
-			else
+			else if (slave) {
+				Db = new CSQLMasterPool<false, CNjDb>::CSlavePool(dfltDb.c_str(), SPA::ClientSide::DEFAULT_RECV_TIMEOUT, id);
+			}
+			else {
 				Db = new CSocketPool<CNjDb>(true, SPA::ClientSide::DEFAULT_RECV_TIMEOUT, SPA::ClientSide::DEFAULT_CONN_TIMEOUT, id);
+			}
 			Db->DoSslServerAuthentication = [this](CSocketPool<CNjDb> *pool, SPA::ClientSide::CClientSocket *cs)->bool {
 				return this->DoAuthentication(cs->GetUCert());
 			};
@@ -37,6 +37,7 @@ namespace NJA {
 			};
 			break;
 		case SPA::Queue::sidQueue:
+			assert(!slave);
 			Queue = new CSocketPool<CAQueue>(true, SPA::ClientSide::DEFAULT_RECV_TIMEOUT, SPA::ClientSide::DEFAULT_CONN_TIMEOUT);
 			Queue->DoSslServerAuthentication = [this](CSocketPool<CAQueue> *pool, SPA::ClientSide::CClientSocket *cs)->bool {
 				return this->DoAuthentication(cs->GetUCert());
@@ -46,6 +47,7 @@ namespace NJA {
 			};
 			break;
 		case SPA::SFile::sidFile:
+			assert(!slave);
 			File = new CSocketPool<CSFile>(true, SPA::ClientSide::DEFAULT_RECV_TIMEOUT, SPA::ClientSide::DEFAULT_CONN_TIMEOUT);
 			File->DoSslServerAuthentication = [this](CSocketPool<CSFile> *pool, SPA::ClientSide::CClientSocket *cs)->bool {
 				return this->DoAuthentication(cs->GetUCert());
@@ -56,15 +58,15 @@ namespace NJA {
 			break;
 		default:
 			if (dfltDb.size()) {
-				if (slave)
-					Handler = new CMasterPool<false, CAsyncHandler>::CSlavePool(dfltDb.c_str(), SPA::ClientSide::DEFAULT_RECV_TIMEOUT, id);
-				else {
-					Handler = new CMasterPool<false, CAsyncHandler>(dfltDb.c_str(), SPA::ClientSide::DEFAULT_RECV_TIMEOUT, id);
-					m_defaultDb = dfltDb;
-				}
+				Handler = new CMasterPool<false, CAsyncHandler>(dfltDb.c_str(), SPA::ClientSide::DEFAULT_RECV_TIMEOUT, id);
+				m_defaultDb = dfltDb;
 			}
-			else
+			else if (slave) {
+				Handler = new CMasterPool<false, CAsyncHandler>::CSlavePool(dfltDb.c_str(), SPA::ClientSide::DEFAULT_RECV_TIMEOUT, id);
+			}
+			else {
 				Handler = new CSocketPool<CAsyncHandler>(true, SPA::ClientSide::DEFAULT_RECV_TIMEOUT, SPA::ClientSide::DEFAULT_CONN_TIMEOUT, id);
+			}
 			Handler->DoSslServerAuthentication = [this](CSocketPool<CAsyncHandler> *pool, SPA::ClientSide::CClientSocket *cs)->bool {
 				return this->DoAuthentication(cs->GetUCert());
 			};
@@ -249,10 +251,11 @@ namespace NJA {
 				ThrowException(isolate, "Cannot create a slave pool from a non-master pool");
 				return;
 			}
-			NJSocketPool* poolSlave = new NJSocketPool(L"", obj->SvsId, true);
-			Local<Object> objSlave = Object::New(isolate);
-			poolSlave->Wrap(objSlave);
-			args.GetReturnValue().Set(objSlave);
+			Local<Value> argv[] = {Number::New(isolate, obj->SvsId), ToStr(isolate, "", 0), Boolean::New(isolate, true)};
+			Local<Context> context = isolate->GetCurrentContext();
+			Local<Function> cons = Local<Function>::New(isolate, constructor);
+			Local<Object> result = cons->NewInstance(context, 3, argv).ToLocalChecked();
+			args.GetReturnValue().Set(result);
 		}
 	}
 
@@ -278,7 +281,15 @@ namespace NJA {
 				if (len)
 					db.assign(*str, *str + len);
 			}
-			if (db.size()) {
+			bool slave = false;
+			if (args[2]->IsBoolean()) {
+				slave = args[2]->BooleanValue();
+			}
+			else if (!args[2]->IsNullOrUndefined()) {
+				ThrowException(isolate, "Must be a boolean value for slave pool");
+				return;
+			}
+			if (db.size() || slave) {
 				switch (svsId) {
 				case sidFile:
 					ThrowException(isolate, "File streaming doesn't support master-slave pool");
@@ -290,8 +301,9 @@ namespace NJA {
 					break;
 				}
 			}
+
 			// Invoked as constructor: `new NJSocketPool(...)`
-			NJSocketPool* obj = new NJSocketPool(db.c_str(), svsId, false);
+			NJSocketPool* obj = new NJSocketPool(db.c_str(), svsId, slave);
 			obj->Wrap(args.This());
 			args.GetReturnValue().Set(args.This());
 		}
