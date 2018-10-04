@@ -24,12 +24,8 @@
 namespace NJA {
 	using v8::FunctionTemplate;
 	using v8::Context;
-	using v8::Int32;
 	using v8::Date;
 	using v8::Array;
-	using v8::Promise;
-
-	using node::AtExit;
 
 	using namespace SPA;
 	using namespace SPA::ClientSide;
