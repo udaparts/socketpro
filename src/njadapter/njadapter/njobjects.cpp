@@ -359,7 +359,7 @@ namespace NJA {
 				obj->m_deqPoolEvent.pop_front();
 			}
 		}
-		isolate->RunMicrotasks();
+		//isolate->RunMicrotasks();
 	}
 
 	void NJSocketPool::async_cs_cb(uv_async_t* handle) {
@@ -537,7 +537,7 @@ namespace NJA {
 				obj->m_deqSocketEvent.pop_front();
 			}
 		}
-		isolate->RunMicrotasks();
+		//isolate->RunMicrotasks();
 	}
 
 	void NJSocketPool::Dispose(const FunctionCallbackInfo<Value>& args) {
