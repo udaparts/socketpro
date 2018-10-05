@@ -140,12 +140,23 @@ if (!InsertBLOBByPreparedStatement(db)) {
 	return;
 }
 
-if (!db.Execute('SELECT * from company;select * from employee;select curtime()', (res, err, affected, fails, oks, id)=>{
+if (!db.Execute('SELECT * from company;select curtime()', (res, err, affected, fails, oks, id)=>{
+		console.log({errCode:res, errMsg:err, affected:affected, oks:oks, fails:fails, lastId:id});
+	}, data=>{
+		console.log(data);
+	}, meta=>{
+		console.log(meta);
+	})) {
+	console.log(db.getSocket().getError());
+	return;
+}
+
+if (!db.Execute('select * from employee', (res, err, affected, fails, oks, id)=>{
 		console.log({errCode:res, errMsg:err, affected:affected, oks:oks, fails:fails, lastId:id});
 	}, data=>{
 		//console.log(data);
 	}, meta=>{
-		console.log(meta);
+		//console.log(meta);
 	})) {
 	console.log(db.getSocket().getError());
 	return;

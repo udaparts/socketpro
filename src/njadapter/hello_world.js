@@ -48,11 +48,13 @@ global.socketpool = p;
 
 //track various events if neccessary
 p.setPoolEvent(onPoolEvent);
+/*
 p.setReturned(onResultReturned);
 p.setAllProcessed(onAllProcessed);
 p.setPush(onLineMessage);
 p.setBaseReqProcessed(onBaseRequestProcessed);
 p.setServerException(onServerException);
+*/
 
 //create a connection context
 var cc = cs.newCC('localhost',20901,'root','Smash123');
@@ -84,7 +86,7 @@ var data = {
 };
 console.log(data);
 
-//streaming all the following five requests without waiting server responses
+//streaming all the following five requests
 
 //serialize and de-serialize a complex structure with a specific order,
 //pay attention to both serialization and de-serialization,
