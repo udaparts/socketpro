@@ -2,12 +2,13 @@
 #define __SOCKETPRO_NODEJS_ADAPTER_STDAFX_H__
 
 #include "../../../include/definebase.h"
-#include "../../../include/tablecache.h"
 
-#if defined(WIN32) || defined(_WIN64)
+
+#ifdef WIN32_64
 
 #include "targetver.h"
 #define WIN32_LEAN_AND_MEAN		// Exclude rarely-used stuff from Windows headers
+
 // Windows Header Files:
 #include <windows.h>
 
@@ -15,6 +16,7 @@
 
 #endif
 
+#include "../../../include/tablecache.h"
 #include "dbreqcb.h"
 
 #include <node.h>

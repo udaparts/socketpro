@@ -15,11 +15,17 @@
 
 #ifdef NODE_JS_ADAPTER_PROJECT
 
+#ifdef WIN32_64
+//warning C4251: 'node::CallbackScope::try_catch_': class 'v8::TryCatch' needs to have dll-interface to be used by clients
+#pragma warning(disable: 4251)
+#else
+
+#endif
+
 #include <deque>
 
 #include <uv.h>
 #include <v8.h>
-
 
 using v8::Local;
 using v8::Object;

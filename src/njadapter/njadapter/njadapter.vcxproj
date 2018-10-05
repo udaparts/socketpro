@@ -72,22 +72,26 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
     <TargetExt>.node</TargetExt>
-    <IncludePath>C:\cyetest\socketpro\src\njadapter\include;$(IncludePath)</IncludePath>
+    <IncludePath>C:\cyetest\node-v8.11.3\deps\uv\include;C:\cyetest\node-v8.11.3\deps\v8\include;C:\cyetest\node-v8.11.3\src;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\cyetest\node-v8.11.3\x86;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <TargetExt>.node</TargetExt>
-    <IncludePath>C:\cyetest\socketpro\src\njadapter\include;$(IncludePath)</IncludePath>
+    <IncludePath>C:\cyetest\node-v8.11.3\deps\uv\include;C:\cyetest\node-v8.11.3\deps\v8\include;C:\cyetest\node-v8.11.3\src;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\cyetest\node-v8.11.3\x64;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <TargetExt>.node</TargetExt>
-    <IncludePath>C:\cyetest\socketpro\src\njadapter\include;$(IncludePath)</IncludePath>
+    <IncludePath>C:\cyetest\node-v8.11.3\deps\uv\include;C:\cyetest\node-v8.11.3\deps\v8\include;C:\cyetest\node-v8.11.3\src;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\cyetest\node-v8.11.3\x86;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <TargetExt>.node</TargetExt>
-    <IncludePath>C:\cyetest\socketpro\src\njadapter\include;$(IncludePath)</IncludePath>
+    <IncludePath>C:\cyetest\node-v8.11.3\deps\uv\include;C:\cyetest\node-v8.11.3\deps\v8\include;C:\cyetest\node-v8.11.3\src;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\cyetest\node-v8.11.3\x64;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -95,13 +99,13 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>NODE_JS_ADAPTER_PROJECT;WIN32;_DEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NODE_JS_ADAPTER_PROJECT;_CRT_SECURE_NO_WARNINGS;WIN32;_DEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>../lib/x86/node.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>node.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -110,14 +114,14 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>NODE_JS_ADAPTER_PROJECT;_WIN64;_DEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NODE_JS_ADAPTER_PROJECT;_CRT_SECURE_NO_WARNINGS;_WIN64;_DEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
-      <AdditionalDependencies>../lib/x64/node.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>node.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -128,7 +132,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>NODE_JS_ADAPTER_PROJECT;WIN32;NDEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NODE_JS_ADAPTER_PROJECT;_CRT_SECURE_NO_WARNINGS;WIN32;NDEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -136,7 +140,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>false</GenerateDebugInformation>
-      <AdditionalDependencies>../lib/x86/node.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>node.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -147,7 +151,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>NODE_JS_ADAPTER_PROJECT;_WIN64;NDEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NODE_JS_ADAPTER_PROJECT;_CRT_SECURE_NO_WARNINGS;_WIN64;NDEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -155,8 +159,8 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>false</GenerateDebugInformation>
-      <AdditionalDependencies>../lib/x64/node.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <OutputFile>c:\cyetest\socketpro\src\njadapter\node_modules\njadapter.node</OutputFile>
+      <AdditionalDependencies>node.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
