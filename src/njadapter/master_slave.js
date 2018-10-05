@@ -3,7 +3,7 @@ var SPA=require('nja.js');
 var cs = SPA.CS; //CS == Client side
 
 //create a global socket pool object
-master=cs.newPool(SPA.SID.sidMysql, 'sakila'); //or sidOdbc, sidSqlite
+master=cs.newPool(SPA.SID.sidMysql, 'mysqldb'); //or sidOdbc, sidSqlite
 
 //create a connection context
 var cc_master = cs.newCC('localhost',20902,'root','Smash123');

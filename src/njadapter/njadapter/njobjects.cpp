@@ -251,7 +251,7 @@ namespace NJA {
 				ThrowException(isolate, "Cannot create a slave pool from a non-master pool");
 				return;
 			}
-			Local<Value> argv[] = {Number::New(isolate, obj->SvsId), ToStr(isolate, "", 0), Boolean::New(isolate, true)};
+			Local<Value> argv[] = {Number::New(isolate, obj->SvsId), ToStr(isolate, obj->m_defaultDb.c_str(), obj->m_defaultDb.size()), Boolean::New(isolate, true)};
 			Local<Context> context = isolate->GetCurrentContext();
 			Local<Function> cons = Local<Function>::New(isolate, constructor);
 			Local<Object> result = cons->NewInstance(context, 3, argv).ToLocalChecked();
