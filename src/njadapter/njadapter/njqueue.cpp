@@ -422,22 +422,14 @@ namespace NJA {
             return;
         }
         try {
-            unsigned long len;
+            unsigned int len;
             *obj->m_Buffer >> len;
             if (len == (~0)) {
-                args.GetReturnValue().Set(Null(isolate));
+                args.GetReturnValue().SetNull();
             } else if (len <= obj->m_Buffer->GetSize()) {
                 const UTF16 *str = (const UTF16 *) obj->m_Buffer->GetBuffer();
-#if 0
-                SPA::CScopeUQueue sb;
-#ifdef WIN32_64
-                SPA::Utilities::ToUTF8((const wchar_t *)str, len / sizeof (SPA::UTF16), *sb);
-#else
-                SPA::Utilities::ToUTF8(str, len / sizeof (SPA::UTF16), *sb);
-#endif
-#endif
-                obj->m_Buffer->Pop(len);
                 args.GetReturnValue().Set(ToStr(isolate, str, len / sizeof (SPA::UTF16)));
+                obj->m_Buffer->Pop(len);
             } else {
                 ThrowException(isolate, "Bad unicode string found");
                 obj->m_Buffer->SetSize(0);
@@ -977,6 +969,20 @@ namespace NJA {
                         dt = dtDate;
                     SPA::UINT64 time = ToDate(d);
                     sb << time;
+                } else if (d->IsInt32()) {
+                    if (dt && dt != dtInt32) {
+                        ThrowException(isolate, UNSUPPORTED_ARRAY_TYPE);
+                        return;
+                    } else
+                        dt = dtInt32;
+                    sb << d->Int32Value();
+                } else if (d->IsNumber()) {
+                    if (dt && dt != dtDouble) {
+                        ThrowException(isolate, UNSUPPORTED_ARRAY_TYPE);
+                        return;
+                    } else
+                        dt = dtDouble;
+                    sb << d->NumberValue();
                 } else if (d->IsString()) {
                     if (dt && dt != dtString) {
                         ThrowException(isolate, UNSUPPORTED_ARRAY_TYPE);
@@ -1003,6 +1009,12 @@ namespace NJA {
                     break;
                 case dtDate:
                     vtType |= VT_DATE;
+                    break;
+                case dtInt32:
+                    vtType |= VT_I4;
+                    break;
+                case dtDouble:
+                    vtType |= VT_R8;
                     break;
                 default:
                     assert(false); //shouldn't come here

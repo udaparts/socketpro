@@ -231,7 +231,7 @@ namespace NJA {
             str = "";
             len = 0;
         }
-        return String::NewFromUtf8(isolate, str, v8::NewStringType::kNormal, (int) len).ToLocalChecked();
+        return String::NewFromUtf8(isolate, str, v8::NewStringType::kInternalized, (int) len).ToLocalChecked();
     }
 
     Local<String> ToStr(Isolate* isolate, const wchar_t *str, size_t len) {
@@ -243,8 +243,8 @@ namespace NJA {
         return String::NewFromTwoByte(isolate, (const uint16_t *) str, v8::NewStringType::kInternalized, (int) len).ToLocalChecked(); //v8::NewStringType::kNormal will crash if length is large
 #else
         SPA::CScopeUQueue sb;
-        SPA::Utilities::ToUTF16(str, len, *sb);
-        return String::NewFromTwoByte(isolate, (const uint16_t *) sb->GetBuffer(), v8::NewStringType::kInternalized, (int) sb->GetSize() / sizeof (uint16_t)).ToLocalChecked();
+        SPA::Utilities::ToUTF8(str, len, *sb);
+        return String::NewFromUtf8(isolate, (const char *) sb->GetBuffer(), v8::NewStringType::kInternalized, (int) sb->GetSize()).ToLocalChecked();
 #endif
     }
 
@@ -705,7 +705,7 @@ namespace NJA {
                                     {
                                         BSTR *p = (BSTR *) pvt;
                                         if (p[n]) {
-                                            auto s = ToStr(isolate, p[n]);
+                                            auto s = ToStr(isolate, p[n], SysStringLen(p[n]));
                                             v->Set(n, s);
                                         } else
                                             v->Set(n, Null(isolate));
