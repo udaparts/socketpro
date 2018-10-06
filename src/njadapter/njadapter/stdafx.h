@@ -38,7 +38,7 @@ namespace NJA {
 		dtString = 1,
 		dtBool = 2,
 		dtDate,
-		dtInt64,
+		dtInt32,
 		dtDouble
 	};
 

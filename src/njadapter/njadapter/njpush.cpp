@@ -94,7 +94,19 @@ namespace NJA {
 			}
 		}
 		else {
-			ThrowException(isolate, BAD_MESSAGE_SENT);
+			CDBVariant vtMsg;
+			std::string hint;
+			auto p2 = args[2];
+			if (p2->IsString()) {
+				hint = ToAStr(p2);
+			}
+			if (From(p0, hint, vtMsg)) {
+				bool ok = obj->m_p->Publish(vtMsg, groups.data(), (unsigned int)groups.size());
+				args.GetReturnValue().Set(Boolean::New(isolate, ok));
+			}
+			else {
+				ThrowException(isolate, BAD_MESSAGE_SENT);
+			}
 		}
 	}
 
@@ -151,7 +163,19 @@ namespace NJA {
 			}
 		}
 		else {
-			ThrowException(isolate, BAD_MESSAGE_SENT);
+			CDBVariant vtMsg;
+			std::string hint;
+			auto p2 = args[2];
+			if (p2->IsString()) {
+				hint = ToAStr(p2);
+			}
+			if (From(p1, hint, vtMsg)) {
+				bool ok = obj->m_p->SendUserMessage(vtMsg, user.c_str());
+				args.GetReturnValue().Set(Boolean::New(isolate, ok));
+			}
+			else {
+				ThrowException(isolate, BAD_MESSAGE_SENT);
+			}
 		}
 	}
 }

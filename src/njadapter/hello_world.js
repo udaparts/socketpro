@@ -47,11 +47,11 @@ var p=cs.newPool(sid);
 global.socketpool = p;
 
 //track various events if neccessary
-p.setPoolEvent(onPoolEvent);
+p.setPush(onLineMessage);
 /*
+p.setPoolEvent(onPoolEvent);
 p.setReturned(onResultReturned);
 p.setAllProcessed(onAllProcessed);
-p.setPush(onLineMessage);
 p.setBaseReqProcessed(onBaseRequestProcessed);
 p.setServerException(onServerException);
 */
@@ -65,6 +65,8 @@ if (!p.Start(cc,1)) {
 	return;
 }
 var hw = p.Seek(); //seek an async hello world handler
+
+var messenger = hw.getSocket().getPush();
 
 var buffer = new ArrayBuffer(8);
 var int32View = new Int32Array(buffer);
@@ -162,3 +164,9 @@ async function asyncWait(hw, fName, lName) {
 
 //send a request by use of Promise, async and await
 asyncWait(hw, 'Hillary', 'Clinton');
+
+//send a message to a user
+ok = messenger.SendUserMessage('some_user_id', 'A test message from node.js');
+
+//send a message to three groups of connected clients
+ok = messenger.Publish('A test publish message from node.js', new Uint32Array([1,3,7]));

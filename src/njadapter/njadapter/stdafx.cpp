@@ -530,6 +530,20 @@ namespace NJA {
 					else
 						dt = dtString;
 				}
+				else if (d->IsInt32() || id == "i" || id == "int") {
+					if (dt && dt != dtInt32)
+						return false;
+					else {
+						dt = dtInt32;
+					}
+				}
+				else if (d->IsNumber()) {
+					if (dt && dt != dtDouble)
+						return false;
+					else {
+						dt = dtDouble;
+					}
+				}
 				else {
 					return false;
 				}
@@ -545,6 +559,12 @@ namespace NJA {
 			case dtDate:
 				vtType = VT_DATE;
 				break;
+			case dtInt32:
+				vtType = VT_I4;
+				break;
+			case dtDouble:
+				vtType = VT_R8;
+				break;
 			default:
 				assert(false); //shouldn't come here
 				break;
@@ -556,15 +576,9 @@ namespace NJA {
 			SafeArrayAccessData(vt.parray, &p);
 			for (unsigned int n = 0; n < count; ++n) {
 				auto d = jsArr->Get(n);
-				if (d->IsBoolean()) {
-					VARIANT_BOOL *pb = (VARIANT_BOOL *)p;
-					pb[n] = d->BooleanValue() ? VARIANT_TRUE : VARIANT_FALSE;
-				}
-				else if (d->IsDate()) {
-					SPA::UINT64 *pd = (SPA::UINT64*)p;
-					pd[n] = ToDate(d);
-				}
-				else if (d->IsString()) {
+				switch (vtType) {
+				case VT_BSTR:
+				{
 					BSTR *pbstr = (BSTR*)p;
 					String::Value str(d);
 #ifdef WIN32_64
@@ -573,8 +587,34 @@ namespace NJA {
 					pbstr[n] = SPA::Utilities::SysAllocString(*str, (unsigned int)str.length());
 #endif
 				}
-				else {
-					assert(false);
+					break;
+				case VT_BOOL:
+				{
+					VARIANT_BOOL *pb = (VARIANT_BOOL *)p;
+					pb[n] = d->BooleanValue() ? VARIANT_TRUE : VARIANT_FALSE;
+				}
+					break;
+				case VT_DATE:
+				{
+					SPA::UINT64 *pd = (SPA::UINT64*)p;
+					pd[n] = ToDate(d);
+				}
+					break;
+				case VT_I4:
+				{
+					int *pi = (int*)p;
+					pi[n] = d->Int32Value();
+				}
+					break;
+				case VT_R8:
+				{
+					double *pd = (double*)p;
+					pd[n] = d->NumberValue();
+				}
+					break;
+				default:
+					assert(false); //shouldn't come here
+					break;
 				}
 			}
 			SafeArrayUnaccessData(vt.parray);
@@ -894,17 +934,17 @@ namespace NJA {
 					else
 						dt = dtString;
 				}
-				else if (d->IsNumber()) {
-					if (dt && dt != dtInt64 && dt != dtDouble)
+				else if (d->IsInt32()) {
+					if (dt && dt != dtInt32)
 						ok = false;
-					else {
-						auto myint64 = d->IntegerValue();
-						auto jsInt64 = Number::New(isolate, (double)myint64);
-						if (d->Equals(jsInt64) && dt <= dtInt64)
-							dt = dtInt64;
-						else
-							dt = dtDouble;
-					}
+					else
+						dt = dtInt32;
+				}
+				else if (d->IsNumber()) {
+					if (dt && dt != dtDouble)
+						ok = false;
+					else
+						dt = dtDouble;
 				}
 				else {
 					ok = false;
@@ -931,8 +971,8 @@ namespace NJA {
 					v.push_back(vt);
 				}
 					break;
-				case NJA::dtInt64:
-					v.push_back(d->IntegerValue());
+				case NJA::dtInt32:
+					v.push_back(d->Int32Value());
 					break;
 				case NJA::dtDouble:
 					v.push_back(d->NumberValue());
