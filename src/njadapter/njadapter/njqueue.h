@@ -5,6 +5,7 @@ namespace NJA {
 	class NJQueue : public node::ObjectWrap {
 	public:
 		NJQueue(CUQueue *buffer, unsigned int initialSize, unsigned int blockSize);
+		NJQueue(const NJQueue &jq) = delete;
 		~NJQueue();
 
 	public:
@@ -12,6 +13,7 @@ namespace NJA {
 			return m_Buffer;
 		}
 		void Release();
+		NJQueue& operator=(const NJQueue &jq) = delete;
 		static bool IsUQueue(Local<Object> obj);
 		static bool ToParamArray(NJQueue *obj, SPA::UDB::CDBVariantArray &vParam);
 		static void Init(Local<Object> exports);

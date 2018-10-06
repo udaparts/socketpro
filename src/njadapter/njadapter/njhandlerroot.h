@@ -4,9 +4,11 @@ namespace NJA {
 	class NJHandlerRoot : public node::ObjectWrap {
 	public:
 		NJHandlerRoot(SPA::ClientSide::CAsyncServiceHandler *ash);
+		NJHandlerRoot(const NJHandlerRoot &r) = delete;
 		~NJHandlerRoot();
 
 	public:
+		NJHandlerRoot& operator=(const NJHandlerRoot &r) = delete;
 		static bool IsHandler(Local<Object> obj);
 
 	protected:

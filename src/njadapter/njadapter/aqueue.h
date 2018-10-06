@@ -7,11 +7,13 @@ namespace NJA {
 	{
 	public:
 		CAQueue(SPA::ClientSide::CClientSocket *cs);
+		CAQueue(const CAQueue &aq) = delete;
 		~CAQueue();
 
 		typedef CAQueue* PAQueue;
 
 	public:
+		CAQueue& operator=(const CAQueue &aq) = delete;
 		SPA::UINT64 GetKeys(Isolate* isolate, int args, Local<Value> *argv);
 		SPA::UINT64 StartQueueTrans(Isolate* isolate, int args, Local<Value> *argv, const char *key);
 		SPA::UINT64 EndQueueTrans(Isolate* isolate, int args, Local<Value> *argv, bool rollback);

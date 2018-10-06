@@ -11,7 +11,7 @@ namespace NJA {
 		inline SPA::CTable* get() const {
 			return m_table;
 		}
-		
+		NJTable& operator=(const NJTable &tbl) = delete;
 		static void Init(Local<Object> exports);
 		static Local<Object> New(Isolate* isolate, SPA::CTable *tbl, bool setCb);
 
@@ -22,7 +22,6 @@ namespace NJA {
 		static const char *BAD_OPERATION;
 
 	private:
-		NJTable& operator=(const NJTable &tbl) = delete;
 		bool IsValid(Isolate* isolate);
 		void Release();
 		static bool IsTable(Local<Object> obj);
