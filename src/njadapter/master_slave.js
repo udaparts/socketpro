@@ -69,7 +69,7 @@ console.log(data);
 
 //create slave pool from master
 slave = master.NewSlave();
-var cc_slave = cs.newCC('ws-yye-1',20902,'root','Smash123');
+var cc_slave = cs.newCC('windesk',20902,'root','Smash123');
 //start a socket pool having four sessions to remote slave servers
 if (!slave.Start([cc_slave, cc_master],4)) {
 	console.log(slave.getError());
