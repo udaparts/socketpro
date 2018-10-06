@@ -7,7 +7,7 @@
 
 #ifdef NODE_JS_ADAPTER_PROJECT
 namespace NJA {
-    void ThrowException(Isolate* isolate, const char *str);
+    Local<Array> ToMeta(Isolate* isolate, const SPA::UDB::CDBColumnInfoArray &v);
 }
 #endif
 

@@ -146,15 +146,15 @@ namespace SPA {
             bool ok = pHandler->GetCachedTables(this->GetDefaultDBName().c_str(), [this, pHandler](int res, const std::wstring & errMsg) {
                 unsigned int port;
                 std::string ip = pHandler->GetAttachedClientSocket()->GetPeerName(&port);
-                ip += ":";
-                ip += std::to_string(port);
-                this->m_cache.Set(ip.c_str(), pHandler->GetDBManagementSystem());
-                std::string host = pHandler->GetAttachedClientSocket()->GetConnectionContext().Host;
-                std::wstring s = Utilities::ToWide(host.c_str(), host.size());
-                this->m_cache.SetDBServerName(s.c_str());
+                        ip += ":";
+                        ip += std::to_string(port);
+                        this->m_cache.Set(ip.c_str(), pHandler->GetDBManagementSystem());
+                        std::string host = pHandler->GetAttachedClientSocket()->GetConnectionContext().Host;
+                        std::wstring s = Utilities::ToWide(host.c_str(), host.size());
+                        this->m_cache.SetDBServerName(s.c_str());
                 if (res == 0) {
                     this->Cache.Swap(this->m_cache); //exchange between master Cache and this m_cache
-                    this->m_cache.Set(ip.c_str(), pHandler->GetDBManagementSystem());
+                            this->m_cache.Set(ip.c_str(), pHandler->GetDBManagementSystem());
                 }
             }, [this](UDB::CDBVariantArray & vData) {
                 UDB::CDBColumnInfoArray &vCol = this->m_meta;

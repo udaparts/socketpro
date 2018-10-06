@@ -41,9 +41,12 @@ using v8::Boolean;
 using v8::Uint32;
 using v8::HandleScope;
 using v8::Int32;
+using v8::Array;
 
 namespace NJA {
     class NJSocketPool;
+    void ThrowException(Isolate* isolate, const char *str);
+    Local<Value> From(Isolate* isolate, const VARIANT &vt, bool strForDec = false);
     Local<String> ToStr(Isolate* isolate, const char *str, size_t len = (size_t) INVALID_NUMBER);
     Local<String> ToStr(Isolate* isolate, const wchar_t *str, size_t len = (size_t) INVALID_NUMBER);
 }
@@ -1709,24 +1712,24 @@ namespace SPA {
                         auto cs = it->first;
                         ClientCoreLoader.SetRecvTimeout(cs->GetHandle(), recvTimeout);
                         if (it == m_mapSocketHandler.begin())
-                            m_recvTimeout = ClientCoreLoader.GetRecvTimeout(cs->GetHandle())
-                        }
+                            m_recvTimeout = ClientCoreLoader.GetRecvTimeout(cs->GetHandle());
+                    }
                 }
             }
 
             inline void SetConnTimeout(unsigned int connTimeout) {
                 CAutoLock al(m_cs);
                 if (!m_mapSocketHandler.size()) {
-                    m_connTimeout = recvTimeout;
+                    m_connTimeout = connTimeout;
                     if (m_connTimeout < 1000)
                         m_connTimeout = 1000;
                 } else {
                     for (auto it = m_mapSocketHandler.begin(), end = m_mapSocketHandler.end(); it != end; ++it) {
                         auto cs = it->first;
-                        ClientCoreLoader.SetConnTimeout(cs->GetHandle(), recvTimeout);
+                        ClientCoreLoader.SetConnTimeout(cs->GetHandle(), connTimeout);
                         if (it == m_mapSocketHandler.begin())
-                            m_connTimeout = ClientCoreLoader.GetConnTimeout(cs->GetHandle())
-                        }
+                            m_connTimeout = ClientCoreLoader.GetConnTimeout(cs->GetHandle());
+                    }
                 }
             }
 

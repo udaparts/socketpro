@@ -2,24 +2,23 @@
 #include "tablecache.h"
 #include <algorithm>
 
-namespace SPA
-{
+namespace SPA {
 
     CTable::CTable()
-            : m_bFieldNameCaseSensitive(false),
-            m_bDataCaseSensitive(false) {
+    : m_bFieldNameCaseSensitive(false),
+    m_bDataCaseSensitive(false) {
     }
 
     CTable::CTable(const UDB::CDBColumnInfoArray &meta, bool bFieldNameCaseSensitive, bool bDataCaseSensitive)
-            : CPColumnRowset(meta, CDataMatrix()),
-            m_bFieldNameCaseSensitive(bFieldNameCaseSensitive),
-            m_bDataCaseSensitive(bDataCaseSensitive) {
+    : CPColumnRowset(meta, CDataMatrix()),
+    m_bFieldNameCaseSensitive(bFieldNameCaseSensitive),
+    m_bDataCaseSensitive(bDataCaseSensitive) {
     }
 
     CTable::CTable(const CTable & tbl)
-            : CPColumnRowset(tbl),
-            m_bFieldNameCaseSensitive(tbl.m_bFieldNameCaseSensitive),
-            m_bDataCaseSensitive(tbl.m_bDataCaseSensitive) {
+    : CPColumnRowset(tbl),
+    m_bFieldNameCaseSensitive(tbl.m_bFieldNameCaseSensitive),
+    m_bDataCaseSensitive(tbl.m_bDataCaseSensitive) {
     }
 
     const UDB::CDBColumnInfoArray & CTable::GetMeta() const {
@@ -41,7 +40,7 @@ namespace SPA
         return map;
     }
 
-    CTable & CTable::operator = (const CTable & tbl){
+    CTable & CTable::operator=(const CTable & tbl) {
         if (this == &tbl)
             return *this;
         CPColumnRowset &base = *this;
@@ -732,11 +731,11 @@ namespace SPA
     }
 
     CDataSet::CDataSet()
-            : m_ms(UDB::msUnknown),
-            m_bDBNameCaseSensitive(false),
-            m_bTableNameCaseSensitive(false),
-            m_bFieldNameCaseSensitive(false),
-            m_bDataCaseSensitive(false) {
+    : m_ms(UDB::msUnknown),
+    m_bDBNameCaseSensitive(false),
+    m_bTableNameCaseSensitive(false),
+    m_bFieldNameCaseSensitive(false),
+    m_bDataCaseSensitive(false) {
     }
 
     void CDataSet::Swap(CDataSet & tc) {
