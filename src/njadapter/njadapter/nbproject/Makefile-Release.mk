@@ -76,116 +76,116 @@ LDLIBSOPTIONS=
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
-	"${MAKE}"  -f nbproject/Makefile-${CND_CONF}.mk ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libnjadapter.${CND_DLIB_EXT}
+	"${MAKE}"  -f nbproject/Makefile-${CND_CONF}.mk ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/njadapter.node
 
-${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libnjadapter.${CND_DLIB_EXT}: ${OBJECTFILES}
+${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/njadapter.node: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
-	${LINK.cc} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libnjadapter.${CND_DLIB_EXT} ${OBJECTFILES} ${LDLIBSOPTIONS} -shared -s -fPIC
+	${LINK.cc} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/njadapter.node ${OBJECTFILES} ${LDLIBSOPTIONS} -shared -s -fPIC
 
 ${OBJECTDIR}/_ext/932346631/aclientw.o: ../../../include/aclientw.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/932346631
 	${RM} "$@.d"
-	$(COMPILE.cc) -O2 -s -DNDEBUG -DNODE_JS_ADAPTER_PROJECT -I../../../../node/include/node -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/932346631/aclientw.o ../../../include/aclientw.cpp
+	$(COMPILE.cc) -O2 -s -DNDEBUG -DNODE_JS_ADAPTER_PROJECT -Inode -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/932346631/aclientw.o ../../../include/aclientw.cpp
 
 ${OBJECTDIR}/_ext/932346631/membuffer.o: ../../../include/membuffer.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/932346631
 	${RM} "$@.d"
-	$(COMPILE.cc) -O2 -s -DNDEBUG -DNODE_JS_ADAPTER_PROJECT -I../../../../node/include/node -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/932346631/membuffer.o ../../../include/membuffer.cpp
+	$(COMPILE.cc) -O2 -s -DNDEBUG -DNODE_JS_ADAPTER_PROJECT -Inode -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/932346631/membuffer.o ../../../include/membuffer.cpp
 
 ${OBJECTDIR}/_ext/932346631/tablecache.o: ../../../include/tablecache.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/932346631
 	${RM} "$@.d"
-	$(COMPILE.cc) -O2 -s -DNDEBUG -DNODE_JS_ADAPTER_PROJECT -I../../../../node/include/node -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/932346631/tablecache.o ../../../include/tablecache.cpp
+	$(COMPILE.cc) -O2 -s -DNDEBUG -DNODE_JS_ADAPTER_PROJECT -Inode -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/932346631/tablecache.o ../../../include/tablecache.cpp
 
 ${OBJECTDIR}/aqueue.o: aqueue.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.cc) -O2 -s -DNDEBUG -DNODE_JS_ADAPTER_PROJECT -I../../../../node/include/node -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/aqueue.o aqueue.cpp
+	$(COMPILE.cc) -O2 -s -DNDEBUG -DNODE_JS_ADAPTER_PROJECT -Inode -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/aqueue.o aqueue.cpp
 
 ${OBJECTDIR}/dllmain.o: dllmain.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.cc) -O2 -s -DNDEBUG -DNODE_JS_ADAPTER_PROJECT -I../../../../node/include/node -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/dllmain.o dllmain.cpp
+	$(COMPILE.cc) -O2 -s -DNDEBUG -DNODE_JS_ADAPTER_PROJECT -Inode -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/dllmain.o dllmain.cpp
 
 ${OBJECTDIR}/njadapter.o: njadapter.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.cc) -O2 -s -DNDEBUG -DNODE_JS_ADAPTER_PROJECT -I../../../../node/include/node -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/njadapter.o njadapter.cpp
+	$(COMPILE.cc) -O2 -s -DNDEBUG -DNODE_JS_ADAPTER_PROJECT -Inode -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/njadapter.o njadapter.cpp
 
 ${OBJECTDIR}/njasyncqueue.o: njasyncqueue.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.cc) -O2 -s -DNDEBUG -DNODE_JS_ADAPTER_PROJECT -I../../../../node/include/node -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/njasyncqueue.o njasyncqueue.cpp
+	$(COMPILE.cc) -O2 -s -DNDEBUG -DNODE_JS_ADAPTER_PROJECT -Inode -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/njasyncqueue.o njasyncqueue.cpp
 
 ${OBJECTDIR}/njcache.o: njcache.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.cc) -O2 -s -DNDEBUG -DNODE_JS_ADAPTER_PROJECT -I../../../../node/include/node -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/njcache.o njcache.cpp
+	$(COMPILE.cc) -O2 -s -DNDEBUG -DNODE_JS_ADAPTER_PROJECT -Inode -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/njcache.o njcache.cpp
 
 ${OBJECTDIR}/njcert.o: njcert.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.cc) -O2 -s -DNDEBUG -DNODE_JS_ADAPTER_PROJECT -I../../../../node/include/node -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/njcert.o njcert.cpp
+	$(COMPILE.cc) -O2 -s -DNDEBUG -DNODE_JS_ADAPTER_PROJECT -Inode -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/njcert.o njcert.cpp
 
 ${OBJECTDIR}/njclientqueue.o: njclientqueue.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.cc) -O2 -s -DNDEBUG -DNODE_JS_ADAPTER_PROJECT -I../../../../node/include/node -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/njclientqueue.o njclientqueue.cpp
+	$(COMPILE.cc) -O2 -s -DNDEBUG -DNODE_JS_ADAPTER_PROJECT -Inode -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/njclientqueue.o njclientqueue.cpp
 
 ${OBJECTDIR}/njfile.o: njfile.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.cc) -O2 -s -DNDEBUG -DNODE_JS_ADAPTER_PROJECT -I../../../../node/include/node -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/njfile.o njfile.cpp
+	$(COMPILE.cc) -O2 -s -DNDEBUG -DNODE_JS_ADAPTER_PROJECT -Inode -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/njfile.o njfile.cpp
 
 ${OBJECTDIR}/njhandler.o: njhandler.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.cc) -O2 -s -DNDEBUG -DNODE_JS_ADAPTER_PROJECT -I../../../../node/include/node -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/njhandler.o njhandler.cpp
+	$(COMPILE.cc) -O2 -s -DNDEBUG -DNODE_JS_ADAPTER_PROJECT -Inode -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/njhandler.o njhandler.cpp
 
 ${OBJECTDIR}/njhandlerroot.o: njhandlerroot.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.cc) -O2 -s -DNDEBUG -DNODE_JS_ADAPTER_PROJECT -I../../../../node/include/node -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/njhandlerroot.o njhandlerroot.cpp
+	$(COMPILE.cc) -O2 -s -DNDEBUG -DNODE_JS_ADAPTER_PROJECT -Inode -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/njhandlerroot.o njhandlerroot.cpp
 
 ${OBJECTDIR}/njobjects.o: njobjects.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.cc) -O2 -s -DNDEBUG -DNODE_JS_ADAPTER_PROJECT -I../../../../node/include/node -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/njobjects.o njobjects.cpp
+	$(COMPILE.cc) -O2 -s -DNDEBUG -DNODE_JS_ADAPTER_PROJECT -Inode -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/njobjects.o njobjects.cpp
 
 ${OBJECTDIR}/njpush.o: njpush.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.cc) -O2 -s -DNDEBUG -DNODE_JS_ADAPTER_PROJECT -I../../../../node/include/node -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/njpush.o njpush.cpp
+	$(COMPILE.cc) -O2 -s -DNDEBUG -DNODE_JS_ADAPTER_PROJECT -Inode -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/njpush.o njpush.cpp
 
 ${OBJECTDIR}/njqueue.o: njqueue.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.cc) -O2 -s -DNDEBUG -DNODE_JS_ADAPTER_PROJECT -I../../../../node/include/node -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/njqueue.o njqueue.cpp
+	$(COMPILE.cc) -O2 -s -DNDEBUG -DNODE_JS_ADAPTER_PROJECT -Inode -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/njqueue.o njqueue.cpp
 
 ${OBJECTDIR}/njsocket.o: njsocket.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.cc) -O2 -s -DNDEBUG -DNODE_JS_ADAPTER_PROJECT -I../../../../node/include/node -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/njsocket.o njsocket.cpp
+	$(COMPILE.cc) -O2 -s -DNDEBUG -DNODE_JS_ADAPTER_PROJECT -Inode -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/njsocket.o njsocket.cpp
 
 ${OBJECTDIR}/njsqlite.o: njsqlite.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.cc) -O2 -s -DNDEBUG -DNODE_JS_ADAPTER_PROJECT -I../../../../node/include/node -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/njsqlite.o njsqlite.cpp
+	$(COMPILE.cc) -O2 -s -DNDEBUG -DNODE_JS_ADAPTER_PROJECT -Inode -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/njsqlite.o njsqlite.cpp
 
 ${OBJECTDIR}/njtable.o: njtable.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.cc) -O2 -s -DNDEBUG -DNODE_JS_ADAPTER_PROJECT -I../../../../node/include/node -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/njtable.o njtable.cpp
+	$(COMPILE.cc) -O2 -s -DNDEBUG -DNODE_JS_ADAPTER_PROJECT -Inode -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/njtable.o njtable.cpp
 
 ${OBJECTDIR}/sfile.o: sfile.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.cc) -O2 -s -DNDEBUG -DNODE_JS_ADAPTER_PROJECT -I../../../../node/include/node -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/sfile.o sfile.cpp
+	$(COMPILE.cc) -O2 -s -DNDEBUG -DNODE_JS_ADAPTER_PROJECT -Inode -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/sfile.o sfile.cpp
 
 ${OBJECTDIR}/stdafx.o: stdafx.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.cc) -O2 -s -DNDEBUG -DNODE_JS_ADAPTER_PROJECT -I../../../../node/include/node -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/stdafx.o stdafx.cpp
+	$(COMPILE.cc) -O2 -s -DNDEBUG -DNODE_JS_ADAPTER_PROJECT -Inode -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/stdafx.o stdafx.cpp
 
 # Subprojects
 .build-subprojects:
@@ -193,7 +193,7 @@ ${OBJECTDIR}/stdafx.o: stdafx.cpp
 # Clean Targets
 .clean-conf: ${CLEAN_SUBPROJECTS}
 	${RM} -r ${CND_BUILDDIR}/${CND_CONF}
-	${RM} ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libnjadapter.${CND_DLIB_EXT}
+	${RM} ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/njadapter.node
 
 # Subprojects
 .clean-subprojects:

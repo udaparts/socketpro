@@ -9,16 +9,16 @@ CND_DISTDIR=dist
 # Debug configuration
 CND_PLATFORM_Debug=GNU-Linux-x86
 CND_ARTIFACT_DIR_Debug=dist/Debug/GNU-Linux-x86
-CND_ARTIFACT_NAME_Debug=libnjadapter.so
-CND_ARTIFACT_PATH_Debug=dist/Debug/GNU-Linux-x86/libnjadapter.so
+CND_ARTIFACT_NAME_Debug=njadapter.node
+CND_ARTIFACT_PATH_Debug=dist/Debug/GNU-Linux-x86/njadapter.node
 CND_PACKAGE_DIR_Debug=dist/Debug/GNU-Linux-x86/package
 CND_PACKAGE_NAME_Debug=libnjadapter.so.tar
 CND_PACKAGE_PATH_Debug=dist/Debug/GNU-Linux-x86/package/libnjadapter.so.tar
 # Release configuration
 CND_PLATFORM_Release=GNU-Linux-x86
 CND_ARTIFACT_DIR_Release=dist/Release/GNU-Linux-x86
-CND_ARTIFACT_NAME_Release=libnjadapter.so
-CND_ARTIFACT_PATH_Release=dist/Release/GNU-Linux-x86/libnjadapter.so
+CND_ARTIFACT_NAME_Release=njadapter.node
+CND_ARTIFACT_PATH_Release=dist/Release/GNU-Linux-x86/njadapter.node
 CND_PACKAGE_DIR_Release=dist/Release/GNU-Linux-x86/package
 CND_PACKAGE_NAME_Release=libnjadapter.so.tar
 CND_PACKAGE_PATH_Release=dist/Release/GNU-Linux-x86/package/libnjadapter.so.tar

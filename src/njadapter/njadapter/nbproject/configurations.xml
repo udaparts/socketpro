@@ -85,7 +85,7 @@
       <compileType>
         <cTool>
           <incDir>
-            <pElem>../../../../node/include/node</pElem>
+            <pElem>node</pElem>
           </incDir>
           <commandLine>-std=c++11 -static-libgcc -static-libstdc++ -Wall</commandLine>
           <preprocessorList>
@@ -94,13 +94,16 @@
         </cTool>
         <ccTool>
           <incDir>
-            <pElem>../../../../node/include/node</pElem>
+            <pElem>node</pElem>
           </incDir>
           <commandLine>-std=c++11 -static-libgcc -static-libstdc++ -Wall</commandLine>
           <preprocessorList>
             <Elem>NODE_JS_ADAPTER_PROJECT</Elem>
           </preprocessorList>
         </ccTool>
+        <linkerTool>
+          <output>${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/njadapter.node</output>
+        </linkerTool>
       </compileType>
       <item path="../../../include/aclientw.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -212,7 +215,7 @@
           <developmentMode>5</developmentMode>
           <stripSymbols>true</stripSymbols>
           <incDir>
-            <pElem>../../../../node/include/node</pElem>
+            <pElem>node</pElem>
           </incDir>
           <commandLine>-std=c++11 -static-libgcc -static-libstdc++</commandLine>
           <preprocessorList>
@@ -224,7 +227,7 @@
           <developmentMode>5</developmentMode>
           <stripSymbols>true</stripSymbols>
           <incDir>
-            <pElem>../../../../node/include/node</pElem>
+            <pElem>node</pElem>
           </incDir>
           <commandLine>-std=c++11 -static-libgcc -static-libstdc++</commandLine>
           <preprocessorList>
@@ -239,6 +242,7 @@
           <developmentMode>5</developmentMode>
         </asmTool>
         <linkerTool>
+          <output>${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/njadapter.node</output>
           <stripSymbols>true</stripSymbols>
         </linkerTool>
       </compileType>
