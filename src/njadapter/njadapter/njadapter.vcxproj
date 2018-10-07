@@ -72,26 +72,26 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
     <TargetExt>.node</TargetExt>
-    <IncludePath>C:\cyetest\node\deps\uv\include;C:\cyetest\node\deps\v8\include;C:\cyetest\node\src;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\cyetest\node\x86;$(LibraryPath)</LibraryPath>
+    <IncludePath>node;$(IncludePath)</IncludePath>
+    <LibraryPath>lib86;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <TargetExt>.node</TargetExt>
-    <IncludePath>C:\cyetest\node\deps\uv\include;C:\cyetest\node\deps\v8\include;C:\cyetest\node\src;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\cyetest\node\x64;$(LibraryPath)</LibraryPath>
+    <IncludePath>node;$(IncludePath)</IncludePath>
+    <LibraryPath>lib64;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <TargetExt>.node</TargetExt>
-    <IncludePath>C:\cyetest\node\deps\uv\include;C:\cyetest\node\deps\v8\include;C:\cyetest\node\src;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\cyetest\node\x86;$(LibraryPath)</LibraryPath>
+    <IncludePath>node;$(IncludePath)</IncludePath>
+    <LibraryPath>lib86;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <TargetExt>.node</TargetExt>
-    <IncludePath>C:\cyetest\node\deps\uv\include;C:\cyetest\node\deps\v8\include;C:\cyetest\node\src;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\cyetest\node\x64;$(LibraryPath)</LibraryPath>
+    <IncludePath>node;$(IncludePath)</IncludePath>
+    <LibraryPath>lib64;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
