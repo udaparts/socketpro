@@ -80,7 +80,7 @@ namespace NJA {
                 obj->Wrap(args.This());
                 args.GetReturnValue().Set(args.This());
             } else {
-                args.GetReturnValue().Set(Null(isolate));
+                args.GetReturnValue().SetNull();
             }
         } else {
             // Invoked as plain function `CCache()`, turn into construct call.

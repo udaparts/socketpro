@@ -103,7 +103,7 @@ namespace NJA {
                 obj->Wrap(args.This());
                 args.GetReturnValue().Set(args.This());
             } else {
-                args.GetReturnValue().Set(Null(isolate));
+                args.GetReturnValue().SetNull();
             }
         } else {
             // Invoked as plain function `CSocket()`, turn into construct call.
@@ -298,7 +298,7 @@ namespace NJA {
             if (obj->m_socket->GetUCert()) {
                 args.GetReturnValue().Set(NJCert::New(isolate, obj->m_socket->GetUCert(), true));
             } else {
-                args.GetReturnValue().Set(Null(isolate));
+                args.GetReturnValue().SetNull();
             }
         }
     }
