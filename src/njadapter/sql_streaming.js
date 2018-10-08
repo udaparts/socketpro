@@ -15,7 +15,7 @@ if (!p.Start(cc,1)) {
 }
 var db = p.Seek(); //seek an async DB handler
 if (!db.Open('sakila', (res, err)=>{
-	if(res) console.log({errCode:res, errMsg:err});
+	if(res) console.log({ec:res, em:err});
 }, canceled=>{
 	console.log(canceled ? 'request canceled' : 'session closed');
 })) {
@@ -26,19 +26,19 @@ if (!db.Open('sakila', (res, err)=>{
 function TestCreateTables(db) {
 	//track final result event, but ignore row, metat and cancel events
 	if (!db.Execute('Create database if not exists mysqldb character set utf8 collate utf8_general_ci;USE mysqldb',
-		(res, err)=>{if(res) console.log({errCode:res, errMsg:err});})) {
+		(res, err)=>{if(res) console.log({ec:res, em:err});})) {
 		return false;
 	}
 	if (!db.Execute('CREATE TABLE IF NOT EXISTS company(ID bigint PRIMARY KEY NOT NULL,name CHAR(64)NOT NULL,ADDRESS varCHAR(256)not null,Income Decimal(21,2)not null)',
-		(res, err)=>{if(res) console.log({errCode:res, errMsg:err});})) {
+		(res, err)=>{if(res) console.log({ec:res, em:err});})) {
 		return false;
 	}
 	if (!db.Execute('CREATE TABLE IF NOT EXISTS employee(EMPLOYEEID bigint AUTO_INCREMENT PRIMARY KEY NOT NULL unique,CompanyId bigint not null,name CHAR(64)NOT NULL,JoinDate DATETIME(6)default null,IMAGE MEDIUMBLOB,DESCRIPTION MEDIUMTEXT,Salary DECIMAL(25,2),FOREIGN KEY(CompanyId)REFERENCES company(id))',
-		(res, err)=>{if(res) console.log({errCode:res, errMsg:err});})) {
+		(res, err)=>{if(res) console.log({ec:res, em:err});})) {
 		return false;
 	}
 	if (!db.Execute('DROP PROCEDURE IF EXISTS sp_TestProc;CREATE PROCEDURE sp_TestProc(in p_company_id int,inout p_sum_salary DECIMAL(25,2),out p_last_dt datetime)BEGIN select * from employee where companyid>=p_company_id;select sum(salary)+p_sum_salary into p_sum_salary from employee where companyid>=p_company_id;select now()into p_last_dt;END',
-		(res, err)=>{if(res) console.log({errCode:res, errMsg:err});})) {
+		(res, err)=>{if(res) console.log({ec:res, em:err});})) {
 		return false;
 	}
 	return true;
@@ -48,7 +48,7 @@ if (!TestCreateTables(db)) {
 	return;
 }
 if (!db.Execute('delete from employee;delete from company', (res, err, affected)=>{
-		console.log({errCode:res, errMsg:err, affected:affected});
+		console.log({ec:res, em:err, affected:affected});
 	})) {
 	console.log(db.getSocket().getError());
 	return;
@@ -56,7 +56,7 @@ if (!db.Execute('delete from employee;delete from company', (res, err, affected)
 
 function TestPreparedStatements(db) {
 	if (!db.Prepare('INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?)', (res, err)=>{
-		if(res) console.log({errCode:res, errMsg:err});
+		if(res) console.log({ec:res, em:err});
 	})) {
 		return false;
 	}
@@ -84,7 +84,7 @@ function TestPreparedStatements(db) {
 	
 	//send three sets in one shot
 	if (!db.Execute(buff, (res, err, affected, fails, oks, id)=>{
-		console.log({errCode:res, errMsg:err, affected:affected, oks:oks, fails:fails, lastId:id});
+		console.log({ec:res, em:err, affected:affected, oks:oks, fails:fails, id:id});
 	})) {
 		return false;
 	}
@@ -106,7 +106,7 @@ function InsertBLOBByPreparedStatement(db) {
         str += 'The epic takedown of his opponent on an all-important voting day was extraordinary even by the standards of the 2016 campaign -- and quickly drew a scathing response from Trump.';
     }
 	if (!db.Prepare('insert into employee(CompanyId,name,JoinDate,image,DESCRIPTION,Salary)values(?,?,?,?,?,?)', (res, err)=>{
-		if(res) console.log({errCode:res, errMsg:err});
+		if(res) console.log({ec:res, em:err});
 	})) {
 		return false;
 	}
@@ -128,7 +128,7 @@ function InsertBLOBByPreparedStatement(db) {
 	
 	//send three sets in one shot
 	if (!db.Execute(buff, (res, err, affected, fails, oks, id)=>{
-		console.log({errCode:res, errMsg:err, affected:affected, oks:oks, fails:fails, lastId:id});
+		console.log({ec:res, em:err, affected:affected, oks:oks, fails:fails, id:id});
 	})) {
 		return false;
 	}
@@ -141,18 +141,18 @@ if (!InsertBLOBByPreparedStatement(db)) {
 }
 
 if (!db.Execute('SELECT * from company;select curtime()', (res, err, affected, fails, oks, id)=>{
-		console.log({errCode:res, errMsg:err, affected:affected, oks:oks, fails:fails, lastId:id});
+		console.log({ec:res, em:err, affected:affected, oks:oks, fails:fails, id:id});
 	}, data=>{
 		console.log(data);
 	}, meta=>{
-		console.log(meta);
+		//console.log(meta);
 	})) {
 	console.log(db.getSocket().getError());
 	return;
 }
 
 if (!db.Execute('select * from employee', (res, err, affected, fails, oks, id)=>{
-		console.log({errCode:res, errMsg:err, affected:affected, oks:oks, fails:fails, lastId:id});
+		console.log({ec:res, em:err, affected:affected, oks:oks, fails:fails, id:id});
 	}, data=>{
 		//console.log(data);
 	}, meta=>{

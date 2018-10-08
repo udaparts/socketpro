@@ -79,7 +79,7 @@ db = slave.Seek();
 console.log('');
 console.log('SELECT curtime();SELECT * FROM company');
 if (!db.Execute('SELECT curtime();SELECT * FROM company', (res, err, affected, fails, oks, id)=>{
-		console.log({errCode:res, errMsg:err, affected:affected, oks:oks, fails:fails, lastId:id});
+		console.log({ec:res, em:err, affected:affected, oks:oks, fails:fails, lastId:id});
 	}, data=>{
 		console.log(data);
 	}, meta=>{
