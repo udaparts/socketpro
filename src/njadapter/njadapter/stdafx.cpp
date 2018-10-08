@@ -439,6 +439,30 @@ namespace NJA {
             SafeArrayAccessData(vt.parray, (void**) &p);
             memcpy(p, bytes, len * sizeof (unsigned int));
             SafeArrayUnaccessData(vt.parray);
+#ifdef HAS_BIGINT
+        } else if (v->IsBigInt64Array()) {
+            int64_t *p;
+            vt.vt = (VT_ARRAY | VT_I8);
+            char *bytes = node::Buffer::Data(v);
+            Local<v8::BigInt64Array> vInt = Local<v8::BigInt64Array>::Cast(v);
+            unsigned int len = (unsigned int) vInt->Length();
+            SAFEARRAYBOUND sab[] = {len, 0};
+            vt.parray = SafeArrayCreate(VT_I8, 1, sab);
+            SafeArrayAccessData(vt.parray, (void**) &p);
+            memcpy(p, bytes, len * sizeof (int64_t));
+            SafeArrayUnaccessData(vt.parray);
+        } else if (v->IsBigUint64Array()) {
+            uint64_t *p;
+            vt = (VT_ARRAY | VT_UI8);
+            char *bytes = node::Buffer::Data(v);
+            Local<v8::BigUint64Array> vInt = Local<v8::BigUint64Array>::Cast(v);
+            unsigned int len = (unsigned int) vInt->Length();
+            SAFEARRAYBOUND sab[] = {len, 0};
+            vt.parray = SafeArrayCreate(VT_UI8, 1, sab);
+            SafeArrayAccessData(vt.parray, (void**) &p);
+            memcpy(p, bytes, len * sizeof (uint64_t));
+            SafeArrayUnaccessData(vt.parray);
+#endif
         } else if (v->IsFloat32Array()) {
             float *p;
             vt.vt = (VT_ARRAY | VT_R4);
@@ -495,12 +519,20 @@ namespace NJA {
                         return false;
                     } else
                         dt = dtString;
+#ifdef HAS_BIGINT
+                } else if (d->IsBigInt() || id == "l" || id == "long") {
+                    if (dt && dt != dtInt64) {
+                        return false;
+                    } else
+                        dt = dtInt64;
+#else
                 } else if (d->IsInt32() || id == "i" || id == "int") {
                     if (dt && dt != dtInt32)
                         return false;
                     else {
                         dt = dtInt32;
                     }
+#endif
                 } else if (d->IsNumber()) {
                     if (dt && dt != dtDouble)
                         return false;
@@ -522,9 +554,15 @@ namespace NJA {
                 case dtDate:
                     vtType = VT_DATE;
                     break;
+#ifdef HAS_BIGINT
+                case dtInt64:
+                    vtType = VT_I8;
+                    break;
+#else
                 case dtInt32:
                     vtType = VT_I4;
                     break;
+#endif
                 case dtDouble:
                     vtType = VT_R8;
                     break;
@@ -567,6 +605,12 @@ namespace NJA {
                     {
                         int *pi = (int*) p;
                         pi[n] = d->Int32Value();
+                    }
+                        break;
+                    case VT_I8:
+                    {
+                        int64_t *pi = (int64_t*) p;
+                        pi[n] = d->IntegerValue();
                     }
                         break;
                     case VT_R8:
@@ -857,6 +901,18 @@ namespace NJA {
             Local<v8::Uint32Array> vInt = Local<v8::Uint32Array>::Cast(data);
             unsigned int len = (unsigned int) vInt->Length();
             ToArray(p, len, v);
+#ifdef HAS_BIGINT
+        } else if (data->IsBigInt64Array()) {
+            int64_t *p = (int64_t*) node::Buffer::Data(data);
+            Local<v8::BigInt64Array> vInt = Local<v8::BigInt64Array>::Cast(data);
+            unsigned int len = (unsigned int) vInt->Length();
+            ToArray(p, len, v);
+        } else if (data->IsBigUint64Array()) {
+            uint64_t *p = (uint64_t*) node::Buffer::Data(data);
+            Local<v8::BigUint64Array> vInt = Local<v8::BigUint64Array>::Cast(data);
+            unsigned int len = (unsigned int) vInt->Length();
+            ToArray(p, len, v);
+#endif
         } else if (data->IsUint16Array()) {
             unsigned short *p = (unsigned short*) node::Buffer::Data(data);
             Local<v8::Uint16Array> vInt = Local<v8::Uint16Array>::Cast(data);
@@ -884,11 +940,19 @@ namespace NJA {
                         ok = false;
                     else
                         dt = dtString;
+#ifdef HAS_BIGINT
+                } else if (d->IsBigInt()) {
+                    if (dt && dt != dtInt64)
+                        ok = false;
+                    else
+                        dt = dtInt64;
+#else
                 } else if (d->IsInt32()) {
                     if (dt && dt != dtInt32)
                         ok = false;
                     else
                         dt = dtInt32;
+#endif
                 } else if (d->IsNumber()) {
                     if (dt && dt != dtDouble)
                         ok = false;
@@ -919,9 +983,15 @@ namespace NJA {
                         v.push_back(vt);
                     }
                         break;
+#ifdef HAS_BIGINT
+                    case NJA::dtInt64:
+                        v.push_back(d->IntegerValue());
+                        break;
+#else
                     case NJA::dtInt32:
                         v.push_back(d->Int32Value());
                         break;
+#endif
                     case NJA::dtDouble:
                         v.push_back(d->NumberValue());
                         break;
@@ -963,8 +1033,8 @@ namespace NJA {
                     return false;
                 }
                 v = pi->Get(ToStr(isolate, "DataType"));
-                if (v->IsInt32()) {
-                    int d = v->Int32Value();
+                if (v->IsUint32()) {
+                    unsigned int d = v->Uint32Value();
                     pInfo.DataType = (VARTYPE) d;
                 } else if (!v->IsNullOrUndefined()) {
                     ThrowException(isolate, "An integer value expected for parameter data type");
@@ -973,10 +1043,12 @@ namespace NJA {
                 v = pi->Get(ToStr(isolate, "ColumnSize"));
                 if (v->IsInt32()) {
                     int d = v->Int32Value();
-                    if (d < -1) {
-                        ThrowException(isolate, "Bad parameter column size value found");
-                        return false;
-                    }
+                    /*
+                                        if (d < -1) {
+                                            ThrowException(isolate, "Bad parameter column size value found");
+                                            return false;
+                                        }
+                     */
                     pInfo.ColumnSize = (unsigned int) d;
                 } else if (!v->IsNullOrUndefined()) {
                     ThrowException(isolate, "An integer value expected for parameter column size");

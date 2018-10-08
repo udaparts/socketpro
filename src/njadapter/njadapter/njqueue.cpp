@@ -911,6 +911,24 @@ namespace NJA {
             *obj->m_Buffer << vt << count;
             obj->m_Buffer->Push((const unsigned char*) bytes, count * sizeof (unsigned int));
             args.GetReturnValue().Set(args.Holder());
+#ifdef HAS_BIGINT
+        } else if (p0->IsBigUint64Array()) {
+            vt = (VT_ARRAY | VT_UI8);
+            char *bytes = node::Buffer::Data(p0);
+            Local<v8::BigUint64Array> vInt = Local<v8::BigUint64Array>::Cast(p0);
+            unsigned int count = (unsigned int) vInt->Length();
+            *obj->m_Buffer << vt << count;
+            obj->m_Buffer->Push((const unsigned char*) bytes, count * sizeof (uint64_t));
+            args.GetReturnValue().Set(args.Holder());
+        } else if (p0->IsBigInt64Array()) {
+            vt = (VT_ARRAY | VT_UI4);
+            char *bytes = node::Buffer::Data(p0);
+            Local<v8::BigInt64Array> vInt = Local<v8::BigInt64Array>::Cast(p0);
+            unsigned int count = (unsigned int) vInt->Length();
+            *obj->m_Buffer << vt << count;
+            obj->m_Buffer->Push((const unsigned char*) bytes, count * sizeof (int64_t));
+            args.GetReturnValue().Set(args.Holder());
+#endif
         } else if (p0->IsFloat32Array()) {
             vt = (VT_ARRAY | VT_R4);
             char *bytes = node::Buffer::Data(p0);
@@ -969,6 +987,15 @@ namespace NJA {
                         dt = dtDate;
                     SPA::UINT64 time = ToDate(d);
                     sb << time;
+#ifdef HAS_BIGINT
+                } else if (d->IsBigInt()) {
+                    if (dt && dt != dtInt64) {
+                        ThrowException(isolate, UNSUPPORTED_ARRAY_TYPE);
+                        return;
+                    } else
+                        dt = dtInt64;
+                    sb << d->IntegerValue();
+#else
                 } else if (d->IsInt32()) {
                     if (dt && dt != dtInt32) {
                         ThrowException(isolate, UNSUPPORTED_ARRAY_TYPE);
@@ -976,6 +1003,7 @@ namespace NJA {
                     } else
                         dt = dtInt32;
                     sb << d->Int32Value();
+#endif
                 } else if (d->IsNumber()) {
                     if (dt && dt != dtDouble) {
                         ThrowException(isolate, UNSUPPORTED_ARRAY_TYPE);
@@ -1010,9 +1038,15 @@ namespace NJA {
                 case dtDate:
                     vtType |= VT_DATE;
                     break;
+#ifdef HAS_BIGINT
+                case dtInt64:
+                    vtType |= VT_I8;
+                    break;
+#else
                 case dtInt32:
                     vtType |= VT_I4;
                     break;
+#endif
                 case dtDouble:
                     vtType |= VT_R8;
                     break;

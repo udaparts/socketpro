@@ -20,6 +20,11 @@
 #include "dbreqcb.h"
 
 #include <node.h>
+
+#if NODE_VERSION_AT_LEAST(10,4,0)
+#define HAS_BIGINT
+#endif
+
 #include <node_object_wrap.h>
 #include <node_buffer.h>
 
@@ -27,7 +32,7 @@ namespace NJA {
     using v8::FunctionTemplate;
     using v8::Context;
     using v8::Date;
-    
+
     using namespace SPA;
     using namespace SPA::ClientSide;
     using namespace SPA::UDB;
@@ -37,7 +42,11 @@ namespace NJA {
         dtString = 1,
         dtBool = 2,
         dtDate,
+#ifdef HAS_BIGINT
+        dtInt64,
+#else
         dtInt32,
+#endif
         dtDouble
     };
 
