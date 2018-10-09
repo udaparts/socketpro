@@ -230,6 +230,8 @@ namespace NJA {
         if (!str) {
             str = "";
             len = 0;
+        } else if (len == (size_t) INVALID_NUMBER) {
+            len = strlen(str);
         }
         return String::NewFromUtf8(isolate, str, v8::NewStringType::kInternalized, (int) len).ToLocalChecked();
     }
@@ -238,6 +240,8 @@ namespace NJA {
         if (!str) {
             str = L"";
             len = 0;
+        } else if (len == (size_t) INVALID_NUMBER) {
+            len = wcslen(str);
         }
 #ifdef WIN32_64
         return String::NewFromTwoByte(isolate, (const uint16_t *) str, v8::NewStringType::kInternalized, (int) len).ToLocalChecked(); //v8::NewStringType::kNormal will crash if length is large
