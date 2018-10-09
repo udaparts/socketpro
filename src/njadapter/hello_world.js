@@ -68,6 +68,11 @@ var hw = p.Seek(); //seek an async hello world handler
 
 var messenger = hw.getSocket().getPush();
 
+//streaming all the following five requests and two messenger message requests
+var ok = hw.SendRequest(idSayHello, SPA.newBuffer().SaveString('Mary').SaveString('Smith'), q=>{
+	console.log(q.LoadString());
+});
+
 var buffer = new ArrayBuffer(8);
 var int32View = new Int32Array(buffer);
 int32View[0] = 1;
@@ -88,14 +93,12 @@ var data = {
 };
 console.log(data);
 
-//streaming all the following five requests
-
 //serialize and de-serialize a complex structure with a specific order,
 //pay attention to both serialization and de-serialization,
 //which must be in agreement with server implementation
 
 //echo a complex object
-var ok = hw.SendRequest(idEcho, SPA.newBuffer().Save(q=>{
+ok = hw.SendRequest(idEcho, SPA.newBuffer().Save(q=>{
 		//serialize member values into buffer q with a specific order, which must be in agreement with server implementation
 		q.SaveString(data.nullStr); //4 bytes for length
 		q.SaveObject(data.objNull);  //2 bytes for data type
@@ -125,10 +128,6 @@ var ok = hw.SendRequest(idEcho, SPA.newBuffer().Save(q=>{
 		console.log(d);
 	}
 );
-
-ok = hw.SendRequest(idSayHello, SPA.newBuffer().SaveString('Mary').SaveString('Smith'), q=>{
-	console.log(q.LoadString());
-});
 
 //sleep 5000 ms at server side
 ok = hw.SendRequest(idSleep, SPA.newBuffer().SaveInt(5000), q=>{
