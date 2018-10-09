@@ -10,7 +10,7 @@ A public repository for UDAParts (www.udaparts.com) SocketPro Node.js adapter
 
 4.  SocketPro persistent message queue unit tests ====>> server_queue.js
 
-5.  SQL request streaminging unit tests ====>> sql_streaming.js
+5.  SQL request streaming unit tests ====>> sql_streaming.js
 
 6.  Unit tests for real-time updateable cache with SQL databases ====>> master_slave.js
 
