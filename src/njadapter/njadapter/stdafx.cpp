@@ -256,6 +256,12 @@ namespace NJA {
         if (!str) {
             str = (const uint16_t *) L"";
             len = 0;
+        } else if (len == (size_t) INVALID_NUMBER) {
+#ifdef WIN32_64
+            len = wcslen((const wchar_t *)str);
+#else
+            len = SPA::Utilities::GetLen(str);
+#endif
         }
         return String::NewFromTwoByte(isolate, str, v8::NewStringType::kNormal, (int) len).ToLocalChecked();
     }
