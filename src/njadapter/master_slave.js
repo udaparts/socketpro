@@ -14,6 +14,7 @@ if (!master.Start(cc_master,2)) {
 	return;
 }
 var db = master.Seek(); //seek an async DB handler from master pool
+//get real-time updateable cache
 var cache = master.getCache();
 
 console.log('');
@@ -75,7 +76,7 @@ if (!slave.Start([cc_slave, cc_master],4)) {
 	console.log(slave.getError());
 	return;
 }
-db = slave.Seek();
+db = slave.Seek(); //seek an async DB handler from slave pool
 console.log('');
 console.log('SELECT curtime();SELECT * FROM company');
 if (!db.Execute('SELECT curtime();SELECT * FROM company', (res, err, affected, fails, oks, id)=>{
