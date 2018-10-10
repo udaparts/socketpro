@@ -353,7 +353,17 @@ namespace NJA {
                 vt.bstrVal = SPA::Utilities::SysAllocString(*str, (unsigned int) str.length());
 #endif
             }
-        } else if (v->IsNumber()) {
+        } else if (v->IsInt32() && id == "") {
+            vt.vt = VT_I4;
+            vt.lVal = v->Int32Value();
+        }
+#ifdef HAS_BIGINT
+        else if (v->IsBigInt() && id == "") {
+            vt.vt = VT_I8;
+            vt.llVal = v->IntegerValue();
+        }
+#endif
+        else if (v->IsNumber()) {
             if (id == "f" || id == "float") {
                 vt.vt = VT_R4;
                 vt.fltVal = (float) v->NumberValue();

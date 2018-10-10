@@ -35,6 +35,7 @@ exports.config = config;
 
 //loading SocketPro adapter (nja.js + njadapter.node) for nodejs
 var SPA = require('nja.js');
+exports.spa = SPA;
 var cs = SPA.CS; //CS == Client side
 
 //set working directory for client message queues
