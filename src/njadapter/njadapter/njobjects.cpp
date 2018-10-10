@@ -247,7 +247,18 @@ namespace NJA {
                 ThrowException(isolate, "Cannot create a slave pool from a non-master pool");
                 return;
             }
-            Local<Value> argv[] = {Number::New(isolate, obj->SvsId), ToStr(isolate, obj->m_defaultDb.c_str(), obj->m_defaultDb.size()), Boolean::New(isolate, true)};
+            std::wstring defaultDb(obj->m_defaultDb);
+            auto p = args[0];
+            if (p->IsString()) {
+                std::wstring s = ToStr(p);
+                if (s.size()) {
+                    defaultDb = s;
+                }
+            } else if (!p->IsNullOrUndefined()) {
+                ThrowException(isolate, "A default database name string expected");
+                return;
+            }
+            Local<Value> argv[] = {Number::New(isolate, obj->SvsId), ToStr(isolate, defaultDb.c_str(), defaultDb.size()), Boolean::New(isolate, true)};
             Local<Context> context = isolate->GetCurrentContext();
             Local<Function> cons = Local<Function>::New(isolate, constructor);
             Local<Object> result = cons->NewInstance(context, 3, argv).ToLocalChecked();
@@ -989,32 +1000,35 @@ namespace NJA {
         }
         String::Utf8Value pwd(v);
         cc.Password = Utilities::ToWide(*pwd);
-
+        unsigned int em = 0;
         v = obj->Get(ToStr(isolate, "EM"));
-        if (!v->IsUint32()) {
-            ThrowException(isolate, "Encryption method expected");
+        if (v->IsUint32()) {
+            em = v->Uint32Value();
+        } else if (!v->IsNullOrUndefined()) {
+            ThrowException(isolate, "An integer for encryption method expected");
             return false;
         }
-        unsigned int em = v->Uint32Value();
-        if (em > 1) {
+        if (em > TLSv1) {
             ThrowException(isolate, "Invalid encryption method");
             return false;
         }
         cc.EncrytionMethod = (SPA::tagEncryptionMethod)em;
 
         v = obj->Get(ToStr(isolate, "Zip"));
-        if (!v->IsBoolean()) {
+        if (v->IsBoolean()) {
+            cc.Zip = v->BooleanValue();
+        } else if (!v->IsNullOrUndefined()) {
             ThrowException(isolate, "Boolean value expected for Zip");
             return false;
         }
-        cc.Zip = v->BooleanValue();
 
         v = obj->Get(ToStr(isolate, "V6"));
-        if (!v->IsBoolean()) {
+        if (v->IsBoolean()) {
+            cc.V6 = v->BooleanValue();
+        } else if (!v->IsNullOrUndefined()) {
             ThrowException(isolate, "Boolean value expected for V6");
             return false;
         }
-        cc.V6 = v->BooleanValue();
 
         v = obj->Get(ToStr(isolate, "AnyData"));
         if (!From(v, "", cc.AnyData)) {
