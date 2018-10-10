@@ -2,7 +2,6 @@
 #include "njqueue.h"
 #include <algorithm>
 
-
 namespace NJA {
     using SPA::CScopeUQueue;
     Persistent<Function> NJQueue::constructor;
@@ -816,61 +815,70 @@ namespace NJA {
                 *obj->m_Buffer << vt;
                 SaveString(args);
             }
-        } else if (p0->IsNumber()) {
-            if (argv > 1 && args[1]->IsString()) {
-                if (id == "f" || id == "float") {
-                    vt = VT_R4;
-                    *obj->m_Buffer << vt;
-                    SaveFloat(args);
-                } else if (id == "d" || id == "double") {
-                    vt = VT_R8;
-                    *obj->m_Buffer << vt;
-                    SaveDouble(args);
-                } else if (id == "i" || id == "int") {
-                    vt = VT_I4;
-                    *obj->m_Buffer << vt;
-                    SaveInt(args);
-                } else if (id == "ui" || id == "uint") {
-                    vt = VT_UI4;
-                    *obj->m_Buffer << vt;
-                    SaveUInt(args);
-                } else if (id == "l" || id == "long") {
-                    vt = VT_I8;
-                    *obj->m_Buffer << vt;
-                    SaveLong(args);
-                } else if (id == "ul" || id == "ulong") {
-                    vt = VT_UI8;
-                    *obj->m_Buffer << vt;
-                    SaveULong(args);
-                } else if (id == "s" || id == "short") {
-                    vt = VT_I2;
-                    *obj->m_Buffer << vt;
-                    SaveShort(args);
-                } else if (id == "us" || id == "ushort") {
-                    vt = VT_UI2;
-                    *obj->m_Buffer << vt;
-                    SaveUShort(args);
-                } else if (id == "dec" || id == "decimal") {
-                    vt = VT_DECIMAL;
-                    *obj->m_Buffer << vt;
-                    SaveDecimal(args);
-                } else if (id == "c" || id == "char") {
-                    vt = VT_I1;
-                    *obj->m_Buffer << vt;
-                    SaveAChar(args);
-                } else if (id == "b" || id == "byte") {
-                    vt = VT_UI1;
-                    *obj->m_Buffer << vt;
-                    SaveByte(args);
-                } else if (id == "date") {
-                    vt = VT_DATE;
-                    *obj->m_Buffer << vt;
-                    SaveDate(args);
-                } else {
-                    ThrowException(isolate, "Unknown number type");
-                }
+        } else if (p0->IsInt32() && id == "") {
+            *obj->m_Buffer << vt;
+            SaveUInt(args);
+        }
+#ifdef HAS_BIGINT
+        else if (p0->IsBigInt() && id == "") {
+            vt = VT_I8;
+            *obj->m_Buffer << vt;
+            SaveLong(args);
+        }
+#endif
+        else if (p0->IsNumber()) {
+            if (id == "f" || id == "float") {
+                vt = VT_R4;
+                *obj->m_Buffer << vt;
+                SaveFloat(args);
+            } else if (id == "d" || id == "double") {
+                vt = VT_R8;
+                *obj->m_Buffer << vt;
+                SaveDouble(args);
+            } else if (id == "i" || id == "int") {
+                vt = VT_I4;
+                *obj->m_Buffer << vt;
+                SaveInt(args);
+            } else if (id == "ui" || id == "uint") {
+                vt = VT_UI4;
+                *obj->m_Buffer << vt;
+                SaveUInt(args);
+            } else if (id == "l" || id == "long") {
+                vt = VT_I8;
+                *obj->m_Buffer << vt;
+                SaveLong(args);
+            } else if (id == "ul" || id == "ulong") {
+                vt = VT_UI8;
+                *obj->m_Buffer << vt;
+                SaveULong(args);
+            } else if (id == "s" || id == "short") {
+                vt = VT_I2;
+                *obj->m_Buffer << vt;
+                SaveShort(args);
+            } else if (id == "us" || id == "ushort") {
+                vt = VT_UI2;
+                *obj->m_Buffer << vt;
+                SaveUShort(args);
+            } else if (id == "dec" || id == "decimal") {
+                vt = VT_DECIMAL;
+                *obj->m_Buffer << vt;
+                SaveDecimal(args);
+            } else if (id == "c" || id == "char") {
+                vt = VT_I1;
+                *obj->m_Buffer << vt;
+                SaveAChar(args);
+            } else if (id == "b" || id == "byte") {
+                vt = VT_UI1;
+                *obj->m_Buffer << vt;
+                SaveByte(args);
+            } else if (id == "date") {
+                vt = VT_DATE;
+                *obj->m_Buffer << vt;
+                SaveDate(args);
             } else {
-                ThrowException(isolate, "Unknown number type");
+                vt = VT_R8;
+                *obj->m_Buffer << vt;
+                SaveDouble(args);
             }
         } else if (p0->IsInt8Array()) {
             vt = (VT_ARRAY | VT_I1);
