@@ -13,5 +13,5 @@
 2.	After creating such a library, you can load it at runtime by calling the method SocketProAdapter.ServerSide.CSocketProServer.DllManager.AddALibrary in C#. You can do so for all other development environments similarly.
 
 3.	There are two reusable SocketPro server plugins available for you to study at this time.
-	- remotefile: async client/server file exchange service
-	- uasyncqueue: SocketPro persistent message queue service. Its pre-compiled plugin is free to the public
+	- remotefile: async client/server file exchange service. Its pre-compiled plugin is free to the public. The precompiled library is located at the directory ../socketpro/bin/free_services/file
+	- uasyncqueue: SocketPro persistent message queue service. Its pre-compiled plugin is free to the public. The precompiled library is located at the directory ../socketpro/bin/free_services/queue
