@@ -816,6 +816,7 @@ namespace NJA {
                 SaveString(args);
             }
         } else if (p0->IsInt32() && id == "") {
+            vt = VT_I4;
             *obj->m_Buffer << vt;
             SaveUInt(args);
         }
