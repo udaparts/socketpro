@@ -207,8 +207,9 @@ namespace NJA {
             p = args[1];
             if (p->IsString()) {
                 sql = ToStr(p);
-            } else if (!p->IsNullOrUndefined()) {
-                ThrowException(isolate, "A SQL statement expected");
+            }
+            if (!sql.size()) {
+                ThrowException(isolate, "A valid SQL statement expected");
             }
 
             CDBVariantArray vParam;

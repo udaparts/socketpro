@@ -116,15 +116,15 @@ function InsertBLOBByPreparedStatement(db) {
 	blob.SaveString(wstr);
 	//1st set
 	//blob.PopBytes() -- convert all data inside blob memory into an array of bytes
-	buff.SaveObject(1, 'i').SaveObject('Ted Cruz').SaveObject(new Date()).SaveObject(blob.PopBytes()).SaveObject(wstr).SaveObject(254000, 'd');
+	buff.SaveObject(1, 'i').SaveObject('Ted Cruz').SaveObject(new Date()).SaveObject(blob.PopBytes()).SaveObject(wstr).SaveObject(254000.15, 'd');
 	
 	blob.SaveAString(str);
 	//2nd set
-	buff.SaveObject(1, 'i').SaveObject('Donald Trump', 'a').SaveObject(new Date()).SaveObject(blob.PopBytes()).SaveObject(str, 'a').SaveObject(20254000, 'd');
+	buff.SaveObject(1, 'i').SaveObject('Donald Trump', 'a').SaveObject(new Date()).SaveObject(blob.PopBytes()).SaveObject(str, 'a').SaveObject(20254000.35, 'd');
 	
 	blob.SaveAString(str).SaveString(wstr);
 	//3rd set
-	buff.SaveObject(2, 'i').SaveObject('Hillary Clinton', 'a').SaveObject(new Date()).SaveObject(blob.PopBytes()).SaveObject(wstr).SaveObject(6254000, 'd');
+	buff.SaveObject(2, 'i').SaveObject('Hillary Clinton', 'a').SaveObject(new Date()).SaveObject(blob.PopBytes()).SaveObject(wstr).SaveObject(6254000.42, 'd');
 	
 	//send three sets in one shot
 	if (!db.Execute(buff, (res, err, affected, fails, oks, id)=>{
@@ -134,7 +134,6 @@ function InsertBLOBByPreparedStatement(db) {
 	}
 	return true;
 }
-
 if (!InsertBLOBByPreparedStatement(db)) {
 	console.log(db.getSocket().getError());
 	return;
@@ -151,13 +150,111 @@ if (!db.Execute('SELECT * from company;select curtime()', (res, err, affected, f
 	return;
 }
 
-if (!db.Execute('select * from employee', (res, err, affected, fails, oks, id)=>{
+if (!db.Execute('select name, joindate, salary from employee', (res, err, affected, fails, oks, id)=>{
 		console.log({ec:res, em:err, affected:affected, oks:oks, fails:fails, id:id});
 	}, data=>{
-		//console.log(data);
+		console.log(data);
 	}, meta=>{
-		//console.log(meta);
+		console.log(meta);
 	})) {
 	console.log(db.getSocket().getError());
 	return;
 }
+
+function TestStoredProcedure(db) {
+	if (!db.Prepare('call mysqldb.sp_TestProc(?,?,?)', (res, err)=>{
+		if(res) console.log({ec:res, em:err});
+	})) {
+		return false;
+	}
+	var buff = SPA.newBuffer();
+	//1st set
+	buff.SaveObject(1, 'i').SaveObject(1.25, 'd').SaveObject();
+	//2nd set
+	buff.SaveObject(2, 'i').SaveObject(1.14, 'd').SaveObject();
+	if (!db.Execute(buff, (res, err, affected, fails, oks, id)=>{
+		console.log({ec:res, em:err, affected:affected, oks:oks, fails:fails, id:id});
+	}, (data, proc)=>{
+		if (proc) {
+			console.log(data); //output output parameters
+		}
+	}, meta=>{
+		//console.log(meta);
+	})) {
+		console.log(db.getSocket().getError());
+		return false;
+	}
+	return true;
+}
+
+if (!TestStoredProcedure(db)) {
+	console.log(db.getSocket().getError());
+	return;
+}
+
+function TestBatch(db) {
+	var sql = 'delete from employee;delete from company|INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?)|insert into employee(CompanyId,name,JoinDate,image,DESCRIPTION,Salary)values(?,?,?,?,?,?)|SELECT * from company;select * from employee;select curtime()|call sp_TestProc(?,?,?)';
+	var wstr='';
+    while (wstr.length < 128 * 1024) {
+        wstr += '广告做得不那么夸张的就不说了，看看这三家，都是正儿八经的公立三甲，附属医院，不是武警，也不是部队，更不是莆田，都在卫生部门直接监管下，照样明目张胆地骗人。';
+    }
+	var str = '';
+    while (str.length < 256 * 1024) {
+        str += 'The epic takedown of his opponent on an all-important voting day was extraordinary even by the standards of the 2016 campaign -- and quickly drew a scathing response from Trump.';
+    }
+	var buff = SPA.newBuffer();
+	var blob = SPA.newBuffer();
+	
+	//1st set
+	//INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?)
+	buff.SaveObject(1).SaveObject('Google Inc.').SaveObject('1600 Amphitheatre Parkway, Mountain View, CA 94043, USA').SaveObject(66000000000.15, 'dec');
+	//insert into employee(CompanyId,name,JoinDate,image,DESCRIPTION,Salary)values(?,?,?,?,?,?)
+	buff.SaveObject(1); //Google company id
+	blob.SaveString(wstr); //UNICODE string
+	buff.SaveObject('Ted Cruz').SaveObject(new Date()).SaveObject(blob.PopBytes()).SaveObject(wstr).SaveObject(254000.15);
+	//call sp_TestProc(?,?,?)
+	buff.SaveObject(1).SaveObject(1.25).SaveObject();
+	
+	//2nd set
+	buff.SaveObject(2).SaveObject('Microsoft Inc.').SaveObject('700 Bellevue Way NE- 22nd Floor, Bellevue, WA 98804, USA').SaveObject('93600000000.12', 'dec');
+	buff.SaveObject(1); //Google company id
+	blob.SaveAString(str); //ASCII string
+	buff.SaveObject('Donald Trump').SaveObject(new Date()).SaveObject(blob.PopBytes()).SaveObject(str, 'a').SaveObject(20254000);
+	buff.SaveObject(2).SaveObject(1.14).SaveObject();
+	
+	//3rd set
+	buff.SaveObject(3).SaveObject('Apple Inc.').SaveObject('1 Infinite Loop, Cupertino, CA 95014, USA').SaveObject(234000000000.14);
+	buff.SaveObject(2); //Microsoft company id
+	blob.SaveAString(str).SaveString(wstr);
+	buff.SaveObject('Hillary Clinton').SaveObject(new Date()).SaveObject(blob.PopBytes()).SaveObject(wstr).SaveObject('6254000.15', 'dec');
+	buff.SaveObject(0).SaveObject(8.16).SaveObject();
+	
+	//first, execute delete from employee;delete from company
+    //second, three sets of INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?)
+    //third, three sets of insert into employee(CompanyId,name,JoinDate,image,DESCRIPTION,Salary)values(?,?,?,?,?,?)
+    //fourth, SELECT * from company;select * from employee;select curtime()
+    //last, three sets of call sp_TestProc(?,?,?)
+	if (!db.ExecuteBatch(SPA.DB.TransIsolation.Unspecified, sql, buff, (res, err, affected, fails, oks, id)=>{
+		console.log({ec:res, em:err, affected:affected, oks:oks, fails:fails, id:id});
+	}, (data, proc)=>{
+		if (proc) {
+			console.log(data); //output output parameters
+		}
+	}, meta=>{
+		//console.log(meta);
+	}, dbH=>{
+		console.log('Batch header comes');
+	}, canceled=>{
+		console.log(canceled ? 'request canceled' : 'session closed');
+	}, SPA.DB.RollbackPlan.rpDefault, "|")) {
+		console.log(db.getSocket().getError());
+		return false;
+	}
+	return true;
+}
+/*
+if (!TestBatch(db)) {
+	console.log(db.getSocket().getError());
+	return;
+}
+*/

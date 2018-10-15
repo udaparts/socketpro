@@ -761,10 +761,6 @@ namespace NJA {
 
     void NJQueue::SaveObject(const FunctionCallbackInfo<Value>& args) {
         Isolate* isolate = args.GetIsolate();
-        if (!args.Length()) {
-            ThrowException(isolate, "An input data expected");
-            return;
-        }
         VARTYPE vt;
         NJQueue* obj = ObjectWrap::Unwrap<NJQueue>(args.Holder());
         obj->Ensure();
@@ -818,7 +814,7 @@ namespace NJA {
         } else if (p0->IsInt32() && id == "") {
             vt = VT_I4;
             *obj->m_Buffer << vt;
-            SaveUInt(args);
+            SaveInt(args);
         }
 #ifdef HAS_BIGINT
         else if (p0->IsBigInt() && id == "") {
