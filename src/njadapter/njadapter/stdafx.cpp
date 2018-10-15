@@ -715,7 +715,6 @@ namespace NJA {
                 bool is_array = ((type & VT_ARRAY) == VT_ARRAY);
                 if (is_array) {
                     void *pvt;
-                    bool ok = true;
                     unsigned int count = vt.parray->rgsabound->cElements;
                     ::SafeArrayAccessData(vt.parray, &pvt);
                     type = (type & (~VT_ARRAY));
