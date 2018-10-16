@@ -1,6 +1,6 @@
 # SocketPro
 
-1.  A public repository for UDAParts (www.udaparts.com) SocketPro secured asynchronous communication framework. It contains a complete SocketPro software development kit with many tutorial and sample projects for C++, Java, .NET and Python as well as JavaScript across different operation systems.
+1.  A public repository for UDAParts (www.udaparts.com) SocketPro secured asynchronous communication framework. It contains a complete SocketPro software development kit with many tutorial and sample projects for C++, Java, .NET, Python and Node.js as well as JavaScript across different operation systems.
 
 2.  SocketPro is next generation technology that streams both requests and responses. It is written from scratch with continuous in-line request/result batching, real-time stream sending/processing, asynchronous data transferring and parallel computation in mind. SocketPro offers superior performance and scalability with many unique and critical features. These features will definitely solve your daunting issues and meet complex needs. Consequently, SocketPro will help you quickly develop high-quality distributed applications on major platforms such as Windows, Linux variants and browsers as well as Apple and devices in the future.
 
@@ -11,9 +11,10 @@
     - Superior performance and scalability
     - Great fault tolerance, no message/request loss, and connection auto recovery
     - Well support on modern language development features such as anonymous function, closure, Lambda expression, async/await, future, promise, yield and so on
+    - Cross development languages and platforms supported
     - Great maintainability, modularity and version control
 
-4.	High performance Plug-ins with opened source codes
+4.  High performance Plug-ins with opened source codes
     - Superior performance asynchronous message persistent queue (free)
     - High performance file streaming (free)
     - SQL streaming for SQLite 3.11.1 or later (free)

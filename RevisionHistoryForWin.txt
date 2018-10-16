@@ -3,8 +3,11 @@
 	(b) Improve fault-tolerance, no message loss and connection auto recovery
 	(c) Use delegate DDiscarded to replace DCancel
 	(d) Upgrade adapters to support the above changes
-	(e) Add examples for demonstration
-	(f) Make file streaming free within SocketPro core libraries
+	(e) Add examples for demonstration of automatic ordering on random returning requests, fault-tolerance and connection auto recovery
+	(f) Make file streaming service free to the public
+	(g) Implement Mariadb SQL-streaming database plugin, which is free to the public
+	(h) Implement MySQL/Mariadb SocketPro SQL-streaming server plugin, which is free to the public
+	(i) Implement SocketPro Node.js adapter
 
 83.	SocketPro Version 6.0.4.7
 	(a) Fix server router auto-recovery (fault-tolerance) issue at client side.
