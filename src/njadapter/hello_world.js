@@ -48,6 +48,7 @@ global.socketpool = p;
 
 //track various events if neccessary
 p.setPush(onLineMessage);
+
 /*
 p.setPoolEvent(onPoolEvent);
 p.setReturned(onResultReturned);
@@ -64,9 +65,9 @@ if (!p.Start(cc,1)) {
 	console.log(p.getError());
 	return;
 }
-var hw = p.Seek(); //seek an async hello world handler
-
-var messenger = hw.getSocket().getPush();
+var hw = p.seek(); //seek an async hello world handler
+console.log(hw.SvsId);
+var messenger = hw.Socket.getPush();
 
 //streaming all the following five requests and two messenger message requests
 var ok = hw.SendRequest(idSayHello, SPA.newBuffer().SaveString('Mary').SaveString('Smith'), q=>{
@@ -138,26 +139,15 @@ ok = hw.SendRequest(idSayHello, SPA.newBuffer().SaveString('Jone').SaveString('D
 	console.log(q.LoadString());
 });
 
-function asycFunc(hw, fName, lName) {
-	return new Promise((res, rej)=>{
-		var ok = hw.SendRequest(idSayHello, SPA.newBuffer().SaveString(fName).SaveString(lName), q=> {
-			res(q.LoadString());
-		}, canceled=>{
-			rej(canceled ? 'Connection canceled' : 'Connection closed');
-		}, errMsg=>{
-			rej(errMsg);
-		});
-		if (!ok) {
-			rej('Connection closed');
-		}
-	});
-}
 async function asyncWait(hw, fName, lName) {
 	try {
-		var result = await asycFunc(hw, fName, lName);
+		//use sendRequest instead of SendRequest for Promise
+		var result = await hw.sendRequest(idSayHello, SPA.newBuffer().SaveString(fName).SaveString(lName), q=>{
+			return q.LoadString();
+		});
 		console.log(result);
 	} catch (err) {
-		console.error(err);
+		console.log(err);
 	}
 }
 

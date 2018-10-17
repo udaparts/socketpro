@@ -1,4 +1,93 @@
 var SPA=require('njadapter');
+var assert = require('assert');
+
+class CHandler {
+	constructor(h) {
+		assert(h);
+		assert(h.getSvsId() > 0);
+		this.handler = h;
+	}
+	
+	get Socket() {
+		return this.handler.getSocket();
+	}
+	
+	get SvsId() {
+		return this.handler.getSvsId();
+	}
+	
+	get RequestsQueued() {
+		return this.handler.getRequestsQueued();
+	}
+	
+	get Batching() {
+		return this.handler.isBatching();
+	}
+	
+	get DequeuedMessageAborted() {
+		return this.handler.isDequeuedMessageAborted();
+	}
+	
+	get DequeuedResult() {
+		return this.handler.isDequeuedResult();
+	}
+	
+	get RouteeResult() {
+		return this.handler.isRouteeResult();
+	}
+	
+	IsSame(h) {
+		if (!h) return false;
+		return this.handler.isSame(h.handler);
+	}
+	
+	AbortBatching() {
+		return this.handler.AbortBatching();
+	}
+	
+	CommitBatching(serverCommit = false) {
+		return this.handler.CommitBatching(serverCommit);
+	}
+	
+	Dispose() {
+		return this.handler.Dispose();
+	}
+	
+	StartBatching() {
+		return this.handler.StartBatching();
+	}
+	
+	SendRequest(reqId, buff, cb, discarded=null, serverException=null) {
+		return this.handler.SendRequest(reqId, buff, cb, discarded, serverException);
+	}
+	
+	//Promise version
+	sendRequest(reqId, buff, cb, discarded=null, serverException=null) {
+		assert(cb === null || cb === undefined || typeof cb === 'function');
+		assert(discarded === null || discarded === undefined || typeof discarded === 'function');
+		assert(serverException === null || serverException === undefined || typeof serverException === 'function');
+		return new Promise((res, rej)=>{
+			var ret;
+			var ok = this.handler.SendRequest(reqId, buff, (q, h, id)=> {
+				if (cb) ret = cb(q, id, h);
+				res(ret);
+			}, (canceled, h, id)=>{
+				if (discarded) ret = discarded(canceled, id, h);
+				if (ret === undefined) ret = (canceled ? 'Request canceled' : 'Connection closed');
+				rej(ret);
+			}, (errMsg, errCode, errWhere, h, id)=>{
+				if (serverException) ret = serverException(errMsg, errCode, errWhere, id, h);
+				if (ret === undefined) ret = {ec:errCode, em:errMsg, stack:errWhere, reqId:id, handler:h};
+				rej(ret);
+			});
+			if (!ok) {
+				if (discarded) ret = discarded(false, reqId, this.handler);
+				if (ret === undefined) ret = 'Connection closed';
+				rej(ret);
+			}
+		});
+	}
+}
 
 exports.newBuffer=function(initSize=4096, blockSize=4096) {
 	return new SPA.CUQueue(initSize, blockSize);
@@ -61,6 +150,129 @@ exports.SID={
 	sidSqlite:2147483632, //SQLite SQL-streaming services
     sidMysql:2147483633 //MySQL/Mariadb SQL-streaming services
 };
+
+class CAsyncQueue extends CHandler {
+	constructor(h) {
+		super(h);
+		assert(h.getSvsId() == exports.SID.sidQueue);
+	}
+	
+	get DequeueBatchSize() {
+		return this.handler.getDeqBatchSize();
+	}
+	
+	get EnqueueNotified() {
+		return this.handler.getEnqNotified();
+	}
+	
+	set ResultReturned(rr) {
+		return this.handler.setResultReturned(rr);
+	}
+	
+	BatchMessage(reqId, buff) {
+		return this.handler.BatchMessage(reqId, buff);
+	}
+	
+	GetKeys(cb, discarded=null) {
+		return this.handler.GetKeys(cb, discarded);
+	}
+	
+	StartTrans(key, cb=null, discarded=null) {
+		return this.handler.StartTrans(key, cb, discarded);
+	}
+	
+	EndTrans(rollback=false, cb=null, discarded=null) {
+		return this.handler.EndTrans(rollback, cb, discarded);
+	}
+	
+	Close(key, cb=null, discarded=null, permanent=false) {
+		return this.handler.Close(key, cb, discarded, permanent);
+	}
+	
+	Flush(key, cb=null, discarded=null, option=0) {
+		return this.handler.Flush(key, cb, discarded, option);
+	}
+	
+	Dequeue(key, cb=null, discarded=null, timeout=0) {
+		return this.handler.Dequeue(key, cb, discarded, timeout);
+	}
+	
+	Enqueue(key, reqId, buff, cb=null, discarded=null) {
+		return this.handler.Enqueue(key, reqId, buff, cb, discarded);
+	}
+	
+	EnqueueBatch(key, cb=null, discarded=null) {
+		return this.handler.EnqueueBatch(key, cb, discarded);
+	}
+	
+}
+
+class CAsyncFile extends CHandler {
+	constructor(h) {
+		super(h);
+		assert(h.getSvsId() == exports.SID.sidFile);
+	}
+	
+	get FilesQueued() {
+		return this.handler.getFilesQueued();
+	}
+	
+	Upload(localFile, remoteFile, cb=null, progress=null, discarded=null) {
+		return this.handler.Upload(localFile, remoteFile, cb, progress, discarded);
+	}
+	
+	Download(localFile, remoteFile, cb=null, progress=null, discarded=null) {
+		return this.handler.Download(localFile, remoteFile, cb, progress, discarded);
+	}
+	
+	//Promise version
+	upload(localFile, remoteFile, cb=null, progress=null, discarded=null) {
+		assert(cb === null || cb === undefined || typeof cb === 'function');
+		assert(progress === null || progress === undefined || typeof progress === 'function');
+		assert(discarded === null || discarded === undefined || typeof discarded === 'function');
+		return new Promise((res, rej)=>{
+			var ret;
+			var ok = this.handler.Upload(localFile, remoteFile, (errMsg, errCode, download, file)=> {
+				if (cb) ret = cb(errMsg, errCode, download, file);
+				if (ret === undefined) ret = (errCode == 0);
+				res(ret);
+			}, progress, (canceled, download, file)=>{
+				if (discarded) ret = discarded(canceled, download, file);
+				if (ret === undefined) ret = (canceled ? 'Upload canceled' : 'Connection closed');
+				rej(ret);
+			});
+			if (!ok) {
+				if (discarded) ret = discarded(false, false, this.handler);
+				if (ret === undefined) ret = 'Connection closed';
+				rej(ret);
+			}
+		});
+	}
+	
+	//Promise version
+	download(localFile, remoteFile, cb=null, progress=null, discarded=null) {
+		assert(cb === null || cb === undefined || typeof cb === 'function');
+		assert(progress === null || progress === undefined || typeof progress === 'function');
+		assert(discarded === null || discarded === undefined || typeof discarded === 'function');
+		return new Promise((res, rej)=>{
+			var ret;
+			var ok = this.handler.Download(localFile, remoteFile, (errMsg, errCode, download, file)=> {
+				if (cb) ret = cb(errMsg, errCode, download, file);
+				if (ret === undefined) ret = (errCode == 0);
+				res(ret);
+			}, progress, (canceled, download, file)=>{
+				if (discarded) ret = discarded(canceled, download, file);
+				if (ret === undefined) ret = (canceled ? 'Download canceled' : 'Connection closed');
+				rej(ret);
+			});
+			if (!ok) {
+				if (discarded) ret = discarded(false, true, this.handler);
+				if (ret === undefined) ret = 'Connection closed';
+				rej(ret);
+			}
+		});
+	}
+}
 
 //EM == EncryptionMethod
 exports.EM={
@@ -219,9 +431,29 @@ exports.CS={
 	newPool : function(svsId,defaulDb='') {
 		//create a regular socket or master/slave pool.
 		//you can create multiple pools for different services
-		return new SPA.CSocketPool(	svsId, //a required unsigned int service id
+		var pool = new SPA.CSocketPool(	svsId, //a required unsigned int service id
 									defaulDb //master/slave with real-time update cache
 									);
+		if (pool) {
+			pool.seek = function() {
+				var h = pool.Seek();
+				if (h) {
+					switch(h.getSvsId()) {
+					case exports.SID.sidFile:
+						h = new CAsyncFile(h);
+						break;
+					case exports.SID.sidQueue:
+						h = new CAsyncQueue(h);
+						break;
+					default:
+						h = new CHandler(h);
+						break;
+					}
+				}
+				return h;
+			};
+		}
+		return pool;
 	},
 	//CC == Connection Context
 	newCC : function(host,port,userId,pwd,em=0,zip=false,v6=false,anyData=null) {

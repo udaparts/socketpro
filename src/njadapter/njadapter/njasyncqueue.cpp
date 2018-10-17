@@ -276,7 +276,6 @@ namespace NJA {
                 ThrowException(isolate, "Unsigned short value expected for message request id");
                 return;
             }
-            int pos = 0;
             p = args[2];
             NJQueue *njq = nullptr;
             unsigned int size = 0;
@@ -290,10 +289,17 @@ namespace NJA {
                         buffer = q->GetBuffer();
                         size = q->GetSize();
                     }
-                    ++pos;
                 }
+				else {
+					ThrowException(isolate, "A CUQueue instance, null or undefined value expected");
+					return;
+				}
             }
-            Local<Value> argv[] = {args[2 + pos], args[3 + pos]};
+			else if (!p->IsNullOrUndefined()) {
+				ThrowException(isolate, "A CUQueue instance, null or undefined value expected");
+				return;
+			}
+            Local<Value> argv[] = {args[3], args[4]};
             SPA::UINT64 index = obj->m_aq->Enqueue(isolate, 2, argv, key.c_str(), (unsigned short) reqId, buffer, size);
             if (njq)
                 njq->Release();

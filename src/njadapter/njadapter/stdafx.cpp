@@ -133,8 +133,8 @@ namespace SPA {
                         {
                             Local<Object> q = NJQueue::New(isolate, cb.Buffer);
                             if (!func.IsEmpty()) {
-                                Local<Value> argv[] = {q, func, njAsh, jsReqId};
-                                func->Call(isolate->GetCurrentContext(), Null(isolate), 4, argv);
+                                Local<Value> argv[] = {q, njAsh, jsReqId};
+                                func->Call(isolate->GetCurrentContext(), Null(isolate), 3, argv);
                             }
                         }
                             break;
@@ -163,8 +163,8 @@ namespace SPA {
                             Local<String> jsWhere = ToStr(isolate, errWhere.c_str());
                             Local<Value> jsCode = Number::New(isolate, errCode);
                             if (!func.IsEmpty()) {
-                                Local<Value> argv[] = {jsMsg, jsCode, jsWhere, func, njAsh, jsReqId};
-                                func->Call(isolate->GetCurrentContext(), Null(isolate), 6, argv);
+                                Local<Value> argv[] = {jsMsg, jsCode, jsWhere, njAsh, jsReqId};
+                                func->Call(isolate->GetCurrentContext(), Null(isolate), 5, argv);
                             }
                         }
                             break;
