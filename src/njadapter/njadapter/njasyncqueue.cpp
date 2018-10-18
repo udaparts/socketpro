@@ -289,16 +289,14 @@ namespace NJA {
                         buffer = q->GetBuffer();
                         size = q->GetSize();
                     }
+                } else {
+                    ThrowException(isolate, "A CUQueue instance, null or undefined value expected");
+                    return;
                 }
-				else {
-					ThrowException(isolate, "A CUQueue instance, null or undefined value expected");
-					return;
-				}
+            } else if (!p->IsNullOrUndefined()) {
+                ThrowException(isolate, "A CUQueue instance, null or undefined value expected");
+                return;
             }
-			else if (!p->IsNullOrUndefined()) {
-				ThrowException(isolate, "A CUQueue instance, null or undefined value expected");
-				return;
-			}
             Local<Value> argv[] = {args[3], args[4]};
             SPA::UINT64 index = obj->m_aq->Enqueue(isolate, 2, argv, key.c_str(), (unsigned short) reqId, buffer, size);
             if (njq)
