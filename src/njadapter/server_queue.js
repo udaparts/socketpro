@@ -20,7 +20,7 @@ var cc = cs.newCC('localhost',20902,'root','Smash123');
 
 //start a socket pool having one session to a remote server
 if (!p.Start(cc,1)) {
-	console.log(p.getError());
+	console.log(p.Error);
 	return;
 }
 var sq = p.Seek(); //seek an async persistent message queue handler
@@ -49,7 +49,7 @@ function testEnqueue(sq) {
 	return ok;
 }
 
-sq.setResultReturned((id, q)=>{
+sq.ResultReturned = (id, q)=>{
 	switch(id) {
 		case idMessage0:
 		case idMessage1:
@@ -75,7 +75,7 @@ sq.setResultReturned((id, q)=>{
 			throw 'Unexpected';
 			break;
 	}
-});
+};
 
 var cb = function(mc, fsize, msgs, bytes) {
 	console.log('Total message count=' + mc + ', queue file size=' + fsize + ', messages dequeued=' + msgs + ', message bytes dequeued=' + bytes);
@@ -103,33 +103,27 @@ do {
 	b = sq.EndTrans(false);
 	if (!b) break;
     b = testDequeue(sq);
-	b = sq.Flush(TEST_QUEUE_KEY, (mc, fsize)=>{
-		console.log('Total message count=' + mc + ', queue file size=' + fsize);
-	});
 }while(false);
 if (!b) {
-	console.log(sq.getSocket().getError());
+	console.log(sq.Socket.Error);
 	return;
 }
 
-function getKeys(sq) {
-	return new Promise(function(res, rej){
-		if(!sq.GetKeys((v) => {
-				res(v);
-			}, (cancled)=>{
-				rej(cancled ? 'request canceled' : 'connection closed');
-			}
-		))
-			rej('connection closed');
-	});
-}
 async function asyncKeys(sq) {
-	let result;
 	try {
-		result = await getKeys(sq);
+		var ok = sq.Flush(TEST_QUEUE_KEY, (mc, fsize)=>{
+			console.log({msgs:mc,fsize:fsize});
+		});
+		
+		//use getKeys instead of GetKeys for Promise
+		var result = await sq.getKeys();
+		console.log(result);
+		
+		//use flush instead of Flush for Promise
+		result = await sq.flush(TEST_QUEUE_KEY);
 		console.log(result);
 	} catch (err) {
-		console.error(err);
+		console.log(err);
 	}
 }
 console.log(asyncKeys(sq));

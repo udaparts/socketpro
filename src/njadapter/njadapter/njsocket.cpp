@@ -65,7 +65,6 @@ namespace NJA {
         NODE_SET_PROTOTYPE_METHOD(tpl, "getCurrSvsId", getCurrSvsId);
         NODE_SET_PROTOTYPE_METHOD(tpl, "getServerPingTime", getServerPingTime);
         NODE_SET_PROTOTYPE_METHOD(tpl, "getEM", getEncryptionMethod);
-        NODE_SET_PROTOTYPE_METHOD(tpl, "getSendable", getSendable);
         NODE_SET_PROTOTYPE_METHOD(tpl, "getError", getError);
         NODE_SET_PROTOTYPE_METHOD(tpl, "isConnected", getConnected);
         NODE_SET_PROTOTYPE_METHOD(tpl, "getConnContext", getConnContext);

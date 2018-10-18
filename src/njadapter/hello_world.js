@@ -47,14 +47,14 @@ var p=cs.newPool(sid);
 global.socketpool = p;
 
 //track various events if neccessary
-p.setPush(onLineMessage);
 
 /*
-p.setPoolEvent(onPoolEvent);
-p.setReturned(onResultReturned);
-p.setAllProcessed(onAllProcessed);
-p.setBaseReqProcessed(onBaseRequestProcessed);
-p.setServerException(onServerException);
+p.Push = onLineMessage;
+p.PoolEvent = onPoolEvent;
+p.ResultReturned = onResultReturned;
+p.AllProcessed = onAllProcessed;
+p.BaseReqProcessed = onBaseRequestProcessed;
+p.ServerException = onServerException;
 */
 
 //create a connection context
@@ -62,12 +62,11 @@ var cc = cs.newCC('localhost',20901,'root','Smash123');
 
 //start a socket pool having one session to a remote server
 if (!p.Start(cc,1)) {
-	console.log(p.getError());
+	console.log(p.Error);
 	return;
 }
-var hw = p.seek(); //seek an async hello world handler
-console.log(hw.SvsId);
-var messenger = hw.Socket.getPush();
+var hw = p.Seek(); //seek an async hello world handler
+var messenger = hw.Socket.Push;
 
 //streaming all the following five requests and two messenger message requests
 var ok = hw.SendRequest(idSayHello, SPA.newBuffer().SaveString('Mary').SaveString('Smith'), q=>{

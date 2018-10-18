@@ -1,66 +1,417 @@
 var SPA=require('njadapter');
 var assert = require('assert');
 
+class CSocket {
+	constructor(s) {
+		assert(s);
+		this.socket = s;
+	}
+
+	get Zip() {
+		return this.socket.getZip();
+	}
+	set Zip(zip=false) {
+		this.socket.setZip(zip);
+	}
+
+	get ZipLevel() {
+		return this.socket.getZipLevel();
+	}
+	set ZipLevel(zl=exports.ZipLevel.zlDefault) {
+		this.socket.setZipLevel(zl);
+	}
+
+	get ConnTimeout() {
+		return this.socket.getConnTimeout();
+	}
+	set ConnTimeout(timeout=30000) {
+		return this.socket.setConnTimeout(timeout);
+	}
+
+	get RecvTimeout() {
+		return this.socket.getRecvTimeout();
+	}
+	set RecvTimeout(timeout=30000) {
+		return this.socket.setRecvTimeout(timeout);
+	}
+
+	get AutoConn() {
+		return this.socket.getAutoConn();
+	}
+	set AutoConn(ac=false) {
+		this.socket.setAutoConn(ac);
+	}
+
+	get Sendable() {
+		return this.socket.getSendable();
+	}
+
+	get Cert() {
+		return this.socket.getCert();
+	}
+
+	get ConnState() {
+		return this.socket.getConnState();
+	}
+
+	get RouteeCount() {
+		return this.socket.getRouteeCount();
+	}
+
+	get Routing() {
+		return this.socket.isRouting();
+	}
+
+	get RequestsQueued() {
+		return this.socket.getReqsQueued();
+	}
+
+	get CurrReqId() {
+		return this.socket.getCurrReqId();
+	}
+
+	get CurrSvsId() {
+		return this.socket.getCurrSvsId();
+	}
+
+	get ServerPingTime() {
+		return this.socket.getServerPingTime();
+	}
+
+	get EncryptionMethod() {
+		return this.socket.getEM();
+	}
+
+	get Error() {
+		return this.socket.getError();
+	}
+
+	get Connected() {
+		return this.socket.isConnected();
+	}
+
+	get ConnContext() {
+		return this.socket.getConnContext();
+	}
+
+	get Random() {
+		return this.socket.isRandom();
+	}
+
+	get BytesInSendingBuffer() {
+		return this.socket.getBytesInSendingBuffer();
+	}
+
+	get BytesInRecvBuffer() {
+		return this.socket.getBytesInRecvBuffer();
+	}
+
+	get BytesBatched() {
+		return this.socket.getBytesBatched();
+	}
+
+	get BytesReceived() {
+		return this.socket.getBytesReceived();
+	}
+
+	get BytesSent() {
+		return this.socket.getBytesSent();
+	}
+
+	get UserId() {
+		return this.socket.getUserId();
+	}
+
+	get PeerOs() {
+		return this.socket.getPeerOs();
+	}
+
+	get PeerAddr() {
+		return this.socket.getPeerAddr();
+	}
+
+	get Push() {
+		return this.socket.getPush();
+	}
+
+	get Queue() {
+		return this.socket.getQueue();
+	}
+
+	Dispose() {
+		this.socket.Dispose();
+	}
+
+	Close() {
+		this.socket.Close();
+	}
+
+	Shutdown(st=exports.ShutdownType.both) {
+		this.socket.Shutdown(st);
+	}
+
+	IgnoreLastRequest(reqId) {
+		return this.socket.IgnoreLastRequest(reqId);
+	}
+
+	Cancel() {
+		return this.socket.Cancel();
+	}
+
+	Echo() {
+		return this.socket.Echo();
+	}
+
+	TurnOnZipAtSvr(zip=true) {
+		return this.socket.SetSvrZip(zip);
+	}
+
+	SetSvrZiplevel(zl=exports.ZipLevel.zlDefault) {
+		return this.socket.SetSvrZiplevel(zl);
+	}
+}
+
+class CSocketPool {
+	constructor(p) {
+		assert(p);
+		assert(p.getSvsId() > 0);
+		this.pool = p;
+	}
+
+	get PoolId() {
+		return this.pool.getPoolId();
+	}
+
+	get ConnectedSockets() {
+		return this.pool.getConnectedSockets();
+	}
+
+	get ClosedSockets() {
+		return this.pool.getClosedSockets();
+	}
+
+	get SvsId() {
+		return this.pool.getSvsId();
+	}
+
+	get Error() {
+		return this.pool.getError();
+	}
+
+	get Queues() {
+		return this.pool.getQueues();
+	}
+
+	get Count() {
+		return this.pool.getTotalSockets();
+	}
+
+	get Started() {
+		return this.pool.getStarted();
+	}
+
+	get Cache() {
+		return this.pool.getCache();
+	}
+
+	get AutoMerge() {
+		return this.pool.getAutoMerge();
+	}
+
+	set AutoMerge(am=false) {
+		this.pool.setAutoMerge(am);
+	}
+
+	get QueueName() {
+		return this.pool.getQueueName();
+	}
+
+	set QueueName(qn='') {
+		this.pool.setQueueName(qn);
+	}
+
+	set PoolEvent(pe) {
+		assert(pe === null || pe === undefined || typeof pe === 'function');
+		this.pool.setPoolEvent(pe);
+	}
+
+	set ResultReturned(rr) {
+		assert(rr === null || rr === undefined || typeof rr === 'function');
+		this.pool.setReturned(rr);
+	}
+
+	set AllProcessed(ap) {
+		assert(ap === null || ap === undefined || typeof ap === 'function');
+		this.pool.setAllProcessed(ap);
+	}
+
+	set Push(p) {
+		assert(p === null || p === undefined || typeof p === 'function');
+		this.pool.setPush(p);
+	}
+
+	set BaseReqProcessed(brp) {
+		assert(brp === null || brp === undefined || typeof brp === 'function');
+		this.pool.setBaseReqProcessed(brp);
+	}
+
+	set ServerException(se) {
+		assert(se === null || se === undefined || typeof se === 'function');
+		this.pool.setServerException(se);
+	}
+
+	get Sockets() {
+		var vs = [];
+		var arr = this.pool.getSockets();
+		for (var n = 0; n < arr.length; ++n) {
+			var s = arr[n];
+			if (s) vs.push(new CSocket(s));
+		}
+		return vs;
+	}
+
+	get Handlers() {
+		var svsId = this.pool.getSvsId();
+		var arr = this.pool.getHandlers();
+		var vh = [];
+		for (var n = 0; n < arr.length; ++n) {
+			var h = arr[n];
+			if (h) {
+				switch(svsId) {
+				case exports.SID.sidFile:
+					vh.push(new CAsyncFile(h));
+					break;
+				case exports.SID.sidQueue:
+					vh.push(new CAsyncQueue(h));
+					break;
+				default:
+					vh.push(new CHandler(h));
+					break;
+				}
+			}
+		}
+		return vh;
+	}
+
+	Seek() {
+		var h = this.pool.Seek();
+		if (h) {
+			switch(h.getSvsId()) {
+			case exports.SID.sidFile:
+				h = new CAsyncFile(h);
+				break;
+			case exports.SID.sidQueue:
+				h = new CAsyncQueue(h);
+				break;
+			default:
+				h = new CHandler(h);
+				break;
+			}
+		}
+		return h;
+	}
+
+	SeekByQueue(qn) {
+		assert(qn === null || qn === undefined || typeof qn === 'string');
+		var h = this.pool.SeekByQueue(qn);
+		if (h) {
+			switch(h.getSvsId()) {
+			case exports.SID.sidFile:
+				h = new CAsyncFile(h);
+				break;
+			case exports.SID.sidQueue:
+				h = new CAsyncQueue(h);
+				break;
+			default:
+				h = new CHandler(h);
+				break;
+			}
+		}
+		return h;
+	}
+
+	Start(cc, sessions) {
+		assert(typeof sessions === 'number');
+		return this.pool.Start(cc, sessions);
+	}
+
+	Shutdown() {
+		return this.pool.Shutdown();
+	}
+
+	NewSlave(defaultDb='') {
+		assert(defaultDb === null || defaultDb === undefined || typeof defaultDb === 'string');
+		var p = this.pool.NewSlave(defaultDb);
+		if (p)
+			return new CSocketPool(p);
+		return p;
+	}
+
+	Dispose() {
+		return this.pool.Dispose();
+	}
+}
+
 class CHandler {
 	constructor(h) {
 		assert(h);
 		assert(h.getSvsId() > 0);
 		this.handler = h;
 	}
-	
+
 	get Socket() {
-		return this.handler.getSocket();
+		return new CSocket(this.handler.getSocket());
 	}
-	
+
 	get SvsId() {
 		return this.handler.getSvsId();
 	}
-	
+
 	get RequestsQueued() {
 		return this.handler.getRequestsQueued();
 	}
-	
+
 	get Batching() {
 		return this.handler.isBatching();
 	}
-	
+
 	get DequeuedMessageAborted() {
 		return this.handler.isDequeuedMessageAborted();
 	}
-	
+
 	get DequeuedResult() {
 		return this.handler.isDequeuedResult();
 	}
-	
+
 	get RouteeResult() {
 		return this.handler.isRouteeResult();
 	}
-	
+
 	IsSame(h) {
 		if (!h) return false;
 		return this.handler.isSame(h.handler);
 	}
-	
+
 	AbortBatching() {
 		return this.handler.AbortBatching();
 	}
-	
-	CommitBatching(serverCommit = false) {
+
+	CommitBatching(serverCommit=false) {
 		return this.handler.CommitBatching(serverCommit);
 	}
-	
+
 	Dispose() {
 		return this.handler.Dispose();
 	}
-	
+
 	StartBatching() {
 		return this.handler.StartBatching();
 	}
-	
+
 	SendRequest(reqId, buff, cb, discarded=null, serverException=null) {
 		return this.handler.SendRequest(reqId, buff, cb, discarded, serverException);
 	}
-	
+
 	//Promise version
 	sendRequest(reqId, buff, cb, discarded=null, serverException=null) {
 		assert(cb === null || cb === undefined || typeof cb === 'function');
@@ -156,43 +507,43 @@ class CAsyncQueue extends CHandler {
 		super(h);
 		assert(h.getSvsId() == exports.SID.sidQueue);
 	}
-	
+
 	get DequeueBatchSize() {
 		return this.handler.getDeqBatchSize();
 	}
-	
+
 	get EnqueueNotified() {
 		return this.handler.getEnqNotified();
 	}
-	
+
 	set ResultReturned(rr) {
 		return this.handler.setResultReturned(rr);
 	}
-	
+
 	BatchMessage(reqId, buff) {
 		return this.handler.BatchMessage(reqId, buff);
 	}
-	
+
 	GetKeys(cb, discarded=null) {
 		return this.handler.GetKeys(cb, discarded);
 	}
-	
+
 	StartTrans(key, cb=null, discarded=null) {
 		return this.handler.StartTrans(key, cb, discarded);
 	}
-	
+
 	EndTrans(rollback=false, cb=null, discarded=null) {
 		return this.handler.EndTrans(rollback, cb, discarded);
 	}
-	
+
 	Close(key, cb=null, discarded=null, permanent=false) {
 		return this.handler.Close(key, cb, discarded, permanent);
 	}
-	
-	Flush(key, cb=null, discarded=null, option=0) {
+
+	Flush(key, cb=null, discarded=null, option=exports.CS.Queue.Optimistic.oMemoryCached) {
 		return this.handler.Flush(key, cb, discarded, option);
 	}
-	
+
 	Dequeue(key, cb=null, discarded=null, timeout=0) {
 		return this.handler.Dequeue(key, cb, discarded, timeout);
 	}
@@ -200,11 +551,187 @@ class CAsyncQueue extends CHandler {
 	Enqueue(key, reqId, buff, cb=null, discarded=null) {
 		return this.handler.Enqueue(key, reqId, buff, cb, discarded);
 	}
-	
+
 	EnqueueBatch(key, cb=null, discarded=null) {
 		return this.handler.EnqueueBatch(key, cb, discarded);
 	}
-	
+
+	//Promise
+	getKeys(cb=null, discarded=null) {
+		assert(cb === null || cb === undefined || typeof cb === 'function');
+		assert(discarded === null || discarded === undefined || typeof discarded === 'function');
+		return new Promise((res, rej)=>{
+			var ret;
+			var ok = this.handler.GetKeys((vKeys, queue)=> {
+				if (cb) ret = cb(vKeys, queue);
+				if (ret === undefined) ret = vKeys;
+				res(ret);
+			}, (canceled, queue)=>{
+				if (discarded) ret = discarded(canceled, queue);
+				if (ret === undefined) ret = (canceled ? 'GetKeys canceled' : 'Connection closed');
+				rej(ret);
+			});
+			if (!ok) {
+				if (discarded) ret = discarded(false, this.handler);
+				if (ret === undefined) ret = 'Connection closed';
+				rej(ret);
+			}
+		});
+	}
+	//Promise
+	close(key, cb=null, discarded=null, permanent=false) {
+		assert(cb === null || cb === undefined || typeof cb === 'function');
+		assert(discarded === null || discarded === undefined || typeof discarded === 'function');
+		return new Promise((res, rej)=>{
+			var ret;
+			var ok = this.handler.Close(key, (errCode, queue)=> {
+				if (cb) ret = cb(errCode, queue);
+				if (ret === undefined) ret = errCode;
+				res(ret);
+			}, (canceled, queue)=>{
+				if (discarded) ret = discarded(canceled, queue);
+				if (ret === undefined) ret = (canceled ? 'Close canceled' : 'Connection closed');
+				rej(ret);
+			});
+			if (!ok) {
+				if (discarded) ret = discarded(false, this.handler);
+				if (ret === undefined) ret = 'Connection closed';
+				rej(ret);
+			}
+		});
+	}
+	//Promise
+	startTrans(key, cb=null, discarded=null) {
+		assert(cb === null || cb === undefined || typeof cb === 'function');
+		assert(discarded === null || discarded === undefined || typeof discarded === 'function');
+		return new Promise((res, rej)=>{
+			var ret;
+			var ok = this.handler.StartTrans(key, (errCode, queue)=> {
+				if (cb) ret = cb(errCode, queue);
+				if (ret === undefined) ret = errCode;
+				res(ret);
+			}, (canceled, queue)=>{
+				if (discarded) ret = discarded(canceled, queue);
+				if (ret === undefined) ret = (canceled ? 'StartTrans canceled' : 'Connection closed');
+				rej(ret);
+			});
+			if (!ok) {
+				if (discarded) ret = discarded(false, this.handler);
+				if (ret === undefined) ret = 'Connection closed';
+				rej(ret);
+			}
+		});
+	}
+	//Promise
+	endTrans(rollback=false, cb=null, discarded=null) {
+		assert(cb === null || cb === undefined || typeof cb === 'function');
+		assert(discarded === null || discarded === undefined || typeof discarded === 'function');
+		return new Promise((res, rej)=>{
+			var ret;
+			var ok = this.handler.EndTrans(rollback, (errCode, queue)=> {
+				if (cb) ret = cb(errCode, queue);
+				if (ret === undefined) ret = errCode;
+				res(ret);
+			}, (canceled, queue)=>{
+				if (discarded) ret = discarded(canceled, queue);
+				if (ret === undefined) ret = (canceled ? 'EndTrans canceled' : 'Connection closed');
+				rej(ret);
+			});
+			if (!ok) {
+				if (discarded) ret = discarded(false, this.handler);
+				if (ret === undefined) ret = 'Connection closed';
+				rej(ret);
+			}
+		});
+	}
+	//Promise
+	flush(key, cb=null, discarded=null, option=exports.CS.Queue.Optimistic.oMemoryCached) {
+		assert(cb === null || cb === undefined || typeof cb === 'function');
+		assert(discarded === null || discarded === undefined || typeof discarded === 'function');
+		return new Promise((res, rej)=>{
+			var ret;
+			var ok = this.handler.Flush(key, (messages, fileSize, queue)=> {
+				if (cb) ret = cb(messages, fileSize, queue);
+				if (ret === undefined) ret = {msgs:messages, fsize:fileSize};
+				res(ret);
+			}, (canceled, queue)=>{
+				if (discarded) ret = discarded(canceled, queue);
+				if (ret === undefined) ret = (canceled ? 'Flush canceled' : 'Connection closed');
+				rej(ret);
+			}, option);
+			if (!ok) {
+				if (discarded) ret = discarded(false, this.handler);
+				if (ret === undefined) ret = 'Connection closed';
+				rej(ret);
+			}
+		});
+	}
+	//Promise
+	enqueue(key, reqId, buff, cb=null, discarded=null) {
+		assert(cb === null || cb === undefined || typeof cb === 'function');
+		assert(discarded === null || discarded === undefined || typeof discarded === 'function');
+		return new Promise((res, rej)=>{
+			var ret;
+			var ok = this.handler.Enqueue(key, reqId, buff, (index, queue)=> {
+				if (cb) ret = cb(index, queue);
+				if (ret === undefined) ret = index;
+				res(ret);
+			}, (canceled, queue)=>{
+				if (discarded) ret = discarded(canceled, queue);
+				if (ret === undefined) ret = (canceled ? 'Enqueue canceled' : 'Connection closed');
+				rej(ret);
+			});
+			if (!ok) {
+				if (discarded) ret = discarded(false, this.handler);
+				if (ret === undefined) ret = 'Connection closed';
+				rej(ret);
+			}
+		});
+	}
+	//Promise
+	enqueueBatch(key, cb=null, discarded=null) {
+		assert(cb === null || cb === undefined || typeof cb === 'function');
+		assert(discarded === null || discarded === undefined || typeof discarded === 'function');
+		return new Promise((res, rej)=>{
+			var ret;
+			var ok = this.handler.EnqueueBatch(key, (index, queue)=> {
+				if (cb) ret = cb(index, queue);
+				if (ret === undefined) ret = index;
+				res(ret);
+			}, (canceled, queue)=>{
+				if (discarded) ret = discarded(canceled, queue);
+				if (ret === undefined) ret = (canceled ? 'EnqueueBatch canceled' : 'Connection closed');
+				rej(ret);
+			});
+			if (!ok) {
+				if (discarded) ret = discarded(false, this.handler);
+				if (ret === undefined) ret = 'Connection closed';
+				rej(ret);
+			}
+		});
+	}
+	//Promise
+	dequeue(key, cb=null, discarded=null, timeout=0) {
+		assert(cb === null || cb === undefined || typeof cb === 'function');
+		assert(discarded === null || discarded === undefined || typeof discarded === 'function');
+		return new Promise((res, rej)=>{
+			var ret;
+			var ok = this.handler.Dequeue(key, (messages, fileSize, messagesDequeued, bytes, queue)=> {
+				if (cb) ret = cb(messages, fileSize, messagesDequeued, bytes, queue);
+				if (ret === undefined) ret = {msgs:messages, fsize:fileSize, msgsDequeued:messagesDequeued, bytes:bytes};
+				res(ret);
+			}, (canceled, queue)=>{
+				if (discarded) ret = discarded(canceled, queue);
+				if (ret === undefined) ret = (canceled ? 'Dequeue canceled' : 'Connection closed');
+				rej(ret);
+			}, timeout);
+			if (!ok) {
+				if (discarded) ret = discarded(false, this.handler);
+				if (ret === undefined) ret = 'Connection closed';
+				rej(ret);
+			}
+		});
+	}
 }
 
 class CAsyncFile extends CHandler {
@@ -234,7 +761,7 @@ class CAsyncFile extends CHandler {
 			var ret;
 			var ok = this.handler.Upload(localFile, remoteFile, (errMsg, errCode, download, file)=> {
 				if (cb) ret = cb(errMsg, errCode, download, file);
-				if (ret === undefined) ret = (errCode == 0);
+				if (ret === undefined) ret = {ec:errCode,em:errMsg};
 				res(ret);
 			}, progress, (canceled, download, file)=>{
 				if (discarded) ret = discarded(canceled, download, file);
@@ -258,7 +785,7 @@ class CAsyncFile extends CHandler {
 			var ret;
 			var ok = this.handler.Download(localFile, remoteFile, (errMsg, errCode, download, file)=> {
 				if (cb) ret = cb(errMsg, errCode, download, file);
-				if (ret === undefined) ret = (errCode == 0);
+				if (ret === undefined) ret = {ec:errCode,em:errMsg};
 				res(ret);
 			}, progress, (canceled, download, file)=>{
 				if (discarded) ret = discarded(canceled, download, file);
@@ -434,25 +961,8 @@ exports.CS={
 		var pool = new SPA.CSocketPool(	svsId, //a required unsigned int service id
 									defaulDb //master/slave with real-time update cache
 									);
-		if (pool) {
-			pool.seek = function() {
-				var h = pool.Seek();
-				if (h) {
-					switch(h.getSvsId()) {
-					case exports.SID.sidFile:
-						h = new CAsyncFile(h);
-						break;
-					case exports.SID.sidQueue:
-						h = new CAsyncQueue(h);
-						break;
-					default:
-						h = new CHandler(h);
-						break;
-					}
-				}
-				return h;
-			};
-		}
+		if (pool)
+			return new CSocketPool(pool);
 		return pool;
 	},
 	//CC == Connection Context
