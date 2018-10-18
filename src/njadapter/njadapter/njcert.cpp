@@ -28,8 +28,8 @@ namespace NJA {
         NJCert* obj = ObjectWrap::Unwrap<NJCert>(args.Holder());
         int errCode;
         Local<Object> res = Object::New(isolate);
-        bool ok = res->Set(ToStr(isolate, "errMsg"), ToStr(isolate, obj->m_c->Verify(&errCode)));
-        ok = res->Set(ToStr(isolate, "errCode"), Int32::New(isolate, errCode));
+        bool ok = res->Set(ToStr(isolate, "em"), ToStr(isolate, obj->m_c->Verify(&errCode)));
+        ok = res->Set(ToStr(isolate, "ec"), Int32::New(isolate, errCode));
         args.GetReturnValue().Set(res);
     }
 

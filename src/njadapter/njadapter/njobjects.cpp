@@ -670,8 +670,8 @@ namespace NJA {
         NJSocketPool* obj = ObjectWrap::Unwrap<NJSocketPool>(args.Holder());
         Local<Object> errObj = Object::New(isolate);
         obj->m_cs.lock();
-        errObj->Set(ToStr(isolate, "errCode"), Int32::New(isolate, obj->m_errSSL));
-        errObj->Set(ToStr(isolate, "errMsg"), ToStr(isolate, obj->m_errMsg.c_str()));
+        errObj->Set(ToStr(isolate, "ec"), Int32::New(isolate, obj->m_errSSL));
+        errObj->Set(ToStr(isolate, "em"), ToStr(isolate, obj->m_errMsg.c_str()));
         obj->m_cs.unlock();
         args.GetReturnValue().Set(errObj);
     }

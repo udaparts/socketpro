@@ -3,14 +3,14 @@ var SPA=require('nja.js');
 var cs = SPA.CS; //CS == Client side
 
 //create a global socket pool object
-p=cs.newPool(SPA.SID.sidMysql); //or sidOdbc, sidSqlite
+var p=cs.newPool(SPA.SID.sidMysql); //or sidOdbc, sidSqlite
 
 //create a connection context
-var cc = cs.newCC('localhost',20902,'root','Smash123');
+var cc = cs.newCC('ws-yye-1',20902,'root','Smash123');
 
 //start a socket pool having one session to a remote server
 if (!p.Start(cc,1)) {
-	console.log(p.getError());
+	console.log(p.Error);
 	return;
 }
 var db = p.Seek(); //seek an async DB handler
@@ -19,7 +19,7 @@ if (!db.Open('sakila', (res, err)=>{
 }, canceled=>{
 	console.log(canceled ? 'request canceled' : 'session closed');
 })) {
-	console.log(db.getSocket().getError());
+	console.log(db.Socket.Error);
 	return;
 }
 
@@ -44,13 +44,13 @@ function TestCreateTables(db) {
 	return true;
 }
 if (!TestCreateTables(db)) {
-	console.log(db.getSocket().getError());
+	console.log(db.Socket.Error);
 	return;
 }
 if (!db.Execute('delete from employee;delete from company', (res, err, affected)=>{
-		console.log({ec:res, em:err, affected:affected});
+		console.log({ec:res, em:err, aff:affected});
 	})) {
-	console.log(db.getSocket().getError());
+	console.log(db.Socket.Error);
 	return;
 }
 
@@ -84,7 +84,7 @@ function TestPreparedStatements(db) {
 	
 	//send three sets in one shot
 	if (!db.Execute(buff, (res, err, affected, fails, oks, id)=>{
-		console.log({ec:res, em:err, affected:affected, oks:oks, fails:fails, id:id});
+		console.log({ec:res, em:err, aff:affected, oks:oks, fails:fails, lastId:id});
 	})) {
 		return false;
 	}
@@ -92,7 +92,7 @@ function TestPreparedStatements(db) {
 }
 
 if (!TestPreparedStatements(db)) {
-	console.log(db.getSocket().getError());
+	console.log(db.Socket.Error);
 	return;
 }
 
@@ -116,48 +116,48 @@ function InsertBLOBByPreparedStatement(db) {
 	blob.SaveString(wstr);
 	//1st set
 	//blob.PopBytes() -- convert all data inside blob memory into an array of bytes
-	buff.SaveObject(1, 'i').SaveObject('Ted Cruz').SaveObject(new Date()).SaveObject(blob.PopBytes()).SaveObject(wstr).SaveObject(254000.15, 'd');
+	buff.SaveObject(1).SaveObject('Ted Cruz').SaveObject(new Date()).SaveObject(blob.PopBytes()).SaveObject(wstr).SaveObject('254000.15');
 	
 	blob.SaveAString(str);
 	//2nd set
-	buff.SaveObject(1, 'i').SaveObject('Donald Trump', 'a').SaveObject(new Date()).SaveObject(blob.PopBytes()).SaveObject(str, 'a').SaveObject(20254000.35, 'd');
+	buff.SaveObject(1).SaveObject('Donald Trump').SaveObject(new Date()).SaveObject(blob.PopBytes()).SaveObject(str).SaveObject(20254000.35);
 	
 	blob.SaveAString(str).SaveString(wstr);
 	//3rd set
-	buff.SaveObject(2, 'i').SaveObject('Hillary Clinton', 'a').SaveObject(new Date()).SaveObject(blob.PopBytes()).SaveObject(wstr).SaveObject(6254000.42, 'd');
+	buff.SaveObject(2).SaveObject('Hillary Clinton').SaveObject(new Date()).SaveObject(blob.PopBytes()).SaveObject(wstr).SaveObject(6254000.42);
 	
 	//send three sets in one shot
 	if (!db.Execute(buff, (res, err, affected, fails, oks, id)=>{
-		console.log({ec:res, em:err, affected:affected, oks:oks, fails:fails, id:id});
+		console.log({ec:res, em:err, aff:affected, oks:oks, fails:fails, id:id});
 	})) {
 		return false;
 	}
 	return true;
 }
 if (!InsertBLOBByPreparedStatement(db)) {
-	console.log(db.getSocket().getError());
+	console.log(db.Socket.Error);
 	return;
 }
 
 if (!db.Execute('SELECT * from company;select curtime()', (res, err, affected, fails, oks, id)=>{
-		console.log({ec:res, em:err, affected:affected, oks:oks, fails:fails, id:id});
+		console.log({ec:res, em:err, aff:affected, oks:oks, fails:fails, id:id});
 	}, data=>{
 		console.log(data);
 	}, meta=>{
 		//console.log(meta);
 	})) {
-	console.log(db.getSocket().getError());
+	console.log(db.Socket.Error);
 	return;
 }
 
 if (!db.Execute('select name, joindate, salary from employee', (res, err, affected, fails, oks, id)=>{
-		console.log({ec:res, em:err, affected:affected, oks:oks, fails:fails, id:id});
+		console.log({ec:res, em:err, aff:affected, oks:oks, fails:fails, id:id});
 	}, data=>{
 		console.log(data);
 	}, meta=>{
-		console.log(meta);
+		//console.log(meta);
 	})) {
-	console.log(db.getSocket().getError());
+	console.log(db.Socket.Error);
 	return;
 }
 
@@ -169,11 +169,13 @@ function TestStoredProcedure(db) {
 	}
 	var buff = SPA.newBuffer();
 	//1st set
-	buff.SaveObject(1, 'i').SaveObject(1.25, 'd').SaveObject();
+	buff.SaveObject(1).SaveObject(1.25).SaveObject();
 	//2nd set
-	buff.SaveObject(2, 'i').SaveObject(1.14, 'd').SaveObject();
+	buff.SaveObject(2).SaveObject(1.14).SaveObject();
+	//3rd set
+	buff.SaveObject(0).SaveObject(2.18).SaveObject();
 	if (!db.Execute(buff, (res, err, affected, fails, oks, id)=>{
-		console.log({ec:res, em:err, affected:affected, oks:oks, fails:fails, id:id});
+		console.log({ec:res, em:err, aff:affected, oks:oks, fails:fails, id:id});
 	}, (data, proc)=>{
 		if (proc) {
 			console.log(data); //output output parameters
@@ -181,14 +183,13 @@ function TestStoredProcedure(db) {
 	}, meta=>{
 		//console.log(meta);
 	})) {
-		console.log(db.getSocket().getError());
+		console.log(db.Socket.Error);
 		return false;
 	}
 	return true;
 }
-
 if (!TestStoredProcedure(db)) {
-	console.log(db.getSocket().getError());
+	console.log(db.Socket.Error);
 	return;
 }
 
@@ -207,7 +208,7 @@ function TestBatch(db) {
 	
 	//1st set
 	//INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?)
-	buff.SaveObject(1).SaveObject('Google Inc.').SaveObject('1600 Amphitheatre Parkway, Mountain View, CA 94043, USA').SaveObject(66000000000.15, 'dec');
+	buff.SaveObject(1).SaveObject('Google Inc.').SaveObject('1600 Amphitheatre Parkway, Mountain View, CA 94043, USA').SaveObject(66000000000.15);
 	//insert into employee(CompanyId,name,JoinDate,image,DESCRIPTION,Salary)values(?,?,?,?,?,?)
 	buff.SaveObject(1); //Google company id
 	blob.SaveString(wstr); //UNICODE string
@@ -216,7 +217,7 @@ function TestBatch(db) {
 	buff.SaveObject(1).SaveObject(1.25).SaveObject();
 	
 	//2nd set
-	buff.SaveObject(2).SaveObject('Microsoft Inc.').SaveObject('700 Bellevue Way NE- 22nd Floor, Bellevue, WA 98804, USA').SaveObject('93600000000.12', 'dec');
+	buff.SaveObject(2).SaveObject('Microsoft Inc.').SaveObject('700 Bellevue Way NE- 22nd Floor, Bellevue, WA 98804, USA').SaveObject('93600000000.12');
 	buff.SaveObject(1); //Google company id
 	blob.SaveAString(str); //ASCII string
 	buff.SaveObject('Donald Trump').SaveObject(new Date()).SaveObject(blob.PopBytes()).SaveObject(str, 'a').SaveObject(20254000);
@@ -226,7 +227,7 @@ function TestBatch(db) {
 	buff.SaveObject(3).SaveObject('Apple Inc.').SaveObject('1 Infinite Loop, Cupertino, CA 95014, USA').SaveObject(234000000000.14);
 	buff.SaveObject(2); //Microsoft company id
 	blob.SaveAString(str).SaveString(wstr);
-	buff.SaveObject('Hillary Clinton').SaveObject(new Date()).SaveObject(blob.PopBytes()).SaveObject(wstr).SaveObject('6254000.15', 'dec');
+	buff.SaveObject('Hillary Clinton').SaveObject(new Date()).SaveObject(blob.PopBytes()).SaveObject(wstr).SaveObject('6254000.15');
 	buff.SaveObject(0).SaveObject(8.16).SaveObject();
 	
 	//first, execute delete from employee;delete from company
@@ -235,7 +236,7 @@ function TestBatch(db) {
     //fourth, SELECT * from company;select * from employee;select curtime()
     //last, three sets of call sp_TestProc(?,?,?)
 	if (!db.ExecuteBatch(SPA.DB.TransIsolation.Unspecified, sql, buff, (res, err, affected, fails, oks, id)=>{
-		console.log({ec:res, em:err, affected:affected, oks:oks, fails:fails, id:id});
+		console.log({ec:res, em:err, aff:affected, oks:oks, fails:fails, id:id});
 	}, (data, proc)=>{
 		if (proc) {
 			console.log(data); //output output parameters
@@ -247,14 +248,14 @@ function TestBatch(db) {
 	}, canceled=>{
 		console.log(canceled ? 'request canceled' : 'session closed');
 	}, SPA.DB.RollbackPlan.rpDefault, "|")) {
-		console.log(db.getSocket().getError());
+		console.log(db.Socket.Error);
 		return false;
 	}
 	return true;
 }
 /*
 if (!TestBatch(db)) {
-	console.log(db.getSocket().getError());
+	console.log(db.Socket.Error);
 	return;
 }
 */

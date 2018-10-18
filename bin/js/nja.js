@@ -1,6 +1,266 @@
 var SPA=require('njadapter');
 var assert = require('assert');
 
+class CTable {
+	constructor(t) {
+		assert(t);
+		this.table = t;
+	}
+
+	get Data() {
+		return this.table.getData();
+	}
+
+	get Keys() {
+		return this.table.getKeys();
+	}
+
+	get Meta() {
+		return this.table.getMeta();
+	}
+
+	get Rows() {
+		return this.table.getRows();
+	}
+
+	get Columns() {
+		return this.table.getColumns();
+	}
+
+	Append(tbl) {
+		return this.table.Append(tbl);
+	}
+
+	Dispose() {
+		this.table.Dispose();
+	}
+
+	Sort(ordinal, desc=false) {
+		return this.table.Sort(ordinal, desc);
+	}
+
+	FindOrdinal(colName) {
+		return this.table.FindOrdinal(colName);
+	}
+
+	Find(odinal, data, op=exports.Cache.Op.eq, copy=false) {
+		return new CTable(this.table.Find(odinal, op, data, copy));
+	}
+
+	FindNull(odinal, copy=false) {
+		return new CTable(this.table.FindNull(odinal, copy));
+	}
+
+	Between(odinal, d0, d1, copy=false) {
+		return new CTable(this.table.Between(odinal, d0, d1, copy));
+	}
+
+	In(odinal, arr, copy=false) {
+		return new CTable(this.table.In(odinal, arr, copy));
+	}
+
+	NotIn(odinal, arr, copy=false) {
+		return new CTable(this.table.NotIn(odinal, arr, copy));
+	}
+}
+
+class CCache {
+	constructor(c) {
+		assert(c);
+		this.cache = c;
+	}
+
+	get DbIp() {
+		return this.cache.getDbIp();
+	}
+
+	get DbName() {
+		return this.cache.getDbName();
+	}
+
+	get Updater() {
+		return this.cache.getUpdater();
+	}
+
+	get DbMs() {
+		return this.cache.getMS();
+	}
+
+	get Updater() {
+		return this.cache.getUpdater();
+	}
+
+	get Empty() {
+		return this.cache.isEmpty();
+	}
+
+	get DBNameCase() {
+		return this.cache.getDBNameCase();
+	}
+
+	get TableNameCase() {
+		return this.cache.getTableNameCase();
+	}
+
+	get FieldNameCase() {
+		return this.cache.getFieldNameCase();
+	}
+
+	get DataCase() {
+		return this.cache.getDataCase();
+	}
+
+	get DbTable() {
+		return this.cache.getDbTable();
+	}
+
+	GetMeta(dbName, tblName) {
+		return this.cache.GetMeta(dbName, tblName);
+	}
+
+	GetRowCount(dbName, tblName) {
+		return this.cache.GetRowCount(dbName, tblName);
+	}
+
+	GetFields(dbName, tblName) {
+		return this.cache.GetFields(dbName, tblName);
+	}
+
+	FindKeys(dbName, tblName) {
+		return this.cache.FindKeys(dbName, tblName);
+	}
+
+	FindOrdinal(dbName, tblName, colName) {
+		return this.cache.FindOrdinal(dbName, tblName, colName);
+	}
+
+	Find(dbName, tblName, odinal, data, op=exports.Cache.Op.eq, hint='') {
+		return new CTable(this.cache.Find(dbName, tblName, odinal, op, data, hint));
+	}
+
+	FindNull(dbName, tblName, odinal) {
+		return new CTable(this.cache.FindNull(dbName, tblName, odinal));
+	}
+
+	Between(dbName, tblName, odinal, d0, d1) {
+		return new CTable(this.cache.Between(dbName, tblName, odinal, d0, d1));
+	}
+
+	In(dbName, tblName, odinal, arr) {
+		return new CTable(this.cache.In(dbName, tblName, odinal, arr));
+	}
+
+	NotIn(dbName, tblName, odinal, arr) {
+		return new CTable(this.cache.NotIn(dbName, tblName, odinal, arr));
+	}
+}
+
+class CClientQueue {
+	constructor(cq) {
+		assert(cq);
+		this.clientQueue = cq;
+	}
+
+	get MessagesInDequeuing() {
+		return this.clientQueue.getMessagesInDequeuing();
+	}
+
+	get MessageCount() {
+		return this.clientQueue.getMessageCount();
+	}
+
+	get Size() {
+		return this.clientQueue.getSize();
+	}
+
+	get Available() {
+		return this.clientQueue.getAvailable();
+	}
+
+	get Secure() {
+		return this.clientQueue.getSecure();
+	}
+
+	get FileName() {
+		return this.clientQueue.getFileName();
+	}
+
+	get Name() {
+		return this.clientQueue.getName();
+	}
+
+	get Enabled() {
+		return this.clientQueue.getEnabled();
+	}
+
+	get JobSize() {
+		return this.clientQueue.getJobSize();
+	}
+
+	get LastIndex() {
+		return this.clientQueue.getLastIndex();
+	}
+
+	get Shared() {
+		return this.clientQueue.getShared();
+	}
+
+	get TTL() {
+		return this.clientQueue.getTTL();
+	}
+
+	get Status() {
+		return this.clientQueue.getStatus();
+	}
+
+	get LastMsgTime() {
+		return this.clientQueue.getLastMsgTime();
+	}
+
+	get RoutingIndex() {
+		return this.clientQueue.getRoutingIndex();
+	}
+	set RoutingIndex(enabled=false) {
+		this.clientQueue.setRoutingIndex(enabled);
+	}
+
+	get Optimistic() {
+		return this.clientQueue.getOptimistic();
+	}
+	set Optimistic(op=exports.CS.Queue.Optimistic.oMemoryCached) {
+		this.clientQueue.setOptimistic(op);
+	}
+
+	StartQueue(qn, secure=false, ttl = 24 * 3600) {
+		assert(typeof qn === 'string' && qn.length > 0);
+		return this.clientQueue.StartQueue(qn, secure, ttl);
+	}
+
+	StopQueue(permanent=false) {
+		this.clientQueue.StopQueue(permanent);
+	}
+
+	AbortJob() {
+		return this.clientQueue.AbortJob();
+	}
+
+	StartJob() {
+		return this.clientQueue.StartJob();
+	}
+
+	EndJob() {
+		return this.clientQueue.EndJob();
+	}
+
+	RemoveByTTL() {
+		return this.clientQueue.RemoveByTTL();
+	}
+
+	Reset() {
+		this.clientQueue.Reset();
+	}
+}
+
 class CSocket {
 	constructor(s) {
 		assert(s);
@@ -135,7 +395,7 @@ class CSocket {
 	}
 
 	get Queue() {
-		return this.socket.getQueue();
+		return new CClientQueue(this.socket.getQueue());
 	}
 
 	Dispose() {
@@ -211,7 +471,10 @@ class CSocketPool {
 	}
 
 	get Cache() {
-		return this.pool.getCache();
+		var cache = this.pool.getCache();
+		if (cache)
+			return new CCache(cache);
+		return cache;
 	}
 
 	get AutoMerge() {
@@ -284,6 +547,11 @@ class CSocketPool {
 				case exports.SID.sidQueue:
 					vh.push(new CAsyncQueue(h));
 					break;
+				case exports.SID.sidODBC:
+				case exports.SID.sidSqlite:
+				case exports.SID.sidMysql:
+					vh.push(new CDb(h));
+					break;
 				default:
 					vh.push(new CHandler(h));
 					break;
@@ -303,6 +571,11 @@ class CSocketPool {
 			case exports.SID.sidQueue:
 				h = new CAsyncQueue(h);
 				break;
+			case exports.SID.sidODBC:
+			case exports.SID.sidSqlite:
+			case exports.SID.sidMysql:
+				h = new CDb(h);
+				break;
 			default:
 				h = new CHandler(h);
 				break;
@@ -321,6 +594,11 @@ class CSocketPool {
 				break;
 			case exports.SID.sidQueue:
 				h = new CAsyncQueue(h);
+				break;
+			case exports.SID.sidODBC:
+			case exports.SID.sidSqlite:
+			case exports.SID.sidMysql:
+				h = new CDb(h);
 				break;
 			default:
 				h = new CHandler(h);
@@ -390,6 +668,14 @@ class CHandler {
 	IsSame(h) {
 		if (!h) return false;
 		return this.handler.isSame(h.handler);
+	}
+
+	CleanCallbacks() {
+		return this.handler.CleanCallbacks();
+	}
+
+	AbortDequeuedMessage() {
+		this.handler.AbortDequeuedMessage();
 	}
 
 	AbortBatching() {
@@ -592,7 +878,7 @@ class CAsyncQueue extends CHandler {
 				if (discarded) ret = discarded(canceled, queue);
 				if (ret === undefined) ret = (canceled ? 'Close canceled' : 'Connection closed');
 				rej(ret);
-			});
+			}, permanent);
 			if (!ok) {
 				if (discarded) ret = discarded(false, this.handler);
 				if (ret === undefined) ret = 'Connection closed';
@@ -754,6 +1040,8 @@ class CAsyncFile extends CHandler {
 	
 	//Promise version
 	upload(localFile, remoteFile, cb=null, progress=null, discarded=null) {
+		assert(localFile && typeof localFile === 'string');
+		assert(remoteFile && typeof remoteFile === 'string');
 		assert(cb === null || cb === undefined || typeof cb === 'function');
 		assert(progress === null || progress === undefined || typeof progress === 'function');
 		assert(discarded === null || discarded === undefined || typeof discarded === 'function');
@@ -778,6 +1066,8 @@ class CAsyncFile extends CHandler {
 	
 	//Promise version
 	download(localFile, remoteFile, cb=null, progress=null, discarded=null) {
+		assert(localFile && typeof localFile === 'string');
+		assert(remoteFile && typeof remoteFile === 'string');
 		assert(cb === null || cb === undefined || typeof cb === 'function');
 		assert(progress === null || progress === undefined || typeof progress === 'function');
 		assert(discarded === null || discarded === undefined || typeof discarded === 'function');
@@ -794,6 +1084,213 @@ class CAsyncFile extends CHandler {
 			});
 			if (!ok) {
 				if (discarded) ret = discarded(false, true, this.handler);
+				if (ret === undefined) ret = 'Connection closed';
+				rej(ret);
+			}
+		});
+	}
+}
+
+class CDb extends CHandler {
+	constructor(h) {
+		super(h);
+		var sid = h.getSvsId();
+		assert(sid == exports.SID.sidOdbc || sid == exports.SID.sidSqlite || sid == exports.SID.sidMysql);
+	}
+
+	get DbMS() {
+		return this.handler.getDbMS();
+	}
+
+	get Opened() {
+		return this.handler.isOpened();
+	}
+
+	BeginTrans(isolation=exports.DB.TransIsolation.ReadCommited, cb=null, discarded=null) {
+		return this.handler.BeginTrans(isolation, cb, discarded);
+	}
+
+	Close(cb=null, discarded=null) {
+		return this.handler.Close(cb, discarded);
+	}
+
+	EndTrans(rp=exports.DB.RollbackPlan.rpDefault, cb=null, discarded=null) {
+		return this.handler.EndTrans(rp, cb, discarded);
+	}
+
+	Open(conn, cb=null, discarded=null, flags=0) {
+		return this.handler.Open(conn, cb, discarded, flags);
+	}
+
+	Prepare(sql, cb=null, discarded=null) {
+		return this.handler.Prepare(sql, cb, discarded);
+	}
+
+	Execute(sql_or_arrParam, cb=null, rows=null, meta=null, discarded=null) {
+		return this.handler.Execute(sql_or_arrParam, cb, rows, meta, discarded);
+	}
+
+	ExecuteBatch(isolation, sql, paramBuff, cb=null, rows=null, meta=null, batchHeader=null, discarded=null, rp=exports.DB.RollbackPlan.rpDefault, delimiter=';', arrP=[]) {
+		return this.handler.ExecuteBatch(isolation, sql, paramBuff, cb, rows, meta, batchHeader, discarded, rp, delimiter, arrP);
+	}
+
+	//Promise
+	close(cb=null, discarded=null) {
+		assert(cb === null || cb === undefined || typeof cb === 'function');
+		assert(discarded === null || discarded === undefined || typeof discarded === 'function');
+		return new Promise((res, rej)=>{
+			var ret;
+			var ok = this.handler.Close((errCode, errMsg, db)=> {
+				if (cb) ret = cb(errCode, errMsg, db);
+				if (ret === undefined) ret = {ec:errCode,em:errMsg};
+				res(ret);
+			}, (canceled, db)=>{
+				if (discarded) ret = discarded(canceled, db);
+				if (ret === undefined) ret = (canceled ? 'Close canceled' : 'Connection closed');
+				rej(ret);
+			});
+			if (!ok) {
+				if (discarded) ret = discarded(false, this.handler);
+				if (ret === undefined) ret = 'Connection closed';
+				rej(ret);
+			}
+		});
+	}
+	//Promise
+	prepare(sql, cb=null, discarded=null) {
+		assert(sql && typeof sql === 'string');
+		assert(cb === null || cb === undefined || typeof cb === 'function');
+		assert(discarded === null || discarded === undefined || typeof discarded === 'function');
+		return new Promise((res, rej)=>{
+			var ret;
+			var ok = this.handler.Prepare(sql, (errCode, errMsg, db)=> {
+				if (cb) ret = cb(errCode, errMsg, db);
+				if (ret === undefined) ret = {ec:errCode,em:errMsg};
+				res(ret);
+			}, (canceled, db)=>{
+				if (discarded) ret = discarded(canceled, db);
+				if (ret === undefined) ret = (canceled ? 'Prepare canceled' : 'Connection closed');
+				rej(ret);
+			});
+			if (!ok) {
+				if (discarded) ret = discarded(false, this.handler);
+				if (ret === undefined) ret = 'Connection closed';
+				rej(ret);
+			}
+		});
+	}
+	//Promise
+	beginTrans(isolation=exports.DB.TransIsolation.ReadCommited, cb=null, discarded=null) {
+		assert(cb === null || cb === undefined || typeof cb === 'function');
+		assert(discarded === null || discarded === undefined || typeof discarded === 'function');
+		return new Promise((res, rej)=>{
+			var ret;
+			var ok = this.handler.BeginTrans(isolation, (errCode, errMsg, db)=> {
+				if (cb) ret = cb(errCode, errMsg, db);
+				if (ret === undefined) ret = {ec:errCode,em:errMsg};
+				res(ret);
+			}, (canceled, db)=>{
+				if (discarded) ret = discarded(canceled, db);
+				if (ret === undefined) ret = (canceled ? 'BeginTrans canceled' : 'Connection closed');
+				rej(ret);
+			});
+			if (!ok) {
+				if (discarded) ret = discarded(false, this.handler);
+				if (ret === undefined) ret = 'Connection closed';
+				rej(ret);
+			}
+		});
+	}
+	//Promise
+	endTrans(rp=exports.DB.RollbackPlan.rpDefault, cb=null, discarded=null) {
+		assert(cb === null || cb === undefined || typeof cb === 'function');
+		assert(discarded === null || discarded === undefined || typeof discarded === 'function');
+		return new Promise((res, rej)=>{
+			var ret;
+			var ok = this.handler.EndTrans(rp, (errCode, errMsg, db)=> {
+				if (cb) ret = cb(errCode, errMsg, db);
+				if (ret === undefined) ret = {ec:errCode,em:errMsg};
+				res(ret);
+			}, (canceled, db)=>{
+				if (discarded) ret = discarded(canceled, db);
+				if (ret === undefined) ret = (canceled ? 'EndTrans canceled' : 'Connection closed');
+				rej(ret);
+			});
+			if (!ok) {
+				if (discarded) ret = discarded(false, this.handler);
+				if (ret === undefined) ret = 'Connection closed';
+				rej(ret);
+			}
+		});
+	}
+	//Promise
+	open(conn, cb=null, discarded=null) {
+		assert(conn === null || conn === undefined || typeof conn === 'string');
+		assert(cb === null || cb === undefined || typeof cb === 'function');
+		assert(discarded === null || discarded === undefined || typeof discarded === 'function');
+		return new Promise((res, rej)=>{
+			var ret;
+			var ok = this.handler.Open(conn, (errCode, errMsg, db)=> {
+				if (cb) ret = cb(errCode, errMsg, db);
+				if (ret === undefined) ret = {ec:errCode,em:errMsg};
+				res(ret);
+			}, (canceled, db)=>{
+				if (discarded) ret = discarded(canceled, db);
+				if (ret === undefined) ret = (canceled ? 'Open canceled' : 'Connection closed');
+				rej(ret);
+			});
+			if (!ok) {
+				if (discarded) ret = discarded(false, this.handler);
+				if (ret === undefined) ret = 'Connection closed';
+				rej(ret);
+			}
+		});
+	}
+	//Promise
+	execute(sql_or_arrParam, cb=null, rows=null, meta=null, discarded=null) {
+		assert(cb === null || cb === undefined || typeof cb === 'function');
+		assert(rows === null || rows === undefined || typeof rows === 'function');
+		assert(meta === null || meta === undefined || typeof meta === 'function');
+		assert(discarded === null || discarded === undefined || typeof discarded === 'function');
+		return new Promise((res, rej)=>{
+			var ret;
+			var ok = this.handler.Execute(sql_or_arrParam, (errCode, errMsg, affected, oks, fails, id, db)=> {
+				if (cb) ret = cb(errCode, errMsg, affected, oks, fails, id, db);
+				if (ret === undefined) ret = {ec:errCode,em:errMsg, aff:affected, oks:oks, fails:fails, lastId:id};
+				res(ret);
+			}, rows, meta, (canceled, db)=>{
+				if (discarded) ret = discarded(canceled, db);
+				if (ret === undefined) ret = (canceled ? 'Execute canceled' : 'Connection closed');
+				rej(ret);
+			});
+			if (!ok) {
+				if (discarded) ret = discarded(false, this.handler);
+				if (ret === undefined) ret = 'Connection closed';
+				rej(ret);
+			}
+		});
+	}
+	//Promise
+	executeBatch(isolation, sql, paramBuff, cb=null, rows=null, meta=null, batchHeader=null, discarded=null, rp=exports.DB.RollbackPlan.rpDefault, delimiter=';', arrP=[]) {
+		assert(sql && typeof sql === 'string');
+		assert(cb === null || cb === undefined || typeof cb === 'function');
+		assert(rows === null || rows === undefined || typeof rows === 'function');
+		assert(meta === null || meta === undefined || typeof meta === 'function');
+		assert(batchHeader === null || batchHeader === undefined || typeof batchHeader === 'function');
+		assert(discarded === null || discarded === undefined || typeof discarded === 'function');
+		return new Promise((res, rej)=>{
+			var ret;
+			var ok = this.handler.ExecuteBatch(isolation, sql, paramBuff, (errCode, errMsg, affected, oks, fails, id, db)=> {
+				if (cb) ret = cb(errCode, errMsg, affected, oks, fails, id, db);
+				if (ret === undefined) ret = {ec:errCode,em:errMsg, aff:affected, oks:oks, fails:fails, lastId:id};
+				res(ret);
+			}, rows, meta, batchHeader, (canceled, db)=>{
+				if (discarded) ret = discarded(canceled, db);
+				if (ret === undefined) ret = (canceled ? 'ExecuteBatch canceled' : 'Connection closed');
+				rej(ret);
+			}, rp, delimiter, arrP);
+			if (!ok) {
+				if (discarded) ret = discarded(false, this.handler);
 				if (ret === undefined) ret = 'Connection closed';
 				rej(ret);
 			}

@@ -10,7 +10,7 @@ var cc = cs.newCC('localhost',20901,'root','Smash123');
 
 //start a socket pool having one session to a remote server
 if (!p.Start(cc,1)) {
-	console.log(p.getError());
+	console.log(p.Error);
 	return;
 }
 var file = p.Seek(); //seek an async file handler
@@ -23,7 +23,7 @@ if (!file.Download('spfile1.test', 'jvm.lib', (errMsg, errCode)=>{
 	}, (canceled)=>{
 		console.log('File download stopped because ' + canceled ? 'downloading is canceled' : 'session is closed');
 	})) {
-	console.log(file.getSocket().getError());
+	console.log(file.Socket.Error);
 	return;
 }
 console.log('Downloading jvm.lib');
@@ -35,7 +35,7 @@ if (!file.Download('spfile2.test', 'libboost_wave-vc100-mt-sgd-1_60.lib', (errMs
 	}, (canceled)=>{
 		console.log('File download stopped because ' + canceled ? 'downloading is canceled' : 'session is closed');
 	})) {
-	console.log(file.getSocket().getError());
+	console.log(file.Socket.Error);
 	return;
 }
 console.log('Downloading libboost_wave-vc100-mt-sgd-1_60.lib');
@@ -47,7 +47,7 @@ if (!file.Download('spfile3.test', 'libboost_coroutine-vc100-mt-s-1_60.lib', (er
 	}, (canceled)=>{
 		console.log('File download stopped because ' + canceled ? 'downloading is canceled' : 'session is closed');
 	})) {
-	console.log(file.getSocket().getError());
+	console.log(file.Socket.Error);
 	return;
 }
 console.log('Downloading libboost_coroutine-vc100-mt-s-1_60.lib');
@@ -59,7 +59,7 @@ if (!file.Download('spfile4.test', 'libboost_serialization-vc100-mt-s-1_60.lib',
 	}, (canceled)=>{
 		console.log('File download stopped because ' + canceled ? 'downloading is canceled' : 'session is closed');
 	})) {
-	console.log(file.getSocket().getError());
+	console.log(file.Socket.Error);
 	return;
 }
 console.log('Downloading libboost_serialization-vc100-mt-s-1_60.lib');
@@ -71,7 +71,7 @@ if (!file.Download('spfile5.test', 'libboost_math_tr1f-vc100-mt-sgd-1_60.lib', (
 	}, (canceled)=>{
 		console.log('File download stopped because ' + canceled ? 'downloading is canceled' : 'session is closed');
 	})) {
-	console.log(file.getSocket().getError());
+	console.log(file.Socket.Error);
 	return;
 }
 console.log('Downloading libboost_math_tr1f-vc100-mt-sgd-1_60.lib');
@@ -83,7 +83,7 @@ if (!file.Upload('spfile1.test', 'jvm_copy.lib', (errMsg, res) => {
 	}, (canceled)=>{
 		console.log('File upload stopped because ' + canceled ? 'uploading is canceled' : 'session is closed');
 	})) {
-	console.log(file.getSocket().getError());
+	console.log(file.Socket.Error);
 	return;
 }
 console.log('Uploading jvm_copy.lib');
@@ -95,7 +95,7 @@ if (!file.Upload('spfile2.test', 'libboost_wave-vc100-mt-sgd-1_60_copy.lib', (er
 	}, (canceled)=>{
 		console.log('File upload stopped because ' + canceled ? 'uploading is canceled' : 'session is closed');
 	})) {
-	console.log(file.getSocket().getError());
+	console.log(file.Socket.Error);
 	return;
 }
 console.log('Uploading libboost_wave-vc100-mt-sgd-1_60_copy.lib');
@@ -107,7 +107,7 @@ if (!file.Upload('spfile3.test', 'libboost_coroutine-vc100-mt-s-1_60_copy.lib', 
 	}, (canceled)=>{
 		console.log('File upload stopped because ' + canceled ? 'uploading is canceled' : 'session is closed');
 	})) {
-	console.log(file.getSocket().getError());
+	console.log(file.Socket.Error);
 	return;
 }
 console.log('Uploading libboost_coroutine-vc100-mt-s-1_60_copy.lib');
@@ -119,7 +119,7 @@ if (!file.Upload('spfile4.test', 'libboost_serialization-vc100-mt-s-1_60_copy.li
 	}, (canceled)=>{
 		console.log('File upload stopped because ' + canceled ? 'uploading is canceled' : 'session is closed');
 	})) {
-		console.log(file.getSocket().getError());
+		console.log(file.Socket.Error);
 		return;
 }
 console.log('Uploading libboost_serialization-vc100-mt-s-1_60_copy.lib');
@@ -131,7 +131,7 @@ if (!file.Upload('spfile5.test', 'libboost_math_tr1f-vc100-mt-sgd-1_60_copy.lib'
 	}, (canceled)=>{
 		console.log('File upload stopped because ' + canceled ? 'uploading is canceled' : 'session is closed');
 	})) {
-		console.log(file.getSocket().getError());
+		console.log(file.Socket.Error);
 		return;
 }
 console.log('Uploading libboost_math_tr1f-vc100-mt-sgd-1_60_copy.lib');
