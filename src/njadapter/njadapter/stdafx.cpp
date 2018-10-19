@@ -263,7 +263,7 @@ namespace NJA {
             len = SPA::Utilities::GetLen(str);
 #endif
         }
-        return String::NewFromTwoByte(isolate, str, v8::NewStringType::kNormal, (int) len).ToLocalChecked();
+        return String::NewFromTwoByte(isolate, str, v8::NewStringType::kInternalized, (int) len).ToLocalChecked();
     }
 
     std::wstring ToStr(const Local<Value>& s) {

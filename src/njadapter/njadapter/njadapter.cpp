@@ -96,6 +96,10 @@ namespace NJA {
     }
 
     void InitAll(Local<Object> exports) {
+        //make sure static critical sections initilized
+        SPA::CScopeUQueue sb;
+        SPA::UINT64 index = CAsyncServiceHandler::GetCallIndex();
+
         NODE_SET_METHOD(exports, "getVersion", GetVersion);
         NODE_SET_METHOD(exports, "getPools", GetPools);
         NODE_SET_METHOD(exports, "setCA", SetVerifyLocation);
