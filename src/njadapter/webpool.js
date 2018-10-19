@@ -39,7 +39,7 @@ exports.spa = SPA;
 var cs = SPA.CS; //CS == Client side
 
 //set working directory for client message queues
-cs.Queue.setWorkingDir(config.work_dir);
+cs.Queue.WorkingDir = config.work_dir;
 
 function getCCs(hosts) {
 	var ccs = [];
@@ -71,6 +71,6 @@ exports.slave = slave;
 //start a socket pool having four sessions to remote slave servers
 if (!slave.Start(getCCs(config.slave.hosts), config.slave.sessions)) {
 	console.log('Slave pool starting error');
-	console.log(slave.getError());
+	console.log(slave.Error);
 }
 slave.AutoMerge = (config.slave.hosts.length > 1);
