@@ -865,7 +865,7 @@ class CAsyncQueue extends CHandler {
 		});
 	}
 	//Promise
-	close(key, cb=null, discarded=null, permanent=false) {
+	close(key, permanent=false, cb=null, discarded=null) {
 		assert(cb === null || cb === undefined || typeof cb === 'function');
 		assert(discarded === null || discarded === undefined || typeof discarded === 'function');
 		return new Promise((res, rej)=>{
@@ -931,7 +931,7 @@ class CAsyncQueue extends CHandler {
 		});
 	}
 	//Promise
-	flush(key, cb=null, discarded=null, option=exports.CS.Queue.Optimistic.oMemoryCached) {
+	flush(key, option=exports.CS.Queue.Optimistic.oMemoryCached, cb=null, discarded=null) {
 		assert(cb === null || cb === undefined || typeof cb === 'function');
 		assert(discarded === null || discarded === undefined || typeof discarded === 'function');
 		return new Promise((res, rej)=>{
@@ -997,7 +997,7 @@ class CAsyncQueue extends CHandler {
 		});
 	}
 	//Promise
-	dequeue(key, cb=null, discarded=null, timeout=0) {
+	dequeue(key, timeout=0, cb=null, discarded=null) {
 		assert(cb === null || cb === undefined || typeof cb === 'function');
 		assert(discarded === null || discarded === undefined || typeof discarded === 'function');
 		return new Promise((res, rej)=>{
@@ -1247,10 +1247,10 @@ class CDb extends CHandler {
 		});
 	}
 	//Promise
-	execute(sql_or_arrParam, cb=null, rows=null, meta=null, discarded=null) {
-		assert(cb === null || cb === undefined || typeof cb === 'function');
+	execute(sql_or_arrParam, rows=null, meta=null, cb=null, discarded=null) {
 		assert(rows === null || rows === undefined || typeof rows === 'function');
 		assert(meta === null || meta === undefined || typeof meta === 'function');
+		assert(cb === null || cb === undefined || typeof cb === 'function');
 		assert(discarded === null || discarded === undefined || typeof discarded === 'function');
 		return new Promise((res, rej)=>{
 			var ret;
@@ -1271,12 +1271,12 @@ class CDb extends CHandler {
 		});
 	}
 	//Promise
-	executeBatch(isolation, sql, paramBuff, cb=null, rows=null, meta=null, batchHeader=null, discarded=null, rp=exports.DB.RollbackPlan.rpDefault, delimiter=';', arrP=[]) {
+	executeBatch(isolation, sql, paramBuff, rows=null, meta=null, rp=exports.DB.RollbackPlan.rpDefault, delimiter=';', batchHeader=null, cb=null, discarded=null, arrP=[]) {
 		assert(sql && typeof sql === 'string');
-		assert(cb === null || cb === undefined || typeof cb === 'function');
 		assert(rows === null || rows === undefined || typeof rows === 'function');
 		assert(meta === null || meta === undefined || typeof meta === 'function');
 		assert(batchHeader === null || batchHeader === undefined || typeof batchHeader === 'function');
+		assert(cb === null || cb === undefined || typeof cb === 'function');
 		assert(discarded === null || discarded === undefined || typeof discarded === 'function');
 		return new Promise((res, rej)=>{
 			var ret;
@@ -1394,7 +1394,7 @@ exports.CS={
 			SPA.setPassword(pwd);
 		},
 
-		//queue flush options
+		//queue flush options for server persistent queue, CAsyncQueue
 		Optimistic : {
 			oMemoryCached : 0,
 			oSystemMemoryCached : 1,
@@ -1414,7 +1414,7 @@ exports.CS={
 			idBatchSizeNotified:0x2001 + 20
 		},
 
-		//possible error codes from server persistent queue
+		//possible error codes from server persistent queue, which are used within CAsyncQueue
 		ErrorCode:{
 			OK:0,
 			TRANS_ALREADY_STARTED:1,
@@ -1427,7 +1427,7 @@ exports.CS={
 			ENQUEUING_FAILED:8
 		},
 
-		//persistent message queue status
+		//persistent message queue status used within CClientQueue
 		Status : {
 			/// <summary>
 			/// everything is fine
@@ -1476,12 +1476,10 @@ exports.CS={
 		}	
 	},
 
-	newPool : function(svsId,defaulDb='') {
+	newPool : function(svsId, defaulDb='') {
 		//create a regular socket or master/slave pool.
 		//you can create multiple pools for different services
-		var pool = new SPA.CSocketPool(	svsId, //a required unsigned int service id
-										defaulDb //master/slave with real-time update cache
-									);
+		var pool = new SPA.CSocketPool(svsId/*a required unsigned int service id*/, defaulDb/*master/slave with real-time updateable cache*/);
 		if (pool)
 			return new CSocketPool(pool);
 		return pool;
@@ -1500,7 +1498,7 @@ exports.CS={
 		csSwitched:5
 	},
 
-	//Socket Pool Event
+	//Socket Pool Events
 	PoolEvent:{
 		speUnknown:-1,
 		speStarted:0,
@@ -1526,8 +1524,7 @@ exports.CS={
 
 //DB namespace
 exports.DB={
-
-	//defined DB management systems
+	//pre-defined DB management systems
 	ManagementSystem : {
 		Unknown:-1,
 		Sqlite:0,
@@ -1644,7 +1641,7 @@ exports.Cache={
 
 	CACHE_UPDATE_CHAT_GROUP_ID:0x20000000,
 
-	//operator
+	//operators used within CCache and CTable
 	Op : {
 		eq:0, //equal
 		gt:1, //great

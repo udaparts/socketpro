@@ -6,7 +6,7 @@ var cs = SPA.CS; //CS == Client side
 var p=cs.newPool(SPA.SID.sidMysql); //or sidOdbc, sidSqlite
 
 //create a connection context
-var cc = cs.newCC('ws-yye-1',20902,'root','Smash123');
+var cc = cs.newCC('localhost',20902,'root','Smash123');
 
 //start a socket pool having one session to a remote server
 if (!p.Start(cc,1)) {
@@ -128,7 +128,7 @@ function InsertBLOBByPreparedStatement(db) {
 	
 	//send three sets in one shot
 	if (!db.Execute(buff, (res, err, affected, fails, oks, id)=>{
-		console.log({ec:res, em:err, aff:affected, oks:oks, fails:fails, id:id});
+		console.log({ec:res, em:err, aff:affected, oks:oks, fails:fails, lastId:id});
 	})) {
 		return false;
 	}
@@ -140,7 +140,7 @@ if (!InsertBLOBByPreparedStatement(db)) {
 }
 
 if (!db.Execute('SELECT * from company;select curtime()', (res, err, affected, fails, oks, id)=>{
-		console.log({ec:res, em:err, aff:affected, oks:oks, fails:fails, id:id});
+		console.log({ec:res, em:err, aff:affected, oks:oks, fails:fails, lastId:id});
 	}, data=>{
 		console.log(data);
 	}, meta=>{
@@ -151,7 +151,7 @@ if (!db.Execute('SELECT * from company;select curtime()', (res, err, affected, f
 }
 
 if (!db.Execute('select name, joindate, salary from employee', (res, err, affected, fails, oks, id)=>{
-		console.log({ec:res, em:err, aff:affected, oks:oks, fails:fails, id:id});
+		console.log({ec:res, em:err, aff:affected, oks:oks, fails:fails, lastId:id});
 	}, data=>{
 		console.log(data);
 	}, meta=>{
@@ -175,7 +175,7 @@ function TestStoredProcedure(db) {
 	//3rd set
 	buff.SaveObject(0).SaveObject(2.18).SaveObject();
 	if (!db.Execute(buff, (res, err, affected, fails, oks, id)=>{
-		console.log({ec:res, em:err, aff:affected, oks:oks, fails:fails, id:id});
+		console.log({ec:res, em:err, aff:affected, oks:oks, fails:fails, lastId:id});
 	}, (data, proc)=>{
 		if (proc) {
 			console.log(data); //output output parameters
@@ -236,7 +236,7 @@ function TestBatch(db) {
     //fourth, SELECT * from company;select * from employee;select curtime()
     //last, three sets of call sp_TestProc(?,?,?)
 	if (!db.ExecuteBatch(SPA.DB.TransIsolation.Unspecified, sql, buff, (res, err, affected, fails, oks, id)=>{
-		console.log({ec:res, em:err, aff:affected, oks:oks, fails:fails, id:id});
+		console.log({ec:res, em:err, aff:affected, oks:oks, fails:fails, lastId:id});
 	}, (data, proc)=>{
 		if (proc) {
 			console.log(data); //output output parameters
@@ -246,7 +246,7 @@ function TestBatch(db) {
 	}, dbH=>{
 		console.log('Batch header comes');
 	}, canceled=>{
-		console.log(canceled ? 'request canceled' : 'session closed');
+		console.log(canceled ? 'Request canceled' : 'Session closed');
 	}, SPA.DB.RollbackPlan.rpDefault, "|")) {
 		console.log(db.Socket.Error);
 		return false;
