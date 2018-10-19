@@ -1101,6 +1101,10 @@ namespace SPA {
             CClientSocket *p = Seek(handler);
             if (!p)
                 return;
+            CPushImpl &push = p->GetPush();
+            if (push.OnSubscribe)
+                push.OnSubscribe(p, sender, pGroup, count);
+            p->OnSubscribe(sender, pGroup, count);
 #ifdef NODE_JS_ADAPTER_PROJECT
             do {
                 VARTYPE vt = (VT_ARRAY | VT_UI4);
@@ -1122,16 +1126,16 @@ namespace SPA {
                 assert(!fail);
             } while (false);
 #endif
-            CPushImpl &push = p->GetPush();
-            if (push.OnSubscribe)
-                push.OnSubscribe(p, sender, pGroup, count);
-            p->OnSubscribe(sender, pGroup, count);
         }
 
         void WINAPI CClientSocket::OnUnsubscribe(USocket_Client_Handle handler, CMessageSender sender, const unsigned int *pGroup, unsigned int count) {
             CClientSocket *p = Seek(handler);
             if (!p)
                 return;
+            CPushImpl &push = p->GetPush();
+            if (push.OnUnsubscribe)
+                push.OnUnsubscribe(p, sender, pGroup, count);
+            p->OnUnsubscribe(sender, pGroup, count);
 #ifdef NODE_JS_ADAPTER_PROJECT
             do {
                 VARTYPE vt = (VT_ARRAY | VT_UI4);
@@ -1153,16 +1157,20 @@ namespace SPA {
                 assert(!fail);
             } while (false);
 #endif
-            CPushImpl &push = p->GetPush();
-            if (push.OnUnsubscribe)
-                push.OnUnsubscribe(p, sender, pGroup, count);
-            p->OnUnsubscribe(sender, pGroup, count);
         }
 
         void WINAPI WINAPI CClientSocket::OnBroadcast(USocket_Client_Handle handler, CMessageSender sender, const unsigned int *pGroup, unsigned int count, const unsigned char *pMessage, unsigned int size) {
             CClientSocket *p = Seek(handler);
             if (!p)
                 return;
+            CScopeUQueue sb;
+            sb->Push(pMessage, size);
+            SPA::UVariant vtMessage;
+            sb >> vtMessage;
+            CPushImpl &push = p->GetPush();
+            if (push.OnPublish)
+                push.OnPublish(p, sender, pGroup, count, vtMessage);
+            p->OnPublish(sender, pGroup, count, vtMessage);
 #ifdef NODE_JS_ADAPTER_PROJECT
             do {
                 VARTYPE vt = (VT_ARRAY | VT_UI4);
@@ -1185,20 +1193,22 @@ namespace SPA {
                 assert(!fail);
             } while (false);
 #endif
-            CScopeUQueue sb;
-            sb->Push(pMessage, size);
-            SPA::UVariant vtMessage;
-            sb >> vtMessage;
-            CPushImpl &push = p->GetPush();
-            if (push.OnPublish)
-                push.OnPublish(p, sender, pGroup, count, vtMessage);
-            p->OnPublish(sender, pGroup, count, vtMessage);
         }
 
         void WINAPI CClientSocket::OnBroadcastEx(USocket_Client_Handle handler, CMessageSender sender, const unsigned int *pGroup, unsigned int count, const unsigned char *pMessage, unsigned int size) {
             CClientSocket *p = Seek(handler);
             if (!p)
                 return;
+            CPushImpl &push = p->GetPush();
+            if (push.OnPublishEx) {
+#if defined(WIN32_64) && _MSC_VER < 1800
+                //Visual C++ has implementation limitation of std::function on the number of parameters -- temporary solution
+                push.OnPublishEx(sender, pGroup, count, pMessage, size);
+#else
+                push.OnPublishEx(p, sender, pGroup, count, pMessage, size);
+#endif
+            }
+            p->OnPublishEx(sender, pGroup, count, pMessage, size);
 #ifdef NODE_JS_ADAPTER_PROJECT
             do {
                 VARTYPE vt = (VT_ARRAY | VT_UI4);
@@ -1221,22 +1231,20 @@ namespace SPA {
                 assert(!fail);
             } while (false);
 #endif
-            CPushImpl &push = p->GetPush();
-            if (push.OnPublishEx) {
-#if defined(WIN32_64) && _MSC_VER < 1800
-                //Visual C++ has implementation limitation of std::function on the number of parameters -- temporary solution
-                push.OnPublishEx(sender, pGroup, count, pMessage, size);
-#else
-                push.OnPublishEx(p, sender, pGroup, count, pMessage, size);
-#endif
-            }
-            p->OnPublishEx(sender, pGroup, count, pMessage, size);
         }
 
         void WINAPI CClientSocket::OnPostUserMessage(USocket_Client_Handle handler, CMessageSender sender, const unsigned char *pMessage, unsigned int size) {
             CClientSocket *p = Seek(handler);
             if (!p)
                 return;
+            CScopeUQueue sb;
+            sb->Push(pMessage, size);
+            SPA::UVariant vtMessage;
+            sb >> vtMessage;
+            CPushImpl &push = p->GetPush();
+            if (push.OnSendUserMessage)
+                push.OnSendUserMessage(p, sender, vtMessage);
+            p->OnSendUserMessage(sender, vtMessage);
 #ifdef NODE_JS_ADAPTER_PROJECT
             do {
                 unsigned short reqId = idSendUserMessage;
@@ -1257,20 +1265,16 @@ namespace SPA {
                 assert(!fail);
             } while (false);
 #endif
-            CScopeUQueue sb;
-            sb->Push(pMessage, size);
-            SPA::UVariant vtMessage;
-            sb >> vtMessage;
-            CPushImpl &push = p->GetPush();
-            if (push.OnSendUserMessage)
-                push.OnSendUserMessage(p, sender, vtMessage);
-            p->OnSendUserMessage(sender, vtMessage);
         }
 
         void WINAPI CClientSocket::OnPostUserMessageEx(USocket_Client_Handle handler, CMessageSender sender, const unsigned char *pMessage, unsigned int size) {
             CClientSocket *p = Seek(handler);
             if (!p)
                 return;
+            CPushImpl &push = p->GetPush();
+            if (push.OnSendUserMessageEx)
+                push.OnSendUserMessageEx(p, sender, pMessage, size);
+            p->OnSendUserMessageEx(sender, pMessage, size);
 #ifdef NODE_JS_ADAPTER_PROJECT
             do {
                 unsigned short reqId = idSendUserMessageEx;
@@ -1291,10 +1295,6 @@ namespace SPA {
                 assert(!fail);
             } while (false);
 #endif
-            CPushImpl &push = p->GetPush();
-            if (push.OnSendUserMessageEx)
-                push.OnSendUserMessageEx(p, sender, pMessage, size);
-            p->OnSendUserMessageEx(sender, pMessage, size);
         }
 
         void CClientSocket::OnAllRequestsProcessed(unsigned short lastRequestId) {

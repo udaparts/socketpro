@@ -719,7 +719,7 @@ class CHandler {
 			});
 			if (!ok) {
 				if (discarded) ret = discarded(false, reqId, this.handler);
-				if (ret === undefined) ret = 'Connection closed';
+				if (ret === undefined) ret = this.Socket.Error;
 				rej(ret);
 			}
 		});
@@ -859,7 +859,7 @@ class CAsyncQueue extends CHandler {
 			});
 			if (!ok) {
 				if (discarded) ret = discarded(false, this.handler);
-				if (ret === undefined) ret = 'Connection closed';
+				if (ret === undefined) ret = this.Socket.Error;
 				rej(ret);
 			}
 		});
@@ -881,7 +881,7 @@ class CAsyncQueue extends CHandler {
 			}, permanent);
 			if (!ok) {
 				if (discarded) ret = discarded(false, this.handler);
-				if (ret === undefined) ret = 'Connection closed';
+				if (ret === undefined) ret = this.Socket.Error;
 				rej(ret);
 			}
 		});
@@ -903,7 +903,7 @@ class CAsyncQueue extends CHandler {
 			});
 			if (!ok) {
 				if (discarded) ret = discarded(false, this.handler);
-				if (ret === undefined) ret = 'Connection closed';
+				if (ret === undefined) ret = this.Socket.Error;
 				rej(ret);
 			}
 		});
@@ -925,7 +925,7 @@ class CAsyncQueue extends CHandler {
 			});
 			if (!ok) {
 				if (discarded) ret = discarded(false, this.handler);
-				if (ret === undefined) ret = 'Connection closed';
+				if (ret === undefined) ret = this.Socket.Error;
 				rej(ret);
 			}
 		});
@@ -947,7 +947,7 @@ class CAsyncQueue extends CHandler {
 			}, option);
 			if (!ok) {
 				if (discarded) ret = discarded(false, this.handler);
-				if (ret === undefined) ret = 'Connection closed';
+				if (ret === undefined) ret = this.Socket.Error;
 				rej(ret);
 			}
 		});
@@ -969,7 +969,7 @@ class CAsyncQueue extends CHandler {
 			});
 			if (!ok) {
 				if (discarded) ret = discarded(false, this.handler);
-				if (ret === undefined) ret = 'Connection closed';
+				if (ret === undefined) ret = this.Socket.Error;
 				rej(ret);
 			}
 		});
@@ -991,7 +991,7 @@ class CAsyncQueue extends CHandler {
 			});
 			if (!ok) {
 				if (discarded) ret = discarded(false, this.handler);
-				if (ret === undefined) ret = 'Connection closed';
+				if (ret === undefined) ret = this.Socket.Error;
 				rej(ret);
 			}
 		});
@@ -1013,7 +1013,7 @@ class CAsyncQueue extends CHandler {
 			}, timeout);
 			if (!ok) {
 				if (discarded) ret = discarded(false, this.handler);
-				if (ret === undefined) ret = 'Connection closed';
+				if (ret === undefined) ret = this.Socket.Error;
 				rej(ret);
 			}
 		});
@@ -1058,7 +1058,7 @@ class CAsyncFile extends CHandler {
 			});
 			if (!ok) {
 				if (discarded) ret = discarded(false, false, this.handler);
-				if (ret === undefined) ret = 'Connection closed';
+				if (ret === undefined) ret = this.Socket.Error;
 				rej(ret);
 			}
 		});
@@ -1084,7 +1084,7 @@ class CAsyncFile extends CHandler {
 			});
 			if (!ok) {
 				if (discarded) ret = discarded(false, true, this.handler);
-				if (ret === undefined) ret = 'Connection closed';
+				if (ret === undefined) ret = this.Socket.Error;
 				rej(ret);
 			}
 		});
@@ -1151,7 +1151,7 @@ class CDb extends CHandler {
 			});
 			if (!ok) {
 				if (discarded) ret = discarded(false, this.handler);
-				if (ret === undefined) ret = 'Connection closed';
+				if (ret === undefined) ret = this.Socket.Error;
 				rej(ret);
 			}
 		});
@@ -1174,7 +1174,7 @@ class CDb extends CHandler {
 			});
 			if (!ok) {
 				if (discarded) ret = discarded(false, this.handler);
-				if (ret === undefined) ret = 'Connection closed';
+				if (ret === undefined) ret = this.Socket.Error;
 				rej(ret);
 			}
 		});
@@ -1196,7 +1196,7 @@ class CDb extends CHandler {
 			});
 			if (!ok) {
 				if (discarded) ret = discarded(false, this.handler);
-				if (ret === undefined) ret = 'Connection closed';
+				if (ret === undefined) ret = this.Socket.Error;
 				rej(ret);
 			}
 		});
@@ -1218,7 +1218,7 @@ class CDb extends CHandler {
 			});
 			if (!ok) {
 				if (discarded) ret = discarded(false, this.handler);
-				if (ret === undefined) ret = 'Connection closed';
+				if (ret === undefined) ret = this.Socket.Error;
 				rej(ret);
 			}
 		});
@@ -1241,7 +1241,7 @@ class CDb extends CHandler {
 			});
 			if (!ok) {
 				if (discarded) ret = discarded(false, this.handler);
-				if (ret === undefined) ret = 'Connection closed';
+				if (ret === undefined) ret = this.Socket.Error;
 				rej(ret);
 			}
 		});
@@ -1265,7 +1265,7 @@ class CDb extends CHandler {
 			});
 			if (!ok) {
 				if (discarded) ret = discarded(false, this.handler);
-				if (ret === undefined) ret = 'Connection closed';
+				if (ret === undefined) ret = this.Socket.Error;
 				rej(ret);
 			}
 		});
@@ -1291,7 +1291,7 @@ class CDb extends CHandler {
 			}, rp, delimiter, arrP);
 			if (!ok) {
 				if (discarded) ret = discarded(false, this.handler);
-				if (ret === undefined) ret = 'Connection closed';
+				if (ret === undefined) ret = this.Socket.Error;
 				rej(ret);
 			}
 		});
@@ -1333,50 +1333,74 @@ exports.OperationSystem={
 
 //CS == Client side namespace
 exports.CS={
-	version : SPA.getVersion(), //client core library version string, a static function
-	getPools : function() {
+	get Version() {
+		return SPA.getVersion(); //client core library version string, a static function
+	},
+	get Pools() {
 		//return number of socket pools created, a static function
 		return SPA.getPools();
 	},
-	
+	//wrap native handler into accessable handler
+	wrap : function(h) {
+		if (h) {
+			switch(h.getSvsId()) {
+			case exports.SID.sidFile:
+				h = new CAsyncFile(h);
+				break;
+			case exports.SID.sidQueue:
+				h = new CAsyncQueue(h);
+				break;
+			case exports.SID.sidODBC:
+			case exports.SID.sidSqlite:
+			case exports.SID.sidMysql:
+				h = new CDb(h);
+				break;
+			default:
+				h = new CHandler(h);
+				break;
+			}
+		}
+		return h;
+	},
+
 	//SSL/TLS server certificate authentication
 	TLS : {
-		setCA : function(caPath) {
+		set CA(caPath) {
 			//set SSL/TLS CA certification store, a static function
 			//return true if successful; Otherwise, false.
 
 			//it works only on Linux to a pem file through openssl
 			return SPA.setCA(caPath);
 		},
-		
+
 		//authenticate server certificate by a public key (an array of bytes) in case certificate chain verification failed
-		setKey : function(pk) {
+		set Key(pk) {
 			return SPA.setKey(pk);
 		}
 	},
-	
+
 	//client persistent message queue
 	Queue : {
-		getWorkingDir : function() {
+		get WorkingDir() {
 			//find current working directory, a static function
 			return SPA.getWorkingDir();
 		},
-		setWorkingDir : function(dir) {
+		set WorkingDir(dir) {
 			//set current working directory, a static function
 			SPA.setWorkingDir(dir);
 		},
-		setPwd : function(pwd) {
+		set Pwd(pwd) {
 			//set a password to protect client message queue, a static function 
 			SPA.setPassword(pwd);
 		},
-		
+
 		//queue flush options
 		Optimistic : {
 			oMemoryCached : 0,
 			oSystemMemoryCached : 1,
 			oDiskCommitted : 2
 		},
-		
+
 		//reserved persistent queue request IDs
 		ReqIds : {
 			idEnqueue:0x2001 + 1,
@@ -1389,7 +1413,7 @@ exports.CS={
 			idEnqueueBatch:0x2001 + 8,
 			idBatchSizeNotified:0x2001 + 20
 		},
-		
+
 		//possible error codes from server persistent queue
 		ErrorCode:{
 			OK:0,
@@ -1402,7 +1426,7 @@ exports.CS={
 			CLOSE_FAILED:7,
 			ENQUEUING_FAILED:8
 		},
-		
+
 		//persistent message queue status
 		Status : {
 			/// <summary>
@@ -1451,12 +1475,12 @@ exports.CS={
 			qsDuplicateName:8
 		}	
 	},
-	
+
 	newPool : function(svsId,defaulDb='') {
 		//create a regular socket or master/slave pool.
 		//you can create multiple pools for different services
 		var pool = new SPA.CSocketPool(	svsId, //a required unsigned int service id
-									defaulDb //master/slave with real-time update cache
+										defaulDb //master/slave with real-time update cache
 									);
 		if (pool)
 			return new CSocketPool(pool);
@@ -1475,7 +1499,7 @@ exports.CS={
 		csConnected:4,
 		csSwitched:5
 	},
-	
+
 	//Socket Pool Event
 	PoolEvent:{
 		speUnknown:-1,
@@ -1502,7 +1526,7 @@ exports.CS={
 
 //DB namespace
 exports.DB={
-	
+
 	//defined DB management systems
 	ManagementSystem : {
 		Unknown:-1,
@@ -1515,14 +1539,14 @@ exports.DB={
 		PostgreSQL:6,
 		MongoDB:7
 	},
-	
+
 	//rollback hints defined for ending a manual transaction asynchronously
 	RollbackPlan:{
 		/// <summary>
 		/// Manual transaction will rollback whenever there is an error by default
 		/// </summary>
 		rpDefault:0,
-		
+
 		/// <summary>
 		/// Manual transaction will rollback whenever there is an error by default
 		/// </summary>
@@ -1553,7 +1577,7 @@ exports.DB={
 		/// </summary>
 		rpAlways:5
 	},
-	
+
 	//DB transaction isolation levels
 	TransIsolation : {
 		Unspecified:-1,
@@ -1566,7 +1590,7 @@ exports.DB={
 		Serializable:5,
 		Isolated:6
 	},
-	
+
 	//reserved DB operational request IDs
 	ReqIds:{
 		/// <summary>
@@ -1612,14 +1636,14 @@ exports.Cache={
 	/// A flag used with idOpen for tracing database table update events
 	/// </summary>
 	ENABLE_TABLE_UPDATE_MESSAGES:1,
-	
+
 	/// <summary>
 	/// A chat group id used at SocketPro server side for notifying database events from server to connected clients
 	/// </summary>
 	STREAMING_SQL_CHAT_GROUP_ID:0x1fffffff,
-	
+
 	CACHE_UPDATE_CHAT_GROUP_ID:0x20000000,
-	
+
 	//operator
 	Op : {
 		eq:0, //equal
