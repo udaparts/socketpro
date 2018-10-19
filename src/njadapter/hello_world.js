@@ -137,8 +137,7 @@ ok = hw.SendRequest(idSayHello, SPA.newBuffer().SaveString('Jone').SaveString('D
     console.log(q.LoadString());
 });
 
-async
-function asyncWait(hw, fName, lName) {
+async function asyncWait(hw, fName, lName) {
     try {
         //use sendRequest instead of SendRequest for Promise
         var result = await hw.sendRequest(idSayHello, SPA.newBuffer().SaveString(fName).SaveString(lName), q => {

@@ -109,8 +109,7 @@ if (!b) {
     return;
 }
 
-async
-function asyncKeys(sq) {
+async function asyncKeys(sq) {
     try {
         var ok = sq.Flush(TEST_QUEUE_KEY, (mc, fsize) => {
             console.log({
