@@ -135,3 +135,22 @@ if (!file.Upload('spfile5.test', 'libboost_math_tr1f-vc100-mt-sgd-1_60_copy.lib'
     return;
 }
 console.log('Uploading libboost_math_tr1f-vc100-mt-sgd-1_60_copy.lib');
+
+async function echoFile(file, localFile, remoteFile, progress) {
+	try {
+		//use download instead of Download for Promise
+        var result = await file.download(localFile, remoteFile, progress)
+        console.log(result);
+		
+		remoteFile += '.copy';
+		//use upload instead of Upload for Promise
+		result = await file.upload(localFile, remoteFile, progress)
+        console.log(result);
+    } catch (err) {
+        console.log(err);
+    }
+}
+
+echoFile(file, 'spfile1.test', 'jvm.lib', (pos, fsize) => {
+	console.log({pos:pos,fsize:fsize});
+});

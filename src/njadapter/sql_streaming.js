@@ -331,3 +331,19 @@ if (!TestBatch(db)) {
     console.log(db.Socket.Error);
     return;
 }
+
+async function executeSql(db, sql, rows, meta) {
+	try {
+		//use execute instead of Execute for Promise
+        var result = await db.execute(sql, rows, meta)
+        console.log(result);
+    } catch (err) {
+        console.log(err);
+    }
+}
+
+executeSql(db, 'SELECT * from company;select curtime()', data => {
+		console.log(data);
+	}, meta => {
+		//console.log(meta);
+});
