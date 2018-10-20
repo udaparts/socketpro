@@ -334,7 +334,7 @@ if (!TestBatch(db)) {
 
 async function executeSql(db, sql, rows, meta) {
     try {
-	//use execute instead of Execute for Promise
+        //use execute instead of Execute for Promise
         var result = await db.execute(sql, rows, meta)
         console.log(result);
     } catch (err) {
@@ -344,7 +344,6 @@ async function executeSql(db, sql, rows, meta) {
 
 executeSql(db, 'SELECT * from company;select curtime()', data => {
     console.log(data);
-    }, meta => {
+}, meta => {
     //console.log(meta);
 });
-
