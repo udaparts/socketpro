@@ -1316,13 +1316,11 @@ namespace SPA {
             if (!pool)
                 return;
             NJA::SocketEvent se;
-            CAutoLock al(pool->m_cs);
-            if (pool->m_ap.IsEmpty())
-                return;
             CUQueue *q = CScopeUQueue::Lock();
             *q << ash << lastRequestId;
             se.QData = q;
             se.Se = NJA::seAllProcessed;
+            CAutoLock al(pool->m_cs);
             pool->m_deqSocketEvent.push_back(se);
             int fail = uv_async_send(p->m_asyncType);
             assert(!fail);

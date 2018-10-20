@@ -175,7 +175,7 @@ namespace SPA {
                     obj->m_deqReqCb.pop_front();
                 }
             }
-            isolate->RunMicrotasks();
+            //isolate->RunMicrotasks();
         }
 
         Local<Object> CreateDb(Isolate* isolate, CAsyncServiceHandler *ash) {

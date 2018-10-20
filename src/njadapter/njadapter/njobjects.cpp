@@ -367,6 +367,7 @@ namespace NJA {
     }
 
     void NJSocketPool::async_cs_cb(uv_async_t* handle) {
+        bool run_micro = false;
         unsigned short reqId;
         NJSocketPool* obj = (NJSocketPool*) handle->data;
         assert(obj);
@@ -486,6 +487,7 @@ namespace NJA {
                             }
                             break;
                         case seAllProcessed:
+                            run_micro = true;
                             if (!obj->m_ap.IsEmpty()) {
                                 Local<Value> argv[] = {njAsh, jsReqId};
                                 Local<Function> cb = Local<Function>::New(isolate, obj->m_ap);
@@ -540,7 +542,8 @@ namespace NJA {
                 obj->m_deqSocketEvent.pop_front();
             }
         }
-        //isolate->RunMicrotasks();
+        if (run_micro)
+            isolate->RunMicrotasks();
     }
 
     void NJSocketPool::Dispose(const FunctionCallbackInfo<Value>& args) {

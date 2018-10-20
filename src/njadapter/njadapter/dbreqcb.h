@@ -113,7 +113,7 @@ namespace SPA {
                     obj->m_deqDBCb.pop_front();
                 }
             }
-            isolate->RunMicrotasks();
+            //isolate->RunMicrotasks();
         }
     }
 }

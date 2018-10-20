@@ -156,7 +156,7 @@ namespace NJA {
                 obj->m_deqQCb.pop_front();
             }
         }
-        isolate->RunMicrotasks();
+        //isolate->RunMicrotasks();
     }
 
     void CAQueue::SetRR(Isolate* isolate, Local<Value> rr) {

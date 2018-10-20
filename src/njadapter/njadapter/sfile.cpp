@@ -143,7 +143,7 @@ namespace NJA {
                 obj->m_deqFileCb.pop_front();
             }
         }
-        isolate->RunMicrotasks();
+        //isolate->RunMicrotasks();
     }
 
     void CSFile::SetLoop() {
