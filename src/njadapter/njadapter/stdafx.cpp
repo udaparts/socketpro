@@ -290,7 +290,9 @@ namespace NJA {
         std::tm tm = dt.GetCTime(&us);
         if (!tm.tm_mday) {
             //time only, convert it to js string
-            return String::NewFromUtf8(isolate, dt.ToDBString().c_str());
+            char s[64] = {0};
+            dt.ToDBString(s, sizeof (s));
+            return ToStr(isolate, (const char*) s, strlen((const char*) s));
         }
         tm.tm_isdst = -1; //set daylight saving time flag to no information available
         time_t rawtime = std::mktime(&tm);
