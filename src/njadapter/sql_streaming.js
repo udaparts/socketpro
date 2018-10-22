@@ -86,30 +86,14 @@ function TestPreparedStatements(db) {
         })) {
         return false;
     }
-    var buff = SPA.newBuffer();
 
-    //prepare three sets of parameter data by use of method SaveObject
-
-    //pay attention to below data type hints used by method SaveObject
-    //'c' = char, 'b' = byte
-    //'s' = short, 'us' = unsigned short
-    //'i' = int, 'ui' = unsigned int
-    //'l' = long (8 bytes), 'ul' = unsigned long (8 bytes)
-    //'f' = float, 'd' == double
-    //'a' = ASCII or UTF8 string. Otherwsie, unicode string
-    //'dec' = decimal
-    //true or false for boolean doesn't require any hint
-    //Buffer for byte array doesn't require any hint
-
-    //1st set 'i' = int, 'a' = ASCII chars, 'd' = double
-    buff.SaveObject(1, 'i').SaveObject('Google Inc.', 'a').SaveObject('1600 Amphitheatre Parkway, Mountain View, CA 94043, USA').SaveObject(66000000000.15, 'd');
-    //2nd set
-    buff.SaveObject(2, 'i').SaveObject('Microsoft Inc.', 'a').SaveObject('700 Bellevue Way NE- 22nd Floor, Bellevue, WA 98804, USA').SaveObject(93600000000.12, 'd');
-    //third set
-    buff.SaveObject(3, 'i').SaveObject('Apple Inc.', 'a').SaveObject('1 Infinite Loop, Cupertino, CA 95014, USA').SaveObject(234000000000.14, 'd');
+    //set an array of parameter data
+    var vParam = [1, 'Google Inc.', '1600 Amphitheatre Parkway, Mountain View, CA 94043, USA', 66000000000.15, //1st set
+     2, 'Microsoft Inc.', '700 Bellevue Way NE- 22nd Floor, Bellevue, WA 98804, USA', 93600000000.12, //2nd set
+     3, 'Apple Inc.', '1 Infinite Loop, Cupertino, CA 95014, USA', 234000000000.14]; //3rd set
 
     //send three sets in one shot
-    if (!db.Execute(buff, (res, err, affected, fails, oks, id) => {
+    if (!db.Execute(vParam, (res, err, affected, fails, oks, id) => {
             console.log({
                 ec: res,
                 em: err,
@@ -123,7 +107,6 @@ function TestPreparedStatements(db) {
     }
     return true;
 }
-
 if (!TestPreparedStatements(db)) {
     console.log(db.Socket.Error);
     return;
@@ -227,14 +210,10 @@ function TestStoredProcedure(db) {
         })) {
         return false;
     }
-    var buff = SPA.newBuffer();
-    //1st set
-    buff.SaveObject(1).SaveObject(1.25).SaveObject();
-    //2nd set
-    buff.SaveObject(2).SaveObject(1.14).SaveObject();
-    //3rd set
-    buff.SaveObject(0).SaveObject(2.18).SaveObject();
-    if (!db.Execute(buff, (res, err, affected, fails, oks, id) => {
+    var vParam = [1, 1.25, null, //1st set
+     2, 1.14, null, //2nd set
+     0, 2.18, null]; //3rd set
+    if (!db.Execute(vParam, (res, err, affected, fails, oks, id) => {
             console.log({
                 ec: res,
                 em: err,
@@ -341,7 +320,6 @@ async function executeSql(db, sql, rows, meta) {
         console.log(err);
     }
 }
-
 executeSql(db, 'SELECT * from company;select curtime()', data => {
     console.log(data);
 }, meta => {

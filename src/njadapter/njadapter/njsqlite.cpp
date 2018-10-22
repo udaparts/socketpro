@@ -214,7 +214,19 @@ namespace NJA {
 
             CDBVariantArray vParam;
             p = args[2];
-            if (p->IsObject()) {
+            if (p->IsArray()) {
+                Local<Array> jsArr = Local<Array>::Cast(p);
+                unsigned int count = jsArr->Length();
+                for (unsigned int n = 0; n < count; ++n) {
+                    auto d = jsArr->Get(n);
+                    CDBVariant vt;
+                    if (!From(d, "", vt)) {
+                        ThrowException(isolate, UNSUPPORTED_TYPE);
+                        return;
+                    }
+                    vParam.push_back(std::move(vt));
+                }
+            } else if (p->IsObject()) {
                 Local<Object> qObj = p->ToObject();
                 if (NJQueue::IsUQueue(qObj)) {
                     NJQueue *njq = ObjectWrap::Unwrap<NJQueue>(qObj);
@@ -273,7 +285,21 @@ namespace NJA {
             SPA::UINT64 index;
             auto p = args[0];
             Local<Value> argv[] = {args[1], args[2], args[3], args[4]};
-            if (p->IsObject() && !p->IsString()) {
+            if (p->IsArray()) {
+                CDBVariantArray vParam;
+                Local<Array> jsArr = Local<Array>::Cast(p);
+                unsigned int count = jsArr->Length();
+                for (unsigned int n = 0; n < count; ++n) {
+                    auto d = jsArr->Get(n);
+                    CDBVariant vt;
+                    if (!From(d, "", vt)) {
+                        ThrowException(isolate, UNSUPPORTED_TYPE);
+                        return;
+                    }
+                    vParam.push_back(std::move(vt));
+                }
+                index = obj->m_db->Execute(isolate, 4, argv, vParam);
+            } else if (p->IsObject() && !p->IsString()) {
                 Local<Object> qObj = p->ToObject();
                 if (NJQueue::IsUQueue(qObj)) {
                     NJQueue *njq = ObjectWrap::Unwrap<NJQueue>(qObj);
