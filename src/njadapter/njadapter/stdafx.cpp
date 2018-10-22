@@ -706,7 +706,7 @@ namespace NJA {
                 char *str = nullptr;
                 unsigned int len = vt.parray->rgsabound->cElements;
                 ::SafeArrayAccessData(vt.parray, (void**) &str);
-                auto bytes = node::Buffer::New(isolate, str, len).ToLocalChecked();
+                auto bytes = node::Buffer::Copy(isolate, (const char*) str, len).ToLocalChecked();
                 ::SafeArrayUnaccessData(vt.parray);
                 return bytes;
             }

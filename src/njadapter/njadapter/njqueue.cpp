@@ -329,7 +329,7 @@ namespace NJA {
         Isolate* isolate = args.GetIsolate();
         NJQueue* obj = ObjectWrap::Unwrap<NJQueue>(args.Holder());
         if (obj->Load(isolate, b)) {
-            args.GetReturnValue().Set(node::Buffer::New(isolate, (char*) &b, sizeof (b)).ToLocalChecked());
+            args.GetReturnValue().Set(node::Buffer::Copy(isolate, (const char*) &b, sizeof (b)).ToLocalChecked());
         }
     }
 
@@ -346,10 +346,10 @@ namespace NJA {
         if (size > all)
             size = all;
         if (size) {
-            args.GetReturnValue().Set(node::Buffer::New(isolate, (char*) obj->m_Buffer->GetBuffer(), size).ToLocalChecked());
+            args.GetReturnValue().Set(node::Buffer::Copy(isolate, (const char*) obj->m_Buffer->GetBuffer(), size).ToLocalChecked());
             obj->m_Buffer->Pop(size);
         } else {
-            args.GetReturnValue().Set(node::Buffer::New(isolate, (char*) "", 0).ToLocalChecked());
+            args.GetReturnValue().Set(node::Buffer::Copy(isolate, (const char*) "", 0).ToLocalChecked());
         }
         if (obj->get() && !obj->get()->GetSize())
             obj->Release();
@@ -369,7 +369,7 @@ namespace NJA {
                 args.GetReturnValue().SetNull();
             } else {
                 if (len <= obj->m_Buffer->GetSize()) {
-                    args.GetReturnValue().Set(node::Buffer::New(isolate, (char*) obj->m_Buffer->GetBuffer(), len).ToLocalChecked());
+                    args.GetReturnValue().Set(node::Buffer::Copy(isolate, (const char*) obj->m_Buffer->GetBuffer(), len).ToLocalChecked());
                     obj->m_Buffer->Pop(len);
                 } else {
                     obj->m_Buffer->Pop(len);

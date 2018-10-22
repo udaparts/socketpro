@@ -454,7 +454,7 @@ namespace NJA {
                                 *se.QData >> vt;
                                 auto groups = From(isolate, vt);
                                 unsigned int len = se.QData->GetSize();
-                                auto bytes = node::Buffer::New(isolate, (char*) se.QData->GetBuffer(), len).ToLocalChecked();
+                                auto bytes = node::Buffer::Copy(isolate, (const char*) se.QData->GetBuffer(), len).ToLocalChecked();
                                 se.QData->SetSize(0);
                                 Local<Value> argv[] = {jsName, groups, bytes, sender, njAsh};
                                 Local<Function> cb = Local<Function>::New(isolate, obj->m_push);
@@ -479,7 +479,7 @@ namespace NJA {
                                 Local<String> jsName = ToStr(isolate, "SendMessageEx");
                                 auto sender = ToMessageSender(isolate, *se.QData);
                                 unsigned int len = se.QData->GetSize();
-                                auto bytes = node::Buffer::New(isolate, (char*) se.QData->GetBuffer(), len).ToLocalChecked();
+                                auto bytes = node::Buffer::Copy(isolate, (const char*) se.QData->GetBuffer(), len).ToLocalChecked();
                                 se.QData->SetSize(0);
                                 Local<Value> argv[] = {jsName, bytes, sender, njAsh};
                                 Local<Function> cb = Local<Function>::New(isolate, obj->m_push);

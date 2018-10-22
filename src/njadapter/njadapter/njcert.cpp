@@ -51,9 +51,9 @@ namespace NJA {
         jsCert->Set(ToStr(isolate, "SigAlg"), ToStr(isolate, c->SigAlg));
         jsCert->Set(ToStr(isolate, "CertPem"), ToStr(isolate, c->CertPem));
         jsCert->Set(ToStr(isolate, "SessionInfo"), ToStr(isolate, c->SessionInfo));
-        jsCert->Set(ToStr(isolate, "PublicKey"), node::Buffer::New(isolate, (char*) c->PublicKey, c->PKSize).ToLocalChecked());
-        jsCert->Set(ToStr(isolate, "Algorithm"), node::Buffer::New(isolate, (char*) c->Algorithm, c->AlgSize).ToLocalChecked());
-        jsCert->Set(ToStr(isolate, "SerialNumber"), node::Buffer::New(isolate, (char*) c->SerialNumber, c->SNSize).ToLocalChecked());
+        jsCert->Set(ToStr(isolate, "PublicKey"), node::Buffer::Copy(isolate, (const char*) c->PublicKey, c->PKSize).ToLocalChecked());
+        jsCert->Set(ToStr(isolate, "Algorithm"), node::Buffer::Copy(isolate, (const char*) c->Algorithm, c->AlgSize).ToLocalChecked());
+        jsCert->Set(ToStr(isolate, "SerialNumber"), node::Buffer::Copy(isolate, (const char*) c->SerialNumber, c->SNSize).ToLocalChecked());
 
         return jsCert;
     }
