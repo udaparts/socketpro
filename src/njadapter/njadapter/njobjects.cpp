@@ -134,7 +134,6 @@ namespace NJA {
     }
 
     void NJSocketPool::Release() {
-        SPA::CAutoLock al(m_cs);
         if (Handler) {
             switch (SvsId) {
                 case SPA::Sqlite::sidSqlite:
@@ -152,6 +151,7 @@ namespace NJA {
                     delete Handler;
                     break;
             }
+            SPA::CAutoLock al(m_cs);
             Handler = nullptr;
             uv_close((uv_handle_t*) & m_asyncType, nullptr);
             uv_close((uv_handle_t*) & m_csType, nullptr);
