@@ -1301,8 +1301,8 @@ class CDb extends CHandler {
         assert(discarded === null || discarded === undefined || typeof discarded === 'function');
         return new Promise((res, rej) => {
             var ret;
-            var ok = this.handler.Execute(sql_or_arrParam, (errCode, errMsg, affected, oks, fails, id, db) => {
-                if (cb) ret = cb(errCode, errMsg, affected, oks, fails, id, db);
+            var ok = this.handler.Execute(sql_or_arrParam, (errCode, errMsg, affected, fails, oks, id, db) => {
+                if (cb) ret = cb(errCode, errMsg, affected, fails, oks, id, db);
                 if (ret === undefined) ret = {
                     ec: errCode,
                     em: errMsg,
@@ -1335,8 +1335,8 @@ class CDb extends CHandler {
         assert(discarded === null || discarded === undefined || typeof discarded === 'function');
         return new Promise((res, rej) => {
             var ret;
-            var ok = this.handler.ExecuteBatch(isolation, sql, paramBuff, (errCode, errMsg, affected, oks, fails, id, db) => {
-                if (cb) ret = cb(errCode, errMsg, affected, oks, fails, id, db);
+            var ok = this.handler.ExecuteBatch(isolation, sql, paramBuff, (errCode, errMsg, affected, fails, oks, id, db) => {
+                if (cb) ret = cb(errCode, errMsg, affected, fails, oks, id, db);
                 if (ret === undefined) ret = {
                     ec: errCode,
                     em: errMsg,

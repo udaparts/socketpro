@@ -3,10 +3,10 @@ var SPA = require('nja.js');
 var cs = SPA.CS; //CS == Client side
 
 //create a global socket pool object
-var p = cs.newPool(SPA.SID.sidMysql); //or sidOdbc, sidSqlite
+p = cs.newPool(SPA.SID.sidMysql); //or sidOdbc, sidSqlite
 
 //create a connection context
-var cc = cs.newCC('localhost', 20902, 'root', 'Smash123');
+var cc = cs.newCC('yyetouch', 20902, 'root', 'Smash123');
 
 //start a socket pool having one session to a remote server
 if (!p.Start(cc, 1)) {
