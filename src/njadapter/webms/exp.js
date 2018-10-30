@@ -35,11 +35,8 @@ app.post('/mma', urlencodedParser, function(req, res) {
     var sql = 'SELECT MAX(amount),MIN(amount),AVG(amount) FROM payment';
     if (filter) sql += (' WHERE ' + filter);
     var db = ms.slave.SeekByQueue(); //get a DB hander from slave pool for reading
-    db.Execute(sql, (res, err, affected, fails, oks, id) => {
-        if (res) res.send(JSON.stringify({
-            ec: res,
-            em: err
-        }));
+    db.Execute(sql, (ec, err) => {
+        if (ec) res.send(JSON.stringify({ec: ec, em: err}));
     }, data => {
         res.send(JSON.stringify(data));
     });
@@ -57,7 +54,7 @@ app.get('/inserts', function(req, res) {
                 'INSERT INTO mysample.EMPLOYEE(CompanyId,Name,JoinDate)VALUES(?,?,?)',
                 vParam, (ec, err, affected, fails, oks, id) => {
                     if (ec)
-                        res.send(err);
+                        res.send(JSON.stringify({ec: err, em: err}));
                     else
                         res.send('Last employeeid = ' + id + ', affected = ' + affected);
                 }, null, null, null, (canceled) => {
@@ -68,4 +65,4 @@ app.get('/inserts', function(req, res) {
     }
     res.send(na);
 });
-app.listen(3000);
+app.listen(20901);
