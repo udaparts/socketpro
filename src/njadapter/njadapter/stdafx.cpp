@@ -662,15 +662,21 @@ namespace NJA {
             case VT_BOOL:
                 return Boolean::New(isolate, vt.boolVal ? true : false);
             case VT_I1:
+                return Int32::New(isolate, vt.cVal);
             case VT_I2:
+                return Int32::New(isolate, vt.iVal);
             case VT_INT:
+                return Int32::New(isolate, vt.intVal);
             case VT_I4:
                 return Int32::New(isolate, vt.lVal);
             case VT_I8:
                 return Number::New(isolate, (double) vt.llVal);
             case VT_UI1:
+                return Uint32::New(isolate, vt.bVal);
             case VT_UI2:
+                return Uint32::New(isolate, vt.uiVal);
             case VT_UINT:
+                return Uint32::New(isolate, vt.uintVal);
             case VT_UI4:
                 return Uint32::New(isolate, vt.ulVal);
             case VT_UI8:

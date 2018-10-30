@@ -3,7 +3,7 @@ var config = {
     work_dir: 'C:\\ProgramData\\myweb_work',
     defaultDb: 'sakila',
     master: {
-        sessions: 1,
+        sessions: 2,
         queueName: 'qmaster',
         hosts: [{
                 host: 'ws-yye-1',
@@ -17,7 +17,7 @@ var config = {
         sessions: 6,
         queueName: 'qslave',
         hosts: [{
-                host: '10.16.20.33',
+                host: '10.16.50.19',
                 port: 20902,
                 uid: 'root',
                 pwd: 'Smash123'
@@ -27,7 +27,7 @@ var config = {
                 uid: 'root',
                 pwd: 'Smash123'
    			}, {
-                host: '52.25.161.158',
+                host: '54.186.76.51',
                 port: 20902,
                 uid: 'root',
                 pwd: 'Smash123',

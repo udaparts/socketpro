@@ -21,23 +21,22 @@ if (!db.Open('sakila', (res, err) => {
             em: err
         });
     }, canceled => {
-        console.log(canceled ? 'request canceled' : 'session closed');
+        console.log(canceled ? 'Request canceled' : 'Session closed');
     })) {
     console.log(db.Socket.Error);
     return;
 }
 
 function TestPerf(db) {
-	var start = new Date();
-	var count = 10000;
-	for (var n = 0; n < count; ++n) {
-		db.Execute('SELECT * FROM sakila.actor WHERE actor_id between 11 and 20', (res, err, affected, fails, oks, id) => {}, data=>{}, meta=>{});
-	}
-	db.Execute('SELECT * FROM sakila.actor WHERE actor_id between 11 and 20', (res, err, affected, fails, oks, id) => {
-		console.log('Time required: ' + (new Date() - start));
-	}, data=>{
-		//console.log(data);
-	}, meta=>{});
+    var start = new Date();
+    var count = 100000;
+    for (var n = 0; n < count; ++n) {
+        db.Execute('SELECT * FROM sakila.actor WHERE actor_id between 11 and 20', (res, err, affected, fails, oks, id) => {}, data => {}, meta => {});
+    }
+    db.Execute('SELECT * FROM sakila.actor WHERE actor_id between 11 and 20', (res, err, affected, fails, oks, id) => {
+        console.log('Time required: ' + (new Date() - start));
+    }, data => {
+        //console.log(data);
+    }, meta => {});
 }
-
 TestPerf(db);
