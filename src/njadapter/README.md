@@ -15,3 +15,7 @@ A public repository for UDAParts (www.udaparts.com) SocketPro Node.js adapter
 6.  Unit tests for real-time updateable cache with SQL databases ====>> master_slave.js
 
 7.  Unit tests for client/server file streaming exchange service ====>> remote_file.js
+
+8.  SocketPro adapter performance study and comparision ====>> perf_study
+
+9.  Application of SocketPro master/slave and real-time updateable cache features onto node.js with express package ====>> webms
