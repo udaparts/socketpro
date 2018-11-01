@@ -4,9 +4,9 @@ var config = {
     defaultDb: 'sakila',
     master: {
         sessions: 2,
-        queueName: 'qmaster',
+        queueName: '',
         hosts: [{
-                host: 'ws-yye-1',
+                host: 'windesk',
                 port: 20902,
                 uid: 'root',
                 pwd: 'Smash123'
@@ -17,12 +17,12 @@ var config = {
         sessions: 6,
         queueName: 'qslave',
         hosts: [{
-                host: '10.16.50.19',
+                host: 'localhost',
                 port: 20902,
                 uid: 'root',
                 pwd: 'Smash123'
    			}, {
-                host: 'ws-yye-1',
+                host: 'windesk',
                 port: 20902,
                 uid: 'root',
                 pwd: 'Smash123'
@@ -57,7 +57,6 @@ function getCCs(hosts) {
 
 //create a global socket pool object for master
 var master = cs.newPool(SPA.SID.sidMysql, config.defaultDb); //or sidOdbc for MS SQL Server
-master.QueueName = config.master.queueName;
 exports.master = master;
 
 //start a socket pool to one or more remote master servers
@@ -66,7 +65,6 @@ if (!master.Start(getCCs(config.master.hosts), config.master.sessions)) {
     console.log(master.Error);
 }
 exports.Cache = master.Cache;
-master.AutoMerge = false; //no auto merge for persistent message queue
 
 //create a global socket pool object for slave
 var slave = master.NewSlave();
