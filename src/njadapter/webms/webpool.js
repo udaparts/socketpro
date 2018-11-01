@@ -6,7 +6,7 @@ var config = {
         sessions: 2,
         queueName: '',
         hosts: [{
-                host: 'ws-yye-1',
+                host: 'windesk',
                 port: 20902,
                 uid: 'root',
                 pwd: 'Smash123'
@@ -17,12 +17,12 @@ var config = {
         sessions: 6,
         queueName: 'qslave',
         hosts: [{
-                host: '10.16.50.19',
+                host: 'localhost',
                 port: 20902,
                 uid: 'root',
                 pwd: 'Smash123'
    			}, {
-                host: 'ws-yye-1',
+                host: 'windesk',
                 port: 20902,
                 uid: 'root',
                 pwd: 'Smash123'
