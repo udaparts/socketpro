@@ -190,7 +190,7 @@ namespace NJA {
         NJQueue* obj = ObjectWrap::Unwrap<NJQueue>(args.Holder());
         if (args[0]->IsBoolean())
             obj->m_StrForDec = args[0]->BooleanValue();
-        else if (args[0]->IsNullOrUndefined())
+        else if (IsNullOrUndefined(args[0]))
             obj->m_StrForDec = false;
         else {
             ThrowException(args.GetIsolate(), BOOLEAN_EXPECTED);
@@ -567,7 +567,7 @@ namespace NJA {
             auto p = args[0];
             NJQueue* obj = ObjectWrap::Unwrap<NJQueue>(args.Holder());
             obj->Ensure();
-            if (p->IsNullOrUndefined()) {
+            if (IsNullOrUndefined(p)) {
                 *obj->m_Buffer << (const char *) nullptr;
                 args.GetReturnValue().Set(args.Holder());
                 return;
@@ -608,7 +608,7 @@ namespace NJA {
             NJQueue* obj = ObjectWrap::Unwrap<NJQueue>(args.Holder());
             obj->Ensure();
             auto p = args[0];
-            if (p->IsNullOrUndefined()) {
+            if (IsNullOrUndefined(p)) {
                 *obj->m_Buffer << (const char*) nullptr;
             } else {
                 if (!p->IsString())
@@ -630,7 +630,7 @@ namespace NJA {
             NJQueue* obj = ObjectWrap::Unwrap<NJQueue>(args.Holder());
             obj->Ensure();
             auto p = args[0];
-            if (p->IsNullOrUndefined()) {
+            if (IsNullOrUndefined(p)) {
                 *obj->m_Buffer << (const wchar_t *)nullptr;
             } else {
                 if (!p->IsString())
@@ -774,7 +774,7 @@ namespace NJA {
         }
         int argv = args.Length();
         auto p0 = args[0];
-        if (p0->IsNullOrUndefined()) {
+        if (IsNullOrUndefined(p0)) {
             vt = VT_NULL;
             *obj->m_Buffer << vt;
             args.GetReturnValue().Set(args.Holder());
@@ -879,42 +879,44 @@ namespace NJA {
             }
         } else if (p0->IsInt8Array()) {
             vt = (VT_ARRAY | VT_I1);
-            char *bytes = node::Buffer::Data(p0);
-            unsigned int count = (unsigned int) node::Buffer::Length(p0);
-            *obj->m_Buffer << vt << count;
-            obj->m_Buffer->Push((const unsigned char*) bytes, count * sizeof (char));
-            args.GetReturnValue().Set(args.Holder());
-        } else if (p0->IsInt16Array()) {
-            vt = (VT_ARRAY | VT_I2);
-            char *bytes = node::Buffer::Data(p0);
-            Local<v8::Int16Array> vInt = Local<v8::Int16Array>::Cast(p0);
+            Local<v8::Int8Array> vInt = Local<v8::Int8Array>::Cast(p0);
+            const char *p = (const char*) vInt->Buffer()->GetContents().Data();
             unsigned int count = (unsigned int) vInt->Length();
             *obj->m_Buffer << vt << count;
-            obj->m_Buffer->Push((const unsigned char*) bytes, count * sizeof (short));
+            obj->m_Buffer->Push((const unsigned char*) p, count * sizeof (char));
+            args.GetReturnValue().Set(args.Holder());
+
+        } else if (p0->IsInt16Array()) {
+            vt = (VT_ARRAY | VT_I2);
+            Local<v8::Int16Array> vInt = Local<v8::Int16Array>::Cast(p0);
+            const short *p = (const short*) vInt->Buffer()->GetContents().Data();
+            unsigned int count = (unsigned int) vInt->Length();
+            *obj->m_Buffer << vt << count;
+            obj->m_Buffer->Push((const unsigned char*) p, count * sizeof (short));
             args.GetReturnValue().Set(args.Holder());
         } else if (p0->IsInt32Array()) {
             vt = (VT_ARRAY | VT_I4);
-            char *bytes = node::Buffer::Data(p0);
             Local<v8::Int32Array> vInt = Local<v8::Int32Array>::Cast(p0);
+            const int *p = (const int*) vInt->Buffer()->GetContents().Data();
             unsigned int count = (unsigned int) vInt->Length();
             *obj->m_Buffer << vt << count;
-            obj->m_Buffer->Push((const unsigned char*) bytes, count * sizeof (int));
+            obj->m_Buffer->Push((const unsigned char*) p, count * sizeof (int));
             args.GetReturnValue().Set(args.Holder());
         } else if (p0->IsUint16Array()) {
             vt = (VT_ARRAY | VT_UI2);
-            char *bytes = node::Buffer::Data(p0);
             Local<v8::Uint16Array> vInt = Local<v8::Uint16Array>::Cast(p0);
+            const unsigned short *p = (const unsigned short*) vInt->Buffer()->GetContents().Data();
             unsigned int count = (unsigned int) vInt->Length();
             *obj->m_Buffer << vt << count;
-            obj->m_Buffer->Push((const unsigned char*) bytes, count * sizeof (unsigned short));
+            obj->m_Buffer->Push((const unsigned char*) p, count * sizeof (unsigned short));
             args.GetReturnValue().Set(args.Holder());
         } else if (p0->IsUint32Array()) {
             vt = (VT_ARRAY | VT_UI4);
-            char *bytes = node::Buffer::Data(p0);
             Local<v8::Uint32Array> vInt = Local<v8::Uint32Array>::Cast(p0);
+            const unsigned int *p = (const unsigned int*) vInt->Buffer()->GetContents().Data();
             unsigned int count = (unsigned int) vInt->Length();
             *obj->m_Buffer << vt << count;
-            obj->m_Buffer->Push((const unsigned char*) bytes, count * sizeof (unsigned int));
+            obj->m_Buffer->Push((const unsigned char*) p, count * sizeof (unsigned int));
             args.GetReturnValue().Set(args.Holder());
 #ifdef HAS_BIGINT
         } else if (p0->IsBigUint64Array()) {
@@ -936,19 +938,19 @@ namespace NJA {
 #endif
         } else if (p0->IsFloat32Array()) {
             vt = (VT_ARRAY | VT_R4);
-            char *bytes = node::Buffer::Data(p0);
             Local<v8::Float32Array> vInt = Local<v8::Float32Array>::Cast(p0);
             unsigned int count = (unsigned int) vInt->Length();
+            const float *p = (const float*) vInt->Buffer()->GetContents().Data();
             *obj->m_Buffer << vt << count;
-            obj->m_Buffer->Push((const unsigned char*) bytes, count * sizeof (float));
+            obj->m_Buffer->Push((const unsigned char*) p, count * sizeof (float));
             args.GetReturnValue().Set(args.Holder());
         } else if (p0->IsFloat64Array()) {
             vt = (VT_ARRAY | VT_R8);
-            char *bytes = node::Buffer::Data(p0);
             Local<v8::Float64Array> vInt = Local<v8::Float64Array>::Cast(p0);
+            const double *p = (const double*) vInt->Buffer()->GetContents().Data();
             unsigned int count = (unsigned int) vInt->Length();
             *obj->m_Buffer << vt << count;
-            obj->m_Buffer->Push((const unsigned char*) bytes, count * sizeof (double));
+            obj->m_Buffer->Push((const unsigned char*) p, count * sizeof (double));
             args.GetReturnValue().Set(args.Holder());
         } else if (node::Buffer::HasInstance(p0)) {
             char *bytes = node::Buffer::Data(p0);

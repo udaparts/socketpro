@@ -102,7 +102,7 @@ namespace NJA {
                     return;
                 }
                 isolation = (tagTransactionIsolation) n;
-            } else if (!p0->IsNullOrUndefined()) {
+            } else if (!IsNullOrUndefined(p0)) {
                 ThrowException(isolate, "An integer value expected for transaction isolation");
                 return;
             }
@@ -127,7 +127,7 @@ namespace NJA {
                     return;
                 }
                 plan = (tagRollbackPlan) n;
-            } else if (!p0->IsNullOrUndefined()) {
+            } else if (!IsNullOrUndefined(p0)) {
                 ThrowException(isolate, "An integer value expected for rollback plan");
                 return;
             }
@@ -167,7 +167,7 @@ namespace NJA {
             auto p0 = args[0];
             if (p0->IsString()) {
                 strConnection = ToStr(p0);
-            } else if (!p0->IsNullOrUndefined()) {
+            } else if (!IsNullOrUndefined(p0)) {
                 ThrowException(isolate, "A string expected for DB connection");
                 return;
             }
@@ -176,7 +176,7 @@ namespace NJA {
             p0 = args[3];
             if (p0->IsUint32()) {
                 flags = p0->Uint32Value();
-            } else if (!p0->IsNullOrUndefined()) {
+            } else if (!IsNullOrUndefined(p0)) {
                 ThrowException(isolate, "An unsigned int value expected for DB open flags");
                 return;
             }
@@ -240,7 +240,7 @@ namespace NJA {
                     ThrowException(isolate, "An array of parameter data expected");
                     return;
                 }
-            } else if (!p->IsNullOrUndefined()) {
+            } else if (!IsNullOrUndefined(p)) {
                 ThrowException(isolate, "An array of parameter data expected");
                 return;
             }
@@ -254,7 +254,7 @@ namespace NJA {
                     return;
                 }
                 rp = (tagRollbackPlan) n;
-            } else if (!p->IsNullOrUndefined()) {
+            } else if (!IsNullOrUndefined(p)) {
                 ThrowException(isolate, "An integer expected for rollback plan");
                 return;
             }
@@ -262,7 +262,7 @@ namespace NJA {
             p = args[9];
             if (p->IsString()) {
                 delimiter = ToStr(p);
-            } else if (!p->IsNullOrUndefined()) {
+            } else if (!IsNullOrUndefined(p)) {
                 ThrowException(isolate, "A string expected for sql statement delimiter");
                 return;
             }
@@ -319,7 +319,7 @@ namespace NJA {
                 std::wstring sql;
                 if (p->IsString())
                     sql = ToStr(p);
-                else if (!p->IsNullOrUndefined()) {
+                else if (!IsNullOrUndefined(p)) {
                     ThrowException(isolate, "A SQL statement string or an array of parameter data expected");
                     return;
                 }

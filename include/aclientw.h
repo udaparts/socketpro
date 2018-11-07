@@ -51,6 +51,7 @@ namespace NJA {
     Local<Value> From(Isolate* isolate, const VARIANT &vt, bool strForDec = false);
     Local<String> ToStr(Isolate* isolate, const char *str, size_t len = (size_t) INVALID_NUMBER);
     Local<String> ToStr(Isolate* isolate, const wchar_t *str, size_t len = (size_t) INVALID_NUMBER);
+    bool IsNullOrUndefined(const Local<Value> &v);
 }
 #endif
 

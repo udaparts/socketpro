@@ -94,7 +94,7 @@ namespace NJA {
             auto p = args[0];
             if (p->IsBoolean())
                 server_commit = p->BooleanValue();
-            else if (!p->IsNullOrUndefined()) {
+            else if (!IsNullOrUndefined(p)) {
                 ThrowException(isolate, BOOLEAN_EXPECTED);
                 return;
             }

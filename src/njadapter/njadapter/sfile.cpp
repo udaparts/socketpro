@@ -35,7 +35,7 @@ namespace NJA {
                     int fail = uv_async_send(&f->m_fileType);
                     assert(!fail);
                 };
-            } else if (!argv[0]->IsNullOrUndefined()) {
+            } else if (!IsNullOrUndefined(argv[0])) {
                 ThrowException(isolate, "A callback expected for file exchange end result");
                 return 0;
             }
@@ -57,7 +57,7 @@ namespace NJA {
                     int fail = uv_async_send(&f->m_fileType);
                     assert(!fail);
                 };
-            } else if (!argv[1]->IsNullOrUndefined()) {
+            } else if (!IsNullOrUndefined(argv[1])) {
                 ThrowException(isolate, "A callback expected for monitoring file transferring progress");
                 return 0;
             }
@@ -79,7 +79,7 @@ namespace NJA {
                     int fail = uv_async_send(&f->m_fileType);
                     assert(!fail);
                 };
-            } else if (!argv[2]->IsNullOrUndefined()) {
+            } else if (!IsNullOrUndefined(argv[2])) {
                 ThrowException(isolate, "A callback expected for tracking socket closed or canceled events");
                 return 0;
             }

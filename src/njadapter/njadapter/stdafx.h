@@ -21,6 +21,10 @@
 
 #include <node.h>
 
+#if NODE_VERSION_AT_LEAST(8,0,0)
+#define HAS_NULLORUNDEFINED_FUNC
+#endif
+
 #if NODE_VERSION_AT_LEAST(10,4,0)
 #define HAS_BIGINT
 #endif
@@ -58,7 +62,7 @@ namespace NJA {
     std::wstring ToStr(const Local<Value> &s);
     std::string ToAStr(const Local<Value> &s);
     bool ToPInfoArray(Isolate* isolate, const Local<Value> &pInfo, CParameterInfoArray &vInfo);
-    std::vector<unsigned int>ToGroups(const Local<Value>& p);
+    bool ToGroups(Isolate* isolate, const Local<Value>& p, std::vector<unsigned int> &v);
     Local<Array> ToMeta(Isolate* isolate, const CDBColumnInfoArray &v);
     Local<Array> ToMeta(Isolate* isolate, const SPA::CKeyMap &mapkey);
     bool ToArray(Isolate* isolate, const Local<Value> &data, CDBVariantArray &v);

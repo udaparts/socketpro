@@ -102,7 +102,7 @@ namespace NJA {
             auto p = args[0];
             if (p->IsFunction()) {
                 obj->m_aq->SetRR(isolate, p);
-            } else if (p->IsNullOrUndefined()) {
+            } else if (IsNullOrUndefined(p)) {
                 obj->m_aq->SetRR(isolate, p);
             } else {
                 ThrowException(isolate, "A callback expected for tracking request returned result");
@@ -176,7 +176,7 @@ namespace NJA {
             auto p0 = args[0];
             if (p0->IsBoolean())
                 rollback = p0->BooleanValue();
-            else if (!p0->IsNullOrUndefined()) {
+            else if (!IsNullOrUndefined(p0)) {
                 ThrowException(isolate, "Boolean value expected for rollback");
                 return;
             }
@@ -200,7 +200,7 @@ namespace NJA {
             bool perm = false;
             if (p->IsBoolean())
                 perm = p->BooleanValue();
-            else if (!p->IsNullOrUndefined()) {
+            else if (!IsNullOrUndefined(p)) {
                 ThrowException(isolate, "Boolean value expected for permanent delete");
                 return;
             }
@@ -223,7 +223,7 @@ namespace NJA {
             int option = 0;
             if (p->IsInt32())
                 option = p->Int32Value();
-            else if (!p->IsNullOrUndefined()) {
+            else if (!IsNullOrUndefined(p)) {
                 ThrowException(isolate, "Integer value expected for flush option");
                 return;
             }
@@ -250,7 +250,7 @@ namespace NJA {
             unsigned int timeout = 0;
             if (p->IsUint32())
                 timeout = p->Uint32Value();
-            else if (!p->IsNullOrUndefined()) {
+            else if (!IsNullOrUndefined(p)) {
                 ThrowException(isolate, "Unsigned int value expected for dequeue timeout in millsecond");
                 return;
             }
@@ -293,7 +293,7 @@ namespace NJA {
                     ThrowException(isolate, "A CUQueue instance, null or undefined value expected");
                     return;
                 }
-            } else if (!p->IsNullOrUndefined()) {
+            } else if (!IsNullOrUndefined(p)) {
                 ThrowException(isolate, "A CUQueue instance, null or undefined value expected");
                 return;
             }
@@ -331,7 +331,7 @@ namespace NJA {
                 obj->m_qBatch = CScopeUQueue::Lock();
             }
             auto p1 = args[1];
-            if (p1->IsNullOrUndefined()) {
+            if (IsNullOrUndefined(p1)) {
                 CAsyncQueue::BatchMessage(reqId, (const unsigned char*) nullptr, 0, *obj->m_qBatch);
                 return;
             } else if (p1->IsObject()) {

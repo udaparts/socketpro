@@ -65,11 +65,10 @@ namespace NJA {
         NJPush* obj = ObjectWrap::Unwrap<NJPush>(args.Holder());
         auto p0 = args[0];
         auto p1 = args[1];
-        if (!p1->IsUint32Array()) {
-            ThrowException(isolate, "An array of unsigned int expected for group ids");
+        std::vector<unsigned int> groups;
+        if (!ToGroups(isolate, p1, groups)) {
             return;
         }
-        auto groups = ToGroups(p1);
         if (node::Buffer::HasInstance(p0)) {
             char *bytes = node::Buffer::Data(p0);
             size_t len = node::Buffer::Length(p0);
@@ -108,11 +107,10 @@ namespace NJA {
         Isolate* isolate = args.GetIsolate();
         NJPush* obj = ObjectWrap::Unwrap<NJPush>(args.Holder());
         auto p = args[0];
-        if (!p->IsUint32Array()) {
-            ThrowException(isolate, "An array of unsigned int expected for group ids");
+        std::vector<unsigned int> groups;
+        if (!ToGroups(isolate, p, groups)) {
             return;
         }
-        auto groups = ToGroups(p);
         bool ok = obj->m_p->Subscribe(groups.data(), (unsigned int) groups.size());
         args.GetReturnValue().Set(Boolean::New(isolate, ok));
     }

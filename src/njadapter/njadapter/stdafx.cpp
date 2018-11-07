@@ -37,7 +37,7 @@ namespace SPA {
                         int fail = uv_async_send(&this->m_typeReq);
                         assert(!fail);
                     };
-                } else if (!argv[0]->IsNullOrUndefined()) {
+                } else if (!IsNullOrUndefined(argv[0])) {
                     ThrowException(isolate, "A callback expected for tracking returned results");
                     return 0;
                 }
@@ -59,7 +59,7 @@ namespace SPA {
                         int fail = uv_async_send(&this->m_typeReq);
                         assert(!fail);
                     };
-                } else if (!argv[1]->IsNullOrUndefined()) {
+                } else if (!IsNullOrUndefined(argv[1])) {
                     ThrowException(isolate, "A callback expected for tracking socket closed or canceled events");
                     return 0;
                 }
@@ -81,7 +81,7 @@ namespace SPA {
                         int fail = uv_async_send(&this->m_typeReq);
                         assert(!fail);
                     };
-                } else if (!argv[2]->IsNullOrUndefined()) {
+                } else if (!IsNullOrUndefined(argv[2])) {
                     ThrowException(isolate, "A callback expected for tracking exceptions from server");
                     return 0;
                 }
@@ -214,16 +214,42 @@ namespace NJA {
         return (int) difftime(rawtime, gmt);
     }
 
+    bool IsNullOrUndefined(const Local<Value> &v) {
+#ifdef HAS_NULLORUNDEFINED_FUNC
+        return v->IsNullOrUndefined();
+#else
+        return (v->IsNull() || v->IsUndefined());
+#endif
+    }
+
     void ThrowException(Isolate* isolate, const char *str) {
         isolate->ThrowException(Exception::TypeError(ToStr(isolate, str)));
     }
 
-    std::vector<unsigned int>ToGroups(const Local<Value>& p) {
-        unsigned int *groups = (unsigned int *) node::Buffer::Data(p);
-        Local<v8::Uint32Array> vInt = Local<v8::Uint32Array>::Cast(p);
-        unsigned int count = (unsigned int) vInt->Length();
-        std::vector<unsigned int> v(groups, groups + count);
-        return v;
+    bool ToGroups(Isolate* isolate, const Local<Value>& p, std::vector<unsigned int> &v) {
+        v.clear();
+        if (p->IsArray()) {
+            Local<Array> jsArr = Local<Array>::Cast(p);
+            unsigned int count = jsArr->Length();
+            for (unsigned int n = 0; n < count; ++n) {
+                auto d = jsArr->Get(n);
+                if (d->IsUint32()) {
+                    v.push_back(d->Uint32Value());
+                } else {
+                    ThrowException(isolate, "An unsigned int value expected for a group chat id");
+                    return false;
+                }
+            }
+        } else if (p->IsUint32Array()) {
+            Local<v8::Uint32Array> vInt = Local<v8::Uint32Array>::Cast(p);
+            const unsigned int *groups = (const unsigned int*) vInt->Buffer()->GetContents().Data();
+            unsigned int count = (unsigned int) vInt->Length();
+            v.assign(groups, groups + count);
+        } else {
+            ThrowException(isolate, "An array of unsigned int values expected for group chat identification numbers");
+            return false;
+        }
+        return true;
     }
 
     Local<String> ToStr(Isolate* isolate, const char *str, size_t len) {
@@ -323,7 +349,7 @@ namespace NJA {
 
     bool From(const Local<Value>& v, const std::string &id, CComVariant &vt) {
         vt.Clear();
-        if (v->IsNullOrUndefined())
+        if (IsNullOrUndefined(v))
             vt.vt = VT_NULL;
         else if (v->IsDate()) {
             vt.vt = VT_DATE;
@@ -410,8 +436,9 @@ namespace NJA {
         } else if (v->IsInt8Array()) {
             char *p;
             vt.vt = (VT_ARRAY | VT_I1);
-            char *bytes = node::Buffer::Data(v);
-            unsigned int len = (unsigned int) node::Buffer::Length(v);
+            Local<v8::Int8Array> vInt = Local<v8::Int8Array>::Cast(v);
+            const char *bytes = (const char*) vInt->Buffer()->GetContents().Data();
+            unsigned int len = (unsigned int) vInt->Length();
             SAFEARRAYBOUND sab[] = {len, 0};
             vt.parray = SafeArrayCreate(VT_I1, 1, sab);
             SafeArrayAccessData(vt.parray, (void**) &p);
@@ -420,8 +447,8 @@ namespace NJA {
         } else if (v->IsInt16Array()) {
             short *p;
             vt.vt = (VT_ARRAY | VT_I2);
-            char *bytes = node::Buffer::Data(v);
             Local<v8::Int16Array> vInt = Local<v8::Int16Array>::Cast(v);
+            const short *bytes = (const short*) vInt->Buffer()->GetContents().Data();
             unsigned int len = (unsigned int) vInt->Length();
             SAFEARRAYBOUND sab[] = {len, 0};
             vt.parray = SafeArrayCreate(VT_I2, 1, sab);
@@ -431,8 +458,8 @@ namespace NJA {
         } else if (v->IsUint16Array()) {
             unsigned short *p;
             vt.vt = (VT_ARRAY | VT_UI2);
-            char *bytes = node::Buffer::Data(v);
             Local<v8::Uint16Array> vInt = Local<v8::Uint16Array>::Cast(v);
+            const unsigned short *bytes = (const unsigned short*) vInt->Buffer()->GetContents().Data();
             unsigned int len = (unsigned int) vInt->Length();
             SAFEARRAYBOUND sab[] = {len, 0};
             vt.parray = SafeArrayCreate(VT_UI2, 1, sab);
@@ -442,8 +469,8 @@ namespace NJA {
         } else if (v->IsInt32Array()) {
             int *p;
             vt.vt = (VT_ARRAY | VT_I4);
-            char *bytes = node::Buffer::Data(v);
             Local<v8::Int32Array> vInt = Local<v8::Int32Array>::Cast(v);
+            const int *bytes = (const int*) vInt->Buffer()->GetContents().Data();
             unsigned int len = (unsigned int) vInt->Length();
             SAFEARRAYBOUND sab[] = {len, 0};
             vt.parray = SafeArrayCreate(VT_I4, 1, sab);
@@ -453,8 +480,8 @@ namespace NJA {
         } else if (v->IsUint32Array()) {
             unsigned int *p;
             vt = (VT_ARRAY | VT_UI4);
-            char *bytes = node::Buffer::Data(v);
             Local<v8::Uint32Array> vInt = Local<v8::Uint32Array>::Cast(v);
+            const unsigned int *bytes = (const unsigned int*) vInt->Buffer()->GetContents().Data();
             unsigned int len = (unsigned int) vInt->Length();
             SAFEARRAYBOUND sab[] = {len, 0};
             vt.parray = SafeArrayCreate(VT_UI4, 1, sab);
@@ -488,8 +515,8 @@ namespace NJA {
         } else if (v->IsFloat32Array()) {
             float *p;
             vt.vt = (VT_ARRAY | VT_R4);
-            char *bytes = node::Buffer::Data(v);
             Local<v8::Float32Array> vInt = Local<v8::Float32Array>::Cast(v);
+            const float *bytes = (const float*) vInt->Buffer()->GetContents().Data();
             unsigned int len = (unsigned int) vInt->Length();
             SAFEARRAYBOUND sab[] = {len, 0};
             vt.parray = SafeArrayCreate(VT_R4, 1, sab);
@@ -499,8 +526,8 @@ namespace NJA {
         } else if (v->IsFloat64Array()) {
             double *p;
             vt.vt = (VT_ARRAY | VT_R8);
-            char *bytes = node::Buffer::Data(v);
             Local<v8::Float64Array> vInt = Local<v8::Float64Array>::Cast(v);
+            const double *bytes = (const double*) vInt->Buffer()->GetContents().Data();
             unsigned int len = (unsigned int) vInt->Length();
             SAFEARRAYBOUND sab[] = {len, 0};
             vt.parray = SafeArrayCreate(VT_R8, 1, sab);
@@ -730,8 +757,10 @@ namespace NJA {
                         case VT_BOOL:
                         case VT_BSTR:
                         case VT_DATE:
+#ifndef HAS_BIGINT
                         case VT_I8:
                         case VT_UI8:
+#endif
                         case VT_CY:
                         case VT_DECIMAL:
                         case VT_VARIANT:
@@ -809,71 +838,135 @@ namespace NJA {
                         case VT_I4:
                         case VT_INT:
                         {
+#ifdef HAS_NULLORUNDEFINED_FUNC
                             Local<v8::ArrayBuffer> buf = v8::ArrayBuffer::New(isolate, count * sizeof (int));
                             Local<v8::Int32Array> v = v8::Int32Array::New(buf, 0, count);
                             Local<Value> p = v;
                             char *bytes = node::Buffer::Data(p);
                             memcpy(bytes, pvt, count * sizeof (int));
+#else
+                            const int *p = (const int *) pvt;
+                            Local<Array> v = Array::New(isolate);
+                            for (unsigned int n = 0; n < count; ++n) {
+                                v->Set(n, Int32::New(isolate, p[n]));
+                            }
+#endif
                             ::SafeArrayUnaccessData(vt.parray);
                             return v;
                         }
-                            break;
                         case VT_UI4:
                         case VT_UINT:
                         {
+#ifdef HAS_NULLORUNDEFINED_FUNC
                             Local<v8::ArrayBuffer> buf = v8::ArrayBuffer::New(isolate, count * sizeof (unsigned int));
                             Local<v8::Uint32Array> v = v8::Uint32Array::New(buf, 0, count);
                             Local<Value> p = v;
                             char *bytes = node::Buffer::Data(p);
                             memcpy(bytes, pvt, count * sizeof (unsigned int));
+#else
+                            const unsigned int *p = (const unsigned int *) pvt;
+                            Local<Array> v = Array::New(isolate);
+                            for (unsigned int n = 0; n < count; ++n) {
+                                v->Set(n, Uint32::New(isolate, p[n]));
+                            }
+#endif
                             ::SafeArrayUnaccessData(vt.parray);
                             return v;
                         }
-                            break;
                         case VT_I2:
                         {
+#ifdef HAS_NULLORUNDEFINED_FUNC
                             Local<v8::ArrayBuffer> buf = v8::ArrayBuffer::New(isolate, count * sizeof (short));
                             Local<v8::Int16Array> v = v8::Int16Array::New(buf, 0, count);
                             Local<Value> p = v;
                             char *bytes = node::Buffer::Data(p);
                             memcpy(bytes, pvt, count * sizeof (short));
+#else
+                            const short *p = (const short *) pvt;
+                            Local<Array> v = Array::New(isolate);
+                            for (unsigned int n = 0; n < count; ++n) {
+                                v->Set(n, Int32::New(isolate, p[n]));
+                            }
+#endif
                             ::SafeArrayUnaccessData(vt.parray);
                             return v;
                         }
-                            break;
                         case VT_UI2:
                         {
+#ifdef HAS_NULLORUNDEFINED_FUNC
                             Local<v8::ArrayBuffer> buf = v8::ArrayBuffer::New(isolate, count * sizeof (unsigned short));
                             Local<v8::Uint16Array> v = v8::Uint16Array::New(buf, 0, count);
                             Local<Value> p = v;
                             char *bytes = node::Buffer::Data(p);
                             memcpy(bytes, pvt, count * sizeof (unsigned short));
+#else
+                            const unsigned short *p = (const unsigned short *) pvt;
+                            Local<Array> v = Array::New(isolate);
+                            for (unsigned int n = 0; n < count; ++n) {
+                                v->Set(n, Uint32::New(isolate, p[n]));
+                            }
+#endif
                             ::SafeArrayUnaccessData(vt.parray);
                             return v;
                         }
-                            break;
                         case VT_R4:
                         {
+#ifdef HAS_NULLORUNDEFINED_FUNC
                             Local<v8::ArrayBuffer> buf = v8::ArrayBuffer::New(isolate, count * sizeof (float));
                             Local<v8::Float32Array> v = v8::Float32Array::New(buf, 0, count);
                             Local<Value> p = v;
                             char *bytes = node::Buffer::Data(p);
                             memcpy(bytes, pvt, count * sizeof (float));
+#else
+                            const float *p = (const float *) pvt;
+                            Local<Array> v = Array::New(isolate);
+                            for (unsigned int n = 0; n < count; ++n) {
+                                v->Set(n, Number::New(isolate, p[n]));
+                            }
+#endif
                             ::SafeArrayUnaccessData(vt.parray);
                             return v;
                         }
-                            break;
                         case VT_R8:
                         {
+#ifdef HAS_NULLORUNDEFINED_FUNC
                             Local<v8::ArrayBuffer> buf = v8::ArrayBuffer::New(isolate, count * sizeof (double));
                             Local<v8::Float64Array> v = v8::Float64Array::New(buf, 0, count);
                             Local<Value> p = v;
                             char *bytes = node::Buffer::Data(p);
                             memcpy(bytes, pvt, count * sizeof (double));
+#else
+                            const double *p = (const double *) pvt;
+                            Local<Array> v = Array::New(isolate);
+                            for (unsigned int n = 0; n < count; ++n) {
+                                v->Set(n, Number::New(isolate, p[n]));
+                            }
+#endif
                             ::SafeArrayUnaccessData(vt.parray);
                             return v;
                         }
-                            break;
+#ifdef HAS_BIGINT
+                        case VT_I8:
+                        {
+                            Local<v8::ArrayBuffer> buf = v8::ArrayBuffer::New(isolate, count * sizeof (SPA::INT64));
+                            Local<v8::Int64Array> v = v8::BigInt64Array::New(buf, 0, count);
+                            Local<Value> p = v;
+                            char *bytes = node::Buffer::Data(p);
+                            memcpy(bytes, pvt, count * sizeof (SPA::INT64));
+                            ::SafeArrayUnaccessData(vt.parray);
+                            return v;
+                        }
+                        case VT_UI8:
+                        {
+                            Local<v8::ArrayBuffer> buf = v8::ArrayBuffer::New(isolate, count * sizeof (SPA::UINT64));
+                            Local<v8::Float64Array> v = v8::BigUint64Array::New(buf, 0, count);
+                            Local<Value> p = v;
+                            char *bytes = node::Buffer::Data(p);
+                            memcpy(bytes, pvt, count * sizeof (SPA::UINT64));
+                            ::SafeArrayUnaccessData(vt.parray);
+                            return v;
+                        }
+#endif
                         default:
                             break;
                     }
@@ -894,38 +987,38 @@ namespace NJA {
 
     bool ToArray(Isolate* isolate, const Local<Value> &data, CDBVariantArray &v) {
         if (data->IsInt32Array()) {
-            int *p = (int*) node::Buffer::Data(data);
             Local<v8::Int32Array> vInt = Local<v8::Int32Array>::Cast(data);
+            const int *p = (const int*) vInt->Buffer()->GetContents().Data();
             unsigned int len = (unsigned int) vInt->Length();
             ToArray(p, len, v);
         } else if (data->IsFloat64Array()) {
-            double *p = (double*) node::Buffer::Data(data);
             Local<v8::Float64Array> vDouble = Local<v8::Float64Array>::Cast(data);
+            const double *p = (const double*) vDouble->Buffer()->GetContents().Data();
             unsigned int len = (unsigned int) vDouble->Length();
             ToArray(p, len, v);
         } else if (data->IsFloat32Array()) {
-            float *p = (float*) node::Buffer::Data(data);
             Local<v8::Float32Array> vDouble = Local<v8::Float32Array>::Cast(data);
+            const float *p = (const float*) vDouble->Buffer()->GetContents().Data();
             unsigned int len = (unsigned int) vDouble->Length();
             ToArray(p, len, v);
         } else if (data->IsInt16Array()) {
-            short *p = (short*) node::Buffer::Data(data);
             Local<v8::Int16Array> vInt = Local<v8::Int16Array>::Cast(data);
+            const short *p = (const short*) vInt->Buffer()->GetContents().Data();
             unsigned int len = (unsigned int) vInt->Length();
             ToArray(p, len, v);
         } else if (data->IsInt8Array()) {
-            char *p = node::Buffer::Data(data);
             Local<v8::Int8Array> vInt = Local<v8::Int8Array>::Cast(data);
+            const char *p = (const char*) vInt->Buffer()->GetContents().Data();
             unsigned int len = (unsigned int) vInt->Length();
             ToArray(p, len, v);
         } else if (data->IsUint8Array()) {
-            unsigned char *p = (unsigned char*) node::Buffer::Data(data);
             Local<v8::Uint8Array> vInt = Local<v8::Uint8Array>::Cast(data);
+            const unsigned char *p = (const unsigned char*) vInt->Buffer()->GetContents().Data();
             unsigned int len = (unsigned int) vInt->Length();
             ToArray(p, len, v);
         } else if (data->IsUint32Array()) {
-            unsigned int *p = (unsigned int*) node::Buffer::Data(data);
             Local<v8::Uint32Array> vInt = Local<v8::Uint32Array>::Cast(data);
+            const unsigned int *p = (const unsigned int*) vInt->Buffer()->GetContents().Data();
             unsigned int len = (unsigned int) vInt->Length();
             ToArray(p, len, v);
 #ifdef HAS_BIGINT
@@ -941,8 +1034,8 @@ namespace NJA {
             ToArray(p, len, v);
 #endif
         } else if (data->IsUint16Array()) {
-            unsigned short *p = (unsigned short*) node::Buffer::Data(data);
             Local<v8::Uint16Array> vInt = Local<v8::Uint16Array>::Cast(data);
+            const unsigned short *p = (const unsigned short*) vInt->Buffer()->GetContents().Data();
             unsigned int len = (unsigned int) vInt->Length();
             ToArray(p, len, v);
         } else if (data->IsArray()) {
@@ -1055,7 +1148,7 @@ namespace NJA {
                         return false;
                     }
                     pInfo.Direction = (tagParameterDirection) d;
-                } else if (!v->IsNullOrUndefined()) {
+                } else if (!IsNullOrUndefined(v)) {
                     ThrowException(isolate, "An integer value expected for parameter direction");
                     return false;
                 }
@@ -1063,7 +1156,7 @@ namespace NJA {
                 if (v->IsUint32()) {
                     unsigned int d = v->Uint32Value();
                     pInfo.DataType = (VARTYPE) d;
-                } else if (!v->IsNullOrUndefined()) {
+                } else if (!IsNullOrUndefined(v)) {
                     ThrowException(isolate, "An integer value expected for parameter data type");
                     return false;
                 }
@@ -1077,7 +1170,7 @@ namespace NJA {
                                         }
                      */
                     pInfo.ColumnSize = (unsigned int) d;
-                } else if (!v->IsNullOrUndefined()) {
+                } else if (!IsNullOrUndefined(v)) {
                     ThrowException(isolate, "An integer value expected for parameter column size");
                     return false;
                 }
@@ -1089,7 +1182,7 @@ namespace NJA {
                         return false;
                     }
                     pInfo.Precision = (unsigned char) d;
-                } else if (!v->IsNullOrUndefined()) {
+                } else if (!IsNullOrUndefined(v)) {
                     ThrowException(isolate, "An integer value expected for parameter data precision");
                     return false;
                 }
@@ -1101,19 +1194,19 @@ namespace NJA {
                         return false;
                     }
                     pInfo.Precision = (unsigned char) d;
-                } else if (!v->IsNullOrUndefined()) {
+                } else if (!IsNullOrUndefined(v)) {
                     ThrowException(isolate, "An integer value expected for parameter data scale");
                     return false;
                 }
                 v = pi->Get(ToStr(isolate, "ParameterName"));
                 if (v->IsString()) {
                     pInfo.ParameterName = ToStr(v);
-                } else if (!v->IsNullOrUndefined()) {
+                } else if (!IsNullOrUndefined(v)) {
                     ThrowException(isolate, "An integer value expected for parameter data scale");
                     return false;
                 }
             }
-        } else if (!p0->IsNullOrUndefined()) {
+        } else if (!IsNullOrUndefined(p0)) {
             ThrowException(isolate, "An array of parameter meta data expected");
             return false;
         }
