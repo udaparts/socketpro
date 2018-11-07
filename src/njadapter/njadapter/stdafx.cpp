@@ -949,7 +949,7 @@ namespace NJA {
                         case VT_I8:
                         {
                             Local<v8::ArrayBuffer> buf = v8::ArrayBuffer::New(isolate, count * sizeof (SPA::INT64));
-                            Local<v8::Int64Array> v = v8::BigInt64Array::New(buf, 0, count);
+                            Local<v8::BigInt64Array> v = v8::BigInt64Array::New(buf, 0, count);
                             Local<Value> p = v;
                             char *bytes = node::Buffer::Data(p);
                             memcpy(bytes, pvt, count * sizeof (SPA::INT64));
@@ -959,7 +959,7 @@ namespace NJA {
                         case VT_UI8:
                         {
                             Local<v8::ArrayBuffer> buf = v8::ArrayBuffer::New(isolate, count * sizeof (SPA::UINT64));
-                            Local<v8::Float64Array> v = v8::BigUint64Array::New(buf, 0, count);
+                            Local<v8::BigUint64Array> v = v8::BigUint64Array::New(buf, 0, count);
                             Local<Value> p = v;
                             char *bytes = node::Buffer::Data(p);
                             memcpy(bytes, pvt, count * sizeof (SPA::UINT64));
