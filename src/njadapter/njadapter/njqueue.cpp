@@ -772,7 +772,6 @@ namespace NJA {
             id.assign(s, str.length());
             std::transform(id.begin(), id.end(), id.begin(), ::tolower);
         }
-        int argv = args.Length();
         auto p0 = args[0];
         if (IsNullOrUndefined(p0)) {
             vt = VT_NULL;
@@ -792,7 +791,7 @@ namespace NJA {
             *obj->m_Buffer << vt << v;
             args.GetReturnValue().Set(args.Holder());
         } else if (p0->IsString()) {
-            if (argv > 1 && args[1]->IsString()) {
+            if (id.size()) {
                 if (id == "a" || id == "ascii") {
                     vt = (VT_ARRAY | VT_I1);
                     *obj->m_Buffer << vt;
@@ -872,7 +871,20 @@ namespace NJA {
                 vt = VT_DATE;
                 *obj->m_Buffer << vt;
                 SaveDate(args);
-            } else {
+            }
+            else if (p0->IsInt32()) {
+                vt = VT_I4;
+                *obj->m_Buffer << vt;
+                SaveInt(args);
+            }
+#ifdef HAS_BIGINT
+            else if (p0->IsBigInt()) {
+                vt = VT_I8;
+                *obj->m_Buffer << vt;
+                SaveLong(args);
+            }
+#endif
+            else {
                 vt = VT_R8;
                 *obj->m_Buffer << vt;
                 SaveDouble(args);
@@ -955,20 +967,14 @@ namespace NJA {
         } else if (node::Buffer::HasInstance(p0)) {
             char *bytes = node::Buffer::Data(p0);
             unsigned int len = (unsigned int) node::Buffer::Length(p0);
-            if (len != sizeof (GUID) || argv == 1 || !args[1]->IsString()) {
+            if (len == sizeof (GUID) && (id == "u" || id == "uuid")) {
+                vt = VT_CLSID;
+                *obj->m_Buffer << vt;
+                obj->m_Buffer->Push((const unsigned char*) bytes, len);
+            } else {
                 vt = (VT_ARRAY | VT_UI1);
                 *obj->m_Buffer << vt << len;
                 obj->m_Buffer->Push((const unsigned char*) bytes, len);
-            } else {
-                if (id == "u" || id == "uuid") {
-                    vt = VT_CLSID;
-                    *obj->m_Buffer << vt;
-                    obj->m_Buffer->Push((const unsigned char*) bytes, len);
-                } else {
-                    vt = (VT_ARRAY | VT_UI1);
-                    *obj->m_Buffer << vt << len;
-                    obj->m_Buffer->Push((const unsigned char*) bytes, len);
-                }
             }
             args.GetReturnValue().Set(args.Holder());
         } else if (p0->IsArray()) {
@@ -995,22 +1001,21 @@ namespace NJA {
                     SPA::UINT64 time = ToDate(d);
                     sb << time;
 #ifdef HAS_BIGINT
-                } else if (d->IsBigInt()) {
+                } else if (d->IsBigInt() || id == "l" || id == "long") {
                     if (dt && dt != dtInt64) {
                         ThrowException(isolate, UNSUPPORTED_ARRAY_TYPE);
                         return;
                     } else
                         dt = dtInt64;
                     sb << d->IntegerValue();
-#else
-                } else if (d->IsInt32()) {
+#endif
+                } else if (d->IsInt32() || id == "i" || id == "int") {
                     if (dt && dt != dtInt32) {
                         ThrowException(isolate, UNSUPPORTED_ARRAY_TYPE);
                         return;
                     } else
                         dt = dtInt32;
                     sb << d->Int32Value();
-#endif
                 } else if (d->IsNumber()) {
                     if (dt && dt != dtDouble) {
                         ThrowException(isolate, UNSUPPORTED_ARRAY_TYPE);
@@ -1049,11 +1054,10 @@ namespace NJA {
                 case dtInt64:
                     vtType |= VT_I8;
                     break;
-#else
+#endif
                 case dtInt32:
                     vtType |= VT_I4;
                     break;
-#endif
                 case dtDouble:
                     vtType |= VT_R8;
                     break;

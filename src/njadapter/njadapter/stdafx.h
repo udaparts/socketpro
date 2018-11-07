@@ -46,11 +46,8 @@ namespace NJA {
         dtString = 1,
         dtBool = 2,
         dtDate,
-#ifdef HAS_BIGINT
-        dtInt64,
-#else
         dtInt32,
-#endif
+        dtInt64,
         dtDouble
     };
 

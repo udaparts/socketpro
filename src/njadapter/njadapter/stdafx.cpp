@@ -574,14 +574,13 @@ namespace NJA {
                         return false;
                     } else
                         dt = dtInt64;
-#else
+#endif
                 } else if (d->IsInt32() || id == "i" || id == "int") {
                     if (dt && dt != dtInt32)
                         return false;
                     else {
                         dt = dtInt32;
                     }
-#endif
                 } else if (d->IsNumber()) {
                     if (dt && dt != dtDouble)
                         return false;
@@ -607,11 +606,10 @@ namespace NJA {
                 case dtInt64:
                     vtType = VT_I8;
                     break;
-#else
+#endif
                 case dtInt32:
                     vtType = VT_I4;
                     break;
-#endif
                 case dtDouble:
                     vtType = VT_R8;
                     break;
@@ -1066,13 +1064,12 @@ namespace NJA {
                         ok = false;
                     else
                         dt = dtInt64;
-#else
+#endif
                 } else if (d->IsInt32()) {
                     if (dt && dt != dtInt32)
                         ok = false;
                     else
                         dt = dtInt32;
-#endif
                 } else if (d->IsNumber()) {
                     if (dt && dt != dtDouble)
                         ok = false;
@@ -1107,11 +1104,10 @@ namespace NJA {
                     case NJA::dtInt64:
                         v.push_back(d->IntegerValue());
                         break;
-#else
+#endif
                     case NJA::dtInt32:
                         v.push_back(d->Int32Value());
                         break;
-#endif
                     case NJA::dtDouble:
                         v.push_back(d->NumberValue());
                         break;
