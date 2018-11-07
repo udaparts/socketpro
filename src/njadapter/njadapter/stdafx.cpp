@@ -836,110 +836,62 @@ namespace NJA {
                         case VT_I4:
                         case VT_INT:
                         {
-#ifdef HAS_NULLORUNDEFINED_FUNC
                             Local<v8::ArrayBuffer> buf = v8::ArrayBuffer::New(isolate, count * sizeof (int));
                             Local<v8::Int32Array> v = v8::Int32Array::New(buf, 0, count);
                             Local<Value> p = v;
-                            char *bytes = node::Buffer::Data(p);
+                            char *bytes = (char*) v->Buffer()->GetContents().Data();
                             memcpy(bytes, pvt, count * sizeof (int));
-#else
-                            const int *p = (const int *) pvt;
-                            Local<Array> v = Array::New(isolate);
-                            for (unsigned int n = 0; n < count; ++n) {
-                                v->Set(n, Int32::New(isolate, p[n]));
-                            }
-#endif
                             ::SafeArrayUnaccessData(vt.parray);
                             return v;
                         }
                         case VT_UI4:
                         case VT_UINT:
                         {
-#ifdef HAS_NULLORUNDEFINED_FUNC
                             Local<v8::ArrayBuffer> buf = v8::ArrayBuffer::New(isolate, count * sizeof (unsigned int));
                             Local<v8::Uint32Array> v = v8::Uint32Array::New(buf, 0, count);
                             Local<Value> p = v;
-                            char *bytes = node::Buffer::Data(p);
+                            char *bytes = (char*) v->Buffer()->GetContents().Data();
                             memcpy(bytes, pvt, count * sizeof (unsigned int));
-#else
-                            const unsigned int *p = (const unsigned int *) pvt;
-                            Local<Array> v = Array::New(isolate);
-                            for (unsigned int n = 0; n < count; ++n) {
-                                v->Set(n, Uint32::New(isolate, p[n]));
-                            }
-#endif
                             ::SafeArrayUnaccessData(vt.parray);
                             return v;
                         }
                         case VT_I2:
                         {
-#ifdef HAS_NULLORUNDEFINED_FUNC
                             Local<v8::ArrayBuffer> buf = v8::ArrayBuffer::New(isolate, count * sizeof (short));
                             Local<v8::Int16Array> v = v8::Int16Array::New(buf, 0, count);
                             Local<Value> p = v;
-                            char *bytes = node::Buffer::Data(p);
+                            char *bytes = (char*) v->Buffer()->GetContents().Data();
                             memcpy(bytes, pvt, count * sizeof (short));
-#else
-                            const short *p = (const short *) pvt;
-                            Local<Array> v = Array::New(isolate);
-                            for (unsigned int n = 0; n < count; ++n) {
-                                v->Set(n, Int32::New(isolate, p[n]));
-                            }
-#endif
                             ::SafeArrayUnaccessData(vt.parray);
                             return v;
                         }
                         case VT_UI2:
                         {
-#ifdef HAS_NULLORUNDEFINED_FUNC
                             Local<v8::ArrayBuffer> buf = v8::ArrayBuffer::New(isolate, count * sizeof (unsigned short));
                             Local<v8::Uint16Array> v = v8::Uint16Array::New(buf, 0, count);
                             Local<Value> p = v;
-                            char *bytes = node::Buffer::Data(p);
+                            char *bytes = (char*) v->Buffer()->GetContents().Data();
                             memcpy(bytes, pvt, count * sizeof (unsigned short));
-#else
-                            const unsigned short *p = (const unsigned short *) pvt;
-                            Local<Array> v = Array::New(isolate);
-                            for (unsigned int n = 0; n < count; ++n) {
-                                v->Set(n, Uint32::New(isolate, p[n]));
-                            }
-#endif
                             ::SafeArrayUnaccessData(vt.parray);
                             return v;
                         }
                         case VT_R4:
                         {
-#ifdef HAS_NULLORUNDEFINED_FUNC
                             Local<v8::ArrayBuffer> buf = v8::ArrayBuffer::New(isolate, count * sizeof (float));
                             Local<v8::Float32Array> v = v8::Float32Array::New(buf, 0, count);
                             Local<Value> p = v;
-                            char *bytes = node::Buffer::Data(p);
+                            char *bytes = (char*) v->Buffer()->GetContents().Data();
                             memcpy(bytes, pvt, count * sizeof (float));
-#else
-                            const float *p = (const float *) pvt;
-                            Local<Array> v = Array::New(isolate);
-                            for (unsigned int n = 0; n < count; ++n) {
-                                v->Set(n, Number::New(isolate, p[n]));
-                            }
-#endif
                             ::SafeArrayUnaccessData(vt.parray);
                             return v;
                         }
                         case VT_R8:
                         {
-#ifdef HAS_NULLORUNDEFINED_FUNC
                             Local<v8::ArrayBuffer> buf = v8::ArrayBuffer::New(isolate, count * sizeof (double));
                             Local<v8::Float64Array> v = v8::Float64Array::New(buf, 0, count);
                             Local<Value> p = v;
-                            char *bytes = node::Buffer::Data(p);
+                            char *bytes = (char*) v->Buffer()->GetContents().Data();
                             memcpy(bytes, pvt, count * sizeof (double));
-#else
-                            const double *p = (const double *) pvt;
-                            Local<Array> v = Array::New(isolate);
-                            for (unsigned int n = 0; n < count; ++n) {
-                                v->Set(n, Number::New(isolate, p[n]));
-                            }
-#endif
                             ::SafeArrayUnaccessData(vt.parray);
                             return v;
                         }
@@ -949,7 +901,7 @@ namespace NJA {
                             Local<v8::ArrayBuffer> buf = v8::ArrayBuffer::New(isolate, count * sizeof (SPA::INT64));
                             Local<v8::BigInt64Array> v = v8::BigInt64Array::New(buf, 0, count);
                             Local<Value> p = v;
-                            char *bytes = node::Buffer::Data(p);
+                            char *bytes = (char*) v->Buffer()->GetContents().Data();
                             memcpy(bytes, pvt, count * sizeof (SPA::INT64));
                             ::SafeArrayUnaccessData(vt.parray);
                             return v;
@@ -959,7 +911,7 @@ namespace NJA {
                             Local<v8::ArrayBuffer> buf = v8::ArrayBuffer::New(isolate, count * sizeof (SPA::UINT64));
                             Local<v8::BigUint64Array> v = v8::BigUint64Array::New(buf, 0, count);
                             Local<Value> p = v;
-                            char *bytes = node::Buffer::Data(p);
+                            char *bytes = (char*) v->Buffer()->GetContents().Data();
                             memcpy(bytes, pvt, count * sizeof (SPA::UINT64));
                             ::SafeArrayUnaccessData(vt.parray);
                             return v;
