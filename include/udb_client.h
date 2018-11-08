@@ -1191,7 +1191,7 @@ namespace SPA {
                         int fail = uv_async_send(&ash->m_typeDB);
                         assert(!fail);
                     };
-                } else if (!header->IsNullOrUndefined()) {
+                } else if (!NJA::IsNullOrUndefined(header)) {
                     NJA::ThrowException(isolate, "A callback expected for batch header");
                     bad = true;
                 }
@@ -1216,7 +1216,7 @@ namespace SPA {
                         int fail = uv_async_send(&ash->m_typeDB);
                         assert(!fail);
                     };
-                } else if (!header->IsNullOrUndefined()) {
+                } else if (!NJA::IsNullOrUndefined(header)) {
                     NJA::ThrowException(isolate, "A callback expected for record meta");
                     bad = true;
                 }
@@ -1246,7 +1246,7 @@ namespace SPA {
                         int fail = uv_async_send(&ash->m_typeDB);
                         assert(!fail);
                     };
-                } else if (!r->IsNullOrUndefined()) {
+                } else if (!NJA::IsNullOrUndefined(r)) {
                     NJA::ThrowException(isolate, "A callback expected for row data");
                     bad = true;
                 }
@@ -1271,7 +1271,7 @@ namespace SPA {
                         int fail = uv_async_send(&ash->m_typeDB);
                         assert(!fail);
                     };
-                } else if (!er->IsNullOrUndefined()) {
+                } else if (!NJA::IsNullOrUndefined(er)) {
                     NJA::ThrowException(isolate, "A callback expected for Execute end result");
                     bad = true;
                 }
@@ -1296,7 +1296,7 @@ namespace SPA {
                         int fail = uv_async_send(&ash->m_typeDB);
                         assert(!fail);
                     };
-                } else if (!res->IsNullOrUndefined()) {
+                } else if (!NJA::IsNullOrUndefined(res)) {
                     NJA::ThrowException(isolate, "A callback expected for end result");
                     bad = true;
                 }
@@ -1321,7 +1321,7 @@ namespace SPA {
                         int fail = uv_async_send(&ash->m_typeDB);
                         assert(!fail);
                     };
-                } else if (!abort->IsNullOrUndefined()) {
+                } else if (!NJA::IsNullOrUndefined(abort)) {
                     NJA::ThrowException(isolate, "A callback expected for tracking socket closed or canceled events");
                     bad = true;
                 }

@@ -72,10 +72,6 @@ var ok = hw.SendRequest(idSayHello, SPA.newBuffer().SaveString('Mary').SaveStrin
     console.log(q.LoadString());
 });
 
-var buffer = new ArrayBuffer(8);
-var int32View = new Int32Array(buffer);
-int32View[0] = 1;
-int32View[1] = 76890;
 //prepare a real complex structure for a remote request
 var data = {
     nullStr: null,
@@ -88,7 +84,7 @@ var data = {
     objBool: true,
     objString: 'test',
     objArrString: ['Hello', 'world'],
-    objArrInt: int32View
+    objArrInt: [1, 76890]
 };
 console.log(data);
 
@@ -156,4 +152,4 @@ asyncWait(hw, 'Hillary', 'Clinton');
 ok = messenger.SendUserMessage('some_user_id', 'A test message from node.js');
 
 //send a message to three groups of connected clients
-ok = messenger.Publish('A test publish message from node.js', new Uint32Array([1, 3, 7]));
+ok = messenger.Publish('A test publish message from node.js', [1, 3, 7]);

@@ -160,7 +160,7 @@ namespace NJA {
             auto p = args[0];
             if (p->IsBoolean())
                 zip = p->BooleanValue();
-            else if (!p->IsNullOrUndefined()) {
+            else if (!IsNullOrUndefined(p)) {
                 ThrowException(isolate, BOOLEAN_EXPECTED);
                 return;
             }
@@ -190,7 +190,7 @@ namespace NJA {
                     return;
                 }
                 zip = (tagZipLevel) data;
-            } else if (!p->IsNullOrUndefined()) {
+            } else if (!IsNullOrUndefined(p)) {
                 ThrowException(isolate, INTEGER_EXPECTED);
                 return;
             }
@@ -215,7 +215,7 @@ namespace NJA {
             auto p = args[0];
             if (p->IsUint32()) {
                 timeout = p->Uint32Value();
-            } else if (!p->IsNullOrUndefined()) {
+            } else if (!IsNullOrUndefined(p)) {
                 ThrowException(isolate, "An unsigned int value expected");
                 return;
             }
@@ -240,7 +240,7 @@ namespace NJA {
             auto p = args[0];
             if (p->IsUint32()) {
                 timeout = p->Uint32Value();
-            } else if (!p->IsNullOrUndefined()) {
+            } else if (!IsNullOrUndefined(p)) {
                 ThrowException(isolate, "An unsigned int valaue expected");
                 return;
             }
@@ -265,7 +265,7 @@ namespace NJA {
             auto p = args[0];
             if (p->IsBoolean())
                 ac = p->BooleanValue();
-            else if (!p->IsNullOrUndefined()) {
+            else if (!IsNullOrUndefined(p)) {
                 ThrowException(isolate, BOOLEAN_EXPECTED);
                 return;
             }
@@ -537,7 +537,7 @@ namespace NJA {
             auto p = args[0];
             if (p->IsBoolean())
                 zip = p->BooleanValue();
-            else if (!p->IsNullOrUndefined()) {
+            else if (!IsNullOrUndefined(p)) {
                 ThrowException(isolate, BOOLEAN_EXPECTED);
                 return;
             }
@@ -553,7 +553,7 @@ namespace NJA {
             auto p = args[0];
             if (p->IsInt32()) {
                 zl = p->Int32Value();
-            } else if (!p->IsNullOrUndefined()) {
+            } else if (!IsNullOrUndefined(p)) {
                 ThrowException(isolate, INTEGER_EXPECTED);
                 return;
             }

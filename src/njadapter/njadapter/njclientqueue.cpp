@@ -102,7 +102,7 @@ namespace NJA {
         p = args[1];
         if (p->IsBoolean()) {
             secure = p->BooleanValue();
-        } else if (!p->IsNullOrUndefined()) {
+        } else if (!IsNullOrUndefined(p)) {
             ThrowException(isolate, "A boolean expected for client queue security");
             return;
         }
@@ -110,7 +110,7 @@ namespace NJA {
         unsigned int ttl = 24 * 3600;
         if (p->IsUint32()) {
             ttl = p->Uint32Value();
-        } else if (!p->IsNullOrUndefined()) {
+        } else if (!IsNullOrUndefined(p)) {
             ThrowException(isolate, "An unsigned int value expected for message time-to-live");
             return;
         }
@@ -125,7 +125,7 @@ namespace NJA {
         bool permanent = false;
         if (p->IsBoolean()) {
             permanent = p->BooleanValue();
-        } else if (!p->IsNullOrUndefined()) {
+        } else if (!IsNullOrUndefined(p)) {
             ThrowException(isolate, BOOLEAN_EXPECTED);
             return;
         }
@@ -271,7 +271,7 @@ namespace NJA {
         auto p = args[0];
         if (p->IsBoolean()) {
             enabled = p->BooleanValue();
-        } else if (!p->IsNullOrUndefined()) {
+        } else if (!IsNullOrUndefined(p)) {
             ThrowException(isolate, BOOLEAN_EXPECTED);
             return;
         }

@@ -84,7 +84,7 @@ namespace NJA {
                 g_KeyAllowed.Push((const unsigned char*) bytes, len);
             }
             args.GetReturnValue().Set(p0);
-        } else if (p0->IsNullOrUndefined()) {
+        } else if (IsNullOrUndefined(p0)) {
             {
                 SPA::CAutoLock al(g_cs);
                 g_KeyAllowed.SetSize(0);

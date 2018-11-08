@@ -220,7 +220,7 @@ namespace NJA {
             bool desc = false;
             if (p1->IsBoolean()) {
                 desc = p1->BooleanValue();
-            } else if (!p1->IsNullOrUndefined()) {
+            } else if (!IsNullOrUndefined(p1)) {
                 NJA::ThrowException(isolate, BOOLEAN_EXPECTED);
                 return;
             }
@@ -278,7 +278,7 @@ namespace NJA {
             bool copy = false;
             if (p3->IsBoolean()) {
                 copy = p3->BooleanValue();
-            } else if (!p3->IsNullOrUndefined()) {
+            } else if (!IsNullOrUndefined(p3)) {
                 NJA::ThrowException(isolate, BOOLEAN_EXPECTED);
                 return;
             }
@@ -308,7 +308,7 @@ namespace NJA {
             bool copy = false;
             if (p1->IsBoolean()) {
                 copy = p1->BooleanValue();
-            } else if (!p1->IsNullOrUndefined()) {
+            } else if (!IsNullOrUndefined(p1)) {
                 NJA::ThrowException(isolate, BOOLEAN_EXPECTED);
                 return;
             }
@@ -343,7 +343,7 @@ namespace NJA {
             bool copy = false;
             if (p2->IsBoolean()) {
                 copy = p2->BooleanValue();
-            } else if (!p2->IsNullOrUndefined()) {
+            } else if (!IsNullOrUndefined(p2)) {
                 NJA::ThrowException(isolate, BOOLEAN_EXPECTED);
                 return;
             }
@@ -387,7 +387,7 @@ namespace NJA {
             bool copy = false;
             if (p3->IsBoolean()) {
                 copy = p3->BooleanValue();
-            } else if (!p3->IsNullOrUndefined()) {
+            } else if (!IsNullOrUndefined(p3)) {
                 NJA::ThrowException(isolate, BOOLEAN_EXPECTED);
                 return;
             }
@@ -422,7 +422,7 @@ namespace NJA {
             bool copy = false;
             if (p2->IsBoolean()) {
                 copy = p2->BooleanValue();
-            } else if (!p2->IsNullOrUndefined()) {
+            } else if (!IsNullOrUndefined(p2)) {
                 NJA::ThrowException(isolate, BOOLEAN_EXPECTED);
                 return;
             }

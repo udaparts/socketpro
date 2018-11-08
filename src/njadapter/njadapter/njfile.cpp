@@ -118,7 +118,7 @@ namespace NJA {
             auto p2 = args[5];
             if (p2->IsUint32())
                 flags = p2->Uint32Value();
-            else if (!p2->IsNullOrUndefined()) {
+            else if (!IsNullOrUndefined(p2)) {
                 ThrowException(isolate, "Unsigned int required for file creating flags");
                 return;
             }

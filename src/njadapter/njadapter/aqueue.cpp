@@ -37,7 +37,7 @@ namespace NJA {
                 int fail = uv_async_send(&ash->m_qType);
                 assert(!fail);
             };
-        } else if (!abort->IsNullOrUndefined()) {
+        } else if (!IsNullOrUndefined(abort)) {
             ThrowException(isolate, "A callback expected for tracking socket closed or canceled events");
             bad = true;
         }
@@ -164,7 +164,7 @@ namespace NJA {
             CAutoLock al(m_csQ);
             m_rr.reset(new CNJFunc);
             m_rr->Reset(isolate, Local<Function>::Cast(rr));
-        } else if (rr->IsNullOrUndefined()) {
+        } else if (IsNullOrUndefined(rr)) {
             CAutoLock al(m_csQ);
             m_rr.reset();
         }
@@ -214,7 +214,7 @@ namespace NJA {
                     int fail = uv_async_send(&ash->m_qType);
                     assert(!fail);
                 };
-            } else if (!argv[0]->IsNullOrUndefined()) {
+            } else if (!IsNullOrUndefined(argv[0])) {
                 ThrowException(isolate, "A callback expected for GetKeys end result");
                 return 0;
             }
@@ -248,7 +248,7 @@ namespace NJA {
                     int fail = uv_async_send(&ash->m_qType);
                     assert(!fail);
                 };
-            } else if (!argv[0]->IsNullOrUndefined()) {
+            } else if (!IsNullOrUndefined(argv[0])) {
                 ThrowException(isolate, "A callback expected for StartTrans end result");
                 return 0;
             }
@@ -282,7 +282,7 @@ namespace NJA {
                     int fail = uv_async_send(&ash->m_qType);
                     assert(!fail);
                 };
-            } else if (!argv[0]->IsNullOrUndefined()) {
+            } else if (!IsNullOrUndefined(argv[0])) {
                 ThrowException(isolate, "A callback expected for EndTrans end result");
                 return 0;
             }
@@ -316,7 +316,7 @@ namespace NJA {
                     int fail = uv_async_send(&ash->m_qType);
                     assert(!fail);
                 };
-            } else if (!argv[0]->IsNullOrUndefined()) {
+            } else if (!IsNullOrUndefined(argv[0])) {
                 ThrowException(isolate, "A callback expected for Close end result");
                 return 0;
             }
@@ -350,7 +350,7 @@ namespace NJA {
                     int fail = uv_async_send(&ash->m_qType);
                     assert(!fail);
                 };
-            } else if (!argv[0]->IsNullOrUndefined()) {
+            } else if (!IsNullOrUndefined(argv[0])) {
                 ThrowException(isolate, "A callback expected for Flush end result");
                 return 0;
             }
@@ -384,7 +384,7 @@ namespace NJA {
                     int fail = uv_async_send(&ash->m_qType);
                     assert(!fail);
                 };
-            } else if (!argv[0]->IsNullOrUndefined()) {
+            } else if (!IsNullOrUndefined(argv[0])) {
                 ThrowException(isolate, "A callback expected for Dequeue end result");
                 return 0;
             }
@@ -422,7 +422,7 @@ namespace NJA {
                     int fail = uv_async_send(&ash->m_qType);
                     assert(!fail);
                 };
-            } else if (!argv[0]->IsNullOrUndefined()) {
+            } else if (!IsNullOrUndefined(argv[0])) {
                 ThrowException(isolate, "A callback expected for Enqueue end result");
                 return 0;
             }
@@ -456,7 +456,7 @@ namespace NJA {
                     int fail = uv_async_send(&ash->m_qType);
                     assert(!fail);
                 };
-            } else if (!argv[0]->IsNullOrUndefined()) {
+            } else if (!IsNullOrUndefined(argv[0])) {
                 ThrowException(isolate, "A callback expected for EnqueueBatch end result");
                 return 0;
             }
