@@ -65,7 +65,7 @@ namespace NJA {
         Isolate* isolate = args.GetIsolate();
         if (args.IsConstructCall()) {
             if (args[0]->IsBoolean() && args[1]->IsNumber() && args[1]->IntegerValue() == SECRECT_NUM && args[2]->IsNumber()) {
-                bool setCb = args[0]->BooleanValue();
+                //bool setCb = args[0]->BooleanValue();
                 SPA::INT64 ptr = args[2]->IntegerValue();
                 NJAsyncQueue *obj = new NJAsyncQueue((CAQueue*) ptr);
                 obj->Wrap(args.This());

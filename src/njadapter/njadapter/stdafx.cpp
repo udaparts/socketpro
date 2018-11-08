@@ -894,7 +894,6 @@ namespace NJA {
                         {
                             Local<v8::ArrayBuffer> buf = v8::ArrayBuffer::New(isolate, count * sizeof (SPA::INT64));
                             Local<v8::BigInt64Array> v = v8::BigInt64Array::New(buf, 0, count);
-                            Local<Value> p = v;
                             char *bytes = (char*) v->Buffer()->GetContents().Data();
                             memcpy(bytes, pvt, count * sizeof (SPA::INT64));
                             ::SafeArrayUnaccessData(vt.parray);
@@ -904,7 +903,6 @@ namespace NJA {
                         {
                             Local<v8::ArrayBuffer> buf = v8::ArrayBuffer::New(isolate, count * sizeof (SPA::UINT64));
                             Local<v8::BigUint64Array> v = v8::BigUint64Array::New(buf, 0, count);
-                            Local<Value> p = v;
                             char *bytes = (char*) v->Buffer()->GetContents().Data();
                             memcpy(bytes, pvt, count * sizeof (SPA::UINT64));
                             ::SafeArrayUnaccessData(vt.parray);

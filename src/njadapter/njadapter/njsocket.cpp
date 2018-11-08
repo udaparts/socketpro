@@ -96,7 +96,7 @@ namespace NJA {
         Isolate* isolate = args.GetIsolate();
         if (args.IsConstructCall()) {
             if (args[0]->IsBoolean() && args[1]->IsNumber() && args[1]->IntegerValue() == SECRECT_NUM && args[2]->IsNumber()) {
-                bool setCb = args[0]->BooleanValue();
+                //bool setCb = args[0]->BooleanValue();
                 SPA::INT64 ptr = args[2]->IntegerValue();
                 NJSocket *obj = new NJSocket((CClientSocket*) ptr);
                 obj->Wrap(args.This());
@@ -424,10 +424,9 @@ namespace NJA {
         Isolate* isolate = args.GetIsolate();
         NJSocket* obj = ObjectWrap::Unwrap<NJSocket>(args.Holder());
         if (obj->IsValid(isolate)) {
-            bool ok;
             auto cc = obj->m_socket->GetConnectionContext();
             Local<Object> objCC = Object::New(isolate);
-            ok = objCC->Set(ToStr(isolate, "Host"), ToStr(isolate, cc.Host.c_str()));
+            bool ok = objCC->Set(ToStr(isolate, "Host"), ToStr(isolate, cc.Host.c_str()));
             ok = objCC->Set(ToStr(isolate, "Port"), Number::New(isolate, cc.Port));
             ok = objCC->Set(ToStr(isolate, "User"), ToStr(isolate, cc.UserId.c_str()));
             ok = objCC->Set(ToStr(isolate, "Pwd"), Null(isolate)); //no password returned
