@@ -33,7 +33,7 @@ namespace SPA {
             struct CContext {
 
                 CContext(bool uplaod, unsigned int flags)
-                : Tried(false), Uploading(uplaod), FileSize(~0), Flags(flags), Sent(false), QueueOk(false),
+                : Tried(false), Uploading(uplaod), FileSize(~0), Flags(flags), Sent(false), QueueOk(false), ErrorCode(0),
 #ifdef WIN32_64
                 File(INVALID_HANDLE_VALUE)
 #else
@@ -52,6 +52,7 @@ namespace SPA {
                 DTransferring Transferring;
                 DDiscarded Discarded;
                 bool QueueOk;
+                int ErrorCode;
 #ifdef WIN32_64
                 HANDLE File;
 #else
@@ -168,7 +169,7 @@ namespace SPA {
                                     context.File = -1;
                                 }
 #endif
-                                else {
+                                else if (res == 0) {
                                     res = SFile::CANNOT_OPEN_LOCAL_FILE_FOR_WRITING;
                                     errMsg = context.ErrMsg;
                                 }
@@ -195,6 +196,7 @@ namespace SPA {
                                 sm |= FILE_SHARE_WRITE;
                             context.File = ::CreateFileW(context.LocalFile.c_str(), GENERIC_WRITE, sm, nullptr, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
                             if (context.File == INVALID_HANDLE_VALUE) {
+                                context.ErrorCode = ::GetLastError();
                                 context.ErrMsg = Utilities::GetErrorMessage(::GetLastError());
                             } else {
                                 if ((context.Flags & SFile::FILE_OPEN_TRUNCACTED) == SFile::FILE_OPEN_TRUNCACTED) {
@@ -215,6 +217,7 @@ namespace SPA {
                             mode_t m = (S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
                             context.File = ::open(s.c_str(), mode, m);
                             if (context.File == -1) {
+                                context.ErrorCode = errno;
                                 std::string err = strerror(errno);
                                 context.ErrMsg = Utilities::ToWide(err.c_str(), err.size());
                             } else if ((context.Flags & SFile::FILE_OPEN_SHARE_WRITE) == 0) {
@@ -394,7 +397,7 @@ namespace SPA {
                     if (context.Uploading && context.Tried && !IsOpened(context)) {
                         if (index == 0) {
                             if (context.Download) {
-                                context.Download(this, SFile::CANNOT_OPEN_LOCAL_FILE_FOR_READING, context.ErrMsg);
+                                context.Download(this, context.ErrorCode, context.ErrMsg);
                             }
                             m_vContext.erase(m_vContext.begin() + index);
                         } else {
@@ -411,12 +414,14 @@ namespace SPA {
                                 sm |= FILE_SHARE_READ;
                             context.File = ::CreateFileW(context.LocalFile.c_str(), GENERIC_READ, sm, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
                             if (context.File == INVALID_HANDLE_VALUE) {
+                                context.ErrorCode = (int) ::GetLastError();
                                 context.ErrMsg = Utilities::GetErrorMessage(::GetLastError());
                             }
 #else
                             std::string s = Utilities::ToUTF8(context.LocalFile.c_str(), context.LocalFile.size());
                             context.File = ::open(s.c_str(), O_RDONLY);
                             if (context.File == -1) {
+                                context.ErrorCode = errno;
                                 std::string err = strerror(errno);
                                 context.ErrMsg = Utilities::ToWide(err.c_str(), err.size());
                             }
@@ -455,7 +460,7 @@ namespace SPA {
                         if (!IsOpened(context)) {
                             if (index == 0) {
                                 if (context.Download) {
-                                    context.Download(this, SFile::CANNOT_OPEN_LOCAL_FILE_FOR_READING, context.ErrMsg);
+                                    context.Download(this, context.ErrorCode, context.ErrMsg);
                                 }
                                 m_vContext.erase(m_vContext.begin() + index);
                             } else {
