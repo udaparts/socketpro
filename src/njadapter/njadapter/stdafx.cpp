@@ -838,7 +838,6 @@ namespace NJA {
                         {
                             Local<v8::ArrayBuffer> buf = v8::ArrayBuffer::New(isolate, count * sizeof (int));
                             Local<v8::Int32Array> v = v8::Int32Array::New(buf, 0, count);
-                            Local<Value> p = v;
                             char *bytes = (char*) v->Buffer()->GetContents().Data();
                             memcpy(bytes, pvt, count * sizeof (int));
                             ::SafeArrayUnaccessData(vt.parray);
@@ -849,7 +848,6 @@ namespace NJA {
                         {
                             Local<v8::ArrayBuffer> buf = v8::ArrayBuffer::New(isolate, count * sizeof (unsigned int));
                             Local<v8::Uint32Array> v = v8::Uint32Array::New(buf, 0, count);
-                            Local<Value> p = v;
                             char *bytes = (char*) v->Buffer()->GetContents().Data();
                             memcpy(bytes, pvt, count * sizeof (unsigned int));
                             ::SafeArrayUnaccessData(vt.parray);
@@ -859,7 +857,6 @@ namespace NJA {
                         {
                             Local<v8::ArrayBuffer> buf = v8::ArrayBuffer::New(isolate, count * sizeof (short));
                             Local<v8::Int16Array> v = v8::Int16Array::New(buf, 0, count);
-                            Local<Value> p = v;
                             char *bytes = (char*) v->Buffer()->GetContents().Data();
                             memcpy(bytes, pvt, count * sizeof (short));
                             ::SafeArrayUnaccessData(vt.parray);
@@ -869,7 +866,6 @@ namespace NJA {
                         {
                             Local<v8::ArrayBuffer> buf = v8::ArrayBuffer::New(isolate, count * sizeof (unsigned short));
                             Local<v8::Uint16Array> v = v8::Uint16Array::New(buf, 0, count);
-                            Local<Value> p = v;
                             char *bytes = (char*) v->Buffer()->GetContents().Data();
                             memcpy(bytes, pvt, count * sizeof (unsigned short));
                             ::SafeArrayUnaccessData(vt.parray);
@@ -879,7 +875,6 @@ namespace NJA {
                         {
                             Local<v8::ArrayBuffer> buf = v8::ArrayBuffer::New(isolate, count * sizeof (float));
                             Local<v8::Float32Array> v = v8::Float32Array::New(buf, 0, count);
-                            Local<Value> p = v;
                             char *bytes = (char*) v->Buffer()->GetContents().Data();
                             memcpy(bytes, pvt, count * sizeof (float));
                             ::SafeArrayUnaccessData(vt.parray);
@@ -889,7 +884,6 @@ namespace NJA {
                         {
                             Local<v8::ArrayBuffer> buf = v8::ArrayBuffer::New(isolate, count * sizeof (double));
                             Local<v8::Float64Array> v = v8::Float64Array::New(buf, 0, count);
-                            Local<Value> p = v;
                             char *bytes = (char*) v->Buffer()->GetContents().Data();
                             memcpy(bytes, pvt, count * sizeof (double));
                             ::SafeArrayUnaccessData(vt.parray);
