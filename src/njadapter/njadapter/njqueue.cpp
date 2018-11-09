@@ -365,7 +365,7 @@ namespace NJA {
         try {
             unsigned int len;
             *obj->m_Buffer >> len;
-            if (len == (~0)) {
+            if (len == (unsigned int) (~0)) {
                 args.GetReturnValue().SetNull();
             } else {
                 if (len <= obj->m_Buffer->GetSize()) {
@@ -394,7 +394,7 @@ namespace NJA {
         try {
             unsigned int len;
             *obj->m_Buffer >> len;
-            if (len == (~0)) {
+            if (len == (unsigned int) (~0)) {
                 args.GetReturnValue().SetNull();
             } else {
                 if (len <= obj->m_Buffer->GetSize()) {
@@ -423,7 +423,7 @@ namespace NJA {
         try {
             unsigned int len;
             *obj->m_Buffer >> len;
-            if (len == (~0)) {
+            if (len == (unsigned int) (~0)) {
                 args.GetReturnValue().SetNull();
             } else if (len <= obj->m_Buffer->GetSize()) {
                 const UTF16 *str = (const UTF16 *) obj->m_Buffer->GetBuffer();
@@ -871,8 +871,7 @@ namespace NJA {
                 vt = VT_DATE;
                 *obj->m_Buffer << vt;
                 SaveDate(args);
-            }
-            else if (p0->IsInt32()) {
+            } else if (p0->IsInt32()) {
                 vt = VT_I4;
                 *obj->m_Buffer << vt;
                 SaveInt(args);

@@ -426,14 +426,14 @@ namespace NJA {
         if (obj->IsValid(isolate)) {
             auto cc = obj->m_socket->GetConnectionContext();
             Local<Object> objCC = Object::New(isolate);
-            bool ok = objCC->Set(ToStr(isolate, "Host"), ToStr(isolate, cc.Host.c_str()));
-            ok = objCC->Set(ToStr(isolate, "Port"), Number::New(isolate, cc.Port));
-            ok = objCC->Set(ToStr(isolate, "User"), ToStr(isolate, cc.UserId.c_str()));
-            ok = objCC->Set(ToStr(isolate, "Pwd"), Null(isolate)); //no password returned
-            ok = objCC->Set(ToStr(isolate, "EM"), Number::New(isolate, cc.EncrytionMethod));
-            ok = objCC->Set(ToStr(isolate, "Zip"), Boolean::New(isolate, cc.Zip));
-            ok = objCC->Set(ToStr(isolate, "V6"), Boolean::New(isolate, cc.V6));
-            ok = objCC->Set(ToStr(isolate, "AnyData"), From(isolate, cc.AnyData));
+            objCC->Set(ToStr(isolate, "Host"), ToStr(isolate, cc.Host.c_str()));
+            objCC->Set(ToStr(isolate, "Port"), Number::New(isolate, cc.Port));
+            objCC->Set(ToStr(isolate, "User"), ToStr(isolate, cc.UserId.c_str()));
+            objCC->Set(ToStr(isolate, "Pwd"), Null(isolate)); //no password returned
+            objCC->Set(ToStr(isolate, "EM"), Number::New(isolate, cc.EncrytionMethod));
+            objCC->Set(ToStr(isolate, "Zip"), Boolean::New(isolate, cc.Zip));
+            objCC->Set(ToStr(isolate, "V6"), Boolean::New(isolate, cc.V6));
+            objCC->Set(ToStr(isolate, "AnyData"), From(isolate, cc.AnyData));
             args.GetReturnValue().Set(objCC);
         }
     }
