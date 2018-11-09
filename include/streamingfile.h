@@ -170,7 +170,7 @@ namespace SPA {
                                 }
 #endif
                                 else if (res == 0) {
-                                    res = SFile::CANNOT_OPEN_LOCAL_FILE_FOR_WRITING;
+                                    res = context.ErrorCode;
                                     errMsg = context.ErrMsg;
                                 }
                                 dl = context.Download;
@@ -196,7 +196,7 @@ namespace SPA {
                                 sm |= FILE_SHARE_WRITE;
                             context.File = ::CreateFileW(context.LocalFile.c_str(), GENERIC_WRITE, sm, nullptr, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
                             if (context.File == INVALID_HANDLE_VALUE) {
-                                context.ErrorCode = ::GetLastError();
+                                context.ErrorCode = SFile::CANNOT_OPEN_LOCAL_FILE_FOR_WRITING;
                                 context.ErrMsg = Utilities::GetErrorMessage(::GetLastError());
                             } else {
                                 if ((context.Flags & SFile::FILE_OPEN_TRUNCACTED) == SFile::FILE_OPEN_TRUNCACTED) {
@@ -217,7 +217,7 @@ namespace SPA {
                             mode_t m = (S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
                             context.File = ::open(s.c_str(), mode, m);
                             if (context.File == -1) {
-                                context.ErrorCode = errno;
+                                context.ErrorCode = SFile::CANNOT_OPEN_LOCAL_FILE_FOR_WRITING;
                                 std::string err = strerror(errno);
                                 context.ErrMsg = Utilities::ToWide(err.c_str(), err.size());
                             } else if ((context.Flags & SFile::FILE_OPEN_SHARE_WRITE) == 0) {
@@ -414,14 +414,14 @@ namespace SPA {
                                 sm |= FILE_SHARE_READ;
                             context.File = ::CreateFileW(context.LocalFile.c_str(), GENERIC_READ, sm, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
                             if (context.File == INVALID_HANDLE_VALUE) {
-                                context.ErrorCode = (int) ::GetLastError();
+                                context.ErrorCode = SFile::CANNOT_OPEN_LOCAL_FILE_FOR_READING;
                                 context.ErrMsg = Utilities::GetErrorMessage(::GetLastError());
                             }
 #else
                             std::string s = Utilities::ToUTF8(context.LocalFile.c_str(), context.LocalFile.size());
                             context.File = ::open(s.c_str(), O_RDONLY);
                             if (context.File == -1) {
-                                context.ErrorCode = errno;
+                                context.ErrorCode = SFile::CANNOT_OPEN_LOCAL_FILE_FOR_READING;;
                                 std::string err = strerror(errno);
                                 context.ErrMsg = Utilities::ToWide(err.c_str(), err.size());
                             }
