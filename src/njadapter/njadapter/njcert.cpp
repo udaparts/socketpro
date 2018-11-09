@@ -29,8 +29,8 @@ namespace NJA {
         int errCode;
         Local<Object> res = Object::New(isolate);
         std::string errMsg = obj->m_c->Verify(&errCode);
-        bool ok = res->Set(ToStr(isolate, "ec"), Int32::New(isolate, errCode));
-        ok = res->Set(ToStr(isolate, "em"), ToStr(isolate, errMsg.c_str(), errMsg.size()));
+        res->Set(ToStr(isolate, "ec"), Int32::New(isolate, errCode));
+        res->Set(ToStr(isolate, "em"), ToStr(isolate, errMsg.c_str(), errMsg.size()));
         args.GetReturnValue().Set(res);
     }
 
@@ -62,7 +62,7 @@ namespace NJA {
         Isolate* isolate = args.GetIsolate();
         if (args.IsConstructCall()) {
             if (args[0]->IsBoolean() && args[1]->IsNumber() && args[1]->IntegerValue() == SECRECT_NUM && args[2]->IsNumber()) {
-                bool setCb = args[0]->BooleanValue();
+                //bool setCb = args[0]->BooleanValue();
                 SPA::INT64 ptr = args[2]->IntegerValue();
                 NJCert *obj = new NJCert((SPA::IUcert*)ptr);
                 obj->Wrap(args.This());

@@ -116,11 +116,11 @@ namespace SPA {
             bool SelfMessage;
             q >> user >> ipAddr >> Port >> ServiceId >> SelfMessage;
             Local<Object> obj = Object::New(isolate);
-            bool ok = obj->Set(NJA::ToStr(isolate, "UserId"), NJA::ToStr(isolate, user.c_str()));
-            ok = obj->Set(NJA::ToStr(isolate, "IpAddr"), NJA::ToStr(isolate, ipAddr.c_str()));
-            ok = obj->Set(NJA::ToStr(isolate, "Port"), Uint32::New(isolate, Port));
-            ok = obj->Set(NJA::ToStr(isolate, "SvsId"), Number::New(isolate, ServiceId));
-            ok = obj->Set(NJA::ToStr(isolate, "Self"), Boolean::New(isolate, SelfMessage));
+            obj->Set(NJA::ToStr(isolate, "UserId"), NJA::ToStr(isolate, user.c_str()));
+            obj->Set(NJA::ToStr(isolate, "IpAddr"), NJA::ToStr(isolate, ipAddr.c_str()));
+            obj->Set(NJA::ToStr(isolate, "Port"), Uint32::New(isolate, Port));
+            obj->Set(NJA::ToStr(isolate, "SvsId"), Number::New(isolate, ServiceId));
+            obj->Set(NJA::ToStr(isolate, "Self"), Boolean::New(isolate, SelfMessage));
             return obj;
         }
 #endif		
