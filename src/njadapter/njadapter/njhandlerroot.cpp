@@ -184,7 +184,7 @@ namespace NJA {
     }
 
     void NJHandlerRoot::Dispose(const FunctionCallbackInfo<Value>& args) {
-        Isolate* isolate = args.GetIsolate();
+        //Isolate* isolate = args.GetIsolate();
         NJHandlerRoot* obj = ObjectWrap::Unwrap<NJHandlerRoot>(args.Holder());
         obj->Release();
     }

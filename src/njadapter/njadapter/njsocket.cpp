@@ -121,7 +121,7 @@ namespace NJA {
     }
 
     void NJSocket::Dispose(const FunctionCallbackInfo<Value>& args) {
-        Isolate* isolate = args.GetIsolate();
+        //Isolate* isolate = args.GetIsolate();
         NJSocket* obj = ObjectWrap::Unwrap<NJSocket>(args.Holder());
         obj->Release();
     }
