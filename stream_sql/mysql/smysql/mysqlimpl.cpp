@@ -743,7 +743,7 @@ namespace SPA
             } else if ((server_status & SERVER_QUERY_WAS_SLOW) == SERVER_QUERY_WAS_SLOW) {
                 return;
             }
-            if (impl->m_indexCall)
+            if (impl->m_indexCall && impl->m_cmd != COM_STMT_EXECUTE)
                 ++impl->m_oks;
             impl->m_sql_errno = 0;
             impl->m_server_status = server_status;
@@ -1862,6 +1862,7 @@ namespace SPA
                     if (lastInsertId) {
                         vtId = (UINT64) m_last_insert_id;
                     }
+                    ++m_oks;
                 }
             }
             fail_ok = ((m_fails - fails) << 32);
