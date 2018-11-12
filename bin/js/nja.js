@@ -547,7 +547,7 @@ class CSocketPool {
                     case exports.SID.sidQueue:
                         vh.push(new CAsyncQueue(h));
                         break;
-                    case exports.SID.sidODBC:
+                    case exports.SID.sidOdbc:
                     case exports.SID.sidSqlite:
                     case exports.SID.sidMysql:
                         vh.push(new CDb(h));
@@ -571,7 +571,7 @@ class CSocketPool {
                 case exports.SID.sidQueue:
                     h = new CAsyncQueue(h);
                     break;
-                case exports.SID.sidODBC:
+                case exports.SID.sidOdbc:
                 case exports.SID.sidSqlite:
                 case exports.SID.sidMysql:
                     h = new CDb(h);
@@ -595,7 +595,7 @@ class CSocketPool {
                 case exports.SID.sidQueue:
                     h = new CAsyncQueue(h);
                     break;
-                case exports.SID.sidODBC:
+                case exports.SID.sidOdbc:
                 case exports.SID.sidSqlite:
                 case exports.SID.sidMysql:
                     h = new CDb(h);
@@ -797,7 +797,7 @@ exports.SID = {
 class CAsyncQueue extends CHandler {
     constructor(h) {
         super(h);
-        assert(h.getSvsId() == exports.SID.sidQueue);
+        assert(h.getSvsId() === exports.SID.sidQueue);
     }
 
     get DequeueBatchSize() {
@@ -1044,7 +1044,7 @@ class CAsyncQueue extends CHandler {
 class CAsyncFile extends CHandler {
     constructor(h) {
         super(h);
-        assert(h.getSvsId() == exports.SID.sidFile);
+        assert(h.getSvsId() === exports.SID.sidFile);
     }
 
     get FilesQueued() {
@@ -1122,7 +1122,7 @@ class CDb extends CHandler {
     constructor(h) {
         super(h);
         var sid = h.getSvsId();
-        assert(sid == exports.SID.sidOdbc || sid == exports.SID.sidSqlite || sid == exports.SID.sidMysql);
+        assert(sid === exports.SID.sidOdbc || sid === exports.SID.sidSqlite || sid === exports.SID.sidMysql);
     }
 
     get DbMS() {
@@ -1413,7 +1413,7 @@ exports.CS = {
                 case exports.SID.sidQueue:
                     h = new CAsyncQueue(h);
                     break;
-                case exports.SID.sidODBC:
+                case exports.SID.sidOdbc:
                 case exports.SID.sidSqlite:
                 case exports.SID.sidMysql:
                     h = new CDb(h);
