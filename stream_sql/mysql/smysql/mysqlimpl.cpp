@@ -740,12 +740,17 @@ namespace SPA
             } else if (q.GetSize()) {
                 if (!impl->SendRows(q))
                     return;
+            } else if ((server_status & SERVER_QUERY_WAS_SLOW) == SERVER_QUERY_WAS_SLOW) {
+                return;
             }
+            if (impl->m_indexCall)
+                ++impl->m_oks;
             impl->m_sql_errno = 0;
             impl->m_server_status = server_status;
             impl->m_statement_warn_count = statement_warn_count;
             impl->m_affected_rows += affected_rows;
-            impl->m_last_insert_id = last_insert_id;
+            if (impl->m_indexCall && last_insert_id)
+                impl->m_last_insert_id = last_insert_id;
             if (message)
                 impl->m_err_msg = SPA::Utilities::ToWide(message);
             else
@@ -756,6 +761,8 @@ namespace SPA
             CMysqlImpl *impl = (CMysqlImpl *) ctx;
             if (!impl)
                 return;
+            if (impl->m_indexCall)
+                ++impl->m_fails;
             impl->m_sql_errno = (int) sql_errno;
             impl->m_err_msg = SPA::Utilities::ToWide(err_msg);
             if (sqlstate)
@@ -1050,6 +1057,7 @@ namespace SPA
         }
 
         void CMysqlImpl::Open(const std::wstring &strConnection, unsigned int flags, int &res, std::wstring &errMsg, int &ms) {
+            m_indexCall = 0;
             unsigned int port;
             res = 0;
             ms = msMysql;
@@ -1140,6 +1148,7 @@ namespace SPA
 
         void CMysqlImpl::BeginTrans(int isolation, const std::wstring &dbConn, unsigned int flags, int &res, std::wstring &errMsg, int &ms) {
             ms = msMysql;
+            m_indexCall = 0;
             if (m_bManual) {
                 errMsg = BAD_MANUAL_TRANSACTION_STATE;
                 res = SPA::Mysql::ER_BAD_MANUAL_TRANSACTION_STATE;
@@ -1199,6 +1208,7 @@ namespace SPA
         }
 
         void CMysqlImpl::EndTrans(int plan, int &res, std::wstring & errMsg) {
+            m_indexCall = 0;
             if (!m_bManual) {
                 errMsg = BAD_MANUAL_TRANSACTION_STATE;
                 res = SPA::Mysql::ER_BAD_MANUAL_TRANSACTION_STATE;
@@ -1385,12 +1395,12 @@ namespace SPA
             cmd.com_query.length = (unsigned int) sql.size();
             m_cmd = COM_QUERY;
             m_NoRowset = !rowset;
+            m_affected_rows = 0;
             int fail = command_service_run_command(m_pMysql.get(), COM_QUERY, &cmd, &my_charset_utf8_general_ci, &m_sql_cbs, CS_BINARY_REPRESENTATION, this);
             if (m_sql_errno) {
                 res = m_sql_errno;
                 errMsg = m_err_msg;
                 affected = 0;
-                ++m_fails;
             } else if (fail) {
                 errMsg = SERVICE_COMMAND_ERROR;
                 res = SPA::Mysql::ER_SERVICE_COMMAND_ERROR;
@@ -1399,13 +1409,13 @@ namespace SPA
                 affected = (SPA::INT64) m_affected_rows;
                 if (lastInsertId)
                     vtId = (SPA::UINT64)m_last_insert_id;
-                ++m_oks;
             }
             fail_ok = ((m_fails - fails) << 32);
             fail_ok += (unsigned int) (m_oks - oks);
         }
 
         void CMysqlImpl::Prepare(const std::wstring& wsql, CParameterInfoArray& params, int &res, std::wstring &errMsg, unsigned int &parameters) {
+            m_indexCall = 0;
             m_NoRowset = false;
             ResetMemories();
             parameters = 0;
@@ -1662,6 +1672,7 @@ namespace SPA
         }
 
         void CMysqlImpl::ExecuteBatch(const std::wstring& sql, const std::wstring& delimiter, int isolation, int plan, bool rowset, bool meta, bool lastInsertId, const std::wstring &dbConn, unsigned int flags, UINT64 callIndex, INT64 &affected, int &res, std::wstring &errMsg, CDBVariant &vtId, UINT64 & fail_ok) {
+            CDBVariant id;
             CParameterInfoArray vPInfo;
             m_UQueue >> vPInfo;
             res = 0;
@@ -1747,11 +1758,15 @@ namespace SPA
                         SetVParam(vAll, parameters, pos, ps);
                         unsigned int nParamPos = (unsigned int) ((pos << 16) + ps);
                         SendResult(idParameterPosition, nParamPos);
-                        ExecuteParameters(rowset, meta, lastInsertId, callIndex, aff, r, err, vtId, fo);
+                        ExecuteParameters(rowset, meta, lastInsertId, callIndex, aff, r, err, id, fo);
+                        if (id.ullVal)
+                            vtId = id;
                     }
                     pos += ps;
                 } else {
-                    Execute(*it, rowset, meta, lastInsertId, callIndex, aff, r, err, vtId, fo);
+                    Execute(*it, rowset, meta, lastInsertId, callIndex, aff, r, err, id, fo);
+                    if (id.ullVal)
+                        vtId = id;
                 }
                 if (r && !res) {
                     res = r;
@@ -1829,13 +1844,13 @@ namespace SPA
                 cmd.com_stmt_execute.open_cursor = false;
                 m_NoRowset = !rowset;
                 m_cmd = COM_STMT_EXECUTE;
+                m_affected_rows = 0;
                 int fail = command_service_run_command(m_pMysql.get(), COM_STMT_EXECUTE, &cmd, &my_charset_utf8_general_ci, &m_sql_cbs, CS_BINARY_REPRESENTATION, this);
                 if (m_sql_errno) {
                     if (!res) {
                         res = m_sql_errno;
                         errMsg = m_err_msg;
                     }
-                    ++m_fails;
                 } else if (fail) {
                     if (!res) {
                         errMsg = SERVICE_COMMAND_ERROR;
@@ -1843,7 +1858,6 @@ namespace SPA
                     }
                     ++m_fails;
                 } else {
-                    ++m_oks;
                     affected += (INT64) m_affected_rows;
                     if (lastInsertId) {
                         vtId = (UINT64) m_last_insert_id;
