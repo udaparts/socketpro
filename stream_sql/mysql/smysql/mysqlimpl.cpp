@@ -120,6 +120,7 @@ namespace SPA
             M_I0_R0(idTransferring, Transferring)
             M_I0_R0(idEndRows, EndRows)
             END_SWITCH
+            m_server_status = 0;
         }
 
         int CMysqlImpl::OnSlowRequestArrive(unsigned short reqId, unsigned int len) {
@@ -136,6 +137,7 @@ namespace SPA
             END_SWITCH
             if (reqId == idExecuteParameters || reqId == idExecuteBatch)
                 m_vParam.clear();
+            m_server_status = 0;
             return 0;
         }
 
@@ -746,7 +748,7 @@ namespace SPA
             if (impl->m_indexCall && impl->m_cmd != COM_STMT_EXECUTE)
                 ++impl->m_oks;
             impl->m_sql_errno = 0;
-            impl->m_server_status = server_status;
+            impl->m_server_status |= server_status;
             impl->m_statement_warn_count = statement_warn_count;
             impl->m_affected_rows += affected_rows;
             if (impl->m_indexCall && last_insert_id)
@@ -1844,7 +1846,7 @@ namespace SPA
                 cmd.com_stmt_execute.open_cursor = false;
                 m_NoRowset = !rowset;
                 m_cmd = COM_STMT_EXECUTE;
-                m_affected_rows = 0;
+                m_affected_rows = 0; m_server_status = 0;
                 int fail = command_service_run_command(m_pMysql.get(), COM_STMT_EXECUTE, &cmd, &my_charset_utf8_general_ci, &m_sql_cbs, CS_BINARY_REPRESENTATION, this);
                 if (m_sql_errno) {
                     if (!res) {
@@ -1858,7 +1860,8 @@ namespace SPA
                     }
                     ++m_fails;
                 } else {
-                    affected += (INT64) m_affected_rows;
+                    if ((SERVER_PS_OUT_PARAMS & m_server_status) != SERVER_PS_OUT_PARAMS)
+                        affected += (INT64) m_affected_rows;
                     if (lastInsertId) {
                         vtId = (UINT64) m_last_insert_id;
                     }
