@@ -29,6 +29,27 @@
 #include <uv.h>
 #include <v8.h>
 
+namespace v8 {
+
+    template<class T>
+    class NJANonCopyablePersistentTraits {
+    public:
+        typedef Persistent<T, NJANonCopyablePersistentTraits<T> > NJANonCopyablePersistent;
+        static const bool kResetInDestructor = true;
+
+        template<class S, class M>
+        V8_INLINE static void Copy(const Persistent<S, M>& source,
+                NJANonCopyablePersistent* dest) {
+            Uncompilable<Object>();
+        }
+        // TODO(dcarney): come up with a good compile error here.
+
+        template<class O> V8_INLINE static void Uncompilable() {
+            TYPE_CHECK(O, Primitive);
+        }
+    };
+};
+
 using v8::Local;
 using v8::Object;
 using v8::Isolate;
@@ -1459,7 +1480,7 @@ namespace SPA {
             virtual SPA::UINT64 SendRequest(Isolate* isolate, int args, Local<Value> *argv, unsigned short reqId, const unsigned char *pBuffer, unsigned int size);
 
         protected:
-            typedef Persistent<Function> CNJFunc;
+            typedef Persistent<Function, v8::NJANonCopyablePersistentTraits<Function> > CNJFunc;
 
         private:
 
