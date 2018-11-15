@@ -25,6 +25,7 @@ namespace NJA {
         if (abort->IsFunction()) {
             std::shared_ptr<CNJFunc> func(new CNJFunc);
             func->Reset(isolate, Local<Function>::Cast(abort));
+            Backup(func);
             dd = [func](CAsyncServiceHandler *aq, bool canceled) {
                 QueueCb qcb;
                 qcb.EventType = qeDiscarded;
@@ -58,14 +59,14 @@ namespace NJA {
                 *cb.Buffer >> processor;
                 assert(processor);
                 Local<Function> func = Local<Function>::New(isolate, *cb.Func);
-                Local<Object> njQ = NJAsyncQueue::New(isolate, processor, true);
                 switch (cb.EventType) {
                     case qeDiscarded:
                     {
                         bool canceled;
                         *cb.Buffer >> canceled;
                         assert(!cb.Buffer->GetSize());
-                        Local<Value> argv[] = {v8::Boolean::New(isolate, canceled), njQ};
+                        //Local<Object> njQ = NJAsyncQueue::New(isolate, processor, true);
+                        Local<Value> argv[] = {Boolean::New(isolate, canceled), Null(isolate)};
                         func->Call(isolate->GetCurrentContext(), Null(isolate), 2, argv);
                     }
                         break;
@@ -84,7 +85,8 @@ namespace NJA {
                             ++index;
                         }
                         assert(index == size);
-                        Local<Value> argv[] = {jsKeys, njQ};
+                        //Local<Object> njQ = NJAsyncQueue::New(isolate, processor, true);
+                        Local<Value> argv[] = {jsKeys, Null(isolate)};
                         func->Call(isolate->GetCurrentContext(), Null(isolate), 2, argv);
                     }
                         break;
@@ -95,7 +97,8 @@ namespace NJA {
                         *cb.Buffer >> indexMessage;
                         assert(!cb.Buffer->GetSize());
                         Local<Value> im = Number::New(isolate, (double) indexMessage);
-                        Local<Value> argv[] = {im, njQ};
+                        //Local<Object> njQ = NJAsyncQueue::New(isolate, processor, true);
+                        Local<Value> argv[] = {im, Null(isolate)};
                         func->Call(isolate->GetCurrentContext(), Null(isolate), 2, argv);
                     }
                         break;
@@ -107,7 +110,8 @@ namespace NJA {
                         *cb.Buffer >> errCode;
                         assert(!cb.Buffer->GetSize());
                         Local<Value> jsCode = Int32::New(isolate, errCode);
-                        Local<Value> argv[] = {jsCode, njQ};
+                        //Local<Object> njQ = NJAsyncQueue::New(isolate, processor, true);
+                        Local<Value> argv[] = {jsCode, Null(isolate)};
                         func->Call(isolate->GetCurrentContext(), Null(isolate), 2, argv);
                     }
                         break;
@@ -118,7 +122,8 @@ namespace NJA {
                         assert(!cb.Buffer->GetSize());
                         Local<Value> mc = Number::New(isolate, (double) messageCount);
                         Local<Value> fs = Number::New(isolate, (double) fileSize);
-                        Local<Value> argv[] = {mc, fs, njQ};
+                        //Local<Object> njQ = NJAsyncQueue::New(isolate, processor, true);
+                        Local<Value> argv[] = {mc, fs, Null(isolate)};
                         func->Call(isolate->GetCurrentContext(), Null(isolate), 3, argv);
                     }
                         break;
@@ -132,7 +137,8 @@ namespace NJA {
                         Local<Value> fs = Number::New(isolate, (double) fileSize);
                         Local<Value> mdib = Uint32::New(isolate, messagesDequeuedInBatch);
                         Local<Value> bdib = Uint32::New(isolate, bytesDequeuedInBatch);
-                        Local<Value> argv[] = {mc, fs, mdib, bdib, njQ};
+                        //Local<Object> njQ = NJAsyncQueue::New(isolate, processor, true);
+                        Local<Value> argv[] = {mc, fs, mdib, bdib, Null(isolate)};
                         func->Call(isolate->GetCurrentContext(), Null(isolate), 5, argv);
                     }
                         break;
@@ -140,9 +146,10 @@ namespace NJA {
                     {
                         unsigned short reqId;
                         *cb.Buffer >> reqId;
+                        Local<Object> q = NJQueue::New(isolate, cb.Buffer);
                         Local<Value> jsReqid = Uint32::New(isolate, reqId);
-                        auto q = NJQueue::New(isolate, cb.Buffer);
-                        Local<Value> argv[] = {jsReqid, q, njQ};
+                        //Local<Object> njQ = NJAsyncQueue::New(isolate, processor, true);
+                        Local<Value> argv[] = {jsReqid, q, Null(isolate)};
                         func->Call(isolate->GetCurrentContext(), Null(isolate), 3, argv);
                         auto obj = node::ObjectWrap::Unwrap<NJQueue>(q);
                         obj->Release();
@@ -199,6 +206,7 @@ namespace NJA {
             if (argv[0]->IsFunction()) {
                 std::shared_ptr<CNJFunc> func(new CNJFunc);
                 func->Reset(isolate, Local<Function>::Cast(argv[0]));
+                Backup(func);
                 gk = [func](CAsyncQueue *aq, std::vector<std::string>& v) {
                     QueueCb qcb;
                     qcb.EventType = qeGetKeys;
@@ -236,6 +244,7 @@ namespace NJA {
             if (argv[0]->IsFunction()) {
                 std::shared_ptr<CNJFunc> func(new CNJFunc);
                 func->Reset(isolate, Local<Function>::Cast(argv[0]));
+                Backup(func);
                 qt = [func](CAsyncQueue *aq, int errCode) {
                     QueueCb qcb;
                     qcb.EventType = qeStartQueueTrans;
@@ -270,6 +279,7 @@ namespace NJA {
             if (argv[0]->IsFunction()) {
                 std::shared_ptr<CNJFunc> func(new CNJFunc);
                 func->Reset(isolate, Local<Function>::Cast(argv[0]));
+                Backup(func);
                 qt = [func](CAsyncQueue *aq, int errCode) {
                     QueueCb qcb;
                     qcb.EventType = qeEndQueueTrans;
@@ -304,6 +314,7 @@ namespace NJA {
             if (argv[0]->IsFunction()) {
                 std::shared_ptr<CNJFunc> func(new CNJFunc);
                 func->Reset(isolate, Local<Function>::Cast(argv[0]));
+                Backup(func);
                 c = [func](CAsyncQueue *aq, int errCode) {
                     QueueCb qcb;
                     qcb.EventType = qeCloseQueue;
@@ -338,6 +349,7 @@ namespace NJA {
             if (argv[0]->IsFunction()) {
                 std::shared_ptr<CNJFunc> func(new CNJFunc);
                 func->Reset(isolate, Local<Function>::Cast(argv[0]));
+                Backup(func);
                 f = [func](CAsyncQueue *aq, SPA::UINT64 messageCount, SPA::UINT64 fileSize) {
                     QueueCb qcb;
                     qcb.EventType = qeFlushQueue;
@@ -372,6 +384,7 @@ namespace NJA {
             if (argv[0]->IsFunction()) {
                 std::shared_ptr<CNJFunc> func(new CNJFunc);
                 func->Reset(isolate, Local<Function>::Cast(argv[0]));
+                Backup(func);
                 d = [func](CAsyncQueue *aq, SPA::UINT64 messageCount, SPA::UINT64 fileSize, unsigned int messagesDequeuedInBatch, unsigned int bytesDequeuedInBatch) {
                     QueueCb qcb;
                     qcb.EventType = qeDequeue;
@@ -410,6 +423,7 @@ namespace NJA {
             if (argv[0]->IsFunction()) {
                 std::shared_ptr<CNJFunc> func(new CNJFunc);
                 func->Reset(isolate, Local<Function>::Cast(argv[0]));
+                Backup(func);
                 e = [func](CAsyncQueue *aq, SPA::UINT64 indexMessage) {
                     QueueCb qcb;
                     qcb.EventType = qeEnqueue;
@@ -444,6 +458,7 @@ namespace NJA {
             if (argv[0]->IsFunction()) {
                 std::shared_ptr<CNJFunc> func(new CNJFunc);
                 func->Reset(isolate, Local<Function>::Cast(argv[0]));
+                Backup(func);
                 e = [func](CAsyncQueue *aq, SPA::UINT64 indexMessage) {
                     QueueCb qcb;
                     qcb.EventType = qeEnqueueBatch;

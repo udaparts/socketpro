@@ -18,7 +18,7 @@ namespace NJA {
         void Release();
         bool IsValid(Isolate* isolate);
 
-        static const SPA::INT64 SECRECT_NUM = 0x7fa1d4ff2c45;
+        static const SPA::INT64 SECRECT_NUM = 0xa1d4ff2c45;
         static void New(const FunctionCallbackInfo<Value>& args);
         static void Dispose(const FunctionCallbackInfo<Value>& args);
         static void Close(const FunctionCallbackInfo<Value>& args);

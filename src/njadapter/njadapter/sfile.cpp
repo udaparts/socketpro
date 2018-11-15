@@ -22,6 +22,7 @@ namespace NJA {
             if (argv[0]->IsFunction()) {
                 std::shared_ptr<CNJFunc> func(new CNJFunc);
                 func->Reset(isolate, Local<Function>::Cast(argv[0]));
+                Backup(func);
                 dd = [func, download](CStreamingFile *file, int res, const std::wstring & errMsg) {
                     FileCb fcb;
                     fcb.Download = download;
@@ -44,6 +45,7 @@ namespace NJA {
             if (argv[1]->IsFunction()) {
                 std::shared_ptr<CNJFunc> func(new CNJFunc);
                 func->Reset(isolate, Local<Function>::Cast(argv[1]));
+                Backup(func);
                 trans = [func, download](CStreamingFile *file, SPA::UINT64 transferred) {
                     FileCb fcb;
                     fcb.Download = download;
@@ -66,6 +68,7 @@ namespace NJA {
             if (argv[2]->IsFunction()) {
                 std::shared_ptr<CNJFunc> func(new CNJFunc);
                 func->Reset(isolate, Local<Function>::Cast(argv[2]));
+                Backup(func);
                 aborted = [func, download](CAsyncServiceHandler *file, bool canceled) {
                     FileCb fcb;
                     fcb.Download = download;

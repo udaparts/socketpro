@@ -17,7 +17,7 @@ namespace NJA {
         static const char *BAD_MESSAGE_SENT;
 
     private:
-        static const SPA::INT64 SECRECT_NUM = 0x7f1bb0fce4a5;
+        static const SPA::INT64 SECRECT_NUM = 0x1bb0fce4a5;
         static void New(const FunctionCallbackInfo<Value>& args);
         static void Publish(const FunctionCallbackInfo<Value>& args);
         static void Subscribe(const FunctionCallbackInfo<Value>& args);

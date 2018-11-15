@@ -25,7 +25,7 @@ namespace NJA {
 
     private:
         void Ensure();
-        static const SPA::INT64 SECRECT_NUM = 0x7ff12ff345ff;
+        static const SPA::INT64 SECRECT_NUM = 0x2ff345ff;
         static void New(const FunctionCallbackInfo<Value>& args);
 
         template <class ctype>

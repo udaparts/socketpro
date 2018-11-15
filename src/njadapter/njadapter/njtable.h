@@ -27,7 +27,7 @@ namespace NJA {
         void Release();
         static bool IsTable(Local<Object> obj);
 
-        static const SPA::INT64 SECRECT_NUM = 0x4f25b02ce415;
+        static const SPA::INT64 SECRECT_NUM = 0x25b02ce415;
         static void New(const FunctionCallbackInfo<Value>& args);
 
         static void getMeta(const FunctionCallbackInfo<Value>& args);

@@ -42,7 +42,6 @@ namespace v8 {
                 NJANonCopyablePersistent* dest) {
             Uncompilable<Object>();
         }
-        // TODO(dcarney): come up with a good compile error here.
 
         template<class O> V8_INLINE static void Uncompilable() {
             TYPE_CHECK(O, Primitive);
@@ -1477,10 +1476,17 @@ namespace SPA {
 
 #ifdef NODE_JS_ADAPTER_PROJECT
         public:
+            typedef Persistent<Function, v8::NJANonCopyablePersistentTraits<Function> > CNJFunc;
+
             virtual SPA::UINT64 SendRequest(Isolate* isolate, int args, Local<Value> *argv, unsigned short reqId, const unsigned char *pBuffer, unsigned int size);
 
-        protected:
-            typedef Persistent<Function, v8::NJANonCopyablePersistentTraits<Function> > CNJFunc;
+            void Backup(std::shared_ptr<CNJFunc> f) {
+                m_fBackup.push_back(f);
+            }
+
+            void CleanFuncBackups() {
+                m_fBackup.clear();
+            }
 
         private:
 
@@ -1499,6 +1505,7 @@ namespace SPA {
             };
             std::deque<ReqCb> m_deqReqCb; //protected by m_cs;
             uv_async_t m_typeReq; //SendRequest events
+            std::deque<std::shared_ptr<CNJFunc> > m_fBackup;
 #endif
         private:
             CUCriticalSection m_cs;
