@@ -43,7 +43,9 @@ namespace v8 {
         }
 
         template<class O> V8_INLINE static void Uncompilable() {
+#ifdef WIN32_64
             TYPE_CHECK(O, Primitive);
+#endif
         }
     };
 };
