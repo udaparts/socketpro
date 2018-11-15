@@ -1179,7 +1179,7 @@ namespace SPA {
                 if (header->IsFunction()) {
                     std::shared_ptr<CNJFunc> func(new CNJFunc);
                     func->Reset(isolate, Local<Function>::Cast(header));
-					Backup(func);
+                    Backup(func);
                     rh = [func](CAsyncDBHandler & db) {
                         DBCb cb;
                         cb.Type = eBatchHeader;
@@ -1205,7 +1205,7 @@ namespace SPA {
                 if (header->IsFunction()) {
                     std::shared_ptr<CNJFunc> func(new CNJFunc);
                     func->Reset(isolate, Local<Function>::Cast(header));
-					Backup(func);
+                    Backup(func);
                     rh = [func](CAsyncDBHandler & db) {
                         DBCb cb;
                         cb.Type = eRowsetHeader;
@@ -1231,7 +1231,7 @@ namespace SPA {
                 if (r->IsFunction()) {
                     std::shared_ptr<CNJFunc> func(new CNJFunc);
                     func->Reset(isolate, Local<Function>::Cast(r));
-					Backup(func);
+                    Backup(func);
                     rows = [func](CAsyncDBHandler &db, CDBVariantArray & vData) {
                         DBCb cb;
                         cb.Type = eRows;
@@ -1262,7 +1262,7 @@ namespace SPA {
                 if (er->IsFunction()) {
                     std::shared_ptr<CNJFunc> func(new CNJFunc);
                     func->Reset(isolate, Local<Function>::Cast(er));
-					Backup(func);
+                    Backup(func);
                     result = [func](CAsyncDBHandler &db, int errCode, const std::wstring &errMsg, INT64 affected, UINT64 fail_ok, CDBVariant & vtId) {
                         DBCb cb;
                         cb.Type = eExecuteResult;
@@ -1288,7 +1288,7 @@ namespace SPA {
                 if (res->IsFunction()) {
                     std::shared_ptr<CNJFunc> func(new CNJFunc);
                     func->Reset(isolate, Local<Function>::Cast(res));
-					Backup(func);
+                    Backup(func);
                     result = [func](CAsyncDBHandler &db, int errCode, const std::wstring & errMsg) {
                         DBCb cb;
                         cb.Type = eResult;
@@ -1314,7 +1314,7 @@ namespace SPA {
                 if (abort->IsFunction()) {
                     std::shared_ptr<CNJFunc> func(new CNJFunc);
                     func->Reset(isolate, Local<Function>::Cast(abort));
-					Backup(func);
+                    Backup(func);
                     dd = [func](CAsyncServiceHandler *db, bool canceled) {
                         DBCb cb;
                         cb.Type = eDiscarded;
