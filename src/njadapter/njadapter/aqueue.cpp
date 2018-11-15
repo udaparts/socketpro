@@ -65,8 +65,8 @@ namespace NJA {
                         bool canceled;
                         *cb.Buffer >> canceled;
                         assert(!cb.Buffer->GetSize());
-                        //Local<Object> njQ = NJAsyncQueue::New(isolate, processor, true);
-                        Local<Value> argv[] = {Boolean::New(isolate, canceled), Null(isolate)};
+                        Local<Object> njQ = NJAsyncQueue::New(isolate, processor, true);
+                        Local<Value> argv[] = {Boolean::New(isolate, canceled), njQ};
                         func->Call(isolate->GetCurrentContext(), Null(isolate), 2, argv);
                     }
                         break;
@@ -75,6 +75,7 @@ namespace NJA {
                         unsigned int size;
                         *cb.Buffer >> size;
                         unsigned int index = 0;
+                        Local<Object> njQ = NJAsyncQueue::New(isolate, processor, true);
                         Local<Array> jsKeys = Array::New(isolate);
                         while (cb.Buffer->GetSize()) {
                             std::string s;
@@ -85,8 +86,7 @@ namespace NJA {
                             ++index;
                         }
                         assert(index == size);
-                        //Local<Object> njQ = NJAsyncQueue::New(isolate, processor, true);
-                        Local<Value> argv[] = {jsKeys, Null(isolate)};
+                        Local<Value> argv[] = {jsKeys, njQ};
                         func->Call(isolate->GetCurrentContext(), Null(isolate), 2, argv);
                     }
                         break;
@@ -96,9 +96,9 @@ namespace NJA {
                         SPA::UINT64 indexMessage;
                         *cb.Buffer >> indexMessage;
                         assert(!cb.Buffer->GetSize());
+                        Local<Object> njQ = NJAsyncQueue::New(isolate, processor, true);
                         Local<Value> im = Number::New(isolate, (double) indexMessage);
-                        //Local<Object> njQ = NJAsyncQueue::New(isolate, processor, true);
-                        Local<Value> argv[] = {im, Null(isolate)};
+                        Local<Value> argv[] = {im, njQ};
                         func->Call(isolate->GetCurrentContext(), Null(isolate), 2, argv);
                     }
                         break;
@@ -109,9 +109,9 @@ namespace NJA {
                         int errCode;
                         *cb.Buffer >> errCode;
                         assert(!cb.Buffer->GetSize());
+                        Local<Object> njQ = NJAsyncQueue::New(isolate, processor, true);
                         Local<Value> jsCode = Int32::New(isolate, errCode);
-                        //Local<Object> njQ = NJAsyncQueue::New(isolate, processor, true);
-                        Local<Value> argv[] = {jsCode, Null(isolate)};
+                        Local<Value> argv[] = {jsCode, njQ};
                         func->Call(isolate->GetCurrentContext(), Null(isolate), 2, argv);
                     }
                         break;
@@ -120,10 +120,10 @@ namespace NJA {
                         SPA::UINT64 messageCount, fileSize;
                         *cb.Buffer >> messageCount >> fileSize;
                         assert(!cb.Buffer->GetSize());
+                        Local<Object> njQ = NJAsyncQueue::New(isolate, processor, true);
                         Local<Value> mc = Number::New(isolate, (double) messageCount);
                         Local<Value> fs = Number::New(isolate, (double) fileSize);
-                        //Local<Object> njQ = NJAsyncQueue::New(isolate, processor, true);
-                        Local<Value> argv[] = {mc, fs, Null(isolate)};
+                        Local<Value> argv[] = {mc, fs, njQ};
                         func->Call(isolate->GetCurrentContext(), Null(isolate), 3, argv);
                     }
                         break;
@@ -133,12 +133,12 @@ namespace NJA {
                         unsigned int messagesDequeuedInBatch, bytesDequeuedInBatch;
                         *cb.Buffer >> messageCount >> fileSize >> messagesDequeuedInBatch >> bytesDequeuedInBatch;
                         assert(!cb.Buffer->GetSize());
+                        Local<Object> njQ = NJAsyncQueue::New(isolate, processor, true);
                         Local<Value> mc = Number::New(isolate, (double) messageCount);
                         Local<Value> fs = Number::New(isolate, (double) fileSize);
                         Local<Value> mdib = Uint32::New(isolate, messagesDequeuedInBatch);
                         Local<Value> bdib = Uint32::New(isolate, bytesDequeuedInBatch);
-                        //Local<Object> njQ = NJAsyncQueue::New(isolate, processor, true);
-                        Local<Value> argv[] = {mc, fs, mdib, bdib, Null(isolate)};
+                        Local<Value> argv[] = {mc, fs, mdib, bdib, njQ};
                         func->Call(isolate->GetCurrentContext(), Null(isolate), 5, argv);
                     }
                         break;

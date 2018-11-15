@@ -38,8 +38,7 @@ namespace v8 {
         static const bool kResetInDestructor = true;
 
         template<class S, class M>
-        V8_INLINE static void Copy(const Persistent<S, M>& source,
-                NJANonCopyablePersistent* dest) {
+        V8_INLINE static void Copy(const Persistent<S, M>& source, NJANonCopyablePersistent* dest) {
             Uncompilable<Object>();
         }
 
@@ -1481,10 +1480,12 @@ namespace SPA {
             virtual SPA::UINT64 SendRequest(Isolate* isolate, int args, Local<Value> *argv, unsigned short reqId, const unsigned char *pBuffer, unsigned int size);
 
             void Backup(std::shared_ptr<CNJFunc> f) {
+                CAutoLock al(m_cs);
                 m_fBackup.push_back(f);
             }
 
             void CleanFuncBackups() {
+                CAutoLock al(m_cs);
                 m_fBackup.clear();
             }
 
