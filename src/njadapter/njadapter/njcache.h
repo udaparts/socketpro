@@ -20,7 +20,7 @@ namespace NJA {
         static Local<Object> New(Isolate* isolate, SPA::CDataSet *ds, bool setCb);
 
     private:
-        static const SPA::INT64 SECRECT_NUM = 0x7f2bb02ce455;
+        static const SPA::INT64 SECRECT_NUM = 0x2bb02ce455;
         bool IsValid(Isolate* isolate);
         void Release();
         static void New(const FunctionCallbackInfo<Value>& args);

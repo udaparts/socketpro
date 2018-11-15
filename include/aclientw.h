@@ -29,6 +29,27 @@
 #include <uv.h>
 #include <v8.h>
 
+namespace v8 {
+
+    template<class T>
+    class NJANonCopyablePersistentTraits {
+    public:
+        typedef Persistent<T, NJANonCopyablePersistentTraits<T> > NJANonCopyablePersistent;
+        static const bool kResetInDestructor = true;
+
+        template<class S, class M>
+        V8_INLINE static void Copy(const Persistent<S, M>& source, NJANonCopyablePersistent* dest) {
+            Uncompilable<Object>();
+        }
+
+        template<class O> V8_INLINE static void Uncompilable() {
+#ifdef WIN32_64
+            TYPE_CHECK(O, Primitive);
+#endif
+        }
+    };
+};
+
 using v8::Local;
 using v8::Object;
 using v8::Isolate;
@@ -1456,10 +1477,19 @@ namespace SPA {
 
 #ifdef NODE_JS_ADAPTER_PROJECT
         public:
+            typedef Persistent<Function, v8::NJANonCopyablePersistentTraits<Function> > CNJFunc;
+
             virtual SPA::UINT64 SendRequest(Isolate* isolate, int args, Local<Value> *argv, unsigned short reqId, const unsigned char *pBuffer, unsigned int size);
 
-        protected:
-            typedef Persistent<Function> CNJFunc;
+            void Backup(std::shared_ptr<CNJFunc> f) {
+                CAutoLock al(m_cs);
+                m_fBackup.push_back(f);
+            }
+
+            void CleanFuncBackups() {
+                CAutoLock al(m_cs);
+                m_fBackup.clear();
+            }
 
         private:
 
@@ -1478,6 +1508,7 @@ namespace SPA {
             };
             std::deque<ReqCb> m_deqReqCb; //protected by m_cs;
             uv_async_t m_typeReq; //SendRequest events
+            std::deque<std::shared_ptr<CNJFunc> > m_fBackup;
 #endif
         private:
             CUCriticalSection m_cs;

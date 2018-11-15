@@ -66,7 +66,7 @@ namespace NJA {
         // Prepare constructor template
         Local<FunctionTemplate> tpl = FunctionTemplate::New(isolate, New);
         tpl->SetClassName(ToStr(isolate, "CUQueue"));
-        tpl->InstanceTemplate()->SetInternalFieldCount(3);
+        tpl->InstanceTemplate()->SetInternalFieldCount(4);
 
         //methods
         NODE_SET_PROTOTYPE_METHOD(tpl, "LoadBool", LoadBoolean);

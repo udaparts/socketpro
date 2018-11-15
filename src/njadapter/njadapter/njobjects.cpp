@@ -488,6 +488,9 @@ namespace NJA {
                             break;
                         case seAllProcessed:
                             run_micro = true;
+                            if (ash && !ash->GetAttachedClientSocket()->GetCountOfRequestsInQueue()) {
+                                ash->CleanFuncBackups();
+                            }
                             if (!obj->m_ap.IsEmpty()) {
                                 Local<Value> argv[] = {njAsh, jsReqId};
                                 Local<Function> cb = Local<Function>::New(isolate, obj->m_ap);

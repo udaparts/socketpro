@@ -112,12 +112,13 @@ namespace NJA {
             SPA::ClientSide::CSocketPool<CAQueue> *Queue;
         };
         SPA::CUCriticalSection m_cs;
-        Persistent<Function> m_rr; //OnResultReturned protected by m_cs
-        Persistent<Function> m_brp; //OnBaseRequestProcessed by m_cs
-        Persistent<Function> m_se; //OnServerException by m_cs
-        Persistent<Function> m_ap; //OnAllRequestsProcessed by m_cs
-        Persistent<Function> m_push; //OnAllRequestsProcessed by m_cs
-        Persistent<Function> m_evPool; //OnSocketPoolEvent by m_cs
+        typedef Persistent<Function, v8::NJANonCopyablePersistentTraits<Function> > CNJFunc;
+        CNJFunc m_rr; //OnResultReturned protected by m_cs
+        CNJFunc m_brp; //OnBaseRequestProcessed by m_cs
+        CNJFunc m_se; //OnServerException by m_cs
+        CNJFunc m_ap; //OnAllRequestsProcessed by m_cs
+        CNJFunc m_push; //OnAllRequestsProcessed by m_cs
+        CNJFunc m_evPool; //OnSocketPoolEvent by m_cs
         uv_async_t m_asyncType;
         std::deque<PoolEvent> m_deqPoolEvent; //Protected by m_cs;
 

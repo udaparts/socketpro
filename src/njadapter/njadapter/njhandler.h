@@ -15,7 +15,7 @@ namespace NJA {
         static Local<Object> New(Isolate* isolate, SPA::ClientSide::CAsyncServiceHandler *ash, bool setCb);
 
     private:
-        static const SPA::INT64 SECRECT_NUM = 0x7fa12ff345fb;
+        static const SPA::INT64 SECRECT_NUM = 0xa12ff345fb;
         static void New(const FunctionCallbackInfo<Value>& args);
 
     private:

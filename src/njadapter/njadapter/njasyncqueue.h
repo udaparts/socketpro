@@ -21,7 +21,7 @@ namespace NJA {
         void Release();
         bool IsValid(Isolate* isolate);
 
-        static const SPA::INT64 SECRECT_NUM = 0x7fa1b4ff23a5;
+        static const SPA::INT64 SECRECT_NUM = 0xa1b4ff23a5;
         static void New(const FunctionCallbackInfo<Value>& args);
         static void getDequeueBatchSize(const FunctionCallbackInfo<Value>& args);
         static void getEnqueueNotified(const FunctionCallbackInfo<Value>& args);
