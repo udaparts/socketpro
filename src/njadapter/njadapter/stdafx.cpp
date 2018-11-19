@@ -262,7 +262,7 @@ namespace NJA {
         } else if (len == (size_t) INVALID_NUMBER) {
             len = strlen(str);
         }
-        return String::NewFromUtf8(isolate, str, v8::NewStringType::kInternalized, (int) len).ToLocalChecked();
+        return String::NewFromUtf8(isolate, str, v8::NewStringType::kNormal, (int) len).ToLocalChecked();
     }
 
     Local<String> ToStr(Isolate* isolate, const wchar_t *str, size_t len) {
@@ -273,11 +273,11 @@ namespace NJA {
             len = wcslen(str);
         }
 #ifdef WIN32_64
-        return String::NewFromTwoByte(isolate, (const uint16_t *) str, v8::NewStringType::kInternalized, (int) len).ToLocalChecked(); //v8::NewStringType::kNormal will crash if length is large
+        return String::NewFromTwoByte(isolate, (const uint16_t *) str, v8::NewStringType::kNormal, (int) len).ToLocalChecked(); //v8::NewStringType::kNormal will crash if length is large
 #else
         SPA::CScopeUQueue sb;
-        SPA::Utilities::ToUTF8(str, len, *sb);
-        return String::NewFromUtf8(isolate, (const char *) sb->GetBuffer(), v8::NewStringType::kInternalized, (int) sb->GetSize()).ToLocalChecked();
+        SPA::Utilities::ToUTF16(str, len, *sb);
+        return String::NewFromTwoByte(isolate, (const uint16_t *) sb->GetBuffer(), v8::NewStringType::kNormal, (int) (sb->GetSize() / sizeof (uint16_t))).ToLocalChecked();
 #endif
     }
 
@@ -292,7 +292,7 @@ namespace NJA {
             len = SPA::Utilities::GetLen(str);
 #endif
         }
-        return String::NewFromTwoByte(isolate, str, v8::NewStringType::kInternalized, (int) len).ToLocalChecked();
+        return String::NewFromTwoByte(isolate, str, v8::NewStringType::kNormal, (int) len).ToLocalChecked();
     }
 
     std::wstring ToStr(const Local<Value>& s) {
