@@ -273,7 +273,7 @@ namespace NJA {
             len = wcslen(str);
         }
 #ifdef WIN32_64
-        return String::NewFromTwoByte(isolate, (const uint16_t *) str, v8::NewStringType::kNormal, (int) len).ToLocalChecked(); //v8::NewStringType::kNormal will crash if length is large
+        return String::NewFromTwoByte(isolate, (const uint16_t *) str, v8::NewStringType::kNormal, (int) len).ToLocalChecked();
 #else
         SPA::CScopeUQueue sb;
         SPA::Utilities::ToUTF16(str, len, *sb);
