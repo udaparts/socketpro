@@ -41,6 +41,10 @@
 // 25569 == difference between epoch (1970/01/01:00/00/00) and variant date (1899/12/30:00/00/00)
 #define DAYS_DIFF_EPOCH_VDATE   25569
 
+#ifndef	NDEBUG
+#include <iostream>
+#endif
+
 namespace SPA {
 
     /**
