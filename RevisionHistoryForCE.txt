@@ -1,3 +1,6 @@
+56. SocketPro Version 6.2.0.1
+	(a) Fix a potential crash related socket disconnection at client side.
+
 56. SocketPro Version 6.1.0.1-5
 	(a) Add new feature into SocketPro core libraries for automatic ordering on random returning requests
 	(b) Improve fault-tolerance, no message loss and connection auto recovery
