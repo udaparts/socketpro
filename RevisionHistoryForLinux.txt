@@ -1,5 +1,7 @@
-22. SocketPro Version 6.2.0.1
+22. SocketPro Version 6.2.0.1-2
 	(a) Add support of TLSv1.2 and disable SSL3.
+	(b) Remove a potential dead-lock related with routing at server side.
+	(c) Fix a potential crash related socket disconnection at client side.
 
 21. SocketPro Version 6.1.0.1-5
 	(a) Add new feature into SocketPro core libraries for automatic ordering on random returning requests
