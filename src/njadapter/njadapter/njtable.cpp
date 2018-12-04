@@ -167,7 +167,7 @@ namespace NJA {
         Isolate* isolate = args.GetIsolate();
         NJTable* obj = ObjectWrap::Unwrap<NJTable>(args.Holder());
         if (obj->IsValid(isolate)) {
-            Local<Value> jsRows = Uint32::New(isolate, (int) (obj->m_table->GetDataMatrix().size() / obj->m_table->GetMeta().size()));
+            Local<Value> jsRows = Uint32::New(isolate, (int) (obj->m_table->GetDataMatrix().size()));
             args.GetReturnValue().Set(jsRows);
         }
     }
