@@ -12,7 +12,9 @@
 
 8. DBPerf: a directory containing two .NET projects for performance comparision between SocketPro approach and native MS SQL server .NET provider.
 
-9. Key features are:
+9. mssql_streaming.js a test demonstration for node.js
+
+10. Key features are:
     - Simple for development
     - Support of both windows and linux platforms
     - Rich features with many unique ones because of its unique design

@@ -376,7 +376,7 @@ namespace NJA {
                     ThrowException(isolate, "Bad data for loading byte array");
                 }
             }
-            if (!obj->m_Buffer->GetSize())
+            if (obj->m_Buffer && !obj->m_Buffer->GetSize())
                 obj->Release();
         } catch (std::exception &err) {
             obj->Release();
@@ -405,7 +405,7 @@ namespace NJA {
                     ThrowException(isolate, "Bad data for loading ASCII string");
                 }
             }
-            if (!obj->m_Buffer->GetSize())
+            if (obj->m_Buffer && !obj->m_Buffer->GetSize())
                 obj->Release();
         } catch (std::exception &err) {
             obj->Release();
@@ -433,7 +433,7 @@ namespace NJA {
                 ThrowException(isolate, "Bad unicode string found");
                 obj->m_Buffer->SetSize(0);
             }
-            if (!obj->m_Buffer->GetSize())
+            if (obj->m_Buffer && !obj->m_Buffer->GetSize())
                 obj->Release();
         } catch (std::exception &err) {
             obj->Release();
@@ -715,7 +715,7 @@ namespace NJA {
             Local<Function> cb = Local<Function>::Cast(args[0]);
             Local<Value> argv[] = {args.Holder()};
             args.GetReturnValue().Set(cb->Call(isolate->GetCurrentContext(), Null(isolate), 1, argv).ToLocalChecked());
-            if (!obj->m_Buffer->GetSize())
+            if (obj->m_Buffer && !obj->m_Buffer->GetSize())
                 obj->Release();
         } else {
             obj->Release();
