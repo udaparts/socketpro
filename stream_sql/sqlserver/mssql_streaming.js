@@ -6,6 +6,7 @@ var cs = SPA.CS; //CS == Client side
 
 //create a socket pool object
 var p = cs.newPool(SPA.SID.sidOdbc); //or sidOdbc, sidSqlite, sidMysql
+global.p = p;
 
 //create a connection context
 var cc = cs.newCC('localhost', 20903, 'sa', 'Smash123');

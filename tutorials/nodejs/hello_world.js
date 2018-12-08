@@ -14,6 +14,7 @@ var cs = SPA.CS; //CS == Client side
 
 //create a global socket pool object
 var p = cs.newPool(sid);
+global.p = p;
 
 //create a connection context
 var cc = cs.newCC('localhost', 20901, 'root', 'Smash123');

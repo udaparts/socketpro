@@ -11,6 +11,7 @@ const idSleep = idSayHello + 1;
 const idEcho = idSleep + 1;
 
 var cs = SPA.CS; //CS == Client side
+cs.TLS.CA = 'ca.cert.pem'; //or 'root' on windows for server certificate authentication
 
 function onLineMessage() {
     process.stdout.write('Online Message Push: ');
@@ -19,13 +20,13 @@ function onLineMessage() {
 
 //create a socket pool object
 var p = cs.newPool(sid);
-cs.TLS.CA = 'root';
+global.p = p;
 
 //track various events if neccessary
 p.Push = onLineMessage;
 
-//create a connection context
-var cc = cs.newCC('localhost', 20901, 'root', 'Smash123', 1);
+//create a secure connection context
+var cc = cs.newCC('localhost', 20901, 'root', 'Smash123', 1); //1 -- TLSv1.x
 
 //start a socket pool having one session to a remote server
 if (!p.Start(cc, 1)) {
