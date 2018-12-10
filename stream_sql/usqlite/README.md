@@ -18,7 +18,9 @@
 
 9. DBPerf: a directory containing two projects for performance comparision between SocketPro approach and mysql/mariadb .NET provider.
 
-10. Key features are:
+10. sqlite_streaming.js a test demonstration for node.js
+
+11. Key features are:
     - Simple for development
     - Support of both windows and linux platforms
     - Rich features with many unique ones because of its unique design

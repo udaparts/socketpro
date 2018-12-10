@@ -16,7 +16,9 @@
 
 8. DBPerf: a directory containing three projects for performance comparision between SocketPro approach and MySQL .NET provider.
 
-9. Key features are:
+9. mysql_streaming.js a test demonstration for node.js
+
+10. Key features are:
     - Simple for development
     - Support of both windows and linux platforms
     - Rich features with many unique ones because of its unique design
@@ -26,4 +28,4 @@
     - Cancel supported fully
     - Async MySQL service is totally free to you
 
-10. This Async MySQL SQL-streaming service supports MySQL 8.0.11 or later.
+11. This Async MySQL SQL-streaming service supports MySQL 8.0.11 or later.

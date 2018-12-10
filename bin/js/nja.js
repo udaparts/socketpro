@@ -1,3 +1,5 @@
+"use strict";
+
 var SPA = require('njadapter');
 var assert = require('assert');
 
