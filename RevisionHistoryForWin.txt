@@ -1,5 +1,5 @@
 84. SocketPro Version 6.2.0.1-3
-	(a) Add support of TLSv1.2 and disable SSL3.
+	(a) Add support of TLSv1.2 and TLSv1.3, and disable SSL3.
 	(b) Remove a potential dead-lock related with routing at server side.
 	(c) Fix a potential crash related socket disconnection at client side.
 	(d) Re-add support of windows XP and Windows 2003
