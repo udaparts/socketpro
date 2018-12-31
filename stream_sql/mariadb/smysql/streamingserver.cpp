@@ -326,7 +326,11 @@ void CStreamingServer::ConfigServices() {
     for (auto p = CSetGlobals::Globals.services.begin(), end = CSetGlobals::Globals.services.end(); p != end; ++p) {
         HINSTANCE hModule = CSocketProServer::DllManager::AddALibrary(p->c_str(), 0);
         if (!hModule) {
-            CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Not able o load server plugin %s", p->c_str());
+#ifdef WIN32_64
+            CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Not able to load server plugin %s", p->c_str());
+#else
+            CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Not able to load server plugin %s (%s)", p->c_str(), dlerror());
+#endif
         }
     }
 }
