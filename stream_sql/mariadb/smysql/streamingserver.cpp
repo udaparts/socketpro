@@ -44,6 +44,8 @@ int async_sql_plugin_deinit(void *p) {
 CSetGlobals::CSetGlobals() : m_fLog(nullptr), m_nParam(0), DisableV6(false), Port(20902),
 server_version(nullptr),
 m_hModule(nullptr), Plugin(nullptr), enable_http_websocket(false) {
+    unsigned int version = MYSQL_VERSION_ID;
+    async_sql_plugin.interface_version = (version << 8);
     //defaults
 #ifdef WIN32_64
     m_hModule = ::GetModuleHandle(nullptr);
@@ -59,7 +61,6 @@ m_hModule(nullptr), Plugin(nullptr), enable_http_websocket(false) {
         }
     } else {
         LogMsg(__FILE__, __LINE__, "m_hModule is nullptr");
-        assert(false);
     }
     UpdateLog();
 
@@ -76,19 +77,17 @@ m_hModule(nullptr), Plugin(nullptr), enable_http_websocket(false) {
     CConfig::Update(DefaultConfig);
     SetConfig(DefaultConfig);
 
-    unsigned int version = MYSQL_VERSION_ID;
     if (server_version && strlen(server_version)) {
         version = GetVersion(server_version);
         if (!version) {
             LogMsg(__FILE__, __LINE__, "Version not found inside mysqld application");
-            version = MYSQL_VERSION_ID;
         } else {
             LogMsg(__FILE__, __LINE__, "Version %d found inside mysqld application", version);
+            //set interface_version
+            async_sql_plugin.interface_version = (version << 8);
         }
     }
     UpdateLog();
-    //set interface_version
-    async_sql_plugin.interface_version = (version << 8);
 }
 
 void CSetGlobals::LogMsg(const char *file, int fileLineNumber, const char *format ...) {
