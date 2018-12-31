@@ -12,7 +12,10 @@ void CConfig::Update(std::unordered_map<std::string, std::string> &mapConfig) {
     std::ifstream input(STREAM_DB_CONFIG_FILE);
     if (input.good()) {
         std::string line;
-        while (std::getline(input, line) && line.size()) {
+        while (std::getline(input, line)) {
+            if (!line.size()) {
+                continue;
+            }
             auto pos = line.find('=');
             if (pos == std::string::npos) {
                 CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Bad entry (%s) found in file %s", line.c_str(), STREAM_DB_CONFIG_FILE);
