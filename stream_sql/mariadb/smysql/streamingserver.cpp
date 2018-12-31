@@ -52,11 +52,16 @@ m_hModule(nullptr), Plugin(nullptr), enable_http_websocket(false) {
 #endif
     if (m_hModule) {
         server_version = (const char*) ::GetProcAddress(m_hModule, "server_version");
-        if (!server_version)
+        if (!server_version) {
             LogMsg(__FILE__, __LINE__, "Variable server_version not found inside mysqld application");
+        } else {
+            LogMsg(__FILE__, __LINE__, "Variable server_version = (%s)", server_version);
+        }
     } else {
+        LogMsg(__FILE__, __LINE__, "m_hModule is nullptr");
         assert(false);
     }
+    UpdateLog();
 
     DefaultConfig[STREAMING_DB_PORT] = "20902";
     DefaultConfig[STREAMING_DB_MAIN_THREADS] = "1";
@@ -74,9 +79,14 @@ m_hModule(nullptr), Plugin(nullptr), enable_http_websocket(false) {
     unsigned int version = MYSQL_VERSION_ID;
     if (server_version && strlen(server_version)) {
         version = GetVersion(server_version);
-        if (!version)
+        if (!version) {
+            LogMsg(__FILE__, __LINE__, "Version not found inside mysqld application");
             version = MYSQL_VERSION_ID;
+        } else {
+            LogMsg(__FILE__, __LINE__, "Version %d found inside mysqld application", version);
+        }
     }
+    UpdateLog();
     //set interface_version
     async_sql_plugin.interface_version = (version << 8);
 }
