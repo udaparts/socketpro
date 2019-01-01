@@ -32,6 +32,8 @@ int async_sql_plugin_deinit(void *p) {
 CSetGlobals::CSetGlobals() : m_fLog(nullptr), m_nParam(0), DisableV6(false), Port(20902),
 server_version(nullptr),
 m_hModule(nullptr), Plugin(nullptr), enable_http_websocket(false) {
+    unsigned int version = MYSQL_VERSION_ID;
+    async_sql_plugin.interface_version = (version << 8);
     //defaults
 #ifdef WIN32_64
     m_hModule = ::GetModuleHandle(nullptr);
@@ -40,11 +42,15 @@ m_hModule(nullptr), Plugin(nullptr), enable_http_websocket(false) {
 #endif
     if (m_hModule) {
         server_version = (const char*) ::GetProcAddress(m_hModule, "server_version");
-        if (!server_version)
+        if (!server_version) {
             LogMsg(__FILE__, __LINE__, "Variable server_version not found inside mysqld application");
+        } else {
+            LogMsg(__FILE__, __LINE__, "Variable server_version = (%s)", server_version);
+        }
     } else {
-        assert(false);
+        LogMsg(__FILE__, __LINE__, "m_hModule is nullptr");
     }
+    UpdateLog();
 
     DefaultConfig[STREAMING_DB_PORT] = "20902";
     DefaultConfig[STREAMING_DB_MAIN_THREADS] = "1";
@@ -56,14 +62,17 @@ m_hModule(nullptr), Plugin(nullptr), enable_http_websocket(false) {
     DefaultConfig[STREAMING_DB_SERVICES] = "";
     DefaultConfig[STREAMING_DB_HTTP_WEBSOCKET] = "0";
 
-    unsigned int version = MYSQL_VERSION_ID;
     if (server_version && strlen(server_version)) {
         version = GetVersion(server_version);
-        if (!version)
-            version = MYSQL_VERSION_ID;
+        if (!version) {
+            LogMsg(__FILE__, __LINE__, "Version not found inside mysqld application");
+        } else {
+            LogMsg(__FILE__, __LINE__, "Version %d found inside mysqld application", version);
+            //set interface_version
+            async_sql_plugin.interface_version = (version << 8);
+        }
+        UpdateLog();
     }
-    //set interface_version
-    async_sql_plugin.interface_version = (version << 8);
 }
 
 void CSetGlobals::LogMsg(const char *file, int fileLineNumber, const char *format ...) {
