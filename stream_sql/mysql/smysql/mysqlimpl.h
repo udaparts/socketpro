@@ -16,7 +16,7 @@ typedef int socklen_t;
 #endif
 #include "mysql/plugin.h"
 
-#define STREAMING_DB_PORT			"port"
+#define STREAMING_DB_PORT		"port"
 #define STREAMING_DB_MAIN_THREADS	"main_threads"
 #define STREAMING_DB_NO_IPV6		"disable_ipv6"
 #define STREAMING_DB_SSL_KEY		"ssl_key_or_store"
@@ -24,7 +24,7 @@ typedef int socklen_t;
 #define STREAMING_DB_SSL_PASSWORD	"ssl_key_password"
 #define STREAMING_DB_CACHE_TABLES	"cached_tables"
 #define STREAMING_DB_SERVICES		"services"
-#define STREAMING_DB_HTTP_WEBSOCKET "enable_http_websocket"
+#define STREAMING_DB_HTTP_WEBSOCKET     "enable_http_websocket"
 
 namespace SPA {
     namespace ServerSide {
