@@ -15,6 +15,8 @@
 
 #ifdef NODE_JS_ADAPTER_PROJECT
 
+#define NO_MIDDLE_TIER
+
 #ifdef WIN32_64
 //warning C4251: 'node::CallbackScope::try_catch_': class 'v8::TryCatch' needs to have dll-interface to be used by clients
 #pragma warning(disable: 4251)

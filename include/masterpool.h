@@ -5,7 +5,7 @@
 #include "generalcache.h"
 #include "masterslavebase.h"
 
-#ifndef NODE_JS_ADAPTER_PROJECT
+#ifndef NO_MIDDLE_TIER
 #include "aserverw.h" //don't need to distribute server code library if the below template midTier is false, even though the header file is required here
 #endif
 
@@ -39,7 +39,7 @@ namespace SPA {
                             assert(groups[0] == UDB::STREAMING_SQL_CHAT_GROUP_ID || groups[0] == UDB::CACHE_UPDATE_CHAT_GROUP_ID);
 
                             if (groups[0] == UDB::CACHE_UPDATE_CHAT_GROUP_ID) {
-#ifndef NODE_JS_ADAPTER_PROJECT
+#ifndef NO_MIDDLE_TIER
                                 if (midTier) {
                                     UVariant vtMessage;
                                     //notify front clients to re-initialize cache
@@ -49,7 +49,7 @@ namespace SPA {
                                 this->SetInitialCache(pHandler);
                                 return;
                             }
-#ifndef NODE_JS_ADAPTER_PROJECT
+#ifndef NO_MIDDLE_TIER
                             if (midTier) {
                                 //push message onto front clients which may be interested in the message
                                 ServerSide::CSocketProServer::PushManager::Publish(vtMsg, &UDB::STREAMING_SQL_CHAT_GROUP_ID, 1);
@@ -120,7 +120,7 @@ namespace SPA {
                             }
                             ::SafeArrayUnaccessData(vtMsg.parray);
                         };
-#ifndef NODE_JS_ADAPTER_PROJECT
+#ifndef NO_MIDDLE_TIER
                         if (midTier) {
                             UVariant vtMessage;
                             ServerSide::CSocketProServer::PushManager::Publish(vtMessage, &UDB::CACHE_UPDATE_CHAT_GROUP_ID, 1);
