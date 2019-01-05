@@ -13,9 +13,9 @@
 // Windows Header Files:
 #include <windows.h>
 
+#define SPA_PHP_EXPORT __declspec(dllexport)
 #else
-
-
+#define SPA_PHP_EXPORT __attribute__ ((visibility ("default")))
 #endif
 
 #include <phpcpp.h>
