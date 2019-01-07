@@ -20,7 +20,6 @@
 
 #include <phpcpp.h>
 
-#include "../../../include/aclientw.h"
 #include "../../../include/aqhandler.h"
 #include "../../../include/streamingfile.h"
 #include "../../../include/udb_client.h"
