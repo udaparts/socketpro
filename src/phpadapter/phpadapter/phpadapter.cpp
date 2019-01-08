@@ -1,45 +1,55 @@
 
 #include "stdafx.h"
+/**
+*  Native function that is callable from PHP
+*/
+Php::Value run_test() {
+	// create the anonymous function
+	Php::Function multiply_by_two([](Php::Parameters &params) -> Php::Value {
 
-void example_function(Php::Parameters &params) {
-	// first parameter is an array
-	Php::Value array = params[0];
+		// make sure the function was really called with at least one parameter
+		if (params.empty()) return nullptr;
 
-	// call the PHP array_keys() function to get the parameter keys
-	std::vector<std::string> keys = Php::array_keys(array);
+		// one parameter is passed to the function
+		Php::Value param = params[0];
 
-	// loop through the keys
-	for (auto &key : keys) {
-		// output key
-		Php::out << "key: " << key << std::endl;
-	}
+		// multiple the parameter by two
+		return param * 2;
+	});
 
-	// call a function from user space
-	Php::Value data = Php::call("some_function", "some_parameter");
+	// the function now is callable
+	Php::Value four = multiply_by_two(2);
 
-	// create an object (this will also call __construct())
-	Php::Object time("DateTime", "now");
+	// a Php::Function object is a derived Php::Value, and its value can 
+	// also be stored in a normal Php::Value object, it will then still 
+	// be a callback function then
+	Php::Value value = multiply_by_two;
 
-	// call a method on the datetime object
-	Php::out << time.call("format", "Y-m-d H:i:s") << std::endl;
+	auto type = value.type();
 
-	// second parameter is a callback function
-	Php::Value callback = params[1];
+	// the value object now also holds the function
+	Php::Value six = value(3);
 
-	// call the callback function
-	callback("some", "parameter");
+	// create an array
+	Php::Value array;
+	array[0] = 1;
+	array[1] = 2;
+	array[2] = 3;
+	array[3] = 4;
+	array[4] = six;
 
-	// in PHP it is possible to create an array with two parameters, the first
-	// parameter being an object, and the second parameter should be the name
-	// of the method, we can do that in PHP-CPP too
-	Php::Array time_format({ time, "format" });
+	// call the user-space function
+	Php::Value result = Php::call("my_array_map", array, multiply_by_two);
 
-	// call the method that is stored in the array
-	Php::out << time_format("Y-m-d H:i:s") << std::endl;
+	type = result.type();
+
+	// @todo do something with the result variable (which now holds
+	// an array with values 2, 4, 6 and 8).
+	return result;
 }
 
 /**
-*  Switch to C context, because the Zend engine expects get get_module()
+*  Switch to C context, because the Zend engine expects the get_module()
 *  to have a C style function signature
 */
 extern "C" {
@@ -53,7 +63,7 @@ extern "C" {
 		static Php::Extension extension("my_extension", "1.0");
 
 		// add the example function so that it can be called from PHP scripts
-		extension.add("example_function", example_function);
+		extension.add("run_test", run_test);
 
 		// return the extension details
 		return extension;
