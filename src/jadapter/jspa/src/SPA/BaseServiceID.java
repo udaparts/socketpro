@@ -9,5 +9,5 @@ public final class BaseServiceID {
     public static final int sidFile = (sidHTTP + 1);
     public static final int sidODBC = (sidFile + 1);
     public static final int sidReserved = 0x10000000;
-    public static final int sidQueue = (sidReserved + 0xEFFF0000);
+    public static final int sidQueue = sidChat;
 }

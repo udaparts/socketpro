@@ -96,9 +96,9 @@ namespace SocketProAdapter
         idTurnOnZipAtSvr = (idDoEcho + 1),
         idStartBatching = (idTurnOnZipAtSvr + 1),
         idCommitBatching = (idStartBatching + 1),
-        idShrinkMemoryAtSvr = (idCommitBatching + 1),
-        idSetRouting = (idShrinkMemoryAtSvr + 1),
-        idPing = (idSetRouting + 1),
+        idStartMerge = (idCommitBatching + 1),
+        idEndMerge = (idStartMerge + 1),
+        idPing = (idEndMerge + 1),
         idEnableClientDequeue = (idPing + 1),
         idServerException = (idEnableClientDequeue + 1),
         idAllMessagesDequeued = (idServerException + 1),
@@ -136,7 +136,7 @@ namespace SocketProAdapter
         public const uint sidFile = (sidHTTP + 1);
         public const uint sidODBC = (sidFile + 1);
         public const uint sidReserved = 0x10000000;
-        public const uint sidQueue = (sidReserved + 0xEFFF0000);
+        public const uint sidQueue = sidChat;
     }
 
     public static class BaseExceptionCode
@@ -151,6 +151,7 @@ namespace SocketProAdapter
         public const uint becQUEUE_FILE_NOT_AVAILABLE = 0xAAAA0007;
         public const uint becALREADY_DEQUEUED = 0xAAAA0008;
         public const uint becROUTEE_DISCONNECTED = 0xAAAA0009;
+        public const uint becREQUEST_ABORTED = 0xAAAA000A;
     }
 
     public enum tagEncryptionMethod : int

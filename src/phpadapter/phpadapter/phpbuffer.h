@@ -12,8 +12,8 @@ public:
 	void Empty();
 	void CleanTrack();
 	Php::Value Discard(Php::Parameters &params);
-	
-	
+	Php::Value SaveDate(Php::Parameters &params);
+	Php::Value LoadDate();
 	
 	Php::Value __get(const Php::Value &name);
 	void __set(const Php::Value &name, const Php::Value &value);

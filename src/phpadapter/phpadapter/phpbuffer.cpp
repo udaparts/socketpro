@@ -52,6 +52,37 @@ Php::Value CPhpBuffer::Discard(Php::Parameters &params) {
 	return (int64_t)m_pBuffer->Pop(bytes);
 }
 
+Php::Value CPhpBuffer::SaveDate(Php::Parameters &params) {
+	if (!m_pBuffer) {
+		m_pBuffer = SPA::CScopeUQueue::Lock();
+	}
+	Php::Value dt = params[0].call("format", "Y-m-d H:i:s.u");
+	SPA::UDateTime udt(dt.rawValue());
+	*m_pBuffer << udt.time;
+	return this;
+}
+
+Php::Value CPhpBuffer::LoadDate() {
+	if (!m_pBuffer) {
+		m_pBuffer = SPA::CScopeUQueue::Lock();
+	}
+	SPA::UINT64 time;
+	try {
+		*m_pBuffer >> time;
+		SPA::UDateTime udt(time);
+		char str[64] = { 0 };
+		udt.ToDBString(str, sizeof(str));
+		return Php::Object("DateTime", str);
+	}
+	catch (SPA::CUException &ex) {
+		auto message = ex.what();
+		throw Php::Exception(message);
+	}
+	catch (...) {
+		throw Php::Exception("Unknown error");
+	}
+}
+
 void CPhpBuffer::RegisterInto(Php::Namespace &spa) {
 	Php::Class<CPhpBuffer> buffer("CUQueue");
 	buffer.property("DEFAULT_BUFFER_SIZE", (int64_t)SPA::DEFAULT_INITIAL_MEMORY_BUFFER_SIZE, Php::Const);
@@ -65,15 +96,16 @@ void CPhpBuffer::RegisterInto(Php::Namespace &spa) {
 	buffer.method("Discard", &CPhpBuffer::Discard, {
 		Php::ByVal("len", Php::Type::Numeric)
 	});
+	buffer.method("SaveDate", &CPhpBuffer::SaveDate, {
+		Php::ByVal("dt", "DateTime", false, true)
+	});
+	buffer.method("LoadDate", &CPhpBuffer::LoadDate);
 	spa.add(buffer);
 }
 
 Php::Value CPhpBuffer::__get(const Php::Value &name) {
 	if (!m_pBuffer) {
-		if (name == "OS") {
-			return (int64_t)(SPA::GetOS());
-		}
-		return 0;
+		m_pBuffer = SPA::CScopeUQueue::Lock();
 	}
 	if (name == "Size") {
 		return (int64_t)(m_pBuffer->GetSize());
@@ -98,11 +130,20 @@ Php::Value CPhpBuffer::__get(const Php::Value &name) {
 
 void CPhpBuffer::__set(const Php::Value &name, const Php::Value &value) {
 	if (!m_pBuffer) {
-		throw Php::Exception("Buffer object already released");
+		auto size = value.numericValue();
+		if (name == "Size" && size > 0) {
+			m_pBuffer = SPA::CScopeUQueue::Lock(SPA::GetOS(), SPA::IsBigEndian(), (unsigned int)size);
+		}
+		else {
+			m_pBuffer = SPA::CScopeUQueue::Lock();
+		}
 	}
 	if (name == "Size") {
 		auto size = value.numericValue();
-		if (size < 0 || size < m_pBuffer->GetSize() + m_pBuffer->GetHeadPosition()) {
+		if (size < 0) {
+			size = 0;
+		}
+		if ((unsigned int)size > m_pBuffer->GetSize() + m_pBuffer->GetHeadPosition()) {
 			throw Php::Exception("Invalid size value");
 		}
 		m_pBuffer->SetSize((unsigned int)size);
