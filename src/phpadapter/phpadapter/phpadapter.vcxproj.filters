@@ -30,6 +30,12 @@
     <ClInclude Include="..\..\..\include\tablecache.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="phpbuffer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spa_consts.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -48,6 +54,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\include\tablecache.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="phpbuffer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="spa_consts.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
