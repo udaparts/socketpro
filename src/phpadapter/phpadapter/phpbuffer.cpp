@@ -401,11 +401,14 @@ Php::Value CPhpBuffer::SaveUUID(Php::Parameters &params) {
 	EnsureBuffer();
 	if (data) {
 		unsigned int len = (unsigned int)params[0].length();
-		if (len < sizeof(UUID)) {
+		if (len != sizeof(UUID)) {
 			m_pBuffer->SetSize(0);
 			throw Php::Exception("Invalid UUID value");
 		}
 		m_pBuffer->Push((const unsigned char*)data, len);
+	}
+	else {
+		throw Php::Exception("Invalid UUID value");
 	}
 	return this;
 }
@@ -527,7 +530,7 @@ void CPhpBuffer::RegisterInto(Php::Namespace &spa) {
 		Php::ByVal("len", Php::Type::Numeric, false)
 	});
 	buffer.method("SaveUUID", &CPhpBuffer::SaveUUID, {
-		Php::ByVal("dec", Php::Type::String) //ASCII string
+		Php::ByVal("uuid", Php::Type::String) //ASCII string
 	});
 	buffer.method("LoadUUID", &CPhpBuffer::LoadUUID);
 
