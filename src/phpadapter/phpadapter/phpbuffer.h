@@ -38,6 +38,12 @@ public:
 	Php::Value LoadAString();
 	Php::Value SaveString(Php::Parameters &params);
 	Php::Value LoadString();
+	Php::Value SaveDecimal(Php::Parameters &params);
+	Php::Value LoadDecimal();
+	Php::Value PushBytes(Php::Parameters &params);
+	Php::Value PopBytes(Php::Parameters &params);
+	Php::Value SaveUUID(Php::Parameters &params);
+	Php::Value LoadUUID();
 
 	Php::Value __get(const Php::Value &name);
 	void __set(const Php::Value &name, const Php::Value &value);

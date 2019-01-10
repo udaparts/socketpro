@@ -58,7 +58,7 @@ void CPhpBuffer::EnsureBuffer() {
 	}
 }
 
-#define BufferLoadCatch catch(SPA::CUException&ex){auto msg=ex.what();throw Php::Exception(msg);}catch (std::exception &ex) {auto msg=ex.what();throw Php::Exception(msg);}catch(...){throw Php::Exception("Unknown exception");}
+#define BufferLoadCatch catch(SPA::CUException&ex){auto msg=ex.what();throw Php::Exception(msg);}catch(std::exception &ex){auto msg=ex.what();throw Php::Exception(msg);}catch(...){throw Php::Exception("Unknown exception");}
 
 Php::Value CPhpBuffer::SaveDate(Php::Parameters &params) {
 	EnsureBuffer();
@@ -279,7 +279,14 @@ Php::Value CPhpBuffer::LoadFloat() {
 Php::Value CPhpBuffer::SaveAString(Php::Parameters &params) {
 	auto data = params[0].rawValue();
 	EnsureBuffer();
-	*m_pBuffer << data;
+	if (!data) {
+		*m_pBuffer << SPA::UQUEUE_NULL_LENGTH;
+	}
+	else {
+		unsigned int len = (unsigned int)params[0].length();
+		*m_pBuffer << len;
+		m_pBuffer->Push((const unsigned char*)data, len);
+	}
 	return this;
 }
 
@@ -295,6 +302,32 @@ Php::Value CPhpBuffer::LoadAString() {
 		}
 		std::string s;
 		*m_pBuffer >> s;
+		return s;
+	}
+	BufferLoadCatch
+}
+
+Php::Value CPhpBuffer::SaveDecimal(Php::Parameters &params) {
+	auto data = params[0].rawValue();
+	EnsureBuffer();
+	if (data) {
+		DECIMAL dec;
+		SPA::ParseDec_long(data, dec);
+		*m_pBuffer << dec;
+	}
+	else {
+		//nullptr string
+		*m_pBuffer << data;
+	}
+	return this;
+}
+
+Php::Value CPhpBuffer::LoadDecimal() {
+	EnsureBuffer();
+	try {
+		DECIMAL dec;
+		*m_pBuffer >> dec;
+		std::string s = SPA::ToString_long(dec);
 		return s.c_str();
 	}
 	BufferLoadCatch
@@ -306,7 +339,7 @@ Php::Value CPhpBuffer::SaveString(Php::Parameters &params) {
 	if (data) {
 		SPA::CScopeUQueue sp;
 		SPA::Utilities::ToWide(data, ::strlen(data), *sp);
-		m_pBuffer->Push(sp->GetBuffer(), sp->GetSize());
+		*m_pBuffer << (const wchar_t *)sp->GetBuffer();
 	}
 	else {
 		//nullptr string
@@ -315,7 +348,7 @@ Php::Value CPhpBuffer::SaveString(Php::Parameters &params) {
 	return this;
 }
 
-Php::Value CPhpBuffer::LoadAString() {
+Php::Value CPhpBuffer::LoadString() {
 	EnsureBuffer();
 	try {
 		unsigned int *len = (unsigned int*)m_pBuffer->GetBuffer();
@@ -325,11 +358,87 @@ Php::Value CPhpBuffer::LoadAString() {
 			*m_pBuffer >> n;
 			return nullptr;
 		}
-		std::string s;
+		std::wstring s;
 		*m_pBuffer >> s;
-		return s.c_str();
+		SPA::CScopeUQueue sp;
+		SPA::Utilities::ToUTF8(s.c_str(), s.size(), *sp);
+		return (const char*)sp->GetBuffer();
 	}
 	BufferLoadCatch
+}
+
+Php::Value CPhpBuffer::PushBytes(Php::Parameters &params) {
+	auto data = params[0].rawValue();
+	EnsureBuffer();
+	if (data) {
+		unsigned int len = (unsigned int)params[0].length();
+		unsigned int offset = 0;
+		if (params.size() > 2) {
+			auto os = params[2].numericValue();
+			if (os > 0) {
+				if (os > len) {
+					throw Php::Exception("Bad offset value");
+				}
+				else {
+					offset = (unsigned int)os;
+				}
+			}
+		}
+		len -= offset;
+		if (params.size() > 1) {
+			auto d = params[1].numericValue();
+			if (d > 0 && d < len) {
+				len -= (unsigned int)d;
+			}
+		}
+		m_pBuffer->Push((const unsigned char*)data + offset, len);
+	}
+	return this;
+}
+
+Php::Value CPhpBuffer::SaveUUID(Php::Parameters &params) {
+	auto data = params[0].rawValue();
+	EnsureBuffer();
+	if (data) {
+		unsigned int len = (unsigned int)params[0].length();
+		if (len < sizeof(UUID)) {
+			m_pBuffer->SetSize(0);
+			throw Php::Exception("Invalid UUID value");
+		}
+		m_pBuffer->Push((const unsigned char*)data, len);
+	}
+	return this;
+}
+
+Php::Value CPhpBuffer::PopBytes(Php::Parameters &params) {
+	EnsureBuffer();
+	unsigned int len = m_pBuffer->GetSize();
+	if (!len) {
+		return "";
+	}
+	if (params.size()) {
+		auto d = params[0].numericValue();
+		if (d >= 0 && d < len) {
+			len = (unsigned int)d;
+		}
+	}
+	const char *s = (const char*)m_pBuffer->GetBuffer();
+	std::string str(s, s + len);
+	m_pBuffer->Pop(len);
+	return str;
+}
+
+Php::Value CPhpBuffer::LoadUUID() {
+	EnsureBuffer();
+	unsigned int len = m_pBuffer->GetSize();
+	if (len < sizeof(GUID)) {
+		m_pBuffer->SetSize(0);
+		throw Php::Exception("Invalid UUID value");
+	}
+	const char *s = (const char*)m_pBuffer->GetBuffer();
+	std::string str(s, s + sizeof(GUID));
+	m_pBuffer->Pop((unsigned int)sizeof(GUID));
+	return str;
 }
 
 void CPhpBuffer::RegisterInto(Php::Namespace &spa) {
@@ -398,13 +507,30 @@ void CPhpBuffer::RegisterInto(Php::Namespace &spa) {
 	});
 	buffer.method("LoadFloat", &CPhpBuffer::LoadFloat);
 	buffer.method("SaveAString", &CPhpBuffer::SaveAString, {
-		Php::ByVal("as", Php::Type::String) //ASCII string
+		Php::ByVal("as", Php::Type::String, true) //ASCII string
 	});
 	buffer.method("LoadAString", &CPhpBuffer::LoadAString);
 	buffer.method("SaveString", &CPhpBuffer::SaveString, {
-		Php::ByVal("ws", Php::Type::String) //UNICODE string
+		Php::ByVal("ws", Php::Type::String, true) //UNICODE string
 	});
 	buffer.method("LoadString", &CPhpBuffer::LoadString);
+	buffer.method("SaveDecimal", &CPhpBuffer::SaveDecimal, {
+		Php::ByVal("dec", Php::Type::String) //ASCII string
+	});
+	buffer.method("LoadDecimal", &CPhpBuffer::LoadDecimal);
+	buffer.method("PushBytes", &CPhpBuffer::PushBytes, {
+		Php::ByVal("bytes", Php::Type::String, true), //ASCII string
+		Php::ByVal("len", Php::Type::Numeric, false),
+		Php::ByVal("offset", Php::Type::Numeric, false)
+	});
+	buffer.method("PopBytes", &CPhpBuffer::PopBytes, {
+		Php::ByVal("len", Php::Type::Numeric, false)
+	});
+	buffer.method("SaveUUID", &CPhpBuffer::SaveUUID, {
+		Php::ByVal("dec", Php::Type::String) //ASCII string
+	});
+	buffer.method("LoadUUID", &CPhpBuffer::LoadUUID);
+
 
 	spa.add(buffer);
 }
