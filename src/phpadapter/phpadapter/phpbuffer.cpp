@@ -84,22 +84,22 @@ Php::Value CPhpBuffer::LoadDate() {
 }
 
 void CPhpBuffer::RegisterInto(Php::Namespace &spa) {
-	Php::Class<CPhpBuffer> buffer("CUQueue");
+	Php::Class<CPhpBuffer> buffer("CUQueue", Php::Final);
 	buffer.property("DEFAULT_BUFFER_SIZE", (int64_t)SPA::DEFAULT_INITIAL_MEMORY_BUFFER_SIZE, Php::Const);
 	buffer.property("DEFAULT_BLOCK_SIZE", (int64_t)SPA::DEFAULT_MEMORY_BUFFER_BLOCK_SIZE, Php::Const);
-	buffer.method("__construct", &CPhpBuffer::__construct, {
+	buffer.method("__construct", &CPhpBuffer::__construct, Php::Public | Php::Final, {
 		Php::ByVal("maxLen", Php::Type::Numeric, false),
 		Php::ByVal("blockSize", Php::Type::Numeric, false)
 	});
-	buffer.method("Empty", &CPhpBuffer::Empty);
-	buffer.method("CleanTrack", &CPhpBuffer::CleanTrack);
-	buffer.method("Discard", &CPhpBuffer::Discard, {
+	buffer.method("Empty", &CPhpBuffer::Empty, Php::Public | Php::Final);
+	buffer.method("CleanTrack", &CPhpBuffer::CleanTrack, Php::Public | Php::Final);
+	buffer.method("Discard", &CPhpBuffer::Discard, Php::Public | Php::Final, {
 		Php::ByVal("len", Php::Type::Numeric)
 	});
-	buffer.method("SaveDate", &CPhpBuffer::SaveDate, {
+	buffer.method("SaveDate", &CPhpBuffer::SaveDate, Php::Public | Php::Final, {
 		Php::ByVal("dt", "DateTime", false, true)
 	});
-	buffer.method("LoadDate", &CPhpBuffer::LoadDate);
+	buffer.method("LoadDate", &CPhpBuffer::LoadDate, Php::Public | Php::Final);
 	spa.add(buffer);
 }
 
