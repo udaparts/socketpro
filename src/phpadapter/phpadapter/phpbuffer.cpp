@@ -352,7 +352,7 @@ Php::Value CPhpBuffer::LoadString() {
 	EnsureBuffer();
 	try {
 		unsigned int *len = (unsigned int*)m_pBuffer->GetBuffer();
-		if (*len == (~0)) {
+		if (*len == SPA::UQUEUE_NULL_LENGTH) {
 			//deal with nullptr string
 			unsigned int n;
 			*m_pBuffer >> n;
@@ -444,6 +444,364 @@ Php::Value CPhpBuffer::LoadUUID() {
 	return str;
 }
 
+Php::Value CPhpBuffer::SaveObject(Php::Parameters &params) {
+	VARTYPE vt;
+	std::string id;
+	auto data = params[0];
+	auto type = data.type();
+	if (params.size() > 1) {
+		auto h = params[2];
+		if (h.rawValue()) {
+			id = h.rawValue();
+
+			//lower & trim
+		}
+	}
+	EnsureBuffer();
+	switch (type) {
+	case Php::Type::Undefined:
+	case Php::Type::Null:
+		vt = VT_NULL;
+		*m_pBuffer << vt;
+		break;
+	case Php::Type::Bool:
+	case Php::Type::False:
+	case Php::Type::True:
+	{
+		vt = VT_BOOL;
+		VARIANT_BOOL b = data.boolValue() ? VARIANT_TRUE : VARIANT_FALSE;
+		*m_pBuffer << vt << b;
+	}
+		break;
+	case Php::Type::Numeric:
+		if (id == "i" || id == "int") {
+			vt = VT_I4;
+			int n = (int)data.numericValue();
+			*m_pBuffer << vt << n;
+		}
+		else if (id == "ui" || id == "uint" || id == "unsigned" || id == "unsigned int") {
+			vt = VT_UI4;
+			unsigned int n = (unsigned int)data.numericValue();
+			*m_pBuffer << vt << n;
+		}
+		else if (id == "ul" || id == "ulong" || id == "unsigned long long" || id == "unsigned long int") {
+			vt = VT_UI8;
+			SPA::UINT64 n = (SPA::UINT64)data.numericValue();
+			*m_pBuffer << vt << n;
+		}
+		else if (id == "s" || id == "short") {
+			vt = VT_I2;
+			short n = (short)data.numericValue();
+			*m_pBuffer << vt << n;
+		}
+		else if (id == "c" || id == "char" || id == "a") {
+			vt = VT_I1;
+			char n = (char)data.numericValue();
+			*m_pBuffer << vt << n;
+		}
+		else if (id == "b" || id == "byte" || id == "unsigned char") {
+			vt = VT_UI1;
+			unsigned char n = (unsigned char)data.numericValue();
+			*m_pBuffer << vt << n;
+		}
+		else if (id == "us" || id == "ushort" || id == "unsigned short") {
+			vt = VT_UI2;
+			unsigned short n = (unsigned short)data.numericValue();
+			*m_pBuffer << vt << n;
+		}
+		else {
+			vt = VT_I8;
+			*m_pBuffer << vt << data.numericValue();
+		}
+		break;
+	case Php::Type::Float:
+		if (id == "f" || id == "float") {
+			vt = VT_R4;
+			*m_pBuffer << vt << (float)data.floatValue();
+		}
+		else if (id == "dec" || id == "decimal") {
+			vt = VT_DECIMAL;
+			*m_pBuffer << vt;
+			DECIMAL dec;
+			std::string s = data.stringValue();
+			SPA::ParseDec_long(s.c_str(), dec);
+			*m_pBuffer << dec;
+		}
+		else {
+			vt = VT_R8;
+			*m_pBuffer << vt << data.floatValue();
+		}
+		break;
+	case Php::Type::String:
+		break;
+	case Php::Type::Array:
+		break;
+	case Php::Type::Object:
+		break;
+	default:
+		break;
+	}
+	return this;
+}
+
+Php::Value CPhpBuffer::LoadObject() {
+	EnsureBuffer();
+	try {
+		VARTYPE vt;
+		*m_pBuffer >> vt;
+		switch (vt) {
+		case VT_NULL:
+		case VT_EMPTY:
+			return nullptr;
+		case VT_I1:
+		{
+			char c;
+			m_pBuffer->Pop((unsigned char*)&c, sizeof(c));
+			return c;
+		}
+		case VT_UI1:
+		{
+			unsigned char c;
+			m_pBuffer->Pop((unsigned char*)&c, sizeof(c));
+			return c;
+		}
+		case VT_I2:
+		{
+			short c;
+			m_pBuffer->Pop((unsigned char*)&c, sizeof(c));
+			return c;
+		}
+		case VT_BOOL:
+		{
+			VARIANT_BOOL c;
+			m_pBuffer->Pop((unsigned char*)&c, sizeof(c));
+			return (c != 0);
+		}
+		case VT_UI2:
+		{
+			unsigned short c;
+			m_pBuffer->Pop((unsigned char*)&c, sizeof(c));
+			return c;
+		}
+		case VT_INT:
+		case VT_I4:
+		{
+			int c;
+			m_pBuffer->Pop((unsigned char*)&c, sizeof(c));
+			return c;
+		}
+		case VT_UINT:
+		case VT_UI4:
+		{
+			unsigned int c;
+			m_pBuffer->Pop((unsigned char*)&c, sizeof(c));
+			return (int64_t)c;
+		}
+		case VT_UI8:
+		case VT_I8:
+		{
+			int64_t c;
+			m_pBuffer->Pop((unsigned char*)&c, sizeof(c));
+			return c;
+		}
+		case VT_R4:
+		{
+			float c;
+			m_pBuffer->Pop((unsigned char*)&c, sizeof(c));
+			return (double)c;
+		}
+		case VT_R8:
+		{
+			double c;
+			m_pBuffer->Pop((unsigned char*)&c, sizeof(c));
+			return c;
+		}
+		case VT_DATE:
+			return LoadDate();
+		case VT_CY:
+		{
+			int64_t c;
+			m_pBuffer->Pop((unsigned char*)&c, sizeof(c));
+			double cy = (double)c;
+			cy /= 10000;
+			return cy;
+		}
+		case (VT_ARRAY | VT_UI1):
+		case (VT_ARRAY | VT_I1):
+			return LoadAString();
+		case VT_BSTR:
+			return LoadString();
+		case VT_DECIMAL:
+			return LoadDecimal();
+		case VT_CLSID:
+			return LoadUUID();
+		default:
+			if ((vt & VT_ARRAY) == VT_ARRAY) {
+				vt = (vt & (~VT_ARRAY));
+				unsigned int count;
+				*m_pBuffer >> count;
+				switch (vt) {
+				case VT_VARIANT:
+				{
+					std::vector<Php::Value> arr;
+					for (unsigned int n = 0; n < count; ++n) {
+						arr.push_back(LoadObject());
+					}
+					return arr;
+				}
+				case VT_BSTR:
+				{
+					std::vector<Php::Value> arr;
+					for (unsigned int n = 0; n < count; ++n) {
+						arr.push_back(LoadString());
+					}
+					return arr;
+				}
+				case VT_DATE:
+				{
+					std::vector<Php::Value> arr;
+					for (unsigned int n = 0; n < count; ++n) {
+						arr.push_back(LoadDate());
+					}
+					return arr;
+				}
+				case VT_I2:
+					if (m_pBuffer->GetSize() >= count * sizeof(short)) {
+						short *p = (short *)m_pBuffer->GetBuffer();
+						auto arr = std::vector<Php::Value>(p, p + count);
+						m_pBuffer->Pop(count * sizeof(short));
+						return arr;
+					}
+					else {
+						break;
+					}
+				case VT_UI2:
+					if (m_pBuffer->GetSize() >= count * sizeof(unsigned short)) {
+						unsigned short *p = (unsigned short *)m_pBuffer->GetBuffer();
+						auto arr = std::vector<Php::Value>(p, p + count);
+						m_pBuffer->Pop(count * sizeof(unsigned short));
+						return arr;
+					}
+					else {
+						break;
+					}
+				case VT_R4:
+					if (m_pBuffer->GetSize() >= count * sizeof(float)) {
+						float *p = (float *)m_pBuffer->GetBuffer();
+						std::vector<Php::Value> arr;
+						for (unsigned int n = 0; n < count; ++n) {
+							arr.push_back((double)p[n]);
+						}
+						m_pBuffer->Pop(count * sizeof(float));
+						return arr;
+					}
+					else {
+						break;
+					}
+				case VT_R8:
+					if (m_pBuffer->GetSize() >= count * sizeof(double)) {
+						double *p = (double *)m_pBuffer->GetBuffer();
+						std::vector<Php::Value> arr;
+						for (unsigned int n = 0; n < count; ++n) {
+							arr.push_back(p[n]);
+						}
+						m_pBuffer->Pop(count * sizeof(double));
+						return arr;
+					}
+					else {
+						break;
+					}
+				case VT_INT:
+				case VT_I4:
+					if (m_pBuffer->GetSize() >= count * sizeof(int)) {
+						int *p = (int *)m_pBuffer->GetBuffer();
+						auto arr = std::vector<Php::Value>(p, p + count);
+						m_pBuffer->Pop(count * sizeof(int));
+						return arr;
+					}
+					else {
+						break;
+					}
+				case VT_UI4:
+				case VT_UINT:
+					if (m_pBuffer->GetSize() >= count * sizeof(unsigned int)) {
+						unsigned int *p = (unsigned int *)m_pBuffer->GetBuffer();
+						std::vector<Php::Value> arr;
+						for (unsigned int n = 0; n < count; ++n) {
+							arr.push_back((int64_t)p[n]);
+						}
+						m_pBuffer->Pop(count * sizeof(unsigned int));
+						return arr;
+					}
+					else {
+						break;
+					}
+				case VT_I8:
+				case VT_UI8:
+					if (m_pBuffer->GetSize() >= count * sizeof(int64_t)) {
+						int64_t *p = (int64_t *)m_pBuffer->GetBuffer();
+						auto arr = std::vector<Php::Value>(p, p + count);
+						m_pBuffer->Pop(count * sizeof(int64_t));
+						return arr;
+					}
+					else {
+						break;
+					}
+				case VT_BOOL:
+					if (m_pBuffer->GetSize() >= count * sizeof(VARIANT_BOOL))
+					{
+						std::vector<Php::Value> arr;
+						VARIANT_BOOL *p = (VARIANT_BOOL *)m_pBuffer->GetBuffer();
+						for (unsigned int n = 0; n < count; ++n) {
+							arr.push_back(p[n] ? true : false);
+						}
+						m_pBuffer->Pop(count * sizeof(VARIANT_BOOL));
+						return arr;
+					}
+					else {
+						break;
+					}
+				case VT_DECIMAL:
+					if (m_pBuffer->GetSize() >= count * sizeof(DECIMAL)) {
+						std::vector<Php::Value> arr;
+						DECIMAL *p = (DECIMAL *)m_pBuffer->GetBuffer();
+						for (unsigned int n = 0; n < count; ++n) {
+							std::string s = SPA::ToString_long(p[n]);
+							arr.push_back(s);
+						}
+						m_pBuffer->Pop(count * sizeof(DECIMAL));
+						return arr;
+					}
+					else {
+						break;
+					}
+				case VT_CY:
+					if (m_pBuffer->GetSize() >= count * sizeof(CY)) {
+						std::vector<Php::Value> arr;
+						CY *p = (CY *)m_pBuffer->GetBuffer();
+						for (unsigned int n = 0; n < count; ++n) {
+							double d = (double)(p[n].int64);
+							d /= 10000;
+							arr.push_back(d);
+						}
+						m_pBuffer->Pop(count * sizeof(CY));
+						return arr;
+					}
+					else {
+						break;
+					}
+				default:
+					break;
+				}
+			}
+			break;
+		}
+		m_pBuffer->SetSize(0);
+		throw Php::Exception("Invalid data type for deserialization");
+	}
+	BufferLoadCatch
+}
+
 void CPhpBuffer::RegisterInto(Php::Namespace &spa) {
 	Php::Class<CPhpBuffer> buffer("CUQueue");
 	buffer.property("DEFAULT_BUFFER_SIZE", (int64_t)SPA::DEFAULT_INITIAL_MEMORY_BUFFER_SIZE, Php::Const);
@@ -510,11 +868,11 @@ void CPhpBuffer::RegisterInto(Php::Namespace &spa) {
 	});
 	buffer.method("LoadFloat", &CPhpBuffer::LoadFloat);
 	buffer.method("SaveAString", &CPhpBuffer::SaveAString, {
-		Php::ByVal("as", Php::Type::String, true) //ASCII string
+		Php::ByVal("a", Php::Type::Null, true) //ASCII string
 	});
 	buffer.method("LoadAString", &CPhpBuffer::LoadAString);
 	buffer.method("SaveString", &CPhpBuffer::SaveString, {
-		Php::ByVal("ws", Php::Type::String, true) //UNICODE string
+		Php::ByVal("w", Php::Type::Null, true) //UNICODE string
 	});
 	buffer.method("LoadString", &CPhpBuffer::LoadString);
 	buffer.method("SaveDecimal", &CPhpBuffer::SaveDecimal, {
@@ -533,7 +891,11 @@ void CPhpBuffer::RegisterInto(Php::Namespace &spa) {
 		Php::ByVal("uuid", Php::Type::String) //ASCII string
 	});
 	buffer.method("LoadUUID", &CPhpBuffer::LoadUUID);
-
+	buffer.method("SaveObject", &CPhpBuffer::SaveObject, {
+		Php::ByVal("obj", Php::Type::Null, true),
+		Php::ByVal("hint", Php::Type::String, false)
+	});
+	buffer.method("LoadObject", &CPhpBuffer::LoadObject);
 
 	spa.add(buffer);
 }

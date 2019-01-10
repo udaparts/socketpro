@@ -44,6 +44,8 @@ public:
 	Php::Value PopBytes(Php::Parameters &params);
 	Php::Value SaveUUID(Php::Parameters &params);
 	Php::Value LoadUUID();
+	Php::Value SaveObject(Php::Parameters &params);
+	Php::Value LoadObject();
 
 	Php::Value __get(const Php::Value &name);
 	void __set(const Php::Value &name, const Php::Value &value);
