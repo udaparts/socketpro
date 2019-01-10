@@ -7,8 +7,8 @@ public final class CUQueue {
 
     public static final tagOperationSystem DEFAULT_OS;
 
-    private static int DEFAULT_CAPACITY = 4 * 1024;
-    private static int DEFAULT_BLOCK_SIZE = 4 * 1024;
+    public static final int DEFAULT_BUFFER_SIZE = 4 * 1024;
+    public static final int DEFAULT_BLOCK_SIZE = 4 * 1024;
 
     private static java.math.BigInteger UINT64_MOD;
     private static java.math.BigInteger UINT32_MOD;
@@ -42,7 +42,7 @@ public final class CUQueue {
 
     public CUQueue() {
         m_blockSize = DEFAULT_BLOCK_SIZE;
-        m_bytes = new byte[DEFAULT_CAPACITY];
+        m_bytes = new byte[DEFAULT_BUFFER_SIZE];
     }
 
     static {
@@ -81,7 +81,7 @@ public final class CUQueue {
 
     public CUQueue(int maxSize) {
         if (maxSize <= 0) {
-            maxSize = DEFAULT_CAPACITY;
+            maxSize = DEFAULT_BUFFER_SIZE;
         }
         m_blockSize = DEFAULT_BLOCK_SIZE;
         m_bytes = new byte[maxSize];
@@ -89,7 +89,7 @@ public final class CUQueue {
 
     public CUQueue(int maxSize, int blockSize) {
         if (maxSize <= 0) {
-            maxSize = DEFAULT_CAPACITY;
+            maxSize = DEFAULT_BUFFER_SIZE;
         }
         if (blockSize < 0) {
             blockSize = DEFAULT_BLOCK_SIZE;
