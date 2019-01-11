@@ -25,3 +25,6 @@
 #include "../../../include/udb_client.h"
 #include "../../../include/masterpool.h"
 #include "../../../include/rdbcache.h"
+#include <algorithm>
+
+void Trim(std::string &str);

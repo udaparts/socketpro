@@ -53,6 +53,11 @@ public:
 
 private:
 	void EnsureBuffer();
+	void SaveObject(const Php::Value &param, const std::string &id = "");
+	void SaveString(const Php::Value &param);
+	void SaveDecimal(const Php::Value &param);
+	void SaveDate(const Php::Value &param);
+	void SaveAString(const Php::Value &param);
 
 private:
 	SPA::CUQueue *m_pBuffer;

@@ -62,10 +62,14 @@ void CPhpBuffer::EnsureBuffer() {
 
 Php::Value CPhpBuffer::SaveDate(Php::Parameters &params) {
 	EnsureBuffer();
-	Php::Value dt = params[0].call("format", "Y-m-d H:i:s.u");
+	SaveDate(params[0]);
+	return this;
+}
+
+void CPhpBuffer::SaveDate(const Php::Value &param) {
+	Php::Value dt = param.call("format", "Y-m-d H:i:s.u");
 	SPA::UDateTime udt(dt.rawValue());
 	*m_pBuffer << udt.time;
-	return this;
 }
 
 Php::Value CPhpBuffer::LoadDate() {
@@ -277,16 +281,8 @@ Php::Value CPhpBuffer::LoadFloat() {
 }
 
 Php::Value CPhpBuffer::SaveAString(Php::Parameters &params) {
-	auto data = params[0].rawValue();
 	EnsureBuffer();
-	if (!data) {
-		*m_pBuffer << SPA::UQUEUE_NULL_LENGTH;
-	}
-	else {
-		unsigned int len = (unsigned int)params[0].length();
-		*m_pBuffer << len;
-		m_pBuffer->Push((const unsigned char*)data, len);
-	}
+	SaveAString(params[0]);
 	return this;
 }
 
@@ -308,18 +304,30 @@ Php::Value CPhpBuffer::LoadAString() {
 }
 
 Php::Value CPhpBuffer::SaveDecimal(Php::Parameters &params) {
-	auto data = params[0].rawValue();
 	EnsureBuffer();
-	if (data) {
-		DECIMAL dec;
-		SPA::ParseDec_long(data, dec);
-		*m_pBuffer << dec;
-	}
-	else {
-		//nullptr string
-		*m_pBuffer << data;
-	}
+	SaveDecimal(params[0]);
 	return this;
+}
+
+void CPhpBuffer::SaveDecimal(const Php::Value &param) {
+	DECIMAL dec;
+	auto type = param.type();
+	switch (type) {
+	case Php::Type::Numeric:
+		SPA::ToDecimal(param.numericValue(), dec);
+		break;
+	case Php::Type::Float:
+		SPA::ToDecimal(param.floatValue(), dec);
+		break;
+	case Php::Type::String:
+		if (!SPA::ParseDec_long(param.rawValue(), dec)) {
+			throw Php::Exception("Invalid decimal value");
+		}
+		break;
+	default:
+		throw Php::Exception("Invalid decimal value");
+	}
+	*m_pBuffer << dec;
 }
 
 Php::Value CPhpBuffer::LoadDecimal() {
@@ -333,18 +341,64 @@ Php::Value CPhpBuffer::LoadDecimal() {
 	BufferLoadCatch
 }
 
+void CPhpBuffer::SaveAString(const Php::Value &data) {
+	const char *str = data.rawValue();
+	std::string s;
+	auto type = data.type();
+	switch (type) {
+	case Php::Type::Undefined:
+	case Php::Type::Null:
+		*m_pBuffer << str;
+		break;
+	case Php::Type::False:
+	case Php::Type::True:
+	case Php::Type::Numeric:
+	case Php::Type::Float:
+		s = data.stringValue();
+		str = s.c_str();
+	case Php::Type::String:
+		*m_pBuffer << str;
+		break;
+	default:
+		throw Php::Exception("Invalid string value");
+	}
+}
+
+void CPhpBuffer::SaveString(const Php::Value &data) {
+	const char *str = data.rawValue();
+	std::string s;
+	auto type = data.type();
+	switch (type) {
+	case Php::Type::Undefined:
+	case Php::Type::Null:
+		str = nullptr;
+		*m_pBuffer << (const wchar_t *)str;
+		break;
+	case Php::Type::False:
+	case Php::Type::True:
+	case Php::Type::Numeric:
+	case Php::Type::Float:
+		s = data.stringValue();
+		str = s.c_str();
+	case Php::Type::String:
+		if (str) {
+			SPA::CScopeUQueue sp;
+			SPA::Utilities::ToWide(str, ::strlen(str), *sp);
+			*m_pBuffer << (const wchar_t *)sp->GetBuffer();
+		}
+		else {
+			//nullptr string
+			*m_pBuffer << (const wchar_t *)str;
+		}
+		break;
+	default:
+		throw Php::Exception("Invalid string value");
+	}
+}
+
 Php::Value CPhpBuffer::SaveString(Php::Parameters &params) {
-	auto data = params[0].rawValue();
 	EnsureBuffer();
-	if (data) {
-		SPA::CScopeUQueue sp;
-		SPA::Utilities::ToWide(data, ::strlen(data), *sp);
-		*m_pBuffer << (const wchar_t *)sp->GetBuffer();
-	}
-	else {
-		//nullptr string
-		*m_pBuffer << data;
-	}
+	SaveString(params[0]);
 	return this;
 }
 
@@ -444,20 +498,9 @@ Php::Value CPhpBuffer::LoadUUID() {
 	return str;
 }
 
-Php::Value CPhpBuffer::SaveObject(Php::Parameters &params) {
+void CPhpBuffer::SaveObject(const Php::Value &data, const std::string &id) {
 	VARTYPE vt;
-	std::string id;
-	auto data = params[0];
 	auto type = data.type();
-	if (params.size() > 1) {
-		auto h = params[2];
-		if (h.rawValue()) {
-			id = h.rawValue();
-
-			//lower & trim
-		}
-	}
-	EnsureBuffer();
 	switch (type) {
 	case Php::Type::Undefined:
 	case Php::Type::Null:
@@ -472,7 +515,7 @@ Php::Value CPhpBuffer::SaveObject(Php::Parameters &params) {
 		VARIANT_BOOL b = data.boolValue() ? VARIANT_TRUE : VARIANT_FALSE;
 		*m_pBuffer << vt << b;
 	}
-		break;
+	break;
 	case Php::Type::Numeric:
 		if (id == "i" || id == "int") {
 			vt = VT_I4;
@@ -489,7 +532,7 @@ Php::Value CPhpBuffer::SaveObject(Php::Parameters &params) {
 			SPA::UINT64 n = (SPA::UINT64)data.numericValue();
 			*m_pBuffer << vt << n;
 		}
-		else if (id == "s" || id == "short") {
+		else if (id == "s" || id == "short" || id == "w") {
 			vt = VT_I2;
 			short n = (short)data.numericValue();
 			*m_pBuffer << vt << n;
@@ -509,6 +552,11 @@ Php::Value CPhpBuffer::SaveObject(Php::Parameters &params) {
 			unsigned short n = (unsigned short)data.numericValue();
 			*m_pBuffer << vt << n;
 		}
+		else if (id == "dec" || id == "decimal") {
+			vt = VT_DECIMAL;
+			*m_pBuffer << vt;
+			SaveDecimal(data);
+		}
 		else {
 			vt = VT_I8;
 			*m_pBuffer << vt << data.numericValue();
@@ -522,10 +570,7 @@ Php::Value CPhpBuffer::SaveObject(Php::Parameters &params) {
 		else if (id == "dec" || id == "decimal") {
 			vt = VT_DECIMAL;
 			*m_pBuffer << vt;
-			DECIMAL dec;
-			std::string s = data.stringValue();
-			SPA::ParseDec_long(s.c_str(), dec);
-			*m_pBuffer << dec;
+			SaveDecimal(data);
 		}
 		else {
 			vt = VT_R8;
@@ -533,14 +578,62 @@ Php::Value CPhpBuffer::SaveObject(Php::Parameters &params) {
 		}
 		break;
 	case Php::Type::String:
+		if (id == "a" || id == "ascii") {
+			vt = (VT_ARRAY | VT_I1);
+			*m_pBuffer << vt;
+			SaveAString(data);
+		}
+		else if (id == "bytes") {
+			vt = (VT_ARRAY | VT_UI1);
+			*m_pBuffer << vt;
+			SaveAString(data);
+		}
+		else if (id == "dec" || id == "decimal") {
+			vt = VT_DECIMAL;
+			*m_pBuffer << vt;
+			SaveDecimal(data);
+		}
+		else {
+			vt = VT_BSTR;
+			*m_pBuffer << vt;
+			SaveString(data);
+		}
 		break;
 	case Php::Type::Array:
+		vt = (VT_ARRAY | VT_VARIANT);
+		*m_pBuffer << vt << data.length();
+		{
+			auto d = data.vectorValue<Php::Value>();
+			for (auto it = d.begin(), end = d.end(); it != end; ++it) {
+				SaveObject(*it, id);
+			}
+		}
 		break;
 	case Php::Type::Object:
-		break;
+		if (Php::is_a(data, "DateTime")) {
+			vt = VT_DATE;
+			*m_pBuffer << vt;
+			SaveDate(data);
+			break;
+		}
 	default:
-		break;
+		throw Php::Exception("Unsupported data type");
 	}
+}
+
+Php::Value CPhpBuffer::SaveObject(Php::Parameters &params) {
+	std::string id;
+	const auto &data = params[0];
+	if (params.size() > 1) {
+		auto h = params[1];
+		if (h.rawValue()) {
+			id = h.rawValue();
+			Trim(id);
+			std::transform(id.begin(), id.end(), id.begin(), ::tolower);
+		}
+	}
+	EnsureBuffer();
+	SaveObject(data, id);
 	return this;
 }
 
@@ -868,19 +961,19 @@ void CPhpBuffer::RegisterInto(Php::Namespace &spa) {
 	});
 	buffer.method("LoadFloat", &CPhpBuffer::LoadFloat);
 	buffer.method("SaveAString", &CPhpBuffer::SaveAString, {
-		Php::ByVal("a", Php::Type::Null, true) //ASCII string
+		Php::ByVal("a", Php::Type::Null) //ASCII string
 	});
 	buffer.method("LoadAString", &CPhpBuffer::LoadAString);
 	buffer.method("SaveString", &CPhpBuffer::SaveString, {
-		Php::ByVal("w", Php::Type::Null, true) //UNICODE string
+		Php::ByVal("w", Php::Type::Null) //UNICODE string
 	});
 	buffer.method("LoadString", &CPhpBuffer::LoadString);
 	buffer.method("SaveDecimal", &CPhpBuffer::SaveDecimal, {
-		Php::ByVal("dec", Php::Type::String) //ASCII string
+		Php::ByVal("dec", Php::Type::Null)
 	});
 	buffer.method("LoadDecimal", &CPhpBuffer::LoadDecimal);
 	buffer.method("PushBytes", &CPhpBuffer::PushBytes, {
-		Php::ByVal("bytes", Php::Type::String, true), //ASCII string
+		Php::ByVal("bytes", Php::Type::String), //ASCII string
 		Php::ByVal("len", Php::Type::Numeric, false),
 		Php::ByVal("offset", Php::Type::Numeric, false)
 	});
