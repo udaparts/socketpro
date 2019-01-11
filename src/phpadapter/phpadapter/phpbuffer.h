@@ -46,7 +46,8 @@ public:
 	Php::Value LoadUUID();
 	Php::Value SaveObject(Php::Parameters &params);
 	Php::Value LoadObject();
-
+	Php::Value Save(Php::Parameters &params);
+	Php::Value Load(Php::Parameters &params);
 	Php::Value __get(const Php::Value &name);
 	void __set(const Php::Value &name, const Php::Value &value);
 

@@ -637,6 +637,19 @@ Php::Value CPhpBuffer::SaveObject(Php::Parameters &params) {
 	return this;
 }
 
+Php::Value CPhpBuffer::Save(Php::Parameters &params) {
+	Php::Value v(this);
+	Php::Value callback = params[1];
+	callback(params[0], v);
+	return v;
+}
+
+Php::Value CPhpBuffer::Load(Php::Parameters &params) {
+	Php::Value v(this);
+	Php::Value callback = params[1];
+	return callback(params[0], v);
+}
+
 Php::Value CPhpBuffer::LoadObject() {
 	EnsureBuffer();
 	try {
@@ -736,9 +749,9 @@ Php::Value CPhpBuffer::LoadObject() {
 				switch (vt) {
 				case VT_VARIANT:
 				{
-					std::vector<Php::Value> arr;
+					Php::Array arr;
 					for (unsigned int n = 0; n < count; ++n) {
-						arr.push_back(LoadObject());
+						arr.set((int)n, LoadObject());
 					}
 					return arr;
 				}
@@ -989,6 +1002,14 @@ void CPhpBuffer::RegisterInto(Php::Namespace &spa) {
 		Php::ByVal("hint", Php::Type::String, false)
 	});
 	buffer.method("LoadObject", &CPhpBuffer::LoadObject);
+	buffer.method("Save", &CPhpBuffer::Save, {
+		Php::ByVal("obj", Php::Type::Object),
+		Php::ByVal("func", Php::Type::Callable)
+	});
+	buffer.method("Load", &CPhpBuffer::Load, {
+		Php::ByVal("obj", Php::Type::Object),
+		Php::ByVal("func", Php::Type::Callable)
+	});
 
 	spa.add(buffer);
 }
