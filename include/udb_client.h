@@ -5,7 +5,12 @@
 #include "udatabase.h"
 #include "aclientw.h"
 
-#ifdef NODE_JS_ADAPTER_PROJECT
+#ifdef PHP_ADAPTER_PROJECT
+namespace PA {
+	void ToVariant(const Php::Value &data, SPA::UDB::CDBVariant &vt, const std::string &id = "");
+}
+
+#elif defined NODE_JS_ADAPTER_PROJECT
 namespace NJA {
     Local<Array> ToMeta(Isolate* isolate, const SPA::UDB::CDBColumnInfoArray &v);
 }

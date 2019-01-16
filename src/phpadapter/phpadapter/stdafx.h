@@ -18,8 +18,6 @@
 #define SPA_PHP_EXPORT __attribute__ ((visibility ("default")))
 #endif
 
-#include <phpcpp.h>
-
 #include "../../../include/aqhandler.h"
 #include "../../../include/streamingfile.h"
 #include "../../../include/udb_client.h"
@@ -27,4 +25,6 @@
 #include "../../../include/rdbcache.h"
 #include <algorithm>
 
-void Trim(std::string &str);
+namespace PA {
+	void Trim(std::string &str);
+}

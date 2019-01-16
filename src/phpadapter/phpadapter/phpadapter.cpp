@@ -12,10 +12,10 @@ extern "C" {
 		SPA.add(Php::Constant("Endian", SPA::IsBigEndian()));
 
 		//tag and other const defines
-		RegisterSpaConstsInto(SPA);
+		PA::RegisterSpaConstsInto(SPA);
 
 		//CUQueue
-		CPhpBuffer::RegisterInto(SPA);
+		PA::CPhpBuffer::RegisterInto(SPA);
 
 		//namespace ClientSide
 		Php::Namespace ClientSide("ClientSide");

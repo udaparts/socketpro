@@ -13,8 +13,11 @@
 #include <memory>
 #include <functional>
 
-#ifdef NODE_JS_ADAPTER_PROJECT
+#ifdef PHP_ADAPTER_PROJECT
+#include <phpcpp.h>
+#define NO_MIDDLE_TIER
 
+#elif defined NODE_JS_ADAPTER_PROJECT
 #define NO_MIDDLE_TIER
 
 #ifdef WIN32_64
@@ -1476,8 +1479,11 @@ namespace SPA {
                 sb << data0 << data1 << data2 << data3 << data4;
                 return SendRouteeResult(sb->GetBuffer(), sb->GetSize(), usRequestID);
             }
+#ifdef PHP_ADAPTER_PROJECT
+		public:
+			virtual Php::Value SendRequest(Php::Parameters &params);
 
-#ifdef NODE_JS_ADAPTER_PROJECT
+#elif defined(NODE_JS_ADAPTER_PROJECT)
         public:
             typedef Persistent<Function, v8::NJANonCopyablePersistentTraits<Function> > CNJFunc;
 
