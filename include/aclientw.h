@@ -1743,6 +1743,11 @@ namespace SPA {
                 }
             }
 
+			inline bool GetAutoConn() {
+				 CAutoLock al(m_cs);
+				 return m_autoConn;
+			}
+
             inline void SetRecvTimeout(unsigned int recvTimeout) {
                 CAutoLock al(m_cs);
                 if (!m_mapSocketHandler.size()) {
@@ -1759,6 +1764,11 @@ namespace SPA {
                 }
             }
 
+			inline unsigned int GetRecvTimeout() {
+				 CAutoLock al(m_cs);
+				 return m_recvTimeout;
+			}
+
             inline void SetConnTimeout(unsigned int connTimeout) {
                 CAutoLock al(m_cs);
                 if (!m_mapSocketHandler.size()) {
@@ -1774,6 +1784,11 @@ namespace SPA {
                     }
                 }
             }
+
+			inline unsigned int GetConnTimeout() {
+				 CAutoLock al(m_cs);
+				 return m_connTimeout;
+			}
 
             inline bool IsAvg() {
                 CAutoLock al(m_cs);

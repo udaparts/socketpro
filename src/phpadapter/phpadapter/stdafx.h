@@ -23,8 +23,12 @@
 #include "../../../include/udb_client.h"
 #include "../../../include/masterpool.h"
 #include "../../../include/rdbcache.h"
+#include "../../../include/mysql/umysql.h"
+#include "../../../include/sqlite/usqlite.h"
 #include <algorithm>
 
 namespace PA {
 	void Trim(std::string &str);
+
+	typedef SPA::ClientSide::CCachedBaseHandler<0> CAsyncHandler;
 }

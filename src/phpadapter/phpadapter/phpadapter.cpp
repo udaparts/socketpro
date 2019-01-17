@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "spa_consts.h"
 #include "phpbuffer.h"
+#include "phpsocketpool.h"
 
 extern "C" {
 	SPA_PHP_EXPORT void *get_module() {
@@ -19,6 +20,8 @@ extern "C" {
 
 		//namespace ClientSide
 		Php::Namespace ClientSide("ClientSide");
+		PA::CPhpSocketPool::RegisterInto(ClientSide);
+
 		SPA.add(ClientSide);
 		extSpaPhp.add(SPA);
 

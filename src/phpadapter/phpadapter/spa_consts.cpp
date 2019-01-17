@@ -105,6 +105,8 @@ namespace PA {
 		reg.property("sidFile", SPA::sidFile, Php::Const);
 		reg.property("sidODBC", SPA::sidODBC, Php::Const);
 		reg.property("sidQueue", SPA::sidChat, Php::Const);
+		reg.property("sidMysql", (int32_t)SPA::Mysql::sidMysql, Php::Const);
+		reg.property("sidSqlite", (int32_t)SPA::Sqlite::sidSqlite, Php::Const);
 		reg.property("sidReserved", SPA::sidReserved, Php::Const);
 		spa.add(reg);
 	}
