@@ -8,20 +8,69 @@ namespace PA {
 	}
 
 	CPhpSocketPool::~CPhpSocketPool() {
+		if (Handler) {
+			Handler->DisconnectAll();
+			delete Handler;
+		}
+	}
 
+	Php::Value CPhpSocketPool::NewSlave(Php::Parameters &params) {
+		if (!m_defaultDb.size()) {
+			throw Php::Exception("Cannot create a slave pool from a non-master pool");
+		}
+		if (!Handler || Handler->IsStarted()) {
+			throw Php::Exception("Root master pool not available");
+		}
+		std::string defaultDb(m_defaultDb);
+		bool autoConn = Handler->GetAutoConn();
+		unsigned int recvTimeout = Handler->GetRecvTimeout();
+		unsigned int connTimeout = Handler->GetConnTimeout();
+		size_t args = params.size();
+		if (args > 3) {
+			connTimeout = (unsigned int)params[3].numericValue();
+		}
+		if (args > 2) {
+			recvTimeout = (unsigned int)params[2].numericValue();
+		}
+		if (args > 1) {
+			autoConn = params[1].boolValue();
+		}
+		if (args > 0) {
+			defaultDb = params[0].stringValue();
+		}
+		Trim(defaultDb);
+		return Php::Object("CPhpSocketPool", (int64_t)m_nSvsId, defaultDb, autoConn, (int64_t)recvTimeout, (int64_t)connTimeout, true);
+	}
+
+	void CPhpSocketPool::ShutdownPool(Php::Parameters &params) {
+		if (Handler) {
+			Handler->ShutdownPool();
+		}
+	}
+
+	Php::Value CPhpSocketPool::DisconnectAll(Php::Parameters &params) {
+		bool ok = true;
+		if (Handler) {
+			ok = Handler->DisconnectAll();
+		}
+		return ok;
 	}
 
 	void CPhpSocketPool::__construct(Php::Parameters &params) {
+		bool slave = true;
 		bool autoConn = true;
 		unsigned int recvTimeout = SPA::ClientSide::DEFAULT_RECV_TIMEOUT;
 		unsigned int connTimeout = SPA::ClientSide::DEFAULT_CONN_TIMEOUT;
 		unsigned int nServiceId = (unsigned int)params[0].numericValue();
 		size_t args = params.size();
+		if (args > 5) {
+			slave = (unsigned int)params[5].boolValue();
+		}
 		if (args > 4) {
 			connTimeout = (unsigned int)params[4].numericValue();
 		}
 		if (args > 3) {
-			recvTimeout = (unsigned int)params[4].numericValue();
+			recvTimeout = (unsigned int)params[3].numericValue();
 		}
 		if (args > 2) {
 			autoConn = params[2].boolValue();
@@ -30,6 +79,11 @@ namespace PA {
 			m_defaultDb = params[1].stringValue();
 		}
 		Trim(m_defaultDb);
+		if (!m_defaultDb.size()) {
+			slave = true;
+		}
+
+		//create C/C++ socket pool
 	}
 
 	Php::Value CPhpSocketPool::__get(const Php::Value &name) {
@@ -118,14 +172,25 @@ namespace PA {
 	}
 
 	void CPhpSocketPool::RegisterInto(Php::Namespace &cs) {
-		Php::Class<CPhpSocketPool> buffer("CSocketPool");
-		buffer.method("__construct", &CPhpSocketPool::__construct, {
+		Php::Class<CPhpSocketPool> pool("CSocketPool");
+		pool.method("__construct", &CPhpSocketPool::__construct, {
 			Php::ByVal("svsId", Php::Type::Numeric),
+			Php::ByVal("defaultDb", Php::Type::String, false),
+			Php::ByVal("autoConn", Php::Type::Bool, false),
+			Php::ByVal("recvTimeout", Php::Type::Numeric, false),
+			Php::ByVal("connTimeout", Php::Type::Numeric, false),
+			Php::ByVal("slave", Php::Type::Bool, false)
+		});
+		pool.method("NewSlave", &CPhpSocketPool::NewSlave, {
 			Php::ByVal("defaultDb", Php::Type::String, false),
 			Php::ByVal("autoConn", Php::Type::Bool, false),
 			Php::ByVal("recvTimeout", Php::Type::Numeric, false),
 			Php::ByVal("connTimeout", Php::Type::Numeric, false)
 		});
-		cs.add(std::move(buffer));
+		pool.method("Shutdown", &CPhpSocketPool::ShutdownPool);
+		pool.method("ShutdownPool", &CPhpSocketPool::ShutdownPool);
+		pool.method("CloseAll", &CPhpSocketPool::DisconnectAll);
+		pool.method("DisconnectAll", &CPhpSocketPool::DisconnectAll);
+		cs.add(std::move(pool));
 	}
 }

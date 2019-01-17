@@ -12,6 +12,9 @@ namespace PA {
 		Php::Value __get(const Php::Value &name);
 		void __set(const Php::Value &name, const Php::Value &value);
 		void __construct(Php::Parameters &params);
+		Php::Value NewSlave(Php::Parameters &params);
+		void ShutdownPool(Php::Parameters &params);
+		Php::Value DisconnectAll(Php::Parameters &params);
 
 	private:
 		SPA::CUCriticalSection m_cs;
