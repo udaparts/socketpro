@@ -1,4 +1,5 @@
-#pragma once
+#ifndef SPA_PHP_SOCKETPOOL_H
+#define SPA_PHP_SOCKETPOOL_H
 
 namespace PA {
 
@@ -32,3 +33,5 @@ namespace PA {
 	};
 
 } //namespace PA
+
+#endif
