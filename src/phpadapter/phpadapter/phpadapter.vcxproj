@@ -157,8 +157,10 @@
     <ClInclude Include="..\..\..\include\membuffer.h" />
     <ClInclude Include="..\..\..\include\tablecache.h" />
     <ClInclude Include="phpbuffer.h" />
+    <ClInclude Include="phpdb.h" />
     <ClInclude Include="phpfile.h" />
     <ClInclude Include="phpsocketpool.h" />
+    <ClInclude Include="roothandler.h" />
     <ClInclude Include="spa_consts.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
@@ -183,8 +185,10 @@
     </ClCompile>
     <ClCompile Include="phpadapter.cpp" />
     <ClCompile Include="phpbuffer.cpp" />
+    <ClCompile Include="phpdb.cpp" />
     <ClCompile Include="phpfile.cpp" />
     <ClCompile Include="phpsocketpool.cpp" />
+    <ClCompile Include="roothandler.cpp" />
     <ClCompile Include="spa_consts.cpp" />
     <ClCompile Include="stdafx.cpp" />
   </ItemGroup>

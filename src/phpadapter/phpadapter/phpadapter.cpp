@@ -3,6 +3,7 @@
 #include "phpbuffer.h"
 #include "phpsocketpool.h"
 #include "phpfile.h"
+#include "phpdb.h"
 
 extern "C" {
 	SPA_PHP_EXPORT void *get_module() {
@@ -23,6 +24,7 @@ extern "C" {
 		Php::Namespace ClientSide("ClientSide");
 		PA::CPhpSocketPool::RegisterInto(ClientSide);
 		PA::CPhpFile::RegisterInto(ClientSide);
+		PA::CPhpDb::RegisterInto(ClientSide);
 
 		SPA.add(ClientSide);
 		extSpaPhp.add(SPA);
