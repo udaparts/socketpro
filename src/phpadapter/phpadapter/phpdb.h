@@ -10,10 +10,12 @@ namespace PA {
 	class CPhpDb : public CRootHandler
 	{
 	public:
-		CPhpDb(CDBHandler *db, bool locked = false);
+		CPhpDb(CDBHandler *db, bool locked);
+		CPhpDb(const CPhpDb &db) = delete;
 		~CPhpDb();
 
 	public:
+		CPhpDb& operator=(const CPhpDb &db) = delete;
 		static void RegisterInto(Php::Namespace &cs);
 
 	private:

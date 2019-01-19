@@ -5,11 +5,14 @@ namespace PA {
 
 class CRootHandler : public Php::Base
 {
-protected:
+public:
 	CRootHandler(SPA::ClientSide::CAsyncServiceHandler *pHandler, bool locked);
+	CRootHandler(const CRootHandler &rh) = delete;
+	~CRootHandler();
 
 public:
-	~CRootHandler();
+	CRootHandler& operator=(const CRootHandler &rh) = delete;
+	static void RegisterInto(Php::Namespace &cs);
 
 protected:
 	SPA::ClientSide::CAsyncServiceHandler *m_pHandler;

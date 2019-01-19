@@ -6,9 +6,11 @@ namespace PA {
 	class CPhpBuffer : public Php::Base {
 	public:
 		CPhpBuffer(SPA::CUQueue *buffer = nullptr);
+		CPhpBuffer(const CPhpBuffer &b) = delete;
 		~CPhpBuffer();
 
 	public:
+		CPhpBuffer& operator=(const CPhpBuffer &b) = delete;
 		static void RegisterInto(Php::Namespace &spa);
 		void __construct(Php::Parameters &params);
 		void Empty();

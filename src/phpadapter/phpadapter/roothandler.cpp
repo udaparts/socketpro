@@ -9,4 +9,8 @@ namespace PA {
 	CRootHandler::~CRootHandler() {
 	}
 
+	void CRootHandler::RegisterInto(Php::Namespace &cs) {
+
+	}
+
 } //namespace PA

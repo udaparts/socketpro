@@ -48,6 +48,9 @@
     <ClInclude Include="phpdb.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="phpqueue.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -84,6 +87,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="phpdb.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="phpqueue.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

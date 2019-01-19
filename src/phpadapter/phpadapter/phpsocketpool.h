@@ -6,9 +6,11 @@ namespace PA {
 	class CPhpSocketPool : public Php::Base {
 	public:
 		CPhpSocketPool();
+		CPhpSocketPool(const CPhpSocketPool &p) = delete;
 		~CPhpSocketPool();
 
 	public:
+		CPhpSocketPool& operator=(const CPhpSocketPool &p) = delete;
 		static void RegisterInto(Php::Namespace &cs);
 		Php::Value __get(const Php::Value &name);
 		void __set(const Php::Value &name, const Php::Value &value);
