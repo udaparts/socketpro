@@ -1480,8 +1480,8 @@ namespace SPA {
                 return SendRouteeResult(sb->GetBuffer(), sb->GetSize(), usRequestID);
             }
 #ifdef PHP_ADAPTER_PROJECT
-		public:
-			virtual Php::Value SendRequest(Php::Parameters &params);
+        public:
+            virtual Php::Value SendRequest(Php::Parameters &params);
 
 #elif defined(NODE_JS_ADAPTER_PROJECT)
         public:
@@ -1743,10 +1743,10 @@ namespace SPA {
                 }
             }
 
-			inline bool GetAutoConn() {
-				 CAutoLock al(m_cs);
-				 return m_autoConn;
-			}
+            inline bool GetAutoConn() {
+                CAutoLock al(m_cs);
+                return m_autoConn;
+            }
 
             inline void SetRecvTimeout(unsigned int recvTimeout) {
                 CAutoLock al(m_cs);
@@ -1764,10 +1764,10 @@ namespace SPA {
                 }
             }
 
-			inline unsigned int GetRecvTimeout() {
-				 CAutoLock al(m_cs);
-				 return m_recvTimeout;
-			}
+            inline unsigned int GetRecvTimeout() {
+                CAutoLock al(m_cs);
+                return m_recvTimeout;
+            }
 
             inline void SetConnTimeout(unsigned int connTimeout) {
                 CAutoLock al(m_cs);
@@ -1785,10 +1785,10 @@ namespace SPA {
                 }
             }
 
-			inline unsigned int GetConnTimeout() {
-				 CAutoLock al(m_cs);
-				 return m_connTimeout;
-			}
+            inline unsigned int GetConnTimeout() {
+                CAutoLock al(m_cs);
+                return m_connTimeout;
+            }
 
             inline bool IsAvg() {
                 CAutoLock al(m_cs);

@@ -59,15 +59,15 @@ namespace SPA {
 #ifdef WIN32_64
         CComVariant vtSrc(data), vtDes;
         HRESULT hr = ::VariantChangeType(&vtDes, &vtSrc, 0, VT_DECIMAL);
-		if (FAILED(hr)) {
-			return false;
-		}
+        if (FAILED(hr)) {
+            return false;
+        }
         dec = vtDes.decVal;
 #else
         const char* posNegative = ::strchr(data, '-');
         if (posNegative) {
             dec.sign = 0x80;
-			data = posNegative;
+            data = posNegative;
         } else {
             dec.sign = 0;
         }
@@ -87,7 +87,7 @@ namespace SPA {
         v >>= 64;
         dec.Hi32 = v.convert_to<unsigned int>();
 #endif
-		return true;
+        return true;
     }
 
 #ifndef WINCE
@@ -154,37 +154,36 @@ namespace SPA {
         return d;
     }
 
-	static inline void ToDecimal(double d, DECIMAL &dec, int precision = -1) {
-		if (precision > 28) {
-			precision = 28;
-		}
-		char str[64] = { 0 };
-		if (precision < 0) {
+    static inline void ToDecimal(double d, DECIMAL &dec, int precision = -1) {
+        if (precision > 28) {
+            precision = 28;
+        }
+        char str[64] = {0};
+        if (precision < 0) {
 #if defined (WIN32_64) && _MSC_VER >= 1600 
-			sprintf_s(str, sizeof(str), "%f", d);
+            sprintf_s(str, sizeof (str), "%f", d);
 #else
-			sprintf(str, "%f", d);
+            sprintf(str, "%f", d);
 #endif
-		}
-		else {
+        } else {
 #if defined (WIN32_64) && _MSC_VER >= 1600 
-			sprintf_s(str, sizeof(str), "%.*f", precision, d);
+            sprintf_s(str, sizeof (str), "%.*f", precision, d);
 #else
-			sprintf(str, "%.*f", d);
+            sprintf(str, "%.*f", d);
 #endif
-		}
-		ParseDec_long(str, dec);
-	}
+        }
+        ParseDec_long(str, dec);
+    }
 
-	static inline void ToDecimal(INT64 n, DECIMAL &dec) {
-		char str[32] = { 0 };
+    static inline void ToDecimal(INT64 n, DECIMAL &dec) {
+        char str[32] = {0};
 #if defined (WIN32_64) && _MSC_VER >= 1600 
-		::sprintf_s(str, sizeof(str), "%lld", n);
+        ::sprintf_s(str, sizeof (str), "%lld", n);
 #else
-		::sprintf(str, "%lld", n);
+        ::sprintf(str, "%lld", n);
 #endif
-		ParseDec(str, dec);
-	}
+        ParseDec(str, dec);
+    }
 
 };
 
