@@ -154,8 +154,15 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\include\aclientw.h" />
+    <ClInclude Include="..\..\..\include\generalcache.h" />
+    <ClInclude Include="..\..\..\include\masterpool.h" />
+    <ClInclude Include="..\..\..\include\masterslavebase.h" />
     <ClInclude Include="..\..\..\include\membuffer.h" />
+    <ClInclude Include="..\..\..\include\rdbcache.h" />
+    <ClInclude Include="..\..\..\include\streamingfile.h" />
     <ClInclude Include="..\..\..\include\tablecache.h" />
+    <ClInclude Include="..\..\..\include\udatabase.h" />
+    <ClInclude Include="..\..\..\include\udb_client.h" />
     <ClInclude Include="phpbuffer.h" />
     <ClInclude Include="phpdb.h" />
     <ClInclude Include="phpfile.h" />

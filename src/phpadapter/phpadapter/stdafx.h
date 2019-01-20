@@ -2,7 +2,6 @@
 #pragma once
 
 #include "../../../include/definebase.h"
-#define NO_MIDDLE_TIER
 
 #ifdef WIN32_64
 

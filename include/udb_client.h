@@ -131,7 +131,7 @@ namespace SPA {
                 return m_bCallReturn;
             }
 
-#ifdef NODE_JS_ADAPTER_PROJECT
+#ifdef NO_OUTPUT_BINDING
 
             inline const CDBVariant& GetRetValue() {
                 CAutoLock al(m_csDB);
@@ -760,7 +760,7 @@ namespace SPA {
                         CDBVariant vt;
                         mc >> vt;
                         CAutoLock al(m_csDB);
-#ifdef NODE_JS_ADAPTER_PROJECT
+#ifdef NO_OUTPUT_BINDING
                         m_vtRet = vt;
 #endif
                         auto it = m_mapParameterCall.find(m_indexRowset);
@@ -819,7 +819,7 @@ namespace SPA {
                             if (reqId == idOutputParameter) {
                                 {
                                     CAutoLock al(m_csDB);
-#ifdef NODE_JS_ADAPTER_PROJECT
+#ifdef NO_OUTPUT_BINDING
                                     m_bProc = true;
                                     auto it0 = m_mapRowset.find(m_indexRowset);
                                     if (it0 != m_mapRowset.end()) {
@@ -835,7 +835,7 @@ namespace SPA {
                                             m_outputs = ((unsigned int) m_vData.size() + (unsigned int) m_bCallReturn);
                                         }
                                     }
-#ifndef NODE_JS_ADAPTER_PROJECT
+#ifndef NO_OUTPUT_BINDING
                                     auto it = m_mapParameterCall.find(m_indexRowset);
                                     if (it != m_mapParameterCall.cend()) {
                                         //crash? make sure that vParam is valid after calling the method Execute
@@ -852,7 +852,7 @@ namespace SPA {
 #endif
                                     ++m_indexProc;
                                 }
-#ifdef NODE_JS_ADAPTER_PROJECT
+#ifdef NO_OUTPUT_BINDING
                                 if (row) {
                                     row(*this, m_vData);
                                 }
@@ -987,10 +987,12 @@ namespace SPA {
             std::unordered_map<UINT64, DRowsetHeader> m_mapHandler;
             unsigned int m_nParamPos;
 
-#ifdef NODE_JS_ADAPTER_PROJECT
+#ifdef NO_OUTPUT_BINDING
             CDBVariant m_vtRet;
             bool m_bProc;
+#endif
 
+#ifdef NODE_JS_ADAPTER_PROJECT
         public:
 
             UINT64 BeginTrans(Isolate* isolate, int args, Local<Value> *argv, tagTransactionIsolation isolation) {
