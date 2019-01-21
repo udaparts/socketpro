@@ -24,6 +24,7 @@
 #include "../../../include/rdbcache.h"
 #include "../../../include/mysql/umysql.h"
 #include "../../../include/sqlite/usqlite.h"
+#include "../../../include/odbc/uodbc.h"
 #include <algorithm>
 
 namespace PA {

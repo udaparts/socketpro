@@ -5,6 +5,8 @@
 
 namespace PA {
 
+	typedef SPA::ClientSide::CAsyncQueue CAsyncQueue;
+
 	class CPhpQueue : public CRootHandler
 	{
 	public:
@@ -14,6 +16,7 @@ namespace PA {
 
 	public:
 		CPhpQueue& operator=(const CPhpQueue &q) = delete;
+		void __construct(Php::Parameters &params);
 		static void RegisterInto(Php::Namespace &cs);
 
 	private:

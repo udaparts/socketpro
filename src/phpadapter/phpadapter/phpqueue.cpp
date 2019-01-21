@@ -9,7 +9,13 @@ namespace PA {
 	CPhpQueue::~CPhpQueue() {
 	}
 
-	void CPhpQueue::RegisterInto(Php::Namespace &cs) {
+	void CPhpQueue::__construct(Php::Parameters &params) {
 
+	}
+
+	void CPhpQueue::RegisterInto(Php::Namespace &cs) {
+		Php::Class<CPhpQueue> handler("CAsyncQueue");
+		handler.method("__construct", &CPhpQueue::__construct, Php::Private);
+		cs.add(handler);
 	}
 }

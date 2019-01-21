@@ -170,6 +170,7 @@
     <ClInclude Include="phpsocketpool.h" />
     <ClInclude Include="roothandler.h" />
     <ClInclude Include="spa_consts.h" />
+    <ClInclude Include="spa_cs_consts.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
@@ -199,6 +200,7 @@
     <ClCompile Include="phpsocketpool.cpp" />
     <ClCompile Include="roothandler.cpp" />
     <ClCompile Include="spa_consts.cpp" />
+    <ClCompile Include="spa_cs_consts.cpp" />
     <ClCompile Include="stdafx.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

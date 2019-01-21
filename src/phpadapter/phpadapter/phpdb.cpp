@@ -12,9 +12,13 @@ namespace PA {
 
 	}
 
-	void CPhpDb::RegisterInto(Php::Namespace &cs) {
-		Php::Class<CPhpDb> db("CAsyncDBHandler");
+	void CPhpDb::__construct(Php::Parameters &params) {
 
-		cs.add(db);
+	}
+
+	void CPhpDb::RegisterInto(Php::Namespace &cs) {
+		Php::Class<CPhpDb> handler("CAsyncDb");
+		handler.method("__construct", &CPhpDb::__construct, Php::Private);
+		cs.add(handler);
 	}
 } //namespace PA

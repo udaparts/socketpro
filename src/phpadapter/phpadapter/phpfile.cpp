@@ -11,10 +11,14 @@ namespace PA {
 
 	}
 
-	void CPhpFile::RegisterInto(Php::Namespace &cs) {
-		Php::Class<CPhpFile> file("CStreamingFile");
+	void CPhpFile::__construct(Php::Parameters &params) {
 
-		cs.add(file);
+	}
+
+	void CPhpFile::RegisterInto(Php::Namespace &cs) {
+		Php::Class<CPhpFile> handler("CAsyncFile");
+		handler.method("__construct", &CPhpFile::__construct, Php::Private);
+		cs.add(handler);
 	}
 
 } //namespace PA

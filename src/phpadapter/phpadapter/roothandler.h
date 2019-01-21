@@ -12,6 +12,7 @@ public:
 
 public:
 	CRootHandler& operator=(const CRootHandler &rh) = delete;
+	void __construct(Php::Parameters &params);
 	static void RegisterInto(Php::Namespace &cs);
 
 protected:

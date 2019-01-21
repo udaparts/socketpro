@@ -4,6 +4,8 @@
 #include "roothandler.h"
 
 namespace PA {
+	typedef SPA::ClientSide::CStreamingFile CAsyncFile;
+
 	class CPhpFile : public CRootHandler
 	{
 	public:
@@ -13,6 +15,7 @@ namespace PA {
 
 	public:
 		CPhpFile& operator=(const CPhpFile &file) = delete;
+		void __construct(Php::Parameters &params);
 		static void RegisterInto(Php::Namespace &cs);
 
 	private:

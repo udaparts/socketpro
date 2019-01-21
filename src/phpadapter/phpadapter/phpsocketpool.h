@@ -1,6 +1,10 @@
 #ifndef SPA_PHP_SOCKETPOOL_H
 #define SPA_PHP_SOCKETPOOL_H
 
+#include "phpdb.h"
+#include "phpfile.h"
+#include "phpqueue.h"
+
 namespace PA {
 
 	class CPhpSocketPool : public Php::Base {
@@ -24,10 +28,9 @@ namespace PA {
 		unsigned int m_nSvsId;
 		union {
 			SPA::ClientSide::CSocketPool<CAsyncHandler> *Handler;
-			
-			/*SPA::ClientSide::CSocketPool<CNjDb> *Db;
-			SPA::ClientSide::CSocketPool<CSFile> *File;
-			SPA::ClientSide::CSocketPool<CAQueue> *Queue;*/
+			SPA::ClientSide::CSocketPool<CDBHandler> *Db;
+			SPA::ClientSide::CSocketPool<CAsyncFile> *File;
+			SPA::ClientSide::CSocketPool<CAsyncQueue> *Queue;
 		};
 		std::string m_defaultDb;
 		int m_errCode;

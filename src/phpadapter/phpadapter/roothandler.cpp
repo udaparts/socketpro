@@ -9,8 +9,14 @@ namespace PA {
 	CRootHandler::~CRootHandler() {
 	}
 
-	void CRootHandler::RegisterInto(Php::Namespace &cs) {
+	void CRootHandler::__construct(Php::Parameters &params) {
 
+	}
+
+	void CRootHandler::RegisterInto(Php::Namespace &cs) {
+		Php::Class<CRootHandler> handler("CAsyncHandler");
+		handler.method("__construct", &CRootHandler::__construct, Php::Private);
+		cs.add(handler);
 	}
 
 } //namespace PA
