@@ -1,10 +1,12 @@
 #include "stdafx.h"
 #include "spa_consts.h"
 #include "phpbuffer.h"
-#include "phpsocketpool.h"
 #include "phpfile.h"
 #include "phpdb.h"
 #include "phpqueue.h"
+
+#include "phpsocketpool.h"
+
 
 extern "C" {
 	SPA_PHP_EXPORT void *get_module() {

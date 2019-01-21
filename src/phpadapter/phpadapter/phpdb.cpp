@@ -3,13 +3,8 @@
 
 namespace PA {
 
-	CPhpDb::CPhpDb(CDBHandler *db, bool locked) : CRootHandler(db, locked), m_db(db) {
+	CPhpDb::CPhpDb(CPhpPool *pool, CDBHandler *db, bool locked) : CRootHandler(pool, db, locked), m_db(db) {
 	
-	}
-
-	CPhpDb::~CPhpDb()
-	{
-
 	}
 
 	void CPhpDb::__construct(Php::Parameters &params) {
@@ -17,8 +12,15 @@ namespace PA {
 	}
 
 	void CPhpDb::RegisterInto(Php::Namespace &cs) {
-		Php::Class<CPhpDb> handler("CAsyncDb");
-		handler.method("__construct", &CPhpDb::__construct, Php::Private);
+		Php::Class<CPhpDb> handler(PHP_DB_HANDLER);
+		handler.method(PHP_CONSTRUCT, &CPhpDb::__construct, Php::Private);
+		handler.method("SendRequest", &CRootHandler::SendRequest, {
+			Php::ByVal("reqId", Php::Type::Numeric),
+			Php::ByVal("buff", PHP_BUFFER, true, false),
+			Php::ByVal("rh", Php::Type::Callable, false),
+			Php::ByVal("ch", Php::Type::Callable, false),
+			Php::ByVal("ex", Php::Type::Callable, false)
+		});
 		cs.add(handler);
 	}
 } //namespace PA

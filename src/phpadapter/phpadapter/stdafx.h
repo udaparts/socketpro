@@ -30,5 +30,18 @@
 namespace PA {
 	void Trim(std::string &str);
 
+	enum tagPoolType {
+		NotMS = 0,
+		Slave = 1,
+		Master = 2
+	};
+	extern const char *PHP_BUFFER;
+	extern const char *PHP_FILE_HANDLER;
+	extern const char *PHP_DB_HANDLER;
+	extern const char *PHP_QUEUE_HANDLER;
+	extern const char *PHP_ASYNC_HANDLER;
+	extern const char *PHP_SOCKET_POOL;
+	extern const char *PHP_CONSTRUCT;
+
 	typedef SPA::ClientSide::CCachedBaseHandler<0> CAsyncHandler;
 }

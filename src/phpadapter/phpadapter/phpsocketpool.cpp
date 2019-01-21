@@ -3,7 +3,7 @@
 
 namespace PA {
 
-	CPhpSocketPool::CPhpSocketPool() : m_nSvsId(0), Handler(nullptr), m_errCode(0) {
+	CPhpSocketPool::CPhpSocketPool() : m_nSvsId(0), Handler(nullptr), m_errCode(0), m_pt(NotMS){
 
 	}
 
@@ -31,10 +31,10 @@ namespace PA {
 	}
 
 	Php::Value CPhpSocketPool::NewSlave(Php::Parameters &params) {
-		if (!m_defaultDb.size()) {
+		if (m_pt != Master) {
 			throw Php::Exception("Cannot create a slave pool from a non-master pool");
 		}
-		if (!Handler || !Handler->IsStarted()) {
+		if (!Handler) {
 			throw Php::Exception("Root master pool not available");
 		}
 		std::string defaultDb(m_defaultDb);
@@ -55,7 +55,7 @@ namespace PA {
 			defaultDb = params[0].stringValue();
 		}
 		Trim(defaultDb);
-		return Php::Object("CPhpSocketPool", (int64_t)m_nSvsId, defaultDb, autoConn, (int64_t)recvTimeout, (int64_t)connTimeout, true);
+		return Php::Object(PHP_SOCKET_POOL, (int64_t)m_nSvsId, defaultDb, autoConn, (int64_t)recvTimeout, (int64_t)connTimeout, true);
 	}
 
 	void CPhpSocketPool::ShutdownPool(Php::Parameters &params) {
@@ -103,21 +103,29 @@ namespace PA {
 				std::wstring dfltDb = SPA::Utilities::ToWide(m_defaultDb.c_str(), m_defaultDb.size());
 				if (slave) {
 					Db = new SPA::CSQLMasterPool<false, CDBHandler>::CSlavePool(dfltDb.c_str(), recvTimeout, id);
+					m_pt = Slave;
 				}
 				else {
 					Db = new SPA::CSQLMasterPool<false, CDBHandler>(dfltDb.c_str(), recvTimeout, id);
+					m_pt = Master;
 				}
 				Db->SetConnTimeout(connTimeout);
 				Db->SetAutoConn(autoConn);
 			}
 			else {
 				Db = new SPA::ClientSide::CSocketPool<CDBHandler>(autoConn, recvTimeout, connTimeout, id);
+				m_pt = NotMS;
 			}
 			Db->DoSslServerAuthentication = [this](SPA::ClientSide::CSocketPool<CDBHandler> *pool, SPA::ClientSide::CClientSocket * cs)->bool {
 				return true;
 			};
 			Db->SocketPoolEvent = [this](SPA::ClientSide::CSocketPool<CDBHandler> *pool, SPA::ClientSide::tagSocketPoolEvent spe, CDBHandler *handler) {
+				SPA::CAutoLock al(this->m_cs);
+				if (this->m_pe.isCallable()) {
+
+				}
 			};
+
 			break;
 		case SPA::Queue::sidQueue:
 			if (slave) {
@@ -131,8 +139,12 @@ namespace PA {
 				return true;
 			};
 			Queue->SocketPoolEvent = [this](SPA::ClientSide::CSocketPool<CAsyncQueue> *pool, SPA::ClientSide::tagSocketPoolEvent spe, CAsyncQueue *handler) {
+				SPA::CAutoLock al(this->m_cs);
+				if (this->m_pe.isCallable()) {
+
+				}
 			};
-			
+			m_pt = NotMS;
 			break;
 		case SPA::SFile::sidFile:
 			if (slave) {
@@ -146,46 +158,101 @@ namespace PA {
 				return true;
 			};
 			File->SocketPoolEvent = [this](SPA::ClientSide::CSocketPool<CAsyncFile> *pool, SPA::ClientSide::tagSocketPoolEvent spe, CAsyncFile *handler) {
+				SPA::CAutoLock al(this->m_cs);
+				if (this->m_pe.isCallable()) {
+
+				}
 			};
+			m_pt = NotMS;
 			break;
 		default:
 			if (m_defaultDb.size()) {
 				std::wstring dfltDb = SPA::Utilities::ToWide(m_defaultDb.c_str(), m_defaultDb.size());
 				if (slave) {
 					Handler = new SPA::CMasterPool<false, CAsyncHandler>::CSlavePool(dfltDb.c_str(), recvTimeout, id);
+					m_pt = Slave;
 				}
 				else {
 					Handler = new SPA::CMasterPool<false, CAsyncHandler>(dfltDb.c_str(), recvTimeout, id);
+					m_pt = Master;
 				}
 				Handler->SetConnTimeout(connTimeout);
 				Handler->SetAutoConn(autoConn);
 			}
 			else {
 				Handler = new SPA::ClientSide::CSocketPool<CAsyncHandler>(autoConn, recvTimeout, connTimeout, id);
+				m_pt = NotMS;
 			}
 			Handler->DoSslServerAuthentication = [this](SPA::ClientSide::CSocketPool<CAsyncHandler> *pool, SPA::ClientSide::CClientSocket * cs)->bool {
 				return true;
 			};
 			Handler->SocketPoolEvent = [this](SPA::ClientSide::CSocketPool<CAsyncHandler> *pool, SPA::ClientSide::tagSocketPoolEvent spe, CAsyncHandler *handler) {
+				SPA::CAutoLock al(this->m_cs);
+				if (this->m_pe.isCallable()) {
+
+				}
 			};
 			break;
 		}
 		if (slave) {
 			m_defaultDb.clear();
 		}
+		m_nSvsId = id;
 	}
 
 	Php::Value CPhpSocketPool::__get(const Php::Value &name) {
+		int key = 0;
+		SPA::CAutoLock al(m_cs);
 		if (!Handler) {
 			return nullptr;
 		}
 		else if (name == "Handlers" || name == "AsyncHandlers") {
-			Php::Value array;
-			auto vH = Handler->GetAsyncHandlers();
-			for (auto it = vH.cbegin(), end = vH.cend(); it != end; ++it) {
-
+			Php::Array harray;
+			switch (m_nSvsId) {
+			case SPA::Mysql::sidMysql:
+			case SPA::Odbc::sidOdbc:
+			case SPA::Sqlite::sidSqlite:
+			{
+				auto vH = Db->GetAsyncHandlers();
+				for (auto it = vH.cbegin(), end = vH.cend(); it != end; ++it, ++key) {
+					CDBHandler *db = (*it).get();
+					Php::Object objDb(PHP_DB_HANDLER, new CPhpDb(Handler, db, false));
+					harray.set(key, objDb);
+				}
 			}
-			return array;
+			break;
+			case SPA::Queue::sidQueue:
+			{
+				auto vH = Queue->GetAsyncHandlers();
+				for (auto it = vH.cbegin(), end = vH.cend(); it != end; ++it, ++key) {
+					CAsyncQueue *aq = (*it).get();
+					Php::Object objQueue(PHP_QUEUE_HANDLER, new CPhpQueue(Handler, aq, false));
+					harray.set(key, objQueue);
+				}
+			}
+			break;
+			case SPA::SFile::sidFile:
+			{
+				auto vH = File->GetAsyncHandlers();
+				for (auto it = vH.cbegin(), end = vH.cend(); it != end; ++it, ++key) {
+					CAsyncFile *af = (*it).get();
+					Php::Object objFile(PHP_FILE_HANDLER, new CPhpFile(Handler, af, false));
+					harray.set(key, objFile);
+				}
+			}
+			break;
+			default:
+			{
+				auto vH = Handler->GetAsyncHandlers();
+				for (auto it = vH.cbegin(), end = vH.cend(); it != end; ++it, ++key) {
+					CAsyncHandler *ah = (*it).get();
+					Php::Object objHandler(PHP_ASYNC_HANDLER, new CRootHandler(Handler, ah, false));
+					harray.set(key, objHandler);
+				}
+			}
+				break;
+			}
+			return harray;
 		}
 		else if (name == "Sockets") {
 			return (int64_t)Handler->GetConnectedSockets();
@@ -227,11 +294,9 @@ namespace PA {
 			return (int64_t)Handler->GetPoolId();
 		}
 		else if (name == "ec" || name == "ErrorCode") {
-			SPA::CAutoLock al(m_cs);
 			return m_errCode;
 		}
 		else if (name == "em" || name == "ErrorMsg") {
-			SPA::CAutoLock al(m_cs);
 			return m_errMsg;
 		}
 		else if (name == "Avg") {
@@ -250,12 +315,26 @@ namespace PA {
 	}
 
 	void CPhpSocketPool::__set(const Php::Value &name, const Php::Value &value) {
-		if (!Handler) return;
-		if (name == "QueueName") {
+		SPA::CAutoLock al(m_cs);
+		if (!Handler) {
+			return;
+		}
+		else if (name == "QueueName") {
 			Handler->SetQueueName(value.stringValue().c_str());
 		}
 		else if (name == "AutoMerge" || name == "QueueAutoMerge") {
 			Handler->SetQueueAutoMerge(value.boolValue());
+		}
+		else if (name == "PoolEvent" || name == "SocketPoolEvent") {
+			if (value.isCallable()) {
+				m_pe = value;
+			}
+			else if (value.isNull()) {
+				m_pe = nullptr;
+			}
+			else {
+				throw Php::Exception("A callback expected for socket pool event");
+			}
 		}
 		else if (name == "AutoConn") {
 			Handler->SetAutoConn(value.boolValue());
@@ -266,14 +345,17 @@ namespace PA {
 		else if (name == "ConnTimeout") {
 			Handler->SetConnTimeout((unsigned int)value.numericValue());
 		}
+
 		else {
 			Php::Base::__set(name, value);
 		}
 	}
 
 	void CPhpSocketPool::RegisterInto(Php::Namespace &cs) {
-		Php::Class<CPhpSocketPool> pool("CSocketPool");
-		pool.method("__construct", &CPhpSocketPool::__construct, {
+		Php::Class<CPhpSocketPool> pool(PHP_SOCKET_POOL);
+		pool.property("DEFAULT_RECV_TIMEOUT", (int64_t)SPA::ClientSide::DEFAULT_RECV_TIMEOUT, Php::Const);
+		pool.property("DEFAULT_CONN_TIMEOUT", (int64_t)SPA::ClientSide::DEFAULT_CONN_TIMEOUT, Php::Const);
+		pool.method(PHP_CONSTRUCT, &CPhpSocketPool::__construct, {
 			Php::ByVal("svsId", Php::Type::Numeric),
 			Php::ByVal("defaultDb", Php::Type::String, false),
 			Php::ByVal("autoConn", Php::Type::Bool, false),

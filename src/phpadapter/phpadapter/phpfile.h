@@ -9,9 +9,8 @@ namespace PA {
 	class CPhpFile : public CRootHandler
 	{
 	public:
-		CPhpFile(SPA::ClientSide::CStreamingFile *sh, bool locked);
+		CPhpFile(CPhpPool *pool, CAsyncFile *sh, bool locked);
 		CPhpFile(const CPhpFile &file) = delete;
-		~CPhpFile();
 
 	public:
 		CPhpFile& operator=(const CPhpFile &file) = delete;

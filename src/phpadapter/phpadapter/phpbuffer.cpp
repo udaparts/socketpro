@@ -917,10 +917,10 @@ namespace PA {
 	}
 
 	void CPhpBuffer::RegisterInto(Php::Namespace &spa) {
-		Php::Class<CPhpBuffer> buffer("CUQueue");
+		Php::Class<CPhpBuffer> buffer(PHP_BUFFER);
 		buffer.property("DEFAULT_BUFFER_SIZE", (int64_t)SPA::DEFAULT_INITIAL_MEMORY_BUFFER_SIZE, Php::Const);
 		buffer.property("DEFAULT_BLOCK_SIZE", (int64_t)SPA::DEFAULT_MEMORY_BUFFER_BLOCK_SIZE, Php::Const);
-		buffer.method("__construct", &CPhpBuffer::__construct, {
+		buffer.method(PHP_CONSTRUCT, &CPhpBuffer::__construct, {
 			Php::ByVal("maxLen", Php::Type::Numeric, false),
 			Php::ByVal("blockSize", Php::Type::Numeric, false)
 		});

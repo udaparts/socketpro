@@ -45,14 +45,14 @@ namespace SPA {
 				}
 				rh = [func](CAsyncResult & ar) {
 					PAsyncServiceHandler ash = ar.AsyncServiceHandler;
-					Php::Object q("CUQueue", new CPhpBuffer(&ar.UQueue));
+					Php::Object q(PHP_BUFFER, new CPhpBuffer(&ar.UQueue));
 					func(q, ar.RequestId);
 				};
 			}
 			Php::Value v;
 			if (args > 1) {
 				Php::Value &q = params[1];
-				if (q.instanceOf("CUQueue")) {
+				if (q.instanceOf(PHP_BUFFER)) {
 					v = q.call("PopBytes");
 					pBuffer = (const unsigned char*)v.rawValue();
 					bytes = (unsigned int)v.length();
@@ -67,6 +67,13 @@ namespace SPA {
 }
 
 namespace PA {
+	const char *PHP_BUFFER = "CUQueue";
+	const char *PHP_FILE_HANDLER = "CAsyncFile";
+	const char *PHP_DB_HANDLER = "CAsyncDb";
+	const char *PHP_QUEUE_HANDLER = "CAsyncQueue";
+	const char *PHP_ASYNC_HANDLER = "CAsyncHandler";
+	const char *PHP_SOCKET_POOL = "CSocketPool";
+	const char *PHP_CONSTRUCT = "__construct";
 
 	void Trim(std::string &str) {
 		while (str.size() && std::isspace(str.back())) {

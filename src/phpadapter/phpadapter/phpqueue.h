@@ -10,9 +10,8 @@ namespace PA {
 	class CPhpQueue : public CRootHandler
 	{
 	public:
-		CPhpQueue(SPA::ClientSide::CAsyncQueue *aq, bool locked);
+		CPhpQueue(CPhpPool *pool, CAsyncQueue *aq, bool locked);
 		CPhpQueue(const CPhpQueue &q) = delete;
-		~CPhpQueue();
 
 	public:
 		CPhpQueue& operator=(const CPhpQueue &q) = delete;
@@ -20,7 +19,7 @@ namespace PA {
 		static void RegisterInto(Php::Namespace &cs);
 
 	private:
-		SPA::ClientSide::CAsyncQueue *m_aq;
+		CAsyncQueue *m_aq;
 	};
 
 } //namespace PA

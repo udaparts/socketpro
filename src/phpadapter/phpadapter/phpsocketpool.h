@@ -35,6 +35,8 @@ namespace PA {
 		std::string m_defaultDb;
 		int m_errCode;
 		std::string m_errMsg;
+		Php::Value m_pe;
+		tagPoolType m_pt;
 	};
 
 } //namespace PA
