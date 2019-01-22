@@ -43,5 +43,14 @@ namespace PA {
 	extern const char *PHP_SOCKET_POOL;
 	extern const char *PHP_CONSTRUCT;
 
+	//SendRequest
+	extern const char *PHP_SENDREQUEST;
+	extern const char *PHP_SENDREQUEST_REQID;
+	extern const char *PHP_SENDREQUEST_BUFF;
+	extern const char *PHP_SENDREQUEST_RH;
+	extern const char *PHP_SENDREQUEST_CH;
+	extern const char *PHP_SENDREQUEST_EX;
+
 	typedef SPA::ClientSide::CCachedBaseHandler<0> CAsyncHandler;
+	typedef SPA::ClientSide::CClientSocket CClientSocket;
 }

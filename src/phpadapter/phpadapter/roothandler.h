@@ -3,7 +3,7 @@
 
 namespace PA {
 
-	typedef SPA::ClientSide::CSocketPool<CAsyncHandler> CPhpPool;
+typedef SPA::ClientSide::CSocketPool<CAsyncHandler> CPhpPool;
 
 class CRootHandler : public Php::Base
 {

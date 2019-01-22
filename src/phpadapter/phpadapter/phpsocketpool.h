@@ -1,6 +1,7 @@
 #ifndef SPA_PHP_SOCKETPOOL_H
 #define SPA_PHP_SOCKETPOOL_H
 
+#include "roothandler.h"
 #include "phpdb.h"
 #include "phpfile.h"
 #include "phpqueue.h"
@@ -22,15 +23,18 @@ namespace PA {
 		Php::Value NewSlave(Php::Parameters &params);
 		void ShutdownPool(Php::Parameters &params);
 		Php::Value DisconnectAll(Php::Parameters &params);
+		Php::Value Seek();
+		Php::Value SeekByQueue(Php::Parameters &params);
+		Php::Value Lock(Php::Parameters &params);
 
 	private:
 		SPA::CUCriticalSection m_cs;
 		unsigned int m_nSvsId;
 		union {
-			SPA::ClientSide::CSocketPool<CAsyncHandler> *Handler;
-			SPA::ClientSide::CSocketPool<CDBHandler> *Db;
-			SPA::ClientSide::CSocketPool<CAsyncFile> *File;
-			SPA::ClientSide::CSocketPool<CAsyncQueue> *Queue;
+			CPhpPool *Handler;
+			CPhpDbPool *Db;
+			CPhpFilePool *File;
+			CPhpQueuePool *Queue;
 		};
 		std::string m_defaultDb;
 		int m_errCode;

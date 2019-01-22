@@ -3,23 +3,39 @@
 
 namespace PA {
 
-	CPhpDb::CPhpDb(CPhpPool *pool, CDBHandler *db, bool locked) : CRootHandler(pool, db, locked), m_db(db) {
-	
+	CPhpDb::CPhpDb(CPhpDbPool *pool, CDBHandler *db, bool locked) : m_dbPool(pool), m_db(db), m_locked(locked) {
+	}
+
+	CPhpDb::~CPhpDb() {
+		if (m_locked && m_db && m_dbPool) {
+			m_dbPool->Unlock(m_db->GetAttachedClientSocket());
+		}
 	}
 
 	void CPhpDb::__construct(Php::Parameters &params) {
 
 	}
 
+	bool CPhpDb::IsLocked() {
+		return m_locked;
+	}
+
+	Php::Value CPhpDb::SendRequest(Php::Parameters &params) {
+		if (m_db) {
+			return m_db->SendRequest(params);
+		}
+		return false;
+	}
+
 	void CPhpDb::RegisterInto(Php::Namespace &cs) {
 		Php::Class<CPhpDb> handler(PHP_DB_HANDLER);
 		handler.method(PHP_CONSTRUCT, &CPhpDb::__construct, Php::Private);
-		handler.method("SendRequest", &CRootHandler::SendRequest, {
-			Php::ByVal("reqId", Php::Type::Numeric),
-			Php::ByVal("buff", PHP_BUFFER, true, false),
-			Php::ByVal("rh", Php::Type::Callable, false),
-			Php::ByVal("ch", Php::Type::Callable, false),
-			Php::ByVal("ex", Php::Type::Callable, false)
+		handler.method(PHP_SENDREQUEST, &CPhpDb::SendRequest, {
+			Php::ByVal(PHP_SENDREQUEST_REQID, Php::Type::Numeric),
+			Php::ByVal(PHP_SENDREQUEST_BUFF, PHP_BUFFER, true, false),
+			Php::ByVal(PHP_SENDREQUEST_RH, Php::Type::Callable, false),
+			Php::ByVal(PHP_SENDREQUEST_CH, Php::Type::Callable, false),
+			Php::ByVal(PHP_SENDREQUEST_EX, Php::Type::Callable, false)
 		});
 		cs.add(handler);
 	}
