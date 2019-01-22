@@ -75,6 +75,12 @@ namespace PA {
 		unsigned int recvTimeout = SPA::ClientSide::DEFAULT_RECV_TIMEOUT;
 		unsigned int connTimeout = SPA::ClientSide::DEFAULT_CONN_TIMEOUT;
 		unsigned int id = (unsigned int)params[0].numericValue();
+		if (id < SPA::sidChat || (id > SPA::sidODBC && id <= SPA::sidReserved)) {
+			throw Php::Exception("A valid unsigned int required for service id");
+		}
+		if (id == SPA::sidHTTP) {
+			throw Php::Exception("No support to HTTP/websocket at client side");
+		}
 		size_t args = params.size();
 		if (args > 5) {
 			slave = (unsigned int)params[5].boolValue();
@@ -99,18 +105,18 @@ namespace PA {
 			if (m_defaultDb.size()) {
 				std::wstring dfltDb = SPA::Utilities::ToWide(m_defaultDb.c_str(), m_defaultDb.size());
 				if (slave) {
-					Db = new SPA::CSQLMasterPool<false, CDBHandler>::CSlavePool(dfltDb.c_str(), recvTimeout, id);
+					Db = new CSQLMaster::CSlavePool(dfltDb.c_str(), recvTimeout, id);
 					m_pt = Slave;
 				}
 				else {
-					Db = new SPA::CSQLMasterPool<false, CDBHandler>(dfltDb.c_str(), recvTimeout, id);
+					Db = new CSQLMaster(dfltDb.c_str(), recvTimeout, id);
 					m_pt = Master;
 				}
 				Db->SetConnTimeout(connTimeout);
 				Db->SetAutoConn(autoConn);
 			}
 			else {
-				Db = new SPA::ClientSide::CSocketPool<CDBHandler>(autoConn, recvTimeout, connTimeout, id);
+				Db = new CPhpDbPool(autoConn, recvTimeout, connTimeout, id);
 				m_pt = NotMS;
 			}
 			Db->DoSslServerAuthentication = [this](CPhpDbPool *pool, CClientSocket * cs)->bool {
@@ -131,7 +137,7 @@ namespace PA {
 			else if (m_defaultDb.size()) {
 				throw Php::Exception("CAsyncQueue handler doesn't support master pool");
 			}
-			Queue = new SPA::ClientSide::CSocketPool<CAsyncQueue>(autoConn, recvTimeout, connTimeout, id);
+			Queue = new CPhpQueuePool(autoConn, recvTimeout, connTimeout, id);
 			Queue->DoSslServerAuthentication = [this](CPhpQueuePool *pool, CClientSocket * cs)->bool {
 				return true;
 			};
@@ -150,7 +156,7 @@ namespace PA {
 			else if (m_defaultDb.size()) {
 				throw Php::Exception("CStreamingFile handler doesn't support master pool");
 			}
-			File = new SPA::ClientSide::CSocketPool<CAsyncFile>(autoConn, recvTimeout, connTimeout, id);
+			File = new CPhpFilePool(autoConn, recvTimeout, connTimeout, id);
 			File->DoSslServerAuthentication = [this](CPhpFilePool *pool, CClientSocket * cs)->bool {
 				return true;
 			};
@@ -166,18 +172,18 @@ namespace PA {
 			if (m_defaultDb.size()) {
 				std::wstring dfltDb = SPA::Utilities::ToWide(m_defaultDb.c_str(), m_defaultDb.size());
 				if (slave) {
-					Handler = new SPA::CMasterPool<false, CAsyncHandler>::CSlavePool(dfltDb.c_str(), recvTimeout, id);
+					Handler = new CMasterPool::CSlavePool(dfltDb.c_str(), recvTimeout, id);
 					m_pt = Slave;
 				}
 				else {
-					Handler = new SPA::CMasterPool<false, CAsyncHandler>(dfltDb.c_str(), recvTimeout, id);
+					Handler = new CMasterPool(dfltDb.c_str(), recvTimeout, id);
 					m_pt = Master;
 				}
 				Handler->SetConnTimeout(connTimeout);
 				Handler->SetAutoConn(autoConn);
 			}
 			else {
-				Handler = new SPA::ClientSide::CSocketPool<CAsyncHandler>(autoConn, recvTimeout, connTimeout, id);
+				Handler = new CPhpPool(autoConn, recvTimeout, connTimeout, id);
 				m_pt = NotMS;
 			}
 			Handler->DoSslServerAuthentication = [this](CPhpPool *pool, CClientSocket * cs)->bool {
@@ -237,7 +243,7 @@ namespace PA {
 			auto handler = Handler->Seek();
 			if (!handler)
 				return nullptr;
-			Php::Object obj(PHP_ASYNC_HANDLER, new CRootHandler(Handler, handler.get(), false));
+			Php::Object obj(PHP_ASYNC_HANDLER, new CPhpHandler(Handler, handler.get(), false));
 			return obj;
 		}
 		break;
@@ -292,7 +298,7 @@ namespace PA {
 			auto handler = empty ? Handler->SeekByQueue() : Handler->SeekByQueue(qName);
 			if (!handler)
 				return nullptr;
-			Php::Object obj(PHP_ASYNC_HANDLER, new CRootHandler(Handler, handler.get(), false));
+			Php::Object obj(PHP_ASYNC_HANDLER, new CPhpHandler(Handler, handler.get(), false));
 			return obj;
 		}
 		break;
@@ -344,7 +350,7 @@ namespace PA {
 			auto handler = Handler->Lock(timeout);
 			if (!handler)
 				return nullptr;
-			Php::Object obj(PHP_ASYNC_HANDLER, new CRootHandler(Handler, handler.get(), true));
+			Php::Object obj(PHP_ASYNC_HANDLER, new CPhpHandler(Handler, handler.get(), true));
 			return obj;
 		}
 		break;
@@ -352,9 +358,12 @@ namespace PA {
 		return nullptr; //shouldnot come here
 	}
 
+	Php::Value CPhpSocketPool::Start(Php::Parameters &params) {
+		return nullptr;
+	}
+
 	Php::Value CPhpSocketPool::__get(const Php::Value &name) {
 		int key = 0;
-		SPA::CAutoLock al(m_cs);
 		if (!Handler) {
 			return nullptr;
 		}
@@ -398,7 +407,7 @@ namespace PA {
 				auto vH = Handler->GetAsyncHandlers();
 				for (auto it = vH.cbegin(), end = vH.cend(); it != end; ++it, ++key) {
 					CAsyncHandler *ah = (*it).get();
-					Php::Object objHandler(PHP_ASYNC_HANDLER, new CRootHandler(Handler, ah, false));
+					Php::Object objHandler(PHP_ASYNC_HANDLER, new CPhpHandler(Handler, ah, false));
 					harray.set(key, objHandler);
 				}
 			}
@@ -446,9 +455,11 @@ namespace PA {
 			return (int64_t)Handler->GetPoolId();
 		}
 		else if (name == "ec" || name == "ErrorCode") {
+			SPA::CAutoLock al(m_cs);
 			return m_errCode;
 		}
 		else if (name == "em" || name == "ErrorMsg") {
+			SPA::CAutoLock al(m_cs);
 			return m_errMsg;
 		}
 		else if (name == "Avg") {
@@ -467,7 +478,6 @@ namespace PA {
 	}
 
 	void CPhpSocketPool::__set(const Php::Value &name, const Php::Value &value) {
-		SPA::CAutoLock al(m_cs);
 		if (!Handler) {
 			return;
 		}
@@ -477,7 +487,8 @@ namespace PA {
 		else if (name == "AutoMerge" || name == "QueueAutoMerge") {
 			Handler->SetQueueAutoMerge(value.boolValue());
 		}
-		else if (name == "PoolEvent" || name == "SocketPoolEvent") {
+		else if (name == "Event" || name == "PoolEvent" || name == "SocketPoolEvent") {
+			SPA::CAutoLock al(m_cs);
 			if (value.isCallable()) {
 				m_pe = value;
 			}
@@ -486,6 +497,18 @@ namespace PA {
 			}
 			else {
 				throw Php::Exception("A callback expected for socket pool event");
+			}
+		}
+		else if (name == "VerifyCert") {
+			SPA::CAutoLock al(m_cs);
+			if (value.isCallable()) {
+				m_ssl = value;
+			}
+			else if (value.isNull()) {
+				m_ssl = nullptr;
+			}
+			else {
+				throw Php::Exception("A callback expected to authenticate certificate from a remote server");
 			}
 		}
 		else if (name == "AutoConn") {

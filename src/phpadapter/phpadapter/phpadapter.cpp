@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "spa_consts.h"
 #include "phpbuffer.h"
+#include "phpconncontext.h"
 #include "roothandler.h"
 #include "phpfile.h"
 #include "phpdb.h"
@@ -24,8 +25,9 @@ extern "C" {
 
 		//namespace ClientSide
 		Php::Namespace ClientSide("ClientSide");
+		PA::CPhpConnContext::RegisterInto(ClientSide);
 		PA::CPhpSocketPool::RegisterInto(ClientSide);
-		PA::CRootHandler::RegisterInto(ClientSide);
+		PA::CPhpHandler::RegisterInto(ClientSide);
 		PA::CPhpFile::RegisterInto(ClientSide);
 		PA::CPhpDb::RegisterInto(ClientSide);
 		PA::CPhpQueue::RegisterInto(ClientSide);

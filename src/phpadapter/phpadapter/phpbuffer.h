@@ -67,6 +67,7 @@ namespace PA {
 		SPA::CUQueue *m_pBuffer;
 		bool m_bExternal;
 		friend void ToVariant(const Php::Value &data, SPA::UDB::CDBVariant &vt, const std::string &id);
+		friend void ToVariant(const Php::Value &data, CComVariant &vt, const std::string &id);
 		friend SPA::ClientSide::CAsyncServiceHandler;
 	};
 

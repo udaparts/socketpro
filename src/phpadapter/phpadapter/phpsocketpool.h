@@ -26,6 +26,7 @@ namespace PA {
 		Php::Value Seek();
 		Php::Value SeekByQueue(Php::Parameters &params);
 		Php::Value Lock(Php::Parameters &params);
+		Php::Value Start(Php::Parameters &params);
 
 	private:
 		SPA::CUCriticalSection m_cs;
@@ -41,6 +42,7 @@ namespace PA {
 		std::string m_errMsg;
 		Php::Value m_pe;
 		tagPoolType m_pt;
+		Php::Value m_ssl;
 	};
 
 } //namespace PA

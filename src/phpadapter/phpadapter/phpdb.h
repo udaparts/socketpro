@@ -5,6 +5,7 @@ namespace PA {
 
 	typedef SPA::ClientSide::CAsyncDBHandler<0> CDBHandler;
 	typedef SPA::ClientSide::CSocketPool<CDBHandler> CPhpDbPool;
+	typedef SPA::CSQLMasterPool<false, CDBHandler> CSQLMaster;
 
 	class CPhpDb : public Php::Base
 	{

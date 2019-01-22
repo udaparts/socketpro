@@ -36,6 +36,7 @@ namespace PA {
 		Master = 2
 	};
 	extern const char *PHP_BUFFER;
+	extern const char *PHP_CONN_CONTEXT;
 	extern const char *PHP_FILE_HANDLER;
 	extern const char *PHP_DB_HANDLER;
 	extern const char *PHP_QUEUE_HANDLER;

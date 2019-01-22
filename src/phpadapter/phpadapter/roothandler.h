@@ -4,16 +4,17 @@
 namespace PA {
 
 typedef SPA::ClientSide::CSocketPool<CAsyncHandler> CPhpPool;
+typedef SPA::CMasterPool<false, CAsyncHandler> CMasterPool;
 
-class CRootHandler : public Php::Base
+class CPhpHandler : public Php::Base
 {
 public:
-	CRootHandler(CPhpPool *pool, SPA::ClientSide::CAsyncServiceHandler *pHandler, bool locked);
-	CRootHandler(const CRootHandler &rh) = delete;
-	~CRootHandler();
+	CPhpHandler(CPhpPool *pool, SPA::ClientSide::CAsyncServiceHandler *pHandler, bool locked);
+	CPhpHandler(const CPhpHandler &rh) = delete;
+	~CPhpHandler();
 
 public:
-	CRootHandler& operator=(const CRootHandler &rh) = delete;
+	CPhpHandler& operator=(const CPhpHandler &rh) = delete;
 	void __construct(Php::Parameters &params);
 	static void RegisterInto(Php::Namespace &cs);
 	Php::Value SendRequest(Php::Parameters &params);

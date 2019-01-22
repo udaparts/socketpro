@@ -68,6 +68,7 @@ namespace SPA {
 
 namespace PA {
 	const char *PHP_BUFFER = "CUQueue";
+	const char *PHP_CONN_CONTEXT = "CConnectionContext";
 	const char *PHP_FILE_HANDLER = "CAsyncFile";
 	const char *PHP_DB_HANDLER = "CAsyncDb";
 	const char *PHP_QUEUE_HANDLER = "CAsyncQueue";
@@ -89,6 +90,113 @@ namespace PA {
 		}
 		while (str.size() && std::isspace(str.front())) {
 			str.erase(0, 1);
+		}
+	}
+
+	void ToVariant(const Php::Value &data, CComVariant &vt, const std::string &id) {
+		auto type = data.type();
+		switch (type) {
+		case Php::Type::Undefined:
+		case Php::Type::Null:
+			vt.Clear();
+			vt.vt = VT_NULL;
+			break;
+		case Php::Type::Bool:
+		case Php::Type::False:
+		case Php::Type::True:
+			vt = data.boolValue();
+			break;
+		case Php::Type::Numeric:
+			if (id == "i" || id == "int") {
+				vt = (int)data.numericValue();
+			}
+			else if (id == "ui" || id == "uint" || id == "unsigned" || id == "unsigned int") {
+				vt = (unsigned int)data.numericValue();
+			}
+			else if (id == "ul" || id == "ulong" || id == "unsigned long long" || id == "unsigned long int") {
+				vt = (SPA::UINT64)data.numericValue();
+			}
+			else if (id == "s" || id == "short" || id == "w") {
+				vt = (short)data.numericValue();
+			}
+			else if (id == "c" || id == "char" || id == "a") {
+				vt = (char)data.numericValue();
+			}
+			else if (id == "b" || id == "byte" || id == "unsigned char") {
+				vt = (unsigned char)data.numericValue();
+			}
+			else if (id == "us" || id == "ushort" || id == "unsigned short") {
+				vt = (unsigned short)data.numericValue();
+			}
+			else if (id == "dec" || id == "decimal") {
+				vt.vt = VT_DECIMAL;
+				SPA::ToDecimal(data.numericValue(), vt.decVal);
+			}
+			else {
+				vt = data.numericValue();
+			}
+			break;
+		case Php::Type::Float:
+			if (id == "f" || id == "float") {
+				vt = (float)data.floatValue();
+			}
+			else if (id == "dec" || id == "decimal") {
+				vt.vt = VT_DECIMAL;
+				SPA::ToDecimal(data.floatValue(), vt.decVal);
+			}
+			else {
+				vt = data.floatValue();
+			}
+			break;
+		case Php::Type::String:
+		{
+			vt.Clear();
+			const char *raw = data.rawValue();
+			if (!raw) {
+				vt.vt = VT_NULL;
+			}
+			else if (id == "a" || id == "ascii") {
+				vt = raw;
+			}
+			else if (id == "bytes" || id == "binary" || id == "uuid" || id == "clsid" || id == "guid") {
+				unsigned char *pBuffer;
+				vt.vt = (VT_ARRAY | VT_UI1);
+				SAFEARRAYBOUND sab[1] = { (unsigned int)data.length(), 0 };
+				SAFEARRAY *psa = SafeArrayCreate(VT_UI1, 1, sab);
+				SafeArrayAccessData(psa, (void**)&pBuffer);
+				memcpy(pBuffer, raw, (unsigned int)data.length());
+				SafeArrayUnaccessData(psa);
+				vt.parray = psa;
+			}
+			else if (id == "dec" || id == "decimal") {
+				vt.vt = VT_DECIMAL;
+				SPA::ParseDec_long(raw, vt.decVal);
+			}
+			else {
+				vt.vt = VT_BSTR;
+				vt.bstrVal = SPA::Utilities::ToBSTR(raw, (unsigned int)data.length());
+			}
+		}
+		break;
+		case Php::Type::Object:
+			if (Php::is_a(data, "DateTime")) {
+				vt.Clear();
+				Php::Value dt = data.call("format", "Y-m-d H:i:s.u");
+				SPA::UDateTime udt(dt.rawValue());
+				vt.ullVal = udt.time; //high precision datetime
+				vt.vt = VT_DATE;
+				break;
+			}
+			else {
+				throw Php::Exception("Unsupported data type");
+			}
+		default: //Php::Type::Array
+		{
+			CPhpBuffer pb;
+			pb.SaveObject(data, "");
+			*pb.m_pBuffer >> vt;
+		}
+		break;
 		}
 	}
 
@@ -149,6 +257,7 @@ namespace PA {
 			break;
 		case Php::Type::String:
 		{
+			vt.Clear();
 			const char *raw = data.rawValue();
 			if (!raw) {
 				vt.vt = VT_NULL;
