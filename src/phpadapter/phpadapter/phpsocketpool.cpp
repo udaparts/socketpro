@@ -122,7 +122,7 @@ namespace PA {
 			Db->DoSslServerAuthentication = [this](CPhpDbPool *pool, CClientSocket * cs)->bool {
 				return true;
 			};
-			Db->SocketPoolEvent = [this](CPhpDbPool *pool, SPA::ClientSide::tagSocketPoolEvent spe, CDBHandler *handler) {
+			Db->SocketPoolEvent = [this](CPhpDbPool *pool, tagSocketPoolEvent spe, CDBHandler *handler) {
 				SPA::CAutoLock al(this->m_cs);
 				if (this->m_pe.isCallable()) {
 
@@ -141,7 +141,7 @@ namespace PA {
 			Queue->DoSslServerAuthentication = [this](CPhpQueuePool *pool, CClientSocket * cs)->bool {
 				return true;
 			};
-			Queue->SocketPoolEvent = [this](CPhpQueuePool *pool, SPA::ClientSide::tagSocketPoolEvent spe, CAsyncQueue *handler) {
+			Queue->SocketPoolEvent = [this](CPhpQueuePool *pool, tagSocketPoolEvent spe, CAsyncQueue *handler) {
 				SPA::CAutoLock al(this->m_cs);
 				if (this->m_pe.isCallable()) {
 
@@ -160,7 +160,7 @@ namespace PA {
 			File->DoSslServerAuthentication = [this](CPhpFilePool *pool, CClientSocket * cs)->bool {
 				return true;
 			};
-			File->SocketPoolEvent = [this](CPhpFilePool *pool, SPA::ClientSide::tagSocketPoolEvent spe, CAsyncFile *handler) {
+			File->SocketPoolEvent = [this](CPhpFilePool *pool, tagSocketPoolEvent spe, CAsyncFile *handler) {
 				SPA::CAutoLock al(this->m_cs);
 				if (this->m_pe.isCallable()) {
 
@@ -189,7 +189,7 @@ namespace PA {
 			Handler->DoSslServerAuthentication = [this](CPhpPool *pool, CClientSocket * cs)->bool {
 				return true;
 			};
-			Handler->SocketPoolEvent = [this](CPhpPool *pool, SPA::ClientSide::tagSocketPoolEvent spe, CAsyncHandler *handler) {
+			Handler->SocketPoolEvent = [this](CPhpPool *pool, tagSocketPoolEvent spe, CAsyncHandler *handler) {
 				SPA::CAutoLock al(this->m_cs);
 				if (this->m_pe.isCallable()) {
 
