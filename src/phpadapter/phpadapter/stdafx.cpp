@@ -74,6 +74,7 @@ namespace PA {
 	const char *PHP_QUEUE_HANDLER = "CAsyncQueue";
 	const char *PHP_ASYNC_HANDLER = "CAsyncHandler";
 	const char *PHP_SOCKET_POOL = "CSocketPool";
+	const char *PHP_CERT = "CUCert";
 	const char *PHP_SOCKET = "CClientSocket";
 	const char *PHP_CONSTRUCT = "__construct";
 

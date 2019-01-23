@@ -6,6 +6,7 @@
 #include "phpfile.h"
 #include "phpdb.h"
 #include "phpqueue.h"
+#include "phpcert.h"
 #include "phpsocket.h"
 #include "phpsocketpool.h"
 
@@ -26,6 +27,7 @@ extern "C" {
 
 		//namespace ClientSide
 		Php::Namespace ClientSide("ClientSide");
+		PA::CPhpCert::RegisterInto(ClientSide);
 		PA::CPhpConnContext::RegisterInto(ClientSide);
 		PA::CPhpSocketPool::RegisterInto(ClientSide);
 		PA::CPhpHandler::RegisterInto(ClientSide);

@@ -30,6 +30,7 @@ namespace PA {
 
 	private:
 		static void ToCtx(const Php::Value &vCtx, SPA::ClientSide::CConnectionContext &ctx);
+		bool DoSSLAuth(CClientSocket *cs);
 
 	private:
 		SPA::CUCriticalSection m_cs;

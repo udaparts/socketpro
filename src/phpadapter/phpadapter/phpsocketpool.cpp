@@ -129,17 +129,17 @@ namespace PA {
 				m_pt = NotMS;
 			}
 			Db->DoSslServerAuthentication = [this](CPhpDbPool *pool, CClientSocket * cs)->bool {
-				return true;
+				return this->DoSSLAuth(cs);
 			};
 			Db->SocketPoolEvent = [this](CPhpDbPool *pool, tagSocketPoolEvent spe, CDBHandler *handler) {
 				SPA::CAutoLock al(this->m_cs);
 				if (this->m_pe.isCallable()) {
 					if (handler) {
 						CPhpDb *h = new CPhpDb(pool, handler, false);
-						this->m_pe((int)spe, Php::Object((SPA_CS_NS + PHP_ASYNC_HANDLER).c_str(), h));
+						this->m_pe((int)spe, Php::Object((SPA_CS_NS + PHP_ASYNC_HANDLER).c_str(), h), this);
 					}
 					else {
-						this->m_pe((int)spe, nullptr);
+						this->m_pe((int)spe, nullptr, this);
 					}
 				}
 			};
@@ -154,17 +154,17 @@ namespace PA {
 			}
 			Queue = new CPhpQueuePool(autoConn, recvTimeout, connTimeout, id);
 			Queue->DoSslServerAuthentication = [this](CPhpQueuePool *pool, CClientSocket * cs)->bool {
-				return true;
+				return this->DoSSLAuth(cs);
 			};
 			Queue->SocketPoolEvent = [this](CPhpQueuePool *pool, tagSocketPoolEvent spe, CAsyncQueue *handler) {
 				SPA::CAutoLock al(this->m_cs);
 				if (this->m_pe.isCallable()) {
 					if (handler) {
 						CPhpQueue *h = new CPhpQueue(pool, handler, false);
-						this->m_pe((int)spe, Php::Object((SPA_CS_NS + PHP_QUEUE_HANDLER).c_str(), h));
+						this->m_pe((int)spe, Php::Object((SPA_CS_NS + PHP_QUEUE_HANDLER).c_str(), h), this);
 					}
 					else {
-						this->m_pe((int)spe, nullptr);
+						this->m_pe((int)spe, nullptr, this);
 					}
 				}
 			};
@@ -179,17 +179,17 @@ namespace PA {
 			}
 			File = new CPhpFilePool(autoConn, recvTimeout, connTimeout, id);
 			File->DoSslServerAuthentication = [this](CPhpFilePool *pool, CClientSocket * cs)->bool {
-				return true;
+				return this->DoSSLAuth(cs);
 			};
 			File->SocketPoolEvent = [this](CPhpFilePool *pool, tagSocketPoolEvent spe, CAsyncFile *handler) {
 				SPA::CAutoLock al(this->m_cs);
 				if (this->m_pe.isCallable()) {
 					if (handler) {
 						CPhpFile *h = new CPhpFile(pool, handler, false);
-						this->m_pe((int)spe, Php::Object((SPA_CS_NS + PHP_FILE_HANDLER).c_str(), h));
+						this->m_pe((int)spe, Php::Object((SPA_CS_NS + PHP_FILE_HANDLER).c_str(), h), this);
 					}
 					else {
-						this->m_pe((int)spe, nullptr);
+						this->m_pe((int)spe, nullptr, this);
 					}
 				}
 			};
@@ -214,17 +214,17 @@ namespace PA {
 				m_pt = NotMS;
 			}
 			Handler->DoSslServerAuthentication = [this](CPhpPool *pool, CClientSocket * cs)->bool {
-				return true;
+				return this->DoSSLAuth(cs);
 			};
 			Handler->SocketPoolEvent = [this](CPhpPool *pool, tagSocketPoolEvent spe, CAsyncHandler *handler) {
 				SPA::CAutoLock al(this->m_cs);
 				if (this->m_pe.isCallable()) {
 					if (handler) {
 						CPhpHandler *h = new CPhpHandler(pool, handler, false);
-						this->m_pe((int)spe, Php::Object((SPA_CS_NS + PHP_ASYNC_HANDLER).c_str(), h));
+						this->m_pe((int)spe, Php::Object((SPA_CS_NS + PHP_ASYNC_HANDLER).c_str(), h), this);
 					}
 					else {
-						this->m_pe((int)spe, nullptr);
+						this->m_pe((int)spe, nullptr, this);
 					}
 				}
 			};
@@ -399,6 +399,32 @@ namespace PA {
 		ctx.Password = SPA::Utilities::ToWide(s.c_str(), s.size());
 		ctx.V6 = vCtx.get("V6").boolValue();
 		ctx.Zip = vCtx.get("Zip").boolValue();
+	}
+
+	bool CPhpSocketPool::DoSSLAuth(CClientSocket *cs) {
+		Php::Value ssl;
+		SPA::IUcert *cert = cs->GetUCert();
+		if (!cert) {
+			return false;
+		}
+		{
+			SPA::CAutoLock al(m_cs);
+			if (!cert->Validity) {
+				m_errCode = -1;
+				m_errMsg = "Certificate not valid";
+				return false;
+			}
+			m_errMsg = cert->Verify(&m_errCode);
+			if (!m_errCode) {
+				return true;
+			}
+			ssl = m_ssl;
+		}
+		if (ssl.isCallable()) {
+			CPhpSocket *ps = new CPhpSocket(cs);
+			return ssl(Php::Object((SPA_CS_NS + PHP_SOCKET).c_str(), ps), this).boolValue();
+		}
+		return false;
 	}
 
 	Php::Value CPhpSocketPool::Start(Php::Parameters &params) {

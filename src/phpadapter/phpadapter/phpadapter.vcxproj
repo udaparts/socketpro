@@ -164,6 +164,7 @@
     <ClInclude Include="..\..\..\include\udatabase.h" />
     <ClInclude Include="..\..\..\include\udb_client.h" />
     <ClInclude Include="phpbuffer.h" />
+    <ClInclude Include="phpcert.h" />
     <ClInclude Include="phpconncontext.h" />
     <ClInclude Include="phpdb.h" />
     <ClInclude Include="phpfile.h" />
@@ -196,6 +197,7 @@
     </ClCompile>
     <ClCompile Include="phpadapter.cpp" />
     <ClCompile Include="phpbuffer.cpp" />
+    <ClCompile Include="phpcert.cpp" />
     <ClCompile Include="phpconncontext.cpp" />
     <ClCompile Include="phpdb.cpp" />
     <ClCompile Include="phpfile.cpp" />
