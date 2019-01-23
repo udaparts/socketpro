@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "phpsocketpool.h"
+#include "phpsocket.h"
 
 namespace PA {
 
@@ -133,7 +134,13 @@ namespace PA {
 			Db->SocketPoolEvent = [this](CPhpDbPool *pool, tagSocketPoolEvent spe, CDBHandler *handler) {
 				SPA::CAutoLock al(this->m_cs);
 				if (this->m_pe.isCallable()) {
-
+					if (handler) {
+						CPhpDb *h = new CPhpDb(pool, handler, false);
+						this->m_pe((int)spe, Php::Object((SPA_CS_NS + PHP_ASYNC_HANDLER).c_str(), h));
+					}
+					else {
+						this->m_pe((int)spe, nullptr);
+					}
 				}
 			};
 
@@ -152,7 +159,13 @@ namespace PA {
 			Queue->SocketPoolEvent = [this](CPhpQueuePool *pool, tagSocketPoolEvent spe, CAsyncQueue *handler) {
 				SPA::CAutoLock al(this->m_cs);
 				if (this->m_pe.isCallable()) {
-
+					if (handler) {
+						CPhpQueue *h = new CPhpQueue(pool, handler, false);
+						this->m_pe((int)spe, Php::Object((SPA_CS_NS + PHP_QUEUE_HANDLER).c_str(), h));
+					}
+					else {
+						this->m_pe((int)spe, nullptr);
+					}
 				}
 			};
 			m_pt = NotMS;
@@ -171,7 +184,13 @@ namespace PA {
 			File->SocketPoolEvent = [this](CPhpFilePool *pool, tagSocketPoolEvent spe, CAsyncFile *handler) {
 				SPA::CAutoLock al(this->m_cs);
 				if (this->m_pe.isCallable()) {
-
+					if (handler) {
+						CPhpFile *h = new CPhpFile(pool, handler, false);
+						this->m_pe((int)spe, Php::Object((SPA_CS_NS + PHP_FILE_HANDLER).c_str(), h));
+					}
+					else {
+						this->m_pe((int)spe, nullptr);
+					}
 				}
 			};
 			m_pt = NotMS;
@@ -200,7 +219,13 @@ namespace PA {
 			Handler->SocketPoolEvent = [this](CPhpPool *pool, tagSocketPoolEvent spe, CAsyncHandler *handler) {
 				SPA::CAutoLock al(this->m_cs);
 				if (this->m_pe.isCallable()) {
-
+					if (handler) {
+						CPhpHandler *h = new CPhpHandler(pool, handler, false);
+						this->m_pe((int)spe, Php::Object((SPA_CS_NS + PHP_ASYNC_HANDLER).c_str(), h));
+					}
+					else {
+						this->m_pe((int)spe, nullptr);
+					}
 				}
 			};
 			break;
@@ -212,9 +237,8 @@ namespace PA {
 	}
 
 	Php::Value CPhpSocketPool::Seek() {
-		SPA::CAutoLock al(m_cs);
 		if (!Handler) {
-			throw Php::Exception("Socket pool object not initialized");
+			throw Php::Exception(NOT_INITIALIZED);
 		}
 		switch (m_nSvsId) {
 		case SPA::Mysql::sidMysql:
@@ -526,6 +550,26 @@ namespace PA {
 		}
 		else if (name == "Started") {
 			return Handler->IsStarted();
+		}
+		else if (name == "Cache" && m_pt == Master) {
+			switch (m_nSvsId) {
+			case SPA::Mysql::sidMysql:
+			case SPA::Odbc::sidOdbc:
+			case SPA::Sqlite::sidSqlite:
+			{
+				CSQLMaster *master = (CSQLMaster *)Db;
+			}
+			break;
+			case SPA::sidFile:
+			case SPA::sidChat:
+				assert(false); //shouldn't come here
+				break;
+			default:
+			{
+				CMasterPool *master = (CMasterPool *)Handler;
+			}
+			break;
+			}
 		}
 		return Php::Base::__get(name);
 	}

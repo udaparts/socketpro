@@ -168,6 +168,7 @@
     <ClInclude Include="phpdb.h" />
     <ClInclude Include="phpfile.h" />
     <ClInclude Include="phpqueue.h" />
+    <ClInclude Include="phpsocket.h" />
     <ClInclude Include="phpsocketpool.h" />
     <ClInclude Include="roothandler.h" />
     <ClInclude Include="spa_consts.h" />
@@ -199,6 +200,7 @@
     <ClCompile Include="phpdb.cpp" />
     <ClCompile Include="phpfile.cpp" />
     <ClCompile Include="phpqueue.cpp" />
+    <ClCompile Include="phpsocket.cpp" />
     <ClCompile Include="phpsocketpool.cpp" />
     <ClCompile Include="roothandler.cpp" />
     <ClCompile Include="spa_consts.cpp" />

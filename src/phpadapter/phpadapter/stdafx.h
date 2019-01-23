@@ -42,6 +42,7 @@ namespace PA {
 	extern const char *PHP_QUEUE_HANDLER;
 	extern const char *PHP_ASYNC_HANDLER;
 	extern const char *PHP_SOCKET_POOL;
+	extern const char *PHP_SOCKET;
 	extern const char *PHP_CONSTRUCT;
 
 	//SendRequest

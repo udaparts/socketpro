@@ -6,6 +6,7 @@
 #include "phpfile.h"
 #include "phpdb.h"
 #include "phpqueue.h"
+#include "phpsocket.h"
 #include "phpsocketpool.h"
 
 extern "C" {
