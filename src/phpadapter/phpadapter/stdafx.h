@@ -52,6 +52,9 @@ namespace PA {
 	extern const char *PHP_SENDREQUEST_CH;
 	extern const char *PHP_SENDREQUEST_EX;
 
+	extern const std::string SPA_NS;
+	extern const std::string SPA_CS_NS;
+
 	typedef SPA::ClientSide::CCachedBaseHandler<0> CAsyncHandler;
 	typedef SPA::ClientSide::CClientSocket CClientSocket;
 	typedef SPA::ClientSide::tagSocketPoolEvent tagSocketPoolEvent;

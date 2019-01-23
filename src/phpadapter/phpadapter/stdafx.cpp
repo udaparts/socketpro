@@ -84,6 +84,9 @@ namespace PA {
 	const char *PHP_SENDREQUEST_CH = "ch";
 	const char *PHP_SENDREQUEST_EX = "ex";
 
+	const std::string SPA_NS("SPA\\");
+	const std::string SPA_CS_NS("SPA\\ClientSide\\");
+
 	void Trim(std::string &str) {
 		while (str.size() && std::isspace(str.back())) {
 			str.pop_back();

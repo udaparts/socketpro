@@ -44,7 +44,7 @@ namespace PA {
 			return SPA::Utilities::ToUTF8(UserId.c_str(), UserId.size());
 		}
 		else if (name == "Pwd" || name == "Password") {
-			throw Php::Exception("Password not readable");
+			return SPA::Utilities::ToUTF8(Password.c_str(), Password.size());
 		}
 		else if (name == "EM" || name == "EncrytionMethod") {
 			return (int64_t)EncrytionMethod;

@@ -29,6 +29,9 @@ namespace PA {
 		Php::Value Start(Php::Parameters &params);
 
 	private:
+		static void ToCtx(const Php::Value &vCtx, SPA::ClientSide::CConnectionContext &ctx);
+
+	private:
 		SPA::CUCriticalSection m_cs;
 		unsigned int m_nSvsId;
 		union {
@@ -43,6 +46,8 @@ namespace PA {
 		Php::Value m_pe;
 		tagPoolType m_pt;
 		Php::Value m_ssl;
+
+		static const char* NOT_INITIALIZED;
 	};
 
 } //namespace PA
