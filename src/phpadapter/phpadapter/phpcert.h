@@ -14,6 +14,7 @@ namespace PA {
 		static void RegisterInto(Php::Namespace &cs);
 		Php::Value __get(const Php::Value &name);
 		Php::Value Verify();
+		int __compare(const CPhpCert &cert) const;
 
 	private:
 		SPA::IUcert *m_cert;

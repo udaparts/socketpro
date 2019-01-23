@@ -18,6 +18,7 @@ namespace PA {
 		static void RegisterInto(Php::Namespace &cs);
 		Php::Value SendRequest(Php::Parameters &params);
 		bool IsLocked();
+		int __compare(const CPhpFile &f) const;
 
 	private:
 		CPhpFilePool *m_filePool;

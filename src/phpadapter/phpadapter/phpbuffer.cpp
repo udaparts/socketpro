@@ -4,13 +4,19 @@
 namespace PA {
 
 	CPhpBuffer::CPhpBuffer(SPA::CUQueue *buffer) : m_pBuffer(buffer), m_bExternal(buffer ? true : false){
-
 	}
 
 	CPhpBuffer::~CPhpBuffer() {
 		if (!m_bExternal) {
 			SPA::CScopeUQueue::Unlock(m_pBuffer);
 		}
+	}
+
+	int CPhpBuffer::__compare(const CPhpBuffer &b) const {
+		if (!m_pBuffer || !b.m_pBuffer) {
+			return 1;
+		}
+		return (m_pBuffer == b.m_pBuffer) ? 0 : 1;
 	}
 
 	void CPhpBuffer::__construct(Php::Parameters &params) {

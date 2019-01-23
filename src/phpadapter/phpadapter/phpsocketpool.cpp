@@ -427,6 +427,13 @@ namespace PA {
 		return false;
 	}
 
+	int CPhpSocketPool::__compare(const CPhpSocketPool &pool) const {
+		if (!Handler || !pool.Handler) {
+			return 1;
+		}
+		return (Handler == pool.Handler) ? 1 : 0;
+	}
+
 	Php::Value CPhpSocketPool::Start(Php::Parameters &params) {
 		int64_t num;
 		unsigned int socketsPerThread = 1, threads = 1;

@@ -14,6 +14,7 @@ namespace PA {
 		void __construct(Php::Parameters &params);
 		Php::Value __get(const Php::Value &name);
 		void __set(const Php::Value &name, const Php::Value &value);
+		int __compare(const CPhpSocket &socket) const;
 
 	private:
 		CClientSocket *m_cs;

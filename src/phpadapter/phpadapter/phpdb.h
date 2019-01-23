@@ -20,6 +20,7 @@ namespace PA {
 		static void RegisterInto(Php::Namespace &cs);
 		Php::Value SendRequest(Php::Parameters &params);
 		bool IsLocked();
+		int __compare(const CPhpDb &db) const;
 
 	private:
 		CPhpDbPool *m_dbPool;

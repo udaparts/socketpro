@@ -27,6 +27,7 @@ namespace PA {
 		Php::Value SeekByQueue(Php::Parameters &params);
 		Php::Value Lock(Php::Parameters &params);
 		Php::Value Start(Php::Parameters &params);
+		int __compare(const CPhpSocketPool &pool) const;
 
 	private:
 		static void ToCtx(const Php::Value &vCtx, SPA::ClientSide::CConnectionContext &ctx);

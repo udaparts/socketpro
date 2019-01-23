@@ -13,11 +13,17 @@ namespace PA {
 	}
 
 	void CPhpHandler::__construct(Php::Parameters &params) {
-
 	}
 
 	bool CPhpHandler::IsLocked() {
 		return m_locked;
+	}
+
+	int CPhpHandler::__compare(const CPhpHandler &h) const {
+		if (!m_pHandler || !h.m_pHandler) {
+			return 1;
+		}
+		return (m_pHandler == h.m_pHandler) ? 0 : 1;
 	}
 
 	Php::Value CPhpHandler::SendRequest(Php::Parameters &params) {

@@ -13,11 +13,17 @@ namespace PA {
 	}
 
 	void CPhpFile::__construct(Php::Parameters &params) {
-
 	}
 
 	bool CPhpFile::IsLocked() {
 		return m_locked;
+	}
+
+	int CPhpFile::__compare(const CPhpFile &f) const {
+		if (!m_sh || !f.m_sh) {
+			return 1;
+		}
+		return (m_sh == f.m_sh) ? 0 : 1;
 	}
 
 	Php::Value CPhpFile::SendRequest(Php::Parameters &params) {

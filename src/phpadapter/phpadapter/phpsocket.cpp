@@ -12,6 +12,13 @@ namespace PA {
 	void CPhpSocket::__construct(Php::Parameters &params) {
 	}
 
+	int CPhpSocket::__compare(const CPhpSocket &socket) const {
+		if (!m_cs || !socket.m_cs) {
+			return 1;
+		}
+		return (m_cs == socket.m_cs) ? 0 : 1;
+	}
+
 	Php::Value CPhpSocket::__get(const Php::Value &name) {
 		if (name == "Cert" || name == "UCert") {
 			SPA::IUcert *cert = m_cs->GetUCert();

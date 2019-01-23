@@ -13,6 +13,7 @@ namespace PA {
 		CPhpBuffer& operator=(const CPhpBuffer &b) = delete;
 		static void RegisterInto(Php::Namespace &spa);
 		void __construct(Php::Parameters &params);
+		int __compare(const CPhpBuffer &b) const;
 		void Empty();
 		void CleanTrack();
 		Php::Value Discard(Php::Parameters &params);

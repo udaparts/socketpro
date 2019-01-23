@@ -13,11 +13,17 @@ namespace PA {
 	}
 
 	void CPhpDb::__construct(Php::Parameters &params) {
-
 	}
 
 	bool CPhpDb::IsLocked() {
 		return m_locked;
+	}
+
+	int CPhpDb::__compare(const CPhpDb &db) const {
+		if (!m_db || !db.m_db) {
+			return 1;
+		}
+		return (m_db == db.m_db) ? 0 : 1;
 	}
 
 	Php::Value CPhpDb::SendRequest(Php::Parameters &params) {

@@ -19,6 +19,7 @@ public:
 	static void RegisterInto(Php::Namespace &cs);
 	Php::Value SendRequest(Php::Parameters &params);
 	bool IsLocked();
+	int __compare(const CPhpHandler &h) const;
 
 private:
 	CPhpPool *m_pPool;

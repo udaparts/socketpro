@@ -19,6 +19,7 @@ namespace PA {
 		static void RegisterInto(Php::Namespace &cs);
 		Php::Value SendRequest(Php::Parameters &params);
 		bool IsLocked();
+		int __compare(const CPhpQueue &q) const;
 
 	private:
 		CPhpQueuePool *m_queuePool;

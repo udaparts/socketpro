@@ -16,6 +16,13 @@ namespace PA {
 
 	}
 
+	int CPhpQueue::__compare(const CPhpQueue &q) const {
+		if (!m_aq || !q.m_aq) {
+			return 1;
+		}
+		return (m_aq == q.m_aq) ? 0 : 1;
+	}
+
 	bool CPhpQueue::IsLocked() {
 		return m_locked;
 	}

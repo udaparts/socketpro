@@ -10,6 +10,13 @@ namespace PA {
 	void CPhpCert::__construct(Php::Parameters &params) {
 	}
 
+	int CPhpCert::__compare(const CPhpCert &cert) const {
+		if (!m_cert || !cert.m_cert) {
+			return 1;
+		}
+		return (m_cert == cert.m_cert) ? 0 : 1;
+	}
+
 	Php::Value CPhpCert::Verify() {
 		int errCode = 0;
 		std::string s = m_cert->Verify(&errCode);
