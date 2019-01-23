@@ -18,7 +18,7 @@
 #define NO_MIDDLE_TIER
 #define NO_OUTPUT_BINDING
 namespace PA {
-	void ToVariant(const Php::Value &data, CComVariant &vt, const std::string &id = "");
+    void ToVariant(const Php::Value &data, CComVariant &vt, const std::string &id = "");
 }
 
 #elif defined NODE_JS_ADAPTER_PROJECT

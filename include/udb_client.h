@@ -7,7 +7,7 @@
 
 #ifdef PHP_ADAPTER_PROJECT
 namespace PA {
-	void ToVariant(const Php::Value &data, SPA::UDB::CDBVariant &vt, const std::string &id = "");
+    void ToVariant(const Php::Value &data, SPA::UDB::CDBVariant &vt, const std::string &id = "");
 }
 
 #elif defined NODE_JS_ADAPTER_PROJECT

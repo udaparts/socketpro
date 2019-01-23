@@ -169,20 +169,21 @@ namespace SPA {
 #if defined (WIN32_64) && _MSC_VER >= 1600 
             sprintf_s(str, sizeof (str), "%.*f", precision, d);
 #else
-            sprintf(str, "%.*f", d);
+            sprintf(str, "%.*f", precision, d);
 #endif
         }
         ParseDec_long(str, dec);
     }
 
     static inline void ToDecimal(INT64 n, DECIMAL &dec) {
-        char str[32] = {0};
-#if defined (WIN32_64) && _MSC_VER >= 1600 
-        ::sprintf_s(str, sizeof (str), "%lld", n);
-#else
-        ::sprintf(str, "%lld", n);
-#endif
-        ParseDec(str, dec);
+        memset(&dec, 0, sizeof(dec));
+        if (n < 0) {
+            dec.sign = 0x80;
+            dec.Lo64 = (UINT64)(-n);
+        }
+        else {
+            dec.Lo64 = (UINT64)n;
+        }
     }
 
 };
