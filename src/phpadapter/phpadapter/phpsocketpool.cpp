@@ -526,7 +526,31 @@ namespace PA {
 			return harray;
 		}
 		else if (name == "Sockets") {
-			return (int64_t)Handler->GetConnectedSockets();
+			Php::Array harray;
+			std::vector<std::shared_ptr<CClientSocket>> ss;
+			switch (m_nSvsId) {
+			case SPA::Mysql::sidMysql:
+			case SPA::Odbc::sidOdbc:
+			case SPA::Sqlite::sidSqlite:
+				ss = Db->GetSockets();
+				break;
+			case SPA::sidChat:
+				ss = Queue->GetSockets();
+				break;
+			case SPA::sidFile:
+				ss = File->GetSockets();
+				break;
+			default:
+				ss = Handler->GetSockets();
+				break;
+			}
+			int key = 0;
+			for (auto it = ss.cbegin(), end = ss.cend(); it != end; ++it, ++key) {
+				CClientSocket *cs = it->get();
+				Php::Object objSocket((SPA_CS_NS + PHP_SOCKET).c_str(), new CPhpSocket(cs));
+				harray.set(key, objSocket);
+			}
+			return harray;
 		}
 		else if (name == "Conns" || name == "ConnectedSockets") {
 			return (int64_t)Handler->GetConnectedSockets();

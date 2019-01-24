@@ -31,7 +31,7 @@ namespace PA {
 	}
 
 	void CPhpSocket::__set(const Php::Value &name, const Php::Value &value) {
-
+		Php::Base::__set(name, value);
 	}
 
 	void CPhpSocket::RegisterInto(Php::Namespace &cs) {

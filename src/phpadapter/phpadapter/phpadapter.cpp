@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "spa_consts.h"
+#include "spa_cs_consts.h"
 #include "phpbuffer.h"
 #include "phpconncontext.h"
 #include "roothandler.h"
@@ -27,7 +28,9 @@ extern "C" {
 
 		//namespace ClientSide
 		Php::Namespace ClientSide("ClientSide");
+		PA::RegisterSpaClientConstsInto(ClientSide);
 		PA::CPhpCert::RegisterInto(ClientSide);
+		PA::CPhpSocket::RegisterInto(ClientSide);
 		PA::CPhpConnContext::RegisterInto(ClientSide);
 		PA::CPhpSocketPool::RegisterInto(ClientSide);
 		PA::CPhpHandler::RegisterInto(ClientSide);
