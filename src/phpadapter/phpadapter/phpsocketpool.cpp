@@ -431,7 +431,7 @@ namespace PA {
 		if (!Handler || !pool.Handler) {
 			return 1;
 		}
-		return (Handler == pool.Handler) ? 1 : 0;
+		return (Handler == pool.Handler) ? 0 : 1;
 	}
 
 	Php::Value CPhpSocketPool::Start(Php::Parameters &params) {
