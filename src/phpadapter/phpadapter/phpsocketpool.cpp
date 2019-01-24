@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "phpsocketpool.h"
 #include "phpsocket.h"
+#include "phpconncontext.h"
 
 namespace PA {
 
@@ -371,8 +372,8 @@ namespace PA {
 			auto handler = File->Lock(timeout);
 			if (!handler)
 				return nullptr;
-			Php::Object obj((SPA_CS_NS + PHP_FILE_HANDLER).c_str(), new CPhpFile(File, handler.get(), true));
-			return obj;
+Php::Object obj((SPA_CS_NS + PHP_FILE_HANDLER).c_str(), new CPhpFile(File, handler.get(), true));
+return obj;
 		}
 		break;
 		default:
@@ -450,6 +451,7 @@ namespace PA {
 		if (!Handler) {
 			throw Php::Exception(NOT_INITIALIZED);
 		}
+		bool ok = true;
 		if (Php::is_a(params[0], (SPA_CS_NS + PHP_CONN_CONTEXT).c_str())) {
 			SPA::ClientSide::CConnectionContext ctx;
 			ToCtx(params[0], ctx);
@@ -457,19 +459,77 @@ namespace PA {
 			case SPA::Mysql::sidMysql:
 			case SPA::Odbc::sidOdbc:
 			case SPA::Sqlite::sidSqlite:
-				return Db->StartSocketPool(ctx, socketsPerThread, threads);
+				ok = Db->StartSocketPool(ctx, socketsPerThread, threads);
+				break;
 			case SPA::Queue::sidQueue:
-				return Queue->StartSocketPool(ctx, socketsPerThread, threads);
+				ok = Queue->StartSocketPool(ctx, socketsPerThread, threads);
+				break;
 			case SPA::SFile::sidFile:
-				return File->StartSocketPool(ctx, socketsPerThread, threads);
+				ok = File->StartSocketPool(ctx, socketsPerThread, threads);
+				break;
 			default:
-				return Handler->StartSocketPool(ctx, socketsPerThread, threads);
+				ok = Handler->StartSocketPool(ctx, socketsPerThread, threads);
+				break;
 			}
 		}
 		else if (params[0].isArray()) {
-
+			Php::Array vConn = params[0];
+			typedef SPA::ClientSide::CConnectionContext CConnectionContext;
+			std::vector<CConnectionContext> v;
+			int count = vConn.length();
+			if (!count) {
+				throw Php::Exception("An array of connection contexts are required");
+			}
+			for (int n = 0; n < count; ++n) {
+				Php::Value conn = vConn.get(n);
+				if (!Php::is_a(conn, (SPA_CS_NS + PHP_CONN_CONTEXT).c_str())) {
+					throw Php::Exception("An array of connection contexts are required");
+				}
+				CConnectionContext ctx;
+				ToCtx(conn, ctx);
+				v.push_back(ctx);
+			}
+			if (v.size() % socketsPerThread) {
+				throw Php::Exception("Bad number value for either connection contexts or sockets per thread");
+			}
+			threads = (unsigned int)(v.size() / socketsPerThread);
+			typedef CConnectionContext *PCConnectionContext;
+			PCConnectionContext *ppCCs = new PCConnectionContext[threads];
+			for (unsigned int n = 0; n < threads; ++n) {
+				ppCCs[n] = v.data() + n * socketsPerThread;
+			}
+			switch (m_nSvsId) {
+			case SPA::Mysql::sidMysql:
+			case SPA::Odbc::sidOdbc:
+			case SPA::Sqlite::sidSqlite:
+				ok = Db->StartSocketPool(ppCCs, threads, socketsPerThread);
+				break;
+			case SPA::Queue::sidQueue:
+				ok = Queue->StartSocketPool(ppCCs, threads, socketsPerThread);
+				break;
+			case SPA::SFile::sidFile:
+				ok = File->StartSocketPool(ppCCs, threads, socketsPerThread);
+				break;
+			default:
+				ok = Handler->StartSocketPool(ppCCs, threads, socketsPerThread);
+				break;
+			}
+			delete[]ppCCs;
 		}
-		throw Php::Exception("One or an array of connection contexts are required");
+		else {
+			throw Php::Exception("One or an array of connection contexts are required");
+		}
+		SPA::CAutoLock al(m_cs);
+		if (ok) {
+			m_errCode = 0;
+			m_errMsg = "";
+		}
+		else {
+			auto cs = Handler->GetSockets()[0];
+			m_errCode = cs->GetErrorCode();
+			m_errMsg = cs->GetErrorMsg();
+		}
+		return ok;
 	}
 
 	Php::Value CPhpSocketPool::__get(const Php::Value &name) {
