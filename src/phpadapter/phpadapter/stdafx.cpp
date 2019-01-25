@@ -2,6 +2,8 @@
 #include "stdafx.h"
 #include <cctype>
 #include "phpbuffer.h"
+#include <memory>
+#include "phpmanager.h"
 
 namespace SPA {
 	namespace ClientSide {
@@ -311,6 +313,12 @@ namespace PA {
 		}
 		break;
 		}
+	}
+
+	Php::Value TestConfig() {
+		const char *jsFile = "C:\\cyetest\\socketpro\\src\\phpadapter\\phpadapter\\sp_config.json";
+		CPhpManager manager(jsFile);
+		return manager.Parse();
 	}
 
 } //namespace PA

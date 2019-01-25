@@ -41,6 +41,8 @@ extern "C" {
 		SPA.add(ClientSide);
 		extSpaPhp.add(SPA);
 
+		extSpaPhp.add("TestConfig", PA::TestConfig);
+
 		// return the extension
 		return extSpaPhp.module();
 	}

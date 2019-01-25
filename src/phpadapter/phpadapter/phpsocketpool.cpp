@@ -474,7 +474,6 @@ return obj;
 		}
 		else if (params[0].isArray()) {
 			Php::Array vConn = params[0];
-			typedef SPA::ClientSide::CConnectionContext CConnectionContext;
 			std::vector<CConnectionContext> v;
 			int count = vConn.length();
 			if (!count) {

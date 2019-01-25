@@ -18,8 +18,7 @@
             "Password":"Smash123",
             "EncrytionMethod":0,
             "Zip":false,
-            "V6":false,
-            "AnyData":"SomeString_OR_Number_OR_Whatever"
+            "V6":false
          }
       },
       {
@@ -45,10 +44,10 @@
          "my_hello_world":{
             "SvsId":268435451,
             "Hosts":[
-               "hw_0"
+               "hw_0",
+			   "hw_0"
             ],
-            "Sessions":2,
-            "Threads":1,
+            "Threads":2,
             "Queue":"hwsvs"
          }
       },
@@ -56,18 +55,22 @@
          "db_no_backup":{
             "SvsId":2147483633,
             "Hosts":[
-               "db_master"
+               "db_master",
+			   "db_master"
             ],
-            "Sessions":2
+			"AutoConn":true,
+			"RecvTimeout":30000,
+			"ConnTimeout":30000
          }
       },
       {
          "masterdb":{
             "SvsId":2147483633,
             "Hosts":[
-               "db_master"
+               "db_master",
+			   "db_master",
+			   "db_master"
             ],
-            "Sessions":2,
             "DefaultDb":"sakila",
             "Queue":"mdb",
             "AutoMerge":false,
@@ -80,10 +83,9 @@
                         "db_master",
                         "db_slave_1"
                      ],
-                     "Sessions":8,
                      "DefaultDb":"sakila",
                      "Queue":"sdb0",
-                     "Threads":1
+                     "Threads":2
                   }
                }
             ]

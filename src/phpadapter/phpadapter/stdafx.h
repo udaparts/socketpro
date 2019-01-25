@@ -26,6 +26,10 @@
 #include "../../../include/sqlite/usqlite.h"
 #include "../../../include/odbc/uodbc.h"
 #include <algorithm>
+#include "rapidjson/include/rapidjson/filereadstream.h"
+#include "rapidjson/include/rapidjson/document.h"
+#include "rapidjson/include/rapidjson/stringbuffer.h"
+#include "rapidjson/include/rapidjson/writer.h"
 
 namespace PA {
 	void Trim(std::string &str);
@@ -57,7 +61,10 @@ namespace PA {
 	extern const std::string SPA_NS;
 	extern const std::string SPA_CS_NS;
 
+	Php::Value TestConfig();
+
 	typedef SPA::ClientSide::CCachedBaseHandler<0> CAsyncHandler;
 	typedef SPA::ClientSide::CClientSocket CClientSocket;
 	typedef SPA::ClientSide::tagSocketPoolEvent tagSocketPoolEvent;
+	typedef SPA::ClientSide::CConnectionContext CConnectionContext;
 }
