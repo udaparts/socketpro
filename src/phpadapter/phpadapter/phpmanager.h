@@ -15,7 +15,7 @@ namespace PA {
 			: SvsId(0), Threads(1), AutoConn(true), AutoMerge(true),
 			RecvTimeout(SPA::ClientSide::DEFAULT_RECV_TIMEOUT),
 			ConnTimeout(SPA::ClientSide::DEFAULT_CONN_TIMEOUT),
-			PhpHandler(nullptr) {
+			PhpHandler(nullptr), PoolType(NotMS) {
 		}
 		bool IsNormalPool() const { return (DefaultDb.size() == 0); }
 		bool IsMaster() const { return (DefaultDb.size() && Slaves.size()); }
@@ -36,25 +36,42 @@ namespace PA {
 			CPhpFilePool *PhpFile;
 			CPhpQueuePool *PhpQueue;
 		};
+		tagPoolType PoolType;
 	};
 
-	class CPhpManager {
+	class CPhpManager : public Php::Base {
+	private:
+		CPhpManager(CPhpManager *manager);
+
 	public:
-		CPhpManager(const char *config_path);
 		CPhpManager(const CPhpManager &m) = delete;
 		~CPhpManager();
 
 	public:
 		CPhpManager& operator=(const CPhpManager &m) = delete;
-		std::string Parse();
+		static Php::Value Parse();
+		static CPhpManager Manager;
+		static void RegisterInto(Php::Namespace &cs);
+		void __construct(Php::Parameters &params);
+		Php::Value __get(const Php::Value &name);
 
 	private:
-		std::string m_ConfigPath;
+		void CheckError();
+		void Clean();
+		Php::Value GetConfig();
+		void CheckHostsError();
+		void CheckPoolsError();
 
+	private:
+		CPhpManager *m_pManager;
+		std::string m_ConfigPath;
 		std::string WorkingDir;
 		std::string CertStore;
 		CMapHost Hosts;
 		CPoolStartContext::CMapPool Pools;
+		int m_bQP;
+		std::string m_errMsg;
+		SPA::CUCriticalSection m_cs;
 	};
 
 }

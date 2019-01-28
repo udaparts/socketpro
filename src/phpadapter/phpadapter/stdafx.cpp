@@ -79,6 +79,7 @@ namespace PA {
 	const char *PHP_CERT = "CUCert";
 	const char *PHP_SOCKET = "CClientSocket";
 	const char *PHP_CONSTRUCT = "__construct";
+	const char *PHP_MANAGER = "CManager";
 
 	//SendRequest
 	const char *PHP_SENDREQUEST = "SendRequest";
@@ -90,6 +91,14 @@ namespace PA {
 
 	const std::string SPA_NS("SPA\\");
 	const std::string SPA_CS_NS("SPA\\ClientSide\\");
+
+	std::string SP_CONFIG = "sp_config.json";
+
+#ifdef WIN32_64
+	const char SYS_DIR = '\\';
+#else
+	const char SYS_DIR = '/';
+#endif
 
 	void Trim(std::string &str) {
 		while (str.size() && std::isspace(str.back())) {
@@ -315,10 +324,8 @@ namespace PA {
 		}
 	}
 
-	Php::Value TestConfig() {
-		const char *jsFile = "C:\\cyetest\\socketpro\\src\\phpadapter\\phpadapter\\sp_config.json";
-		CPhpManager manager(jsFile);
-		return manager.Parse();
+	Php::Value GetManager() {
+		return CPhpManager::Parse();
 	}
 
 } //namespace PA

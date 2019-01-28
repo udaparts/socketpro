@@ -49,6 +49,7 @@ namespace PA {
 	extern const char *PHP_CERT;
 	extern const char *PHP_SOCKET;
 	extern const char *PHP_CONSTRUCT;
+	extern const char *PHP_MANAGER;
 
 	//SendRequest
 	extern const char *PHP_SENDREQUEST;
@@ -60,8 +61,10 @@ namespace PA {
 
 	extern const std::string SPA_NS;
 	extern const std::string SPA_CS_NS;
+	extern std::string SP_CONFIG;
+	extern const char SYS_DIR;
 
-	Php::Value TestConfig();
+	Php::Value GetManager();
 
 	typedef SPA::ClientSide::CCachedBaseHandler<0> CAsyncHandler;
 	typedef SPA::ClientSide::CClientSocket CClientSocket;

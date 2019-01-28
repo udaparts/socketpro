@@ -10,6 +10,7 @@
 #include "phpcert.h"
 #include "phpsocket.h"
 #include "phpsocketpool.h"
+#include "phpmanager.h"
 
 extern "C" {
 	SPA_PHP_EXPORT void *get_module() {
@@ -37,11 +38,10 @@ extern "C" {
 		PA::CPhpFile::RegisterInto(ClientSide);
 		PA::CPhpDb::RegisterInto(ClientSide);
 		PA::CPhpQueue::RegisterInto(ClientSide);
-
+		PA::CPhpManager::RegisterInto(ClientSide);
+		ClientSide.add("GetManager", PA::GetManager);
 		SPA.add(ClientSide);
 		extSpaPhp.add(SPA);
-
-		extSpaPhp.add("TestConfig", PA::TestConfig);
 
 		// return the extension
 		return extSpaPhp.module();
