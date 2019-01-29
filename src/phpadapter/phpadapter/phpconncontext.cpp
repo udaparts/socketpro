@@ -34,28 +34,28 @@ namespace PA {
 	}
 
 	Php::Value CPhpConnContext::__get(const Php::Value &name) {
-		if (name == "Host") {
+		if (name == KEY_HOST) {
 			return Host;
 		}
-		else if (name == "Port") {
+		else if (name == KEY_PORT) {
 			return (int64_t)Port;
 		}
-		else if (name == "UserId") {
+		else if (name == KEY_USER_ID) {
 			return SPA::Utilities::ToUTF8(UserId.c_str(), UserId.size());
 		}
-		else if (name == "Pwd" || name == "Password") {
+		else if (name == "Pwd" || name == KEY_PASSWORD) {
 			return SPA::Utilities::ToUTF8(Password.c_str(), Password.size());
 		}
-		else if (name == "EM" || name == "EncrytionMethod") {
+		else if (name == "EM" || name == KEY_ENCRYPTION_METHOD) {
 			return (int64_t)EncrytionMethod;
 		}
-		else if (name == "Zip") {
+		else if (name == KEY_ZIP) {
 			return Zip;
 		}
-		else if (name == "V6") {
+		else if (name == KEY_V6) {
 			return V6;
 		}
-		else if (name == "Any" || name == "AnyData") {
+		else if (name == "Any" || name == KEY_ANY_DATA) {
 			SPA::CScopeUQueue sb;
 			if (AnyData.vt == VT_DATE) {
 				sb << AnyData.vt << AnyData.ullVal;
@@ -70,34 +70,34 @@ namespace PA {
 	}
 
 	void CPhpConnContext::__set(const Php::Value &name, const Php::Value &value) {
-		if (name == "Host") {
+		if (name == KEY_HOST) {
 			Host = value.stringValue();
 		}
-		else if (name == "Port") {
+		else if (name == KEY_PORT) {
 			Port = (unsigned int)value.numericValue();
 		}
-		else if (name == "UserId") {
+		else if (name == KEY_USER_ID) {
 			std::string s = value.stringValue();
 			UserId = SPA::Utilities::ToWide(s.c_str(), s.size());
 		}
-		else if (name == "Pwd" || name == "Password") {
+		else if (name == "Pwd" || name == KEY_PASSWORD) {
 			std::string s = value.stringValue();
 			Password = SPA::Utilities::ToWide(s.c_str(), s.size());
 		}
-		else if (name == "EM" || name == "EncrytionMethod") {
+		else if (name == "EM" || name == KEY_ENCRYPTION_METHOD) {
 			int64_t em = value.numericValue();
 			if (em < 0 || em > SPA::tagEncryptionMethod::TLSv1) {
 				throw Php::Exception("Bad encryption method value");
 			}
 			EncrytionMethod = (SPA::tagEncryptionMethod)em;
 		}
-		else if (name == "Zip") {
+		else if (name == KEY_ZIP) {
 			Zip = value.boolValue();
 		}
-		else if (name == "V6") {
+		else if (name == KEY_V6) {
 			V6 = value.boolValue();
 		}
-		else if (name == "Any" || name == "AnyData") {
+		else if (name == "Any" || name == KEY_ANY_DATA) {
 			ToVariant(value, AnyData);
 		}
 		else {
@@ -110,12 +110,12 @@ namespace PA {
 		cc.method(PHP_CONSTRUCT, &CPhpConnContext::__construct, {
 			Php::ByVal("host", Php::Type::String),
 			Php::ByVal("port", Php::Type::Numeric),
-			Php::ByVal("userId", Php::Type::String),
-			Php::ByVal("password", Php::Type::String),
+			Php::ByVal("uid", Php::Type::String),
+			Php::ByVal("pwd", Php::Type::String),
 			Php::ByVal("em", Php::Type::Numeric, false),
 			Php::ByVal("zip", Php::Type::Bool, false),
 			Php::ByVal("v6", Php::Type::Bool, false),
-			Php::ByVal("anyData", Php::Type::Null, false)
+			Php::ByVal("any", Php::Type::Null, false)
 		});
 		cs.add(cc);
 	}

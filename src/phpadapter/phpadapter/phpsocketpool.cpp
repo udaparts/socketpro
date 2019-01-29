@@ -390,16 +390,16 @@ return obj;
 	}
 
 	void CPhpSocketPool::ToCtx(const Php::Value &vCtx, SPA::ClientSide::CConnectionContext &ctx) {
-		ToVariant(vCtx.get("AnyData"), ctx.AnyData);
-		ctx.Host = vCtx.get("Host").stringValue();
-		ctx.Port = (unsigned int)vCtx.get("Port").numericValue();
-		ctx.EncrytionMethod = (SPA::tagEncryptionMethod)vCtx.get("EncrytionMethod").numericValue();
-		std::string s = vCtx.get("UserId").stringValue();
+		ToVariant(vCtx.get(KEY_ANY_DATA), ctx.AnyData);
+		ctx.Host = vCtx.get(KEY_HOST).stringValue();
+		ctx.Port = (unsigned int)vCtx.get(KEY_PORT).numericValue();
+		ctx.EncrytionMethod = (SPA::tagEncryptionMethod)vCtx.get(KEY_ENCRYPTION_METHOD).numericValue();
+		std::string s = vCtx.get(KEY_USER_ID).stringValue();
 		ctx.UserId = SPA::Utilities::ToWide(s.c_str(), s.size());
-		s = vCtx.get("Password").stringValue();
+		s = vCtx.get(KEY_PASSWORD).stringValue();
 		ctx.Password = SPA::Utilities::ToWide(s.c_str(), s.size());
-		ctx.V6 = vCtx.get("V6").boolValue();
-		ctx.Zip = vCtx.get("Zip").boolValue();
+		ctx.V6 = vCtx.get(KEY_V6).boolValue();
+		ctx.Zip = vCtx.get(KEY_ZIP).boolValue();
 	}
 
 	bool CPhpSocketPool::DoSSLAuth(CClientSocket *cs) {
@@ -626,19 +626,19 @@ return obj;
 		else if (name == "spt" || name == "SocketsPerThread") {
 			return (int64_t)Handler->GetSocketsPerThread();
 		}
-		else if (name == "Threads" || name == "ThreadsCreated") {
+		else if (name == KEY_THREADS || name == "ThreadsCreated") {
 			return (int64_t)Handler->GetThreadsCreated();
 		}
-		else if (name == "SvsId" || name == "ServiceId") {
+		else if (name == KEY_SVS_ID || name == "ServiceId") {
 			return (int64_t)m_nSvsId;
 		}
-		else if (name == "AutoConn") {
-			return (int64_t)Handler->GetAutoConn();
+		else if (name == KEY_AUTO_CONN) {
+			return Handler->GetAutoConn();
 		}
-		else if (name == "RecvTimeout") {
+		else if (name == KEY_RECV_TIMEOUT) {
 			return (int64_t)Handler->GetRecvTimeout();
 		}
-		else if (name == "ConnTimeout") {
+		else if (name == KEY_CONN_TIMEOUT) {
 			return (int64_t)Handler->GetConnTimeout();
 		}
 		else if (name == "Queues") {
@@ -661,7 +661,7 @@ return obj;
 		else if (name == "QueueName") {
 			return Handler->GetQueueName();
 		}
-		else if (name == "AutoMerge" || name == "QueueAutoMerge") {
+		else if (name == KEY_AUTO_MERGE || name == "QueueAutoMerge") {
 			return Handler->GetQueueAutoMerge();
 		}
 		else if (name == "Started") {
@@ -697,7 +697,7 @@ return obj;
 		else if (name == "QueueName") {
 			Handler->SetQueueName(value.stringValue().c_str());
 		}
-		else if (name == "AutoMerge" || name == "QueueAutoMerge") {
+		else if (name == KEY_AUTO_MERGE || name == "QueueAutoMerge") {
 			Handler->SetQueueAutoMerge(value.boolValue());
 		}
 		else if (name == "Event" || name == "PoolEvent" || name == "SocketPoolEvent") {
@@ -724,13 +724,13 @@ return obj;
 				throw Php::Exception("A callback expected to authenticate certificate from a remote server");
 			}
 		}
-		else if (name == "AutoConn") {
+		else if (name == KEY_AUTO_CONN) {
 			Handler->SetAutoConn(value.boolValue());
 		}
-		else if (name == "RecvTimeout") {
+		else if (name == KEY_RECV_TIMEOUT) {
 			Handler->SetRecvTimeout((unsigned int)value.numericValue());
 		}
-		else if (name == "ConnTimeout") {
+		else if (name == KEY_CONN_TIMEOUT) {
 			Handler->SetConnTimeout((unsigned int)value.numericValue());
 		}
 		else {

@@ -71,3 +71,27 @@ namespace PA {
 	typedef SPA::ClientSide::tagSocketPoolEvent tagSocketPoolEvent;
 	typedef SPA::ClientSide::CConnectionContext CConnectionContext;
 }
+
+#define KEY_CERT_STORE			"CertStore"
+#define KEY_WORKING_DIR			"WorkingDir"
+#define KEY_QUEUE_PASSWORD		"QueuePassword"
+#define KEY_HOSTS				"Hosts"
+#define KEY_SVS_ID				"SvsId"
+#define KEY_THREADS				"Threads"
+#define KEY_AUTO_CONN			"AutoConn"
+#define KEY_QUEUE_NAME			"Queue"
+#define KEY_AUTO_MERGE			"AutoMerge"
+#define KEY_RECV_TIMEOUT		"RecvTimeout"
+#define KEY_CONN_TIMEOUT		"ConnTimeout"
+#define KEY_DEFAULT_DB			"DefaultDb"
+#define KEY_POOL_TYPE			"PoolType"
+#define KEY_SLAVES				"Slaves"
+#define KEY_POOLS				"Pools"
+#define KEY_PORT				"Port"
+#define KEY_USER_ID				"UserId"
+#define KEY_PASSWORD			"Password"
+#define KEY_ENCRYPTION_METHOD	"EncrytionMethod"
+#define KEY_ZIP					"Zip"
+#define KEY_V6					"V6"
+#define KEY_HOST				"Host"
+#define KEY_ANY_DATA			"AnyData"

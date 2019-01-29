@@ -3,7 +3,6 @@
 #include "phpconncontext.h"
 
 namespace PA {
-
 	CPhpManager CPhpManager::Manager(nullptr);
 
 	CPhpManager::CPhpManager(CPhpManager *manager) : m_pManager(manager), m_bQP() {
@@ -19,6 +18,10 @@ namespace PA {
 	}
 
 	void CPhpManager::CheckHostsError() {
+		if (!Hosts.size()) {
+			m_errMsg = "Host array cannot be empty";
+			return;
+		}
 		for (auto it = Hosts.cbegin(), end = Hosts.cend(); it != end; ++it) {
 			if (!it->first.size()) {
 				m_errMsg = "Host key cannot be empty";
@@ -39,51 +42,71 @@ namespace PA {
 					m_errMsg = "Host key (" + it->first + ") duplicacted";
 					break;
 				}
+				if (start->second == it->second) {
+					m_errMsg = "Host connection context for key (" + it->first + ") duplicacted";
+					break;
+				}
 			}
 		}
 	}
 
+	bool CPhpManager::FindHostKey(const std::string &key) {
+		for (CMapHost::const_iterator it = Hosts.cbegin(), end = Hosts.cend(); it != end; ++it) {
+			if (it->first == key) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	void CPhpManager::CheckPoolsError() {
+		if (!Pools.size()) {
+			m_errMsg = "Pool array cannot be empty";
+			return;
+		}
 		for (auto it = Pools.cbegin(), end = Pools.cend(); it != end; ++it) {
 			if (!it->first.size()) {
 				m_errMsg = "Pool key cannot be empty";
 				break;
 			}
-			if (!it->second.DefaultDb.size() && it->second.Slaves.size()) {
+			const CPoolStartContext &psc = it->second;
+			if (!psc.DefaultDb.size() && psc.Slaves.size()) {
 				m_errMsg = "Slave array is not empty but DefaultDb string is empty";
 				break;
 			}
-			auto &slaves = it->second.Slaves;
-			for (auto sit = slaves.cbegin(), send = slaves.end(); sit != send; ++sit) {
-				if (!sit->first.size()) {
-					m_errMsg = "Slave pool key cannot be empty";
-					break;
-				}
-				if (sit->first == it->first) {
-					m_errMsg = "Pool key (" + it->first + ") duplicacted";
-					break;
-				}
-				if (it->second.Queue.size() && it->second.Queue == sit->second.Queue) {
-					m_errMsg = "Queue name (" + it->second.Queue + ") duplicacted";
-					break;
-				}
-			}
-			if (m_errMsg.size()) {
+			const std::vector<std::string> &hosts = psc.Hosts;
+			if (!hosts.size()) {
+				m_errMsg = "Host array cannot be empty";
 				break;
 			}
-			CPoolStartContext::CMapPool::const_iterator start = it;
-			++start;
-			for (; start != end; ++start) {
-				if (start->first == it->first) {
-					m_errMsg = "Pool key (" + it->first + ") duplicacted";
+			else {
+				for (auto &h : hosts) {
+					if (!FindHostKey(h)) {
+						m_errMsg = "Host key not found in root host array";
+						break;
+					}
+				}
+				if (m_errMsg.size()) {
 					break;
 				}
-				if (start->second.Queue.size() && start->second.Queue == it->second.Queue) {
-					m_errMsg = "Pool queue (" + it->first + ") duplicacted";
-					break;
+			}
+			for (CPoolStartContext::CMapPool::const_iterator start = it; start != end; ++start) {
+				if (it != start) {
+					if (start->first == it->first) {
+						m_errMsg = "Pool key (" + it->first + ") duplicacted";
+						break;
+					}
+					if (start->second.Queue.size() && start->second.Queue == psc.Queue) {
+						m_errMsg = "Pool queue (" + psc.Queue + ") duplicacted";
+						break;
+					}
 				}
 				auto &slaves = start->second.Slaves;
 				for (auto sit = slaves.cbegin(), send = slaves.end(); sit != send; ++sit) {
+					if (sit->second.Slaves.size()) {
+						m_errMsg = "A slave pool cannot have its own slave";
+						break;
+					}
 					if (!sit->first.size()) {
 						m_errMsg = "Slave pool key cannot be empty";
 						break;
@@ -92,9 +115,25 @@ namespace PA {
 						m_errMsg = "Pool key (" + it->first + ") duplicacted";
 						break;
 					}
-					if (it->second.Queue.size() && it->second.Queue == sit->second.Queue) {
-						m_errMsg = "Queue name (" + it->second.Queue + ") duplicacted";
+					if (psc.Queue.size() && psc.Queue == sit->second.Queue) {
+						m_errMsg = "Queue name (" + psc.Queue + ") duplicacted";
 						break;
+					}
+					const std::vector<std::string> &hosts = sit->second.Hosts;
+					if (!hosts.size()) {
+						m_errMsg = "Slave host array cannot be empty";
+						break;
+					}
+					else {
+						for (auto &h : hosts) {
+							if (!FindHostKey(h)) {
+								m_errMsg = "Slave host key not found in root host array";
+								break;
+							}
+						}
+						if (m_errMsg.size()) {
+							break;
+						}
 					}
 				}
 			}
@@ -135,67 +174,122 @@ namespace PA {
 	}
 
 	Php::Value CPhpManager::GetConfig() {
-		Php::Value v;
-		v.set("CertStore", CertStore);
-		v.set("WorkingDir", WorkingDir);
-		v.set("QueuePassword", m_bQP);
-		Php::Value vH;
-		for (auto &h : Hosts) {
-			CPhpConnContext *pcc = new CPhpConnContext;
-			pcc->AnyData = h.second.AnyData;
-			pcc->EncrytionMethod = h.second.EncrytionMethod;
-			pcc->Host = h.second.Host;
-			pcc->Port = h.second.Port;
-			pcc->UserId = h.second.UserId;
-			pcc->V6 = h.second.V6;
-			pcc->Zip = h.second.Zip;
-			//no password set
-			Php::Object ctx((SPA_CS_NS + PHP_CONN_CONTEXT).c_str(), pcc);
-			vH.set(h.first, ctx);
+		SPA::CAutoLock al(m_cs);
+		if (m_jsonConfig.size()) {
+			return m_jsonConfig;
 		}
-		v.set("Hosts", vH);
-		Php::Value vP;
-		for (auto &p : Pools) {
-			Php::Value obj;
-			obj.set("SvsId", (int64_t)p.second.SvsId);
-			
-			Php::Array vHosts(p.second.Hosts);
-			obj.set("Hosts", vHosts);
-			
-			obj.set("Threads", (int64_t)p.second.Threads);
-			obj.set("Queue", p.second.Queue);
-			obj.set("AutoConn", p.second.AutoConn);
-			obj.set("AutoMerge", p.second.AutoMerge);
-			obj.set("RecvTimeout", (int64_t)p.second.RecvTimeout);
-			obj.set("ConnTimeout", (int64_t)p.second.ConnTimeout);
-			obj.set("DefaultDb", p.second.DefaultDb);
-			obj.set("PoolType", (int)p.second.PoolType);
+		rapidjson::Document doc;
+		doc.SetObject();
+		rapidjson::Document::AllocatorType& allocator = doc.GetAllocator();
 
-			Php::Array slaves;
-			int index = 0;
-			for (auto &s : p.second.Slaves) {
-				Php::Value v;
-				Php::Array vHosts(s.second.Hosts);
-				obj.set("SvsId", (int64_t)p.second.SvsId);
-				v.set("Hosts", vHosts);
-				v.set("Threads", (int64_t)s.second.Threads);
-				v.set("Queue", s.second.Queue);
-				v.set("AutoConn", s.second.AutoConn);
-				v.set("AutoMerge", s.second.AutoMerge);
-				v.set("RecvTimeout", (int64_t)s.second.RecvTimeout);
-				v.set("ConnTimeout", (int64_t)s.second.ConnTimeout);
-				v.set("DefaultDb", s.second.DefaultDb);
-				v.set("PoolType", (int)s.second.PoolType);
-				v.set(s.first, v);
-				slaves.set(index, v);
-				++index;
-			}
-			obj.set("Slaves", slaves);
-			
-			vP.set(p.first, obj);
+		rapidjson::Value cs;
+		cs.SetString(CertStore.c_str(), (rapidjson::SizeType)CertStore.size());
+		doc.AddMember(KEY_CERT_STORE, cs, allocator);
+
+		rapidjson::Value wd;
+		wd.SetString(WorkingDir.c_str(), (rapidjson::SizeType)WorkingDir.size());
+		doc.AddMember(KEY_WORKING_DIR, wd, allocator);
+
+		doc.AddMember(KEY_QUEUE_PASSWORD, m_bQP, allocator);
+
+		rapidjson::Value vH(rapidjson::kArrayType);
+		for (auto &h : Hosts) {
+			rapidjson::Value key(h.first.c_str(), (rapidjson::SizeType)h.first.size(), allocator);
+
+			auto &ctx = h.second;
+			rapidjson::Value obj(rapidjson::kObjectType);
+
+			rapidjson::Value s(ctx.Host.c_str(), (rapidjson::SizeType)ctx.Host.size(), allocator);
+			obj.AddMember(KEY_HOST, s, allocator);
+
+			obj.AddMember(KEY_PORT, ctx.Port, doc.GetAllocator());
+
+			std::string str = SPA::Utilities::ToUTF8(ctx.UserId.c_str(), ctx.UserId.size());
+			s.SetString(str.c_str(), (rapidjson::SizeType)str.size(), allocator);
+			obj.AddMember(KEY_USER_ID, s, allocator);
+
+			str = SPA::Utilities::ToUTF8(ctx.Password.c_str(), ctx.Password.size());
+			s.SetString(str.c_str(), (rapidjson::SizeType)str.size(), allocator);
+			obj.AddMember(KEY_PASSWORD, s, allocator);
+
+			obj.AddMember(KEY_ENCRYPTION_METHOD, (int)ctx.EncrytionMethod, allocator);
+			obj.AddMember(KEY_ZIP, ctx.Zip, allocator);
+			obj.AddMember(KEY_V6, ctx.V6, allocator);
+
+			rapidjson::Value o(rapidjson::kObjectType);
+			o.AddMember(key, obj, allocator);
+			vH.PushBack(o, allocator);
 		}
-		v.set("Pools", vP);
-		return v;
+		doc.AddMember(KEY_HOSTS, vH, allocator);
+
+		rapidjson::Value vP(rapidjson::kArrayType);
+		for (auto &p : Pools) {
+			rapidjson::Value key(p.first.c_str(), (rapidjson::SizeType)p.first.size(), allocator);
+			const CPoolStartContext &pscMain = p.second;
+			rapidjson::Value objMain(rapidjson::kObjectType);
+			objMain.AddMember(KEY_SVS_ID, pscMain.SvsId, allocator);
+
+			rapidjson::Value vH(rapidjson::kArrayType);
+			for (auto &h : pscMain.Hosts) {
+				rapidjson::Value s(h.c_str(), (rapidjson::SizeType)h.size(), allocator);
+				vH.PushBack(s, allocator);
+			}
+			objMain.AddMember(KEY_HOSTS, vH, allocator);
+
+			objMain.AddMember(KEY_THREADS, pscMain.Threads, allocator);
+			rapidjson::Value s(pscMain.Queue.c_str(), (rapidjson::SizeType)pscMain.Queue.size(), allocator);
+			objMain.AddMember(KEY_QUEUE_NAME, s, allocator);
+			objMain.AddMember(KEY_AUTO_CONN, pscMain.AutoConn, allocator);
+			objMain.AddMember(KEY_AUTO_MERGE, pscMain.AutoMerge, allocator);
+			objMain.AddMember(KEY_RECV_TIMEOUT, pscMain.RecvTimeout, allocator);
+			objMain.AddMember(KEY_CONN_TIMEOUT, pscMain.RecvTimeout, allocator);
+			s.SetString(pscMain.DefaultDb.c_str(), (rapidjson::SizeType)pscMain.DefaultDb.size(), allocator);
+			objMain.AddMember(KEY_DEFAULT_DB, s, allocator);
+
+			//Slaves
+			if (pscMain.Slaves.size()) {
+				rapidjson::Value vS(rapidjson::kArrayType);
+				for (auto &one : pscMain.Slaves) {
+					rapidjson::Value key(one.first.c_str(), (rapidjson::SizeType)one.first.size(), allocator);
+					const CPoolStartContext &psc = one.second;
+					rapidjson::Value obj(rapidjson::kObjectType);
+					obj.AddMember(KEY_SVS_ID, psc.SvsId, allocator);
+
+					rapidjson::Value vH(rapidjson::kArrayType);
+					for (auto &h : psc.Hosts) {
+						rapidjson::Value s(h.c_str(), (rapidjson::SizeType)h.size(), allocator);
+						vH.PushBack(s, allocator);
+					}
+					obj.AddMember(KEY_HOSTS, vH, allocator);
+
+					obj.AddMember(KEY_THREADS, psc.Threads, allocator);
+					rapidjson::Value s(psc.Queue.c_str(), (rapidjson::SizeType)psc.Queue.size(), allocator);
+					obj.AddMember(KEY_QUEUE_NAME, s, allocator);
+					obj.AddMember(KEY_AUTO_CONN, psc.AutoConn, allocator);
+					obj.AddMember(KEY_AUTO_MERGE, psc.AutoMerge, allocator);
+					obj.AddMember(KEY_RECV_TIMEOUT, psc.RecvTimeout, allocator);
+					obj.AddMember(KEY_CONN_TIMEOUT, psc.RecvTimeout, allocator);
+					s.SetString(psc.DefaultDb.c_str(), (rapidjson::SizeType)psc.DefaultDb.size(), allocator);
+					obj.AddMember(KEY_DEFAULT_DB, s, allocator);
+					obj.AddMember(KEY_POOL_TYPE, psc.PoolType, allocator);
+					rapidjson::Value one(rapidjson::kObjectType);
+					one.AddMember(key, obj, allocator);
+					vS.PushBack(one, allocator);
+				}
+				objMain.AddMember(KEY_SLAVES, vS, allocator);
+			}
+			objMain.AddMember(KEY_POOL_TYPE, pscMain.PoolType, allocator);
+			rapidjson::Value one(rapidjson::kObjectType);
+			one.AddMember(key, objMain, allocator);
+			vP.PushBack(one, allocator);
+		}
+		doc.AddMember(KEY_POOLS, vP, allocator);
+
+		rapidjson::StringBuffer buffer;
+		rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+		doc.Accept(writer);
+		m_jsonConfig = buffer.GetString();
+		return m_jsonConfig;
 	}
 
 	Php::Value CPhpManager::__get(const Php::Value &name) {
@@ -218,33 +312,31 @@ namespace PA {
 	}
 
 	Php::Value CPhpManager::Parse() {
-		{
-			SPA::CAutoLock al(Manager.m_cs);
-			if (!Manager.m_ConfigPath.size()) {
-				std::string jsFile = Php::SERVER["PHPRC"];
-				Trim(jsFile);
-				if (!jsFile.size()) {
-					Manager.m_errMsg = "No PHPRC path available";
-					throw Php::Exception(Manager.m_errMsg.c_str());
-				}
-				if (jsFile.back() != SYS_DIR) {
-					jsFile.push_back(SYS_DIR);
-				}
-				Manager.WorkingDir = jsFile;
-				jsFile += SP_CONFIG; //assuming sp_config.json inside PHP server directory
-				Manager.m_ConfigPath = jsFile;
-#ifdef WIN32_64
-				Manager.CertStore = "root";
-#else
-				Manager.CertStore = "./";
-#endif
-			}
-			else {
-				return Php::Object((SPA_CS_NS + PHP_MANAGER).c_str(), new CPhpManager(&Manager));
-			}
-		}
 		rapidjson::Document doc;
 		doc.SetObject();
+		SPA::CAutoLock al(Manager.m_cs);
+		if (!Manager.m_ConfigPath.size()) {
+			std::string jsFile = Php::SERVER["PHPRC"];
+			Trim(jsFile);
+			if (!jsFile.size()) {
+				Manager.m_errMsg = "No PHPRC path available";
+				throw Php::Exception(Manager.m_errMsg.c_str());
+			}
+			if (jsFile.back() != SYS_DIR) {
+				jsFile.push_back(SYS_DIR);
+			}
+			Manager.WorkingDir = jsFile;
+			jsFile += SP_CONFIG; //assuming sp_config.json inside PHP server directory
+			Manager.m_ConfigPath = jsFile;
+#ifdef WIN32_64
+			Manager.CertStore = "root";
+#else
+			Manager.CertStore = "./";
+#endif
+		}
+		else {
+			return Php::Object((SPA_CS_NS + PHP_MANAGER).c_str(), new CPhpManager(&Manager));
+		}
 		do {
 			try {
 				std::shared_ptr<FILE> fp(fopen(Manager.m_ConfigPath.c_str(), "rb"), [](FILE *f) {
@@ -253,7 +345,10 @@ namespace PA {
 				if (!fp || ferror(fp.get())) {
 					throw Php::Exception("Cannot open " + SP_CONFIG);
 				}
-				SPA::CScopeUQueue sb(SPA::GetOS(), SPA::IsBigEndian(), 1024 * 64);
+				int err = fseek(fp.get(), 0, SEEK_END);
+				long size = ftell(fp.get()) + sizeof(wchar_t);
+				err = fseek(fp.get(), 0, SEEK_SET);
+				SPA::CScopeUQueue sb(SPA::GetOS(), SPA::IsBigEndian(), (unsigned int)size);
 				sb->CleanTrack();
 				rapidjson::FileReadStream is(fp.get(), (char*)sb->GetBuffer(), sb->GetMaxSize());
 				const char *json = (const char*)sb->GetBuffer();
@@ -261,16 +356,16 @@ namespace PA {
 				if (!ok) {
 					throw Php::Exception("Bad JSON configuration object");
 				}
-				if (doc.HasMember("WorkingDir") && doc["WorkingDir"].IsString()) {
-					Manager.WorkingDir = doc["WorkingDir"].GetString();
+				if (doc.HasMember(KEY_WORKING_DIR) && doc[KEY_WORKING_DIR].IsString()) {
+					Manager.WorkingDir = doc[KEY_WORKING_DIR].GetString();
 					Trim(Manager.WorkingDir);
 				}
-				if (doc.HasMember("CertStore") && doc["CertStore"].IsString()) {
-					Manager.CertStore = doc["CertStore"].GetString();
+				if (doc.HasMember(KEY_CERT_STORE) && doc[KEY_CERT_STORE].IsString()) {
+					Manager.CertStore = doc[KEY_CERT_STORE].GetString();
 					Trim(Manager.CertStore);
 				}
-				if (doc.HasMember("QueuePassword") && doc["QueuePassword"].IsString()) {
-					std::string qp = doc["QueuePassword"].GetString();
+				if (doc.HasMember(KEY_QUEUE_PASSWORD) && doc[KEY_QUEUE_PASSWORD].IsString()) {
+					std::string qp = doc[KEY_QUEUE_PASSWORD].GetString();
 					Trim(qp);
 					if (qp.size()) {
 						SPA::ClientSide::CClientSocket::QueueConfigure::SetMessageQueuePassword(qp.c_str());
@@ -283,8 +378,8 @@ namespace PA {
 				SPA::ClientSide::CClientSocket::QueueConfigure::SetWorkDirectory(Manager.WorkingDir.c_str());
 				SPA::ClientSide::CClientSocket::SSL::SetVerifyLocation(Manager.CertStore.c_str());
 
-				if (doc.HasMember("Hosts") && doc["Hosts"].IsArray()) {
-					auto arr = doc["Hosts"].GetArray();
+				if (doc.HasMember(KEY_HOSTS) && doc[KEY_HOSTS].IsArray()) {
+					auto arr = doc[KEY_HOSTS].GetArray();
 					for (auto &v : arr) {
 						if (!v.IsObject() || !v[0].IsString()) {
 							continue;
@@ -295,37 +390,37 @@ namespace PA {
 						}
 						auto cc = v[key.c_str()].GetObjectW();
 						CConnectionContext ctx;
-						if (cc.HasMember("Host") && cc["Host"].IsString()) {
-							ctx.Host = cc["Host"].GetString();
+						if (cc.HasMember(KEY_HOST) && cc[KEY_HOST].IsString()) {
+							ctx.Host = cc[KEY_HOST].GetString();
 							Trim(ctx.Host);
 						}
-						if (cc.HasMember("Port") && cc["Port"].IsUint()) {
-							ctx.Port = cc["Port"].GetUint();
+						if (cc.HasMember(KEY_PORT) && cc[KEY_PORT].IsUint()) {
+							ctx.Port = cc[KEY_PORT].GetUint();
 						}
-						if (cc.HasMember("UserId") && cc["UserId"].IsString()) {
-							std::string s = cc["UserId"].GetString();
+						if (cc.HasMember(KEY_USER_ID) && cc[KEY_USER_ID].IsString()) {
+							std::string s = cc[KEY_USER_ID].GetString();
 							Trim(s);
 							ctx.UserId = SPA::Utilities::ToWide(s.c_str(), s.size());
 						}
-						if (cc.HasMember("Password") && cc["Password"].IsString()) {
-							std::string s = cc["Password"].GetString();
+						if (cc.HasMember(KEY_PASSWORD) && cc[KEY_PASSWORD].IsString()) {
+							std::string s = cc[KEY_PASSWORD].GetString();
 							Trim(s);
 							ctx.Password = SPA::Utilities::ToWide(s.c_str(), s.size());
 						}
-						if (cc.HasMember("EncrytionMethod") && cc["EncrytionMethod"].IsInt()) {
-							ctx.EncrytionMethod = cc["Port"].GetInt() ? SPA::TLSv1 : SPA::NoEncryption;
+						if (cc.HasMember(KEY_ENCRYPTION_METHOD) && cc[KEY_ENCRYPTION_METHOD].IsUint()) {
+							ctx.EncrytionMethod = cc[KEY_ENCRYPTION_METHOD].GetUint() ? SPA::TLSv1 : SPA::NoEncryption;
 						}
-						if (cc.HasMember("Zip") && cc["Zip"].IsBool()) {
-							ctx.Zip = cc["Zip"].GetBool();
+						if (cc.HasMember(KEY_ZIP) && cc[KEY_ZIP].IsBool()) {
+							ctx.Zip = cc[KEY_ZIP].GetBool();
 						}
-						if (cc.HasMember("V6") && cc["V6"].IsBool()) {
-							ctx.Zip = cc["V6"].GetBool();
+						if (cc.HasMember(KEY_V6) && cc[KEY_V6].IsBool()) {
+							ctx.Zip = cc[KEY_V6].GetBool();
 						}
 						Manager.Hosts[key] = ctx;
 					}
 				}
-				if (doc.HasMember("Pools") && doc["Pools"].IsArray()) {
-					auto arr = doc["Pools"].GetArray();
+				if (doc.HasMember(KEY_POOLS) && doc[KEY_POOLS].IsArray()) {
+					auto arr = doc[KEY_POOLS].GetArray();
 					for (auto &v : arr) {
 						if (!v.Size() || !v.IsObject() || !v[0].IsString()) {
 							continue;
@@ -335,37 +430,43 @@ namespace PA {
 						if (!v[key.c_str()].IsObject()) {
 							continue;
 						}
-						auto cc = v[key.c_str()].GetObjectW();
+						auto ccMain = v[key.c_str()].GetObjectW();
 						CPoolStartContext psc;
-						if (cc.HasMember("Queue") && cc["Queue"].IsString()) {
-							psc.Queue = cc["Queue"].GetString();
+						if (ccMain.HasMember(KEY_QUEUE_NAME) && ccMain[KEY_QUEUE_NAME].IsString()) {
+							psc.Queue = ccMain[KEY_QUEUE_NAME].GetString();
 							Trim(psc.Queue);
 							std::transform(psc.Queue.begin(), psc.Queue.end(), psc.Queue.begin(), ::tolower);
 						}
-						if (cc.HasMember("DefaultDb") && cc["DefaultDb"].IsString()) {
-							psc.DefaultDb = cc["DefaultDb"].GetString();
+						if (ccMain.HasMember(KEY_DEFAULT_DB) && ccMain[KEY_DEFAULT_DB].IsString()) {
+							psc.DefaultDb = ccMain[KEY_DEFAULT_DB].GetString();
 							Trim(psc.DefaultDb);
 						}
-						if (cc.HasMember("SvsId") && cc["SvsId"].IsUint()) {
-							psc.SvsId = cc["SvsId"].GetUint();
+						if (psc.DefaultDb.size()) {
+							psc.PoolType = Master;
 						}
-						if (cc.HasMember("Threads") && cc["Threads"].IsUint()) {
-							psc.Threads = cc["Threads"].GetUint();
+						else {
+							psc.PoolType = NotMS;
 						}
-						if (cc.HasMember("RecvTimeout") && cc["RecvTimeout"].IsUint()) {
-							psc.RecvTimeout = cc["RecvTimeout"].GetUint();
+						if (ccMain.HasMember(KEY_SVS_ID) && ccMain[KEY_SVS_ID].IsUint()) {
+							psc.SvsId = ccMain[KEY_SVS_ID].GetUint();
 						}
-						if (cc.HasMember("ConnTimeout") && cc["ConnTimeout"].IsUint()) {
-							psc.ConnTimeout = cc["ConnTimeout"].GetUint();
+						if (ccMain.HasMember(KEY_THREADS) && ccMain[KEY_THREADS].IsUint()) {
+							psc.Threads = ccMain[KEY_THREADS].GetUint();
 						}
-						if (cc.HasMember("AutoConn") && cc["AutoConn"].IsBool()) {
-							psc.AutoConn = cc["AutoConn"].GetBool();
+						if (ccMain.HasMember(KEY_RECV_TIMEOUT) && ccMain[KEY_RECV_TIMEOUT].IsUint()) {
+							psc.RecvTimeout = ccMain[KEY_RECV_TIMEOUT].GetUint();
 						}
-						if (cc.HasMember("AutoMerge") && cc["AutoMerge"].IsBool()) {
-							psc.AutoMerge = cc["AutoMerge"].GetBool();
+						if (ccMain.HasMember(KEY_CONN_TIMEOUT) && ccMain[KEY_CONN_TIMEOUT].IsUint()) {
+							psc.ConnTimeout = ccMain[KEY_CONN_TIMEOUT].GetUint();
 						}
-						if (psc.DefaultDb.size() && cc.HasMember("Slaves") && cc["Slaves"].IsArray()) {
-							auto vSlave = cc["Slaves"].GetArray();
+						if (ccMain.HasMember(KEY_AUTO_CONN) && ccMain[KEY_AUTO_CONN].IsBool()) {
+							psc.AutoConn = ccMain[KEY_AUTO_CONN].GetBool();
+						}
+						if (ccMain.HasMember(KEY_AUTO_MERGE) && ccMain[KEY_AUTO_MERGE].IsBool()) {
+							psc.AutoMerge = ccMain[KEY_AUTO_MERGE].GetBool();
+						}
+						if (psc.DefaultDb.size() && ccMain.HasMember(KEY_SLAVES) && ccMain[KEY_SLAVES].IsArray()) {
+							auto vSlave = ccMain[KEY_SLAVES].GetArray();
 							for (auto &one : vSlave) {
 								if (!one.Size() || !one.IsObject() || !one[0].IsString()) {
 									continue;
@@ -376,37 +477,38 @@ namespace PA {
 									continue;
 								}
 								auto cc = one[skey.c_str()].GetObjectW();
-								CPoolStartContext ps(psc);
-								ps.Queue.clear();
-								ps.Hosts.clear();
-								ps.Threads = 1;
-								ps.AutoConn = true;
-								ps.AutoMerge = true;
-								if (cc.HasMember("Queue") && cc["Queue"].IsString()) {
-									ps.Queue = cc["Queue"].GetString();
+								CPoolStartContext ps;
+								ps.SvsId = psc.SvsId;
+								ps.DefaultDb = psc.DefaultDb;
+								ps.PoolType = Slave;
+								if (cc.HasMember(KEY_QUEUE_NAME) && cc[KEY_QUEUE_NAME].IsString()) {
+									ps.Queue = cc[KEY_QUEUE_NAME].GetString();
 									Trim(ps.Queue);
+#ifdef WIN32_64
+									std::transform(ps.Queue.begin(), ps.Queue.end(), ps.Queue.begin(), ::tolower);
+#endif
 								}
-								if (cc.HasMember("DefaultDb") && cc["DefaultDb"].IsString()) {
-									ps.DefaultDb = cc["DefaultDb"].GetString();
+								if (cc.HasMember(KEY_DEFAULT_DB) && cc[KEY_DEFAULT_DB].IsString()) {
+									ps.DefaultDb = cc[KEY_DEFAULT_DB].GetString();
 									Trim(ps.DefaultDb);
 								}
-								if (cc.HasMember("Threads") && cc["Threads"].IsUint()) {
-									ps.Threads = cc["Threads"].GetUint();
+								if (cc.HasMember(KEY_THREADS) && cc[KEY_THREADS].IsUint()) {
+									ps.Threads = cc[KEY_THREADS].GetUint();
 								}
-								if (cc.HasMember("RecvTimeout") && cc["RecvTimeout"].IsUint()) {
-									ps.RecvTimeout = cc["RecvTimeout"].GetUint();
+								if (cc.HasMember(KEY_RECV_TIMEOUT) && cc[KEY_RECV_TIMEOUT].IsUint()) {
+									ps.RecvTimeout = cc[KEY_RECV_TIMEOUT].GetUint();
 								}
-								if (cc.HasMember("ConnTimeout") && cc["ConnTimeout"].IsUint()) {
-									ps.ConnTimeout = cc["ConnTimeout"].GetUint();
+								if (cc.HasMember(KEY_CONN_TIMEOUT) && cc[KEY_CONN_TIMEOUT].IsUint()) {
+									ps.ConnTimeout = cc[KEY_CONN_TIMEOUT].GetUint();
 								}
-								if (cc.HasMember("AutoConn") && cc["AutoConn"].IsBool()) {
-									ps.AutoConn = cc["AutoConn"].GetBool();
+								if (cc.HasMember(KEY_AUTO_CONN) && cc[KEY_AUTO_CONN].IsBool()) {
+									ps.AutoConn = cc[KEY_AUTO_CONN].GetBool();
 								}
-								if (cc.HasMember("AutoMerge") && cc["AutoMerge"].IsBool()) {
-									ps.AutoMerge = cc["AutoMerge"].GetBool();
+								if (cc.HasMember(KEY_AUTO_MERGE) && cc[KEY_AUTO_MERGE].IsBool()) {
+									ps.AutoMerge = cc[KEY_AUTO_MERGE].GetBool();
 								}
-								if (cc.HasMember("Hosts") && cc["Hosts"].IsArray()) {
-									auto vH = doc["Hosts"].GetArray();
+								if (cc.HasMember(KEY_HOSTS) && cc[KEY_HOSTS].IsArray()) {
+									auto vH = cc[KEY_HOSTS].GetArray();
 									for (auto &h : vH) {
 										ps.Hosts.push_back(h.GetString());
 										Trim(ps.Hosts.back());
@@ -415,8 +517,8 @@ namespace PA {
 								psc.Slaves[skey] = ps;
 							}
 						}
-						if (cc.HasMember("Hosts") && cc["Hosts"].IsArray()) {
-							auto vH = doc["Hosts"].GetArray();
+						if (ccMain.HasMember(KEY_HOSTS) && ccMain[KEY_HOSTS].IsArray()) {
+							auto vH = ccMain[KEY_HOSTS].GetArray();
 							for (auto &h : vH) {
 								psc.Hosts.push_back(h.GetString());
 								Trim(psc.Hosts.back());
@@ -427,17 +529,51 @@ namespace PA {
 				}
 			}
 			catch (std::exception &ex) {
-				throw Php::Exception(ex.what());
+				Manager.m_errMsg = ex.what();
 			}
 			catch (...) {
-				throw Php::Exception("Unknown error found when parsing " + SP_CONFIG);
+				Manager.m_errMsg = "Unknown error found when parsing " + SP_CONFIG;
 			}
 		} while (false);
-		Manager.CheckError();
+		if (!Manager.m_errMsg.size()) {
+			Manager.CheckError();
+		}
 		if (Manager.m_errMsg.size()) {
 			throw Php::Exception(Manager.m_errMsg.c_str());
 		}
+		else {
+			Manager.SetAutoMerge();
+		}
 		return Php::Object((SPA_CS_NS + PHP_MANAGER).c_str(), new CPhpManager(&Manager));
+	}
+
+	void CPhpManager::SetAutoMerge() {
+		for (auto &p : Pools) {
+			CPoolStartContext &psc = p.second;
+			if (psc.Queue.size() && psc.AutoMerge && ComputeDiff(psc.Hosts) <= 1) {
+				psc.AutoMerge = false;
+			}
+			if (!psc.Slaves.size()) {
+				continue;
+			}
+			for (auto &s : psc.Slaves) {
+				CPoolStartContext &ps = s.second;
+				if (ps.Queue.size() && ps.AutoMerge && ComputeDiff(ps.Hosts) <= 1) {
+					ps.AutoMerge = false;
+				}
+			}
+		}
+	}
+
+	size_t CPhpManager::ComputeDiff(const std::vector<std::string> &v) {
+		std::vector<std::string> vHost;
+		for (auto it = v.cbegin(), end = v.cend(); it != end; ++it) {
+			auto found = std::find(vHost.cbegin(), vHost.cend(), *it);
+			if (found == vHost.cend()) {
+				vHost.push_back(*it);
+			}
+		}
+		return vHost.size();
 	}
 
 }

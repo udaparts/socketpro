@@ -14,6 +14,7 @@
 #include <functional>
 
 #ifdef PHP_ADAPTER_PROJECT
+#include <cctype>
 #include <phpcpp.h>
 #define NO_MIDDLE_TIER
 #define NO_OUTPUT_BINDING
@@ -190,7 +191,14 @@ namespace SPA {
                 }
                 return *this;
             }
-
+#ifdef PHP_ADAPTER_PROJECT
+			bool operator==(const CConnectionContext &cc) const {
+				if (this == &cc)
+					return true;
+				return (Port == cc.Port && Host.size() == cc.Host.size() &&
+					std::equal(Host.begin(), Host.end(), cc.Host.begin(), [](auto a, auto b) {return std::tolower(a) == std::tolower(b); }));
+			}
+#else
             bool operator==(const CConnectionContext &cc) const {
                 if (this == &cc)
                     return true;
@@ -203,7 +211,7 @@ namespace SPA {
                         Zip == cc.Zip &&
                         IsEqual(AnyData, cc.AnyData));
             }
-
+#endif
             std::string Host;
             unsigned int Port;
             std::wstring UserId;

@@ -61,6 +61,9 @@ namespace PA {
 		Php::Value GetConfig();
 		void CheckHostsError();
 		void CheckPoolsError();
+		bool FindHostKey(const std::string &key);
+		void SetAutoMerge();
+		static size_t ComputeDiff(const std::vector<std::string> &v);
 
 	private:
 		CPhpManager *m_pManager;
@@ -72,6 +75,7 @@ namespace PA {
 		int m_bQP;
 		std::string m_errMsg;
 		SPA::CUCriticalSection m_cs;
+		std::string m_jsonConfig;
 	};
 
 }
