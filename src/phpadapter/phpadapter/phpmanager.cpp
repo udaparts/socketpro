@@ -67,72 +67,80 @@ namespace PA {
 		for (auto it = Pools.cbegin(), end = Pools.cend(); it != end; ++it) {
 			if (!it->first.size()) {
 				m_errMsg = "Pool key cannot be empty";
-				break;
+				return;
 			}
 			const CPoolStartContext &psc = it->second;
 			if (!psc.DefaultDb.size() && psc.Slaves.size()) {
 				m_errMsg = "Slave array is not empty but DefaultDb string is empty";
+				return;
+			}
+			switch (psc.SvsId) {
+			case SPA::sidChat:
+			case SPA::sidFile:
+			case SPA::sidODBC:
+			case SPA::Mysql::sidMysql:
+			case SPA::Sqlite::sidSqlite:
+				break;
+			default:
+				if (psc.SvsId <= SPA::sidReserved) {
+					m_errMsg = "Bad Service identification number found";
+					return;
+				}
 				break;
 			}
 			const std::vector<std::string> &hosts = psc.Hosts;
 			if (!hosts.size()) {
 				m_errMsg = "Host array cannot be empty";
-				break;
+				return;
 			}
 			else {
 				for (auto &h : hosts) {
 					if (!FindHostKey(h)) {
 						m_errMsg = "Host key not found in root host array";
-						break;
+						return;
 					}
-				}
-				if (m_errMsg.size()) {
-					break;
 				}
 			}
 			for (CPoolStartContext::CMapPool::const_iterator start = it; start != end; ++start) {
 				if (it != start) {
 					if (start->first == it->first) {
 						m_errMsg = "Pool key (" + it->first + ") duplicacted";
-						break;
+						return;
 					}
 					if (start->second.Queue.size() && start->second.Queue == psc.Queue) {
 						m_errMsg = "Pool queue (" + psc.Queue + ") duplicacted";
-						break;
+						return;
 					}
 				}
 				auto &slaves = start->second.Slaves;
 				for (auto sit = slaves.cbegin(), send = slaves.end(); sit != send; ++sit) {
 					if (sit->second.Slaves.size()) {
 						m_errMsg = "A slave pool cannot have its own slave";
-						break;
+						return;
 					}
 					if (!sit->first.size()) {
 						m_errMsg = "Slave pool key cannot be empty";
-						break;
+						return;
 					}
 					if (sit->first == it->first) {
 						m_errMsg = "Pool key (" + it->first + ") duplicacted";
-						break;
+						return;
 					}
 					if (psc.Queue.size() && psc.Queue == sit->second.Queue) {
 						m_errMsg = "Queue name (" + psc.Queue + ") duplicacted";
-						break;
+						return;
 					}
 					const std::vector<std::string> &hosts = sit->second.Hosts;
 					if (!hosts.size()) {
 						m_errMsg = "Slave host array cannot be empty";
-						break;
+						return;
 					}
 					else {
 						for (auto &h : hosts) {
 							if (!FindHostKey(h)) {
 								m_errMsg = "Slave host key not found in root host array";
-								break;
+								return;
 							}
-						}
-						if (m_errMsg.size()) {
-							break;
 						}
 					}
 				}
@@ -304,10 +312,26 @@ namespace PA {
 		return Php::Base::__get(name);
 	}
 
+	Php::Value CPhpManager::GetPool(Php::Parameters &params) {
+		std::string key = params[0];
+		for (auto &p : m_pManager->Pools) {
+			auto &slaves = p.second.Slaves;
+			if (p.first == key) {
+				
+			}
+			else if (slaves.size()) {
+
+			}
+		}
+		throw Php::Exception("Pool not found");
+	}
+
 	void CPhpManager::RegisterInto(Php::Namespace &cs) {
 		Php::Class<CPhpManager> manager(PHP_MANAGER);
 		manager.method(PHP_CONSTRUCT, &CPhpManager::__construct, Php::Private);
-
+		manager.method("GetPool", &CPhpManager::GetPool, {
+			Php::ByVal("key", Php::Type::String)
+		});
 		cs.add(manager);
 	}
 

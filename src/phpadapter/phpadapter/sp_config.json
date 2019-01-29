@@ -1,5 +1,6 @@
 {
-   "Hosts":[
+	"WorkingDir" : "C:\\ProgramData\\PHP",
+	"Hosts":[
       {
          "hw_0":{
             "Host":"127.0.0.1",
@@ -28,7 +29,7 @@
          }
       },
       {
-         "db_slave_1":{
+         "db_slave_remote":{
             "Host":"ws-yye-1",
             "Port":20902,
             "UserId":"root",
@@ -46,6 +47,7 @@
 			   "hw_0"
             ],
             "Threads":2,
+			"AutoMerge":true,
             "Queue":"hwsvs"
          }
       },
@@ -56,6 +58,7 @@
                "db_master",
 			   "db_master"
             ],
+			"DefaultDb":"sakila",
 			"AutoConn":true,
 			"RecvTimeout":30000,
 			"ConnTimeout":30000
@@ -78,11 +81,11 @@
                      "Hosts":[
                         "db_slave_0",
                         "db_slave_0",
+						"db_slave_0",
                         "db_master",
-                        "db_slave_1"
+                        "db_slave_remote"
                      ],
-                     "DefaultDb":"sakila",
-                     "Queue":"sdb0",
+                     "Queue":"sdb",
                      "Threads":2
                   }
                }

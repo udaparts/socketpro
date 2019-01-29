@@ -1,5 +1,6 @@
 
-#pragma once
+#ifndef PHP_ADAPTER_STDAFX_H
+#define PHP_ADAPTER_STDAFX_H
 
 #include "../../../include/definebase.h"
 
@@ -95,3 +96,6 @@ namespace PA {
 #define KEY_V6					"V6"
 #define KEY_HOST				"Host"
 #define KEY_ANY_DATA			"AnyData"
+
+
+#endif
