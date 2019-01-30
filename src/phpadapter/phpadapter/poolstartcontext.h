@@ -10,9 +10,12 @@ namespace PA {
 
 	typedef std::unordered_map<std::string, CConnectionContext> CMapHost;
 
-	struct CPoolStartContext {
+	class CPoolStartContext {
+
+	public:
 		CPoolStartContext();
-		
+	
+	public:
 		unsigned int SvsId;
 		std::vector<std::string> Hosts;
 		unsigned int Threads;

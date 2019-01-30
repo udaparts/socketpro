@@ -40,6 +40,15 @@ namespace PA {
 		Slave = 1,
 		Master = 2
 	};
+
+	enum tagRequestReturnStatus {
+		rrsServerException = -3,
+		rrsCanceled = -2,
+		rrsTimeout = -1,
+		rrsClosed = 0,
+		rrsOk = 1,
+	};
+
 	extern const char *PHP_BUFFER;
 	extern const char *PHP_CONN_CONTEXT;
 	extern const char *PHP_FILE_HANDLER;

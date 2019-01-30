@@ -7,10 +7,13 @@
 
 namespace SPA {
 	namespace ClientSide {
-
 		using namespace PA;
-
 		Php::Value CAsyncServiceHandler::SendRequest(Php::Parameters &params) {
+			bool canceled = false;
+			bool exception = false;
+			bool closed = false;
+			unsigned int timeout = GetAttachedClientSocket()->GetRecvTimeout();
+			bool sync = false;
 			int64_t id = params[0].numericValue();
 			if (id <= SPA::sidReserved || id > 0xffff) {
 				throw Php::Exception("Bad request id");
@@ -21,36 +24,70 @@ namespace SPA {
 			DServerException se;
 			const unsigned char *pBuffer = nullptr;
 			unsigned int bytes = 0;
+			Php::Value phpRh, phpCanceled, phpEx;
 			size_t args = params.size();
-			if (args > 4) {
-				Php::Value func = params[4];
-				if (!func.isCallable()) {
-					throw Php::Exception("A callback required for server exception");
-				}
-				se = [func](CAsyncServiceHandler *ash, unsigned short reqId, const wchar_t *errMsg, const char *errWhere, unsigned int errCode) {
-					func(Utilities::ToUTF8(errMsg).c_str(), (int64_t)errCode, errWhere, reqId);
-				};
-			}
-			if (args > 3) {
-				Php::Value func = params[3];
-				if (!func.isCallable()) {
-					throw Php::Exception("A callback required for request aborting event");
-				}
-				discarded = [func, reqId](CAsyncServiceHandler *ash, bool canceled) {
-					func(canceled, reqId);
-				};
-			}
 			if (args > 2) {
-				Php::Value func = params[2];
-				if (!func.isCallable()) {
+				phpRh = params[2];
+				if (phpRh.isNumeric()) {
+					sync = true;
+					unsigned int t = (unsigned int)phpRh.numericValue();
+					if (t < timeout) {
+						timeout = t;
+					}
+				}
+				else if (phpRh.isBool()) {
+					sync = phpRh.boolValue();
+				}
+				else if (!phpRh.isCallable()) {
 					throw Php::Exception("A callback required for returning result");
 				}
-				rh = [func](CAsyncResult & ar) {
-					PAsyncServiceHandler ash = ar.AsyncServiceHandler;
-					Php::Object q(PHP_BUFFER, new CPhpBuffer(&ar.UQueue));
-					func(q, ar.RequestId);
-				};
 			}
+			rh = [phpRh, sync, this](CAsyncResult & ar) {
+				PAsyncServiceHandler ash = ar.AsyncServiceHandler;
+				Php::Object q(PHP_BUFFER, new CPhpBuffer(&ar.UQueue));
+				if (sync) {
+					std::unique_lock<std::mutex> lk(this->m_mPhp);
+					this->m_cvPhp.notify_all();
+				}
+				else if (phpRh.isCallable()) {
+					phpRh(q, ar.RequestId);
+				}
+			};
+			if (args > 4) {
+				phpEx = params[4];
+				if (!phpEx.isCallable()) {
+					throw Php::Exception("A callback required for server exception");
+				}
+			}
+			se = [phpEx, sync, &exception, this](CAsyncServiceHandler *ash, unsigned short reqId, const wchar_t *errMsg, const char *errWhere, unsigned int errCode) {
+				if (phpEx.isCallable()) {
+					phpEx(Utilities::ToUTF8(errMsg).c_str(), (int64_t)errCode, errWhere, reqId);
+				}
+				if (sync) {
+					exception = true;
+					std::unique_lock<std::mutex> lk(this->m_mPhp);
+					this->m_cvPhp.notify_all();
+				}
+			};
+			if (args > 3) {
+				phpCanceled = params[3];
+				if (!phpCanceled.isCallable()) {
+					throw Php::Exception("A callback required for request aborting event");
+				}
+			}
+			discarded = [phpCanceled, reqId, sync, this, &canceled, &closed](CAsyncServiceHandler *ash, bool aborted) {
+				if (phpCanceled.isCallable()) {
+					phpCanceled(aborted, reqId);
+				}
+				if (sync) {
+					canceled = aborted;
+					if (!canceled) {
+						closed = true;
+					}
+					std::unique_lock<std::mutex> lk(this->m_mPhp);
+					this->m_cvPhp.notify_all();
+				}
+			};
 			Php::Value v;
 			if (args > 1) {
 				Php::Value &q = params[1];
@@ -63,7 +100,24 @@ namespace SPA {
 					throw Php::Exception("An instance of CUQueue or null required for request sending data");
 				}
 			}
-			return SendRequest(reqId, pBuffer, bytes, rh, discarded, se);
+			if (sync) {
+				if (!SendRequest(reqId, pBuffer, bytes, rh, discarded, se)) {
+					return rrsClosed;
+				}
+				std::unique_lock<std::mutex> lk(m_mPhp);
+				auto status = m_cvPhp.wait_for(lk, std::chrono::milliseconds(timeout));
+				if (status == std::cv_status::timeout) {
+					return rrsTimeout;
+				}
+				else if (closed) {
+					return rrsClosed;
+				}
+				else if (exception) {
+					return PA::rrsServerException;
+				}
+				return rrsOk;
+			}
+			return SendRequest(reqId, pBuffer, bytes, rh, discarded, se) ? rrsOk : rrsClosed;
 		}
 	}
 }

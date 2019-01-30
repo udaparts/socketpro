@@ -1,11 +1,13 @@
 #ifndef SPA_PHP_FILE_H
 #define SPA_PHP_FILE_H
 
+#include "basehandler.h"
+
 namespace PA {
 	typedef SPA::ClientSide::CStreamingFile CAsyncFile;
 	typedef SPA::ClientSide::CSocketPool<CAsyncFile> CPhpFilePool;
 
-	class CPhpFile : public Php::Base
+	class CPhpFile : public CPhpBaseHandler<CPhpFile>, public Php::Base
 	{
 	public:
 		CPhpFile(CPhpFilePool *pool, CAsyncFile *sh, bool locked);
@@ -14,16 +16,12 @@ namespace PA {
 
 	public:
 		CPhpFile& operator=(const CPhpFile &file) = delete;
-		void __construct(Php::Parameters &params);
 		static void RegisterInto(Php::Namespace &cs);
-		Php::Value SendRequest(Php::Parameters &params);
-		bool IsLocked();
 		int __compare(const CPhpFile &f) const;
 
 	private:
 		CPhpFilePool *m_filePool;
 		CAsyncFile *m_sh;
-		bool m_locked;
 	};
 } //namespace PA
 #endif

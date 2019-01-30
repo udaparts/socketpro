@@ -163,6 +163,7 @@
     <ClInclude Include="..\..\..\include\tablecache.h" />
     <ClInclude Include="..\..\..\include\udatabase.h" />
     <ClInclude Include="..\..\..\include\udb_client.h" />
+    <ClInclude Include="basehandler.h" />
     <ClInclude Include="phpbuffer.h" />
     <ClInclude Include="phpcert.h" />
     <ClInclude Include="phpconncontext.h" />
