@@ -21,6 +21,7 @@ namespace PA {
 		void __construct(Php::Parameters &params);
 		Php::Value __get(const Php::Value &name);
 		Php::Value GetPool(Php::Parameters &params);
+		CConnectionContext FindByKey(const std::string &key);
 
 	private:
 		void CheckError();
@@ -29,7 +30,7 @@ namespace PA {
 		void CheckHostsError();
 		void CheckPoolsError();
 		bool FindHostKey(const std::string &key);
-		void SetAutoMerge();
+		void SetSettings();
 		static size_t ComputeDiff(const std::vector<std::string> &v);
 
 	private:
@@ -43,8 +44,7 @@ namespace PA {
 		int m_bQP;
 		std::string m_errMsg;
 		std::string m_jsonConfig;
-		Php::Value m_pe;
-		Php::Value m_ssl;
+		const std::vector<std::string> m_vKeyAllowed;
 	};
 
 }

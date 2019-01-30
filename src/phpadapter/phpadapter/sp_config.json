@@ -41,13 +41,12 @@
    "Pools":[
       {
          "my_hello_world":{
-            "SvsId":268435451,
+            "SvsId":268435457,
             "Hosts":[
                "hw_0",
 			   "hw_0"
             ],
             "Threads":2,
-			"AutoMerge":true,
             "Queue":"hwsvs"
          }
       },
@@ -59,8 +58,6 @@
 			   "db_master"
             ],
 			"DefaultDb":"sakila",
-			"AutoConn":true,
-			"RecvTimeout":30000,
 			"ConnTimeout":30000
          }
       },
@@ -86,6 +83,7 @@
                         "db_slave_remote"
                      ],
                      "Queue":"sdb",
+					 "RecvTimeout":30000,
                      "Threads":2
                   }
                }

@@ -12,8 +12,7 @@ namespace PA {
 
 	struct CPoolStartContext {
 		CPoolStartContext();
-		std::string StartPool();
-
+		
 		unsigned int SvsId;
 		std::vector<std::string> Hosts;
 		unsigned int Threads;
@@ -32,6 +31,18 @@ namespace PA {
 			CPhpQueuePool *PhpQueue;
 		};
 		tagPoolType PoolType;
+
+	private:
+		int m_errCode;
+		std::string m_errMsg;
+
+	public:
+		Php::Value GetPool();
+		void Clean();
+		bool DoSSLAuth(CClientSocket *cs);
+
+	private:
+		std::string StartPool();
 	};
 } //namespace PA
 

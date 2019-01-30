@@ -15,6 +15,25 @@ namespace PA {
 	}
 
 	void CPhpManager::Clean() {
+		SPA::CAutoLock al(m_cs);
+		for (auto &p : m_pManager->Pools) {
+			p.second.Clean();
+			auto &slaves = p.second.Slaves;
+			for (auto &s : slaves) {
+				s.second.Clean();
+			}
+		}
+	}
+
+	CConnectionContext CPhpManager::FindByKey(const std::string &key) {
+		for (auto &h : Hosts) {
+			if (h.first == key) {
+				return h.second;
+			}
+		}
+		assert(false);
+		CConnectionContext cc;
+		return cc;
 	}
 
 	void CPhpManager::CheckHostsError() {
@@ -314,13 +333,18 @@ namespace PA {
 
 	Php::Value CPhpManager::GetPool(Php::Parameters &params) {
 		std::string key = params[0];
+		SPA::CAutoLock al(m_cs);
 		for (auto &p : m_pManager->Pools) {
 			auto &slaves = p.second.Slaves;
 			if (p.first == key) {
-				
+				return p.second.GetPool();
 			}
 			else if (slaves.size()) {
-
+				for (auto &s : slaves) {
+					if (s.first == key) {
+						return s.second.GetPool();
+					}
+				}
 			}
 		}
 		throw Php::Exception("Pool not found");
@@ -566,14 +590,24 @@ namespace PA {
 			throw Php::Exception(Manager.m_errMsg.c_str());
 		}
 		else {
-			Manager.SetAutoMerge();
+			Manager.SetSettings();
 		}
 		return Php::Object((SPA_CS_NS + PHP_MANAGER).c_str(), new CPhpManager(&Manager));
 	}
 
-	void CPhpManager::SetAutoMerge() {
+	void CPhpManager::SetSettings() {
 		for (auto &p : Pools) {
 			CPoolStartContext &psc = p.second;
+			
+			psc.AutoConn = true; //set autoconn to true for now
+
+			if (psc.SvsId == SPA::sidChat || psc.SvsId == SPA::sidFile) {
+				//don't support master/slave at all
+				psc.Slaves.clear();
+				psc.DefaultDb.clear();
+				psc.PoolType = NotMS; //regular socket pool
+			}
+
 			if (psc.Queue.size() && psc.AutoMerge && ComputeDiff(psc.Hosts) <= 1) {
 				psc.AutoMerge = false;
 			}
@@ -582,6 +616,9 @@ namespace PA {
 			}
 			for (auto &s : psc.Slaves) {
 				CPoolStartContext &ps = s.second;
+
+				ps.AutoConn = true; //set autoconn to true for now
+				
 				if (ps.Queue.size() && ps.AutoMerge && ComputeDiff(ps.Hosts) <= 1) {
 					ps.AutoMerge = false;
 				}
