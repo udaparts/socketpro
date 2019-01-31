@@ -44,7 +44,7 @@ namespace PA {
 		int m_bQP;
 		std::string m_errMsg;
 		std::string m_jsonConfig;
-		const std::vector<std::string> m_vKeyAllowed;
+		std::vector<std::string> m_vKeyAllowed;
 	};
 
 }

@@ -347,7 +347,7 @@ namespace PA {
 				}
 			}
 		}
-		throw Php::Exception("Pool not found");
+		throw Php::Exception(("Pool not found by a key " + key).c_str());
 	}
 
 	void CPhpManager::RegisterInto(Php::Namespace &cs) {

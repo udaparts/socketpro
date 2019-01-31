@@ -15,10 +15,9 @@ namespace PA {
 		CPhpSocketPool& operator=(const CPhpSocketPool &p) = delete;
 		static void RegisterInto(Php::Namespace &cs);
 		Php::Value __get(const Php::Value &name);
-		void __set(const Php::Value &name, const Php::Value &value);
+		//void __set(const Php::Value &name, const Php::Value &value);
 		void __construct(Php::Parameters &params);
 		Php::Value Seek();
-		Php::Value SeekByQueue(Php::Parameters &params);
 		Php::Value Lock(Php::Parameters &params);
 		int __compare(const CPhpSocketPool &pool) const;
 
@@ -32,7 +31,8 @@ namespace PA {
 		};
 		std::string m_defaultDb;
 		tagPoolType m_pt;
-		static const char* NOT_INITIALIZED;
+		std::string m_qName;
+		unsigned int m_recvTimeout;
 	};
 
 } //namespace PA

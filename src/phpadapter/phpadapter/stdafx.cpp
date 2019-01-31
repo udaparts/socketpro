@@ -1,126 +1,6 @@
 
 #include "stdafx.h"
-#include <cctype>
-#include "phpbuffer.h"
-#include <memory>
 #include "phpmanager.h"
-
-namespace SPA {
-	namespace ClientSide {
-		using namespace PA;
-		Php::Value CAsyncServiceHandler::SendRequest(Php::Parameters &params) {
-			bool canceled = false;
-			bool exception = false;
-			bool closed = false;
-			unsigned int timeout = GetAttachedClientSocket()->GetRecvTimeout();
-			bool sync = false;
-			int64_t id = params[0].numericValue();
-			if (id <= SPA::sidReserved || id > 0xffff) {
-				throw Php::Exception("Bad request id");
-			}
-			unsigned short reqId = (unsigned short)id;
-			ResultHandler rh;
-			DDiscarded discarded;
-			DServerException se;
-			const unsigned char *pBuffer = nullptr;
-			unsigned int bytes = 0;
-			Php::Value phpRh, phpCanceled, phpEx;
-			size_t args = params.size();
-			if (args > 2) {
-				phpRh = params[2];
-				if (phpRh.isNumeric()) {
-					sync = true;
-					unsigned int t = (unsigned int)phpRh.numericValue();
-					if (t < timeout) {
-						timeout = t;
-					}
-				}
-				else if (phpRh.isBool()) {
-					sync = phpRh.boolValue();
-				}
-				else if (!phpRh.isCallable()) {
-					throw Php::Exception("A callback required for returning result");
-				}
-			}
-			rh = [phpRh, sync, this](CAsyncResult & ar) {
-				PAsyncServiceHandler ash = ar.AsyncServiceHandler;
-				Php::Object q(PHP_BUFFER, new CPhpBuffer(&ar.UQueue));
-				if (sync) {
-					std::unique_lock<std::mutex> lk(this->m_mPhp);
-					this->m_cvPhp.notify_all();
-				}
-				else if (phpRh.isCallable()) {
-					phpRh(q, ar.RequestId);
-				}
-			};
-			if (args > 4) {
-				phpEx = params[4];
-				if (!phpEx.isCallable()) {
-					throw Php::Exception("A callback required for server exception");
-				}
-			}
-			se = [phpEx, sync, &exception, this](CAsyncServiceHandler *ash, unsigned short reqId, const wchar_t *errMsg, const char *errWhere, unsigned int errCode) {
-				if (phpEx.isCallable()) {
-					phpEx(Utilities::ToUTF8(errMsg).c_str(), (int64_t)errCode, errWhere, reqId);
-				}
-				if (sync) {
-					exception = true;
-					std::unique_lock<std::mutex> lk(this->m_mPhp);
-					this->m_cvPhp.notify_all();
-				}
-			};
-			if (args > 3) {
-				phpCanceled = params[3];
-				if (!phpCanceled.isCallable()) {
-					throw Php::Exception("A callback required for request aborting event");
-				}
-			}
-			discarded = [phpCanceled, reqId, sync, this, &canceled, &closed](CAsyncServiceHandler *ash, bool aborted) {
-				if (phpCanceled.isCallable()) {
-					phpCanceled(aborted, reqId);
-				}
-				if (sync) {
-					canceled = aborted;
-					if (!canceled) {
-						closed = true;
-					}
-					std::unique_lock<std::mutex> lk(this->m_mPhp);
-					this->m_cvPhp.notify_all();
-				}
-			};
-			Php::Value v;
-			if (args > 1) {
-				Php::Value &q = params[1];
-				if (q.instanceOf(PHP_BUFFER)) {
-					v = q.call("PopBytes");
-					pBuffer = (const unsigned char*)v.rawValue();
-					bytes = (unsigned int)v.length();
-				}
-				else if (!q.isNull()) {
-					throw Php::Exception("An instance of CUQueue or null required for request sending data");
-				}
-			}
-			if (sync) {
-				if (!SendRequest(reqId, pBuffer, bytes, rh, discarded, se)) {
-					return rrsClosed;
-				}
-				std::unique_lock<std::mutex> lk(m_mPhp);
-				auto status = m_cvPhp.wait_for(lk, std::chrono::milliseconds(timeout));
-				if (status == std::cv_status::timeout) {
-					return rrsTimeout;
-				}
-				else if (closed) {
-					return rrsClosed;
-				}
-				else if (exception) {
-					return PA::rrsServerException;
-				}
-				return rrsOk;
-			}
-			return SendRequest(reqId, pBuffer, bytes, rh, discarded, se) ? rrsOk : rrsClosed;
-		}
-	}
-}
 
 namespace PA {
 	const char *PHP_BUFFER = "CUQueue";
@@ -142,6 +22,11 @@ namespace PA {
 	const char *PHP_SENDREQUEST_RH = "rh";
 	const char *PHP_SENDREQUEST_CH = "ch";
 	const char *PHP_SENDREQUEST_EX = "ex";
+
+	const char *PHP_SOCKET_CLOSED = "Socket closed";
+	const char *PHP_REQUEST_CANCELED = "Request canceled";
+	const char *PHP_SERVER_EXCEPTION = "Remote server exception caught";
+	const char *PHP_REQUEST_TIMEOUT = "Request timed out";
 
 	const std::string SPA_NS("SPA\\");
 	const std::string SPA_CS_NS("SPA\\ClientSide\\");
@@ -380,6 +265,24 @@ namespace PA {
 
 	Php::Value GetManager() {
 		return CPhpManager::Parse();
+	}
+
+	Php::Value GetSpPool(Php::Parameters &params) {
+		Php::Value manager = GetManager();
+		return manager.call("GetPool", params[0]);
+	}
+
+	Php::Value GetSpHandler(Php::Parameters &params) {
+		Php::Value pool = GetSpPool(params);
+		return pool.call("Seek");
+	}
+
+	Php::Value LockSpHandler(Php::Parameters &params) {
+		Php::Value pool = GetSpPool(params);
+		if (params.size() > 1) {
+			return pool.call("Lock", params[1]);
+		}
+		return pool.call("Lock", -1); //default to infinite time
 	}
 
 } //namespace PA

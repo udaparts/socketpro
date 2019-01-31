@@ -103,7 +103,8 @@ namespace SPA {
         class CAsyncServiceHandler;
         class CAsyncResult;
 
-        typedef std::function<void(CAsyncResult&) > ResultHandler;
+		typedef std::function<void(CAsyncResult&) > DResultHandler;
+        typedef DResultHandler ResultHandler;
 
         const static ResultHandler NULL_RH;
 
@@ -1498,11 +1499,8 @@ namespace SPA {
                 sb << data0 << data1 << data2 << data3 << data4;
                 return SendRouteeResult(sb->GetBuffer(), sb->GetSize(), usRequestID);
             }
-#ifdef PHP_ADAPTER_PROJECT
-        public:
-            virtual Php::Value SendRequest(Php::Parameters &params);
 
-#elif defined(NODE_JS_ADAPTER_PROJECT)
+#if defined(NODE_JS_ADAPTER_PROJECT)
         public:
             typedef Persistent<Function, v8::NJANonCopyablePersistentTraits<Function> > CNJFunc;
 

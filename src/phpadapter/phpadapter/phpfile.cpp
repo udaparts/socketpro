@@ -3,13 +3,12 @@
 
 namespace PA {
 
-	CPhpFile::CPhpFile(CPhpFilePool *pool, CAsyncFile *sh, bool locked) : CPhpBaseHandler<CPhpFile>(locked, sh), m_filePool(pool), m_sh(sh) {
+	CPhpFile::CPhpFile(CPhpFilePool *pool, CAsyncFile *sh, bool locked) 
+		: CPhpBaseHandler<CPhpFile>(locked, sh, pool->GetPoolId()),
+		m_filePool(pool), m_sh(sh) {
 	}
 
 	CPhpFile::~CPhpFile() {
-		if (IsLocked() && m_sh && m_filePool) {
-			m_filePool->Unlock(m_sh->GetAttachedClientSocket());
-		}
 	}
 
 	int CPhpFile::__compare(const CPhpFile &f) const {

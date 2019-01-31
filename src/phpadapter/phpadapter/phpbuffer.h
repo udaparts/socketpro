@@ -5,7 +5,7 @@ namespace PA {
 
 	class CPhpBuffer : public Php::Base {
 	public:
-		CPhpBuffer(SPA::CUQueue *buffer = nullptr);
+		CPhpBuffer();
 		CPhpBuffer(const CPhpBuffer &b) = delete;
 		~CPhpBuffer();
 
@@ -55,6 +55,8 @@ namespace PA {
 		Php::Value Load(Php::Parameters &params);
 		Php::Value __get(const Php::Value &name);
 		void __set(const Php::Value &name, const Php::Value &value);
+		void Swap(SPA::CUQueue *q);
+		void Swap(CPhpBuffer *qPhp);
 
 	private:
 		void EnsureBuffer();
@@ -66,7 +68,6 @@ namespace PA {
 
 	private:
 		SPA::CUQueue *m_pBuffer;
-		bool m_bExternal;
 		friend void ToVariant(const Php::Value &data, SPA::UDB::CDBVariant &vt, const std::string &id);
 		friend void ToVariant(const Php::Value &data, CComVariant &vt, const std::string &id);
 		friend SPA::ClientSide::CAsyncServiceHandler;

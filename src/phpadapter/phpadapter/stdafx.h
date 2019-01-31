@@ -69,12 +69,20 @@ namespace PA {
 	extern const char *PHP_SENDREQUEST_CH;
 	extern const char *PHP_SENDREQUEST_EX;
 
+	extern const char *PHP_SOCKET_CLOSED;
+	extern const char *PHP_REQUEST_CANCELED;
+	extern const char *PHP_SERVER_EXCEPTION;
+	extern const char *PHP_REQUEST_TIMEOUT;
+
 	extern const std::string SPA_NS;
 	extern const std::string SPA_CS_NS;
 	extern std::string SP_CONFIG;
 	extern const char SYS_DIR;
 
 	Php::Value GetManager();
+	Php::Value GetSpPool(Php::Parameters &params);
+	Php::Value GetSpHandler(Php::Parameters &params);
+	Php::Value LockSpHandler(Php::Parameters &params);
 
 	typedef SPA::ClientSide::CCachedBaseHandler<0> CAsyncHandler;
 	typedef SPA::ClientSide::CClientSocket CClientSocket;

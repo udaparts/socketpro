@@ -63,7 +63,8 @@ namespace PA {
 			else {
 				sb << AnyData;
 			}
-			CPhpBuffer buff(sb.Get());
+			CPhpBuffer buff;
+			buff.Swap(sb.Get());
 			return buff.LoadObject();
 		}
 		return Php::Base::__get(name);

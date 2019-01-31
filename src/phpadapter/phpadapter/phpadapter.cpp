@@ -42,7 +42,17 @@ extern "C" {
 		ClientSide.add("GetManager", PA::GetManager);
 		SPA.add(ClientSide);
 		extSpaPhp.add(SPA);
-
+		extSpaPhp.add("GetSpManager", PA::GetManager);
+		extSpaPhp.add("GetSpPool", PA::GetSpPool, {
+			Php::ByVal("key", Php::Type::String)
+		});
+		extSpaPhp.add("SeekSpHandler", PA::GetSpHandler, {
+			Php::ByVal("key", Php::Type::String)
+		});
+		extSpaPhp.add("LockSpHandler", PA::LockSpHandler, {
+			Php::ByVal("key", Php::Type::String),
+			Php::ByVal("timeout", Php::Type::Numeric, false)
+		});
 		// return the extension
 		return extSpaPhp.module();
 	}

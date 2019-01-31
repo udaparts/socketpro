@@ -4,11 +4,8 @@
 #include "phpconncontext.h"
 
 namespace PA {
-
-	const char* CPhpSocketPool::NOT_INITIALIZED = "Socket pool object not initialized";
-
 	CPhpSocketPool::CPhpSocketPool(const CPoolStartContext &psc)
-		: m_nSvsId(psc.SvsId), Handler(psc.PhpHandler), m_pt(psc.PoolType) {
+		: m_nSvsId(psc.SvsId), Handler(psc.PhpHandler), m_pt(psc.PoolType), m_qName(psc.Queue), m_recvTimeout(psc.RecvTimeout) {
 	}
 
 	CPhpSocketPool::~CPhpSocketPool() {
@@ -19,113 +16,52 @@ namespace PA {
 	}
 
 	Php::Value CPhpSocketPool::Seek() {
-		if (!Handler) {
-			throw Php::Exception(NOT_INITIALIZED);
-		}
 		switch (m_nSvsId) {
 		case SPA::Mysql::sidMysql:
 		case SPA::Odbc::sidOdbc:
 		case SPA::Sqlite::sidSqlite:
 		{
-			auto handler = Db->Seek();
+			auto handler = m_qName.size() ? Db->SeekByQueue() : Db->Seek();
 			if (!handler)
-				return nullptr;
+				throw Php::Exception("Database handler not found");
 			Php::Object obj((SPA_CS_NS + PHP_DB_HANDLER).c_str(), new CPhpDb(Db, handler.get(), false));
 			return obj;
 		}
 		break;
 		case SPA::Queue::sidQueue:
 		{
-			auto handler = Queue->Seek();
+			auto handler = m_qName.size() ? Queue->SeekByQueue() : Queue->Seek();
 			if (!handler)
-				return nullptr;
+				throw Php::Exception("Persistent message queue handler not found");
 			Php::Object obj((SPA_CS_NS + PHP_QUEUE_HANDLER).c_str(), new CPhpQueue(Queue, handler.get(), false));
 			return obj;
 		}
 		break;
 		case SPA::SFile::sidFile:
 		{
-			auto handler = File->Seek();
+			auto handler = m_qName.size() ? File->SeekByQueue() : File->Seek();
 			if (!handler)
-				return nullptr;
+				throw Php::Exception("File handler not found");
 			Php::Object obj((SPA_CS_NS + PHP_FILE_HANDLER).c_str(), new CPhpFile(File, handler.get(), false));
 			return obj;
 		}
 		break;
 		default:
-		{
-			auto handler = Handler->Seek();
-			if (!handler)
-				return nullptr;
-			Php::Object obj((SPA_CS_NS + PHP_ASYNC_HANDLER).c_str(), new CPhpHandler(Handler, handler.get(), false));
-			return obj;
+			break;
 		}
-		break;
-		}
-		return nullptr; //shouldnot come here
-	}
-
-	Php::Value CPhpSocketPool::SeekByQueue(Php::Parameters &params) {
-		std::string qName;
-		if (params.size()) {
-			qName = params[0].stringValue();
-		}
-		Trim(qName);
-		bool empty = (qName.size() == 0);
-		if (!Handler) {
-			throw Php::Exception(NOT_INITIALIZED);
-		}
-
-		switch (m_nSvsId) {
-		case SPA::Mysql::sidMysql:
-		case SPA::Odbc::sidOdbc:
-		case SPA::Sqlite::sidSqlite:
-		{
-			auto handler = empty ? Db->SeekByQueue() : Db->SeekByQueue(qName);
-			if (!handler)
-				return nullptr;
-			Php::Object obj((SPA_CS_NS + PHP_DB_HANDLER).c_str(), new CPhpDb(Db, handler.get(), false));
-			return obj;
-		}
-		break;
-		case SPA::Queue::sidQueue:
-		{
-			auto handler = empty ? Queue->SeekByQueue() : Queue->SeekByQueue(qName);
-			if (!handler)
-				return nullptr;
-			Php::Object obj((SPA_CS_NS + PHP_QUEUE_HANDLER).c_str(), new CPhpQueue(Queue, handler.get(), false));
-			return obj;
-		}
-		break;
-		case SPA::SFile::sidFile:
-		{
-			auto handler = empty ? File->SeekByQueue() : File->SeekByQueue(qName);
-			if (!handler)
-				return nullptr;
-			Php::Object obj((SPA_CS_NS + PHP_FILE_HANDLER).c_str(), new CPhpFile(File, handler.get(), false));
-			return obj;
-		}
-		break;
-		default:
-		{
-			auto handler = empty ? Handler->SeekByQueue() : Handler->SeekByQueue(qName);
-			if (!handler)
-				return nullptr;
-			Php::Object obj((SPA_CS_NS + PHP_ASYNC_HANDLER).c_str(), new CPhpHandler(Handler, handler.get(), false));
-			return obj;
-		}
-		break;
-		}
-		return nullptr; //shouldnot come here
+		auto handler = m_qName.size() ? Handler->SeekByQueue() : Handler->Seek();
+		if (!handler)
+			throw Php::Exception("Async handler not found");
+		return Php::Object((SPA_CS_NS + PHP_ASYNC_HANDLER).c_str(), new CPhpHandler(Handler, handler.get(), false));
 	}
 
 	Php::Value CPhpSocketPool::Lock(Php::Parameters &params) {
-		unsigned int timeout = (~0);
+		unsigned int timeout = m_recvTimeout;
 		if (params.size()) {
-			timeout = (unsigned int)params[0].numericValue();
-		}
-		if (!Handler) {
-			throw Php::Exception(NOT_INITIALIZED);
+			unsigned int t = (unsigned int)params[0].numericValue();
+			if (t < m_recvTimeout) {
+				timeout = t;
+			}
 		}
 		switch (m_nSvsId) {
 		case SPA::Mysql::sidMysql:
@@ -134,7 +70,7 @@ namespace PA {
 		{
 			auto handler = Db->Lock(timeout);
 			if (!handler)
-				return nullptr;
+				throw Php::Exception("No database handler locked");
 			Php::Object obj((SPA_CS_NS + PHP_DB_HANDLER).c_str(), new CPhpDb(Db, handler.get(), true));
 			return obj;
 		}
@@ -143,7 +79,7 @@ namespace PA {
 		{
 			auto handler = Queue->Lock(timeout);
 			if (!handler)
-				return nullptr;
+				throw Php::Exception("No persistent message queue handler locked");
 			Php::Object obj((SPA_CS_NS + PHP_QUEUE_HANDLER).c_str(), new CPhpQueue(Queue, handler.get(), true));
 			return obj;
 		}
@@ -152,22 +88,18 @@ namespace PA {
 		{
 			auto handler = File->Lock(timeout);
 			if (!handler)
-				return nullptr;
+				throw Php::Exception("No file handler locked");
 			Php::Object obj((SPA_CS_NS + PHP_FILE_HANDLER).c_str(), new CPhpFile(File, handler.get(), true));
 			return obj;
 		}
 		break;
 		default:
-		{
-			auto handler = Handler->Lock(timeout);
-			if (!handler)
-				return nullptr;
-			Php::Object obj((SPA_CS_NS + PHP_ASYNC_HANDLER).c_str(), new CPhpHandler(Handler, handler.get(), true));
-			return obj;
+			break;
 		}
-		break;
-		}
-		return nullptr; //shouldnot come here
+		auto handler = Handler->Lock(timeout);
+		if (!handler)
+			throw Php::Exception("No async handler locked");
+		return Php::Object((SPA_CS_NS + PHP_ASYNC_HANDLER).c_str(), new CPhpHandler(Handler, handler.get(), true));
 	}
 
 	int CPhpSocketPool::__compare(const CPhpSocketPool &pool) const {
@@ -179,10 +111,7 @@ namespace PA {
 
 	Php::Value CPhpSocketPool::__get(const Php::Value &name) {
 		int key = 0;
-		if (!Handler) {
-			throw Php::Exception(NOT_INITIALIZED);
-		}
-		else if (name == "Handlers" || name == "AsyncHandlers") {
+		if (name == "Handlers" || name == "AsyncHandlers") {
 			Php::Array harray;
 			switch (m_nSvsId) {
 			case SPA::Mysql::sidMysql:
@@ -328,11 +257,9 @@ namespace PA {
 		return Php::Base::__get(name);
 	}
 
+	/*
 	void CPhpSocketPool::__set(const Php::Value &name, const Php::Value &value) {
-		if (!Handler) {
-			throw Php::Exception(NOT_INITIALIZED);
-		}
-		else if (name == "QueueName") {
+		if (name == "QueueName") {
 			Handler->SetQueueName(value.stringValue().c_str());
 		}
 		else if (name == KEY_AUTO_MERGE || name == "QueueAutoMerge") {
@@ -351,6 +278,7 @@ namespace PA {
 			Php::Base::__set(name, value);
 		}
 	}
+	*/
 
 	void CPhpSocketPool::RegisterInto(Php::Namespace &cs) {
 		Php::Class<CPhpSocketPool> pool(PHP_SOCKET_POOL);
@@ -361,9 +289,6 @@ namespace PA {
 			Php::ByVal("timeout", Php::Type::Numeric, false)
 		});
 		pool.method("Seek", &CPhpSocketPool::Seek);
-		pool.method("SeekByQueue", &CPhpSocketPool::SeekByQueue, {
-			Php::ByVal("qName", Php::Type::String, false)
-		});
 		cs.add(std::move(pool));
 	}
 }

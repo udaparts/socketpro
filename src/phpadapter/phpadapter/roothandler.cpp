@@ -3,13 +3,12 @@
 
 namespace PA {
 
-	CPhpHandler::CPhpHandler(CPhpPool *pool, SPA::ClientSide::CAsyncServiceHandler *pHandler, bool locked) : CPhpBaseHandler<CPhpHandler>(locked, pHandler), m_pPool(pool), m_pHandler(pHandler) {
+	CPhpHandler::CPhpHandler(CPhpPool *pool, SPA::ClientSide::CAsyncServiceHandler *pHandler, bool locked) 
+		: CPhpBaseHandler<CPhpHandler>(locked, pHandler, pool->GetPoolId()),
+		m_pPool(pool), m_pHandler(pHandler) {
 	}
 
 	CPhpHandler::~CPhpHandler() {
-		if (IsLocked() && m_pHandler && m_pPool) {
-			m_pPool->Unlock(m_pHandler->GetAttachedClientSocket());
-		}
 	}
 
 	int CPhpHandler::__compare(const CPhpHandler &h) const {

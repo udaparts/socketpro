@@ -3,12 +3,24 @@
 
 namespace PA {
 
-	CPhpBuffer::CPhpBuffer(SPA::CUQueue *buffer) : m_pBuffer(buffer), m_bExternal(buffer ? true : false){
+	CPhpBuffer::CPhpBuffer() : m_pBuffer(nullptr) {
 	}
 
 	CPhpBuffer::~CPhpBuffer() {
-		if (!m_bExternal) {
-			SPA::CScopeUQueue::Unlock(m_pBuffer);
+		SPA::CScopeUQueue::Unlock(m_pBuffer);
+	}
+
+	void CPhpBuffer::Swap(CPhpBuffer *qPhp) {
+		if (qPhp && qPhp->m_pBuffer) {
+			EnsureBuffer();
+			qPhp->m_pBuffer->Swap(*m_pBuffer);
+		}
+	}
+
+	void CPhpBuffer::Swap(SPA::CUQueue *q) {
+		if (q) {
+			EnsureBuffer();
+			q->Swap(*m_pBuffer);
 		}
 	}
 

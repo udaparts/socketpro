@@ -180,7 +180,7 @@ namespace PA {
 		if (!ok && !m_errMsg.size()) {
 			auto cs = PhpHandler->GetSockets()[0];
 			m_errCode = cs->GetErrorCode();
-			m_errMsg = cs->GetErrorMsg();
+			m_errMsg = "No connection to anyone of remote servers";
 		}
 		return m_errMsg;
 	}

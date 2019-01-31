@@ -3,13 +3,12 @@
 
 namespace PA {
 
-	CPhpQueue::CPhpQueue(CPhpQueuePool *pool, CAsyncQueue *aq, bool locked) : CPhpBaseHandler<CPhpQueue>(locked, aq), m_queuePool(pool), m_aq(aq) {
+	CPhpQueue::CPhpQueue(CPhpQueuePool *pool, CAsyncQueue *aq, bool locked) 
+		: CPhpBaseHandler<CPhpQueue>(locked, aq, pool->GetPoolId()),
+		m_queuePool(pool), m_aq(aq) {
 	}
 
 	CPhpQueue::~CPhpQueue() {
-		if (IsLocked() && m_aq && m_queuePool) {
-			m_queuePool->Unlock(m_aq->GetAttachedClientSocket());
-		}
 	}
 
 	int CPhpQueue::__compare(const CPhpQueue &q) const {

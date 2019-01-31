@@ -3,13 +3,12 @@
 
 namespace PA {
 
-	CPhpDb::CPhpDb(CPhpDbPool *pool, CDBHandler *db, bool locked) : CPhpBaseHandler<CPhpDb>(locked, db), m_dbPool(pool), m_db(db) {
+	CPhpDb::CPhpDb(CPhpDbPool *pool, CDBHandler *db, bool locked) 
+		: CPhpBaseHandler<CPhpDb>(locked, db, pool->GetPoolId()),
+		m_dbPool(pool), m_db(db) {
 	}
 
 	CPhpDb::~CPhpDb() {
-		if (IsLocked() && m_db && m_dbPool) {
-			m_dbPool->Unlock(m_db->GetAttachedClientSocket());
-		}
 	}
 
 	int CPhpDb::__compare(const CPhpDb &db) const {
