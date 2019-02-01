@@ -6,10 +6,6 @@ namespace PA {
 		static void RegisterInto(Php::Namespace &cs);
 	};
 
-	struct enumSocketPoolEvent : public Php::Base {
-		static void RegisterInto(Php::Namespace &cs);
-	};
-
 	void RegisterSpaClientConstsInto(Php::Namespace &cs);
 
 } //namespace PA
