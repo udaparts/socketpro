@@ -166,7 +166,6 @@
     <ClInclude Include="basehandler.h" />
     <ClInclude Include="phpbuffer.h" />
     <ClInclude Include="phpcert.h" />
-    <ClInclude Include="phpconncontext.h" />
     <ClInclude Include="phpdb.h" />
     <ClInclude Include="phpfile.h" />
     <ClInclude Include="phpmanager.h" />
@@ -201,7 +200,6 @@
     <ClCompile Include="phpadapter.cpp" />
     <ClCompile Include="phpbuffer.cpp" />
     <ClCompile Include="phpcert.cpp" />
-    <ClCompile Include="phpconncontext.cpp" />
     <ClCompile Include="phpdb.cpp" />
     <ClCompile Include="phpfile.cpp" />
     <ClCompile Include="phpmanager.cpp" />

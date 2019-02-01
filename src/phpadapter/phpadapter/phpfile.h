@@ -7,12 +7,11 @@ namespace PA {
 	typedef SPA::ClientSide::CStreamingFile CAsyncFile;
 	typedef SPA::ClientSide::CSocketPool<CAsyncFile> CPhpFilePool;
 
-	class CPhpFile : public CPhpBaseHandler<CPhpFile>, public Php::Base
+	class CPhpFile : public CPhpBaseHandler<CPhpFile>
 	{
 	public:
 		CPhpFile(CPhpFilePool *pool, CAsyncFile *sh, bool locked);
 		CPhpFile(const CPhpFile &file) = delete;
-		~CPhpFile();
 
 	public:
 		CPhpFile& operator=(const CPhpFile &file) = delete;

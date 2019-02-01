@@ -8,9 +8,6 @@ namespace PA {
 		m_queuePool(pool), m_aq(aq) {
 	}
 
-	CPhpQueue::~CPhpQueue() {
-	}
-
 	int CPhpQueue::__compare(const CPhpQueue &q) const {
 		if (!m_aq || !q.m_aq) {
 			return 1;

@@ -9,12 +9,11 @@ namespace PA {
 	typedef SPA::ClientSide::CSocketPool<CDBHandler> CPhpDbPool;
 	typedef SPA::CSQLMasterPool<false, CDBHandler> CSQLMaster;
 
-	class CPhpDb : public CPhpBaseHandler<CPhpDb>, public Php::Base
+	class CPhpDb : public CPhpBaseHandler<CPhpDb>
 	{
 	public:
 		CPhpDb(CPhpDbPool *pool, CDBHandler *db, bool locked);
 		CPhpDb(const CPhpDb &db) = delete;
-		~CPhpDb();
 
 	public:
 		CPhpDb& operator=(const CPhpDb &db) = delete;

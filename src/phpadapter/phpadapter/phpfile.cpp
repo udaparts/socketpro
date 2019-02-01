@@ -8,9 +8,6 @@ namespace PA {
 		m_filePool(pool), m_sh(sh) {
 	}
 
-	CPhpFile::~CPhpFile() {
-	}
-
 	int CPhpFile::__compare(const CPhpFile &f) const {
 		if (!m_sh || !f.m_sh) {
 			return 1;

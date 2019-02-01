@@ -1,7 +1,5 @@
 #include "stdafx.h"
-#include "poolstartcontext.h"
 #include "phpmanager.h"
-#include "phpsocket.h"
 #include "phpsocketpool.h"
 
 namespace PA {

@@ -1,5 +1,6 @@
 
 #include "phpbuffer.h"
+#include "phpsocket.h"
 
 #ifndef PHP_SPA_CLIENT_BASE_HANDLER_H
 #define PHP_SPA_CLIENT_BASE_HANDLER_H
@@ -7,7 +8,7 @@
 namespace PA {
 	
 	template <typename T>
-	class CPhpBaseHandler
+	class CPhpBaseHandler : public Php::Base
 	{
 	protected:
 		CPhpBaseHandler(bool locked, SPA::ClientSide::CAsyncServiceHandler *h, unsigned int poolId) : m_locked(locked), m_h(h), m_PoolId(poolId){
@@ -206,7 +207,7 @@ namespace PA {
 			return m_h->AbortBatching();
 		}
 
-		Php::Value BaseGet(const Php::Value &name) {
+		Php::Value __get(const Php::Value &name) {
 			if (name == "Socket" || name == "ClientSocket" || name == "AttachedClientSocket") {
 				return Php::Object((SPA_CS_NS + PHP_SOCKET).c_str(), new CPhpSocket(m_h->GetAttachedClientSocket()));
 			}
@@ -228,7 +229,7 @@ namespace PA {
 			else if (name == "DequeuedMessageAborted") {
 				return m_h->IsDequeuedMessageAborted();
 			}
-			return nullptr;
+			return Php::Base::__get(name);
 		}
 
 	private:

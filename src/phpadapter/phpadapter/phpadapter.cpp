@@ -1,14 +1,11 @@
 #include "stdafx.h"
 #include "spa_consts.h"
 #include "spa_cs_consts.h"
-#include "phpbuffer.h"
-#include "phpconncontext.h"
 #include "roothandler.h"
 #include "phpfile.h"
 #include "phpdb.h"
 #include "phpqueue.h"
 #include "phpcert.h"
-#include "phpsocket.h"
 #include "phpsocketpool.h"
 #include "phpmanager.h"
 
@@ -32,7 +29,6 @@ extern "C" {
 		PA::RegisterSpaClientConstsInto(ClientSide);
 		PA::CPhpCert::RegisterInto(ClientSide);
 		PA::CPhpSocket::RegisterInto(ClientSide);
-		PA::CPhpConnContext::RegisterInto(ClientSide);
 		PA::CPhpSocketPool::RegisterInto(ClientSide);
 		PA::CPhpHandler::RegisterInto(ClientSide);
 		PA::CPhpFile::RegisterInto(ClientSide);

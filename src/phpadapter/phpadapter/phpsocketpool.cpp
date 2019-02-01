@@ -1,7 +1,5 @@
 #include "stdafx.h"
 #include "phpsocketpool.h"
-#include "phpsocket.h"
-#include "phpconncontext.h"
 
 namespace PA {
 	CPhpSocketPool::CPhpSocketPool(const CPoolStartContext &psc)

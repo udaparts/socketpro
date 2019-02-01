@@ -8,9 +8,6 @@ namespace PA {
 		m_dbPool(pool), m_db(db) {
 	}
 
-	CPhpDb::~CPhpDb() {
-	}
-
 	int CPhpDb::__compare(const CPhpDb &db) const {
 		if (!m_db || !db.m_db) {
 			return 1;

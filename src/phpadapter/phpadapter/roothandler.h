@@ -8,12 +8,11 @@ namespace PA {
 typedef SPA::ClientSide::CSocketPool<CAsyncHandler> CPhpPool;
 typedef SPA::CMasterPool<false, CAsyncHandler> CMasterPool;
 
-class CPhpHandler : public CPhpBaseHandler<CPhpHandler>, public Php::Base
+class CPhpHandler : public CPhpBaseHandler<CPhpHandler>
 {
 public:
 	CPhpHandler(CPhpPool *pool, SPA::ClientSide::CAsyncServiceHandler *pHandler, bool locked);
 	CPhpHandler(const CPhpHandler &rh) = delete;
-	~CPhpHandler();
 
 public:
 	CPhpHandler& operator=(const CPhpHandler &rh) = delete;

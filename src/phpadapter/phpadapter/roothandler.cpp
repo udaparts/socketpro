@@ -8,9 +8,6 @@ namespace PA {
 		m_pPool(pool), m_pHandler(pHandler) {
 	}
 
-	CPhpHandler::~CPhpHandler() {
-	}
-
 	int CPhpHandler::__compare(const CPhpHandler &h) const {
 		if (!m_pHandler || !h.m_pHandler) {
 			return 1;

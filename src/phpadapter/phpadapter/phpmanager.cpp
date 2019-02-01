@@ -1,6 +1,5 @@
 #include "stdafx.h"
 #include "phpmanager.h"
-#include "phpconncontext.h"
 
 namespace PA {
 	CPhpManager CPhpManager::Manager(nullptr);

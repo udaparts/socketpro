@@ -8,12 +8,11 @@ namespace PA {
 	typedef SPA::ClientSide::CAsyncQueue CAsyncQueue;
 	typedef SPA::ClientSide::CSocketPool<CAsyncQueue> CPhpQueuePool;
 
-	class CPhpQueue : public CPhpBaseHandler<CPhpQueue>, public Php::Base
+	class CPhpQueue : public CPhpBaseHandler<CPhpQueue>
 	{
 	public:
 		CPhpQueue(CPhpQueuePool *pool, CAsyncQueue *aq, bool locked);
 		CPhpQueue(const CPhpQueue &q) = delete;
-		~CPhpQueue();
 
 	public:
 		CPhpQueue& operator=(const CPhpQueue &q) = delete;
