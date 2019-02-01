@@ -18,12 +18,14 @@ namespace PA {
 		static Php::Value Parse();
 		static CPhpManager Manager;
 		static void RegisterInto(Php::Namespace &cs);
-		void __construct(Php::Parameters &params);
 		Php::Value __get(const Php::Value &name);
-		Php::Value GetPool(Php::Parameters &params);
 		CConnectionContext FindByKey(const std::string &key);
+		std::string GetErrorMsg();
 
 	private:
+		void SetErrorMsg(const std::string &em);
+		Php::Value GetPool(Php::Parameters &params);
+		void __construct(Php::Parameters &params);
 		void CheckError();
 		void Clean();
 		Php::Value GetConfig();
@@ -45,6 +47,7 @@ namespace PA {
 		std::string m_errMsg;
 		std::string m_jsonConfig;
 		std::vector<std::string> m_vKeyAllowed;
+		friend class CPoolStartContext;
 	};
 
 }

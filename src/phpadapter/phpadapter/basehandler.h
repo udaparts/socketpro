@@ -25,7 +25,7 @@ namespace PA {
 			h.method(PHP_CONSTRUCT, &T::__construct, Php::Private);
 			h.method(PHP_SENDREQUEST, &T::SendRequest, {
 				Php::ByVal(PHP_SENDREQUEST_REQID, Php::Type::Numeric),
-				Php::ByVal(PHP_SENDREQUEST_BUFF, PHP_BUFFER, true, false),
+				Php::ByVal(PHP_SENDREQUEST_BUFF, (SPA_NS + PHP_BUFFER).c_str(), true, false),
 				Php::ByVal(PHP_SENDREQUEST_RH, Php::Type::Null, false), //sync boolean, timeout value or callback for returning result
 				Php::ByVal(PHP_SENDREQUEST_CH, Php::Type::Callable, false),
 				Php::ByVal(PHP_SENDREQUEST_EX, Php::Type::Callable, false)
@@ -45,7 +45,7 @@ namespace PA {
 			return m_locked;
 		}
 
-		virtual Php::Value Unlock() {
+		Php::Value Unlock() {
 			if (m_locked) {
 				SPA::ClientSide::ClientCoreLoader.UnlockASocket(m_PoolId, m_h->GetAttachedClientSocket()->GetHandle());
 				m_locked = false;
@@ -53,7 +53,7 @@ namespace PA {
 			return true;
 		}
 
-		virtual Php::Value SendRequest(Php::Parameters &params) {
+		Php::Value SendRequest(Php::Parameters &params) {
 			int64_t id = params[0].numericValue();
 			if (id <= SPA::sidReserved || id > 0xffff) {
 				throw Php::Exception("Bad request id");
@@ -183,12 +183,10 @@ namespace PA {
 			}
 			return m_h->SendRequest(reqId, pBuffer, bytes, rh, discarded, se) ? rrsOk : rrsClosed;
 		}
-		virtual void __construct(Php::Parameters &params) {
+		void __construct(Php::Parameters &params) {
 		}
 
-		virtual int __compare(const T &h) const = 0;
-
-		virtual Php::Value WaitAll(Php::Parameters &params) {
+		Php::Value WaitAll(Php::Parameters &params) {
 			unsigned int timeout = (~0);
 			if (params.size()) {
 				timeout = (unsigned int)params[0].numericValue();
@@ -196,15 +194,15 @@ namespace PA {
 			return m_h->WaitAll();
 		}
 
-		virtual Php::Value StartBatching() {
+		Php::Value StartBatching() {
 			return m_h->StartBatching();
 		}
 
-		virtual Php::Value CommitBatching() {
+		Php::Value CommitBatching() {
 			return m_h->CommitBatching();
 		}
 
-		virtual Php::Value AbortBatching() {
+		Php::Value AbortBatching() {
 			return m_h->AbortBatching();
 		}
 

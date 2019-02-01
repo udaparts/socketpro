@@ -49,6 +49,7 @@ namespace PA {
 		rrsOk = 1,
 	};
 
+	extern const int64_t PHP_ADAPTER_SECRET;
 	extern const char *PHP_BUFFER;
 	extern const char *PHP_CONN_CONTEXT;
 	extern const char *PHP_FILE_HANDLER;

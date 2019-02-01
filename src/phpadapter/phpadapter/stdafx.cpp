@@ -3,6 +3,9 @@
 #include "phpmanager.h"
 
 namespace PA {
+
+	const int64_t PHP_ADAPTER_SECRET = 0xf234567890ab;
+
 	const char *PHP_BUFFER = "CUQueue";
 	const char *PHP_CONN_CONTEXT = "CConnectionContext";
 	const char *PHP_FILE_HANDLER = "CAsyncFile";
@@ -268,18 +271,27 @@ namespace PA {
 	}
 
 	Php::Value GetSpPool(Php::Parameters &params) {
-		Php::Value manager = GetManager();
-		return manager.call("GetPool", params[0]);
+		Php::Value manager = CPhpManager::Parse();
+		return manager.call("GetPool", params[0], PHP_ADAPTER_SECRET);
 	}
 
 	Php::Value GetSpHandler(Php::Parameters &params) {
 		Php::Value pool = GetSpPool(params);
+		if (pool.type() == Php::Type::Null) {
+			throw Php::Exception(CPhpManager::Manager.GetErrorMsg());
+		}
 		return pool.call("Seek");
 	}
 
 	Php::Value LockSpHandler(Php::Parameters &params) {
 		Php::Value pool = GetSpPool(params);
+		if (pool.type() == Php::Type::Null) {
+			throw Php::Exception(CPhpManager::Manager.GetErrorMsg());
+		}
 		if (params.size() > 1) {
+			if (!params[1].isNumeric()) {
+				throw Php::Exception("An integer number expected");
+			}
 			return pool.call("Lock", params[1]);
 		}
 		return pool.call("Lock", -1); //default to infinite time

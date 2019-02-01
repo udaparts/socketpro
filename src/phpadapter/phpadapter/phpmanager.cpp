@@ -332,6 +332,7 @@ namespace PA {
 	}
 
 	Php::Value CPhpManager::GetPool(Php::Parameters &params) {
+		size_t args = params.size();
 		std::string key = params[0];
 		SPA::CAutoLock al(m_cs);
 		for (auto &p : m_pManager->Pools) {
@@ -347,14 +348,20 @@ namespace PA {
 				}
 			}
 		}
-		throw Php::Exception(("Pool not found by a key " + key).c_str());
+		m_errMsg = "Pool not found by a key " + key;
+		if (args > 1 && params[1].isNumeric() && params[1].numericValue() == PA::PHP_ADAPTER_SECRET) {
+			Manager.m_errMsg = m_errMsg;
+			return nullptr;
+		}
+		throw Php::Exception(m_errMsg);
 	}
 
 	void CPhpManager::RegisterInto(Php::Namespace &cs) {
 		Php::Class<CPhpManager> manager(PHP_MANAGER);
 		manager.method(PHP_CONSTRUCT, &CPhpManager::__construct, Php::Private);
 		manager.method("GetPool", &CPhpManager::GetPool, {
-			Php::ByVal("key", Php::Type::String)
+			Php::ByVal("key", Php::Type::String),
+			Php::ByVal("secret", Php::Type::Numeric, false)
 		});
 		cs.add(manager);
 	}
@@ -593,6 +600,15 @@ namespace PA {
 			Manager.SetSettings();
 		}
 		return Php::Object((SPA_CS_NS + PHP_MANAGER).c_str(), new CPhpManager(&Manager));
+	}
+
+	void CPhpManager::SetErrorMsg(const std::string &em) {
+		m_errMsg = em;
+	}
+
+	std::string CPhpManager::GetErrorMsg() {
+		SPA::CAutoLock al(m_cs);
+		return m_errMsg;
 	}
 
 	void CPhpManager::SetSettings() {

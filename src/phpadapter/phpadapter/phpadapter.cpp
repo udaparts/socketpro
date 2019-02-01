@@ -49,6 +49,9 @@ extern "C" {
 		extSpaPhp.add("SeekSpHandler", PA::GetSpHandler, {
 			Php::ByVal("key", Php::Type::String)
 		});
+		extSpaPhp.add("GetSpHandler", PA::GetSpHandler, {
+			Php::ByVal("key", Php::Type::String)
+		});
 		extSpaPhp.add("LockSpHandler", PA::LockSpHandler, {
 			Php::ByVal("key", Php::Type::String),
 			Php::ByVal("timeout", Php::Type::Numeric, false)

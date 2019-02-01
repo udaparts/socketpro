@@ -80,9 +80,6 @@ namespace PA {
 			if (Queue.size()) {
 				PhpDb->SetQueueName(Queue.c_str());
 			}
-			if (!AutoMerge) {
-				PhpDb->SetQueueAutoMerge(false);
-			}
 			PhpDb->DoSslServerAuthentication = [this](CPhpDbPool *pool, CClientSocket * cs)->bool {
 				return this->DoSSLAuth(cs);
 			};
@@ -97,9 +94,6 @@ namespace PA {
 			if (Queue.size()) {
 				PhpQueue->SetQueueName(Queue.c_str());
 			}
-			if (!AutoMerge) {
-				PhpQueue->SetQueueAutoMerge(false);
-			}
 			break;
 		case SPA::sidFile:
 			PhpFile = new CPhpFilePool(AutoConn, RecvTimeout, ConnTimeout, SvsId);
@@ -108,9 +102,6 @@ namespace PA {
 			};
 			if (Queue.size()) {
 				PhpFile->SetQueueName(Queue.c_str());
-			}
-			if (!AutoMerge) {
-				PhpFile->SetQueueAutoMerge(false);
 			}
 			break;
 		default:
@@ -138,9 +129,6 @@ namespace PA {
 			if (Queue.size()) {
 				PhpHandler->SetQueueName(Queue.c_str());
 			}
-			if (!AutoMerge) {
-				PhpHandler->SetQueueAutoMerge(false);
-			}
 			break;
 		}
 
@@ -166,15 +154,27 @@ namespace PA {
 		case SPA::Odbc::sidOdbc:
 		case SPA::Sqlite::sidSqlite:
 			ok = PhpDb->StartSocketPool(ppCCs, threads, socketsPerThread);
+			if (!AutoMerge) {
+				PhpDb->SetQueueAutoMerge(false);
+			}
 			break;
 		case SPA::Queue::sidQueue:
 			ok = PhpQueue->StartSocketPool(ppCCs, threads, socketsPerThread);
+			if (!AutoMerge) {
+				PhpQueue->SetQueueAutoMerge(false);
+			}
 			break;
 		case SPA::SFile::sidFile:
 			ok = PhpFile->StartSocketPool(ppCCs, threads, socketsPerThread);
+			if (!AutoMerge) {
+				PhpFile->SetQueueAutoMerge(false);
+			}
 			break;
 		default:
 			ok = PhpHandler->StartSocketPool(ppCCs, threads, socketsPerThread);
+			if (!AutoMerge) {
+				PhpHandler->SetQueueAutoMerge(false);
+			}
 			break;
 		}
 		if (!ok && !m_errMsg.size()) {
@@ -189,8 +189,14 @@ namespace PA {
 		if (!PhpHandler) {
 			std::string errMsg = StartPool();
 			if (errMsg.size()) {
-				throw Php::Exception(errMsg.c_str());
+				CPhpManager::Manager.SetErrorMsg(errMsg);
+				throw Php::Exception(errMsg);
 			}
+		}
+		else if (!Queue.size() && PhpHandler->GetConnectedSockets() == 0) {
+			std::string errMsg = "No connection to anyone of remote servers";
+			CPhpManager::Manager.SetErrorMsg(errMsg);
+			throw Php::Exception(errMsg);
 		}
 		return Php::Object((SPA_CS_NS + PHP_SOCKET_POOL).c_str(), new CPhpSocketPool(*this));
 	}
