@@ -7,7 +7,7 @@ namespace PA {
 	typedef SPA::ClientSide::CStreamingFile CAsyncFile;
 	typedef SPA::ClientSide::CSocketPool<CAsyncFile> CPhpFilePool;
 
-	class CPhpFile : public CPhpBaseHandler<CPhpFile>
+	class CPhpFile : public CPhpBaseHandler
 	{
 	public:
 		CPhpFile(CPhpFilePool *pool, CAsyncFile *sh, bool locked);

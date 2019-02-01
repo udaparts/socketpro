@@ -84,6 +84,7 @@ namespace PA {
 	Php::Value GetSpPool(Php::Parameters &params);
 	Php::Value GetSpHandler(Php::Parameters &params);
 	Php::Value LockSpHandler(Php::Parameters &params);
+	Php::Value SpBuff(Php::Parameters &params);
 
 	typedef SPA::ClientSide::CCachedBaseHandler<0> CAsyncHandler;
 	typedef SPA::ClientSide::CClientSocket CClientSocket;

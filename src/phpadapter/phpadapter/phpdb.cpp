@@ -4,7 +4,7 @@
 namespace PA {
 
 	CPhpDb::CPhpDb(CPhpDbPool *pool, CDBHandler *db, bool locked) 
-		: CPhpBaseHandler<CPhpDb>(locked, db, pool->GetPoolId()),
+		: CPhpBaseHandler(locked, db, pool->GetPoolId()),
 		m_dbPool(pool), m_db(db) {
 	}
 
@@ -17,7 +17,7 @@ namespace PA {
 
 	void CPhpDb::RegisterInto(Php::Namespace &cs) {
 		Php::Class<CPhpDb> handler(PHP_DB_HANDLER);
-		CPhpBaseHandler<CPhpDb>::RegInto(handler, cs);
+		Register(handler);
 		cs.add(handler);
 	}
 } //namespace PA

@@ -297,4 +297,8 @@ namespace PA {
 		return pool.call("Lock", -1); //default to infinite time
 	}
 
+	Php::Value SpBuff(Php::Parameters &params) {
+		return Php::Object((SPA_NS + PHP_BUFFER).c_str(), new CPhpBuffer);
+	}
+
 } //namespace PA

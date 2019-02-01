@@ -9,7 +9,7 @@ namespace PA {
 	typedef SPA::ClientSide::CSocketPool<CDBHandler> CPhpDbPool;
 	typedef SPA::CSQLMasterPool<false, CDBHandler> CSQLMaster;
 
-	class CPhpDb : public CPhpBaseHandler<CPhpDb>
+	class CPhpDb : public CPhpBaseHandler
 	{
 	public:
 		CPhpDb(CPhpDbPool *pool, CDBHandler *db, bool locked);

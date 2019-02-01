@@ -37,14 +37,14 @@ namespace PA {
 		}
 		unsigned int maxLen = SPA::DEFAULT_INITIAL_MEMORY_BUFFER_SIZE;
 		unsigned int blockSize = SPA::DEFAULT_MEMORY_BUFFER_BLOCK_SIZE;
-		if (params.size()) {
+		if (params.size() && params[0].isNumeric()) {
 			auto len = params[0].numericValue();
 			if (len < 0) {
 				throw Php::Exception("Bad buffer size");
 			}
 			maxLen = (unsigned int)len;
 		}
-		if (params.size() > 1) {
+		if (params.size() > 1 && params[1].isNumeric()) {
 			auto len = params[1].numericValue();
 			if (len < 0) {
 				throw Php::Exception("Bad buffer block size");

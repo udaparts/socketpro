@@ -183,6 +183,7 @@
     <ClCompile Include="..\..\..\include\aclientw.cpp" />
     <ClCompile Include="..\..\..\include\membuffer.cpp" />
     <ClCompile Include="..\..\..\include\tablecache.cpp" />
+    <ClCompile Include="basehandler.cpp" />
     <ClCompile Include="dllmain.cpp">
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</CompileAsManaged>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">

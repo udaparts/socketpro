@@ -4,7 +4,7 @@
 namespace PA {
 
 	CPhpQueue::CPhpQueue(CPhpQueuePool *pool, CAsyncQueue *aq, bool locked) 
-		: CPhpBaseHandler<CPhpQueue>(locked, aq, pool->GetPoolId()),
+		: CPhpBaseHandler(locked, aq, pool->GetPoolId()),
 		m_queuePool(pool), m_aq(aq) {
 	}
 
@@ -17,7 +17,7 @@ namespace PA {
 
 	void CPhpQueue::RegisterInto(Php::Namespace &cs) {
 		Php::Class<CPhpQueue> handler(PHP_QUEUE_HANDLER);
-		CPhpBaseHandler<CPhpQueue>::RegInto(handler, cs);
+		Register(handler);
 		cs.add(handler);
 	}
 }

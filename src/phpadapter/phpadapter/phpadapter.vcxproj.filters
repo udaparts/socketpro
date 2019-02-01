@@ -146,5 +146,8 @@
     <ClCompile Include="poolstartcontext.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="basehandler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

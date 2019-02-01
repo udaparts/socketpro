@@ -4,7 +4,7 @@
 namespace PA {
 
 	CPhpHandler::CPhpHandler(CPhpPool *pool, SPA::ClientSide::CAsyncServiceHandler *pHandler, bool locked) 
-		: CPhpBaseHandler<CPhpHandler>(locked, pHandler, pool->GetPoolId()),
+		: CPhpBaseHandler(locked, pHandler, pool->GetPoolId()),
 		m_pPool(pool), m_pHandler(pHandler) {
 	}
 
@@ -17,7 +17,7 @@ namespace PA {
 
 	void CPhpHandler::RegisterInto(Php::Namespace &cs) {
 		Php::Class<CPhpHandler> handler(PHP_ASYNC_HANDLER);
-		CPhpBaseHandler<CPhpHandler>::RegInto(handler, cs);
+		Register(handler);
 		cs.add(handler);
 	}
 

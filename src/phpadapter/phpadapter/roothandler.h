@@ -8,7 +8,7 @@ namespace PA {
 typedef SPA::ClientSide::CSocketPool<CAsyncHandler> CPhpPool;
 typedef SPA::CMasterPool<false, CAsyncHandler> CMasterPool;
 
-class CPhpHandler : public CPhpBaseHandler<CPhpHandler>
+class CPhpHandler : public CPhpBaseHandler
 {
 public:
 	CPhpHandler(CPhpPool *pool, SPA::ClientSide::CAsyncServiceHandler *pHandler, bool locked);

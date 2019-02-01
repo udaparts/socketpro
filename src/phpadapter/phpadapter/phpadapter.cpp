@@ -52,6 +52,7 @@ extern "C" {
 			Php::ByVal("key", Php::Type::String),
 			Php::ByVal("timeout", Php::Type::Numeric, false)
 		});
+		extSpaPhp.add("SpBuffer", PA::SpBuff);
 		// return the extension
 		return extSpaPhp.module();
 	}
