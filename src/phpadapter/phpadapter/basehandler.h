@@ -20,6 +20,7 @@ namespace PA {
 			return m_locked;
 		}
 		Php::Value __get(const Php::Value &name);
+		int __compare(const CPhpBaseHandler &pbh) const;
 
 	protected:
 		template <typename T>

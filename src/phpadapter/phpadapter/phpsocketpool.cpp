@@ -22,7 +22,7 @@ namespace PA {
 			auto handler = m_qName.size() ? Db->SeekByQueue() : Db->Seek();
 			if (!handler)
 				throw Php::Exception("Database handler not found");
-			Php::Object obj((SPA_CS_NS + PHP_DB_HANDLER).c_str(), new CPhpDb(Db, handler.get(), false));
+			Php::Object obj((SPA_CS_NS + PHP_DB_HANDLER).c_str(), new CPhpDb(Db->GetPoolId(), handler.get(), false));
 			return obj;
 		}
 		break;
@@ -31,7 +31,7 @@ namespace PA {
 			auto handler = m_qName.size() ? Queue->SeekByQueue() : Queue->Seek();
 			if (!handler)
 				throw Php::Exception("Persistent message queue handler not found");
-			Php::Object obj((SPA_CS_NS + PHP_QUEUE_HANDLER).c_str(), new CPhpQueue(Queue, handler.get(), false));
+			Php::Object obj((SPA_CS_NS + PHP_QUEUE_HANDLER).c_str(), new CPhpQueue(Queue->GetPoolId(), handler.get(), false));
 			return obj;
 		}
 		break;
@@ -40,7 +40,7 @@ namespace PA {
 			auto handler = m_qName.size() ? File->SeekByQueue() : File->Seek();
 			if (!handler)
 				throw Php::Exception("File handler not found");
-			Php::Object obj((SPA_CS_NS + PHP_FILE_HANDLER).c_str(), new CPhpFile(File, handler.get(), false));
+			Php::Object obj((SPA_CS_NS + PHP_FILE_HANDLER).c_str(), new CPhpFile(File->GetPoolId(), handler.get(), false));
 			return obj;
 		}
 		break;
@@ -50,7 +50,7 @@ namespace PA {
 		auto handler = m_qName.size() ? Handler->SeekByQueue() : Handler->Seek();
 		if (!handler)
 			throw Php::Exception("Async handler not found");
-		return Php::Object((SPA_CS_NS + PHP_ASYNC_HANDLER).c_str(), new CPhpHandler(Handler, handler.get(), false));
+		return Php::Object((SPA_CS_NS + PHP_ASYNC_HANDLER).c_str(), new CPhpHandler(Handler->GetPoolId(), handler.get(), false));
 	}
 
 	Php::Value CPhpSocketPool::Lock(Php::Parameters &params) {
@@ -69,7 +69,7 @@ namespace PA {
 			auto handler = Db->Lock(timeout);
 			if (!handler)
 				throw Php::Exception("No database handler locked");
-			Php::Object obj((SPA_CS_NS + PHP_DB_HANDLER).c_str(), new CPhpDb(Db, handler.get(), true));
+			Php::Object obj((SPA_CS_NS + PHP_DB_HANDLER).c_str(), new CPhpDb(Db->GetPoolId(), handler.get(), true));
 			return obj;
 		}
 		break;
@@ -78,7 +78,7 @@ namespace PA {
 			auto handler = Queue->Lock(timeout);
 			if (!handler)
 				throw Php::Exception("No persistent message queue handler locked");
-			Php::Object obj((SPA_CS_NS + PHP_QUEUE_HANDLER).c_str(), new CPhpQueue(Queue, handler.get(), true));
+			Php::Object obj((SPA_CS_NS + PHP_QUEUE_HANDLER).c_str(), new CPhpQueue(Queue->GetPoolId(), handler.get(), true));
 			return obj;
 		}
 		break;
@@ -87,7 +87,7 @@ namespace PA {
 			auto handler = File->Lock(timeout);
 			if (!handler)
 				throw Php::Exception("No file handler locked");
-			Php::Object obj((SPA_CS_NS + PHP_FILE_HANDLER).c_str(), new CPhpFile(File, handler.get(), true));
+			Php::Object obj((SPA_CS_NS + PHP_FILE_HANDLER).c_str(), new CPhpFile(File->GetPoolId(), handler.get(), true));
 			return obj;
 		}
 		break;
@@ -97,7 +97,7 @@ namespace PA {
 		auto handler = Handler->Lock(timeout);
 		if (!handler)
 			throw Php::Exception("No async handler locked");
-		return Php::Object((SPA_CS_NS + PHP_ASYNC_HANDLER).c_str(), new CPhpHandler(Handler, handler.get(), true));
+		return Php::Object((SPA_CS_NS + PHP_ASYNC_HANDLER).c_str(), new CPhpHandler(Handler->GetPoolId(), handler.get(), true));
 	}
 
 	int CPhpSocketPool::__compare(const CPhpSocketPool &pool) const {
@@ -119,7 +119,7 @@ namespace PA {
 				auto vH = Db->GetAsyncHandlers();
 				for (auto it = vH.cbegin(), end = vH.cend(); it != end; ++it, ++key) {
 					CDBHandler *db = (*it).get();
-					Php::Object objDb((SPA_CS_NS + PHP_DB_HANDLER).c_str(), new CPhpDb(Db, db, false));
+					Php::Object objDb((SPA_CS_NS + PHP_DB_HANDLER).c_str(), new CPhpDb(Db->GetPoolId(), db, false));
 					harray.set(key, objDb);
 				}
 			}
@@ -129,7 +129,7 @@ namespace PA {
 				auto vH = Queue->GetAsyncHandlers();
 				for (auto it = vH.cbegin(), end = vH.cend(); it != end; ++it, ++key) {
 					CAsyncQueue *aq = (*it).get();
-					Php::Object objQueue((SPA_CS_NS + PHP_QUEUE_HANDLER).c_str(), new CPhpQueue(Queue, aq, false));
+					Php::Object objQueue((SPA_CS_NS + PHP_QUEUE_HANDLER).c_str(), new CPhpQueue(Queue->GetPoolId(), aq, false));
 					harray.set(key, objQueue);
 				}
 			}
@@ -139,7 +139,7 @@ namespace PA {
 				auto vH = File->GetAsyncHandlers();
 				for (auto it = vH.cbegin(), end = vH.cend(); it != end; ++it, ++key) {
 					CAsyncFile *af = (*it).get();
-					Php::Object objFile((SPA_CS_NS + PHP_FILE_HANDLER).c_str(), new CPhpFile(File, af, false));
+					Php::Object objFile((SPA_CS_NS + PHP_FILE_HANDLER).c_str(), new CPhpFile(File->GetPoolId(), af, false));
 					harray.set(key, objFile);
 				}
 			}
@@ -149,7 +149,7 @@ namespace PA {
 				auto vH = Handler->GetAsyncHandlers();
 				for (auto it = vH.cbegin(), end = vH.cend(); it != end; ++it, ++key) {
 					CAsyncHandler *ah = (*it).get();
-					Php::Object objHandler((SPA_CS_NS + PHP_ASYNC_HANDLER).c_str(), new CPhpHandler(Handler, ah, false));
+					Php::Object objHandler((SPA_CS_NS + PHP_ASYNC_HANDLER).c_str(), new CPhpHandler(Handler->GetPoolId(), ah, false));
 					harray.set(key, objHandler);
 				}
 			}

@@ -179,6 +179,13 @@ namespace PA {
 		return m_h->AbortBatching();
 	}
 
+	int CPhpBaseHandler::__compare(const CPhpBaseHandler &pbh) const {
+		if (!m_h || !pbh.m_h) {
+			return 1;
+		}
+		return (m_h == pbh.m_h) ? 0 : 1;
+	}
+
 	Php::Value CPhpBaseHandler::__get(const Php::Value &name) {
 		if (name == "Socket" || name == "ClientSocket" || name == "AttachedClientSocket") {
 			return Php::Object((SPA_CS_NS + PHP_SOCKET).c_str(), new CPhpSocket(m_h->GetAttachedClientSocket()));

@@ -10,16 +10,15 @@ namespace PA {
 	class CPhpFile : public CPhpBaseHandler
 	{
 	public:
-		CPhpFile(CPhpFilePool *pool, CAsyncFile *sh, bool locked);
+		CPhpFile(unsigned int poolId, CAsyncFile *sh, bool locked);
 		CPhpFile(const CPhpFile &file) = delete;
 
 	public:
 		CPhpFile& operator=(const CPhpFile &file) = delete;
 		static void RegisterInto(Php::Namespace &cs);
-		int __compare(const CPhpFile &f) const;
+		Php::Value __get(const Php::Value &name);
 
 	private:
-		CPhpFilePool *m_filePool;
 		CAsyncFile *m_sh;
 	};
 } //namespace PA

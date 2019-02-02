@@ -11,16 +11,14 @@ namespace PA {
 	class CPhpQueue : public CPhpBaseHandler
 	{
 	public:
-		CPhpQueue(CPhpQueuePool *pool, CAsyncQueue *aq, bool locked);
+		CPhpQueue(unsigned int poolId, CAsyncQueue *aq, bool locked);
 		CPhpQueue(const CPhpQueue &q) = delete;
 
 	public:
 		CPhpQueue& operator=(const CPhpQueue &q) = delete;
 		static void RegisterInto(Php::Namespace &cs);
-		int __compare(const CPhpQueue &q) const;
 
 	private:
-		CPhpQueuePool *m_queuePool;
 		CAsyncQueue *m_aq;
 	};
 

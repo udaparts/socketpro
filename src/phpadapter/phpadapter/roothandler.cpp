@@ -3,16 +3,8 @@
 
 namespace PA {
 
-	CPhpHandler::CPhpHandler(CPhpPool *pool, SPA::ClientSide::CAsyncServiceHandler *pHandler, bool locked) 
-		: CPhpBaseHandler(locked, pHandler, pool->GetPoolId()),
-		m_pPool(pool), m_pHandler(pHandler) {
-	}
-
-	int CPhpHandler::__compare(const CPhpHandler &h) const {
-		if (!m_pHandler || !h.m_pHandler) {
-			return 1;
-		}
-		return (m_pHandler == h.m_pHandler) ? 0 : 1;
+	CPhpHandler::CPhpHandler(unsigned int poolId, CAsyncHandler *pHandler, bool locked)
+		: CPhpBaseHandler(locked, pHandler, poolId), m_pHandler(pHandler) {
 	}
 
 	void CPhpHandler::RegisterInto(Php::Namespace &cs) {

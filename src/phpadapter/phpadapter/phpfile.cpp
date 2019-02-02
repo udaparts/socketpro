@@ -3,22 +3,26 @@
 
 namespace PA {
 
-	CPhpFile::CPhpFile(CPhpFilePool *pool, CAsyncFile *sh, bool locked) 
-		: CPhpBaseHandler(locked, sh, pool->GetPoolId()),
-		m_filePool(pool), m_sh(sh) {
-	}
-
-	int CPhpFile::__compare(const CPhpFile &f) const {
-		if (!m_sh || !f.m_sh) {
-			return 1;
-		}
-		return (m_sh == f.m_sh) ? 0 : 1;
+	CPhpFile::CPhpFile(unsigned int poolId, CAsyncFile *sh, bool locked)
+		: CPhpBaseHandler(locked, sh, poolId), m_sh(sh) {
 	}
 
 	void CPhpFile::RegisterInto(Php::Namespace &cs) {
 		Php::Class<CPhpFile> handler(PHP_FILE_HANDLER);
 		Register(handler);
 		cs.add(handler);
+	}
+
+	Php::Value CPhpFile::__get(const Php::Value &name) {
+		if (name == "FileSize") {
+			return (int64_t)m_sh->GetFileSize();
+		}
+		else if (name == "FilesQueued") {
+			return (int64_t)m_sh->GetFilesQueued();
+		}
+		else {
+			return CPhpBaseHandler::__get(name);
+		}
 	}
 
 } //namespace PA

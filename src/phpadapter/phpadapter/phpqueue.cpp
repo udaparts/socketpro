@@ -3,16 +3,8 @@
 
 namespace PA {
 
-	CPhpQueue::CPhpQueue(CPhpQueuePool *pool, CAsyncQueue *aq, bool locked) 
-		: CPhpBaseHandler(locked, aq, pool->GetPoolId()),
-		m_queuePool(pool), m_aq(aq) {
-	}
-
-	int CPhpQueue::__compare(const CPhpQueue &q) const {
-		if (!m_aq || !q.m_aq) {
-			return 1;
-		}
-		return (m_aq == q.m_aq) ? 0 : 1;
+	CPhpQueue::CPhpQueue(unsigned int poolId, CAsyncQueue *aq, bool locked)
+		: CPhpBaseHandler(locked, aq, poolId), m_aq(aq) {
 	}
 
 	void CPhpQueue::RegisterInto(Php::Namespace &cs) {

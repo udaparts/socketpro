@@ -12,16 +12,14 @@ namespace PA {
 	class CPhpDb : public CPhpBaseHandler
 	{
 	public:
-		CPhpDb(CPhpDbPool *pool, CDBHandler *db, bool locked);
+		CPhpDb(unsigned int poolId, CDBHandler *db, bool locked);
 		CPhpDb(const CPhpDb &db) = delete;
 
 	public:
 		CPhpDb& operator=(const CPhpDb &db) = delete;
 		static void RegisterInto(Php::Namespace &cs);
-		int __compare(const CPhpDb &db) const;
 
 	private:
-		CPhpDbPool *m_dbPool;
 		CDBHandler *m_db;
 	};
 

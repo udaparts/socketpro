@@ -11,17 +11,15 @@ typedef SPA::CMasterPool<false, CAsyncHandler> CMasterPool;
 class CPhpHandler : public CPhpBaseHandler
 {
 public:
-	CPhpHandler(CPhpPool *pool, SPA::ClientSide::CAsyncServiceHandler *pHandler, bool locked);
+	CPhpHandler(unsigned int poolId, CAsyncHandler *pHandler, bool locked);
 	CPhpHandler(const CPhpHandler &rh) = delete;
 
 public:
 	CPhpHandler& operator=(const CPhpHandler &rh) = delete;
 	static void RegisterInto(Php::Namespace &cs);
-	int __compare(const CPhpHandler &h) const;
 
 private:
-	CPhpPool *m_pPool;
-	SPA::ClientSide::CAsyncServiceHandler *m_pHandler;
+	CAsyncHandler *m_pHandler;
 };
 
 } //namespace PA

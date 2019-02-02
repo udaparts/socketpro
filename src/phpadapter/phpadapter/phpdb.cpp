@@ -3,16 +3,8 @@
 
 namespace PA {
 
-	CPhpDb::CPhpDb(CPhpDbPool *pool, CDBHandler *db, bool locked) 
-		: CPhpBaseHandler(locked, db, pool->GetPoolId()),
-		m_dbPool(pool), m_db(db) {
-	}
-
-	int CPhpDb::__compare(const CPhpDb &db) const {
-		if (!m_db || !db.m_db) {
-			return 1;
-		}
-		return (m_db == db.m_db) ? 0 : 1;
+	CPhpDb::CPhpDb(unsigned int poolId, CDBHandler *db, bool locked)
+		: CPhpBaseHandler(locked, db, poolId), m_db(db) {
 	}
 
 	void CPhpDb::RegisterInto(Php::Namespace &cs) {
