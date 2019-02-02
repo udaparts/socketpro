@@ -19,6 +19,10 @@ namespace PA {
 		Php::Value __get(const Php::Value &name);
 
 	private:
+		Php::Value Download(Php::Parameters &params);
+		Php::Value Upload(Php::Parameters &params);
+
+	private:
 		CAsyncFile *m_sh;
 	};
 } //namespace PA

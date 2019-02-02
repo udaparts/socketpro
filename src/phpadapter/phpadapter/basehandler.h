@@ -16,9 +16,6 @@ namespace PA {
 	
 	public:
 		CPhpBaseHandler& operator=(const CPhpBaseHandler& h) = delete;
-		inline bool IsLocked() { 
-			return m_locked;
-		}
 		Php::Value __get(const Php::Value &name);
 		int __compare(const CPhpBaseHandler &pbh) const;
 

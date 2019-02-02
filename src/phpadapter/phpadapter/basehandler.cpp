@@ -7,9 +7,7 @@ namespace PA {
 	}
 
 	CPhpBaseHandler::~CPhpBaseHandler() {
-		if (m_locked) {
-			SPA::ClientSide::ClientCoreLoader.UnlockASocket(m_PoolId, m_h->GetAttachedClientSocket()->GetHandle());
-		}
+		Unlock();
 	}
 
 	Php::Value CPhpBaseHandler::Unlock() {
@@ -26,37 +24,30 @@ namespace PA {
 			throw Php::Exception("Bad request id");
 		}
 		unsigned short reqId = (unsigned short)id;
-		SPA::ClientSide::ResultHandler rh;
-		SPA::ClientSide::CAsyncServiceHandler::DDiscarded discarded;
-		SPA::ClientSide::CAsyncServiceHandler::DServerException se;
-		Php::Value phpRh, phpCanceled, phpEx;
-
+		
 		std::shared_ptr<CPhpBuffer> buffer;
 		unsigned int timeout = m_h->GetAttachedClientSocket()->GetRecvTimeout();
 		bool sync = false;
-		size_t args = params.size();
-		if (args > 2) {
-			phpRh = params[2];
-			if (phpRh.isNumeric()) {
-				sync = true;
-				unsigned int t = (unsigned int)phpRh.numericValue();
-				if (t < timeout) {
-					timeout = t;
-				}
-			}
-			else if (phpRh.isBool()) {
-				sync = phpRh.boolValue();
-			}
-			else if (phpRh.isNull()) {
-			}
-			else if (!phpRh.isCallable()) {
-				throw Php::Exception("A callback required for returning result");
-			}
-			if (sync) {
-				buffer.reset(new CPhpBuffer);
+		Php::Value phpRh = params[2];
+		if (phpRh.isNumeric()) {
+			sync = true;
+			unsigned int t = (unsigned int)phpRh.numericValue();
+			if (t < timeout) {
+				timeout = t;
 			}
 		}
-		rh = [phpRh, sync, buffer, this](SPA::ClientSide::CAsyncResult & ar) {
+		else if (phpRh.isBool()) {
+			sync = phpRh.boolValue();
+		}
+		else if (phpRh.isNull()) {
+		}
+		else if (!phpRh.isCallable()) {
+			throw Php::Exception("A callback required for returning result");
+		}
+		if (sync) {
+			buffer.reset(new CPhpBuffer);
+		}
+		SPA::ClientSide::ResultHandler rh = [phpRh, sync, buffer, this](SPA::ClientSide::CAsyncResult & ar) {
 			SPA::ClientSide::PAsyncServiceHandler ash = ar.AsyncServiceHandler;
 			if (sync) {
 				std::unique_lock<std::mutex> lk(this->m_h->m_mPhp);
@@ -73,25 +64,8 @@ namespace PA {
 				ar.UQueue.SetSize(0);
 			}
 		};
-		if (args > 4) {
-			phpEx = params[4];
-			if (phpEx.isNull()) {
-			}
-			else if (!phpEx.isCallable()) {
-				throw Php::Exception("A callback required for server exception");
-			}
-		}
-		tagRequestReturnStatus rrs = rrsOk;
-		se = [phpEx, sync, &rrs, this](SPA::ClientSide::CAsyncServiceHandler *ash, unsigned short reqId, const wchar_t *errMsg, const char *errWhere, unsigned int errCode) {
-			if (phpEx.isCallable()) {
-				phpEx(SPA::Utilities::ToUTF8(errMsg).c_str(), (int64_t)errCode, errWhere, reqId);
-			}
-			if (sync) {
-				std::unique_lock<std::mutex> lk(this->m_h->m_mPhp);
-				rrs = rrsServerException;
-				this->m_h->m_cvPhp.notify_all();
-			}
-		};
+		size_t args = params.size();
+		Php::Value phpCanceled;
 		if (args > 3) {
 			phpCanceled = params[3];
 			if (phpCanceled.isNull()) {
@@ -100,7 +74,8 @@ namespace PA {
 				throw Php::Exception("A callback required for request aborting event");
 			}
 		}
-		discarded = [phpCanceled, reqId, sync, this, &rrs](SPA::ClientSide::CAsyncServiceHandler *ash, bool canceled) {
+		tagRequestReturnStatus rrs = rrsOk;
+		SPA::ClientSide::CAsyncServiceHandler::DDiscarded discarded = [phpCanceled, reqId, sync, this, &rrs](SPA::ClientSide::CAsyncServiceHandler *ash, bool canceled) {
 			if (phpCanceled.isCallable()) {
 				phpCanceled(canceled, reqId);
 			}
@@ -110,29 +85,42 @@ namespace PA {
 				this->m_h->m_cvPhp.notify_all();
 			}
 		};
+		Php::Value phpEx;
+		if (args > 4) {
+			phpEx = params[4];
+			if (phpEx.isNull()) {
+			}
+			else if (!phpEx.isCallable()) {
+				throw Php::Exception("A callback required for server exception");
+			}
+		}
+		SPA::ClientSide::CAsyncServiceHandler::DServerException se = [phpEx, sync, &rrs, this](SPA::ClientSide::CAsyncServiceHandler *ash, unsigned short reqId, const wchar_t *errMsg, const char *errWhere, unsigned int errCode) {
+			if (phpEx.isCallable()) {
+				phpEx(SPA::Utilities::ToUTF8(errMsg).c_str(), (int64_t)errCode, errWhere, reqId);
+			}
+			if (sync) {
+				std::unique_lock<std::mutex> lk(this->m_h->m_mPhp);
+				rrs = rrsServerException;
+				this->m_h->m_cvPhp.notify_all();
+			}
+		};
 		unsigned int bytes = 0;
 		const unsigned char *pBuffer = nullptr;
 		Php::Value v;
-		if (args > 1) {
-			Php::Value &q = params[1];
-			if (q.instanceOf((SPA_NS + PHP_BUFFER).c_str())) {
-				v = q.call("PopBytes");
-				pBuffer = (const unsigned char*)v.rawValue();
-				bytes = (unsigned int)v.length();
-			}
-			else if (!q.isNull()) {
-				throw Php::Exception("An instance of CUQueue or null required for request sending data");
-			}
+		Php::Value &q = params[1];
+		if (q.instanceOf((SPA_NS + PHP_BUFFER).c_str())) {
+			v = q.call("PopBytes");
+			pBuffer = (const unsigned char*)v.rawValue();
+			bytes = (unsigned int)v.length();
+		}
+		else if (!q.isNull()) {
+			throw Php::Exception("An instance of CUQueue or null required for request sending data");
 		}
 		if (sync) {
 			if (!m_h->SendRequest(reqId, pBuffer, bytes, rh, discarded, se)) {
 				throw Php::Exception(PHP_SOCKET_CLOSED);
 			}
-			if (m_locked) {
-				//auto unlock
-				SPA::ClientSide::ClientCoreLoader.UnlockASocket(m_PoolId, m_h->GetAttachedClientSocket()->GetHandle());
-				m_locked = false;
-			}
+			Unlock();
 			std::unique_lock<std::mutex> lk(m_h->m_mPhp);
 			auto status = m_h->m_cvPhp.wait_for(lk, std::chrono::milliseconds(timeout));
 			if (status == std::cv_status::timeout) {
