@@ -284,7 +284,7 @@ namespace PA {
 		pool.property("DEFAULT_CONN_TIMEOUT", (int64_t)SPA::ClientSide::DEFAULT_CONN_TIMEOUT, Php::Const);
 		pool.method(PHP_CONSTRUCT, &CPhpSocketPool::__construct, Php::Private);
 		pool.method("Lock", &CPhpSocketPool::Lock, {
-			Php::ByVal("timeout", Php::Type::Numeric, false)
+			Php::ByVal(PHP_TIMEOUT, Php::Type::Numeric, false)
 		});
 		pool.method("Seek", &CPhpSocketPool::Seek);
 		cs.add(std::move(pool));

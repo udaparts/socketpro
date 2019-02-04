@@ -945,7 +945,7 @@ namespace PA {
 		buffer.method("Empty", &CPhpBuffer::Empty);
 		buffer.method("CleanTrack", &CPhpBuffer::CleanTrack);
 		buffer.method("Discard", &CPhpBuffer::Discard, {
-			Php::ByVal("len", Php::Type::Numeric)
+			Php::ByVal(PHP_LEN, Php::Type::Numeric)
 		});
 		buffer.method("SaveDate", &CPhpBuffer::SaveDate, {
 			Php::ByVal("dt", "DateTime", false, true)
@@ -1013,27 +1013,27 @@ namespace PA {
 		buffer.method("LoadDecimal", &CPhpBuffer::LoadDecimal);
 		buffer.method("PushBytes", &CPhpBuffer::PushBytes, {
 			Php::ByVal("bytes", Php::Type::String), //ASCII string
-			Php::ByVal("len", Php::Type::Numeric, false),
+			Php::ByVal(PHP_LEN, Php::Type::Numeric, false),
 			Php::ByVal("offset", Php::Type::Numeric, false)
 		});
 		buffer.method("PopBytes", &CPhpBuffer::PopBytes, {
-			Php::ByVal("len", Php::Type::Numeric, false)
+			Php::ByVal(PHP_LEN, Php::Type::Numeric, false)
 		});
 		buffer.method("SaveUUID", &CPhpBuffer::SaveUUID, {
 			Php::ByVal("uuid", Php::Type::String) //ASCII string
 		});
 		buffer.method("LoadUUID", &CPhpBuffer::LoadUUID);
 		buffer.method("SaveObject", &CPhpBuffer::SaveObject, {
-			Php::ByVal("obj", Php::Type::Null, true),
+			Php::ByVal(PHP_OBJ, Php::Type::Null, true),
 			Php::ByVal("hint", Php::Type::String, false)
 		});
 		buffer.method("LoadObject", &CPhpBuffer::LoadObject);
 		buffer.method("Save", &CPhpBuffer::Save, {
-			Php::ByVal("obj", Php::Type::Object),
+			Php::ByVal(PHP_OBJ, Php::Type::Object),
 			Php::ByVal("func", Php::Type::Callable)
 		});
 		buffer.method("Load", &CPhpBuffer::Load, {
-			Php::ByVal("obj", Php::Type::Object),
+			Php::ByVal(PHP_OBJ, Php::Type::Object),
 			Php::ByVal("func", Php::Type::Callable)
 		});
 
@@ -1042,7 +1042,7 @@ namespace PA {
 
 	Php::Value CPhpBuffer::__get(const Php::Value &name) {
 		EnsureBuffer();
-		if (name == "Size") {
+		if (name == PHP_SIZE) {
 			return (int64_t)(m_pBuffer->GetSize());
 		}
 		else if (name == "HeadPosition") {
@@ -1066,14 +1066,14 @@ namespace PA {
 	void CPhpBuffer::__set(const Php::Value &name, const Php::Value &value) {
 		if (!m_pBuffer) {
 			auto size = value.numericValue();
-			if (name == "Size" && size > 0) {
+			if (name == PHP_SIZE && size > 0) {
 				m_pBuffer = SPA::CScopeUQueue::Lock(SPA::GetOS(), SPA::IsBigEndian(), (unsigned int)size);
 			}
 			else {
 				m_pBuffer = SPA::CScopeUQueue::Lock();
 			}
 		}
-		if (name == "Size") {
+		if (name == PHP_SIZE) {
 			auto size = value.numericValue();
 			if (size < 0) {
 				size = 0;

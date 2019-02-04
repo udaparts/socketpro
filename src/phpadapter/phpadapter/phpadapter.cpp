@@ -40,20 +40,19 @@ extern "C" {
 		extSpaPhp.add(SPA);
 		extSpaPhp.add("GetSpManager", PA::GetManager);
 		extSpaPhp.add("GetSpPool", PA::GetSpPool, {
-			Php::ByVal("key", Php::Type::String)
+			Php::ByVal(PA::PHP_KEY, Php::Type::String)
 		});
 		extSpaPhp.add("SeekSpHandler", PA::GetSpHandler, {
-			Php::ByVal("key", Php::Type::String)
+			Php::ByVal(PA::PHP_KEY, Php::Type::String)
 		});
 		extSpaPhp.add("GetSpHandler", PA::GetSpHandler, {
-			Php::ByVal("key", Php::Type::String)
+			Php::ByVal(PA::PHP_KEY, Php::Type::String)
 		});
 		extSpaPhp.add("LockSpHandler", PA::LockSpHandler, {
-			Php::ByVal("key", Php::Type::String),
-			Php::ByVal("timeout", Php::Type::Numeric, false)
+			Php::ByVal(PA::PHP_KEY, Php::Type::String),
+			Php::ByVal(PA::PHP_TIMEOUT, Php::Type::Numeric, false)
 		});
 		extSpaPhp.add("SpBuffer", PA::SpBuff);
-		// return the extension
 		return extSpaPhp.module();
 	}
 }

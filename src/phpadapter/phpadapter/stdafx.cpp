@@ -17,6 +17,11 @@ namespace PA {
 	const char *PHP_SOCKET = "CClientSocket";
 	const char *PHP_CONSTRUCT = "__construct";
 	const char *PHP_MANAGER = "CManager";
+	const char *PHP_KEY = "key";
+	const char *PHP_TIMEOUT = "timeout";
+	const char *PHP_LEN = "len";
+	const char *PHP_OBJ = "obj";
+	const char *PHP_SIZE = "Size";
 
 	//SendRequest
 	const char *PHP_SENDREQUEST = "SendRequest";

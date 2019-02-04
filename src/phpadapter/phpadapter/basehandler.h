@@ -29,7 +29,7 @@ namespace PA {
 				Php::ByVal(PHP_SENDREQUEST_SYNC, Php::Type::Null)
 			});
 			h.method("WaitAll", &T::WaitAll, {
-				Php::ByVal("timeout", Php::Type::Numeric, false)
+				Php::ByVal(PHP_TIMEOUT, Php::Type::Numeric, false)
 			});
 			h.method("StartBatching", &T::StartBatching);
 			h.method("AbortBatching", &T::AbortBatching);
