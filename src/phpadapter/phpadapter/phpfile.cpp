@@ -120,11 +120,13 @@ namespace PA {
 			}
 		}
 		if (sync) {
+			std::unique_lock<std::mutex> lk(m_sh->m_mPhp);
 			if (!m_sh->Download(localFile.c_str(), remoteFile.c_str(), Dl, Progress, discarded, flags)) {
+				Unlock();
 				throw Php::Exception(PHP_SOCKET_CLOSED);
 			}
 			Unlock();
-			std::unique_lock<std::mutex> lk(m_sh->m_mPhp);
+			
 			auto status = m_sh->m_cvPhp.wait_for(lk, std::chrono::milliseconds(timeout));
 			if (status == std::cv_status::timeout) {
 				rrs = rrsTimeout;
@@ -243,11 +245,12 @@ namespace PA {
 			}
 		}
 		if (sync) {
+			std::unique_lock<std::mutex> lk(m_sh->m_mPhp);
 			if (!m_sh->Upload(localFile.c_str(), remoteFile.c_str(), Ul, Progress, discarded, flags)) {
+				Unlock();
 				throw Php::Exception(PHP_SOCKET_CLOSED);
 			}
 			Unlock();
-			std::unique_lock<std::mutex> lk(m_sh->m_mPhp);
 			auto status = m_sh->m_cvPhp.wait_for(lk, std::chrono::milliseconds(timeout));
 			if (status == std::cv_status::timeout) {
 				rrs = rrsTimeout;

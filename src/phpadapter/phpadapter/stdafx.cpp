@@ -22,7 +22,7 @@ namespace PA {
 	const char *PHP_SENDREQUEST = "SendRequest";
 	const char *PHP_SENDREQUEST_REQID = "reqId";
 	const char *PHP_SENDREQUEST_BUFF = "buff";
-	const char *PHP_SENDREQUEST_RH = "rh";
+	const char *PHP_SENDREQUEST_SYNC = "sync";
 	const char *PHP_SENDREQUEST_CH = "ch";
 	const char *PHP_SENDREQUEST_EX = "ex";
 

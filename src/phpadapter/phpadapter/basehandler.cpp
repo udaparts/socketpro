@@ -117,11 +117,12 @@ namespace PA {
 			throw Php::Exception("An instance of CUQueue or null required for request sending data");
 		}
 		if (sync) {
+			std::unique_lock<std::mutex> lk(m_h->m_mPhp);
 			if (!m_h->SendRequest(reqId, pBuffer, bytes, rh, discarded, se)) {
+				Unlock();
 				throw Php::Exception(PHP_SOCKET_CLOSED);
 			}
 			Unlock();
-			std::unique_lock<std::mutex> lk(m_h->m_mPhp);
 			auto status = m_h->m_cvPhp.wait_for(lk, std::chrono::milliseconds(timeout));
 			if (status == std::cv_status::timeout) {
 				rrs = rrsTimeout;

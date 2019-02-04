@@ -21,9 +21,19 @@ namespace PA {
 
 	private:
 		Php::Value CloseQueue(Php::Parameters &params);
+		Php::Value GetKeys(Php::Parameters &params);
+		Php::Value StartQueueTrans(Php::Parameters &params);
+		Php::Value EndQueueTrans(Php::Parameters &params);
+		Php::Value FlushQueue(Php::Parameters &params);
+		Php::Value Dequeue(Php::Parameters &params);
+		Php::Value Enqueue(Php::Parameters &params);
+		void BatchMessage(Php::Parameters &params);
+		Php::Value EnqueueBatch(Php::Parameters &params);
 
 	private:
 		CAsyncQueue *m_aq;
+		std::shared_ptr<CPhpBuffer> m_pBuff;
+		static const char *PHP_QUEUE_KEY;
 	};
 
 } //namespace PA

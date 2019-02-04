@@ -26,7 +26,7 @@ namespace PA {
 			h.method(PHP_SENDREQUEST, &T::SendRequest, {
 				Php::ByVal(PHP_SENDREQUEST_REQID, Php::Type::Numeric),
 				Php::ByVal(PHP_SENDREQUEST_BUFF, Php::Type::Null),
-				Php::ByVal(PHP_SENDREQUEST_RH, Php::Type::Null)
+				Php::ByVal(PHP_SENDREQUEST_SYNC, Php::Type::Null)
 			});
 			h.method("WaitAll", &T::WaitAll, {
 				Php::ByVal("timeout", Php::Type::Numeric, false)

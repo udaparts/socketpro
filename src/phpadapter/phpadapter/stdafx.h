@@ -66,7 +66,7 @@ namespace PA {
 	extern const char *PHP_SENDREQUEST;
 	extern const char *PHP_SENDREQUEST_REQID;
 	extern const char *PHP_SENDREQUEST_BUFF;
-	extern const char *PHP_SENDREQUEST_RH;
+	extern const char *PHP_SENDREQUEST_SYNC;
 	extern const char *PHP_SENDREQUEST_CH;
 	extern const char *PHP_SENDREQUEST_EX;
 
