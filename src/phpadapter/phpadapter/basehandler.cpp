@@ -25,7 +25,6 @@ namespace PA {
 		}
 		unsigned short reqId = (unsigned short)id;
 		
-		std::shared_ptr<CPhpBuffer> buffer;
 		unsigned int timeout = m_h->GetAttachedClientSocket()->GetRecvTimeout();
 		bool sync = false;
 		Php::Value phpRh = params[2];
@@ -44,6 +43,7 @@ namespace PA {
 		else if (!phpRh.isCallable()) {
 			throw Php::Exception("A callback required for returning result");
 		}
+		std::shared_ptr<CPhpBuffer> buffer;
 		if (sync) {
 			buffer.reset(new CPhpBuffer);
 		}

@@ -26,21 +26,19 @@ namespace PA {
 	Php::Value CPhpFile::Download(Php::Parameters &params) {
 		std::string local = params[0].stringValue();
 		Trim(local);
-		if (local.size()) {
+		if (!local.size()) {
 			throw Php::Exception("Local file path can not be empty");
 		}
 		std::string remote = params[1].stringValue();
 		Trim(remote);
-		if (remote.size()) {
+		if (!remote.size()) {
 			throw Php::Exception("remote file path can not be empty");
 		}
 		std::wstring localFile = SPA::Utilities::ToWide(local.c_str(), local.size());
 		std::wstring remoteFile = SPA::Utilities::ToWide(remote.c_str(), remote.size());
-		
-		std::shared_ptr<Php::Value> pV;
+	
 		unsigned int timeout = (~0);
 		bool sync = false;
-		size_t args = params.size();
 		Php::Value phpDl = params[2];
 		if (phpDl.isNumeric()) {
 			sync = true;
@@ -57,6 +55,7 @@ namespace PA {
 		else if (!phpDl.isCallable()) {
 			throw Php::Exception("A callback required for download final result");
 		}
+		std::shared_ptr<Php::Value> pV;
 		if (sync) {
 			pV.reset(new Php::Value);
 		}
@@ -75,6 +74,7 @@ namespace PA {
 		};
 
 		Php::Value phpProgress;
+		size_t args = params.size();
 		if (args > 3) {
 			phpProgress = params[3];
 			if (phpProgress.isNull()) {
@@ -149,21 +149,19 @@ namespace PA {
 	Php::Value CPhpFile::Upload(Php::Parameters &params) {
 		std::string local = params[0].stringValue();
 		Trim(local);
-		if (local.size()) {
+		if (!local.size()) {
 			throw Php::Exception("Local file path can not be empty");
 		}
 		std::string remote = params[1].stringValue();
 		Trim(remote);
-		if (remote.size()) {
+		if (!remote.size()) {
 			throw Php::Exception("remote file path can not be empty");
 		}
 		std::wstring localFile = SPA::Utilities::ToWide(local.c_str(), local.size());
 		std::wstring remoteFile = SPA::Utilities::ToWide(remote.c_str(), remote.size());
 
-		std::shared_ptr<Php::Value> pV;
 		unsigned int timeout = (~0);
 		bool sync = false;
-		size_t args = params.size();
 		Php::Value phpUl = params[2];
 		if (phpUl.isNumeric()) {
 			sync = true;
@@ -180,6 +178,7 @@ namespace PA {
 		else if (!phpUl.isCallable()) {
 			throw Php::Exception("A callback required for upload final result");
 		}
+		std::shared_ptr<Php::Value> pV;
 		if (sync) {
 			pV.reset(new Php::Value);
 		}
@@ -198,6 +197,7 @@ namespace PA {
 		};
 
 		Php::Value phpProgress;
+		size_t args = params.size();
 		if (args > 3) {
 			phpProgress = params[3];
 			if (phpProgress.isNull()) {
@@ -218,7 +218,7 @@ namespace PA {
 			if (phpCanceled.isNull()) {
 			}
 			else if (!phpCanceled.isCallable()) {
-				throw Php::Exception("A callback required for up aborting event");
+				throw Php::Exception("A callback required for upload aborting event");
 			}
 		}
 		tagRequestReturnStatus rrs = rrsOk;

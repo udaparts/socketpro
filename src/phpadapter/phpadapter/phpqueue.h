@@ -17,6 +17,10 @@ namespace PA {
 	public:
 		CPhpQueue& operator=(const CPhpQueue &q) = delete;
 		static void RegisterInto(Php::Namespace &cs);
+		Php::Value __get(const Php::Value &name);
+
+	private:
+		Php::Value CloseQueue(Php::Parameters &params);
 
 	private:
 		CAsyncQueue *m_aq;

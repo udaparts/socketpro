@@ -154,6 +154,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\include\aclientw.h" />
+    <ClInclude Include="..\..\..\include\aqhandler.h" />
     <ClInclude Include="..\..\..\include\generalcache.h" />
     <ClInclude Include="..\..\..\include\masterpool.h" />
     <ClInclude Include="..\..\..\include\masterslavebase.h" />
