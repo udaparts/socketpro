@@ -22,7 +22,7 @@ namespace PA {
 	Php::Value CPhpQueue::CloseQueue(Php::Parameters &params) {
 		std::string key = params[0].stringValue();
 		Trim(key);
-		if (key.size()) {
+		if (!key.size()) {
 			throw Php::Exception("Message queue key cannot be empty");
 		}
 		unsigned int timeout = m_aq->GetAttachedClientSocket()->GetRecvTimeout();
@@ -116,7 +116,7 @@ namespace PA {
 		}
 		std::string key = params[0].stringValue();
 		Trim(key);
-		if (key.size()) {
+		if (!key.size()) {
 			throw Php::Exception("Message queue key cannot be empty");
 		}
 		unsigned int timeout = m_aq->GetAttachedClientSocket()->GetRecvTimeout();
@@ -205,7 +205,7 @@ namespace PA {
 	Php::Value CPhpQueue::Dequeue(Php::Parameters &params) {
 		std::string key = params[0].stringValue();
 		Trim(key);
-		if (key.size()) {
+		if (!key.size()) {
 			throw Php::Exception("Message queue key cannot be empty");
 		}
 		unsigned int timeout = m_aq->GetAttachedClientSocket()->GetRecvTimeout();
@@ -308,7 +308,7 @@ namespace PA {
 	Php::Value CPhpQueue::FlushQueue(Php::Parameters &params) {
 		std::string key = params[0].stringValue();
 		Trim(key);
-		if (key.size()) {
+		if (!key.size()) {
 			throw Php::Exception("Message queue key cannot be empty");
 		}
 		unsigned int timeout = m_aq->GetAttachedClientSocket()->GetRecvTimeout();
@@ -409,7 +409,7 @@ namespace PA {
 	Php::Value CPhpQueue::StartQueueTrans(Php::Parameters &params) {
 		std::string key = params[0].stringValue();
 		Trim(key);
-		if (key.size()) {
+		if (!key.size()) {
 			throw Php::Exception("Message queue key cannot be empty");
 		}
 		unsigned int timeout = m_aq->GetAttachedClientSocket()->GetRecvTimeout();
@@ -661,7 +661,7 @@ namespace PA {
 	Php::Value CPhpQueue::Enqueue(Php::Parameters &params) {
 		std::string key = params[0].stringValue();
 		Trim(key);
-		if (key.size()) {
+		if (!key.size()) {
 			throw Php::Exception("Message queue key cannot be empty");
 		}
 		int64_t idMsg = params[1].numericValue();
@@ -807,11 +807,11 @@ namespace PA {
 			Php::ByVal(PHP_SENDREQUEST_SYNC, Php::Type::Null)
 		});
 		handler.method("EndQueueTrans", &CPhpQueue::EndQueueTrans, {
-			Php::ByVal(PHP_QUEUE_KEY, Php::Type::Bool),
+			Php::ByVal("rollback", Php::Type::Bool),
 			Php::ByVal(PHP_SENDREQUEST_SYNC, Php::Type::Null)
 		});
 		handler.method("EndTrans", &CPhpQueue::EndQueueTrans, {
-			Php::ByVal(PHP_QUEUE_KEY, Php::Type::Bool),
+			Php::ByVal("rollback", Php::Type::Bool),
 			Php::ByVal(PHP_SENDREQUEST_SYNC, Php::Type::Null)
 		});
 		handler.method("FlushQueue", &CPhpQueue::FlushQueue, {
