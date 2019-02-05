@@ -64,12 +64,17 @@ namespace PA {
 				std::unique_lock<std::mutex> lk(this->m_sh->m_mPhp);
 				pV->set("ec", res);
 				std::string em = SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size());
+				Trim(em);
 				pV->set("em", em);
 				this->m_sh->m_cvPhp.notify_all();
 			}
 			else if (phpDl.isCallable()) {
 				std::string em = SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size());
-				phpDl(res, em);
+				Trim(em);
+				Php::Value v;
+				v.set("ec", res);
+				v.set("em", em);
+				phpDl(v);
 			}
 		};
 
@@ -189,12 +194,17 @@ namespace PA {
 				std::unique_lock<std::mutex> lk(this->m_sh->m_mPhp);
 				pV->set("ec", res);
 				std::string em = SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size());
+				Trim(em);
 				pV->set("em", em);
 				this->m_sh->m_cvPhp.notify_all();
 			}
 			else if (phpUl.isCallable()) {
 				std::string em = SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size());
-				phpUl(res, em);
+				Trim(em);
+				Php::Value v;
+				v.set("ec", res);
+				v.set("em", em);
+				phpUl(v);
 			}
 		};
 
