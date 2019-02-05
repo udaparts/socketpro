@@ -3,6 +3,12 @@
 
 namespace PA {
 	struct tagConnectionState : public Php::Base {
+		void __construct(Php::Parameters &params);
+		static void RegisterInto(Php::Namespace &cs);
+	};
+
+	struct CPoolType : public Php::Base {
+		void __construct(Php::Parameters &params);
 		static void RegisterInto(Php::Namespace &cs);
 	};
 

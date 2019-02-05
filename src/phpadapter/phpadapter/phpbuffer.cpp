@@ -665,16 +665,17 @@ namespace PA {
 	}
 
 	Php::Value CPhpBuffer::Save(Php::Parameters &params) {
-		Php::Value v(this);
+		if (!(params[0].isArray() || params[0].isObject())) {
+			throw Php::Exception("An array of data or an object for a complex structure required");
+		}
 		Php::Value callback = params[1];
-		callback(params[0], v);
-		return v;
+		callback(params[0], this);
+		return this;
 	}
 
 	Php::Value CPhpBuffer::Load(Php::Parameters &params) {
-		Php::Value v(this);
-		Php::Value callback = params[1];
-		return callback(params[0], v);
+		Php::Value callback = params[0];
+		return callback(this);
 	}
 
 	Php::Value CPhpBuffer::LoadObject() {
@@ -1029,11 +1030,10 @@ namespace PA {
 		});
 		buffer.method("LoadObject", &CPhpBuffer::LoadObject);
 		buffer.method("Save", &CPhpBuffer::Save, {
-			Php::ByVal(PHP_OBJ, Php::Type::Object),
+			Php::ByVal(PHP_OBJ, Php::Type::Null),
 			Php::ByVal("func", Php::Type::Callable)
 		});
 		buffer.method("Load", &CPhpBuffer::Load, {
-			Php::ByVal(PHP_OBJ, Php::Type::Object),
 			Php::ByVal("func", Php::Type::Callable)
 		});
 

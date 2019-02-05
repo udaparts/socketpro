@@ -3,16 +3,23 @@
 
 namespace PA {
 
+	void tagZipLevel::__construct(Php::Parameters &params) {
+	}
+
 	void tagZipLevel::RegisterInto(Php::Namespace &spa) {
 		Php::Class<tagZipLevel> reg("ZipLevel");
+		reg.method(PHP_CONSTRUCT, &tagZipLevel::__construct, Php::Private);
 		reg.property("zlDefault", SPA::zlDefault, Php::Const);
 		reg.property("zlBestSpeed", SPA::zlBestSpeed, Php::Const);
 		reg.property("zlBestCompression", SPA::zlBestCompression, Php::Const);
 		spa.add(reg);
 	}
 
+	void tagOperationSystem::__construct(Php::Parameters &params) {
+	}
 	void tagOperationSystem::RegisterInto(Php::Namespace &spa) {
 		Php::Class<tagOperationSystem> reg("OperationSystem");
+		reg.method(PHP_CONSTRUCT, &tagOperationSystem::__construct, Php::Private);
 		reg.property("osWin", SPA::osWin, Php::Const);
 		reg.property("osApple", SPA::osApple, Php::Const);
 		reg.property("osMac", SPA::osMac, Php::Const);
@@ -25,8 +32,11 @@ namespace PA {
 		spa.add(reg);
 	}
 
+	void tagBaseRequestID::__construct(Php::Parameters &params) {
+	}
 	void tagBaseRequestID::RegisterInto(Php::Namespace &spa) {
 		Php::Class<tagBaseRequestID> reg("BaseID");
+		reg.method(PHP_CONSTRUCT, &tagBaseRequestID::__construct, Php::Private);
 		reg.property("idUnknown", SPA::idUnknown, Php::Const);
 		reg.property("idSwitchTo", SPA::idSwitchTo, Php::Const);
 		reg.property("idRouteeChanged", SPA::idRouteeChanged, Php::Const);
@@ -60,8 +70,11 @@ namespace PA {
 		spa.add(reg);
 	}
 
+	void BaseServiceID::__construct(Php::Parameters &params) {
+	}
 	void BaseServiceID::RegisterInto(Php::Namespace &spa) {
 		Php::Class<BaseServiceID> reg("SID");
+		reg.method(PHP_CONSTRUCT, &BaseServiceID::__construct, Php::Private);
 		reg.property("sidReserved1", SPA::sidReserved1, Php::Const);
 		reg.property("sidStartup", SPA::sidStartup, Php::Const);
 		reg.property("sidChat", SPA::sidChat, Php::Const);
@@ -75,15 +88,21 @@ namespace PA {
 		spa.add(reg);
 	}
 
+	void tagEncryptionMethod::__construct(Php::Parameters &params) {
+	}
 	void tagEncryptionMethod::RegisterInto(Php::Namespace &spa) {
 		Php::Class<tagEncryptionMethod> reg("EM");
+		reg.method(PHP_CONSTRUCT, &tagEncryptionMethod::__construct, Php::Private);
 		reg.property("NoEncryption", SPA::NoEncryption, Php::Const);
 		reg.property("TLSv1", SPA::TLSv1, Php::Const);
 		spa.add(reg);
 	}
 
+	void tagQueueStatus::__construct(Php::Parameters &params) {
+	}
 	void tagQueueStatus::RegisterInto(Php::Namespace &spa) {
 		Php::Class<tagQueueStatus> reg("QueueStatus");
+		reg.method(PHP_CONSTRUCT, &tagQueueStatus::__construct, Php::Private);
 		reg.property("qsNormal", SPA::qsNormal, Php::Const);
 		reg.property("qsMergeComplete", SPA::qsMergeComplete, Php::Const);
 		reg.property("qsMergePushing", SPA::qsMergePushing, Php::Const);
@@ -96,8 +115,11 @@ namespace PA {
 		spa.add(reg);
 	}
 
+	void tagOptimistic::__construct(Php::Parameters &params) {
+	}
 	void tagOptimistic::RegisterInto(Php::Namespace &spa) {
 		Php::Class<tagOptimistic> reg("Optimistic");
+		reg.method(PHP_CONSTRUCT, &tagOptimistic::__construct, Php::Private);
 		reg.property("oMemoryCached", SPA::oMemoryCached, Php::Const);
 		reg.property("oSystemMemoryCached", SPA::oSystemMemoryCached, Php::Const);
 		reg.property("oDiskCommitted", SPA::oDiskCommitted, Php::Const);
