@@ -8,6 +8,7 @@
 #include "phpcert.h"
 #include "phpsocketpool.h"
 #include "phpmanager.h"
+#include "phpdbcolumninfo.h"
 
 extern "C" {
 	SPA_PHP_EXPORT void *get_module() {
@@ -35,6 +36,8 @@ extern "C" {
 		PA::CPhpDb::RegisterInto(ClientSide);
 		PA::CPhpQueue::RegisterInto(ClientSide);
 		PA::CPhpManager::RegisterInto(ClientSide);
+		PA::CPhpDBColumnInfo::RegisterInto(ClientSide);
+
 		ClientSide.add("GetManager", PA::GetManager);
 		SPA.add(ClientSide);
 		extSpaPhp.add(SPA);

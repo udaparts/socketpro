@@ -489,7 +489,9 @@ namespace PA {
 						if (ccMain.HasMember(KEY_QUEUE_NAME) && ccMain[KEY_QUEUE_NAME].IsString()) {
 							psc.Queue = ccMain[KEY_QUEUE_NAME].GetString();
 							Trim(psc.Queue);
+#ifdef WIN32_64
 							std::transform(psc.Queue.begin(), psc.Queue.end(), psc.Queue.begin(), ::tolower);
+#endif
 						}
 						if (ccMain.HasMember(KEY_DEFAULT_DB) && ccMain[KEY_DEFAULT_DB].IsString()) {
 							psc.DefaultDb = ccMain[KEY_DEFAULT_DB].GetString();

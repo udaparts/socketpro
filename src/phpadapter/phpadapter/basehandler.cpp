@@ -18,6 +18,10 @@ namespace PA {
 		return true;
 	}
 
+	Php::Value CPhpBaseHandler::CleanCallbacks(Php::Parameters &params) {
+		return (int64_t)m_h->CleanCallbacks();
+	}
+
 	Php::Value CPhpBaseHandler::SendRequest(Php::Parameters &params) {
 		int64_t id = params[0].numericValue();
 		if (id <= SPA::idReservedTwo || id > 0xffff) {

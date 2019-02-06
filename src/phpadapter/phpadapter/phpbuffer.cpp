@@ -80,6 +80,13 @@ namespace PA {
 		}
 	}
 
+	SPA::CUQueue* CPhpBuffer::GetBuffer() {
+		if (!m_pBuffer) {
+			m_pBuffer = SPA::CScopeUQueue::Lock();
+		}
+		return m_pBuffer;
+	}
+
 #define BufferLoadCatch catch(SPA::CUException&ex){auto msg=ex.what();throw Php::Exception(msg);}catch(std::exception &ex){auto msg=ex.what();throw Php::Exception(msg);}catch(...){throw Php::Exception("Unknown exception");}
 
 	Php::Value CPhpBuffer::SaveDate(Php::Parameters &params) {

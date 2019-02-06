@@ -57,9 +57,10 @@ namespace PA {
 		void __set(const Php::Value &name, const Php::Value &value);
 		void Swap(SPA::CUQueue *q);
 		void Swap(CPhpBuffer *qPhp);
+		void EnsureBuffer();
+		SPA::CUQueue* GetBuffer();
 
 	private:
-		void EnsureBuffer();
 		void SaveObject(const Php::Value &param, const std::string &id = "");
 		void SaveString(const Php::Value &param);
 		void SaveDecimal(const Php::Value &param);
@@ -71,7 +72,6 @@ namespace PA {
 		friend void ToVariant(const Php::Value &data, SPA::UDB::CDBVariant &vt, const std::string &id);
 		friend void ToVariant(const Php::Value &data, CComVariant &vt, const std::string &id);
 		friend SPA::ClientSide::CAsyncServiceHandler;
-		friend class CPhpQueue;
 	};
 
 } //namespace PA

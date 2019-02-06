@@ -9,9 +9,9 @@ namespace PA {
 	void tagZipLevel::RegisterInto(Php::Namespace &spa) {
 		Php::Class<tagZipLevel> reg("ZipLevel");
 		reg.method(PHP_CONSTRUCT, &tagZipLevel::__construct, Php::Private);
-		reg.property("zlDefault", SPA::zlDefault, Php::Const);
-		reg.property("zlBestSpeed", SPA::zlBestSpeed, Php::Const);
-		reg.property("zlBestCompression", SPA::zlBestCompression, Php::Const);
+		reg.property("Default", SPA::zlDefault, Php::Const);
+		reg.property("BestSpeed", SPA::zlBestSpeed, Php::Const);
+		reg.property("BestCompression", SPA::zlBestCompression, Php::Const);
 		spa.add(reg);
 	}
 
@@ -20,15 +20,15 @@ namespace PA {
 	void tagOperationSystem::RegisterInto(Php::Namespace &spa) {
 		Php::Class<tagOperationSystem> reg("OperationSystem");
 		reg.method(PHP_CONSTRUCT, &tagOperationSystem::__construct, Php::Private);
-		reg.property("osWin", SPA::osWin, Php::Const);
-		reg.property("osApple", SPA::osApple, Php::Const);
-		reg.property("osMac", SPA::osMac, Php::Const);
-		reg.property("osUnix", SPA::osUnix, Php::Const);
-		reg.property("osLinux", SPA::osLinux, Php::Const);
-		reg.property("osBSD", SPA::osBSD, Php::Const);
-		reg.property("osAndroid", SPA::osAndroid, Php::Const);
-		reg.property("osWinCE", SPA::osWinCE, Php::Const);
-		reg.property("osWinPhone", SPA::osWinPhone, Php::Const);
+		reg.property("Win", SPA::osWin, Php::Const);
+		reg.property("Apple", SPA::osApple, Php::Const);
+		reg.property("Mac", SPA::osMac, Php::Const);
+		reg.property("Unix", SPA::osUnix, Php::Const);
+		reg.property("Linux", SPA::osLinux, Php::Const);
+		reg.property("BSD", SPA::osBSD, Php::Const);
+		reg.property("Android", SPA::osAndroid, Php::Const);
+		reg.property("WinCE", SPA::osWinCE, Php::Const);
+		reg.property("WinPhone", SPA::osWinPhone, Php::Const);
 		spa.add(reg);
 	}
 
@@ -103,15 +103,15 @@ namespace PA {
 	void tagQueueStatus::RegisterInto(Php::Namespace &spa) {
 		Php::Class<tagQueueStatus> reg("QueueStatus");
 		reg.method(PHP_CONSTRUCT, &tagQueueStatus::__construct, Php::Private);
-		reg.property("qsNormal", SPA::qsNormal, Php::Const);
-		reg.property("qsMergeComplete", SPA::qsMergeComplete, Php::Const);
-		reg.property("qsMergePushing", SPA::qsMergePushing, Php::Const);
-		reg.property("qsMergeIncomplete", SPA::qsMergeIncomplete, Php::Const);
-		reg.property("qsJobIncomplete", SPA::qsJobIncomplete, Php::Const);
-		reg.property("qsCrash", SPA::qsCrash, Php::Const);
-		reg.property("qsFileError", SPA::qsFileError, Php::Const);
-		reg.property("qsBadPassword", SPA::qsBadPassword, Php::Const);
-		reg.property("qsDuplicateName", SPA::qsDuplicateName, Php::Const);
+		reg.property("Normal", SPA::qsNormal, Php::Const);
+		reg.property("MergeComplete", SPA::qsMergeComplete, Php::Const);
+		reg.property("MergePushing", SPA::qsMergePushing, Php::Const);
+		reg.property("MergeIncomplete", SPA::qsMergeIncomplete, Php::Const);
+		reg.property("JobIncomplete", SPA::qsJobIncomplete, Php::Const);
+		reg.property("Crash", SPA::qsCrash, Php::Const);
+		reg.property("FileError", SPA::qsFileError, Php::Const);
+		reg.property("BadPassword", SPA::qsBadPassword, Php::Const);
+		reg.property("DuplicateName", SPA::qsDuplicateName, Php::Const);
 		spa.add(reg);
 	}
 
@@ -120,9 +120,9 @@ namespace PA {
 	void tagOptimistic::RegisterInto(Php::Namespace &spa) {
 		Php::Class<tagOptimistic> reg("Optimistic");
 		reg.method(PHP_CONSTRUCT, &tagOptimistic::__construct, Php::Private);
-		reg.property("oMemoryCached", SPA::oMemoryCached, Php::Const);
-		reg.property("oSystemMemoryCached", SPA::oSystemMemoryCached, Php::Const);
-		reg.property("oDiskCommitted", SPA::oDiskCommitted, Php::Const);
+		reg.property("MemoryCached", SPA::oMemoryCached, Php::Const);
+		reg.property("SystemMemoryCached", SPA::oSystemMemoryCached, Php::Const);
+		reg.property("DiskCommitted", SPA::oDiskCommitted, Php::Const);
 		spa.add(reg);
 	}
 

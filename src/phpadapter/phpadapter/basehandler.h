@@ -35,6 +35,7 @@ namespace PA {
 			h.method("AbortBatching", &T::AbortBatching);
 			h.method("CommitBatching", &T::CommitBatching);
 			h.method("Unlock", &T::Unlock);
+			h.method("CleanCallbacks", &T::CleanCallbacks);
 		}
 
 		Php::Value Unlock();
@@ -44,6 +45,7 @@ namespace PA {
 		Php::Value StartBatching();
 		Php::Value CommitBatching();
 		Php::Value AbortBatching();
+		Php::Value CleanCallbacks(Php::Parameters &params);
 
 	private:
 		bool m_locked;

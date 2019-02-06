@@ -18,6 +18,16 @@ namespace PA {
 	public:
 		CPhpDb& operator=(const CPhpDb &db) = delete;
 		static void RegisterInto(Php::Namespace &cs);
+		Php::Value __get(const Php::Value &name);
+
+	private:
+		Php::Value Open(Php::Parameters &params);
+		Php::Value Execute(Php::Parameters &params);
+		Php::Value ExecuteBatch(Php::Parameters &params);
+		Php::Value Prepare(Php::Parameters &params);
+		Php::Value Close(Php::Parameters &params);
+		Php::Value BeginTrans(Php::Parameters &params);
+		Php::Value EndTrans(Php::Parameters &params);
 
 	private:
 		CDBHandler *m_db;

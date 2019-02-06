@@ -168,6 +168,8 @@
     <ClInclude Include="phpbuffer.h" />
     <ClInclude Include="phpcert.h" />
     <ClInclude Include="phpdb.h" />
+    <ClInclude Include="phpdbcolumninfo.h" />
+    <ClInclude Include="phpdbparaminfo.h" />
     <ClInclude Include="phpfile.h" />
     <ClInclude Include="phpmanager.h" />
     <ClInclude Include="phpqueue.h" />
@@ -203,6 +205,8 @@
     <ClCompile Include="phpbuffer.cpp" />
     <ClCompile Include="phpcert.cpp" />
     <ClCompile Include="phpdb.cpp" />
+    <ClCompile Include="phpdbcolumninfo.cpp" />
+    <ClCompile Include="phpdbparaminfo.cpp" />
     <ClCompile Include="phpfile.cpp" />
     <ClCompile Include="phpmanager.cpp" />
     <ClCompile Include="phpqueue.cpp" />

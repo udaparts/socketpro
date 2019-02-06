@@ -93,6 +93,12 @@
     <ClInclude Include="..\..\..\include\aqhandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="phpdbcolumninfo.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="phpdbparaminfo.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -150,6 +156,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="basehandler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="phpdbcolumninfo.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="phpdbparaminfo.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

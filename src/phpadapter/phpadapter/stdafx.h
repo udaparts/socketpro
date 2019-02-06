@@ -59,6 +59,7 @@ namespace PA {
 	extern const char *PHP_SOCKET_POOL;
 	extern const char *PHP_CERT;
 	extern const char *PHP_SOCKET;
+	extern const char *PHP_DB_COLUMN_IFO;
 	extern const char *PHP_CONSTRUCT;
 	extern const char *PHP_MANAGER;
 	extern const char *PHP_KEY;

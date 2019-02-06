@@ -111,7 +111,7 @@ namespace PA {
 	}
 
 	Php::Value CPhpQueue::EnqueueBatch(Php::Parameters &params) {
-		if (!m_pBuff->m_pBuffer->GetSize()) {
+		if (!m_pBuff->GetBuffer()->GetSize()) {
 			throw Php::Exception("No message batched yet");
 		}
 		std::string key = params[0].stringValue();
@@ -174,12 +174,12 @@ namespace PA {
 		};
 		if (sync) {
 			std::unique_lock<std::mutex> lk(m_aq->m_mPhp);
-			if (!m_aq->EnqueueBatch(key.c_str(), m_pBuff->m_pBuffer->GetBuffer(), m_pBuff->m_pBuffer->GetSize(), c, discarded)) {
+			if (!m_aq->EnqueueBatch(key.c_str(), m_pBuff->GetBuffer()->GetBuffer(), m_pBuff->GetBuffer()->GetSize(), c, discarded)) {
 				Unlock();
-				m_pBuff->m_pBuffer->SetSize(0);
+				m_pBuff->GetBuffer()->SetSize(0);
 				throw Php::Exception(PHP_SOCKET_CLOSED);
 			}
-			m_pBuff->m_pBuffer->SetSize(0);
+			m_pBuff->GetBuffer()->SetSize(0);
 			Unlock();
 			auto status = m_aq->m_cvPhp.wait_for(lk, std::chrono::milliseconds(timeout));
 			if (status == std::cv_status::timeout) {
@@ -199,7 +199,7 @@ namespace PA {
 			}
 			return *pIndex;
 		}
-		return m_aq->EnqueueBatch(key.c_str(), m_pBuff->m_pBuffer->GetBuffer(), m_pBuff->m_pBuffer->GetSize(), c, discarded) ? rrsOk : rrsClosed;
+		return m_aq->EnqueueBatch(key.c_str(), m_pBuff->GetBuffer()->GetBuffer(), m_pBuff->GetBuffer()->GetSize(), c, discarded) ? rrsOk : rrsClosed;
 	}
 
 	Php::Value CPhpQueue::Dequeue(Php::Parameters &params) {
@@ -779,7 +779,7 @@ namespace PA {
 		else if (!q.isNull()) {
 			throw Php::Exception("An instance of CUQueue or null required for Batch or BatchMessage");
 		}
-		SPA::ClientSide::CAsyncQueue::BatchMessage((unsigned short)idMsg, pBuffer, bytes, *m_pBuff->m_pBuffer);
+		SPA::ClientSide::CAsyncQueue::BatchMessage((unsigned short)idMsg, pBuffer, bytes, *m_pBuff->GetBuffer());
 	}
 
 	void CPhpQueue::RegisterInto(Php::Namespace &cs) {
