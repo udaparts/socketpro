@@ -22,6 +22,8 @@ namespace PA {
 	const char *PHP_LEN = "len";
 	const char *PHP_OBJ = "obj";
 	const char *PHP_SIZE = "Size";
+	const char *PHP_ERR_CODE = "ec";
+	const char *PHP_ERR_MSG = "em";
 
 	//SendRequest
 	const char *PHP_SENDREQUEST = "SendRequest";

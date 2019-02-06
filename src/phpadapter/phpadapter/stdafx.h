@@ -66,6 +66,8 @@ namespace PA {
 	extern const char *PHP_LEN;
 	extern const char *PHP_OBJ;
 	extern const char *PHP_SIZE;
+	extern const char *PHP_ERR_CODE;
+	extern const char *PHP_ERR_MSG;
 
 	//SendRequest
 	extern const char *PHP_SENDREQUEST;
