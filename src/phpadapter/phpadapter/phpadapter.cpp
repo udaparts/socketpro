@@ -9,6 +9,7 @@
 #include "phpsocketpool.h"
 #include "phpmanager.h"
 #include "phpdbcolumninfo.h"
+#include "phpdbparaminfo.h"
 
 extern "C" {
 	SPA_PHP_EXPORT void *get_module() {
@@ -37,6 +38,7 @@ extern "C" {
 		PA::CPhpQueue::RegisterInto(ClientSide);
 		PA::CPhpManager::RegisterInto(ClientSide);
 		PA::CPhpDBColumnInfo::RegisterInto(ClientSide);
+		PA::CPhpDBParamInfo::RegisterInto(ClientSide);
 
 		ClientSide.add("GetManager", PA::GetManager);
 		SPA.add(ClientSide);

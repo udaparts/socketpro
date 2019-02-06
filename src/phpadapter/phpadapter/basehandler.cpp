@@ -172,6 +172,10 @@ namespace PA {
 		return m_h->AbortBatching();
 	}
 
+	unsigned int CPhpBaseHandler::GetPoolId() const {
+		return m_PoolId;
+	}
+
 	int CPhpBaseHandler::__compare(const CPhpBaseHandler &pbh) const {
 		if (!m_h || !pbh.m_h) {
 			return 1;

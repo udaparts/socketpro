@@ -15,7 +15,8 @@ namespace PA {
 	const char *PHP_SOCKET_POOL = "CSocketPool";
 	const char *PHP_CERT = "CUCert";
 	const char *PHP_SOCKET = "CClientSocket";
-	const char *PHP_DB_COLUMN_IFO = "CDBColumnInfo";
+	const char *PHP_DB_COLUMN_INFO = "CDBColumnInfo";
+	const char *PHP_DB_PARAMETER_INFO = "CParamInfo";
 	const char *PHP_CONSTRUCT = "__construct";
 	const char *PHP_MANAGER = "CManager";
 	const char *PHP_KEY = "key";

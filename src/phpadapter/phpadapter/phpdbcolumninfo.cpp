@@ -12,7 +12,7 @@ namespace PA {
 	}
 
 	void CPhpDBColumnInfo::RegisterInto(Php::Namespace &cs) {
-		Php::Class<CPhpDBColumnInfo> reg(PHP_DB_COLUMN_IFO);
+		Php::Class<CPhpDBColumnInfo> reg(PHP_DB_COLUMN_INFO);
 		reg.method(PHP_CONSTRUCT, &CPhpDBColumnInfo::__construct, Php::Private);
 		reg.property("NOT_NULL", (int64_t)SPA::UDB::CDBColumnInfo::FLAG_NOT_NULL, Php::Const);
 		reg.property("UNIQUE", (int64_t)SPA::UDB::CDBColumnInfo::FLAG_UNIQUE, Php::Const);

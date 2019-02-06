@@ -29,6 +29,12 @@ namespace PA {
 		Php::Value BeginTrans(Php::Parameters &params);
 		Php::Value EndTrans(Php::Parameters &params);
 
+		static SPA::UDB::CParameterInfoArray ConvertFrom(Php::Value vP);
+		static const char *PHP_DB_AFFECTED;
+		static const char *PHP_DB_FAILS;
+		static const char *PHP_DB_OKS;
+		static const char *PHP_DB_LAST_ID;
+
 	private:
 		CDBHandler *m_db;
 	};
