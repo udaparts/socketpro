@@ -219,7 +219,6 @@ namespace PA {
 			CPhpBuffer buff;
 			*buff.GetBuffer() << vtId;
 			if (sync) {
-				std::unique_lock<std::mutex> lk(this->m_db->m_mPhp);
 				pV->set(PHP_ERR_CODE, res);
 				std::string em = SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size());
 				Trim(em);
@@ -228,6 +227,7 @@ namespace PA {
 				pV->set(PHP_DB_FAILS, (int64_t)fails);
 				pV->set(PHP_DB_OKS, (int64_t)oks);
 				pV->set(PHP_DB_LAST_ID, buff.LoadObject());
+				std::unique_lock<std::mutex> lk(this->m_db->m_mPhp);
 				this->m_db->m_cvPhp.notify_all();
 			}
 			else if (phpDR.isCallable()) {
@@ -388,11 +388,11 @@ namespace PA {
 		}
 		CDBHandler::DResult Dr = [sync, phpDR, pV, this](CDBHandler &db, int res, const std::wstring& errMsg) {
 			if (sync) {
-				std::unique_lock<std::mutex> lk(this->m_db->m_mPhp);
 				pV->set(PHP_ERR_CODE, res);
 				std::string em = SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size());
 				Trim(em);
 				pV->set(PHP_ERR_MSG, em);
+				std::unique_lock<std::mutex> lk(this->m_db->m_mPhp);
 				this->m_db->m_cvPhp.notify_all();
 			}
 			else if (phpDR.isCallable()) {
@@ -488,11 +488,11 @@ namespace PA {
 		}
 		CDBHandler::DResult Dr = [sync, phpDR, pV, this](CDBHandler &db, int res, const std::wstring& errMsg) {
 			if (sync) {
-				std::unique_lock<std::mutex> lk(this->m_db->m_mPhp);
 				pV->set(PHP_ERR_CODE, res);
 				std::string em = SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size());
 				Trim(em);
 				pV->set(PHP_ERR_MSG, em);
+				std::unique_lock<std::mutex> lk(this->m_db->m_mPhp);
 				this->m_db->m_cvPhp.notify_all();
 			}
 			else if (phpDR.isCallable()) {
@@ -582,11 +582,11 @@ namespace PA {
 		}
 		CDBHandler::DResult Dr = [sync, phpDR, pV, this](CDBHandler &db, int res, const std::wstring& errMsg) {
 			if (sync) {
-				std::unique_lock<std::mutex> lk(this->m_db->m_mPhp);
 				pV->set(PHP_ERR_CODE, res);
 				std::string em = SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size());
 				Trim(em);
 				pV->set(PHP_ERR_MSG, em);
+				std::unique_lock<std::mutex> lk(this->m_db->m_mPhp);
 				this->m_db->m_cvPhp.notify_all();
 			}
 			else if (phpDR.isCallable()) {
@@ -676,11 +676,11 @@ namespace PA {
 		}
 		CDBHandler::DResult Dr = [sync, phpDR, pV, this](CDBHandler &db, int res, const std::wstring& errMsg) {
 			if (sync) {
-				std::unique_lock<std::mutex> lk(this->m_db->m_mPhp);
 				pV->set(PHP_ERR_CODE, res);
 				std::string em = SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size());
 				Trim(em);
 				pV->set(PHP_ERR_MSG, em);
+				std::unique_lock<std::mutex> lk(this->m_db->m_mPhp);
 				this->m_db->m_cvPhp.notify_all();
 			}
 			else if (phpDR.isCallable()) {

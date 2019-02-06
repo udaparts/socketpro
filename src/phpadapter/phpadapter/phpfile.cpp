@@ -61,11 +61,11 @@ namespace PA {
 		}
 		SPA::ClientSide::CStreamingFile::DDownload Dl = [sync, phpDl, pV, this](SPA::ClientSide::CStreamingFile *file, int res, const std::wstring& errMsg) {
 			if (sync) {
-				std::unique_lock<std::mutex> lk(this->m_sh->m_mPhp);
 				pV->set(PHP_ERR_CODE, res);
 				std::string em = SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size());
 				Trim(em);
 				pV->set(PHP_ERR_MSG, em);
+				std::unique_lock<std::mutex> lk(this->m_sh->m_mPhp);
 				this->m_sh->m_cvPhp.notify_all();
 			}
 			else if (phpDl.isCallable()) {
@@ -191,11 +191,11 @@ namespace PA {
 		}
 		SPA::ClientSide::CStreamingFile::DUpload Ul = [sync, phpUl, pV, this](SPA::ClientSide::CStreamingFile *file, int res, const std::wstring& errMsg) {
 			if (sync) {
-				std::unique_lock<std::mutex> lk(this->m_sh->m_mPhp);
 				pV->set(PHP_ERR_CODE, res);
 				std::string em = SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size());
 				Trim(em);
 				pV->set(PHP_ERR_MSG, em);
+				std::unique_lock<std::mutex> lk(this->m_sh->m_mPhp);
 				this->m_sh->m_cvPhp.notify_all();
 			}
 			else if (phpUl.isCallable()) {

@@ -54,8 +54,8 @@ namespace PA {
 		SPA::ClientSide::ResultHandler rh = [phpRh, sync, buffer, this](SPA::ClientSide::CAsyncResult & ar) {
 			SPA::ClientSide::PAsyncServiceHandler ash = ar.AsyncServiceHandler;
 			if (sync) {
-				std::unique_lock<std::mutex> lk(this->m_h->m_mPhp);
 				buffer->Swap(&ar.UQueue);
+				std::unique_lock<std::mutex> lk(this->m_h->m_mPhp);
 				this->m_h->m_cvPhp.notify_all();
 			}
 			else if (phpRh.isCallable()) {

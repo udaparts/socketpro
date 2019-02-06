@@ -49,8 +49,8 @@ namespace PA {
 		}
 		SPA::ClientSide::CAsyncQueue::DClose c = [phpC, sync, pErrCode, this](SPA::ClientSide::CAsyncQueue *aq, int errCode) {
 			if (sync) {
-				std::unique_lock<std::mutex> lk(this->m_aq->m_mPhp);
 				*pErrCode = errCode;
+				std::unique_lock<std::mutex> lk(this->m_aq->m_mPhp);
 				this->m_aq->m_cvPhp.notify_all();
 			}
 			else if (phpC.isCallable()) {
@@ -143,8 +143,8 @@ namespace PA {
 		}
 		SPA::ClientSide::CAsyncQueue::DEnqueue c = [phpC, sync, pIndex, this](SPA::ClientSide::CAsyncQueue *aq, SPA::UINT64 index) {
 			if (sync) {
-				std::unique_lock<std::mutex> lk(this->m_aq->m_mPhp);
 				*pIndex = (int64_t)index;
+				std::unique_lock<std::mutex> lk(this->m_aq->m_mPhp);
 				this->m_aq->m_cvPhp.notify_all();
 			}
 			else if (phpC.isCallable()) {
@@ -232,15 +232,20 @@ namespace PA {
 		}
 		SPA::ClientSide::CAsyncQueue::DDequeue f = [phpF, sync, pF, this](SPA::ClientSide::CAsyncQueue *aq, SPA::UINT64 messages, SPA::UINT64 fileSize, unsigned int messagesDequeued, unsigned int bytesDequeued) {
 			if (sync) {
-				std::unique_lock<std::mutex> lk(this->m_aq->m_mPhp);
 				pF->set("messages", (int64_t)messages);
 				pF->set("fileSize", (int64_t)fileSize);
 				pF->set("messagesDequeued", (int64_t)messagesDequeued);
 				pF->set("bytesDequeued", (int64_t)bytesDequeued);
+				std::unique_lock<std::mutex> lk(this->m_aq->m_mPhp);
 				this->m_aq->m_cvPhp.notify_all();
 			}
 			else if (phpF.isCallable()) {
-				phpF((int64_t)messages, (int64_t)fileSize, (int64_t)messagesDequeued, (int64_t)bytesDequeued);
+				Php::Value v;
+				v.set("messages", (int64_t)messages);
+				v.set("fileSize", (int64_t)fileSize);
+				v.set("messagesDequeued", (int64_t)messagesDequeued);
+				v.set("bytesDequeued", (int64_t)bytesDequeued);
+				phpF(v);
 			}
 		};
 		size_t args = params.size();
@@ -335,13 +340,16 @@ namespace PA {
 		}
 		SPA::ClientSide::CAsyncQueue::DFlush f = [phpF, sync, pF, this](SPA::ClientSide::CAsyncQueue *aq, SPA::UINT64 messages, SPA::UINT64 fileSize) {
 			if (sync) {
-				std::unique_lock<std::mutex> lk(this->m_aq->m_mPhp);
 				pF->set("messages", (int64_t)messages);
 				pF->set("fileSize", (int64_t)fileSize);
+				std::unique_lock<std::mutex> lk(this->m_aq->m_mPhp);
 				this->m_aq->m_cvPhp.notify_all();
 			}
 			else if (phpF.isCallable()) {
-				phpF((int64_t)messages, (int64_t)fileSize);
+				Php::Value v;
+				v.set("messages", (int64_t)messages);
+				v.set("fileSize", (int64_t)fileSize);
+				phpF(v);
 			}
 		};
 		size_t args = params.size();
@@ -436,8 +444,8 @@ namespace PA {
 		}
 		SPA::ClientSide::CAsyncQueue::DQueueTrans qt = [phpTrans, sync, pErrCode, this](SPA::ClientSide::CAsyncQueue *aq, int errCode) {
 			if (sync) {
-				std::unique_lock<std::mutex> lk(this->m_aq->m_mPhp);
 				*pErrCode = errCode;
+				std::unique_lock<std::mutex> lk(this->m_aq->m_mPhp);
 				this->m_aq->m_cvPhp.notify_all();
 			}
 			else if (phpTrans.isCallable()) {
@@ -519,8 +527,8 @@ namespace PA {
 		}
 		SPA::ClientSide::CAsyncQueue::DQueueTrans qt = [phpTrans, sync, pErrCode, this](SPA::ClientSide::CAsyncQueue *aq, int errCode) {
 			if (sync) {
-				std::unique_lock<std::mutex> lk(this->m_aq->m_mPhp);
 				*pErrCode = errCode;
+				std::unique_lock<std::mutex> lk(this->m_aq->m_mPhp);
 				this->m_aq->m_cvPhp.notify_all();
 			}
 			else if (phpTrans.isCallable()) {
@@ -704,8 +712,8 @@ namespace PA {
 		}
 		SPA::ClientSide::CAsyncQueue::DEnqueue f = [phpF, sync, pF, this](SPA::ClientSide::CAsyncQueue *aq, SPA::UINT64 index) {
 			if (sync) {
-				std::unique_lock<std::mutex> lk(this->m_aq->m_mPhp);
 				*pF = (int64_t)index;
+				std::unique_lock<std::mutex> lk(this->m_aq->m_mPhp);
 				this->m_aq->m_cvPhp.notify_all();
 			}
 			else if (phpF.isCallable()) {
