@@ -42,7 +42,7 @@ namespace PA {
 		handler.method("ExecuteBatch", &CPhpDb::ExecuteBatch, {
 			Php::ByVal("isolation", Php::Type::Numeric),
 			Php::ByVal("sql", Php::Type::String),
-			Php::ByVal("vParam", Php::Type::Array),
+			Php::ByVal("vParam", Php::Type::Null),
 			Php::ByVal(PHP_SENDREQUEST_SYNC, Php::Type::Null)
 		});
 		cs.add(handler);
@@ -99,7 +99,7 @@ namespace PA {
 			if (phpCanceled.isNull()) {
 			}
 			else if (!phpCanceled.isCallable()) {
-				throw Php::Exception("A callback required for Close event");
+				throw Php::Exception("A callback required for Open aborting event");
 			}
 		}
 		tagRequestReturnStatus rrs = rrsOk;
@@ -207,7 +207,7 @@ namespace PA {
 		else if (phpDR.isNull()) {
 		}
 		else if (!phpDR.isCallable()) {
-			throw Php::Exception("A callback required for BeginTrans final result");
+			throw Php::Exception("A callback required for Execute final result");
 		}
 		std::shared_ptr<Php::Value> pV;
 		if (sync) {
@@ -265,7 +265,7 @@ namespace PA {
 			if (phpRh.isNull()) {
 			}
 			else if (!phpRh.isCallable()) {
-				throw Php::Exception("A callback required for Execute rwoset header event");
+				throw Php::Exception("A callback required for Execute rowset header event");
 			}
 		}
 		CDBHandler::DRowsetHeader rh = [phpRh, this](CDBHandler &db) {
@@ -280,7 +280,7 @@ namespace PA {
 			if (phpCanceled.isNull()) {
 			}
 			else if (!phpCanceled.isCallable()) {
-				throw Php::Exception("A callback required for Close event");
+				throw Php::Exception("A callback required for Execute aborting event");
 			}
 		}
 		tagRequestReturnStatus rrs = rrsOk;
@@ -323,7 +323,227 @@ namespace PA {
 	}
 
 	Php::Value CPhpDb::ExecuteBatch(Php::Parameters &params) {
-		return nullptr;
+		int64_t iso = params[0].numericValue();
+		if (iso < SPA::UDB::tiUnspecified || iso > SPA::UDB::tiIsolated) {
+			throw Php::Exception("Bad transaction isolation value");
+		}
+		std::string asql = params[1].stringValue();
+		Trim(asql);
+		if (!asql.size()) {
+			throw Php::Exception("SQL statement cannot be empty");
+		}
+		std::wstring sql = SPA::Utilities::ToWide(asql.c_str(), asql.size());
+		SPA::UDB::CDBVariantArray vParam;
+		Php::Value vP = params[2];
+		if (vP.isArray()) {
+			int count = vP.length();
+			for (int n = 0; n < count; ++n) {
+				SPA::UDB::CDBVariant vt;
+				ToVariant(vP.get(n), vt);
+				vParam.push_back(std::move(vt));
+			}
+		}
+		else if (vP.instanceOf((SPA_CS_NS + PHP_BUFFER).c_str())) {
+			Php::Value bytes = vP.call("PopBytes");
+			const char *raw = bytes.rawValue();
+			int len = bytes.length();
+			SPA::CScopeUQueue sb;
+			sb->Push((const unsigned char*)raw, (unsigned int)len);
+			while (sb->GetSize()) {
+				try {
+					SPA::UDB::CDBVariant vt;
+					*sb >> vt;
+					vParam.push_back(std::move(vt));
+				}
+				catch (SPA::CUException &err) {
+					throw Php::Exception(err.what());
+				}
+			}
+		}
+		else {
+			throw Php::Exception("A SQL statement or an array of parameter data expected");
+		}
+		unsigned int timeout = m_db->GetAttachedClientSocket()->GetRecvTimeout();
+		bool sync = false;
+		Php::Value phpDR = params[3];
+		if (phpDR.isNumeric()) {
+			sync = true;
+			unsigned int t = (unsigned int)phpDR.numericValue();
+			if (t < timeout) {
+				timeout = t;
+			}
+		}
+		else if (phpDR.isBool()) {
+			sync = phpDR.boolValue();
+		}
+		else if (phpDR.isNull()) {
+		}
+		else if (!phpDR.isCallable()) {
+			throw Php::Exception("A callback required for ExecuteBatch final result");
+		}
+		std::shared_ptr<Php::Value> pV;
+		if (sync) {
+			pV.reset(new Php::Value);
+		}
+		CDBHandler::DExecuteResult Dr = [sync, phpDR, pV, this](CDBHandler &db, int res, const std::wstring& errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, SPA::UDB::CDBVariant& vtId) {
+			unsigned int fails = (unsigned int)(fail_ok >> 32);
+			unsigned int oks = (unsigned int)fail_ok;
+			CPhpBuffer buff;
+			*buff.GetBuffer() << vtId;
+			if (sync) {
+				pV->set(PHP_ERR_CODE, res);
+				std::string em = SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size());
+				Trim(em);
+				pV->set(PHP_ERR_MSG, em);
+				pV->set(PHP_DB_AFFECTED, affected);
+				pV->set(PHP_DB_FAILS, (int64_t)fails);
+				pV->set(PHP_DB_OKS, (int64_t)oks);
+				pV->set(PHP_DB_LAST_ID, buff.LoadObject());
+				std::unique_lock<std::mutex> lk(this->m_db->m_mPhp);
+				this->m_db->m_cvPhp.notify_all();
+			}
+			else if (phpDR.isCallable()) {
+				std::string em = SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size());
+				Trim(em);
+				Php::Value v;
+				v.set(PHP_ERR_CODE, res);
+				v.set(PHP_ERR_MSG, em);
+				v.set(PHP_DB_AFFECTED, affected);
+				v.set(PHP_DB_FAILS, (int64_t)fails);
+				v.set(PHP_DB_OKS, (int64_t)oks);
+				v.set(PHP_DB_LAST_ID, buff.LoadObject());
+				phpDR(v);
+			}
+		};
+		size_t args = params.size();
+		Php::Value phpRow;
+		if (args > 4) {
+			phpRow = params[4];
+			if (phpRow.isNull()) {
+			}
+			else if (!phpRow.isCallable()) {
+				throw Php::Exception("A callback required for ExecuteBatch row event");
+			}
+		}
+		CDBHandler::DRows r = [phpRow, this](CDBHandler &db, Php::Array &vData) {
+			if (phpRow.isCallable()) {
+				Php::Object obj((SPA_CS_NS + PHP_DB_HANDLER).c_str(), new CPhpDb(this->GetPoolId(), &db, false));
+				phpRow(vData, db.IsProc(), obj);
+			}
+		};
+		Php::Value phpRh;
+		if (args > 5) {
+			phpRh = params[5];
+			if (phpRh.isNull()) {
+			}
+			else if (!phpRh.isCallable()) {
+				throw Php::Exception("A callback required for ExecuteBatch rowset header event");
+			}
+		}
+		CDBHandler::DRowsetHeader rh = [phpRh, this](CDBHandler &db) {
+			if (phpRh.isCallable()) {
+				Php::Object obj((SPA_CS_NS + PHP_DB_HANDLER).c_str(), new CPhpDb(this->GetPoolId(), &db, false));
+				phpRh(obj);
+			}
+		};
+		Php::Value phpBh;
+		if (args > 6) {
+			phpBh = params[6];
+			if (phpRh.isNull()) {
+			}
+			else if (!phpRh.isCallable()) {
+				throw Php::Exception("A callback required for ExecuteBatch batch header event");
+			}
+		}
+		CDBHandler::DRowsetHeader bh = [phpBh, this](CDBHandler &db) {
+			if (phpBh.isCallable()) {
+				Php::Object obj((SPA_CS_NS + PHP_DB_HANDLER).c_str(), new CPhpDb(this->GetPoolId(), &db, false));
+				phpBh(obj);
+			}
+		};
+		SPA::UDB::tagRollbackPlan plan = SPA::UDB::rpDefault;
+		if (args > 7) {
+			if (params[7].isNumeric()) {
+				int64_t p = params[7].numericValue();
+				if (p < SPA::UDB::rpDefault || p > SPA::UDB::rpRollbackAlways) {
+					throw Php::Exception("Bad rollback plan value");
+				}
+				plan = (SPA::UDB::tagRollbackPlan)p;
+			}
+			else if (!params[7].isNull()) {
+				throw Php::Exception("An integer required for ExecuteBatch rollback plan");
+			}
+		}
+		Php::Value phpCanceled;
+		if (args > 8) {
+			phpCanceled = params[8];
+			if (phpCanceled.isNull()) {
+			}
+			else if (!phpCanceled.isCallable()) {
+				throw Php::Exception("A callback required for ExecuteBatch aborting event");
+			}
+		}
+		tagRequestReturnStatus rrs = rrsOk;
+		SPA::ClientSide::CAsyncServiceHandler::DDiscarded discarded = [phpCanceled, sync, &rrs, this](SPA::ClientSide::CAsyncServiceHandler *ash, bool canceled) {
+			if (phpCanceled.isCallable()) {
+				phpCanceled(canceled);
+			}
+			if (sync) {
+				std::unique_lock<std::mutex> lk(this->m_db->m_mPhp);
+				rrs = canceled ? rrsCanceled : rrsClosed;
+				this->m_db->m_cvPhp.notify_all();
+			}
+		};
+		std::wstring delimiter(L";");
+		if (args > 9) {
+			if (params[9].isString()) {
+				std::string s = params[9].stringValue();
+				Trim(s);
+				if (!s.size()) {
+					throw Php::Exception("Delimiter string cannot be empty");
+				}
+				delimiter = SPA::Utilities::ToWide(s.c_str(), s.size());
+			}
+			else if (!params[9].isNull()) {
+				throw Php::Exception("A string required for delimiter");
+			}
+		}
+		SPA::UDB::CParameterInfoArray vPInfo;
+		if (args > 10) {
+			Php::Value vParamInfo = params[10];
+			if (vParamInfo.isArray()) {
+				vPInfo = ConvertFrom(vParamInfo);
+			}
+			else if (!vParamInfo.isNull()) {
+				throw Php::Exception("An array of parameter info structures required");
+			}
+		}
+		if (sync) {
+			std::unique_lock<std::mutex> lk(m_db->m_mPhp);
+			if (!m_db->ExecuteBatch((SPA::UDB::tagTransactionIsolation)iso, sql.c_str(), vParam, Dr, r, rh, bh, vPInfo, plan, discarded, delimiter.c_str())) {
+				Unlock();
+				throw Php::Exception(PHP_SOCKET_CLOSED);
+			}
+			Unlock();
+			auto status = m_db->m_cvPhp.wait_for(lk, std::chrono::milliseconds(timeout));
+			if (status == std::cv_status::timeout) {
+				rrs = rrsTimeout;
+			}
+			switch (rrs) {
+			case rrsServerException:
+				throw Php::Exception(PHP_SERVER_EXCEPTION);
+			case rrsCanceled:
+				throw Php::Exception(PHP_REQUEST_CANCELED);
+			case rrsClosed:
+				throw Php::Exception(PHP_SOCKET_CLOSED);
+			case rrsTimeout:
+				throw Php::Exception(PHP_REQUEST_TIMEOUT);
+			default:
+				break;
+			}
+			return *pV;
+		}
+		return m_db->ExecuteBatch((SPA::UDB::tagTransactionIsolation)iso, sql.c_str(), vParam, Dr, r, rh, bh, vPInfo, plan, discarded, delimiter.c_str()) ? rrsOk : rrsClosed;
 	}
 
 	SPA::UDB::CParameterInfoArray CPhpDb::ConvertFrom(Php::Value vP) {
@@ -372,7 +592,7 @@ namespace PA {
 		else if (phpDR.isNull()) {
 		}
 		else if (!phpDR.isCallable()) {
-			throw Php::Exception("A callback required for BeginTrans final result");
+			throw Php::Exception("A callback required for Prepare final result");
 		}
 		std::shared_ptr<Php::Value> pV;
 		if (sync) {
@@ -403,7 +623,7 @@ namespace PA {
 			if (phpCanceled.isNull()) {
 			}
 			else if (!phpCanceled.isCallable()) {
-				throw Php::Exception("A callback required for Close event");
+				throw Php::Exception("A callback required for Prepare aborting event");
 			}
 		}
 		tagRequestReturnStatus rrs = rrsOk;
@@ -424,7 +644,7 @@ namespace PA {
 				vPInfo = ConvertFrom(vParamInfo);
 			}
 			else if (!vParamInfo.isNull()) {
-				throw Php::Exception("An array of parameters required");
+				throw Php::Exception("An array of parameter info structures required");
 			}
 		}
 		if (sync) {
@@ -503,7 +723,7 @@ namespace PA {
 			if (phpCanceled.isNull()) {
 			}
 			else if (!phpCanceled.isCallable()) {
-				throw Php::Exception("A callback required for Close event");
+				throw Php::Exception("A callback required for Close aborting event");
 			}
 		}
 		tagRequestReturnStatus rrs = rrsOk;
@@ -597,7 +817,7 @@ namespace PA {
 			if (phpCanceled.isNull()) {
 			}
 			else if (!phpCanceled.isCallable()) {
-				throw Php::Exception("A callback required for Close event");
+				throw Php::Exception("A callback required for BeginTrans aborting event");
 			}
 		}
 		tagRequestReturnStatus rrs = rrsOk;
@@ -660,7 +880,7 @@ namespace PA {
 		else if (phpDR.isNull()) {
 		}
 		else if (!phpDR.isCallable()) {
-			throw Php::Exception("A callback required for BeginTrans final result");
+			throw Php::Exception("A callback required for EndTrans final result");
 		}
 		std::shared_ptr<Php::Value> pV;
 		if (sync) {
@@ -691,7 +911,7 @@ namespace PA {
 			if (phpCanceled.isNull()) {
 			}
 			else if (!phpCanceled.isCallable()) {
-				throw Php::Exception("A callback required for Close event");
+				throw Php::Exception("A callback required for EndTrans aborting event");
 			}
 		}
 		tagRequestReturnStatus rrs = rrsOk;
