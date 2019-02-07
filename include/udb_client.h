@@ -6,7 +6,9 @@
 #include "aclientw.h"
 
 #ifdef PHP_ADAPTER_PROJECT
+
 namespace PA {
+	class CPhpBuffer;
     void ToVariant(const Php::Value &data, SPA::UDB::CDBVariant &vt, const std::string &id = "");
 }
 
@@ -74,7 +76,12 @@ namespace SPA {
             typedef std::function<void(CAsyncDBHandler &dbHandler, int res, const std::wstring &errMsg) > DResult;
             typedef std::function<void(CAsyncDBHandler &dbHandler, int res, const std::wstring &errMsg, INT64 affected, UINT64 fail_ok, CDBVariant &vtId) > DExecuteResult;
             typedef std::function<void(CAsyncDBHandler &dbHandler) > DRowsetHeader;
+
+#ifdef PHP_ADAPTER_PROJECT
+			typedef std::function<void(CAsyncDBHandler &dbHandler, Php::Array &vData) > DRows;
+#else
             typedef std::function<void(CAsyncDBHandler &dbHandler, CDBVariantArray &vData) > DRows;
+#endif
 
         protected:
             typedef std::pair<DRowsetHeader, DRows> CRowsetHandler;
@@ -661,7 +668,11 @@ namespace SPA {
 
             virtual void OnAllProcessed() {
                 CAutoLock al1(m_csDB);
+#ifdef PHP_ADAPTER_PROJECT
+				m_vData = Php::Array();
+#else
                 m_vData.clear();
+#endif
                 m_Blob.SetSize(0);
                 if (m_Blob.GetMaxSize() > DEFAULT_BIG_FIELD_CHUNK_SIZE) {
                     m_Blob.ReallocBuffer(DEFAULT_BIG_FIELD_CHUNK_SIZE);
@@ -735,7 +746,11 @@ namespace SPA {
                         if (m_Blob.GetMaxSize() > ONE_MEGA_BYTES) {
                             m_Blob.ReallocBuffer(ONE_MEGA_BYTES);
                         }
+#ifdef PHP_ADAPTER_PROJECT
+						m_vData = Php::Array();
+#else
                         m_vData.clear();
+#endif
                         {
                             unsigned int outputs = 0;
                             CAutoLock al(m_csDB);
@@ -775,7 +790,11 @@ namespace SPA {
                         break;
                     case idBeginRows:
                         m_Blob.SetSize(0);
-                        m_vData.clear();
+#ifdef PHP_ADAPTER_PROJECT
+						m_vData = Php::Array();
+#else
+						m_vData.clear();
+#endif
                         if (mc.GetSize()) {
                             CAutoLock al(m_csDB);
                             mc >> m_indexRowset;
@@ -786,16 +805,25 @@ namespace SPA {
                             m_csDB.lock();
                             bool Utf8ToW = m_Blob.Utf8ToW();
                             m_csDB.unlock();
-                            if (Utf8ToW)
-                                mc.Utf8ToW(true);
+							if (Utf8ToW)
+								mc.Utf8ToW(true);
+#ifdef PHP_ADAPTER_PROJECT
+							int index = m_vData.length();
+							PA::CPhpBuffer buff(&mc);
+							while (mc.GetSize()) {
+								m_vData.set(index, buff.LoadObject());
+								++index;
+							}
+#else
                             while (mc.GetSize()) {
                                 m_vData.push_back(CDBVariant());
                                 CDBVariant &vt = m_vData.back();
                                 mc >> vt;
                             }
+#endif
                             assert(mc.GetSize() == 0);
-                            if (Utf8ToW)
-                                mc.Utf8ToW(false);
+							if (Utf8ToW) 
+								mc.Utf8ToW(false);
                         }
                         break;
                     case idOutputParameter:
@@ -806,12 +834,21 @@ namespace SPA {
                             m_csDB.unlock();
                             if (Utf8ToW)
                                 mc.Utf8ToW(true);
+#ifdef PHP_ADAPTER_PROJECT
+							int index = m_vData.length();
+							PA::CPhpBuffer buff(&mc);
+							while (mc.GetSize()) {
+								m_vData.set(index, buff.LoadObject());
+								++index;
+							}
+#else
                             CDBVariant vtOne;
                             while (mc.GetSize()) {
                                 m_vData.push_back(vtOne);
                                 CDBVariant &vt = m_vData.back();
                                 mc >> vt;
                             }
+#endif
                             assert(mc.GetSize() == 0);
                             if (Utf8ToW)
                                 mc.Utf8ToW(false);
@@ -873,7 +910,11 @@ namespace SPA {
                                 }
                             }
                         }
+#ifdef PHP_ADAPTER_PROJECT
+						m_vData = Php::Array();
+#else
                         m_vData.clear();
+#endif
                         break;
                     case idStartBLOB:
                         if (mc.GetSize()) {
@@ -902,9 +943,15 @@ namespace SPA {
                                 //legth should be reset if BLOB length not available from server side at beginning
                                 *len = (m_Blob.GetSize() - sizeof (VARTYPE) - sizeof (unsigned int));
                             }
+#ifdef PHP_ADAPTER_PROJECT
+							int index = m_vData.length();
+							PA::CPhpBuffer buff(&m_Blob);
+							m_vData.set(index, buff.LoadObject());
+#else
                             m_vData.push_back(CDBVariant());
                             CDBVariant &vt = m_vData.back();
                             m_Blob >> vt;
+#endif
                             assert(m_Blob.GetSize() == 0);
                         }
                         break;
@@ -958,7 +1005,11 @@ namespace SPA {
                 if (m_Blob.GetMaxSize() > DEFAULT_BIG_FIELD_CHUNK_SIZE) {
                     m_Blob.ReallocBuffer(DEFAULT_BIG_FIELD_CHUNK_SIZE);
                 }
-                m_vData.clear();
+#ifdef PHP_ADAPTER_PROJECT
+				m_vData = Php::Array();
+#else
+				m_vData.clear();
+#endif
             }
 
         protected:
@@ -976,7 +1027,11 @@ namespace SPA {
             std::unordered_map<UINT64, CDBVariantArray*> m_mapParameterCall;
             unsigned int m_indexProc;
             CUQueue m_Blob;
+#ifdef PHP_ADAPTER_PROJECT
+			Php::Array m_vData;
+#else
             CDBVariantArray m_vData;
+#endif
             tagManagementSystem m_ms;
             unsigned int m_flags;
             unsigned int m_parameters;

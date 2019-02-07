@@ -34,6 +34,10 @@ namespace PA {
 		CAsyncQueue *m_aq;
 		std::shared_ptr<CPhpBuffer> m_pBuff;
 		static const char *PHP_QUEUE_KEY;
+		static const char *PHP_QUEUE_MESSAGES;
+		static const char *PHP_QUEUE_FILESIZE;
+		static const char *PHP_QUEUE_MESSAGES_DEQUEUED;
+		static const char *PHP_QUEUE_BYTES_DEQUEUED;
 	};
 
 } //namespace PA

@@ -4,6 +4,10 @@
 namespace PA {
 
 	const char *CPhpQueue::PHP_QUEUE_KEY = "key";
+	const char *CPhpQueue::PHP_QUEUE_MESSAGES = "messages";
+	const char *CPhpQueue::PHP_QUEUE_FILESIZE = "fileSize";
+	const char *CPhpQueue::PHP_QUEUE_MESSAGES_DEQUEUED = "messagesDequeued";
+	const char *CPhpQueue::PHP_QUEUE_BYTES_DEQUEUED = "bytesDequeued";
 
 	CPhpQueue::CPhpQueue(unsigned int poolId, CAsyncQueue *aq, bool locked)
 		: CPhpBaseHandler(locked, aq, poolId), m_aq(aq), m_pBuff(new CPhpBuffer) {
@@ -232,19 +236,19 @@ namespace PA {
 		}
 		SPA::ClientSide::CAsyncQueue::DDequeue f = [phpF, sync, pF, this](SPA::ClientSide::CAsyncQueue *aq, SPA::UINT64 messages, SPA::UINT64 fileSize, unsigned int messagesDequeued, unsigned int bytesDequeued) {
 			if (sync) {
-				pF->set("messages", (int64_t)messages);
-				pF->set("fileSize", (int64_t)fileSize);
-				pF->set("messagesDequeued", (int64_t)messagesDequeued);
-				pF->set("bytesDequeued", (int64_t)bytesDequeued);
+				pF->set(PHP_QUEUE_MESSAGES, (int64_t)messages);
+				pF->set(PHP_QUEUE_FILESIZE, (int64_t)fileSize);
+				pF->set(PHP_QUEUE_MESSAGES_DEQUEUED, (int64_t)messagesDequeued);
+				pF->set(PHP_QUEUE_BYTES_DEQUEUED, (int64_t)bytesDequeued);
 				std::unique_lock<std::mutex> lk(this->m_aq->m_mPhp);
 				this->m_aq->m_cvPhp.notify_all();
 			}
 			else if (phpF.isCallable()) {
 				Php::Value v;
-				v.set("messages", (int64_t)messages);
-				v.set("fileSize", (int64_t)fileSize);
-				v.set("messagesDequeued", (int64_t)messagesDequeued);
-				v.set("bytesDequeued", (int64_t)bytesDequeued);
+				v.set(PHP_QUEUE_MESSAGES, (int64_t)messages);
+				v.set(PHP_QUEUE_FILESIZE, (int64_t)fileSize);
+				v.set(PHP_QUEUE_MESSAGES_DEQUEUED, (int64_t)messagesDequeued);
+				v.set(PHP_QUEUE_BYTES_DEQUEUED, (int64_t)bytesDequeued);
 				phpF(v);
 			}
 		};
@@ -340,15 +344,15 @@ namespace PA {
 		}
 		SPA::ClientSide::CAsyncQueue::DFlush f = [phpF, sync, pF, this](SPA::ClientSide::CAsyncQueue *aq, SPA::UINT64 messages, SPA::UINT64 fileSize) {
 			if (sync) {
-				pF->set("messages", (int64_t)messages);
-				pF->set("fileSize", (int64_t)fileSize);
+				pF->set(PHP_QUEUE_MESSAGES, (int64_t)messages);
+				pF->set(PHP_QUEUE_FILESIZE, (int64_t)fileSize);
 				std::unique_lock<std::mutex> lk(this->m_aq->m_mPhp);
 				this->m_aq->m_cvPhp.notify_all();
 			}
 			else if (phpF.isCallable()) {
 				Php::Value v;
-				v.set("messages", (int64_t)messages);
-				v.set("fileSize", (int64_t)fileSize);
+				v.set(PHP_QUEUE_MESSAGES, (int64_t)messages);
+				v.set(PHP_QUEUE_FILESIZE, (int64_t)fileSize);
 				phpF(v);
 			}
 		};

@@ -3,11 +3,17 @@
 
 namespace PA {
 
-	CPhpBuffer::CPhpBuffer() : m_pBuffer(nullptr) {
+	CPhpBuffer::CPhpBuffer() : m_pBuffer(nullptr), m_bRelease(true) {
+	}
+
+	CPhpBuffer::CPhpBuffer(SPA::CUQueue *buff) : m_pBuffer(buff), m_bRelease(buff ? false : true) {
+
 	}
 
 	CPhpBuffer::~CPhpBuffer() {
-		SPA::CScopeUQueue::Unlock(m_pBuffer);
+		if (m_bRelease) {
+			SPA::CScopeUQueue::Unlock(m_pBuffer);
+		}
 	}
 
 	void CPhpBuffer::Swap(CPhpBuffer *qPhp) {

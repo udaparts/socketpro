@@ -777,6 +777,15 @@ namespace SPA {
                     vRow.push_back(prow);
                 }
                 const VARIANT &vt = pvt[n];
+				VARTYPE vtTarget = meta[n % col_count].DataType;
+#ifdef PHP_ADAPTER_PROJECT
+				if (vtTarget == (VT_ARRAY | VT_UI1) && vt.vt == (VT_I1 | VT_ARRAY)) {
+					VARIANT &v = (VARIANT&)vt;
+					v.vt = (VT_ARRAY | VT_UI1);
+					prow->push_back(Convert(vt, vtTarget));
+				}
+				else
+#endif
                 if (vt.vt == (VT_ARRAY | VT_I1)) {
                     const char *s;
                     CComVariant vtNew;
@@ -784,12 +793,11 @@ namespace SPA {
                     vtNew.bstrVal = Utilities::ToBSTR(s, vt.parray->rgsabound->cElements);
                     vtNew.vt = VT_BSTR;
                     ::SafeArrayUnaccessData(vt.parray);
-                    VARTYPE vtTarget = meta[n % col_count].DataType;
                     if (vtTarget == (VT_I1 | VT_ARRAY))
                         vtTarget = VT_BSTR;
                     prow->push_back(Convert(vtNew, vtTarget));
                 } else {
-                    prow->push_back(Convert(vt, meta[n % col_count].DataType));
+                    prow->push_back(Convert(vt, vtTarget));
                 }
             }
             return (count / col_count);
@@ -819,6 +827,12 @@ namespace SPA {
                     vRow.push_back(prow);
                 }
                 VARTYPE vtTarget = meta[n % col_count].DataType;
+#ifdef PHP_ADAPTER_PROJECT
+				if (vtTarget == (VT_ARRAY | VT_UI1) && vData[n].vt == (VT_I1 | VT_ARRAY)) {
+					UDB::CDBVariant &v = (UDB::CDBVariant&)vData[n];
+					v.vt = (VT_ARRAY | VT_UI1);
+				} else
+#endif
                 if (vtTarget == (VT_I1 | VT_ARRAY))
                     vtTarget = VT_BSTR;
                 prow->push_back(Convert(vData[n], vtTarget));

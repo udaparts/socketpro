@@ -103,7 +103,7 @@ namespace SPA {
         class CAsyncServiceHandler;
         class CAsyncResult;
 
-		typedef std::function<void(CAsyncResult&) > DResultHandler;
+        typedef std::function<void(CAsyncResult&) > DResultHandler;
         typedef DResultHandler ResultHandler;
 
         const static ResultHandler NULL_RH;
@@ -195,13 +195,16 @@ namespace SPA {
                 return *this;
             }
 #ifdef PHP_ADAPTER_PROJECT
-			bool operator==(const CConnectionContext &cc) const {
-				if (this == &cc)
-					return true;
-				return (Port == cc.Port && Host.size() == cc.Host.size() &&
-					std::equal(Host.begin(), Host.end(), cc.Host.begin(), [](auto a, auto b) {return std::tolower(a) == std::tolower(b); }));
-			}
+
+            bool operator==(const CConnectionContext &cc) const {
+                if (this == &cc)
+                    return true;
+                return (Port == cc.Port && Host.size() == cc.Host.size() &&
+                        std::equal(Host.begin(), Host.end(), cc.Host.begin(), [](auto a, auto b) {
+                            return std::tolower(a) == std::tolower(b); }));
+            }
 #else
+
             bool operator==(const CConnectionContext &cc) const {
                 if (this == &cc)
                     return true;
@@ -519,8 +522,8 @@ namespace SPA {
             typedef std::function<void(CAsyncServiceHandler *ash, bool canceled) > DDiscarded;
 
 #ifdef PHP_ADAPTER_PROJECT
-			std::mutex m_mPhp;
-			std::condition_variable m_cvPhp;
+            std::mutex m_mPhp;
+            std::condition_variable m_cvPhp;
 #endif
         protected:
             CAsyncServiceHandler(unsigned int nServiceId, CClientSocket *cs);

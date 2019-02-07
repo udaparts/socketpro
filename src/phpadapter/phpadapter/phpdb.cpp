@@ -28,7 +28,7 @@ namespace PA {
 			Php::ByVal(PHP_SENDREQUEST_SYNC, Php::Type::Null)
 		});
 		handler.method("Execute", &CPhpDb::Execute, {
-			Php::ByVal("sql", Php::Type::String),
+			Php::ByVal("sql", Php::Type::Null), //string or array of parameter data
 			Php::ByVal(PHP_SENDREQUEST_SYNC, Php::Type::Null)
 		});
 		handler.method("BeginTrans", &CPhpDb::BeginTrans, {
@@ -189,7 +189,7 @@ namespace PA {
 			}
 		}
 		else {
-			throw Php::Exception("An array of parameter data expected");
+			throw Php::Exception("A SQL statement or an array of parameter data expected");
 		}
 		unsigned int timeout = m_db->GetAttachedClientSocket()->GetRecvTimeout();
 		bool sync = false;
@@ -253,18 +253,10 @@ namespace PA {
 				throw Php::Exception("A callback required for Execute row event");
 			}
 		}
-		CDBHandler::DRows r = [phpRow, this](CDBHandler &db, SPA::UDB::CDBVariantArray &vData) {
+		CDBHandler::DRows r = [phpRow, this](CDBHandler &db, Php::Array &vData) {
 			if (phpRow.isCallable()) {
-				int index = 0;
-				CPhpBuffer buff;
-				Php::Array v;
-				for (auto &d : vData) {
-					*buff.GetBuffer() << d;
-					v.set(index, buff.LoadObject());
-					++index;
-				}
 				Php::Object obj((SPA_CS_NS + PHP_DB_HANDLER).c_str(), new CPhpDb(this->GetPoolId(), &db, false));
-				phpRow(v, db.IsProc(), obj);
+				phpRow(vData, db.IsProc(), obj);
 			}
 		};
 		Php::Value phpRh;
