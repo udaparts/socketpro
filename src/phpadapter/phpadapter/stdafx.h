@@ -41,14 +41,6 @@ namespace PA {
 		Master = 2
 	};
 
-	enum tagRequestReturnStatus {
-		rrsServerException = -3,
-		rrsCanceled = -2,
-		rrsTimeout = -1,
-		rrsClosed = 0,
-		rrsOk = 1,
-	};
-
 	extern const int64_t PHP_ADAPTER_SECRET;
 	extern const char *PHP_BUFFER;
 	extern const char *PHP_CONN_CONTEXT;

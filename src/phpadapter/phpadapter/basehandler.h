@@ -48,10 +48,26 @@ namespace PA {
 		Php::Value AbortBatching();
 		Php::Value CleanCallbacks(Php::Parameters &params);
 
+		SPA::ClientSide::CAsyncServiceHandler::DDiscarded SetAbortCallback(const Php::Value& phpCanceled, unsigned short reqId, bool sync);
+		void ReqSyncEnd(bool ok, std::unique_lock<std::mutex> &lk, unsigned int timeout);
+
 	private:
+		enum tagRequestReturnStatus {
+			rrsServerException = -3,
+			rrsCanceled = -2,
+			rrsTimeout = -1,
+			rrsClosed = 0,
+			rrsOk = 1,
+		};
+
 		bool m_locked;
 		SPA::ClientSide::CAsyncServiceHandler *m_h;
 		unsigned int m_PoolId;
+		tagRequestReturnStatus m_rrs;
+		
+	public:
+		std::mutex m_mPhp;
+		std::condition_variable m_cvPhp;
 	};
 }
 

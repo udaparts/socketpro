@@ -521,10 +521,6 @@ namespace SPA {
             typedef std::function<void(CAsyncServiceHandler *ash, unsigned short requestId, const wchar_t *errMessage, const char* errWhere, unsigned int errCode) > DServerException;
             typedef std::function<void(CAsyncServiceHandler *ash, bool canceled) > DDiscarded;
 
-#ifdef PHP_ADAPTER_PROJECT
-            std::mutex m_mPhp;
-            std::condition_variable m_cvPhp;
-#endif
         protected:
             CAsyncServiceHandler(unsigned int nServiceId, CClientSocket *cs);
 

@@ -29,7 +29,14 @@ namespace PA {
 		Php::Value BeginTrans(Php::Parameters &params);
 		Php::Value EndTrans(Php::Parameters &params);
 
+		CDBHandler::DResult SetResCallback(const Php::Value &phpRes, std::shared_ptr<Php::Value> &pV, unsigned int &timeout);
+		CDBHandler::DExecuteResult SetExeResCallback(const Php::Value &phpRes, std::shared_ptr<Php::Value> &pV, unsigned int &timeout);
+		CDBHandler::DRows SetRCallback(const Php::Value &phpRow);
+		CDBHandler::DRowsetHeader SetRHCallback(const Php::Value &phpRh, bool batch = false);
+		void GetParams(const Php::Value &vP, SPA::UDB::CDBVariantArray &vParam);
+
 		static SPA::UDB::CParameterInfoArray ConvertFrom(Php::Value vP);
+		
 		static const char *PHP_DB_AFFECTED;
 		static const char *PHP_DB_FAILS;
 		static const char *PHP_DB_OKS;

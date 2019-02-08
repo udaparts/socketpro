@@ -23,29 +23,13 @@ namespace PA {
 		cs.add(handler);
 	}
 
-	Php::Value CPhpFile::Download(Php::Parameters &params) {
-		std::string local = params[0].stringValue();
-		Trim(local);
-		if (!local.size()) {
-			throw Php::Exception("Local file path can not be empty");
-		}
-		std::string remote = params[1].stringValue();
-		Trim(remote);
-		if (!remote.size()) {
-			throw Php::Exception("remote file path can not be empty");
-		}
-		std::wstring localFile = SPA::Utilities::ToWide(local.c_str(), local.size());
-		std::wstring remoteFile = SPA::Utilities::ToWide(remote.c_str(), remote.size());
-	
-		unsigned int timeout = (~0);
+	CAsyncFile::DDownload CPhpFile::SetResCallback(Php::Value phpDl, std::shared_ptr<Php::Value> &pV, unsigned int &timeout) {
+		assert(pV);
+		timeout = (~0);
 		bool sync = false;
-		Php::Value phpDl = params[2];
 		if (phpDl.isNumeric()) {
 			sync = true;
-			unsigned int t = (unsigned int)phpDl.numericValue();
-			if (t < timeout) {
-				timeout = t;
-			}
+			timeout = (unsigned int)phpDl.numericValue();
 		}
 		else if (phpDl.isBool()) {
 			sync = phpDl.boolValue();
@@ -53,20 +37,22 @@ namespace PA {
 		else if (phpDl.isNull()) {
 		}
 		else if (!phpDl.isCallable()) {
-			throw Php::Exception("A callback required for download final result");
+			throw Php::Exception("A callback required for file exchange final result");
 		}
-		std::shared_ptr<Php::Value> pV;
 		if (sync) {
 			pV.reset(new Php::Value);
 		}
-		SPA::ClientSide::CStreamingFile::DDownload Dl = [sync, phpDl, pV, this](SPA::ClientSide::CStreamingFile *file, int res, const std::wstring& errMsg) {
-			if (sync) {
+		else {
+			pV.reset();
+		}
+		CAsyncFile::DDownload Dl = [phpDl, pV, this](SPA::ClientSide::CStreamingFile *file, int res, const std::wstring& errMsg) {
+			if (pV) {
 				pV->set(PHP_ERR_CODE, res);
 				std::string em = SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size());
 				Trim(em);
 				pV->set(PHP_ERR_MSG, em);
-				std::unique_lock<std::mutex> lk(this->m_sh->m_mPhp);
-				this->m_sh->m_cvPhp.notify_all();
+				std::unique_lock<std::mutex> lk(this->m_mPhp);
+				this->m_cvPhp.notify_all();
 			}
 			else if (phpDl.isCallable()) {
 				std::string em = SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size());
@@ -77,43 +63,46 @@ namespace PA {
 				phpDl(v);
 			}
 		};
+		return Dl;
+	}
+
+	void CPhpFile::MapFilePaths(Php::Value phpLocal, Php::Value phpRemote, std::wstring &local, std::wstring &remote) {
+		std::string l = phpLocal.stringValue();
+		Trim(l);
+		if (!l.size()) {
+			throw Php::Exception("Local file path can not be empty");
+		}
+		std::string r = phpRemote.stringValue();
+		Trim(r);
+		if (!r.size()) {
+			throw Php::Exception("remote file path can not be empty");
+		}
+		local = SPA::Utilities::ToWide(l.c_str(), l.size());
+		remote = SPA::Utilities::ToWide(r.c_str(), r.size());
+	}
+
+	Php::Value CPhpFile::Download(Php::Parameters &params) {
+		unsigned int timeout;
+		std::wstring local, remote;
+		std::shared_ptr<Php::Value> pV;
+		MapFilePaths(params[0], params[1], local, remote);
+		
+		Php::Value phpDl = params[2];
+		auto Dl = SetResCallback(phpDl, pV, timeout);
 
 		Php::Value phpProgress;
 		size_t args = params.size();
 		if (args > 3) {
 			phpProgress = params[3];
-			if (phpProgress.isNull()) {
-			}
-			else if (!phpProgress.isCallable()) {
-				throw Php::Exception("A callback required for downloading progress");
-			}
 		}
-		SPA::ClientSide::CStreamingFile::DTransferring Progress = [phpProgress](SPA::ClientSide::CStreamingFile *file, SPA::UINT64 downloaded) {
-			if (phpProgress.isCallable()) {
-				phpProgress((int64_t)downloaded, (int64_t)file->GetFileSize());
-			}
-		};
+		auto Progress = SetTransCallback(phpProgress);
 
 		Php::Value phpCanceled;
 		if (args > 4) {
 			phpCanceled = params[4];
-			if (phpCanceled.isNull()) {
-			}
-			else if (!phpCanceled.isCallable()) {
-				throw Php::Exception("A callback required for download aborting event");
-			}
 		}
-		tagRequestReturnStatus rrs = rrsOk;
-		SPA::ClientSide::CAsyncServiceHandler::DDiscarded discarded = [phpCanceled, sync, &rrs, this](SPA::ClientSide::CAsyncServiceHandler *ash, bool canceled) {
-			if (phpCanceled.isCallable()) {
-				phpCanceled(canceled);
-			}
-			if (sync) {
-				std::unique_lock<std::mutex> lk(this->m_sh->m_mPhp);
-				rrs = canceled ? rrsCanceled : rrsClosed;
-				this->m_sh->m_cvPhp.notify_all();
-			}
-		};
+		auto discarded = SetAbortCallback(phpCanceled, SPA::SFile::idDownload, pV ? true : false);
+		
 		unsigned int flags = SPA::SFile::FILE_OPEN_TRUNCACTED;
 		if (args > 5) {
 			Php::Value vF = params[5];
@@ -124,126 +113,48 @@ namespace PA {
 				throw Php::Exception("One or more file writing flags (1=truncated, 2=appended, 4=shared read and 8=shared writing) required");
 			}
 		}
-		if (sync) {
-			std::unique_lock<std::mutex> lk(m_sh->m_mPhp);
-			if (!m_sh->Download(localFile.c_str(), remoteFile.c_str(), Dl, Progress, discarded, flags)) {
-				Unlock();
-				throw Php::Exception(PHP_SOCKET_CLOSED);
-			}
-			Unlock();
-			
-			auto status = m_sh->m_cvPhp.wait_for(lk, std::chrono::milliseconds(timeout));
-			if (status == std::cv_status::timeout) {
-				rrs = rrsTimeout;
-			}
-			switch (rrs) {
-			case rrsServerException:
-				throw Php::Exception(PHP_SERVER_EXCEPTION);
-			case rrsCanceled:
-				throw Php::Exception(PHP_REQUEST_CANCELED);
-			case rrsClosed:
-				throw Php::Exception(PHP_SOCKET_CLOSED);
-			case rrsTimeout:
-				throw Php::Exception(PHP_REQUEST_TIMEOUT);
-			default:
-				break;
-			}
+		if (pV) {
+			std::unique_lock<std::mutex> lk(m_mPhp);
+			ReqSyncEnd(m_sh->Download(local.c_str(), remote.c_str(), Dl, Progress, discarded, flags), lk, timeout);
 			return *pV;
 		}
-		return m_sh->Download(localFile.c_str(), remoteFile.c_str(), Dl, Progress, discarded, flags) ? rrsOk : rrsClosed;
+		return m_sh->Download(local.c_str(), remote.c_str(), Dl, Progress, discarded, flags);
+	}
+
+	CAsyncFile::DTransferring CPhpFile::SetTransCallback(Php::Value phpProgress) {
+		if (phpProgress.isNull()) {
+		}
+		else if (!phpProgress.isCallable()) {
+			throw Php::Exception("A callback required for file exchange progress");
+		}
+		CAsyncFile::DTransferring Progress = [phpProgress](SPA::ClientSide::CStreamingFile *file, SPA::UINT64 uploaded) {
+			if (phpProgress.isCallable()) {
+				phpProgress((int64_t)uploaded, (int64_t)file->GetFileSize());
+			}
+		};
+		return Progress;
 	}
 
 	Php::Value CPhpFile::Upload(Php::Parameters &params) {
-		std::string local = params[0].stringValue();
-		Trim(local);
-		if (!local.size()) {
-			throw Php::Exception("Local file path can not be empty");
-		}
-		std::string remote = params[1].stringValue();
-		Trim(remote);
-		if (!remote.size()) {
-			throw Php::Exception("remote file path can not be empty");
-		}
-		std::wstring localFile = SPA::Utilities::ToWide(local.c_str(), local.size());
-		std::wstring remoteFile = SPA::Utilities::ToWide(remote.c_str(), remote.size());
-
-		unsigned int timeout = (~0);
-		bool sync = false;
-		Php::Value phpUl = params[2];
-		if (phpUl.isNumeric()) {
-			sync = true;
-			unsigned int t = (unsigned int)phpUl.numericValue();
-			if (t < timeout) {
-				timeout = t;
-			}
-		}
-		else if (phpUl.isBool()) {
-			sync = phpUl.boolValue();
-		}
-		else if (phpUl.isNull()) {
-		}
-		else if (!phpUl.isCallable()) {
-			throw Php::Exception("A callback required for upload final result");
-		}
+		unsigned int timeout;
 		std::shared_ptr<Php::Value> pV;
-		if (sync) {
-			pV.reset(new Php::Value);
-		}
-		SPA::ClientSide::CStreamingFile::DUpload Ul = [sync, phpUl, pV, this](SPA::ClientSide::CStreamingFile *file, int res, const std::wstring& errMsg) {
-			if (sync) {
-				pV->set(PHP_ERR_CODE, res);
-				std::string em = SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size());
-				Trim(em);
-				pV->set(PHP_ERR_MSG, em);
-				std::unique_lock<std::mutex> lk(this->m_sh->m_mPhp);
-				this->m_sh->m_cvPhp.notify_all();
-			}
-			else if (phpUl.isCallable()) {
-				std::string em = SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size());
-				Trim(em);
-				Php::Value v;
-				v.set(PHP_ERR_CODE, res);
-				v.set(PHP_ERR_MSG, em);
-				phpUl(v);
-			}
-		};
+		std::wstring local, remote;
+		MapFilePaths(params[0], params[1], local, remote);
+		Php::Value phpUl = params[2];
+		auto Ul = SetResCallback(phpUl, pV, timeout);
 
 		Php::Value phpProgress;
 		size_t args = params.size();
 		if (args > 3) {
 			phpProgress = params[3];
-			if (phpProgress.isNull()) {
-			}
-			else if (!phpProgress.isCallable()) {
-				throw Php::Exception("A callback required for uploading progress");
-			}
 		}
-		SPA::ClientSide::CStreamingFile::DTransferring Progress = [phpProgress](SPA::ClientSide::CStreamingFile *file, SPA::UINT64 downloaded) {
-			if (phpProgress.isCallable()) {
-				phpProgress((int64_t)downloaded, (int64_t)file->GetFileSize());
-			}
-		};
-
+		auto Progress = SetTransCallback(phpProgress);
+		
 		Php::Value phpCanceled;
 		if (args > 4) {
 			phpCanceled = params[4];
-			if (phpCanceled.isNull()) {
-			}
-			else if (!phpCanceled.isCallable()) {
-				throw Php::Exception("A callback required for upload aborting event");
-			}
 		}
-		tagRequestReturnStatus rrs = rrsOk;
-		SPA::ClientSide::CAsyncServiceHandler::DDiscarded discarded = [phpCanceled, sync, &rrs, this](SPA::ClientSide::CAsyncServiceHandler *ash, bool canceled) {
-			if (phpCanceled.isCallable()) {
-				phpCanceled(canceled);
-			}
-			if (sync) {
-				std::unique_lock<std::mutex> lk(this->m_sh->m_mPhp);
-				rrs = canceled ? rrsCanceled : rrsClosed;
-				this->m_sh->m_cvPhp.notify_all();
-			}
-		};
+		auto discarded = SetAbortCallback(phpCanceled, SPA::SFile::idUpload, pV ? true : false);
 		unsigned int flags = SPA::SFile::FILE_OPEN_TRUNCACTED;
 		if (args > 5) {
 			Php::Value vF = params[5];
@@ -254,32 +165,12 @@ namespace PA {
 				throw Php::Exception("One or more file writing flags (1=truncated, 2=appended, 4=shared read and 8=shared writing) required");
 			}
 		}
-		if (sync) {
-			std::unique_lock<std::mutex> lk(m_sh->m_mPhp);
-			if (!m_sh->Upload(localFile.c_str(), remoteFile.c_str(), Ul, Progress, discarded, flags)) {
-				Unlock();
-				throw Php::Exception(PHP_SOCKET_CLOSED);
-			}
-			Unlock();
-			auto status = m_sh->m_cvPhp.wait_for(lk, std::chrono::milliseconds(timeout));
-			if (status == std::cv_status::timeout) {
-				rrs = rrsTimeout;
-			}
-			switch (rrs) {
-			case rrsServerException:
-				throw Php::Exception(PHP_SERVER_EXCEPTION);
-			case rrsCanceled:
-				throw Php::Exception(PHP_REQUEST_CANCELED);
-			case rrsClosed:
-				throw Php::Exception(PHP_SOCKET_CLOSED);
-			case rrsTimeout:
-				throw Php::Exception(PHP_REQUEST_TIMEOUT);
-			default:
-				break;
-			}
+		if (pV) {
+			std::unique_lock<std::mutex> lk(m_mPhp);
+			ReqSyncEnd(m_sh->Upload(local.c_str(), remote.c_str(), Ul, Progress, discarded, flags), lk, timeout);
 			return *pV;
 		}
-		return m_sh->Upload(localFile.c_str(), remoteFile.c_str(), Ul, Progress, discarded, flags) ? rrsOk : rrsClosed;
+		return m_sh->Upload(local.c_str(), remote.c_str(), Ul, Progress, discarded, flags);
 	}
 
 	Php::Value CPhpFile::__get(const Php::Value &name) {
