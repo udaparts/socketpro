@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "phpqueue.h"
+#include "phpbuffer.h"
 
 namespace PA {
 

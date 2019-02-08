@@ -1,6 +1,7 @@
 #ifndef SPA_PHP_DATABASE_H
 #define SPA_PHP_DATABASE_H
 
+#include "phpbuffer.h"
 #include "basehandler.h"
 
 namespace PA {

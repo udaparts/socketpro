@@ -1,7 +1,4 @@
 
-#include "phpbuffer.h"
-#include "phpsocket.h"
-
 #ifndef PHP_SPA_CLIENT_BASE_HANDLER_H
 #define PHP_SPA_CLIENT_BASE_HANDLER_H
 
@@ -51,7 +48,15 @@ namespace PA {
 		SPA::ClientSide::CAsyncServiceHandler::DDiscarded SetAbortCallback(const Php::Value& phpCanceled, unsigned short reqId, bool sync);
 		void ReqSyncEnd(bool ok, std::unique_lock<std::mutex> &lk, unsigned int timeout);
 
+	protected:
+		std::mutex m_mPhp;
+		std::condition_variable m_cvPhp;
+
 	private:
+		bool m_locked;
+		SPA::ClientSide::CAsyncServiceHandler *m_h;
+		unsigned int m_PoolId;
+
 		enum tagRequestReturnStatus {
 			rrsServerException = -3,
 			rrsCanceled = -2,
@@ -59,15 +64,7 @@ namespace PA {
 			rrsClosed = 0,
 			rrsOk = 1,
 		};
-
-		bool m_locked;
-		SPA::ClientSide::CAsyncServiceHandler *m_h;
-		unsigned int m_PoolId;
 		tagRequestReturnStatus m_rrs;
-		
-	public:
-		std::mutex m_mPhp;
-		std::condition_variable m_cvPhp;
 	};
 }
 

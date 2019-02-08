@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "spa_consts.h"
 #include "spa_cs_consts.h"
+#include "phpsocket.h"
 #include "roothandler.h"
 #include "phpfile.h"
 #include "phpdb.h"

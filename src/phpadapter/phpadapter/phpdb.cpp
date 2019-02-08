@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "phpdb.h"
 #include "phpdbcolumninfo.h"
+#include "phpbuffer.h"
 
 namespace PA {
 

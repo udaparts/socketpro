@@ -1,5 +1,7 @@
 #include "stdafx.h"
 #include "basehandler.h"
+#include "phpbuffer.h"
+#include "phpsocket.h"
 
 namespace PA {
 	CPhpBaseHandler::CPhpBaseHandler(bool locked, SPA::ClientSide::CAsyncServiceHandler *h, unsigned int poolId) : m_locked(locked), m_h(h), m_PoolId(poolId) {
