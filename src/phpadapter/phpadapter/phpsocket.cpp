@@ -1,12 +1,11 @@
 #include "stdafx.h"
 #include "phpsocket.h"
 #include "phpcert.h"
+#include "phpclientqueue.h"
+#include "phppush.h"
 
 namespace PA {
 	CPhpSocket::CPhpSocket(CClientSocket *cs) : m_cs(cs) {
-	}
-
-	CPhpSocket::~CPhpSocket() {
 	}
 
 	void CPhpSocket::__construct(Php::Parameters &params) {
@@ -20,7 +19,13 @@ namespace PA {
 	}
 
 	Php::Value CPhpSocket::__get(const Php::Value &name) {
-		if (name == "Error") {
+		if (name == "Push") {
+			return Php::Object((SPA_CS_NS + PHP_PUSH).c_str(), new CPhpPush(m_cs->GetPush()));
+		}
+		else if (name == "ClientQueue") {
+			return Php::Object((SPA_CS_NS + PHP_CLIENTQUEUE).c_str(), new CPhpClientQueue(m_cs->GetClientQueue()));
+		}
+		else if (name == "Error") {
 			auto em = m_cs->GetErrorMsg();
 			Trim(em);
 			Php::Value v;

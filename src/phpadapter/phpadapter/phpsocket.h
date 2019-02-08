@@ -7,7 +7,6 @@ namespace PA {
 	class CPhpSocket : public Php::Base {
 	public:
 		CPhpSocket(CClientSocket *cs);
-		~CPhpSocket();
 
 	public:
 		static void RegisterInto(Php::Namespace &cs);
