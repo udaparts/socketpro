@@ -11,6 +11,8 @@
 #include "phpmanager.h"
 #include "phpdbcolumninfo.h"
 #include "phpdbparaminfo.h"
+#include "phppush.h"
+#include "phpclientqueue.h"
 
 extern "C" {
 	SPA_PHP_EXPORT void *get_module() {
@@ -40,6 +42,8 @@ extern "C" {
 		PA::CPhpManager::RegisterInto(ClientSide);
 		PA::CPhpDBColumnInfo::RegisterInto(ClientSide);
 		PA::CPhpDBParamInfo::RegisterInto(ClientSide);
+		PA::CPhpPush::RegisterInto(ClientSide);
+		PA::CPhpClientQueue::RegisterInto(ClientSide);
 
 		ClientSide.add("GetManager", PA::GetManager);
 		SPA.add(ClientSide);

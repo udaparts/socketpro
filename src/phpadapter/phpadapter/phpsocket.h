@@ -17,6 +17,13 @@ namespace PA {
 		int __compare(const CPhpSocket &socket) const;
 
 	private:
+		void AbortDequeuedMessage();
+		Php::Value Cancel(Php::Parameters &params);
+		Php::Value DoEcho();
+		Php::Value TurnOnZipAtSvr(Php::Parameters &params);
+		Php::Value SetZipLevelAtSvr(Php::Parameters &params);
+		
+	private:
 		CClientSocket *m_cs;
 	};
 

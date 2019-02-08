@@ -19,6 +19,8 @@ namespace PA {
 	const char *PHP_DB_PARAMETER_INFO = "CParamInfo";
 	const char *PHP_CONSTRUCT = "__construct";
 	const char *PHP_MANAGER = "CManager";
+	const char *PHP_PUSH = "CPush";
+	const char *PHP_CLIENTQUEUE = "CClientQueue";
 	const char *PHP_KEY = "key";
 	const char *PHP_TIMEOUT = "timeout";
 	const char *PHP_LEN = "len";

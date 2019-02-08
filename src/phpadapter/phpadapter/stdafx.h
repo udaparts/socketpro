@@ -54,8 +54,10 @@ namespace PA {
 	extern const char *PHP_DB_COLUMN_INFO;
 	extern const char *PHP_DB_PARAMETER_INFO;
 	extern const char *PHP_CONSTRUCT;
+	extern const char *PHP_CLIENTQUEUE;
 	extern const char *PHP_MANAGER;
 	extern const char *PHP_KEY;
+	extern const char *PHP_PUSH;
 	extern const char *PHP_TIMEOUT;
 	extern const char *PHP_LEN;
 	extern const char *PHP_OBJ;

@@ -99,6 +99,12 @@
     <ClInclude Include="phpdbparaminfo.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="phppush.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="phpclientqueue.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -162,6 +168,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="phpdbparaminfo.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="phppush.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="phpclientqueue.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
