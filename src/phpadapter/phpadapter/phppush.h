@@ -16,6 +16,13 @@ namespace PA {
 
 	private:
 		void __construct(Php::Parameters &params);
+		Php::Value Subscribe(Php::Parameters &params);
+		Php::Value Unsubscribe();
+		Php::Value Publish(Php::Parameters &params);
+		Php::Value SendUserMessage(Php::Parameters &params);
+		Php::Value PublishEx(Php::Parameters &params);
+		Php::Value SendUserMessageEx(Php::Parameters &params);
+		static std::vector<unsigned int> ToGroupIds(const Php::Value &v);
 
 	private:
 		CPush &Push;

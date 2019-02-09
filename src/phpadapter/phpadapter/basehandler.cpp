@@ -2,6 +2,8 @@
 #include "basehandler.h"
 #include "phpbuffer.h"
 #include "phpsocket.h"
+#include "phppush.h"
+#include "phpclientqueue.h"
 
 namespace PA {
 	CPhpBaseHandler::CPhpBaseHandler(bool locked, SPA::ClientSide::CAsyncServiceHandler *h, unsigned int poolId) : m_locked(locked), m_h(h), m_PoolId(poolId) {
@@ -192,6 +194,12 @@ namespace PA {
 	Php::Value CPhpBaseHandler::__get(const Php::Value &name) {
 		if (name == "Socket" || name == "ClientSocket" || name == "AttachedClientSocket") {
 			return Php::Object((SPA_CS_NS + PHP_SOCKET).c_str(), new CPhpSocket(m_h->GetAttachedClientSocket()));
+		}
+		else if (name == "Push") {
+			return Php::Object((SPA_CS_NS + PHP_PUSH).c_str(), new CPhpPush(m_h->GetAttachedClientSocket()->GetPush()));
+		}
+		else if (name == "ClientQueue") {
+			return Php::Object((SPA_CS_NS + PHP_CLIENTQUEUE).c_str(), new CPhpClientQueue(m_h->GetAttachedClientSocket()->GetClientQueue()));
 		}
 		else if (name == "Locked") {
 			return m_locked;

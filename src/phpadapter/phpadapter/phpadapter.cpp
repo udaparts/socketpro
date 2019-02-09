@@ -17,7 +17,7 @@
 extern "C" {
 	SPA_PHP_EXPORT void *get_module() {
 		// create static instance of the extension object
-		static Php::Extension extSpaPhp("spaphp", "1.0");
+		static Php::Extension extSpaPhp("spaphp", "1.0.0.1");
 		Php::Namespace SPA("SPA");
 
 		SPA.add(Php::Constant("OperationSystem", SPA::GetOS()));
