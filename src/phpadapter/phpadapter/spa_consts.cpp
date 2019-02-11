@@ -3,18 +3,6 @@
 
 namespace PA {
 
-	void tagZipLevel::__construct(Php::Parameters &params) {
-	}
-
-	void tagZipLevel::RegisterInto(Php::Namespace &spa) {
-		Php::Class<tagZipLevel> reg("ZipLevel");
-		reg.method(PHP_CONSTRUCT, &tagZipLevel::__construct, Php::Private);
-		reg.property("Default", SPA::zlDefault, Php::Const);
-		reg.property("BestSpeed", SPA::zlBestSpeed, Php::Const);
-		reg.property("BestCompression", SPA::zlBestCompression, Php::Const);
-		spa.add(reg);
-	}
-
 	void tagOperationSystem::__construct(Php::Parameters &params) {
 	}
 	void tagOperationSystem::RegisterInto(Php::Namespace &spa) {
@@ -67,6 +55,15 @@ namespace PA {
 		reg.property("idRoutePeerUnavailable", SPA::idRoutePeerUnavailable, Php::Const);
 		reg.property("idReservedOne", SPA::idReservedOne, Php::Const);
 		reg.property("idReservedTwo", SPA::idReservedTwo, Php::Const);
+		
+		//chat
+		reg.property("idEnter", SPA::idEnter, Php::Const);
+		reg.property("idSpeak", SPA::idSpeak, Php::Const);
+		reg.property("idSpeakEx", SPA::idSpeakEx, Php::Const);
+		reg.property("idExit", SPA::idExit, Php::Const);
+		reg.property("idSendUserMessage", SPA::idSendUserMessage, Php::Const);
+		reg.property("idSendUserMessageEx", SPA::idSendUserMessageEx, Php::Const);
+
 		spa.add(reg);
 	}
 
@@ -98,42 +95,11 @@ namespace PA {
 		spa.add(reg);
 	}
 
-	void tagQueueStatus::__construct(Php::Parameters &params) {
-	}
-	void tagQueueStatus::RegisterInto(Php::Namespace &spa) {
-		Php::Class<tagQueueStatus> reg("QueueStatus");
-		reg.method(PHP_CONSTRUCT, &tagQueueStatus::__construct, Php::Private);
-		reg.property("Normal", SPA::qsNormal, Php::Const);
-		reg.property("MergeComplete", SPA::qsMergeComplete, Php::Const);
-		reg.property("MergePushing", SPA::qsMergePushing, Php::Const);
-		reg.property("MergeIncomplete", SPA::qsMergeIncomplete, Php::Const);
-		reg.property("JobIncomplete", SPA::qsJobIncomplete, Php::Const);
-		reg.property("Crash", SPA::qsCrash, Php::Const);
-		reg.property("FileError", SPA::qsFileError, Php::Const);
-		reg.property("BadPassword", SPA::qsBadPassword, Php::Const);
-		reg.property("DuplicateName", SPA::qsDuplicateName, Php::Const);
-		spa.add(reg);
-	}
-
-	void tagOptimistic::__construct(Php::Parameters &params) {
-	}
-	void tagOptimistic::RegisterInto(Php::Namespace &spa) {
-		Php::Class<tagOptimistic> reg("Optimistic");
-		reg.method(PHP_CONSTRUCT, &tagOptimistic::__construct, Php::Private);
-		reg.property("MemoryCached", SPA::oMemoryCached, Php::Const);
-		reg.property("SystemMemoryCached", SPA::oSystemMemoryCached, Php::Const);
-		reg.property("DiskCommitted", SPA::oDiskCommitted, Php::Const);
-		spa.add(reg);
-	}
-
 	void RegisterSpaConstsInto(Php::Namespace &spa) {
-		tagZipLevel::RegisterInto(spa);
 		tagOperationSystem::RegisterInto(spa);
 		tagBaseRequestID::RegisterInto(spa);
 		BaseServiceID::RegisterInto(spa);
 		tagEncryptionMethod::RegisterInto(spa);
-		tagQueueStatus::RegisterInto(spa);
-		tagOptimistic::RegisterInto(spa);
 	}
 
 } //namespace PA

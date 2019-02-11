@@ -13,6 +13,8 @@
 #include "phpdbparaminfo.h"
 #include "phppush.h"
 #include "phpclientqueue.h"
+#include "phptable.h"
+#include "phpdataset.h"
 
 extern "C" {
 	SPA_PHP_EXPORT void *get_module() {
@@ -22,6 +24,9 @@ extern "C" {
 
 		SPA.add(Php::Constant("OperationSystem", SPA::GetOS()));
 		SPA.add(Php::Constant("Endian", SPA::IsBigEndian()));
+
+		PA::CPhpTable::RegisterInto(SPA);
+		PA::CPhpDataSet::RegisterInto(SPA);
 
 		//tag and other const defines
 		PA::RegisterSpaConstsInto(SPA);

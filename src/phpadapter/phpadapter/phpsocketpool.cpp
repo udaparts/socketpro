@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "phpsocketpool.h"
 #include "phpsocket.h"
+#include "phpdataset.h"
 
 namespace PA {
 	CPhpSocketPool::CPhpSocketPool(const CPoolStartContext &psc)
@@ -233,13 +234,18 @@ namespace PA {
 		else if (name == "Started") {
 			return Handler->IsStarted();
 		}
-		else if (name == "Cache" && m_pt == Master) {
+		else if (name == "Cache") {
+			if (m_pt != Master) {
+				throw Php::Exception("Non-master pool doesn't have cache");
+			}
 			switch (m_nSvsId) {
 			case SPA::Mysql::sidMysql:
 			case SPA::Odbc::sidOdbc:
 			case SPA::Sqlite::sidSqlite:
 			{
 				CSQLMaster *master = (CSQLMaster *)Db;
+				Php::Object cache((SPA_NS + PHP_DATASET).c_str(), new CPhpDataSet(master->Cache));
+				return cache;
 			}
 			break;
 			case SPA::sidFile:
@@ -249,6 +255,8 @@ namespace PA {
 			default:
 			{
 				CMasterPool *master = (CMasterPool *)Handler;
+				Php::Object cache((SPA_NS + PHP_DATASET).c_str(), new CPhpDataSet(master->Cache));
+				return cache;
 			}
 			break;
 			}
@@ -283,6 +291,12 @@ namespace PA {
 		Php::Class<CPhpSocketPool> pool(PHP_SOCKET_POOL);
 		pool.property("DEFAULT_RECV_TIMEOUT", (int64_t)SPA::ClientSide::DEFAULT_RECV_TIMEOUT, Php::Const);
 		pool.property("DEFAULT_CONN_TIMEOUT", (int64_t)SPA::ClientSide::DEFAULT_CONN_TIMEOUT, Php::Const);
+
+		//tagPoolType
+		pool.property("Regular", Regular, Php::Const);
+		pool.property("Slave", Slave, Php::Const);
+		pool.property("Master", Master, Php::Const);
+
 		pool.method(PHP_CONSTRUCT, &CPhpSocketPool::__construct, Php::Private);
 		pool.method("Lock", &CPhpSocketPool::Lock, {
 			Php::ByVal(PHP_TIMEOUT, Php::Type::Numeric, false)

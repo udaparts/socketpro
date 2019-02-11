@@ -172,10 +172,6 @@ namespace PA {
 				m_errMsg = "Bad certificate store value";
 				break;
 			}
-			if (!WorkingDir.size()) {
-				m_errMsg = "Bad working directory value";
-				break;
-			}
 			if (m_bQP < 0) {
 				m_errMsg = "Message queue password empty";
 				break;
@@ -213,7 +209,9 @@ namespace PA {
 		doc.AddMember(KEY_CERT_STORE, cs, allocator);
 
 		rapidjson::Value wd;
-		wd.SetString(WorkingDir.c_str(), (rapidjson::SizeType)WorkingDir.size());
+		std::string dir = SPA::ClientSide::CClientSocket::QueueConfigure::GetWorkDirectory();
+		Trim(dir);
+		wd.SetString(dir.c_str(), (rapidjson::SizeType)dir.size());
 		doc.AddMember(KEY_WORKING_DIR, wd, allocator);
 
 		doc.AddMember(KEY_QUEUE_PASSWORD, m_bQP, allocator);
@@ -379,7 +377,7 @@ namespace PA {
 			if (jsFile.back() != SYS_DIR) {
 				jsFile.push_back(SYS_DIR);
 			}
-			Manager.WorkingDir = jsFile;
+			SPA::ClientSide::CClientSocket::QueueConfigure::SetWorkDirectory(jsFile.c_str());
 			jsFile += SP_CONFIG; //assuming sp_config.json inside PHP server directory
 			Manager.m_ConfigPath = jsFile;
 #ifdef WIN32_64
@@ -411,8 +409,9 @@ namespace PA {
 					throw Php::Exception("Bad JSON configuration object");
 				}
 				if (doc.HasMember(KEY_WORKING_DIR) && doc[KEY_WORKING_DIR].IsString()) {
-					Manager.WorkingDir = doc[KEY_WORKING_DIR].GetString();
-					Trim(Manager.WorkingDir);
+					std::string dir = doc[KEY_WORKING_DIR].GetString();
+					Trim(dir);
+					SPA::ClientSide::CClientSocket::QueueConfigure::SetWorkDirectory(dir.c_str());
 				}
 				if (doc.HasMember(KEY_CERT_STORE) && doc[KEY_CERT_STORE].IsString()) {
 					Manager.CertStore = doc[KEY_CERT_STORE].GetString();
@@ -429,9 +428,7 @@ namespace PA {
 						Manager.m_bQP = -1;
 					}
 				}
-				SPA::ClientSide::CClientSocket::QueueConfigure::SetWorkDirectory(Manager.WorkingDir.c_str());
 				SPA::ClientSide::CClientSocket::SSL::SetVerifyLocation(Manager.CertStore.c_str());
-
 				if (doc.HasMember(KEY_HOSTS) && doc[KEY_HOSTS].IsArray()) {
 					auto arr = doc[KEY_HOSTS].GetArray();
 					for (auto &v : arr) {
@@ -501,7 +498,7 @@ namespace PA {
 							psc.PoolType = Master;
 						}
 						else {
-							psc.PoolType = NotMS;
+							psc.PoolType = Regular;
 						}
 						if (ccMain.HasMember(KEY_SVS_ID) && ccMain[KEY_SVS_ID].IsUint()) {
 							psc.SvsId = ccMain[KEY_SVS_ID].GetUint();
@@ -622,7 +619,7 @@ namespace PA {
 				//don't support master/slave at all
 				psc.Slaves.clear();
 				psc.DefaultDb.clear();
-				psc.PoolType = NotMS; //regular socket pool
+				psc.PoolType = Regular; //regular socket pool
 			}
 
 			if (psc.Queue.size() && psc.AutoMerge && ComputeDiff(psc.Hosts) <= 1) {

@@ -39,7 +39,6 @@ namespace PA {
 		SPA::CUCriticalSection m_cs;
 		CPhpManager *m_pManager;
 		std::string m_ConfigPath;
-		std::string WorkingDir;
 		std::string CertStore;
 		CMapHost Hosts;
 		CPoolStartContext::CMapPool Pools;

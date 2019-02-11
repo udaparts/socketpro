@@ -17,6 +17,74 @@ namespace PA {
 	void CPhpDb::RegisterInto(Php::Namespace &cs) {
 		Php::Class<CPhpDb> handler(PHP_DB_HANDLER);
 		Register(handler);
+
+		//database-related request ids
+		handler.property("idOpen", SPA::UDB::idOpen, Php::Const);
+		handler.property("idClose", SPA::UDB::idClose, Php::Const);
+		handler.property("idBeginTrans", SPA::UDB::idBeginTrans, Php::Const);
+		handler.property("idEndTrans", SPA::UDB::idEndTrans, Php::Const);
+		handler.property("idExecute", SPA::UDB::idExecute, Php::Const);
+		handler.property("idPrepare", SPA::UDB::idPrepare, Php::Const);
+		handler.property("idExecuteParameters", SPA::UDB::idExecuteParameters, Php::Const);
+		handler.property("idDBUpdate", SPA::UDB::idDBUpdate, Php::Const);
+		handler.property("idRowsetHeader", SPA::UDB::idRowsetHeader, Php::Const);
+		handler.property("idOutputParameter", SPA::UDB::idOutputParameter, Php::Const);
+		handler.property("idBeginRows", SPA::UDB::idBeginRows, Php::Const);
+		handler.property("idTransferring", SPA::UDB::idTransferring, Php::Const);
+		handler.property("idStartBLOB", SPA::UDB::idStartBLOB, Php::Const);
+		handler.property("idChunk", SPA::UDB::idChunk, Php::Const);
+		handler.property("idEndBLOB", SPA::UDB::idEndBLOB, Php::Const);
+		handler.property("idEndRows", SPA::UDB::idEndRows, Php::Const);
+		handler.property("idCallReturn", SPA::UDB::idCallReturn, Php::Const);
+		handler.property("idGetCachedTables", SPA::UDB::idGetCachedTables, Php::Const);
+		handler.property("idSqlBatchHeader", SPA::UDB::idSqlBatchHeader, Php::Const);
+		handler.property("idExecuteBatch", SPA::UDB::idExecuteBatch, Php::Const);
+		handler.property("idParameterPosition", SPA::UDB::idParameterPosition, Php::Const);
+
+		//tagManagementSystem
+		handler.property("Unknown", SPA::UDB::msUnknown, Php::Const);
+		handler.property("Sqlite", SPA::UDB::msSqlite, Php::Const);
+		handler.property("Mysql", SPA::UDB::msMysql, Php::Const);
+		handler.property("ODBC", SPA::UDB::msODBC, Php::Const);
+		handler.property("MsSQL", SPA::UDB::msMsSQL, Php::Const);
+		handler.property("Oracle", SPA::UDB::msOracle, Php::Const);
+		handler.property("DB2", SPA::UDB::msDB2, Php::Const);
+		handler.property("PostgreSQL", SPA::UDB::msPostgreSQL, Php::Const);
+		handler.property("MongoDB", SPA::UDB::msMongoDB, Php::Const);
+
+		//tagTransactionIsolation
+		handler.property("tiUnspecified", SPA::UDB::tiUnspecified, Php::Const);
+		handler.property("tiChaos", SPA::UDB::tiChaos, Php::Const);
+		handler.property("tiReadUncommited", SPA::UDB::tiReadUncommited, Php::Const);
+		handler.property("tiBrowse", SPA::UDB::tiBrowse, Php::Const);
+		handler.property("tiCursorStability", SPA::UDB::tiCursorStability, Php::Const);
+		handler.property("tiReadCommited", SPA::UDB::tiReadCommited, Php::Const);
+		handler.property("tiRepeatableRead", SPA::UDB::tiRepeatableRead, Php::Const);
+		handler.property("tiSerializable", SPA::UDB::tiSerializable, Php::Const);
+		handler.property("tiIsolated", SPA::UDB::tiIsolated, Php::Const);
+
+		//tagRollbackPlan
+		handler.property("rpDefault", SPA::UDB::rpDefault, Php::Const);
+		handler.property("rpRollbackErrorAny", SPA::UDB::rpRollbackErrorAny, Php::Const);
+		handler.property("rpRollbackErrorLess", SPA::UDB::rpRollbackErrorLess, Php::Const);
+		handler.property("rpRollbackErrorEqual", SPA::UDB::rpRollbackErrorEqual, Php::Const);
+		handler.property("rpRollbackErrorMore", SPA::UDB::rpRollbackErrorMore, Php::Const);
+		handler.property("rpRollbackErrorAll", SPA::UDB::rpRollbackErrorAll, Php::Const);
+		handler.property("rpRollbackAlways", SPA::UDB::rpRollbackAlways, Php::Const);
+
+		//tagUpdateEvent
+		handler.property("ueUnknown", SPA::UDB::ueUnknown, Php::Const);
+		handler.property("ueInsert", SPA::UDB::ueInsert, Php::Const);
+		handler.property("ueUpdate", SPA::UDB::ueUpdate, Php::Const);
+		handler.property("ueDelete", SPA::UDB::ueDelete, Php::Const);
+
+		//tagParameterDirection
+		handler.property("pdUnknown", SPA::UDB::pdUnknown, Php::Const);
+		handler.property("pdInput", SPA::UDB::pdInput, Php::Const);
+		handler.property("pdOutput", SPA::UDB::pdOutput, Php::Const);
+		handler.property("pdInputOutput", SPA::UDB::pdInputOutput, Php::Const);
+		handler.property("pdReturnValue", SPA::UDB::pdReturnValue, Php::Const);
+
 		handler.method("Open", &CPhpDb::Open, {
 			Php::ByVal("conn", Php::Type::String),
 			Php::ByVal(PHP_SENDREQUEST_SYNC, Php::Type::Null)

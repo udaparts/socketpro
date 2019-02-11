@@ -7,11 +7,6 @@ namespace PA {
 		static void RegisterInto(Php::Namespace &cs);
 	};
 
-	struct CPoolType : public Php::Base {
-		void __construct(Php::Parameters &params);
-		static void RegisterInto(Php::Namespace &cs);
-	};
-
 	void RegisterSpaClientConstsInto(Php::Namespace &cs);
 
 } //namespace PA

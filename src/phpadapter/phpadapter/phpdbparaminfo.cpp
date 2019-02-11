@@ -55,11 +55,6 @@ namespace PA {
 			Php::ByVal("scale", Php::Type::Numeric, false),
 			Php::ByVal("name", Php::Type::String, false)
 		});
-		reg.property("Unknown", SPA::UDB::pdUnknown, Php::Const);
-		reg.property("Input", SPA::UDB::pdInput, Php::Const);
-		reg.property("Output", SPA::UDB::pdOutput, Php::Const);
-		reg.property("InputOutput", SPA::UDB::pdInputOutput, Php::Const);
-		reg.property("ReturnValue", SPA::UDB::pdReturnValue, Php::Const);
 		cs.add(reg);
 	}
 

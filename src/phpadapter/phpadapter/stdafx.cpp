@@ -14,6 +14,8 @@ namespace PA {
 	const char *PHP_ASYNC_HANDLER = "CAsyncHandler";
 	const char *PHP_SOCKET_POOL = "CSocketPool";
 	const char *PHP_CERT = "CUCert";
+	const char *PHP_TABLE = "CTable";
+	const char *PHP_DATASET = "CDataSet";
 	const char *PHP_SOCKET = "CClientSocket";
 	const char *PHP_DB_COLUMN_INFO = "CDBColumnInfo";
 	const char *PHP_DB_PARAMETER_INFO = "CParamInfo";

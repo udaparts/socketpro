@@ -86,6 +86,23 @@ namespace PA {
 
 	void CPhpClientQueue::RegisterInto(Php::Namespace &cs) {
 		Php::Class<CPhpClientQueue> cq(PHP_CLIENTQUEUE);
+
+		//tagOptimistic
+		cq.property("MemoryCached", SPA::oMemoryCached, Php::Const);
+		cq.property("SystemMemoryCached", SPA::oSystemMemoryCached, Php::Const);
+		cq.property("DiskCommitted", SPA::oDiskCommitted, Php::Const);
+
+		//tagQueueStatus
+		cq.property("qsNormal", SPA::qsNormal, Php::Const);
+		cq.property("qsMergeComplete", SPA::qsMergeComplete, Php::Const);
+		cq.property("qsMergePushing", SPA::qsMergePushing, Php::Const);
+		cq.property("qsMergeIncomplete", SPA::qsMergeIncomplete, Php::Const);
+		cq.property("qsJobIncomplete", SPA::qsJobIncomplete, Php::Const);
+		cq.property("qsCrash", SPA::qsCrash, Php::Const);
+		cq.property("qsFileError", SPA::qsFileError, Php::Const);
+		cq.property("qsBadPassword", SPA::qsBadPassword, Php::Const);
+		cq.property("qsDuplicateName", SPA::qsDuplicateName, Php::Const);
+
 		cq.method(PHP_CONSTRUCT, &CPhpClientQueue::__construct, Php::Private);
 		cq.method("AbortJob", &CPhpClientQueue::AbortJob);
 		cq.method("EndJob", &CPhpClientQueue::EndJob);

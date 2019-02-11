@@ -36,7 +36,7 @@ namespace PA {
 	void Trim(std::string &str);
 
 	enum tagPoolType {
-		NotMS = 0,
+		Regular = 0,
 		Slave = 1,
 		Master = 2
 	};
@@ -50,6 +50,8 @@ namespace PA {
 	extern const char *PHP_ASYNC_HANDLER;
 	extern const char *PHP_SOCKET_POOL;
 	extern const char *PHP_CERT;
+	extern const char *PHP_TABLE;
+	extern const char *PHP_DATASET;
 	extern const char *PHP_SOCKET;
 	extern const char *PHP_DB_COLUMN_INFO;
 	extern const char *PHP_DB_PARAMETER_INFO;

@@ -7,7 +7,7 @@ namespace PA {
 		: SvsId(0), Threads(1), AutoConn(true), AutoMerge(true),
 		RecvTimeout(SPA::ClientSide::DEFAULT_RECV_TIMEOUT),
 		ConnTimeout(SPA::ClientSide::DEFAULT_CONN_TIMEOUT),
-		PhpHandler(nullptr), PoolType(NotMS), m_errCode(0) {
+		PhpHandler(nullptr), PoolType(Regular), m_errCode(0) {
 	}
 
 	void CPoolStartContext::Clean() {
@@ -58,7 +58,7 @@ namespace PA {
 		case SPA::Sqlite::sidSqlite:
 		case SPA::Mysql::sidMysql:
 			switch (PoolType) {
-			case PA::NotMS:
+			case PA::Regular:
 				PhpDb = new CPhpDbPool(AutoConn, RecvTimeout, ConnTimeout, SvsId);
 				break;
 			case PA::Slave:
@@ -104,7 +104,7 @@ namespace PA {
 			break;
 		default:
 			switch (PoolType) {
-			case PA::NotMS:
+			case PA::Regular:
 				PhpHandler = new CPhpPool(AutoConn, RecvTimeout, ConnTimeout, SvsId);
 				break;
 			case PA::Slave:

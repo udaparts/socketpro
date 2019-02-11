@@ -423,6 +423,27 @@ namespace PA {
 	void CPhpQueue::RegisterInto(Php::Namespace &cs) {
 		Php::Class<CPhpQueue> handler(PHP_QUEUE_HANDLER);
 		Register(handler);
+
+		handler.property("idEnqueue", SPA::Queue::idEnqueue, Php::Const);
+		handler.property("idDequeue", SPA::Queue::idDequeue, Php::Const);
+		handler.property("idStartTrans", SPA::Queue::idStartTrans, Php::Const);
+		handler.property("idEndTrans", SPA::Queue::idEndTrans, Php::Const);
+		handler.property("idFlush", SPA::Queue::idFlush, Php::Const);
+		handler.property("idClose", SPA::Queue::idClose, Php::Const);
+		handler.property("idGetKeys", SPA::Queue::idGetKeys, Php::Const);
+		handler.property("idEnqueueBatch", SPA::Queue::idEnqueueBatch, Php::Const);
+		handler.property("idBatchSizeNotified", SPA::Queue::idBatchSizeNotified, Php::Const);
+
+		handler.property("OK", SPA::Queue::QUEUE_OK, Php::Const);
+		handler.property("TRANS_ALREADY_STARTED", SPA::Queue::QUEUE_TRANS_ALREADY_STARTED, Php::Const);
+		handler.property("TRANS_STARTING_FAILED", SPA::Queue::QUEUE_TRANS_STARTING_FAILED, Php::Const);
+		handler.property("TRANS_NOT_STARTED_YET", SPA::Queue::QUEUE_TRANS_NOT_STARTED_YET, Php::Const);
+		handler.property("TRANS_COMMITTING_FAILED", SPA::Queue::QUEUE_TRANS_COMMITTING_FAILED, Php::Const);
+		handler.property("DEQUEUING", SPA::Queue::QUEUE_DEQUEUING, Php::Const);
+		handler.property("OTHER_WORKING_WITH_SAME_QUEUE", SPA::Queue::QUEUE_OTHER_WORKING_WITH_SAME_QUEUE, Php::Const);
+		handler.property("CLOSE_FAILED", SPA::Queue::QUEUE_CLOSE_FAILED, Php::Const);
+		handler.property("ENQUEUING_FAILED", SPA::Queue::QUEUE_ENQUEUING_FAILED, Php::Const);
+
 		handler.method("Enqueue", &CPhpQueue::Enqueue, {
 			Php::ByVal(PHP_QUEUE_KEY, Php::Type::String),
 			Php::ByVal("idMessage", Php::Type::Numeric),

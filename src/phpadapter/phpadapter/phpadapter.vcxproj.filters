@@ -105,6 +105,12 @@
     <ClInclude Include="phpclientqueue.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="phpdataset.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="phptable.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -174,6 +180,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="phpclientqueue.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="phpdataset.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="phptable.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

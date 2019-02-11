@@ -17,19 +17,7 @@ namespace PA {
 		cs.add(reg);
 	}
 
-	void CPoolType::__construct(Php::Parameters &params) {
-	}
-	void CPoolType::RegisterInto(Php::Namespace &cs) {
-		Php::Class<CPoolType> reg(KEY_POOL_TYPE);
-		reg.method(PHP_CONSTRUCT, &CPoolType::__construct, Php::Private);
-		reg.property("Regular", NotMS, Php::Const);
-		reg.property("Slave", Slave, Php::Const);
-		reg.property("Master", Master, Php::Const);
-		cs.add(reg);
-	}
-
 	void RegisterSpaClientConstsInto(Php::Namespace &cs) {
 		tagConnectionState::RegisterInto(cs);
-		CPoolType::RegisterInto(cs);
 	}
 } //namespace PA

@@ -158,6 +158,12 @@ namespace PA {
 	void CPhpSocket::RegisterInto(Php::Namespace &cs) {
 		Php::Class<CPhpSocket> socket(PHP_SOCKET);
 		socket.property("Version", SPA::ClientSide::ClientCoreLoader.GetUClientSocketVersion(), Php::Const);
+		
+		//tagZipLevel
+		socket.property("zlDefault", SPA::zlDefault, Php::Const);
+		socket.property("zlBestSpeed", SPA::zlBestSpeed, Php::Const);
+		socket.property("zlBestCompression", SPA::zlBestCompression, Php::Const);
+		
 		socket.method(PHP_CONSTRUCT, &CPhpSocket::__construct, Php::Private);
 		socket.method("DoEcho", &CPhpSocket::DoEcho);
 		socket.method("Cancel", &CPhpSocket::Cancel, {

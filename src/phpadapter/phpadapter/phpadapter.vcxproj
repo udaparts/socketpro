@@ -168,6 +168,7 @@
     <ClInclude Include="phpbuffer.h" />
     <ClInclude Include="phpcert.h" />
     <ClInclude Include="phpclientqueue.h" />
+    <ClInclude Include="phpdataset.h" />
     <ClInclude Include="phpdb.h" />
     <ClInclude Include="phpdbcolumninfo.h" />
     <ClInclude Include="phpdbparaminfo.h" />
@@ -177,6 +178,7 @@
     <ClInclude Include="phpqueue.h" />
     <ClInclude Include="phpsocket.h" />
     <ClInclude Include="phpsocketpool.h" />
+    <ClInclude Include="phptable.h" />
     <ClInclude Include="poolstartcontext.h" />
     <ClInclude Include="roothandler.h" />
     <ClInclude Include="spa_consts.h" />
@@ -207,6 +209,7 @@
     <ClCompile Include="phpbuffer.cpp" />
     <ClCompile Include="phpcert.cpp" />
     <ClCompile Include="phpclientqueue.cpp" />
+    <ClCompile Include="phpdataset.cpp" />
     <ClCompile Include="phpdb.cpp" />
     <ClCompile Include="phpdbcolumninfo.cpp" />
     <ClCompile Include="phpdbparaminfo.cpp" />
@@ -216,6 +219,7 @@
     <ClCompile Include="phpqueue.cpp" />
     <ClCompile Include="phpsocket.cpp" />
     <ClCompile Include="phpsocketpool.cpp" />
+    <ClCompile Include="phptable.cpp" />
     <ClCompile Include="poolstartcontext.cpp" />
     <ClCompile Include="roothandler.cpp" />
     <ClCompile Include="spa_consts.cpp" />

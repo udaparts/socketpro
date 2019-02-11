@@ -10,6 +10,19 @@ namespace PA {
 	void CPhpFile::RegisterInto(Php::Namespace &cs) {
 		Php::Class<CPhpFile> handler(PHP_FILE_HANDLER);
 		Register(handler);
+
+		handler.property("idDownload", SPA::SFile::idDownload, Php::Const);
+		handler.property("idStartDownloading", SPA::SFile::idStartDownloading, Php::Const);
+		handler.property("idDownloading", SPA::SFile::idDownloading, Php::Const);
+		handler.property("idUpload", SPA::SFile::idUpload, Php::Const);
+		handler.property("idUploading", SPA::SFile::idUploading, Php::Const);
+		handler.property("idUploadCompleted", SPA::SFile::idUploadCompleted, Php::Const);
+
+		handler.property("TRUNCACTED", (int64_t)SPA::SFile::FILE_OPEN_TRUNCACTED, Php::Const);
+		handler.property("APPENDED", (int64_t)SPA::SFile::FILE_OPEN_APPENDED, Php::Const);
+		handler.property("SHARE_READ", (int64_t)SPA::SFile::FILE_OPEN_SHARE_READ, Php::Const);
+		handler.property("SHARE_WRITE", (int64_t)SPA::SFile::FILE_OPEN_SHARE_WRITE, Php::Const);
+
 		handler.method("Download", &CPhpFile::Download, {
 			Php::ByVal("local", Php::Type::String),
 			Php::ByVal("remote", Php::Type::String),
