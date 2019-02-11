@@ -78,13 +78,6 @@ namespace PA {
 		handler.property("ueUpdate", SPA::UDB::ueUpdate, Php::Const);
 		handler.property("ueDelete", SPA::UDB::ueDelete, Php::Const);
 
-		//tagParameterDirection
-		handler.property("pdUnknown", SPA::UDB::pdUnknown, Php::Const);
-		handler.property("pdInput", SPA::UDB::pdInput, Php::Const);
-		handler.property("pdOutput", SPA::UDB::pdOutput, Php::Const);
-		handler.property("pdInputOutput", SPA::UDB::pdInputOutput, Php::Const);
-		handler.property("pdReturnValue", SPA::UDB::pdReturnValue, Php::Const);
-
 		handler.method("Open", &CPhpDb::Open, {
 			Php::ByVal("conn", Php::Type::String),
 			Php::ByVal(PHP_SENDREQUEST_SYNC, Php::Type::Null)
