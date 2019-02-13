@@ -157,7 +157,6 @@ namespace PA {
 
 	void CPhpSocket::RegisterInto(Php::Namespace &cs) {
 		Php::Class<CPhpSocket> socket(PHP_SOCKET);
-		socket.property("Version", SPA::ClientSide::ClientCoreLoader.GetUClientSocketVersion(), Php::Const);
 		
 		//tagZipLevel
 		socket.property("zlDefault", SPA::zlDefault, Php::Const);

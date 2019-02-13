@@ -314,4 +314,8 @@ namespace PA {
 		return Php::Object((SPA_NS + PHP_BUFFER).c_str(), new CPhpBuffer);
 	}
 
+	Php::Value GetSocketPools() {
+		return (int64_t)SPA::ClientSide::ClientCoreLoader.GetNumberOfSocketPools();
+	}
+
 } //namespace PA

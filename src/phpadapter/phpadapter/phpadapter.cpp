@@ -51,6 +51,8 @@ extern "C" {
 		PA::CPhpClientQueue::RegisterInto(ClientSide);
 
 		ClientSide.add("GetManager", PA::GetManager);
+		ClientSide.add(Php::Constant("Version", SPA::ClientSide::ClientCoreLoader.GetUClientSocketVersion()));
+
 		SPA.add(ClientSide);
 		extSpaPhp.add(SPA);
 		extSpaPhp.add("GetSpManager", PA::GetManager);
@@ -68,6 +70,7 @@ extern "C" {
 			Php::ByVal(PA::PHP_TIMEOUT, Php::Type::Numeric, false)
 		});
 		extSpaPhp.add("SpBuffer", PA::SpBuff);
+		extSpaPhp.add("GetSocketPools", PA::GetSocketPools);
 		return extSpaPhp.module();
 	}
 }
