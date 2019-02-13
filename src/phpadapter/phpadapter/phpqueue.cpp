@@ -374,7 +374,7 @@ namespace PA {
 		const unsigned char *pBuffer = nullptr;
 		Php::Value v;
 		Php::Value &q = params[2];
-		if (q.instanceOf((SPA_NS + PHP_BUFFER).c_str())) {
+		if (q.instanceOf(SPA_NS + PHP_BUFFER)) {
 			v = q.call("PopBytes");
 			pBuffer = (const unsigned char*)v.rawValue();
 			bytes = (unsigned int)v.length();
@@ -409,7 +409,7 @@ namespace PA {
 		const unsigned char *pBuffer = nullptr;
 		Php::Value v;
 		Php::Value &q = params[1];
-		if (q.instanceOf((SPA_NS + PHP_BUFFER).c_str())) {
+		if (q.instanceOf(SPA_NS + PHP_BUFFER)) {
 			v = q.call("PopBytes");
 			pBuffer = (const unsigned char*)v.rawValue();
 			bytes = (unsigned int)v.length();

@@ -37,6 +37,8 @@ namespace SPA {
         void ToUTF8(const wchar_t *str, size_t wchars, CUQueue &q, bool append = false);
         std::wstring ToWide(const char *utf8, size_t chars = (size_t) (~0));
         std::string ToUTF8(const wchar_t *str, size_t wchars = (size_t) (~0));
+        std::string ToUTF8(const std::wstring &s);
+        std::wstring ToWide(const std::string &s);
 #endif
         unsigned int GetLen(const UTF16 *str);
 

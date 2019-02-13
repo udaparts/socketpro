@@ -128,7 +128,7 @@ namespace PA {
 		}
 		SPA::ClientSide::CAsyncServiceHandler::DServerException se = [phpEx, sync, this](SPA::ClientSide::CAsyncServiceHandler *ash, unsigned short reqId, const wchar_t *errMsg, const char *errWhere, unsigned int errCode) {
 			if (phpEx.isCallable()) {
-				phpEx(SPA::Utilities::ToUTF8(errMsg).c_str(), (int64_t)errCode, errWhere, reqId);
+				phpEx(SPA::Utilities::ToUTF8(errMsg), (int64_t)errCode, errWhere, reqId);
 			}
 			if (sync) {
 				std::unique_lock<std::mutex> lk(this->m_mPhp);
@@ -140,7 +140,7 @@ namespace PA {
 		const unsigned char *pBuffer = nullptr;
 		Php::Value v;
 		Php::Value &q = params[1];
-		if (q.instanceOf((SPA_NS + PHP_BUFFER).c_str())) {
+		if (q.instanceOf(SPA_NS + PHP_BUFFER)) {
 			v = q.call("PopBytes");
 			pBuffer = (const unsigned char*)v.rawValue();
 			bytes = (unsigned int)v.length();

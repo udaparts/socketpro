@@ -13,6 +13,28 @@ namespace PA {
 		CPhpDataSet& operator=(const CPhpDataSet &ds) = delete;
 		void __construct(Php::Parameters &params);
 		static void RegisterInto(Php::Namespace &spa);
+		Php::Value __get(const Php::Value &name);
+
+		static void ToArray(const Php::Value &v, std::vector<CComVariant> &vData);
+		static void ToArray(const Php::Value &v, SPA::UDB::CDBVariantArray &vData);
+		static void CheckResult(size_t res);
+
+	private:
+		void AddEmptyRowset(Php::Parameters &params);
+		void AddRows(Php::Parameters &params);
+		Php::Value GetColumMeta(Php::Parameters &params);
+		Php::Value GetRowCount(Php::Parameters &params);
+		Php::Value GetColumnCount(Php::Parameters &params);
+		Php::Value FindKeys(Php::Parameters &params);
+		Php::Value FindOrdinal(Php::Parameters &params);
+		Php::Value UpdateARow(Php::Parameters &params);
+		Php::Value DeleteARow(Php::Parameters &params);
+		Php::Value Between(Php::Parameters &params);
+		Php::Value FindNull(Php::Parameters &params);
+		Php::Value In(Php::Parameters &params);
+		Php::Value NotIn(Php::Parameters &params);
+		Php::Value Find(Php::Parameters &params);
+		void Empty();
 
 	private:
 		SPA::CDataSet &m_ds;

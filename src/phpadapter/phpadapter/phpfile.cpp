@@ -61,14 +61,14 @@ namespace PA {
 		CAsyncFile::DDownload Dl = [phpDl, pV, this](SPA::ClientSide::CStreamingFile *file, int res, const std::wstring& errMsg) {
 			if (pV) {
 				pV->set(PHP_ERR_CODE, res);
-				std::string em = SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size());
+				std::string em = SPA::Utilities::ToUTF8(errMsg);
 				Trim(em);
 				pV->set(PHP_ERR_MSG, em);
 				std::unique_lock<std::mutex> lk(this->m_mPhp);
 				this->m_cvPhp.notify_all();
 			}
 			else if (phpDl.isCallable()) {
-				std::string em = SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size());
+				std::string em = SPA::Utilities::ToUTF8(errMsg);
 				Trim(em);
 				Php::Value v;
 				v.set(PHP_ERR_CODE, res);
@@ -90,8 +90,8 @@ namespace PA {
 		if (!r.size()) {
 			throw Php::Exception("remote file path can not be empty");
 		}
-		local = SPA::Utilities::ToWide(l.c_str(), l.size());
-		remote = SPA::Utilities::ToWide(r.c_str(), r.size());
+		local = SPA::Utilities::ToWide(l);
+		remote = SPA::Utilities::ToWide(r);
 	}
 
 	Php::Value CPhpFile::Download(Php::Parameters &params) {

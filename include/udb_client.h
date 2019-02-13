@@ -8,8 +8,7 @@
 #ifdef PHP_ADAPTER_PROJECT
 
 namespace PA {
-	class CPhpBuffer;
-    void ToVariant(const Php::Value &data, SPA::UDB::CDBVariant &vt, const std::string &id = "");
+    class CPhpBuffer;
 }
 
 #elif defined NODE_JS_ADAPTER_PROJECT
@@ -78,7 +77,7 @@ namespace SPA {
             typedef std::function<void(CAsyncDBHandler &dbHandler) > DRowsetHeader;
 
 #ifdef PHP_ADAPTER_PROJECT
-			typedef std::function<void(CAsyncDBHandler &dbHandler, Php::Array &vData) > DRows;
+            typedef std::function<void(CAsyncDBHandler &dbHandler, Php::Array &vData) > DRows;
 #else
             typedef std::function<void(CAsyncDBHandler &dbHandler, CDBVariantArray &vData) > DRows;
 #endif
@@ -669,7 +668,7 @@ namespace SPA {
             virtual void OnAllProcessed() {
                 CAutoLock al1(m_csDB);
 #ifdef PHP_ADAPTER_PROJECT
-				m_vData = Php::Array();
+                m_vData = Php::Array();
 #else
                 m_vData.clear();
 #endif
@@ -747,7 +746,7 @@ namespace SPA {
                             m_Blob.ReallocBuffer(ONE_MEGA_BYTES);
                         }
 #ifdef PHP_ADAPTER_PROJECT
-						m_vData = Php::Array();
+                        m_vData = Php::Array();
 #else
                         m_vData.clear();
 #endif
@@ -791,9 +790,9 @@ namespace SPA {
                     case idBeginRows:
                         m_Blob.SetSize(0);
 #ifdef PHP_ADAPTER_PROJECT
-						m_vData = Php::Array();
+                        m_vData = Php::Array();
 #else
-						m_vData.clear();
+                        m_vData.clear();
 #endif
                         if (mc.GetSize()) {
                             CAutoLock al(m_csDB);
@@ -805,15 +804,15 @@ namespace SPA {
                             m_csDB.lock();
                             bool Utf8ToW = m_Blob.Utf8ToW();
                             m_csDB.unlock();
-							if (Utf8ToW)
-								mc.Utf8ToW(true);
+                            if (Utf8ToW)
+                                mc.Utf8ToW(true);
 #ifdef PHP_ADAPTER_PROJECT
-							int index = m_vData.length();
-							PA::CPhpBuffer buff(&mc);
-							while (mc.GetSize()) {
-								m_vData.set(index, buff.LoadObject());
-								++index;
-							}
+                            int index = m_vData.length();
+                            PA::CPhpBuffer buff(&mc);
+                            while (mc.GetSize()) {
+                                m_vData.set(index, buff.LoadObject());
+                                ++index;
+                            }
 #else
                             while (mc.GetSize()) {
                                 m_vData.push_back(CDBVariant());
@@ -822,8 +821,8 @@ namespace SPA {
                             }
 #endif
                             assert(mc.GetSize() == 0);
-							if (Utf8ToW) 
-								mc.Utf8ToW(false);
+                            if (Utf8ToW)
+                                mc.Utf8ToW(false);
                         }
                         break;
                     case idOutputParameter:
@@ -835,12 +834,12 @@ namespace SPA {
                             if (Utf8ToW)
                                 mc.Utf8ToW(true);
 #ifdef PHP_ADAPTER_PROJECT
-							int index = m_vData.length();
-							PA::CPhpBuffer buff(&mc);
-							while (mc.GetSize()) {
-								m_vData.set(index, buff.LoadObject());
-								++index;
-							}
+                            int index = m_vData.length();
+                            PA::CPhpBuffer buff(&mc);
+                            while (mc.GetSize()) {
+                                m_vData.set(index, buff.LoadObject());
+                                ++index;
+                            }
 #else
                             CDBVariant vtOne;
                             while (mc.GetSize()) {
@@ -911,7 +910,7 @@ namespace SPA {
                             }
                         }
 #ifdef PHP_ADAPTER_PROJECT
-						m_vData = Php::Array();
+                        m_vData = Php::Array();
 #else
                         m_vData.clear();
 #endif
@@ -944,9 +943,9 @@ namespace SPA {
                                 *len = (m_Blob.GetSize() - sizeof (VARTYPE) - sizeof (unsigned int));
                             }
 #ifdef PHP_ADAPTER_PROJECT
-							int index = m_vData.length();
-							PA::CPhpBuffer buff(&m_Blob);
-							m_vData.set(index, buff.LoadObject());
+                            int index = m_vData.length();
+                            PA::CPhpBuffer buff(&m_Blob);
+                            m_vData.set(index, buff.LoadObject());
 #else
                             m_vData.push_back(CDBVariant());
                             CDBVariant &vt = m_vData.back();
@@ -1006,9 +1005,9 @@ namespace SPA {
                     m_Blob.ReallocBuffer(DEFAULT_BIG_FIELD_CHUNK_SIZE);
                 }
 #ifdef PHP_ADAPTER_PROJECT
-				m_vData = Php::Array();
+                m_vData = Php::Array();
 #else
-				m_vData.clear();
+                m_vData.clear();
 #endif
             }
 
@@ -1028,7 +1027,7 @@ namespace SPA {
             unsigned int m_indexProc;
             CUQueue m_Blob;
 #ifdef PHP_ADAPTER_PROJECT
-			Php::Array m_vData;
+            Php::Array m_vData;
 #else
             CDBVariantArray m_vData;
 #endif

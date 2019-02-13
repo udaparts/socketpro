@@ -228,11 +228,11 @@ namespace PA {
 
 			obj.AddMember(KEY_PORT, ctx.Port, doc.GetAllocator());
 
-			std::string str = SPA::Utilities::ToUTF8(ctx.UserId.c_str(), ctx.UserId.size());
+			std::string str = SPA::Utilities::ToUTF8(ctx.UserId);
 			s.SetString(str.c_str(), (rapidjson::SizeType)str.size(), allocator);
 			obj.AddMember(KEY_USER_ID, s, allocator);
 
-			str = SPA::Utilities::ToUTF8(ctx.Password.c_str(), ctx.Password.size());
+			str = SPA::Utilities::ToUTF8(ctx.Password);
 			s.SetString(str.c_str(), (rapidjson::SizeType)str.size(), allocator);
 			obj.AddMember(KEY_PASSWORD, s, allocator);
 
@@ -451,12 +451,12 @@ namespace PA {
 						if (cc.HasMember(KEY_USER_ID) && cc[KEY_USER_ID].IsString()) {
 							std::string s = cc[KEY_USER_ID].GetString();
 							Trim(s);
-							ctx.UserId = SPA::Utilities::ToWide(s.c_str(), s.size());
+							ctx.UserId = SPA::Utilities::ToWide(s);
 						}
 						if (cc.HasMember(KEY_PASSWORD) && cc[KEY_PASSWORD].IsString()) {
 							std::string s = cc[KEY_PASSWORD].GetString();
 							Trim(s);
-							ctx.Password = SPA::Utilities::ToWide(s.c_str(), s.size());
+							ctx.Password = SPA::Utilities::ToWide(s);
 						}
 						if (cc.HasMember(KEY_ENCRYPTION_METHOD) && cc[KEY_ENCRYPTION_METHOD].IsUint()) {
 							ctx.EncrytionMethod = cc[KEY_ENCRYPTION_METHOD].GetUint() ? SPA::TLSv1 : SPA::NoEncryption;

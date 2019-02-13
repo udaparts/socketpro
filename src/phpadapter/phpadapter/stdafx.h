@@ -66,6 +66,21 @@ namespace PA {
 	extern const char *PHP_SIZE;
 	extern const char *PHP_ERR_CODE;
 	extern const char *PHP_ERR_MSG;
+	extern const char *PHP_DB_NAME;
+	extern const char *PHP_TABLE_NAME;
+	extern const char *PHP_COLUMN_NAME;
+	extern const char *PHP_EMPTY;
+	extern const char *PHP_ORDINAL;
+	extern const char *PHP_DATATYPE;
+	extern const char *PHP_COLUMN_SIZE;
+	extern const char *PHP_COLUMN_FLAGS;
+	extern const char *PHP_COLUMN_PRECSISON;
+	extern const char *PHP_COLUMN_SCALE;
+	extern const char *PHP_COPYDATA;
+	extern const char *PHP_TABLE_OP;
+	extern const char *PHP_VARIANT_V0;
+	extern const char *PHP_VARIANT_V1;
+	extern const char *PHP_VARIANT_V;
 
 	//SendRequest
 	extern const char *PHP_SENDREQUEST;
@@ -91,6 +106,9 @@ namespace PA {
 	Php::Value LockSpHandler(Php::Parameters &params);
 	Php::Value SpBuff(Php::Parameters &params);
 	Php::Value GetSocketPools();
+
+	void ToVariant(const Php::Value &data, CComVariant &vt, const std::string &id = "");
+	void ToVariant(const Php::Value &data, SPA::UDB::CDBVariant &vt, const std::string &id = "");
 
 	typedef SPA::ClientSide::CCachedBaseHandler<0> CAsyncHandler;
 	typedef SPA::ClientSide::CClientSocket CClientSocket;

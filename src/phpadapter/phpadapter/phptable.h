@@ -5,14 +5,25 @@ namespace PA {
 
 	class CPhpTable : public Php::Base {
 	public:
-		CPhpTable(SPA::CTable &table);
+		CPhpTable(std::shared_ptr<SPA::CTable> table);
 
 	public:
 		void __construct(Php::Parameters &params);
 		static void RegisterInto(Php::Namespace &spa);
+		Php::Value __get(const Php::Value &name);
 
 	private:
-		SPA::CTable &m_table;
+		Php::Value FindOrdinal(Php::Parameters &params);
+		Php::Value Between(Php::Parameters &params);
+		Php::Value FindNull(Php::Parameters &params);
+		Php::Value In(Php::Parameters &params);
+		Php::Value NotIn(Php::Parameters &params);
+		Php::Value Find(Php::Parameters &params);
+		Php::Value Sort(Php::Parameters &params);
+		Php::Value Append(Php::Parameters &params);
+
+	private:
+		std::shared_ptr<SPA::CTable> m_table;
 	};
 
 } //namespace PA 

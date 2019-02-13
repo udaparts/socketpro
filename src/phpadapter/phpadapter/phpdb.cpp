@@ -114,7 +114,7 @@ namespace PA {
 		unsigned int timeout;
 		std::string aconn = params[0].stringValue();
 		Trim(aconn);
-		std::wstring conn = SPA::Utilities::ToWide(aconn.c_str(), aconn.size());
+		std::wstring conn = SPA::Utilities::ToWide(aconn);
 		std::shared_ptr<Php::Value> pV;
 		auto Dr = SetResCallback(params[1], pV, timeout);
 		size_t args = params.size();
@@ -165,7 +165,7 @@ namespace PA {
 		CDBHandler::DExecuteResult Dr = [phpDR, pV, this](CDBHandler &db, int res, const std::wstring& errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, SPA::UDB::CDBVariant& vtId) {
 			unsigned int fails = (unsigned int)(fail_ok >> 32);
 			unsigned int oks = (unsigned int)fail_ok;
-			std::string em = SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size());
+			std::string em = SPA::Utilities::ToUTF8(errMsg);
 			Trim(em);
 			CPhpBuffer buff;
 			*buff.GetBuffer() << vtId;
@@ -233,7 +233,7 @@ namespace PA {
 			if (!asql.size()) {
 				throw Php::Exception("SQL statement cannot be empty");
 			}
-			sql = SPA::Utilities::ToWide(asql.c_str(), asql.size());
+			sql = SPA::Utilities::ToWide(asql);
 		}
 		else {
 			GetParams(params[0], vParam);
@@ -278,7 +278,7 @@ namespace PA {
 				vParam.push_back(std::move(vt));
 			}
 		}
-		else if (vP.instanceOf((SPA_CS_NS + PHP_BUFFER).c_str())) {
+		else if (vP.instanceOf(SPA_CS_NS + PHP_BUFFER)) {
 			Php::Value bytes = vP.call("PopBytes");
 			const char *raw = bytes.rawValue();
 			int len = bytes.length();
@@ -313,7 +313,7 @@ namespace PA {
 		if (!asql.size()) {
 			throw Php::Exception("SQL statement cannot be empty");
 		}
-		std::wstring sql = SPA::Utilities::ToWide(asql.c_str(), asql.size());
+		std::wstring sql = SPA::Utilities::ToWide(asql);
 		
 		SPA::UDB::CDBVariantArray vParam;
 		GetParams(params[2], vParam);
@@ -366,7 +366,7 @@ namespace PA {
 				if (!s.size()) {
 					throw Php::Exception("Delimiter string cannot be empty");
 				}
-				delimiter = SPA::Utilities::ToWide(s.c_str(), s.size());
+				delimiter = SPA::Utilities::ToWide(s);
 			}
 			else if (!params[9].isNull()) {
 				throw Php::Exception("A string required for delimiter");
@@ -396,15 +396,15 @@ namespace PA {
 		int count = vP.length();
 		for (int n = 0; n < count; ++n) {
 			Php::Value vP = vP.get(n);
-			if (vP.instanceOf((SPA_CS_NS + PHP_DB_PARAMETER_INFO).c_str())) {
+			if (vP.instanceOf(SPA_CS_NS + PHP_DB_PARAMETER_INFO)) {
 				SPA::UDB::CParameterInfo pi;
 				pi.Direction = (SPA::UDB::tagParameterDirection)vP.get("Direction").numericValue();
-				pi.DataType = (VARTYPE)vP.get("DataType").numericValue();
-				pi.ColumnSize = (unsigned int)vP.get("ColumnSize").numericValue();
-				pi.Precision = (unsigned char)vP.get("Precision").numericValue();
-				pi.Scale = (unsigned char)vP.get("Scale").numericValue();
+				pi.DataType = (VARTYPE)vP.get(PHP_DATATYPE).numericValue();
+				pi.ColumnSize = (unsigned int)vP.get(PHP_COLUMN_SIZE).numericValue();
+				pi.Precision = (unsigned char)vP.get(PHP_COLUMN_PRECSISON).numericValue();
+				pi.Scale = (unsigned char)vP.get(PHP_COLUMN_SCALE).numericValue();
 				std::string s = vP.get("ParameterName").stringValue();
-				pi.ParameterName = SPA::Utilities::ToWide(s.c_str(), s.size());
+				pi.ParameterName = SPA::Utilities::ToWide(s);
 				vPInfo.push_back(pi);
 			}
 			else {
@@ -421,7 +421,7 @@ namespace PA {
 		if (!asql.size()) {
 			throw Php::Exception("SQL statement cannot be empty");
 		}
-		std::wstring sql = SPA::Utilities::ToWide(asql.c_str(), asql.size());
+		std::wstring sql = SPA::Utilities::ToWide(asql);
 		std::shared_ptr<Php::Value> pV;
 		CDBHandler::DResult Dr = SetResCallback(params[1], pV, timeout);
 		size_t args = params.size();
@@ -472,14 +472,14 @@ namespace PA {
 		CDBHandler::DResult Dr = [phpRes, pV, this](CDBHandler &db, int res, const std::wstring& errMsg) {
 			if (phpRes) {
 				pV->set(PHP_ERR_CODE, res);
-				std::string em = SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size());
+				std::string em = SPA::Utilities::ToUTF8(errMsg);
 				Trim(em);
 				pV->set(PHP_ERR_MSG, em);
 				std::unique_lock<std::mutex> lk(this->m_mPhp);
 				this->m_cvPhp.notify_all();
 			}
 			else if (phpRes.isCallable()) {
-				std::string em = SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size());
+				std::string em = SPA::Utilities::ToUTF8(errMsg);
 				Trim(em);
 				Php::Value v;
 				v.set(PHP_ERR_CODE, res);
@@ -572,14 +572,14 @@ namespace PA {
 			Php::Value dbErr;
 			dbErr.set(PHP_ERR_CODE, m_db->GetLastDBErrorCode());
 			std::wstring wem = m_db->GetLastDBErrorMessage();
-			std::string em = SPA::Utilities::ToUTF8(wem.c_str(), wem.size());
+			std::string em = SPA::Utilities::ToUTF8(wem);
 			Trim(em);
 			dbErr.set(PHP_ERR_MSG, em);
 			return dbErr;
 		}
 		else if (name == "Connection") {
 			std::wstring wc = m_db->GetConnection();
-			std::string ac = SPA::Utilities::ToUTF8(wc.c_str(), wc.size());
+			std::string ac = SPA::Utilities::ToUTF8(wc);
 			Trim(ac);
 			return ac;
 		}

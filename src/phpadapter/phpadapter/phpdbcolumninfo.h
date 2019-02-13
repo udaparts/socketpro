@@ -5,6 +5,7 @@ namespace PA {
 
 	class CPhpDBColumnInfo : public Php::Base {
 	public:
+		CPhpDBColumnInfo();
 		CPhpDBColumnInfo(const SPA::UDB::CDBColumnInfo &ColInfo);
 		CPhpDBColumnInfo(const CPhpDBColumnInfo &ColInfo) = delete;
 

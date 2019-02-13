@@ -956,7 +956,7 @@ namespace PA {
 			Php::ByVal("maxLen", Php::Type::Numeric, false),
 			Php::ByVal("blockSize", Php::Type::Numeric, false)
 		});
-		buffer.method("Empty", &CPhpBuffer::Empty);
+		buffer.method(PHP_EMPTY, &CPhpBuffer::Empty);
 		buffer.method("CleanTrack", &CPhpBuffer::CleanTrack);
 		buffer.method("Discard", &CPhpBuffer::Discard, {
 			Php::ByVal(PHP_LEN, Php::Type::Numeric)

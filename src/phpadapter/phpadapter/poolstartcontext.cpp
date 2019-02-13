@@ -52,7 +52,7 @@ namespace PA {
 
 	std::string CPoolStartContext::StartPool() {
 		assert(!PhpHandler);
-		std::wstring dfltDb = SPA::Utilities::ToWide(DefaultDb.c_str(), DefaultDb.size());
+		std::wstring dfltDb = SPA::Utilities::ToWide(DefaultDb);
 		switch (SvsId) {
 		case SPA::sidODBC:
 		case SPA::Sqlite::sidSqlite:

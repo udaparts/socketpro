@@ -773,6 +773,14 @@ namespace SPA
             return (const char*) sb->GetBuffer();
         }
 
+        std::string ToUTF8(const std::wstring & s) {
+            return ToUTF8(s.c_str(), s.size());
+        }
+
+        std::wstring ToWide(const std::string & s) {
+            return ToWide(s.c_str(), s.size());
+        }
+
         void ToUTF8(const wchar_t *str, size_t len, CUQueue & q, bool append) {
             if (!append) {
                 q.SetSize(0);

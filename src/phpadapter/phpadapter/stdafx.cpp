@@ -30,6 +30,21 @@ namespace PA {
 	const char *PHP_SIZE = "Size";
 	const char *PHP_ERR_CODE = "ec";
 	const char *PHP_ERR_MSG = "em";
+	const char *PHP_DB_NAME = "dbName";
+	const char *PHP_TABLE_NAME = "tableName";
+	const char *PHP_COLUMN_NAME = "colName";
+	const char *PHP_EMPTY = "Empty";
+	const char *PHP_ORDINAL = "ordinal";
+	const char *PHP_DATATYPE = "DataType";
+	const char *PHP_COLUMN_SIZE = "ColumnSize";
+	const char *PHP_COLUMN_FLAGS = "Flags";
+	const char *PHP_COLUMN_PRECSISON = "Precision";
+	const char *PHP_COLUMN_SCALE = "Scale";
+	const char *PHP_COPYDATA = "copyData";
+	const char *PHP_TABLE_OP = "op";
+	const char *PHP_VARIANT_V0 = "v0";
+	const char *PHP_VARIANT_V1 = "v1";
+	const char *PHP_VARIANT_V = "v";
 
 	//SendRequest
 	const char *PHP_SENDREQUEST = "SendRequest";

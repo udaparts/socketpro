@@ -78,7 +78,7 @@ namespace PA {
 		}
 		else if (name == "UID") {
 			auto uid = m_cs->GetUID();
-			return SPA::Utilities::ToUTF8(uid.c_str(), uid.size());
+			return SPA::Utilities::ToUTF8(uid);
 		}
 		else if (name == "RecvTimeout" || name == "ReceivingTimeout") {
 			return (int64_t)m_cs->GetRecvTimeout();

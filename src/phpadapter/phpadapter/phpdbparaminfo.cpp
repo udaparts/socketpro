@@ -13,9 +13,7 @@ namespace PA {
 		}
 		m_pi.Direction = (SPA::UDB::tagParameterDirection)n;
 		n = params[1].numericValue();
-		if ((n > VT_NULL && n <= VT_BSTR) || n == SPA::VT_XML || n == VT_BOOL || n == VT_VARIANT || (n >= VT_DECIMAL && n <= VT_UINT)) {	
-		}
-		else {
+		if (!Supported((VARTYPE)n)) {
 			throw Php::Exception("Bad data type value");
 		}
 		m_pi.DataType = (VARTYPE)n;
@@ -41,8 +39,38 @@ namespace PA {
 		if (args > 5) {
 			std::string s = params[5].stringValue();
 			Trim(s);
-			m_pi.ParameterName = SPA::Utilities::ToWide(s.c_str(), s.size());
+			m_pi.ParameterName = SPA::Utilities::ToWide(s);
 		}
+	}
+
+	bool CPhpDBParamInfo::Supported(VARTYPE vt) {
+		switch (vt) {
+		case VT_I2:
+		case VT_I1:
+		case VT_I4:
+		case VT_I8:
+		case VT_INT:
+		case VT_UI2:
+		case VT_UI1:
+		case VT_UI4:
+		case VT_UI8:
+		case VT_UINT:
+		case VT_R4:
+		case VT_R8:
+		case VT_DATE:
+		case VT_BSTR:
+		case VT_BOOL:
+		case VT_VARIANT:
+		case VT_DECIMAL:
+		case VT_CLSID:
+		case SPA::VT_XML:
+		case (VT_ARRAY|VT_I1):
+		case (VT_ARRAY | VT_UI1):
+			return true;
+		default:
+			break;
+		}
+		return false;
 	}
 
 	void CPhpDBParamInfo::RegisterInto(Php::Namespace &cs) {
@@ -93,16 +121,16 @@ namespace PA {
 		if (name == "Direction") {
 			return m_pi.Direction;
 		}
-		else if (name == "DataType") {
+		else if (name == PHP_DATATYPE) {
 			return m_pi.DataType;
 		}
-		else if (name == "ColumnSize") {
+		else if (name == PHP_COLUMN_SIZE) {
 			return (int64_t)m_pi.ColumnSize;
 		}
-		else if (name == "Precision") {
+		else if (name == PHP_COLUMN_PRECSISON) {
 			return m_pi.Precision;
 		}
-		else if (name == "Scale") {
+		else if (name == PHP_COLUMN_SCALE) {
 			return m_pi.Scale;
 		}
 		else if (name == "Name" || name == "ParameterName") {

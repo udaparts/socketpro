@@ -14,6 +14,7 @@ namespace PA {
 		void __construct(Php::Parameters &params);
 		Php::Value __get(const Php::Value &name);
 		
+		static bool Supported(VARTYPE vt);
 
 	private:
 		SPA::UDB::CParameterInfo m_pi;
