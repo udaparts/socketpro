@@ -13,8 +13,11 @@ namespace PA {
 		void __construct(Php::Parameters &params);
 		static void RegisterInto(Php::Namespace &cs);
 		Php::Value __get(const Php::Value &name);
-		Php::Value Verify();
 		int __compare(const CPhpCert &cert) const;
+		static std::string ToString(const unsigned char *buffer, unsigned int bytes);
+
+	private:
+		Php::Value Verify();
 
 	private:
 		SPA::IUcert *m_cert;

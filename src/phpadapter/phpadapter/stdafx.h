@@ -139,6 +139,7 @@ namespace PA {
 #define KEY_V6					"V6"
 #define KEY_HOST				"Host"
 #define KEY_ANY_DATA			"AnyData"
+#define KEY_KEYS_ALLOWED		"KeysAllowed"
 
 
 #endif

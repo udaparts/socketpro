@@ -246,6 +246,13 @@ namespace PA {
 		}
 		doc.AddMember(KEY_HOSTS, vH, allocator);
 
+		rapidjson::Value vKA(rapidjson::kArrayType);
+		for (auto &ka : m_vKeyAllowed) {
+			rapidjson::Value key(ka.c_str(), (rapidjson::SizeType)ka.size(), allocator);
+			vKA.PushBack(key, allocator);
+		}
+		doc.AddMember(KEY_KEYS_ALLOWED, vKA, allocator);
+
 		rapidjson::Value vP(rapidjson::kArrayType);
 		for (auto &p : Pools) {
 			rapidjson::Value key(p.first.c_str(), (rapidjson::SizeType)p.first.size(), allocator);
@@ -385,7 +392,7 @@ namespace PA {
 #else
 			Manager.CertStore = "./";
 #endif
-		}
+			}
 		else {
 			return Php::Object((SPA_CS_NS + PHP_MANAGER).c_str(), new CPhpManager(&Manager));
 		}
@@ -426,6 +433,18 @@ namespace PA {
 					}
 					else {
 						Manager.m_bQP = -1;
+					}
+				}
+				if (doc.HasMember(KEY_KEYS_ALLOWED) && doc[KEY_KEYS_ALLOWED].IsArray()) {
+					auto arr = doc[KEY_KEYS_ALLOWED].GetArray();
+					for (auto &v : arr) {
+						if (!v.IsString()) {
+							continue;
+						}
+						std::string s = v.GetString();
+						Trim(s);
+						std::transform(s.begin(), s.end(), s.begin(), ::tolower);
+						Manager.m_vKeyAllowed.push_back(s);
 					}
 				}
 				SPA::ClientSide::CClientSocket::SSL::SetVerifyLocation(Manager.CertStore.c_str());
@@ -598,7 +617,7 @@ namespace PA {
 			Manager.SetSettings();
 		}
 		return Php::Object((SPA_CS_NS + PHP_MANAGER).c_str(), new CPhpManager(&Manager));
-	}
+		}
 
 	void CPhpManager::SetErrorMsg(const std::string &em) {
 		m_errMsg = em;
@@ -612,7 +631,7 @@ namespace PA {
 	void CPhpManager::SetSettings() {
 		for (auto &p : Pools) {
 			CPoolStartContext &psc = p.second;
-			
+
 			psc.AutoConn = true; //set autoconn to true for now
 
 			if (psc.SvsId == SPA::sidChat || psc.SvsId == SPA::sidFile) {
@@ -632,7 +651,7 @@ namespace PA {
 				CPoolStartContext &ps = s.second;
 
 				ps.AutoConn = true; //set autoconn to true for now
-				
+
 				if (ps.Queue.size() && ps.AutoMerge && ComputeDiff(ps.Hosts) <= 1) {
 					ps.AutoMerge = false;
 				}
@@ -651,4 +670,4 @@ namespace PA {
 		return vHost.size();
 	}
 
-}
+	}

@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "phpmanager.h"
 #include "phpsocketpool.h"
+#include "phpcert.h"
 
 namespace PA {
 	CPoolStartContext::CPoolStartContext()
@@ -35,19 +36,33 @@ namespace PA {
 	bool CPoolStartContext::DoSSLAuth(CClientSocket *cs) {
 		SPA::IUcert *cert = cs->GetUCert();
 		if (!cert) {
+			assert(false); //shouldn't come here
+			//permission not given
 			return false;
 		}
 		if (!cert->Validity) {
+			m_errCode = -1;
+			m_errMsg = "Invalid certificate found";
+			//permission not given
 			return false;
 		}
 		m_errMsg = cert->Verify(&m_errCode);
 		if (!m_errCode) {
+			//server certificate is authenticated against certificate store and no issue is found
+			//permission given
 			return true;
 		}
-
-		//verify allowed keys
-
-		return false;
+		std::string pk = CPhpCert::ToString(cert->PublicKey, cert->PKSize);
+		const auto &vKA = CPhpManager::Manager.m_vKeyAllowed;
+		//check server certificate public key against an array of allowed public keys
+		if (std::find(vKA.cbegin(), vKA.cend(), pk) == vKA.cend()) {
+			//permission not given
+			return false;
+		}
+		m_errCode = 0;
+		m_errMsg.clear();
+		//permission given
+		return true;
 	}
 
 	std::string CPoolStartContext::StartPool() {

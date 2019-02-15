@@ -21,9 +21,24 @@ namespace PA {
 		int errCode = 0;
 		std::string s = m_cert->Verify(&errCode);
 		Php::Array v;
-		v[0] = errCode;
-		v[1] = s;
+		v.set(PHP_ERR_CODE, errCode);
+		v.set(PHP_ERR_MSG, s);
  		return v;
+	}
+
+	std::string CPhpCert::ToString(const unsigned char *buffer, unsigned int bytes) {
+		std::string s;
+		char str[8] = { 0 };
+		if (!buffer) bytes = 0;
+		for (unsigned int n = 0; n < bytes; ++n) {
+#ifdef WIN32_64
+			sprintf_s(str, "%02x", buffer[n]);
+#else
+			sprintf(str, "%02x", buffer[n]);
+#endif
+			s += str;
+		}
+		return s;
 	}
 
 	Php::Value CPhpCert::__get(const Php::Value &name) {
@@ -52,16 +67,13 @@ namespace PA {
 			return m_cert->SessionInfo;
 		}
 		else if (name == "PK" || name == "PublicKey") {
-			std::string str(m_cert->PublicKey, m_cert->PublicKey + m_cert->PKSize);
-			return str;
+			return ToString(m_cert->PublicKey, m_cert->PKSize);
 		}
 		else if (name == "Alg" || name == "Algorithm") {
-			std::string str(m_cert->Algorithm, m_cert->Algorithm + m_cert->AlgSize);
-			return str;
+			return ToString(m_cert->Algorithm, m_cert->AlgSize);
 		}
 		else if (name == "SN" || name == "SerialNumber") {
-			std::string str(m_cert->SerialNumber, m_cert->SerialNumber + m_cert->SNSize);
-			return str;
+			return ToString(m_cert->SerialNumber, m_cert->SNSize);
 		}
 		return Php::Base::__get(name);
 	}

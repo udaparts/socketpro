@@ -19,10 +19,10 @@ namespace PA {
 	}
 
 	Php::Value CPhpSocket::__get(const Php::Value &name) {
-		if (name == "Push") {
+		if (name == "Push" || name == "Chat" || name == "Publisher") {
 			return Php::Object((SPA_CS_NS + PHP_PUSH).c_str(), new CPhpPush(m_cs->GetPush()));
 		}
-		else if (name == "ClientQueue") {
+		else if (name == "Queue" || name == "ClientQueue") {
 			return Php::Object((SPA_CS_NS + PHP_CLIENTQUEUE).c_str(), new CPhpClientQueue(m_cs->GetClientQueue()));
 		}
 		else if (name == "Error") {
