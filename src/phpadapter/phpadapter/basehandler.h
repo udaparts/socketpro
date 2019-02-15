@@ -16,6 +16,7 @@ namespace PA {
 		Php::Value __get(const Php::Value &name);
 		int __compare(const CPhpBaseHandler &pbh) const;
 		unsigned int GetPoolId() const;
+		void __destruct();
 
 	protected:
 		template <typename T>

@@ -11,6 +11,9 @@ namespace PA {
 	void CPhpDataSet::__construct(Php::Parameters &params) {
 	}
 
+	void CPhpDataSet::__destruct() {
+	}
+
 	void CPhpDataSet::AddEmptyRowset(Php::Parameters &params) {
 		SPA::UDB::CDBColumnInfoArray vCol;
 		Php::Value &meta = params[0];

@@ -13,7 +13,7 @@ namespace PA {
 	public:
 		CPhpBuffer& operator=(const CPhpBuffer &b) = delete;
 		static void RegisterInto(Php::Namespace &spa);
-		void __construct(Php::Parameters &params);
+		void __destruct();
 		int __compare(const CPhpBuffer &b) const;
 		void Empty();
 		void CleanTrack();
@@ -62,6 +62,7 @@ namespace PA {
 		SPA::CUQueue* GetBuffer();
 
 	private:
+		void __construct(Php::Parameters &params);
 		void SaveObject(const Php::Value &param, const std::string &id = "");
 		void SaveString(const Php::Value &param);
 		void SaveDecimal(const Php::Value &param);

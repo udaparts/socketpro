@@ -8,14 +8,11 @@ namespace PA {
 	}
 
 	CPhpManager::~CPhpManager() {
-		if (!m_pManager) {
-			Clean();
-		}
 	}
 
 	void CPhpManager::Clean() {
 		SPA::CAutoLock al(m_cs);
-		for (auto &p : m_pManager->Pools) {
+		for (auto &p : Pools) {
 			p.second.Clean();
 			auto &slaves = p.second.Slaves;
 			for (auto &s : slaves) {
@@ -193,6 +190,10 @@ namespace PA {
 	}
 
 	void CPhpManager::__construct(Php::Parameters &params) {
+
+	}
+
+	void CPhpManager::__destruct() {
 	}
 
 	Php::Value CPhpManager::GetConfig() {
@@ -335,29 +336,45 @@ namespace PA {
 		return Php::Base::__get(name);
 	}
 
-	Php::Value CPhpManager::GetPool(Php::Parameters &params) {
-		size_t args = params.size();
-		std::string key = params[0];
+	Php::Value CPhpManager::GetPool(const Php::Value &vKey, int64_t secret) {
+		std::string key = vKey.stringValue();
+		Php::Value pool;
 		SPA::CAutoLock al(m_cs);
-		for (auto &p : m_pManager->Pools) {
+		for (auto &p : Pools) {
 			auto &slaves = p.second.Slaves;
 			if (p.first == key) {
-				return p.second.GetPool();
+				pool = p.second.GetPool();
+				break;
 			}
 			else if (slaves.size()) {
 				for (auto &s : slaves) {
 					if (s.first == key) {
-						return s.second.GetPool();
+						pool = s.second.GetPool();
 					}
+				}
+				if (!pool.isNull()) {
+					break;
 				}
 			}
 		}
-		m_errMsg = "Pool not found by a key " + key;
-		if (args > 1 && params[1].isNumeric() && params[1].numericValue() == PA::PHP_ADAPTER_SECRET) {
+		if (pool.isObject()) {
+			return pool;
+		}
+		else if (pool.isString()) {
+			m_errMsg = pool.stringValue();
+		}
+		else if (!m_errMsg.size()) {
+			m_errMsg = "Pool not found by a key " + key;
+		}
+		if (secret == PA::PHP_ADAPTER_SECRET) {
 			Manager.m_errMsg = m_errMsg;
 			return nullptr;
 		}
 		throw Php::Exception(m_errMsg);
+	}
+
+	Php::Value CPhpManager::GetPool(Php::Parameters &params) {
+		return GetPool(params[0], 0);
 	}
 
 	void CPhpManager::RegisterInto(Php::Namespace &cs) {

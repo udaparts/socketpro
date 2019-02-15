@@ -16,6 +16,7 @@ namespace PA {
 		static void RegisterInto(Php::Namespace &cs);
 		Php::Value __get(const Php::Value &name);
 		void __set(const Php::Value &name, const Php::Value &value);
+		void __destruct();
 
 	private:
 		void __construct(Php::Parameters &params);

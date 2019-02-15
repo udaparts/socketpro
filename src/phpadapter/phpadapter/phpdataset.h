@@ -11,15 +11,15 @@ namespace PA {
 
 	public:
 		CPhpDataSet& operator=(const CPhpDataSet &ds) = delete;
-		void __construct(Php::Parameters &params);
 		static void RegisterInto(Php::Namespace &spa);
 		Php::Value __get(const Php::Value &name);
-
 		static void ToArray(const Php::Value &v, std::vector<CComVariant> &vData);
 		static void ToArray(const Php::Value &v, SPA::UDB::CDBVariantArray &vData);
 		static void CheckResult(size_t res);
+		void __destruct();
 
 	private:
+		void __construct(Php::Parameters &params);
 		void AddEmptyRowset(Php::Parameters &params);
 		void AddRows(Php::Parameters &params);
 		Php::Value GetColumMeta(Php::Parameters &params);

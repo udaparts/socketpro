@@ -16,10 +16,13 @@ namespace PA {
 		static void RegisterInto(Php::Namespace &cs);
 		Php::Value __get(const Php::Value &name);
 		//void __set(const Php::Value &name, const Php::Value &value);
+		void __destruct();
+		int __compare(const CPhpSocketPool &pool) const;
+
+	private:
 		void __construct(Php::Parameters &params);
 		Php::Value Seek();
 		Php::Value Lock(Php::Parameters &params);
-		int __compare(const CPhpSocketPool &pool) const;
 
 	private:
 		unsigned int m_nSvsId;

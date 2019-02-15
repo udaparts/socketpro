@@ -13,6 +13,7 @@ namespace PA {
 	public:
 		CPhpPush& operator=(const CPhpPush &p) = delete;
 		static void RegisterInto(Php::Namespace &cs);
+		void __destruct();
 
 	private:
 		void __construct(Php::Parameters &params);

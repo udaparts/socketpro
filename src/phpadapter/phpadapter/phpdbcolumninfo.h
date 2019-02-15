@@ -12,8 +12,11 @@ namespace PA {
 	public:
 		CPhpDBColumnInfo& operator=(const CPhpDBColumnInfo &ColInfo) = delete;
 		static void RegisterInto(Php::Namespace &cs);
-		void __construct(Php::Parameters &params);
 		Php::Value __get(const Php::Value &name);
+		void __destruct();
+
+	private:
+		void __construct(Php::Parameters &params);
 
 	private:
 		SPA::UDB::CDBColumnInfo m_ColInfo;

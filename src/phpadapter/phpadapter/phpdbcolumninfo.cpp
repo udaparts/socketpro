@@ -11,6 +11,9 @@ namespace PA {
 	CPhpDBColumnInfo::CPhpDBColumnInfo(const SPA::UDB::CDBColumnInfo &ColInfo) : m_ColInfo(ColInfo) {
 	}
 
+	void CPhpDBColumnInfo::__destruct() {
+	}
+
 	void CPhpDBColumnInfo::__construct(Php::Parameters &params) {
 		m_ColInfo.DBPath = SPA::Utilities::ToWide(params[0].stringValue());
 		m_ColInfo.TablePath = SPA::Utilities::ToWide(params[1].stringValue());

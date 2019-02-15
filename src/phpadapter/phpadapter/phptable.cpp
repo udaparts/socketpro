@@ -12,6 +12,9 @@ namespace PA {
 	void CPhpTable::__construct(Php::Parameters &params) {
 	}
 
+	void CPhpTable::__destruct() {
+	}
+
 	Php::Value CPhpTable::__get(const Php::Value &name) {
 		if (name == "Meta") {
 			int index = 0;

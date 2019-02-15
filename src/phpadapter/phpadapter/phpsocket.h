@@ -10,12 +10,13 @@ namespace PA {
 
 	public:
 		static void RegisterInto(Php::Namespace &cs);
-		void __construct(Php::Parameters &params);
 		Php::Value __get(const Php::Value &name);
 		void __set(const Php::Value &name, const Php::Value &value);
 		int __compare(const CPhpSocket &socket) const;
+		void __destruct();
 
 	private:
+		void __construct(Php::Parameters &params);
 		void AbortDequeuedMessage();
 		Php::Value Cancel(Php::Parameters &params);
 		Php::Value DoEcho();

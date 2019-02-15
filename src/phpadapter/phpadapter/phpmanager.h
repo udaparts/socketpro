@@ -21,10 +21,12 @@ namespace PA {
 		Php::Value __get(const Php::Value &name);
 		CConnectionContext FindByKey(const std::string &key);
 		std::string GetErrorMsg();
-
+		void __destruct();
+		Php::Value GetPool(const Php::Value &key, int64_t secret);
+		
 	private:
-		void SetErrorMsg(const std::string &em);
 		Php::Value GetPool(Php::Parameters &params);
+		void SetErrorMsg(const std::string &em);
 		void __construct(Php::Parameters &params);
 		void CheckError();
 		void Clean();

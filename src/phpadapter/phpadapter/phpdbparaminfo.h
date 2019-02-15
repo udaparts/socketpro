@@ -11,10 +11,12 @@ namespace PA {
 	public:
 		CPhpDBParamInfo& operator=(const CPhpDBParamInfo &pi) = delete;
 		static void RegisterInto(Php::Namespace &cs);
-		void __construct(Php::Parameters &params);
 		Php::Value __get(const Php::Value &name);
-		
+		void __destruct();
 		static bool Supported(VARTYPE vt);
+
+	private:
+		void __construct(Php::Parameters &params);
 
 	private:
 		SPA::UDB::CParameterInfo m_pi;

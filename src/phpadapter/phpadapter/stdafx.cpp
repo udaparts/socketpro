@@ -299,15 +299,16 @@ namespace PA {
 	}
 
 	Php::Value GetSpPool(Php::Parameters &params) {
-		Php::Value manager = CPhpManager::Parse();
-		return manager.call("GetPool", params[0], PHP_ADAPTER_SECRET);
+		CPhpManager::Parse();
+		Php::Value pool = CPhpManager::Manager.GetPool(params[0], PHP_ADAPTER_SECRET);
+		if (pool.type() == Php::Type::Null) {
+			throw Php::Exception(CPhpManager::Manager.GetErrorMsg());
+		}
+		return pool;
 	}
 
 	Php::Value GetSpHandler(Php::Parameters &params) {
 		Php::Value pool = GetSpPool(params);
-		if (pool.type() == Php::Type::Null) {
-			throw Php::Exception(CPhpManager::Manager.GetErrorMsg());
-		}
 		return pool.call("Seek");
 	}
 

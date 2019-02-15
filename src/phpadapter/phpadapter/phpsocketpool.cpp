@@ -9,10 +9,12 @@ namespace PA {
 	}
 
 	CPhpSocketPool::~CPhpSocketPool() {
-
 	}
 
 	void CPhpSocketPool::__construct(Php::Parameters &params) {
+	}
+
+	void CPhpSocketPool::__destruct() {
 	}
 
 	Php::Value CPhpSocketPool::Seek() {

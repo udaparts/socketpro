@@ -16,6 +16,9 @@ namespace PA {
 		}
 	}
 
+	void CPhpBuffer::__destruct() {
+	}
+
 	void CPhpBuffer::Swap(CPhpBuffer *qPhp) {
 		if (qPhp && qPhp->m_pBuffer) {
 			EnsureBuffer();

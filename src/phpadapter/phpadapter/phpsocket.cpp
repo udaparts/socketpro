@@ -11,6 +11,9 @@ namespace PA {
 	void CPhpSocket::__construct(Php::Parameters &params) {
 	}
 
+	void CPhpSocket::__destruct() {
+	}
+
 	int CPhpSocket::__compare(const CPhpSocket &socket) const {
 		if (!m_cs || !socket.m_cs) {
 			return 1;

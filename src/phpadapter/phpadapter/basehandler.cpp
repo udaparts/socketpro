@@ -14,6 +14,9 @@ namespace PA {
 		Unlock();
 	}
 
+	void CPhpBaseHandler::__destruct() {
+	}
+
 	Php::Value CPhpBaseHandler::Unlock() {
 		if (m_locked) {
 			SPA::ClientSide::ClientCoreLoader.UnlockASocket(m_PoolId, m_h->GetAttachedClientSocket()->GetHandle());

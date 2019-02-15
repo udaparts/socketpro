@@ -203,13 +203,13 @@ namespace PA {
 			std::string errMsg = StartPool();
 			if (errMsg.size()) {
 				CPhpManager::Manager.SetErrorMsg(errMsg);
-				throw Php::Exception(errMsg);
+				return errMsg;
 			}
 		}
 		else if (!Queue.size() && PhpHandler->GetConnectedSockets() == 0) {
 			std::string errMsg = "No connection to anyone of remote servers";
 			CPhpManager::Manager.SetErrorMsg(errMsg);
-			throw Php::Exception(errMsg);
+			return errMsg;
 		}
 		return Php::Object((SPA_CS_NS + PHP_SOCKET_POOL).c_str(), new CPhpSocketPool(*this));
 	}

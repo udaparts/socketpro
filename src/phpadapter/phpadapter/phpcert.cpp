@@ -10,6 +10,9 @@ namespace PA {
 	void CPhpCert::__construct(Php::Parameters &params) {
 	}
 
+	void CPhpCert::__destruct() {
+	}
+
 	int CPhpCert::__compare(const CPhpCert &cert) const {
 		if (!m_cert || !cert.m_cert) {
 			return 1;

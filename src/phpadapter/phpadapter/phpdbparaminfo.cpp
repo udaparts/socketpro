@@ -6,6 +6,9 @@ namespace PA {
 	CPhpDBParamInfo::CPhpDBParamInfo() {
 	}
 
+	void CPhpDBParamInfo::__destruct() {
+	}
+
 	void CPhpDBParamInfo::__construct(Php::Parameters &params) {
 		int64_t n = params[0].numericValue();
 		if (n < SPA::UDB::pdInput || n > SPA::UDB::pdReturnValue) {

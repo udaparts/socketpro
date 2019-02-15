@@ -9,6 +9,9 @@ namespace PA {
 	void CPhpPush::__construct(Php::Parameters &params) {
 	}
 
+	void CPhpPush::__destruct() {
+	}
+
 	Php::Value CPhpPush::Subscribe(Php::Parameters &params) {
 		std::vector<unsigned int> vGroup = ToGroupIds(params[0]);
 		return Push.Subscribe(vGroup.data(), (unsigned int)vGroup.size());

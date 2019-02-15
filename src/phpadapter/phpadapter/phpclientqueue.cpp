@@ -9,6 +9,9 @@ namespace PA {
 	void CPhpClientQueue::__construct(Php::Parameters &params) {
 	}
 
+	void CPhpClientQueue::__destruct() {
+	}
+
 	void CPhpClientQueue::__set(const Php::Value &name, const Php::Value &value) {
 		if (name == "Optimistic") {
 			if (!value.isNumeric()) {
