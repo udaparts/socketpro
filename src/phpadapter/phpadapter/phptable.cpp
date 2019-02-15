@@ -40,10 +40,7 @@ namespace PA {
 			return (int64_t)m_table->GetMeta().size();
 		}
 		else if (name == "Rows" || name == "RowCount") {
-			if (!m_table->GetMeta().size()) {
-				return 0;
-			}
-			return (int64_t)(m_table->GetDataMatrix().size()/m_table->GetMeta().size());
+			return (int64_t)m_table->GetDataMatrix().size();
 		}
 		else if (name == "Data" || name == "DataMatrix") {
 			int row = 0;
@@ -125,7 +122,7 @@ namespace PA {
 
 	Php::Value CPhpTable::Append(Php::Parameters &params) {
 		const Php::Value &tbl = params[0];
-		if (!tbl.instanceOf(SPA_CS_NS + PHP_TABLE)) {
+		if (!tbl.instanceOf(SPA_NS + PHP_TABLE)) {
 			throw Php::Exception("A CTable object expected");
 		}
 		SPA::CTable *pTable = (SPA::CTable*)tbl.get("TABLE_POINTER_ADDRESS").numericValue();
@@ -164,7 +161,7 @@ namespace PA {
 		std::shared_ptr<SPA::CTable> pTable(new SPA::CTable);
 		auto res = m_table->Between(ordinal, vt0, vt1, *pTable, copyData);
 		CPhpDataSet::CheckResult((size_t)res);
-		return Php::Object((SPA_CS_NS + PHP_TABLE).c_str(), new CPhpTable(pTable));
+		return Php::Object((SPA_NS + PHP_TABLE).c_str(), new CPhpTable(pTable));
 	}
 
 	Php::Value CPhpTable::FindNull(Php::Parameters &params) {
@@ -176,7 +173,7 @@ namespace PA {
 		std::shared_ptr<SPA::CTable> pTable(new SPA::CTable);
 		auto res = m_table->FindNull(ordinal, *pTable, copyData);
 		CPhpDataSet::CheckResult((size_t)res);
-		return Php::Object((SPA_CS_NS + PHP_TABLE).c_str(), new CPhpTable(pTable));
+		return Php::Object((SPA_NS + PHP_TABLE).c_str(), new CPhpTable(pTable));
 	}
 
 	Php::Value CPhpTable::In(Php::Parameters &params) {
@@ -190,7 +187,7 @@ namespace PA {
 		std::shared_ptr<SPA::CTable> pTable(new SPA::CTable);
 		auto res = m_table->In(ordinal, v, *pTable, copyData);
 		CPhpDataSet::CheckResult((size_t)res);
-		return Php::Object((SPA_CS_NS + PHP_TABLE).c_str(), new CPhpTable(pTable));
+		return Php::Object((SPA_NS + PHP_TABLE).c_str(), new CPhpTable(pTable));
 	}
 
 	Php::Value CPhpTable::NotIn(Php::Parameters &params) {
@@ -204,7 +201,7 @@ namespace PA {
 		std::shared_ptr<SPA::CTable> pTable(new SPA::CTable);
 		auto res = m_table->NotIn(ordinal, v, *pTable, copyData);
 		CPhpDataSet::CheckResult((size_t)res);
-		return Php::Object((SPA_CS_NS + PHP_TABLE).c_str(), new CPhpTable(pTable));
+		return Php::Object((SPA_NS + PHP_TABLE).c_str(), new CPhpTable(pTable));
 	}
 
 	Php::Value CPhpTable::Find(Php::Parameters &params) {
@@ -223,6 +220,6 @@ namespace PA {
 		std::shared_ptr<SPA::CTable> pTable(new SPA::CTable);
 		auto res = m_table->Find(ordinal, op, vt, *pTable, copyData);
 		CPhpDataSet::CheckResult((size_t)res);
-		return Php::Object((SPA_CS_NS + PHP_TABLE).c_str(), new CPhpTable(pTable));
+		return Php::Object((SPA_NS + PHP_TABLE).c_str(), new CPhpTable(pTable));
 	}
 }

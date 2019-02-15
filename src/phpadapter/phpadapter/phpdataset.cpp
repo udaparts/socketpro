@@ -167,7 +167,7 @@ namespace PA {
 		std::shared_ptr<SPA::CTable> pTable(new SPA::CTable);
 		auto res = m_ds.Find(dbName.c_str(), tableName.c_str(), ordinal, op, vt, *pTable);
 		CheckResult((size_t)res);
-		return Php::Object((SPA_CS_NS + PHP_TABLE).c_str(), new CPhpTable(pTable));
+		return Php::Object((SPA_NS + PHP_TABLE).c_str(), new CPhpTable(pTable));
 	}
 
 	Php::Value CPhpDataSet::In(Php::Parameters &params) {
@@ -179,7 +179,7 @@ namespace PA {
 		std::shared_ptr<SPA::CTable> pTable(new SPA::CTable);
 		auto res = m_ds.In(dbName.c_str(), tableName.c_str(), ordinal, v, *pTable);
 		CheckResult((size_t)res);
-		return Php::Object((SPA_CS_NS + PHP_TABLE).c_str(), new CPhpTable(pTable));
+		return Php::Object((SPA_NS + PHP_TABLE).c_str(), new CPhpTable(pTable));
 	}
 
 	Php::Value CPhpDataSet::NotIn(Php::Parameters &params) {
@@ -191,7 +191,7 @@ namespace PA {
 		std::shared_ptr<SPA::CTable> pTable(new SPA::CTable);
 		auto res = m_ds.NotIn(dbName.c_str(), tableName.c_str(), ordinal, v, *pTable);
 		CheckResult((size_t)res);
-		return Php::Object((SPA_CS_NS + PHP_TABLE).c_str(), new CPhpTable(pTable));
+		return Php::Object((SPA_NS + PHP_TABLE).c_str(), new CPhpTable(pTable));
 	}
 
 	Php::Value CPhpDataSet::FindNull(Php::Parameters &params) {
@@ -201,7 +201,7 @@ namespace PA {
 		std::shared_ptr<SPA::CTable> pTable(new SPA::CTable);
 		auto res = m_ds.FindNull(dbName.c_str(), tableName.c_str(), ordinal, *pTable);
 		CheckResult((size_t)res);
-		return Php::Object((SPA_CS_NS + PHP_TABLE).c_str(), new CPhpTable(pTable));
+		return Php::Object((SPA_NS + PHP_TABLE).c_str(), new CPhpTable(pTable));
 	}
 
 	Php::Value CPhpDataSet::Between(Php::Parameters &params) {
@@ -214,7 +214,7 @@ namespace PA {
 		std::shared_ptr<SPA::CTable> pTable(new SPA::CTable);
 		auto res = m_ds.Between(dbName.c_str(), tableName.c_str(), ordinal, vt0, vt1, *pTable);
 		CheckResult((size_t)res);
-		return Php::Object((SPA_CS_NS + PHP_TABLE).c_str(), new CPhpTable(pTable));
+		return Php::Object((SPA_NS + PHP_TABLE).c_str(), new CPhpTable(pTable));
 	}
 
 	Php::Value CPhpDataSet::UpdateARow(Php::Parameters &params) {
@@ -333,11 +333,15 @@ namespace PA {
 	Php::Value CPhpDataSet::__get(const Php::Value &name) {
 		if (name == "DbTable" || name == "DBTablePair") {
 			Php::Value map;
+			int index = 0;
 			auto dt = m_ds.GetDBTablePair();
 			for (auto &p : dt) {
 				std::string key = SPA::Utilities::ToUTF8(p.first);
 				std::string val = SPA::Utilities::ToUTF8(p.second);
-				map.set(key, val);
+				Php::Value v;
+				v.set(key, val);
+				map.set(index, v);
+				++index;
 			}
 			return map;
 		}
