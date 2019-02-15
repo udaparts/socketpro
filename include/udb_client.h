@@ -77,7 +77,7 @@ namespace SPA {
             typedef std::function<void(CAsyncDBHandler &dbHandler) > DRowsetHeader;
 
 #ifdef PHP_ADAPTER_PROJECT
-            typedef std::function<void(CAsyncDBHandler &dbHandler, Php::Array &vData) > DRows;
+            typedef std::function<void(CAsyncDBHandler &dbHandler, Php::Value &vData) > DRows;
 #else
             typedef std::function<void(CAsyncDBHandler &dbHandler, CDBVariantArray &vData) > DRows;
 #endif
@@ -668,7 +668,9 @@ namespace SPA {
             virtual void OnAllProcessed() {
                 CAutoLock al1(m_csDB);
 #ifdef PHP_ADAPTER_PROJECT
-                m_vData = Php::Array();
+				if (m_vData.length()) {
+					m_vData = Php::Array();
+				}
 #else
                 m_vData.clear();
 #endif
@@ -746,7 +748,9 @@ namespace SPA {
                             m_Blob.ReallocBuffer(ONE_MEGA_BYTES);
                         }
 #ifdef PHP_ADAPTER_PROJECT
-                        m_vData = Php::Array();
+						if (m_vData.length()) {
+							m_vData = Php::Array();
+					}
 #else
                         m_vData.clear();
 #endif
@@ -790,7 +794,9 @@ namespace SPA {
                     case idBeginRows:
                         m_Blob.SetSize(0);
 #ifdef PHP_ADAPTER_PROJECT
-                        m_vData = Php::Array();
+						if (m_vData.length()) {
+							m_vData = Php::Array();
+						}
 #else
                         m_vData.clear();
 #endif
@@ -910,7 +916,9 @@ namespace SPA {
                             }
                         }
 #ifdef PHP_ADAPTER_PROJECT
-                        m_vData = Php::Array();
+						if (m_vData.length()) {
+							m_vData = Php::Array();
+						}
 #else
                         m_vData.clear();
 #endif
@@ -1005,7 +1013,9 @@ namespace SPA {
                     m_Blob.ReallocBuffer(DEFAULT_BIG_FIELD_CHUNK_SIZE);
                 }
 #ifdef PHP_ADAPTER_PROJECT
-                m_vData = Php::Array();
+				if (m_vData.length()) {
+					m_vData = Php::Array();
+				}
 #else
                 m_vData.clear();
 #endif
@@ -1027,7 +1037,7 @@ namespace SPA {
             unsigned int m_indexProc;
             CUQueue m_Blob;
 #ifdef PHP_ADAPTER_PROJECT
-            Php::Array m_vData;
+            Php::Value m_vData;
 #else
             CDBVariantArray m_vData;
 #endif

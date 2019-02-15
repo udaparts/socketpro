@@ -191,7 +191,7 @@ namespace SPA {
                 }
             }, 
 #ifdef PHP_ADAPTER_PROJECT
-				[this](CSQLHandler &h, Php::Array & v) {
+				[this](CSQLHandler &h, Php::Value & v) {
 				auto &meta = h.GetColumnInfo();
 				const UDB::CDBColumnInfo &info = meta.front();
 				UDB::CDBVariantArray vData;

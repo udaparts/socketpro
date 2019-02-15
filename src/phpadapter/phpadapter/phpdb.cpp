@@ -199,7 +199,7 @@ namespace PA {
 		else if (!phpRow.isCallable()) {
 			throw Php::Exception("A callback required for row data event");
 		}
-		CDBHandler::DRows r = [phpRow, this](CDBHandler &db, Php::Array &vData) {
+		CDBHandler::DRows r = [phpRow, this](CDBHandler &db, Php::Value &vData) {
 			if (phpRow.isCallable()) {
 				Php::Object obj((SPA_CS_NS + PHP_DB_HANDLER).c_str(), new CPhpDb(this->GetPoolId(), &db, false));
 				phpRow(vData, db.IsProc(), obj);
