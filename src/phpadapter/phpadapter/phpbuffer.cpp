@@ -1061,13 +1061,13 @@ namespace PA {
 		if (name == PHP_SIZE) {
 			return (int64_t)(m_pBuffer->GetSize());
 		}
-		else if (name == "HeadPosition") {
+		else if (name == "Head" || name == "HeadPosition") {
 			return (int64_t)m_pBuffer->GetHeadPosition();
 		}
-		else if (name == "MaxBufferSize") {
+		else if (name== "BufferSize" || name == "MaxSize" || name == "MaxBufferSize") {
 			return (int64_t)m_pBuffer->GetMaxSize();
 		}
-		else if (name == "TailSize") {
+		else if (name == "Tail" || name == "TailSize") {
 			return (int64_t)m_pBuffer->GetTailSize();
 		}
 		else if (name == "OS") {

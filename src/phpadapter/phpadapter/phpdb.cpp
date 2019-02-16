@@ -568,7 +568,7 @@ namespace PA {
 		else if (name == "DBMS" || name == "DBManagementSystem") {
 			return m_db->GetDBManagementSystem();
 		}
-		else if (name == "LastDBError") {
+		else if (name == "Error" || name == "DBError" || name == "LastDBError") {
 			Php::Value dbErr;
 			dbErr.set(PHP_ERR_CODE, m_db->GetLastDBErrorCode());
 			std::wstring wem = m_db->GetLastDBErrorMessage();
@@ -594,7 +594,7 @@ namespace PA {
 			*buff.GetBuffer() << m_db->GetRetValue();
 			return buff.LoadObject();
 		}
-		else if (name == "ColMeta" || name == "ColumnInfo") {
+		else if (name == "Meta" || name == "ColMeta" || name == "ColumnInfo") {
 			int index = 0;
 			auto &cols = m_db->GetColumnInfo();
 			Php::Array vMeta;
