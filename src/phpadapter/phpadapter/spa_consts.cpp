@@ -7,7 +7,7 @@ namespace PA {
 	}
 	void tagOperationSystem::RegisterInto(Php::Namespace &spa) {
 		Php::Class<tagOperationSystem> reg("OperationSystem");
-		reg.method(PHP_CONSTRUCT, &tagOperationSystem::__construct, Php::Private);
+		reg.method<&tagOperationSystem::__construct>(PHP_CONSTRUCT, Php::Private);
 		reg.property("Win", SPA::osWin, Php::Const);
 		reg.property("Apple", SPA::osApple, Php::Const);
 		reg.property("Mac", SPA::osMac, Php::Const);
@@ -24,7 +24,7 @@ namespace PA {
 	}
 	void tagBaseRequestID::RegisterInto(Php::Namespace &spa) {
 		Php::Class<tagBaseRequestID> reg("BaseID");
-		reg.method(PHP_CONSTRUCT, &tagBaseRequestID::__construct, Php::Private);
+		reg.method<&tagBaseRequestID::__construct>(PHP_CONSTRUCT, Php::Private);
 		reg.property("idUnknown", SPA::idUnknown, Php::Const);
 		reg.property("idSwitchTo", SPA::idSwitchTo, Php::Const);
 		reg.property("idRouteeChanged", SPA::idRouteeChanged, Php::Const);
@@ -71,7 +71,7 @@ namespace PA {
 	}
 	void BaseServiceID::RegisterInto(Php::Namespace &spa) {
 		Php::Class<BaseServiceID> reg("SID");
-		reg.method(PHP_CONSTRUCT, &BaseServiceID::__construct, Php::Private);
+		reg.method<&BaseServiceID::__construct>(PHP_CONSTRUCT, Php::Private);
 		reg.property("sidReserved1", SPA::sidReserved1, Php::Const);
 		reg.property("sidStartup", SPA::sidStartup, Php::Const);
 		reg.property("sidChat", SPA::sidChat, Php::Const);
@@ -89,7 +89,7 @@ namespace PA {
 	}
 	void tagEncryptionMethod::RegisterInto(Php::Namespace &spa) {
 		Php::Class<tagEncryptionMethod> reg("EM");
-		reg.method(PHP_CONSTRUCT, &tagEncryptionMethod::__construct, Php::Private);
+		reg.method<&tagEncryptionMethod::__construct>(PHP_CONSTRUCT, Php::Private);
 		reg.property("NoEncryption", SPA::NoEncryption, Php::Const);
 		reg.property("TLSv1", SPA::TLSv1, Php::Const);
 		spa.add(reg);

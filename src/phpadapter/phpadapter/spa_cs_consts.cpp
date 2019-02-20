@@ -7,7 +7,7 @@ namespace PA {
 	}
 	void tagConnectionState::RegisterInto(Php::Namespace &cs) {
 		Php::Class<tagConnectionState> reg("ConnState");
-		reg.method(PHP_CONSTRUCT, &tagConnectionState::__construct, Php::Private);
+		reg.method<&tagConnectionState::__construct>(PHP_CONSTRUCT, Php::Private);
 		reg.property("Closed", SPA::ClientSide::csClosed, Php::Const);
 		reg.property("Connecting", SPA::ClientSide::csConnecting, Php::Const);
 		reg.property("SslShaking", SPA::ClientSide::csSslShaking, Php::Const);

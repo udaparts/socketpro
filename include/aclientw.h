@@ -17,7 +17,7 @@
 #include <cctype>
 #include <mutex>
 #include <condition_variable>
-#include <phpcpp.h>
+#include "../src/phpadapter/PHP-CPP/phpcpp.h"
 #define NO_MIDDLE_TIER
 #define NO_OUTPUT_BINDING
 
