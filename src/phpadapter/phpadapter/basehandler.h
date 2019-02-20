@@ -18,25 +18,10 @@ namespace PA {
 		unsigned int GetPoolId() const;
 		void __destruct();
 
-	protected:
-		template <typename T>
-		static void Register(Php::Class<T> &h) {
-			h.method(PHP_CONSTRUCT, &T::__construct, Php::Private);
-			h.method(PHP_SENDREQUEST, &T::SendRequest, {
-				Php::ByVal(PHP_SENDREQUEST_REQID, Php::Type::Numeric),
-				Php::ByVal(PHP_SENDREQUEST_BUFF, Php::Type::Null),
-				Php::ByVal(PHP_SENDREQUEST_SYNC, Php::Type::Null)
-			});
-			h.method("WaitAll", &T::WaitAll, {
-				Php::ByVal(PHP_TIMEOUT, Php::Type::Numeric, false)
-			});
-			h.method("StartBatching", &T::StartBatching);
-			h.method("AbortBatching", &T::AbortBatching);
-			h.method("CommitBatching", &T::CommitBatching);
-			h.method("Unlock", &T::Unlock);
-			h.method("CleanCallbacks", &T::CleanCallbacks);
-		}
+	public:
+		static void RegisterInto(Php::Class<CPhpBaseHandler> &h, Php::Namespace &cs);
 
+	private:
 		Php::Value Unlock();
 		Php::Value SendRequest(Php::Parameters &params);
 		void __construct(Php::Parameters &params);
@@ -46,6 +31,7 @@ namespace PA {
 		Php::Value AbortBatching();
 		Php::Value CleanCallbacks(Php::Parameters &params);
 
+	protected:
 		SPA::ClientSide::CAsyncServiceHandler::DDiscarded SetAbortCallback(const Php::Value& phpCanceled, unsigned short reqId, bool sync);
 		void ReqSyncEnd(bool ok, std::unique_lock<std::mutex> &lk, unsigned int timeout);
 

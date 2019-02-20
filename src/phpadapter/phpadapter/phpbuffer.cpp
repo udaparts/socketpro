@@ -647,7 +647,7 @@ namespace PA {
 			{
 				auto d = data.vectorValue<Php::Value>();
 				*m_pBuffer << vt << (unsigned int)d.size();
-				for (auto it = d.begin(), end = d.end(); it != end; ++it) {
+				for (auto it = d.cbegin(), end = d.cend(); it != end; ++it) {
 					SaveObject(*it, id);
 				}
 			}
@@ -668,12 +668,9 @@ namespace PA {
 		std::string id;
 		const auto &data = params[0];
 		if (params.size() > 1) {
-			auto h = params[1];
-			if (h.rawValue()) {
-				id = h.rawValue();
-				Trim(id);
-				std::transform(id.begin(), id.end(), id.begin(), ::tolower);
-			}
+			auto id = params[1].stringValue();
+			Trim(id);
+			std::transform(id.begin(), id.end(), id.begin(), ::tolower);
 		}
 		EnsureBuffer();
 		SaveObject(data, id);
@@ -955,103 +952,100 @@ namespace PA {
 		Php::Class<CPhpBuffer> buffer(PHP_BUFFER);
 		buffer.property("DEFAULT_BUFFER_SIZE", (int64_t)SPA::DEFAULT_INITIAL_MEMORY_BUFFER_SIZE, Php::Const);
 		buffer.property("DEFAULT_BLOCK_SIZE", (int64_t)SPA::DEFAULT_MEMORY_BUFFER_BLOCK_SIZE, Php::Const);
-		buffer.method(PHP_CONSTRUCT, &CPhpBuffer::__construct, {
-			Php::ByVal("maxLen", Php::Type::Numeric, false),
-			Php::ByVal("blockSize", Php::Type::Numeric, false)
-		});
-		buffer.method(PHP_EMPTY, &CPhpBuffer::Empty);
-		buffer.method("CleanTrack", &CPhpBuffer::CleanTrack);
-		buffer.method("Discard", &CPhpBuffer::Discard, {
+		buffer.method<&CPhpBuffer::__construct>(PHP_CONSTRUCT);
+		buffer.method<&CPhpBuffer::Empty>(PHP_EMPTY);
+		buffer.method<&CPhpBuffer::CleanTrack>("CleanTrack");
+		buffer.method<&CPhpBuffer::Discard>("Discard", {
 			Php::ByVal(PHP_LEN, Php::Type::Numeric)
-		});
-		buffer.method("SaveDate", &CPhpBuffer::SaveDate, {
+			});
+		buffer.method<&CPhpBuffer::SaveDate>("SaveDate", {
 			Php::ByVal("dt", "DateTime", false, true)
-		});
-		buffer.method("LoadDate", &CPhpBuffer::LoadDate);
-		buffer.method("SaveByte", &CPhpBuffer::SaveByte, {
+			});
+		buffer.method<&CPhpBuffer::LoadDate>("LoadDate");
+		buffer.method<&CPhpBuffer::SaveByte>("SaveByte", {
 			Php::ByVal("b", Php::Type::Numeric)
-		});
-		buffer.method("LoadByte", &CPhpBuffer::LoadByte);
-		buffer.method("SaveAChar", &CPhpBuffer::SaveAChar, {
+			});
+		buffer.method<&CPhpBuffer::LoadByte>("LoadByte");
+		buffer.method<&CPhpBuffer::SaveAChar>("SaveAChar", {
 			Php::ByVal("c", Php::Type::Numeric)
-		});
-		buffer.method("LoadAChar", &CPhpBuffer::LoadAChar);
-		buffer.method("SaveBool", &CPhpBuffer::SaveBool, {
+			});
+		buffer.method<&CPhpBuffer::LoadAChar>("LoadAChar");
+		buffer.method<&CPhpBuffer::SaveBool>("SaveBool", {
 			Php::ByVal("b")
-		});
-		buffer.method("LoadBool", &CPhpBuffer::LoadBool);
-		buffer.method("SaveShort", &CPhpBuffer::SaveShort, {
+			});
+		buffer.method<&CPhpBuffer::LoadBool>("LoadBool");
+		buffer.method<&CPhpBuffer::SaveShort>("SaveShort", {
 			Php::ByVal("s", Php::Type::Numeric)
-		});
-		buffer.method("LoadShort", &CPhpBuffer::LoadShort);
-		buffer.method("SaveInt", &CPhpBuffer::SaveInt, {
+			});
+		buffer.method<&CPhpBuffer::LoadShort>("LoadShort");
+		buffer.method<&CPhpBuffer::SaveInt>("SaveInt", {
 			Php::ByVal("i", Php::Type::Numeric)
-		});
-		buffer.method("LoadInt", &CPhpBuffer::LoadInt);
-		buffer.method("SaveUInt", &CPhpBuffer::SaveUInt, {
+			});
+		buffer.method<&CPhpBuffer::LoadInt>("LoadInt");
+		buffer.method<&CPhpBuffer::SaveUInt>("SaveUInt", {
 			Php::ByVal("ui", Php::Type::Numeric)
-		});
-		buffer.method("LoadUInt", &CPhpBuffer::LoadUInt);
-		buffer.method("SaveUShort", &CPhpBuffer::SaveUShort, {
+			});
+		buffer.method<&CPhpBuffer::LoadUInt>("LoadUInt");
+		buffer.method<&CPhpBuffer::SaveUShort>("SaveUShort", {
 			Php::ByVal("us", Php::Type::Numeric)
-		});
-		buffer.method("LoadUShort", &CPhpBuffer::LoadUShort);
-		buffer.method("SaveLong", &CPhpBuffer::SaveLong, {
+			});
+		buffer.method<&CPhpBuffer::LoadUShort>("LoadUShort");
+		buffer.method<&CPhpBuffer::SaveLong>("SaveLong", {
 			Php::ByVal("l", Php::Type::Numeric)
-		});
-		buffer.method("LoadLong", &CPhpBuffer::LoadLong);
-		buffer.method("SaveULong", &CPhpBuffer::SaveLong, {
+			});
+		buffer.method<&CPhpBuffer::LoadLong>("LoadLong");
+		buffer.method<&CPhpBuffer::SaveLong>("SaveULong", {
 			Php::ByVal("ul", Php::Type::Numeric)
-		});
-		buffer.method("LoadULong", &CPhpBuffer::LoadLong);
-		buffer.method("SaveChar", &CPhpBuffer::SaveUShort, {
+			});
+		buffer.method<&CPhpBuffer::LoadLong>("LoadULong");
+		buffer.method<&CPhpBuffer::SaveUShort>("SaveChar", {
 			Php::ByVal("wc", Php::Type::Numeric)
-		});
-		buffer.method("LoadChar", &CPhpBuffer::LoadUShort);
-		buffer.method("SaveDouble", &CPhpBuffer::SaveDouble, {
+			});
+		buffer.method<&CPhpBuffer::LoadUShort>("LoadChar");
+		buffer.method<&CPhpBuffer::SaveDouble>("SaveDouble", {
 			Php::ByVal("d", Php::Type::Float)
-		});
-		buffer.method("LoadDouble", &CPhpBuffer::LoadDouble);
-		buffer.method("SaveFloat", &CPhpBuffer::SaveFloat, {
+			});
+		buffer.method<&CPhpBuffer::LoadDouble>("LoadDouble");
+		buffer.method<&CPhpBuffer::SaveFloat>("SaveFloat", {
 			Php::ByVal("f", Php::Type::Float)
-		});
-		buffer.method("LoadFloat", &CPhpBuffer::LoadFloat);
-		buffer.method("SaveAString", &CPhpBuffer::SaveAString, {
+			});
+		buffer.method<&CPhpBuffer::LoadFloat>("LoadFloat");
+		buffer.method<&CPhpBuffer::SaveAString>("SaveAString", {
 			Php::ByVal("a", Php::Type::Null) //ASCII string
-		});
-		buffer.method("LoadAString", &CPhpBuffer::LoadAString);
-		buffer.method("SaveString", &CPhpBuffer::SaveString, {
+			});
+		buffer.method<&CPhpBuffer::LoadAString>("LoadAString");
+		buffer.method<&CPhpBuffer::SaveString>("SaveString", {
 			Php::ByVal("w", Php::Type::Null) //UNICODE string
-		});
-		buffer.method("LoadString", &CPhpBuffer::LoadString);
-		buffer.method("SaveDecimal", &CPhpBuffer::SaveDecimal, {
+			});
+		buffer.method<&CPhpBuffer::LoadString>("LoadString");
+		buffer.method<&CPhpBuffer::SaveDecimal>("SaveDecimal", {
 			Php::ByVal("dec", Php::Type::Null)
-		});
-		buffer.method("LoadDecimal", &CPhpBuffer::LoadDecimal);
-		buffer.method("PushBytes", &CPhpBuffer::PushBytes, {
+			});
+		buffer.method<&CPhpBuffer::LoadDecimal>("LoadDecimal");
+		buffer.method<&CPhpBuffer::PushBytes>("PushBytes", {
 			Php::ByVal("bytes", Php::Type::String), //ASCII string
 			Php::ByVal(PHP_LEN, Php::Type::Numeric, false),
 			Php::ByVal("offset", Php::Type::Numeric, false)
-		});
-		buffer.method("PopBytes", &CPhpBuffer::PopBytes, {
+			});
+		buffer.method<&CPhpBuffer::PopBytes>("PopBytes", {
 			Php::ByVal(PHP_LEN, Php::Type::Numeric, false)
-		});
-		buffer.method("SaveUUID", &CPhpBuffer::SaveUUID, {
+			});
+		buffer.method<&CPhpBuffer::SaveUUID>("SaveUUID", {
 			Php::ByVal("uuid", Php::Type::String) //ASCII string
-		});
-		buffer.method("LoadUUID", &CPhpBuffer::LoadUUID);
-		buffer.method("SaveObject", &CPhpBuffer::SaveObject, {
+			});
+		buffer.method<&CPhpBuffer::LoadUUID>("LoadUUID");
+		buffer.method<&CPhpBuffer::SaveObject>("SaveObject", {
 			Php::ByVal(PHP_OBJ, Php::Type::Null, true),
-			Php::ByVal("hint", Php::Type::String, false)
-		});
-		buffer.method("LoadObject", &CPhpBuffer::LoadObject);
-		buffer.method("Save", &CPhpBuffer::Save, {
+			Php::ByVal(PHP_OBJ, Php::Type::String, false)
+			});
+		buffer.method<&CPhpBuffer::LoadObject>("LoadObject");
+		buffer.method<&CPhpBuffer::Save>("Save", {
 			Php::ByVal(PHP_OBJ, Php::Type::Null),
 			Php::ByVal("func", Php::Type::Callable)
-		});
-		buffer.method("Load", &CPhpBuffer::Load, {
+			});
+		buffer.method<&CPhpBuffer::Load>("Load", {
 			Php::ByVal("func", Php::Type::Callable)
-		});
+			});
 
 		spa.add(buffer);
 	}
@@ -1064,7 +1058,7 @@ namespace PA {
 		else if (name == "Head" || name == "HeadPosition") {
 			return (int64_t)m_pBuffer->GetHeadPosition();
 		}
-		else if (name== "BufferSize" || name == "MaxSize" || name == "MaxBufferSize") {
+		else if (name == "BufferSize" || name == "MaxSize" || name == "MaxBufferSize") {
 			return (int64_t)m_pBuffer->GetMaxSize();
 		}
 		else if (name == "Tail" || name == "TailSize") {
@@ -1075,6 +1069,9 @@ namespace PA {
 		}
 		else if (name == "Endian") {
 			return m_pBuffer->GetEndian();
+		}
+		else if (name == PHP_POINTER_ADDRESS) {
+			return (int64_t)m_pBuffer;
 		}
 		return Php::Base::__get(name);
 	}

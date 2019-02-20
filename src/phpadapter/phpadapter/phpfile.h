@@ -15,7 +15,7 @@ namespace PA {
 
 	public:
 		CPhpFile& operator=(const CPhpFile &file) = delete;
-		static void RegisterInto(Php::Namespace &cs);
+		static void RegisterInto(Php::Class<CPhpBaseHandler> &base, Php::Namespace &cs);
 		Php::Value __get(const Php::Value &name);
 
 	private:

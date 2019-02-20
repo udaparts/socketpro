@@ -78,72 +78,72 @@ namespace PA {
 
 	void CPhpDataSet::RegisterInto(Php::Namespace &spa) {
 		Php::Class<CPhpDataSet> ds(PHP_DATASET);
-		ds.method(PHP_CONSTRUCT, &CPhpDataSet::__construct, Php::Private);
-		ds.method(PHP_EMPTY, &CPhpDataSet::Empty);
-		ds.method("AddEmptyRowset", &CPhpDataSet::AddEmptyRowset, {
+		ds.method<&CPhpDataSet::__construct>(PHP_CONSTRUCT, Php::Private);
+		ds.method<&CPhpDataSet::Empty>(PHP_EMPTY);
+		ds.method<&CPhpDataSet::AddEmptyRowset>("AddEmptyRowset", {
 			Php::ByVal("meta", Php::Type::Array)
 		});
-		ds.method("AddRows", &CPhpDataSet::AddRows, {
+		ds.method<&CPhpDataSet::AddRows>("AddRows", {
 			Php::ByVal(PHP_DB_NAME, Php::Type::String),
 			Php::ByVal(PHP_TABLE_NAME, Php::Type::String),
 			Php::ByVal("data", Php::Type::Array)
 		});
-		ds.method("GetColumMeta", &CPhpDataSet::GetColumMeta, {
+		ds.method<&CPhpDataSet::GetColumMeta>("GetColumMeta", {
 			Php::ByVal(PHP_DB_NAME, Php::Type::String),
 			Php::ByVal(PHP_TABLE_NAME, Php::Type::String)
 		});
-		ds.method("GetRowCount", &CPhpDataSet::GetRowCount, {
+		ds.method<&CPhpDataSet::GetRowCount>("GetRowCount", {
 			Php::ByVal(PHP_DB_NAME, Php::Type::String),
 			Php::ByVal(PHP_TABLE_NAME, Php::Type::String)
 		});
-		ds.method("GetColumnCount", &CPhpDataSet::GetColumnCount, {
+		ds.method<&CPhpDataSet::GetColumnCount>("GetColumnCount", {
 			Php::ByVal(PHP_DB_NAME, Php::Type::String),
 			Php::ByVal(PHP_TABLE_NAME, Php::Type::String)
 		});
-		ds.method("FindKeys", &CPhpDataSet::FindKeys, {
+		ds.method<&CPhpDataSet::FindKeys>("FindKeys", {
 			Php::ByVal(PHP_DB_NAME, Php::Type::String),
 			Php::ByVal(PHP_TABLE_NAME, Php::Type::String)
 		});
-		ds.method("FindOrdinal", &CPhpDataSet::FindOrdinal, {
+		ds.method<&CPhpDataSet::FindOrdinal>("FindOrdinal", {
 			Php::ByVal(PHP_DB_NAME, Php::Type::String),
 			Php::ByVal(PHP_TABLE_NAME, Php::Type::String),
 			Php::ByVal(PHP_COLUMN_NAME, Php::Type::String)
 		});
-		ds.method("UpdateARow", &CPhpDataSet::UpdateARow, {
+		ds.method<&CPhpDataSet::UpdateARow>("UpdateARow", {
 			Php::ByVal(PHP_DB_NAME, Php::Type::String),
 			Php::ByVal(PHP_TABLE_NAME, Php::Type::String),
 			Php::ByVal("keys", Php::Type::Null)
 		});
-		ds.method("DeleteARow", &CPhpDataSet::DeleteARow, {
+		ds.method<&CPhpDataSet::DeleteARow>("DeleteARow", {
 			Php::ByVal(PHP_DB_NAME, Php::Type::String),
 			Php::ByVal(PHP_TABLE_NAME, Php::Type::String),
 			Php::ByVal("keys", Php::Type::Null)
 		});
-		ds.method("Between", &CPhpDataSet::Between, {
+		ds.method<&CPhpDataSet::Between>("Between", {
 			Php::ByVal(PHP_DB_NAME, Php::Type::String),
 			Php::ByVal(PHP_TABLE_NAME, Php::Type::String),
 			Php::ByVal(PHP_ORDINAL, Php::Type::Numeric),
 			Php::ByVal(PHP_VARIANT_V0, Php::Type::Null),
 			Php::ByVal(PHP_VARIANT_V1, Php::Type::Null)
 		});
-		ds.method("FindNull", &CPhpDataSet::FindNull, {
+		ds.method<&CPhpDataSet::FindNull>("FindNull", {
 			Php::ByVal(PHP_DB_NAME, Php::Type::String),
 			Php::ByVal(PHP_TABLE_NAME, Php::Type::String),
 			Php::ByVal(PHP_ORDINAL, Php::Type::Numeric)
 		});
-		ds.method("In", &CPhpDataSet::In, {
+		ds.method<&CPhpDataSet::In>("In", {
 			Php::ByVal(PHP_DB_NAME, Php::Type::String),
 			Php::ByVal(PHP_TABLE_NAME, Php::Type::String),
 			Php::ByVal(PHP_ORDINAL, Php::Type::Numeric),
 			Php::ByVal(PHP_VARIANT_V, Php::Type::Null)
 		});
-		ds.method("NotIn", &CPhpDataSet::NotIn, {
+		ds.method<&CPhpDataSet::NotIn>("NotIn", {
 			Php::ByVal(PHP_DB_NAME, Php::Type::String),
 			Php::ByVal(PHP_TABLE_NAME, Php::Type::String),
 			Php::ByVal(PHP_ORDINAL, Php::Type::Numeric),
 			Php::ByVal(PHP_VARIANT_V, Php::Type::Null)
 		});
-		ds.method("Find", &CPhpDataSet::Find, {
+		ds.method<&CPhpDataSet::Find>("Find", {
 			Php::ByVal(PHP_DB_NAME, Php::Type::String),
 			Php::ByVal(PHP_TABLE_NAME, Php::Type::String),
 			Php::ByVal(PHP_ORDINAL, Php::Type::Numeric),

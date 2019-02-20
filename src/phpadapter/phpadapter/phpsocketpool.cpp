@@ -299,11 +299,11 @@ namespace PA {
 		pool.property("Slave", Slave, Php::Const);
 		pool.property("Master", Master, Php::Const);
 
-		pool.method(PHP_CONSTRUCT, &CPhpSocketPool::__construct, Php::Private);
-		pool.method("Lock", &CPhpSocketPool::Lock, {
+		pool.method<&CPhpSocketPool::__construct>(PHP_CONSTRUCT, Php::Private);
+		pool.method<&CPhpSocketPool::Lock>("Lock", {
 			Php::ByVal(PHP_TIMEOUT, Php::Type::Numeric, false)
 		});
-		pool.method("Seek", &CPhpSocketPool::Seek);
+		pool.method<&CPhpSocketPool::Seek>("Seek");
 		cs.add(std::move(pool));
 	}
 }

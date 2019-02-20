@@ -18,7 +18,7 @@ namespace PA {
 
 	public:
 		CPhpDb& operator=(const CPhpDb &db) = delete;
-		static void RegisterInto(Php::Namespace &cs);
+		static void RegisterInto(Php::Class<CPhpBaseHandler> &base, Php::Namespace &cs);
 		Php::Value __get(const Php::Value &name);
 
 	private:

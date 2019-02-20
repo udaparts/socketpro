@@ -41,7 +41,7 @@ namespace PA {
 
 	void CPhpDBColumnInfo::RegisterInto(Php::Namespace &cs) {
 		Php::Class<CPhpDBColumnInfo> reg(PHP_DB_COLUMN_INFO);
-		reg.method(PHP_CONSTRUCT, &CPhpDBColumnInfo::__construct, {
+		reg.method<&CPhpDBColumnInfo::__construct>(PHP_CONSTRUCT, {
 			Php::ByVal(PHP_DB_NAME, Php::Type::String),
 			Php::ByVal(PHP_TABLE_NAME, Php::Type::String),
 			Php::ByVal(PHP_COLUMN_NAME, Php::Type::String),

@@ -109,7 +109,7 @@ namespace PA {
 		reg.property("pdInputOutput", SPA::UDB::pdInputOutput, Php::Const);
 		reg.property("pdReturnValue", SPA::UDB::pdReturnValue, Php::Const);
 		
-		reg.method(PHP_CONSTRUCT, &CPhpDBParamInfo::__construct, {
+		reg.method<&CPhpDBParamInfo::__construct>(PHP_CONSTRUCT, {
 			Php::ByVal("direction", Php::Type::Numeric),
 			Php::ByVal("dataType", Php::Type::Numeric),
 			Php::ByVal("columnSize", Php::Type::Numeric, false),

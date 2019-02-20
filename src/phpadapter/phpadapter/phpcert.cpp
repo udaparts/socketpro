@@ -83,8 +83,8 @@ namespace PA {
 	
 	void CPhpCert::RegisterInto(Php::Namespace &cs) {
 		Php::Class<CPhpCert> cert(PHP_CERT);
-		cert.method(PHP_CONSTRUCT, &CPhpCert::__construct, Php::Private);
-		cert.method("Verify", &CPhpCert::Verify);
+		cert.method<&CPhpCert::__construct>(PHP_CONSTRUCT, Php::Private);
+		cert.method<&CPhpCert::Verify>("Verify");
 		cs.add(cert);
 	}
 }

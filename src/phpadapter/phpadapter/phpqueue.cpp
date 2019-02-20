@@ -420,9 +420,9 @@ namespace PA {
 		CAsyncQueue::BatchMessage((unsigned short)idMsg, pBuffer, bytes, *m_pBuff->GetBuffer());
 	}
 
-	void CPhpQueue::RegisterInto(Php::Namespace &cs) {
+	void CPhpQueue::RegisterInto(Php::Class<CPhpBaseHandler> &base, Php::Namespace &cs) {
 		Php::Class<CPhpQueue> handler(PHP_QUEUE_HANDLER);
-		Register(handler);
+		handler.extends(base);
 
 		handler.property("idEnqueue", SPA::Queue::idEnqueue, Php::Const);
 		handler.property("idDequeue", SPA::Queue::idDequeue, Php::Const);
@@ -444,48 +444,48 @@ namespace PA {
 		handler.property("CLOSE_FAILED", SPA::Queue::QUEUE_CLOSE_FAILED, Php::Const);
 		handler.property("ENQUEUING_FAILED", SPA::Queue::QUEUE_ENQUEUING_FAILED, Php::Const);
 
-		handler.method("Enqueue", &CPhpQueue::Enqueue, {
+		handler.method<&CPhpQueue::Enqueue>("Enqueue", {
 			Php::ByVal(PHP_QUEUE_KEY, Php::Type::String),
 			Php::ByVal("idMessage", Php::Type::Numeric),
 			Php::ByVal(PHP_SENDREQUEST_BUFF, Php::Type::Null),
 			Php::ByVal(PHP_SENDREQUEST_SYNC, Php::Type::Null)
 		});
-		handler.method("Close", &CPhpQueue::CloseQueue, {
+		handler.method<&CPhpQueue::CloseQueue>("Close", {
 			Php::ByVal(PHP_QUEUE_KEY, Php::Type::String),
 			Php::ByVal(PHP_SENDREQUEST_SYNC, Php::Type::Null)
 		});
-		handler.method("GetKeys", &CPhpQueue::GetKeys, {
+		handler.method<&CPhpQueue::GetKeys>("GetKeys", {
 			Php::ByVal(PHP_SENDREQUEST_SYNC, Php::Type::Null)
 		});
-		handler.method("StartTrans", &CPhpQueue::StartQueueTrans, {
+		handler.method<&CPhpQueue::StartQueueTrans>("StartTrans", {
 			Php::ByVal(PHP_QUEUE_KEY, Php::Type::String),
 			Php::ByVal(PHP_SENDREQUEST_SYNC, Php::Type::Null)
 		});
-		handler.method("EndTrans", &CPhpQueue::EndQueueTrans, {
+		handler.method<&CPhpQueue::EndQueueTrans>("EndTrans", {
 			Php::ByVal("rollback", Php::Type::Bool),
 			Php::ByVal(PHP_SENDREQUEST_SYNC, Php::Type::Null)
 		});
-		handler.method("Flush", &CPhpQueue::FlushQueue, {
+		handler.method<&CPhpQueue::FlushQueue>("Flush", {
 			Php::ByVal(PHP_QUEUE_KEY, Php::Type::String),
 			Php::ByVal(PHP_SENDREQUEST_SYNC, Php::Type::Null)
 		});
-		handler.method("Dequeue", &CPhpQueue::Dequeue, {
+		handler.method<&CPhpQueue::Dequeue>("Dequeue", {
 			Php::ByVal(PHP_QUEUE_KEY, Php::Type::String),
 			Php::ByVal(PHP_SENDREQUEST_SYNC, Php::Type::Null)
 		});
-		handler.method("Batch", &CPhpQueue::BatchMessage, {
+		handler.method<&CPhpQueue::BatchMessage>("Batch", {
 			Php::ByVal("idMsg", Php::Type::Numeric),
 			Php::ByVal(PHP_SENDREQUEST_BUFF, Php::Type::Null)
 		});
-		handler.method("BatchMessage", &CPhpQueue::BatchMessage, {
+		handler.method<&CPhpQueue::BatchMessage>("BatchMessage", {
 			Php::ByVal("idMsg", Php::Type::Numeric),
 			Php::ByVal(PHP_SENDREQUEST_BUFF, Php::Type::Null)
 		});
-		handler.method("EnqueueBatch", &CPhpQueue::EnqueueBatch, {
+		handler.method<&CPhpQueue::EnqueueBatch>("EnqueueBatch", {
 			Php::ByVal(PHP_QUEUE_KEY, Php::Type::String),
 			Php::ByVal(PHP_SENDREQUEST_SYNC, Php::Type::Null)
 		});
-		handler.method("BatchEnqueue", &CPhpQueue::EnqueueBatch, {
+		handler.method<&CPhpQueue::EnqueueBatch>("BatchEnqueue", {
 			Php::ByVal(PHP_QUEUE_KEY, Php::Type::String),
 			Php::ByVal(PHP_SENDREQUEST_SYNC, Php::Type::Null)
 		});

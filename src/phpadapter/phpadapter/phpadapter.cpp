@@ -37,40 +37,46 @@ extern "C" {
 		//namespace ClientSide
 		Php::Namespace ClientSide("ClientSide");
 		PA::RegisterSpaClientConstsInto(ClientSide);
+
 		PA::CPhpCert::RegisterInto(ClientSide);
 		PA::CPhpSocket::RegisterInto(ClientSide);
 		PA::CPhpSocketPool::RegisterInto(ClientSide);
-		PA::CPhpHandler::RegisterInto(ClientSide);
-		PA::CPhpFile::RegisterInto(ClientSide);
-		PA::CPhpDb::RegisterInto(ClientSide);
-		PA::CPhpQueue::RegisterInto(ClientSide);
+
+		Php::Class<PA::CPhpBaseHandler> base("CAsyncHandlerBase");
+		PA::CPhpBaseHandler::RegisterInto(base, ClientSide);
+
+		PA::CPhpHandler::RegisterInto(base, ClientSide);
+		PA::CPhpFile::RegisterInto(base, ClientSide);
+		PA::CPhpDb::RegisterInto(base, ClientSide);
+		PA::CPhpQueue::RegisterInto(base, ClientSide);
+
 		PA::CPhpManager::RegisterInto(ClientSide);
 		PA::CPhpDBColumnInfo::RegisterInto(ClientSide);
 		PA::CPhpDBParamInfo::RegisterInto(ClientSide);
 		PA::CPhpPush::RegisterInto(ClientSide);
 		PA::CPhpClientQueue::RegisterInto(ClientSide);
 
-		ClientSide.add("GetManager", PA::GetManager);
+		ClientSide.add<PA::GetManager>("GetManager");
 		ClientSide.add(Php::Constant("Version", SPA::ClientSide::ClientCoreLoader.GetUClientSocketVersion()));
 
 		SPA.add(ClientSide);
 		extSpaPhp.add(SPA);
-		extSpaPhp.add("GetSpManager", PA::GetManager);
-		extSpaPhp.add("GetSpPool", PA::GetSpPool, {
+		extSpaPhp.add<PA::GetManager>("GetSpManager");
+		extSpaPhp.add<PA::GetSpPool>("GetSpPool", {
 			Php::ByVal(PA::PHP_KEY, Php::Type::String)
 		});
-		extSpaPhp.add("SeekSpHandler", PA::GetSpHandler, {
+		extSpaPhp.add<PA::GetSpHandler>("SeekSpHandler", {
 			Php::ByVal(PA::PHP_KEY, Php::Type::String)
 		});
-		extSpaPhp.add("GetSpHandler", PA::GetSpHandler, {
+		extSpaPhp.add<PA::GetSpHandler>("GetSpHandler", {
 			Php::ByVal(PA::PHP_KEY, Php::Type::String)
 		});
-		extSpaPhp.add("LockSpHandler", PA::LockSpHandler, {
+		extSpaPhp.add<PA::LockSpHandler>("LockSpHandler", {
 			Php::ByVal(PA::PHP_KEY, Php::Type::String),
 			Php::ByVal(PA::PHP_TIMEOUT, Php::Type::Numeric, false)
 		});
-		extSpaPhp.add("SpBuffer", PA::SpBuff);
-		extSpaPhp.add("GetSocketPools", PA::GetSocketPools);
+		extSpaPhp.add<PA::SpBuff>("SpBuffer");
+		extSpaPhp.add<PA::GetSocketPools>("GetSocketPools");
 		return extSpaPhp.module();
 	}
 }

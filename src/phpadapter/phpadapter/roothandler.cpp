@@ -7,9 +7,9 @@ namespace PA {
 		: CPhpBaseHandler(locked, pHandler, poolId), m_pHandler(pHandler) {
 	}
 
-	void CPhpHandler::RegisterInto(Php::Namespace &cs) {
+	void CPhpHandler::RegisterInto(Php::Class<CPhpBaseHandler> &base, Php::Namespace &cs) {
 		Php::Class<CPhpHandler> handler(PHP_ASYNC_HANDLER);
-		Register(handler);
+		handler.extends(base);
 		cs.add(handler);
 	}
 

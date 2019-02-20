@@ -379,8 +379,8 @@ namespace PA {
 
 	void CPhpManager::RegisterInto(Php::Namespace &cs) {
 		Php::Class<CPhpManager> manager(PHP_MANAGER);
-		manager.method(PHP_CONSTRUCT, &CPhpManager::__construct, Php::Private);
-		manager.method("GetPool", &CPhpManager::GetPool, {
+		manager.method<&CPhpManager::__construct>(PHP_CONSTRUCT, Php::Private);
+		manager.method<&CPhpManager::GetPool>("GetPool", {
 			Php::ByVal("key", Php::Type::String),
 			Php::ByVal("secret", Php::Type::Numeric, false)
 		});

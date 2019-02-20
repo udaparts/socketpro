@@ -668,7 +668,7 @@ namespace SPA {
             virtual void OnAllProcessed() {
                 CAutoLock al1(m_csDB);
 #ifdef PHP_ADAPTER_PROJECT
-                if (m_vData.length()) {
+                if (m_vData.isArray() && m_vData.length()) {
                     m_vData = Php::Array();
                 }
 #else
@@ -748,7 +748,7 @@ namespace SPA {
                             m_Blob.ReallocBuffer(ONE_MEGA_BYTES);
                         }
 #ifdef PHP_ADAPTER_PROJECT
-                        if (m_vData.length()) {
+                        if (m_vData.isArray() && m_vData.length()) {
                             m_vData = Php::Array();
                         }
 #else
@@ -794,7 +794,7 @@ namespace SPA {
                     case idBeginRows:
                         m_Blob.SetSize(0);
 #ifdef PHP_ADAPTER_PROJECT
-                        if (m_vData.length()) {
+                        if (m_vData.isArray() && m_vData.length()) {
                             m_vData = Php::Array();
                         }
 #else
@@ -916,7 +916,7 @@ namespace SPA {
                             }
                         }
 #ifdef PHP_ADAPTER_PROJECT
-                        if (m_vData.length()) {
+                        if (m_vData.isArray() && m_vData.length()) {
                             m_vData = Php::Array();
                         }
 #else
@@ -1013,7 +1013,7 @@ namespace SPA {
                     m_Blob.ReallocBuffer(DEFAULT_BIG_FIELD_CHUNK_SIZE);
                 }
 #ifdef PHP_ADAPTER_PROJECT
-                if (m_vData.length()) {
+                if (m_vData.isArray() && m_vData.length()) {
                     m_vData = Php::Array();
                 }
 #else

@@ -69,24 +69,24 @@ namespace PA {
 
 	void CPhpPush::RegisterInto(Php::Namespace &cs) {
 		Php::Class<CPhpPush> push(PHP_PUSH);
-		push.method(PHP_CONSTRUCT, &CPhpPush::__construct, Php::Private);
-		push.method("Unsubscribe", &CPhpPush::Unsubscribe);
-		push.method("Subscribe", &CPhpPush::Subscribe, {
+		push.method<&CPhpPush::__construct>(PHP_CONSTRUCT, Php::Private);
+		push.method<&CPhpPush::Unsubscribe>("Unsubscribe");
+		push.method<&CPhpPush::Subscribe>("Subscribe", {
 			Php::ByVal("groups", Php::Type::Array)
 		});
-		push.method("Publish", &CPhpPush::Publish, {
+		push.method<&CPhpPush::Publish>("Publish", {
 			Php::ByVal("msg", Php::Type::Null),
 			Php::ByVal("groups", Php::Type::Array)
 		});
-		push.method("SendUserMessage", &CPhpPush::SendUserMessage, {
+		push.method<&CPhpPush::SendUserMessage>("SendUserMessage", {
 			Php::ByVal("msg", Php::Type::Null),
 			Php::ByVal("receiver", Php::Type::String)
 		});
-		push.method("PublishEx", &CPhpPush::PublishEx, {
+		push.method<&CPhpPush::PublishEx>("PublishEx", {
 			Php::ByVal("msg", Php::Type::String),
 			Php::ByVal("groups", Php::Type::Array)
 		});
-		push.method("SendUserMessageEx", &CPhpPush::SendUserMessageEx, {
+		push.method<&CPhpPush::SendUserMessageEx>("SendUserMessageEx", {
 			Php::ByVal("msg", Php::Type::String),
 			Php::ByVal("receiver", Php::Type::String)
 		});

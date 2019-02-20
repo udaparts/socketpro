@@ -166,18 +166,18 @@ namespace PA {
 		socket.property("zlBestSpeed", SPA::zlBestSpeed, Php::Const);
 		socket.property("zlBestCompression", SPA::zlBestCompression, Php::Const);
 		
-		socket.method(PHP_CONSTRUCT, &CPhpSocket::__construct, Php::Private);
-		socket.method("DoEcho", &CPhpSocket::DoEcho);
-		socket.method("Cancel", &CPhpSocket::Cancel, {
+		socket.method<&CPhpSocket::__construct>(PHP_CONSTRUCT, Php::Private);
+		socket.method<&CPhpSocket::DoEcho>("DoEcho");
+		socket.method<&CPhpSocket::Cancel>("Cancel", {
 			Php::ByVal("cancel", Php::Type::Numeric, false)
 		});
-		socket.method("SetZipLevelAtSvr", &CPhpSocket::SetZipLevelAtSvr, {
+		socket.method<&CPhpSocket::SetZipLevelAtSvr>("SetZipLevelAtSvr", {
 			Php::ByVal("zl", Php::Type::Numeric)
 		});
-		socket.method("TurnOnZipAtSvr", &CPhpSocket::TurnOnZipAtSvr, {
+		socket.method<&CPhpSocket::TurnOnZipAtSvr>("TurnOnZipAtSvr", {
 			Php::ByVal("zip", Php::Type::Bool, false)
 		});
-		socket.method("AbortDequeuedMessage", &CPhpSocket::AbortDequeuedMessage);
+		socket.method<&CPhpSocket::AbortDequeuedMessage>("AbortDequeuedMessage");
 		cs.add(socket);
 	}
 

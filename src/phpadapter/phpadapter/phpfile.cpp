@@ -7,9 +7,9 @@ namespace PA {
 		: CPhpBaseHandler(locked, sh, poolId), m_sh(sh) {
 	}
 
-	void CPhpFile::RegisterInto(Php::Namespace &cs) {
+	void CPhpFile::RegisterInto(Php::Class<CPhpBaseHandler> &base, Php::Namespace &cs) {
 		Php::Class<CPhpFile> handler(PHP_FILE_HANDLER);
-		Register(handler);
+		handler.extends(base);
 
 		handler.property("idDownload", SPA::SFile::idDownload, Php::Const);
 		handler.property("idStartDownloading", SPA::SFile::idStartDownloading, Php::Const);
@@ -23,12 +23,12 @@ namespace PA {
 		handler.property("SHARE_READ", (int64_t)SPA::SFile::FILE_OPEN_SHARE_READ, Php::Const);
 		handler.property("SHARE_WRITE", (int64_t)SPA::SFile::FILE_OPEN_SHARE_WRITE, Php::Const);
 
-		handler.method("Download", &CPhpFile::Download, {
+		handler.method<&CPhpFile::Download>("Download", {
 			Php::ByVal("local", Php::Type::String),
 			Php::ByVal("remote", Php::Type::String),
 			Php::ByVal("res", Php::Type::Null)
 		});
-		handler.method("Upload", &CPhpFile::Upload, {
+		handler.method<&CPhpFile::Upload>("Upload", {
 			Php::ByVal("local", Php::Type::String),
 			Php::ByVal("remote", Php::Type::String),
 			Php::ByVal("res", Php::Type::Null)

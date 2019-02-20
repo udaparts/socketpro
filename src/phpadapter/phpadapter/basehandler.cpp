@@ -165,10 +165,10 @@ namespace PA {
 
 	Php::Value CPhpBaseHandler::WaitAll(Php::Parameters &params) {
 		unsigned int timeout = (~0);
-		if (params.size()) {
+		if (params.size() && params[0].isNumeric()) {
 			timeout = (unsigned int)params[0].numericValue();
 		}
-		return m_h->WaitAll();
+		return m_h->WaitAll(timeout);
 	}
 
 	Php::Value CPhpBaseHandler::StartBatching() {
@@ -181,6 +181,22 @@ namespace PA {
 
 	Php::Value CPhpBaseHandler::AbortBatching() {
 		return m_h->AbortBatching();
+	}
+
+	void CPhpBaseHandler::RegisterInto(Php::Class<CPhpBaseHandler> &h, Php::Namespace &cs) {
+		h.method<&CPhpBaseHandler::__construct>(PHP_CONSTRUCT, Php::Private);
+		h.method<&CPhpBaseHandler::SendRequest>(PHP_SENDREQUEST, {
+			Php::ByVal(PHP_SENDREQUEST_REQID, Php::Type::Numeric),
+			Php::ByVal(PHP_SENDREQUEST_BUFF, Php::Type::Null),
+			Php::ByVal(PHP_SENDREQUEST_SYNC, Php::Type::Null)
+			});
+		h.method<&CPhpBaseHandler::WaitAll>(PHP_WAITALL);
+		h.method<&CPhpBaseHandler::StartBatching>(PHP_STARTBATCHING);
+		h.method<&CPhpBaseHandler::AbortBatching>(PHP_ABORTBATCHING);
+		h.method<&CPhpBaseHandler::CommitBatching>(PHP_COMMITBATCHING);
+		h.method<&CPhpBaseHandler::Unlock>(PHP_UNLOCK);
+		h.method<&CPhpBaseHandler::CleanCallbacks>(PHP_CLEAN_CALLBACKS);
+		cs.add(h);
 	}
 
 	unsigned int CPhpBaseHandler::GetPoolId() const {

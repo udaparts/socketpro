@@ -106,13 +106,13 @@ namespace PA {
 		cq.property("qsBadPassword", SPA::qsBadPassword, Php::Const);
 		cq.property("qsDuplicateName", SPA::qsDuplicateName, Php::Const);
 
-		cq.method(PHP_CONSTRUCT, &CPhpClientQueue::__construct, Php::Private);
-		cq.method("AbortJob", &CPhpClientQueue::AbortJob);
-		cq.method("EndJob", &CPhpClientQueue::EndJob);
-		cq.method("StartJob", &CPhpClientQueue::StartJob);
-		cq.method("RemoveByTTL", &CPhpClientQueue::RemoveByTTL);
-		cq.method("Reset", &CPhpClientQueue::Reset);
-		cq.method("CancelQueuedMessages", &CPhpClientQueue::CancelQueuedMessages, {
+		cq.method<&CPhpClientQueue::__construct>(PHP_CONSTRUCT, Php::Private);
+		cq.method<&CPhpClientQueue::AbortJob>("AbortJob");
+		cq.method<&CPhpClientQueue::EndJob>("EndJob");
+		cq.method<&CPhpClientQueue::StartJob>("StartJob");
+		cq.method<&CPhpClientQueue::RemoveByTTL>("RemoveByTTL");
+		cq.method<&CPhpClientQueue::Reset>("Reset");
+		cq.method<&CPhpClientQueue::CancelQueuedMessages>("CancelQueuedMessages", {
 			Php::ByVal("startIndex", Php::Type::Numeric),
 			Php::ByVal("endIndex", Php::Type::Numeric)
 		});

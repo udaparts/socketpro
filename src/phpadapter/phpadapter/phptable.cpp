@@ -60,7 +60,7 @@ namespace PA {
 			}
 			return dm;
 		}
-		else if (name == "TABLE_POINTER_ADDRESS") {
+		else if (name == PHP_POINTER_ADDRESS) {
 			return (int64_t)m_table.get();
 		}
 		else {
@@ -70,7 +70,7 @@ namespace PA {
 
 	void CPhpTable::RegisterInto(Php::Namespace &spa) {
 		Php::Class<CPhpTable> table(PHP_TABLE);
-		table.method(PHP_CONSTRUCT, &CPhpTable::__construct, Php::Private);
+		table.method<&CPhpTable::__construct>(PHP_CONSTRUCT, Php::Private);
 
 		//SPA::CTable::Operator
 		table.property("equal", SPA::CTable::equal, Php::Const);
@@ -81,40 +81,40 @@ namespace PA {
 		table.property("not_equal", SPA::CTable::not_equal, Php::Const);
 		table.property("is_null", SPA::CTable::is_null, Php::Const);
 
-		table.method("Find", &CPhpTable::Find, {
+		table.method<&CPhpTable::Find>("Find", {
 			Php::ByVal(PHP_ORDINAL, Php::Type::Numeric),
 			Php::ByVal(PHP_TABLE_OP, Php::Type::Numeric),
 			Php::ByVal(PHP_VARIANT_V, Php::Type::Null),
 			Php::ByVal(PHP_COPYDATA, Php::Type::Bool, false)
 		});
-		table.method("In", &CPhpTable::In, {
+		table.method<&CPhpTable::In>("In", {
 			Php::ByVal(PHP_ORDINAL, Php::Type::Numeric),
 			Php::ByVal(PHP_VARIANT_V, Php::Type::Null),
 			Php::ByVal(PHP_COPYDATA, Php::Type::Bool, false)
 		});
-		table.method("NotIn", &CPhpTable::NotIn, {
+		table.method<&CPhpTable::NotIn>("NotIn", {
 			Php::ByVal(PHP_ORDINAL, Php::Type::Numeric),
 			Php::ByVal(PHP_VARIANT_V, Php::Type::Null),
 			Php::ByVal(PHP_COPYDATA, Php::Type::Bool, false)
 		});
-		table.method("Between", &CPhpTable::Between, {
+		table.method<&CPhpTable::Between>("Between", {
 			Php::ByVal(PHP_ORDINAL, Php::Type::Numeric),
 			Php::ByVal(PHP_VARIANT_V0, Php::Type::Null),
 			Php::ByVal(PHP_VARIANT_V1, Php::Type::Null),
 			Php::ByVal(PHP_COPYDATA, Php::Type::Bool, false)
 		});
-		table.method("FindNull", &CPhpTable::FindNull, {
+		table.method<&CPhpTable::FindNull>("FindNull", {
 			Php::ByVal(PHP_ORDINAL, Php::Type::Numeric),
 			Php::ByVal(PHP_COPYDATA, Php::Type::Bool, false)
 		});
-		table.method("FindOrdinal", &CPhpTable::FindOrdinal, {
+		table.method<&CPhpTable::FindOrdinal>("FindOrdinal", {
 			Php::ByVal(PHP_COLUMN_NAME, Php::Type::String)
 		});
-		table.method("Sort", &CPhpTable::Sort, {
+		table.method<&CPhpTable::Sort>("Sort", {
 			Php::ByVal(PHP_ORDINAL, Php::Type::Numeric),
 			Php::ByVal("desc", Php::Type::Bool, false)
 		});
-		table.method("Append", &CPhpTable::Append, {
+		table.method<&CPhpTable::Append>("Append", {
 			Php::ByVal("table", Php::Type::Object)
 		});
 		spa.add(table);
@@ -125,7 +125,7 @@ namespace PA {
 		if (!tbl.instanceOf(SPA_NS + PHP_TABLE)) {
 			throw Php::Exception("A CTable object expected");
 		}
-		SPA::CTable *pTable = (SPA::CTable*)tbl.get("TABLE_POINTER_ADDRESS").numericValue();
+		SPA::CTable *pTable = (SPA::CTable*)tbl.get(PHP_POINTER_ADDRESS).numericValue();
 		auto res = m_table->Append(*pTable);
 		CPhpDataSet::CheckResult((size_t)res);
 		return res;

@@ -16,7 +16,7 @@ public:
 
 public:
 	CPhpHandler& operator=(const CPhpHandler &rh) = delete;
-	static void RegisterInto(Php::Namespace &cs);
+	static void RegisterInto(Php::Class<CPhpBaseHandler> &base, Php::Namespace &cs);
 
 private:
 	CAsyncHandler *m_pHandler;

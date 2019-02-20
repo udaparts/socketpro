@@ -45,6 +45,13 @@ namespace PA {
 	const char *PHP_VARIANT_V0 = "v0";
 	const char *PHP_VARIANT_V1 = "v1";
 	const char *PHP_VARIANT_V = "v";
+	const char *PHP_POINTER_ADDRESS = "TABLE_POINTER_ADDRESS";
+	const char *PHP_WAITALL = "WaitAll";
+	const char *PHP_STARTBATCHING = "StartBatching";
+	const char *PHP_ABORTBATCHING = "AbortBatching";
+	const char *PHP_COMMITBATCHING = "CommitBatching";
+	const char *PHP_UNLOCK = "Unlock";
+	const char *PHP_CLEAN_CALLBACKS = "CleanCallbacks";
 
 	//SendRequest
 	const char *PHP_SENDREQUEST = "SendRequest";
@@ -294,7 +301,7 @@ namespace PA {
 		}
 	}
 
-	Php::Value GetManager() {
+	Php::Value GetManager(Php::Parameters &params) {
 		return CPhpManager::Parse();
 	}
 
@@ -330,7 +337,7 @@ namespace PA {
 		return Php::Object((SPA_NS + PHP_BUFFER).c_str(), new CPhpBuffer);
 	}
 
-	Php::Value GetSocketPools() {
+	Php::Value GetSocketPools(Php::Parameters &params) {
 		return (int64_t)SPA::ClientSide::ClientCoreLoader.GetNumberOfSocketPools();
 	}
 

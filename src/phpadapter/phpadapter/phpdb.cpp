@@ -14,9 +14,9 @@ namespace PA {
 		: CPhpBaseHandler(locked, db, poolId), m_db(db) {
 	}
 
-	void CPhpDb::RegisterInto(Php::Namespace &cs) {
+	void CPhpDb::RegisterInto(Php::Class<CPhpBaseHandler> &base, Php::Namespace &cs) {
 		Php::Class<CPhpDb> handler(PHP_DB_HANDLER);
-		Register(handler);
+		handler.extends(base);
 
 		//database-related request ids
 		handler.property("idOpen", SPA::UDB::idOpen, Php::Const);
@@ -78,30 +78,30 @@ namespace PA {
 		handler.property("ueUpdate", SPA::UDB::ueUpdate, Php::Const);
 		handler.property("ueDelete", SPA::UDB::ueDelete, Php::Const);
 
-		handler.method("Open", &CPhpDb::Open, {
+		handler.method<&CPhpDb::Open>("Open", {
 			Php::ByVal("conn", Php::Type::String),
 			Php::ByVal(PHP_SENDREQUEST_SYNC, Php::Type::Null)
 		});
-		handler.method("Close", &CPhpDb::Close, {
+		handler.method<&CPhpDb::Close>("Close", {
 			Php::ByVal(PHP_SENDREQUEST_SYNC, Php::Type::Null)
 		});
-		handler.method("Prepare", &CPhpDb::Prepare, {
+		handler.method<&CPhpDb::Prepare>("Prepare", {
 			Php::ByVal("sql", Php::Type::String),
 			Php::ByVal(PHP_SENDREQUEST_SYNC, Php::Type::Null)
 		});
-		handler.method("Execute", &CPhpDb::Execute, {
+		handler.method<&CPhpDb::Execute>("Execute", {
 			Php::ByVal("sql", Php::Type::Null), //string or array of parameter data
 			Php::ByVal(PHP_SENDREQUEST_SYNC, Php::Type::Null)
 		});
-		handler.method("BeginTrans", &CPhpDb::BeginTrans, {
+		handler.method<&CPhpDb::BeginTrans>("BeginTrans", {
 			Php::ByVal("isolation", Php::Type::Numeric),
 			Php::ByVal(PHP_SENDREQUEST_SYNC, Php::Type::Null)
 		});
-		handler.method("EndTrans", &CPhpDb::EndTrans, {
+		handler.method<&CPhpDb::EndTrans>("EndTrans", {
 			Php::ByVal("plan", Php::Type::Numeric),
 			Php::ByVal(PHP_SENDREQUEST_SYNC, Php::Type::Null)
 		});
-		handler.method("ExecuteBatch", &CPhpDb::ExecuteBatch, {
+		handler.method<&CPhpDb::ExecuteBatch>("ExecuteBatch", {
 			Php::ByVal("isolation", Php::Type::Numeric),
 			Php::ByVal("sql", Php::Type::String),
 			Php::ByVal("vParam", Php::Type::Null),

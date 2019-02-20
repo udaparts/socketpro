@@ -81,6 +81,13 @@ namespace PA {
 	extern const char *PHP_VARIANT_V0;
 	extern const char *PHP_VARIANT_V1;
 	extern const char *PHP_VARIANT_V;
+	extern const char *PHP_POINTER_ADDRESS;
+	extern const char *PHP_WAITALL;
+	extern const char *PHP_STARTBATCHING;
+	extern const char *PHP_ABORTBATCHING;
+	extern const char *PHP_COMMITBATCHING;
+	extern const char *PHP_UNLOCK;
+	extern const char *PHP_CLEAN_CALLBACKS;
 
 	//SendRequest
 	extern const char *PHP_SENDREQUEST;
@@ -100,12 +107,12 @@ namespace PA {
 	extern std::string SP_CONFIG;
 	extern const char SYS_DIR;
 
-	Php::Value GetManager();
+	Php::Value GetManager(Php::Parameters &params);
 	Php::Value GetSpPool(Php::Parameters &params);
 	Php::Value GetSpHandler(Php::Parameters &params);
 	Php::Value LockSpHandler(Php::Parameters &params);
 	Php::Value SpBuff(Php::Parameters &params);
-	Php::Value GetSocketPools();
+	Php::Value GetSocketPools(Php::Parameters &params);
 
 	void ToVariant(const Php::Value &data, CComVariant &vt, const std::string &id = "");
 	void ToVariant(const Php::Value &data, SPA::UDB::CDBVariant &vt, const std::string &id = "");
