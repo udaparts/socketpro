@@ -189,27 +189,27 @@ namespace SPA {
                 if (res == 0) {
                     this->Cache.Swap(this->m_cache); //exchange between master Cache and this m_cache
                 }
-            }, 
+            },
 #ifdef PHP_ADAPTER_PROJECT
-				[this](CSQLHandler &h, Php::Value & v) {
-				auto &meta = h.GetColumnInfo();
-				const UDB::CDBColumnInfo &info = meta.front();
-				UDB::CDBVariantArray vData;
-				int count = v.length();
-				for (int n = 0; n < count; ++n) {
-					Php::Value d = v.get(n);
-					UDB::CDBVariant vt;
-					PA::ToVariant(d, vt);
-					vData.push_back(std::move(vt));
-				}
-				//populate vData into m_cache container
-				this->m_cache.AddRows(info.DBPath.c_str(), info.TablePath.c_str(), vData);
-#else
-				[this](CSQLHandler &h, UDB::CDBVariantArray & vData) {
+            [this](CSQLHandler &h, Php::Value & v) {
                 auto &meta = h.GetColumnInfo();
                 const UDB::CDBColumnInfo &info = meta.front();
+                        UDB::CDBVariantArray vData;
+                        int count = v.length();
+                for (int n = 0; n < count; ++n) {
+                    Php::Value d = v.get(n);
+                            UDB::CDBVariant vt;
+                            PA::ToVariant(d, vt);
+                            vData.push_back(std::move(vt));
+                }
                 //populate vData into m_cache container
                 this->m_cache.AddRows(info.DBPath.c_str(), info.TablePath.c_str(), vData);
+#else
+            [this](CSQLHandler &h, UDB::CDBVariantArray & vData) {
+                auto &meta = h.GetColumnInfo();
+                const UDB::CDBColumnInfo &info = meta.front();
+                        //populate vData into m_cache container
+                        this->m_cache.AddRows(info.DBPath.c_str(), info.TablePath.c_str(), vData);
 #endif
             }, [this](CSQLHandler & h) {
                 //a rowset column meta comes

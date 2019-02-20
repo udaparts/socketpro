@@ -176,13 +176,12 @@ namespace SPA {
     }
 
     static inline void ToDecimal(INT64 n, DECIMAL &dec) {
-        memset(&dec, 0, sizeof(dec));
+        memset(&dec, 0, sizeof (dec));
         if (n < 0) {
             dec.sign = 0x80;
-            dec.Lo64 = (UINT64)(-n);
-        }
-        else {
-            dec.Lo64 = (UINT64)n;
+            dec.Lo64 = (UINT64) (-n);
+        } else {
+            dec.Lo64 = (UINT64) n;
         }
     }
 

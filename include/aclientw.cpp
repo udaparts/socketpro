@@ -380,7 +380,7 @@ namespace SPA {
         USocket_Client_Handle CAsyncServiceHandler::GetClientSocketHandle() const {
             if (m_pClientSocket)
                 return m_pClientSocket->GetHandle();
-			assert(false);
+            assert(false);
             return nullptr;
         }
 
