@@ -36,6 +36,10 @@ namespace PA {
 		cs.add(handler);
 	}
 
+	void CPhpFile::PopTopCallbacks(PACallback &cb) {
+
+	}
+
 	CAsyncFile::DDownload CPhpFile::SetResCallback(Php::Value phpDl, std::shared_ptr<Php::Value> &pV, unsigned int &timeout) {
 		assert(pV);
 		timeout = (~0);
@@ -103,22 +107,16 @@ namespace PA {
 		Php::Value phpDl = params[2];
 		auto Dl = SetResCallback(phpDl, pV, timeout);
 
-		Php::Value phpProgress;
 		size_t args = params.size();
-		if (args > 3) {
-			phpProgress = params[3];
-		}
-		auto Progress = SetTransCallback(phpProgress);
-
 		Php::Value phpCanceled;
-		if (args > 4) {
-			phpCanceled = params[4];
+		if (args > 3) {
+			phpCanceled = params[3];
 		}
 		auto discarded = SetAbortCallback(phpCanceled, SPA::SFile::idDownload, pV ? true : false);
 		
 		unsigned int flags = SPA::SFile::FILE_OPEN_TRUNCACTED;
-		if (args > 5) {
-			Php::Value vF = params[5];
+		if (args > 4) {
+			Php::Value vF = params[4];
 			if (vF.isNumeric()) {
 				flags = (unsigned int)vF.numericValue();
 			}
@@ -128,24 +126,10 @@ namespace PA {
 		}
 		if (pV) {
 			std::unique_lock<std::mutex> lk(m_mPhp);
-			ReqSyncEnd(m_sh->Download(local.c_str(), remote.c_str(), Dl, Progress, discarded, flags), lk, timeout);
+			ReqSyncEnd(m_sh->Download(local.c_str(), remote.c_str(), Dl, nullptr, discarded, flags), lk, timeout);
 			return *pV;
 		}
-		return m_sh->Download(local.c_str(), remote.c_str(), Dl, Progress, discarded, flags);
-	}
-
-	CAsyncFile::DTransferring CPhpFile::SetTransCallback(Php::Value phpProgress) {
-		if (phpProgress.isNull()) {
-		}
-		else if (!phpProgress.isCallable()) {
-			throw Php::Exception("A callback required for file exchange progress");
-		}
-		CAsyncFile::DTransferring Progress = [phpProgress](SPA::ClientSide::CStreamingFile *file, SPA::UINT64 uploaded) {
-			if (phpProgress.isCallable()) {
-				phpProgress((int64_t)uploaded, (int64_t)file->GetFileSize());
-			}
-		};
-		return Progress;
+		return m_sh->Download(local.c_str(), remote.c_str(), Dl, nullptr, discarded, flags);
 	}
 
 	Php::Value CPhpFile::Upload(Php::Parameters &params) {
@@ -156,21 +140,15 @@ namespace PA {
 		Php::Value phpUl = params[2];
 		auto Ul = SetResCallback(phpUl, pV, timeout);
 
-		Php::Value phpProgress;
 		size_t args = params.size();
-		if (args > 3) {
-			phpProgress = params[3];
-		}
-		auto Progress = SetTransCallback(phpProgress);
-		
 		Php::Value phpCanceled;
-		if (args > 4) {
-			phpCanceled = params[4];
+		if (args > 3) {
+			phpCanceled = params[3];
 		}
 		auto discarded = SetAbortCallback(phpCanceled, SPA::SFile::idUpload, pV ? true : false);
 		unsigned int flags = SPA::SFile::FILE_OPEN_TRUNCACTED;
-		if (args > 5) {
-			Php::Value vF = params[5];
+		if (args > 4) {
+			Php::Value vF = params[4];
 			if (vF.isNumeric()) {
 				flags = (unsigned int)vF.numericValue();
 			}
@@ -180,10 +158,10 @@ namespace PA {
 		}
 		if (pV) {
 			std::unique_lock<std::mutex> lk(m_mPhp);
-			ReqSyncEnd(m_sh->Upload(local.c_str(), remote.c_str(), Ul, Progress, discarded, flags), lk, timeout);
+			ReqSyncEnd(m_sh->Upload(local.c_str(), remote.c_str(), Ul, nullptr, discarded, flags), lk, timeout);
 			return *pV;
 		}
-		return m_sh->Upload(local.c_str(), remote.c_str(), Ul, Progress, discarded, flags);
+		return m_sh->Upload(local.c_str(), remote.c_str(), Ul, nullptr, discarded, flags);
 	}
 
 	Php::Value CPhpFile::__get(const Php::Value &name) {

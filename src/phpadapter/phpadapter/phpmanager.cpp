@@ -332,6 +332,9 @@ namespace PA {
 			else if (name == "Config") {
 				return m_pManager->GetConfig();
 			}
+			else if (name == "Pools") {
+				return (int64_t)SPA::ClientSide::ClientCoreLoader.GetNumberOfSocketPools();
+			}
 		}
 		return Php::Base::__get(name);
 	}

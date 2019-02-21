@@ -76,7 +76,6 @@ extern "C" {
 			Php::ByVal(PA::PHP_TIMEOUT, Php::Type::Numeric, false)
 		});
 		extSpaPhp.add<PA::SpBuff>("SpBuffer");
-		extSpaPhp.add<PA::GetSocketPools>("GetSocketPools");
 		return extSpaPhp.module();
 	}
 }

@@ -18,10 +18,12 @@ namespace PA {
 		static void RegisterInto(Php::Class<CPhpBaseHandler> &base, Php::Namespace &cs);
 		Php::Value __get(const Php::Value &name);
 
+	protected:
+		void PopTopCallbacks(PACallback &cb);
+
 	private:
 		Php::Value Download(Php::Parameters &params);
 		Php::Value Upload(Php::Parameters &params);
-		CAsyncFile::DTransferring SetTransCallback(Php::Value phpProgress);
 		CAsyncFile::DDownload SetResCallback(Php::Value phpDl, std::shared_ptr<Php::Value> &pV, unsigned int &timeout);
 		static void MapFilePaths(Php::Value phpLocal, Php::Value phpRemote, std::wstring &local, std::wstring &remote);
 

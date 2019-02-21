@@ -4,6 +4,25 @@
 
 namespace PA {
 	
+	enum enumCallbackType {
+		ctSendRequest = 0,
+		ctDiscarded,
+		ctServerException,
+		ctFile,
+		ctQueueTrans,
+		ctEnqueueRes,
+		ctDbRes,
+		ctDbExeRes,
+		ctDbR,
+		ctDbRH
+	};
+
+	struct PACallback {
+		enumCallbackType CallbackType;
+		std::shared_ptr<Php::Value> CallBack;
+		SPA::CUQueue *Res;
+	};
+
 	class CPhpBaseHandler : public Php::Base
 	{
 	protected:
@@ -30,14 +49,17 @@ namespace PA {
 		Php::Value CommitBatching();
 		Php::Value AbortBatching();
 		Php::Value CleanCallbacks(Php::Parameters &params);
-
+		
 	protected:
 		SPA::ClientSide::CAsyncServiceHandler::DDiscarded SetAbortCallback(const Php::Value& phpCanceled, unsigned short reqId, bool sync);
 		void ReqSyncEnd(bool ok, std::unique_lock<std::mutex> &lk, unsigned int timeout);
+		virtual void PopTopCallbacks(PACallback &cb) = 0;
+		void PopCallbacks();
 
 	protected:
 		std::mutex m_mPhp;
 		std::condition_variable m_cvPhp;
+		std::deque<PACallback> m_vCallback;
 
 	private:
 		bool m_locked;

@@ -58,7 +58,7 @@ namespace PA {
 		void __set(const Php::Value &name, const Php::Value &value);
 		void Swap(SPA::CUQueue *q);
 		void Swap(CPhpBuffer *qPhp);
-		void EnsureBuffer();
+		void EnsureBuffer(SPA::CUQueue *q = nullptr, bool auto_release = true);
 		SPA::CUQueue* GetBuffer();
 
 	private:

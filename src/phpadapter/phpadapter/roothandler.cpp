@@ -13,4 +13,7 @@ namespace PA {
 		cs.add(handler);
 	}
 
+	void CPhpHandler::PopTopCallbacks(PACallback &cb) {
+	}
+
 } //namespace PA

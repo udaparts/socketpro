@@ -65,6 +65,20 @@ namespace PA {
 		return true;
 	}
 
+	void CPoolStartContext::DealWithPoolEvents(tagSocketPoolEvent spe) {
+		switch (spe)
+		{
+		case SPA::ClientSide::speThreadCreated:
+			Php::FetchPhpResourceToCurrentThread();
+			break;
+		case SPA::ClientSide::speKillingThread:
+			Php::ReleasePhpResourceFromCurrentThread();
+			break;
+		default:
+			break;
+		}
+	}
+
 	std::string CPoolStartContext::StartPool() {
 		assert(!PhpHandler);
 		std::wstring dfltDb = SPA::Utilities::ToWide(DefaultDb);
@@ -97,12 +111,16 @@ namespace PA {
 				return this->DoSSLAuth(cs);
 			};
 			PhpDb->SocketPoolEvent = [this](CPhpDbPool *pool, tagSocketPoolEvent spe, CDBHandler *handler) {
+				this->DealWithPoolEvents(spe);
 			};
 			break;
 		case SPA::sidChat:
 			PhpQueue = new CPhpQueuePool(AutoConn, RecvTimeout, ConnTimeout, SvsId);
 			PhpQueue->DoSslServerAuthentication = [this](CPhpQueuePool *pool, CClientSocket * cs)->bool {
 				return this->DoSSLAuth(cs);
+			};
+			PhpQueue->SocketPoolEvent = [this](CPhpQueuePool *pool, tagSocketPoolEvent spe, CAsyncQueue *handler) {
+				this->DealWithPoolEvents(spe);
 			};
 			if (Queue.size()) {
 				PhpQueue->SetQueueName(Queue.c_str());
@@ -112,6 +130,9 @@ namespace PA {
 			PhpFile = new CPhpFilePool(AutoConn, RecvTimeout, ConnTimeout, SvsId);
 			PhpFile->DoSslServerAuthentication = [this](CPhpFilePool *pool, CClientSocket * cs)->bool {
 				return this->DoSSLAuth(cs);
+			};
+			PhpFile->SocketPoolEvent = [this](CPhpFilePool *pool, tagSocketPoolEvent spe, CAsyncFile *handler) {
+				this->DealWithPoolEvents(spe);
 			};
 			if (Queue.size()) {
 				PhpFile->SetQueueName(Queue.c_str());
@@ -138,6 +159,9 @@ namespace PA {
 			}
 			PhpHandler->DoSslServerAuthentication = [this](CPhpPool *pool, CClientSocket * cs)->bool {
 				return this->DoSSLAuth(cs);
+			};
+			PhpHandler->SocketPoolEvent = [this](CPhpPool *pool, tagSocketPoolEvent spe, CAsyncHandler *handler) {
+				this->DealWithPoolEvents(spe);
 			};
 			if (Queue.size()) {
 				PhpHandler->SetQueueName(Queue.c_str());

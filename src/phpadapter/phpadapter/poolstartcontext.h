@@ -42,10 +42,14 @@ namespace PA {
 	public:
 		Php::Value GetPool();
 		void Clean();
+
+	protected:
 		bool DoSSLAuth(CClientSocket *cs);
+		void DealWithPoolEvents(tagSocketPoolEvent spe);
 
 	private:
 		std::string StartPool();
+		
 	};
 } //namespace PA
 

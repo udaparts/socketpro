@@ -83,9 +83,17 @@ namespace PA {
 		return (int64_t)m_pBuffer->Pop(bytes);
 	}
 
-	void CPhpBuffer::EnsureBuffer() {
-		if (!m_pBuffer) {
+	void CPhpBuffer::EnsureBuffer(SPA::CUQueue *q, bool auto_release) {
+		if (q) {
+			if (m_bRelease) {
+				SPA::CScopeUQueue::Unlock(m_pBuffer);
+			}
+			m_pBuffer = q;
+			m_bRelease = auto_release;
+		}
+		else if (!m_pBuffer) {
 			m_pBuffer = SPA::CScopeUQueue::Lock();
+			m_bRelease = true;
 		}
 	}
 

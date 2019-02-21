@@ -110,6 +110,10 @@ namespace PA {
 		cs.add(handler);
 	}
 
+	void CPhpDb::PopTopCallbacks(PACallback &cb) {
+
+	}
+
 	Php::Value CPhpDb::Open(Php::Parameters &params) {
 		unsigned int timeout;
 		std::string aconn = params[0].stringValue();

@@ -19,6 +19,9 @@ namespace PA {
 		static void RegisterInto(Php::Class<CPhpBaseHandler> &base, Php::Namespace &cs);
 		Php::Value __get(const Php::Value &name);
 
+	protected:
+		void PopTopCallbacks(PACallback &cb);
+
 	private:
 		Php::Value CloseQueue(Php::Parameters &params);
 		Php::Value GetKeys(Php::Parameters &params);

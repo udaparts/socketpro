@@ -112,7 +112,6 @@ namespace PA {
 	Php::Value GetSpHandler(Php::Parameters &params);
 	Php::Value LockSpHandler(Php::Parameters &params);
 	Php::Value SpBuff(Php::Parameters &params);
-	Php::Value GetSocketPools(Php::Parameters &params);
 
 	void ToVariant(const Php::Value &data, CComVariant &vt, const std::string &id = "");
 	void ToVariant(const Php::Value &data, SPA::UDB::CDBVariant &vt, const std::string &id = "");

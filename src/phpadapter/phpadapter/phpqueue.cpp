@@ -491,4 +491,8 @@ namespace PA {
 		});
 		cs.add(handler);
 	}
+
+	void CPhpQueue::PopTopCallbacks(PACallback &cb) {
+
+	}
 }

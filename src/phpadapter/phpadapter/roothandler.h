@@ -18,6 +18,9 @@ public:
 	CPhpHandler& operator=(const CPhpHandler &rh) = delete;
 	static void RegisterInto(Php::Class<CPhpBaseHandler> &base, Php::Namespace &cs);
 
+protected:
+	void PopTopCallbacks(PACallback &cb);
+
 private:
 	CAsyncHandler *m_pHandler;
 };

@@ -21,6 +21,9 @@ namespace PA {
 		static void RegisterInto(Php::Class<CPhpBaseHandler> &base, Php::Namespace &cs);
 		Php::Value __get(const Php::Value &name);
 
+	protected:
+		void PopTopCallbacks(PACallback &cb);
+
 	private:
 		Php::Value Open(Php::Parameters &params);
 		Php::Value Execute(Php::Parameters &params);
