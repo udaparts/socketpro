@@ -14,11 +14,8 @@
 #include <functional>
 
 #ifdef PHP_ADAPTER_PROJECT
-#include <cctype>
-#include <mutex>
-#include <condition_variable>
-#include "../src/phpadapter/PHP-CPP/phpcpp.h"
 #define NO_MIDDLE_TIER
+#include <cctype>
 #elif defined NODE_JS_ADAPTER_PROJECT
 #define NO_MIDDLE_TIER
 #ifdef WIN32_64
@@ -187,8 +184,10 @@ namespace SPA {
                 }
                 return *this;
             }
-#ifdef PHP_ADAPTER_PROJECT
 
+#ifdef PHP_ADAPTER_PROJECT
+			//not accurate but better than nothing here
+			//Client core internal checking works much better, starting from version 6.2.0.4
             bool operator==(const CConnectionContext &cc) const {
                 if (this == &cc)
                     return true;

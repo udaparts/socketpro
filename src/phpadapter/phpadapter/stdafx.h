@@ -18,6 +18,10 @@
 #define SPA_PHP_EXPORT __attribute__ ((visibility ("default")))
 #endif
 
+#include <mutex>
+#include <condition_variable>
+#include "../PHP-CPP/phpcpp.h"
+
 #include "../../../include/aqhandler.h"
 #include "../../../include/streamingfile.h"
 #include "../../../include/udb_client.h"

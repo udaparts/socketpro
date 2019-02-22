@@ -58,12 +58,9 @@ namespace PA {
 	}
 
 	Php::Value CPhpSocketPool::Lock(Php::Parameters &params) {
-		unsigned int timeout = m_recvTimeout;
+		unsigned int timeout = (~0);
 		if (params.size()) {
-			unsigned int t = (unsigned int)params[0].numericValue();
-			if (t < m_recvTimeout) {
-				timeout = t;
-			}
+			timeout = (unsigned int)params[0].numericValue();
 		}
 		switch (m_nSvsId) {
 		case SPA::Mysql::sidMysql:

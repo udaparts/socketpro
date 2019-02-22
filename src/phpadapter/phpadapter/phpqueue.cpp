@@ -89,14 +89,11 @@ namespace PA {
 
 	Php::Value CPhpQueue::Dequeue(Php::Parameters &params) {
 		std::string key = GetKey(params[0]);
-		unsigned int timeout = m_aq->GetAttachedClientSocket()->GetRecvTimeout();
+		unsigned int timeout = (~0);
 		bool sync = false;
 		Php::Value phpF = params[1];
 		if (phpF.isNumeric()) {
-			int64_t t = phpF.numericValue();
-			if (t >= 0 && t < timeout) {
-				timeout = (unsigned int)t;
-			}
+			timeout = (unsigned int)phpF.numericValue();
 			sync = true;
 		}
 		else if (phpF.isBool()) {
@@ -172,14 +169,11 @@ namespace PA {
 
 	Php::Value CPhpQueue::FlushQueue(Php::Parameters &params) {
 		std::string key = GetKey(params[0]);
-		unsigned int timeout = m_aq->GetAttachedClientSocket()->GetRecvTimeout();
+		unsigned int timeout = (~0);
 		bool sync = false;
 		Php::Value phpF = params[1];
 		if (phpF.isNumeric()) {
-			int64_t t = phpF.numericValue();
-			if (t >= 0 && t < timeout) {
-				timeout = (unsigned int)t;
-			}
+			timeout = (unsigned int)phpF.numericValue();
 			sync = true;
 		}
 		else if (phpF.isBool()) {
@@ -268,7 +262,6 @@ namespace PA {
 	CAsyncQueue::DQueueTrans CPhpQueue::SetQueueTransCallback(unsigned short reqId, const Php::Value& phpTrans, std::shared_ptr<int> &pErrCode, unsigned int &timeout) {
 		timeout = (~0);
 		bool sync = false;
-		timeout = m_aq->GetAttachedClientSocket()->GetRecvTimeout();
 		if (phpTrans.isNumeric()) {
 			timeout = (unsigned int)phpTrans.numericValue();
 			sync = true;
@@ -330,14 +323,11 @@ namespace PA {
 	}
 
 	Php::Value CPhpQueue::GetKeys(Php::Parameters &params) {
-		unsigned int timeout = m_aq->GetAttachedClientSocket()->GetRecvTimeout();
+		unsigned int timeout = (~0);
 		bool sync = false;
 		Php::Value phpGK = params[0];
 		if (phpGK.isNumeric()) {
-			int64_t t = phpGK.numericValue();
-			if (t >= 0 && t < timeout) {
-				timeout = (unsigned int)t;
-			}
+			timeout = (unsigned int)phpGK.numericValue();
 			sync = true;
 		}
 		else if (phpGK.isBool()) {
