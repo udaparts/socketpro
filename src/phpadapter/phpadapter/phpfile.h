@@ -24,7 +24,7 @@ namespace PA {
 	private:
 		Php::Value Download(Php::Parameters &params);
 		Php::Value Upload(Php::Parameters &params);
-		CAsyncFile::DDownload SetResCallback(Php::Value phpDl, std::shared_ptr<Php::Value> &pV, unsigned int &timeout);
+		CAsyncFile::DDownload SetResCallback(unsigned short reqId, Php::Value phpDl, std::shared_ptr<Php::Value> &pV, unsigned int &timeout);
 		static void MapFilePaths(Php::Value phpLocal, Php::Value phpRemote, std::wstring &local, std::wstring &remote);
 
 	private:

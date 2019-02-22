@@ -186,8 +186,10 @@ namespace PA {
 			p->Swap(buffer.get());
 			return Php::Object((SPA_NS + PHP_BUFFER).c_str(), p);
 		}
-		std::unique_lock<std::mutex> lk(m_mPhp);
-		PopCallbacks();
+		{
+			std::unique_lock<std::mutex> lk(m_mPhp);
+			PopCallbacks();
+		}
 		return m_h->SendRequest(reqId, pBuffer, bytes, rh, discarded, se);
 	}
 

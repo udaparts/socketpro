@@ -11,10 +11,14 @@ namespace PA {
 		ctFile,
 		ctQueueTrans,
 		ctEnqueueRes,
+		ctQueueFlush,
+		ctQueueGetKeys,
+		ctDequeue,
 		ctDbRes,
 		ctDbExeRes,
 		ctDbR,
-		ctDbRH
+		ctDbRH,
+		ctDbBH
 	};
 
 	struct PACallback {

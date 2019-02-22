@@ -33,9 +33,9 @@ namespace PA {
 		void BatchMessage(Php::Parameters &params);
 		Php::Value EnqueueBatch(Php::Parameters &params);
 
-		CAsyncQueue::DEnqueue SetEnqueueResCallback(const Php::Value& phpDl, std::shared_ptr<Php::Value> &pV, unsigned int &timeout);
+		CAsyncQueue::DEnqueue SetEnqueueResCallback(unsigned short reqId, const Php::Value& phpDl, std::shared_ptr<Php::Value> &pV, unsigned int &timeout);
 		std::string GetKey(const Php::Value &v);
-		CAsyncQueue::DQueueTrans SetQueueTransCallback(const Php::Value& phpTrans, std::shared_ptr<Php::Value> &pV, unsigned int &timeout);
+		CAsyncQueue::DQueueTrans SetQueueTransCallback(unsigned short reqId, const Php::Value& phpTrans, std::shared_ptr<Php::Value> &pV, unsigned int &timeout);
 
 	private:
 		CAsyncQueue *m_aq;
