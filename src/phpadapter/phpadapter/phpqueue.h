@@ -2,6 +2,7 @@
 #define SPA_PHP_ASYNC_QUEUE_HANDER_H
 
 #include "basehandler.h"
+#include "phpbuffer.h"
 
 namespace PA {
 
@@ -33,9 +34,9 @@ namespace PA {
 		void BatchMessage(Php::Parameters &params);
 		Php::Value EnqueueBatch(Php::Parameters &params);
 
-		CAsyncQueue::DEnqueue SetEnqueueResCallback(unsigned short reqId, const Php::Value& phpDl, std::shared_ptr<Php::Value> &pV, unsigned int &timeout);
+		CAsyncQueue::DEnqueue SetEnqueueResCallback(unsigned short reqId, const Php::Value& phpDl, CPVPointer &pV, unsigned int &timeout);
 		std::string GetKey(const Php::Value &v);
-		CAsyncQueue::DQueueTrans SetQueueTransCallback(unsigned short reqId, const Php::Value& phpTrans, std::shared_ptr<Php::Value> &pV, unsigned int &timeout);
+		CAsyncQueue::DQueueTrans SetQueueTransCallback(unsigned short reqId, const Php::Value& phpTrans, CPVPointer &pV, unsigned int &timeout);
 
 	private:
 		CAsyncQueue *m_aq;

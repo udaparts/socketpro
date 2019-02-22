@@ -191,17 +191,15 @@ namespace SPA {
                 }
             },
 #ifdef PHP_ADAPTER_PROJECT
-            [this](CSQLHandler &h, Php::Value & v) {
-                auto &meta = h.GetColumnInfo();
+            [this](CSQLHandler &h, CUQueue & v) {
+				auto &meta = h.GetColumnInfo();
                 const UDB::CDBColumnInfo &info = meta.front();
-                        UDB::CDBVariantArray vData;
-                        int count = v.length();
-                for (int n = 0; n < count; ++n) {
-                    Php::Value d = v.get(n);
-                            UDB::CDBVariant vt;
-                            PA::ToVariant(d, vt);
-                            vData.push_back(std::move(vt));
-                }
+                UDB::CDBVariantArray vData;
+				while (v.GetSize()) {
+					UDB::CDBVariant vt;
+					v >> vt;
+					vData.push_back(std::move(vt));
+				}
                 //populate vData into m_cache container
                 this->m_cache.AddRows(info.DBPath.c_str(), info.TablePath.c_str(), vData);
 #else

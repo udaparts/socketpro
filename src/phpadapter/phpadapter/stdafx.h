@@ -33,6 +33,9 @@
 #include "rapidjson/include/rapidjson/writer.h"
 
 namespace PA {
+
+	typedef std::shared_ptr<Php::Value> CPVPointer;
+
 	void Trim(std::string &str);
 
 	enum tagPoolType {

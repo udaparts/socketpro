@@ -111,7 +111,73 @@ namespace PA {
 	}
 
 	void CPhpDb::PopTopCallbacks(PACallback &cb) {
-
+		Php::Value v;
+		Php::Value &callback = *cb.CallBack;
+		switch (cb.CallbackType)
+		{
+		case ctDbExeRes:
+		{
+			int res;
+			std::string em;
+			SPA::INT64 affected;
+			unsigned int fails, oks;
+			SPA::UDB::CDBVariant vtId;
+			*cb.Res >> res >> em >> affected >> fails >> oks >> vtId;
+			v.set(PHP_ERR_CODE, res);
+			v.set(PHP_ERR_MSG, em);
+			v.set(PHP_DB_AFFECTED, affected);
+			v.set(PHP_DB_FAILS, (int64_t)fails);
+			v.set(PHP_DB_OKS, (int64_t)oks);
+			if (vtId.vt > VT_NULL) {
+				v.set(PHP_DB_LAST_ID, vtId.llVal);
+			}
+			else {
+				v.set(PHP_DB_LAST_ID, nullptr);
+			}
+		}
+			break;
+		case ctDbR:
+		{
+			bool proc;
+			int index = 0;
+			*cb.Res >> proc;
+			Php::Array vData;
+			CPhpBuffer buff(cb.Res);
+			while (cb.Res->GetSize()) {
+				vData.set(index, buff.LoadObject());
+				++index;
+			}
+			callback(vData, proc);
+		}
+			break;
+		case ctDbRes:
+		{
+			int res;
+			std::string em;
+			*cb.Res >> res >> em;
+			v.set(PHP_ERR_CODE, res);
+			v.set(PHP_ERR_MSG, em);
+		}
+			break;
+		case ctDbRH:
+		{
+			int index = 0;
+			v = Php::Array(); //convert to array
+			SPA::UDB::CDBColumnInfoArray vCol;
+			*cb.Res >> vCol;
+			for (auto &p : vCol) {
+				v.set(index, Php::Object((SPA_CS_NS + PHP_DB_COLUMN_INFO).c_str(), new CPhpDBColumnInfo(p)));
+				++index;
+			}
+		}
+			break;
+		default:
+			assert(false);
+			break;
+		}
+		if (cb.CallbackType != ctDbR) {
+			callback(v);
+		}
 	}
 
 	Php::Value CPhpDb::Open(Php::Parameters &params) {
@@ -119,7 +185,7 @@ namespace PA {
 		std::string aconn = params[0].stringValue();
 		Trim(aconn);
 		std::wstring conn = SPA::Utilities::ToWide(aconn);
-		std::shared_ptr<Php::Value> pV;
+		CPVPointer pV;
 		auto Dr = SetResCallback(params[1], pV, timeout);
 		size_t args = params.size();
 		Php::Value phpCanceled;
@@ -137,15 +203,18 @@ namespace PA {
 				throw Php::Exception("The Open method flags must be an integer value");
 			}
 		}
-		if (pV) {
+		{
 			std::unique_lock<std::mutex> lk(m_mPhp);
-			ReqSyncEnd(m_db->Open(conn.c_str(), Dr, flags, discarded), lk, timeout);
-			return *pV;
+			if (pV) {
+				ReqSyncEnd(m_db->Open(conn.c_str(), Dr, flags, discarded), lk, timeout);
+				return *pV;
+			}
+			PopCallbacks();
 		}
 		return m_db->Open(conn.c_str(), Dr, flags, discarded);
 	}
 
-	CDBHandler::DExecuteResult CPhpDb::SetExeResCallback(const Php::Value &phpDR, std::shared_ptr<Php::Value> &pV, unsigned int &timeout) {
+	CDBHandler::DExecuteResult CPhpDb::SetExeResCallback(const Php::Value &phpDR, CPVPointer &pV, unsigned int &timeout) {
 		timeout = (~0);
 		bool sync = false;
 		if (phpDR.isNumeric()) {
@@ -166,64 +235,89 @@ namespace PA {
 		else {
 			pV.reset();
 		}
-		CDBHandler::DExecuteResult Dr = [phpDR, pV, this](CDBHandler &db, int res, const std::wstring& errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, SPA::UDB::CDBVariant& vtId) {
+		CPVPointer callback(new Php::Value(phpDR));
+		CDBHandler::DExecuteResult Dr = [callback, pV, this](CDBHandler &db, int res, const std::wstring& errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, SPA::UDB::CDBVariant& vtId) {
 			unsigned int fails = (unsigned int)(fail_ok >> 32);
 			unsigned int oks = (unsigned int)fail_ok;
 			std::string em = SPA::Utilities::ToUTF8(errMsg);
 			Trim(em);
-			CPhpBuffer buff;
-			*buff.GetBuffer() << vtId;
-			if (phpDR) {
+			if (pV) {
 				pV->set(PHP_ERR_CODE, res);
 				pV->set(PHP_ERR_MSG, em);
 				pV->set(PHP_DB_AFFECTED, affected);
 				pV->set(PHP_DB_FAILS, (int64_t)fails);
 				pV->set(PHP_DB_OKS, (int64_t)oks);
-				pV->set(PHP_DB_LAST_ID, buff.LoadObject());
+				if (vtId.vt > VT_NULL) {
+					pV->set(PHP_DB_LAST_ID, vtId.llVal);
+				}
+				else {
+					pV->set(PHP_DB_LAST_ID, nullptr);
+				}
 				std::unique_lock<std::mutex> lk(this->m_mPhp);
 				this->m_cvPhp.notify_all();
 			}
-			else if (phpDR.isCallable()) {
-				Php::Value v;
-				v.set(PHP_ERR_CODE, res);
-				v.set(PHP_ERR_MSG, em);
-				v.set(PHP_DB_AFFECTED, affected);
-				v.set(PHP_DB_FAILS, (int64_t)fails);
-				v.set(PHP_DB_OKS, (int64_t)oks);
-				v.set(PHP_DB_LAST_ID, buff.LoadObject());
-				phpDR(v);
+			else if (callback->isCallable()) {
+				SPA::CScopeUQueue sb;
+				sb << res << em << affected << fails << oks << vtId;
+				PACallback cb;
+				cb.CallbackType = ctDbExeRes;
+				cb.Res = sb.Detach();
+				cb.CallBack = callback;
+				std::unique_lock<std::mutex> lk(this->m_mPhp);
+				this->m_vCallback.push_back(cb);
 			}
 		};
 		return Dr;
 	}
 
 	CDBHandler::DRows CPhpDb::SetRCallback(const Php::Value &phpRow) {
+		CDBHandler::DRows r;
 		if (phpRow.isNull()) {
 		}
 		else if (!phpRow.isCallable()) {
 			throw Php::Exception("A callback required for row data event");
 		}
-		CDBHandler::DRows r = [phpRow, this](CDBHandler &db, Php::Value &vData) {
-			if (phpRow.isCallable()) {
-				Php::Object obj((SPA_CS_NS + PHP_DB_HANDLER).c_str(), new CPhpDb(this->GetPoolId(), &db, false));
-				phpRow(vData, db.IsProc(), obj);
-			}
-		};
+		else {
+			CPVPointer callback(new Php::Value(phpRow));
+			r = [callback, this](CDBHandler &db, SPA::CUQueue &vData) {
+				SPA::CScopeUQueue sb;
+				sb << db.IsProc();
+				if (db.IsProc()) {
+					sb << db.GetRetValue();
+				}
+				sb->Push(vData.GetBuffer(), vData.GetSize());
+				vData.SetSize(0);
+				PACallback cb;
+				cb.CallbackType = ctDbR;
+				cb.Res = sb.Detach();
+				cb.CallBack = callback;
+				std::unique_lock<std::mutex> lk(this->m_mPhp);
+				this->m_vCallback.push_back(cb);
+			};
+		}
 		return r;
 	}
 
 	CDBHandler::DRowsetHeader CPhpDb::SetRHCallback(const Php::Value &phpRh, bool batch) {
+		CDBHandler::DRowsetHeader rh;
 		if (phpRh.isNull()) {
 		}
 		else if (!phpRh.isCallable()) {
 			throw Php::Exception(batch ? "A callback required for ExecuteBatch header event" : "A callback required for rowset header event");
 		}
-		CDBHandler::DRowsetHeader rh = [phpRh, this](CDBHandler &db) {
-			if (phpRh.isCallable()) {
-				Php::Object obj((SPA_CS_NS + PHP_DB_HANDLER).c_str(), new CPhpDb(this->GetPoolId(), &db, false));
-				phpRh(obj);
-			}
-		};
+		else {
+			CPVPointer callback(new Php::Value(phpRh));
+			rh = [callback, this](CDBHandler &db) {
+				SPA::CScopeUQueue sb;
+				sb << db.GetColumnInfo();
+				PACallback cb;
+				cb.CallbackType = ctDbRH;
+				cb.Res = sb.Detach();
+				cb.CallBack = callback;
+				std::unique_lock<std::mutex> lk(this->m_mPhp);
+				this->m_vCallback.push_back(cb);
+			};
+		}
 		return rh;
 	}
 
@@ -243,7 +337,7 @@ namespace PA {
 			GetParams(params[0], vParam);
 		}
 
-		std::shared_ptr<Php::Value> pV;
+		CPVPointer pV;
 		auto Dr = SetExeResCallback(params[1], pV, timeout);
 
 		size_t args = params.size();
@@ -264,11 +358,13 @@ namespace PA {
 			phpCanceled = params[4];
 		}
 		auto discarded = SetAbortCallback(phpCanceled, SPA::UDB::idExecute, pV ? true : false);
-
-		if (pV) {
+		{
 			std::unique_lock<std::mutex> lk(m_mPhp);
-			ReqSyncEnd(sql.size() ? m_db->Execute(sql.c_str(), Dr, r, rh, true, true, discarded) : m_db->Execute(vParam, Dr, r, rh, true, true, discarded), lk, timeout);
-			return *pV;
+			if (pV) {
+				ReqSyncEnd(sql.size() ? m_db->Execute(sql.c_str(), Dr, r, rh, true, true, discarded) : m_db->Execute(vParam, Dr, r, rh, true, true, discarded), lk, timeout);
+				return *pV;
+			}
+			PopCallbacks();
 		}
 		return sql.size() ? m_db->Execute(sql.c_str(), Dr, r, rh, true, true, discarded) : m_db->Execute(vParam, Dr, r, rh, true, true, discarded);
 	}
@@ -322,7 +418,7 @@ namespace PA {
 		SPA::UDB::CDBVariantArray vParam;
 		GetParams(params[2], vParam);
 
-		std::shared_ptr<Php::Value> pV;
+		CPVPointer pV;
 		CDBHandler::DExecuteResult Dr = SetExeResCallback(params[3], pV, timeout);
 		size_t args = params.size();
 		Php::Value phpRow;
@@ -387,10 +483,13 @@ namespace PA {
 				throw Php::Exception("An array of parameter info structures required");
 			}
 		}
-		if (pV) {
+		{
 			std::unique_lock<std::mutex> lk(m_mPhp);
-			ReqSyncEnd(m_db->ExecuteBatch(ti, sql.c_str(), vParam, Dr, r, rh, bh, vPInfo, plan, discarded, delimiter.c_str()), lk, timeout);
-			return *pV;
+			if (pV) {
+				ReqSyncEnd(m_db->ExecuteBatch(ti, sql.c_str(), vParam, Dr, r, rh, bh, vPInfo, plan, discarded, delimiter.c_str()), lk, timeout);
+				return *pV;
+			}
+			PopCallbacks();
 		}
 		return m_db->ExecuteBatch(ti, sql.c_str(), vParam, Dr, r, rh, bh, vPInfo, plan, discarded, delimiter.c_str());
 	}
@@ -426,7 +525,7 @@ namespace PA {
 			throw Php::Exception("SQL statement cannot be empty");
 		}
 		std::wstring sql = SPA::Utilities::ToWide(asql);
-		std::shared_ptr<Php::Value> pV;
+		CPVPointer pV;
 		CDBHandler::DResult Dr = SetResCallback(params[1], pV, timeout);
 		size_t args = params.size();
 		Php::Value phpCanceled;
@@ -444,15 +543,18 @@ namespace PA {
 				throw Php::Exception("An array of parameter info structures required");
 			}
 		}
-		if (pV) {
+		{
 			std::unique_lock<std::mutex> lk(m_mPhp);
-			ReqSyncEnd(m_db->Prepare(sql.c_str(), Dr, vPInfo, discarded), lk, timeout);
-			return *pV;
+			if (pV) {
+				ReqSyncEnd(m_db->Prepare(sql.c_str(), Dr, vPInfo, discarded), lk, timeout);
+				return *pV;
+			}
+			PopCallbacks();
 		}
 		return m_db->Prepare(sql.c_str(), Dr, vPInfo, discarded);
 	}
 
-	CDBHandler::DResult CPhpDb::SetResCallback(const Php::Value &phpRes, std::shared_ptr<Php::Value> &pV, unsigned int &timeout) {
+	CDBHandler::DResult CPhpDb::SetResCallback(const Php::Value &phpRes, CPVPointer &pV, unsigned int &timeout) {
 		timeout = (~0);
 		bool sync = false;
 		if (phpRes.isNumeric()) {
@@ -473,22 +575,32 @@ namespace PA {
 		else {
 			pV.reset();
 		}
-		CDBHandler::DResult Dr = [phpRes, pV, this](CDBHandler &db, int res, const std::wstring& errMsg) {
-			if (phpRes) {
+		CPVPointer callback(new Php::Value(phpRes));
+		CDBHandler::DResult Dr = [callback, pV, this](CDBHandler &db, int res, const std::wstring& errMsg) {
+			std::string em = SPA::Utilities::ToUTF8(errMsg);
+			Trim(em);
+			if (pV) {
 				pV->set(PHP_ERR_CODE, res);
-				std::string em = SPA::Utilities::ToUTF8(errMsg);
-				Trim(em);
 				pV->set(PHP_ERR_MSG, em);
 				std::unique_lock<std::mutex> lk(this->m_mPhp);
 				this->m_cvPhp.notify_all();
 			}
-			else if (phpRes.isCallable()) {
+			else if (callback->isCallable()) {
+				SPA::CScopeUQueue sb;
+				sb << res << em;
+				PACallback cb;
+				cb.CallbackType = ctDbRes;
+				cb.Res = sb.Detach();
+				cb.CallBack = callback;
+				std::unique_lock<std::mutex> lk(this->m_mPhp);
+				this->m_vCallback.push_back(cb);
+				/*
 				std::string em = SPA::Utilities::ToUTF8(errMsg);
-				Trim(em);
 				Php::Value v;
 				v.set(PHP_ERR_CODE, res);
 				v.set(PHP_ERR_MSG, em);
 				phpRes(v);
+				*/
 			}
 		};
 		return Dr;
@@ -496,7 +608,7 @@ namespace PA {
 
 	Php::Value CPhpDb::Close(Php::Parameters &params) {
 		unsigned int timeout;
-		std::shared_ptr<Php::Value> pV;
+		CPVPointer pV;
 		CDBHandler::DResult Dr = SetResCallback(params[0], pV, timeout);
 		size_t args = params.size();
 		Php::Value phpCanceled;
@@ -504,10 +616,13 @@ namespace PA {
 			phpCanceled = params[1];
 		}
 		SPA::ClientSide::CAsyncServiceHandler::DDiscarded discarded = SetAbortCallback(phpCanceled, SPA::UDB::idClose, pV ? true : false);
-		if (pV) {
+		{
 			std::unique_lock<std::mutex> lk(m_mPhp);
-			ReqSyncEnd(m_db->Close(Dr, discarded), lk, timeout);
-			return *pV;
+			if (pV) {
+				ReqSyncEnd(m_db->Close(Dr, discarded), lk, timeout);
+				return *pV;
+			}
+			PopCallbacks();
 		}
 		return m_db->Close(Dr, discarded);
 	}
@@ -519,17 +634,20 @@ namespace PA {
 			throw Php::Exception("Bad transaction isolation value");
 		}
 		SPA::UDB::tagTransactionIsolation ti = (SPA::UDB::tagTransactionIsolation)iso;
-		std::shared_ptr<Php::Value> pV;
+		CPVPointer pV;
 		CDBHandler::DResult Dr = SetResCallback(params[1], pV, timeout);
 		Php::Value phpCanceled;
 		if (params.size() > 2) {
 			phpCanceled = params[2];
 		}
 		SPA::ClientSide::CAsyncServiceHandler::DDiscarded discarded = SetAbortCallback(phpCanceled, SPA::UDB::idBeginTrans, pV ? true : false);
-		if (pV) {
+		{
 			std::unique_lock<std::mutex> lk(m_mPhp);
-			ReqSyncEnd(m_db->BeginTrans(ti, Dr, discarded), lk, timeout);
-			return *pV;
+			if (pV) {
+				ReqSyncEnd(m_db->BeginTrans(ti, Dr, discarded), lk, timeout);
+				return *pV;
+			}
+			PopCallbacks();
 		}
 		return m_db->BeginTrans(ti, Dr, discarded);
 	}
@@ -541,17 +659,20 @@ namespace PA {
 			throw Php::Exception("Bad rollback plan value");
 		}
 		SPA::UDB::tagRollbackPlan p = (SPA::UDB::tagRollbackPlan)plan;
-		std::shared_ptr<Php::Value> pV;
+		CPVPointer pV;
 		CDBHandler::DResult Dr = SetResCallback(params[1], pV, timeout);
 		Php::Value phpCanceled;
 		if (params.size() > 2) {
 			phpCanceled = params[2];
 		}
 		SPA::ClientSide::CAsyncServiceHandler::DDiscarded discarded = SetAbortCallback(phpCanceled, SPA::UDB::idEndTrans, pV ? true : false);
-		if (pV) {
+		{
 			std::unique_lock<std::mutex> lk(m_mPhp);
-			ReqSyncEnd(m_db->EndTrans(p, Dr, discarded), lk, timeout);
-			return *pV;
+			if (pV) {
+				ReqSyncEnd(m_db->EndTrans(p, Dr, discarded), lk, timeout);
+				return *pV;
+			}
+			PopCallbacks();
 		}
 		return m_db->EndTrans(p, Dr, discarded);
 	}

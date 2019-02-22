@@ -17,13 +17,12 @@ namespace PA {
 		ctDbRes,
 		ctDbExeRes,
 		ctDbR,
-		ctDbRH,
-		ctDbBH
+		ctDbRH
 	};
 
 	struct PACallback {
 		enumCallbackType CallbackType;
-		std::shared_ptr<Php::Value> CallBack;
+		CPVPointer CallBack;
 		SPA::CUQueue *Res;
 	};
 

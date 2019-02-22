@@ -69,10 +69,10 @@ namespace PA {
 		switch (spe)
 		{
 		case SPA::ClientSide::speThreadCreated:
-			Php::FetchPhpResourceToCurrentThread();
+			//Php::FetchPhpResourceToCurrentThread();
 			break;
 		case SPA::ClientSide::speKillingThread:
-			Php::ReleasePhpResourceFromCurrentThread();
+			//Php::ReleasePhpResourceFromCurrentThread();
 			break;
 		default:
 			break;

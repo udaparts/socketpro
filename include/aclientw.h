@@ -19,12 +19,8 @@
 #include <condition_variable>
 #include "../src/phpadapter/PHP-CPP/phpcpp.h"
 #define NO_MIDDLE_TIER
-#define NO_OUTPUT_BINDING
-
 #elif defined NODE_JS_ADAPTER_PROJECT
 #define NO_MIDDLE_TIER
-#define NO_OUTPUT_BINDING
-
 #ifdef WIN32_64
 //warning C4251: 'node::CallbackScope::try_catch_': class 'v8::TryCatch' needs to have dll-interface to be used by clients
 #pragma warning(disable: 4251)

@@ -60,7 +60,7 @@ namespace PA {
 		}
 	}
 
-	CAsyncFile::DDownload CPhpFile::SetResCallback(unsigned short reqId, Php::Value phpDl, std::shared_ptr<Php::Value> &pV, unsigned int &timeout) {
+	CAsyncFile::DDownload CPhpFile::SetResCallback(unsigned short reqId, Php::Value phpDl, CPVPointer &pV, unsigned int &timeout) {
 		assert(pV);
 		timeout = (~0);
 		bool sync = false;
@@ -82,7 +82,7 @@ namespace PA {
 		else {
 			pV.reset();
 		}
-		std::shared_ptr<Php::Value> callback(new Php::Value(phpDl));
+		CPVPointer callback(new Php::Value(phpDl));
 		CAsyncFile::DDownload Dl = [reqId, callback, pV, this](SPA::ClientSide::CStreamingFile *file, int res, const std::wstring& errMsg) {
 			if (pV) {
 				pV->set(PHP_ERR_CODE, res);
@@ -124,7 +124,7 @@ namespace PA {
 	Php::Value CPhpFile::Download(Php::Parameters &params) {
 		unsigned int timeout;
 		std::wstring local, remote;
-		std::shared_ptr<Php::Value> pV;
+		CPVPointer pV;
 		MapFilePaths(params[0], params[1], local, remote);
 		
 		Php::Value phpDl = params[2];
@@ -160,7 +160,7 @@ namespace PA {
 
 	Php::Value CPhpFile::Upload(Php::Parameters &params) {
 		unsigned int timeout;
-		std::shared_ptr<Php::Value> pV;
+		CPVPointer pV;
 		std::wstring local, remote;
 		MapFilePaths(params[0], params[1], local, remote);
 		Php::Value phpUl = params[2];
