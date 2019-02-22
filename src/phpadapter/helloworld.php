@@ -1,7 +1,7 @@
 <?php
 
 try {
-	$idReservedTwo = 0x2001; //Your request id must larger than 0x2001
+	$idReservedTwo = SPA\BaseID::idReservedTwo; //Your request id must larger than 0x2001
 	
 	//Request ids must be the same ones at server side, which could be implemented with one of C/C++, C#/VB.NET, Java and Python languages
 	$idSayHello = $idReservedTwo + 1;
@@ -10,7 +10,6 @@ try {
 	
 	do {
 		$hw = GetSpHandler('my_hello_world');
-		
 		//streaming all requests for the best network efficiency
 		//async request
 		if(!$hw->SendRequest($idSayHello, SpBuffer()->SaveString('Hillary')->SaveString('Clinton'), function($res) {

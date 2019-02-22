@@ -64,21 +64,19 @@ namespace PA {
 		//permission given
 		return true;
 	}
-
+#ifdef REQUIRE_POOL_EVENT
 	void CPoolStartContext::DealWithPoolEvents(tagSocketPoolEvent spe) {
 		switch (spe)
 		{
 		case SPA::ClientSide::speThreadCreated:
-			//Php::FetchPhpResourceToCurrentThread();
 			break;
 		case SPA::ClientSide::speKillingThread:
-			//Php::ReleasePhpResourceFromCurrentThread();
 			break;
 		default:
 			break;
 		}
 	}
-
+#endif
 	std::string CPoolStartContext::StartPool() {
 		assert(!PhpHandler);
 		std::wstring dfltDb = SPA::Utilities::ToWide(DefaultDb);
@@ -110,18 +108,22 @@ namespace PA {
 			PhpDb->DoSslServerAuthentication = [this](CPhpDbPool *pool, CClientSocket * cs)->bool {
 				return this->DoSSLAuth(cs);
 			};
+#ifdef REQUIRE_POOL_EVENT
 			PhpDb->SocketPoolEvent = [this](CPhpDbPool *pool, tagSocketPoolEvent spe, CDBHandler *handler) {
 				this->DealWithPoolEvents(spe);
 			};
+#endif
 			break;
 		case SPA::sidChat:
 			PhpQueue = new CPhpQueuePool(AutoConn, RecvTimeout, ConnTimeout, SvsId);
 			PhpQueue->DoSslServerAuthentication = [this](CPhpQueuePool *pool, CClientSocket * cs)->bool {
 				return this->DoSSLAuth(cs);
 			};
+#ifdef REQUIRE_POOL_EVENT
 			PhpQueue->SocketPoolEvent = [this](CPhpQueuePool *pool, tagSocketPoolEvent spe, CAsyncQueue *handler) {
 				this->DealWithPoolEvents(spe);
 			};
+#endif
 			if (Queue.size()) {
 				PhpQueue->SetQueueName(Queue.c_str());
 			}
@@ -131,9 +133,11 @@ namespace PA {
 			PhpFile->DoSslServerAuthentication = [this](CPhpFilePool *pool, CClientSocket * cs)->bool {
 				return this->DoSSLAuth(cs);
 			};
+#ifdef REQUIRE_POOL_EVENT
 			PhpFile->SocketPoolEvent = [this](CPhpFilePool *pool, tagSocketPoolEvent spe, CAsyncFile *handler) {
 				this->DealWithPoolEvents(spe);
 			};
+#endif
 			if (Queue.size()) {
 				PhpFile->SetQueueName(Queue.c_str());
 			}
@@ -160,9 +164,11 @@ namespace PA {
 			PhpHandler->DoSslServerAuthentication = [this](CPhpPool *pool, CClientSocket * cs)->bool {
 				return this->DoSSLAuth(cs);
 			};
+#ifdef REQUIRE_POOL_EVENT
 			PhpHandler->SocketPoolEvent = [this](CPhpPool *pool, tagSocketPoolEvent spe, CAsyncHandler *handler) {
 				this->DealWithPoolEvents(spe);
 			};
+#endif
 			if (Queue.size()) {
 				PhpHandler->SetQueueName(Queue.c_str());
 			}

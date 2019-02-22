@@ -7,7 +7,6 @@ try {
 		if(!$file->Download('spfile1.test', 'jvm.lib', function($em) {
 				echo 'File download result: ';
 				echo var_dump($em).'<br/>';
-			}, function($pos, $fileSize){
 			}, function($canceled){
 				echo $canceled ? 'Download canceled<br/>' : 'Session closed <br/>';
 			})

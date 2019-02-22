@@ -37,7 +37,9 @@ namespace SPA {
                 m_typeDB.data = this;
                 int fail = uv_async_init(uv_default_loop(), &m_typeDB, req_cb);
                 assert(!fail);
-                m_bProc = false;
+#endif
+#ifdef NO_OUTPUT_BINDING
+				m_bProc = false;
 #endif
             }
 
@@ -54,7 +56,9 @@ namespace SPA {
                 m_typeDB.data = this;
                 int fail = uv_async_init(uv_default_loop(), &m_typeDB, req_cb);
                 assert(!fail);
-                m_bProc = false;
+#endif
+#ifdef NO_OUTPUT_BINDING
+				m_bProc = false;
 #endif
             }
 
@@ -774,7 +778,7 @@ namespace SPA {
                         CAutoLock al(m_csDB);
 #ifdef NO_OUTPUT_BINDING
                         m_vtRet = vt;
-#endif
+#else
                         auto it = m_mapParameterCall.find(m_indexRowset);
                         if (it != m_mapParameterCall.end()) {
                             //crash? make sure that vParam is valid after calling the method Execute
@@ -782,6 +786,7 @@ namespace SPA {
                             size_t pos = m_parameters * m_indexProc + (m_nParamPos >> 16);
                             vParam[pos] = vt;
                         }
+#endif
                         m_bCallReturn = true;
                     }
                         break;
@@ -821,7 +826,12 @@ namespace SPA {
                         break;
                     case idOutputParameter:
                     case idEndRows:
-                        if (mc.GetSize() || m_vData.GetSize()) {
+#ifdef PHP_ADAPTER_PROJECT
+                        if (mc.GetSize() || m_vData.GetSize())
+#else
+						if (mc.GetSize() || m_vData.size())
+#endif
+						{
                             m_csDB.lock();
                             bool Utf8ToW = m_Blob.Utf8ToW();
                             m_csDB.unlock();

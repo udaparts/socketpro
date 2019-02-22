@@ -1,7 +1,7 @@
 <?php
 
 try {
-	$db = GetSpHandler('masterdb');
+	$db = GetSpPool('masterdb')->Lock();
 	$ok = true;
 	do {
 		$sql = "select actor_id, first_name from sakila.actor where actor_id between ? and ?";
@@ -11,18 +11,20 @@ try {
 		}
 		$vData = array();
 		$vParam = array(1, 3);
+
 		$res = $db->Execute($vParam, true, function($v, $proc) {
 			global $vData;
 			$vData = array_merge($vData, $v);
-		}, function($mydb){
+		}, function($meta){
 			echo 'Meta data: ';
-			echo var_dump($mydb->ColMeta).'<br/><br/>';
+			echo var_dump($meta).'<br/><br/>';
 		});
-		echo 'Meta data: ';
+		echo 'Data: ';
 		echo var_dump($vData).'<br/><br/>';
 
 		echo 'Final result: ';
 		echo var_dump($res).'<br/><br/>';
+		
 	} while(false);
 	if($ok) {
 		echo 'All requests executed successfully<br/>';

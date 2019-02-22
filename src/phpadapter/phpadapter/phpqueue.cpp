@@ -27,7 +27,7 @@ namespace PA {
 	Php::Value CPhpQueue::CloseQueue(Php::Parameters &params) {
 		unsigned int timeout;
 		std::string key = GetKey(params[0]);
-		CPVPointer pErrCode;
+		std::shared_ptr<int> pErrCode;
 		auto c = SetQueueTransCallback(SPA::Queue::idClose, params[1], pErrCode, timeout);
 		size_t args = params.size();
 		Php::Value phpCanceled;
@@ -56,7 +56,7 @@ namespace PA {
 		}
 		std::string key = GetKey(params[0]);
 		unsigned int timeout;
-		CPVPointer pIndex;
+		std::shared_ptr<SPA::INT64> pIndex;
 		auto c = SetEnqueueResCallback(SPA::Queue::idEnqueueBatch, params[1], pIndex, timeout);
 		size_t args = params.size();
 		Php::Value phpCanceled;
@@ -73,6 +73,18 @@ namespace PA {
 			PopCallbacks();
 		}
 		return m_aq->EnqueueBatch(key.c_str(), m_pBuff->GetBuffer()->GetBuffer(), m_pBuff->GetBuffer()->GetSize(), c, discarded);
+	}
+
+	Php::Value CPhpQueue::ToDeqValue(SPA::CUQueue *q) {
+		SPA::INT64 messages, fileSize;
+		unsigned int messagesDequeued, bytesDequeued;
+		*q >> messages >> fileSize >> messagesDequeued >> bytesDequeued;
+		Php::Value v;
+		v.set(PHP_QUEUE_MESSAGES, messages);
+		v.set(PHP_QUEUE_FILESIZE, fileSize);
+		v.set(PHP_QUEUE_MESSAGES_DEQUEUED, (int64_t)messagesDequeued);
+		v.set(PHP_QUEUE_BYTES_DEQUEUED, (int64_t)bytesDequeued);
+		return v;
 	}
 
 	Php::Value CPhpQueue::Dequeue(Php::Parameters &params) {
@@ -95,17 +107,16 @@ namespace PA {
 		else if (!phpF.isCallable()) {
 			throw Php::Exception("A callback required for Dequeue final result");
 		}
-		CPVPointer pF;
+		CQPointer pF;
 		if (sync) {
-			pF.reset(new Php::Value);
+			pF.reset(SPA::CScopeUQueue::Lock(), [](SPA::CUQueue *q) {
+				SPA::CScopeUQueue::Unlock(q);
+			});
 		}
 		CPVPointer callback(new Php::Value(phpF));
 		CAsyncQueue::DDequeue f = [callback, pF, this](CAsyncQueue *aq, SPA::UINT64 messages, SPA::UINT64 fileSize, unsigned int messagesDequeued, unsigned int bytesDequeued) {
 			if (pF) {
-				pF->set(PHP_QUEUE_MESSAGES, (int64_t)messages);
-				pF->set(PHP_QUEUE_FILESIZE, (int64_t)fileSize);
-				pF->set(PHP_QUEUE_MESSAGES_DEQUEUED, (int64_t)messagesDequeued);
-				pF->set(PHP_QUEUE_BYTES_DEQUEUED, (int64_t)bytesDequeued);
+				*pF << messages << fileSize << messagesDequeued << bytesDequeued;
 				std::unique_lock<std::mutex> lk(this->m_mPhp);
 				this->m_cvPhp.notify_all();
 			}
@@ -143,11 +154,20 @@ namespace PA {
 			std::unique_lock<std::mutex> lk(m_mPhp);
 			if (sync) {
 				ReqSyncEnd(m_aq->Dequeue(key.c_str(), f, to, discarded), lk, timeout);
-				return *pF;
+				return ToDeqValue(pF.get());
 			}
 			PopCallbacks();
 		}
 		return m_aq->Dequeue(key.c_str(), f, to, discarded);
+	}
+
+	Php::Value CPhpQueue::ToFlushValue(SPA::CUQueue *q) {
+		SPA::INT64 messages, fileSize;
+		*q >> messages >> fileSize;
+		Php::Value v;
+		v.set(PHP_QUEUE_MESSAGES, messages);
+		v.set(PHP_QUEUE_FILESIZE, fileSize);
+		return v;
 	}
 
 	Php::Value CPhpQueue::FlushQueue(Php::Parameters &params) {
@@ -170,15 +190,16 @@ namespace PA {
 		else if (!phpF.isCallable()) {
 			throw Php::Exception("A callback required for Flush final result");
 		}
-		CPVPointer pF;
+		CQPointer pF;
 		if (sync) {
-			pF.reset(new Php::Value);
+			pF.reset(SPA::CScopeUQueue::Lock(), [](SPA::CUQueue *q) {
+				SPA::CScopeUQueue::Unlock(q);
+			});
 		}
 		CPVPointer callback(new Php::Value(phpF));
 		CAsyncQueue::DFlush f = [callback, pF, this](CAsyncQueue *aq, SPA::UINT64 messages, SPA::UINT64 fileSize) {
 			if (pF) {
-				pF->set(PHP_QUEUE_MESSAGES, (int64_t)messages);
-				pF->set(PHP_QUEUE_FILESIZE, (int64_t)fileSize);
+				*pF << messages << fileSize;
 				std::unique_lock<std::mutex> lk(this->m_mPhp);
 				this->m_cvPhp.notify_all();
 			}
@@ -216,7 +237,7 @@ namespace PA {
 			std::unique_lock<std::mutex> lk(m_mPhp);
 			if (sync) {
 				ReqSyncEnd(m_aq->FlushQueue(key.c_str(), f, option, discarded), lk, timeout);
-				return *pF;
+				return ToFlushValue(pF.get());
 			}
 			PopCallbacks();
 		}
@@ -226,7 +247,7 @@ namespace PA {
 	Php::Value CPhpQueue::StartQueueTrans(Php::Parameters &params) {
 		unsigned int timeout;
 		std::string key = GetKey(params[0]);
-		CPVPointer pErrCode;
+		std::shared_ptr<int> pErrCode;
 		auto qt = SetQueueTransCallback(SPA::Queue::idStartTrans, params[1], pErrCode, timeout);
 		Php::Value phpCanceled;
 		if (params.size() > 2) {
@@ -244,7 +265,7 @@ namespace PA {
 		return m_aq->StartQueueTrans(key.c_str(), qt, discarded);
 	}
 
-	CAsyncQueue::DQueueTrans CPhpQueue::SetQueueTransCallback(unsigned short reqId, const Php::Value& phpTrans, CPVPointer &pErrCode, unsigned int &timeout) {
+	CAsyncQueue::DQueueTrans CPhpQueue::SetQueueTransCallback(unsigned short reqId, const Php::Value& phpTrans, std::shared_ptr<int> &pErrCode, unsigned int &timeout) {
 		timeout = (~0);
 		bool sync = false;
 		timeout = m_aq->GetAttachedClientSocket()->GetRecvTimeout();
@@ -261,7 +282,7 @@ namespace PA {
 			throw Php::Exception("A callback required for queue transaction final result");
 		}
 		if (sync) {
-			pErrCode.reset(new Php::Value);
+			pErrCode.reset(new int);
 		}
 		else {
 			pErrCode.reset();
@@ -290,7 +311,7 @@ namespace PA {
 	Php::Value CPhpQueue::EndQueueTrans(Php::Parameters &params) {
 		unsigned int timeout;
 		bool rollback = params[0].boolValue();
-		CPVPointer pErrCode;
+		std::shared_ptr<int> pErrCode;
 		auto qt = SetQueueTransCallback(SPA::Queue::idEndTrans, params[1], pErrCode, timeout);
 		Php::Value phpCanceled;
 		if (params.size() > 2) {
@@ -327,9 +348,9 @@ namespace PA {
 		else if (!phpGK.isCallable()) {
 			throw Php::Exception("A callback required for GetKeys final result");
 		}
-		CPVPointer pV;
+		std::shared_ptr<std::vector<std::string>> pV;
 		if (sync) {
-			pV.reset(new Php::Value);
+			pV.reset(new std::vector<std::string>);
 		}
 		CPVPointer callback(new Php::Value(phpGK));
 		CAsyncQueue::DGetKeys gk = [callback, pV, this](CAsyncQueue *aq, const std::vector<std::string> &v) {
@@ -369,7 +390,7 @@ namespace PA {
 		return m_aq->GetKeys(gk, discarded);
 	}
 
-	CAsyncQueue::DEnqueue CPhpQueue::SetEnqueueResCallback(unsigned short reqId, const Php::Value& phpF, CPVPointer &pF, unsigned int &timeout) {
+	CAsyncQueue::DEnqueue CPhpQueue::SetEnqueueResCallback(unsigned short reqId, const Php::Value& phpF, std::shared_ptr<SPA::INT64> &pF, unsigned int &timeout) {
 		timeout = (~0);
 		bool sync = false;
 		if (phpF.isNumeric()) {
@@ -385,7 +406,7 @@ namespace PA {
 			throw Php::Exception("A callback required for Enqueue final result");
 		}
 		if (sync) {
-			pF.reset(new Php::Value);
+			pF.reset(new SPA::INT64);
 		}
 		else {
 			pF.reset();
@@ -439,7 +460,7 @@ namespace PA {
 			throw Php::Exception("An instance of CUQueue or null required for Enqueue");
 		}
 		unsigned int timeout;
-		CPVPointer pF;
+		std::shared_ptr<SPA::INT64> pF;
 		auto f = SetEnqueueResCallback(SPA::Queue::idEnqueue, params[3], pF, timeout);
 		size_t args = params.size();
 		Php::Value phpCanceled;
@@ -572,12 +593,8 @@ namespace PA {
 		break;
 		case ctQueueFlush:
 		{
-			SPA::INT64 messages, fileSize;
-			*cb.Res >> reqId >> messages >> fileSize;
-			Php::Value v;
-			v.set(PHP_QUEUE_MESSAGES, (int64_t)messages);
-			v.set(PHP_QUEUE_FILESIZE, (int64_t)fileSize);
-			callback(v, reqId);
+			*cb.Res >> reqId;
+			callback(ToFlushValue(cb.Res), reqId);
 		}
 		case ctQueueGetKeys:
 		{
@@ -593,15 +610,8 @@ namespace PA {
 			break;
 		case ctDequeue:
 		{
-			SPA::INT64 messages, fileSize;
-			unsigned int messagesDequeued, bytesDequeued;
-			*cb.Res >> reqId >> messages >> fileSize >> messagesDequeued >> bytesDequeued;
-			Php::Value v;
-			v.set(PHP_QUEUE_MESSAGES, messages);
-			v.set(PHP_QUEUE_FILESIZE, fileSize);
-			v.set(PHP_QUEUE_MESSAGES_DEQUEUED, (int64_t)messagesDequeued);
-			v.set(PHP_QUEUE_BYTES_DEQUEUED, (int64_t)bytesDequeued);
-			callback(v, reqId);
+			*cb.Res >> reqId;
+			callback(ToDeqValue(cb.Res), reqId);
 		}
 		default:
 			assert(false); //shouldn't come here

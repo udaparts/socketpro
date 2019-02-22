@@ -116,25 +116,7 @@ namespace PA {
 		switch (cb.CallbackType)
 		{
 		case ctDbExeRes:
-		{
-			int res;
-			std::string em;
-			SPA::INT64 affected;
-			unsigned int fails, oks;
-			SPA::UDB::CDBVariant vtId;
-			*cb.Res >> res >> em >> affected >> fails >> oks >> vtId;
-			v.set(PHP_ERR_CODE, res);
-			v.set(PHP_ERR_MSG, em);
-			v.set(PHP_DB_AFFECTED, affected);
-			v.set(PHP_DB_FAILS, (int64_t)fails);
-			v.set(PHP_DB_OKS, (int64_t)oks);
-			if (vtId.vt > VT_NULL) {
-				v.set(PHP_DB_LAST_ID, vtId.llVal);
-			}
-			else {
-				v.set(PHP_DB_LAST_ID, nullptr);
-			}
-		}
+			v = ToPhpValueEx(cb.Res);
 			break;
 		case ctDbR:
 		{
@@ -151,13 +133,7 @@ namespace PA {
 		}
 			break;
 		case ctDbRes:
-		{
-			int res;
-			std::string em;
-			*cb.Res >> res >> em;
-			v.set(PHP_ERR_CODE, res);
-			v.set(PHP_ERR_MSG, em);
-		}
+			v = ToPhpValue(cb.Res);
 			break;
 		case ctDbRH:
 		{
@@ -185,7 +161,7 @@ namespace PA {
 		std::string aconn = params[0].stringValue();
 		Trim(aconn);
 		std::wstring conn = SPA::Utilities::ToWide(aconn);
-		CPVPointer pV;
+		CQPointer pV;
 		auto Dr = SetResCallback(params[1], pV, timeout);
 		size_t args = params.size();
 		Php::Value phpCanceled;
@@ -207,14 +183,46 @@ namespace PA {
 			std::unique_lock<std::mutex> lk(m_mPhp);
 			if (pV) {
 				ReqSyncEnd(m_db->Open(conn.c_str(), Dr, flags, discarded), lk, timeout);
-				return *pV;
+				return ToPhpValue(pV.get());
 			}
 			PopCallbacks();
 		}
 		return m_db->Open(conn.c_str(), Dr, flags, discarded);
 	}
 
-	CDBHandler::DExecuteResult CPhpDb::SetExeResCallback(const Php::Value &phpDR, CPVPointer &pV, unsigned int &timeout) {
+	Php::Value CPhpDb::ToPhpValueEx(SPA::CUQueue *q) {
+		int res;
+		std::string em;
+		SPA::INT64 affected;
+		unsigned int fails, oks;
+		SPA::UDB::CDBVariant vtId;
+		*q >> res >> em >> affected >> fails >> oks >> vtId;
+		Php::Value v;
+		v.set(PHP_ERR_CODE, res);
+		v.set(PHP_ERR_MSG, em);
+		v.set(PHP_DB_AFFECTED, affected);
+		v.set(PHP_DB_FAILS, (int64_t)fails);
+		v.set(PHP_DB_OKS, (int64_t)oks);
+		if (vtId.vt > VT_NULL) {
+			v.set(PHP_DB_LAST_ID, vtId.llVal);
+		}
+		else {
+			v.set(PHP_DB_LAST_ID, nullptr);
+		}
+		return v;
+	}
+
+	Php::Value CPhpDb::ToPhpValue(SPA::CUQueue *q) {
+		int res;
+		std::string em;
+		*q >> res >> em;
+		Php::Value v;
+		v.set(PHP_ERR_CODE, res);
+		v.set(PHP_ERR_MSG, em);
+		return v;
+	}
+
+	CDBHandler::DExecuteResult CPhpDb::SetExeResCallback(const Php::Value &phpDR, CQPointer &pV, unsigned int &timeout) {
 		timeout = (~0);
 		bool sync = false;
 		if (phpDR.isNumeric()) {
@@ -230,7 +238,9 @@ namespace PA {
 			throw Php::Exception("A callback required for Execute final result");
 		}
 		if (sync) {
-			pV.reset(new Php::Value);
+			pV.reset(SPA::CScopeUQueue::Lock(), [](SPA::CUQueue *q) {
+				SPA::CScopeUQueue::Unlock(q);
+			});
 		}
 		else {
 			pV.reset();
@@ -242,17 +252,7 @@ namespace PA {
 			std::string em = SPA::Utilities::ToUTF8(errMsg);
 			Trim(em);
 			if (pV) {
-				pV->set(PHP_ERR_CODE, res);
-				pV->set(PHP_ERR_MSG, em);
-				pV->set(PHP_DB_AFFECTED, affected);
-				pV->set(PHP_DB_FAILS, (int64_t)fails);
-				pV->set(PHP_DB_OKS, (int64_t)oks);
-				if (vtId.vt > VT_NULL) {
-					pV->set(PHP_DB_LAST_ID, vtId.llVal);
-				}
-				else {
-					pV->set(PHP_DB_LAST_ID, nullptr);
-				}
+				*pV << res << em << affected << fails << oks << vtId;
 				std::unique_lock<std::mutex> lk(this->m_mPhp);
 				this->m_cvPhp.notify_all();
 			}
@@ -282,7 +282,7 @@ namespace PA {
 			r = [callback, this](CDBHandler &db, SPA::CUQueue &vData) {
 				SPA::CScopeUQueue sb;
 				sb << db.IsProc();
-				if (db.IsProc()) {
+				if (db.GetCallReturn()) {
 					sb << db.GetRetValue();
 				}
 				sb->Push(vData.GetBuffer(), vData.GetSize());
@@ -337,7 +337,7 @@ namespace PA {
 			GetParams(params[0], vParam);
 		}
 
-		CPVPointer pV;
+		CQPointer pV;
 		auto Dr = SetExeResCallback(params[1], pV, timeout);
 
 		size_t args = params.size();
@@ -362,7 +362,7 @@ namespace PA {
 			std::unique_lock<std::mutex> lk(m_mPhp);
 			if (pV) {
 				ReqSyncEnd(sql.size() ? m_db->Execute(sql.c_str(), Dr, r, rh, true, true, discarded) : m_db->Execute(vParam, Dr, r, rh, true, true, discarded), lk, timeout);
-				return *pV;
+				return ToPhpValueEx(pV.get());
 			}
 			PopCallbacks();
 		}
@@ -418,7 +418,7 @@ namespace PA {
 		SPA::UDB::CDBVariantArray vParam;
 		GetParams(params[2], vParam);
 
-		CPVPointer pV;
+		CQPointer pV;
 		CDBHandler::DExecuteResult Dr = SetExeResCallback(params[3], pV, timeout);
 		size_t args = params.size();
 		Php::Value phpRow;
@@ -487,7 +487,7 @@ namespace PA {
 			std::unique_lock<std::mutex> lk(m_mPhp);
 			if (pV) {
 				ReqSyncEnd(m_db->ExecuteBatch(ti, sql.c_str(), vParam, Dr, r, rh, bh, vPInfo, plan, discarded, delimiter.c_str()), lk, timeout);
-				return *pV;
+				return ToPhpValueEx(pV.get());
 			}
 			PopCallbacks();
 		}
@@ -525,7 +525,7 @@ namespace PA {
 			throw Php::Exception("SQL statement cannot be empty");
 		}
 		std::wstring sql = SPA::Utilities::ToWide(asql);
-		CPVPointer pV;
+		CQPointer pV;
 		CDBHandler::DResult Dr = SetResCallback(params[1], pV, timeout);
 		size_t args = params.size();
 		Php::Value phpCanceled;
@@ -547,14 +547,14 @@ namespace PA {
 			std::unique_lock<std::mutex> lk(m_mPhp);
 			if (pV) {
 				ReqSyncEnd(m_db->Prepare(sql.c_str(), Dr, vPInfo, discarded), lk, timeout);
-				return *pV;
+				return ToPhpValue(pV.get());
 			}
 			PopCallbacks();
 		}
 		return m_db->Prepare(sql.c_str(), Dr, vPInfo, discarded);
 	}
 
-	CDBHandler::DResult CPhpDb::SetResCallback(const Php::Value &phpRes, CPVPointer &pV, unsigned int &timeout) {
+	CDBHandler::DResult CPhpDb::SetResCallback(const Php::Value &phpRes, CQPointer &pV, unsigned int &timeout) {
 		timeout = (~0);
 		bool sync = false;
 		if (phpRes.isNumeric()) {
@@ -570,7 +570,9 @@ namespace PA {
 			throw Php::Exception("A callback required for final result");
 		}
 		if (sync) {
-			pV.reset(new Php::Value);
+			pV.reset(SPA::CScopeUQueue::Lock(), [](SPA::CUQueue *q) {
+				SPA::CScopeUQueue::Unlock(q);
+			});
 		}
 		else {
 			pV.reset();
@@ -580,8 +582,7 @@ namespace PA {
 			std::string em = SPA::Utilities::ToUTF8(errMsg);
 			Trim(em);
 			if (pV) {
-				pV->set(PHP_ERR_CODE, res);
-				pV->set(PHP_ERR_MSG, em);
+				*pV << res << em;
 				std::unique_lock<std::mutex> lk(this->m_mPhp);
 				this->m_cvPhp.notify_all();
 			}
@@ -594,13 +595,6 @@ namespace PA {
 				cb.CallBack = callback;
 				std::unique_lock<std::mutex> lk(this->m_mPhp);
 				this->m_vCallback.push_back(cb);
-				/*
-				std::string em = SPA::Utilities::ToUTF8(errMsg);
-				Php::Value v;
-				v.set(PHP_ERR_CODE, res);
-				v.set(PHP_ERR_MSG, em);
-				phpRes(v);
-				*/
 			}
 		};
 		return Dr;
@@ -608,7 +602,7 @@ namespace PA {
 
 	Php::Value CPhpDb::Close(Php::Parameters &params) {
 		unsigned int timeout;
-		CPVPointer pV;
+		CQPointer pV;
 		CDBHandler::DResult Dr = SetResCallback(params[0], pV, timeout);
 		size_t args = params.size();
 		Php::Value phpCanceled;
@@ -620,7 +614,7 @@ namespace PA {
 			std::unique_lock<std::mutex> lk(m_mPhp);
 			if (pV) {
 				ReqSyncEnd(m_db->Close(Dr, discarded), lk, timeout);
-				return *pV;
+				return ToPhpValue(pV.get());
 			}
 			PopCallbacks();
 		}
@@ -634,7 +628,7 @@ namespace PA {
 			throw Php::Exception("Bad transaction isolation value");
 		}
 		SPA::UDB::tagTransactionIsolation ti = (SPA::UDB::tagTransactionIsolation)iso;
-		CPVPointer pV;
+		CQPointer pV;
 		CDBHandler::DResult Dr = SetResCallback(params[1], pV, timeout);
 		Php::Value phpCanceled;
 		if (params.size() > 2) {
@@ -645,7 +639,7 @@ namespace PA {
 			std::unique_lock<std::mutex> lk(m_mPhp);
 			if (pV) {
 				ReqSyncEnd(m_db->BeginTrans(ti, Dr, discarded), lk, timeout);
-				return *pV;
+				return ToPhpValue(pV.get());
 			}
 			PopCallbacks();
 		}
@@ -659,7 +653,7 @@ namespace PA {
 			throw Php::Exception("Bad rollback plan value");
 		}
 		SPA::UDB::tagRollbackPlan p = (SPA::UDB::tagRollbackPlan)plan;
-		CPVPointer pV;
+		CQPointer pV;
 		CDBHandler::DResult Dr = SetResCallback(params[1], pV, timeout);
 		Php::Value phpCanceled;
 		if (params.size() > 2) {
@@ -670,7 +664,7 @@ namespace PA {
 			std::unique_lock<std::mutex> lk(m_mPhp);
 			if (pV) {
 				ReqSyncEnd(m_db->EndTrans(p, Dr, discarded), lk, timeout);
-				return *pV;
+				return ToPhpValue(pV.get());
 			}
 			PopCallbacks();
 		}

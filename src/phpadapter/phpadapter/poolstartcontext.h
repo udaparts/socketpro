@@ -45,8 +45,9 @@ namespace PA {
 
 	protected:
 		bool DoSSLAuth(CClientSocket *cs);
+#ifdef REQUIRE_POOL_EVENT
 		void DealWithPoolEvents(tagSocketPoolEvent spe);
-
+#endif
 	private:
 		std::string StartPool();
 		

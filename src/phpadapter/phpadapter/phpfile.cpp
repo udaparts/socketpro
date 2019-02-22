@@ -36,22 +36,25 @@ namespace PA {
 		cs.add(handler);
 	}
 
+	Php::Value CPhpFile::ToError(SPA::CUQueue *q) {
+		int res;
+		std::string em;
+		*q >> res >> em;
+		Php::Value v;
+		v.set(PHP_ERR_CODE, res);
+		v.set(PHP_ERR_MSG, em);
+		return v;
+	}
+
 	void CPhpFile::PopTopCallbacks(PACallback &cb) {
 		switch (cb.CallbackType)
 		{
 		case ctFile:
 		{
 			unsigned short reqId;
-			int res;
-			std::wstring errMsg;
-			*cb.Res >> reqId >> res >> errMsg;
-			std::string em = SPA::Utilities::ToUTF8(errMsg);
-			Trim(em);
-			Php::Value v;
-			v.set(PHP_ERR_CODE, res);
-			v.set(PHP_ERR_MSG, em);
+			*cb.Res >> reqId;
 			auto &callback = *cb.CallBack;
-			callback(v, reqId);
+			callback(ToError(cb.Res), reqId);
 		}
 			break;
 		default:
@@ -60,7 +63,7 @@ namespace PA {
 		}
 	}
 
-	CAsyncFile::DDownload CPhpFile::SetResCallback(unsigned short reqId, Php::Value phpDl, CPVPointer &pV, unsigned int &timeout) {
+	CAsyncFile::DDownload CPhpFile::SetResCallback(unsigned short reqId, Php::Value phpDl, CQPointer &pV, unsigned int &timeout) {
 		assert(pV);
 		timeout = (~0);
 		bool sync = false;
@@ -77,24 +80,25 @@ namespace PA {
 			throw Php::Exception("A callback required for file exchange final result");
 		}
 		if (sync) {
-			pV.reset(new Php::Value);
+			pV.reset(SPA::CScopeUQueue::Lock(), [](SPA::CUQueue *q) {
+				SPA::CScopeUQueue::Unlock(q);
+			});
 		}
 		else {
 			pV.reset();
 		}
 		CPVPointer callback(new Php::Value(phpDl));
 		CAsyncFile::DDownload Dl = [reqId, callback, pV, this](SPA::ClientSide::CStreamingFile *file, int res, const std::wstring& errMsg) {
+			std::string em = SPA::Utilities::ToUTF8(errMsg);
+			Trim(em);
 			if (pV) {
-				pV->set(PHP_ERR_CODE, res);
-				std::string em = SPA::Utilities::ToUTF8(errMsg);
-				Trim(em);
-				pV->set(PHP_ERR_MSG, em);
+				*pV << res << em;
 				std::unique_lock<std::mutex> lk(this->m_mPhp);
 				this->m_cvPhp.notify_all();
 			}
 			else if (callback->isCallable()) {
 				SPA::CScopeUQueue sb;
-				sb << reqId << res << errMsg;
+				sb << reqId << res << em;
 				PACallback cb;
 				cb.CallbackType = ctFile;
 				cb.Res = sb.Detach();
@@ -124,10 +128,10 @@ namespace PA {
 	Php::Value CPhpFile::Download(Php::Parameters &params) {
 		unsigned int timeout;
 		std::wstring local, remote;
-		CPVPointer pV;
 		MapFilePaths(params[0], params[1], local, remote);
 		
 		Php::Value phpDl = params[2];
+		CQPointer pV;
 		auto Dl = SetResCallback(SPA::SFile::idDownload, phpDl, pV, timeout);
 
 		size_t args = params.size();
@@ -151,7 +155,7 @@ namespace PA {
 			std::unique_lock<std::mutex> lk(m_mPhp);
 			if (pV) {
 				ReqSyncEnd(m_sh->Download(local.c_str(), remote.c_str(), Dl, nullptr, discarded, flags), lk, timeout);
-				return *pV;
+				return ToError(pV.get());
 			}
 			PopCallbacks();
 		}
@@ -160,10 +164,11 @@ namespace PA {
 
 	Php::Value CPhpFile::Upload(Php::Parameters &params) {
 		unsigned int timeout;
-		CPVPointer pV;
 		std::wstring local, remote;
 		MapFilePaths(params[0], params[1], local, remote);
+
 		Php::Value phpUl = params[2];
+		CQPointer pV;
 		auto Ul = SetResCallback(SPA::SFile::idUpload, phpUl, pV, timeout);
 		size_t args = params.size();
 		Php::Value phpCanceled;
@@ -185,7 +190,7 @@ namespace PA {
 			std::unique_lock<std::mutex> lk(m_mPhp);
 			if (pV) {
 				ReqSyncEnd(m_sh->Upload(local.c_str(), remote.c_str(), Ul, nullptr, discarded, flags), lk, timeout);
-				return *pV;
+				return ToError(pV.get());
 			}
 			PopCallbacks();
 		}
