@@ -77,7 +77,7 @@ namespace SPA {
             typedef std::function<void(CAsyncDBHandler &dbHandler, int res, const std::wstring &errMsg, INT64 affected, UINT64 fail_ok, CDBVariant &vtId) > DExecuteResult;
             typedef std::function<void(CAsyncDBHandler &dbHandler) > DRowsetHeader;
 
-#ifdef PHP_ADAPTER_PROJECT
+#if defined(PHP_ADAPTER_PROJECT) || defined(NODE_JS_ADAPTER_PROJECT)
             typedef std::function<void(CAsyncDBHandler &dbHandler, CUQueue &vData) > DRows;
 #else
             typedef std::function<void(CAsyncDBHandler &dbHandler, CDBVariantArray &vData) > DRows;
@@ -668,7 +668,7 @@ namespace SPA {
 
             virtual void OnAllProcessed() {
                 CAutoLock al1(m_csDB);
-#ifdef PHP_ADAPTER_PROJECT
+#if defined(PHP_ADAPTER_PROJECT) || defined(NODE_JS_ADAPTER_PROJECT)
                 m_vData.SetSize(0);
 #else
                 m_vData.clear();
@@ -747,7 +747,7 @@ namespace SPA {
                         if (m_Blob.GetMaxSize() > ONE_MEGA_BYTES) {
                             m_Blob.ReallocBuffer(ONE_MEGA_BYTES);
                         }
-#ifdef PHP_ADAPTER_PROJECT
+#if defined(PHP_ADAPTER_PROJECT) || defined(NODE_JS_ADAPTER_PROJECT)
                         m_vData.SetSize(0);
 #else
                         m_vData.clear();
@@ -792,7 +792,7 @@ namespace SPA {
                         break;
                     case idBeginRows:
                         m_Blob.SetSize(0);
-#ifdef PHP_ADAPTER_PROJECT
+#if defined(PHP_ADAPTER_PROJECT) || defined(NODE_JS_ADAPTER_PROJECT)
                         m_vData.SetSize(0);
 #else
                         m_vData.clear();
@@ -809,7 +809,7 @@ namespace SPA {
                             m_csDB.unlock();
                             if (Utf8ToW)
                                 mc.Utf8ToW(true);
-#ifdef PHP_ADAPTER_PROJECT
+#if defined(PHP_ADAPTER_PROJECT) || defined(NODE_JS_ADAPTER_PROJECT)
                             m_vData.Push(mc.GetBuffer(), mc.GetSize());
                             mc.SetSize(0);
 #else
@@ -826,7 +826,7 @@ namespace SPA {
                         break;
                     case idOutputParameter:
                     case idEndRows:
-#ifdef PHP_ADAPTER_PROJECT
+#if defined(PHP_ADAPTER_PROJECT) || defined(NODE_JS_ADAPTER_PROJECT)
                         if (mc.GetSize() || m_vData.GetSize())
 #else
                         if (mc.GetSize() || m_vData.size())
@@ -837,7 +837,7 @@ namespace SPA {
                             m_csDB.unlock();
                             if (Utf8ToW)
                                 mc.Utf8ToW(true);
-#ifdef PHP_ADAPTER_PROJECT
+#if defined(PHP_ADAPTER_PROJECT) || defined(NODE_JS_ADAPTER_PROJECT)
                             m_vData.Push(mc.GetBuffer(), mc.GetSize());
                             mc.SetSize(0);
 #else
@@ -863,7 +863,7 @@ namespace SPA {
                                     }
 #endif
 
-#ifdef PHP_ADAPTER_PROJECT
+#if defined(PHP_ADAPTER_PROJECT) || defined(NODE_JS_ADAPTER_PROJECT)
                                     if (m_lastReqId == idSqlBatchHeader) {
                                         if (!m_indexProc) {
                                             unsigned int size = 0, orig_len = m_vData.GetSize();
@@ -941,7 +941,7 @@ namespace SPA {
                                 }
                             }
                         }
-#ifdef PHP_ADAPTER_PROJECT
+#if defined(PHP_ADAPTER_PROJECT) || defined(NODE_JS_ADAPTER_PROJECT)
                         m_vData.SetSize(0);
 #else
                         m_vData.clear();
@@ -974,7 +974,7 @@ namespace SPA {
                                 //legth should be reset if BLOB length not available from server side at beginning
                                 *len = (m_Blob.GetSize() - sizeof (VARTYPE) - sizeof (unsigned int));
                             }
-#ifdef PHP_ADAPTER_PROJECT
+#if defined(PHP_ADAPTER_PROJECT) || defined(NODE_JS_ADAPTER_PROJECT)
                             m_vData.Push(m_Blob.GetBuffer(), m_Blob.GetSize());
                             m_Blob.SetSize(0);
 #else
@@ -1035,7 +1035,7 @@ namespace SPA {
                 if (m_Blob.GetMaxSize() > DEFAULT_BIG_FIELD_CHUNK_SIZE) {
                     m_Blob.ReallocBuffer(DEFAULT_BIG_FIELD_CHUNK_SIZE);
                 }
-#ifdef PHP_ADAPTER_PROJECT
+#if defined(PHP_ADAPTER_PROJECT) || defined(NODE_JS_ADAPTER_PROJECT)
                 m_vData.SetSize(0);
 #else
                 m_vData.clear();
@@ -1057,7 +1057,7 @@ namespace SPA {
             std::unordered_map<UINT64, CDBVariantArray*> m_mapParameterCall;
             unsigned int m_indexProc;
             CUQueue m_Blob;
-#ifdef PHP_ADAPTER_PROJECT
+#if defined(PHP_ADAPTER_PROJECT) || defined(NODE_JS_ADAPTER_PROJECT)
             CUQueue m_vData;
 #else
             CDBVariantArray m_vData;
@@ -1259,7 +1259,7 @@ namespace SPA {
                 tagDBEvent Type;
                 PUQueue Buffer;
                 std::shared_ptr<CNJFunc> Func;
-                std::shared_ptr<CDBVariantArray> VData;
+                std::shared_ptr<CUQueue> VData;
             };
 
             std::deque<DBCb> m_deqDBCb; //protected by m_csDB;
@@ -1324,17 +1324,24 @@ namespace SPA {
                     std::shared_ptr<CNJFunc> func(new CNJFunc);
                     func->Reset(isolate, Local<Function>::Cast(r));
                     Backup(func);
-                    rows = [func](CAsyncDBHandler &db, CDBVariantArray & vData) {
+                    rows = [func](CAsyncDBHandler &db, CUQueue & vData) {
                         DBCb cb;
                         cb.Type = eRows;
                         cb.Func = func;
                         cb.Buffer = CScopeUQueue::Lock();
-                        cb.VData.reset(new CDBVariantArray);
-                        vData.swap(*cb.VData);
+						CUQueue *p = CScopeUQueue::Lock();
+						bool proc = db.IsProc();
+						if (proc && db.GetCallReturn()) {
+							*p << db.GetRetValue();
+							p->Push(vData.GetBuffer(), vData.GetSize());
+						}
+						else {
+							p->Swap(vData);
+						}
+						cb.VData.reset(p, [](CUQueue *p) {
+							CScopeUQueue::Unlock(p);
+						});
                         PAsyncDBHandler ash = &db;
-                        bool proc = db.IsProc();
-                        if (proc && db.GetCallReturn())
-                            cb.VData->insert(cb.VData->begin(), db.GetRetValue());
                         *cb.Buffer << ash << proc;
                         CAutoLock al(ash->m_csDB);
                         ash->m_deqDBCb.push_back(cb);

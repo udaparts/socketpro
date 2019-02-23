@@ -190,7 +190,7 @@ namespace SPA {
                     this->Cache.Swap(this->m_cache); //exchange between master Cache and this m_cache
                 }
             },
-#ifdef PHP_ADAPTER_PROJECT
+#if defined(PHP_ADAPTER_PROJECT) || defined(NODE_JS_ADAPTER_PROJECT)
             [this](CSQLHandler &h, CUQueue & v) {
                 auto &meta = h.GetColumnInfo();
                 const UDB::CDBColumnInfo &info = meta.front();

@@ -1,8 +1,11 @@
-84. SocketPro Version 6.2.0.1-3
+84. SocketPro Version 6.2.0.1-4
 	(a) Add support of TLSv1.2 and TLSv1.3, and disable SSL3.
 	(b) Remove a potential dead-lock related with routing at server side.
 	(c) Fix a potential crash related socket disconnection at client side.
 	(d) Re-add support of windows XP and Windows 2003
+	(e) Improve pool automerge algorithm and make it default to false at client side
+	(f) Improve node.js adapter for DB query performance
+	(g) Other minor improvements
 
 83.	SocketPro Version 6.0.4.7
 	(a) Fix server router auto-recovery (fault-tolerance) issue at client side.

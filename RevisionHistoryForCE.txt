@@ -1,5 +1,7 @@
-56. SocketPro Version 6.2.0.1
+56. SocketPro Version 6.2.0.1-4
 	(a) Fix a potential crash related socket disconnection at client side.
+	(b) Improve pool automerge algorithm and make it default to false at client side
+	(c) Improve node.js adapter for DB query performance
 
 56. SocketPro Version 6.1.0.1-5
 	(a) Add new feature into SocketPro core libraries for automatic ordering on random returning requests

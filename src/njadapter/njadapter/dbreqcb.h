@@ -44,11 +44,17 @@ namespace SPA {
                                 Local<Array> v = Array::New(isolate);
                                 if (cb.VData) {
                                     unsigned int index = 0;
-                                    const CDBVariantArray &vData = *cb.VData;
-                                    for (auto it = vData.begin(), end = vData.end(); it != end; ++it, ++index) {
-                                        auto d = From(isolate, *it);
-                                        v->Set(index, d);
-                                    }
+									SPA::CUQueue &buff = *cb.VData;
+									while (buff.GetSize()) {
+										try {
+											Local<Value> d = DbFrom(isolate, buff);
+											v->Set(index, d);
+											++index;
+										}
+										catch (SPA::CUException&) {
+											buff.SetSize(0);
+										}
+									}
                                 }
                                 Local<Value> argv[] = {v, Boolean::New(isolate, bProc), njDB};
                                 func->Call(isolate->GetCurrentContext(), Null(isolate), 3, argv);
