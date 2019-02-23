@@ -38,96 +38,96 @@
 
 namespace PA {
 
-	typedef std::shared_ptr<Php::Value> CPVPointer;
-	typedef std::shared_ptr<SPA::CUQueue> CQPointer;
+    typedef std::shared_ptr<Php::Value> CPVPointer;
+    typedef std::shared_ptr<SPA::CUQueue> CQPointer;
 
-	void Trim(std::string &str);
+    void Trim(std::string &str);
 
-	enum tagPoolType {
-		Regular = 0,
-		Slave = 1,
-		Master = 2
-	};
+    enum tagPoolType {
+        Regular = 0,
+        Slave = 1,
+        Master = 2
+    };
 
-	extern const int64_t PHP_ADAPTER_SECRET;
-	extern const char *PHP_BUFFER;
-	extern const char *PHP_CONN_CONTEXT;
-	extern const char *PHP_FILE_HANDLER;
-	extern const char *PHP_DB_HANDLER;
-	extern const char *PHP_QUEUE_HANDLER;
-	extern const char *PHP_ASYNC_HANDLER;
-	extern const char *PHP_SOCKET_POOL;
-	extern const char *PHP_CERT;
-	extern const char *PHP_TABLE;
-	extern const char *PHP_DATASET;
-	extern const char *PHP_SOCKET;
-	extern const char *PHP_DB_COLUMN_INFO;
-	extern const char *PHP_DB_PARAMETER_INFO;
-	extern const char *PHP_CONSTRUCT;
-	extern const char *PHP_CLIENTQUEUE;
-	extern const char *PHP_MANAGER;
-	extern const char *PHP_KEY;
-	extern const char *PHP_PUSH;
-	extern const char *PHP_TIMEOUT;
-	extern const char *PHP_LEN;
-	extern const char *PHP_OBJ;
-	extern const char *PHP_SIZE;
-	extern const char *PHP_ERR_CODE;
-	extern const char *PHP_ERR_MSG;
-	extern const char *PHP_DB_NAME;
-	extern const char *PHP_TABLE_NAME;
-	extern const char *PHP_COLUMN_NAME;
-	extern const char *PHP_EMPTY;
-	extern const char *PHP_ORDINAL;
-	extern const char *PHP_DATATYPE;
-	extern const char *PHP_COLUMN_SIZE;
-	extern const char *PHP_COLUMN_FLAGS;
-	extern const char *PHP_COLUMN_PRECSISON;
-	extern const char *PHP_COLUMN_SCALE;
-	extern const char *PHP_COPYDATA;
-	extern const char *PHP_TABLE_OP;
-	extern const char *PHP_VARIANT_V0;
-	extern const char *PHP_VARIANT_V1;
-	extern const char *PHP_VARIANT_V;
-	extern const char *PHP_POINTER_ADDRESS;
-	extern const char *PHP_WAITALL;
-	extern const char *PHP_STARTBATCHING;
-	extern const char *PHP_ABORTBATCHING;
-	extern const char *PHP_COMMITBATCHING;
-	extern const char *PHP_UNLOCK;
-	extern const char *PHP_CLEAN_CALLBACKS;
+    extern const int64_t PHP_ADAPTER_SECRET;
+    extern const char *PHP_BUFFER;
+    extern const char *PHP_CONN_CONTEXT;
+    extern const char *PHP_FILE_HANDLER;
+    extern const char *PHP_DB_HANDLER;
+    extern const char *PHP_QUEUE_HANDLER;
+    extern const char *PHP_ASYNC_HANDLER;
+    extern const char *PHP_SOCKET_POOL;
+    extern const char *PHP_CERT;
+    extern const char *PHP_TABLE;
+    extern const char *PHP_DATASET;
+    extern const char *PHP_SOCKET;
+    extern const char *PHP_DB_COLUMN_INFO;
+    extern const char *PHP_DB_PARAMETER_INFO;
+    extern const char *PHP_CONSTRUCT;
+    extern const char *PHP_CLIENTQUEUE;
+    extern const char *PHP_MANAGER;
+    extern const char *PHP_KEY;
+    extern const char *PHP_PUSH;
+    extern const char *PHP_TIMEOUT;
+    extern const char *PHP_LEN;
+    extern const char *PHP_OBJ;
+    extern const char *PHP_SIZE;
+    extern const char *PHP_ERR_CODE;
+    extern const char *PHP_ERR_MSG;
+    extern const char *PHP_DB_NAME;
+    extern const char *PHP_TABLE_NAME;
+    extern const char *PHP_COLUMN_NAME;
+    extern const char *PHP_EMPTY;
+    extern const char *PHP_ORDINAL;
+    extern const char *PHP_DATATYPE;
+    extern const char *PHP_COLUMN_SIZE;
+    extern const char *PHP_COLUMN_FLAGS;
+    extern const char *PHP_COLUMN_PRECSISON;
+    extern const char *PHP_COLUMN_SCALE;
+    extern const char *PHP_COPYDATA;
+    extern const char *PHP_TABLE_OP;
+    extern const char *PHP_VARIANT_V0;
+    extern const char *PHP_VARIANT_V1;
+    extern const char *PHP_VARIANT_V;
+    extern const char *PHP_POINTER_ADDRESS;
+    extern const char *PHP_WAITALL;
+    extern const char *PHP_STARTBATCHING;
+    extern const char *PHP_ABORTBATCHING;
+    extern const char *PHP_COMMITBATCHING;
+    extern const char *PHP_UNLOCK;
+    extern const char *PHP_CLEAN_CALLBACKS;
 
-	//SendRequest
-	extern const char *PHP_SENDREQUEST;
-	extern const char *PHP_SENDREQUEST_REQID;
-	extern const char *PHP_SENDREQUEST_BUFF;
-	extern const char *PHP_SENDREQUEST_SYNC;
-	extern const char *PHP_SENDREQUEST_CH;
-	extern const char *PHP_SENDREQUEST_EX;
+    //SendRequest
+    extern const char *PHP_SENDREQUEST;
+    extern const char *PHP_SENDREQUEST_REQID;
+    extern const char *PHP_SENDREQUEST_BUFF;
+    extern const char *PHP_SENDREQUEST_SYNC;
+    extern const char *PHP_SENDREQUEST_CH;
+    extern const char *PHP_SENDREQUEST_EX;
 
-	extern const char *PHP_SOCKET_CLOSED;
-	extern const char *PHP_REQUEST_CANCELED;
-	extern const char *PHP_SERVER_EXCEPTION;
-	extern const char *PHP_REQUEST_TIMEOUT;
+    extern const char *PHP_SOCKET_CLOSED;
+    extern const char *PHP_REQUEST_CANCELED;
+    extern const char *PHP_SERVER_EXCEPTION;
+    extern const char *PHP_REQUEST_TIMEOUT;
 
-	extern const std::string SPA_NS;
-	extern const std::string SPA_CS_NS;
-	extern std::string SP_CONFIG;
-	extern const char SYS_DIR;
+    extern const std::string SPA_NS;
+    extern const std::string SPA_CS_NS;
+    extern std::string SP_CONFIG;
+    extern const char SYS_DIR;
 
-	Php::Value GetManager(Php::Parameters &params);
-	Php::Value GetSpPool(Php::Parameters &params);
-	Php::Value GetSpHandler(Php::Parameters &params);
-	Php::Value LockSpHandler(Php::Parameters &params);
-	Php::Value SpBuff(Php::Parameters &params);
+    Php::Value GetManager(Php::Parameters &params);
+    Php::Value GetSpPool(Php::Parameters &params);
+    Php::Value GetSpHandler(Php::Parameters &params);
+    Php::Value LockSpHandler(Php::Parameters &params);
+    Php::Value SpBuff(Php::Parameters &params);
 
-	void ToVariant(const Php::Value &data, CComVariant &vt, const std::string &id = "");
-	void ToVariant(const Php::Value &data, SPA::UDB::CDBVariant &vt, const std::string &id = "");
+    void ToVariant(const Php::Value &data, CComVariant &vt, const std::string &id = "");
+    void ToVariant(const Php::Value &data, SPA::UDB::CDBVariant &vt, const std::string &id = "");
 
-	typedef SPA::ClientSide::CCachedBaseHandler<0> CAsyncHandler;
-	typedef SPA::ClientSide::CClientSocket CClientSocket;
-	typedef SPA::ClientSide::tagSocketPoolEvent tagSocketPoolEvent;
-	typedef SPA::ClientSide::CConnectionContext CConnectionContext;
+    typedef SPA::ClientSide::CCachedBaseHandler<0> CAsyncHandler;
+    typedef SPA::ClientSide::CClientSocket CClientSocket;
+    typedef SPA::ClientSide::tagSocketPoolEvent tagSocketPoolEvent;
+    typedef SPA::ClientSide::CConnectionContext CConnectionContext;
 }
 
 #define KEY_CERT_STORE			"CertStore"

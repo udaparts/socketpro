@@ -39,7 +39,7 @@ namespace SPA {
                 assert(!fail);
 #endif
 #ifdef NO_OUTPUT_BINDING
-				m_bProc = false;
+                m_bProc = false;
 #endif
             }
 
@@ -58,7 +58,7 @@ namespace SPA {
                 assert(!fail);
 #endif
 #ifdef NO_OUTPUT_BINDING
-				m_bProc = false;
+                m_bProc = false;
 #endif
             }
 
@@ -669,7 +669,7 @@ namespace SPA {
             virtual void OnAllProcessed() {
                 CAutoLock al1(m_csDB);
 #ifdef PHP_ADAPTER_PROJECT
-				m_vData.SetSize(0);
+                m_vData.SetSize(0);
 #else
                 m_vData.clear();
 #endif
@@ -718,7 +718,7 @@ namespace SPA {
                         mc >> res >> errMsg >> ms >> params >> callIndex;
                         {
                             CAutoLock al(m_csDB);
-							m_vColInfo.clear();
+                            m_vColInfo.clear();
                             m_indexProc = 0;
                             m_lastReqId = idSqlBatchHeader;
                             m_parameters = (params & 0xffff);
@@ -748,7 +748,7 @@ namespace SPA {
                             m_Blob.ReallocBuffer(ONE_MEGA_BYTES);
                         }
 #ifdef PHP_ADAPTER_PROJECT
-						m_vData.SetSize(0);
+                        m_vData.SetSize(0);
 #else
                         m_vData.clear();
 #endif
@@ -793,7 +793,7 @@ namespace SPA {
                     case idBeginRows:
                         m_Blob.SetSize(0);
 #ifdef PHP_ADAPTER_PROJECT
-						m_vData.SetSize(0);
+                        m_vData.SetSize(0);
 #else
                         m_vData.clear();
 #endif
@@ -810,8 +810,8 @@ namespace SPA {
                             if (Utf8ToW)
                                 mc.Utf8ToW(true);
 #ifdef PHP_ADAPTER_PROJECT
-							m_vData.Push(mc.GetBuffer(), mc.GetSize());
-							mc.SetSize(0);
+                            m_vData.Push(mc.GetBuffer(), mc.GetSize());
+                            mc.SetSize(0);
 #else
                             while (mc.GetSize()) {
                                 m_vData.push_back(CDBVariant());
@@ -829,17 +829,17 @@ namespace SPA {
 #ifdef PHP_ADAPTER_PROJECT
                         if (mc.GetSize() || m_vData.GetSize())
 #else
-						if (mc.GetSize() || m_vData.size())
+                        if (mc.GetSize() || m_vData.size())
 #endif
-						{
+                        {
                             m_csDB.lock();
                             bool Utf8ToW = m_Blob.Utf8ToW();
                             m_csDB.unlock();
                             if (Utf8ToW)
                                 mc.Utf8ToW(true);
 #ifdef PHP_ADAPTER_PROJECT
-							m_vData.Push(mc.GetBuffer(), mc.GetSize());
-							mc.SetSize(0);
+                            m_vData.Push(mc.GetBuffer(), mc.GetSize());
+                            mc.SetSize(0);
 #else
                             CDBVariant vtOne;
                             while (mc.GetSize()) {
@@ -864,34 +864,33 @@ namespace SPA {
 #endif
 
 #ifdef PHP_ADAPTER_PROJECT
-									if (m_lastReqId == idSqlBatchHeader) {
-										if (!m_indexProc) {
-											unsigned int size = 0, orig_len = m_vData.GetSize();
-											m_vData.SetHeadPosition();
-											CDBVariant  vt;
-											while (m_vData.GetSize()) {
-												m_vData >> vt;
-												++size;
-												vt.Clear();
-											}
-											m_vData.SetSize(orig_len);
-											m_outputs += (size + (unsigned int)m_bCallReturn);
-										}
-									}
-									else {
-										if (!m_outputs) {
-											unsigned int size = 0, orig_len = m_vData.GetSize();
-											m_vData.SetHeadPosition();
-											CDBVariant  vt;
-											while (m_vData.GetSize()) {
-												m_vData >> vt;
-												++size;
-												vt.Clear();
-											}
-											m_vData.SetSize(orig_len);
-											m_outputs += (size + (unsigned int)m_bCallReturn);
-										}
-									}
+                                    if (m_lastReqId == idSqlBatchHeader) {
+                                        if (!m_indexProc) {
+                                            unsigned int size = 0, orig_len = m_vData.GetSize();
+                                            m_vData.SetHeadPosition();
+                                            CDBVariant vt;
+                                            while (m_vData.GetSize()) {
+                                                m_vData >> vt;
+                                                ++size;
+                                                vt.Clear();
+                                            }
+                                            m_vData.SetSize(orig_len);
+                                            m_outputs += (size + (unsigned int) m_bCallReturn);
+                                        }
+                                    } else {
+                                        if (!m_outputs) {
+                                            unsigned int size = 0, orig_len = m_vData.GetSize();
+                                            m_vData.SetHeadPosition();
+                                            CDBVariant vt;
+                                            while (m_vData.GetSize()) {
+                                                m_vData >> vt;
+                                                ++size;
+                                                vt.Clear();
+                                            }
+                                            m_vData.SetSize(orig_len);
+                                            m_outputs += (size + (unsigned int) m_bCallReturn);
+                                        }
+                                    }
 #else
                                     if (m_lastReqId == idSqlBatchHeader) {
                                         if (!m_indexProc) {
@@ -943,7 +942,7 @@ namespace SPA {
                             }
                         }
 #ifdef PHP_ADAPTER_PROJECT
-						m_vData.SetSize(0);
+                        m_vData.SetSize(0);
 #else
                         m_vData.clear();
 #endif
@@ -976,8 +975,8 @@ namespace SPA {
                                 *len = (m_Blob.GetSize() - sizeof (VARTYPE) - sizeof (unsigned int));
                             }
 #ifdef PHP_ADAPTER_PROJECT
-							m_vData.Push(m_Blob.GetBuffer(), m_Blob.GetSize());
-							m_Blob.SetSize(0);
+                            m_vData.Push(m_Blob.GetBuffer(), m_Blob.GetSize());
+                            m_Blob.SetSize(0);
 #else
                             m_vData.push_back(CDBVariant());
                             CDBVariant &vt = m_vData.back();
@@ -1037,7 +1036,7 @@ namespace SPA {
                     m_Blob.ReallocBuffer(DEFAULT_BIG_FIELD_CHUNK_SIZE);
                 }
 #ifdef PHP_ADAPTER_PROJECT
-				m_vData.SetSize(0);
+                m_vData.SetSize(0);
 #else
                 m_vData.clear();
 #endif

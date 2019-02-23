@@ -8,50 +8,50 @@
 
 namespace PA {
 
-	typedef std::unordered_map<std::string, CConnectionContext> CMapHost;
+    typedef std::unordered_map<std::string, CConnectionContext> CMapHost;
 
-	class CPoolStartContext {
+    class CPoolStartContext {
+    public:
+        CPoolStartContext();
 
-	public:
-		CPoolStartContext();
-	
-	public:
-		unsigned int SvsId;
-		std::vector<std::string> Hosts;
-		unsigned int Threads;
-		std::string Queue;
-		bool AutoConn;
-		bool AutoMerge;
-		unsigned int RecvTimeout;
-		unsigned int ConnTimeout;
-		std::string DefaultDb;
-		typedef std::unordered_map<std::string, CPoolStartContext> CMapPool;
-		CMapPool Slaves;
-		union {
-			CPhpPool *PhpHandler;
-			CPhpDbPool *PhpDb;
-			CPhpFilePool *PhpFile;
-			CPhpQueuePool *PhpQueue;
-		};
-		tagPoolType PoolType;
+    public:
+        unsigned int SvsId;
+        std::vector<std::string> Hosts;
+        unsigned int Threads;
+        std::string Queue;
+        bool AutoConn;
+        bool AutoMerge;
+        unsigned int RecvTimeout;
+        unsigned int ConnTimeout;
+        std::string DefaultDb;
+        typedef std::unordered_map<std::string, CPoolStartContext> CMapPool;
+        CMapPool Slaves;
 
-	private:
-		int m_errCode;
-		std::string m_errMsg;
+        union {
+            CPhpPool *PhpHandler;
+            CPhpDbPool *PhpDb;
+            CPhpFilePool *PhpFile;
+            CPhpQueuePool *PhpQueue;
+        };
+        tagPoolType PoolType;
 
-	public:
-		Php::Value GetPool();
-		void Clean();
+    private:
+        int m_errCode;
+        std::string m_errMsg;
 
-	protected:
-		bool DoSSLAuth(CClientSocket *cs);
+    public:
+        Php::Value GetPool();
+        void Clean();
+
+    protected:
+        bool DoSSLAuth(CClientSocket *cs);
 #ifdef REQUIRE_POOL_EVENT
-		void DealWithPoolEvents(tagSocketPoolEvent spe);
+        void DealWithPoolEvents(tagSocketPoolEvent spe);
 #endif
-	private:
-		std::string StartPool();
-		
-	};
+    private:
+        std::string StartPool();
+
+    };
 } //namespace PA
 
 

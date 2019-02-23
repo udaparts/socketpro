@@ -186,8 +186,9 @@ namespace SPA {
             }
 
 #ifdef PHP_ADAPTER_PROJECT
-			//not accurate but better than nothing here
-			//Client core internal checking works much better, starting from version 6.2.0.4
+            //not accurate but better than nothing here
+            //Client core internal checking works much better, starting from version 6.2.0.4
+
             bool operator==(const CConnectionContext &cc) const {
                 if (this == &cc)
                     return true;

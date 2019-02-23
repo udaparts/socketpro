@@ -1,0 +1,375 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configurationDescriptor version="95">
+  <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
+    <logicalFolder name="HeaderFiles"
+                   displayName="Header Files"
+                   projectFiles="true">
+      <itemPath>../../../include/aclientw.h</itemPath>
+      <itemPath>../../../include/aqhandler.h</itemPath>
+      <itemPath>basehandler.h</itemPath>
+      <itemPath>../../../include/generalcache.h</itemPath>
+      <itemPath>../../../include/masterpool.h</itemPath>
+      <itemPath>../../../include/masterslavebase.h</itemPath>
+      <itemPath>../../../include/membuffer.h</itemPath>
+      <itemPath>phpbuffer.h</itemPath>
+      <itemPath>phpcert.h</itemPath>
+      <itemPath>phpclientqueue.h</itemPath>
+      <itemPath>phpconncontext.h</itemPath>
+      <itemPath>phpdataset.h</itemPath>
+      <itemPath>phpdb.h</itemPath>
+      <itemPath>phpdbcolumninfo.h</itemPath>
+      <itemPath>phpdbparaminfo.h</itemPath>
+      <itemPath>phpfile.h</itemPath>
+      <itemPath>phpmanager.h</itemPath>
+      <itemPath>phppush.h</itemPath>
+      <itemPath>phpqueue.h</itemPath>
+      <itemPath>phpsocket.h</itemPath>
+      <itemPath>phpsocketpool.h</itemPath>
+      <itemPath>phptable.h</itemPath>
+      <itemPath>poolstartcontext.h</itemPath>
+      <itemPath>../../../include/rdbcache.h</itemPath>
+      <itemPath>roothandler.h</itemPath>
+      <itemPath>spa_consts.h</itemPath>
+      <itemPath>spa_cs_consts.h</itemPath>
+      <itemPath>stdafx.h</itemPath>
+      <itemPath>../../../include/tablecache.h</itemPath>
+      <itemPath>../../../include/udatabase.h</itemPath>
+      <itemPath>../../../include/udb_client.h</itemPath>
+    </logicalFolder>
+    <logicalFolder name="ResourceFiles"
+                   displayName="Resource Files"
+                   projectFiles="true">
+    </logicalFolder>
+    <logicalFolder name="SourceFiles"
+                   displayName="Source Files"
+                   projectFiles="true">
+      <itemPath>../../../include/aclientw.cpp</itemPath>
+      <itemPath>basehandler.cpp</itemPath>
+      <itemPath>dllmain.cpp</itemPath>
+      <itemPath>../../../include/membuffer.cpp</itemPath>
+      <itemPath>phpadapter.cpp</itemPath>
+      <itemPath>phpbuffer.cpp</itemPath>
+      <itemPath>phpcert.cpp</itemPath>
+      <itemPath>phpclientqueue.cpp</itemPath>
+      <itemPath>phpconncontext.cpp</itemPath>
+      <itemPath>phpdataset.cpp</itemPath>
+      <itemPath>phpdb.cpp</itemPath>
+      <itemPath>phpdbcolumninfo.cpp</itemPath>
+      <itemPath>phpdbparaminfo.cpp</itemPath>
+      <itemPath>phpfile.cpp</itemPath>
+      <itemPath>phpmanager.cpp</itemPath>
+      <itemPath>phppush.cpp</itemPath>
+      <itemPath>phpqueue.cpp</itemPath>
+      <itemPath>phpsocket.cpp</itemPath>
+      <itemPath>phpsocketpool.cpp</itemPath>
+      <itemPath>phptable.cpp</itemPath>
+      <itemPath>poolstartcontext.cpp</itemPath>
+      <itemPath>roothandler.cpp</itemPath>
+      <itemPath>spa_consts.cpp</itemPath>
+      <itemPath>spa_cs_consts.cpp</itemPath>
+      <itemPath>stdafx.cpp</itemPath>
+      <itemPath>../../../include/tablecache.cpp</itemPath>
+    </logicalFolder>
+    <logicalFolder name="TestFiles"
+                   displayName="Test Files"
+                   projectFiles="false"
+                   kind="TEST_LOGICAL_FOLDER">
+    </logicalFolder>
+    <logicalFolder name="ExternalFiles"
+                   displayName="Important Files"
+                   projectFiles="false"
+                   kind="IMPORTANT_FILES_FOLDER">
+      <itemPath>Makefile</itemPath>
+    </logicalFolder>
+  </logicalFolder>
+  <projectmakefile>Makefile</projectmakefile>
+  <confs>
+    <conf name="Debug" type="2">
+      <toolsSet>
+        <compilerSet>default</compilerSet>
+        <dependencyChecking>true</dependencyChecking>
+        <rebuildPropChanged>false</rebuildPropChanged>
+      </toolsSet>
+      <compileType>
+        <cTool>
+          <commandLine>-std=c++11 -Wall</commandLine>
+        </cTool>
+        <ccTool>
+          <commandLine>-std=c++11 -Wall</commandLine>
+        </ccTool>
+        <linkerTool>
+          <linkerLibItems>
+            <linkerLibStdlibItem>PosixThreads</linkerLibStdlibItem>
+            <linkerLibStdlibItem>DynamicLinking</linkerLibStdlibItem>
+          </linkerLibItems>
+          <commandLine>-std=c++11</commandLine>
+        </linkerTool>
+      </compileType>
+      <item path="../../../include/aclientw.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="../../../include/aclientw.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../include/aqhandler.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../include/generalcache.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../include/masterpool.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../include/masterslavebase.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../include/membuffer.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="../../../include/membuffer.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../include/rdbcache.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../include/tablecache.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="../../../include/tablecache.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../include/udatabase.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../include/udb_client.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="basehandler.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="basehandler.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="dllmain.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="phpadapter.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="phpbuffer.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="phpbuffer.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="phpcert.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="phpcert.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="phpclientqueue.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="phpclientqueue.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="phpconncontext.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="phpconncontext.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="phpdataset.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="phpdataset.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="phpdb.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="phpdb.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="phpdbcolumninfo.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="phpdbcolumninfo.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="phpdbparaminfo.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="phpdbparaminfo.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="phpfile.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="phpfile.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="phpmanager.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="phpmanager.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="phppush.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="phppush.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="phpqueue.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="phpqueue.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="phpsocket.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="phpsocket.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="phpsocketpool.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="phpsocketpool.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="phptable.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="phptable.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="poolstartcontext.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="poolstartcontext.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="roothandler.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="roothandler.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="spa_consts.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="spa_consts.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="spa_cs_consts.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="spa_cs_consts.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="stdafx.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="stdafx.h" ex="false" tool="3" flavor2="0">
+      </item>
+    </conf>
+    <conf name="Release" type="2">
+      <toolsSet>
+        <compilerSet>default</compilerSet>
+        <dependencyChecking>true</dependencyChecking>
+        <rebuildPropChanged>false</rebuildPropChanged>
+      </toolsSet>
+      <compileType>
+        <cTool>
+          <developmentMode>5</developmentMode>
+          <commandLine>-std=c++11</commandLine>
+          <preprocessorList>
+            <Elem>NDEBUG</Elem>
+          </preprocessorList>
+        </cTool>
+        <ccTool>
+          <developmentMode>5</developmentMode>
+          <commandLine>-std=c++11</commandLine>
+          <preprocessorList>
+            <Elem>NDEBUG</Elem>
+          </preprocessorList>
+        </ccTool>
+        <fortranCompilerTool>
+          <developmentMode>5</developmentMode>
+        </fortranCompilerTool>
+        <asmTool>
+          <developmentMode>5</developmentMode>
+        </asmTool>
+        <linkerTool>
+          <stripSymbols>true</stripSymbols>
+          <linkerLibItems>
+            <linkerLibStdlibItem>PosixThreads</linkerLibStdlibItem>
+            <linkerLibStdlibItem>DynamicLinking</linkerLibStdlibItem>
+          </linkerLibItems>
+          <commandLine>-std=c++11</commandLine>
+        </linkerTool>
+      </compileType>
+      <item path="../../../include/aclientw.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="../../../include/aclientw.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../include/aqhandler.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../include/generalcache.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../include/masterpool.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../include/masterslavebase.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../include/membuffer.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="../../../include/membuffer.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../include/rdbcache.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../include/tablecache.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="../../../include/tablecache.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../include/udatabase.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../include/udb_client.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="basehandler.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="basehandler.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="dllmain.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="phpadapter.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="phpbuffer.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="phpbuffer.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="phpcert.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="phpcert.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="phpclientqueue.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="phpclientqueue.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="phpconncontext.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="phpconncontext.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="phpdataset.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="phpdataset.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="phpdb.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="phpdb.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="phpdbcolumninfo.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="phpdbcolumninfo.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="phpdbparaminfo.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="phpdbparaminfo.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="phpfile.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="phpfile.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="phpmanager.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="phpmanager.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="phppush.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="phppush.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="phpqueue.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="phpqueue.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="phpsocket.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="phpsocket.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="phpsocketpool.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="phpsocketpool.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="phptable.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="phptable.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="poolstartcontext.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="poolstartcontext.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="roothandler.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="roothandler.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="spa_consts.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="spa_consts.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="spa_cs_consts.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="spa_cs_consts.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="stdafx.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="stdafx.h" ex="false" tool="3" flavor2="0">
+      </item>
+    </conf>
+  </confs>
+</configurationDescriptor>
