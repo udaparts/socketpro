@@ -273,7 +273,7 @@ namespace PA
             r = [callback, this](CDBHandler &db, SPA::CUQueue & vData) {
                 SPA::CScopeUQueue sb;
                 sb << db.IsProc();
-                if (db.GetCallReturn()) {
+                if (db.IsProc() && db.GetCallReturn()) {
                     sb << db.GetRetValue();
                 }
                 sb->Push(vData.GetBuffer(), vData.GetSize());
