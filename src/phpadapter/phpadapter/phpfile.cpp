@@ -124,18 +124,15 @@ namespace PA
         unsigned int timeout;
         std::wstring local, remote;
         MapFilePaths(params[0], params[1], local, remote);
-
         Php::Value phpDl = params[2];
         CQPointer pV;
         auto Dl = SetResCallback(SPA::SFile::idDownload, phpDl, pV, timeout);
-
         size_t args = params.size();
         Php::Value phpCanceled;
         if (args > 3) {
             phpCanceled = params[3];
         }
         auto discarded = SetAbortCallback(phpCanceled, SPA::SFile::idDownload, pV ? true : false);
-
         unsigned int flags = SPA::SFile::FILE_OPEN_TRUNCACTED;
         if (args > 4) {
             Php::Value vF = params[4];

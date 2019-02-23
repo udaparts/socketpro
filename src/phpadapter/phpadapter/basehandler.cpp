@@ -170,7 +170,6 @@ namespace PA
         } else if (!q.isNull()) {
             throw Php::Exception("An instance of CUQueue or null required for request sending data");
         }
-
         if (sync) {
             {
                 std::unique_lock<std::mutex> lk(m_mPhp);
@@ -213,7 +212,6 @@ namespace PA
                     break;
                 case ctServerException:
                 {
-
                     std::wstring errMsg;
                     std::string errWhere;
                     unsigned int errCode;

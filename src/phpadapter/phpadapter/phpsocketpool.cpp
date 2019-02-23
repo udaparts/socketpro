@@ -247,29 +247,6 @@ namespace PA
         return Php::Base::__get(name);
     }
 
-    /*
-    void CPhpSocketPool::__set(const Php::Value &name, const Php::Value &value) {
-            if (name == "QueueName") {
-                    Handler->SetQueueName(value.stringValue().c_str());
-            }
-            else if (name == KEY_AUTO_MERGE || name == "QueueAutoMerge") {
-                    Handler->SetQueueAutoMerge(value.boolValue());
-            }
-            else if (name == KEY_AUTO_CONN) {
-                    Handler->SetAutoConn(value.boolValue());
-            }
-            else if (name == KEY_RECV_TIMEOUT) {
-                    Handler->SetRecvTimeout((unsigned int)value.numericValue());
-            }
-            else if (name == KEY_CONN_TIMEOUT) {
-                    Handler->SetConnTimeout((unsigned int)value.numericValue());
-            }
-            else {
-                    Php::Base::__set(name, value);
-            }
-    }
-     */
-
     void CPhpSocketPool::RegisterInto(Php::Namespace & cs) {
         Php::Class<CPhpSocketPool> pool(PHP_SOCKET_POOL);
         pool.property("DEFAULT_RECV_TIMEOUT", (int64_t) SPA::ClientSide::DEFAULT_RECV_TIMEOUT, Php::Const);

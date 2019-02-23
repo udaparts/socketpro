@@ -324,23 +324,19 @@ namespace PA
         } else {
             GetParams(params[0], vParam);
         }
-
         CQPointer pV;
         auto Dr = SetExeResCallback(params[1], pV, timeout);
-
         size_t args = params.size();
         Php::Value phpRow;
         if (args > 2) {
             phpRow = params[2];
         }
         CDBHandler::DRows r = SetRCallback(phpRow);
-
         Php::Value phpRh;
         if (args > 3) {
             phpRh = params[3];
         }
         CDBHandler::DRowsetHeader rh = SetRHCallback(phpRh);
-
         Php::Value phpCanceled;
         if (args > 4) {
             phpCanceled = params[4];
@@ -394,17 +390,14 @@ namespace PA
             throw Php::Exception("Bad transaction isolation value");
         }
         SPA::UDB::tagTransactionIsolation ti = (SPA::UDB::tagTransactionIsolation)iso;
-
         std::string asql = params[1].stringValue();
         Trim(asql);
         if (!asql.size()) {
             throw Php::Exception("SQL statement cannot be empty");
         }
         std::wstring sql = SPA::Utilities::ToWide(asql);
-
         SPA::UDB::CDBVariantArray vParam;
         GetParams(params[2], vParam);
-
         CQPointer pV;
         CDBHandler::DExecuteResult Dr = SetExeResCallback(params[3], pV, timeout);
         size_t args = params.size();
@@ -413,19 +406,16 @@ namespace PA
             phpRow = params[4];
         }
         CDBHandler::DRows r = SetRCallback(phpRow);
-
         Php::Value phpRh;
         if (args > 5) {
             phpRh = params[5];
         }
         CDBHandler::DRowsetHeader rh = SetRHCallback(phpRh);
-
         Php::Value phpBh;
         if (args > 6) {
             phpBh = params[6];
         }
         CDBHandler::DRowsetHeader bh = SetRHCallback(phpBh, true);
-
         SPA::UDB::tagRollbackPlan plan = SPA::UDB::rpDefault;
         if (args > 7) {
             if (params[7].isNumeric()) {
@@ -443,7 +433,6 @@ namespace PA
             phpCanceled = params[8];
         }
         SPA::ClientSide::CAsyncServiceHandler::DDiscarded discarded = SetAbortCallback(phpCanceled, SPA::UDB::idExecuteBatch, pV ? true : false);
-
         std::wstring delimiter(L";");
         if (args > 9) {
             if (params[9].isString()) {
@@ -457,7 +446,6 @@ namespace PA
                 throw Php::Exception("A string required for delimiter");
             }
         }
-
         SPA::UDB::CParameterInfoArray vPInfo;
         if (args > 10) {
             Php::Value vParamInfo = params[10];

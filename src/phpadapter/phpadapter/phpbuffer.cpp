@@ -1028,7 +1028,6 @@ namespace PA
         buffer.method<&CPhpBuffer::Load>("Load",{
             Php::ByVal("func", Php::Type::Callable)
         });
-
         spa.add(buffer);
     }
 

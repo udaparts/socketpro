@@ -189,7 +189,6 @@ namespace PA
     }
 
     void CPhpManager::__construct(Php::Parameters & params) {
-
     }
 
     void CPhpManager::__destruct() {
@@ -611,11 +610,9 @@ namespace PA
                     }
                 }
             }
-
             catch(std::exception & ex) {
                 Manager.m_errMsg = ex.what();
             }
-
             catch(...) {
                 Manager.m_errMsg = "Unknown error found when parsing " + SP_CONFIG;
             }
@@ -643,16 +640,13 @@ namespace PA
     void CPhpManager::SetSettings() {
         for (auto &p : Pools) {
             CPoolStartContext &psc = p.second;
-
             psc.AutoConn = true; //set autoconn to true for now
-
             if (psc.SvsId == SPA::sidChat || psc.SvsId == SPA::sidFile) {
                 //don't support master/slave at all
                 psc.Slaves.clear();
                 psc.DefaultDb.clear();
                 psc.PoolType = Regular; //regular socket pool
             }
-
             if (psc.Queue.size() && psc.AutoMerge && ComputeDiff(psc.Hosts) <= 1) {
                 psc.AutoMerge = false;
             }
