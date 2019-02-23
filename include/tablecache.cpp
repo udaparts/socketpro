@@ -2,24 +2,23 @@
 #include "tablecache.h"
 #include <algorithm>
 
-namespace SPA
-{
+namespace SPA {
 
     CTable::CTable()
-            : m_bFieldNameCaseSensitive(false),
-            m_bDataCaseSensitive(false) {
+    : m_bFieldNameCaseSensitive(false),
+    m_bDataCaseSensitive(false) {
     }
 
     CTable::CTable(const UDB::CDBColumnInfoArray &meta, bool bFieldNameCaseSensitive, bool bDataCaseSensitive)
-            : CPColumnRowset(meta, CDataMatrix()),
-            m_bFieldNameCaseSensitive(bFieldNameCaseSensitive),
-            m_bDataCaseSensitive(bDataCaseSensitive) {
+    : CPColumnRowset(meta, CDataMatrix()),
+    m_bFieldNameCaseSensitive(bFieldNameCaseSensitive),
+    m_bDataCaseSensitive(bDataCaseSensitive) {
     }
 
     CTable::CTable(const CTable & tbl)
-            : CPColumnRowset(tbl),
-            m_bFieldNameCaseSensitive(tbl.m_bFieldNameCaseSensitive),
-            m_bDataCaseSensitive(tbl.m_bDataCaseSensitive) {
+    : CPColumnRowset(tbl),
+    m_bFieldNameCaseSensitive(tbl.m_bFieldNameCaseSensitive),
+    m_bDataCaseSensitive(tbl.m_bDataCaseSensitive) {
     }
 
     const UDB::CDBColumnInfoArray & CTable::GetMeta() const {
@@ -41,7 +40,7 @@ namespace SPA
         return map;
     }
 
-    CTable & CTable::operator = (const CTable & tbl){
+    CTable & CTable::operator=(const CTable & tbl) {
         if (this == &tbl)
             return *this;
         CPColumnRowset &base = *this;
@@ -732,11 +731,11 @@ namespace SPA
     }
 
     CDataSet::CDataSet()
-            : m_ms(UDB::msUnknown),
-            m_bDBNameCaseSensitive(false),
-            m_bTableNameCaseSensitive(false),
-            m_bFieldNameCaseSensitive(false),
-            m_bDataCaseSensitive(false) {
+    : m_ms(UDB::msUnknown),
+    m_bDBNameCaseSensitive(false),
+    m_bTableNameCaseSensitive(false),
+    m_bFieldNameCaseSensitive(false),
+    m_bDataCaseSensitive(false) {
     }
 
     void CDataSet::Swap(CDataSet & tc) {
@@ -786,16 +785,16 @@ namespace SPA
                     prow->push_back(Convert(vt, vtTarget));
                 } else
 #endif
-                if (vt.vt == (VT_ARRAY | VT_I1)) {
+                    if (vt.vt == (VT_ARRAY | VT_I1)) {
                     const char *s;
                     CComVariant vtNew;
                     ::SafeArrayAccessData(vt.parray, (void**) &s);
                     vtNew.bstrVal = Utilities::ToBSTR(s, vt.parray->rgsabound->cElements);
                     vtNew.vt = VT_BSTR;
                     ::SafeArrayUnaccessData(vt.parray);
-					if (vtTarget == (VT_I1 | VT_ARRAY)) {
-						vtTarget = VT_BSTR;
-					}
+                    if (vtTarget == (VT_I1 | VT_ARRAY)) {
+                        vtTarget = VT_BSTR;
+                    }
                     prow->push_back(Convert(vtNew, vtTarget));
                 } else {
                     prow->push_back(Convert(vt, vtTarget));
@@ -834,9 +833,9 @@ namespace SPA
                     v.vt = (VT_ARRAY | VT_UI1);
                 } else
 #endif
-				if (vtTarget == (VT_I1 | VT_ARRAY)) {
-						vtTarget = VT_BSTR;
-				}
+                    if (vtTarget == (VT_I1 | VT_ARRAY)) {
+                    vtTarget = VT_BSTR;
+                }
                 prow->push_back(Convert(vData[n], vtTarget));
             }
             return (count / col_count);

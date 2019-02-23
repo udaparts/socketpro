@@ -195,7 +195,7 @@ namespace SPA {
                 if (this == &cc)
                     return true;
                 return (Port == cc.Port && Host.size() == cc.Host.size() &&
-                        std::equal(Host.begin(), Host.end(), cc.Host.begin(), [](auto a, auto b) {
+                        std::equal(Host.begin(), Host.end(), cc.Host.begin(), [](char a, char b) {
                             return std::tolower(a) == std::tolower(b); }));
             }
 #else

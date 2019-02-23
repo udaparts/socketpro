@@ -206,8 +206,8 @@ namespace SPA {
             [this](CSQLHandler &h, UDB::CDBVariantArray & vData) {
                 auto &meta = h.GetColumnInfo();
                 const UDB::CDBColumnInfo &info = meta.front();
-                        //populate vData into m_cache container
-                        this->m_cache.AddRows(info.DBPath.c_str(), info.TablePath.c_str(), vData);
+                //populate vData into m_cache container
+                this->m_cache.AddRows(info.DBPath.c_str(), info.TablePath.c_str(), vData);
 #endif
             }, [this](CSQLHandler & h) {
                 //a rowset column meta comes
