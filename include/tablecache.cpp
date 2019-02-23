@@ -786,15 +786,16 @@ namespace SPA
                     prow->push_back(Convert(vt, vtTarget));
                 } else
 #endif
-                    if (vt.vt == (VT_ARRAY | VT_I1)) {
+                if (vt.vt == (VT_ARRAY | VT_I1)) {
                     const char *s;
                     CComVariant vtNew;
                     ::SafeArrayAccessData(vt.parray, (void**) &s);
                     vtNew.bstrVal = Utilities::ToBSTR(s, vt.parray->rgsabound->cElements);
                     vtNew.vt = VT_BSTR;
                     ::SafeArrayUnaccessData(vt.parray);
-                    if (vtTarget == (VT_I1 | VT_ARRAY))
-                        vtTarget = VT_BSTR;
+					if (vtTarget == (VT_I1 | VT_ARRAY)) {
+						vtTarget = VT_BSTR;
+					}
                     prow->push_back(Convert(vtNew, vtTarget));
                 } else {
                     prow->push_back(Convert(vt, vtTarget));
@@ -833,8 +834,9 @@ namespace SPA
                     v.vt = (VT_ARRAY | VT_UI1);
                 } else
 #endif
-                    if (vtTarget == (VT_I1 | VT_ARRAY))
-                    vtTarget = VT_BSTR;
+				if (vtTarget == (VT_I1 | VT_ARRAY)) {
+						vtTarget = VT_BSTR;
+				}
                 prow->push_back(Convert(vData[n], vtTarget));
             }
             return (count / col_count);

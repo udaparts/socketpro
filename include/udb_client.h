@@ -59,6 +59,7 @@ namespace SPA {
 #endif
 #ifdef NO_OUTPUT_BINDING
                 m_bProc = false;
+				m_vData.Utf8ToW(true);
 #endif
             }
 
@@ -167,6 +168,9 @@ namespace SPA {
              */
             inline void Utf8ToW(bool bUtf8ToW) {
                 CAutoLock al(m_csDB);
+#if defined(PHP_ADAPTER_PROJECT) || defined(NODE_JS_ADAPTER_PROJECT)
+				m_vData.Utf8ToW(bUtf8ToW);
+#endif
                 m_Blob.Utf8ToW(bUtf8ToW);
             }
 
@@ -804,24 +808,26 @@ namespace SPA {
                         break;
                     case idTransferring:
                         if (mc.GetSize()) {
-                            m_csDB.lock();
-                            bool Utf8ToW = m_Blob.Utf8ToW();
-                            m_csDB.unlock();
-                            if (Utf8ToW)
-                                mc.Utf8ToW(true);
 #if defined(PHP_ADAPTER_PROJECT) || defined(NODE_JS_ADAPTER_PROJECT)
                             m_vData.Push(mc.GetBuffer(), mc.GetSize());
                             mc.SetSize(0);
 #else
+							m_csDB.lock();
+							bool Utf8ToW = m_Blob.Utf8ToW();
+							m_csDB.unlock();
+							if (Utf8ToW) {
+								mc.Utf8ToW(true);
+							}
                             while (mc.GetSize()) {
                                 m_vData.push_back(CDBVariant());
                                 CDBVariant &vt = m_vData.back();
                                 mc >> vt;
                             }
+							if (Utf8ToW) {
+								mc.Utf8ToW(false);
+							}
+							assert(mc.GetSize() == 0);
 #endif
-                            assert(mc.GetSize() == 0);
-                            if (Utf8ToW)
-                                mc.Utf8ToW(false);
                         }
                         break;
                     case idOutputParameter:
@@ -832,25 +838,27 @@ namespace SPA {
                         if (mc.GetSize() || m_vData.size())
 #endif
                         {
-                            m_csDB.lock();
-                            bool Utf8ToW = m_Blob.Utf8ToW();
-                            m_csDB.unlock();
-                            if (Utf8ToW)
-                                mc.Utf8ToW(true);
 #if defined(PHP_ADAPTER_PROJECT) || defined(NODE_JS_ADAPTER_PROJECT)
                             m_vData.Push(mc.GetBuffer(), mc.GetSize());
                             mc.SetSize(0);
 #else
+							m_csDB.lock();
+							bool Utf8ToW = m_Blob.Utf8ToW();
+							m_csDB.unlock();
+							if (Utf8ToW) {
+								mc.Utf8ToW(true);
+							}
                             CDBVariant vtOne;
                             while (mc.GetSize()) {
                                 m_vData.push_back(vtOne);
                                 CDBVariant &vt = m_vData.back();
                                 mc >> vt;
                             }
+							assert(mc.GetSize() == 0);
+							if (Utf8ToW) {
+								mc.Utf8ToW(false);
+							}
 #endif
-                            assert(mc.GetSize() == 0);
-                            if (Utf8ToW)
-                                mc.Utf8ToW(false);
                             DRows row;
                             if (reqId == idOutputParameter) {
                                 {

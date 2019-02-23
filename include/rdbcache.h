@@ -194,11 +194,11 @@ namespace SPA {
             [this](CSQLHandler &h, CUQueue & v) {
                 auto &meta = h.GetColumnInfo();
                 const UDB::CDBColumnInfo &info = meta.front();
-                        UDB::CDBVariantArray vData;
+                UDB::CDBVariantArray vData;
                 while (v.GetSize()) {
                     UDB::CDBVariant vt;
-                            v >> vt;
-                            vData.push_back(std::move(vt));
+                    v >> vt;
+                    vData.push_back(std::move(vt));
                 }
                 //populate vData into m_cache container
                 this->m_cache.AddRows(info.DBPath.c_str(), info.TablePath.c_str(), vData);
