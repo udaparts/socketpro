@@ -74,7 +74,7 @@ namespace NJA {
     class NJSocketPool;
     void ThrowException(Isolate* isolate, const char *str);
     Local<Value> From(Isolate* isolate, const VARIANT &vt, bool strForDec = false);
-	Local<Value> DbFrom(Isolate* isolate, SPA::CUQueue &buff, bool strForDec = false);
+    Local<Value> DbFrom(Isolate* isolate, SPA::CUQueue &buff, bool strForDec = false);
     Local<String> ToStr(Isolate* isolate, const char *str, size_t len = (size_t) INVALID_NUMBER);
     Local<String> ToStr(Isolate* isolate, const wchar_t *str, size_t len = (size_t) INVALID_NUMBER);
     bool IsNullOrUndefined(const Local<Value> &v);
@@ -190,6 +190,7 @@ namespace SPA {
 #if defined(PHP_ADAPTER_PROJECT) || defined(NODE_JS_ADAPTER_PROJECT)
             //not accurate but better than nothing here
             //Client core internal checking works much better, starting from version 6.2.0.4
+
             bool operator==(const CConnectionContext &cc) const {
                 if (this == &cc)
                     return true;
@@ -198,6 +199,7 @@ namespace SPA {
                             return std::tolower(a) == std::tolower(b); }));
             }
 #else
+
             bool operator==(const CConnectionContext &cc) const {
                 if (this == &cc)
                     return true;

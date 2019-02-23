@@ -1329,18 +1329,17 @@ namespace SPA {
                         cb.Type = eRows;
                         cb.Func = func;
                         cb.Buffer = CScopeUQueue::Lock();
-						CUQueue *p = CScopeUQueue::Lock();
-						bool proc = db.IsProc();
-						if (proc && db.GetCallReturn()) {
-							*p << db.GetRetValue();
-							p->Push(vData.GetBuffer(), vData.GetSize());
-						}
-						else {
-							p->Swap(vData);
-						}
-						cb.VData.reset(p, [](CUQueue *p) {
-							CScopeUQueue::Unlock(p);
-						});
+                        CUQueue *p = CScopeUQueue::Lock();
+                        bool proc = db.IsProc();
+                        if (proc && db.GetCallReturn()) {
+                            *p << db.GetRetValue();
+                            p->Push(vData.GetBuffer(), vData.GetSize());
+                        } else {
+                            p->Swap(vData);
+                        }
+                        cb.VData.reset(p, [](CUQueue * p) {
+                            CScopeUQueue::Unlock(p);
+                        });
                         PAsyncDBHandler ash = &db;
                         *cb.Buffer << ash << proc;
                         CAutoLock al(ash->m_csDB);

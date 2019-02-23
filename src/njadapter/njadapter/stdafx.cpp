@@ -681,151 +681,149 @@ namespace NJA {
         return true;
     }
 
-	Local<Value> DbFrom(Isolate* isolate, SPA::CUQueue &buff, bool strForDec) {
-		VARTYPE type;
-		buff >> type;
-		switch (type) {
-		case VT_NULL:
-		case VT_EMPTY:
-			return Null(isolate);
-		case VT_BOOL:
-		{
-			VARIANT_BOOL boolVal;
-			buff >> boolVal;
-			return Boolean::New(isolate, boolVal ? true : false);
-		}
-		case VT_I1:
-		{
-			char cVal;
-			buff >> cVal;
-			return Int32::New(isolate, cVal);
-		}
-		case VT_I2:
-		{
-			short iVal;
-			buff >> iVal;
-			return Int32::New(isolate, iVal);
-		}
-		case VT_I4:
-		case VT_INT:
-		{
-			int intVal;
-			buff >> intVal;
-			return Int32::New(isolate, intVal);
-		}
-		case VT_I8:
-		{
-			SPA::INT64 llVal;
-			buff >> llVal;
-			return Number::New(isolate, (double)llVal);
-		}
-		case VT_UI1:
-		{
-			unsigned char bVal;
-			buff >> bVal;
-			return Uint32::New(isolate, bVal);
-		}
-		case VT_UI2:
-		{
-			unsigned short uiVal;
-			buff >> uiVal;
-			return Uint32::New(isolate, uiVal);
-		}
-		case VT_UI4:
-		case VT_UINT:
-		{
-			unsigned int uintVal;
-			buff >> uintVal;
-			return Uint32::New(isolate, uintVal);
-		}
-		case VT_UI8:
-		{
-			SPA::UINT64 ullVal;
-			buff >> ullVal;
-			return Number::New(isolate, (double)ullVal);
-		}
-		case VT_R4: 
-		{
-			float fltVal;
-			buff >> fltVal;
-			return Number::New(isolate, fltVal);
-		}
-		case VT_R8:
-		{
-			double dblVal;
-			buff >> dblVal;
-			return Number::New(isolate, dblVal);
-		}
-		case VT_CY:
-		{
-			SPA::INT64 llVal;
-			buff >> llVal;
-			double d = (double)llVal;
-			d /= 10000;
-			return Number::New(isolate, d);
-		}
-		case VT_DECIMAL:
-		{
-			DECIMAL decVal;
-			buff >> decVal;
-			if (strForDec)
-				return ToStr(isolate, SPA::ToString(decVal).c_str());
-			return Number::New(isolate, ToDouble(decVal));
-		}
-		case VT_DATE: 
-		{
-			SPA::UINT64 ullVal;
-			buff >> ullVal;
-			return ToDate(isolate, ullVal);
-		}
-		case (VT_I1 | VT_ARRAY):
-		{
-			unsigned int len;
-			buff >> len;
-			if (len == SPA::UQUEUE_NULL_LENGTH) {
-				return v8::Null(isolate);
-			}
-			else if (len > buff.GetSize()) {
-				throw SPA::CUException("Bad data type");
-			}
-			const char *str = (const char *)buff.GetBuffer();
-			auto s = ToStr(isolate, str, len);
-			buff.Pop(len);
-			return s;
-		}
-		case VT_CLSID:
-		case (VT_UI1 | VT_ARRAY):
-		{
-			unsigned int len;
-			buff >> len;
-			if (len > buff.GetSize()) {
-				throw SPA::CUException("Bad data type");
-			}
-			const char *str = (const char *)buff.GetBuffer();
-			auto bytes = node::Buffer::Copy(isolate, (const char*)str, len).ToLocalChecked();
-			buff.Pop(len);
-			return bytes;
-		}
-		case VT_BSTR:
-		{
-			unsigned int len;
-			buff >> len;
-			if (len == SPA::UQUEUE_NULL_LENGTH) {
-				return Null(isolate);
-			}
-			else if (len > buff.GetSize()) {
-				throw SPA::CUException("Bad data type");
-			}
-			const uint16_t *str = (const uint16_t *)buff.GetBuffer();
-			auto s = ToStr(isolate, str, len/sizeof(uint16_t));
-			buff.Pop(len);
-			return s;
-		}
-		default:
-		break;
-		}
-		return Undefined(isolate);
-	}
+    Local<Value> DbFrom(Isolate* isolate, SPA::CUQueue &buff, bool strForDec) {
+        VARTYPE type;
+        buff >> type;
+        switch (type) {
+            case VT_NULL:
+            case VT_EMPTY:
+                return Null(isolate);
+            case VT_BOOL:
+            {
+                VARIANT_BOOL boolVal;
+                buff >> boolVal;
+                return Boolean::New(isolate, boolVal ? true : false);
+            }
+            case VT_I1:
+            {
+                char cVal;
+                buff >> cVal;
+                return Int32::New(isolate, cVal);
+            }
+            case VT_I2:
+            {
+                short iVal;
+                buff >> iVal;
+                return Int32::New(isolate, iVal);
+            }
+            case VT_I4:
+            case VT_INT:
+            {
+                int intVal;
+                buff >> intVal;
+                return Int32::New(isolate, intVal);
+            }
+            case VT_I8:
+            {
+                SPA::INT64 llVal;
+                buff >> llVal;
+                return Number::New(isolate, (double) llVal);
+            }
+            case VT_UI1:
+            {
+                unsigned char bVal;
+                buff >> bVal;
+                return Uint32::New(isolate, bVal);
+            }
+            case VT_UI2:
+            {
+                unsigned short uiVal;
+                buff >> uiVal;
+                return Uint32::New(isolate, uiVal);
+            }
+            case VT_UI4:
+            case VT_UINT:
+            {
+                unsigned int uintVal;
+                buff >> uintVal;
+                return Uint32::New(isolate, uintVal);
+            }
+            case VT_UI8:
+            {
+                SPA::UINT64 ullVal;
+                buff >> ullVal;
+                return Number::New(isolate, (double) ullVal);
+            }
+            case VT_R4:
+            {
+                float fltVal;
+                buff >> fltVal;
+                return Number::New(isolate, fltVal);
+            }
+            case VT_R8:
+            {
+                double dblVal;
+                buff >> dblVal;
+                return Number::New(isolate, dblVal);
+            }
+            case VT_CY:
+            {
+                SPA::INT64 llVal;
+                buff >> llVal;
+                double d = (double) llVal;
+                d /= 10000;
+                return Number::New(isolate, d);
+            }
+            case VT_DECIMAL:
+            {
+                DECIMAL decVal;
+                buff >> decVal;
+                if (strForDec)
+                    return ToStr(isolate, SPA::ToString(decVal).c_str());
+                return Number::New(isolate, ToDouble(decVal));
+            }
+            case VT_DATE:
+            {
+                SPA::UINT64 ullVal;
+                buff >> ullVal;
+                return ToDate(isolate, ullVal);
+            }
+            case (VT_I1 | VT_ARRAY):
+            {
+                unsigned int len;
+                buff >> len;
+                if (len == SPA::UQUEUE_NULL_LENGTH) {
+                    return v8::Null(isolate);
+                } else if (len > buff.GetSize()) {
+                    throw SPA::CUException("Bad data type");
+                }
+                const char *str = (const char *) buff.GetBuffer();
+                auto s = ToStr(isolate, str, len);
+                buff.Pop(len);
+                return s;
+            }
+            case VT_CLSID:
+            case (VT_UI1 | VT_ARRAY):
+            {
+                unsigned int len;
+                buff >> len;
+                if (len > buff.GetSize()) {
+                    throw SPA::CUException("Bad data type");
+                }
+                const char *str = (const char *) buff.GetBuffer();
+                auto bytes = node::Buffer::Copy(isolate, (const char*) str, len).ToLocalChecked();
+                buff.Pop(len);
+                return bytes;
+            }
+            case VT_BSTR:
+            {
+                unsigned int len;
+                buff >> len;
+                if (len == SPA::UQUEUE_NULL_LENGTH) {
+                    return Null(isolate);
+                } else if (len > buff.GetSize()) {
+                    throw SPA::CUException("Bad data type");
+                }
+                const uint16_t *str = (const uint16_t *) buff.GetBuffer();
+                auto s = ToStr(isolate, str, len / sizeof (uint16_t));
+                buff.Pop(len);
+                return s;
+            }
+            default:
+                break;
+        }
+        return Undefined(isolate);
+    }
 
     Local<Value> From(Isolate* isolate, const VARIANT &vt, bool strForDec) {
         VARTYPE type = vt.vt;
