@@ -31,7 +31,7 @@ namespace PA
         return (int64_t) m_h->CleanCallbacks();
     }
 
-    SPA::ClientSide::CAsyncServiceHandler::DDiscarded CPhpBaseHandler::SetAbortCallback(Php::Value& phpCanceled, unsigned short reqId, bool sync) {
+    SPA::ClientSide::CAsyncServiceHandler::DDiscarded CPhpBaseHandler::SetAbortCallback(const Php::Value& phpCanceled, unsigned short reqId, bool sync) {
         if (phpCanceled.isNull()) {
         } else if (!phpCanceled.isCallable()) {
             throw Php::Exception("A callback required for request aborting event");

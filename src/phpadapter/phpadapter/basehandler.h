@@ -53,7 +53,7 @@ namespace PA {
         Php::Value CleanCallbacks(Php::Parameters &params);
 
     protected:
-        SPA::ClientSide::CAsyncServiceHandler::DDiscarded SetAbortCallback(Php::Value& phpCanceled, unsigned short reqId, bool sync);
+        SPA::ClientSide::CAsyncServiceHandler::DDiscarded SetAbortCallback(const Php::Value& phpCanceled, unsigned short reqId, bool sync);
         void ReqSyncEnd(bool ok, std::unique_lock<std::mutex> &lk, unsigned int timeout);
         virtual void PopTopCallbacks(PACallback &cb) = 0;
         void PopCallbacks();

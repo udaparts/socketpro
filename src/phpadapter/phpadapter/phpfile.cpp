@@ -63,7 +63,7 @@ namespace PA
         }
     }
 
-    CAsyncFile::DDownload CPhpFile::SetResCallback(unsigned short reqId, Php::Value& phpDl, CQPointer &pV, unsigned int &timeout) {
+    CAsyncFile::DDownload CPhpFile::SetResCallback(unsigned short reqId, const Php::Value& phpDl, CQPointer &pV, unsigned int &timeout) {
         assert(pV);
         timeout = (~0);
         bool sync = false;

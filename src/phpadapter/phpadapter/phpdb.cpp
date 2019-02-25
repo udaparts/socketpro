@@ -220,7 +220,7 @@ namespace PA
         return v;
     }
 
-    CDBHandler::DExecuteResult CPhpDb::SetExeResCallback(Php::Value &phpDR, CQPointer &pV, unsigned int &timeout) {
+    CDBHandler::DExecuteResult CPhpDb::SetExeResCallback(const Php::Value &phpDR, CQPointer &pV, unsigned int &timeout) {
         timeout = (~0);
         bool sync = false;
         if (phpDR.isNumeric()) {
@@ -266,7 +266,7 @@ namespace PA
         return Dr;
     }
 
-    CDBHandler::DRows CPhpDb::SetRCallback(Php::Value & phpRow) {
+    CDBHandler::DRows CPhpDb::SetRCallback(const Php::Value & phpRow) {
         CDBHandler::DRows r;
         if (phpRow.isNull()) {
         } else if (!phpRow.isCallable()) {
@@ -292,7 +292,7 @@ namespace PA
         return r;
     }
 
-    CDBHandler::DRowsetHeader CPhpDb::SetRHCallback(Php::Value &phpRh, bool batch) {
+    CDBHandler::DRowsetHeader CPhpDb::SetRHCallback(const Php::Value &phpRh, bool batch) {
         CDBHandler::DRowsetHeader rh;
         if (phpRh.isNull()) {
         } else if (!phpRh.isCallable()) {
@@ -527,7 +527,7 @@ namespace PA
         return m_db->Prepare(sql.c_str(), Dr, vPInfo, discarded);
     }
 
-    CDBHandler::DResult CPhpDb::SetResCallback(Php::Value &phpRes, CQPointer &pV, unsigned int &timeout) {
+    CDBHandler::DResult CPhpDb::SetResCallback(const Php::Value &phpRes, CQPointer &pV, unsigned int &timeout) {
         timeout = (~0);
         bool sync = false;
         if (phpRes.isNumeric()) {

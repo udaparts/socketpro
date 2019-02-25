@@ -32,10 +32,10 @@ namespace PA {
         Php::Value BeginTrans(Php::Parameters &params);
         Php::Value EndTrans(Php::Parameters &params);
 
-        CDBHandler::DResult SetResCallback(Php::Value &phpRes, CQPointer &pV, unsigned int &timeout);
-        CDBHandler::DExecuteResult SetExeResCallback(Php::Value &phpRes, CQPointer &pV, unsigned int &timeout);
-        CDBHandler::DRows SetRCallback(Php::Value &phpRow);
-        CDBHandler::DRowsetHeader SetRHCallback(Php::Value &phpRh, bool batch = false);
+        CDBHandler::DResult SetResCallback(const Php::Value &phpRes, CQPointer &pV, unsigned int &timeout);
+        CDBHandler::DExecuteResult SetExeResCallback(const Php::Value &phpRes, CQPointer &pV, unsigned int &timeout);
+        CDBHandler::DRows SetRCallback(const Php::Value &phpRow);
+        CDBHandler::DRowsetHeader SetRHCallback(const Php::Value &phpRh, bool batch = false);
         void GetParams(const Php::Value &vP, SPA::UDB::CDBVariantArray &vParam);
 
         static SPA::UDB::CParameterInfoArray ConvertFrom(Php::Value vP);

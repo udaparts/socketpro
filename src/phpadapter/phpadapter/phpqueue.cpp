@@ -254,7 +254,7 @@ namespace PA
         return m_aq->StartQueueTrans(key.c_str(), qt, discarded);
     }
 
-    CAsyncQueue::DQueueTrans CPhpQueue::SetQueueTransCallback(unsigned short reqId, Php::Value& phpTrans, std::shared_ptr<int> &pErrCode, unsigned int &timeout) {
+    CAsyncQueue::DQueueTrans CPhpQueue::SetQueueTransCallback(unsigned short reqId, const Php::Value& phpTrans, std::shared_ptr<int> &pErrCode, unsigned int &timeout) {
         timeout = (~0);
         bool sync = false;
         if (phpTrans.isNumeric()) {
@@ -372,7 +372,7 @@ namespace PA
         return m_aq->GetKeys(gk, discarded);
     }
 
-    CAsyncQueue::DEnqueue CPhpQueue::SetEnqueueResCallback(unsigned short reqId, Php::Value& phpF, std::shared_ptr<SPA::INT64> &pF, unsigned int &timeout) {
+    CAsyncQueue::DEnqueue CPhpQueue::SetEnqueueResCallback(unsigned short reqId, const Php::Value& phpF, std::shared_ptr<SPA::INT64> &pF, unsigned int &timeout) {
         timeout = (~0);
         bool sync = false;
         if (phpF.isNumeric()) {
