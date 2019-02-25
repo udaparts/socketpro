@@ -220,7 +220,7 @@ namespace PA
         return v;
     }
 
-    CDBHandler::DExecuteResult CPhpDb::SetExeResCallback(const Php::Value &phpDR, CQPointer &pV, unsigned int &timeout) {
+    CDBHandler::DExecuteResult CPhpDb::SetExeResCallback(Php::Value &phpDR, CQPointer &pV, unsigned int &timeout) {
         timeout = (~0);
         bool sync = false;
         if (phpDR.isNumeric()) {
@@ -239,7 +239,10 @@ namespace PA
         } else {
             pV.reset();
         }
-        CPVPointer callback(new Php::Value(phpDR));
+		CPVPointer callback;
+		if (phpDR.isCallable()) {
+			callback.reset(new Php::Value(phpDR));
+		}
         CDBHandler::DExecuteResult Dr = [callback, pV, this](CDBHandler &db, int res, const std::wstring& errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, SPA::UDB::CDBVariant & vtId) {
             unsigned int fails = (unsigned int) (fail_ok >> 32);
             unsigned int oks = (unsigned int) fail_ok;
@@ -249,7 +252,7 @@ namespace PA
                 *pV << res << em << affected << fails << oks << vtId;
                 std::unique_lock<std::mutex> lk(this->m_mPhp);
                 this->m_cvPhp.notify_all();
-            } else if (callback->isCallable()) {
+            } else if (callback) {
                 SPA::CScopeUQueue sb;
                 sb << res << em << affected << fails << oks << vtId;
                 PACallback cb;
@@ -263,7 +266,7 @@ namespace PA
         return Dr;
     }
 
-    CDBHandler::DRows CPhpDb::SetRCallback(const Php::Value & phpRow) {
+    CDBHandler::DRows CPhpDb::SetRCallback(Php::Value & phpRow) {
         CDBHandler::DRows r;
         if (phpRow.isNull()) {
         } else if (!phpRow.isCallable()) {
@@ -289,7 +292,7 @@ namespace PA
         return r;
     }
 
-    CDBHandler::DRowsetHeader CPhpDb::SetRHCallback(const Php::Value &phpRh, bool batch) {
+    CDBHandler::DRowsetHeader CPhpDb::SetRHCallback(Php::Value &phpRh, bool batch) {
         CDBHandler::DRowsetHeader rh;
         if (phpRh.isNull()) {
         } else if (!phpRh.isCallable()) {
@@ -325,7 +328,7 @@ namespace PA
             GetParams(params[0], vParam);
         }
         CQPointer pV;
-        auto Dr = SetExeResCallback(params[1], pV, timeout);
+		CDBHandler::DExecuteResult Dr = SetExeResCallback(params[1], pV, timeout);
         size_t args = params.size();
         Php::Value phpRow;
         if (args > 2) {
@@ -524,7 +527,7 @@ namespace PA
         return m_db->Prepare(sql.c_str(), Dr, vPInfo, discarded);
     }
 
-    CDBHandler::DResult CPhpDb::SetResCallback(const Php::Value &phpRes, CQPointer &pV, unsigned int &timeout) {
+    CDBHandler::DResult CPhpDb::SetResCallback(Php::Value &phpRes, CQPointer &pV, unsigned int &timeout) {
         timeout = (~0);
         bool sync = false;
         if (phpRes.isNumeric()) {
@@ -543,7 +546,10 @@ namespace PA
         } else {
             pV.reset();
         }
-        CPVPointer callback(new Php::Value(phpRes));
+		CPVPointer callback;
+		if (phpRes.isCallable()) {
+			callback.reset(new Php::Value(phpRes));
+		}
         CDBHandler::DResult Dr = [callback, pV, this](CDBHandler &db, int res, const std::wstring & errMsg) {
             std::string em = SPA::Utilities::ToUTF8(errMsg);
             Trim(em);
@@ -551,7 +557,7 @@ namespace PA
                 *pV << res << em;
                 std::unique_lock<std::mutex> lk(this->m_mPhp);
                 this->m_cvPhp.notify_all();
-            } else if (callback->isCallable()) {
+            } else if (callback) {
                 SPA::CScopeUQueue sb;
                 sb << res << em;
                 PACallback cb;

@@ -106,13 +106,16 @@ namespace PA
                 SPA::CScopeUQueue::Unlock(q);
             });
         }
-        CPVPointer callback(new Php::Value(phpF));
+		CPVPointer callback;
+		if (phpF.isCallable()) {
+			callback.reset(new Php::Value(phpF));
+		}
         CAsyncQueue::DDequeue f = [callback, pF, this](CAsyncQueue *aq, SPA::UINT64 messages, SPA::UINT64 fileSize, unsigned int messagesDequeued, unsigned int bytesDequeued) {
             if (pF) {
                 *pF << messages << fileSize << messagesDequeued << bytesDequeued;
                 std::unique_lock<std::mutex> lk(this->m_mPhp);
                 this->m_cvPhp.notify_all();
-            } else if (callback->isCallable()) {
+            } else if (callback) {
                 SPA::CScopeUQueue sb;
                 sb << (unsigned short) SPA::Queue::idDequeue << messages << fileSize << messagesDequeued << bytesDequeued;
                 PACallback cb;
@@ -181,13 +184,16 @@ namespace PA
                 SPA::CScopeUQueue::Unlock(q);
             });
         }
-        CPVPointer callback(new Php::Value(phpF));
+		CPVPointer callback;
+		if (phpF.isCallable()) {
+			callback.reset(new Php::Value(phpF));
+		}
         CAsyncQueue::DFlush f = [callback, pF, this](CAsyncQueue *aq, SPA::UINT64 messages, SPA::UINT64 fileSize) {
             if (pF) {
                 *pF << messages << fileSize;
                 std::unique_lock<std::mutex> lk(this->m_mPhp);
                 this->m_cvPhp.notify_all();
-            } else if (callback->isCallable()) {
+            } else if (callback) {
                 SPA::CScopeUQueue sb;
                 sb << (unsigned short) SPA::Queue::idFlush << messages << fileSize;
                 PACallback cb;
@@ -248,7 +254,7 @@ namespace PA
         return m_aq->StartQueueTrans(key.c_str(), qt, discarded);
     }
 
-    CAsyncQueue::DQueueTrans CPhpQueue::SetQueueTransCallback(unsigned short reqId, const Php::Value& phpTrans, std::shared_ptr<int> &pErrCode, unsigned int &timeout) {
+    CAsyncQueue::DQueueTrans CPhpQueue::SetQueueTransCallback(unsigned short reqId, Php::Value& phpTrans, std::shared_ptr<int> &pErrCode, unsigned int &timeout) {
         timeout = (~0);
         bool sync = false;
         if (phpTrans.isNumeric()) {
@@ -265,13 +271,16 @@ namespace PA
         } else {
             pErrCode.reset();
         }
-        CPVPointer callback(new Php::Value(phpTrans));
+		CPVPointer callback;
+		if (phpTrans.isCallable()) {
+			callback.reset(new Php::Value(phpTrans));
+		}
         CAsyncQueue::DQueueTrans qt = [reqId, callback, pErrCode, this](CAsyncQueue *aq, int errCode) {
             if (pErrCode) {
                 *pErrCode = errCode;
                 std::unique_lock<std::mutex> lk(this->m_mPhp);
                 this->m_cvPhp.notify_all();
-            } else if (callback->isCallable()) {
+            } else if (callback) {
                 SPA::CScopeUQueue sb;
                 sb << reqId << errCode;
                 PACallback cb;
@@ -323,13 +332,16 @@ namespace PA
         if (sync) {
             pV.reset(new std::vector<std::string>);
         }
-        CPVPointer callback(new Php::Value(phpGK));
+		CPVPointer callback;
+		if (phpGK.isCallable()) {
+			callback.reset(new Php::Value(phpGK));
+		}
         CAsyncQueue::DGetKeys gk = [callback, pV, this](CAsyncQueue *aq, const std::vector<std::string> &v) {
             if (pV) {
                 *pV = v;
                 std::unique_lock<std::mutex> lk(this->m_mPhp);
                 this->m_cvPhp.notify_all();
-            } else if (callback->isCallable()) {
+            } else if (callback) {
                 SPA::CScopeUQueue sb;
                 sb << (unsigned short) SPA::Queue::idGetKeys;
                 for (auto &s : v) {
@@ -360,7 +372,7 @@ namespace PA
         return m_aq->GetKeys(gk, discarded);
     }
 
-    CAsyncQueue::DEnqueue CPhpQueue::SetEnqueueResCallback(unsigned short reqId, const Php::Value& phpF, std::shared_ptr<SPA::INT64> &pF, unsigned int &timeout) {
+    CAsyncQueue::DEnqueue CPhpQueue::SetEnqueueResCallback(unsigned short reqId, Php::Value& phpF, std::shared_ptr<SPA::INT64> &pF, unsigned int &timeout) {
         timeout = (~0);
         bool sync = false;
         if (phpF.isNumeric()) {
@@ -377,13 +389,16 @@ namespace PA
         } else {
             pF.reset();
         }
-        CPVPointer callback(new Php::Value(phpF));
+		CPVPointer callback;
+		if (phpF.isCallable()) {
+			callback.reset(new Php::Value(phpF));
+		}
         CAsyncQueue::DEnqueue f = [reqId, callback, pF, this](CAsyncQueue *aq, SPA::UINT64 index) {
             if (pF) {
                 *pF = (int64_t) index;
                 std::unique_lock<std::mutex> lk(this->m_mPhp);
                 this->m_cvPhp.notify_all();
-            } else if (callback->isCallable()) {
+            } else if (callback) {
                 SPA::CScopeUQueue sb;
                 sb << reqId << index;
                 PACallback cb;

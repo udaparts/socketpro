@@ -31,15 +31,18 @@ namespace PA
         return (int64_t) m_h->CleanCallbacks();
     }
 
-    SPA::ClientSide::CAsyncServiceHandler::DDiscarded CPhpBaseHandler::SetAbortCallback(const Php::Value& phpCanceled, unsigned short reqId, bool sync) {
+    SPA::ClientSide::CAsyncServiceHandler::DDiscarded CPhpBaseHandler::SetAbortCallback(Php::Value& phpCanceled, unsigned short reqId, bool sync) {
         if (phpCanceled.isNull()) {
         } else if (!phpCanceled.isCallable()) {
             throw Php::Exception("A callback required for request aborting event");
         }
         m_rrs = rrsOk;
-        CPVPointer callback(new Php::Value(phpCanceled));
+		CPVPointer callback;
+		if (phpCanceled.isCallable()) {
+			callback.reset(new Php::Value(phpCanceled));
+		}
         SPA::ClientSide::CAsyncServiceHandler::DDiscarded discarded = [reqId, sync, callback, this](SPA::ClientSide::CAsyncServiceHandler *ash, bool canceled) {
-            if (callback->isCallable()) {
+            if (callback) {
                 SPA::CScopeUQueue sb;
                 PACallback cb;
                 cb.CallbackType = ctDiscarded;
@@ -105,14 +108,17 @@ namespace PA
         if (sync) {
             buffer.reset(new CPhpBuffer);
         }
-        CPVPointer callback(new Php::Value(phpRh));
+		CPVPointer callback;
+		if (phpRh.isCallable()) {
+			callback.reset(new Php::Value(phpRh));
+		}
         SPA::ClientSide::ResultHandler rh = [buffer, callback, this](SPA::ClientSide::CAsyncResult & ar) {
             SPA::ClientSide::PAsyncServiceHandler ash = ar.AsyncServiceHandler;
             if (buffer) {
                 buffer->Swap(&ar.UQueue);
                 std::unique_lock<std::mutex> lk(this->m_mPhp);
                 this->m_cvPhp.notify_all();
-            } else if (callback->isCallable()) {
+            } else if (callback) {
                 SPA::CScopeUQueue sb;
                 sb << ar.RequestId;
                 sb->Push(ar.UQueue.GetBuffer(), ar.UQueue.GetSize());
@@ -141,9 +147,12 @@ namespace PA
                 throw Php::Exception("A callback required for server exception");
             }
         }
-        CPVPointer callbackEx(new Php::Value(phpEx));
+		CPVPointer callbackEx;
+		if (phpEx.isCallable()) {
+			callbackEx.reset(new Php::Value(phpEx));
+		}
         SPA::ClientSide::CAsyncServiceHandler::DServerException se = [callbackEx, sync, this](SPA::ClientSide::CAsyncServiceHandler *ash, unsigned short reqId, const wchar_t *errMsg, const char *errWhere, unsigned int errCode) {
-            if (callbackEx->isCallable()) {
+            if (callbackEx) {
                 SPA::CScopeUQueue sb;
                 sb << reqId << errMsg << errWhere << errCode;
                 PACallback cb;

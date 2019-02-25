@@ -63,7 +63,7 @@ namespace PA
         }
     }
 
-    CAsyncFile::DDownload CPhpFile::SetResCallback(unsigned short reqId, Php::Value phpDl, CQPointer &pV, unsigned int &timeout) {
+    CAsyncFile::DDownload CPhpFile::SetResCallback(unsigned short reqId, Php::Value& phpDl, CQPointer &pV, unsigned int &timeout) {
         assert(pV);
         timeout = (~0);
         bool sync = false;
@@ -83,7 +83,10 @@ namespace PA
         } else {
             pV.reset();
         }
-        CPVPointer callback(new Php::Value(phpDl));
+		CPVPointer callback;
+		if (phpDl.isCallable()) {
+			callback.reset(new Php::Value(phpDl));
+		}
         CAsyncFile::DDownload Dl = [reqId, callback, pV, this](SPA::ClientSide::CStreamingFile *file, int res, const std::wstring & errMsg) {
             std::string em = SPA::Utilities::ToUTF8(errMsg);
             Trim(em);
@@ -91,7 +94,7 @@ namespace PA
                 *pV << res << em;
                 std::unique_lock<std::mutex> lk(this->m_mPhp);
                 this->m_cvPhp.notify_all();
-            } else if (callback->isCallable()) {
+            } else if (callback) {
                 SPA::CScopeUQueue sb;
                 sb << reqId << res << em;
                 PACallback cb;
