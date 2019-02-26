@@ -250,7 +250,16 @@ namespace PA
         if (params.size() && params[0].isNumeric()) {
             timeout = (unsigned int) params[0].numericValue();
         }
-        return m_h->WaitAll(timeout);
+		{
+			std::unique_lock<std::mutex> lk(m_mPhp);
+			PopCallbacks();
+		}
+        bool ok = m_h->WaitAll(timeout);
+		{
+			std::unique_lock<std::mutex> lk(m_mPhp);
+			PopCallbacks();
+		}
+		return ok;
     }
 
     Php::Value CPhpBaseHandler::StartBatching() {

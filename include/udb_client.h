@@ -348,7 +348,9 @@ namespace SPA {
                     if (rowset) {
                         m_mapRowset[callIndex] = CRowsetHandler(rh, row);
                     }
+#ifndef NO_OUTPUT_BINDING
                     m_mapParameterCall[callIndex] = &vParam;
+#endif
                     m_mapHandler[callIndex] = batchHeader;
                     sb << m_strConnection << m_flags;
                 }
@@ -358,7 +360,9 @@ namespace SPA {
                 };
                 if (!SendRequest(idExecuteBatch, sb->GetBuffer(), sb->GetSize(), arh, discarded, nullptr)) {
                     CAutoLock al(m_csDB);
+#ifndef NO_OUTPUT_BINDING
                     m_mapParameterCall.erase(callIndex);
+#endif
                     if (rowset) {
                         m_mapRowset.erase(callIndex);
                     }
@@ -409,7 +413,9 @@ namespace SPA {
                     if (rowset) {
                         m_mapRowset[callIndex] = CRowsetHandler(rh, row);
                     }
+#ifndef NO_OUTPUT_BINDING
                     m_mapParameterCall[callIndex] = &vParam;
+#endif
                 }
                 sb << callIndex;
                 ResultHandler arh = [callIndex, handler, this](CAsyncResult & ar) {
@@ -417,7 +423,9 @@ namespace SPA {
                 };
                 if (!SendRequest(idExecuteParameters, sb->GetBuffer(), sb->GetSize(), arh, discarded, nullptr)) {
                     CAutoLock al(m_csDB);
+#ifndef NO_OUTPUT_BINDING
                     m_mapParameterCall.erase(callIndex);
+#endif
                     if (rowset) {
                         m_mapRowset.erase(callIndex);
                     }
@@ -693,10 +701,12 @@ namespace SPA {
                         dbTo.m_mapRowset[it->first] = it->second;
                     }
                     m_mapRowset.clear();
+#ifndef NO_OUTPUT_BINDING
                     for (auto it = m_mapParameterCall.begin(), end = m_mapParameterCall.end(); it != end; ++it) {
                         dbTo.m_mapParameterCall[it->first] = it->second;
                     }
                     m_mapParameterCall.clear();
+#endif
                     for (auto it = m_mapHandler.begin(), end = m_mapHandler.end(); it != end; ++it) {
                         dbTo.m_mapHandler[it->first] = it->second;
                     }
@@ -1020,10 +1030,12 @@ namespace SPA {
                     if (it != m_mapRowset.end()) {
                         m_mapRowset.erase(it);
                     }
+#ifndef NO_OUTPUT_BINDING
                     auto pit = m_mapParameterCall.find(index);
                     if (pit != m_mapParameterCall.end()) {
                         m_mapParameterCall.erase(pit);
                     }
+#endif
                     auto ph = m_mapHandler.find(index);
                     if (ph != m_mapHandler.end()) {
                         ash->m_mapHandler.erase(ph);
@@ -1036,7 +1048,9 @@ namespace SPA {
 
             void Clean() {
                 m_mapRowset.clear();
+#ifndef NO_OUTPUT_BINDING
                 m_mapParameterCall.clear();
+#endif
                 m_mapHandler.clear();
                 m_vColInfo.clear();
                 m_lastReqId = 0;
@@ -1063,7 +1077,9 @@ namespace SPA {
 
         private:
             std::wstring m_strConnection;
+#ifndef NO_OUTPUT_BINDING
             std::unordered_map<UINT64, CDBVariantArray*> m_mapParameterCall;
+#endif
             unsigned int m_indexProc;
             CUQueue m_Blob;
 #if defined(PHP_ADAPTER_PROJECT) || defined(NODE_JS_ADAPTER_PROJECT)
