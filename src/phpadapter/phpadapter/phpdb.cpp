@@ -239,10 +239,10 @@ namespace PA
         } else {
             pV.reset();
         }
-		CPVPointer callback;
-		if (phpDR.isCallable()) {
-			callback.reset(new Php::Value(phpDR));
-		}
+        CPVPointer callback;
+        if (phpDR.isCallable()) {
+            callback.reset(new Php::Value(phpDR));
+        }
         CDBHandler::DExecuteResult Dr = [callback, pV, this](CDBHandler &db, int res, const std::wstring& errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, SPA::UDB::CDBVariant & vtId) {
             unsigned int fails = (unsigned int) (fail_ok >> 32);
             unsigned int oks = (unsigned int) fail_ok;
@@ -328,7 +328,7 @@ namespace PA
             GetParams(params[0], vParam);
         }
         CQPointer pV;
-		CDBHandler::DExecuteResult Dr = SetExeResCallback(params[1], pV, timeout);
+        CDBHandler::DExecuteResult Dr = SetExeResCallback(params[1], pV, timeout);
         size_t args = params.size();
         Php::Value phpRow;
         if (args > 2) {
@@ -546,10 +546,10 @@ namespace PA
         } else {
             pV.reset();
         }
-		CPVPointer callback;
-		if (phpRes.isCallable()) {
-			callback.reset(new Php::Value(phpRes));
-		}
+        CPVPointer callback;
+        if (phpRes.isCallable()) {
+            callback.reset(new Php::Value(phpRes));
+        }
         CDBHandler::DResult Dr = [callback, pV, this](CDBHandler &db, int res, const std::wstring & errMsg) {
             std::string em = SPA::Utilities::ToUTF8(errMsg);
             Trim(em);

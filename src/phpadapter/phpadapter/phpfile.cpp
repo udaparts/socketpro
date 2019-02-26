@@ -83,10 +83,10 @@ namespace PA
         } else {
             pV.reset();
         }
-		CPVPointer callback;
-		if (phpDl.isCallable()) {
-			callback.reset(new Php::Value(phpDl));
-		}
+        CPVPointer callback;
+        if (phpDl.isCallable()) {
+            callback.reset(new Php::Value(phpDl));
+        }
         CAsyncFile::DDownload Dl = [reqId, callback, pV, this](SPA::ClientSide::CStreamingFile *file, int res, const std::wstring & errMsg) {
             std::string em = SPA::Utilities::ToUTF8(errMsg);
             Trim(em);

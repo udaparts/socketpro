@@ -37,10 +37,10 @@ namespace PA
             throw Php::Exception("A callback required for request aborting event");
         }
         m_rrs = rrsOk;
-		CPVPointer callback;
-		if (phpCanceled.isCallable()) {
-			callback.reset(new Php::Value(phpCanceled));
-		}
+        CPVPointer callback;
+        if (phpCanceled.isCallable()) {
+            callback.reset(new Php::Value(phpCanceled));
+        }
         SPA::ClientSide::CAsyncServiceHandler::DDiscarded discarded = [reqId, sync, callback, this](SPA::ClientSide::CAsyncServiceHandler *ash, bool canceled) {
             if (callback) {
                 SPA::CScopeUQueue sb;
@@ -108,10 +108,10 @@ namespace PA
         if (sync) {
             buffer.reset(new CPhpBuffer);
         }
-		CPVPointer callback;
-		if (phpRh.isCallable()) {
-			callback.reset(new Php::Value(phpRh));
-		}
+        CPVPointer callback;
+        if (phpRh.isCallable()) {
+            callback.reset(new Php::Value(phpRh));
+        }
         SPA::ClientSide::ResultHandler rh = [buffer, callback, this](SPA::ClientSide::CAsyncResult & ar) {
             SPA::ClientSide::PAsyncServiceHandler ash = ar.AsyncServiceHandler;
             if (buffer) {
@@ -147,10 +147,10 @@ namespace PA
                 throw Php::Exception("A callback required for server exception");
             }
         }
-		CPVPointer callbackEx;
-		if (phpEx.isCallable()) {
-			callbackEx.reset(new Php::Value(phpEx));
-		}
+        CPVPointer callbackEx;
+        if (phpEx.isCallable()) {
+            callbackEx.reset(new Php::Value(phpEx));
+        }
         SPA::ClientSide::CAsyncServiceHandler::DServerException se = [callbackEx, sync, this](SPA::ClientSide::CAsyncServiceHandler *ash, unsigned short reqId, const wchar_t *errMsg, const char *errWhere, unsigned int errCode) {
             if (callbackEx) {
                 SPA::CScopeUQueue sb;
@@ -250,16 +250,16 @@ namespace PA
         if (params.size() && params[0].isNumeric()) {
             timeout = (unsigned int) params[0].numericValue();
         }
-		{
-			std::unique_lock<std::mutex> lk(m_mPhp);
-			PopCallbacks();
-		}
+        {
+            std::unique_lock<std::mutex> lk(m_mPhp);
+            PopCallbacks();
+        }
         bool ok = m_h->WaitAll(timeout);
-		{
-			std::unique_lock<std::mutex> lk(m_mPhp);
-			PopCallbacks();
-		}
-		return ok;
+        {
+            std::unique_lock<std::mutex> lk(m_mPhp);
+            PopCallbacks();
+        }
+        return ok;
     }
 
     Php::Value CPhpBaseHandler::StartBatching() {

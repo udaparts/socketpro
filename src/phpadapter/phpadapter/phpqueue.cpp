@@ -106,10 +106,10 @@ namespace PA
                 SPA::CScopeUQueue::Unlock(q);
             });
         }
-		CPVPointer callback;
-		if (phpF.isCallable()) {
-			callback.reset(new Php::Value(phpF));
-		}
+        CPVPointer callback;
+        if (phpF.isCallable()) {
+            callback.reset(new Php::Value(phpF));
+        }
         CAsyncQueue::DDequeue f = [callback, pF, this](CAsyncQueue *aq, SPA::UINT64 messages, SPA::UINT64 fileSize, unsigned int messagesDequeued, unsigned int bytesDequeued) {
             if (pF) {
                 *pF << messages << fileSize << messagesDequeued << bytesDequeued;
@@ -184,10 +184,10 @@ namespace PA
                 SPA::CScopeUQueue::Unlock(q);
             });
         }
-		CPVPointer callback;
-		if (phpF.isCallable()) {
-			callback.reset(new Php::Value(phpF));
-		}
+        CPVPointer callback;
+        if (phpF.isCallable()) {
+            callback.reset(new Php::Value(phpF));
+        }
         CAsyncQueue::DFlush f = [callback, pF, this](CAsyncQueue *aq, SPA::UINT64 messages, SPA::UINT64 fileSize) {
             if (pF) {
                 *pF << messages << fileSize;
@@ -271,10 +271,10 @@ namespace PA
         } else {
             pErrCode.reset();
         }
-		CPVPointer callback;
-		if (phpTrans.isCallable()) {
-			callback.reset(new Php::Value(phpTrans));
-		}
+        CPVPointer callback;
+        if (phpTrans.isCallable()) {
+            callback.reset(new Php::Value(phpTrans));
+        }
         CAsyncQueue::DQueueTrans qt = [reqId, callback, pErrCode, this](CAsyncQueue *aq, int errCode) {
             if (pErrCode) {
                 *pErrCode = errCode;
@@ -332,10 +332,10 @@ namespace PA
         if (sync) {
             pV.reset(new std::vector<std::string>);
         }
-		CPVPointer callback;
-		if (phpGK.isCallable()) {
-			callback.reset(new Php::Value(phpGK));
-		}
+        CPVPointer callback;
+        if (phpGK.isCallable()) {
+            callback.reset(new Php::Value(phpGK));
+        }
         CAsyncQueue::DGetKeys gk = [callback, pV, this](CAsyncQueue *aq, const std::vector<std::string> &v) {
             if (pV) {
                 *pV = v;
@@ -389,10 +389,10 @@ namespace PA
         } else {
             pF.reset();
         }
-		CPVPointer callback;
-		if (phpF.isCallable()) {
-			callback.reset(new Php::Value(phpF));
-		}
+        CPVPointer callback;
+        if (phpF.isCallable()) {
+            callback.reset(new Php::Value(phpF));
+        }
         CAsyncQueue::DEnqueue f = [reqId, callback, pF, this](CAsyncQueue *aq, SPA::UINT64 index) {
             if (pF) {
                 *pF = (int64_t) index;
