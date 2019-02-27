@@ -90,132 +90,132 @@ ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libphpadapter.${CND_DLIB_EXT}: ${OBJE
 ${OBJECTDIR}/_ext/932346631/aclientw.o: ../../../include/aclientw.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/932346631
 	${RM} "$@.d"
-	$(COMPILE.c) -O2 -DNDEBUG -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/932346631/aclientw.o ../../../include/aclientw.cpp
+	$(COMPILE.c) -O2 -DNDEBUG -DPHP_ADAPTER_PROJECT -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/932346631/aclientw.o ../../../include/aclientw.cpp
 
 ${OBJECTDIR}/_ext/932346631/membuffer.o: ../../../include/membuffer.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/932346631
 	${RM} "$@.d"
-	$(COMPILE.c) -O2 -DNDEBUG -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/932346631/membuffer.o ../../../include/membuffer.cpp
+	$(COMPILE.c) -O2 -DNDEBUG -DPHP_ADAPTER_PROJECT -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/932346631/membuffer.o ../../../include/membuffer.cpp
 
 ${OBJECTDIR}/_ext/932346631/tablecache.o: ../../../include/tablecache.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/932346631
 	${RM} "$@.d"
-	$(COMPILE.c) -O2 -DNDEBUG -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/932346631/tablecache.o ../../../include/tablecache.cpp
+	$(COMPILE.c) -O2 -DNDEBUG -DPHP_ADAPTER_PROJECT -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/932346631/tablecache.o ../../../include/tablecache.cpp
 
 ${OBJECTDIR}/basehandler.o: basehandler.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.c) -O2 -DNDEBUG -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/basehandler.o basehandler.cpp
+	$(COMPILE.c) -O2 -DNDEBUG -DPHP_ADAPTER_PROJECT -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/basehandler.o basehandler.cpp
 
 ${OBJECTDIR}/dllmain.o: dllmain.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.c) -O2 -DNDEBUG -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/dllmain.o dllmain.cpp
+	$(COMPILE.c) -O2 -DNDEBUG -DPHP_ADAPTER_PROJECT -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/dllmain.o dllmain.cpp
 
 ${OBJECTDIR}/phpadapter.o: phpadapter.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.c) -O2 -DNDEBUG -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/phpadapter.o phpadapter.cpp
+	$(COMPILE.c) -O2 -DNDEBUG -DPHP_ADAPTER_PROJECT -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/phpadapter.o phpadapter.cpp
 
 ${OBJECTDIR}/phpbuffer.o: phpbuffer.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.c) -O2 -DNDEBUG -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/phpbuffer.o phpbuffer.cpp
+	$(COMPILE.c) -O2 -DNDEBUG -DPHP_ADAPTER_PROJECT -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/phpbuffer.o phpbuffer.cpp
 
 ${OBJECTDIR}/phpcert.o: phpcert.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.c) -O2 -DNDEBUG -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/phpcert.o phpcert.cpp
+	$(COMPILE.c) -O2 -DNDEBUG -DPHP_ADAPTER_PROJECT -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/phpcert.o phpcert.cpp
 
 ${OBJECTDIR}/phpclientqueue.o: phpclientqueue.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.c) -O2 -DNDEBUG -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/phpclientqueue.o phpclientqueue.cpp
+	$(COMPILE.c) -O2 -DNDEBUG -DPHP_ADAPTER_PROJECT -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/phpclientqueue.o phpclientqueue.cpp
 
 ${OBJECTDIR}/phpconncontext.o: phpconncontext.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.c) -O2 -DNDEBUG -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/phpconncontext.o phpconncontext.cpp
+	$(COMPILE.c) -O2 -DNDEBUG -DPHP_ADAPTER_PROJECT -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/phpconncontext.o phpconncontext.cpp
 
 ${OBJECTDIR}/phpdataset.o: phpdataset.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.c) -O2 -DNDEBUG -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/phpdataset.o phpdataset.cpp
+	$(COMPILE.c) -O2 -DNDEBUG -DPHP_ADAPTER_PROJECT -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/phpdataset.o phpdataset.cpp
 
 ${OBJECTDIR}/phpdb.o: phpdb.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.c) -O2 -DNDEBUG -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/phpdb.o phpdb.cpp
+	$(COMPILE.c) -O2 -DNDEBUG -DPHP_ADAPTER_PROJECT -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/phpdb.o phpdb.cpp
 
 ${OBJECTDIR}/phpdbcolumninfo.o: phpdbcolumninfo.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.c) -O2 -DNDEBUG -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/phpdbcolumninfo.o phpdbcolumninfo.cpp
+	$(COMPILE.c) -O2 -DNDEBUG -DPHP_ADAPTER_PROJECT -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/phpdbcolumninfo.o phpdbcolumninfo.cpp
 
 ${OBJECTDIR}/phpdbparaminfo.o: phpdbparaminfo.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.c) -O2 -DNDEBUG -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/phpdbparaminfo.o phpdbparaminfo.cpp
+	$(COMPILE.c) -O2 -DNDEBUG -DPHP_ADAPTER_PROJECT -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/phpdbparaminfo.o phpdbparaminfo.cpp
 
 ${OBJECTDIR}/phpfile.o: phpfile.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.c) -O2 -DNDEBUG -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/phpfile.o phpfile.cpp
+	$(COMPILE.c) -O2 -DNDEBUG -DPHP_ADAPTER_PROJECT -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/phpfile.o phpfile.cpp
 
 ${OBJECTDIR}/phpmanager.o: phpmanager.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.c) -O2 -DNDEBUG -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/phpmanager.o phpmanager.cpp
+	$(COMPILE.c) -O2 -DNDEBUG -DPHP_ADAPTER_PROJECT -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/phpmanager.o phpmanager.cpp
 
 ${OBJECTDIR}/phppush.o: phppush.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.c) -O2 -DNDEBUG -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/phppush.o phppush.cpp
+	$(COMPILE.c) -O2 -DNDEBUG -DPHP_ADAPTER_PROJECT -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/phppush.o phppush.cpp
 
 ${OBJECTDIR}/phpqueue.o: phpqueue.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.c) -O2 -DNDEBUG -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/phpqueue.o phpqueue.cpp
+	$(COMPILE.c) -O2 -DNDEBUG -DPHP_ADAPTER_PROJECT -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/phpqueue.o phpqueue.cpp
 
 ${OBJECTDIR}/phpsocket.o: phpsocket.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.c) -O2 -DNDEBUG -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/phpsocket.o phpsocket.cpp
+	$(COMPILE.c) -O2 -DNDEBUG -DPHP_ADAPTER_PROJECT -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/phpsocket.o phpsocket.cpp
 
 ${OBJECTDIR}/phpsocketpool.o: phpsocketpool.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.c) -O2 -DNDEBUG -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/phpsocketpool.o phpsocketpool.cpp
+	$(COMPILE.c) -O2 -DNDEBUG -DPHP_ADAPTER_PROJECT -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/phpsocketpool.o phpsocketpool.cpp
 
 ${OBJECTDIR}/phptable.o: phptable.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.c) -O2 -DNDEBUG -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/phptable.o phptable.cpp
+	$(COMPILE.c) -O2 -DNDEBUG -DPHP_ADAPTER_PROJECT -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/phptable.o phptable.cpp
 
 ${OBJECTDIR}/poolstartcontext.o: poolstartcontext.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.c) -O2 -DNDEBUG -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/poolstartcontext.o poolstartcontext.cpp
+	$(COMPILE.c) -O2 -DNDEBUG -DPHP_ADAPTER_PROJECT -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/poolstartcontext.o poolstartcontext.cpp
 
 ${OBJECTDIR}/roothandler.o: roothandler.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.c) -O2 -DNDEBUG -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/roothandler.o roothandler.cpp
+	$(COMPILE.c) -O2 -DNDEBUG -DPHP_ADAPTER_PROJECT -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/roothandler.o roothandler.cpp
 
 ${OBJECTDIR}/spa_consts.o: spa_consts.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.c) -O2 -DNDEBUG -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/spa_consts.o spa_consts.cpp
+	$(COMPILE.c) -O2 -DNDEBUG -DPHP_ADAPTER_PROJECT -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/spa_consts.o spa_consts.cpp
 
 ${OBJECTDIR}/spa_cs_consts.o: spa_cs_consts.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.c) -O2 -DNDEBUG -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/spa_cs_consts.o spa_cs_consts.cpp
+	$(COMPILE.c) -O2 -DNDEBUG -DPHP_ADAPTER_PROJECT -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/spa_cs_consts.o spa_cs_consts.cpp
 
 ${OBJECTDIR}/stdafx.o: stdafx.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.c) -O2 -DNDEBUG -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/stdafx.o stdafx.cpp
+	$(COMPILE.c) -O2 -DNDEBUG -DPHP_ADAPTER_PROJECT -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/stdafx.o stdafx.cpp
 
 # Subprojects
 .build-subprojects:

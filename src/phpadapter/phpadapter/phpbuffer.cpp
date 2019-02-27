@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include "PhpBuffer.h"
+#include "phpbuffer.h"
 
 namespace PA
 {

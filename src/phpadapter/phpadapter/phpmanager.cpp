@@ -302,9 +302,9 @@ namespace PA
                     s.SetString(psc.DefaultDb.c_str(), (rapidjson::SizeType)psc.DefaultDb.size(), allocator);
                     obj.AddMember(KEY_DEFAULT_DB, s, allocator);
                     obj.AddMember(KEY_POOL_TYPE, psc.PoolType, allocator);
-                    rapidjson::Value one(rapidjson::kObjectType);
-                    one.AddMember(key, obj, allocator);
-                    vS.PushBack(one, allocator);
+                    rapidjson::Value ot(rapidjson::kObjectType);
+                    ot.AddMember(key, obj, allocator);
+                    vS.PushBack(ot, allocator);
                 }
                 objMain.AddMember(KEY_SLAVES, vS, allocator);
             }
@@ -469,7 +469,7 @@ namespace PA
                         if (!v[key.c_str()].IsObject()) {
                             continue;
                         }
-                        auto cc = v[key.c_str()].GetObjectW();
+                        auto cc = v[key.c_str()].GetObject();
                         CConnectionContext ctx;
                         if (cc.HasMember(KEY_HOST) && cc[KEY_HOST].IsString()) {
                             ctx.Host = cc[KEY_HOST].GetString();
@@ -511,7 +511,7 @@ namespace PA
                         if (!v[key.c_str()].IsObject()) {
                             continue;
                         }
-                        auto ccMain = v[key.c_str()].GetObjectW();
+                        auto ccMain = v[key.c_str()].GetObject();
                         CPoolStartContext psc;
                         if (ccMain.HasMember(KEY_QUEUE_NAME) && ccMain[KEY_QUEUE_NAME].IsString()) {
                             psc.Queue = ccMain[KEY_QUEUE_NAME].GetString();
@@ -558,7 +558,7 @@ namespace PA
                                 if (!one[skey.c_str()].IsObject()) {
                                     continue;
                                 }
-                                auto cc = one[skey.c_str()].GetObjectW();
+                                auto cc = one[skey.c_str()].GetObject();
                                 CPoolStartContext ps;
                                 ps.SvsId = psc.SvsId;
                                 ps.DefaultDb = psc.DefaultDb;

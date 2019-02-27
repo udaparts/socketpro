@@ -93,9 +93,15 @@
       <compileType>
         <cTool>
           <commandLine>-std=c++11 -Wall</commandLine>
+          <preprocessorList>
+            <Elem>PHP_ADAPTER_PROJECT</Elem>
+          </preprocessorList>
         </cTool>
         <ccTool>
           <commandLine>-std=c++11 -Wall</commandLine>
+          <preprocessorList>
+            <Elem>PHP_ADAPTER_PROJECT</Elem>
+          </preprocessorList>
         </ccTool>
         <linkerTool>
           <linkerLibItems>
@@ -232,6 +238,7 @@
           <commandLine>-std=c++11</commandLine>
           <preprocessorList>
             <Elem>NDEBUG</Elem>
+            <Elem>PHP_ADAPTER_PROJECT</Elem>
           </preprocessorList>
         </cTool>
         <ccTool>
@@ -239,6 +246,7 @@
           <commandLine>-std=c++11</commandLine>
           <preprocessorList>
             <Elem>NDEBUG</Elem>
+            <Elem>PHP_ADAPTER_PROJECT</Elem>
           </preprocessorList>
         </ccTool>
         <fortranCompilerTool>

@@ -5,6 +5,7 @@
 #include "phpdb.h"
 #include "phpfile.h"
 #include "phpqueue.h"
+#include <map>
 
 namespace PA {
 
@@ -24,7 +25,7 @@ namespace PA {
         unsigned int RecvTimeout;
         unsigned int ConnTimeout;
         std::string DefaultDb;
-        typedef std::unordered_map<std::string, CPoolStartContext> CMapPool;
+        typedef std::map<std::string, CPoolStartContext> CMapPool;
         CMapPool Slaves;
 
         union {

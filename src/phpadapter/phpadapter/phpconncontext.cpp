@@ -93,7 +93,7 @@ namespace PA
 
     void CPhpConnContext::RegisterInto(Php::Namespace & cs) {
         Php::Class<CPhpConnContext> cc(PHP_CONN_CONTEXT);
-        cc.method(PHP_CONSTRUCT, &CPhpConnContext::__construct,{
+        cc.method<&CPhpConnContext::__construct>(PHP_CONSTRUCT,{
             Php::ByVal("host", Php::Type::String),
             Php::ByVal("port", Php::Type::Numeric),
             Php::ByVal("uid", Php::Type::String),
