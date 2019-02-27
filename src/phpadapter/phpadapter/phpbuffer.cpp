@@ -8,7 +8,6 @@ namespace PA
     }
 
     CPhpBuffer::CPhpBuffer(SPA::CUQueue * buff) : m_pBuffer(buff), m_bRelease(buff ? false : true) {
-
     }
 
     CPhpBuffer::~CPhpBuffer() {
