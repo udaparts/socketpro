@@ -1,6 +1,8 @@
 <?php
 try {
-	$strTest = '春节震撼发布：第三次国民革命军檄文';
+	$manager = GetSPManager();
+	echo $manager->Config.'<br/><br/>';
+	$strTest = '冯崇义教授微信群披露，杨恒均被单独关押';
 	echo 'String input: '.$strTest.'<br/>';
 	echo 'String output: '.SpBuffer()->SaveString($strTest)->LoadString().'<br/>';
 	echo 'String output: '.SpBuffer()->SaveAString($strTest)->LoadAString().'<br/>';
@@ -27,7 +29,7 @@ try {
 	echo 'Double output: '.SpBuffer()->SaveObject($flt)->LoadObject().'<br/>';
 	echo 'Double output: '.SpBuffer()->SaveAString($flt)->LoadAString().'<br/>';
 	echo 'Double output: '.SpBuffer()->SaveString($flt)->LoadString().'<br/>';
-	
+
 	$data = array(
 		'nullStr' => null,
 		'objNull' => null,
