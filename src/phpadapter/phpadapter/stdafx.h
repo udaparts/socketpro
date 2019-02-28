@@ -14,6 +14,7 @@
 #include <windows.h>
 
 #define SPA_PHP_EXPORT __declspec(dllexport)
+
 #else
 #define SPA_PHP_EXPORT __attribute__ ((visibility ("default")))
 #endif
@@ -21,6 +22,33 @@
 #include <mutex>
 #include <condition_variable>
 #include "PHP-CPP/phpcpp.h"
+
+#ifdef WIN32_64
+
+#if defined(_M_AMD64) || defined(_M_X64)
+#ifdef ZTS
+#pragma comment(lib, "PHP-CPP/winphpcpp/x64/php7ts.lib")
+#else
+#pragma comment(lib, "PHP-CPP/winphpcpp/x64/php7.lib")
+#endif
+#if defined(_DEBUG) || defined(DEBUG)
+#pragma comment(lib, "PHP-CPP/winphpcpp/x64/Debug/winphpcpp.lib")
+#else
+#pragma comment(lib, "PHP-CPP/winphpcpp/x64/Release/winphpcpp.lib")
+#endif
+#else
+#ifdef ZTS
+#pragma comment(lib, "PHP-CPP/winphpcpp/php7ts.lib")
+#else
+#pragma comment(lib, "PHP-CPP/winphpcpp/php7.lib")
+#endif
+#if defined(_DEBUG) || defined(DEBUG)
+#pragma comment(lib, "PHP-CPP/winphpcpp/Debug/winphpcpp.lib")
+#else
+#pragma comment(lib, "PHP-CPP/winphpcpp/Release/winphpcpp.lib")
+#endif
+#endif
+#endif
 
 #include "../../../include/aqhandler.h"
 #include "../../../include/streamingfile.h"
