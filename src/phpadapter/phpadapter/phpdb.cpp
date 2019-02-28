@@ -364,7 +364,7 @@ namespace PA
                 ToVariant(vP.get(n), vt);
                 vParam.push_back(std::move(vt));
             }
-        } else if (vP.instanceOf(SPA_CS_NS + PHP_BUFFER)) {
+        } else if (vP.instanceOf(SPA_NS + PHP_BUFFER)) {
             Php::Value bytes = vP.call("PopBytes");
             const char *raw = bytes.rawValue();
             int len = bytes.length();

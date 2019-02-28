@@ -112,9 +112,9 @@ namespace SPA {
     static std::string ToString_long(const DECIMAL &decVal) {
 #ifdef WIN32_64
         VARIANT vtSrc, vtDes;
-        vtSrc.vt = VT_DECIMAL;
-        vtSrc.decVal = decVal;
-        vtDes.vt = VT_EMPTY;
+		vtSrc.decVal = decVal;
+		vtSrc.vt = VT_DECIMAL;
+        vtDes.vt = (VARTYPE) VT_EMPTY;
         ::VariantChangeType(&vtDes, &vtSrc, 0, VT_BSTR);
         unsigned int len = ::SysStringLen(vtDes.bstrVal);
         std::string s(vtDes.bstrVal, vtDes.bstrVal + len);
