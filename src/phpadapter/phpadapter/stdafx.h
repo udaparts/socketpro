@@ -20,7 +20,7 @@
 
 #include <mutex>
 #include <condition_variable>
-#include "../PHP-CPP/phpcpp.h"
+#include "PHP-CPP/phpcpp.h"
 
 #include "../../../include/aqhandler.h"
 #include "../../../include/streamingfile.h"
