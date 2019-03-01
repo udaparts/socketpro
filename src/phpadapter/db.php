@@ -50,17 +50,17 @@ function InsertBLOBByPreparedStatement($db, $cb_ex) {
 		$str .= 'The epic takedown of his opponent on an all-important voting day was extraordinary even by the standards of the 2016 campaign -- and quickly drew a scathing response from Trump.';
 	}
 	$buff = SpBuffer();
-	
+
 	$blob = SpBuffer();
 	$blob->SaveString($wstr);
 	//1st set
     //blob.PopBytes() -- convert all data inside blob memory into an array of bytes
     $buff->SaveObject(1)->SaveObject('Ted Cruz')->SaveObject(new DateTime())->SaveObject($blob->PopBytes())->SaveObject($wstr)->SaveObject('254000.15');
-	
+
 	$blob->SaveAString($str);
     //2nd set
     $buff->SaveObject(1)->SaveObject('Donald Trump')->SaveObject(new DateTime())->SaveObject($blob->PopBytes())->SaveObject($str)->SaveObject(20254000.35);
-	
+
 	$blob->SaveAString($str)->SaveString($wstr);
     //3rd set
     $buff->SaveObject(2)->SaveObject('Hillary Clinton')->SaveObject(new DateTime())->SaveObject($blob->PopBytes())->SaveObject($wstr)->SaveObject(6254000.42);
@@ -128,9 +128,9 @@ try {
 		if(!$db->Prepare($sql, null)) {
 			break;
 		}
-		
+
 		$vParam = array(1, 3);
-		$err = $db->Execute($vParam, true, $cbRow);
+		$err = $db->Execute($vParam, true, $cbRow, $cbMeta);
 		echo 'Data: ';
 		echo var_dump($vData).'<br/><br/>';
 
