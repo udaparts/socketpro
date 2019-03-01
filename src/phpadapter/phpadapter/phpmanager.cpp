@@ -388,7 +388,7 @@ namespace PA
         doc.SetObject();
         SPA::CAutoLock al(Manager.m_cs);
         if (!Manager.m_ConfigPath.size()) {
-            std::string jsFile = Php::SERVER["PHPRC"];
+            std::string jsFile = Php::SERVER["PHPRC"].stringValue();
             Trim(jsFile);
             if (!jsFile.size()) {
                 Manager.m_errMsg = "No PHPRC path available";
@@ -462,14 +462,18 @@ namespace PA
                 if (doc.HasMember(KEY_HOSTS) && doc[KEY_HOSTS].IsArray()) {
                     auto arr = doc[KEY_HOSTS].GetArray();
                     for (auto &v : arr) {
-                        if (!v.IsObject() || !v[0].IsString()) {
+                        if (!v.IsObject()) {
                             continue;
                         }
-                        std::string key = v[0].GetString();
-                        if (!v[key.c_str()].IsObject()) {
+						auto begin = v.MemberBegin();
+						if (begin == v.MemberEnd()) {
+							continue;
+						}
+						std::string key = begin->name.GetString();
+                        if (!begin->value.IsObject()) {
                             continue;
                         }
-                        auto cc = v[key.c_str()].GetObject();
+                        auto cc = begin->value.GetObject();
                         CConnectionContext ctx;
                         if (cc.HasMember(KEY_HOST) && cc[KEY_HOST].IsString()) {
                             ctx.Host = cc[KEY_HOST].GetString();
@@ -503,15 +507,19 @@ namespace PA
                 if (doc.HasMember(KEY_POOLS) && doc[KEY_POOLS].IsArray()) {
                     auto arr = doc[KEY_POOLS].GetArray();
                     for (auto &v : arr) {
-                        if (!v.Size() || !v.IsObject() || !v[0].IsString()) {
+                        if (!v.IsObject()) {
                             continue;
                         }
-                        std::string key = v[0].GetString();
+						auto begin = v.MemberBegin();
+						if (begin == v.MemberEnd()) {
+							continue;
+						}
+						std::string key = begin->name.GetString();
                         Trim(key);
-                        if (!v[key.c_str()].IsObject()) {
-                            continue;
-                        }
-                        auto ccMain = v[key.c_str()].GetObject();
+						if (!begin->value.IsObject()) {
+							continue;
+						}
+                        auto ccMain = begin->value.GetObject();
                         CPoolStartContext psc;
                         if (ccMain.HasMember(KEY_QUEUE_NAME) && ccMain[KEY_QUEUE_NAME].IsString()) {
                             psc.Queue = ccMain[KEY_QUEUE_NAME].GetString();
@@ -550,15 +558,19 @@ namespace PA
                         if (psc.DefaultDb.size() && ccMain.HasMember(KEY_SLAVES) && ccMain[KEY_SLAVES].IsArray()) {
                             auto vSlave = ccMain[KEY_SLAVES].GetArray();
                             for (auto &one : vSlave) {
-                                if (!one.Size() || !one.IsObject() || !one[0].IsString()) {
+                                if (!one.IsObject()) {
                                     continue;
                                 }
-                                std::string skey = one[0].GetString();
+								auto beginOne = one.MemberBegin();
+								if (beginOne == one.MemberEnd()) {
+									continue;
+								}
+								std::string skey = beginOne->name.GetString();
                                 Trim(skey);
-                                if (!one[skey.c_str()].IsObject()) {
-                                    continue;
-                                }
-                                auto cc = one[skey.c_str()].GetObject();
+								if (!beginOne->value.IsObject()) {
+									continue;
+								}
+                                auto cc = beginOne->value.GetObject();
                                 CPoolStartContext ps;
                                 ps.SvsId = psc.SvsId;
                                 ps.DefaultDb = psc.DefaultDb;
