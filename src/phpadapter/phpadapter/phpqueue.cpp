@@ -432,7 +432,7 @@ namespace PA
         Php::Value v;
         Php::Value &q = params[2];
         if (q.instanceOf(SPA_NS + PHP_BUFFER)) {
-            v = q.call("PopBytes");
+            v = q.call(PHP_POPBYTES);
             pBuffer = (const unsigned char*) v.rawValue();
             bytes = (unsigned int) v.length();
         } else if (!q.isNull()) {
@@ -469,7 +469,7 @@ namespace PA
         Php::Value v;
         Php::Value &q = params[1];
         if (q.instanceOf(SPA_NS + PHP_BUFFER)) {
-            v = q.call("PopBytes");
+            v = q.call(PHP_POPBYTES);
             pBuffer = (const unsigned char*) v.rawValue();
             bytes = (unsigned int) v.length();
         } else if (!q.isNull()) {

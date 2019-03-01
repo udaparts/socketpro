@@ -53,6 +53,7 @@ namespace PA
     const char *PHP_COMMITBATCHING = "CommitBatching";
     const char *PHP_UNLOCK = "Unlock";
     const char *PHP_CLEAN_CALLBACKS = "CleanCallbacks";
+    const char *PHP_POPBYTES = "PopBytes";
 
     //SendRequest
     const char *PHP_SENDREQUEST = "SendRequest";

@@ -365,7 +365,7 @@ namespace PA
                 vParam.push_back(std::move(vt));
             }
         } else if (vP.instanceOf(SPA_NS + PHP_BUFFER)) {
-            Php::Value bytes = vP.call("PopBytes");
+            Php::Value bytes = vP.call(PHP_POPBYTES);
             const char *raw = bytes.rawValue();
             int len = bytes.length();
             SPA::CScopeUQueue sb;

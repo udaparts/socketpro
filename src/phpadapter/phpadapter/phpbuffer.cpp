@@ -1008,7 +1008,7 @@ namespace PA
             Php::ByVal(PHP_LEN, Php::Type::Numeric, false),
             Php::ByVal("offset", Php::Type::Numeric, false)
         });
-        buffer.method<&CPhpBuffer::PopBytes>("PopBytes",{
+        buffer.method<&CPhpBuffer::PopBytes>(PHP_POPBYTES,{
             Php::ByVal(PHP_LEN, Php::Type::Numeric, false)
         });
         buffer.method<&CPhpBuffer::SaveUUID>("SaveUUID",{

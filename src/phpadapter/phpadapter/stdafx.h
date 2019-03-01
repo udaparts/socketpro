@@ -124,6 +124,7 @@ namespace PA {
     extern const char *PHP_COMMITBATCHING;
     extern const char *PHP_UNLOCK;
     extern const char *PHP_CLEAN_CALLBACKS;
+    extern const char *PHP_POPBYTES;
 
     //SendRequest
     extern const char *PHP_SENDREQUEST;
