@@ -108,7 +108,7 @@ namespace PA
         return Dl;
     }
 
-    void CPhpFile::MapFilePaths(Php::Value phpLocal, Php::Value phpRemote, std::wstring &local, std::wstring & remote) {
+    void CPhpFile::MapFilePaths(const Php::Value& phpLocal, const Php::Value& phpRemote, std::wstring &local, std::wstring & remote) {
         std::string l = phpLocal.stringValue();
         Trim(l);
         if (!l.size()) {
@@ -127,7 +127,7 @@ namespace PA
         unsigned int timeout;
         std::wstring local, remote;
         MapFilePaths(params[0], params[1], local, remote);
-        Php::Value phpDl = params[2];
+        const Php::Value &phpDl = params[2];
         CQPointer pV;
         auto Dl = SetResCallback(SPA::SFile::idDownload, phpDl, pV, timeout);
         size_t args = params.size();
@@ -138,7 +138,7 @@ namespace PA
         auto discarded = SetAbortCallback(phpCanceled, SPA::SFile::idDownload, pV ? true : false);
         unsigned int flags = SPA::SFile::FILE_OPEN_TRUNCACTED;
         if (args > 4) {
-            Php::Value vF = params[4];
+            const Php::Value& vF = params[4];
             if (vF.isNumeric()) {
                 flags = (unsigned int) vF.numericValue();
             } else {
@@ -161,7 +161,7 @@ namespace PA
         std::wstring local, remote;
         MapFilePaths(params[0], params[1], local, remote);
 
-        Php::Value phpUl = params[2];
+        const Php::Value &phpUl = params[2];
         CQPointer pV;
         auto Ul = SetResCallback(SPA::SFile::idUpload, phpUl, pV, timeout);
         size_t args = params.size();
@@ -172,7 +172,7 @@ namespace PA
         auto discarded = SetAbortCallback(phpCanceled, SPA::SFile::idUpload, pV ? true : false);
         unsigned int flags = SPA::SFile::FILE_OPEN_TRUNCACTED;
         if (args > 4) {
-            Php::Value vF = params[4];
+            const Php::Value& vF = params[4];
             if (vF.isNumeric()) {
                 flags = (unsigned int) vF.numericValue();
             } else {

@@ -17,7 +17,7 @@ namespace PA
 
     void CPhpDataSet::AddEmptyRowset(Php::Parameters & params) {
         SPA::UDB::CDBColumnInfoArray vCol;
-        Php::Value &meta = params[0];
+        const Php::Value &meta = params[0];
         int count = meta.length();
         for (int n = 0; n < count; ++n) {
             Php::Value col = meta.get(n);
@@ -66,7 +66,7 @@ namespace PA
         std::wstring dbName = SPA::Utilities::ToWide(params[0].stringValue());
         std::wstring tableName = SPA::Utilities::ToWide(params[1].stringValue());
         SPA::UDB::CDBVariantArray vData;
-        Php::Value &arr = params[2];
+        const Php::Value &arr = params[2];
         int count = arr.length();
         for (int n = 0; n < count; ++n) {
             SPA::UDB::CDBVariant vt;

@@ -94,7 +94,7 @@ namespace PA
         unsigned short reqId = (unsigned short) id;
         unsigned int timeout = (~0);
         bool sync = false;
-        Php::Value phpRh = params[2];
+        const Php::Value &phpRh = params[2];
         if (phpRh.isNumeric()) {
             sync = true;
             timeout = (unsigned int) phpRh.numericValue();
@@ -110,7 +110,7 @@ namespace PA
         }
         CPVPointer callback;
         if (phpRh.isCallable()) {
-            callback.reset(new Php::Value(phpRh));
+			callback.reset(new Php::Value(phpRh));
         }
         SPA::ClientSide::ResultHandler rh = [buffer, callback, this](SPA::ClientSide::CAsyncResult & ar) {
             SPA::ClientSide::PAsyncServiceHandler ash = ar.AsyncServiceHandler;
@@ -171,7 +171,7 @@ namespace PA
         unsigned int bytes = 0;
         const unsigned char *pBuffer = nullptr;
         Php::Value v;
-        Php::Value &q = params[1];
+        const Php::Value &q = params[1];
         if (q.instanceOf(SPA_NS + PHP_BUFFER)) {
             v = q.call(PHP_POPBYTES);
             pBuffer = (const unsigned char*) v.rawValue();

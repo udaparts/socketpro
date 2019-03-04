@@ -672,13 +672,13 @@ namespace PA
         if (!(params[0].isArray() || params[0].isObject())) {
             throw Php::Exception("An array of data or an object for a complex structure required");
         }
-        Php::Value callback = params[1];
+        const Php::Value& callback = params[1];
         callback(params[0], this);
         return this;
     }
 
     Php::Value CPhpBuffer::Load(Php::Parameters & params) {
-        Php::Value callback = params[0];
+        const Php::Value& callback = params[0];
         return callback(this);
     }
 

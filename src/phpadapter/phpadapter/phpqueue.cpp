@@ -90,7 +90,7 @@ namespace PA
         std::string key = GetKey(params[0]);
         unsigned int timeout = (~0);
         bool sync = false;
-        Php::Value phpF = params[1];
+        const Php::Value& phpF = params[1];
         if (phpF.isNumeric()) {
             timeout = (unsigned int) phpF.numericValue();
             sync = true;
@@ -168,7 +168,7 @@ namespace PA
         std::string key = GetKey(params[0]);
         unsigned int timeout = (~0);
         bool sync = false;
-        Php::Value phpF = params[1];
+        const Php::Value& phpF = params[1];
         if (phpF.isNumeric()) {
             timeout = (unsigned int) phpF.numericValue();
             sync = true;
@@ -318,7 +318,7 @@ namespace PA
     Php::Value CPhpQueue::GetKeys(Php::Parameters & params) {
         unsigned int timeout = (~0);
         bool sync = false;
-        Php::Value phpGK = params[0];
+        const Php::Value& phpGK = params[0];
         if (phpGK.isNumeric()) {
             timeout = (unsigned int) phpGK.numericValue();
             sync = true;
@@ -430,7 +430,7 @@ namespace PA
         unsigned int bytes = 0;
         const unsigned char *pBuffer = nullptr;
         Php::Value v;
-        Php::Value &q = params[2];
+        const Php::Value &q = params[2];
         if (q.instanceOf(SPA_NS + PHP_BUFFER)) {
             v = q.call(PHP_POPBYTES);
             pBuffer = (const unsigned char*) v.rawValue();
@@ -467,7 +467,7 @@ namespace PA
         unsigned int bytes = 0;
         const unsigned char *pBuffer = nullptr;
         Php::Value v;
-        Php::Value &q = params[1];
+        const Php::Value &q = params[1];
         if (q.instanceOf(SPA_NS + PHP_BUFFER)) {
             v = q.call(PHP_POPBYTES);
             pBuffer = (const unsigned char*) v.rawValue();
