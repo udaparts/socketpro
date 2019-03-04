@@ -1,5 +1,4 @@
 <?php
-
 $idReservedTwo = SPA\BaseID::idReservedTwo; //Your request id must larger than 0x2001
 
 //Request ids must be the same ones at server side, which could be implemented with one of C/C++, C#/VB.NET, Java and Python languages
@@ -7,56 +6,54 @@ $idSayHello = $idReservedTwo + 1;
 $idSleep = $idReservedTwo + 2;
 $idEcho = $idReservedTwo + 3;
 
+$rh = function($q, $reqId) {
+	global $idSayHello, $idEcho;
+	if ($reqId == $idSayHello) {
+		echo $q->LoadString();
+	}
+	else if ($reqId == $idEcho) {
+		//de-serialize when result comes from a remote server
+		$d = array(
+			'nullStr' => $q->LoadString(),
+			'objNull' => $q->LoadObject(),
+			'aDate' => $q->LoadDate(),
+			'aDouble' => $q->LoadDouble(),
+			'aBool' => $q->LoadBool(),
+			'unicodeStr' => $q->LoadString(),
+			'asciiStr' => $q->LoadAString(),
+			'objBool' => $q->LoadObject(),
+			'objString' => $q->LoadObject(),
+			'objArrString' => $q->LoadObject(),
+			'objArrInt' => $q->LoadObject()
+		);
+		echo 'Structure output: ';
+		echo var_dump($d);
+	}
+	echo '<br/>';
+};
+
+$cbCanceled = function($canceled, $reqId) {
+	echo canceled ? 'Request canceld<br/>' : 'Session closed<br/>';
+};
+
+$cbServerEx = function($em, $reqId) {
+	echo 'Error code: '.$em['ec'].', error message: '.$em['em'].'<br/>';
+};
+
 try {
-	$rh = function($q, $reqId) {
-		global $idSayHello, $idEcho;
-		if ($reqId == $idSayHello) {
-			echo $q->LoadString();
-		}
-		else if ($reqId == $idEcho) {
-			//de-serialize when result comes from a remote server
-			$d = array(
-				'nullStr' => $q->LoadString(),
-				'objNull' => $q->LoadObject(),
-				'aDate' => $q->LoadDate(),
-				'aDouble' => $q->LoadDouble(),
-				'aBool' => $q->LoadBool(),
-				'unicodeStr' => $q->LoadString(),
-				'asciiStr' => $q->LoadAString(),
-				'objBool' => $q->LoadObject(),
-				'objString' => $q->LoadObject(),
-				'objArrString' => $q->LoadObject(),
-				'objArrInt' => $q->LoadObject()
-			);
-			echo 'Structure output: ';
-			echo var_dump($d);
-		}
-		echo '<br/>';
-	};
-
-	$cbCanceled = function($canceled, $reqId) {
-		echo canceled ? 'Request canceld<br/>' : 'Session closed<br/>';
-	};
-
-	$cbServerEx = function($em, $reqId) {
-		echo 'Error code: '.$em['ec'].', error message: '.$em['em'].'<br/>';
-	};
-
 	do {
 		$hw = GetSpHandler('my_hello_world');
-		
+
 		//streaming all requests for the best network efficiency
 		//async request
 		if(!$hw->SendRequest($idSayHello, SpBuffer()->SaveString('Hillary')->SaveString('Clinton'), $rh)) {
 			echo 'Session closed<br/>';
 			break;
 		}
-		
 		if (!$hw->SendRequest($idSayHello, SpBuffer()->SaveString('Jack')->SaveString('Smith'), $rh, $cbCanceled, $cbServerEx)) {
 			echo 'Session closed<br/>';
 			break;
 		}
-		
 		$d = array(
 			'nullStr' => null,
 			'objNull' => null,
@@ -89,7 +86,6 @@ try {
 			echo 'Session closed<br/>';
 			break;
 		}
-		
 		//All requests will be processed and returned in order within one session or socket for the best network efficency
 		//sync request
 		$buff = $hw->SendRequest($idSleep, SpBuffer()->SaveUInt(100), true); //last call should be always sync within PHP environment
