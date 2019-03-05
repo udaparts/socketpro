@@ -381,8 +381,10 @@ namespace PA
         try{
             DECIMAL dec;
             *m_pBuffer >> dec;
-            std::string s = SPA::ToString_long(dec);
-            return s.c_str();
+			if (dec.Hi32) {
+				return SPA::ToString_long(dec);
+			}
+			return SPA::ToString(dec);
         }
         BufferLoadCatch
     }
@@ -895,8 +897,13 @@ namespace PA
                                     std::vector<Php::Value> arr;
                                     DECIMAL *p = (DECIMAL *) m_pBuffer->GetBuffer();
                                     for (unsigned int n = 0; n < count; ++n) {
-                                        std::string s = SPA::ToString_long(p[n]);
-                                        arr.push_back(s);
+										DECIMAL &dec = p[n];
+										if (dec.Hi32) {
+											arr.push_back(SPA::ToString_long(dec));
+										}
+										else {
+											arr.push_back(SPA::ToString(dec));
+										}
                                     }
                                     m_pBuffer->Pop(count * sizeof (DECIMAL));
                                     return arr;
