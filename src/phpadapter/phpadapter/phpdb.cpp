@@ -80,33 +80,25 @@ namespace PA
         handler.property("ueDelete", SPA::UDB::ueDelete, Php::Const);
 
         handler.method<&CPhpDb::Open>("Open",{
-            Php::ByVal("conn", Php::Type::String),
-            Php::ByVal(PHP_SENDREQUEST_SYNC, Php::Type::Null)
+            Php::ByVal("conn", Php::Type::String)
         });
-        handler.method<&CPhpDb::Close>("Close",{
-            Php::ByVal(PHP_SENDREQUEST_SYNC, Php::Type::Null)
-        });
+        handler.method<&CPhpDb::Close>("Close");
         handler.method<&CPhpDb::Prepare>("Prepare",{
-            Php::ByVal("sql", Php::Type::String),
-            Php::ByVal(PHP_SENDREQUEST_SYNC, Php::Type::Null)
+            Php::ByVal("sql", Php::Type::String)
         });
         handler.method<&CPhpDb::Execute>("Execute",{
-            Php::ByVal("sql", Php::Type::Null), //string or array of parameter data
-            Php::ByVal(PHP_SENDREQUEST_SYNC, Php::Type::Null)
+            Php::ByVal("sql", Php::Type::Null) //string or array of parameter data
         });
         handler.method<&CPhpDb::BeginTrans>("BeginTrans",{
-            Php::ByVal("isolation", Php::Type::Numeric),
-            Php::ByVal(PHP_SENDREQUEST_SYNC, Php::Type::Null)
+            Php::ByVal("isolation", Php::Type::Numeric, false)
         });
         handler.method<&CPhpDb::EndTrans>("EndTrans",{
-            Php::ByVal("plan", Php::Type::Numeric),
-            Php::ByVal(PHP_SENDREQUEST_SYNC, Php::Type::Null)
+            Php::ByVal("plan", Php::Type::Numeric, false)
         });
         handler.method<&CPhpDb::ExecuteBatch>("ExecuteBatch",{
             Php::ByVal("isolation", Php::Type::Numeric),
             Php::ByVal("sql", Php::Type::String),
-            Php::ByVal("vParam", Php::Type::Null),
-            Php::ByVal(PHP_SENDREQUEST_SYNC, Php::Type::Null)
+            Php::ByVal("vParam", Php::Type::Null)
         });
         cs.add(handler);
     }
@@ -162,8 +154,11 @@ namespace PA
         Trim(aconn);
         std::wstring conn = SPA::Utilities::ToWide(aconn);
         CQPointer pV;
-        auto Dr = SetResCallback(params[1], pV, timeout);
-        size_t args = params.size();
+		size_t args = params.size();
+		CDBHandler::DResult Dr;
+		if (args > 1) {
+			Dr = SetResCallback(params[1], pV, timeout);
+		}
         Php::Value phpCanceled;
         if (args > 2) {
             phpCanceled = params[2];
@@ -328,8 +323,11 @@ namespace PA
             GetParams(params[0], vParam);
         }
         CQPointer pV;
-        CDBHandler::DExecuteResult Dr = SetExeResCallback(params[1], pV, timeout);
-        size_t args = params.size();
+		CDBHandler::DExecuteResult Dr;
+		size_t args = params.size();
+		if (args > 1) {
+			Dr = SetExeResCallback(params[1], pV, timeout);
+		}
         Php::Value phpRow;
         if (args > 2) {
             phpRow = params[2];
@@ -402,8 +400,11 @@ namespace PA
         SPA::UDB::CDBVariantArray vParam;
         GetParams(params[2], vParam);
         CQPointer pV;
-        CDBHandler::DExecuteResult Dr = SetExeResCallback(params[3], pV, timeout);
+		CDBHandler::DExecuteResult Dr;
         size_t args = params.size();
+		if (args > 3) {
+			Dr = SetExeResCallback(params[3], pV, timeout);
+		}
         Php::Value phpRow;
         if (args > 4) {
             phpRow = params[4];
@@ -500,8 +501,11 @@ namespace PA
         }
         std::wstring sql = SPA::Utilities::ToWide(asql);
         CQPointer pV;
-        CDBHandler::DResult Dr = SetResCallback(params[1], pV, timeout);
+        CDBHandler::DResult Dr;
         size_t args = params.size();
+		if (args > 1) {
+			Dr = SetResCallback(params[1], pV, timeout);
+		}
         Php::Value phpCanceled;
         if (args > 2) {
             phpCanceled = params[2];
@@ -574,8 +578,11 @@ namespace PA
     Php::Value CPhpDb::Close(Php::Parameters & params) {
         unsigned int timeout;
         CQPointer pV;
-        CDBHandler::DResult Dr = SetResCallback(params[0], pV, timeout);
-        size_t args = params.size();
+		CDBHandler::DResult Dr;
+		size_t args = params.size();
+		if (args > 0) {
+			Dr = SetResCallback(params[0], pV, timeout);
+		}
         Php::Value phpCanceled;
         if (args > 1) {
             phpCanceled = params[1];
@@ -594,15 +601,22 @@ namespace PA
 
     Php::Value CPhpDb::BeginTrans(Php::Parameters & params) {
         unsigned int timeout;
-        int64_t iso = params[0].numericValue();
-        if (iso < SPA::UDB::tiUnspecified || iso > SPA::UDB::tiIsolated) {
-            throw Php::Exception("Bad transaction isolation value");
-        }
-        SPA::UDB::tagTransactionIsolation ti = (SPA::UDB::tagTransactionIsolation)iso;
+		SPA::UDB::tagTransactionIsolation ti = SPA::UDB::tiReadCommited;
+		size_t args = params.size();
+		if (args > 0) {
+			int64_t iso = params[0].numericValue();
+			if (iso < SPA::UDB::tiUnspecified || iso > SPA::UDB::tiIsolated) {
+				throw Php::Exception("Bad transaction isolation value");
+			}
+			ti = (SPA::UDB::tagTransactionIsolation)iso;
+		}
         CQPointer pV;
-        CDBHandler::DResult Dr = SetResCallback(params[1], pV, timeout);
+		CDBHandler::DResult Dr;
+		if (args > 1) {
+			Dr = SetResCallback(params[1], pV, timeout);
+		}
         Php::Value phpCanceled;
-        if (params.size() > 2) {
+        if (args > 2) {
             phpCanceled = params[2];
         }
         SPA::ClientSide::CAsyncServiceHandler::DDiscarded discarded = SetAbortCallback(phpCanceled, SPA::UDB::idBeginTrans, pV ? true : false);
@@ -619,15 +633,22 @@ namespace PA
 
     Php::Value CPhpDb::EndTrans(Php::Parameters & params) {
         unsigned int timeout;
-        int64_t plan = params[0].numericValue();
-        if (plan < SPA::UDB::rpDefault || plan > SPA::UDB::rpRollbackAlways) {
-            throw Php::Exception("Bad rollback plan value");
-        }
-        SPA::UDB::tagRollbackPlan p = (SPA::UDB::tagRollbackPlan)plan;
+		SPA::UDB::tagRollbackPlan p = SPA::UDB::rpDefault;
+		size_t args = params.size();
+		if (args > 0) {
+			int64_t plan = params[0].numericValue();
+			if (plan < SPA::UDB::rpDefault || plan > SPA::UDB::rpRollbackAlways) {
+				throw Php::Exception("Bad rollback plan value");
+			}
+			p = (SPA::UDB::tagRollbackPlan)plan;
+		}
         CQPointer pV;
-        CDBHandler::DResult Dr = SetResCallback(params[1], pV, timeout);
+		CDBHandler::DResult Dr;
+		if (args > 1) {
+			Dr = SetResCallback(params[1], pV, timeout);
+		}
         Php::Value phpCanceled;
-        if (params.size() > 2) {
+        if (args > 2) {
             phpCanceled = params[2];
         }
         SPA::ClientSide::CAsyncServiceHandler::DDiscarded discarded = SetAbortCallback(phpCanceled, SPA::UDB::idEndTrans, pV ? true : false);

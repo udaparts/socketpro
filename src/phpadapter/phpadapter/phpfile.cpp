@@ -26,13 +26,11 @@ namespace PA
 
         handler.method<&CPhpFile::Download>("Download",{
             Php::ByVal("local", Php::Type::String),
-            Php::ByVal("remote", Php::Type::String),
-            Php::ByVal("res", Php::Type::Null)
+            Php::ByVal("remote", Php::Type::String)
         });
         handler.method<&CPhpFile::Upload>("Upload",{
             Php::ByVal("local", Php::Type::String),
-            Php::ByVal("remote", Php::Type::String),
-            Php::ByVal("res", Php::Type::Null)
+            Php::ByVal("remote", Php::Type::String)
         });
         cs.add(handler);
     }
@@ -127,10 +125,12 @@ namespace PA
         unsigned int timeout;
         std::wstring local, remote;
         MapFilePaths(params[0], params[1], local, remote);
-        const Php::Value &phpDl = params[2];
-        CQPointer pV;
-        auto Dl = SetResCallback(SPA::SFile::idDownload, phpDl, pV, timeout);
-        size_t args = params.size();
+		size_t args = params.size();
+		CQPointer pV;
+		CAsyncFile::DDownload Dl;
+		if (args > 2) {
+			Dl = SetResCallback(SPA::SFile::idDownload, params[2], pV, timeout);
+		}
         Php::Value phpCanceled;
         if (args > 3) {
             phpCanceled = params[3];
@@ -160,11 +160,12 @@ namespace PA
         unsigned int timeout;
         std::wstring local, remote;
         MapFilePaths(params[0], params[1], local, remote);
-
-        const Php::Value &phpUl = params[2];
-        CQPointer pV;
-        auto Ul = SetResCallback(SPA::SFile::idUpload, phpUl, pV, timeout);
-        size_t args = params.size();
+		size_t args = params.size();
+		CQPointer pV;
+		CAsyncFile::DUpload Ul;
+		if (args > 2) {
+			Ul = SetResCallback(SPA::SFile::idUpload, params[2], pV, timeout);
+		}
         Php::Value phpCanceled;
         if (args > 3) {
             phpCanceled = params[3];

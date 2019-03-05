@@ -27,8 +27,11 @@ namespace PA
         unsigned int timeout;
         std::string key = GetKey(params[0]);
         std::shared_ptr<int> pErrCode;
-        auto c = SetQueueTransCallback(SPA::Queue::idClose, params[1], pErrCode, timeout);
+		CAsyncQueue::DQueueTrans qt;
         size_t args = params.size();
+		if (args > 1) {
+			qt = SetQueueTransCallback(SPA::Queue::idClose, params[1], pErrCode, timeout);
+		}
         Php::Value phpCanceled;
         if (args > 2) {
             phpCanceled = params[2];
@@ -41,23 +44,26 @@ namespace PA
         {
             std::unique_lock<std::mutex> lk(m_mPhp);
             if (pErrCode) {
-                ReqSyncEnd(m_aq->CloseQueue(key.c_str(), c, permanent, discarded), lk, timeout);
+                ReqSyncEnd(m_aq->CloseQueue(key.c_str(), qt, permanent, discarded), lk, timeout);
                 return *pErrCode;
             }
             PopCallbacks();
         }
-        return m_aq->CloseQueue(key.c_str(), c, permanent, discarded);
+        return m_aq->CloseQueue(key.c_str(), qt, permanent, discarded);
     }
 
     Php::Value CPhpQueue::EnqueueBatch(Php::Parameters & params) {
-        if (!m_pBuff->GetBuffer()->GetSize()) {
+		unsigned int timeout;
+		if (!m_pBuff->GetBuffer()->GetSize()) {
             throw Php::Exception("No message batched yet");
         }
         std::string key = GetKey(params[0]);
-        unsigned int timeout;
         std::shared_ptr<SPA::INT64> pIndex;
-        auto c = SetEnqueueResCallback(SPA::Queue::idEnqueueBatch, params[1], pIndex, timeout);
+		CAsyncQueue::DEnqueue c;
         size_t args = params.size();
+		if (args > 1) {
+			c = SetEnqueueResCallback(SPA::Queue::idEnqueueBatch, params[1], pIndex, timeout);
+		}
         Php::Value phpCanceled;
         if (args > 2) {
             phpCanceled = params[2];
@@ -168,25 +174,31 @@ namespace PA
         std::string key = GetKey(params[0]);
         unsigned int timeout = (~0);
         bool sync = false;
-        const Php::Value& phpF = params[1];
-        if (phpF.isNumeric()) {
-            timeout = (unsigned int) phpF.numericValue();
-            sync = true;
-        } else if (phpF.isBool()) {
-            sync = phpF.boolValue();
-        } else if (phpF.isNull()) {
-        } else if (!phpF.isCallable()) {
-            throw Php::Exception("A callback required for Flush final result");
-        }
+		CPVPointer callback;
+		size_t args = params.size();
+		if (args > 1) {
+			const Php::Value& phpF = params[1];
+			if (phpF.isNumeric()) {
+				timeout = (unsigned int)phpF.numericValue();
+				sync = true;
+			}
+			else if (phpF.isBool()) {
+				sync = phpF.boolValue();
+			}
+			else if (phpF.isNull()) {
+			}
+			else if (!phpF.isCallable()) {
+				throw Php::Exception("A callback required for Flush final result");
+			}
+			if (phpF.isCallable()) {
+				callback.reset(new Php::Value(phpF));
+			}
+		}
         CQPointer pF;
         if (sync) {
             pF.reset(SPA::CScopeUQueue::Lock(), [](SPA::CUQueue * q) {
                 SPA::CScopeUQueue::Unlock(q);
             });
-        }
-        CPVPointer callback;
-        if (phpF.isCallable()) {
-            callback.reset(new Php::Value(phpF));
         }
         CAsyncQueue::DFlush f = [callback, pF, this](CAsyncQueue *aq, SPA::UINT64 messages, SPA::UINT64 fileSize) {
             if (pF) {
@@ -204,7 +216,6 @@ namespace PA
                 this->m_vCallback.push_back(cb);
             }
         };
-        size_t args = params.size();
         Php::Value phpCanceled;
         if (args > 2) {
             phpCanceled = params[2];
@@ -237,9 +248,13 @@ namespace PA
         unsigned int timeout;
         std::string key = GetKey(params[0]);
         std::shared_ptr<int> pErrCode;
-        auto qt = SetQueueTransCallback(SPA::Queue::idStartTrans, params[1], pErrCode, timeout);
-        Php::Value phpCanceled;
-        if (params.size() > 2) {
+		CAsyncQueue::DQueueTrans qt;
+		size_t args = params.size();
+		if (args > 1) {
+			qt = SetQueueTransCallback(SPA::Queue::idStartTrans, params[1], pErrCode, timeout);
+		}
+		Php::Value phpCanceled;
+        if (args > 2) {
             phpCanceled = params[2];
         }
         auto discarded = SetAbortCallback(phpCanceled, SPA::Queue::idStartTrans, pErrCode ? true : false);
@@ -298,9 +313,13 @@ namespace PA
         unsigned int timeout;
         bool rollback = params[0].boolValue();
         std::shared_ptr<int> pErrCode;
-        auto qt = SetQueueTransCallback(SPA::Queue::idEndTrans, params[1], pErrCode, timeout);
-        Php::Value phpCanceled;
-        if (params.size() > 2) {
+		CAsyncQueue::DQueueTrans qt;
+		size_t args = params.size();
+		if (args > 1) {
+			qt = SetQueueTransCallback(SPA::Queue::idEndTrans, params[1], pErrCode, timeout);
+		}
+		Php::Value phpCanceled;
+        if (args > 2) {
             phpCanceled = params[2];
         }
         auto discarded = SetAbortCallback(phpCanceled, SPA::Queue::idEndTrans, pErrCode ? true : false);
@@ -440,8 +459,11 @@ namespace PA
         }
         unsigned int timeout;
         std::shared_ptr<SPA::INT64> pF;
-        auto f = SetEnqueueResCallback(SPA::Queue::idEnqueue, params[3], pF, timeout);
+		CAsyncQueue::DEnqueue f;
         size_t args = params.size();
+		if (args > 3) {
+			f = SetEnqueueResCallback(SPA::Queue::idEnqueue, params[3], pF, timeout);
+		}
         Php::Value phpCanceled;
         if (args > 4) {
             phpCanceled = params[4];
@@ -505,27 +527,22 @@ namespace PA
         handler.method<&CPhpQueue::Enqueue>("Enqueue",{
             Php::ByVal(PHP_QUEUE_KEY, Php::Type::String),
             Php::ByVal("idMessage", Php::Type::Numeric),
-            Php::ByVal(PHP_SENDREQUEST_BUFF, Php::Type::Null),
-            Php::ByVal(PHP_SENDREQUEST_SYNC, Php::Type::Null)
+            Php::ByVal(PHP_SENDREQUEST_BUFF, Php::Type::Null)
         });
         handler.method<&CPhpQueue::CloseQueue>("Close",{
-            Php::ByVal(PHP_QUEUE_KEY, Php::Type::String),
-            Php::ByVal(PHP_SENDREQUEST_SYNC, Php::Type::Null)
+            Php::ByVal(PHP_QUEUE_KEY, Php::Type::String)
         });
         handler.method<&CPhpQueue::GetKeys>("GetKeys",{
             Php::ByVal(PHP_SENDREQUEST_SYNC, Php::Type::Null)
         });
         handler.method<&CPhpQueue::StartQueueTrans>("StartTrans",{
-            Php::ByVal(PHP_QUEUE_KEY, Php::Type::String),
-            Php::ByVal(PHP_SENDREQUEST_SYNC, Php::Type::Null)
+            Php::ByVal(PHP_QUEUE_KEY, Php::Type::String)
         });
         handler.method<&CPhpQueue::EndQueueTrans>("EndTrans",{
-            Php::ByVal("rollback", Php::Type::Bool),
-            Php::ByVal(PHP_SENDREQUEST_SYNC, Php::Type::Null)
+            Php::ByVal("rollback", Php::Type::Bool)
         });
         handler.method<&CPhpQueue::FlushQueue>("Flush",{
-            Php::ByVal(PHP_QUEUE_KEY, Php::Type::String),
-            Php::ByVal(PHP_SENDREQUEST_SYNC, Php::Type::Null)
+            Php::ByVal(PHP_QUEUE_KEY, Php::Type::String)
         });
         handler.method<&CPhpQueue::Dequeue>("Dequeue",{
             Php::ByVal(PHP_QUEUE_KEY, Php::Type::String),
@@ -540,12 +557,10 @@ namespace PA
             Php::ByVal(PHP_SENDREQUEST_BUFF, Php::Type::Null)
         });
         handler.method<&CPhpQueue::EnqueueBatch>("EnqueueBatch",{
-            Php::ByVal(PHP_QUEUE_KEY, Php::Type::String),
-            Php::ByVal(PHP_SENDREQUEST_SYNC, Php::Type::Null)
+            Php::ByVal(PHP_QUEUE_KEY, Php::Type::String)
         });
         handler.method<&CPhpQueue::EnqueueBatch>("BatchEnqueue",{
-            Php::ByVal(PHP_QUEUE_KEY, Php::Type::String),
-            Php::ByVal(PHP_SENDREQUEST_SYNC, Php::Type::Null)
+            Php::ByVal(PHP_QUEUE_KEY, Php::Type::String)
         });
         cs.add(handler);
     }

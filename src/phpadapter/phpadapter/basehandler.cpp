@@ -94,46 +94,54 @@ namespace PA
         unsigned short reqId = (unsigned short) id;
         unsigned int timeout = (~0);
         bool sync = false;
-        const Php::Value &phpRh = params[2];
-        if (phpRh.isNumeric()) {
-            sync = true;
-            timeout = (unsigned int) phpRh.numericValue();
-        } else if (phpRh.isBool()) {
-            sync = phpRh.boolValue();
-        } else if (phpRh.isNull()) {
-        } else if (!phpRh.isCallable()) {
-            throw Php::Exception("A callback required for returning result");
-        }
-        std::shared_ptr<CPhpBuffer> buffer;
-        if (sync) {
-            buffer.reset(new CPhpBuffer);
-        }
-        CPVPointer callback;
-        if (phpRh.isCallable()) {
-            callback.reset(new Php::Value(phpRh));
-        }
-        SPA::ClientSide::ResultHandler rh = [buffer, callback, this](SPA::ClientSide::CAsyncResult & ar) {
-            SPA::ClientSide::PAsyncServiceHandler ash = ar.AsyncServiceHandler;
-            if (buffer) {
-                buffer->Swap(&ar.UQueue);
-                std::unique_lock<std::mutex> lk(this->m_mPhp);
-                this->m_cvPhp.notify_all();
-            } else if (callback) {
-                SPA::CScopeUQueue sb;
-                sb << ar.RequestId;
-                sb->Push(ar.UQueue.GetBuffer(), ar.UQueue.GetSize());
-                ar.UQueue.SetSize(0);
-                PACallback cb;
-                cb.CallbackType = ctSendRequest;
-                cb.Res = sb.Detach();
-                cb.CallBack = callback;
-                std::unique_lock<std::mutex> lk(this->m_mPhp);
-                this->m_vCallback.push_back(cb);
-            } else {
-                ar.UQueue.SetSize(0);
-            }
-        };
-        size_t args = params.size();
+		size_t args = params.size();
+		SPA::ClientSide::ResultHandler rh;
+		std::shared_ptr<CPhpBuffer> buffer;
+		if (args > 2) {
+			const Php::Value &phpRh = params[2];
+			if (phpRh.isNumeric()) {
+				sync = true;
+				timeout = (unsigned int)phpRh.numericValue();
+			}
+			else if (phpRh.isBool()) {
+				sync = phpRh.boolValue();
+			}
+			else if (phpRh.isNull()) {
+			}
+			else if (!phpRh.isCallable()) {
+				throw Php::Exception("A callback required for returning result");
+			}
+			if (sync) {
+				buffer.reset(new CPhpBuffer);
+			}
+			CPVPointer callback;
+			if (phpRh.isCallable()) {
+				callback.reset(new Php::Value(phpRh));
+			}
+			rh = [buffer, callback, this](SPA::ClientSide::CAsyncResult & ar) {
+				SPA::ClientSide::PAsyncServiceHandler ash = ar.AsyncServiceHandler;
+				if (buffer) {
+					buffer->Swap(&ar.UQueue);
+					std::unique_lock<std::mutex> lk(this->m_mPhp);
+					this->m_cvPhp.notify_all();
+				}
+				else if (callback) {
+					SPA::CScopeUQueue sb;
+					sb << ar.RequestId;
+					sb->Push(ar.UQueue.GetBuffer(), ar.UQueue.GetSize());
+					ar.UQueue.SetSize(0);
+					PACallback cb;
+					cb.CallbackType = ctSendRequest;
+					cb.Res = sb.Detach();
+					cb.CallBack = callback;
+					std::unique_lock<std::mutex> lk(this->m_mPhp);
+					this->m_vCallback.push_back(cb);
+				}
+				else {
+					ar.UQueue.SetSize(0);
+				}
+			};
+		}
         Php::Value phpCanceled;
         if (args > 3) {
             phpCanceled = params[3];
@@ -278,8 +286,7 @@ namespace PA
         h.method<&CPhpBaseHandler::__construct>(PHP_CONSTRUCT, Php::Private);
         h.method<&CPhpBaseHandler::SendRequest>(PHP_SENDREQUEST,{
             Php::ByVal(PHP_SENDREQUEST_REQID, Php::Type::Numeric),
-            Php::ByVal(PHP_SENDREQUEST_BUFF, Php::Type::Null),
-            Php::ByVal(PHP_SENDREQUEST_SYNC, Php::Type::Null)
+            Php::ByVal(PHP_SENDREQUEST_BUFF, Php::Type::Null)
         });
         h.method<&CPhpBaseHandler::WaitAll>(PHP_WAITALL);
         h.method<&CPhpBaseHandler::StartBatching>(PHP_STARTBATCHING);
