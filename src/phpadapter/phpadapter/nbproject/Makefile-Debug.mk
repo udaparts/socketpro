@@ -44,7 +44,6 @@ OBJECTFILES= \
 	${OBJECTDIR}/phpbuffer.o \
 	${OBJECTDIR}/phpcert.o \
 	${OBJECTDIR}/phpclientqueue.o \
-	${OBJECTDIR}/phpconncontext.o \
 	${OBJECTDIR}/phpdataset.o \
 	${OBJECTDIR}/phpdb.o \
 	${OBJECTDIR}/phpdbcolumninfo.o \
@@ -77,15 +76,17 @@ FFLAGS=
 ASFLAGS=
 
 # Link Libraries and Options
-LDLIBSOPTIONS=-lpthread -ldl
+LDLIBSOPTIONS=/usr/lib/libphpcpp.so
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
 	"${MAKE}"  -f nbproject/Makefile-${CND_CONF}.mk ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libphpadapter.${CND_DLIB_EXT}
 
+${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libphpadapter.${CND_DLIB_EXT}: /usr/lib/libphpcpp.so
+
 ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libphpadapter.${CND_DLIB_EXT}: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
-	${LINK.c} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libphpadapter.${CND_DLIB_EXT} ${OBJECTFILES} ${LDLIBSOPTIONS} -std=c++11 -shared -fPIC
+	g++ -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libphpadapter.${CND_DLIB_EXT} ${OBJECTFILES} ${LDLIBSOPTIONS} -shared -fPIC
 
 ${OBJECTDIR}/_ext/932346631/aclientw.o: ../../../include/aclientw.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/932346631
@@ -131,11 +132,6 @@ ${OBJECTDIR}/phpclientqueue.o: phpclientqueue.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.c) -g -DPHP_ADAPTER_PROJECT -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/phpclientqueue.o phpclientqueue.cpp
-
-${OBJECTDIR}/phpconncontext.o: phpconncontext.cpp 
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} "$@.d"
-	$(COMPILE.c) -g -DPHP_ADAPTER_PROJECT -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/phpconncontext.o phpconncontext.cpp
 
 ${OBJECTDIR}/phpdataset.o: phpdataset.cpp 
 	${MKDIR} -p ${OBJECTDIR}

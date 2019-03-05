@@ -68,6 +68,7 @@ namespace PA
     }
 
 #ifdef REQUIRE_POOL_EVENT
+
     void CPoolStartContext::DealWithPoolEvents(tagSocketPoolEvent spe) {
         switch (spe) {
             case SPA::ClientSide::speThreadCreated:

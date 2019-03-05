@@ -14,7 +14,6 @@
       <itemPath>phpbuffer.h</itemPath>
       <itemPath>phpcert.h</itemPath>
       <itemPath>phpclientqueue.h</itemPath>
-      <itemPath>phpconncontext.h</itemPath>
       <itemPath>phpdataset.h</itemPath>
       <itemPath>phpdb.h</itemPath>
       <itemPath>phpdbcolumninfo.h</itemPath>
@@ -51,7 +50,6 @@
       <itemPath>phpbuffer.cpp</itemPath>
       <itemPath>phpcert.cpp</itemPath>
       <itemPath>phpclientqueue.cpp</itemPath>
-      <itemPath>phpconncontext.cpp</itemPath>
       <itemPath>phpdataset.cpp</itemPath>
       <itemPath>phpdb.cpp</itemPath>
       <itemPath>phpdbcolumninfo.cpp</itemPath>
@@ -104,11 +102,10 @@
           </preprocessorList>
         </ccTool>
         <linkerTool>
+          <commandlineTool>g++</commandlineTool>
           <linkerLibItems>
-            <linkerLibStdlibItem>PosixThreads</linkerLibStdlibItem>
-            <linkerLibStdlibItem>DynamicLinking</linkerLibStdlibItem>
+            <linkerLibFileItem>/usr/lib/libphpcpp.so</linkerLibFileItem>
           </linkerLibItems>
-          <commandLine>-std=c++11</commandLine>
         </linkerTool>
       </compileType>
       <item path="../../../include/aclientw.cpp" ex="false" tool="0" flavor2="0">
@@ -156,10 +153,6 @@
       <item path="phpclientqueue.cpp" ex="false" tool="0" flavor2="0">
       </item>
       <item path="phpclientqueue.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="phpconncontext.cpp" ex="false" tool="0" flavor2="0">
-      </item>
-      <item path="phpconncontext.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="phpdataset.cpp" ex="false" tool="0" flavor2="0">
       </item>
@@ -235,6 +228,7 @@
       <compileType>
         <cTool>
           <developmentMode>5</developmentMode>
+          <stripSymbols>true</stripSymbols>
           <commandLine>-std=c++11</commandLine>
           <preprocessorList>
             <Elem>NDEBUG</Elem>
@@ -243,6 +237,7 @@
         </cTool>
         <ccTool>
           <developmentMode>5</developmentMode>
+          <stripSymbols>true</stripSymbols>
           <commandLine>-std=c++11</commandLine>
           <preprocessorList>
             <Elem>NDEBUG</Elem>
@@ -257,11 +252,10 @@
         </asmTool>
         <linkerTool>
           <stripSymbols>true</stripSymbols>
+          <commandlineTool>g++</commandlineTool>
           <linkerLibItems>
-            <linkerLibStdlibItem>PosixThreads</linkerLibStdlibItem>
-            <linkerLibStdlibItem>DynamicLinking</linkerLibStdlibItem>
+            <linkerLibFileItem>/usr/lib/libphpcpp.so</linkerLibFileItem>
           </linkerLibItems>
-          <commandLine>-std=c++11</commandLine>
         </linkerTool>
       </compileType>
       <item path="../../../include/aclientw.cpp" ex="false" tool="0" flavor2="0">
@@ -309,10 +303,6 @@
       <item path="phpclientqueue.cpp" ex="false" tool="0" flavor2="0">
       </item>
       <item path="phpclientqueue.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="phpconncontext.cpp" ex="false" tool="0" flavor2="0">
-      </item>
-      <item path="phpconncontext.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="phpdataset.cpp" ex="false" tool="0" flavor2="0">
       </item>

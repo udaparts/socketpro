@@ -465,11 +465,11 @@ namespace PA
                         if (!v.IsObject()) {
                             continue;
                         }
-						auto begin = v.MemberBegin();
-						if (begin == v.MemberEnd()) {
-							continue;
-						}
-						std::string key = begin->name.GetString();
+                        auto begin = v.MemberBegin();
+                        if (begin == v.MemberEnd()) {
+                            continue;
+                        }
+                        std::string key = begin->name.GetString();
                         if (!begin->value.IsObject()) {
                             continue;
                         }
@@ -510,15 +510,15 @@ namespace PA
                         if (!v.IsObject()) {
                             continue;
                         }
-						auto begin = v.MemberBegin();
-						if (begin == v.MemberEnd()) {
-							continue;
-						}
-						std::string key = begin->name.GetString();
+                        auto begin = v.MemberBegin();
+                        if (begin == v.MemberEnd()) {
+                            continue;
+                        }
+                        std::string key = begin->name.GetString();
                         Trim(key);
-						if (!begin->value.IsObject()) {
-							continue;
-						}
+                        if (!begin->value.IsObject()) {
+                            continue;
+                        }
                         auto ccMain = begin->value.GetObject();
                         CPoolStartContext psc;
                         if (ccMain.HasMember(KEY_QUEUE_NAME) && ccMain[KEY_QUEUE_NAME].IsString()) {
@@ -561,15 +561,15 @@ namespace PA
                                 if (!one.IsObject()) {
                                     continue;
                                 }
-								auto beginOne = one.MemberBegin();
-								if (beginOne == one.MemberEnd()) {
-									continue;
-								}
-								std::string skey = beginOne->name.GetString();
+                                auto beginOne = one.MemberBegin();
+                                if (beginOne == one.MemberEnd()) {
+                                    continue;
+                                }
+                                std::string skey = beginOne->name.GetString();
                                 Trim(skey);
-								if (!beginOne->value.IsObject()) {
-									continue;
-								}
+                                if (!beginOne->value.IsObject()) {
+                                    continue;
+                                }
                                 auto cc = beginOne->value.GetObject();
                                 CPoolStartContext ps;
                                 ps.SvsId = psc.SvsId;
@@ -622,9 +622,11 @@ namespace PA
                     }
                 }
             }
+
             catch(std::exception & ex) {
                 Manager.m_errMsg = ex.what();
             }
+
             catch(...) {
                 Manager.m_errMsg = "Unknown error found when parsing " + SP_CONFIG;
             }
