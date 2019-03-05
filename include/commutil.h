@@ -114,7 +114,7 @@ namespace SPA {
         VARIANT vtSrc, vtDes;
         vtSrc.decVal = decVal;
         vtSrc.vt = VT_DECIMAL;
-        vtDes.vt = (VARTYPE) VT_EMPTY;
+        vtDes.vt = VT_EMPTY;
         ::VariantChangeType(&vtDes, &vtSrc, 0, VT_BSTR);
         unsigned int len = ::SysStringLen(vtDes.bstrVal);
         std::string s(vtDes.bstrVal, vtDes.bstrVal + len);
