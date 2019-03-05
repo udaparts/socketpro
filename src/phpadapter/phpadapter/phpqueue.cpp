@@ -27,11 +27,11 @@ namespace PA
         unsigned int timeout;
         std::string key = GetKey(params[0]);
         std::shared_ptr<int> pErrCode;
-		CAsyncQueue::DQueueTrans qt;
+        CAsyncQueue::DQueueTrans qt;
         size_t args = params.size();
-		if (args > 1) {
-			qt = SetQueueTransCallback(SPA::Queue::idClose, params[1], pErrCode, timeout);
-		}
+        if (args > 1) {
+            qt = SetQueueTransCallback(SPA::Queue::idClose, params[1], pErrCode, timeout);
+        }
         Php::Value phpCanceled;
         if (args > 2) {
             phpCanceled = params[2];
@@ -53,17 +53,17 @@ namespace PA
     }
 
     Php::Value CPhpQueue::EnqueueBatch(Php::Parameters & params) {
-		unsigned int timeout;
-		if (!m_pBuff->GetBuffer()->GetSize()) {
+        unsigned int timeout;
+        if (!m_pBuff->GetBuffer()->GetSize()) {
             throw Php::Exception("No message batched yet");
         }
         std::string key = GetKey(params[0]);
         std::shared_ptr<SPA::INT64> pIndex;
-		CAsyncQueue::DEnqueue c;
+        CAsyncQueue::DEnqueue c;
         size_t args = params.size();
-		if (args > 1) {
-			c = SetEnqueueResCallback(SPA::Queue::idEnqueueBatch, params[1], pIndex, timeout);
-		}
+        if (args > 1) {
+            c = SetEnqueueResCallback(SPA::Queue::idEnqueueBatch, params[1], pIndex, timeout);
+        }
         Php::Value phpCanceled;
         if (args > 2) {
             phpCanceled = params[2];
@@ -174,26 +174,23 @@ namespace PA
         std::string key = GetKey(params[0]);
         unsigned int timeout = (~0);
         bool sync = false;
-		CPVPointer callback;
-		size_t args = params.size();
-		if (args > 1) {
-			const Php::Value& phpF = params[1];
-			if (phpF.isNumeric()) {
-				timeout = (unsigned int)phpF.numericValue();
-				sync = true;
-			}
-			else if (phpF.isBool()) {
-				sync = phpF.boolValue();
-			}
-			else if (phpF.isNull()) {
-			}
-			else if (!phpF.isCallable()) {
-				throw Php::Exception("A callback required for Flush final result");
-			}
-			if (phpF.isCallable()) {
-				callback.reset(new Php::Value(phpF));
-			}
-		}
+        CPVPointer callback;
+        size_t args = params.size();
+        if (args > 1) {
+            const Php::Value& phpF = params[1];
+            if (phpF.isNumeric()) {
+                timeout = (unsigned int) phpF.numericValue();
+                sync = true;
+            } else if (phpF.isBool()) {
+                sync = phpF.boolValue();
+            } else if (phpF.isNull()) {
+            } else if (!phpF.isCallable()) {
+                throw Php::Exception("A callback required for Flush final result");
+            }
+            if (phpF.isCallable()) {
+                callback.reset(new Php::Value(phpF));
+            }
+        }
         CQPointer pF;
         if (sync) {
             pF.reset(SPA::CScopeUQueue::Lock(), [](SPA::CUQueue * q) {
@@ -248,12 +245,12 @@ namespace PA
         unsigned int timeout;
         std::string key = GetKey(params[0]);
         std::shared_ptr<int> pErrCode;
-		CAsyncQueue::DQueueTrans qt;
-		size_t args = params.size();
-		if (args > 1) {
-			qt = SetQueueTransCallback(SPA::Queue::idStartTrans, params[1], pErrCode, timeout);
-		}
-		Php::Value phpCanceled;
+        CAsyncQueue::DQueueTrans qt;
+        size_t args = params.size();
+        if (args > 1) {
+            qt = SetQueueTransCallback(SPA::Queue::idStartTrans, params[1], pErrCode, timeout);
+        }
+        Php::Value phpCanceled;
         if (args > 2) {
             phpCanceled = params[2];
         }
@@ -313,12 +310,12 @@ namespace PA
         unsigned int timeout;
         bool rollback = params[0].boolValue();
         std::shared_ptr<int> pErrCode;
-		CAsyncQueue::DQueueTrans qt;
-		size_t args = params.size();
-		if (args > 1) {
-			qt = SetQueueTransCallback(SPA::Queue::idEndTrans, params[1], pErrCode, timeout);
-		}
-		Php::Value phpCanceled;
+        CAsyncQueue::DQueueTrans qt;
+        size_t args = params.size();
+        if (args > 1) {
+            qt = SetQueueTransCallback(SPA::Queue::idEndTrans, params[1], pErrCode, timeout);
+        }
+        Php::Value phpCanceled;
         if (args > 2) {
             phpCanceled = params[2];
         }
@@ -459,11 +456,11 @@ namespace PA
         }
         unsigned int timeout;
         std::shared_ptr<SPA::INT64> pF;
-		CAsyncQueue::DEnqueue f;
+        CAsyncQueue::DEnqueue f;
         size_t args = params.size();
-		if (args > 3) {
-			f = SetEnqueueResCallback(SPA::Queue::idEnqueue, params[3], pF, timeout);
-		}
+        if (args > 3) {
+            f = SetEnqueueResCallback(SPA::Queue::idEnqueue, params[3], pF, timeout);
+        }
         Php::Value phpCanceled;
         if (args > 4) {
             phpCanceled = params[4];

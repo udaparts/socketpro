@@ -154,11 +154,11 @@ namespace PA
         Trim(aconn);
         std::wstring conn = SPA::Utilities::ToWide(aconn);
         CQPointer pV;
-		size_t args = params.size();
-		CDBHandler::DResult Dr;
-		if (args > 1) {
-			Dr = SetResCallback(params[1], pV, timeout);
-		}
+        size_t args = params.size();
+        CDBHandler::DResult Dr;
+        if (args > 1) {
+            Dr = SetResCallback(params[1], pV, timeout);
+        }
         Php::Value phpCanceled;
         if (args > 2) {
             phpCanceled = params[2];
@@ -323,11 +323,11 @@ namespace PA
             GetParams(params[0], vParam);
         }
         CQPointer pV;
-		CDBHandler::DExecuteResult Dr;
-		size_t args = params.size();
-		if (args > 1) {
-			Dr = SetExeResCallback(params[1], pV, timeout);
-		}
+        CDBHandler::DExecuteResult Dr;
+        size_t args = params.size();
+        if (args > 1) {
+            Dr = SetExeResCallback(params[1], pV, timeout);
+        }
         Php::Value phpRow;
         if (args > 2) {
             phpRow = params[2];
@@ -400,11 +400,11 @@ namespace PA
         SPA::UDB::CDBVariantArray vParam;
         GetParams(params[2], vParam);
         CQPointer pV;
-		CDBHandler::DExecuteResult Dr;
+        CDBHandler::DExecuteResult Dr;
         size_t args = params.size();
-		if (args > 3) {
-			Dr = SetExeResCallback(params[3], pV, timeout);
-		}
+        if (args > 3) {
+            Dr = SetExeResCallback(params[3], pV, timeout);
+        }
         Php::Value phpRow;
         if (args > 4) {
             phpRow = params[4];
@@ -503,9 +503,9 @@ namespace PA
         CQPointer pV;
         CDBHandler::DResult Dr;
         size_t args = params.size();
-		if (args > 1) {
-			Dr = SetResCallback(params[1], pV, timeout);
-		}
+        if (args > 1) {
+            Dr = SetResCallback(params[1], pV, timeout);
+        }
         Php::Value phpCanceled;
         if (args > 2) {
             phpCanceled = params[2];
@@ -578,11 +578,11 @@ namespace PA
     Php::Value CPhpDb::Close(Php::Parameters & params) {
         unsigned int timeout;
         CQPointer pV;
-		CDBHandler::DResult Dr;
-		size_t args = params.size();
-		if (args > 0) {
-			Dr = SetResCallback(params[0], pV, timeout);
-		}
+        CDBHandler::DResult Dr;
+        size_t args = params.size();
+        if (args > 0) {
+            Dr = SetResCallback(params[0], pV, timeout);
+        }
         Php::Value phpCanceled;
         if (args > 1) {
             phpCanceled = params[1];
@@ -601,20 +601,20 @@ namespace PA
 
     Php::Value CPhpDb::BeginTrans(Php::Parameters & params) {
         unsigned int timeout;
-		SPA::UDB::tagTransactionIsolation ti = SPA::UDB::tiReadCommited;
-		size_t args = params.size();
-		if (args > 0) {
-			int64_t iso = params[0].numericValue();
-			if (iso < SPA::UDB::tiUnspecified || iso > SPA::UDB::tiIsolated) {
-				throw Php::Exception("Bad transaction isolation value");
-			}
-			ti = (SPA::UDB::tagTransactionIsolation)iso;
-		}
+        SPA::UDB::tagTransactionIsolation ti = SPA::UDB::tiReadCommited;
+        size_t args = params.size();
+        if (args > 0) {
+            int64_t iso = params[0].numericValue();
+            if (iso < SPA::UDB::tiUnspecified || iso > SPA::UDB::tiIsolated) {
+                throw Php::Exception("Bad transaction isolation value");
+            }
+            ti = (SPA::UDB::tagTransactionIsolation)iso;
+        }
         CQPointer pV;
-		CDBHandler::DResult Dr;
-		if (args > 1) {
-			Dr = SetResCallback(params[1], pV, timeout);
-		}
+        CDBHandler::DResult Dr;
+        if (args > 1) {
+            Dr = SetResCallback(params[1], pV, timeout);
+        }
         Php::Value phpCanceled;
         if (args > 2) {
             phpCanceled = params[2];
@@ -633,20 +633,20 @@ namespace PA
 
     Php::Value CPhpDb::EndTrans(Php::Parameters & params) {
         unsigned int timeout;
-		SPA::UDB::tagRollbackPlan p = SPA::UDB::rpDefault;
-		size_t args = params.size();
-		if (args > 0) {
-			int64_t plan = params[0].numericValue();
-			if (plan < SPA::UDB::rpDefault || plan > SPA::UDB::rpRollbackAlways) {
-				throw Php::Exception("Bad rollback plan value");
-			}
-			p = (SPA::UDB::tagRollbackPlan)plan;
-		}
+        SPA::UDB::tagRollbackPlan p = SPA::UDB::rpDefault;
+        size_t args = params.size();
+        if (args > 0) {
+            int64_t plan = params[0].numericValue();
+            if (plan < SPA::UDB::rpDefault || plan > SPA::UDB::rpRollbackAlways) {
+                throw Php::Exception("Bad rollback plan value");
+            }
+            p = (SPA::UDB::tagRollbackPlan)plan;
+        }
         CQPointer pV;
-		CDBHandler::DResult Dr;
-		if (args > 1) {
-			Dr = SetResCallback(params[1], pV, timeout);
-		}
+        CDBHandler::DResult Dr;
+        if (args > 1) {
+            Dr = SetResCallback(params[1], pV, timeout);
+        }
         Php::Value phpCanceled;
         if (args > 2) {
             phpCanceled = params[2];

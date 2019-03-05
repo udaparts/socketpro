@@ -125,12 +125,12 @@ namespace PA
         unsigned int timeout;
         std::wstring local, remote;
         MapFilePaths(params[0], params[1], local, remote);
-		size_t args = params.size();
-		CQPointer pV;
-		CAsyncFile::DDownload Dl;
-		if (args > 2) {
-			Dl = SetResCallback(SPA::SFile::idDownload, params[2], pV, timeout);
-		}
+        size_t args = params.size();
+        CQPointer pV;
+        CAsyncFile::DDownload Dl;
+        if (args > 2) {
+            Dl = SetResCallback(SPA::SFile::idDownload, params[2], pV, timeout);
+        }
         Php::Value phpCanceled;
         if (args > 3) {
             phpCanceled = params[3];
@@ -160,12 +160,12 @@ namespace PA
         unsigned int timeout;
         std::wstring local, remote;
         MapFilePaths(params[0], params[1], local, remote);
-		size_t args = params.size();
-		CQPointer pV;
-		CAsyncFile::DUpload Ul;
-		if (args > 2) {
-			Ul = SetResCallback(SPA::SFile::idUpload, params[2], pV, timeout);
-		}
+        size_t args = params.size();
+        CQPointer pV;
+        CAsyncFile::DUpload Ul;
+        if (args > 2) {
+            Ul = SetResCallback(SPA::SFile::idUpload, params[2], pV, timeout);
+        }
         Php::Value phpCanceled;
         if (args > 3) {
             phpCanceled = params[3];
