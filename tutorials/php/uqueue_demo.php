@@ -1,105 +1,86 @@
 <?php
-
-$idMessage0 = SPA\BaseID::idReservedTwo + 100;
-$idMessage1 = SPA\BaseID::idReservedTwo + 101;
-$idMessage2 = SPA\BaseID::idReservedTwo + 102;
-$idMessage3 = SPA\BaseID::idReservedTwo + 103;
-$idMessage4 = SPA\BaseID::idReservedTwo + 104;
-$TEST_QUEUE_KEY = 'queue_name_0';
-
-function testEnqueue($sq) {
-	global $idMessage0, $idMessage1, $idMessage2, $TEST_QUEUE_KEY;
-	$idMsg = 0;
-	$ok = true;
-	$buff = SpBuffer();
-	echo 'Going to enqueue 1024 messages ......<br/>';
-	for ($n = 0; $n < 1024; ++$n) {
-		$str = '' . $n . ' Object test';
-		switch ($n % 3) {
-		case 0:
-			$idMsg = $idMessage0;
-			break;
-		case 1:
-			$idMsg = $idMessage1;
-			break;
-		default:
-			$idMsg = $idMessage2;
-			break;
-        }
-		$ok = $sq->Enqueue($TEST_QUEUE_KEY, $idMsg, $buff->SaveString('SampleName')->SaveString($str)->SaveInt($n), null);
-		$buff->Size = 0;
-		if (!$ok) {
-			echo 'Session closed<br/>';
-			break;
-		}
-	}
-	if ($ok) {
-		echo '1024 messages enqueued<br/>';
-	}
-	return $ok;
-}
-
-function testDequeue($sq, $cb) {
-	global $TEST_QUEUE_KEY;
-    echo 'Going to dequeue messages ......<br/>';
-    //optionally, add one extra to improve processing concurrency at both client and server sides for better performance and through-output
-    return $sq->Dequeue($TEST_QUEUE_KEY, $cb) && $sq->Dequeue($TEST_QUEUE_KEY, $cb);
-}
-
-$cb = function($mc, $fsize, $msgs, $bytes) {
-	global $cb, $sq, $TEST_QUEUE_KEY;
-	echo 'Total message count=' . $mc . ', queue file size=' . $fsize . ', messages dequeued=' . $msgs . ', message bytes dequeued=' . $bytes . '<br/>';
-	if ($mc) {
-        $sq->Dequeue($TEST_QUEUE_KEY, $cb);
-    }
-};
-
 try {
-	$sq = LockSpHandler('my_queue');
-	$ok = true;
-	do {
-		$ok = $sq->StartTrans($TEST_QUEUE_KEY, null);
-		if (!$ok) {
-			break;
-		}
-		$ok = testEnqueue($sq);
-		if (!$ok) {
-			break;
-		}
-		$buff = SpBuffer();
-		$sq->BatchMessage($idMessage3, $buff->SaveString('Hello')->SaveString('World'));
-		$buff->Size = 0;
-		$sq->BatchMessage($idMessage4, $buff->SaveBool(true)->SaveDouble(234.456)->SaveString('MyTestWhatever'));
-		$buff->Size = 0;
-		$ok = $sq->EnqueueBatch($TEST_QUEUE_KEY, null);
-		if (!$ok) {
-			break;
-		}
-		$ok = $sq->EndTrans(false, null);
-		if (!$ok) {
-			break;
-		}
-		$ok = testDequeue($sq, $cb);
-		if (!$ok) {
-			break;
-		}
-		$ok = $sq->CloseQueue($TEST_QUEUE_KEY, null);
-		if (!$ok) {
-			break;
-		}
-		$keys = $sq->GetKeys(true);
-		echo 'Keys opened: ';
-		echo var_dump($keys).'<br/>';
-	} while(false);
-	if($ok) {
-		echo 'All requests executed successfully<br/>';
-	}
-	else {
-		echo 'Session closed<br/>';
-	}
-	echo 'PHP script completed without exception';
-} catch(Exception $e) {
+	$manager = GetSPManager();
+	echo $manager->Config.'<br/><br/>';
+	$strTest = '冯崇义教授微信群披露，杨恒均被单独关押';
+	echo 'String input: '.$strTest.'<br/>';
+	echo 'String output: '.SpBuffer()->SaveString($strTest)->LoadString().'<br/>';
+	echo 'String output: '.SpBuffer()->SaveAString($strTest)->LoadAString().'<br/>';
+	echo 'String output: '.SpBuffer()->SaveObject($strTest)->LoadObject().'<br/>';
+
+	$arr = array(true, 'MyTest', 12345, 27.567, null, '春节震撼发布');
+	echo 'array input: ';
+	echo var_dump($arr).'<br/>';
+	echo 'array output: ';
+	echo var_dump(SpBuffer()->SaveObject($arr)->LoadObject()).'<br>';
+
+	$large_number = 0x7fffffffffffffff;
+	echo 'Large number input: '.$large_number.'<br/>';
+	echo 'Large number output: '.SpBuffer()->SaveLong($large_number)->LoadLong().'<br/>';
+	echo 'Large number output: '.SpBuffer()->SaveULong($large_number)->LoadULong().'<br/>';
+	
+	$uint = 0xffffffff;
+	echo 'Unsigned int input: '.$uint.'<br/>';
+	echo 'Unsigned int output: '.SpBuffer()->SaveUInt($uint)->LoadUInt().'<br/>';
+	
+	$flt = 1234.567;
+	echo 'Double input: '.$flt.'<br/>';
+	echo 'Double output: '.SpBuffer()->SaveDouble($flt)->LoadDouble().'<br/>';
+	echo 'Double output: '.SpBuffer()->SaveObject($flt)->LoadObject().'<br/>';
+	echo 'Double output: '.SpBuffer()->SaveAString($flt)->LoadAString().'<br/>';
+	echo 'Double output: '.SpBuffer()->SaveString($flt)->LoadString().'<br/>';
+
+	$data = array(
+		'nullStr' => null,
+		'objNull' => null,
+		'aDate' => new DateTime(),
+		'aDouble' => 1234.567,
+		'aBool' => true,
+		'unicodeStr' => 'Unicode',
+		'asciiStr' => 'ASCII',
+		'objBool' => true,
+		'objString' => 'test',
+		'objArrString' => array('Hello', 'world'),
+		'objArrInt' => array(1, 76890)
+	);
+	
+	//demo complex structure serialization and de-serialization, which will be used with client/server HelloWorld example
+	echo 'Structure input: ';
+	echo var_dump($data).'<br/>';
+	$res = SpBuffer()->Save($data, function($d, $q) {
+		//serialize member values into buffer q with a specific order, which must be in agreement with server implementation
+		$q->SaveString($d['nullStr']); //4 bytes for length
+		$q->SaveObject($d['objNull']); //2 bytes for data type
+		$q->SaveDate($d['aDate']); //8 bytes for ulong with accuracy to 1 micro-second
+		$q->SaveDouble($d['aDouble']); //8 bytes
+		$q->SaveBool($d['aBool']); //1 byte
+		$q->SaveString($d['unicodeStr']); //4 bytes for string length + (length * 2) bytes for string data -- UTF16 low-endian
+		$q->SaveAString($d['asciiStr']); //4 bytes for ASCII string length + length bytes for string data
+		$q->SaveObject($d['objBool']); //2 bytes for data type + 2 bytes for variant bool
+		$q->SaveObject($d['objString']); //2 bytes for data type + 4 bytes for string length + (length * 2) bytes for string data -- UTF16-lowendian
+		$q->SaveObject($d['objArrString']); //2 bytes for data type + 4 bytes for array size + (4 bytes for string length + (length * 2) bytes for string data) * arraysize -- UTF16-lowendian
+		$q->SaveObject($d['objArrInt']); //2 bytes for data type + 4 bytes for array size + arraysize * 8 bytes for int64_t data
+	})->Load(function($q){
+		//de-serialize when result comes from server
+		$d = array(
+			'nullStr' => $q->LoadString(),
+			'objNull' => $q->LoadObject(),
+			'aDate' => $q->LoadDate(),
+			'aDouble' => $q->LoadDouble(),
+			'aBool' => $q->LoadBool(),
+			'unicodeStr' => $q->LoadString(),
+			'asciiStr' => $q->LoadAString(),
+			'objBool' => $q->LoadObject(),
+			'objString' => $q->LoadObject(),
+			'objArrString' => $q->LoadObject(),
+			'objArrInt' => $q->LoadObject()
+		);
+		return $d;
+	});
+	echo 'Structure output: ';
+	echo var_dump($res).'<br/>';
+}
+catch(Exception $e) {
 	echo 'Caught exception: ', $e->getMessage();
 }
-
 ?>
