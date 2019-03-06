@@ -88,25 +88,25 @@ namespace PA
         CAsyncFile::DDownload Dl = [reqId, callback, pV, this](SPA::ClientSide::CStreamingFile *file, int res, const std::wstring & errMsg) {
             std::string em = SPA::Utilities::ToUTF8(errMsg);
             Trim(em);
-			try {
-				if (pV) {
-					*pV << res << em;
-					std::unique_lock<std::mutex> lk(this->m_mPhp);
-					this->m_cvPhp.notify_all();
-				}
-				else if (callback) {
-					SPA::CScopeUQueue sb;
-					sb << reqId << res << em;
-					PACallback cb;
-					cb.CallbackType = ctFile;
-					cb.Res = sb.Detach();
-					cb.CallBack = callback;
-					std::unique_lock<std::mutex> lk(this->m_mPhp);
-					this->m_vCallback.push_back(cb);
-				}
-			}
-			catch (std::system_error&) {
-			}
+            try{
+                if (pV) {
+                    *pV << res << em;
+                    std::unique_lock<std::mutex> lk(this->m_mPhp);
+                    this->m_cvPhp.notify_all();
+                } else if (callback) {
+                    SPA::CScopeUQueue sb;
+                    sb << reqId << res << em;
+                    PACallback cb;
+                    cb.CallbackType = ctFile;
+                    cb.Res = sb.Detach();
+                    cb.CallBack = callback;
+                    std::unique_lock<std::mutex> lk(this->m_mPhp);
+                    this->m_vCallback.push_back(cb);
+                }
+            }
+
+            catch(std::system_error&) {
+            }
         };
         return Dl;
     }
@@ -185,22 +185,21 @@ namespace PA
                 throw Php::Exception("One or more file writing flags (1=truncated, 2=appended, 4=shared read and 8=shared writing) required");
             }
         }
-		if (pV) {
-			std::unique_lock<std::mutex> lk(m_mPhp);
-			if (!m_sh->Upload(local.c_str(), remote.c_str(), Ul, nullptr, discarded, flags)) {
-				PopCallbacks();
-				throw Php::Exception(PA::PHP_SOCKET_CLOSED);
-			}
-			if (!pV->GetSize()) {
-				ReqSyncEnd(true, lk, timeout);
-			}
-			else {
-				PopCallbacks();
-			}
-			return ToError(pV.get());
-		}
+        if (pV) {
+            std::unique_lock<std::mutex> lk(m_mPhp);
+            if (!m_sh->Upload(local.c_str(), remote.c_str(), Ul, nullptr, discarded, flags)) {
+                PopCallbacks();
+                throw Php::Exception(PA::PHP_SOCKET_CLOSED);
+            }
+            if (!pV->GetSize()) {
+                ReqSyncEnd(true, lk, timeout);
+            } else {
+                PopCallbacks();
+            }
+            return ToError(pV.get());
+        }
         {
-			std::unique_lock<std::mutex> lk(m_mPhp);
+            std::unique_lock<std::mutex> lk(m_mPhp);
             PopCallbacks();
         }
         return m_sh->Upload(local.c_str(), remote.c_str(), Ul, nullptr, discarded, flags);
