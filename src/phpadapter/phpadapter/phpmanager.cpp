@@ -403,7 +403,7 @@ namespace PA
 #ifdef WIN32_64
             Manager.CertStore = "root";
 #else
-            Manager.CertStore = "./";
+            //Manager.CertStore = ".";
 #endif
         } else {
             return Php::Object((SPA_CS_NS + PHP_MANAGER).c_str(), new CPhpManager(&Manager));
