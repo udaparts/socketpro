@@ -24,7 +24,7 @@ function TestCreateTables($db, $cb_ex) {
 }
 
 function TestPreparedStatements($db, $cb_ex) {
-	if (!$db->Prepare('INSERT INTO mysqldb.company(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?)', null)) {
+	if (!$db->Prepare('INSERT INTO mysqldb.company(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?)')) {
 		return false;
 	}
 	$vParam = array(1, 'Google Inc.', '1600 Amphitheatre Parkway, Mountain View, CA 94043, USA', 66000010000.15,
@@ -38,7 +38,7 @@ function TestPreparedStatements($db, $cb_ex) {
 }
 
 function InsertBLOBByPreparedStatement($db, $cb_ex) {
-	if (!$db->Prepare('insert into employee(CompanyId,name,JoinDate,image,DESCRIPTION,Salary)values(?,?,?,?,?,?)', null)) {
+	if (!$db->Prepare('insert into employee(CompanyId,name,JoinDate,image,DESCRIPTION,Salary)values(?,?,?,?,?,?)')) {
 		return false;
 	}
 	$wstr = '';
@@ -82,7 +82,7 @@ $cbOutput = function($v, $proc) {
 
 function TestStoredProcedure($db, $cb_ex) {
 	global $cbOutput;
-	if (!$db->Prepare('call mysqldb.sp_TestProc(?,?,?)', null)) {
+	if (!$db->Prepare('call mysqldb.sp_TestProc(?,?,?)')) {
 		return false;
 	}
 	$vParam = array(1, 1.25, null, //1st set
@@ -170,10 +170,9 @@ try {
 			break;
 		}
 		$sql = "select actor_id, first_name from sakila.actor where actor_id between ? and ?";
-		if(!$db->Prepare($sql, null)) {
+		if(!$db->Prepare($sql)) {
 			break;
 		}
-
 		$vParam = array(1, 3);
 		$err = $db->Execute($vParam, true, $cbRow, $cbMeta); //synchronous request
 		echo 'Data: ';

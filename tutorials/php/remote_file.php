@@ -18,7 +18,7 @@ try {
 			break;
 		}
 		echo 'Downloading jvm.lib<br/>';
-		
+
 		$em = $file->Upload($webroot.'spfile1.test', $dir.'jvm_copy.lib', true);
 		echo 'Uploading jvm.lib completed: ';
 		echo var_dump($em).'<br/>';

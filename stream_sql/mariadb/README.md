@@ -4,9 +4,11 @@
 
 2. A dynamic link library project of SQL streaming Mariadb/MySQL5.7.22-older DB plugin implementation for both windows and linux platforms.
 
-3. mariadb_streaming.js a test demonstration for node.js
+3. mariadb_streaming.js: a test demonstration for node.js
 
-4. Key features are:
+4. mariadb_streaming.php: a test demonstration for PHP
+
+5. Key features are:
     - Simple for development
     - Support of both windows and linux platforms
     - Rich features with many unique ones because of its unique design
