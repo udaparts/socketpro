@@ -45,6 +45,7 @@
       <itemPath>../../../include/aclientw.cpp</itemPath>
       <itemPath>basehandler.cpp</itemPath>
       <itemPath>dllmain.cpp</itemPath>
+      <itemPath>../../../include/error_code.cpp</itemPath>
       <itemPath>../../../include/membuffer.cpp</itemPath>
       <itemPath>phpadapter.cpp</itemPath>
       <itemPath>phpbuffer.cpp</itemPath>
@@ -104,8 +105,11 @@
         <linkerTool>
           <commandlineTool>g++</commandlineTool>
           <linkerLibItems>
-            <linkerLibFileItem>/usr/lib/libphpcpp.so</linkerLibFileItem>
+            <linkerLibFileItem>/usr/lib/libphpcpp.a</linkerLibFileItem>
+            <linkerLibStdlibItem>PosixThreads</linkerLibStdlibItem>
+            <linkerLibStdlibItem>DynamicLinking</linkerLibStdlibItem>
           </linkerLibItems>
+          <commandLine>-Wl,-z,defs</commandLine>
         </linkerTool>
       </compileType>
       <item path="../../../include/aclientw.cpp" ex="false" tool="0" flavor2="0">
@@ -113,6 +117,8 @@
       <item path="../../../include/aclientw.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../../include/aqhandler.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../include/error_code.cpp" ex="false" tool="0" flavor2="0">
       </item>
       <item path="../../../include/generalcache.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -254,8 +260,9 @@
           <stripSymbols>true</stripSymbols>
           <commandlineTool>g++</commandlineTool>
           <linkerLibItems>
-            <linkerLibFileItem>/usr/lib/libphpcpp.so</linkerLibFileItem>
+            <linkerLibFileItem>/usr/lib/libphpcpp.a</linkerLibFileItem>
           </linkerLibItems>
+          <commandLine>-Wl,-z,defs</commandLine>
         </linkerTool>
       </compileType>
       <item path="../../../include/aclientw.cpp" ex="false" tool="0" flavor2="0">
@@ -263,6 +270,8 @@
       <item path="../../../include/aclientw.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../../include/aqhandler.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../include/error_code.cpp" ex="false" tool="0" flavor2="0">
       </item>
       <item path="../../../include/generalcache.h" ex="false" tool="3" flavor2="0">
       </item>
