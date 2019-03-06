@@ -77,7 +77,7 @@ FFLAGS=
 ASFLAGS=
 
 # Link Libraries and Options
-LDLIBSOPTIONS=/usr/lib/libphpcpp.a
+LDLIBSOPTIONS=/usr/lib/libphpcpp.a -lpthread -ldl -lusocket
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}

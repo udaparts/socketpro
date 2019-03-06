@@ -108,6 +108,7 @@
             <linkerLibFileItem>/usr/lib/libphpcpp.a</linkerLibFileItem>
             <linkerLibStdlibItem>PosixThreads</linkerLibStdlibItem>
             <linkerLibStdlibItem>DynamicLinking</linkerLibStdlibItem>
+            <linkerLibLibItem>usocket</linkerLibLibItem>
           </linkerLibItems>
           <commandLine>-Wl,-z,defs</commandLine>
         </linkerTool>
@@ -261,6 +262,9 @@
           <commandlineTool>g++</commandlineTool>
           <linkerLibItems>
             <linkerLibFileItem>/usr/lib/libphpcpp.a</linkerLibFileItem>
+            <linkerLibStdlibItem>PosixThreads</linkerLibStdlibItem>
+            <linkerLibStdlibItem>DynamicLinking</linkerLibStdlibItem>
+            <linkerLibLibItem>usocket</linkerLibLibItem>
           </linkerLibItems>
           <commandLine>-Wl,-z,defs</commandLine>
         </linkerTool>
