@@ -24,7 +24,8 @@ function TestCreateTables($db, $cb_ex) {
 }
 
 function TestPreparedStatements($db, $cb_ex) {
-	if (!$db->Prepare('INSERT INTO mysqldb.company(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?)')) {
+	global $cb_err;
+	if (!$db->Prepare('INSERT INTO mysqldb.company(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?)', $cb_err)) {
 		return false;
 	}
 	$vParam = array(1, 'Google Inc.', '1600 Amphitheatre Parkway, Mountain View, CA 94043, USA', 66000010000.15,
@@ -38,7 +39,8 @@ function TestPreparedStatements($db, $cb_ex) {
 }
 
 function InsertBLOBByPreparedStatement($db, $cb_ex) {
-	if (!$db->Prepare('insert into employee(CompanyId,name,JoinDate,image,DESCRIPTION,Salary)values(?,?,?,?,?,?)')) {
+	global $cb_err;
+	if (!$db->Prepare('insert into employee(CompanyId,name,JoinDate,image,DESCRIPTION,Salary)values(?,?,?,?,?,?)', $cb_err)) {
 		return false;
 	}
 	$wstr = '';
@@ -54,16 +56,16 @@ function InsertBLOBByPreparedStatement($db, $cb_ex) {
 	$blob = SpBuffer();
 	$blob->SaveString($wstr);
 	//1st set
-    //blob.PopBytes() -- convert all data inside blob memory into an array of bytes
-    $buff->SaveObject(1)->SaveObject('Ted Cruz')->SaveObject(new DateTime())->SaveObject($blob->PopBytes())->SaveObject($wstr)->SaveObject('254000.15');
+  	//blob.PopBytes() -- convert all data inside blob memory into an array of bytes
+    	$buff->SaveObject(1)->SaveObject('Ted Cruz')->SaveObject(new DateTime())->SaveObject($blob->PopBytes())->SaveObject($wstr)->SaveObject('254000.15');
 
 	$blob->SaveAString($str);
-    //2nd set
-    $buff->SaveObject(1)->SaveObject('Donald Trump')->SaveObject(new DateTime())->SaveObject($blob->PopBytes())->SaveObject($str)->SaveObject(20254000.35);
+    	//2nd set
+    	$buff->SaveObject(1)->SaveObject('Donald Trump')->SaveObject(new DateTime())->SaveObject($blob->PopBytes())->SaveObject($str)->SaveObject(20254000.35);
 
 	$blob->SaveAString($str)->SaveString($wstr);
-    //3rd set
-    $buff->SaveObject(2)->SaveObject('Hillary Clinton')->SaveObject(new DateTime())->SaveObject($blob->PopBytes())->SaveObject($wstr)->SaveObject(6254000.42);
+    	//3rd set
+    	$buff->SaveObject(2)->SaveObject('Hillary Clinton')->SaveObject(new DateTime())->SaveObject($blob->PopBytes())->SaveObject($wstr)->SaveObject(6254000.42);
 	if (!$db->Execute($buff, $cb_ex)) {
 		return false;
 	}
@@ -81,13 +83,13 @@ $cbOutput = function($v, $proc) {
 };
 
 function TestStoredProcedure($db, $cb_ex) {
-	global $cbOutput;
-	if (!$db->Prepare('call mysqldb.sp_TestProc(?,?,?)')) {
+	global $cbOutput, $cb_err;
+	if (!$db->Prepare('call mysqldb.sp_TestProc(?,?,?)', $cb_err)) {
 		return false;
 	}
 	$vParam = array(1, 1.25, null, //1st set
-     2, 1.14, null, //2nd set
-     0, 2.18, null //3rd set
+     		2, 1.14, null, //2nd set
+     		0, 2.18, null //3rd set
 	);
 	if (!$db->Execute($vParam, $cb_ex, $cbOutput)) {
 		return false;
@@ -122,28 +124,28 @@ function TestBatch($db, $cb_ex) {
 	$blob->SaveString($wstr);
 
 	//1st set
-    //INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?)
+    	//INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?)
 	$buff->SaveObject(1)->SaveObject('Google Inc.')->SaveObject('1600 Amphitheatre Parkway, Mountain View, CA 94043, USA')->SaveObject(66000000000.15);
-    //insert into employee(CompanyId,name,JoinDate,image,DESCRIPTION,Salary)values(?,?,?,?,?,?)
-    $buff->SaveObject(1); //Google company id
-    $blob->SaveString($wstr); //UNICODE string
-    $buff->SaveObject('Ted Cruz')->SaveObject(new DateTime())->SaveObject($blob->PopBytes())->SaveObject($wstr)->SaveObject(254000.15);
-    //call sp_TestProc(?,?,?)
-    $buff->SaveObject(1)->SaveObject(1.25)->SaveObject(null);
+	//insert into employee(CompanyId,name,JoinDate,image,DESCRIPTION,Salary)values(?,?,?,?,?,?)
+	$buff->SaveObject(1); //Google company id
+	$blob->SaveString($wstr); //UNICODE string
+	$buff->SaveObject('Ted Cruz')->SaveObject(new DateTime())->SaveObject($blob->PopBytes())->SaveObject($wstr)->SaveObject(254000.15);
+	//call sp_TestProc(?,?,?)
+	$buff->SaveObject(1)->SaveObject(1.25)->SaveObject(null);
 
 	//2nd set
-    $buff->SaveObject(2)->SaveObject('Microsoft Inc.')->SaveObject('700 Bellevue Way NE- 22nd Floor, Bellevue, WA 98804, USA')->SaveObject('93600000000.12');
-    $buff->SaveObject(1); //Google company id
-    $blob->SaveAString($str); //ASCII string
-    $buff->SaveObject('Donald Trump')->SaveObject(new DateTime())->SaveObject($blob->PopBytes())->SaveObject($str, 'a')->SaveObject(20254000);
-    $buff->SaveObject(2)->SaveObject(1.14)->SaveObject(null);
+	$buff->SaveObject(2)->SaveObject('Microsoft Inc.')->SaveObject('700 Bellevue Way NE- 22nd Floor, Bellevue, WA 98804, USA')->SaveObject('93600000000.12');
+	$buff->SaveObject(1); //Google company id
+	$blob->SaveAString($str); //ASCII string
+	$buff->SaveObject('Donald Trump')->SaveObject(new DateTime())->SaveObject($blob->PopBytes())->SaveObject($str, 'a')->SaveObject(20254000);
+	$buff->SaveObject(2)->SaveObject(1.14)->SaveObject(null);
 
 	//3rd set
-    $buff->SaveObject(3)->SaveObject('Apple Inc.')->SaveObject('1 Infinite Loop, Cupertino, CA 95014, USA')->SaveObject(234000000000.14);
-    $buff->SaveObject(2); //Microsoft company id
-    $blob->SaveAString($str)->SaveString(wstr);
-    $buff->SaveObject('Hillary Clinton')->SaveObject(new DateTime())->SaveObject($blob->PopBytes())->SaveObject($wstr)->SaveObject('6254000.15');
-    $buff->SaveObject(0)->SaveObject(8.16)->SaveObject(null);
+	$buff->SaveObject(3)->SaveObject('Apple Inc.')->SaveObject('1 Infinite Loop, Cupertino, CA 95014, USA')->SaveObject(234000000000.14);
+	$buff->SaveObject(2); //Microsoft company id
+	$blob->SaveAString($str)->SaveString($wstr);
+	$buff->SaveObject('Hillary Clinton')->SaveObject(new DateTime())->SaveObject($blob->PopBytes())->SaveObject($wstr)->SaveObject('6254000.15');
+	$buff->SaveObject(0)->SaveObject(8.16)->SaveObject(null);
 	return $db->ExecuteBatch(SPA\ClientSide\CAsyncDb::tiUnspecified, $sql, $buff, $cb_ex, $cbOutput, $cbMeta, null, SPA\ClientSide\CAsyncDb::rpDefault, null, '|');
 }
 
@@ -166,7 +168,7 @@ try {
 		if (!TestStoredProcedure($db, $cb_err_ex)) {
 			break;
 		}
-		if (!TestBatch($db, $cb_ex)) {
+		if (!TestBatch($db, $cb_err_ex)) {
 			break;
 		}
 		$sql = "select actor_id, first_name from sakila.actor where actor_id between ? and ?";
