@@ -6,51 +6,27 @@ $idSayHello = $idReservedTwo + 1;
 $idSleep = $idReservedTwo + 2;
 $idEcho = $idReservedTwo + 3;
 
-$rh = function($q, $reqId) {
-	global $idSayHello, $idEcho;
-	if ($reqId == $idSayHello) {
-		echo $q->LoadString();
-	}
-	else if ($reqId == $idEcho) {
-		//de-serialize when result comes from a remote server
-		$d = array(
-			'nullStr' => $q->LoadString(),
-			'objNull' => $q->LoadObject(),
-			'aDate' => $q->LoadDate(),
-			'aDouble' => $q->LoadDouble(),
-			'aBool' => $q->LoadBool(),
-			'unicodeStr' => $q->LoadString(),
-			'asciiStr' => $q->LoadAString(),
-			'objBool' => $q->LoadObject(),
-			'objString' => $q->LoadObject(),
-			'objArrString' => $q->LoadObject(),
-			'objArrInt' => $q->LoadObject()
-		);
-		echo 'Structure output: ';
-		echo var_dump($d);
-	}
-	echo '<br/>';
-};
-
-$cbCanceled = function($canceled, $reqId) {
-	echo canceled ? 'Request canceld<br/>' : 'Session closed<br/>';
-};
-
-$cbServerEx = function($em, $reqId) {
-	echo 'Error code: '.$em['ec'].', error message: '.$em['em'].'<br/>';
-};
-
 try {
 	do {
 		$hw = GetSpHandler('my_hello_world');
 
 		//streaming all requests for the best network efficiency
 		//async request
-		if(!$hw->SendRequest($idSayHello, SpBuffer()->SaveString('Hillary')->SaveString('Clinton'), $rh)) {
+		if(!$hw->SendRequest($idSayHello, SpBuffer()->SaveString('Hillary')->SaveString('Clinton'), function($q, $reqId) {
+			echo $q->LoadString();
+			echo '<br/>';
+		})) {
 			echo 'Session closed<br/>';
 			break;
 		}
-		if (!$hw->SendRequest($idSayHello, SpBuffer()->SaveString('Jack')->SaveString('Smith'), $rh, $cbCanceled, $cbServerEx)) {
+		if (!$hw->SendRequest($idSayHello, SpBuffer()->SaveString('Jack')->SaveString('Smith'), function($q, $reqId) {
+			echo $q->LoadString();
+			echo '<br/>';
+		}, function($canceled, $reqId) {
+			echo canceled ? 'Request canceld<br/>' : 'Session closed<br/>';
+		}, function($em, $reqId) {
+			echo 'Error code: '.$em['ec'].', error message: '.$em['em'].'<br/>';
+		})) {
 			echo 'Session closed<br/>';
 			break;
 		}
@@ -82,7 +58,25 @@ try {
 		$q->SaveObject($d['objString']); //2 bytes for data type + 4 bytes for string length + (length * 2) bytes for string data -- UTF16-lowendian
 		$q->SaveObject($d['objArrString']); //2 bytes for data type + 4 bytes for array size + (4 bytes for string length + (length * 2) bytes for string data) * arraysize -- UTF16-lowendian
 		$q->SaveObject($d['objArrInt']); //2 bytes for data type + 4 bytes for array size + arraysize * 8 bytes for int64_t data
-		if(!$hw->SendRequest($idEcho, $q, $rh)) {
+		if(!$hw->SendRequest($idEcho, $q, function($q, $reqId) {
+			//de-serialize when result comes from a remote server
+			$d = array(
+				'nullStr' => $q->LoadString(),
+				'objNull' => $q->LoadObject(),
+				'aDate' => $q->LoadDate(),
+				'aDouble' => $q->LoadDouble(),
+				'aBool' => $q->LoadBool(),
+				'unicodeStr' => $q->LoadString(),
+				'asciiStr' => $q->LoadAString(),
+				'objBool' => $q->LoadObject(),
+				'objString' => $q->LoadObject(),
+				'objArrString' => $q->LoadObject(),
+				'objArrInt' => $q->LoadObject()
+			);
+			echo 'Structure output: ';
+			echo var_dump($d);
+			echo '<br/>';
+		})) {
 			echo 'Session closed<br/>';
 			break;
 		}
