@@ -36,7 +36,6 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 # Object Files
 OBJECTFILES= \
 	${OBJECTDIR}/_ext/932346631/aclientw.o \
-	${OBJECTDIR}/_ext/932346631/error_code.o \
 	${OBJECTDIR}/_ext/932346631/membuffer.o \
 	${OBJECTDIR}/_ext/932346631/tablecache.o \
 	${OBJECTDIR}/basehandler.o \
@@ -87,17 +86,12 @@ ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libphpadapter.${CND_DLIB_EXT}: /usr/l
 
 ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libphpadapter.${CND_DLIB_EXT}: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
-	g++ -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libphpadapter.${CND_DLIB_EXT} ${OBJECTFILES} ${LDLIBSOPTIONS} -Wl,-z,defs -shared -fPIC
+	g++ -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libphpadapter.${CND_DLIB_EXT} ${OBJECTFILES} ${LDLIBSOPTIONS} -shared -fPIC
 
 ${OBJECTDIR}/_ext/932346631/aclientw.o: ../../../include/aclientw.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/932346631
 	${RM} "$@.d"
 	$(COMPILE.c) -g -DPHP_ADAPTER_PROJECT -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/932346631/aclientw.o ../../../include/aclientw.cpp
-
-${OBJECTDIR}/_ext/932346631/error_code.o: ../../../include/error_code.cpp 
-	${MKDIR} -p ${OBJECTDIR}/_ext/932346631
-	${RM} "$@.d"
-	$(COMPILE.c) -g -DPHP_ADAPTER_PROJECT -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/932346631/error_code.o ../../../include/error_code.cpp
 
 ${OBJECTDIR}/_ext/932346631/membuffer.o: ../../../include/membuffer.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/932346631
