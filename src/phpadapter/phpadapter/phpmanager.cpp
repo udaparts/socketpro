@@ -396,14 +396,14 @@ namespace PA
                 throw Php::Exception(Manager.m_errMsg.c_str());
             }
 #else
-			std::string jsFile = Php::call("php_ini_loaded_file").stringValue();
-			size_t pos = jsFile.rfind(SYS_DIR);
-			jsFile = jsFile.substr(0, pos);
-			Trim(jsFile);
-			if (!jsFile.size()) {
-				Manager.m_errMsg = "No php.ini path found";
-				throw Php::Exception(Manager.m_errMsg.c_str());
-			}
+            std::string jsFile = Php::call("php_ini_loaded_file").stringValue();
+            size_t pos = jsFile.rfind(SYS_DIR);
+            jsFile = jsFile.substr(0, pos);
+            Trim(jsFile);
+            if (!jsFile.size()) {
+                Manager.m_errMsg = "No php.ini path found";
+                throw Php::Exception(Manager.m_errMsg.c_str());
+            }
 #endif
             if (jsFile.back() != SYS_DIR) {
                 jsFile.push_back(SYS_DIR);
@@ -414,7 +414,7 @@ namespace PA
 #ifdef WIN32_64
             Manager.CertStore = "root";
 #else
-            //Manager.CertStore = ".";
+            Manager.CertStore = Php::call("openssl_get_cert_locations").get("default_cert_dir").stringValue();
 #endif
         } else {
             return Php::Object((SPA_CS_NS + PHP_MANAGER).c_str(), new CPhpManager(&Manager));
