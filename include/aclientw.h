@@ -73,8 +73,8 @@ using v8::Array;
 namespace NJA {
     class NJSocketPool;
     void ThrowException(Isolate* isolate, const char *str);
-    Local<Value> From(Isolate* isolate, const VARIANT &vt, bool strForDec = false);
-    Local<Value> DbFrom(Isolate* isolate, SPA::CUQueue &buff, bool strForDec = false);
+    Local<Value> From(Isolate* isolate, const VARIANT &vt);
+    Local<Value> DbFrom(Isolate* isolate, SPA::CUQueue &buff);
     Local<String> ToStr(Isolate* isolate, const char *str, size_t len = (size_t) INVALID_NUMBER);
     Local<String> ToStr(Isolate* isolate, const wchar_t *str, size_t len = (size_t) INVALID_NUMBER);
     bool IsNullOrUndefined(const Local<Value> &v);

@@ -381,10 +381,10 @@ namespace PA
         try{
             DECIMAL dec;
             *m_pBuffer >> dec;
-            if (dec.Hi32) {
+            if (dec.Hi32 || dec.Lo64 > SPA::SAFE_DOUBLE) {
                 return SPA::ToString_long(dec);
             }
-            return SPA::ToString(dec);
+            return SPA::ToDouble(dec);
         }
         BufferLoadCatch
     }
@@ -898,10 +898,10 @@ namespace PA
                                     DECIMAL *p = (DECIMAL *) m_pBuffer->GetBuffer();
                                     for (unsigned int n = 0; n < count; ++n) {
                                         DECIMAL &dec = p[n];
-                                        if (dec.Hi32) {
+                                        if (dec.Hi32 || dec.Lo64 > SPA::SAFE_DOUBLE) {
                                             arr.push_back(SPA::ToString_long(dec));
                                         } else {
-                                            arr.push_back(SPA::ToString(dec));
+                                            arr.push_back(SPA::ToDouble(dec));
                                         }
                                     }
                                     m_pBuffer->Pop(count * sizeof (DECIMAL));

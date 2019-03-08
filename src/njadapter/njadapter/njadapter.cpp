@@ -75,23 +75,28 @@ namespace NJA {
     void KeyAllowed(const FunctionCallbackInfo<Value>& args) {
         auto isolate = args.GetIsolate();
         auto p0 = args[0];
-        if (node::Buffer::HasInstance(p0)) {
-            char *bytes = node::Buffer::Data(p0);
-            unsigned int len = (unsigned int) node::Buffer::Length(p0);
-            {
-                SPA::CAutoLock al(g_cs);
-                g_KeyAllowed.SetSize(0);
-                g_KeyAllowed.Push((const unsigned char*) bytes, len);
-            }
-            args.GetReturnValue().Set(p0);
+        if (p0->IsArray()) {
+			Local<Array> jsArr = Local<Array>::Cast(p0);
+			unsigned int count = jsArr->Length();
+			SPA::CAutoLock al(g_cs);
+			g_KeyAllowed.clear();
+			for (unsigned int n = 0; n < count; ++n) {
+				auto v = jsArr->Get(n);
+				if (v->IsString()) {
+					String::Utf8Value str(v);
+					std::string s = *str;
+					Trim(s);
+					std::transform(s.begin(), s.end(), s.begin(), ::tolower);
+					g_KeyAllowed.push_back(std::move(s));
+				}
+			}
+			args.GetReturnValue().SetNull();
         } else if (IsNullOrUndefined(p0)) {
-            {
-                SPA::CAutoLock al(g_cs);
-                g_KeyAllowed.SetSize(0);
-            }
-            args.GetReturnValue().SetNull();
+            SPA::CAutoLock al(g_cs);
+			g_KeyAllowed.clear();
+			args.GetReturnValue().SetNull();
         } else {
-            ThrowException(isolate, "A buffer containing an array of bytes expected for a public key");
+            ThrowException(isolate, "A buffer containing an array of allowed public key hex strings");
         }
     }
 

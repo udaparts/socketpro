@@ -13,6 +13,8 @@
 
 namespace SPA {
 
+	extern const UINT64 SAFE_DOUBLE;
+
     class CUQueue;
 
     namespace Utilities {

@@ -201,6 +201,15 @@ namespace SPA {
 
 namespace NJA {
 
+	void Trim(std::string & str) {
+		while (str.size() && std::isspace(str.back())) {
+			str.pop_back();
+		}
+		while (str.size() && std::isspace(str.front())) {
+			str.erase(0, 1);
+		}
+	}
+
     int time_offset(time_t rawtime) {
         time_t gmt;
         struct tm *ptm;
@@ -681,7 +690,7 @@ namespace NJA {
         return true;
     }
 
-    Local<Value> DbFrom(Isolate* isolate, SPA::CUQueue &buff, bool strForDec) {
+    Local<Value> DbFrom(Isolate* isolate, SPA::CUQueue &buff) {
         VARTYPE type;
         buff >> type;
         switch (type) {
@@ -768,8 +777,8 @@ namespace NJA {
             {
                 DECIMAL decVal;
                 buff >> decVal;
-                if (strForDec)
-                    return ToStr(isolate, SPA::ToString(decVal).c_str());
+                if (decVal.Hi32 || decVal.Lo64 > SAFE_DOUBLE)
+                    return ToStr(isolate, SPA::ToString_long(decVal).c_str());
                 return Number::New(isolate, ToDouble(decVal));
             }
             case VT_DATE:
@@ -825,7 +834,7 @@ namespace NJA {
         return Undefined(isolate);
     }
 
-    Local<Value> From(Isolate* isolate, const VARIANT &vt, bool strForDec) {
+    Local<Value> From(Isolate* isolate, const VARIANT &vt) {
         VARTYPE type = vt.vt;
         switch (type) {
             case VT_NULL:
@@ -864,7 +873,7 @@ namespace NJA {
                 return Number::New(isolate, d);
             }
             case VT_DECIMAL:
-                if (strForDec)
+                if (vt.decVal.Hi32 || vt.decVal.Lo64 > SAFE_DOUBLE)
                     return ToStr(isolate, SPA::ToString(vt.decVal).c_str());
                 return Number::New(isolate, ToDouble(vt.decVal));
             case VT_DATE:
@@ -940,8 +949,8 @@ namespace NJA {
                                     case VT_DECIMAL:
                                     {
                                         DECIMAL *p = (DECIMAL *) pvt;
-                                        if (strForDec)
-                                            v->Set(n, ToStr(isolate, SPA::ToString(p[n]).c_str()));
+                                        if (p->Hi32 || p->Lo64 > SAFE_DOUBLE)
+                                            v->Set(n, ToStr(isolate, SPA::ToString_long(p[n]).c_str()));
                                         else
                                             v->Set(n, Number::New(isolate, SPA::ToDouble(p[n])));
                                     }
@@ -967,7 +976,7 @@ namespace NJA {
                                         Local<Array> v = Array::New(isolate);
                                         for (unsigned int n = 0; n < count; ++n) {
                                             VARIANT *p = (VARIANT *) pvt;
-                                            v->Set(n, From(isolate, p[n], strForDec));
+                                            v->Set(n, From(isolate, p[n]));
                                         }
                                         ::SafeArrayUnaccessData(vt.parray);
                                         return v;
@@ -1346,10 +1355,12 @@ namespace NJA {
     }
 
     SPA::CUCriticalSection g_cs;
-    SPA::CUQueue g_KeyAllowed;
+	std::vector<std::string> g_KeyAllowed;
     const char* UNSUPPORTED_TYPE = "Unsupported data type";
     const char* UNSUPPORTED_ARRAY_TYPE = "Unsupported data array type";
     const char* BOOLEAN_EXPECTED = "A boolean value expected";
     const char* BAD_DATA_TYPE = "Bad data type";
     const char* INTEGER_EXPECTED = "An integer value expected";
+
+	const SPA::UINT64 SAFE_DOUBLE = 0x0100000000000000ULL;
 }

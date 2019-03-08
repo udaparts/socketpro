@@ -388,14 +388,6 @@ namespace PA
         doc.SetObject();
         SPA::CAutoLock al(Manager.m_cs);
         if (!Manager.m_ConfigPath.size()) {
-#ifdef WIN32_64
-            std::string jsFile = Php::SERVER["PHPRC"].stringValue();
-            Trim(jsFile);
-            if (!jsFile.size()) {
-                Manager.m_errMsg = "No PHPRC path available";
-                throw Php::Exception(Manager.m_errMsg.c_str());
-            }
-#else
             std::string jsFile = Php::call("php_ini_loaded_file").stringValue();
             size_t pos = jsFile.rfind(SYS_DIR);
             jsFile = jsFile.substr(0, pos);
@@ -404,7 +396,6 @@ namespace PA
                 Manager.m_errMsg = "No php.ini path found";
                 throw Php::Exception(Manager.m_errMsg.c_str());
             }
-#endif
             if (jsFile.back() != SYS_DIR) {
                 jsFile.push_back(SYS_DIR);
             }

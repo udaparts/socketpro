@@ -12,6 +12,8 @@ namespace SPA
             std::vector<mb*> CScopeUQueueEx<InitSize, BlockSize, mb>::m_aUQueue;
 #endif
 
+    const UINT64 SAFE_DOUBLE = 0x0100000000000000ULL;
+
     unsigned int SHARED_BUFFER_CLEAN_SIZE = 32 * 1024;
 
     void CUQueue::ChangeArrayInt(void *p, unsigned char sizePerInt, unsigned int count) {

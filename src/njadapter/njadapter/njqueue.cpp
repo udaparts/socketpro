@@ -311,7 +311,10 @@ namespace NJA {
         Isolate* isolate = args.GetIsolate();
         NJQueue* obj = ObjectWrap::Unwrap<NJQueue>(args.Holder());
         if (obj->Load(isolate, b)) {
-            args.GetReturnValue().Set(ToStr(isolate, SPA::ToString(b).c_str()));
+			if (b.Hi32 || b.Lo64 > SAFE_DOUBLE)
+				args.GetReturnValue().Set(ToStr(isolate, SPA::ToString_long(b).c_str()));
+			else
+				args.GetReturnValue().Set(Number::New(isolate, ToDouble(b)));
         }
     }
 
@@ -736,7 +739,7 @@ namespace NJA {
             }
         }
         if (obj->Load(isolate, vt)) {
-            auto v = From(isolate, vt, obj->m_StrForDec);
+            auto v = From(isolate, vt);
             if (v->IsUndefined())
                 ThrowException(isolate, UNSUPPORTED_TYPE);
             else

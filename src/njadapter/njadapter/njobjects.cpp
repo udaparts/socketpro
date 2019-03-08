@@ -6,6 +6,7 @@
 #include "../../../include/rdbcache.h"
 #include "../../../include/masterpool.h"
 #include "njcache.h"
+#include "njcert.h"
 
 namespace NJA {
     using v8::Context;
@@ -105,24 +106,19 @@ namespace NJA {
     }
 
     bool NJSocketPool::DoAuthentication(IUcert *cert) {
-        {
-            SPA::CAutoLock al(m_cs);
-            if (!cert->Validity) {
-                m_errMsg = "Certificate not valid";
-                m_errSSL = -1;
-                return false;
-            }
-            m_errMsg = cert->Verify(&m_errSSL);
-            bool ok = (m_errSSL == 0);
-            if (ok) {
-                return true;
-            }
+        SPA::CAutoLock al(m_cs);
+        if (!cert->Validity) {
+            m_errMsg = "Certificate not valid";
+            m_errSSL = -1;
+            return false;
         }
-        SPA::CAutoLock al(g_cs);
-        if (cert->PKSize && g_KeyAllowed.GetSize() == cert->PKSize) {
-            return (::memcmp(g_KeyAllowed.GetBuffer(), cert->PublicKey, cert->PKSize) == 0);
+        m_errMsg = cert->Verify(&m_errSSL);
+        if (!m_errSSL) {
+            return true;
         }
-        return false;
+		std::string key = NJCert::ToString(cert->PublicKey, cert->PKSize);
+		auto it = std::find(g_KeyAllowed.cbegin(), g_KeyAllowed.cend(), key);
+		return (it != g_KeyAllowed.cend());
     }
 
     bool NJSocketPool::IsValid(Isolate* isolate) {
