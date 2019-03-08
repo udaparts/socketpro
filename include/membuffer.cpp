@@ -6,13 +6,13 @@ namespace SPA
 {
 #ifdef NODE_JS_ADAPTER_PROJECT
     template<unsigned int InitSize, unsigned int BlockSize, typename mb>
-            CUCriticalSection CScopeUQueueEx<InitSize, BlockSize, mb>::m_cs;
+    CUCriticalSection CScopeUQueueEx<InitSize, BlockSize, mb>::m_cs;
 
     template<unsigned int InitSize, unsigned int BlockSize, typename mb>
-            std::vector<mb*> CScopeUQueueEx<InitSize, BlockSize, mb>::m_aUQueue;
+    std::vector<mb*> CScopeUQueueEx<InitSize, BlockSize, mb>::m_aUQueue;
 #endif
 
-    const UINT64 SAFE_DOUBLE = 0x0100000000000000ULL;
+    const UINT64 SAFE_DOUBLE = 9007199254740991ULL; //2^53-1
 
     unsigned int SHARED_BUFFER_CLEAN_SIZE = 32 * 1024;
 
