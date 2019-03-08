@@ -63,7 +63,7 @@ namespace NJA {
     Local<Array> ToMeta(Isolate* isolate, const CDBColumnInfoArray &v);
     Local<Array> ToMeta(Isolate* isolate, const SPA::CKeyMap &mapkey);
     bool ToArray(Isolate* isolate, const Local<Value> &data, CDBVariantArray &v);
-	void Trim(std::string & str);
+    void Trim(std::string & str);
     int time_offset(time_t rawtime);
 
     extern SPA::CUCriticalSection g_cs;

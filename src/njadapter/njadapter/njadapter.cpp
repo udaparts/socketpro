@@ -76,25 +76,25 @@ namespace NJA {
         auto isolate = args.GetIsolate();
         auto p0 = args[0];
         if (p0->IsArray()) {
-			Local<Array> jsArr = Local<Array>::Cast(p0);
-			unsigned int count = jsArr->Length();
-			SPA::CAutoLock al(g_cs);
-			g_KeyAllowed.clear();
-			for (unsigned int n = 0; n < count; ++n) {
-				auto v = jsArr->Get(n);
-				if (v->IsString()) {
-					String::Utf8Value str(v);
-					std::string s = *str;
-					Trim(s);
-					std::transform(s.begin(), s.end(), s.begin(), ::tolower);
-					g_KeyAllowed.push_back(std::move(s));
-				}
-			}
-			args.GetReturnValue().SetNull();
+            Local<Array> jsArr = Local<Array>::Cast(p0);
+            unsigned int count = jsArr->Length();
+            SPA::CAutoLock al(g_cs);
+            g_KeyAllowed.clear();
+            for (unsigned int n = 0; n < count; ++n) {
+                auto v = jsArr->Get(n);
+                if (v->IsString()) {
+                    String::Utf8Value str(v);
+                    std::string s = *str;
+                    Trim(s);
+                    std::transform(s.begin(), s.end(), s.begin(), ::tolower);
+                    g_KeyAllowed.push_back(std::move(s));
+                }
+            }
+            args.GetReturnValue().SetNull();
         } else if (IsNullOrUndefined(p0)) {
             SPA::CAutoLock al(g_cs);
-			g_KeyAllowed.clear();
-			args.GetReturnValue().SetNull();
+            g_KeyAllowed.clear();
+            args.GetReturnValue().SetNull();
         } else {
             ThrowException(isolate, "A buffer containing an array of allowed public key hex strings");
         }

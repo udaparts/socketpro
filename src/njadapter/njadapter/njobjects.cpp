@@ -116,9 +116,9 @@ namespace NJA {
         if (!m_errSSL) {
             return true;
         }
-		std::string key = NJCert::ToString(cert->PublicKey, cert->PKSize);
-		auto it = std::find(g_KeyAllowed.cbegin(), g_KeyAllowed.cend(), key);
-		return (it != g_KeyAllowed.cend());
+        std::string key = NJCert::ToString(cert->PublicKey, cert->PKSize);
+        auto it = std::find(g_KeyAllowed.cbegin(), g_KeyAllowed.cend(), key);
+        return (it != g_KeyAllowed.cend());
     }
 
     bool NJSocketPool::IsValid(Isolate* isolate) {

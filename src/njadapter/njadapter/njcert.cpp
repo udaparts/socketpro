@@ -34,20 +34,20 @@ namespace NJA {
         args.GetReturnValue().Set(res);
     }
 
-	std::string NJCert::ToString(const unsigned char *buffer, unsigned int bytes) {
-		std::string s;
-		char str[8] = { 0 };
-		if (!buffer) bytes = 0;
-		for (unsigned int n = 0; n < bytes; ++n) {
+    std::string NJCert::ToString(const unsigned char *buffer, unsigned int bytes) {
+        std::string s;
+        char str[8] = {0};
+        if (!buffer) bytes = 0;
+        for (unsigned int n = 0; n < bytes; ++n) {
 #ifdef WIN32_64
-			sprintf_s(str, "%02x", buffer[n]);
+            sprintf_s(str, "%02x", buffer[n]);
 #else
-			sprintf(str, "%02x", buffer[n]);
+            sprintf(str, "%02x", buffer[n]);
 #endif
-			s += str;
-		}
-		return s;
-	}
+            s += str;
+        }
+        return s;
+    }
 
     Local<Object> NJCert::New(Isolate* isolate, SPA::IUcert *c, bool setCb) {
         assert(c);
@@ -67,7 +67,7 @@ namespace NJA {
         jsCert->Set(ToStr(isolate, "CertPem"), ToStr(isolate, c->CertPem));
         jsCert->Set(ToStr(isolate, "SessionInfo"), ToStr(isolate, c->SessionInfo));
         jsCert->Set(ToStr(isolate, "PublicKey"), ToStr(isolate, ToString(c->PublicKey, c->PKSize).c_str()));
-		jsCert->Set(ToStr(isolate, "Algorithm"), ToStr(isolate, ToString(c->Algorithm, c->AlgSize).c_str()));
+        jsCert->Set(ToStr(isolate, "Algorithm"), ToStr(isolate, ToString(c->Algorithm, c->AlgSize).c_str()));
         jsCert->Set(ToStr(isolate, "SerialNumber"), ToStr(isolate, ToString(c->SerialNumber, c->SNSize).c_str()));
 
         return jsCert;

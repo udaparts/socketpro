@@ -13,7 +13,7 @@
 
 namespace SPA {
 
-	extern const UINT64 SAFE_DOUBLE;
+    extern const UINT64 SAFE_DOUBLE;
 
     class CUQueue;
 

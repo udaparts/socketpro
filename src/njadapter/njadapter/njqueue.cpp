@@ -311,10 +311,10 @@ namespace NJA {
         Isolate* isolate = args.GetIsolate();
         NJQueue* obj = ObjectWrap::Unwrap<NJQueue>(args.Holder());
         if (obj->Load(isolate, b)) {
-			if (b.Hi32 || b.Lo64 > SAFE_DOUBLE)
-				args.GetReturnValue().Set(ToStr(isolate, SPA::ToString_long(b).c_str()));
-			else
-				args.GetReturnValue().Set(Number::New(isolate, ToDouble(b)));
+            if (b.Hi32 || b.Lo64 > SAFE_DOUBLE)
+                args.GetReturnValue().Set(ToStr(isolate, SPA::ToString_long(b).c_str()));
+            else
+                args.GetReturnValue().Set(Number::New(isolate, ToDouble(b)));
         }
     }
 

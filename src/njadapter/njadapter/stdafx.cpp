@@ -201,14 +201,14 @@ namespace SPA {
 
 namespace NJA {
 
-	void Trim(std::string & str) {
-		while (str.size() && std::isspace(str.back())) {
-			str.pop_back();
-		}
-		while (str.size() && std::isspace(str.front())) {
-			str.erase(0, 1);
-		}
-	}
+    void Trim(std::string & str) {
+        while (str.size() && std::isspace(str.back())) {
+            str.pop_back();
+        }
+        while (str.size() && std::isspace(str.front())) {
+            str.erase(0, 1);
+        }
+    }
 
     int time_offset(time_t rawtime) {
         time_t gmt;
@@ -1355,12 +1355,10 @@ namespace NJA {
     }
 
     SPA::CUCriticalSection g_cs;
-	std::vector<std::string> g_KeyAllowed;
+    std::vector<std::string> g_KeyAllowed;
     const char* UNSUPPORTED_TYPE = "Unsupported data type";
     const char* UNSUPPORTED_ARRAY_TYPE = "Unsupported data array type";
     const char* BOOLEAN_EXPECTED = "A boolean value expected";
     const char* BAD_DATA_TYPE = "Bad data type";
     const char* INTEGER_EXPECTED = "An integer value expected";
-
-	const SPA::UINT64 SAFE_DOUBLE = 0x0100000000000000ULL;
 }

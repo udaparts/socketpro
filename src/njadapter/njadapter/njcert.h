@@ -12,7 +12,7 @@ namespace NJA {
         NJCert& operator=(const NJCert &c) = delete;
         static void Init(Local<Object> exports);
         static Local<Object> New(Isolate* isolate, SPA::IUcert *c, bool setCb);
-		static std::string ToString(const unsigned char *buffer, unsigned int bytes);
+        static std::string ToString(const unsigned char *buffer, unsigned int bytes);
 
     private:
         static const SPA::INT64 SECRECT_NUM = 0x1bd02ce4a5;
