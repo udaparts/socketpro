@@ -13,11 +13,13 @@ namespace PA {
     public:
         CPhpQueue(unsigned int poolId, CAsyncQueue *aq, bool locked);
         CPhpQueue(const CPhpQueue &q) = delete;
+		~CPhpQueue();
 
     public:
         CPhpQueue& operator=(const CPhpQueue &q) = delete;
         static void RegisterInto(Php::Class<CPhpBaseHandler> &base, Php::Namespace &cs);
         Php::Value __get(const Php::Value &name);
+		void __set(const Php::Value &name, const Php::Value &value);
 
     protected:
         void PopTopCallbacks(PACallback &cb);
@@ -43,6 +45,8 @@ namespace PA {
     private:
         CAsyncQueue *m_aq;
         std::shared_ptr<CPhpBuffer> m_pBuff;
+		Php::Value m_rr;
+		SPA::CUQueue *m_qRR;
         static const char *PHP_QUEUE_KEY;
         static const char *PHP_QUEUE_MESSAGES;
         static const char *PHP_QUEUE_FILESIZE;
