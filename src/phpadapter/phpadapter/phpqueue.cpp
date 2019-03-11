@@ -14,38 +14,35 @@ namespace PA
             : CPhpBaseHandler(locked, aq, poolId), m_aq(aq), m_pBuff(new CPhpBuffer), m_qRR(nullptr) {
     }
 
-	CPhpQueue::~CPhpQueue() {
-		std::unique_lock<std::mutex> al(m_mPhp);
-		SPA::CScopeUQueue::Unlock(m_qRR);
-	}
+    CPhpQueue::~CPhpQueue() {
+        std::unique_lock<std::mutex> al(m_mPhp);
+        SPA::CScopeUQueue::Unlock(m_qRR);
+    }
 
     Php::Value CPhpQueue::__get(const Php::Value & name) {
         if (name == "AutoNotified") {
             return m_aq->GetEnqueueNotified();
         } else if (name == "DequeueBatchSize") {
             return (int64_t) m_aq->GetDequeueBatchSize();
+        } else if (name == "RR" || name == "ResultReturned") {
+            std::unique_lock<std::mutex> al(m_mPhp);
+            return m_rr;
         }
-		else if (name == "RR" || name == "ResultReturned") {
-			std::unique_lock<std::mutex> al(m_mPhp);
-			return m_rr;
-		}
         return CPhpBaseHandler::__get(name);
     }
 
-	void CPhpQueue::__set(const Php::Value &name, const Php::Value &value) {
-		if (name == "RR" || name == "ResultReturned") {
-			if (value.isNull() || value.isCallable()) {
-				std::unique_lock<std::mutex> al(m_mPhp);
-				m_rr = value;
-			}
-			else {
-				throw Php::Exception("A callable or null value expected for tracking dequing results");
-			}
-		}
-		else {
-			Php::Base::__set(name, value);
-		}
-	}
+    void CPhpQueue::__set(const Php::Value &name, const Php::Value & value) {
+        if (name == "RR" || name == "ResultReturned") {
+            if (value.isNull() || value.isCallable()) {
+                std::unique_lock<std::mutex> al(m_mPhp);
+                m_rr = value;
+            } else {
+                throw Php::Exception("A callable or null value expected for tracking dequing results");
+            }
+        } else {
+            Php::Base::__set(name, value);
+        }
+    }
 
     Php::Value CPhpQueue::CloseQueue(Php::Parameters & params) {
         unsigned int timeout;
@@ -176,36 +173,35 @@ namespace PA
         }
         {
             std::unique_lock<std::mutex> lk(m_mPhp);
-			if (m_rr.isCallable()) {
-				m_aq->ResultReturned = [this](SPA::ClientSide::CAsyncServiceHandler *ash, unsigned short reqId, SPA::CUQueue &q) -> bool {
-					if (reqId >= SPA::Queue::idEnqueue && reqId <= SPA::Queue::idEnqueueBatch) {
-						return false;
-					}
-					bool processed = false;
-					switch (reqId) {
-					case SPA::Queue::idBatchSizeNotified:
-						break;
-					default:
-					{
-						processed = true;
-						std::unique_lock<std::mutex> lk(this->m_mPhp);
-						if (!this->m_qRR) {
-							this->m_qRR = SPA::CScopeUQueue::Lock(q.GetOS(), q.GetEndian());
-						}
-						*this->m_qRR << reqId << q.GetSize();
-						if (q.GetSize()) {
-							this->m_qRR->Push(q.GetBuffer(), q.GetSize());
-							q.SetSize(0);
-						}
-					}
-						break;
-					}
-					return processed;
-				};
-			}
-			else {
-				m_aq->ResultReturned = nullptr;
-			}
+            if (m_rr.isCallable()) {
+                m_aq->ResultReturned = [this](SPA::ClientSide::CAsyncServiceHandler *ash, unsigned short reqId, SPA::CUQueue & q) -> bool {
+                    if (reqId >= SPA::Queue::idEnqueue && reqId <= SPA::Queue::idEnqueueBatch) {
+                        return false;
+                    }
+                    bool processed = false;
+                    switch (reqId) {
+                        case SPA::Queue::idBatchSizeNotified:
+                            break;
+                        default:
+                        {
+                            processed = true;
+                            std::unique_lock<std::mutex> lk(this->m_mPhp);
+                            if (!this->m_qRR) {
+                                this->m_qRR = SPA::CScopeUQueue::Lock(q.GetOS(), q.GetEndian());
+                            }
+                            *this->m_qRR << reqId << q.GetSize();
+                            if (q.GetSize()) {
+                                this->m_qRR->Push(q.GetBuffer(), q.GetSize());
+                                q.SetSize(0);
+                            }
+                        }
+                            break;
+                    }
+                    return processed;
+                };
+            } else {
+                m_aq->ResultReturned = nullptr;
+            }
             if (sync) {
                 ReqSyncEnd(m_aq->Dequeue(key.c_str(), f, to, discarded), lk, timeout);
                 return ToDeqValue(pF.get());
@@ -583,9 +579,9 @@ namespace PA
         handler.method<&CPhpQueue::CloseQueue>("Close",{
             Php::ByVal(PHP_QUEUE_KEY, Php::Type::String)
         });
-		handler.method<&CPhpQueue::CloseQueue>("CloseQueue", {
-			Php::ByVal(PHP_QUEUE_KEY, Php::Type::String)
-		});
+        handler.method<&CPhpQueue::CloseQueue>("CloseQueue",{
+            Php::ByVal(PHP_QUEUE_KEY, Php::Type::String)
+        });
         handler.method<&CPhpQueue::GetKeys>("GetKeys",{
             Php::ByVal(PHP_SENDREQUEST_SYNC, Php::Type::Null)
         });
@@ -621,21 +617,21 @@ namespace PA
 
     void CPhpQueue::PopTopCallbacks(PACallback & cb) {
         unsigned short reqId;
-		if (m_qRR && m_qRR->GetSize()) {
-			if (m_rr.isCallable()) {
-				unsigned short reqId;
-				unsigned int bytes;
-				while (m_qRR->GetSize()) {
-					*m_qRR >> reqId >> bytes;
-					CPhpBuffer *buff = new CPhpBuffer;
-					buff->GetBuffer()->Push(m_qRR->GetBuffer(), bytes);
-					Php::Object q((SPA_NS + PHP_BUFFER).c_str(), buff);
-					m_qRR->Pop(bytes);
-					m_rr(q, reqId);
-				}
-			}
-			m_qRR->SetSize(0);
-		}
+        if (m_qRR && m_qRR->GetSize()) {
+            if (m_rr.isCallable()) {
+                unsigned short reqId;
+                unsigned int bytes;
+                while (m_qRR->GetSize()) {
+                    *m_qRR >> reqId >> bytes;
+                    CPhpBuffer *buff = new CPhpBuffer;
+                    buff->GetBuffer()->Push(m_qRR->GetBuffer(), bytes);
+                    Php::Object q((SPA_NS + PHP_BUFFER).c_str(), buff);
+                    m_qRR->Pop(bytes);
+                    m_rr(q, reqId);
+                }
+            }
+            m_qRR->SetSize(0);
+        }
         auto &callback = *cb.CallBack;
         switch (cb.CallbackType) {
             case ctQueueTrans:
