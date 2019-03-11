@@ -39,49 +39,8 @@ function testEnqueue($sq) {
 	return $ok;
 }
 
-/*
-function testDequeue($sq, $cb) {
-	global $TEST_QUEUE_KEY;
-    echo 'Going to dequeue messages ......<br/>';
-    //optionally, add one extra to improve processing concurrency at both client and server sides for better performance and through-output
-    return $sq->Dequeue($TEST_QUEUE_KEY, $cb) && $sq->Dequeue($TEST_QUEUE_KEY, $cb);
-}
-
-$cb = function($mc, $fsize, $msgs, $bytes) {
-	global $cb, $sq, $TEST_QUEUE_KEY;
-	echo 'Total message count=' . $mc . ', queue file size=' . $fsize . ', messages dequeued=' . $msgs . ', message bytes dequeued=' . $bytes . '<br/>';
-	if ($mc) {
-        $sq->Dequeue($TEST_QUEUE_KEY, $cb);
-    }
-};
-*/
-
 try {
 	$sq = LockSpHandler('my_queue');
-	/*
-	$sq->ResultReturned = function($q, $id) {
-		global $idMessage0, $idMessage1, $idMessage2, $idMessage3, $idMessage4;
-		switch ($id) {
-		case $idMessage0:
-		case $idMessage1:
-		case $idMessage2:
-			//parse a dequeued message which should be the same as the above enqueued message (two unicode strings and one int)
-			$name = $q->LoadString();
-			$str = $q->LoadString();
-			$index = $q->LoadInt();
-			echo 'message id='.$id.', name='.$name.', str='.$str.', index='.$index.'<br/>';
-			break;
-		case $idMessage3:
-			echo $q->LoadString().' '.$q->LoadString().'<br/>';
-			break;
-		case $idMessage4:
-			echo 'Bool true: '.$q->LoadBool().', double: '.$q->LoadDouble().', string: '.$q->LoadString().'<br/>';
-			break;
-		default:
-			break;
-		}
-	};
-	*/
 	$ok = true;
 	do {
 		$ok = $sq->StartTrans($TEST_QUEUE_KEY);
@@ -105,15 +64,8 @@ try {
 		if (!$ok) {
 			break;
 		}
-		/*
-		$ok = testDequeue($sq, $cb);
-		if (!$ok) {
-			break;
-		}
-		*/
-		//echo 'Going to close queue<br/>';
-		//$sq->Close($TEST_QUEUE_KEY, true);
-		
+		echo 'Going to close queue<br/>';
+		$sq->Close($TEST_QUEUE_KEY);
 		$keys = $sq->GetKeys(true);
 		echo 'Keys opened: ';
 		echo var_dump($keys).'<br/>';

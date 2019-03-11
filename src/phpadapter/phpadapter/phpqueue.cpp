@@ -11,26 +11,36 @@ namespace PA
     const char *CPhpQueue::PHP_QUEUE_BYTES_DEQUEUED = "bytesDequeued";
 
     CPhpQueue::CPhpQueue(unsigned int poolId, CAsyncQueue *aq, bool locked)
-            : CPhpBaseHandler(locked, aq, poolId), m_aq(aq), m_pBuff(new CPhpBuffer), m_qRR(nullptr) {
+            : CPhpBaseHandler(locked, aq, poolId), m_aq(aq), m_pBuff(new CPhpBuffer)
+#ifdef USE_DEQUEUE
+		, m_qRR(nullptr)
+#endif
+	{
     }
 
+#ifdef USE_DEQUEUE
     CPhpQueue::~CPhpQueue() {
         std::unique_lock<std::mutex> al(m_mPhp);
         SPA::CScopeUQueue::Unlock(m_qRR);
     }
+#endif
 
     Php::Value CPhpQueue::__get(const Php::Value & name) {
         if (name == "AutoNotified") {
             return m_aq->GetEnqueueNotified();
         } else if (name == "DequeueBatchSize") {
             return (int64_t) m_aq->GetDequeueBatchSize();
-        } else if (name == "RR" || name == "ResultReturned") {
+        }
+#ifdef USE_DEQUEUE
+		else if (name == "RR" || name == "ResultReturned") {
             std::unique_lock<std::mutex> al(m_mPhp);
             return m_rr;
         }
+#endif
         return CPhpBaseHandler::__get(name);
     }
 
+#ifdef USE_DEQUEUE
     void CPhpQueue::__set(const Php::Value &name, const Php::Value & value) {
         if (name == "RR" || name == "ResultReturned") {
             if (value.isNull() || value.isCallable()) {
@@ -43,6 +53,7 @@ namespace PA
             Php::Base::__set(name, value);
         }
     }
+#endif
 
     Php::Value CPhpQueue::CloseQueue(Php::Parameters & params) {
         unsigned int timeout;
@@ -113,6 +124,7 @@ namespace PA
         return v;
     }
 
+#ifdef USE_DEQUEUE
     Php::Value CPhpQueue::Dequeue(Php::Parameters & params) {
         std::string key = GetKey(params[0]);
         unsigned int timeout = (~0);
@@ -210,6 +222,7 @@ namespace PA
         }
         return m_aq->Dequeue(key.c_str(), f, to, discarded);
     }
+#endif
 
     Php::Value CPhpQueue::ToFlushValue(SPA::CUQueue * q) {
         SPA::INT64 messages, fileSize;
@@ -594,10 +607,12 @@ namespace PA
         handler.method<&CPhpQueue::FlushQueue>("Flush",{
             Php::ByVal(PHP_QUEUE_KEY, Php::Type::String)
         });
+#ifdef USE_DEQUEUE
         handler.method<&CPhpQueue::Dequeue>("Dequeue",{
             Php::ByVal(PHP_QUEUE_KEY, Php::Type::String),
             Php::ByVal(PHP_SENDREQUEST_SYNC, Php::Type::Null)
         });
+#endif
         handler.method<&CPhpQueue::BatchMessage>("Batch",{
             Php::ByVal("idMsg", Php::Type::Numeric),
             Php::ByVal(PHP_SENDREQUEST_BUFF, Php::Type::Null)
@@ -617,6 +632,7 @@ namespace PA
 
     void CPhpQueue::PopTopCallbacks(PACallback & cb) {
         unsigned short reqId;
+#ifdef USE_DEQUEUE
         if (m_qRR && m_qRR->GetSize()) {
             if (m_rr.isCallable()) {
                 unsigned short reqId;
@@ -632,6 +648,7 @@ namespace PA
             }
             m_qRR->SetSize(0);
         }
+#endif
         auto &callback = *cb.CallBack;
         switch (cb.CallbackType) {
             case ctQueueTrans:
