@@ -290,7 +290,7 @@ namespace PA
         std::wstring tableName = SPA::Utilities::ToWide(params[1].stringValue());
         auto km = m_ds.FindKeys(dbName.c_str(), tableName.c_str());
         for (auto &p : km) {
-            vArr.set(index, Php::Object((SPA_CS_NS + PHP_DB_COLUMN_INFO).c_str(), new CPhpDBColumnInfo(p.second)));
+            vArr.set(index, From(p.second));
             ++index;
         }
         return vArr;
@@ -303,7 +303,7 @@ namespace PA
         std::wstring tableName = SPA::Utilities::ToWide(params[1].stringValue());
         auto meta = m_ds.GetColumMeta(dbName.c_str(), tableName.c_str());
         for (auto &col : meta) {
-            vArr.set(index, Php::Object((SPA_CS_NS + PHP_DB_COLUMN_INFO).c_str(), new CPhpDBColumnInfo(col)));
+            vArr.set(index, From(col));
             ++index;
         }
         return vArr;

@@ -26,7 +26,7 @@ function testEnqueue($sq) {
 			$idMsg = $idMessage2;
 			break;
         }
-		$ok = $sq->Enqueue($TEST_QUEUE_KEY, $idMsg, $buff->SaveString('SampleName')->SaveString($str)->SaveInt($n), null);
+		$ok = $sq->Enqueue($TEST_QUEUE_KEY, $idMsg, $buff->SaveString('SampleName')->SaveString($str)->SaveInt($n));
 		$buff->Size = 0;
 		if (!$ok) {
 			echo 'Session closed<br/>';
@@ -39,26 +39,11 @@ function testEnqueue($sq) {
 	return $ok;
 }
 
-function testDequeue($sq, $cb) {
-	global $TEST_QUEUE_KEY;
-    echo 'Going to dequeue messages ......<br/>';
-    //optionally, add one extra to improve processing concurrency at both client and server sides for better performance and through-output
-    return $sq->Dequeue($TEST_QUEUE_KEY, $cb) && $sq->Dequeue($TEST_QUEUE_KEY, $cb);
-}
-
-$cb = function($mc, $fsize, $msgs, $bytes) {
-	global $cb, $sq, $TEST_QUEUE_KEY;
-	echo 'Total message count=' . $mc . ', queue file size=' . $fsize . ', messages dequeued=' . $msgs . ', message bytes dequeued=' . $bytes . '<br/>';
-	if ($mc) {
-        $sq->Dequeue($TEST_QUEUE_KEY, $cb);
-    }
-};
-
 try {
 	$sq = LockSpHandler('my_queue');
 	$ok = true;
 	do {
-		$ok = $sq->StartTrans($TEST_QUEUE_KEY, null);
+		$ok = $sq->StartTrans($TEST_QUEUE_KEY);
 		if (!$ok) {
 			break;
 		}
@@ -71,22 +56,16 @@ try {
 		$buff->Size = 0;
 		$sq->BatchMessage($idMessage4, $buff->SaveBool(true)->SaveDouble(234.456)->SaveString('MyTestWhatever'));
 		$buff->Size = 0;
-		$ok = $sq->EnqueueBatch($TEST_QUEUE_KEY, null);
+		$ok = $sq->EnqueueBatch($TEST_QUEUE_KEY);
 		if (!$ok) {
 			break;
 		}
-		$ok = $sq->EndTrans(false, null);
+		$ok = $sq->EndTrans(false);
 		if (!$ok) {
 			break;
 		}
-		$ok = testDequeue($sq, $cb);
-		if (!$ok) {
-			break;
-		}
-		$ok = $sq->CloseQueue($TEST_QUEUE_KEY, null);
-		if (!$ok) {
-			break;
-		}
+		echo 'Going to close queue<br/>';
+		$sq->Close($TEST_QUEUE_KEY);
 		$keys = $sq->GetKeys(true);
 		echo 'Keys opened: ';
 		echo var_dump($keys).'<br/>';

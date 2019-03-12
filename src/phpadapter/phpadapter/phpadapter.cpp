@@ -52,7 +52,6 @@ extern "C" {
         PA::CPhpQueue::RegisterInto(base, ClientSide);
 
         PA::CPhpManager::RegisterInto(ClientSide);
-        PA::CPhpDBColumnInfo::RegisterInto(ClientSide);
         PA::CPhpDBParamInfo::RegisterInto(ClientSide);
         PA::CPhpPush::RegisterInto(ClientSide);
         PA::CPhpClientQueue::RegisterInto(ClientSide);

@@ -22,7 +22,7 @@ namespace PA
             Php::Array vArr;
             auto meta = m_table->GetMeta();
             for (auto &col : meta) {
-                vArr.set(index, Php::Object((SPA_CS_NS + PHP_DB_COLUMN_INFO).c_str(), new CPhpDBColumnInfo(col)));
+                vArr.set(index, From(col));
                 ++index;
             }
             return vArr;
@@ -31,7 +31,7 @@ namespace PA
             Php::Array vArr;
             auto km = m_table->GetKeys();
             for (auto &p : km) {
-                vArr.set(index, Php::Object((SPA_CS_NS + PHP_DB_COLUMN_INFO).c_str(), new CPhpDBColumnInfo(p.second)));
+                vArr.set(index, From(p.second));
                 ++index;
             }
             return vArr;
