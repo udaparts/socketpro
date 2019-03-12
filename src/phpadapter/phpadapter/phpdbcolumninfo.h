@@ -3,7 +3,7 @@
 
 namespace PA {
 
-	Php::Value From(const SPA::UDB::CDBColumnInfo &ColInfo);
+    Php::Value From(const SPA::UDB::CDBColumnInfo &ColInfo);
 
 } //namespace PA
 

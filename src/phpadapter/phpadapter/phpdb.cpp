@@ -79,20 +79,20 @@ namespace PA
         handler.property("ueUpdate", SPA::UDB::ueUpdate, Php::Const);
         handler.property("ueDelete", SPA::UDB::ueDelete, Php::Const);
 
-		//DB Column info tags
-		handler.property("NOT_NULL", (int64_t)SPA::UDB::CDBColumnInfo::FLAG_NOT_NULL, Php::Const);
-		handler.property("UNIQUE", (int64_t)SPA::UDB::CDBColumnInfo::FLAG_UNIQUE, Php::Const);
-		handler.property("PRIMARY_KEY", (int64_t)SPA::UDB::CDBColumnInfo::FLAG_PRIMARY_KEY, Php::Const);
-		handler.property("AUTOINCREMENT", (int64_t)SPA::UDB::CDBColumnInfo::FLAG_AUTOINCREMENT, Php::Const);
-		handler.property("NOT_WRITABLE", (int64_t)SPA::UDB::CDBColumnInfo::FLAG_NOT_WRITABLE, Php::Const);
-		handler.property("ROWID", (int64_t)SPA::UDB::CDBColumnInfo::FLAG_ROWID, Php::Const);
-		handler.property("XML", (int64_t)SPA::UDB::CDBColumnInfo::FLAG_XML, Php::Const);
-		handler.property("JSON", (int64_t)SPA::UDB::CDBColumnInfo::FLAG_JSON, Php::Const);
-		handler.property("CASE_SENSITIVE", (int64_t)SPA::UDB::CDBColumnInfo::FLAG_CASE_SENSITIVE, Php::Const);
-		handler.property("ENUM", (int64_t)SPA::UDB::CDBColumnInfo::FLAG_IS_ENUM, Php::Const);
-		handler.property("SET", (int64_t)SPA::UDB::CDBColumnInfo::FLAG_IS_SET, Php::Const);
-		handler.property("UNSIGNED", (int64_t)SPA::UDB::CDBColumnInfo::FLAG_IS_UNSIGNED, Php::Const);
-		handler.property("BIT", (int64_t)SPA::UDB::CDBColumnInfo::FLAG_IS_BIT, Php::Const);
+        //DB Column info tags
+        handler.property("NOT_NULL", (int64_t) SPA::UDB::CDBColumnInfo::FLAG_NOT_NULL, Php::Const);
+        handler.property("UNIQUE", (int64_t) SPA::UDB::CDBColumnInfo::FLAG_UNIQUE, Php::Const);
+        handler.property("PRIMARY_KEY", (int64_t) SPA::UDB::CDBColumnInfo::FLAG_PRIMARY_KEY, Php::Const);
+        handler.property("AUTOINCREMENT", (int64_t) SPA::UDB::CDBColumnInfo::FLAG_AUTOINCREMENT, Php::Const);
+        handler.property("NOT_WRITABLE", (int64_t) SPA::UDB::CDBColumnInfo::FLAG_NOT_WRITABLE, Php::Const);
+        handler.property("ROWID", (int64_t) SPA::UDB::CDBColumnInfo::FLAG_ROWID, Php::Const);
+        handler.property("XML", (int64_t) SPA::UDB::CDBColumnInfo::FLAG_XML, Php::Const);
+        handler.property("JSON", (int64_t) SPA::UDB::CDBColumnInfo::FLAG_JSON, Php::Const);
+        handler.property("CASE_SENSITIVE", (int64_t) SPA::UDB::CDBColumnInfo::FLAG_CASE_SENSITIVE, Php::Const);
+        handler.property("ENUM", (int64_t) SPA::UDB::CDBColumnInfo::FLAG_IS_ENUM, Php::Const);
+        handler.property("SET", (int64_t) SPA::UDB::CDBColumnInfo::FLAG_IS_SET, Php::Const);
+        handler.property("UNSIGNED", (int64_t) SPA::UDB::CDBColumnInfo::FLAG_IS_UNSIGNED, Php::Const);
+        handler.property("BIT", (int64_t) SPA::UDB::CDBColumnInfo::FLAG_IS_BIT, Php::Const);
 
         handler.method<&CPhpDb::Open>("Open",{
             Php::ByVal("conn", Php::Type::String)
