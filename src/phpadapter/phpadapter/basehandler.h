@@ -14,6 +14,7 @@ namespace PA {
         ctQueueFlush,
         ctQueueGetKeys,
         ctDequeue,
+		ctDequeueResult,
         ctDbRes,
         ctDbExeRes,
         ctDbR,

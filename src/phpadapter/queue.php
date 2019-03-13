@@ -53,22 +53,47 @@ try {
 		}
 		$buff = SpBuffer();
 		$sq->BatchMessage($idMessage3, $buff->SaveString('Hello')->SaveString('World'));
-		$buff->Size = 0;
+		$buff->Size = 0; //reset buffer size to 0
 		$sq->BatchMessage($idMessage4, $buff->SaveBool(true)->SaveDouble(234.456)->SaveString('MyTestWhatever'));
-		$buff->Size = 0;
 		$ok = $sq->EnqueueBatch($TEST_QUEUE_KEY);
 		if (!$ok) {
 			break;
 		}
-		$ok = $sq->EndTrans(false);
+		$ok = $sq->EndTrans(false); //false -- commit, true -- rollback
 		if (!$ok) {
 			break;
 		}
-		echo 'Going to close queue<br/>';
-		$sq->Close($TEST_QUEUE_KEY);
-		$keys = $sq->GetKeys(true);
-		echo 'Keys opened: ';
-		echo var_dump($keys).'<br/>';
+		$ok = $sq->GetKeys(function($keys){
+			echo 'Keys opened: ';
+			echo var_dump($keys).'<br/>';
+		});
+		if (!$ok) {
+			break;
+		}
+		$res = null;
+		do {
+			//Dequeue is always synchronous
+			$res = $sq->Dequeue($TEST_QUEUE_KEY, function($q, $reqId){
+				global $idMessage0, $idMessage1, $idMessage2, $idMessage3, $idMessage4;
+				switch ($reqId) {
+				case $idMessage0:
+				case $idMessage1:
+				case $idMessage2:
+					echo $q->LoadString().':'.$q->LoadString().' '.$q->LoadInt().'<br/>';
+					break;
+				case $idMessage3:
+					echo $q->LoadString().' '.$q->LoadString().'<br/>';
+					break;
+				case $idMessage4:
+					echo 'Bool: '.$q->LoadBool().', double: '.$q->LoadDouble().', string: '.$q->LoadString().'<br/>';
+					break;
+				default:
+					throw new Exception("Unsupported message");
+					break;
+				}
+			});
+			echo var_dump($res).'<br/>';
+		} while($res['messages'] > 0);
 	} while(false);
 	if($ok) {
 		echo 'All requests executed successfully<br/>';

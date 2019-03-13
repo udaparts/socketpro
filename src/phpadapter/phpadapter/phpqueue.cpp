@@ -11,19 +11,8 @@ namespace PA
     const char *CPhpQueue::PHP_QUEUE_BYTES_DEQUEUED = "bytesDequeued";
 
     CPhpQueue::CPhpQueue(unsigned int poolId, CAsyncQueue *aq, bool locked)
-            : CPhpBaseHandler(locked, aq, poolId), m_aq(aq), m_pBuff(new CPhpBuffer)
-#ifdef USE_DEQUEUE
-		, m_qRR(nullptr)
-#endif
-	{
+            : CPhpBaseHandler(locked, aq, poolId), m_aq(aq), m_pBuff(new CPhpBuffer) {
     }
-
-#ifdef USE_DEQUEUE
-    CPhpQueue::~CPhpQueue() {
-        std::unique_lock<std::mutex> al(m_mPhp);
-        SPA::CScopeUQueue::Unlock(m_qRR);
-    }
-#endif
 
     Php::Value CPhpQueue::__get(const Php::Value & name) {
         if (name == "AutoNotified") {
@@ -31,29 +20,8 @@ namespace PA
         } else if (name == "DequeueBatchSize") {
             return (int64_t) m_aq->GetDequeueBatchSize();
         }
-#ifdef USE_DEQUEUE
-		else if (name == "RR" || name == "ResultReturned") {
-            std::unique_lock<std::mutex> al(m_mPhp);
-            return m_rr;
-        }
-#endif
         return CPhpBaseHandler::__get(name);
     }
-
-#ifdef USE_DEQUEUE
-    void CPhpQueue::__set(const Php::Value &name, const Php::Value & value) {
-        if (name == "RR" || name == "ResultReturned") {
-            if (value.isNull() || value.isCallable()) {
-                std::unique_lock<std::mutex> al(m_mPhp);
-                m_rr = value;
-            } else {
-                throw Php::Exception("A callable or null value expected for tracking dequing results");
-            }
-        } else {
-            Php::Base::__set(name, value);
-        }
-    }
-#endif
 
     Php::Value CPhpQueue::CloseQueue(Php::Parameters & params) {
         unsigned int timeout;
@@ -124,105 +92,55 @@ namespace PA
         return v;
     }
 
-#ifdef USE_DEQUEUE
     Php::Value CPhpQueue::Dequeue(Php::Parameters & params) {
         std::string key = GetKey(params[0]);
-        unsigned int timeout = (~0);
-        bool sync = false;
-        const Php::Value& phpF = params[1];
-        if (phpF.isNumeric()) {
-            timeout = (unsigned int) phpF.numericValue();
-            sync = true;
-        } else if (phpF.isBool()) {
-            sync = phpF.boolValue();
-        } else if (phpF.isNull()) {
-        } else if (!phpF.isCallable()) {
-            throw Php::Exception("A callback required for Dequeue final result");
-        }
-        CQPointer pF;
-        if (sync) {
-            pF.reset(SPA::CScopeUQueue::Lock(), [](SPA::CUQueue * q) {
-                SPA::CScopeUQueue::Unlock(q);
-            });
-        }
-        CPVPointer callback;
-        if (phpF.isCallable()) {
-            callback.reset(new Php::Value(phpF));
-        }
-        CAsyncQueue::DDequeue f = [callback, pF, this](CAsyncQueue *aq, SPA::UINT64 messages, SPA::UINT64 fileSize, unsigned int messagesDequeued, unsigned int bytesDequeued) {
-            if (pF) {
-                *pF << messages << fileSize << messagesDequeued << bytesDequeued;
-                std::unique_lock<std::mutex> lk(this->m_mPhp);
-                this->m_cvPhp.notify_all();
-            } else if (callback) {
-                SPA::CScopeUQueue sb;
-                sb << (unsigned short) SPA::Queue::idDequeue << messages << fileSize << messagesDequeued << bytesDequeued;
-                PACallback cb;
-                cb.CallbackType = ctDequeue;
-                cb.Res = sb.Detach();
-                cb.CallBack = callback;
-                std::unique_lock<std::mutex> lk(this->m_mPhp);
-                this->m_vCallback.push_back(cb);
-            }
+        CPVPointer callback(new Php::Value(params[1]));
+		m_aq->ResultReturned = [callback, this](SPA::ClientSide::CAsyncServiceHandler *ash, unsigned short reqId, SPA::CUQueue &q) -> bool {
+			if (reqId >= SPA::Queue::idEnqueue && reqId <= SPA::Queue::idEnqueueBatch) {
+				return false;
+			}
+			else if (reqId == SPA::Queue::idBatchSizeNotified) {
+				return false;
+			}
+			SPA::CScopeUQueue sb;
+			sb << reqId;
+			sb->Push(q.GetBuffer(), q.GetSize());
+			PACallback cb;
+			cb.CallbackType = ctDequeueResult;
+			cb.Res = sb.Detach();
+			cb.CallBack = callback;
+			std::unique_lock<std::mutex> lk(this->m_mPhp);
+			this->m_vCallback.push_back(cb);
+			return true;
+		};
+		CQPointer pF(SPA::CScopeUQueue::Lock(), [](SPA::CUQueue * q) {
+			SPA::CScopeUQueue::Unlock(q);
+		});
+        CAsyncQueue::DDequeue f = [pF, this](CAsyncQueue *aq, SPA::UINT64 messages, SPA::UINT64 fileSize, unsigned int messagesDequeued, unsigned int bytesDequeued) {
+            *pF << messages << fileSize << messagesDequeued << bytesDequeued;
+            std::unique_lock<std::mutex> lk(this->m_mPhp);
+            this->m_cvPhp.notify_all();
         };
         size_t args = params.size();
         Php::Value phpCanceled;
         if (args > 2) {
             phpCanceled = params[2];
         }
-        auto discarded = SetAbortCallback(phpCanceled, SPA::Queue::idDequeue, sync);
+        auto discarded = SetAbortCallback(phpCanceled, SPA::Queue::idDequeue, true);
         unsigned int to = 0;
         if (args > 3) {
-            if (params[3].isNumeric()) {
-                int64_t o = params[3].numericValue();
-                if (o < 0) {
-                    throw Php::Exception("Bad value for Dequeue timeout");
-                }
-                to = (unsigned int) o;
-            } else {
-                throw Php::Exception("An integer value required for Dequeue timeout");
+            int64_t o = params[3].numericValue();
+            if (o < 0) {
+                throw Php::Exception("Bad value for Dequeue timeout");
             }
+            to = (unsigned int) o;
         }
-        {
-            std::unique_lock<std::mutex> lk(m_mPhp);
-            if (m_rr.isCallable()) {
-                m_aq->ResultReturned = [this](SPA::ClientSide::CAsyncServiceHandler *ash, unsigned short reqId, SPA::CUQueue & q) -> bool {
-                    if (reqId >= SPA::Queue::idEnqueue && reqId <= SPA::Queue::idEnqueueBatch) {
-                        return false;
-                    }
-                    bool processed = false;
-                    switch (reqId) {
-                        case SPA::Queue::idBatchSizeNotified:
-                            break;
-                        default:
-                        {
-                            processed = true;
-                            std::unique_lock<std::mutex> lk(this->m_mPhp);
-                            if (!this->m_qRR) {
-                                this->m_qRR = SPA::CScopeUQueue::Lock(q.GetOS(), q.GetEndian());
-                            }
-                            *this->m_qRR << reqId << q.GetSize();
-                            if (q.GetSize()) {
-                                this->m_qRR->Push(q.GetBuffer(), q.GetSize());
-                                q.SetSize(0);
-                            }
-                        }
-                            break;
-                    }
-                    return processed;
-                };
-            } else {
-                m_aq->ResultReturned = nullptr;
-            }
-            if (sync) {
-                ReqSyncEnd(m_aq->Dequeue(key.c_str(), f, to, discarded), lk, timeout);
-                return ToDeqValue(pF.get());
-            }
-            PopCallbacks();
-        }
-        return m_aq->Dequeue(key.c_str(), f, to, discarded);
+		{
+			std::unique_lock<std::mutex> lk(m_mPhp);
+			ReqSyncEnd(m_aq->Dequeue(key.c_str(), f, to, discarded), lk, (~0));
+		}
+        return ToDeqValue(pF.get());
     }
-#endif
 
     Php::Value CPhpQueue::ToFlushValue(SPA::CUQueue * q) {
         SPA::INT64 messages, fileSize;
@@ -607,12 +525,12 @@ namespace PA
         handler.method<&CPhpQueue::FlushQueue>("Flush",{
             Php::ByVal(PHP_QUEUE_KEY, Php::Type::String)
         });
-#ifdef USE_DEQUEUE
         handler.method<&CPhpQueue::Dequeue>("Dequeue",{
             Php::ByVal(PHP_QUEUE_KEY, Php::Type::String),
-            Php::ByVal(PHP_SENDREQUEST_SYNC, Php::Type::Null)
+			Php::ByVal("rr", Php::Type::Callable),
+			Php::ByVal("canceled", Php::Type::Callable, false),
+			Php::ByVal("deqTimeout", Php::Type::Numeric, false)
         });
-#endif
         handler.method<&CPhpQueue::BatchMessage>("Batch",{
             Php::ByVal("idMsg", Php::Type::Numeric),
             Php::ByVal(PHP_SENDREQUEST_BUFF, Php::Type::Null)
@@ -632,23 +550,6 @@ namespace PA
 
     void CPhpQueue::PopTopCallbacks(PACallback & cb) {
         unsigned short reqId;
-#ifdef USE_DEQUEUE
-        if (m_qRR && m_qRR->GetSize()) {
-            if (m_rr.isCallable()) {
-                unsigned short reqId;
-                unsigned int bytes;
-                while (m_qRR->GetSize()) {
-                    *m_qRR >> reqId >> bytes;
-                    CPhpBuffer *buff = new CPhpBuffer;
-                    buff->GetBuffer()->Push(m_qRR->GetBuffer(), bytes);
-                    Php::Object q((SPA_NS + PHP_BUFFER).c_str(), buff);
-                    m_qRR->Pop(bytes);
-                    m_rr(q, reqId);
-                }
-            }
-            m_qRR->SetSize(0);
-        }
-#endif
         auto &callback = *cb.CallBack;
         switch (cb.CallbackType) {
             case ctQueueTrans:
@@ -666,10 +567,8 @@ namespace PA
             }
                 break;
             case ctQueueFlush:
-            {
                 *cb.Res >> reqId;
                 callback(ToFlushValue(cb.Res), reqId);
-            }
             case ctQueueGetKeys:
             {
                 std::vector<std::string> v;
@@ -683,10 +582,16 @@ namespace PA
             }
                 break;
             case ctDequeue:
-            {
                 *cb.Res >> reqId;
                 callback(ToDeqValue(cb.Res), reqId);
-            }
+				break;
+			case ctDequeueResult:
+			{
+				*cb.Res >> reqId;
+				Php::Object buff((SPA_NS + PHP_BUFFER).c_str(), new CPhpBuffer(cb.Res));
+				callback(buff, reqId);
+			}
+				break;
             default:
                 assert(false); //shouldn't come here
                 break;

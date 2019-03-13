@@ -13,16 +13,12 @@ namespace PA {
     public:
         CPhpQueue(unsigned int poolId, CAsyncQueue *aq, bool locked);
         CPhpQueue(const CPhpQueue &q) = delete;
-#ifdef USE_DEQUEUE
-        ~CPhpQueue();
-#endif
+
     public:
         CPhpQueue& operator=(const CPhpQueue &q) = delete;
         static void RegisterInto(Php::Class<CPhpBaseHandler> &base, Php::Namespace &cs);
         Php::Value __get(const Php::Value &name);
-#ifdef USE_DEQUEUE
-        void __set(const Php::Value &name, const Php::Value &value);
-#endif
+
     protected:
         void PopTopCallbacks(PACallback &cb);
 
@@ -32,9 +28,7 @@ namespace PA {
         Php::Value StartQueueTrans(Php::Parameters &params);
         Php::Value EndQueueTrans(Php::Parameters &params);
         Php::Value FlushQueue(Php::Parameters &params);
-#ifdef USE_DEQUEUE
         Php::Value Dequeue(Php::Parameters &params);
-#endif
         Php::Value Enqueue(Php::Parameters &params);
         void BatchMessage(Php::Parameters &params);
         Php::Value EnqueueBatch(Php::Parameters &params);
@@ -49,10 +43,6 @@ namespace PA {
     private:
         CAsyncQueue *m_aq;
         std::shared_ptr<CPhpBuffer> m_pBuff;
-#ifdef USE_DEQUEUE
-        Php::Value m_rr;
-        SPA::CUQueue *m_qRR;
-#endif
         static const char *PHP_QUEUE_KEY;
         static const char *PHP_QUEUE_MESSAGES;
         static const char *PHP_QUEUE_FILESIZE;
