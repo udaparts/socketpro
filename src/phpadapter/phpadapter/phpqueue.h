@@ -13,6 +13,7 @@ namespace PA {
     public:
         CPhpQueue(unsigned int poolId, CAsyncQueue *aq, bool locked);
         CPhpQueue(const CPhpQueue &q) = delete;
+        ~CPhpQueue();
 
     public:
         CPhpQueue& operator=(const CPhpQueue &q) = delete;

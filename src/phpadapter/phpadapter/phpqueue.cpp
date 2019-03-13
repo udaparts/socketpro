@@ -14,6 +14,10 @@ namespace PA
             : CPhpBaseHandler(locked, aq, poolId), m_aq(aq), m_pBuff(new CPhpBuffer) {
     }
 
+    CPhpQueue::~CPhpQueue() {
+        m_aq->ResultReturned = nullptr;
+    }
+
     Php::Value CPhpQueue::__get(const Php::Value & name) {
         if (name == "AutoNotified") {
             return m_aq->GetEnqueueNotified();
@@ -95,27 +99,26 @@ namespace PA
     Php::Value CPhpQueue::Dequeue(Php::Parameters & params) {
         std::string key = GetKey(params[0]);
         CPVPointer callback(new Php::Value(params[1]));
-		m_aq->ResultReturned = [callback, this](SPA::ClientSide::CAsyncServiceHandler *ash, unsigned short reqId, SPA::CUQueue &q) -> bool {
-			if (reqId >= SPA::Queue::idEnqueue && reqId <= SPA::Queue::idEnqueueBatch) {
-				return false;
-			}
-			else if (reqId == SPA::Queue::idBatchSizeNotified) {
-				return false;
-			}
-			SPA::CScopeUQueue sb;
-			sb << reqId;
-			sb->Push(q.GetBuffer(), q.GetSize());
-			PACallback cb;
-			cb.CallbackType = ctDequeueResult;
-			cb.Res = sb.Detach();
-			cb.CallBack = callback;
-			std::unique_lock<std::mutex> lk(this->m_mPhp);
-			this->m_vCallback.push_back(cb);
-			return true;
-		};
-		CQPointer pF(SPA::CScopeUQueue::Lock(), [](SPA::CUQueue * q) {
-			SPA::CScopeUQueue::Unlock(q);
-		});
+        m_aq->ResultReturned = [callback, this](SPA::ClientSide::CAsyncServiceHandler *ash, unsigned short reqId, SPA::CUQueue & q) -> bool {
+            if (reqId >= SPA::Queue::idEnqueue && reqId <= SPA::Queue::idEnqueueBatch) {
+                return false;
+            } else if (reqId == SPA::Queue::idBatchSizeNotified) {
+                return false;
+            }
+            SPA::CScopeUQueue sb;
+            sb << reqId;
+            sb->Push(q.GetBuffer(), q.GetSize());
+            PACallback cb;
+            cb.CallbackType = ctDequeueResult;
+            cb.Res = sb.Detach();
+            cb.CallBack = callback;
+            std::unique_lock<std::mutex> lk(this->m_mPhp);
+            this->m_vCallback.push_back(cb);
+            return true;
+        };
+        CQPointer pF(SPA::CScopeUQueue::Lock(), [](SPA::CUQueue * q) {
+            SPA::CScopeUQueue::Unlock(q);
+        });
         CAsyncQueue::DDequeue f = [pF, this](CAsyncQueue *aq, SPA::UINT64 messages, SPA::UINT64 fileSize, unsigned int messagesDequeued, unsigned int bytesDequeued) {
             *pF << messages << fileSize << messagesDequeued << bytesDequeued;
             std::unique_lock<std::mutex> lk(this->m_mPhp);
@@ -135,10 +138,10 @@ namespace PA
             }
             to = (unsigned int) o;
         }
-		{
-			std::unique_lock<std::mutex> lk(m_mPhp);
-			ReqSyncEnd(m_aq->Dequeue(key.c_str(), f, to, discarded), lk, (~0));
-		}
+        {
+            std::unique_lock<std::mutex> lk(m_mPhp);
+            ReqSyncEnd(m_aq->Dequeue(key.c_str(), f, to, discarded), lk, (~0));
+        }
         return ToDeqValue(pF.get());
     }
 
@@ -527,9 +530,9 @@ namespace PA
         });
         handler.method<&CPhpQueue::Dequeue>("Dequeue",{
             Php::ByVal(PHP_QUEUE_KEY, Php::Type::String),
-			Php::ByVal("rr", Php::Type::Callable),
-			Php::ByVal("canceled", Php::Type::Callable, false),
-			Php::ByVal("deqTimeout", Php::Type::Numeric, false)
+            Php::ByVal("rr", Php::Type::Callable),
+            Php::ByVal("canceled", Php::Type::Callable, false),
+            Php::ByVal("deqTimeout", Php::Type::Numeric, false)
         });
         handler.method<&CPhpQueue::BatchMessage>("Batch",{
             Php::ByVal("idMsg", Php::Type::Numeric),
@@ -584,14 +587,14 @@ namespace PA
             case ctDequeue:
                 *cb.Res >> reqId;
                 callback(ToDeqValue(cb.Res), reqId);
-				break;
-			case ctDequeueResult:
-			{
-				*cb.Res >> reqId;
-				Php::Object buff((SPA_NS + PHP_BUFFER).c_str(), new CPhpBuffer(cb.Res));
-				callback(buff, reqId);
-			}
-				break;
+                break;
+            case ctDequeueResult:
+            {
+                *cb.Res >> reqId;
+                Php::Object buff((SPA_NS + PHP_BUFFER).c_str(), new CPhpBuffer(cb.Res));
+                callback(buff, reqId);
+            }
+                break;
             default:
                 assert(false); //shouldn't come here
                 break;
