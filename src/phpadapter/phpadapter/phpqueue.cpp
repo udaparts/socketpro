@@ -121,8 +121,6 @@ namespace PA
         });
         CAsyncQueue::DDequeue f = [pF, this](CAsyncQueue *aq, SPA::UINT64 messages, SPA::UINT64 fileSize, unsigned int messagesDequeued, unsigned int bytesDequeued) {
             *pF << messages << fileSize << messagesDequeued << bytesDequeued;
-            std::unique_lock<std::mutex> lk(this->m_mPhp);
-            this->m_cvPhp.notify_all();
         };
         size_t args = params.size();
         Php::Value phpCanceled;
@@ -138,9 +136,19 @@ namespace PA
             }
             to = (unsigned int) o;
         }
+        bool ok = m_aq->Dequeue(key.c_str(), f, to, discarded);
+        if (!ok) {
+            std::unique_lock<std::mutex> lk(m_mPhp);
+            PopCallbacks();
+            throw Php::Exception(PA::PHP_SOCKET_CLOSED);
+        }
+        ok = m_aq->WaitAll();
         {
             std::unique_lock<std::mutex> lk(m_mPhp);
-            ReqSyncEnd(m_aq->Dequeue(key.c_str(), f, to, discarded), lk, (~0));
+            PopCallbacks();
+        }
+        if (!ok) {
+            throw Php::Exception(PA::PHP_SOCKET_CLOSED);
         }
         return ToDeqValue(pF.get());
     }
