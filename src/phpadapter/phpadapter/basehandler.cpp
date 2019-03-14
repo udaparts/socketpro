@@ -42,6 +42,7 @@ namespace PA
             callback.reset(new Php::Value(phpCanceled));
         }
         SPA::ClientSide::CAsyncServiceHandler::DDiscarded discarded = [reqId, sync, callback, this](SPA::ClientSide::CAsyncServiceHandler *ash, bool canceled) {
+            this->m_rrs = canceled ? rrsCanceled : rrsClosed;
             if (callback) {
                 SPA::CScopeUQueue sb;
                 PACallback cb;
@@ -54,7 +55,6 @@ namespace PA
             }
             if (sync) {
                 std::unique_lock<std::mutex> lk(this->m_mPhp);
-                this->m_rrs = canceled ? rrsCanceled : rrsClosed;
                 this->m_cvPhp.notify_all();
             }
         };
@@ -65,7 +65,7 @@ namespace PA
         //Unlock();
         PopCallbacks();
         if (!ok) {
-            throw Php::Exception(PA::PHP_SOCKET_CLOSED);
+            throw Php::Exception(PA::PHP_SOCKET_CLOSED + m_h->GetAttachedClientSocket()->GetErrorMsg());
         }
         auto status = m_cvPhp.wait_for(lk, std::chrono::milliseconds(timeout));
         PopCallbacks();
@@ -78,12 +78,16 @@ namespace PA
             case rrsCanceled:
                 throw Php::Exception(PHP_REQUEST_CANCELED);
             case rrsClosed:
-                throw Php::Exception(PHP_SOCKET_CLOSED);
+                throw Php::Exception(PA::PHP_SOCKET_CLOSED + m_h->GetAttachedClientSocket()->GetErrorMsg());
             case rrsTimeout:
                 throw Php::Exception(PHP_REQUEST_TIMEOUT);
             default:
                 break;
         }
+    }
+
+    tagRequestReturnStatus CPhpBaseHandler::GetRRS() const {
+        return m_rrs;
     }
 
     Php::Value CPhpBaseHandler::SendRequest(Php::Parameters & params) {
@@ -116,7 +120,6 @@ namespace PA
                 callback.reset(new Php::Value(phpRh));
             }
             rh = [buffer, callback, this](SPA::ClientSide::CAsyncResult & ar) {
-                SPA::ClientSide::PAsyncServiceHandler ash = ar.AsyncServiceHandler;
                 if (buffer) {
                     buffer->Swap(&ar.UQueue);
                     std::unique_lock<std::mutex> lk(this->m_mPhp);
@@ -155,6 +158,7 @@ namespace PA
             callbackEx.reset(new Php::Value(phpEx));
         }
         SPA::ClientSide::CAsyncServiceHandler::DServerException se = [callbackEx, sync, this](SPA::ClientSide::CAsyncServiceHandler *ash, unsigned short reqId, const wchar_t *errMsg, const char *errWhere, unsigned int errCode) {
+            this->m_rrs = rrsServerException;
             if (callbackEx) {
                 SPA::CScopeUQueue sb;
                 sb << reqId << errMsg << errWhere << errCode;
@@ -167,7 +171,6 @@ namespace PA
             }
             if (sync) {
                 std::unique_lock<std::mutex> lk(this->m_mPhp);
-                this->m_rrs = rrsServerException;
                 this->m_cvPhp.notify_all();
             }
         };

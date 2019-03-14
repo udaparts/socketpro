@@ -11,8 +11,7 @@ namespace PA
     const char* CPhpDb::PHP_DB_OKS = "oks";
     const char* CPhpDb::PHP_DB_LAST_ID = "id";
 
-    CPhpDb::CPhpDb(unsigned int poolId, CDBHandler *db, bool locked)
-            : CPhpBaseHandler(locked, db, poolId), m_db(db) {
+    CPhpDb::CPhpDb(unsigned int poolId, CDBHandler *db, bool locked) : CPhpBaseHandler(locked, db, poolId), m_db(db) {
     }
 
     void CPhpDb::RegisterInto(Php::Class<CPhpBaseHandler> &base, Php::Namespace & cs) {

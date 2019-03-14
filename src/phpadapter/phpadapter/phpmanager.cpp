@@ -418,9 +418,9 @@ namespace PA
                 if (!fp || ferror(fp.get())) {
                     throw Php::Exception("Cannot open " + SP_CONFIG);
                 }
-                int err = fseek(fp.get(), 0, SEEK_END);
+                fseek(fp.get(), 0, SEEK_END);
                 long size = ftell(fp.get()) + sizeof (wchar_t);
-                err = fseek(fp.get(), 0, SEEK_SET);
+                fseek(fp.get(), 0, SEEK_SET);
                 SPA::CScopeUQueue sb(SPA::GetOS(), SPA::IsBigEndian(), (unsigned int) size);
                 sb->CleanTrack();
                 rapidjson::FileReadStream is(fp.get(), (char*) sb->GetBuffer(), sb->GetMaxSize());

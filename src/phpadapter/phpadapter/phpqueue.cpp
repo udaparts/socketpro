@@ -10,12 +10,7 @@ namespace PA
     const char *CPhpQueue::PHP_QUEUE_MESSAGES_DEQUEUED = "messagesDequeued";
     const char *CPhpQueue::PHP_QUEUE_BYTES_DEQUEUED = "bytesDequeued";
 
-    CPhpQueue::CPhpQueue(unsigned int poolId, CAsyncQueue *aq, bool locked)
-            : CPhpBaseHandler(locked, aq, poolId), m_aq(aq), m_pBuff(new CPhpBuffer) {
-    }
-
-    CPhpQueue::~CPhpQueue() {
-        m_aq->ResultReturned = nullptr;
+    CPhpQueue::CPhpQueue(unsigned int poolId, CAsyncQueue *aq, bool locked) : CPhpBaseHandler(locked, aq, poolId), m_aq(aq), m_pBuff(new CPhpBuffer) {
     }
 
     Php::Value CPhpQueue::__get(const Php::Value & name) {
@@ -85,15 +80,23 @@ namespace PA
     }
 
     Php::Value CPhpQueue::ToDeqValue(SPA::CUQueue * q) {
-        SPA::INT64 messages, fileSize;
-        unsigned int messagesDequeued, bytesDequeued;
-        *q >> messages >> fileSize >> messagesDequeued >> bytesDequeued;
+        SPA::INT64 messages = 0, fileSize = 0;
+        unsigned int messagesDequeued = 0, bytesDequeued = 0;
+        if (q->GetSize() >= 24) {
+            *q >> messages >> fileSize >> messagesDequeued >> bytesDequeued;
+        } else {
+            q->SetSize(0);
+        }
         Php::Value v;
         v.set(PHP_QUEUE_MESSAGES, messages);
         v.set(PHP_QUEUE_FILESIZE, fileSize);
         v.set(PHP_QUEUE_MESSAGES_DEQUEUED, (int64_t) messagesDequeued);
         v.set(PHP_QUEUE_BYTES_DEQUEUED, (int64_t) bytesDequeued);
         return v;
+    }
+
+    Php::Value CPhpQueue::Unlock() {
+        throw Php::Exception("Server queue doesn't support the method Unlock");
     }
 
     Php::Value CPhpQueue::Dequeue(Php::Parameters & params) {
@@ -138,17 +141,25 @@ namespace PA
         }
         bool ok = m_aq->Dequeue(key.c_str(), f, to, discarded);
         if (!ok) {
+            m_aq->ResultReturned = nullptr;
             std::unique_lock<std::mutex> lk(m_mPhp);
             PopCallbacks();
-            throw Php::Exception(PA::PHP_SOCKET_CLOSED);
+            throw Php::Exception(PA::PHP_SOCKET_CLOSED + m_aq->GetAttachedClientSocket()->GetErrorMsg());
         }
         ok = m_aq->WaitAll();
+        m_aq->ResultReturned = nullptr;
         {
             std::unique_lock<std::mutex> lk(m_mPhp);
             PopCallbacks();
         }
         if (!ok) {
-            throw Php::Exception(PA::PHP_SOCKET_CLOSED);
+            tagRequestReturnStatus rrs = GetRRS();
+            switch (rrs) {
+                case rrsCanceled:
+                    throw Php::Exception(PHP_REQUEST_CANCELED);
+                default:
+                    throw Php::Exception(PA::PHP_SOCKET_CLOSED + m_aq->GetAttachedClientSocket()->GetErrorMsg());
+            }
         }
         return ToDeqValue(pF.get());
     }

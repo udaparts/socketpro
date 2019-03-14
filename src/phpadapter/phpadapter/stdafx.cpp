@@ -63,7 +63,7 @@ namespace PA
     const char *PHP_SENDREQUEST_CH = "ch";
     const char *PHP_SENDREQUEST_EX = "ex";
 
-    const char *PHP_SOCKET_CLOSED = "Socket closed";
+    const char *PHP_SOCKET_CLOSED = "Socket closed with error message: ";
     const char *PHP_REQUEST_CANCELED = "Request canceled";
     const char *PHP_SERVER_EXCEPTION = "Remote server exception caught";
     const char *PHP_REQUEST_TIMEOUT = "Request timed out";

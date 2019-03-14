@@ -336,7 +336,7 @@ namespace PA
         EnsureBuffer();
         try{
             unsigned int *len = (unsigned int*) m_pBuffer->GetBuffer();
-            if (*len == (~0)) {
+            if (*len == SPA::UQUEUE_END_POSTION) {
                 //deal with nullptr string
                 unsigned int n;
                 *m_pBuffer >> n;
