@@ -72,7 +72,7 @@ namespace PA
     const std::string SPA_CS_NS("SPA\\ClientSide\\");
 
     std::string SP_CONFIG = "sp_config.json";
-	std::string SP_CONFIG_DIR = "spaphp.sp_config_dir";
+    std::string SP_CONFIG_DIR = "spaphp.sp_config_dir";
 
 #ifdef WIN32_64
     const char SYS_DIR = '\\';

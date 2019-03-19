@@ -76,7 +76,7 @@ extern "C" {
             Php::ByVal(PA::PHP_TIMEOUT, Php::Type::Numeric, false)
         });
         extSpaPhp.add<PA::SpBuff>("SpBuffer");
-		extSpaPhp.add(Php::Ini(PA::SP_CONFIG_DIR.c_str(), ""));
+        extSpaPhp.add(Php::Ini(PA::SP_CONFIG_DIR.c_str(), ""));
         return extSpaPhp.module();
     }
 }

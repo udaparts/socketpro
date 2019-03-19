@@ -142,7 +142,7 @@ namespace PA {
     extern const std::string SPA_NS;
     extern const std::string SPA_CS_NS;
     extern std::string SP_CONFIG;
-	extern std::string SP_CONFIG_DIR;
+    extern std::string SP_CONFIG_DIR;
     extern const char SYS_DIR;
 
     Php::Value GetManager(Php::Parameters &params);
