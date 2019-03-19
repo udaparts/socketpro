@@ -388,9 +388,12 @@ namespace PA
         doc.SetObject();
         SPA::CAutoLock al(Manager.m_cs);
         if (!Manager.m_ConfigPath.size()) {
-            std::string jsFile = Php::call("php_ini_loaded_file").stringValue();
-            size_t pos = jsFile.rfind(SYS_DIR);
-            jsFile = jsFile.substr(0, pos);
+			std::string jsFile = Php::ini_get(SP_CONFIG_DIR.c_str());
+			if (!jsFile.size()) {
+				jsFile = Php::call("php_ini_loaded_file").stringValue();
+				size_t pos = jsFile.rfind(SYS_DIR);
+				jsFile = jsFile.substr(0, pos);
+			}
             Trim(jsFile);
             if (!jsFile.size()) {
                 Manager.m_errMsg = "No php.ini path found";
