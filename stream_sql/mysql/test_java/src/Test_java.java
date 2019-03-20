@@ -107,19 +107,13 @@ public class Test_java {
             in.nextLine();
             return;
         }
-        CMysql.DResult dr = new CMysql.DResult() {
-            @Override
-            public void invoke(CAsyncDBHandler dbHandler, int res, String errMsg) {
-                System.out.format("res = %d, errMsg: %s", res, errMsg);
-                System.out.println();
-            }
+        CMysql.DResult dr = (dbHandler, res, errMsg) -> {
+            System.out.format("res = %d, errMsg: %s", res, errMsg);
+            System.out.println();
         };
-        CMysql.DExecuteResult er = new CMysql.DExecuteResult() {
-            @Override
-            public void invoke(CAsyncDBHandler dbHandler, int res, String errMsg, long affected, long fail_ok, Object lastRowId) {
-                System.out.format("affected = %d, fails = %d, oks = %d, res = %d, errMsg: %s, last insert id = %s", affected, (int) (fail_ok >> 32), (int) fail_ok, res, errMsg, lastRowId.toString());
-                System.out.println();
-            }
+        CMysql.DExecuteResult er = (dbHandler, res, errMsg, affected, fail_ok, lastRowId) -> {
+            System.out.format("affected = %d, fails = %d, oks = %d, res = %d, errMsg: %s, last insert id = %s", affected, (int) (fail_ok >> 32), (int) fail_ok, res, errMsg, lastRowId.toString());
+            System.out.println();
         };
 
         ok = mysql.Open(null, dr);
@@ -128,23 +122,17 @@ public class Test_java {
         ok = mysql.Execute("delete from employee;delete from company", er);
         TestPreparedStatements(mysql, dr, er);
         InsertBLOBByPreparedStatement(mysql, dr, er);
-        ok = mysql.Execute("SELECT * from company;select * from employee;select curtime()", er, new CMysql.DRows() {
+        ok = mysql.Execute("SELECT * from company;select * from employee;select curtime()", er, (dbHandler, lstData) -> {
             //rowset data come here
-            @Override
-            public void invoke(CAsyncDBHandler dbHandler, CDBVariantArray lstData) {
-                int last = ra.size() - 1;
-                Pair<CDBColumnInfoArray, CDBVariantArray> item = ra.get(last);
-                item.second.addAll(lstData);
-            }
-        }, new CMysql.DRowsetHeader() {
-            @Override
-            public void invoke(CAsyncDBHandler dbHandler) {
-                //rowset header comes here
-                CDBColumnInfoArray vColInfo = dbHandler.getColumnInfo();
-                CDBVariantArray vData = new CDBVariantArray();
-                Pair<CDBColumnInfoArray, CDBVariantArray> item = new Pair<>(vColInfo, vData);
-                ra.add(item);
-            }
+            int last = ra.size() - 1;
+            Pair<CDBColumnInfoArray, CDBVariantArray> item = ra.get(last);
+            item.second.addAll(lstData);
+        }, (dbHandler) -> {
+            //rowset header comes here
+            CDBColumnInfoArray vColInfo = dbHandler.getColumnInfo();
+            CDBVariantArray vData = new CDBVariantArray();
+            Pair<CDBColumnInfoArray, CDBVariantArray> item = new Pair<>(vColInfo, vData);
+            ra.add(item);
         });
         CDBVariantArray vPData = TestStoredProcedure(mysql, dr, er, ra);
         ok = mysql.WaitAll();
@@ -170,7 +158,7 @@ public class Test_java {
         in.nextLine();
     }
 
-    static CDBVariantArray TestBatch(CMysql mysql, CMysql.DExecuteResult er, final java.util.ArrayList<Pair<CDBColumnInfoArray, CDBVariantArray>> ra) {
+    static CDBVariantArray TestBatch(CMysql mysql, CMysql.DExecuteResult er, java.util.ArrayList<Pair<CDBColumnInfoArray, CDBVariantArray>> ra) {
         //sql with delimiter '|'
         String sql = "delete from employee;delete from company|"
                 + "INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?)|"
@@ -244,39 +232,27 @@ public class Test_java {
         vData.add(6.16);
         vData.add(0);
 
-        CMysql.DRows r = new CMysql.DRows() {
+        CMysql.DRows r = (dbHandler, lstData) -> {
             //rowset data come here
-            @Override
-            public void invoke(CAsyncDBHandler dbHandler, CDBVariantArray lstData) {
-                int last = ra.size() - 1;
-                Pair<CDBColumnInfoArray, CDBVariantArray> item = ra.get(last);
-                item.second.addAll(lstData);
-            }
+            int last = ra.size() - 1;
+            Pair<CDBColumnInfoArray, CDBVariantArray> item = ra.get(last);
+            item.second.addAll(lstData);
         };
 
-        CMysql.DRowsetHeader rh = new CMysql.DRowsetHeader() {
-            @Override
-            public void invoke(CAsyncDBHandler dbHandler) {
-                //rowset header comes here
-                CDBColumnInfoArray vColInfo = dbHandler.getColumnInfo();
-                CDBVariantArray vData = new CDBVariantArray();
-                Pair<CDBColumnInfoArray, CDBVariantArray> item = new Pair<>(vColInfo, vData);
-                ra.add(item);
-            }
+        CMysql.DRowsetHeader rh = (dbHandler) -> {
+            //rowset header comes here
+            CDBColumnInfoArray vColInfo = dbHandler.getColumnInfo();
+            CDBVariantArray v = new CDBVariantArray();
+            Pair<CDBColumnInfoArray, CDBVariantArray> item = new Pair<>(vColInfo, v);
+            ra.add(item);
         };
 
-        CMysql.DRowsetHeader batchHeader = new CMysql.DRowsetHeader() {
-            @Override
-            public void invoke(CAsyncDBHandler dbHandler) {
-                //called one time only before calling rh, r and er
-            }
+        CMysql.DRowsetHeader batchHeader = (dbHandler) -> {
+            //called one time only before calling rh, r and er
         };
 
-        CMysql.DDiscarded discarded = new CMysql.DDiscarded() {
-            @Override
-            public void invoke(CAsyncServiceHandler dbHandler, boolean canceled) {
-                //called when canceling or socket closed if client queue is NOT used
-            }
+        CMysql.DDiscarded discarded = (dbHandler, canceled) -> {
+            //called when canceling or socket closed if client queue is NOT used
         };
 
         //first, execute delete from employee;delete from company
@@ -292,25 +268,19 @@ public class Test_java {
         if (!mysql.Prepare("call sp_TestProc(?,?,?)", dr)) {
             return null;
         }
-        CMysql.DRows r = new CMysql.DRows() {
+        CMysql.DRows r = (dbHandler, lstData) -> {
             //rowset data come here
-            @Override
-            public void invoke(CAsyncDBHandler dbHandler, CDBVariantArray lstData) {
-                int last = ra.size() - 1;
-                Pair<CDBColumnInfoArray, CDBVariantArray> item = ra.get(last);
-                item.second.addAll(lstData);
-            }
+            int last = ra.size() - 1;
+            Pair<CDBColumnInfoArray, CDBVariantArray> item = ra.get(last);
+            item.second.addAll(lstData);
         };
 
-        CMysql.DRowsetHeader rh = new CMysql.DRowsetHeader() {
-            @Override
-            public void invoke(CAsyncDBHandler dbHandler) {
-                //rowset header comes here
-                CDBColumnInfoArray vColInfo = dbHandler.getColumnInfo();
-                CDBVariantArray vData = new CDBVariantArray();
-                Pair<CDBColumnInfoArray, CDBVariantArray> item = new Pair<>(vColInfo, vData);
-                ra.add(item);
-            }
+        CMysql.DRowsetHeader rh = (dbHandler) -> {
+            //rowset header comes here
+            CDBColumnInfoArray vColInfo = dbHandler.getColumnInfo();
+            CDBVariantArray vData = new CDBVariantArray();
+            Pair<CDBColumnInfoArray, CDBVariantArray> item = new Pair<>(vColInfo, vData);
+            ra.add(item);
         };
         CDBVariantArray vPData = new CDBVariantArray();
         //first set
