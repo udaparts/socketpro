@@ -94,7 +94,7 @@ public class Program {
             System.out.println(", message bytes dequeued=" + bytesDequeuedInBatch);
             if (messageCount > 0) {
                 //there are more messages left at server queue, we re-send a request to dequeue
-                asyncqueue.Dequeue(TEST_QUEUE_KEY, aq.getLastDequeueCallback());
+                asyncqueue.Dequeue(TEST_QUEUE_KEY, asyncqueue.getLastDequeueCallback());
             }
         };
 
