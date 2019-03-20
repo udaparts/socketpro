@@ -44,39 +44,33 @@ public class Program {
         CScopeUQueue.Unlock(q);
     }
 
-    private static void DequeueFromServer(final CAsyncQueue sq) {
+    private static void DequeueFromServer(CAsyncQueue sq) {
         final int messages_dequeued[] = {0};
         //prepare a callback for processing returned result of dequeue request
-        CAsyncQueue.DDequeue d = new CAsyncQueue.DDequeue() {
-            @Override
-            public void invoke(CAsyncQueue sq, long messageCount, long fileSize, int messagesDequeuedInBatch, int bytesDequeuedInBatch) {
-                if (messageCount > 0) {
-                    //there are more messages left at server queue, we re-send a request to dequeue
-                    sq.Dequeue(TEST_QUEUE_KEY, sq.getLastDequeueCallback());
-                } else {
-                    //set dequeue callback to null and stop dequeuing
-                    sq.setLastDequeueCallback(null);
-                }
+        CAsyncQueue.DDequeue d = (aq, messageCount, fileSize, messagesDequeuedInBatch, bytesDequeuedInBatch) -> {
+            if (messageCount > 0) {
+                //there are more messages left at server queue, we re-send a request to dequeue
+                aq.Dequeue(TEST_QUEUE_KEY, aq.getLastDequeueCallback());
+            } else {
+                //set dequeue callback to null and stop dequeuing
+                aq.setLastDequeueCallback(null);
             }
         };
 
-        sq.ResultReturned = new CAsyncServiceHandler.DOnResultReturned() {
-            @Override
-            public boolean invoke(CAsyncServiceHandler cash, short reqId, CUQueue q) {
-                boolean processed = false;
-                switch (reqId) {
-                    case idMessage: {
-                        byte[] bytes = q.getIntenalBuffer();
-                        messages_dequeued[0] += 1;
-                        String s = new String(bytes, 0, q.getSize(), UTF8);
-                        processed = true;
-                    }
-                    break;
-                    default:
-                        break;
+        sq.ResultReturned = (cash, reqId, q) -> {
+            boolean processed = false;
+            switch (reqId) {
+                case idMessage: {
+                    byte[] bytes = q.getIntenalBuffer();
+                    messages_dequeued[0] += 1;
+                    String s = new String(bytes, 0, q.getSize(), UTF8);
+                    processed = true;
                 }
-                return processed;
+                break;
+                default:
+                    break;
             }
+            return processed;
         };
         System.out.println("Going to dequeue message ......");
         Date start = new Date();

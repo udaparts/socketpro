@@ -38,17 +38,14 @@ public class Program {
         //CClientSocket.SSL.SetVerifyLocation("my"); //or "root", "my@currentuser", "root@localmachine"
         CSocketPool<HelloWorld> spHw = new CSocketPool<>(HelloWorld.class); //true -- automatic reconnecting
         {
-            spHw.DoSslServerAuthentication = new CSocketPool.DDoSslServerAuthentication() {
-                @Override
-                public boolean invoke(CSocketPool sender, CClientSocket cs) {
-                    SPA.RefObject<Integer> errCode = new SPA.RefObject<>(0);
-                    IUcert cert = cs.getUCert();
-                    System.out.println(cert.SessionInfo);
-                    String res = cert.Verify(errCode);
+            spHw.DoSslServerAuthentication = (sender, cs) -> {
+                SPA.RefObject<Integer> errCode = new SPA.RefObject<>(0);
+                IUcert cert = cs.getUCert();
+                System.out.println(cert.SessionInfo);
+                String res = cert.Verify(errCode);
 
-                    //do ssl server certificate authentication here
-                    return (errCode.Value == 0); //true -- user id and password will be sent to server
-                }
+                //do ssl server certificate authentication here
+                return (errCode.Value == 0); //true -- user id and password will be sent to server
             };
 
             //error handling ignored for code clarity
@@ -56,56 +53,40 @@ public class Program {
             HelloWorld hw = spHw.Seek(); //or HelloWorld hw = spHw.Lock();
 
             CClientSocket ClientSocket = hw.getAttachedClientSocket();
-            ClientSocket.getPush().OnSubscribe = new DOnSubscribe() {
-                @Override
-                public void invoke(CClientSocket sender, CMessageSender messageSender, int[] groups) {
-                    System.out.println("Subscribe for " + ToString(groups));
-                    System.out.println(ToString(messageSender));
-                    System.out.println();
-                }
+            ClientSocket.getPush().OnSubscribe = (sender, messageSender, groups) -> {
+                System.out.println("Subscribe for " + ToString(groups));
+                System.out.println(ToString(messageSender));
+                System.out.println();
             };
 
-            ClientSocket.getPush().OnUnsubscribe = new DOnUnsubscribe() {
-                @Override
-                public void invoke(CClientSocket sender, CMessageSender messageSender, int[] groups) {
-                    System.out.println("Unsubscribe from " + ToString(groups));
-                    System.out.println(ToString(messageSender));
-                    System.out.println();
-                }
+            ClientSocket.getPush().OnUnsubscribe = (sender, messageSender, groups) -> {
+                System.out.println("Unsubscribe from " + ToString(groups));
+                System.out.println(ToString(messageSender));
+                System.out.println();
             };
 
-            ClientSocket.getPush().OnPublish = new DOnPublish() {
-                @Override
-                public void invoke(CClientSocket sender, CMessageSender messageSender, int[] groups, Object msg) {
-                    System.out.println("Publish to " + ToString(groups));
-                    System.out.println(ToString(messageSender));
-                    System.out.println("message = " + msg);
-                    System.out.println();
-                }
+            ClientSocket.getPush().OnPublish = (sender, messageSender, groups, msg) -> {
+                System.out.println("Publish to " + ToString(groups));
+                System.out.println(ToString(messageSender));
+                System.out.println("message = " + msg);
+                System.out.println();
             };
 
-            ClientSocket.getPush().OnSendUserMessage = new DOnSendUserMessage() {
-                @Override
-                public void invoke(CClientSocket sender, CMessageSender messageSender, Object msg) {
-                    System.out.println("SendUserMessage");
-                    System.out.println(ToString(messageSender));
-                    System.out.println("message = " + msg);
-                    System.out.println();
-                }
+            ClientSocket.getPush().OnSendUserMessage = (sender, messageSender, msg) -> {
+                System.out.println("SendUserMessage");
+                System.out.println(ToString(messageSender));
+                System.out.println("message = " + msg);
+                System.out.println();
             };
 
             //asynchronously process multiple requests with inline batching for best network efficiency
-            ok = hw.SendRequest(hello_world.hwConst.idSayHelloHelloWorld, new SPA.CScopeUQueue().Save("Jack").Save("Smith"), new CAsyncServiceHandler.DAsyncResultHandler() {
-                @Override
-                public void invoke(CAsyncResult ar) {
-                    String ret = ar.LoadString();
-                    System.out.println(ret);
-                }
+            ok = hw.SendRequest(hello_world.hwConst.idSayHelloHelloWorld, new SPA.CScopeUQueue().Save("Jack").Save("Smith"), (ar) -> {
+                String ret = ar.LoadString();
+                System.out.println(ret);
             });
 
             ok = ClientSocket.getPush().Publish("We are going to call the method Sleep", 1, 2);
-            CAsyncServiceHandler.DAsyncResultHandler arh = null;
-            ok = hw.SendRequest(hello_world.hwConst.idSleepHelloWorld, new SPA.CScopeUQueue().Save(5000), arh);
+            ok = hw.SendRequest(hello_world.hwConst.idSleepHelloWorld, new SPA.CScopeUQueue().Save(5000), null);
 
             System.out.println("Input a receiver for receiving my message ......");
             System.out.println();

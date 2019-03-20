@@ -19,37 +19,32 @@ public class Program {
         //optionally start a persistent queue at client side to ensure auto failure recovery and once-only delivery
         ok = hw.getAttachedClientSocket().getClientQueue().StartQueue("helloworld", 24 * 3600, false); //time-to-live 1 day and true for encryption
 
-        //process requests one by one synchronously
-        System.out.println(hw.SayHello("Jone", "Dole"));
-        hw.Sleep(5000);
-        final CMyStruct msOriginal = CMyStruct.MakeOne();
-        CMyStruct ms = hw.Echo(msOriginal);
-
+        CMyStruct ms, msOriginal = CMyStruct.MakeOne();
+        try {
+            //process requests one by one synchronously
+            System.out.println(hw.SayHello("Jone", "Dole"));
+            ok = hw.Sleep(5000);
+            ms = hw.Echo(msOriginal);
+            assert (ms == msOriginal);
+        } catch (Exception err) {
+            System.out.println(err.getMessage());
+        }
         //asynchronously process multiple requests with inline batching for best network efficiency
-        ok = hw.SendRequest(hwConst.idSayHelloHelloWorld, new CScopeUQueue().Save("Jack").Save("Smith"), new CAsyncServiceHandler.DAsyncResultHandler() {
-            @Override
-            public void invoke(CAsyncResult ar) {
-                String ret = ar.LoadString();
-                System.out.println(ret);
-            }
+        ok = hw.SendRequest(hwConst.idSayHelloHelloWorld, new CScopeUQueue().Save("Jack").Save("Smith"), (ar) -> {
+            String ret = ar.LoadString();
+            System.out.println(ret);
         });
-
-        //JYI: It is recommended to use lambda expression with Java 1.8 or later
-        /*
-         ok = hw.SendRequest(hwConst.idSayHelloHelloWorld, new CScopeUQueue().Save("Jack").Save("Smith"), (ar) -> {
-         String ret = ar.LoadString();
-         System.out.println(ret);
-         });
-         */
         ok = hw.SendRequest(hwConst.idSleepHelloWorld, new CScopeUQueue().Save(5000), null);
-        ok = hw.SendRequest(hwConst.idEchoHelloWorld, new CScopeUQueue().Save(msOriginal), new CAsyncServiceHandler.DAsyncResultHandler() {
-            @Override
-            public void invoke(CAsyncResult ar) {
-                CMyStruct res = ar.Load(CMyStruct.class);
-                assert (res.equals(msOriginal));
-            }
-        });
-        ok = hw.WaitAll();
+        UFuture<CMyStruct> f = new UFuture<>();
+        try {
+            ok = hw.SendRequest(hwConst.idEchoHelloWorld, new CScopeUQueue().Save(msOriginal), (ar) -> {
+                f.set(ar.Load(CMyStruct.class));
+            });
+            ms = f.get();
+            assert (ms == msOriginal);
+        } catch (Exception err) {
+            System.out.println(err.getMessage());
+        }
         System.out.println("Press ENTER key to shutdown the demo application ......");
         new java.util.Scanner(System.in).nextLine();
     }
