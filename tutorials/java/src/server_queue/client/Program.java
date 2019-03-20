@@ -61,7 +61,7 @@ public class Program {
         return ok;
     }
 
-    private static void TestDequeue(final CAsyncQueue aq) {
+    private static void TestDequeue(CAsyncQueue aq) {
         //prepare callback for parsing messages dequeued from server side
         aq.ResultReturned = (sender, idReq, q) -> {
             boolean processed = false;
