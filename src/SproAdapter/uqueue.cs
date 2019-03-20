@@ -161,7 +161,7 @@ namespace SocketProAdapter
     public class CUQueue
     {
         public const uint DEFAULT_BUFFER_SIZE = 4 * 1024;
-        public const uint DEFAULT_MEMORY_BUFFER_BLOCK_SIZE = 4 * 1024;
+        public const uint DEFAULT_BLOCK_SIZE = 4 * 1024;
         static List<MemoryStream> m_lstMemoryStream = new List<MemoryStream>();
 
         static MemoryStream LockMemoryStream()
@@ -323,13 +323,13 @@ namespace SocketProAdapter
         public CUQueue()
         {
             m_bytes = new Byte[DEFAULT_BUFFER_SIZE];
-            m_blockSize = DEFAULT_MEMORY_BUFFER_BLOCK_SIZE;
+            m_blockSize = DEFAULT_BLOCK_SIZE;
         }
 
         public CUQueue(uint InitialSize)
         {
             m_bytes = new Byte[InitialSize];
-            m_blockSize = DEFAULT_MEMORY_BUFFER_BLOCK_SIZE;
+            m_blockSize = DEFAULT_BLOCK_SIZE;
         }
 
         public CUQueue(uint InitialSize, uint BlockSize)

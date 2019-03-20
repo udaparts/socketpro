@@ -201,6 +201,15 @@ namespace SPA {
 
 namespace NJA {
 
+    void Trim(std::string & str) {
+        while (str.size() && std::isspace(str.back())) {
+            str.pop_back();
+        }
+        while (str.size() && std::isspace(str.front())) {
+            str.erase(0, 1);
+        }
+    }
+
     int time_offset(time_t rawtime) {
         time_t gmt;
         struct tm *ptm;
@@ -681,7 +690,151 @@ namespace NJA {
         return true;
     }
 
-    Local<Value> From(Isolate* isolate, const VARIANT &vt, bool strForDec) {
+    Local<Value> DbFrom(Isolate* isolate, SPA::CUQueue &buff) {
+        VARTYPE type;
+        buff >> type;
+        switch (type) {
+            case VT_NULL:
+            case VT_EMPTY:
+                return Null(isolate);
+            case VT_BOOL:
+            {
+                VARIANT_BOOL boolVal;
+                buff >> boolVal;
+                return Boolean::New(isolate, boolVal ? true : false);
+            }
+            case VT_I1:
+            {
+                char cVal;
+                buff >> cVal;
+                return Int32::New(isolate, cVal);
+            }
+            case VT_I2:
+            {
+                short iVal;
+                buff >> iVal;
+                return Int32::New(isolate, iVal);
+            }
+            case VT_I4:
+            case VT_INT:
+            {
+                int intVal;
+                buff >> intVal;
+                return Int32::New(isolate, intVal);
+            }
+            case VT_I8:
+            {
+                SPA::INT64 llVal;
+                buff >> llVal;
+                return Number::New(isolate, (double) llVal);
+            }
+            case VT_UI1:
+            {
+                unsigned char bVal;
+                buff >> bVal;
+                return Uint32::New(isolate, bVal);
+            }
+            case VT_UI2:
+            {
+                unsigned short uiVal;
+                buff >> uiVal;
+                return Uint32::New(isolate, uiVal);
+            }
+            case VT_UI4:
+            case VT_UINT:
+            {
+                unsigned int uintVal;
+                buff >> uintVal;
+                return Uint32::New(isolate, uintVal);
+            }
+            case VT_UI8:
+            {
+                SPA::UINT64 ullVal;
+                buff >> ullVal;
+                return Number::New(isolate, (double) ullVal);
+            }
+            case VT_R4:
+            {
+                float fltVal;
+                buff >> fltVal;
+                return Number::New(isolate, fltVal);
+            }
+            case VT_R8:
+            {
+                double dblVal;
+                buff >> dblVal;
+                return Number::New(isolate, dblVal);
+            }
+            case VT_CY:
+            {
+                SPA::INT64 llVal;
+                buff >> llVal;
+                double d = (double) llVal;
+                d /= 10000;
+                return Number::New(isolate, d);
+            }
+            case VT_DECIMAL:
+            {
+                DECIMAL decVal;
+                buff >> decVal;
+                if (decVal.Hi32 || decVal.Lo64 > SAFE_DOUBLE)
+                    return ToStr(isolate, SPA::ToString_long(decVal).c_str());
+                return Number::New(isolate, ToDouble(decVal));
+            }
+            case VT_DATE:
+            {
+                SPA::UINT64 ullVal;
+                buff >> ullVal;
+                return ToDate(isolate, ullVal);
+            }
+            case (VT_I1 | VT_ARRAY):
+            {
+                unsigned int len;
+                buff >> len;
+                if (len == SPA::UQUEUE_NULL_LENGTH) {
+                    return v8::Null(isolate);
+                } else if (len > buff.GetSize()) {
+                    throw SPA::CUException("Bad data type");
+                }
+                const char *str = (const char *) buff.GetBuffer();
+                auto s = ToStr(isolate, str, len);
+                buff.Pop(len);
+                return s;
+            }
+            case VT_CLSID:
+            case (VT_UI1 | VT_ARRAY):
+            {
+                unsigned int len;
+                buff >> len;
+                if (len > buff.GetSize()) {
+                    throw SPA::CUException("Bad data type");
+                }
+                const char *str = (const char *) buff.GetBuffer();
+                auto bytes = node::Buffer::Copy(isolate, (const char*) str, len).ToLocalChecked();
+                buff.Pop(len);
+                return bytes;
+            }
+            case VT_BSTR:
+            {
+                unsigned int len;
+                buff >> len;
+                if (len == SPA::UQUEUE_NULL_LENGTH) {
+                    return Null(isolate);
+                } else if (len > buff.GetSize()) {
+                    throw SPA::CUException("Bad data type");
+                }
+                const uint16_t *str = (const uint16_t *) buff.GetBuffer();
+                auto s = ToStr(isolate, str, len / sizeof (uint16_t));
+                buff.Pop(len);
+                return s;
+            }
+            default:
+                break;
+        }
+        return Undefined(isolate);
+    }
+
+    Local<Value> From(Isolate* isolate, const VARIANT &vt) {
         VARTYPE type = vt.vt;
         switch (type) {
             case VT_NULL:
@@ -720,7 +873,7 @@ namespace NJA {
                 return Number::New(isolate, d);
             }
             case VT_DECIMAL:
-                if (strForDec)
+                if (vt.decVal.Hi32 || vt.decVal.Lo64 > SAFE_DOUBLE)
                     return ToStr(isolate, SPA::ToString(vt.decVal).c_str());
                 return Number::New(isolate, ToDouble(vt.decVal));
             case VT_DATE:
@@ -796,8 +949,8 @@ namespace NJA {
                                     case VT_DECIMAL:
                                     {
                                         DECIMAL *p = (DECIMAL *) pvt;
-                                        if (strForDec)
-                                            v->Set(n, ToStr(isolate, SPA::ToString(p[n]).c_str()));
+                                        if (p->Hi32 || p->Lo64 > SAFE_DOUBLE)
+                                            v->Set(n, ToStr(isolate, SPA::ToString_long(p[n]).c_str()));
                                         else
                                             v->Set(n, Number::New(isolate, SPA::ToDouble(p[n])));
                                     }
@@ -823,7 +976,7 @@ namespace NJA {
                                         Local<Array> v = Array::New(isolate);
                                         for (unsigned int n = 0; n < count; ++n) {
                                             VARIANT *p = (VARIANT *) pvt;
-                                            v->Set(n, From(isolate, p[n], strForDec));
+                                            v->Set(n, From(isolate, p[n]));
                                         }
                                         ::SafeArrayUnaccessData(vt.parray);
                                         return v;
@@ -920,7 +1073,7 @@ namespace NJA {
             }
                 break;
         }
-        return v8::Undefined(isolate);
+        return Undefined(isolate);
     }
 
     template<typename T>
@@ -1202,7 +1355,7 @@ namespace NJA {
     }
 
     SPA::CUCriticalSection g_cs;
-    SPA::CUQueue g_KeyAllowed;
+    std::vector<std::string> g_KeyAllowed;
     const char* UNSUPPORTED_TYPE = "Unsupported data type";
     const char* UNSUPPORTED_ARRAY_TYPE = "Unsupported data array type";
     const char* BOOLEAN_EXPECTED = "A boolean value expected";

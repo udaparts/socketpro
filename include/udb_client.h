@@ -5,7 +5,10 @@
 #include "udatabase.h"
 #include "aclientw.h"
 
-#ifdef NODE_JS_ADAPTER_PROJECT
+#ifdef PHP_ADAPTER_PROJECT
+#define NO_OUTPUT_BINDING
+#elif defined NODE_JS_ADAPTER_PROJECT
+#define NO_OUTPUT_BINDING
 namespace NJA {
     Local<Array> ToMeta(Isolate* isolate, const SPA::UDB::CDBColumnInfoArray &v);
 }
@@ -34,7 +37,10 @@ namespace SPA {
                 m_typeDB.data = this;
                 int fail = uv_async_init(uv_default_loop(), &m_typeDB, req_cb);
                 assert(!fail);
+#endif
+#ifdef NO_OUTPUT_BINDING
                 m_bProc = false;
+                m_vData.Utf8ToW(true);
 #endif
             }
 
@@ -51,7 +57,10 @@ namespace SPA {
                 m_typeDB.data = this;
                 int fail = uv_async_init(uv_default_loop(), &m_typeDB, req_cb);
                 assert(!fail);
+#endif
+#ifdef NO_OUTPUT_BINDING
                 m_bProc = false;
+                m_vData.Utf8ToW(true);
 #endif
             }
 
@@ -69,7 +78,12 @@ namespace SPA {
             typedef std::function<void(CAsyncDBHandler &dbHandler, int res, const std::wstring &errMsg) > DResult;
             typedef std::function<void(CAsyncDBHandler &dbHandler, int res, const std::wstring &errMsg, INT64 affected, UINT64 fail_ok, CDBVariant &vtId) > DExecuteResult;
             typedef std::function<void(CAsyncDBHandler &dbHandler) > DRowsetHeader;
+
+#if defined(PHP_ADAPTER_PROJECT) || defined(NODE_JS_ADAPTER_PROJECT)
+            typedef std::function<void(CAsyncDBHandler &dbHandler, CUQueue &vData) > DRows;
+#else
             typedef std::function<void(CAsyncDBHandler &dbHandler, CDBVariantArray &vData) > DRows;
+#endif
 
         protected:
             typedef std::pair<DRowsetHeader, DRows> CRowsetHandler;
@@ -126,7 +140,7 @@ namespace SPA {
                 return m_bCallReturn;
             }
 
-#ifdef NODE_JS_ADAPTER_PROJECT
+#ifdef NO_OUTPUT_BINDING
 
             inline const CDBVariant& GetRetValue() {
                 CAutoLock al(m_csDB);
@@ -155,6 +169,9 @@ namespace SPA {
              */
             inline void Utf8ToW(bool bUtf8ToW) {
                 CAutoLock al(m_csDB);
+#if defined(PHP_ADAPTER_PROJECT) || defined(NODE_JS_ADAPTER_PROJECT)
+                m_vData.Utf8ToW(bUtf8ToW);
+#endif
                 m_Blob.Utf8ToW(bUtf8ToW);
             }
 
@@ -331,7 +348,9 @@ namespace SPA {
                     if (rowset) {
                         m_mapRowset[callIndex] = CRowsetHandler(rh, row);
                     }
+#ifndef NO_OUTPUT_BINDING
                     m_mapParameterCall[callIndex] = &vParam;
+#endif
                     m_mapHandler[callIndex] = batchHeader;
                     sb << m_strConnection << m_flags;
                 }
@@ -341,7 +360,9 @@ namespace SPA {
                 };
                 if (!SendRequest(idExecuteBatch, sb->GetBuffer(), sb->GetSize(), arh, discarded, nullptr)) {
                     CAutoLock al(m_csDB);
+#ifndef NO_OUTPUT_BINDING
                     m_mapParameterCall.erase(callIndex);
+#endif
                     if (rowset) {
                         m_mapRowset.erase(callIndex);
                     }
@@ -392,7 +413,9 @@ namespace SPA {
                     if (rowset) {
                         m_mapRowset[callIndex] = CRowsetHandler(rh, row);
                     }
+#ifndef NO_OUTPUT_BINDING
                     m_mapParameterCall[callIndex] = &vParam;
+#endif
                 }
                 sb << callIndex;
                 ResultHandler arh = [callIndex, handler, this](CAsyncResult & ar) {
@@ -400,7 +423,9 @@ namespace SPA {
                 };
                 if (!SendRequest(idExecuteParameters, sb->GetBuffer(), sb->GetSize(), arh, discarded, nullptr)) {
                     CAutoLock al(m_csDB);
+#ifndef NO_OUTPUT_BINDING
                     m_mapParameterCall.erase(callIndex);
+#endif
                     if (rowset) {
                         m_mapRowset.erase(callIndex);
                     }
@@ -656,7 +681,11 @@ namespace SPA {
 
             virtual void OnAllProcessed() {
                 CAutoLock al1(m_csDB);
+#if defined(PHP_ADAPTER_PROJECT) || defined(NODE_JS_ADAPTER_PROJECT)
+                m_vData.SetSize(0);
+#else
                 m_vData.clear();
+#endif
                 m_Blob.SetSize(0);
                 if (m_Blob.GetMaxSize() > DEFAULT_BIG_FIELD_CHUNK_SIZE) {
                     m_Blob.ReallocBuffer(DEFAULT_BIG_FIELD_CHUNK_SIZE);
@@ -672,10 +701,12 @@ namespace SPA {
                         dbTo.m_mapRowset[it->first] = it->second;
                     }
                     m_mapRowset.clear();
+#ifndef NO_OUTPUT_BINDING
                     for (auto it = m_mapParameterCall.begin(), end = m_mapParameterCall.end(); it != end; ++it) {
                         dbTo.m_mapParameterCall[it->first] = it->second;
                     }
                     m_mapParameterCall.clear();
+#endif
                     for (auto it = m_mapHandler.begin(), end = m_mapHandler.end(); it != end; ++it) {
                         dbTo.m_mapHandler[it->first] = it->second;
                     }
@@ -702,6 +733,7 @@ namespace SPA {
                         mc >> res >> errMsg >> ms >> params >> callIndex;
                         {
                             CAutoLock al(m_csDB);
+                            m_vColInfo.clear();
                             m_indexProc = 0;
                             m_lastReqId = idSqlBatchHeader;
                             m_parameters = (params & 0xffff);
@@ -730,7 +762,11 @@ namespace SPA {
                         if (m_Blob.GetMaxSize() > ONE_MEGA_BYTES) {
                             m_Blob.ReallocBuffer(ONE_MEGA_BYTES);
                         }
+#if defined(PHP_ADAPTER_PROJECT) || defined(NODE_JS_ADAPTER_PROJECT)
+                        m_vData.SetSize(0);
+#else
                         m_vData.clear();
+#endif
                         {
                             unsigned int outputs = 0;
                             CAutoLock al(m_csDB);
@@ -755,9 +791,9 @@ namespace SPA {
                         CDBVariant vt;
                         mc >> vt;
                         CAutoLock al(m_csDB);
-#ifdef NODE_JS_ADAPTER_PROJECT
+#ifdef NO_OUTPUT_BINDING
                         m_vtRet = vt;
-#endif
+#else
                         auto it = m_mapParameterCall.find(m_indexRowset);
                         if (it != m_mapParameterCall.end()) {
                             //crash? make sure that vParam is valid after calling the method Execute
@@ -765,12 +801,17 @@ namespace SPA {
                             size_t pos = m_parameters * m_indexProc + (m_nParamPos >> 16);
                             vParam[pos] = vt;
                         }
+#endif
                         m_bCallReturn = true;
                     }
                         break;
                     case idBeginRows:
                         m_Blob.SetSize(0);
+#if defined(PHP_ADAPTER_PROJECT) || defined(NODE_JS_ADAPTER_PROJECT)
+                        m_vData.SetSize(0);
+#else
                         m_vData.clear();
+#endif
                         if (mc.GetSize()) {
                             CAutoLock al(m_csDB);
                             mc >> m_indexRowset;
@@ -778,29 +819,46 @@ namespace SPA {
                         break;
                     case idTransferring:
                         if (mc.GetSize()) {
+#if defined(PHP_ADAPTER_PROJECT) || defined(NODE_JS_ADAPTER_PROJECT)
+                            m_vData.Push(mc.GetBuffer(), mc.GetSize());
+                            mc.SetSize(0);
+#else
                             m_csDB.lock();
                             bool Utf8ToW = m_Blob.Utf8ToW();
                             m_csDB.unlock();
-                            if (Utf8ToW)
+                            if (Utf8ToW) {
                                 mc.Utf8ToW(true);
+                            }
                             while (mc.GetSize()) {
                                 m_vData.push_back(CDBVariant());
                                 CDBVariant &vt = m_vData.back();
                                 mc >> vt;
                             }
-                            assert(mc.GetSize() == 0);
-                            if (Utf8ToW)
+                            if (Utf8ToW) {
                                 mc.Utf8ToW(false);
+                            }
+                            assert(mc.GetSize() == 0);
+#endif
                         }
                         break;
                     case idOutputParameter:
                     case idEndRows:
-                        if (mc.GetSize() || m_vData.size()) {
+#if defined(PHP_ADAPTER_PROJECT) || defined(NODE_JS_ADAPTER_PROJECT)
+                        if (mc.GetSize() || m_vData.GetSize())
+#else
+                        if (mc.GetSize() || m_vData.size())
+#endif
+                        {
+#if defined(PHP_ADAPTER_PROJECT) || defined(NODE_JS_ADAPTER_PROJECT)
+                            m_vData.Push(mc.GetBuffer(), mc.GetSize());
+                            mc.SetSize(0);
+#else
                             m_csDB.lock();
                             bool Utf8ToW = m_Blob.Utf8ToW();
                             m_csDB.unlock();
-                            if (Utf8ToW)
+                            if (Utf8ToW) {
                                 mc.Utf8ToW(true);
+                            }
                             CDBVariant vtOne;
                             while (mc.GetSize()) {
                                 m_vData.push_back(vtOne);
@@ -808,19 +866,51 @@ namespace SPA {
                                 mc >> vt;
                             }
                             assert(mc.GetSize() == 0);
-                            if (Utf8ToW)
+                            if (Utf8ToW) {
                                 mc.Utf8ToW(false);
+                            }
+#endif
                             DRows row;
                             if (reqId == idOutputParameter) {
                                 {
                                     CAutoLock al(m_csDB);
-#ifdef NODE_JS_ADAPTER_PROJECT
+#ifdef NO_OUTPUT_BINDING
                                     m_bProc = true;
                                     auto it0 = m_mapRowset.find(m_indexRowset);
                                     if (it0 != m_mapRowset.end()) {
                                         row = it0->second.second;
                                     }
 #endif
+
+#if defined(PHP_ADAPTER_PROJECT) || defined(NODE_JS_ADAPTER_PROJECT)
+                                    if (m_lastReqId == idSqlBatchHeader) {
+                                        if (!m_indexProc) {
+                                            unsigned int size = 0, orig_len = m_vData.GetSize();
+                                            m_vData.SetHeadPosition();
+                                            CDBVariant vt;
+                                            while (m_vData.GetSize()) {
+                                                m_vData >> vt;
+                                                ++size;
+                                                vt.Clear();
+                                            }
+                                            m_vData.SetSize(orig_len);
+                                            m_outputs += (size + (unsigned int) m_bCallReturn);
+                                        }
+                                    } else {
+                                        if (!m_outputs) {
+                                            unsigned int size = 0, orig_len = m_vData.GetSize();
+                                            m_vData.SetHeadPosition();
+                                            CDBVariant vt;
+                                            while (m_vData.GetSize()) {
+                                                m_vData >> vt;
+                                                ++size;
+                                                vt.Clear();
+                                            }
+                                            m_vData.SetSize(orig_len);
+                                            m_outputs += (size + (unsigned int) m_bCallReturn);
+                                        }
+                                    }
+#else
                                     if (m_lastReqId == idSqlBatchHeader) {
                                         if (!m_indexProc) {
                                             m_outputs += ((unsigned int) m_vData.size() + (unsigned int) m_bCallReturn);
@@ -830,7 +920,9 @@ namespace SPA {
                                             m_outputs = ((unsigned int) m_vData.size() + (unsigned int) m_bCallReturn);
                                         }
                                     }
-#ifndef NODE_JS_ADAPTER_PROJECT
+#endif
+
+#ifndef NO_OUTPUT_BINDING
                                     auto it = m_mapParameterCall.find(m_indexRowset);
                                     if (it != m_mapParameterCall.cend()) {
                                         //crash? make sure that vParam is valid after calling the method Execute
@@ -847,7 +939,7 @@ namespace SPA {
 #endif
                                     ++m_indexProc;
                                 }
-#ifdef NODE_JS_ADAPTER_PROJECT
+#ifdef NO_OUTPUT_BINDING
                                 if (row) {
                                     row(*this, m_vData);
                                 }
@@ -868,7 +960,11 @@ namespace SPA {
                                 }
                             }
                         }
+#if defined(PHP_ADAPTER_PROJECT) || defined(NODE_JS_ADAPTER_PROJECT)
+                        m_vData.SetSize(0);
+#else
                         m_vData.clear();
+#endif
                         break;
                     case idStartBLOB:
                         if (mc.GetSize()) {
@@ -897,9 +993,14 @@ namespace SPA {
                                 //legth should be reset if BLOB length not available from server side at beginning
                                 *len = (m_Blob.GetSize() - sizeof (VARTYPE) - sizeof (unsigned int));
                             }
+#if defined(PHP_ADAPTER_PROJECT) || defined(NODE_JS_ADAPTER_PROJECT)
+                            m_vData.Push(m_Blob.GetBuffer(), m_Blob.GetSize());
+                            m_Blob.SetSize(0);
+#else
                             m_vData.push_back(CDBVariant());
                             CDBVariant &vt = m_vData.back();
                             m_Blob >> vt;
+#endif
                             assert(m_Blob.GetSize() == 0);
                         }
                         break;
@@ -929,10 +1030,12 @@ namespace SPA {
                     if (it != m_mapRowset.end()) {
                         m_mapRowset.erase(it);
                     }
+#ifndef NO_OUTPUT_BINDING
                     auto pit = m_mapParameterCall.find(index);
                     if (pit != m_mapParameterCall.end()) {
                         m_mapParameterCall.erase(pit);
                     }
+#endif
                     auto ph = m_mapHandler.find(index);
                     if (ph != m_mapHandler.end()) {
                         ash->m_mapHandler.erase(ph);
@@ -945,7 +1048,9 @@ namespace SPA {
 
             void Clean() {
                 m_mapRowset.clear();
+#ifndef NO_OUTPUT_BINDING
                 m_mapParameterCall.clear();
+#endif
                 m_mapHandler.clear();
                 m_vColInfo.clear();
                 m_lastReqId = 0;
@@ -953,7 +1058,11 @@ namespace SPA {
                 if (m_Blob.GetMaxSize() > DEFAULT_BIG_FIELD_CHUNK_SIZE) {
                     m_Blob.ReallocBuffer(DEFAULT_BIG_FIELD_CHUNK_SIZE);
                 }
+#if defined(PHP_ADAPTER_PROJECT) || defined(NODE_JS_ADAPTER_PROJECT)
+                m_vData.SetSize(0);
+#else
                 m_vData.clear();
+#endif
             }
 
         protected:
@@ -968,10 +1077,16 @@ namespace SPA {
 
         private:
             std::wstring m_strConnection;
+#ifndef NO_OUTPUT_BINDING
             std::unordered_map<UINT64, CDBVariantArray*> m_mapParameterCall;
+#endif
             unsigned int m_indexProc;
             CUQueue m_Blob;
+#if defined(PHP_ADAPTER_PROJECT) || defined(NODE_JS_ADAPTER_PROJECT)
+            CUQueue m_vData;
+#else
             CDBVariantArray m_vData;
+#endif
             tagManagementSystem m_ms;
             unsigned int m_flags;
             unsigned int m_parameters;
@@ -982,10 +1097,12 @@ namespace SPA {
             std::unordered_map<UINT64, DRowsetHeader> m_mapHandler;
             unsigned int m_nParamPos;
 
-#ifdef NODE_JS_ADAPTER_PROJECT
+#ifdef NO_OUTPUT_BINDING
             CDBVariant m_vtRet;
             bool m_bProc;
+#endif
 
+#ifdef NODE_JS_ADAPTER_PROJECT
         public:
 
             UINT64 BeginTrans(Isolate* isolate, int args, Local<Value> *argv, tagTransactionIsolation isolation) {
@@ -1167,7 +1284,7 @@ namespace SPA {
                 tagDBEvent Type;
                 PUQueue Buffer;
                 std::shared_ptr<CNJFunc> Func;
-                std::shared_ptr<CDBVariantArray> VData;
+                std::shared_ptr<CUQueue> VData;
             };
 
             std::deque<DBCb> m_deqDBCb; //protected by m_csDB;
@@ -1232,17 +1349,23 @@ namespace SPA {
                     std::shared_ptr<CNJFunc> func(new CNJFunc);
                     func->Reset(isolate, Local<Function>::Cast(r));
                     Backup(func);
-                    rows = [func](CAsyncDBHandler &db, CDBVariantArray & vData) {
+                    rows = [func](CAsyncDBHandler &db, CUQueue & vData) {
                         DBCb cb;
                         cb.Type = eRows;
                         cb.Func = func;
                         cb.Buffer = CScopeUQueue::Lock();
-                        cb.VData.reset(new CDBVariantArray);
-                        vData.swap(*cb.VData);
-                        PAsyncDBHandler ash = &db;
+                        CUQueue *p = CScopeUQueue::Lock();
                         bool proc = db.IsProc();
-                        if (proc && db.GetCallReturn())
-                            cb.VData->insert(cb.VData->begin(), db.GetRetValue());
+                        if (proc && db.GetCallReturn()) {
+                            *p << db.GetRetValue();
+                            p->Push(vData.GetBuffer(), vData.GetSize());
+                        } else {
+                            p->Swap(vData);
+                        }
+                        cb.VData.reset(p, [](CUQueue * p) {
+                            CScopeUQueue::Unlock(p);
+                        });
+                        PAsyncDBHandler ash = &db;
                         *cb.Buffer << ash << proc;
                         CAutoLock al(ash->m_csDB);
                         ash->m_deqDBCb.push_back(cb);

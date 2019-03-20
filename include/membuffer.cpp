@@ -2,7 +2,8 @@
 #include "membuffer.h"
 #include <assert.h>
 
-namespace SPA {
+namespace SPA
+{
 #ifdef NODE_JS_ADAPTER_PROJECT
     template<unsigned int InitSize, unsigned int BlockSize, typename mb>
     CUCriticalSection CScopeUQueueEx<InitSize, BlockSize, mb>::m_cs;
@@ -10,6 +11,8 @@ namespace SPA {
     template<unsigned int InitSize, unsigned int BlockSize, typename mb>
     std::vector<mb*> CScopeUQueueEx<InitSize, BlockSize, mb>::m_aUQueue;
 #endif
+
+    const UINT64 SAFE_DOUBLE = 9007199254740991ULL; //2^53-1
 
     unsigned int SHARED_BUFFER_CLEAN_SIZE = 32 * 1024;
 
@@ -48,7 +51,7 @@ namespace SPA {
 #endif
     }
 
-    CUQueue & CUQueue::operator>>(std::wstring & str) {
+    CUQueue & CUQueue::operator >> (std::wstring & str) {
         unsigned int size;
         Pop((unsigned char*) &size, sizeof (unsigned int));
         switch (size) {
@@ -300,7 +303,7 @@ namespace SPA {
     unsigned int CUQueue::Pop(VARIANT& vtData, unsigned int position) {
         unsigned int total = 0;
 #ifndef _WIN32_WCE
-        try {
+        try{
 #endif
             if (vtData.vt == VT_BSTR) {
                 VariantClear(&vtData);
@@ -308,7 +311,9 @@ namespace SPA {
                 VariantClear(&vtData);
             }
 #ifndef _WIN32_WCE
-        } catch (...) {
+        }
+
+        catch(...) {
         }
 #endif
         total = Pop(&(vtData.vt), position);
@@ -661,18 +666,18 @@ namespace SPA {
         return total;
     }
 
-    namespace Utilities {
+    namespace Utilities{
 #ifdef WIN32_64
 
         std::wstring GetErrorMessage(DWORD dwError) {
             wchar_t *lpMsgBuf = nullptr;
             DWORD res = ::FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_IGNORE_INSERTS,
-                    nullptr,
-                    dwError,
-                    MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), // Default language
-                    (LPWSTR) & lpMsgBuf,
-                    0,
-                    nullptr);
+            nullptr,
+            dwError,
+            MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), // Default language
+            (LPWSTR) & lpMsgBuf,
+            0,
+            nullptr);
             std::wstring s(lpMsgBuf ? lpMsgBuf : L"");
             if (lpMsgBuf)
                 LocalFree(lpMsgBuf);
@@ -768,6 +773,14 @@ namespace SPA {
             CScopeUQueue sb;
             Utilities::ToUTF8(str, wchars, *sb);
             return (const char*) sb->GetBuffer();
+        }
+
+        std::string ToUTF8(const std::wstring & s) {
+            return ToUTF8(s.c_str(), s.size());
+        }
+
+        std::wstring ToWide(const std::string & s) {
+            return ToWide(s.c_str(), s.size());
         }
 
         void ToUTF8(const wchar_t *str, size_t len, CUQueue & q, bool append) {

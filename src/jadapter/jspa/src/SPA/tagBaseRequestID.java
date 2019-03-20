@@ -14,8 +14,8 @@ public enum tagBaseRequestID {
     idTurnOnZipAtSvr((short) 9),
     idStartBatching((short) 10),
     idCommitBatching((short) 11),
-    idShrinkMemoryAtSvr((short) 12),
-    idSetRouting((short) 13),
+    idStartMerge((short) 12),
+    idEndMerge((short) 13),
     idPing((short) 14),
     idEnableClientDequeue((short) 15),
     idServerException((short) 16),
@@ -30,8 +30,7 @@ public enum tagBaseRequestID {
     idStartQueue((short) 25),
     idStopQueue((short) 26),
     idRoutePeerUnavailable((short) 27),
-    idReservedOne((short) 0x100),
-    idStartReqId((short) 0x2001);
+    idReservedOne((short) 0x100);
 
     public final static short idReservedTwo = 0x2001;
 

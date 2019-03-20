@@ -14,9 +14,11 @@
 
 7. test_sharp: a test .NET c-sharp project for demonstration of using async mysql (mariadb) server at client side. For detail, refer to the demo source code at the file test_sharp/Program.cs.
 
-8. mysql_streaming.js a test demonstration for node.js
+8. mysql_streaming.js: a test demonstration for node.js
 
-9. Key features are:
+9. mysql_streaming.php: a test demonstration for PHP
+
+10. Key features are:
     - Simple for development
     - Support of both windows and linux platforms
     - Rich features with many unique ones because of its unique design

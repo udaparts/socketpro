@@ -12,4 +12,5 @@ public final class BaseExceptionCode {
     public static final int becQUEUE_FILE_NOT_AVAILABLE = 0xAAAA0007;
     public static final int becALREADY_DEQUEUED = 0xAAAA0008;
     public static final int becROUTEE_DISCONNECTED = 0xAAAA0009;
+    public static final int becREQUEST_ABORTED = 0xAAAA000A;
 }

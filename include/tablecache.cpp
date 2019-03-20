@@ -768,7 +768,7 @@ namespace SPA {
             const UDB::CDBColumnInfoArray &meta = it->GetMeta();
             size_t col_count = meta.size();
             if (count % col_count)
-                return INVALID_VALUE;
+                return CTable::BAD_ORDINAL;
             auto &vRow = it->second;
             CPRow prow;
             for (size_t n = 0; n < count; ++n) {
@@ -777,19 +777,27 @@ namespace SPA {
                     vRow.push_back(prow);
                 }
                 const VARIANT &vt = pvt[n];
-                if (vt.vt == (VT_ARRAY | VT_I1)) {
+                VARTYPE vtTarget = meta[n % col_count].DataType;
+#ifdef PHP_ADAPTER_PROJECT
+                if (vtTarget == (VT_ARRAY | VT_UI1) && vt.vt == (VT_I1 | VT_ARRAY)) {
+                    VARIANT &v = (VARIANT&) vt;
+                    v.vt = (VT_ARRAY | VT_UI1);
+                    prow->push_back(Convert(vt, vtTarget));
+                } else
+#endif
+                    if (vt.vt == (VT_ARRAY | VT_I1)) {
                     const char *s;
                     CComVariant vtNew;
                     ::SafeArrayAccessData(vt.parray, (void**) &s);
                     vtNew.bstrVal = Utilities::ToBSTR(s, vt.parray->rgsabound->cElements);
                     vtNew.vt = VT_BSTR;
                     ::SafeArrayUnaccessData(vt.parray);
-                    VARTYPE vtTarget = meta[n % col_count].DataType;
-                    if (vtTarget == (VT_I1 | VT_ARRAY))
+                    if (vtTarget == (VT_I1 | VT_ARRAY)) {
                         vtTarget = VT_BSTR;
+                    }
                     prow->push_back(Convert(vtNew, vtTarget));
                 } else {
-                    prow->push_back(Convert(vt, meta[n % col_count].DataType));
+                    prow->push_back(Convert(vt, vtTarget));
                 }
             }
             return (count / col_count);
@@ -810,7 +818,7 @@ namespace SPA {
             const UDB::CDBColumnInfoArray &meta = it->GetMeta();
             size_t col_count = meta.size();
             if (count % col_count)
-                return INVALID_VALUE;
+                return CTable::BAD_ORDINAL;
             auto &vRow = it->second;
             CPRow prow;
             for (size_t n = 0; n < count; ++n) {
@@ -819,8 +827,15 @@ namespace SPA {
                     vRow.push_back(prow);
                 }
                 VARTYPE vtTarget = meta[n % col_count].DataType;
-                if (vtTarget == (VT_I1 | VT_ARRAY))
+#ifdef PHP_ADAPTER_PROJECT
+                if (vtTarget == (VT_ARRAY | VT_UI1) && vData[n].vt == (VT_I1 | VT_ARRAY)) {
+                    UDB::CDBVariant &v = (UDB::CDBVariant&)vData[n];
+                    v.vt = (VT_ARRAY | VT_UI1);
+                } else
+#endif
+                    if (vtTarget == (VT_I1 | VT_ARRAY)) {
                     vtTarget = VT_BSTR;
+                }
                 prow->push_back(Convert(vData[n], vtTarget));
             }
             return (count / col_count);
@@ -862,7 +877,7 @@ namespace SPA {
             const UDB::CDBColumnInfoArray &meta = it->GetMeta();
             size_t key = FindKeyColIndex(meta);
             if (key == INVALID_VALUE)
-                return INVALID_VALUE;
+                return CTable::BAD_ORDINAL;
             VARTYPE type = meta[key].DataType;
             if (type == (VT_I1 | VT_ARRAY))
                 type = VT_BSTR; //Table string is always unicode string
@@ -895,12 +910,12 @@ namespace SPA {
             const UDB::CDBColumnInfoArray &meta = it->first;
             size_t col_count = meta.size();
             if (count % col_count || 2 * col_count != count)
-                return INVALID_VALUE;
+                return CTable::BAD_ORDINAL;
             size_t key1;
             CPRow row;
             size_t key0 = FindKeyColIndex(meta, key1);
             if (key0 == INVALID_VALUE && key1 == INVALID_VALUE)
-                return INVALID_VALUE;
+                return CTable::BAD_ORDINAL;
             else if (key1 == INVALID_VALUE) {
                 VARTYPE type = meta[key0].DataType;
                 if (type == (VT_I1 | VT_ARRAY))
@@ -955,7 +970,7 @@ namespace SPA {
             size_t key1;
             size_t key = FindKeyColIndex(meta, key1);
             if (key == INVALID_VALUE && key1 == INVALID_VALUE)
-                return INVALID_VALUE;
+                return CTable::BAD_ORDINAL;
             VARTYPE type = meta[key].DataType;
             if (type == (VT_I1 | VT_ARRAY))
                 type = VT_BSTR; //Table string is always unicode string
@@ -1281,7 +1296,7 @@ namespace SPA {
                 continue;
             return tbl.FindOrdinal(str);
         }
-        return CTable::INVALID_ORDINAL;
+        return CTable::NO_TABLE_FOUND;
     }
 
     unsigned int CDataSet::FindOrdinal(const char *dbName, const char *tblName, const char *str) {
@@ -1319,7 +1334,7 @@ namespace SPA {
             const UDB::CDBColumnInfoArray &meta = it->first;
             return meta.size();
         }
-        return 0;
+        return CTable::NO_TABLE_FOUND;
     }
 
     size_t CDataSet::GetRowCount(const wchar_t *dbName, const wchar_t * tblName) {
@@ -1329,7 +1344,7 @@ namespace SPA {
                 continue;
             return it->second.size();
         }
-        return INVALID_VALUE;
+        return CTable::NO_TABLE_FOUND;
     }
 
 } //namespace SPA

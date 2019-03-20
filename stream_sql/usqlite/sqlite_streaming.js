@@ -30,6 +30,16 @@ if (!db.Open('sakila', (res, err) => {
     return;
 }
 
+//make long strings for testing long text and blob objects
+var wstr = '';
+while (wstr.length < 256 * 1024) {
+	wstr += '广告做得不那么夸张的就不说了，看看这三家，都是正儿八经的公立三甲，附属医院，不是武警，也不是部队，更不是莆田，都在卫生部门直接监管下，照样明目张胆地骗人。';
+}
+var str = '';
+while (str.length < 512 * 1024) {
+	str += 'The epic takedown of his opponent on an all-important voting day was extraordinary even by the standards of the 2016 campaign -- and quickly drew a scathing response from Trump.';
+}
+
 function TestCreateTables(db) {
     //track final result event, but ignore row, metat and cancel events
     if (!db.Execute('CREATE TABLE COMPANY(ID INT8 PRIMARY KEY NOT NULL,name CHAR(64)NOT NULL,ADDRESS varCHAR(256)not null,Income float not null)', (res, err) => {
@@ -101,14 +111,6 @@ if (!TestPreparedStatements(db)) {
 }
 
 function InsertBLOBByPreparedStatement(db) {
-    var wstr = '';
-    while (wstr.length < 256 * 1024) {
-        wstr += '广告做得不那么夸张的就不说了，看看这三家，都是正儿八经的公立三甲，附属医院，不是武警，也不是部队，更不是莆田，都在卫生部门直接监管下，照样明目张胆地骗人。';
-    }
-    var str = '';
-    while (str.length < 512 * 1024) {
-        str += 'The epic takedown of his opponent on an all-important voting day was extraordinary even by the standards of the 2016 campaign -- and quickly drew a scathing response from Trump.';
-    }
     if (!db.Prepare('insert or replace into employee(EMPLOYEEID,CompanyId,name,JoinDate,image,DESCRIPTION,Salary)values(?,?,?,?,?,?,?)', (res, err) => {
             if (res) console.log({
                 ec: res,
@@ -191,14 +193,6 @@ if (!db.Execute('select name, joindate, salary from employee', (res, err, affect
 
 function TestBatch(db) {
     var sql = "delete from employee;delete from company|INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?)|insert into employee values(?,?,?,?,?,?,?)|SELECT * from company;select employeeid,companyid,name,joindate,salary from employee;Select datetime('now')";
-    var wstr = '';
-    while (wstr.length < 256 * 1024) {
-        wstr += '广告做得不那么夸张的就不说了，看看这三家，都是正儿八经的公立三甲，附属医院，不是武警，也不是部队，更不是莆田，都在卫生部门直接监管下，照样明目张胆地骗人。';
-    }
-    var str = '';
-    while (str.length < 512 * 1024) {
-        str += 'The epic takedown of his opponent on an all-important voting day was extraordinary even by the standards of the 2016 campaign -- and quickly drew a scathing response from Trump.';
-    }
     var buff = SPA.newBuffer();
     var blob = SPA.newBuffer();
 

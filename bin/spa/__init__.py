@@ -8,7 +8,7 @@ class BaseServiceID(object):
     sidFile = 259
     sidODBC = 260
     sidReserved = 0x10000000
-    sidQueue = (sidReserved + 0xEFFF0000)
+    sidQueue = 257
 
 class tagBaseRequestID(object):
     idUnknown = 0
@@ -23,8 +23,8 @@ class tagBaseRequestID(object):
     idTurnOnZipAtSvr = 9
     idStartBatching = 10
     idCommitBatching = 11
-    idShrinkMemoryAtSvr = 12
-    idSetRouting = 13
+    idStartMerge = 12
+    idEndMerge = 13
     idPing = 14
     idEnableClientDequeue = 15
     idServerException = 16
@@ -195,6 +195,7 @@ class BaseExceptionCode(object):
     becQUEUE_FILE_NOT_AVAILABLE = 0xAAAA0007
     becALREADY_DEQUEUED = 0xAAAA0008
     becROUTEE_DISCONNECTED = 0xAAAA0009
+    becREQUEST_ABORTED = 0xAAAA000A
 
 class Pair(object):
     def __init__(self, reqId, cb):

@@ -13,8 +13,12 @@
 #include <memory>
 #include <functional>
 
-#ifdef NODE_JS_ADAPTER_PROJECT
-
+#ifdef PHP_ADAPTER_PROJECT
+#define NO_MIDDLE_TIER
+#include <cctype>
+#elif defined NODE_JS_ADAPTER_PROJECT
+#define NO_MIDDLE_TIER
+#include <cctype>
 #ifdef WIN32_64
 //warning C4251: 'node::CallbackScope::try_catch_': class 'v8::TryCatch' needs to have dll-interface to be used by clients
 #pragma warning(disable: 4251)
@@ -69,7 +73,8 @@ using v8::Array;
 namespace NJA {
     class NJSocketPool;
     void ThrowException(Isolate* isolate, const char *str);
-    Local<Value> From(Isolate* isolate, const VARIANT &vt, bool strForDec = false);
+    Local<Value> From(Isolate* isolate, const VARIANT &vt);
+    Local<Value> DbFrom(Isolate* isolate, SPA::CUQueue &buff);
     Local<String> ToStr(Isolate* isolate, const char *str, size_t len = (size_t) INVALID_NUMBER);
     Local<String> ToStr(Isolate* isolate, const wchar_t *str, size_t len = (size_t) INVALID_NUMBER);
     bool IsNullOrUndefined(const Local<Value> &v);
@@ -90,7 +95,8 @@ namespace SPA {
         class CAsyncServiceHandler;
         class CAsyncResult;
 
-        typedef std::function<void(CAsyncResult&) > ResultHandler;
+        typedef std::function<void(CAsyncResult&) > DResultHandler;
+        typedef DResultHandler ResultHandler;
 
         const static ResultHandler NULL_RH;
 
@@ -181,6 +187,19 @@ namespace SPA {
                 return *this;
             }
 
+#if defined(PHP_ADAPTER_PROJECT) || defined(NODE_JS_ADAPTER_PROJECT)
+            //not accurate but better than nothing here
+            //Client core internal checking works much better, starting from version 6.2.0.4
+
+            bool operator==(const CConnectionContext &cc) const {
+                if (this == &cc)
+                    return true;
+                return (Port == cc.Port && Host.size() == cc.Host.size() &&
+                        std::equal(Host.begin(), Host.end(), cc.Host.begin(), [](char a, char b) {
+                            return std::tolower(a) == std::tolower(b); }));
+            }
+#else
+
             bool operator==(const CConnectionContext &cc) const {
                 if (this == &cc)
                     return true;
@@ -193,7 +212,7 @@ namespace SPA {
                         Zip == cc.Zip &&
                         IsEqual(AnyData, cc.AnyData));
             }
-
+#endif
             std::string Host;
             unsigned int Port;
             std::wstring UserId;
@@ -1475,7 +1494,7 @@ namespace SPA {
                 return SendRouteeResult(sb->GetBuffer(), sb->GetSize(), usRequestID);
             }
 
-#ifdef NODE_JS_ADAPTER_PROJECT
+#if defined(NODE_JS_ADAPTER_PROJECT)
         public:
             typedef Persistent<Function, v8::NJANonCopyablePersistentTraits<Function> > CNJFunc;
 
@@ -1735,6 +1754,11 @@ namespace SPA {
                 }
             }
 
+            inline bool GetAutoConn() {
+                CAutoLock al(m_cs);
+                return m_autoConn;
+            }
+
             inline void SetRecvTimeout(unsigned int recvTimeout) {
                 CAutoLock al(m_cs);
                 if (!m_mapSocketHandler.size()) {
@@ -1751,6 +1775,11 @@ namespace SPA {
                 }
             }
 
+            inline unsigned int GetRecvTimeout() {
+                CAutoLock al(m_cs);
+                return m_recvTimeout;
+            }
+
             inline void SetConnTimeout(unsigned int connTimeout) {
                 CAutoLock al(m_cs);
                 if (!m_mapSocketHandler.size()) {
@@ -1765,6 +1794,11 @@ namespace SPA {
                             m_connTimeout = ClientCoreLoader.GetConnTimeout(cs->GetHandle());
                     }
                 }
+            }
+
+            inline unsigned int GetConnTimeout() {
+                CAutoLock al(m_cs);
+                return m_connTimeout;
             }
 
             inline bool IsAvg() {
