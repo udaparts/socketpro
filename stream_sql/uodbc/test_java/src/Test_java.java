@@ -68,7 +68,7 @@ public class Test_java {
         ok = odbc.Execute(vData, er);
     }
 
-    static CDBVariantArray TestBatch(COdbc odbc, COdbc.DExecuteResult er, COdbc.DRows r, COdbc.DRowsetHeader rh, final java.util.ArrayList<Pair<CDBColumnInfoArray, CDBVariantArray>> ra) {
+    static CDBVariantArray TestBatch(COdbc odbc, COdbc.DExecuteResult er, COdbc.DRows r, COdbc.DRowsetHeader rh, java.util.ArrayList<Pair<CDBColumnInfoArray, CDBVariantArray>> ra) {
         String sql = "delete from employee;delete from company;"
                 + "INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?);"
                 + "insert into employee(CompanyId,name,JoinDate,image,DESCRIPTION,Salary)values(?,?,?,?,?,?);"
@@ -136,18 +136,12 @@ public class Test_java {
         vData.add(new BigDecimal("3.12"));
         vData.add(0);
 
-        COdbc.DRowsetHeader batchHeader = new COdbc.DRowsetHeader() {
-            @Override
-            public void invoke(CAsyncDBHandler dbHandler) {
-                //called before rh, r and er
-            }
+        COdbc.DRowsetHeader batchHeader = (dbHandler) -> {
+            //called before rh, r and er
         };
 
-        COdbc.DDiscarded discarded = new COdbc.DDiscarded() {
-            @Override
-            public void invoke(CAsyncServiceHandler dbHandler, boolean canceled) {
-                //called when canceling or socket closed if client queue is NOT used
-            }
+        COdbc.DDiscarded discarded = (dbHandler, canceled) -> {
+            //called when canceling or socket closed if client queue is NOT used
         };
 
         //first, execute delete from employee;delete from company
@@ -203,42 +197,29 @@ public class Test_java {
             in.nextLine();
             return;
         }
-        COdbc.DResult dr = new COdbc.DResult() {
-            @Override
-            public void invoke(CAsyncDBHandler dbHandler, int res, String errMsg) {
-                System.out.format("res = %d, errMsg: %s", res, errMsg);
-                System.out.println();
-            }
+        COdbc.DResult dr = (dbHandler, res, errMsg) -> {
+            System.out.format("res = %d, errMsg: %s", res, errMsg);
+            System.out.println();
         };
-        COdbc.DExecuteResult er = new COdbc.DExecuteResult() {
-            @Override
-            public void invoke(CAsyncDBHandler dbHandler, int res, String errMsg, long affected, long fail_ok, Object lastRowId) {
-                System.out.format("affected = %d, fails = %d, oks = %d, res = %d, errMsg: %s", affected, (int) (fail_ok >> 32), (int) fail_ok, res, errMsg);
-                System.out.println();
-            }
+        COdbc.DExecuteResult er = (dbHandler, res, errMsg, affected, fail_ok, lastRowId) -> {
+            System.out.format("affected = %d, fails = %d, oks = %d, res = %d, errMsg: %s", affected, (int) (fail_ok >> 32), (int) fail_ok, res, errMsg);
+            System.out.println();
         };
 
         ok = odbc.Open("dsn=ToMySQL;uid=root;pwd=Smash123", dr);
-        final java.util.ArrayList<Pair<CDBColumnInfoArray, CDBVariantArray>> ra = new java.util.ArrayList<>();
-        COdbc.DRows r = new COdbc.DRows() {
-            //rowset data come here
-            @Override
-            public void invoke(CAsyncDBHandler dbHandler, CDBVariantArray lstData) {
-                int last = ra.size() - 1;
-                Pair<CDBColumnInfoArray, CDBVariantArray> item = ra.get(last);
-                item.second.addAll(lstData);
-            }
+        java.util.ArrayList<Pair<CDBColumnInfoArray, CDBVariantArray>> ra = new java.util.ArrayList<>();
+        COdbc.DRows r = (dbHandler, lstData) -> {
+            int last = ra.size() - 1;
+            Pair<CDBColumnInfoArray, CDBVariantArray> item = ra.get(last);
+            item.second.addAll(lstData);
         };
 
-        COdbc.DRowsetHeader rh = new COdbc.DRowsetHeader() {
-            @Override
-            public void invoke(CAsyncDBHandler dbHandler) {
-                //rowset header comes here
-                CDBColumnInfoArray vColInfo = dbHandler.getColumnInfo();
-                CDBVariantArray vData = new CDBVariantArray();
-                Pair<CDBColumnInfoArray, CDBVariantArray> item = new Pair<>(vColInfo, vData);
-                ra.add(item);
-            }
+        COdbc.DRowsetHeader rh = (dbHandler) -> {
+            //rowset header comes here
+            CDBColumnInfoArray vColInfo = dbHandler.getColumnInfo();
+            CDBVariantArray vData = new CDBVariantArray();
+            Pair<CDBColumnInfoArray, CDBVariantArray> item = new Pair<>(vColInfo, vData);
+            ra.add(item);
         };
 
         TestCreateTables(odbc, er);
@@ -250,10 +231,10 @@ public class Test_java {
         ok = odbc.Execute("select * from employee", er, r, rh);
         ok = odbc.Execute("select curtime()", er, r, rh);
 
-        final CDBVariantArray vPData = TestStoredProcedure(odbc, dr, er, ra);
+        CDBVariantArray vPData = TestStoredProcedure(odbc, dr, er, ra);
         ok = odbc.WaitAll();
 
-        final CDBVariantArray vData = TestBatch(odbc, er, r, rh, ra);
+        CDBVariantArray vData = TestBatch(odbc, er, r, rh, ra);
         ok = odbc.WaitAll();
 
         ok = odbc.Tables("sakila", "", "%", "TABLE", er, r, rh);
@@ -288,26 +269,20 @@ public class Test_java {
         in.nextLine();
     }
 
-    static CDBVariantArray TestStoredProcedure(COdbc odbc, COdbc.DResult dr, COdbc.DExecuteResult er, final java.util.ArrayList<Pair<CDBColumnInfoArray, CDBVariantArray>> ra) {
+    static CDBVariantArray TestStoredProcedure(COdbc odbc, COdbc.DResult dr, COdbc.DExecuteResult er, java.util.ArrayList<Pair<CDBColumnInfoArray, CDBVariantArray>> ra) {
         boolean ok = odbc.Prepare("call sp_TestProc(?,?,?)", dr);
-        COdbc.DRows r = new COdbc.DRows() {
+        COdbc.DRows r = (dbHandler, lstData) -> {
             //rowset data come here
-            @Override
-            public void invoke(CAsyncDBHandler dbHandler, CDBVariantArray lstData) {
-                int last = ra.size() - 1;
-                Pair<CDBColumnInfoArray, CDBVariantArray> item = ra.get(last);
-                item.second.addAll(lstData);
-            }
+            int last = ra.size() - 1;
+            Pair<CDBColumnInfoArray, CDBVariantArray> item = ra.get(last);
+            item.second.addAll(lstData);
         };
-        COdbc.DRowsetHeader rh = new COdbc.DRowsetHeader() {
-            @Override
-            public void invoke(CAsyncDBHandler dbHandler) {
-                //rowset header comes here
-                CDBColumnInfoArray vColInfo = dbHandler.getColumnInfo();
-                CDBVariantArray vData = new CDBVariantArray();
-                Pair<CDBColumnInfoArray, CDBVariantArray> item = new Pair<>(vColInfo, vData);
-                ra.add(item);
-            }
+        COdbc.DRowsetHeader rh = (dbHandler) -> {
+            //rowset header comes here
+            CDBColumnInfoArray vColInfo = dbHandler.getColumnInfo();
+            CDBVariantArray vData = new CDBVariantArray();
+            Pair<CDBColumnInfoArray, CDBVariantArray> item = new Pair<>(vColInfo, vData);
+            ra.add(item);
         };
         CDBVariantArray vPData = new CDBVariantArray();
         //first set
