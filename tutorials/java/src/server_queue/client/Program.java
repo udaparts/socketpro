@@ -63,44 +63,38 @@ public class Program {
 
     private static void TestDequeue(final CAsyncQueue aq) {
         //prepare callback for parsing messages dequeued from server side
-        aq.ResultReturned = new CAsyncQueue.DOnResultReturned() {
-            @Override
-            public boolean invoke(CAsyncServiceHandler sender, short idReq, CUQueue q) {
-                boolean processed = false;
-                switch (idReq) {
-                    case idMessage0:
-                    case idMessage1:
-                    case idMessage2:
-                        System.out.print("message id=" + idReq);
-                         {
-                            //parse a dequeued message which should be the same as the above enqueued message (two unicode strings and one int)
-                            String name = q.LoadString(), str = q.LoadString();
-                            int index = q.LoadInt();
-                            System.out.print(", name=" + name);
-                            System.out.print(", str=" + str);
-                            System.out.println(", index=" + index);
-                        }
-                        processed = true;
-                        break;
-                    default:
-                        break;
-                }
-                return processed;
+        aq.ResultReturned = (sender, idReq, q) -> {
+            boolean processed = false;
+            switch (idReq) {
+                case idMessage0:
+                case idMessage1:
+                case idMessage2:
+                    System.out.print("message id=" + idReq);
+                     {
+                        //parse a dequeued message which should be the same as the above enqueued message (two unicode strings and one int)
+                        String name = q.LoadString(), str = q.LoadString();
+                        int index = q.LoadInt();
+                        System.out.print(", name=" + name);
+                        System.out.print(", str=" + str);
+                        System.out.println(", index=" + index);
+                    }
+                    processed = true;
+                    break;
+                default:
+                    break;
             }
+            return processed;
         };
 
         //prepare a callback for processing returned result of dequeue request
-        CAsyncQueue.DDequeue d = new CAsyncQueue.DDequeue() {
-            @Override
-            public void invoke(CAsyncQueue aq, long messageCount, long fileSize, int messagesDequeuedInBatch, int bytesDequeuedInBatch) {
-                System.out.print("Total message count=" + messageCount);
-                System.out.print(", queue file size=" + fileSize);
-                System.out.print(", messages dequeued=" + messagesDequeuedInBatch);
-                System.out.println(", message bytes dequeued=" + bytesDequeuedInBatch);
-                if (messageCount > 0) {
-                    //there are more messages left at server queue, we re-send a request to dequeue
-                    aq.Dequeue(TEST_QUEUE_KEY, aq.getLastDequeueCallback());
-                }
+        CAsyncQueue.DDequeue d = (asyncqueue, messageCount, fileSize, messagesDequeuedInBatch, bytesDequeuedInBatch) -> {
+            System.out.print("Total message count=" + messageCount);
+            System.out.print(", queue file size=" + fileSize);
+            System.out.print(", messages dequeued=" + messagesDequeuedInBatch);
+            System.out.println(", message bytes dequeued=" + bytesDequeuedInBatch);
+            if (messageCount > 0) {
+                //there are more messages left at server queue, we re-send a request to dequeue
+                asyncqueue.Dequeue(TEST_QUEUE_KEY, aq.getLastDequeueCallback());
             }
         };
 
