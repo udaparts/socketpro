@@ -99,7 +99,8 @@ function TestStoredProcedure($db, $cb_ex) {
 }
 
 $vData = array();
-$cbRow = function($v, $proc) use ($vData) {
+$cbRow = function($v, $proc) {
+    global $vData;
     $vData = array_merge($vData, $v);
 };
 

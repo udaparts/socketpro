@@ -48,7 +48,8 @@ try {
     $slave = GetSpHandler('slavedb0');
     echo 'SELECT * FROM mysqldb.company:<br/>';
     $vData = array();
-    $res = $slave->Execute('SELECT * FROM mysqldb.company', true, function($v) use ($vData) {
+    $res = $slave->Execute('SELECT * FROM mysqldb.company', true, function($v) {
+        global $vData;
         $vData = array_merge($vData, $v);
     });
     echo var_dump($vData) . '<br/><br/>';
