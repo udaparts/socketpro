@@ -45,8 +45,7 @@
         "Hosts": [
           "hw_0",
           "hw_0"
-        ],
-	"Queue": "svshw"
+        ]
       }
     },
     {
@@ -55,8 +54,7 @@
         "Hosts": [
           "hw_0",
           "hw_0"
-        ],
-        "Queue": "svsfile"
+        ]
       }
     },
     {
@@ -88,7 +86,6 @@
           "db_master"
         ],
         "DefaultDb": "sakila",
-        "Queue": "mdb",
         "AutoMerge": false,
         "Slaves": [
           {
@@ -100,7 +97,6 @@
                 "db_master",
                 "db_slave_remote"
               ],
-              "Queue": "sdb",
               "RecvTimeout": 45000,
               "Threads": 2
             }
