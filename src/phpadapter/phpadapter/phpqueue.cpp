@@ -140,10 +140,12 @@ namespace PA
             to = (unsigned int) o;
         }
         bool ok = m_aq->Dequeue(key.c_str(), f, to, discarded);
-        if (!ok) {
-            m_aq->ResultReturned = nullptr;
+        {
             std::unique_lock<std::mutex> lk(m_mPhp);
             PopCallbacks();
+        }
+        if (!ok) {
+            m_aq->ResultReturned = nullptr;
             throw Php::Exception(PA::PHP_SOCKET_CLOSED + m_aq->GetAttachedClientSocket()->GetErrorMsg());
         }
         ok = m_aq->WaitAll();

@@ -62,7 +62,7 @@ namespace PA
     }
 
     void CPhpBaseHandler::ReqSyncEnd(bool ok, std::unique_lock<std::mutex> &lk, unsigned int timeout) {
-        //Unlock();
+        Unlock();
         PopCallbacks();
         if (!ok) {
             throw Php::Exception(PA::PHP_SOCKET_CLOSED + m_h->GetAttachedClientSocket()->GetErrorMsg());
