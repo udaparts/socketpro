@@ -164,11 +164,7 @@ SPA::UINT64 CDBUpdateImpl::NotifySocketProDatabaseEvent(unsigned int *group, uns
         auto sockets = m_pPool->GetSockets();
         for (auto it = sockets.begin(), end = sockets.end(); it != end; ++it, ++n) {
             auto s = *(it);
-#ifndef WIN32_64
-            bool ok = s->GetPush().Publish(str, group, count);
-#else
             bool ok = s->GetPush().Publish(str.c_str(), group, count);
-#endif
             if (ok) {
                 ++connected;
             } else {
