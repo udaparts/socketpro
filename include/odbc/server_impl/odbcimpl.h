@@ -58,7 +58,6 @@ namespace SPA {
                 bool async; //async | asynchronous -- SQL_ATTR_ASYNC_ENABLE
 
                 void Parse(const wchar_t *s);
-                static void Trim(std::wstring &s);
             };
         public:
             COdbcImpl();
@@ -139,9 +138,6 @@ namespace SPA {
             static unsigned int ToCTime(const TIME_STRUCT &d, std::tm &tm);
             static unsigned int ToCTime(const DATE_STRUCT &d, std::tm &tm);
             static void ToDecimal(const SQL_NUMERIC_STRUCT &num, DECIMAL &dec);
-            static void ltrim_w(std::wstring &s);
-            static void rtrim_w(std::wstring &s);
-            static void trim_w(std::wstring &s);
             static std::vector<tagParameterDirection> GetCallDirections(const std::wstring &sql);
 
         protected:

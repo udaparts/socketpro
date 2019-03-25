@@ -61,7 +61,6 @@ namespace SPA {
             static void CreateTriggers(CMysqlImpl &impl, const std::vector<std::string> &vecTables);
             static void SetPublishDBEvent(CMysqlImpl &impl);
             static void ConfigServices(CMysqlImpl &impl);
-            static void Trim(std::string &s);
 
         protected:
             virtual void OnFastRequestArrive(unsigned short reqId, unsigned int len);
@@ -127,9 +126,6 @@ namespace SPA {
             static void sql_shutdown(void *ctx, int shutdown_server);
             static void ToDecimal(const decimal_t &src, bool large, DECIMAL &dec);
             static bool DoAuthentication(const wchar_t *password, const std::string &hash);
-            static void ltrim_w(std::wstring &s);
-            static void rtrim_w(std::wstring &s);
-            static void trim_w(std::wstring &s);
 
         private:
             bool m_EnableMessages;

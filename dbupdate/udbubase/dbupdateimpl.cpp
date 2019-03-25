@@ -7,7 +7,6 @@ CDBUpdateImpl CDBUpdateImpl::DBUpdate;
 
 CDBUpdateImpl::CDBUpdateImpl() {
 
-
 }
 
 CDBUpdateImpl::~CDBUpdateImpl() {
@@ -94,20 +93,6 @@ unsigned int CDBUpdateImpl::SetSocketProConnectionString(const wchar_t *connecti
     return count;
 }
 
-void CDBUpdateImpl::Trim(std::wstring & s) {
-    static const wchar_t *WHITESPACE = L" \r\n\t\v\f\v";
-    auto pos = s.find_first_of(WHITESPACE);
-    while (pos == 0) {
-        s.erase(s.begin());
-        pos = s.find_first_of(WHITESPACE);
-    }
-    pos = s.find_last_of(WHITESPACE);
-    while (s.size() && pos == s.size() - 1) {
-        s.pop_back();
-        pos = s.find_last_of(WHITESPACE);
-    }
-}
-
 void CDBUpdateImpl::Parse(const wchar_t *s) {
     using namespace std;
     if (!wcsstr(s, L"="))
@@ -127,8 +112,8 @@ void CDBUpdateImpl::Parse(const wchar_t *s) {
             continue;
         wstring left = it->substr(0, pos);
         wstring right = it->substr(pos + 1);
-        Trim(left);
-        Trim(right);
+        SPA::Utilities::Trim(left);
+        SPA::Utilities::Trim(right);
         transform(left.begin(), left.end(), left.begin(), ::tolower);
         if (left == L"port")
             cc.Port = (unsigned int) std::atoi(SPA::Utilities::ToUTF8(right.c_str()).c_str());

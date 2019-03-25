@@ -109,20 +109,6 @@ namespace SPA
             m_csPeer.unlock();
         }
 
-        void COdbcImpl::ODBC_CONNECTION_STRING::Trim(std::wstring & s) {
-            static const wchar_t *WHITESPACE = L" \r\n\t\v\f\v";
-            auto pos = s.find_first_of(WHITESPACE);
-            while (pos == 0) {
-                s.erase(s.begin());
-                pos = s.find_first_of(WHITESPACE);
-            }
-            pos = s.find_last_of(WHITESPACE);
-            while (s.size() && pos == s.size() - 1) {
-                s.pop_back();
-                pos = s.find_last_of(WHITESPACE);
-            }
-        }
-
         void COdbcImpl::ODBC_CONNECTION_STRING::Parse(const wchar_t * s) {
             using namespace std;
             remaining.clear();
@@ -143,8 +129,8 @@ namespace SPA
                     continue;
                 wstring left = it->substr(0, pos);
                 wstring right = it->substr(pos + 1);
-                Trim(left);
-                Trim(right);
+                Utilities::Trim(left);
+                Utilities::Trim(right);
                 transform(left.begin(), left.end(), left.begin(), ::tolower);
                 if (left == L"connect-timeout" || left == L"timeout" || left == L"connection-timeout") {
 #ifdef WIN32_64
@@ -305,23 +291,6 @@ namespace SPA
             m_EnableMessages = false;
             m_bPrimaryKeys = SQL_FALSE;
             m_bProcedureColumns = SQL_FALSE;
-        }
-
-        void COdbcImpl::ltrim_w(std::wstring & s) {
-            s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](int ch) {
-                return (!(std::isspace(ch) || ch == L';'));
-            }));
-        }
-
-        void COdbcImpl::rtrim_w(std::wstring & s) {
-            s.erase(std::find_if(s.rbegin(), s.rend(), [](int ch) {
-                return (!(std::isspace(ch) || ch == L';'));
-            }).base(), s.end());
-        }
-
-        void COdbcImpl::trim_w(std::wstring & s) {
-            ltrim_w(s);
-            rtrim_w(s);
         }
 
         void COdbcImpl::Open(const std::wstring &strConnection, unsigned int flags, int &res, std::wstring &errMsg, int &ms) {
@@ -753,7 +722,7 @@ namespace SPA
                 assert(SQL_SUCCEEDED(retcode));
                 if (colnamelen) {
                     info.TablePath = SPA::Utilities::ToWide((const char*) colname, (size_t) colnamelen / sizeof (SQLCHAR));
-                    ODBC_CONNECTION_STRING::Trim(info.TablePath);
+                    Utilities::Trim(info.TablePath);
                     info.TablePath += L".";
                 }
                 retcode = SQLColAttribute(hstmt, (SQLUSMALLINT) (n + 1), SQL_DESC_BASE_TABLE_NAME, colname, sizeof (colname), &colnamelen, &displaysize);
@@ -1262,16 +1231,16 @@ namespace SPA
             if (s.size() && s.front() == L'{' && s.back() == L'}') {
                 s.pop_back();
                 s.erase(s.begin(), s.begin() + 1);
-                COdbcImpl::ODBC_CONNECTION_STRING::Trim(s);
+                Utilities::Trim(s);
             }
             m_bReturn = (s.front() == L'?');
             if (m_bReturn) {
                 s.erase(s.begin(), s.begin() + 1); //remove '?'
-                COdbcImpl::ODBC_CONNECTION_STRING::Trim(s);
+                Utilities::Trim(s);
                 if (s.front() != L'=')
                     return false;
                 s.erase(s.begin(), s.begin() + 1); //remove '='
-                COdbcImpl::ODBC_CONNECTION_STRING::Trim(s);
+                Utilities::Trim(s);
             }
             std::wstring s_copy = s;
             transform(s.begin(), s.end(), s.begin(), ::tolower);
@@ -1287,13 +1256,13 @@ namespace SPA
                         return false;
                     m_procName = s_copy.substr(5);
                 }
-                COdbcImpl::ODBC_CONNECTION_STRING::Trim(m_procName);
+                Utilities::Trim(m_procName);
                 pos = m_procName.rfind(L'.');
                 if (pos != std::wstring::npos) {
                     m_procCatalogSchema = m_procName.substr(0, pos);
-                    COdbcImpl::ODBC_CONNECTION_STRING::Trim(m_procCatalogSchema);
+                    Utilities::Trim(m_procCatalogSchema);
                     m_procName = m_procName.substr(pos + 1);
-                    COdbcImpl::ODBC_CONNECTION_STRING::Trim(m_procName);
+                    Utilities::Trim(m_procName);
                 }
             } else {
                 return false;
@@ -3139,7 +3108,7 @@ namespace SPA
             m_procName.clear();
             m_bReturn = false;
             m_procCatalogSchema.clear();
-            COdbcImpl::ODBC_CONNECTION_STRING::Trim(m_sqlPrepare);
+            Utilities::Trim(m_sqlPrepare);
             PreprocessPreparedStatement();
             SQLHSTMT hstmt = nullptr;
             SQLRETURN retcode = SQLAllocHandle(SQL_HANDLE_STMT, m_pOdbc.get(), &hstmt);
@@ -4336,7 +4305,7 @@ namespace SPA
             UINT64 fo = 0;
             size_t pos = 0;
             for (auto it = vSql.begin(), end = vSql.end(); it != end; ++it) {
-                trim_w(*it);
+                Utilities::Trim(*it);
                 if (!it->size()) {
                     continue;
                 }

@@ -35,54 +35,20 @@ namespace SPA
 
         }
 
-        void CSqliteImpl::ltrim(std::string & s) {
-            s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](int ch) {
-                return !std::isspace(ch);
-            }));
-        }
-
-        void CSqliteImpl::rtrim(std::string & s) {
-            s.erase(std::find_if(s.rbegin(), s.rend(), [](int ch) {
-                return !std::isspace(ch);
-            }).base(), s.end());
-        }
-
-        void CSqliteImpl::trim(std::string & s) {
-            ltrim(s);
-            rtrim(s);
-        }
-
-        void CSqliteImpl::ltrim_w(std::wstring & s) {
-            s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](int ch) {
-                return (!(std::isspace(ch) || ch == L';'));
-            }));
-        }
-
-        void CSqliteImpl::rtrim_w(std::wstring & s) {
-            s.erase(std::find_if(s.rbegin(), s.rend(), [](int ch) {
-                return (!(std::isspace(ch) || ch == L';'));
-            }).base(), s.end());
-        }
-
-        void CSqliteImpl::trim_w(std::wstring & s) {
-            ltrim_w(s);
-            rtrim_w(s);
-        }
-
         void CSqliteImpl::SetCacheTables(const std::wstring & str) {
             std::istringstream f(SPA::Utilities::ToUTF8(str.c_str(), str.size()));
             std::string s;
             while (getline(f, s, ';')) {
-                trim(s);
+                Utilities::Trim(s);
                 size_t point = s.rfind('.');
                 if (point == std::wstring::npos || point == 0)
                     continue;
                 std::string table = s.substr(point + 1);
-                trim(table);
+                Utilities::Trim(table);
                 if (!table.size())
                     continue;
                 s = s.substr(0, point);
-                trim(s);
+                Utilities::Trim(s);
                 if (!s.size())
                     continue;
                 if (m_mapCache.find(s) == m_mapCache.end())
@@ -93,7 +59,7 @@ namespace SPA
 
         const std::vector<std::string>* CSqliteImpl::InCache(const std::string & dbFile) {
             std::string s = dbFile;
-            trim(s);
+            Utilities::Trim(s);
 #ifdef WIN32
             std::transform(s.begin(), s.end(), s.begin(), ::tolower);
 #endif
@@ -980,7 +946,7 @@ namespace SPA
             CDBVariantArray vAll;
             m_vParam.swap(vAll);
             for (auto it = vSql.begin(), end = vSql.end(); it != end; ++it) {
-                trim_w(*it);
+                Utilities::Trim(*it);
                 if (!it->size()) {
                     continue;
                 }

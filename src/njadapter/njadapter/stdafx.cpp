@@ -201,15 +201,6 @@ namespace SPA {
 
 namespace NJA {
 
-    void Trim(std::string & str) {
-        while (str.size() && std::isspace(str.back())) {
-            str.pop_back();
-        }
-        while (str.size() && std::isspace(str.front())) {
-            str.erase(0, 1);
-        }
-    }
-
     int time_offset(time_t rawtime) {
         time_t gmt;
         struct tm *ptm;

@@ -35,5 +35,4 @@ public:
 
 private:
     void Parse(const wchar_t *s);
-    static void Trim(std::wstring &s);
 };

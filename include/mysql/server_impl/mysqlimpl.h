@@ -73,7 +73,6 @@ namespace SPA {
                     return (ssl_ca.size() || ssl_capath.size() || ssl_cert.size() || ssl_cipher.size() || ssl_key.size());
                 }
                 void Parse(const char *s);
-                static void Trim(std::string &s);
 
             private:
                 void Init();
@@ -89,7 +88,6 @@ namespace SPA {
             static void UnloadMysql();
             static bool InitMySql();
             static bool DoSQLAuthentication(USocket_Server_Handle hSocket, const wchar_t *userId, const wchar_t *password, unsigned int nSvsId, const wchar_t *dbConnection);
-            static void Trim(std::string &s);
 
 #ifdef MM_DB_SERVER_PLUGIN
             static std::string ToString(const CDBVariant &vtUTF8);
@@ -152,9 +150,6 @@ namespace SPA {
             static UINT64 ToUDateTime(const MYSQL_TIME &td);
             static std::vector<std::wstring> Split(const std::wstring &sql, const std::wstring &delimiter);
             static size_t ComputeParameters(const std::wstring &sql);
-            static void ltrim_w(std::wstring &s);
-            static void rtrim_w(std::wstring &s);
-            static void trim_w(std::wstring &s);
 
         private:
             UINT64 m_oks;

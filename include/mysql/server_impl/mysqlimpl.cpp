@@ -80,8 +80,8 @@ namespace SPA
                     continue;
                 string left = it->substr(0, pos);
                 string right = it->substr(pos + 1);
-                Trim(left);
-                Trim(right);
+                Utilities::Trim(left);
+                Utilities::Trim(right);
                 transform(left.begin(), left.end(), left.begin(), ::tolower);
                 if (left == "connect-timeout" || left == "timeout" || left == "connection-timeout")
                     timeout = (unsigned int) std::atoi(right.c_str());
@@ -112,24 +112,6 @@ namespace SPA
                     assert(false);
                 }
             }
-        }
-
-        void CMysqlImpl::MYSQL_CONNECTION_STRING::Trim(std::string & s) {
-            static const char *WHITESPACE = " \r\n\t\v\f\v";
-            auto pos = s.find_first_of(WHITESPACE);
-            while (pos == 0) {
-                s.erase(s.begin());
-                pos = s.find_first_of(WHITESPACE);
-            }
-            pos = s.find_last_of(WHITESPACE);
-            while (s.size() && pos == s.size() - 1) {
-                s.pop_back();
-                pos = s.find_last_of(WHITESPACE);
-            }
-        }
-
-        void CMysqlImpl::Trim(std::string & s) {
-            MYSQL_CONNECTION_STRING::Trim(s);
         }
 
 #ifdef MM_DB_SERVER_PLUGIN
@@ -503,7 +485,7 @@ namespace SPA
             if (m_pMysql) {
                 res = 0;
                 std::wstring db(strConnection);
-                trim_w(db);
+                Utilities::Trim(db);
                 if (m_dbNameOpened.size() && !db.size()) {
                     errMsg = m_dbNameOpened;
                 } else {
@@ -1467,8 +1449,8 @@ namespace SPA
             vtId = (INT64) 0;
             UINT64 fails = m_fails;
             UINT64 oks = m_oks;
-            std::string sql = SPA::Utilities::ToUTF8(wsql.c_str(), wsql.size());
-            Trim(sql);
+            std::string sql = Utilities::ToUTF8(wsql.c_str(), wsql.size());
+            Utilities::Trim(sql);
 #ifdef MM_DB_SERVER_PLUGIN
             if (m_EnableMessages && !sql.size()) {
                 //client side is asking for data from cached tables
@@ -1526,7 +1508,7 @@ namespace SPA
                     m_procName.pop_back();
                     m_procName.erase(m_procName.begin());
                 }
-                MYSQL_CONNECTION_STRING::Trim(m_procName);
+                Utilities::Trim(m_procName);
             } else {
                 m_procName.clear();
             }
@@ -1544,7 +1526,7 @@ namespace SPA
             m_vParam.clear();
             m_parameters = 0;
             m_sqlPrepare = Utilities::ToUTF8(wsql.c_str(), wsql.size());
-            MYSQL_CONNECTION_STRING::Trim(m_sqlPrepare);
+            Utilities::Trim(m_sqlPrepare);
             MYSQL_STMT *stmt = m_remMysql.mysql_stmt_init(m_pMysql.get());
             PreprocessPreparedStatement();
             my_bool fail = m_remMysql.mysql_stmt_prepare(stmt, m_sqlPrepare.c_str(), (unsigned long) m_sqlPrepare.size());
@@ -1990,23 +1972,6 @@ namespace SPA
             return SPA::UDateTime(date, td.second_part).time;
         }
 
-        void CMysqlImpl::ltrim_w(std::wstring & s) {
-            s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](int ch) {
-                return (!(std::isspace(ch) || ch == L';'));
-            }));
-        }
-
-        void CMysqlImpl::rtrim_w(std::wstring & s) {
-            s.erase(std::find_if(s.rbegin(), s.rend(), [](int ch) {
-                return (!(std::isspace(ch) || ch == L';'));
-            }).base(), s.end());
-        }
-
-        void CMysqlImpl::trim_w(std::wstring & s) {
-            ltrim_w(s);
-            rtrim_w(s);
-        }
-
         size_t CMysqlImpl::ComputeParameters(const std::wstring & sql) {
             const wchar_t quote = '\'', slash = '\\', question = '?';
             bool b_slash = false, balanced = true;
@@ -2153,7 +2118,7 @@ namespace SPA
             vtId = aff;
             CDBVariant last_id;
             for (auto it = vSql.begin(), end = vSql.end(); it != end; ++it) {
-                trim_w(*it);
+                Utilities::Trim(*it);
                 if (!it->size()) {
                     continue;
                 }
