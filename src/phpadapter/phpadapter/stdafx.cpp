@@ -80,15 +80,6 @@ namespace PA
     const char SYS_DIR = '/';
 #endif
 
-    void Trim(std::string & str) {
-        while (str.size() && std::isspace(str.back())) {
-            str.pop_back();
-        }
-        while (str.size() && std::isspace(str.front())) {
-            str.erase(0, 1);
-        }
-    }
-
     void ToVariant(const Php::Value &data, CComVariant &vt, const std::string & id) {
         auto type = data.type();
         switch (type) {

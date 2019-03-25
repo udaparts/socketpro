@@ -69,7 +69,7 @@ namespace PA {
     typedef std::shared_ptr<Php::Value> CPVPointer;
     typedef std::shared_ptr<SPA::CUQueue> CQPointer;
 
-    void Trim(std::string &str);
+    using SPA::Utilities::Trim;
 
     enum tagPoolType {
         Regular = 0,

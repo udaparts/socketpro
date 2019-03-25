@@ -67,23 +67,6 @@ namespace SPA
             return (unsigned int) m_stmt.parameters;
         }
 
-        void CMysqlImpl::ltrim_w(std::wstring & s) {
-            s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](int ch) {
-                return (!(std::isspace(ch) || ch == L';'));
-            }));
-        }
-
-        void CMysqlImpl::rtrim_w(std::wstring & s) {
-            s.erase(std::find_if(s.rbegin(), s.rend(), [](int ch) {
-                return (!(std::isspace(ch) || ch == L';'));
-            }).base(), s.end());
-        }
-
-        void CMysqlImpl::trim_w(std::wstring & s) {
-            ltrim_w(s);
-            rtrim_w(s);
-        }
-
         void CALLBACK CMysqlImpl::OnThreadEvent(SPA::ServerSide::tagThreadEvent te) {
             if (te == SPA::ServerSide::teStarted) {
                 int fail = srv_session_init_thread(CSetGlobals::Globals.Plugin);
@@ -974,8 +957,8 @@ namespace SPA
                 std::string s0 = ToString(vtKey);
                 std::string s1 = ToString(vtValue);
                 std::transform(s0.begin(), s0.end(), s0.begin(), ::tolower);
-                Trim(s0);
-                Trim(s1);
+                Utilities::Trim(s0);
+                Utilities::Trim(s1);
                 map[s0] = s1;
             }
             std::unordered_map<std::string, std::string> &config = CSetGlobals::Globals.DefaultConfig;
@@ -1322,20 +1305,6 @@ namespace SPA
                 return false;
             }
             return true;
-        }
-
-        void CMysqlImpl::Trim(std::string & s) {
-            static const char *WHITESPACE = " \r\n\t\v\f\v";
-            auto pos = s.find_first_of(WHITESPACE);
-            while (pos == 0) {
-                s.erase(s.begin());
-                pos = s.find_first_of(WHITESPACE);
-            }
-            pos = s.find_last_of(WHITESPACE);
-            while (s.size() && pos == s.size() - 1) {
-                s.pop_back();
-                pos = s.find_last_of(WHITESPACE);
-            }
         }
 
         UINT64 CMysqlImpl::ConvertBitsToInt(const unsigned char *s, unsigned int bytes) {
@@ -1743,7 +1712,7 @@ namespace SPA
             UINT64 fo = 0;
             size_t pos = 0;
             for (auto it = vSql.begin(), end = vSql.end(); it != end; ++it) {
-                trim_w(*it);
+                Utilities::Trim(*it);
                 if (!it->size()) {
                     continue;
                 }
@@ -1846,7 +1815,8 @@ namespace SPA
                 cmd.com_stmt_execute.open_cursor = false;
                 m_NoRowset = !rowset;
                 m_cmd = COM_STMT_EXECUTE;
-                m_affected_rows = 0; m_server_status = 0;
+                m_affected_rows = 0;
+                m_server_status = 0;
                 int fail = command_service_run_command(m_pMysql.get(), COM_STMT_EXECUTE, &cmd, &my_charset_utf8_general_ci, &m_sql_cbs, CS_BINARY_REPRESENTATION, this);
                 if (m_sql_errno) {
                     if (!res) {

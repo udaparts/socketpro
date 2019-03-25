@@ -133,12 +133,6 @@ namespace SPA {
             static void SetPrecisionScale(const std::string& str, CDBColumnInfo &info);
             static int sqlite3_sleep(int time);
             static void SetCacheTables(const std::wstring &str);
-            static void ltrim(std::string &s);
-            static void rtrim(std::string &s);
-            static void trim(std::string &s);
-            static void ltrim_w(std::wstring &s);
-            static void rtrim_w(std::wstring &s);
-            static void trim_w(std::wstring &s);
             static void SetTriggers();
             static std::vector<std::pair<std::string, char> > GetKeys(sqlite3 *db, const std::string &tblName);
             static int cbGetKeys(void *p, int argc, char **argv, char **azColName);

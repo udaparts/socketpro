@@ -18,7 +18,9 @@ namespace SPA {
     class CUQueue;
 
     namespace Utilities {
-
+        void Trim(std::string &s);
+        void Trim(std::wstring &s);
+        
 #if defined(__ANDROID__) || defined(ANDROID)
 
         static std::wstring ToWide(const char *str, size_t src_len) {

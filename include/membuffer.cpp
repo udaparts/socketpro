@@ -1,15 +1,16 @@
 
 #include "membuffer.h"
 #include <assert.h>
+#include <ctype.h>
 
 namespace SPA
 {
 #ifdef NODE_JS_ADAPTER_PROJECT
     template<unsigned int InitSize, unsigned int BlockSize, typename mb>
-    CUCriticalSection CScopeUQueueEx<InitSize, BlockSize, mb>::m_cs;
+            CUCriticalSection CScopeUQueueEx<InitSize, BlockSize, mb>::m_cs;
 
     template<unsigned int InitSize, unsigned int BlockSize, typename mb>
-    std::vector<mb*> CScopeUQueueEx<InitSize, BlockSize, mb>::m_aUQueue;
+            std::vector<mb*> CScopeUQueueEx<InitSize, BlockSize, mb>::m_aUQueue;
 #endif
 
     const UINT64 SAFE_DOUBLE = 9007199254740991ULL; //2^53-1
@@ -667,6 +668,25 @@ namespace SPA
     }
 
     namespace Utilities{
+
+        void Trim(std::string & s) {
+            while (s.size() && ::isspace(s.back())) {
+                s.pop_back();
+            }
+            while (s.size() && ::isspace(s.front())) {
+                s.erase(s.begin());
+            }
+        }
+
+        void Trim(std::wstring & s) {
+            while (s.size() && ::isspace(s.back())) {
+                s.pop_back();
+            }
+            while (s.size() && ::isspace(s.front())) {
+                s.erase(s.begin());
+            }
+        }
+
 #ifdef WIN32_64
 
         std::wstring GetErrorMessage(DWORD dwError) {

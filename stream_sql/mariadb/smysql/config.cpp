@@ -22,9 +22,9 @@ void CConfig::Update(std::unordered_map<std::string, std::string> &mapConfig) {
                 continue;
             }
             std::string key = line.substr(0, pos);
-            SPA::ServerSide::CMysqlImpl::Trim(key);
+            SPA::Utilities::Trim(key);
             std::string value = line.substr(pos + 1);
-            SPA::ServerSide::CMysqlImpl::Trim(value);
+            SPA::Utilities::Trim(value);
             if (!key.size()) {
                 CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Empty key found in file %s", STREAM_DB_CONFIG_FILE);
                 continue;

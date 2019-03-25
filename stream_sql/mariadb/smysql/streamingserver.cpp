@@ -209,26 +209,26 @@ void CSetGlobals::SetConfig(const std::unordered_map<std::string, std::string>& 
     it = mapConfig.find(STREAMING_DB_SSL_KEY);
     if (it != mapConfig.end()) {
         CSetGlobals::Globals.ssl_key = it->second;
-        CMysqlImpl::Trim(CSetGlobals::Globals.ssl_key);
+        SPA::Utilities::Trim(CSetGlobals::Globals.ssl_key);
     }
     it = mapConfig.find(STREAMING_DB_SSL_CERT);
     if (it != mapConfig.end()) {
         CSetGlobals::Globals.ssl_cert = it->second;
-        CMysqlImpl::Trim(CSetGlobals::Globals.ssl_cert);
+        SPA::Utilities::Trim(CSetGlobals::Globals.ssl_cert);
     }
     it = mapConfig.find(STREAMING_DB_SSL_PASSWORD);
     if (it != mapConfig.end()) {
         CSetGlobals::Globals.ssl_pwd = it->second;
-        CMysqlImpl::Trim(CSetGlobals::Globals.ssl_pwd);
+        SPA::Utilities::Trim(CSetGlobals::Globals.ssl_pwd);
     }
     it = mapConfig.find(STREAMING_DB_CACHE_TABLES);
     if (it != mapConfig.end()) {
         std::string tok;
         std::string s = it->second;
-        CMysqlImpl::Trim(s);
+        SPA::Utilities::Trim(s);
         std::stringstream ss(s);
         while (std::getline(ss, tok, ';')) {
-            CMysqlImpl::Trim(tok);
+            SPA::Utilities::Trim(tok);
             if (tok.size())
                 CSetGlobals::Globals.cached_tables.push_back(tok);
         }
@@ -237,10 +237,10 @@ void CSetGlobals::SetConfig(const std::unordered_map<std::string, std::string>& 
     if (it != mapConfig.end()) {
         std::string tok;
         std::string s = it->second;
-        CMysqlImpl::Trim(s);
+        SPA::Utilities::Trim(s);
         std::stringstream ss(s);
         while (std::getline(ss, tok, ';')) {
-            CMysqlImpl::Trim(tok);
+            SPA::Utilities::Trim(tok);
             if (tok.size())
                 CSetGlobals::Globals.services.push_back(tok);
         }
