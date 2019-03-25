@@ -1936,12 +1936,7 @@ namespace SPA {
 
             void SetQueueName(const char *qName) {
                 std::string s(qName ? qName : "");
-                while (s.size() && ::isspace(s.back())) {
-                    s.pop_back();
-                }
-                while (s.size() && ::isspace(s.front())) {
-                    s.erase(s.begin());
-                }
+                Utilities::Trim(s);
 #ifdef WIN32_64
                 std::transform(s.begin(), s.end(), s.begin(), ::tolower);
 #endif
