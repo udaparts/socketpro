@@ -9,7 +9,6 @@
 #else
 #include <unordered_map>
 #endif
-#include <algorithm>
 #include <memory>
 #include <functional>
 

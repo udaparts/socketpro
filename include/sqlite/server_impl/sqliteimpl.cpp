@@ -1,6 +1,5 @@
 
 #include "sqliteimpl.h"
-#include <algorithm>
 #ifndef WIN32_64
 #include <sched.h>
 #endif

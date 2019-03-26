@@ -1,6 +1,5 @@
 
 #include "tablecache.h"
-#include <algorithm>
 
 namespace SPA {
 

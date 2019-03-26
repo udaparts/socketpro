@@ -21,31 +21,31 @@
 
 #include <mutex>
 #include <condition_variable>
-#include "../../../include/3rdparty/PHP-CPP/phpcpp.h"
+#include "PHP-CPP/phpcpp.h"
 
 #ifdef WIN32_64
 
 #if defined(_M_AMD64) || defined(_M_X64)
 #ifdef ZTS
-#pragma comment(lib, "../../../include/3rdparty/PHP-CPP/winphpcpp/x64/php7ts.lib")
+#pragma comment(lib, "PHP-CPP/winphpcpp/x64/php7ts.lib")
 #else
-#pragma comment(lib, "../../../include/3rdparty/PHP-CPP/winphpcpp/x64/php7.lib")
+#pragma comment(lib, "PHP-CPP/winphpcpp/x64/php7.lib")
 #endif
 #if defined(_DEBUG) || defined(DEBUG)
-#pragma comment(lib, "../../../include/3rdparty/PHP-CPP/winphpcpp/x64/Debug/winphpcpp.lib")
+#pragma comment(lib, "PHP-CPP/winphpcpp/x64/Debug/winphpcpp.lib")
 #else
-#pragma comment(lib, "../../../include/3rdparty/PHP-CPP/winphpcpp/x64/Release/winphpcpp.lib")
+#pragma comment(lib, "PHP-CPP/winphpcpp/x64/Release/winphpcpp.lib")
 #endif
 #else
 #ifdef ZTS
-#pragma comment(lib, "../../../include/3rdparty/PHP-CPP/winphpcpp/php7ts.lib")
+#pragma comment(lib, "PHP-CPP/winphpcpp/php7ts.lib")
 #else
-#pragma comment(lib, "../../../include/3rdparty/PHP-CPP/winphpcpp/php7.lib")
+#pragma comment(lib, "PHP-CPP/winphpcpp/php7.lib")
 #endif
 #if defined(_DEBUG) || defined(DEBUG)
-#pragma comment(lib, "../../../include/3rdparty/PHP-CPP/winphpcpp/Debug/winphpcpp.lib")
+#pragma comment(lib, "PHP-CPP/winphpcpp/Debug/winphpcpp.lib")
 #else
-#pragma comment(lib, "../../../include/3rdparty/PHP-CPP/winphpcpp/Release/winphpcpp.lib")
+#pragma comment(lib, "PHP-CPP/winphpcpp/Release/winphpcpp.lib")
 #endif
 #endif
 #endif
@@ -58,7 +58,6 @@
 #include "../../../include/mysql/umysql.h"
 #include "../../../include/sqlite/usqlite.h"
 #include "../../../include/odbc/uodbc.h"
-#include <algorithm>
 #include "../../../include/3rdparty/rapidjson/include/rapidjson/filereadstream.h"
 #include "../../../include/3rdparty/rapidjson/include/rapidjson/document.h"
 #include "../../../include/3rdparty/rapidjson/include/rapidjson/stringbuffer.h"

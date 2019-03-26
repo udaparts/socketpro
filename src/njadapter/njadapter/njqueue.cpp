@@ -1,6 +1,5 @@
 #include "stdafx.h"
 #include "njqueue.h"
-#include <algorithm>
 
 namespace NJA {
     using SPA::CScopeUQueue;

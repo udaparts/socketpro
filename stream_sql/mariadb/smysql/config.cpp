@@ -3,7 +3,6 @@
 #include "../../../include/mysql/server_impl/mysqlimpl.h"
 #include <iostream>
 #include <fstream>
-#include <algorithm>
 #include "streamingserver.h"
 
 #define STREAM_DB_CONFIG_FILE	"sp_streaming_db_config.txt"
