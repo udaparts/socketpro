@@ -1750,9 +1750,10 @@ class CJsManager {
         this.jc['CertStore'] = '';
         if (conf.CertStore !== undefined) {
             if (typeof conf.CertStore === 'string') {
-                if (typeof conf.CertStore.length > 0) {
-                    SPA.setCA(conf.CertStore);
-                    this.jc['CertStore'] = jc.CertStore;
+                var cs = conf.CertStore.trim();
+                if (cs.length > 0) {
+                    SPA.setCA(cs);
+                    this.jc['CertStore'] = cs;
                 }
                 else if (os.platform() == 'win32') {
                     SPA.setCA('root');
@@ -1766,8 +1767,9 @@ class CJsManager {
         this.jc['QueuePassword'] = 0;
         if (conf.QueuePassword !== undefined) {
             if (typeof conf.QueuePassword === 'string') {
-                if (conf.QueuePassword.length > 0) {
-                    SPA.setPassword(conf.QueuePassword);
+                var pwd = conf.QueuePassword.trim();
+                if (pwd.length > 0) {
+                    SPA.setPassword(pwd);
                     this.jc['QueuePassword'] = 1;
                 }
             }
@@ -1805,6 +1807,9 @@ class CJsManager {
         }
         for (var n = 0; n < keys.length; ++n) {
             var key = keys[n];
+            if (!key) {
+                throw 'Host key cannot be empty';
+            }
             var obj = conf.Hosts[key];
             if (!obj || typeof obj !== 'object') {
                 throw 'A pair of key/host connection context object expected';
@@ -1913,6 +1918,9 @@ class CJsManager {
         }
         for (var n = 0; n < keys.length; ++n) {
             var key = keys[n];
+            if (!key) {
+                throw 'Pool key cannot be empty';
+            }
             var obj = conf.Pools[key];
             if (!obj || typeof obj !== 'object') {
                 throw 'A pair of key/Pool context expected';
@@ -2051,8 +2059,9 @@ class CJsManager {
                     s.Hosts = [];
                     if (Array.isArray(one.Hosts) && one.Hosts.length > 0) {
                         for (var m = 0; m < one.Hosts.length; ++m) {
-                            existsHost(one.Hosts[m]);
-                            s.Hosts.push(one.Hosts[m]);
+                            var h = one.Hosts[m].trim();
+                            existsHost(h);
+                            s.Hosts.push(h);
                         }
                     }
                     else {
@@ -2063,7 +2072,9 @@ class CJsManager {
             }
             if (Array.isArray(obj.Hosts) && obj.Hosts.length > 0) {
                 for (var j = 0; j < obj.Hosts.length; ++j) {
-                    existsHost(obj.Hosts[j]);
+                    var h = obj.Hosts[j].trim();
+                    obj.Hosts[j] = h;
+                    existsHost(h);
                 }
             }
             else {
