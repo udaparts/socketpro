@@ -2151,37 +2151,28 @@ class CJsManager {
 
 exports.Manager = null;
 exports.GetManager = function (jsonConfig = '') {
-    if (!jsonConfig) {
-        jsonConfig = process.cwd();
-        if (os.platform() == 'win32')
-            jsonConfig += '\\';
-        else
-            jsonConfig += '/';
-        jsonConfig += 'sp_config.json';
-    }
     if (!exports.Manager) {
+        if (!jsonConfig) {
+            jsonConfig = process.cwd();
+            if (os.platform() == 'win32')
+                jsonConfig += '\\';
+            else
+                jsonConfig += '/';
+            jsonConfig += 'sp_config.json';
+        }
         exports.Manager = new CJsManager(jsonConfig);
     }
     return exports.Manager;
 };
 
 exports.GetSpPool = function (keyPool) {
-    if (!exports.Manager) {
-        throw 'SocketPro manager not started yet';
-    }
-    return exports.Manager.GetPool(keyPool);
+    return exports.GetManager().GetPool(keyPool);
 };
 
 exports.GetSpHandler = function (keyPool) {
-    if (!exports.Manager) {
-        throw 'SocketPro manager not started yet';
-    }
-    return exports.Manager.GetHandler(keyPool);
+    return exports.GetManager().GetHandler(keyPool);
 };
 
 exports.GetSpHandlerByQueue = function (keyPool) {
-    if (!exports.Manager) {
-        throw 'SocketPro manager not started yet';
-    }
-    return exports.Manager.GetHandlerByQueue(keyPool);
+    return exports.GetManager().GetHandlerByQueue(keyPool);
 };
