@@ -5,7 +5,7 @@ namespace PA
 {
     CPhpManager CPhpManager::Manager(nullptr);
 
-    CPhpManager::CPhpManager(CPhpManager * manager) : m_pManager(manager), m_bQP() {
+    CPhpManager::CPhpManager(CPhpManager * manager) : m_pManager(manager), m_bQP(0) {
     }
 
     CPhpManager::~CPhpManager() {
@@ -447,8 +447,6 @@ namespace PA
                     if (qp.size()) {
                         SPA::ClientSide::CClientSocket::QueueConfigure::SetMessageQueuePassword(qp.c_str());
                         Manager.m_bQP = 1;
-                    } else {
-                        Manager.m_bQP = -1;
                     }
                 }
                 if (doc.HasMember(KEY_KEYS_ALLOWED) && doc[KEY_KEYS_ALLOWED].IsArray()) {
