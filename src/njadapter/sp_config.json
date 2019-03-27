@@ -8,7 +8,7 @@
       "Password": "MySecretString"
     },
     "db_master": {
-      "Host": "192.168.159.1",
+      "Host": "ws-yye-1",
       "Port": 20902,
       "UserId": "root",
       "Password": "Smash123",
@@ -23,7 +23,7 @@
       "Password": "Smash123"
     },
     "db_slave_remote": {
-      "Host": "ws-yye-1",
+      "Host": "192.168.159.1",
       "Port": 20902,
       "UserId": "root",
       "Password": "Smash123",

@@ -2094,8 +2094,7 @@ class CJsManager {
             return pool;
         }
         if (pc.Master) {
-            var pm = existsPool(pc.Master);
-            pool = exports.CS.newPool(pm.SvsId, pm.DefaultDb);
+            pool = this.GetPool(pc.Master);
             pool = pool.NewSlave(pc.DefaultDb);
         }
         else {
@@ -2104,7 +2103,6 @@ class CJsManager {
         pool.QueueName = pc.Queue;
         pool.AutoMerge = pc.AutoMerge;
         jh[keyPool].Pool = pool;
-        jh[keyPool].Queue = pc.Queue;
         var sessions = [];
         for (var n = 0; n < pc.Hosts.length; ++n) {
             var key = pc.Hosts[n];
