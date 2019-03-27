@@ -83,6 +83,7 @@
             "db_slave_remote"
           ],
           "Queue": "sdb",
+          "AutoMerge": true,
           "RecvTimeout": 60000,
           "Threads": 2
         }

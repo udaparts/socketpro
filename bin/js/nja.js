@@ -1735,6 +1735,8 @@ class CJsManager {
         this.ph = {};
         assert(typeof jsonConfig === 'string' && jsonConfig.length > 0);
         var conf = require(jsonConfig);
+        this.jc = {};
+        var jcObject = this.jc;
         if (conf.WorkingDir !== undefined) {
             if (typeof conf.WorkingDir === 'string') {
                 SPA.setWorkingDir(conf.WorkingDir);
@@ -1743,10 +1745,9 @@ class CJsManager {
                 throw 'A string expected for WorkingDir';
             }
         }
-        this.jc = {};
-        var jcObject = this.jc;
         this.jc['Hosts'] = {};
         this.jc['Pools'] = {};
+        this.jc['CertStore'] = '';
         if (conf.CertStore !== undefined) {
             if (typeof conf.CertStore === 'string') {
                 if (typeof conf.CertStore.length > 0) {
@@ -1786,17 +1787,12 @@ class CJsManager {
         else {
             this.jc['KeysAllowed'] = [];
         }
-        function existsConn(k, conn) {
-            var arr = jcObject;
+        function existsConn(conn) {
+            var arr = Object.keys(jcObject.Hosts);
             for (var n = 0; n < arr.length; ++n) {
-                var obj = arr[n];
-                var key = Object.keys(obj)[0];
-                if (key == k) {
-                    throw 'Host key cannot be duplicate';
-                }
-                obj = obj[key];
+                var obj = jcObject.Hosts[arr[n]];
                 if (conn.Host == obj.Host && conn.Port === obj.Port) {
-                    throw 'Connection context cannot be duplicate with ip address and port';
+                    throw 'Connection context cannot be duplicate with the sample ip address and port';
                 }
             }
         }
@@ -1861,6 +1857,7 @@ class CJsManager {
             var v6 = (!!obj.V6);
             var anyData = obj.AnyData;
             var conn = exports.CS.newCC(host, port, userid, pwd, em, zip, v6, anyData);
+            existsConn(conn);
             this.jc.Hosts[key] = conn;
         }
         function existsHost(k) {
@@ -1868,21 +1865,40 @@ class CJsManager {
             for (var n = 0; n < arr.length; ++n) {
                 if (arr[n] == k) return;
             }
-            throw 'Host not found from the array of Hosts';
+            throw 'Host ' + k + ' not found from the array of Hosts';
         }
         function existsPool(k) {
             var arr = Object.keys(jcObject.Pools);
             for (var n = 0; n < arr.length; ++n) {
                 var key = arr[n];
                 if (key == k) {
-                    throw 'Pool key is duplicated';
+                    throw 'Pool key ' + key + ' is duplicated';
                 }
                 var obj = jcObject.Pools[key];
                 if (obj.DefaultDb && (typeof obj.Slaves === 'object')) {
                     var a = Object.keys(obj.Slaves);
                     for (var j = 0; j < a.length; ++j) {
                         if (a[j] == k) {
-                            throw 'Pool key is duplicated';
+                            throw 'Pool key ' + k + ' is duplicated';
+                        }
+                    }
+                }
+            }
+        }
+        function existsQueue(qn) {
+            var arr = Object.keys(jcObject.Pools);
+            for (var n = 0; n < arr.length; ++n) {
+                var key = arr[n];
+                var obj = jcObject.Pools[key];
+                if (obj.Queue == qn) {
+                    throw 'Pool queue name ' + qn + ' duplicated';
+                }
+                if (obj.DefaultDb && (typeof obj.Slaves === 'object')) {
+                    var a = Object.keys(obj.Slaves);
+                    for (var j = 0; j < a.length; ++j) {
+                        obj = obj.Slaves[a[j]];
+                        if (obj.Queue == qn) {
+                            throw 'Pool queue name ' + qn + ' duplicated';
                         }
                     }
                 }
@@ -1915,6 +1931,9 @@ class CJsManager {
                 else {
                     throw 'A string expected for client queue name';
                 }
+            }
+            if (queue) {
+                existsQueue(queue);
             }
             var defaultDb = '';
             if (obj.DefaultDb !== undefined) {
@@ -1997,6 +2016,9 @@ class CJsManager {
                         else {
                             throw 'A string expected for client queue name';
                         }
+                    }
+                    if (s.Queue) {
+                        existsQueue(s.Queue);
                     }
                     if (one.DefaultDb !== undefined) {
                         if (typeof one.DefaultDb === 'string') {
@@ -2128,7 +2150,15 @@ class CJsManager {
 }
 
 exports.Manager = null;
-exports.GetManager = function (jsonConfig) {
+exports.GetManager = function (jsonConfig = '') {
+    if (!jsonConfig) {
+        jsonConfig = process.cwd();
+        if (os.platform() == 'win32')
+            jsonConfig += '\\';
+        else
+            jsonConfig += '/';
+        jsonConfig += 'sp_config.json';
+    }
     if (!exports.Manager) {
         exports.Manager = new CJsManager(jsonConfig);
     }
