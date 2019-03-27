@@ -1,112 +1,93 @@
 ﻿{
-  "WorkingDir": "/home/yye/sp_test",
-  "Hosts": [
-    {
-      "hw_0": {
-        "Host": "ws-yye-1",
-        "Port": 20901,
-        "UserId": "SomeUserId",
-        "Password": "MySecretString"
-      }
+  "WorkingDir": "c:\\ProgramData\\PHP",
+  "Hosts": {
+    "hw_0": {
+      "Host": "ws-yye-1",
+      "Port": 20901,
+      "UserId": "SomeUserId",
+      "Password": "MySecretString"
     },
-    {
-      "db_master": {
-        "Host": "192.168.159.1",
-        "Port": 20902,
-        "UserId": "root",
-        "Password": "Smash123",
-        "EncrytionMethod": 0,
-        "Zip": false,
-        "V6": false
-      }
+    "db_master": {
+      "Host": "ws-yye-1",
+      "Port": 20902,
+      "UserId": "root",
+      "Password": "Smash123",
+      "EncrytionMethod": 0,
+      "Zip": false,
+      "V6": false
     },
-    {
-      "db_slave_0": {
-        "Host": "10.16.20.33",
-        "Port": 20902,
-        "UserId": "root",
-        "Password": "Smash123"
-      }
+    "db_slave_0": {
+      "Host": "10.16.20.33",
+      "Port": 20902,
+      "UserId": "root",
+      "Password": "Smash123"
     },
-    {
-      "db_slave_remote": {
-        "Host": "ws-yye-1",
-        "Port": 20902,
-        "UserId": "root",
-        "Password": "Smash123",
-        "Zip": true
+    "db_slave_remote": {
+      "Host": "192.168.159.1",
+      "Port": 20902,
+      "UserId": "root",
+      "Password": "Smash123",
+      "Zip": true
+    }
+  },
+  "Pools": {
+    "my_hello_world": {
+      "SvsId": 268435457,
+      "Hosts": [
+        "hw_0",
+        "hw_0"
+      ],
+      "Queue": "svsHw"
+    },
+    "my_file": {
+      "SvsId": 259,
+      "Hosts": [
+        "hw_0",
+        "hw_0"
+      ],
+      "Queue": "svsfile"
+    },
+    "my_queue": {
+      "SvsId": 257,
+      "Hosts": [
+        "db_master",
+        "db_master"
+      ]
+    },
+    "db_no_backup": {
+      "SvsId": 2147483633,
+      "Hosts": [
+        "db_master",
+        "db_master"
+      ],
+      "DefaultDb": "sakila",
+      "ConnTimeout": 45000
+    },
+    "masterdb": {
+      "SvsId": 2147483633,
+      "Hosts": [
+        "db_master",
+        "db_master",
+        "db_master"
+      ],
+      "DefaultDb": "sakila",
+      "Queue": "mdb",
+      "AutoMerge": false,
+      "Slaves": {
+        "slavedb0": {
+          "Hosts": [
+            "db_slave_0",
+            "db_slave_0",
+            "db_slave_0",
+            "db_master",
+            "db_slave_remote"
+          ],
+          "Queue": "sdb",
+          "AutoMerge": true,
+          "RecvTimeout": 60000,
+          "Threads": 2
+        }
       }
     }
-  ],
-  "Pools": [
-    {
-      "my_hello_world": {
-        "SvsId": 268435457,
-        "Hosts": [
-          "hw_0",
-          "hw_0"
-        ],
-	"Queue": "svshw"
-      }
-    },
-    {
-      "my_file": {
-        "SvsId": 259,
-        "Hosts": [
-          "hw_0",
-          "hw_0"
-        ],
-        "Queue": "svsfile"
-      }
-    },
-    {
-      "my_queue": {
-        "SvsId": 257,
-        "Hosts": [
-          "db_master",
-          "db_master"
-        ]
-      }
-    },
-    {
-      "db_no_backup": {
-        "SvsId": 2147483633,
-        "Hosts": [
-          "db_master",
-          "db_master"
-        ],
-        "DefaultDb": "sakila",
-        "ConnTimeout": 45000
-      }
-    },
-    {
-      "masterdb": {
-        "SvsId": 2147483633,
-        "Hosts": [
-          "db_master",
-          "db_master",
-          "db_master"
-        ],
-        "DefaultDb": "sakila",
-        "Queue": "mdb",
-        "AutoMerge": false,
-        "Slaves": [
-          {
-            "slavedb0": {
-              "Hosts": [
-                "db_slave_0",
-                "db_slave_0",
-                "db_slave_0",
-                "db_master",
-                "db_slave_remote"
-              ],
-              "Queue": "sdb",
-              "RecvTimeout": 45000,
-              "Threads": 2
-            }
-          }
-        ]
-      }
-    }
-  ]
+  }
 }

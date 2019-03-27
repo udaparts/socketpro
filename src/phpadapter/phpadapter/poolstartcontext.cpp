@@ -7,7 +7,7 @@ namespace PA
 {
 
     CPoolStartContext::CPoolStartContext()
-            : SvsId(0), Threads(1), AutoConn(true), AutoMerge(true),
+            : SvsId(0), Threads(1), AutoConn(true), AutoMerge(false),
             RecvTimeout(SPA::ClientSide::DEFAULT_RECV_TIMEOUT),
             ConnTimeout(SPA::ClientSide::DEFAULT_CONN_TIMEOUT),
             PhpHandler(nullptr), PoolType(Regular), m_errCode(0) {

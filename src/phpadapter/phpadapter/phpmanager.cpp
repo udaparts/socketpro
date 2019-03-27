@@ -34,10 +34,6 @@ namespace PA
     }
 
     void CPhpManager::CheckHostsError() {
-        if (!Hosts.size()) {
-            m_errMsg = "Host array cannot be empty";
-            return;
-        }
         for (auto it = Hosts.cbegin(), end = Hosts.cend(); it != end; ++it) {
             if (!it->first.size()) {
                 m_errMsg = "Host key cannot be empty";
@@ -48,16 +44,12 @@ namespace PA
                 break;
             }
             if (!it->second.Port) {
-                m_errMsg = "Remote server port number is zero";
+                m_errMsg = "Remote server port number cannot be zero";
                 break;
             }
             CMapHost::const_iterator start = it;
             ++start;
             for (; start != end; ++start) {
-                if (start->first == it->first) {
-                    m_errMsg = "Host key (" + it->first + ") duplicacted";
-                    break;
-                }
                 if (start->second == it->second) {
                     m_errMsg = "Host connection context for key (" + it->first + ") duplicacted";
                     break;
@@ -76,10 +68,6 @@ namespace PA
     }
 
     void CPhpManager::CheckPoolsError() {
-        if (!Pools.size()) {
-            m_errMsg = "Pool array cannot be empty";
-            return;
-        }
         for (auto it = Pools.cbegin(), end = Pools.cend(); it != end; ++it) {
             if (!it->first.size()) {
                 m_errMsg = "Pool key cannot be empty";
@@ -105,15 +93,10 @@ namespace PA
                     break;
             }
             const std::vector<std::string> &hosts = psc.Hosts;
-            if (!hosts.size()) {
-                m_errMsg = "Host array cannot be empty";
-                return;
-            } else {
-                for (auto &h : hosts) {
-                    if (!FindHostKey(h)) {
-                        m_errMsg = "Host key not found in root host array";
-                        return;
-                    }
+            for (auto &h : hosts) {
+                if (!FindHostKey(h)) {
+                    m_errMsg = "Host key not found in root host array";
+                    return;
                 }
             }
             for (CPoolStartContext::CMapPool::const_iterator start = it; start != end; ++start) {
@@ -168,10 +151,6 @@ namespace PA
                 m_errMsg = "Bad certificate store value";
                 break;
             }
-            if (m_bQP < 0) {
-                m_errMsg = "Message queue password empty";
-                break;
-            }
             if (!Hosts.size()) {
                 m_errMsg = "No remote host specified";
                 break;
@@ -215,7 +194,7 @@ namespace PA
 
         doc.AddMember(KEY_QUEUE_PASSWORD, m_bQP, allocator);
 
-        rapidjson::Value vH(rapidjson::kArrayType);
+        rapidjson::Value vH(rapidjson::kObjectType);
         for (auto &h : Hosts) {
             rapidjson::Value key(h.first.c_str(), (rapidjson::SizeType)h.first.size(), allocator);
 
@@ -238,10 +217,7 @@ namespace PA
             obj.AddMember(KEY_ENCRYPTION_METHOD, (int) ctx.EncrytionMethod, allocator);
             obj.AddMember(KEY_ZIP, ctx.Zip, allocator);
             obj.AddMember(KEY_V6, ctx.V6, allocator);
-
-            rapidjson::Value o(rapidjson::kObjectType);
-            o.AddMember(key, obj, allocator);
-            vH.PushBack(o, allocator);
+            vH.AddMember(key, obj, allocator);
         }
         doc.AddMember(KEY_HOSTS, vH, allocator);
 
@@ -252,7 +228,7 @@ namespace PA
         }
         doc.AddMember(KEY_KEYS_ALLOWED, vKA, allocator);
 
-        rapidjson::Value vP(rapidjson::kArrayType);
+        rapidjson::Value vP(rapidjson::kObjectType);
         for (auto &p : Pools) {
             rapidjson::Value key(p.first.c_str(), (rapidjson::SizeType)p.first.size(), allocator);
             const CPoolStartContext &pscMain = p.second;
@@ -278,7 +254,7 @@ namespace PA
 
             //Slaves
             if (pscMain.Slaves.size()) {
-                rapidjson::Value vS(rapidjson::kArrayType);
+                rapidjson::Value vS(rapidjson::kObjectType);
                 for (auto &one : pscMain.Slaves) {
                     rapidjson::Value key(one.first.c_str(), (rapidjson::SizeType)one.first.size(), allocator);
                     const CPoolStartContext &psc = one.second;
@@ -302,16 +278,12 @@ namespace PA
                     s.SetString(psc.DefaultDb.c_str(), (rapidjson::SizeType)psc.DefaultDb.size(), allocator);
                     obj.AddMember(KEY_DEFAULT_DB, s, allocator);
                     obj.AddMember(KEY_POOL_TYPE, psc.PoolType, allocator);
-                    rapidjson::Value ot(rapidjson::kObjectType);
-                    ot.AddMember(key, obj, allocator);
-                    vS.PushBack(ot, allocator);
+                    vS.AddMember(key, obj, allocator);
                 }
                 objMain.AddMember(KEY_SLAVES, vS, allocator);
             }
             objMain.AddMember(KEY_POOL_TYPE, pscMain.PoolType, allocator);
-            rapidjson::Value one(rapidjson::kObjectType);
-            one.AddMember(key, objMain, allocator);
-            vP.PushBack(one, allocator);
+            vP.AddMember(key, objMain, allocator);
         }
         doc.AddMember(KEY_POOLS, vP, allocator);
 
@@ -330,6 +302,8 @@ namespace PA
                 return m_pManager->GetConfig();
             } else if (name == "Pools") {
                 return (int64_t) SPA::ClientSide::ClientCoreLoader.GetNumberOfSocketPools();
+            } else if (name == "Version") {
+				return SPA::ClientSide::ClientCoreLoader.GetUClientSocketVersion();
             }
         }
         return Php::Base::__get(name);
@@ -456,27 +430,19 @@ namespace PA
                             continue;
                         }
                         std::string s = v.GetString();
-                        Trim(s);
                         std::transform(s.begin(), s.end(), s.begin(), ::tolower);
                         Manager.m_vKeyAllowed.push_back(s);
                     }
                 }
                 SPA::ClientSide::CClientSocket::SSL::SetVerifyLocation(Manager.CertStore.c_str());
-                if (doc.HasMember(KEY_HOSTS) && doc[KEY_HOSTS].IsArray()) {
-                    auto arr = doc[KEY_HOSTS].GetArray();
-                    for (auto &v : arr) {
-                        if (!v.IsObject()) {
-                            continue;
-                        }
-                        auto begin = v.MemberBegin();
-                        if (begin == v.MemberEnd()) {
-                            continue;
-                        }
-                        std::string key = begin->name.GetString();
-                        if (!begin->value.IsObject()) {
-                            continue;
-                        }
-                        auto cc = begin->value.GetObject();
+                if (doc.HasMember(KEY_HOSTS) && doc[KEY_HOSTS].IsObject()) {
+					auto arr = doc[KEY_HOSTS].GetObject();
+					for (auto it = arr.MemberBegin(), end = arr.MemberEnd(); it != end; ++it) {
+						std::string key = it->name.GetString();
+						auto &cc = it->value;
+						if (!cc.IsObject()) {
+							continue;
+						}
                         CConnectionContext ctx;
                         if (cc.HasMember(KEY_HOST) && cc[KEY_HOST].IsString()) {
                             ctx.Host = cc[KEY_HOST].GetString();
@@ -492,37 +458,28 @@ namespace PA
                         }
                         if (cc.HasMember(KEY_PASSWORD) && cc[KEY_PASSWORD].IsString()) {
                             std::string s = cc[KEY_PASSWORD].GetString();
-                            Trim(s);
                             ctx.Password = SPA::Utilities::ToWide(s);
                         }
                         if (cc.HasMember(KEY_ENCRYPTION_METHOD) && cc[KEY_ENCRYPTION_METHOD].IsUint()) {
                             ctx.EncrytionMethod = cc[KEY_ENCRYPTION_METHOD].GetUint() ? SPA::TLSv1 : SPA::NoEncryption;
                         }
-                        if (cc.HasMember(KEY_ZIP) && cc[KEY_ZIP].IsBool()) {
+                        if (cc.HasMember(KEY_ZIP)) {
                             ctx.Zip = cc[KEY_ZIP].GetBool();
                         }
-                        if (cc.HasMember(KEY_V6) && cc[KEY_V6].IsBool()) {
+                        if (cc.HasMember(KEY_V6)) {
                             ctx.Zip = cc[KEY_V6].GetBool();
                         }
                         Manager.Hosts[key] = ctx;
                     }
                 }
-                if (doc.HasMember(KEY_POOLS) && doc[KEY_POOLS].IsArray()) {
-                    auto arr = doc[KEY_POOLS].GetArray();
-                    for (auto &v : arr) {
-                        if (!v.IsObject()) {
-                            continue;
-                        }
-                        auto begin = v.MemberBegin();
-                        if (begin == v.MemberEnd()) {
-                            continue;
-                        }
-                        std::string key = begin->name.GetString();
-                        Trim(key);
-                        if (!begin->value.IsObject()) {
-                            continue;
-                        }
-                        auto ccMain = begin->value.GetObject();
+                if (doc.HasMember(KEY_POOLS) && doc[KEY_POOLS].IsObject()) {
+					auto arr = doc[KEY_POOLS].GetObject();
+					for (auto it = arr.MemberBegin(), end = arr.MemberEnd(); it != end; ++it) {
+						std::string key = it->name.GetString();
+						auto &ccMain = it->value;
+						if (!ccMain.IsObject()) {
+							continue;
+						}
                         CPoolStartContext psc;
                         if (ccMain.HasMember(KEY_QUEUE_NAME) && ccMain[KEY_QUEUE_NAME].IsString()) {
                             psc.Queue = ccMain[KEY_QUEUE_NAME].GetString();
@@ -558,22 +515,14 @@ namespace PA
                         if (ccMain.HasMember(KEY_AUTO_MERGE) && ccMain[KEY_AUTO_MERGE].IsBool()) {
                             psc.AutoMerge = ccMain[KEY_AUTO_MERGE].GetBool();
                         }
-                        if (psc.DefaultDb.size() && ccMain.HasMember(KEY_SLAVES) && ccMain[KEY_SLAVES].IsArray()) {
-                            auto vSlave = ccMain[KEY_SLAVES].GetArray();
-                            for (auto &one : vSlave) {
-                                if (!one.IsObject()) {
-                                    continue;
-                                }
-                                auto beginOne = one.MemberBegin();
-                                if (beginOne == one.MemberEnd()) {
-                                    continue;
-                                }
-                                std::string skey = beginOne->name.GetString();
-                                Trim(skey);
-                                if (!beginOne->value.IsObject()) {
-                                    continue;
-                                }
-                                auto cc = beginOne->value.GetObject();
+                        if (psc.DefaultDb.size() && ccMain.HasMember(KEY_SLAVES) && ccMain[KEY_SLAVES].IsObject()) {
+							auto vSlave = ccMain[KEY_SLAVES].GetObject();
+							for (auto it = vSlave.MemberBegin(), end = vSlave.MemberEnd(); it != end; ++it) {
+								std::string skey = it->name.GetString();
+								auto& cc = it->value;
+								if (!cc.IsObject()) {
+									continue;
+								}
                                 CPoolStartContext ps;
                                 ps.SvsId = psc.SvsId;
                                 ps.DefaultDb = psc.DefaultDb;
@@ -638,6 +587,11 @@ namespace PA
             Manager.CheckError();
         }
         if (Manager.m_errMsg.size()) {
+			Manager.m_vKeyAllowed.clear();
+			Manager.CertStore.clear();
+			Manager.Pools.clear();
+			Manager.m_ConfigPath.clear();
+			Manager.Hosts.clear();
             throw Php::Exception(Manager.m_errMsg.c_str());
         } else {
             Manager.SetSettings();
