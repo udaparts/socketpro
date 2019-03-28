@@ -2013,7 +2013,7 @@ class CJsManager {
                 autoConn = (!!obj.AutoConn);
             }
             obj.AutoConn = autoConn;
-            var automerge = (obj.Queue && obj.AutoMerge);
+            var automerge = ((!!obj.Queue) && (!!obj.AutoMerge));
             obj.AutoMerge = automerge;
             var master = {};
             Object.assign(master, obj);
@@ -2078,7 +2078,7 @@ class CJsManager {
                     if (one.AutoConn !== undefined) {
                         s.AutoConn = (!!one.AutoConn);
                     }
-                    s.AutoMerge = (s.Queue && one.AutoMerge);
+                    s.AutoMerge = (s.Queue && (!!one.AutoMerge));
                     s.Hosts = [];
                     if (Array.isArray(one.Hosts) && one.Hosts.length > 0) {
                         for (var m = 0; m < one.Hosts.length; ++m) {
