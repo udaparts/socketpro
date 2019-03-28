@@ -33,17 +33,17 @@ namespace PA
             }
                 break;
             case SPA::Queue::sidQueue:
-				throw Php::Exception("Persistent message queue handler doesn't support Seek method within PHP adapter at this time. Use the method Lock instead");
-/*
-            {
-                auto handler = m_qName.size() ? Queue->SeekByQueue() : Queue->Seek();
-                if (!handler)
-                    throw Php::Exception("Persistent message queue handler not found");
-                Php::Object obj((SPA_CS_NS + PHP_QUEUE_HANDLER).c_str(), new CPhpQueue(Queue->GetPoolId(), handler.get(), false));
-                return obj;
-            }
+                throw Php::Exception("Persistent message queue handler doesn't support Seek method within PHP adapter at this time. Use the method Lock instead");
+                /*
+                {
+                    auto handler = m_qName.size() ? Queue->SeekByQueue() : Queue->Seek();
+                    if (!handler)
+                        throw Php::Exception("Persistent message queue handler not found");
+                    Php::Object obj((SPA_CS_NS + PHP_QUEUE_HANDLER).c_str(), new CPhpQueue(Queue->GetPoolId(), handler.get(), false));
+                    return obj;
+                }
                 break;
-*/
+                */
             case SPA::SFile::sidFile:
             {
                 auto handler = m_qName.size() ? File->SeekByQueue() : File->Seek();

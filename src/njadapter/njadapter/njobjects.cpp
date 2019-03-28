@@ -1077,7 +1077,7 @@ namespace NJA {
                 }
                 vCC.push_back(cc);
             }
-			sessions = (unsigned int)vCC.size();
+            sessions = (unsigned int) vCC.size();
         } else if (p0->IsObject()) {
             Local<Object> obj = p0->ToObject();
             SPA::ClientSide::CConnectionContext cc;

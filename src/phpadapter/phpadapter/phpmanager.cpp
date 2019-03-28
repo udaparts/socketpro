@@ -303,7 +303,7 @@ namespace PA
             } else if (name == "Pools") {
                 return (int64_t) SPA::ClientSide::ClientCoreLoader.GetNumberOfSocketPools();
             } else if (name == "Version") {
-				return SPA::ClientSide::ClientCoreLoader.GetUClientSocketVersion();
+                return SPA::ClientSide::ClientCoreLoader.GetUClientSocketVersion();
             }
         }
         return Php::Base::__get(name);
@@ -436,13 +436,13 @@ namespace PA
                 }
                 SPA::ClientSide::CClientSocket::SSL::SetVerifyLocation(Manager.CertStore.c_str());
                 if (doc.HasMember(KEY_HOSTS) && doc[KEY_HOSTS].IsObject()) {
-					auto arr = doc[KEY_HOSTS].GetObject();
-					for (auto it = arr.MemberBegin(), end = arr.MemberEnd(); it != end; ++it) {
-						std::string key = it->name.GetString();
-						auto &cc = it->value;
-						if (!cc.IsObject()) {
-							continue;
-						}
+                    auto arr = doc[KEY_HOSTS].GetObject();
+                    for (auto it = arr.MemberBegin(), end = arr.MemberEnd(); it != end; ++it) {
+                        std::string key = it->name.GetString();
+                        auto &cc = it->value;
+                        if (!cc.IsObject()) {
+                            continue;
+                        }
                         CConnectionContext ctx;
                         if (cc.HasMember(KEY_HOST) && cc[KEY_HOST].IsString()) {
                             ctx.Host = cc[KEY_HOST].GetString();
@@ -473,13 +473,13 @@ namespace PA
                     }
                 }
                 if (doc.HasMember(KEY_POOLS) && doc[KEY_POOLS].IsObject()) {
-					auto arr = doc[KEY_POOLS].GetObject();
-					for (auto it = arr.MemberBegin(), end = arr.MemberEnd(); it != end; ++it) {
-						std::string key = it->name.GetString();
-						auto &ccMain = it->value;
-						if (!ccMain.IsObject()) {
-							continue;
-						}
+                    auto arr = doc[KEY_POOLS].GetObject();
+                    for (auto it = arr.MemberBegin(), end = arr.MemberEnd(); it != end; ++it) {
+                        std::string key = it->name.GetString();
+                        auto &ccMain = it->value;
+                        if (!ccMain.IsObject()) {
+                            continue;
+                        }
                         CPoolStartContext psc;
                         if (ccMain.HasMember(KEY_QUEUE_NAME) && ccMain[KEY_QUEUE_NAME].IsString()) {
                             psc.Queue = ccMain[KEY_QUEUE_NAME].GetString();
@@ -516,13 +516,13 @@ namespace PA
                             psc.AutoMerge = ccMain[KEY_AUTO_MERGE].GetBool();
                         }
                         if (psc.DefaultDb.size() && ccMain.HasMember(KEY_SLAVES) && ccMain[KEY_SLAVES].IsObject()) {
-							auto vSlave = ccMain[KEY_SLAVES].GetObject();
-							for (auto it = vSlave.MemberBegin(), end = vSlave.MemberEnd(); it != end; ++it) {
-								std::string skey = it->name.GetString();
-								auto& cc = it->value;
-								if (!cc.IsObject()) {
-									continue;
-								}
+                            auto vSlave = ccMain[KEY_SLAVES].GetObject();
+                            for (auto it = vSlave.MemberBegin(), end = vSlave.MemberEnd(); it != end; ++it) {
+                                std::string skey = it->name.GetString();
+                                auto& cc = it->value;
+                                if (!cc.IsObject()) {
+                                    continue;
+                                }
                                 CPoolStartContext ps;
                                 ps.SvsId = psc.SvsId;
                                 ps.DefaultDb = psc.DefaultDb;
@@ -587,11 +587,11 @@ namespace PA
             Manager.CheckError();
         }
         if (Manager.m_errMsg.size()) {
-			Manager.m_vKeyAllowed.clear();
-			Manager.CertStore.clear();
-			Manager.Pools.clear();
-			Manager.m_ConfigPath.clear();
-			Manager.Hosts.clear();
+            Manager.m_vKeyAllowed.clear();
+            Manager.CertStore.clear();
+            Manager.Pools.clear();
+            Manager.m_ConfigPath.clear();
+            Manager.Hosts.clear();
             throw Php::Exception(Manager.m_errMsg.c_str());
         } else {
             Manager.SetSettings();

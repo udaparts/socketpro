@@ -113,7 +113,7 @@ namespace NJA {
         NODE_SET_METHOD(exports, "setWorkingDir", SetWorkingDir);
         NODE_SET_METHOD(exports, "setPassword", SetMessageQueuePassword);
         NODE_SET_METHOD(exports, "setKey", KeyAllowed);
-		NODE_SET_METHOD(exports, "setPublicKeys", KeyAllowed);
+        NODE_SET_METHOD(exports, "setPublicKeys", KeyAllowed);
         NJQueue::Init(exports);
         NJSocketPool::Init(exports);
 
