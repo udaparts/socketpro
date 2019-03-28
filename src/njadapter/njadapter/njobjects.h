@@ -72,6 +72,10 @@ namespace NJA {
         static void getError(const FunctionCallbackInfo<Value>& args);
         static void getQueueAutoMerge(const FunctionCallbackInfo<Value>& args);
         static void setQueueAutoMerge(const FunctionCallbackInfo<Value>& args);
+		static void getRecvTimeout(const FunctionCallbackInfo<Value>& args);
+		static void setRecvTimeout(const FunctionCallbackInfo<Value>& args);
+		static void getConnTimeout(const FunctionCallbackInfo<Value>& args);
+		static void setConnTimeout(const FunctionCallbackInfo<Value>& args);
         static void getQueueName(const FunctionCallbackInfo<Value>& args);
         static void setQueueName(const FunctionCallbackInfo<Value>& args);
         static void getQueues(const FunctionCallbackInfo<Value>& args);
@@ -88,6 +92,7 @@ namespace NJA {
         static void StartSocketPool(const FunctionCallbackInfo<Value>& args);
         static void Unlock(const FunctionCallbackInfo<Value>& args);
         static void newSlave(const FunctionCallbackInfo<Value>& args);
+		
 
         static void setPoolEvent(const FunctionCallbackInfo<Value>& args);
 

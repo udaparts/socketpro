@@ -488,6 +488,22 @@ class CSocketPool {
         this.pool.setAutoMerge(am);
     }
 
+    get RecvTimeout() {
+        return this.pool.getRecvTimeout();
+    }
+
+    set RecvTimeout(timeout) {
+        this.pool.setRecvTimeout(timeout);
+    }
+
+    get ConnTimeout() {
+        return this.pool.getConnTimeout();
+    }
+
+    set ConnTimeout(timeout) {
+        this.pool.setConnTimeout(timeout);
+    }
+
     get QueueName() {
         return this.pool.getQueueName();
     }
@@ -2135,6 +2151,8 @@ class CJsManager {
         }
         pool.QueueName = pc.Queue;
         pool.AutoMerge = pc.AutoMerge;
+        pool.ConnTimeout = pc.ConnTimeout;
+        pool.RecvTimeout = pc.RecvTimeout;
         jh[keyPool].Pool = pool;
         var sessions = [];
         for (var n = 0; n < pc.Hosts.length; ++n) {
