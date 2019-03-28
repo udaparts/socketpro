@@ -488,11 +488,19 @@ class CSocketPool {
         this.pool.setAutoMerge(am);
     }
 
+    get AutoConn() {
+        return this.pool.getAutoConn();
+    }
+
+    set AutoConn(ac = true) {
+        this.pool.setAutoConn(ac);
+    }
+
     get RecvTimeout() {
         return this.pool.getRecvTimeout();
     }
 
-    set RecvTimeout(timeout) {
+    set RecvTimeout(timeout = 30000) {
         this.pool.setRecvTimeout(timeout);
     }
 
@@ -500,7 +508,7 @@ class CSocketPool {
         return this.pool.getConnTimeout();
     }
 
-    set ConnTimeout(timeout) {
+    set ConnTimeout(timeout = 30000) {
         this.pool.setConnTimeout(timeout);
     }
 
@@ -2002,14 +2010,10 @@ class CJsManager {
             obj.RecvTimeout = recvTimeout;
             var autoConn = true;
             if (obj.AutoConn !== undefined) {
-                obj.AutoConn = (!!obj.AutoConn);
-                autoConn = obj.AutoConn;
+                autoConn = (!!obj.AutoConn);
             }
             obj.AutoConn = autoConn;
-            var automerge = false;
-            if (obj.Queue && obj.AutoMerge) {
-                automerge = !!obj.AutoMerge;
-            }
+            var automerge = (obj.Queue && obj.AutoMerge);
             obj.AutoMerge = automerge;
             var master = {};
             Object.assign(master, obj);
@@ -2070,8 +2074,11 @@ class CJsManager {
                             throw 'A number expected for request timeout in milliseconds';
                         }
                     }
-                    s.AutoConn = (!!one.AutoConn);
-                    s.AutoMerge = (!!one.AutoMerge);
+                    s.AutoConn = true;
+                    if (one.AutoConn !== undefined) {
+                        s.AutoConn = (!!one.AutoConn);
+                    }
+                    s.AutoMerge = (s.Queue && one.AutoMerge);
                     s.Hosts = [];
                     if (Array.isArray(one.Hosts) && one.Hosts.length > 0) {
                         for (var m = 0; m < one.Hosts.length; ++m) {
@@ -2149,6 +2156,7 @@ class CJsManager {
         else {
             pool = exports.CS.newPool(pc.SvsId, pc.DefaultDb);
         }
+        pool.AutoConn = pc.AutoConn;
         pool.QueueName = pc.Queue;
         pool.AutoMerge = pc.AutoMerge;
         pool.ConnTimeout = pc.ConnTimeout;

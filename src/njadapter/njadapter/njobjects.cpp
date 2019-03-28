@@ -208,6 +208,8 @@ namespace NJA {
         NODE_SET_PROTOTYPE_METHOD(tpl, "getError", getError);
         NODE_SET_PROTOTYPE_METHOD(tpl, "getAutoMerge", getQueueAutoMerge);
         NODE_SET_PROTOTYPE_METHOD(tpl, "setAutoMerge", setQueueAutoMerge);
+        NODE_SET_PROTOTYPE_METHOD(tpl, "getAutoConn", getAutoConn);
+        NODE_SET_PROTOTYPE_METHOD(tpl, "setAutoConn", setAutoConn);
         NODE_SET_PROTOTYPE_METHOD(tpl, "getRecvTimeout", getRecvTimeout);
         NODE_SET_PROTOTYPE_METHOD(tpl, "setRecvTimeout", setRecvTimeout);
         NODE_SET_PROTOTYPE_METHOD(tpl, "getConnTimeout", getConnTimeout);
@@ -699,6 +701,29 @@ namespace NJA {
             if (p->IsBoolean()) {
                 bool b = p->BooleanValue();
                 obj->Handler->SetQueueAutoMerge(b);
+            } else {
+                ThrowException(isolate, BOOLEAN_EXPECTED);
+            }
+        }
+    }
+
+    void NJSocketPool::getAutoConn(const FunctionCallbackInfo<Value>& args) {
+        Isolate* isolate = args.GetIsolate();
+        NJSocketPool* obj = ObjectWrap::Unwrap<NJSocketPool>(args.Holder());
+        if (obj->IsValid(isolate)) {
+            bool ok = obj->Handler->GetAutoConn();
+            args.GetReturnValue().Set(Boolean::New(isolate, ok));
+        }
+    }
+
+    void NJSocketPool::setAutoConn(const FunctionCallbackInfo<Value>& args) {
+        Isolate* isolate = args.GetIsolate();
+        NJSocketPool* obj = ObjectWrap::Unwrap<NJSocketPool>(args.Holder());
+        if (obj->IsValid(isolate)) {
+            auto p = args[0];
+            if (p->IsBoolean()) {
+                bool b = p->BooleanValue();
+                obj->Handler->SetAutoConn(b);
             } else {
                 ThrowException(isolate, BOOLEAN_EXPECTED);
             }

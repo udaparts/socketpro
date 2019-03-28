@@ -72,6 +72,8 @@ namespace NJA {
         static void getError(const FunctionCallbackInfo<Value>& args);
         static void getQueueAutoMerge(const FunctionCallbackInfo<Value>& args);
         static void setQueueAutoMerge(const FunctionCallbackInfo<Value>& args);
+        static void getAutoConn(const FunctionCallbackInfo<Value>& args);
+        static void setAutoConn(const FunctionCallbackInfo<Value>& args);
         static void getRecvTimeout(const FunctionCallbackInfo<Value>& args);
         static void setRecvTimeout(const FunctionCallbackInfo<Value>& args);
         static void getConnTimeout(const FunctionCallbackInfo<Value>& args);
