@@ -468,93 +468,7 @@ namespace SocketProAdapter
             event DOnSubscribe OnSubscribe;
             event DOnUnsubscribe OnUnsubscribe;
         }
-#if WINCE
-        public sealed class CConnectionContext
-        {
-            public CConnectionContext()
-            {
-
-            }
-
-            public CConnectionContext(string host, uint port, string userId, string password)
-            {
-                Host = host;
-                Port = port;
-                UserId = userId;
-                m_Password = password;
-                EncrytionMethod = tagEncryptionMethod.NoEncryption;
-                Zip = false;
-                V6 = false;
-            }
-
-            public CConnectionContext(string host, uint port, string userId, string password, tagEncryptionMethod em)
-            {
-                Host = host;
-                Port = port;
-                UserId = userId;
-                m_Password = password;
-                EncrytionMethod = em;
-                Zip = false;
-                V6 = false;
-            }
-
-            public CConnectionContext(string host, uint port, string userId, string password, tagEncryptionMethod em, bool zip)
-            {
-                Host = host;
-                Port = port;
-                UserId = userId;
-                m_Password = password;
-                EncrytionMethod = em;
-                Zip = zip;
-                V6 = false;
-            }
-
-            public CConnectionContext(string host, uint port, string userId, string password, tagEncryptionMethod em, bool zip, bool v6)
-            {
-                Host = host;
-                Port = port;
-                UserId = userId;
-                m_Password = password;
-                EncrytionMethod = em;
-                Zip = zip;
-                V6 = v6;
-            }
-
-            public CConnectionContext(string host, uint port, string userId, string password, tagEncryptionMethod em, bool zip, bool v6, object anyData)
-            {
-                Host = host;
-                Port = port;
-                UserId = userId;
-                m_Password = password;
-                EncrytionMethod = em;
-                Zip = zip;
-                V6 = v6;
-                AnyData = anyData;
-            }
-
-            public string Password
-            {
-                set
-                {
-                    m_Password = value;
-                }
-            }
-
-            internal string GetPassword()
-            {
-                return m_Password;
-            }
-
-            public string Host;
-            public uint Port = 0;
-            public string UserId;
-            private string m_Password;
-            public tagEncryptionMethod EncrytionMethod;
-            public bool Zip = false;
-            public bool V6 = false;
-            public object AnyData = null;
-        }
-#else
+#if SP_MANAGER
         [DataContract]
         public sealed class CConnectionContext
         {
@@ -669,6 +583,82 @@ namespace SocketProAdapter
             [DataMember(IsRequired = false)]
             public bool V6 = false;
             [DataMember(IsRequired = false)]
+            public object AnyData = null;
+        }
+#else
+        public sealed class CConnectionContext {
+            public CConnectionContext() {
+
+            }
+
+            public CConnectionContext(string host, uint port, string userId, string password) {
+                Host = host;
+                Port = port;
+                UserId = userId;
+                m_Password = password;
+                EncrytionMethod = tagEncryptionMethod.NoEncryption;
+                Zip = false;
+                V6 = false;
+            }
+
+            public CConnectionContext(string host, uint port, string userId, string password, tagEncryptionMethod em) {
+                Host = host;
+                Port = port;
+                UserId = userId;
+                m_Password = password;
+                EncrytionMethod = em;
+                Zip = false;
+                V6 = false;
+            }
+
+            public CConnectionContext(string host, uint port, string userId, string password, tagEncryptionMethod em, bool zip) {
+                Host = host;
+                Port = port;
+                UserId = userId;
+                m_Password = password;
+                EncrytionMethod = em;
+                Zip = zip;
+                V6 = false;
+            }
+
+            public CConnectionContext(string host, uint port, string userId, string password, tagEncryptionMethod em, bool zip, bool v6) {
+                Host = host;
+                Port = port;
+                UserId = userId;
+                m_Password = password;
+                EncrytionMethod = em;
+                Zip = zip;
+                V6 = v6;
+            }
+
+            public CConnectionContext(string host, uint port, string userId, string password, tagEncryptionMethod em, bool zip, bool v6, object anyData) {
+                Host = host;
+                Port = port;
+                UserId = userId;
+                m_Password = password;
+                EncrytionMethod = em;
+                Zip = zip;
+                V6 = v6;
+                AnyData = anyData;
+            }
+
+            public string Password {
+                set {
+                    m_Password = value;
+                }
+            }
+
+            internal string GetPassword() {
+                return m_Password;
+            }
+
+            public string Host;
+            public uint Port = 0;
+            public string UserId;
+            private string m_Password;
+            public tagEncryptionMethod EncrytionMethod;
+            public bool Zip = false;
+            public bool V6 = false;
             public object AnyData = null;
         }
 #endif

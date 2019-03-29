@@ -17,7 +17,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>TRACE;DEBUG;TASKS_ENABLED</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;TASKS_ENABLED;SP_MANAGER</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -26,10 +26,11 @@
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE;TASKS_ENABLED</DefineConstants>
+    <DefineConstants>TRACE;TASKS_ENABLED;SP_MANAGER</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DocumentationFile>bin\Release\SproAdapter.XML</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -50,7 +51,6 @@
     <Compile Include="masterpool.cs" />
     <Compile Include="masterslavebase.cs" />
     <Compile Include="odbc.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="asyncadohandler.cs" />
     <Compile Include="asynchandler.cs" />
     <Compile Include="asyncstream.cs" />
@@ -58,6 +58,7 @@
     <Compile Include="clientinterop.cs" />
     <Compile Include="clientpeer.cs" />
     <Compile Include="clientsocket.cs" />
+    <Compile Include="Properties\AssemblyInfo45.cs" />
     <Compile Include="remotingadonethelper.cs" />
     <Compile Include="replication.cs" />
     <Compile Include="scopeuqueue.cs" />

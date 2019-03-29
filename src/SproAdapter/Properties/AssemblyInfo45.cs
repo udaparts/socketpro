@@ -9,7 +9,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyDescription("SocketPro adapter, a thin bridge between your .NET and SocketPro core components")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("UDAParts")]
-[assembly: AssemblyProduct("SocketPro adapter for .NET 4.0 or later")]
+[assembly: AssemblyProduct("SocketPro adapter for .NET 4.5 or later")]
 [assembly: AssemblyCopyright("Copyright © UDAParts 2019")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
