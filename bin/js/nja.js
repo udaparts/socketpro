@@ -1757,6 +1757,7 @@ exports.CHandler = CHandler;
 class CJsManager {
     constructor(jsonConfig) {
         this.ph = {};
+        var poolKeys = [];
         assert(typeof jsonConfig === 'string' && jsonConfig.length > 0);
         var conf = require(jsonConfig);
         this.jc = {};
@@ -1897,20 +1898,11 @@ class CJsManager {
             throw 'Host ' + k + ' not found from the array of Hosts';
         }
         function existsPool(k) {
-            var arr = Object.keys(jcObject.Pools);
+            var arr = poolKeys;
             for (var n = 0; n < arr.length; ++n) {
                 var key = arr[n];
                 if (key == k) {
                     throw 'Pool key ' + key + ' is duplicated';
-                }
-                var obj = jcObject.Pools[key];
-                if (obj.DefaultDb && (typeof obj.Slaves === 'object')) {
-                    var a = Object.keys(obj.Slaves);
-                    for (var j = 0; j < a.length; ++j) {
-                        if (a[j] == k) {
-                            throw 'Pool key ' + k + ' is duplicated';
-                        }
-                    }
                 }
             }
         }
@@ -1940,6 +1932,7 @@ class CJsManager {
         if (keys.length === 0) {
             throw 'A Pools map cannot be empty';
         }
+        Object.assign(poolKeys, keys);
         for (var n = 0; n < keys.length; ++n) {
             var key = keys[n];
             if (!key) {
@@ -1949,7 +1942,6 @@ class CJsManager {
             if (!obj || typeof obj !== 'object') {
                 throw 'A pair of key/Pool context expected';
             }
-            existsPool(key);
             obj.Threads = 1;
             var queue = '';
             if (obj.Queue !== undefined) {
@@ -2045,8 +2037,9 @@ class CJsManager {
                 master.Slaves = {};
                 var skeys = Object.keys(obj.Slaves);
                 for (var j = 0; j < skeys.length; ++j) {
-                    var k = skeys[0];
+                    var k = skeys[j];
                     existsPool(k);
+                    poolKeys.push(k);
                     var one = obj.Slaves[k];
                     var s = {};
                     s.Master = key;

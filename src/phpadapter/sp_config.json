@@ -1,5 +1,5 @@
 ﻿{
-  "WorkingDir": "c:\\ProgramData\\PHP",
+  "WorkingDir": "C:\\ProgramData\\PHP",
   "Hosts": {
     "hw_0": {
       "Host": "ws-yye-1",
@@ -54,15 +54,6 @@
         "db_master"
       ]
     },
-    "db_no_backup": {
-      "SvsId": 2147483633,
-      "Hosts": [
-        "db_master",
-        "db_master"
-      ],
-      "DefaultDb": "sakila",
-      "ConnTimeout": 45000
-    },
     "masterdb": {
       "SvsId": 2147483633,
       "Hosts": [
@@ -86,6 +77,13 @@
           "AutoMerge": true,
           "RecvTimeout": 60000,
           "Threads": 2
+        },
+        "db_no_backup": {
+          "Hosts": [
+            "db_master",
+            "db_master"
+          ],
+          "ConnTimeout": 45000
         }
       }
     }
