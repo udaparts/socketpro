@@ -80,7 +80,17 @@ namespace PA
             }
             switch (psc.SvsId) {
                 case SPA::sidChat:
+                    if (psc.DefaultDb.size() || psc.Slaves.size()) {
+                        m_errMsg = "Server queue service does not support master or slave pool";
+                        return;
+                    }
+                    break;
                 case SPA::sidFile:
+                    if (psc.DefaultDb.size() || psc.Slaves.size()) {
+                        m_errMsg = "Remote file service does not support master or slave pool";
+                        return;
+                    }
+                    break;
                 case SPA::sidODBC:
                 case SPA::Mysql::sidMysql:
                 case SPA::Sqlite::sidSqlite:

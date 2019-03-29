@@ -1,5 +1,9 @@
 ﻿using System;
 using System.Runtime.InteropServices;
+#if WINCE
+#else
+using System.Runtime.Serialization;
+#endif
 
 namespace SocketProAdapter
 {
@@ -464,7 +468,7 @@ namespace SocketProAdapter
             event DOnSubscribe OnSubscribe;
             event DOnUnsubscribe OnUnsubscribe;
         }
-
+#if WINCE
         public sealed class CConnectionContext
         {
             public CConnectionContext()
@@ -550,7 +554,124 @@ namespace SocketProAdapter
             public bool V6 = false;
             public object AnyData = null;
         }
+#else
+        [DataContract]
+        public sealed class CConnectionContext
+        {
+            public CConnectionContext()
+            {
 
+            }
+
+            public CConnectionContext(string host, uint port, string userId, string password)
+            {
+                Host = host;
+                Port = port;
+                UserId = userId;
+                m_Password = password;
+                EncrytionMethod = tagEncryptionMethod.NoEncryption;
+                Zip = false;
+                V6 = false;
+            }
+
+            public CConnectionContext(string host, uint port, string userId, string password, tagEncryptionMethod em)
+            {
+                Host = host;
+                Port = port;
+                UserId = userId;
+                m_Password = password;
+                EncrytionMethod = em;
+                Zip = false;
+                V6 = false;
+            }
+
+            public CConnectionContext(string host, uint port, string userId, string password, tagEncryptionMethod em, bool zip)
+            {
+                Host = host;
+                Port = port;
+                UserId = userId;
+                m_Password = password;
+                EncrytionMethod = em;
+                Zip = zip;
+                V6 = false;
+            }
+
+            public CConnectionContext(string host, uint port, string userId, string password, tagEncryptionMethod em, bool zip, bool v6)
+            {
+                Host = host;
+                Port = port;
+                UserId = userId;
+                m_Password = password;
+                EncrytionMethod = em;
+                Zip = zip;
+                V6 = v6;
+            }
+
+            public CConnectionContext(string host, uint port, string userId, string password, tagEncryptionMethod em, bool zip, bool v6, object anyData)
+            {
+                Host = host;
+                Port = port;
+                UserId = userId;
+                m_Password = password;
+                EncrytionMethod = em;
+                Zip = zip;
+                V6 = v6;
+                AnyData = anyData;
+            }
+
+            internal bool IsSame(CConnectionContext cc)
+            {
+                if (cc == null)
+                    return false;
+                return (cc.Host == Host && cc.Port == Port);
+            }
+
+            internal void Normalize()
+            {
+                Host = Host.Trim().ToLower();
+                if (Host.Length == 0)
+                    throw new Exception("Remote server address cannot be empty");
+                if (Port == 0)
+                    throw new Exception("Remote server port number cannot be zero");
+            }
+
+            [DataMember(IsRequired = false)]
+            public string Password
+            {
+                internal get
+                {
+                    return m_Password;
+                }
+                set
+                {
+                    m_Password = value;
+                }
+            }
+
+            internal string GetPassword()
+            {
+                return m_Password;
+            }
+            [DataMember(IsRequired = true)]
+            public string Host;
+            [DataMember(IsRequired = true)]
+            public uint Port = 0;
+
+            [DataMember(IsRequired = false)]
+            public string UserId;
+
+            private string m_Password;
+
+            [DataMember(IsRequired = false)]
+            public tagEncryptionMethod EncrytionMethod = tagEncryptionMethod.NoEncryption;
+            [DataMember(IsRequired = false)]
+            public bool Zip = false;
+            [DataMember(IsRequired = false)]
+            public bool V6 = false;
+            [DataMember(IsRequired = false)]
+            public object AnyData = null;
+        }
+#endif
         public struct CMessageSender
         {
             public string UserId;

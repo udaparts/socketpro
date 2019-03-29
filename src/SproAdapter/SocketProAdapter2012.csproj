@@ -36,6 +36,7 @@
     <Reference Include="System.Core" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup />
@@ -65,6 +66,7 @@
     <Compile Include="serverqueue.cs" />
     <Compile Include="serversocket.cs" />
     <Compile Include="socketpool.cs" />
+    <Compile Include="spmanager.cs" />
     <Compile Include="sqlmasterpool.cs" />
     <Compile Include="streamclient.cs" />
     <Compile Include="streamserver.cs" />

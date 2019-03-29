@@ -812,7 +812,7 @@ exports.SID = {
     sidReserved1: 1,
     sidStartup: 256,
     sidChat: 257,
-    sidQueue: 257, //persistent message queue service
+    sidQueue: 257, //server persistent message queue service
     sidHTTP: 258, //not supported at client side
     sidFile: 259, //files streaming service
     sidOdbc: 260, //ODBC SQL-streaming service
@@ -1990,7 +1990,7 @@ class CJsManager {
             }
             var connTimeout = 30000;
             if (obj.ConnTimeout !== undefined) {
-                if (typeof obj.ConnTimeout === 'number' && obj.ConnTimeout >= 0) {
+                if (typeof obj.ConnTimeout === 'number' && obj.ConnTimeout > 0) {
                     connTimeout = Number(obj.ConnTimeout);
                 }
                 else {
@@ -2000,7 +2000,7 @@ class CJsManager {
             obj.ConnTimeout = connTimeout;
             var recvTimeout = 30000;
             if (obj.RecvTimeout !== undefined) {
-                if (typeof obj.RecvTimeout === 'number' && obj.RecvTimeout >= 0) {
+                if (typeof obj.RecvTimeout === 'number' && obj.RecvTimeout > 0) {
                     recvTimeout = Number(obj.RecvTimeout);
                 }
                 else {
@@ -2015,6 +2015,28 @@ class CJsManager {
             obj.AutoConn = autoConn;
             var automerge = ((!!obj.Queue) && (!!obj.AutoMerge));
             obj.AutoMerge = automerge;
+            switch (svsId) {
+                case exports.SID.sidHTTP:
+                    throw 'Client side does not support HTTP/websocket service';
+                case exports.SID.sidQueue:
+                    if (defaultDb || typeof obj.Slaves === 'object')
+                        throw 'Server queue service does not support master or slave pool';
+                    break;
+                case exports.SID.sidFile:
+                    if (defaultDb || typeof obj.Slaves === 'object')
+                        throw 'Remote file service does not support master or slave pool';
+                    break;
+                case exports.SID.sidMysql:
+                case exports.SID.sidOdbc:
+                case exports.SID.sidSqlite:
+                    break;
+                default:
+                    if (svsId <= exports.SID.sidReserved)
+                        throw 'User defined service id must be larger than ' + exports.SID.sidReserved;
+                    break;
+            }
+            if (!defaultDb && typeof obj.Slaves === 'object')
+                throw 'Slave array is not empty but DefaultDb string is empty';
             var master = {};
             Object.assign(master, obj);
             delete master.Master;
@@ -2108,14 +2130,14 @@ class CJsManager {
     get Config() {
         var conf = {};
         Object.assign(conf, this.jc);
-        conf.WorkingDir = SPA.getWorkingDir();
+        conf.WorkingDir = SPA.getWorkingDir(); //working directory hoilding client queues for client requests backups
         return conf;
     }
     get Pools() {
-        return SPA.getPools();
+        return SPA.getPools(); //return the number of running socket pools
     }
     get Version() {
-        return SPA.getVersion();
+        return SPA.getVersion(); //return SocketPro client core version
     }
     GetPool(keyPool) {
         var jh = this.ph;
@@ -2202,6 +2224,8 @@ exports.GetManager = function (jsonConfig = '') {
     return exports.Manager;
 };
 
+exports.GetSpManager = exports.GetManager;
+
 exports.GetSpPool = function (keyPool) {
     return exports.GetManager().GetPool(keyPool);
 };
@@ -2210,6 +2234,10 @@ exports.GetSpHandler = function (keyPool) {
     return exports.GetManager().GetHandler(keyPool);
 };
 
+exports.SeekSpHandler = exports.GetSpHandler;
+
 exports.GetSpHandlerByQueue = function (keyPool) {
     return exports.GetManager().GetHandlerByQueue(keyPool);
 };
+
+exports.SeekSpHandlerByQueue = exports.GetSpHandlerByQueue;
