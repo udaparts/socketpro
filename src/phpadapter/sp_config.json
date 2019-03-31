@@ -1,14 +1,14 @@
 ﻿{
-  "WorkingDir": "C:\\ProgramData\\PHP",
+  "WorkingDir": "/home/yye/sp_test",
   "Hosts": {
     "hw_0": {
-      "Host": "ws-yye-1",
+      "Host": "windesk",
       "Port": 20901,
       "UserId": "SomeUserId",
       "Password": "MySecretString"
     },
     "db_master": {
-      "Host": "ws-yye-1",
+      "Host": "windesk",
       "Port": 20902,
       "UserId": "root",
       "Password": "Smash123",
@@ -17,13 +17,13 @@
       "V6": false
     },
     "db_slave_0": {
-      "Host": "10.16.20.33",
+      "Host": "192.168.85.1",
       "Port": 20902,
       "UserId": "root",
       "Password": "Smash123"
     },
     "db_slave_remote": {
-      "Host": "192.168.159.1",
+      "Host": "192.168.2.172",
       "Port": 20902,
       "UserId": "root",
       "Password": "Smash123",
@@ -71,7 +71,7 @@
             "db_slave_0",
             "db_slave_0",
             "db_master",
-            "db_slave_remote"
+	    "db_slave_remote"
           ],
           "Queue": "sdb",
           "AutoMerge": true,
