@@ -1,4 +1,5 @@
-﻿using System;
+﻿
+using System;
 using System.IO;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Json;
@@ -14,8 +15,9 @@ namespace SocketProAdapter.ClientSide
     }
 
     [DataContract]
-    public class CPoolConfig
+    public sealed class CPoolConfig
     {
+        internal CPoolConfig() { }
         private uint m_SvsId;
         [DataMember(IsRequired = false)]
         public uint SvsId
@@ -94,7 +96,7 @@ namespace SocketProAdapter.ClientSide
 
 
         private uint m_ConnTimeout = CClientSocket.DEFAULT_CONN_TIMEOUT;
-        
+
         /// <summary>
         /// Socket connecting timeout in milliseconds
         /// </summary>
@@ -110,12 +112,12 @@ namespace SocketProAdapter.ClientSide
                 if (value == 0)
                     m_ConnTimeout = CClientSocket.DEFAULT_CONN_TIMEOUT;
                 else
-                 m_ConnTimeout = value;
+                    m_ConnTimeout = value;
             }
         }
 
         private uint m_RecvTimeout = CClientSocket.DEFAULT_RECV_TIMEOUT;
-        
+
         /// <summary>
         /// Client request timeout in milliseconds
         /// </summary>
@@ -178,7 +180,7 @@ namespace SocketProAdapter.ClientSide
             get
             {
                 if (m_Slaves == null) return null;
-                return new Dictionary<string,CPoolConfig>(m_Slaves); 
+                return new Dictionary<string, CPoolConfig>(m_Slaves);
             }
             internal set { m_Slaves = value; }
         }
@@ -289,8 +291,9 @@ namespace SocketProAdapter.ClientSide
     }
 
     [DataContract]
-    public class CSpConfig
+    public sealed class CSpConfig
     {
+        internal CSpConfig() { }
         internal Dictionary<string, CConnectionContext> m_Hosts = new Dictionary<string, CConnectionContext>();
         [DataMember(IsRequired = true)]
         public Dictionary<string, CConnectionContext> Hosts
@@ -335,9 +338,10 @@ namespace SocketProAdapter.ClientSide
         [DataMember(IsRequired = false)]
         public List<string> KeysAllowed
         {
-            get {
+            get
+            {
                 if (m_KeysAllowed == null) return null;
-                return new List<string>(m_KeysAllowed); 
+                return new List<string>(m_KeysAllowed);
             }
             internal set { m_KeysAllowed = value; }
         }
@@ -366,7 +370,7 @@ namespace SocketProAdapter.ClientSide
 
         internal List<string> m_vPK = null;
 
-        public void CheckErrors()
+        internal void CheckErrors()
         {
             if (QueuePassword != null)
             {
@@ -458,7 +462,7 @@ namespace SocketProAdapter
         private static object m_cs = new object();
         private static ClientSide.CSpConfig m_sc = null;
         private static bool m_bMiddle = false;
-        
+
         public static ClientSide.CSpConfig GetSpManager(bool midTier = false, string jsConfig = null)
         {
             lock (m_cs)
@@ -482,7 +486,7 @@ namespace SocketProAdapter
                     m_sc = sc;
                     m_bMiddle = midTier;
                     return m_sc;
-                } 
+                }
             }
         }
 
@@ -609,7 +613,7 @@ namespace SocketProAdapter
                             pool = new CMasterPool<ClientSide.CCachedBaseHandler, CDataSet>(pc.DefaultDb, m_bMiddle, pc.RecvTimeout, pc.AutoConn, pc.ConnTimeout, pc.SvsId);
                             break;
                         default:
-                            pool = new ClientSide.CSocketPool<ClientSide.CAsyncServiceHandler>(pc.AutoConn, pc.RecvTimeout, pc.ConnTimeout, pc.SvsId);
+                            pool = new ClientSide.CSocketPool<ClientSide.CCachedBaseHandler>(pc.AutoConn, pc.RecvTimeout, pc.ConnTimeout, pc.SvsId);
                             break;
                     }
                     break;
