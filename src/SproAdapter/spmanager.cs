@@ -463,7 +463,7 @@ namespace SocketProAdapter
         private static ClientSide.CSpConfig m_sc = null;
         private static bool m_bMiddle = false;
 
-        public static ClientSide.CSpConfig GetSpManager(bool midTier = false, string jsConfig = null)
+        public static ClientSide.CSpConfig SetConfig(bool midTier = false, string jsConfig = null)
         {
             lock (m_cs)
             {
@@ -530,7 +530,7 @@ namespace SocketProAdapter
         {
             if (poolKey == null || poolKey.Length == 0)
                 throw new Exception("Pool key cannot be empty");
-            ClientSide.CSpConfig sc = GetSpManager();
+            ClientSide.CSpConfig sc = SetConfig();
             if (sc.m_vPK.IndexOf(poolKey) == -1)
                 throw new Exception("Pool key cannot be found from configuaration");
             ClientSide.CPoolConfig pc = null;
