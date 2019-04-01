@@ -48,7 +48,6 @@
     <Compile Include="..\..\shared\ss_defines.cs">
       <Link>ss_defines.cs</Link>
     </Compile>
-    <Compile Include="cconfig.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="yourpeerone.cs" />
     <Compile Include="yourserver.cs" />

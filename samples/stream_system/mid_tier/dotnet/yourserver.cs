@@ -3,17 +3,14 @@ using SocketProAdapter;
 using SocketProAdapter.ServerSide;
 using SocketProAdapter.ClientSide;
 using SocketProAdapter.UDB;
-
-#if USE_SQLITE
-using CMaster = SocketProAdapter.CSqlMasterPool<SocketProAdapter.ClientSide.CSqlite, SocketProAdapter.CDataSet>;
-#else
-using CMaster = SocketProAdapter.CSqlMasterPool<SocketProAdapter.ClientSide.CMysql, SocketProAdapter.CDataSet>;
-#endif
+using System.Collections.Generic;
 
 class CYourServer : CSocketProServer
 {
-    public static CMaster Master;
-    public static CMaster.CSlavePool Slave;
+    public static CSqlMasterPool<CMysql, CDataSet> Master;
+    public static CSqlMasterPool<CMysql, CDataSet>.CSlavePool Slave;
+    public static CDataSet Cache;
+    public static List<string> FrontCachedTables = new List<string>();
 
     [ServiceAttr(ss.Consts.sidStreamSystem)]
     private CSocketProService<CYourPeerOne> m_SSPeer = new CSocketProService<CYourPeerOne>();
@@ -21,7 +18,9 @@ class CYourServer : CSocketProServer
     public CYourServer(int param = 1)
         : base(param)
     {
-
+        FrontCachedTables.Add("sakila.actor");
+        FrontCachedTables.Add("sakila.language");
+        FrontCachedTables.Add("sakila.country");
     }
 
     protected override bool OnSettingServer()
@@ -46,26 +45,12 @@ class CYourServer : CSocketProServer
 
     public static void CreateTestDB()
     {
-#if USE_SQLITE
         var handler = Master.Seek();
         if (handler != null)
         {
-            bool ok = handler.Execute("ATTACH DATABASE 'mysample.db' as mysample", null);
-            string sql = "CREATE TABLE mysample.COMPANY(ID INT8 PRIMARY KEY NOT NULL,Name CHAR(64)NOT NULL);CREATE TABLE mysample.EMPLOYEE(EMPLOYEEID INTEGER PRIMARY KEY AUTOINCREMENT,CompanyId INT8 not null,Name NCHAR(64)NOT NULL,JoinDate DATETIME not null default(datetime('now')),FOREIGN KEY(CompanyId)REFERENCES COMPANY(id))";
-            ok = handler.Execute(sql);
-            sql = "INSERT INTO mysample.COMPANY(ID,Name)VALUES(1,'Google Inc.'),(2,'Microsoft Inc.'),(3,'Amazon Inc.')";
-            ok = handler.Execute(sql);
-        }
-#else
-        string sql = "CREATE DATABASE IF NOT EXISTS mysample character set utf8 collate utf8_general_ci;USE mysample;CREATE TABLE IF NOT EXISTS COMPANY(ID BIGINT PRIMARY KEY NOT NULL,Name CHAR(64)NOT NULL);CREATE TABLE IF NOT EXISTS EMPLOYEE(EMPLOYEEID BIGINT PRIMARY KEY AUTO_INCREMENT,CompanyId BIGINT NOT NULL,Name NCHAR(64)NOT NULL,JoinDate DATETIME(6)DEFAULT NULL,FOREIGN KEY(CompanyId)REFERENCES COMPANY(id));USE sakila";
-        var handler = Master.Seek();
-        if (handler != null)
-        {
+            string sql = "CREATE DATABASE IF NOT EXISTS mysample character set utf8 collate utf8_general_ci;USE mysample;CREATE TABLE IF NOT EXISTS COMPANY(ID BIGINT PRIMARY KEY NOT NULL,Name CHAR(64)NOT NULL);CREATE TABLE IF NOT EXISTS EMPLOYEE(EMPLOYEEID BIGINT PRIMARY KEY AUTO_INCREMENT,CompanyId BIGINT NOT NULL,Name NCHAR(64)NOT NULL,JoinDate DATETIME(6)DEFAULT NULL,FOREIGN KEY(CompanyId)REFERENCES COMPANY(id));USE sakila;INSERT INTO mysample.COMPANY(ID,Name)VALUES(1,'Google Inc.'),(2,'Microsoft Inc.'),(3,'Amazon Inc.')";
             bool ok = handler.Execute(sql);
-            sql = "INSERT INTO mysample.COMPANY(ID,Name)VALUES(1,'Google Inc.'),(2,'Microsoft Inc.'),(3,'Amazon Inc.')";
-            ok = handler.Execute(sql);
         }
-#endif
     }
 
     public override bool Run(uint port, uint maxBacklog, bool v6Supported)
@@ -76,48 +61,5 @@ class CYourServer : CSocketProServer
             m_SSPeer.ReturnRandom = true; //results could be returned randomly and not in order
         }
         return ok;
-    }
-
-    public static void StartMySQLPools()
-    {
-        CConfig config = CConfig.GetConfig();
-
-        CYourServer.Master = new CMaster(config.m_master_default_db, true);
-
-        //These case-sensitivities depends on your DB running platform and sensitivity settings.
-        //All of them are false or case-insensitive by default
-        Master.Cache.FieldNameCaseSensitive = false;
-        Master.Cache.TableNameCaseSensitive = false;
-        Master.Cache.DBNameCaseSensitive = false;
-
-        //start master pool for cache and update accessing
-        bool ok = CYourServer.Master.StartSocketPool(config.m_ccMaster, config.m_nMasterSessions, 1); //one thread enough
-        if (config.m_master_queue_name != null && config.m_master_queue_name.Length > 0)
-            CYourServer.Master.QueueName = config.m_master_queue_name;
-
-        //compute threads and sockets_per_thread
-        uint threads = config.m_slave_threads;
-        uint sockets_per_thread = (uint)config.m_vccSlave.Count * config.m_sessions_per_host;
-
-        CYourServer.Slave = new CMaster.CSlavePool(config.m_slave_default_db);
-        if (config.m_slave_queue_name != null && config.m_slave_queue_name.Length > 0)
-            CYourServer.Slave.QueueName = config.m_slave_queue_name;
-
-        CConnectionContext[,] ppCC = new CConnectionContext[threads, sockets_per_thread];
-        for (uint i = 0; i < threads; ++i)
-        {
-            for (uint j = 0; j < (uint)config.m_vccSlave.Count; ++j)
-            {
-                for (uint n = 0; n < config.m_sessions_per_host; ++n)
-                {
-                    ppCC[i, j * config.m_sessions_per_host + n] = config.m_vccSlave[(int)j];
-                }
-            }
-        }
-        //start slave pool for query accessing
-        ok = CYourServer.Slave.StartSocketPool(ppCC);
-
-        //wait until all data of cached tables are brought from backend database server to this middle server application cache
-        ok = CYourServer.Master.AsyncHandlers[0].WaitAll();
     }
 }

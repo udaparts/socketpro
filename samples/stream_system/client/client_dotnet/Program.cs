@@ -18,7 +18,7 @@ class Program
         CConnectionContext cc = new CConnectionContext(host, 20911, "SomeUserId", "A_Password_For_SomeUserId", tagEncryptionMethod.TLSv1);
 
         //CA file is located at the directory ../socketpro/bin
-        CClientSocket.SSL.SetVerifyLocation("ca.cert.pem");
+        bool ok = CClientSocket.SSL.SetVerifyLocation("ca.cert.pem");
 
         using (CMaster master = new CMaster(""))
         {
@@ -29,7 +29,7 @@ class Program
                 string res = cert.Verify(out ret);
                 return (ret == 0);
             };
-            bool ok = master.StartSocketPool(cc, 1, 1);
+            ok = master.StartSocketPool(cc, 1, 1);
             if (!ok)
             {
                 Console.WriteLine("Failed in connecting to remote middle tier server, and press any key to close the application ......");

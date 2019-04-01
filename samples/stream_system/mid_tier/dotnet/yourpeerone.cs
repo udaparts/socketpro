@@ -88,7 +88,7 @@ class CYourPeerOne : CCacheBasePeer
                 ret = SendResultIndex(reqIndex, ss.Consts.idGetRentalDateTimes, myDates, res, errMsg);
         }, (h, vData) =>
         {
-            myDates.rental_id = (long)vData[0];
+            myDates.rental_id = long.Parse(vData[0].ToString());
             myDates.Rental = (DateTime)vData[1];
             myDates.Return = (DateTime)vData[2];
             myDates.LastUpdate = (DateTime)vData[3];
@@ -297,8 +297,7 @@ class CYourPeerOne : CCacheBasePeer
         string errMsg = "";
         do
         {
-            CConfig config = CConfig.GetConfig();
-            if (config.m_vFrontCachedTable.Count == 0 || (flags & DB_CONSTS.ENABLE_TABLE_UPDATE_MESSAGES) != DB_CONSTS.ENABLE_TABLE_UPDATE_MESSAGES)
+            if (CYourServer.FrontCachedTables.Count == 0 || (flags & DB_CONSTS.ENABLE_TABLE_UPDATE_MESSAGES) != DB_CONSTS.ENABLE_TABLE_UPDATE_MESSAGES)
                 break;
             if ((flags & DB_CONSTS.ENABLE_TABLE_UPDATE_MESSAGES) == DB_CONSTS.ENABLE_TABLE_UPDATE_MESSAGES)
             {
@@ -306,7 +305,7 @@ class CYourPeerOne : CCacheBasePeer
                     errMsg = "Failed in subscribing for table events"; //warning message
             }
             string sql = "";
-            List<string> v = config.m_vFrontCachedTable;
+            List<string> v = CYourServer.FrontCachedTables;
             foreach (string s in v)
             {
                 if (sql.Length != 0)
