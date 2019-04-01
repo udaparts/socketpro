@@ -5,7 +5,7 @@ namespace web_two {
         public static CDataSet Cache = null;
         public static CSqlMasterPool<CMysql, CDataSet> Master = null;
         public static CSqlMasterPool<CMysql, CDataSet>.CSlavePool Slave = null;
-        public static CSqlMasterPool<CMysql, CDataSet>.CSlavePool Master_No_Backup = null;
+        //public static CSqlMasterPool<CMysql, CDataSet>.CSlavePool Master_No_Backup = null;
         protected void Application_Start(object sender, System.EventArgs e) {
             //CSpConfig config = SpManager.SetConfig(false, @"D:\mydev\socketpro\samples\web_two\web_two\sp_config.json");
             Master = SpManager.GetPool("masterdb") as CSqlMasterPool<CMysql, CDataSet>;
@@ -20,7 +20,7 @@ namespace web_two {
             }
             Cache = Master.Cache;
             Slave = SpManager.GetPool("slavedb0") as CSqlMasterPool<CMysql, CDataSet>.CSlavePool;
-            Master_No_Backup = SpManager.GetPool("db_no_backup") as CSqlMasterPool<CMysql, CDataSet>.CSlavePool;
+            //Master_No_Backup = SpManager.GetPool("db_no_backup") as CSqlMasterPool<CMysql, CDataSet>.CSlavePool;
         }
     }
 }
