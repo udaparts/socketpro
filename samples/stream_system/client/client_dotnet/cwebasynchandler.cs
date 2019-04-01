@@ -1,20 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using SocketProAdapter;
-using SocketProAdapter.ClientSide;
+﻿using SocketProAdapter.ClientSide;
 
-class CWebAsyncHandler : CCachedBaseHandler
-{
+class CWebAsyncHandler : CCachedBaseHandler {
     public CWebAsyncHandler()
-        : base(ss.Consts.sidStreamSystem)
-    {
+        : base(ss.Consts.sidStreamSystem) {
     }
 
     public delegate void DMaxMinAvg(ss.CMaxMinAvg mma, int res, string errMsg);
-    public bool QueryPaymentMaxMinAvgs(string filter, DMaxMinAvg mma, DDiscarded discarded = null)
-    {
-        DAsyncResultHandler arh = (ar) =>
-        {
+    public bool QueryPaymentMaxMinAvgs(string filter, DMaxMinAvg mma, DDiscarded discarded = null) {
+        DAsyncResultHandler arh = (ar) => {
             int res;
             string errMsg;
             ss.CMaxMinAvg m_m_a;
@@ -26,10 +19,8 @@ class CWebAsyncHandler : CCachedBaseHandler
     }
 
     public delegate void DConnectedSessions(uint m_connection, uint s_connection);
-    public bool GetMasterSlaveConnectedSessions(DConnectedSessions cs, DDiscarded discarded = null)
-    {
-        DAsyncResultHandler arh = (ar) =>
-        {
+    public bool GetMasterSlaveConnectedSessions(DConnectedSessions cs, DDiscarded discarded = null) {
+        DAsyncResultHandler arh = (ar) => {
             uint master_connections, slave_conenctions;
             ar.Load(out master_connections).Load(out slave_conenctions);
             if (cs != null)
@@ -39,10 +30,8 @@ class CWebAsyncHandler : CCachedBaseHandler
     }
 
     public delegate void DUploadEmployees(int res, string errMsg, ss.CInt64Array vId);
-    public bool UploadEmployees(SocketProAdapter.UDB.CDBVariantArray vData, DUploadEmployees res, DDiscarded discarded = null)
-    {
-        DAsyncResultHandler arh = (ar) =>
-        {
+    public bool UploadEmployees(SocketProAdapter.UDB.CDBVariantArray vData, DUploadEmployees res, DDiscarded discarded = null) {
+        DAsyncResultHandler arh = (ar) => {
             int errCode;
             string errMsg;
             ss.CInt64Array vId;
@@ -54,10 +43,8 @@ class CWebAsyncHandler : CCachedBaseHandler
     }
 
     public delegate void DRentalDateTimes(ss.CRentalDateTimes dates, int res, string errMsg);
-    public bool GetRentalDateTimes(long rentalId, DRentalDateTimes rdt, DDiscarded discarded = null)
-    {
-        DAsyncResultHandler arh = (ar) =>
-        {
+    public bool GetRentalDateTimes(long rentalId, DRentalDateTimes rdt, DDiscarded discarded = null) {
+        DAsyncResultHandler arh = (ar) => {
             int errCode;
             string errMsg;
             ss.CRentalDateTimes dates;
