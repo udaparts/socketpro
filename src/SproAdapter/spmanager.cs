@@ -252,6 +252,17 @@ namespace SocketProAdapter.ClientSide {
     public sealed class CSpConfig {
         internal CSpConfig() { }
 
+        public string Config {
+            get {
+                DataContractJsonSerializer ser = new DataContractJsonSerializer(typeof(CSpConfig));
+                MemoryStream ms = new MemoryStream();
+                ser.WriteObject(ms, this);
+                byte[] json = ms.ToArray();
+                ms.Close();
+                return System.Text.Encoding.UTF8.GetString(json, 0, json.Length);
+            }
+        }
+
         internal Dictionary<string, CConnectionContext> m_Hosts = new Dictionary<string, CConnectionContext>();
         [DataMember(IsRequired = true)]
         public Dictionary<string, CConnectionContext> Hosts {
@@ -351,7 +362,7 @@ namespace SocketProAdapter.ClientSide {
                 if (cc.Port == 0)
                     throw new Exception("Host " + key + " port number cannot be zero");
                 if (IsRepeated(m_Hosts[key]))
-                    throw new Exception("Host " + key + " duplicated");
+                    throw new Exception("Connection context for host " + key + " duplicated");
             }
             if (m_Pools.Count == 0) {
                 throw new Exception("Pool map cannot be empty");

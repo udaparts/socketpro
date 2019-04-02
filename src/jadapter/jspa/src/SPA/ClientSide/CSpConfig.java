@@ -1,15 +1,17 @@
 package SPA.ClientSide;
 
+import SPA.CUQueue;
+import static SPA.ClientSide.CPoolConfig.m_vH;
 import SPA.tagEncryptionMethod;
+import SPA.tagOperationSystem;
+import java.math.BigDecimal;
 import java.util.HashMap;
 import javax.json.*;
 
 public final class CSpConfig {
 
-    private String m_WorkingDir;
-
     public String getWorkingDir() {
-        return m_WorkingDir;
+        return CClientSocket.QueueConfigure.getWorkDirectory();
     }
 
     private String m_CertStore;
@@ -38,14 +40,76 @@ public final class CSpConfig {
 
     private java.util.ArrayList<String> m_KeysAllowed = null;
 
-    void Normalize() throws Exception {
+    public String getConfig() {
+        JsonObjectBuilder job = Json.createObjectBuilder();
+        job.add("WorkingDir", getWorkingDir());
+        if (m_CertStore != null && m_CertStore.length() > 0) {
+            job.add("CertStore", m_CertStore);
+        } else if (CUQueue.DEFAULT_OS == tagOperationSystem.osWin) {
+            job.add("CertStore", "ROOT");
+        }
+        job.add("QueuePassword", m_QueuePassword);
+        if (m_KeysAllowed != null) {
+            JsonArrayBuilder jab = Json.createArrayBuilder();
+            int count = m_KeysAllowed.size();
+            for (int n = 0; n < count; ++n) {
+                jab.add(m_KeysAllowed.get(n));
+            }
+            job.add("KeysAllowed", jab);
+        }
+        JsonObjectBuilder jh = Json.createObjectBuilder();
         java.util.Set<String> set = m_Hosts.keySet();
         for (String key : set) {
+            CConnectionContext c = m_Hosts.get(key);
+            jh.add(key, c.ToJsonObject());
+        }
+        job.add("Hosts", jh.build());
+        JsonObjectBuilder jp = Json.createObjectBuilder();
+        set = m_Pools.keySet();
+        for (String key : set) {
+            CPoolConfig pc = m_Pools.get(key);
+            jp.add(key, pc.ToJsonObject());
+        }
+        job.add("Pools", jp.build());
+        return job.build().toString();
+    }
+
+    private boolean CheckDuplicated(CConnectionContext cc) {
+        int count = 0;
+        java.util.Set<String> set = m_Hosts.keySet();
+        for (String key : set) {
+            CConnectionContext c = m_Hosts.get(key);
+            count += (c.IsSame(cc) ? 1 : 0);
+        }
+        return (count > 1);
+    }
+
+    void Normalize() throws Exception {
+        if (m_Hosts.isEmpty()) {
+            throw new Exception("Host map cannot be empty");
+        }
+        java.util.Set<String> set = m_Hosts.keySet();
+        for (String key : set) {
+            if (key == null || key.length() == 0) {
+                throw new Exception("Host key cannot be empty");
+            }
+            if (m_vH.indexOf(key) == -1) {
+                throw new Exception("Host key " + key + " not found in hosts");
+            }
             CConnectionContext cc = m_Hosts.get(key);
             cc.Normalize();
+            if (CheckDuplicated(cc)) {
+                throw new Exception("Connection context for host " + key + " duplicated");
+            }
+        }
+        if (m_Pools.isEmpty()) {
+            throw new Exception("Pool map cannot be empty");
         }
         set = m_Pools.keySet();
         for (String key : set) {
+            if (key == null || key.length() == 0) {
+                throw new Exception("Pool key cannot be empty");
+            }
             CPoolConfig pc = m_Pools.get(key);
             pc.Normalize();
         }
@@ -53,11 +117,11 @@ public final class CSpConfig {
 
     CSpConfig(JsonObject root) {
         if (root.containsKey("WorkingDir")) {
-            m_WorkingDir = root.getString("WorkingDir");
+            CClientSocket.QueueConfigure.setWorkDirectory(root.getString("WorkingDir"));
         }
         if (root.containsKey("QueuePassword")) {
             String qp = root.getString("QueuePassword");
-            CClientSocket.QueueConfigure.setWorkDirectory(qp);
+            CClientSocket.QueueConfigure.setMessageQueuePassword(qp);
             m_QueuePassword = 1;
         }
         if (root.containsKey("CertStore")) {
@@ -74,6 +138,7 @@ public final class CSpConfig {
         JsonObject joHosts = root.getJsonObject("Hosts");
         java.util.Set<String> set = joHosts.keySet();
         for (String key : set) {
+            CPoolConfig.m_vH.add(key);
             JsonObject conn = joHosts.getJsonObject(key);
             CConnectionContext cc = new CConnectionContext();
             if (conn.containsKey("Host")) {
@@ -114,6 +179,10 @@ public final class CSpConfig {
                     } else {
                         cc.AnyData = jn.doubleValue();
                     }
+                } else if (vt == JsonValue.ValueType.ARRAY) {
+                    cc.AnyData = conn.getJsonArray("AnyData");
+                } else {
+                    cc.AnyData = conn.getJsonObject("AnyData");
                 }
             }
             m_Hosts.put(key, cc);

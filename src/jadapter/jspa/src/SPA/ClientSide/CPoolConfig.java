@@ -2,10 +2,13 @@ package SPA.ClientSide;
 
 import SPA.CUQueue;
 import SPA.tagOperationSystem;
+import java.math.BigDecimal;
 import java.util.HashMap;
 import javax.json.*;
 
 public final class CPoolConfig {
+
+    static java.util.ArrayList<String> m_vH = new java.util.ArrayList<>();
 
     private HashMap<String, CPoolConfig> m_Slaves = null;
 
@@ -61,6 +64,39 @@ public final class CPoolConfig {
         return m_ConnTimeout;
     }
 
+    JsonObject ToJsonObject() {
+        JsonObjectBuilder job = Json.createObjectBuilder();
+        job.add("SvsId", m_SvsId);
+        JsonArrayBuilder jab = Json.createArrayBuilder();
+        int size = m_Hosts.size();
+        for (int n = 0; n < size; ++n) {
+            jab.add(m_Hosts.get(n));
+        }
+        job.add("Hosts", jab.build());
+        if (m_Queue != null) {
+            job.add("Queue", m_Queue);
+        }
+        if (m_DefaultDb != null) {
+            job.add("DefaultDb", m_DefaultDb);
+        }
+        job.add("PoolType", m_PoolType.getValue());
+        job.add("ConnTimeout", m_ConnTimeout);
+        job.add("RecvTimeout", m_RecvTimeout);
+        job.add("AutoConn", getAutoConn());
+        job.add("AutoMerge", m_AutoMerge);
+        job.add("Threads", m_Threads);
+        if (m_Slaves != null) {
+            JsonObjectBuilder js = Json.createObjectBuilder();
+            java.util.Set<String> set = m_Slaves.keySet();
+            for (String skey : set) {
+                CPoolConfig pool = m_Slaves.get(skey);
+                js.add(skey, pool.ToJsonObject());
+            }
+            job.add("Slaves", js.build());
+        }
+        return job.build();
+    }
+
     private int m_RecvTimeout = CClientSocket.DEFAULT_RECV_TIMEOUT;
 
     /**
@@ -83,8 +119,8 @@ public final class CPoolConfig {
         return m_AutoMerge;
     }
 
-    private String Master = null;
-    private Object Pool = null;
+    String Master = null;
+    Object Pool = null;
 
     private int m_Threads = 1;
 
@@ -129,7 +165,8 @@ public final class CPoolConfig {
         if (pc.containsKey("Hosts")) {
             JsonArray ja = pc.getJsonArray("Hosts");
             for (int n = 0; n < ja.size(); ++n) {
-                m_Hosts.add(ja.getString(n));
+                String k = ja.getString(n);
+                m_Hosts.add(k);
             }
         }
         if (pc.containsKey("Slaves")) {
@@ -147,10 +184,36 @@ public final class CPoolConfig {
     }
 
     private void NormalizeSlaves(String defalutDb) throws Exception {
-
+        java.util.Set<String> set = m_Slaves.keySet();
+        for (String skey : set) {
+            if (skey == null || skey.length() == 0) {
+                throw new Exception("Slave pool key cannot be empty");
+            }
+            if (m_vH.indexOf(skey) != -1) {
+                throw new Exception("Slave pool key are duplicated");
+            }
+            if (m_DefaultDb == null || m_DefaultDb.length() == 0) {
+                m_DefaultDb = defalutDb;
+            }
+            CPoolConfig pool = m_Slaves.get(skey);
+            if (pool.m_Slaves != null) {
+                throw new Exception("A slave pool cannot contain any new slave pool");
+            }
+            pool.Normalize();
+            m_vH.add(skey);
+        }
     }
 
     void Normalize() throws Exception {
+        if (m_Hosts.isEmpty()) {
+            throw new Exception("Pool host array is empty");
+        }
+        for (int n = 0; n < m_Hosts.size(); ++n) {
+            String s = m_Hosts.get(n);
+            if (m_vH.indexOf(s) == -1) {
+                throw new Exception("Host " + s + " not found in Hosts");
+            }
+        }
         switch (m_SvsId) {
             case SPA.BaseServiceID.sidHTTP:
                 throw new Exception("Client side does not support HTTP/websocket service");

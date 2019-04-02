@@ -66,6 +66,7 @@ public final class SpManager {
     public static void main(String[] args) {
         try {
             CSpConfig jc = SetConfig(false, "c:\\cyetest\\socketpro\\src\\njadapter\\sp_config.json");
+            String s = jc.getConfig();
             jc = null;
         } catch (Exception err) {
             System.out.println(err.getLocalizedMessage());
