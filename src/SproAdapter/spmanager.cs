@@ -381,12 +381,10 @@ namespace SocketProAdapter.ClientSide {
             }
         }
     }
-}
 
-namespace SocketProAdapter {
     public static class SpManager {
         private static object m_cs = new object();
-        private static ClientSide.CSpConfig m_sc = null;
+        private static CSpConfig m_sc = null;
         private static bool m_Middle = false;
 
         public static bool MidTier {
@@ -394,7 +392,7 @@ namespace SocketProAdapter {
             internal set { m_Middle = value; }
         }
 
-        public static ClientSide.CSpConfig SetConfig(bool midTier = false, string jsConfig = null) {
+        public static CSpConfig SetConfig(bool midTier = false, string jsConfig = null) {
             lock (m_cs) {
                 if (m_sc != null)
                     return m_sc;

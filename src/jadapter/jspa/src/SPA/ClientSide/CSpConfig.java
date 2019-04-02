@@ -24,13 +24,13 @@ public final class CSpConfig {
         return m_QueuePassword;
     }
 
-    private HashMap<String, CConnectionContext> m_Hosts = new HashMap<>();
+    HashMap<String, CConnectionContext> m_Hosts = new HashMap<>();
 
     public HashMap<String, CConnectionContext> getHosts() {
         return new HashMap<>(m_Hosts);
     }
 
-    private HashMap<String, CPoolConfig> m_Pools = new HashMap<>();
+    HashMap<String, CPoolConfig> m_Pools = new HashMap<>();
 
     public HashMap<String, CPoolConfig> getPools() {
         return new HashMap<>(m_Pools);
@@ -38,7 +38,20 @@ public final class CSpConfig {
 
     private java.util.ArrayList<String> m_KeysAllowed = null;
 
-    public CSpConfig(JsonObject root) {
+    void Normalize() throws Exception {
+        java.util.Set<String> set = m_Hosts.keySet();
+        for (String key : set) {
+            CConnectionContext cc = m_Hosts.get(key);
+            cc.Normalize();
+        }
+        set = m_Pools.keySet();
+        for (String key : set) {
+            CPoolConfig pc = m_Pools.get(key);
+            pc.Normalize();
+        }
+    }
+
+    CSpConfig(JsonObject root) {
         if (root.containsKey("WorkingDir")) {
             m_WorkingDir = root.getString("WorkingDir");
         }
@@ -59,7 +72,8 @@ public final class CSpConfig {
             }
         }
         JsonObject joHosts = root.getJsonObject("Hosts");
-        joHosts.keySet().stream().forEach((key) -> {
+        java.util.Set<String> set = joHosts.keySet();
+        for (String key : set) {
             JsonObject conn = joHosts.getJsonObject(key);
             CConnectionContext cc = new CConnectionContext();
             if (conn.containsKey("Host")) {
@@ -103,8 +117,12 @@ public final class CSpConfig {
                 }
             }
             m_Hosts.put(key, cc);
-        });
-
+        }
         JsonObject joPools = root.getJsonObject("Pools");
+        set = joPools.keySet();
+        for (String key : set) {
+            CPoolConfig pc = new CPoolConfig(joPools.getJsonObject(key), key);
+            m_Pools.put(key, pc);
+        }
     }
 }

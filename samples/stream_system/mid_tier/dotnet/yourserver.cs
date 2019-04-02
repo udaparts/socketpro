@@ -9,7 +9,6 @@ class CYourServer : CSocketProServer
 {
     public static CSqlMasterPool<CMysql, CDataSet> Master;
     public static CSqlMasterPool<CMysql, CDataSet>.CSlavePool Slave;
-    public static CDataSet Cache;
     public static List<string> FrontCachedTables = new List<string>();
 
     [ServiceAttr(ss.Consts.sidStreamSystem)]

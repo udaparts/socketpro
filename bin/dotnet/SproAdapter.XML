@@ -1243,6 +1243,16 @@
             This feature is useful for fault auto recovery at client side. However, SocketPro client core may disable the auto merging if it detects that there is no new remote SocketPro server available
             </remarks>
         </member>
+        <member name="P:SocketProAdapter.ClientSide.SpManager.Pools">
+            <summary>
+            The number of running socket pools
+            </summary>
+        </member>
+        <member name="P:SocketProAdapter.ClientSide.SpManager.Version">
+            <summary>
+            Client core library version string
+            </summary>
+        </member>
         <member name="P:SocketProAdapter.ClientSide.CStreamHelper.DownloadingStreamSize">
             <summary>
             Remote stream size in bytes. It will be -1 if not available.
@@ -1946,16 +1956,6 @@
         <member name="P:SocketProAdapter.CAdoSerializationHelper.CurrentDataSet">
             <summary>
             The DataSet that is being fetched or has been just transferred.
-            </summary>
-        </member>
-        <member name="P:SocketProAdapter.SpManager.Pools">
-            <summary>
-            The number of running socket pools
-            </summary>
-        </member>
-        <member name="P:SocketProAdapter.SpManager.Version">
-            <summary>
-            Client core library version string
             </summary>
         </member>
         <member name="M:SocketProAdapter.CDataSet.AddEmptyRowset(SocketProAdapter.UDB.CDBColumnInfoArray)">

@@ -5,18 +5,15 @@ using SocketProAdapter.ClientSide;
 using System.Data;
 using System.Collections.Generic;
 
-class Program
-{
-    static void Main(string[] args)
-    {
+class Program {
+    static void Main(string[] args) {
         CSpConfig config = SpManager.SetConfig(false, @"c:\cyetest\socketpro\samples\stream_system\sp_config.json");
         CYourServer.Master = SpManager.GetPool("masterdb") as CSqlMasterPool<CMysql, CDataSet>;
-        CYourServer.Cache = CYourServer.Master.Cache;
         CYourServer.Slave = SpManager.GetPool("slavedb0") as CSqlMasterPool<CMysql, CDataSet>.CSlavePool;
-
+        CDataSet Cache = CYourServer.Master.Cache;
         using (CYourServer server = new CYourServer(2)) {
             //Cache is ready for use now
-            List<KeyValuePair<string, string>> v0 = CYourServer.Cache.DBTablePair;
+            List<KeyValuePair<string, string>> v0 = Cache.DBTablePair;
             if (v0.Count == 0)
                 Console.WriteLine("There is no table cached");
             else {
@@ -24,12 +21,12 @@ class Program
                 foreach (KeyValuePair<string, string> p in v0) {
                     Console.WriteLine("DB name = {0}, table name = {1}", p.Key, p.Value);
                 }
-                DataColumn[] keys = CYourServer.Cache.FindKeys(v0[0].Key, v0[0].Value);
+                DataColumn[] keys = Cache.FindKeys(v0[0].Key, v0[0].Value);
                 foreach (DataColumn dc in keys) {
                     Console.WriteLine("Key ordinal = {0}, key column name = {1}", dc.Ordinal, dc.ColumnName);
                 }
             }
-            DataTable tbl = CYourServer.Cache.Find("sakila", "actor", "actor_id >= 1 and actor_id <= 10");
+            DataTable tbl = Cache.Find("sakila", "actor", "actor_id >= 1 and actor_id <= 10");
             CYourServer.CreateTestDB();
             Console.WriteLine();
 

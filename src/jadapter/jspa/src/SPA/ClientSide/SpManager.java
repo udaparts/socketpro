@@ -1,7 +1,6 @@
-package SPA;
+package SPA.ClientSide;
 
 import javax.json.*;
-import SPA.ClientSide.*;
 import java.io.FileInputStream;
 
 public final class SpManager {
@@ -34,6 +33,7 @@ public final class SpManager {
             jcFile = "sp_config.json";
         }
         CSpConfig sc = new CSpConfig(Json.createReader(new FileInputStream(jcFile)).readObject());
+        sc.Normalize();
         synchronized (m_cs) {
             m_sc = sc;
             m_Middle = midTier;
@@ -65,7 +65,7 @@ public final class SpManager {
 
     public static void main(String[] args) {
         try {
-            CSpConfig jc = SetConfig(false, "d:\\cyetest\\socketpro\\src\\njadapter\\sp_config.json");
+            CSpConfig jc = SetConfig(false, "c:\\cyetest\\socketpro\\src\\njadapter\\sp_config.json");
             jc = null;
         } catch (Exception err) {
             System.out.println(err.getLocalizedMessage());

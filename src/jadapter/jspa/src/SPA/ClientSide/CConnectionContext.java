@@ -40,15 +40,24 @@ public class CConnectionContext {
         V6 = v6;
     }
 
-    void Nomalize() throws Exception {
+    void Normalize() throws Exception {
         if (Host == null) {
             throw new Exception("Host string cannot be null");
         }
-        Host = Host.trim().toLowerCase();
-        if (Host.length() == 0)
+        Host = Host.trim();
+        if (Host.length() == 0) {
             throw new Exception("Host string cannot be empty");
-        if (Port <= 0)
+        }
+        if (Port <= 0) {
             throw new Exception("Port number must be a positive number");
+        }
+    }
+
+    boolean IsSame(CConnectionContext cc) {
+        if (cc == null) {
+            return false;
+        }
+        return (Host.equalsIgnoreCase(cc.Host) && Port == cc.Port);
     }
 
     public String Host;

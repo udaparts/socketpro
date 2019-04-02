@@ -2,10 +2,10 @@
 using SocketProAdapter.ClientSide;
 namespace web_two {
     public class Global : System.Web.HttpApplication {
-        public static CDataSet Cache = null;
-        public static CSqlMasterPool<CMysql, CDataSet> Master = null;
-        public static CSqlMasterPool<CMysql, CDataSet>.CSlavePool Slave = null;
-        //public static CSqlMasterPool<CMysql, CDataSet>.CSlavePool Master_No_Backup = null;
+        public static CDataSet Cache;
+        public static CSqlMasterPool<CMysql, CDataSet> Master;
+        public static CSqlMasterPool<CMysql, CDataSet>.CSlavePool Slave;
+        //public static CSqlMasterPool<CMysql, CDataSet>.CSlavePool Master_No_Backup;
         protected void Application_Start(object sender, System.EventArgs e) {
             //CSpConfig config = SpManager.SetConfig(false, @"D:\mydev\socketpro\samples\web_two\web_two\sp_config.json");
             Master = SpManager.GetPool("masterdb") as CSqlMasterPool<CMysql, CDataSet>;
