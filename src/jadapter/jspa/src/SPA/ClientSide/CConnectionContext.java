@@ -40,6 +40,17 @@ public class CConnectionContext {
         V6 = v6;
     }
 
+    void Nomalize() throws Exception {
+        if (Host == null) {
+            throw new Exception("Host string cannot be null");
+        }
+        Host = Host.trim().toLowerCase();
+        if (Host.length() == 0)
+            throw new Exception("Host string cannot be empty");
+        if (Port <= 0)
+            throw new Exception("Port number must be a positive number");
+    }
+
     public String Host;
     public int Port;
     public String UserId;

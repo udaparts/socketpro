@@ -16,6 +16,14 @@ public final class SpManager {
         }
     }
 
+    public static CSpConfig SetConfig() throws Exception {
+        return SetConfig(false, null);
+    }
+
+    public static CSpConfig SetConfig(boolean midTier) throws Exception {
+        return SetConfig(midTier, null);
+    }
+
     public static CSpConfig SetConfig(boolean midTier, String jcFile) throws Exception {
         synchronized (m_cs) {
             if (m_sc != null) {
@@ -57,7 +65,7 @@ public final class SpManager {
 
     public static void main(String[] args) {
         try {
-            CSpConfig jc = SetConfig(false, "C:\\cyetest\\socketpro\\src\\njadapter\\sp_config.json");
+            CSpConfig jc = SetConfig(false, "d:\\cyetest\\socketpro\\src\\njadapter\\sp_config.json");
             jc = null;
         } catch (Exception err) {
             System.out.println(err.getLocalizedMessage());
