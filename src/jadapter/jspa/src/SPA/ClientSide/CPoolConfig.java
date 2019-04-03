@@ -2,13 +2,14 @@ package SPA.ClientSide;
 
 import SPA.CUQueue;
 import SPA.tagOperationSystem;
-import java.math.BigDecimal;
 import java.util.HashMap;
 import javax.json.*;
 
 public final class CPoolConfig {
 
     static java.util.ArrayList<String> m_vH = new java.util.ArrayList<>();
+    static java.util.ArrayList<String> m_vP = new java.util.ArrayList<>();
+    static HashMap<String, CPoolConfig> m_mapPools = new HashMap<>();
 
     private HashMap<String, CPoolConfig> m_Slaves = null;
 
@@ -28,7 +29,7 @@ public final class CPoolConfig {
     private java.util.ArrayList<String> m_Hosts = new java.util.ArrayList<>();
 
     public java.util.ArrayList<String> getHosts() {
-        return new java.util.ArrayList<>(m_Hosts);
+        return m_Hosts;
     }
 
     private String m_Queue = null;
@@ -189,7 +190,7 @@ public final class CPoolConfig {
             if (skey == null || skey.length() == 0) {
                 throw new Exception("Slave pool key cannot be empty");
             }
-            if (m_vH.indexOf(skey) != -1) {
+            if (m_vP.indexOf(skey) != -1) {
                 throw new Exception("Slave pool key are duplicated");
             }
             if (m_DefaultDb == null || m_DefaultDb.length() == 0) {
@@ -200,7 +201,8 @@ public final class CPoolConfig {
                 throw new Exception("A slave pool cannot contain any new slave pool");
             }
             pool.Normalize();
-            m_vH.add(skey);
+            m_vP.add(skey);
+            CPoolConfig.m_mapPools.put(skey, pool);
         }
     }
 

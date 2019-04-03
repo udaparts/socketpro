@@ -1,10 +1,8 @@
 package SPA.ClientSide;
 
 import SPA.CUQueue;
-import static SPA.ClientSide.CPoolConfig.m_vH;
 import SPA.tagEncryptionMethod;
 import SPA.tagOperationSystem;
-import java.math.BigDecimal;
 import java.util.HashMap;
 import javax.json.*;
 
@@ -29,13 +27,13 @@ public final class CSpConfig {
     HashMap<String, CConnectionContext> m_Hosts = new HashMap<>();
 
     public HashMap<String, CConnectionContext> getHosts() {
-        return new HashMap<>(m_Hosts);
+        return m_Hosts;
     }
 
     HashMap<String, CPoolConfig> m_Pools = new HashMap<>();
 
     public HashMap<String, CPoolConfig> getPools() {
-        return new HashMap<>(m_Pools);
+        return m_Pools;
     }
 
     private java.util.ArrayList<String> m_KeysAllowed = null;
@@ -92,9 +90,6 @@ public final class CSpConfig {
         for (String key : set) {
             if (key == null || key.length() == 0) {
                 throw new Exception("Host key cannot be empty");
-            }
-            if (m_vH.indexOf(key) == -1) {
-                throw new Exception("Host key " + key + " not found in hosts");
             }
             CConnectionContext cc = m_Hosts.get(key);
             cc.Normalize();
@@ -192,6 +187,8 @@ public final class CSpConfig {
         for (String key : set) {
             CPoolConfig pc = new CPoolConfig(joPools.getJsonObject(key), key);
             m_Pools.put(key, pc);
+            CPoolConfig.m_vP.add(key);
+            CPoolConfig.m_mapPools.put(key, pc);
         }
     }
 }

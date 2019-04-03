@@ -14,6 +14,18 @@ public class CMasterPool<THandler extends CCachedBaseHandler> extends CMasterSla
 
     public class CSlavePool extends CMasterSlaveBase<THandler> {
 
+        public CSlavePool(String defaultDB, int recvTimeout, boolean autoConn, int connTimeout, int svsId) {
+            super(m_impl, defaultDB, recvTimeout, autoConn, connTimeout, svsId);
+        }
+
+        public CSlavePool(String defaultDB, int recvTimeout, boolean autoConn, int connTimeout) {
+            super(m_impl, defaultDB, recvTimeout, autoConn, connTimeout);
+        }
+
+        public CSlavePool(String defaultDB, int recvTimeout, boolean autoConn) {
+            super(m_impl, defaultDB, recvTimeout, autoConn);
+        }
+
         public CSlavePool(String defaultDB, int recvTimeout) {
             super(m_impl, defaultDB, recvTimeout);
         }
@@ -25,6 +37,24 @@ public class CMasterPool<THandler extends CCachedBaseHandler> extends CMasterSla
 
     public CDataSet getCache() {
         return Cache;
+    }
+
+    public CMasterPool(Class<THandler> impl, String defaultDB, boolean midTier, int recvTimeout, boolean autoConn, int connTimeout, int svsId) {
+        super(impl, defaultDB, recvTimeout, autoConn, connTimeout, svsId);
+        m_bMidTier = midTier;
+        m_impl = impl;
+    }
+
+    public CMasterPool(Class<THandler> impl, String defaultDB, boolean midTier, int recvTimeout, boolean autoConn, int connTimeout) {
+        super(impl, defaultDB, recvTimeout, autoConn, connTimeout);
+        m_bMidTier = midTier;
+        m_impl = impl;
+    }
+
+    public CMasterPool(Class<THandler> impl, String defaultDB, boolean midTier, int recvTimeout, boolean autoConn) {
+        super(impl, defaultDB, recvTimeout, autoConn);
+        m_bMidTier = midTier;
+        m_impl = impl;
     }
 
     public CMasterPool(Class<THandler> impl, String defaultDB, boolean midTier, int recvTimeout) {
