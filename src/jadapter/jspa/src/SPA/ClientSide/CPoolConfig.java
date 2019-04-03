@@ -193,14 +193,14 @@ public final class CPoolConfig {
             if (m_vP.indexOf(skey) != -1) {
                 throw new Exception("Slave pool key are duplicated");
             }
-            if (m_DefaultDb == null || m_DefaultDb.length() == 0) {
-                m_DefaultDb = defalutDb;
-            }
             CPoolConfig pool = m_Slaves.get(skey);
             if (pool.m_Slaves != null) {
                 throw new Exception("A slave pool cannot contain any new slave pool");
             }
             pool.Normalize();
+            if (pool.m_DefaultDb == null || pool.m_DefaultDb.length() == 0) {
+                pool.m_DefaultDb = defalutDb;
+            }
             m_vP.add(skey);
             CPoolConfig.m_mapPools.put(skey, pool);
         }

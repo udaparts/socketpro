@@ -82,8 +82,8 @@ public class CCachedBaseHandler extends CAsyncServiceHandler {
     protected void OnResultReturned(short reqId, CUQueue mc) {
         switch (reqId) {
             case DB_CONSTS.idGetCachedTables: {
-                int res = mc.LoadInt();
                 int dbMS = mc.LoadInt();
+                int res = mc.LoadInt();
                 String errMsg = mc.LoadString();
                 DResult r = null;
                 synchronized (m_csCache) {

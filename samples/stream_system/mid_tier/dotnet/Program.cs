@@ -7,7 +7,7 @@ using System.Collections.Generic;
 
 class Program {
     static void Main(string[] args) {
-        CSpConfig config = SpManager.SetConfig(false, @"c:\cyetest\socketpro\samples\stream_system\sp_config.json");
+        CSpConfig config = SpManager.SetConfig(true, @"c:\cyetest\socketpro\samples\stream_system\sp_config.json");
         CYourServer.Master = SpManager.GetPool("masterdb") as CSqlMasterPool<CMysql, CDataSet>;
         CYourServer.Slave = SpManager.GetPool("slavedb0") as CSqlMasterPool<CMysql, CDataSet>.CSlavePool;
         CDataSet Cache = CYourServer.Master.Cache;

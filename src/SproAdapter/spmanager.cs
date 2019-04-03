@@ -487,7 +487,7 @@ namespace SocketProAdapter.ClientSide {
                             pool = new CSqlMasterPool<CMysql, CDataSet>(pc.DefaultDb, m_Middle, pc.RecvTimeout, pc.AutoConn, pc.ConnTimeout);
                             break;
                         default:
-                            pool = new CSocketPool<CMysql>(pc.AutoConn, pc.RecvTimeout, pc.ConnTimeout, pc.SvsId);
+                            pool = new CSocketPool<CMysql>(pc.AutoConn, pc.RecvTimeout, pc.ConnTimeout);
                             break;
                     }
                     break;
@@ -500,7 +500,7 @@ namespace SocketProAdapter.ClientSide {
                             pool = new CSqlMasterPool<COdbc, CDataSet>(pc.DefaultDb, m_Middle, pc.RecvTimeout, pc.AutoConn, pc.ConnTimeout);
                             break;
                         default:
-                            pool = new CSocketPool<COdbc>(pc.AutoConn, pc.RecvTimeout, pc.ConnTimeout, pc.SvsId);
+                            pool = new CSocketPool<COdbc>(pc.AutoConn, pc.RecvTimeout, pc.ConnTimeout);
                             break;
                     }
                     break;

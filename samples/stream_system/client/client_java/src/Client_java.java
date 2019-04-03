@@ -13,8 +13,10 @@ public class Client_java {
         System.out.println("Sakila.payment filter: ");
         String filter = in.nextLine();
         CConnectionContext cc = new CConnectionContext(host, 20911, "SomeUserId", "A_Password_For_SomeUserId", tagEncryptionMethod.TLSv1);
-        //CA file is located at the directory ../socketpro/bin
-        CClientSocket.SSL.SetVerifyLocation("ca.cert.pem");
+        if (CUQueue.DEFAULT_OS != tagOperationSystem.osWin) {
+            //CA file is located at the directory ../socketpro/bin
+            CClientSocket.SSL.SetVerifyLocation("ca.cert.pem");
+        }
         CMasterPool<CWebAsyncHandler> master = new CMasterPool<>(CWebAsyncHandler.class, "");
         master.DoSslServerAuthentication = (pool, cs) -> {
             IUcert cert = cs.getUCert();
