@@ -8,6 +8,43 @@ import javax.json.*;
 
 public final class CSpConfig {
 
+    private static JsonObject ToJsonObject(CConnectionContext cc) {
+        JsonObjectBuilder job = Json.createObjectBuilder();
+        job.add("Host", cc.Host);
+        job.add("Port", cc.Port);
+        job.add("UserId", cc.UserId);
+        job.add("Password", cc.Password);
+        job.add("EncrytionMethod", cc.EncrytionMethod.getValue());
+        job.add("V6", cc.V6);
+        job.add("Zip", cc.Zip);
+        if (cc.AnyData == null) {
+            job.addNull("AnyData");
+        } else {
+            String type = cc.AnyData.getClass().getName();
+            switch (type) {
+                case "java.lang.Long":
+                    job.add("AnyData", (long) cc.AnyData);
+                    break;
+                case "java.lang.Double":
+                    job.add("AnyData", (double) cc.AnyData);
+                    break;
+                case "java.lang.Boolean":
+                    job.add("AnyData", (boolean) cc.AnyData);
+                    break;
+                case "java.lang.String":
+                    job.add("AnyData", (String) cc.AnyData);
+                    break;
+                case "javax.json.JsonArray":
+                    job.add("AnyData", (javax.json.JsonArray) cc.AnyData);
+                    break;
+                case "javax.json.JsonObject":
+                    job.add("AnyData", (javax.json.JsonObject) cc.AnyData);
+                    break;
+            }
+        }
+        return job.build();
+    }
+
     public String getWorkingDir() {
         return CClientSocket.QueueConfigure.getWorkDirectory();
     }
@@ -59,7 +96,7 @@ public final class CSpConfig {
         java.util.Set<String> set = m_Hosts.keySet();
         for (String key : set) {
             CConnectionContext c = m_Hosts.get(key);
-            jh.add(key, c.ToJsonObject());
+            jh.add(key, ToJsonObject(c));
         }
         job.add("Hosts", jh.build());
         JsonObjectBuilder jp = Json.createObjectBuilder();

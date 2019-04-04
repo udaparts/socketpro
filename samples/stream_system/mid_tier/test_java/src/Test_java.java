@@ -19,7 +19,7 @@ public class Test_java {
             CYourServer.FrontCachedTables.add("sakila.country");
             CYourServer server = new CYourServer(2);
             CDataSet cache = CYourServer.Master.getCache();
-            ArrayList<Pair<String, String>> v0 = CYourServer.Master.getCache().getDBTablePair();
+            ArrayList<Pair<String, String>> v0 = cache.getDBTablePair();
             if (v0.isEmpty()) {
                 System.out.println("There is no table cached");
             } else {
