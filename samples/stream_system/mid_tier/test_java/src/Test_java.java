@@ -5,7 +5,7 @@ import SPA.UDB.*;
 import java.util.*;
 
 public class Test_java {
-    
+
     @SuppressWarnings("unchecked")
     public static void main(String[] args) {
         java.util.Scanner in = new java.util.Scanner(System.in);
@@ -19,7 +19,7 @@ public class Test_java {
             CYourServer.FrontCachedTables.add("sakila.country");
             CYourServer server = new CYourServer(2);
             CDataSet cache = CYourServer.Master.getCache();
-            ArrayList<Pair<String, String>> v0 = CYourServer.Master.getCache().getDBTablePair();
+            ArrayList<Pair<String, String>> v0 = cache.getDBTablePair();
             if (v0.isEmpty()) {
                 System.out.println("There is no table cached");
             } else {
