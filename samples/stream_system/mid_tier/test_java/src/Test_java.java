@@ -5,7 +5,7 @@ import SPA.UDB.*;
 import java.util.*;
 
 public class Test_java {
-    
+
     @SuppressWarnings("unchecked")
     public static void main(String[] args) {
         java.util.Scanner in = new java.util.Scanner(System.in);
