@@ -1,7 +1,5 @@
 package SPA.ClientSide;
 
-import javax.json.*;
-
 public class CConnectionContext {
 
     public CConnectionContext() {
@@ -60,43 +58,6 @@ public class CConnectionContext {
             return false;
         }
         return (Host.equalsIgnoreCase(cc.Host) && Port == cc.Port);
-    }
-
-    JsonObject ToJsonObject() {
-        JsonObjectBuilder job = Json.createObjectBuilder();
-        job.add("Host", Host);
-        job.add("Port", Port);
-        job.add("UserId", UserId);
-        job.add("Password", Password);
-        job.add("EncrytionMethod", EncrytionMethod.getValue());
-        job.add("V6", V6);
-        job.add("Zip", Zip);
-        if (AnyData == null) {
-            job.addNull("AnyData");
-        } else {
-            String type = AnyData.getClass().getName();
-            switch (type) {
-                case "java.lang.Long":
-                    job.add("AnyData", (long) AnyData);
-                    break;
-                case "java.lang.Double":
-                    job.add("AnyData", (double) AnyData);
-                    break;
-                case "java.lang.Boolean":
-                    job.add("AnyData", (boolean) AnyData);
-                    break;
-                case "java.lang.String":
-                    job.add("AnyData", (String) AnyData);
-                    break;
-                case "javax.json.JsonArray":
-                    job.add("AnyData", (javax.json.JsonArray) AnyData);
-                    break;
-                case "javax.json.JsonObject":
-                    job.add("AnyData", (javax.json.JsonObject) AnyData);
-                    break;
-            }
-        }
-        return job.build();
     }
 
     public String Host = "";
