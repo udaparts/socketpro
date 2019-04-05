@@ -1,13 +1,14 @@
 
-from spa import CDataSet, CTable, CMasterSlaveBase
+from spa import CDataSet, CTable
+from spa.poolbase import CMasterSlaveBase
 from spa.clientside import CClientSocket, CAsyncDBHandler, tagSocketPoolEvent
 from spa.udb import CDBColumnInfoArray, tagUpdateEvent, DB_CONSTS
 from spa.serverside import CSocketProServer
 
 
 class CSqlMasterPool(CMasterSlaveBase):
-    def __init__(self, clsAsyncHandler, defaultDB, midTier=False, recvTimeout=CClientSocket.DEFAULT_RECV_TIMEOUT):
-        super(CSqlMasterPool, self).__init__(clsAsyncHandler, defaultDB, recvTimeout)
+    def __init__(self, clsAsyncHandler, defaultDB, midTier=False, recvTimeout=CClientSocket.DEFAULT_RECV_TIMEOUT, autoConn=True, connTimeout=CClientSocket.DEFAULT_CONN_TIMEOUT, svsId=0):
+        super(CSqlMasterPool, self).__init__(clsAsyncHandler, defaultDB, recvTimeout, autoConn, connTimeout, svsId)
         self._midTier_ = midTier
         self._msTool_ = CDataSet()
         self._m_cache_ = CDataSet()
@@ -94,8 +95,8 @@ class CSqlMasterPool(CMasterSlaveBase):
         super(CSqlMasterPool, self).OnSocketPoolEvent(spe, handler)
 
     class CSlavePool(CMasterSlaveBase):
-        def __init__(self, clsAsyncHandler, defaultDB, recvTimeout=CClientSocket.DEFAULT_RECV_TIMEOUT):
-            super(CSqlMasterPool.CSlavePool, self).__init__(clsAsyncHandler, defaultDB, recvTimeout)
+        def __init__(self, clsAsyncHandler, defaultDB, recvTimeout=CClientSocket.DEFAULT_RECV_TIMEOUT, autoConn=True, connTimeout=CClientSocket.DEFAULT_CONN_TIMEOUT, svsId=0):
+            super(CSqlMasterPool.CSlavePool, self).__init__(clsAsyncHandler, defaultDB, recvTimeout, autoConn, connTimeout, svsId)
 
         def OnSocketPoolEvent(self, spe, handler):
             if spe==tagSocketPoolEvent.speConnected:

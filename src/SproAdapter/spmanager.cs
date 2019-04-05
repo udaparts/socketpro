@@ -403,15 +403,21 @@ namespace SocketProAdapter.ClientSide {
             internal set { m_Middle = value; }
         }
 
-        public static CSpConfig SetConfig(bool midTier = false, string jsConfig = null) {
+        /// <summary>
+        /// Set socket pools configuration from a JSON text file
+        /// </summary>
+        /// <param name="midTier">True if calling from a middle tier; Otherwise, false</param>
+        /// <param name="jsonConfig">A file path to a JSON configuration text file, which defaults to sp_config.json at current directory</param>
+        /// <returns>An instance of CSpConfig</returns>
+        public static CSpConfig SetConfig(bool midTier = false, string jsonConfig = null) {
             lock (m_cs) {
                 if (m_sc != null)
                     return m_sc;
             }
-            if (jsConfig == null || jsConfig.Length == 0) {
-                jsConfig = "sp_config.json";
+            if (jsonConfig == null || jsonConfig.Length == 0) {
+                jsonConfig = "sp_config.json";
             }
-            using (StreamReader sr = File.OpenText(jsConfig)) {
+            using (StreamReader sr = File.OpenText(jsonConfig)) {
                 string json = sr.ReadToEnd();
                 MemoryStream ms = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(json));
                 DataContractJsonSerializer ser = new DataContractJsonSerializer(typeof(CSpConfig), new DataContractJsonSerializerSettings { UseSimpleDictionaryFormat = true });
@@ -458,98 +464,100 @@ namespace SocketProAdapter.ClientSide {
             if (poolKey == null || poolKey.Length == 0)
                 throw new Exception("Pool key cannot be empty");
             CSpConfig sc = SetConfig();
-            if (sc.m_vPK.IndexOf(poolKey) == -1)
-                throw new Exception("Pool key cannot be found from configuaration");
-            CPoolConfig pc = null;
-            if (sc.m_Pools.ContainsKey(poolKey))
-                pc = sc.m_Pools[poolKey];
-            else {
-                foreach (var key in sc.m_Pools.Keys) {
-                    CPoolConfig p = sc.m_Pools[key];
-                    if (p.m_Slaves == null)
-                        continue;
-                    if (p.m_Slaves.ContainsKey(poolKey)) {
-                        pc = p.m_Slaves[poolKey];
+            lock (m_cs) {
+                if (sc.m_vPK.IndexOf(poolKey) == -1)
+                    throw new Exception("Pool key " + poolKey + " cannot be found from configuaration");
+                CPoolConfig pc = null;
+                if (sc.m_Pools.ContainsKey(poolKey))
+                    pc = sc.m_Pools[poolKey];
+                else {
+                    foreach (var key in sc.m_Pools.Keys) {
+                        CPoolConfig p = sc.m_Pools[key];
+                        if (p.m_Slaves == null)
+                            continue;
+                        if (p.m_Slaves.ContainsKey(poolKey)) {
+                            pc = p.m_Slaves[poolKey];
+                            break;
+                        }
+                    }
+                }
+                if (pc.Pool != null)
+                    return pc.Pool;
+                dynamic pool;
+                switch (pc.SvsId) {
+                    case CMysql.sidMysql:
+                        switch (pc.PoolType) {
+                            case tagPoolType.Slave:
+                                pool = new CSqlMasterPool<CMysql, CDataSet>.CSlavePool(pc.DefaultDb, pc.RecvTimeout, pc.AutoConn, pc.ConnTimeout);
+                                break;
+                            case tagPoolType.Master:
+                                pool = new CSqlMasterPool<CMysql, CDataSet>(pc.DefaultDb, m_Middle, pc.RecvTimeout, pc.AutoConn, pc.ConnTimeout);
+                                break;
+                            default:
+                                pool = new CSocketPool<CMysql>(pc.AutoConn, pc.RecvTimeout, pc.ConnTimeout);
+                                break;
+                        }
                         break;
+                    case BaseServiceID.sidODBC:
+                        switch (pc.PoolType) {
+                            case tagPoolType.Slave:
+                                pool = new CSqlMasterPool<COdbc, CDataSet>.CSlavePool(pc.DefaultDb, pc.RecvTimeout, pc.AutoConn, pc.ConnTimeout);
+                                break;
+                            case tagPoolType.Master:
+                                pool = new CSqlMasterPool<COdbc, CDataSet>(pc.DefaultDb, m_Middle, pc.RecvTimeout, pc.AutoConn, pc.ConnTimeout);
+                                break;
+                            default:
+                                pool = new CSocketPool<COdbc>(pc.AutoConn, pc.RecvTimeout, pc.ConnTimeout);
+                                break;
+                        }
+                        break;
+                    case CSqlite.sidSqlite:
+                        switch (pc.PoolType) {
+                            case tagPoolType.Slave:
+                                pool = new CSqlMasterPool<CSqlite, CDataSet>.CSlavePool(pc.DefaultDb, pc.RecvTimeout, pc.AutoConn, pc.ConnTimeout);
+                                break;
+                            case tagPoolType.Master:
+                                pool = new CSqlMasterPool<CSqlite, CDataSet>(pc.DefaultDb, m_Middle, pc.RecvTimeout, pc.AutoConn, pc.ConnTimeout);
+                                break;
+                            default:
+                                pool = new CSocketPool<CSqlite>(pc.AutoConn, pc.RecvTimeout, pc.ConnTimeout);
+                                break;
+                        }
+                        break;
+                    case BaseServiceID.sidFile:
+                        pool = new CSocketPool<CStreamingFile>(pc.AutoConn, pc.RecvTimeout, pc.ConnTimeout);
+                        break;
+                    case BaseServiceID.sidQueue:
+                        pool = new CSocketPool<CAsyncQueue>(pc.AutoConn, pc.RecvTimeout, pc.ConnTimeout);
+                        break;
+                    default:
+                        switch (pc.PoolType) {
+                            case tagPoolType.Slave:
+                                pool = new CMasterPool<CCachedBaseHandler, CDataSet>.CSlavePool(pc.DefaultDb, pc.RecvTimeout, pc.AutoConn, pc.ConnTimeout, pc.SvsId);
+                                break;
+                            case tagPoolType.Master:
+                                pool = new CMasterPool<CCachedBaseHandler, CDataSet>(pc.DefaultDb, m_Middle, pc.RecvTimeout, pc.AutoConn, pc.ConnTimeout, pc.SvsId);
+                                break;
+                            default:
+                                pool = new CSocketPool<CCachedBaseHandler>(pc.AutoConn, pc.RecvTimeout, pc.ConnTimeout, pc.SvsId);
+                                break;
+                        }
+                        break;
+                }
+                pool.QueueName = pc.Queue;
+                pool.QueueAutoMerge = pc.AutoMerge;
+                pc.Pool = pool;
+                CConnectionContext[,] ppCC = new CConnectionContext[pc.Threads, pc.Hosts.Count];
+                for (uint i = 0; i < pc.Threads; ++i) {
+                    for (int j = 0; j < pc.Hosts.Count; ++j) {
+                        ppCC[i, j] = sc.m_Hosts[pc.m_Hosts[j]];
                     }
                 }
-            }
-            if (pc.Pool != null)
-                return pc.Pool;
-            dynamic pool;
-            switch (pc.SvsId) {
-                case CMysql.sidMysql:
-                    switch (pc.PoolType) {
-                        case tagPoolType.Slave:
-                            pool = new CSqlMasterPool<CMysql, CDataSet>.CSlavePool(pc.DefaultDb, pc.RecvTimeout, pc.AutoConn, pc.ConnTimeout);
-                            break;
-                        case tagPoolType.Master:
-                            pool = new CSqlMasterPool<CMysql, CDataSet>(pc.DefaultDb, m_Middle, pc.RecvTimeout, pc.AutoConn, pc.ConnTimeout);
-                            break;
-                        default:
-                            pool = new CSocketPool<CMysql>(pc.AutoConn, pc.RecvTimeout, pc.ConnTimeout);
-                            break;
-                    }
-                    break;
-                case BaseServiceID.sidODBC:
-                    switch (pc.PoolType) {
-                        case tagPoolType.Slave:
-                            pool = new CSqlMasterPool<COdbc, CDataSet>.CSlavePool(pc.DefaultDb, pc.RecvTimeout, pc.AutoConn, pc.ConnTimeout);
-                            break;
-                        case tagPoolType.Master:
-                            pool = new CSqlMasterPool<COdbc, CDataSet>(pc.DefaultDb, m_Middle, pc.RecvTimeout, pc.AutoConn, pc.ConnTimeout);
-                            break;
-                        default:
-                            pool = new CSocketPool<COdbc>(pc.AutoConn, pc.RecvTimeout, pc.ConnTimeout);
-                            break;
-                    }
-                    break;
-                case CSqlite.sidSqlite:
-                    switch (pc.PoolType) {
-                        case tagPoolType.Slave:
-                            pool = new CSqlMasterPool<CSqlite, CDataSet>.CSlavePool(pc.DefaultDb, pc.RecvTimeout, pc.AutoConn, pc.ConnTimeout);
-                            break;
-                        case tagPoolType.Master:
-                            pool = new CSqlMasterPool<CSqlite, CDataSet>(pc.DefaultDb, m_Middle, pc.RecvTimeout, pc.AutoConn, pc.ConnTimeout);
-                            break;
-                        default:
-                            pool = new CSocketPool<CSqlite>(pc.AutoConn, pc.RecvTimeout, pc.ConnTimeout);
-                            break;
-                    }
-                    break;
-                case BaseServiceID.sidFile:
-                    pool = new CSocketPool<CStreamingFile>(pc.AutoConn, pc.RecvTimeout, pc.ConnTimeout);
-                    break;
-                case BaseServiceID.sidQueue:
-                    pool = new CSocketPool<CAsyncQueue>(pc.AutoConn, pc.RecvTimeout, pc.ConnTimeout);
-                    break;
-                default:
-                    switch (pc.PoolType) {
-                        case tagPoolType.Slave:
-                            pool = new CMasterPool<CCachedBaseHandler, CDataSet>.CSlavePool(pc.DefaultDb, pc.RecvTimeout, pc.AutoConn, pc.ConnTimeout, pc.SvsId);
-                            break;
-                        case tagPoolType.Master:
-                            pool = new CMasterPool<CCachedBaseHandler, CDataSet>(pc.DefaultDb, m_Middle, pc.RecvTimeout, pc.AutoConn, pc.ConnTimeout, pc.SvsId);
-                            break;
-                        default:
-                            pool = new CSocketPool<CCachedBaseHandler>(pc.AutoConn, pc.RecvTimeout, pc.ConnTimeout, pc.SvsId);
-                            break;
-                    }
-                    break;
-            }
-            pool.QueueName = pc.Queue;
-            pool.QueueAutoMerge = pc.AutoMerge;
-            pc.Pool = pool;
-            CConnectionContext[,] ppCC = new CConnectionContext[pc.Threads, pc.Hosts.Count];
-            for (uint i = 0; i < pc.Threads; ++i) {
-                for (int j = 0; j < pc.Hosts.Count; ++j) {
-                    ppCC[i, j] = sc.m_Hosts[pc.m_Hosts[j]];
+                if (!pool.StartSocketPool(ppCC)) {
+                    throw new Exception("There is no connection establised for pool " + poolKey);
                 }
+                return pool;
             }
-            if (!pool.StartSocketPool(ppCC)) {
-                throw new Exception("There is no connection establised for pool " + poolKey);
-            }
-            return pool;
         }
 
         public static dynamic SeekHandler(string poolKey) {

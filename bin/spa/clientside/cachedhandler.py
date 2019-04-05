@@ -9,7 +9,7 @@ class CCachedBaseHandler(CAsyncServiceHandler):
     ONE_MEGA_BYTES = 0x100000
     BLOB_LENGTH_NOT_AVAILABLE = 0xffffffe0
 
-    def __init__(self, serviceId):
+    def __init__(self, serviceId=0):
         super(CCachedBaseHandler, self).__init__(serviceId)
         self._csCache = threading.Lock()
         self._mapRowset = {}

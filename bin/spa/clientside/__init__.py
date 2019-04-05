@@ -82,3 +82,4 @@ from spa.clientside.asyncqueue import CAsyncQueue
 from spa.clientside.ufuture import UFuture
 from spa.clientside.asyncdbhandler import CAsyncDBHandler
 from spa.clientside.cachedhandler import CCachedBaseHandler
+from spa.clientside.spmanager import SpManager
