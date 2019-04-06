@@ -206,6 +206,11 @@ class SpManager(object):
                     sc['QueuePassword'] = 1
                 else:
                     sc['QueuePassword'] = 0
+                if 'KeysAllowed' in sc:
+                    ka = []
+                    for s in sc['KeysAllowed']:
+                        ka.append(s.lower())
+                    sc['KeysAllowed'] = ka
             SpManager._CheckErrors(sc)
             SpManager._sp_config = sc
             SpManager._sp_config['WorkingDir'] = ccl.GetClientWorkDirectory().decode('latin-1')
@@ -285,6 +290,20 @@ class SpManager(object):
             if 'Queue' in pc:
                 pool.QueueName = pc['Queue'];
             pc['Pool'] =  pool
+
+            def OnVerify(sp, cs):
+                cert = cs.UCert
+                errCode, errMsg = cert.Verify()
+                if errCode == 0:
+                    return True
+                if 'KeysAllowed' in SpManager._sp_config:
+                    str = cert.PublicKey
+                    my_s = '';
+                    for s in str:
+                        my_s +=  format(s, '02x')
+                    return (my_s in SpManager._sp_config['KeysAllowed'])
+                return False
+            pool.DoSslServerAuthentication = OnVerify
             sockets_per_thread = len(pc['Hosts'])
             threads = pc['Threads']
             # create a two-dimension matrix that contains connection contexts
