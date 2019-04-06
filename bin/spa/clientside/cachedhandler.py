@@ -114,8 +114,8 @@ class CCachedBaseHandler(CAsyncServiceHandler):
                 vt = self._Blob.LoadObject()
                 self._vData.append(vt)
         elif reqId == DB_CONSTS.idGetCachedTables:
-            res = mc.LoadInt()
             self._ms = mc.LoadInt()
+            res = mc.LoadInt()
             err_msg = mc.LoadString()
             r = None
             with self._csCache:

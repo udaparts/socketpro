@@ -2,7 +2,7 @@
   "WorkingDir": "c:\\ProgramData\\webdir",
   "Hosts": {
     "db_master": {
-      "Host": "ws-yye-1",
+      "Host": "windesk",
       "Port": 20902,
       "UserId": "root",
       "Password": "Smash123",
@@ -17,7 +17,7 @@
       "Password": "Smash123"
     },
     "db_slave_remote": {
-      "Host": "10.16.20.33",
+      "Host": "192.168.2.172",
       "Port": 20902,
       "UserId": "root",
       "Password": "Smash123",

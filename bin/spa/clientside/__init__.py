@@ -79,7 +79,7 @@ from spa.clientside.sqlite import CSqlite
 from spa.clientside.mysql import CMysql, CSqlServer
 from spa.clientside.odbc import COdbc
 from spa.clientside.asyncqueue import CAsyncQueue
-from spa.clientside.ufuture import UFuture
+if isVersion320:
+    from spa.clientside.ufuture import UFuture
 from spa.clientside.asyncdbhandler import CAsyncDBHandler
 from spa.clientside.cachedhandler import CCachedBaseHandler
-from spa.clientside.spmanager import SpManager

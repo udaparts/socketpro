@@ -4,7 +4,8 @@ from sharedstruct import *
 from webasynchandler import CWebAsyncHandler
 
 # CA file is located at the directory ../socketpro/bin
-CClientSocket.SSL.SetVerifyLocation('ca.cert.pem')
+if CUQueue.DEFAULT_OS != tagOperationSystem.osWin:
+    CClientSocket.SSL.SetVerifyLocation('ca.cert.pem')
 
 with CMasterPool(CWebAsyncHandler, '', False) as sp:
     cc = CConnectionContext(input('Remote middle tier host: '), 20911, 'PythonUser', 'TooMuchSecret', tagEncryptionMethod.TLSv1)
