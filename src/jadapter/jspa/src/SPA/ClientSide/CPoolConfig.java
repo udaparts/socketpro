@@ -121,7 +121,7 @@ public final class CPoolConfig {
     }
 
     String Master = null;
-    Object Pool = null;
+    CSocketPool Pool = null;
 
     private int m_Threads = 1;
 

@@ -119,6 +119,24 @@ public final class CSpConfig {
         return (count > 1);
     }
 
+    private static String ToStr(byte[] pk) {
+        return javax.xml.bind.DatatypeConverter.printHexBinary(pk).toLowerCase();
+    }
+
+    boolean Verify(CClientSocket cs) {
+        SPA.RefObject<Integer> errCode = new SPA.RefObject<>(0);
+        IUcert cert = cs.getUCert();
+        String res = cert.Verify(errCode);
+        //do ssl server certificate authentication here
+        if (errCode.Value == 0) {
+            return true; //true -- user id and password will be sent to server
+        }
+        if (m_KeysAllowed != null) {
+            return (m_KeysAllowed.indexOf(ToStr(cert.PublicKey)) != -1);
+        }
+        return false;
+    }
+
     void Normalize() throws Exception {
         if (m_Hosts.isEmpty()) {
             throw new Exception("Host map cannot be empty");
@@ -164,7 +182,7 @@ public final class CSpConfig {
             JsonArray ja = root.getJsonArray("KeysAllowed");
             m_KeysAllowed = new java.util.ArrayList<>();
             for (int n = 0; n < ja.size(); ++n) {
-                m_KeysAllowed.add(ja.getString(n));
+                m_KeysAllowed.add(ja.getString(n).toLowerCase());
             }
         }
         JsonObject joHosts = root.getJsonObject("Hosts");

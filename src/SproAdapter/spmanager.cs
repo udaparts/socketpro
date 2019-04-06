@@ -318,6 +318,26 @@ namespace SocketProAdapter.ClientSide {
             return count > 0;
         }
 
+        private static string ToStr(byte[] pk) {
+            System.Text.StringBuilder hex = new System.Text.StringBuilder(pk.Length * 2);
+            foreach (byte b in pk) {
+                hex.AppendFormat("{0:x2}", b);
+            }
+            return hex.ToString();
+        }
+
+        internal bool Verify(CClientSocket cs) {
+            int errCode;
+            IUcert cert = cs.UCert;
+            string res = cert.Verify(out errCode);
+            //do ssl server certificate authentication here
+            if (errCode == 0) return true;
+            if (m_KeysAllowed != null) {
+                return (m_KeysAllowed.IndexOf(ToStr(cert.PublicKey)) != -1);
+            }
+            return false;
+        }
+
         private bool HasHostKey(string hkey) {
             foreach (var key in m_Hosts.Keys) {
                 if (key == hkey) return true;
@@ -328,6 +348,14 @@ namespace SocketProAdapter.ClientSide {
         internal List<string> m_vPK = null;
 
         internal void CheckErrors() {
+            if (m_KeysAllowed != null) {
+                int count = m_KeysAllowed.Count;
+                for (int n = 0; n < count; ++n) {
+                    string s = m_KeysAllowed[n];
+                    m_KeysAllowed[n] = s.Trim().ToLower();
+                }
+            }
+
             if (QueuePassword != null) {
                 if (QueuePassword.GetType() == typeof(string)) {
                     CClientSocket.QueueConfigure.MessageQueuePassword = QueuePassword.ToString();
@@ -485,62 +513,84 @@ namespace SocketProAdapter.ClientSide {
                     return pc.Pool;
                 dynamic pool;
                 switch (pc.SvsId) {
-                    case CMysql.sidMysql:
-                        switch (pc.PoolType) {
-                            case tagPoolType.Slave:
-                                pool = new CSqlMasterPool<CMysql, CDataSet>.CSlavePool(pc.DefaultDb, pc.RecvTimeout, pc.AutoConn, pc.ConnTimeout);
-                                break;
-                            case tagPoolType.Master:
-                                pool = new CSqlMasterPool<CMysql, CDataSet>(pc.DefaultDb, m_Middle, pc.RecvTimeout, pc.AutoConn, pc.ConnTimeout);
-                                break;
-                            default:
-                                pool = new CSocketPool<CMysql>(pc.AutoConn, pc.RecvTimeout, pc.ConnTimeout);
-                                break;
+                    case CMysql.sidMysql: {
+                            CSocketPool<CMysql> mysql;
+                            switch (pc.PoolType) {
+                                case tagPoolType.Slave:
+                                    mysql = new CSqlMasterPool<CMysql, CDataSet>.CSlavePool(pc.DefaultDb, pc.RecvTimeout, pc.AutoConn, pc.ConnTimeout);
+                                    break;
+                                case tagPoolType.Master:
+                                    mysql = new CSqlMasterPool<CMysql, CDataSet>(pc.DefaultDb, m_Middle, pc.RecvTimeout, pc.AutoConn, pc.ConnTimeout);
+                                    break;
+                                default:
+                                    mysql = new CSocketPool<CMysql>(pc.AutoConn, pc.RecvTimeout, pc.ConnTimeout);
+                                    break;
+                            }
+                            mysql.DoSslServerAuthentication += (sender, cs) => { return m_sc.Verify(cs); };
+                            pool = mysql;
                         }
                         break;
-                    case BaseServiceID.sidODBC:
-                        switch (pc.PoolType) {
-                            case tagPoolType.Slave:
-                                pool = new CSqlMasterPool<COdbc, CDataSet>.CSlavePool(pc.DefaultDb, pc.RecvTimeout, pc.AutoConn, pc.ConnTimeout);
-                                break;
-                            case tagPoolType.Master:
-                                pool = new CSqlMasterPool<COdbc, CDataSet>(pc.DefaultDb, m_Middle, pc.RecvTimeout, pc.AutoConn, pc.ConnTimeout);
-                                break;
-                            default:
-                                pool = new CSocketPool<COdbc>(pc.AutoConn, pc.RecvTimeout, pc.ConnTimeout);
-                                break;
+                    case BaseServiceID.sidODBC: {
+                            CSocketPool<COdbc> odbc;
+                            switch (pc.PoolType) {
+                                case tagPoolType.Slave:
+                                    odbc = new CSqlMasterPool<COdbc, CDataSet>.CSlavePool(pc.DefaultDb, pc.RecvTimeout, pc.AutoConn, pc.ConnTimeout);
+                                    break;
+                                case tagPoolType.Master:
+                                    odbc = new CSqlMasterPool<COdbc, CDataSet>(pc.DefaultDb, m_Middle, pc.RecvTimeout, pc.AutoConn, pc.ConnTimeout);
+                                    break;
+                                default:
+                                    odbc = new CSocketPool<COdbc>(pc.AutoConn, pc.RecvTimeout, pc.ConnTimeout);
+                                    break;
+                            }
+                            odbc.DoSslServerAuthentication += (sender, cs) => { return m_sc.Verify(cs); };
+                            pool = odbc;
                         }
                         break;
-                    case CSqlite.sidSqlite:
-                        switch (pc.PoolType) {
-                            case tagPoolType.Slave:
-                                pool = new CSqlMasterPool<CSqlite, CDataSet>.CSlavePool(pc.DefaultDb, pc.RecvTimeout, pc.AutoConn, pc.ConnTimeout);
-                                break;
-                            case tagPoolType.Master:
-                                pool = new CSqlMasterPool<CSqlite, CDataSet>(pc.DefaultDb, m_Middle, pc.RecvTimeout, pc.AutoConn, pc.ConnTimeout);
-                                break;
-                            default:
-                                pool = new CSocketPool<CSqlite>(pc.AutoConn, pc.RecvTimeout, pc.ConnTimeout);
-                                break;
+                    case CSqlite.sidSqlite: {
+                            CSocketPool<CSqlite> sqlite;
+                            switch (pc.PoolType) {
+                                case tagPoolType.Slave:
+                                    sqlite = new CSqlMasterPool<CSqlite, CDataSet>.CSlavePool(pc.DefaultDb, pc.RecvTimeout, pc.AutoConn, pc.ConnTimeout);
+                                    break;
+                                case tagPoolType.Master:
+                                    sqlite = new CSqlMasterPool<CSqlite, CDataSet>(pc.DefaultDb, m_Middle, pc.RecvTimeout, pc.AutoConn, pc.ConnTimeout);
+                                    break;
+                                default:
+                                    sqlite = new CSocketPool<CSqlite>(pc.AutoConn, pc.RecvTimeout, pc.ConnTimeout);
+                                    break;
+                            }
+                            sqlite.DoSslServerAuthentication += (sender, cs) => { return m_sc.Verify(cs); };
+                            pool = sqlite;
                         }
                         break;
-                    case BaseServiceID.sidFile:
-                        pool = new CSocketPool<CStreamingFile>(pc.AutoConn, pc.RecvTimeout, pc.ConnTimeout);
+                    case BaseServiceID.sidFile: {
+                            CSocketPool<CStreamingFile> sf = new CSocketPool<CStreamingFile>(pc.AutoConn, pc.RecvTimeout, pc.ConnTimeout);
+                            sf.DoSslServerAuthentication += (sender, cs) => { return m_sc.Verify(cs); };
+                            pool = sf;
+                        }
                         break;
-                    case BaseServiceID.sidQueue:
-                        pool = new CSocketPool<CAsyncQueue>(pc.AutoConn, pc.RecvTimeout, pc.ConnTimeout);
+                    case BaseServiceID.sidQueue: {
+                            var aq = new CSocketPool<CAsyncQueue>(pc.AutoConn, pc.RecvTimeout, pc.ConnTimeout);
+                            aq.DoSslServerAuthentication += (sender, cs) => { return m_sc.Verify(cs); };
+                            pool = aq;
+                        }
                         break;
-                    default:
-                        switch (pc.PoolType) {
-                            case tagPoolType.Slave:
-                                pool = new CMasterPool<CCachedBaseHandler, CDataSet>.CSlavePool(pc.DefaultDb, pc.RecvTimeout, pc.AutoConn, pc.ConnTimeout, pc.SvsId);
-                                break;
-                            case tagPoolType.Master:
-                                pool = new CMasterPool<CCachedBaseHandler, CDataSet>(pc.DefaultDb, m_Middle, pc.RecvTimeout, pc.AutoConn, pc.ConnTimeout, pc.SvsId);
-                                break;
-                            default:
-                                pool = new CSocketPool<CCachedBaseHandler>(pc.AutoConn, pc.RecvTimeout, pc.ConnTimeout, pc.SvsId);
-                                break;
+                    default: {
+                            CSocketPool<CCachedBaseHandler> cbh;
+                            switch (pc.PoolType) {
+                                case tagPoolType.Slave:
+                                    cbh = new CMasterPool<CCachedBaseHandler, CDataSet>.CSlavePool(pc.DefaultDb, pc.RecvTimeout, pc.AutoConn, pc.ConnTimeout, pc.SvsId);
+                                    break;
+                                case tagPoolType.Master:
+                                    cbh = new CMasterPool<CCachedBaseHandler, CDataSet>(pc.DefaultDb, m_Middle, pc.RecvTimeout, pc.AutoConn, pc.ConnTimeout, pc.SvsId);
+                                    break;
+                                default:
+                                    cbh = new CSocketPool<CCachedBaseHandler>(pc.AutoConn, pc.RecvTimeout, pc.ConnTimeout, pc.SvsId);
+                                    break;
+                            }
+                            cbh.DoSslServerAuthentication += (sender, cs) => { return m_sc.Verify(cs); };
+                            pool = cbh;
                         }
                         break;
                 }
@@ -558,6 +608,10 @@ namespace SocketProAdapter.ClientSide {
                 }
                 return pool;
             }
+        }
+
+        private static bool Mysql_DoSslServerAuthentication(CSocketPool<CMysql> sender, CClientSocket cs) {
+            throw new NotImplementedException();
         }
 
         public static dynamic SeekHandler(string poolKey) {

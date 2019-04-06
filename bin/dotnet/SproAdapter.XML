@@ -1243,6 +1243,14 @@
             This feature is useful for fault auto recovery at client side. However, SocketPro client core may disable the auto merging if it detects that there is no new remote SocketPro server available
             </remarks>
         </member>
+        <member name="M:SocketProAdapter.ClientSide.SpManager.SetConfig(System.Boolean,System.String)">
+            <summary>
+            Set socket pools configuration from a JSON text file
+            </summary>
+            <param name="midTier">True if calling from a middle tier; Otherwise, false</param>
+            <param name="jsonConfig">A file path to a JSON configuration text file, which defaults to sp_config.json at current directory</param>
+            <returns>An instance of CSpConfig</returns>
+        </member>
         <member name="P:SocketProAdapter.ClientSide.SpManager.Pools">
             <summary>
             The number of running socket pools
