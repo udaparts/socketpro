@@ -44,21 +44,21 @@ public class CCachedBaseHandler extends CAsyncServiceHandler {
 
     public boolean GetCachedTables(String defaultDb, DResult handler, DRows row, DRowsetHeader rh, int flags) {
         final long index = GetCallIndex();
-        CUQueue q = CScopeUQueue.Lock();
-        synchronized (m_csCache) {
-            m_mapRowset.put(index, new Pair<>(rh, row));
-            m_mapHandler.put(index, handler);
-        }
-        q.Save(defaultDb).Save(flags).Save(index);
-        boolean ok = SendRequest(DB_CONSTS.idGetCachedTables, q, null, null);
-        CScopeUQueue.Unlock(q);
-        if (!ok) {
+        try (CScopeUQueue q = new CScopeUQueue()) {
             synchronized (m_csCache) {
-                m_mapHandler.remove(index);
-                m_mapRowset.remove(index);
+                m_mapRowset.put(index, new Pair<>(rh, row));
+                m_mapHandler.put(index, handler);
             }
+            q.Save(defaultDb).Save(flags).Save(index);
+            boolean ok = SendRequest(DB_CONSTS.idGetCachedTables, q, null, null);
+            if (!ok) {
+                synchronized (m_csCache) {
+                    m_mapHandler.remove(index);
+                    m_mapRowset.remove(index);
+                }
+            }
+            return ok;
         }
-        return ok;
     }
 
     @Override
