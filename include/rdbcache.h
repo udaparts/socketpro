@@ -176,7 +176,7 @@ namespace SPA {
                     unsigned int port;
                     std::string ip = h.GetAttachedClientSocket()->GetPeerName(&port);
                     ip += ":";
-                    ip += std::to_string(port);
+                    ip += std::to_string((UINT64)port);
                     std::string host = h.GetAttachedClientSocket()->GetConnectionContext().Host;
                     std::wstring s = Utilities::ToWide(host.c_str(), host.size());
                     this->m_cache.SetDBServerName(s.c_str());

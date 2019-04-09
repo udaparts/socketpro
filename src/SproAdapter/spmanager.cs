@@ -623,10 +623,5 @@ namespace SocketProAdapter.ClientSide {
             dynamic pool = GetPool(poolKey);
             return pool.SeekByQueue();
         }
-
-        public static dynamic LockHandler(string poolKey, uint timeout = uint.MaxValue) {
-            dynamic pool = GetPool(poolKey);
-            return pool.Lock(timeout);
-        }
     }
 }

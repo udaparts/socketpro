@@ -13,18 +13,13 @@ namespace SPA {
 
         CMasterSlaveBase(const wchar_t *defaultDb, unsigned int recvTimeout = ClientSide::DEFAULT_RECV_TIMEOUT, unsigned int svsId = 0)
         : CBase(true, recvTimeout, ClientSide::DEFAULT_CONN_TIMEOUT, svsId),
-        m_dbDefalut(defaultDb ? defaultDb : L""),
-        m_nRecvTimeout(recvTimeout) {
+        m_dbDefalut(defaultDb ? defaultDb : L"") {
         }
 
     public:
 
         inline const std::wstring& GetDefaultDBName() const {
             return m_dbDefalut;
-        }
-
-        inline unsigned int GetRecvTimeout() const {
-            return m_nRecvTimeout;
         }
 
         static std::wstring ToWide(const VARIANT &data) {
@@ -38,7 +33,6 @@ namespace SPA {
 
     private:
         std::wstring m_dbDefalut;
-        unsigned int m_nRecvTimeout;
     };
 } //namespace SPA
 

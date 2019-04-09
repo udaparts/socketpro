@@ -80,26 +80,6 @@ public final class SpManager {
         }
     }
 
-    public static CAsyncServiceHandler LockHandler(String poolKey) throws Exception {
-        return LockHandler(poolKey, -1);
-    }
-
-    public static CAsyncServiceHandler LockHandler(String poolKey, int timeout) throws Exception {
-        if (poolKey == null || poolKey.length() == 0) {
-            throw new Exception("Pool key cannot be empty");
-        }
-        synchronized (m_cs) {
-            if (CPoolConfig.m_vP.indexOf(poolKey) == -1) {
-                throw new Exception("Pool key cannot be found from configuration file");
-            }
-            CPoolConfig pc = CPoolConfig.m_mapPools.get(poolKey);
-            if (pc.Pool == null) {
-                GetPool(poolKey);
-            }
-            return pc.Pool.Lock(timeout);
-        }
-    }
-
     public static CAsyncServiceHandler SeekHandler(String poolKey) throws Exception {
         if (poolKey == null || poolKey.length() == 0) {
             throw new Exception("Pool key cannot be empty");
@@ -220,18 +200,18 @@ public final class SpManager {
             return pc.Pool;
         }
     }
-/*
-    @SuppressWarnings("unchecked")
-    public static void main(String[] args
-    ) {
-        try {
-            CSpConfig jc = SetConfig(false, "c:\\cyetest\\socketpro\\src\\njadapter\\sp_config.json");
-            String s = jc.getConfig();
-            CMysql mysql = (CMysql) SeekHandler("masterdb");
-            mysql = null;
-        } catch (Exception err) {
-            System.out.println(err.toString());
-        }
-    }
-*/
+    /*
+     @SuppressWarnings("unchecked")
+     public static void main(String[] args
+     ) {
+     try {
+     CSpConfig jc = SetConfig(false, "c:\\cyetest\\socketpro\\src\\njadapter\\sp_config.json");
+     String s = jc.getConfig();
+     CMysql mysql = (CMysql) SeekHandler("masterdb");
+     mysql = null;
+     } catch (Exception err) {
+     System.out.println(err.toString());
+     }
+     }
+     */
 }
