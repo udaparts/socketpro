@@ -153,7 +153,6 @@ class SpManager(object):
         """
         :return: A dictionary containing SocketPro pools configuration
         """
-
         with SpManager._cs_:
             if SpManager._sp_config:
                 SpManager._sp_config['WorkingDir'] = ccl.GetClientWorkDirectory().decode('latin-1')
@@ -234,11 +233,6 @@ class SpManager(object):
         return pool.SeekByQueue()
 
     @staticmethod
-    def LockHandler(poolKey, timeout=0xffffffff):
-        pool = SpManager.GetPool(poolKey)
-        return pool.Lock(timeout)
-
-    @staticmethod
     def GetPool(poolKey):
         pc = None
         with SpManager._cs_:
@@ -317,11 +311,3 @@ class SpManager(object):
             if not pool.StartSocketPoolEx(mcc):
                 raise Exception('There is no connection establised for pool ' + poolKey)
             return pool
-
-"""
-sc = SpManager.SetConfig(True, 'C:\\cyetest\\socketpro\\src\\njadapter\\sp_config.json')
-pool = SpManager.GetPool('my_hello_world')
-pool = 0
-"""
-
-
