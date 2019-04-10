@@ -1825,7 +1825,6 @@ namespace SPA {
             }
 
             inline unsigned int GetPoolId() {
-                CAutoLock al(m_cs);
                 return m_nPoolId;
             }
 

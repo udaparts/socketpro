@@ -77,10 +77,7 @@ namespace SPA
                 throw std::runtime_error(em.c_str());
             }
             CPoolConfig *pc = it->second;
-            if (m_bMidTier)
-                em = pc->StartPool<true>(Hosts);
-            else
-                em = pc->StartPool<false>(Hosts);
+            em = pc->StartPool(m_bMidTier, Hosts);
             if (em.size()) {
                 throw std::runtime_error(em.c_str());
             }

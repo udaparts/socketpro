@@ -63,8 +63,7 @@ namespace SPA {
                 return m_errCode;
             }
 
-            template<bool midTier>
-            std::string StartPool(const CMapHost &mapHost) {
+            std::string StartPool(bool midTier, const CMapHost &mapHost) {
                 if (Pool)
                     return "";
                 bool ok = false;
@@ -90,16 +89,23 @@ namespace SPA {
                 switch (SvsId) {
                     case SPA::Sqlite::sidSqlite:
                     {
-                        typedef CSQLMasterPool<midTier, CSqlitePool::Handler> CSQLMaster;
                         CSqlitePool *db;
                         switch (PoolType) {
                             case Master:
-                                db = new CSQLMaster(dfltDb.c_str(), RecvTimeout);
+                                if (midTier) {
+                                    db = new CSQLMasterPool<true, CSqlitePool::Handler>(dfltDb.c_str(), RecvTimeout);
+                                } else {
+                                    db = new CSQLMasterPool<false, CSqlitePool::Handler>(dfltDb.c_str(), RecvTimeout);
+                                }
                                 db->SetAutoConn(AutoConn);
                                 db->SetConnTimeout(ConnTimeout);
                                 break;
                             case Slave:
-                                db = new CSQLMaster::CSlavePool(dfltDb.c_str(), RecvTimeout);
+                                if (midTier) {
+                                    db = new CSQLMasterPool<true, CSqlitePool::Handler>::CSlavePool(dfltDb.c_str(), RecvTimeout);
+                                } else {
+                                    db = new CSQLMasterPool<false, CSqlitePool::Handler>::CSlavePool(dfltDb.c_str(), RecvTimeout);
+                                }
                                 db->SetAutoConn(AutoConn);
                                 db->SetConnTimeout(ConnTimeout);
                                 break;
@@ -129,16 +135,23 @@ namespace SPA {
                         break;
                     case SPA::Mysql::sidMysql:
                     {
-                        typedef CSQLMasterPool<midTier, CMysqlPool::Handler> CSQLMaster;
                         CMysqlPool *db;
                         switch (PoolType) {
                             case Master:
-                                db = new CSQLMaster(dfltDb.c_str(), RecvTimeout);
+                                if (midTier) {
+                                    db = new CSQLMasterPool<true, CMysqlPool::Handler>(dfltDb.c_str(), RecvTimeout);
+                                } else {
+                                    db = new CSQLMasterPool<false, CMysqlPool::Handler>(dfltDb.c_str(), RecvTimeout);
+                                }
                                 db->SetAutoConn(AutoConn);
                                 db->SetConnTimeout(ConnTimeout);
                                 break;
                             case Slave:
-                                db = new CSQLMaster::CSlavePool(dfltDb.c_str(), RecvTimeout);
+                                if (midTier) {
+                                    db = new CSQLMasterPool<true, CMysqlPool::Handler>::CSlavePool(dfltDb.c_str(), RecvTimeout);
+                                } else {
+                                    db = new CSQLMasterPool<false, CMysqlPool::Handler>::CSlavePool(dfltDb.c_str(), RecvTimeout);
+                                }
                                 db->SetAutoConn(AutoConn);
                                 db->SetConnTimeout(ConnTimeout);
                                 break;
@@ -168,16 +181,23 @@ namespace SPA {
                         break;
                     case SPA::Odbc::sidOdbc:
                     {
-                        typedef CSQLMasterPool<midTier, COdbcPool::Handler> CSQLMaster;
                         COdbcPool *db;
                         switch (PoolType) {
                             case Master:
-                                db = new CSQLMaster(dfltDb.c_str(), RecvTimeout);
+                                if (midTier) {
+                                    db = new CSQLMasterPool<true, COdbcPool::Handler>(dfltDb.c_str(), RecvTimeout);
+                                } else {
+                                    db = new CSQLMasterPool<false, COdbcPool::Handler>(dfltDb.c_str(), RecvTimeout);
+                                }
                                 db->SetAutoConn(AutoConn);
                                 db->SetConnTimeout(ConnTimeout);
                                 break;
                             case Slave:
-                                db = new CSQLMaster::CSlavePool(dfltDb.c_str(), RecvTimeout);
+                                if (midTier) {
+                                    db = new CSQLMasterPool<true, COdbcPool::Handler>::CSlavePool(dfltDb.c_str(), RecvTimeout);
+                                } else {
+                                    db = new CSQLMasterPool<false, COdbcPool::Handler>::CSlavePool(dfltDb.c_str(), RecvTimeout);
+                                }
                                 db->SetAutoConn(AutoConn);
                                 db->SetConnTimeout(ConnTimeout);
                                 break;
@@ -253,16 +273,23 @@ namespace SPA {
                         break;
                     default:
                     {
-                        typedef CMasterPool<midTier, CMyPool::Handler> CMaster;
                         CMyPool *db;
                         switch (PoolType) {
                             case Master:
-                                db = new CMaster(dfltDb.c_str(), RecvTimeout, SvsId);
+                                if (midTier) {
+                                    db = new CMasterPool<true, CMyPool::Handler>(dfltDb.c_str(), RecvTimeout, SvsId);
+                                } else {
+                                    db = new CMasterPool<false, CMyPool::Handler>(dfltDb.c_str(), RecvTimeout, SvsId);
+                                }
                                 db->SetAutoConn(AutoConn);
                                 db->SetConnTimeout(ConnTimeout);
                                 break;
                             case Slave:
-                                db = new CMaster::CSlavePool(dfltDb.c_str(), RecvTimeout, SvsId);
+                                if (midTier) {
+                                    db = new CMasterPool<true, CMyPool::Handler>::CSlavePool(dfltDb.c_str(), RecvTimeout, SvsId);
+                                } else {
+                                    db = new CMasterPool<false, CMyPool::Handler>::CSlavePool(dfltDb.c_str(), RecvTimeout, SvsId);
+                                }
                                 db->SetAutoConn(AutoConn);
                                 db->SetConnTimeout(ConnTimeout);
                                 break;
