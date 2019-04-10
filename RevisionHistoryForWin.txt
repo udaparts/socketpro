@@ -7,7 +7,8 @@
 	(f) Re-add support of windows XP and Windows 2003
 	(g) Improve pool automerge algorithm and make it default to false at client side
 	(h) Improve node.js adapter for DB query performance
-	(i) Other minor improvements
+	(i) Add a utility SocketPro pools manager to manage multiple pools from a JSON configuration file for all supported development languages
+	(j) Other minor improvements
 
 83.	SocketPro Version 6.0.4.7
 	(a) Fix server router auto-recovery (fault-tolerance) issue at client side.

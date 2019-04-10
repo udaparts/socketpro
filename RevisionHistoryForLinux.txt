@@ -6,7 +6,8 @@
 	(e) Fix a potential crash related socket disconnection at client side
 	(f) Improve pool automerge algorithm and make it default to false at client side
 	(g) Improve node.js adapter for DB query performance
-	(h) Other minor improvements
+	(h) Add a utility SocketPro pools manager to manage multiple pools from a JSON configuration file for all supported development languages
+	(i) Other minor improvements
 
 21. SocketPro Version 6.1.0.1-5
 	(a) Add new feature into SocketPro core libraries for automatic ordering on random returning requests
