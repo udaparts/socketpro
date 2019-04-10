@@ -31,15 +31,15 @@ namespace SPA
             void *pool = GetPool(poolKey, &svsId);
             switch (svsId) {
                 case SPA::SFile::sidFile:
-                    return ((CSocketPool<CStreamingFile>*)pool)->Seek().get();
+                    return ((CStreamingFilePool*)pool)->Seek().get();
                 case SPA::Queue::sidQueue:
-                    return ((CSocketPool<CAsyncQueue>*)pool)->Seek().get();
+                    return ((CAsyncQueuePool*)pool)->Seek().get();
                 case SPA::Mysql::sidMysql:
-                    return ((CSocketPool<CMysql>*)pool)->Seek().get();
+                    return ((CMysqlPool*)pool)->Seek().get();
                 case SPA::Sqlite::sidSqlite:
-                    return ((CSocketPool<CSqlite>*)pool)->Seek().get();
+                    return ((CSqlitePool*)pool)->Seek().get();
                 case SPA::Odbc::sidOdbc:
-                    return ((CSocketPool<COdbc>*)pool)->Seek().get();
+                    return ((COdbcPool*)pool)->Seek().get();
                 default:
                     return ((CPoolConfig::CMyPool*)pool)->Seek().get();
             }
@@ -53,15 +53,15 @@ namespace SPA
             }
             switch (svsId) {
                 case SPA::SFile::sidFile:
-                    return ((CSocketPool<CStreamingFile>*)pool)->SeekByQueue().get();
+                    return ((CStreamingFilePool*)pool)->SeekByQueue().get();
                 case SPA::Queue::sidQueue:
-                    return ((CSocketPool<CAsyncQueue>*)pool)->SeekByQueue().get();
+                    return ((CAsyncQueuePool*)pool)->SeekByQueue().get();
                 case SPA::Mysql::sidMysql:
-                    return ((CSocketPool<CMysql>*)pool)->SeekByQueue().get();
+                    return ((CMysqlPool*)pool)->SeekByQueue().get();
                 case SPA::Sqlite::sidSqlite:
-                    return ((CSocketPool<CSqlite>*)pool)->SeekByQueue().get();
+                    return ((CSqlitePool*)pool)->SeekByQueue().get();
                 case SPA::Odbc::sidOdbc:
-                    return ((CSocketPool<COdbc>*)pool)->SeekByQueue().get();
+                    return ((COdbcPool*)pool)->SeekByQueue().get();
                 default:
                     return ((CPoolConfig::CMyPool*)pool)->SeekByQueue().get();
             }

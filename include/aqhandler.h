@@ -470,6 +470,7 @@ namespace SPA {
             DDequeue m_dDequeue; //protected by m_csQ
         };
 
+		typedef CSocketPool<CAsyncQueue> CAsyncQueuePool;
     } //namespace ClientSide
 } //namespace SPA
 

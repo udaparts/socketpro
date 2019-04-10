@@ -529,7 +529,8 @@ namespace SPA {
         private:
             std::deque<CContext> m_vContext; //protected by m_csFile;
         };
-    }; //ClientSide
-}; //SPA
+		typedef CSocketPool<CStreamingFile> CStreamingFilePool;
+    } //ClientSide
+} //SPA
 
 #endif

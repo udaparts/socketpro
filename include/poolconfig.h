@@ -86,13 +86,12 @@ namespace SPA {
                     ppCCs[n] = vHost.data();
                 }
                 std::wstring dfltDb = SPA::Utilities::ToWide(DefaultDb);
-                CClientSocket *cs = nullptr;
+                CClientSocket *cs;
                 switch (SvsId) {
                     case SPA::Sqlite::sidSqlite:
                     {
-                        typedef CSocketPool<CSqlite> CDbPool;
-                        typedef CSQLMasterPool<midTier, CSqlite> CSQLMaster;
-                        CDbPool *db = nullptr;
+                        typedef CSQLMasterPool<midTier, CSqlitePool::Handler> CSQLMaster;
+						CSqlitePool *db;
                         switch (PoolType) {
                             case Master:
                                 db = new CSQLMaster(dfltDb.c_str(), RecvTimeout);
@@ -105,16 +104,16 @@ namespace SPA {
                                 db->SetConnTimeout(ConnTimeout);
                                 break;
                             default:
-                                db = new CDbPool(AutoConn, RecvTimeout, ConnTimeout);
+                                db = new CSqlitePool(AutoConn, RecvTimeout, ConnTimeout);
                                 break;
                         }
                         if (Queue.size()) {
                             db->SetQueueName(Queue.c_str());
                         }
-                        db->DoSslServerAuthentication = [this](CDbPool *pool, CClientSocket * cs)->bool {
+                        db->DoSslServerAuthentication = [this](CSqlitePool *pool, CClientSocket * cs)->bool {
                             return this->DoSSLAuth(cs);
                         };
-                        db->SocketPoolEvent = [this](CDbPool *pool, tagSocketPoolEvent spe, CDbPool::Handler * handler) {
+                        db->SocketPoolEvent = [this](CSqlitePool *pool, tagSocketPoolEvent spe, CSqlitePool::Handler * handler) {
                             if (PoolEvent)
                                 PoolEvent(this, spe);
                         };
@@ -124,15 +123,14 @@ namespace SPA {
                         }
                         cs = db->GetSockets()[0].get();
                         Pool.reset(db, [](void *p) {
-                            delete (CDbPool*) p;
+                            delete (CSqlitePool*) p;
                         });
                     }
                         break;
                     case SPA::Mysql::sidMysql:
                     {
-                        typedef CSocketPool<CMysql> CDbPool;
-                        typedef CSQLMasterPool<midTier, CMysql> CSQLMaster;
-                        CDbPool *db = nullptr;
+                        typedef CSQLMasterPool<midTier, CMysqlPool::Handler> CSQLMaster;
+						CMysqlPool *db;
                         switch (PoolType) {
                             case Master:
                                 db = new CSQLMaster(dfltDb.c_str(), RecvTimeout);
@@ -145,16 +143,16 @@ namespace SPA {
                                 db->SetConnTimeout(ConnTimeout);
                                 break;
                             default:
-                                db = new CDbPool(AutoConn, RecvTimeout, ConnTimeout);
+                                db = new CMysqlPool(AutoConn, RecvTimeout, ConnTimeout);
                                 break;
                         }
                         if (Queue.size()) {
                             db->SetQueueName(Queue.c_str());
                         }
-                        db->DoSslServerAuthentication = [this](CDbPool *pool, CClientSocket * cs)->bool {
+                        db->DoSslServerAuthentication = [this](CMysqlPool *pool, CClientSocket * cs)->bool {
                             return this->DoSSLAuth(cs);
                         };
-                        db->SocketPoolEvent = [this](CDbPool *pool, tagSocketPoolEvent spe, CDbPool::Handler * handler) {
+                        db->SocketPoolEvent = [this](CMysqlPool *pool, tagSocketPoolEvent spe, CMysqlPool::Handler * handler) {
                             if (PoolEvent)
                                 PoolEvent(this, spe);
                         };
@@ -164,15 +162,14 @@ namespace SPA {
                         }
                         cs = db->GetSockets()[0].get();
                         Pool.reset(db, [](void *p) {
-                            delete (CDbPool*) p;
+                            delete (CMysqlPool*) p;
                         });
                     }
                         break;
                     case SPA::Odbc::sidOdbc:
                     {
-                        typedef CSocketPool<COdbc> CDbPool;
-                        typedef CSQLMasterPool<midTier, COdbc> CSQLMaster;
-                        CDbPool *db = nullptr;
+                        typedef CSQLMasterPool<midTier, COdbcPool::Handler> CSQLMaster;
+						COdbcPool *db;
                         switch (PoolType) {
                             case Master:
                                 db = new CSQLMaster(dfltDb.c_str(), RecvTimeout);
@@ -185,16 +182,16 @@ namespace SPA {
                                 db->SetConnTimeout(ConnTimeout);
                                 break;
                             default:
-                                db = new CDbPool(AutoConn, RecvTimeout, ConnTimeout);
+                                db = new COdbcPool(AutoConn, RecvTimeout, ConnTimeout);
                                 break;
                         }
                         if (Queue.size()) {
                             db->SetQueueName(Queue.c_str());
                         }
-                        db->DoSslServerAuthentication = [this](CDbPool *pool, CClientSocket * cs)->bool {
+                        db->DoSslServerAuthentication = [this](COdbcPool *pool, CClientSocket * cs)->bool {
                             return this->DoSSLAuth(cs);
                         };
-                        db->SocketPoolEvent = [this](CDbPool *pool, tagSocketPoolEvent spe, CDbPool::Handler * handler) {
+                        db->SocketPoolEvent = [this](COdbcPool *pool, tagSocketPoolEvent spe, COdbcPool::Handler * handler) {
                             if (PoolEvent)
                                 PoolEvent(this, spe);
                         };
@@ -204,21 +201,20 @@ namespace SPA {
                         }
                         cs = db->GetSockets()[0].get();
                         Pool.reset(db, [](void *p) {
-                            delete (CDbPool*) p;
+                            delete (COdbcPool*) p;
                         });
                     }
                         break;
                     case SPA::Queue::sidQueue:
                     {
-                        typedef CSocketPool<CAsyncQueue> CPool;
-                        CPool *pool = new CPool(AutoConn, RecvTimeout, ConnTimeout);
+                        CAsyncQueuePool *pool = new CAsyncQueuePool(AutoConn, RecvTimeout, ConnTimeout);
                         if (Queue.size()) {
                             pool->SetQueueName(Queue.c_str());
                         }
-                        pool->DoSslServerAuthentication = [this](CPool *pool, CClientSocket * cs)->bool {
+                        pool->DoSslServerAuthentication = [this](CAsyncQueuePool *pool, CClientSocket * cs)->bool {
                             return this->DoSSLAuth(cs);
                         };
-                        pool->SocketPoolEvent = [this](CPool *p, tagSocketPoolEvent spe, CPool::Handler * handler) {
+                        pool->SocketPoolEvent = [this](CAsyncQueuePool *p, tagSocketPoolEvent spe, CAsyncQueuePool::Handler * handler) {
                             if (PoolEvent)
                                 PoolEvent(this, spe);
                         };
@@ -228,21 +224,20 @@ namespace SPA {
                         }
                         cs = pool->GetSockets()[0].get();
                         Pool.reset(pool, [](void *p) {
-                            delete (CPool*) p;
+                            delete (CAsyncQueuePool*) p;
                         });
                     }
                         break;
                     case SPA::SFile::sidFile:
                     {
-                        typedef CSocketPool<CStreamingFile> CPool;
-                        CPool *pool = new CPool(AutoConn, RecvTimeout, ConnTimeout);
+						CStreamingFilePool *pool = new CStreamingFilePool(AutoConn, RecvTimeout, ConnTimeout);
                         if (Queue.size()) {
                             pool->SetQueueName(Queue.c_str());
                         }
-                        pool->DoSslServerAuthentication = [this](CPool *pool, CClientSocket * cs)->bool {
+                        pool->DoSslServerAuthentication = [this](CStreamingFilePool *pool, CClientSocket * cs)->bool {
                             return this->DoSSLAuth(cs);
                         };
-                        pool->SocketPoolEvent = [this](CPool *p, tagSocketPoolEvent spe, CPool::Handler * handler) {
+                        pool->SocketPoolEvent = [this](CStreamingFilePool *p, tagSocketPoolEvent spe, CStreamingFilePool::Handler * handler) {
                             if (PoolEvent)
                                 PoolEvent(this, spe);
                         };
@@ -252,14 +247,14 @@ namespace SPA {
                         }
                         cs = pool->GetSockets()[0].get();
                         Pool.reset(pool, [](void *p) {
-                            delete (CPool*) p;
+                            delete (CStreamingFilePool*) p;
                         });
                     }
                         break;
                     default:
                     {
                         typedef CMasterPool<midTier, CMyPool::Handler> CMaster;
-                        CMyPool *db = nullptr;
+                        CMyPool *db;
                         switch (PoolType) {
                             case Master:
                                 db = new CMaster(dfltDb.c_str(), RecvTimeout, SvsId);
