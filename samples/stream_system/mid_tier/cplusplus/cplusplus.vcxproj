@@ -160,10 +160,7 @@
     <ClCompile Include="..\..\..\..\include\aclientw.cpp" />
     <ClCompile Include="..\..\..\..\include\aserverw.cpp" />
     <ClCompile Include="..\..\..\..\include\manager.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">/bigobj %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">/bigobj %(AdditionalOptions)</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/bigobj %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/bigobj %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="..\..\..\..\include\membuffer.cpp" />
     <ClCompile Include="..\..\..\..\include\tablecache.cpp" />
