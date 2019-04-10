@@ -21,7 +21,6 @@ namespace SPA {
         }
         typedef TCache CDataSet;
         TCache Cache; //real-time cache accessible from your code
-        typedef ClientSide::CCachedBaseHandler<THandler::CachedServiceId> CHandler;
         typedef CMasterSlaveBase < THandler, TCS > CSlavePool;
 
     protected:
