@@ -2,6 +2,7 @@
 
 var SPA = require('njadapter');
 var assert = require('assert');
+const os = require('os');
 
 class CTable {
     constructor(t) {
@@ -487,6 +488,30 @@ class CSocketPool {
         this.pool.setAutoMerge(am);
     }
 
+    get AutoConn() {
+        return this.pool.getAutoConn();
+    }
+
+    set AutoConn(ac = true) {
+        this.pool.setAutoConn(ac);
+    }
+
+    get RecvTimeout() {
+        return this.pool.getRecvTimeout();
+    }
+
+    set RecvTimeout(timeout = 30000) {
+        this.pool.setRecvTimeout(timeout);
+    }
+
+    get ConnTimeout() {
+        return this.pool.getConnTimeout();
+    }
+
+    set ConnTimeout(timeout = 30000) {
+        this.pool.setConnTimeout(timeout);
+    }
+
     get QueueName() {
         return this.pool.getQueueName();
     }
@@ -734,7 +759,7 @@ class CHandler {
     }
 }
 
-exports.newBuffer = function(initSize = 4096, blockSize = 4096) {
+exports.newBuffer = function (initSize = 4096, blockSize = 4096) {
     return new SPA.CUQueue(initSize, blockSize);
 };
 
@@ -787,7 +812,7 @@ exports.SID = {
     sidReserved1: 1,
     sidStartup: 256,
     sidChat: 257,
-    sidQueue: 257, //persistent message queue service
+    sidQueue: 257, //server persistent message queue service
     sidHTTP: 258, //not supported at client side
     sidFile: 259, //files streaming service
     sidOdbc: 260, //ODBC SQL-streaming service
@@ -1406,7 +1431,7 @@ exports.CS = {
         return SPA.getPools();
     },
     //wrap native handler into accessable handler
-    wrap: function(h) {
+    wrap: function (h) {
         if (h) {
             switch (h.getSvsId()) {
                 case exports.SID.sidFile:
@@ -1438,7 +1463,7 @@ exports.CS = {
             return SPA.setCA(caPath);
         },
 
-        //authenticate server certificate by a public key (an array of bytes) in case certificate chain verification failed
+        //set an array of public key strings
         set Key(pk) {
             return SPA.setKey(pk);
         }
@@ -1541,16 +1566,16 @@ exports.CS = {
         }
     },
 
-    newPool: function(svsId, defaulDb = '') {
+    newPool: function (svsId, defaulDb = '') {
         //create a regular socket or master/slave pool.
         //you can create multiple pools for different services
-        var pool = new SPA.CSocketPool(svsId /*a required unsigned int service id*/ , defaulDb /*master/slave with real-time updateable cache*/ );
+        var pool = new SPA.CSocketPool(svsId /*a required unsigned int service id*/, defaulDb /*master/slave with real-time updateable cache*/);
         if (pool)
             return new CSocketPool(pool);
         return pool;
     },
     //CC == Connection Context
-    newCC: function(host, port, userId, pwd, em = 0, zip = false, v6 = false, anyData = null) {
+    newCC: function (host, port, userId, pwd, em = 0, zip = false, v6 = false, anyData = null) {
         return {
             Host: host,
             Port: port,
@@ -1726,3 +1751,486 @@ exports.Cache = {
         is_null: 6 //is_null
     }
 };
+
+exports.CHandler = CHandler;
+
+class CJsManager {
+    constructor(jsonConfig) {
+        this.ph = {};
+        var poolKeys = [];
+        assert(typeof jsonConfig === 'string' && jsonConfig.length > 0);
+        var conf = require(jsonConfig);
+        this.jc = {};
+        var jcObject = this.jc;
+        if (conf.WorkingDir !== undefined) {
+            if (typeof conf.WorkingDir === 'string') {
+                SPA.setWorkingDir(conf.WorkingDir);
+            }
+            else {
+                throw 'A string expected for WorkingDir';
+            }
+        }
+        this.jc['Hosts'] = {};
+        this.jc['Pools'] = {};
+        this.jc['CertStore'] = '';
+        if (conf.CertStore !== undefined) {
+            if (typeof conf.CertStore === 'string') {
+                var cs = conf.CertStore.trim();
+                if (cs.length > 0) {
+                    SPA.setCA(cs);
+                    this.jc['CertStore'] = cs;
+                }
+                else if (os.platform() == 'win32') {
+                    SPA.setCA('root');
+                    this.jc['CertStore'] = 'root';
+                }
+            }
+            else {
+                throw 'A string expected for CertStore';
+            }
+        }
+        this.jc['QueuePassword'] = 0;
+        if (conf.QueuePassword !== undefined) {
+            if (typeof conf.QueuePassword === 'string') {
+                var pwd = conf.QueuePassword.trim();
+                if (pwd.length > 0) {
+                    SPA.setPassword(pwd);
+                    this.jc['QueuePassword'] = 1;
+                }
+            }
+            else {
+                throw 'A string expected for QueuePassword';
+            }
+        }
+        if (conf.KeysAllowed !== undefined) {
+            if (Array.isArray(conf.KeysAllowed)) {
+                SPA.setKey(conf.KeysAllowed);
+                this.jc['KeysAllowed'] = conf.KeysAllowed;
+            }
+            else {
+                throw 'An array of public key strings expected for KeysAllowed';
+            }
+        }
+        else {
+            this.jc['KeysAllowed'] = [];
+        }
+        function existsConn(conn) {
+            var arr = Object.keys(jcObject.Hosts);
+            for (var n = 0; n < arr.length; ++n) {
+                var obj = jcObject.Hosts[arr[n]];
+                if (conn.Host == obj.Host && conn.Port === obj.Port) {
+                    throw 'Connection context cannot be duplicate with the sample ip address and port';
+                }
+            }
+        }
+        if (typeof conf.Hosts !== 'object') {
+            throw 'A map of key/host connection context expected for Hosts';
+        }
+        var keys = Object.keys(conf.Hosts);
+        if (keys.length === 0) {
+            throw 'A Hosts map cannot be empty';
+        }
+        for (var n = 0; n < keys.length; ++n) {
+            var key = keys[n];
+            if (!key) {
+                throw 'Host key cannot be empty';
+            }
+            var obj = conf.Hosts[key];
+            if (!obj || typeof obj !== 'object') {
+                throw 'A pair of key/host connection context object expected';
+            }
+            var host = '';
+            if (typeof obj.Host === 'string') {
+                host = obj.Host.trim().toLowerCase();
+            }
+            if (!host) {
+                throw 'A string expected for connection context Host';
+            }
+            var port = 0;
+            if (typeof obj.Port === 'number') {
+                port = Number(obj.Port);
+            }
+            if (port <= 0) {
+                throw 'A positive integer expected for connection context Port';
+            }
+            var userid = '';
+            if (obj.UserId !== undefined) {
+                if (typeof obj.UserId === 'string') {
+                    userid = obj.UserId.trim();
+                }
+                else {
+                    throw 'A string expected for connection context UserId';
+                }
+            }
+            var pwd = '';
+            if (obj.Password !== undefined) {
+                if (typeof obj.Password === 'string') {
+                    pwd = obj.Password.trim();
+                }
+                else {
+                    throw 'A string expected for connection context Password';
+                }
+            }
+            var em = 0;
+            if (obj.EncrytionMethod !== undefined) {
+                if (typeof obj.EncrytionMethod === 'number') {
+                    em = Number(obj.EncrytionMethod);
+                }
+                else {
+                    throw 'A number is expected connection context EncrytionMethod'
+                }
+                if (em < 0 || em > 1) {
+                    throw 'EncrytionMethod must be 0 or 1 for connection context EncrytionMethod';
+                }
+            }
+            var zip = (!!obj.Zip);
+            var v6 = (!!obj.V6);
+            var anyData = obj.AnyData;
+            var conn = exports.CS.newCC(host, port, userid, pwd, em, zip, v6, anyData);
+            existsConn(conn);
+            this.jc.Hosts[key] = conn;
+        }
+        function existsHost(k) {
+            var arr = Object.keys(jcObject.Hosts);
+            for (var n = 0; n < arr.length; ++n) {
+                if (arr[n] == k) return;
+            }
+            throw 'Host ' + k + ' not found from the array of Hosts';
+        }
+        function existsPool(k) {
+            var arr = poolKeys;
+            for (var n = 0; n < arr.length; ++n) {
+                var key = arr[n];
+                if (key == k) {
+                    throw 'Pool key ' + key + ' is duplicated';
+                }
+            }
+        }
+        function existsQueue(qn) {
+            var arr = Object.keys(jcObject.Pools);
+            for (var n = 0; n < arr.length; ++n) {
+                var key = arr[n];
+                var obj = jcObject.Pools[key];
+                if (obj.Queue == qn) {
+                    throw 'Pool queue name ' + qn + ' duplicated';
+                }
+                if (obj.DefaultDb && (typeof obj.Slaves === 'object')) {
+                    var a = Object.keys(obj.Slaves);
+                    for (var j = 0; j < a.length; ++j) {
+                        obj = obj.Slaves[a[j]];
+                        if (obj.Queue == qn) {
+                            throw 'Pool queue name ' + qn + ' duplicated';
+                        }
+                    }
+                }
+            }
+        }
+        if (typeof conf.Pools !== 'object') {
+            throw 'A map of key/pool context expected for Pools';
+        }
+        keys = Object.keys(conf.Pools);
+        if (keys.length === 0) {
+            throw 'A Pools map cannot be empty';
+        }
+        Object.assign(poolKeys, keys);
+        for (var n = 0; n < keys.length; ++n) {
+            var key = keys[n];
+            if (!key) {
+                throw 'Pool key cannot be empty';
+            }
+            var obj = conf.Pools[key];
+            if (!obj || typeof obj !== 'object') {
+                throw 'A pair of key/Pool context expected';
+            }
+            obj.Threads = 1;
+            var queue = '';
+            if (obj.Queue !== undefined) {
+                if (typeof obj.Queue === 'string') {
+                    queue = obj.Queue.trim();
+                    if (os.platform() == 'win32') {
+                        queue = queue.toLowerCase();
+                    }
+                    obj.Queue = queue;
+                }
+                else {
+                    throw 'A string expected for client queue name';
+                }
+            }
+            if (queue) {
+                existsQueue(queue);
+            }
+            var defaultDb = '';
+            if (obj.DefaultDb !== undefined) {
+                if (typeof obj.DefaultDb === 'string') {
+                    defaultDb = obj.DefaultDb.trim();
+                    obj.DefaultDb = defaultDb;
+                }
+                else {
+                    throw 'A string expected for default db name';
+                }
+            }
+            obj.PoolType = 0; //regular
+            if (obj.DefaultDb) {
+                obj.PoolType = 2; //master
+            }
+            var svsId = 0;
+            if (typeof obj.SvsId === 'number') {
+                svsId = Number(obj.SvsId);
+            }
+            else {
+                throw 'A number expected for service identification number';
+            }
+            var connTimeout = 30000;
+            if (obj.ConnTimeout !== undefined) {
+                if (typeof obj.ConnTimeout === 'number' && obj.ConnTimeout > 0) {
+                    connTimeout = Number(obj.ConnTimeout);
+                }
+                else {
+                    throw 'A number expected for connection timeout in milliseconds';
+                }
+            }
+            obj.ConnTimeout = connTimeout;
+            var recvTimeout = 30000;
+            if (obj.RecvTimeout !== undefined) {
+                if (typeof obj.RecvTimeout === 'number' && obj.RecvTimeout > 0) {
+                    recvTimeout = Number(obj.RecvTimeout);
+                }
+                else {
+                    throw 'A number expected for request receiving timeout in milliseconds';
+                }
+            }
+            obj.RecvTimeout = recvTimeout;
+            var autoConn = true;
+            if (obj.AutoConn !== undefined) {
+                autoConn = (!!obj.AutoConn);
+            }
+            obj.AutoConn = autoConn;
+            var automerge = ((!!obj.Queue) && (!!obj.AutoMerge));
+            obj.AutoMerge = automerge;
+            switch (svsId) {
+                case exports.SID.sidHTTP:
+                    throw 'Client side does not support HTTP/websocket service';
+                case exports.SID.sidQueue:
+                    if (defaultDb || typeof obj.Slaves === 'object')
+                        throw 'Server queue service does not support master or slave pool';
+                    break;
+                case exports.SID.sidFile:
+                    if (defaultDb || typeof obj.Slaves === 'object')
+                        throw 'Remote file service does not support master or slave pool';
+                    break;
+                case exports.SID.sidMysql:
+                case exports.SID.sidOdbc:
+                case exports.SID.sidSqlite:
+                    break;
+                default:
+                    if (svsId <= exports.SID.sidReserved)
+                        throw 'User defined service id must be larger than ' + exports.SID.sidReserved;
+                    break;
+            }
+            if (!defaultDb && typeof obj.Slaves === 'object')
+                throw 'Slave array is not empty but DefaultDb string is empty';
+            var master = {};
+            Object.assign(master, obj);
+            delete master.Master;
+            this.jc.Pools[key] = master;
+            if (obj.DefaultDb && typeof obj.Slaves === 'object') {
+                master.Slaves = {};
+                var skeys = Object.keys(obj.Slaves);
+                for (var j = 0; j < skeys.length; ++j) {
+                    var k = skeys[j];
+                    existsPool(k);
+                    poolKeys.push(k);
+                    var one = obj.Slaves[k];
+                    var s = {};
+                    s.Master = key;
+                    s.PoolType = 1;
+                    s.SvsId = obj.SvsId;
+                    s.DefaultDb = obj.DefaultDb;
+                    s.Threads = 1;
+                    s.Queue = '';
+                    if (one.Queue !== undefined) {
+                        if (typeof one.Queue === 'string') {
+                            var qn = one.Queue.trim();
+                            if (os.platform() == 'win32') {
+                                qn = qn.toLowerCase();
+                            }
+                            s.Queue = qn;
+                        }
+                        else {
+                            throw 'A string expected for client queue name';
+                        }
+                    }
+                    if (s.Queue) {
+                        existsQueue(s.Queue);
+                    }
+                    if (one.DefaultDb !== undefined) {
+                        if (typeof one.DefaultDb === 'string') {
+                            s.DefaultDb = one.DefaultDb.trim();
+                        }
+                        else {
+                            throw 'A string expected for default db name';
+                        }
+                    }
+                    s.ConnTimeout = 30000;
+                    if (one.ConnTimeout !== undefined) {
+                        if (typeof one.ConnTimeout === 'number' && one.ConnTimeout >= 0) {
+                            s.ConnTimeout = Number(one.ConnTimeout);
+                        }
+                        else {
+                            throw 'A number expected for connection timeout in milliseconds';
+                        }
+                    }
+                    s.RecvTimeout = 30000;
+                    if (one.RecvTimeout !== undefined) {
+                        if (typeof one.RecvTimeout === 'number' && one.RecvTimeout >= 0) {
+                            s.RecvTimeout = Number(one.RecvTimeout);
+                        }
+                        else {
+                            throw 'A number expected for request timeout in milliseconds';
+                        }
+                    }
+                    s.AutoConn = true;
+                    if (one.AutoConn !== undefined) {
+                        s.AutoConn = (!!one.AutoConn);
+                    }
+                    s.AutoMerge = (s.Queue && (!!one.AutoMerge));
+                    s.Hosts = [];
+                    if (Array.isArray(one.Hosts) && one.Hosts.length > 0) {
+                        for (var m = 0; m < one.Hosts.length; ++m) {
+                            var h = one.Hosts[m].trim();
+                            existsHost(h);
+                            s.Hosts.push(h);
+                        }
+                    }
+                    else {
+                        throw 'An array of host key strings expected for pool context Hosts';
+                    }
+                    master.Slaves[k] = s;
+                }
+            }
+            if (Array.isArray(obj.Hosts) && obj.Hosts.length > 0) {
+                for (var j = 0; j < obj.Hosts.length; ++j) {
+                    var h = obj.Hosts[j].trim();
+                    obj.Hosts[j] = h;
+                    existsHost(h);
+                }
+            }
+            else {
+                throw 'An array of host key strings expected for pool context Hosts';
+            }
+        }
+    }
+    get Config() {
+        var conf = {};
+        Object.assign(conf, this.jc);
+        conf.WorkingDir = SPA.getWorkingDir(); //working directory hoilding client queues for client requests backups
+        return conf;
+    }
+    get Pools() {
+        return SPA.getPools(); //return the number of running socket pools
+    }
+    get Version() {
+        return SPA.getVersion(); //return SocketPro client core version
+    }
+    GetPool(keyPool) {
+        var jh = this.ph;
+        var jcObject = this.jc;
+        function existsPool(k) {
+            var arr = Object.keys(jcObject.Pools);
+            for (var n = 0; n < arr.length; ++n) {
+                var key = arr[n];
+                if (key == k) {
+                    jh[key] = jcObject.Pools[key];
+                    return jh[key];
+                }
+                var obj = jcObject.Pools[key];
+                if (obj.DefaultDb && (typeof obj.Slaves === 'object')) {
+                    var a = Object.keys(obj.Slaves);
+                    for (var j = 0; j < a.length; ++j) {
+                        if (a[j] == k) {
+                            jh[k] = obj.Slaves[k];
+                            return jh[k];
+                        }
+                    }
+                }
+            }
+            return null;
+        }
+        var pc = existsPool(keyPool);
+        if (!pc) {
+            throw 'Pool not found by key = ' + keyPool;
+        }
+        var pool = jh[keyPool].Pool;
+        if (pool) {
+            return pool;
+        }
+        if (pc.Master) {
+            pool = this.GetPool(pc.Master);
+            pool = pool.NewSlave(pc.DefaultDb);
+        }
+        else {
+            pool = exports.CS.newPool(pc.SvsId, pc.DefaultDb);
+        }
+        pool.AutoConn = pc.AutoConn;
+        pool.QueueName = pc.Queue;
+        pool.AutoMerge = pc.AutoMerge;
+        pool.ConnTimeout = pc.ConnTimeout;
+        pool.RecvTimeout = pc.RecvTimeout;
+        jh[keyPool].Pool = pool;
+        var sessions = [];
+        for (var n = 0; n < pc.Hosts.length; ++n) {
+            var key = pc.Hosts[n];
+            sessions.push(jcObject.Hosts[key]);
+        }
+        var ok = pool.Start(sessions, sessions.length);
+        if (!ok) {
+            throw JSON.stringify(pool.Error);
+        }
+        return pool;
+    }
+    GetHandler(keyPool) {
+        var pool = this.GetPool(keyPool);
+        return pool.Seek();
+    }
+    GetHandlerByQueue(keyPool) {
+        var pool = this.GetPool(keyPool);
+        if (!pool.Queue) {
+            throw 'No queue name available';
+        }
+        return pool.SeekByQueue(pool.Queue);
+    }
+}
+
+exports.Manager = null;
+exports.GetManager = function (jsonConfig = '') {
+    if (!exports.Manager) {
+        if (!jsonConfig) {
+            jsonConfig = process.cwd();
+            if (os.platform() == 'win32')
+                jsonConfig += '\\';
+            else
+                jsonConfig += '/';
+            jsonConfig += 'sp_config.json';
+        }
+        exports.Manager = new CJsManager(jsonConfig);
+    }
+    return exports.Manager;
+};
+
+exports.GetSpManager = exports.GetManager;
+
+exports.GetSpPool = function (keyPool) {
+    return exports.GetManager().GetPool(keyPool);
+};
+
+exports.GetSpHandler = function (keyPool) {
+    return exports.GetManager().GetHandler(keyPool);
+};
+
+exports.SeekSpHandler = exports.GetSpHandler;
+
+exports.GetSpHandlerByQueue = function (keyPool) {
+    return exports.GetManager().GetHandlerByQueue(keyPool);
+};
+
+exports.SeekSpHandlerByQueue = exports.GetSpHandlerByQueue;

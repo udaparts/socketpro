@@ -4,7 +4,6 @@
 
 #include "../../userver.h"
 #include "../include/mysql.h"
-#include <algorithm>
 
 namespace SPA {
     namespace ServerSide {

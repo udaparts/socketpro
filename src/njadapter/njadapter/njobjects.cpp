@@ -208,6 +208,12 @@ namespace NJA {
         NODE_SET_PROTOTYPE_METHOD(tpl, "getError", getError);
         NODE_SET_PROTOTYPE_METHOD(tpl, "getAutoMerge", getQueueAutoMerge);
         NODE_SET_PROTOTYPE_METHOD(tpl, "setAutoMerge", setQueueAutoMerge);
+        NODE_SET_PROTOTYPE_METHOD(tpl, "getAutoConn", getAutoConn);
+        NODE_SET_PROTOTYPE_METHOD(tpl, "setAutoConn", setAutoConn);
+        NODE_SET_PROTOTYPE_METHOD(tpl, "getRecvTimeout", getRecvTimeout);
+        NODE_SET_PROTOTYPE_METHOD(tpl, "setRecvTimeout", setRecvTimeout);
+        NODE_SET_PROTOTYPE_METHOD(tpl, "getConnTimeout", getConnTimeout);
+        NODE_SET_PROTOTYPE_METHOD(tpl, "setConnTimeout", setConnTimeout);
         NODE_SET_PROTOTYPE_METHOD(tpl, "getQueueName", getQueueName);
         NODE_SET_PROTOTYPE_METHOD(tpl, "setQueueName", setQueueName);
         NODE_SET_PROTOTYPE_METHOD(tpl, "getQueues", getQueues);
@@ -701,6 +707,73 @@ namespace NJA {
         }
     }
 
+    void NJSocketPool::getAutoConn(const FunctionCallbackInfo<Value>& args) {
+        Isolate* isolate = args.GetIsolate();
+        NJSocketPool* obj = ObjectWrap::Unwrap<NJSocketPool>(args.Holder());
+        if (obj->IsValid(isolate)) {
+            bool ok = obj->Handler->GetAutoConn();
+            args.GetReturnValue().Set(Boolean::New(isolate, ok));
+        }
+    }
+
+    void NJSocketPool::setAutoConn(const FunctionCallbackInfo<Value>& args) {
+        Isolate* isolate = args.GetIsolate();
+        NJSocketPool* obj = ObjectWrap::Unwrap<NJSocketPool>(args.Holder());
+        if (obj->IsValid(isolate)) {
+            auto p = args[0];
+            if (p->IsBoolean()) {
+                bool b = p->BooleanValue();
+                obj->Handler->SetAutoConn(b);
+            } else {
+                ThrowException(isolate, BOOLEAN_EXPECTED);
+            }
+        }
+    }
+
+    void NJSocketPool::getRecvTimeout(const FunctionCallbackInfo<Value>& args) {
+        Isolate* isolate = args.GetIsolate();
+        NJSocketPool* obj = ObjectWrap::Unwrap<NJSocketPool>(args.Holder());
+        if (obj->IsValid(isolate)) {
+            unsigned int timeout = obj->Handler->GetRecvTimeout();
+            args.GetReturnValue().Set(Number::New(isolate, timeout));
+        }
+    }
+
+    void NJSocketPool::setRecvTimeout(const FunctionCallbackInfo<Value>& args) {
+        Isolate* isolate = args.GetIsolate();
+        NJSocketPool* obj = ObjectWrap::Unwrap<NJSocketPool>(args.Holder());
+        if (obj->IsValid(isolate)) {
+            auto p = args[0];
+            if (p->IsUint32()) {
+                obj->Handler->SetRecvTimeout(p->Uint32Value());
+            } else {
+                ThrowException(isolate, "An unsigned int value expected for request receiving timeout in milliseconds");
+            }
+        }
+    }
+
+    void NJSocketPool::getConnTimeout(const FunctionCallbackInfo<Value>& args) {
+        Isolate* isolate = args.GetIsolate();
+        NJSocketPool* obj = ObjectWrap::Unwrap<NJSocketPool>(args.Holder());
+        if (obj->IsValid(isolate)) {
+            unsigned int timeout = obj->Handler->GetConnTimeout();
+            args.GetReturnValue().Set(Number::New(isolate, timeout));
+        }
+    }
+
+    void NJSocketPool::setConnTimeout(const FunctionCallbackInfo<Value>& args) {
+        Isolate* isolate = args.GetIsolate();
+        NJSocketPool* obj = ObjectWrap::Unwrap<NJSocketPool>(args.Holder());
+        if (obj->IsValid(isolate)) {
+            auto p = args[0];
+            if (p->IsUint32()) {
+                obj->Handler->SetConnTimeout(p->Uint32Value());
+            } else {
+                ThrowException(isolate, "An unsigned int value expected for connecting timeout in milliseconds");
+            }
+        }
+    }
+
     void NJSocketPool::getQueueName(const FunctionCallbackInfo<Value>& args) {
         Isolate* isolate = args.GetIsolate();
         NJSocketPool* obj = ObjectWrap::Unwrap<NJSocketPool>(args.Holder());
@@ -1077,6 +1150,7 @@ namespace NJA {
                 }
                 vCC.push_back(cc);
             }
+            sessions = (unsigned int) vCC.size();
         } else if (p0->IsObject()) {
             Local<Object> obj = p0->ToObject();
             SPA::ClientSide::CConnectionContext cc;

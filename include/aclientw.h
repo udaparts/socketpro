@@ -9,7 +9,6 @@
 #else
 #include <unordered_map>
 #endif
-#include <algorithm>
 #include <memory>
 #include <functional>
 
@@ -1554,6 +1553,7 @@ namespace SPA {
             typedef std::shared_ptr<TCS> PClientSocket;
             typedef std::function<bool(CSocketPool*, TCS*) > DDoSslAuthentication;
             typedef std::function<void(CSocketPool*, tagSocketPoolEvent, THandler*) > DSocketPoolEvent;
+            typedef THandler Handler;
 
         private:
 
@@ -1597,10 +1597,12 @@ namespace SPA {
             virtual ~CSocketPool() {
                 ShutdownPool();
                 CAutoLock al(g_csSpPool);
-                for (auto it = m_vPool.begin(), e = m_vPool.end(); it != e; ++it) {
-                    if (this == *it) {
-                        m_vPool.erase(it);
-                        break;
+                if (m_vPool.size()) {
+                    for (auto it = m_vPool.begin(), e = m_vPool.end(); it != e; ++it) {
+                        if (this == *it) {
+                            m_vPool.erase(it);
+                            break;
+                        }
                     }
                 }
             }
@@ -1823,7 +1825,6 @@ namespace SPA {
             }
 
             inline unsigned int GetPoolId() {
-                CAutoLock al(m_cs);
                 return m_nPoolId;
             }
 
@@ -2116,6 +2117,9 @@ namespace SPA {
 
             static CSocketPool *Seek(unsigned int poolId) {
                 CAutoLock al(g_csSpPool);
+                if (!m_vPool.size()) {
+                    return nullptr;
+                }
                 for (auto it = m_vPool.begin(), e = m_vPool.end(); it != e; ++it) {
                     if ((*it)->GetPoolId() == poolId) {
                         return *it;

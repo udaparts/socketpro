@@ -7,7 +7,7 @@ namespace PA
 {
 
     CPoolStartContext::CPoolStartContext()
-            : SvsId(0), Threads(1), AutoConn(true), AutoMerge(true),
+            : SvsId(0), Threads(1), AutoConn(true), AutoMerge(false),
             RecvTimeout(SPA::ClientSide::DEFAULT_RECV_TIMEOUT),
             ConnTimeout(SPA::ClientSide::DEFAULT_CONN_TIMEOUT),
             PhpHandler(nullptr), PoolType(Regular), m_errCode(0) {
@@ -201,26 +201,26 @@ namespace PA
             case SPA::Odbc::sidOdbc:
             case SPA::Sqlite::sidSqlite:
                 ok = PhpDb->StartSocketPool(ppCCs, threads, socketsPerThread);
-                if (!AutoMerge) {
-                    PhpDb->SetQueueAutoMerge(false);
+                if (AutoMerge) {
+                    PhpDb->SetQueueAutoMerge(true);
                 }
                 break;
             case SPA::Queue::sidQueue:
                 ok = PhpQueue->StartSocketPool(ppCCs, threads, socketsPerThread);
-                if (!AutoMerge) {
-                    PhpQueue->SetQueueAutoMerge(false);
+                if (AutoMerge) {
+                    PhpQueue->SetQueueAutoMerge(true);
                 }
                 break;
             case SPA::SFile::sidFile:
                 ok = PhpFile->StartSocketPool(ppCCs, threads, socketsPerThread);
-                if (!AutoMerge) {
-                    PhpFile->SetQueueAutoMerge(false);
+                if (AutoMerge) {
+                    PhpFile->SetQueueAutoMerge(true);
                 }
                 break;
             default:
                 ok = PhpHandler->StartSocketPool(ppCCs, threads, socketsPerThread);
-                if (!AutoMerge) {
-                    PhpHandler->SetQueueAutoMerge(false);
+                if (AutoMerge) {
+                    PhpHandler->SetQueueAutoMerge(true);
                 }
                 break;
         }

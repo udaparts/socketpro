@@ -16,9 +16,9 @@ private:
 
 public:
     static void CreateTestDB();
-    static void StartMySQLPools();
-    static std::shared_ptr<CMySQLMasterPool> Master;
-    static std::shared_ptr<CMySQLSlavePool> Slave;
+    static CSQLMasterPool<true, CMysql> *Master;
+    static CSQLMasterPool<true, CMysql>::CSlavePool *Slave;
+    static std::vector<std::wstring> FrontCachedTables;
 
 private:
     CSocketProService<CYourPeerOne> m_SSPeer;

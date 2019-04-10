@@ -434,8 +434,9 @@ class classproperty(object):
 from spa.memqueue import CUQueue, CScopeUQueue
 
 isVersion3 = (sys.version_info[0] >= 3)
+isVersion320 = (sys.version_info[0] * 100 + sys.version_info[1] * 10 >= 320)
 isVersion342 = (sys.version_info[0] * 100 + sys.version_info[1] * 10 + sys.version_info[2] >= 342)
-isAwaitable = (sys.version_info[0] * 100 + sys.version_info[1] * 10 + sys.version_info[2] >= 350)
+isAwaitable = (sys.version_info[0] * 100 + sys.version_info[1] * 10 >= 350)
 
 from spa.dataset import CTable, CDataSet
 from spa.poolbase import CMasterSlaveBase

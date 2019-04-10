@@ -2,7 +2,6 @@
 #include "stdafx.h"
 #include "streamingserver.h"
 #include "umysql_udf.h"
-#include <algorithm>
 
 bool PublishDBEvent_init(UDF_INIT *initid, UDF_ARGS *args, char *message) {
     initid->maybe_null = 0;

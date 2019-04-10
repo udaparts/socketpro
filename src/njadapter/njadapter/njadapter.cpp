@@ -102,7 +102,7 @@ namespace NJA {
 
     void InitAll(Local<Object> exports) {
         {
-            //make sure static critical sections initilized
+            //make sure static critical sections initialized
             SPA::CScopeUQueue sb;
             SPA::UINT64 index = CAsyncServiceHandler::GetCallIndex();
         }
@@ -113,6 +113,7 @@ namespace NJA {
         NODE_SET_METHOD(exports, "setWorkingDir", SetWorkingDir);
         NODE_SET_METHOD(exports, "setPassword", SetMessageQueuePassword);
         NODE_SET_METHOD(exports, "setKey", KeyAllowed);
+        NODE_SET_METHOD(exports, "setPublicKeys", KeyAllowed);
         NJQueue::Init(exports);
         NJSocketPool::Init(exports);
 

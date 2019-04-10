@@ -1,6 +1,5 @@
 
 #include "mysqlimpl.h"
-#include <algorithm>
 #ifndef NDEBUG
 #include <iostream>
 #endif

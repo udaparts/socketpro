@@ -407,43 +407,14 @@ public class CStreamingFile extends CAsyncServiceHandler {
         if (sent_buffer_size > 3 * STREAM_CHUNK_SIZE) {
             return true;
         }
-        CUQueue sb = CScopeUQueue.Lock();
-        while (index < m_vContext.size()) {
-            CContext context = (CContext) m_vContext.toArray()[index];
-            if (context.Sent) {
-                ++index;
-                return true;
-            }
-            if (context.Uploading && context.Tried && context.File == null) {
-                if (index == 0) {
-                    if (context.Upload != null) {
-                        context.Upload.invoke(this, CANNOT_OPEN_LOCAL_FILE_FOR_READING, context.ErrMsg);
-                    }
-                    m_vContext.removeFirst();
-                } else {
+        try (CScopeUQueue sb = new CScopeUQueue()) {
+            while (index < m_vContext.size()) {
+                CContext context = (CContext) m_vContext.toArray()[index];
+                if (context.Sent) {
                     ++index;
+                    return true;
                 }
-                continue;
-            }
-            if (context.Uploading) {
-                if (!context.Tried) {
-                    context.Tried = true;
-                    try {
-                        File file = new File(context.LocalFile);
-                        context.File = new RandomAccessFile(file, "r").getChannel();
-                        context.FileSize = context.File.size();
-                        sb.SetSize(0);
-                        sb.Save(context.FilePath).Save(context.Flags).Save(context.FileSize);
-                        context.QueueOk = getAttachedClientSocket().getClientQueue().StartJob();
-                        if (!SendRequest(idUpload, sb, rh, context.Discarded, se)) {
-                            CScopeUQueue.Unlock(sb);
-                            return false;
-                        }
-                    } catch (IOException err) {
-                        context.ErrMsg = err.getLocalizedMessage();
-                    }
-                }
-                if (context.File == null) {
+                if (context.Uploading && context.Tried && context.File == null) {
                     if (index == 0) {
                         if (context.Upload != null) {
                             context.Upload.invoke(this, CANNOT_OPEN_LOCAL_FILE_FOR_READING, context.ErrMsg);
@@ -453,63 +424,88 @@ public class CStreamingFile extends CAsyncServiceHandler {
                         ++index;
                     }
                     continue;
-                } else {
-                    if (sb.getMaxBufferSize() < STREAM_CHUNK_SIZE) {
-                        sb.Realloc(STREAM_CHUNK_SIZE);
-                    }
-                    byte[] buffer = sb.getIntenalBuffer();
-                    ByteBuffer bytes = ByteBuffer.wrap(buffer, 0, STREAM_CHUNK_SIZE);
-                    try {
-                        int ret = context.File.read(bytes);
-                        while (ret > 0) {
-                            if (!SendRequest(idUploading, buffer, ret, rh, context.Discarded, se)) {
-                                CScopeUQueue.Unlock(sb);
+                }
+                if (context.Uploading) {
+                    if (!context.Tried) {
+                        context.Tried = true;
+                        try {
+                            File file = new File(context.LocalFile);
+                            context.File = new RandomAccessFile(file, "r").getChannel();
+                            context.FileSize = context.File.size();
+                            sb.getUQueue().SetSize(0);
+                            sb.Save(context.FilePath).Save(context.Flags).Save(context.FileSize);
+                            context.QueueOk = getAttachedClientSocket().getClientQueue().StartJob();
+                            if (!SendRequest(idUpload, sb, rh, context.Discarded, se)) {
                                 return false;
                             }
-                            sent_buffer_size = cs.getBytesInSendingBuffer();
+                        } catch (IOException err) {
+                            context.ErrMsg = err.getLocalizedMessage();
+                        }
+                    }
+                    if (context.File == null) {
+                        if (index == 0) {
+                            if (context.Upload != null) {
+                                context.Upload.invoke(this, CANNOT_OPEN_LOCAL_FILE_FOR_READING, context.ErrMsg);
+                            }
+                            m_vContext.removeFirst();
+                        } else {
+                            ++index;
+                        }
+                        continue;
+                    } else {
+                        if (sb.getUQueue().getMaxBufferSize() < STREAM_CHUNK_SIZE) {
+                            sb.getUQueue().Realloc(STREAM_CHUNK_SIZE);
+                        }
+                        byte[] buffer = sb.getUQueue().getIntenalBuffer();
+                        ByteBuffer bytes = ByteBuffer.wrap(buffer, 0, STREAM_CHUNK_SIZE);
+                        try {
+                            int ret = context.File.read(bytes);
+                            while (ret > 0) {
+                                if (!SendRequest(idUploading, buffer, ret, rh, context.Discarded, se)) {
+                                    return false;
+                                }
+                                sent_buffer_size = cs.getBytesInSendingBuffer();
+                                if (ret < STREAM_CHUNK_SIZE) {
+                                    break;
+                                }
+                                if (sent_buffer_size >= 5 * STREAM_CHUNK_SIZE) {
+                                    break;
+                                }
+                                bytes = ByteBuffer.wrap(buffer, 0, STREAM_CHUNK_SIZE);
+                                ret = context.File.read(bytes);
+                            }
                             if (ret < STREAM_CHUNK_SIZE) {
+                                context.Sent = true;
+                                if (!SendRequest(idUploadCompleted, rh, context.Discarded, se)) {
+                                    return false;
+                                }
+                                if (context.QueueOk) {
+                                    getAttachedClientSocket().getClientQueue().EndJob();
+                                    context.QueueOk = false;
+                                }
+                            }
+                            if (sent_buffer_size >= 4 * STREAM_CHUNK_SIZE) {
                                 break;
                             }
-                            if (sent_buffer_size >= 5 * STREAM_CHUNK_SIZE) {
-                                break;
-                            }
-                            bytes = ByteBuffer.wrap(buffer, 0, STREAM_CHUNK_SIZE);
-                            ret = context.File.read(bytes);
+                        } catch (IOException err) {
                         }
-                        if (ret < STREAM_CHUNK_SIZE) {
-                            context.Sent = true;
-                            if (!SendRequest(idUploadCompleted, rh, context.Discarded, se)) {
-                                CScopeUQueue.Unlock(sb);
-                                return false;
-                            }
-                            if (context.QueueOk) {
-                                getAttachedClientSocket().getClientQueue().EndJob();
-                                context.QueueOk = false;
-                            }
-                        }
-                        if (sent_buffer_size >= 4 * STREAM_CHUNK_SIZE) {
-                            break;
-                        }
-                    } catch (IOException err) {
+                    }
+                } else {
+                    sb.getUQueue().SetSize(0);
+                    sb.Save(context.FilePath).Save(context.Flags);
+                    if (!SendRequest(idDownload, sb, rh, context.Discarded, se)) {
+                        return false;
+                    }
+                    context.Tried = true;
+                    context.Sent = true;
+                    sent_buffer_size = cs.getBytesInSendingBuffer();
+                    if (sent_buffer_size > 3 * STREAM_CHUNK_SIZE) {
+                        break;
                     }
                 }
-            } else {
-                sb.SetSize(0);
-                sb.Save(context.FilePath).Save(context.Flags);
-                if (!SendRequest(idDownload, sb, rh, context.Discarded, se)) {
-                    CScopeUQueue.Unlock(sb);
-                    return false;
-                }
-                context.Tried = true;
-                context.Sent = true;
-                sent_buffer_size = cs.getBytesInSendingBuffer();
-                if (sent_buffer_size > 3 * STREAM_CHUNK_SIZE) {
-                    break;
-                }
+                ++index;
             }
-            ++index;
         }
-        CScopeUQueue.Unlock(sb);
         return true;
     }
 }

@@ -29,13 +29,13 @@ public abstract class CCacheBasePeer extends CClientPeer {
     protected abstract CachedTableResult GetCachedTables(String defaultDb, int flags, long index);
 
     public boolean SendMeta(CDBColumnInfoArray meta, long index) {
-        CUQueue q = CScopeUQueue.Lock();
-        meta.SaveTo(q);
-        q.Save(index);
-        //A client expects a rowset meta data and call index
-        int ret = SendResult(DB_CONSTS.idRowsetHeader, q);
-        CScopeUQueue.Unlock(q);
-        return (ret != REQUEST_CANCELED && ret != SOCKET_NOT_FOUND);
+        try (CScopeUQueue q = new CScopeUQueue()) {
+            meta.SaveTo(q.getUQueue());
+            q.Save(index);
+            //A client expects a rowset meta data and call index
+            int ret = SendResult(DB_CONSTS.idRowsetHeader, q);
+            return (ret != REQUEST_CANCELED && ret != SOCKET_NOT_FOUND);
+        }
     }
 
     protected boolean SendRows(CUQueue q, boolean transferring) {

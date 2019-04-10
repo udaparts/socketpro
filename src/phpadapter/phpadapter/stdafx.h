@@ -58,11 +58,10 @@
 #include "../../../include/mysql/umysql.h"
 #include "../../../include/sqlite/usqlite.h"
 #include "../../../include/odbc/uodbc.h"
-#include <algorithm>
-#include "rapidjson/include/rapidjson/filereadstream.h"
-#include "rapidjson/include/rapidjson/document.h"
-#include "rapidjson/include/rapidjson/stringbuffer.h"
-#include "rapidjson/include/rapidjson/writer.h"
+#include "../../../include/3rdparty/rapidjson/include/rapidjson/filereadstream.h"
+#include "../../../include/3rdparty/rapidjson/include/rapidjson/document.h"
+#include "../../../include/3rdparty/rapidjson/include/rapidjson/stringbuffer.h"
+#include "../../../include/3rdparty/rapidjson/include/rapidjson/writer.h"
 
 namespace PA {
 
@@ -184,6 +183,5 @@ namespace PA {
 #define KEY_HOST				"Host"
 #define KEY_ANY_DATA			"AnyData"
 #define KEY_KEYS_ALLOWED		"KeysAllowed"
-
 
 #endif

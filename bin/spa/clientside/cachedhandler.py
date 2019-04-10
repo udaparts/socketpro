@@ -9,7 +9,7 @@ class CCachedBaseHandler(CAsyncServiceHandler):
     ONE_MEGA_BYTES = 0x100000
     BLOB_LENGTH_NOT_AVAILABLE = 0xffffffe0
 
-    def __init__(self, serviceId):
+    def __init__(self, serviceId=0):
         super(CCachedBaseHandler, self).__init__(serviceId)
         self._csCache = threading.Lock()
         self._mapRowset = {}
@@ -114,8 +114,8 @@ class CCachedBaseHandler(CAsyncServiceHandler):
                 vt = self._Blob.LoadObject()
                 self._vData.append(vt)
         elif reqId == DB_CONSTS.idGetCachedTables:
-            res = mc.LoadInt()
             self._ms = mc.LoadInt()
+            res = mc.LoadInt()
             err_msg = mc.LoadString()
             r = None
             with self._csCache:

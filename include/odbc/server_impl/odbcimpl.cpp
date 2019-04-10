@@ -1,6 +1,5 @@
 
 #include "odbcimpl.h"
-#include <algorithm>
 #include <sstream>
 #ifndef NDEBUG
 #include <iostream>

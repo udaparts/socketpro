@@ -210,12 +210,11 @@ public class CAsyncQueue extends CAsyncServiceHandler {
         if (q == null || q.getSize() < 8) {
             throw new java.lang.IllegalArgumentException("Bad operation");
         }
-        CUQueue b = CScopeUQueue.Lock();
-        b.Save(key).Push(q.getIntenalBuffer(), q.getHeadPosition(), q.getSize());
-        q.SetSize(0);
-        boolean ok = SendRequest(idEnqueueBatch, b, GetRH(e), discarded);
-        CScopeUQueue.Unlock(b);
-        return ok;
+        try (CScopeUQueue b = new CScopeUQueue()) {
+            b.Save(key).Push(q.getIntenalBuffer(), q.getHeadPosition(), q.getSize());
+            q.SetSize(0);
+            return SendRequest(idEnqueueBatch, b, GetRH(e), discarded);
+        }
     }
 
     public boolean EnqueueBatch(byte[] key, CUQueue q, DEnqueue e) {
@@ -250,11 +249,10 @@ public class CAsyncQueue extends CAsyncServiceHandler {
         if (key == null) {
             key = new byte[0];
         }
-        CUQueue q = CScopeUQueue.Lock();
-        q.Save(key).Save(idMessage).Push(bytes);
-        boolean ok = SendRequest(idEnqueue, q, GetRH(e), discarded);
-        CScopeUQueue.Unlock(q);
-        return ok;
+        try (CScopeUQueue q = new CScopeUQueue()) {
+            q.Save(key).Save(idMessage).Push(bytes);
+            return SendRequest(idEnqueue, q, GetRH(e), discarded);
+        }
     }
 
     public boolean Enqueue(byte[] key, short idMessage, CUQueue q) {
@@ -269,11 +267,10 @@ public class CAsyncQueue extends CAsyncServiceHandler {
         if (key == null) {
             key = new byte[0];
         }
-        CUQueue sq = CScopeUQueue.Lock();
-        sq.Save(key).Save(idMessage).Push(q.getIntenalBuffer(), q.getHeadPosition(), q.getSize());
-        boolean ok = SendRequest(idEnqueue, sq, GetRH(e), discarded);
-        CScopeUQueue.Unlock(sq);
-        return ok;
+        try (CScopeUQueue sq = new CScopeUQueue()) {
+            sq.Save(key).Save(idMessage).Push(q.getIntenalBuffer(), q.getHeadPosition(), q.getSize());
+            return SendRequest(idEnqueue, sq, GetRH(e), discarded);
+        }
     }
 
     public boolean Enqueue(byte[] key, short idMessage, CScopeUQueue q) {
@@ -289,11 +286,10 @@ public class CAsyncQueue extends CAsyncServiceHandler {
             key = new byte[0];
         }
         CUQueue src = q.getUQueue();
-        CUQueue sq = CScopeUQueue.Lock();
-        sq.Save(key).Save(idMessage).Push(src.getIntenalBuffer(), src.getHeadPosition(), src.getSize());
-        boolean ok = SendRequest(idEnqueue, sq, GetRH(e), discarded);
-        CScopeUQueue.Unlock(sq);
-        return ok;
+        try (CScopeUQueue sq = new CScopeUQueue()) {
+            sq.Save(key).Save(idMessage).Push(src.getIntenalBuffer(), src.getHeadPosition(), src.getSize());
+            return SendRequest(idEnqueue, sq, GetRH(e), discarded);
+        }
     }
 
     static private final java.nio.charset.Charset UTF8_CHARSET = java.nio.charset.Charset.forName("UTF-8");
@@ -341,20 +337,18 @@ public class CAsyncQueue extends CAsyncServiceHandler {
         if (cq.getAvailable()) {
             cq.StartJob();
         }
-        CUQueue sq = CScopeUQueue.Lock();
-        sq.Save(key);
-        boolean ok = SendRequest(idStartTrans, sq, new CAsyncServiceHandler.DAsyncResultHandler() {
-            @Override
-            public void invoke(CAsyncResult ar) {
-                if (qt != null) {
-                    qt.invoke((CAsyncQueue) ar.getAsyncServiceHandler(), ar.LoadInt());
-                } else {
-                    ar.getUQueue().SetSize(0);
+        try (CScopeUQueue sq = new CScopeUQueue()) {
+            return SendRequest(idStartTrans, sq.Save(key), new CAsyncServiceHandler.DAsyncResultHandler() {
+                @Override
+                public void invoke(CAsyncResult ar) {
+                    if (qt != null) {
+                        qt.invoke((CAsyncQueue) ar.getAsyncServiceHandler(), ar.LoadInt());
+                    } else {
+                        ar.getUQueue().SetSize(0);
+                    }
                 }
-            }
-        }, discarded);
-        CScopeUQueue.Unlock(sq);
-        return ok;
+            }, discarded);
+        }
     }
 
     /**
@@ -403,28 +397,27 @@ public class CAsyncQueue extends CAsyncServiceHandler {
      * @return true for sending the request successfully, and false for failure
      */
     public boolean EndQueueTrans(boolean rollback, final DQueueTrans qt, DDiscarded discarded) {
-        CUQueue sq = CScopeUQueue.Lock();
-        sq.Save(rollback);
-        boolean ok = SendRequest(idEndTrans, sq, new CAsyncServiceHandler.DAsyncResultHandler() {
-            @Override
-            public void invoke(CAsyncResult ar) {
-                if (qt != null) {
-                    qt.invoke((CAsyncQueue) ar.getAsyncServiceHandler(), ar.LoadInt());
+        try (CScopeUQueue sq = new CScopeUQueue()) {
+            boolean ok = SendRequest(idEndTrans, sq.Save(rollback), new CAsyncServiceHandler.DAsyncResultHandler() {
+                @Override
+                public void invoke(CAsyncResult ar) {
+                    if (qt != null) {
+                        qt.invoke((CAsyncQueue) ar.getAsyncServiceHandler(), ar.LoadInt());
+                    } else {
+                        ar.getUQueue().SetSize(0);
+                    }
+                }
+            }, discarded);
+            IClientQueue cq = this.getAttachedClientSocket().getClientQueue();
+            if (cq.getAvailable()) {
+                if (rollback) {
+                    cq.AbortJob();
                 } else {
-                    ar.getUQueue().SetSize(0);
+                    cq.EndJob();
                 }
             }
-        }, discarded);
-        CScopeUQueue.Unlock(sq);
-        IClientQueue cq = this.getAttachedClientSocket().getClientQueue();
-        if (cq.getAvailable()) {
-            if (rollback) {
-                cq.AbortJob();
-            } else {
-                cq.EndJob();
-            }
+            return ok;
         }
-        return ok;
     }
 
     /**
@@ -518,20 +511,19 @@ public class CAsyncQueue extends CAsyncServiceHandler {
         if (key == null) {
             key = new byte[0];
         }
-        CUQueue sq = CScopeUQueue.Lock();
-        sq.Save(key).Save(permanent);
-        boolean ok = SendRequest(idClose, sq, new CAsyncServiceHandler.DAsyncResultHandler() {
-            @Override
-            public void invoke(CAsyncResult ar) {
-                if (c != null) {
-                    c.invoke((CAsyncQueue) ar.getAsyncServiceHandler(), ar.LoadInt());
-                } else {
-                    ar.getUQueue().SetSize(0);
+        try (CScopeUQueue sq = new CScopeUQueue()) {
+            sq.Save(key).Save(permanent);
+            return SendRequest(idClose, sq, new CAsyncServiceHandler.DAsyncResultHandler() {
+                @Override
+                public void invoke(CAsyncResult ar) {
+                    if (c != null) {
+                        c.invoke((CAsyncQueue) ar.getAsyncServiceHandler(), ar.LoadInt());
+                    } else {
+                        ar.getUQueue().SetSize(0);
+                    }
                 }
-            }
-        }, discarded);
-        CScopeUQueue.Unlock(sq);
-        return ok;
+            }, discarded);
+        }
     }
 
     /**
@@ -592,22 +584,21 @@ public class CAsyncQueue extends CAsyncServiceHandler {
         if (key == null) {
             key = new byte[0];
         }
-        CUQueue sq = CScopeUQueue.Lock();
-        sq.Save(key).Save(option.getValue());
-        boolean ok = SendRequest(idFlush, new CAsyncServiceHandler.DAsyncResultHandler() {
-            @Override
-            public void invoke(CAsyncResult ar) {
-                if (f != null) {
-                    long messageCount = ar.LoadLong();
-                    long fileSize = ar.LoadLong();
-                    f.invoke((CAsyncQueue) ar.getAsyncServiceHandler(), messageCount, fileSize);
-                } else {
-                    ar.getUQueue().SetSize(0);
+        try (CScopeUQueue sq = new CScopeUQueue()) {
+            sq.Save(key).Save(option.getValue());
+            return SendRequest(idFlush, new CAsyncServiceHandler.DAsyncResultHandler() {
+                @Override
+                public void invoke(CAsyncResult ar) {
+                    if (f != null) {
+                        long messageCount = ar.LoadLong();
+                        long fileSize = ar.LoadLong();
+                        f.invoke((CAsyncQueue) ar.getAsyncServiceHandler(), messageCount, fileSize);
+                    } else {
+                        ar.getUQueue().SetSize(0);
+                    }
                 }
-            }
-        }, discarded);
-        CScopeUQueue.Unlock(sq);
-        return ok;
+            }, discarded);
+        }
     }
 
     /**
@@ -675,11 +666,10 @@ public class CAsyncQueue extends CAsyncServiceHandler {
                 m_dDequeue = null;
             }
         }
-        CUQueue sq = CScopeUQueue.Lock();
-        sq.Save(key).Save(timeout);
-        boolean ok = SendRequest(idDequeue, sq, rh, discarded);
-        CScopeUQueue.Unlock(sq);
-        return ok;
+        try (CScopeUQueue sq = new CScopeUQueue()) {
+            sq.Save(key).Save(timeout);
+            return SendRequest(idDequeue, sq, rh, discarded);
+        }
     }
 
     @Override

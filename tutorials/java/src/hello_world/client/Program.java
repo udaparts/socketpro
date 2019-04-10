@@ -35,10 +35,12 @@ public class Program {
             System.out.println(ret);
         });
         ok = hw.SendRequest(hwConst.idSleepHelloWorld, new CScopeUQueue().Save(5000), null);
-        UFuture<CMyStruct> f = new UFuture<>();
+        final UFuture<CMyStruct> f = new UFuture<>();
         try {
             ok = hw.SendRequest(hwConst.idEchoHelloWorld, new CScopeUQueue().Save(msOriginal), (ar) -> {
                 f.set(ar.Load(CMyStruct.class));
+            }, (ash, canceled) -> {
+                f.setCanceled();
             });
             ms = f.get();
             assert (ms == msOriginal);

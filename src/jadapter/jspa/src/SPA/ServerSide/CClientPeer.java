@@ -46,11 +46,11 @@ public class CClientPeer extends CSocketPeer {
             } else {
                 len = (int) Groups.length;
             }
-            SPA.CScopeUQueue su = new SPA.CScopeUQueue();
-            SPA.CUQueue q = su.getUQueue();
-            q.Save(Message);
-            return ServerCoreLoader.Speak(m_sp.getHandle(), q.getIntenalBuffer(), q.GetSize(), Groups, len);
-
+            try (SPA.CScopeUQueue su = new SPA.CScopeUQueue()) {
+                SPA.CUQueue q = su.getUQueue();
+                q.Save(Message);
+                return ServerCoreLoader.Speak(m_sp.getHandle(), q.getIntenalBuffer(), q.GetSize(), Groups, len);
+            }
         }
 
         @Override
@@ -72,10 +72,11 @@ public class CClientPeer extends CSocketPeer {
 
         @Override
         public boolean SendUserMessage(Object Message, String UserId) {
-            SPA.CScopeUQueue su = new SPA.CScopeUQueue();
-            SPA.CUQueue q = su.getUQueue();
-            q.Save(Message);
-            return ServerCoreLoader.SendUserMessage(m_sp.getHandle(), UserId, q.getIntenalBuffer(), q.GetSize());
+            try (SPA.CScopeUQueue su = new SPA.CScopeUQueue()) {
+                SPA.CUQueue q = su.getUQueue();
+                q.Save(Message);
+                return ServerCoreLoader.SendUserMessage(m_sp.getHandle(), UserId, q.getIntenalBuffer(), q.GetSize());
+            }
         }
     }
 

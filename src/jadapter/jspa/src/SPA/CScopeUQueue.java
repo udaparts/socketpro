@@ -2,12 +2,17 @@ package SPA;
 
 import java.util.ArrayDeque;
 
-public final class CScopeUQueue {
+public final class CScopeUQueue implements AutoCloseable {
 
     @Override
     protected void finalize() throws Throwable {
         Clean();
         super.finalize();
+    }
+
+    @Override
+    public void close() {
+        Clean();
     }
 
     public static long getMemoryConsumed() {
@@ -95,119 +100,119 @@ public final class CScopeUQueue {
         return m_UQueue;
     }
 
-    public final CScopeUQueue Save(Byte b) {
+    public final CUQueue Save(Byte b) {
         m_UQueue.Save(b);
-        return this;
+        return m_UQueue;
     }
 
-    public final CScopeUQueue Save(Short s) {
+    public final CUQueue Save(Short s) {
         m_UQueue.Save(s);
-        return this;
+        return m_UQueue;
     }
 
-    public final CScopeUQueue Save(Integer i) {
+    public final CUQueue Save(Integer i) {
         m_UQueue.Save(i);
-        return this;
+        return m_UQueue;
     }
 
-    public final CScopeUQueue Save(Long i) {
+    public final CUQueue Save(Long i) {
         m_UQueue.Save(i);
-        return this;
+        return m_UQueue;
     }
 
-    public final CScopeUQueue Save(Float f) {
+    public final CUQueue Save(Float f) {
         m_UQueue.Save(f);
-        return this;
+        return m_UQueue;
     }
 
-    public final CScopeUQueue Save(Double d) {
+    public final CUQueue Save(Double d) {
         m_UQueue.Save(d);
-        return this;
+        return m_UQueue;
     }
 
-    public final CScopeUQueue Save(Boolean b) {
+    public final CUQueue Save(Boolean b) {
         m_UQueue.Save(b);
-        return this;
+        return m_UQueue;
     }
 
-    public final <T extends IUSerializer> CScopeUQueue Save(T s) {
+    public final <T extends IUSerializer> CUQueue Save(T s) {
         s.SaveTo(m_UQueue);
-        return this;
+        return m_UQueue;
     }
 
-    public final CScopeUQueue Save(int n) {
+    public final CUQueue Save(int n) {
         m_UQueue.Save(n);
-        return this;
+        return m_UQueue;
     }
 
-    public final CScopeUQueue Save(short n) {
+    public final CUQueue Save(short n) {
         m_UQueue.Save(n);
-        return this;
+        return m_UQueue;
     }
 
-    public final CScopeUQueue Save(char c) {
+    public final CUQueue Save(char c) {
         m_UQueue.Save(c);
-        return this;
+        return m_UQueue;
     }
 
-    public final CScopeUQueue Save(byte n) {
+    public final CUQueue Save(byte n) {
         m_UQueue.Save(n);
-        return this;
+        return m_UQueue;
     }
 
-    public final CScopeUQueue Save(boolean b) {
+    public final CUQueue Save(boolean b) {
         m_UQueue.Save(b);
-        return this;
+        return m_UQueue;
     }
 
-    public final CScopeUQueue Save(long n) {
+    public final CUQueue Save(long n) {
         m_UQueue.Save(n);
-        return this;
+        return m_UQueue;
     }
 
-    public final CScopeUQueue Save(float f) {
+    public final CUQueue Save(float f) {
         m_UQueue.Save(f);
-        return this;
+        return m_UQueue;
     }
 
-    public final CScopeUQueue Save(double d) {
+    public final CUQueue Save(double d) {
         m_UQueue.Save(d);
-        return this;
+        return m_UQueue;
     }
 
-    public final CScopeUQueue Save(String s) {
+    public final CUQueue Save(String s) {
         m_UQueue.Save(s);
-        return this;
+        return m_UQueue;
     }
 
-    public final CScopeUQueue Save(byte[] bytes) {
+    public final CUQueue Save(byte[] bytes) {
         m_UQueue.Save(bytes);
-        return this;
+        return m_UQueue;
     }
 
-    public final CScopeUQueue Save(java.util.UUID id) throws IllegalArgumentException {
+    public final CUQueue Save(java.util.UUID id) {
         m_UQueue.Save(id);
-        return this;
+        return m_UQueue;
     }
 
-    public final CScopeUQueue Save(Object obj) throws UnsupportedOperationException {
+    public final CUQueue Save(Object obj) {
         m_UQueue.Save(obj);
-        return this;
+        return m_UQueue;
     }
 
-    public final CScopeUQueue Save(CUQueue q) {
+    public final CUQueue Save(CUQueue q) {
         m_UQueue.Save(q);
-        return this;
+        return m_UQueue;
     }
 
-    public final CScopeUQueue Save(java.math.BigDecimal dec) throws IllegalArgumentException {
+    public final CUQueue Save(java.math.BigDecimal dec) {
         m_UQueue.Save(dec);
-        return this;
+        return m_UQueue;
     }
 
-    public final CScopeUQueue Save(java.util.Date dt) throws IllegalArgumentException {
+    public final CUQueue Save(java.util.Date dt) {
         m_UQueue.Save(dt);
-        return this;
+        return m_UQueue;
     }
 
     private CUQueue m_UQueue = Lock();

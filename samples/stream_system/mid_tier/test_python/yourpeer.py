@@ -4,13 +4,11 @@ from sharedstruct import *
 from spa import CScopeUQueue
 from spa.udb import *
 from spa.clientside import UFuture
-from config import CConfig
-from spa.clientside import CAsyncDBHandler
-
 
 class CYourPeer(CCacheBasePeer):
     Master = None
     Slave = None
+    FrontCachedTables = ['sakila.actor', 'sakila.language', 'sakila.country', 'sakila.film_actor']
 
     def OnFastRequestArrive(self, reqId, len):
         if reqId == idQueryMaxMinAvgs:
@@ -260,17 +258,16 @@ class CYourPeer(CCacheBasePeer):
         ms = tagManagementSystem.msUnknown
         res = 0
         errMsg = ''
-        config = CConfig.getConfig()
         redo = 1
         while redo > 0:
             redo = 0  # disable redo
             if (flags & DB_CONSTS.ENABLE_TABLE_UPDATE_MESSAGES) == DB_CONSTS.ENABLE_TABLE_UPDATE_MESSAGES:
                 if not self.Push.Subscribe([DB_CONSTS.CACHE_UPDATE_CHAT_GROUP_ID, DB_CONSTS.STREAMING_SQL_CHAT_GROUP_ID]):
                     errMsg = 'Failed in subscribing for table events' # warning message
-            if len(config.m_vFrontCachedTable) == 0 or flags == 0:
+            if len(CYourPeer.FrontCachedTables) == 0 or flags == 0:
                 break
             sql = ''
-            v = config.m_vFrontCachedTable
+            v = CYourPeer.FrontCachedTables
             for s in v:
                 if (len(sql)) > 0:
                     sql += ';'

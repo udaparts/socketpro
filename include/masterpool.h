@@ -21,7 +21,6 @@ namespace SPA {
         }
         typedef TCache CDataSet;
         TCache Cache; //real-time cache accessible from your code
-        typedef ClientSide::CCachedBaseHandler<THandler::CachedServiceId> CHandler;
         typedef CMasterSlaveBase < THandler, TCS > CSlavePool;
 
     protected:
@@ -147,7 +146,7 @@ namespace SPA {
                 unsigned int port;
                 std::string ip = pHandler->GetAttachedClientSocket()->GetPeerName(&port);
                         ip += ":";
-                        ip += std::to_string(port);
+                        ip += std::to_string((UINT64)port);
                         this->m_cache.Set(ip.c_str(), pHandler->GetDBManagementSystem());
                         std::string host = pHandler->GetAttachedClientSocket()->GetConnectionContext().Host;
                         std::wstring s = Utilities::ToWide(host.c_str(), host.size());

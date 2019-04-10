@@ -2,7 +2,6 @@
 
 #include "scloader.h"
 #include "aserverw.h"
-#include <algorithm>
 
 namespace SPA
 {

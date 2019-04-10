@@ -2,6 +2,7 @@
 #define __UCOMM_SHARED_MEMORY_QUEUE_H_
 
 #include "commutil.h"
+#include <algorithm>
 
 #ifdef WIN32_64	
 

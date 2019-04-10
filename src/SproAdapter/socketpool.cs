@@ -831,6 +831,9 @@ namespace SocketProAdapter
                             ClientCoreLoader.SetConnTimeout(h, m_connTimeout);
                             ClientCoreLoader.SetAutoConn(h, (byte)(m_autoConn ? 1 : 0));
                             handler = new THandler();
+#if SP_MANAGER
+                            handler.Pool = this;
+#endif
                             if (handler.SvsID == 0)
                                 handler.m_nServiceId = m_ServiceId;
                             if (handler.SvsID <= SocketProAdapter.BaseServiceID.sidStartup)

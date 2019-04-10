@@ -1,6 +1,5 @@
 
 #include "asyncqueueimpl.h"
-#include <algorithm>
 #ifndef NDEBUG
 #include <iostream>
 #endif

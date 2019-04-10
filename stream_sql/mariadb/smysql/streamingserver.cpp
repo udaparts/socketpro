@@ -1,6 +1,5 @@
 
 #include "streamingserver.h"
-#include <algorithm>
 #include "../../../include/scloader.h"
 #include "config.h"
 

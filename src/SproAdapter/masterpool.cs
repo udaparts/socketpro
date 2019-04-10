@@ -24,6 +24,24 @@ namespace SocketProAdapter
             }
         }
 
+        public CMasterPool(string defaultDB, bool midTier, uint recvTimeout, bool autoConn, uint connTimeout, uint svsId)
+            : base(defaultDB, recvTimeout, autoConn, connTimeout, svsId)
+        {
+            m_bMidTier = midTier;
+        }
+
+        public CMasterPool(string defaultDB, bool midTier, uint recvTimeout, bool autoConn, uint connTimeout)
+            : base(defaultDB, recvTimeout, autoConn, connTimeout)
+        {
+            m_bMidTier = midTier;
+        }
+
+        public CMasterPool(string defaultDB, bool midTier, uint recvTimeout, bool autoConn)
+            : base(defaultDB, recvTimeout, autoConn)
+        {
+            m_bMidTier = midTier;
+        }
+
         public CMasterPool(string defaultDB, bool midTier, uint recvTimeout)
             : base(defaultDB, recvTimeout)
         {
@@ -217,6 +235,18 @@ namespace SocketProAdapter
 
         public class CSlavePool : CMasterSlaveBase<THandler>
         {
+            public CSlavePool(string defaultDb, uint recvTimeout, bool autoConn, uint connTimeout, uint svsId)
+                : base(defaultDb, recvTimeout, autoConn, connTimeout, svsId)
+            {
+            }
+            public CSlavePool(string defaultDb, uint recvTimeout, bool autoConn, uint connTimeout)
+                : base(defaultDb, recvTimeout, autoConn, connTimeout)
+            {
+            }
+            public CSlavePool(string defaultDb, uint recvTimeout, bool autoConn)
+                : base(defaultDb, recvTimeout, autoConn)
+            {
+            }
             public CSlavePool(string defaultDb, uint recvTimeout)
                 : base(defaultDb, recvTimeout)
             {

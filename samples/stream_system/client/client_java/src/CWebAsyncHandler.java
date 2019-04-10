@@ -15,7 +15,6 @@ public class CWebAsyncHandler extends CCachedBaseHandler {
     }
 
     public boolean QueryPaymentMaxMinAvgs(String filter, DMaxMinAvg mma, DDiscarded discarded) {
-        CUQueue q = CScopeUQueue.Lock();
         DAsyncResultHandler arh = (ar) -> {
             int res = ar.LoadInt();
             String errMsg = ar.LoadString();
@@ -24,10 +23,10 @@ public class CWebAsyncHandler extends CCachedBaseHandler {
                 mma.invoke(m_m_a, res, errMsg);
             }
         };
-        q.Save(filter);
-        boolean ok = SendRequest(Consts.idQueryMaxMinAvgs, q, arh, discarded);
-        CScopeUQueue.Unlock(q);
-        return ok;
+        try (CScopeUQueue q = new CScopeUQueue()) {
+            q.Save(filter);
+            return SendRequest(Consts.idQueryMaxMinAvgs, q, arh, discarded);
+        }
     }
 
     public boolean QueryPaymentMaxMinAvgs(String filter, DMaxMinAvg mma) {
@@ -63,7 +62,6 @@ public class CWebAsyncHandler extends CCachedBaseHandler {
         if (vData == null) {
             vData = new CDBVariantArray();
         }
-        CUQueue q = CScopeUQueue.Lock();
         DAsyncResultHandler arh = (ar) -> {
             int res = ar.LoadInt();
             String errMsg = ar.LoadString();
@@ -72,10 +70,10 @@ public class CWebAsyncHandler extends CCachedBaseHandler {
                 ue.invoke(res, errMsg, vId);
             }
         };
-        vData.SaveTo(q);
-        boolean ok = SendRequest(Consts.idUploadEmployees, q, arh, discarded);
-        CScopeUQueue.Unlock(q);
-        return ok;
+        try (CScopeUQueue q = new CScopeUQueue()) {
+            vData.SaveTo(q.getUQueue());
+            return SendRequest(Consts.idUploadEmployees, q, arh, discarded);
+        }
     }
 
     public boolean UploadEmployees(CDBVariantArray vData, DUploadEmployees ue) {
@@ -88,7 +86,6 @@ public class CWebAsyncHandler extends CCachedBaseHandler {
     }
 
     public boolean GetRentalDateTimes(long rentalId, DRentalDateTimes rdt, DDiscarded discarded) {
-        CUQueue q = CScopeUQueue.Lock();
         DAsyncResultHandler arh = (ar) -> {
             CRentalDateTimes dates = ar.Load(CRentalDateTimes.class);
             int res = ar.LoadInt();
@@ -97,10 +94,10 @@ public class CWebAsyncHandler extends CCachedBaseHandler {
                 rdt.invoke(dates, res, errMsg);
             }
         };
-        q.Save(rentalId);
-        boolean ok = SendRequest(Consts.idGetRentalDateTimes, q, arh, discarded);
-        CScopeUQueue.Unlock(q);
-        return ok;
+        try (CScopeUQueue q = new CScopeUQueue()) {
+            q.Save(rentalId);
+            return SendRequest(Consts.idGetRentalDateTimes, q, arh, discarded);
+        }
     }
 
     public boolean GetRentalDateTimes(long rentalId, DRentalDateTimes rdt) {

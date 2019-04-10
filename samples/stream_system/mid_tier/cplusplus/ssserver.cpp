@@ -1,61 +1,11 @@
-
 #include "stdafx.h"
 #include "ssserver.h"
-#include "config.h"
 
-std::shared_ptr<CMySQLMasterPool> CYourServer::Master;
-std::shared_ptr<CMySQLSlavePool> CYourServer::Slave;
-
-void CYourServer::StartMySQLPools() {
-    CYourServer::Master.reset(new CMySQLMasterPool(g_config.m_master_default_db.c_str()));
-
-    //These case-sensitivities depends on your DB running platform and sensitivity settings.
-    //All of them are false or case-insensitive by default
-    CYourServer::Master->Cache.SetFieldNameCaseSensitive(false);
-    CYourServer::Master->Cache.SetTableNameCaseSensitive(false);
-    CYourServer::Master->Cache.SetDBNameCaseSensitive(false);
-
-    if (g_config.m_master_queue_name.size())
-        CYourServer::Master->SetQueueName(g_config.m_master_queue_name.c_str());
-    //start master pool for cache and update accessing
-    bool ok = CYourServer::Master->StartSocketPool(g_config.m_ccMaster, (unsigned int) g_config.m_nMasterSessions, 1); //one thread enough
-
-    //compute threads and sockets_per_thread
-    unsigned int threads = (unsigned int) g_config.m_slave_threads;
-    unsigned int sockets_per_thread = (unsigned int) (g_config.m_vccSlave.size() * g_config.m_sessions_per_host);
-    CYourServer::Slave.reset(new CMySQLSlavePool(g_config.m_slave_default_db.c_str()));
-
-    typedef SPA::ClientSide::CConnectionContext* PCConnectionContext;
-
-    //prepare connection contexts for slave pool
-    PCConnectionContext *ppCCs = new PCConnectionContext[threads];
-    for (unsigned int t = 0; t < threads; ++t) {
-        SPA::ClientSide::CConnectionContext *pcc = new SPA::ClientSide::CConnectionContext[sockets_per_thread];
-        ppCCs[t] = pcc;
-        for (unsigned int j = 0; j < g_config.m_vccSlave.size(); ++j) {
-            for (unsigned int n = 0; n < g_config.m_sessions_per_host; ++n) {
-                pcc[j * g_config.m_sessions_per_host + n] = g_config.m_vccSlave[j];
-            }
-        }
-    }
-
-    if (g_config.m_slave_queue_name.size())
-        CYourServer::Slave->SetQueueName(g_config.m_slave_queue_name.c_str());
-    //start slave pool for query accessing
-    ok = CYourServer::Slave->StartSocketPool(ppCCs, threads, sockets_per_thread);
-
-    //wait until all data of cached tables are brought from backend database server to this middle server application cache
-    ok = CYourServer::Master->GetAsyncHandlers()[0]->WaitAll();
-
-    for (unsigned int t = 0; t < threads; ++t) {
-        SPA::ClientSide::CConnectionContext *pcc = ppCCs[t];
-        delete[]pcc;
-    }
-    delete []ppCCs;
-}
+CSQLMasterPool<true, CMysql>* CYourServer::Master = nullptr;
+CSQLMasterPool<true, CMysql>::CSlavePool* CYourServer::Slave = nullptr;
+std::vector<std::wstring> CYourServer::FrontCachedTables;
 
 CYourServer::CYourServer(int nParam) : CSocketProServer(nParam) {
-
 }
 
 bool CYourServer::OnIsPermitted(USocket_Server_Handle h, const wchar_t* userId, const wchar_t *password, unsigned int serviceId) {
@@ -93,25 +43,9 @@ void CYourServer::SetChatGroups() {
 }
 
 void CYourServer::CreateTestDB() {
-    bool ok;
-#if defined(_UMYSQL_SOCKETPRO_H_)
-    std::wstring sql = L"CREATE DATABASE IF NOT EXISTS mysample character set utf8 collate utf8_general_ci;USE mysample;CREATE TABLE IF NOT EXISTS COMPANY(ID BIGINT PRIMARY KEY NOT NULL,Name CHAR(64)NOT NULL);CREATE TABLE IF NOT EXISTS EMPLOYEE(EMPLOYEEID BIGINT PRIMARY KEY AUTO_INCREMENT,CompanyId BIGINT NOT NULL,Name NCHAR(64)NOT NULL,JoinDate DATETIME(6)DEFAULT NULL,FOREIGN KEY(CompanyId)REFERENCES COMPANY(id));USE sakila";
     auto handler = Master->Seek();
     if (handler) {
-        ok = handler->Execute(sql.c_str());
-        sql = L"INSERT INTO mysample.COMPANY(ID,Name)VALUES(1,'Google Inc.'),(2,'Microsoft Inc.'),(3,'Amazon Inc.')";
-        ok = handler->Execute(sql.c_str());
+        std::wstring sql = L"CREATE DATABASE IF NOT EXISTS mysample character set utf8 collate utf8_general_ci;USE mysample;CREATE TABLE IF NOT EXISTS COMPANY(ID BIGINT PRIMARY KEY NOT NULL,Name CHAR(64)NOT NULL);CREATE TABLE IF NOT EXISTS EMPLOYEE(EMPLOYEEID BIGINT PRIMARY KEY AUTO_INCREMENT,CompanyId BIGINT NOT NULL,Name NCHAR(64)NOT NULL,JoinDate DATETIME(6)DEFAULT NULL,FOREIGN KEY(CompanyId)REFERENCES COMPANY(id));USE sakila;INSERT INTO mysample.COMPANY(ID,Name)VALUES(1,'Google Inc.'),(2,'Microsoft Inc.'),(3,'Amazon Inc.')";
+        handler->Execute(sql.c_str());
     }
-#else
-    std::wstring sql = L"CREATE TABLE mysample.COMPANY(ID INT8 PRIMARY KEY NOT NULL,Name CHAR(64)NOT NULL);CREATE TABLE mysample.EMPLOYEE(EMPLOYEEID INTEGER PRIMARY KEY AUTOINCREMENT,CompanyId INT8 not null,Name NCHAR(64)NOT NULL,JoinDate DATETIME not null default(datetime('now')),FOREIGN KEY(CompanyId)REFERENCES COMPANY(id))";
-    auto v = Master->GetAsyncHandlers();
-    for (auto it = v.begin(), end = v.end(); it != end; ++it) {
-        ok = (*it)->Execute(L"ATTACH DATABASE 'mysample.db' as mysample", nullptr);
-        if (it == v.begin()) {
-            ok = (*it)->Execute(sql.c_str());
-            sql = L"INSERT INTO mysample.COMPANY(ID,Name)VALUES(1,'Google Inc.');INSERT INTO mysample.COMPANY(ID,Name)VALUES(2,'Microsoft Inc.');INSERT INTO mysample.COMPANY(ID,Name)VALUES(3,'Amazon Inc.')";
-            ok = (*it)->Execute(sql.c_str());
-        }
-    }
-#endif
 }

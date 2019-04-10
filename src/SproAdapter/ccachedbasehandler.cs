@@ -8,6 +8,12 @@ namespace SocketProAdapter
         using UDB;
         public class CCachedBaseHandler : CAsyncServiceHandler
         {
+#if SP_MANAGER
+            public CCachedBaseHandler()
+                : base()
+            {
+            }
+#endif
             protected CCachedBaseHandler(uint ServiceId)
                 : base(ServiceId)
             {

@@ -1,0 +1,62 @@
+﻿{
+  "WorkingDir": "c:\\ProgramData\\webdir",
+  "Hosts": {
+    "db_master": {
+      "Host": "windesk",
+      "Port": 20902,
+      "UserId": "root",
+      "Password": "Smash123",
+      "EncrytionMethod": 0,
+      "Zip": false,
+      "V6": false
+    },
+    "db_slave_0": {
+      "Host": "192.168.2.172",
+      "Port": 20902,
+      "UserId": "root",
+      "Password": "Smash123"
+    },
+    "db_slave_remote": {
+      "Host": "192.168.85.1",
+      "Port": 20902,
+      "UserId": "root",
+      "Password": "Smash123",
+      "Zip": true
+    }
+  },
+  "Pools": {
+    "masterdb": {
+      "SvsId": 2147483633,
+      "Hosts": [
+        "db_master",
+        "db_master",
+        "db_master"
+      ],
+      "DefaultDb": "sakila",
+      "Queue": "mdb",
+      "AutoMerge": false,
+      "Slaves": {
+        "slavedb0": {
+          "Hosts": [
+            "db_slave_0",
+            "db_slave_0",
+            "db_slave_0",
+            "db_master",
+            "db_slave_remote"
+          ],
+          "Queue": "sdb",
+          "AutoMerge": true,
+          "RecvTimeout": 60000,
+          "Threads": 2
+        },
+        "db_no_backup": {
+          "Hosts": [
+            "db_master",
+            "db_master"
+          ],
+          "ConnTimeout": 45000
+        }
+      }
+    }
+  }
+}

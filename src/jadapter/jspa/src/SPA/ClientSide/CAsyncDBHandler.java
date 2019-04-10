@@ -238,69 +238,64 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
         }
         boolean[] firstRow = new boolean[1];
         firstRow[0] = true;
-        CUQueue sb = CScopeUQueue.Lock();
-        for (int n = 0; n < size; ++n) {
-            Object vt = vParam.get(n);
-            if (vt == null) {
-                sb.Save(vt);
-                continue;
-            }
-            String type = vt.getClass().getName();
-            switch (type) {
-                case "java.lang.String": {
-                    String s = (String) vt;
-                    int len = s.length();
-                    if (len < DB_CONSTS.DEFAULT_BIG_FIELD_CHUNK_SIZE) {
-                        sb.Save(vt);
-                    } else {
-                        if (!Send(sb, firstRow)) {
-                            CScopeUQueue.Unlock(sb);
-                            return false;
-                        }
-                        int bytes = len;
-                        bytes *= 2;
-                        bytes += 6; //sizeof(ushort) + sizeof(uint)
-                        sb.Save(bytes).Save(vt);
-                        if (!SendBlob(sb)) {
-                            CScopeUQueue.Unlock(sb);
-                            return false;
-                        }
-                    }
-                }
-                break;
-                case "[B": {
-                    byte[] bytes = (byte[]) vt;
-                    int len = bytes.length;
-                    if (len < 2 * DB_CONSTS.DEFAULT_BIG_FIELD_CHUNK_SIZE) {
-                        sb.Save(vt);
-                    } else {
-                        if (!Send(sb, firstRow)) {
-                            CScopeUQueue.Unlock(sb);
-                            return false;
-                        }
-                        len += 6; //sizeof(ushort) + sizeof(uint)
-                        sb.Save(len).Save(vt);
-                        if (!SendBlob(sb)) {
-                            CScopeUQueue.Unlock(sb);
-                            return false;
-                        }
-                    }
-                }
-                break;
-                default:
+        try (CScopeUQueue sq = new CScopeUQueue()) {
+            CUQueue sb = sq.getUQueue();
+            for (int n = 0; n < size; ++n) {
+                Object vt = vParam.get(n);
+                if (vt == null) {
                     sb.Save(vt);
+                    continue;
+                }
+                String type = vt.getClass().getName();
+                switch (type) {
+                    case "java.lang.String": {
+                        String s = (String) vt;
+                        int len = s.length();
+                        if (len < DB_CONSTS.DEFAULT_BIG_FIELD_CHUNK_SIZE) {
+                            sb.Save(vt);
+                        } else {
+                            if (!Send(sb, firstRow)) {
+                                return false;
+                            }
+                            int bytes = len;
+                            bytes *= 2;
+                            bytes += 6; //sizeof(ushort) + sizeof(uint)
+                            sb.Save(bytes).Save(vt);
+                            if (!SendBlob(sb)) {
+                                return false;
+                            }
+                        }
+                    }
                     break;
-            }
-            if (sb.GetSize() >= DB_CONSTS.DEFAULT_RECORD_BATCH_SIZE) {
-                if (!Send(sb, firstRow)) {
-                    CScopeUQueue.Unlock(sb);
-                    return false;
+                    case "[B": {
+                        byte[] bytes = (byte[]) vt;
+                        int len = bytes.length;
+                        if (len < 2 * DB_CONSTS.DEFAULT_BIG_FIELD_CHUNK_SIZE) {
+                            sb.Save(vt);
+                        } else {
+                            if (!Send(sb, firstRow)) {
+                                return false;
+                            }
+                            len += 6; //sizeof(ushort) + sizeof(uint)
+                            sb.Save(len).Save(vt);
+                            if (!SendBlob(sb)) {
+                                return false;
+                            }
+                        }
+                    }
+                    break;
+                    default:
+                        sb.Save(vt);
+                        break;
+                }
+                if (sb.GetSize() >= DB_CONSTS.DEFAULT_RECORD_BATCH_SIZE) {
+                    if (!Send(sb, firstRow)) {
+                        return false;
+                    }
                 }
             }
+            return Send(sb, firstRow);
         }
-        boolean ok = Send(sb, firstRow);
-        CScopeUQueue.Unlock(sb);
-        return ok;
     }
 
     protected class MyCallback<CB> {
@@ -444,30 +439,28 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      */
     public boolean BeginTrans(tagTransactionIsolation isolation, DResult handler, DDiscarded discarded) {
         MyCallback<DResult> cb = new MyCallback<>(DB_CONSTS.idBeginTrans, handler);
-        CUQueue sb = CScopeUQueue.Lock();
-        //make sure BeginTrans sending and underlying client persistent message queue as one combination sending
-        //to avoid possible request sending/client message writing overlapping within multiple threading environment
-        synchronized (m_csOneSending) {
-            //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
-            //in case a client asynchronously sends lots of requests without use of client side queue.
+        try (CScopeUQueue sq = new CScopeUQueue()) {
+            //make sure BeginTrans sending and underlying client persistent message queue as one combination sending
+            //to avoid possible request sending/client message writing overlapping within multiple threading environment
+            synchronized (m_csOneSending) {
+                //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
+                //in case a client asynchronously sends lots of requests without use of client side queue.
 
-            //associate begin transaction with underlying client persistent message queue
-            m_queueOk = getAttachedClientSocket().getClientQueue().StartJob();
-
-            synchronized (m_csDB) {
-                sb.Save(isolation.getValue()).Save(m_strConnection).Save(m_flags);
-                m_deqResult.add(cb);
-            }
-            if (!SendRequest(DB_CONSTS.idBeginTrans, sb, null, discarded)) {
-                CScopeUQueue.Unlock(sb);
+                //associate begin transaction with underlying client persistent message queue
+                m_queueOk = getAttachedClientSocket().getClientQueue().StartJob();
                 synchronized (m_csDB) {
-                    m_deqResult.remove(cb);
+                    sq.Save(isolation.getValue()).Save(m_strConnection).Save(m_flags);
+                    m_deqResult.add(cb);
                 }
-                return false;
+                if (!SendRequest(DB_CONSTS.idBeginTrans, sq, null, discarded)) {
+                    synchronized (m_csDB) {
+                        m_deqResult.remove(cb);
+                    }
+                    return false;
+                }
             }
+            return true;
         }
-        CScopeUQueue.Unlock(sb);
-        return true;
     }
 
     /**
@@ -525,33 +518,33 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * request is NOT successfully sent or queued
      */
     public boolean EndTrans(tagRollbackPlan plan, DResult handler, DDiscarded discarded) {
-        boolean ok = true;
+        boolean ok;
         MyCallback<DResult> cb = new MyCallback<>(DB_CONSTS.idEndTrans, handler);
-        CUQueue sb = CScopeUQueue.Lock();
-        sb.Save(plan.getValue());
-        //make sure EndTrans sending and underlying client persistent message queue as one combination sending
-        //to avoid possible request sending/client message writing overlapping within multiple threading environment
-        synchronized (m_csOneSending) {
-            //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
-            //in case a client asynchronously sends lots of requests without use of client side queue.
-            synchronized (m_csDB) {
-                m_deqResult.add(cb);
-            }
-            ok = SendRequest(DB_CONSTS.idEndTrans, sb, null, discarded);
-            if (ok) {
-                if (m_queueOk) {
-                    //associate end transaction with underlying client persistent message queue
-                    getAttachedClientSocket().getClientQueue().EndJob();
-                    m_queueOk = false;
-                }
-            } else {
+        try (CScopeUQueue sq = new CScopeUQueue()) {
+            sq.Save(plan.getValue());
+            //make sure EndTrans sending and underlying client persistent message queue as one combination sending
+            //to avoid possible request sending/client message writing overlapping within multiple threading environment
+            synchronized (m_csOneSending) {
+                //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
+                //in case a client asynchronously sends lots of requests without use of client side queue.
                 synchronized (m_csDB) {
-                    m_deqResult.remove(cb);
+                    m_deqResult.add(cb);
+                }
+                ok = SendRequest(DB_CONSTS.idEndTrans, sq, null, discarded);
+                if (ok) {
+                    if (m_queueOk) {
+                        //associate end transaction with underlying client persistent message queue
+                        getAttachedClientSocket().getClientQueue().EndJob();
+                        m_queueOk = false;
+                    }
+                } else {
+                    synchronized (m_csDB) {
+                        m_deqResult.remove(cb);
+                    }
                 }
             }
+            return ok;
         }
-        CScopeUQueue.Unlock(sb);
-        return ok;
     }
 
     private static final Charset UTF8_CHARSET = Charset.forName("UTF-8");
@@ -602,32 +595,31 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
     public boolean Open(String strConnection, DResult handler, int flags, DDiscarded discarded) {
         String str = null;
         MyCallback<DResult> cb = new MyCallback<>(DB_CONSTS.idOpen, handler);
-        CUQueue sb = CScopeUQueue.Lock();
-        sb.Save(strConnection).Save(flags);
-        synchronized (m_csOneSending) {
-            //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
-            //in case a client asynchronously sends lots of requests without use of client side queue.
-            synchronized (m_csDB) {
-                m_flags = flags;
-                if (strConnection != null) {
-                    str = m_strConnection;
-                    m_strConnection = strConnection;
-                }
-                m_deqResult.add(cb);
-            }
-            if (SendRequest(DB_CONSTS.idOpen, sb, null, discarded)) {
-                CScopeUQueue.Unlock(sb);
-                return true;
-            } else {
+        try (CScopeUQueue sb = new CScopeUQueue()) {
+            sb.Save(strConnection).Save(flags);
+            synchronized (m_csOneSending) {
+                //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
+                //in case a client asynchronously sends lots of requests without use of client side queue.
                 synchronized (m_csDB) {
-                    m_deqResult.remove(cb);
+                    m_flags = flags;
                     if (strConnection != null) {
-                        m_strConnection = str;
+                        str = m_strConnection;
+                        m_strConnection = strConnection;
+                    }
+                    m_deqResult.add(cb);
+                }
+                if (SendRequest(DB_CONSTS.idOpen, sb, null, discarded)) {
+                    return true;
+                } else {
+                    synchronized (m_csDB) {
+                        m_deqResult.remove(cb);
+                        if (strConnection != null) {
+                            m_strConnection = str;
+                        }
                     }
                 }
             }
         }
-        CScopeUQueue.Unlock(sb);
         return false;
     }
 
@@ -680,34 +672,35 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * request is NOT successfully sent or queued
      */
     public boolean Prepare(String sql, DResult handler, CParameterInfo[] vParameterInfo, DDiscarded discarded) {
-        CUQueue sb = CScopeUQueue.Lock();
-        sb.Save(sql);
-        if (vParameterInfo == null) {
-            vParameterInfo = new CParameterInfo[0];
-        }
-        sb.Save(vParameterInfo.length);
-        for (CParameterInfo info : vParameterInfo) {
-            info.SaveTo(sb);
-        }
-        boolean ok;
-        MyCallback<DResult> cb = new MyCallback<>(DB_CONSTS.idPrepare, handler);
-        synchronized (m_csOneSending) {
-            //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
-            //in case a client asynchronously sends lots of requests without use of client side queue.
-            synchronized (m_csDB) {
-                m_deqResult.add(cb);
+        try (CScopeUQueue sq = new CScopeUQueue()) {
+            CUQueue sb = sq.getUQueue();
+            sb.Save(sql);
+            if (vParameterInfo == null) {
+                vParameterInfo = new CParameterInfo[0];
             }
-            if (SendRequest(DB_CONSTS.idPrepare, sb, null, discarded)) {
-                ok = true;
-            } else {
-                ok = false;
+            sb.Save(vParameterInfo.length);
+            for (CParameterInfo info : vParameterInfo) {
+                info.SaveTo(sb);
+            }
+            boolean ok;
+            MyCallback<DResult> cb = new MyCallback<>(DB_CONSTS.idPrepare, handler);
+            synchronized (m_csOneSending) {
+                //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
+                //in case a client asynchronously sends lots of requests without use of client side queue.
                 synchronized (m_csDB) {
-                    m_deqResult.remove(cb);
+                    m_deqResult.add(cb);
+                }
+                if (SendRequest(DB_CONSTS.idPrepare, sb, null, discarded)) {
+                    ok = true;
+                } else {
+                    ok = false;
+                    synchronized (m_csDB) {
+                        m_deqResult.remove(cb);
+                    }
                 }
             }
+            return ok;
         }
-        CScopeUQueue.Unlock(sb);
-        return ok;
     }
 
     /**
@@ -833,37 +826,36 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
         if (!rowset) {
             meta = false;
         }
-        CUQueue sb = CScopeUQueue.Lock();
-        sb.Save(sql);
-        sb.Save(rowset);
-        sb.Save(meta);
-        sb.Save(lastInsertId);
-        synchronized (m_csOneSending) {
-            final long index = GetCallIndex();
-            sb.Save(index);
-            //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
-            //in case a client asynchronously sends lots of requests without use of client side queue.
-            synchronized (m_csDB) {
-                if (rowset) {
-                    m_mapRowset.put(index, new Pair<>(rh, row));
-                }
-            }
-            if (!SendRequest(DB_CONSTS.idExecute, sb, new DAsyncResultHandler() {
-                @Override
-                public void invoke(CAsyncResult ar) {
-                    Process(handler, ar, DB_CONSTS.idExecute, index);
-                }
-            }, discarded)) {
+        try (CScopeUQueue sb = new CScopeUQueue()) {
+            sb.Save(sql);
+            sb.Save(rowset);
+            sb.Save(meta);
+            sb.Save(lastInsertId);
+            synchronized (m_csOneSending) {
+                final long index = GetCallIndex();
+                sb.Save(index);
+                //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
+                //in case a client asynchronously sends lots of requests without use of client side queue.
                 synchronized (m_csDB) {
                     if (rowset) {
-                        m_mapRowset.remove(index);
+                        m_mapRowset.put(index, new Pair<>(rh, row));
                     }
                 }
-                CScopeUQueue.Unlock(sb);
-                return false;
+                if (!SendRequest(DB_CONSTS.idExecute, sb, new DAsyncResultHandler() {
+                    @Override
+                    public void invoke(CAsyncResult ar) {
+                        Process(handler, ar, DB_CONSTS.idExecute, index);
+                    }
+                }, discarded)) {
+                    synchronized (m_csDB) {
+                        if (rowset) {
+                            m_mapRowset.remove(index);
+                        }
+                    }
+                    return false;
+                }
             }
         }
-        CScopeUQueue.Unlock(sb);
         return true;
     }
 
@@ -1028,39 +1020,37 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                 }
             }
             final long index = GetCallIndex();
-            CUQueue sb = CScopeUQueue.Lock();
-            sb.Save(rowset);
-            sb.Save(meta);
-            sb.Save(lastInsertId);
-            sb.Save(index);
-
-            //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
-            //in case a client asynchronously sends lots of requests without use of client side queue.
-            synchronized (m_csDB) {
-                if (rowset) {
-                    m_mapRowset.put(index, new Pair<>(rh, row));
-                }
-                m_mapParameterCall.put(index, vParam);
-            }
-            if (!SendRequest(DB_CONSTS.idExecuteParameters, sb, new DAsyncResultHandler() {
-                @Override
-                public void invoke(CAsyncResult ar) {
-                    Process(handler, ar, DB_CONSTS.idExecuteParameters, index);
-                }
-            }, discarded)) {
+            try (CScopeUQueue sb = new CScopeUQueue()) {
+                sb.Save(rowset);
+                sb.Save(meta);
+                sb.Save(lastInsertId);
+                sb.Save(index);
+                //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
+                //in case a client asynchronously sends lots of requests without use of client side queue.
                 synchronized (m_csDB) {
-                    m_mapParameterCall.remove(index);
                     if (rowset) {
-                        m_mapRowset.remove(index);
+                        m_mapRowset.put(index, new Pair<>(rh, row));
                     }
+                    m_mapParameterCall.put(index, vParam);
                 }
-                CScopeUQueue.Unlock(sb);
-                return false;
+                if (!SendRequest(DB_CONSTS.idExecuteParameters, sb, new DAsyncResultHandler() {
+                    @Override
+                    public void invoke(CAsyncResult ar) {
+                        Process(handler, ar, DB_CONSTS.idExecuteParameters, index);
+                    }
+                }, discarded)) {
+                    synchronized (m_csDB) {
+                        m_mapParameterCall.remove(index);
+                        if (rowset) {
+                            m_mapRowset.remove(index);
+                        }
+                    }
+                    return false;
+                }
+                if (queueOk) {
+                    getAttachedClientSocket().getClientQueue().EndJob();
+                }
             }
-            if (queueOk) {
-                getAttachedClientSocket().getClientQueue().EndJob();
-            }
-            CScopeUQueue.Unlock(sb);
         }
         return true;
     }
@@ -1354,56 +1344,54 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
         if (vPInfo == null) {
             vPInfo = new CParameterInfo[0];
         }
-        CUQueue sb = CScopeUQueue.Lock();
-        sb.Save(sql).Save(delimiter).Save(isolation.getValue()).Save(plan.getValue()).Save(rowset).Save(meta).Save(lastInsertId);
-
-        //make sure all parameter data sendings and ExecuteParameters sending as one combination sending
-        //to avoid possible request sending overlapping within multiple threading environment
-        synchronized (m_csOneSending) {
-            if (vParam != null && vParam.size() > 0) {
-                queueOk = getAttachedClientSocket().getClientQueue().StartJob();
-                if (!SendParametersData(vParam)) {
-                    Clean();
-                    CScopeUQueue.Unlock(sb);
+        try (CScopeUQueue sq = new CScopeUQueue()) {
+            CUQueue sb = sq.getUQueue();
+            sb.Save(sql).Save(delimiter).Save(isolation.getValue()).Save(plan.getValue()).Save(rowset).Save(meta).Save(lastInsertId);
+            //make sure all parameter data sendings and ExecuteParameters sending as one combination sending
+            //to avoid possible request sending overlapping within multiple threading environment
+            synchronized (m_csOneSending) {
+                if (vParam != null && vParam.size() > 0) {
+                    queueOk = getAttachedClientSocket().getClientQueue().StartJob();
+                    if (!SendParametersData(vParam)) {
+                        Clean();
+                        return false;
+                    }
+                }
+                final long index = GetCallIndex();
+                //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
+                //in case a client asynchronously sends lots of requests without use of client side queue.
+                synchronized (m_csDB) {
+                    if (rowset) {
+                        m_mapRowset.put(index, new Pair<>(rh, row));
+                    }
+                    m_mapParameterCall.put(index, vParam);
+                    m_mapHandler.put(index, batchHeader);
+                    sb.Save(m_strConnection).Save(m_flags);
+                }
+                sb.Save(index);
+                sb.Save(vPInfo.length);
+                for (CParameterInfo info : vPInfo) {
+                    info.SaveTo(sb);
+                }
+                if (!SendRequest(DB_CONSTS.idExecuteBatch, sb.getIntenalBuffer(), sb.GetSize(), new DAsyncResultHandler() {
+                    @Override
+                    public void invoke(CAsyncResult ar) {
+                        Process(handler, ar, DB_CONSTS.idExecuteBatch, index);
+                    }
+                }, discarded)) {
+                    synchronized (m_csDB) {
+                        m_mapParameterCall.remove(index);
+                        if (rowset) {
+                            m_mapRowset.remove(index);
+                        }
+                        m_mapHandler.remove(index);
+                    }
                     return false;
                 }
-            }
-            final long index = GetCallIndex();
-            //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
-            //in case a client asynchronously sends lots of requests without use of client side queue.
-            synchronized (m_csDB) {
-                if (rowset) {
-                    m_mapRowset.put(index, new Pair<>(rh, row));
+                if (queueOk) {
+                    getAttachedClientSocket().getClientQueue().EndJob();
                 }
-                m_mapParameterCall.put(index, vParam);
-                m_mapHandler.put(index, batchHeader);
-                sb.Save(m_strConnection).Save(m_flags);
             }
-            sb.Save(index);
-            sb.Save(vPInfo.length);
-            for (CParameterInfo info : vPInfo) {
-                info.SaveTo(sb);
-            }
-            if (!SendRequest(DB_CONSTS.idExecuteBatch, sb.getIntenalBuffer(), sb.GetSize(), new DAsyncResultHandler() {
-                @Override
-                public void invoke(CAsyncResult ar) {
-                    Process(handler, ar, DB_CONSTS.idExecuteBatch, index);
-                }
-            }, discarded)) {
-                synchronized (m_csDB) {
-                    m_mapParameterCall.remove(index);
-                    if (rowset) {
-                        m_mapRowset.remove(index);
-                    }
-                    m_mapHandler.remove(index);
-                }
-                CScopeUQueue.Unlock(sb);
-                return false;
-            }
-            if (queueOk) {
-                getAttachedClientSocket().getClientQueue().EndJob();
-            }
-            CScopeUQueue.Unlock(sb);
         }
         return true;
     }

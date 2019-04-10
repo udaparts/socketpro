@@ -1,7 +1,7 @@
 Name: SPA
 Specification-Title: SocketPro adapter for Java 1.7 or later
-Specification-Version: 1.1.0.15
+Specification-Version: 1.1.1.1
 Specification-Vendor: UDAParts
 Implementation-Title: SocketPro adapter 
-Implementation-Version: build15
+Implementation-Version: build16
 Implementation-Vendor: UDAParts

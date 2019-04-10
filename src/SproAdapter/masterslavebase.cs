@@ -6,7 +6,6 @@ namespace SocketProAdapter
     public class CMasterSlaveBase<THandler> : ClientSide.CSocketPool<THandler>
         where THandler : ClientSide.CAsyncServiceHandler, new()
     {
-        private uint m_nRecvTimeout = ClientSide.CClientSocket.DEFAULT_RECV_TIMEOUT;
         private string m_dbDefalut;
 
         public string DefaultDBName
@@ -17,19 +16,28 @@ namespace SocketProAdapter
             }
         }
 
-        public uint RecvTimeout
+        protected CMasterSlaveBase(string defaultDB, uint recvTimeout, bool autoConn)
+            : base(autoConn, recvTimeout)
         {
-            get
-            {
-                return m_nRecvTimeout;
-            }
+            m_dbDefalut = defaultDB;
+        }
+
+        protected CMasterSlaveBase(string defaultDB, uint recvTimeout, bool autoConn, uint connTimeout)
+            : base(autoConn, recvTimeout, connTimeout)
+        {
+            m_dbDefalut = defaultDB;
+        }
+
+        protected CMasterSlaveBase(string defaultDB, uint recvTimeout, bool autoConn, uint connTimeout, uint svsId)
+            : base(autoConn, recvTimeout, connTimeout, svsId)
+        {
+            m_dbDefalut = defaultDB;
         }
 
         protected CMasterSlaveBase(string defaultDB, uint recvTimeout)
             : base(true, recvTimeout)
         {
             m_dbDefalut = defaultDB;
-            m_nRecvTimeout = recvTimeout;
         }
         protected CMasterSlaveBase(string defaultDB)
             : base(true, ClientSide.CClientSocket.DEFAULT_RECV_TIMEOUT)
