@@ -150,7 +150,6 @@
     <ClInclude Include="..\..\..\..\include\tablecache.h" />
     <ClInclude Include="..\..\..\..\include\udatabase.h" />
     <ClInclude Include="..\..\..\..\include\udb_client.h" />
-    <ClInclude Include="config.h" />
     <ClInclude Include="sspeer.h" />
     <ClInclude Include="ssserver.h" />
     <ClInclude Include="stdafx.h" />
@@ -159,9 +158,9 @@
   <ItemGroup>
     <ClCompile Include="..\..\..\..\include\aclientw.cpp" />
     <ClCompile Include="..\..\..\..\include\aserverw.cpp" />
+    <ClCompile Include="..\..\..\..\include\manager.cpp" />
     <ClCompile Include="..\..\..\..\include\membuffer.cpp" />
     <ClCompile Include="..\..\..\..\include\tablecache.cpp" />
-    <ClCompile Include="config.cpp" />
     <ClCompile Include="cplusplus.cpp" />
     <ClCompile Include="sspeer.cpp" />
     <ClCompile Include="ssserver.cpp" />

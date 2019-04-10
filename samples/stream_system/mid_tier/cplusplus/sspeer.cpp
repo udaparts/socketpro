@@ -1,15 +1,12 @@
 
 #include "stdafx.h"
-#include "sspeer.h"
 #include "ssserver.h"
-#include "config.h"
 
 #ifndef NDEBUG
 SPA::CUCriticalSection CYourPeerOne::m_csConsole;
 #endif
 
 CYourPeerOne::CYourPeerOne() {
-
 }
 
 void CYourPeerOne::OnFastRequestArrive(unsigned short reqId, unsigned int len) {
@@ -76,7 +73,7 @@ void CYourPeerOne::UploadEmployees(SPA::CUQueue &q, SPA::UINT64 reqIndex) {
             v.push_back(*it);
             v.push_back(*(it + 1));
             v.push_back(*(it + 2));
-            ok = handler->Execute(v, [pError, pId](CSQLHandler &h, int r, const std::wstring &err, SPA::INT64 affected, SPA::UINT64 fail_ok, SPA::UDB::CDBVariant & vtId) {
+            ok = handler->Execute(v, [pError, pId](CMysql &h, int r, const std::wstring &err, SPA::INT64 affected, SPA::UINT64 fail_ok, SPA::UDB::CDBVariant & vtId) {
                 if (r) {
                     if (!pError->first) {
                         //we only report the first error back to front caller
@@ -97,7 +94,7 @@ void CYourPeerOne::UploadEmployees(SPA::CUQueue &q, SPA::UINT64 reqIndex) {
         }
         if (!ok) break;
         auto peer_handle = GetSocketHandle();
-        if (!handler->EndTrans(SPA::UDB::rpRollbackErrorAll, [reqIndex, peer_handle, pError, pId, this](CSQLHandler & h, int r, const std::wstring & err) {
+        if (!handler->EndTrans(SPA::UDB::rpRollbackErrorAll, [reqIndex, peer_handle, pError, pId, this](CMysql & h, int r, const std::wstring & err) {
                 //send result if front socket is not closed yet
                 if (peer_handle == this->GetSocketHandle()) {
                     if (r) {
@@ -168,7 +165,7 @@ void CYourPeerOne::UploadEmployees(SPA::CUQueue &q, SPA::UINT64 reqIndex) {
                 v.push_back(*it);
                 v.push_back(*(it + 1));
                 v.push_back(*(it + 2));
-                ok = handler->Execute(v, [pError, pId](CSQLHandler &h, int r, const std::wstring &err, SPA::INT64 affected, SPA::UINT64 fail_ok, SPA::UDB::CDBVariant & vtId) {
+                ok = handler->Execute(v, [pError, pId](CMysql &h, int r, const std::wstring &err, SPA::INT64 affected, SPA::UINT64 fail_ok, SPA::UDB::CDBVariant & vtId) {
                     if (r) {
                         if (!pError->first) {
                             //we only report the first error back to front caller
@@ -189,7 +186,7 @@ void CYourPeerOne::UploadEmployees(SPA::CUQueue &q, SPA::UINT64 reqIndex) {
             }
             if (!ok) break;
             auto peer_handle = GetSocketHandle();
-            if (handler->EndTrans(SPA::UDB::rpRollbackErrorAll, [reqIndex, peer_handle, pError, pId, this](CSQLHandler & h, int r, const std::wstring & err) {
+            if (handler->EndTrans(SPA::UDB::rpRollbackErrorAll, [reqIndex, peer_handle, pError, pId, this](CMysql & h, int r, const std::wstring & err) {
                     //send result if front socket is not closed yet
                     if (peer_handle == this->GetSocketHandle()) {
                         if (r) {
@@ -233,7 +230,7 @@ void CYourPeerOne::GetRentalDateTimes(SPA::CUQueue &q, SPA::UINT64 reqIndex) {
     assert(CYourServer::Slave->GetQueueName().size());
     q >> rental_id;
     std::wstring sql = L"SELECT rental_id,rental_date,return_date,last_update FROM rental where rental_id=" + std::to_wstring(rental_id);
-    std::shared_ptr<CSQLHandler> handler = CYourServer::Slave->SeekByQueue();
+    std::shared_ptr<CMysql> handler = CYourServer::Slave->SeekByQueue();
     if (!handler) {
         CRentalDateTimes dates;
         unsigned int res = SendResultIndex(reqIndex, idGetRentalDateTimes, dates, (int) - 1, L"No connection to a slave database");
@@ -241,12 +238,12 @@ void CYourPeerOne::GetRentalDateTimes(SPA::CUQueue &q, SPA::UINT64 reqIndex) {
     }
     auto peer_handle = GetSocketHandle();
     std::shared_ptr<CRentalDateTimes> dates(new CRentalDateTimes);
-    bool ok = handler->Execute(sql.c_str(), [this, reqIndex, dates, peer_handle](CSQLHandler & h, int r, const std::wstring & err, SPA::INT64 affected, SPA::UINT64 fail_ok, SPA::UDB::CDBVariant & vtId) {
+    bool ok = handler->Execute(sql.c_str(), [this, reqIndex, dates, peer_handle](CMysql & h, int r, const std::wstring & err, SPA::INT64 affected, SPA::UINT64 fail_ok, SPA::UDB::CDBVariant & vtId) {
         //front peer not closed yet
         if (peer_handle == this->GetSocketHandle()) {
             this->SendResultIndex(reqIndex, idGetRentalDateTimes, *dates, r, err);
         }
-    }, [dates](CSQLHandler &h, SPA::UDB::CDBVariantArray & vData) {
+    }, [dates](CMysql &h, SPA::UDB::CDBVariantArray & vData) {
         dates->rental_id = vData[0].llVal;
         dates->Rental = vData[1].ullVal; //date time in high precision format
                 dates->Return = vData[2].ullVal;
@@ -263,7 +260,7 @@ void CYourPeerOne::QueryPaymentMaxMinAvgs(SPA::CUQueue &q, SPA::UINT64 reqIndex)
     std::wstring sql = L"SELECT MAX(amount),MIN(amount),AVG(amount) FROM payment";
     if (filter.size())
         sql += (L" WHERE " + filter);
-    std::shared_ptr<CSQLHandler> handler = CYourServer::Slave->SeekByQueue();
+    std::shared_ptr<CMysql> handler = CYourServer::Slave->SeekByQueue();
     if (!handler) {
         CMaxMinAvg mma;
         unsigned int ret = SendResultIndex(reqIndex, idQueryMaxMinAvgs, (int) - 1, L"No connection to a slave database", mma);
@@ -271,12 +268,12 @@ void CYourPeerOne::QueryPaymentMaxMinAvgs(SPA::CUQueue &q, SPA::UINT64 reqIndex)
     }
     std::shared_ptr<CMaxMinAvg> pmma(new CMaxMinAvg);
     auto peer_handle = GetSocketHandle();
-    bool ok = handler->Execute(sql.c_str(), [reqIndex, peer_handle, pmma, this](CSQLHandler & h, int r, const std::wstring & err, SPA::INT64 affected, SPA::UINT64 fail_ok, SPA::UDB::CDBVariant & vtId) {
+    bool ok = handler->Execute(sql.c_str(), [reqIndex, peer_handle, pmma, this](CMysql & h, int r, const std::wstring & err, SPA::INT64 affected, SPA::UINT64 fail_ok, SPA::UDB::CDBVariant & vtId) {
         //front peer not closed yet
         if (peer_handle == this->GetSocketHandle()) {
             unsigned int ret = this->SendResultIndex(reqIndex, idQueryMaxMinAvgs, r, err, *pmma);
         }
-    }, [pmma](CSQLHandler &h, SPA::UDB::CDBVariantArray & vData) {
+    }, [pmma](CMysql &h, SPA::UDB::CDBVariantArray & vData) {
         CComVariant temp;
         ::VariantChangeType(&temp, &vData[0], 0, VT_R8);
                 pmma->Max = temp.dblVal;
@@ -292,7 +289,7 @@ void CYourPeerOne::GetCachedTables(const std::wstring &defaultDb, unsigned int f
     res = 0;
     dbMS = (int) SPA::UDB::msUnknown;
     do {
-        if (!g_config.m_vFrontCachedTable.size() || SPA::UDB::ENABLE_TABLE_UPDATE_MESSAGES != (flags & SPA::UDB::ENABLE_TABLE_UPDATE_MESSAGES))
+        if (!CYourServer::FrontCachedTables.size() || SPA::UDB::ENABLE_TABLE_UPDATE_MESSAGES != (flags & SPA::UDB::ENABLE_TABLE_UPDATE_MESSAGES))
             break;
         if (SPA::UDB::ENABLE_TABLE_UPDATE_MESSAGES == (flags & SPA::UDB::ENABLE_TABLE_UPDATE_MESSAGES)) {
             unsigned int chatgroup[] = {SPA::UDB::CACHE_UPDATE_CHAT_GROUP_ID, SPA::UDB::STREAMING_SQL_CHAT_GROUP_ID};
@@ -301,7 +298,7 @@ void CYourPeerOne::GetCachedTables(const std::wstring &defaultDb, unsigned int f
             }
         }
         std::wstring sql;
-        for (auto it = g_config.m_vFrontCachedTable.cbegin(), end = g_config.m_vFrontCachedTable.cend(); it != end; ++it) {
+        for (auto it = CYourServer::FrontCachedTables.cbegin(), end = CYourServer::FrontCachedTables.cend(); it != end; ++it) {
             if (sql.size())
                 sql += L";";
             sql += L"SELECT * FROM " + *it;
@@ -316,18 +313,18 @@ void CYourPeerOne::GetCachedTables(const std::wstring &defaultDb, unsigned int f
         std::shared_ptr<std::promise<void> > prom(new std::promise<void>, [](std::promise<void> *p) {
             delete p;
         });
-        if (!handler->Execute(sql.c_str(), [prom, &res, &errMsg](CSQLHandler & h, int r, const std::wstring & err, SPA::INT64 affected, SPA::UINT64 fail_ok, SPA::UDB::CDBVariant & vtId) {
+        if (!handler->Execute(sql.c_str(), [prom, &res, &errMsg](CMysql & h, int r, const std::wstring & err, SPA::INT64 affected, SPA::UINT64 fail_ok, SPA::UDB::CDBVariant & vtId) {
                 res = r;
                 errMsg = err;
-                        prom->set_value();
-            }, [this](CSQLHandler &h, SPA::UDB::CDBVariantArray & vData) {
+                prom->set_value();
+            }, [this](CMysql &h, SPA::UDB::CDBVariantArray & vData) {
                 this->SendRows(vData);
-            }, [this, index](CSQLHandler & h) {
+            }, [this, index](CMysql & h) {
                 this->SendMeta(h.GetColumnInfo(), index);
             }, true, true, [prom, &res, &errMsg](SPA::ClientSide::CAsyncServiceHandler *h, bool canceled) {
                 res = -2;
                 errMsg = L"Request canceled or socket closed";
-                        prom->set_value();
+                prom->set_value();
             })) {
         res = handler->GetAttachedClientSocket()->GetErrorCode();
         errMsg = SPA::Utilities::ToWide(handler->GetAttachedClientSocket()->GetErrorMsg().c_str());

@@ -30,9 +30,6 @@
     <ClInclude Include="..\..\..\..\include\membuffer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="config.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="ssserver.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -68,9 +65,6 @@
     <ClCompile Include="..\..\..\..\include\membuffer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="config.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="ssserver.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -78,6 +72,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\include\tablecache.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\include\manager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
