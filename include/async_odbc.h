@@ -200,7 +200,7 @@ namespace SPA {
         private:
             std::unordered_map<unsigned short, CComVariant> m_mapInfo;
         };
-		typedef CSocketPool<COdbc> COdbcPool;
+        typedef CSocketPool<COdbc> COdbcPool;
     } //namespace ClientSide
 } //namespace SPA
 

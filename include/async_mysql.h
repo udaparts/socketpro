@@ -9,7 +9,7 @@ namespace SPA {
     namespace ClientSide {
         typedef CAsyncDBHandler<SPA::Mysql::sidMysql> CMysqlBase;
         typedef CAsyncDBHandler<SPA::Mysql::sidMysql> CMysql;
-		typedef CSocketPool<CMysql> CMysqlPool;
+        typedef CSocketPool<CMysql> CMysqlPool;
     } //namespace ClientSide
 } //namespace SPA
 

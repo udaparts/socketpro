@@ -421,7 +421,7 @@ namespace SPA {
                             std::string s = Utilities::ToUTF8(context.LocalFile.c_str(), context.LocalFile.size());
                             context.File = ::open(s.c_str(), O_RDONLY);
                             if (context.File == -1) {
-                                context.ErrorCode = SFile::CANNOT_OPEN_LOCAL_FILE_FOR_READING;;
+                                context.ErrorCode = SFile::CANNOT_OPEN_LOCAL_FILE_FOR_READING;
                                 std::string err = strerror(errno);
                                 context.ErrMsg = Utilities::ToWide(err.c_str(), err.size());
                             }
@@ -529,7 +529,7 @@ namespace SPA {
         private:
             std::deque<CContext> m_vContext; //protected by m_csFile;
         };
-		typedef CSocketPool<CStreamingFile> CStreamingFilePool;
+        typedef CSocketPool<CStreamingFile> CStreamingFilePool;
     } //ClientSide
 } //SPA
 

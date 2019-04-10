@@ -91,7 +91,7 @@ namespace SPA {
                     case SPA::Sqlite::sidSqlite:
                     {
                         typedef CSQLMasterPool<midTier, CSqlitePool::Handler> CSQLMaster;
-						CSqlitePool *db;
+                        CSqlitePool *db;
                         switch (PoolType) {
                             case Master:
                                 db = new CSQLMaster(dfltDb.c_str(), RecvTimeout);
@@ -130,7 +130,7 @@ namespace SPA {
                     case SPA::Mysql::sidMysql:
                     {
                         typedef CSQLMasterPool<midTier, CMysqlPool::Handler> CSQLMaster;
-						CMysqlPool *db;
+                        CMysqlPool *db;
                         switch (PoolType) {
                             case Master:
                                 db = new CSQLMaster(dfltDb.c_str(), RecvTimeout);
@@ -138,7 +138,7 @@ namespace SPA {
                                 db->SetConnTimeout(ConnTimeout);
                                 break;
                             case Slave:
-                                db = new CSQLMaster::CSlavePool(dfltDb.c_str(), RecvTimeout);
+                                db = new CSQLMaster::CSlavePool<CMysqlPool::Handler>(dfltDb.c_str(), RecvTimeout);
                                 db->SetAutoConn(AutoConn);
                                 db->SetConnTimeout(ConnTimeout);
                                 break;
@@ -169,7 +169,7 @@ namespace SPA {
                     case SPA::Odbc::sidOdbc:
                     {
                         typedef CSQLMasterPool<midTier, COdbcPool::Handler> CSQLMaster;
-						COdbcPool *db;
+                        COdbcPool *db;
                         switch (PoolType) {
                             case Master:
                                 db = new CSQLMaster(dfltDb.c_str(), RecvTimeout);
@@ -177,7 +177,7 @@ namespace SPA {
                                 db->SetConnTimeout(ConnTimeout);
                                 break;
                             case Slave:
-                                db = new CSQLMaster::CSlavePool(dfltDb.c_str(), RecvTimeout);
+                                db = new CSQLMaster::CSlavePool<COdbcPool::Handler>(dfltDb.c_str(), RecvTimeout);
                                 db->SetAutoConn(AutoConn);
                                 db->SetConnTimeout(ConnTimeout);
                                 break;
@@ -230,7 +230,7 @@ namespace SPA {
                         break;
                     case SPA::SFile::sidFile:
                     {
-						CStreamingFilePool *pool = new CStreamingFilePool(AutoConn, RecvTimeout, ConnTimeout);
+                        CStreamingFilePool *pool = new CStreamingFilePool(AutoConn, RecvTimeout, ConnTimeout);
                         if (Queue.size()) {
                             pool->SetQueueName(Queue.c_str());
                         }
@@ -262,7 +262,7 @@ namespace SPA {
                                 db->SetConnTimeout(ConnTimeout);
                                 break;
                             case Slave:
-                                db = new CMaster::CSlavePool(dfltDb.c_str(), RecvTimeout, SvsId);
+                                db = new CMaster::CSlavePool<CMyPool::Handler>(dfltDb.c_str(), RecvTimeout, SvsId);
                                 db->SetAutoConn(AutoConn);
                                 db->SetConnTimeout(ConnTimeout);
                                 break;

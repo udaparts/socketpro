@@ -1,3 +1,4 @@
+#include <stdexcept>
 #include "manager.h"
 #include "3rdparty/rapidjson/include/rapidjson/filereadstream.h"
 #include "3rdparty/rapidjson/include/rapidjson/document.h"
@@ -31,15 +32,15 @@ namespace SPA
             void *pool = GetPool(poolKey, &svsId);
             switch (svsId) {
                 case SPA::SFile::sidFile:
-                    return ((CStreamingFilePool*)pool)->Seek().get();
+                    return ((CStreamingFilePool*) pool)->Seek().get();
                 case SPA::Queue::sidQueue:
-                    return ((CAsyncQueuePool*)pool)->Seek().get();
+                    return ((CAsyncQueuePool*) pool)->Seek().get();
                 case SPA::Mysql::sidMysql:
-                    return ((CMysqlPool*)pool)->Seek().get();
+                    return ((CMysqlPool*) pool)->Seek().get();
                 case SPA::Sqlite::sidSqlite:
-                    return ((CSqlitePool*)pool)->Seek().get();
+                    return ((CSqlitePool*) pool)->Seek().get();
                 case SPA::Odbc::sidOdbc:
-                    return ((COdbcPool*)pool)->Seek().get();
+                    return ((COdbcPool*) pool)->Seek().get();
                 default:
                     return ((CPoolConfig::CMyPool*)pool)->Seek().get();
             }
@@ -49,19 +50,19 @@ namespace SPA
             unsigned int svsId;
             void *pool = GetPool(poolKey, &svsId);
             if (!m_pp.at(poolKey)->Queue.size()) {
-                throw std::exception(("Client queue is not availeble for pool " + poolKey).c_str());
+                throw std::runtime_error(("Client queue is not availeble for pool " + poolKey).c_str());
             }
             switch (svsId) {
                 case SPA::SFile::sidFile:
-                    return ((CStreamingFilePool*)pool)->SeekByQueue().get();
+                    return ((CStreamingFilePool*) pool)->SeekByQueue().get();
                 case SPA::Queue::sidQueue:
-                    return ((CAsyncQueuePool*)pool)->SeekByQueue().get();
+                    return ((CAsyncQueuePool*) pool)->SeekByQueue().get();
                 case SPA::Mysql::sidMysql:
-                    return ((CMysqlPool*)pool)->SeekByQueue().get();
+                    return ((CMysqlPool*) pool)->SeekByQueue().get();
                 case SPA::Sqlite::sidSqlite:
-                    return ((CSqlitePool*)pool)->SeekByQueue().get();
+                    return ((CSqlitePool*) pool)->SeekByQueue().get();
                 case SPA::Odbc::sidOdbc:
-                    return ((COdbcPool*)pool)->SeekByQueue().get();
+                    return ((COdbcPool*) pool)->SeekByQueue().get();
                 default:
                     return ((CPoolConfig::CMyPool*)pool)->SeekByQueue().get();
             }
@@ -73,7 +74,7 @@ namespace SPA
             auto it = m_pp.find(poolKey);
             if (it == m_pp.end()) {
                 em = "Pool key " + poolKey + " cannot be found from configuaration";
-                throw std::exception(em.c_str());
+                throw std::runtime_error(em.c_str());
             }
             CPoolConfig *pc = it->second;
             if (m_bMidTier)
@@ -81,7 +82,7 @@ namespace SPA
             else
                 em = pc->StartPool<false>(Hosts);
             if (em.size()) {
-                throw std::exception(em.c_str());
+                throw std::runtime_error(em.c_str());
             }
             if (pSvsId) {
                 *pSvsId = pc->SvsId;
@@ -538,7 +539,7 @@ namespace SPA
         CSpConfig & SpManager::SetConfig(bool midTier, const char *jsonConfig) {
             CSpConfig::SpConfig.Parse(midTier, jsonConfig);
             if (CSpConfig::SpConfig.GetErrMsg().size()) {
-                throw std::exception(CSpConfig::SpConfig.GetErrMsg().c_str());
+                throw std::runtime_error(CSpConfig::SpConfig.GetErrMsg().c_str());
             }
             return CSpConfig::SpConfig;
         }
@@ -546,7 +547,7 @@ namespace SPA
         void* SpManager::GetPool(const std::string & poolKey, unsigned int *pSvsId) {
             SetConfig();
             if (!poolKey.size()) {
-                throw std::exception("Pool key cannot be empty");
+                throw std::runtime_error("Pool key cannot be empty");
             }
             return CSpConfig::SpConfig.GetPool(poolKey, pSvsId);
         }
@@ -554,7 +555,7 @@ namespace SPA
         CAsyncServiceHandler * SpManager::SeekHandler(const std::string & poolKey) {
             SetConfig();
             if (!poolKey.size()) {
-                throw std::exception("Pool key cannot be empty");
+                throw std::runtime_error("Pool key cannot be empty");
             }
             return CSpConfig::SpConfig.SeekHandler(poolKey);
         }
@@ -562,7 +563,7 @@ namespace SPA
         CAsyncServiceHandler * SpManager::SeekHandlerByQueue(const std::string & poolKey) {
             SetConfig();
             if (!poolKey.size()) {
-                throw std::exception("Pool key cannot be empty");
+                throw std::runtime_error("Pool key cannot be empty");
             }
             return CSpConfig::SpConfig.SeekHandlerByQueue(poolKey);
         }
