@@ -138,7 +138,7 @@ namespace SPA {
                                 db->SetConnTimeout(ConnTimeout);
                                 break;
                             case Slave:
-                                db = new CSQLMaster::CSlavePool<CMysqlPool::Handler>(dfltDb.c_str(), RecvTimeout);
+                                db = new CSQLMaster::CSlavePool(dfltDb.c_str(), RecvTimeout);
                                 db->SetAutoConn(AutoConn);
                                 db->SetConnTimeout(ConnTimeout);
                                 break;
@@ -177,7 +177,7 @@ namespace SPA {
                                 db->SetConnTimeout(ConnTimeout);
                                 break;
                             case Slave:
-                                db = new CSQLMaster::CSlavePool<COdbcPool::Handler>(dfltDb.c_str(), RecvTimeout);
+                                db = new CSQLMaster::CSlavePool(dfltDb.c_str(), RecvTimeout);
                                 db->SetAutoConn(AutoConn);
                                 db->SetConnTimeout(ConnTimeout);
                                 break;
@@ -262,7 +262,7 @@ namespace SPA {
                                 db->SetConnTimeout(ConnTimeout);
                                 break;
                             case Slave:
-                                db = new CMaster::CSlavePool<CMyPool::Handler>(dfltDb.c_str(), RecvTimeout, SvsId);
+                                db = new CMaster::CSlavePool(dfltDb.c_str(), RecvTimeout, SvsId);
                                 db->SetAutoConn(AutoConn);
                                 db->SetConnTimeout(ConnTimeout);
                                 break;
