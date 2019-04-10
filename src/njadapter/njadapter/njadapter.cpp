@@ -102,7 +102,7 @@ namespace NJA {
 
     void InitAll(Local<Object> exports) {
         {
-            //make sure static critical sections initilized
+            //make sure static critical sections initialized
             SPA::CScopeUQueue sb;
             SPA::UINT64 index = CAsyncServiceHandler::GetCallIndex();
         }
