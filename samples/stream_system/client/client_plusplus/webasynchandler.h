@@ -1,4 +1,3 @@
-
 #pragma once
 
 #include "../../shared/ss_defines.h"

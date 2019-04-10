@@ -38,9 +38,9 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/562988696/aclientw.o \
 	${OBJECTDIR}/_ext/562988696/aserverw.o \
 	${OBJECTDIR}/_ext/562988696/error_code.o \
+	${OBJECTDIR}/_ext/562988696/manager.o \
 	${OBJECTDIR}/_ext/562988696/membuffer.o \
 	${OBJECTDIR}/_ext/562988696/tablecache.o \
-	${OBJECTDIR}/config.o \
 	${OBJECTDIR}/cplusplus.o \
 	${OBJECTDIR}/sspeer.o \
 	${OBJECTDIR}/ssserver.o \
@@ -86,6 +86,11 @@ ${OBJECTDIR}/_ext/562988696/error_code.o: ../../../../include/error_code.cpp
 	${RM} "$@.d"
 	$(COMPILE.c) -O2 -s -DNDEBUG -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/562988696/error_code.o ../../../../include/error_code.cpp
 
+${OBJECTDIR}/_ext/562988696/manager.o: ../../../../include/manager.cpp 
+	${MKDIR} -p ${OBJECTDIR}/_ext/562988696
+	${RM} "$@.d"
+	$(COMPILE.c) -O2 -s -DNDEBUG -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/562988696/manager.o ../../../../include/manager.cpp
+
 ${OBJECTDIR}/_ext/562988696/membuffer.o: ../../../../include/membuffer.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/562988696
 	${RM} "$@.d"
@@ -95,11 +100,6 @@ ${OBJECTDIR}/_ext/562988696/tablecache.o: ../../../../include/tablecache.cpp
 	${MKDIR} -p ${OBJECTDIR}/_ext/562988696
 	${RM} "$@.d"
 	$(COMPILE.c) -O2 -s -DNDEBUG -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/562988696/tablecache.o ../../../../include/tablecache.cpp
-
-${OBJECTDIR}/config.o: config.cpp 
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} "$@.d"
-	$(COMPILE.c) -O2 -s -DNDEBUG -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/config.o config.cpp
 
 ${OBJECTDIR}/cplusplus.o: cplusplus.cpp 
 	${MKDIR} -p ${OBJECTDIR}

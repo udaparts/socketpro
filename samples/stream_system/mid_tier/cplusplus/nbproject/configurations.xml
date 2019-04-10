@@ -6,7 +6,7 @@
                    projectFiles="true">
       <itemPath>../../../../include/aclientw.h</itemPath>
       <itemPath>../../../../include/aserverw.h</itemPath>
-      <itemPath>config.h</itemPath>
+      <itemPath>../../../../include/manager.h</itemPath>
       <itemPath>../../../../include/membuffer.h</itemPath>
       <itemPath>../../../../include/rdbcache.h</itemPath>
       <itemPath>sspeer.h</itemPath>
@@ -25,9 +25,9 @@
                    projectFiles="true">
       <itemPath>../../../../include/aclientw.cpp</itemPath>
       <itemPath>../../../../include/aserverw.cpp</itemPath>
-      <itemPath>config.cpp</itemPath>
       <itemPath>cplusplus.cpp</itemPath>
       <itemPath>../../../../include/error_code.cpp</itemPath>
+      <itemPath>../../../../include/manager.cpp</itemPath>
       <itemPath>../../../../include/membuffer.cpp</itemPath>
       <itemPath>sspeer.cpp</itemPath>
       <itemPath>ssserver.cpp</itemPath>
@@ -79,6 +79,10 @@
       </item>
       <item path="../../../../include/error_code.cpp" ex="false" tool="0" flavor2="0">
       </item>
+      <item path="../../../../include/manager.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="../../../../include/manager.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../../../include/membuffer.cpp" ex="false" tool="0" flavor2="0">
       </item>
       <item path="../../../../include/membuffer.h" ex="false" tool="3" flavor2="0">
@@ -92,10 +96,6 @@
       <item path="../../../../include/udatabase.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../../../include/udb_client.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="config.cpp" ex="false" tool="0" flavor2="0">
-      </item>
-      <item path="config.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="cplusplus.cpp" ex="false" tool="0" flavor2="0">
       </item>
@@ -160,6 +160,10 @@
       </item>
       <item path="../../../../include/error_code.cpp" ex="false" tool="0" flavor2="0">
       </item>
+      <item path="../../../../include/manager.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="../../../../include/manager.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../../../include/membuffer.cpp" ex="false" tool="0" flavor2="0">
       </item>
       <item path="../../../../include/membuffer.h" ex="false" tool="3" flavor2="0">
@@ -173,10 +177,6 @@
       <item path="../../../../include/udatabase.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../../../include/udb_client.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="config.cpp" ex="false" tool="0" flavor2="0">
-      </item>
-      <item path="config.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="cplusplus.cpp" ex="false" tool="0" flavor2="0">
       </item>

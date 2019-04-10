@@ -21,13 +21,13 @@ void CYourPeerOne::OnFastRequestArrive(unsigned short reqId, unsigned int len) {
         return;
     }
     BEGIN_SWITCH(reqId)
-    M_I0_R2(idGetMasterSlaveConnectedSessions, GetMasterSlaveConnectedSessions, unsigned int, unsigned int)
+        M_I0_R2(idGetMasterSlaveConnectedSessions, GetMasterSlaveConnectedSessions, unsigned int, unsigned int)
     END_SWITCH
 }
 
 int CYourPeerOne::OnSlowRequestArrive(unsigned short reqId, unsigned int len) {
     BEGIN_SWITCH(reqId)
-    M_I3_R3(SPA::UDB::idGetCachedTables, GetCachedTables, std::wstring, unsigned int, SPA::UINT64, int, int, std::wstring)
+        M_I3_R3(SPA::UDB::idGetCachedTables, GetCachedTables, std::wstring, unsigned int, SPA::UINT64, int, int, std::wstring)
     END_SWITCH
     return 0;
 }
@@ -114,8 +114,8 @@ void CYourPeerOne::UploadEmployees(SPA::CUQueue &q, SPA::UINT64 reqIndex) {
                     pError->second = SPA::Utilities::ToWide(err_msg.c_str(), err_msg.size());
                     unsigned int ret = this->SendResultIndex(reqIndex, idUploadEmployees, pError->first, pError->second, *pId);
                 }
-            }))
-        break;
+        }))
+            break;
         //put back locked handler and its socket back into pool for reuse as soon as possible
         CYourServer::Master->Unlock(handler);
         return;
@@ -214,9 +214,9 @@ void CYourPeerOne::UploadEmployees(SPA::CUQueue &q, SPA::UINT64 reqIndex) {
                         this->UploadEmployees(*sq, reqIndex); //this will not cause recursive stack-overflow exeption
                     }
                 })) {
-            CYourServer::Master->Unlock(handler); //put back locked handler and its socket back into pool for reuse as soon as possible
-            redo = 0; //disable redo only if all requests are successfully put onto wire
-        } else {
+                CYourServer::Master->Unlock(handler); //put back locked handler and its socket back into pool for reuse as soon as possible
+                redo = 0; //disable redo only if all requests are successfully put onto wire
+            } else {
                 //socket closed when sending
             }
         } while (false);
@@ -246,8 +246,8 @@ void CYourPeerOne::GetRentalDateTimes(SPA::CUQueue &q, SPA::UINT64 reqIndex) {
     }, [dates](CMysql &h, SPA::UDB::CDBVariantArray & vData) {
         dates->rental_id = vData[0].llVal;
         dates->Rental = vData[1].ullVal; //date time in high precision format
-                dates->Return = vData[2].ullVal;
-                dates->LastUpdate = vData[3].ullVal;
+        dates->Return = vData[2].ullVal;
+        dates->LastUpdate = vData[3].ullVal;
     });
     assert(ok); //should always be true because slave pool has queue name set for request backup
 }
@@ -276,11 +276,11 @@ void CYourPeerOne::QueryPaymentMaxMinAvgs(SPA::CUQueue &q, SPA::UINT64 reqIndex)
     }, [pmma](CMysql &h, SPA::UDB::CDBVariantArray & vData) {
         CComVariant temp;
         ::VariantChangeType(&temp, &vData[0], 0, VT_R8);
-                pmma->Max = temp.dblVal;
-                ::VariantChangeType(&temp, &vData[1], 0, VT_R8);
-                pmma->Min = temp.dblVal;
-                ::VariantChangeType(&temp, &vData[2], 0, VT_R8);
-                pmma->Avg = temp.dblVal;
+        pmma->Max = temp.dblVal;
+        ::VariantChangeType(&temp, &vData[1], 0, VT_R8);
+        pmma->Min = temp.dblVal;
+        ::VariantChangeType(&temp, &vData[2], 0, VT_R8);
+        pmma->Avg = temp.dblVal;
     });
     assert(ok); //should always be true because slave pool has queue name set for request backup
 }
@@ -316,7 +316,7 @@ void CYourPeerOne::GetCachedTables(const std::wstring &defaultDb, unsigned int f
         if (!handler->Execute(sql.c_str(), [prom, &res, &errMsg](CMysql & h, int r, const std::wstring & err, SPA::INT64 affected, SPA::UINT64 fail_ok, SPA::UDB::CDBVariant & vtId) {
                 res = r;
                 errMsg = err;
-                prom->set_value();
+                        prom->set_value();
             }, [this](CMysql &h, SPA::UDB::CDBVariantArray & vData) {
                 this->SendRows(vData);
             }, [this, index](CMysql & h) {
@@ -324,12 +324,12 @@ void CYourPeerOne::GetCachedTables(const std::wstring &defaultDb, unsigned int f
             }, true, true, [prom, &res, &errMsg](SPA::ClientSide::CAsyncServiceHandler *h, bool canceled) {
                 res = -2;
                 errMsg = L"Request canceled or socket closed";
-                prom->set_value();
+                        prom->set_value();
             })) {
-        res = handler->GetAttachedClientSocket()->GetErrorCode();
-        errMsg = SPA::Utilities::ToWide(handler->GetAttachedClientSocket()->GetErrorMsg().c_str());
-        break;
-    }
+            res = handler->GetAttachedClientSocket()->GetErrorCode();
+            errMsg = SPA::Utilities::ToWide(handler->GetAttachedClientSocket()->GetErrorMsg().c_str());
+            break;
+        }
         CYourServer::Master->Unlock(handler); //put back locked handler and its socket back into pool for reuse as soon as possible
         auto status = prom->get_future().wait_for(std::chrono::seconds(25)); //don't use handle->WaitAll() for better completion event as a session may be shared by multiple threads
         if (status == std::future_status::timeout) {
