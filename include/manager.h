@@ -13,7 +13,7 @@ namespace SPA {
 
         public:
             static CSpConfig SpConfig;
-            void* GetPool(const std::string &poolKey, unsigned int &svsId);
+            void* GetPool(const std::string &poolKey, unsigned int *pSvsId = nullptr);
             CAsyncServiceHandler* SeekHandler(const std::string &poolKey);
             CAsyncServiceHandler* SeekHandlerByQueue(const std::string &poolKey);
             const std::string& GetErrMsg();
@@ -41,7 +41,7 @@ namespace SPA {
 
         struct SpManager {
             static CSpConfig& SetConfig(bool midTier = false, const char *jsonConfig = nullptr);
-            static void* GetPool(const std::string& poolkey, unsigned int &svsId);
+            static void* GetPool(const std::string& poolkey, unsigned int *pSvsId = nullptr);
             static CAsyncServiceHandler* SeekHandler(const std::string& poolKey);
             static CAsyncServiceHandler* SeekHandlerByQueue(const std::string& poolKey);
         };

@@ -28,7 +28,7 @@ namespace SPA
 
         CAsyncServiceHandler * CSpConfig::SeekHandler(const std::string & poolKey) {
             unsigned int svsId;
-            void *pool = GetPool(poolKey, svsId);
+            void *pool = GetPool(poolKey, &svsId);
             switch (svsId) {
                 case SPA::SFile::sidFile:
                     return ((CSocketPool<CStreamingFile>*)pool)->Seek().get();
@@ -47,7 +47,7 @@ namespace SPA
 
         CAsyncServiceHandler * CSpConfig::SeekHandlerByQueue(const std::string & poolKey) {
             unsigned int svsId;
-            void *pool = GetPool(poolKey, svsId);
+            void *pool = GetPool(poolKey, &svsId);
             if (!m_pp.at(poolKey)->Queue.size()) {
                 throw std::exception(("Client queue is not availeble for pool " + poolKey).c_str());
             }
@@ -67,7 +67,7 @@ namespace SPA
             }
         }
 
-        void* CSpConfig::GetPool(const std::string &poolKey, unsigned int &svsId) {
+        void* CSpConfig::GetPool(const std::string &poolKey, unsigned int *pSvsId) {
             std::string em;
             SPA::CAutoLock al(m_cs);
             auto it = m_pp.find(poolKey);
@@ -83,7 +83,9 @@ namespace SPA
             if (em.size()) {
                 throw std::exception(em.c_str());
             }
-            svsId = pc->SvsId;
+            if (pSvsId) {
+                *pSvsId = pc->SvsId;
+            }
             return pc->Pool.get();
         }
 
@@ -541,12 +543,12 @@ namespace SPA
             return CSpConfig::SpConfig;
         }
 
-        void* SpManager::GetPool(const std::string & poolKey, unsigned int &svsId) {
+        void* SpManager::GetPool(const std::string & poolKey, unsigned int *pSvsId) {
             SetConfig();
             if (!poolKey.size()) {
                 throw std::exception("Pool key cannot be empty");
             }
-            return CSpConfig::SpConfig.GetPool(poolKey, svsId);
+            return CSpConfig::SpConfig.GetPool(poolKey, pSvsId);
         }
 
         CAsyncServiceHandler * SpManager::SeekHandler(const std::string & poolKey) {

@@ -29,8 +29,10 @@ int main(int argc, char* argv[]) {
     CWebMasterPool master(L"");
 #endif
 
+#ifndef WIN32_64
     //CA file is located at the directory ../socketpro/bin
     CClientSocket::SSL::SetVerifyLocation("ca.cert.pem");
+#endif
 
     auto cb = [](CMyPool *sender, CClientSocket * cs)->bool {
         int errCode;

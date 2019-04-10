@@ -145,6 +145,7 @@
   <ItemGroup>
     <ClInclude Include="..\..\..\..\include\aclientw.h" />
     <ClInclude Include="..\..\..\..\include\aserverw.h" />
+    <ClInclude Include="..\..\..\..\include\manager.h" />
     <ClInclude Include="..\..\..\..\include\membuffer.h" />
     <ClInclude Include="..\..\..\..\include\rdbcache.h" />
     <ClInclude Include="..\..\..\..\include\tablecache.h" />
@@ -158,7 +159,12 @@
   <ItemGroup>
     <ClCompile Include="..\..\..\..\include\aclientw.cpp" />
     <ClCompile Include="..\..\..\..\include\aserverw.cpp" />
-    <ClCompile Include="..\..\..\..\include\manager.cpp" />
+    <ClCompile Include="..\..\..\..\include\manager.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">/bigobj %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">/bigobj %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/bigobj %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/bigobj %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
     <ClCompile Include="..\..\..\..\include\membuffer.cpp" />
     <ClCompile Include="..\..\..\..\include\tablecache.cpp" />
     <ClCompile Include="cplusplus.cpp" />
