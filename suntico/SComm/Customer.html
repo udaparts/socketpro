@@ -1,0 +1,283 @@
+<html>
+<head>
+<title>
+</title>
+<style type='text/css'>
+.style1
+{
+font-weight: bold;
+background-color: #CCCCCC;
+}
+</style>
+</head>
+<body style='font-family: Arial, Helvetica, sans-serif'>
+<h1>Customer</h1>
+<h2>Customer</h2>
+<table border='1'>
+<tr>
+<td class='style1'>Column Name
+</td>
+<td class='style1'>Data Type
+</td>
+</tr>
+<tr><td>Sid_Customer</td><td>System.Int32</td></tr>
+<tr><td>Key</td><td>System.String</td></tr>
+<tr><td>Balance</td><td>System.Decimal</td></tr>
+<tr><td>Category</td><td>System.String</td></tr>
+<tr><td>CreditStatus</td><td>System.Int32</td></tr>
+<tr><td>CustomerSince</td><td>System.DateTime</td></tr>
+<tr><td>Name</td><td>System.String</td></tr>
+<tr><td>Email</td><td>System.String</td></tr>
+<tr><td>UseEmailToDeliverForms</td><td>System.Boolean</td></tr>
+<tr><td>ID</td><td>System.String</td></tr>
+<tr><td>IsInactive</td><td>System.Boolean</td></tr>
+<tr><td>IsProspect</td><td>System.Boolean</td></tr>
+<tr><td>LastInvoiceAmount</td><td>System.Decimal</td></tr>
+<tr><td>LastInvoiceDate</td><td>System.DateTime</td></tr>
+<tr><td>LastPaymentAmount</td><td>System.Decimal</td></tr>
+<tr><td>LastPaymentDate</td><td>System.DateTime</td></tr>
+<tr><td>LastStatementDate</td><td>System.DateTime</td></tr>
+<tr><td>OpenPurchaseOrderNumber</td><td>System.String</td></tr>
+<tr><td>AccountNumber</td><td>System.String</td></tr>
+<tr><td>PaymentMethod</td><td>System.String</td></tr>
+<tr><td>PriceLevel</td><td>System.Int16</td></tr>
+<tr><td>ReplaceInventoryItemIDWithPartNumber</td><td>System.Boolean</td></tr>
+<tr><td>ReplaceInventoryItemIDWithUPC</td><td>System.Boolean</td></tr>
+<tr><td>ResaleNumber</td><td>System.String</td></tr>
+<tr><td>ShipVia</td><td>System.String</td></tr>
+<tr><td>WebSiteURL</td><td>System.String</td></tr>
+<tr><td>CashAccountReference</td><td>System.String</td></tr>
+<tr><td>SalesRepresentativeReference</td><td>System.String</td></tr>
+<tr><td>UsualSalesAccountReference</td><td>System.String</td></tr>
+</table>
+<hr />
+<h2>Customer_PhoneNumber</h2>
+<table border='1'>
+<tr>
+<td class='style1'>Column Name
+</td>
+<td class='style1'>Data Type
+</td>
+</tr>
+<tr><td>Sid_Customer_PhoneNumber</td><td>System.Int32</td></tr>
+<tr><td>Sid_Customer</td><td>System.Int32</td></tr>
+<tr><td>Number</td><td>System.String</td></tr>
+<tr><td>Key</td><td>System.Int32</td></tr>
+</table>
+<hr />
+<h2>Customer_CustomFieldValue</h2>
+<table border='1'>
+<tr>
+<td class='style1'>Column Name
+</td>
+<td class='style1'>Data Type
+</td>
+</tr>
+<tr><td>Sid_Customer_CustomFieldValue</td><td>System.Int32</td></tr>
+<tr><td>Sid_Customer</td><td>System.Int32</td></tr>
+<tr><td>Value</td><td>System.String</td></tr>
+<tr><td>Key</td><td>System.String</td></tr>
+</table>
+<hr />
+<h2>Customer_BillToContact_Contact</h2>
+<table border='1'>
+<tr>
+<td class='style1'>Column Name
+</td>
+<td class='style1'>Data Type
+</td>
+</tr>
+<tr><td>Sid_Customer_BillToContact_Contact</td><td>System.Int32</td></tr>
+<tr><td>Sid_Customer_BillToContact</td><td>System.Int32</td></tr>
+<tr><td>Key</td><td>System.String</td></tr>
+<tr><td>CompanyName</td><td>System.String</td></tr>
+<tr><td>Email</td><td>System.String</td></tr>
+<tr><td>FirstName</td><td>System.String</td></tr>
+<tr><td>Gender</td><td>System.Int32</td></tr>
+<tr><td>IsPrimaryContact</td><td>System.Boolean</td></tr>
+<tr><td>LastName</td><td>System.String</td></tr>
+<tr><td>MiddleInitial</td><td>System.String</td></tr>
+<tr><td>Name</td><td>System.String</td></tr>
+<tr><td>NameToUseOnForms</td><td>System.Int32</td></tr>
+<tr><td>Notes</td><td>System.String</td></tr>
+<tr><td>Prefix</td><td>System.String</td></tr>
+<tr><td>Suffix</td><td>System.String</td></tr>
+<tr><td>Title</td><td>System.String</td></tr>
+</table>
+<hr />
+<h2>Customer_BillToContact_Contact_PhoneNumber</h2>
+<table border='1'>
+<tr>
+<td class='style1'>Column Name
+</td>
+<td class='style1'>Data Type
+</td>
+</tr>
+<tr><td>Sid_Customer_BillToContact_Contact_PhoneNumber</td><td>System.Int32</td></tr>
+<tr><td>Sid_Customer_BillToContact_Contact</td><td>System.Int32</td></tr>
+<tr><td>Number</td><td>System.String</td></tr>
+<tr><td>Key</td><td>System.Int32</td></tr>
+</table>
+<hr />
+<h2>Customer_BillToContact_Contact_Address_Address</h2>
+<table border='1'>
+<tr>
+<td class='style1'>Column Name
+</td>
+<td class='style1'>Data Type
+</td>
+</tr>
+<tr><td>Sid_Customer_BillToContact_Contact_Address_Address</td><td>System.Int32</td></tr>
+<tr><td>Sid_Customer_BillToContact_Contact_Address</td><td>System.Int32</td></tr>
+<tr><td>Key</td><td>System.String</td></tr>
+<tr><td>Address1</td><td>System.String</td></tr>
+<tr><td>Address2</td><td>System.String</td></tr>
+<tr><td>City</td><td>System.String</td></tr>
+<tr><td>Country</td><td>System.String</td></tr>
+<tr><td>SalesTaxCode</td><td>System.String</td></tr>
+<tr><td>State</td><td>System.String</td></tr>
+<tr><td>Zip</td><td>System.String</td></tr>
+</table>
+<hr />
+<h2>Customer_ShipToContact_Contact</h2>
+<table border='1'>
+<tr>
+<td class='style1'>Column Name
+</td>
+<td class='style1'>Data Type
+</td>
+</tr>
+<tr><td>Sid_Customer_ShipToContact_Contact</td><td>System.Int32</td></tr>
+<tr><td>Sid_Customer_ShipToContact</td><td>System.Int32</td></tr>
+<tr><td>Key</td><td>System.String</td></tr>
+<tr><td>CompanyName</td><td>System.String</td></tr>
+<tr><td>Email</td><td>System.String</td></tr>
+<tr><td>FirstName</td><td>System.String</td></tr>
+<tr><td>Gender</td><td>System.Int32</td></tr>
+<tr><td>IsPrimaryContact</td><td>System.Boolean</td></tr>
+<tr><td>LastName</td><td>System.String</td></tr>
+<tr><td>MiddleInitial</td><td>System.String</td></tr>
+<tr><td>Name</td><td>System.String</td></tr>
+<tr><td>NameToUseOnForms</td><td>System.Int32</td></tr>
+<tr><td>Notes</td><td>System.String</td></tr>
+<tr><td>Prefix</td><td>System.String</td></tr>
+<tr><td>Suffix</td><td>System.String</td></tr>
+<tr><td>Title</td><td>System.String</td></tr>
+</table>
+<hr />
+<h2>Customer_ShipToContact_Contact_PhoneNumber</h2>
+<table border='1'>
+<tr>
+<td class='style1'>Column Name
+</td>
+<td class='style1'>Data Type
+</td>
+</tr>
+<tr><td>Sid_Customer_ShipToContact_Contact_PhoneNumber</td><td>System.Int32</td></tr>
+<tr><td>Sid_Customer_ShipToContact_Contact</td><td>System.Int32</td></tr>
+<tr><td>Number</td><td>System.String</td></tr>
+<tr><td>Key</td><td>System.Int32</td></tr>
+</table>
+<hr />
+<h2>Customer_ShipToContact_Contact_Address_Address</h2>
+<table border='1'>
+<tr>
+<td class='style1'>Column Name
+</td>
+<td class='style1'>Data Type
+</td>
+</tr>
+<tr><td>Sid_Customer_ShipToContact_Contact_Address_Address</td><td>System.Int32</td></tr>
+<tr><td>Sid_Customer_ShipToContact_Contact_Address</td><td>System.Int32</td></tr>
+<tr><td>Key</td><td>System.String</td></tr>
+<tr><td>Address1</td><td>System.String</td></tr>
+<tr><td>Address2</td><td>System.String</td></tr>
+<tr><td>City</td><td>System.String</td></tr>
+<tr><td>Country</td><td>System.String</td></tr>
+<tr><td>SalesTaxCode</td><td>System.String</td></tr>
+<tr><td>State</td><td>System.String</td></tr>
+<tr><td>Zip</td><td>System.String</td></tr>
+</table>
+<hr />
+<h2>Customer_Contact</h2>
+<table border='1'>
+<tr>
+<td class='style1'>Column Name
+</td>
+<td class='style1'>Data Type
+</td>
+</tr>
+<tr><td>Sid_Customer_Contact</td><td>System.Int32</td></tr>
+<tr><td>Sid_Customer</td><td>System.Int32</td></tr>
+<tr><td>Key</td><td>System.String</td></tr>
+<tr><td>CompanyName</td><td>System.String</td></tr>
+<tr><td>Email</td><td>System.String</td></tr>
+<tr><td>FirstName</td><td>System.String</td></tr>
+<tr><td>Gender</td><td>System.Int32</td></tr>
+<tr><td>IsPrimaryContact</td><td>System.Boolean</td></tr>
+<tr><td>LastName</td><td>System.String</td></tr>
+<tr><td>MiddleInitial</td><td>System.String</td></tr>
+<tr><td>Name</td><td>System.String</td></tr>
+<tr><td>NameToUseOnForms</td><td>System.Int32</td></tr>
+<tr><td>Notes</td><td>System.String</td></tr>
+<tr><td>Prefix</td><td>System.String</td></tr>
+<tr><td>Suffix</td><td>System.String</td></tr>
+<tr><td>Title</td><td>System.String</td></tr>
+</table>
+<hr />
+<h2>Customer_Contact_PhoneNumber</h2>
+<table border='1'>
+<tr>
+<td class='style1'>Column Name
+</td>
+<td class='style1'>Data Type
+</td>
+</tr>
+<tr><td>Sid_Customer_Contact_PhoneNumber</td><td>System.Int32</td></tr>
+<tr><td>Sid_Customer_Contact</td><td>System.Int32</td></tr>
+<tr><td>Number</td><td>System.String</td></tr>
+<tr><td>Key</td><td>System.Int32</td></tr>
+</table>
+<hr />
+<h2>Customer_Contact_Address_Address</h2>
+<table border='1'>
+<tr>
+<td class='style1'>Column Name
+</td>
+<td class='style1'>Data Type
+</td>
+</tr>
+<tr><td>Sid_Customer_Contact_Address_Address</td><td>System.Int32</td></tr>
+<tr><td>Sid_Customer_Contact_Address</td><td>System.Int32</td></tr>
+<tr><td>Key</td><td>System.String</td></tr>
+<tr><td>Address1</td><td>System.String</td></tr>
+<tr><td>Address2</td><td>System.String</td></tr>
+<tr><td>City</td><td>System.String</td></tr>
+<tr><td>Country</td><td>System.String</td></tr>
+<tr><td>SalesTaxCode</td><td>System.String</td></tr>
+<tr><td>State</td><td>System.String</td></tr>
+<tr><td>Zip</td><td>System.String</td></tr>
+</table>
+<hr />
+<h2>Customer_Terms_PaymentTerms</h2>
+<table border='1'>
+<tr>
+<td class='style1'>Column Name
+</td>
+<td class='style1'>Data Type
+</td>
+</tr>
+<tr><td>Sid_Customer_Terms_PaymentTerms</td><td>System.Int32</td></tr>
+<tr><td>Sid_Customer_Terms</td><td>System.Int32</td></tr>
+<tr><td>DueDays</td><td>System.Int32</td></tr>
+<tr><td>DiscountDays</td><td>System.Int32</td></tr>
+<tr><td>DiscountPercent</td><td>System.Decimal</td></tr>
+<tr><td>CreditLimit</td><td>System.Decimal</td></tr>
+<tr><td>ChargeInterest</td><td>System.Boolean</td></tr>
+<tr><td>IsStandardTerms</td><td>System.Boolean</td></tr>
+<tr><td>PaymentTimeFrame</td><td>System.Int32</td></tr>
+<tr><td>UseDiscounts</td><td>System.Boolean</td></tr>
+</table>
+<hr />
+</body>
+</html>

@@ -1,0 +1,23 @@
+
+[	
+	ServiceID = 2 //service id can't be less than 0
+]			
+CTOne
+{
+	uint QueryCount(); //Returns the count of calls from one socket connection
+	
+	/*Returns the count of all requests from all of socket connections */
+	uint QueryGlobalCount();
+	
+	/*Returns the count of fast requests from all of socket connections */
+	uint QueryGlobalFastCount();
+
+	/* Sleep for a given time nTime. It is a slow request. */
+	$void Sleep(uint nTime);
+
+	object Echo(object objInput); //echo a data
+	
+	$MyStruct EchoAStruct(int data, bool b, DateTime dt, out string output);
+	
+	$MyStruct2 EchoStruct2(double d, Guid clsid, byte []bytes, out string output);
+}

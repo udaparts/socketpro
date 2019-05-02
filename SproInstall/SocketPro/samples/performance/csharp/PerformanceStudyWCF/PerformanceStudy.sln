@@ -1,0 +1,46 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PerfSvr", "PerfSvr\PerfSvr.csproj", "{BCEBA6C0-0637-44B6-9F70-CE209EB9E93B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PerfClient", "PerfClient\PerfClient.csproj", "{267291D3-793F-4A60-A385-9F7DC2C5D52C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MyCalls", "MyCalls\MyCalls.csproj", "{D667F875-B803-479D-9F54-2F6E7B31A92F}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Debug|x86 = Debug|x86
+		Release|Any CPU = Release|Any CPU
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{BCEBA6C0-0637-44B6-9F70-CE209EB9E93B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BCEBA6C0-0637-44B6-9F70-CE209EB9E93B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BCEBA6C0-0637-44B6-9F70-CE209EB9E93B}.Debug|x86.ActiveCfg = Debug|x86
+		{BCEBA6C0-0637-44B6-9F70-CE209EB9E93B}.Debug|x86.Build.0 = Debug|x86
+		{BCEBA6C0-0637-44B6-9F70-CE209EB9E93B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BCEBA6C0-0637-44B6-9F70-CE209EB9E93B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BCEBA6C0-0637-44B6-9F70-CE209EB9E93B}.Release|x86.ActiveCfg = Release|x86
+		{BCEBA6C0-0637-44B6-9F70-CE209EB9E93B}.Release|x86.Build.0 = Release|x86
+		{267291D3-793F-4A60-A385-9F7DC2C5D52C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{267291D3-793F-4A60-A385-9F7DC2C5D52C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{267291D3-793F-4A60-A385-9F7DC2C5D52C}.Debug|x86.ActiveCfg = Debug|x86
+		{267291D3-793F-4A60-A385-9F7DC2C5D52C}.Debug|x86.Build.0 = Debug|x86
+		{267291D3-793F-4A60-A385-9F7DC2C5D52C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{267291D3-793F-4A60-A385-9F7DC2C5D52C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{267291D3-793F-4A60-A385-9F7DC2C5D52C}.Release|x86.ActiveCfg = Release|x86
+		{267291D3-793F-4A60-A385-9F7DC2C5D52C}.Release|x86.Build.0 = Release|x86
+		{D667F875-B803-479D-9F54-2F6E7B31A92F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D667F875-B803-479D-9F54-2F6E7B31A92F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D667F875-B803-479D-9F54-2F6E7B31A92F}.Debug|x86.ActiveCfg = Debug|x86
+		{D667F875-B803-479D-9F54-2F6E7B31A92F}.Debug|x86.Build.0 = Debug|x86
+		{D667F875-B803-479D-9F54-2F6E7B31A92F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D667F875-B803-479D-9F54-2F6E7B31A92F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D667F875-B803-479D-9F54-2F6E7B31A92F}.Release|x86.ActiveCfg = Release|x86
+		{D667F875-B803-479D-9F54-2F6E7B31A92F}.Release|x86.Build.0 = Release|x86
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,20 @@
+// RemoteConnector.idl : IDL source for RemoteConnector.dll
+//
+
+// This file will be processed by the MIDL tool to
+// produce the type library (RemoteConnector.tlb) and marshalling code.
+
+import "oaidl.idl";
+import "ocidl.idl";
+
+[
+	uuid(A2360B1B-2A83-4C4F-AB86-77ECDB872782),
+	version(1.0),
+	helpstring("RemoteConnector 1.0 Type Library")
+]
+library REMOTECONNECTORLib
+{
+	importlib("stdole32.tlb");
+	importlib("stdole2.tlb");
+
+};

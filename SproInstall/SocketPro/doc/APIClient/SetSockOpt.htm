@@ -1,0 +1,171 @@
+<html xmlns:o="urn:schemas-microsoft-com:office:office"
+xmlns:w="urn:schemas-microsoft-com:office:word"
+xmlns="http://www.w3.org/TR/REC-html40">
+
+<head>
+<meta http-equiv=Content-Type content="text/html; charset=windows-1252">
+<meta name=ProgId content=Word.Document>
+<meta name=Generator content="Microsoft Word 9">
+<meta name=Originator content="Microsoft Word 9">
+<link rel=File-List href="./SetSockOpt_files/filelist.xml">
+<title>SetSockOpt</title>
+<!--[if gte mso 9]><xml>
+ <o:DocumentProperties>
+  <o:Author>Yuancai (Charlie) Ye</o:Author>
+  <o:Template>Normal</o:Template>
+  <o:LastAuthor>Yuancai (Charlie) Ye</o:LastAuthor>
+  <o:Revision>4</o:Revision>
+  <o:TotalTime>30</o:TotalTime>
+  <o:Created>2006-09-04T00:56:00Z</o:Created>
+  <o:LastSaved>2006-11-01T00:47:00Z</o:LastSaved>
+  <o:Pages>1</o:Pages>
+  <o:Words>122</o:Words>
+  <o:Characters>698</o:Characters>
+  <o:Company>Intelligent Decision Technologies</o:Company>
+  <o:Lines>5</o:Lines>
+  <o:Paragraphs>1</o:Paragraphs>
+  <o:CharactersWithSpaces>857</o:CharactersWithSpaces>
+  <o:Version>9.2720</o:Version>
+ </o:DocumentProperties>
+</xml><![endif]-->
+<style>
+<!--
+ /* Style Definitions */
+p.MsoNormal, li.MsoNormal, div.MsoNormal
+	{mso-style-parent:"";
+	margin:0in;
+	margin-bottom:.0001pt;
+	mso-pagination:widow-orphan;
+	font-size:12.0pt;
+	font-family:"Times New Roman";
+	mso-fareast-font-family:"Times New Roman";}
+h1
+	{mso-style-next:Normal;
+	margin:0in;
+	margin-bottom:.0001pt;
+	mso-pagination:widow-orphan;
+	page-break-after:avoid;
+	mso-outline-level:1;
+	font-size:12.0pt;
+	font-family:"Times New Roman";
+	mso-font-kerning:0pt;}
+h2
+	{mso-style-next:Normal;
+	margin:0in;
+	margin-bottom:.0001pt;
+	mso-pagination:widow-orphan;
+	page-break-after:avoid;
+	mso-outline-level:2;
+	font-size:12.0pt;
+	font-family:"Times New Roman";
+	font-weight:normal;
+	font-style:italic;}
+a:link, span.MsoHyperlink
+	{color:blue;
+	text-decoration:underline;
+	text-underline:single;}
+a:visited, span.MsoHyperlinkFollowed
+	{color:purple;
+	text-decoration:underline;
+	text-underline:single;}
+@page Section1
+	{size:8.5in 11.0in;
+	margin:1.0in 1.25in 1.0in 1.25in;
+	mso-header-margin:.5in;
+	mso-footer-margin:.5in;
+	mso-paper-source:0;}
+div.Section1
+	{page:Section1;}
+-->
+</style>
+</head>
+
+<body lang=EN-US link=blue vlink=purple style='tab-interval:.5in'>
+
+<div class=Section1>
+
+<p class=MsoNormal><b><span style='mso-bidi-font-size:10.0pt'>[<span
+style='color:blue'>id</span>(4), <span style='color:blue'>helpstring</span>(<span
+style='color:maroon'>&quot;method SetSockOpt&quot;</span>)] HRESULT
+SetSockOpt([<span style='color:blue'>in</span>]<span style='color:blue'>long</span>
+lOptName, [<span style='color:blue'>in</span>]<span style='color:blue'>long</span>
+lOptValue, [<span style='color:blue'>in</span>, <span style='color:blue'>defaultvalue</span>(slSocket)]<span
+style='color:blue'>long</span> lLevel);<span style='color:blue'><o:p></o:p></span></span></b></p>
+
+<h1><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></h1>
+
+<h1>Parameters</h1>
+
+<p class=MsoNormal><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></p>
+
+<p class=MsoNormal><i>lOptName<o:p></o:p></i></p>
+
+<p class=MsoNormal><span style='mso-tab-count:1'>            </span>[in]The
+socket option for which the value is to be set</p>
+
+<p class=MsoNormal><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></p>
+
+<h2>lOptValue</h2>
+
+<p class=MsoNormal><span style='mso-tab-count:1'>            </span>[in]An
+option value</p>
+
+<p class=MsoNormal><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></p>
+
+<p class=MsoNormal><i>lLevel<o:p></o:p></i></p>
+
+<p class=MsoNormal><span style='mso-tab-count:1'>            </span>[in]The
+level (<b><span style='mso-bidi-font-size:10.0pt'>(</span></b><span
+style='mso-bidi-font-size:10.0pt'>slSocket or slTcp</span>) at which the option
+is defined</p>
+
+<p class=MsoNormal><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></p>
+
+<h1>Remarks</h1>
+
+<p class=MsoNormal><span style='mso-tab-count:1'>            </span></p>
+
+<p class=MsoNormal style='text-indent:.5in'>The function sets socket
+communication option.</p>
+
+<p class=MsoNormal style='text-indent:.5in'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></p>
+
+<h1 style='text-indent:.5in'><span style='font-weight:normal'>Refer to window
+socket function setsockopt.<o:p></o:p></span></h1>
+
+<p class=MsoNormal style='text-indent:.5in'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></p>
+
+<p class=MsoNormal style='text-indent:.5in'>Here are two code snippets.</p>
+
+<p class=MsoNormal style='text-indent:.5in'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></p>
+
+<p class=MsoNormal style='background:#FFFFCC;mso-layout-grid-align:none;
+text-autospace:none'><b><span style='font-size:10.0pt;color:green'>//Turn off
+(1)/On (0) TCP Nagle algorithm at client side</span></b><b><span
+style='font-size:10.0pt'><o:p></o:p></span></b></p>
+
+<p class=MsoNormal style='background:#FFFFCC;mso-layout-grid-align:none;
+text-autospace:none'><b><span style='font-size:10.0pt'>ClientSocket.SetSockOpt((<span
+style='color:blue'>int</span>)USOCKETLib.tagSocketOption.soTcpNoDelay, 1, (<span
+style='color:blue'>int</span>)USOCKETLib.tagSocketProtocol.spTCP);<o:p></o:p></span></b></p>
+
+<p class=MsoNormal style='background:#FFFFCC;mso-layout-grid-align:none;
+text-autospace:none'><b><span style='font-size:10.0pt'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></b></p>
+
+<p class=MsoNormal style='background:#FFFFCC;mso-layout-grid-align:none;
+text-autospace:none'><b><span style='font-size:10.0pt;color:green'>//Set client
+socket sending buffer to 116800 bytes<o:p></o:p></span></b></p>
+
+<p class=MsoNormal style='background:#FFFFCC'><b><span style='font-size:10.0pt'>ClientSocket.SetSockOpt((<span
+style='color:blue'>int</span>)USOCKETLib.tagSocketOption.soSndBuf, 116800, (<span
+style='color:blue'>int</span>)USOCKETLib.tagSocketLevel.slSocket);</span><o:p></o:p></b></p>
+
+<p class=MsoNormal><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></p>
+
+<p class=MsoNormal><b><a href="usocketlib.htm">USocket library</a><o:p></o:p></b></p>
+
+</div>
+
+</body>
+
+</html>

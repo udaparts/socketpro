@@ -1,0 +1,12 @@
+
+[	
+	ServiceID = 6 //service id can't be less than 0
+]	
+CServerQueue
+{
+	//enqueue a message into a persistent queue
+	$ulong Enqueue(string name, string message, int aInt);
+	
+	//dequeue a batch of messages
+	$ulong Dequeue(uint count, bool autoEventWhenAvailable);
+}

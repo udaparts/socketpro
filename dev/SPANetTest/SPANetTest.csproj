@@ -1,0 +1,101 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{F9D036BE-0476-46CE-97FA-8B986F8F0D59}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>SPANetTest</RootNamespace>
+    <AssemblyName>SPANetTest</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkProfile>
+    </TargetFrameworkProfile>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.ServiceModel" />
+    <Reference Include="System.XML" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\netshares\helloworld_i.cs">
+      <Link>helloworld_i.cs</Link>
+    </Compile>
+    <Compile Include="..\netshares\perfstudy_i.cs">
+      <Link>perfstudy_i.cs</Link>
+    </Compile>
+    <Compile Include="..\netshares\RAdo_i.cs">
+      <Link>RAdo_i.cs</Link>
+    </Compile>
+    <Compile Include="..\netshares\SQueue_i.cs">
+      <Link>SQueue_i.cs</Link>
+    </Compile>
+    <Compile Include="..\netshares\TEchoB_i.cs">
+      <Link>TEchoB_i.cs</Link>
+    </Compile>
+    <Compile Include="..\netshares\TEchoC_i.cs">
+      <Link>TEchoC_i.cs</Link>
+    </Compile>
+    <Compile Include="..\netshares\TEchoD_i.cs">
+      <Link>TEchoD_i.cs</Link>
+    </Compile>
+    <Compile Include="..\netshares\testpeer_i.cs">
+      <Link>testpeer_i.cs</Link>
+    </Compile>
+    <Compile Include="..\netshares\TOne_i.cs">
+      <Link>TOne_i.cs</Link>
+    </Compile>
+    <Compile Include="cperfstudy.cs" />
+    <Compile Include="hwhandler.cs" />
+    <Compile Include="mysvshandler.cs" />
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RAdo.cs" />
+    <Compile Include="SQueue.cs" />
+    <Compile Include="TEchoB.cs" />
+    <Compile Include="TEchoC.cs" />
+    <Compile Include="TEchoD.cs" />
+    <Compile Include="TOne.cs" />
+    <Compile Include="wcfrem.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\SproAdapter\SproAdapter.csproj">
+      <Project>{83D40134-5DCE-4396-AC69-4D155CD8E660}</Project>
+      <Name>SproAdapter</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

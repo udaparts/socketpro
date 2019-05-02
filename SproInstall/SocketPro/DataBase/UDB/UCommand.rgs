@@ -1,0 +1,26 @@
+HKCR
+{
+	UDB.UCommand.1 = s 'UCommand Class'
+	{
+		CLSID = s '{7BBFAE6E-1863-4FA5-BE86-977B5FC66E82}'
+	}
+	UDB.UCommand = s 'UCommand Class'
+	{
+		CLSID = s '{7BBFAE6E-1863-4FA5-BE86-977B5FC66E82}'
+		CurVer = s 'UDB.UCommand.1'
+	}
+	NoRemove CLSID
+	{
+		ForceRemove {7BBFAE6E-1863-4FA5-BE86-977B5FC66E82} = s 'UCommand Class'
+		{
+			ProgID = s 'UDB.UCommand.1'
+			VersionIndependentProgID = s 'UDB.UCommand'
+			ForceRemove 'Programmable'
+			InprocServer32 = s '%MODULE%'
+			{
+				val ThreadingModel = s 'Both'
+			}
+			'TypeLib' = s '{E9BAD4DA-6268-4E53-BFAE-2F06B248E945}'
+		}
+	}
+}

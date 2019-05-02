@@ -1,0 +1,14 @@
+// For how to write such an interface file, see tutorial one
+	
+
+[	
+	ServiceID = 202 //service id can't be less than 0
+]			
+CRAdo
+{
+	$void GetDataSet(string strSQL0, string strSQL2);
+	$void GetDataReader(string strSQL);
+	bool SendDataSet();
+	bool SendDataReader();
+}
+

@@ -1,0 +1,226 @@
+// This is a part of the SocketPro package.
+// Copyright (C) 2000-2004 UDAParts 
+// All rights reserved.
+//
+// This source code is only intended as a supplement to the
+// SocketPro package and related electronic documentation provided with the package.
+// See these sources for detailed information regarding this
+// UDAParts product.
+
+// Please don't disclose any source code of the software to any person or entity,
+//
+// Please don't decompile, disassemble, or reverse engineer any object code of 
+// any portion of the software.
+//  
+// http://www.udaparts.com/index.htm
+// support@udaparts.com
+
+
+// UFile.idl : IDL source for UFile.dll
+//
+
+// This file will be processed by the MIDL tool to
+// produce the type library (UFile.tlb) and marshalling code.
+
+import "oaidl.idl";
+import "ocidl.idl";
+	
+[
+	uuid(4071FB2E-B7FC-4A14-9719-3FDF4CCA47F2),
+	version(1.0),
+	helpstring("UFile 1.0 Type Library")
+]
+
+library UFILELib
+{
+	importlib("stdole32.tlb");
+	importlib("stdole2.tlb");
+	
+	#include "maleslot.idl"
+
+	enum tagDesiredAccess
+	{
+		daZero = 0,
+		daGenericRead = 0x80000000,
+		daGenericWrite = 0x40000000,
+		daGenericExecute = 0x20000000,
+		daGenericAll = 0x10000000,
+	};
+
+	enum tagShareMode
+	{
+		smFileShareRead = 1,
+		smFileShareWrite = 2,
+		smFileShareDelete = 4,
+	};
+	
+	enum tagCreationDisposition
+	{
+		cdCreateNew = 1,
+		cdCreateAlways = 2,
+		cdOpenExisting = 3,
+		cdOpenAlways = 4,
+		cdTruncateExisting = 5,
+	};
+	enum tagFileAttribute
+	{
+		faReadOnly = 0x00000001,
+		faHidden = 0x00000002,
+		faSystem = 0x00000004,
+		faDirectory = 0x00000010,
+		faArchive = 0x00000020,
+		faEncrypted = 0x00000040,
+		faNormal = 0x00000080,
+		faTemporary = 0x00000100,
+		faSparseFile = 0x00000200,
+		faReparsePoint = 0x00000400,
+		faCompressed = 0x00000800,
+		faOffLine = 0x00001000,
+		faNotContentIndexed = 0x00002000,
+	};
+	
+	enum tagFileFlag
+	{
+		ffWriteThrough = 0x80000000,
+		ffNoBuffering = 0x20000000,
+		ffRandomAccess = 0x10000000,
+		ffSequentialScan = 0x08000000,
+	};
+	
+	enum tagMoveMethod
+	{
+		mmFileBegin = 0,
+		mmFileCurrent = 1,
+		mmFileEnd = 2,
+	};
+	
+	enum tagDriveType
+	{
+		dtUnknown = 0,
+		dtNoRootDir,
+		dtRemovable,
+		dtFixed,
+		dtRemote,
+		dtCDROM,
+		dtRAMDisk,
+	};
+	enum tagFileRequestID
+	{
+		idClose = 46,
+		idFindClose,
+		idSetFileAttributes,
+		idGetFileAttributes,
+		idDeleteFile,
+		idCreateDirectory,
+		idRemoveDirectory,
+		idGetCurrentDirectory,
+		idFindFile,
+		idFindFirstFile,
+		idFindNextFile,
+		idCreateFile,
+		idWriteFile,
+		idReadFile,
+		idMoveFile,
+		idCopyFile,
+		idSetFilePointer,
+		idSetCurrentDirectory,
+		idFlushFileBuffers,
+		idGetDiskFreeSpaceEx,
+		idGetDriveType,
+		idGetFile,
+		idSendFile,
+		idGetFileSize,
+		idLockFile,
+		idUnlockFile,
+		idSetEndOfFile,
+		idSearchPath,
+		idFindAll,
+		idSetRootDirectory,
+		idGetRootDirectory,
+		idSendBytesToClient,
+		idSendBytesToServer,
+	};
+
+	[
+		object,
+		uuid(DE98E3D3-699B-4AD1-8287-3481972CEBB9),
+		dual,
+		helpstring("IUFile Interface"),
+		pointer_default(unique)
+	]
+	interface IUFile : IUObjBase
+	{
+		[id(4), helpstring("method Close")] HRESULT Close();
+		[id(5), helpstring("method FindClose")] HRESULT FindClose();
+		[id(6), helpstring("method SetFileAttributes")] HRESULT SetFileAttributes([in] BSTR bstrFileName, [in]long lFileAttributes);
+		[id(7), helpstring("method DeleteFile")] HRESULT DeleteFile([in]BSTR bstrFileName);
+		[id(8), helpstring("method CreateDirectory")] HRESULT CreateDirectory([in]BSTR bstrDirectory);
+		[id(9), helpstring("method RemoveDirectory")] HRESULT RemoveDirectory([in]BSTR bstrDirectory);
+		[id(10), helpstring("method GetCurrentDirectory")] HRESULT GetCurrentDirectory();
+		[id(11), helpstring("method FindFile")] HRESULT FindFile([in]BSTR bstrFileName);
+		[id(12), helpstring("method FindFirstFile")] HRESULT FindFirstFile([in]BSTR bstrFileName);
+		[id(13), helpstring("method FindNextFile")] HRESULT FindNextFile();
+		[id(14), helpstring("method CreateFile")] HRESULT CreateFile([in]BSTR bstrFileName, [in]long lDesiredAccess, [in]long lShareMode, [in]long lCreationDisposition, [in]long lFlagsAndAttributes);
+		[id(15), helpstring("method WriteFile")] HRESULT WriteFile([in] VARIANT vtData);
+		[id(16), helpstring("method ReadFile")] HRESULT ReadFile([in]long lLen);
+		[id(17), helpstring("method MoveFile")] HRESULT MoveFile([in]BSTR bstrExistingFileName, [in]BSTR bstrNewFileName);
+		[id(18), helpstring("method CopyFile")] HRESULT CopyFile([in]BSTR bstrExistingFileName, [in]BSTR bstrNewFileName, [in, defaultvalue(-1)]VARIANT_BOOL bFailIfExists);
+		[id(19), helpstring("method SetFilePointer")] HRESULT SetFilePointer([in]long lDistanceToMove, [in]long lMoveMethod);
+		[id(20), helpstring("method SetCurrentDirectory")] HRESULT SetCurrentDirectory([in]BSTR bstrCurrentDirectory);
+		[id(21), helpstring("method FlushFileBuffers")] HRESULT FlushFileBuffers();
+		[id(22), helpstring("method GetDiskFreeSpaceEx")] HRESULT GetDiskFreeSpaceEx([in, defaultvalue("")]BSTR bstrDirectoryName);
+		[id(23), helpstring("method GetDriveType")] HRESULT GetDriveType([in, defaultvalue("")]BSTR bstrRootPathName);
+		[id(24), helpstring("method GetFile")] HRESULT GetFile([in]BSTR bstrSrcFileName, [in]BSTR bstrDesFileName, [in, defaultvalue(-1)]VARIANT_BOOL bFailIfExists);
+		[id(25), helpstring("method SendFile")] HRESULT SendFile([in]BSTR bstrSrcFileName, [in]BSTR bstrDesFileName, [in, defaultvalue(-1)]VARIANT_BOOL bFailIfExists);
+		[id(26), helpstring("method GetFileSize")] HRESULT GetFileSize();
+		[id(27), helpstring("method LockFile")] HRESULT LockFile([in]long lFileOffsetLow, [in]long lFileOffsetHigh, [in]long lNumberOfBytesToLockLow, [in]long lNumberOfBytesToLockHigh);
+		[id(28), helpstring("method UnlockFile")] HRESULT UnlockFile([in]long lFileOffsetLow, [in]long lFileOffsetHigh, [in]long lNumberOfBytesToLockLow, [in]long lNumberOfBytesToLockHigh);
+		[id(29), helpstring("method SetEndOfFile")] HRESULT SetEndOfFile();
+		[id(30), helpstring("method SearchPath")] HRESULT SearchPath([in]BSTR bstrFileName, [in, defaultvalue("")]BSTR bstrPath, [in, defaultvalue("")]BSTR bstrExtension);
+		[id(31), helpstring("method FindAll")] HRESULT FindAll([in]BSTR bstrFileName);
+		[id(32), helpstring("method SetRootDirectory")] HRESULT SetRootDirectory([in]BSTR bstrRootDirectory);
+		[id(33), helpstring("method GetRootDirectory")] HRESULT GetRootDirectory();
+		[id(34), helpstring("method GetLastWriteTime")] HRESULT GetLastWriteTime([out]short *pnYear, [out]short *pnMonth, [out]short *pnDayOfWeek, [out]short *pnDay, [out]short *pnHour, [out]short *pnMinute, [out]short *pnSecond, [out]short *pnMilliseconds);
+		[id(35), helpstring("method GetLastAccessTime")] HRESULT GetLastAccessTime([out]short *pnYear, [out]short *pnMonth, [out]short *pnDayOfWeek, [out]short *pnDay, [out]short *pnHour, [out]short *pnMinute, [out]short *pnSecond, [out]short *pnMilliseconds);
+		[id(36), helpstring("method GetCreationTime")] HRESULT GetCreationTime([out]short *pnYear, [out]short *pnMonth, [out]short *pnDayOfWeek, [out]short *pnDay, [out]short *pnHour, [out]short *pnMinute, [out]short *pnSecond, [out]short *pnMilliseconds);
+		[id(37), helpstring("method GetSpaceData")] HRESULT GetSpaceData([out]long *plFreeBytesAvailableToCallerLowPart, [out, defaultvalue(0)]long *plTotalNumberOfBytesLowPart, [out, defaultvalue(0)]long *plTotalNumberOfFreeBytesLowPart, [out, defaultvalue(0)]long *plFreeBytesAvailableToCallerHighPart, [out, defaultvalue(0)]long *plTotalNumberOfBytesHighPart, [out, defaultvalue(0)]long *plTotalNumberOfFreeBytesHighPart);
+		[id(38), helpstring("method GetFileAttributes")] HRESULT GetFileAttributes([in]BSTR bstrFileName);
+		[id(39), helpstring("method Cancel")] HRESULT Cancel();
+		[id(40), helpstring("method GetFilePart")] HRESULT GetFilePart([out, defaultvalue(0)]BSTR *pbstrFullFile, [out, retval] BSTR *pVal);
+		[id(41), helpstring("method FileSize")] HRESULT FileSize([out, defaultvalue(0)]long *plFileSizeHigh, [out, retval] long *pVal);
+		[propget, id(42), helpstring("property DriveType")] HRESULT DriveType([out, retval] long *pVal);
+		[propget, id(43), helpstring("property FilePointer")] HRESULT FilePointer([out, retval] long *pVal);
+		[propget, id(44), helpstring("property FileNameOrDirectory")] HRESULT FileNameOrDirectory([out, retval] BSTR *pVal);
+		[propget, id(45), helpstring("property FileAttributes")] HRESULT FileAttributes([out, retval] long *pVal);
+		[propget, id(46), helpstring("property RootDirectory")] HRESULT RootDirectory([out, retval] BSTR *pVal);
+		[propget, id(47), helpstring("property Data")] HRESULT Data([out, retval] VARIANT *pVal);
+	};
+
+	[
+		uuid(A15E2D3F-7739-4063-B8FC-7D91D650FAA4),
+		helpstring("UFile Class")
+	]
+	coclass UFile
+	{
+		[default] interface IUFile;
+		interface IUObjBase;
+		[default, source] dispinterface _IURequestEvent;
+	};
+};
+
+// This is a part of the SocketPro package.
+// Copyright (C) 2000-2004 UDAParts 
+// All rights reserved.
+//
+// This source code is only intended as a supplement to the
+// SocketPro package and related electronic documentation provided with the package.
+// See these sources for detailed information regarding this
+// UDAParts product.
+
+// Please don't disclose any source code of the software to any person or entity,
+//
+// Please don't decompile, disassemble, or reverse engineer any object code of 
+// any portion of the software.
+//  
+// http://www.udaparts.com/index.htm
+// support@udaparts.com

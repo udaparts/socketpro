@@ -1,0 +1,478 @@
+<html xmlns:o="urn:schemas-microsoft-com:office:office"
+xmlns:w="urn:schemas-microsoft-com:office:word"
+xmlns="http://www.w3.org/TR/REC-html40">
+
+<head>
+<meta http-equiv=Content-Type content="text/html; charset=windows-1252">
+<meta name=ProgId content=Word.Document>
+<meta name=Generator content="Microsoft Word 9">
+<meta name=Originator content="Microsoft Word 9">
+<link rel=File-List href="./CUQueue_files/filelist.xml">
+<title>CUQueue</title>
+<!--[if gte mso 9]><xml>
+ <o:DocumentProperties>
+  <o:Author>Yuancai (Charlie) Ye</o:Author>
+  <o:Template>Normal</o:Template>
+  <o:LastAuthor>Yuancai (Charlie) Ye</o:LastAuthor>
+  <o:Revision>10</o:Revision>
+  <o:TotalTime>111</o:TotalTime>
+  <o:Created>2006-09-03T12:07:00Z</o:Created>
+  <o:LastSaved>2006-09-23T15:53:00Z</o:LastSaved>
+  <o:Pages>2</o:Pages>
+  <o:Words>595</o:Words>
+  <o:Characters>3394</o:Characters>
+  <o:Company>Intelligent Decision Technologies</o:Company>
+  <o:Lines>28</o:Lines>
+  <o:Paragraphs>6</o:Paragraphs>
+  <o:CharactersWithSpaces>4168</o:CharactersWithSpaces>
+  <o:Version>9.2720</o:Version>
+ </o:DocumentProperties>
+</xml><![endif]-->
+<style>
+<!--
+ /* Font Definitions */
+@font-face
+	{font-family:Tahoma;
+	panose-1:2 11 6 4 3 5 4 4 2 4;
+	mso-font-charset:0;
+	mso-generic-font-family:swiss;
+	mso-font-pitch:variable;
+	mso-font-signature:1627421319 -2147483648 8 0 66047 0;}
+ /* Style Definitions */
+p.MsoNormal, li.MsoNormal, div.MsoNormal
+	{mso-style-parent:"";
+	margin:0in;
+	margin-bottom:.0001pt;
+	mso-pagination:widow-orphan;
+	font-size:12.0pt;
+	font-family:"Times New Roman";
+	mso-fareast-font-family:"Times New Roman";}
+h1
+	{mso-style-next:Normal;
+	margin:0in;
+	margin-bottom:.0001pt;
+	mso-pagination:widow-orphan;
+	page-break-after:avoid;
+	mso-outline-level:1;
+	font-size:12.0pt;
+	font-family:"Times New Roman";
+	mso-font-kerning:0pt;}
+h2
+	{mso-style-next:Normal;
+	margin:0in;
+	margin-bottom:.0001pt;
+	mso-pagination:widow-orphan;
+	page-break-after:avoid;
+	mso-outline-level:2;
+	mso-layout-grid-align:none;
+	text-autospace:none;
+	font-size:9.0pt;
+	font-family:Tahoma;
+	color:#215DC6;
+	text-decoration:underline;
+	text-underline:single;}
+h3
+	{mso-style-next:Normal;
+	margin:0in;
+	margin-bottom:.0001pt;
+	mso-pagination:widow-orphan;
+	page-break-after:avoid;
+	mso-outline-level:3;
+	mso-layout-grid-align:none;
+	text-autospace:none;
+	font-size:12.0pt;
+	mso-bidi-font-size:9.0pt;
+	font-family:"Times New Roman";
+	color:black;}
+a:link, span.MsoHyperlink
+	{color:blue;
+	text-decoration:underline;
+	text-underline:single;}
+a:visited, span.MsoHyperlinkFollowed
+	{color:purple;
+	text-decoration:underline;
+	text-underline:single;}
+@page Section1
+	{size:8.5in 11.0in;
+	margin:1.0in 1.25in 1.0in 1.25in;
+	mso-header-margin:.5in;
+	mso-footer-margin:.5in;
+	mso-paper-source:0;}
+div.Section1
+	{page:Section1;}
+ /* List Definitions */
+@list l0
+	{mso-list-id:1574897280;
+	mso-list-type:hybrid;
+	mso-list-template-ids:895940174 67698689 67698691 67698693 67698689 67698691 67698693 67698689 67698691 67698693;}
+@list l0:level1
+	{mso-level-number-format:bullet;
+	mso-level-text:\F0B7;
+	mso-level-tab-stop:.25in;
+	mso-level-number-position:left;
+	margin-left:.25in;
+	text-indent:-.25in;
+	font-family:Symbol;}
+@list l1
+	{mso-list-id:2048291188;
+	mso-list-type:hybrid;
+	mso-list-template-ids:1557682078 67698689 67698691 67698693 67698689 67698691 67698693 67698689 67698691 67698693;}
+@list l1:level1
+	{mso-level-number-format:bullet;
+	mso-level-text:\F0B7;
+	mso-level-tab-stop:.25in;
+	mso-level-number-position:left;
+	margin-left:.25in;
+	text-indent:-.25in;
+	font-family:Symbol;}
+ol
+	{margin-bottom:0in;}
+ul
+	{margin-bottom:0in;}
+-->
+</style>
+</head>
+
+<body lang=EN-US link=blue vlink=purple style='tab-interval:.5in'>
+
+<div class=Section1>
+
+<p class=MsoNormal><b><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+class</span></b><b><span style='mso-bidi-font-size:9.0pt;color:black'> CUQueue</span><o:p></o:p></b></p>
+
+<p class=MsoNormal><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></p>
+
+<p class=MsoNormal style='text-indent:.5in;mso-layout-grid-align:none;
+text-autospace:none'>The class CUQueue <span style='mso-bidi-font-size:9.0pt;
+color:black'>is used for packing and unpacking various data into and from a
+memory buffer easily.<o:p></o:p></span></p>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='mso-bidi-font-size:9.0pt;color:black'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal style='text-indent:.5in;mso-layout-grid-align:none;
+text-autospace:none'><span style='mso-bidi-font-size:9.0pt;color:black'>Step 1:
+In SocketPro, all of input parameters and others for a request are required to be
+serialized into an instance of CUQueue on client side so that we can use the
+method <a href="..\APIClient\SendRequestEx.htm">SendRequestEx</a> to send the
+request to a remote SocketPro server.<o:p></o:p></span></p>
+
+<p class=MsoNormal style='text-indent:.5in;mso-layout-grid-align:none;
+text-autospace:none'><span style='mso-bidi-font-size:9.0pt;color:black'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal style='text-indent:.5in;mso-layout-grid-align:none;
+text-autospace:none'><span style='mso-bidi-font-size:9.0pt;color:black'>Step 2:
+The buffer is retrieved into an instance of CUQueue by calling the method <a
+href="CClientPeer\RetrieveBuffer.htm">RetrieveBuffer</a> when SocketPro detects
+a coming request on server side. Afterwards, all of original input parameters
+are de-serialized from the memory buffer. <o:p></o:p></span></p>
+
+<p class=MsoNormal style='text-indent:.5in;mso-layout-grid-align:none;
+text-autospace:none'><span style='mso-bidi-font-size:9.0pt;color:black'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal style='text-indent:.5in;mso-layout-grid-align:none;
+text-autospace:none'><span style='mso-bidi-font-size:9.0pt;color:black'>Step 3:
+On server side, we could reuse the above instance of CUQueue and serialize all
+of returned data into the memory buffer after processing the request. At last,
+we call the method <a href="CClientPeer\SendReturnData.htm">SendReturnData</a>
+to send the return result back to a client.<o:p></o:p></span></p>
+
+<p class=MsoNormal style='text-indent:.5in;mso-layout-grid-align:none;
+text-autospace:none'><span style='mso-bidi-font-size:9.0pt;color:black'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal style='text-indent:.5in;mso-layout-grid-align:none;
+text-autospace:none'><span style='mso-bidi-font-size:9.0pt;color:black'>Step 4:
+Finally, we use the method <a href="..\APIClient\GetRtnBufferEx.htm">GetRtnBufferEx</a>
+to retrieve all of return results into an instance of CUQueue when SocketPro detects
+a return result on client side, and de-serialize all of output data from the
+memory buffer.<o:p></o:p></span></p>
+
+<p class=MsoNormal style='text-indent:.5in;mso-layout-grid-align:none;
+text-autospace:none'><span style='mso-bidi-font-size:9.0pt;color:black'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal style='text-indent:.5in;mso-layout-grid-align:none;
+text-autospace:none'><span style='mso-bidi-font-size:9.0pt;color:black'>With
+help of both SocketProAdapter and the tool uidparser.exe, all of coding the in
+above four steps are automatically completed. In most cases, you are not required
+for any modification of generated codes. However, we may need to write own code
+to manually pack and unpack complex data structures into and from an instance
+of CUQueue.<o:p></o:p></span></p>
+
+<p class=MsoNormal style='text-indent:.5in;mso-layout-grid-align:none;
+text-autospace:none'><span style='mso-bidi-font-size:9.0pt;color:black'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal style='text-indent:.5in;mso-layout-grid-align:none;
+text-autospace:none'><span style='mso-bidi-font-size:9.0pt;color:black'>For
+details, you may refer to <a
+href="http://www.udaparts.com/document/articles/mqueue.htm">this short article</a>.<o:p></o:p></span></p>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='mso-bidi-font-size:9.0pt;color:black'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<h3>Constructors</h3>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='mso-bidi-font-size:9.0pt;color:black'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal style='text-indent:.5in;mso-layout-grid-align:none;
+text-autospace:none'><b><span style='mso-bidi-font-size:9.0pt;color:blue'><a
+href="CUQueue\CUQueue.htm"><span style='text-decoration:none;text-underline:
+none'>public CUQueue</span></a></span></b><b><span style='mso-bidi-font-size:
+9.0pt;color:black'><o:p></o:p></span></b></p>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='mso-bidi-font-size:9.0pt;color:black'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<h3>Methods</h3>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='mso-bidi-font-size:9.0pt;color:black'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l0 level1 lfo2;
+tab-stops:list .25in;mso-layout-grid-align:none;text-autospace:none'><![if !supportLists]><span
+style='mso-bidi-font-size:9.0pt;font-family:Symbol;color:black'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+void</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CUQueue\CleanTrack.htm">CleanTrack</a> – Clean memory<o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l0 level1 lfo2;
+tab-stops:list .25in;mso-layout-grid-align:none;text-autospace:none'><![if !supportLists]><span
+style='mso-bidi-font-size:9.0pt;font-family:Symbol;color:black'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+int</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CUQueue\Deserialize.htm">Deserialize</a> – De-serialize an object by .NET
+serialization<o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l0 level1 lfo2;
+tab-stops:list .25in;mso-layout-grid-align:none;text-autospace:none'><![if !supportLists]><span
+style='mso-bidi-font-size:9.0pt;font-family:Symbol;color:black'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+int</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CUQueue\Discard.htm">Discard</a> – Discard a give number of bytes<o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l0 level1 lfo2;
+tab-stops:list .25in;mso-layout-grid-align:none;text-autospace:none'><![if !supportLists]><span
+style='mso-bidi-font-size:9.0pt;font-family:Symbol;color:black'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+sealed override void</span><span style='mso-bidi-font-size:9.0pt;color:black'>
+Dispose<o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l0 level1 lfo2;
+tab-stops:list .25in;mso-layout-grid-align:none;text-autospace:none'><![if !supportLists]><span
+style='mso-bidi-font-size:8.5pt;font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+void </span><span style='mso-bidi-font-size:9.0pt;color:black'><a
+href="CUQueue\Empty.htm">Empty</a> – Release memory buffer</span><span
+style='mso-bidi-font-size:8.5pt'><o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l0 level1 lfo2;
+tab-stops:list .25in;mso-layout-grid-align:none;text-autospace:none'><![if !supportLists]><span
+style='mso-bidi-font-size:8.5pt;font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+System.IntPtr</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CUQueue\GetBuffer.htm">GetBuffer</a> -- Get a pointer to packed data in
+the underlying native memory.<span style="mso-spacerun: yes">  </span></span><span
+style='mso-bidi-font-size:8.5pt'><o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l0 level1 lfo2;
+tab-stops:list .25in;mso-layout-grid-align:none;text-autospace:none'><![if !supportLists]><span
+style='mso-bidi-font-size:9.0pt;font-family:Symbol;color:black'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+byte*</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CUQueue\GetNativeBuffer.htm">GetNativeBuffer</a> -- Get a pointer to
+packed data in the underlying native memory<o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l0 level1 lfo2;
+tab-stops:list .25in;mso-layout-grid-align:none;text-autospace:none'><![if !supportLists]><span
+style='mso-bidi-font-size:9.0pt;font-family:Symbol;color:black'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+int</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CUQueue\GetSize.htm">GetSize</a> – Get the size of packed data in byte<o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l0 level1 lfo2;
+tab-stops:list .25in;mso-layout-grid-align:none;text-autospace:none'><![if !supportLists]><span
+style='mso-bidi-font-size:9.0pt;font-family:Symbol;color:black'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+int</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CUQueue\Load.htm">Load</a> – Load a string<o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l0 level1 lfo2;
+tab-stops:list .25in;mso-layout-grid-align:none;text-autospace:none'><![if !supportLists]><span
+style='mso-bidi-font-size:9.0pt;font-family:Symbol;color:black'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+int</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CUQueue\Pop.htm">Pop</a> – Unpack various types of data<o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l0 level1 lfo2;
+tab-stops:list .25in;mso-layout-grid-align:none;text-autospace:none'><![if !supportLists]><span
+style='mso-bidi-font-size:9.0pt;font-family:Symbol;color:black'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+int</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CUQueue\PopCY.htm">PopCY</a> – Unpack a native currency<o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l0 level1 lfo2;
+tab-stops:list .25in;mso-layout-grid-align:none;text-autospace:none'><![if !supportLists]><span
+style='mso-bidi-font-size:9.0pt;font-family:Symbol;color:black'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+int</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CUQueue\PopSystemTime.htm">PopSystemTime</a> – Unpack a native system
+time<o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l0 level1 lfo2;
+tab-stops:list .25in;mso-layout-grid-align:none;text-autospace:none'><![if !supportLists]><span
+style='mso-bidi-font-size:9.0pt;font-family:Symbol;color:black'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+int</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CUQueue\PopVariantBool.htm">PopVariantBool</a> – Unpack a COM variant
+Boolean<o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l0 level1 lfo2;
+tab-stops:list .25in;mso-layout-grid-align:none;text-autospace:none'><![if !supportLists]><span
+style='mso-bidi-font-size:9.0pt;font-family:Symbol;color:black'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+int</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CUQueue\PopVariantDate.htm">PopVariantDate</a> – Unpack a COM variant
+date<o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l0 level1 lfo2;
+tab-stops:list .25in;mso-layout-grid-align:none;text-autospace:none'><![if !supportLists]><span
+style='mso-bidi-font-size:9.0pt;font-family:Symbol;color:black'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+void </span><span style='mso-bidi-font-size:9.0pt;color:black'><a
+href="CUQueue\Push.htm">Push</a> – Pack various types of data<o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l0 level1 lfo2;
+tab-stops:list .25in;mso-layout-grid-align:none;text-autospace:none'><![if !supportLists]><span
+style='mso-bidi-font-size:9.0pt;font-family:Symbol;color:black'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+void</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CUQueue\PushCY.htm">PushCY</a> – Pack a decimal in a native currency<o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l0 level1 lfo2;
+tab-stops:list .25in;mso-layout-grid-align:none;text-autospace:none'><![if !supportLists]><span
+style='mso-bidi-font-size:9.0pt;font-family:Symbol;color:black'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+void</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CUQueue\PushSystemTime.htm">PushSystemTime</a> – Pack a system time<o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l0 level1 lfo2;
+tab-stops:list .25in;mso-layout-grid-align:none;text-autospace:none'><![if !supportLists]><span
+style='mso-bidi-font-size:9.0pt;font-family:Symbol;color:black'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+void</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CUQueue\PushVariantBool.htm">PushVariantBool</a> – Pack a COM variant
+Boolean<o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l0 level1 lfo2;
+tab-stops:list .25in;mso-layout-grid-align:none;text-autospace:none'><![if !supportLists]><span
+style='mso-bidi-font-size:9.0pt;font-family:Symbol;color:black'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+void</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CUQueue\PushVariantDate.htm">PushVariantDate</a> – Pack a COM variant
+date<o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l0 level1 lfo2;
+tab-stops:list .25in;mso-layout-grid-align:none;text-autospace:none'><![if !supportLists]><span
+style='mso-bidi-font-size:9.0pt;font-family:Symbol;color:black'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+void</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CUQueue\ReallocBuffer.htm">ReallocBuffer</a> – Resize internal buffer<o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l0 level1 lfo2;
+tab-stops:list .25in;mso-layout-grid-align:none;text-autospace:none'><![if !supportLists]><span
+style='mso-bidi-font-size:9.0pt;font-family:Symbol;color:black'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+void</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CUQueue\Save.htm">Save</a> – Pack a string<o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l0 level1 lfo2;
+tab-stops:list .25in;mso-layout-grid-align:none;text-autospace:none'><![if !supportLists]><span
+style='mso-bidi-font-size:9.0pt;font-family:Symbol;color:black'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+void</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CUQueue\Serialize.htm">Serialize</a> – Serialize an object by .NET
+serialization<o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l0 level1 lfo2;
+tab-stops:list .25in;mso-layout-grid-align:none;text-autospace:none'><![if !supportLists]><span
+style='mso-bidi-font-size:9.0pt;font-family:Symbol;color:black'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+void</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CUQueue\SetHeadPosition.htm">SetHeadPosition</a> – Adjust internal head
+position<o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l0 level1 lfo2;
+tab-stops:list .25in;mso-layout-grid-align:none;text-autospace:none'><![if !supportLists]><span
+style='mso-bidi-font-size:9.0pt;font-family:Symbol;color:black'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+void </span><span style='mso-bidi-font-size:9.0pt;color:black'><a
+href="CUQueue\SetSize.htm">SetSize</a> – Set the size of packed data in buffer<o:p></o:p></span></p>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='mso-bidi-font-size:9.0pt;color:black'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<h3>Properties</h3>
+
+<p class=MsoNormal><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l1 level1 lfo4;
+tab-stops:list .25in;mso-layout-grid-align:none;text-autospace:none'><![if !supportLists]><span
+style='font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+int</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CUQueue\BlockSize.htm">BlockSize</a> { set; get; }</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l1 level1 lfo4;
+tab-stops:list .25in;mso-layout-grid-align:none;text-autospace:none'><![if !supportLists]><span
+style='font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+int</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CUQueue\BufferSize.htm">BufferSize</a> { get; }</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l1 level1 lfo4;
+tab-stops:list .25in;mso-layout-grid-align:none;text-autospace:none'><![if !supportLists]><span
+style='font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+int</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CUQueue\HeadPosition.htm">HeadPosition</a> { get; }</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l1 level1 lfo4;
+tab-stops:list .25in;mso-layout-grid-align:none;text-autospace:none'><![if !supportLists]><span
+style='font-family:Symbol;mso-bidi-font-weight:bold'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+int</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CUQueue\Size.htm">Size</a> { get; }</span><b><o:p></o:p></b></p>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></p>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='mso-bidi-font-size:9.0pt;color:black'>Member of </span><b><span
+style='mso-bidi-font-size:9.0pt;color:blue'><a href="SocketProAdapter.htm">SocketProAdapter</a></span><o:p></o:p></b></p>
+
+</div>
+
+</body>
+
+</html>

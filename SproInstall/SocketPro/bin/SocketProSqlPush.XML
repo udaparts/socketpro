@@ -1,0 +1,97 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>SocketProSqlPush</name>
+    </assembly>
+    <members>
+        <member name="T:SocketProSqlPush.IConnectionContext">
+            <summary>
+            An interface to a connection context for accessing a remote SocketPro server.
+            </summary>
+        </member>
+        <member name="P:SocketProSqlPush.IConnectionContext.IpAddress">
+            <summary>
+            An IP address to a remote SocketPro server like '111.222.212.121', 'www.mydomain.com', or 'MyServerName'
+            </summary>
+        </member>
+        <member name="P:SocketProSqlPush.IConnectionContext.Port">
+            <summary>
+            A remote SocketPro server port number.
+            </summary>
+        </member>
+        <member name="P:SocketProSqlPush.IConnectionContext.UserId">
+            <summary>
+            A case in-sensitive user id string.
+            </summary>
+        </member>
+        <member name="P:SocketProSqlPush.IConnectionContext.Password">
+            <summary>
+            A case sensitive password string.
+            </summary>
+        </member>
+        <member name="P:SocketProSqlPush.IConnectionContext.Zip">
+            <summary>
+            Enable or disable online compression. It defaults to false.
+            </summary>
+        </member>
+        <member name="P:SocketProSqlPush.IConnectionContext.EncryptionMethod">
+            <summary>
+            Encryption method used for data transaction between a remote SocketPro server and SQL server. It defaults to no encryption.
+            </summary>
+        </member>
+        <member name="T:SocketProSqlPush.Messenger">
+            <summary>
+            A sealed class exposing two static methods for sending messages through SocketPro.
+            </summary>
+        </member>
+        <member name="F:SocketProSqlPush.Messenger.MSG_CONNECT_SOCKET">
+            <summary>
+            A structure of connection context for accessing a remote SocketPro server
+            </summary>
+        </member>
+        <member name="M:SocketProSqlPush.Messenger.SendUserMessage(System.String,System.String)">
+            <summary>
+            Send a message onto one given user.
+            </summary>
+            <param name="Message">A message.</param>
+            <param name="UserId">A case-insensitive user id.</param>
+            <returns>If successfull, it returns 0. Otherwise, there is an error. 
+            1 -- no socekt available; 2 -- Failed in sending a message even though Socket is available;
+            3 -- Invalid user id; 4 -- System error; 5 -- No COM usocket available; and 6 -- No UI worker thread available.
+            </returns>
+        </member>
+        <member name="M:SocketProSqlPush.Messenger.IsConnected">
+            <summary>
+            Check if there is a connection to a remote SocketPro server available.
+            </summary>
+            <returns>True if connected. Otherwise, it is false.</returns>
+        </member>
+        <member name="M:SocketProSqlPush.Messenger.Connect(System.String)">
+            <summary>
+            Build a connection to a given remote SocketPro server.
+            </summary>
+            <param name="ConnectionString">A connection string to a remote SocketPro server like 'server=myserver;port=20901;pwd=PassOne;uid=SocketPro;zip=0;encryption=0'. If the connection string is null or empty, a previous connection string will be used.</param>
+            <returns>If successfull, it returns 0. Otherwise, there is an error. 
+            1 -- no socekt available; 2 -- Failed in sending a message even though Socket is available;
+            3 -- No group id available; 4 -- System error; 5 -- No COM usocket available; and 6 -- No UI worker thread available.
+            </returns>
+        </member>
+        <member name="M:SocketProSqlPush.Messenger.Disconnect">
+            <summary>
+            Close a connection to a remote SocketPro server.
+            </summary>
+            <returns>It always returns zero.</returns>
+        </member>
+        <member name="M:SocketProSqlPush.Messenger.Notify(System.String,System.String)">
+            <summary>
+            Send a message onto one or more groups of clients.
+            </summary>
+            <param name="Message">A message.</param>
+            <param name="Groups">An arry of chat group ids like '1,2,3,15,......'.</param>
+            <returns>If successfull, it returns 0. Otherwise, there is an error. 
+            1 -- no socekt available; 2 -- Failed in sending a message even though Socket is available;
+            3 -- No group id available; 4 -- System error; 5 -- No COM usocket available; and 6 -- No UI worker thread available.
+            </returns>
+        </member>
+    </members>
+</doc>

@@ -1,0 +1,35 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "csharp", ".", "{110A5623-565E-4CF8-9B28-86D718FBC41F}"
+	ProjectSection(WebsiteProperties) = preProject
+		TargetFrameworkMoniker = ".NETFramework,Version%3Dv4.0"
+		Debug.AspNetCompiler.VirtualPath = "/csharp"
+		Debug.AspNetCompiler.PhysicalPath = "..\..\..\..\..\..\cyetest\HTTPLoadingBalanace\csharp\"
+		Debug.AspNetCompiler.TargetPath = "PrecompiledWeb\csharp\"
+		Debug.AspNetCompiler.Updateable = "true"
+		Debug.AspNetCompiler.ForceOverwrite = "true"
+		Debug.AspNetCompiler.FixedNames = "false"
+		Debug.AspNetCompiler.Debug = "True"
+		Release.AspNetCompiler.VirtualPath = "/csharp"
+		Release.AspNetCompiler.PhysicalPath = "..\..\..\..\..\..\cyetest\HTTPLoadingBalanace\csharp\"
+		Release.AspNetCompiler.TargetPath = "PrecompiledWeb\csharp\"
+		Release.AspNetCompiler.Updateable = "true"
+		Release.AspNetCompiler.ForceOverwrite = "true"
+		Release.AspNetCompiler.FixedNames = "false"
+		Release.AspNetCompiler.Debug = "False"
+		VWDPort = "52357"
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|.NET = Debug|.NET
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{110A5623-565E-4CF8-9B28-86D718FBC41F}.Debug|.NET.ActiveCfg = Debug|.NET
+		{110A5623-565E-4CF8-9B28-86D718FBC41F}.Debug|.NET.Build.0 = Debug|.NET
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,9 @@
+
+[	
+	ServiceID = 1212
+]			
+CPPi
+{
+	$double Compute(in double dStart, in double dStep, in int nNum); 	
+}
+

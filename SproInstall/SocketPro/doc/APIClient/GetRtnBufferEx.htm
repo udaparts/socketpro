@@ -1,0 +1,157 @@
+<html xmlns:o="urn:schemas-microsoft-com:office:office"
+xmlns:w="urn:schemas-microsoft-com:office:word"
+xmlns="http://www.w3.org/TR/REC-html40">
+
+<head>
+<meta http-equiv=Content-Type content="text/html; charset=windows-1252">
+<meta name=ProgId content=Word.Document>
+<meta name=Generator content="Microsoft Word 9">
+<meta name=Originator content="Microsoft Word 9">
+<link rel=File-List href="./GetRtnBufferEx_files/filelist.xml">
+<title>GetRtnBufferEx</title>
+<!--[if gte mso 9]><xml>
+ <o:DocumentProperties>
+  <o:Author>Yahoo</o:Author>
+  <o:Template>Normal</o:Template>
+  <o:LastAuthor>Yuancai (Charlie) Ye</o:LastAuthor>
+  <o:Revision>4</o:Revision>
+  <o:TotalTime>11</o:TotalTime>
+  <o:Created>2006-09-04T00:47:00Z</o:Created>
+  <o:LastSaved>2006-11-01T00:30:00Z</o:LastSaved>
+  <o:Pages>1</o:Pages>
+  <o:Words>116</o:Words>
+  <o:Characters>666</o:Characters>
+  <o:Company>Yahoo</o:Company>
+  <o:Lines>5</o:Lines>
+  <o:Paragraphs>1</o:Paragraphs>
+  <o:CharactersWithSpaces>817</o:CharactersWithSpaces>
+  <o:Version>9.2720</o:Version>
+ </o:DocumentProperties>
+</xml><![endif]--><!--[if gte mso 9]><xml>
+ <w:WordDocument>
+  <w:PunctuationKerning/>
+ </w:WordDocument>
+</xml><![endif]-->
+<style>
+<!--
+ /* Style Definitions */
+p.MsoNormal, li.MsoNormal, div.MsoNormal
+	{mso-style-parent:"";
+	margin:0in;
+	margin-bottom:.0001pt;
+	mso-pagination:widow-orphan;
+	font-size:10.0pt;
+	font-family:"Times New Roman";
+	mso-fareast-font-family:"Times New Roman";}
+h1
+	{mso-style-next:Normal;
+	margin:0in;
+	margin-bottom:.0001pt;
+	mso-pagination:widow-orphan;
+	page-break-after:avoid;
+	mso-outline-level:1;
+	font-size:12.0pt;
+	font-family:"Times New Roman";
+	mso-font-kerning:0pt;}
+a:link, span.MsoHyperlink
+	{color:blue;
+	text-decoration:underline;
+	text-underline:single;}
+a:visited, span.MsoHyperlinkFollowed
+	{color:purple;
+	text-decoration:underline;
+	text-underline:single;}
+@page Section1
+	{size:8.5in 11.0in;
+	margin:1.0in 1.25in 1.0in 1.25in;
+	mso-header-margin:.5in;
+	mso-footer-margin:.5in;
+	mso-paper-source:0;}
+div.Section1
+	{page:Section1;}
+-->
+</style>
+</head>
+
+<body lang=EN-US link=blue vlink=purple style='tab-interval:.5in'>
+
+<div class=Section1>
+
+<p class=MsoNormal><b><span style='font-size:12.0pt;mso-bidi-font-size:10.0pt'>[<span
+style='color:blue'>helpstring</span>(<span style='color:maroon'>&quot;method
+GetRtnBufferEx&quot;</span>)] HRESULT GetRtnBufferEx([<span style='color:blue'>in</span>]<span
+style='color:blue'>unsigned</span> <span style='color:blue'>long</span> ulLen,
+[<span style='color:blue'>in</span>, <span style='color:blue'>size_is</span>(ulLen)]BYTE
+pBuffer[], [<span style='color:blue'>out</span>, <span style='color:blue'>retval</span>]<span
+style='color:blue'>unsigned</span> <span style='color:blue'>long</span>
+*plRtnSize);<o:p></o:p></span></b></p>
+
+<p class=MsoNormal><b><span style='font-size:12.0pt;mso-bidi-font-size:10.0pt'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></b></p>
+
+<p class=MsoNormal><b><span style='font-size:12.0pt;mso-bidi-font-size:10.0pt'>Parameters<o:p></o:p></span></b></p>
+
+<p class=MsoNormal><b><span style='font-size:12.0pt;mso-bidi-font-size:10.0pt'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></b></p>
+
+<p class=MsoNormal><i><span style='font-size:12.0pt;mso-bidi-font-size:10.0pt'>ulLen<o:p></o:p></span></i></p>
+
+<p class=MsoNormal><i><span style='font-size:12.0pt;mso-bidi-font-size:10.0pt'><span
+style='mso-tab-count:1'>            </span></span></i><span style='font-size:
+12.0pt;mso-bidi-font-size:10.0pt'>[in]Size of the buffer <i>pBuffer</i> in byte<o:p></o:p></span></p>
+
+<p class=MsoNormal><i><span style='font-size:12.0pt;mso-bidi-font-size:10.0pt'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></i></p>
+
+<p class=MsoNormal><i><span style='font-size:12.0pt;mso-bidi-font-size:10.0pt'>pBuffer<o:p></o:p></span></i></p>
+
+<p class=MsoNormal><i><span style='font-size:12.0pt;mso-bidi-font-size:10.0pt'><span
+style='mso-tab-count:1'>            </span></span></i><span style='font-size:
+12.0pt;mso-bidi-font-size:10.0pt'>[out]A pointer to a previously allocated
+buffer<o:p></o:p></span></p>
+
+<p class=MsoNormal><i><span style='font-size:12.0pt;mso-bidi-font-size:10.0pt'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></i></p>
+
+<p class=MsoNormal><i><span style='font-size:12.0pt;mso-bidi-font-size:10.0pt'>plRtnSize<o:p></o:p></span></i></p>
+
+<p class=MsoNormal><span style='font-size:12.0pt;mso-bidi-font-size:10.0pt'><span
+style='mso-tab-count:1'>            </span>[out]A pointer to an integer for
+receiving the number of bytes received actually<o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='font-size:12.0pt;mso-bidi-font-size:10.0pt'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal><b style='mso-bidi-font-weight:normal'><span
+style='font-size:12.0pt'>Remarks<o:p></o:p></span></b></p>
+
+<p class=MsoNormal><span style='font-size:12.0pt'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='font-size:12.0pt'><span style='mso-tab-count:1'>            </span>Calling
+the function retrieves an array of bytes of the return result of the current
+request. The function returns the number of bytes received actually.<o:p></o:p></span></p>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='font-size:12.0pt'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='font-size:12.0pt'><span style='mso-tab-count:1'>            </span><a
+href="..\SocketProAdapter\SocketProAdapter.htm">SocketProAdapter</a> and all of
+client COM objects use this function to retrieve returned results from a remote
+SocketPro server for better performance.<o:p></o:p></span></p>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='font-size:12.0pt'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='font-size:12.0pt'><span style='mso-tab-count:1'>            </span>Refer
+to the function <a href="GetRtnBuffer.htm">GetRtnBuffer</a>.<o:p></o:p></span></p>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='font-size:12.0pt'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><b><span
+style='font-size:12.0pt'><a href="usocketlib.htm">USocket library</a></span></b><span
+style='font-size:12.0pt'><o:p></o:p></span></p>
+
+</div>
+
+</body>
+
+</html>

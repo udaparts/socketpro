@@ -1,0 +1,86 @@
+<!DOCTYPE HTML>
+<html lang="ja">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <title>how many bytes can i send/receive via websocket?</title>
+        <script type="text/javascript" src="js/prototype.js"></script>
+    </head>
+    <body>
+    	<style type="text/css">
+    	*{
+			font-size: 11pt;
+		}
+		</style>
+    	<div id="content">
+	        <h1>how many bytes can i send/receive via websocket?</h1>
+	        <label>Start:</label>
+			<input type="text" size="10" id="start" value="1">bytes.<br />
+			<label>Finish:</label>
+			<input type="text" size="10" id="finish" value="100">bytes.<br />
+			<input type="button" id="run" value="run">
+			<p></p>
+			<label>monitor</label><div class="box" id="monitor">0</div>
+    	</div>
+    	<script type="text/javascript">
+		var MyWebSocket = {
+			ws : null,
+			start : -1,
+			finish : -1,
+			now : -1,
+			resource : 'echo',
+			init: function(){
+				this.start = $('start').value;
+				this.finish = $('finish').value;
+				this.now = this.start;
+				
+				this.ws = new WebSocket("ws://"+location.host+"/"+this.resource);
+				$('monitor').innerHTML = '';
+				
+				var that = this;
+				this.ws.onmessage = function(e) {
+					if(e.data == null) return;
+					$('monitor').innerHTML += "&nbsp;&nbsp;receive&nbsp;:&nbsp; "+e.data.length + "<br />";
+					that.now = parseInt(that.now) * 10;
+					that.send();
+				}
+			},
+			
+			send: function() {
+//				console.log(this.now);
+				if(this.now > this.finish) {
+					this.ws.close();
+					console.log("closed");
+					return;
+				}
+				
+				var message = '';
+				for(var i = 0; i < this.now; i++) {
+					message += "a";
+				}
+				
+//				console.log(message);
+				
+				$('monitor').innerHTML += "send&nbsp;:&nbsp; "+message.length;
+				this.ws.send(message);
+			},
+	
+			close : function() {
+				if(this.ws)
+					this.ws.close();
+			}
+		};
+
+		Event.observe($('run'), 'click', function(e){
+			MyWebSocket.init();
+			setTimeout(function() {
+				MyWebSocket.send();
+			}, 100);
+		}, false);
+		
+		window.addEventListener('unload', function(e) {
+			MyWebSocket.close();
+		}, false);
+		</script>
+    </body>
+</html>
+

@@ -1,0 +1,13 @@
+{
+	"CompanyName" : "MyCompanyName Inc.",
+	"JavaScript" : 0,
+	"Java": 0,
+	"Platforms": ["win", "apple", "iphone", "android", "linux", "unix", "winphone", "wince", "bsd"],
+	"RequestQueue": 0,
+	"ManyClients": 7500,
+	"PLG" : 0,
+	"Endian" : 0,
+	"Other" : 0,
+	"MachineID" : "",
+	"Key" : ""
+}

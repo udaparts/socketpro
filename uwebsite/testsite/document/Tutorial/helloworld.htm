@@ -1,0 +1,1271 @@
+<html>
+
+<head>
+<meta http-equiv=Content-Type content="text/html; charset=windows-1252">
+<meta name=Generator content="Microsoft Word 12 (filtered)">
+<title>SocketPro Tutorial</title>
+<style>
+<!--
+ /* Font Definitions */
+ @font-face
+	{font-family:Wingdings;
+	panose-1:5 0 0 0 0 0 0 0 0 0;}
+@font-face
+	{font-family:"Cambria Math";
+	panose-1:2 4 5 3 5 4 6 3 2 4;}
+@font-face
+	{font-family:Calibri;
+	panose-1:2 15 5 2 2 2 4 3 2 4;}
+@font-face
+	{font-family:Tahoma;
+	panose-1:2 11 6 4 3 5 4 4 2 4;}
+ /* Style Definitions */
+ p.MsoNormal, li.MsoNormal, div.MsoNormal
+	{margin-top:0in;
+	margin-right:0in;
+	margin-bottom:8.0pt;
+	margin-left:0in;
+	line-height:107%;
+	font-size:11.0pt;
+	font-family:"Calibri","sans-serif";}
+p.MsoCommentText, li.MsoCommentText, div.MsoCommentText
+	{mso-style-link:"Comment Text Char";
+	margin-top:0in;
+	margin-right:0in;
+	margin-bottom:8.0pt;
+	margin-left:0in;
+	font-size:10.0pt;
+	font-family:"Calibri","sans-serif";}
+p.MsoHeader, li.MsoHeader, div.MsoHeader
+	{mso-style-link:"Header Char";
+	margin:0in;
+	margin-bottom:.0001pt;
+	font-size:11.0pt;
+	font-family:"Calibri","sans-serif";}
+p.MsoFooter, li.MsoFooter, div.MsoFooter
+	{mso-style-link:"Footer Char";
+	margin:0in;
+	margin-bottom:.0001pt;
+	font-size:11.0pt;
+	font-family:"Calibri","sans-serif";}
+p.MsoTitle, li.MsoTitle, div.MsoTitle
+	{mso-style-link:"Title Char";
+	margin-right:0in;
+	margin-left:0in;
+	font-size:12.0pt;
+	font-family:"Times New Roman","serif";}
+a:visited, span.MsoHyperlinkFollowed
+	{color:#954F72;
+	text-decoration:underline;}
+p.MsoCommentSubject, li.MsoCommentSubject, div.MsoCommentSubject
+	{mso-style-link:"Comment Subject Char";
+	margin-top:0in;
+	margin-right:0in;
+	margin-bottom:8.0pt;
+	margin-left:0in;
+	font-size:10.0pt;
+	font-family:"Calibri","sans-serif";
+	font-weight:bold;}
+p.MsoAcetate, li.MsoAcetate, div.MsoAcetate
+	{mso-style-link:"Balloon Text Char";
+	margin:0in;
+	margin-bottom:.0001pt;
+	font-size:8.0pt;
+	font-family:"Tahoma","sans-serif";}
+p.MsoListParagraph, li.MsoListParagraph, div.MsoListParagraph
+	{margin-top:0in;
+	margin-right:0in;
+	margin-bottom:8.0pt;
+	margin-left:.5in;
+	line-height:107%;
+	font-size:11.0pt;
+	font-family:"Calibri","sans-serif";}
+p.MsoListParagraphCxSpFirst, li.MsoListParagraphCxSpFirst, div.MsoListParagraphCxSpFirst
+	{margin-top:0in;
+	margin-right:0in;
+	margin-bottom:0in;
+	margin-left:.5in;
+	margin-bottom:.0001pt;
+	line-height:107%;
+	font-size:11.0pt;
+	font-family:"Calibri","sans-serif";}
+p.MsoListParagraphCxSpMiddle, li.MsoListParagraphCxSpMiddle, div.MsoListParagraphCxSpMiddle
+	{margin-top:0in;
+	margin-right:0in;
+	margin-bottom:0in;
+	margin-left:.5in;
+	margin-bottom:.0001pt;
+	line-height:107%;
+	font-size:11.0pt;
+	font-family:"Calibri","sans-serif";}
+p.MsoListParagraphCxSpLast, li.MsoListParagraphCxSpLast, div.MsoListParagraphCxSpLast
+	{margin-top:0in;
+	margin-right:0in;
+	margin-bottom:8.0pt;
+	margin-left:.5in;
+	line-height:107%;
+	font-size:11.0pt;
+	font-family:"Calibri","sans-serif";}
+span.TitleChar
+	{mso-style-name:"Title Char";
+	mso-style-link:Title;
+	font-family:"Times New Roman","serif";}
+span.apple-converted-space
+	{mso-style-name:apple-converted-space;}
+span.BalloonTextChar
+	{mso-style-name:"Balloon Text Char";
+	mso-style-link:"Balloon Text";
+	font-family:"Tahoma","sans-serif";}
+span.HeaderChar
+	{mso-style-name:"Header Char";
+	mso-style-link:Header;}
+span.FooterChar
+	{mso-style-name:"Footer Char";
+	mso-style-link:Footer;}
+span.CommentTextChar
+	{mso-style-name:"Comment Text Char";
+	mso-style-link:"Comment Text";}
+span.CommentSubjectChar
+	{mso-style-name:"Comment Subject Char";
+	mso-style-link:"Comment Subject";
+	font-weight:bold;}
+.MsoPapDefault
+	{margin-bottom:8.0pt;
+	line-height:107%;}
+ /* Page Definitions */
+ @page WordSection1
+	{size:11.0in 8.5in;
+	margin:1.0in 1.0in 1.0in 1.0in;}
+div.WordSection1
+	{page:WordSection1;}
+ /* List Definitions */
+ ol
+	{margin-bottom:0in;}
+ul
+	{margin-bottom:0in;}
+-->
+</style>
+
+</head>
+
+<body lang=EN-US link="#000000" vlink="#954F72">
+
+<div class=WordSection1>
+
+<p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
+text-align:center;line-height:normal'><b><span style='font-size:14.0pt;
+font-family:"Times New Roman","serif";color:black'>Tutorial 1 – Hello world for
+a simple client/server application</span></b></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+color:black'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+normal'><b><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+color:black'>Contents:</span></b></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+color:black'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+normal'><b><i><span style='font-size:12.0pt;font-family:"Times New Roman","serif"'>Preface</span></i></b></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+normal'><b><i><span style='font-size:12.0pt;font-family:"Times New Roman","serif"'>Objectives</span></i></b></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+normal'><b><i><span style='font-size:12.0pt;font-family:"Times New Roman","serif"'>Create
+client and server skeleton codes with the tool uidparser.exe</span></i></b></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+normal'><b><i><span style='font-size:12.0pt;font-family:"Times New Roman","serif"'>Server
+side development</span></i></b></p>
+
+<ul style='margin-top:0in' type=disc>
+ <li class=MsoNormal style='color:black;margin-bottom:0in;margin-bottom:.0001pt;
+     line-height:normal'><i><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+     color:windowtext'>Reference SocketProAdapter for easy development</span></i></li>
+ <li class=MsoNormal style='color:black;margin-bottom:0in;margin-bottom:.0001pt;
+     line-height:normal'><i><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+     color:windowtext'>Derive HelloWorldPeer from CClientPeer</span></i></li>
+ <li class=MsoNormal style='color:black;margin-bottom:0in;margin-bottom:.0001pt;
+     line-height:normal'><i><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+     color:windowtext'>Register services and deal with slow requests</span></i></li>
+ <li class=MsoNormal style='color:black;margin-bottom:0in;margin-bottom:.0001pt;
+     line-height:normal'><i><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+     color:windowtext'>Permission to client</span></i><i><span
+     style='font-family:"Times New Roman","serif";color:windowtext'>
+     connections</span></i></li>
+ <li class=MsoNormal style='color:black;margin-bottom:0in;margin-bottom:.0001pt;
+     line-height:normal'><i><span style='font-family:"Times New Roman","serif";
+     color:windowtext'>Start one listening socket per server instance</span></i></li>
+ <li class=MsoNormal style='color:black;margin-bottom:0in;margin-bottom:.0001pt;
+     line-height:normal'><span style='color:windowtext'><i><span
+     style='font-size:12.0pt;font-family:"Times New Roman","serif"'>Only</span></i></span><i><span
+     style='font-family:"Times New Roman","serif";color:windowtext'>
+     OnSlowRequestArrive called within worker threads</span></i></li>
+</ul>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+normal'><b><i><span style='font-size:12.0pt;font-family:"Times New Roman","serif"'>Responsibilities
+of main thread within SocketPro server</span></i></b></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+normal'><b><i><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+color:black'>Client side development</span></i></b></p>
+
+<p class=MsoListParagraphCxSpFirst style='margin-bottom:0in;margin-bottom:.0001pt;
+text-indent:-.25in;line-height:normal'><span style='font-size:12.0pt;
+font-family:Symbol;color:black'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><i><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+color:black'>Async handler</span></i></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt;text-indent:-.25in;line-height:normal'><span style='font-size:12.0pt;
+font-family:Symbol;color:black'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><i><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+color:black'>Serialization of complex structures and interface IUSerilizer for
+.NET, Java and Python</span></i></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt;text-indent:-.25in;line-height:normal'><span style='font-size:12.0pt;
+font-family:Symbol;color:black'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><i><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+color:black'>Synchronous and asynchronous requests as well as requests batching
+for the best network efficiency</span></i></p>
+
+<p class=MsoListParagraphCxSpLast style='margin-bottom:0in;margin-bottom:.0001pt;
+text-indent:-.25in;line-height:normal'><span style='font-size:12.0pt;
+font-family:Symbol;color:black'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><i><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+color:black'>Client side persistent message queue</span></i></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+normal'><b><i><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+color:black'>Async/Await for asynchronous tasks</span></i></b></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+normal'><b><i><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+color:black'>Cross-platform and cross-development language tests</span></i></b></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+color:black'>&nbsp;</span></p>
+
+<p class=MsoListParagraph style='margin-bottom:0in;margin-bottom:.0001pt;
+text-indent:-.25in;line-height:normal'><b><span style='font-size:12.0pt;
+font-family:"Times New Roman","serif";color:black'>1.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span></b><b><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+color:black'>Preface</span></b></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+color:black'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in;line-height:normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+color:black'>SocketPro, a communication framework, is written
+with&nbsp;requests&nbsp;batching, asynchrony,&nbsp;and parallel computations in
+mind by use of raw non-blocking TCP/IP socket.&nbsp;The framework is
+considerably different from common communication frameworks like Java RMI, WCF,
+and web service.&nbsp;SocketPro offers many specific features which cannot be
+found in other frameworks. Therefore, we have created a series of tutorial
+samples to assist your development.&nbsp;As you study these samples, it is
+strongly recommended that you fully understand every one of the features and
+code comments while experimenting with them. All of the tutorial samples are
+written with C++, C#, VB.Net, Java and Python languages.&nbsp;Each of the samples
+contains one console server application and at least one client application for
+each of these development languages. We’ll add supports to other development
+language in the near future.</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+color:black'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in;line-height:normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+color:black'>Many development languages have been enhanced to better support asynchronous
+computation by use of Lambda expressions, anonymous delegate/function and <i>async/await</i>.
+Therefore, as you will see, new SocketPro client side adapters are rewritten
+and improved to fully take advantages of these new features for supported
+languages.</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in;line-height:normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+color:black'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in;line-height:normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+color:black'>To get used to SocketPro fast, you must keep in mind that
+SocketPro uses asynchronous and request batching computation by default. Once
+you are used to SocketPro computation models, you will like the power of
+SocketPro!</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in;line-height:normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+color:black'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in;line-height:normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+color:black'>To maximize tutorial code reusability, all of tutorial projects
+may refer to files inside other project directory, dependent on each of
+tutorial project types like C++, C#, Java, VB.NET, Python and window CE .NET.
+At this writing time, there are six solution files for the six development environments,
+and each of development language solutions contains all of available tutorial
+projects. These solutions are:</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in;line-height:normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+color:black'>&nbsp;</span></p>
+
+<table class=MsoTableGrid border=1 cellspacing=0 cellpadding=0
+ style='margin-left:41.4pt;border-collapse:collapse;border:none'>
+ <tr>
+  <td width=108 valign=top style='width:81.0pt;border:solid windowtext 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:black'>Dev. language</span></p>
+  </td>
+  <td width=349 valign=top style='width:261.6pt;border:solid windowtext 1.0pt;
+  border-left:none;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:black'>Solution file path</span></p>
+  </td>
+  <td width=366 valign=top style='width:274.8pt;border:solid windowtext 1.0pt;
+  border-left:none;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:black'>IDE tools</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td width=108 valign=top style='width:81.0pt;border:solid windowtext 1.0pt;
+  border-top:none;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:black'>C++</span></p>
+  </td>
+  <td width=349 valign=top style='width:261.6pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:black'>..\SocketProRoot\tutorials\cplusplus\cplusplus.sln</span></p>
+  </td>
+  <td width=366 valign=top style='width:274.8pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:black'>Visual studio 2010 only. No solution file for Linux</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td width=108 valign=top style='width:81.0pt;border:solid windowtext 1.0pt;
+  border-top:none;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:black'>C#</span></p>
+  </td>
+  <td width=349 valign=top style='width:261.6pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:black'>..\SocketProRoot\tutorials\csharp.csharp.sln</span></p>
+  </td>
+  <td width=366 valign=top style='width:274.8pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:black'>Visual studio 2010 and MonoDevelop 3.0 later</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td width=108 valign=top style='width:81.0pt;border:solid windowtext 1.0pt;
+  border-top:none;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:black'>VB.Net</span></p>
+  </td>
+  <td width=349 valign=top style='width:261.6pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:black'>..\SocketProRoot\tutorials\vbnet\vbnet.sln</span></p>
+  </td>
+  <td width=366 valign=top style='width:274.8pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:black'>Visual studio 2010 only</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td width=108 valign=top style='width:81.0pt;border:solid windowtext 1.0pt;
+  border-top:none;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:black'>Java</span></p>
+  </td>
+  <td width=349 valign=top style='width:261.6pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:black'>..\SocketProRoot\tutorials\java\nbproject</span></p>
+  </td>
+  <td width=366 valign=top style='width:274.8pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:black'>Netbean 8.0 or later for both windows and linux</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td width=108 valign=top style='width:81.0pt;border:solid windowtext 1.0pt;
+  border-top:none;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:black'>C# for wince</span></p>
+  </td>
+  <td width=349 valign=top style='width:261.6pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:black'>..\</span> <span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:black'>SocketProRoot\tutorials\ce\ce.sln</span></p>
+  </td>
+  <td width=366 valign=top style='width:274.8pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:black'>Visual studio 2008 only</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td width=108 valign=top style='width:81.0pt;border:solid windowtext 1.0pt;
+  border-top:none;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:black'>Python</span></p>
+  </td>
+  <td width=349 valign=top style='width:261.6pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:black'>..\SocketProRoot\tutorials\python\.idea</span></p>
+  </td>
+  <td width=366 valign=top style='width:274.8pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:black'>PyCharm</span></p>
+  </td>
+ </tr>
+</table>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+color:black'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:0in;margin-bottom:0in;
+margin-left:.25in;margin-bottom:.0001pt;text-indent:-.25in;line-height:normal'><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif";color:black'>&nbsp;</span></p>
+
+<p class=MsoListParagraph style='margin-bottom:0in;margin-bottom:.0001pt;
+text-indent:-.25in;line-height:normal'><b><span style='font-size:12.0pt;
+font-family:"Times New Roman","serif";color:black'>2.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span></b><b><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+color:black'>Objectives</span></b></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:0in;margin-bottom:0in;
+margin-left:.5in;margin-bottom:.0001pt;line-height:normal'><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif";color:black'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in;line-height:normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+color:black'>Understand a uid (universal interface definition) file, and use it
+with SocketPro tool uidparser.exe to quickly create skeleton codes for both
+client and server.</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+color:black'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in;line-height:normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+color:black'>This very first sample is designed to quickly create a service
+that processes the following three requests with traditional client/server
+communication model.<br>
+<br>
+</span></p>
+
+<p class=MsoListParagraphCxSpFirst style='margin-bottom:0in;margin-bottom:.0001pt;
+text-indent:-.25in;line-height:normal'><span style='font-size:12.0pt;
+font-family:Symbol;color:black'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+color:black'>Create a hello message at server side and return the message back
+to a client with two inputs first and last names.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt;line-height:normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+color:black'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt;text-indent:-.25in;line-height:normal'><span style='font-size:12.0pt;
+font-family:Symbol;color:black'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+color:black'>Send a sleep request from a client to a server so that a server
+will sleep for a given time. As you can see, the request may take a longer time
+to complete. Therefore, the request will be processed within a worker thread so
+that it will not block processing requests from other clients.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle><span style='font-size:12.0pt;line-height:
+107%;font-family:"Times New Roman","serif";color:black'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt;text-indent:-.25in;line-height:normal'><span style='font-size:12.0pt;
+font-family:Symbol;color:black'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+color:black'>Echo a complex structure between a client and a server. This
+request demonstrates how to exchange a complex structure across applications
+which may be created from different development languages or platforms within
+SocketPro framework.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle><span style='font-size:12.0pt;line-height:
+107%;font-family:"Times New Roman","serif";color:black'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt;text-indent:-.25in;line-height:normal'><span style='font-size:12.0pt;
+font-family:Symbol;color:black'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+color:black'>Convert asynchronous requests into synchronous ones with SocketPro
+client method <i>WaitAll</i>.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle><span style='font-size:12.0pt;line-height:
+107%;font-family:"Times New Roman","serif";color:black'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt;text-indent:-.25in;line-height:normal'><span style='font-size:12.0pt;
+font-family:Symbol;color:black'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+color:black'>Process multiple requests in batch to improve the underlying
+network efficiency for better application performance and scalability.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle><span style='font-size:12.0pt;line-height:
+107%;font-family:"Times New Roman","serif";color:black'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt;text-indent:-.25in;line-height:normal'><span style='font-size:12.0pt;
+font-family:Symbol;color:black'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+color:black'>Use Lambda expressions at client side for tracking various common
+events at client side as well as processing request return results.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle><span style='font-size:12.0pt;line-height:
+107%;font-family:"Times New Roman","serif";color:black'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpLast style='margin-bottom:0in;margin-bottom:.0001pt;
+text-indent:-.25in;line-height:normal'><span style='font-size:12.0pt;
+font-family:Symbol;color:black'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+color:black'>Use SocketPro persistent message queue at client side to improve
+communication stability over instable communication environments and software
+maintenance.</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+color:black'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpFirst style='margin-bottom:0in;margin-bottom:.0001pt;
+text-indent:-.25in;line-height:normal'><span style='font-size:12.0pt;
+font-family:Symbol;color:black'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+color:black'>Override server side virtual functions to track server
+communication events.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle><span style='font-size:12.0pt;line-height:
+107%;font-family:"Times New Roman","serif";color:black'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpLast style='margin-bottom:0in;margin-bottom:.0001pt;
+line-height:normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+color:black'>Finally, the tutorial demo projects are located at the directory
+of ..\tutorials\(csharp|vbnet|java|cplusplus|ce|python)\hello_world.</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+normal'><b><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+color:black'>&nbsp;</span></b></p>
+
+<p class=MsoListParagraph style='margin-bottom:0in;margin-bottom:.0001pt;
+text-indent:-.25in;line-height:normal'><b><span style='font-size:12.0pt;
+font-family:"Times New Roman","serif";color:black'>3.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span></b><b><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+color:black'>Create client and server skeleton codes with uidparser.exe</span></b></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:0in;margin-bottom:0in;
+margin-left:.5in;margin-bottom:.0001pt;line-height:normal'><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif";color:black'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in;line-height:normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+color:black'>SocketPro comes with a code generator to write skeleton client and
+server codes from a given universal interface definition file with file extension
+uid. It is very similar to other interface definition files like COM and CORBA.
+Take this sample, its uid file contains the below code.</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+color:black'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in;line-height:normal'><b><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+color:black'><img border=0 width=510 height=172
+src="helloworld_files/image001.png"></span></b><span style='font-size:12.0pt;
+font-family:"Times New Roman","serif";color:black'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in;line-height:normal'><i><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+color:black'>Figure 1: A sample universal interface definition.</span></i></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:0in;margin-bottom:0in;
+margin-left:.5in;margin-bottom:.0001pt;line-height:normal'><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif";color:black'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in;line-height:normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+color:black'>In regards to the correct use of uidparser.exe, please see detailed
+comments inside file HW.uid.&nbsp;There is no need to re-describe the various simple
+rules in this tutorial again. However, you must be clear if a request takes a
+long time to process. Take this sample as an example, the request Sleep may
+require a long time to process, and all of other two requests will require very
+little time to be completed.&nbsp;Put the char ‘$’ before the return value to
+indicate a request to be slow as labeled in the picture above.</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in;line-height:normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+color:black'>                                                                                                                              </span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in;line-height:normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+color:black'>In addition to common data types, the tool also supports complex
+data structures. Take this sample as an example. The complex structure is <i>CMyStruct</i>
+as underlined in the above image. Note that this file is actually located at
+the directory ..\</span> <span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+color:black'>SocketProRoot\tutorials\(csharp|cpluplus|vbnet|java\src|ce|python)\uqueue_demo</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in;line-height:normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+color:black'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in;line-height:normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+color:black'>Note that the data types are based on C#. The tool uidparser.exe
+will map them to data types of supported languages. If not proper, you could
+just manually change data types by mapping later.</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in;line-height:normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+color:black'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in;line-height:normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+color:black'>You can use the tool uidparser.exe to quickly create skeleton codes
+for both client and side.&nbsp;See the below Figure 2 for creating skeleton
+codes for C#, C++ and VB.NET.</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in;line-height:normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+color:black'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+color:black'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<img
+border=0 width=581 height=348 id="Picture 5" src="helloworld_files/image002.png"></span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+color:black'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;   <i>Figure
+2: Create SocketPro client and server skeleton codes from a given uid file with
+the tool uidparser.</i></span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+color:black'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in;line-height:normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+color:black'>For this sample, the tool uidparser creates a set of files with proper
+file extensions for each of three development languages. Take C# as a sample.
+The first file named HW_i.cs contains all of the constant definitions as shown
+in the following figure 3.</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+color:blue'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:0in;margin-bottom:0in;
+margin-left:.5in;margin-bottom:.0001pt;line-height:normal'><b><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif";color:blue'><img
+border=0 width=724 height=175 id="Picture 8" src="helloworld_files/image003.jpg"></span></b><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif";color:black'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in;line-height:normal'><i><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+color:black'>Figure 3: A sample C# file for constant definitions.</span></i></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:0in;margin-bottom:0in;
+margin-left:.5in;margin-bottom:.0001pt;text-indent:.5in;line-height:normal'><i><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif";color:black'>&nbsp;</span></i></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:0in;margin-bottom:0in;
+margin-left:-4.5pt;margin-bottom:.0001pt;text-indent:40.5pt;line-height:normal'><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif";color:black'>This
+file will be referenced by both client and server projects. The constant <i>sidHellowWorld</i>
+is a service id for this sample service. All of the others are identifier
+numbers for three requests. SocketPro supports multiple services within one
+listening socket. Each of the services must be identified by one unique
+identifier number named as service id. Similarly, each of the requests, named
+as request id, has one unique identification number per service.<br clear=all>
+</span></p>
+
+<p class=MsoListParagraph style='margin-bottom:0in;margin-bottom:.0001pt;
+text-indent:-.25in;line-height:normal'><b><span style='font-size:12.0pt;
+font-family:"Times New Roman","serif";color:black'>4.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span></b><b><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+color:black'>Server side development</span></b><span style='font-size:12.0pt;
+font-family:"Times New Roman","serif";color:black'><br clear=all>
+</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in;line-height:normal'><b><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+color:black'>Reference SocketPro adapter for easy development: </span></b><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif";color:black'>At
+the very beginning, you need to reference SproAdapter.dll if your developmental
+environment is one of the dotNet languages (C# and VB.NET), or add the files membuffer.cpp
+and aserverw.cpp into your C++ server project. In addition, you need to refer
+to the C++ server adapter header file aserverw.h if your sever project is based
+on C++.<br>
+&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in;line-height:normal'><b><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+color:black'>Derive HelloWorldPeer from CClientPeer for .NET and C++</span></b><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif";color:black'>:
+Next, the tool automatically derives a class (<i>HelloWorldPeer</i>) from the class
+<i>CClientPeer</i> inside the namespace <i>SocketProAdapter.ServerSide</i> as
+shown in the file hwImpl.cs and the below figure 4. SocketPro automatically
+manages threads for you. On the server side, SocketPro will dispatch all fast
+requests on one main thread for processing and all slow requests onto worker
+threads for processing. Note that there is only one main thread, but SocketPro
+server may create multiple worker threads automatically as needed on the fly.</span></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:0in;margin-bottom:0in;
+margin-left:.5in;margin-bottom:.0001pt;line-height:normal'><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif";color:black'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+color:black'>&nbsp;           <img border=0 width=586 height=539
+src="helloworld_files/image004.png"></span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+color:black'>            <i>Figure 4: Server implementation for C#</i></span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+color:black'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+color:black'>            As you can see from the above figure 4, SocketPro .NET
+server adapter uses attribute to specify if a request is slow one.</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in;line-height:normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+color:black'>For C++, SocketPro uses two pure virtual functions <i>OnFastRequestArrive</i>
+and <i>OnSlowRequestArrive</i> to help you to implement all supported requests
+as shown in the below figure 5. As each name individually indicates, all fast
+requests are called from the first virtual function by one main thread, and all
+slow requests from the second virtual function by one of worker threads. Pay
+close attention to the labels on the figure for how to combine inputs and
+outputs at server side.</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+color:black'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in;line-height:normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+color:black'><img border=0 width=855 height=664 id="Picture 4"
+src="helloworld_files/image005.png"></span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in;line-height:normal'><i><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+color:black'>Figure 5: Server implementation for C++.</span></i></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+color:black'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in;line-height:normal'><b><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+color:black'>Register services and deal with slow requests for .NET and C++:&nbsp;</span></b><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif";color:black'>SocketPro
+requires one to register all of the services supported at server side. For .NET
+development environments, you can simply specify an attribute for each of the
+services as shown in the below figure 6.</span></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:0in;margin-bottom:0in;
+margin-left:.5in;margin-bottom:.0001pt;line-height:normal'><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif";color:black'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:0in;margin-bottom:0in;
+margin-left:.5in;margin-bottom:.0001pt;line-height:normal'><b><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif";color:black'><img
+border=0 width=786 height=65 src="helloworld_files/image006.png"></span></b></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:0in;margin-bottom:0in;
+margin-left:.5in;margin-bottom:.0001pt;line-height:normal'><i><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif";color:black'>Figure
+6: Register services at server side for C#.</span></i></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:0in;margin-bottom:0in;
+margin-left:.5in;margin-bottom:.0001pt;line-height:normal'><b><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif";color:black'>&nbsp;</span></b></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in;line-height:normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+color:black'>In regards to C++ development, you can register all services
+within the virtual function <i>CSocketProServer::OnSettingServer</i> as shown
+in the following figure 7. Inside the function, you can call the method <i>CBaseService::AddMe</i>
+with a service id and a COM thread apartment model (ignored on non-window
+platforms). For this sample, they are set to <i>sidHelloWorld</i> and <i>taNone</i>,
+respectively. The <i>taNone</i> indicates a worker thread that will not be
+initialized into any COM thread apartment because this sample doesn’t create
+any COM object at all. Note that we register a slow request in C++ by calling
+the method <i>CBaseService::AddSlowRequest</i>, but we register a slow request
+in .NET by specifying its second parameter to true as shown in the figure 4.</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+color:black'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:0in;margin-bottom:0in;
+margin-left:.5in;margin-bottom:.0001pt;line-height:normal'><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif";color:black'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:0in;margin-bottom:0in;
+margin-left:.5in;margin-bottom:.0001pt;line-height:normal'><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif";color:black'><img
+border=0 width=736 height=376 id="Picture 7" src="helloworld_files/image007.png"></span></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:0in;margin-bottom:0in;
+margin-left:.5in;margin-bottom:.0001pt;line-height:normal'><i><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif";color:black'>Figure
+7: Register services at server side for C++.</span></i></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+color:black'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in;line-height:normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+color:black'>Once you specify a request is slow one, SocketPro server will use
+the information to route a request onto different threads and also create a
+thread automatically on the fly if necessary.</span></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:0in;margin-bottom:0in;
+margin-left:.5in;margin-bottom:.0001pt;line-height:normal'><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif";color:black'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in;line-height:normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+color:black'>SocketPro simplifies your code development at server side
+significantly. It manages all threads for you automatically. Usually, you will
+not create your own threads even though you can be assured to create your own
+threads. When a thread is idle for a long time, perhaps for one minute by
+default, SocketPro server will also silently kill it for you.</span></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:0in;margin-bottom:0in;
+margin-left:.5in;margin-bottom:.0001pt;line-height:normal'><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif";color:black'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in;line-height:normal'><b><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+color:black'>Permission to client connections</span></b><span style='font-size:
+12.0pt;font-family:"Times New Roman","serif";color:black'>: We need to control
+socket connections from different clients for the sake of security. You can
+deny or give permission to a client by its credentials (user id and password).
+To achieve such a goal, you can implement it by overriding the below virtual
+function <i>OnIsPermitted</i> as shown in the figure 8. If the function returns
+true, you give permission to a client. Otherwise, you deny the socket
+connection, and SocketPro will automatically close it for you.</span></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:0in;margin-bottom:0in;
+margin-left:.5in;margin-bottom:.0001pt;line-height:normal'><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif";color:black'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:0in;margin-bottom:0in;
+margin-left:.5in;margin-bottom:.0001pt;line-height:normal'><b><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif";color:blue'><img
+border=0 width=864 height=95 src="helloworld_files/image008.png"></span></b></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:0in;margin-bottom:0in;
+margin-left:.5in;margin-bottom:.0001pt;line-height:normal'><i><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif"'>Figure 8:
+Authenticate a client by its user id, password and service id.</span></i></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:0in;margin-bottom:0in;
+margin-left:.5in;margin-bottom:.0001pt;line-height:normal'><b><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif";color:blue'>&nbsp;</span></b></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in;line-height:normal'><b><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+color:black'>Start one listening socket per application instance</span></b><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif";color:black'>:&nbsp;At
+this point, we have almost completed the server application.&nbsp;At last, we
+need a piece of code to start one listening socket per application instance as
+shown in the figure 9.</span></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:0in;margin-bottom:0in;
+margin-left:.5in;margin-bottom:.0001pt;line-height:normal'><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif";color:black'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:0in;margin-bottom:0in;
+margin-left:.5in;margin-bottom:.0001pt;line-height:normal'><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif";color:black'><img
+border=0 width=734 height=216 src="helloworld_files/image009.png"></span></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:0in;margin-bottom:0in;
+margin-left:.5in;margin-bottom:.0001pt;line-height:normal'><i><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif";color:black'>Figure
+9: Start one listening socket per application instance by calling the method
+Run on a given port (for example, 20901).</span></i></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:0in;margin-bottom:0in;
+margin-left:.5in;margin-bottom:.0001pt;line-height:normal'><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif";color:black'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in;line-height:normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+color:black'>By this time, you can compile and run the sample SocketPro server
+which is able to support tens of thousands of clients very easily.</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in;line-height:normal'><b><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+color:black'>Only <i>OnSlowRequestArrive</i> called within a worker thread</span></b><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif";color:black'>: As
+you may have already known, SocketPro offers a simple thread model that all the
+virtual functions <i>OnXXX</i>, except the virtual function <i>OnSlowRequestArrive</i>,
+are called with one main thread.</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in;line-height:normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+color:black'>&nbsp;</span></p>
+
+<p class=MsoListParagraph style='margin-bottom:0in;margin-bottom:.0001pt;
+text-indent:-.25in;line-height:normal'><b><span style='font-size:12.0pt;
+font-family:"Times New Roman","serif";color:black'>5.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span></b><b><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+color:black'>Responsibilities of main thread within SocketPro server</span></b><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif";color:black'>&nbsp;<br
+clear=all>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in;line-height:normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+color:black'>The main thread at SocketPro server is the thread running with the
+listening socket. The main thread has a lot of responsibilities. Major ones are
+listed in the following:</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in;line-height:normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+color:black'>a.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Monitoring
+various network events and communication events between worker threads and the
+main thread.</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in;line-height:normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+color:black'>b.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Manage various
+pools such as thread pools, global and private memory pools, and pools of <i>CClientPeer</i>-derived
+objects.</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in;line-height:normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+color:black'>c.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Route various
+slow requests onto different worker threads.</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in;line-height:normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+color:black'>d.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Process all of
+fast requests from all of clients.</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in;line-height:normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+color:black'>e.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Authenticate a
+client.</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in;line-height:normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+color:black'>f.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Decompress
+incoming data if it is originally compressed (zipped).</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in;line-height:normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+color:black'>g.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Decrypt
+incoming data if it is originally encrypted.</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in;line-height:normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+color:black'>h.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Create or kill
+threads on the fly if necessary.</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in;line-height:normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+color:black'>i.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Encrypt
+or compress returned data of all of fast requests.</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in;line-height:normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+color:black'>j.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Manage
+plug-in libraries written from C/C++.</span></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:0in;margin-bottom:0in;
+margin-left:.5in;margin-bottom:.0001pt;line-height:normal'><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif";color:black'>k.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Find dead clients for unknown reasons.<br clear=all>
+</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in;line-height:normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+color:black'>You are not required to understand how the main thread
+manages&nbsp;these in detail. However, you should keep in mind that no slow
+requests should be processed in the main thread in general. Worker threads are
+used to process all slow requests, and to encrypt or compress their returned
+results.</span></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:0in;margin-bottom:0in;
+margin-left:.5in;margin-bottom:.0001pt;line-height:normal'><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif";color:black'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpFirst style='margin-bottom:0in;margin-bottom:.0001pt;
+text-indent:-.25in;line-height:normal'><b><span style='font-size:12.0pt;
+font-family:"Times New Roman","serif";color:black'>6.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span></b><b><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+color:black'>Client side development</span></b></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in;line-height:normal'><span style='font-size:12.0pt;font-family:
+"Times New Roman","serif";color:black'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in;line-height:normal'><span style='font-size:12.0pt;font-family:
+"Times New Roman","serif";color:black'>SocketPro has one client system library,
+usocket.dll on window platforms or usocket.so on Linux platforms, which must be
+used for all of client applications development. In addition, SocketPro uses
+openssl libraries for SSL/TLS secure communication. In order to reduce client
+coding complexities, SocketPro provides wrappers. To use these helpful
+wrappers, simply use the name spaces <i>SocketProAdapter</i> and <i>SocketProAdapter.ClientSide</i>.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in;line-height:normal'><span style='font-size:12.0pt;font-family:
+"Times New Roman","serif";color:black'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in;line-height:normal'><b><span style='font-size:12.0pt;
+font-family:"Times New Roman","serif";color:black'>Async handler </span></b><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif";color:black'>– is
+designed for sending requests and processing returning results using asynchrony
+style. However, you can easily convert all asynchronous requests and results
+into synchronous ones. SocketPro client adapter also provides templates in C++
+or generics in .NET to convert them as shown in the below Figure 10 if you like
+to use synchronous computation style with help of the functions <i>ProcessRx</i>,
+where x indicates the number of returning results which could range from 0 to
+5.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in;line-height:normal'><span style='font-size:12.0pt;font-family:
+"Times New Roman","serif";color:black'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in;line-height:normal'><span style='font-size:12.0pt;font-family:
+"Times New Roman","serif";color:black'><img border=0 width=785 height=489
+id="Picture 1" src="helloworld_files/image010.png"></span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in;line-height:normal'><i><span style='font-size:12.0pt;
+font-family:"Times New Roman","serif";color:black'>Figure 10: Hello world asynchronous
+service handler for C#</span></i></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in;line-height:normal'><span style='font-size:12.0pt;font-family:
+"Times New Roman","serif";color:black'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in;line-height:normal'><b><span style='font-size:12.0pt;
+font-family:"Times New Roman","serif";color:black'>Serialization of complex
+structures and interface IUSerilizer for .NET</span></b><span style='font-size:
+12.0pt;font-family:"Times New Roman","serif";color:black'> – SocketPro adapter
+can automatically serialize and de-serialize simple data types easily
+effortlessly. However, it requires a little effort for you to implement the
+interface <i>IUSerialize</i> for .NET if you would like your application data
+movement to be compatible across multiple platforms and development languages
+C++, C#, and others. For details, see this short article and this sample
+tutorial code. Note SocketPro also supports .NET serialization. We recommend <i>IUSerilize</i>
+for the sake of performance and compatibility across different operation
+systems and developmental languages.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in;line-height:normal'><span style='font-size:12.0pt;font-family:
+"Times New Roman","serif";color:black'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in;line-height:normal'><b><span style='font-size:12.0pt;
+font-family:"Times New Roman","serif";color:black'>Synchronous and asynchronous
+requests as well as requests batching for the best network efficiency</span></b><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif";color:black'> –
+Let’s see the Hello world client code as shown in the below Figure 11.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in;line-height:normal'><span style='font-size:12.0pt;font-family:
+"Times New Roman","serif";color:black'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in;line-height:normal'><span style='font-size:12.0pt;font-family:
+"Times New Roman","serif";color:black'><img border=0 width=856 height=498
+id="Picture 10" src="helloworld_files/image011.png"></span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in;line-height:normal'><i><span style='font-size:12.0pt;
+font-family:"Times New Roman","serif";color:black'>Figure 11: Client main codes
+for sync and async requests as well as requests batching</span></i></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in;line-height:normal'><span style='font-size:12.0pt;font-family:
+"Times New Roman","serif";color:black'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in;line-height:normal'><span style='font-size:12.0pt;font-family:
+"Times New Roman","serif";color:black'>At first, SocketPro client requires a connection
+context for establishing socket connection from client to server as shown on
+the line 9. Next, SocketPro client starts a pool of sockets on the lines 10 and
+11 with a number of threads for hosting non-blocking sockets. Here, we just
+create a single socket hosted within one thread only.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in;line-height:normal'><span style='font-size:12.0pt;font-family:
+"Times New Roman","serif";color:black'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in;line-height:normal'><span style='font-size:12.0pt;font-family:
+"Times New Roman","serif";color:black'>From line 17 through line 20, we send
+three requests synchronously, which costs three round trips to finish
+processing all three requests. Typically, developers just write such
+synchronous requests. However, we are able to send all three requests in one
+shot with only one round-trip after manually batching them. Each of the requests
+is set with one call back for processing returning results as shown in the
+lines 25, 28 and 30. This is requests batching with asynchrony computation
+style. The key feature is especially great for middle tier performance and
+scalability in case your application requires supporting high volume of
+requests over low bandwidth networks remotely. Note the calls at lines 23, 32
+and 33 are optional. Without calls at lines 23 and 32, SocketPro is still able
+to do requests batching, but manual batch is slightly better. The call WaitAll
+at line 32 is used to wait until all three requests are processed.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in;line-height:normal'><span style='font-size:12.0pt;font-family:
+"Times New Roman","serif";color:black'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in;line-height:normal'><b><span style='font-size:12.0pt;
+font-family:"Times New Roman","serif";color:black'>Client side persistent
+message queue</span></b><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+color:black'> – The call at line 14 starts a persistent message queue if you
+like to make sure all of the client requests are delivered to remote server, no
+matter what happens to the remote server, network or client machine. In case
+the network or server is down for any reasons such as network unplug, machine
+power-off, software update, server shutdown, and so on, the client requests are
+automatically backed up by the client side. The backup requests can be re-sent
+to server for processing after a remote server is restored to work.</span></p>
+
+<p class=MsoListParagraphCxSpLast style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in;line-height:normal'><span style='font-size:12.0pt;font-family:
+"Times New Roman","serif";color:black'>&nbsp;</span></p>
+
+<p class=MsoNormal><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>            After you run the Hello world server
+first, you can start running the simple client sample and step through codes
+now.</span></p>
+
+<p class=MsoListParagraphCxSpFirst style='text-indent:-.25in'><b><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>7.<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span></span></b><b><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>Async/Await</span></b></p>
+
+<p class=MsoListParagraphCxSpMiddle><span style='font-size:12.0pt;line-height:
+107%;font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-left:0in;text-indent:.5in'><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>If
+you do .NET development, you may like to use the new feature <i>Async/Await</i>
+for asynchronous tasks. SocketPro well- supports the new key statements <i>Async</i>
+and <i>Await</i> for all requests without the involvement of .NET thread pool
+or your worker thread. There is also visual studio 2012 .net sample project
+located at the directory ..\tutorials\(csharp|vbnet)\hello_world\win_async for
+both C# and VB.NET. Here is the C# code snippet for demonstration.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-left:0in;text-indent:.5in'><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpLast style='margin-left:0in;text-indent:.5in'><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'><img
+border=0 width=708 height=483 id="Picture 13"
+src="helloworld_files/image012.png"></span></p>
+
+<p class=MsoNormal><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>            <i>Figure 12: use Async and Await for
+asynchronous tasks within SocketPro client adapter</i></span></p>
+
+<p class=MsoNormal><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>            You can see how we set asynchronous
+results (tcs.SetResult) within Lambda expression callbacks at the codes at line
+41 and 51. Note that such does not require that you use .NET thread pool or
+create a worker thread at all. You can just use the thread-less task approach
+for all requests one-by-one or in a batch.</span></p>
+
+<p class=MsoListParagraphCxSpFirst style='text-indent:-.25in'><b><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>8.<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span></span></b><b><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif";
+color:black'>Cross-platform and cross-development language tests</span></b></p>
+
+<p class=MsoListParagraphCxSpLast style='margin-left:0in;text-indent:.5in'><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif";
+color:black'>SocketPro is created to fully support cross-platform and
+cross-language developments. For example, you can create a C++ Linux SocketPro
+server application which is directly accessible from a window client
+application written from C#. You can test all tutorial samples from different
+platforms and applications written from different languages. As you can see,
+SocketPro is written to support loose coupling communication architecture.
+Communications among clients and their server are decoupled, which is
+beneficial to software maintenance and evolution.<a name="_GoBack"></a></span></p>
+
+</div>
+
+</body>
+
+</html>

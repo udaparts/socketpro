@@ -1,0 +1,560 @@
+<html>
+
+<head>
+<meta http-equiv=Content-Type content="text/html; charset=windows-1252">
+<meta name=Generator content="Microsoft Word 12 (filtered)">
+<style>
+<!--
+ /* Font Definitions */
+ @font-face
+	{font-family:Wingdings;
+	panose-1:5 0 0 0 0 0 0 0 0 0;}
+@font-face
+	{font-family:"Cambria Math";
+	panose-1:2 4 5 3 5 4 6 3 2 4;}
+@font-face
+	{font-family:Calibri;
+	panose-1:2 15 5 2 2 2 4 3 2 4;}
+@font-face
+	{font-family:Tahoma;
+	panose-1:2 11 6 4 3 5 4 4 2 4;}
+@font-face
+	{font-family:Consolas;
+	panose-1:2 11 6 9 2 2 4 3 2 4;}
+ /* Style Definitions */
+ p.MsoNormal, li.MsoNormal, div.MsoNormal
+	{margin-top:0in;
+	margin-right:0in;
+	margin-bottom:8.0pt;
+	margin-left:0in;
+	line-height:107%;
+	font-size:11.0pt;
+	font-family:"Calibri","sans-serif";}
+p.MsoHeader, li.MsoHeader, div.MsoHeader
+	{mso-style-link:"Header Char";
+	margin:0in;
+	margin-bottom:.0001pt;
+	font-size:11.0pt;
+	font-family:"Calibri","sans-serif";}
+p.MsoFooter, li.MsoFooter, div.MsoFooter
+	{mso-style-link:"Footer Char";
+	margin:0in;
+	margin-bottom:.0001pt;
+	font-size:11.0pt;
+	font-family:"Calibri","sans-serif";}
+a:link, span.MsoHyperlink
+	{color:blue;
+	text-decoration:underline;}
+a:visited, span.MsoHyperlinkFollowed
+	{color:#954F72;
+	text-decoration:underline;}
+p.MsoAcetate, li.MsoAcetate, div.MsoAcetate
+	{mso-style-link:"Balloon Text Char";
+	margin:0in;
+	margin-bottom:.0001pt;
+	font-size:8.0pt;
+	font-family:"Tahoma","sans-serif";}
+p.MsoListParagraph, li.MsoListParagraph, div.MsoListParagraph
+	{margin-top:0in;
+	margin-right:0in;
+	margin-bottom:8.0pt;
+	margin-left:.5in;
+	line-height:107%;
+	font-size:11.0pt;
+	font-family:"Calibri","sans-serif";}
+p.MsoListParagraphCxSpFirst, li.MsoListParagraphCxSpFirst, div.MsoListParagraphCxSpFirst
+	{margin-top:0in;
+	margin-right:0in;
+	margin-bottom:0in;
+	margin-left:.5in;
+	margin-bottom:.0001pt;
+	line-height:107%;
+	font-size:11.0pt;
+	font-family:"Calibri","sans-serif";}
+p.MsoListParagraphCxSpMiddle, li.MsoListParagraphCxSpMiddle, div.MsoListParagraphCxSpMiddle
+	{margin-top:0in;
+	margin-right:0in;
+	margin-bottom:0in;
+	margin-left:.5in;
+	margin-bottom:.0001pt;
+	line-height:107%;
+	font-size:11.0pt;
+	font-family:"Calibri","sans-serif";}
+p.MsoListParagraphCxSpLast, li.MsoListParagraphCxSpLast, div.MsoListParagraphCxSpLast
+	{margin-top:0in;
+	margin-right:0in;
+	margin-bottom:8.0pt;
+	margin-left:.5in;
+	line-height:107%;
+	font-size:11.0pt;
+	font-family:"Calibri","sans-serif";}
+span.BalloonTextChar
+	{mso-style-name:"Balloon Text Char";
+	mso-style-link:"Balloon Text";
+	font-family:"Tahoma","sans-serif";}
+span.apple-converted-space
+	{mso-style-name:apple-converted-space;}
+span.HeaderChar
+	{mso-style-name:"Header Char";
+	mso-style-link:Header;}
+span.FooterChar
+	{mso-style-name:"Footer Char";
+	mso-style-link:Footer;}
+.MsoPapDefault
+	{margin-bottom:8.0pt;
+	line-height:107%;}
+ /* Page Definitions */
+ @page WordSection1
+	{size:11.0in 8.5in;
+	margin:1.0in 1.0in 1.0in 1.0in;}
+div.WordSection1
+	{page:WordSection1;}
+ /* List Definitions */
+ ol
+	{margin-bottom:0in;}
+ul
+	{margin-bottom:0in;}
+-->
+</style>
+
+</head>
+
+<body lang=EN-US link=blue vlink="#954F72">
+
+<div class=WordSection1>
+
+<p class=MsoNormal align=center style='text-align:center'><b><span
+style='font-size:14.0pt;line-height:107%;font-family:"Times New Roman","serif"'>Tutoral
+3 – Exchange Any Size Files between Client and Server</span></b></p>
+
+<p class=MsoNormal><span style='font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoNormal><b><span style='font-family:"Times New Roman","serif"'>Contents:</span></b></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt'><b><i><span
+style='font-family:"Times New Roman","serif"'>Introduction</span></i></b></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt'><b><i><span
+style='font-family:"Times New Roman","serif"'>SocketPro client and server
+threading models</span></i></b></p>
+
+<p class=MsoListParagraphCxSpFirst style='margin-bottom:0in;margin-bottom:.0001pt;
+text-indent:-.25in'><span style='font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><i><span style='font-family:"Times New Roman","serif"'>Server
+threading model</span></i></p>
+
+<p class=MsoListParagraphCxSpLast style='margin-bottom:0in;margin-bottom:.0001pt;
+text-indent:-.25in'><span style='font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><i><span style='font-family:"Times New Roman","serif"'>Client
+threading model</span></i></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt'><b><i><span
+style='font-family:"Times New Roman","serif"'>Download a file from server to
+client</span></i></b></p>
+
+<p class=MsoListParagraphCxSpFirst style='margin-bottom:0in;margin-bottom:.0001pt;
+text-indent:-.25in'><span style='font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><i><span style='font-family:"Times New Roman","serif"'>Initialize
+a downloading request at client side</span></i></p>
+
+<p class=MsoListParagraphCxSpLast style='margin-bottom:0in;margin-bottom:.0001pt;
+text-indent:-.25in'><span style='font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><i><span style='font-family:"Times New Roman","serif"'>Open a
+stream for reading data and fake a slow request on behalf of a client at server
+side</span></i></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt'><b><i><span
+style='font-family:"Times New Roman","serif"'>Upload a file from client to
+server</span></i></b></p>
+
+<p class=MsoListParagraphCxSpFirst style='margin-bottom:0in;margin-bottom:.0001pt;
+text-indent:-.25in'><span style='font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><i><span style='font-family:"Times New Roman","serif"'>Initialize
+an uploading request at server side</span></i></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt;text-indent:-.25in'><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><i><span style='font-family:"Times New Roman","serif"'>Open a
+writable stream for receiving client data at server side</span></i></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt'><i><span style='font-family:"Times New Roman","serif"'>&nbsp;</span></i></p>
+
+<p class=MsoListParagraphCxSpMiddle style='text-indent:-.25in'><b><span
+style='font-family:"Times New Roman","serif"'>1.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span></b><b><span style='font-family:"Times New Roman","serif"'>Introduction</span></b></p>
+
+<p class=MsoListParagraphCxSpMiddle><span style='font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-left:0in;text-indent:.5in'><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif";
+color:black'>It is a common task to write code in order to exchange files
+between client and server efficiently. SocketPro at its adapter level provides
+helper utilities for this purpose.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-left:0in;text-indent:.5in'><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif";
+color:black'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-left:0in;text-indent:.5in'><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif";
+color:black'>In addition, we are going to discuss SocketPro client and server threading
+models so that you can easily remember calling threads for various events and
+virtual functions.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-left:0in;text-indent:.5in'><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif";
+color:black'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-left:0in;text-indent:.5in'><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif";
+color:black'>The tutorial sample projects are located at the directory ..\tutorials\(csharp|vbnet|cplusplus|java\src|ce|python)\remote_file</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-left:0in;text-indent:.5in'><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif";
+color:black'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='text-indent:-.25in'><b><span
+style='font-family:"Times New Roman","serif"'>2.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span></b><b><span style='font-family:"Times New Roman","serif"'>SocketPro
+client and server threading models</span></b></p>
+
+<p class=MsoListParagraphCxSpMiddle><span style='font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-left:0in;text-indent:.5in'><span
+style='font-family:"Times New Roman","serif"'>SocketPro is created so that your
+developments are easy especially when dealing with threading. SocketPro tries
+its best to manage creating threads and their life so they occur automatically.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle><span style='font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-left:0in;text-indent:.5in'><b><span
+style='font-family:"Times New Roman","serif"'>Server threading model:</span></b><span
+style='font-family:"Times New Roman","serif"'> As described at the </span>
+    <a href="helloworld.htm"><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>tutorial
+one </span><span style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif";
+color:black'><i>Hello world for a simple client/server application</i></a><i>, </i> </span><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif";
+color:black'>SocketPro server has one main thread that creates and manages all
+worker thread on the fly at a proper time. In addition, the main thread
+dispatches all of client requests to obey the flow chart of the below Figure 1.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-left:0in;text-indent:.5in'><span
+style='font-family:"Times New Roman","serif"'><img width=451 height=339
+id="Picture 3" src="remotingfile_files/image001.jpg"></span><span
+style='font-family:"Times New Roman","serif"'> </span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-left:0in;text-indent:.5in'><i><span
+style='font-family:"Times New Roman","serif"'>Figure 1: Dispatch chart of
+requests processing at server side</span></i></p>
+
+<p class=MsoListParagraphCxSpLast style='margin-left:0in;text-indent:.5in'><span
+style='font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in;line-height:normal;text-autospace:none'><span style='font-family:"Times New Roman","serif"'>As
+shown in Figure 1 above, SocketPro server main thread only dispatches a slow
+request onto a worker thread for processing. How does the SocketPro server know
+if a request is a slow one? The answer is simple: when you call <i>AddSlowRequest</i>
+in C++ or set the <i>SlowRequest</i> attribute </span><span style='font-size:
+12.0pt;font-family:"Times New Roman","serif"'>to true (for example, <i>[<span
+style='color:#2B91AF'>RequestAttr</span>(<span style='color:#2B91AF'>hwConst</span>.idSleepHelloWorld,
+<span style='color:blue'>true</span>)])</i></span><span style='font-size:9.5pt;
+font-family:Consolas'> </span><span style='font-family:"Times New Roman","serif"'>right
+before a function, you tell the SocketPro server that the request is going to
+take a long time to process.</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in;line-height:normal;text-autospace:none'><span style='font-family:"Times New Roman","serif"'>Another
+key point is that <b>all</b> virtual functions starting with <i>OnXXX</i>
+within whole name space <i>SocketProAdapter.ServerSide</i>, <b>except</b> the
+virtual function <i><span style='color:red'>OnSlowRequestArrive</span></i>, are
+processed within the main thread. Only one, <i><span style='color:red'>OnSlowRequestArrive</span></i>,
+is processed within a worker thread.</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in;line-height:normal;text-autospace:none'><span style='font-family:"Times New Roman","serif"'>All
+of <a name="_GoBack">the </a>requests from one socket connection are always processed
+one-by-one sequentially at server side no matter how many or what requests.
+From the view of a SocketPro server, all of the fast requests from all clients
+are processed within one main thread.</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in;line-height:normal;text-autospace:none'><span style='font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in;line-height:normal;text-autospace:none'><b><span style='font-size:12.0pt;
+font-family:"Times New Roman","serif"'>Client threading model:</span></b><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif"'> Client
+threading model can be described with the below Figure 2.</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in;line-height:normal;text-autospace:none'><span style='font-size:12.0pt;
+font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in;line-height:normal;text-autospace:none'><span style='font-size:12.0pt;
+font-family:"Times New Roman","serif"'><img width=480 height=361 id="Picture 6"
+src="remotingfile_files/image002.jpg"></span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in;line-height:normal;text-autospace:none'><i><span style='font-size:12.0pt;
+font-family:"Times New Roman","serif"'>Figure 2: Socket pool and its threading
+model</span></i></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in;line-height:normal;text-autospace:none'><span style='font-size:12.0pt;
+font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in;line-height:normal;text-autospace:none'><span style='font-size:12.0pt;
+font-family:"Times New Roman","serif"'>SocketPro client uses socket pool
+concept to manage threads and sockets driven by its hosting threads. Note that
+all sockets are using non-blocking styles for communicating data between client
+and server as depicted above. To create a pool of sockets as shown in Figure 2,
+you can do so using the follow code in C# shown below.</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in;line-height:normal;text-autospace:none'><span style='font-size:12.0pt;
+font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in;line-height:normal;text-autospace:none'><span style='font-size:12.0pt;
+font-family:"Times New Roman","serif"'><img width=454 height=84 id="Picture 16"
+src="remotingfile_files/image003.png"></span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in;line-height:normal;text-autospace:none'><span style='font-size:12.0pt;
+font-family:"Times New Roman","serif"'>Figure 3: Start a pool of sockets with
+three threads and two sockets per thread</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in;line-height:normal;text-autospace:none'><span style='font-size:12.0pt;
+font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in;line-height:normal;text-autospace:none'><span style='font-size:12.0pt;
+font-family:"Times New Roman","serif"'>Note that each of the socket connection
+contexts can point to either the same server or different servers. When you
+destroy a socket pool, you kill both their threads and sockets.</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in;line-height:normal;text-autospace:none'><span style='font-size:12.0pt;
+font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in;line-height:normal;text-autospace:none'><span style='font-size:12.0pt;
+font-family:"Times New Roman","serif"'>One key point is that <b>all</b> of the socket
+events, SSL/TLS events, various events within the whole name space <i>SocketProAdapter.ClientSide</i>
+and returning data from server all originate from socket pool threads <b>except</b>
+the SocketPool events for <i>speCreatingThread, speThreadCreated, speKillingThread,
+speThreadKilled, speUSocketCreated, speUSocketKilled, speLocked</i> and <i>speUnlocked</i>.
+Theses eight events originate from your calling thread instead.</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in;line-height:normal;text-autospace:none'><span style='font-size:12.0pt;
+font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpFirst style='margin-bottom:0in;margin-bottom:.0001pt;
+text-indent:-.25in;line-height:normal;text-autospace:none'><b><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif"'>3.<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span></span></b><b><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif"'>Download a file
+from server to client</span></b></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt;line-height:normal;text-autospace:none'><span style='font-size:12.0pt;
+font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in;line-height:normal;text-autospace:none'><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif"'>We know that it
+is a common task to exchange files between client and server. Therefore,
+SocketPro adapters come with helper classes for this purpose.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt;line-height:normal;text-autospace:none'><span style='font-size:12.0pt;
+font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in;line-height:normal;text-autospace:none'><b><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif"'>Initialize a
+downloading request at client side:</span></b><span style='font-size:12.0pt;
+font-family:"Times New Roman","serif"'> At client side, you can use the code
+snippet illustrated below in Figure 4 to send a request to a remote SocketPro
+server with a given server file path.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in;line-height:normal;text-autospace:none'><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in;line-height:normal;text-autospace:none'><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif"'><img width=745
+height=243 id="Picture 19" src="remotingfile_files/image004.png"></span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in;line-height:normal;text-autospace:none'><i><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif"'>Figure 4:
+Download a file from server to client with a given server file path</span></i></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in;line-height:normal;text-autospace:none'><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in;line-height:normal;text-autospace:none'><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif"'>The given server
+file path is <i>RemoteFile</i> as shown in line 34 in Figure 4 below. Because
+it is an asynchronous processing, we need to call the method <i>WaitAll</i>
+until a whole file is downloaded before closing client receiving stream. You
+can monitor downloading progress as shown in lines 25 through 29. </span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in;line-height:normal;text-autospace:none'><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif"'>Also note that
+the downloading stream size at line 27 comes from the size of source stream or
+file at server side.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in;line-height:normal;text-autospace:none'><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in'><b><span style='font-family:"Times New Roman","serif"'>Open a
+stream for reading data and fake a slow request on behalf of a client at server
+side:</span></b><span style='font-family:"Times New Roman","serif"'> Let’s see
+what server code is as depicted in Figure 5.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in'><span style='font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in;line-height:normal;text-autospace:none'><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif"'><img width=723
+height=419 src="remotingfile_files/image005.png"></span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in;line-height:normal;text-autospace:none'><i><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif"'>Figure 5:
+Download file from server to client</span></i></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in;line-height:normal;text-autospace:none'><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in;line-height:normal;text-autospace:none'><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif"'>Whenever a
+client sends a file download request, the server should always respond with a
+file size and an error message string as shown in lines 17 through 23. In line
+21, SocketPro opens a file for reading from a given file path <i>RemoteFilePath</i>
+that originated from the client. Therefore, the client will know the
+downloading file size ahead of time as shown in line 27 and by the error
+message in line 34 in Figure 4 above. In addition, the call at line 21 fakes a
+request <i>MoveDataFromServerToClient</i> at server side on behalf of the
+client.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in;line-height:normal;text-autospace:none'><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif"'>Since sending a
+file to a client may take a long time as shown in line 27, then we must use a
+worker thread to do such as shown in line 24. At last, a client will inform its
+server that downloading is complete as shown in lines 29 through 33.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in;line-height:normal;text-autospace:none'><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpLast style='margin-bottom:0in;margin-bottom:.0001pt;
+text-indent:-.25in;line-height:normal;text-autospace:none'><b><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif"'>4.<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span></span></b><b><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif"'>Upload a file
+from server to client</span></b></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:0in;margin-bottom:0in;
+margin-left:.5in;margin-bottom:.0001pt;line-height:normal;text-autospace:none'><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraph style='margin:0in;margin-bottom:.0001pt;text-indent:
+.5in'><b><span style='font-family:"Times New Roman","serif"'>Initialize an
+uploading request at server side:</span></b><i><span style='font-family:"Times New Roman","serif"'>
+</span></i><span style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>It
+is time to show you how to upload a file from client to server. The client code
+is given in Figure 6 below.</span></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:0in;margin-bottom:0in;
+margin-left:.5in;margin-bottom:.0001pt;line-height:normal;text-autospace:none'><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:0in;margin-bottom:0in;
+margin-left:.5in;margin-bottom:.0001pt;line-height:normal;text-autospace:none'><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif"'><img width=584
+height=209 id="Picture 1" src="remotingfile_files/image006.png"></span></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:0in;margin-bottom:0in;
+margin-left:.5in;margin-bottom:.0001pt;line-height:normal;text-autospace:none'><i><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif"'>Figure 6: Upload
+a file from client to server with a given file path</span></i></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:0in;margin-bottom:0in;
+margin-left:.5in;margin-bottom:.0001pt;line-height:normal;text-autospace:none'><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in;line-height:normal;text-autospace:none'><span style='font-size:12.0pt;
+font-family:"Times New Roman","serif"'>The method <i>Upload</i> in line 50
+returns an empty string to indicate success. If it fails, however, the method
+will return an error message to inform you. The method initializes a file by
+uploading synchronously, though moving data to server is made asynchronously.
+Therefore, we call the method <i>WaitAll</i> until all data is sent to the remote
+server before the closing stream.</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in;line-height:normal;text-autospace:none'><span style='font-size:12.0pt;
+font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraph style='margin:0in;margin-bottom:.0001pt;text-indent:
+.5in'><b><span style='font-family:"Times New Roman","serif"'>Open a writable
+stream for receiving client data at server side:</span></b><i><span
+style='font-family:"Times New Roman","serif"'> </span></i><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>Now,
+let’s see the server side code as shown in the Figure 7. Once the server gets a
+file upload request from a client, the code that runs from lines 46 through 57
+will be called. The function <i>StartUploadingFile</i> will return an empty
+string if successful. Otherwise, it returns a caught exception error message.</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in;line-height:normal;text-autospace:none'><span style='font-size:12.0pt;
+font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in;line-height:normal;text-autospace:none'><span style='font-size:12.0pt;
+font-family:"Times New Roman","serif"'><img width=621 height=516 id="Picture 4"
+src="remotingfile_files/image007.png"></span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in;line-height:normal;text-autospace:none'><i><span style='font-size:12.0pt;
+font-family:"Times New Roman","serif"'>Figure 7: Server side code for
+processing client file uploading request</span></i></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in;line-height:normal;text-autospace:none'><span style='font-size:12.0pt;
+font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in;line-height:normal;text-autospace:none'><span style='font-size:12.0pt;
+font-family:"Times New Roman","serif"'>Client side will send actual data in
+chunks with streaming style. We write data into a previously opened file as
+shown in the code from lines 59 through 62 for each of the chunks of data.
+Finally, the server will be informed as showed in lines 64 through 67 if there
+is no data to be uploaded.</span></p>
+
+</div>
+
+</body>
+
+</html>

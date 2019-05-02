@@ -1,0 +1,26 @@
+HKCR
+{
+	UFile.UFile.1 = s 'UFile Class'
+	{
+		CLSID = s '{A15E2D3F-7739-4063-B8FC-7D91D650FAA4}'
+	}
+	UFile.UFile = s 'UFile Class'
+	{
+		CLSID = s '{A15E2D3F-7739-4063-B8FC-7D91D650FAA4}'
+		CurVer = s 'UFile.UFile.1'
+	}
+	NoRemove CLSID
+	{
+		ForceRemove {A15E2D3F-7739-4063-B8FC-7D91D650FAA4} = s 'UFile Class'
+		{
+			ProgID = s 'UFile.UFile.1'
+			VersionIndependentProgID = s 'UFile.UFile'
+			ForceRemove 'Programmable'
+			InprocServer32 = s '%MODULE%'
+			{
+				val ThreadingModel = s 'Free'
+			}
+			'TypeLib' = s '{4071FB2E-B7FC-4A14-9719-3FDF4CCA47F2}'
+		}
+	}
+}

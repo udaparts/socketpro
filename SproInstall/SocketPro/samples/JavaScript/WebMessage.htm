@@ -1,0 +1,242 @@
+<html>
+<head>
+    <title>-->Cross-browser Real Time Message With SocketPro<--</title>
+</head>
+
+<script type="text/javascript" src="sproadapter.js"></script>
+<script type="text/javascript">
+
+var clientsocket;
+var OnClosed = function(hSocket, nError){
+    var btn = document.getElementById("btnSendMsg");
+    btn.disabled = "disabled";
+    if(nError != 0){
+	    alert("Socket closed with hSocket = " + hSocket + ", and error message = " + clientsocket.GetErrorMsg());
+	}
+};
+
+var OnConnected = function(hSocket, nError){
+	if(nError == 0){
+	    var btn = document.getElementById("btnSendMsg");
+	    btn.disabled = "";
+	    clientsocket.SetUID("SocketPro"); 
+        clientsocket.SetPassword("PassOne");
+        var ok = clientsocket.BeginBatching();
+        ok = clientsocket.SwitchTo(260);
+        ok = clientsocket.Enter(7); //groups 1, 2, and 4
+        ok = clientsocket.Commit(false);
+	}
+};
+
+var OnBaseRequestProcessed = function(nRequestId){
+    var n;
+    var lCount = 1;
+    var msg = "Other base request with id = " + nRequestId;
+    var txtMsg = document.getElementById("txtMsgIn");
+    var ss = clientsocket.GetUSocket(); //directly accessing IUSocketScript;
+    switch(nRequestId)
+    {
+    case 33: //idGetAllGroups
+        msg = "GetAllGroups: ";
+        lCount = ss.Groups;
+        for(n=0; n<lCount; n++){
+            if(n)
+                msg += "; ";
+            msg += ("Group Id = " + ss.GetGroupID(n));
+            msg += (", Description = " + ss.GetGroupDescription(n));
+        }
+        break; 
+    case 31: //idEnter -- for these constants, run oleview.exe and open npUSocket.dll
+        msg = "Enter: ";
+        for(n=0; n<lCount; n++){
+            if(n)
+                msg += "; ";
+            msg += ("Group IDs = " + ss.GetInfoGroupIDs(n));
+            msg += (", User ID = " + ss.GetInfoUserID(n));
+            msg += (", Service ID = " + ss.GetInfoServiceID(n));
+            msg += (", Port = " + ss.GetInfoPort(n));
+            msg += (", IP Address = " + ss.GetInfoIPAddress(n));
+        }
+        break; 
+    case 32: //idExit
+        msg = "Exit: ";
+        for(n=0; n<lCount; n++){
+            if(n)
+                msg += "; ";
+            msg += ("Group IDs = " + ss.GetInfoGroupIDs(n));
+            msg += (", User ID = " + ss.GetInfoUserID(n));
+            msg += (", Service ID = " + ss.GetInfoServiceID(n));
+            msg += (", Port = " + ss.GetInfoPort(n));
+            msg += (", IP Address = " + ss.GetInfoIPAddress(n));
+        }
+        break;
+    case 34: //idGetAllListeners
+        lCount = ss.Listeners;
+        msg = "GetAllListeners: ";
+        for(n=0; n<lCount; n++){
+            if(n)
+                msg += "; ";
+            msg += ("Group IDs = " + ss.GetInfoGroupIDs(n));
+            msg += (", User ID = " + ss.GetInfoUserID(n));
+            msg += (", Service ID = " + ss.GetInfoServiceID(n));
+            msg += (", Port = " + ss.GetInfoPort(n));
+            msg += (", IP Address = " + ss.GetInfoIPAddress(n));
+        }
+        break;
+    case 35: //idSpeak
+        msg = "Speak: ";
+        for(n=0; n<lCount; n++){
+            if(n)
+                msg += "; ";
+            msg += ("Group IDs = " + ss.GetInfoGroupIDs(n));
+            msg += (", User ID = " + ss.GetInfoUserID(n));
+            msg += (", Service ID = " + ss.GetInfoServiceID(n));
+            msg += (", Port = " + ss.GetInfoPort(n));
+            msg += (", IP Address = " + ss.GetInfoIPAddress(n));
+        }
+        msg += (", Message = " + ss.Message);
+        break; 
+    case 36: //idSpeakTo
+        msg = "SpeakTo: ";
+        for(n=0; n<lCount; n++){
+            if(n)
+                msg += "; ";
+            msg += ("Group IDs = " + ss.GetInfoGroupIDs(n));
+            msg += (", User ID = " + ss.GetInfoUserID(n));
+            msg += (", Service ID = " + ss.GetInfoServiceID(n));
+            msg += (", Port = " + ss.GetInfoPort(n));
+            msg += (", IP Address = " + ss.GetInfoIPAddress(n));
+        }
+        msg += (", Message = " + ss.Message);
+        break;
+    case 37: //idGetAllClients
+        msg = "GetAllClients: ";
+        for(n=0; n<lCount; n++){
+            if(n)
+                msg += "; ";
+            msg += ("Group IDs = " + ss.GetInfoGroupIDs(n));
+            msg += (", User ID = " + ss.GetInfoUserID(n));
+            msg += (", Service ID = " + ss.GetInfoServiceID(n));
+            msg += (", Port = " + ss.GetInfoPort(n));
+            msg += (", IP Address = " + ss.GetInfoIPAddress(n));
+        }
+        break; 
+    case 38: //idSpeakEx
+        msg = "GetAllClients: ";
+        for(n=0; n<lCount; n++){
+            if(n)
+                msg += "; ";
+            msg += ("Group IDs = " + ss.GetInfoGroupIDs(n));
+            msg += (", User ID = " + ss.GetInfoUserID(n));
+            msg += (", Service ID = " + ss.GetInfoServiceID(n));
+            msg += (", Port = " + ss.GetInfoPort(n));
+            msg += (", IP Address = " + ss.GetInfoIPAddress(n));
+        }
+        msg += (", Message = " + ss.Message);
+        break;
+    case 39: //idSpeakToEx
+        msg = "GetAllClients: ";
+        for(n=0; n<lCount; n++){
+            if(n)
+                msg += "; ";
+            msg += ("Group IDs = " + ss.GetInfoGroupIDs(n));
+            msg += (", User ID = " + ss.GetInfoUserID(n));
+            msg += (", Service ID = " + ss.GetInfoServiceID(n));
+            msg += (", Port = " + ss.GetInfoPort(n));
+            msg += (", IP Address = " + ss.GetInfoIPAddress(n));
+        }
+        msg += (", Message = " + ss.Message);
+        break;
+    case 40: //idSendUserMessage
+        msg = "GetAllClients: ";
+        for(n=0; n<lCount; n++){
+            if(n)
+                msg += "; ";
+            msg += ("Group IDs = " + ss.GetInfoGroupIDs(n));
+            msg += (", User ID = " + ss.GetInfoUserID(n));
+            msg += (", Service ID = " + ss.GetInfoServiceID(n));
+            msg += (", Port = " + ss.GetInfoPort(n));
+            msg += (", IP Address = " + ss.GetInfoIPAddress(n));
+        }
+        msg += (", Message = " + ss.Message);
+        break; 
+    case 41: //idSendUserMessageEx
+        msg = "GetAllClients: ";
+        for(n=0; n<lCount; n++){
+            if(n)
+                msg += "; ";
+            msg += ("Group IDs = " + ss.GetInfoGroupIDs(n));
+            msg += (", User ID = " + ss.GetInfoUserID(n));
+            msg += (", Service ID = " + ss.GetInfoServiceID(n));
+            msg += (", Port = " + ss.GetInfoPort(n));
+            msg += (", IP Address = " + ss.GetInfoIPAddress(n));
+        }
+        msg += (", Message = " + ss.Message);
+        break;
+    default:
+        break;
+    }
+    txtMsg.value = msg;
+};
+
+function idConnect_onclick() {
+    if(!clientsocket){
+	    //create an instance CClientSocket
+        clientsocket = new SocketProAdapter.ClientSide.CClientSocket();
+        clientsocket.OnSocketClosed = OnClosed; //set socket close event handler
+        clientsocket.OnSocketConnected = OnConnected; //set socket connection event handler
+        clientsocket.OnBaseRequestProcessed = OnBaseRequestProcessed;
+        
+        //you can subscribe all of USocket events ......, before calling the method Connect
+    }
+  
+    //The above coding style is the exactly same as C++, C#, VB.NET and VB6
+    clientsocket.Connect("localhost", 17001); //connect to remoteconnector.exe
+}
+
+function btnShutdown_onclick() {
+    if(clientsocket)
+        clientsocket.Shutdown(); //or clientsocket.Disconnect();
+}
+
+function btnSendMsg_onclick() {
+    var arr = [];
+    var txtMsg = document.getElementById("txtMsgOut");
+    arr[0] = txtMsg.value;
+    arr[1] = new Date();
+    arr[2] = 1234.567;
+    arr[3] = null;
+    arr[4] = 12345.678;
+    clientsocket.Speak(arr); //send a message to listners in all of groups
+}
+
+function onMyUnload()
+{
+    if(clientsocket)
+        clientsocket.Disconnect();
+    clientsocket = null;
+}
+</script>
+
+<body onunload="return onMyUnload()">
+    Test SocketPro Instant Message System .....<br />
+    <table style="width: 609px">
+        <tr>
+            <td style="width: 5499px; height: 13px" align="left">
+                <input id="btnSendMsg" disabled="disabled" style="width: 384px; height: 37px" type="button"
+                    value="Send the below Message ......" onclick="return btnSendMsg_onclick()" /></td>
+            <td style="height: 13px; width: 989px;" align="right">
+    <input id="idConnect" style="width: 106px; height: 38px" type="button" value="Connect" onclick="return idConnect_onclick()" /></td>
+        </tr>
+        <tr>
+            <td style="width: 5499px" align="center">
+                <input id="txtMsgOut" style="height: 30px; width: 709px;" type="text" /></td>
+            <td style="width: 989px" align="right">
+    <input id="btnShutdown" style="width: 108px; height: 34px" type="button" value="Shutdown" onclick="return btnShutdown_onclick()" /></td>
+        </tr>
+    </table>
+    Income Message:<br />
+    <input id="txtMsgIn" style="width: 828px; height: 28px" type="text" />
+
+</body>
+</html>

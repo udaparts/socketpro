@@ -1,0 +1,117 @@
+<html xmlns:o="urn:schemas-microsoft-com:office:office"
+xmlns:w="urn:schemas-microsoft-com:office:word"
+xmlns="http://www.w3.org/TR/REC-html40">
+
+<head>
+<meta http-equiv=Content-Type content="text/html; charset=windows-1252">
+<meta name=ProgId content=Word.Document>
+<meta name=Generator content="Microsoft Word 9">
+<meta name=Originator content="Microsoft Word 9">
+<link rel=File-List href="./Cancel_files/filelist.xml">
+<title>Cancel</title>
+<!--[if gte mso 9]><xml>
+ <w:WordDocument>
+  <w:PunctuationKerning/>
+ </w:WordDocument>
+</xml><![endif]-->
+<style>
+<!--
+ /* Style Definitions */
+p.MsoNormal, li.MsoNormal, div.MsoNormal
+	{mso-style-parent:"";
+	margin:0in;
+	margin-bottom:.0001pt;
+	mso-pagination:widow-orphan;
+	font-size:10.0pt;
+	font-family:"Times New Roman";
+	mso-fareast-font-family:"Times New Roman";}
+h1
+	{mso-style-next:Normal;
+	margin:0in;
+	margin-bottom:.0001pt;
+	mso-pagination:widow-orphan;
+	page-break-after:avoid;
+	mso-outline-level:1;
+	font-size:12.0pt;
+	font-family:"Times New Roman";
+	mso-font-kerning:0pt;}
+a:link, span.MsoHyperlink
+	{color:blue;
+	text-decoration:underline;
+	text-underline:single;}
+a:visited, span.MsoHyperlinkFollowed
+	{color:purple;
+	text-decoration:underline;
+	text-underline:single;}
+@page Section1
+	{size:8.5in 11.0in;
+	margin:1.0in 1.25in 1.0in 1.25in;
+	mso-header-margin:.5in;
+	mso-footer-margin:.5in;
+	mso-paper-source:0;}
+div.Section1
+	{page:Section1;}
+-->
+</style>
+</head>
+
+<body lang=EN-US link=blue vlink=purple style='tab-interval:.5in'>
+
+<div class=Section1>
+
+<p class=MsoNormal><b><span style='font-size:12.0pt;mso-bidi-font-size:10.0pt'>[<span
+style='color:blue'>id</span>(40), <span style='color:blue'>helpstring</span>(<span
+style='color:maroon'>&quot;method Cancel&quot;</span>)] HRESULT Cancel([<span
+style='color:blue'>in</span>, <span style='color:blue'>defaultvalue</span>(odCancelAll)]<span
+style='color:blue'>long</span> lRequests);<o:p></o:p></span></b></p>
+
+<p class=MsoNormal><span style='font-family:"Courier New"'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<h1><span style='mso-bidi-font-size:10.0pt'>Parameter<o:p></o:p></span></h1>
+
+<p class=MsoNormal><span style='font-size:12.0pt;mso-bidi-font-size:10.0pt'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal><i><span style='font-size:12.0pt;mso-bidi-font-size:10.0pt'>lRequests<o:p></o:p></span></i></p>
+
+<p class=MsoNormal><span style='font-size:12.0pt;mso-bidi-font-size:10.0pt'><span
+style='mso-tab-count:1'>            </span>[in]The number of requests to be
+canceled<o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='font-size:12.0pt;mso-bidi-font-size:10.0pt'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal><b style='mso-bidi-font-weight:normal'><span
+style='font-size:12.0pt'>Remarks<o:p></o:p></span></b></p>
+
+<p class=MsoNormal><span style='font-size:12.0pt'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='font-size:12.0pt'><span style='mso-tab-count:
+1'>            </span>Calling the method tries to cancel a given number (<i>lRequests</i>)
+of queued requests to be processed. If <i>lRequests</i> is –1, SocketPro will
+try the best to cancel all of queued requests.<o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='font-size:12.0pt'><span style='mso-tab-count:
+1'>            </span><o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='font-size:12.0pt'><span style='mso-tab-count:
+1'>            </span>The actual number of requests canceled is indicated by
+the property </span><span style='font-size:12.0pt;mso-bidi-font-size:10.0pt'><a
+href="RequestsCanceled.htm">RequestsCanceled</a>.<o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='font-size:12.0pt;mso-bidi-font-size:10.0pt'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='font-size:12.0pt;mso-bidi-font-size:10.0pt'><span
+style='mso-tab-count:1'>            </span>SocketPro provides this special
+feature to cancel a long lasting request under special cases without closing
+and reconnecting a socket connection to a remote SocketPro server so that all
+of state data are kept unchanged in the SocketPro server.<o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='font-size:12.0pt;mso-bidi-font-size:10.0pt'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal><b><span style='font-size:12.0pt'><a href="usocketlib.htm">USocket
+library</a></span></b><span style='font-size:12.0pt'><o:p></o:p></span></p>
+
+</div>
+
+</body>
+
+</html>

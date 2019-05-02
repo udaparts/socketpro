@@ -1,0 +1,185 @@
+<html xmlns:o="urn:schemas-microsoft-com:office:office"
+xmlns:w="urn:schemas-microsoft-com:office:word"
+xmlns="http://www.w3.org/TR/REC-html40">
+
+<head>
+<meta http-equiv=Content-Type content="text/html; charset=windows-1252">
+<meta name=ProgId content=Word.Document>
+<meta name=Generator content="Microsoft Word 11">
+<meta name=Originator content="Microsoft Word 11">
+<link rel=File-List href="GetInterfaceAttributes_files/filelist.xml">
+<title>GetInterfaceAttributes</title>
+<!--[if gte mso 9]><xml>
+ <o:DocumentProperties>
+  <o:Author>Yahoo</o:Author>
+  <o:Template>Normal</o:Template>
+  <o:LastAuthor>Yahoo</o:LastAuthor>
+  <o:Revision>4</o:Revision>
+  <o:TotalTime>12</o:TotalTime>
+  <o:Created>2006-09-04T00:15:00Z</o:Created>
+  <o:LastSaved>2006-11-03T16:56:00Z</o:LastSaved>
+  <o:Pages>1</o:Pages>
+  <o:Words>135</o:Words>
+  <o:Characters>771</o:Characters>
+  <o:Company>Yahoo</o:Company>
+  <o:Lines>6</o:Lines>
+  <o:Paragraphs>1</o:Paragraphs>
+  <o:CharactersWithSpaces>905</o:CharactersWithSpaces>
+  <o:Version>11.8107</o:Version>
+ </o:DocumentProperties>
+</xml><![endif]--><!--[if gte mso 9]><xml>
+ <w:WordDocument>
+  <w:PunctuationKerning/>
+  <w:ValidateAgainstSchemas/>
+  <w:SaveIfXMLInvalid>false</w:SaveIfXMLInvalid>
+  <w:IgnoreMixedContent>false</w:IgnoreMixedContent>
+  <w:AlwaysShowPlaceholderText>false</w:AlwaysShowPlaceholderText>
+  <w:BrowserLevel>MicrosoftInternetExplorer4</w:BrowserLevel>
+ </w:WordDocument>
+</xml><![endif]--><!--[if gte mso 9]><xml>
+ <w:LatentStyles DefLockedState="false" LatentStyleCount="156">
+ </w:LatentStyles>
+</xml><![endif]-->
+<style>
+<!--
+ /* Style Definitions */
+ p.MsoNormal, li.MsoNormal, div.MsoNormal
+	{mso-style-parent:"";
+	margin:0in;
+	margin-bottom:.0001pt;
+	mso-pagination:widow-orphan;
+	font-size:10.0pt;
+	font-family:"Times New Roman";
+	mso-fareast-font-family:"Times New Roman";}
+a:link, span.MsoHyperlink
+	{color:blue;
+	text-decoration:underline;
+	text-underline:single;}
+a:visited, span.MsoHyperlinkFollowed
+	{color:purple;
+	text-decoration:underline;
+	text-underline:single;}
+@page Section1
+	{size:8.5in 11.0in;
+	margin:1.0in 1.25in 1.0in 1.25in;
+	mso-header-margin:.5in;
+	mso-footer-margin:.5in;
+	mso-paper-source:0;}
+div.Section1
+	{page:Section1;}
+-->
+</style>
+<!--[if gte mso 10]>
+<style>
+ /* Style Definitions */
+ table.MsoNormalTable
+	{mso-style-name:"Table Normal";
+	mso-tstyle-rowband-size:0;
+	mso-tstyle-colband-size:0;
+	mso-style-noshow:yes;
+	mso-style-parent:"";
+	mso-padding-alt:0in 5.4pt 0in 5.4pt;
+	mso-para-margin:0in;
+	mso-para-margin-bottom:.0001pt;
+	mso-pagination:widow-orphan;
+	font-size:10.0pt;
+	font-family:"Times New Roman";
+	mso-ansi-language:#0400;
+	mso-fareast-language:#0400;
+	mso-bidi-language:#0400;}
+</style>
+<![endif]-->
+</head>
+
+<body lang=EN-US link=blue vlink=purple style='tab-interval:.5in'>
+
+<div class=Section1>
+
+<p class=MsoNormal><b style='mso-bidi-font-weight:normal'><span
+style='font-size:12.0pt;color:blue'>bool</span></b><b style='mso-bidi-font-weight:
+normal'><span style='font-size:12.0pt'> WINAPI GetInterfaceAttributes(<span
+style='color:blue'>unsigned</span> <span style='color:blue'>int</span> hSocket,
+<span style='color:blue'>unsigned</span> <span style='color:blue'>long</span>
+*pulMTU, <span style='color:blue'>unsigned</span> <span style='color:blue'>long</span>
+*pulMaxSpeed, <span style='color:blue'>unsigned</span> <span style='color:blue'>long</span>
+*pulType, <span style='color:blue'>unsigned</span> <span style='color:blue'>long</span>
+*pulMask);<o:p></o:p></span></b></p>
+
+<p class=MsoNormal><span style='font-size:12.0pt'><o:p>&nbsp;</o:p></span></p>
+
+<p class=MsoNormal><b style='mso-bidi-font-weight:normal'><span
+style='font-size:12.0pt'>Parameters<o:p></o:p></span></b></p>
+
+<p class=MsoNormal><span style='font-size:12.0pt'><o:p>&nbsp;</o:p></span></p>
+
+<p class=MsoNormal><i style='mso-bidi-font-style:normal'><span
+style='font-size:12.0pt'>hSocket<o:p></o:p></span></i></p>
+
+<p class=MsoNormal><span style='font-size:12.0pt'><span style='mso-tab-count:
+1'>            </span>[in]A peer socket handle<o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='font-size:12.0pt'><o:p>&nbsp;</o:p></span></p>
+
+<p class=MsoNormal><i style='mso-bidi-font-style:normal'><span
+style='font-size:12.0pt'>pulMTU<o:p></o:p></span></i></p>
+
+<p class=MsoNormal><span style='font-size:12.0pt'><span style='mso-tab-count:
+1'>            </span>[out]A pointer to an integer for receiving MTU (Maximum
+Transfer Unit)<o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='font-size:12.0pt'><o:p>&nbsp;</o:p></span></p>
+
+<p class=MsoNormal><i style='mso-bidi-font-style:normal'><span
+style='font-size:12.0pt'>pulMaxSpeed<o:p></o:p></span></i></p>
+
+<p class=MsoNormal><span style='font-size:12.0pt'><span style='mso-tab-count:
+1'>            </span>[out]A pointer to an integer for receiving the maximum
+speed in bits per second like 10,000,000, 100, 000,000, or 1000,000,000.<o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='font-size:12.0pt'><o:p>&nbsp;</o:p></span></p>
+
+<p class=MsoNormal><i style='mso-bidi-font-style:normal'><span
+style='font-size:12.0pt'>pulType<o:p></o:p></span></i></p>
+
+<p class=MsoNormal><span style='font-size:12.0pt'><span style='mso-tab-count:
+1'>            </span>[out]A pointer to an integer for type of network device. It
+can be one of values in the enum <a href="../APIClient/tagInterfaceType.htm">tagInterfaceType</a>.<o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='font-size:12.0pt'><o:p>&nbsp;</o:p></span></p>
+
+<p class=MsoNormal><i style='mso-bidi-font-style:normal'><span
+style='font-size:12.0pt'>pulMask<o:p></o:p></span></i></p>
+
+<p class=MsoNormal><span style='font-size:12.0pt'><span style='mso-tab-count:
+1'>            </span>[out]A pointer to an integer for receiving network set
+mask like “255.255.255.0”.<o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='font-size:12.0pt'><o:p>&nbsp;</o:p></span></p>
+
+<p class=MsoNormal><b style='mso-bidi-font-weight:normal'><span
+style='font-size:12.0pt'>Remarks<o:p></o:p></span></b></p>
+
+<p class=MsoNormal><span style='font-size:12.0pt'><o:p>&nbsp;</o:p></span></p>
+
+<p class=MsoNormal><span style='font-size:12.0pt'><span style='mso-tab-count:
+1'>            </span>Calling the function gets network card or modem interface
+attributes. <o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='font-size:12.0pt'><o:p>&nbsp;</o:p></span></p>
+
+<p class=MsoNormal style='text-indent:.5in'><span style='font-size:12.0pt'>For
+example, you can use these attributes to turn on zip on server side on the fly.<o:p></o:p></span></p>
+
+<p class=MsoNormal style='text-indent:.5in'><span style='font-size:12.0pt'><o:p>&nbsp;</o:p></span></p>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><b
+style='mso-bidi-font-weight:normal'><span style='font-size:12.0pt'><a
+href="svrlib.htm">Usktpror library</a><o:p></o:p></span></b></p>
+
+<p class=MsoNormal><span style='font-size:12.0pt'><o:p>&nbsp;</o:p></span></p>
+
+</div>
+
+</body>
+
+</html>

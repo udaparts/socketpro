@@ -1,0 +1,261 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="..\shared\includes.cpp">
+      <Filter>source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\shared\uthread.cpp">
+      <Filter>source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\include\membuffer.cpp">
+      <Filter>source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ClientCore\clientcore.cpp">
+      <Filter>source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ClientCore\clientglobal.cpp">
+      <Filter>source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ClientCore\clientsession.cpp">
+      <Filter>source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ClientCore\clientthread.cpp">
+      <Filter>source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ClientCore\csocketimpl.cpp">
+      <Filter>source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ClientCore\socketpool.cpp">
+      <Filter>source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ClientCore\ucertimpl.cpp">
+      <Filter>source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\boost\libs\system\src\error_code.cpp">
+      <Filter>source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\boost\libs\thread\src\pthread\thread.cpp">
+      <Filter>source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\boost\libs\thread\src\pthread\once_atomic.cpp">
+      <Filter>source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\boost\libs\filesystem\src\operations.cpp">
+      <Filter>source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\boost\libs\filesystem\src\path.cpp">
+      <Filter>source files</Filter>
+    </ClCompile>
+    <ClCompile Include="usocket.cpp">
+      <Filter>source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\platform_external_openssl\ssl\bio_ssl.c">
+      <Filter>source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\platform_external_openssl\ssl\d1_both.c">
+      <Filter>source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\platform_external_openssl\ssl\d1_clnt.c">
+      <Filter>source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\platform_external_openssl\ssl\d1_enc.c">
+      <Filter>source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\platform_external_openssl\ssl\d1_lib.c">
+      <Filter>source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\platform_external_openssl\ssl\d1_meth.c">
+      <Filter>source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\platform_external_openssl\ssl\d1_pkt.c">
+      <Filter>source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\platform_external_openssl\ssl\d1_srtp.c">
+      <Filter>source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\platform_external_openssl\ssl\d1_srvr.c">
+      <Filter>source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\platform_external_openssl\ssl\kssl.c">
+      <Filter>source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\platform_external_openssl\ssl\s2_clnt.c">
+      <Filter>source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\platform_external_openssl\ssl\s2_enc.c">
+      <Filter>source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\platform_external_openssl\ssl\s2_lib.c">
+      <Filter>source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\platform_external_openssl\ssl\s2_meth.c">
+      <Filter>source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\platform_external_openssl\ssl\s2_pkt.c">
+      <Filter>source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\platform_external_openssl\ssl\s2_srvr.c">
+      <Filter>source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\platform_external_openssl\ssl\s3_both.c">
+      <Filter>source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\platform_external_openssl\ssl\s3_cbc.c">
+      <Filter>source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\platform_external_openssl\ssl\s3_clnt.c">
+      <Filter>source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\platform_external_openssl\ssl\s3_enc.c">
+      <Filter>source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\platform_external_openssl\ssl\s3_lib.c">
+      <Filter>source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\platform_external_openssl\ssl\s3_meth.c">
+      <Filter>source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\platform_external_openssl\ssl\s3_pkt.c">
+      <Filter>source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\platform_external_openssl\ssl\s3_srvr.c">
+      <Filter>source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\platform_external_openssl\ssl\s23_clnt.c">
+      <Filter>source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\platform_external_openssl\ssl\s23_lib.c">
+      <Filter>source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\platform_external_openssl\ssl\s23_meth.c">
+      <Filter>source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\platform_external_openssl\ssl\s23_pkt.c">
+      <Filter>source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\platform_external_openssl\ssl\s23_srvr.c">
+      <Filter>source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\platform_external_openssl\ssl\ssl_algs.c">
+      <Filter>source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\platform_external_openssl\ssl\ssl_asn1.c">
+      <Filter>source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\platform_external_openssl\ssl\ssl_cert.c">
+      <Filter>source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\platform_external_openssl\ssl\ssl_ciph.c">
+      <Filter>source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\platform_external_openssl\ssl\ssl_err.c">
+      <Filter>source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\platform_external_openssl\ssl\ssl_err2.c">
+      <Filter>source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\platform_external_openssl\ssl\ssl_lib.c">
+      <Filter>source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\platform_external_openssl\ssl\ssl_rsa.c">
+      <Filter>source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\platform_external_openssl\ssl\ssl_sess.c">
+      <Filter>source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\platform_external_openssl\ssl\ssl_stat.c">
+      <Filter>source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\platform_external_openssl\ssl\ssl_txt.c">
+      <Filter>source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\platform_external_openssl\ssl\ssltest.c">
+      <Filter>source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\platform_external_openssl\ssl\t1_clnt.c">
+      <Filter>source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\platform_external_openssl\ssl\t1_enc.c">
+      <Filter>source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\platform_external_openssl\ssl\t1_lib.c">
+      <Filter>source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\platform_external_openssl\ssl\t1_meth.c">
+      <Filter>source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\platform_external_openssl\ssl\t1_reneg.c">
+      <Filter>source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\platform_external_openssl\ssl\t1_srvr.c">
+      <Filter>source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\platform_external_openssl\ssl\tls_srp.c">
+      <Filter>source files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\shared\includes.h">
+      <Filter>header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\streamhead.h">
+      <Filter>header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\uthread.h">
+      <Filter>header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\bvariant.h">
+      <Filter>header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\commutil.h">
+      <Filter>header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\definebase.h">
+      <Filter>header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\membuffer.h">
+      <Filter>header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\nixcommutil.h">
+      <Filter>header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\uclient.h">
+      <Filter>header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\ucomm.h">
+      <Filter>header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ClientCore\clientglobal.h">
+      <Filter>header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ClientCore\clientsession.h">
+      <Filter>header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ClientCore\clientthread.h">
+      <Filter>header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ClientCore\socketpool.h">
+      <Filter>header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ClientCore\stdafx.h">
+      <Filter>header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ClientCore\ucertimpl.h">
+      <Filter>header files</Filter>
+    </ClInclude>
+    <ClInclude Include="usocket.h">
+      <Filter>header files</Filter>
+    </ClInclude>
+    <ClInclude Include="pch.h">
+      <Filter>header files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="source files">
+      <UniqueIdentifier>{d2726a4b-3541-490f-a9f2-4d3f354922a2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header files">
+      <UniqueIdentifier>{0a5c34f3-4f6a-4282-a92f-9581c1de9722}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

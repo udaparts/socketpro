@@ -1,0 +1,229 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title></title>
+    <script type="text/javascript" src="ujsonxml.js"></script>
+    <script type="text/javascript" src="socket_io.js"></script>
+    <script type="text/javascript">
+
+        var RACKSPACE = function (defaultUrl) {
+            var me = {
+                connect: function (url, onMsg, onRes, onClose) {
+                    var s = io.connect(url || defaultUrl);
+                    s.on('message', onMsg);
+                    s.on('res', onRes);
+                    s.on('disconnect', onClose);
+                    s.sendMessage = function (msg, groups) {
+                        if (!groups || !groups.splice)
+                            groups = [];
+                        s.emit('sendMessage', { msg: msg, groups: groups });
+                    };
+                    s.exit = function () {
+                        s.emit('exit', {});
+                        delete s.userId;
+                    };
+                    s.enter = function (userId, groups) {
+                        if (!groups || !groups.splice)
+                            groups = [];
+                        userId = userId + '';
+                        if (userId.toLowerCase() == (s.userId + '').toLowerCase())
+                            throw 'Bad operation with bad user id'
+                        s.userId = userId;
+                        var obj = { userId: userId, groups: groups };
+                        s.emit('enter', obj);
+                    };
+
+                    s.sendUserMessage = function (userId, msg) {
+                        s.emit('sendUserMessage', { userId: userId + '', msg: msg + '' });
+                    };
+
+                    return s;
+                }
+            };
+            return me;
+        } ();
+
+        var cs = RACKSPACE.connect('http://localhost:20901',
+            function (data) {
+                console.log(JSON.stringify(data));
+            },
+
+            function (data) {
+                console.log(JSON.stringify(data));
+            },
+
+            function () {
+                console.log('Socket closed for ' + this.userId);
+            }
+        );
+        
+        function makeGroups() {
+            var groups = document.getElementById('txtGroups').value.split(',');
+            var n, len = groups.length;
+            for (n = 0; n < len; ++n) {
+                groups[n] = parseInt(groups[n]);
+            }
+            return groups;
+        }
+
+        function btnB2S_onclick() {
+            var str = document.getElementById('txtMsg').value;
+            cs.sendMessage(str, makeGroups());
+        }
+
+        function btnEnter_onclick() {
+            cs.enter(document.getElementById('txtUserId').value, makeGroups());
+        }
+
+        function btnExit_onclick() {
+            cs.exit();
+        }
+
+        function btnSendUser_onclick() {
+            cs.sendUserMessage(document.getElementById('txtUserId').value, document.getElementById('txtMsg').value);
+        }
+
+    </script>
+    <style type="text/css">
+        #Button1
+        {
+            width: 87px;
+        }
+        #Text1
+        {
+            width: 193px;
+            margin-left: 44px;
+        }
+        #txtMsg
+        {
+            width: 654px;
+        }
+        .style1
+        {
+            width: 44%;
+        }
+        .style2
+        {
+            width: 86px;
+        }
+        #txtUserId
+        {
+            width: 181px;
+            margin-left: 0px;
+        }
+        .style4
+        {
+            width: 297px;
+            text-align: right;
+        }
+        .style5
+        {
+            width: 100%;
+        }
+        .style6
+        {
+            width: 76px;
+        }
+        #txtGroups
+        {
+            width: 197px;
+        }
+        #btnEnter
+        {
+            width: 82px;
+        }
+        #btnExit
+        {
+            width: 77px;
+        }
+        #btnB2S
+        {
+            width: 149px;
+        }
+        .style7
+        {
+            width: 86px;
+            height: 23px;
+        }
+        .style8
+        {
+            width: 297px;
+            height: 23px;
+        }
+        .style9
+        {
+            height: 23px;
+        }
+        .style10
+        {
+            width: 54px;
+        }
+    </style>
+</head>
+<body>
+
+    <p>
+        RACKSPACE Node.js Web Message Testing Page</p>
+    <p>
+        Text message:<input id="txtMsg" type="text" /></p>
+    <table class="style1">
+        <tr>
+            <td class="style7">
+                </td>
+            <td class="style8">
+                </td>
+            <td class="style9">
+                </td>
+        </tr>
+        <tr>
+            <td class="style2">
+                <input id="btnEnter" type="button" value="Enter" onclick="return btnEnter_onclick()" /></td>
+            <td class="style4">
+                <table class="style5">
+                    <tr>
+                        <td class="style10">
+                            User Id:</td>
+                        <td>
+                            <input id="txtUserId" type="text" /></td>
+                    </tr>
+                </table>
+            </td>
+            <td>
+                <table class="style5">
+                    <tr>
+                        <td class="style6">
+                            groups:</td>
+                        <td>
+                            <input id="txtGroups" type="text" /></td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+        <tr>
+            <td class="style2">
+                <input id="btnExit" type="button" value="Exit" onclick="return btnExit_onclick()" /></td>
+            <td class="style4">
+                <input id="btnSendUser" type="button" value="Send User Message" onclick="return btnSendUser_onclick()" /></td>
+            <td style="text-align: right">
+        <input id="btnB2S" type="button" value="Send Message" 
+                    onclick="return btnB2S_onclick()" /></td>
+        </tr>
+        <tr>
+            <td class="style2">
+                &nbsp;</td>
+            <td class="style4">
+                &nbsp;</td>
+            <td>
+                &nbsp;</td>
+        </tr>
+    </table>
+
+    <p>
+        &nbsp;</p>
+
+    <p>
+        &nbsp;</p>
+
+</body>
+</html>

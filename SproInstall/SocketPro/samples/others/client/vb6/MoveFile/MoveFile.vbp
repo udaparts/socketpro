@@ -1,0 +1,37 @@
+Type=Exe
+Reference=*\G{00020430-0000-0000-C000-000000000046}#2.0#0#..\..\..\..\..\..\..\WINNT\system32\STDOLE2.TLB#OLE Automation
+Reference=*\G{6B263850-900B-11D0-9484-00A0C91110ED}#1.0#0#..\..\..\..\..\..\..\WINNT\system32\msstdfmt.dll#Microsoft Data Formatting Object Library 6.0 (SP4)
+Reference=*\G{4071FB2E-B7FC-4A14-9719-3FDF4CCA47F2}#1.0#0#..\..\..\..\..\..\UFile\ReleaseMinDependency\UFile.dll#UFile 1.0 Type Library
+Reference=*\G{97541F4E-4EBE-4701-9D59-5ABB0D7CD854}#1.0#0#..\..\..\..\..\..\usocket\ReleaseMinDependency\USocket.dll#USocket 1.0 Type Library
+Form=MoveFile.frm
+IconForm="frmMoveFile"
+Startup="frmMoveFile"
+ExeName32="MoveFile.exe"
+Command32=""
+Name="MoveFile"
+HelpContextID="0"
+CompatibleMode="0"
+MajorVer=1
+MinorVer=0
+RevisionVer=0
+AutoIncrementVer=0
+ServerSupportFiles=0
+VersionCompanyName="Family"
+CompilationType=0
+OptimizationType=0
+FavorPentiumPro(tm)=0
+CodeViewDebugInfo=0
+NoAliasing=0
+BoundsCheck=0
+OverflowCheck=0
+FlPointCheck=0
+FDIVCheck=0
+UnroundedFP=0
+StartMode=0
+Unattended=0
+Retained=0
+ThreadPerObject=0
+MaxNumberOfThreads=1
+
+[MS Transaction Server]
+AutoRefresh=1

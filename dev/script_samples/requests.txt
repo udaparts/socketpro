@@ -1,0 +1,186 @@
+{
+    "n": "doRequest",
+    "i": 4,
+    "v": 1.2,
+    "id": "+ASk4qmPRV2BXmAklYC0trk=",
+    "a": [
+        2,
+        false,
+        [
+            1,
+            false,
+            "te\"st"
+        ],
+        "2013-10-01T01:49:32.944Z",
+        23423.45679,
+        "岛礁上共有11名士兵",
+        {
+            "obj": "test\"Object"
+        },
+        null,
+        "again"
+    ]
+}
+
+{
+    "n": "uswitchTo",
+    "i": 1,
+    "v": 1.2,
+    "id": "",
+    "a": [
+        "socketpro",
+        "PassOne"
+    ]
+}
+
+{
+    "n": "uping",
+    "i": 2,
+    "v": 1.2,
+    "id": "+ASk4qmPRV2BXmAklYC0trk=",
+    "a": []
+}
+
+{
+    "n": "uenter",
+    "i": 4,
+    "v": 1.2,
+    "id": "fO36turtTja0HGWF4eaBMH4=",
+    "a": [
+        [
+            1,
+            2,
+            7,
+            16
+        ],
+        "MyUserId"
+    ]
+}
+
+{
+    "n": "usendUserMessage",
+    "i": 22,
+    "v": 1.2,
+    "id": "fO36turtTja0HGWF4eaBMH4=",
+    "a": [
+        "SocketPro",
+        "Some Test Message"
+    ]
+}
+
+{
+    "n": "uspeak",
+    "i": 24,
+    "v": 1.2,
+    "id": "fO36turtTja0HGWF4eaBMH4=",
+    "a": [
+        "Some Test Message",
+        [
+            1,
+            2,
+            7,
+            16
+        ]
+    ]
+}
+
+{
+    "n": "uexit",
+    "i": 26,
+    "v": 1.2,
+    "id": "fO36turtTja0HGWF4eaBMH4=",
+    "a": []
+}
+
+{
+    "n": "udoBatch",
+    "i": 5,
+    "v": 1.2,
+    "id": "dWLbfy4FSbikDu8f5Tzzruo=",
+    "a": [
+        true, /* request batch at server side */
+        [
+            {
+                "n": "getCount",
+                "i": 2,
+                "v": 1.2,
+                "id": "dWLbfy4FSbikDu8f5Tzzruo=",
+                "a": [
+                    1,
+                    {
+                        "obj": "test\"Object"
+                    },
+                    "again"
+                ]
+            },
+            {
+                "n": "sleep",
+                "i": 3,
+                "v": 1.2,
+                "id": "dWLbfy4FSbikDu8f5Tzzruo=",
+                "a": [
+                    1000
+                ]
+            },
+            {
+                "n": "doMyRequest",
+                "i": 4,
+                "v": 1.2,
+                "id": "dWLbfy4FSbikDu8f5Tzzruo=",
+                "a": [
+                    true,
+                    "{}",
+                    23.45,
+                    "AStringInput"
+                ]
+            }
+        ]
+    ]
+}
+
+/* extra samples */
+
+{
+    "n": "doSpeak",
+    "i": 17,
+    "v": 1.2,
+    "id": "fO36turtTja0HGWF4eaBMH4=",
+    "a": [
+        [
+            "1",
+            "2",
+            "7",
+            "16"
+        ],
+        "Some Test Message"
+    ]
+}
+
+{
+    "n": "doSendUserMsg",
+    "i": 19,
+    "v": 1.2,
+    "id": "fO36turtTja0HGWF4eaBMH4=",
+    "a": [
+        "SocketPro",
+        "Some Test Message"
+    ]
+}
+
+{
+    "n": "doExit",
+    "i": 14,
+    "v": 1.2,
+    "id": "fO36turtTja0HGWF4eaBMH4=",
+    "a": []
+}
+
+{
+    "n": "doException",
+    "i": 9,
+    "v": 1.2,
+    "id": "fO36turtTja0HGWF4eaBMH4=",
+    "a": [
+        "My exception message"
+    ]
+}

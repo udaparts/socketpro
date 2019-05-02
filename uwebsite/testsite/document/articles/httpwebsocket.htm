@@ -1,0 +1,933 @@
+<html>
+
+<head>
+<meta http-equiv=Content-Type content="text/html; charset=windows-1252">
+<meta name=Generator content="Microsoft Word 12 (filtered)">
+<title>Access a SocketPro server anywhere by use of HTTP/WebSocket protocols</title>
+<style>
+<!--
+ /* Font Definitions */
+ @font-face
+	{font-family:Wingdings;
+	panose-1:5 0 0 0 0 0 0 0 0 0;}
+@font-face
+	{font-family:"Cambria Math";
+	panose-1:2 4 5 3 5 4 6 3 2 4;}
+@font-face
+	{font-family:Calibri;
+	panose-1:2 15 5 2 2 2 4 3 2 4;}
+@font-face
+	{font-family:Tahoma;
+	panose-1:2 11 6 4 3 5 4 4 2 4;}
+ /* Style Definitions */
+ p.MsoNormal, li.MsoNormal, div.MsoNormal
+	{margin-top:0in;
+	margin-right:0in;
+	margin-bottom:8.0pt;
+	margin-left:0in;
+	line-height:107%;
+	font-size:11.0pt;
+	font-family:"Calibri","sans-serif";}
+p.MsoHeader, li.MsoHeader, div.MsoHeader
+	{mso-style-link:"Header Char";
+	margin:0in;
+	margin-bottom:.0001pt;
+	font-size:11.0pt;
+	font-family:"Calibri","sans-serif";}
+p.MsoFooter, li.MsoFooter, div.MsoFooter
+	{mso-style-link:"Footer Char";
+	margin:0in;
+	margin-bottom:.0001pt;
+	font-size:11.0pt;
+	font-family:"Calibri","sans-serif";}
+a:link, span.MsoHyperlink
+	{color:blue;
+	text-decoration:underline;}
+a:visited, span.MsoHyperlinkFollowed
+	{color:#954F72;
+	text-decoration:underline;}
+p.MsoAcetate, li.MsoAcetate, div.MsoAcetate
+	{mso-style-link:"Balloon Text Char";
+	margin:0in;
+	margin-bottom:.0001pt;
+	font-size:8.0pt;
+	font-family:"Tahoma","sans-serif";}
+p.MsoListParagraph, li.MsoListParagraph, div.MsoListParagraph
+	{margin-top:0in;
+	margin-right:0in;
+	margin-bottom:8.0pt;
+	margin-left:.5in;
+	line-height:107%;
+	font-size:11.0pt;
+	font-family:"Calibri","sans-serif";}
+p.MsoListParagraphCxSpFirst, li.MsoListParagraphCxSpFirst, div.MsoListParagraphCxSpFirst
+	{margin-top:0in;
+	margin-right:0in;
+	margin-bottom:0in;
+	margin-left:.5in;
+	margin-bottom:.0001pt;
+	line-height:107%;
+	font-size:11.0pt;
+	font-family:"Calibri","sans-serif";}
+p.MsoListParagraphCxSpMiddle, li.MsoListParagraphCxSpMiddle, div.MsoListParagraphCxSpMiddle
+	{margin-top:0in;
+	margin-right:0in;
+	margin-bottom:0in;
+	margin-left:.5in;
+	margin-bottom:.0001pt;
+	line-height:107%;
+	font-size:11.0pt;
+	font-family:"Calibri","sans-serif";}
+p.MsoListParagraphCxSpLast, li.MsoListParagraphCxSpLast, div.MsoListParagraphCxSpLast
+	{margin-top:0in;
+	margin-right:0in;
+	margin-bottom:8.0pt;
+	margin-left:.5in;
+	line-height:107%;
+	font-size:11.0pt;
+	font-family:"Calibri","sans-serif";}
+span.BalloonTextChar
+	{mso-style-name:"Balloon Text Char";
+	mso-style-link:"Balloon Text";
+	font-family:"Tahoma","sans-serif";}
+span.apple-converted-space
+	{mso-style-name:apple-converted-space;}
+span.HeaderChar
+	{mso-style-name:"Header Char";
+	mso-style-link:Header;}
+span.FooterChar
+	{mso-style-name:"Footer Char";
+	mso-style-link:Footer;}
+.MsoPapDefault
+	{margin-bottom:8.0pt;
+	line-height:107%;}
+ /* Page Definitions */
+ @page WordSection1
+	{size:11.0in 8.5in;
+	margin:1.0in 1.0in 1.0in 1.0in;}
+div.WordSection1
+	{page:WordSection1;}
+ /* List Definitions */
+ ol
+	{margin-bottom:0in;}
+ul
+	{margin-bottom:0in;}
+-->
+</style>
+
+</head>
+
+
+
+<body lang=EN-US link=blue vlink="#954F72">
+
+<div class=WordSection1>
+
+<p class=MsoNormal align=center style='text-align:center'><b><span
+style='font-size:14.0pt;line-height:107%;font-family:"Times New Roman","serif"'>Access
+a SocketPro Server Anywhere by HTTP/WebSocket Protocols</span></b></p>
+
+<p class=MsoNormal><span style='font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoNormal><b><span style='font-size:12.0pt;line-height:107%;
+font-family:"Times New Roman","serif"'>Contents:</span></b></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt'><b><i><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>Introduction</span></i></b></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt'><b><i><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>Easy
+way to learn SocketPro adapter for websocket</span></i></b></p>
+
+<p class=MsoListParagraphCxSpFirst style='margin-top:0in;margin-right:0in;
+margin-bottom:0in;margin-left:.75in;margin-bottom:.0001pt;text-indent:-.25in'><span
+style='font-size:12.0pt;line-height:107%;font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><b><i><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>Compile C++ or C# ws_study project</span></i></b></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-top:0in;margin-right:0in;
+margin-bottom:0in;margin-left:.75in;margin-bottom:.0001pt;text-indent:-.25in'><span
+style='font-size:12.0pt;line-height:107%;font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><b><i><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>SocketPro HTTP/websocket-enabled server settings</span></i></b></p>
+
+<p class=MsoListParagraphCxSpLast style='margin-top:0in;margin-right:0in;
+margin-bottom:0in;margin-left:.75in;margin-bottom:.0001pt;text-indent:-.25in'><span
+style='font-size:12.0pt;line-height:107%;font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><b><i><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>Enable JavaScript debug</span></i></b></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt'><b><i><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>Request
+JSON object</span></i></b></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt'><b><i><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>Response
+JSON object</span></i></b></p>
+
+<p class=MsoListParagraphCxSpFirst style='margin-top:0in;margin-right:0in;
+margin-bottom:0in;margin-left:.75in;margin-bottom:.0001pt;text-indent:-.25in'><span
+style='font-size:12.0pt;line-height:107%;font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><b><i><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>Three basic members</span></i></b></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-top:0in;margin-right:0in;
+margin-bottom:0in;margin-left:.75in;margin-bottom:.0001pt;text-indent:-.25in'><span
+style='font-size:12.0pt;line-height:107%;font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><b><i><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>uswitchTo members</span></i></b></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-top:0in;margin-right:0in;
+margin-bottom:0in;margin-left:.75in;margin-bottom:.0001pt;text-indent:-.25in'><span
+style='font-size:12.0pt;line-height:107%;font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><b><i><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>User defined returning string result</span></i></b></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-top:0in;margin-right:0in;
+margin-bottom:0in;margin-left:.75in;margin-bottom:.0001pt;text-indent:-.25in'><span
+style='font-size:12.0pt;line-height:107%;font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><b><i><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>Exception members</span></i></b></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-top:0in;margin-right:0in;
+margin-bottom:0in;margin-left:.75in;margin-bottom:.0001pt;text-indent:-.25in'><span
+style='font-size:12.0pt;line-height:107%;font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><b><i><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>Chat-related request returning results</span></i></b></p>
+
+<p class=MsoListParagraphCxSpLast style='margin-top:0in;margin-right:0in;
+margin-bottom:0in;margin-left:.75in;margin-bottom:.0001pt;text-indent:-.25in'><span
+style='font-size:12.0pt;line-height:107%;font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><b><i><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>Caught chat-related message</span></i></b></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt'><b><i><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>Batch
+request JSON object</span></i></b></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt'><b><i><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>Required
+requests to be implemented</span></i></b></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt'><b><i><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>Error
+codes and their error messages</span></i></b></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt'><i><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>&nbsp;</span></i></p>
+
+<p class=MsoListParagraphCxSpFirst style='margin-bottom:0in;margin-bottom:.0001pt;
+text-indent:-.25in'><b><span style='font-size:12.0pt;line-height:107%;
+font-family:"Times New Roman","serif"'>1.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span></b><b><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>Introduction</span></b></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt'><span style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in'><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>SocketPro comes with system client and server core
+libraries which run on major platforms such as Windows (including Wince and
+Pocket PC), Linux and Mac. However, SocketPro core libraries, in the near
+future, will not be ported on various non-major platforms such as IBM
+mainframe, HP-Unix systems, Sun micro systems, etc. In addition, SocketPro
+already has a limited number of adapters available for major development environments.
+However, as you might conceive, SocketPro will not come with adapters for
+non-major development languages soon, although UDAParts is indeed trying
+innovative strategies to create new adapters for those languages with high
+market usage shares.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in'><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in'><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>To solve the issues listed above, SocketPro server
+intentionally plans to create to a full-support web socket that allows the users
+in the previous situations access a SocketPro server application as long as it
+is enabled by HTTP/websocket service. We recommend that you use websocket
+protocol instead of classic HTTP protocol because websocket shows numerous
+advantages over traditional HTTP protocol, though SocketPro does support HTTP
+service as well.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in'><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in'><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>Therefore, we create this short article to easily
+guide and quickly allow you to access a SocketPro server application from minor
+platforms or development languages by use of websocket protocol.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in'><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpLast style='margin-bottom:0in;margin-bottom:.0001pt;
+text-indent:-.25in'><b><span style='font-size:12.0pt;line-height:107%;
+font-family:"Times New Roman","serif"'>2.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span></b><b><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>Easy way to learn SocketPro adapter for websocket</span></b></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt'><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpFirst style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in'><b><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>Compile C++ or C# project:</span></b><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>
+To ease your use of websocket when accessing a SocketPro server application
+enabled with HTTP/websocket service, we create C++ and C# projects so that you
+can use one of two executable applications to experiment the supported
+requests. You could use any of several browsers as a client, which should have
+both debug console and websocket features supported. The projects are located
+at the directories <i>..\samples\ws_study\ws_cplusplus</i> and <i>..\samples\ws_study\ws_csharp</i>,
+respectively for C++ and C#.</span></p>
+
+<p class=MsoListParagraphCxSpLast style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in'><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in'><b><span style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>SocketPro
+HTTP/websocket-enabled server settings:</span></b><span style='font-size:12.0pt;
+line-height:107%;font-family:"Times New Roman","serif"'> Afterwards, prepare a
+set of required files as shown in Figure 1 below. Note that you should use
+uwebsocket_debug.js instead of uwebsocket.js so that you can clearly watch how
+SocketPro javascript adapter works inside a browser. The second version of
+SocketPro adapater for websocket is given intentionally for your purposes,
+which could be helpful when writing your own adapter as you can easily step
+through code execution from a browser debugger.</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt'><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:0in;margin-bottom:0in;
+margin-left:.5in;margin-bottom:.0001pt'><span style='font-size:12.0pt;
+line-height:107%;font-family:"Times New Roman","serif"'> <img width=777
+height=363 src="httpwebsocket_files/image001.png"></span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt'><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>            Figure
+1: Settings for a sample C# SocketPro server enabled with HTTP/websocket
+service</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt'><i><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>&nbsp;</span></i></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in'><b><span style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>Enable
+JavaScript debug:</span></b><span style='font-size:12.0pt;line-height:107%;
+font-family:"Times New Roman","serif"'> At last, it is suggested that you turn
+on JavaScript adapter debug information inside the file uloader.js as shown in
+Figure 2.</span></p>
+
+<p class=MsoListParagraphCxSpFirst style='margin-bottom:0in;margin-bottom:.0001pt'><i><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>&nbsp;</span></i></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt'><i><span style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'><img
+width=302 height=135 id="Picture 19" src="httpwebsocket_files/image002.png"></span></i></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt'><i><span style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>Figure
+2: Turn on or off SocketPro JavaScript adapter debug log</span></i></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt'><i><span style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>&nbsp;</span></i></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in'><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>Once you turn on adapter debug log, you can see
+logged transaction JSON strings as shown in Figure 3 below.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt'><span style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt'><i><span style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'><img
+width=657 height=431 id="Picture 4" src="httpwebsocket_files/image003.png"></span></i></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt'><i><span style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>Figure
+3: Sample logged transaction JSON strings from SocketPro JavaScript adapter</span></i></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt'><i><span style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>&nbsp;</span></i></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt;text-indent:-.25in'><b><span style='font-size:12.0pt;line-height:107%;
+font-family:"Times New Roman","serif"'>3.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span></b><b><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>Request JSON object</span></b></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt'><span style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt'><span style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>In
+short, SocketPro server side requires that you use JSON object with the
+following simple format, shown in Figure 4.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt'><img width=592 height=48 id="Picture 7"
+src="httpwebsocket_files/image004.png"></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt'><i><span style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>Figure
+4: SocketPro JSON request object format</span></i></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt'><span style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in'><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>Note that the request index should always be
+increasing uniquely after web socket session is established. A session id is
+required for all requests except the request <i>uswitchTo</i> since its session
+id could be an empty string with zero length. The unique session id is
+automatically created at server side when a SocketPro server gets the request <i>uswicthTo</i>.
+The arguments array could be zero in length. Each of the arguments could be any
+type of valid JSON objects. SocketPro will use request name as a key to find a
+processing method at server side. The version is required, though its value is
+arbitrarily a two-digit number.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in'><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in'><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>In regards to the details for each of the requests,
+you can easily access them from logged transaction JSON strings as shown in Figure
+3 previously.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt'><span style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpLast style='margin-bottom:0in;margin-bottom:.0001pt;
+text-indent:-.25in'><b><span style='font-size:12.0pt;line-height:107%;
+font-family:"Times New Roman","serif"'>4.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span></b><b><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>Response JSON object</span></b></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt'><b><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>&nbsp;</span></b></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in'><b><span style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>Three
+basic members:<i> </i></span></b><span style='font-size:12.0pt;line-height:
+107%;font-family:"Times New Roman","serif"'>A SocketPro server application will
+return a JSON object as a result with a limited number of variant formats as
+shown in Figure 5 below. However, all response JSON objects will contain three
+values, <i>i</i>, <i>me</i> and <i>n</i> for request index, self and request
+name, respectively.</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in'><span style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:0in;margin-bottom:0in;
+margin-left:.5in;margin-bottom:.0001pt'><b><span style='font-size:12.0pt;
+line-height:107%;font-family:"Times New Roman","serif"'><img width=808
+height=319 id="Picture 10" src="httpwebsocket_files/image005.jpg"></span></b></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:0in;margin-bottom:0in;
+margin-left:.25in;margin-bottom:.0001pt;text-indent:.25in'><i><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>Figure
+5: Sample response JSON objects from SocketPro server with highlights</span></i></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:0in;margin-bottom:0in;
+margin-left:.25in;margin-bottom:.0001pt'><span style='font-size:12.0pt;
+line-height:107%;font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in'><b><span style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>uswitchTo
+members:</span></b><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'> As shown in Figure 5 above, the request <i>uswitchTo</i>
+will return with two extra members, <i>pt</i> and <i>id</i>, which represents
+expected heart beat interval time in milliseconds and an auto-generated unique
+session identification number which must be used by all other requests.</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in'><span style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in'><b><span style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>User
+defined returning string result:<i> </i></span></b><span style='font-size:12.0pt;
+line-height:107%;font-family:"Times New Roman","serif"'>As shown in the sample
+requests <i>sayHello</i> and <i>sleep</i>, a user defined request must return a
+string (<i>rt</i>) except in the case where there is an exception in processing.
+</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt'><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>            </span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt'><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>            <b>Exception
+members:</b> If there is an exception caught at server side, SocketPro will
+return extra four members, <i>errCode</i>, <i>reqId</i>, <i>stack</i> and <i>errMsg</i>,
+as shown in the request <i>doException</i> in Figure 5 above.</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt'><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt'><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>            <b>Chat-related
+request returning strings:</b> In regards to the three requests <i>uenter</i>, <i>uspeak</i>
+and <i>uexit</i>, their return results are an array of integers, which
+represents chat group identification numbers.</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt'><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt'><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>            <b>Caught
+chat-related messages:</b> In regards to the caught chat related messages,
+these responses will have four members, <i>sender</i>, <i>serviceId</i>, <i>groups</i>
+and <i>msg</i> that correlate in order with each of the following listed:
+message source sender, sender service identification number, sender chat group
+identification number and message. Note the member <i>me</i> should be zero to
+indicate that the message does not originate from my-self.</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt'><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraph style='margin-bottom:0in;margin-bottom:.0001pt;
+text-indent:-.25in'><b><span style='font-size:12.0pt;line-height:107%;
+font-family:"Times New Roman","serif"'>5.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span></b><b><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>Batch request JSON object</span></b></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:0in;margin-bottom:0in;
+margin-left:.5in;margin-bottom:.0001pt'><span style='font-size:12.0pt;
+line-height:107%;font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in'><span style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>As
+you may already know, SocketPro supports request batch for the best network
+efficiency. However, it is optional if you wish to do so as is shown in Figure
+6 below.</span></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:0in;margin-bottom:0in;
+margin-left:.5in;margin-bottom:.0001pt'><span style='font-size:12.0pt;
+line-height:107%;font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:0in;margin-bottom:0in;
+margin-left:.5in;margin-bottom:.0001pt'><span style='font-size:12.0pt;
+line-height:107%;font-family:"Times New Roman","serif"'><img width=694
+height=195 id="Picture 1" src="httpwebsocket_files/image006.png"></span></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:0in;margin-bottom:0in;
+margin-left:.5in;margin-bottom:.0001pt'><i><span style='font-size:12.0pt;
+line-height:107%;font-family:"Times New Roman","serif"'>Figure 6: Send multiple
+requests in batch by help of SocketPro adapter for JavaScript</span></i></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:0in;margin-bottom:0in;
+margin-left:.5in;margin-bottom:.0001pt'><span style='font-size:12.0pt;
+line-height:107%;font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in'><span style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>Sending
+requests in batch will create a following JSON request object string.</span></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:0in;margin-bottom:0in;
+margin-left:.5in;margin-bottom:.0001pt'><span style='font-size:12.0pt;
+line-height:107%;font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in'><i><span style='font-family:"Times New Roman","serif";color:#222222;
+background:white'>{&quot;n&quot;:&quot;udoBatch&quot;,&quot;i&quot;:4,&quot;v&quot;:1.2,&quot;id&quot;:&quot;f/5QS3A3SgGLlRckPbLmP9k=&quot;,&quot;a&quot;:[</span></i><i><span
+style='font-family:"Times New Roman","serif";color:#7030A0;background:white'>true</span></i><i><span
+style='font-family:"Times New Roman","serif";color:#0070C0;background:white'>,[{&quot;n&quot;:&quot;sleep&quot;,&quot;i&quot;:2,&quot;v&quot;:1.2,&quot;id&quot;:&quot;f/5QS3A3SgGLlRckPbLmP9k=&quot;,&quot;a&quot;:[200]}</span></i><i><span
+style='font-family:"Times New Roman","serif";color:#222222;background:white'>,</span></i><i><span
+style='font-family:"Times New Roman","serif";color:#0070C0;background:white'>{&quot;n&quot;:&quot;sayHello&quot;,&quot;i&quot;:3,&quot;v&quot;:1.2,&quot;id&quot;:&quot;f/5QS3A3SgGLlRckPbLmP9k=&quot;,&quot;a&quot;:[&quot;Michelle&quot;,&quot;Lee&quot;]}</span></i><i><span
+style='font-family:"Times New Roman","serif";color:#222222;background:white'>]]}</span></i></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:0in;margin-bottom:0in;
+margin-left:.5in;margin-bottom:.0001pt'><span style='font-size:12.0pt;
+line-height:107%;font-family:"Times New Roman","serif";color:#222222;
+background:white'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:0in;margin-bottom:0in;
+margin-left:.5in;margin-bottom:.0001pt'><span style='font-size:12.0pt;
+line-height:107%;font-family:"Times New Roman","serif";color:#222222;
+background:white'>As you can see, the two requests above in Figure 6 are
+embedded into the batch request argument array.</span></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:0in;margin-bottom:0in;
+margin-left:.5in;margin-bottom:.0001pt'><span style='font-size:12.0pt;
+line-height:107%;font-family:"Times New Roman","serif";color:#222222;
+background:white'>&nbsp;</span></p>
+
+<p class=MsoListParagraph style='margin-bottom:0in;margin-bottom:.0001pt;
+text-indent:-.25in'><b><span style='font-size:12.0pt;line-height:107%;
+font-family:"Times New Roman","serif"'>6.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span></b><b><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>Requests to be implemented</span></b></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:0in;margin-bottom:0in;
+margin-left:.25in;margin-bottom:.0001pt'><span style='font-size:12.0pt;
+line-height:107%;font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in'><span style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>If
+you have a good background in JavaScript, you could easily and quickly convert
+our JavaScript adapter into yours. The following table lists all required
+requests that could be implemented.</span></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:0in;margin-bottom:0in;
+margin-left:.5in;margin-bottom:.0001pt'><span style='font-size:12.0pt;
+line-height:107%;font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<table class=MsoTableGrid border=1 cellspacing=0 cellpadding=0
+ style='margin-left:41.4pt;border-collapse:collapse;border:none'>
+ <tr>
+  <td width=240 valign=top style='width:2.5in;border:solid windowtext 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif"'>Request
+  name</span></p>
+  </td>
+  <td width=576 valign=top style='width:6.0in;border:solid windowtext 1.0pt;
+  border-left:none;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
+  text-align:center;line-height:normal'><span style='font-size:12.0pt;
+  font-family:"Times New Roman","serif"'>Comments</span></p>
+  </td>
+ </tr>
+ <tr style='height:16.6pt'>
+  <td width=240 valign=top style='width:2.5in;border:solid windowtext 1.0pt;
+  border-top:none;padding:0in 5.4pt 0in 5.4pt;height:16.6pt'>
+  <p class=MsoNormal style='margin-top:0in;margin-right:0in;margin-bottom:0in;
+  margin-left:-.9pt;margin-bottom:.0001pt;text-align:justify;line-height:normal'><span
+  style='font-size:12.0pt;font-family:"Times New Roman","serif"'>Generic
+  request</span></p>
+  </td>
+  <td width=576 valign=top style='width:6.0in;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt;height:16.6pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-align:
+  justify;line-height:normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif"'>Base
+  request reused to create other requests</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td width=240 valign=top style='width:2.5in;border:solid windowtext 1.0pt;
+  border-top:none;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-align:
+  justify;line-height:normal'><i><span style='font-size:12.0pt;font-family:
+  "Times New Roman","serif"'>uping</span></i></p>
+  </td>
+  <td width=576 valign=top style='width:6.0in;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-align:
+  justify;line-height:normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif"'>It
+  is served as heart beat. Adapter internally calls it automatically at an
+  interval time as shown in the section 4 from the request <i>uswitchTo</i></span></p>
+  </td>
+ </tr>
+ <tr>
+  <td width=240 valign=top style='width:2.5in;border:solid windowtext 1.0pt;
+  border-top:none;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-align:
+  justify;line-height:normal'><i><span style='font-size:12.0pt;font-family:
+  "Times New Roman","serif"'>uswitchTo</span></i></p>
+  </td>
+  <td width=576 valign=top style='width:6.0in;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-align:
+  justify;line-height:normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif"'>Calling
+  the method with user id and password to ask for SocketPro HTTP/websocket
+  service</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td width=240 valign=top style='width:2.5in;border:solid windowtext 1.0pt;
+  border-top:none;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-align:
+  justify;line-height:normal'><i><span style='font-size:12.0pt;font-family:
+  "Times New Roman","serif"'>uenter </span></i><span style='font-size:12.0pt;
+  font-family:"Times New Roman","serif"'>(optional)</span></p>
+  </td>
+  <td width=576 valign=top style='width:6.0in;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-align:
+  justify;line-height:normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif"'>Calling
+  the method from client to subscribe chat topics. It is optional as you can
+  subscribe topics at server side</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td width=240 valign=top style='width:2.5in;border:solid windowtext 1.0pt;
+  border-top:none;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-align:
+  justify;line-height:normal'><i><span style='font-size:12.0pt;font-family:
+  "Times New Roman","serif"'>uexit</span></i><span style='font-size:12.0pt;
+  font-family:"Times New Roman","serif"'> (optional)</span></p>
+  </td>
+  <td width=576 valign=top style='width:6.0in;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-align:
+  justify;line-height:normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif"'>Calling
+  the method from client to unsubscribe chat topics. It is optional as you can
+  unsubscribe topics at server side</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td width=240 valign=top style='width:2.5in;border:solid windowtext 1.0pt;
+  border-top:none;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-align:
+  justify;line-height:normal'><i><span style='font-size:12.0pt;font-family:
+  "Times New Roman","serif"'>uspeak</span></i><span style='font-size:12.0pt;
+  font-family:"Times New Roman","serif"'> (optional)</span></p>
+  </td>
+  <td width=576 valign=top style='width:6.0in;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-align:
+  justify;line-height:normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif"'>Calling
+  the method from client to publish a message onto one or more chat groups or
+  topics. It is optional as you can publish a message at server side</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td width=240 valign=top style='width:2.5in;border:solid windowtext 1.0pt;
+  border-top:none;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-align:
+  justify;line-height:normal'><i><span style='font-size:12.0pt;font-family:
+  "Times New Roman","serif"'>usendUserMessage</span></i><span style='font-size:
+  12.0pt;font-family:"Times New Roman","serif"'> (optional)</span></p>
+  </td>
+  <td width=576 valign=top style='width:6.0in;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-align:
+  justify;line-height:normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif"'>Calling
+  the method from client to send a message onto a receiver. It is optional as
+  you can send a receiver a message at server side</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td width=240 valign=top style='width:2.5in;border:solid windowtext 1.0pt;
+  border-top:none;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-align:
+  justify;line-height:normal'><i><span style='font-size:12.0pt;font-family:
+  "Times New Roman","serif"'>udoBatch</span></i><span style='font-size:12.0pt;
+  font-family:"Times New Roman","serif"'> (optional)</span></p>
+  </td>
+  <td width=576 valign=top style='width:6.0in;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-align:
+  justify;line-height:normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif"'>Implementing
+  this method enables requests batch at client for better network efficient. It
+  is optional but highly recommended</span></p>
+  </td>
+ </tr>
+</table>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:0in;margin-bottom:0in;
+margin-left:.5in;margin-bottom:.0001pt'><i><span style='font-size:12.0pt;
+line-height:107%;font-family:"Times New Roman","serif"'>Table 1: A list of
+requests to be implemented from your adapter</span></i></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:0in;margin-bottom:0in;
+margin-left:.5in;margin-bottom:.0001pt'><span style='font-size:12.0pt;
+line-height:107%;font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraph style='margin-bottom:0in;margin-bottom:.0001pt;
+text-indent:-.25in'><b><span style='font-size:12.0pt;line-height:107%;
+font-family:"Times New Roman","serif"'>7.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span></b><b><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>Error codes and their error messages</span></b></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt'><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in'><span style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>The
+following table 2 lists all possible error codes and their error messages from
+SocketPro HTTP/websocket service.</span></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:0in;margin-bottom:0in;
+margin-left:.5in;margin-bottom:.0001pt'><span style='font-size:12.0pt;
+line-height:107%;font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<table class=MsoTableGrid border=1 cellspacing=0 cellpadding=0
+ style='margin-left:41.4pt;border-collapse:collapse;border:none'>
+ <tr>
+  <td width=114 valign=top style='width:85.5pt;border:solid windowtext 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif"'>Error
+  code</span></p>
+  </td>
+  <td width=402 valign=top style='width:301.5pt;border:solid windowtext 1.0pt;
+  border-left:none;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif"'>Error
+  message</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td width=114 valign=top style='width:85.5pt;border:solid windowtext 1.0pt;
+  border-top:none;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif"'>0</span></p>
+  </td>
+  <td width=402 valign=top style='width:301.5pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif"'>Ok</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td width=114 valign=top style='width:85.5pt;border:solid windowtext 1.0pt;
+  border-top:none;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif"'>1</span></p>
+  </td>
+  <td width=402 valign=top style='width:301.5pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif"'>Bad
+  JSON request</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td width=114 valign=top style='width:85.5pt;border:solid windowtext 1.0pt;
+  border-top:none;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif"'>2</span></p>
+  </td>
+  <td width=402 valign=top style='width:301.5pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif"'>Bad
+  number of arguments</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td width=114 valign=top style='width:85.5pt;border:solid windowtext 1.0pt;
+  border-top:none;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif"'>3</span></p>
+  </td>
+  <td width=402 valign=top style='width:301.5pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif"'>Bad
+  arguments</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td width=114 valign=top style='width:85.5pt;border:solid windowtext 1.0pt;
+  border-top:none;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif"'>4</span></p>
+  </td>
+  <td width=402 valign=top style='width:301.5pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif"'>Bad
+  argument data type</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td width=114 valign=top style='width:85.5pt;border:solid windowtext 1.0pt;
+  border-top:none;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif"'>5</span></p>
+  </td>
+  <td width=402 valign=top style='width:301.5pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif"'>Bad
+  request</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td width=114 valign=top style='width:85.5pt;border:solid windowtext 1.0pt;
+  border-top:none;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif"'>6</span></p>
+  </td>
+  <td width=402 valign=top style='width:301.5pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif"'>Empty
+  request</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td width=114 valign=top style='width:85.5pt;border:solid windowtext 1.0pt;
+  border-top:none;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif"'>7</span></p>
+  </td>
+  <td width=402 valign=top style='width:301.5pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif"'>Not
+  supported</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td width=114 valign=top style='width:85.5pt;border:solid windowtext 1.0pt;
+  border-top:none;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif"'>8</span></p>
+  </td>
+  <td width=402 valign=top style='width:301.5pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif"'>Authentication
+  failed</span></p>
+  </td>
+ </tr>
+</table>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt'><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>            <i>Table
+2: A list of error codes and their error messages</i></span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt'><i><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>&nbsp;</span></i></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt'><i><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>            </span></i><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>If
+an error is detected at server side, its response JSON object will be added
+with a new member <i>rc</i>, and it will be set to a proper integer error code
+as shown in table 2 above.<a name="_GoBack"></a></span></p>
+
+</div>
+
+</body>
+
+</html>

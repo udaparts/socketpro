@@ -1,0 +1,753 @@
+<html xmlns:v="urn:schemas-microsoft-com:vml"
+xmlns:o="urn:schemas-microsoft-com:office:office"
+xmlns:w="urn:schemas-microsoft-com:office:word"
+xmlns="http://www.w3.org/TR/REC-html40">
+
+<head>
+<meta http-equiv=Content-Type content="text/html; charset=windows-1252">
+<meta name=ProgId content=Word.Document>
+<meta name=Generator content="Microsoft Word 9">
+<meta name=Originator content="Microsoft Word 9">
+<link rel=File-List href="./CClientPeer_files/filelist.xml">
+<title>CClientPeer</title>
+<!--[if gte mso 9]><xml>
+ <o:DocumentProperties>
+  <o:Author>Yuancai (Charlie) Ye</o:Author>
+  <o:Template>Normal</o:Template>
+  <o:LastAuthor>Yuancai (Charlie) Ye</o:LastAuthor>
+  <o:Revision>19</o:Revision>
+  <o:TotalTime>158</o:TotalTime>
+  <o:Created>2006-09-03T12:06:00Z</o:Created>
+  <o:LastSaved>2007-02-18T21:04:00Z</o:LastSaved>
+  <o:Pages>2</o:Pages>
+  <o:Words>1341</o:Words>
+  <o:Characters>7649</o:Characters>
+  <o:Company>Intelligent Decision Technologies</o:Company>
+  <o:Lines>63</o:Lines>
+  <o:Paragraphs>15</o:Paragraphs>
+  <o:CharactersWithSpaces>9393</o:CharactersWithSpaces>
+  <o:Version>9.2720</o:Version>
+ </o:DocumentProperties>
+</xml><![endif]--><!--[if gte mso 9]><xml>
+ <w:WordDocument>
+  <w:BrowserLevel>MicrosoftInternetExplorer4</w:BrowserLevel>
+  <w:ValidateAgainstSchemas/>
+  <w:SaveIfXMLInvalid>false</w:SaveIfXMLInvalid>
+  <w:IgnoreMixedContent>false</w:IgnoreMixedContent>
+  <w:AlwaysShowPlaceholderText>false</w:AlwaysShowPlaceholderText>
+ </w:WordDocument>
+</xml><![endif]-->
+<style>
+<!--
+ /* Font Definitions */
+@font-face
+	{font-family:Tahoma;
+	panose-1:2 11 6 4 3 5 4 4 2 4;
+	mso-font-charset:0;
+	mso-generic-font-family:swiss;
+	mso-font-pitch:variable;
+	mso-font-signature:1627421319 -2147483648 8 0 66047 0;}
+ /* Style Definitions */
+p.MsoNormal, li.MsoNormal, div.MsoNormal
+	{mso-style-parent:"";
+	margin:0in;
+	margin-bottom:.0001pt;
+	mso-pagination:widow-orphan;
+	font-size:12.0pt;
+	font-family:"Times New Roman";
+	mso-fareast-font-family:"Times New Roman";}
+h1
+	{mso-style-next:Normal;
+	margin:0in;
+	margin-bottom:.0001pt;
+	mso-pagination:widow-orphan;
+	page-break-after:avoid;
+	mso-outline-level:1;
+	font-size:12.0pt;
+	font-family:"Times New Roman";
+	mso-font-kerning:0pt;}
+h2
+	{mso-style-next:Normal;
+	margin:0in;
+	margin-bottom:.0001pt;
+	mso-pagination:widow-orphan;
+	page-break-after:avoid;
+	mso-outline-level:2;
+	mso-layout-grid-align:none;
+	text-autospace:none;
+	font-size:9.0pt;
+	font-family:Tahoma;
+	color:#215DC6;
+	text-decoration:underline;
+	text-underline:single;}
+h3
+	{mso-style-next:Normal;
+	margin:0in;
+	margin-bottom:.0001pt;
+	mso-pagination:widow-orphan;
+	page-break-after:avoid;
+	mso-outline-level:3;
+	mso-layout-grid-align:none;
+	text-autospace:none;
+	font-size:12.0pt;
+	mso-bidi-font-size:9.0pt;
+	font-family:"Times New Roman";
+	color:black;}
+a:link, span.MsoHyperlink
+	{color:blue;
+	text-decoration:underline;
+	text-underline:single;}
+a:visited, span.MsoHyperlinkFollowed
+	{color:purple;
+	text-decoration:underline;
+	text-underline:single;}
+@page Section1
+	{size:8.5in 11.0in;
+	margin:1.0in 1.25in 1.0in 1.25in;
+	mso-header-margin:.5in;
+	mso-footer-margin:.5in;
+	mso-paper-source:0;}
+div.Section1
+	{page:Section1;}
+ /* List Definitions */
+@list l0
+	{mso-list-id:771516845;
+	mso-list-type:hybrid;
+	mso-list-template-ids:-834656176 67698689 67698691 67698693 67698689 67698691 67698693 67698689 67698691 67698693;}
+@list l0:level1
+	{mso-level-number-format:bullet;
+	mso-level-text:\F0B7;
+	mso-level-tab-stop:.5in;
+	mso-level-number-position:left;
+	text-indent:-.25in;
+	font-family:Symbol;}
+@list l1
+	{mso-list-id:1548294452;
+	mso-list-type:hybrid;
+	mso-list-template-ids:543720884 67698689 67698691 67698693 67698689 67698691 67698693 67698689 67698691 67698693;}
+@list l1:level1
+	{mso-level-number-format:bullet;
+	mso-level-text:\F0B7;
+	mso-level-tab-stop:.25in;
+	mso-level-number-position:left;
+	margin-left:.25in;
+	text-indent:-.25in;
+	font-family:Symbol;}
+ol
+	{margin-bottom:0in;}
+ul
+	{margin-bottom:0in;}
+-->
+</style>
+<!--[if gte mso 9]><xml>
+ <w:LatentStyles DefLockedState="false" LatentStyleCount="156">  </w:LatentStyles>
+</xml><![endif]-->
+</head>
+
+<body lang=EN-US link=blue vlink=purple style='tab-interval:.5in'>
+
+<div class=Section1>
+
+<p class=MsoNormal><b><span style='color:blue'>public abstract class</span><span
+style='color:black'> CClientPeer</span><o:p></o:p></b></p>
+
+<p class=MsoNormal>&nbsp;</p>
+
+<p class=MsoNormal style='text-indent:.5in;mso-layout-grid-align:none;
+text-autospace:none'><span style='mso-bidi-font-size:9.0pt;color:black'>The
+class is used to manage a peer socket, which always corresponds to one remote
+client socket. You can use the class to process a request from one client and
+return a result back to a client. <o:p></o:p></span></p>
+
+<p class=MsoNormal style='text-indent:.5in;mso-layout-grid-align:none;
+text-autospace:none'><span style='mso-bidi-font-size:9.0pt;color:black'>&nbsp;<o:p></o:p></span></p>
+
+<p class=MsoNormal style='text-indent:.5in;mso-layout-grid-align:none;
+text-autospace:none'><span style='mso-bidi-font-size:9.0pt;color:black'>An instance
+of CClientPeer-derived contains a protected instance <a href="CUQueue.htm">CUQueue</a>,
+<a href="CClientPeer\m_UQueue.htm">m_UQueue</a>, which is used to automatically
+retrieve input data of request by default. You can unpack all of request input
+parameters on by one. Afterwards, you can pack all of returning data by reuse
+of the <a href="CClientPeer\m_UQueue.htm">m_UQueue</a> and send a return result
+to one client by calling the method <a href="CClientPeer\SendReturnData.htm">SendReturnData</a>.<o:p></o:p></span></p>
+
+<p class=MsoNormal style='text-indent:.5in;mso-layout-grid-align:none;
+text-autospace:none'><span style='mso-bidi-font-size:9.0pt;color:black'>&nbsp;<o:p></o:p></span></p>
+
+<p class=MsoNormal style='text-indent:.5in;mso-layout-grid-align:none;
+text-autospace:none'><span style='mso-bidi-font-size:9.0pt;color:black'>Therefore,
+an instance of CClientPeer-derived can be thought as a proxy or stub on server
+side.<o:p></o:p></span></p>
+
+<p class=MsoNormal style='text-indent:.5in;mso-layout-grid-align:none;
+text-autospace:none'><span style='mso-bidi-font-size:9.0pt;color:black'>&nbsp;<o:p></o:p></span></p>
+
+<p class=MsoNormal style='text-indent:.5in;mso-layout-grid-align:none;
+text-autospace:none'><span style='mso-bidi-font-size:9.0pt;color:black'>In
+addition, the class provides a set of methods to take advantage of built-in
+chat service and send a message to other clients on server side.<o:p></o:p></span></p>
+
+<p class=MsoNormal style='text-indent:.5in;mso-layout-grid-align:none;
+text-autospace:none'><span style='mso-bidi-font-size:9.0pt;color:black'>&nbsp;<o:p></o:p></span></p>
+
+<p class=MsoNormal style='text-indent:.5in;mso-layout-grid-align:none;
+text-autospace:none'><span style='mso-bidi-font-size:9.0pt;color:black'>The
+class CClientPeer exposes many virtual/abstract functions, but a few of them
+are often used by your code. They are <a
+href="CClientPeer\OnFastRequestArrive.htm">OnFastRequestArrive</a>, </span><a
+href="CClientPeer\OnSlowRequestArrive.htm">OnSlowRequestArrive</a>, <a
+href="CClientPeer\OnSwitchFrom.htm">OnSwitchFrom</a>, and <span
+style='mso-bidi-font-size:9.0pt;color:black'><a
+href="CClientPeer\OnReleaseResource.htm">OnReleaseResource</a>. You may also
+use the virtual functions <a href="CClientPeer\OnBaseRequestCame.htm">OnBaseRequestCame</a>,
+<a href="CClientPeer\OnDispatchingSlowRequest.htm">OnDispatchingSlowRequest</a>
+and </span><a href="CClientPeer\OnSlowRequestProcessed.htm">OnSlowRequestProcessed</a>
+sometimes. <span style='mso-bidi-font-size:9.0pt;color:black'><o:p></o:p></span></p>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='mso-bidi-font-size:9.0pt;color:black'>&nbsp;<o:p></o:p></span></p>
+
+<h3>Constructor</h3>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='mso-bidi-font-size:9.0pt;color:black'>&nbsp;<o:p></o:p></span></p>
+
+<p class=MsoNormal style='text-indent:.5in;mso-layout-grid-align:none;
+text-autospace:none'><span style='mso-bidi-font-size:9.0pt;color:blue'>public </span><span
+style='mso-bidi-font-size:9.0pt;color:black'><a
+href="CClientPeer\CClientPeer.htm">CClientPeer</a><o:p></o:p></span></p>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='mso-bidi-font-size:9.0pt;color:black'>&nbsp;<o:p></o:p></span></p>
+
+<h3>Methods</h3>
+
+<p class=MsoNormal><b><span style='mso-bidi-font-size:9.0pt;color:blue'>&nbsp;<o:p></o:p></span></b></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l1 level1 lfo2;
+tab-stops:list .25in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+bool</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CClientPeer\AbortBatching.htm">AbortBatching</a> – Abort batched
+returning results</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l1 level1 lfo2;
+tab-stops:list .25in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+bool</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CClientPeer\CommitBatching.htm">CommitBatching</a> – Commit batched
+returning results</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l1 level1 lfo2;
+tab-stops:list .25in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+sealed override void</span><span style='mso-bidi-font-size:9.0pt;color:black'>
+Dispose</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l1 level1 lfo2;
+tab-stops:list .25in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+void </span><span style='mso-bidi-font-size:9.0pt'><a
+href="CClientPeer\DropCurrentSlowRequest.htm">DropCurrentSlowRequest</a> –
+Prevents SocketPro framework from dispatching current slow request to a worker
+thread for processing</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l1 level1 lfo2;
+tab-stops:list .25in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+bool </span><span style='mso-bidi-font-size:9.0pt;color:black'><a
+href="CClientPeer\Enter.htm">Enter</a> – Join a chat group</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l1 level1 lfo2;
+tab-stops:list .25in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+bool</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CClientPeer\Exit.htm">Exit</a> – Leave a chat group</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l1 level1 lfo2;
+tab-stops:list .25in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+SocketProAdapter.ServerSide.CBaseService</span><span style='mso-bidi-font-size:
+9.0pt;color:black'> <a href="CClientPeer\GetBaseService.htm">GetBaseService</a>
+– Get an associated service</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l1 level1 lfo2;
+tab-stops:list .25in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+bool</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CClientPeer\GetInterfaceAttributes.htm">GetInterfaceAttributes</a> – Get
+the communication attributes of a network card</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l1 level1 lfo2;
+tab-stops:list .25in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+int</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CClientPeer\GetMySpecificBytes.htm">GetMySpecificBytes</a> – Get an array
+of bytes of specific data</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l1 level1 lfo2;
+tab-stops:list .25in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+string</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CClientPeer\GetPeerName.htm">GetPeerName</a> – Get client socket address
+and port</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l1 level1 lfo2;
+tab-stops:list .25in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+int</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CClientPeer\GetRequestIDsInQueue.htm">GetRequestIDsInQueue</a> -- Get an array
+of request ids in queue to be processed into an buffer you allocated</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l1 level1 lfo2;
+tab-stops:list .25in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+string</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CClientPeer\GetSockAddr.htm">GetSockAddr</a> – Get peer socket address
+and port</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l1 level1 lfo2;
+tab-stops:list .25in'><![if !supportLists]><span style='mso-bidi-font-size:
+8.5pt;font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+SocketProAdapter.CUQueue</span><span style='mso-bidi-font-size:9.0pt;
+color:black'> <a href="CClientPeer\GetUQueue.htm">GetUQueue</a> – Get memory
+queue</span><span style='mso-bidi-font-size:8.5pt'><o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l1 level1 lfo2;
+tab-stops:list .25in'><![if !supportLists]><span style='mso-bidi-font-size:
+8.5pt;font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+bool <a href="CClientPeer\IsClosing.htm">IsClosing</a> </span><span
+style='mso-bidi-font-size:8.5pt'>– Check if a peer socket is about to be closed<o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l1 level1 lfo2;
+tab-stops:list .25in'><![if !supportLists]><span style='mso-bidi-font-size:
+8.5pt;font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>protected
+virtual void</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CClientPeer\OnBaseRequestCame.htm">OnBaseRequestCame</a> – Called within
+a main thread when a base request came</span><span style='mso-bidi-font-size:
+8.5pt'><o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l1 level1 lfo2;
+tab-stops:list .25in'><![if !supportLists]><span style='mso-bidi-font-size:
+8.5pt;font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>protected
+virtual void</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CClientPeer\OnChatRequestCame.htm">OnChatRequestCame</a> – Called when a
+chat request came</span><span style='mso-bidi-font-size:8.5pt'><o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l1 level1 lfo2;
+tab-stops:list .25in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>protected
+virtual void</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CClientPeer\OnChatRequestComing.htm">OnChatRequestComing</a> – Called
+when a chat request is coming</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l1 level1 lfo2;
+tab-stops:list .25in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>protected
+virtual void</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CClientPeer\OnDispatchingSlowRequest.htm">OnDispatchingSlowRequest</a> –
+Called within main thread right before dispatching a slow request onto a worker
+thread</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l1 level1 lfo2;
+tab-stops:list .25in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>protected
+abstract void</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CClientPeer\OnFastRequestArrive.htm">OnFastRequestArrive</a> – Called
+within main thread when a fast request arrives</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l1 level1 lfo2;
+tab-stops:list .25in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>protected
+virtual void</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CClientPeer\OnReceive.htm">OnReceive</a> – Called within main thread when
+data is arriving</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l1 level1 lfo2;
+tab-stops:list .25in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>protected
+virtual void</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CClientPeer\OnReleaseResource.htm">OnReleaseResource</a> – Called within
+main thread when either a client asks for different service or a client socket
+is closed</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l1 level1 lfo2;
+tab-stops:list .25in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>protected
+virtual void</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CClientPeer\OnSend.htm">OnSend</a> – Called within main thread when a
+socket is ready for sending data onto a client</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l1 level1 lfo2;
+tab-stops:list .25in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>protected
+virtual bool</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CClientPeer\OnSendReturnData.htm">OnSendReturnData</a> – Called when we
+send a client a return result</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l1 level1 lfo2;
+tab-stops:list .25in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='color:blue'>protected abstract int</span> <a
+href="CClientPeer\OnSlowRequestArrive.htm">OnSlowRequestArrive</a> – Called
+within a worker when a slow request arrives</p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l1 level1 lfo2;
+tab-stops:list .25in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='color:blue'>protected virtual void</span> <a
+href="CClientPeer\OnSlowRequestProcessed.htm">OnSlowRequestProcessed</a> –
+Called within main thread when a slow request is processed</p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l1 level1 lfo2;
+tab-stops:list .25in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='color:blue'>protected virtual void</span> <a
+href="CClientPeer\OnSwitchFrom.htm">OnSwitchFrom</a> – Called within main
+thread when a client asks for this service</p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l1 level1 lfo2;
+tab-stops:list .25in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+bool</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CClientPeer\PostClose.htm">PostClose</a> – Post a message to close a peer
+socket</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l1 level1 lfo2;
+tab-stops:list .25in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+int</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CClientPeer\RetrieveBuffer.htm">RetrieveBuffer</a> – Retrieve an array of
+bytes of data for the current request</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l1 level1 lfo2;
+tab-stops:list .25in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+bool <a href="CClientPeer\SendUserMessage.htm">SendUserMessage</a> </span>–
+Send a user a message from server side</p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l1 level1 lfo2;
+tab-stops:list .25in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+bool <a href="CClientPeer\SendUserMessageEx.htm">SendUserMessageEx</a> </span>–
+Send a user a message from server side</p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l1 level1 lfo2;
+tab-stops:list .25in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+int</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CClientPeer\SendReturnData.htm">SendReturnData</a> – Send a return result
+to a client</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l1 level1 lfo2;
+tab-stops:list .25in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+bool</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CClientPeer\SetBlowFish.htm">SetBlowFish</a>– Set a private key for
+Blowfish encryption</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l1 level1 lfo2;
+tab-stops:list .25in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+void</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CClientPeer\ShrinkMemory.htm">ShrinkMemory</a> – Shrink memory allocated
+for this client</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l1 level1 lfo2;
+tab-stops:list .25in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+bool</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CClientPeer\Speak.htm">Speak</a> – Send a message onto one or more groups
+of chat clients</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l1 level1 lfo2;
+tab-stops:list .25in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+bool</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CClientPeer\SpeakEx.htm">SpeakEx</a> – Send a message onto one or more
+groups of chat clients</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l1 level1 lfo2;
+tab-stops:list .25in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+bool</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CClientPeer\SpeakTo.htm">SpeakTo</a> – Send a message onto one client</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l1 level1 lfo2;
+tab-stops:list .25in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+bool</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CClientPeer\SpeakToEx.htm">SpeakToEx</a>– Send a message onto one client</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l1 level1 lfo2;
+tab-stops:list .25in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='color:blue'>public bool</span> <a
+href="CClientPeer\StartBatching.htm">StartBatching</a> – Starts to batch return
+results</p>
+
+<h1>&nbsp;</h1>
+
+<h1>Properties</h1>
+
+<p class=MsoNormal><b>&nbsp;<o:p></o:p></b></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l0 level1 lfo4;
+tab-stops:list .25in .5in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+static int</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CClientPeer\AssociatedSocket.htm">AssociatedSocket</a> { get; }</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l0 level1 lfo4;
+tab-stops:list .25in .5in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+int</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CClientPeer\AssociatedThreadID.htm">AssociatedThreadID</a> { get; }</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l0 level1 lfo4;
+tab-stops:list .25in .5in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+bool</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CClientPeer\AutoBuffer.htm">AutoBuffer</a> { set; get; }</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l0 level1 lfo4;
+tab-stops:list .25in .5in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+int</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CClientPeer\BytesBatched.htm">BytesBatched</a> { get; }</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l0 level1 lfo4;
+tab-stops:list .25in .5in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+long</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CClientPeer\BytesReceived.htm">BytesReceived</a> { get; }</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l0 level1 lfo4;
+tab-stops:list .25in .5in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+long</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CClientPeer\BytesSent.htm">BytesSent</a> { get; }</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l0 level1 lfo4;
+tab-stops:list .25in .5in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+USOCKETLib.<a href="..\APIClient\CSwitchInfo.htm">CSwitchInfo</a></span><span
+style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CClientPeer\ClientInfo.htm">ClientInfo</a> { get; }</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l0 level1 lfo4;
+tab-stops:list .25in .5in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+int</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CClientPeer\ConsumedMemory.htm">ConsumedMemory</a> { get; }</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l0 level1 lfo4;
+tab-stops:list .25in .5in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+int</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CClientPeer\CountOfMySpecificBytes.htm">CountOfMySpecificBytes</a> { get;
+}</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l0 level1 lfo4;
+tab-stops:list .25in .5in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+short</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CClientPeer\CurrentRequestID.htm">CurrentRequestID</a> { get; }</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l0 level1 lfo4;
+tab-stops:list .25in .5in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+int</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CClientPeer\CurrentRequestLen.htm">CurrentRequestLen</a> { get; }</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l0 level1 lfo4;
+tab-stops:list .25in .5in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+int</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CClientPeer\GroupID.htm">GroupID</a> { get; }</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l0 level1 lfo4;
+tab-stops:list .25in .5in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+bool</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CClientPeer\IsBatching.htm">IsBatching</a> { get; }</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l0 level1 lfo4;
+tab-stops:list .25in .5in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+static bool</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CClientPeer\IsCanceled.htm">IsCanceled</a> { get; }</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l0 level1 lfo4;
+tab-stops:list .25in .5in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+bool</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CClientPeer\IsSameEndian.htm">IsSameEndian</a> { get; }</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l0 level1 lfo4;
+tab-stops:list .25in .5in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+long</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CClientPeer\LastRcvTime.htm">LastRcvTime</a> { get; }</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l0 level1 lfo4;
+tab-stops:list .25in .5in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+long</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CClientPeer\LastSndTime.htm">LastSndTime</a> { get; }</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l0 level1 lfo4;
+tab-stops:list .25in .5in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+static int</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CClientPeer\LastSocketError.htm">LastSocketError</a> { get; }</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l0 level1 lfo4;
+tab-stops:list .25in .5in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+int</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CClientPeer\RcvBufferSize.htm">RcvBufferSize</a> { get; }</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l0 level1 lfo4;
+tab-stops:list .25in .5in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+int</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CClientPeer\RequestsInQueue.htm">RequestsInQueue</a> { get; }</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l0 level1 lfo4;
+tab-stops:list .25in .5in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+USOCKETLib.<a href="..\APIClient\CSwitchInfo.htm">CSwitchInfo</a></span><span
+style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CClientPeer\ServerInfo.htm">ServerInfo</a> { set; get; }</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l0 level1 lfo4;
+tab-stops:list .25in .5in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+int</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CClientPeer\SndBufferSize.htm">SndBufferSize</a> { get; }</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l0 level1 lfo4;
+tab-stops:list .25in .5in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+int</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CClientPeer\SndBytesInQueue.htm">SndBytesInQueue</a> { get; }</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l0 level1 lfo4;
+tab-stops:list .25in .5in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+int</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CClientPeer\Socket.htm">Socket</a> { get; }</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l0 level1 lfo4;
+tab-stops:list .25in .5in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+int</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CClientPeer\SvsID.htm">SvsID</a> { get; }</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l0 level1 lfo4;
+tab-stops:list .25in .5in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+bool</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CClientPeer\TransferServerException.htm">TransferServerException</a> { get;
+}</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l0 level1 lfo4;
+tab-stops:list .25in .5in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+string</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CClientPeer\UserID.htm">UserID</a> { get; }</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l0 level1 lfo4;
+tab-stops:list .25in .5in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+bool </span><span style='mso-bidi-font-size:9.0pt;color:black'><a
+href="CClientPeer\ZipEnbaled.htm">ZipEnbaled</a> { set; get; }</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l0 level1 lfo4;
+tab-stops:list .25in .5in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+USOCKETLib.tagZipLevel</span><span style='mso-bidi-font-size:9.0pt;color:black'>
+<a href="CClientPeer\ZipLevel.htm">ZipLevel</a> { set; get; }</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l0 level1 lfo4;
+tab-stops:list .25in .5in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>protected
+<a href="SocketProAdapter.htm">SocketProAdapter</a>.<a href="CUQueue.htm">CUQueue</a></span><span
+style='mso-bidi-font-size:9.0pt;color:black'> <a href="CClientPeer\m_UQueue.htm">m_Uqueue</a></span></p>
+
+<p class=MsoNormal>&nbsp;</p>
+
+<p class=MsoNormal><b><span style='mso-bidi-font-size:9.0pt;color:black'>Member
+of </span></b><b><span style='mso-bidi-font-size:9.0pt;color:blue'><a
+href="SocketProAdapter.htm">SocketProAdapter</a>.ServerSide</span></b></p>
+
+</div>
+
+</body>
+
+</html>

@@ -1,0 +1,601 @@
+<html xmlns:o="urn:schemas-microsoft-com:office:office"
+xmlns:w="urn:schemas-microsoft-com:office:word"
+xmlns="http://www.w3.org/TR/REC-html40">
+
+<head>
+<meta http-equiv=Content-Type content="text/html; charset=windows-1252">
+<meta name=ProgId content=Word.Document>
+<meta name=Generator content="Microsoft Word 9">
+<meta name=Originator content="Microsoft Word 9">
+<link rel=File-List href="./CSocketProServer_files/filelist.xml">
+<title>CSocketProServer</title>
+<!--[if gte mso 9]><xml>
+ <o:DocumentProperties>
+  <o:Author>Yuancai (Charlie) Ye</o:Author>
+  <o:Template>Normal</o:Template>
+  <o:LastAuthor>Yuancai (Charlie) Ye</o:LastAuthor>
+  <o:Revision>13</o:Revision>
+  <o:TotalTime>91</o:TotalTime>
+  <o:Created>2006-09-03T12:06:00Z</o:Created>
+  <o:LastSaved>2006-09-23T15:25:00Z</o:LastSaved>
+  <o:Pages>2</o:Pages>
+  <o:Words>1167</o:Words>
+  <o:Characters>6656</o:Characters>
+  <o:Company>Intelligent Decision Technologies</o:Company>
+  <o:Lines>55</o:Lines>
+  <o:Paragraphs>13</o:Paragraphs>
+  <o:CharactersWithSpaces>8174</o:CharactersWithSpaces>
+  <o:Version>9.2720</o:Version>
+ </o:DocumentProperties>
+</xml><![endif]-->
+<style>
+<!--
+ /* Font Definitions */
+@font-face
+	{font-family:Tahoma;
+	panose-1:2 11 6 4 3 5 4 4 2 4;
+	mso-font-charset:0;
+	mso-generic-font-family:swiss;
+	mso-font-pitch:variable;
+	mso-font-signature:1627421319 -2147483648 8 0 66047 0;}
+ /* Style Definitions */
+p.MsoNormal, li.MsoNormal, div.MsoNormal
+	{mso-style-parent:"";
+	margin:0in;
+	margin-bottom:.0001pt;
+	mso-pagination:widow-orphan;
+	font-size:12.0pt;
+	font-family:"Times New Roman";
+	mso-fareast-font-family:"Times New Roman";}
+h1
+	{mso-style-next:Normal;
+	margin:0in;
+	margin-bottom:.0001pt;
+	mso-pagination:widow-orphan;
+	page-break-after:avoid;
+	mso-outline-level:1;
+	font-size:12.0pt;
+	font-family:"Times New Roman";
+	mso-font-kerning:0pt;}
+h2
+	{mso-style-next:Normal;
+	margin:0in;
+	margin-bottom:.0001pt;
+	mso-pagination:widow-orphan;
+	page-break-after:avoid;
+	mso-outline-level:2;
+	mso-layout-grid-align:none;
+	text-autospace:none;
+	font-size:9.0pt;
+	font-family:Tahoma;
+	color:#215DC6;
+	text-decoration:underline;
+	text-underline:single;}
+h3
+	{mso-style-next:Normal;
+	margin:0in;
+	margin-bottom:.0001pt;
+	mso-pagination:widow-orphan;
+	page-break-after:avoid;
+	mso-outline-level:3;
+	mso-layout-grid-align:none;
+	text-autospace:none;
+	font-size:12.0pt;
+	mso-bidi-font-size:9.0pt;
+	font-family:"Times New Roman";
+	color:black;}
+a:link, span.MsoHyperlink
+	{color:blue;
+	text-decoration:underline;
+	text-underline:single;}
+a:visited, span.MsoHyperlinkFollowed
+	{color:purple;
+	text-decoration:underline;
+	text-underline:single;}
+@page Section1
+	{size:8.5in 11.0in;
+	margin:1.0in 1.25in 1.0in 1.25in;
+	mso-header-margin:.5in;
+	mso-footer-margin:.5in;
+	mso-paper-source:0;}
+div.Section1
+	{page:Section1;}
+ /* List Definitions */
+@list l0
+	{mso-list-id:771516845;
+	mso-list-type:hybrid;
+	mso-list-template-ids:-834656176 67698689 67698691 67698693 67698689 67698691 67698693 67698689 67698691 67698693;}
+@list l0:level1
+	{mso-level-number-format:bullet;
+	mso-level-text:\F0B7;
+	mso-level-tab-stop:.5in;
+	mso-level-number-position:left;
+	text-indent:-.25in;
+	font-family:Symbol;}
+@list l1
+	{mso-list-id:1548294452;
+	mso-list-type:hybrid;
+	mso-list-template-ids:543720884 67698689 67698691 67698693 67698689 67698691 67698693 67698689 67698691 67698693;}
+@list l1:level1
+	{mso-level-number-format:bullet;
+	mso-level-text:\F0B7;
+	mso-level-tab-stop:.25in;
+	mso-level-number-position:left;
+	margin-left:.25in;
+	text-indent:-.25in;
+	font-family:Symbol;}
+ol
+	{margin-bottom:0in;}
+ul
+	{margin-bottom:0in;}
+-->
+</style>
+</head>
+
+<body lang=EN-US link=blue vlink=purple style='tab-interval:.5in'>
+
+<div class=Section1>
+
+<p class=MsoNormal><b><span style='color:blue'>public class</span>
+CSocketProServer<o:p></o:p></b></p>
+
+<p class=MsoNormal><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></p>
+
+<p class=MsoNormal style='text-indent:.5in;mso-layout-grid-align:none;
+text-autospace:none'><span style='mso-bidi-font-size:9.0pt;color:black'>One
+instance of CSocketProServer represents one listening socket. A SocketPro
+server supports one listening socket only, but it manages many <a
+href="CBaseService.htm">services</a>. Each of <a href="CBaseService.htm">services</a>
+can manage many <a href="CClientPeer.htm">peer sockets</a>. Each of <a
+href="CClientPeer.htm">peer sockets</a> always corresponds to a remote client
+socket.<o:p></o:p></span></p>
+
+<p class=MsoNormal style='text-indent:.5in;mso-layout-grid-align:none;
+text-autospace:none'><span style='mso-bidi-font-size:9.0pt;color:black'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal style='text-indent:.5in;mso-layout-grid-align:none;
+text-autospace:none'><span style='mso-bidi-font-size:9.0pt;color:black'>One instance
+of CSocketProServer manages one built-in instance of chat service internally.
+The built-in chat service supports up to 32 chat groups. SocketPro uses the
+built-in chat service to route a message or chat request from one <a
+href="CClientSocket.htm">client</a> or <a href="CClientPeer.htm">peer socket</a>
+to another client or multiple clients.<o:p></o:p></span></p>
+
+<p class=MsoNormal style='text-indent:.5in;mso-layout-grid-align:none;
+text-autospace:none'><span style='mso-bidi-font-size:9.0pt;color:black'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal style='text-indent:.5in;mso-layout-grid-align:none;
+text-autospace:none'><span style='mso-bidi-font-size:9.0pt;color:black'>SocketPro
+supports <a href="..\APIClient\tagEncryptionMethod.htm">a set of encryption
+methods</a> to secure data communication between a client and a SocketPro
+server. To use SSL/TLS, you must set the property <a
+href="CSocketProServer\DefaultEncryptionMethod.htm">DefaultEncryptionMethod</a>
+first before calling the method <a
+href="CSocketProServer\StartSocketProServer.htm">StartSocketProServer</a>.<o:p></o:p></span></p>
+
+<p class=MsoNormal style='text-indent:.5in;mso-layout-grid-align:none;
+text-autospace:none'><span style='mso-bidi-font-size:9.0pt;color:black'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal style='text-indent:.5in;mso-layout-grid-align:none;
+text-autospace:none'><span style='mso-bidi-font-size:9.0pt;color:black'>The
+class exposes many protected virtual (callback) functions. A few of them are
+often used by your code. They are <a href="CSocketProServer\OnIsPermitted.htm">OnIsPermitted</a>,
+<a href="CSocketProServer\OnAccept.htm">OnAccept</a> and <a
+href="CSocketProServer\OnClose.htm">OnClose</a>.<o:p></o:p></span></p>
+
+<p class=MsoNormal style='text-indent:.5in;mso-layout-grid-align:none;
+text-autospace:none'><span style='mso-bidi-font-size:9.0pt;color:black'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal style='text-indent:.5in;mso-layout-grid-align:none;
+text-autospace:none'><span style='mso-bidi-font-size:9.0pt;color:black'>SocketPro
+supports <a href="..\APIClient\tagAuthenticationMethod.htm">a set of methods to
+authenticate</a> a remote client from a give credential (user id and password)
+by overriding the virtual function <a href="CSocketProServer\OnIsPermitted.htm">OnIsPermitted</a>.
+You can select an authentication method by setting the property <a
+href="CSocketProServer\AuthenticationMethod.htm">AuthenticationMethod</a>
+before calling the method <a href="CSocketProServer\StartSocketProServer.htm">StartSocketProServer</a>.<o:p></o:p></span></p>
+
+<p class=MsoNormal style='text-indent:.5in;mso-layout-grid-align:none;
+text-autospace:none'><span style='mso-bidi-font-size:9.0pt;color:black'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal style='text-indent:.5in;mso-layout-grid-align:none;
+text-autospace:none'><span style='mso-bidi-font-size:9.0pt;color:black'>SocketPro
+can use either window message pump or I/O completion port to drive non-blocking
+socket events. By default, SocketPro uses I/O completion port to drive
+non-blocking socket events for better performance and scalability if a window
+platform supports I/O completion port. On platforms win9x and me, SocketPro
+will use window message pump only to drive non-blocking socket events.<o:p></o:p></span></p>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='mso-bidi-font-size:9.0pt;color:black'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<h3>Constructor</h3>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='mso-bidi-font-size:9.0pt;color:black'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal style='text-indent:.5in;mso-layout-grid-align:none;
+text-autospace:none'><span style='mso-bidi-font-size:9.0pt;color:blue'>public </span><span
+style='mso-bidi-font-size:9.0pt;color:black'><a
+href="CSocketProServer\CSocketProServer.htm">CSocketProServer</a><o:p></o:p></span></p>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='mso-bidi-font-size:9.0pt;color:black'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<h3>Methods</h3>
+
+<p class=MsoNormal><b><span style='mso-bidi-font-size:9.0pt;color:blue'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></b></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l1 level1 lfo2;
+tab-stops:list .25in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+static bool</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CSocketProServer\AddAChatGroup.htm">AddAChatGroup</a> – Add a chat group
+into a SocketPro server</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l1 level1 lfo2;
+tab-stops:list .25in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+void</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CSocketProServer\AskForEvents.htm">AskForEvents</a> – Request one or more
+global events</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l1 level1 lfo2;
+tab-stops:list .25in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+sealed override void</span><span style='mso-bidi-font-size:9.0pt;color:black'>
+Dispose</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l1 level1 lfo2;
+tab-stops:list .25in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+static int</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CSocketProServer\FindClient.htm">FindClient</a> – Check whether a socket
+is closed</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l1 level1 lfo2;
+tab-stops:list .25in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+static string</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CSocketProServer\GetAChatGroupDiscription.htm">GetAChatGroupDiscription</a>
+– Get a description about a given chat group</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l1 level1 lfo2;
+tab-stops:list .25in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+static int</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CSocketProServer\GetChatterSocket.htm">GetChatterSocket</a> – Get a peer
+socket handle of a chatter</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l1 level1 lfo2;
+tab-stops:list .25in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+static int</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CSocketProServer\GetClient.htm">GetClient</a> – Get a peer socket handle</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l1 level1 lfo2;
+tab-stops:list .25in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+static int</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CSocketProServer\GetCountOfChatters.htm">GetCountOfChatters</a> – Get the
+number of chatter</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l1 level1 lfo2;
+tab-stops:list .25in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+static int</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CSocketProServer\GetGroupID.htm">GetGroupID</a> – Get a chat group id</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l1 level1 lfo2;
+tab-stops:list .25in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>protected
+virtual void</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CSocketProServer\OnAccept.htm">OnAccept</a> – Called within a main thread
+when an incoming socket connection is established</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l1 level1 lfo2;
+tab-stops:list .25in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>protected
+virtual void</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CSocketProServer\OnChatRequestCame.htm">OnChatRequestCame</a> – Called
+when a chat request is processed</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l1 level1 lfo2;
+tab-stops:list .25in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>protected
+virtual void</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CSocketProServer\OnChatRequestComing.htm">OnChatRequestComing</a> –
+Called when a chat request is coming</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l1 level1 lfo2;
+tab-stops:list .25in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>protected
+virtual void</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CSocketProServer\OnClose.htm">OnClose</a> – Called within main thread
+when a peer socket is closed</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l1 level1 lfo2;
+tab-stops:list .25in'><![if !supportLists]><span style='mso-bidi-font-size:
+8.5pt;font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>protected
+virtual bool</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CSocketProServer\OnIsPermitted.htm">OnIsPermitted</a> – Called within
+main thread when SocketPro asks for validating a client</span><span
+style='mso-bidi-font-size:8.5pt'><o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l1 level1 lfo2;
+tab-stops:list .25in'><![if !supportLists]><span style='mso-bidi-font-size:
+8.5pt;font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>protected
+virtual void</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CSocketProServer\OnSend.htm">OnSend</a> – Called within main thread when
+a peer socket is ready to send data to a client</span><span style='mso-bidi-font-size:
+8.5pt'><o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l1 level1 lfo2;
+tab-stops:list .25in'><![if !supportLists]><span style='mso-bidi-font-size:
+8.5pt;font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>protected
+virtual void</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CSocketProServer\OnSSLEvent.htm">OnSSLEvent</a> – Called within main thread
+when SSL/TLS handshake is under progress on server side</span><span
+style='mso-bidi-font-size:8.5pt'><o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l1 level1 lfo2;
+tab-stops:list .25in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>protected
+virtual void</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CSocketProServer\OnSwitchTo.htm">OnSwitchTo</a> – Called within main
+thread when a service is switched</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l1 level1 lfo2;
+tab-stops:list .25in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>protected
+virtual bool</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CSocketProServer\OnWinMessage.htm">OnWinMessage</a> – Called within main
+thread when a window message happens</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l1 level1 lfo2;
+tab-stops:list .25in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+static bool</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CSocketProServer\PostQuit.htm">PostQuit</a> – Post a message to quit a
+SocketPro pump</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l1 level1 lfo2;
+tab-stops:list .25in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+void</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CSocketProServer\StartMessagePump.htm">StartMessagePump</a> -- Start a
+message pump to drive non-blocking socket events</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l1 level1 lfo2;
+tab-stops:list .25in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+bool</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CSocketProServer\StartSocketProServer.htm">StartSocketProServer</a> –
+Start a SocketPro server</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l1 level1 lfo2;
+tab-stops:list .25in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+virtual void</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CSocketProServer\StopSocketProServer.htm">StopSocketProServer</a> – Stop
+a SocketPro server</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l1 level1 lfo2;
+tab-stops:list .25in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+static void</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CSocketProServer\UseSSL.htm">UseSSL</a> – Set attributes for SSL/TLS</span></p>
+
+<h1><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></h1>
+
+<h1>Properties</h1>
+
+<p class=MsoNormal><b><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></b></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l0 level1 lfo4;
+tab-stops:list .25in .5in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+static USOCKETLib.<a href="..\APIClient\tagAuthenticationMethod.htm">tagAuthenticationMethod</a></span><span
+style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CSocketProServer\AuthenticationMethod.htm">AuthenticationMethod</a> {
+set; get; }</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l0 level1 lfo4;
+tab-stops:list .25in .5in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+static int</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CSocketProServer\CleanPoolInterval.htm">CleanPoolInterval</a> { set; get;
+}</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l0 level1 lfo4;
+tab-stops:list .25in .5in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+static byte</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CSocketProServer\CountOfChatGroups.htm">CountOfChatGroups</a> { get; }</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l0 level1 lfo4;
+tab-stops:list .25in .5in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+static int</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CSocketProServer\CountOfClients.htm">CountOfClients</a> { get; }</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l0 level1 lfo4;
+tab-stops:list .25in .5in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+static USOCKETLib.<a href="..\APIClient\tagEncryptionMethod.htm">tagEncryptionMethod</a></span><span
+style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CSocketProServer\DefaultEncryptionMethod.htm">DefaultEncryptionMethod</a>
+{ set; get; }</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l0 level1 lfo4;
+tab-stops:list .25in .5in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+static bool</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CSocketProServer\DefaultZip.htm">DefaultZip</a> { set; get; }</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l0 level1 lfo4;
+tab-stops:list .25in .5in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+int</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CSocketProServer\Events.htm">Events</a> { get; }</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l0 level1 lfo4;
+tab-stops:list .25in .5in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+static int</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CSocketProServer\GroupsNotifiedWhenEntering.htm">GroupsNotifiedWhenEntering</a>
+{ set; get; }</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l0 level1 lfo4;
+tab-stops:list .25in .5in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+static int</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CSocketProServer\GroupsNotifiedWhenExiting.htm">GroupsNotifiedWhenExiting</a>
+{ set; get; }</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l0 level1 lfo4;
+tab-stops:list .25in .5in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+static int</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CSocketProServer\LastSocketError.htm">LastSocketError</a> { get; }</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l0 level1 lfo4;
+tab-stops:list .25in .5in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+static int</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CSocketProServer\ListeningSocketHandle.htm">ListeningSocketHandle</a> {
+get; }</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l0 level1 lfo4;
+tab-stops:list .25in .5in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+static string</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CSocketProServer\LocalName.htm">LocalName</a> { get; }</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l0 level1 lfo4;
+tab-stops:list .25in .5in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+static int</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CSocketProServer\MainThreadID.htm">MainThreadID</a> { get; }</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l0 level1 lfo4;
+tab-stops:list .25in .5in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+static int</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CSocketProServer\MaxConnectionsPerClient.htm">MaxConnectionsPerClient</a>
+{ set; get; }</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l0 level1 lfo4;
+tab-stops:list .25in .5in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+static int </span><span style='mso-bidi-font-size:9.0pt;color:black'><a
+href="CSocketProServer\MaxThreadIdleTimeBeforeSuicide.htm">MaxThreadIdleTimeBeforeSuicide</a>
+{ set; get; }</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l0 level1 lfo4;
+tab-stops:list .25in .5in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+static int</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CSocketProServer\PingInterval.htm">PingInterval</a> { set; get; }</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l0 level1 lfo4;
+tab-stops:list .25in .5in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+static int</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CSocketProServer\RecycleGlobalMemoryInterval.htm">RecycleGlobalMemoryInterval</a>
+{ set; get; }</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l0 level1 lfo4;
+tab-stops:list .25in .5in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+static bool</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CSocketProServer\SharedAM.htm">SharedAM</a> { set; get; }</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l0 level1 lfo4;
+tab-stops:list .25in .5in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+static int</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CSocketProServer\SMInterval.htm">SMInterval</a> { set; get; }</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l0 level1 lfo4;
+tab-stops:list .25in .5in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+static int</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CSocketProServer\SwitchTime.htm">SwitchTime</a> { set; get; }</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l0 level1 lfo4;
+tab-stops:list .25in .5in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+static int</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CSocketProServer\TimerElapse.htm">TimerElapse</a> { set; get; }</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l0 level1 lfo4;
+tab-stops:list .25in .5in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+static bool</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CSocketProServer\UseWindowMessagePump.htm">UseWindowMessagePump</a> {
+set; get; }</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l0 level1 lfo4;
+tab-stops:list .25in .5in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+static int</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CSocketProServer\Win.htm">Win</a> { get; }</span></p>
+
+<p class=MsoNormal><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></p>
+
+<p class=MsoNormal><b><span style='mso-bidi-font-size:9.0pt;color:black'>Member
+of </span></b><b><span style='mso-bidi-font-size:9.0pt;color:blue'><a
+href="SocketProAdapter.htm">SocketProAdapter</a>.ServerSide</span><o:p></o:p></b></p>
+
+</div>
+
+</body>
+
+</html>

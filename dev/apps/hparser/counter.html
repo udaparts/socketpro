@@ -1,0 +1,28 @@
+﻿<html>
+    <head>
+        <title>Web socket client sample</title>
+    </head>
+    <body>
+    	<div id="content">
+    	current user => <span id="num">
+            <br />
+            <br />
+            </span>
+    	    <img id="idEC" alt="" src="earthcity.jpg" style="height: 548px; width: 663px" /></div>
+    	<script type="text/javascript">
+			var ws = new WebSocket("ws://"+location.host+"/pub/count/do");
+			ws.onmessage = function(e) {
+				document.getElementById('num').innerHTML = e.data;
+            };
+            ws.onopen = function (e) {
+                alert('socket opened!');
+            };
+			ws.onclose = function (e) {
+			    alert('socket closed');
+			};
+			window.onunload = function(){
+				ws.close();
+			};
+		</script>
+    </body>
+</html>

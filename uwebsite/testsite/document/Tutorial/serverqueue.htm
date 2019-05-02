@@ -1,0 +1,379 @@
+<html>
+
+<head>
+<meta http-equiv=Content-Type content="text/html; charset=windows-1252">
+<meta name=Generator content="Microsoft Word 12 (filtered)">
+<style>
+<!--
+ /* Font Definitions */
+ @font-face
+	{font-family:Wingdings;
+	panose-1:5 0 0 0 0 0 0 0 0 0;}
+@font-face
+	{font-family:"Cambria Math";
+	panose-1:2 4 5 3 5 4 6 3 2 4;}
+@font-face
+	{font-family:Calibri;
+	panose-1:2 15 5 2 2 2 4 3 2 4;}
+@font-face
+	{font-family:Tahoma;
+	panose-1:2 11 6 4 3 5 4 4 2 4;}
+ /* Style Definitions */
+ p.MsoNormal, li.MsoNormal, div.MsoNormal
+	{margin-top:0in;
+	margin-right:0in;
+	margin-bottom:8.0pt;
+	margin-left:0in;
+	line-height:107%;
+	font-size:11.0pt;
+	font-family:"Calibri","sans-serif";}
+p.MsoHeader, li.MsoHeader, div.MsoHeader
+	{mso-style-link:"Header Char";
+	margin:0in;
+	margin-bottom:.0001pt;
+	font-size:11.0pt;
+	font-family:"Calibri","sans-serif";}
+p.MsoFooter, li.MsoFooter, div.MsoFooter
+	{mso-style-link:"Footer Char";
+	margin:0in;
+	margin-bottom:.0001pt;
+	font-size:11.0pt;
+	font-family:"Calibri","sans-serif";}
+a:link, span.MsoHyperlink
+	{color:blue;
+	text-decoration:underline;}
+a:visited, span.MsoHyperlinkFollowed
+	{color:#954F72;
+	text-decoration:underline;}
+p.MsoAcetate, li.MsoAcetate, div.MsoAcetate
+	{mso-style-link:"Balloon Text Char";
+	margin:0in;
+	margin-bottom:.0001pt;
+	font-size:8.0pt;
+	font-family:"Tahoma","sans-serif";}
+p.MsoListParagraph, li.MsoListParagraph, div.MsoListParagraph
+	{margin-top:0in;
+	margin-right:0in;
+	margin-bottom:8.0pt;
+	margin-left:.5in;
+	line-height:107%;
+	font-size:11.0pt;
+	font-family:"Calibri","sans-serif";}
+p.MsoListParagraphCxSpFirst, li.MsoListParagraphCxSpFirst, div.MsoListParagraphCxSpFirst
+	{margin-top:0in;
+	margin-right:0in;
+	margin-bottom:0in;
+	margin-left:.5in;
+	margin-bottom:.0001pt;
+	line-height:107%;
+	font-size:11.0pt;
+	font-family:"Calibri","sans-serif";}
+p.MsoListParagraphCxSpMiddle, li.MsoListParagraphCxSpMiddle, div.MsoListParagraphCxSpMiddle
+	{margin-top:0in;
+	margin-right:0in;
+	margin-bottom:0in;
+	margin-left:.5in;
+	margin-bottom:.0001pt;
+	line-height:107%;
+	font-size:11.0pt;
+	font-family:"Calibri","sans-serif";}
+p.MsoListParagraphCxSpLast, li.MsoListParagraphCxSpLast, div.MsoListParagraphCxSpLast
+	{margin-top:0in;
+	margin-right:0in;
+	margin-bottom:8.0pt;
+	margin-left:.5in;
+	line-height:107%;
+	font-size:11.0pt;
+	font-family:"Calibri","sans-serif";}
+span.BalloonTextChar
+	{mso-style-name:"Balloon Text Char";
+	mso-style-link:"Balloon Text";
+	font-family:"Tahoma","sans-serif";}
+span.apple-converted-space
+	{mso-style-name:apple-converted-space;}
+span.HeaderChar
+	{mso-style-name:"Header Char";
+	mso-style-link:Header;}
+span.FooterChar
+	{mso-style-name:"Footer Char";
+	mso-style-link:Footer;}
+.MsoPapDefault
+	{margin-bottom:8.0pt;
+	line-height:107%;}
+ /* Page Definitions */
+ @page WordSection1
+	{size:11.0in 8.5in;
+	margin:1.0in 1.0in 1.0in 1.0in;}
+div.WordSection1
+	{page:WordSection1;}
+ /* List Definitions */
+ ol
+	{margin-bottom:0in;}
+ul
+	{margin-bottom:0in;}
+-->
+</style>
+
+</head>
+
+<body lang=EN-US link=blue vlink="#954F72">
+
+<div class=WordSection1>
+
+<p class=MsoNormal align=center style='text-align:center'><b><span
+style='font-size:14.0pt;line-height:107%;font-family:"Times New Roman","serif"'>Tutoral
+5 -- SocketPro Server Queue</span></b></p>
+
+<p class=MsoNormal><span style='font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoNormal><b><span style='font-size:12.0pt;line-height:107%;
+font-family:"Times New Roman","serif"'>Contents:</span></b></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt'><b><i><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>Introduction</span></i></b></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt'><b><i><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>Server
+side code</span></i></b></p>
+
+<p class=MsoListParagraphCxSpFirst style='margin-bottom:0in;margin-bottom:.0001pt;
+text-indent:-.25in'><span style='font-size:12.0pt;line-height:107%;font-family:
+Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><i><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>Start a sharable persistent queue at server side</span></i></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt;text-indent:-.25in'><span style='font-size:12.0pt;line-height:107%;
+font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><i><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>Enqueue requests</span></i></p>
+
+<p class=MsoListParagraphCxSpLast style='margin-bottom:0in;margin-bottom:.0001pt;
+text-indent:-.25in'><span style='font-size:12.0pt;line-height:107%;font-family:
+Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><i><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>Dequeue requests</span></i></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt'><b><i><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>Client
+side code</span></i></b></p>
+
+<p class=MsoListParagraphCxSpFirst style='text-indent:-.25in'><span
+style='font-size:12.0pt;line-height:107%;font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><i><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>Send a number of requests</span></i></p>
+
+<p class=MsoListParagraphCxSpMiddle style='text-indent:-.25in'><span
+style='font-size:12.0pt;line-height:107%;font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><i><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>Dequeue messages in batch</span></i></p>
+
+<p class=MsoListParagraphCxSpMiddle><span style='font-size:12.0pt;line-height:
+107%;font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='text-indent:-.25in'><b><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>1.<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span></span></b><b><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>Introduction</span></b></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-left:0in;text-indent:.5in'><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif";
+color:black;background:white'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-left:0in;text-indent:.5in'><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif";
+color:black;background:white'>Requests can be persistently en-queued into a
+disk data file. If an application is crashed or its network is down, requests
+can be restored from the disk file after the application is restored and the
+network is online. As you can see, persistent message queue ensures the
+reliability of the whole application system. In regards to server persistent message
+queue, it can be used as asynchronous communication among offline clients
+through a server or broker. A client sends a message to the server and queues
+it into a persistent message queue then another client can de-queue the message
+at its own pace.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-left:0in;text-indent:.5in'><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif";
+color:black;background:white'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-left:0in;text-indent:.5in'><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif";
+color:black;background:white'> SocketPro fully supports persistent message queues
+at client or/and server. In regards to client persistent message queue, you can
+review it with <a href="helloworld.htm">tutorial one</a>. This tutorial is focused on server persistent
+message queue only.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-left:0in;text-indent:.5in'><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif";
+color:black;background:white'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-left:0in;text-indent:.5in'><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif";
+color:black;background:white'>The tutorial projects are located at the
+directory ..\tutorials\(csharp|vbnet\cplusplus|java\src|ce|python)\server_queue</span></p>
+
+<p class=MsoListParagraphCxSpMiddle><b><span style='font-size:12.0pt;
+line-height:107%;font-family:"Times New Roman","serif"'>&nbsp;</span></b></p>
+
+<p class=MsoListParagraphCxSpLast style='text-indent:-.25in'><b><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>2.<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span></span></b><b><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>Server
+side code</span></b></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in'><b><span style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>Start
+a sharable persistent queue at server side:</span></b><span style='font-size:
+12.0pt;line-height:107%;font-family:"Times New Roman","serif"'> It is simple to
+start a persistent message queue at server side as shown in the following Figure
+1. The code snippet starts a sharable queue in line 24 after successfully
+starting a listening socket in line 21.</span></p>
+
+<p class=MsoListParagraphCxSpFirst><b><span style='font-family:"Times New Roman","serif"'><img
+width=796 height=276 src="serverqueue_files/image001.png"></span></b></p>
+
+<p class=MsoListParagraphCxSpMiddle><i><span style='font-size:12.0pt;
+line-height:107%;font-family:"Times New Roman","serif"'>Figure 1: Start a
+sharable persistent queue at server side</span></i></p>
+
+<p class=MsoListParagraphCxSpMiddle><span style='font-size:12.0pt;line-height:
+107%;font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-left:0in;text-indent:.5in'><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>It
+should be emphasized that all SocketPro persistent message queues are
+thread-safe. Moreover, SocketPro persistent message queues at server side are
+usually sharable by default. Therefore, you can en-queue or/and de-queue
+messages from different clients securely in unison from different threads.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-left:0in;text-indent:.5in'><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-left:0in;text-indent:.5in'><b><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>Enqueue
+requests:</span></b><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'> You<b> </b>can use generic (or template in C++)
+method <i>Enqueue</i> to en-queue an arbitrary request as shown in the
+following Figure 2. Note that the function returns a unique index for queued
+message.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle><span style='font-size:12.0pt;line-height:
+107%;font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle><span style='font-size:12.0pt;line-height:
+107%;font-family:"Times New Roman","serif"'><img width=659 height=80
+src="serverqueue_files/image002.png"></span></p>
+
+<p class=MsoListParagraphCxSpMiddle><i><span style='font-size:12.0pt;
+line-height:107%;font-family:"Times New Roman","serif"'>Figure 2: En-queue an
+arbitrary request into a server persistent request queue</span></i></p>
+
+<p class=MsoListParagraphCxSpMiddle><span style='font-size:12.0pt;line-height:
+107%;font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-left:0in;text-indent:.5in'><b><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>Dequeue
+messages in batch:</span></b><span style='font-size:12.0pt;line-height:107%;
+font-family:"Times New Roman","serif"'> One client is able to de-queue a batch
+of queued requests utilizing the method <i>Dequeue</i> at server side as shown
+in the following Figure 3. You can set its last input argument to true to ask
+for an auto message availability notification. When an online client is informed
+immediately after a message is queued, the client can initialize a new request
+to de-queue it straightway without use of polling.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle><span style='font-size:12.0pt;line-height:
+107%;font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle><span style='font-size:12.0pt;line-height:
+107%;font-family:"Times New Roman","serif"'><img width=751 height=80
+id="Picture 7" src="serverqueue_files/image003.png"></span></p>
+
+<p class=MsoListParagraphCxSpMiddle><i><span style='font-size:12.0pt;
+line-height:107%;font-family:"Times New Roman","serif"'>Figure 3: Dequeue
+requests in batch from a server persistent queue with auto availability
+notification</span></i></p>
+
+<p class=MsoListParagraphCxSpMiddle><i><span style='font-size:12.0pt;
+line-height:107%;font-family:"Times New Roman","serif"'>&nbsp;</span></i></p>
+
+<p class=MsoListParagraphCxSpLast style='text-indent:-.25in'><b><span
+style='font-family:"Times New Roman","serif"'>3.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span></b><b><span style='font-family:"Times New Roman","serif"'>Client
+side code</span></b></p>
+
+<p class=MsoNormal style='text-indent:.5in'><b><span style='font-family:"Times New Roman","serif"'>Send
+a number of requests:</span></b><span style='font-family:"Times New Roman","serif"'>
+As shown in the following Figure 4, we send 1024 requests onto a remote
+SocketPro server for en-queuing. You can get queued message indexes inside the
+callback in lines 17 through 19. If you like, you can cancel these messages
+from recorded indexes.</span></p>
+
+<p class=MsoNormal style='margin-left:.5in'><span style='font-family:"Times New Roman","serif"'><img
+width=716 height=305 id="Picture 4" src="serverqueue_files/image004.png"></span></p>
+
+<p class=MsoNormal style='margin-left:.5in'><i><span style='font-family:"Times New Roman","serif"'>Figure
+4: Send 1024 requests onto remote server for en-queuing</span></i></p>
+
+<p class=MsoNormal style='margin-left:.5in'><b><span style='font-family:"Times New Roman","serif"'>Dequeue
+messages in batch:</span></b><span style='font-family:"Times New Roman","serif"'>
+It is also simple to de-queue messages from server queue in batch as shown in Figure
+5 below.</span></p>
+
+<p class=MsoNormal style='margin-left:.5in'><span style='font-family:"Times New Roman","serif"'><img
+width=810 height=497 id="Picture 1" src="serverqueue_files/image005.jpg"></span></p>
+
+<p class=MsoNormal style='margin-left:.5in'><i><span style='font-family:"Times New Roman","serif"'>Figure
+5: Dequeue requests at client side from server persistent queue with message
+queued notification from server</span></i></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in;line-height:normal;text-autospace:none'><span style='font-family:"Times New Roman","serif"'>Code
+in lines 43 through 49 is actually a callback. We first load the returning
+result in line 44; afterwards we get the actual number of messages de-queued or
+returned. </span><span style='font-size:12.0pt;font-family:"Times New Roman","serif"'>If
+the number of de-queued messages is greater than 32 (<i><span style='color:
+#2B91AF'>SQueueConst</span>.MESSAGES_DEQUEUED_PER_CALL</i>) in line 46, we reuse
+current callback and keep on sending a new request to de-queue messages.</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in;line-height:normal;text-autospace:none'><span style='font-size:12.0pt;
+font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in;line-height:normal;text-autospace:none'><span style='font-size:12.0pt;
+font-family:"Times New Roman","serif"'>In case a server message-available
+notification arrives at a client, we can immediately send a request for new
+messages instead of keeping a polling message. To do so, we use the code in
+lines 50 through 54 by monitoring base request <i>idMessageQueued</i>.</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in;line-height:normal;text-autospace:none'><span style='font-size:12.0pt;
+font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in;line-height:normal;text-autospace:none'><span style='font-size:12.0pt;
+font-family:"Times New Roman","serif"'>Finally, we use the code in lines 55
+through 62 to track all messages de-queued from server side for the request id
+equal to <i>idQueuedMessage</i>.</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in;line-height:normal;text-autospace:none'><span style='font-size:12.0pt;
+font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in;line-height:normal;text-autospace:none'><span style='font-size:12.0pt;
+font-family:"Times New Roman","serif"'>Ultimately, we need a line code to
+initialize a de-queue call in line 64. It should be noted that SocketPro does
+everything in batch whenever possible for promising performance. Request batching,
+asynchrony and parallel computation makes SocketPro shine in comparison to
+other available similar products that are not on par. Similarly, our message
+queue system is runs much faster than <i>ActiveMQ, MS Message Queue</i>, and<a
+name="_GoBack"></a> <i>RabbitMQ</i>.</span></p>
+
+</div>
+
+</body>
+
+</html>

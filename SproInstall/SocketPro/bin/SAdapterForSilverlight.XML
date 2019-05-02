@@ -1,0 +1,350 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>SAdapterForSilverlight</name>
+    </assembly>
+    <members>
+        <member name="T:SocketProAdapter.ClientSide.DOnURequest">
+            <summary>
+            A callback for tracking HTTP request result.
+            </summary>
+            <param name="Request">A JavaScript request object.</param>
+            <param name="strResult">A string result.</param>
+        </member>
+        <member name="T:SocketProAdapter.ClientSide.DOnChatRequest">
+            <summary>
+            A delagate callback for HTTP chat-related request results.
+            </summary>
+            <param name="Request">A JavaScript chat-related request object.</param>
+            <param name="Result">A chat request result from server. It could be a number, boolean, a chat id string, a server exception message string, or a JSON string in the future.</param>
+        </member>
+        <member name="T:SocketProAdapter.ClientSide.DOnChatNotification">
+            <summary>
+            A delagate callback for tracking messages from a remote SocketPro HTTP push server.
+            </summary>
+            <param name="Request">A listen request object.</param>
+            <param name="HttpPush">An interface to a collection of HTTP server push messages.</param>
+        </member>
+        <member name="T:SocketProAdapter.ClientSide.MessageType">
+            <summary>
+            A collection of defined message types available from SocketPro HTTP push server.
+            </summary>
+        </member>
+        <member name="F:SocketProAdapter.ClientSide.MessageType.Normal">
+            <summary>
+            A normal message.
+            </summary>
+        </member>
+        <member name="F:SocketProAdapter.ClientSide.MessageType.Timeout">
+            <summary>
+            A timeout message.
+            </summary>
+        </member>
+        <member name="F:SocketProAdapter.ClientSide.MessageType.ServerShuttingdownGracefully">
+            <summary>
+            A message from SocketPro HTTP push server if the server is shutting down gracefully.
+            </summary>
+        </member>
+        <member name="T:SocketProAdapter.ClientSide.CChatMessage">
+            <summary>
+            A class containing a number of message atrributes.
+            </summary>
+        </member>
+        <member name="P:SocketProAdapter.ClientSide.CChatMessage.Sender">
+            <summary>
+            A case-insensitive sender user id.
+            </summary>
+        </member>
+        <member name="P:SocketProAdapter.ClientSide.CChatMessage.ServiceId">
+            <summary>
+            A non-zero service id of sender.
+            </summary>
+        </member>
+        <member name="P:SocketProAdapter.ClientSide.CChatMessage.IpAddress">
+            <summary>
+            The server ip address like '111.222.212.121'.
+            </summary>
+        </member>
+        <member name="P:SocketProAdapter.ClientSide.CChatMessage.Port">
+            <summary>
+            A port number of sender socket. It would be 0 for SocketPro HTTP service. It will be a non-zero number for non-HTTP service.
+            </summary>
+        </member>
+        <member name="P:SocketProAdapter.ClientSide.CChatMessage.Groups">
+            <summary>
+            The chat groups which the sender is joining to.
+            </summary>
+        </member>
+        <member name="P:SocketProAdapter.ClientSide.CChatMessage.MethodName">
+            <summary>
+            The method name used for originating the message.
+            </summary>
+        </member>
+        <member name="P:SocketProAdapter.ClientSide.CChatMessage.Message">
+            <summary>
+            A message string.
+            </summary>
+        </member>
+        <member name="P:SocketProAdapter.ClientSide.CChatMessage.DateTime">
+            <summary>
+            A date time string when the sender sends the message.
+            </summary>
+        </member>
+        <member name="T:SocketProAdapter.ClientSide.CHttpPush">
+            <summary>
+            A class represents a HTTP push result which may contain a list of messages.
+            </summary>
+        </member>
+        <member name="P:SocketProAdapter.ClientSide.CHttpPush.Messages">
+            <summary>
+            A property for a list of messages.
+            </summary>
+        </member>
+        <member name="P:SocketProAdapter.ClientSide.CHttpPush.Type">
+            <summary>
+            A message type, Normal, Timeout or ServerShuttingdownGracefully.
+            </summary>
+        </member>
+        <member name="P:SocketProAdapter.ClientSide.CHttpPush.ChatId">
+            <summary>
+            A chat or session id string.
+            </summary>
+        </member>
+        <member name="T:SocketProAdapter.ClientSide.CDefaultConfig">
+            <summary>
+            A class represents a set of url-related atributes used for connecting a web browser to a remote SocketPro HTTP push server.
+            </summary>
+        </member>
+        <member name="P:SocketProAdapter.ClientSide.CDefaultConfig.Protocol">
+            <summary>
+            A protocol used. It can be either 'http:' or 'https:'.
+            </summary>
+        </member>
+        <member name="P:SocketProAdapter.ClientSide.CDefaultConfig.Port">
+            <summary>
+            A port number which a remote SocketPro HTTP push server is running on.
+            </summary>
+        </member>
+        <member name="P:SocketProAdapter.ClientSide.CDefaultConfig.PathName">
+            <summary>
+            A path name like '/UCHAT'.
+            </summary>
+        </member>
+        <member name="P:SocketProAdapter.ClientSide.CDefaultConfig.HostName">
+            <summary>
+            A server address for SocketPro HTTP server push. 
+            </summary>
+        </member>
+        <member name="T:SocketProAdapter.ClientSide.CRequest">
+            <summary>
+            A class represents a JavaScript request. The request object defaults to asynchronous calling. However, it can be synchronous if the request is not cross-site or cross-domain.
+            </summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CRequest.OnURequest(System.Windows.Browser.ScriptObject,System.Windows.Browser.ScriptObject)">
+            <summary>
+            Never use this method from your code!!! It is reserved by UDAParts.
+            </summary>
+            <param name="req"></param>
+            <param name="msg"></param>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CRequest.Abort">
+            <summary>
+            Abort a request.
+            </summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CRequest.Invoke(SocketProAdapter.ClientSide.DOnURequest)">
+            <summary>
+            Make an async request to a SocketPro HTTP service server.
+            </summary>
+            <param name="cb">A callback.</param>
+            <returns>A non-zero call index or id.</returns>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CRequest.Invoke(SocketProAdapter.ClientSide.DOnURequest,System.Boolean)">
+            <summary>
+            Make an async request to a SocketPro HTTP service server.
+            </summary>
+            <param name="cb">A callback.</param>
+            <param name="bGet">Method (GET or POST) used for HTTP command. Note that it must be true for cross-site request even though it is set to false.</param>
+            <returns>A non-zero call index or id.</returns>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CRequest.Invoke(SocketProAdapter.ClientSide.DOnURequest,System.Boolean,System.Boolean)">
+            <summary>
+            Make a request to a SocketPro HTTP service server.
+            </summary>
+            <param name="cb">A callback.</param>
+            <param name="bGet">Method (GET or POST) used for HTTP command. Note that it must be true for cross-site request even though it is set to false.</param>
+            <param name="bSync">Sync or Async. Note that it must be async for cross-site (domain) even though it is set to sync.</param>
+            <returns>A non-zero call index or id.</returns>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CRequest.Clear">
+            <summary>
+            Clear all of the pairs of parameter and value.
+            </summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CRequest.Add``1(System.String,``0)">
+            <summary>
+            Addd parameter and its value in pair.
+            </summary>
+            <typeparam name="T">A type.</typeparam>
+            <param name="strParameterName">A case-sensitive string for parameter name.</param>
+            <param name="Value">A value.</param>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CRequest.Add(System.String,System.Collections.Generic.Dictionary{System.String,System.Object})">
+            <summary>
+            Add an input parameter and its value in pair.
+            </summary>
+            <param name="strParameterName">A case-sensitive parameter name.</param>
+            <param name="map">A map containing a collection of parameter name and value in pair.</param>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CRequest.Add(System.String,System.Object[])">
+            <summary>
+            Add an input parammeter and its value in pair.
+            </summary>
+            <param name="strParameterName">A case-sensitive parameter name.</param>
+            <param name="array">An array of values.</param>
+        </member>
+        <member name="P:SocketProAdapter.ClientSide.CRequest.Name">
+            <summary>
+            Request name.
+            </summary>
+        </member>
+        <member name="P:SocketProAdapter.ClientSide.CRequest.CrossSite">
+            <summary>
+            A property indicating if the request is cross-site (or cross-domain) one.
+            </summary>
+        </member>
+        <member name="P:SocketProAdapter.ClientSide.CRequest.CallIndex">
+            <summary>
+            An positive index number for a request.
+            </summary>
+        </member>
+        <member name="P:SocketProAdapter.ClientSide.CRequest.Script">
+            <summary>
+            A script (cross domain) or XMLHttpRequest (same domain) object.
+            </summary>
+        </member>
+        <member name="P:SocketProAdapter.ClientSide.CRequest.Sync">
+            <summary>
+            A synchronous request or asynchronous one. It must be false if the request is cross-site or cross-domain.
+            </summary>
+        </member>
+        <member name="P:SocketProAdapter.ClientSide.CRequest.Get">
+            <summary>
+            The property indicating if the request is sent through HTTP command GET. It must be true if the request is cross-site or cross-domain.
+            </summary>
+        </member>
+        <member name="T:SocketProAdapter.ClientSide.CUChat">
+            <summary>
+            A class stands for the JavaScript object UChat in SocketProAdapter for JavaScript.
+            Listen or subscribe request is always asynchronous one.
+            A chatting request defaults to asynchronous one. However, it can be synchronous if it is not cross-site or cross-domain.
+            </summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CUChat.OnPushMessage(System.Windows.Browser.ScriptObject,System.Windows.Browser.ScriptObject)">
+            <summary>
+            Never use this method from your code!!! It is reserved by UDAParts.
+            </summary>
+            <param name="req"></param>
+            <param name="msg"></param>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CUChat.Enter(System.String,System.UInt32[])">
+            <summary>
+            Joing one or more HTTP chatting groups.
+            </summary>
+            <param name="strUserId">A use id to represent this client.</param>
+            <param name="Groups">An array of chatting group ids.</param>
+            <returns>A chat request. If SocketProAdapter for JavaScript is not available, the method returns null or nothing.</returns>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CUChat.Exit">
+            <summary>
+            Exit from HTTP chatting groups.
+            </summary>
+            <returns>A chat request. If SocketProAdapter for JavaScript is not available, the method returns null or nothing.</returns>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CUChat.Speak(System.String,System.UInt32[])">
+            <summary>
+            Send a message onto one or more chatting groups.
+            </summary>
+            <param name="strMsg">A message string.</param>
+            <param name="Groups">An array of chatting group ids.</param>
+            <returns>A request object.If SocketProAdapter for JavaScript is not available, the method returns null or nothing.</returns>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CUChat.SendUserMessage(System.String,System.String)">
+            <summary>
+            Send a message to one specific client identified by a case-insensitive receiver.
+            </summary>
+            <param name="strMsg">A message string</param>
+            <param name="strReceiver">A user id for a receiver. It is case-insensitive.</param>
+            <returns>A request object. If SocketProAdapter for JavaScript is not available, the method returns null or nothing.</returns>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CUChat.Subscribe(System.UInt32)">
+            <summary>
+            Subscribe messages from SocketPro HTTP push server with delay time. Usually, you will not use this method. The library will take care of it for you on the fly.
+            </summary>
+            <param name="nDelayTime">A delay time in ms.</param>
+        </member>
+        <member name="E:SocketProAdapter.ClientSide.CUChat.OnMessage">
+            <summary>
+            An event for a list of messages from a remote SocketPro HTTP push server.
+            </summary>
+        </member>
+        <member name="E:SocketProAdapter.ClientSide.CUChat.OnChatRequest">
+            <summary>
+            An event for tracking the returning result of a chat-related request.
+            </summary>
+        </member>
+        <member name="P:SocketProAdapter.ClientSide.CUChat.Sync">
+            <summary>
+            Read or set using synchronous (true) or asynchronous chatting (false). The property must be false if it is cross-site or domain.
+            </summary>
+        </member>
+        <member name="P:SocketProAdapter.ClientSide.CUChat.Get">
+            <summary>
+            Read or set HTTP command GET (true) or POST (false) used. The property must be true if it is cross-site or domain.
+            </summary>
+        </member>
+        <member name="P:SocketProAdapter.ClientSide.CUChat.CrossSite">
+            <summary>
+            Cross site (domain) or same site (domain) chatting.
+            </summary>
+        </member>
+        <member name="P:SocketProAdapter.ClientSide.CUChat.Chatting">
+            <summary>
+            Indicating if it is chatting.
+            </summary>
+        </member>
+        <member name="P:SocketProAdapter.ClientSide.CUChat.ChatId">
+            <summary>
+            A chat id (or session) string of GUID.
+            </summary>
+        </member>
+        <member name="T:SocketProAdapter.ClientSide.UHTTP">
+            <summary>
+            A static class represents a singleton of the JavaScript object UHTTP inside SocketProAdapter for JavaScript.
+            </summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.UHTTP.CreateHttpRequest(System.String,System.String)">
+            <summary>
+            Create a HTTP request object.
+            </summary>
+            <param name="strMethodName">A method name.</param>
+            <param name="strChannel">A channel for processing the request on server side.</param>
+            <returns>A HTTP request object. If SocketProAdapter for JavaScript is not available, the method returns null or nothing.</returns>
+        </member>
+        <member name="P:SocketProAdapter.ClientSide.UHTTP.SocketProServerAddress">
+            <summary>
+            A url address to a remote (COMET) SocketPro server.If SocketProAdapter for JavaScript is not available, the property will be an empty string with zero length.You can set a url string to a remote SocketPro server like "http://www.mydomain.com/" if you don't set it on html page by JavaScript tag.
+            </summary>
+        </member>
+        <member name="P:SocketProAdapter.ClientSide.UHTTP.DefaultConfiguration">
+            <summary>
+            Default configuration corresponding to the JavaScript object defaultConfig inside SocketProAdapter for JavaScript.
+            </summary>
+        </member>
+        <member name="P:SocketProAdapter.ClientSide.UHTTP.UChat">
+            <summary>
+            A HTTP chat object corresponding to the JavaScript UChat object inside SocketProAdapter for JavaScript. 
+            </summary>
+        </member>
+    </members>
+</doc>

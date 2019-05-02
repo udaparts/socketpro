@@ -1,0 +1,245 @@
+//Microsoft Developer Studio generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "afxres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// English (U.S.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+#endif //_WIN32
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#include ""afxres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#define _AFX_NO_SPLITTER_RESOURCES\r\n"
+    "#define _AFX_NO_OLE_RESOURCES\r\n"
+    "#define _AFX_NO_TRACKER_RESOURCES\r\n"
+    "#define _AFX_NO_PROPERTY_RESOURCES\r\n"
+    "\r\n"
+    "#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)\r\n"
+    "#ifdef _WIN32\r\n"
+    "LANGUAGE 9, 1\r\n"
+    "#pragma code_page(1252)\r\n"
+    "#endif //_WIN32\r\n"
+    "#include ""res\\ODBClient.rc2""  // non-Microsoft Visual C++ edited resources\r\n"
+    "#include ""afxres.rc""         // Standard components\r\n"
+    "#endif\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDR_MAINFRAME           ICON    DISCARDABLE     "res\\ODBClient.ico"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_ABOUTBOX DIALOG DISCARDABLE  0, 0, 235, 55
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "About ODBClient"
+FONT 8, "MS Sans Serif"
+BEGIN
+    ICON            IDR_MAINFRAME,IDC_STATIC,11,17,20,20
+    LTEXT           "ODBClient Version 1.0",IDC_STATIC,40,10,119,8,
+                    SS_NOPREFIX
+    LTEXT           "Copyright (C) 2004",IDC_STATIC,40,25,119,8
+    DEFPUSHBUTTON   "OK",IDOK,178,7,50,14,WS_GROUP
+END
+
+IDD_ODBCLIENT_DIALOG DIALOGEX 0, 0, 390, 146
+STYLE DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+EXSTYLE WS_EX_APPWINDOW
+CAPTION "ODBClient"
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,331,7,52,14
+    LTEXT           "Host Address:",IDC_STATIC,7,13,69,8
+    LTEXT           "Port #:",IDC_STATIC,91,12,33,10
+    CONTROL         "UseSSL ?",IDC_USESSL_CHECK,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,275,8,52,12
+    PUSHBUTTON      "Connect",IDC_CONNECT_BUTTON,275,23,54,14
+    PUSHBUTTON      "Shut down",IDC_SHUTDOWN_BUTTON,331,22,52,15
+    EDITTEXT        IDC_HOSTADDRESS_EDIT,7,24,79,13,ES_AUTOHSCROLL
+    EDITTEXT        IDC_PORT_EDIT,90,24,37,13,ES_AUTOHSCROLL
+    CONTROL         "Zip/Client",IDC_CLIENTZIP_CHECK,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,133,9,53,13
+    CONTROL         "Zip/Server",IDC_SERVERZIP_CHECK,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,133,25,53,13
+    RTEXT           "User ID:",IDC_STATIC,194,11,31,10
+    RTEXT           "Password:",IDC_STATIC,187,27,38,11
+    EDITTEXT        IDC_USERID_EDIT,228,9,43,13,ES_AUTOHSCROLL
+    EDITTEXT        IDC_PASSWORD_EDIT,228,24,43,13,ES_PASSWORD | 
+                    ES_AUTOHSCROLL
+    PUSHBUTTON      "To a data source",IDC_TODB_BUTTON,315,41,68,13,
+                    WS_DISABLED
+    EDITTEXT        IDC_TODB_EDIT,73,42,239,13,ES_AUTOHSCROLL
+    RTEXT           "DB Conn String:",IDC_STATIC,7,43,55,9
+    PUSHBUTTON      "Get Property",IDC_GETPROP_BUTTON,263,78,49,14,
+                    WS_DISABLED
+    PUSHBUTTON      "Execute SQL",IDC_EXECUTESQL_BUTTON,316,59,67,14,
+                    WS_DISABLED
+    EDITTEXT        IDC_SQL_EDIT,73,60,239,13,ES_AUTOHSCROLL
+    PUSHBUTTON      "Cancel",IDC_CANCEL_BUTTON,316,78,67,14,WS_DISABLED
+    RTEXT           "SQL Statement:",IDC_STATIC,7,61,60,11
+    RTEXT           "DB Bytes Rcvd -->",IDC_STATIC,7,81,63,11
+    EDITTEXT        IDC_BYTESDB_EDIT,73,79,60,13,ES_AUTOHSCROLL
+    RTEXT           "File Bytes Rcvd -->",IDC_STATIC,135,81,64,11
+    EDITTEXT        IDC_BYTESFILE_EDIT,201,79,59,13,ES_AUTOHSCROLL
+    EDITTEXT        IDC_LOCALFILE_EDIT,72,104,199,13,ES_AUTOHSCROLL
+    RTEXT           "Local File:",IDC_STATIC,7,106,61,10
+    RTEXT           "Remote File:",IDC_STATIC,14,124,55,11
+    EDITTEXT        IDC_REMOTEFILE_EDIT,72,121,199,13,ES_AUTOHSCROLL
+    PUSHBUTTON      "Upload File",IDC_SEND_BUTTON,316,103,67,14,WS_DISABLED
+    PUSHBUTTON      "Download File",IDC_GET_BUTTON,316,121,67,13,WS_DISABLED
+    CTEXT           "%:",IDC_STATIC,276,105,34,8
+    EDITTEXT        IDC_PERCENT_EDIT,274,116,40,13,ES_CENTER | 
+                    ES_AUTOHSCROLL
+END
+
+
+#ifndef _MAC
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 1,0,0,1
+ PRODUCTVERSION 1,0,0,1
+ FILEFLAGSMASK 0x3fL
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x4L
+ FILETYPE 0x1L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904B0"
+        BEGIN
+            VALUE "CompanyName", "\0"
+            VALUE "FileDescription", "ODBClient MFC Application\0"
+            VALUE "FileVersion", "1, 0, 0, 1\0"
+            VALUE "InternalName", "ODBClient\0"
+            VALUE "LegalCopyright", "Copyright (C) 2004\0"
+            VALUE "LegalTrademarks", "\0"
+            VALUE "OriginalFilename", "ODBClient.EXE\0"
+            VALUE "ProductName", "ODBClient Application\0"
+            VALUE "ProductVersion", "1, 0, 0, 1\0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1200
+    END
+END
+
+#endif    // !_MAC
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO DISCARDABLE 
+BEGIN
+    IDD_ABOUTBOX, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 228
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 48
+    END
+
+    IDD_ODBCLIENT_DIALOG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 383
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 139
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_ABOUTBOX            "&About ODBClient..."
+END
+
+#endif    // English (U.S.) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+#define _AFX_NO_SPLITTER_RESOURCES
+#define _AFX_NO_OLE_RESOURCES
+#define _AFX_NO_TRACKER_RESOURCES
+#define _AFX_NO_PROPERTY_RESOURCES
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE 9, 1
+#pragma code_page(1252)
+#endif //_WIN32
+#include "res\ODBClient.rc2"  // non-Microsoft Visual C++ edited resources
+#include "afxres.rc"         // Standard components
+#endif
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

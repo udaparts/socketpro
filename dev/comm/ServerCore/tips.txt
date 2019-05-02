@@ -1,0 +1,3 @@
+Tip 1:
+UServerCore C/C++ optimization must be set to /Od (Disabled) for Visual studio. 
+Otherwise, CServer::members not correct for x64-compile

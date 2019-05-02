@@ -1,0 +1,620 @@
+<html>
+
+<head>
+<meta http-equiv=Content-Type content="text/html; charset=windows-1252">
+<meta name=Generator content="Microsoft Word 12 (filtered)">
+<style>
+<!--
+ /* Font Definitions */
+ @font-face
+	{font-family:Wingdings;
+	panose-1:5 0 0 0 0 0 0 0 0 0;}
+@font-face
+	{font-family:"Cambria Math";
+	panose-1:2 4 5 3 5 4 6 3 2 4;}
+@font-face
+	{font-family:Calibri;
+	panose-1:2 15 5 2 2 2 4 3 2 4;}
+@font-face
+	{font-family:Tahoma;
+	panose-1:2 11 6 4 3 5 4 4 2 4;}
+ /* Style Definitions */
+ p.MsoNormal, li.MsoNormal, div.MsoNormal
+	{margin-top:0in;
+	margin-right:0in;
+	margin-bottom:8.0pt;
+	margin-left:0in;
+	line-height:107%;
+	font-size:11.0pt;
+	font-family:"Calibri","sans-serif";}
+p.MsoHeader, li.MsoHeader, div.MsoHeader
+	{mso-style-link:"Header Char";
+	margin:0in;
+	margin-bottom:.0001pt;
+	font-size:11.0pt;
+	font-family:"Calibri","sans-serif";}
+p.MsoFooter, li.MsoFooter, div.MsoFooter
+	{mso-style-link:"Footer Char";
+	margin:0in;
+	margin-bottom:.0001pt;
+	font-size:11.0pt;
+	font-family:"Calibri","sans-serif";}
+a:link, span.MsoHyperlink
+	{color:blue;
+	text-decoration:underline;}
+a:visited, span.MsoHyperlinkFollowed
+	{color:#954F72;
+	text-decoration:underline;}
+p.MsoAcetate, li.MsoAcetate, div.MsoAcetate
+	{mso-style-link:"Balloon Text Char";
+	margin:0in;
+	margin-bottom:.0001pt;
+	font-size:8.0pt;
+	font-family:"Tahoma","sans-serif";}
+p.MsoListParagraph, li.MsoListParagraph, div.MsoListParagraph
+	{margin-top:0in;
+	margin-right:0in;
+	margin-bottom:8.0pt;
+	margin-left:.5in;
+	line-height:107%;
+	font-size:11.0pt;
+	font-family:"Calibri","sans-serif";}
+p.MsoListParagraphCxSpFirst, li.MsoListParagraphCxSpFirst, div.MsoListParagraphCxSpFirst
+	{margin-top:0in;
+	margin-right:0in;
+	margin-bottom:0in;
+	margin-left:.5in;
+	margin-bottom:.0001pt;
+	line-height:107%;
+	font-size:11.0pt;
+	font-family:"Calibri","sans-serif";}
+p.MsoListParagraphCxSpMiddle, li.MsoListParagraphCxSpMiddle, div.MsoListParagraphCxSpMiddle
+	{margin-top:0in;
+	margin-right:0in;
+	margin-bottom:0in;
+	margin-left:.5in;
+	margin-bottom:.0001pt;
+	line-height:107%;
+	font-size:11.0pt;
+	font-family:"Calibri","sans-serif";}
+p.MsoListParagraphCxSpLast, li.MsoListParagraphCxSpLast, div.MsoListParagraphCxSpLast
+	{margin-top:0in;
+	margin-right:0in;
+	margin-bottom:8.0pt;
+	margin-left:.5in;
+	line-height:107%;
+	font-size:11.0pt;
+	font-family:"Calibri","sans-serif";}
+span.BalloonTextChar
+	{mso-style-name:"Balloon Text Char";
+	mso-style-link:"Balloon Text";
+	font-family:"Tahoma","sans-serif";}
+span.apple-converted-space
+	{mso-style-name:apple-converted-space;}
+span.HeaderChar
+	{mso-style-name:"Header Char";
+	mso-style-link:Header;}
+span.FooterChar
+	{mso-style-name:"Footer Char";
+	mso-style-link:Footer;}
+.MsoPapDefault
+	{margin-bottom:8.0pt;
+	line-height:107%;}
+ /* Page Definitions */
+ @page WordSection1
+	{size:11.0in 8.5in;
+	margin:1.0in 1.0in 1.0in 1.0in;}
+div.WordSection1
+	{page:WordSection1;}
+ /* List Definitions */
+ ol
+	{margin-bottom:0in;}
+ul
+	{margin-bottom:0in;}
+-->
+</style>
+
+</head>
+
+<body lang=EN-US link=blue vlink="#954F72">
+
+<div class=WordSection1>
+
+<p class=MsoNormal align=center style='text-align:center'><b><span
+style='font-size:14.0pt;line-height:107%;font-family:"Times New Roman","serif"'>Tutoral
+7 – Access SocketPro by Use of HTTP and WebSocket</span></b></p>
+
+<p class=MsoNormal><span style='font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoNormal><b><span style='font-size:12.0pt;line-height:107%;
+font-family:"Times New Roman","serif"'>Contents:</span></b></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt'><b><i><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>Introduction</span></i></b></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt'><b><i><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>Server
+side</span></i></b></p>
+
+<p class=MsoListParagraphCxSpFirst style='margin-bottom:0in;margin-bottom:.0001pt;
+text-indent:-.25in'><span style='font-size:12.0pt;line-height:107%;font-family:
+Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><i><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>Testing server settings</span></i></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt;text-indent:-.25in'><span style='font-size:12.0pt;line-height:107%;
+font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><i><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>Enable HTTP/websocket service</span></i></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt;text-indent:-.25in'><span style='font-size:12.0pt;line-height:107%;
+font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><i><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>Process HTTP/websocket requests and message pushes</span></i></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-top:0in;margin-right:0in;
+margin-bottom:0in;margin-left:.75in;margin-bottom:.0001pt;text-indent:-.25in'><span
+style='font-size:12.0pt;line-height:107%;font-family:"Courier New"'>o<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp; </span></span><i><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>HTTP/websocket
+authentication within SocketPro</span></i></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-top:0in;margin-right:0in;
+margin-bottom:0in;margin-left:.75in;margin-bottom:.0001pt;text-indent:-.25in'><span
+style='font-size:12.0pt;line-height:107%;font-family:"Courier New"'>o<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp; </span></span><i><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>Deal
+with common HTTP requests</span></i></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-top:0in;margin-right:0in;
+margin-bottom:0in;margin-left:.75in;margin-bottom:.0001pt;text-indent:-.25in'><span
+style='font-size:12.0pt;line-height:107%;font-family:"Courier New"'>o<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp; </span></span><i><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>HTTP/websocket
+user defined requests</span></i></p>
+
+<p class=MsoListParagraphCxSpLast style='margin-top:0in;margin-right:0in;
+margin-bottom:0in;margin-left:.75in;margin-bottom:.0001pt;text-indent:-.25in'><span
+style='font-size:12.0pt;line-height:107%;font-family:"Courier New"'>o<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp; </span></span><i><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>HTTP/websocket
+message pushes</span></i></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt'><b><i><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>Browser
+side</span></i></b></p>
+
+<p class=MsoListParagraphCxSpFirst style='margin-bottom:0in;margin-bottom:.0001pt;
+text-indent:-.25in'><span style='font-size:12.0pt;line-height:107%;font-family:
+Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><i><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>Reference uloader.js</span></i></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt;text-indent:-.25in'><span style='font-size:12.0pt;line-height:107%;
+font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><i><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>One function for tracking SocketPro JavaScript
+adapter loading event</span></i></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt;text-indent:-.25in'><span style='font-size:12.0pt;line-height:107%;
+font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><i><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>Create a websocket object and set event handlers</span></i></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt;text-indent:-.25in'><span style='font-size:12.0pt;line-height:107%;
+font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><i><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>Send messages from browsers by use of JavaScript</span></i></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt;text-indent:-.25in'><span style='font-size:12.0pt;line-height:107%;
+font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><i><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>Send your own defined requests</span></i></p>
+
+<p class=MsoListParagraphCxSpLast style='margin-bottom:0in;margin-bottom:.0001pt;
+text-indent:-.25in'><span style='font-size:12.0pt;line-height:107%;font-family:
+Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><i><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>Turn on JavaScript debug information</span></i></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt'><i><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>&nbsp;</span></i></p>
+
+<p class=MsoListParagraphCxSpFirst style='margin-bottom:0in;margin-bottom:.0001pt;
+text-indent:-.25in'><b><span style='font-size:12.0pt;line-height:107%;
+font-family:"Times New Roman","serif"'>1.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span></b><b><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>Introduction</span></b></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt'><span style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in'><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>HTTP is created as a request-response protocol with
+client-server computing model. HTTP is extensively employed by web browsers.
+HTTP is also widely used for cross-company and smart phone device-server
+communications through web service. Although it is popular, it has its own
+flaws such as large overhead, no server callback functionality and no
+bidirectional communication. Recently, web communities propose web socket to
+solve these flaws of HTTP. At this time, major browsers and development
+framework libraries as well as many server applications support web socket.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in'><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in'><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>Therefore, our SocketPro server is written to fully
+support both HTTP and web socket protocols so that you can access a SocketPro
+server from web browsers, smart-phone devices (android, iPhone, win phone, etc)
+and others in case you cannot use SocketPro client components.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt'><span style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt'><span style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>The
+tutorial project is located at the directory ..\tutorials\(csharp|vbnet|cplusplus|java\src|python)\webdemo.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt'><span style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt;text-indent:-.25in'><b><span style='font-size:12.0pt;line-height:107%;
+font-family:"Times New Roman","serif"'>2.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span></b><b><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>Server side</span></b></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt'><span style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in'><b><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>Testing server settings:</span></b><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>
+When running this sample server, copy socketpro helper js files as well as
+testing files into the directory where testing server application is located,
+as described in Figure 1 below.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in'><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in'><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'><img width=793 height=589
+src="httppush_files/image001.jpg"></span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in'><i><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>Figure 1: Settings and helper files for this
+tutorial SocketPro server</span></i></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt'><span style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt'><span style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in'><b><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>&nbsp;</span></b></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in'><b><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>Enable HTTP/websocket service:</span></b><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>
+It is very easy to enable HTTP and web socket service at SocketPro server as
+shown in the Figure 2.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt'><b><span style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>&nbsp;</span></b></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt'><b><span style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'><img
+width=660 height=35 src="httppush_files/image002.png"></span></b></p>
+
+<p class=MsoListParagraphCxSpLast style='margin-bottom:0in;margin-bottom:.0001pt'><i><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>Figure
+2: Enable HTTP/websocket service within SocketPro server</span></i></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt'><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpFirst style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in'><b><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>Process HTTP/websocket requests and message pushes:</span></b><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>
+As shown in Figure 1 below, you can derive your peer class from <i>CHttpPeerBase</i>
+for processing all requests and chat messages from HTTP and websocket
+protocols.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt'><span style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt'><span style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'><img
+width=609 height=128 src="httppush_files/image003.png"></span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt'><i><span style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>Figure
+3: Derive your http peer class from CHttpPeerBase, HTTP/websocket
+authentication, and chat topics subscription</span></i></p>
+
+<p class=MsoListParagraphCxSpLast style='margin-bottom:0in;margin-bottom:.0001pt'><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in'><i><span style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>HTTP/websocket
+authentication within SocketPro:</span></i><span style='font-size:12.0pt;
+line-height:107%;font-family:"Times New Roman","serif"'> You can do
+authentication for HTTP and websocket by overriding the virtual function <i>DoAuthentication</i>
+as shown in lines 7 through 12 in Figure 3 above. As shown in line 8 and within
+tutorial 2, you can subscribe to one or more chat topics at SocketPro server
+side on behalf of a client.</span></p>
+
+<p class=MsoListParagraph style='margin-bottom:0in;margin-bottom:.0001pt'><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in'><i><span style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>Deal
+with common HTTP requests:</span></i><span style='font-size:12.0pt;line-height:
+107%;font-family:"Times New Roman","serif"'> SocketPro supports eight HTTP RFC-2616
+methods, OPTIONS, GET, POST, HEAD, PUT, DELETE, TRACE and CONNECT. You can use
+them by overriding the function <i>OnGet</i>, <i>OnPost</i>, and so on, as
+shown in Figure 4 below.</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in'><span style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in'><span style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:0in;margin-bottom:0in;
+margin-left:.5in;margin-bottom:.0001pt'><span style='font-size:12.0pt;
+line-height:107%;font-family:"Times New Roman","serif"'><img width=457
+height=144 src="httppush_files/image004.png"></span></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:0in;margin-bottom:0in;
+margin-left:.5in;margin-bottom:.0001pt'><i><span style='font-size:12.0pt;
+line-height:107%;font-family:"Times New Roman","serif"'>Figure 4: Use HTTP
+methods within SocketPro by overriding OnXXX virtual functions</span></i></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt'><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>            </span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in'><i><span style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>HTTP/websocket
+user defined requests: </span></i><span style='font-size:12.0pt;line-height:
+107%;font-family:"Times New Roman","serif"'>If you use SocketPro adapter for
+Javascipt at browser side, you can easily send your own requests with any
+types/or structures and number of input parameters onto<i> </i>a SocketPro
+server for processing as shown in Figure 5 below. We’ll show you JavaScript
+code in the coming section <i>Browser side</i>.</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in'><span style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in'><span style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'><img
+width=600 height=331 id="Picture 13" src="httppush_files/image005.jpg"></span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in'><i><span style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>Figure
+5: Process user-defined HTTP/websocket requests at SocketPro server side</span></i></p>
+
+<p class=MsoListParagraph style='margin:0in;margin-bottom:.0001pt;text-indent:
+.5in'><i><span style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>HTTP/websocket
+message pushes</span></i><span style='font-size:12.0pt;line-height:107%;
+font-family:"Times New Roman","serif"'>: SocketPro supports publishing messages
+or sending a message to a user as shown in Figure 6 below. After comparing this
+code snippet with server side code of <a href="../articles/chatservice.htm">tutorial 2</a>, we determine that they are both
+exactly the same.</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt'><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>            </span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt'><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>           <img
+width=703 height=242 id="Picture 1" src="httppush_files/image006.png"></span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt'><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>            <i>Figure
+6: Message pushes supported with SocketPro HTTP/websocket service</i></span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt'><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpFirst style='margin-bottom:0in;margin-bottom:.0001pt;
+text-indent:-.25in'><b><span style='font-size:12.0pt;line-height:107%;
+font-family:"Times New Roman","serif"'>3.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span></b><b><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>Browser side</span></b></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt'><span style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in'><b><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>Reference uloader.js:</span></b><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>
+At first, you need to refer to the file uloader.js for loading SocketPro
+JavaScript adapter from a server onto a browser as shown in Figure 7 below.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt'><span style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt'><span style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'><img
+width=480 height=31 id="Picture 4" src="httppush_files/image007.png"></span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt'><i><span style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>Figure
+7: Refer to uloader.js for loading SocketPro JavaScript adapter from server
+onto a browser</span></i></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt'><span style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in'><b><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>One function for tracking SocketPro JavaScript
+adapter loading event:</span></b><span style='font-size:12.0pt;line-height:
+107%;font-family:"Times New Roman","serif"'> Next, it is recommended that you
+set a global function named <i>onUHTTPLoaded</i> to track SocketPro JavaScript adapter
+loading event as shown in Figure 8 below.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt'><i><span style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>&nbsp;</span></i></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt'><i><span style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'><img
+width=486 height=99 id="Picture 7" src="httppush_files/image008.png"></span></i></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt'><i><span style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>Figure
+8: A global function onUHTTPLoaded for tracking SocketPro JavaScript adapter
+loading event</span></i></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt'><span style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in'><b><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>Create a websocket object and set event handlers:</span></b><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>
+Next, we need to create a web socket object with user id and password as shown
+in line 68 as demonstrated in Figure 9 below. Additionally, you also need to
+set two event handlers for socket-connected in line 69 and socket-closed in
+line 75.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in'><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in'><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'><img width=670 height=287 id="Picture 10"
+src="httppush_files/image009.png"></span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in'><i><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>Figure 9: Create a websocket object and set various
+event handlers</span></i></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in'><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in'><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>As shown in lines 81 and 83, we need to set event
+handlers for <i>onError</i> and <i>onMessage</i>. SocketPro also supports the
+above calls through AJAX for the same domain and JavaScript script for
+cross-domain communications. However, the last two approaches may be not
+supported if most people do not use IE 9 or previous versions of browsers.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in'><b><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>Send messages from browsers by use of JavaScript:</span></b><i><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>
+</span></i><span style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>Next,
+as shown in Figure 10 below, you can publish messages from one browser to other
+browsers, servers or windows, or send a message to a user anywhere as we did at
+    <a href="../articles/chatservice.htm">tutorial 2</a>.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in'><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in'><img width=696 height=178 src="httppush_files/image010.png"
+align=left hspace=12><i><span style='font-size:12.0pt;line-height:107%;
+font-family:"Times New Roman","serif"'><br clear=all>
+</span></i></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in'><i><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>Figure 10: Send messages from browser to anywhere</span></i></p>
+
+<p class=MsoListParagraphCxSpLast style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in'><i><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>&nbsp;</span></i></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in'><b><span style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>Send
+your own defined requests:</span></b><i><span style='font-size:12.0pt;
+line-height:107%;font-family:"Times New Roman","serif"'> </span></i><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>Finally,
+you can send a request with any number and type of parameters to a SocketPro
+server for processing as shown in Figure 11. From the call end, you should also
+set a callback at the end for processing a returning result from a remote SocketPro
+server.</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in'><span style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in'><span style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'><img
+width=528 height=193 id="Picture 16" src="httppush_files/image011.png"></span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in'><i><span style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>Figure
+11: Send requests to SocketPro server for processing</span></i></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in'><i><span style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>&nbsp;</span></i></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in'><b><span style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>Turn
+on JavaScript debug information:</span></b><span style='font-size:12.0pt;
+line-height:107%;font-family:"Times New Roman","serif"'> Finally, you may like
+to turn on JavaScript adapter debug information inside the file uloader.js as
+shown in the Figure 12.</span></p>
+
+<p class=MsoListParagraphCxSpFirst style='margin-bottom:0in;margin-bottom:.0001pt'><i><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>&nbsp;</span></i></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt'><i><span style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'><img
+width=302 height=135 id="Picture 19" src="httppush_files/image012.png"></span></i></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt'><i><span style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>Figure
+12: Turn on or off SocketPro JavaScript adapter debug log</span></i></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt'><i><span style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>&nbsp;</span></i></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt'><span style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>Once
+you turn on adapter debug log, you can see logged transaction JSON strings as
+shown in Figure 13 below<a name="_GoBack"></a>.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt'><i><span style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'><img
+width=798 height=392 id="Picture 22" src="httppush_files/image013.jpg"></span></i></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt'><i><span style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>Figure
+13: Sample logged transaction JSON strings from SocketPro JavaScript adapter</span></i></p>
+
+<p class=MsoListParagraphCxSpLast style='margin-bottom:0in;margin-bottom:.0001pt'><i><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>&nbsp;</span></i></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in'><i><span style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>&nbsp;</span></i></p>
+
+</div>
+
+</body>
+
+</html>

@@ -1,0 +1,9 @@
+
+[	
+	ServiceID = 2345 //service id can't be less than 0
+]			
+GeoIp
+{
+	$void Lookup();
+}
+

@@ -1,0 +1,26 @@
+HKCR
+{
+	UDB.URowset.1 = s 'URowset Class'
+	{
+		CLSID = s '{BBE0E397-6941-45A9-B1E8-D81BE1B74992}'
+	}
+	UDB.URowset = s 'URowset Class'
+	{
+		CLSID = s '{BBE0E397-6941-45A9-B1E8-D81BE1B74992}'
+		CurVer = s 'UDB.URowset.1'
+	}
+	NoRemove CLSID
+	{
+		ForceRemove {BBE0E397-6941-45A9-B1E8-D81BE1B74992} = s 'URowset Class'
+		{
+			ProgID = s 'UDB.URowset.1'
+			VersionIndependentProgID = s 'UDB.URowset'
+			ForceRemove 'Programmable'
+			InprocServer32 = s '%MODULE%'
+			{
+				val ThreadingModel = s 'Both'
+			}
+			'TypeLib' = s '{E9BAD4DA-6268-4E53-BFAE-2F06B248E945}'
+		}
+	}
+}

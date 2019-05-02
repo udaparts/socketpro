@@ -1,0 +1,133 @@
+
+<script type="text/javascript">
+function createAjaxObject()
+{
+    var xmlHttp;
+    try
+    {
+        xmlHttp = new XMLHttpRequest(); // Firefox, Opera 8.0+, Safari
+    }
+    catch(e)
+    {
+        // Internet Explorer
+        try
+        {
+            xmlHttp = new ActiveXObject("Msxml2.XMLHTTP");
+        }
+        catch (e)
+        {
+            xmlHttp = new ActiveXObject("Microsoft.XMLHTTP");
+        }
+    }
+    return xmlHttp;
+}
+
+
+
+</script>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" >
+<head>
+    <title>SocketPro HTTP service Demonstration</title>
+    <style type="text/css">
+        #Text1
+        {
+            width: 404px;
+        }
+        .style1
+        {            text-align: center;
+        }
+        #Button1
+        {
+            width: 128px;
+        }
+        #txtAge
+        {
+            width: 130px;
+            text-align: right;
+        }
+        #txtResult
+        {
+            width: 476px;
+            margin-left: 0px;
+            text-align: right;
+        }
+        #txtLastName
+        {
+            text-align: right;
+            width: 155px;
+            margin-left: 138px;
+            margin-right: 0px;
+        }
+        #txtFirstName
+        {
+            width: 130px;
+            text-align: right;
+        }
+        .style3
+        {
+            text-align: right;
+        }
+        #btnSend
+        {
+            margin-left: 0px;
+        }
+    </style>
+    
+<script language="javascript" type="text/javascript">
+
+var xmlHttp;
+function handleContent(event)
+{
+    var txt = document.getElementById('txtResult');
+    if(event && event.target && event.target.responseXML && event.target.responseXML.firstChild && event.target.responseXML.firstChild.firstChild)
+    {
+        txt.value = event.target.responseXML.firstChild.firstChild.nodeValue;
+        if(txt.value == 'Ended')
+        {
+            var btn = document.getElementById('btnSend');
+            btn.disabled = false;
+        }
+    }
+}
+
+function btnSend_onclick() {
+    var btn = document.getElementById('btnSend');
+    btn.disabled = true;
+    xmlHttp = new createAjaxObject();
+    xmlHttp.multipart = true;
+    xmlHttp.open("GET", "/mpart", true);
+    xmlHttp.onload = handleContent;
+    xmlHttp.send(null);
+}
+</script>
+
+
+</head>
+<body>
+
+    <p>
+        &nbsp;</p>
+
+    <table style="width: 46%;">
+        <tr>
+            <td class="style1" colspan="2">
+                &lt;&lt;===
+        SocketPro HTTP Remoting Demonstration for Multipart ===&gt;&gt;</td>
+        </tr>
+        <tr>
+            <td class="style1" colspan="2">
+                +++++ It works with FireFox, Navigator, and Flock browser only +++++</td>
+        </tr>
+        <tr>
+            <td class="style3">
+                <input id="txtResult" type="text" align="middle" /></td>
+            <td class="style3">
+                <input id="btnSend" type="button" value="Start Multipart" 
+                    onclick="return btnSend_onclick()" /></td>
+        </tr>
+    </table>
+
+</body>
+</html>

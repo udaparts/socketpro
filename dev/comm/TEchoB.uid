@@ -1,0 +1,26 @@
+
+[	
+	ServiceID = 1 //service id can't be less than 0
+]			
+CEchoBasic
+{
+	bool EchoBool(bool b);
+	sbyte EchoInt8(sbyte c);
+	byte EchoUInt8(byte b);
+	short EchoInt16(short s);
+	ushort EchoUInt16(ushort s);
+	int EchoInt32(int data);
+	uint EchoUInt32(uint data);
+	long EchoInt64(long data);
+	ulong EchoUInt64(ulong data);
+	float EchoFloat(float data);
+	double EchoDouble(double data);
+	string EchoString(string str);
+	AString EchoAString(AString str);
+	decimal EchoDecimal(decimal dec);
+	char EchoWChar(char wc);
+	Guid EchoGuid(Guid guid);
+	CY EchoCy(CY cy);
+}
+
+

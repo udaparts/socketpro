@@ -1,0 +1,1 @@
+V	330829015852Z		1000	unknown	/C=US/ST=Georgia/O=UDAParts/OU=UDAParts Certificate Authority/CN=UDAParts Intermediate CA/emailAddress=support@udaparts.com

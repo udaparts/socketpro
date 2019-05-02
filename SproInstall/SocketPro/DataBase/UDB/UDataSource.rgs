@@ -1,0 +1,26 @@
+HKCR
+{
+	UDB.UDataSource.1 = s 'UDataSource Class'
+	{
+		CLSID = s '{15CF3B4A-9E2D-47FE-BFC8-942C83CB94B6}'
+	}
+	UDB.UDataSource = s 'UDataSource Class'
+	{
+		CLSID = s '{15CF3B4A-9E2D-47FE-BFC8-942C83CB94B6}'
+		CurVer = s 'UDB.UDataSource.1'
+	}
+	NoRemove CLSID
+	{
+		ForceRemove {15CF3B4A-9E2D-47FE-BFC8-942C83CB94B6} = s 'UDataSource Class'
+		{
+			ProgID = s 'UDB.UDataSource.1'
+			VersionIndependentProgID = s 'UDB.UDataSource'
+			ForceRemove 'Programmable'
+			InprocServer32 = s '%MODULE%'
+			{
+				val ThreadingModel = s 'Both'
+			}
+			'TypeLib' = s '{E9BAD4DA-6268-4E53-BFAE-2F06B248E945}'
+		}
+	}
+}

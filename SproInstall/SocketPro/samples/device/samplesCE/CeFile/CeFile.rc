@@ -1,0 +1,184 @@
+//Microsoft eMbedded Visual C++ generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "afxres.h"
+#include "newres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// English (U.S.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+#endif //_WIN32
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#include ""afxres.h""\r\n"
+    "#include ""newres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#define _AFX_NO_SPLITTER_RESOURCES\r\n"
+    "#define _AFX_NO_OLE_RESOURCES\r\n"
+    "#define _AFX_NO_TRACKER_RESOURCES\r\n"
+    "#define _AFX_NO_PROPERTY_RESOURCES\r\n"
+    "\r\n"
+    "#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)\r\n"
+    "#ifdef _WIN32\r\n"
+    "LANGUAGE 9, 1\r\n"
+    "#pragma code_page(1252)\r\n"
+    "#endif //_WIN32\r\n"
+    "#include ""res\\CeFile.rc2""  // non-Microsoft eMbedded Visual C++ edited resources\r\n"
+    "#include ""afxres.rc""         // Standard components\r\n"
+    "#include ""wceres.rc""         // WCE-specific components\r\n"
+    "#endif\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDR_MAINFRAME           ICON    DISCARDABLE     "res\\CeFile.ico"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_CEFILE_DIALOG DIALOGEX 0, 0, 138, 154
+STYLE WS_POPUP | WS_VISIBLE | WS_CAPTION
+EXSTYLE WS_EX_APPWINDOW | 0x80000000L
+CAPTION "Remote File"
+FONT 8, "System"
+BEGIN
+    RTEXT           "Host:",IDC_STATIC,0,16,20,8
+    RTEXT           "Port:",IDC_STATIC,2,1,18,8
+    EDITTEXT        IDC_HOST_EDIT,20,14,74,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "Connect",IDC_CONNECT_BUTTON,95,0,42,12
+    PUSHBUTTON      "Disconnect",IDC_DISCONNECT_BUTTON,95,14,42,13
+    EDITTEXT        IDC_PORT_EDIT,20,0,25,12,ES_AUTOHSCROLL
+    CONTROL         "Zip",IDC_ZIP_CHECK,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,46,1,23,11
+    CONTROL         "SSL",IDC_SSL_CHECK,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,70,1,23,11
+    RTEXT           "Local:",IDC_STATIC,0,29,30,8
+    EDITTEXT        IDC_LOCAL_EDIT,31,28,107,12,ES_AUTOHSCROLL
+    RTEXT           "Remote:",IDC_STATIC,0,42,30,8
+    EDITTEXT        IDC_REMOTE_EDIT,31,41,107,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "Download",IDC_DOWNLOAD_BUTTON,39,54,38,13,WS_DISABLED
+    PUSHBUTTON      "Upload",IDC_UPLOAD_BUTTON,78,54,31,13,WS_DISABLED
+    EDITTEXT        IDC_PERCENT_EDIT,16,55,22,11,ES_AUTOHSCROLL
+    RTEXT           "%:",IDC_STATIC,2,56,13,9
+    PUSHBUTTON      "Cancel",IDC_CANCEL_BUTTON,110,54,28,13,WS_DISABLED
+    CONTROL         "List1",IDC_FILE_LIST,"SysListView32",LVS_REPORT | 
+                    WS_BORDER | WS_TABSTOP,0,83,138,57
+    RTEXT           "Directory:",IDC_STATIC,2,71,34,10
+    EDITTEXT        IDC_DIR_EDIT,37,69,100,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "First",IDC_FIRST_BUTTON,41,140,30,13,WS_DISABLED
+    PUSHBUTTON      "Next",IDC_NEXT_BUTTON,74,140,30,13,WS_DISABLED
+    PUSHBUTTON      "All",IDC_ALL_BUTTON,107,140,30,13,WS_DISABLED
+    EDITTEXT        IDC_RECV_EDIT,0,141,40,12,ES_AUTOHSCROLL
+END
+
+
+#ifndef _MAC
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 1,0,0,1
+ PRODUCTVERSION 1,0,0,1
+ FILEFLAGSMASK 0x3fL
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x4L
+ FILETYPE 0x1L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904B0"
+        BEGIN
+            VALUE "CompanyName", " Elesys North America Inc.\0"
+            VALUE "FileDescription", "CeFile WCE MFC Application\0"
+            VALUE "FileVersion", "1, 0, 0, 1\0"
+            VALUE "InternalName", "CeFile\0"
+            VALUE "LegalCopyright", "Copyright ?2005\0"
+            VALUE "LegalTrademarks", "\0"
+            VALUE "OriginalFilename", "CeFile.exe\0"
+            VALUE "ProductName", "CeFile Application\0"
+            VALUE "ProductVersion", "1, 0, 0, 1\0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1200
+    END
+END
+
+#endif    // !_MAC
+
+#endif    // English (U.S.) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+#define _AFX_NO_SPLITTER_RESOURCES
+#define _AFX_NO_OLE_RESOURCES
+#define _AFX_NO_TRACKER_RESOURCES
+#define _AFX_NO_PROPERTY_RESOURCES
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE 9, 1
+#pragma code_page(1252)
+#endif //_WIN32
+#include "res\CeFile.rc2"  // non-Microsoft eMbedded Visual C++ edited resources
+#include "afxres.rc"         // Standard components
+//#include "wceres.rc"         // WCE-specific components
+#endif
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

@@ -1,0 +1,11 @@
+HKCR
+{
+	NoRemove AppID
+	{
+		{E877C7C6-6921-4901-A5DC-FF59D8CCEDF4} = s 'RemoteConnector'
+		'RemoteConnector.EXE'
+		{
+			val AppID = s {E877C7C6-6921-4901-A5DC-FF59D8CCEDF4}
+		}
+	}
+}

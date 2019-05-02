@@ -1,0 +1,593 @@
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml"><head>
+    <meta charset="utf-8">
+    <title>SocketPro registration</title>
+    <style type="text/css">
+        .auto-style1 {
+            width: 146px;
+        }
+        .auto-style2 {
+            width: 488px;
+        }
+        .auto-style3 {
+            width: 146px;
+            height: 233px;
+        }
+        .auto-style4 {
+            width: 488px;
+            height: 233px;
+        }
+        .auto-style5 {
+            height: 233px;
+        }
+        #Checkbox1 {
+            width: 33px;
+        }
+        #chkWinCE {
+            width: 50px;
+            height: 20px;
+        }
+        #Text1 {
+            width: 112px;
+            text-align: right;
+        }
+        #txtMaxConn {
+            width: 77px;
+            text-align: right;
+        }
+        .auto-style6 {
+            width: 14px;
+            text-align: right;
+        }
+        #txtMaxSpeed {
+            width: 78px;
+            text-align: right;
+        }
+        #chkWin {
+            width: 50px;
+            height: 20px;
+        }
+        #chkLinux {
+            width: 50px;
+            height: 20px;
+        }
+        #chkMac {
+           width: 50px;
+            height: 20px;
+        }
+        #chkWinCe {
+           width: 50px;
+            height: 20px;
+        }
+        #chkJavaScript {
+            width: 50px;
+            height: 20px;
+        }
+        #chkQueue {
+            width: 50px;
+            height: 20px;
+        }
+        #chkRouting {
+            width: 50px;
+            height: 20px;
+        }
+        #txtPrice {
+            text-align: right;
+            width: 79px;
+            font-weight: 700;
+            background-color: #CCCCFF;
+            margin-left: 0px;
+        }
+        #txtYears
+        {
+            width: 77px;
+            text-align: right;
+        }
+        .style1
+        {
+            width: 80px;
+            text-align: left;
+        }
+        .style3
+        {
+            height: 24px;
+            width: 324px;
+        }
+        .style5
+        {
+            height: 233px;
+            width: 447px;
+            text-align: right;
+        }
+        .style9
+        {
+            width: 2376px;
+            background-color: #FFFFCC;
+            height: 44px;
+        }
+        .style10
+        {
+            width: 447px;
+            text-align: right;
+            background-color: #FFFFCC;
+            height: 44px;
+        }
+        .style11
+        {
+            width: 2376px;
+            font-weight: bold;
+            font-size: medium;
+            background-color: #CCFFFF;
+        }
+        .style13
+        {
+            width: 447px;
+            text-align: right;
+            font-weight: bold;
+            background-color: #CCFFFF;
+        }
+        .style14
+        {
+            font-size: medium;
+        }
+        .style17
+        {
+            width: 2376px;
+            height: 233px;
+        }
+        #txtPerAppPrice
+        {
+            width: 101px;
+            text-align: right;
+            font-weight: 700;
+            background-color: #CC99FF;
+        }
+        #RadioLicense
+        {
+            width: 30px;
+            height: 20px;
+        }
+        #rApp
+        {
+            width: 30px;
+            height: 20px;
+        }
+        #rServerApp
+        {
+            width: 30px;
+            height: 20px;
+        }
+        .style30
+        {
+            width: 42px;
+        }
+        .style31
+        {
+            height: 48px;
+        }
+        #Radio1
+        {
+            width: 24px;
+        }
+        #sp_features
+        {
+            width: 360px;
+        }
+        .style33
+        {
+            font-size: small;
+        }
+        .style34
+        {
+            font-size: large;
+        }
+        .style35
+        {
+            color: rgb(0, 0, 0);
+        }
+        .style36
+        {
+            text-decoration: underline;
+        }
+        .style37
+        {
+            width: 158px;
+            font-weight: bold;
+            font-size: medium;
+            background-color: #CCFFFF;
+        }
+        .style38
+        {
+            width: 158px;
+            background-color: #FFFFCC;
+            height: 44px;
+        }
+        .style39
+        {
+            width: 158px;
+            height: 233px;
+        }
+        .style40
+        {
+            width: 324px;
+        }
+    </style>
+    
+    <script language="javascript" type="text/javascript">
+// <![CDATA[
+        var bMany = false;
+        function getReg() {
+            var reg = {};
+            reg.nix = document.getElementById('chkLinux').checked ? 1 : 0;
+            reg.win = document.getElementById('chkWin').checked ? 1 : 0;
+            reg.js = document.getElementById('chkJavaScript').checked ? 1 : 0;
+            reg.q = document.getElementById('chkQueue').checked ? 1 : 0;
+            reg.r = document.getElementById('chkRouting').checked ? 1 : 0;
+            reg.ce = document.getElementById('chkWinCe').checked ? 1 : 0;
+            reg.mc = parseInt(document.getElementById('txtMaxConn').value);
+            reg.ms = parseInt(document.getElementById('txtMaxSpeed').value);
+            reg.y = parseInt(document.getElementById('txtYears').value);
+            reg.app = document.getElementById('rApp').checked ? 1 : 0;
+            return reg;
+        }
+
+        function setFeatures(reg) {
+            var str = '';
+            for (var p in reg) {
+                var v = reg[p] + 0;
+                if (v) {
+                    if (str)
+                        str += ',';
+                    str += p + '=' + reg[p];
+                }
+            }
+            document.getElementById('sp_features').value = str;
+        }
+
+        function setPrice() {
+
+            var reg = getReg();
+            var oss = reg.nix + reg.win + reg.ce;
+            if (oss == 0)
+                oss = 1;
+            var price = oss * 200;
+            if (oss > 1)
+                price += (oss - 1) * 50
+            if (reg.ce)
+                price += 150;
+            if (reg.js)
+                price += 100;
+            if (reg.q)
+                price += 200;
+            if (reg.r)
+                price += 500;
+            price += Math.log(reg.mc / 2500) * 200;
+            price += Math.log(reg.ms / 2500) * 200;
+
+            if (reg.y >= 8.0)
+                price *= 3.2;
+            else if (reg.y >= 7.0)
+                price *= 3.1;
+            else if (reg.y >= 6.0)
+                price *= 3.0;
+            else if (reg.y >= 5.0)
+                price *= 2.8;
+            else if (reg.y >= 4.0)
+                price *= 2.5;
+            else if (reg.y >= 3.0)
+                price *= 2.1;
+            else if (reg.y >= 2.0)
+                price *= 1.6;
+            price = parseInt(price + '');
+
+            if (reg.app) {
+                price *= 4.5;
+                price = parseInt(price + '');
+            }
+            if (bMany) {
+                if (price > 9999.0) {
+                    price = 9999.0;
+                }
+            }
+            else {
+                if (price > 2499.0) {
+                    price = 2499.0;
+                }
+            }
+            document.getElementById('txtPrice').value = price + '.00';
+            document.getElementById('sp_amount').value = price + '.00';
+            setFeatures(reg);
+        }
+
+        function chkLinux_onclick() {
+            setPrice();
+        }
+
+        function chkWin_onclick() {
+            setPrice();
+        }
+
+        function chkWinCe_onclick() {
+            setPrice();
+        }
+
+        function chkJavaScript_onclick() {
+            setPrice();
+        }
+
+        function chkQueue_onclick() {
+            setPrice();
+        }
+
+        function chkRouting_onclick() {
+            setPrice();
+        }
+
+        function txtMaxConn_onchange() {
+            var val = parseInt(document.getElementById('txtMaxConn').value);
+            if (val < 2500)
+                document.getElementById('txtMaxConn').value = '2500';
+            else
+                document.getElementById('txtMaxConn').value = val + '';
+            setPrice();
+        }
+
+        function txtMaxSpeed_onchange() {
+            var val = parseInt(document.getElementById('txtMaxSpeed').value);
+            if (val < 2500)
+                document.getElementById('txtMaxSpeed').value = '2500';
+            else
+                document.getElementById('txtMaxSpeed').value = val + '';
+            setPrice();
+        }
+
+        function txtYears_onchange() {
+            var val = parseInt(document.getElementById('txtYears').value);
+            if (val < 1)
+                document.getElementById('txtYears').value = '1';
+            else
+                document.getElementById('txtYears').value = val + '';
+            setPrice();
+        }
+
+        function rApp_onclick() {
+            bMany = true;
+            setPrice();
+        }
+
+        function rServerApp_onclick() {
+            bMany = false;
+            setPrice();
+        }
+
+// ]]>
+    </script>
+</head>
+
+<link rel="stylesheet" href="index_files/mbcsmbmcp.css" type="text/css" />
+<ul id="mbmcpebul_table" class="mbmcpebul_menulist css_menu" style="width: 653px; height: 35px;">
+  <li class="topitem spaced_li" title="A high performance and rich-feature communication framework with continuous inline request/result batching, real-time stream processing, asynchronous data transferring, and parallel computation style"><a href="index.html" target="_self"><div class="buttonimg buttonimg_35" style="width: 101px; background-image: url('index_files/mb_home.png')">Home</div></a>
+  <ul class="img_16">
+  <li><a href="events.htm" target="_self" class="with_img_16" title="History about SocketPro releases"><img src="index_files/mbico_mbmcp_1.png" alt="History about SocketPro releases" />Events</a></li>
+  <li><a href="roadmap.htm" target="_self" class="with_img_16" title="SocketPro evolution plans"><img src="index_files/mbico_mbmcp_2.png" alt="SocketPro evolution plans" />Roadmap</a></li>
+  <li><a href="registration.htm" target="_self" class="with_img_16" title="Buy and license information"><img src="index_files/mbico_mbmcp_3.png" alt="Buy and license information" />Order now</a></li>
+  </ul></li>
+  <li class="topitem spaced_li" title="A high performance and rich-feature communication framework with continuous inline request/result batching, real-time stream processing, asynchronous data transferring, and parallel computation style"><a href="index.html" target="_self"><div class="buttonimg buttonimg_35" style="width: 127px; background-image: url('index_files/mb_products.png')">Products</div></a>
+  <ul class="img_16">
+  <li class="gradient_menuitem gradient24"><a href="index.html" target="_self" class="with_img_16" title="A high performance and rich-feature communication framework with continuous inline request/result batching, real-time stream processing, asynchronous data transferring, and parallel computation style"><img src="index_files/mbico_mbmcp_4.png" alt="A high performance and rich-feature communication framework with continuous inline request/result batching, real-time stream processing, asynchronous data transferring, and parallel computation style" />SocketPro</a></li>
+  <li><a href="consulting.htm" target="_self" class="with_img_16" title="Affordable consulting services to speed up your development"><img src="index_files/mbico_mbmcp_5.png" alt="Affordable consulting services to speed up your development" />Consulting services</a></li>
+  </ul></li>
+  <li class="topitem spaced_li" title="Download SocketPro package and its extra samples"><a href="download.htm" target="_self"><div class="buttonimg buttonimg_35" style="width: 130px; background-image: url('index_files/mb_downloads.png')">Downloads</div></a>
+  <ul class="img_16">
+  <li class="gradient_menuitem gradient24"><a href="download.htm" target="_self" class="with_img_16" title="A high performance and rich-feature communication framework with continuous inline request/result batching, real-time stream processing, asynchronous data transferring, and parallel computation style"><img src="index_files/mbico_mbmcp_6.png" alt="A high performance and rich-feature communication framework with continuous inline request/result batching, real-time stream processing, asynchronous data transferring, and parallel computation style" />SocketPro</a></li>
+  </ul></li>
+  <li class="topitem spaced_li" title="A set of articles and tutorials for demonstration of SocketPro features"><a href="articles.htm"><div class="buttonimg buttonimg_35" style="width: 161px; background-image: url('index_files/mb_documentation.png')">Documentation</div></a>
+  <ul class="img_16">
+  <li><a href="document/dev_guide.pdf" class="with_img_16" title="SocketPro development guide"><img src="index_files/mbico_mbmcp_7.png" alt="SocketPro development guide" />Development guide</a></li>
+  <li><a href="document/memoryqueue.pdf" class="with_img_16" title="A class for packing and unpacking data easily and compatibly across different development environments and platforms with auto memory management"><img src="index_files/mbico_mbmcp_8.png" alt="A class for packing and unpacking data easily and compatibly across different development environments and platforms with auto memory management" />Memory buffer</a></li>
+  <li><a class="with_img_16 with_arrow" title="A set of simple tutorials and samples for beginners"><img src="index_files/mbico_mbmcp_9.png" alt="A set of simple tutorials and samples for beginners" />Tutorials</a>
+    <ul class="img_16">
+    <li><a class="with_img_16 with_arrow" title="A complete and integrated solution for four communication patterns"><img src="index_files/mbico_mbmcp_10.png" alt="A complete and integrated solution for four communication patterns" />Integrated communication patterns</a>
+      <ul class="img_16">
+      <li class="gradient_menuitem gradient24"><a href="document/helloworld.pdf" class="with_img_16" title="A simple client/server for sync, async and batch request processing"><img src="index_files/mbico_mbmcp_11.png" alt="A simple client/server for sync, async and batch request processing" />Client server pattern -- Hello World</a></li>
+      <li class="gradient_menuitem gradient24"><a href="document/messagepush.pdf" class="with_img_16" title="Secured bi-directional built-in publish/subscribe service"><img src="index_files/mbico_mbmcp_12.png" alt="Secured bi-directional built-in publish/subscribe service" />Publish subscribe pattern -- Online Message Bus</a></li>
+      <li class="gradient_menuitem gradient24"><a href="document/serverqueue.pdf" class="with_img_16" title="Server queue for asynchronous communication among enterprise applications"><img src="index_files/mbico_mbmcp_13.png" alt="Server queue for asynchronous communication among enterprise applications" />Async persistent message queue -- Server Queue</a></li>
+      <li class="gradient_menuitem gradient24"><a href="document/urouter.pdf" class="with_img_16" title="Routing requests at server side onto different clients for processing in parallel"><img src="index_files/mbico_mbmcp_14.png" alt="Routing requests at server side onto different clients for processing in parallel" />Server routing for load balancing</a></li>
+      </ul></li>
+    <li><a href="document/replication.pdf" class="with_img_16" title="Replicate  a queue of messages consistently onto multiple queues with ACID transaction style"><img src="index_files/mbico_mbmcp_15.png" alt="Replicate  a queue of messages consistently onto multiple queues with ACID transaction style" />Message queue replication</a></li>
+    <li><a href="document/socketproweb.pdf" class="with_img_16" title="An interface for web browser and others to accessing SocketPro through websocket protocol"><img src="index_files/mbico_mbmcp_16.png" alt="An interface for web browser and others to accessing SocketPro through websocket protocol" />SocketPro HTTP/websocket service</a></li>
+    <li><a href="document/remotingfile.pdf" class="with_img_16" title="Remoting any size of files with chunck and streaming push style"><img src="index_files/mbico_mbmcp_17.png" alt="Remoting any size of files with chunck and streaming push style" />Exchanging files between client and server</a></li>
+    <li class="gradient_menuitem gradient24"><a href="document/scalableweb.pdf" class="with_img_16" title="Sharable session pool with async/await feature for responsive web applications"><img src="index_files/mbico_mbmcp_18.png" alt="Sharable session pool with async/await feature for responsive web applications" />High performance website with great scalability</a></li>
+    </ul></li>
+  <li><a class="with_img_16 with_arrow" title="SocketPro performance studies and its comparisons with other technologies"><img src="index_files/mbico_mbmcp_19.png" alt="SocketPro performance studies and its comparisons with other technologies" />Performance studies</a>
+    <ul class="img_16">
+    <li><a href="document/perf_comparison.pdf" class="with_img_16" title="Performance comparison with WCF and RabbitMQ"><img src="index_files/mbico_mbmcp_20.png" alt="Performance comparison with WCF and RabbitMQ" />SocketPro vs WCF and RabbitMQ</a></li>
+    <li><a href="document/sq_kafka_perf.pdf" class="with_img_16" title="SocketPro server queue performance and its comparison with Kafka"><img src="index_files/mbico_mbmcp_21.png" alt="SocketPro server queue performance and its comparison with Kafka" />SocketPro vs Apache Kafka</a></li>
+    </ul></li>
+  <li><a class="with_img_16 with_arrow" title="Application of continuous inline request/result batching and real-time stream processing to SQLite, MySQL and ODBC"><img src="index_files/mbico_mbmcp_22.png" alt="Application of continuous inline request/result batching and real-time stream processing to SQLite, MySQL and ODBC" />SQL stream technology</a>
+    <ul class="img_16">
+    <li><a href="document/sqlstream_sqlite.pdf" class="with_img_16" title="SocketPro continuous SQL-stream sending and processing system (Part 1: Sqlite)"><img src="index_files/mbico_mbmcp_23.png" alt="SocketPro continuous SQL-stream sending and processing system (Part 1: Sqlite)" />Part 1: SQLite</a></li>
+    <li><a href="document/sqlstream_mysql.pdf" class="with_img_16" title="SocketPro continuous SQL-stream sending and processing system (Part 2: MySQL)"><img src="index_files/mbico_mbmcp_24.png" alt="SocketPro continuous SQL-stream sending and processing system (Part 2: MySQL)" />Part 2: MySQL</a></li>
+    </ul></li>
+  <li><a href="document/articles/httpwebsocket.htm" class="with_img_16" title="Access a SocketPro server using JSON and HTTP/websocket from any devices or computers with any development environments"><img src="index_files/mbico_mbmcp_25.png" alt="Access a SocketPro server using JSON and HTTP/websocket from any devices or computers with any development environments" />Create your own adapter</a></li>
+  </ul></li>
+  <li class="topitem" title="Ways for help"><a href="http://www.udaparts.com/groups/index.php" target="_self"><div class="buttonimg buttonimg_35" style="width: 126px; background-image: url('index_files/mb_support.png')">Support</div></a>
+  <ul class="img_16">
+  <li><a href="http://www.udaparts.com/groups/index.php" target="_self" class="with_img_16" title="Discussion forum"><img src="index_files/mbico_mbmcp_26.png" alt="Discussion forum" />Support forum</a></li>
+  <li><a href="socketprofaqs.htm" target="_self" class="with_img_16" title="Common questions and their answers"><img src="index_files/mbico_mbmcp_27.png" alt="Common questions and their answers" />Frequently Asked Questions</a></li>
+  <li><a href="mailto:support@udaparts.com" target="_self" class="with_img_16" title="Send us your question or concern by email"><img src="index_files/mbico_mbmcp_28.png" alt="Send us your question or concern by email" />Contact Technical Support Team</a></li>
+  </ul></li>
+</ul>
+<!-- Menus will work without this javascript file. It is used only for extra
+     effects, improved usability and compatibility with very old web browsers. -->
+<script type="text/javascript" src="index_files/mbjsmbmcp.js"></script>
+
+<body>
+    <p class="style33">
+        &nbsp;</p>
+    <h1 style="margin: 0px 0px 20px; font-family: wf_segoe-ui_light, 'Segoe UI Light', 'Segoe WP Light', 'Segoe UI', 'Segoe WP', Tahoma, Arial, sans-serif; font-weight: 400; font-size: 36px; line-height: 1.2em; color: rgb(80, 80, 80); font-style: normal; font-variant: normal; letter-spacing: normal; orphans: auto; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: auto; word-spacing: 0px; -webkit-text-stroke-width: 0px; background-color: rgb(255, 255, 255);">
+        No development costs at all. Pay only for what features you use.</h1>
+    <p class="style34">
+        <strong>Step 1:</strong> Use the below calculator to figure out your license 
+        cost and complete purchasing through PayPal.</p>
+    <table style="width:63%;" border="2">
+        <tbody><tr>
+            <td class="style37">Secure order</td>
+            <td class="style11">Description</td>
+            <td class="style13"><span class="style14">Price</span><br class="style14">
+                <span class="style14">(USA $)</span></td>
+        </tr>
+        <tr>
+            <td class="style38">Free/trial version of SocketPro</td>
+            <td class="style9">
+                <ul>
+                    <li>Unlimited connections and time of evaluation</li>
+                    <li>The following components are completely <strong>free</strong> to you with open source codes:
+                        <ol>
+                            <li>Superior performance asynchronous message persistent queue</li>
+                            <li>High performance file streaming</li>
+                            <li>SQL streaming for SQLite 3.11.1 or later</li>
+                            <li>SQL streaming database server plugin for MySQL 8.0.11 or later</li>
+                            <li>SQL streaming database server plugin for MySQL 5.7.22 or older</li>
+                            <li>SQL streaming database server plugin for Mariadb</li>
+                            <li>SQL streaming for MySQL/Mariadb middle tier</li>
+                        </ol>
+                    </li>
+                </ul>
+            </td>
+            <td class="style10">Free!</td>
+        </tr>
+        <tr>
+            <td class="style39">
+                <table width="100%">
+                    <tbody><tr>
+                        <td colspan="2" class="style31">
+                        <form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_top">
+                        <input type="hidden" name="cmd" value="_xclick">
+                        <input type="hidden" name="business" value="cye@udaparts.com">
+                        <input type="hidden" name="lc" value="US">
+                        <input type="hidden" name="item_name" value="SocketPro">
+                        <input id="sp_amount" type="hidden" name="amount" value="200.00">
+                        <input type="hidden" name="currency_code" value="USD">
+                        <input type="hidden" name="button_subtype" value="services">
+                        <input type="hidden" name="no_note" value="0">
+                        <input type="hidden" name="bn" value="PP-BuyNowBF:btn_buynowCC_LG.gif:NonHostedGuest">
+                        <table>
+                            <tr>
+                                <td><input type="hidden" name="on0" value="Features">Features                      </tr>
+                            <tr>
+                                <td><input id="sp_features" type="text" name="os0" maxlength="200" 
+                                        readonly="readonly" value="win=1,mc=2500,ms=2500,y=1"></td>
+                            </tr>
+                        </table>
+                        <input type="image" src="https://www.paypalobjects.com/en_US/i/btn/btn_buynowCC_LG.gif" border="0" name="submit" alt="PayPal - The safer, easier way to pay online!">
+                        <img alt="" border="0" src="https://www.paypalobjects.com/en_US/i/scr/pixel.gif" width="1" height="1">
+                        </form>
+
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="style30">
+                            <input id="rServerApp" checked="checked" name="R1" type="radio" value="V1" onclick="return rServerApp_onclick()"></td>
+                        <td>
+                            <a href="singlelicense.htm">Per-server/application</a><br>
+                            license for single server ($2499.00 max)</td>
+                    </tr>
+                    <tr>
+                        <td class="style30">
+                            <input id="rApp" name="R1" type="radio" value="V1" onclick="return rApp_onclick()"></td>
+                        <td>
+                            <a href="manylicense.htm">Per-application</a><br>
+                            license for many servers ($9999.00 max)</td>
+                    </tr>
+                </tbody></table>
+            </td>
+            <td class="style17">
+                <table>
+                    <tbody><tr>
+                        <td class="style1">
+                            <input id="chkWin" checked="checked" type="checkbox" onclick="return chkWin_onclick()"></td>
+                        <td class="style40">Windows</td>
+                    </tr>
+                    <tr>
+                        <td class="style1">
+                            <input id="chkLinux" type="checkbox" onclick="return chkLinux_onclick()"></td>
+                        <td class="style40">Linuxs</td>
+                    </tr>
+                    <tr>
+                        <td class="style1">
+                            <input id="txtYears" type="text" value="1" onchange="return txtYears_onchange()"></td>
+                        <td class="style40">License working time in years</td>
+                    </tr>
+                    <tr>
+                        <td class="style1">
+                            <input id="txtMaxConn" min="2500" type="text" value="2500" onchange="return txtMaxConn_onchange()"></td>
+                        <td class="style40">Max connections per server</td>
+                    </tr>
+                    <tr>
+                        <td class="style1">
+                            <input id="txtMaxSpeed" min="2500" spellcheck="False" type="text" value="2500" onchange="return txtMaxSpeed_onchange()"></td>
+                        <td class="style40">Max client requests per second per server</td>
+                    </tr>
+                    <tr>
+                        <td class="style1">
+                            <input id="chkWinCe" type="checkbox" onclick="return chkWinCe_onclick()"></td>
+                        <td class="style3">Window devices</td>
+                    </tr>
+                    <tr>
+                        <td class="style1">
+                            <input id="chkJavaScript" type="checkbox" onclick="return chkJavaScript_onclick()"></td>
+                        <td class="style3">Browser/JavaScript/WebSocket</td>
+                    </tr>
+                    <tr>
+                        <td class="style1">
+                            <input id="chkQueue" type="checkbox" onclick="return chkQueue_onclick()"></td>
+                        <td class="style40">Persistent message queue</td>
+                    </tr>
+                    <tr>
+                        <td class="style1">
+                            <input id="chkRouting" type="checkbox" onclick="return chkRouting_onclick()"></td>
+                        <td class="style40">Server load balancing with session sticking support</td>
+                    </tr>
+                </tbody></table>
+            </td>
+            <td class="style5">
+                <input id="txtPrice" readonly="readonly" type="text" value="200.00"></td>
+        </tr>
+    </tbody></table>
+
+    
+
+    <p>
+        <strong><span class="style34">Step 2:</span></strong><span class="style34"> Send 
+        us a lock file to create a key.</span></p>
+    <p style="margin-left: 40px">
+        <span style="font-style: normal; font-variant: normal; font-weight: normal; letter-spacing: normal; line-height: normal; orphans: auto; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: auto; word-spacing: 0px; -webkit-text-stroke-width: 0px; display: inline !important; float: none; background-color: rgb(255, 255, 255);" 
+            class="style35">
+        When your server starts at the very first time, it will automatically create a lock json file named as 
+        YourApplicationName_sp.json. The file will contains the following entries as 
+        shown in the below:</span></p>
+    <p style="margin-left: 40px">
+        <img alt="" src="sample_lock.jpg" style="height: 214px; width: 447px" /></p>
+    <p style="margin-left: 40px">
+        Send us your above lock file 
+        plus your <span class="style36"><strong><em>company name</em></strong></span> to <a href="mailto:support@udaparts.com">
+        support@udaparts.com</a> 
+        for creating a key to unlock the lock file. Note the key is empty here without 
+        any extra features supported initially.</p>
+
+    <p style="height: 27px">
+
+    <span class="style34"><strong>Step 3: </strong>Use the below file from UDAParts 
+    to replace the above lock file.</span></p>
+    <p>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        <img alt="" src="sample_key.jpg" style="height: 217px; width: 581px" /></p>
+    <p>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Note the key is not empty now with extra 
+        features you select from the above step 1. Further, the license is valid until 
+        Feb. 8, 2024 as an example. After getting such a json file from
+        <a href="mailto:support@udaparts.com">support@udaparts.com</a>, use it with your 
+        server at last. Finally, the registration is completely done.</p>
+
+
+</body></html>

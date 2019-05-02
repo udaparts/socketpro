@@ -1,0 +1,26 @@
+HKCR
+{
+	UQueue.UQueue.1 = s 'UQueue Class'
+	{
+		CLSID = s '{22ADED25-BB1D-49BF-8C96-40757FB7A417}'
+	}
+	UQueue.UQueue = s 'UQueue Class'
+	{
+		CLSID = s '{22ADED25-BB1D-49BF-8C96-40757FB7A417}'
+		CurVer = s 'UQueue.UQueue.1'
+	}
+	NoRemove CLSID
+	{
+		ForceRemove {22ADED25-BB1D-49BF-8C96-40757FB7A417} = s 'UQueue Class'
+		{
+			ProgID = s 'UQueue.UQueue.1'
+			VersionIndependentProgID = s 'UQueue.UQueue'
+			ForceRemove 'Programmable'
+			InprocServer32 = s '%MODULE%'
+			{
+				val ThreadingModel = s 'Both'
+			}
+			'TypeLib' = s '{AE23C26C-CFA8-49A4-8D76-08E61C9C0AC9}'
+		}
+	}
+}

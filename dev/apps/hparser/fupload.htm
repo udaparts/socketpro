@@ -1,0 +1,47 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>SocketPro HTTP Remoting Demonstration</title>
+    <style type="text/css">
+        #fuTest
+        {
+            width: 217px;
+        }
+        #Submit1
+        {
+            width: 133px;
+        }
+        #btnSubmit
+        {
+            width: 125px;
+        }
+    </style>
+
+<script language="javascript" type="text/javascript">
+	function btnSubmit_onclick() {
+    		document.getElementById('mySimpleUpload').submit();
+	}
+</script>
+
+</head>
+<body>
+<form id="mySimpleUpload" method="post" enctype="multipart/form-data" action="/uploadfile">
+
+
+
+SocketPro HTTP remoting demonstration<br />
+<br />
+
+
+
+File upload:<br />
+<input id="fuTest" name="myFile" type="file" /><br />
+<br />
+<input id="txtOne" name="first" type="text" value="First Data" /><br />
+<br />
+<input id="txtTwo" name="second" type="text" value="Second Data" /></form>
+<p>
+    <input id="btnSubmit" type="submit" value="submit" onclick="return btnSubmit_onclick()" /></p>
+</body>
+</html>

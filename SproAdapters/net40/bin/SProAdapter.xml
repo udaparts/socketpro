@@ -1,0 +1,2968 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        "SProAdapter"
+    </assembly>
+    <members>
+        <member name="M:SocketProAdapter.ServerSide.CAdoClientPeer.Send(System.Data.DataSet)">
+            <summary>
+Send a DataSet object onto a remote client without serializing relationships.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.CAdoClientPeer.Send(System.Data.DataSet,System.Boolean)">
+            <summary>
+Send a DataSet object onto a remote client. The parameter bNeedRelations is defaulted to false.
+If bNeedRelations is set to true, relationships among tables are remoted.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.CAdoClientPeer.Send(System.Data.DataSet,System.Boolean,System.Int32)">
+            <summary>
+Send a DataSet object onto a remote client. Parameters bNeedRelations and nBatchSize are defaulted to false and 10240, repectively.
+If bNeedRelations is set to true, relationships among tables are remoted.
+The parameter nBatchSize controls network communication batch size in byte.
+By default, nBatchSize is 10240.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.CAdoClientPeer.Send(System.Data.DataTable,System.Int32)">
+            <summary>
+Send a DataTable object onto a remote client. Parameter nBatchSize is defaulted to 10240, which controls network communication batch size in byte.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.CAdoClientPeer.Send(System.Data.DataTable)">
+            <summary>
+Send a DataTable object onto a remote client.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.CAdoClientPeer.Send(System.Data.IDataReader,System.Int32)">
+            <summary>
+Send a set of records through the interface IDataReader onto a remote client. Parameter nBatchSize is defaulted to 10240.
+The parameter nBatchSize controls network communication batch size in byte.
+If proper, this method is preferred for reduction of memory footprint and latency without pre-loading data records into memory.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.CAdoClientPeer.Send(System.Data.IDataReader)">
+            <summary>
+Send a set of records through the interface IDataReader onto a remote client.
+If proper, this method is preferred for reduction of memory footprint and latency without pre-loading data records into memory.
+</summary>
+        </member>
+        <member name="T:SocketProAdapter.ServerSide.CAdoClientPeer">
+            <summary>
+An class makes remoting ADO.NET objects, DataSet, DataTable and IDataReader onto a remote client much easier.
+To use this class at server side, your client peer class must derive from CAdoClientPeer instead of CClientPeer.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.PLG.CPLGService`1.OnBaseRequestProcessed(SocketProAdapter.ClientSide.CAsyncServiceHandler,SocketProAdapter.IJobContext,System.Int16)">
+            <summary>
+Called when a base request is processed from a remote SocketPro server. 
+Note that JobContext can be null or nothing.
+The parameter sBaseRequestId is the base request id, which must be less than 46.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.PLG.CPLGService`1.OnAllSocketsDisconnected">
+            <summary>
+Called when all of sockets in pool are disconnected.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.PLG.CPLGService`1.OnReturnedResultProcessed(SocketProAdapter.ClientSide.CAsyncServiceHandler,SocketProAdapter.IJobContext,System.Int16)">
+            <summary>
+Called when a return result has been just returned and processed
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.PLG.CPLGService`1.OnJobProcessing(SocketProAdapter.ClientSide.CAsyncServiceHandler,SocketProAdapter.IJobContext)">
+            <summary>
+Called when a job (JobContext) is processing.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.PLG.CPLGService`1.OnExecutingJob(SocketProAdapter.ClientSide.CAsyncServiceHandler,SocketProAdapter.IJobContext)">
+            <summary>
+Called when a job (JobContext) is about to be sent to SocketPro real server for processing. Specifically, if the callback returns false, the job (JobContext) will be discarded.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.PLG.CPLGService`1.OnJobDone(SocketProAdapter.ClientSide.CAsyncServiceHandler,SocketProAdapter.IJobContext)">
+            <summary>
+Called when all the tasks in the job (JobContext) are finished.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.PLG.CPLGService`1.OnFailover(SocketProAdapter.ClientSide.CAsyncServiceHandler,SocketProAdapter.IJobContext)">
+            <summary>
+Called when a fail happens. If the callback returns true, there is a fail recovery. Otherwise, there is no fail recovery.
+</summary>
+        </member>
+        <member name="P:SocketProAdapter.ServerSide.PLG.IPeerJobContext.JobManager">
+            <summary>
+The job manager. 
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.PLG.IPeerJobContext.OnWaitable(SocketProAdapter.IJobContext,System.Int32,System.Int16)">
+            <summary>
+Called when you can call IJobContext.AsyncWaitHandle for waiting until the job is finished after a task (nTaskId) has just been added into a job (JobContext) with a request id from a peer.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.PLG.IPeerJobContext.OnPeerDataSent(SocketProAdapter.IJobContext,System.Int16)">
+            <summary>
+Called when a returning result from a real server has just been sent to the peer.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.PLG.IPeerJobContext.OnSendingPeerData(SocketProAdapter.IJobContext,System.Int16,SocketProAdapter.CUQueue)">
+            <summary>
+Called when a returning result inside UQueue is about to be sent to a peer for a request (sRequestId).
+If the callback returns false, the returning result is discarded. Otherwise, the result will be sent to the client (peer).
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.PLG.IPeerJobContext.OnTaskJustAdded(SocketProAdapter.IJobContext,System.Int32,System.Int16)">
+            <summary>
+Called when a task (nTaskId) has just been added into a job (JobContext) with a request id from a peer.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.PLG.IPeerJobContext.OnAddingTask(SocketProAdapter.IJobContext,System.Int16)">
+            <summary>
+Called when a task is about to be added into a job (JobContext) with a request id from a peer.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.PLG.IPeerJobContext.OnJobEnqueued(SocketProAdapter.IJobContext,System.Int16)">
+            <summary>
+Called when a job (JobContext) has just been enqueued with a request id from a peer.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.PLG.IPeerJobContext.OnEnqueuingJob(SocketProAdapter.IJobContext,System.Int16)">
+            <summary>
+Called when a job (JobContext) is about to be enqueued with a request id from a peer.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.PLG.IPeerJobContext.OnJobJustCreated(SocketProAdapter.IJobContext,System.Int16)">
+            <summary>
+Called when a job (JobContext) has just been created with a request id from a peer.
+</summary>
+        </member>
+        <member name="T:SocketProAdapter.ServerSide.PLG.IPeerJobContext">
+            <summary>
+An interface for notifying a peer job creation processing and its returning results from real servers.
+The interface must be implemented for CPLGService generic class when you need SocketPro loading balance, parallel and grid computing service at SocketPro server side.
+</summary>
+        </member>
+        <member name="P:SocketProAdapter.ClientSide.RemoteDB.CAsynDBLiteEx.AttachedDataGridView">
+            <summary>
+Attach or detach a DataGridView object with CurrentDataTable
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.RemoteDB.CAsynDBLiteEx.GetRecordRowIndex(System.Int32)">
+            <summary>
+Get the index of a batch of rowset records from a given data grid view row index nGridViewRowIndex. It can return -1, an invalid index.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.RemoteDB.CAsynDBLiteEx.AddRecord(System.Windows.Forms.DataGridViewRow,System.Boolean)">
+            <summary>
+Add a record onto a database from a given data grid view row object dgvRow.
+If the input parameter bNeedNewRecord is set true and RetrieveServerDataOnInsert is included with rowset opening hint, you will get the latest added rowset immediately.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.RemoteDB.CAsynDBLiteEx.AddRecord(System.Windows.Forms.DataGridViewRow)">
+            <summary>
+Add a record onto a database from a given data grid view row object dgvRow.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.RemoteDB.CAsynDBLiteEx.Update(System.Windows.Forms.DataGridViewCell)">
+            <summary>
+Update a record from a given data grid view cell object dgvCell.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.RemoteDB.CAsynDBLiteEx.DeleteRow(System.Windows.Forms.DataGridViewRow)">
+            <summary>
+Delete a record indicated by a given data grid view object dgvRow.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.RemoteDB.CAsynDBLiteEx.OpenRowset(System.String,System.String)">
+            <summary>
+Execute a SQL statement for an updateable rowset with the first batch of records
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.RemoteDB.CAsynDBLiteEx.OpenRowsetFromParameters(System.Object[],System.String)">
+            <summary>
+Open an updateable rowset from one array (one set) of parameter data with the first batch of records
+</summary>
+        </member>
+        <member name="P:SocketProAdapter.ClientSide.RemoteDB.CAsynDBLite.SubBatchSize">
+            <summary>
+The property indicates the sub-batch size. By default, it is zero. 
+When setting the property to a small number, it will reduce records data arrival latency for low bandwidth networks.
+If a network bandwidth is high, you should default this property to zero.
+</summary>
+        </member>
+        <member name="P:SocketProAdapter.ClientSide.RemoteDB.CAsynDBLite.Batchable">
+            <summary>
+The property indicates if setting multiple sets of parameters is possible.
+</summary>
+        </member>
+        <member name="P:SocketProAdapter.ClientSide.RemoteDB.CAsynDBLite.DBServerVersion">
+            <summary>
+The property indicates the version of backend database server.
+</summary>
+        </member>
+        <member name="P:SocketProAdapter.ClientSide.RemoteDB.CAsynDBLite.DBDataSource">
+            <summary>
+The property indicates the name of backend database server.
+</summary>
+        </member>
+        <member name="P:SocketProAdapter.ClientSide.RemoteDB.CAsynDBLite.Database">
+            <summary>
+The property indicates the name of connected database.
+</summary>
+        </member>
+        <member name="P:SocketProAdapter.ClientSide.RemoteDB.CAsynDBLite.DBProvider">
+            <summary>
+The property indicates the name of OLEDB provider used by remote database service at a SocketPro server.
+</summary>
+        </member>
+        <member name="P:SocketProAdapter.ClientSide.RemoteDB.CAsynDBLite.CurrentDataTable">
+            <summary>
+The property indicates the current datatable created by executing a SQL query statement.
+</summary>
+        </member>
+        <member name="P:SocketProAdapter.ClientSide.RemoteDB.CAsynDBLite.DataSet">
+            <summary>
+The property indicates a dataset containing a list of datatables created by executing a list of sql queries.
+</summary>
+        </member>
+        <member name="P:SocketProAdapter.ClientSide.RemoteDB.CAsynDBLite.DBErrors">
+            <summary>
+The property indicates a list of error records. The first one is usually the most important one if available.
+</summary>
+        </member>
+        <member name="P:SocketProAdapter.ClientSide.RemoteDB.CAsynDBLite.RowsFetched">
+            <summary>
+The property indicates if the number of records are fetched.
+</summary>
+        </member>
+        <member name="P:SocketProAdapter.ClientSide.RemoteDB.CAsynDBLite.IsRowsetBookmarkable">
+            <summary>
+The property indicates if the current rowset is bookmarkable.
+</summary>
+        </member>
+        <member name="P:SocketProAdapter.ClientSide.RemoteDB.CAsynDBLite.IsRowsetScrollable">
+            <summary>
+The property indicates if the current rowset is scrollable.
+</summary>
+        </member>
+        <member name="P:SocketProAdapter.ClientSide.RemoteDB.CAsynDBLite.IsRowsetOpened">
+            <summary>
+The property indicates if the current rowset is opened.
+</summary>
+        </member>
+        <member name="P:SocketProAdapter.ClientSide.RemoteDB.CAsynDBLite.IsRowsetReadonly">
+            <summary>
+The property indicates if the current rowset is updateable.
+</summary>
+        </member>
+        <member name="P:SocketProAdapter.ClientSide.RemoteDB.CAsynDBLite.DBConnected">
+            <summary>
+The property indicates if there is a database connection from a remote SocketPro server to a backend database.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.RemoteDB.CAsynDBLite.AddRecord(System.Object[],System.Boolean)">
+            <summary>
+Add a record onto a database. The input aRow must contains an array of proper data, which must match rowset data types.
+If the input parameter bNeedNewRecord is set true and RetrieveServerDataOnInsert is included with rowset opening hint, you will get the latest added rowset immediately.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.RemoteDB.CAsynDBLite.AddRecord(System.Object[])">
+            <summary>
+Add a record onto a database. The input aRow must contains an array of proper data, which must match rowset data types.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.RemoteDB.CAsynDBLite.Update(System.Int32,System.Int32,System.Object)">
+            <summary>
+Update a record with with a new value objNewValue. All of indices are 0-based.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.RemoteDB.CAsynDBLite.DeleteRow(System.Int32)">
+            <summary>
+Delete a record from a given 0-based index nRowIndex.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.RemoteDB.CAsynDBLite.PrevBatch">
+            <summary>
+Get the previous batch of records. The call is exactly equal to the call MoveNext(-2).
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.RemoteDB.CAsynDBLite.NextBatch">
+            <summary>
+Get the next batch of records
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.RemoteDB.CAsynDBLite.NextBatch(System.Int32!System.Runtime.CompilerServices.IsLong)">
+            <summary>
+Get the next batch of records with a specified number of batch records skipped. 
+If the input lSkip is less than -1, the method may fail if an opened rowset is not scrollable.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.RemoteDB.CAsynDBLite.LastBatch">
+            <summary>
+Get the last batch of records. The method may fail if an opened rowset is not scrollable.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.RemoteDB.CAsynDBLite.FirstBatch">
+            <summary>
+Get the first batch of records
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.RemoteDB.CAsynDBLite.AbortBatch">
+            <summary>
+Abort a set of requests by calling the method CClientSocket::Rollback. 
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.RemoteDB.CAsynDBLite.CommitBatch(System.AsyncCallback)">
+            <summary>
+Commit a set of requests with a given callback cb by calling the method CClientSocket::Commit. 
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.RemoteDB.CAsynDBLite.BeginBatch">
+            <summary>
+Start to batch a set of requests by calling the method CClientSocket::BeginBatching. 
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.RemoteDB.CAsynDBLite.OpenSchema(System.Guid,System.Object[])">
+            <summary>
+Open a meta rowset specified by guidSchema with an array of given restrictions arrRestrictions. 
+Refer to MS OLEDB documentation OLE DB Programmer's Reference\Part 5: Appendixes\Appendix B: Schema Rowsets.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.RemoteDB.CAsynDBLite.OpenRowset(System.String,System.String,UDBLib.tagCursorType,System.Int32,System.Int16,System.Int32)">
+            <summary>
+Execute a SQL statement for a rowset. If the rowset is opened with the hint AsynFetch, a rowset will be asynchronously fetched at the fastest speed and be closed afterwards. Otherwise, the rowset will be fetched with the first batch of records.
+</summary>
+            <param name="strSQL">
+                <c>strSQL</c> is a SQL query statement.</param>
+            <param name="strTableName">
+                <c>strTableName</c> is a table name.</param>
+            <param name="ct">
+                <c>ct</c> is a type of cursor (ctForwardOnly, ctStatic, ctKeyset, ctDynamic).</param>
+            <param name="nHints">
+                <c>nHints</c> represents a set of rowset properties like Readonly, Scrollable, AsynFetch, ......, and so on.</param>
+            <param name="sBatchSize">
+                <c>sBatchSize</c> is the number of records per batch. If it is 0, remote database service will automatically determine the size.</param>
+            <param name="nRowsExpected">
+                <c>nRowsExpected</c> is a given number of records to be fetched. -1 means fetching all of records.</param>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.RemoteDB.CAsynDBLite.OpenRowset(System.String,System.String)">
+            <summary>
+Execute a SQL statement for a readonly rowset. Fetch all of records at the fastest speed and close rowset afterwards
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.RemoteDB.CAsynDBLite.ExecuteNonQuery(System.String)">
+            <summary>
+Execute a SQL statement without opening a rowset
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.RemoteDB.CAsynDBLite.OpenRowsetFromParameters(System.Object[],System.String,UDBLib.tagCursorType,System.Int32,System.Int16,System.Int32)">
+            <summary>
+Execute a SQL statement for a rowset. If the rowset is opened with the hint AsynFetch, a rowset will be asynchronously fetched at the fastest speed and be closed afterwards. Otherwise, the rowset will be fetched with the first batch of records.
+</summary>
+            <param name="aParameterData">
+                <c>aParameterData</c> is one set of parameter data.</param>
+            <param name="strTableName">
+                <c>strTableName</c> is a table name.</param>
+            <param name="ct">
+                <c>ct</c> is a type of cursor (ctForwardOnly, ctStatic, ctKeyset, ctDynamic).</param>
+            <param name="nHints">
+                <c>nHints</c> represents a set of rowset properties like Readonly, Scrollable, AsynFetch, ......, and so on.</param>
+            <param name="sBatchSize">
+                <c>sBatchSize</c> is the number of records per batch. If it is 0, remote database service will automatically determine the size.</param>
+            <param name="nRowsExpected">
+                <c>nRowsExpected</c> is a given number of records to be fetched. -1 means fetching all of records.</param>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.RemoteDB.CAsynDBLite.OpenRowsetFromParameters(System.Object[],System.String)">
+            <summary>
+Open a rowset from one array (one set) of parameter data
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.RemoteDB.CAsynDBLite.OpenCommandWithParameters(System.String,System.Collections.Generic.List`1{SocketProAdapter.ClientSide.RemoteDB.CParamInfo},System.Boolean)">
+            <summary>
+Open a command with a parameterized statement using an array of parameter infos. 
+Later, you can use the method DoBatch to execute the parameterized statement in batch, or call the method OpenRowsetFromParameters for a rowset.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.RemoteDB.CAsynDBLite.OpenCommandWithParameters(System.String,System.Collections.Generic.List`1{SocketProAdapter.ClientSide.RemoteDB.CParamInfo})">
+            <summary>
+Open a command with a parameterized statement using an array of parameter infos. 
+Later, you can use the method DoBatch to execute the parameterized statement in batch
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.RemoteDB.CAsynDBLite.DoBatch(System.Object[])">
+            <summary>
+Send a matrix (multiple sets) of parameter data onto a backend database through a parameterized statement. 
+You can use the method for fast add, update and delete as well as executing store procedures.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.RemoteDB.CAsynDBLite.Rollback">
+            <summary>
+Abort a manual transaction.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.RemoteDB.CAsynDBLite.Commit">
+            <summary>
+Commit a manual transaction.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.RemoteDB.CAsynDBLite.BeginTrans(UDBLib.tagIsolationLevel)">
+            <summary>
+Start a manual transaction with a given isoletion level, nIsolationLevel.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.RemoteDB.CAsynDBLite.BeginTrans">
+            <summary>
+Start a manual transaction with read committed isoletion level.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.RemoteDB.CAsynDBLite.DisconnectDB">
+            <summary>
+Disconnect the connection to a backend database.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.RemoteDB.CAsynDBLite.ConnectDB(System.String)">
+            <summary>
+Connect to a remote DB through a remote SocketPro server in middle with MS OLEDB technology. Note that remote database service may use a global OLEDB connection string instead if the input strOLEDBConnString is null or empty string.
+</summary>
+            <param name="strOLEDBConnString">A connection string to a backend database</param>
+        </member>
+        <member name="F:SocketProAdapter.ClientSide.RemoteDB.CAsynDBLite.AsynFetch">
+            <summary>
+The fastest way to bring a rowset data from remote SocketPro server to client.
+Once the whole rowset is fetched, the server cursor and rowset resources are released.
+</summary>
+        </member>
+        <member name="F:SocketProAdapter.ClientSide.RemoteDB.CAsynDBLite.EnableQuickFind">
+            <summary>
+Enable quick rowset search on server side.
+</summary>
+        </member>
+        <member name="F:SocketProAdapter.ClientSide.RemoteDB.CAsynDBLite.RetrieveServerDataOnInsert">
+            <summary>
+Automatically retrieve the latest record inserted from a rwoset.
+</summary>
+        </member>
+        <member name="F:SocketProAdapter.ClientSide.RemoteDB.CAsynDBLite.UseClientCursorEngine">
+            <summary>
+Use MS OLEDD client cursor engine.
+</summary>
+        </member>
+        <member name="F:SocketProAdapter.ClientSide.RemoteDB.CAsynDBLite.UseBookmark">
+            <summary>
+A rowset with bookmark support.
+</summary>
+        </member>
+        <member name="F:SocketProAdapter.ClientSide.RemoteDB.CAsynDBLite.Scrollable">
+            <summary>
+A scrollable rowset that supports two methods LastBatch and PrevBatch.
+</summary>
+        </member>
+        <member name="F:SocketProAdapter.ClientSide.RemoteDB.CAsynDBLite.UseDelayUpdate">
+            <summary>
+Use delay mode to update rowset.
+</summary>
+        </member>
+        <member name="F:SocketProAdapter.ClientSide.RemoteDB.CAsynDBLite.Readonly">
+            <summary>
+A readonly rowset.
+</summary>
+        </member>
+        <member name="T:SocketProAdapter.ClientSide.RemoteDB.CAsynDBLite">
+            <summary>
+This class is a wrapper of key features in the file udb.dll, 
+which simplifies accessing a remote backend database from win32 or MS device platforms.
+With the help of the class, you can use one piece of code to access all of data sources through MS OLEDB or MS ODBC technology.
+</summary>
+        </member>
+        <member name="F:SocketProAdapter.ClientSide.RemoteDB.CParamInfo.m_nLen">
+            <summary>
+Parameter max data length in byte. It is used only for data types sdVT_STR, sdVT_BYTES, and sdVT_WSTR. -1 means that the parameter would be a large BLOB or text. For other data types, it is ignored.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.CHttpPushPeer.RemoveFileExtension(System.String)">
+            <summary>
+remove a file extension.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.CHttpPushPeer.AddFileExtension(System.String)">
+            <summary>
+add a file extension.
+</summary>
+        </member>
+        <member name="P:SocketProAdapter.ServerSide.CHttpPushPeer.FileExtensions">
+            <summary>
+An array of file extensions supported for downloading by default.
+To add or remove file extensions, use the methods AddFileExtension and RemoveFileExtension, respectively.
+</summary>
+        </member>
+        <member name="P:SocketProAdapter.ServerSide.CHttpPushPeer.BrowserIpAddress">
+            <summary>
+Browser IP address which a unique chat id is associated with.
+SocketPro HTTP push service will associate a chat id with an IP address when a browser calls the JavaScript method enter.
+If the IP address is not recognized, the push service will return false for all of the other calls.
+This design makes security better especially for cross-site HTTP push.
+</summary>
+        </member>
+        <member name="P:SocketProAdapter.ServerSide.CHttpPushPeer.ListeningTimeout">
+            <summary>
+Listening timeout in ms. It defaults to 60,000 (60 seconds) for most of major browsers.
+Don't change the default value unless you must do so.
+</summary>
+        </member>
+        <member name="P:SocketProAdapter.ServerSide.CHttpPushPeer.LeaseTime">
+            <summary>
+Lease time in ms. It defaults to 120,000 (120 seconds) for most of major browsers.
+Don't change the default value unless you must do so.
+</summary>
+        </member>
+        <member name="P:SocketProAdapter.ServerSide.CHttpPushPeer.CrossSite">
+            <summary>
+The property indicates if the current request is a cross-site HTTP request originating (ujsonxml.js) from SocketProAdapter for JavaScript.
+You may override this property for your requirements.
+</summary>
+        </member>
+        <member name="P:SocketProAdapter.ServerSide.CHttpPushPeer.Default">
+            <summary>
+A default file name with relative path.
+</summary>
+        </member>
+        <member name="P:SocketProAdapter.ServerSide.CHttpPushPeer.PushPath">
+            <summary>
+A case-sensitive string indicating a chat path or channel. It defaults to '/UCHAT'.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.CHttpPushPeer.OnDownloading(System.String)">
+            <summary>
+The virtual function is called right before downloading a file (strFile).
+If the virtual function returns false, there is no downloading.
+You can allow or dis-allow file downloading by overriding this virtual function.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.CHttpPushPeer.OnProcessingRequest(System.String,System.String,System.String,System.Collections.Generic.Dictionary`2{System.String,System.Object})">
+            <summary>
+The virtual function is called where there is a HTTP request coming from a web browser through SocketProAdapter for JavaScript.
+The return value will be sent to a browser.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.CHttpPushPeer.OnAfterProcessingHttpPushRequest(System.String,System.Object)">
+            <summary>
+The virtual function is called right after processing HTTP push request.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.CHttpPushPeer.OnBeforeProcessingHttpPushRequest(System.String,System.String,System.String,System.Collections.Generic.Dictionary`2{System.String,System.Object})">
+            <summary>
+The virtual function is called right before processing HTTP push request.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.CHttpPushPeer.OnProcessingHttpPushRequestException(System.String,System.Exception)">
+            <summary>
+The virtual function is called if there is an exception (myError) during processing.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.CHttpPushPeer.IsOk(System.Collections.Generic.Dictionary`2{System.String,System.Object})">
+            <summary>
+A virtual function which can be used for blocking chatting HTTP requests according to ip address.
+If the virtual function returns false, there is no joining for HTTP server push.
+For example, this is especially useful to cross-site HTTP chat requests for better security.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.CHttpPushPeer.DoCallback(System.String,System.String)">
+            <summary>
+Send a message (strMsg) to a browser through this socket connection from a given chat id (strChatId).
+The method returns true if successful.
+</summary>
+        </member>
+        <member name="T:SocketProAdapter.ServerSide.CHttpPushPeer">
+            <summary>
+A base class for implementing HTTP server push and supporting HTTP request from a web browser through SocketProAdapter for JavaScript.
+The class represents a simplified HTTP service supporting two HTTP commands, GET and POST.
+It also supports downloading files which belong to one of pre-defined file extensions (see the property FileExtensions).
+</summary>
+        </member>
+        <member name="P:SocketProAdapter.ClientSide.AspNetPush.Comet">
+            <summary>
+An interface to a default COMET instance. In case you need extra one, use the method CreateInstance.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.AspNetPush.CreateInstance">
+            <summary>
+Create an extra COMET instance in case you want to assign a client to one of many available SocketPro HTTP push servers. 
+</summary>
+        </member>
+        <member name="T:SocketProAdapter.ClientSide.AspNetPush">
+            <summary>
+A sealed class simplifies the intergration between SocketProAdapter for JavaScript and ASP.NET/AJAX.
+</summary>
+        </member>
+        <member name="P:SocketProAdapter.ClientSide.IComet.IE8">
+            <summary>
+A property for MS IE8 browser or later
+</summary>
+        </member>
+        <member name="P:SocketProAdapter.ClientSide.IComet.UrlToComet">
+            <summary>
+A url address with case-sensitive chatting path or channel like http://www.somedomain.com:20901/UCHAT
+</summary>
+        </member>
+        <member name="P:SocketProAdapter.ClientSide.IComet.UJson">
+            <summary>
+A relative path to the file ujsonxml.js. It defaults to an empty string (web site root).
+</summary>
+        </member>
+        <member name="P:SocketProAdapter.ClientSide.IComet.Version">
+            <summary>
+A version string like 1.1 by default.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.IComet.Enter(System.Web.UI.Page,System.String,System.Int32!System.Runtime.CompilerServices.IsLong[],System.String,System.Int32)">
+            <summary>
+Join one or more chatting groups (Groups) with a given case-insensitive user id. 
+The parameters page and strOnMessage indicate asp.net page and JavaScript function, respectively.
+A new JavaScript code snippet is created, and already registerred at startup block containing UHTTP default configuration code within asp.net page.
+On a browser side, it will kick off listening messages automatically in a given delay time (nDelayTime).
+The method returns a string containing a chat id if successful. Note that the method is thread-safe.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.IComet.Enter(System.Web.UI.Page,System.String,System.Int32!System.Runtime.CompilerServices.IsLong[],System.String)">
+            <summary>
+Join one or more chatting groups (Groups) with a given case-insensitive user id. 
+The parameters page and strOnMessage indicate asp.net page and JavaScript function, respectively.
+A new JavaScript code snippet is created, and already registerred at startup block containing UHTTP default configuration code within asp.net page.
+On a browser side, it will kick off listening messages automatically after 350 ms.
+The method returns a string containing a chat id if successful. Note that the method is thread-safe.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.IComet.Enter(System.String,System.String,System.Int32!System.Runtime.CompilerServices.IsLong[])">
+            <summary>
+Join one or more chatting groups (Groups) with a given case-insensitive user id. 
+The parameter strSubscriberIpAddress indicates a subscriber ip address like '111.222.121.212'.
+The method returns a string containing a chat id if successful. Note that the method is thread-safe.
+</summary>
+        </member>
+        <member name="T:SocketProAdapter.ClientSide.IComet">
+            <summary>
+An interface for integrating asp.net, ajax and silverlight with SocketPro HTTP push service.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncAdohandler.Send(System.Data.IDataReader,System.Int32)">
+            <summary>
+Send a set of records through an interface IDataReader onto a remote host.
+The parameter nBatchSize controls network communication batch size in byte and it is defaulted to 10240.
+If proper, this method is preferred for reduction of memory footprint and latency without pre-loading data records into memory.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncAdohandler.Send(System.Data.IDataReader)">
+            <summary>
+Send a set of records through an interface IDataReader onto a remote host.
+If proper, this method is preferred for reduction of memory footprint and latency without pre-loading data records into memory.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncAdohandler.Send(System.Data.DataSet,System.Boolean,System.Int32)">
+            <summary>
+Send a DataSet object onto a remote host.
+The parameter bNeedRelations is defaulted to false.
+If the parameter bNeedRelations is set to true, relationships among tables are remoted.
+By default, nBatchSize is 10240.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncAdohandler.Send(System.Data.DataSet,System.Boolean)">
+            <summary>
+Send a DataSet object onto a remote host.
+The parameter bNeedRelations is defaulted to false.
+If the parameter bNeedRelations is set to true, relationships among tables are remoted.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncAdohandler.Send(System.Data.DataSet)">
+            <summary>
+Send a DataSet object onto a remote host.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncAdohandler.Send(System.Data.DataTable,System.Int32)">
+            <summary>
+Send a DataTable object onto a remote host. Parameter nBatchSize is defaulted to 10240, which controls network communication batch size in byte.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncAdohandler.Send(System.Data.DataTable)">
+            <summary>
+Send a DataTable object onto a remote host. 
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncAdohandler.FinalizeRecords">
+            <summary>
+Call the methods EndLoadData and BeginLoadData one time for loaded records during fetching records.
+This method is usually called at client side for reduction of latency and fast displaying beginning records.
+</summary>
+        </member>
+        <member name="T:SocketProAdapter.ClientSide.CAsyncAdohandler">
+            <summary>
+An abstract class makes remoting ADO.NET objects, DataSet, DataTable and IDataReader onto a remote host much easier.
+To use this class at client side, your asynchronous handler must inheriet CAsyncAdohandler instead of CAsyncServiceHandler.
+</summary>
+        </member>
+        <member name="P:SocketProAdapter.CAsyncAdoSerializationHelper.LoadingInParallel">
+            <summary>
+Indicates if loading in parallel is enabled.
+</summary>
+        </member>
+        <member name="P:SocketProAdapter.CAsyncAdoSerializationHelper.Affected">
+            <summary>
+The number of rows, records or tables affected.
+</summary>
+        </member>
+        <member name="P:SocketProAdapter.CAsyncAdoSerializationHelper.CurrentDataSet">
+            <summary>
+The DataSet that is being fetched or has been just transferred.
+</summary>
+        </member>
+        <member name="P:SocketProAdapter.CAsyncAdoSerializationHelper.CurrentDataTable">
+            <summary>
+The datatable that is being fetched or has been just transferred.
+</summary>
+        </member>
+        <member name="P:SocketProAdapter.CAsyncAdoSerializationHelper.BatchSize">
+            <summary>
+The size of a batch of records in byte.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.CAsyncAdoSerializationHelper.FinalizeRecords">
+            <summary>
+Call the methods EndLoadData and BeginLoadData one time for loaded records during fetching records.
+This method is usually called at client side for reduction of latency and fast displaying beginning records.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.CAsyncAdoSerializationHelper.#ctor(System.Data.IDataReader)">
+            <summary>
+Construct an instance of CAsyncAdoSerializationHelper and extract field data type information from the parameter dr if a DataReader object is available.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.CAsyncAdoSerializationHelper.#ctor(System.Data.DataTable)">
+            <summary>
+Construct an instance of CAsyncAdoSerializationHelper and extract field data type information from the parameter dt if a DataTable object is available.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.CAsyncAdoSerializationHelper.#ctor(SocketProAdapter.CAsyncAdoSerializationHelper)">
+            <summary>
+Construct an instance of CAsyncAdoSerializationHelper and extract field data type information from an existing instance of CAsyncAdoSerializationHelper if it is available.
+</summary>
+        </member>
+        <member name="P:SocketProAdapter.ServerSide.CBaseService.m_bUsePool">
+            <summary>
+if m_bUsePool is true, all of CClientPeer derived objects are put into m_Pool, 
+and then deleted in a specified time (60 seconds) after a socket connection is closed.
+When the pool is enabled, it will be helpful for performance in case socket connections are repeatedly closed and connected.
+However, you may have to initialize a CClientPeer derived object by overriding CClientPeer::OnSwitchFrom
+because a CClientPeer derived object may be in a different state.
+If m_bUsePool is false, all of CClientPeer derived objects are deleted 
+immediately after a socket connection is closed or swicthed.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.CBaseService.GetPeerSocket(System.Int32)">
+            <summary>
+Associate a service with an instance of your CClientPeer derived class. 
+You must override the pure virtual function as shown in all of samples.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.CBaseService.OnPretranslateMessage(System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.Int32)">
+            <summary>
+This virtual function is called within a worker thread before a message is dispatched. 
+For all of parameters, see the documnetation of window structiure MSG.
+If you does not want to continue processing a message, override the function with return value True.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.CBaseService.OnThreadShuttingDown">
+            <summary>
+This virtual function is called within a worker thread when the thread is going to die.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.CBaseService.OnThreadStarted">
+            <summary>
+This virtual function is called within a worker thread when the thread is just started.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.CBaseService.OnThreadCreated(System.Int32,System.Int32)">
+            <summary>
+This virtual function is called within a main thread when the thread is just created.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.CBaseService.OnIsPermitted(System.Int32)">
+            <summary>
+This virtual function is called within a main thread when a client is authenticated.
+</summary>
+        </member>
+        <member name="P:SocketProAdapter.ServerSide.CBaseService.CountOfServices">
+            <summary>
+A property indicating the total number of services registered from this library.
+</summary>
+        </member>
+        <member name="P:SocketProAdapter.ServerSide.CBaseService.CountOfAllServices">
+            <summary>
+A property indicating the total number of services registered inside the SocketPro server, including ones from other libraries.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.CBaseService.AddALibrary(System.String,System.Int32)">
+            <summary>
+Plug a library into a SocketPro server.
+The method returns a valid HINSTANCE. If failed, the return result will be zero.
+</summary>
+            <param name="strLibFile">A library file name like c:\somedir\uodbsvr.dll.</param>
+            <param name="nParam">A value passed into the library.</param>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.CBaseService.AddALibrary(System.String)">
+            <summary>
+Plug a library into a SocketPro server.
+The method returns a HINSTANCE to a libarary. If failed, the return result will be zero.
+</summary>
+            <param name="strLibFile">A library file name like c:\somedir\uodbsvr.dll</param>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.CBaseService.GetALibrary(System.Int32)">
+            <summary>
+Get an library from a zero-based index.
+The method returns a HINSTANCE to a libarary. If not found, the return result will be zero.
+</summary>
+            <param name="nIndex">0, 1, 2, .....</param>
+        </member>
+        <member name="P:SocketProAdapter.ServerSide.CBaseService.SvsID">
+            <summary>
+A property indicating this service id.
+</summary>
+        </member>
+        <member name="P:SocketProAdapter.ServerSide.CBaseService.ReturnRandom">
+            <summary>
+A property indicating if returning results will be queued in random. It defaults to false. 
+The property is mainly created for parallel, loading balance and grid computing at server side.
+Don't set the property from your code!
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.CBaseService.AddSlowRequest(System.Int16)">
+            <summary>
+Inform a SocketPro server that a request will take a long time to process.
+The method returns true or false. If it is return false, check if you have already called the method AddMe successfully.
+Note that you can call this method ONLY AFTER successfully calling the method AddMe.
+</summary>
+            <param name="sRequestID">A request ID.</param>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.CBaseService.AddMe(System.Int32,System.Int32,SocketProAdapter.ServerSide.tagThreadApartment)">
+            <summary>
+Plug this service into a SocketPro server with default events.
+The method returns true or false. 
+If false is returned, the SocketPro server may already have a service with the same service id.
+</summary>
+            <param name="nSvsID">A service ID.</param>
+            <param name="nEvents">An integer indicating one or more events. Note that some events are always subscribed no matter what the input is.</param>
+            <param name="taWhatTA">A thread apartment. If no COM object is involved, set the parameter into taNone.</param>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.CBaseService.AddMe(System.Int32,SocketProAdapter.ServerSide.tagThreadApartment)">
+            <summary>
+Plug this service into a SocketPro server with default events.
+The method returns true or false. 
+If false is returned, the SocketPro server may already have a service with the same service id.
+</summary>
+            <param name="nSvsID">A service ID.</param>
+            <param name="taWhatTA">A thread apartment. If no COM object is involved, set the parameter into taNone.</param>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.CBaseService.AddMe(System.Int32)">
+            <summary>
+Plug this service into a SocketPro server with default events and taNone.
+The method returns true or false. 
+If false is returned, the SocketPro server may already have a service with the same service id.
+</summary>
+            <param name="nSvsID">A service ID.</param>
+        </member>
+        <member name="P:SocketProAdapter.ServerSide.CHttpPeerBase.AutoPartition">
+            <summary>
+A property indicating if SocketPro server should automatically partition a large request.
+Note that this property has a role on HTTP multipart request only.
+Setting this property to true may reduce server memory footprint and increase scalability for processing large HTTP request.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.CHttpPeerBase.SendResult(System.Int16,System.String)">
+            <summary>
+Send a text result in utf-8 format.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.CHttpPeerBase.CHttpPushImpl.GetHttpChatGroupIds(System.String)">
+            <summary>
+Get chat group ids from a given chat session string.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.CHttpPeerBase.CHttpPushImpl.Speak(System.String,System.Object,System.Int32!System.Runtime.CompilerServices.IsLong[])">
+            <summary>
+Send a message onto a number of chat groups (GroupIds) of clients through HTTP service.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.CHttpPeerBase.CHttpPushImpl.SendUserMessage(System.String,System.String,System.Object)">
+            <summary>
+Send a message (msg) to a user (strUserID) through HTTP service.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.CHttpPeerBase.CHttpPushImpl.Exit(System.String)">
+            <summary>
+Explicitly exit the previously joined chat groups identified by a given HTTP server push session ID.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.CHttpPeerBase.CHttpPushImpl.HTTPSubscribe(System.String,System.Int32,System.String)">
+            <summary>
+Subscribe chat messages through a given HTTP server push session.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.CHttpPeerBase.CHttpPushImpl.Enter(System.Int32!System.Runtime.CompilerServices.IsLong[],System.String,System.Int32,System.String)">
+            <summary>
+Join one or more chat groups (GroupIds) through HTTP service with a given lease time.
+GroupIds can be null or nothing. If so, you can use the chat id string to send a message to other clients.
+If successful, the method returns a unique HTTP server chat session ID, which will be used by other HTTP chat methods.
+The returned chat session is associated with the ip address (strIpAddr) like '111.222.212.121'. 
+If the input strIpAddr is null, empty or invalid, SocketPro will use the current client IP address instead.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.CHttpPeerBase.CHttpPushImpl.Enter(System.Int32!System.Runtime.CompilerServices.IsLong[],System.String,System.Int32)">
+            <summary>
+Join one or more chat groups (GroupIds) through HTTP service with a given lease time.
+GroupIds can be null or nothing. If so, you can use the chat id string to send a message to other clients.
+If successful, the method returns a unique HTTP server chat session ID, which will be used by other HTTP chat methods.
+The returned chat session is associated with this client IP address. 
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.IUHttpPush.GetHttpChatGroupIds(System.String)">
+            <summary>
+Get chat group ids from a given chat session string.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.IUHttpPush.Speak(System.String,System.Object,System.Int32!System.Runtime.CompilerServices.IsLong[])">
+            <summary>
+Send a message onto a number of chat groups (GroupIds) of clients through HTTP service.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.IUHttpPush.SendUserMessage(System.String,System.String,System.Object)">
+            <summary>
+Send a message (msg) to a user (strUserID) through HTTP service.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.IUHttpPush.Exit(System.String)">
+            <summary>
+Explicitly exit the previously joined chat groups identified by a given HTTP server push session ID.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.IUHttpPush.HTTPSubscribe(System.String,System.Int32,System.String)">
+            <summary>
+Subscribe chat messages through a given HTTP server push session.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.IUHttpPush.Enter(System.Int32!System.Runtime.CompilerServices.IsLong[],System.String,System.Int32,System.String)">
+            <summary>
+Join one or more chat groups (GroupIds) through HTTP service with a given lease time.
+GroupIds can be null or nothing. If so, you can use the chat id string to send a message to other clients.
+If successful, the method returns a unique HTTP server chat session ID, which will be used by other HTTP chat methods.
+The returned chat session is associated with the ip address (strIpAddr) like '111.222.212.121'. 
+If the input strIpAddr is null, empty or invalid, SocketPro will use the current client IP address instead.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.IUHttpPush.Enter(System.Int32!System.Runtime.CompilerServices.IsLong[],System.String,System.Int32)">
+            <summary>
+Join one or more chat groups (GroupIds) through HTTP service with a given lease time.
+GroupIds can be null or nothing. If so, you can use the chat id string to send a message to other clients.
+If successful, the method returns a unique HTTP server chat session ID, which will be used by other HTTP chat methods.
+The returned chat session is associated with this client IP address. 
+</summary>
+        </member>
+        <member name="T:SocketProAdapter.ServerSide.IUHttpPush">
+            <summary>
+An interface for sending chat messages through HTTP push. 
+Note that all of methods are thread-safe.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.CClientPeer.OnSwitchFrom(System.Int32)">
+            <summary>
+The virtual function will be called when a socket is going to switch for this service.
+</summary>
+            <param name="nSvsID">An interger value indicating a previous service id. 
+For the very first switch after a socket connection, it must be sidStartup.</param>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.CClientPeer.OnReleaseResource(System.Boolean,System.Int32)">
+            <summary>
+The virtual function will be called when a socket is going to be either closed or switched for a new service.
+</summary>
+            <param name="bClosing">If the parameter is true, the socket will be closed with error code nInfo. 
+Otherwise, the socket will be switched for new service nInfo.</param>
+            <param name="nInfo">An interger value indicating either an error code or new service id.</param>
+        </member>
+        <member name="P:SocketProAdapter.ServerSide.CClientPeer.IsCanceled">
+            <summary>
+A property indicating if the server has received the request Cancel from a client.
+Look at this property anywhere and anytime within a worker thread.
+</summary>
+        </member>
+        <member name="P:SocketProAdapter.ServerSide.CClientPeer.InMainThread">
+            <summary>
+A property indicating if the current thread is main thread.
+</summary>
+        </member>
+        <member name="P:SocketProAdapter.ServerSide.CClientPeer.AssociatedSocket">
+            <summary>
+A property indicating socket handle.
+Look at this property anywhere within a worker thread.
+</summary>
+        </member>
+        <member name="P:SocketProAdapter.ServerSide.CClientPeer.JoinedGroups">
+            <summary>
+A property for an array of group ids.
+</summary>
+        </member>
+        <member name="P:SocketProAdapter.ServerSide.CClientPeer.ServerInfo">
+            <summary>
+A property indicating key information data for this server.
+You set this property to tell usktpro.dll and underlying socket implementation versions.
+You can also use this property to tell server implementation for a service.
+</summary>
+        </member>
+        <member name="P:SocketProAdapter.ServerSide.CClientPeer.ClientInfo">
+            <summary>
+A property indicating key information data from a client.
+You can use this property to check various versions of client USocket.dll and its underlying socket implementation.
+You can also use this property to check client implementation version for a sevice.
+</summary>
+        </member>
+        <member name="P:SocketProAdapter.ServerSide.CClientPeer.AutoBuffer">
+            <summary>
+A property turning on/off buffering requests automatically. By default, it is true.
+If you set the property to false, you have to call RetrieveBuffer by yourself. Usually,
+you should NOT set the property to false.
+</summary>
+        </member>
+        <member name="P:SocketProAdapter.ServerSide.CClientPeer.MaxMessageSize">
+            <summary>
+A property indicating the max message size allowed.
+Setting this property to a proper value reduces the chance of DoS attack.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.CClientPeer.ShrinkMemory">
+            <summary>
+Call this method to reduce allocated memory associated with this socket.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.CClientPeer.SendResult``5(System.Int16,``0,``1,``2,``3,``4)">
+            <summary>
+Send a result to remote client. In general, this generic method is preferred to the methods SendReturnData for less code, better thread safety, and simplicity.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.CClientPeer.SendResult``4(System.Int16,``0,``1,``2,``3)">
+            <summary>
+Send a result to remote client. In general, this generic method is preferred to the methods SendReturnData for less code, better thread safety, and simplicity.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.CClientPeer.SendResult``3(System.Int16,``0,``1,``2)">
+            <summary>
+Send a result to remote client. In general, this generic method is preferred to the methods SendReturnData for less code, better thread safety, and simplicity.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.CClientPeer.SendResult``2(System.Int16,``0,``1)">
+            <summary>
+Send a result to remote client. In general, this generic method is preferred to the methods SendReturnData for less code, better thread safety, and simplicity.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.CClientPeer.SendResult``1(System.Int16,``0)">
+            <summary>
+Send a result to remote client. In general, this generic method is preferred to the methods SendReturnData for less code, better thread safety, and simplicity.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.CClientPeer.SendResult(System.Int16,SocketProAdapter.CScopeUQueue)">
+            <summary>
+Send a result (UQueue) to remote client.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.CClientPeer.SendResult(System.Int16,SocketProAdapter.CUQueue)">
+            <summary>
+Send a result (UQueue) to remote client. 
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.CClientPeer.SendResult(System.Int16)">
+            <summary>
+Send an empty result to remote client. In general, this method is preferred to the methods SendReturnData for less code, better thread safety, and simplicity.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.CClientPeer.SendReturnData(System.Int16)">
+            <summary>
+Send an empty result to remote client. In general, this method is not preferred. Use the method SendResult instead for less code, better thread safety, and simplicity.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.CClientPeer.SendReturnData(System.Int16,SocketProAdapter.CUQueue)">
+            <summary>
+Send a result to remote client. In general, this method is not preferred. Use the method SendResult instead for less code, better thread safety, and simplicity.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.CClientPeer.SendReturnData(System.Int16,System.Byte[],System.Int32)">
+            <summary>
+Send a result to remote client. In general, this method is not preferred. Use the method SendResult instead for less code, better thread safety, and simplicity.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.CClientPeer.SendReturnData(System.Byte[],System.Int16)">
+            <summary>
+Send a result to remote client. In general, this method is not preferred. Use the method SendResult instead for less code, better thread safety, and simplicity.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.CClientPeer.SendReturnData(System.Int16,System.IntPtr,System.Int32)">
+            <summary>
+Send a result to remote client. In general, this method is not preferred. Use the method SendResult instead for less code, better thread safety, and simplicity.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.CClientPeer.PostClose(System.Int16)">
+            <summary>
+Post a message for close this socket connection with a given error code (sError)
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.CClientPeer.GetRequestIDsInQueue(System.Int16[],System.Int32)">
+            <summary>
+Get an array of request ids in queue to be processed into an array of buffer you allocated.
+The method returns the actual number of request ids obtained. 
+</summary>
+            <param name="psRequestID">The array buffer for receiving request ids.</param>
+            <param name="nSize">The size of the array psRequestID.</param>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.CClientPeer.GetRequestIDsInQueue(System.Int16[])">
+            <summary>
+Get an array of request ids in queue to be processed into an array of buffer you allocated.
+The method returns the actual number of request ids obtained. 
+</summary>
+            <param name="psRequestID">The array buffer for receiving request ids.</param>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.CClientPeer.CommitBatching">
+            <summary>
+Send all of previously batched returning results in memory onto a remote client.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.CClientPeer.AbortBatching">
+            <summary>
+Discard all of previously batched returning results.
+</summary>
+        </member>
+        <member name="P:SocketProAdapter.ServerSide.CSocketProServer.Config.SwitchTime">
+            <summary>
+The max allowed time in ms between a client socket connection and calling IUSocket::SwitchTo.
+If a client calls the method IUSocket::SwitchTo is too late, 
+a SocketPro server will shut down the socket connection with error ERROR_UNOT_SWITCHED_YET
+</summary>
+        </member>
+        <member name="P:SocketProAdapter.ServerSide.CSocketProServer.Config.SharedAM">
+            <summary>
+True or falase. 
+If the property is true, a client can switch freely among different services after the first authentication.
+If the property is false, a client has to provide its user id and password for each of switches.
+</summary>
+        </member>
+        <member name="P:SocketProAdapter.ServerSide.CSocketProServer.Config.CleanPoolInterval">
+            <summary>
+Interval time for cleaning a pool of sockets. It is default to 60,000 ms.
+</summary>
+        </member>
+        <member name="T:SocketProAdapter.ServerSide.CSocketProServer.Config">
+            <summary>
+A set of static attributes to control SocketPro server running enviroment attributes.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.CSocketProServer.HttpPush.GetHTTPChatContext(System.String,System.String@,System.String@,System.Int32@,System.Int32!System.Runtime.CompilerServices.IsLong[]@,System.Int32@,System.Int32@)">
+            <summary>
+Query a HTTP chat context
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.CSocketProServer.HttpPush.GetHTTPChatIds(System.Int32)">
+            <summary>
+Query an array of HTTP chat id strings for a given group id (nGroupId).
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.CSocketProServer.PushManager.GetGroupID(System.Int32)">
+            <summary>
+Get a chat group id from a given zero-based index (nIndex).
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.CSocketProServer.PushManager.GetCountOfChatters(System.Int32)">
+            <summary>
+Get the number of clients joined into a given chat group (nGroupID).
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.CSocketProServer.PushManager.GetChatterSocket(System.Int32,System.Int32)">
+            <summary>
+Find a socket handle within a chat group (nGroupID) from a given zero-based index. 
+The method returns a valid socket handle.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.CSocketProServer.PushManager.GetAChatGroupDiscription(System.Int32)">
+            <summary>
+Get a description about a given chat group (nGroupID).
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.CSocketProServer.PushManager.AddAChatGroup(System.Int32,System.String)">
+            <summary>
+Add a chat group into a SocketPro server.
+</summary>
+            <returns>
+True or false.
+</returns>
+            <param name="nGroupID">A unique non-zero number indicating a group.</param>
+            <param name="strDescription">An optional text string describing the group.</param>
+        </member>
+        <member name="T:SocketProAdapter.ServerSide.CSocketProServer.PushManager">
+            <summary>
+A collection of methods for accessing SocketPro server chat groups.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.CSocketProServer.SetPassword(System.Int32,System.String)">
+            <summary>
+Set a password inside the call CSocketProServer::OnIsPermitted for BlowFish. 
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.CSocketProServer.PostQuit">
+            <summary>
+Post-quit IO completion port or window message pump.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.CSocketProServer.GetClient(System.Int32)">
+            <summary>
+Get a socket handle from a given zero-based index.
+The method returns 0, -1, or valid socket handle. 0 or -1 means that the socket hSocket is not available.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.CSocketProServer.FindClient(System.Int32)">
+            <summary>
+Check whether a socket is closed.
+The method returns 0, -1, or valid socket handle. 0 or -1 means that the socket hSocket is not available now.
+</summary>
+            <returns>
+0, -1, or valid socket handle. 0 or -1 means that the socket hSocket is not available now.
+</returns>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.CSocketProServer.UseSSL(System.String,System.String,System.String,USOCKETLib.tagEncryptionMethod)">
+            <summary>
+Start a secured SocketPro server with either OpenSSL or MS SSPI with certificate and key file (strPfxFile) protected by a password (strPassword).
+Call this method before calling the method StartSocketProServer. 
+If the parameter EncryptionMethod is either MSSSL or MSTLSv1, MS SSPI is used. Also, a certificate subject (strSubject) must be specified.
+If the parameter EncryptionMethod is either SSL23 or TLSv1, OpenSSL is used. No certificate subject (strSubject) is required.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.CSocketProServer.UseSSL(USOCKETLib.tagEncryptionMethod,System.String,System.Boolean,System.Boolean)">
+            <summary>
+Start a secured SocketPro server with MSSSL or MSTLSv1 using MS SSPI
+Call this method before calling the method StartSocketProServer. The parameter EncryptionMethod must be either MSSSL or MSTLSv1.
+The parameters strSubject, bMachine and bRoot indicate the certificate (strSubject) in a store (bMachine and bRoot).
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.CSocketProServer.UseSSL(USOCKETLib.tagEncryptionMethod,System.String,System.String)">
+            <summary>
+Start a secured SocketPro server with SSL23 or TLSv1 using OpenSSL
+Call this method before calling the method StartSocketProServer. The parameter EncryptionMethod must be either SSL23 or TLSv1.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.CSocketProServer.StopSocketProServer">
+            <summary>
+Stop a SocketPro server.
+Note that this function does not do anything if you call it from main thread.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.CSocketProServer.AskForEvents(System.Int32)">
+            <summary>
+Request one or more global events. Call ths method before starting a SocketPro server for monitoring a set of selected global events by overriding virtual functions.
+</summary>
+            <param name="nEvents">Events could be eOnSwitchTo, eOnIsPermitted, eOnClose, eOnAccept, eOnSSLEvent .....</param>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.CSocketProServer.Run(System.Int32,System.Int32!System.Runtime.CompilerServices.IsLong,System.Int32)">
+            <summary>
+Starts a SocketPro server running on a given port (nPort) with extra events (lEvents) plus default events OnClose, OnAccept, OnIsPermited and OnChatRequestComing.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.CSocketProServer.Run(System.Int32,System.Int32!System.Runtime.CompilerServices.IsLong)">
+            <summary>
+Starts a SocketPro server running on a given port (nPort) with extra events (lEvents) plus default events OnClose, OnAccept, OnIsPermited and OnChatRequestComing.
+The default max backlog is 64.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.CSocketProServer.Run(System.Int32)">
+            <summary>
+Starts a SocketPro server running on a given port (nPort) with default events OnClose, OnAccept, OnIsPermited and OnChatRequestComing.
+The default max backlog is 64.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.CSocketProServer.StartMessagePump">
+            <summary>
+Start a window message pump. Call ths method right after calling StartSocketProServer if there is no message pump available.
+However, don't call this method if a window message pump is already available.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.CSocketProServer.#ctor(System.Int32)">
+            <summary>
+Create an instance of CSocketProServer. 
+Note that a SocketPro server can have ONE instance ONLY.
+Once an instance of CSocketProServer is created, the underlying usktpror.dll is initialized.
+</summary>
+            <param name="nParam"> A data passed into usktpror.dll. At this time, it is reserved for the future use.</param>
+        </member>
+        <member name="M:SocketProAdapter.ServerSide.CSocketProServer.#ctor">
+            <summary>
+Create an instance of CSocketProServer. 
+Note that a SocketPro server can have ONE instance ONLY.
+Once an instance of CSocketProServer is created, the underlying usktpror.dll is initialized.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CSocketPoolEx`1.OnSocketPoolEvent(USOCKETLib.tagSocketPoolEvent,USOCKETLib.USocket)">
+            <summary>
+The virtual method will be called when there is a socket pool related event.
+Note that dead lock may happen if you call one of methods of USocketPool object inside the virtual function.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CSocketPoolEx`1.OnAllSocketsDisconnected">
+            <summary>
+Called when all of sockets in pool are disconnected.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CSocketPoolEx`1.OnReturnedResultProcessed(`0,SocketProAdapter.IJobContext,System.Int16)">
+            <summary>
+Called when a return result is returned and processed
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CSocketPoolEx`1.OnJobProcessing(`0,SocketProAdapter.IJobContext)">
+            <summary>
+Called when there is a job under processing.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CSocketPoolEx`1.OnExecutingJob(`0,SocketProAdapter.IJobContext)">
+            <summary>
+Called when there is a job which is about to be sent to SocketPro server for processing. Specifically, if the callback returns false, the job (JobContext) is discarded.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CSocketPoolEx`1.OnJobDone(`0,SocketProAdapter.IJobContext)">
+            <summary>
+Called when all the tasks in job are finished.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CSocketPoolEx`1.OnFailover(`0,SocketProAdapter.IJobContext)">
+            <summary>
+Called when a fail happens. If the callback returns true, there is a fail recovery. Otherwise, there is no fail recovery.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CSocketPoolEx`1.ShutdownPool">
+            <summary>
+Shut down socket pool, and clean all of associated resources.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CSocketPoolEx`1.Stop(System.Boolean)">
+            <summary>
+Stop parallel computation. If the parameter bCancelRequestsInQueue is set to true, socket pool will send a request Cancel to server for shutting down computation as soon as possible.
+If the parameter bCancelRequestsInQueue is set to false by default, it stops computation gracefully until all of scheduled jobs are finished.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CSocketPoolEx`1.Stop">
+            <summary>
+Stop parallel computation gracefully until all of scheduled jobs are finished.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CSocketPoolEx`1.Resume">
+            <summary>
+Call the method to resume parallel computation after calling the method Pause.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CSocketPoolEx`1.Pause">
+            <summary>
+Pause parallel computation gracefully. After pausing, you can call the method Resume to resume parallel computation.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CSocketPoolEx`1.Process">
+            <summary>
+Starts to process requests in parallel. If socket pool is not started or there is no job available, the method returns false.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CSocketPoolEx`1.MakeConnection(SocketProAdapter.CConnectionContext)">
+            <summary>
+Make one connection to a remote SocketPro server specified by the parameter cc, and join parallel computation immediately if there is a job available.
+Note if there is no unconnected USocket object available, the method will return false.
+If the method returns false, refer to m_hr for error code.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CSocketPoolEx`1.WaitUntilFinished(System.Int32)">
+            <summary>
+Call this method to wait until a given timeout (nTimeout). If all jobs are indeed processed within the given time (nTimeout), the method returns true. Otherwise, it returns false.
+Don't call this method from the virtual functions, OnFailover, OnExecuteJob, OnResultReturned and OnSocketPoolEvent. Otherwise, there maybe is a dead lock if nTimeout is large.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CSocketPoolEx`1.WaitUntilFinished">
+            <summary>
+Call this method to wait until all of jobs and tasks are processed with infinite time. If all jobs are indeed processed, the method returns true. Otherwise, it returns false.
+Don't call this method from the virtual functions, OnFailover, OnExecuteJob, OnResultReturned and OnSocketPoolEvent. Otherwise, there is a dead lock.
+</summary>
+        </member>
+        <member name="P:SocketProAdapter.ClientSide.CSocketPoolEx`1.AllLoaded">
+            <summary>
+A property indicating if all of connected sockets in pool are processing requests in parallel.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CSocketPoolEx`1.GetHandlersInParallel">
+            <summary>
+The method returns an array of handlers involved for proessing requests in parallel.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CSocketPoolEx`1.Unlock(SocketProAdapter.ClientSide.CClientSocket)">
+            <summary>
+Unlock a socket. This method is disabled. Calling this method will always throw an exception from this class.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CSocketPoolEx`1.Lock(System.Int32!System.Runtime.CompilerServices.IsLong,System.IntPtr)">
+            <summary>
+Lock a socket. This method is disabled. Calling this method will always throw an exception from this class.
+</summary>
+        </member>
+        <member name="P:SocketProAdapter.ClientSide.CSocketPoolEx`1.SocketsInParallel">
+            <summary>
+Indicating how many sockets are involved for proessing requests in parallel.
+</summary>
+        </member>
+        <member name="P:SocketProAdapter.ClientSide.CSocketPoolEx`1.Paused">
+            <summary>
+Indicating if processing requests is paused.
+</summary>
+        </member>
+        <member name="P:SocketProAdapter.ClientSide.CSocketPoolEx`1.Working">
+            <summary>
+Indicating if socket pool is still processing requests.
+</summary>
+        </member>
+        <member name="P:SocketProAdapter.ClientSide.CSocketPoolEx`1.Fails">
+            <summary>
+The number of failovers.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CSocketPoolEx`1.ResetFails">
+            <summary>
+Reset the number of failovers to zero.
+</summary>
+        </member>
+        <member name="P:SocketProAdapter.ClientSide.CSocketPoolEx`1.JobManager">
+            <summary>
+A property indicating a job manager.
+</summary>
+        </member>
+        <member name="T:SocketProAdapter.ClientSide.CSocketPoolEx`1">
+            <summary>
+A class makes parallel, loading balance and grid computation extremely easy with load balancing and failover protection.
+</summary>
+        </member>
+        <member name="F:SocketProAdapter.ClientSide.CSocketPool`1.m_mapSocket">
+            <summary>
+A dictionary containing socket and handler in pair. You can access it from your derived class cautiously with monitor protection.
+</summary>
+        </member>
+        <member name="F:SocketProAdapter.ClientSide.CSocketPool`1.m_hr">
+            <summary>
+Error code.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CSocketPool`1.OnSocketPoolEvent(USOCKETLib.tagSocketPoolEvent,USOCKETLib.USocket)">
+            <summary>
+The virtual function is called when starting and shutting down a socket pool as well as connectiong to remote host.
+Note that dead lock may happen if you call one of methods of USocketPool object inside the virtual function.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CSocketPool`1.GetUSocketPool">
+            <summary>
+Get a COM interop interface to COM object USocketPool. You may use the interface to debug, see how properties are changed, and extend the pool with more features.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CSocketPool`1.IsStarted">
+            <summary>
+Check the pool is started.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CSocketPool`1.ShutdownPool">
+            <summary>
+Shut down socket pool and clean all of associated resources.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CSocketPool`1.MakeConnection(SocketProAdapter.CConnectionContext)">
+            <summary>
+Make one connection to a remote SocketPro server specified by the parameter cc.
+Note if there is no unconnected USocket object available, the method will return false.
+If the method returns false, refer to m_hr for error code.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CSocketPool`1.StartSocketPool(System.String,System.Int32!System.Runtime.CompilerServices.IsLong,System.String,System.String,System.Byte,System.Byte,USOCKETLib.tagEncryptionMethod,System.Boolean)">
+            <summary>
+Start a socket pool. 
+All of sockets will be connected to one remote SocketPro server (strHost, lPort) with given credentials (strUID, strPassword).
+The bSocketsPerThread indicates the number of sockets hosted by a thread.
+The parameter bThreads determines the number of threads in pool. 
+Specifically if bThread is zero, the number of threads in socket pool will equal to the number of processors of a machine.
+If it returns false, refer to m_hr for error code.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CSocketPool`1.StartSocketPool(SocketProAdapter.CConnectionContext[],System.Byte,System.Byte)">
+            <summary>
+Start a socket pool. 
+The array of connection contexts (ConnectionContexts) defines what and how these remote server are connected.
+The parameter bSocketsPerThread indicates the max number of sockets can be hosted per thread. It should not exceed 63.
+The parameter bThreads indicates the number of threads within the pool. As usual, it should be equal to the number of processors by setting the parameter to zero.
+If failed, refer to m_hr for error code.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CSocketPool`1.StartSocketPool(SocketProAdapter.CConnectionContext[],System.Byte)">
+            <summary>
+Start a socket pool with the number of threads equal to the number of processors. 
+The array of connection contexts (ConnectionContexts) defines what and how these remote server are connected.
+The parameter bSocketsPerThread indicates the max number of sockets can be hosted per thread. It should not exceed 63.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CSocketPool`1.StartSocketPool(System.Byte,System.Byte)">
+            <summary>
+Start a socket pool without connecting to any remote host. 
+If the input bThread is zero, socket pool will use the number of processors instead.
+The input bSocketPerThread should be between 1 and 63.
+The pool will contain bSocketPerThread*bThreads sockets totally.
+If failed, refer to m_hr for error code.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CSocketPool`1.StartSocketPool(System.Byte)">
+            <summary>
+Start a socket pool without connecting to any remote host. 
+The input bSocketPerThread should be between 1 and 63.
+The pool will contain bSocketPerThread*(the number of processors) sockets totally.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CSocketPool`1.StartSocketPool(System.String,System.Int32!System.Runtime.CompilerServices.IsLong,System.String,System.String,System.Byte)">
+            <summary>
+Start a socket pool. 
+All of sockets will be connected to a remote SocketPro server (strHost, lPort) with given credentials (strUID, strPassword).
+The bSocketsPerThread indicates the number of sockets hosted by a thread.
+The number of threads in socket pool will equal to the number of processors of a machine. 
+If it returns false, refer to m_hr for error code.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CSocketPool`1.IsCompleted(SocketProAdapter.ClientSide.CClientSocket)">
+            <summary>
+Check if the socket (ClientSocket) has processed all of requests.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CSocketPool`1.IsCompleted(`0)">
+            <summary>
+Check if the handler (Handler) has processed all of requests.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CSocketPool`1.Unlock(SocketProAdapter.ClientSide.CClientSocket)">
+            <summary>
+Unlock a previously locked socket (ClientSocket).
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CSocketPool`1.Unlock(`0)">
+            <summary>
+Unlock a previously locked socket with a given asynchronous handler (Handler).
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CSocketPool`1.Lock(System.Int32!System.Runtime.CompilerServices.IsLong,System.IntPtr)">
+            <summary>
+Lock a socket with a given timeout (nTimeout) in ms. 
+If pIUSocketSameThread is zero, pool will lock anyone of sockets available.
+If pIUSocketSameThread is pointed to an locked socket, pool will lock a socket that hosted with the same thread for the locked thread pointed by pIUSocketSameThread.
+If the function returns nothing, refer to m_hr for error code.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CSocketPool`1.SetRecvTimeout(System.Int32!System.Runtime.CompilerServices.IsLong)">
+            <summary>
+Set a request receiving timeout in ms to all of pooled USocket objects. 
+Timout will not be less than 1000 ms.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CSocketPool`1.Lock(System.Int32!System.Runtime.CompilerServices.IsLong)">
+            <summary>
+Lock a socket with a given timeout (nTimeout) in ms.
+If the function returns nothing, refer to m_hr for error code.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CSocketPool`1.Lock">
+            <summary>
+Lock a socket with infinite timeout.
+If the function returns nothing, refer to m_hr for error code.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CSocketPool`1.Dispose">
+            <summary>
+Shutdown the socket pool if it is started, release all of resources, and destroy a COM object USocketPool.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CSocketPool`1.#ctor(SocketProAdapter.ClientSide.IAsyncResultsHandler)">
+            <summary>
+Instantiate a socket pool object with a given interface to a default async results handler. Internally, it creates a COM object USocketPool.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CSocketPool`1.#ctor">
+            <summary>
+Instantiate a socket pool object. Internally, it creates a COM object USocketPool.
+</summary>
+        </member>
+        <member name="T:SocketProAdapter.ClientSide.CSocketPool`1">
+            <summary>
+A class for managing a pool of sockets so that you can easily process multiple remote requests in parallel and batching with asynchrony computation and loading balance style. 
+The class wraps the methods and properties of COM object USocketPool.
+</summary>
+        </member>
+        <member name="F:SocketProAdapter.CConnectionContext.m_bZip">
+            <summary>
+A value indicating if online compression is enabled.
+</summary>
+        </member>
+        <member name="F:SocketProAdapter.CConnectionContext.m_EncrytionMethod">
+            <summary>
+An encryption method.
+</summary>
+        </member>
+        <member name="F:SocketProAdapter.CConnectionContext.m_strPassword">
+            <summary>
+A case-sensitive password for login.
+</summary>
+        </member>
+        <member name="F:SocketProAdapter.CConnectionContext.m_strUID">
+            <summary>
+A case insensitive user id for login.
+</summary>
+        </member>
+        <member name="F:SocketProAdapter.CConnectionContext.m_nPort">
+            <summary>
+A port number which a SocketPro server is running on.
+</summary>
+        </member>
+        <member name="F:SocketProAdapter.CConnectionContext.m_strHost">
+            <summary>
+A remote host string like "111.222.212.121", MyServerName or www.MyHostSample.com.
+</summary>
+        </member>
+        <member name="T:SocketProAdapter.CConnectionContext">
+            <summary>
+A structure for making a socket connection to a remote SocketPro server.
+</summary>
+        </member>
+        <member name="P:SocketProAdapter.ClientSide.CClientSocket.Callback">
+            <summary>
+A property indicating asynchronous callback.
+</summary>
+        </member>
+        <member name="P:SocketProAdapter.ClientSide.CClientSocket.Socket">
+            <summary>
+A property indicating socket handle.
+</summary>
+        </member>
+        <member name="P:SocketProAdapter.ClientSide.CClientSocket.Syn">
+            <summary>
+A property enable or disable batch processing. It should be false by default.
+</summary>
+        </member>
+        <member name="P:SocketProAdapter.ClientSide.CClientSocket.AutoTransferServerException">
+            <summary>
+A property indicating if transferring server exception is enabled.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CClientSocket.EndJob">
+            <summary>
+End a job.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CClientSocket.StartJob">
+            <summary>
+Start a job until the method EndJob is called.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CClientSocket.Cancel(System.Int32)">
+            <summary>
+Cancel a given number (lRequests) of queued requests.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CClientSocket.Cancel">
+            <summary>
+Cancel all of queued requests.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CClientSocket.CleanTrack">
+            <summary>
+Clean all of memory tracks on client side, send a request to a remote SocketPro server so that all of memory tracks on server side are also cleaned.
+Call this method if you think that there is sensitive/secret data left in various memory tracks.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CClientSocket.DetachAll">
+            <summary>
+Detach all of attached instances of CAsyncServiceHandler.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CClientSocket.DestroyUSocket">
+            <summary>
+Release all of interfaces to a COM USocket object, memory queue and other resources. 
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CClientSocket.GetCountOfRequestsInQueue">
+            <summary>
+get the number of requests in queue in processing
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CClientSocket.SetPassword(System.String)">
+            <summary>
+Set a password. Note that the password will be automatically cleaned right after calling the method SwitchTo for better security.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CClientSocket.SetUID(System.String)">
+            <summary>
+Set a user id.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CClientSocket.WaitAll(System.Int32)">
+            <summary>
+Wait until all of requests are processed and returned with a given timeout (nTimeout).
+The method returns false if the waiting is timeout or socket is closed. 
+The method returns true only if the waiting is not timeout and socket is not closed.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CClientSocket.WaitAll">
+            <summary>
+Wait until all of requests are processed and returned with an infinite timeout (-1 or 0xFFFFFFFF).
+The method returns false if socket is closed. 
+The method returns true if socket is not closed.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CClientSocket.Wait(System.Int16,System.Int32,System.Int32)">
+            <summary>
+Wait until one specified request (sRequestID) is processed and returned with a given timeout (nTimeout) and service id (nSvsID).
+The method returns false if the waiting is timeout or socket is closed. 
+The method returns true only if the waiting is not timeout and socket is not closed.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CClientSocket.Wait(System.Int16,System.Int32)">
+            <summary>
+Wait until one specified request of current service is processed and returned with a given timeout (nTimeout).
+The method returns false if the waiting is timeout or socket is closed. 
+The method returns true only if the waiting is not timeout and socket is not closed.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CClientSocket.Wait(System.Int16)">
+            <summary>
+Wait until one specified request (sRequestID) of current service is processed and returned with an infinite timeout (-1 or 0xFFFFFFFF).
+The method returns false if socket is closed. 
+The method returns true if socket is not closed.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CClientSocket.DisableUI(System.Boolean)">
+            <summary>
+Enable or disable client graphic user interfaces. 
+If graphic user interfaces are disabled, graphic user interfaces will be frozen when you either call the method Wait or WaitAll or set the property Syn to true
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CClientSocket.DisableUI">
+            <summary>
+Disable client graphic user interfaces. 
+If graphic user interfaces are disabled, graphic user interfaces will be frozen when you either call the method Wait or WaitAll or set the property Syn to true
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CClientSocket.Rollback">
+            <summary>
+Discard all of previously batched results if available.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CClientSocket.Commit(System.Boolean)">
+            <summary>
+Commit previously batched requests. 
+If the input parameter bBatchingAtServer is true, the method informs a SocketPro server returns all of return results in batch.
+Otherwise, the results will not be returned in batch.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CClientSocket.Commit">
+            <summary>
+Commit previously batched requests without asking for batching return results on server side.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CClientSocket.BeginBatching">
+            <summary>
+Start batching requests.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CClientSocket.SetUSocket(USOCKETLib.USocketClass)">
+            <summary>
+Attach this CClientSocket instance to an underlying COM USocket object through a given dotNet COM interop wrap (USocket).
+Note that if USocket is null, this CClientSocket instance will be detached from a COM USocket.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CClientSocket.SetUSocket(System.IntPtr)">
+            <summary>
+Attach this CClientSocket instance to an underlying COM USocket object through a given interface (pIUnknownToUSocket).
+Note that if pIUnknownToUSocket is null or zero, this CClientSocket instance will be detached from a COM USocket.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CClientSocket.SwitchTo(SocketProAdapter.ClientSide.CAsyncServiceHandler,System.Boolean)">
+            <summary>
+Switch for a specified service (pAsynHandler).
+If bAutoTransferServerException is set to true, it forces SocketPro server to transfer server exception to client.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CClientSocket.SwitchTo(SocketProAdapter.ClientSide.CAsyncServiceHandler)">
+            <summary>
+Switch for a specified service (pAsynHandler) but doesn't transfer SocketProServer exception.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CClientSocket.SwitchTo(System.Int32,System.Boolean)">
+            <summary>
+Switch for a specified service (nSvsID).
+If bAutoTransferServerException is set to true, it forces SocketPro server to transfer server exception to client.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CClientSocket.SwitchTo(System.Int32)">
+            <summary>
+Switch for a specified service (nSvsID) but doesn't transfer SocketProServer exception.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CClientSocket.Shutdown">
+            <summary>
+gracefully close a socket connection.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CClientSocket.Disconnect">
+            <summary>
+abort a socket connection.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CClientSocket.Connect(System.String,System.Int32,System.Boolean)">
+            <summary>
+Connect to a remote server with a given server address (strHost) and a given port number (nPort) either asynchronously and synchronously.
+Note that strIPAddr can in one of three formats like 111.222.121.212, www.udaparts.com or AComputerName.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CClientSocket.Connect(System.String,System.Int32)">
+            <summary>
+Asynchronously connect to a remote server with a given server address (strHost) and a given port number (nPort).
+Note that strIPAddr can in one of three formats like 111.222.121.212, www.udaparts.com or AComputerName.
+</summary>
+        </member>
+        <member name="T:SocketProAdapter.ClientSide.CClientSocket">
+            <summary>
+The class CClientSocket wraps all of commonly used functions found in the interfaces ISocketBase, IUSocket and IUFast.
+It also wraps the functions that can't be easily used through dotNet COM interop service.
+In case you need the functions that are not wrapped, you could use the method GetUSocket to get them through dotNet COM interop service.
+Additionally, each of instances of the class CClientSocket contains an instance of class CUQueue, 
+which is used to help sending all of requests and retrieving their returned results automatically through the interface IUFast.
+The class CClientSocket dispatches all of returned results onto one of attched instances of CAsyncServiceHandler-derived classes on the fly.
+To monitor various socket events, you could use delegates m_OnXXXX as shown in samples and tutorials.
+</summary>
+        </member>
+        <member name="P:SocketProAdapter.IJobManager.SocketPool">
+            <summary>
+A property for raw COM USocketPool object.
+</summary>
+        </member>
+        <member name="P:SocketProAdapter.IJobManager.RecycleBinSize">
+            <summary>
+A property for job recycle bin size.  
+Larger job recycle bin will make calling the methods Wait stable without any error at the cost of some memory. 
+The property defaults to 10 but will never be larger than 10240.
+</summary>
+        </member>
+        <member name="P:SocketProAdapter.IJobManager.MemoryConsumed">
+            <summary>
+The number of memory consumed by this job manager in byte.
+</summary>
+        </member>
+        <member name="P:SocketProAdapter.IJobManager.CountOfQueuedJobs">
+            <summary>
+The number of jobs queued.
+</summary>
+        </member>
+        <member name="P:SocketProAdapter.IJobManager.CountOfJobs">
+            <summary>
+The number of jobs queued and under processing.
+</summary>
+        </member>
+        <member name="P:SocketProAdapter.IJobManager.Identities">
+            <summary>
+Identities under parallel computation at this time.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.IJobManager.ResetPosition(System.Int64,System.Int32)">
+            <summary>
+Reset a queued job (jobId) to a new position (nNewPosition). If failed, the method returns -1.
+Otherwise, it returns a new position.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.IJobManager.UnlockIdentity(SocketProAdapter.ClientSide.CAsyncServiceHandler)">
+            <summary>
+Unlock an identity.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.IJobManager.LockIdentity(System.Int32)">
+            <summary>
+Lock an identity with a given timeout from available async handlers in socket pool. 
+You must call the method UnlockIdentity with the returned async handler later. Otherwise, async handler identities will be leaked quickly.
+The method will return null or nothing if no async handler is available at the calling time.
+Don't call this method from the virtual functions OnFailover, OnJobDone, OnExecutingJob, OnJobProcessing, OnReturnedResultProcessed and OnSocketPoolEvent. 
+Otherwise, there maybe is a dead lock if nTimeout is large.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.IJobManager.LockIdentity">
+            <summary>
+Lock an identity infinitely from available async handlers in socket pool. 
+You must call the method UnlockIdentity with the returned async handler later. Otherwise, async handler identities will be leaked quickly.
+The method will return null or nothing if no async handler is available at the calling time.
+Don't call this method from the virtual functions OnFailover, OnJobDone, OnExecutingJob, OnJobProcessing, OnReturnedResultProcessed and OnSocketPoolEvent. 
+Otherwise, there maybe is a dead lock.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.IJobManager.GetJobs(System.Object)">
+            <summary>
+Get an array of job ids in creating, queue or processing for a givn identity. 
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.IJobManager.Wait(System.Int64[],System.Int32)">
+            <summary>
+Wait until all of jobs (jobs) are finished with a given timeout (nTimeout). 
+If all jobs are indeed processed within the given time (nTimeout), the method returns true. Otherwise, it returns false.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.IJobManager.WaitAny(System.Object,System.Collections.Generic.List`1{System.Int64}@)">
+            <summary>
+Wait infinitely until one or more jobs with an identity Identity are finished during a time frame nTimeout.
+The method returns true and finished jobs jobsDone if successful. Otherwise, it returns false.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.IJobManager.WaitAny(System.Object,System.Int32,System.Collections.Generic.List`1{System.Int64}@)">
+            <summary>
+Wait until one or more jobs with an identity Identity are finished during a time frame nTimeout.
+The method returns true and finished jobs jobsDone if successful. Otherwise, it returns false.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.IJobManager.WaitAny(System.Int64[],System.Collections.Generic.List`1{System.Int64}@)">
+            <summary>
+Wait infinitely until one or more jobs are finished.
+The method returns true and finished jobs jobsDone if successful. Otherwise, it returns false.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.IJobManager.WaitAny(System.Int64[],System.Int32,System.Collections.Generic.List`1{System.Int64}@)">
+            <summary>
+Wait until one or more jobs are finished during a given time frame nTimeout.
+The method returns true and finished jobs jobsDone if successful. Otherwise, it returns false.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.IJobManager.Wait(System.Int64[])">
+            <summary>
+Call this method to wait until all of jobs (jobs) are finished. 
+If all jobs are indeed processed, the method returns true. Otherwise, it returns false.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.IJobManager.Wait(System.Object,System.Int32)">
+            <summary>
+Call this method to wait until all of jobs associated with a given identity (Identity) are finished with a given timeout (nTimeout). 
+If all jobs are indeed processed within the given time (nTimeout), the method returns true. Otherwise, it returns false.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.IJobManager.Wait(System.Object)">
+            <summary>
+Call this method to wait until all of jobs associated with a given identity (Identity) are finished. 
+If all jobs are indeed processed, the method returns true. Otherwise, it returns false.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.IJobManager.WaitAll(System.Int32)">
+            <summary>
+Call this method to wait until a given timeout (nTimeout). If all jobs are indeed processed within the given time (nTimeout), the method returns true. Otherwise, it returns false.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.IJobManager.WaitAll">
+            <summary>
+Call this method to wait until all of jobs and tasks are processed with infinite time. If all jobs are indeed processed, the method returns true. Otherwise, it returns false.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.IJobManager.GetJobStatus(System.Int64)">
+            <summary>
+Check a job status for a given job id (jobId)
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.IJobManager.ShrinkMemory(System.Int32)">
+            <summary>
+Safely shrink a set of memory pools down to the given memory chunk size (nMemoryChunkSize).
+Don't call this method very often. Call it only if it is indeed needed.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.IJobManager.ShrinkMemory">
+            <summary>
+Safely shrink a set of memory pools.
+Don't call this method very often. Call it only if it is indeed needed.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.IJobManager.SeekJob(System.Int64)">
+            <summary>
+Seek a job from a given job id (jobId).
+If found, it returns a job.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.IJobManager.CancelJob(System.Int64)">
+            <summary>
+The method returns true if there is indeed a job canceled with a given job id.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.IJobManager.CancelJobs(System.Object)">
+            <summary>
+The method returns the number of jobs canceled with a given associated identity (Identity).
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.IJobManager.DestroyJob(SocketProAdapter.IJobContext)">
+            <summary>
+Destroy a job (JobContext). If successful, it returns true.
+You may call this method after calling the method CreateJob.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.IJobManager.EnqueueJob(SocketProAdapter.IJobContext)">
+            <summary>
+Enqueue a job (JobContext). If successful, it returns true.
+Typically calling this method after calling the method CreateJob.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.IJobManager.CreateJob(System.Object,System.AsyncCallback)">
+            <summary>
+Create a job and associate it with an identity object (Identity) with a given callback (cb). If successful, it returns an interface to a job.
+After getting an interface to a job, you must call the method either EnqueueJob or DestroyJob. 
+Without doing so, it may lead to memory leak.
+Note that SocketPro loading balance round robin computation is dependent on the given identity.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.IJobManager.CreateJob(System.Object)">
+            <summary>
+Create a job and associate it with an identity object (Identity) without setting a callback. If successful, it returns an interface to a job.
+After getting an interface to a job, you must call the method either EnqueueJob or DestroyJob. 
+Without doing so, it may lead to memory leak or undesired effect.
+Note that SocketPro loading balance round robin computation is dependent on the given identity.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.IJobManager.CreateJob">
+            <summary>
+Create a job without associating it with an identity object or setting a callback. If successful, it returns an interface to a job.
+After getting an interface to a job, you must call its method either EnqueueJob or DestroyJob. 
+Without doing so, it may lead to memory leak or undesired effect.
+</summary>
+        </member>
+        <member name="T:SocketProAdapter.IJobManager">
+            <summary>
+An interface for managing a set of jobs. It is important that you should not call any one of IJobManager::Wait(Any or All) methods from the functions OnFailover, OnJobDone, OnExecutingJob, OnJobProcessing, OnReturnedResultProcessed and OnSocketPoolEvent. 
+Otherwise, maybe there is a dead lock if timeout is large.
+Note that all of methods and properties are thread-safe.
+</summary>
+        </member>
+        <member name="P:SocketProAdapter.IJobContext.Handler">
+            <summary>
+A property for an associated aysnc handler. Note that the property will be null or nothing if the job status is not in running.
+</summary>
+        </member>
+        <member name="P:SocketProAdapter.IJobContext.Callback">
+            <summary>
+A property indicating a callback. If it is not null or nothing, there will be a callback from a job when completed.
+</summary>
+        </member>
+        <member name="P:SocketProAdapter.IJobContext.BufferSize">
+            <summary>
+A property indicating the size of buffer used by this job in byte.
+</summary>
+        </member>
+        <member name="P:SocketProAdapter.IJobContext.Size">
+            <summary>
+A property indicating the size of tasks in byte.
+</summary>
+        </member>
+        <member name="P:SocketProAdapter.IJobContext.Bundled">
+            <summary>
+A property indicating if all of tasks are bundled. 
+If all of tasks are bundled, all of tasks are passed from one loading balancer to another one. As usual, you should not set it to true.
+The property defaults to false.
+</summary>
+        </member>
+        <member name="P:SocketProAdapter.IJobContext.Tasks">
+            <summary>
+A collection of the pairs of task id and its request context.
+</summary>
+        </member>
+        <member name="P:SocketProAdapter.IJobContext.Identity">
+            <summary>
+An identity object associated with this job. 
+Note that SocketPro loading balance round robin computation is dependent on this property.
+</summary>
+        </member>
+        <member name="P:SocketProAdapter.IJobContext.JobStatus">
+            <summary>
+The job status. Note that the property may indicate the order of queued jobs to be processed.
+</summary>
+        </member>
+        <member name="P:SocketProAdapter.IJobContext.CountOfTasks">
+            <summary>
+The number of tasks in a job.
+</summary>
+        </member>
+        <member name="P:SocketProAdapter.IJobContext.JobId">
+            <summary>
+A property indicating job id.
+</summary>
+        </member>
+        <member name="P:SocketProAdapter.IJobContext.JobManager">
+            <summary>
+A property indicating a reference to a job manager which creates this job.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.IJobContext.AllocateLargeMemory(System.Int32!System.Runtime.CompilerServices.IsLong)">
+            <summary>
+Allocate a large memory chunk for this job. If successful, it returns true.
+If nSize is less than zero or very large, the method may be fail or cause other unknown problems.
+You must be very careful to allocate a large memory chunk.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.IJobContext.Wait(System.Int32)">
+            <summary>
+Wait until this job is finished or canceled or timed out within a given timeout (nTimeout). This method is preferred over the property AsyncWaitHandle.
+The method returns false only if the job is timed out. If nTimeout equals to -1, the method waits infinitely until the job is either finished or canceled. 
+Don't call this method from the virtual functions OnFailover, OnJobDone, OnExecutingJob, OnJobProcessing, OnReturnedResultProcessed and OnSocketPoolEvent. Otherwise, there maybe is a dead lock if nTimeout is large.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.IJobContext.Wait">
+            <summary>
+Wait infinitely until this job is finished or canceled. This method is preferred over the property AsyncWaitHandle.
+Don't call this method from the virtual functions OnFailover, OnJobDone, OnExecutingJob, OnJobProcessing, OnReturnedResultProcessed and OnSocketPoolEvent. Otherwise, there maybe is a dead lock.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.IJobContext.RemoveTask(System.Int32)">
+            <summary>
+Remove a task specified by idTask. It returns true if successful.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.IJobContext.AddTask(System.Int16,System.IntPtr,System.Int32)">
+            <summary>
+Add a task into the job. It returns a non-zero task id if successful.
+A task consists of a request id (sRequestId), a buffer (pBuffer), and its size (nSize).
+</summary>
+        </member>
+        <member name="T:SocketProAdapter.IJobContext">
+            <summary>
+An interface for managing jobs, and each of them may contain many tasks. 
+Note that all of methods and properties are thread-safe.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.IUPush.Exit">
+            <summary>
+Leave chat groups. The method returns true if successful.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.IUPush.SendUserMessage(System.String,System.Byte[])">
+            <summary>
+Send an array of bytes (Message) onto one client identified with user id (UserId). The method returns true if successful.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.IUPush.SendUserMessage(System.Object,System.String)">
+            <summary>
+Send a message (Message) onto one client identified with user id (UserId). The method returns true if successful.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.IUPush.Broadcast(System.Byte[],System.Int32[])">
+            <summary>
+Send an array of bytes (Message) onto an array of chat groups (Groups) of clients. The method returns true if successful.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.IUPush.Broadcast(System.Object,System.Int32[])">
+            <summary>
+Send a message (Message) onto an array of chat groups (Groups) of clients. The method returns true if successful.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.IUPush.Enter(System.Int32[])">
+            <summary>
+Enter an array of chat groups (Groups). The method returns true if successful.
+</summary>
+        </member>
+        <member name="T:SocketProAdapter.IUPush">
+            <summary>
+An interface for sending chat messages. 
+Note that all of methods are thread-safe.
+</summary>
+        </member>
+        <member name="P:SocketProAdapter.CTaskContext.Client">
+            <summary>
+A boolean indicating if the request originally comes from a remote client.
+</summary>
+        </member>
+        <member name="P:SocketProAdapter.CTaskContext.Size">
+            <summary>
+A request input parameters size in byte.
+</summary>
+        </member>
+        <member name="P:SocketProAdapter.CTaskContext.RequestId">
+            <summary>
+A request identification number.
+</summary>
+        </member>
+        <member name="F:SocketProAdapter.tagJobStatus.jsRunning">
+            <summary>
+Job under processing.
+</summary>
+        </member>
+        <member name="F:SocketProAdapter.tagJobStatus.jsQueued">
+            <summary>
+Job queued but not in processing.
+</summary>
+        </member>
+        <member name="F:SocketProAdapter.tagJobStatus.jsCreating">
+            <summary>
+Job in creating state.
+</summary>
+        </member>
+        <member name="F:SocketProAdapter.tagJobStatus.jsInitial">
+            <summary>
+Job in recycle pool for reuse. 
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.SendRequest``10(System.Int16,``0,``1,``2,``3,``4,``5,``6,``7,``8,``9,SocketProAdapter.ClientSide.DAsyncResultHandler)">
+            <summary>
+Send a request to a remote server with a given callback.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.SendRequest``10(System.Int16,``0,``1,``2,``3,``4,``5,``6,``7,``8,``9)">
+            <summary>
+Send a request to a remote server.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.SendRequest``9(System.Int16,``0,``1,``2,``3,``4,``5,``6,``7,``8,SocketProAdapter.ClientSide.DAsyncResultHandler)">
+            <summary>
+Send a request to a remote server.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.SendRequest``9(System.Int16,``0,``1,``2,``3,``4,``5,``6,``7,``8)">
+            <summary>
+Send a request to a remote server.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.SendRequest``8(System.Int16,``0,``1,``2,``3,``4,``5,``6,``7,SocketProAdapter.ClientSide.DAsyncResultHandler)">
+            <summary>
+Send a request to a remote server with a give callback.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.SendRequest``8(System.Int16,``0,``1,``2,``3,``4,``5,``6,``7)">
+            <summary>
+Send a request to a remote server.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.SendRequest``7(System.Int16,``0,``1,``2,``3,``4,``5,``6,SocketProAdapter.ClientSide.DAsyncResultHandler)">
+            <summary>
+Send a request to a remote server with a given callback.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.SendRequest``7(System.Int16,``0,``1,``2,``3,``4,``5,``6)">
+            <summary>
+Send a request to a remote server.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.SendRequest``6(System.Int16,``0,``1,``2,``3,``4,``5,SocketProAdapter.ClientSide.DAsyncResultHandler)">
+            <summary>
+Send a request to a remote server with a given callback.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.SendRequest``6(System.Int16,``0,``1,``2,``3,``4,``5)">
+            <summary>
+Send a request to a remote server.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.SendRequest``5(System.Int16,``0,``1,``2,``3,``4,SocketProAdapter.ClientSide.DAsyncResultHandler)">
+            <summary>
+Send a request to a remote server with a given callback.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.SendRequest``5(System.Int16,``0,``1,``2,``3,``4)">
+            <summary>
+Send a request to a remote server.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.SendRequest``4(System.Int16,``0,``1,``2,``3,SocketProAdapter.ClientSide.DAsyncResultHandler)">
+            <summary>
+Send a request to a remote server with a given callback.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.SendRequest``4(System.Int16,``0,``1,``2,``3)">
+            <summary>
+Send a request to a remote server.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.SendRequest``3(System.Int16,``0,``1,``2,SocketProAdapter.ClientSide.DAsyncResultHandler)">
+            <summary>
+Send a request to a remote server with a given callback.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.SendRequest``3(System.Int16,``0,``1,``2)">
+            <summary>
+Send a request to a remote server.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.SendRequest``2(System.Int16,``0,``1,SocketProAdapter.ClientSide.DAsyncResultHandler)">
+            <summary>
+Send a request to a remote server with a given callback.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.SendRequest``2(System.Int16,``0,``1)">
+            <summary>
+Send a request to a remote server.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.SendRequest``1(System.Int16,``0,SocketProAdapter.ClientSide.DAsyncResultHandler)">
+            <summary>
+Send a request to a remote server with a given callback.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.SendRequest``1(System.Int16,``0)">
+            <summary>
+Send a request to a remote server.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.ProcessR5``15(System.Int16,``0,``1,``2,``3,``4,``5,``6,``7,``8,``9,``10@,``11@,``12@,``13@,``14@)">
+            <summary>
+Process a request (sRequestID) with five return data synchronously.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.ProcessR4``14(System.Int16,``0,``1,``2,``3,``4,``5,``6,``7,``8,``9,``10@,``11@,``12@,``13@)">
+            <summary>
+Process a request (sRequestID) with four return data synchronously.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.ProcessR3``13(System.Int16,``0,``1,``2,``3,``4,``5,``6,``7,``8,``9,``10@,``11@,``12@)">
+            <summary>
+Process a request (sRequestID) with three return data synchronously.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.ProcessR2``12(System.Int16,``0,``1,``2,``3,``4,``5,``6,``7,``8,``9,``10@,``11@)">
+            <summary>
+Process a request (sRequestID) with two return data synchronously.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.ProcessR1``11(System.Int16,``0,``1,``2,``3,``4,``5,``6,``7,``8,``9,``10@)">
+            <summary>
+Process a request (sRequestID) with one return data synchronously.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.ProcessR0``10(System.Int16,``0,``1,``2,``3,``4,``5,``6,``7,``8,``9)">
+            <summary>
+Process a request (sRequestID) without any return data synchronously.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.ProcessR5``14(System.Int16,``0,``1,``2,``3,``4,``5,``6,``7,``8,``9@,``10@,``11@,``12@,``13@)">
+            <summary>
+Process a request (sRequestID) with five return data synchronously.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.ProcessR4``13(System.Int16,``0,``1,``2,``3,``4,``5,``6,``7,``8,``9@,``10@,``11@,``12@)">
+            <summary>
+Process a request (sRequestID) with four return data synchronously.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.ProcessR3``12(System.Int16,``0,``1,``2,``3,``4,``5,``6,``7,``8,``9@,``10@,``11@)">
+            <summary>
+Process a request (sRequestID) with three return data synchronously.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.ProcessR2``11(System.Int16,``0,``1,``2,``3,``4,``5,``6,``7,``8,``9@,``10@)">
+            <summary>
+Process a request (sRequestID) with two return data synchronously.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.ProcessR1``10(System.Int16,``0,``1,``2,``3,``4,``5,``6,``7,``8,``9@)">
+            <summary>
+Process a request (sRequestID) with one return data synchronously.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.ProcessR0``9(System.Int16,``0,``1,``2,``3,``4,``5,``6,``7,``8)">
+            <summary>
+Process a request (sRequestID) without any return data synchronously.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.ProcessR5``13(System.Int16,``0,``1,``2,``3,``4,``5,``6,``7,``8@,``9@,``10@,``11@,``12@)">
+            <summary>
+Process a request (sRequestID) with five return data synchronously.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.ProcessR4``12(System.Int16,``0,``1,``2,``3,``4,``5,``6,``7,``8@,``9@,``10@,``11@)">
+            <summary>
+Process a request (sRequestID) with four return data synchronously.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.ProcessR3``11(System.Int16,``0,``1,``2,``3,``4,``5,``6,``7,``8@,``9@,``10@)">
+            <summary>
+Process a request (sRequestID) with three return data synchronously.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.ProcessR2``10(System.Int16,``0,``1,``2,``3,``4,``5,``6,``7,``8@,``9@)">
+            <summary>
+Process a request (sRequestID) with two return data synchronously.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.ProcessR1``9(System.Int16,``0,``1,``2,``3,``4,``5,``6,``7,``8@)">
+            <summary>
+Process a request (sRequestID) with one return data synchronously.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.ProcessR0``8(System.Int16,``0,``1,``2,``3,``4,``5,``6,``7)">
+            <summary>
+Process a request (sRequestID) without any return data synchronously.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.ProcessR5``12(System.Int16,``0,``1,``2,``3,``4,``5,``6,``7@,``8@,``9@,``10@,``11@)">
+            <summary>
+Process a request (sRequestID) with five return data synchronously.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.ProcessR4``11(System.Int16,``0,``1,``2,``3,``4,``5,``6,``7@,``8@,``9@,``10@)">
+            <summary>
+Process a request (sRequestID) with four return data synchronously.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.ProcessR3``10(System.Int16,``0,``1,``2,``3,``4,``5,``6,``7@,``8@,``9@)">
+            <summary>
+Process a request (sRequestID) with three return data synchronously.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.ProcessR2``9(System.Int16,``0,``1,``2,``3,``4,``5,``6,``7@,``8@)">
+            <summary>
+Process a request (sRequestID) with two return data synchronously.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.ProcessR1``8(System.Int16,``0,``1,``2,``3,``4,``5,``6,``7@)">
+            <summary>
+Process a request (sRequestID) with one return data synchronously.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.ProcessR0``7(System.Int16,``0,``1,``2,``3,``4,``5,``6)">
+            <summary>
+Process a request (sRequestID) without any return data synchronously.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.ProcessR5``11(System.Int16,``0,``1,``2,``3,``4,``5,``6@,``7@,``8@,``9@,``10@)">
+            <summary>
+Process a request (sRequestID) with five return data synchronously.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.ProcessR4``10(System.Int16,``0,``1,``2,``3,``4,``5,``6@,``7@,``8@,``9@)">
+            <summary>
+Process a request (sRequestID) with four return data synchronously.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.ProcessR3``9(System.Int16,``0,``1,``2,``3,``4,``5,``6@,``7@,``8@)">
+            <summary>
+Process a request (sRequestID) with three return data synchronously.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.ProcessR2``8(System.Int16,``0,``1,``2,``3,``4,``5,``6@,``7@)">
+            <summary>
+Process a request (sRequestID) with two return data synchronously.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.ProcessR1``7(System.Int16,``0,``1,``2,``3,``4,``5,``6@)">
+            <summary>
+Process a request (sRequestID) with one return data synchronously.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.ProcessR0``6(System.Int16,``0,``1,``2,``3,``4,``5)">
+            <summary>
+Process a request (sRequestID) without any return data synchronously.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.ProcessR5``10(System.Int16,``0,``1,``2,``3,``4,``5@,``6@,``7@,``8@,``9@)">
+            <summary>
+Process a request (sRequestID) with five return data synchronously.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.ProcessR4``9(System.Int16,``0,``1,``2,``3,``4,``5@,``6@,``7@,``8@)">
+            <summary>
+Process a request (sRequestID) with four return data synchronously.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.ProcessR3``8(System.Int16,``0,``1,``2,``3,``4,``5@,``6@,``7@)">
+            <summary>
+Process a request (sRequestID) with three return data synchronously.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.ProcessR2``7(System.Int16,``0,``1,``2,``3,``4,``5@,``6@)">
+            <summary>
+Process a request (sRequestID) with two return data synchronously.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.ProcessR1``6(System.Int16,``0,``1,``2,``3,``4,``5@)">
+            <summary>
+Process a request (sRequestID) with one return data synchronously.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.ProcessR0``5(System.Int16,``0,``1,``2,``3,``4)">
+            <summary>
+Process a request (sRequestID) without any return data synchronously.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.ProcessR5``9(System.Int16,``0,``1,``2,``3,``4@,``5@,``6@,``7@,``8@)">
+            <summary>
+Process a request (sRequestID) with five return data synchronously.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.ProcessR4``8(System.Int16,``0,``1,``2,``3,``4@,``5@,``6@,``7@)">
+            <summary>
+Process a request (sRequestID) with four return data synchronously.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.ProcessR3``7(System.Int16,``0,``1,``2,``3,``4@,``5@,``6@)">
+            <summary>
+Process a request (sRequestID) with three return data synchronously.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.ProcessR2``6(System.Int16,``0,``1,``2,``3,``4@,``5@)">
+            <summary>
+Process a request (sRequestID) with two return data synchronously.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.ProcessR1``5(System.Int16,``0,``1,``2,``3,``4@)">
+            <summary>
+Process a request (sRequestID) with one return data synchronously.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.ProcessR0``4(System.Int16,``0,``1,``2,``3)">
+            <summary>
+Process a request (sRequestID) without any return data synchronously.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.ProcessR5``8(System.Int16,``0,``1,``2,``3@,``4@,``5@,``6@,``7@)">
+            <summary>
+Process a request (sRequestID) with five return data synchronously.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.ProcessR4``7(System.Int16,``0,``1,``2,``3@,``4@,``5@,``6@)">
+            <summary>
+Process a request (sRequestID) with four return data synchronously.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.ProcessR3``6(System.Int16,``0,``1,``2,``3@,``4@,``5@)">
+            <summary>
+Process a request (sRequestID) with three return data synchronously.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.ProcessR2``5(System.Int16,``0,``1,``2,``3@,``4@)">
+            <summary>
+Process a request (sRequestID) with two return data synchronously.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.ProcessR1``4(System.Int16,``0,``1,``2,``3@)">
+            <summary>
+Process a request (sRequestID) with one return data synchronously.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.ProcessR0``3(System.Int16,``0,``1,``2)">
+            <summary>
+Process a request (sRequestID) without any return data synchronously.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.ProcessR5``7(System.Int16,``0,``1,``2@,``3@,``4@,``5@,``6@)">
+            <summary>
+Process a request (sRequestID) with five return data synchronously.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.ProcessR4``6(System.Int16,``0,``1,``2@,``3@,``4@,``5@)">
+            <summary>
+Process a request (sRequestID) with four return data synchronously.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.ProcessR3``5(System.Int16,``0,``1,``2@,``3@,``4@)">
+            <summary>
+Process a request (sRequestID) with three return data synchronously.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.ProcessR2``4(System.Int16,``0,``1,``2@,``3@)">
+            <summary>
+Process a request (sRequestID) with two return data synchronously.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.ProcessR1``3(System.Int16,``0,``1,``2@)">
+            <summary>
+Process a request (sRequestID) with one return data synchronously.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.ProcessR0``2(System.Int16,``0,``1)">
+            <summary>
+Process a request (sRequestID) without any return data synchronously.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.ProcessR5``6(System.Int16,``0,``1@,``2@,``3@,``4@,``5@)">
+            <summary>
+Process a request (sRequestID) with five return data synchronously.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.ProcessR4``5(System.Int16,``0,``1@,``2@,``3@,``4@)">
+            <summary>
+Process a request (sRequestID) with four return data synchronously.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.ProcessR3``4(System.Int16,``0,``1@,``2@,``3@)">
+            <summary>
+Process a request (sRequestID) with three return data synchronously.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.ProcessR2``3(System.Int16,``0,``1@,``2@)">
+            <summary>
+Process a request (sRequestID) with two return data synchronously.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.ProcessR1``2(System.Int16,``0,``1@)">
+            <summary>
+Process a request (sRequestID) with one return data synchronously.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.ProcessR0``1(System.Int16,``0)">
+            <summary>
+Process a request (sRequestID) without any return data synchronously.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.ProcessR5``5(System.Int16,``0@,``1@,``2@,``3@,``4@)">
+            <summary>
+Process a request (sRequestID) with five return data synchronously.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.ProcessR4``4(System.Int16,``0@,``1@,``2@,``3@)">
+            <summary>
+Process a request (sRequestID) with four return data synchronously.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.ProcessR3``3(System.Int16,``0@,``1@,``2@)">
+            <summary>
+Process a request (sRequestID) with three return data synchronously.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.ProcessR2``2(System.Int16,``0@,``1@)">
+            <summary>
+Process a request (sRequestID) with two return data synchronously.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.ProcessR1``1(System.Int16,``0@)">
+            <summary>
+Process a request (sRequestID) with one return data synchronously.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.ProcessR0(System.Int16)">
+            <summary>
+Process a request (sRequestID) without any return data synchronously.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.SendRequest(System.Int16,SocketProAdapter.CScopeUQueue,SocketProAdapter.ClientSide.DAsyncResultHandler)">
+            <summary>
+Send a request to a remote server with a given callback.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.SendRequest(System.Int16,SocketProAdapter.CScopeUQueue)">
+            <summary>
+Send a request to a remote server.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.SendRequest(System.Int16,SocketProAdapter.CUQueue,SocketProAdapter.ClientSide.DAsyncResultHandler)">
+            <summary>
+Send a request to a remote server with a given callback. 
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.SendRequest(System.Int16,SocketProAdapter.CUQueue)">
+            <summary>
+Send a request to a remote server. 
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.SendRequest(System.Int16,System.IntPtr,System.Int32,SocketProAdapter.ClientSide.DAsyncResultHandler)">
+            <summary>
+Send a request to a remote server with a given callback.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.SendRequest(System.Int16,System.IntPtr,System.Int32)">
+            <summary>
+Send a request to a remote server.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.SendRequest(System.Int16,SocketProAdapter.ClientSide.DAsyncResultHandler)">
+            <summary>
+Send an empty request with a given callback to a remote server. 
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.SendRequest(System.Int16)">
+            <summary>
+Send an empty request to a remote server. 
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.Wait">
+            <summary>
+Wait until the last request is processed and its result is returned. The method returns true if its result is returned. Otherwise, it returns false.
+Refer to the method CClientSocket.Wait.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.Wait(System.Int16)">
+            <summary>
+Wait until the request (sRequestId) is processed and its result is returned. If the request id (sRequestId) is zero, it implies the last request. The method returns true if its result is returned. Otherwise, it returns false.
+Refer to the method CClientSocket.Wait.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.Wait(System.Int16,System.Int32)">
+            <summary>
+Wait until the request (sRequestId) is processed and its result is returned or it is timed out at the given time (nTimeout) in milliseconds. If the request id (sRequestId) is zero, it implies the last request if available. The method returns true if its result is returned. Otherwise, it returns false.
+Refer to the method CClientSocket.Wait.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.WaitAll">
+            <summary>
+Refer to the method CClientSocket.WaitAll.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.WaitAll(System.Int32)">
+            <summary>
+Refer to the method CClientSocket.WaitAll.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.RollbackBatch">
+            <summary>
+Refer to the method CClientSocket.Rollback.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.CommitBatch">
+            <summary>
+Refer to the method CClientSocket.Commit.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.CommitBatch(System.Boolean)">
+            <summary>
+Refer to the method CClientSocket.Commit.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncServiceHandler.BeginBatching">
+            <summary>
+Refer to the method CClientSocket.BeginBatching.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.CScopeUQueue.Load(System.String@)">
+            <summary>
+Load a string from internal memory queue.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.CScopeUQueue.Load``1(``0@)">
+            <summary>
+Load a data from internal memory queue.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.CScopeUQueue.Save(System.String)">
+            <summary>
+Save a string into internal memory queue.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.CScopeUQueue.Save``1(``0)">
+            <summary>
+Save a data into internal memory queue.
+</summary>
+        </member>
+        <member name="P:SocketProAdapter.CScopeUQueue.UQueue">
+            <summary>
+Internal real memory buffer
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.CScopeUQueue.Unlock(SocketProAdapter.CUQueue)">
+            <summary>
+Put a memory queue into pool for reuse.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.CScopeUQueue.Lock">
+            <summary>
+Get a memory queue from pool.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.CScopeUQueue.GetMemoryConsumed">
+            <summary>
+Query the memory consumed in bytes, which excludes the using memory.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.CScopeUQueue.CleanUQueuePool">
+            <summary>
+Clean all of recycled memory queues without deleting them.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.CScopeUQueue.DestroyUQueuePool">
+            <summary>
+Delete all of recycled memory queues
+</summary>
+        </member>
+        <member name="T:SocketProAdapter.CScopeUQueue">
+            <summary>
+A class for reusing a pool of recycled memory queues.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.CUQueue.Load(System.String@)">
+            <summary>
+Retrieve an integer data first that indicates the coming string length in byte first. 
+Afterwards, retrieve the string (str) from the memory queue according to the integer data. 
+Keep eyes on the difference between this method and the method Pop for string.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.CUQueue.Save(System.String)">
+            <summary>
+Write an integer data first that indicates the string length in byte. 
+Afterwards, write the string (strData) into the memory queue. 
+Note if the string data is null, the integer data will be -1 or 0xFFFFFFFF.
+Keep eyes on the difference between this method and the method Push for string.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.CUQueue.Deserialize``1(``0@,System.Boolean,System.Runtime.Serialization.IFormatter)">
+            <summary>
+Retrieve an object from memory queue through a specified serializer format formatter in either binary or soap. 
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.CUQueue.Deserialize``1(``0@,System.Boolean)">
+            <summary>
+Retrieve an object from memory queue through through standard .NET serializer (binary or soap).  
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.CUQueue.Deserialize``1(``0@)">
+            <summary>
+Retrieve an object from memory queue through standard .NET binary serializer. 
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.CUQueue.XmlDeserialize``1(``0@)">
+            <summary>
+Retrieve an object from memory queue through XML serialization. 
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.CUQueue.XmlSerialize``1(``0)">
+            <summary>
+Write an object into memory queue through XML serialization.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.CUQueue.Serialize``1(``0,System.Boolean,System.Runtime.Serialization.IFormatter)">
+            <summary>
+Write an object into memory queue through a specified serializer format formatter in either binary or soap. 
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.CUQueue.Serialize``1(``0,System.Boolean)">
+            <summary>
+Write an object into memory queue through standard .NET serializer (binary or soap). 
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.CUQueue.Serialize``1(``0)">
+            <summary>
+Write an object into memory queue through standard .NET binary serializer. 
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.CUQueue.Pop(System.String@,System.Int32)">
+            <summary>
+Retrieve a specified length of string from the memory queue in byte. 
+The method returns the actual number of bytes retrieved.
+Pay attention to the difference between this method and the method Load.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.CUQueue.Pop(System.String@)">
+            <summary>
+Retrieve a string from the memory queue. 
+The method returns the number of bytes retrieved.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.CUQueue.Pop``1(``0@)">
+            <summary>
+Retrieve a .NET object from the memory queue through the interface IUSerializer. 
+Note that retrieving an object is much faster through IUSerializer than .NET serializer.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.CUQueue.Push(SocketProAdapter.IUSerializer)">
+            <summary>
+Write a .NET object into the memory queue through the interface IUSerializer. 
+Note that packing an object is much faster through IUSerializer than .NET serializer.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.CUQueue.Push(System.Object,System.Boolean,System.Boolean)">
+            <summary>
+Write a .NET object into the memory queue. 
+If bToNative is set to true and obData contains a DateTime, the DateTime will be converted into VARIANT DATE.
+If both bToNative and bDecToCY are true, obData will be converted into VARIANT Currency if obData contains a Decimal data. 
+Note that .NET object may be compatible with many native VARIANTs.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.CUQueue.Push(System.Object,System.Boolean)">
+            <summary>
+Write a .NET object into the memory queue. 
+If bToNative is set to true and obData contains a DateTime, the DateTime will be converted into VARIANT DATE.
+Note that .NET object may be compatible with many native VARIANTs.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.CUQueue.Push(System.Object)">
+            <summary>
+Write a .NET object into the memory queue with highest compatibility with native VARIANTs.
+Note that .NET object may be compatible with many native VARIANTs.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.CUQueue.Pop(SocketProAdapter.CSocketProServerException@)">
+            <summary>
+Retrieve a CSocketProServerException from the memory queue. 
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.CUQueue.Pop(SocketProAdapter.CUQueue@)">
+            <summary>
+Retrieve a CUQueue from main memory queue.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.CUQueue.Pop(System.Object@)">
+            <summary>
+Retrieve a .NET object from the memory queue.
+Note that .NET object may be compatible with many native VARIANTs.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.CUQueue.Push(System.String)">
+            <summary>
+Save a string into the memory queue without saving string length.
+Keep eyes on difference between this method and the method Save.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.CUQueue.Pop(System.Byte[]@,System.Int32)">
+            <summary>
+Retrieve a specified size (nLen) of data in byte from the memory queue.
+The method returns the data size obtained actually in byte.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.CUQueue.Pop(System.Byte[]@)">
+            <summary>
+Retrieve all data from the memory queue. 
+The method returns the data size obtained actually in byte.
+</summary>
+        </member>
+        <member name="P:SocketProAdapter.CUQueue.Size">
+            <summary>
+Same as the method GetSize()
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.CUQueue.Discard(System.Int32)">
+            <summary>
+Discard a given number (nLen) of data. Don't get confused with the method CUQueue::Pop(int %nData)!
+The method returned the actual number of bytes discarded.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.CUQueue.GetBuffer(System.Int32)">
+            <summary>
+Get a pointer to packed data in the underlying native memory offset by nPos.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.CUQueue.GetBuffer">
+            <summary>
+Get a pointer to packed data in the underlying native memory.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.CUQueue.SetHeadPosition">
+            <summary>
+Set head position to 0 and move packed data in buffer as required. 
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.CUQueue.ReallocBuffer(System.Int32)">
+            <summary>
+Reallocate the buffer with a new specified size nSize. 
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.CUQueue.SetSize(System.Int32)">
+            <summary>
+Set data size. If buffer is is less than expected size nSize, 
+the underlying buffer is reallocated for a larger buffer size.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.CUQueue.GetSize">
+            <summary>
+Returns the packed data size in byte.
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.CUQueue.Empty">
+            <summary>
+Release all memores back into operation system. 
+</summary>
+        </member>
+        <member name="M:SocketProAdapter.CUQueue.CleanTrack">
+            <summary>
+Cleam all memory buffer except the buffer chunk packed with data. 
+Call this method to clean all of secret data left in memory foot print.
+</summary>
+        </member>
+    </members>
+</doc>

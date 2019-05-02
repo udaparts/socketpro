@@ -1,0 +1,1821 @@
+// This is a part of the SocketPro package.
+// Copyright (C) 2000-2004 UDAParts 
+// All rights reserved.
+//
+// This source code is only intended as a supplement to the
+// SocketPro package and related electronic documentation provided with the package.
+// See these sources for detailed information regarding this
+// UDAParts product.
+
+// Please don't disclose any source code of the software to any person or entity,
+//
+// Please don't decompile, disassemble, or reverse engineer any object code of 
+// any portion of the software.
+//  
+// http://www.udaparts.com/index.htm
+// support@udaparts.com
+
+// USocket.idl : IDL source for USocket.dll
+//
+
+// This file will be processed by the MIDL tool to
+// produce the type library (USocket.tlb) and marshalling code.
+
+import "oaidl.idl";
+import "ocidl.idl";
+
+[
+	uuid(97541F4E-4EBE-4701-9D59-5ABB0D7CD854),
+	version(1.0),
+	helpstring("USocket 1.0 Type Library")
+]
+
+library USOCKETLib
+{
+	importlib("stdole32.tlb");
+	importlib("stdole2.tlb");
+	
+	/*
+		Referenced by ISocketBase::Connect. However, the enum is ignored at this time.
+	*/
+	enum tagAddressFamily
+	{
+		afUnix		=	1,        /* local to host (pipes, portals) */
+		afINet      =	2,        /* internetwork: UDP, TCP, etc. */
+		afImpLink	=   3,              /* arpanet imp addresses */
+		afPup		=   4,               /* pup protocols: e.g. BSP */
+		afChaos		=   5,               /* mit CHAOS protocols */
+		afNS		=   6,               /* XEROX NS protocols */
+		afIPX       =	afNS,           /* IPX protocols: IPX, SPX, etc. */
+		afISO       =   7,               /* ISO protocols */
+		afOSI       =	afISO,          /* OSI is ISO */
+		afECMA      =	8,               /* european computer manufacturers */
+		afDataKit	=   9,               /* datakit protocols */
+		afCCITT     =   10,              /* CCITT protocols, X.25 etc */
+		afSNA       =   11,              /* IBM SNA */
+		afDECnet    =   12,              /* DECnet */
+		afDLI       =   13,              /* Direct data link interface */
+		afLAT       =   14,              /* LAT */
+		afHyLink    =   15,              /* NSC Hyperchannel */
+		afAppleTalk =   16,              /* AppleTalk */
+		afNetBIOS   =   17,              /* NetBios-style addresses */
+		afVoiceView =   18,              /* VoiceView */
+		afFireFox   =   19,              /* Protocols from Firefox */
+		afUnknown1	=   20,              /* Somebody is using this! */
+		afBan		=   21,              /* Banyan */
+		afATM       =   22,              /* Native ATM Services */
+		afINet6     =   23,              /* Internetwork Version 6 */
+		afCluster   =   24,              /* Microsoft Wolfpack */
+		af12844     =   25,              /* IEEE 1284.4 WG AF */
+		afMax       =	26,
+	};
+	
+	/*
+		Referenced by ISocketBase::Connect. However, the enum is ignored at this time.
+	*/
+	enum tagSocketType
+	{
+		stSTREAM     =	1,               /* stream socket */
+		stDGRAM		 =	2,               /* datagram socket */
+		stRAW        =	3,               /* raw-protocol interface */
+		stRDM        =	4,               /* reliably-delivered message */
+		stSEQPACKET  =	5,               /* sequenced packet stream */
+	};
+	
+	/*
+		Referenced by ISocketBase::Connect. However, the enum is ignored at this time.
+	*/
+	enum tagSocketProtocol
+	{
+		spIP		=      0,               /* dummy for IP */
+		spICMP      =      1,               /* control message protocol */
+		spIGMP      =      2,               /* internet group management protocol */
+		spTCP       =      6,               /* tcp */
+		spUDP       =      17,              /* user datagram protocol */
+	};
+	
+	/*
+		Referenced by ISocketBase::GetSockOpt and SetSockOpt.
+		Referenced by IUSocket::GetSockOptAtSvr and SetSockOptAtSvr.
+	*/
+	enum tagSocketLevel
+	{
+		slTcp	=  0x0006,
+		slSocket = 0xFFFF,
+	};
+	
+	/*
+		Referenced by ISocketBase::GetSockOpt and SetSockOpt.
+		Referenced by IUSocket::GetSockOptAtSvr and SetSockOptAtSvr.
+	*/
+	enum tagSocketOption
+	{
+		soTcpNoDelay	=	0x0001,
+		soDebug			=	0x0001,
+		soAcceptConn	=	0x0002,
+		soReuseAddr		=	0x0004,
+		soKeepAlive		=	0x0008,
+		soDontRoute		=	0x0010,
+		soBroadcast		=	0x0020,
+		soUseLoopback	=	0x0040,
+		soLinger		=	0x0080, 
+		soOOBInLine		=	0x0100,
+		soSndBuf		=	0x1001,          /* send buffer size */
+		soRcvBuf		=	0x1002,          /* receive buffer size */
+		soSndLowAt		=	0x1003,          /* send low-water mark */
+		soRcvLowAt		=	0x1004,          /* receive low-water mark */
+		soSndTimeout	=	0x1005,          /* send timeout */
+		soRcvTimeout    =	0x1006,          /* receive timeout */
+		soError			=	0x1007,          /* get error status and clear */
+		soType			=	0x1008,          /* get socket type */
+		soGroupID       =	0x2001,      /* ID of a socket group */
+		soGroupPriority =	0x2002,      /* the relative priority within a group*/
+		soMaxMsgSize	=	0x2003,      /* maximum message size */
+	};
+	
+	/*
+		Socket-related communication error
+	*/
+	enum tagSocketError
+	{
+		seSSLError = 1,
+		seSSLWantRead = 2,
+		seSSLWantWrite = 3,
+		seSSLWantX509Lookup = 4,
+		seSSLSysCall = 5,
+		seSSLZeroReturn = 6,
+		seSSLWantConnect = 7,
+		seSSLWantAccept = 8,
+		seClientAuthenticationError = 9,
+		seBase = 10000,
+		seWouldBlock = seBase+35,
+		seInProgress,
+		seAlready,          
+		seNotSock,
+		seDestAddrReq,
+		seMsgSize,
+		seProtoType,
+		seNoProtoOpt,
+		seProtoNoSupport,
+		seSocktNoSupport,
+		seOpNotSupp,
+		sePFNoSupport,
+		seAFNoSupport,
+		seAddrInUse,
+		seAddrNotAvail,
+		seNetDown,
+		seNetUnreach,
+		setNetReset,
+		seConnAborted,
+		seConnReset,
+		seNoBufs,
+		seIsConn,
+		seNotConn,
+		seShutDown,
+		seTooManyRefs,
+		seTimedOut,
+		seConnRefused,
+		seLoop,
+		seNameTooLong,
+		seHostDown,
+		seHostUnreach,
+		seNotEmpty,
+		seProclim,
+		seUsers,
+		seDquot,
+		seStale,
+		seRemote,
+	};
+
+	enum tagSpecialSocket
+	{
+		ssInvalidSocket = -1,
+	};
+	
+	/*
+		Referenced by ISocketBase::EncryptionMethod
+	*/
+	enum tagEncryptionMethod
+	{
+		NoEncryption=0,
+		BlowFish = 1,
+		SSL23 = 2,
+		MSSSL = 3,
+		TLSv1 = 4,
+		MSTLSv1 = 5,
+	};
+	
+	/*
+		OpenSSL handshaking events
+	*/
+	enum tagSSLEvent
+	{
+		ssleHandshakeStarted = 0x10,
+		ssleHandshakeDone = 0x20,
+		ssleHandshakeLoop = 0x1001,
+		ssleHandshakeExit = 0x1002,
+		ssleReadAlert = 0x4004,
+		ssleWriteAlert = 0x4008,
+		ssleDoSSLConnect = 0x811F,
+	};
+	
+	/*
+		Referenced by ISocketBase::Shutdown
+	*/
+	enum tagHowtoShutdown
+	{
+		hsReceive	=     0x00,
+		hsSend		=     0x01,
+		hsBoth		=     0x02,
+	};
+	
+	/*
+		Referenced by ISocketBase::IOCtl
+	*/
+	enum tagIOCommand
+	{
+		iocRead = 0x4004667f,
+		iocOOB = 0x40047307,
+		iocBIO = 0x8004667e,
+	};
+	
+	/*
+		Referenced by ISocketBase::GetInterfaceAttributes
+	*/
+	enum tagInterfaceType
+	{
+		itOther = 1,
+		itEthernet = 6,
+		itTokenRing = 9,
+		itFDDI = 15,
+		itPPP = 23,
+		itLoopback = 24,
+		itSlip = 28,
+	};
+	
+	/*
+		Referenced by IUSocket::DetectNetPerformance
+	*/
+	enum tagNetPerformance
+	{
+		npUnknown = 0,
+		npVerySlow,
+		npSlow,
+		npMiddle,
+		npFast,
+		npSuper,
+	};
+	
+	/*
+		Window messages used by USocket object
+	*/
+	enum tagClientMessage
+	{
+		//window message for socket events
+		msgSocketEvent = 0x0781,
+		
+		msgAsyncGetHostByName,
+		msgWSAGetHostByName,
+		msgWSAGetHostByAddr,
+		
+		//window message for OpenSSL handshaking
+		msgSSLEvent,
+		msgAllRequestsProcessed,
+		msgRequestRemoved,
+	};
+	
+	//Result returning flag for a request, and can combine multiple flags. 
+	//rfCompleted is always included
+	enum tagReturnFlag
+	{
+		rfUnknown = 0,
+		rfComing = 1,
+		rfReceiving = 2,
+		rfDecrypted = 4,
+		rfUnzipped = 16,
+		rfCompleted = 32,
+		rfDataComing = 64,
+	};
+
+	//builtin SocketPro base request ids
+	enum tagBaseRequestID
+	{
+		idUnknown = 0,
+		idSwitchTo = 1,			//
+		idPublicKeyFromSvr,
+		idEncrypted,
+		idBatchZipped,
+		idCancel,
+		idGetSockOptAtSvr,
+		idSetSockOptAtSvr,
+		idDoEcho,
+		idTurnOnZipAtSvr,
+		idStartBatching,
+		idCommitBatching,
+		idShrinkMemoryAtSvr,
+		idEchoFromSvr,
+		idPing,
+		idSendingTooFast,
+		idSendMySpecificBytes,
+		idCleanTrack,
+		idVerifySalt,
+		idSetZipLevelAtSvr,
+		idStartJob,
+		idEndJob,
+		idDropRequestResult,
+		idReservedOne = 0x100,
+		idReservedTwo = 0x200,
+	};
+
+	enum tagHttpRequestID
+	{
+		idHeader = 46,
+		idGet,
+		idPost,
+		idHead,
+		idPut,
+		idDelete,
+		idOptions,
+		idTrace,
+		idConnect,
+		idMultiPart,
+	};
+
+	//builtin request ids for chat/notification. They belong to SocketPro base requests
+	enum tagChatRequestID
+	{
+		idXEnter = 28,
+		idXSpeak = 29,
+		idXSpeakEx = 30,
+		idEnter=31,
+		idExit,
+		idGetAllGroups,
+		idGetAllListeners,
+		idSpeak,
+		idSpeakTo,
+		idGetAllClients,
+		idSpeakEx,
+		idSpeakToEx,
+		idSendUserMessage,
+		idSendUserMessageEx,
+	};
+	
+	/*
+		A set of pre-defined service ids
+	*/
+	enum tagServiceID
+	{
+		sidReserved1 = 1, 
+
+		//Very first service, startup
+		sidStartup = 0x100, 
+
+		//builtin chat/notification service
+		sidChat, 
+
+		//win file for ufile.dll and ufilesvr.dll
+		sidWinFile,
+
+		//standard io
+		sidStdIO, 
+
+		//Accessing various data sources through MS OLEDB technology.
+		//UDB.dll and uodbsvr.dll
+		sidOleDB, 
+		
+		//Accessing various relational databases through ODBC technology
+		sidODBC, 
+
+		//Accessing various databases through ADO.NET technology
+		sidADODotNet, 
+
+		//Accessing Oracle through Oracle OCI interfaces
+		sidOracleOCI, 
+		
+		//Accessing various databases through Java JDBC interfaces
+		sidJDBC, 
+
+		sidRemoteAdmin,
+
+		sidHTTP,
+
+		sidHTTPOnRealServer,
+
+		sidReserved2 = 0x200, 
+	};
+	
+	/*
+		A set of pre-defined error code (non-socket)
+	*/
+	enum tagUErrorCode
+	{
+		//Success
+		uecOK = 0, 
+
+		//Server is not regsiterred with a key
+		uecSvrNotRegistered = 0x00000001, 
+		
+		//Programming error, usually wrong input value. 
+		//For example, host address is null or zero in length.
+		uecUnexpected = 0x8F000000, 
+
+		//Service is not available at a remote server
+		uecSvsNotAvailable = 0x8F100001,
+
+		//Authentication failed at server side
+		uecAuthenticationFailed=0x8F100002,
+
+		//SocketPro server closes the socket connection
+		uecClientRejected = 0x8F100003,   
+
+		//having trouble in loading two OpenSSL libraries
+		uecFailedInLoadingSSL = 0x8F100004,
+		
+		
+		uecFailedInStartingSSL = 0x8F100005,
+		
+		//Method is not implemented
+		uecNotImplemented = 0x8F100006,
+		uecFail = 0x8F100007,
+		uecFailedInZip = 0x8F100008,
+		uecFailedInUnzip = 0x8F100009,
+		uecFailedInEncrypt = 0x8F10000A,
+		uecFailedInDecrypt = 0x8F10000B,
+		
+		//read only
+		uecReadOnly = 0x8F10000C,
+
+		//SocketPro server stop sending data to a client for a request
+		uecNoMoreData = 0x8F10000D,
+
+		//SocketPro catches an code running exception
+		uecExceptionCatched = 0x8F10000E,
+
+		//A request is already canceled
+		uecRequestCanceled = 0x8F10000F,
+
+		//A unknown request found at SocketPro server
+		uecNotFound = 0x8F100010,
+
+		uecFailedInLoadingMsSSPI = 0x8f100011,
+
+		uecBadData = 0x8f100012,
+		uecWrongServerVersion = 0x8f100013,
+	};
+	
+	//error codes with USocketPool object
+	enum tagSocketPoolErrorCode
+	{
+		specUnexpected = 0x8F200000,
+		specWrongApartment = 0x8F200001,
+		specLockTimeOut = 0x8F200002,
+		specNotPooledSocket = 0x8F200003,
+		specNoOpenedSocket = 0x8F200004,
+		specNotUSocket = 0x8F200005,
+		specNoFreeSocket = 0x8F200006,
+		specTooManySockets = 0x8F200007,
+		specPoolNotStarted = 0x8F200008,
+		specSocketOpenedAlready = 0x8F200009,
+		specLockingInterrupted = 0x8F20000A,
+		specLockingAbandoned = 0x8F20000B,
+		specNotInPool = 0x8F20000C,
+		specNotValidService = 0x8F20000D,
+		specPoolNotCreatedYet = 0x8F20000E,
+	};
+	
+	/*
+		A set of other defines
+	*/
+	enum tagOtherDefine
+	{
+		odFastZip = 0x40,
+		odZipped = 0x80,
+		odUserRequestIDMin = 0x2001,
+		odUserRequestIDMax = 0xFFFF,
+		odUserServiceIDMin = 0x10000000,
+		odUserServiceIDMax = 0xFFFFFFFF,
+		odCancelAll = 0xFFFFFFFF,
+		odAllGroups = 0xFFFFFFFF,
+	};
+	
+	/*
+		A set of defines for various OSs
+	*/
+	enum tagOperationSystem
+	{
+		osUnknown = 0,
+		osWin9XMe = 1,
+		osWinNT = 2,
+		osWinCE = 3,
+		osLinux = 64,
+		osJava = 128,
+	};
+
+	typedef enum tagZipLevel
+	{
+		zlDefault = 0,
+		zlBestSpeed = 1,
+		zlBestCompression = 2,
+	}ZipLevel;
+	
+	/*
+		A set of defined authentication methods.
+		Note that amTrusted is not implemented at this time.
+		You can see this data within server development code
+	*/
+	enum tagAuthenticationMethod
+	{
+		amOwn = 0,
+		amMixed,
+		amIntegrated,
+		amTrusted,
+	};
+
+	typedef //[uuid(F0210532-0601-0010-8038-00A2016D2E64)] 
+	enum tagSocketPoolEvent
+	{
+		speUnknown = -1,
+		speStarted,
+		speCreatingThread,
+		speThreadCreated,
+		speConnecting,
+		speConnected,
+		speKillingThread,
+		speShutdown,
+		speUSocketCreated,
+	}tagSocketPoolEvent;
+	
+	/*
+		The following struction is exchanged between a client and a host whenever calling IUSocket::SwitchTo.
+
+	*/
+cpp_quote("#pragma pack(push,1)")
+	/*
+		Referenced by	IUSocket::get/put_ClientParams,
+						IUSocket::GetClientUSockVersion
+						IUSocket::GetClientVersion
+						IUSocket::GetServerUSockVersion
+						IUSocket::GetServerVersion
+						IUSocket::SetClientVersion
+					with client side code.
+
+		Also referenced by GetServerInfo, GetClientInfo, and SetServerInfo
+					with server side code.
+	*/
+	struct CSwitchInfo
+	{
+		unsigned long	m_ulSvsID;
+		
+		//Call IUSocket::SetClientVersion to set the version.
+		unsigned short	m_usVerMajor;
+		unsigned short	m_usVerMinor;
+		
+		//reserved by SocketPro.
+		unsigned short	m_usUSockMajor; //0
+		unsigned short	m_usUSockMinor; //1 starting from 4.8.2.4
+
+		//m_ulParam1 and m_ulParam2 are reserved by SocketPro.
+		//m_ulParam1 indicates OS information. 
+		//Refer to the structure OSVERSIONINFOEX and Get GetVersionEx.
+		//The first byte = dwPlatformId, 2nd byte = dwMajorVersion, 
+		//3rd byte = dwMinorVersion, and 4th byte = dwBuildNumber.
+		unsigned long	m_ulParam1;
+		
+		//Indicate authentication method and ping time interval in second for server param info.
+		//The 1st byte = 0 and reserved for future use, 2nd byte = authentication method
+		//3rd and 4th bytes contains the server ping time interval in second.
+		unsigned long	m_ulParam2;
+		
+		//Call IUSocket::put_ClientParams to set the three parameters
+		//If you try to set five parameters, you will get uecUnexpected error.
+		unsigned long	m_ulParam3;
+		unsigned long	m_ulParam4;
+		unsigned long	m_ulParam5;
+	};
+	/*
+		At server side, you can call SetServerInfo(unsigned int hSocket, CSwitchInfo *pServerInfo)
+		to tell a client server information. Again, you can't set m_usUSockMajor, m_usUSockMinor,
+		m_ulParam1, and m_ulParam2.
+	*/
+
+cpp_quote("#pragma pack(pop)")
+
+	typedef enum tagDataFormat
+	{
+		dfDefault = 0,
+		dfArray,
+		dfDate,
+	} DataFormat;
+	
+	[
+		object,
+		uuid(F1F73888-E92E-411D-8AF0-34130A6958A1),
+		dual,
+		helpstring("IJSSerialization Interface"),
+		pointer_default(unique)
+	]
+	interface IJSSerialization : IDispatch
+	{
+		[id(1), helpstring("method save")] HRESULT save([in]VARIANT vtData);
+		[id(2), helpstring("method saveBool")] HRESULT saveBool([in]VARIANT_BOOL bData);
+		[id(3), helpstring("method saveByte")] HRESULT saveByte([in]BYTE bData);
+		[id(4), helpstring("method saveInt16")] HRESULT saveInt16([in]short sData);
+		[id(5), helpstring("method saveInt32")] HRESULT saveInt32([in]long nData);
+		[id(6), helpstring("method saveFloat")] HRESULT saveFloat([in]float fData);
+		[id(7), helpstring("method saveDouble")] HRESULT saveDouble([in]double dData);
+		[id(8), helpstring("method saveString")] HRESULT saveString([in]BSTR bstrData);
+		[id(9), helpstring("method saveGuid")] HRESULT saveGuid([in]BSTR bstrGuid);
+		[id(10), helpstring("method Load")] HRESULT load([out, retval]VARIANT *pvtData);
+		[id(11), helpstring("method loadBool")] HRESULT loadBool([out, retval]VARIANT_BOOL *pbData);
+		[id(12), helpstring("method loadByte")] HRESULT loadByte([out, retval]BYTE *pbData);
+		[id(13), helpstring("method loadInt16")] HRESULT loadInt16([out, retval]short *psData);
+		[id(14), helpstring("method loadInt32")] HRESULT loadInt32([out, retval]long *pnData);
+		[id(15), helpstring("method loadFloat")] HRESULT loadFloat([out, retval]float *pfData);
+		[id(16), helpstring("method loadDouble")] HRESULT loadDouble([out, retval]double *pdData);
+		[id(17), helpstring("method loadString")] HRESULT loadString([out, retval]BSTR *pbstrData);
+		[id(18), helpstring("method loadGuid")] HRESULT loadGuid([out, retval]BSTR *pbstrGuid);
+		[propget, id(19), helpstring("property size")] HRESULT size([out, retval] long *pVal);
+		[propput, id(19), helpstring("property size")] HRESULT size([in] long newVal);
+		[id(20), helpstring("method saveDecimal")] HRESULT saveDecimal([in]double dDecimal);
+		[id(21), helpstring("method loadDecimal")] HRESULT loadDecimal([out,retval]double *pdDecimal);
+		[id(22), helpstring("method SaveInt64")] HRESULT saveInt64([in]double dInt64);
+		[id(23), helpstring("method loadInt64")] HRESULT loadInt64([out,retval]double *pdInt64);
+		[id(24), helpstring("method saveTime")] HRESULT saveDate([in]VARIANT vtDate);
+		[id(25), helpstring("method loadTime")] HRESULT loadDate([out, retval]VARIANT *pvtDate);
+		[propget, id(26), helpstring("property errorCode")] HRESULT errorCode([out, retval] long *pVal);
+		[propget, id(27), helpstring("property errorMessage")] HRESULT errorMessage([out, retval] BSTR *pVal);
+	};
+
+	/*
+		This interface has all of built-in methods for chat/notification service.
+
+		Note that a socket can enter one chat/discussion group only at most. However,
+		you can send a message to either one client privately, or one or multiple groups of clients publicly. 
+	*/
+	[
+		object,
+		uuid(2AFB8C2E-792C-10D6-B1D1-0010B5EC005B),
+		dual,
+		helpstring("IUChat Interface"),
+		pointer_default(unique)
+	]
+	interface IUChat : IDispatch
+	{
+		/*
+			Enter one or more chat/discussion groups.
+		*/	
+		[id(91), helpstring("method Enter")] HRESULT Enter([in]long lGroups);
+
+		/*
+			Leave all chat/discussion groups.
+		*/
+		[id(92), helpstring("method Exit")] HRESULT Exit();
+
+		/*
+			Send a message to one or multiple groups of clients. 
+			Also, the client receives one copy of message itself.
+		*/
+		[id(93), helpstring("method Speak")] HRESULT Speak([in]VARIANT vtMsg, [in, defaultvalue(odAllGroups)]long lGroups);
+		
+		/*
+			Send a message to one client identified by a client IP address and port privately.
+			Also, the client receives one copy of message itself.
+
+			The method supports ip addresses "255.255.255.255" (ip address none) and "0.0.0.0" (ip address any). 
+			When a client sends a message to such the two IP addresses, SocketPro server will immeadiately 
+			reflect the message back to the client without regularly seeking a socket session.
+
+			Note that the destination client doesn't have to join a chat/discussion group. 
+		*/
+		[id(94), helpstring("method SpeakTo")] HRESULT SpeakTo([in]BSTR bstrIPAddr, [in]long lPort, [in]VARIANT vtMsg);
+		
+		/*
+			Send a request to a remote SocketPro server to query all of opened chat/discussion groups.
+			Once the method is called and returned, you should use the property Groups that indicate the total
+			number of opened chat/discussion groups and the method GetGroupInfo to retrieve each of groups information.
+		*/
+		[id(95), helpstring("method GetAllGroups")] HRESULT GetAllGroups();
+		
+		/*
+			Send a request to a remote SocketPro server to query all of clients that join in given groups (lGroups).
+			Once the method is called and returned, you should use the property Listeners that indicate the total
+			number of joined clients and the method GetInfo to retrieve each of clients information.
+		*/
+		[id(96), helpstring("method GetAllListeners")] HRESULT GetAllListeners([in, defaultvalue(odAllGroups)]long lGroups);
+		
+		/*
+			Send a request to a remote SocketPro server to query all of clients that joined or did not join.
+			Once the method is called and returned, you should use the property Listeners that indicate the total
+			number of joined clients and the method GetInfo to retrieve each of clients information.
+		*/
+		[id(97), helpstring("method GetAllClients")] HRESULT GetAllClients();
+		
+		
+		/*
+			Call the function to retrieve each of groups information after IUChat::GetAllGroups is called and returned.
+		*/
+		[id(98), helpstring("method GetGroupInfo")] HRESULT GetGroupInfo([in]long lIndex, [out]long *plGroup, [out, retval]BSTR *pbstrDescription);
+		
+		/*
+			Call the function to get your data after calling IUChat::Enter, Exit, Speak, SpeakTo, GetAllListeners, GetAllClients,
+			IUFast::SpeakEx and IUFast::SpeakToEx.
+
+			lIndedx should be always 0, except after calling the methods IUChat::GetAllListeners and GetAllClients
+		*/
+		[id(99), helpstring("method GetInfo")] HRESULT GetInfo([in]long lIndex, [out]long *plGroup, [out]BSTR *pbstrUID, [out]long *plSvsID, [out]long *plPort, [out, retval]BSTR *pbstrIPAddress);
+		
+		/*
+			A property indicating the number of listeners returned after IUChat::GetAllListeners is called and returned.
+		*/
+		[propget, id(100), helpstring("property Listeners")] HRESULT Listeners([out, retval] long *pVal);
+		
+		
+		/*
+			A propety indicating a message that this client or others call one of the methods IUChat::Speak, SpeakTo,
+			IUFast::SpeakEx or SpeakToEx.
+		*/
+		[propget, id(101), helpstring("property Message")] HRESULT Message([out, retval] VARIANT *pVal);
+		
+		/*
+			A property indicating the number of groups returned after IUChat::GetAllGroups is called and returned.
+		*/
+		[propget, id(102), helpstring("property Groups")] HRESULT Groups([out, retval] long *pVal);
+		
+		/*
+			Similar to the message SpeakTo, send a specifi user message
+		*/
+		[id(103), helpstring("method SendUserMessage")] HRESULT SendUserMessage([in]BSTR bstrUserID, [in]VARIANT vtMsg);
+
+		/*
+			Enter one or more chat/discussion groups.
+			vtGroups must contains an array of chat group ids in int, long, unsigned int, or unsigned long.
+		*/	
+		[id(104), helpstring("method XEnter")] HRESULT XEnter([in]VARIANT vtGroups);
+		
+		/*
+			Send a message to one or multiple groups of clients. 
+			Also, the sender will receive one copy of message itself.
+			vtGroups must contains an array of chat group ids in int, long, unsigned int, or unsigned long.
+		*/
+		[id(105), helpstring("method XSpeak")] HRESULT XSpeak([in]VARIANT vtMsg, [in]VARIANT vtGroups);
+
+		/*
+			Send a request to a remote SocketPro server to query all of clients that join in given groups (vtGroups).
+			Once the method is called and returned, you should use the property Listeners that indicate the total
+			number of joined clients and the method GetInfo to retrieve each of clients information.
+		*/
+		[id(106), helpstring("method XGetAllListeners")] HRESULT XGetAllListeners([in]VARIANT vtGroups);
+	};
+
+	/*
+		ISocketBase wraps a set of key socket functions plus a few MS extended socket functions. 
+		You can use the interface to communicate by calling ISocketBase::Send and Recv 
+		with a non-SocketPro server after setting the property UseBaseSocketOnly to true.
+
+		In most cases, you use the interface for asynchronous communication and hosting resolings. 
+		However, you can also call window extended function WSAAsyncSelect to turn on/off asynchronous 
+		communication except MS CE platform.
+
+		ISocketBase supports both SSL/TLSv and Blowfish encryptions.
+	*/
+	[
+		object,
+		uuid(1084FB17-4EDB-42F1-A4A8-129D70A0A8FA),
+		dual,
+		helpstring("ISocketBase Interface"),
+		pointer_default(unique)
+	]
+	interface ISocketBase : IDispatch
+	{
+		/*
+			Connect to a remote host identified by a host address (bstrHostAddress) and a port number (lHostPort).
+			for example:	
+				bstrHostAddress = 121.212.110.21, www.mypublic_domain.com, or MyServerName.
+				lHost = 17001, 20001 or 17000 etc.
+			If bSynConnecting is true, connect the host synchronously. If bSynConnecting is false, connect the host asynchronously.
+			The rest four parameters are ignored.
+
+			Note that you will get programming error code uecUnexpected if bstrHostAddress is null or has a zero length.
+			You may get one of socket error codes. See the enum tagSocketError.
+
+			Note that the current thread message pump dispatches all of socket events when calling ISocketBase::Connect
+		*/
+		[id(1), helpstring("method Connect")] HRESULT Connect([in] BSTR bstrHostAddress, [in] long lHostPort, [in, defaultvalue(0)]VARIANT_BOOL bSynConnecting, [in, defaultvalue(stSTREAM)] long lSocketType, [in, defaultvalue(afINet)] long lAddrFormat, [in, defaultvalue(spIP)] long lProtocol, [in, defaultvalue(0)]long lLocalPort);
+		
+		/*
+			Abort a socket connection. Refer to winsock function -- 
+			int closesocket (SOCKET s);
+		*/
+		[id(2), helpstring("method Disconnect")] HRESULT Disconnect();
+		
+		/*
+			Close a socket connection gracefully. Refer to winsock function -- 
+			int shutdown (SOCKET s, int how);
+		*/
+		[id(3), helpstring("method Shutdown")] HRESULT Shutdown([in, defaultvalue(hsSend)]long lHow);
+		
+		/*
+			Set socket option. Refer to winsock function -- 
+			int setsockopt(	SOCKET s,                 
+							int level,                
+							int optname,              
+							const char FAR * optval,  
+							int optlen                
+							);
+
+			See the following two lines of code:
+
+			//Turn off (1)/On (0) TCP Nagle algorithm at client side
+			ClientSocket.SetSockOpt((int)USOCKETLib.tagSocketOption.soTcpNoDelay, 1, (int)USOCKETLib.tagSocketProtocol.spTCP);
+
+			//Set client socket sending buffer to 116800 bytes
+			ClientSocket.SetSockOpt((int)USOCKETLib.tagSocketOption.soSndBuf, 116800, (int)USOCKETLib.tagSocketLevel.slSocket);
+		*/
+		[id(4), helpstring("method SetSockOpt")] HRESULT SetSockOpt([in]long lOptName, [in]long lOptValue, [in, defaultvalue(slSocket)]long lLevel);
+		
+		/*
+			Query socket option. Refer to winsock function -- 
+			int getsockopt(	SOCKET s,         
+							int level,        
+							int optname,      
+							char FAR* optval, 
+							int FAR*  optlen  
+							);
+
+		*/
+		[id(5), helpstring("method GetSockOpt")] HRESULT GetSockOpt([in]long lOptName, [in, defaultvalue(slSocket)]long lLevel, [out, retval]long *plOptValue);
+		
+		/*
+			Send a remote host an array of bytes. plSent contains the number of bytes sent. Refer to winsock function --
+			int send(	SOCKET s,              
+						const char FAR * buf,  
+						int len,               
+						int flags              
+					);
+
+			Note that you can use the function only when you set the property UseBaseSocketOnly to true.
+			You will get error code uecUnexpected if the property UseBaseSocketOnly is false.
+		*/
+		[id(6), helpstring("method Send")] HRESULT Send([in]VARIANT vtData, [out, retval]long *plSent);
+		
+		/*
+			Receive an array of bytes from a remote host. Refer to winsock function --
+			int recv(	SOCKET s,              
+						const char FAR * buf,  
+						int len,               
+						int flags              
+					);
+
+			Note that you can use the function only when you set the property UseBaseSocketOnly to true.
+			You will get error code uecUnexpected if the property UseBaseSocketOnly is false.
+		*/
+		[id(7), helpstring("method Recv")] HRESULT Recv([out, retval]VARIANT *pvtData);
+		
+		/*
+			Controls the I/O mode of a socket. Refer to winsock function -- 
+			int ioctlsocket(SOCKET s,         
+							long cmd,         
+							u_long FAR* argp  
+							);
+
+			lCommand can be one of modes in the enum tagIOCommand.
+		*/
+		[id(8), helpstring("method IOCtl")] HRESULT IOCtl([in, defaultvalue(iocRead)]long lCommand, [out, retval]long *plArgment);
+		
+		/*
+			Get network card or modem (interface) attributes.
+			
+			lpMTU -- receives Maximum Transmission Unit (MTU) like 1500
+			plMaxSpeed -- receives the speed of the interface in bits per second (bandwidth) like 10,000,000, 100,000,000 mbps.
+						  Note that actual bandwidth is determined by the slowest device on the path, 
+						  and is always less than or equal to the value.
+			plIType -- receives the type of device. It can be one of valuses in the enum tagInterfaceType.
+			pbstrMask -- receives network mask string like "255.255.255.0".
+			pbstrDesc -- receives a string description of the interface like "MS TCP Loopback interface" or "PCI Bus Master Adapter".
+		*/
+		[id(9), helpstring("method GetInterfaceAttributes")] HRESULT GetInterfaceAttributes([out]long *lpMTU, [out]long *plMaxSpeed, [out]long *plIType, [out]BSTR *pbstrMask, [out, retval]BSTR *pbstrDesc);
+		
+		
+		/*
+			Retrieve the name of the peer to which a socket is connected. Refer to winsock function --
+			int getpeername(SOCKET s,                    
+							struct sockaddr FAR*  name,  
+							int FAR*  namelen            
+							);
+		*/
+		[id(10), helpstring("method GetPeerName")] HRESULT GetPeerName([out]long *plPeerPort, [out, retval]BSTR *pbstrPeerName);
+		
+		/*
+			 Get the standard host name for the local machine. Refer to winsock function --
+			 int gethostname(	char FAR * name,  
+								int namelen       
+							);
+		*/
+		[id(11), helpstring("method GetLocalName")] HRESULT GetLocalName([out, retval] BSTR *pbstrLocalName);
+		
+		/*
+			Get host information corresponding to a host name (bstrHost) like www.udaparts.com or YourMachineName 
+			from a host database either synchronously or asynchronously.
+			
+			If bBlocking is true, get host information synchronously. Refer to winsock function --
+			struct hostent FAR * gethostbyname(const char FAR * name);
+
+			If bBlocking is false, get host information asynchronously. Refer to winsock frunction --
+			HANDLE WSAAsyncGetHostByName(	HWND hWnd,              
+											unsigned int wMsg,      
+											const char FAR * name,  
+											char FAR * buf,         
+											int buflen              
+										);
+			
+			MS CE doesn't have the function WSAAsyncGetHostByName. Therefore, internally a USocket object always sets bBlocking to true.
+		*/
+		[id(12), helpstring("method GetHostByName")] HRESULT GetHostByName([in]BSTR bstrHost, [in, defaultvalue(0)]VARIANT_BOOL bBlocking, [out, defaultvalue(0)]long *phHandle, [out, defaultvalue(0)]BSTR *pbstrIPAddr, [out, defaultvalue(0)]BSTR *pbstrAlias, [out,retval]BSTR *pbstrHostName);
+		
+		/*
+			Query the host information corresponding to a network address (bstrIPAddr) like 111.222.121.19 either synchronously or asynchronously.
+			
+			If bBlocking is true, get host information synchronously. Refer to winsock function --
+			struct hostent FAR * gethostbyaddr(	const char FAR * addr, 
+												int len,                
+												int type);
+
+			If bBlocking is false, get host information asynchronously. Refer to winsock frunction --
+			HANDLE WSAAsyncGetHostByAddr(	HWND hWnd,              
+											unsigned int wMsg,      
+											const char FAR * addr,  
+											int len,                
+											int type,               
+											char FAR * buf,         
+											int buflen                
+										);
+
+			MS CE doesn't have the function WSAAsyncGetHostByAddr. Therefore, internally a USocket object always sets bBlocking to true.
+		*/
+		[id(13), helpstring("method GetHostByAddr")] HRESULT GetHostByAddr([in]BSTR bstrIPAddr, [in, defaultvalue(afINet)]long lAddrFormat, [in, defaultvalue(0)]VARIANT_BOOL bBlocking, [out, defaultvalue(0)]long *phHandle, [out, defaultvalue(0)]BSTR *pbstrAlias, [out,retval]BSTR *pbstrHostName);
+		
+		/*
+			Get a function address within one of two OpenSSL dlls from a give function name
+		*/
+		[id(14), helpstring("method GetProcAddress")] HRESULT GetProcAddress([in]BSTR bstrOpenSSLFuncName, [out, retval]long *plProcAddr);
+		
+		/*
+			 Retrieve the local name like 111.222.101.211 for a socket. Refer to winsock function --
+			 int getsockname(	SOCKET s,                    
+								struct sockaddr FAR*  name,  
+								int FAR*  namelen            
+							);
+		*/
+		[id(15), helpstring("method GetSockAddr")] HRESULT GetSockAddr([out]long *plPort, [out, retval]BSTR *pbstrSockAddr);
+		
+		/*
+			Get the number of bytes sent to a remote host since the socket is connected.
+		*/
+		[id(16), helpstring("Method GetBytesSent")] HRESULT GetBytesSent([out, defaultvalue(0)]long *plHigh, [out, retval] long *pVal);
+		
+		/*
+			Get the number of bytes from to a remote host since the socket is connected.
+		*/
+		[id(17), helpstring("Method GetBytesReceived")] HRESULT GetBytesReceived([out, defaultvalue(0)]long *plHigh, [out, retval] long *pVal);
+		
+		/*
+			It is connection time out. By defualt, it is 30 seconds or 30,000 ms.
+		*/
+		[propget, id(18), helpstring("property ConnTimeout")] HRESULT ConnTimeout([out, retval] long *pVal);
+		[propput, id(18), helpstring("property ConnTimeout")] HRESULT ConnTimeout([in] long newVal);
+		
+		/*
+			Socket handle. An invalid socket handle could be either -1 or 0.
+		*/
+		[propget, id(19), helpstring("property Socket")] HRESULT Socket([out, retval] long *pVal);
+		
+		/*
+			Encryption method. It is one of values in the enum tagEncryptionMethod.
+		*/
+		[propget, id(20), helpstring("property EncryptionMethod")] HRESULT EncryptionMethod([out, retval] short *pVal);
+		[propput, id(20), helpstring("property EncryptionMethod")] HRESULT EncryptionMethod([in] short newVal);
+		
+		/*
+			An OpenSSL handle.
+		*/
+		[propget, id(21), helpstring("property SSLHandle")] HRESULT SSLHandle([out, retval] long *pVal);
+		
+		/*
+			A property indicating peer certificate. It returns the interface IUnknown to a certificate which you can query
+			for the interface IUCert from the interface IUnknown.
+		*/
+		[propget, id(22), helpstring("property PeerCertificate")] HRESULT PeerCertificate([out, retval] VARIANT *pVal);
+		
+		/*
+			If setting the property to true, you can use ISocketBase::Send and Recv to exchange data with a non-SocketPro server only.
+			If setiing the property to false, you can not use the above two methhods to exchange data with a SocketPro server. 
+			However, you can use other interfaces to exhange data with a remote SocketPro server.
+		*/
+		[propget, id(23), helpstring("property UseBaseSocketOnly")] HRESULT UseBaseSocketOnly([out, retval] VARIANT_BOOL *pVal);
+		[propput, id(23), helpstring("property UseBaseSocketOnly")] HRESULT UseBaseSocketOnly([in] VARIANT_BOOL newVal);
+		
+		//a hidden window handle associated with this socket when calling ISocketBase::Connect, GetHostByName, or GetHostByAddr
+		//SocketPro requires a window to accept socket various events
+		[propget, id(24), helpstring("property hWnd")] HRESULT hWnd([out, retval] long *pVal);
+	}
+		
+	[
+		object,
+		uuid(1B84FB17-40DB-42F1-A4A8-129D70A0A8FA),
+		dual,
+		helpstring("IUSocket Interface"),
+		pointer_default(unique)
+	]
+	interface IUSocket : ISocketBase
+	{
+		/*
+			Ask for a service identified by lSvsID. Calling the function leads to sending user id, 
+			password and a structure CSwitchInfo about the client to the connected SocketPro.
+		*/
+		[id(31), helpstring("method SwitchTo")] HRESULT SwitchTo([in]long lSvsID);
+		
+		/*
+			Start batching a set of requests
+		*/
+		[id(32), helpstring("method StartBatching")] HRESULT StartBatching();
+		
+		/*
+			Put batched requests into memory queue and send them to a connected SocketPro server after calling StartBatching.
+			If bSvrBatching is true, it will cause the server to batch all of results and send them back in one batch too.
+		*/
+		[id(33), helpstring("method CommitBatching")] HRESULT CommitBatching([in, defaultvalue(0)]VARIANT_BOOL bSvrBatching);
+		
+		/*
+			Discard all of batched requests since calling StartBatching
+		*/
+		[id(34), helpstring("method AbortBatching")] HRESULT AbortBatching();
+		
+		/*
+			Call the function to wait until all of queued requests are processed and returned 
+											within a given time (lTimeOut).
+
+			Note that the function returns if it is timed out, 
+											  the property CountOfRequestsInQueue is 0,
+											  or the socket is closed.
+
+			-1 meanns infinite for lTimeOut.
+		*/
+		[id(35), helpstring("method WaitAll")] HRESULT WaitAll([in]long lTimeOut, [out, retval]VARIANT_BOOL *pbTimeout);
+		
+		/*
+			Echo a data. It may be used for checking abnormal socket termination 
+			like unplugging a network and server power off.
+		*/
+		[id(36), helpstring("method DoEcho")] HRESULT DoEcho();
+		
+		/*
+			Get an array of requests that have not been proccessed and returned	
+		*/
+		[id(37), helpstring("method GetRequestsInQueue")] HRESULT GetRequestsInQueue([out, retval]VARIANT *pvtRequests);
+		
+		/*
+			Send a requet to a SocketPro server.
+			If bKeepVTFormat is set to true, SocketPro sends a VARIANT data to a remote SocketPro server.
+			If bKeepVTFormat is set to false, SocketPro sends the data that contains in VARIANT but not vt and array size.
+			
+			Because the method requires you create a VARIANT data at run time, it is slower that IUFast::SendRequestEx.
+			Therefore, it is recommended that don't use the function to send a request unless your development environment supports automation only.
+
+		*/
+		[id(38), helpstring("method SendRequest")] HRESULT SendRequest([in]short nRequestID, [in]VARIANT vtData, [in, defaultvalue(0)]VARIANT_BOOL bKeepVTFormat);
+		
+		/*
+			Get an array of bytes.
+
+			Because the method requires you create a VARIANT data at run time, it is slower that IUFast::GetRtnBufferEx.
+			Therefore, it is recommended that don't use the function unless your development environment supports automation only.
+		*/
+		[id(39), helpstring("method GetReturnedBuffer")] HRESULT GetRtnBuffer([in]long nLen, [out, retval]VARIANT *pvtData);
+		
+		/*
+			Cancel a given number (lRequests) of sent requests. -1 means all of requests.
+
+			Note that you can't call the methods between StartBatching and CommitBatching/AbortBatching.
+
+			The actual number of canceled requests is indicated by the property RequestsCanceled (IUSocket::get_RequestsCanceled).	
+		*/
+		[id(40), helpstring("method Cancel")] HRESULT Cancel([in, defaultvalue(odCancelAll)]long lRequests);
+		
+		/*
+			Like ISocketBase::SetSockOpt, call the function to set socket option at server side
+		*/
+		[id(41), helpstring("method SetSockOptAtSvr")] HRESULT SetSockOptAtSvr([in]long lOptName, [in]long lOptValue, [in, defaultvalue(slSocket)]long lLevel);
+		
+		/*
+			Like ISocketBase::GetSockOpt, call the function to get socket option at server side
+		*/
+		[id(42), helpstring("method GetSockOptAtSvr")] HRESULT GetSockOptAtSvr([in]long lOptName, [in, defaultvalue(slSocket)]long lLevel);
+		
+		/*
+			Get the server socket option value after calling IUSocket::GetSockOptAtSvr
+		*/
+		[id(43), helpstring("method GetOptValueAtSvr")] HRESULT GetOptValueAtSvr([out, retval] long *pVal);
+		
+		/*
+			Set client version information data. See the structure CSwitchInfo
+		*/
+		[id(44), helpstring("method SetClientVersion")] HRESULT SetClientVersion([in]short nMinor, [in]short nMajor);
+		
+		/*
+			Turn on/off online compressing at server side per socket connection.
+		*/
+		[id(45), helpstring("method TurnOnZipAtSvr")] HRESULT TurnOnZipAtSvr([in, defaultvalue(-1)]VARIANT_BOOL bZipOn);
+		
+		/*
+			Get client version information per socket connection.
+		*/
+		[id(46), helpstring("method GetClientVersion")] HRESULT GetClientVersion([out]short *pnMinor, [out, retval]short *pnMajor);
+		
+		/*
+			Get server information per socket connection after IUSocket::SwitchTo is called and returned.
+		*/
+		[id(47), helpstring("method GetServerVersion")] HRESULT GetServerVersion([out]short *pnMinor, [out]short *pnMajor);
+		
+		/*
+			Shrink the memory required by a client socket.
+		*/
+		[id(48), helpstring("method ShrinkMemory")] HRESULT ShrinkMemory();
+		
+		/*
+			Shrink the memory required by a client socket at server side.
+		*/
+		[id(49), helpstring("method ShrinkMemoryAtSvr")] HRESULT ShrinkMemoryAtSvr();
+		
+		/*
+			Get client USocket version. See the structure CSwitchInfo
+		*/
+		[id(50), helpstring("method GetClientUSockVersion")] HRESULT GetClientUSockVersion([out]short *pnMinor, [out,retval]short *pnMajor);
+		
+		/*
+			Get server USocket version after IUSocket::SwitchTo is called and returned. See the structure CSwitchInfo
+		*/
+		[id(51), helpstring("method GetServerUSockVersion")] HRESULT GetServerUSockVersion([out]short *pnMinor, [out,retval]short *pnMajor);
+		
+		/*
+			Detect a real network bandwidth approximately. The returned result is one of the enum valuse of tagNetPerformance.
+
+			Note that it is cheap to call the function if the network is phone-line modem. 
+			Otherwise, it is very very expensive to call this function. Therefore, it should not be called whenever possible.
+		*/
+		[id(52), helpstring("method DetectNetPerformance")] HRESULT DetectNetPerformance([out, retval]short *psNetPerformance);
+		
+		/*
+			Discard a given (lRequests) number of requests in the queue starting from the (lStartWith + 1)_th request.
+
+			To discard all, set lStartWith to 0, and lRequests to -1.
+		*/
+		[id(53), helpstring("method IgnorePendingRequests")] HRESULT IgnorePendingRequests([in, defaultvalue(-1)]long lRequests, [in, defaultvalue(0)]long lStartWith);
+		
+		/*
+			Send an array of your specific bytes onto a remote SocketPro server.
+		*/
+		[id(54), helpstring("method SendMySpecificBytes")] HRESULT SendMySpecificBytes([in]VARIANT vtBytes);
+		
+		/*
+			Net communication error message
+		*/
+		[propget, id(55), helpstring("property ErrorMsg")] HRESULT ErrorMsg([out, retval]BSTR *pbstrErrorMsg);	
+		
+		/*
+			The key is an array of bytes used by Blowfish.
+		*/
+		[propget, id(56), helpstring("property Key")] HRESULT Key([out, retval] VARIANT *pVal);
+		[propput, id(56), helpstring("property Key")] HRESULT Key([in] VARIANT newVal);
+		
+		/*
+			Turn on/off online compressing at client side
+		*/
+		[propget, id(57), helpstring("property ZipIsOn")] HRESULT ZipIsOn([out, retval] VARIANT_BOOL *pVal);
+		[propput, id(57), helpstring("property ZipIsOn")] HRESULT ZipIsOn([in] VARIANT_BOOL newVal);
+		
+		/*
+			A string with less than 256 chars indicating a user id. When calling IUSocket::SwitchTo,
+			it is automatically sent to a remote SocketPro server for authentication.
+		*/
+		[propget, id(58), helpstring("property UserID")] HRESULT UserID([out, retval] BSTR *pVal);
+		[propput, id(58), helpstring("property UserID")] HRESULT UserID([in] BSTR newVal);
+		
+		/*
+			A string with less than 256 chars indicating a user password. When calling IUSocket::SwitchTo,
+			it is automatically sent to a remote SocketPro server for authentication. 
+			Now, SocketPro recommends that you clean it right after calling IUSocket::SwitchTo for the better security.
+		*/
+		[propget, id(59), helpstring("property Password")] HRESULT Password([out, retval] BSTR *pVal);
+		[propput, id(59), helpstring("property Password")] HRESULT Password([in] BSTR newVal);
+		
+		/*
+			Query the queue memory size for retrieving returned results.
+		*/
+		[propget, id(60), helpstring("property RcvMemory")] HRESULT RcvMemory([out, retval] long *pVal);
+		
+		/*
+			Query the queue memory size for sending requests.
+		*/
+		[propget, id(61), helpstring("property SndMemory")] HRESULT SndMemory([out, retval] long *pVal);
+		
+		/*
+			A property to determine if IUSocket::WaitAll should be called for every request.
+			Because SocketPro is written for batching computation, it is not recommended to set the property to true.
+			If you set it to true, there is no batching at all and performance is greatly decreased.
+		*/
+		[propget, id(62), helpstring("property Syn")] HRESULT Syn([out, retval] VARIANT_BOOL *pVal);
+		[propput, id(62), helpstring("property Syn")] HRESULT Syn([in] VARIANT_BOOL newVal);
+		
+		/*
+			A client property contains five parameters.
+			Note that you can get five parameters, but set the last three parameters only.
+			Also, see the structure CSwitchInfo.
+		*/
+		[propget, id(63), helpstring("property ClientParams")] HRESULT ClientParams([out, retval] VARIANT *pVal);
+		[propput, id(63), helpstring("property ClientParams")] HRESULT ClientParams([in] VARIANT newVal);
+		
+		/*
+			A server property contains five parameters.
+			Also, see the structure CSwitchInfo.
+		*/
+		[propget, id(64), helpstring("property ServerParams")] HRESULT ServerParams([out, retval] VARIANT *pVal);
+		
+		/*
+			A time out for receiving returned request results. It is default to 30 seconds or 30,000 ms.
+
+			Note that you should set the property to a larger number when you debug your server side code.
+			Without doing so, you will cause a socket connection is closed when the debug time is over the limit.
+		*/
+		[propget, id(65), helpstring("property RecvTimeout")] HRESULT RecvTimeout([out, retval] long *pVal);
+		[propput, id(65), helpstring("property RecvTimeout")] HRESULT RecvTimeout([in] long newVal);
+		
+		/*
+			A time out for sending a request
+		*/
+		[propget, id(66), helpstring("property SendTimeout")] HRESULT SendTimeout([out, retval] long *pVal);
+		[propput, id(66), helpstring("property SendTimeout")] HRESULT SendTimeout([in] long newVal);
+		
+		/*
+			A property indicating a key from a SocketPro server for Blowfish 
+			after getting the request id idPublicKeyFromSvr.
+		*/
+		[propget, id(67), helpstring("property KeyFromSvr")] HRESULT KeyFromSvr([out, retval] VARIANT *pVal);
+		
+		/*
+			A property indicating the actual number of requests canceled after IUSocket::Cancel is called and returned.
+		*/
+		[propget, id(68), helpstring("property RequestsCanceled")] HRESULT RequestsCanceled([out, retval] long *pVal);
+		
+		/*
+			A property for turning on/off window graphical user interfaces within the current thread.
+		*/
+		[propget, id(69), helpstring("property Frozen")] HRESULT Frozen([out, retval] VARIANT_BOOL *pVal);
+		[propput, id(69), helpstring("property Frozen")] HRESULT Frozen([in] VARIANT_BOOL newVal);
+		
+		/*
+			A property indicating the number of bytes in queue for sending requests.
+		*/
+		[propget, id(70), helpstring("property BytesInSndMemory")] HRESULT BytesInSndMemory([out, retval] long *pVal);
+		
+		/*
+			A property indicating the number of bytes in queue for receiving returned results to be processed.
+		*/
+		[propget, id(71), helpstring("property BytesInRcvMemory")] HRESULT BytesInRcvMemory([out, retval] long *pVal);
+		
+		/*
+			A property to control how the callbacks OnRequestProcessed and OnDataAvailable are called.
+			See the enum tagReturnFlag. You can set it for multple flags.
+			Note that the flag is always set with rfCompeted. By default, it is set to (rfCompleted + rfReceiving).
+		*/
+		[propget, id(72), helpstring("property ReturnEvents")] HRESULT ReturnEvents([out, retval] short *pVal);
+		[propput, id(72), helpstring("property ReturnEvents")] HRESULT ReturnEvents([in] short newVal);
+
+		/*
+			The maximum number of requests allowed in result-receiving queue to be processed. It is default to 256.
+			Usually, you should not change it.
+		*/
+		[propget, id(73), helpstring("property MaxRtns")] HRESULT MaxRtns([out, retval] short *pVal);
+		[propput, id(73), helpstring("property MaxRtns")] HRESULT MaxRtns([in] short newVal);
+		
+		/*
+			A property indicating the number of returned results in result-receiving queue to be processed.
+		*/
+		[propget, id(74), helpstring("property RtnsInQueue")] HRESULT RtnsInQueue([out, retval] long *pVal);
+
+		/*
+			A property indicating the current service id. Without connecting or calling IUSocket::SwitchTo,
+			it should be sidStartup.
+		*/
+		[propget, id(75), helpstring("property CurrentSvsID")] HRESULT CurrentSvsID([out, retval]long *plSvsID);
+		
+		/*
+			A property indicating if online compressing is enabled at server side 
+			after IUSocket::TurnOnZipAtServer is called and returned for this socket connection.
+		*/
+		[propget, id(76), helpstring("property ZipOnAtSvr")] HRESULT ZipOnAtSvr([out, retval] VARIANT_BOOL *pVal);
+		
+		/*
+			A property indicating network communication error code or programming error code
+		*/
+		[propget, id(77), helpstring("property Rtn")] HRESULT Rtn([out, retval]long *plRtn);
+		
+		/*
+			A property indicating if both client and server share the same endian (byte order).
+			Note that this property is NOT implemented yet.
+		*/
+		[propget, id(78), helpstring("property IsSameEndian")] HRESULT IsSameEndian([out, retval] VARIANT_BOOL *pVal);
+		
+		/*
+			A property indicating the number of bytes of requests are batched since calling IUSocket::StartBatching
+		*/
+		[propget, id(79), helpstring("property BytesBatched")] HRESULT BytesBatched([out, retval] long *pVal);
+		
+		/*
+			Similar to IUSocket::WaitAll, call the function to wait until a given request (sRequestID) of a given
+			service (lSvsID) is returned and processed.
+			
+			Note that you can not call IUSocket::WaitAll or IUSocket::Wait again 
+			after calling this function until the function is returned.
+			
+			Contrarily, you can call IUSocket::Wait or IUSocket::WaitAll again after calling IUSocket::WaitAll already but before it returns.
+		*/
+		[id(80), helpstring("method Wait")] HRESULT Wait([in]short sRequestID, [in]long lTimeout, [in, defaultvalue(0)]long lSvsID, [out, retval]VARIANT_BOOL *pbTimeout);
+		
+		/*
+			A property indicating the number of requests are queued to be returned and processed.
+			
+			The property is similar to the method IUSocket::GetRequestsInQueue. 
+			However, the property just indicates the number of the number of requests only 
+			without knowing what requests in queue.
+		*/
+		[propget, id(81), helpstring("property CountOfRequestsInQueue")] HRESULT CountOfRequestsInQueue([out, retval] long *pVal);
+		
+		/*
+			A property indicating if you are batching requests.
+		*/
+		[propget, id(82), helpstring("property IsBatching")] HRESULT IsBatching([out, retval] VARIANT_BOOL *pVal);
+		
+		/*
+			Clean the track of all of meory queues on both client and server sides
+		*/
+		[id(83), helpstring("method CleanTrack")] HRESULT CleanTrack();
+
+		[propget, id(84), helpstring("property LastRequestID")] HRESULT LastRequestID([out, retval] short *pVal);	
+
+		[id(85), helpstring("method StartJob")] HRESULT StartJob();
+		[id(86), helpstring("method EndJob")] HRESULT EndJob();
+	};
+	
+	/*
+		All of methods with the interface IUFast are created for fast operation without allocating new memories.
+
+		However, it can't be used through automation.
+	*/
+	[
+		object,
+		uuid(2AFB8C2A-792C-15D6-B1D1-1010B5EC1C5B),
+		helpstring("IUFast Interface"),
+		pointer_default(unique)
+	]
+	interface IUFast : IUnknown
+	{
+		/*
+			Retrieve returned result using a given pre-allocated memory buffer.
+		*/
+		[helpstring("method GetRtnBufferEx")] HRESULT GetRtnBufferEx([in]unsigned long ulLen, [in, size_is(ulLen)]BYTE pBuffer[], [out, retval]unsigned long *plRtnSize);
+		
+		/*
+			Send a request to a remote SocketPro server.
+		*/
+		[helpstring("method SendRequestEx")] HRESULT SendRequestEx([in]unsigned short usRequestID, [in]unsigned long ulLen, [in, size_is(ulLen)]BYTE pBuffer[]);
+		
+		/*
+			The method is almost the same as IUChat::Speak. The message is an array of bytes instead of a VARIANT structure.
+		*/
+		[helpstring("method SpeakEx")] HRESULT SpeakEx([in]unsigned long ulLen, [in, size_is(ulLen)]BYTE pMessage[], [in]unsigned long ulGroups);
+		
+		/*
+			The method is almost the same as IUChat::SpeakTo. The message is an array of bytes instead of a VARIANT structure.
+		*/
+		[helpstring("method SpeakToEx")] HRESULT SpeakToEx([in]BSTR bstrIPAddr, [in]long lPort, [in]unsigned long ulLen, [in, size_is(ulLen)]BYTE pMessage[]);
+		
+		/*
+			Similar to the method SpeakToEx, send a specific user message
+		*/
+		[helpstring("method SendUserMessageEx")] HRESULT SendUserMessageEx([in]BSTR bstrUserID, [in]unsigned long ulLen, [in, size_is(ulLen)]BYTE pMessage[]);
+
+		/*
+			The method is almost the same as IUChat::XSpeak, but the message is an array of bytes and receivers are clients pointed by pGroups instead.
+		*/
+		[helpstring("method XSpeakEx")] HRESULT XSpeakEx([in]unsigned long ulLen, [in, size_is(ulLen)]BYTE pMessage[], [in]unsigned long ulGroupCount, [in, size_is(ulGroupCount)]unsigned long pGroups[]);
+	};
+	
+	[
+		object,
+		uuid(2A0B8C2E-702C-1AD6-B1D1-2010B5EC0158),
+		dual,
+		helpstring("IUZip Interface"),
+		pointer_default(unique)
+	]
+	interface IUZip : IDispatch
+	{
+		[id(401), helpstring("method SetZipLevelAtSvr")] HRESULT SetZipLevelAtSvr([in]ZipLevel zipLevel);
+		[propget, id(402), helpstring("property ZipLevel")] HRESULT ZipLevel([out, retval]ZipLevel *pVal);
+		[propput, id(402), helpstring("property ZipLevel")] HRESULT ZipLevel([in]ZipLevel newVal);
+		[propget, id(403), helpstring("property ZipLevelAtSvr")] HRESULT ZipLevelAtSvr([out, retval]ZipLevel *pVal);
+	};
+	
+	/*
+		The interface IUCert represents a certificate from a remote server. 
+		You can compare the certificate data with a previously stored certificate filie in OpenSSL pem format 
+		so that a client is ensured that the certificate is indeed from an expected server and not from a man-in-middle (hacker).
+		
+		You must ensure the above match between two certificates before sending a user id and a password by calling IUSocket::SwitchTo.
+
+		In addition to the above method, UDAParts also recommends to use IUCert::CompareDomain to make your distributed application more secure.
+		If a domain is not matched with an expected domain, you should turn off socket connection usually.
+
+		To get the interface IUCert, you need to get the property ISocketBase::PeerCertificate first. Afterwards, cast it into the interface IUCert.
+	*/
+	[
+		object,
+		uuid(2FFB8C2E-702C-1AD6-B1D1-0010B5EC015B),
+		dual,
+		helpstring("IUCert Interface"),
+		pointer_default(unique)
+	]
+	interface IUCert : IDispatch
+	{
+		/*
+			Compare a remote server domain name with certificate subject string. If the domain names do not match against each other, you must be very cautious.
+
+			After calling the method, you will also get a domain (pbstrDomain), host name (pbstrHost).
+
+			Note that the method may be very expensive at very first call for a host because it internally calls socket function gethostbyaddr.
+
+			Also note that *pbMatchable will be always true if both client and server run on the same machine
+		*/
+		[id(201), helpstring("method CompareDomain")] HRESULT CompareDomain([out]BSTR *pbstrDomain, [out, defaultvalue(0)]BSTR *pbstrHost, [out, retval]VARIANT_BOOL *pbMatchable);
+		
+		/*
+			Call this property to verify a peer certificate against a previously stored certificate file that may contains multiple certificates.
+			See the property VerifyLocation.
+		*/
+		[id(202), helpstring("method Verify")] HRESULT Verify([out]long *plErrorCode, [out, retval]BSTR *pbstrErrorMsg);
+		
+		/*
+			
+		*/
+		[propget, id(203), helpstring("property Version")] HRESULT Version([out, retval] VARIANT *pVal);
+		
+		/*
+			/O=VeriSign Trust Network/OU=VeriSign, Inc./OU=VeriSign International Server CA - Class 3/OU=www.verisign.com/CPS Incorp.by Ref. LIABILITY LTD.(c)97 VeriSign
+		*/
+		[propget, id(204), helpstring("property Issuer")] HRESULT Issuer([out, retval] BSTR *pVal);
+
+		/*
+			/C=US/ST=California/L=Palo Alto/O=Paypal, Inc./OU=Information Systems/OU=Terms of use at www.verisign.com/rpa (c)00/CN=www.paypal.com
+		*/
+		[propget, id(205), helpstring("property Subject")] HRESULT Subject([out, retval] BSTR *pVal);
+		
+		/*
+			A property indicating if the current time is between NotBefore and NotAfter.
+		*/
+		[propget, id(206), helpstring("property Validity")] HRESULT Validity([out, retval] VARIANT_BOOL *pVal);
+		
+		/*
+			NotBefore	"Mar  3 00:00:00 2004 GMT"	string
+		*/
+		[propget, id(207), helpstring("property NotBefore")] HRESULT NotBefore([out, retval] BSTR *pVal);
+		
+		/*
+			NotAfter	"Mar  3 23:59:59 2006 GMT"	string
+		*/
+		[propget, id(208), helpstring("property NotAfter")] HRESULT NotAfter([out, retval] BSTR *pVal);
+		
+		/*
+			A property for signature algorithm like RSA-SHA1
+		*/
+		[propget, id(209), helpstring("property SigAlg")] HRESULT SigAlg([out, retval] BSTR *pVal);
+		
+		/*
+			An array of bytes indicating a certificate serial number
+		*/
+		[propget, id(210), helpstring("property SerialNumber")] HRESULT SerialNumber([out, retval] VARIANT *pVal);
+		
+		/*
+			An array of bytes indicating Algorithm
+		*/
+		[propget, id(211), helpstring("property Algorithm")] HRESULT Algorithm([out, retval] VARIANT *pVal);
+		
+		/*
+			An array of bytes. Usually the length is 140 for 1024-bit cipher
+		*/
+		[propget, id(212), helpstring("property PublicKey")] HRESULT PublicKey([out, retval] VARIANT *pVal);
+		
+		/*
+			Usually, it is null.
+		*/
+		[propget, id(213), helpstring("property IssuerUID")] HRESULT IssuerUID([out, retval] VARIANT *pVal);
+		
+		/*
+			Usually, it is null.
+		*/
+		[propget, id(214), helpstring("property SubjectUID")] HRESULT SubjectUID([out, retval] VARIANT *pVal);
+		
+		/*
+			In addition to the above method Verify, you can compare the property with a previously stored certificate from a file
+			-----BEGIN CERTIFICATE-----\nMIIEdTCCA96gAwIBAgIQFs1YCiUfRT3jH24nbk09TzANBgkqhkiG9w0BAQUFADCB\nujEfMB0GA1UEChMWVmVyaVNpZ24gVHJ1c3QgTmV0d29yazEXMBUGA1UECxMOVmVy\naVNpZ24sIEluYy4xMzAxBgNVBAsTKlZlcmlTaWduIEludGVybmF0aW9uYWwgU2Vy\ndmVyIENBIC0gQ2xhc3MgMzFJMEcGA1UECxNAd3d3LnZlcmlzaWduLmNvbS9DUFMg\nSW5jb3JwLmJ5IFJlZi4gTElBQklMSVRZIExURC4oYyk5NyBWZXJpU2lnbjAeFw0w\nNDAzMDMwMDAwMDBaFw0wNjAzMDMyMzU5NTlaMIG5MQswCQYDVQQGEwJVUzETMBEG\nA1UECBMKQ2FsaWZvcm5pYTESMBAGA1UEBxQJUGFsbyBBbHRvMRUwEwYDVQQKFAxQ\nYXlwYWwsIEluYy4xHDAaBgNVBAsUE0luZm9ybWF0aW9uIFN5c3RlbXMxMzAxBgNV\nBAsUKlRlcm1zIG9mIHVzZSBhdCB3d3cudmVyaXNpZ24uY29tL3JwYSAoYykwMDEX\nMBUGA1UEAxQOd3d3LnBheXBhbC5jb20wgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJ\nAoGBAKbFw8ZbqbLIHOd+alJfxK5Ig4opcjPdE4eL9NVh4Tm2bfXou0uy7XSuo4dY\nqCCXfod5bxU351pLepuXOLhqOoy6ENk68ZlK9IHNkobtjTTDLln0uUfTv718unov\nVLEIWjYdlVNlcshbd1ttdd/SPlXm2N4f3icrXLWdEesJsAApAgMBAAGjggF5MIIB\ndTAJBgNVHRMEAjAAMAsGA1UdDwQEAwIFoDBGBgNVHR8EPzA9MDugOaA3hjVodHRw\nOi8vY3JsLnZlcmlzaWduLmNvbS9DbGFzczNJbnRlcm5hdGlvbmFsU2VydmVyLmNy\nbDBEBgNVHSAEPTA7MDkGC2CGSAGG+EUBBxcDMCowKAYIKwYBBQUHAgEWHGh0dHBz\nOi8vd3d3LnZlcmlzaWduLmNvbS9ycGEwKAYDVR0lBCEwHwYJYIZIAYb4QgQBBggr\nBgEFBQcDAQYIKwYBBQUHAwIwNAYIKwYBBQUHAQEEKDAmMCQGCCsGAQUFBzABhhho\ndHRwOi8vb2NzcC52ZXJpc2lnbi5jb20wbQYIKwYBBQUHAQwEYTBfoV2gWzBZMFcw\nVRYJaW1hZ2UvZ2lmMCEwHzAHBgUrDgMCGgQUj+XTGoasjY5rw8+AatRIGCx7GS4w\nJRYjaHR0cDovL2xvZ28udmVyaXNpZ24uY29tL3ZzbG9nby5naWYwDQYJKoZIhvcN\nAQEFBQADgYEAR46ofsDJMdV7FIGZ98O3dkEFTkD9FrRE6XWVX2LebPvBebONSpIe\nGEjV/hJ919eGnFjujTmN1Pn98/G+xUBQeFsSN/3mdgujE5Yg4h4Zc8UXTOzlKUL/\n0H/xnU5gkZvtX0qJjylqrugb3+yaVXFAC7DU/2oZ/wSFFHCBmwm7QF8=\n-----END CERTIFICATE-----
+			This property is not available with MS secure channel
+		*/
+		[propget, id(215), helpstring("property CertPem")] HRESULT CertPem([out, retval] BSTR *pVal);
+		
+		/*
+			c:\cyetest\socketpro4\bin\ucert.pem for OpenSSL. With MS secure channel, it is a subject string.
+		*/
+		[propget, id(216), helpstring("property VerifyLocation")] HRESULT VerifyLocation([out, retval] BSTR *pVal);
+		[propput, id(216), helpstring("property VerifyLocation")] HRESULT VerifyLocation([in] BSTR newVal);
+		
+		/*
+			SSL version = TLSv1, Cipher = TLSv1/SSLv3, DHE-RSA-AES256-SHA, 1024 bit RSA
+		*/
+		[propget, id(217), helpstring("property SessionInfo")] HRESULT SessionInfo([out, retval] BSTR *pVal);
+		
+		/*
+			Add server certificate into current user system store
+		*/
+		[id(218), helpstring("method AddCertificateToStore")] HRESULT AddCertificateToStore([in, defaultvalue(0)]VARIANT_BOOL bRoot);
+		
+	};
+
+
+	[
+		uuid(F80A0F37-147E-4C43-B889-1D4C9A612BB9),
+		helpstring("_IUSocketEvent Interface")
+	]
+	dispinterface _IUSocketEvent
+	{
+		properties:
+		methods:
+		/*
+			The event is called when the socket detects data coming from a remote server.
+
+			Note that the event may happen after the property UseBaseSocketOnly is set to true or 
+			the property ReturnEvents is set with the flag rfDataComing if the property UseBaseSocketOnly is set to false
+		*/
+		[id(1), helpstring("method OnDataAvailable")] HRESULT OnDataAvailable([in]long hSocket, [in]long lBytes, [in] long lError);
+		
+		/*
+			All of window messages associated with the socket.
+
+			Note that SocketPro uses the event to notify SSL handshaking activities.
+
+			See the following VB6 code for interpreting SSL handshake activities:
+
+			Private Sub ClientSocket_OnOtherMessage(ByVal hSocket As Long, ByVal nMsg As Long, ByVal wParam As Long, ByVal lParam As Long)
+				If nMsg = USocketLib.msgSSLEvent Then
+					If wParam = USocketLib.tagSSLEvent.ssleHandshakeStarted Then
+						rtbRecv.Text = "Handshake started, lParam = " & lParam
+					ElseIf wParam = USocketLib.tagSSLEvent.ssleHandshakeDone Then
+						cmdSend.Enabled = True
+						rtbRecv.Text = "Handshake done, lParam = " & lParam
+					ElseIf wParam = USocketLib.tagSSLEvent.ssleHandshakeLoop Then
+						rtbRecv.Text = "Handshake loop, lParam = " & lParam
+					ElseIf wParam = USocketLib.tagSSLEvent.ssleHandshakeExit Then
+						rtbRecv.Text = "Handshake exit, lParam = " & lParam
+					ElseIf wParam = USocketLib.tagSSLEvent.ssleReadAlert Then
+						rtbRecv.Text = "Read Alert, lParam = " & lParam
+					ElseIf wParam = USocketLib.tagSSLEvent.ssleWriteAlert Then
+						rtbRecv.Text = "Write Alert, lParam = " & lParam
+					Else
+						rtbRecv.Text = "Unknown event!"
+					End If
+				End If
+			End Sub
+		*/
+		[id(2), helpstring("method OnOtherMessage")] HRESULT OnOtherMessage([in]long hSocket, [in]long nMsg, [in]long wParam, [in]long lParam);
+		
+		/*
+			The event happens when a socket is closed. The event happens after the event OnClosing.
+		*/
+		[id(3), helpstring("method OnSocketClosed")] HRESULT OnSocketClosed([in]long hSocket, [in]long lError);
+		
+		/*
+			The event happens after calling ISocketBase::Connect.
+			When lError is 0, the socket is connected with a remote server at TCP/IP level.
+			When lError is not 0, an error happens with no socket connection. 
+			You can use the property ErrorMsg to query string error message.
+		*/
+		[id(4), helpstring("method OnSocketConnected")] HRESULT OnSocketConnected([in]long hSocket, [in]long lError);
+		
+		/*
+			The callback is called after calling ISocketBase::Connect but before the event OnSocketConnected.
+			When it happens, a socket is started but not connected to a remote server yet.
+		*/
+		[id(5), helpstring("method OnConnecting")] HRESULT OnConnecting([in]long hSocket, [in]long hWnd);
+		
+		/*
+			The callback is called when a socket is ready to send data to a remote server.
+		*/
+		[id(6), helpstring("method OnSendingData")] HRESULT OnSendingData([in]long hSocket, [in]long lError, [in]long lSent);
+		
+		/*
+			The callback is called after calling ISocketBase::GetHostByAddr either synchronously or asynchronously.
+		*/
+		[id(7), helpstring("method OnGetHostByAddr")] HRESULT OnGetHostByAddr([in]long hHandle, [in]BSTR bstrHostName, [in]BSTR bstrHostAlias, [in]long lError);
+		
+		/*
+			The callback is called after calling ISocketBase::GetHostByName either synchronously or asynchronously.
+		*/
+		[id(8), helpstring("method OnGetHostByName")] HRESULT OnGetHostByName([in]long hHandle, [in]BSTR bstrHostName, [in]BSTR bstrAlias, [in]BSTR bstrIPAddr, [in]long lError);
+		
+		/*
+			The event happens when a socket is scheduled to be closed. It happens before the event OnClosed
+		*/
+		[id(9), helpstring("method OnClosing")] HRESULT OnClosing([in]long hSocket, [in]long hWnd);
+		
+		/*
+			The callback is called when USocket detects a returned result from a remote SocketPro server.
+
+			When the flag sFlag is set to rfCompleted, your must call IUFast::GetRtnBufferEx or IUSocket::GetRtnBuffer
+			to retrieve the returned result for processing unless lLenInBuffer and iLen are zero.
+		*/
+		[id(10), helpstring("method OnRequestProcessed")] HRESULT OnRequestProcessed([in]long hSocket, [in]short nRequestID, [in]long lLen,  [in] long lLenInBuffer, [in]short sFlag);
+	};
+
+	/*
+		IUSocketPool provides a few methods to manage a pool of sockets that are hosted within a set of threads.
+
+		After instantiating a USocketPool object, first you must call IUSocketPool::StartPool.
+
+		Afterwards, you can simply call IUSocketPool::ConnectAll to connect all of pooled sockets to a remote SocketPro server.
+		Alternatively, you can call IUSocketPool::FindAClosedSocket and connect a closed USocket object to a remote SocketPro server one by one.
+
+		Once sockets are connected with a remote SocketPro server, you can call IUSocketPool::LockASocket, then send a set of requests, 
+		and call IUSocketPool::UnlockASocket to put the locked socket back into the pool.
+
+		At the end, call IUSocketPool::DisconnectAll to close all of socket connections.
+
+		Finally, call IUSocketPool::ShutdownPool to destroy all of pooled USocket objects and threads.
+	*/
+	[
+		object,
+		uuid(148F6E9F-756D-4B8E-96F5-7AE8CC4697E6),
+		dual,
+		helpstring("IUSocketPool Interface"),
+		pointer_default(unique)
+	]
+	interface IUSocketPool : IDispatch
+	{
+		/*
+			Start a pool of USocket objects that are hosted within a given number (bThreadCount) of threads.
+			The parameter bSocketsPerThread can't be zero.
+
+			If bThreadCount is zero, internally bThreadCount will be automatically set to the number of processors.
+
+			Note that bThreadCount * bSocketsPerThread must not be over 64.
+		*/
+		[id(1), helpstring("method StartPool")] HRESULT StartPool([in]BYTE bThreadCount, [in]BYTE bSocketsPerThread);
+		
+		/*
+			Shutdown the pool, destroyed all of pooled USocket objects and threads
+		*/
+		[id(2), helpstring("method ShutdownPool")] HRESULT ShutdownPool();
+		
+		/*
+			Lock an opened USocket object. Once the USocket object is locked, none else can lock it 
+			until the USocket object is put back into the pool by calling IUSocketPool::UnlockASocket.
+
+			Note that you can't locked a closed USocket object.
+		*/
+		[id(3), helpstring("method LockASocket")] HRESULT LockASocket([in]long lTimeout, [in]IUSocket *pIUSocketSameThreadWith, [out, retval]IUSocket **ppIUSocket);
+		
+		/*
+			Put a previously locked USocket object (pIUSocket) back its pool so that it can be reused by others.
+			
+		*/
+		[id(4), helpstring("method UnlockASocket")] HRESULT UnlockASocket([in]IUSocket *pIUSocket);
+
+		/*
+			Connect all of pooled USocket objects onto one remote SocketPro server.
+		*/
+		[id(5), helpstring("method ConnectAll")] HRESULT ConnectAll([in]BSTR bstrHost, [in]long lPort, [in]long lInitialSvsID, [in]BSTR bstrUID, [in]BSTR bstrPWD, [in]short EncryptionMethod, [in, defaultvalue(-1)]VARIANT_BOOL bEnableZip);
+		
+		/*
+			Close all of pooled USocket connections to a remote SocketPro server.
+		*/
+		[id(6), helpstring("method DisconnectAll")] HRESULT DisconnectAll();
+		
+		/*
+			A property indicating the number of pooled USocket objects that are not connected with a remote SocketPro server.
+		*/
+		[propget, id(7), helpstring("property DisconnectedSockets")] HRESULT DisconnectedSockets([out, retval] BYTE *pVal);
+
+		/*
+			A property indicating the number of pooled USocket objects that are connected with a remote SocketPro server.
+		*/
+		[propget, id(8), helpstring("property ConnectedSockets")] HRESULT ConnectedSockets([out, retval] BYTE *pVal);
+		
+		/*
+			A property indicating the number of opened USocket objects that don't have any requests queued to be processed.
+		*/
+		[propget, id(9), helpstring("property IdleSockets")] HRESULT IdleSockets([out, retval] BYTE *pVal);
+		
+		/*
+			A property indicating the number of locked USocket objects.
+		*/
+		[propget, id(10), helpstring("property LockedSockets")] HRESULT LockedSockets([out, retval] BYTE *pVal);
+		
+		/*
+			A property indicating the number of threads within the pool.
+		*/
+		[propget, id(11), helpstring("property ThreadCounts")] HRESULT ThreadCounts([out, retval] BYTE *pVal);
+
+		/*
+			Find a USocket object that is not connected to a remote SocketPro server.
+		*/
+		[id(12), helpstring("method FindAClosedSocket")] HRESULT FindAClosedSocket([out, retval]IUSocket **ppIUSocket);
+		
+		/*
+			Connect a USocket object to a remote SocketPro server.
+		*/
+		[id(13), helpstring("method Connect")] HRESULT Connect([in]IUSocket *pIUSocket, [in]BSTR bstrHost, [in]long lPort, [in]long lInitialSvsID, [in]BSTR bstrUID, [in]BSTR bstrPWD, [in]short EncryptionMethod, [in, defaultvalue(-1)]VARIANT_BOOL bEnableZip);
+		[propget, id(14), helpstring("property ConnectedSocketsEx")] HRESULT ConnectedSocketsEx([out, retval] long *pVal);
+		[propget, id(15), helpstring("property DisconnectedSocketsEx")] HRESULT DisconnectedSocketsEx([out, retval] long *pVal);
+		[propget, id(16), helpstring("property IdleSocketsEx")] HRESULT IdleSocketsEx([out, retval] long *pVal);
+		[propget, id(17), helpstring("property LockedSocketsEx")] HRESULT LockedSocketsEx([out, retval] long *pVal);
+		[id(18), helpstring("method AddOneThreadIntoPool")] HRESULT AddOneThreadIntoPool();
+		[propget, id(19), helpstring("property USockets")] HRESULT USockets([out, retval] VARIANT *pVal);
+	};
+
+	[
+		uuid(140F6E9F-756D-4B8E-96F5-7AE80C4697E6),
+		dual, 
+		hidden
+	]
+	interface IUSocketScript : IUSocket
+	{
+		[id(91), helpstring("method Enter")] HRESULT Enter([in]long lGroups);
+		[id(92), helpstring("method Exit")] HRESULT Exit();
+		[id(93), helpstring("method Speak")] HRESULT Speak([in]VARIANT vtMsg, [in, defaultvalue(odAllGroups)]long lGroups);
+		[id(94), helpstring("method SpeakTo")] HRESULT SpeakTo([in]BSTR bstrIPAddr, [in]long lPort, [in]VARIANT vtMsg);
+		[id(95), helpstring("method GetAllGroups")] HRESULT GetAllGroups();
+		[id(96), helpstring("method GetAllListeners")] HRESULT GetAllListeners([in, defaultvalue(odAllGroups)]long lGroups);
+		[id(97), helpstring("method GetAllClients")] HRESULT GetAllClients();
+//		[id(98), helpstring("method GetGroupInfo")] HRESULT GetGroupInfo([in]long lIndex, [out]long *plGroup, [out, retval]BSTR *pbstrDescription);
+//		[id(99), helpstring("method GetInfo")] HRESULT GetInfo([in]long lIndex, [out]long *plGroup, [out]BSTR *pbstrUID, [out]long *plSvsID, [out]long *plPort, [out, retval]BSTR *pbstrIPAddress);
+		[propget, id(100), helpstring("property Listeners")] HRESULT Listeners([out, retval] long *pVal);
+		[propget, id(101), helpstring("property Message")] HRESULT Message([out, retval] VARIANT *pVal);
+		[propget, id(102), helpstring("property Groups")] HRESULT Groups([out, retval] long *pVal);
+		[id(103), helpstring("method SendUserMessage")] HRESULT SendUserMessage([in]BSTR bstrUserID, [in]VARIANT vtMsg);
+		[propget, id(145), helpstring("property JSUQueue")] HRESULT JSUQueue([out, retval] IJSSerialization **ppVal);
+		[id(146), helpstring("method SendJSRequest")] HRESULT SendJSRequest([in]short sRequestId);
+		[propget, id(147), helpstring("property JSObject")] HRESULT JSObject([out, retval] VARIANT *pVal);
+		[propput, id(147), helpstring("property JSObject")] HRESULT JSObject([in] VARIANT newVal);
+		[id(401), helpstring("method SetZipLevelAtSvr")] HRESULT SetZipLevelAtSvr([in]ZipLevel zipLevel);
+		[propget, id(402), helpstring("property ZipLevel")] HRESULT ZipLevel([out, retval]ZipLevel *pVal);
+		[propput, id(402), helpstring("property ZipLevel")] HRESULT ZipLevel([in]ZipLevel newVal);
+		[propget, id(403), helpstring("property ZipLevelAtSvr")] HRESULT ZipLevelAtSvr([out, retval]ZipLevel *pVal);
+		[id(404), helpstring("method GetGroupID")] HRESULT GetGroupID([in]long lIndex, [out,retval]long *plGroupID);
+		[id(405), helpstring("method GetGroupDescription")] HRESULT GetGroupDescription([in]long lIndex, [out, retval]BSTR *pbstrDescription);
+		[id(406), helpstring("method GetInfoGroupIDs")] HRESULT GetInfoGroupIDs([in]long lIndex, [out,retval]long *plGroupIDs);
+		[id(407), helpstring("method GetInfoUserID")] HRESULT GetInfoUserID([in]long lIndex, [out,retval]BSTR *pbstrUserID);
+		[id(408), helpstring("method GetInfoSenderService")] HRESULT GetInfoServiceID([in]long lIndex, [out,retval]long *plSvsID);
+		[id(409), helpstring("method GetInfoPort")] HRESULT GetInfoPort([in]long lIndex, [out,retval]long *plPort);
+		[id(410), helpstring("method GetInfoIPAddress")] HRESULT GetInfoIPAddress([in]long lIndex, [out,retval]BSTR *pbstrIPAddress);
+	};
+	
+	[
+		uuid(AAD83433-CC8D-4F6D-9C62-E224DCA81358),
+		helpstring("USocket Class")
+	]
+	coclass USocket
+	{
+		[default] interface IUSocket;
+		interface ISocketBase;
+		interface IUChat;
+		interface IUFast;
+		interface IUZip;
+		[default, source] dispinterface _IUSocketEvent;
+	};
+	[
+		uuid(2CC0BCFE-0361-4788-96E5-76A64D2B11BE),
+		helpstring("_IUSocketPoolEvents Interface")
+	]
+	dispinterface _IUSocketPoolEvents
+	{
+		properties:
+		methods:
+		[id(1), helpstring("method OnSocketPoolEvent")] HRESULT OnSocketPoolEvent([in]tagSocketPoolEvent spe, [in]IUSocket *pIUSocket);
+	};
+	
+	[
+		uuid(0A3CD705-6C31-4C9C-91BE-BDFF4EECF8CB),
+		helpstring("USocketPool Class")
+	]
+	coclass USocketPool
+	{
+		[default] interface IUSocketPool;
+		[default, source] dispinterface _IUSocketPoolEvents;
+	};
+};

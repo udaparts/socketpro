@@ -1,0 +1,9 @@
+[	
+	ServiceID = 1111 //service id can't be less than 0
+]
+			
+CPerf
+{
+	string MyEcho(string strInput);
+	DataTable OpenRecords(string strSQL);
+}

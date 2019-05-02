@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?><?xml-stylesheet type='text/xsl' href='_UpgradeReport_Files/UpgradeReport.xslt'?><UpgradeLog>
+<Properties><Property Name="Solution" Value="RAdo">
+</Property><Property Name="Solution File" Value="C:\Program Files\UDAParts\SocketPro\samples\RAdo\VBNet\RAdo.sln">
+</Property><Property Name="Date" Value="Monday, February 20, 2012">
+</Property><Property Name="Time" Value="15:21 PM">
+</Property></Properties><Event ErrorLevel="0" Project="RAdoClient" Source="Client\RAdoClient.vbproj" Description="The project file does not require conversion.">
+</Event><Event ErrorLevel="3" Project="RAdoClient" Source="Client\RAdoClient.vbproj" Description="No Conversion Required">
+</Event><Event ErrorLevel="0" Project="RAdoServer" Source="Server\RAdoServer.vbproj" Description="The project file does not require conversion.">
+</Event><Event ErrorLevel="3" Project="RAdoServer" Source="Server\RAdoServer.vbproj" Description="No Conversion Required">
+</Event><Event ErrorLevel="0" Project="" Source="RAdo.sln" Description="Solution converted successfully">
+</Event><Event ErrorLevel="3" Project="" Source="RAdo.sln" Description="Converted">
+</Event></UpgradeLog>

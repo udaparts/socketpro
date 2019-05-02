@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>10.0.0</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{E98C6E1C-BB90-40EC-A7FC-87C4E68683F6}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>spanix</RootNamespace>
+    <AssemblyName>spanix</AssemblyName>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug</OutputPath>
+    <DefineConstants>DEBUG;USE_MONO;</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <ConsolePause>false</ConsolePause>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>none</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release</OutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <ConsolePause>false</ConsolePause>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
+    <DefineConstants>USE_MONO;</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="AssemblyInfo.cs" />
+    <Compile Include="..\..\SproAdapter\asynchandler.cs">
+      <Link>asynchandler.cs</Link>
+    </Compile>
+    <Compile Include="..\..\SproAdapter\basedefines.cs">
+      <Link>basedefines.cs</Link>
+    </Compile>
+    <Compile Include="..\..\SproAdapter\clientinterop.cs">
+      <Link>clientinterop.cs</Link>
+    </Compile>
+    <Compile Include="..\..\SproAdapter\clientsocket.cs">
+      <Link>clientsocket.cs</Link>
+    </Compile>
+    <Compile Include="..\..\SproAdapter\remotingadonethelper.cs">
+      <Link>remotingadonethelper.cs</Link>
+    </Compile>
+    <Compile Include="..\..\SproAdapter\scopeuqueue.cs">
+      <Link>scopeuqueue.cs</Link>
+    </Compile>
+    <Compile Include="..\..\SproAdapter\serverinterop.cs">
+      <Link>serverinterop.cs</Link>
+    </Compile>
+    <Compile Include="..\..\SproAdapter\serversocket.cs">
+      <Link>serversocket.cs</Link>
+    </Compile>
+    <Compile Include="..\..\SproAdapter\socketpool.cs">
+      <Link>socketpool.cs</Link>
+    </Compile>
+    <Compile Include="..\..\SproAdapter\uhttppeer.cs">
+      <Link>uhttppeer.cs</Link>
+    </Compile>
+    <Compile Include="..\..\SproAdapter\uqueue.cs">
+      <Link>uqueue.cs</Link>
+    </Compile>
+    <Compile Include="..\..\SproAdapter\userver.cs">
+      <Link>userver.cs</Link>
+    </Compile>
+    <Compile Include="..\..\SproAdapter\usvrservice.cs">
+      <Link>usvrservice.cs</Link>
+    </Compile>
+    <Compile Include="..\..\SproAdapter\serverqueue.cs">
+      <Link>serverqueue.cs</Link>
+    </Compile>
+    <Compile Include="..\..\SproAdapter\clientpeer.cs">
+      <Link>clientpeer.cs</Link>
+    </Compile>
+    <Compile Include="..\..\SproAdapter\serverpeerbase.cs">
+      <Link>serverpeerbase.cs</Link>
+    </Compile>
+    <Compile Include="..\..\SproAdapter\adoclientpeer.cs">
+      <Link>adoclientpeer.cs</Link>
+    </Compile>
+    <Compile Include="..\..\SproAdapter\asyncadohandler.cs">
+      <Link>asyncadohandler.cs</Link>
+    </Compile>
+    <Compile Include="..\..\SproAdapter\replication.cs">
+      <Link>replication.cs</Link>
+    </Compile>
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+</Project>

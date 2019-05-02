@@ -1,0 +1,202 @@
+<html xmlns:o="urn:schemas-microsoft-com:office:office"
+xmlns:w="urn:schemas-microsoft-com:office:word"
+xmlns="http://www.w3.org/TR/REC-html40">
+
+<head>
+<meta http-equiv=Content-Type content="text/html; charset=windows-1252">
+<meta name=ProgId content=Word.Document>
+<meta name=Generator content="Microsoft Word 9">
+<meta name=Originator content="Microsoft Word 9">
+<link rel=File-List href="./GetHostByAddr_files/filelist.xml">
+<title>GetHostByAddr</title>
+<!--[if gte mso 9]><xml>
+ <o:DocumentProperties>
+  <o:Author>Yuancai (Charlie) Ye</o:Author>
+  <o:Template>Normal</o:Template>
+  <o:LastAuthor>Yuancai (Charlie) Ye</o:LastAuthor>
+  <o:Revision>3</o:Revision>
+  <o:TotalTime>8</o:TotalTime>
+  <o:Created>2006-09-04T00:45:00Z</o:Created>
+  <o:LastSaved>2006-11-01T00:27:00Z</o:LastSaved>
+  <o:Pages>1</o:Pages>
+  <o:Words>219</o:Words>
+  <o:Characters>1250</o:Characters>
+  <o:Company>Intelligent Decision Technologies</o:Company>
+  <o:Lines>10</o:Lines>
+  <o:Paragraphs>2</o:Paragraphs>
+  <o:CharactersWithSpaces>1535</o:CharactersWithSpaces>
+  <o:Version>9.2720</o:Version>
+ </o:DocumentProperties>
+</xml><![endif]-->
+<style>
+<!--
+ /* Style Definitions */
+p.MsoNormal, li.MsoNormal, div.MsoNormal
+	{mso-style-parent:"";
+	margin:0in;
+	margin-bottom:.0001pt;
+	mso-pagination:widow-orphan;
+	font-size:12.0pt;
+	font-family:"Times New Roman";
+	mso-fareast-font-family:"Times New Roman";}
+h1
+	{mso-style-next:Normal;
+	margin:0in;
+	margin-bottom:.0001pt;
+	mso-pagination:widow-orphan;
+	page-break-after:avoid;
+	mso-outline-level:1;
+	font-size:12.0pt;
+	font-family:"Times New Roman";
+	mso-font-kerning:0pt;}
+h2
+	{mso-style-next:Normal;
+	margin:0in;
+	margin-bottom:.0001pt;
+	mso-pagination:widow-orphan;
+	page-break-after:avoid;
+	mso-outline-level:2;
+	font-size:12.0pt;
+	font-family:"Times New Roman";
+	font-weight:normal;
+	font-style:italic;}
+p.MsoBodyText, li.MsoBodyText, div.MsoBodyText
+	{margin:0in;
+	margin-bottom:.0001pt;
+	mso-pagination:widow-orphan;
+	mso-layout-grid-align:none;
+	text-autospace:none;
+	font-size:10.0pt;
+	font-family:"Courier New";
+	mso-fareast-font-family:"Times New Roman";
+	color:green;}
+a:link, span.MsoHyperlink
+	{color:blue;
+	text-decoration:underline;
+	text-underline:single;}
+a:visited, span.MsoHyperlinkFollowed
+	{color:purple;
+	text-decoration:underline;
+	text-underline:single;}
+@page Section1
+	{size:8.5in 11.0in;
+	margin:1.0in 1.25in 1.0in 1.25in;
+	mso-header-margin:.5in;
+	mso-footer-margin:.5in;
+	mso-paper-source:0;}
+div.Section1
+	{page:Section1;}
+-->
+</style>
+</head>
+
+<body lang=EN-US link=blue vlink=purple style='tab-interval:.5in'>
+
+<div class=Section1>
+
+<p class=MsoNormal><b><span style='mso-bidi-font-size:10.0pt'>[<span
+style='color:blue'>id</span>(13), <span style='color:blue'>helpstring</span>(<span
+style='color:maroon'>&quot;method GetHostByAddr&quot;</span>)] HRESULT
+GetHostByAddr([<span style='color:blue'>in</span>]BSTR bstrIPAddr, [<span
+style='color:blue'>in</span>, <span style='color:blue'>defaultvalue</span>(afINet)]<span
+style='color:blue'>long</span> lAddrFormat, [<span style='color:blue'>in</span>,
+<span style='color:blue'>defaultvalue</span>(0)]VARIANT_BOOL bBlocking, [<span
+style='color:blue'>out</span>, <span style='color:blue'>defaultvalue</span>(0)]<span
+style='color:blue'>long</span> *phHandle, [<span style='color:blue'>out</span>,
+<span style='color:blue'>defaultvalue</span>(0)]BSTR *pbstrAlias, [<span
+style='color:blue'>out</span>,<span style='color:blue'>retval</span>]BSTR
+*pbstrHostName);<o:p></o:p></span></b></p>
+
+<p class=MsoNormal><span style='mso-bidi-font-size:10.0pt;color:blue'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<h1>Parameters</h1>
+
+<p class=MsoNormal><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></p>
+
+<p class=MsoNormal><i>bstrIPAddr<o:p></o:p></i></p>
+
+<p class=MsoNormal><span style='mso-tab-count:1'>            </span>[in]A valid
+remote host address string like <i>111.222.212.121<o:p></o:p></i></p>
+
+<p class=MsoNormal><i><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></i></p>
+
+<p class=MsoNormal><i>lAddrFormat<o:p></o:p></i></p>
+
+<p class=MsoNormal><i><span style='mso-tab-count:1'>            </span>[in]Reserved</i></p>
+
+<p class=MsoNormal><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></p>
+
+<p class=MsoNormal><i>bBlocking<o:p></o:p></i></p>
+
+<p class=MsoNormal><span style='mso-tab-count:1'>            </span>[in]Asynchronously
+or synchronously retrieving a remote host information</p>
+
+<p class=MsoNormal><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></p>
+
+<p class=MsoNormal><i>phHanlde<o:p></o:p></i></p>
+
+<p class=MsoNormal><span style='mso-tab-count:1'>            </span>[out]Reserved</p>
+
+<p class=MsoNormal><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></p>
+
+<p class=MsoNormal><i>pbstrAlias<o:p></o:p></i></p>
+
+<p class=MsoNormal><span style='mso-tab-count:1'>            </span>[out]A
+pointer to a BSTR for receiving alias</p>
+
+<p class=MsoNormal><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></p>
+
+<p class=MsoNormal><i>pbstrHostName<o:p></o:p></i></p>
+
+<p class=MsoNormal><span style='mso-tab-count:1'>            </span>[out]A
+pointer to a BSTR for receiving host name</p>
+
+<p class=MsoNormal><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></p>
+
+<h1>Remarks</h1>
+
+<p class=MsoNormal><span style='mso-tab-count:1'>            </span></p>
+
+<p class=MsoNormal style='text-indent:.5in;mso-layout-grid-align:none;
+text-autospace:none'><span style='mso-bidi-font-size:10.0pt'>Calling the
+function retrieves host information corresponding to a host IP Address (</span><i>bstrIPAddr</i><span
+style='mso-bidi-font-size:10.0pt'>) like <i>111.222.212.121 </i>from a host
+database either synchronously or asynchronously.<o:p></o:p></span></p>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='mso-bidi-font-size:10.0pt'><span style='mso-tab-count:3'>                                    </span><o:p></o:p></span></p>
+
+<p class=MsoBodyText><span style='font-size:12.0pt;mso-bidi-font-size:10.0pt;
+font-family:"Times New Roman";color:windowtext'><span style='mso-tab-count:
+1'>            </span>If <i>bBlocking</i> is true, the function gets host
+information synchronously and the last two out parameters will receive host
+information after the function returns. Refer to winsock function gethostbyaddr.
+<o:p></o:p></span></p>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='mso-bidi-font-size:10.0pt'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='mso-bidi-font-size:10.0pt'><span style='mso-tab-count:1'>            </span>If
+<i>bBlocking</i> is false, the function gets host information asynchronously
+and the last three out parameters will not receive host information after it
+returns. The last two out parameters will be available when the event
+OnGetHostByAddr arrives. Refer to winsock function WSAAsyncGetHostByAddr. <o:p></o:p></span></p>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='mso-bidi-font-size:10.0pt'><span style='mso-tab-count:3'>                                    </span><o:p></o:p></span></p>
+
+<p class=MsoNormal style='text-indent:.5in'><span style='mso-bidi-font-size:
+10.0pt'>Note that MS CE doesn't have the function WSAAsyncGetHostByAddr.
+Therefore, internally a USocket object always sets <i>bBlocking</i> to true.<o:p></o:p></span></p>
+
+<p class=MsoNormal style='text-indent:.5in'><span style='mso-bidi-font-size:
+10.0pt'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal><b><a href="usocketlib.htm">USocket library</a></b></p>
+
+</div>
+
+</body>
+
+</html>

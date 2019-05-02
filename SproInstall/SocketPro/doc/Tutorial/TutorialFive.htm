@@ -1,0 +1,834 @@
+<html xmlns:o="urn:schemas-microsoft-com:office:office"
+xmlns:w="urn:schemas-microsoft-com:office:word"
+xmlns="http://www.w3.org/TR/REC-html40">
+
+<head>
+<meta http-equiv=Content-Type content="text/html; charset=windows-1252">
+<meta name=ProgId content=Word.Document>
+<meta name=Generator content="Microsoft Word 9">
+<meta name=Originator content="Microsoft Word 9">
+<link rel=File-List href="./TutorialFive_files/filelist.xml">
+<!--[if gte mso 9]><xml>
+ <o:DocumentProperties>
+  <o:Author>Yuancai (Charlie) Ye</o:Author>
+  <o:Template>Normal</o:Template>
+  <o:LastAuthor>Yuancai (Charlie) Ye</o:LastAuthor>
+  <o:Revision>25</o:Revision>
+  <o:TotalTime>263</o:TotalTime>
+  <o:Created>2007-01-18T03:00:00Z</o:Created>
+  <o:LastSaved>2007-01-20T14:54:00Z</o:LastSaved>
+  <o:Pages>4</o:Pages>
+  <o:Words>2037</o:Words>
+  <o:Characters>11616</o:Characters>
+  <o:Company>Intelligent Decision Technologies</o:Company>
+  <o:Lines>96</o:Lines>
+  <o:Paragraphs>23</o:Paragraphs>
+  <o:CharactersWithSpaces>14265</o:CharactersWithSpaces>
+  <o:Version>9.2720</o:Version>
+ </o:DocumentProperties>
+</xml><![endif]-->
+<style>
+<!--
+ /* Style Definitions */
+p.MsoNormal, li.MsoNormal, div.MsoNormal
+	{mso-style-parent:"";
+	margin:0in;
+	margin-bottom:.0001pt;
+	mso-pagination:widow-orphan;
+	font-size:12.0pt;
+	font-family:"Times New Roman";
+	mso-fareast-font-family:"Times New Roman";}
+p.MsoTitle, li.MsoTitle, div.MsoTitle
+	{margin:0in;
+	margin-bottom:.0001pt;
+	text-align:center;
+	mso-pagination:widow-orphan;
+	font-size:16.0pt;
+	mso-bidi-font-size:12.0pt;
+	font-family:"Times New Roman";
+	mso-fareast-font-family:"Times New Roman";
+	font-weight:bold;}
+p.MsoBodyTextIndent, li.MsoBodyTextIndent, div.MsoBodyTextIndent
+	{margin:0in;
+	margin-bottom:.0001pt;
+	text-indent:.5in;
+	mso-pagination:widow-orphan;
+	font-size:12.0pt;
+	mso-bidi-font-size:10.0pt;
+	font-family:"Times New Roman";
+	mso-fareast-font-family:"Times New Roman";}
+p.MsoSubtitle, li.MsoSubtitle, div.MsoSubtitle
+	{margin:0in;
+	margin-bottom:.0001pt;
+	mso-pagination:widow-orphan;
+	font-size:12.0pt;
+	font-family:"Times New Roman";
+	mso-fareast-font-family:"Times New Roman";
+	font-weight:bold;}
+a:link, span.MsoHyperlink
+	{color:blue;
+	text-decoration:underline;
+	text-underline:single;}
+a:visited, span.MsoHyperlinkFollowed
+	{color:purple;
+	text-decoration:underline;
+	text-underline:single;}
+@page Section1
+	{size:8.5in 11.0in;
+	margin:1.0in 1.25in 1.0in 1.25in;
+	mso-header-margin:.5in;
+	mso-footer-margin:.5in;
+	mso-paper-source:0;}
+div.Section1
+	{page:Section1;}
+-->
+</style>
+</head>
+
+<body lang=EN-US link=blue vlink=purple style='tab-interval:.5in'>
+
+<div class=Section1>
+
+<p class=MsoTitle>Tutorial Five</p>
+
+<p class=MsoNormal><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></p>
+
+<p class=MsoSubtitle>Contents</p>
+
+<p class=MsoNormal><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></p>
+
+<p class=MsoNormal style='margin-left:.5in'><span style='font-size:11.0pt;
+mso-bidi-font-size:12.0pt'><a href="#Introduction">Introduction</a><o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.5in'><span style='font-size:11.0pt;
+mso-bidi-font-size:12.0pt'><a href="#Analyze">Analyze business security
+requirements with simple sample</a><o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.5in'><span style='font-size:11.0pt;
+mso-bidi-font-size:12.0pt'><a href="#Steps">Steps for securing required requests
+and return results with BlowFish</a><o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.5in'><span style='font-size:11.0pt;
+mso-bidi-font-size:12.0pt'><a href="#Descriptions">Description of SocketPro
+security protocol</a><o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.5in'><span style='font-size:11.0pt;
+mso-bidi-font-size:12.0pt'><span style='mso-tab-count:1'>            </span><a
+href="#CallingClientSocket">Calling IUSocket::SwitchTo without password</a><o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.5in'><span style='font-size:11.0pt;
+mso-bidi-font-size:12.0pt'><span style='mso-tab-count:1'>            </span><a
+href="#HashingPassword">Hashing a password with a unique salt on server side</a><o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.5in'><span style='font-size:11.0pt;
+mso-bidi-font-size:12.0pt'><span style='mso-tab-count:1'>            </span><a
+href="#Authenticating">Authenticating a remote SocketPro server</a><o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.5in'><span style='font-size:11.0pt;
+mso-bidi-font-size:12.0pt'><span style='mso-tab-count:1'>            </span><a
+href="#Verifying">Verifying a client</a><o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.5in'><span style='font-size:11.0pt;
+mso-bidi-font-size:12.0pt'><a href="#When">When should we use the protocol?</a><o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.5in'><span style='font-size:11.0pt;
+mso-bidi-font-size:12.0pt'><span style='mso-tab-count:1'>            </span><a
+href="#Selectively">Selectively securing a few requests and return results for
+better performance and scalability</a><o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.5in'><span style='font-size:11.0pt;
+mso-bidi-font-size:12.0pt'><span style='mso-tab-count:1'>            </span><a
+href="#Simplification">Simplification of security settings</a><o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.5in'><span style='font-size:11.0pt;
+mso-bidi-font-size:12.0pt'><span style='mso-tab-count:1'>            </span><a
+href="#NoPasswordTransferred">Don’t want to exchange password between client
+and server</a><o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.5in'><span style='font-size:11.0pt;
+mso-bidi-font-size:12.0pt'><a href="#Flaw">One flaw of SocketPro security
+protocol</a><o:p></o:p></span></p>
+
+<p class=MsoNormal><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></p>
+
+<p class=MsoNormal><a name=Introduction><b>1.<span style='mso-tab-count:1'>         </span>Introduction</b></a><b><o:p></o:p></b></p>
+
+<p class=MsoNormal><span style='mso-tab-count:1'>            </span></p>
+
+<p class=MsoNormal><span style='mso-tab-count:1'>            </span>Securing
+data communications between two machines is not a trivial work. We spend a lot
+of time to make our SocketPro as secure as possible. SocketPro fully supports
+industrial standard security protocol SSL/TLS to ensure data exchanging
+security, as shown in the previous tutorial two and other samples. However, we
+don’t think the industrial standard SSL/TLS is perfect under all of cases. It
+has three major flaws, complexity, certificate settings and low performance for
+handshaking and securing all of transferred data. Long time ago, we planned to
+develop a new security protocol for our SocketPro so that both client and
+server applications are able to selectively encrypt the requests and results
+that are just required by business. Now, we have a protocol to secure
+just-needed requests and return results with zero security settings and super
+simplicity, which may lead to better security.</p>
+
+<p class=MsoNormal><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></p>
+
+<p class=MsoNormal><span style='mso-tab-count:1'>            </span>Our
+SocketPro security protocol is simply rooted on hashing password with salt to
+create a private key on the fly for BlowFish. As long as you understand hash
+and BlowFish, you will have no problem in understanding the simple security
+protocol. </p>
+
+<p class=MsoNormal><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></p>
+
+<p class=MsoNormal><b>2.<span style='mso-tab-count:1'>         </span><a
+name=Analyze>Analyze business security requirements with simple sample</a><o:p></o:p></b></p>
+
+<p class=MsoNormal><span style='mso-tab-count:1'>            </span></p>
+
+<p class=MsoNormal><span style='mso-tab-count:1'>            </span>First of
+all, forget theories about encryption. Let’s concentrate on the below universal
+interface definition file MyBlowFish.uid.</p>
+
+<p class=MsoNormal><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></p>
+
+<p class=MsoNormal style='text-indent:.5in;background:#FFFFCC;mso-layout-grid-align:
+none;text-autospace:none'><span style='font-size:11.0pt;mso-bidi-font-size:
+10.0pt'>[<span style='mso-tab-count:1'>           </span><o:p></o:p></span></p>
+
+<p class=MsoNormal style='background:#FFFFCC;mso-layout-grid-align:none;
+text-autospace:none'><span style='font-size:11.0pt;mso-bidi-font-size:10.0pt'><span
+style='mso-tab-count:2'>                        </span>ServiceID = 101 <span
+style='color:green'>//service id can't be less than 0<o:p></o:p></span></span></p>
+
+<p class=MsoNormal style='text-indent:.5in;background:#FFFFCC;mso-layout-grid-align:
+none;text-autospace:none'><span style='font-size:11.0pt;mso-bidi-font-size:
+10.0pt'>]<span style='mso-tab-count:3'>                                   </span><o:p></o:p></span></p>
+
+<p class=MsoNormal style='text-indent:.5in;background:#FFFFCC;mso-layout-grid-align:
+none;text-autospace:none'><span style='font-size:11.0pt;mso-bidi-font-size:
+10.0pt'>CMySecure<o:p></o:p></span></p>
+
+<p class=MsoNormal style='text-indent:.5in;background:#FFFFCC;mso-layout-grid-align:
+none;text-autospace:none'><span style='font-size:11.0pt;mso-bidi-font-size:
+10.0pt'>{<o:p></o:p></span></p>
+
+<p class=MsoNormal style='background:#FFFFCC;mso-layout-grid-align:none;
+text-autospace:none'><span style='font-size:11.0pt;mso-bidi-font-size:10.0pt'><span
+style='mso-tab-count:2'>                        </span><span style='color:green'>//Secured<o:p></o:p></span></span></p>
+
+<p class=MsoNormal style='background:#FFFFCC;mso-layout-grid-align:none;
+text-autospace:none'><span style='font-size:11.0pt;mso-bidi-font-size:10.0pt'><span
+style='mso-tab-count:2'>                        </span>$<span style='color:
+blue'>string</span> Open(<span style='color:blue'>in string</span>
+strUserIDToDB, <span style='color:blue'>in string</span> strPasswordToDB);<o:p></o:p></span></p>
+
+<p class=MsoNormal style='background:#FFFFCC;mso-layout-grid-align:none;
+text-autospace:none'><span style='font-size:11.0pt;mso-bidi-font-size:10.0pt'><span
+style='mso-tab-count:1'>            </span><o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.5in;text-indent:.5in;background:#FFFFCC;
+mso-layout-grid-align:none;text-autospace:none'><span style='font-size:11.0pt;
+mso-bidi-font-size:10.0pt;color:blue'>bool</span><span style='font-size:11.0pt;
+mso-bidi-font-size:10.0pt'> BeginTrans();<o:p></o:p></span></p>
+
+<p class=MsoNormal style='background:#FFFFCC;mso-layout-grid-align:none;
+text-autospace:none'><span style='font-size:11.0pt;mso-bidi-font-size:10.0pt'><span
+style='mso-tab-count:2'>                        </span>$<span style='color:
+blue'>bool</span> ExecuteNoQuery(<span style='color:blue'>in string</span>
+strSQL);<o:p></o:p></span></p>
+
+<p class=MsoNormal style='background:#FFFFCC;mso-layout-grid-align:none;
+text-autospace:none'><span style='font-size:11.0pt;mso-bidi-font-size:10.0pt'><span
+style='mso-tab-count:2'>                        </span><span style='color:blue'>bool</span>
+Commit(<span style='color:blue'>in bool</span> bSmart);<o:p></o:p></span></p>
+
+<p class=MsoNormal style='text-indent:.5in;background:#FFFFCC'><span
+style='font-size:11.0pt;mso-bidi-font-size:10.0pt'>}<o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.5in'><span style='mso-bidi-font-size:
+10.0pt'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='mso-bidi-font-size:10.0pt'><span
+style='mso-tab-count:1'>            </span>Calling the first method Open
+requires sending a user id and his or her password to a remote SocketPro server
+so that this request must be secured. All of other methods will not cause
+transferring any sensitive data at all. Therefore, the other three methods are
+not required to be secure. Additionally, all of requests will not return any
+sensitive data either. So we’ll not secure any return results. Keep the above
+requirements in mind. We use uidparser.exe to create base code for both client
+and server, as described in the tutorial one.<o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='mso-bidi-font-size:10.0pt'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal><b><span style='mso-bidi-font-size:10.0pt'>3.<span
+style='mso-tab-count:1'>         </span></span><a name=Steps>Steps for securing
+required requests and return results with BlowFish</a><o:p></o:p></b></p>
+
+<p class=MsoNormal><span style='mso-bidi-font-size:10.0pt'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='mso-bidi-font-size:10.0pt'><span
+style='mso-tab-count:1'>            </span>On server side, we need to set
+encryption method to BlowFish like we did for SSL/TLS, as shown in the below
+code before starting listening socket on a port.<o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='mso-bidi-font-size:10.0pt'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal style='background:#FFFFCC;mso-layout-grid-align:none;
+text-autospace:none'><span style='font-size:10.0pt;font-family:"Courier New"'><span
+style='mso-tab-count:1'>      </span></span><span style='font-size:11.0pt;
+mso-bidi-font-size:10.0pt'>AuthenticationMethod = <span style='color:teal'>tagAuthenticationMethod</span>.amOwn;<o:p></o:p></span></p>
+
+<p class=MsoNormal style='text-indent:.5in;background:#FFFFCC'><span
+style='font-size:11.0pt;mso-bidi-font-size:10.0pt'>DefaultEncryptionMethod = <span
+style='color:teal'>tagEncryptionMethod</span>.BlowFish;<o:p></o:p></span></p>
+
+<p class=MsoNormal style='text-indent:.5in'><span style='mso-bidi-font-size:
+10.0pt'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoBodyTextIndent>Note that you must set authentication method to amOwn
+as shown in the above. Otherwise, it does not make sense in logical as you
+understand the coming sections.</p>
+
+<p class=MsoNormal><span style='mso-bidi-font-size:10.0pt'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='mso-bidi-font-size:10.0pt'><span
+style='mso-tab-count:1'>            </span>On client side, you have to set
+encryption method to BlowFish before calling CClientSocket::SwitchTo when a
+socket connection is established as shown in the below code.<o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='mso-bidi-font-size:10.0pt'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal style='background:#FFFFCC;mso-layout-grid-align:none;
+text-autospace:none'><span style='mso-bidi-font-size:10.0pt'><span
+style='mso-tab-count:1'>            </span></span><span style='font-size:11.0pt;
+mso-bidi-font-size:10.0pt;color:blue'>private</span><span style='font-size:
+11.0pt;mso-bidi-font-size:10.0pt'> <span style='color:blue'>void</span>
+OnConnected(<span style='color:blue'>int</span> nSocketHandle, <span
+style='color:blue'>int</span> nError)<o:p></o:p></span></p>
+
+<p class=MsoNormal style='text-indent:.5in;background:#FFFFCC;mso-layout-grid-align:
+none;text-autospace:none'><span style='font-size:11.0pt;mso-bidi-font-size:
+10.0pt'>{<o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.5in;text-indent:.5in;background:#FFFFCC;
+mso-layout-grid-align:none;text-autospace:none'><span style='font-size:11.0pt;
+mso-bidi-font-size:10.0pt;color:blue'>if</span><span style='font-size:11.0pt;
+mso-bidi-font-size:10.0pt'> (nError == 0)<o:p></o:p></span></p>
+
+<p class=MsoNormal style='background:#FFFFCC;mso-layout-grid-align:none;
+text-autospace:none'><span style='font-size:11.0pt;mso-bidi-font-size:10.0pt'><span
+style="mso-spacerun: yes">            </span><span style='mso-tab-count:1'>            </span>{<o:p></o:p></span></p>
+
+<p class=MsoNormal style='background:#FFFFCC;mso-layout-grid-align:none;
+text-autospace:none'><span style='font-size:11.0pt;mso-bidi-font-size:10.0pt'><span
+style="mso-spacerun: yes">                </span><span style='mso-tab-count:
+2'>                    </span>btnToDB.Enabled = <span style='color:blue'>true</span>;<o:p></o:p></span></p>
+
+<p class=MsoNormal style='background:#FFFFCC;mso-layout-grid-align:none;
+text-autospace:none'><span style='font-size:11.0pt;mso-bidi-font-size:10.0pt'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal style='background:#FFFFCC;mso-layout-grid-align:none;
+text-autospace:none'><span style='font-size:11.0pt;mso-bidi-font-size:10.0pt'><span
+style="mso-spacerun: yes">                               </span><span
+style='mso-tab-count:1'>     </span>m_ClientSocket.EncryptionMethod = <span
+style='color:teal'>tagEncryptionMethod</span>.BlowFish;<o:p></o:p></span></p>
+
+<p class=MsoNormal style='background:#FFFFCC;mso-layout-grid-align:none;
+text-autospace:none'><span style='font-size:11.0pt;mso-bidi-font-size:10.0pt'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal style='background:#FFFFCC;mso-layout-grid-align:none;
+text-autospace:none'><span style='font-size:11.0pt;mso-bidi-font-size:10.0pt'><span
+style="mso-spacerun: yes">                </span><span style='mso-tab-count:
+2'>                    </span><span style='color:green'>//set user id and
+password<o:p></o:p></span></span></p>
+
+<p class=MsoNormal style='background:#FFFFCC;mso-layout-grid-align:none;
+text-autospace:none'><span style='font-size:11.0pt;mso-bidi-font-size:10.0pt'><span
+style="mso-spacerun: yes">                </span><span style='mso-tab-count:
+2'>                    </span>m_ClientSocket.SetUID(txtUserID.Text);<o:p></o:p></span></p>
+
+<p class=MsoNormal style='background:#FFFFCC;mso-layout-grid-align:none;
+text-autospace:none'><span style='font-size:11.0pt;mso-bidi-font-size:10.0pt'><span
+style="mso-spacerun: yes">                </span><span style='mso-tab-count:
+2'>                    </span>m_ClientSocket.SetPassword(txtPassword.Text);<o:p></o:p></span></p>
+
+<p class=MsoNormal style='background:#FFFFCC;mso-layout-grid-align:none;
+text-autospace:none'><span style='font-size:11.0pt;mso-bidi-font-size:10.0pt'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal style='background:#FFFFCC;mso-layout-grid-align:none;
+text-autospace:none'><span style='font-size:11.0pt;mso-bidi-font-size:10.0pt'><span
+style="mso-spacerun: yes">                </span><span style='mso-tab-count:
+2'>                    </span><span style='color:green'>//switch for the
+service identified by m_AsynHandler<o:p></o:p></span></span></p>
+
+<p class=MsoNormal style='background:#FFFFCC;mso-layout-grid-align:none;
+text-autospace:none'><span style='font-size:11.0pt;mso-bidi-font-size:10.0pt'><span
+style="mso-spacerun: yes">              </span><span style="mso-spacerun:
+yes">  </span><span style='mso-tab-count:2'>                    </span>m_ClientSocket.SwitchTo(m_AsynHandler);<o:p></o:p></span></p>
+
+<p class=MsoNormal style='background:#FFFFCC;mso-layout-grid-align:none;
+text-autospace:none'><span style='font-size:11.0pt;mso-bidi-font-size:10.0pt'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal style='background:#FFFFCC;mso-layout-grid-align:none;
+text-autospace:none'><span style='font-size:11.0pt;mso-bidi-font-size:10.0pt'><span
+style='mso-tab-count:3'>                                    </span><span
+style='color:green'>//password cleaned right after SwitchTo is returned
+internally<o:p></o:p></span></span></p>
+
+<p class=MsoNormal style='background:#FFFFCC;mso-layout-grid-align:none;
+text-autospace:none'><span style='font-size:11.0pt;mso-bidi-font-size:10.0pt'><span
+style="mso-spacerun: yes">            </span><span style='mso-tab-count:1'>            </span>}<o:p></o:p></span></p>
+
+<p class=MsoNormal style='background:#FFFFCC;mso-layout-grid-align:none;
+text-autospace:none'><span style='font-size:11.0pt;mso-bidi-font-size:10.0pt'><span
+style="mso-spacerun: yes">           </span><span style='mso-tab-count:1'> </span><span
+style="mso-spacerun: yes"> </span><span style='mso-tab-count:1'>           </span><span
+style='color:blue'>else<o:p></o:p></span></span></p>
+
+<p class=MsoNormal style='background:#FFFFCC;mso-layout-grid-align:none;
+text-autospace:none'><span style='font-size:11.0pt;mso-bidi-font-size:10.0pt'><span
+style="mso-spacerun: yes">            </span><span style='mso-tab-count:1'>            </span>{<o:p></o:p></span></p>
+
+<p class=MsoNormal style='background:#FFFFCC;mso-layout-grid-align:none;
+text-autospace:none'><span style='font-size:11.0pt;mso-bidi-font-size:10.0pt'><span
+style="mso-spacerun: yes">                </span><span style='mso-tab-count:
+2'>                    </span><span style='color:teal'>MessageBox</span>.Show(m_ClientSocket.GetErrorMsg());<o:p></o:p></span></p>
+
+<p class=MsoNormal style='background:#FFFFCC;mso-layout-grid-align:none;
+text-autospace:none'><span style='font-size:11.0pt;mso-bidi-font-size:10.0pt'><span
+style="mso-spacerun: yes">            </span><span style='mso-tab-count:1'>            </span>}<o:p></o:p></span></p>
+
+<p class=MsoNormal style='text-indent:.5in;background:#FFFFCC'><span
+style='font-size:11.0pt;mso-bidi-font-size:10.0pt'>}<o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='mso-bidi-font-size:10.0pt'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='mso-bidi-font-size:10.0pt'><span
+style='mso-tab-count:1'>            </span>In addition to setting encryption
+method, it is also recommended that you set password right before calling
+CClientSocket::SwitchTo. By this way, password can be cleaned right after the
+method SwitchTo returns so that it leads to better security.<o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='mso-bidi-font-size:10.0pt'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='mso-bidi-font-size:10.0pt'><span
+style='mso-tab-count:1'>            </span>Additionally, you have to use the
+below code to set a password by calling static method CBaseService::SetPassword
+on server side inside the virtual function CSocketProServer::OnIsPermitted.<o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='mso-bidi-font-size:10.0pt'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal style='text-indent:.5in;background:#FFFFCC;mso-layout-grid-align:
+none;text-autospace:none'><span style='font-size:11.0pt;mso-bidi-font-size:
+10.0pt;color:blue'>protected</span><span style='font-size:11.0pt;mso-bidi-font-size:
+10.0pt'> <span style='color:blue'>override</span> <span style='color:blue'>bool</span>
+OnIsPermitted(<span style='color:blue'>int</span> hSocket, <span
+style='color:blue'>int</span> nSvsID)<o:p></o:p></span></p>
+
+<p class=MsoNormal style='text-indent:.5in;background:#FFFFCC;mso-layout-grid-align:
+none;text-autospace:none'><span style='font-size:11.0pt;mso-bidi-font-size:
+10.0pt'>{<o:p></o:p></span></p>
+
+<p class=MsoNormal style='background:#FFFFCC;mso-layout-grid-align:none;
+text-autospace:none'><span style='font-size:11.0pt;mso-bidi-font-size:10.0pt'><span
+style="mso-spacerun: yes">       </span><span style="mso-spacerun:
+yes"> </span><span style='mso-tab-count:2'>                </span><span
+style='color:blue'>string</span> strUserID = <span style='color:teal'>CBaseService</span>.GetUserID(hSocket);<o:p></o:p></span></p>
+
+<p class=MsoNormal style='background:#FFFFCC;mso-layout-grid-align:none;
+text-autospace:none'><span style='font-size:11.0pt;mso-bidi-font-size:10.0pt'><span
+style="mso-spacerun: yes">       </span><span style='mso-tab-count:1'>     </span><span
+style="mso-spacerun: yes"> </span><span style='mso-tab-count:1'>           </span><span
+style='color:blue'>string</span> strPassword = GetPasswordFromStore(strUserID);<o:p></o:p></span></p>
+
+<p class=MsoNormal style='background:#FFFFCC;mso-layout-grid-align:none;
+text-autospace:none'><span style='font-size:11.0pt;mso-bidi-font-size:10.0pt'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal style='background:#FFFFCC;mso-layout-grid-align:none;
+text-autospace:none'><span style='font-size:11.0pt;mso-bidi-font-size:10.0pt'><span
+style="mso-spacerun: yes">        </span><span style='mso-tab-count:2'>                </span><span
+style='color:green'>//set password so that the hash of the password with salt
+can be sent to a client for authentication on client side.<o:p></o:p></span></span></p>
+
+<p class=MsoNormal style='background:#FFFFCC;mso-layout-grid-align:none;
+text-autospace:none'><span style='font-size:11.0pt;mso-bidi-font-size:10.0pt'><span
+style="mso-spacerun: yes">        </span><span style='mso-tab-count:1'>    </span><span
+style='mso-tab-count:1'>            </span><span style='color:teal'>CBaseService</span>.SetPassword(hSocket,
+strPassword);<o:p></o:p></span></p>
+
+<p class=MsoNormal style='background:#FFFFCC;mso-layout-grid-align:none;
+text-autospace:none'><span style='font-size:11.0pt;mso-bidi-font-size:10.0pt'><span
+style='mso-tab-count:2'>                        </span><span style='color:blue'>return</span>
+<span style='color:blue'>true</span>;<o:p></o:p></span></p>
+
+<p class=MsoNormal style='background:#FFFFCC'><span style='font-size:11.0pt;
+mso-bidi-font-size:10.0pt'><span style='mso-tab-count:1'>            </span>}<o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='mso-bidi-font-size:10.0pt'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='mso-bidi-font-size:10.0pt'><span
+style='mso-tab-count:1'>            </span>Pay attention to the above comment.
+Contrary to SSL/TLS and others, authentication actually happens on client side with
+our secure protocol! The second speciality is that we set password on both
+client and server side, but password is never transferred across machines. Wait
+for a moment until the coming section for detailed description.<o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='mso-bidi-font-size:10.0pt'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='mso-bidi-font-size:10.0pt'><span
+style='mso-tab-count:1'>            </span>Once authentication is completed on
+client side and be verified on server side, BlowFish objects on both client and
+server sides are automatically created with one private key. The private key is
+dependent on a password and a session key (salt for hash). Because the session
+key always changes from connection to connection, the corresponding private key
+always varies from connection to connection. The private key is unique for each
+of socket connections.<o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='mso-bidi-font-size:10.0pt'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='mso-bidi-font-size:10.0pt'><span
+style='mso-tab-count:1'>            </span>On server side, we use the below
+code to disable encryption because we don’t need to encrypt any return results
+as described in the above section.<o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='mso-bidi-font-size:10.0pt'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal style='background:#FFFFCC;mso-layout-grid-align:none;
+text-autospace:none'><span style='mso-bidi-font-size:10.0pt'><span
+style='mso-tab-count:1'>            </span></span><span style='font-size:11.0pt;
+mso-bidi-font-size:10.0pt;color:blue'>protected</span><span style='font-size:
+11.0pt;mso-bidi-font-size:10.0pt'> <span style='color:blue'>override</span> <span
+style='color:blue'>void</span> OnSwitchFrom(<span style='color:blue'>int</span>
+nServiceID)<o:p></o:p></span></p>
+
+<p class=MsoNormal style='background:#FFFFCC;mso-layout-grid-align:none;
+text-autospace:none'><span style='font-size:11.0pt;mso-bidi-font-size:10.0pt'><span
+style='mso-tab-count:1'>            </span>{<o:p></o:p></span></p>
+
+<p class=MsoNormal style='background:#FFFFCC;mso-layout-grid-align:none;
+text-autospace:none'><span style='font-size:11.0pt;mso-bidi-font-size:10.0pt'><span
+style="mso-spacerun: yes">        </span><span style='mso-tab-count:2'>                </span><span
+style='color:green'>//All return results are not required to be secure<o:p></o:p></span></span></p>
+
+<p class=MsoNormal style='background:#FFFFCC;mso-layout-grid-align:none;
+text-autospace:none'><span style='font-size:11.0pt;mso-bidi-font-size:10.0pt'><span
+style="mso-spacerun: yes">        </span><span style='mso-tab-count:2'>                </span>EncryptionMethod
+= <span style='color:teal'>tagEncryptionMethod</span>.NoEncryption;<o:p></o:p></span></p>
+
+<p class=MsoNormal style='background:#FFFFCC'><span style='font-size:11.0pt;
+mso-bidi-font-size:10.0pt'><span style='mso-tab-count:1'>            </span>}<o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='font-size:11.0pt;mso-bidi-font-size:10.0pt'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='mso-bidi-font-size:10.0pt'><span
+style='mso-tab-count:1'>            </span>On client side, we encrypt the
+method Open request as below.<o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='mso-bidi-font-size:10.0pt'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal style='background:#FFFFCC;mso-layout-grid-align:none;
+text-autospace:none'><span style='mso-bidi-font-size:10.0pt'><span
+style='mso-tab-count:1'>            </span></span><span style='font-size:11.0pt;
+mso-bidi-font-size:10.0pt;color:blue'>private</span><span style='font-size:
+11.0pt;mso-bidi-font-size:10.0pt'> <span style='color:blue'>void</span>
+btnToDB_Click(<span style='color:blue'>object</span> sender, <span
+style='color:teal'>EventArgs</span> e)<o:p></o:p></span></p>
+
+<p class=MsoNormal style='background:#FFFFCC;mso-layout-grid-align:none;
+text-autospace:none'><span style='font-size:11.0pt;mso-bidi-font-size:10.0pt'><span
+style="mso-spacerun: yes">        </span><span style='mso-tab-count:1'>    </span>{<o:p></o:p></span></p>
+
+<p class=MsoNormal style='background:#FFFFCC;mso-layout-grid-align:none;
+text-autospace:none'><span style='font-size:11.0pt;mso-bidi-font-size:10.0pt'><span
+style="mso-spacerun: yes">            </span><span style='mso-tab-count:1'>            </span><span
+style='color:teal'>USocketClass</span> usc = m_ClientSocket.GetUSocket();<o:p></o:p></span></p>
+
+<p class=MsoNormal style='background:#FFFFCC;mso-layout-grid-align:none;
+text-autospace:none'><span style='font-size:11.0pt;mso-bidi-font-size:10.0pt'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal style='background:#FFFFCC;mso-layout-grid-align:none;
+text-autospace:none'><span style='font-size:11.0pt;mso-bidi-font-size:10.0pt'><span
+style="mso-spacerun: yes">            </span><span style='mso-tab-count:1'>            </span><span
+style='color:green'>//we like to encrypt data before sending the request to
+server<o:p></o:p></span></span></p>
+
+<p class=MsoNormal style='background:#FFFFCC;mso-layout-grid-align:none;
+text-autospace:none'><span style='font-size:11.0pt;mso-bidi-font-size:10.0pt'><span
+style="mso-spacerun: yes">            </span><span style='mso-tab-count:1'>            </span>usc.EncryptionMethod
+= (<span style='color:blue'>short</span>)USOCKETLib.<span style='color:teal'>tagEncryptionMethod</span>.BlowFish;<o:p></o:p></span></p>
+
+<p class=MsoNormal style='background:#FFFFCC;mso-layout-grid-align:none;
+text-autospace:none'><span style='font-size:11.0pt;mso-bidi-font-size:10.0pt'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal style='background:#FFFFCC;mso-layout-grid-align:none;
+text-autospace:none'><span style='font-size:11.0pt;mso-bidi-font-size:10.0pt'><span
+style="mso-spacerun: yes">            </span><span style='mso-tab-count:1'>            </span><span
+style='color:blue'>if</span> (m_AsynHandler.Open(txtUserID.Text,
+txtPassword.Text) == <span style='color:blue'>null</span>)<o:p></o:p></span></p>
+
+<p class=MsoNormal style='background:#FFFFCC;mso-layout-grid-align:none;
+text-autospace:none'><span style='font-size:11.0pt;mso-bidi-font-size:10.0pt'><span
+style="mso-spacerun: yes">                </span><span style='mso-tab-count:
+2'>                    </span><span style='color:teal'>MessageBox</span>.Show(m_AsynHandler.m_strErrorMessage);<o:p></o:p></span></p>
+
+<p class=MsoNormal style='background:#FFFFCC;mso-layout-grid-align:none;
+text-autospace:none'><span style='font-size:11.0pt;mso-bidi-font-size:10.0pt'><span
+style="mso-spacerun: yes">            </span><span style='mso-tab-count:1'>            </span><span
+style='color:blue'>else<o:p></o:p></span></span></p>
+
+<p class=MsoNormal style='background:#FFFFCC;mso-layout-grid-align:none;
+text-autospace:none'><span style='font-size:11.0pt;mso-bidi-font-size:10.0pt'><span
+style="mso-spacerun: yes">                </span><span style='mso-tab-count:
+2'>                    </span>btnExecuteSQL.Enabled = <span style='color:blue'>true</span>;<o:p></o:p></span></p>
+
+<p class=MsoNormal style='background:#FFFFCC'><span style='font-size:11.0pt;
+mso-bidi-font-size:10.0pt'><span style="mso-spacerun: yes">        </span><span
+style='mso-tab-count:1'>    </span>}<o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='mso-bidi-font-size:10.0pt'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='mso-bidi-font-size:10.0pt'><span
+style='mso-tab-count:1'>            </span>Also, we disable encryption for
+other methods as shown in the below code.<o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='mso-bidi-font-size:10.0pt'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal style='background:#FFFFCC;mso-layout-grid-align:none;
+text-autospace:none'><span style='mso-bidi-font-size:10.0pt'><span
+style='mso-tab-count:1'>            </span></span><span style='font-size:11.0pt;
+mso-bidi-font-size:10.0pt;color:blue'>private</span><span style='font-size:
+11.0pt;mso-bidi-font-size:10.0pt'> <span style='color:blue'>void</span>
+btnExecuteSQL_Click(<span style='color:blue'>object</span> sender, <span
+style='color:teal'>EventArgs</span> e)<o:p></o:p></span></p>
+
+<p class=MsoNormal style='background:#FFFFCC;mso-layout-grid-align:none;
+text-autospace:none'><span style='font-size:11.0pt;mso-bidi-font-size:10.0pt'><span
+style="mso-spacerun: yes">        </span><span style='mso-tab-count:1'>    </span>{<o:p></o:p></span></p>
+
+<p class=MsoNormal style='background:#FFFFCC;mso-layout-grid-align:none;
+text-autospace:none'><span style='font-size:11.0pt;mso-bidi-font-size:10.0pt'><span
+style="mso-spacerun: yes">            </span><span style='mso-tab-count:1'>            </span><span
+style='color:teal'>USocketClass</span> usc = m_ClientSocket.GetUSocket();<o:p></o:p></span></p>
+
+<p class=MsoNormal style='background:#FFFFCC;mso-layout-grid-align:none;
+text-autospace:none'><span style='font-size:11.0pt;mso-bidi-font-size:10.0pt'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal style='background:#FFFFCC;mso-layout-grid-align:none;
+text-autospace:none'><span style='font-size:11.0pt;mso-bidi-font-size:10.0pt'><span
+style="mso-spacerun: yes">            </span><span style='mso-tab-count:1'>            </span><span
+style='color:green'>//we do not want to encrypt data for the below requests<o:p></o:p></span></span></p>
+
+<p class=MsoNormal style='background:#FFFFCC;mso-layout-grid-align:none;
+text-autospace:none'><span style='font-size:11.0pt;mso-bidi-font-size:10.0pt'><span
+style="mso-spacerun: yes">            </span><span style='mso-tab-count:1'>            </span>usc.EncryptionMethod
+= (<span style='color:blue'>short</span>)USOCKETLib.<span style='color:teal'>tagEncryptionMethod</span>.NoEncryption;<o:p></o:p></span></p>
+
+<p class=MsoNormal style='background:#FFFFCC;mso-layout-grid-align:none;
+text-autospace:none'><span style='font-size:11.0pt;mso-bidi-font-size:10.0pt'><span
+style="mso-spacerun: yes">            </span><span style='mso-tab-count:1'>            </span>m_ClientSocket.BeginBatching();<o:p></o:p></span></p>
+
+<p class=MsoNormal style='background:#FFFFCC;mso-layout-grid-align:none;
+text-autospace:none'><span style='font-size:11.0pt;mso-bidi-font-size:10.0pt'><span
+style="mso-spacerun: yes">            </span><span style='mso-tab-count:1'>            </span>m_AsynHandler.BeginTransAsyn();<o:p></o:p></span></p>
+
+<p class=MsoNormal style='background:#FFFFCC;mso-layout-grid-align:none;
+text-autospace:none'><span style='font-size:11.0pt;mso-bidi-font-size:10.0pt'><span
+style="mso-spacerun: yes">            </span><span style='mso-tab-count:1'>            </span>m_AsynHandler.ExecuteNoQueryAsyn(txtSQL.Text);<o:p></o:p></span></p>
+
+<p class=MsoNormal style='background:#FFFFCC;mso-layout-grid-align:none;
+text-autospace:none'><span style='font-size:11.0pt;mso-bidi-font-size:10.0pt'><span
+style="mso-spacerun: yes">            </span><span style='mso-tab-count:1'>            </span>m_AsynHandler.CommitAsyn(<span
+style='color:blue'>true</span>);<o:p></o:p></span></p>
+
+<p class=MsoNormal style='background:#FFFFCC;mso-layout-grid-align:none;
+text-autospace:none'><span style='font-size:11.0pt;mso-bidi-font-size:10.0pt'><span
+style="mso-spacerun: yes">           </span><span style='mso-tab-count:1'> </span><span
+style="mso-spacerun: yes"> </span><span style='mso-tab-count:1'>           </span>m_ClientSocket.Commit(<span
+style='color:blue'>true</span>);<o:p></o:p></span></p>
+
+<p class=MsoNormal style='background:#FFFFCC;mso-layout-grid-align:none;
+text-autospace:none'><span style='font-size:11.0pt;mso-bidi-font-size:10.0pt'><span
+style="mso-spacerun: yes">            </span><span style='mso-tab-count:1'>            </span>m_ClientSocket.WaitAll();<o:p></o:p></span></p>
+
+<p class=MsoNormal style='background:#FFFFCC'><span style='font-size:11.0pt;
+mso-bidi-font-size:10.0pt'><span style="mso-spacerun: yes">        </span><span
+style='mso-tab-count:1'>    </span>}<o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='mso-bidi-font-size:10.0pt'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='mso-bidi-font-size:10.0pt'><span
+style='mso-tab-count:1'>            </span>If you don’t understand the above
+codes, please have a look at tutorial one. As you can see, the code is very
+simple but truly secure. Now, let’s move onto the next section for describing
+our secure protocol.<o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='mso-bidi-font-size:10.0pt'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal><b><span style='mso-bidi-font-size:10.0pt'>4.<span
+style='mso-tab-count:1'>         </span></span></b><a name=Descriptions><b><span
+style='font-size:11.0pt;mso-bidi-font-size:12.0pt'>Description of SocketPro
+security protocol</span></b></a><span style='mso-bookmark:Descriptions'></span><b><span
+style='mso-bidi-font-size:10.0pt'><o:p></o:p></span></b></p>
+
+<p class=MsoNormal><span style='mso-bidi-font-size:10.0pt'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='mso-bidi-font-size:10.0pt'><span
+style='mso-tab-count:1'>            </span>Our SocketPro security protocol is
+rooted on hashing a password with a unique salt for each of socket connections.
+Authentication happens on client side first and not on server side. Password is
+never transferred on wire. Password is set for purely creating hash only.<o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='mso-bidi-font-size:10.0pt'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='mso-bidi-font-size:10.0pt'><span
+style='mso-tab-count:1'>            </span><a name=CallingClientSocket><b>Calling
+CClientSocket::SwitchTo without sending password</b></a> -- After a socket
+connection is established, a client calls CClientSocket::SwitchTo and just
+sends a user id only without sending password. This is the initial step of
+handshaking. Afterwards, the client waits for a hash value and salt from a
+connected server.<o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='mso-bidi-font-size:10.0pt'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='mso-bidi-font-size:10.0pt'><span
+style='mso-tab-count:1'>            </span></span><a name=HashingPassword><b>Hashing
+a password with a unique salt on server side</b></a><span style='mso-bookmark:
+HashingPassword'></span><span style='font-size:11.0pt;mso-bidi-font-size:12.0pt'>
+– Once a SocketPro server receives the above key request, inside the virtual
+function CSocketPro::OnIsPermitted, we get a password from a secured store and
+set it into SocketPro so that SocketPro will use a specific function (1<sup>st</sup>
+function) to hash a password with a unique salt for each of socket connections.
+Afterwards, SocketPro will return the hash value and the unique salt back to
+the client. Also, we use a new function (2<sup>nd</sup> function) to create a
+private key for BlowFish using a hash value of the password with the same salt.
+At last, we clean the input password and don’t use it any more. However,
+SocketPro records the salt value.<o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='font-size:11.0pt;mso-bidi-font-size:12.0pt'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal style='text-indent:.5in'><a name=Authenticating><b>Authenticating
+a remote SocketPro server</b></a><span style='mso-bookmark:Authenticating'></span><span
+style='font-size:11.0pt;mso-bidi-font-size:12.0pt'> – Once the client receives
+the return result, SocketPro will use the input password and obtained salt from
+server to get a hash value with the 1<sup>st</sup> function. SocketPro compares
+the calculated hash with the hash returned from SocketPro server inside
+usocket.dll. If two hash values equal to each other, we’ll continue the next
+step. Otherwise, the socket connection is immediately closed with error code </span>(9
+or tagSocketError.<span style='mso-bidi-font-size:9.0pt'>seClientAuthenticationError)</span>.
+<span style='font-size:11.0pt;mso-bidi-font-size:12.0pt'>The first step is over
+here.<o:p></o:p></span></p>
+
+<p class=MsoNormal style='text-indent:.5in'><span style='font-size:11.0pt;
+mso-bidi-font-size:12.0pt'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal style='text-indent:.5in'><a name=Verifying><b>Verifying a
+client</b></a><span style='mso-bookmark:Verifying'><span style='font-size:11.0pt;
+mso-bidi-font-size:12.0pt'> </span><b>on server side</b></span><span
+style='mso-bookmark:Verifying'></span><span style='font-size:11.0pt;mso-bidi-font-size:
+12.0pt'> – </span>If the above step is successful, inside usocket.dll SocketPro
+will use the 2<sup>nd</sup> function to get a new hash value (password + salt)
+as SocketPro server does. A BlowFish is created internally with the hash value
+as private key. As you can see, the private keys on client and server sides are
+equal to each other. At the moment, we clean the input password and don’t need
+any more. Now, on client side SocketPro will automatically encrypt the salt
+originated from server and send it back to server (<span style='mso-bidi-font-size:
+9.0pt'>tagBaseRequestID.idVerifySalt)</span>. Once server gets the encrypted
+data and decrypts it back to salt, SocketPro server will verify the decrypted
+salt with originally recorded salt (See step 1). If two salts are equal to each
+other, the whole handshake is successful and a client is now able to do
+whatever the client likes. Otherwise, the socket connection immediately closed
+with error code (261 or <span style='mso-bidi-font-size:10.0pt'>ERROR_VERIFY_SALT</span>).
+The second step is over here.</p>
+
+<p class=MsoNormal style='text-indent:.5in'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></p>
+
+<p class=MsoNormal><span style='mso-tab-count:1'>            </span>SocketPro
+server will not turn off socket connection when a client calls SwithTo without
+giving a password for BlowFish encryption, but it is very alert to the base
+request id<span style='mso-bidi-font-size:9.0pt'>VerifySalt</span>. If anything
+is not expected or calls do not follow the above procedures, SocketPro server
+will disconnect a client. At this time, we use SHA-1 for calculating the hash
+values. The salt is simply a GUID generated from window system function
+CoCreateGuid. The private key for BlowFish is 160 bit (20 bytes) in length. Our
+SocketPro framework is very extensible. If required, we can change hash
+functions and others in the future releases. We may support negotiating other
+symmetrical encryption methods on both client and server sides in the future.</p>
+
+<p class=MsoNormal><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></p>
+
+<p class=MsoNormal><span style='mso-tab-count:1'>            </span>As you can
+see, the input password has a key role in our SocketPro security protocol.
+Authentication happens first on client side instead of server side, but server
+also verifies if a client truly has an expected password for a user id. In
+comparison to SSL/TLS, you don’t need any certificates at all with SocketPro
+security protocol. Certificates make SSL/TLS difficult to understand and set up
+for a common software user.</p>
+
+<p class=MsoNormal><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></p>
+
+<p class=MsoNormal><b>5.<span style='mso-tab-count:1'>         </span><a
+name=When>When should we use the protocol?</a><o:p></o:p></b></p>
+
+<p class=MsoNormal><span style='font-size:11.0pt;mso-bidi-font-size:12.0pt'><span
+style='mso-tab-count:1'>            </span></span></p>
+
+<p class=MsoNormal><span style='mso-tab-count:1'>            </span>As long as
+you understand our design purpose of this security protocol, you may have
+already known answers for this question.</p>
+
+<p class=MsoNormal><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></p>
+
+<p class=MsoNormal><span style='mso-tab-count:1'>            </span><a
+name=Selectively><b>Selectively securing a few requests and return results for
+better performance and scalability </b></a>-- If you want to selectively secure
+a few key requests or return results, you should use this protocol for saving
+CPU rate so that you have a faster distributed application system to support
+more socket connections. Also, handshake of this simple protocol is simpler and
+faster than SSL/TLS without transferring any certificates at all.</p>
+
+<p class=MsoNormal><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></p>
+
+<p class=MsoNormal><span style='mso-tab-count:1'>            </span><a
+name=Simplification><b>Simplification of security settings</b> </a>-- If you
+like to build a distributed system with much less security settings and make a
+common user less frustrated with complex security setting, you should use this
+simple protocol instead of SSL/TLS. SSL/TLS is secure and robust in theory, but
+practically it is not that secure, because a common user does not really
+understand it so that certificates on both client and server sides can be
+possibly changed by bad hackers without knowing. SocketPro secure protocol does
+not have such a problem at all. Further, this simple security protocol is
+especially great for main-in-middle attack. There is no security hole for
+man-in-middle attack with this simple protocol. In addition, commercial
+certificates are pretty expensive because you have to pay a license fee every a
+few years. Therefore, SocketPro secure protocol may save money for you.</p>
+
+<p class=MsoNormal><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></p>
+
+<p class=MsoNormal><span style='mso-tab-count:1'>            </span><a
+name=NoPasswordTransferred><b>Don’t want to exchange password between client
+and server</b></a> -- Our SocketPro secure protocol does not <span
+style='font-size:11.0pt;mso-bidi-font-size:12.0pt'>exchange password between
+client and server</span> at all. This feature may lead you to use this simple
+protocol.</p>
+
+<p class=MsoNormal><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></p>
+
+<p class=MsoNormal><b>6.<span style='mso-tab-count:1'>         </span><a
+name=Flaw>One flaw of SocketPro secure protocol</a><o:p></o:p></b></p>
+
+<p class=MsoNormal><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></p>
+
+<p class=MsoNormal><span style='mso-tab-count:1'>            </span>One known
+problem is that you can’t integrate this protocol with your enterprise or other
+security systems. This is the reason that you have to use amOwn for your
+authentication method on server side as shown in this tutorial. You have to
+create your own secured user id and password store protected by master
+password. However, features of zero security setting, speed and no certificates
+may largely offset this flaw.</p>
+
+<p class=MsoNormal><span style='mso-bidi-font-size:10.0pt'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+</div>
+
+</body>
+
+</html>

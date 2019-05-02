@@ -1,0 +1,118 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" >
+<head>
+    <title>Application of SocketPro to Cross-browser for Super Web Application</title>
+</head>
+
+<script type="text/javascript" src="sproadapter.js"></script>
+<script type="text/javascript" src="tone.js"></script>
+<script type="text/javascript">
+
+var handler;
+var clientsocket;
+var OnClosed = function(hSocket, nError){
+    var btn = document.getElementById("btnSleep");
+    btn.disabled = "disabled";
+    btn = document.getElementById("btnEcho");
+    btn.disabled = "disabled";
+    btn = document.getElementById("chkDisableUI");
+    btn.disabled = "disabled";
+    if(nError != 0){
+	    alert("Socket closed with hSocket = " + hSocket + ", and error message = " + clientsocket.GetErrorMsg());
+	}
+};
+
+var OnConnected = function(hSocket, nError){
+	if(nError == 0){
+	    var btn = document.getElementById("btnSleep");
+        btn.disabled = "";
+        btn = document.getElementById("btnEcho");
+        btn.disabled = "";
+        btn = document.getElementById("chkDisableUI");
+        btn.disabled = "";
+	    clientsocket.SetUID("SocketPro"); 
+        clientsocket.SetPassword("PassOne");
+        var ok = clientsocket.BeginBatching();
+        ok = clientsocket.SwitchTo(handler.GetSvsID());
+        ok = clientsocket.Enter(7); //groups 1, 2, and 4
+        ok = clientsocket.Commit(false);
+	}
+};
+
+function btnShutdown_onclick() {
+    if(clientsocket)
+        clientsocket.Shutdown(); //or clientsocket.Disconnect();
+}
+
+function onMyUnload() //close socket connection
+{
+    if(clientsocket){
+        if(handler)
+            clientsocket.Detach(handler);
+        clientsocket.Disconnect();
+    }
+    clientsocket = null;
+    handler = null;
+}
+
+function btnConnect_onclick() {
+    if(!clientsocket){
+	    //create an instance CClientSocket
+        clientsocket = new SocketProAdapter.ClientSide.CClientSocket();
+        clientsocket.OnSocketClosed = OnClosed; //set socket close event handler
+        clientsocket.OnSocketConnected = OnConnected; //set socket connection event handler
+      
+        //you can subscribe all of USocket events ......, before calling the method Connect
+    }
+    if(!handler){
+        handler = new CMyAsyncHandler();
+        handler.Attach(clientsocket); //attach to a socket
+    }
+    
+    //The above coding style is the exactly same as C++, C# and VB.NET
+    clientsocket.Connect("localhost", 20901); //tutorial one server listenning port == 20901
+}
+
+function btnEcho_onclick() {
+    var txtData;
+    var control = document.getElementById("txtData");
+    alert(handler.Echo(control.value));
+}
+
+function btnSleep_onclick() {
+    var control = document.getElementById("txtSleepTime");
+    handler.Sleep(control.value);
+}
+
+function chkDisableUI_onclick() {
+    var chk = document.getElementById("chkDisableUI");
+    clientsocket.DisableUI(chk.checked);
+}
+
+</script>
+
+<body onunload="return onMyUnload()">
+    Demonstration of Application of SocketPro to Cross-browser<br />
+    <br />
+    <table style="width: 492px">
+        <tr>
+            <td style="width: 1419px; height: 30px">
+                <input id="btnEcho" style="width: 77px" type="button" value="Echo" disabled="disabled" onclick="return btnEcho_onclick()" /></td>
+            <td style="width: 449px; height: 30px">
+                <input id="txtData" style="width: 301px" type="text" value="Some data, number, simple data array or date" /></td>
+            <td style="height: 30px">
+                <input id="btnConnect" style="width: 115px" type="button" value="Connect" onclick="return btnConnect_onclick()" /></td>
+        </tr>
+        <tr>
+            <td style="width: 1419px; height: 29px">
+                <input id="btnSleep" style="width: 76px" type="button" value="Sleep" disabled="disabled" onclick="return btnSleep_onclick()" /></td>
+            <td style="width: 449px; height: 29px">
+                <input id="txtSleepTime" style="width: 53px" type="text" value="5000" />
+                <input id="chkDisableUI" style="width: 32px" type="checkbox" onclick="return chkDisableUI_onclick()" disabled="disabled" />Disable UI?</td>
+            <td style="height: 29px">
+                <input id="btnShutdown" style="width: 117px" type="button" value="Shut down" onclick="return btnShutdown_onclick()" /></td>
+        </tr>
+    </table>
+
+</body>
+</html>

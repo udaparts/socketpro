@@ -1,0 +1,168 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|ARM">
+      <Configuration>Debug</Configuration>
+      <Platform>ARM</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x86">
+      <Configuration>Debug</Configuration>
+      <Platform>x86</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|ARM">
+      <Configuration>Release</Configuration>
+      <Platform>ARM</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x86">
+      <Configuration>Release</Configuration>
+      <Platform>x86</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{ff88c1db-de5b-46da-89f1-6ee082cabc93}</ProjectGuid>
+    <Keyword>Android</Keyword>
+    <RootNamespace>ssl</RootNamespace>
+    <MinimumVisualStudioVersion>14.0</MinimumVisualStudioVersion>
+    <ApplicationType>Android</ApplicationType>
+    <ApplicationTypeRevision>1.0</ApplicationTypeRevision>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>Gcc_4_9</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>Gcc_4_9</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>Gcc_4_9</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>Gcc_4_9</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings" />
+  <ImportGroup Label="Shared" />
+  <ImportGroup Label="PropertySheets" />
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
+    <IncludePath>C:\platform_external_openssl;C:\platform_external_openssl\include;C:\platform_external_openssl\crypto;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
+    <LibraryPath>C:\ProgramData\Microsoft\AndroidNDK\android-ndk-r10e\platforms\android-19\arch-arm\usr\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>C:\platform_external_openssl\crypto;C:\platform_external_openssl\include;C:\platform_external_openssl;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
+    <LibraryPath>C:\ProgramData\Microsoft\AndroidNDK\android-ndk-r10e\platforms\android-19\arch-arm\usr\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>C:\platform_external_openssl\crypto;C:\platform_external_openssl\include;C:\platform_external_openssl;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'">
+    <IncludePath>C:\platform_external_openssl;C:\platform_external_openssl\include;C:\platform_external_openssl\crypto;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
+    <ClCompile>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
+    <ClCompile>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+    </ClCompile>
+    <Lib>
+      <AdditionalDependencies>
+      </AdditionalDependencies>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'">
+    <ClCompile>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <DebugInformationFormat>None</DebugInformationFormat>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
+    <ClCompile>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <DebugInformationFormat>None</DebugInformationFormat>
+    </ClCompile>
+    <Lib>
+      <AdditionalDependencies>
+      </AdditionalDependencies>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\..\..\platform_external_openssl\ssl\dtls1.h" />
+    <ClInclude Include="..\..\..\..\..\platform_external_openssl\ssl\kssl.h" />
+    <ClInclude Include="..\..\..\..\..\platform_external_openssl\ssl\kssl_lcl.h" />
+    <ClInclude Include="..\..\..\..\..\platform_external_openssl\ssl\srtp.h" />
+    <ClInclude Include="..\..\..\..\..\platform_external_openssl\ssl\ssl.h" />
+    <ClInclude Include="..\..\..\..\..\platform_external_openssl\ssl\ssl2.h" />
+    <ClInclude Include="..\..\..\..\..\platform_external_openssl\ssl\ssl23.h" />
+    <ClInclude Include="..\..\..\..\..\platform_external_openssl\ssl\ssl3.h" />
+    <ClInclude Include="..\..\..\..\..\platform_external_openssl\ssl\ssl_locl.h" />
+    <ClInclude Include="..\..\..\..\..\platform_external_openssl\ssl\tls1.h" />
+    <ClInclude Include="pch.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\..\..\..\platform_external_openssl\ssl\bio_ssl.c" />
+    <ClCompile Include="..\..\..\..\..\platform_external_openssl\ssl\d1_both.c" />
+    <ClCompile Include="..\..\..\..\..\platform_external_openssl\ssl\d1_clnt.c" />
+    <ClCompile Include="..\..\..\..\..\platform_external_openssl\ssl\d1_enc.c" />
+    <ClCompile Include="..\..\..\..\..\platform_external_openssl\ssl\d1_lib.c" />
+    <ClCompile Include="..\..\..\..\..\platform_external_openssl\ssl\d1_meth.c" />
+    <ClCompile Include="..\..\..\..\..\platform_external_openssl\ssl\d1_pkt.c" />
+    <ClCompile Include="..\..\..\..\..\platform_external_openssl\ssl\d1_srtp.c" />
+    <ClCompile Include="..\..\..\..\..\platform_external_openssl\ssl\d1_srvr.c" />
+    <ClCompile Include="..\..\..\..\..\platform_external_openssl\ssl\kssl.c" />
+    <ClCompile Include="..\..\..\..\..\platform_external_openssl\ssl\s23_clnt.c" />
+    <ClCompile Include="..\..\..\..\..\platform_external_openssl\ssl\s23_lib.c" />
+    <ClCompile Include="..\..\..\..\..\platform_external_openssl\ssl\s23_meth.c" />
+    <ClCompile Include="..\..\..\..\..\platform_external_openssl\ssl\s23_pkt.c" />
+    <ClCompile Include="..\..\..\..\..\platform_external_openssl\ssl\s23_srvr.c" />
+    <ClCompile Include="..\..\..\..\..\platform_external_openssl\ssl\s2_clnt.c" />
+    <ClCompile Include="..\..\..\..\..\platform_external_openssl\ssl\s2_enc.c" />
+    <ClCompile Include="..\..\..\..\..\platform_external_openssl\ssl\s2_lib.c" />
+    <ClCompile Include="..\..\..\..\..\platform_external_openssl\ssl\s2_meth.c" />
+    <ClCompile Include="..\..\..\..\..\platform_external_openssl\ssl\s2_pkt.c" />
+    <ClCompile Include="..\..\..\..\..\platform_external_openssl\ssl\s2_srvr.c" />
+    <ClCompile Include="..\..\..\..\..\platform_external_openssl\ssl\s3_both.c" />
+    <ClCompile Include="..\..\..\..\..\platform_external_openssl\ssl\s3_cbc.c" />
+    <ClCompile Include="..\..\..\..\..\platform_external_openssl\ssl\s3_clnt.c" />
+    <ClCompile Include="..\..\..\..\..\platform_external_openssl\ssl\s3_enc.c" />
+    <ClCompile Include="..\..\..\..\..\platform_external_openssl\ssl\s3_lib.c" />
+    <ClCompile Include="..\..\..\..\..\platform_external_openssl\ssl\s3_meth.c" />
+    <ClCompile Include="..\..\..\..\..\platform_external_openssl\ssl\s3_pkt.c" />
+    <ClCompile Include="..\..\..\..\..\platform_external_openssl\ssl\s3_srvr.c" />
+    <ClCompile Include="..\..\..\..\..\platform_external_openssl\ssl\ssltest.c" />
+    <ClCompile Include="..\..\..\..\..\platform_external_openssl\ssl\ssl_algs.c" />
+    <ClCompile Include="..\..\..\..\..\platform_external_openssl\ssl\ssl_asn1.c" />
+    <ClCompile Include="..\..\..\..\..\platform_external_openssl\ssl\ssl_cert.c" />
+    <ClCompile Include="..\..\..\..\..\platform_external_openssl\ssl\ssl_ciph.c" />
+    <ClCompile Include="..\..\..\..\..\platform_external_openssl\ssl\ssl_err.c" />
+    <ClCompile Include="..\..\..\..\..\platform_external_openssl\ssl\ssl_err2.c" />
+    <ClCompile Include="..\..\..\..\..\platform_external_openssl\ssl\ssl_lib.c" />
+    <ClCompile Include="..\..\..\..\..\platform_external_openssl\ssl\ssl_rsa.c" />
+    <ClCompile Include="..\..\..\..\..\platform_external_openssl\ssl\ssl_sess.c" />
+    <ClCompile Include="..\..\..\..\..\platform_external_openssl\ssl\ssl_stat.c" />
+    <ClCompile Include="..\..\..\..\..\platform_external_openssl\ssl\ssl_txt.c" />
+    <ClCompile Include="..\..\..\..\..\platform_external_openssl\ssl\t1_clnt.c" />
+    <ClCompile Include="..\..\..\..\..\platform_external_openssl\ssl\t1_enc.c" />
+    <ClCompile Include="..\..\..\..\..\platform_external_openssl\ssl\t1_lib.c" />
+    <ClCompile Include="..\..\..\..\..\platform_external_openssl\ssl\t1_meth.c" />
+    <ClCompile Include="..\..\..\..\..\platform_external_openssl\ssl\t1_reneg.c" />
+    <ClCompile Include="..\..\..\..\..\platform_external_openssl\ssl\t1_srvr.c" />
+    <ClCompile Include="..\..\..\..\..\platform_external_openssl\ssl\tls_srp.c" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets" />
+</Project>

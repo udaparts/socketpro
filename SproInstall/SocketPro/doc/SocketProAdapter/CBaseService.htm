@@ -1,0 +1,457 @@
+<html xmlns:o="urn:schemas-microsoft-com:office:office"
+xmlns:w="urn:schemas-microsoft-com:office:word"
+xmlns="http://www.w3.org/TR/REC-html40">
+
+<head>
+<meta http-equiv=Content-Type content="text/html; charset=windows-1252">
+<meta name=ProgId content=Word.Document>
+<meta name=Generator content="Microsoft Word 9">
+<meta name=Originator content="Microsoft Word 9">
+<link rel=File-List href="./CBaseService_files/filelist.xml">
+<title>CBaseService</title>
+<!--[if gte mso 9]><xml>
+ <o:DocumentProperties>
+  <o:Author>Yuancai (Charlie) Ye</o:Author>
+  <o:Template>Normal</o:Template>
+  <o:LastAuthor>Yuancai (Charlie) Ye</o:LastAuthor>
+  <o:Revision>17</o:Revision>
+  <o:TotalTime>86</o:TotalTime>
+  <o:Created>2006-09-03T12:05:00Z</o:Created>
+  <o:LastSaved>2007-02-18T20:56:00Z</o:LastSaved>
+  <o:Pages>1</o:Pages>
+  <o:Words>711</o:Words>
+  <o:Characters>4056</o:Characters>
+  <o:Company>Intelligent Decision Technologies</o:Company>
+  <o:Lines>33</o:Lines>
+  <o:Paragraphs>8</o:Paragraphs>
+  <o:CharactersWithSpaces>4981</o:CharactersWithSpaces>
+  <o:Version>9.2720</o:Version>
+ </o:DocumentProperties>
+</xml><![endif]-->
+<style>
+<!--
+ /* Font Definitions */
+@font-face
+	{font-family:Tahoma;
+	panose-1:2 11 6 4 3 5 4 4 2 4;
+	mso-font-charset:0;
+	mso-generic-font-family:swiss;
+	mso-font-pitch:variable;
+	mso-font-signature:1627421319 -2147483648 8 0 66047 0;}
+ /* Style Definitions */
+p.MsoNormal, li.MsoNormal, div.MsoNormal
+	{mso-style-parent:"";
+	margin:0in;
+	margin-bottom:.0001pt;
+	mso-pagination:widow-orphan;
+	font-size:12.0pt;
+	font-family:"Times New Roman";
+	mso-fareast-font-family:"Times New Roman";}
+h1
+	{mso-style-next:Normal;
+	margin:0in;
+	margin-bottom:.0001pt;
+	mso-pagination:widow-orphan;
+	page-break-after:avoid;
+	mso-outline-level:1;
+	font-size:12.0pt;
+	font-family:"Times New Roman";
+	mso-font-kerning:0pt;}
+h2
+	{mso-style-next:Normal;
+	margin:0in;
+	margin-bottom:.0001pt;
+	mso-pagination:widow-orphan;
+	page-break-after:avoid;
+	mso-outline-level:2;
+	mso-layout-grid-align:none;
+	text-autospace:none;
+	font-size:9.0pt;
+	font-family:Tahoma;
+	color:#215DC6;
+	text-decoration:underline;
+	text-underline:single;}
+h3
+	{mso-style-next:Normal;
+	margin:0in;
+	margin-bottom:.0001pt;
+	mso-pagination:widow-orphan;
+	page-break-after:avoid;
+	mso-outline-level:3;
+	mso-layout-grid-align:none;
+	text-autospace:none;
+	font-size:12.0pt;
+	mso-bidi-font-size:9.0pt;
+	font-family:"Times New Roman";
+	color:black;}
+a:link, span.MsoHyperlink
+	{color:blue;
+	text-decoration:underline;
+	text-underline:single;}
+a:visited, span.MsoHyperlinkFollowed
+	{color:purple;
+	text-decoration:underline;
+	text-underline:single;}
+@page Section1
+	{size:8.5in 11.0in;
+	margin:1.0in 1.25in 1.0in 1.25in;
+	mso-header-margin:.5in;
+	mso-footer-margin:.5in;
+	mso-paper-source:0;}
+div.Section1
+	{page:Section1;}
+ /* List Definitions */
+@list l0
+	{mso-list-id:771516845;
+	mso-list-type:hybrid;
+	mso-list-template-ids:-834656176 67698689 67698691 67698693 67698689 67698691 67698693 67698689 67698691 67698693;}
+@list l0:level1
+	{mso-level-number-format:bullet;
+	mso-level-text:\F0B7;
+	mso-level-tab-stop:.5in;
+	mso-level-number-position:left;
+	text-indent:-.25in;
+	font-family:Symbol;}
+@list l1
+	{mso-list-id:1548294452;
+	mso-list-type:hybrid;
+	mso-list-template-ids:543720884 67698689 67698691 67698693 67698689 67698691 67698693 67698689 67698691 67698693;}
+@list l1:level1
+	{mso-level-number-format:bullet;
+	mso-level-text:\F0B7;
+	mso-level-tab-stop:.25in;
+	mso-level-number-position:left;
+	margin-left:.25in;
+	text-indent:-.25in;
+	font-family:Symbol;}
+ol
+	{margin-bottom:0in;}
+ul
+	{margin-bottom:0in;}
+-->
+</style>
+</head>
+
+<body lang=EN-US link=blue vlink=purple style='tab-interval:.5in'>
+
+<div class=Section1>
+
+<p class=MsoNormal><b><span style='color:blue'>public abstract class</span><span
+style='color:black'> CBaseService</span><o:p></o:p></b></p>
+
+<p class=MsoNormal><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></p>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='mso-tab-count:1'>            </span>This class mainly wraps the
+structure <a href="..\APIServer\CSvsContext.htm">CSvsContext</a> and manages a
+set of its associated <a href="CClientPeer.htm">CClientPeer</a>-derived
+objects. Also, this class contains a set of functions for managing reusable
+libraries. </p>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></p>
+
+<p class=MsoNormal style='text-indent:.5in;mso-layout-grid-align:none;
+text-autospace:none'>The class exposes a set of protected virtual (callback)
+functions, but all of them are not often used.</p>
+
+<p class=MsoNormal style='text-indent:.5in;mso-layout-grid-align:none;
+text-autospace:none'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></p>
+
+<p class=MsoNormal style='text-indent:.5in;mso-layout-grid-align:none;
+text-autospace:none'>An instance of CBaseService-derived can be thought as a
+manager of its associated <a href="CClientPeer.htm">CClientPeer</a>-derived
+objects. You must override the protected abstract function <span
+style='mso-bidi-font-size:9.0pt;color:black'><a
+href="CBaseService\GetPeerSocket.htm">GetPeerSocket</a> </span>to associate a <a
+href="CClientPeer.htm">CClientPeer</a>-derived with an instance of CBaseService-derived.<span
+style='mso-bidi-font-size:9.0pt;color:black'><o:p></o:p></span></p>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='mso-bidi-font-size:9.0pt;color:black'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<h3>Constructors</h3>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='mso-bidi-font-size:9.0pt;color:black'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal style='text-indent:.5in;mso-layout-grid-align:none;
+text-autospace:none'><span style='mso-bidi-font-size:9.0pt;color:blue'>public </span><span
+style='mso-bidi-font-size:9.0pt;color:black'><a
+href="CBaseService\CBaseService.htm">CBaseService</a><o:p></o:p></span></p>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='mso-bidi-font-size:9.0pt;color:black'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<h3>Methods</h3>
+
+<p class=MsoNormal><b><span style='mso-bidi-font-size:9.0pt;color:blue'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></b></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l1 level1 lfo2;
+tab-stops:list .25in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+static System.IntPtr</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CBaseService\AddALibrary.htm">AddALibrary</a> – Load a library into a
+SocketPro server</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l1 level1 lfo2;
+tab-stops:list .25in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+bool</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CBaseService\AddMe.htm">AddMe</a> – Add this service into a SocketPro
+server</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l1 level1 lfo2;
+tab-stops:list .25in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+bool</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CBaseService\AddSlowRequest.htm">AddSlowRequest</a> – Add a slow request
+into this service</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l1 level1 lfo2;
+tab-stops:list .25in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+sealed override void</span><span style='mso-bidi-font-size:9.0pt;color:black'>
+Dispose</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l1 level1 lfo2;
+tab-stops:list .25in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+static System.IntPtr</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CBaseService\GetALibrary.htm">GetALibrary</a> – Query a library added
+into a SocketPro server</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l1 level1 lfo2;
+tab-stops:list .25in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+static <a href="SocketProAdapter.htm">SocketProAdapter</a>.ServerSide.<a
+href="CBaseService.htm">CBaseService</a></span><span style='mso-bidi-font-size:
+9.0pt;color:black'> <a href="CBaseService\GetBaseService.htm">GetBaseService</a>
+– Query a service</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l1 level1 lfo2;
+tab-stops:list .25in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+static string</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CBaseService\GetPassword.htm">GetPassword</a> – Get a password</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l1 level1 lfo2;
+tab-stops:list .25in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>protected
+abstract <a href="SocketProAdapter.htm">SocketProAdapter</a>.ServerSide.<a
+href="CClientPeer.htm">CClientPeer</a></span><span style='mso-bidi-font-size:
+9.0pt;color:black'> <a href="CBaseService\GetPeerSocket.htm">GetPeerSocket</a>
+– Ask for creating a <a href="CClientPeer.htm">CClientPeer</a>-derived object
+and associating it with this service</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l1 level1 lfo2;
+tab-stops:list .25in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+static int</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CBaseService\GetServiceID.htm">GetServiceID</a> – Get a service
+identification number</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l1 level1 lfo2;
+tab-stops:list .25in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+short</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CBaseService\GetSlowRequest.htm">GetSlowRequest</a> – Get a slow request
+of this service</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l1 level1 lfo2;
+tab-stops:list .25in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+static string</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CBaseService\GetUserID.htm">GetUserID</a> – Get a user id</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l1 level1 lfo2;
+tab-stops:list .25in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>protected
+virtual bool</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CBaseService\OnIsPermitted.htm">OnIsPermitted</a> -- Called within a main
+thread when a client is authenticated</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l1 level1 lfo2;
+tab-stops:list .25in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>protected
+virtual bool</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CBaseService\OnPretranslateMessage.htm">OnPretranslateMessage</a> --
+Called within a worker thread before a message is dispatched</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l1 level1 lfo2;
+tab-stops:list .25in'><![if !supportLists]><span style='mso-bidi-font-size:
+8.5pt;font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>protected
+virtual void</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CBaseService\OnThreadCreated.htm">OnThreadCreated</a> -- Called within a
+main thread when the thread is just created</span><span style='mso-bidi-font-size:
+8.5pt'><o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l1 level1 lfo2;
+tab-stops:list .25in'><![if !supportLists]><span style='mso-bidi-font-size:
+8.5pt;font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>protected
+virtual void</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CBaseService\OnThreadShuttingDown.htm">OnThreadShuttingDown</a> -- Called
+within a worker thread when the thread is going to die </span><span
+style='mso-bidi-font-size:8.5pt'><o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l1 level1 lfo2;
+tab-stops:list .25in'><![if !supportLists]><span style='mso-bidi-font-size:
+8.5pt;font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>protected
+virtual void</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CBaseService\OnThreadStarted.htm">OnThreadStarted</a> -- Called within a
+worker thread when the thread is just started</span><span style='mso-bidi-font-size:
+8.5pt'><o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l1 level1 lfo2;
+tab-stops:list .25in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+static bool</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CBaseService\RemoveALibrary.htm">RemoveALibrary</a> – Remove an added
+library from a SocketPro server</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l1 level1 lfo2;
+tab-stops:list .25in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+void</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CBaseService\RemoveAllSlowRequests.htm">RemoveAllSlowRequests</a> –
+Remove all of slow requests from this service</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l1 level1 lfo2;
+tab-stops:list .25in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+void</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CBaseService\RemoveMe.htm">RemoveMe</a> – Remove this service from a
+SocketPro server</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l1 level1 lfo2;
+tab-stops:list .25in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+void</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CBaseService\RemoveSlowRequest.htm">RemoveSlowRequest</a> – Remove one
+slow request</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l1 level1 lfo2;
+tab-stops:list .25in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+<a href="SocketProAdapter.htm">SocketProAdapter</a>.ServerSide.<a
+href="CClientPeer.htm">CClientPeer</a></span><span style='mso-bidi-font-size:
+9.0pt;color:black'> <a href="CBaseService\SeekClientPeer.htm">SeekClientPeer</a>
+– Seek a <a href="CClientPeer.htm">CClientPeer</a>-derived object within this
+service</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l1 level1 lfo2;
+tab-stops:list .25in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+static <a href="SocketProAdapter.htm">SocketProAdapter</a>.ServerSide.<a
+href="CClientPeer.htm">CClientPeer</a></span><span style='mso-bidi-font-size:
+9.0pt;color:black'> <a href="CBaseService\SeekClientPeerGlobally.htm">SeekClientPeerGlobally</a>
+– Seek a <a href="CClientPeer.htm">CClientPeer</a>-derived object globally</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l1 level1 lfo2;
+tab-stops:list .25in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+static</span><span style='mso-bidi-font-size:9.0pt;color:black'> </span><span
+style='mso-bidi-font-size:9.0pt;color:blue'>bool</span><span style='mso-bidi-font-size:
+9.0pt;color:black'> <a href="CBaseService\SetPassword.htm">SetPassword</a>(</span><span
+style='mso-bidi-font-size:9.0pt;color:blue'>int</span><span style='mso-bidi-font-size:
+9.0pt;color:black'> <i>hSocket</i>, </span><span style='mso-bidi-font-size:
+9.0pt;color:blue'>string</span><span style='mso-bidi-font-size:9.0pt;
+color:black'> <i>strPassword</i>)</span></p>
+
+<p class=MsoNormal><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></p>
+
+<h1>Properties</h1>
+
+<p class=MsoNormal><b><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></b></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l0 level1 lfo4;
+tab-stops:list .25in .5in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+static int</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CBaseService\CountOfAllServices.htm">CountOfAllServices</a> { get; }</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l0 level1 lfo4;
+tab-stops:list .25in .5in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+static int</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CBaseService\CountOfLibraries.htm">CountOfLibraries</a> { get; }</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l0 level1 lfo4;
+tab-stops:list .25in .5in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+static int</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CBaseService\CountOfServices.htm">CountOfServices</a> { get; }</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l0 level1 lfo4;
+tab-stops:list .25in .5in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+short</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CBaseService\CountOfSlowRequests.htm">CountOfSlowRequests</a> { get; }</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l0 level1 lfo4;
+tab-stops:list .25in .5in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+int</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CBaseService\Events.htm">Events</a> { get; }</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l0 level1 lfo4;
+tab-stops:list .25in .5in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+static</span><span style='mso-bidi-font-size:9.0pt;color:black'> </span><span
+style='mso-bidi-font-size:9.0pt;color:#215DC6'>int</span><span
+style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CBaseService\LastSocketError.htm">LastSocketError</a> { get; }</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l0 level1 lfo4;
+tab-stops:list .25in .5in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>protected
+bool</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CBaseService\m_bUsePool.htm">m_bUsePool</a> { set; get; }</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l0 level1 lfo4;
+tab-stops:list .25in .5in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+int</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CBaseService\SvsID.htm">SvsID</a> { get; }</span></p>
+
+<p class=MsoNormal><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></p>
+
+<p class=MsoNormal><b><span style='mso-bidi-font-size:9.0pt;color:black'>Member
+of </span></b><b><span style='mso-bidi-font-size:9.0pt;color:blue'><a
+href="SocketProAdapter.htm">SocketProAdapter</a>.ServerSide</span></b></p>
+
+</div>
+
+</body>
+
+</html>

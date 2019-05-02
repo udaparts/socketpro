@@ -1,0 +1,17 @@
+
+[	
+	ServiceID = 10 //service id can't be less than 0
+]			
+CTThree
+{
+	//Get one item from server
+	CTestItem GetOneItem(); 
+	
+	//Send one item to server
+	void SendOneItem(CTestItem Item); 
+	
+	$void GetManyItems(int nCount);
+	
+	void SendManyItems();
+}
+

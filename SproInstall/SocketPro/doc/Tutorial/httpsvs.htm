@@ -1,0 +1,646 @@
+<html>
+
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<meta name="GENERATOR" content="Microsoft FrontPage 4.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<title>SocketPro HTTP Service</title>
+</head>
+
+<body>
+
+<h2>Access SocketPro Server through HTTP from Other Development Languages and
+Platforms</h2>
+<p align="left"><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; UDAParts<br>
+<font face="Times New Roman">&nbsp;&nbsp;&nbsp;</font>&nbsp;&nbsp;&nbsp;&nbsp; <font face="Times New Roman"><a href="mailto:support@udaparts.com">support@udaparts.com</a></font><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 5/18/2009</i></p>
+<p><font size="4"><b>Contents</b></font></p>
+<ul>
+  <li><font size="3"><a href="#Introduction">Introduction</a></font></li>
+  <li><font size="3"><a href="#Pre-requirements and Preparation">Pre-requirements
+    and Preparation</a></font></li>
+  <li><font size="3"><a href="#Enable SocketPro HTTP Service">Enable SocketPro
+    HTTP Service</a></font></li>
+  <li><font size="3"><a href="#SocketPro Preprocessing of HTTP Commands">SocketPro
+    Preprocessing of HTTP Commands</a></font></li>
+  <li><a href="#Handle One Simple HTTP Command">Handle One Simple HTTP Command</a></li>
+  <li><font size="3"><a href="#HTTP Large Requests">HTTP Large Requests</a></font>
+    <ul>
+      <li><i><a href="#Uploading a large file from browser to SocketPro server">Uploading
+        a large file from browser to SocketPro server</a></i></li>
+      <li><i><a href="#Downloading a large file from SocketPro server">Downloading
+        a large file from SocketPro server</a></i></li>
+    </ul>
+  </li>
+  <li><a href="#Three Supported Headers">Three Supported Headers</a>
+    <ul>
+      <li><i><a href="#HTTP Multipart Header Fully Supported">HTTP multipart
+        header fully supported</a></i></li>
+      <li><i><a href="#HTTP chunked header supported on server side">HTTP
+        chunked header supported on server side</a></i></li>
+      <li><i><a href="#HTTP server-sent events supported">HTTP server-sent
+        events supported</a></i></li>
+    </ul>
+  </li>
+  <li><a href="#Further readings">Further readings</a></li>
+  <li><a href="#FAQs">FAQs</a></li>
+</ul>
+<p><font size="4"><b><a name="Introduction">Introduction</a></b></font></p>
+<p>&nbsp;&nbsp;&nbsp; Previously, SocketPro was written to fully support binary
+remoting for the best performance and wonderful features on various window
+platforms. As it grows, some of our customers like to integrate our SocketPro
+with other development environments cross development languages and platforms.
+As you know, previous versions of SocketPro can not meet these requirements.
+After hard working for a while,&nbsp; we have upgraded our SocketPro to fully
+support HTTP protocol. Now, you can rely on SocketPro HTTP service to
+communicate with whatever development languages and platforms you like.</p>
+<p><font size="4"><b><a name="Pre-requirements and Preparation">Pre-requirements
+and Preparation</a></b></font></p>
+<p>&nbsp;&nbsp;&nbsp; Because SocketPro fully supports HTTP protocol versions
+1.0 and 1.1, you should have a basic knowledge about HTTP although you
+don't have to know all of HTTP details. If you don't know HTTP, please use
+Google or Yahoo search engine to search for key words like 'HTTP protocol
+tutorial'. You will get tons of information about HTTP.</p>
+<p>&nbsp;&nbsp;&nbsp; This tutorial tells you how to use basic features of
+SocketPro HTTP service. After compiling one of the tutorial samples inside the
+directory ..\udaparts\socketpro\tutorial, you need to copy the files inside the
+directory ..\udaparts\socketpro\tutorial\HTTPServiceSampleFiles into the
+directory of your compiled exe application. These files are used for testing.
+Note that there is no client sample application provided for this HTTP tutorial,
+but the client test application is your browser, FireFox, IE, Safari, Opera,
+Flock or else.&nbsp;</p>
+<p>&nbsp;&nbsp;&nbsp; We would like you to use FireFox plus free plug-in FireBug.
+FireBug is the best free web browser debug tool available at this writing
+time. You can use the tool to debug HTTP transaction between browser and sample
+SocketPro on client side so that you can see how UDAParts SocketPro adapter (ujsonxml.js)
+works. It may require you to have some basic knowledge about
+JavaScript.</p>
+<p>&nbsp;&nbsp;&nbsp; This tutorial requires you a simple understanding
+about JSON. In case you don't know JSON, please go to the site <a href="http://www.json.org">www.json.org</a>.
+By default, SocketPro adapter for JavaScript uses JSON for serialization. The
+site contains all of JSON parsers for all types of development language.</p>
+<p><font size="4"><b><a name="Enable SocketPro HTTP Service">Enable SocketPro
+HTTP Service</a></b></font></p>
+<p>&nbsp;&nbsp;&nbsp; The first step to support HTTP service is to add HTTP
+service into SocketPro server using the below code snippet.&nbsp;</p>
+<font SIZE="2" COLOR="#0000ff">
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>
+private<font SIZE="2"> </font><font SIZE="2" COLOR="#008080">CSocketProService</font><font SIZE="2">&lt;</font><font SIZE="2" COLOR="#008080">CHttpPeer</font><font SIZE="2">&gt;
+m_HttpSvs = </font>new<font SIZE="2"> </font><font SIZE="2" COLOR="#008080">CSocketProService</font><font SIZE="2">&lt;</font><font SIZE="2" COLOR="#008080">CHttpPeer</font><font SIZE="2">&gt;();</font></b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0">&nbsp;</p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<font size="2" color="#008000">//</font></b></font><b><font size="2" color="#008000">
+......</font></b></p>
+<font SIZE="2" COLOR="#0000ff">
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0">&nbsp;</p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+private</b></font><b><font SIZE="2"> </font><font SIZE="2" COLOR="#0000ff">void</font></b><font SIZE="2"><b>
+AddService()</b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+{</b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"></font><b><font SIZE="2" COLOR="#0000ff">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+bool</font></b><font SIZE="2"><b> ok;</b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"></font><font SIZE="2" COLOR="#008000"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</b></font></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><b>&nbsp;&nbsp;&nbsp;<font size="2" color="#008000">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+//add HTTP service into SocketPro server.</font></b></p>
+<font SIZE="2">
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+ok = m_HttpSvs.AddMe((</b></font><b><font SIZE="2" COLOR="#0000ff">int</font><font SIZE="2">)USOCKETLib.</font><font SIZE="2" COLOR="#008080">tagServiceID</font><font SIZE="2">.sidHTTP,
+0, </font><font SIZE="2" COLOR="#008080">tagThreadApartment</font><font SIZE="2">.taNone);</font></b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><font SIZE="2"></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<font size="2" color="#008000">//</font><font color="#008000">process HTTP GET
+and POST using a worker thread in pool.</font></b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+ok = m_HttpSvs.AddSlowRequest((</b></font><b><font SIZE="2" COLOR="#0000ff">short</font><font SIZE="2">)USOCKETLib.</font><font SIZE="2" COLOR="#008080">tagHttpRequestID</font></b><font SIZE="2"><b>.idGet);</b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+ok = m_HttpSvs.AddSlowRequest((</b></font><b><font SIZE="2" COLOR="#0000ff">short</font><font SIZE="2">)USOCKETLib.</font><font SIZE="2" COLOR="#008080">tagHttpRequestID</font><font SIZE="2">.idPost);</font></b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><b>&nbsp;&nbsp;&nbsp;<font size="2">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</font></b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><b>&nbsp;&nbsp;&nbsp;<font size="2">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<font size="2" color="#008000">//automatically </font><font color="#008000">partition
+a large HTTP request like uploading a file into pieces, and process them using a
+worker thread in pool.</font></font></b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><b><font SIZE="2">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+ok = m_HttpSvs.AddSlowRequest((</font><font SIZE="2" COLOR="#0000ff">short</font><font SIZE="2">)USOCKETLib.</font><font SIZE="2" COLOR="#008080">tagHttpRequestID</font></b><font SIZE="2"><b>.idMultiPart);</b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+}</b></p>
+</font>
+<p>&nbsp;&nbsp;&nbsp; The comments on above code snippet are important. We'll
+process HTTP GET and POST commands using a worker thread in pool because they
+usually require long time to process. Also, SocketPro will automatically
+partition a large HTTP requests into pieces and process them in a worker thread.
+One example is that a client may upload a huge file from browser onto a remote
+SocketPro server. We'll show you how to handle large file later.</p>
+<p>&nbsp;&nbsp;&nbsp; As usual, HTTP service runs on a separate port 80.
+However, SocketPro integrates HTTP service with other binary services on the
+same port. Internally, SocketPro is able to figure out if HTTP command or other
+binary services on the fly. By this way, SocketPro does not require opening an
+extra port for running HTTP service.</p>
+<p><font size="4"><b><a name="SocketPro Preprocessing of HTTP Commands">SocketPro
+Preprocessing of HTTP Commands</a></b></font></p>
+<p>&nbsp;&nbsp;&nbsp; As you know from previous tutorials or other samples,
+before sending a request you have to call IUSocket::SwitchTo for a specific
+service usually after a connection is made. Obviously, we can not make such a
+call through HTTP commands. To solve this problem, SocketPro internally figures
+out if a request is a HTTP command. If it is indeed one of HTTP commands,
+SocketPro will automatically fake a SwitchTo call on behave of a browser or
+other so that HTTP service runs like other binary transaction service with the
+same coding logic. Therefore, you can see the virtual functions,
+CSocketProServer::OnIsPermitted, CSocketProServer::OnSwitchTo, and
+CClientPeer::InSwitchFrom will be called as usual.</p>
+<p>&nbsp;&nbsp;&nbsp; If a client sends a HTTP command to a SocketPro server,
+the server will also partition the command into two requests, idHeader and idGet
+(or idPost, idHead, idPut, idOptions, ......) automatically. Usually, the
+request idHeader runs in the main thread as a fast request, when SocketPro
+server knows HTTP command headers have just arrived. You can see the below code.</p>
+<font SIZE="2" COLOR="#0000ff">
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+protected</b></font><b><font SIZE="2"> </font><font SIZE="2" COLOR="#0000ff">override</font><font SIZE="2">
+</font><font SIZE="2" COLOR="#0000ff">void</font><font SIZE="2">
+OnFastRequestArrive(</font><font SIZE="2" COLOR="#0000ff">short</font><font SIZE="2">
+sRequestID, </font><font SIZE="2" COLOR="#0000ff">int</font></b><font SIZE="2"><b>
+nLen)</b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+{</b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"></font><b><font SIZE="2" COLOR="#0000ff">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+base</font></b><font SIZE="2"><b>.OnFastRequestArrive(sRequestID, nLen);</b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"></font><b><font SIZE="2" COLOR="#0000ff">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+switch</font></b><font SIZE="2"><b> (sRequestID)</b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+{</b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"></font><b><font SIZE="2" COLOR="#0000ff">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+case</font><font SIZE="2"> (</font><font SIZE="2" COLOR="#0000ff">short</font><font SIZE="2">)USOCKETLib.</font><font SIZE="2" COLOR="#008080">tagHttpRequestID</font></b><font SIZE="2"><b>.idHeader:</b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+m_nIndex = 0;</b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"></font><b><font SIZE="2" COLOR="#0000ff">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+break</font></b><font SIZE="2"><b>;</b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"></font><b><font SIZE="2" COLOR="#0000ff">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+default</font></b><font SIZE="2"><b>:</b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+m_nIndex = 0;</b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"></font><b><font SIZE="2" COLOR="#0000ff">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+break</font></b><font SIZE="2"><b>;</b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+}</b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+}</b></p>
+</font>
+<p>&nbsp;&nbsp;&nbsp; When the above virtual function is called, you can see all
+of HTTP command properties inside the class CHttpPeerBase, which is derived from
+the class CClientPeer.</p>
+<p>&nbsp;&nbsp;&nbsp; When a whole HTTP command arrives, SocketPro will&nbsp;
+inform your code with a proper HTTP request identification number, idGet, idPost,
+idPut, and so on. See the below code snippet.</p>
+<font SIZE="2" COLOR="#0000ff">
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<b>protected</b></font><b><font SIZE="2"> </font><font SIZE="2" COLOR="#0000ff">override</font><font SIZE="2">
+</font><font SIZE="2" COLOR="#0000ff">int</font><font SIZE="2">
+OnSlowRequestArrive(</font><font SIZE="2" COLOR="#0000ff">short</font><font SIZE="2">
+sRequestID, </font><font SIZE="2" COLOR="#0000ff">int</font></b><font SIZE="2"><b>
+nLen)</b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+{</b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"></font><b><font SIZE="2" COLOR="#008080">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Encoding</font><font SIZE="2"> enc = System.Text.</font><font SIZE="2" COLOR="#008080">UTF8Encoding</font><font SIZE="2">.UTF8;</font></b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0">&nbsp;</p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><font size="2" color="#008000"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+//code ignored here</b></font></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0">&nbsp;</p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><b><font SIZE="2" COLOR="#0000ff">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+return</font><font SIZE="2"> 0;</font></b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><font SIZE="2"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+}</b></font></p>
+<p>&nbsp;&nbsp;&nbsp; As you can see, we like you to process HTTP requests in
+the same way as you process binary transaction services. You can use SocketPro
+HTTP with XML, JSON, your defined text format, and other formats.</p>
+<p><b><a name="Handle One Simple HTTP Command">Handle One Simple HTTP Command</a></b></p>
+<p>&nbsp;&nbsp;&nbsp; Let's look at one simple HTTP command by a sample code
+snippet.&nbsp;</p>
+<font SIZE="2" COLOR="#0000ff">
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<b>switch</b></font><b><font SIZE="2"> (PathName) </font><font size="2" color="#008000">//a
+CHttpPererBase property</font></b><font SIZE="2"></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+{</b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"></font><b><font SIZE="2" COLOR="#0000ff">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+case</font><font SIZE="2"> </font><font SIZE="2" COLOR="#800000">&quot;/&quot;</font></b><font SIZE="2"><b>:</b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"></font><b><font SIZE="2" COLOR="#0000ff">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+case</font><font SIZE="2"> </font><font SIZE="2" COLOR="#800000">&quot;/udemo.htm&quot;</font></b><font SIZE="2"><b>:</b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"></font><b><font SIZE="2" COLOR="#0000ff">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+case</font><font SIZE="2"> </font><font SIZE="2" COLOR="#800000">&quot;&quot;</font></b><font SIZE="2"><b>:</b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+SetResponseHeader(</b></font><b><font SIZE="2" COLOR="#800000">&quot;Content-Type&quot;</font><font SIZE="2">,
+</font><font SIZE="2" COLOR="#800000">&quot;text/html&quot;</font></b><font SIZE="2"><b>);</b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+m_UQueue.SetSize(0);</b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+GetFile(</b></font><b><font SIZE="2" COLOR="#800000">&quot;udemo.htm&quot;</font></b><font SIZE="2"><b>);
+</b></font><b><font size="2" color="#008000">//loading file udemo.htm into
+memory buffer.</font></b><font SIZE="2"></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+SendResult(sRequestID, m_UQueue);</b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"></font><b><font SIZE="2" COLOR="#0000ff">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+break</font></b><font SIZE="2"><b>;</b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"></font><b><font SIZE="2" COLOR="#0000ff">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+case</font><font SIZE="2"> </font><font SIZE="2" COLOR="#800000">&quot;/ujsonxml.js&quot;</font></b><font SIZE="2"><b>:</b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+SetResponseHeader(</b></font><b><font SIZE="2" COLOR="#800000">&quot;Content-Type&quot;</font><font SIZE="2">,
+</font><font SIZE="2" COLOR="#800000">&quot;application/x-javascript&quot;</font></b><font SIZE="2"><b>);</b></font></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0">&nbsp;</p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><font SIZE="2" COLOR="#008000"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+//trun off connection right after sending response</b></p>
+</font><font SIZE="2">
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+SetResponseHeader(</b></font><b><font SIZE="2" COLOR="#800000">&quot;Connection&quot;</font><font SIZE="2">,
+</font><font SIZE="2" COLOR="#800000">&quot;close&quot;</font></b><font SIZE="2"><b>);</b></font></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><font SIZE="2"></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+m_UQueue.SetSize(0);</b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+GetFile(</b></font><b><font SIZE="2" COLOR="#800000">&quot;ujsonxml.js&quot;</font></b><font SIZE="2"><b>);
+</b></font><b><font size="2" color="#008000">//loading file ujsonxml.js into
+memory buffer.</font></b><font SIZE="2"></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+SendResult(sRequestID, m_UQueue);</b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"></font><b><font SIZE="2" COLOR="#0000ff">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+break</font><font SIZE="2">;</font></b></p>
+<font SIZE="2">
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"></font><b><font SIZE="2" COLOR="#0000ff">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+default</font></b><font SIZE="2"><b>:</b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"></font><b><font SIZE="2" COLOR="#0000ff">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+break</font></b><font SIZE="2"><b>;</b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+}</b></p>
+</font>
+<p>&nbsp;&nbsp;&nbsp; After looking through the above code snippet, you can set
+a HTTP response header easily. Afterwards, you can load a file or others objects
+into a memory buffer (m_UQueue). At the end, send a HTTP response back to a
+client by calling the method SendReturnData. Note that you can send a binary data
+array onto a client if it supports binary HTTP transaction.</p>
+<p>&nbsp;&nbsp;&nbsp; One of particular SocketPro HTTP features is that you can
+turn off socket connection easily by setting response header Connection as shown
+in the above. By default in HTTP version 1.1, SocketPro HTTP will not turn off
+the underlying TCP socket connection so that it may help HTTP performance in
+many cases.&nbsp;</p>
+<p>&nbsp;&nbsp;&nbsp; To experiment the above code snippet, simply use a
+browser, and type <a href="http://localhost:20901/">http://localhost:20901/</a>
+if you already copy files into application directory as described in the <a href="#Pre-requirements and Preparation">above
+section</a>.</p>
+<p>&nbsp;&nbsp;&nbsp; <img border="0" src="udemo.jpg" width="617" height="333"></p>
+<p><font size="4"><b><a name="HTTP Large Requests">HTTP Large Requests</a></b></font></p>
+<p>&nbsp;&nbsp;&nbsp; SocketPro is written with 100% non-blocking communication.
+It works greatly for handling a request that requires transferring a large size
+of any data as shown in the tutorial 3, window file, OLEDB and our ADO.NET
+remoting services. It also works very well for HTTP.</p>
+<p>&nbsp;&nbsp;&nbsp; <b><a name="Uploading a large file from browser to SocketPro server">Uploading
+a large file from browser to SocketPro server</a>:</b>&nbsp;&nbsp;&nbsp; This
+usually gives you a headache for other communication frameworks, but sending a
+large file from a browser to SocketPro server is very easy. To demonstrate how
+it works within SocketPro, use a browser and type <a href="http://localhost:20901/fupload.htm">http://localhost:20901/fupload.htm</a>,
+and see how the below code execute.</p>
+<font SIZE="2" COLOR="#0000ff">
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+case</b></font><b><font SIZE="2"> (</font><font SIZE="2" COLOR="#0000ff">short</font><font SIZE="2">)USOCKETLib.</font><font SIZE="2" COLOR="#008080">tagHttpRequestID</font></b><font SIZE="2"><b>.idMultiPart:&nbsp;</b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+m_nIndex++;</b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"></font><b><font SIZE="2" COLOR="#008080">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Console</font><font SIZE="2">.Write(</font><font SIZE="2" COLOR="#800000">&quot;Size
+= &quot;</font></b><font SIZE="2"><b>);</b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"></font><b><font SIZE="2" COLOR="#008080">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Console</font></b><font SIZE="2"><b>.Write(nLen.ToString());</b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"></font><b><font SIZE="2" COLOR="#008080">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Console</font><font SIZE="2">.Write(</font><font SIZE="2" COLOR="#800000">&quot;,
+index = &quot;</font></b><font SIZE="2"><b>);</b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"></font><b><font SIZE="2" COLOR="#008080">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Console</font></b><font SIZE="2"><b>.WriteLine(m_nIndex.ToString());&nbsp;</b></font></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0">&nbsp;</p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><b><font size="2" color="#008000">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+//data in buffer m_UQueue.</font></b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0">&nbsp;</p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><b><font SIZE="2" COLOR="#0000ff">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+break</font></b><font SIZE="2"><b>;</b></p>
+</font>
+<p>&nbsp;&nbsp;&nbsp; SocketPro fully supports HTTP multipart header. When it
+detects such a header from a HTTP POST request, by default it will partition a
+large request into a set of fake requests idMultiPart. By this way, it will
+supports transferring a large file from a client (browser) without consuming a
+large memory. This makes SocketPro faster and extremely scalable.</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;<img border="0" src="fupload.jpg" width="312" height="364"></p>
+<p>&nbsp;&nbsp;&nbsp; <b><a name="Downloading a large file from SocketPro server">Downloading
+a large file from SocketPro server</a>:</b>&nbsp;&nbsp;&nbsp; Transferring a
+large amount of data from SocketPro server onto a client is also extremely easy
+and elegant. SocketPro always streams data between any client and server
+although it does not look so at the first glance. There are two ways to do so.
+The first way is to stream data in chunks as below code snippet. Use a browser, type <a href="http://localhost:20901/">http://localhost:20901/</a>, and click
+the link <i>Download file here</i> as shown in the <a href="#Handle One Simple HTTP Command">previous
+section</a>.</p>
+<font SIZE="2" COLOR="#0000ff">
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+private</b></font><b><font SIZE="2"> </font><font SIZE="2" COLOR="#0000ff">void</font><font SIZE="2">
+DownloadFile(</font><font SIZE="2" COLOR="#0000ff">string</font></b><font SIZE="2"><b>
+strFile)</b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+{</b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"></font><b><font SIZE="2" COLOR="#0000ff">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+int</font></b><font SIZE="2"><b> res;</b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"></font><b><font SIZE="2" COLOR="#0000ff">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+int</font></b><font SIZE="2"><b> nBufferSize = 10240;</b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"></font><b><font SIZE="2" COLOR="#008080">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+FileStream</font><font SIZE="2"> readIn = </font><font SIZE="2" COLOR="#0000ff">new</font><font SIZE="2">
+</font><font SIZE="2" COLOR="#008080">FileStream</font><font SIZE="2">(strFile, </font><font SIZE="2" COLOR="#008080">FileMode</font><font SIZE="2">.Open,
+</font><font SIZE="2" COLOR="#008080">FileAccess</font></b><font SIZE="2"><b>.Read);</b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"></font><font SIZE="2" COLOR="#008000"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</b></font></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0">&nbsp;&nbsp;&nbsp;<font size="2" color="#008000"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+//tell a client the size of the coming file</b></p>
+</font><font SIZE="2">
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"></font><b><font SIZE="2" COLOR="#0000ff">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+bool</font><font SIZE="2"> ok = SetResponseHeader(</font><font SIZE="2" COLOR="#800000">&quot;Content-Length&quot;</font></b><font SIZE="2"><b>,
+readIn.Length.ToString());</b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"></font><b><font SIZE="2" COLOR="#0000ff">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+byte</font><font SIZE="2">[] buffer = </font><font SIZE="2" COLOR="#0000ff">new</font><font SIZE="2">
+</font><font SIZE="2" COLOR="#0000ff">byte</font></b><font SIZE="2"><b>[nBufferSize];</b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"></font><b><font SIZE="2" COLOR="#0000ff">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+int</font></b><font SIZE="2"><b> nRead = readIn.Read(buffer, 0, nBufferSize);</b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"></font><b><font SIZE="2" COLOR="#0000ff">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+while</font></b><font SIZE="2"><b> (nRead &gt; 0)</b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+{</b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+res = SendReturnData((</b></font><b><font SIZE="2" COLOR="#0000ff">short</font><font SIZE="2">)USOCKETLib.</font><font SIZE="2" COLOR="#008080">tagHttpRequestID</font></b><font SIZE="2"><b>.idGet,
+buffer, nRead);</b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"></font><b><font SIZE="2" COLOR="#0000ff">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+if</font><font SIZE="2"> (res &lt; 0) </font></b><font SIZE="2" COLOR="#008000"><b>//client
+cancels downloading or shuts down TCP/IP connection</b></p>
+</font><font SIZE="2">
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"></font><b><font SIZE="2" COLOR="#0000ff">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+break</font></b><font SIZE="2"><b>;</b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+nRead = readIn.Read(buffer, 0, nBufferSize);</b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+}</b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+readIn.Close();</b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+}</b></p>
+</font><font SIZE="2" COLOR="#0000ff">
+<p style="margin-top: 0; margin-bottom: 0">&nbsp;</p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+case</b></font><b><font SIZE="2"> </font><font SIZE="2" COLOR="#800000">&quot;/sampledownload.dll&quot;</font></b><font SIZE="2"><b>:</b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+SetResponseHeader(</b></font><b><font SIZE="2" COLOR="#800000">&quot;Connection&quot;</font><font SIZE="2">,
+</font><font SIZE="2" COLOR="#800000">&quot;close&quot;</font></b><font SIZE="2"><b>);</b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+DownloadFile(</b></font><b><font SIZE="2" COLOR="#800000">&quot;sampledownload.dll&quot;</font></b><font SIZE="2"><b>);</b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"></font><b><font SIZE="2" COLOR="#0000ff">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+break</font></b><font SIZE="2"><b>;</b></p>
+</font>
+<p>&nbsp;&nbsp;&nbsp; The code snippet is able to monitor TCP connection
+shutdown or client canceling downloading. If it happens, the code is able to
+break the loop elegantly. In case you don't know the data size ahead, you can
+set the header Content-Length to a larger size, and set the header Connection to
+close. Afterwards, it will work for you too. Modify the above second code
+snippet to handle a larger file, pay close attention to server memory consumption,
+and see how it works for you.</p>
+<p>&nbsp;&nbsp;&nbsp; The second way is to use HTTP header multipart. See the <a href="#HTTP Multipart Header Fully Supported">below
+section</a>.</p>
+<p><b><font size="4"><a name="Three Supported Headers">Three Supported Headers</a></font></b></p>
+<p>&nbsp;&nbsp;&nbsp; <b><a name="HTTP Multipart Header Fully Supported">HTTP
+multipart header fully supported</a>:</b>&nbsp;&nbsp;&nbsp; As shown in the
+above section, SocketPro fully supports HTTP multipart header on both client and
+server sides. See the below code for implementing HTTP server push for browsers
+FireFox, Flock and Netscape. Starts a firefox browser, and type <a href="http://localhost:20901/multipart.htm">http://localhost:20901/multipart.htm</a>.</p>
+<font SIZE="2" COLOR="#0000ff">
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+case</b></font><b><font SIZE="2"> </font><font SIZE="2" COLOR="#800000">&quot;/mpart&quot;</font></b><font SIZE="2"><b>:</b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+SetResponseHeader(</b></font><b><font SIZE="2" COLOR="#800000">&quot;Keep-Alive&quot;</font><font SIZE="2">,
+</font><font SIZE="2" COLOR="#800000">&quot;10&quot;</font><font SIZE="2">); </font></b><font SIZE="2" COLOR="#008000"><b>//10
+seconds</b></p>
+</font><font SIZE="2">
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0">&nbsp;&nbsp;
+<b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </b><font SIZE="2" COLOR="#008000"><b>//</b></font><font color="#008000"><b>starts
+multipart here</b></font></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0">&nbsp;&nbsp;
+<b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+SetResponseHeader(</b></font><b><font SIZE="2" COLOR="#800000">&quot;Content-Type&quot;</font><font SIZE="2">,
+</font><font SIZE="2" COLOR="#800000">&quot;multipart/x-mixed-replace;
+boundary=rnA00A&quot;</font></b><font SIZE="2"><b>);</b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0">&nbsp;</p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+m_UQueue.SetSize(0);</b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+SetResponseHeader(</b></font><b><font SIZE="2" COLOR="#800000">&quot;Content-Type&quot;</font><font SIZE="2">,
+</font><font SIZE="2" COLOR="#800000">&quot;application/xml; charset=utf-8&quot;</font></b><font SIZE="2"><b>);</b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+m_UQueue.Push(enc.GetBytes(</b></font><b><font SIZE="2" COLOR="#800000">&quot;&lt;?xml
+version='1.0'?&gt;&quot;</font></b><font SIZE="2"><b>));</b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+m_UQueue.Push(enc.GetBytes(</b></font><b><font SIZE="2" COLOR="#800000">&quot;&lt;content&gt;First
+Part&lt;/content&gt;&quot;</font></b><font SIZE="2"><b>));</b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+SendResult(sRequestID, m_UQueue);</b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+System.Threading.</b></font><b><font SIZE="2" COLOR="#008080">Thread</font></b><font SIZE="2"><b>.Sleep(5000);</b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0">&nbsp;&nbsp;
+<b>&nbsp;&nbsp;&nbsp;&nbsp; </b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+m_UQueue.SetSize(0);</b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+SetResponseHeader(</b></font><b><font SIZE="2" COLOR="#800000">&quot;Content-Type&quot;</font><font SIZE="2">,
+</font><font SIZE="2" COLOR="#800000">&quot;application/xml; charset=utf-8&quot;</font></b><font SIZE="2"><b>);</b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+m_UQueue.Push(enc.GetBytes(</b></font><b><font SIZE="2" COLOR="#800000">&quot;&lt;?xml
+version='1.0'?&gt;&quot;</font></b><font SIZE="2"><b>));</b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+m_UQueue.Push(enc.GetBytes(</b></font><b><font SIZE="2" COLOR="#800000">&quot;&lt;content&gt;Second
+Part&lt;/content&gt;&quot;</font></b><font SIZE="2"><b>));</b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+SendResult(sRequestID, m_UQueue);</b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+System.Threading.</b></font><b><font SIZE="2" COLOR="#008080">Thread</font></b><font SIZE="2"><b>.Sleep(5000);</b></font></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><font SIZE="2">&nbsp;&nbsp;
+<b>&nbsp;&nbsp;&nbsp;&nbsp; </b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+m_UQueue.SetSize(0);</b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+SetResponseHeader(</b></font><b><font SIZE="2" COLOR="#800000">&quot;Content-Type&quot;</font><font SIZE="2">,
+</font><font SIZE="2" COLOR="#800000">&quot;application/xml; charset=utf-8&quot;</font></b><font SIZE="2"><b>);</b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+m_UQueue.Push(enc.GetBytes(</b></font><b><font SIZE="2" COLOR="#800000">&quot;&lt;?xml
+version='1.0'?&gt;&quot;</font></b><font SIZE="2"><b>));</b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+m_UQueue.Push(enc.GetBytes(</b></font><b><font SIZE="2" COLOR="#800000">&quot;&lt;content&gt;Third
+Part&lt;/content&gt;&quot;</font></b><font SIZE="2"><b>));</b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+SendResult(sRequestID, m_UQueue);</b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+System.Threading.</b></font><b><font SIZE="2" COLOR="#008080">Thread</font></b><font SIZE="2"><b>.Sleep(5000);</b></font></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><font SIZE="2">&nbsp;&nbsp;
+<b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+m_UQueue.SetSize(0);</b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+SetResponseHeader(</b></font><b><font SIZE="2" COLOR="#800000">&quot;Content-Type&quot;</font><font SIZE="2">,
+</font><font SIZE="2" COLOR="#800000">&quot;application/xml; charset=utf-8&quot;</font></b><font SIZE="2"><b>);</b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+m_UQueue.Push(enc.GetBytes(</b></font><b><font SIZE="2" COLOR="#800000">&quot;&lt;?xml
+version='1.0'?&gt;&quot;</font></b><font SIZE="2"><b>));</b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+m_UQueue.Push(enc.GetBytes(</b></font><b><font SIZE="2" COLOR="#800000">&quot;&lt;content&gt;Fourth
+Part&lt;/content&gt;&quot;</font></b><font SIZE="2"><b>));</b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+SendResult(sRequestID, m_UQueue);</b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+System.Threading.</b></font><b><font SIZE="2" COLOR="#008080">Thread</font></b><font SIZE="2"><b>.Sleep(5000);</b></font></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><font SIZE="2">&nbsp;&nbsp;
+<b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+m_UQueue.SetSize(0);</b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+SetResponseHeader(</b></font><b><font SIZE="2" COLOR="#800000">&quot;Content-Type&quot;</font><font SIZE="2">,
+</font><font SIZE="2" COLOR="#800000">&quot;application/xml; charset=utf-8&quot;</font></b><font SIZE="2"><b>);</b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+m_UQueue.Push(enc.GetBytes(</b></font><b><font SIZE="2" COLOR="#800000">&quot;&lt;?xml
+version='1.0'?&gt;&quot;</font></b><font SIZE="2"><b>));</b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+m_UQueue.Push(enc.GetBytes(</b></font><b><font SIZE="2" COLOR="#800000">&quot;&lt;content&gt;Ended&lt;/content&gt;&quot;</font></b><font SIZE="2"><b>));</b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+SendResult(sRequestID, m_UQueue);</b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0">&nbsp;&nbsp;
+<b>&nbsp;&nbsp;&nbsp;&nbsp; </b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"></font><font SIZE="2" COLOR="#008000"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+//tell browser the multipart response is ended</b></p>
+</font><font SIZE="2">
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+SendResult(sRequestID);</b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"></font><b><font SIZE="2" COLOR="#0000ff">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+break</font></b><font SIZE="2"><b>;</b></p>
+</font>
+<p>&nbsp;&nbsp;&nbsp; <img border="0" src="multipart.jpg" width="635" height="280"></p>
+<p>&nbsp;&nbsp;&nbsp; <b><a name="HTTP chunked header supported on server side">HTTP
+chunked header supported on server side</a>:</b>&nbsp;&nbsp;&nbsp; You can use
+HTTP chunk header to batch multiple responses into a single one using one TCP
+connecting for better performance and network efficiency. The coding is the same
+as the <a href="#HTTP Multipart Header Fully Supported">above</a>. Use a
+browser, type <a href="http://localhost:20901/chunked.htm">http://localhost:20901/chunked.htm</a>,
+and see the code snippet below.</p>
+<font SIZE="2" COLOR="#0000ff">
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+case</b></font><b><font SIZE="2"> </font><font SIZE="2" COLOR="#800000">&quot;/chunked.htm&quot;</font></b><font SIZE="2"><b>:</b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+SetResponseHeader(</b></font><b><font SIZE="2" COLOR="#800000">&quot;Content-Type&quot;</font><font SIZE="2">,
+</font><font SIZE="2" COLOR="#800000">&quot;text/html&quot;</font></b><font SIZE="2"><b>);</b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+SetResponseHeader(</b></font><b><font SIZE="2" COLOR="#800000">&quot;Transfer-Encoding&quot;</font><font SIZE="2">,
+</font><font SIZE="2" COLOR="#800000">&quot;chunked&quot;</font></b><font SIZE="2"><b>);</b></font></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0">&nbsp;</p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0">&nbsp;&nbsp;
+<font size="2"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</b><font SIZE="2" COLOR="#008000"><b>//</b></font><font color="#008000"><b>starts
+chunks here</b></font></font></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><font SIZE="2"></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+m_UQueue.SetSize(0);</b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+m_UQueue.Push(enc.GetBytes(</b></font><b><font SIZE="2" COLOR="#800000">&quot;&lt;script
+type='text/javascript'&gt;&quot;</font></b><font SIZE="2"><b>));</b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+GetFile(</b></font><b><font SIZE="2" COLOR="#800000">&quot;ujsonxml.js&quot;</font></b><font SIZE="2"><b>);</b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+m_UQueue.Push(enc.GetBytes(</b></font><b><font SIZE="2" COLOR="#800000">&quot;&lt;/script&gt;&quot;</font></b><font SIZE="2"><b>));</b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+SendResult(sRequestID, m_UQueue);</b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0">&nbsp;</p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+m_UQueue.SetSize(0);</b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+GetFile(</b></font><b><font SIZE="2" COLOR="#800000">&quot;chunked.htm&quot;</font></b><font SIZE="2"><b>);</b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+SendResult(sRequestID, m_UQueue);</b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0">&nbsp;</p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"></font><font SIZE="2" COLOR="#008000"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+//tell browser the chunked response is ended</b></p>
+</font><font SIZE="2">
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+SendResult(sRequestID);</b></p>
+<p style="background-color: #FFFFCC; margin-top: 0; margin-bottom: 0"></font><b><font SIZE="2" COLOR="#0000ff">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+break</font></b><font SIZE="2"><b>;</b></p>
+</font>
+<p>&nbsp;&nbsp;&nbsp; The above code combines three files into one bigger HTTP
+response from three chunks, json.js, ujsonxml.js and chunked.htm. In many cases,
+it does help performance!</p>
+<p>&nbsp;&nbsp;&nbsp; <b><a name="HTTP server-sent events supported">HTTP
+server-sent events supported</a>:</b>&nbsp;&nbsp;&nbsp; Beginning from version
+9, Opera browser supports Server-sent events. SocketPro HTTP has already
+supported this feature. However, we don't have code snippet to demonstrate this
+feature because this feature is supported by Opera only.</p>
+<p><a name="Further readings"><b><font size="4">Further readings</font></b></a></p>
+<ul>
+  <li>&nbsp;&nbsp;&nbsp; <a href="http://www.udaparts.com/document/articles/articles.htm">Articles 
+    for engineering high quality distributed and Internet applications with 
+    SocketPro</a></li>
+  <li>&nbsp;&nbsp;&nbsp; <a href="http://www.udaparts.com/document/articles/chatservice.htm">SocketPro 
+    built-in real time notification service</a></li>
+  <li>&nbsp;&nbsp;&nbsp; <a href="httppush.htm">SocketPro HTTP push</a></li>
+  <li>&nbsp;&nbsp;&nbsp; <a href="slpush.htm">SocketPro HTTP server push for Silverlight</a></li>
+  <li>&nbsp;&nbsp;&nbsp; <a href="http://www.udaparts.com/document/articles/httplb.htm">SocketPro 
+    HTTP load balancing</a></li>
+</ul>
+<p><font size="4"><b><a name="FAQs">FAQs</a></b></font></p>
+<ol>
+  <li><i>Does SocketPro HTTP service support server push and HTTP callback?</i><br>
+    Yes! We'll use a <a href="httppush.htm"> new tutorial</a> to demonstrate SocketPro HTTP server push.<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </li>
+  <li><i>Does SocketPro HTTP service support JSON, web service and REST?</i><br>
+    They are all based on HTTP transaction. Because SocketPro HTTP service is written
+    with fully supporting of HTTP protocol versions 1.0 and 1.1. You can be ensured
+    to use SocketPro HTTP service as a transaction layer for supporting them.
+    Actually, SocketPro adapter for JavaScript has already supported JSON and
+    simple XML remoting as shown in this tutorial sample.<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </li>
+  <li><i>In addition to web browsers, can I integrate my code with SocketPro
+    through HTTP protocol?</i><br>
+    Yes, absolutely! We use web browsers as complex sample clients. Of course, you can
+    communicate SocketPro with your codes through HTTP protocol.<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </li>
+  <li><i>Can I batch HTTP requests and responses as you have done in other
+    samples and tutorials for binary transaction services?</i><br>
+    No! This is not possible because of restrictions of HTTP protocol. At your
+    best, you can pipeline a set of HTTP requests and responses. SocketPro HTTP
+    service is able to support HTTP request and response pipeline.<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </li>
+  <li><i>Does your HTTP service support SSL or TLS secure transactions?</i><br>
+    Yes!<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </li>
+  <li><i>What browsers have you tested against?</i><br>
+    We have tested against a number of browsers, including FireFox 2 or later,
+    IE 6 or later, Flock, Safari 3 or later, Opera 8.5 or later, AOL, Netscape 8
+    or later, and Google Chrome.<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </li>
+  <li><i>Can I use SocketPro built-in feature like online
+    compression/de-compression?</i><br>
+    No! However, you can use your own code to compress HTTP response.<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </li>
+  <li><i>Will I meet proxy and firewall problems with your SocketPro? I know
+    there are many communication frameworks having problems with network
+    devices.</i><br>
+    No! It will never happen with SocketPro.<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </li>
+  <li><i>To use SocketPro HTTP service, do I have to distribute SocketPro client
+    core library npUSocket.dll?</i><br>
+    No! There is no need to do so if you use HTTP service for communication
+    only. We specifically create HTTP service just for better integration with
+    other platforms and development languages without dependency on
+    npUSocket.dll.</li>
+</ol>
+
+<p><b><span style="font-size:12.0pt;font-family:&quot;Times New Roman&quot;;
+mso-fareast-font-family:&quot;Times New Roman&quot;;mso-ansi-language:EN-US;mso-fareast-language:
+EN-US;mso-bidi-language:AR-SA"><a href="../help.htm">SocketPro Help Main Page</a></span></b></p>
+
+</body>
+
+</html>

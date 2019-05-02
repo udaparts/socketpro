@@ -1,0 +1,54 @@
+
+rc optional
+mapErr[0] = 'Ok';
+mapErr[1] = 'Bad Json Request';
+mapErr[2] = 'Bad number of arguments';
+mapErr[3] = 'Bad arguments';
+mapErr[4] = 'Bad argument type';
+mapErr[5] = 'Bad request';
+mapErr[6] = 'Empty request';
+mapErr[7] = 'Not supported';
+mapErr[8] = 'Authentication failed';
+
+{
+    "i": 22,
+    "me": 1,
+    "n": "uping"
+}
+
+{
+    "i": 272, //required
+    "me": 1, //required
+    "pt": 45000, //ping time in ms
+    "id": "QFhhCCegT3uONzbKG1JowZY=",
+    "n": "uswitchTo" //required
+}
+
+{
+    "i": 9,
+    "me": 1,
+    "errCode": -1,
+    "reqId": 56,
+    "stack": "CHttpPeer::OnSlowRequestArrive",
+    "errMsg": "Do my exception test",
+    "n": "doException"
+}
+
+{
+    "i": 9,
+    "me": 1,
+    "rt": "2012-08-23T18:55:11.052Z",
+    "n": "doRequest"
+}
+
+{
+    "i": 4,
+    "me": 1,
+    "rt": [
+        16
+    ],
+    "n": "uenter"
+}
+
+
+

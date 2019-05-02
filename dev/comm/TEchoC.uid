@@ -1,0 +1,42 @@
+
+[	
+	ServiceID = 2 //service id can't be less than 0
+]			
+CEchoObject
+{
+	object EchoEmpty(object empty);
+	object EchoBool(object b);
+	object EchoInt8(object c);
+	object EchoUInt8(object b);
+	object EchoInt16(object s);
+	object EchoUInt16(object s);
+	object EchoInt32(object data);
+	object EchoUInt32(object data);
+	object EchoInt64(object data);
+	object EchoUInt64(object data);
+	object EchoFloat(object data);
+	object EchoDouble(object data);
+	object EchoString(object str);
+	object EchoAString(object str);
+	object EchoDecimal(object dec);
+	
+	object EchoBoolArray(object bArr);
+	object EchoUInt8Array(object bArr);
+	object EchoInt16Array(object shortArr);
+	object EchoUInt16Array(object ushortArr);
+	object EchoInt32Array(object intArr);
+	object EchoUInt32Array(object uintArr);
+	object EchoInt64Array(object longArr);
+	object EchoUInt64Array(object ulongArr);
+	object EchoFloatArray(object fArr);
+	object EchoDoubleArray(object dArr);
+	object EchoStringArray(object strArr);
+	object EchoDecimalArray(object decArr);
+	
+	object EchoUUID(object clsid);
+	object EchoUUIDArray(object clsidArr);
+	object EchoCY(object cy);
+	object EchoCYArray(object cyArray);
+}
+
+

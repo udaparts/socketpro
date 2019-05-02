@@ -1,0 +1,1393 @@
+<html xmlns:v="urn:schemas-microsoft-com:vml"
+xmlns:o="urn:schemas-microsoft-com:office:office"
+xmlns:w="urn:schemas-microsoft-com:office:word"
+xmlns:st1="urn:schemas-microsoft-com:office:smarttags"
+xmlns="http://www.w3.org/TR/REC-html40">
+
+<head>
+<meta http-equiv=Content-Type content="text/html; charset=windows-1252">
+<meta name=ProgId content=Word.Document>
+<meta name=Generator content="Microsoft Word 11">
+<meta name=Originator content="Microsoft Word 11">
+<link rel=File-List href="httppushBackup_files/filelist.xml">
+<link rel=Edit-Time-Data href="httppushBackup_files/editdata.mso">
+<!--[if !mso]>
+<style>
+v\:* {behavior:url(#default#VML);}
+o\:* {behavior:url(#default#VML);}
+w\:* {behavior:url(#default#VML);}
+.shape {behavior:url(#default#VML);}
+</style>
+<![endif]-->
+<title>HTTP Server Push</title>
+<o:SmartTagType namespaceuri="urn:schemas-microsoft-com:office:smarttags"
+ name="City"/>
+<o:SmartTagType namespaceuri="urn:schemas-microsoft-com:office:smarttags"
+ name="place"/>
+<!--[if gte mso 9]><xml>
+ <o:DocumentProperties>
+  <o:Author>Yuancai (Charlie) Ye</o:Author>
+  <o:Template>Normal</o:Template>
+  <o:LastAuthor>Yuancai (Charlie) Ye</o:LastAuthor>
+  <o:Revision>4</o:Revision>
+  <o:TotalTime>33</o:TotalTime>
+  <o:Created>2009-12-31T00:30:00Z</o:Created>
+  <o:LastSaved>2010-12-18T17:51:00Z</o:LastSaved>
+  <o:Pages>1</o:Pages>
+  <o:Words>3708</o:Words>
+  <o:Characters>21140</o:Characters>
+  <o:Company>Intelligent Decision Technologies</o:Company>
+  <o:Lines>176</o:Lines>
+  <o:Paragraphs>49</o:Paragraphs>
+  <o:CharactersWithSpaces>24799</o:CharactersWithSpaces>
+  <o:Version>11.9999</o:Version>
+ </o:DocumentProperties>
+</xml><![endif]--><!--[if gte mso 9]><xml>
+ <w:WordDocument>
+  <w:ValidateAgainstSchemas/>
+  <w:SaveIfXMLInvalid>false</w:SaveIfXMLInvalid>
+  <w:IgnoreMixedContent>false</w:IgnoreMixedContent>
+  <w:AlwaysShowPlaceholderText>false</w:AlwaysShowPlaceholderText>
+  <w:Compatibility>
+   <w:UseFELayout/>
+  </w:Compatibility>
+  <w:BrowserLevel>MicrosoftInternetExplorer4</w:BrowserLevel>
+ </w:WordDocument>
+</xml><![endif]--><!--[if gte mso 9]><xml>
+ <w:LatentStyles DefLockedState="false" LatentStyleCount="156">
+ </w:LatentStyles>
+</xml><![endif]--><!--[if !mso]><object
+ classid="clsid:38481807-CA0E-42D2-BF39-B33AF135CC4D" id=ieooui></object>
+<style>
+st1\:*{behavior:url(#ieooui) }
+</style>
+<![endif]-->
+<style>
+<!--
+ /* Font Definitions */
+ @font-face
+	{font-family:SimSun;
+	panose-1:2 1 6 0 3 1 1 1 1 1;
+	mso-font-alt:\5B8B\4F53;
+	mso-font-charset:134;
+	mso-generic-font-family:auto;
+	mso-font-pitch:variable;
+	mso-font-signature:3 135135232 16 0 262145 0;}
+@font-face
+	{font-family:"\@SimSun";
+	panose-1:2 1 6 0 3 1 1 1 1 1;
+	mso-font-charset:134;
+	mso-generic-font-family:auto;
+	mso-font-pitch:variable;
+	mso-font-signature:3 680460288 22 0 262145 0;}
+ /* Style Definitions */
+ p.MsoNormal, li.MsoNormal, div.MsoNormal
+	{mso-style-parent:"";
+	margin:0in;
+	margin-bottom:.0001pt;
+	mso-pagination:widow-orphan;
+	font-size:12.0pt;
+	font-family:"Times New Roman";
+	mso-fareast-font-family:"Times New Roman";}
+h2
+	{mso-margin-top-alt:auto;
+	margin-right:0in;
+	mso-margin-bottom-alt:auto;
+	margin-left:0in;
+	mso-pagination:widow-orphan;
+	mso-outline-level:2;
+	font-size:18.0pt;
+	font-family:"Times New Roman";
+	mso-fareast-font-family:SimSun;
+	font-weight:bold;}
+a:link, span.MsoHyperlink
+	{color:blue;
+	text-decoration:underline;
+	text-underline:single;}
+a:visited, span.MsoHyperlinkFollowed
+	{color:blue;
+	text-decoration:underline;
+	text-underline:single;}
+p
+	{mso-margin-top-alt:auto;
+	margin-right:0in;
+	mso-margin-bottom-alt:auto;
+	margin-left:0in;
+	mso-pagination:widow-orphan;
+	font-size:12.0pt;
+	font-family:"Times New Roman";
+	mso-fareast-font-family:"Times New Roman";}
+pre
+	{margin:0in;
+	margin-bottom:.0001pt;
+	mso-pagination:widow-orphan;
+	tab-stops:45.8pt 91.6pt 137.4pt 183.2pt 229.0pt 274.8pt 320.6pt 366.4pt 412.2pt 458.0pt 503.8pt 549.6pt 595.4pt 641.2pt 687.0pt 732.8pt;
+	font-size:10.0pt;
+	font-family:"Courier New";
+	mso-fareast-font-family:"Courier New";}
+@page Section1
+	{size:8.5in 11.0in;
+	margin:1.0in 1.25in 1.0in 1.25in;
+	mso-header-margin:.5in;
+	mso-footer-margin:.5in;
+	mso-paper-source:0;}
+div.Section1
+	{page:Section1;}
+ /* List Definitions */
+ @list l0
+	{mso-list-id:486554210;
+	mso-list-type:hybrid;
+	mso-list-template-ids:161754764 527317190 1739994268 -1299135768 -1036644944 -1780320072 -1679409500 2003181770 1547192842 -790350528;}
+@list l0:level1
+	{mso-level-number-format:bullet;
+	mso-level-text:\F0B7;
+	mso-level-tab-stop:.5in;
+	mso-level-number-position:left;
+	text-indent:-.25in;
+	mso-ansi-font-size:10.0pt;
+	font-family:Symbol;}
+@list l0:level2
+	{mso-level-tab-stop:1.0in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l0:level3
+	{mso-level-tab-stop:1.5in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l0:level4
+	{mso-level-tab-stop:2.0in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l0:level5
+	{mso-level-tab-stop:2.5in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l0:level6
+	{mso-level-tab-stop:3.0in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l0:level7
+	{mso-level-tab-stop:3.5in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l0:level8
+	{mso-level-tab-stop:4.0in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l0:level9
+	{mso-level-tab-stop:4.5in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l1
+	{mso-list-id:567115511;
+	mso-list-type:hybrid;
+	mso-list-template-ids:1518351082 -1353401308 1295037786 -1375289982 -871365106 -1306376590 -650892142 1644475658 -1316949316 -1133078510;}
+@list l1:level1
+	{mso-level-number-format:bullet;
+	mso-level-text:\F0B7;
+	mso-level-tab-stop:.5in;
+	mso-level-number-position:left;
+	text-indent:-.25in;
+	mso-ansi-font-size:10.0pt;
+	font-family:Symbol;}
+@list l1:level2
+	{mso-level-tab-stop:1.0in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l1:level3
+	{mso-level-tab-stop:1.5in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l1:level4
+	{mso-level-tab-stop:2.0in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l1:level5
+	{mso-level-tab-stop:2.5in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l1:level6
+	{mso-level-tab-stop:3.0in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l1:level7
+	{mso-level-tab-stop:3.5in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l1:level8
+	{mso-level-tab-stop:4.0in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l1:level9
+	{mso-level-tab-stop:4.5in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l2
+	{mso-list-id:670839636;
+	mso-list-type:hybrid;
+	mso-list-template-ids:-1392104560 -1513977510 -1184050242 -1130846996 -1666925108 -452846842 -72426054 -496480336 1868880252 722656832;}
+@list l2:level1
+	{mso-level-tab-stop:.5in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l2:level2
+	{mso-level-tab-stop:1.0in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l2:level3
+	{mso-level-tab-stop:1.5in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l2:level4
+	{mso-level-tab-stop:2.0in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l2:level5
+	{mso-level-tab-stop:2.5in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l2:level6
+	{mso-level-tab-stop:3.0in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l2:level7
+	{mso-level-tab-stop:3.5in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l2:level8
+	{mso-level-tab-stop:4.0in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l2:level9
+	{mso-level-tab-stop:4.5in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l3
+	{mso-list-id:1098405065;
+	mso-list-template-ids:-213496310;}
+@list l4
+	{mso-list-id:1721785732;
+	mso-list-template-ids:-1271762350;}
+@list l4:level1
+	{mso-level-number-format:bullet;
+	mso-level-text:\F0B7;
+	mso-level-tab-stop:.5in;
+	mso-level-number-position:left;
+	text-indent:-.25in;
+	mso-ansi-font-size:10.0pt;
+	font-family:Symbol;}
+@list l5
+	{mso-list-id:1993412628;
+	mso-list-template-ids:-90771928;}
+@list l5:level1
+	{mso-level-number-format:bullet;
+	mso-level-text:\F0B7;
+	mso-level-tab-stop:.5in;
+	mso-level-number-position:left;
+	text-indent:-.25in;
+	mso-ansi-font-size:10.0pt;
+	font-family:Symbol;}
+ol
+	{margin-bottom:0in;}
+ul
+	{margin-bottom:0in;}
+-->
+</style>
+<!--[if gte mso 10]>
+<style>
+ /* Style Definitions */
+ table.MsoNormalTable
+	{mso-style-name:"Table Normal";
+	mso-tstyle-rowband-size:0;
+	mso-tstyle-colband-size:0;
+	mso-style-noshow:yes;
+	mso-style-parent:"";
+	mso-padding-alt:0in 5.4pt 0in 5.4pt;
+	mso-para-margin:0in;
+	mso-para-margin-bottom:.0001pt;
+	mso-pagination:widow-orphan;
+	font-size:10.0pt;
+	font-family:"Times New Roman";
+	mso-fareast-font-family:"Times New Roman";
+	mso-ansi-language:#0400;
+	mso-fareast-language:#0400;
+	mso-bidi-language:#0400;}
+</style>
+<![endif]-->
+<meta http-equiv=Content-Language content=en-us>
+</head>
+
+<body lang=EN-US link=blue vlink=blue style='tab-interval:.5in'>
+
+<div class=Section1>
+
+<h2>Send Instant Web or Window Messages through SocketPro HTTP Server Push</h2>
+
+<p><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; UDAParts<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <a href="mailto:support@udaparts.com">support@udaparts.com<br>
+</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 05/18/2009</i></p>
+
+<p><b><span style='font-size:13.5pt'>Contents</span></b></p>
+
+<ul type=disc>
+ <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
+     mso-list:l0 level1 lfo3;tab-stops:list .5in'><a href="#Introduction">Introduction</a></li>
+ <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
+     mso-list:l0 level1 lfo3;tab-stops:list .5in'><a
+     href="#SocketPro_Implementation_to_HTTP_Server">SocketPro Implementation
+     to HTTP Server Push</a></li>
+ <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
+     mso-list:l0 level1 lfo3;tab-stops:list .5in'><a
+     href="#Pre-requirements_and_Preparation">Pre-requirements and Preparation</a></li>
+ <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
+     mso-list:l0 level1 lfo3;tab-stops:list .5in'><a
+     href="#The_First_Step_to_SocketPro_HTTP/Binary">The First Step to
+     SocketPro HTTP/Binary Push</a></li>
+ <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
+     mso-list:l0 level1 lfo3;tab-stops:list .5in'><a
+     href="#Coding_for_HTTP_Push_on_Server_Side">Coding for HTTP Push on Server
+     Side</a><i>&nbsp;&nbsp;&nbsp;</i> </li>
+ <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
+     mso-list:l0 level1 lfo3;tab-stops:list .5in'><a
+     href="#SocketPro_Adapter_for_Web_Browser">SocketPro Adapter for Web
+     Browser</a> </li>
+ <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
+     mso-list:l0 level1 lfo3;tab-stops:list .5in'><a
+     href="#Integration_HTTP_Server_Push_with_Devic">Integration SocketPro
+     COMET with Devices and Normal Desktop/Server Applications</a> </li>
+ <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
+     mso-list:l0 level1 lfo3;tab-stops:list .5in'><a
+     href="#Integration_your_HTTP_servers_with_Sock">Integration your HTTP
+     servers with SocketPro COMET server<br>
+     </a>&nbsp;&nbsp;&nbsp; <a href="#Limit_accessing_SocketPro_HTTP_push_for">Limit
+     accessing SocketPro HTTP push for better security</a></li>
+ <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
+     mso-list:l0 level1 lfo3;tab-stops:list .5in'><a href="#Further_readings">Further
+     readings</a></li>
+ <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
+     mso-list:l0 level1 lfo3;tab-stops:list .5in'><a href="#FAQs">FAQs</a></li>
+</ul>
+
+<p><a name=Introduction><b><span style='font-size:13.5pt'>Introduction</span></b></a></p>
+
+<p>&nbsp;&nbsp;&nbsp; Browser-based instant message is a HTTP advance topic. It
+is particularly useful to get a team of people or web clients through browsers
+for cooperation in real-time fashion. There are many such examples like stock
+market data distribution, online web chat, online auction, online betting,
+online gaming, and so on. All these samples require data pushed from a HTTP
+server onto browsers in a very short time. However, it is considerably
+difficult to get web instant messages through HTTP protocol because the
+protocol is not designed with server push in mind at all. Therefore, you can
+not easily see real-time web notification with a publish/subscribe mode.
+Recently, we have upgraded our SocketPro with not only basic HTTP service but
+also HTTP server push support, and wish HTTP server push become much easier for
+you.</p>
+
+<p>&nbsp;&nbsp;&nbsp; This short article guides you to quickly develop a
+message push system through SocketPro, which enables you to send messages among
+web browsers, devices, window desktop and server applications.</p>
+
+<p><a name="SocketPro_Implementation_to_HTTP_Server_"><b><span
+style='font-size:13.5pt'>SocketPro Implementation to HTTP Server Push</span></b></a></p>
+
+<p>&nbsp;&nbsp;&nbsp; After having investigated many technologies, UDAParts
+selects long-time polling approach to implement SocketPro HTTP server push.
+With long polling, a client initially sends a request to a SocketPro server
+enabled with HTTP service in a similar way to a normal polling. However, the
+server wait until an available message or a long time timeout. Once a message
+or time out comes from a SocketPro server to a web browser client, the client
+will re-send a new request until the next message or timeout. By this way, a
+SocketPro server will almost always have an available waiting request so that
+it can immediately deliver a message from server to client in response to an
+event. This approach also enables a callback from a SocketPro server to a
+client through HTTP service.</p>
+
+<p>&nbsp;&nbsp;&nbsp; SocketPro supports both the same-domain and cross-domain
+(or cross site) HTTP server pushes. SocketPro is relied on <st1:City w:st="on"><st1:place
+ w:st="on">AJAX</st1:place></st1:City> for the same-domain HTTP server push and
+JavaScript tag for cross-domain server push. On server side, the core library
+(usktpror.dll) has implemented a set of HTTP functions for HTTP server push. To
+make use of HTTP server push easier, we have just updated our SocketPro
+adapters for .NET and JavaScript so that you can realize HTTP server push
+effortless in a few hours through our SocketPro in the successive sections.</p>
+
+<p>&nbsp;&nbsp; Further, UDAParts has successfully integrated HTTP server push
+with our original built-in chat service so that you can send a message from a
+desktop or device application to a web application, and vice versa. We'll use
+some old sample applications to show you this integration.</p>
+
+<p><a name="Pre-requirements_and_Preparation"><b><span style='font-size:13.5pt'>Pre-requirements
+and Preparation</span></b></a></p>
+
+<p>&nbsp;&nbsp;&nbsp; As described in the <a href="httpsvs.htm">previous
+tutorial</a>, you should have a basic knowledge about HTTP although you are not
+required to know all of HTTP details. If you don't know HTTP, please use Google
+or Yahoo search engine to search for key words like 'HTTP protocol tutorial'.</p>
+
+<p>&nbsp;&nbsp;&nbsp; This tutorial (chat) tells you how to use SocketPro HTTP
+server push. After compiling one of the tutorial samples inside the directory
+..\udaparts\socketpro\tutorial, you need to copy the files inside the directory
+..\udaparts\socketpro\tutorial\HTTPChatSampleFiles into the directory of your
+compiled exe application. These files are used for testing. Note that there is
+no client sample application provided for this HTTP tutorial, but the client
+test application is your browser, FireFox, IE, Safari, Opera, Flock or
+else.&nbsp;</p>
+
+<p>&nbsp;&nbsp;&nbsp; We would like you to use FireFox plus free plug-in <i>FireBug.
+FireBug</i> is the best free web browser debug tool available at this writing
+time. You can use the tool to debug HTTP transaction between browser and sample
+SocketPro on client side so that you can see how UDAParts SocketPro adapter
+(ujsonxml.js) works. It may require you to have some basic knowledge about
+JavaScript.</p>
+
+<p>&nbsp;&nbsp;&nbsp; This tutorial requires you a simple understanding about
+JSON. In case you don't know JSON, please go to the site <a
+href="http://www.json.org">www.json.org</a>. Now, SocketPro adapter for
+JavaScript contains a JSON JavaScript object, named as UJSON.&nbsp;</p>
+
+<p>&nbsp;&nbsp;&nbsp; After successfully compiling the tutorial and running the
+SocketPro server, you can play it from a browser. See the below sample picture.</p>
+
+<p>&nbsp;&nbsp;&nbsp; <img border=0 width=637 height=494 id="_x0000_i1025"
+src=httpdemo.jpg></p>
+
+<p><a name="The_First_Step_to_SocketPro_HTTP/Binary_"><b><span
+style='font-size:13.5pt'>The First Step to SocketPro HTTP/Binary Push</span></b></a></p>
+
+<p>&nbsp;&nbsp;&nbsp; The sample project is located at the directory of
+C:\Program Files\UDAParts\SocketPro\tutorial\CSharp (VBNet)\Chat\Server.</p>
+
+<p>&nbsp;&nbsp;&nbsp; To enable SocketPro HTTP/binary push is to make a few
+calls for configuration so that SocketPro knows how to handle various chat
+requests. First of all, you need to create a set of chat groups. Within
+SocketPro, you can push a message onto one or multiple groups of clients. To do
+so, create a few chat groups using the below code snippet.</p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><span
+style='font-size:10.0pt;color:blue'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<b>bool</b></span><b><span style='font-size:10.0pt'> ok;</span></b><span
+style='font-size:10.0pt'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+ok = </span></b><b><span style='font-size:10.0pt;mso-fareast-font-family:SimSun'>PushManager.</span></b><b><span
+style='font-size:10.0pt'>AddAChatGroup(1, <span style='color:maroon'>&quot;Group
+for SOne&quot;</span>);</span></b><span style='font-size:10.0pt'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+ok = </span></b><b><span style='font-size:10.0pt;mso-fareast-font-family:SimSun'>PushManager.</span></b><b><span
+style='font-size:10.0pt'>AddAChatGroup(2, <span style='color:maroon'>&quot;DB
+Service&quot;</span>);</span></b><span style='font-size:10.0pt'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+ok = </span></b><b><span style='font-size:10.0pt;mso-fareast-font-family:SimSun'>PushManager.</span></b><b><span
+style='font-size:10.0pt'>AddAChatGroup(4, <span style='color:maroon'>&quot;Management
+Department&quot;</span>);</span></b><span style='font-size:10.0pt'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+ok = </span></b><b><span style='font-size:10.0pt;mso-fareast-font-family:SimSun'>PushManager.</span></b><b><span
+style='font-size:10.0pt'>AddAChatGroup(8, <span style='color:maroon'>&quot;IT
+Department&quot;</span>);</span></b><span style='font-size:10.0pt'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+ok = </span></b><b><span style='font-size:10.0pt;mso-fareast-font-family:SimSun'>PushManager.</span></b><b><span
+style='font-size:10.0pt'>AddAChatGroup(16, <span style='color:maroon'>&quot;Sales
+Department&quot;</span>);</span></b><span style='font-size:10.0pt'><o:p></o:p></span></p>
+
+<p>&nbsp;&nbsp;&nbsp; The above code snippet creates five chat groups with
+group identification numbers, 1, 2, 4, 8, and 16. <span style='font-size:10.0pt;
+mso-fareast-font-family:SimSun;color:green'><o:p></o:p></span></p>
+
+<p>&nbsp;&nbsp;&nbsp; An existing client will get a message whenever another
+client joins or exists the three groups 1, 4, or 8. If you set the above values
+to -1, an existing client will get a message whenever another client joins or
+exists.</p>
+
+<p>&nbsp;&nbsp;&nbsp; After you complete the above calls, it is ready for
+SocketPro to handle various chat calls from either client or server side
+without using HTTP or independent chat service. Note that all of other services
+internally inherits the chat service. You can think the chat service as a base
+class. However, we'll use both the chat and HTTP services in this tutorial so
+that we have to enable them in SocketPro. Note that the two services are
+SocketPro built-in services. To enable them, you'd make below calls:</p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt;color:blue'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+private</span></b><b><span style='font-size:10.0pt'> <span style='color:teal'>CSocketProService</span>&lt;<span
+style='color:teal'>CHttpPeer</span>&gt; m_HttpSvs = <span style='color:blue'>new</span>
+<span style='color:teal'>CSocketProService</span>&lt;<span style='color:teal'>CHttpPeer</span>&gt;();</span></b><span
+style='font-size:10.0pt'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt;color:blue'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+private</span></b><b><span style='font-size:10.0pt'> <span style='color:teal'>CNotificationService</span>
+m_ChatSvs = <span style='color:blue'>new</span> <span style='color:teal'>CNotificationService</span>();<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></b></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt;color:green'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+// ......<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></b><span
+style='font-size:10.0pt'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt;color:green'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+//sidHTTP = 266</span></b><span style='font-size:10.0pt'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+ok = m_HttpSvs.AddMe((<span style='color:blue'>int</span>)USOCKETLib.<span
+style='color:teal'>tagServiceID</span>.sidHTTP, 0, <span style='color:teal'>tagThreadApartment</span>.taNone);
+<span style='color:green'>//enable HTTP service</span></span></b><span
+style='font-size:10.0pt'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+ok = m_HttpSvs.AddSlowRequest((<span style='color:blue'>short</span>)USOCKETLib.<span
+style='color:teal'>tagHttpRequestID</span>.idGet);</span></b><span
+style='font-size:10.0pt'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+ok = m_HttpSvs.AddSlowRequest((<span style='color:blue'>short</span>)USOCKETLib.<span
+style='color:teal'>tagHttpRequestID</span>.idPost);<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></b></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt;color:green'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+//sidChat = 257</span></b><span style='font-size:10.0pt'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+ok = m_ChatSvs.AddMe((<span style='color:blue'>int</span>)USOCKETLib.<span
+style='color:teal'>tagServiceID</span>.sidChat, 0, <span style='color:teal'>tagThreadApartment</span>.taNone);
+<span style='color:green'>//enable independent chat&nbsp; service</span></span></b></p>
+
+<p>&nbsp;&nbsp;&nbsp; In the above we create two instances of services first,
+one for HTTP service and the other for independent chat service. Afterwards, we
+enable HTTP service, and use a worker thread in pool to process HTTP GET and
+POST commands. Finally, we make a call to enable independent chat service.</p>
+
+<p><a name="Coding_for_HTTP_Push_on_Server_Side"><b><span style='font-size:
+13.5pt'>Coding for HTTP Push on Server Side</span></b></a></p>
+
+<p>&nbsp;&nbsp;&nbsp;<b> </b>First of all, you need to derive a sub class from
+the class <i>CHttpPushBase</i>. The second step is to override the virtual
+function either <i>OnFastRequestArrive</i> or <i>OnSlowRequestArrive</i>,
+depending on if you use a worker thread to process HTTP GET or POST command. We
+use a worker thread to process the two commands, as shown in the above code
+snippet. Inside the function, you may need to solve a browser-related problem
+as shown in the below code, although SocketPro adapter tries its best to hide
+browser-related problems as many as possible.</p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt;color:blue'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+protected</span></b><b><span style='font-size:10.0pt'> <span style='color:blue'>override</span>
+<span style='color:blue'>int</span> OnSlowRequestArrive(<span style='color:
+blue'>short</span> sRequestID, <span style='color:blue'>int</span> nLen){<o:p></o:p></span></b></p>
+
+<p class=MsoNormal style='text-indent:.5in;background:#FFFFCC;mso-layout-grid-align:
+none;text-autospace:none'><b style='mso-bidi-font-weight:normal'><span
+style='font-size:10.0pt;mso-fareast-font-family:SimSun;color:green;mso-no-proof:
+yes'>/*<o:p></o:p></span></b></p>
+
+<p class=MsoNormal style='text-indent:.5in;background:#FFFFCC;mso-layout-grid-align:
+none;text-autospace:none'><b style='mso-bidi-font-weight:normal'><span
+style='font-size:10.0pt;mso-fareast-font-family:SimSun;color:green;mso-no-proof:
+yes'>SocketPro tries to hide browser-related problems as many as possible.
+However, <o:p></o:p></span></b></p>
+
+<p class=MsoNormal style='text-indent:.5in;background:#FFFFCC;mso-layout-grid-align:
+none;text-autospace:none'><b style='mso-bidi-font-weight:normal'><span
+style='font-size:10.0pt;mso-fareast-font-family:SimSun;color:green;mso-no-proof:
+yes'>you may still use the below code to solve a problem that SocketPro does
+not handle well <o:p></o:p></span></b></p>
+
+<p class=MsoNormal style='text-indent:.5in;background:#FFFFCC;mso-layout-grid-align:
+none;text-autospace:none'><b style='mso-bidi-font-weight:normal'><span
+style='font-size:10.0pt;mso-fareast-font-family:SimSun;color:green;mso-no-proof:
+yes'>usually by setting a proper response header. <o:p></o:p></span></b></p>
+
+<p class=MsoNormal style='background:#FFFFCC;mso-layout-grid-align:none;
+text-autospace:none'><b style='mso-bidi-font-weight:normal'><span
+style='font-size:10.0pt;mso-fareast-font-family:SimSun;color:green;mso-no-proof:
+yes'><span style='mso-spacerun:yes'>      </span><span style='mso-tab-count:
+1'>          </span>*/<o:p></o:p></span></b></p>
+
+<p class=MsoNormal style='background:#FFFFCC;mso-layout-grid-align:none;
+text-autospace:none'><b style='mso-bidi-font-weight:normal'><span
+style='font-size:10.0pt;mso-fareast-font-family:SimSun;mso-no-proof:yes'><span
+style='mso-spacerun:yes'>        </span><o:p></o:p></span></b></p>
+
+<p class=MsoNormal style='text-indent:.5in;background:#FFFFCC;mso-layout-grid-align:
+none;text-autospace:none'><b style='mso-bidi-font-weight:normal'><span
+style='font-size:10.0pt;mso-fareast-font-family:SimSun;color:green;mso-no-proof:
+yes'>//http://www.useragentstring.com/pages/useragentstring.php<o:p></o:p></span></b></p>
+
+<p class=MsoNormal style='background:#FFFFCC;mso-layout-grid-align:none;
+text-autospace:none'><b style='mso-bidi-font-weight:normal'><span
+style='font-size:10.0pt;mso-fareast-font-family:SimSun;mso-no-proof:yes'><span
+style='mso-spacerun:yes'>     </span><span style='mso-tab-count:1'>           </span><span
+style='color:blue'>string</span> strUserAgent = Headers[<span style='color:
+#A31515'>&quot;User-Agent&quot;</span>].ToLower();<o:p></o:p></span></b></p>
+
+<p class=MsoNormal style='text-indent:.5in;background:#FFFFCC;mso-layout-grid-align:
+none;text-autospace:none'><b style='mso-bidi-font-weight:normal'><span
+style='font-size:10.0pt;mso-fareast-font-family:SimSun;color:blue;mso-no-proof:
+yes'>if</span></b><b style='mso-bidi-font-weight:normal'><span
+style='font-size:10.0pt;mso-fareast-font-family:SimSun;mso-no-proof:yes'>(strUserAgent.IndexOf(<span
+style='color:#A31515'>&quot;msie&quot;</span>) != -1)<o:p></o:p></span></b></p>
+
+<p style='margin-top:0in;margin-right:0in;margin-bottom:0in;margin-left:.5in;
+margin-bottom:.0001pt;text-indent:.5in;background:#FFFFCC'><b style='mso-bidi-font-weight:
+normal'><span style='font-size:10.0pt;mso-fareast-font-family:SimSun;
+mso-no-proof:yes'>SetResponseHeader(<span style='color:#A31515'>&quot;Connection&quot;</span>,
+<span style='color:#A31515'>&quot;close&quot;</span>);</span></b><b
+style='mso-bidi-font-weight:normal'><span style='font-size:10.0pt'><o:p></o:p></span></b></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt;color:blue'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></b><b><span style='font-size:10.0pt;color:#2B91AF'>Console</span></b><b><span
+style='font-size:10.0pt'>.WriteLine(<span style='color:#A31515'>&quot;BrowserIpAddress
+= &quot;</span> + BrowserIpAddress + <span style='color:#A31515'>&quot;, data =
+&quot;</span> + Query);<span style='color:blue'><o:p></o:p></span></span></b></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;text-indent:.5in;background:#FFFFCC'><b><span
+style='font-size:10.0pt;color:blue'>return base</span></b><b><span
+style='font-size:10.0pt'>.OnSlowRequestArrive(sRequestID, nLen);</span></b><span
+style='font-size:10.0pt'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; }</span></b><span
+style='font-size:10.0pt'><o:p></o:p></span></p>
+
+<p>&nbsp;&nbsp;&nbsp; After looking through the above snippet of code, it is
+easy to understand. Now, SocketPro adapter hides all of HTTP server push
+pitfalls for you, which simplifies your development.</p>
+
+<p>&nbsp;&nbsp;&nbsp; To understand the above HTTP transaction between browser
+and SocketPro server, you'd start the browser<i> FireFox</i>, and use the debug
+tool <i>FireBug</i> as shown in the below picture.</p>
+
+<p>&nbsp;&nbsp;&nbsp; <img border=0 width=772 height=732 id="_x0000_i1026"
+src=pushdebug.jpg></p>
+
+<p>&nbsp;&nbsp;&nbsp; If you like to see how code execution with more details
+on server side, you can override the virtual functions <i>IsOk </i>as shown in
+this sample, <i>OnBeforeProcessingHttpPushRequest</i> and <i>OnAfterProcessingHttpPushRequest</i>.
+However, it is not so important now because the class <i>CHttpPushBase</i> has
+already hidden all of HTTP server push pitfalls for you. If you like to track
+the exception during processing HTTP request, you can override the virtual
+function <i>OnProcessingHttpPushRequestException</i>.</p>
+
+<p><a name="SocketPro_Adapter_for_Web_Browser"><b><span style='font-size:13.5pt'>SocketPro
+Adapter for Web Browser</span></b></a></p>
+
+<p>&nbsp;&nbsp;&nbsp; To make HTTP push easier on web browser side, we provide
+an adapter for web browsers through JavaScript. At this time, <i>SocketProAdapter</i>
+for JavaScript uses JSON data format for serializing objects and method
+parameters into a large string before sending it onto a remote SocketPro HTTP
+push server.</p>
+
+<p>&nbsp;&nbsp;&nbsp; Now, it is time to have a close look at the sample html
+file <i>httppush.htm</i>, and see how simple it is on client side.</p>
+
+<p>&nbsp;&nbsp;&nbsp; First, refer the file ujsonxml.sp for SocketProAdapter
+for JavaScript as shown in the below. Note that this file should be located at
+SocketPro HTTP push server. SocketPro HTTP server push reads the file and sets
+all of necessary configuration settings for you at run time.</p>
+
+<p style='background:#FFFFCC'><b><span style='font-size:10.0pt;color:blue'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&lt;</span></b><b><span style='font-size:10.0pt;color:#A31515'>script</span></b><b><span
+style='font-size:10.0pt'> <span style='color:red'>type</span><span
+style='color:blue'>=&quot;text/javascript&quot;</span> <span style='color:red'>src</span><span
+style='color:blue'>=&quot;ujsonxml.js&quot;&gt;&lt;/</span><span
+style='color:#A31515'>script</span><span style='color:blue'>&gt;</span></span></b></p>
+
+<p><b>&nbsp;&nbsp;&nbsp; </b>SocketPro adapter for web browsers makes calling
+your HTTP requests really simple. As an example, here is a sample code.</p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt;color:blue'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+</b><b><span style='font-size:10.0pt;color:blue'>function</span> </b><b><span
+style='font-size:10.0pt'>btnSpeak_onclick() {</span></b><b><span
+style='font-size:10.0pt;mso-fareast-font-family:SimSun'><o:p></o:p></span></b></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt;mso-fareast-font-family:SimSun'><span style='mso-tab-count:
+1'>                </span><span style='mso-spacerun:yes'>    </span></span></b><b><span
+style='font-size:10.0pt;color:blue'>var</span></b><b><span style='font-size:
+10.0pt'> chatGroups = document.getElementById(<span style='color:#A31515'>'txtGroups'</span>).value.split(<span
+style='color:#A31515'>','</span>);</span></b><b><span style='mso-fareast-font-family:
+SimSun'><o:p></o:p></span></b></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt;color:blue'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+var </span></b><b><span style='font-size:10.0pt'>req =
+UChat.speak(document.getElementById(<span style='color:#A31515'>'txtMsgOut'</span>).value,
+chatGroups);</span></b></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+}</span></b><span style='font-size:10.0pt'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt'><span style='font-size:10.0pt'>&nbsp;<o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt'>&nbsp;&nbsp;&nbsp; The above code shows
+how to send a message onto a set of chat groups of clients. All of other calls
+for enter, <i>sendUserMessage</i>, <i>exit</i> and <i>listen</i> (or <i>subscribe</i>)
+are similar. For details, see the file httppush.htm.</p>
+
+<p>&nbsp;&nbsp;&nbsp; To track the returning results and push messages from other
+clients, we must set a callback. To do so, we need to set the property <i>onMessage</i>
+on the JavaScript object <i>UChat</i> as shown in the below code snippet.</p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'>&nbsp;&nbsp;&nbsp;<b><span
+style='font-size:10.0pt;color:blue'>&nbsp;&nbsp;&nbsp;&nbsp; </span></b><b><span
+style='font-size:10.0pt'>UChat.onMessage = <span style='color:blue'>function</span>
+onMessage(req, msg) {</span></b></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;<b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</b></span>
+<b><span style='font-size:10.0pt;color:green'>//Use UJSON to convert a JavaScript
+object (msg) into a string</span></b><span style='font-size:10.0pt'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+document.getElementById(<span style='color:#A31515'>'txtMsgIn'</span>).value =
+UJSON.stringify(msg);</span></b><span style='font-size:10.0pt'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt;color:blue'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+switch</span></b><b><span style='font-size:10.0pt'> (req.method) {</span></b><span
+style='font-size:10.0pt'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt;color:blue'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+case</span></b><b><span style='font-size:10.0pt'> <span style='color:#A31515'>'exit'</span>:</span></b><span
+style='font-size:10.0pt'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+myInit();</span></b><span style='font-size:10.0pt'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt;color:blue'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+break</span></b><b><span style='font-size:10.0pt'>;</span></b><span
+style='font-size:10.0pt'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt;color:blue'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+case</span></b><b><span style='font-size:10.0pt'> <span style='color:#A31515'>'enter'</span>:</span></b><span
+style='font-size:10.0pt'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt;color:blue'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+if</span></b><b><span style='font-size:10.0pt'> (UChat.chatting()) {</span></b><span
+style='font-size:10.0pt'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+document.getElementById(<span style='color:#A31515'>&quot;btnSendUserMessage&quot;</span>).disabled
+= <span style='color:#A31515'>''</span>;</span></b><span style='font-size:10.0pt'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+document.getElementById(<span style='color:#A31515'>&quot;btnSpeak&quot;</span>).disabled
+= <span style='color:#A31515'>''</span>;</span></b><span style='font-size:10.0pt'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+document.getElementById(<span style='color:#A31515'>&quot;btnSubscribe&quot;</span>).disabled
+= <span style='color:#A31515'>'disabled'</span>;</span></b><span
+style='font-size:10.0pt'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+}</span></b><span style='font-size:10.0pt'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt;color:blue'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+break</span></b><b><span style='font-size:10.0pt'>;</span></b><span
+style='font-size:10.0pt'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt;color:blue'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+default</span></b><b><span style='font-size:10.0pt'>:</span></b><span
+style='font-size:10.0pt'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt;color:blue'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+break</span></b><b><span style='font-size:10.0pt'>;</span></b><span
+style='font-size:10.0pt'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+}</span></b><span style='font-size:10.0pt'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; };</span></b><span
+style='font-size:10.0pt'><o:p></o:p></span></p>
+
+<p>&nbsp;&nbsp;&nbsp;&nbsp; It can not be simpler further! SocketProAdapter for
+JavaScript hides all of details for you with both same and cross domain
+communication on client side too.</p>
+
+<p>&nbsp;&nbsp;&nbsp; <a name="SocketPro_adapter_HTTP_request_object"><b>SocketProAdapter
+HTTP request object</b></a><b>:</b>&nbsp;&nbsp;&nbsp; In case you like to send requests
+other than HTTP push-related requests, you can use the below code snippet from
+the file C:\Program
+Files\UDAParts\SocketPro\tutorial\HTTPServiceSampleFiles\udemo.htm.</p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt;color:blue'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+var</span></b><b><span style='font-size:10.0pt'> req;</span></b><span
+style='font-size:10.0pt'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt;color:blue'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+function</span></b><b><span style='font-size:10.0pt'> btnSend_onclick() {</span></b><span
+style='font-size:10.0pt'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt;color:blue'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+if</span></b><b><span style='font-size:10.0pt'>(!req)</span></b><span
+style='font-size:10.0pt'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+req = UHTTP.createRequest(&nbsp;&nbsp;&nbsp;&nbsp; <span style='color:#A31515'>'echo'</span>,
+<span style='color:green'>//required, request name</span></span></b><span
+style='font-size:10.0pt;color:green'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+0); <span style='color:green'>//optional, 0, false (default) json, 1 -- xml</span></span></b><span
+style='font-size:10.0pt;color:green'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><span
+style='font-size:10.0pt'>&nbsp;<o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'>&nbsp;&nbsp;&nbsp;<b><span
+style='font-size:10.0pt;color:blue'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+var</span></b><b><span style='font-size:10.0pt'> firstName = document.getElementById(<span
+style='color:#A31515'>'txtFirstName'</span>).value;</span></b><span
+style='font-size:10.0pt'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt;color:blue'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+var</span></b><b><span style='font-size:10.0pt'> lastName =
+document.getElementById(<span style='color:#A31515'>'txtLastName'</span>).value;</span></b><span
+style='font-size:10.0pt'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt;color:blue'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+var</span></b><b><span style='font-size:10.0pt'> age = document.getElementById(<span
+style='color:#A31515'>'txtAge'</span>).value;</span></b><span style='font-size:
+10.0pt'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><span
+style='font-size:10.0pt'>&nbsp;<o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+req.clear(); <span style='color:green'>//remove previously stored parameters</span></span></b><span
+style='font-size:10.0pt;color:green'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><span
+style='font-size:10.0pt'>&nbsp;<o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt;color:green'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+//add the 1st parameter and its value</span></b><span style='font-size:10.0pt;
+color:green'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+req.add(<span style='color:#A31515'>'firstName'</span>, firstName);</span></b><span
+style='font-size:10.0pt'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><span
+style='font-size:10.0pt'>&nbsp;<o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt;color:green'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+//add the 2nd parameter and its value</span></b><span style='font-size:10.0pt;
+color:green'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+req.add(<span style='color:#A31515'>&quot;lastName&quot;</span>, lastName);</span></b><span
+style='font-size:10.0pt'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><span
+style='font-size:10.0pt'>&nbsp;<o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+req.add(<span style='color:#A31515'>'age'</span>, age);</span></b><span
+style='font-size:10.0pt'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><span
+style='font-size:10.0pt'>&nbsp;<o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt;color:green'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+//send request, and it returns a unique request index which may be useful later</span></b><span
+style='font-size:10.0pt;color:green'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt;color:blue'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+var</span></b><b><span style='font-size:10.0pt'> index =
+req.invoke(&nbsp;&nbsp; myCallback, <span style='color:green'>//required, a
+callback function to handle returning data</span></span></b><span
+style='font-size:10.0pt;color:green'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+0, <span style='color:green'>//optional, 0, false (default) POST, 1 -- GET</span></span></b><span
+style='font-size:10.0pt;color:green'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+0 <span style='color:green'>//optional, 0, false (default) async, 1 -- sync</span></span></b><span
+style='font-size:10.0pt;color:green'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+);</span></b><span style='font-size:10.0pt'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; }</span></b><span
+style='font-size:10.0pt'><o:p></o:p></span></p>
+
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Here myCallback function is defined
+as the below.</p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt;color:blue'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+function</span></b><b><span style='font-size:10.0pt'> myCallback(req, data){</span></b><span
+style='font-size:10.0pt'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt;color:green'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+//you may parse your result here .....</span></b><span style='font-size:10.0pt;
+color:green'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt;color:blue'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+var</span></b><b><span style='font-size:10.0pt'> obj = UJSON.parse(data);</span></b><span
+style='font-size:10.0pt'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+document.getElementById(<span style='color:#A31515'>'txtResult'</span>).value =
+data;</span></b><span style='font-size:10.0pt'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; }</span></b><span
+style='font-size:10.0pt'><o:p></o:p></span></p>
+
+<p>&nbsp;&nbsp;&nbsp;&nbsp; By this way, you can easily create a request object
+and send any number of parameters onto a remote SocketPro server with HTTP
+service enabled.</p>
+
+<p>&nbsp;&nbsp;&nbsp; The below picture shows SocketPro HTTP request object.</p>
+
+<p>&nbsp;&nbsp;&nbsp; <img border=0 width=646 height=470 id="_x0000_i1027"
+src=request.jpg></p>
+
+<p>&nbsp;&nbsp;&nbsp; As shown from the picture, SocketPro adapter HTTP request
+object clearly has two properties, <i>method</i> and <i>config</i>. The method <i>abort</i>
+is used for aborting a HTTP response. The method <i>add</i>, as shown previously,
+is used for constructing an object dynamically. In case you like to re-use an
+existing request object, you need the method <i>clear</i> to remove previous
+parameters and their values. The method <i>getCallIndex</i> is used to retrieve
+a unique integer call index. The method <i>getCallback</i> is used to retrieve
+callback set previously. The method <i>getScript</i> is used to retrieve either
+an <st1:City w:st="on"><st1:place w:st="on">AJAX</st1:place></st1:City> object
+for same-domain or a JavaScript tag object for cross-domain.</p>
+
+<p>&nbsp;&nbsp;&nbsp; The method <i>invoke</i> is used to send a real HTTP
+request onto a SocketPro server enabled with HTTP service.</p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt;color:green'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+/*</span></b><span style='font-size:10.0pt;color:green'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt;color:green'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+invoke a request from browser to a web server.</span></b><span
+style='font-size:10.0pt;color:green'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><span
+style='font-size:10.0pt;color:green'>&nbsp;<o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt;color:green'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+1.&nbsp;&nbsp;&nbsp;&nbsp; cb -- required callback handler.</span></b><span
+style='font-size:10.0pt;color:green'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt;color:green'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+2.&nbsp;&nbsp;&nbsp;&nbsp; isGet -- default to POST. 1 or true for GET</span></b><span
+style='font-size:10.0pt;color:green'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt;color:green'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+3.&nbsp;&nbsp;&nbsp;&nbsp; sync -- default to asynchronous processing, and 1 or
+true for synchronous processing.</span></b><span style='font-size:10.0pt;
+color:green'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt;color:green'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+*/</span></b><span style='font-size:10.0pt;color:green'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+me.invoke = <span style='color:blue'>function</span>(cb, isGet, sync) {</span></b><span
+style='font-size:10.0pt'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt;color:blue'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+if</span></b><b><span style='font-size:10.0pt'> (!me.method &amp;&amp; <span
+style='color:blue'>typeof</span> (me.method) != <span style='color:maroon'>'string'</span>)</span></b><span
+style='font-size:10.0pt'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt;color:blue'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+throw</span></b><b><span style='font-size:10.0pt'> <span style='color:blue'>new</span>
+Error(500, <span style='color:maroon'>&quot;HTTP: request name not specified
+properly!&quot;</span>);</span></b><span style='font-size:10.0pt'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt;color:blue'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+if</span></b><b><span style='font-size:10.0pt'> (<span style='color:blue'>typeof</span>
+(cb) != <span style='color:maroon'>'function'</span>)</span></b><span
+style='font-size:10.0pt'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt;color:blue'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+throw</span></b><b><span style='font-size:10.0pt'> <span style='color:blue'>new</span>
+Error(500, <span style='color:maroon'>&quot;HTTP: callback function not
+specified properly!&quot;</span>);</span></b><span style='font-size:10.0pt'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt;color:blue'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+if</span></b><b><span style='font-size:10.0pt'> (!me.isCompleted())</span></b><span
+style='font-size:10.0pt'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt;color:blue'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+throw</span></b><b><span style='font-size:10.0pt'> <span style='color:blue'>new</span>
+Error(500, <span style='color:maroon'>&quot;HTTP: previous request not
+completed yet!&quot;</span>);</span></b><span style='font-size:10.0pt'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+cIndex = ++callIndex;</span></b><span style='font-size:10.0pt'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+callback = cb;</span></b><span style='font-size:10.0pt'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+doCall(isGet, sync);</span></b><span style='font-size:10.0pt'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt;color:blue'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+return</span></b><b><span style='font-size:10.0pt'> callIndex;</span></b><span
+style='font-size:10.0pt'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+};</span></b><span style='font-size:10.0pt'><o:p></o:p></span></p>
+
+<p>&nbsp;&nbsp;&nbsp; The method <i>isCompleted</i> is used to check if a
+request is processed and its HTTP response has come. The method <i>isCrossSite</i>
+is used to check if a request is cross-domain one.</p>
+
+<p>&nbsp;&nbsp;&nbsp; All of these methods should not be too difficult for you
+to understand and use. We have tested libraries against multiple browsers and
+should work with all of major browsers on cross platforms.</p>
+
+<p><a name="Integration_HTTP_Server_Push_with_Device"><b><span
+style='font-size:13.5pt'>Integration SocketPro COMET with Devices and </span></b></a><st1:place
+w:st="on"><span style='mso-bookmark:Integration_HTTP_Server_Push_with_Device'><b><span
+ style='font-size:13.5pt'>Normal</span></b></span></st1:place><span
+style='mso-bookmark:Integration_HTTP_Server_Push_with_Device'><b><span
+style='font-size:13.5pt'> Desktop/Server Applications</span></b></span></p>
+
+<p>&nbsp;&nbsp;&nbsp; We have integrated HTTP server push with device and
+normal desktop/server applications. See the below picture for device from the
+project <i>DevTest</i> inside the directory of
+..\udaparts\SocketPro\samples\device\samplesCE\DevTest, which is written from
+Visual C++ 4 for smart devices.</p>
+
+<p>&nbsp;&nbsp;&nbsp; <img border=0 width=360 height=580 id="_x0000_i1028"
+src=cedemo.jpg></p>
+
+<p>&nbsp;&nbsp;&nbsp; It is also simple to communicate with other desktop or
+server application using push through SocketPro chat service. See the below
+sample application which was written from old VB6 long long time ago, which can
+be found inside the directory of
+..\udaparts\SocketPro\samples\others\client\vb6\chatTest.</p>
+
+<p>&nbsp;&nbsp;&nbsp; <img border=0 width=620 height=516 id="_x0000_i1029"
+src=vbdemo.jpg></p>
+
+<p>&nbsp;&nbsp;&nbsp; You can use the <a href="TutorialTwo.htm">tutorial two</a>
+to test integration with HTTP server push.</p>
+
+<p><a name="Integration_your_HTTP_servers_with_Socke"><b><span
+style='font-size:13.5pt'>Integration your HTTP servers with SocketPro COMET
+server</span></b></a></p>
+
+<p>&nbsp;&nbsp;&nbsp; This tutorial sample server is not only a simple HTTP
+server but also a <a href="http://en.wikipedia.org/wiki/Push_technology">comet</a>
+server. In many cases, you may like to separate a HTTP server from a comet
+sever. For example, you may use MS IIS or apache as a HTTP server on a machine,
+and our SocketPro comet server on another machine for push only. Therefore, we
+provide an extra sample to support such an architecture. You can find the
+sample HTTP push at the directory C:\Program
+Files\UDAParts\SocketPro\samples\HTTPChat\csharp (vbnet). The sample is almost
+the same as this tutorial. Once understanding this tutorial sample, you are
+expected to understand this sample without any problem at all.</p>
+
+<p><b>&nbsp;&nbsp;&nbsp; </b>SocketProAdapter for .NET has a very simple sealed
+class AspNetPush inside the namespace SocketProAdapter.ClientSide. The class
+exposes one static property pointing to an interface <i>IComet</i>
+implementation on Asp.NET/AJAX side. You can use the interface to manage
+accessing HTTP server push through Asp.NET. See the below sample snippet code.</p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt;color:blue'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+protected</span></b><b><span style='font-size:10.0pt'> <span style='color:blue'>void</span>
+Page_Load(<span style='color:blue'>object</span> sender, <span
+style='color:#2B91AF'>EventArgs</span> e){</span></b><span style='font-size:
+10.0pt'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt;color:blue'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+if</span></b><b><span style='font-size:10.0pt'> (<span style='color:#2B91AF'>AspNetPush</span>.Comet.UrlToComet.Length
+== 0){</span></b><span style='font-size:10.0pt'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt;color:green'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+//make sure you have already started the HTTP COMET server at</span></b><span
+style='font-size:10.0pt;color:green'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt;color:green'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+//C:\Program Files\UDAParts\SocketPro\tutorial\CSharp\Chat\Server</span></b><span
+style='font-size:10.0pt;color:green'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt;color:#2B91AF'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+AspNetPush</span></b><b><span style='font-size:10.0pt'>.Comet.UrlToComet = <span
+style='color:#A31515'>&quot;http://localhost:20901/UCHAT&quot;</span>;</span></b><span
+style='font-size:10.0pt'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+}</span></b><span style='font-size:10.0pt'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; }</span></b><span
+style='font-size:10.0pt'><o:p></o:p></span></p>
+
+<p>&nbsp;&nbsp;&nbsp; As you can see, you need to set a URL address to a
+SocketPro HTTP comet at the very beginning. Later, we can call the method <i>IComet.Enter</i>
+as shown in the following.</p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt;color:blue'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+protected</span></b><b><span style='font-size:10.0pt'> <span style='color:blue'>void</span>
+btnEnter_Click(<span style='color:blue'>object</span> sender, <span
+style='color:#2B91AF'>EventArgs</span> e){</span></b><span style='font-size:
+10.0pt'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt;color:blue'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+string</span></b><b><span style='font-size:10.0pt'> strEnter = <span
+style='color:#2B91AF'>AspNetPush</span>.Comet.Enter(<span style='color:blue'>this</span>,
+txtUserId.Text, 11, <span style='color:#A31515'>&quot;onMyMessage&quot;</span>);</span></b><span
+style='font-size:10.0pt'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+btnEnter.Enabled = <span style='color:blue'>false</span>;</span></b><span
+style='font-size:10.0pt'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; }</span></b><span
+style='font-size:10.0pt'><o:p></o:p></span></p>
+
+<p>&nbsp;&nbsp;&nbsp; Once the method <i>Enter</i> returns an expected result
+with a chat id, SocketPro internally registers a JavaScript client block on a
+page as shown in the below.</p>
+
+<p style='background:#FFFFCC'>&nbsp;&nbsp;&nbsp;&nbsp;<b><span
+style='font-size:10.0pt'> <span style='color:#A31515'>&lt;<span
+class=start-tag>script</span></span><span class=attribute-name> type</span>=<span
+class=attribute-value>'<span style='color:blue'>text/javascript</span>' <span
+style='color:#A31515'>src</span>='http://idtye:20901/ujsonxml.js'</span><span
+style='color:#A31515'>&gt;&lt;/<span class=end-tag>script</span>&gt;</span></span></b></p>
+
+<p>&nbsp;&nbsp;&nbsp;<span style='font-size:10.0pt'> Also, </span>SocketPro
+automatically inserts a JavaScript client block right before the tag
+&lt;/form&gt;.<o:p></o:p></p>
+
+<pre style='background:#FFFFCC' id=line59><b><span style='mso-spacerun:yes'>  </span><span
+style='color:#A31515'>&lt;<span class=start-tag><span style='font-family:"Courier New"'>script</span></span></span><span
+class=attribute-name><span style='font-family:"Courier New"'> type</span></span>=<span
+class=attribute-value><span style='font-family:"Courier New"'>'<span
+style='color:blue'>text/javascript</span>'</span></span><span style='color:
+#A31515'>&gt;</span>UHTTP.defaultConfig.chatId='{FE336BCF-5A2C-41B5-97A6-0DCFEAA31AF3}';UChat.onMessage=onMyMessage;UChat.subscribe(150);<span
+style='color:#A31515'>&lt;/<span class=end-tag><span style='font-family:"Courier New"'>script</span></span>&gt;</span></b></pre>
+
+<p>&nbsp;&nbsp;&nbsp; By this way, we can simplify JavaScript coding further
+without requirement of setting configuration at all.</p>
+
+<p>&nbsp;&nbsp;&nbsp; <a name="Limit_accessing_SocketPro_HTTP_push_for_"><b>Limit
+accessing SocketPro HTTP push for better security from your server code:</b></a><b>&nbsp;&nbsp;&nbsp;</b>
+Sometimes, we don't want every one on the earth is able to access our HTTP
+server push service. To make security better, we can limit accessing our HTTP
+server push service to permitted persons. To do so, we need to override the
+virtual function <i>IsOK</i> of the class <i>CHttpPushBase</i> using the
+following code snippet.</p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt;color:blue'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+protected</span></b><b><span style='font-size:10.0pt'> <span style='color:blue'>override</span>
+<span style='color:blue'>bool</span> IsOk(<span style='color:#2B91AF'>Dictionary</span>&lt;<span
+style='color:#2B91AF'>String</span>, <span style='color:blue'>object</span>&gt;
+parameters){</span></b><span style='font-size:10.0pt'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt;color:blue'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+int</span></b><b><span style='font-size:10.0pt'> nPort = 0;</span></b><span
+style='font-size:10.0pt'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt;color:blue'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+string</span></b><b><span style='font-size:10.0pt'> strIpAddress = GetPeerName(<span
+style='color:blue'>ref</span> nPort);</span></b><span style='font-size:10.0pt'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt;color:green'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+//control clients from a list of allowed ip addresses.</span></b><span
+style='font-size:10.0pt;color:green'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt;color:green'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+//especially useful for cross-domain HTTP Push.</span></b><span
+style='font-size:10.0pt;color:green'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt;color:green'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+//return (m_lstAllowIpAddress.IndexOf(strIpAddress) != -1);</span></b><span
+style='font-size:10.0pt;color:green'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt;color:blue'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+return</span></b><b><span style='font-size:10.0pt'> <span style='color:blue'>true</span>;
+<span style='color:green'>//true permitted, false denied</span></span></b><span
+style='font-size:10.0pt'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; }</span></b><span
+style='font-size:10.0pt'><o:p></o:p></span></p>
+
+<p><a name="Further_readings"><b>Further readings</b></a></p>
+
+<ul type=disc>
+ <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
+     mso-list:l1 level1 lfo6;tab-stops:list .5in'>&nbsp;&nbsp;&nbsp; <a
+     href="http://www.udaparts.com/document/articles/articles.htm">Articles for
+     engineering high quality distributed and Internet applications with
+     SocketPro</a></li>
+ <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
+     mso-list:l1 level1 lfo6;tab-stops:list .5in'>&nbsp;&nbsp;&nbsp; <a
+     href="httpsvs.htm">SocketPro HTTP service</a></li>
+ <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
+     mso-list:l1 level1 lfo6;tab-stops:list .5in'>&nbsp;&nbsp;&nbsp; <a
+     href="http://www.udaparts.com/document/articles/chatservice.htm">SocketPro
+     built-in real time notification service</a></li>
+ <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
+     mso-list:l1 level1 lfo6;tab-stops:list .5in'>&nbsp;&nbsp;&nbsp; <a
+     href="slpush.htm">SocketPro HTTP server push for Silverlight</a></li>
+ <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
+     mso-list:l1 level1 lfo6;tab-stops:list .5in'>&nbsp;&nbsp;&nbsp; <a
+     href="http://www.udaparts.com/document/articles/httplb.htm">SocketPro HTTP
+     load balancing</a></li>
+</ul>
+
+<p><a name=FAQs><b>FAQs</b></a></p>
+
+<ol start=1 type=1>
+ <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
+     mso-list:l2 level1 lfo9;tab-stops:list .5in'><i>Your tutorial sample is
+     written for HTTP. Does SocketPro HTTP push support secured transaction
+     through SSL or TLS?</i><br>
+     Yes! It should not give you any problem at all.<br>
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</li>
+ <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
+     mso-list:l2 level1 lfo9;tab-stops:list .5in'><i>I have heard that HTTP
+     push scalability is usually poor because most of major HTTP server is not
+     created with HTTP push in mind. How do you solve this problem?</i><br>
+     SocketPro HTTP server is highly scalable because it is written from 100%
+     non-block communication in mind. This special design leads much less
+     number of threads required on server side. Also, SocketPro HTTP service is
+     much lighter. Our experiment result shows that a SocketPro HTTP COMET
+     server is able to support 10,000 push connections on one typical server at
+     the same time.<br>
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</li>
+ <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
+     mso-list:l2 level1 lfo9;tab-stops:list .5in'><i>Can I write my own code from
+     my own applications instead of browsers to subscribe for SocketPro HTTP
+     push events?</i><br>
+     Of course! As described from this tutorial, you need to create two
+     instances of HTTP requests. One is for sending request, and the other for
+     waiting for available messages or a timeout.<br>
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</li>
+ <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
+     mso-list:l2 level1 lfo9;tab-stops:list .5in'><i>I saw <a
+     href="http://www.udaparts.com/document/articles/browsercallback.htm">this
+     site</a>. Should I use this HTTP server push technology or that one?</i><br>
+     That technology is dependent on plug-in for Mozilla browsers and activeX control
+     for IE. It is completely dependent on the client core library
+     npUSocket.dll. Therefore, you probably do not like that approach because
+     it lacks probabilities of integration with other platforms or development
+     languages. Also, you can distribute that dll with your applications on MS
+     window platforms only. Therefore, its usage is limited. If you use our
+     HTTP server push, there are no such problems. However, HTTP server push
+     technology is slower with a limited number of features because of HTTP
+     restrictions. If you use plug-in approach, it will be much faster with
+     many more powerful features like requests batching, online
+     compression/de-compression, and both asynchronous and synchronous
+     computation as well as others.<br>
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</li>
+ <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
+     mso-list:l2 level1 lfo9;tab-stops:list .5in'><i>How do you protect my
+     SocketPro server from situations that my browsers crash, my client
+     computers suddenly power off, or networks are dead for some unknown
+     reasons?</i><br>
+     SocketPro core server library usktpror.dll has ways to transparently
+     prevent these bad situations internally. You don't need coding anything
+     for dealing with these bad situations at all. This is not a problem to
+     SocketPro.</li>
+</ol>
+
+<p><b><a href="../help.htm">SocketPro Help Main Page</a></b></p>
+
+</div>
+
+</body>
+
+</html>

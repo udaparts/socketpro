@@ -1,0 +1,324 @@
+<?xml version="1.0" standalone="yes"?>
+<xs:schema id="Customer" xmlns="" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+  <xs:element name="Customer" msdata:IsDataSet="true" msdata:UseCurrentLocale="true">
+    <xs:complexType>
+      <xs:choice minOccurs="0" maxOccurs="unbounded">
+        <xs:element name="Customer">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="Sid_Customer" msdata:AutoIncrement="true" msdata:AutoIncrementSeed="1" type="xs:int" />
+              <xs:element name="Key" type="xs:string" minOccurs="0" />
+              <xs:element name="Balance" type="xs:decimal" minOccurs="0" />
+              <xs:element name="Category" type="xs:string" minOccurs="0" />
+              <xs:element name="CreditStatus" type="xs:int" minOccurs="0" />
+              <xs:element name="CustomerSince" type="xs:dateTime" minOccurs="0" />
+              <xs:element name="Name" type="xs:string" minOccurs="0" />
+              <xs:element name="Email" type="xs:string" minOccurs="0" />
+              <xs:element name="UseEmailToDeliverForms" type="xs:boolean" minOccurs="0" />
+              <xs:element name="ID" type="xs:string" minOccurs="0" />
+              <xs:element name="IsInactive" type="xs:boolean" minOccurs="0" />
+              <xs:element name="IsProspect" type="xs:boolean" minOccurs="0" />
+              <xs:element name="LastInvoiceAmount" type="xs:decimal" minOccurs="0" />
+              <xs:element name="LastInvoiceDate" type="xs:dateTime" minOccurs="0" />
+              <xs:element name="LastPaymentAmount" type="xs:decimal" minOccurs="0" />
+              <xs:element name="LastPaymentDate" type="xs:dateTime" minOccurs="0" />
+              <xs:element name="LastStatementDate" type="xs:dateTime" minOccurs="0" />
+              <xs:element name="OpenPurchaseOrderNumber" type="xs:string" minOccurs="0" />
+              <xs:element name="AccountNumber" type="xs:string" minOccurs="0" />
+              <xs:element name="PaymentMethod" type="xs:string" minOccurs="0" />
+              <xs:element name="PriceLevel" type="xs:short" minOccurs="0" />
+              <xs:element name="ReplaceInventoryItemIDWithPartNumber" type="xs:boolean" minOccurs="0" />
+              <xs:element name="ReplaceInventoryItemIDWithUPC" type="xs:boolean" minOccurs="0" />
+              <xs:element name="ResaleNumber" type="xs:string" minOccurs="0" />
+              <xs:element name="ShipVia" type="xs:string" minOccurs="0" />
+              <xs:element name="WebSiteURL" type="xs:string" minOccurs="0" />
+              <xs:element name="CashAccountReference" type="xs:string" minOccurs="0" />
+              <xs:element name="SalesRepresentativeReference" type="xs:string" minOccurs="0" />
+              <xs:element name="UsualSalesAccountReference" type="xs:string" minOccurs="0" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="Customer_PhoneNumber">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="Sid_Customer_PhoneNumber" msdata:AutoIncrement="true" msdata:AutoIncrementSeed="1" type="xs:int" />
+              <xs:element name="Sid_Customer" type="xs:int" minOccurs="0" />
+              <xs:element name="Number" type="xs:string" minOccurs="0" />
+              <xs:element name="Key" type="xs:int" minOccurs="0" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="Customer_CustomFieldValue">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="Sid_Customer_CustomFieldValue" msdata:AutoIncrement="true" msdata:AutoIncrementSeed="1" type="xs:int" />
+              <xs:element name="Sid_Customer" type="xs:int" minOccurs="0" />
+              <xs:element name="Value" type="xs:string" minOccurs="0" />
+              <xs:element name="Key" type="xs:string" minOccurs="0" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="Customer_BillToContact_Contact">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="Sid_Customer_BillToContact_Contact" msdata:AutoIncrement="true" msdata:AutoIncrementSeed="1" type="xs:int" />
+              <xs:element name="Sid_Customer_BillToContact" type="xs:int" minOccurs="0" />
+              <xs:element name="Key" type="xs:string" minOccurs="0" />
+              <xs:element name="CompanyName" type="xs:string" minOccurs="0" />
+              <xs:element name="Email" type="xs:string" minOccurs="0" />
+              <xs:element name="FirstName" type="xs:string" minOccurs="0" />
+              <xs:element name="Gender" type="xs:int" minOccurs="0" />
+              <xs:element name="IsPrimaryContact" type="xs:boolean" minOccurs="0" />
+              <xs:element name="LastName" type="xs:string" minOccurs="0" />
+              <xs:element name="MiddleInitial" type="xs:string" minOccurs="0" />
+              <xs:element name="Name" type="xs:string" minOccurs="0" />
+              <xs:element name="NameToUseOnForms" type="xs:int" minOccurs="0" />
+              <xs:element name="Notes" type="xs:string" minOccurs="0" />
+              <xs:element name="Prefix" type="xs:string" minOccurs="0" />
+              <xs:element name="Suffix" type="xs:string" minOccurs="0" />
+              <xs:element name="Title" type="xs:string" minOccurs="0" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="Customer_BillToContact_Contact_PhoneNumber">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="Sid_Customer_BillToContact_Contact_PhoneNumber" msdata:AutoIncrement="true" msdata:AutoIncrementSeed="1" type="xs:int" />
+              <xs:element name="Sid_Customer_BillToContact_Contact" type="xs:int" minOccurs="0" />
+              <xs:element name="Number" type="xs:string" minOccurs="0" />
+              <xs:element name="Key" type="xs:int" minOccurs="0" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="Customer_BillToContact_Contact_Address_Address">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="Sid_Customer_BillToContact_Contact_Address_Address" msdata:AutoIncrement="true" msdata:AutoIncrementSeed="1" type="xs:int" />
+              <xs:element name="Sid_Customer_BillToContact_Contact_Address" type="xs:int" minOccurs="0" />
+              <xs:element name="Key" type="xs:string" minOccurs="0" />
+              <xs:element name="Address1" type="xs:string" minOccurs="0" />
+              <xs:element name="Address2" type="xs:string" minOccurs="0" />
+              <xs:element name="City" type="xs:string" minOccurs="0" />
+              <xs:element name="Country" type="xs:string" minOccurs="0" />
+              <xs:element name="SalesTaxCode" type="xs:string" minOccurs="0" />
+              <xs:element name="State" type="xs:string" minOccurs="0" />
+              <xs:element name="Zip" type="xs:string" minOccurs="0" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="Customer_ShipToContact_Contact">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="Sid_Customer_ShipToContact_Contact" msdata:AutoIncrement="true" msdata:AutoIncrementSeed="1" type="xs:int" />
+              <xs:element name="Sid_Customer_ShipToContact" type="xs:int" minOccurs="0" />
+              <xs:element name="Key" type="xs:string" minOccurs="0" />
+              <xs:element name="CompanyName" type="xs:string" minOccurs="0" />
+              <xs:element name="Email" type="xs:string" minOccurs="0" />
+              <xs:element name="FirstName" type="xs:string" minOccurs="0" />
+              <xs:element name="Gender" type="xs:int" minOccurs="0" />
+              <xs:element name="IsPrimaryContact" type="xs:boolean" minOccurs="0" />
+              <xs:element name="LastName" type="xs:string" minOccurs="0" />
+              <xs:element name="MiddleInitial" type="xs:string" minOccurs="0" />
+              <xs:element name="Name" type="xs:string" minOccurs="0" />
+              <xs:element name="NameToUseOnForms" type="xs:int" minOccurs="0" />
+              <xs:element name="Notes" type="xs:string" minOccurs="0" />
+              <xs:element name="Prefix" type="xs:string" minOccurs="0" />
+              <xs:element name="Suffix" type="xs:string" minOccurs="0" />
+              <xs:element name="Title" type="xs:string" minOccurs="0" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="Customer_ShipToContact_Contact_PhoneNumber">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="Sid_Customer_ShipToContact_Contact_PhoneNumber" msdata:AutoIncrement="true" msdata:AutoIncrementSeed="1" type="xs:int" />
+              <xs:element name="Sid_Customer_ShipToContact_Contact" type="xs:int" minOccurs="0" />
+              <xs:element name="Number" type="xs:string" minOccurs="0" />
+              <xs:element name="Key" type="xs:int" minOccurs="0" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="Customer_ShipToContact_Contact_Address_Address">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="Sid_Customer_ShipToContact_Contact_Address_Address" msdata:AutoIncrement="true" msdata:AutoIncrementSeed="1" type="xs:int" />
+              <xs:element name="Sid_Customer_ShipToContact_Contact_Address" type="xs:int" minOccurs="0" />
+              <xs:element name="Key" type="xs:string" minOccurs="0" />
+              <xs:element name="Address1" type="xs:string" minOccurs="0" />
+              <xs:element name="Address2" type="xs:string" minOccurs="0" />
+              <xs:element name="City" type="xs:string" minOccurs="0" />
+              <xs:element name="Country" type="xs:string" minOccurs="0" />
+              <xs:element name="SalesTaxCode" type="xs:string" minOccurs="0" />
+              <xs:element name="State" type="xs:string" minOccurs="0" />
+              <xs:element name="Zip" type="xs:string" minOccurs="0" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="Customer_Contact">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="Sid_Customer_Contact" msdata:AutoIncrement="true" msdata:AutoIncrementSeed="1" type="xs:int" />
+              <xs:element name="Sid_Customer" type="xs:int" minOccurs="0" />
+              <xs:element name="Key" type="xs:string" minOccurs="0" />
+              <xs:element name="CompanyName" type="xs:string" minOccurs="0" />
+              <xs:element name="Email" type="xs:string" minOccurs="0" />
+              <xs:element name="FirstName" type="xs:string" minOccurs="0" />
+              <xs:element name="Gender" type="xs:int" minOccurs="0" />
+              <xs:element name="IsPrimaryContact" type="xs:boolean" minOccurs="0" />
+              <xs:element name="LastName" type="xs:string" minOccurs="0" />
+              <xs:element name="MiddleInitial" type="xs:string" minOccurs="0" />
+              <xs:element name="Name" type="xs:string" minOccurs="0" />
+              <xs:element name="NameToUseOnForms" type="xs:int" minOccurs="0" />
+              <xs:element name="Notes" type="xs:string" minOccurs="0" />
+              <xs:element name="Prefix" type="xs:string" minOccurs="0" />
+              <xs:element name="Suffix" type="xs:string" minOccurs="0" />
+              <xs:element name="Title" type="xs:string" minOccurs="0" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="Customer_Contact_PhoneNumber">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="Sid_Customer_Contact_PhoneNumber" msdata:AutoIncrement="true" msdata:AutoIncrementSeed="1" type="xs:int" />
+              <xs:element name="Sid_Customer_Contact" type="xs:int" minOccurs="0" />
+              <xs:element name="Number" type="xs:string" minOccurs="0" />
+              <xs:element name="Key" type="xs:int" minOccurs="0" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="Customer_Contact_Address_Address">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="Sid_Customer_Contact_Address_Address" msdata:AutoIncrement="true" msdata:AutoIncrementSeed="1" type="xs:int" />
+              <xs:element name="Sid_Customer_Contact_Address" type="xs:int" minOccurs="0" />
+              <xs:element name="Key" type="xs:string" minOccurs="0" />
+              <xs:element name="Address1" type="xs:string" minOccurs="0" />
+              <xs:element name="Address2" type="xs:string" minOccurs="0" />
+              <xs:element name="City" type="xs:string" minOccurs="0" />
+              <xs:element name="Country" type="xs:string" minOccurs="0" />
+              <xs:element name="SalesTaxCode" type="xs:string" minOccurs="0" />
+              <xs:element name="State" type="xs:string" minOccurs="0" />
+              <xs:element name="Zip" type="xs:string" minOccurs="0" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="Customer_Terms_PaymentTerms">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="Sid_Customer_Terms_PaymentTerms" msdata:AutoIncrement="true" msdata:AutoIncrementSeed="1" type="xs:int" />
+              <xs:element name="Sid_Customer_Terms" type="xs:int" minOccurs="0" />
+              <xs:element name="DueDays" type="xs:int" minOccurs="0" />
+              <xs:element name="DiscountDays" type="xs:int" minOccurs="0" />
+              <xs:element name="DiscountPercent" type="xs:decimal" minOccurs="0" />
+              <xs:element name="CreditLimit" type="xs:decimal" minOccurs="0" />
+              <xs:element name="ChargeInterest" type="xs:boolean" minOccurs="0" />
+              <xs:element name="IsStandardTerms" type="xs:boolean" minOccurs="0" />
+              <xs:element name="PaymentTimeFrame" type="xs:int" minOccurs="0" />
+              <xs:element name="UseDiscounts" type="xs:boolean" minOccurs="0" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+      </xs:choice>
+    </xs:complexType>
+    <xs:unique name="Constraint1" msdata:PrimaryKey="true">
+      <xs:selector xpath=".//Customer" />
+      <xs:field xpath="Sid_Customer" />
+    </xs:unique>
+    <xs:unique name="Customer_PhoneNumber_Constraint1" msdata:ConstraintName="Constraint1" msdata:PrimaryKey="true">
+      <xs:selector xpath=".//Customer_PhoneNumber" />
+      <xs:field xpath="Sid_Customer_PhoneNumber" />
+    </xs:unique>
+    <xs:unique name="Customer_CustomFieldValue_Constraint1" msdata:ConstraintName="Constraint1" msdata:PrimaryKey="true">
+      <xs:selector xpath=".//Customer_CustomFieldValue" />
+      <xs:field xpath="Sid_Customer_CustomFieldValue" />
+    </xs:unique>
+    <xs:unique name="Customer_BillToContact_Contact_Constraint1" msdata:ConstraintName="Constraint1" msdata:PrimaryKey="true">
+      <xs:selector xpath=".//Customer_BillToContact_Contact" />
+      <xs:field xpath="Sid_Customer_BillToContact_Contact" />
+    </xs:unique>
+    <xs:unique name="Customer_BillToContact_Contact_PhoneNumber_Constraint1" msdata:ConstraintName="Constraint1" msdata:PrimaryKey="true">
+      <xs:selector xpath=".//Customer_BillToContact_Contact_PhoneNumber" />
+      <xs:field xpath="Sid_Customer_BillToContact_Contact_PhoneNumber" />
+    </xs:unique>
+    <xs:unique name="Customer_BillToContact_Contact_Address_Address_Constraint1" msdata:ConstraintName="Constraint1" msdata:PrimaryKey="true">
+      <xs:selector xpath=".//Customer_BillToContact_Contact_Address_Address" />
+      <xs:field xpath="Sid_Customer_BillToContact_Contact_Address_Address" />
+    </xs:unique>
+    <xs:unique name="Customer_ShipToContact_Contact_Constraint1" msdata:ConstraintName="Constraint1" msdata:PrimaryKey="true">
+      <xs:selector xpath=".//Customer_ShipToContact_Contact" />
+      <xs:field xpath="Sid_Customer_ShipToContact_Contact" />
+    </xs:unique>
+    <xs:unique name="Customer_ShipToContact_Contact_PhoneNumber_Constraint1" msdata:ConstraintName="Constraint1" msdata:PrimaryKey="true">
+      <xs:selector xpath=".//Customer_ShipToContact_Contact_PhoneNumber" />
+      <xs:field xpath="Sid_Customer_ShipToContact_Contact_PhoneNumber" />
+    </xs:unique>
+    <xs:unique name="Customer_ShipToContact_Contact_Address_Address_Constraint1" msdata:ConstraintName="Constraint1" msdata:PrimaryKey="true">
+      <xs:selector xpath=".//Customer_ShipToContact_Contact_Address_Address" />
+      <xs:field xpath="Sid_Customer_ShipToContact_Contact_Address_Address" />
+    </xs:unique>
+    <xs:unique name="Customer_Contact_Constraint1" msdata:ConstraintName="Constraint1" msdata:PrimaryKey="true">
+      <xs:selector xpath=".//Customer_Contact" />
+      <xs:field xpath="Sid_Customer_Contact" />
+    </xs:unique>
+    <xs:unique name="Customer_Contact_PhoneNumber_Constraint1" msdata:ConstraintName="Constraint1" msdata:PrimaryKey="true">
+      <xs:selector xpath=".//Customer_Contact_PhoneNumber" />
+      <xs:field xpath="Sid_Customer_Contact_PhoneNumber" />
+    </xs:unique>
+    <xs:unique name="Customer_Contact_Address_Address_Constraint1" msdata:ConstraintName="Constraint1" msdata:PrimaryKey="true">
+      <xs:selector xpath=".//Customer_Contact_Address_Address" />
+      <xs:field xpath="Sid_Customer_Contact_Address_Address" />
+    </xs:unique>
+    <xs:unique name="Customer_Terms_PaymentTerms_Constraint1" msdata:ConstraintName="Constraint1" msdata:PrimaryKey="true">
+      <xs:selector xpath=".//Customer_Terms_PaymentTerms" />
+      <xs:field xpath="Sid_Customer_Terms_PaymentTerms" />
+    </xs:unique>
+    <xs:keyref name="FK_Sid_Customer_Terms_PaymentTerms_Sid_Customer_Terms" refer="Constraint1">
+      <xs:selector xpath=".//Customer_Terms_PaymentTerms" />
+      <xs:field xpath="Sid_Customer_Terms" />
+    </xs:keyref>
+    <xs:keyref name="FK_Sid_Customer_Contact_Address_Address_Sid_Customer_Contact_Address" refer="Customer_Contact_Constraint1">
+      <xs:selector xpath=".//Customer_Contact_Address_Address" />
+      <xs:field xpath="Sid_Customer_Contact_Address" />
+    </xs:keyref>
+    <xs:keyref name="FK_Sid_Customer_Contact_PhoneNumber_Sid_Customer_Contact" refer="Customer_Contact_Constraint1">
+      <xs:selector xpath=".//Customer_Contact_PhoneNumber" />
+      <xs:field xpath="Sid_Customer_Contact" />
+    </xs:keyref>
+    <xs:keyref name="FK_Sid_Customer_Contact_Sid_Customer" refer="Constraint1">
+      <xs:selector xpath=".//Customer_Contact" />
+      <xs:field xpath="Sid_Customer" />
+    </xs:keyref>
+    <xs:keyref name="FK_Sid_Customer_ShipToContact_Contact_Address_Address_Sid_Customer_ShipToContact_Contact_Address" refer="Customer_ShipToContact_Contact_Constraint1">
+      <xs:selector xpath=".//Customer_ShipToContact_Contact_Address_Address" />
+      <xs:field xpath="Sid_Customer_ShipToContact_Contact_Address" />
+    </xs:keyref>
+    <xs:keyref name="FK_Sid_Customer_ShipToContact_Contact_PhoneNumber_Sid_Customer_ShipToContact_Contact" refer="Customer_ShipToContact_Contact_Constraint1">
+      <xs:selector xpath=".//Customer_ShipToContact_Contact_PhoneNumber" />
+      <xs:field xpath="Sid_Customer_ShipToContact_Contact" />
+    </xs:keyref>
+    <xs:keyref name="FK_Sid_Customer_ShipToContact_Contact_Sid_Customer_ShipToContact" refer="Constraint1">
+      <xs:selector xpath=".//Customer_ShipToContact_Contact" />
+      <xs:field xpath="Sid_Customer_ShipToContact" />
+    </xs:keyref>
+    <xs:keyref name="FK_Sid_Customer_BillToContact_Contact_Address_Address_Sid_Customer_BillToContact_Contact_Address" refer="Customer_BillToContact_Contact_Constraint1">
+      <xs:selector xpath=".//Customer_BillToContact_Contact_Address_Address" />
+      <xs:field xpath="Sid_Customer_BillToContact_Contact_Address" />
+    </xs:keyref>
+    <xs:keyref name="FK_Sid_Customer_BillToContact_Contact_PhoneNumber_Sid_Customer_BillToContact_Contact" refer="Customer_BillToContact_Contact_Constraint1">
+      <xs:selector xpath=".//Customer_BillToContact_Contact_PhoneNumber" />
+      <xs:field xpath="Sid_Customer_BillToContact_Contact" />
+    </xs:keyref>
+    <xs:keyref name="FK_Sid_Customer_BillToContact_Contact_Sid_Customer_BillToContact" refer="Constraint1">
+      <xs:selector xpath=".//Customer_BillToContact_Contact" />
+      <xs:field xpath="Sid_Customer_BillToContact" />
+    </xs:keyref>
+    <xs:keyref name="FK_Sid_Customer_CustomFieldValue_Sid_Customer" refer="Constraint1">
+      <xs:selector xpath=".//Customer_CustomFieldValue" />
+      <xs:field xpath="Sid_Customer" />
+    </xs:keyref>
+    <xs:keyref name="FK_Sid_Customer_PhoneNumber_Sid_Customer" refer="Constraint1">
+      <xs:selector xpath=".//Customer_PhoneNumber" />
+      <xs:field xpath="Sid_Customer" />
+    </xs:keyref>
+  </xs:element>
+</xs:schema>

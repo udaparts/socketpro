@@ -1,0 +1,5 @@
+1. Set default automerge to false
+2. Improve automerge to avoid merging on different sessions
+3. Use ip command instead of ifconfig on Linux
+4. Oracle, DB2, and Postgres push
+5. Ensure cancelling messages by time with consideration of message transaction (StartJob/Endjob)

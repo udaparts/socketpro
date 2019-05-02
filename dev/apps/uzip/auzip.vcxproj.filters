@@ -1,0 +1,96 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="header files">
+      <UniqueIdentifier>{7991b90c-2a3a-487c-ae15-13baa5c9b5c9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source files">
+      <UniqueIdentifier>{954e1eae-3b8e-476b-86de-60d1a3f27a89}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="compress.c">
+      <Filter>source files</Filter>
+    </ClCompile>
+    <ClCompile Include="crc32.c">
+      <Filter>source files</Filter>
+    </ClCompile>
+    <ClCompile Include="deflate.c">
+      <Filter>source files</Filter>
+    </ClCompile>
+    <ClCompile Include="getsysid.cpp">
+      <Filter>source files</Filter>
+    </ClCompile>
+    <ClCompile Include="infback.c">
+      <Filter>source files</Filter>
+    </ClCompile>
+    <ClCompile Include="inffast.c">
+      <Filter>source files</Filter>
+    </ClCompile>
+    <ClCompile Include="inflate.c">
+      <Filter>source files</Filter>
+    </ClCompile>
+    <ClCompile Include="inftrees.c">
+      <Filter>source files</Filter>
+    </ClCompile>
+    <ClCompile Include="mqfile.cpp">
+      <Filter>source files</Filter>
+    </ClCompile>
+    <ClCompile Include="trees.c">
+      <Filter>source files</Filter>
+    </ClCompile>
+    <ClCompile Include="uncompr.c">
+      <Filter>source files</Filter>
+    </ClCompile>
+    <ClCompile Include="uzip.cpp">
+      <Filter>source files</Filter>
+    </ClCompile>
+    <ClCompile Include="zutil.c">
+      <Filter>source files</Filter>
+    </ClCompile>
+    <ClCompile Include="aes.c">
+      <Filter>source files</Filter>
+    </ClCompile>
+    <ClCompile Include="blowfish.cpp">
+      <Filter>source files</Filter>
+    </ClCompile>
+    <ClCompile Include="adler32.c">
+      <Filter>source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\include\membuffer.cpp">
+      <Filter>source files</Filter>
+    </ClCompile>
+    <ClCompile Include="sha1.cpp">
+      <Filter>source files</Filter>
+    </ClCompile>
+    <ClCompile Include="lz4.c">
+      <Filter>source files</Filter>
+    </ClCompile>
+    <ClCompile Include="base64.cpp">
+      <Filter>source files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="pch.h">
+      <Filter>header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\pinc\base64.h">
+      <Filter>header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\pinc\getsysid.h">
+      <Filter>header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\pinc\mqfile.h">
+      <Filter>header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\pinc\sha1.h">
+      <Filter>header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\pinc\uzip.h">
+      <Filter>header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\pinc\blowfish.h">
+      <Filter>header files</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

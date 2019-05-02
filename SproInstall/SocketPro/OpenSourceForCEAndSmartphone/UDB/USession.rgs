@@ -1,0 +1,26 @@
+HKCR
+{
+	UDB.USession.1 = s 'USession Class'
+	{
+		CLSID = s '{A1FE27D7-FD8B-4029-AEB7-DFBC0321D9D0}'
+	}
+	UDB.USession = s 'USession Class'
+	{
+		CLSID = s '{A1FE27D7-FD8B-4029-AEB7-DFBC0321D9D0}'
+		CurVer = s 'UDB.USession.1'
+	}
+	NoRemove CLSID
+	{
+		ForceRemove {A1FE27D7-FD8B-4029-AEB7-DFBC0321D9D0} = s 'USession Class'
+		{
+			ProgID = s 'UDB.USession.1'
+			VersionIndependentProgID = s 'UDB.USession'
+			ForceRemove 'Programmable'
+			InprocServer32 = s '%MODULE%'
+			{
+				val ThreadingModel = s 'Both'
+			}
+			'TypeLib' = s '{E9BAD4DA-6268-4E53-BFAE-2F06B248E945}'
+		}
+	}
+}

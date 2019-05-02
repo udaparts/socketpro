@@ -1,0 +1,129 @@
+<html xmlns:o="urn:schemas-microsoft-com:office:office"
+xmlns:w="urn:schemas-microsoft-com:office:word"
+xmlns="http://www.w3.org/TR/REC-html40">
+
+<head>
+<meta http-equiv=Content-Type content="text/html; charset=windows-1252">
+<meta name=ProgId content=Word.Document>
+<meta name=Generator content="Microsoft Word 9">
+<meta name=Originator content="Microsoft Word 9">
+<link rel=File-List href="./Shutdown_files/filelist.xml">
+<title>Shutdown</title>
+<!--[if gte mso 9]><xml>
+ <o:DocumentProperties>
+  <o:Author>Yahoo</o:Author>
+  <o:Template>Normal</o:Template>
+  <o:LastAuthor>Yuancai (Charlie) Ye</o:LastAuthor>
+  <o:Revision>4</o:Revision>
+  <o:TotalTime>22</o:TotalTime>
+  <o:Created>2006-09-04T00:56:00Z</o:Created>
+  <o:LastSaved>2006-11-01T00:48:00Z</o:LastSaved>
+  <o:Pages>1</o:Pages>
+  <o:Words>108</o:Words>
+  <o:Characters>620</o:Characters>
+  <o:Company>Yahoo</o:Company>
+  <o:Lines>5</o:Lines>
+  <o:Paragraphs>1</o:Paragraphs>
+  <o:CharactersWithSpaces>761</o:CharactersWithSpaces>
+  <o:Version>9.2720</o:Version>
+ </o:DocumentProperties>
+</xml><![endif]--><!--[if gte mso 9]><xml>
+ <w:WordDocument>
+  <w:PunctuationKerning/>
+ </w:WordDocument>
+</xml><![endif]-->
+<style>
+<!--
+ /* Style Definitions */
+p.MsoNormal, li.MsoNormal, div.MsoNormal
+	{mso-style-parent:"";
+	margin:0in;
+	margin-bottom:.0001pt;
+	mso-pagination:widow-orphan;
+	font-size:10.0pt;
+	font-family:"Times New Roman";
+	mso-fareast-font-family:"Times New Roman";}
+a:link, span.MsoHyperlink
+	{color:blue;
+	text-decoration:underline;
+	text-underline:single;}
+a:visited, span.MsoHyperlinkFollowed
+	{color:purple;
+	text-decoration:underline;
+	text-underline:single;}
+@page Section1
+	{size:8.5in 11.0in;
+	margin:1.0in 1.25in 1.0in 1.25in;
+	mso-header-margin:.5in;
+	mso-footer-margin:.5in;
+	mso-paper-source:0;}
+div.Section1
+	{page:Section1;}
+-->
+</style>
+</head>
+
+<body lang=EN-US link=blue vlink=purple style='tab-interval:.5in'>
+
+<div class=Section1>
+
+<p class=MsoNormal><b><span style='font-size:12.0pt;mso-bidi-font-size:10.0pt'>[<span
+style='color:blue'>id</span>(3), <span style='color:blue'>helpstring</span>(<span
+style='color:maroon'>&quot;method Shutdown&quot;</span>)] HRESULT Shutdown([<span
+style='color:blue'>in</span>, <span style='color:blue'>defaultvalue</span>(hsSend)]<span
+style='color:blue'>long</span> lHow);</span></b><b><span style='font-size:12.0pt'><o:p></o:p></span></b></p>
+
+<p class=MsoNormal><span style='font-size:12.0pt'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal><b style='mso-bidi-font-weight:normal'><span
+style='font-size:12.0pt'>Parameter<o:p></o:p></span></b></p>
+
+<p class=MsoNormal><span style='font-size:12.0pt'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal><i style='mso-bidi-font-style:normal'><span
+style='font-size:12.0pt'>lHow<o:p></o:p></span></i></p>
+
+<p class=MsoNormal><span style='font-size:12.0pt'><span style='mso-tab-count:
+1'>            </span>[in]</span><span style='font-size:12.0pt;mso-bidi-font-size:
+10.0pt'> A flag (</span><span style='font-size:12.0pt'>hsSend, hsReceive or
+hsBoth</span><span style='font-size:12.0pt;mso-bidi-font-size:10.0pt'> ) that
+describes what types of operation will no longer be allowed. </span><span
+style='font-size:12.0pt'><o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='font-size:12.0pt'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal><b style='mso-bidi-font-weight:normal'><span
+style='font-size:12.0pt'>Remarks<o:p></o:p></span></b></p>
+
+<p class=MsoNormal><span style='font-size:12.0pt'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='font-size:12.0pt'><span style='mso-tab-count:
+1'>            </span>Calling the function </span><span style='font-size:12.0pt;
+mso-bidi-font-size:10.0pt'>disables sending or receiving data on a socket.
+Also, its SocketPro server will be notified that a client is about to close a
+connection. SocketPro server will close the socket connection. At the end, the
+client gets the event of <a href="OnSocketClosed.htm">OnSocketClosed</a>
+because its server closes the socket connection. <o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='font-size:12.0pt;mso-bidi-font-size:10.0pt'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal style='text-indent:.5in'><span style='font-size:12.0pt;
+mso-bidi-font-size:10.0pt'>The function gracefully closes a socket connection.<o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='font-size:12.0pt;mso-bidi-font-size:10.0pt'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='font-size:12.0pt;mso-bidi-font-size:10.0pt'><span
+style='mso-tab-count:1'>            </span>Refer to the function <a
+href="Disconnect.htm">Disconnect</a>.<o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='font-size:12.0pt;mso-bidi-font-size:10.0pt'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal><b><span style='font-size:12.0pt;mso-bidi-font-size:10.0pt'><a
+href="usocketlib.htm">USocket library</a></span></b><span style='font-size:
+12.0pt'><o:p></o:p></span></p>
+
+</div>
+
+</body>
+
+</html>

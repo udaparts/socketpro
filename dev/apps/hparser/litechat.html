@@ -1,0 +1,173 @@
+<!DOCTYPE HTML>
+<html lang="ja">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <title>Web socket client sample</title>
+    </head>
+    <body>
+    	<style type="text/css">
+    	*{
+			font-size: 11pt;
+		}
+
+		#content {
+			width: 450px;
+			margin-left: auto;
+			margin-right: auto;
+			border: 2px solid blue;
+			border-radius: 5px;
+			padding: 10px;
+		}
+
+		#board {
+			border: 3px solid gray;
+			color: white;
+			background: black;
+			border-radius: 10px;
+			padding: 10px;
+			width: 420px;
+			height: 150px;
+			overflow: auto;
+		}
+
+		label {
+			font-size: 9pt;
+			color: #990000;
+		}
+
+		.messbody {
+			font-size: 10pt;
+			border-bottom: pink 1px solid;
+		}
+    	</style>
+    	<div id="content">
+	        <h1>Web socket client sample</h1>
+	        <label>Resource:</label>
+			<input type="text" size="13" name="resource" value="pub/litechat/do">&nbsp;
+			<input type="button" name="connect" value="connect">&nbsp;
+			<input type="button" name="disconnect" value="disconnect" disabled><br />
+			<label>Message:</label>
+			<input type="text" size="25" name="message" value="hello" disabled>&nbsp;
+			<input type="button" name="send" value="send" disabled>
+			<p></p>
+			<div id="board"></div>
+    	</div>
+    	<script type="text/javascript">
+		var MyWebSocket = {
+			ws : null,
+			timer : null,
+			init: function(){
+				var that = this;
+				document.getElementsByName('connect')[0].addEventListener('click', function(e){
+					var resource = document.getElementsByName('resource')[0].value;
+			
+					if(resource == '') {
+						alert('"Resource" not specified...');
+						return;
+					}
+			
+					that.connect(resource);
+				}, false);
+				document.getElementsByName('disconnect')[0].addEventListener('click', function(e){
+					that.close();
+				}, false);
+			},
+	
+			connect : function(resource) {
+				if(this.ws)
+					this.ws.close();
+				
+				this.ws = new WebSocket("ws://"+location.host+"/"+resource);
+
+				var that = this;
+		
+				this.ws.onopen = function(e) {
+					document.getElementById('board').innerHTML = '<b>connect succeed : '+resource+'</b><br/>';
+					document.getElementsByName('send')[0].disabled = false;
+					document.getElementsByName('message')[0].disabled = false;
+					document.getElementsByName('disconnect')[0].disabled = false;
+					document.getElementsByName('connect')[0].disabled = true;
+					document.getElementsByName('resource')[0].disabled = true;
+				}
+		
+				this.ws.onmessage = function(e) {
+					var nd = document.createElement('div');
+					nd.setAttribute('class', 'messbody');
+					nd.innerHTML = e.origin + decodeURIComponent(e.data);
+					document.getElementById('board').insertBefore(nd, document.getElementById('board').firstChild);
+				};
+				this.ws.onclose = function(e) {
+					if(that.timer) {
+						clearInterval(that.timer);
+						that.timer = null;
+					}
+					var nd = document.createElement('div');
+					nd.innerHTML = 'closed';
+					document.getElementById('board').insertBefore(nd, document.getElementById('board').firstChild);
+					document.getElementsByName('send')[0].disabled = true;
+					document.getElementsByName('message')[0].disabled = true;
+					document.getElementsByName('connect')[0].disabled = false;
+					document.getElementsByName('disconnect')[0].disabled = true;
+					document.getElementsByName('resource')[0].disabled = false;
+				};
+				
+				this.timer = setInterval(function(){
+					that.ws.send('Heartbeat');
+				}, 60000);
+
+			},
+	
+			send: function(message){
+				if(!this.ws) return;
+				
+				if(typeof(message) == 'undefined' || message =='') {
+					alert('not found Message...');
+					return;
+				}
+		
+				// this.ws.send(encodeURIComponent(message));
+				this.ws.send(message);
+				///////////////////////////////////////////////////
+				// 2010/01/08 prevent encodeURLComponent
+				// since websocket is designed to communicate
+				// with utf-8.
+				// text-frame = (%x00) *( UTF8-char ) %xFF
+				//  
+				// http://tools.ietf.org/html/
+				//             draft-hixie-thewebsocketprotocol-68#page-6
+				//
+				// URLencode encodes UTF8-char to ascii character.
+				// for example, 'あ' is encoded to '%E3%81%82'.
+				// in this case, these encoded string consume 9 byetes.
+				// however, 'あ' is 3 bytes in native utf-8 (%xe3%x81%x82).
+				// therefore, sending messages in utf-8 ( don't use
+				// encodeURIComponent ) may be reasonable to keep
+				// network traffic lower and make shortage of messaging
+				// delay.
+				///////////////////////////////////////////////////
+				document.getElementsByName('message')[0].value = '';
+			},
+			
+			close : function() {
+				if(this.ws) {
+					this.ws.close();
+				}
+			}
+		};
+
+		window.addEventListener('load', function(e){
+			MyWebSocket.init();
+		}, false);
+
+		document.getElementsByName('send')[0].addEventListener('click', function(e){
+			message = document.getElementsByName('message')[0].value;
+			MyWebSocket.send(message);
+		}, false);
+		
+		window.addEventListener('unload', function(e) {
+			MyWebSocket.close();
+		}, false);
+		</script>
+    </body>
+</html>
+

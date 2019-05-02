@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>10.0.0</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{A2CE0FED-0271-4D03-AA57-684B87E081C8}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>clienttest</RootNamespace>
+    <AssemblyName>clienttest</AssemblyName>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug</OutputPath>
+    <DefineConstants>DEBUG;MONO</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Externalconsole>true</Externalconsole>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>none</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Release</OutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Externalconsole>true</Externalconsole>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DefineConstants>MONO</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.ServiceModel" />
+    <Reference Include="System.Data" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="AssemblyInfo.cs" />
+    <Compile Include="..\..\SPANetTest\Program.cs">
+      <Link>Program.cs</Link>
+    </Compile>
+    <Compile Include="..\..\SPANetTest\TEchoB.cs">
+      <Link>TEchoB.cs</Link>
+    </Compile>
+    <Compile Include="..\..\SPANetTest\TEchoC.cs">
+      <Link>TEchoC.cs</Link>
+    </Compile>
+    <Compile Include="..\..\SPANetTest\TEchoD.cs">
+      <Link>TEchoD.cs</Link>
+    </Compile>
+    <Compile Include="..\..\netshares\helloworld_i.cs">
+      <Link>helloworld_i.cs</Link>
+    </Compile>
+    <Compile Include="..\..\netshares\TEchoB_i.cs">
+      <Link>TEchoB_i.cs</Link>
+    </Compile>
+    <Compile Include="..\..\netshares\TEchoC_i.cs">
+      <Link>TEchoC_i.cs</Link>
+    </Compile>
+    <Compile Include="..\..\netshares\TEchoD_i.cs">
+      <Link>TEchoD_i.cs</Link>
+    </Compile>
+    <Compile Include="..\..\netshares\testpeer_i.cs">
+      <Link>testpeer_i.cs</Link>
+    </Compile>
+    <Compile Include="..\..\SPANetTest\hwhandler.cs">
+      <Link>hwhandler.cs</Link>
+    </Compile>
+    <Compile Include="..\..\SPANetTest\mysvshandler.cs">
+      <Link>mysvshandler.cs</Link>
+    </Compile>
+    <Compile Include="..\..\SPANetTest\cperfstudy.cs">
+      <Link>cperfstudy.cs</Link>
+    </Compile>
+    <Compile Include="..\..\SPANetTest\wcfrem.cs">
+      <Link>wcfrem.cs</Link>
+    </Compile>
+    <Compile Include="..\..\netshares\perfstudy_i.cs">
+      <Link>perfstudy_i.cs</Link>
+    </Compile>
+    <Compile Include="..\..\netshares\TOne_i.cs">
+      <Link>TOne_i.cs</Link>
+    </Compile>
+    <Compile Include="..\..\SPANetTest\TOne.cs">
+      <Link>TOne.cs</Link>
+    </Compile>
+    <Compile Include="..\..\netshares\RAdo_i.cs">
+      <Link>RAdo_i.cs</Link>
+    </Compile>
+    <Compile Include="..\..\SPANetTest\RAdo.cs">
+      <Link>RAdo.cs</Link>
+    </Compile>
+    <Compile Include="..\..\SPANetTest\SQueue.cs">
+      <Link>SQueue.cs</Link>
+    </Compile>
+    <Compile Include="..\..\netshares\SQueue_i.cs">
+      <Link>SQueue_i.cs</Link>
+    </Compile>
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <ItemGroup>
+    <ProjectReference Include="..\spanix\spanix.csproj">
+      <Project>{E98C6E1C-BB90-40EC-A7FC-87C4E68683F6}</Project>
+      <Name>spanix</Name>
+    </ProjectReference>
+  </ItemGroup>
+</Project>

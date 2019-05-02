@@ -1,0 +1,298 @@
+<html xmlns:o="urn:schemas-microsoft-com:office:office"
+xmlns:w="urn:schemas-microsoft-com:office:word"
+xmlns="http://www.w3.org/TR/REC-html40">
+
+<head>
+<meta http-equiv=Content-Type content="text/html; charset=windows-1252">
+<meta name=ProgId content=Word.Document>
+<meta name=Generator content="Microsoft Word 9">
+<meta name=Originator content="Microsoft Word 9">
+<link rel=File-List href="./CSocketPool_files/filelist.xml">
+<title>CSocketPool</title>
+<!--[if gte mso 9]><xml>
+ <o:DocumentProperties>
+  <o:Author>Yuancai (Charlie) Ye</o:Author>
+  <o:Template>Normal</o:Template>
+  <o:LastAuthor>Yuancai (Charlie) Ye</o:LastAuthor>
+  <o:Revision>10</o:Revision>
+  <o:TotalTime>143</o:TotalTime>
+  <o:Created>2006-09-23T21:25:00Z</o:Created>
+  <o:LastSaved>2006-09-24T02:11:00Z</o:LastSaved>
+  <o:Pages>1</o:Pages>
+  <o:Words>137</o:Words>
+  <o:Characters>785</o:Characters>
+  <o:Company>Intelligent Decision Technologies</o:Company>
+  <o:Lines>6</o:Lines>
+  <o:Paragraphs>1</o:Paragraphs>
+  <o:CharactersWithSpaces>964</o:CharactersWithSpaces>
+  <o:Version>9.2720</o:Version>
+ </o:DocumentProperties>
+</xml><![endif]-->
+<style>
+<!--
+ /* Font Definitions */
+@font-face
+	{font-family:Tahoma;
+	panose-1:2 11 6 4 3 5 4 4 2 4;
+	mso-font-charset:0;
+	mso-generic-font-family:swiss;
+	mso-font-pitch:variable;
+	mso-font-signature:1627421319 -2147483648 8 0 66047 0;}
+ /* Style Definitions */
+p.MsoNormal, li.MsoNormal, div.MsoNormal
+	{mso-style-parent:"";
+	margin:0in;
+	margin-bottom:.0001pt;
+	mso-pagination:widow-orphan;
+	font-size:12.0pt;
+	font-family:"Times New Roman";
+	mso-fareast-font-family:"Times New Roman";}
+h1
+	{mso-style-next:Normal;
+	margin:0in;
+	margin-bottom:.0001pt;
+	mso-pagination:widow-orphan;
+	page-break-after:avoid;
+	mso-outline-level:1;
+	font-size:12.0pt;
+	font-family:"Times New Roman";
+	mso-font-kerning:0pt;}
+h2
+	{mso-style-next:Normal;
+	margin:0in;
+	margin-bottom:.0001pt;
+	mso-pagination:widow-orphan;
+	page-break-after:avoid;
+	mso-outline-level:2;
+	mso-layout-grid-align:none;
+	text-autospace:none;
+	font-size:9.0pt;
+	font-family:Tahoma;
+	color:#215DC6;
+	text-decoration:underline;
+	text-underline:single;}
+h3
+	{mso-style-next:Normal;
+	margin:0in;
+	margin-bottom:.0001pt;
+	mso-pagination:widow-orphan;
+	page-break-after:avoid;
+	mso-outline-level:3;
+	mso-layout-grid-align:none;
+	text-autospace:none;
+	font-size:12.0pt;
+	mso-bidi-font-size:9.0pt;
+	font-family:"Times New Roman";
+	color:black;}
+a:link, span.MsoHyperlink
+	{color:blue;
+	text-decoration:underline;
+	text-underline:single;}
+a:visited, span.MsoHyperlinkFollowed
+	{color:purple;
+	text-decoration:underline;
+	text-underline:single;}
+@page Section1
+	{size:8.5in 11.0in;
+	margin:1.0in 1.25in 1.0in 1.25in;
+	mso-header-margin:.5in;
+	mso-footer-margin:.5in;
+	mso-paper-source:0;}
+div.Section1
+	{page:Section1;}
+ /* List Definitions */
+@list l0
+	{mso-list-id:771516845;
+	mso-list-type:hybrid;
+	mso-list-template-ids:-834656176 67698689 67698691 67698693 67698689 67698691 67698693 67698689 67698691 67698693;}
+@list l0:level1
+	{mso-level-number-format:bullet;
+	mso-level-text:\F0B7;
+	mso-level-tab-stop:.5in;
+	mso-level-number-position:left;
+	text-indent:-.25in;
+	font-family:Symbol;}
+@list l1
+	{mso-list-id:1548294452;
+	mso-list-type:hybrid;
+	mso-list-template-ids:543720884 67698689 67698691 67698693 67698689 67698691 67698693 67698689 67698691 67698693;}
+@list l1:level1
+	{mso-level-number-format:bullet;
+	mso-level-text:\F0B7;
+	mso-level-tab-stop:.25in;
+	mso-level-number-position:left;
+	margin-left:.25in;
+	text-indent:-.25in;
+	font-family:Symbol;}
+ol
+	{margin-bottom:0in;}
+ul
+	{margin-bottom:0in;}
+-->
+</style>
+</head>
+
+<body lang=EN-US link=blue vlink=purple style='tab-interval:.5in'>
+
+<div class=Section1>
+
+<p class=MsoNormal><b><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+class</span></b><b><span style='mso-bidi-font-size:9.0pt;color:black'>
+CSocketPool&lt;THandler&gt;<o:p></o:p></span></b></p>
+
+<p class=MsoNormal><b><span style='mso-bidi-font-size:9.0pt;color:black'><span
+style='mso-tab-count:1'>            </span></span></b><b><span
+style='mso-bidi-font-size:9.0pt;color:blue'>where</span></b><b><span
+style='mso-bidi-font-size:9.0pt;color:black'> Thandler : </span></b><b><span
+style='mso-bidi-font-size:9.0pt;color:blue'>new</span></b><b><span
+style='mso-bidi-font-size:9.0pt;color:black'>(),<o:p></o:p></span></b></p>
+
+<p class=MsoNormal><b><span style='mso-bidi-font-size:9.0pt;color:black'><span
+style='mso-tab-count:1'>            </span></span></b><b><span
+style='mso-bidi-font-size:9.0pt;color:blue'><a href="SocketProAdapter.htm">SocketProAdapter</a>.ClientSide.<a
+href="CRequestAsynHandlerBase.htm">CRequestAsynHandlerBase</a></span><span
+style='color:blue'><o:p></o:p></span></b></p>
+
+<p class=MsoNormal><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></p>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='mso-bidi-font-size:9.0pt;color:black'><span style='mso-tab-count:1'>            </span>This
+generic class (or template in C++) wraps COM object USocketPool inside
+usocket.dll. Similar to thread pool, this COM object is used to automatically manage
+a few threads and a pool of <a href="CClientSocket.htm">client sockets</a> and
+their attached <a href="CRequestAsynHandlerBase.htm">asynchronous request
+handlers</a>. Each of threads in a pool can host a few sockets. All of pooled
+sockets and their <a href="CRequestAsynHandlerBase.htm">asynchronous request
+handlers</a> can run in parallel. <o:p></o:p></span></p>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='mso-bidi-font-size:9.0pt;color:black'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='mso-bidi-font-size:9.0pt;color:black'><span style='mso-tab-count:1'>            </span>This
+COM object is created for simplification of middle tier and web application
+developments because the functions <a href="CSocketPool\Lock.htm">Lock</a> and <a
+href="CSocketPool\Unlock.htm">Unlock</a> considerably reduce the complexity of
+managing a pool of threads and synchronizing shared <a
+href="CRequestAsynHandlerBase.htm">asynchronous request handlers</a> and <a
+href="CClientSocket.htm">client sockets</a>.<o:p></o:p></span></p>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='mso-bidi-font-size:9.0pt;color:black'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='mso-bidi-font-size:9.0pt;color:black'><span style='mso-tab-count:1'>            </span>Once
+a pool of sockets is connected to a remote SocketPro server, all of other objects
+on both client and server sides are pooled. This way benefits the whole system
+performance and scalability because the whole system does not have to create
+and destroy various objects as well as do socket connections repeatedly. It
+also reduces allocated resources because all of pooled sockets and handlers are
+sharable by many clients.<o:p></o:p></span></p>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='mso-bidi-font-size:9.0pt;color:black'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<h3>Constructor</h3>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='mso-bidi-font-size:9.0pt;color:black'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal style='text-indent:.5in;mso-layout-grid-align:none;
+text-autospace:none'><span style='mso-bidi-font-size:9.0pt;color:blue'>public </span><span
+style='mso-bidi-font-size:9.0pt;color:black'><a
+href="CSocketPool\CSocketPool.htm">CSocketPool</a><o:p></o:p></span></p>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='mso-bidi-font-size:9.0pt;color:black'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<h3>Methods</h3>
+
+<p class=MsoNormal><b><span style='mso-bidi-font-size:9.0pt;color:blue'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></b></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l1 level1 lfo2;
+tab-stops:list .25in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+sealed override void</span><span style='mso-bidi-font-size:9.0pt;color:black'>
+Dispose</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l1 level1 lfo2;
+tab-stops:list .25in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+USOCKETLib.USocketPoolClass</span><span style='mso-bidi-font-size:9.0pt;
+color:black'> <a href="CSocketPool\GetUSocketPool.htm">GetUSocketPool</a> – Get
+an reference to a COM UScketPool object</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l1 level1 lfo2;
+tab-stops:list .25in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+bool</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CSocketPool\IsCompleted.htm">IsCompleted</a> – Check if all of requests
+are processed and returned</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l1 level1 lfo2;
+tab-stops:list .25in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+bool</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CSocketPool\IsStarted.htm">IsStarted</a> – Check if a socket pool is
+started</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l1 level1 lfo2;
+tab-stops:list .25in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public</span><span
+style='mso-bidi-font-size:9.0pt;color:black'> THandler <a
+href="CSocketPool\Lock.htm">Lock</a> – Lock a COM USocket object and its
+associated asynchronous request handler </span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l1 level1 lfo2;
+tab-stops:list .25in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+void</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CSocketPool\ShutdownPool.htm">ShutdownPool</a> – Shut down a socket pool</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l1 level1 lfo2;
+tab-stops:list .25in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+bool</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CSocketPool\StartSocketPool.htm">StartSocketPool</a> – Start a socket
+pool</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l1 level1 lfo2;
+tab-stops:list .25in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+void</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CSocketPool\Unlock.htm">Unlock</a> – Unlock a previously locked COM
+USocket object and its associated asynchronous request handler</span></p>
+
+<h1><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></h1>
+
+<h1>Property</h1>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='mso-bidi-font-size:9.0pt;color:black'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l0 level1 lfo4;
+tab-stops:list .25in .5in'><![if !supportLists]><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bidi-font-size:9.0pt;color:blue'>public
+int</span><span style='mso-bidi-font-size:9.0pt;color:black'> <a
+href="CSocketPool\m_hr.htm">m_hr</a> – COM error code</span></p>
+
+<p class=MsoNormal><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></p>
+
+<p class=MsoNormal><b><span style='mso-bidi-font-size:9.0pt;color:black'>Member
+of </span></b><b><span style='mso-bidi-font-size:9.0pt;color:blue'><a
+href="SocketProAdapter.htm">SocketProAdapter</a>.ClientSide</span><o:p></o:p></b></p>
+
+</div>
+
+</body>
+
+</html>

@@ -1,0 +1,38 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 9.00
+# Visual Studio 2005
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RealServer", "server\PPiServer.vcproj", "{82910B82-3C6D-4FCC-A6A0-1F4982EA7ECF}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "LoadBalancing", "loadingBalanceServer\PiLoadingBalance.vcproj", "{AEE368A6-4EE4-4DBF-8DC9-62EE501D8449}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MPIOnClientSide", "client\MPIOnClientSide\MPIOnClientSide.vcproj", "{88B56380-BE12-4F37-B466-5269C479187F}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ComputePiByLoadingBalance", "client\ComputePiByLoadingBalance\ComputePiByLoadingBalance.vcproj", "{8FAB833D-DA77-494F-8AFE-9FC855F58DAB}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{82910B82-3C6D-4FCC-A6A0-1F4982EA7ECF}.Debug|Win32.ActiveCfg = Debug|Win32
+		{82910B82-3C6D-4FCC-A6A0-1F4982EA7ECF}.Debug|Win32.Build.0 = Debug|Win32
+		{82910B82-3C6D-4FCC-A6A0-1F4982EA7ECF}.Release|Win32.ActiveCfg = Release|Win32
+		{82910B82-3C6D-4FCC-A6A0-1F4982EA7ECF}.Release|Win32.Build.0 = Release|Win32
+		{AEE368A6-4EE4-4DBF-8DC9-62EE501D8449}.Debug|Win32.ActiveCfg = Debug|Win32
+		{AEE368A6-4EE4-4DBF-8DC9-62EE501D8449}.Debug|Win32.Build.0 = Debug|Win32
+		{AEE368A6-4EE4-4DBF-8DC9-62EE501D8449}.Release|Win32.ActiveCfg = Release|Win32
+		{AEE368A6-4EE4-4DBF-8DC9-62EE501D8449}.Release|Win32.Build.0 = Release|Win32
+		{88B56380-BE12-4F37-B466-5269C479187F}.Debug|Win32.ActiveCfg = Debug|Win32
+		{88B56380-BE12-4F37-B466-5269C479187F}.Debug|Win32.Build.0 = Debug|Win32
+		{88B56380-BE12-4F37-B466-5269C479187F}.Release|Win32.ActiveCfg = Release|Win32
+		{88B56380-BE12-4F37-B466-5269C479187F}.Release|Win32.Build.0 = Release|Win32
+		{8FAB833D-DA77-494F-8AFE-9FC855F58DAB}.Debug|Win32.ActiveCfg = Debug|Win32
+		{8FAB833D-DA77-494F-8AFE-9FC855F58DAB}.Debug|Win32.Build.0 = Debug|Win32
+		{8FAB833D-DA77-494F-8AFE-9FC855F58DAB}.Release|Win32.ActiveCfg = Release|Win32
+		{8FAB833D-DA77-494F-8AFE-9FC855F58DAB}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

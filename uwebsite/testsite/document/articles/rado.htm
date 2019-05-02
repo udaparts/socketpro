@@ -1,0 +1,706 @@
+<html>
+
+<head>
+<meta http-equiv=Content-Type content="text/html; charset=windows-1252">
+<meta name=Generator content="Microsoft Word 12 (filtered)">
+<style>
+<!--
+ /* Font Definitions */
+ @font-face
+	{font-family:Wingdings;
+	panose-1:5 0 0 0 0 0 0 0 0 0;}
+@font-face
+	{font-family:"Cambria Math";
+	panose-1:2 4 5 3 5 4 6 3 2 4;}
+@font-face
+	{font-family:Calibri;
+	panose-1:2 15 5 2 2 2 4 3 2 4;}
+@font-face
+	{font-family:Tahoma;
+	panose-1:2 11 6 4 3 5 4 4 2 4;}
+ /* Style Definitions */
+ p.MsoNormal, li.MsoNormal, div.MsoNormal
+	{margin-top:0in;
+	margin-right:0in;
+	margin-bottom:8.0pt;
+	margin-left:0in;
+	line-height:107%;
+	font-size:11.0pt;
+	font-family:"Calibri","sans-serif";}
+p.MsoHeader, li.MsoHeader, div.MsoHeader
+	{mso-style-link:"Header Char";
+	margin:0in;
+	margin-bottom:.0001pt;
+	font-size:11.0pt;
+	font-family:"Calibri","sans-serif";}
+p.MsoFooter, li.MsoFooter, div.MsoFooter
+	{mso-style-link:"Footer Char";
+	margin:0in;
+	margin-bottom:.0001pt;
+	font-size:11.0pt;
+	font-family:"Calibri","sans-serif";}
+a:link, span.MsoHyperlink
+	{color:blue;
+	text-decoration:underline;}
+a:visited, span.MsoHyperlinkFollowed
+	{color:#954F72;
+	text-decoration:underline;}
+p.MsoAcetate, li.MsoAcetate, div.MsoAcetate
+	{mso-style-link:"Balloon Text Char";
+	margin:0in;
+	margin-bottom:.0001pt;
+	font-size:8.0pt;
+	font-family:"Tahoma","sans-serif";}
+p.MsoListParagraph, li.MsoListParagraph, div.MsoListParagraph
+	{margin-top:0in;
+	margin-right:0in;
+	margin-bottom:8.0pt;
+	margin-left:.5in;
+	line-height:107%;
+	font-size:11.0pt;
+	font-family:"Calibri","sans-serif";}
+p.MsoListParagraphCxSpFirst, li.MsoListParagraphCxSpFirst, div.MsoListParagraphCxSpFirst
+	{margin-top:0in;
+	margin-right:0in;
+	margin-bottom:0in;
+	margin-left:.5in;
+	margin-bottom:.0001pt;
+	line-height:107%;
+	font-size:11.0pt;
+	font-family:"Calibri","sans-serif";}
+p.MsoListParagraphCxSpMiddle, li.MsoListParagraphCxSpMiddle, div.MsoListParagraphCxSpMiddle
+	{margin-top:0in;
+	margin-right:0in;
+	margin-bottom:0in;
+	margin-left:.5in;
+	margin-bottom:.0001pt;
+	line-height:107%;
+	font-size:11.0pt;
+	font-family:"Calibri","sans-serif";}
+p.MsoListParagraphCxSpLast, li.MsoListParagraphCxSpLast, div.MsoListParagraphCxSpLast
+	{margin-top:0in;
+	margin-right:0in;
+	margin-bottom:8.0pt;
+	margin-left:.5in;
+	line-height:107%;
+	font-size:11.0pt;
+	font-family:"Calibri","sans-serif";}
+span.BalloonTextChar
+	{mso-style-name:"Balloon Text Char";
+	mso-style-link:"Balloon Text";
+	font-family:"Tahoma","sans-serif";}
+span.apple-converted-space
+	{mso-style-name:apple-converted-space;}
+span.HeaderChar
+	{mso-style-name:"Header Char";
+	mso-style-link:Header;}
+span.FooterChar
+	{mso-style-name:"Footer Char";
+	mso-style-link:Footer;}
+.MsoPapDefault
+	{margin-bottom:8.0pt;
+	line-height:107%;}
+ /* Page Definitions */
+ @page WordSection1
+	{size:11.0in 8.5in;
+	margin:1.0in 1.0in 1.0in 1.0in;}
+div.WordSection1
+	{page:WordSection1;}
+ /* List Definitions */
+ ol
+	{margin-bottom:0in;}
+ul
+	{margin-bottom:0in;}
+-->
+</style>
+
+</head>
+
+<body lang=EN-US link=blue vlink="#954F72">
+
+<div class=WordSection1>
+
+<p class=MsoNormal align=center style='text-align:center'><b><span
+style='font-size:14.0pt;line-height:107%;font-family:"Times New Roman","serif"'>Tutorial
+4 – Build Resilient, Responsive and Scalable Web Applications in a Few Hours</span></b></p>
+
+<p class=MsoNormal><span style='font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoNormal><b><span style='font-family:"Times New Roman","serif"'>Contents:</span></b></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt'><b><i><span
+style='font-family:"Times New Roman","serif"'>Introduction</span></i></b></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt'><b><i><span
+style='font-family:"Times New Roman","serif"'>SocketPro ways for resilient, responsive
+and scalable web applications</span></i></b></p>
+
+<p class=MsoListParagraphCxSpFirst style='margin-bottom:0in;margin-bottom:.0001pt;
+text-indent:-.25in'><span style='font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><i><span style='font-family:"Times New Roman","serif"'>Vertical
+scalability</span></i></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-top:0in;margin-right:0in;
+margin-bottom:0in;margin-left:1.0in;margin-bottom:.0001pt;text-indent:-.25in'><span
+style='font-family:"Courier New"'>o<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;
+</span></span><i><span style='font-family:"Times New Roman","serif"'>Asynchronous
+communication</span></i></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-top:0in;margin-right:0in;
+margin-bottom:0in;margin-left:1.0in;margin-bottom:.0001pt;text-indent:-.25in'><span
+style='font-family:"Courier New"'>o<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;
+</span></span><i><span style='font-family:"Times New Roman","serif"'>Requests
+batch</span></i></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-top:0in;margin-right:0in;
+margin-bottom:0in;margin-left:1.0in;margin-bottom:.0001pt;text-indent:-.25in'><span
+style='font-family:"Courier New"'>o<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;
+</span></span><i><span style='font-family:"Times New Roman","serif"'>Less
+thread context switches</span></i></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-top:0in;margin-right:0in;
+margin-bottom:0in;margin-left:1.0in;margin-bottom:.0001pt;text-indent:-.25in'><span
+style='font-family:"Courier New"'>o<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;
+</span></span><i><span style='font-family:"Times New Roman","serif"'>C/C++ core
+code</span></i></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt;text-indent:-.25in'><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><i><span style='font-family:"Times New Roman","serif"'>Horizontal
+scalability</span></i></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-top:0in;margin-right:0in;
+margin-bottom:0in;margin-left:1.0in;margin-bottom:.0001pt;text-indent:-.25in'><span
+style='font-family:"Courier New"'>o<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;
+</span></span><i><span style='font-family:"Times New Roman","serif"'>Client
+side socket pool</span></i></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-top:0in;margin-right:0in;
+margin-bottom:0in;margin-left:1.0in;margin-bottom:.0001pt;text-indent:-.25in'><span
+style='font-family:"Courier New"'>o<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;
+</span></span><i><span style='font-family:"Times New Roman","serif"'>Server
+Routing</span></i></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-top:0in;margin-right:0in;
+margin-bottom:0in;margin-left:1.0in;margin-bottom:.0001pt;text-indent:-.25in'><span
+style='font-family:"Courier New"'>o<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;
+</span></span><i><span style='font-family:"Times New Roman","serif"'>HTTP and
+websocket</span></i></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt;text-indent:-.25in'><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><i><span style='font-family:"Times New Roman","serif"'>Caching,
+collaboration and real-time update</span></i></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-top:0in;margin-right:0in;
+margin-bottom:0in;margin-left:1.0in;margin-bottom:.0001pt;text-indent:-.25in'><span
+style='font-family:"Courier New"'>o<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;
+</span></span><i><span style='font-family:"Times New Roman","serif"'>Notification</span></i></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-top:0in;margin-right:0in;
+margin-bottom:0in;margin-left:1.0in;margin-bottom:.0001pt;text-indent:-.25in'><span
+style='font-family:"Courier New"'>o<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;
+</span></span><i><span style='font-family:"Times New Roman","serif"'>Persistent
+message queue</span></i></p>
+
+<p class=MsoListParagraphCxSpLast style='margin-top:0in;margin-right:0in;
+margin-bottom:0in;margin-left:1.0in;margin-bottom:.0001pt;text-indent:-.25in'><span
+style='font-family:"Courier New"'>o<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;
+</span></span><i><span style='font-family:"Times New Roman","serif"'>Replication</span></i></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt'><b><i><span
+style='font-family:"Times New Roman","serif"'>Push any sizes of ADO.NET objects
+in chunk and streaming style from server to client</span></i></b></p>
+
+<p class=MsoListParagraphCxSpFirst style='margin-bottom:0in;margin-bottom:.0001pt;
+text-indent:-.25in'><span style='font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><i><span style='font-family:"Times New Roman","serif"'>DataReader</span></i></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt;text-indent:-.25in'><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><i><span style='font-family:"Times New Roman","serif"'>DataSet</span></i></p>
+
+<p class=MsoListParagraphCxSpLast style='margin-bottom:0in;margin-bottom:.0001pt;
+text-indent:-.25in'><span style='font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><i><span style='font-family:"Times New Roman","serif"'>DataTable</span></i></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt'><b><i><span
+style='font-family:"Times New Roman","serif"'>Retrieve ADO.NET objects from
+remote server synchronously and asynchronously</span></i></b></p>
+
+<p class=MsoListParagraphCxSpFirst style='margin-bottom:0in;margin-bottom:.0001pt;
+text-indent:-.25in'><span style='font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><i><span style='font-family:"Times New Roman","serif"'>A pool
+sockets pointing to different SocketPro servers</span></i></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt;text-indent:-.25in'><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><i><span style='font-family:"Times New Roman","serif"'>Sync</span></i></p>
+
+<p class=MsoListParagraphCxSpLast style='margin-bottom:0in;margin-bottom:.0001pt;
+text-indent:-.25in'><span style='font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><i><span style='font-family:"Times New Roman","serif"'>Async,
+parallel and wait</span></i></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in;line-height:normal;text-autospace:none'><span style='font-size:12.0pt;
+font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpFirst style='margin-bottom:0in;margin-bottom:.0001pt;
+text-indent:-.25in;line-height:normal;text-autospace:none'><b><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif"'>1.<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span></span></b><b><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif"'>Introduction</span></b></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt;line-height:normal;text-autospace:none'><span style='font-size:12.0pt;
+font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in;line-height:normal;text-autospace:none'><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif"'>As software developers
+we want our applications to be responsive and scalable to really engage users
+and make them pleased, but it's usually a challenge to write code that behaves
+like this. Responsiveness and scalability are essential quality-of-service
+attributes of Web applications. If your site sluggishly responds to user
+requests, your customers will not return and instead, will search for other
+company products instead. Scalability is equally significant when your site traffic
+becomes large. Bad responsiveness and scalability are rooted in one or more
+problems due to web browser side, web server front-tier, middle-tier, backend
+database tier and hard ware.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in;line-height:normal;text-autospace:none'><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif"'>SocketPro
+provides a number of unique ways to help solve these problems especially in web
+server front-tier and middle-tier as well as web browser side. If your web
+server or middle tier requires local data caching from backend databases,
+SocketPro also is extremely helpful because you can easily realize real-time
+update on data caching through pushing changes from database by use of
+triggers, stored procedures</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in;line-height:normal;text-autospace:none'><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif"'>The tutorial
+sample projects are located at the directory ..\tutorials\(csharp|vbnet|ce)\rado.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt;line-height:normal;text-autospace:none'><span style='font-size:12.0pt;
+font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt;text-indent:-.25in;line-height:normal;text-autospace:none'><b><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif"'>2.<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span></span></b><b><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif"'>SocketPro ways
+for resilient, responsive and scalable web applications</span></b></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt;line-height:normal;text-autospace:none'><span style='font-size:12.0pt;
+font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in;line-height:normal;text-autospace:none'><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif"'>Figure 1 below
+visually summarizes features from SocketPro to help you create your responsive
+and scalable web applications.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in;line-height:normal;text-autospace:none'><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt;line-height:normal;text-autospace:none'><span style='font-size:12.0pt;
+font-family:"Times New Roman","serif"'><img width=760 height=345
+src="rado_files/image001.jpg"></span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt;line-height:normal;text-autospace:none'><i><span style='font-size:12.0pt;
+font-family:"Times New Roman","serif"'>Figure 1: SocketPro ways for better
+responsiveness and scalability of any types of applications</span></i></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in;line-height:normal;text-autospace:none'><b><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif"'>&nbsp;</span></b></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in;line-height:normal;text-autospace:none'><b><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif"'>Vertical
+scalability:</span></b><span style='font-size:12.0pt;font-family:"Times New Roman","serif"'>
+SocketPro adapters are created for all supported development languages, but its
+two core components, usocket and uservercore libraries, are written with direct
+use of C/C++ and raw system socket APIs developed over many years of experience
+in non-blocking communication as many top quality software applications require.
+SocketPro does not have many dependency layers, which helps application
+performance.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in;line-height:normal;text-autospace:none'><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif"'>Furthermore,
+requests and returning results can be easily batched either manually or on
+internal algorithm as long as you use non-blocking communication. Request
+batching improves not only network efficiency but also processing speed at both
+client and server sides as shown in previous tutorials. Request batching works
+very efficiently especially on low-bandwidth and high-latency networks such as WIFI,
+DSL/Cable modems, satellite and remote communication.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in;line-height:normal;text-autospace:none'><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif"'>SocketPro always
+uses non-blocking communication, although SocketPro does support synchronous
+requests indirectly by use of method <i>WaitAll</i>. Non-bolocking
+communication enables client and server computations to happen concurrently,
+which is also beneficial to application performance if there are many requests
+queued.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in;line-height:normal;text-autospace:none'><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif"'>We measured
+thread-context switches with tools on window platforms. It is found that
+SocketPro requires much fewer thread context switches than MS WCF framework
+with a given number of requests.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in;line-height:normal;text-autospace:none'><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in;line-height:normal;text-autospace:none'><b><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif"'>Horizontal
+scalability:</span></b><span style='font-size:12.0pt;font-family:"Times New Roman","serif"'>
+SocketPro has a number of features to ascertain that you can easily make your application
+scalable horizontally.</span></p>
+
+<p class=MsoListParagraphCxSpLast style='margin-bottom:0in;margin-bottom:.0001pt;
+line-height:normal;text-autospace:none'><span style='font-size:12.0pt;
+font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in;line-height:normal;text-autospace:none'><span style='font-size:12.0pt;
+font-family:"Times New Roman","serif"'>As depicted in the previous three
+tutorial samples, SocketPro uses socket pool at client side to build a set of
+socket connections to the same or different servers. We are going to
+asynchronously retrieve ADO.NET objects in parallel on master-slave architecture
+as shown in Figure 2 below.</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in;line-height:normal;text-autospace:none'><span style='font-size:12.0pt;
+font-family:"Times New Roman","serif"'><img width=775 height=506
+src="rado_files/image002.jpg"></span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in;line-height:normal;text-autospace:none'><i><span style='font-size:12.0pt;
+font-family:"Times New Roman","serif"'>Figure 2: An architecture for resilient,
+responsive and scalable web application with socket pool and master-slave
+databases</span></i></p>
+
+<p class=MsoListParagraphCxSpFirst style='margin-bottom:0in;margin-bottom:.0001pt;
+line-height:normal;text-autospace:none'><span style='font-size:12.0pt;
+font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in;line-height:normal;text-autospace:none'><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif"'>In addition to
+socket pool at client side, you can also use SocketPro’s server routing feature
+to execute load balancing. This feature will be demonstrated by 
+    <a href="snpisec.htm">tutorial 8: <i>Treat
+SocketPro server as router for load balancing</i></a>.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in;line-height:normal;text-autospace:none'><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in;line-height:normal;text-autospace:none'><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif"'>Additionally,
+SocketPro server also supports HTTP and websocket protocols. You can use this
+feature to enable communication between SocketPro and any devices as well as
+development environments through either HTTP or new web socket protocol. We are
+going to use <a href="httpwebsocket.htm">tutorial 7: <i>Access SocketPro by use of HTTP and WebSocket</i> to
+show you its procedures on web browser by JavaScript</a>.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in;line-height:normal;text-autospace:none'><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in'><b><span style='font-family:"Times New Roman","serif"'>Caching,
+collaboration and real-time update:</span></b><i><span style='font-family:"Times New Roman","serif"'>
+</span></i><span style='font-family:"Times New Roman","serif"'>Assuming you
+like to use caches at WebApp0 through WebApp2 and SocketPro server 0 through
+SocketPro server n to avoid cross-machine trips as much as possible, you may
+need all of the caches to be collaborated and updated in real-time fashion from
+databases or else. You can do so through SocketPro built-in chat service or/and
+persistent message queue.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in'><span style='font-family:"Times New Roman","serif"'>In
+regards to SocketPro built-in chat service, please refer to 
+    <a href="chatservice.htm">tutorial 2: <i>SocketPro
+secure communication and built-in bi-directional message pushes</i></a>.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in;line-height:normal;text-autospace:none'><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif"'>In regards to
+SocketPro persistent message queue, please refer to <a href="../Tutorial/helloworld.htm">tutorial 1: <i>Hello world
+for a simple client/server application</i></a> and <a href="../Tutorial/serverqueue.htm">tutorial 5.</a></span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in;line-height:normal;text-autospace:none'><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif"'>In addition to
+the two features above, you can use SocketPro’s replication feature to safely execute
+any changes in databases or to these caches in transaction style as exemplified
+in <a href="../Tutorial/replication.htm">tutorial 6: <i>Data replication by persistent message queue.</i></a></span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt;line-height:normal;text-autospace:none'><span style='font-size:12.0pt;
+font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt;text-indent:-.25in;line-height:normal;text-autospace:none'><b><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif"'>3.<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span></span></b><b><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif"'>Push any sizes
+of ADO.NET objects in chunk and streaming style from server to client</span></b></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt;line-height:normal;text-autospace:none'><span style='font-size:12.0pt;
+font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in;line-height:normal;text-autospace:none'><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif"'>Now, let’s
+witness how codes work with the method Send at server side on the architecture of
+the Figure 2.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt;line-height:normal;text-autospace:none'><span style='font-size:12.0pt;
+font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in;line-height:normal;text-autospace:none'><b><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif"'>DataReader:</span></b><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif"'> See the code
+snippet below in Figure 3 below. At line 47 in the code snippet, SocketPro
+provides a method Send to push all record data within an ADO.NET data reader
+from server to client. Internally, SocketPro pushes data in chunk and streaming
+style; each of chunks has a size about 10 kilobytes or more so that client and
+server are able to unpack and pack data respectively, concurrently and in
+parallel at the same time. Note that there it is unnecessary to pre-load all
+records in memory. All these unique features make your application much faster
+in comparison to MS WCF framework. Our performance tests show that SocketPro
+will be three times faster than MS WCF framework in general. If a data reader
+has many records with large data size, SocketPro will be ten or more times
+faster!</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt;line-height:normal;text-autospace:none'><span style='font-size:12.0pt;
+font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt;line-height:normal;text-autospace:none'><span style='font-size:12.0pt;
+font-family:"Times New Roman","serif"'><img width=518 height=354 id="Picture 1"
+src="rado_files/image003.png"></span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt;line-height:normal;text-autospace:none'><i><span style='font-size:12.0pt;
+font-family:"Times New Roman","serif"'>Figure 3: Push all records of data
+within DataReader from server to client in chunk and streaming style</span></i></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt;line-height:normal;text-autospace:none'><span style='font-size:12.0pt;
+font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in;line-height:normal;text-autospace:none'><b><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif"'>DataSet:</span></b><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif"'> You can push a <i>DataSet</i>
+to a client in chunk and streaming style too as shown in Figure 4 below. Code
+snippet has already remarked on how simple it is to use.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt;line-height:normal;text-autospace:none'><span style='font-size:12.0pt;
+font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt;line-height:normal;text-autospace:none'><span style='font-size:12.0pt;
+font-family:"Times New Roman","serif"'><img width=526 height=386
+src="rado_files/image004.png"></span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt;line-height:normal;text-autospace:none'><i><span style='font-size:12.0pt;
+font-family:"Times New Roman","serif"'>Figure 4: Push all data within DataSet
+from server to client in chunk and streaming style</span></i></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt;line-height:normal;text-autospace:none'><span style='font-size:12.0pt;
+font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in;line-height:normal;text-autospace:none'><b><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif"'>DataTable:</span></b><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif"'> Similarly, you
+can push all records within <i>DataTable</i> from server to client as you can
+see, even though we don’t, provide the entire code snippet in this figure.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt;line-height:normal;text-autospace:none'><span style='font-size:12.0pt;
+font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in;line-height:normal;text-autospace:none'><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif"'>Overall, we
+recommend you use <i>DataReader </i>approach instead of <i>DataSet</i> and <i>DataTable</i>
+if proper, because use of <i>DataReader</i> avoids pre-loading all records in
+memory, and reduces memory footprint if your application has to deal with many
+records.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt;line-height:normal;text-autospace:none'><span style='font-size:12.0pt;
+font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt;text-indent:-.25in;line-height:normal;text-autospace:none'><b><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif"'>4.<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span></span></b><b><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif"'>Sync and async
+ways to get ADO.NET objects from remote server</span></b></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt;line-height:normal;text-autospace:none'><span style='font-size:12.0pt;
+font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in;line-height:normal;text-autospace:none'><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif"'>You can obtain
+ADO.NET objects either synchronously or asynchronously. If you have to get
+multiple ADO.NET objects, you can attain them from server to client
+asynchronously and in parallel through different socket connections. We are
+going to demonstrate to you by code snippet at the conclusion of this tutorial.
+However, let’s show how to establish a pool of sockets pointing to different
+servers.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in;line-height:normal;text-autospace:none'><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:12.0pt'><b><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>A
+pool sockets pointing to different SocketPro servers:</span></b><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>
+See the below Figure 5.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:12.0pt'><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt'><span style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'><img
+width=755 height=402 id="Picture 10" src="rado_files/image005.png"></span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt'><i><span style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>Figure
+5: Prepare a two-dimensional array of connection contexts for starting a pool
+sockets pointing to different servers</span></i></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in;line-height:normal;text-autospace:none'><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in;line-height:normal;text-autospace:none'><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif"'>First of all, we
+use the codes in lines 12 through 26 to prepare a two-dimensional array of
+connection contexts pointing to different servers. Afterwards, we start a pool
+of sockets in line 31.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in;line-height:normal;text-autospace:none'><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in;line-height:normal;text-autospace:none'><b><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif"'>Sync:</span></b><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif"'> After
+establishing a pool of socket connections, we can use the following code to get
+ADO.NET objects synchronously one-by-one using one socket connection.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in;line-height:normal;text-autospace:none'><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in;line-height:normal;text-autospace:none'><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif"'><img width=786
+height=113 id="Picture 13" src="rado_files/image006.png"></span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in;line-height:normal;text-autospace:none'><i><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif"'>Figure 6: Get
+ADO.NET objects synchronously in one-by-one style using one socket connection</span></i></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in;line-height:normal;text-autospace:none'><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in;line-height:normal;text-autospace:none'><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif"'>As shown in
+Figure 6 above, we search for an async handler from a pool first. Afterwards,
+we send one request in line 40 and another in line 42 to get <i>DataSet</i> and
+<i>DataTable</i> synchronously using the same socket connection, respectively.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in;line-height:normal;text-autospace:none'><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif"'>       </span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in'><b><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>Async, parallel and wait: </span></b><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>The
+following code snippet is preferred over the one above in case you have
+multiple requests for ADO.NET objects or others.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in'><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in'><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'><img width=850 height=257 id="Picture 4"
+src="rado_files/image007.png"></span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in'><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>Figure <i>7: Fetch ADO.NET objects from server
+asynchronously and in parallel by use of multiple socket connections</i></span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in'><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in'><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>We get two async handlers and their socket
+connections in lines 50 and 57. Afterwards, we send two asynchronous requests
+in lines 51 and 58 for <i>DataTable</i> and <i>DataSet</i> objects, both respectively
+in parallel. Note that two socket connections may point to either the same or
+different servers, which fully take advantages of multiple SocketPro servers
+and multiple master-slave databases as shown in the previous architecture of Figure
+2.</span></p>
+
+<p class=MsoListParagraphCxSpLast style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in'><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>Finally, it is optional if you choose to use the
+method <i>WaitAll</i> to put a barrier as shown in line 62. The above approach
+can be easily coupled with .NET async task as shown previously in<a
+name="_GoBack"></a> <a href="../Tutorial/helloworld.htm">tutorial 1</a>.</span></p>
+
+</div>
+
+</body>
+
+</html>

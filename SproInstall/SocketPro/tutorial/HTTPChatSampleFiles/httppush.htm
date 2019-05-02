@@ -1,0 +1,218 @@
+<script type="text/javascript" src="ujsonxml.js">
+	//1. ujsonxml.js MUST BE ALWAYS LOCATED AT SOCKETPRO COMET server no matter you use IIS, Apache or other HTTP servers.
+      //   ujsonxml.js CAN NOT BE LOCATED AT your HTTP server.
+</script>
+
+<script type="text/javascript">
+
+//set up message listening
+UChat.onMessage = function onMessage(req, msg) {
+    document.getElementById('txtMsgIn').value = UJSON.stringify(msg);
+    switch (req.method) {
+        case 'exit':
+            myInit();
+            break;
+        case 'enter':
+            if (UChat.chatting()) {
+                document.getElementById("btnSendUserMessage").disabled = '';
+                document.getElementById("btnSpeak").disabled = '';
+                document.getElementById("btnSubscribe").disabled = 'disabled';
+            }
+            break;
+        default:
+            break;
+    }
+};
+
+function myInit() {
+    //make sure controls have a correct initial state
+    document.getElementById("btnSendUserMessage").disabled = 'disabled';
+    document.getElementById("btnSpeak").disabled = 'disabled';
+    document.getElementById("btnSubscribe").disabled = '';
+}
+
+function btnSpeak_onclick() {
+    var chatGroups = document.getElementById('txtGroups').value.split(',');
+    var req = UChat.speak(document.getElementById('txtMsgOut').value, //message
+        chatGroups
+    );
+}
+
+function btnSendUserMessage_onclick() {
+    var req = UChat.sendUserMessage(document.getElementById('txtMsgOut').value, //message
+    document.getElementById('txtUser').value //user id
+    );
+}
+
+function btnSubscribe_onclick() {
+    document.getElementById("btnSubscribe").disabled = 'disabled';
+    var ctrl = document.getElementById('txtUserId');
+    var req = UChat.enter(ctrl.value, //user id
+    [1,2,8] //chat groups
+    );
+}
+
+function btnUnsubscribe_onclick() {
+    var req = UChat.exit();
+}
+</script>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" >
+<head>
+    <title>HTTP Server Push -- AJAX and Script Tag Long Polling</title>
+    <style type="text/css">
+        #Text1
+        {
+            width: 92px;
+            height: 28px;
+        }
+        #Text2
+        {
+            width: 99px;
+        }
+        #Button1
+        {
+            width: 195px;
+            height: 44px;
+        }
+        #txtGroups
+        {
+            width: 58px;
+        }
+        #txtMsg
+        {
+            width: 616px;
+            height: 132px;
+        }
+        #btnSendUserMessage
+        {
+            width: 196px;
+            height: 53px;
+        }
+        #btnSpeak
+        {
+            width: 197px;
+            height: 46px;
+            margin-left: 0px;
+        }
+        #TextArea1
+        {
+            width: 878px;
+            height: 109px;
+            margin-left: 14px;
+        }
+        #txtUserId
+        {
+            width: 90px;
+            height: 29px;
+        }
+        .style3
+        {
+            width: 112px;
+            text-align: right;
+        }
+        .style5
+        {
+            text-align: left;
+            width: 100px;
+        }
+        .style6
+        {
+            text-align: center;
+        }
+        #txtMsgIn
+        {
+            width: 616px;
+            height: 107px;
+            text-align: left;
+            margin-left: 0px;
+        }
+        #txtMsgOut
+        {
+            height: 122px;
+            width: 619px;
+        }
+        .style7
+        {
+            text-align: left;
+            font-size: large;
+            font-weight: bold;
+            margin-left: 80px;
+        }
+        #btnSubscribe
+        {
+            height: 61px;
+            text-align: center;
+            width: 197px;
+        }
+        .style8
+        {
+            text-align: left;
+        }
+        #btnUnsubscribe
+        {
+            height: 56px;
+            width: 197px;
+        }
+        #btnListen
+        {
+            width: 110px;
+            height: 31px;
+        }
+    </style>
+</head>
+<body>
+
+    <p class="style7">
+        HTTP Server Push -- AJAX and Script Tag Long Polling</p>
+
+    <table style="width: 40%;">
+        <tr>
+            <td class="style6" colspan="2">
+&nbsp;&lt;&lt;=== Output Message ====&gt;&gt;</td>
+            <td class="style8" rowspan="3" style="width: 167px">
+                <textarea id="txtMsgOut" name="S1" style="width: 579px"></textarea></td>
+        </tr>
+        <tr>
+            <td class="style5" tyle="width: 170px">
+                <input id="btnSpeak" type="button" value="Speak" 
+                    onclick="return btnSpeak_onclick()" disabled="disabled" /></td>
+            <td class="style3">
+                <b>Groups:<br />
+                </b>
+                <input id="txtGroups" type="text" value="1,2,3,4,5" /></td>
+        </tr>
+        <tr>
+            <td class="style5">
+                <input id="btnSendUserMessage" type="button" value="SendUserMessage" 
+                    onclick="return btnSendUserMessage_onclick()" disabled="disabled" /></td>
+            <td class="style3">
+                <b>User:</b><input id="txtUser" type="text" value="SocketPro" /></td>
+        </tr>
+        <tr>
+            <td class="style6" colspan="2">
+                &lt;&lt;=== Input Message ====&gt;&gt;</td>
+            <td style="text-align: left; width: 167px;">
+                &nbsp;</td>
+        </tr>
+        <tr>
+            <td class="style5">
+                <input id="btnSubscribe" type="button" value="Enter HTTP Chat" 
+                    onclick="return btnSubscribe_onclick()" /></td>
+            <td class="style6" rowspan="2">
+                UserId:<br />
+                <input id="txtUserId" type="text" value="WebUser" /></td>
+            <td class="style8" rowspan="2" style="width: 167px">
+                <textarea id="txtMsgIn" name="S2" style="width: 576px"></textarea></td>
+        </tr>
+        <tr>
+            <td class="style5">
+                <input id="btnUnsubscribe" type="button" value="Exit" onclick="return btnUnsubscribe_onclick()" /></td>
+        </tr>
+    </table>
+    <p>
+        &nbsp;</p>
+</body>
+
+</html>

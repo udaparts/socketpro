@@ -1,0 +1,9 @@
+; UDB.def : Declares the module parameters.
+
+LIBRARY      "UDB.DLL"
+
+EXPORTS
+	DllCanUnloadNow      PRIVATE
+	DllGetClassObject    PRIVATE
+	DllRegisterServer    PRIVATE
+	DllUnregisterServer	 PRIVATE

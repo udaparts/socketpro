@@ -1,0 +1,382 @@
+<html xmlns:o="urn:schemas-microsoft-com:office:office"
+xmlns:w="urn:schemas-microsoft-com:office:word"
+xmlns="http://www.w3.org/TR/REC-html40">
+
+<head>
+<meta http-equiv=Content-Type content="text/html; charset=windows-1252">
+<meta name=ProgId content=Word.Document>
+<meta name=Generator content="Microsoft Word 11">
+<meta name=Originator content="Microsoft Word 11">
+<link rel=File-List href="SocketProAdapter_files/filelist.xml">
+<title>SocketProAdapter</title>
+<!--[if gte mso 9]><xml>
+ <o:DocumentProperties>
+  <o:Author>Yuancai (Charlie) Ye</o:Author>
+  <o:Template>Normal</o:Template>
+  <o:LastAuthor>Yuancai (Charlie) Ye</o:LastAuthor>
+  <o:Revision>11</o:Revision>
+  <o:TotalTime>70</o:TotalTime>
+  <o:Created>2006-09-07T02:12:00Z</o:Created>
+  <o:LastSaved>2010-11-08T12:44:00Z</o:LastSaved>
+  <o:Pages>1</o:Pages>
+  <o:Words>450</o:Words>
+  <o:Characters>2569</o:Characters>
+  <o:Company>Intelligent Decision Technologies</o:Company>
+  <o:Lines>21</o:Lines>
+  <o:Paragraphs>6</o:Paragraphs>
+  <o:CharactersWithSpaces>3013</o:CharactersWithSpaces>
+  <o:Version>11.9999</o:Version>
+ </o:DocumentProperties>
+</xml><![endif]--><!--[if gte mso 9]><xml>
+ <w:WordDocument>
+  <w:Zoom>200</w:Zoom>
+  <w:ValidateAgainstSchemas/>
+  <w:SaveIfXMLInvalid>false</w:SaveIfXMLInvalid>
+  <w:IgnoreMixedContent>false</w:IgnoreMixedContent>
+  <w:AlwaysShowPlaceholderText>false</w:AlwaysShowPlaceholderText>
+  <w:Compatibility>
+   <w:UseFELayout/>
+  </w:Compatibility>
+  <w:BrowserLevel>MicrosoftInternetExplorer4</w:BrowserLevel>
+ </w:WordDocument>
+</xml><![endif]--><!--[if gte mso 9]><xml>
+ <w:LatentStyles DefLockedState="false" LatentStyleCount="156">
+ </w:LatentStyles>
+</xml><![endif]-->
+<style>
+<!--
+ /* Font Definitions */
+ @font-face
+	{font-family:SimSun;
+	panose-1:2 1 6 0 3 1 1 1 1 1;
+	mso-font-alt:\5B8B\4F53;
+	mso-font-charset:134;
+	mso-generic-font-family:auto;
+	mso-font-pitch:variable;
+	mso-font-signature:3 135135232 16 0 262145 0;}
+@font-face
+	{font-family:"\@SimSun";
+	panose-1:2 1 6 0 3 1 1 1 1 1;
+	mso-font-charset:134;
+	mso-generic-font-family:auto;
+	mso-font-pitch:variable;
+	mso-font-signature:3 135135232 16 0 262145 0;}
+ /* Style Definitions */
+ p.MsoNormal, li.MsoNormal, div.MsoNormal
+	{mso-style-parent:"";
+	margin:0in;
+	margin-bottom:.0001pt;
+	mso-pagination:widow-orphan;
+	font-size:12.0pt;
+	font-family:"Times New Roman";
+	mso-fareast-font-family:"Times New Roman";}
+h1
+	{mso-style-next:Normal;
+	margin:0in;
+	margin-bottom:.0001pt;
+	mso-pagination:widow-orphan;
+	page-break-after:avoid;
+	mso-outline-level:1;
+	font-size:12.0pt;
+	font-family:"Times New Roman";
+	mso-font-kerning:0pt;}
+a:link, span.MsoHyperlink
+	{color:blue;
+	text-decoration:underline;
+	text-underline:single;}
+a:visited, span.MsoHyperlinkFollowed
+	{color:purple;
+	text-decoration:underline;
+	text-underline:single;}
+@page Section1
+	{size:8.5in 11.0in;
+	margin:1.0in 1.25in 1.0in 1.25in;
+	mso-header-margin:.5in;
+	mso-footer-margin:.5in;
+	mso-paper-source:0;}
+div.Section1
+	{page:Section1;}
+ /* List Definitions */
+ @list l0
+	{mso-list-id:142964223;
+	mso-list-template-ids:589448960;}
+@list l1
+	{mso-list-id:1157646263;
+	mso-list-type:hybrid;
+	mso-list-template-ids:363730650 67698703 67698713 67698715 67698703 67698713 67698715 67698703 67698713 67698715;}
+@list l1:level1
+	{mso-level-tab-stop:.5in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l1:level2
+	{mso-level-tab-stop:1.0in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l1:level3
+	{mso-level-tab-stop:1.5in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l1:level4
+	{mso-level-tab-stop:2.0in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l1:level5
+	{mso-level-tab-stop:2.5in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l1:level6
+	{mso-level-tab-stop:3.0in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l1:level7
+	{mso-level-tab-stop:3.5in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l1:level8
+	{mso-level-tab-stop:4.0in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l1:level9
+	{mso-level-tab-stop:4.5in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l2
+	{mso-list-id:1160199888;
+	mso-list-template-ids:109636066;}
+@list l3
+	{mso-list-id:1447238533;
+	mso-list-template-ids:-662295170;}
+@list l4
+	{mso-list-id:1663462252;
+	mso-list-type:hybrid;
+	mso-list-template-ids:-1217102922 67698703 67698713 67698715 67698703 67698713 67698715 67698703 67698713 67698715;}
+@list l4:level1
+	{mso-level-tab-stop:.5in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l4:level2
+	{mso-level-tab-stop:1.0in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l4:level3
+	{mso-level-tab-stop:1.5in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l4:level4
+	{mso-level-tab-stop:2.0in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l4:level5
+	{mso-level-tab-stop:2.5in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l4:level6
+	{mso-level-tab-stop:3.0in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l4:level7
+	{mso-level-tab-stop:3.5in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l4:level8
+	{mso-level-tab-stop:4.0in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l4:level9
+	{mso-level-tab-stop:4.5in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l5
+	{mso-list-id:1963074869;
+	mso-list-type:hybrid;
+	mso-list-template-ids:1019908714 67698703 67698713 67698715 67698703 67698713 67698715 67698703 67698713 67698715;}
+@list l5:level1
+	{mso-level-tab-stop:.5in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l5:level2
+	{mso-level-tab-stop:1.0in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l5:level3
+	{mso-level-tab-stop:1.5in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l5:level4
+	{mso-level-tab-stop:2.0in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l5:level5
+	{mso-level-tab-stop:2.5in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l5:level6
+	{mso-level-tab-stop:3.0in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l5:level7
+	{mso-level-tab-stop:3.5in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l5:level8
+	{mso-level-tab-stop:4.0in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l5:level9
+	{mso-level-tab-stop:4.5in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+ol
+	{margin-bottom:0in;}
+ul
+	{margin-bottom:0in;}
+-->
+</style>
+<!--[if gte mso 10]>
+<style>
+ /* Style Definitions */
+ table.MsoNormalTable
+	{mso-style-name:"Table Normal";
+	mso-tstyle-rowband-size:0;
+	mso-tstyle-colband-size:0;
+	mso-style-noshow:yes;
+	mso-style-parent:"";
+	mso-padding-alt:0in 5.4pt 0in 5.4pt;
+	mso-para-margin:0in;
+	mso-para-margin-bottom:.0001pt;
+	mso-pagination:widow-orphan;
+	font-size:10.0pt;
+	font-family:"Times New Roman";
+	mso-fareast-font-family:"Times New Roman";
+	mso-ansi-language:#0400;
+	mso-fareast-language:#0400;
+	mso-bidi-language:#0400;}
+</style>
+<![endif]-->
+</head>
+
+<body lang=EN-US link=blue vlink=purple style='tab-interval:.5in'>
+
+<div class=Section1>
+
+<h1>SocketProAdapter</h1>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal><span style='mso-tab-count:1'>            </span>SocketProAdapter
+is a namespace containing a set of classes and child namespaces that mainly
+abstract all of complexities of direct use of raw SocketPro native APIs. </p>
+
+<p class=MsoNormal><span style='mso-tab-count:1'>            </span></p>
+
+<ol style='margin-top:0in' start=1 type=1>
+ <li class=MsoNormal style='mso-list:l5 level1 lfo3;tab-stops:list .5in'><span
+     style='mso-bidi-font-size:9.0pt;color:black'><a
+     href="CClientSocketException.htm">CClientSocketException</a> – A simple
+     class that wraps client socket communication error</span></li>
+ <li class=MsoNormal style='mso-list:l5 level1 lfo3;tab-stops:list .5in'><span
+     style='mso-bidi-font-size:9.0pt;color:black'><a href="CCriticalSection.htm">CCriticalSection</a>
+     – A simple class that encapsulates window object CRITICAL_SECTION</span></li>
+ <li class=MsoNormal style='mso-list:l5 level1 lfo3;tab-stops:list .5in'><span
+     style='mso-bidi-font-size:9.0pt;color:black'><a
+     href="CSocketProServerException.htm">CSocketProServerException</a> – A simple
+     class that represents an exception transferred from a SocketPro server</span></li>
+ <li class=MsoNormal style='mso-list:l5 level1 lfo3;tab-stops:list .5in'><span
+     style='mso-bidi-font-size:9.0pt;color:black'><a
+     href="CUPerformanceQuery.htm">CUPerformanceQuery</a> – A simple class that
+     wraps window </span>high-resolution performance counter</li>
+ <li class=MsoNormal style='mso-list:l5 level1 lfo3;tab-stops:list .5in'><span
+     style='mso-bidi-font-size:10.0pt'><a href="CUQueue.htm">CUQueue</a> – A
+     memory queue that dramatically simplifies packing and unpacking various
+     types of data<o:p></o:p></span></li>
+ <li class=MsoNormal style='color:black;mso-list:l5 level1 lfo3;tab-stops:list .5in'><span
+     style='mso-bidi-font-size:9.0pt'><a href="IUSerializer.htm">IUSerializer</a>
+     – An interface for implementing customer serialization and
+     de-serialization<o:p></o:p></span></li>
+</ol>
+
+<p class=MsoNormal style='margin-left:.25in'><span style='mso-bidi-font-size:
+9.0pt;color:black'><o:p>&nbsp;</o:p></span></p>
+
+<p class=MsoNormal style='text-indent:.5in'><span style='mso-bidi-font-size:
+9.0pt;color:black'>ClientSide – A sub namespace containing a few classes for
+easily managing client socket, socket pool, and client request and response
+handler.<o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.25in'><span style='mso-bidi-font-size:
+9.0pt;color:black'><o:p>&nbsp;</o:p></span></p>
+
+<ol style='margin-top:0in' start=1 type=1>
+ <li class=MsoNormal style='color:black;mso-list:l4 level1 lfo6;tab-stops:list .5in'><span
+     style='mso-bidi-font-size:9.0pt'><a href="CClientSocket.htm">CClientSocket</a>
+     – A class for wrapping the client COM object USocket<o:p></o:p></span></li>
+ <li class=MsoNormal style='color:black;mso-list:l4 level1 lfo6;tab-stops:list .5in'><span
+     style='mso-bidi-font-size:9.0pt'><a href="CRequestAsynHandlerBase.htm"><span
+     style='mso-fareast-font-family:SimSun'>CAsyncServiceHandler</span></a> – A
+     class for sending requests and handling results<o:p></o:p></span></li>
+ <li class=MsoNormal style='color:black;mso-list:l4 level1 lfo6;tab-stops:list .5in'><span
+     style='mso-bidi-font-size:9.0pt'><a href="CSocketPool.htm">CSocketPool&lt;THandler&gt;</a>
+     -- A generic class for quickly and easily taking advantage of COM object
+     USocketPool<o:p></o:p></span></li>
+</ol>
+
+<p class=MsoNormal style='margin-left:.25in'><span style='mso-bidi-font-size:
+9.0pt;color:black'><o:p>&nbsp;</o:p></span></p>
+
+<p class=MsoNormal style='text-indent:.5in'>ServerSide – A sub namespace
+containing a few classes for simply managing listening socket, chat and
+customer services, and client requests.</p>
+
+<p class=MsoNormal style='margin-left:.25in'><o:p>&nbsp;</o:p></p>
+
+<ol style='margin-top:0in' start=1 type=1>
+ <li class=MsoNormal style='mso-list:l1 level1 lfo9;tab-stops:list .5in'><span
+     style='mso-bidi-font-size:9.0pt;color:black'><a href="CBaseService.htm">CBaseService</a>
+     – An abstract class for managing a set of <a href="CClientPeer.htm">CClientPeer</a>-derived
+     objects</span></li>
+ <li class=MsoNormal style='mso-list:l1 level1 lfo9;tab-stops:list .5in'><span
+     style='mso-bidi-font-size:9.0pt;color:black'><a href="CClientPeer.htm">CClientPeer</a>
+     – An abstract class for easily processing fast and slow requests from a
+     client</span></li>
+ <li class=MsoNormal style='mso-list:l1 level1 lfo9;tab-stops:list .5in'><span
+     style='mso-bidi-font-size:9.0pt;color:black'><a href="CSocketProServer.htm">CSocketProServer</a>
+     – A class for easily creating a listening socket for accepting all of
+     incoming socket connections</span></li>
+</ol>
+
+<p class=MsoNormal><span style='mso-bidi-font-size:9.0pt;color:black'><o:p>&nbsp;</o:p></span></p>
+
+<p class=MsoNormal style='text-indent:.5in'>There are two versions of
+SocketProAdapter source codes available in the directories
+..\UDAParts\SocketPro\SproAdapter\dotNet2 and
+..\UDAParts\SocketPro\SproAdapter\dotNet11 for .NET 2 and .NET 1.1,
+respectively. Both versions are compactable to each other. However,
+SocketProAdapter for .NET 2 is faster. There is a version of SocketProAdapter
+for pocket pc inside the directory
+..\UDAParts\SocketPro\SproAdapter\SproAdapterCe. All of versions of
+SocketProAdapter are provided with source code. You are encouraged to compile
+them by yourself for your debugging.</p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal><span style='mso-tab-count:1'>            </span>Source
+files of SocketProAdapter for C++ are available in the directory
+..\UDAParts\SocketPro\include. They are sprowrap.cpp and sprowrap.h. Within C++
+development environment, you can simply include the two files into your
+project.</p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal><span style='mso-tab-count:1'>           </span>This
+documentation is created on SocketProAdapter for .NET 2. Others are similar but
+may have a minor difference.</p>
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=MsoNormal><b><a href="../help.htm">SocketPro Help Main Page</a></b></p>
+
+</div>
+
+</body>
+
+</html>

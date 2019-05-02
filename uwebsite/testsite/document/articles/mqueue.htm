@@ -1,0 +1,1121 @@
+<html>
+
+<head>
+<meta http-equiv=Content-Type content="text/html; charset=windows-1252">
+<meta name=Generator content="Microsoft Word 12 (filtered)">
+<style>
+<!--
+ /* Font Definitions */
+ @font-face
+	{font-family:Wingdings;
+	panose-1:5 0 0 0 0 0 0 0 0 0;}
+@font-face
+	{font-family:"Cambria Math";
+	panose-1:2 4 5 3 5 4 6 3 2 4;}
+@font-face
+	{font-family:Calibri;
+	panose-1:2 15 5 2 2 2 4 3 2 4;}
+ /* Style Definitions */
+ p.MsoNormal, li.MsoNormal, div.MsoNormal
+	{margin-top:0in;
+	margin-right:0in;
+	margin-bottom:10.0pt;
+	margin-left:0in;
+	line-height:115%;
+	font-size:11.0pt;
+	font-family:"Calibri","sans-serif";}
+p.MsoListParagraph, li.MsoListParagraph, div.MsoListParagraph
+	{margin-top:0in;
+	margin-right:0in;
+	margin-bottom:10.0pt;
+	margin-left:.5in;
+	line-height:115%;
+	font-size:11.0pt;
+	font-family:"Calibri","sans-serif";}
+p.MsoListParagraphCxSpFirst, li.MsoListParagraphCxSpFirst, div.MsoListParagraphCxSpFirst
+	{margin-top:0in;
+	margin-right:0in;
+	margin-bottom:0in;
+	margin-left:.5in;
+	margin-bottom:.0001pt;
+	line-height:115%;
+	font-size:11.0pt;
+	font-family:"Calibri","sans-serif";}
+p.MsoListParagraphCxSpMiddle, li.MsoListParagraphCxSpMiddle, div.MsoListParagraphCxSpMiddle
+	{margin-top:0in;
+	margin-right:0in;
+	margin-bottom:0in;
+	margin-left:.5in;
+	margin-bottom:.0001pt;
+	line-height:115%;
+	font-size:11.0pt;
+	font-family:"Calibri","sans-serif";}
+p.MsoListParagraphCxSpLast, li.MsoListParagraphCxSpLast, div.MsoListParagraphCxSpLast
+	{margin-top:0in;
+	margin-right:0in;
+	margin-bottom:10.0pt;
+	margin-left:.5in;
+	line-height:115%;
+	font-size:11.0pt;
+	font-family:"Calibri","sans-serif";}
+.MsoPapDefault
+	{margin-bottom:10.0pt;
+	line-height:115%;}
+@page WordSection1
+	{size:11.0in 8.5in;
+	margin:1.0in 1.0in 1.0in 1.0in;}
+div.WordSection1
+	{page:WordSection1;}
+ /* List Definitions */
+ ol
+	{margin-bottom:0in;}
+ul
+	{margin-bottom:0in;}
+-->
+</style>
+
+</head>
+
+<body lang=EN-US>
+
+<div class=WordSection1>
+
+<p class=MsoNormal style='line-height:normal'><b><span style='font-size:13.5pt;
+font-family:"Times New Roman","serif";color:#663300'>Brief Introduction about
+Memory Queue -- CUQueue and CScopeUQueue Objects</span></b></p>
+
+<p class=MsoNormal style='line-height:normal'><i><span style='font-size:12.0pt;
+font-family:"Times New Roman","serif"'>UDAParts<br>
+</span></i><a href="mailto:support@udaparts.com"><i><span style='font-size:
+12.0pt;font-family:"Times New Roman","serif";color:#999900'>support@udaparts.com</span></i></a><i><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif"'><br>
+Updated on August 17, 2014</span></i></p>
+
+<p class=MsoNormal style='line-height:normal'><span style='font-size:12.0pt;
+font-family:"Times New Roman","serif"'>Contents</span></p>
+
+<ol start=1 type=1>
+ <li class=MsoNormal style='line-height:normal'><i><span style='font-size:12.0pt;
+     font-family:"Times New Roman","serif"'>Introduction</span></i></li>
+ <li class=MsoNormal style='line-height:normal'><i><span style='font-size:12.0pt;
+     font-family:"Times New Roman","serif"'>C++, C#/VB.NET, Java and Python
+     samples</span></i></li>
+ <li class=MsoNormal style='line-height:normal'><i><span style='font-size:12.0pt;
+     font-family:"Times New Roman","serif"'>Key design considerations on
+     CUQueue and CScopeUQueue </span></i></li>
+ <li class=MsoNormal style='line-height:normal'><i><span style='font-size:12.0pt;
+     font-family:"Times New Roman","serif"'>Compatibility among different
+     development languages</span></i></li>
+ <li class=MsoNormal style='line-height:normal'><i><span style='font-size:12.0pt;
+     font-family:"Times New Roman","serif"'>Object within different development
+     languages</span></i></li>
+ <li class=MsoNormal style='line-height:normal'><i><span style='font-size:12.0pt;
+     font-family:"Times New Roman","serif"'>Use of .NET serialization with
+     CUQueue</span></i></li>
+ <li class=MsoNormal style='line-height:normal'><i><span style='font-size:12.0pt;
+     font-family:"Times New Roman","serif"'>String serialization</span></i></li>
+ <li class=MsoNormal style='line-height:normal'><i><span style='font-size:12.0pt;
+     font-family:"Times New Roman","serif"'>Generics Save/Load for .NET and
+     Java as well as operators &lt;&lt;/&gt;&gt; in C++</span></i></li>
+ <li class=MsoNormal style='line-height:normal'><i><span style='font-size:12.0pt;
+     font-family:"Times New Roman","serif"'>IUSerializer of  .NET, Java and
+     Python for complex user-defined classes and structures</span></i></li>
+ <li class=MsoNormal style='line-height:normal'><i><span style='font-size:12.0pt;
+     font-family:"Times New Roman","serif"'>null/nothing objects serialization
+     supported</span></i></li>
+ <li class=MsoNormal style='line-height:normal'><i><span style='font-size:12.0pt;
+     font-family:"Times New Roman","serif"'>Use CScopeUQueue within function
+     stack whenever possible</span></i></li>
+</ol>
+
+<p class=MsoNormal style='line-height:normal'><b><span style='font-size:12.0pt;
+font-family:"Times New Roman","serif"'>1.&nbsp;&nbsp;&nbsp;&nbsp;<a
+name=Introduction>Introduction</a></span></b></p>
+
+<p class=MsoNormal style='text-indent:.5in;line-height:normal'><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif"'>Development with
+SocketPro requires converting data types into bytes at adapter level for each development
+languages. The conversion is not difficult at all, but it is somewhat tedious.
+In order to ease SocketPro development, SocketPro provides a helper class <i>CUQueue</i>
+for each supported development languages to efficiently convert various data
+types compatibly into bytes in addition to managing memory. Later, you can
+effortlessly exchange requests and returned results from binary format into
+original data types compatible with both server and client sides.</span></p>
+
+<p class=MsoNormal style='line-height:normal'><b><span style='font-size:12.0pt;
+font-family:"Times New Roman","serif"'>2.&nbsp;&nbsp;&nbsp;&nbsp;C++, C#/VB.NET,
+Java and Python samples</span></b><a name="C_and_VB.NET_samples"></a></p>
+
+<p class=MsoNormal style='text-indent:31.5pt;line-height:normal'><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif"'>See the
+following demonstration applications:</span></p>
+
+<p class=MsoListParagraphCxSpFirst style='text-indent:-.25in;line-height:normal'><span
+style='font-size:12.0pt;font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><span style='font-size:12.0pt;font-family:"Times New Roman","serif"'>Simple
+serialization and de-serialization: C++, C#/VB.NET, Java and Python projects at
+the directory ..\SocketPro\tutorials\(cplusplus|csharp|vbnet|java\src|ce|python)\uqueue_demo.</span></p>
+
+<p class=MsoListParagraphCxSpLast style='text-indent:-.25in;line-height:normal'><span
+style='font-size:12.0pt;font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a 
+        href="document/Tutorial/helloworld.htm"> </a>
+</span></span><span style='font-size:12.0pt;font-family:"Times New Roman","serif"'>
+    <a href="../Tutorial/helloworld.htm">Exchange
+of complex structure between client and server</a>: C++, C#/VB.NET, Java and Python
+projects at the directory ..\SocketPro\tutorials\(cplusplus|csharp|vbnet|java\src|ce|python)\hello_world.</span></p>
+
+<p class=MsoNormalCxSpFirst style='margin-left:.75in;text-indent:-.25in;
+line-height:normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoNormal style='line-height:normal'><b><span style='font-size:12.0pt;
+font-family:"Times New Roman","serif"'>3.&nbsp;&nbsp;&nbsp;&nbsp;<a
+name="Key_design_considerations">Key design considerations</a> on <i>CUQueue</i>
+and <i>CScopeUQueue</i></span></b></p>
+
+<p class=MsoNormal style='text-indent:.5in;line-height:normal'><i><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif"'>CUQueue</span></i><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif"'> is designed
+with a set of key considerations:</span></p>
+
+<p class=MsoListParagraphCxSpFirst style='text-indent:-.25in;line-height:normal'><span
+style='font-size:12.0pt;font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><b><span style='font-size:12.0pt;font-family:"Times New Roman","serif"'>Easy
+to use</span></b><span style='font-size:12.0pt;font-family:"Times New Roman","serif"'>.
+You are never required to manage internal memory directly.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='text-indent:-.25in;line-height:normal'><span
+style='font-size:12.0pt;font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><b><span style='font-size:12.0pt;font-family:"Times New Roman","serif"'>Auto-manage
+memory.</span></b><span style='font-size:12.0pt;font-family:"Times New Roman","serif"'>
+When you save, push or insert a data into an instance of <i>CUQueue</i>, it
+will automatically increase memory if required.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='text-indent:-.25in;line-height:normal'><span
+style='font-size:12.0pt;font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><b><span style='font-size:12.0pt;font-family:"Times New Roman","serif"'>High
+efficiency.</span></b><span style='font-size:12.0pt;font-family:"Times New Roman","serif"'>
+Use of <i>CUQueue</i> can avoid allocating and de-allocating memories
+repeatedly, which significantly improves application performance and reduces
+memory resources and page faults.</span></p>
+
+<p class=MsoListParagraphCxSpLast style='text-indent:-.25in;line-height:normal'><span
+style='font-size:12.0pt;font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><b><span style='font-size:12.0pt;font-family:"Times New Roman","serif"'>Great
+compatibility among different development languages such as Python, Java, VB.NET,
+C# and C/C++. </span></b><i><span style='font-size:12.0pt;font-family:"Times New Roman","serif"'>CScopeUQueue
+</span></i><span style='font-size:12.0pt;font-family:"Times New Roman","serif"'>is
+created for reuse of <i>CUQueue</i>. When an instance of <i>CScopeUQueue</i> is
+disposed or destroyed, its internal <i>CUQueue</i> instance is put back into a
+pool of <i>CUQueue</i> objects. When creating an instance of <i>CScopeUQueue</i>,
+it automatically takes one from the pooled <i>CUQueue</i> objects if available.
+If there is no <i>CUQueue</i> object available, a new <i>CUQueue</i> object
+will be created one on-the-fly.</span></p>
+
+<p class=MsoNormal style='line-height:normal'><b><span style='font-size:12.0pt;
+font-family:"Times New Roman","serif"'>4.&nbsp;&nbsp;&nbsp;&nbsp;<a
+name=Compatibility>Compatibility among different development languages</a></span></b></p>
+
+<p class=MsoNormal style='text-indent:.5in;line-height:normal'><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif"'>SocketPro
+supports development using different languages. For example, you can even
+develop a C++ client application that directly accesses codes of any dotNet
+languages without requiring any other middle components. To achieve this key
+compatibility, the class <i>CUQueue</i> is written in mind of compatibility
+among different development languages for a set of basic data types. Here is
+the table for the compatibility among three major development languages, Java,
+.NET (C#) and C/C++.</span></p>
+
+<table class=MsoNormalTable border=1 cellpadding=0 width="73%"
+ style='width:73.08%;margin-left:.5in;border:outset #660000 1.0pt'>
+ <tr style='height:26.25pt'>
+  <td width="16%" style='width:16.28%;border:inset #999900 1.0pt;padding:.75pt .75pt .75pt .75pt;
+  height:26.25pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>Data Type</span></p>
+  </td>
+  <td width="6%" style='width:6.58%;border:inset #999900 1.0pt;padding:.75pt .75pt .75pt .75pt;
+  height:26.25pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>Size (byte)</span></p>
+  </td>
+  <td width="23%" style='width:23.34%;border:inset #999900 1.0pt;padding:.75pt .75pt .75pt .75pt;
+  height:26.25pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>Java</span></p>
+  </td>
+  <td width="10%" style='width:10.6%;border:inset #999900 1.0pt;padding:.75pt .75pt .75pt .75pt;
+  height:26.25pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>.NET (C#)</span></p>
+  </td>
+  <td width="20%" style='width:20.58%;border:inset #999900 1.0pt;padding:.75pt .75pt .75pt .75pt;
+  height:26.25pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>C/C++</span></p>
+  </td>
+  <td width="20%" valign=top style='width:20.44%;border:inset #999900 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt;height:26.25pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>python</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td width="16%" style='width:16.28%;border:inset #999900 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>unsigned byte</span></p>
+  </td>
+  <td width="6%" style='width:6.58%;border:inset #999900 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>1</span></p>
+  </td>
+  <td width="23%" style='width:23.34%;border:inset #999900 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>byte</span></p>
+  </td>
+  <td width="10%" style='width:10.6%;border:inset #999900 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>byte</span></p>
+  </td>
+  <td width="20%" style='width:20.58%;border:inset #999900 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>unsigned char</span></p>
+  </td>
+  <td width="20%" valign=top style='width:20.44%;border:inset #999900 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>Save/LoadByte</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td width="16%" style='width:16.28%;border:inset #999900 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>signed byte</span></p>
+  </td>
+  <td width="6%" style='width:6.58%;border:inset #999900 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>1</span></p>
+  </td>
+  <td width="23%" style='width:23.34%;border:inset #999900 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>byte</span></p>
+  </td>
+  <td width="10%" style='width:10.6%;border:inset #999900 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>sbyte</span></p>
+  </td>
+  <td width="20%" style='width:20.58%;border:inset #999900 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>signed char</span></p>
+  </td>
+  <td width="20%" valign=top style='width:20.44%;border:inset #999900 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>Save/LoadAChar</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td width="16%" style='width:16.28%;border:inset #999900 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>bool</span></p>
+  </td>
+  <td width="6%" style='width:6.58%;border:inset #999900 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>1</span></p>
+  </td>
+  <td width="23%" style='width:23.34%;border:inset #999900 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>boolean</span></p>
+  </td>
+  <td width="10%" style='width:10.6%;border:inset #999900 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>bool</span></p>
+  </td>
+  <td width="20%" style='width:20.58%;border:inset #999900 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>bool</span></p>
+  </td>
+  <td width="20%" valign=top style='width:20.44%;border:inset #999900 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>Save/LoadBool</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td width="16%" style='width:16.28%;border:inset #999900 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>short</span></p>
+  </td>
+  <td width="6%" style='width:6.58%;border:inset #999900 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>2</span></p>
+  </td>
+  <td width="23%" style='width:23.34%;border:inset #999900 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>short</span></p>
+  </td>
+  <td width="10%" style='width:10.6%;border:inset #999900 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>short</span></p>
+  </td>
+  <td width="20%" style='width:20.58%;border:inset #999900 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>short</span></p>
+  </td>
+  <td width="20%" valign=top style='width:20.44%;border:inset #999900 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>Save/LoadShort</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td width="16%" style='width:16.28%;border:inset #999900 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>int</span></p>
+  </td>
+  <td width="6%" style='width:6.58%;border:inset #999900 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>4</span></p>
+  </td>
+  <td width="23%" style='width:23.34%;border:inset #999900 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>int</span></p>
+  </td>
+  <td width="10%" style='width:10.6%;border:inset #999900 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>int</span></p>
+  </td>
+  <td width="20%" style='width:20.58%;border:inset #999900 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>int</span></p>
+  </td>
+  <td width="20%" valign=top style='width:20.44%;border:inset #999900 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>Save/LoadInt</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td width="16%" style='width:16.28%;border:inset #999900 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>float</span></p>
+  </td>
+  <td width="6%" style='width:6.58%;border:inset #999900 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>4</span></p>
+  </td>
+  <td width="23%" style='width:23.34%;border:inset #999900 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>float</span></p>
+  </td>
+  <td width="10%" style='width:10.6%;border:inset #999900 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>float</span></p>
+  </td>
+  <td width="20%" style='width:20.58%;border:inset #999900 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>float</span></p>
+  </td>
+  <td width="20%" valign=top style='width:20.44%;border:inset #999900 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>Save/LoadFloat</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td width="16%" style='width:16.28%;border:inset #999900 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>double</span></p>
+  </td>
+  <td width="6%" style='width:6.58%;border:inset #999900 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>8</span></p>
+  </td>
+  <td width="23%" style='width:23.34%;border:inset #999900 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>double</span></p>
+  </td>
+  <td width="10%" style='width:10.6%;border:inset #999900 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>double</span></p>
+  </td>
+  <td width="20%" style='width:20.58%;border:inset #999900 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>double</span></p>
+  </td>
+  <td width="20%" valign=top style='width:20.44%;border:inset #999900 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>Save/LoadDouble</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td width="16%" style='width:16.28%;border:inset #999900 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>unsigned short</span></p>
+  </td>
+  <td width="6%" style='width:6.58%;border:inset #999900 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>2</span></p>
+  </td>
+  <td width="23%" style='width:23.34%;border:inset #999900 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>short</span></p>
+  </td>
+  <td width="10%" style='width:10.6%;border:inset #999900 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>ushort</span></p>
+  </td>
+  <td width="20%" style='width:20.58%;border:inset #999900 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>unsigned short</span></p>
+  </td>
+  <td width="20%" valign=top style='width:20.44%;border:inset #999900 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>Save/LoadUShort</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td width="16%" style='width:16.28%;border:inset #999900 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>unsigned int</span></p>
+  </td>
+  <td width="6%" style='width:6.58%;border:inset #999900 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>4</span></p>
+  </td>
+  <td width="23%" style='width:23.34%;border:inset #999900 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>int</span></p>
+  </td>
+  <td width="10%" style='width:10.6%;border:inset #999900 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>uint</span></p>
+  </td>
+  <td width="20%" style='width:20.58%;border:inset #999900 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>unsigned int</span></p>
+  </td>
+  <td width="20%" valign=top style='width:20.44%;border:inset #999900 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>Save/LoadUInt</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td width="16%" style='width:16.28%;border:inset #999900 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>decimal</span></p>
+  </td>
+  <td width="6%" style='width:6.58%;border:inset #999900 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>16</span></p>
+  </td>
+  <td width="23%" style='width:23.34%;border:inset #999900 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>Java.math.BigDecimal</span></p>
+  </td>
+  <td width="10%" style='width:10.6%;border:inset #999900 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>decimal</span></p>
+  </td>
+  <td width="20%" style='width:20.58%;border:inset #999900 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>DECIMAL</span></p>
+  </td>
+  <td width="20%" valign=top style='width:20.44%;border:inset #999900 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>Save/LoadDecimal</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td width="16%" style='width:16.28%;border:inset #999900 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>Currency</span></p>
+  </td>
+  <td width="6%" style='width:6.58%;border:inset #999900 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>8</span></p>
+  </td>
+  <td width="23%" style='width:23.34%;border:inset #999900 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif"'>N/A</span></p>
+  </td>
+  <td width="10%" style='width:10.6%;border:inset #999900 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>decimal</span></p>
+  </td>
+  <td width="20%" style='width:20.58%;border:inset #999900 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>Currency</span></p>
+  </td>
+  <td width="20%" valign=top style='width:20.44%;border:inset #999900 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>N/A</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td width="16%" style='width:16.28%;border:inset #999900 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>LONGLONG</span></p>
+  </td>
+  <td width="6%" style='width:6.58%;border:inset #999900 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>8</span></p>
+  </td>
+  <td width="23%" style='width:23.34%;border:inset #999900 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>long</span></p>
+  </td>
+  <td width="10%" style='width:10.6%;border:inset #999900 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>long</span></p>
+  </td>
+  <td width="20%" style='width:20.58%;border:inset #999900 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>LONGLONG</span></p>
+  </td>
+  <td width="20%" valign=top style='width:20.44%;border:inset #999900 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>Save/LoadLong</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td width="16%" style='width:16.28%;border:inset #999900 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>ULONGLONG</span></p>
+  </td>
+  <td width="6%" style='width:6.58%;border:inset #999900 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>8</span></p>
+  </td>
+  <td width="23%" style='width:23.34%;border:inset #999900 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>long</span></p>
+  </td>
+  <td width="10%" style='width:10.6%;border:inset #999900 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>ulong</span></p>
+  </td>
+  <td width="20%" style='width:20.58%;border:inset #999900 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>ULONGLONG</span></p>
+  </td>
+  <td width="20%" valign=top style='width:20.44%;border:inset #999900 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>Save/LoadULong</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td width="16%" style='width:16.28%;border:inset #999900 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>wide char</span></p>
+  </td>
+  <td width="6%" style='width:6.58%;border:inset #999900 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>2</span></p>
+  </td>
+  <td width="23%" style='width:23.34%;border:inset #999900 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>char</span></p>
+  </td>
+  <td width="10%" style='width:10.6%;border:inset #999900 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>char</span></p>
+  </td>
+  <td width="20%" style='width:20.58%;border:inset #999900 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>UTF16 low-endian</span></p>
+  </td>
+  <td width="20%" valign=top style='width:20.44%;border:inset #999900 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>Save/LoadChar</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td width="16%" style='width:16.28%;border:inset #999900 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>GUID</span></p>
+  </td>
+  <td width="6%" style='width:6.58%;border:inset #999900 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>16</span></p>
+  </td>
+  <td width="23%" style='width:23.34%;border:inset #999900 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>Java.util.UUID</span></p>
+  </td>
+  <td width="10%" style='width:10.6%;border:inset #999900 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>Guid</span></p>
+  </td>
+  <td width="20%" style='width:20.58%;border:inset #999900 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>GUID</span></p>
+  </td>
+  <td width="20%" valign=top style='width:20.44%;border:inset #999900 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>Save/LoadUUID</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td width="16%" style='width:16.28%;border:inset #999900 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>Date time*</span></p>
+  </td>
+  <td width="6%" style='width:6.58%;border:inset #999900 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>8</span></p>
+  </td>
+  <td width="23%" style='width:23.34%;border:inset #999900 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>Java.util.Date</span></p>
+  </td>
+  <td width="10%" style='width:10.6%;border:inset #999900 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>DateTime</span></p>
+  </td>
+  <td width="20%" style='width:20.58%;border:inset #999900 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>UDateTime</span></p>
+  </td>
+  <td width="20%" valign=top style='width:20.44%;border:inset #999900 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>Save/LoadDate</span></p>
+  </td>
+ </tr>
+ <tr style='height:20.25pt'>
+  <td width="16%" style='width:16.28%;border:inset #999900 1.0pt;padding:.75pt .75pt .75pt .75pt;
+  height:20.25pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>ASCII string</span></p>
+  </td>
+  <td width="6%" style='width:6.58%;border:inset #999900 1.0pt;padding:.75pt .75pt .75pt .75pt;
+  height:20.25pt'></td>
+  <td width="23%" style='width:23.34%;border:inset #999900 1.0pt;padding:.75pt .75pt .75pt .75pt;
+  height:20.25pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>byte[]</span></p>
+  </td>
+  <td width="10%" style='width:10.6%;border:inset #999900 1.0pt;padding:.75pt .75pt .75pt .75pt;
+  height:20.25pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>byte[] or sbyte[]</span></p>
+  </td>
+  <td width="20%" style='width:20.58%;border:inset #999900 1.0pt;padding:.75pt .75pt .75pt .75pt;
+  height:20.25pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>std::string</span></p>
+  </td>
+  <td width="20%" valign=top style='width:20.44%;border:inset #999900 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt;height:20.25pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>Save/LoadAString</span></p>
+  </td>
+ </tr>
+ <tr style='height:.25in'>
+  <td width="16%" style='width:16.28%;border:inset #999900 1.0pt;padding:.75pt .75pt .75pt .75pt;
+  height:.25in'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>wide string</span></p>
+  </td>
+  <td width="6%" style='width:6.58%;border:inset #999900 1.0pt;padding:.75pt .75pt .75pt .75pt;
+  height:.25in'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>&nbsp;</span></p>
+  </td>
+  <td width="23%" style='width:23.34%;border:inset #999900 1.0pt;padding:.75pt .75pt .75pt .75pt;
+  height:.25in'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>String</span></p>
+  </td>
+  <td width="10%" style='width:10.6%;border:inset #999900 1.0pt;padding:.75pt .75pt .75pt .75pt;
+  height:.25in'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>string</span></p>
+  </td>
+  <td width="20%" style='width:20.58%;border:inset #999900 1.0pt;padding:.75pt .75pt .75pt .75pt;
+  height:.25in'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>std::wstring or CComBSTR on win</span></p>
+  </td>
+  <td width="20%" valign=top style='width:20.44%;border:inset #999900 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt;height:.25in'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>Save/LoadString</span></p>
+  </td>
+ </tr>
+ <tr style='height:23.85pt'>
+  <td width="16%" style='width:16.28%;border:inset #999900 1.0pt;padding:.75pt .75pt .75pt .75pt;
+  height:23.85pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>Object</span></p>
+  </td>
+  <td width="6%" style='width:6.58%;border:inset #999900 1.0pt;padding:.75pt .75pt .75pt .75pt;
+  height:23.85pt'></td>
+  <td width="23%" style='width:23.34%;border:inset #999900 1.0pt;padding:.75pt .75pt .75pt .75pt;
+  height:23.85pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>Object</span></p>
+  </td>
+  <td width="10%" style='width:10.6%;border:inset #999900 1.0pt;padding:.75pt .75pt .75pt .75pt;
+  height:23.85pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>object</span></p>
+  </td>
+  <td width="20%" style='width:20.58%;border:inset #999900 1.0pt;padding:.75pt .75pt .75pt .75pt;
+  height:23.85pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>CComVaraint (win)</span></p>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>boost::variant(unix)</span></p>
+  </td>
+  <td width="20%" valign=top style='width:20.44%;border:inset #999900 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt;height:23.85pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:12.0pt;font-family:"Times New Roman","serif";
+  color:#663300'>Save/LoadObject</span></p>
+  </td>
+ </tr>
+</table>
+
+<p class=MsoNormalCxSpMiddle style='text-indent:.5in;line-height:normal'><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif"'>* -- SocketPro
+uses a long integer (8 bytes) to represent date time across different platforms
+and languages. Date time can be accurate within a millisecond.</span></p>
+
+<p class=MsoNormalCxSpMiddle style='line-height:normal'><span style='font-size:
+12.0pt;font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoNormal style='line-height:normal'><b><span style='font-size:12.0pt;
+font-family:"Times New Roman","serif"'>5.&nbsp;&nbsp;&nbsp;&nbsp;Object within
+different development languages</span></b></p>
+
+<p class=MsoNormal style='text-indent:.5in;line-height:normal'><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif"'>All data types
+or their array can be boxed and unboxed into and from an Object data within
+Java and .NET platforms, which are similar to window <i>tagVARIANT</i>
+structure. SocketPro uses variant in boost libraries to represent the Object
+data type for C++ development on non-window platforms. The class <i>CUQueue</i>
+also supports one dimension array of data types listed in the above table
+through Object data type, including Object data type itself.</span></p>
+
+<p class=MsoNormal style='line-height:normal'><b><span style='font-size:12.0pt;
+font-family:"Times New Roman","serif"'>6.&nbsp;&nbsp;&nbsp;&nbsp;<a
+name="Use_of_dotNet_serialization_within_CUQue">Use of dotNet serialization
+within CUQueue</a></span></b></p>
+
+<p class=MsoNormal style='text-indent:.5in;line-height:normal'><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif"'>Dotnet version
+of <i>CUQueue</i> can take advantage of native dotNet serialization if your
+development is only involved with managed code. You can call&nbsp;methods <i>CUQueue</i>::<i>Serialize</i>
+and <i>Deserialize</i> to save and load a managed object into and from a <i>CUQueue</i>
+instance, respectively. Dotnet serialization makes the code simpler, but slower
+and is restricted for desktop applications and middle tiers running on .NET
+environment only. DotNet serialization is not interoperable with non-dotNet
+codes. Furthermore, note that .NET codes for devices do not support native .NET
+serialization either.</span></p>
+
+<p class=MsoNormal style='line-height:normal'><b><span style='font-size:12.0pt;
+font-family:"Times New Roman","serif"'>7.&nbsp;&nbsp;&nbsp;&nbsp;<a
+name="String_serialization">String serialization</a></span></b></p>
+
+<p class=MsoNormal style='text-indent:.5in;line-height:normal'><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif"'>To serialize a
+string, we first save a length in unsigned int (4 bytes) in bytes, and actual
+string context afterward in UTF16 low-endian format by calling the method <i>Save</i>
+or operator &lt;&lt; in C++. If the length is -1 or 0xFFFFFFFF, the string is a
+null for Java, C++ and C#. As you can see, the class <i>CUQueue</i> first pops
+out a length in unsigned int first, and string context afterwards when loading
+a string from an instance of <i>CUQueue</i>.</span></p>
+
+<p class=MsoNormal style='line-height:normal'><b><span style='font-size:12.0pt;
+font-family:"Times New Roman","serif"'>8.&nbsp;&nbsp;&nbsp;&nbsp;<a
+name="Generics_Save">Generics Save/Load for .NET and Java as well as operators
+&lt;&lt; and &gt;&gt; in C++</a></span></b></p>
+
+<p class=MsoNormal style='text-indent:.5in;line-height:normal'><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif"'>To make code
+simpler, SocketPro adapter for .NET and Java now uses the generics methods <i>Save</i>
+and <i>Load</i> for saving and reading data to or from an instance of <i>CUQueue</i>.
+Internally, .NET adapter will uses a proper method (<i>Save</i>/<i>Load</i> for
+primitive data types, <i>Save/Load </i>for string, <i>IUSerializer</i> or <i>Serialize/Deserialize</i>
+for .NET objects) to save or load data from generics data type. In regards to
+C++, you may need to override operators &lt;&lt; and &gt;&gt; to save or load
+instances of complicate user-defined classes. For simple data types or
+structures, adapter for C++ will automatically handle them for you correctly
+through templates.</span></p>
+
+<p class=MsoNormal style='line-height:normal'><b><span style='font-size:12.0pt;
+font-family:"Times New Roman","serif"'>9.&nbsp;&nbsp;&nbsp;<a
+name="IUSerializer_complex">&nbsp;IUSerializer of .NET, Java and Python for
+complex user-defined classes or structures</a></span></b></p>
+
+<p class=MsoNormal style='text-indent:.5in;line-height:normal'><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif"'>To serialize or
+de-serialized a complex user-defined class or structure, it is highly recommended
+that the class or structure be implemented with the interface <i>IUSerializer</i>.
+The implementation is very simple since you can easily make .NET code and native
+compatible to each other. Hence, it makes code run faster than .NET
+serialization without involvement of reflection. In addition, .NET
+serialization is not available to .NET compact environment, but <i>IUSerializer</i>
+is fully supported on devices. To see such details, please refer to&nbsp;<a
+name="NET_NULL">the above samples.</a></span></p>
+
+<p class=MsoNormal style='line-height:normal'><b><span style='font-size:12.0pt;
+font-family:"Times New Roman","serif"'>10.&nbsp;&nbsp;&nbsp; null/nothing
+object serialization supported</span></b></p>
+
+<p class=MsoNormal style='text-indent:.5in;line-height:normal'><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif"'>At this time,
+Java and .NET null/nothing objects serialization and de-serialization are well
+supported for three types of objects. </span></p>
+
+<p class=MsoListParagraphCxSpFirst style='margin-left:.75in;text-indent:-.25in;
+line-height:normal'><span style='font-size:12.0pt;font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><span style='font-size:12.0pt;font-family:"Times New Roman","serif"'>A
+simple object containing primitive data types, string and arrays of primitive
+data types and string.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-left:.75in;text-indent:-.25in;
+line-height:normal'><span style='font-size:12.0pt;font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><span style='font-size:12.0pt;font-family:"Times New Roman","serif"'>An
+instance of a user-defined class or structure implemented with the interface <i>IUSerializer</i>.</span></p>
+
+<p class=MsoListParagraphCxSpLast style='margin-left:.75in;text-indent:-.25in;
+line-height:normal'><span style='font-size:12.0pt;font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><span style='font-size:12.0pt;font-family:"Times New Roman","serif"'>A
+native .NET serializable object.</span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:.25in;line-height:normal'><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif"'>Also, you can
+easily make the first two types of objects compatible with not only native code
+development like C/C++ but also .NET compact framework.</span></p>
+
+<p class=MsoNormal style='line-height:normal'><b><span style='font-size:12.0pt;
+font-family:"Times New Roman","serif"'>11.&nbsp;&nbsp;&nbsp; <a
+name="Use_CScopeUQueue_within_stack_whenever_p">Use CScopeUQueue within
+function stack whenever </a>possible</span></b></p>
+
+<p class=MsoNormal style='text-indent:.5in;line-height:normal'><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif"'>Whenever an
+instance of <i>CScopeUQueue</i> is disposed, its internal <i>CUQueue</i> will
+be recycled into an internal memory pool for use in the future as described in section
+3 above. For example, you should use the code style below whenever possible.</span></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:0in;margin-bottom:0in;
+margin-left:.5in;margin-bottom:.0001pt;line-height:normal;background:#FFFFCC'><b><span
+style='font-size:10.0pt;font-family:"Times New Roman","serif";color:blue'>using</span></b><b><span
+style='font-size:10.0pt;font-family:"Times New Roman","serif"'>&nbsp;</span></b><b><span
+style='font-size:10.0pt;font-family:"Times New Roman","serif"'>(<span
+style='color:#2B91AF'>CScopeUQueue</span></span></b><b><span style='font-size:
+10.0pt;font-family:"Times New Roman","serif"'>&nbsp;</span></b><b><span
+style='font-size:10.0pt;font-family:"Times New Roman","serif"'>su =</span></b><b><span
+style='font-size:10.0pt;font-family:"Times New Roman","serif"'>&nbsp;</span></b><b><span
+style='font-size:10.0pt;font-family:"Times New Roman","serif";color:blue'>new</span></b><b><span
+style='font-size:10.0pt;font-family:"Times New Roman","serif"'>&nbsp;</span></b><b><span
+style='font-size:10.0pt;font-family:"Times New Roman","serif";color:#2B91AF'>CScopeUQueue</span></b><b><span
+style='font-size:10.0pt;font-family:"Times New Roman","serif"'>())</span></b></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:0in;margin-bottom:0in;
+margin-left:.5in;margin-bottom:.0001pt;line-height:normal;background:#FFFFCC'><b><span
+style='font-size:10.0pt;font-family:"Times New Roman","serif"'>{</span></b></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:0in;margin-bottom:0in;
+margin-left:1.0in;margin-bottom:.0001pt;line-height:normal;background:#FFFFCC'><b><span
+style='font-size:10.0pt;font-family:"Times New Roman","serif";color:blue'>int</span></b><b><span
+style='font-size:10.0pt;font-family:"Times New Roman","serif"'>&nbsp;</span></b><b><span
+style='font-size:10.0pt;font-family:"Times New Roman","serif"'>n = 12345;</span></b></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:0in;margin-bottom:0in;
+margin-left:1.0in;margin-bottom:.0001pt;line-height:normal;background:#FFFFCC'><b><span
+style='font-size:10.0pt;font-family:"Times New Roman","serif";color:blue'>string</span></b><b><span
+style='font-size:10.0pt;font-family:"Times New Roman","serif"'>&nbsp;</span></b><b><span
+style='font-size:10.0pt;font-family:"Times New Roman","serif"'>str =</span></b><b><span
+style='font-size:10.0pt;font-family:"Times New Roman","serif"'>&nbsp;</span></b><b><span
+style='font-size:10.0pt;font-family:"Times New Roman","serif";color:#A31515'>&quot;test&quot;</span></b><b><span
+style='font-size:10.0pt;font-family:"Times New Roman","serif"'>;</span></b></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:0in;margin-bottom:0in;
+margin-left:1.0in;margin-bottom:.0001pt;line-height:normal;background:#FFFFCC'><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:0in;margin-bottom:0in;
+margin-left:1.0in;margin-bottom:.0001pt;line-height:normal;background:#FFFFCC'><b><span
+style='font-size:10.0pt;font-family:"Times New Roman","serif"'>su.Save(n).Save(str);</span></b></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:0in;margin-bottom:0in;
+margin-left:1.0in;margin-bottom:.0001pt;line-height:normal;background:#FFFFCC'><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:0in;margin-bottom:0in;
+margin-left:1.0in;margin-bottom:.0001pt;line-height:normal;background:#FFFFCC'><b><span
+style='font-size:10.0pt;font-family:"Times New Roman","serif";color:green'>//The
+above call is equal to the below three calls</span></b></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:0in;margin-bottom:0in;
+margin-left:1.0in;margin-bottom:.0001pt;line-height:normal;background:#FFFFCC'><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:0in;margin-bottom:0in;
+margin-left:1.0in;margin-bottom:.0001pt;line-height:normal;background:#FFFFCC'><b><span
+style='font-size:10.0pt;font-family:"Times New Roman","serif";color:green'>//CUQueue
+UQueue = su.UQueue;</span></b></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:0in;margin-bottom:0in;
+margin-left:1.0in;margin-bottom:.0001pt;line-height:normal;background:#FFFFCC'><b><span
+style='font-size:10.0pt;font-family:"Times New Roman","serif";color:green'>//UQueue.Save(n);</span></b></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:0in;margin-bottom:0in;
+margin-left:1.0in;margin-bottom:.0001pt;line-height:normal;background:#FFFFCC'><b><span
+style='font-size:10.0pt;font-family:"Times New Roman","serif";color:green'>//UQueue.Save(str);</span></b></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:0in;margin-bottom:0in;
+margin-left:1.0in;margin-bottom:.0001pt;line-height:normal;background:#FFFFCC'><span
+style='font-size:12.0pt;font-family:"Arial","sans-serif"'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:0in;margin-bottom:5.0pt;
+margin-left:1.0in;line-height:normal;background:#FFFFCC'><b><span
+style='font-size:10.0pt;font-family:"Times New Roman","serif";color:green'>//do
+whatever you like here ......</span></b></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:0in;margin-bottom:5.0pt;
+margin-left:.5in;line-height:normal;background:#FFFFCC'><b><span
+style='font-size:10.0pt;font-family:"Times New Roman","serif"'>}</span></b><b><span
+style='font-size:10.0pt;font-family:"Times New Roman","serif"'>&nbsp;</span></b><b><span
+style='font-size:10.0pt;font-family:"Times New Roman","serif";color:green'>//Internal
+CUQueue will be recycled into internal pool for reuse in the future here</span></b><a
+name="_GoBack"></a></p>
+
+</div>
+
+</body>
+
+</html>

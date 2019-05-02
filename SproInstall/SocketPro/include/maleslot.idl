@@ -1,0 +1,59 @@
+// This is a part of the SocketPro package.
+// Copyright (C) 2000-2004 UDAParts 
+// All rights reserved.
+//
+// This source code is only intended as a supplement to the
+// SocketPro package and related electronic documentation provided with the package.
+// See these sources for detailed information regarding this
+// UDAParts product.
+
+// Please don't disclose any source code of the software to any person or entity,
+//
+// Please don't decompile, disassemble, or reverse engineer any object code of 
+// any portion of the software.
+//  
+// http://www.udaparts.com/index.htm
+// support@udaparts.com
+
+	
+	[
+		object,
+		uuid(20F08C2E-792C-10D6-B1D1-0010B5EC085B),
+		dual,
+		helpstring("IUObjBase Interface"),
+		pointer_default(unique)
+	]
+	interface IUObjBase : IDispatch
+	{
+		[id(1), helpstring("method AttachSocket")] HRESULT AttachSocket([in]IUnknown *pIUnknownToUSocket);
+		[propget, id(2), helpstring("property Rtn")] HRESULT Rtn([out, retval]long *plResult);
+		[propget, id(3), helpstring("property ErrorMsg")] HRESULT ErrorMsg([out, retval] BSTR *pVal);
+	};
+		
+	[
+		uuid(F8000F37-147E-4C43-B889-1D4C9A612009),
+		helpstring("_IURequestEvent Interface")
+	]
+	dispinterface _IURequestEvent
+	{
+		properties:
+		methods:
+		[id(1), helpstring("method OnRequestProcessed")] HRESULT OnRequestProcessed([in]long hSocket, [in]short nRequestID, [in]long lLen,  [in] long lLenInBuffer, [in]short sFlag);
+	};
+
+// This is a part of the SocketPro package.
+// Copyright (C) 2000-2004 UDAParts 
+// All rights reserved.
+//
+// This source code is only intended as a supplement to the
+// SocketPro package and related electronic documentation provided with the package.
+// See these sources for detailed information regarding this
+// UDAParts product.
+
+// Please don't disclose any source code of the software to any person or entity,
+//
+// Please don't decompile, disassemble, or reverse engineer any object code of 
+// any portion of the software.
+//  
+// http://www.udaparts.com/index.htm
+// support@udaparts.com

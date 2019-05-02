@@ -1,0 +1,1096 @@
+<html xmlns:v="urn:schemas-microsoft-com:vml"
+xmlns:o="urn:schemas-microsoft-com:office:office"
+xmlns:w="urn:schemas-microsoft-com:office:word"
+xmlns="http://www.w3.org/TR/REC-html40">
+
+<head>
+<meta http-equiv=Content-Type content="text/html; charset=GB2312">
+<meta name=ProgId content=Word.Document>
+<meta name=Generator content="Microsoft Word 9">
+<meta name=Originator content="Microsoft Word 9">
+<link rel=File-List href="./slpush_files/filelist.xml">
+<link rel=Edit-Time-Data href="./slpush_files/editdata.mso">
+<!--[if !mso]>
+<style>
+v\:* {behavior:url(#default#VML);}
+o\:* {behavior:url(#default#VML);}
+w\:* {behavior:url(#default#VML);}
+.shape {behavior:url(#default#VML);}
+</style>
+<![endif]-->
+<title>Push data from HTTP server onto MS Silverlight clients in real time</title>
+<!--[if gte mso 9]><xml>
+ <o:DocumentProperties>
+  <o:Author>Yuancai (Charlie) Ye</o:Author>
+  <o:Template>Normal</o:Template>
+  <o:LastAuthor>Yuancai (Charlie) Ye</o:LastAuthor>
+  <o:Revision>3</o:Revision>
+  <o:TotalTime>7</o:TotalTime>
+  <o:Created>2010-01-01T15:52:00Z</o:Created>
+  <o:LastSaved>2010-01-02T17:53:00Z</o:LastSaved>
+  <o:Pages>6</o:Pages>
+  <o:Words>2511</o:Words>
+  <o:Characters>14316</o:Characters>
+  <o:Company>Intelligent Decision Technologies</o:Company>
+  <o:Lines>119</o:Lines>
+  <o:Paragraphs>28</o:Paragraphs>
+  <o:CharactersWithSpaces>17581</o:CharactersWithSpaces>
+  <o:Version>9.2720</o:Version>
+ </o:DocumentProperties>
+</xml><![endif]--><!--[if gte mso 9]><xml>
+ <w:WordDocument>
+  <w:Compatibility>
+   <w:UseFELayout/>
+  </w:Compatibility>
+ </w:WordDocument>
+</xml><![endif]-->
+<style>
+<!--
+ /* Font Definitions */
+@font-face
+	{font-family:Wingdings;
+	panose-1:5 0 0 0 0 0 0 0 0 0;
+	mso-font-charset:2;
+	mso-generic-font-family:auto;
+	mso-font-pitch:variable;
+	mso-font-signature:0 268435456 0 0 -2147483648 0;}
+@font-face
+	{font-family:SimSun;
+	panose-1:2 1 6 0 3 1 1 1 1 1;
+	mso-font-alt:SimSun;
+	mso-font-charset:134;
+	mso-generic-font-family:auto;
+	mso-font-pitch:variable;
+	mso-font-signature:3 135135232 16 0 262145 0;}
+@font-face
+	{font-family:"\@SimSun";
+	panose-1:2 1 6 0 3 1 1 1 1 1;
+	mso-font-charset:134;
+	mso-generic-font-family:auto;
+	mso-font-pitch:variable;
+	mso-font-signature:3 135135232 16 0 262145 0;}
+ /* Style Definitions */
+p.MsoNormal, li.MsoNormal, div.MsoNormal
+	{mso-style-parent:"";
+	margin:0in;
+	margin-bottom:.0001pt;
+	mso-pagination:widow-orphan;
+	font-size:12.0pt;
+	font-family:SimSun;
+	mso-bidi-font-family:"Times New Roman";
+	mso-fareast-language:ZH-CN;}
+a:link, span.MsoHyperlink
+	{color:blue;
+	text-decoration:underline;
+	text-underline:single;}
+a:visited, span.MsoHyperlinkFollowed
+	{color:blue;
+	text-decoration:underline;
+	text-underline:single;}
+p
+	{margin-right:0in;
+	mso-margin-top-alt:auto;
+	mso-margin-bottom-alt:auto;
+	margin-left:0in;
+	mso-pagination:widow-orphan;
+	font-size:12.0pt;
+	font-family:SimSun;
+	mso-bidi-font-family:"Times New Roman";
+	mso-fareast-language:ZH-CN;}
+@page Section1
+	{size:8.5in 11.0in;
+	margin:1.0in 1.25in 1.0in 1.25in;
+	mso-header-margin:.5in;
+	mso-footer-margin:.5in;
+	mso-paper-source:0;}
+div.Section1
+	{page:Section1;}
+ /* List Definitions */
+@list l0
+	{mso-list-id:677736856;
+	mso-list-type:hybrid;
+	mso-list-template-ids:954373872 -305076290 136460714 -1893937022 -1052360786 -2120052666 1566320680 275829778 1756645370 -1482910436;}
+@list l0:level1
+	{mso-level-number-format:bullet;
+	mso-level-text:\F0B7;
+	mso-level-tab-stop:.5in;
+	mso-level-number-position:left;
+	text-indent:-.25in;
+	mso-ansi-font-size:10.0pt;
+	font-family:Symbol;}
+@list l1
+	{mso-list-id:1046636049;
+	mso-list-type:hybrid;
+	mso-list-template-ids:-249552242 -90683954 1537872406 294177590 1396624838 -586361896 -1003715168 -1321705402 -718735642 -2086351912;}
+@list l1:level1
+	{mso-level-number-format:bullet;
+	mso-level-text:\F0B7;
+	mso-level-tab-stop:.5in;
+	mso-level-number-position:left;
+	text-indent:-.25in;
+	mso-ansi-font-size:10.0pt;
+	font-family:Symbol;}
+@list l2
+	{mso-list-id:1155875637;
+	mso-list-type:hybrid;
+	mso-list-template-ids:648174030 -818405058 -997551036 1636072622 2063751788 1707220034 1551127582 -1645716744 1833098678 1204840844;}
+@list l2:level1
+	{mso-level-number-format:bullet;
+	mso-level-text:\F0B7;
+	mso-level-tab-stop:.5in;
+	mso-level-number-position:left;
+	text-indent:-.25in;
+	mso-ansi-font-size:10.0pt;
+	font-family:Symbol;}
+@list l3
+	{mso-list-id:1269117041;
+	mso-list-type:hybrid;
+	mso-list-template-ids:522463444 -1788420410 -82049962 -1764882830 -1826328990 406736916 1932793382 128759610 -666702068 1348524348;}
+@list l3:level1
+	{mso-level-number-format:bullet;
+	mso-level-text:\F0B7;
+	mso-level-tab-stop:.5in;
+	mso-level-number-position:left;
+	text-indent:-.25in;
+	mso-ansi-font-size:10.0pt;
+	font-family:Symbol;}
+@list l4
+	{mso-list-id:1561936536;
+	mso-list-type:hybrid;
+	mso-list-template-ids:267914030 1224353526 206705480 431106886 2096768492 986359156 -737619256 -22922586 1179175834 1512111688;}
+@list l4:level1
+	{mso-level-number-format:bullet;
+	mso-level-text:\F0B7;
+	mso-level-tab-stop:.5in;
+	mso-level-number-position:left;
+	text-indent:-.25in;
+	mso-ansi-font-size:10.0pt;
+	font-family:Symbol;}
+@list l5
+	{mso-list-id:1741170877;
+	mso-list-type:hybrid;
+	mso-list-template-ids:716723730 1978810538 170162306 2073171126 -626764166 -645874854 79191580 -860334410 -510596632 193516656;}
+@list l5:level1
+	{mso-level-number-format:bullet;
+	mso-level-text:\F0B7;
+	mso-level-tab-stop:.5in;
+	mso-level-number-position:left;
+	text-indent:-.25in;
+	mso-ansi-font-size:10.0pt;
+	font-family:Symbol;}
+ol
+	{margin-bottom:0in;}
+ul
+	{margin-bottom:0in;}
+-->
+</style>
+<meta http-equiv=Content-Language content=en-us>
+</head>
+
+<body lang=EN-US link=blue vlink=blue style='tab-interval:.5in'>
+
+<div class=Section1>
+
+<p><b><span style='font-size:18.0pt'>Push data from HTTP server onto MS
+Silverlight clients in real time</span></b></p>
+
+<p><span lang=ZH-CN>　</span></p>
+
+<p><b><i><a href="mailto:support@udaparts.com">support@udaparts.com<br>
+</a>UDAParts<br>
+05/18/2009</i></b></p>
+
+<p><span lang=ZH-CN>　</span></p>
+
+<p><img border=0 width=630 height=212 id="_x0000_i1025" src=safarisl.jpg></p>
+
+<p><img border=0 width=639 height=252 id="_x0000_i1026" src=iesl.jpg></p>
+
+<p><img border=0 width=639 height=276 id="_x0000_i1027" src=firefoxsl.jpg></p>
+
+<p><img border=0 width=633 height=217 id="_x0000_i1028" src=chromesl.jpg></p>
+
+<p><span lang=ZH-CN>　</span></p>
+
+<p><b>Contents</b></p>
+
+<ul type=disc>
+ <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
+     mso-list:l2 level1 lfo3;tab-stops:list .5in'><a href="#Introduction">Introduction</a></li>
+ <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
+     mso-list:l2 level1 lfo3;tab-stops:list .5in'><a
+     href="#Communication architecture between Silverlight and SocketPro HTTP server">Communication
+     architecture between Silverlight and SocketPro HTTP server</a></li>
+ <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
+     mso-list:l2 level1 lfo3;tab-stops:list .5in'><a
+     href="#Analyze sample code snippets">Analyze sample code snippets</a></li>
+</ul>
+
+<p class=MsoNormal style='margin-right:.5in;mso-margin-top-alt:auto;mso-margin-bottom-alt:
+auto;margin-left:1.0in;text-indent:-.25in;mso-list:l1 level1 lfo5;tab-stops:
+list .5in'><![if !supportLists]><span style='font-size:10.0pt;mso-bidi-font-size:
+12.0pt;font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><a href="#Client side code:">Client side code</a></p>
+
+<p class=MsoNormal style='margin-right:.5in;mso-margin-top-alt:auto;mso-margin-bottom-alt:
+auto;margin-left:1.0in;text-indent:-.25in;mso-list:l1 level1 lfo5;tab-stops:
+list .5in'><![if !supportLists]><span style='font-size:10.0pt;mso-bidi-font-size:
+12.0pt;font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><a href="#Server side code:">Server side code</a></p>
+
+<ul type=disc>
+ <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
+     mso-list:l5 level1 lfo8;tab-stops:list .5in'><a
+     href="#Comparison to socket and WCF PollingDuplexHttpBinding">Comparison
+     to socket and WCF with PollingDuplexHttpBinding</a></li>
+ <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
+     mso-list:l5 level1 lfo8;tab-stops:list .5in'><a href="#Further readings">Further
+     readings</a></li>
+ <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
+     mso-list:l5 level1 lfo8;tab-stops:list .5in'><a href="#FAQs">FAQs</a></li>
+</ul>
+
+<p><span lang=ZH-CN>　</span></p>
+
+<p><b>1.&nbsp;&nbsp;&nbsp; <a name=Introduction>Introduction</a></b><span
+style='mso-bookmark:Introduction'></span></p>
+
+<p>&nbsp;&nbsp;&nbsp; Microsoft has been working hard to bring us a new
+cross-platform and cross-browser technology for developing rich Internet application
+having many features such as multimedia, animation, graphics and audio/video
+playback. Starting from version 2, MS Silverlight supports .NET development
+languages and its integrated development environments. This is a very good
+approach and a very good news to .NET developers.&nbsp;</p>
+
+<p>&nbsp;&nbsp;&nbsp; To communicate with backend server, Silverlight uses a
+very limited version of Window Communication Framework (WCF), HTTP protocol
+(For example, the class <i>WebRequest</i>), and socket. In general, these
+approaches make a client/server request simpler, but these technologies do not
+have enough support to push data from a HTTP server onto Silverlight client
+because these technologies are either too complex to use (socket) or poor in
+performance and scalability (WCF <i>PollingDuplexHttpBinding</i>).</p>
+
+<p>&nbsp;&nbsp;&nbsp; Now, our SocketPro comes with a new adapter specifically
+written for making bi-directional communication between HTTP server and
+Silverlight super easy with better scalability. This short article is a simple
+tutorial to guide you use our SocketPro to push data from a simple SocketPro
+HTTP server to Silverlight clients.</p>
+
+<p><b>2.&nbsp;&nbsp;&nbsp; <a name="Communication_architecture_between_Silve">Communication
+architecture between Silverlight and SocketPro HTTP server</a></b><span
+style='mso-bookmark:Communication_architecture_between_Silve'></span></p>
+
+<p>&nbsp;&nbsp;&nbsp; SocketPro has a HTTP service as shown in this article.
+Further, as shown in this article, it also supports pushing data from HTTP
+server onto browsers by use of HTTP protocol through JavaScript. SocketPro HTTP
+server is written with 100% non-blocking socket communication. Its special
+design is superbly great for developing applications requiring the feature
+real-time notification among all types of clients such as web browsers, desktop
+applications, server applications, and pocket pc/smart phone applications. You
+can see the particular feature here.</p>
+
+<p>&nbsp;&nbsp;&nbsp; We further extend SocketPro to support bi-directional
+communication between Silverlight and SocketPro specific HTTP server through
+JavaScript (ujsonxml.js) by writing a small (16 kilo bytes) Silverlight library
+(SAdapterForSilverlight.dll). The communication architecture can be simplified
+as the following:</p>
+
+<p>&nbsp;&nbsp;&nbsp; <b><i><span style='color:#CC0066'>Your .NET Silverlight
+code&nbsp; &lt;===&gt; SAdapterForSilverlight.dll (C# code) &lt;===&gt;
+ujsonxml.js (JavaScript)</span></i></b> <b><span style='font-size:13.5pt'>&lt;===&gt;</span></b>
+<b><i><span style='color:blue'>usktpror.dll (core native code) &lt;===&gt;
+SProAdapter.dll(.NET code)</span></i></b></p>
+
+<p>&nbsp;&nbsp;&nbsp; Note that the above left red part runs inside a browser
+and right blue part on server side.&nbsp;</p>
+
+<p><b>3.&nbsp;&nbsp;&nbsp; <a name="Analyze_sample_code_snippets">Analyze
+sample code snippets</a></b><span style='mso-bookmark:Analyze_sample_code_snippets'></span></p>
+
+<p>&nbsp;&nbsp;&nbsp; There are two separate projects available for this
+tutorial.</p>
+
+<ul type=disc>
+ <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
+     mso-list:l0 level1 lfo11;tab-stops:list .5in'>MS Silverlight/browser
+     client side: C:\Program Files\UDAParts\SocketPro\tutorial\CSharp(VBNet)\SilverPush.</li>
+ <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
+     mso-list:l0 level1 lfo11;tab-stops:list .5in'>SocketPro HTTP server side:
+     C:\Program Files\UDAParts\SocketPro\tutorial\CSharp(VBNet)\Chat\Server.
+     The server project is the same one as discussed at <a href="httppush.htm">this
+     article here</a>.</li>
+</ul>
+
+<p>&nbsp;&nbsp;&nbsp; <a name="Client_side_code:"><b>Client side code:</b></a>&nbsp;&nbsp;&nbsp;
+At the very beginning, you need to refer SocketPro adapter for Silverlight
+(SAdapterForSilverlight.dll) from Silverlight project, and its name space like
+'<i><span style='color:blue'>using</span> SocketProAdapter.ClientSide;'.</i> On
+your html or asp.net page, you need to refer SocketPro adapter for JavaScript
+(ujsonxml.js) before silverlight.js like the below:</p>
+
+<p style='background:#FFFFCC'>&nbsp;&nbsp;&nbsp; <b><span style='font-size:
+10.0pt;color:blue'>&lt;</span></b><b><span style='font-size:10.0pt;color:#A31515'>script</span></b><b><span
+style='font-size:10.0pt'> <span style='color:red'>type</span><span
+style='color:blue'>=&quot;text/javascript&quot;</span> <span style='color:red'>src</span><span
+style='color:blue'>=&quot;ujsonxml.js&quot;&gt;&lt;/</span><span
+style='color:#A31515'>script</span><span style='color:blue'>&gt;</span></span></b></p>
+
+<p>&nbsp;&nbsp;&nbsp; At this time, once a page is loaded, you can set two
+callbacks like the below.</p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt;color:blue'>&nbsp;&nbsp;&nbsp; public</span></b><b><span
+style='font-size:10.0pt'> Page()</span></b></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp; {</span></b></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+InitializeComponent();</span></b></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+UHTTP.UChat.OnChatRequest += <span style='color:blue'>new</span>
+DOnChatRequest(UChat_OnChatRequest);</span></b></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+UHTTP.UChat.OnMessage += <span style='color:blue'>new</span>
+DOnChatNotification(UChat_OnMessage);</span></b></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp; }</span></b></p>
+
+<p>&nbsp;&nbsp;&nbsp; The above code is simple. The first callback is used for tracking
+returning results of chat requests such as <i>Enter</i>, <i>Exit</i>, <i>Speak</i>
+and <i>SendUserMessage</i>. The second one is for tracking any messages from a
+remote SocketPro HTTP push server. Note that SocketPro adapter for Silverlight
+exposes one static object <i>UHTTP,</i> which internally has one static object <i>UChat</i>.</p>
+
+<p>&nbsp;&nbsp;&nbsp; The following code snippet shows you how to handle chat
+requests results.</p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt;color:blue'>&nbsp;&nbsp;&nbsp; void</span></b><b><span
+style='font-size:10.0pt'> UChat_OnChatRequest(CRequest Request, <span
+style='color:blue'>object</span> Result)</span></b></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp; {</span></b></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt;color:blue'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+switch</span></b><b><span style='font-size:10.0pt'> (Request.Name)</span></b></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {</span></b></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt;color:blue'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+case</span></b><b><span style='font-size:10.0pt'> <span style='color:#A31515'>&quot;enter&quot;</span>:</span></b></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt;color:blue'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+if</span></b><b><span style='font-size:10.0pt'> (UHTTP.UChat.Chatting)</span></b></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+{</span></b></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+btnEnter.IsEnabled = <span style='color:blue'>false</span>;</span></b></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+btnSpeak.IsEnabled = <span style='color:blue'>true</span>;</span></b></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+}</span></b></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt;color:blue'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+break</span></b><b><span style='font-size:10.0pt'>;</span></b></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt;color:blue'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+case</span></b><b><span style='font-size:10.0pt'> <span style='color:#A31515'>&quot;exit&quot;</span>:</span></b></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+btnEnter.IsEnabled = <span style='color:blue'>true</span>;</span></b></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+btnSpeak.IsEnabled = <span style='color:blue'>false</span>;</span></b></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt;color:blue'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+break</span></b><b><span style='font-size:10.0pt'>;</span></b></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt;color:blue'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+default</span></b><b><span style='font-size:10.0pt'>:</span></b></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt;color:blue'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+break</span></b><b><span style='font-size:10.0pt'>;</span></b></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; }</span></b></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; txtMsg.Text
+= <span style='color:blue'>string</span>.Format(<span style='color:#A31515'>&quot;Method
+= {0}, Result = {1}&quot;</span>, Request.Name, Result.ToString());</span></b></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp; }</span></b></p>
+
+<p>&nbsp;&nbsp;&nbsp; As you can see, it is really simple! The following code
+snippet shows you how to send a message onto other Silverlight, desktop, server
+and device clients through chat request <i>Speak</i>. Similarly, you can make
+other chat requests at your will.</p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt;color:blue'>&nbsp;&nbsp;&nbsp; private</span></b><b><span
+style='font-size:10.0pt'> <span style='color:blue'>void</span> btnSpeak_Click(<span
+style='color:blue'>object</span> sender, RoutedEventArgs e)</span></b></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp; {<o:p></o:p></span></b></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'><span style='mso-tab-count:1'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><span
+style="mso-spacerun: yes">&nbsp; </span><span style='color:blue'>int []</span>groups
+= {1,2,8};</span></b></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+UHTTP.UChat.Speak(txtMsgOut.Text, 11); <span style='color:green'>//send a
+message onto groups (1 + 2 + 8) of clients</span></span></b></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp; }</span></b></p>
+
+<p>&nbsp;&nbsp;&nbsp; The code just speaks out how it is simple! To track all
+types of messages from other Silverlight, desktop, server and device clients,
+you can use the below code snippet.</p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt;color:blue'>&nbsp;&nbsp;&nbsp; void</span></b><b><span
+style='font-size:10.0pt'> UChat_OnMessage(CRequest Request, CHttpPush HttpPush)</span></b></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp; {</span></b></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt;color:blue'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+switch</span></b><b><span style='font-size:10.0pt'>(HttpPush.Type)</span></b></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {</span></b></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt;color:blue'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+case</span></b><b><span style='font-size:10.0pt'> MessageType.Normal:</span></b></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+{</span></b></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt;color:blue'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+string</span></b><b><span style='font-size:10.0pt'> str = <span
+style='color:#A31515'>&quot;&quot;</span>;</span></b></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt;color:blue'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+foreach</span></b><b><span style='font-size:10.0pt'> (CChatMessage cm <span
+style='color:blue'>in</span> HttpPush.Messages)</span></b></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+{<o:p></o:p></span></b></p>
+
+<p class=MsoNormal style='background:#FFFFCC;mso-layout-grid-align:none;
+text-autospace:none'><b><span style='font-size:10.0pt'><span
+style="mso-spacerun: yes">&nbsp;&nbsp; </span><span style='mso-tab-count:3'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><span
+style="mso-spacerun: yes">&nbsp;&nbsp;&nbsp;</span></span></b><b><span
+style='font-size:10.0pt;mso-fareast-font-family:"Times New Roman";mso-bidi-font-family:
+"Courier New";color:blue;mso-fareast-language:EN-US'>string</span></b><b><span
+style='font-size:10.0pt;mso-fareast-font-family:"Times New Roman";mso-bidi-font-family:
+"Courier New";mso-fareast-language:EN-US'> strGroups = <span style='color:#A31515'>&quot;[&quot;</span>;<o:p></o:p></span></b></p>
+
+<p class=MsoNormal style='background:#FFFFCC;mso-layout-grid-align:none;
+text-autospace:none'><b><span style='font-size:10.0pt;mso-fareast-font-family:
+"Times New Roman";mso-bidi-font-family:"Courier New";mso-fareast-language:EN-US'><span
+style="mso-spacerun:
+yes">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span><span style='color:blue'>if</span> (cm.Groups != <span style='color:
+blue'>null</span>)<o:p></o:p></span></b></p>
+
+<p class=MsoNormal style='background:#FFFFCC;mso-layout-grid-align:none;
+text-autospace:none'><b><span style='font-size:10.0pt;mso-fareast-font-family:
+"Times New Roman";mso-bidi-font-family:"Courier New";mso-fareast-language:EN-US'><span
+style="mso-spacerun:
+yes">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span>{<o:p></o:p></span></b></p>
+
+<p class=MsoNormal style='background:#FFFFCC;mso-layout-grid-align:none;
+text-autospace:none'><b><span style='font-size:10.0pt;mso-fareast-font-family:
+"Times New Roman";mso-bidi-font-family:"Courier New";mso-fareast-language:EN-US'><span
+style="mso-spacerun:
+yes">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span><span style='color:blue'>for</span> (<span style='color:blue'>int</span>
+n = 0; n &lt; cm.Groups.Length; n++)<o:p></o:p></span></b></p>
+
+<p class=MsoNormal style='background:#FFFFCC;mso-layout-grid-align:none;
+text-autospace:none'><b><span style='font-size:10.0pt;mso-fareast-font-family:
+"Times New Roman";mso-bidi-font-family:"Courier New";mso-fareast-language:EN-US'><span
+style="mso-spacerun:
+yes">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span>{<o:p></o:p></span></b></p>
+
+<p class=MsoNormal style='background:#FFFFCC;mso-layout-grid-align:none;
+text-autospace:none'><b><span style='font-size:10.0pt;mso-fareast-font-family:
+"Times New Roman";mso-bidi-font-family:"Courier New";mso-fareast-language:EN-US'><span
+style="mso-spacerun: yes">&nbsp;&nbsp;&nbsp; </span><span style="mso-spacerun:
+yes">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span
+style='mso-tab-count:1'>&nbsp;&nbsp;&nbsp;&nbsp; </span><span style='color:
+blue'>if</span> (n &gt; 0) strGroups += <span style='color:#A31515'>&quot;,
+&quot;</span>;<o:p></o:p></span></b></p>
+
+<p class=MsoNormal style='background:#FFFFCC;mso-layout-grid-align:none;
+text-autospace:none'><b><span style='font-size:10.0pt;mso-fareast-font-family:
+"Times New Roman";mso-bidi-font-family:"Courier New";mso-fareast-language:EN-US'><span
+style="mso-spacerun:
+yes">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span>strGroups += cm.Groups[n].ToString();<o:p></o:p></span></b></p>
+
+<p class=MsoNormal style='background:#FFFFCC;mso-layout-grid-align:none;
+text-autospace:none'><b><span style='font-size:10.0pt;mso-fareast-font-family:
+"Times New Roman";mso-bidi-font-family:"Courier New";mso-fareast-language:EN-US'><span
+style="mso-spacerun:
+yes">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span>}<o:p></o:p></span></b></p>
+
+<p class=MsoNormal style='background:#FFFFCC;mso-layout-grid-align:none;
+text-autospace:none'><b><span style='font-size:10.0pt;mso-fareast-font-family:
+"Times New Roman";mso-bidi-font-family:"Courier New";mso-fareast-language:EN-US'><span
+style="mso-spacerun:
+yes">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span>strGroups += <span style='color:#A31515'>&quot;]&quot;</span>;<o:p></o:p></span></b></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt;mso-fareast-font-family:"Times New Roman";mso-bidi-font-family:
+"Courier New";mso-fareast-language:EN-US'><span style="mso-spacerun:
+yes">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span>}</span></b></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt;color:blue'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+if</span></b><b><span style='font-size:10.0pt'> (str.Length &gt; 0)</span></b></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+str += <span style='color:#A31515'>&quot;</span></span></b><b><span
+style='font-size:10.0pt;font-family:Wingdings;mso-ascii-font-family:SimSun;
+mso-hansi-font-family:SimSun;color:#A31515;mso-char-type:symbol;mso-symbol-font-family:
+Wingdings'><span style='mso-char-type:symbol;mso-symbol-font-family:Wingdings'>&szlig;</span></span></b><b><span
+style='font-size:10.0pt;color:#A31515'>&gt;&quot;</span></b><b><span
+style='font-size:10.0pt'>;</span></b></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt;color:blue'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+if</span></b><b><span style='font-size:10.0pt'> (cm.MethodName == <span
+style='color:#A31515'>&quot;enter&quot;</span>)</span></b></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+str += <span style='color:blue'>string</span>.Format(<span style='color:#A31515'>&quot;Sender
+= {0}, Message = join groups = {1}&quot;</span>, cm.Sender, strGroups);</span></b></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt;color:blue'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+else</span></b><b><span style='font-size:10.0pt'> <span style='color:blue'>if</span>
+(cm.MethodName == <span style='color:#A31515'>&quot;exit&quot;</span>)</span></b></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+str += <span style='color:blue'>string</span>.Format(<span style='color:#A31515'>&quot;Sender
+= {0}, Message = {1}, groups = {2}&quot;</span>, cm.Sender, &quot;exit&quot;,
+strGroups);</span></b></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt;color:blue'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+else</span></b></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+str += <span style='color:blue'>string</span>.Format(<span style='color:#A31515'>&quot;Sender
+= {0}, Message = {1}, groups = {2}&quot;</span>, cm.Sender, cm.Message, strGroups);</span></b></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+}</span></b></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+txtMsg.Text = str;</span></b></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+}</span></b></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt;color:blue'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+break</span></b><b><span style='font-size:10.0pt'>;</span></b></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt;color:blue'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+case</span></b><b><span style='font-size:10.0pt'>
+MessageType.ServerShuttingdownGracefully:</span></b></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+txtMsg.Text = <span style='color:#A31515'>&quot;SocketPro HTTP push server shut
+down gracefully&quot;</span>;</span></b></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt;color:blue'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+break</span></b><b><span style='font-size:10.0pt'>;</span></b></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt;color:blue'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+case</span></b><b><span style='font-size:10.0pt'> MessageType.Timeout:</span></b></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+txtMsg.Text = <span style='color:#A31515'>&quot;Time out&quot;</span>;</span></b></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt;color:blue'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+break</span></b><b><span style='font-size:10.0pt'>;</span></b></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt;color:blue'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+default</span></b><b><span style='font-size:10.0pt'>:</span></b></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+txtMsg.Text = <span style='color:#A31515'>&quot;Unknown message&quot;</span>;</span></b></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt;color:blue'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+break</span></b><b><span style='font-size:10.0pt'>;</span></b></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; }</span></b></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp; }</span></b></p>
+
+<p>&nbsp;&nbsp;&nbsp; Again, you can see how simple it is!</p>
+
+<p>&nbsp;&nbsp;&nbsp; The above covers all of message-related callbacks and
+requests, which is powerful enough to support your business requirements for
+real-time message among Silverlight clients, simple HTML pages, desktop
+applications, server applications, and device applications. For further
+readings, see <a href="httppush.htm">this article here</a>.</p>
+
+<p>&nbsp;&nbsp;&nbsp; Note that SocketPro fully supports HTTP protocol, which
+enables you send a HTTP request from a Silverligh onto SocketPro HTTP server.
+To do so, simply use an instance of <i>CRequest</i> inside SocketPro adapter
+for JavaScript as shown in the below.&nbsp;</p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt;color:blue'>&nbsp;&nbsp;&nbsp; private</span></b><b><span
+style='font-size:10.0pt'> <span style='color:blue'>void</span>
+btnDoMyRequest_Click(<span style='color:blue'>object</span> sender,
+RoutedEventArgs e)</span></b></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp; {</span></b></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt;color:#2B91AF'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Dictionary</span></b><b><span style='font-size:10.0pt'>&lt;<span
+style='color:blue'>string</span>, <span style='color:blue'>object</span>&gt;
+map = <span style='color:blue'>new</span> <span style='color:#2B91AF'>Dictionary</span>&lt;<span
+style='color:blue'>string</span>, <span style='color:blue'>object</span>&gt;();</span></b></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; map.Add(<span
+style='color:#A31515'>&quot;Map0&quot;</span>, 123.45);</span></b></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; map.Add(<span
+style='color:#A31515'>&quot;Map1&quot;</span>, <span style='color:blue'>null</span>);</span></b></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; map.Add(<span
+style='color:#A31515'>&quot;Map2&quot;</span>, <span style='color:#A31515'>&quot;A
+sample map string&quot;</span>);</span></b></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt;color:blue'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+object</span></b><b><span style='font-size:10.0pt'>[] AComplexStructure = <span
+style='color:blue'>new</span> <span style='color:blue'>object</span>[7];</span></b></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+AComplexStructure[0] = map;</span></b></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+AComplexStructure[1] = <span style='color:#A31515'>&quot;MyString&quot;</span>;</span></b></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; AComplexStructure[2]
+= <span style='color:#2B91AF'>DateTime</span>.Now.AddDays(-2);</span></b></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+AComplexStructure[4] = <span style='color:blue'>true</span>;</span></b></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+AComplexStructure[6] = 34567;</span></b></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt;color:blue'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+object</span></b><b><span style='font-size:10.0pt'>[] child = <span
+style='color:blue'>new</span> <span style='color:blue'>object</span>[2];</span></b></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; child[0] = <span
+style='color:#A31515'>&quot;myDate&quot;</span>;</span></b></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; child[1] = <span
+style='color:#2B91AF'>DateTime</span>.Now.AddDays(-5);</span></b></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; AComplexStructure[3]
+= child;</span></b></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; CRequest
+reqComplex = UHTTP.CreateHttpRequest(<span style='color:#A31515'>&quot;MyCall&quot;</span>,
+<span style='color:#A31515'>&quot;/MyChannel&quot;</span>);</span></b></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+reqComplex.Add(<span style='color:#A31515'>&quot;Param0&quot;</span>,
+m_lIndex);</span></b></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+reqComplex.Add(<span style='color:#A31515'>&quot;Param1&quot;</span>, 23.45);</span></b></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+reqComplex.Add(<span style='color:#A31515'>&quot;MyParam&quot;</span>, <span
+style='color:#A31515'>&quot;A demo string&quot;</span>);</span></b></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; reqComplex.Add(<span
+style='color:#A31515'>&quot;ABoolean&quot;</span>, <span style='color:blue'>true</span>);</span></b></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+reqComplex.Add(<span style='color:#A31515'>&quot;ADateTime&quot;</span>, <span
+style='color:#2B91AF'>DateTime</span>.Now);</span></b></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+reqComplex.Add(<span style='color:#A31515'>&quot;AnArray&quot;</span>,
+AComplexStructure);</span></b></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+reqComplex.Add(<span style='color:#A31515'>&quot;CyeMap&quot;</span>, map);</span></b></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; m_lIndex =
+reqComplex.Invoke(<span style='color:blue'>delegate</span>(CRequest myReq, <span
+style='color:blue'>string</span> strResult)</span></b></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {</span></b></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+HtmlPage.Window.Alert(strResult);</span></b></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; });</span></b></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp; }</span></b></p>
+
+<p>&nbsp;&nbsp;&nbsp; We purposely show you how to send a complex request named
+as MyCall onto a remote HTTP server through channel (/MyChannel). Note the
+static object <i>UHTTP</i> exposes a static method <i>CreateHttpRequest</i>
+used for creating an empty HTTP request.</p>
+
+<p>&nbsp;&nbsp;&nbsp; Internally, SocketPro adapter for Silverlight constructs
+a JSON object through SocketPro adapter for JavaScript (ujsonxml.js) and send
+it onto server by default. You can use the above code to send any request
+easily.</p>
+
+<p>&nbsp;&nbsp;&nbsp; Note the class <i>CRequest</i> method <i>Invoke</i>
+supports synchronous computing for same-domain HTTP request, although we'll use
+asynchronous computing by default. However, technically it is not possible to
+do synchronous computing for cross-domain (site) HTTP request.</p>
+
+<p>&nbsp;&nbsp;&nbsp; The last important note is that SocketPro supports both
+same-domain and cross-domain (or site) chat request and message on the fly
+silently. If a message or request is same-domain, it will use AJAX. Otherwise,
+it uses JavaScript tag to complete it silently for you.</p>
+
+<p>&nbsp;&nbsp;&nbsp; <a name="Server_side_code:"><b>Server side code:</b></a>&nbsp;&nbsp;&nbsp;
+It is superbly simple too! We have hidden all of HTTP chat and message from
+you. All you need to do is to use the class <i>CHttpPushPeer</i>. Because this
+sample server project is the same one as shown in <a href="httppush.htm">this
+article</a>, we like you to read <a href="httppush.htm">this article here</a>.
+As long as you read it, you are expected to know how to enable HTTP server push
+on server side.</p>
+
+<p>&nbsp;&nbsp;&nbsp; Here is the only code snippet which we like you to know.
+It shows you how to handle a HTTP request from a browser page or Silverlight
+client.</p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt;color:blue'>&nbsp;&nbsp;&nbsp; protected</span></b><b><span
+style='font-size:10.0pt'> <span style='color:blue'>override</span> <span
+style='color:blue'>string</span> OnProcessingRequest(<span style='color:blue'>string</span>
+strMethod, <span style='color:blue'>string</span> strVersion, <span
+style='color:blue'>string</span> strId, <span style='color:#2B91AF'>Dictionary</span>&lt;<span
+style='color:blue'>string</span>, <span style='color:blue'>object</span>&gt;
+mapParams)</span></b><span style='font-size:10.0pt'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp; {</span></b><span style='font-size:
+10.0pt'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt;color:blue'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+switch</span></b><b><span style='font-size:10.0pt'> (PathName)</span></b><span
+style='font-size:10.0pt'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {</span></b><span
+style='font-size:10.0pt'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt;color:blue'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+case</span></b><b><span style='font-size:10.0pt'> <span style='color:#A31515'>&quot;/MyChannel&quot;</span>:</span></b><span
+style='font-size:10.0pt'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+{</span></b><span style='font-size:10.0pt'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt;color:#2B91AF'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+CMyCall</span></b><b><span style='font-size:10.0pt'> myCall = <span
+style='color:blue'>new</span> <span style='color:#2B91AF'>CMyCall</span>();</span></b><span
+style='font-size:10.0pt'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+myCall.method = strMethod;</span></b><span style='font-size:10.0pt'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+myCall.version = strVersion;</span></b><span style='font-size:10.0pt'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+myCall.callIndex = strId;</span></b><span style='font-size:10.0pt'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+myCall.parameters = mapParams;</span></b><span style='font-size:10.0pt'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><span
+lang=ZH-CN style='font-size:10.0pt'>　</span><span style='font-size:10.0pt'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+System.Web.Script.Serialization.<span style='color:#2B91AF'>JavaScriptSerializer</span>
+jss = <span style='color:blue'>new</span> System.Web.Script.Serialization.<span
+style='color:#2B91AF'>JavaScriptSerializer</span>();</span></b><span
+style='font-size:10.0pt'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt;color:blue'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+string</span></b><b><span style='font-size:10.0pt'> str = jss.Serialize(myCall);</span></b><span
+style='font-size:10.0pt'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt;color:#2B91AF'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Console</span></b><b><span style='font-size:10.0pt'>.WriteLine(str);</span></b><span
+style='font-size:10.0pt'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt;color:blue'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+return</span></b><b><span style='font-size:10.0pt'> str;</span></b><span
+style='font-size:10.0pt'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+}</span></b><span style='font-size:10.0pt'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt;color:blue'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+default</span></b><b><span style='font-size:10.0pt'>:</span></b><span
+style='font-size:10.0pt'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt;color:blue'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+break</span></b><b><span style='font-size:10.0pt'>;</span></b><span
+style='font-size:10.0pt'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; }</span></b><span
+style='font-size:10.0pt'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt;color:blue'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+throw</span></b><b><span style='font-size:10.0pt'> <span style='color:blue'>new</span>
+<span style='color:#2B91AF'>Exception</span>(<span style='color:#A31515'>&quot;Request
+not supported&quot;</span>);</span></b><span style='font-size:10.0pt'><o:p></o:p></span></p>
+
+<p style='margin:0in;margin-bottom:.0001pt;background:#FFFFCC'><b><span
+style='font-size:10.0pt'>&nbsp;&nbsp;&nbsp; }</span></b><span style='font-size:
+10.0pt'><o:p></o:p></span></p>
+
+<p>&nbsp;&nbsp;&nbsp; Here we simply serialize a request back into a JSON string
+and echo back request as returning result string. Note that you can also throw
+an exception. The exception message will be transferred onto its browser.</p>
+
+<p><b>4.&nbsp;&nbsp;&nbsp; <a name="Comparison_to_socket_and_WCF_PollingDupl">Comparison
+to socket and WCF PollingDuplexHttpBinding</a>&nbsp;&nbsp;</b></p>
+
+<p>&nbsp;&nbsp;&nbsp; Our SocketPro approach has a lot of advantages over
+socket and WCF with PollingDuplexHttpBinding as well as other implementations.
+Here is the list.</p>
+
+<ul type=disc>
+ <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
+     mso-list:l4 level1 lfo14;tab-stops:list .5in'><b>Simpler without pitfalls
+     at all:</b> After having compared our approach with major samples
+     published on Internet, We have found that SocketPro adapter for
+     Silverlight is much much simpler and more elegant than socket and WCF with
+     <i>PollingDuplexHttpBinding</i>. There are other samples available on
+     Internet. You can compare our sample code with them. You'll have the same
+     conclusion. Both socket and WCF with <i>PollingDuplexHttpBinding</i> have
+     so many pitfalls and complexities so that you have to spend very much time
+     to study it ahead. Also, it is very challenging to integrate Silverlight
+     push with other applications. The integration of Silverlight with others
+     is already out-of-box for you with SocketPro.</li>
+ <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
+     mso-list:l4 level1 lfo14;tab-stops:list .5in'><b>No firewall, proxy and
+     NAT problems:</b> Our SocketPro push uses HTTP protocol only. There are no
+     firewall, proxy and NAT problems. This is an advantage over direct use of
+     socket.</li>
+ <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
+     mso-list:l4 level1 lfo14;tab-stops:list .5in'><b>High performance and
+     scalability:</b> SocketPro is created with 100% non-blocking socket
+     communication. As show in <a
+     href="http://www.udaparts.com/document/articles/fastsocketpro.htm">this
+     article</a>, it is much faster and more scalable than WCF. Further,
+     SocketPro HTTP server is lighter than MS Internet Server. Its special
+     design leads much better scalability and supports much more socket
+     connections at the same time. It is estimated that our SocketPro HTTP
+     server is able to support more than 5000 push connections from different
+     Silverlight or web browser clients at the same time for a common server.
+     If you have a very good server, it should support 10,000 push connections.
+     If you use WCF <i>PollingDuplexHttpBinding</i> hosted in IIS, you can not
+     get over 250 push connections.</li>
+ <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
+     mso-list:l4 level1 lfo14;tab-stops:list .5in'><b>Lower latency:</b> Our
+     SocketPro approach uses long-polling to reduce push time from server to
+     browser. Usually the latency time is just the half of ping time from
+     browser to server. Under the worst and very rarely cases, the latency time
+     is the three times of ping time from browser to server. This level latency
+     is comparable to direct socket communication. WCF with <i>PollingDuplexHttpBinding</i>
+     can not have such a low latency.</li>
+ <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
+     mso-list:l4 level1 lfo14;tab-stops:list .5in'><b>Synchronous computing
+     supported</b>: As described in the <a href="#Client side code:">above
+     section</a>, SocketPro supports not only asynchronous computing by default
+     but also synchronous computing for same-domain HTTP request. In case you
+     like to use synchronous computing to simplify coding logic, you can do so
+     with SocketPro adapter for Silverlight. In comparison, WCF for Silverlight
+     does not support synchronous computing at all.</li>
+ <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
+     mso-list:l4 level1 lfo14;tab-stops:list .5in'><b>Smaller xap file:</b>
+     SocketPro adapter for Silverlight is a very small dll
+     (SAdapterForSilverlight.dll) having less than 16 kilo bytes only. If you
+     use others, the referenced dlls will be much larger. The smaller library
+     (SAdapterForSilverlight.dll) will speed up page loading on browser.</li>
+ <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
+     mso-list:l4 level1 lfo14;tab-stops:list .5in'><b>Generics supported with
+     SocketPro adapter for Silverlight:</b> As shown in the <a
+     href="#Client side code:">above section</a>, CRequest fully supports .NET
+     generics. .NET generics is not supported with WCF at all.</li>
+</ul>
+
+<p><b>5.&nbsp;&nbsp;&nbsp; <a name="Further_readings">Further readings</a></b><span
+style='mso-bookmark:Further_readings'></span></p>
+
+<ul type=disc>
+ <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
+     mso-list:l3 level1 lfo17;tab-stops:list .5in'>&nbsp;&nbsp;&nbsp; <a
+     href="http://www.udaparts.com/document/articles/articles.htm">Articles for
+     engineering high quality distributed and Internet applications with
+     SocketPro</a></li>
+ <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
+     mso-list:l3 level1 lfo17;tab-stops:list .5in'>&nbsp;&nbsp;&nbsp; <a
+     href="httpsvs.htm">SocketPro HTTP service</a></li>
+ <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
+     mso-list:l3 level1 lfo17;tab-stops:list .5in'>&nbsp;&nbsp;&nbsp; <a
+     href="http://www.udaparts.com/document/articles/chatservice.htm">SocketPro
+     built-in real time notification service</a></li>
+ <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
+     mso-list:l3 level1 lfo17;tab-stops:list .5in'>&nbsp;&nbsp;&nbsp; <a
+     href="httppush.htm">SocketPro HTTP push</a></li>
+ <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
+     mso-list:l3 level1 lfo17;tab-stops:list .5in'>&nbsp;&nbsp;&nbsp; <a
+     href="http://www.udaparts.com/document/articles/httplb.htm">SocketPro HTTP
+     load balancing</a></li>
+</ul>
+
+<p><b>6.&nbsp;&nbsp;&nbsp; <a name=FAQs>FAQs</a></b><span style='mso-bookmark:
+FAQs'></span></p>
+
+<p>&nbsp;&nbsp;&nbsp; <b><i>a.&nbsp;&nbsp;&nbsp; Does SocketPro adapter for
+Silverlight supports SSL/TLS for secure communication?</i></b><br>
+&nbsp;&nbsp;&nbsp; Yes! Both client and server sides are well supported on
+SSL/TLS for secure communication with SocketPro.</p>
+
+<p>&nbsp;&nbsp;&nbsp; <b><i>b.&nbsp;&nbsp;&nbsp; Can I use other HTTP servers
+but SocketPro server as a COMET server? If so, how can I do it?</i></b><br>
+&nbsp;&nbsp;&nbsp; Yes! Theoretically you can use any other HTTP servers for
+processing your HTTP requests and use SocketPro HTTP server as push server.
+This is already shown in <a href="httppush.htm">this article</a>. Practically,
+it is already well supported with asp.net/AJAX because we have a class to
+simplify such an integration. For other HTTP servers, you can do the same once
+you understand communication data format with a little extra work. In the
+future, we'll provide code to assist you for such an integration. At this time,
+we can provide you free assistance for this purpose.</p>
+
+<p><b><span style='font-family:"Times New Roman";mso-fareast-font-family:"Times New Roman";
+mso-fareast-language:EN-US'><a href="..\help.htm">SocketPro Help Main Page</a></span></b></p>
+
+</div>
+
+</body>
+
+</html>

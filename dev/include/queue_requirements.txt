@@ -1,0 +1,71 @@
+
+I have scenario for which I am looking for a message queue service which supports below:
+
+Ease to use
+Very high in performance and throughput
+Message once read shouldn't be available for other consumers.
+Should have capability to delete the message once read.
+Message once published should not get dropped.
+Strict ordering of messages
+Native durability and persistence for messages
+Cross-platform and cross-development languages
+multiple publishers per persistent message queue
+multiple consumers persistent message queue
+easy deployment
+transactional message publish and consume
+replicate messages across the network
+Secured messaging
+Exactly-once delivery
+
+
+1. Decoupling heavy-weight processing from a live user request. Essentially a way to say "do this work as soon as possible" when you don't need to block for the answer. One motivation for this may be to allow message processors to run at full tilt (100% cpu utilization or whatever) without impact to the latency sensitive message producer. Note that this only actually makes sense if the cost of sending the message to the queue is lower than the cost of processing it (which is often not true in these days of plentiful cpu).
+
+2. As a buffer to help batch up messages for some kind of bulk processing--say a JDBC batch insert into a database or adding to an HDFS file. In each of these cases adding one message at a time would be very inefficient, so you need a temporary holding place.
+
+3. Dividing up work among multiple worker nodes that feed off the queue as a way to balance work over multiple machines to get a poor man's distributed processing.
+
+You don't need a special purpose queue, though, to accomplish many of these things. You often see people just polling for new records in a database as a simple way to build a queue, and in many cases there is nothing wrong with that. Likewise many other uses can be avoided by just co-locating processing steps and using a simple in-memory queue to buffer in between.
+
+1. Picture resize: your user uploads pictures to your website. They need to be resized, or maybe you need to create thumbnails of those to show a preview somewhere. The user does not "care" about this, he has finished uploading his stuff, he should not have to wait for you to process them before having a response. So you queue that task to somewhere else. The result of the resizing task does not impact the response (meaning that on the contrary, validating that a pdf doc does not contain profanity before accepting it, should not be done in a queue because you need that info to generate your response).
+Video encoding: if you're building Youtube, you probably are not going to ask your user to wait until his video has been converted from avi to flash / x264 / webM before telling him his file was uploaded correctly.
+Sending emails
+Search engine indexing: say you're building a CRM, your user modifies the info of a client company. That the info is correctly saved in DB is enough to send a reply to the user. Integrating that new info in your search engine index can happen minutes later without it being an issue.
+Pushing a tweet: if your user has set that his account on your app (let's say a blog engine) has to be integrated with his twitter account, if his blog post has been saved and published, it's enough for you to tell him "everything went fine", and then put the tweet to be sent in a message queue so an other server will do that. Here it's no big deal if you run your blogs as single instances, but if this is part of the response generation, then what happens when twitter is down? Can you still save your post? If yes, then the tweet won't be sent... If it's in a message queue, even with twitter down (or you exceeding your twitter api limit), the message will stay there until it can actually be consumed. Also if your blog platform becomes the next tumblr, you'll have so many tweets to send that it's going to become a big deal and you'll need to completely have it separated from the base app.
+
+So any time something is not part of the most basic transaction the user is trying to do, and the result does not impact the response you're sending to the user, there is a potential use case for a message queue!
+
+
+Top 10 Uses For A Message Queue
+
+
+Geese love queues.
+(Image by D.Hilgart)
+We’ve been working with, building, and evangelising message queues for the last year, and it’s no secret that we think they’re awesome. We believe message queues are a vital component to any architecture or application, and here are ten reasons why:
+
+ Decoupling
+It’s extremely difficult to predict, at the start of a project, what the future needs of the project will be. By introducing a layer in between processes, message queues create an implicit, data-based interface that both processes implement. This allows you to extend and modify these processes independently, by simply ensuring they adhere to the same interface requirements.
+Redundancy
+Sometimes processes fail when processing data. Unless that data is persisted, it’s lost forever. Queues mitigate this by persisting data until it has been fully processed. The put-get-delete paradigm, which many message queues use, requires a process to explicitly indicate that it has finished processing a message before the message is removed from the queue, ensuring your data is kept safe until you’re done with it.
+Scalability
+Because message queues decouple your processes, it’s easy to scale up the rate with which messages are added to the queue or processed; simply add another process. No code needs to be changed, no configurations need to be tweaked. Scaling is as simple as adding more power.
+Elasticity & Spikability
+When your application hits the front page of Hacker News, you’re going to see unusual levels of traffic. Your application needs to be able to keep functioning with this increased load, but the traffic is anomaly, not the standard; it’s wasteful to have enough resources on standby to handle these spikes. Message queues will allow beleaguered components to struggle through the increased load, instead of getting overloaded with requests and failing completely. Check out our Spikability blog post for more information about this.
+Resiliency
+When part of your architecture fails, it doesn’t need to take the entire system down with it. Message queues decouple processes, so if a process that is processing messages from the queue fails, messages can still be added to the queue to be processed when the system recovers. This ability to accept requests that will be retried or processed at a later date is often the difference between an inconvenienced customer and a frustrated customer.
+Delivery Guarantees
+The redundancy provided by message queues guarantees that a message will be processed eventually, so long as a process is reading the queue. On top of that, IronMQ provides an only-delivered-once guarantee. No matter how many processes are pulling data from the queue, each message will only be processed a single time. This is made possible because retrieving a message "reserves" that message, temporarily removing it from the queue. Unless the client specifically states that it's finished with that message, the message will be placed back on the queue to be processed after a configurable amount of time.
+Ordering Guarantees
+In a lot of situations, the order with which data is processed is important. Message queues are inherently ordered, and capable of providing guarantees that data will be processed in a specific order. IronMQ guarantees that messages will be processed using FIFO (first in, first out), so the order in which messages are placed on a queue is the order in which they'll be retrieved from it.
+Buffering
+In any non-trivial system, there are going to be components that require different processing times. For example, it takes less time to upload an image than it does to apply a filter to it. Message queues help these tasks operate at peak efficiency by offering a buffer layer--the process writing to the queue can write as fast as it’s able to, instead of being constrained by the readiness of the process reading from the queue. This buffer helps control and optimise the speed with which data flows through your system.
+Understanding Data Flow
+In a distributed system, getting an overall sense of how long user actions take to complete and why is a huge problem. Message queues, through the rate with which they are processed, help to easily identify under-performing processes or areas where the data flow is not optimal.
+Asynchronous Communication
+A lot of times, you don’t want to or need to process a message immediately. Message queues enable asynchronous processing, which allows you to put a message on the queue without processing it immediately. Queue up as many messages as you like, then process them at your leisure.
+We believe these ten reasons make queues the best form of communication between processes or applications. We’ve spent a year building and learning from IronMQ, and our customers are doing amazing things with message queues. Queues are the key to the powerful, distributed applications that can leverage all the power that the cloud has to offer.
+
+If you'd like to get started with an efficient, reliable, and hosted message queue today, check out IronMQ. If you’d like to connect with our engineers about how queues could fit into your application, they’re always available at get.iron.io/chat.
+
+http://www.slideshare.net/mwillbanks/art-of-message-queues
+
+http://kaidestin.wordpress.com/2014/06/10/use-cases-for-message-queue-system-such-as-kafka/

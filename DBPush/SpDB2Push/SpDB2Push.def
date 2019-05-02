@@ -1,0 +1,8 @@
+LIBRARY			"SpDB2Push"
+
+EXPORTS
+	Disconnect				@1
+	IsConnected				@2
+	Connect					@3
+	SendUserMessage			@4
+	Notify					@5

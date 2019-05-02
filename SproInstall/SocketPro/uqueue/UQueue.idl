@@ -1,0 +1,84 @@
+// UQueue.idl : IDL source for UQueue.dll
+//
+
+// This file will be processed by the MIDL tool to
+// produce the type library (UQueue.tlb) and marshalling code.
+
+import "oaidl.idl";
+import "ocidl.idl";
+
+[
+	uuid(AE23C26C-CFA8-49A4-8D76-08E61C9C0AC9),
+	version(1.0),
+	helpstring("UQueue 1.0 Type Library")
+]
+library UQUEUELib
+{
+	importlib("stdole32.tlb");
+	importlib("stdole2.tlb");
+
+	#include "maleslot.idl"
+
+	enum tagUQueueError
+	{
+		ueUnknown = -1,
+		ueSocketNotAttached = 0x81000001,
+		ueNewSizeLargerThanBufferSize = 0x81000002,
+		ueAllocatingMemoryFailed = 0x81000003,
+		ueDataSizeWrong = 0x81000004,
+		ueNotBytes = 0x81000005,
+	};
+
+	[
+		object,
+		uuid(BBC93725-730D-499B-92E9-7AF0EA3589EB),
+		dual,
+		helpstring("IUQueue Interface"),
+		pointer_default(unique)
+	]
+	interface IUQueue : IUObjBase
+	{
+		[id(4), helpstring("method SendRequest")] HRESULT SendRequest([in]short sRequestID);
+		[id(5), helpstring("method ReallocBuffer")] HRESULT ReallocBuffer([in]long lNewSize);
+		[id(6), helpstring("method SpeakEx")] HRESULT SpeakEx([in, defaultvalue(-1)]long lGroups);
+		[id(7), helpstring("method SpeakToEx")] HRESULT SpeakToEx([in]BSTR bstrIPAddr, [in]long lPort);
+		[id(8), helpstring("method Push")] HRESULT Push([in]VARIANT vtData);
+		[id(9), helpstring("method Pop")] HRESULT Pop([out, retval]VARIANT *pvtData);
+		[id(10), helpstring("method PushInteger")] HRESULT PushInteger([in]short sData);
+		[id(11), helpstring("method PopInteger")] HRESULT PopInteger([out, retval]short *psData);
+		[id(12), helpstring("method PushLong")] HRESULT PushLong([in]long lData);
+		[id(13), helpstring("method PopLong")] HRESULT PopLong([out, retval]long *plData);
+		[id(14), helpstring("method PushString")] HRESULT PushString([in]BSTR bstrData);
+		[id(15), helpstring("method PopString")] HRESULT PopString([in]long lLenInByte, [out, retval]BSTR *pbstrData);
+		[id(16), helpstring("method PushFloat")] HRESULT PushFloat([in]float fData);
+		[id(17), helpstring("method PopFloat")] HRESULT PopFloat([out, retval]float *pfData);
+		[id(18), helpstring("method PushDate")] HRESULT PushDate([in]DATE dtData);
+		[id(19), helpstring("method PopDate")] HRESULT PopDate([out, retval]DATE *pdtData);
+		[id(20), helpstring("method PushDouble")] HRESULT PushDouble([in]double ddata);
+		[id(21), helpstring("method PopDouble")] HRESULT PopDouble([out, retval]double *pdData);
+		[id(22), helpstring("method PushBoolean")] HRESULT PushBoolean([in]VARIANT_BOOL bData);
+		[id(23), helpstring("method PopBoolean")] HRESULT PopBoolean([out, retval]VARIANT_BOOL *pbData);
+		[id(24), helpstring("method PushCurrency")] HRESULT PushCurrency([in]CURRENCY cyData);
+		[id(25), helpstring("method PopCurrency")] HRESULT PopCurrency([out, retval]CURRENCY *pcyData);
+		[id(26), helpstring("method PushBytes")] HRESULT PushBytes([in]VARIANT vtBytes);
+		[id(27), helpstring("method PopBytes")] HRESULT PopBytes([in]long lLen, [out, retval]VARIANT *pvtBytes);
+		[propget, id(28), helpstring("property Size")] HRESULT Size([out, retval] long *pVal);
+		[propput, id(28), helpstring("property Size")] HRESULT Size([in] long newVal);
+		[propget, id(29), helpstring("property BufferSize")] HRESULT BufferSize([out, retval] long *pVal);
+		[id(30), helpstring("method PushDecimal")] HRESULT PushDecimal([in]DECIMAL dcData);
+		[id(31), helpstring("method PopDecimal")] HRESULT PopDecimal([out, retval]DECIMAL *pdcData);
+		[id(32), helpstring("method PushByte")] HRESULT PushByte([in]BYTE bData);
+		[id(33), helpstring("method PopByte")] HRESULT PopByte([out, retval]BYTE *pbData);
+	};
+
+	[
+		uuid(22ADED25-BB1D-49BF-8C96-40757FB7A417),
+		helpstring("UQueue Class")
+	]
+	coclass UQueue
+	{
+		[default] interface IUQueue;
+		interface IUObjBase;
+		[default, source] dispinterface _IURequestEvent;
+	};
+};

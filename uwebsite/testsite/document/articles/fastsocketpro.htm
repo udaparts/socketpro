@@ -1,0 +1,563 @@
+<html>
+
+<head>
+<meta http-equiv=Content-Type content="text/html; charset=windows-1252">
+<meta name=Generator content="Microsoft Word 12 (filtered)">
+<style>
+<!--
+ /* Font Definitions */
+ @font-face
+	{font-family:Wingdings;
+	panose-1:5 0 0 0 0 0 0 0 0 0;}
+@font-face
+	{font-family:"Cambria Math";
+	panose-1:2 4 5 3 5 4 6 3 2 4;}
+@font-face
+	{font-family:Calibri;
+	panose-1:2 15 5 2 2 2 4 3 2 4;}
+@font-face
+	{font-family:Tahoma;
+	panose-1:2 11 6 4 3 5 4 4 2 4;}
+ /* Style Definitions */
+ p.MsoNormal, li.MsoNormal, div.MsoNormal
+	{margin-top:0in;
+	margin-right:0in;
+	margin-bottom:8.0pt;
+	margin-left:0in;
+	line-height:107%;
+	font-size:11.0pt;
+	font-family:"Calibri","sans-serif";}
+p.MsoHeader, li.MsoHeader, div.MsoHeader
+	{mso-style-link:"Header Char";
+	margin:0in;
+	margin-bottom:.0001pt;
+	font-size:11.0pt;
+	font-family:"Calibri","sans-serif";}
+p.MsoFooter, li.MsoFooter, div.MsoFooter
+	{mso-style-link:"Footer Char";
+	margin:0in;
+	margin-bottom:.0001pt;
+	font-size:11.0pt;
+	font-family:"Calibri","sans-serif";}
+a:link, span.MsoHyperlink
+	{color:blue;
+	text-decoration:underline;}
+a:visited, span.MsoHyperlinkFollowed
+	{color:#954F72;
+	text-decoration:underline;}
+p
+	{margin-right:0in;
+	margin-left:0in;
+	font-size:12.0pt;
+	font-family:"Times New Roman","serif";}
+p.MsoAcetate, li.MsoAcetate, div.MsoAcetate
+	{mso-style-link:"Balloon Text Char";
+	margin:0in;
+	margin-bottom:.0001pt;
+	font-size:8.0pt;
+	font-family:"Tahoma","sans-serif";}
+p.MsoListParagraph, li.MsoListParagraph, div.MsoListParagraph
+	{margin-top:0in;
+	margin-right:0in;
+	margin-bottom:8.0pt;
+	margin-left:.5in;
+	line-height:107%;
+	font-size:11.0pt;
+	font-family:"Calibri","sans-serif";}
+p.MsoListParagraphCxSpFirst, li.MsoListParagraphCxSpFirst, div.MsoListParagraphCxSpFirst
+	{margin-top:0in;
+	margin-right:0in;
+	margin-bottom:0in;
+	margin-left:.5in;
+	margin-bottom:.0001pt;
+	line-height:107%;
+	font-size:11.0pt;
+	font-family:"Calibri","sans-serif";}
+p.MsoListParagraphCxSpMiddle, li.MsoListParagraphCxSpMiddle, div.MsoListParagraphCxSpMiddle
+	{margin-top:0in;
+	margin-right:0in;
+	margin-bottom:0in;
+	margin-left:.5in;
+	margin-bottom:.0001pt;
+	line-height:107%;
+	font-size:11.0pt;
+	font-family:"Calibri","sans-serif";}
+p.MsoListParagraphCxSpLast, li.MsoListParagraphCxSpLast, div.MsoListParagraphCxSpLast
+	{margin-top:0in;
+	margin-right:0in;
+	margin-bottom:8.0pt;
+	margin-left:.5in;
+	line-height:107%;
+	font-size:11.0pt;
+	font-family:"Calibri","sans-serif";}
+span.BalloonTextChar
+	{mso-style-name:"Balloon Text Char";
+	mso-style-link:"Balloon Text";
+	font-family:"Tahoma","sans-serif";}
+span.apple-converted-space
+	{mso-style-name:apple-converted-space;}
+span.HeaderChar
+	{mso-style-name:"Header Char";
+	mso-style-link:Header;}
+span.FooterChar
+	{mso-style-name:"Footer Char";
+	mso-style-link:Footer;}
+.MsoPapDefault
+	{margin-bottom:8.0pt;
+	line-height:107%;}
+ /* Page Definitions */
+ @page WordSection1
+	{size:11.0in 8.5in;
+	margin:1.0in 1.0in 1.0in 1.0in;}
+div.WordSection1
+	{page:WordSection1;}
+ /* List Definitions */
+ ol
+	{margin-bottom:0in;}
+ul
+	{margin-bottom:0in;}
+-->
+</style>
+
+</head>
+
+<body lang=EN-US link=blue vlink="#954F72">
+
+<div class=WordSection1>
+
+<p class=MsoNormal align=center style='text-align:center'><b><span
+style='font-size:14.0pt;line-height:107%;font-family:"Times New Roman","serif"'>SocketPro
+performance comparison with window communication framework (WCF) and RabbitMQ</span></b></p>
+
+<p class=MsoNormal><span style='font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoNormal><b><span style='font-size:12.0pt;line-height:107%;
+font-family:"Times New Roman","serif"'>Contents:</span></b></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt'><b><i><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>Introduction</span></i></b></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt'><b><i><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>Experiment
+conditions</span></i></b></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt'><b><i><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>Experiment
+results and analysis</span></i></b></p>
+
+<p class=MsoListParagraphCxSpFirst style='margin-bottom:0in;margin-bottom:.0001pt;
+text-indent:-.25in'><span style='font-size:12.0pt;line-height:107%;font-family:
+Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><b><i><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>SocketPro vs WCF</span></i></b></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt'><b><i><span style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>Cross-application
+communication at the same machine</span></i></b></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt'><b><i><span style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>Cross-machine
+communication</span></i></b></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt'><b><i><span style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>Reasons
+for SocketPro better performance than WCF</span></i></b></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt;text-indent:-.25in'><span style='font-size:12.0pt;line-height:107%;
+font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><b><i><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>SocketPro vs RabbitMQ</span></i></b></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt'><b><i><span style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>Cross-application
+communication at the same machine</span></i></b></p>
+
+<p class=MsoListParagraphCxSpLast style='margin-bottom:0in;margin-bottom:.0001pt'><b><i><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>Cross-machine
+communication</span></i></b></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt'><b><i><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>Conclusions</span></i></b></p>
+
+<p class=MsoListParagraphCxSpFirst><span style='font-size:12.0pt;line-height:
+107%;font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='text-indent:-.25in'><b><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>1.<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span></span></b><b><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>Introduction</span></b></p>
+
+<p class=MsoListParagraphCxSpMiddle><span style='font-size:12.0pt;line-height:
+107%;font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-left:0in;text-indent:.5in'><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>Performance
+is one of most important software quality metrics. It largely determines
+application <span style='color:#252525;background:white'>responsiveness</span></span><span
+style='font-size:10.5pt;line-height:107%;font-family:"Arial","sans-serif";
+color:#252525;background:white'>,</span><span style='font-size:12.0pt;
+line-height:107%;font-family:"Times New Roman","serif"'> scalability, and
+throughput. Every software engineer knows that software performance is
+extremely important with any real enterprise application. In regards to distributed
+applications, many factors such as hardware, software design architect, and
+code quality affect performance from a very high level of view.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-left:0in;text-indent:.5in'><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-left:0in;text-indent:.5in'><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif";
+background:white'>We have created a socket-based framework based on request
+batch, asynchrony, and parallel computation to accelerate data movement across
+computers running on different major platforms such as Windows, Linux, and Apple.
+One of its greatest advantages is that this framework delivers extremely high
+performance and scalability when compared to other well-known frameworks such
+as Java RMI, WCF, SOAP/XML web services, etc. This article, along with<span
+class=apple-converted-space>&nbsp;</span>source codes, demonstrates the
+performance improvements of SocketPro framework over that of the latest
+Microsoft technology Window Communication Foundation (WCF) and RabbitMQ.<span
+class=apple-converted-space>&nbsp;</span>Hopefully, these improvements catch your
+attention.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle><span style='font-size:12.0pt;line-height:
+107%;font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle><span style='font-size:12.0pt;line-height:
+107%;font-family:"Times New Roman","serif"'>SocketPro and WCF comparison
+samples are located at the directory ..\SocketProRoot\samples\performance.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle><span style='font-size:12.0pt;line-height:
+107%;font-family:"Times New Roman","serif"'>SocketPro and RabbitMQ comparison
+samples are located at the directory ..\SocketProRoot\samples\qperf.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle><span style='font-size:12.0pt;line-height:
+107%;font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='text-indent:-.25in'><b><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>2.<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span></span></b><b><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>Experiment
+conditions</span></b></p>
+
+<p class=MsoListParagraphCxSpMiddle><span style='font-size:12.0pt;line-height:
+107%;font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpLast style='margin-left:0in;text-indent:.5in'><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>Tests
+are completed with a home desktop as server or broker for persistent message
+queue comparison and a laptop as a client for cross-machine communication with
+network bandwidth equal to 1 Gbps. All numbers listed on figures are real and
+measured in units of milliseconds.</span></p>
+
+<p style='background:white'><span class=apple-converted-space>&nbsp;           </span>A<span
+class=apple-converted-space>&nbsp;</span><i>DataTable</i><span
+class=apple-converted-space>&nbsp;</span>instance is set with <i>BinaryFormat</i>
+for WCF remoting.&nbsp;Additionally, security of WCF is disabled under all
+testing cases. Note that the used database is the sample database
+AdventureWorks2012 for SQL server 2014. All of the other experiment conditions
+are shown on these figures.</p>
+
+<p style='text-indent:.5in;background:white'>In regards to SocketPro and WCF
+performance comparison tests, all numbers listed on their figures are obtained
+from executing 10,000 times for the request Echo and 100 times for four SQL
+statements. These figures also list the number of rows and the size of each of
+their record sets in megabytes.</p>
+
+<p class=MsoListParagraph style='margin-left:0in;text-indent:.5in'><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>In
+regards to SocketPro and RabbitMQ performance comparison tests, results are
+obtained by en-queuing and de-queuing 100,000 times of messages with three
+different sizes (200, 1024 and 10240 chars).</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in;line-height:normal;text-autospace:none'><span style='font-size:12.0pt;
+font-family:"Times New Roman","serif"'>Note that source codes of RabbitMQ
+sample project come from the sites </span><a
+href="https://github.com/rabbitmq/rabbitmq-tutorials/blob/master/dotnet/NewTask.cs"><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif"'>https://github.com/rabbitmq/rabbitmq-tutorials/blob/master/dotnet/NewTask.cs</span></a><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif"'> for en-queue
+and </span><a
+href="https://github.com/rabbitmq/rabbitmq-tutorials/blob/master/dotnet/Worker.cs"><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif"'>https://github.com/rabbitmq/rabbitmq-tutorials/blob/master/dotnet/Worker.cs</span></a><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif"'> for de-queue
+with slight modification.</span></p>
+
+<p class=MsoListParagraphCxSpFirst><span style='font-size:12.0pt;line-height:
+107%;font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='text-indent:-.25in'><b><span
+style='font-family:"Times New Roman","serif"'>3.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span></b><b><span style='font-family:"Times New Roman","serif"'>Experiment
+results and analysis</span></b></p>
+
+<p class=MsoListParagraphCxSpMiddle><span style='font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-left:0in;text-indent:.5in'><b><span
+style='font-family:"Times New Roman","serif"'>SocketPro vs WCF</span></b></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-left:0in;text-indent:.5in'><span
+style='font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-left:0in;text-indent:.5in'><span
+style='font-family:"Times New Roman","serif"'>Overall, as far as we have known,
+SocketPro is significantly faster than WCF under all cases with no exceptions.
+Typically, SocketPro is about 4 times faster than WCF. In extreme cases, it
+could be more than 30 times faster than WCF if SocketPro request async/batch
+feature is used, as you will witness in the upcoming sections.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle><span style='font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in'><b><i><span style='font-size:12.0pt;line-height:107%;
+font-family:"Times New Roman","serif"'>Cross-application communication at the
+same machine:</span></i></b><span style='font-size:12.0pt;line-height:107%;
+font-family:"Times New Roman","serif"'> The following Figure 1 lists obtained
+performance comparison data for cross-application communication at the same
+machine.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in'><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in'><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'><img border=0 width=542 height=340 id="Picture 10"
+src="fastsocketpro_files/image001.png"></span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in'><i><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>Figure 1: Performance comparison between SocketPro
+and WCF for cross-application communication at the same machine</span></i></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in'><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in'><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>In regards to simple requests like echo, SocketPro
+is about 2.5 times faster than WCF with synchronous communication, as shown in
+the above Figure 1. If requests are processed with async/batch communication,
+SocketPro could be easily more than 20 times faster!</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in'><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in'><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>In regards to exchange of ADO.NET objects, SocketPro
+is typically 2 times faster than WCF for a small set of records, and about 4 or
+6 times faster than WCF for middle or large-size sets of records. If the SocketPro
+request async/batch feature is used, improvement will be considerably better
+especially for small set of records. </span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in'><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in'><b><i><span style='font-size:12.0pt;line-height:107%;
+font-family:"Times New Roman","serif"'>Cross-machine communication:</span></i></b><b><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>
+</span></b><span style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>The
+below Figure 2 shows you performance comparison data for cross-machine
+communication case.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle><span style='font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in'><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>In regards to simple requests like echo, SocketPro
+is about 1 time faster than WCF with synchronous communication, as shown in the
+below Figure 2. If request async/batch feature is employed, SocketPro could be
+easily more than 50 times faster!</span></p>
+
+<p class=MsoListParagraphCxSpMiddle><span style='font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle><span style='font-family:"Times New Roman","serif"'><img
+border=0 width=784 height=359 id="Picture 13"
+src="fastsocketpro_files/image002.png"></span></p>
+
+<p class=MsoListParagraphCxSpMiddle><i><span style='font-family:"Times New Roman","serif"'>Figure
+2: Performance comparison between SocketPro and WCF for cross-machine
+communication</span></i></p>
+
+<p class=MsoListParagraphCxSpMiddle><span style='font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in'><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>In regards to exchange of ADO.NET objects across
+machines, SocketPro is typically 1 time faster than WCF for small sets of
+records, and about 4 to 6 times faster than WCF for middle or large size sets of
+records. The improvement is obviously larger <i>especially</i> for small sets
+of records with its request async/batch feature turned on.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in'><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in'><b><i><span style='font-size:12.0pt;line-height:107%;
+font-family:"Times New Roman","serif"'>Reasons for SocketPro better performance
+than WCF:</span></i></b><span style='font-size:12.0pt;line-height:107%;
+font-family:"Times New Roman","serif"'> As you can see from the above two
+figures, our SocketPro is significantly faster than WCF. This is not surprising
+at all, considering that SocketPro has the following features to make this huge
+performance improvement realized.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt;text-indent:0in'><span style='font-size:12.0pt;line-height:107%;
+font-family:"Courier New"'>o<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><span style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>SocketPro
+is written with non-blocking and request batch in mind so that networking and
+CPU processing at both client and server side are extremely efficient.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt;text-indent:0in'><span style='font-size:12.0pt;line-height:107%;
+font-family:"Courier New"'>o<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><span style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>Efficient
+serialization and de-serialization with streaming style can happen concurrently
+at both client and server sides simultaneously. This is not possible with WCF
+at this writing time, or could never be possible for WCF.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt;text-indent:0in'><span style='font-size:12.0pt;line-height:107%;
+font-family:"Courier New"'>o<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><span style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>ADO.NET
+objects are especially engineered within SocketPro for chunk and streaming push
+approach. SocketPro supports remoting ADO.NET datareader object online and
+directly without the requirement of preloading a whole set of records in
+memory. However, WCF doesn’t support this feature yet.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle><span style='font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-left:0in;text-indent:.5in'><b><span
+style='font-family:"Times New Roman","serif"'>SocketPro vs RabbitMQ</span></b></p>
+
+<p class=MsoListParagraphCxSpMiddle><span style='font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-left:0in;text-indent:.5in'><span
+style='font-family:"Times New Roman","serif"'>The performance test is designed
+to focus on persistent message queue with auto acknowledgement at the server or
+broker side only since RabbitMQ does not support client side message queue.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-left:0in;text-indent:.5in'><span
+style='font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-left:0in;text-indent:.5in'><span
+style='font-family:"Times New Roman","serif"'>Overall insofar, SocketPro is
+significantly faster than RabbitMQ under all cases without exception. Typically
+for de-queue, SocketPro is about 8 times faster than RabbitMQ for both
+cross-application and cross-machine communication situations. In extreme cases,
+it could be more than 25 times faster than RabbitMQ as you will see in the upcoming
+sections. In regards to en-queue, SocketPro is typically 10 times faster than
+RabbitMQ under cross-application communication for the same machine. SocketPro
+is still about 8 times faster than RabbitMQ under cross-machine communication
+situation, whose improvements will be largely dependent on network bandwidth.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-left:0in'><span
+style='font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in'><b><i><span style='font-size:12.0pt;line-height:107%;
+font-family:"Times New Roman","serif"'>Cross-application communication at the
+same machine:</span></i></b><span style='font-size:12.0pt;line-height:107%;
+font-family:"Times New Roman","serif"'> Figure 3 billow lists the following
+obtained performance comparison data for cross-application communication at the
+same machine.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in'><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in'><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'><img border=0 width=519 height=237 id="Picture 16"
+src="fastsocketpro_files/image003.png"></span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in'><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>Figure 3: <i>Performance comparison between
+SocketPro and RabbitMQ for cross-application communication at the same machine</i></span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in'><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in'><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>In short, SocketPro is significantly faster than
+RabbitMQ for same-machine cross-application communication for both en-queue and
+de-queue as these numbers clearly support. Improvements are between 4 and 25
+times greater.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle><span style='font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-left:0in;text-indent:.5in'><b><span
+style='font-family:"Times New Roman","serif"'>Cross-machine:</span></b><span
+style='font-family:"Times New Roman","serif"'> The below Figure 4 lists testing
+numbers obtained from cross-machine communication over a network with bandwidth
+100 Mbps.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-left:0in;text-indent:.5in'><span
+style='font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-left:0in;text-indent:.5in'><span
+style='font-family:"Times New Roman","serif"'>Test results at Figure 4 clearly
+show that our SocketPro wins over RabbitMQ easily in persistent message de-queue
+under all cases. If messages are small in size, SocketPro could be 50 times
+faster than RabbitMQ. In regards to big messages, SocketPro is still 9 times
+faster, which is largely dependent on networking bandwidth.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-left:0in;text-indent:.5in'><span
+style='font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpLast style='margin-left:0in;text-indent:.5in'><span
+style='font-family:"Times New Roman","serif"'>In regards to en-queue, it seems
+that RabbitMQ does a good job. RabbitMQ is able to en-queue 15,000 small
+messages persistently per second. For middle or large sizes of messages,
+RabbitMQ is poor since network utilization could be 10% under this test
+networking condition. RabbitMQ performs really poor in comparison to our
+SocketPro in en-queue; SocketPro is typically between 1 and 10 times faster, as
+shown in the below Figure 4.</span></p>
+
+<p class=MsoNormal><span style='font-family:"Times New Roman","serif"'> <img
+border=0 width=783 height=256 id="Picture 19"
+src="fastsocketpro_files/image004.png"></span></p>
+
+<p class=MsoNormal style='text-indent:.5in'><i><span style='font-family:"Times New Roman","serif"'>Figure
+4: Performance comparison between SocketPro and RabbitMQ for cross-machine
+communication</span></i></p>
+
+<p class=MsoListParagraph style='text-indent:-.25in'><b><span style='font-size:
+12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>4.<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span></span></b><b><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>Conclusions</span></b></p>
+
+<p class=MsoNormal style='text-indent:.5in'><span style='font-size:12.0pt;
+line-height:107%;font-family:"Times New Roman","serif"'>SocketPro is written
+with request batch, non-blocking and parallel computation in mind so that
+networking and CPU processing at both client and server side are extremely
+efficient. Its design is considerably different from that of other communication
+frameworks, which are typically created with single request and blocking
+communication style. You may use worker threads at client side to fake
+asynchronous request processing at client side, but usually such doesn’t boost
+performance at all which may cause extra thread-context switches. Contrarily, SocketPro
+does not need worker threads at client side, though it does create a pool of
+threads for hosting non-blocking sockets. Note that SocketPro uses thread pool
+at client side for processing returning results in parallel at client side
+only, not for sending requests.</span></p>
+
+<p class=MsoNormal style='text-indent:.5in'><span style='font-size:12.0pt;
+line-height:107%;font-family:"Times New Roman","serif"'>Although we don’t
+compare SocketPro with other common communication frameworks or technologies, <span
+style='background:white'>it is guaranteed that all of other frameworks run like
+snail<a name="_GoBack"></a>s in speed when compared to SocketPro.</span></span></p>
+
+</div>
+
+</body>
+
+</html>

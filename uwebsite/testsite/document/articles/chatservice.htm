@@ -1,0 +1,528 @@
+<html>
+
+<head>
+<meta http-equiv=Content-Type content="text/html; charset=windows-1252">
+<meta name=Generator content="Microsoft Word 12 (filtered)">
+<style>
+<!--
+ /* Font Definitions */
+ @font-face
+	{font-family:Wingdings;
+	panose-1:5 0 0 0 0 0 0 0 0 0;}
+@font-face
+	{font-family:"Cambria Math";
+	panose-1:2 4 5 3 5 4 6 3 2 4;}
+@font-face
+	{font-family:Calibri;
+	panose-1:2 15 5 2 2 2 4 3 2 4;}
+@font-face
+	{font-family:Tahoma;
+	panose-1:2 11 6 4 3 5 4 4 2 4;}
+ /* Style Definitions */
+ p.MsoNormal, li.MsoNormal, div.MsoNormal
+	{margin-top:0in;
+	margin-right:0in;
+	margin-bottom:8.0pt;
+	margin-left:0in;
+	line-height:107%;
+	font-size:11.0pt;
+	font-family:"Calibri","sans-serif";}
+p.MsoHeader, li.MsoHeader, div.MsoHeader
+	{mso-style-link:"Header Char";
+	margin:0in;
+	margin-bottom:.0001pt;
+	font-size:11.0pt;
+	font-family:"Calibri","sans-serif";}
+p.MsoFooter, li.MsoFooter, div.MsoFooter
+	{mso-style-link:"Footer Char";
+	margin:0in;
+	margin-bottom:.0001pt;
+	font-size:11.0pt;
+	font-family:"Calibri","sans-serif";}
+a:link, span.MsoHyperlink
+	{color:blue;
+	text-decoration:underline;}
+a:visited, span.MsoHyperlinkFollowed
+	{color:#954F72;
+	text-decoration:underline;}
+p.MsoAcetate, li.MsoAcetate, div.MsoAcetate
+	{mso-style-link:"Balloon Text Char";
+	margin:0in;
+	margin-bottom:.0001pt;
+	font-size:8.0pt;
+	font-family:"Tahoma","sans-serif";}
+p.MsoListParagraph, li.MsoListParagraph, div.MsoListParagraph
+	{margin-top:0in;
+	margin-right:0in;
+	margin-bottom:8.0pt;
+	margin-left:.5in;
+	line-height:107%;
+	font-size:11.0pt;
+	font-family:"Calibri","sans-serif";}
+p.MsoListParagraphCxSpFirst, li.MsoListParagraphCxSpFirst, div.MsoListParagraphCxSpFirst
+	{margin-top:0in;
+	margin-right:0in;
+	margin-bottom:0in;
+	margin-left:.5in;
+	margin-bottom:.0001pt;
+	line-height:107%;
+	font-size:11.0pt;
+	font-family:"Calibri","sans-serif";}
+p.MsoListParagraphCxSpMiddle, li.MsoListParagraphCxSpMiddle, div.MsoListParagraphCxSpMiddle
+	{margin-top:0in;
+	margin-right:0in;
+	margin-bottom:0in;
+	margin-left:.5in;
+	margin-bottom:.0001pt;
+	line-height:107%;
+	font-size:11.0pt;
+	font-family:"Calibri","sans-serif";}
+p.MsoListParagraphCxSpLast, li.MsoListParagraphCxSpLast, div.MsoListParagraphCxSpLast
+	{margin-top:0in;
+	margin-right:0in;
+	margin-bottom:8.0pt;
+	margin-left:.5in;
+	line-height:107%;
+	font-size:11.0pt;
+	font-family:"Calibri","sans-serif";}
+span.BalloonTextChar
+	{mso-style-name:"Balloon Text Char";
+	mso-style-link:"Balloon Text";
+	font-family:"Tahoma","sans-serif";}
+span.apple-converted-space
+	{mso-style-name:apple-converted-space;}
+span.HeaderChar
+	{mso-style-name:"Header Char";
+	mso-style-link:Header;}
+span.FooterChar
+	{mso-style-name:"Footer Char";
+	mso-style-link:Footer;}
+.MsoPapDefault
+	{margin-bottom:8.0pt;
+	line-height:107%;}
+ /* Page Definitions */
+ @page WordSection1
+	{size:11.0in 8.5in;
+	margin:1.0in 1.0in 1.0in 1.0in;}
+div.WordSection1
+	{page:WordSection1;}
+ /* List Definitions */
+ ol
+	{margin-bottom:0in;}
+ul
+	{margin-bottom:0in;}
+-->
+</style>
+
+</head>
+
+<body lang=EN-US link=blue vlink="#954F72">
+
+<div class=WordSection1>
+
+<p class=MsoNormal align=center style='text-align:center'><b><span
+style='font-size:14.0pt;line-height:107%;font-family:"Times New Roman","serif"'>Tutoral
+2 -- SocketPro secure communication and built-in bi-directional message pushes</span></b></p>
+
+<p class=MsoNormal><span style='font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoNormal><b><span style='font-family:"Times New Roman","serif"'>Contents:</span></b></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt'><b><i><span
+style='font-family:"Times New Roman","serif"'>Introduction</span></i></b></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt'><b><i><span
+style='font-family:"Times New Roman","serif"'>Use SSL/TLs for secure communication</span></i></b></p>
+
+<p class=MsoListParagraphCxSpFirst style='margin-bottom:0in;margin-bottom:.0001pt;
+text-indent:-.25in'><span style='font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><i><span style='font-family:"Times New Roman","serif"'>Enable
+SSL/TLs at server side</span></i></p>
+
+<p class=MsoListParagraphCxSpLast style='margin-bottom:0in;margin-bottom:.0001pt;
+text-indent:-.25in'><span style='font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><i><span style='font-family:"Times New Roman","serif"'>Enable
+SSL/TLS at client side and server certificate authentication</span></i></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt'><b><i><span
+style='font-family:"Times New Roman","serif"'>SocketPro built-in bi-directional
+message pushes</span></i></b></p>
+
+<p class=MsoListParagraphCxSpFirst style='margin-bottom:0in;margin-bottom:.0001pt;
+text-indent:-.25in'><span style='font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><i><span style='font-family:"Times New Roman","serif"'>Two types
+of message pushes</span></i></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-top:0in;margin-right:0in;
+margin-bottom:0in;margin-left:1.0in;margin-bottom:.0001pt;text-indent:-1.0in'><i><span
+style='font-family:"Times New Roman","serif"'><span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span>I.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span></i><i><span style='font-family:"Times New Roman","serif"'>One-to-many</span></i></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-top:0in;margin-right:0in;
+margin-bottom:0in;margin-left:1.0in;margin-bottom:.0001pt;text-indent:-1.0in'><i><span
+style='font-family:"Times New Roman","serif"'><span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span>II.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span></i><i><span style='font-family:"Times New Roman","serif"'>One-to-one</span></i></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt;text-indent:-.25in'><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><i><span style='font-family:"Times New Roman","serif"'>Register a
+few chat groups at server side</span></i></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt;text-indent:-.25in'><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><i><span style='font-family:"Times New Roman","serif"'>Subscribe
+for one or more chat groups of messages</span></i></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt;text-indent:-.25in'><span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><i><span style='font-family:"Times New Roman","serif"'>Track message
+push event at server side</span></i></p>
+
+<p class=MsoListParagraphCxSpLast style='margin-bottom:0in;margin-bottom:.0001pt;
+text-indent:-.25in'><span style='font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><i><span style='font-family:"Times New Roman","serif"'>Track
+message push event at client side</span></i></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt'><b><i><span
+style='font-family:"Times New Roman","serif"'>Send messages</span></i></b></p>
+
+<p class=MsoListParagraphCxSpFirst style='margin-bottom:0in;margin-bottom:.0001pt;
+text-indent:-.25in'><span style='font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><i><span style='font-family:"Times New Roman","serif"'>Server
+side</span></i></p>
+
+<p class=MsoListParagraphCxSpLast style='margin-bottom:0in;margin-bottom:.0001pt;
+text-indent:-.25in'><span style='font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><i><span style='font-family:"Times New Roman","serif"'>Client
+side</span></i></p>
+
+<p class=MsoNormal>&nbsp;</p>
+
+<p class=MsoListParagraphCxSpFirst style='text-indent:-.25in'><b><span
+style='font-family:"Times New Roman","serif"'>1.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span></b><b><span style='font-family:"Times New Roman","serif"'>Introduction</span></b></p>
+
+<p class=MsoListParagraphCxSpMiddle><span style='font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-left:0in;text-indent:.5in'><span
+style='font-family:"Times New Roman","serif"'>In short, we need to secure sensitive
+data movement among computers such as passwords, credit cards, personal
+identification numbers, financial data, and so on. To achieve this purpose, SocketPro
+uses popular openssl (<a href="http://www.openssl.org">www.openssl.org</a>) libraries across all supported
+platforms. </span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-left:0in;text-indent:.5in'><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif";
+color:black'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-left:0in;text-indent:.5in'><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif";
+color:black'>A typical distributed application is involved with a network
+communication between the client and server only. There is no communication
+among connected clients at all. However, this architecture does not meet
+application requirements under many cases. An application may require some ways
+to enable communications among clients whenever an interested thing happens.
+This type of communication is similar to Internet chat among a group of people.
+Therefore, SocketPro provides this type of chat service, which is a built-in
+service for all of connected socket connections.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-left:0in;text-indent:.5in'><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif";
+color:black'>For your information, the built-in chat service is also called message
+bus, message push, subscribe/publish communication model, or real-time notification
+service. Sometimes, these terminologies are used interchangeably.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-left:0in;text-indent:.5in'><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif";
+color:black'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-left:0in;text-indent:.5in'><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif";
+color:black'>Finally, the tutorial sample projects are located at the directory
+..\tutorials\(csharp|vbnet|cplusplus|java\src|ce|python)\pub_sub</span></p>
+
+<p class=MsoListParagraphCxSpMiddle><span style='font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpLast style='text-indent:-.25in'><b><span
+style='font-family:"Times New Roman","serif"'>2.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span></b><b><span style='font-family:"Times New Roman","serif"'>Use
+SSL/TLS for secure communication</span></b></p>
+
+<p class=MsoNormal style='text-indent:.5in'><span style='font-family:"Times New Roman","serif"'>To
+use SSL/TLS for secure communication, you must enable it at both client and
+server sides.</span></p>
+
+<p class=MsoNormal style='text-indent:.5in'><b><span style='font-family:"Times New Roman","serif"'>Enable
+SSL/TLS at server side:</span></b><span style='font-family:"Times New Roman","serif"'>
+It is very simple to enable SSL/TLS at server side. All you need to do is call
+the method <i>UseSSL</i> as shown below in Figure 1 before running a SocketPro
+server.</span></p>
+
+<p class=MsoNormal style='margin-left:.5in'><span style='font-family:"Times New Roman","serif"'><img
+width=809 height=210 src="chatservice_files/image001.png"></span></p>
+
+<p class=MsoNormal style='margin-left:.5in'><i><span style='font-family:"Times New Roman","serif"'>Figure
+1: Enable SSL/TLS at server side as shown at the line 28</span></i></p>
+
+<p class=MsoNormal style='text-indent:.5in'><span style='font-family:"Times New Roman","serif"'>This
+sample uses sample CA root cert (ca.pem which will be used at client side),
+server certificate (server.pem) and private key (server.pem) from openssl. The
+third input (“test”) is password to be used to read a password-protected
+private key from the private key file server.pem. The last input dh512.pem (<span
+style='color:black;background:white'>Diffie-Hellman algorithm) </span>is
+optional, which is introduced at the site
+    <a href="http://wiki.openssl.org/index.php/Diffie_Hellman">http://wiki.openssl.org/index.php/Diffie_Hellman</a>.  If you download openssl, all
+of them can be found at the directory ..\openssl\apps after unzipping openssl
+source codes. We also put test testing files at the directory
+..\SocketProRoot\bin.</span></p>
+
+<p class=MsoNormal style='text-indent:.5in'><b><span style='font-family:"Times New Roman","serif"'>Enable
+SSL/TLS for client side and server certification authentication:</span></b><span
+style='font-family:"Times New Roman","serif"'> To enable SSL/TLS at client
+side, we need to set it as you see the TLSv1 at the end of line 31 on a
+connection context as shown in the following Figure 2.</span></p>
+
+<p class=MsoNormal style='text-indent:.5in'><span style='font-family:"Times New Roman","serif"'><img
+width=808 height=351 id="Picture 7" src="chatservice_files/image002.png"></span></p>
+
+<p class=MsoNormal style='text-indent:.5in'><i><span style='font-family:"Times New Roman","serif"'>Figure
+2: Enable SSL/TLS at client side and certification authentication</span></i></p>
+
+<p class=MsoNormal style='text-indent:.5in'><span style='font-family:"Times New Roman","serif"'>In
+addition to enable SSL/TLS at client side, we are also required to authenticate
+a server certificate as expected before sending any sensitive data from the client
+to a remote server. This step ensures there is no possibility of a middle-man
+attack.</span></p>
+
+<p class=MsoNormal style='text-indent:.5in'><span style='font-family:"Times New Roman","serif"'>To
+do so, we need to set a callback and check if a certificate from a server is
+expected. SocketPro uses an event such as that shown in lines 36 through 44,
+above Figure 2. Inside the callback, we are able to get an interface to the
+certificate from the remote server. Afterward, we can simply check it with a
+local saved certificate as you can see at line 33. If both match or certificate
+chain is verified successfully, the callback returns true and will send
+sensitive data such as user id and password. Otherwise, it returns false; do
+not send the two sensitive data and close socket connection.</span></p>
+
+<p class=MsoListParagraphCxSpFirst style='text-indent:-.25in'><b><span
+style='font-family:"Times New Roman","serif"'>3.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span></b><b><span style='font-family:"Times New Roman","serif"'>SocketPro
+built-in bidirectional message pushes</span></b></p>
+
+<p class=MsoListParagraphCxSpMiddle><span style='font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle><span style='font-family:"Times New Roman","serif"'>SocketPro
+supports two types of real-time notification, one-to-many and one-to-one.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle><span style='font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-left:0in;text-indent:.5in'><b><span
+style='font-family:"Times New Roman","serif"'>One-to-many:</span></b><span
+style='font-family:"Times New Roman","serif"'> As shown in Figure 3, a sender
+is able to send a message to one or more groups of chatters or subscribers. You
+can do so from either the client or server side. SocketPro server is able to
+distribute the message based on an array of input chat group identification
+numbers (or topic ids) on behalf of the sender. If you use this notification
+model, a listener or subscriber must first subscribe to one or more chat groups
+for expected groups of messages; however, a message publisher does not have to.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle><span style='font-family:"Times New Roman","serif"'><img
+width=679 height=343 src="chatservice_files/image003.jpg"></span></p>
+
+<p class=MsoListParagraphCxSpMiddle><i><span style='font-family:"Times New Roman","serif"'>Figure
+3: One-to-many real-time notification within SocketPro server</span></i></p>
+
+<p class=MsoListParagraphCxSpMiddle><span style='font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-left:0in;text-indent:.5in'><b><span
+style='font-family:"Times New Roman","serif"'>One-to-one:</span></b><span
+style='font-family:"Times New Roman","serif"'> As shown in the Figure 4,
+SocketPro is also able to send a message from a client to another client with
+an input receiver user id.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle><span style='font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle><span style='font-family:"Times New Roman","serif"'><img
+width=692 height=94 id="Picture 2" src="chatservice_files/image004.jpg"></span></p>
+
+<p class=MsoListParagraphCxSpMiddle><i><span style='font-family:"Times New Roman","serif"'>Figure
+4: One-to-one real-time notification within SocketPro server</span></i></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-left:0in;text-indent:.5in'><span
+style='font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-left:0in;text-indent:.5in'><span
+style='font-family:"Times New Roman","serif"'>Note that a sender is always able
+to send a message to a receiver without requirement of any type of
+subscription, contrary to the previous one-to-many notification model.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-left:0in;text-indent:.5in'><span
+style='font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-left:0in;text-indent:.5in'><b><span
+style='font-family:"Times New Roman","serif"'>Register a few chat groups at
+server side:</span></b><span style='font-family:"Times New Roman","serif"'>
+Under many cases, we like to use the one-to-many notification model. To do so,
+we must register or create a few chat groups or topics at the server side as
+shown below in Figure 5.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-left:0in;text-indent:.5in'><span
+style='font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-left:0in;text-indent:.5in'><span
+style='font-family:"Times New Roman","serif"'><img width=537 height=187
+id="Picture 3" src="chatservice_files/image005.png"></span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-left:0in;text-indent:.5in'><i><span
+style='font-family:"Times New Roman","serif"'>Figure 5: Register a few chat
+groups at server side</span></i></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-left:0in;text-indent:.5in'><span
+style='font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-left:0in;text-indent:.5in'><span
+style='font-family:"Times New Roman","serif"'>We usually create these chat
+groups or topics within the virtual function <i>OnSettingServer</i>. Lines 12
+through 14 register three chat groups. Now, a message sender is able to tell a SocketPro
+server how to distribute a message from a given array of chat group
+identification numbers.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle><span style='font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle><span style='font-family:"Times New Roman","serif"'>If
+you just use one-to-one notification model only, there is no need to register
+these chat groups at all.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle><span style='font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-left:0in;text-indent:.5in'><b><span
+style='font-family:"Times New Roman","serif"'>Subscribe for one or more chat
+groups of messages:</span></b><span style='font-family:"Times New Roman","serif"'>
+To use the one-to-many chat model, a subscriber or listener for messages must
+subscribe to the expected groups of messages. You can do so from either the client
+or server side. This tutorial sample demonstrates when subscribing for two chat
+groups of message from the server side as shown in the Figure 6. We let you
+determine how to subscribe chat groups of messages from the client side after
+you go through this tutorial.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle><span style='font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle><span style='font-family:"Times New Roman","serif"'><img
+width=485 height=84 id="Picture 6" src="chatservice_files/image006.png"></span></p>
+
+<p class=MsoListParagraphCxSpMiddle><i><span style='font-family:"Times New Roman","serif"'>Figure
+6: Subscribe two chat groups of message at line 27 at server side</span></i></p>
+
+<p class=MsoListParagraphCxSpMiddle><span style='font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-left:0in;text-indent:.5in'><span
+style='font-family:"Times New Roman","serif"'>Since this tutorial server is
+able to support both one-to-many and one-to-one notification models, we need
+demos to track notification events at both client and server sides.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-left:0in;text-indent:.5in'><span
+style='font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-left:0in;text-indent:.5in'><b><span
+style='font-family:"Times New Roman","serif"'>Track notification events at
+server side:</span></b><span style='font-family:"Times New Roman","serif"'> As
+shown in the below Figure 7, SocketPro uses virtual functions to track
+notification events. Therefore, you need to override these virtual functions.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-left:0in;text-indent:.5in'><span
+style='font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-left:0in;text-indent:.5in'><span
+style='font-family:"Times New Roman","serif"'><img width=777 height=309
+id="Picture 9" src="chatservice_files/image007.png"></span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-left:0in;text-indent:.5in'><i><span
+style='font-family:"Times New Roman","serif"'>Figure 7: Track common
+notification events at server side by overriding a set of virtual functions
+OnXXX</span></i></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-left:0in;text-indent:.5in'><span
+style='font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-left:0in;text-indent:.5in'><span
+style='font-family:"Times New Roman","serif"'>Lines 45 through 48 are used for
+tracking one-to-one message model messages. All other lines of codes are for
+tracking message events related to the one-to-many notification model.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle><span style='font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle><b><span style='font-family:"Times New Roman","serif"'>Track
+notification events at client side:</span></b><span style='font-family:"Times New Roman","serif"'>
+At client side, SocketPro uses events approach instead. See Figure 8 below for
+details.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle><span style='font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle><span style='font-family:"Times New Roman","serif"'><img
+width=572 height=418 id="Picture 12" src="chatservice_files/image008.png"></span></p>
+
+<p class=MsoListParagraphCxSpMiddle><i><span style='font-family:"Times New Roman","serif"'>Figure
+8: Track common notification messages at client side</span></i></p>
+
+<p class=MsoListParagraphCxSpMiddle><span style='font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-left:0in;text-indent:.5in'><span
+style='font-family:"Times New Roman","serif"'>Similarly to the server side, lines
+68 through 73 are used for tracking one-to-one message model messages. All
+other lines of codes are for tracking message events related with the one-to-many
+notification model.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-left:0in;text-indent:.5in'><span
+style='font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpLast style='text-indent:-.25in'><b><span
+style='font-family:"Times New Roman","serif"'>4.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span></b><b><span style='font-family:"Times New Roman","serif"'>Send
+messages</span></b></p>
+
+<p class=MsoNormal style='text-indent:.5in'><span style='font-family:"Times New Roman","serif"'>At
+last, we need some ways to send a message to one or more subscribers (or
+listeners) as long as there is an interesting thing happening. SocketPro
+supports sending a message at either client or server side.</span></p>
+
+<p class=MsoNormal style='text-indent:.5in'><b><span style='font-family:"Times New Roman","serif"'>Server
+side:</span></b><span style='font-family:"Times New Roman","serif"'> You can
+call the method <i>Publish</i> after obtaining the property <i>Push</i> as
+shown in the Figure 9.</span></p>
+
+<p class=MsoNormal style='margin-left:.5in'><span style='font-family:"Times New Roman","serif"'><img
+width=589 height=35 id="Picture 1" src="chatservice_files/image009.png"></span></p>
+
+<p class=MsoNormal style='margin-left:.5in'><i><span style='font-family:"Times New Roman","serif"'>Figure
+9: Send a message onto two chat groups of subscribers at server side</span></i></p>
+
+<p class=MsoNormal style='margin-left:.5in'><span style='font-family:"Times New Roman","serif"'>Similarly,
+you can send a message to a receiver identified by its user id with the method <i>SendUserMessage</i>.</span></p>
+
+<p class=MsoNormal style='margin-left:.5in'><b><span style='font-family:"Times New Roman","serif"'>Client
+side:</span></b><span style='font-family:"Times New Roman","serif"'> You are
+still able to use the class <i>CClientSocket</i> property <i>Push</i> to send
+your interesting messages as shown in the below Figure 10.</span></p>
+
+<p class=MsoNormal style='margin-left:.5in'><a name="_GoBack"><span
+style='font-family:"Times New Roman","serif"'><img width=761 height=320
+id="Picture 4" src="chatservice_files/image010.png"></span></a></p>
+
+<p class=MsoNormal style='margin-left:.5in'><i><span style='font-family:"Times New Roman","serif"'>Figure
+10: Send messages at client side</span></i></p>
+
+<p class=MsoNormal style='text-indent:.5in'><span style='font-family:"Times New Roman","serif"'>Figure
+10 demonstrates publishing a message from line 89 to two chat groups of
+subscribers, and then sending one message to one receiver as identified by an
+input user id at line 95.</span></p>
+
+</div>
+
+</body>
+
+</html>

@@ -1,0 +1,1220 @@
+<html xmlns:o="urn:schemas-microsoft-com:office:office"
+xmlns:w="urn:schemas-microsoft-com:office:word"
+xmlns="http://www.w3.org/TR/REC-html40">
+
+<head>
+<meta http-equiv=Content-Type content="text/html; charset=windows-1252">
+<meta name=ProgId content=Word.Document>
+<meta name=Generator content="Microsoft Word 9">
+<meta name=Originator content="Microsoft Word 9">
+<link rel=File-List href="./usocketlib_files/filelist.xml">
+<title>USocket.dll</title>
+<!--[if gte mso 9]><xml>
+ <w:WordDocument>
+  <w:PunctuationKerning/>
+  <w:BrowserLevel>MicrosoftInternetExplorer4</w:BrowserLevel>
+  <w:ValidateAgainstSchemas/>
+  <w:SaveIfXMLInvalid>false</w:SaveIfXMLInvalid>
+  <w:IgnoreMixedContent>false</w:IgnoreMixedContent>
+  <w:AlwaysShowPlaceholderText>false</w:AlwaysShowPlaceholderText>
+ </w:WordDocument>
+</xml><![endif]-->
+<style>
+<!--
+ /* Style Definitions */
+p.MsoNormal, li.MsoNormal, div.MsoNormal
+	{mso-style-parent:"";
+	margin:0in;
+	margin-bottom:.0001pt;
+	mso-pagination:widow-orphan;
+	font-size:10.0pt;
+	font-family:"Times New Roman";
+	mso-fareast-font-family:"Times New Roman";}
+h1
+	{mso-style-next:Normal;
+	margin:0in;
+	margin-bottom:.0001pt;
+	mso-pagination:widow-orphan;
+	page-break-after:avoid;
+	mso-outline-level:1;
+	font-size:12.0pt;
+	font-family:"Times New Roman";
+	mso-font-kerning:0pt;}
+p.MsoBodyText, li.MsoBodyText, div.MsoBodyText
+	{margin:0in;
+	margin-bottom:.0001pt;
+	mso-pagination:widow-orphan;
+	font-size:12.0pt;
+	mso-bidi-font-size:10.0pt;
+	font-family:"Times New Roman";
+	mso-fareast-font-family:"Times New Roman";}
+p.MsoBodyTextIndent, li.MsoBodyTextIndent, div.MsoBodyTextIndent
+	{margin:0in;
+	margin-bottom:.0001pt;
+	text-indent:.5in;
+	mso-pagination:widow-orphan;
+	mso-layout-grid-align:none;
+	text-autospace:none;
+	font-size:12.0pt;
+	mso-bidi-font-size:10.0pt;
+	font-family:"Times New Roman";
+	mso-fareast-font-family:"Times New Roman";}
+a:link, span.MsoHyperlink
+	{color:blue;
+	text-decoration:underline;
+	text-underline:single;}
+a:visited, span.MsoHyperlinkFollowed
+	{color:purple;
+	text-decoration:underline;
+	text-underline:single;}
+@page Section1
+	{size:8.5in 11.0in;
+	margin:1.0in 1.25in 1.0in 1.25in;
+	mso-header-margin:.5in;
+	mso-footer-margin:.5in;
+	mso-paper-source:0;}
+div.Section1
+	{page:Section1;}
+ /* List Definitions */
+@list l0
+	{mso-list-id:639455117;
+	mso-list-type:hybrid;
+	mso-list-template-ids:-617439034 67698689 67698691 67698693 67698689 67698691 67698693 67698689 67698691 67698693;}
+@list l0:level1
+	{mso-level-number-format:bullet;
+	mso-level-text:\F0B7;
+	mso-level-tab-stop:.75in;
+	mso-level-number-position:left;
+	margin-left:.75in;
+	text-indent:-.25in;
+	font-family:Symbol;}
+ol
+	{margin-bottom:0in;}
+ul
+	{margin-bottom:0in;}
+-->
+</style>
+<!--[if gte mso 9]><xml>
+ <w:LatentStyles DefLockedState="false" LatentStyleCount="156">  </w:LatentStyles>
+</xml><![endif]-->
+</head>
+
+<body lang=EN-US link=blue vlink=purple style='tab-interval:.5in'>
+
+<div class=Section1>
+
+<p class=MsoBodyTextIndent style='text-indent:0in'><b style='mso-bidi-font-weight:
+normal'><span style='mso-bidi-font-size:12.0pt'>Client side socket library --
+USocket.dll<o:p></o:p></span></b></p>
+
+<p class=MsoBodyTextIndent style='text-indent:0in'><span style='mso-bidi-font-size:
+12.0pt'>&nbsp;<o:p></o:p></span></p>
+
+<p class=MsoBodyTextIndent><span style='mso-bidi-font-size:12.0pt'>USocket.dll
+is a COM library for managing socket communication on client side. <o:p></o:p></span></p>
+
+<p class=MsoBodyTextIndent><span style='mso-bidi-font-size:12.0pt'>&nbsp;<o:p></o:p></span></p>
+
+<p class=MsoBodyTextIndent><span style='mso-bidi-font-size:12.0pt'>It contains
+two ATL/C++ COM objects. The first COM object USocket exposes a set of
+interfaces, <span style='mso-no-proof:yes'>IUSocket, ISocketBase, IUChat and IUFast
+as well as event interface </span></span><span style='mso-no-proof:yes'>_IUSocketEvent</span><span
+style='mso-bidi-font-size:12.0pt'><span style='mso-no-proof:yes'>. In addition,
+you can get an interface IUCert through the property <a
+href="PeerCertificate.htm">PeerCertificate</a> if you use SSL/TLS to secure
+socket communication.<o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent><span style='mso-no-proof:
+yes'><span
+style='mso-bidi-font-size:12.0pt'>&nbsp;<o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent><span style='mso-no-proof:
+yes'><span
+style='mso-bidi-font-size:12.0pt'>All of other client code or software
+components must be written from the COM object USocket.<o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent><span style='mso-bidi-font-size:12.0pt'>&nbsp;<o:p></o:p></span></p>
+
+<p class=MsoBodyTextIndent style='margin-left:.75in;text-indent:-.25in;
+mso-list:l0 level1 lfo2;tab-stops:list .75in'><![if !supportLists]><span
+style='font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><b style='mso-bidi-font-weight:normal'><span
+style='mso-no-proof:yes'><span style='mso-bidi-font-size:12.0pt;color:blue'>interface</span></span><span
+style='mso-no-proof:yes'></b><b style='mso-bidi-font-weight:normal'><span
+style='mso-bidi-font-size:12.0pt'> ISocketBase : IDispatch</span><o:p></o:p></b></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.5in;text-indent:0in'><b
+style='mso-bidi-font-weight:normal'><span style='mso-bidi-font-size:12.0pt'>&nbsp;<o:p></o:p></span></b></p>
+
+<p class=MsoBodyTextIndent style='margin-left:.75in;text-indent:0in'><b
+style='mso-bidi-font-weight:normal'><span style='mso-no-proof:yes'><span
+style='mso-bidi-font-size:12.0pt'>Methods:<o:p></o:p></span></b></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.75in;text-indent:0in'><span
+style='mso-no-proof:yes'><span style='mso-bidi-font-size:12.0pt'><a
+href="Connect.htm">Connect</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.75in;text-indent:0in'><span
+style='mso-no-proof:yes'><span style='mso-bidi-font-size:12.0pt'><a
+href="Disconnect.htm">Disconnect</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.75in;text-indent:0in'><span
+style='mso-no-proof:yes'><span style='mso-bidi-font-size:12.0pt'><a
+href="GetBytesReceived.htm">GetBytesReceived</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.75in;text-indent:0in'><span
+style='mso-no-proof:yes'><span style='mso-bidi-font-size:12.0pt'><a
+href="GetBytesSent.htm">GetBytesSent</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.75in;text-indent:0in'><span
+style='mso-no-proof:yes'><span style='mso-bidi-font-size:12.0pt'><a
+href="GetHostByAddr.htm">GetHostByAddr</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.75in;text-indent:0in'><span
+style='mso-no-proof:yes'><span style='mso-bidi-font-size:12.0pt'><a
+href="GetHostByName.htm">GetHostByName</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.75in;text-indent:0in'><span
+style='mso-no-proof:yes'><span style='mso-bidi-font-size:12.0pt'><a
+href="GetInterfaceAttributes.htm">GetInterfaceAttributes</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.75in;text-indent:0in'><span
+style='mso-no-proof:yes'><span style='mso-bidi-font-size:12.0pt'><a
+href="GetLocalName.htm">GetLocalName</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.75in;text-indent:0in'><span
+style='mso-no-proof:yes'><span style='mso-bidi-font-size:12.0pt'><a
+href="GetProcAddress.htm">GetProcAddress</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.75in;text-indent:0in'><span
+style='mso-no-proof:yes'><span style='mso-bidi-font-size:12.0pt'><a
+href="GetPeerName.htm">GetPeerName</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.75in;text-indent:0in'><span
+style='mso-no-proof:yes'><span style='mso-bidi-font-size:12.0pt'><a
+href="GetSockAddr.htm">GetSockAddr</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.75in;text-indent:0in'><span
+style='mso-no-proof:yes'><span style='mso-bidi-font-size:12.0pt'><a
+href="GetSockOpt.htm">GetSockOpt</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.75in;text-indent:0in'><span
+style='mso-no-proof:yes'><span style='mso-bidi-font-size:12.0pt'><a
+href="IOCtl.htm">IOCtl</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.75in;text-indent:0in'><span
+style='mso-no-proof:yes'><span style='mso-bidi-font-size:12.0pt'><a
+href="Recv.htm">Recv</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.75in;text-indent:0in'><span
+style='mso-no-proof:yes'><span style='mso-bidi-font-size:12.0pt'><a
+href="Send.htm">Send</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.75in;text-indent:0in'><span
+style='mso-no-proof:yes'><span style='mso-bidi-font-size:12.0pt'><a
+href="GetSockOpt.htm">SetSockOpt</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.75in;text-indent:0in'><span
+style='mso-no-proof:yes'><span style='mso-bidi-font-size:12.0pt'><a
+href="Shutdown.htm">Shutdown</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.75in;text-indent:0in'><span
+style='mso-no-proof:yes'><span style='mso-bidi-font-size:12.0pt'>&nbsp;<o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.75in;text-indent:0in'><b
+style='mso-bidi-font-weight:normal'><span style='mso-no-proof:yes'><span
+style='mso-bidi-font-size:12.0pt'>Properties:<o:p></o:p></span></b></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.75in;text-indent:0in'><span
+style='mso-no-proof:yes'><span style='mso-bidi-font-size:12.0pt'><a
+href="ConnTimeout.htm">ConnTimeout</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.75in;text-indent:0in'><span
+style='mso-no-proof:yes'><span style='mso-bidi-font-size:12.0pt'><a
+href="EncryptionMethod.htm">EncryptionMethod</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.75in;text-indent:0in'><span
+style='mso-no-proof:yes'><span style='mso-bidi-font-size:12.0pt'><a
+href="hWnd.htm">hWnd</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.75in;text-indent:0in'><span
+style='mso-no-proof:yes'><span style='mso-bidi-font-size:12.0pt'><a
+href="PeerCertificate.htm">PeerCertificate</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.75in;text-indent:0in'><span
+style='mso-no-proof:yes'><span style='mso-bidi-font-size:12.0pt'><a
+href="Socket.htm">Socket</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.75in;text-indent:0in'><span
+style='mso-no-proof:yes'><span style='mso-bidi-font-size:12.0pt'><a
+href="SSLHandle.htm">SSLHandle</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.75in;text-indent:0in'><span
+style='mso-no-proof:yes'><span style='mso-bidi-font-size:12.0pt'><a
+href="UseBaseSocketOnly.htm">UseBaseSocketOnly</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.75in;text-indent:0in'><span
+style='mso-no-proof:yes'><span style='mso-bidi-font-size:12.0pt'>&nbsp;<o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.75in;text-indent:-.25in;
+mso-list:l0 level1 lfo2;tab-stops:list .75in'><![if !supportLists]><span
+style='mso-bidi-font-size:12.0pt;font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><b style='mso-bidi-font-weight:normal'><span
+style='mso-no-proof:yes'><span style='mso-bidi-font-size:12.0pt;color:blue'>interface</span></span><span
+style='mso-no-proof:yes'></b><b style='mso-bidi-font-weight:normal'><span
+style='mso-bidi-font-size:12.0pt'> IUSocket : ISocketBase<o:p></o:p></span></b></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.75in;text-indent:0in'><span
+style='mso-no-proof:yes'><span style='mso-bidi-font-size:12.0pt'>&nbsp;<o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.75in;text-indent:0in'><b
+style='mso-bidi-font-weight:normal'><span style='mso-no-proof:yes'><span
+style='mso-bidi-font-size:12.0pt'>Methods:<o:p></o:p></span></b></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.75in;text-indent:0in'><span
+style='mso-no-proof:yes'><span style='mso-bidi-font-size:12.0pt'><a
+href="AbortBatching.htm">AbortBatching</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.75in;text-indent:0in'><span
+style='mso-no-proof:yes'><span style='mso-bidi-font-size:12.0pt'><a
+href="Cancel.htm">Cancel</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.75in;text-indent:0in'><span
+style='mso-no-proof:yes'><span style='mso-bidi-font-size:12.0pt'><a
+href="CleanTrack.htm">CleanTrack</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.75in;text-indent:0in'><span
+style='mso-no-proof:yes'><span style='mso-bidi-font-size:12.0pt'><a
+href="CommitBatching.htm">CommitBatching</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.75in;text-indent:0in'><span
+style='mso-no-proof:yes'><span style='mso-bidi-font-size:12.0pt'><a
+href="DetectNetPerformance.htm">DetectNetPerformance</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.75in;text-indent:0in'><span
+style='mso-no-proof:yes'><span style='mso-bidi-font-size:12.0pt'><a
+href="DoEcho.htm">DoEcho</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.75in;text-indent:0in'><span
+style='mso-no-proof:yes'><span style='mso-bidi-font-size:12.0pt'><a
+href="GetClientUSockVersion.htm">GetClientUSockVersion</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.75in;text-indent:0in'><span
+style='mso-no-proof:yes'><span style='mso-bidi-font-size:12.0pt'><a
+href="GetClientVersion.htm">GetClientVersion</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.75in;text-indent:0in'><span
+style='mso-no-proof:yes'><span style='mso-bidi-font-size:12.0pt'><a
+href="GetOptValueAtSvr.htm">GetOptValueAtSvr</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.75in;text-indent:0in'><span
+style='mso-no-proof:yes'><span style='mso-bidi-font-size:12.0pt'><a
+href="GetRequestsInQueue.htm">GetRequestsInQueue</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.75in;text-indent:0in'><span
+style='mso-no-proof:yes'><span style='mso-bidi-font-size:12.0pt'><a
+href="GetRtnBuffer.htm">GetRtnBuffer</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.75in;text-indent:0in'><span
+style='mso-no-proof:yes'><span style='mso-bidi-font-size:12.0pt'><a
+href="GetServerUSockVersion.htm">GetServerUSockVersion</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.75in;text-indent:0in'><span
+style='mso-no-proof:yes'><span style='mso-bidi-font-size:12.0pt'><a
+href="GetServerVersion.htm">GetServerVersion</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.75in;text-indent:0in'><span
+style='mso-no-proof:yes'><span style='mso-bidi-font-size:12.0pt'><a
+href="GetSockOptAtSvr.htm">GetSockOptAtSvr</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.75in;text-indent:0in'><span
+style='mso-no-proof:yes'><span style='mso-bidi-font-size:12.0pt'><a
+href="IgnorePendingRequests.htm">IgnorePendingRequests</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.75in;text-indent:0in'><span
+style='mso-no-proof:yes'><span style='mso-bidi-font-size:12.0pt'><a
+href="SendMySpecificBytes.htm">SendMySpecificBytes</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.75in;text-indent:0in'><span
+style='mso-no-proof:yes'><span style='mso-bidi-font-size:12.0pt'><a
+href="SendRequest.htm">SendRequest</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.75in;text-indent:0in'><span
+style='mso-no-proof:yes'><span style='mso-bidi-font-size:12.0pt'><a
+href="SetClientVersion.htm">SetClientVersion</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.75in;text-indent:0in'><span
+style='mso-no-proof:yes'><span style='mso-bidi-font-size:12.0pt'><a
+href="SetSockOptAtSvr.htm">SetSockOptAtSvr</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.75in;text-indent:0in'><span
+style='mso-no-proof:yes'><span style='mso-bidi-font-size:12.0pt'><a
+href="ShrinkMemory.htm">ShrinkMemory</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.75in;text-indent:0in'><span
+style='mso-no-proof:yes'><span style='mso-bidi-font-size:12.0pt'><a
+href="ShrinkMemoryAtSvr.htm">ShrinkMemoryAtSvr</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.75in;text-indent:0in'><span
+style='mso-no-proof:yes'><span style='mso-bidi-font-size:12.0pt'><a
+href="StartBatching.htm">StartBatching</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.75in;text-indent:0in'><span
+style='mso-no-proof:yes'><span style='mso-bidi-font-size:12.0pt'><a
+href="SwitchTo.htm">SwitchTo</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.75in;text-indent:0in'><span
+style='mso-no-proof:yes'><span style='mso-bidi-font-size:12.0pt'><a
+href="TurnOnZipAtSvr.htm">TurnOnZipAtSvr</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.75in;text-indent:0in'><span
+style='mso-no-proof:yes'><span style='mso-bidi-font-size:12.0pt'><a
+href="Wait.htm">Wait</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.75in;text-indent:0in'><span
+style='mso-no-proof:yes'><span style='mso-bidi-font-size:12.0pt'><a
+href="WaitAll.htm">WaitAll</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.75in;text-indent:0in'><span
+style='mso-no-proof:yes'><span style='mso-bidi-font-size:12.0pt'>&nbsp;<o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.75in;text-indent:0in'><b
+style='mso-bidi-font-weight:normal'><span style='mso-no-proof:yes'><span
+style='mso-bidi-font-size:12.0pt'>Properties:<o:p></o:p></span></b></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.75in;text-indent:0in'><span
+style='mso-no-proof:yes'><span style='mso-bidi-font-size:12.0pt'><a
+href="BytesBatched.htm">BytesBatched</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.75in;text-indent:0in'><span
+style='mso-no-proof:yes'><span style='mso-bidi-font-size:12.0pt'><a
+href="BytesInRcvMemory.htm">BytesInRcvMemory</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.75in;text-indent:0in'><span
+style='mso-no-proof:yes'><span style='mso-bidi-font-size:12.0pt'><a
+href="BytesInSndMemory.htm">BytesInSndMemory</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.75in;text-indent:0in'><span
+style='mso-no-proof:yes'><span style='mso-bidi-font-size:12.0pt'><a
+href="ClientParams.htm">ClientParams</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.75in;text-indent:0in'><span
+style='mso-no-proof:yes'><span style='mso-bidi-font-size:12.0pt'><a
+href="CountOfRequestsInQueue.htm">CountOfRequestsInQueue</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.75in;text-indent:0in'><span
+style='mso-no-proof:yes'><span style='mso-bidi-font-size:12.0pt'><a
+href="CurrentSvsID.htm">CurrentSvsID</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.75in;text-indent:0in'><span
+style='mso-no-proof:yes'><span style='mso-bidi-font-size:12.0pt'><a
+href="ErrorMsg.htm">ErrorMsg</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.75in;text-indent:0in'><span
+style='mso-no-proof:yes'><span style='mso-bidi-font-size:12.0pt'><a
+href="Frozen.htm">Frozen</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.75in;text-indent:0in'><span
+style='mso-no-proof:yes'><span style='mso-bidi-font-size:12.0pt'><a
+href="Key.htm">Key</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.75in;text-indent:0in'><span
+style='mso-no-proof:yes'><span style='mso-bidi-font-size:12.0pt'><a
+href="IsBatching.htm">IsBatching</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.75in;text-indent:0in'><span
+style='mso-no-proof:yes'><span style='mso-bidi-font-size:12.0pt'><a
+href="IsSameEndian.htm">IsSameEndian</a><o:p></o:p></span></p>
+
+<p class=MsoBodyTextIndent style='margin-left:.75in;text-indent:0in'><span
+style='mso-bidi-font-size:12.0pt'><a href="LastRequestID.htm">LastRequestID</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.75in;text-indent:0in'><span
+style='mso-no-proof:yes'><span style='mso-bidi-font-size:12.0pt'><a
+href="Password.htm">Password</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.75in;text-indent:0in'><span
+style='mso-no-proof:yes'><span style='mso-bidi-font-size:12.0pt'><a
+href="RcvMemory.htm">RcvMemory</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.75in;text-indent:0in'><span
+style='mso-no-proof:yes'><span style='mso-bidi-font-size:12.0pt'><a
+href="RecvTimeout.htm">RecvTimeout</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.75in;text-indent:0in'><span
+style='mso-no-proof:yes'><span style='mso-bidi-font-size:12.0pt'><a
+href="RequestsCanceled.htm">RequestsCanceled</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.75in;text-indent:0in'><span
+style='mso-no-proof:yes'><span style='mso-bidi-font-size:12.0pt'><a
+href="ReturnEvents.htm">ReturnEvents</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.75in;text-indent:0in'><span
+style='mso-no-proof:yes'><span style='mso-bidi-font-size:12.0pt'><a
+href="Rtn.htm">Rtn.htm</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.75in;text-indent:0in'><span
+style='mso-no-proof:yes'><span style='mso-bidi-font-size:12.0pt'><a
+href="RtnsInQueue.htm">RtnsInQueue</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.75in;text-indent:0in'><span
+style='mso-no-proof:yes'><span style='mso-bidi-font-size:12.0pt'><a
+href="SendTimeout.htm">SendTimeout</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.75in;text-indent:0in'><span
+style='mso-no-proof:yes'><span style='mso-bidi-font-size:12.0pt'><a
+href="ServerParams.htm">ServerParams</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.75in;text-indent:0in'><span
+style='mso-no-proof:yes'><span style='mso-bidi-font-size:12.0pt'><a
+href="SndMemory.htm">SndMemory</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.75in;text-indent:0in'><span
+style='mso-no-proof:yes'><span style='mso-bidi-font-size:12.0pt'><a
+href="Syn.htm">Syn</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.75in;text-indent:0in'><span
+style='mso-no-proof:yes'><span style='mso-bidi-font-size:12.0pt'><a
+href="UserID.htm">UserID</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.75in;text-indent:0in'><span
+style='mso-no-proof:yes'><span style='mso-bidi-font-size:12.0pt'><a
+href="ZipIsOn.htm">ZipIsOn</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.75in;text-indent:0in'><span
+style='mso-no-proof:yes'><span style='mso-bidi-font-size:12.0pt'><a
+href="ZipOnAtSvr.htm">ZipOnAtSvr</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.75in;text-indent:0in'><span
+style='mso-no-proof:yes'><span style='mso-bidi-font-size:12.0pt'>&nbsp;<o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.75in;text-indent:-.25in;
+mso-list:l0 level1 lfo2;tab-stops:list .75in'><![if !supportLists]><span
+style='mso-bidi-font-size:12.0pt;font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><b style='mso-bidi-font-weight:normal'><span
+style='mso-no-proof:yes'><span style='mso-bidi-font-size:12.0pt;color:blue'>interface</span></span><span
+style='mso-no-proof:yes'></b><b style='mso-bidi-font-weight:normal'><span
+style='mso-bidi-font-size:12.0pt'> IUChat : IDispatch<o:p></o:p></span></b></p>
+
+</span>
+
+<p class=MsoBodyTextIndent><span style='mso-no-proof:
+yes'><span
+style='mso-bidi-font-size:12.0pt'>&nbsp;<o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.25in'><b style='mso-bidi-font-weight:
+normal'><span style='mso-no-proof:yes'><span style='mso-bidi-font-size:12.0pt'>Methods:<o:p></o:p></span></b></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.25in'><span style='mso-no-proof:yes'><span
+style='mso-bidi-font-size:12.0pt'><a href="Enter.htm">Enter</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.25in'><span style='mso-no-proof:yes'><span
+style='mso-bidi-font-size:12.0pt'><a href="Exit.htm">Exit</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.25in'><span style='mso-no-proof:yes'><span
+style='mso-bidi-font-size:12.0pt'><a href="GetAllClients.htm">GetAllClients</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.25in'><span style='mso-no-proof:yes'><span
+style='mso-bidi-font-size:12.0pt'><a href="GetAllGroups.htm">GetAllGroups</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.25in'><span style='mso-no-proof:yes'><span
+style='mso-bidi-font-size:12.0pt'><a href="GetAllListeners.htm">GetAllListeners</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.25in'><span style='mso-no-proof:yes'><span
+style='mso-bidi-font-size:12.0pt'><a href="GetGroupInfo.htm">GetGroupInfo</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.25in'><span style='mso-no-proof:yes'><span
+style='mso-bidi-font-size:12.0pt'><a href="GetInfo.htm">GetInfo</a><o:p></o:p></span></p>
+
+<p class=MsoBodyTextIndent style='margin-left:.25in'><span style='mso-bidi-font-size:
+12.0pt'><a href="SendUserMessage.htm">SendUserMessage</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.25in'><span style='mso-no-proof:yes'><span
+style='mso-bidi-font-size:12.0pt'><a href="Speak.htm">Speak</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.25in'><span style='mso-no-proof:yes'><span
+style='mso-bidi-font-size:12.0pt'><a href="SpeakTo.htm">SpeakTo</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.25in'><span style='mso-no-proof:yes'><span
+style='mso-bidi-font-size:12.0pt'>&nbsp;<o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.25in'><b style='mso-bidi-font-weight:
+normal'><span style='mso-no-proof:yes'><span style='mso-bidi-font-size:12.0pt'>Properties:<o:p></o:p></span></b></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.25in'><span style='mso-no-proof:yes'><span
+style='mso-bidi-font-size:12.0pt'><a href="Groups.htm">Groups</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.25in'><span style='mso-no-proof:yes'><span
+style='mso-bidi-font-size:12.0pt'><a href="Listeners.htm">Listeners</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.25in'><span style='mso-no-proof:yes'><span
+style='mso-bidi-font-size:12.0pt'><a href="Message.htm">Message</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.25in'><span style='mso-no-proof:yes'><span
+style='mso-bidi-font-size:12.0pt'>&nbsp;<o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.75in;text-indent:-.25in;
+mso-list:l0 level1 lfo2;tab-stops:list .75in'><![if !supportLists]><span
+style='mso-bidi-font-size:12.0pt;font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><b style='mso-bidi-font-weight:normal'><span
+style='mso-no-proof:yes'><span style='mso-bidi-font-size:12.0pt;color:blue'>interface</span></span><span
+style='mso-no-proof:yes'></b><b style='mso-bidi-font-weight:normal'><span
+style='mso-bidi-font-size:12.0pt'> IUFast : IUnknown<o:p></o:p></span></b></p>
+
+</span>
+
+<p class=MsoBodyTextIndent><span style='mso-no-proof:
+yes'><span
+style='mso-bidi-font-size:12.0pt'>&nbsp;<o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.25in'><b style='mso-bidi-font-weight:
+normal'><span style='mso-no-proof:yes'><span style='mso-bidi-font-size:12.0pt'>Methods:<o:p></o:p></span></b></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.25in'><span style='mso-no-proof:yes'><span
+style='mso-bidi-font-size:12.0pt'><a href="GetRtnBufferEx.htm">GetRtnBufferEx</a></span></span><span
+class=MsoHyperlink><o:p></o:p></span></p>
+
+<p class=MsoBodyTextIndent style='margin-left:.25in'><span style='mso-no-proof:yes'><span
+style='mso-bidi-font-size:12.0pt'><a href="SendRequestEx.htm">SendRequestEx</a></span><o:p></o:p></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.25in'><span style='mso-bidi-font-size:
+12.0pt'><a href="SendUserMessageEx.htm">SendUserMessageEx</a></span><o:p></o:p></p>
+
+<p class=MsoBodyTextIndent style='margin-left:.25in'><span style='mso-no-proof:yes'><span
+style='mso-bidi-font-size:12.0pt'><a href="SpeakEx.htm">SpeakEx</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.25in'><span style='mso-no-proof:yes'><span
+style='mso-bidi-font-size:12.0pt'><a href="SpeakToEx.htm">SpeakToEx</a><o:p></o:p></span></p>
+
+<p class=MsoBodyTextIndent style='margin-left:.25in'><span style='mso-bidi-font-size:
+12.0pt'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoBodyTextIndent style='margin-left:.75in;text-indent:-.25in;
+mso-list:l0 level1 lfo2;tab-stops:list .75in'><![if !supportLists]><span
+style='mso-bidi-font-size:12.0pt;font-family:Symbol;mso-bidi-font-weight:bold'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><b><span style='mso-bidi-font-size:12.0pt;color:blue'>interface</span></b><b><span
+style='mso-bidi-font-size:12.0pt'> IUZip : IDispatch<o:p></o:p></span></b></p>
+
+</span>
+
+<p class=MsoBodyTextIndent><span style='mso-no-proof:yes'><b><span
+style='mso-bidi-font-size:12.0pt'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></b></p>
+
+<p class=MsoBodyTextIndent style='margin-left:.25in'><b><span style='mso-bidi-font-size:
+12.0pt'>Method:<o:p></o:p></span></b></p>
+
+<p class=MsoBodyTextIndent style='margin-left:.25in'><span style='mso-bidi-font-size:
+12.0pt'><a href="SetZipLevelAtSvr.htm">SetZipLevelAtSvr</a><o:p></o:p></span></p>
+
+<p class=MsoBodyTextIndent style='margin-left:.25in'><span style='mso-bidi-font-size:
+12.0pt'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoBodyTextIndent style='margin-left:.25in'><b><span style='mso-bidi-font-size:
+12.0pt'>Properties:<o:p></o:p></span></b></p>
+
+<p class=MsoBodyTextIndent style='margin-left:.25in'><span style='mso-bidi-font-size:
+12.0pt'><a href="ZipLevel.htm">ZipLevel</a><o:p></o:p></span></p>
+
+<p class=MsoBodyTextIndent style='margin-left:.25in'><span style='mso-bidi-font-size:
+12.0pt'><a href="ZipLevelAtSvr.htm">ZipLevelAtSvr</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.25in'><span style='mso-no-proof:yes'><span
+style='mso-bidi-font-size:12.0pt'>&nbsp;<o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.75in;text-indent:-.25in;
+mso-list:l0 level1 lfo2;tab-stops:list .75in'><![if !supportLists]><span
+style='mso-bidi-font-size:12.0pt;font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><b style='mso-bidi-font-weight:normal'><span
+style='mso-no-proof:yes'><span style='color:blue'>dispinterface</span></span><span
+style='mso-no-proof:
+yes'> _IUSocketEvent</span></b><b style='mso-bidi-font-weight:
+normal'><span style='mso-no-proof:yes'><span style='mso-bidi-font-size:12.0pt'><o:p></o:p></span></b></p>
+
+</span>
+
+<p class=MsoBodyTextIndent><span style='mso-no-proof:
+yes'><span
+style='mso-bidi-font-size:12.0pt'>&nbsp;<o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.25in'><b style='mso-bidi-font-weight:
+normal'><span style='mso-no-proof:yes'><span style='mso-bidi-font-size:12.0pt'>Methods:<o:p></o:p></span></b></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.25in'><span style='mso-no-proof:
+yes'><a
+href="OnClosing.htm">OnClosing</a><o:p></o:p></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.25in'><span style='mso-no-proof:
+yes'><a
+href="OnConnecting.htm">OnConnecting</a><o:p></o:p></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.25in'><span style='mso-no-proof:
+yes'><a
+href="OnDataAvailable.htm">OnDataAvailable</a><o:p></o:p></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.25in'><span style='mso-no-proof:
+yes'><a
+href="OnGetHostByAddr.htm">OnGetHostByAddr</a><o:p></o:p></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.25in'><span style='mso-no-proof:
+yes'><a
+href="OnGetHostByName.htm">OnGetHostByName</a><o:p></o:p></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.25in'><span style='mso-no-proof:
+yes'><a
+href="OnOtherMessage.htm">OnOtherMessage</a><o:p></o:p></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.25in'><span style='mso-no-proof:
+yes'><a
+href="OnRequestProcessed.htm">OnRequestProcessed</a></span><span
+style='mso-no-proof:yes'><span style='mso-bidi-font-size:12.0pt'><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.25in'><span style='mso-no-proof:
+yes'><a
+href="OnSendingData.htm">OnSendingData</a><o:p></o:p></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.25in'><span style='mso-no-proof:
+yes'><a
+href="OnSocketClosed.htm">OnSocketClosed</a><o:p></o:p></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.25in'><span style='mso-no-proof:
+yes'><a
+href="OnSocketConnected.htm">OnSocketConnected</a><o:p></o:p></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.75in;text-indent:0in'><span
+style='mso-no-proof:yes'><span style='mso-bidi-font-size:12.0pt'>&nbsp;<o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.75in;text-indent:-.25in;
+mso-list:l0 level1 lfo2;tab-stops:list .75in'><![if !supportLists]><span
+style='mso-bidi-font-size:12.0pt;font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><b style='mso-bidi-font-weight:normal'><span
+style='mso-no-proof:yes'><span style='mso-bidi-font-size:12.0pt;color:blue'>interface</span></span><span
+style='mso-no-proof:yes'></b><b style='mso-bidi-font-weight:normal'><span
+style='mso-bidi-font-size:12.0pt'> IUCert : IDispatch<o:p></o:p></span></b></p>
+
+</span>
+
+<p class=MsoBodyTextIndent><span style='mso-no-proof:
+yes'><span
+style='mso-bidi-font-size:12.0pt'>&nbsp;<o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.25in'><b style='mso-bidi-font-weight:
+normal'><span style='mso-no-proof:yes'><span style='mso-bidi-font-size:12.0pt'>Methods:<o:p></o:p></span></b></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.25in'><span style='mso-no-proof:yes'><span
+style='mso-bidi-font-size:12.0pt'><a href="AddCertificateToStore.htm">AddCertificateToStore</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.25in'><span style='mso-no-proof:yes'><span
+style='mso-bidi-font-size:12.0pt'><a href="CompareDomain.htm">CompareDomain</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.25in'><span style='mso-no-proof:yes'><span
+style='mso-bidi-font-size:12.0pt'><a href="Verify.htm">Verify</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.25in'><span style='mso-no-proof:yes'><span
+style='mso-bidi-font-size:12.0pt'>&nbsp;<o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.25in'><b style='mso-bidi-font-weight:
+normal'><span style='mso-no-proof:yes'><span style='mso-bidi-font-size:12.0pt'>Properties:<o:p></o:p></span></b></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.25in'><span style='mso-no-proof:yes'><span
+style='mso-bidi-font-size:12.0pt'><a href="Algorithm.htm">Algorithm</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.25in'><span style='mso-no-proof:yes'><span
+style='mso-bidi-font-size:12.0pt'><a href="CertPem.htm">CertPem</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.25in'><span style='mso-no-proof:yes'><span
+style='mso-bidi-font-size:12.0pt'><a href="Issuer.htm">Issuer</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.25in'><span style='mso-no-proof:yes'><span
+style='mso-bidi-font-size:12.0pt'><a href="IssuerUID.htm">IssuerUID</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.25in'><span style='mso-no-proof:yes'><span
+style='mso-bidi-font-size:12.0pt'><a href="NotAfter.htm">NotAfter</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.25in'><span style='mso-no-proof:yes'><span
+style='mso-bidi-font-size:12.0pt'><a href="NotBefore.htm">NotBefore</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.25in'><span style='mso-no-proof:yes'><span
+style='mso-bidi-font-size:12.0pt'><a href="PublicKey.htm">PublicKey</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.25in'><span style='mso-no-proof:yes'><span
+style='mso-bidi-font-size:12.0pt'><a href="SerialNumber.htm">SerialNumber</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.25in'><span style='mso-no-proof:yes'><span
+style='mso-bidi-font-size:12.0pt'><a href="SessionInfo.htm">SessionInfo</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.25in'><span style='mso-no-proof:yes'><span
+style='mso-bidi-font-size:12.0pt'><a href="SigAlg.htm">SigAlg</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.25in'><span style='mso-no-proof:yes'><span
+style='mso-bidi-font-size:12.0pt'><a href="Subject.htm">Subject</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.25in'><span style='mso-no-proof:yes'><span
+style='mso-bidi-font-size:12.0pt'><a href="SubjectUID.htm">SubjectUID</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.25in'><span style='mso-no-proof:yes'><span
+style='mso-bidi-font-size:12.0pt'><a href="Validity.htm">Validity</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.25in'><span style='mso-no-proof:yes'><span
+style='mso-bidi-font-size:12.0pt'><a href="VerifyLocation.htm">VerifyLocation</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.25in'><span style='mso-no-proof:yes'><span
+style='mso-bidi-font-size:12.0pt'><a href="Version.htm">Version</a><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.75in;text-indent:0in'><span
+style='mso-no-proof:yes'><span style='mso-bidi-font-size:12.0pt'>&nbsp;<o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='text-indent:0in'><span style='mso-no-proof:yes'><span
+style='mso-bidi-font-size:12.0pt'><span style='mso-tab-count:1'>            </span>The
+second COM object is </span></span><span style='mso-no-proof:yes'>USocketPool
+exposing one interface IUSocketPool. The COM object is created for easily
+managing a pool of sockets that are hosted within a few threads. The object is
+created mainly for web and middle tier (server) applications development.<o:p></o:p></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='text-indent:0in'><span style='mso-no-proof:
+yes'>&nbsp;<o:p></o:p></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.75in;text-indent:-.25in;
+mso-list:l0 level1 lfo2;tab-stops:list .75in'><![if !supportLists]><span
+style='font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><b style='mso-bidi-font-weight:normal'><span
+style='mso-no-proof:yes'><span style='color:blue'>interface</span></span><span
+style='mso-no-proof:
+yes'> IUSocketPool : IDispatch<o:p></o:p></b></p>
+
+</span>
+
+<p class=MsoBodyTextIndent><span style='mso-no-proof:yes'>&nbsp;<o:p></o:p></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.25in'><b style='mso-bidi-font-weight:
+normal'><span style='mso-no-proof:yes'>Methods:<o:p></o:p></b></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.25in'><span style='mso-no-proof:
+yes'><a
+href="pConnect.htm">Connect</a><o:p></o:p></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.25in'><span style='mso-no-proof:
+yes'><a
+href="ConnectAll.htm">ConnectAll</a><o:p></o:p></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.25in'><span style='mso-no-proof:
+yes'><a
+href="DisconnectAll.htm">DisconnectAll</a><o:p></o:p></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.25in'><span style='mso-no-proof:
+yes'><a
+href="FindAClosedSocket.htm">FindAClosedSocket</a><o:p></o:p></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.25in'><span style='mso-no-proof:
+yes'><a
+href="LockASocket.htm">LockASocket</a><o:p></o:p></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.25in'><span style='mso-no-proof:
+yes'><a
+href="ShutdownPool.htm">ShutdownPool</a><o:p></o:p></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.25in'><span style='mso-no-proof:
+yes'><a
+href="StartPool.htm">StartPool</a><o:p></o:p></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.25in'><span style='mso-no-proof:
+yes'><a
+href="UnlockASocket.htm">UnlockASocket</a><o:p></o:p></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.25in'><span style='mso-no-proof:
+yes'>&nbsp;<o:p></o:p></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.25in'><b style='mso-bidi-font-weight:
+normal'><span style='mso-no-proof:yes'>Properties:<o:p></o:p></b></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.25in'><span style='mso-no-proof:
+yes'><a
+href="ConnectedSockets.htm">ConnectedSockets</a><o:p></o:p></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.25in'><span style='mso-no-proof:
+yes'><a
+href="DisconnectedSockets.htm">DisconnectedSockets</a><o:p></o:p></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.25in'><span style='mso-no-proof:
+yes'><a
+href="IdleSockets.htm">IdleSockets</a><o:p></o:p></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.25in'><span style='mso-no-proof:
+yes'><a
+href="LockedSockets.htm">LockedSockets</a><o:p></o:p></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.25in'><span style='mso-no-proof:
+yes'><a
+href="ThreadCounts.htm">ThreadCounts</a><o:p></o:p></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.75in;text-indent:0in'><span
+style='mso-no-proof:yes'><span style='mso-bidi-font-size:12.0pt'>&nbsp;<o:p></o:p></span></p>
+
+<p class=MsoBodyTextIndent style='text-indent:0in'><b><span style='mso-bidi-font-size:
+12.0pt'><a href="..\help.htm">SocketPro Help Main Page</a><o:p></o:p></span></b></p>
+
+<p class=MsoBodyTextIndent style='text-indent:0in'><span style='mso-bidi-font-size:
+12.0pt'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoBodyTextIndent style='text-indent:0in'><span style='mso-bidi-font-size:
+12.0pt'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.75in;text-indent:0in'><span
+style='mso-no-proof:yes'><span style='mso-bidi-font-size:12.0pt'>&nbsp;<o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.75in;text-indent:0in'><span
+style='mso-no-proof:yes'><span style='mso-bidi-font-size:12.0pt'>&nbsp;<o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.75in;text-indent:0in'><span
+style='mso-no-proof:yes'><span style='mso-bidi-font-size:12.0pt'>&nbsp;<o:p></o:p></span></p>
+
+</span>
+
+<p class=MsoBodyTextIndent style='margin-left:.75in;text-indent:0in'><span
+style='mso-bidi-font-size:12.0pt'>&nbsp;<o:p></o:p></span></p>
+
+</div>
+
+</body>
+
+</html>

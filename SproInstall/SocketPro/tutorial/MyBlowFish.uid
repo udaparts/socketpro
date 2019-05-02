@@ -1,0 +1,14 @@
+
+[	
+	ServiceID = 101 //service id can't be less than 0
+]			
+CMySecure
+{
+	//Secured
+	$string Open(string strUserIDToDB, string strPasswordToDB);
+	
+	bool BeginTrans();
+	$bool ExecuteNoQuery(string strSQL);
+	bool Commit(bool bSmart);
+}
+

@@ -1,0 +1,7 @@
+[ServiceID = 10]
+RemSum
+{
+	$int DoSum(int start, int end);
+	int Pause();
+	$int RedoSum();
+}

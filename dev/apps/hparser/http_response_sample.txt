@@ -1,0 +1,23 @@
+Accept:text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+Accept-Charset:ISO-8859-1,utf-8;q=0.7,*;q=0.3
+Accept-Encoding:gzip,deflate,sdch
+Accept-Language:en-US,en;q=0.8
+Cache-Control:max-age=0
+Connection:keep-alive
+Cookie:phpbb2mysql_data=a%3A2%3A%7Bs%3A11%3A%22autologinid%22%3Bs%3A0%3A%22%22%3Bs%3A6%3A%22userid%22%3Bi%3A-1%3B%7D; phpbb2mysql_sid=a2b9611e8e3da90d87597f2ab354cf52
+Host:www.udaparts.com
+Pragma:no-cache
+User-Agent:Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/535.19 (KHTML, like Gecko) Chrome/18.0.1025.162 Safari/535.19
+
+----
+
+Accept-Ranges:bytes
+Connection:keep-alive
+Content-Encoding:gzip
+Content-Length:3279
+Content-Type:text/html
+Date:Wed, 18 Apr 2012 20:05:24 GMT
+ETag:"17593b3-2d43-4ba587916fbe2"
+Last-Modified:Sat, 03 Mar 2012 15:37:38 GMT
+Server:Nginx / Varnish
+Vary:Accept-Encoding

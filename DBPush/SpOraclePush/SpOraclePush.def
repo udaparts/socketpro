@@ -1,0 +1,8 @@
+LIBRARY			"SpOraclePush"
+
+EXPORTS
+	IsConnected				@1
+	Disconnect				@2
+	Connect					@3
+	SendUserMessage			@4
+	Notify					@5

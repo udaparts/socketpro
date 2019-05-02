@@ -1,0 +1,3517 @@
+# Microsoft eMbedded Visual Tools Project File - Name="UFile" - Package Owner=<4>
+# Microsoft eMbedded Visual Tools Generated Build File, Format Version 6.02
+# ** DO NOT EDIT **
+
+# TARGTYPE "Win32 (WCE MIPSIV) Dynamic-Link Library" 0x9602
+# TARGTYPE "Win32 (WCE ARMV4T) Dynamic-Link Library" 0xa402
+# TARGTYPE "Win32 (WCE MIPSIV_FP) Dynamic-Link Library" 0x9202
+# TARGTYPE "Win32 (WCE SH3) Dynamic-Link Library" 0x8102
+# TARGTYPE "Win32 (WCE MIPSII_FP) Dynamic-Link Library" 0xa202
+# TARGTYPE "Win32 (WCE x86) Dynamic-Link Library" 0x8302
+# TARGTYPE "Win32 (WCE emulator) Dynamic-Link Library" 0xa602
+# TARGTYPE "Win32 (WCE SH4) Dynamic-Link Library" 0x8602
+# TARGTYPE "Win32 (WCE ARMV4) Dynamic-Link Library" 0xa302
+# TARGTYPE "Win32 (WCE MIPS16) Dynamic-Link Library" 0x8902
+# TARGTYPE "Win32 (WCE ARMV4I) Dynamic-Link Library" 0xa502
+# TARGTYPE "Win32 (WCE MIPSII) Dynamic-Link Library" 0xa102
+
+CFG=UFile - Win32 (WCE SH4) Debug
+!MESSAGE This is not a valid makefile. To build this project using NMAKE,
+!MESSAGE use the Export Makefile command and run
+!MESSAGE 
+!MESSAGE NMAKE /f "UFile.vcn".
+!MESSAGE 
+!MESSAGE You can specify a configuration when running NMAKE
+!MESSAGE by defining the macro CFG on the command line. For example:
+!MESSAGE 
+!MESSAGE NMAKE /f "UFile.vcn" CFG="UFile - Win32 (WCE SH4) Debug"
+!MESSAGE 
+!MESSAGE Possible choices for configuration are:
+!MESSAGE 
+!MESSAGE "UFile - Win32 (WCE MIPSII_FP) Debug" (based on "Win32 (WCE MIPSII_FP) Dynamic-Link Library")
+!MESSAGE "UFile - Win32 (WCE MIPSII) Debug" (based on "Win32 (WCE MIPSII) Dynamic-Link Library")
+!MESSAGE "UFile - Win32 (WCE SH4) Debug" (based on "Win32 (WCE SH4) Dynamic-Link Library")
+!MESSAGE "UFile - Win32 (WCE SH3) Debug" (based on "Win32 (WCE SH3) Dynamic-Link Library")
+!MESSAGE "UFile - Win32 (WCE MIPSIV) Debug" (based on "Win32 (WCE MIPSIV) Dynamic-Link Library")
+!MESSAGE "UFile - Win32 (WCE emulator) Debug" (based on "Win32 (WCE emulator) Dynamic-Link Library")
+!MESSAGE "UFile - Win32 (WCE ARMV4I) Debug" (based on "Win32 (WCE ARMV4I) Dynamic-Link Library")
+!MESSAGE "UFile - Win32 (WCE MIPSIV_FP) Debug" (based on "Win32 (WCE MIPSIV_FP) Dynamic-Link Library")
+!MESSAGE "UFile - Win32 (WCE ARMV4) Debug" (based on "Win32 (WCE ARMV4) Dynamic-Link Library")
+!MESSAGE "UFile - Win32 (WCE MIPS16) Debug" (based on "Win32 (WCE MIPS16) Dynamic-Link Library")
+!MESSAGE "UFile - Win32 (WCE ARMV4T) Debug" (based on "Win32 (WCE ARMV4T) Dynamic-Link Library")
+!MESSAGE "UFile - Win32 (WCE x86) Debug" (based on "Win32 (WCE x86) Dynamic-Link Library")
+!MESSAGE "UFile - Win32 (WCE MIPSIV_FP) Release MinSize" (based on "Win32 (WCE MIPSIV_FP) Dynamic-Link Library")
+!MESSAGE "UFile - Win32 (WCE MIPSIV_FP) Release MinDependency" (based on "Win32 (WCE MIPSIV_FP) Dynamic-Link Library")
+!MESSAGE "UFile - Win32 (WCE SH4) Release MinSize" (based on "Win32 (WCE SH4) Dynamic-Link Library")
+!MESSAGE "UFile - Win32 (WCE SH4) Release MinDependency" (based on "Win32 (WCE SH4) Dynamic-Link Library")
+!MESSAGE "UFile - Win32 (WCE emulator) Release MinSize" (based on "Win32 (WCE emulator) Dynamic-Link Library")
+!MESSAGE "UFile - Win32 (WCE emulator) Release MinDependency" (based on "Win32 (WCE emulator) Dynamic-Link Library")
+!MESSAGE "UFile - Win32 (WCE x86) Release MinSize" (based on "Win32 (WCE x86) Dynamic-Link Library")
+!MESSAGE "UFile - Win32 (WCE x86) Release MinDependency" (based on "Win32 (WCE x86) Dynamic-Link Library")
+!MESSAGE "UFile - Win32 (WCE MIPSIV) Release MinSize" (based on "Win32 (WCE MIPSIV) Dynamic-Link Library")
+!MESSAGE "UFile - Win32 (WCE MIPSIV) Release MinDependency" (based on "Win32 (WCE MIPSIV) Dynamic-Link Library")
+!MESSAGE "UFile - Win32 (WCE ARMV4) Release MinSize" (based on "Win32 (WCE ARMV4) Dynamic-Link Library")
+!MESSAGE "UFile - Win32 (WCE ARMV4) Release MinDependency" (based on "Win32 (WCE ARMV4) Dynamic-Link Library")
+!MESSAGE "UFile - Win32 (WCE MIPSII) Release MinSize" (based on "Win32 (WCE MIPSII) Dynamic-Link Library")
+!MESSAGE "UFile - Win32 (WCE MIPSII) Release MinDependency" (based on "Win32 (WCE MIPSII) Dynamic-Link Library")
+!MESSAGE "UFile - Win32 (WCE MIPSII_FP) Release MinSize" (based on "Win32 (WCE MIPSII_FP) Dynamic-Link Library")
+!MESSAGE "UFile - Win32 (WCE MIPSII_FP) Release MinDependency" (based on "Win32 (WCE MIPSII_FP) Dynamic-Link Library")
+!MESSAGE "UFile - Win32 (WCE ARMV4I) Release MinSize" (based on "Win32 (WCE ARMV4I) Dynamic-Link Library")
+!MESSAGE "UFile - Win32 (WCE ARMV4I) Release MinDependency" (based on "Win32 (WCE ARMV4I) Dynamic-Link Library")
+!MESSAGE "UFile - Win32 (WCE MIPS16) Release MinSize" (based on "Win32 (WCE MIPS16) Dynamic-Link Library")
+!MESSAGE "UFile - Win32 (WCE MIPS16) Release MinDependency" (based on "Win32 (WCE MIPS16) Dynamic-Link Library")
+!MESSAGE "UFile - Win32 (WCE SH3) Release MinSize" (based on "Win32 (WCE SH3) Dynamic-Link Library")
+!MESSAGE "UFile - Win32 (WCE SH3) Release MinDependency" (based on "Win32 (WCE SH3) Dynamic-Link Library")
+!MESSAGE "UFile - Win32 (WCE ARMV4T) Release MinSize" (based on "Win32 (WCE ARMV4T) Dynamic-Link Library")
+!MESSAGE "UFile - Win32 (WCE ARMV4T) Release MinDependency" (based on "Win32 (WCE ARMV4T) Dynamic-Link Library")
+!MESSAGE 
+
+# Begin Project
+# PROP AllowPerConfigDependencies 0
+# PROP Scc_ProjName ""
+# PROP Scc_LocalPath ""
+# PROP ATL_Project 1
+
+!IF  "$(CFG)" == "UFile - Win32 (WCE MIPSII_FP) Debug"
+
+# PROP BASE Use_MFC 0
+# PROP BASE Use_Debug_Libraries 1
+# PROP BASE Output_Dir "MIPSII_FPDbg"
+# PROP BASE Intermediate_Dir "MIPSII_FPDbg"
+# PROP BASE CPU_ID "{D8AC856C-B213-4895-9E83-9EC51A55201E}"
+# PROP BASE Platform_ID "{8A9A2F80-6887-11D3-842E-005004848CBA}"
+# PROP BASE Target_Dir ""
+# PROP Use_MFC 0
+# PROP Use_Debug_Libraries 1
+# PROP Output_Dir "MIPSII_FPDbg"
+# PROP Intermediate_Dir "MIPSII_FPDbg"
+# PROP CPU_ID "{D8AC856C-B213-4895-9E83-9EC51A55201E}"
+# PROP Platform_ID "{8A9A2F80-6887-11D3-842E-005004848CBA}"
+# PROP Target_Dir ""
+RSC=rc.exe
+# ADD BASE RSC /l 0x409 /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "UNICODE" /d "_UNICODE" /d "DEBUG" /d "$(CePlatform)" /d "MIPS" /d "_MIPS_" /d "R4000" /d "MIPSII" /d "MIPSII_FP" /r
+# ADD RSC /l 0x409 /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "UNICODE" /d "_UNICODE" /d "DEBUG" /d "$(CePlatform)" /d "MIPS" /d "_MIPS_" /d "R4000" /d "MIPSII" /d "MIPSII_FP" /r
+CPP=clmips.exe
+# ADD BASE CPP /nologo /W3 /Zi /Od /D "DEBUG" /D "MIPS" /D "_MIPS_" /D "R4000" /D "MIPSII" /D "MIPSII_FP" /D UNDER_CE=$(CEVersion) /D _WIN32_WCE=$(CEVersion) /D "_USRDLL" /D "$(CePlatform)" /D "UNICODE" /D "_UNICODE" /Yu"stdafx.h" /QMmips2 /QMFPE- /M$(CECrtMTDebug) /c
+# ADD CPP /nologo /W3 /Zi /Od /D "DEBUG" /D "MIPS" /D "_MIPS_" /D "R4000" /D "MIPSII" /D "MIPSII_FP" /D UNDER_CE=$(CEVersion) /D _WIN32_WCE=$(CEVersion) /D "_USRDLL" /D "$(CePlatform)" /D "UNICODE" /D "_UNICODE" /Yu"stdafx.h" /QMmips2 /QMFPE- /M$(CECrtMTDebug) /c
+MTL=midl.exe
+# ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /o "NUL" /win32
+# ADD MTL /nologo /D "_DEBUG" /mktyplib203 /o "NUL" /win32
+BSC32=bscmake.exe
+# ADD BASE BSC32 /nologo
+# ADD BSC32 /nologo
+LINK32=link.exe
+# ADD BASE LINK32 /nologo /base:"0x00100000" /stack:0x10000,0x1000 /entry:"_DllMainCRTStartup" /dll /debug /subsystem:$(CESubsystem) /MACHINE:MIPS
+# ADD LINK32 /nologo /base:"0x00100000" /stack:0x10000,0x1000 /entry:"_DllMainCRTStartup" /dll /debug /subsystem:$(CESubsystem) /MACHINE:MIPS
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE MIPSII) Debug"
+
+# PROP BASE Use_MFC 0
+# PROP BASE Use_Debug_Libraries 1
+# PROP BASE Output_Dir "MIPSIIDbg"
+# PROP BASE Intermediate_Dir "MIPSIIDbg"
+# PROP BASE CPU_ID "{689DDC64-9D9D-11D5-96F8-00207802C01C}"
+# PROP BASE Platform_ID "{8A9A2F80-6887-11D3-842E-005004848CBA}"
+# PROP BASE Target_Dir ""
+# PROP Use_MFC 0
+# PROP Use_Debug_Libraries 1
+# PROP Output_Dir "MIPSIIDbg"
+# PROP Intermediate_Dir "MIPSIIDbg"
+# PROP CPU_ID "{689DDC64-9D9D-11D5-96F8-00207802C01C}"
+# PROP Platform_ID "{8A9A2F80-6887-11D3-842E-005004848CBA}"
+# PROP Target_Dir ""
+RSC=rc.exe
+# ADD BASE RSC /l 0x409 /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "UNICODE" /d "_UNICODE" /d "DEBUG" /d "$(CePlatform)" /d "MIPS" /d "_MIPS_" /d "R4000" /d "MIPSII" /r
+# ADD RSC /l 0x409 /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "UNICODE" /d "_UNICODE" /d "DEBUG" /d "$(CePlatform)" /d "MIPS" /d "_MIPS_" /d "R4000" /d "MIPSII" /r
+CPP=clmips.exe
+# ADD BASE CPP /nologo /W3 /Zi /Od /D "DEBUG" /D "MIPS" /D "_MIPS_" /D "R4000" /D "MIPSII" /D UNDER_CE=$(CEVersion) /D _WIN32_WCE=$(CEVersion) /D "_USRDLL" /D "$(CePlatform)" /D "UNICODE" /D "_UNICODE" /Yu"stdafx.h" /QMmips2 /QMFPE /M$(CECrtMTDebug) /c
+# ADD CPP /nologo /W3 /Zi /Od /D "DEBUG" /D "MIPS" /D "_MIPS_" /D "R4000" /D "MIPSII" /D UNDER_CE=$(CEVersion) /D _WIN32_WCE=$(CEVersion) /D "_USRDLL" /D "$(CePlatform)" /D "UNICODE" /D "_UNICODE" /Yu"stdafx.h" /QMmips2 /QMFPE /M$(CECrtMTDebug) /c
+MTL=midl.exe
+# ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /o "NUL" /win32
+# ADD MTL /nologo /D "_DEBUG" /mktyplib203 /o "NUL" /win32
+BSC32=bscmake.exe
+# ADD BASE BSC32 /nologo
+# ADD BSC32 /nologo
+LINK32=link.exe
+# ADD BASE LINK32 /nologo /base:"0x00100000" /stack:0x10000,0x1000 /entry:"_DllMainCRTStartup" /dll /debug /subsystem:$(CESubsystem) /MACHINE:MIPS
+# ADD LINK32 /nologo /base:"0x00100000" /stack:0x10000,0x1000 /entry:"_DllMainCRTStartup" /dll /debug /subsystem:$(CESubsystem) /MACHINE:MIPS
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE SH4) Debug"
+
+# PROP BASE Use_MFC 0
+# PROP BASE Use_Debug_Libraries 1
+# PROP BASE Output_Dir "SH4Dbg"
+# PROP BASE Intermediate_Dir "SH4Dbg"
+# PROP BASE CPU_ID "{D6519021-710F-11D3-99F2-00105A0DF099}"
+# PROP BASE Platform_ID "{8A9A2F80-6887-11D3-842E-005004848CBA}"
+# PROP BASE Target_Dir ""
+# PROP Use_MFC 0
+# PROP Use_Debug_Libraries 1
+# PROP Output_Dir "SH4Dbg"
+# PROP Intermediate_Dir "SH4Dbg"
+# PROP CPU_ID "{D6519021-710F-11D3-99F2-00105A0DF099}"
+# PROP Platform_ID "{8A9A2F80-6887-11D3-842E-005004848CBA}"
+# PROP Target_Dir ""
+RSC=rc.exe
+# ADD BASE RSC /l 0x409 /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "DEBUG" /d "UNICODE" /d "_UNICODE" /d "$(CePlatform)" /d "SHx" /d "SH4" /d "_SH4_" /r
+# ADD RSC /l 0x409 /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "DEBUG" /d "UNICODE" /d "_UNICODE" /d "$(CePlatform)" /d "SHx" /d "SH4" /d "_SH4_" /r
+CPP=shcl.exe
+# ADD BASE CPP /nologo /W3 /Zi /Od /D "DEBUG" /D "SHx" /D "SH4" /D "_SH4_" /D UNDER_CE=$(CEVersion) /D _WIN32_WCE=$(CEVersion) /D "_USRDLL" /D "$(CePlatform)" /D "UNICODE" /D "_UNICODE" /Yu"stdafx.h" /Qsh4 /M$(CECrtMTDebug) /c
+# ADD CPP /nologo /W3 /Zi /Od /D "DEBUG" /D "SHx" /D "SH4" /D "_SH4_" /D UNDER_CE=$(CEVersion) /D _WIN32_WCE=$(CEVersion) /D "_USRDLL" /D "$(CePlatform)" /D "UNICODE" /D "_UNICODE" /Yu"stdafx.h" /Qsh4 /M$(CECrtMTDebug) /c
+MTL=midl.exe
+# ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /o "NUL" /win32
+# ADD MTL /nologo /D "_DEBUG" /mktyplib203 /o "NUL" /win32
+BSC32=bscmake.exe
+# ADD BASE BSC32 /nologo
+# ADD BSC32 /nologo
+LINK32=link.exe
+# ADD BASE LINK32 /nologo /base:"0x00100000" /stack:0x10000,0x1000 /entry:"_DllMainCRTStartup" /dll /debug /subsystem:$(CESubsystem) /MACHINE:SH4
+# ADD LINK32 /nologo /base:"0x00100000" /stack:0x10000,0x1000 /entry:"_DllMainCRTStartup" /dll /debug /subsystem:$(CESubsystem) /MACHINE:SH4
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE SH3) Debug"
+
+# PROP BASE Use_MFC 0
+# PROP BASE Use_Debug_Libraries 1
+# PROP BASE Output_Dir "SH3Dbg"
+# PROP BASE Intermediate_Dir "SH3Dbg"
+# PROP BASE CPU_ID "{D6519020-710F-11D3-99F2-00105A0DF099}"
+# PROP BASE Platform_ID "{8A9A2F80-6887-11D3-842E-005004848CBA}"
+# PROP BASE Target_Dir ""
+# PROP Use_MFC 0
+# PROP Use_Debug_Libraries 1
+# PROP Output_Dir "SH3Dbg"
+# PROP Intermediate_Dir "SH3Dbg"
+# PROP CPU_ID "{D6519020-710F-11D3-99F2-00105A0DF099}"
+# PROP Platform_ID "{8A9A2F80-6887-11D3-842E-005004848CBA}"
+# PROP Target_Dir ""
+RSC=rc.exe
+# ADD BASE RSC /l 0x409 /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "UNICODE" /d "_UNICODE" /d "DEBUG" /d "$(CePlatform)" /d "SHx" /d "SH3" /d "_SH3_" /r
+# ADD RSC /l 0x409 /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "UNICODE" /d "_UNICODE" /d "DEBUG" /d "$(CePlatform)" /d "SHx" /d "SH3" /d "_SH3_" /r
+CPP=shcl.exe
+# ADD BASE CPP /nologo /W3 /Zi /Od /D "_USRDLL" /D "$(CePlatform)" /D "DEBUG" /D "SHx" /D "SH3" /D "_SH3_" /D UNDER_CE=$(CEVersion) /D _WIN32_WCE=$(CEVersion) /D "UNICODE" /D "_UNICODE" /Yu"stdafx.h" /M$(CECrtMTDebug) /c
+# ADD CPP /nologo /W3 /Zi /Od /D "_USRDLL" /D "$(CePlatform)" /D "DEBUG" /D "SHx" /D "SH3" /D "_SH3_" /D UNDER_CE=$(CEVersion) /D _WIN32_WCE=$(CEVersion) /D "UNICODE" /D "_UNICODE" /Yu"stdafx.h" /M$(CECrtMTDebug) /c
+MTL=midl.exe
+# ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /o "NUL" /win32
+# ADD MTL /nologo /D "_DEBUG" /mktyplib203 /o "NUL" /win32
+BSC32=bscmake.exe
+# ADD BASE BSC32 /nologo
+# ADD BSC32 /nologo
+LINK32=link.exe
+# ADD BASE LINK32 /nologo /base:"0x00100000" /stack:0x10000,0x1000 /entry:"_DllMainCRTStartup" /dll /debug /subsystem:$(CESubsystem) /MACHINE:SH3 /align:4096
+# ADD LINK32 /nologo /base:"0x00100000" /stack:0x10000,0x1000 /entry:"_DllMainCRTStartup" /dll /debug /subsystem:$(CESubsystem) /MACHINE:SH3 /align:4096
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE MIPSIV) Debug"
+
+# PROP BASE Use_MFC 0
+# PROP BASE Use_Debug_Libraries 1
+# PROP BASE Output_Dir "MIPSIVDbg"
+# PROP BASE Intermediate_Dir "MIPSIVDbg"
+# PROP BASE CPU_ID "{0B2FE524-26C5-4194-8CEF-B1582DEB5A98}"
+# PROP BASE Platform_ID "{8A9A2F80-6887-11D3-842E-005004848CBA}"
+# PROP BASE Target_Dir ""
+# PROP Use_MFC 0
+# PROP Use_Debug_Libraries 1
+# PROP Output_Dir "MIPSIVDbg"
+# PROP Intermediate_Dir "MIPSIVDbg"
+# PROP CPU_ID "{0B2FE524-26C5-4194-8CEF-B1582DEB5A98}"
+# PROP Platform_ID "{8A9A2F80-6887-11D3-842E-005004848CBA}"
+# PROP Target_Dir ""
+RSC=rc.exe
+# ADD BASE RSC /l 0x409 /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "UNICODE" /d "_UNICODE" /d "DEBUG" /d "$(CePlatform)" /d "MIPS" /d "_MIPS_" /r
+# ADD RSC /l 0x409 /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "UNICODE" /d "_UNICODE" /d "DEBUG" /d "$(CePlatform)" /d "MIPS" /d "_MIPS_" /r
+CPP=clmips.exe
+# ADD BASE CPP /nologo /W3 /Zi /Od /D "DEBUG" /D "MIPS" /D "_MIPS_" /D "_MIPS64" /D "R4000" /D "MIPSIV" /D UNDER_CE=$(CEVersion) /D _WIN32_WCE=$(CEVersion) /D "_USRDLL" /D "$(CePlatform)" /D "UNICODE" /D "_UNICODE" /Yu"stdafx.h" /QMmips4 /QMn32 /QMFPE /M$(CECrtMTDebug) /c
+# ADD CPP /nologo /W3 /Zi /Od /D "DEBUG" /D "MIPS" /D "_MIPS_" /D "_MIPS64" /D "R4000" /D "MIPSIV" /D UNDER_CE=$(CEVersion) /D _WIN32_WCE=$(CEVersion) /D "_USRDLL" /D "$(CePlatform)" /D "UNICODE" /D "_UNICODE" /Yu"stdafx.h" /QMmips4 /QMn32 /QMFPE /M$(CECrtMTDebug) /c
+MTL=midl.exe
+# ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /o "NUL" /win32
+# ADD MTL /nologo /D "_DEBUG" /mktyplib203 /o "NUL" /win32
+BSC32=bscmake.exe
+# ADD BASE BSC32 /nologo
+# ADD BSC32 /nologo
+LINK32=link.exe
+# ADD BASE LINK32 /nologo /base:"0x00100000" /stack:0x10000,0x1000 /entry:"_DllMainCRTStartup" /dll /debug /subsystem:$(CESubsystem) /MACHINE:MIPSFPU
+# ADD LINK32 /nologo /base:"0x00100000" /stack:0x10000,0x1000 /entry:"_DllMainCRTStartup" /dll /debug /subsystem:$(CESubsystem) /MACHINE:MIPSFPU
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE emulator) Debug"
+
+# PROP BASE Use_MFC 0
+# PROP BASE Use_Debug_Libraries 1
+# PROP BASE Output_Dir "emulatorDbg"
+# PROP BASE Intermediate_Dir "emulatorDbg"
+# PROP BASE CPU_ID "{32E52003-403E-442D-BE48-DE10F8C6131D}"
+# PROP BASE Platform_ID "{8A9A2F80-6887-11D3-842E-005004848CBA}"
+# PROP BASE Target_Dir ""
+# PROP Use_MFC 0
+# PROP Use_Debug_Libraries 1
+# PROP Output_Dir "emulatorDbg"
+# PROP Intermediate_Dir "emulatorDbg"
+# PROP CPU_ID "{32E52003-403E-442D-BE48-DE10F8C6131D}"
+# PROP Platform_ID "{8A9A2F80-6887-11D3-842E-005004848CBA}"
+# PROP Target_Dir ""
+RSC=rc.exe
+# ADD BASE RSC /l 0x409 /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "UNICODE" /d "_UNICODE" /d "DEBUG" /d "$(CePlatform)" /d "_X86_" /d "x86" /d "_i386_" /r
+# ADD RSC /l 0x409 /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "UNICODE" /d "_UNICODE" /d "DEBUG" /d "$(CePlatform)" /d "_X86_" /d "x86" /d "_i386_" /r
+CPP=cl.exe
+# ADD BASE CPP /nologo /W3 /Zi /Od /D "DEBUG" /D "_i386_" /D UNDER_CE=$(CEVersion) /D _WIN32_WCE=$(CEVersion) /D "_USRDLL" /D "$(CePlatform)" /D "UNICODE" /D "_UNICODE" /D "_X86_" /D "x86" /D "_WIN32_WCE_CEPC" /Yu"stdafx.h" /Gs8192 /GF /c
+# ADD CPP /nologo /W3 /Zi /Od /D "DEBUG" /D "_i386_" /D UNDER_CE=$(CEVersion) /D _WIN32_WCE=$(CEVersion) /D "_USRDLL" /D "$(CePlatform)" /D "UNICODE" /D "_UNICODE" /D "_X86_" /D "x86" /D "_WIN32_WCE_CEPC" /Yu"stdafx.h" /Gs8192 /GF /c
+MTL=midl.exe
+# ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /o "NUL" /win32
+# ADD MTL /nologo /D "_DEBUG" /mktyplib203 /o "NUL" /win32
+BSC32=bscmake.exe
+# ADD BASE BSC32 /nologo
+# ADD BSC32 /nologo
+LINK32=link.exe
+# ADD BASE LINK32 /nologo /base:"0x00100000" /stack:0x10000,0x1000 /entry:"_DllMainCRTStartup" /dll /debug /subsystem:$(CESubsystem) /MACHINE:IX86
+# ADD LINK32 /nologo /base:"0x00100000" /stack:0x10000,0x1000 /entry:"_DllMainCRTStartup" /dll /debug /subsystem:$(CESubsystem) /MACHINE:IX86
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE ARMV4I) Debug"
+
+# PROP BASE Use_MFC 0
+# PROP BASE Use_Debug_Libraries 1
+# PROP BASE Output_Dir "ARMV4IDbg"
+# PROP BASE Intermediate_Dir "ARMV4IDbg"
+# PROP BASE CPU_ID "{DC70F430-E78B-494F-A9D5-62ADC56443B8}"
+# PROP BASE Platform_ID "{8A9A2F80-6887-11D3-842E-005004848CBA}"
+# PROP BASE Target_Dir ""
+# PROP Use_MFC 0
+# PROP Use_Debug_Libraries 1
+# PROP Output_Dir "ARMV4IDbg"
+# PROP Intermediate_Dir "ARMV4IDbg"
+# PROP CPU_ID "{DC70F430-E78B-494F-A9D5-62ADC56443B8}"
+# PROP Platform_ID "{8A9A2F80-6887-11D3-842E-005004848CBA}"
+# PROP Target_Dir ""
+RSC=rc.exe
+# ADD BASE RSC /l 0x409 /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "UNICODE" /d "_UNICODE" /d "DEBUG" /d "$(CePlatform)" /d "THUMB" /d "_THUMB_" /d "ARM" /d "_ARM_" /d "ARMV4I" /r
+# ADD RSC /l 0x409 /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "UNICODE" /d "_UNICODE" /d "DEBUG" /d "$(CePlatform)" /d "THUMB" /d "_THUMB_" /d "ARM" /d "_ARM_" /d "ARMV4I" /r
+CPP=clarm.exe
+# ADD BASE CPP /nologo /W3 /Zi /Od /D "DEBUG" /D "ARM" /D "_ARM_" /D "ARMV4I" /D UNDER_CE=$(CEVersion) /D _WIN32_WCE=$(CEVersion) /D "_USRDLL" /D "$(CePlatform)" /D "UNICODE" /D "_UNICODE" /Yu"stdafx.h" /QRarch4T /QRinterwork-return /M$(CECrtMTDebug) /c
+# ADD CPP /nologo /W3 /Zi /Od /D "DEBUG" /D "ARM" /D "_ARM_" /D "ARMV4I" /D UNDER_CE=$(CEVersion) /D _WIN32_WCE=$(CEVersion) /D "_USRDLL" /D "$(CePlatform)" /D "UNICODE" /D "_UNICODE" /Yu"stdafx.h" /QRarch4T /QRinterwork-return /M$(CECrtMTDebug) /c
+MTL=midl.exe
+# ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /o "NUL" /win32
+# ADD MTL /nologo /D "_DEBUG" /mktyplib203 /o "NUL" /win32
+BSC32=bscmake.exe
+# ADD BASE BSC32 /nologo
+# ADD BSC32 /nologo
+LINK32=link.exe
+# ADD BASE LINK32 /nologo /base:"0x00100000" /stack:0x10000,0x1000 /entry:"_DllMainCRTStartup" /dll /debug /subsystem:$(CESubsystem) /MACHINE:THUMB
+# ADD LINK32 /nologo /base:"0x00100000" /stack:0x10000,0x1000 /entry:"_DllMainCRTStartup" /dll /debug /subsystem:$(CESubsystem) /MACHINE:THUMB
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE MIPSIV_FP) Debug"
+
+# PROP BASE Use_MFC 0
+# PROP BASE Use_Debug_Libraries 1
+# PROP BASE Output_Dir "MIPSIV_FPDbg"
+# PROP BASE Intermediate_Dir "MIPSIV_FPDbg"
+# PROP BASE CPU_ID "{046A430D-7770-48AB-89B5-24C2D300B03F}"
+# PROP BASE Platform_ID "{8A9A2F80-6887-11D3-842E-005004848CBA}"
+# PROP BASE Target_Dir ""
+# PROP Use_MFC 0
+# PROP Use_Debug_Libraries 1
+# PROP Output_Dir "MIPSIV_FPDbg"
+# PROP Intermediate_Dir "MIPSIV_FPDbg"
+# PROP CPU_ID "{046A430D-7770-48AB-89B5-24C2D300B03F}"
+# PROP Platform_ID "{8A9A2F80-6887-11D3-842E-005004848CBA}"
+# PROP Target_Dir ""
+RSC=rc.exe
+# ADD BASE RSC /l 0x409 /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "UNICODE" /d "_UNICODE" /d "DEBUG" /d "$(CePlatform)" /d "MIPS" /d "_MIPS_" /r
+# ADD RSC /l 0x409 /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "UNICODE" /d "_UNICODE" /d "DEBUG" /d "$(CePlatform)" /d "MIPS" /d "_MIPS_" /r
+CPP=clmips.exe
+# ADD BASE CPP /nologo /W3 /Zi /Od /D "DEBUG" /D "MIPS" /D "_MIPS_" /D "_MIPS64" /D "R4000" /D "MIPSIV" /D "MIPSIV_FP" /D UNDER_CE=$(CEVersion) /D _WIN32_WCE=$(CEVersion) /D "_USRDLL" /D "$(CePlatform)" /D "UNICODE" /D "_UNICODE" /Yu"stdafx.h" /QMmips4 /QMn32 /QMFPE- /M$(CECrtMTDebug) /c
+# ADD CPP /nologo /W3 /Zi /Od /D "DEBUG" /D "MIPS" /D "_MIPS_" /D "_MIPS64" /D "R4000" /D "MIPSIV" /D "MIPSIV_FP" /D UNDER_CE=$(CEVersion) /D _WIN32_WCE=$(CEVersion) /D "_USRDLL" /D "$(CePlatform)" /D "UNICODE" /D "_UNICODE" /Yu"stdafx.h" /QMmips4 /QMn32 /QMFPE- /M$(CECrtMTDebug) /c
+MTL=midl.exe
+# ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /o "NUL" /win32
+# ADD MTL /nologo /D "_DEBUG" /mktyplib203 /o "NUL" /win32
+BSC32=bscmake.exe
+# ADD BASE BSC32 /nologo
+# ADD BSC32 /nologo
+LINK32=link.exe
+# ADD BASE LINK32 /nologo /base:"0x00100000" /stack:0x10000,0x1000 /entry:"_DllMainCRTStartup" /dll /debug /subsystem:$(CESubsystem) /MACHINE:MIPSFPU
+# ADD LINK32 /nologo /base:"0x00100000" /stack:0x10000,0x1000 /entry:"_DllMainCRTStartup" /dll /debug /subsystem:$(CESubsystem) /MACHINE:MIPSFPU
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE ARMV4) Debug"
+
+# PROP BASE Use_MFC 0
+# PROP BASE Use_Debug_Libraries 1
+# PROP BASE Output_Dir "ARMV4Dbg"
+# PROP BASE Intermediate_Dir "ARMV4Dbg"
+# PROP BASE CPU_ID "{ECBEA43D-CD7B-4852-AD55-D4227B5D624B}"
+# PROP BASE Platform_ID "{8A9A2F80-6887-11D3-842E-005004848CBA}"
+# PROP BASE Target_Dir ""
+# PROP Use_MFC 0
+# PROP Use_Debug_Libraries 1
+# PROP Output_Dir "ARMV4Dbg"
+# PROP Intermediate_Dir "ARMV4Dbg"
+# PROP CPU_ID "{ECBEA43D-CD7B-4852-AD55-D4227B5D624B}"
+# PROP Platform_ID "{8A9A2F80-6887-11D3-842E-005004848CBA}"
+# PROP Target_Dir ""
+RSC=rc.exe
+# ADD BASE RSC /l 0x409 /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "DEBUG" /d "UNICODE" /d "_UNICODE" /d "$(CePlatform)" /d "ARM" /d "_ARM_" /d "ARMV4" /r
+# ADD RSC /l 0x409 /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "DEBUG" /d "UNICODE" /d "_UNICODE" /d "$(CePlatform)" /d "ARM" /d "_ARM_" /d "ARMV4" /r
+CPP=clarm.exe
+# ADD BASE CPP /nologo /W3 /Zi /Od /D "DEBUG" /D "ARM" /D "_ARM_" /D "ARMV4" /D UNDER_CE=$(CEVersion) /D _WIN32_WCE=$(CEVersion) /D "_USRDLL" /D "$(CePlatform)" /D "UNICODE" /D "_UNICODE" /Yu"stdafx.h" /M$(CECrtMTDebug) /c
+# ADD CPP /nologo /W3 /Zi /Od /D "DEBUG" /D "ARM" /D "_ARM_" /D "ARMV4" /D UNDER_CE=$(CEVersion) /D _WIN32_WCE=$(CEVersion) /D "_USRDLL" /D "$(CePlatform)" /D "UNICODE" /D "_UNICODE" /Yu"stdafx.h" /M$(CECrtMTDebug) /c
+MTL=midl.exe
+# ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /o "NUL" /win32
+# ADD MTL /nologo /D "_DEBUG" /mktyplib203 /o "NUL" /win32
+BSC32=bscmake.exe
+# ADD BASE BSC32 /nologo
+# ADD BSC32 /nologo
+LINK32=link.exe
+# ADD BASE LINK32 /nologo /base:"0x00100000" /stack:0x10000,0x1000 /entry:"_DllMainCRTStartup" /dll /debug /subsystem:$(CESubsystem) /align:"4096" /MACHINE:ARM
+# ADD LINK32 /nologo /base:"0x00100000" /stack:0x10000,0x1000 /entry:"_DllMainCRTStartup" /dll /debug /subsystem:$(CESubsystem) /align:"4096" /MACHINE:ARM
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE MIPS16) Debug"
+
+# PROP BASE Use_MFC 0
+# PROP BASE Use_Debug_Libraries 1
+# PROP BASE Output_Dir "MIPS16Dbg"
+# PROP BASE Intermediate_Dir "MIPS16Dbg"
+# PROP BASE CPU_ID "{D6519013-710F-11D3-99F2-00105A0DF099}"
+# PROP BASE Platform_ID "{8A9A2F80-6887-11D3-842E-005004848CBA}"
+# PROP BASE Target_Dir ""
+# PROP Use_MFC 0
+# PROP Use_Debug_Libraries 1
+# PROP Output_Dir "MIPS16Dbg"
+# PROP Intermediate_Dir "MIPS16Dbg"
+# PROP CPU_ID "{D6519013-710F-11D3-99F2-00105A0DF099}"
+# PROP Platform_ID "{8A9A2F80-6887-11D3-842E-005004848CBA}"
+# PROP Target_Dir ""
+RSC=rc.exe
+# ADD BASE RSC /l 0x409 /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "MIPS16SUPPORT" /d "UNICODE" /d "_UNICODE" /d "DEBUG" /d "$(CePlatform)" /d "MIPS" /d "_MIPS_" /d "R4000" /d "MIPSII" /d "MIPS16" /r
+# ADD RSC /l 0x409 /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "MIPS16SUPPORT" /d "UNICODE" /d "_UNICODE" /d "DEBUG" /d "$(CePlatform)" /d "MIPS" /d "_MIPS_" /d "R4000" /d "MIPSII" /d "MIPS16" /r
+CPP=clmips.exe
+# ADD BASE CPP /nologo /W3 /Zi /Od /D "DEBUG" /D "MIPS" /D "_MIPS_" /D "R4000" /D "MIPSII" /D "MIPS16" /D UNDER_CE=$(CEVersion) /D _WIN32_WCE=$(CEVersion) /D "_USRDLL" /D "$(CePlatform)" /D "UNICODE" /D "_UNICODE" /D "_MIPS16_" /D "MIPS16SUPPORT" /Yu"stdafx.h" /QMmips16 /M$(CECrtMTDebug) /c
+# ADD CPP /nologo /W3 /Zi /Od /D "DEBUG" /D "MIPS" /D "_MIPS_" /D "R4000" /D "MIPSII" /D "MIPS16" /D UNDER_CE=$(CEVersion) /D _WIN32_WCE=$(CEVersion) /D "_USRDLL" /D "$(CePlatform)" /D "UNICODE" /D "_UNICODE" /D "_MIPS16_" /D "MIPS16SUPPORT" /Yu"stdafx.h" /QMmips16 /M$(CECrtMTDebug) /c
+MTL=midl.exe
+# ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /o "NUL" /win32
+# ADD MTL /nologo /D "_DEBUG" /mktyplib203 /o "NUL" /win32
+BSC32=bscmake.exe
+# ADD BASE BSC32 /nologo
+# ADD BSC32 /nologo
+LINK32=link.exe
+# ADD BASE LINK32 /nologo /base:"0x00100000" /stack:0x10000,0x1000 /entry:"_DllMainCRTStartup" /dll /debug /subsystem:$(CESubsystem) /MACHINE:MIPS16 /ALIGN:4096
+# ADD LINK32 /nologo /base:"0x00100000" /stack:0x10000,0x1000 /entry:"_DllMainCRTStartup" /dll /debug /subsystem:$(CESubsystem) /MACHINE:MIPS16 /ALIGN:4096
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE ARMV4T) Debug"
+
+# PROP BASE Use_MFC 0
+# PROP BASE Use_Debug_Libraries 1
+# PROP BASE Output_Dir "ARMV4TDbg"
+# PROP BASE Intermediate_Dir "ARMV4TDbg"
+# PROP BASE CPU_ID "{F52316A9-3B7C-4FE7-A67F-68350B41240D}"
+# PROP BASE Platform_ID "{8A9A2F80-6887-11D3-842E-005004848CBA}"
+# PROP BASE Target_Dir ""
+# PROP Use_MFC 0
+# PROP Use_Debug_Libraries 1
+# PROP Output_Dir "ARMV4TDbg"
+# PROP Intermediate_Dir "ARMV4TDbg"
+# PROP CPU_ID "{F52316A9-3B7C-4FE7-A67F-68350B41240D}"
+# PROP Platform_ID "{8A9A2F80-6887-11D3-842E-005004848CBA}"
+# PROP Target_Dir ""
+RSC=rc.exe
+# ADD BASE RSC /l 0x409 /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "UNICODE" /d "_UNICODE" /d "DEBUG" /d "$(CePlatform)" /d "THUMB" /d "_THUMB_" /d "ARM" /d "_ARM_" /d "ARMV4T" /r
+# ADD RSC /l 0x409 /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "UNICODE" /d "_UNICODE" /d "DEBUG" /d "$(CePlatform)" /d "THUMB" /d "_THUMB_" /d "ARM" /d "_ARM_" /d "ARMV4T" /r
+CPP=clthumb.exe
+# ADD BASE CPP /nologo /W3 /Zi /Od /D "DEBUG" /D "THUMB" /D "_THUMB_" /D "ARMV4T" /D UNDER_CE=$(CEVersion) /D _WIN32_WCE=$(CEVersion) /D "_USRDLL" /D "ARM" /D "_ARM_" /D "$(CePlatform)" /D "UNICODE" /D "_UNICODE" /Yu"stdafx.h" /QRarch4T /QRinterwork-return /M$(CECrtMTDebug) /c
+# ADD CPP /nologo /W3 /Zi /Od /D "DEBUG" /D "THUMB" /D "_THUMB_" /D "ARMV4T" /D UNDER_CE=$(CEVersion) /D _WIN32_WCE=$(CEVersion) /D "_USRDLL" /D "ARM" /D "_ARM_" /D "$(CePlatform)" /D "UNICODE" /D "_UNICODE" /Yu"stdafx.h" /QRarch4T /QRinterwork-return /M$(CECrtMTDebug) /c
+MTL=midl.exe
+# ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /o "NUL" /win32
+# ADD MTL /nologo /D "_DEBUG" /mktyplib203 /o "NUL" /win32
+BSC32=bscmake.exe
+# ADD BASE BSC32 /nologo
+# ADD BSC32 /nologo
+LINK32=link.exe
+# ADD BASE LINK32 /nologo /base:"0x00100000" /stack:0x10000,0x1000 /entry:"_DllMainCRTStartup" /dll /debug /subsystem:$(CESubsystem) /MACHINE:THUMB
+# ADD LINK32 /nologo /base:"0x00100000" /stack:0x10000,0x1000 /entry:"_DllMainCRTStartup" /dll /debug /subsystem:$(CESubsystem) /MACHINE:THUMB
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE x86) Debug"
+
+# PROP BASE Use_MFC 0
+# PROP BASE Use_Debug_Libraries 1
+# PROP BASE Output_Dir "X86Dbg"
+# PROP BASE Intermediate_Dir "X86Dbg"
+# PROP BASE CPU_ID "{D6518FF3-710F-11D3-99F2-00105A0DF099}"
+# PROP BASE Platform_ID "{8A9A2F80-6887-11D3-842E-005004848CBA}"
+# PROP BASE Target_Dir ""
+# PROP Use_MFC 0
+# PROP Use_Debug_Libraries 1
+# PROP Output_Dir "X86Dbg"
+# PROP Intermediate_Dir "X86Dbg"
+# PROP CPU_ID "{D6518FF3-710F-11D3-99F2-00105A0DF099}"
+# PROP Platform_ID "{8A9A2F80-6887-11D3-842E-005004848CBA}"
+# PROP Target_Dir ""
+RSC=rc.exe
+# ADD BASE RSC /l 0x409 /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "UNICODE" /d "_UNICODE" /d "DEBUG" /d "$(CePlatform)" /d "_X86_" /d "x86" /d "_i386_" /r
+# ADD RSC /l 0x409 /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "UNICODE" /d "_UNICODE" /d "DEBUG" /d "$(CePlatform)" /d "_X86_" /d "x86" /d "_i386_" /r
+CPP=cl.exe
+# ADD BASE CPP /nologo /W3 /Zi /Od /D "DEBUG" /D "_i386_" /D UNDER_CE=$(CEVersion) /D _WIN32_WCE=$(CEVersion) /D "_USRDLL" /D "$(CePlatform)" /D "UNICODE" /D "_UNICODE" /D "_X86_" /D "x86" /D "_WIN32_WCE_CEPC" /Yu"stdafx.h" /Gs8192 /GF /c
+# ADD CPP /nologo /W3 /Zi /Od /D "DEBUG" /D "_i386_" /D UNDER_CE=$(CEVersion) /D _WIN32_WCE=$(CEVersion) /D "_USRDLL" /D "$(CePlatform)" /D "UNICODE" /D "_UNICODE" /D "_X86_" /D "x86" /D "_WIN32_WCE_CEPC" /Yu"stdafx.h" /Gs8192 /GF /c
+MTL=midl.exe
+# ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /o "NUL" /win32
+# ADD MTL /nologo /D "_DEBUG" /mktyplib203 /o "NUL" /win32
+BSC32=bscmake.exe
+# ADD BASE BSC32 /nologo
+# ADD BSC32 /nologo
+LINK32=link.exe
+# ADD BASE LINK32 /nologo /base:"0x00100000" /stack:0x10000,0x1000 /entry:"_DllMainCRTStartup" /dll /debug /subsystem:$(CESubsystem) /MACHINE:IX86
+# ADD LINK32 /nologo /base:"0x00100000" /stack:0x10000,0x1000 /entry:"_DllMainCRTStartup" /dll /debug /subsystem:$(CESubsystem) /MACHINE:IX86
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE MIPSIV_FP) Release MinSize"
+
+# PROP BASE Use_MFC 0
+# PROP BASE Use_Debug_Libraries 0
+# PROP BASE Output_Dir "MIPSIV_FPRelMinSize"
+# PROP BASE Intermediate_Dir "MIPSIV_FPRelMinSize"
+# PROP BASE CPU_ID "{046A430D-7770-48AB-89B5-24C2D300B03F}"
+# PROP BASE Platform_ID "{8A9A2F80-6887-11D3-842E-005004848CBA}"
+# PROP BASE Target_Dir ""
+# PROP Use_MFC 0
+# PROP Use_Debug_Libraries 0
+# PROP Output_Dir "MIPSIV_FPRelMinSize"
+# PROP Intermediate_Dir "MIPSIV_FPRelMinSize"
+# PROP CPU_ID "{046A430D-7770-48AB-89B5-24C2D300B03F}"
+# PROP Platform_ID "{8A9A2F80-6887-11D3-842E-005004848CBA}"
+# PROP Target_Dir ""
+RSC=rc.exe
+# ADD BASE RSC /l 0x409 /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "UNICODE" /d "_UNICODE" /d "NDEBUG" /d "$(CePlatform)" /d "MIPS" /d "_MIPS_" /r
+# ADD RSC /l 0x409 /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "UNICODE" /d "_UNICODE" /d "NDEBUG" /d "$(CePlatform)" /d "MIPS" /d "_MIPS_" /r
+CPP=clmips.exe
+# ADD BASE CPP /nologo /W3 /D "_USRDLL" /D "$(CePlatform)" /D "MIPS" /D "_MIPS_" /D "_MIPS64" /D "R4000" /D "MIPSIV" /D "MIPSIV_FP" /D UNDER_CE=$(CEVersion) /D _WIN32_WCE=$(CEVersion) /D "UNICODE" /D "_UNICODE" /D "NDEBUG" /D "_ATL_MIN_CRT" /D "_ATL_DLL" /Yu"stdafx.h" /QMmips4 /QMn32 /QMFPE- /O2 /M$(CECrtMT) /c
+# ADD CPP /nologo /W3 /D "_USRDLL" /D "$(CePlatform)" /D "MIPS" /D "_MIPS_" /D "_MIPS64" /D "R4000" /D "MIPSIV" /D "MIPSIV_FP" /D UNDER_CE=$(CEVersion) /D _WIN32_WCE=$(CEVersion) /D "UNICODE" /D "_UNICODE" /D "NDEBUG" /D "_ATL_MIN_CRT" /D "_ATL_DLL" /Yu"stdafx.h" /QMmips4 /QMn32 /QMFPE- /O2 /M$(CECrtMT) /c
+MTL=midl.exe
+# ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /win32
+# ADD MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /win32
+BSC32=bscmake.exe
+# ADD BASE BSC32 /nologo
+# ADD BSC32 /nologo
+LINK32=link.exe
+# ADD BASE LINK32 /nologo /base:"0x00100000" /stack:0x10000,0x1000 /entry:"_DllMainCRTStartup" /dll /subsystem:$(CESubsystem) /MACHINE:MIPSFPU
+# ADD LINK32 /nologo /base:"0x00100000" /stack:0x10000,0x1000 /entry:"_DllMainCRTStartup" /dll /subsystem:$(CESubsystem) /MACHINE:MIPSFPU
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE MIPSIV_FP) Release MinDependency"
+
+# PROP BASE Use_MFC 0
+# PROP BASE Use_Debug_Libraries 0
+# PROP BASE Output_Dir "MIPSIV_FPRelMinDependency"
+# PROP BASE Intermediate_Dir "MIPSIV_FPRelMinDependency"
+# PROP BASE CPU_ID "{046A430D-7770-48AB-89B5-24C2D300B03F}"
+# PROP BASE Platform_ID "{8A9A2F80-6887-11D3-842E-005004848CBA}"
+# PROP BASE Target_Dir ""
+# PROP Use_MFC 0
+# PROP Use_Debug_Libraries 0
+# PROP Output_Dir "MIPSIV_FPRelMinDependency"
+# PROP Intermediate_Dir "MIPSIV_FPRelMinDependency"
+# PROP CPU_ID "{046A430D-7770-48AB-89B5-24C2D300B03F}"
+# PROP Platform_ID "{8A9A2F80-6887-11D3-842E-005004848CBA}"
+# PROP Target_Dir ""
+RSC=rc.exe
+# ADD BASE RSC /l 0x409 /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "UNICODE" /d "_UNICODE" /d "NDEBUG" /d "$(CePlatform)" /d "MIPS" /d "_MIPS_" /r
+# ADD RSC /l 0x409 /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "UNICODE" /d "_UNICODE" /d "NDEBUG" /d "$(CePlatform)" /d "MIPS" /d "_MIPS_" /r
+CPP=clmips.exe
+# ADD BASE CPP /nologo /W3 /D "_USRDLL" /D "$(CePlatform)" /D "MIPS" /D "_MIPS_" /D "_MIPS64" /D "R4000" /D "MIPSIV" /D "MIPSIV_FP" /D UNDER_CE=$(CEVersion) /D _WIN32_WCE=$(CEVersion) /D "UNICODE" /D "_UNICODE" /D "NDEBUG" /D "_ATL_MIN_CRT" /D "_ATL_STATIC_REGISTRY" /Yu"stdafx.h" /QMmips4 /QMn32 /QMFPE- /O2 /M$(CECrtMT) /c
+# ADD CPP /nologo /W3 /D "_USRDLL" /D "$(CePlatform)" /D "MIPS" /D "_MIPS_" /D "_MIPS64" /D "R4000" /D "MIPSIV" /D "MIPSIV_FP" /D UNDER_CE=$(CEVersion) /D _WIN32_WCE=$(CEVersion) /D "UNICODE" /D "_UNICODE" /D "NDEBUG" /D "_ATL_MIN_CRT" /D "_ATL_STATIC_REGISTRY" /Yu"stdafx.h" /QMmips4 /QMn32 /QMFPE- /O2 /M$(CECrtMT) /c
+MTL=midl.exe
+# ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /win32
+# ADD MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /win32
+BSC32=bscmake.exe
+# ADD BASE BSC32 /nologo
+# ADD BSC32 /nologo
+LINK32=link.exe
+# ADD BASE LINK32 /nologo /base:"0x00100000" /stack:0x10000,0x1000 /entry:"_DllMainCRTStartup" /dll /subsystem:$(CESubsystem) /MACHINE:MIPSFPU
+# ADD LINK32 /nologo /base:"0x00100000" /stack:0x10000,0x1000 /entry:"_DllMainCRTStartup" /dll /subsystem:$(CESubsystem) /MACHINE:MIPSFPU
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE SH4) Release MinSize"
+
+# PROP BASE Use_MFC 0
+# PROP BASE Use_Debug_Libraries 0
+# PROP BASE Output_Dir "SH4RelMinSize"
+# PROP BASE Intermediate_Dir "SH4RelMinSize"
+# PROP BASE CPU_ID "{D6519021-710F-11D3-99F2-00105A0DF099}"
+# PROP BASE Platform_ID "{8A9A2F80-6887-11D3-842E-005004848CBA}"
+# PROP BASE Target_Dir ""
+# PROP Use_MFC 0
+# PROP Use_Debug_Libraries 0
+# PROP Output_Dir "SH4RelMinSize"
+# PROP Intermediate_Dir "SH4RelMinSize"
+# PROP CPU_ID "{D6519021-710F-11D3-99F2-00105A0DF099}"
+# PROP Platform_ID "{8A9A2F80-6887-11D3-842E-005004848CBA}"
+# PROP Target_Dir ""
+RSC=rc.exe
+# ADD BASE RSC /l 0x409 /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "NDEBUG" /d "UNICODE" /d "_UNICODE" /d "$(CePlatform)" /d "SHx" /d "SH4" /d "_SH4_" /r
+# ADD RSC /l 0x409 /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "NDEBUG" /d "UNICODE" /d "_UNICODE" /d "$(CePlatform)" /d "SHx" /d "SH4" /d "_SH4_" /r
+CPP=shcl.exe
+# ADD BASE CPP /nologo /W3 /D "_USRDLL" /D "$(CePlatform)" /D "SHx" /D "SH4" /D "_SH4_" /D UNDER_CE=$(CEVersion) /D _WIN32_WCE=$(CEVersion) /D "UNICODE" /D "_UNICODE" /D "NDEBUG" /D "_ATL_MIN_CRT" /D "_ATL_DLL" /Yu"stdafx.h" /Qsh4 /O2 /M$(CECrtMT) /c
+# ADD CPP /nologo /W3 /D "_USRDLL" /D "$(CePlatform)" /D "SHx" /D "SH4" /D "_SH4_" /D UNDER_CE=$(CEVersion) /D _WIN32_WCE=$(CEVersion) /D "UNICODE" /D "_UNICODE" /D "NDEBUG" /D "_ATL_MIN_CRT" /D "_ATL_DLL" /Yu"stdafx.h" /Qsh4 /O2 /M$(CECrtMT) /c
+MTL=midl.exe
+# ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /win32
+# ADD MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /win32
+BSC32=bscmake.exe
+# ADD BASE BSC32 /nologo
+# ADD BSC32 /nologo
+LINK32=link.exe
+# ADD BASE LINK32 /nologo /base:"0x00100000" /stack:0x10000,0x1000 /entry:"_DllMainCRTStartup" /dll /subsystem:$(CESubsystem) /MACHINE:SH4
+# ADD LINK32 /nologo /base:"0x00100000" /stack:0x10000,0x1000 /entry:"_DllMainCRTStartup" /dll /subsystem:$(CESubsystem) /MACHINE:SH4
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE SH4) Release MinDependency"
+
+# PROP BASE Use_MFC 0
+# PROP BASE Use_Debug_Libraries 0
+# PROP BASE Output_Dir "SH4RelMinDependency"
+# PROP BASE Intermediate_Dir "SH4RelMinDependency"
+# PROP BASE CPU_ID "{D6519021-710F-11D3-99F2-00105A0DF099}"
+# PROP BASE Platform_ID "{8A9A2F80-6887-11D3-842E-005004848CBA}"
+# PROP BASE Target_Dir ""
+# PROP Use_MFC 0
+# PROP Use_Debug_Libraries 0
+# PROP Output_Dir "SH4RelMinDependency"
+# PROP Intermediate_Dir "SH4RelMinDependency"
+# PROP CPU_ID "{D6519021-710F-11D3-99F2-00105A0DF099}"
+# PROP Platform_ID "{8A9A2F80-6887-11D3-842E-005004848CBA}"
+# PROP Target_Dir ""
+RSC=rc.exe
+# ADD BASE RSC /l 0x409 /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "NDEBUG" /d "UNICODE" /d "_UNICODE" /d "$(CePlatform)" /d "SHx" /d "SH4" /d "_SH4_" /r
+# ADD RSC /l 0x409 /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "NDEBUG" /d "UNICODE" /d "_UNICODE" /d "$(CePlatform)" /d "SHx" /d "SH4" /d "_SH4_" /r
+CPP=shcl.exe
+# ADD BASE CPP /nologo /W3 /D "_USRDLL" /D "$(CePlatform)" /D "SHx" /D "SH4" /D "_SH4_" /D UNDER_CE=$(CEVersion) /D _WIN32_WCE=$(CEVersion) /D "UNICODE" /D "_UNICODE" /D "NDEBUG" /D "_ATL_MIN_CRT" /D "_ATL_STATIC_REGISTRY" /Yu"stdafx.h" /Qsh4 /O2 /M$(CECrtMT) /c
+# ADD CPP /nologo /W3 /D "_USRDLL" /D "$(CePlatform)" /D "SHx" /D "SH4" /D "_SH4_" /D UNDER_CE=$(CEVersion) /D _WIN32_WCE=$(CEVersion) /D "UNICODE" /D "_UNICODE" /D "NDEBUG" /D "_ATL_MIN_CRT" /D "_ATL_STATIC_REGISTRY" /Yu"stdafx.h" /Qsh4 /O2 /M$(CECrtMT) /c
+MTL=midl.exe
+# ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /win32
+# ADD MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /win32
+BSC32=bscmake.exe
+# ADD BASE BSC32 /nologo
+# ADD BSC32 /nologo
+LINK32=link.exe
+# ADD BASE LINK32 /nologo /base:"0x00100000" /stack:0x10000,0x1000 /entry:"_DllMainCRTStartup" /dll /subsystem:$(CESubsystem) /MACHINE:SH4
+# ADD LINK32 /nologo /base:"0x00100000" /stack:0x10000,0x1000 /entry:"_DllMainCRTStartup" /dll /subsystem:$(CESubsystem) /MACHINE:SH4
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE emulator) Release MinSize"
+
+# PROP BASE Use_MFC 0
+# PROP BASE Use_Debug_Libraries 0
+# PROP BASE Output_Dir "emulatorRelMinSize"
+# PROP BASE Intermediate_Dir "emulatorRelMinSize"
+# PROP BASE CPU_ID "{32E52003-403E-442D-BE48-DE10F8C6131D}"
+# PROP BASE Platform_ID "{8A9A2F80-6887-11D3-842E-005004848CBA}"
+# PROP BASE Target_Dir ""
+# PROP Use_MFC 0
+# PROP Use_Debug_Libraries 0
+# PROP Output_Dir "emulatorRelMinSize"
+# PROP Intermediate_Dir "emulatorRelMinSize"
+# PROP CPU_ID "{32E52003-403E-442D-BE48-DE10F8C6131D}"
+# PROP Platform_ID "{8A9A2F80-6887-11D3-842E-005004848CBA}"
+# PROP Target_Dir ""
+RSC=rc.exe
+# ADD BASE RSC /l 0x409 /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "UNICODE" /d "_UNICODE" /d "NDEBUG" /d "$(CePlatform)" /d "_X86_" /d "x86" /d "_i386_" /r
+# ADD RSC /l 0x409 /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "UNICODE" /d "_UNICODE" /d "NDEBUG" /d "$(CePlatform)" /d "_X86_" /d "x86" /d "_i386_" /r
+CPP=cl.exe
+# ADD BASE CPP /nologo /W3 /D "_USRDLL" /D "$(CePlatform)" /D "_i386_" /D UNDER_CE=$(CEVersion) /D _WIN32_WCE=$(CEVersion) /D "UNICODE" /D "_UNICODE" /D "_X86_" /D "x86" /D "NDEBUG" /D "_WIN32_WCE_CEPC" /D "_ATL_MIN_CRT" /D "_ATL_DLL" /Yu"stdafx.h" /Gs8192 /GF /O2 /c
+# ADD CPP /nologo /W3 /D "_USRDLL" /D "$(CePlatform)" /D "_i386_" /D UNDER_CE=$(CEVersion) /D _WIN32_WCE=$(CEVersion) /D "UNICODE" /D "_UNICODE" /D "_X86_" /D "x86" /D "NDEBUG" /D "_WIN32_WCE_CEPC" /D "_ATL_MIN_CRT" /D "_ATL_DLL" /Yu"stdafx.h" /Gs8192 /GF /O2 /c
+MTL=midl.exe
+# ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /win32
+# ADD MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /win32
+BSC32=bscmake.exe
+# ADD BASE BSC32 /nologo
+# ADD BSC32 /nologo
+LINK32=link.exe
+# ADD BASE LINK32 /nologo /base:"0x00100000" /stack:0x10000,0x1000 /entry:"_DllMainCRTStartup" /dll /subsystem:$(CESubsystem) /MACHINE:IX86
+# ADD LINK32 /nologo /base:"0x00100000" /stack:0x10000,0x1000 /entry:"_DllMainCRTStartup" /dll /subsystem:$(CESubsystem) /MACHINE:IX86
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE emulator) Release MinDependency"
+
+# PROP BASE Use_MFC 0
+# PROP BASE Use_Debug_Libraries 0
+# PROP BASE Output_Dir "emulatorRelMinDependency"
+# PROP BASE Intermediate_Dir "emulatorRelMinDependency"
+# PROP BASE CPU_ID "{32E52003-403E-442D-BE48-DE10F8C6131D}"
+# PROP BASE Platform_ID "{8A9A2F80-6887-11D3-842E-005004848CBA}"
+# PROP BASE Target_Dir ""
+# PROP Use_MFC 0
+# PROP Use_Debug_Libraries 0
+# PROP Output_Dir "emulatorRelMinDependency"
+# PROP Intermediate_Dir "emulatorRelMinDependency"
+# PROP CPU_ID "{32E52003-403E-442D-BE48-DE10F8C6131D}"
+# PROP Platform_ID "{8A9A2F80-6887-11D3-842E-005004848CBA}"
+# PROP Target_Dir ""
+RSC=rc.exe
+# ADD BASE RSC /l 0x409 /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "UNICODE" /d "_UNICODE" /d "NDEBUG" /d "$(CePlatform)" /d "_X86_" /d "x86" /d "_i386_" /r
+# ADD RSC /l 0x409 /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "UNICODE" /d "_UNICODE" /d "NDEBUG" /d "$(CePlatform)" /d "_X86_" /d "x86" /d "_i386_" /r
+CPP=cl.exe
+# ADD BASE CPP /nologo /W3 /D "_USRDLL" /D "$(CePlatform)" /D "_i386_" /D UNDER_CE=$(CEVersion) /D _WIN32_WCE=$(CEVersion) /D "UNICODE" /D "_UNICODE" /D "_X86_" /D "x86" /D "NDEBUG" /D "_WIN32_WCE_CEPC" /D "_ATL_MIN_CRT" /D "_ATL_STATIC_REGISTRY" /Yu"stdafx.h" /Gs8192 /GF /O2 /c
+# ADD CPP /nologo /W3 /D "_USRDLL" /D "$(CePlatform)" /D "_i386_" /D UNDER_CE=$(CEVersion) /D _WIN32_WCE=$(CEVersion) /D "UNICODE" /D "_UNICODE" /D "_X86_" /D "x86" /D "NDEBUG" /D "_WIN32_WCE_CEPC" /D "_ATL_MIN_CRT" /D "_ATL_STATIC_REGISTRY" /FR /Yu"stdafx.h" /Gs8192 /GF /O2 /c
+MTL=midl.exe
+# ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /win32
+# ADD MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /win32
+BSC32=bscmake.exe
+# ADD BASE BSC32 /nologo
+# ADD BSC32 /nologo
+LINK32=link.exe
+# ADD BASE LINK32 /nologo /base:"0x00100000" /stack:0x10000,0x1000 /entry:"_DllMainCRTStartup" /dll /subsystem:$(CESubsystem) /MACHINE:IX86
+# ADD LINK32 /nologo /base:"0x00100000" /stack:0x10000,0x1000 /entry:"_DllMainCRTStartup" /dll /subsystem:$(CESubsystem) /MACHINE:IX86
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE x86) Release MinSize"
+
+# PROP BASE Use_MFC 0
+# PROP BASE Use_Debug_Libraries 0
+# PROP BASE Output_Dir "X86RelMinSize"
+# PROP BASE Intermediate_Dir "X86RelMinSize"
+# PROP BASE CPU_ID "{D6518FF3-710F-11D3-99F2-00105A0DF099}"
+# PROP BASE Platform_ID "{8A9A2F80-6887-11D3-842E-005004848CBA}"
+# PROP BASE Target_Dir ""
+# PROP Use_MFC 0
+# PROP Use_Debug_Libraries 0
+# PROP Output_Dir "X86RelMinSize"
+# PROP Intermediate_Dir "X86RelMinSize"
+# PROP CPU_ID "{D6518FF3-710F-11D3-99F2-00105A0DF099}"
+# PROP Platform_ID "{8A9A2F80-6887-11D3-842E-005004848CBA}"
+# PROP Target_Dir ""
+RSC=rc.exe
+# ADD BASE RSC /l 0x409 /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "UNICODE" /d "_UNICODE" /d "NDEBUG" /d "$(CePlatform)" /d "_X86_" /d "x86" /d "_i386_" /r
+# ADD RSC /l 0x409 /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "UNICODE" /d "_UNICODE" /d "NDEBUG" /d "$(CePlatform)" /d "_X86_" /d "x86" /d "_i386_" /r
+CPP=cl.exe
+# ADD BASE CPP /nologo /W3 /D "_USRDLL" /D "$(CePlatform)" /D "_i386_" /D UNDER_CE=$(CEVersion) /D _WIN32_WCE=$(CEVersion) /D "UNICODE" /D "_UNICODE" /D "_X86_" /D "x86" /D "NDEBUG" /D "_WIN32_WCE_CEPC" /D "_ATL_MIN_CRT" /D "_ATL_DLL" /Yu"stdafx.h" /Gs8192 /GF /O2 /c
+# ADD CPP /nologo /W3 /D "_USRDLL" /D "$(CePlatform)" /D "_i386_" /D UNDER_CE=$(CEVersion) /D _WIN32_WCE=$(CEVersion) /D "UNICODE" /D "_UNICODE" /D "_X86_" /D "x86" /D "NDEBUG" /D "_WIN32_WCE_CEPC" /D "_ATL_MIN_CRT" /D "_ATL_DLL" /Yu"stdafx.h" /Gs8192 /GF /O2 /c
+MTL=midl.exe
+# ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /win32
+# ADD MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /win32
+BSC32=bscmake.exe
+# ADD BASE BSC32 /nologo
+# ADD BSC32 /nologo
+LINK32=link.exe
+# ADD BASE LINK32 /nologo /base:"0x00100000" /stack:0x10000,0x1000 /entry:"_DllMainCRTStartup" /dll /subsystem:$(CESubsystem) /MACHINE:IX86
+# ADD LINK32 /nologo /base:"0x00100000" /stack:0x10000,0x1000 /entry:"_DllMainCRTStartup" /dll /subsystem:$(CESubsystem) /MACHINE:IX86
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE x86) Release MinDependency"
+
+# PROP BASE Use_MFC 0
+# PROP BASE Use_Debug_Libraries 0
+# PROP BASE Output_Dir "X86RelMinDependency"
+# PROP BASE Intermediate_Dir "X86RelMinDependency"
+# PROP BASE CPU_ID "{D6518FF3-710F-11D3-99F2-00105A0DF099}"
+# PROP BASE Platform_ID "{8A9A2F80-6887-11D3-842E-005004848CBA}"
+# PROP BASE Target_Dir ""
+# PROP Use_MFC 0
+# PROP Use_Debug_Libraries 0
+# PROP Output_Dir "X86RelMinDependency"
+# PROP Intermediate_Dir "X86RelMinDependency"
+# PROP CPU_ID "{D6518FF3-710F-11D3-99F2-00105A0DF099}"
+# PROP Platform_ID "{8A9A2F80-6887-11D3-842E-005004848CBA}"
+# PROP Target_Dir ""
+RSC=rc.exe
+# ADD BASE RSC /l 0x409 /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "UNICODE" /d "_UNICODE" /d "NDEBUG" /d "$(CePlatform)" /d "_X86_" /d "x86" /d "_i386_" /r
+# ADD RSC /l 0x409 /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "UNICODE" /d "_UNICODE" /d "NDEBUG" /d "$(CePlatform)" /d "_X86_" /d "x86" /d "_i386_" /r
+CPP=cl.exe
+# ADD BASE CPP /nologo /W3 /D "_USRDLL" /D "$(CePlatform)" /D "_i386_" /D UNDER_CE=$(CEVersion) /D _WIN32_WCE=$(CEVersion) /D "UNICODE" /D "_UNICODE" /D "_X86_" /D "x86" /D "NDEBUG" /D "_WIN32_WCE_CEPC" /D "_ATL_MIN_CRT" /D "_ATL_STATIC_REGISTRY" /Yu"stdafx.h" /Gs8192 /GF /O2 /c
+# ADD CPP /nologo /W3 /D "_USRDLL" /D "$(CePlatform)" /D "_i386_" /D UNDER_CE=$(CEVersion) /D _WIN32_WCE=$(CEVersion) /D "UNICODE" /D "_UNICODE" /D "_X86_" /D "x86" /D "NDEBUG" /D "_WIN32_WCE_CEPC" /D "_ATL_MIN_CRT" /D "_ATL_STATIC_REGISTRY" /Yu"stdafx.h" /Gs8192 /GF /O2 /c
+MTL=midl.exe
+# ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /win32
+# ADD MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /win32
+BSC32=bscmake.exe
+# ADD BASE BSC32 /nologo
+# ADD BSC32 /nologo
+LINK32=link.exe
+# ADD BASE LINK32 /nologo /base:"0x00100000" /stack:0x10000,0x1000 /entry:"_DllMainCRTStartup" /dll /subsystem:$(CESubsystem) /MACHINE:IX86
+# ADD LINK32 /nologo /base:"0x00100000" /stack:0x10000,0x1000 /entry:"_DllMainCRTStartup" /dll /subsystem:$(CESubsystem) /MACHINE:IX86
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE MIPSIV) Release MinSize"
+
+# PROP BASE Use_MFC 0
+# PROP BASE Use_Debug_Libraries 0
+# PROP BASE Output_Dir "MIPSIVRelMinSize"
+# PROP BASE Intermediate_Dir "MIPSIVRelMinSize"
+# PROP BASE CPU_ID "{0B2FE524-26C5-4194-8CEF-B1582DEB5A98}"
+# PROP BASE Platform_ID "{8A9A2F80-6887-11D3-842E-005004848CBA}"
+# PROP BASE Target_Dir ""
+# PROP Use_MFC 0
+# PROP Use_Debug_Libraries 0
+# PROP Output_Dir "MIPSIVRelMinSize"
+# PROP Intermediate_Dir "MIPSIVRelMinSize"
+# PROP CPU_ID "{0B2FE524-26C5-4194-8CEF-B1582DEB5A98}"
+# PROP Platform_ID "{8A9A2F80-6887-11D3-842E-005004848CBA}"
+# PROP Target_Dir ""
+RSC=rc.exe
+# ADD BASE RSC /l 0x409 /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "UNICODE" /d "_UNICODE" /d "NDEBUG" /d "$(CePlatform)" /d "MIPS" /d "_MIPS_" /r
+# ADD RSC /l 0x409 /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "UNICODE" /d "_UNICODE" /d "NDEBUG" /d "$(CePlatform)" /d "MIPS" /d "_MIPS_" /r
+CPP=clmips.exe
+# ADD BASE CPP /nologo /W3 /D "_USRDLL" /D "$(CePlatform)" /D "MIPS" /D "_MIPS_" /D "_MIPS64" /D "R4000" /D "MIPSIV" /D UNDER_CE=$(CEVersion) /D _WIN32_WCE=$(CEVersion) /D "UNICODE" /D "_UNICODE" /D "NDEBUG" /D "_ATL_MIN_CRT" /D "_ATL_DLL" /Yu"stdafx.h" /QMmips4 /QMn32 /QMFPE /O2 /M$(CECrtMT) /c
+# ADD CPP /nologo /W3 /D "_USRDLL" /D "$(CePlatform)" /D "MIPS" /D "_MIPS_" /D "_MIPS64" /D "R4000" /D "MIPSIV" /D UNDER_CE=$(CEVersion) /D _WIN32_WCE=$(CEVersion) /D "UNICODE" /D "_UNICODE" /D "NDEBUG" /D "_ATL_MIN_CRT" /D "_ATL_DLL" /Yu"stdafx.h" /QMmips4 /QMn32 /QMFPE /O2 /M$(CECrtMT) /c
+MTL=midl.exe
+# ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /win32
+# ADD MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /win32
+BSC32=bscmake.exe
+# ADD BASE BSC32 /nologo
+# ADD BSC32 /nologo
+LINK32=link.exe
+# ADD BASE LINK32 /nologo /base:"0x00100000" /stack:0x10000,0x1000 /entry:"_DllMainCRTStartup" /dll /subsystem:$(CESubsystem) /MACHINE:MIPSFPU
+# ADD LINK32 /nologo /base:"0x00100000" /stack:0x10000,0x1000 /entry:"_DllMainCRTStartup" /dll /subsystem:$(CESubsystem) /MACHINE:MIPSFPU
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE MIPSIV) Release MinDependency"
+
+# PROP BASE Use_MFC 0
+# PROP BASE Use_Debug_Libraries 0
+# PROP BASE Output_Dir "MIPSIVRelMinDependency"
+# PROP BASE Intermediate_Dir "MIPSIVRelMinDependency"
+# PROP BASE CPU_ID "{0B2FE524-26C5-4194-8CEF-B1582DEB5A98}"
+# PROP BASE Platform_ID "{8A9A2F80-6887-11D3-842E-005004848CBA}"
+# PROP BASE Target_Dir ""
+# PROP Use_MFC 0
+# PROP Use_Debug_Libraries 0
+# PROP Output_Dir "MIPSIVRelMinDependency"
+# PROP Intermediate_Dir "MIPSIVRelMinDependency"
+# PROP CPU_ID "{0B2FE524-26C5-4194-8CEF-B1582DEB5A98}"
+# PROP Platform_ID "{8A9A2F80-6887-11D3-842E-005004848CBA}"
+# PROP Target_Dir ""
+RSC=rc.exe
+# ADD BASE RSC /l 0x409 /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "UNICODE" /d "_UNICODE" /d "NDEBUG" /d "$(CePlatform)" /d "MIPS" /d "_MIPS_" /r
+# ADD RSC /l 0x409 /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "UNICODE" /d "_UNICODE" /d "NDEBUG" /d "$(CePlatform)" /d "MIPS" /d "_MIPS_" /r
+CPP=clmips.exe
+# ADD BASE CPP /nologo /W3 /D "_USRDLL" /D "$(CePlatform)" /D "MIPS" /D "_MIPS_" /D "_MIPS64" /D "R4000" /D "MIPSIV" /D UNDER_CE=$(CEVersion) /D _WIN32_WCE=$(CEVersion) /D "UNICODE" /D "_UNICODE" /D "NDEBUG" /D "_ATL_MIN_CRT" /D "_ATL_STATIC_REGISTRY" /Yu"stdafx.h" /QMmips4 /QMn32 /QMFPE /O2 /M$(CECrtMT) /c
+# ADD CPP /nologo /W3 /D "_USRDLL" /D "$(CePlatform)" /D "MIPS" /D "_MIPS_" /D "_MIPS64" /D "R4000" /D "MIPSIV" /D UNDER_CE=$(CEVersion) /D _WIN32_WCE=$(CEVersion) /D "UNICODE" /D "_UNICODE" /D "NDEBUG" /D "_ATL_MIN_CRT" /D "_ATL_STATIC_REGISTRY" /Yu"stdafx.h" /QMmips4 /QMn32 /QMFPE /O2 /M$(CECrtMT) /c
+MTL=midl.exe
+# ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /win32
+# ADD MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /win32
+BSC32=bscmake.exe
+# ADD BASE BSC32 /nologo
+# ADD BSC32 /nologo
+LINK32=link.exe
+# ADD BASE LINK32 /nologo /base:"0x00100000" /stack:0x10000,0x1000 /entry:"_DllMainCRTStartup" /dll /subsystem:$(CESubsystem) /MACHINE:MIPSFPU
+# ADD LINK32 /nologo /base:"0x00100000" /stack:0x10000,0x1000 /entry:"_DllMainCRTStartup" /dll /subsystem:$(CESubsystem) /MACHINE:MIPSFPU
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE ARMV4) Release MinSize"
+
+# PROP BASE Use_MFC 0
+# PROP BASE Use_Debug_Libraries 0
+# PROP BASE Output_Dir "ARMV4RelMinSize"
+# PROP BASE Intermediate_Dir "ARMV4RelMinSize"
+# PROP BASE CPU_ID "{ECBEA43D-CD7B-4852-AD55-D4227B5D624B}"
+# PROP BASE Platform_ID "{8A9A2F80-6887-11D3-842E-005004848CBA}"
+# PROP BASE Target_Dir ""
+# PROP Use_MFC 0
+# PROP Use_Debug_Libraries 0
+# PROP Output_Dir "ARMV4RelMinSize"
+# PROP Intermediate_Dir "ARMV4RelMinSize"
+# PROP CPU_ID "{ECBEA43D-CD7B-4852-AD55-D4227B5D624B}"
+# PROP Platform_ID "{8A9A2F80-6887-11D3-842E-005004848CBA}"
+# PROP Target_Dir ""
+RSC=rc.exe
+# ADD BASE RSC /l 0x409 /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "NDEBUG" /d "UNICODE" /d "_UNICODE" /d "$(CePlatform)" /d "ARM" /d "_ARM_" /d "ARMV4" /r
+# ADD RSC /l 0x409 /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "NDEBUG" /d "UNICODE" /d "_UNICODE" /d "$(CePlatform)" /d "ARM" /d "_ARM_" /d "ARMV4" /r
+CPP=clarm.exe
+# ADD BASE CPP /nologo /W3 /D "_USRDLL" /D "$(CePlatform)" /D "ARM" /D "_ARM_" /D "ARMV4" /D UNDER_CE=$(CEVersion) /D _WIN32_WCE=$(CEVersion) /D "UNICODE" /D "_UNICODE" /D "NDEBUG" /D "_ATL_MIN_CRT" /D "_ATL_DLL" /Yu"stdafx.h" /O2 /M$(CECrtMT) /c
+# ADD CPP /nologo /W3 /D "_USRDLL" /D "$(CePlatform)" /D "ARM" /D "_ARM_" /D "ARMV4" /D UNDER_CE=$(CEVersion) /D _WIN32_WCE=$(CEVersion) /D "UNICODE" /D "_UNICODE" /D "NDEBUG" /D "_ATL_MIN_CRT" /D "_ATL_DLL" /Yu"stdafx.h" /O2 /M$(CECrtMT) /c
+MTL=midl.exe
+# ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /win32
+# ADD MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /win32
+BSC32=bscmake.exe
+# ADD BASE BSC32 /nologo
+# ADD BSC32 /nologo
+LINK32=link.exe
+# ADD BASE LINK32 /nologo /base:"0x00100000" /stack:0x10000,0x1000 /entry:"_DllMainCRTStartup" /dll /subsystem:$(CESubsystem) /align:"4096" /MACHINE:ARM
+# ADD LINK32 /nologo /base:"0x00100000" /stack:0x10000,0x1000 /entry:"_DllMainCRTStartup" /dll /subsystem:$(CESubsystem) /align:"4096" /MACHINE:ARM
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE ARMV4) Release MinDependency"
+
+# PROP BASE Use_MFC 0
+# PROP BASE Use_Debug_Libraries 0
+# PROP BASE Output_Dir "ARMV4RelMinDependency"
+# PROP BASE Intermediate_Dir "ARMV4RelMinDependency"
+# PROP BASE CPU_ID "{ECBEA43D-CD7B-4852-AD55-D4227B5D624B}"
+# PROP BASE Platform_ID "{8A9A2F80-6887-11D3-842E-005004848CBA}"
+# PROP BASE Target_Dir ""
+# PROP Use_MFC 0
+# PROP Use_Debug_Libraries 0
+# PROP Output_Dir "ARMV4RelMinDependency"
+# PROP Intermediate_Dir "ARMV4RelMinDependency"
+# PROP CPU_ID "{ECBEA43D-CD7B-4852-AD55-D4227B5D624B}"
+# PROP Platform_ID "{8A9A2F80-6887-11D3-842E-005004848CBA}"
+# PROP Target_Dir ""
+RSC=rc.exe
+# ADD BASE RSC /l 0x409 /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "NDEBUG" /d "UNICODE" /d "_UNICODE" /d "$(CePlatform)" /d "ARM" /d "_ARM_" /d "ARMV4" /r
+# ADD RSC /l 0x409 /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "NDEBUG" /d "UNICODE" /d "_UNICODE" /d "$(CePlatform)" /d "ARM" /d "_ARM_" /d "ARMV4" /r
+CPP=clarm.exe
+# ADD BASE CPP /nologo /W3 /D "_USRDLL" /D "$(CePlatform)" /D "ARM" /D "_ARM_" /D "ARMV4" /D UNDER_CE=$(CEVersion) /D _WIN32_WCE=$(CEVersion) /D "UNICODE" /D "_UNICODE" /D "NDEBUG" /D "_ATL_MIN_CRT" /D "_ATL_STATIC_REGISTRY" /Yu"stdafx.h" /O2 /M$(CECrtMT) /c
+# ADD CPP /nologo /W3 /D "_USRDLL" /D "$(CePlatform)" /D "ARM" /D "_ARM_" /D "ARMV4" /D UNDER_CE=$(CEVersion) /D _WIN32_WCE=$(CEVersion) /D "UNICODE" /D "_UNICODE" /D "NDEBUG" /D "_ATL_MIN_CRT" /D "_ATL_STATIC_REGISTRY" /Yu"stdafx.h" /O2 /M$(CECrtMT) /c
+MTL=midl.exe
+# ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /win32
+# ADD MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /win32
+BSC32=bscmake.exe
+# ADD BASE BSC32 /nologo
+# ADD BSC32 /nologo
+LINK32=link.exe
+# ADD BASE LINK32 /nologo /base:"0x00100000" /stack:0x10000,0x1000 /entry:"_DllMainCRTStartup" /dll /subsystem:$(CESubsystem) /align:"4096" /MACHINE:ARM
+# ADD LINK32 /nologo /base:"0x00100000" /stack:0x10000,0x1000 /entry:"_DllMainCRTStartup" /dll /subsystem:$(CESubsystem) /align:"4096" /MACHINE:ARM
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE MIPSII) Release MinSize"
+
+# PROP BASE Use_MFC 0
+# PROP BASE Use_Debug_Libraries 0
+# PROP BASE Output_Dir "MIPSIIRelMinSize"
+# PROP BASE Intermediate_Dir "MIPSIIRelMinSize"
+# PROP BASE CPU_ID "{689DDC64-9D9D-11D5-96F8-00207802C01C}"
+# PROP BASE Platform_ID "{8A9A2F80-6887-11D3-842E-005004848CBA}"
+# PROP BASE Target_Dir ""
+# PROP Use_MFC 0
+# PROP Use_Debug_Libraries 0
+# PROP Output_Dir "MIPSIIRelMinSize"
+# PROP Intermediate_Dir "MIPSIIRelMinSize"
+# PROP CPU_ID "{689DDC64-9D9D-11D5-96F8-00207802C01C}"
+# PROP Platform_ID "{8A9A2F80-6887-11D3-842E-005004848CBA}"
+# PROP Target_Dir ""
+RSC=rc.exe
+# ADD BASE RSC /l 0x409 /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "UNICODE" /d "_UNICODE" /d "NDEBUG" /d "$(CePlatform)" /d "MIPS" /d "_MIPS_" /d "R4000" /d "MIPSII" /r
+# ADD RSC /l 0x409 /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "UNICODE" /d "_UNICODE" /d "NDEBUG" /d "$(CePlatform)" /d "MIPS" /d "_MIPS_" /d "R4000" /d "MIPSII" /r
+CPP=clmips.exe
+# ADD BASE CPP /nologo /W3 /D "_USRDLL" /D "$(CePlatform)" /D "MIPS" /D "_MIPS_" /D "R4000" /D "MIPSII" /D UNDER_CE=$(CEVersion) /D _WIN32_WCE=$(CEVersion) /D "UNICODE" /D "_UNICODE" /D "NDEBUG" /D "_ATL_MIN_CRT" /D "_ATL_DLL" /Yu"stdafx.h" /QMmips2 /QMFPE /O2 /M$(CECrtMT) /c
+# ADD CPP /nologo /W3 /D "_USRDLL" /D "$(CePlatform)" /D "MIPS" /D "_MIPS_" /D "R4000" /D "MIPSII" /D UNDER_CE=$(CEVersion) /D _WIN32_WCE=$(CEVersion) /D "UNICODE" /D "_UNICODE" /D "NDEBUG" /D "_ATL_MIN_CRT" /D "_ATL_DLL" /Yu"stdafx.h" /QMmips2 /QMFPE /O2 /M$(CECrtMT) /c
+MTL=midl.exe
+# ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /win32
+# ADD MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /win32
+BSC32=bscmake.exe
+# ADD BASE BSC32 /nologo
+# ADD BSC32 /nologo
+LINK32=link.exe
+# ADD BASE LINK32 /nologo /base:"0x00100000" /stack:0x10000,0x1000 /entry:"_DllMainCRTStartup" /dll /subsystem:$(CESubsystem) /MACHINE:MIPS
+# ADD LINK32 /nologo /base:"0x00100000" /stack:0x10000,0x1000 /entry:"_DllMainCRTStartup" /dll /subsystem:$(CESubsystem) /MACHINE:MIPS
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE MIPSII) Release MinDependency"
+
+# PROP BASE Use_MFC 0
+# PROP BASE Use_Debug_Libraries 0
+# PROP BASE Output_Dir "MIPSIIRelMinDependency"
+# PROP BASE Intermediate_Dir "MIPSIIRelMinDependency"
+# PROP BASE CPU_ID "{689DDC64-9D9D-11D5-96F8-00207802C01C}"
+# PROP BASE Platform_ID "{8A9A2F80-6887-11D3-842E-005004848CBA}"
+# PROP BASE Target_Dir ""
+# PROP Use_MFC 0
+# PROP Use_Debug_Libraries 0
+# PROP Output_Dir "MIPSIIRelMinDependency"
+# PROP Intermediate_Dir "MIPSIIRelMinDependency"
+# PROP CPU_ID "{689DDC64-9D9D-11D5-96F8-00207802C01C}"
+# PROP Platform_ID "{8A9A2F80-6887-11D3-842E-005004848CBA}"
+# PROP Target_Dir ""
+RSC=rc.exe
+# ADD BASE RSC /l 0x409 /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "UNICODE" /d "_UNICODE" /d "NDEBUG" /d "$(CePlatform)" /d "MIPS" /d "_MIPS_" /d "R4000" /d "MIPSII" /r
+# ADD RSC /l 0x409 /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "UNICODE" /d "_UNICODE" /d "NDEBUG" /d "$(CePlatform)" /d "MIPS" /d "_MIPS_" /d "R4000" /d "MIPSII" /r
+CPP=clmips.exe
+# ADD BASE CPP /nologo /W3 /D "_USRDLL" /D "$(CePlatform)" /D "MIPS" /D "_MIPS_" /D "R4000" /D "MIPSII" /D UNDER_CE=$(CEVersion) /D _WIN32_WCE=$(CEVersion) /D "UNICODE" /D "_UNICODE" /D "NDEBUG" /D "_ATL_MIN_CRT" /D "_ATL_STATIC_REGISTRY" /Yu"stdafx.h" /QMmips2 /QMFPE /O2 /M$(CECrtMT) /c
+# ADD CPP /nologo /W3 /D "_USRDLL" /D "$(CePlatform)" /D "MIPS" /D "_MIPS_" /D "R4000" /D "MIPSII" /D UNDER_CE=$(CEVersion) /D _WIN32_WCE=$(CEVersion) /D "UNICODE" /D "_UNICODE" /D "NDEBUG" /D "_ATL_MIN_CRT" /D "_ATL_STATIC_REGISTRY" /Yu"stdafx.h" /QMmips2 /QMFPE /O2 /M$(CECrtMT) /c
+MTL=midl.exe
+# ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /win32
+# ADD MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /win32
+BSC32=bscmake.exe
+# ADD BASE BSC32 /nologo
+# ADD BSC32 /nologo
+LINK32=link.exe
+# ADD BASE LINK32 /nologo /base:"0x00100000" /stack:0x10000,0x1000 /entry:"_DllMainCRTStartup" /dll /subsystem:$(CESubsystem) /MACHINE:MIPS
+# ADD LINK32 /nologo /base:"0x00100000" /stack:0x10000,0x1000 /entry:"_DllMainCRTStartup" /dll /subsystem:$(CESubsystem) /MACHINE:MIPS
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE MIPSII_FP) Release MinSize"
+
+# PROP BASE Use_MFC 0
+# PROP BASE Use_Debug_Libraries 0
+# PROP BASE Output_Dir "MIPSII_FPRelMinSize"
+# PROP BASE Intermediate_Dir "MIPSII_FPRelMinSize"
+# PROP BASE CPU_ID "{D8AC856C-B213-4895-9E83-9EC51A55201E}"
+# PROP BASE Platform_ID "{8A9A2F80-6887-11D3-842E-005004848CBA}"
+# PROP BASE Target_Dir ""
+# PROP Use_MFC 0
+# PROP Use_Debug_Libraries 0
+# PROP Output_Dir "MIPSII_FPRelMinSize"
+# PROP Intermediate_Dir "MIPSII_FPRelMinSize"
+# PROP CPU_ID "{D8AC856C-B213-4895-9E83-9EC51A55201E}"
+# PROP Platform_ID "{8A9A2F80-6887-11D3-842E-005004848CBA}"
+# PROP Target_Dir ""
+RSC=rc.exe
+# ADD BASE RSC /l 0x409 /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "UNICODE" /d "_UNICODE" /d "NDEBUG" /d "$(CePlatform)" /d "MIPS" /d "_MIPS_" /d "R4000" /d "MIPSII" /d "MIPSII_FP" /r
+# ADD RSC /l 0x409 /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "UNICODE" /d "_UNICODE" /d "NDEBUG" /d "$(CePlatform)" /d "MIPS" /d "_MIPS_" /d "R4000" /d "MIPSII" /d "MIPSII_FP" /r
+CPP=clmips.exe
+# ADD BASE CPP /nologo /W3 /D "_USRDLL" /D "$(CePlatform)" /D "MIPS" /D "_MIPS_" /D "R4000" /D "MIPSII" /D "MIPSII_FP" /D UNDER_CE=$(CEVersion) /D _WIN32_WCE=$(CEVersion) /D "UNICODE" /D "_UNICODE" /D "NDEBUG" /D "_ATL_MIN_CRT" /D "_ATL_DLL" /Yu"stdafx.h" /QMmips2 /QMFPE- /O2 /M$(CECrtMT) /c
+# ADD CPP /nologo /W3 /D "_USRDLL" /D "$(CePlatform)" /D "MIPS" /D "_MIPS_" /D "R4000" /D "MIPSII" /D "MIPSII_FP" /D UNDER_CE=$(CEVersion) /D _WIN32_WCE=$(CEVersion) /D "UNICODE" /D "_UNICODE" /D "NDEBUG" /D "_ATL_MIN_CRT" /D "_ATL_DLL" /Yu"stdafx.h" /QMmips2 /QMFPE- /O2 /M$(CECrtMT) /c
+MTL=midl.exe
+# ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /win32
+# ADD MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /win32
+BSC32=bscmake.exe
+# ADD BASE BSC32 /nologo
+# ADD BSC32 /nologo
+LINK32=link.exe
+# ADD BASE LINK32 /nologo /base:"0x00100000" /stack:0x10000,0x1000 /entry:"_DllMainCRTStartup" /dll /subsystem:$(CESubsystem) /MACHINE:MIPS
+# ADD LINK32 /nologo /base:"0x00100000" /stack:0x10000,0x1000 /entry:"_DllMainCRTStartup" /dll /subsystem:$(CESubsystem) /MACHINE:MIPS
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE MIPSII_FP) Release MinDependency"
+
+# PROP BASE Use_MFC 0
+# PROP BASE Use_Debug_Libraries 0
+# PROP BASE Output_Dir "MIPSII_FPRelMinDependency"
+# PROP BASE Intermediate_Dir "MIPSII_FPRelMinDependency"
+# PROP BASE CPU_ID "{D8AC856C-B213-4895-9E83-9EC51A55201E}"
+# PROP BASE Platform_ID "{8A9A2F80-6887-11D3-842E-005004848CBA}"
+# PROP BASE Target_Dir ""
+# PROP Use_MFC 0
+# PROP Use_Debug_Libraries 0
+# PROP Output_Dir "MIPSII_FPRelMinDependency"
+# PROP Intermediate_Dir "MIPSII_FPRelMinDependency"
+# PROP CPU_ID "{D8AC856C-B213-4895-9E83-9EC51A55201E}"
+# PROP Platform_ID "{8A9A2F80-6887-11D3-842E-005004848CBA}"
+# PROP Target_Dir ""
+RSC=rc.exe
+# ADD BASE RSC /l 0x409 /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "UNICODE" /d "_UNICODE" /d "NDEBUG" /d "$(CePlatform)" /d "MIPS" /d "_MIPS_" /d "R4000" /d "MIPSII" /d "MIPSII_FP" /r
+# ADD RSC /l 0x409 /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "UNICODE" /d "_UNICODE" /d "NDEBUG" /d "$(CePlatform)" /d "MIPS" /d "_MIPS_" /d "R4000" /d "MIPSII" /d "MIPSII_FP" /r
+CPP=clmips.exe
+# ADD BASE CPP /nologo /W3 /D "_USRDLL" /D "$(CePlatform)" /D "MIPS" /D "_MIPS_" /D "R4000" /D "MIPSII" /D "MIPSII_FP" /D UNDER_CE=$(CEVersion) /D _WIN32_WCE=$(CEVersion) /D "UNICODE" /D "_UNICODE" /D "NDEBUG" /D "_ATL_MIN_CRT" /D "_ATL_STATIC_REGISTRY" /Yu"stdafx.h" /QMmips2 /QMFPE- /O2 /M$(CECrtMT) /c
+# ADD CPP /nologo /W3 /D "_USRDLL" /D "$(CePlatform)" /D "MIPS" /D "_MIPS_" /D "R4000" /D "MIPSII" /D "MIPSII_FP" /D UNDER_CE=$(CEVersion) /D _WIN32_WCE=$(CEVersion) /D "UNICODE" /D "_UNICODE" /D "NDEBUG" /D "_ATL_MIN_CRT" /D "_ATL_STATIC_REGISTRY" /Yu"stdafx.h" /QMmips2 /QMFPE- /O2 /M$(CECrtMT) /c
+MTL=midl.exe
+# ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /win32
+# ADD MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /win32
+BSC32=bscmake.exe
+# ADD BASE BSC32 /nologo
+# ADD BSC32 /nologo
+LINK32=link.exe
+# ADD BASE LINK32 /nologo /base:"0x00100000" /stack:0x10000,0x1000 /entry:"_DllMainCRTStartup" /dll /subsystem:$(CESubsystem) /MACHINE:MIPS
+# ADD LINK32 /nologo /base:"0x00100000" /stack:0x10000,0x1000 /entry:"_DllMainCRTStartup" /dll /subsystem:$(CESubsystem) /MACHINE:MIPS
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE ARMV4I) Release MinSize"
+
+# PROP BASE Use_MFC 0
+# PROP BASE Use_Debug_Libraries 0
+# PROP BASE Output_Dir "ARMV4IRelMinSize"
+# PROP BASE Intermediate_Dir "ARMV4IRelMinSize"
+# PROP BASE CPU_ID "{DC70F430-E78B-494F-A9D5-62ADC56443B8}"
+# PROP BASE Platform_ID "{8A9A2F80-6887-11D3-842E-005004848CBA}"
+# PROP BASE Target_Dir ""
+# PROP Use_MFC 0
+# PROP Use_Debug_Libraries 0
+# PROP Output_Dir "ARMV4IRelMinSize"
+# PROP Intermediate_Dir "ARMV4IRelMinSize"
+# PROP CPU_ID "{DC70F430-E78B-494F-A9D5-62ADC56443B8}"
+# PROP Platform_ID "{8A9A2F80-6887-11D3-842E-005004848CBA}"
+# PROP Target_Dir ""
+RSC=rc.exe
+# ADD BASE RSC /l 0x409 /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "UNICODE" /d "_UNICODE" /d "NDEBUG" /d "$(CePlatform)" /d "THUMB" /d "_THUMB_" /d "ARM" /d "_ARM_" /d "ARMV4I" /r
+# ADD RSC /l 0x409 /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "UNICODE" /d "_UNICODE" /d "NDEBUG" /d "$(CePlatform)" /d "THUMB" /d "_THUMB_" /d "ARM" /d "_ARM_" /d "ARMV4I" /r
+CPP=clarm.exe
+# ADD BASE CPP /nologo /W3 /D "_USRDLL" /D "ARM" /D "_ARM_" /D "$(CePlatform)" /D "ARMV4I" /D UNDER_CE=$(CEVersion) /D _WIN32_WCE=$(CEVersion) /D "UNICODE" /D "_UNICODE" /D "NDEBUG" /D "_ATL_MIN_CRT" /D "_ATL_DLL" /Yu"stdafx.h" /QRarch4T /QRinterwork-return /O2 /M$(CECrtMT) /c
+# ADD CPP /nologo /W3 /D "_USRDLL" /D "ARM" /D "_ARM_" /D "$(CePlatform)" /D "ARMV4I" /D UNDER_CE=$(CEVersion) /D _WIN32_WCE=$(CEVersion) /D "UNICODE" /D "_UNICODE" /D "NDEBUG" /D "_ATL_MIN_CRT" /D "_ATL_DLL" /Yu"stdafx.h" /QRarch4T /QRinterwork-return /O2 /M$(CECrtMT) /c
+MTL=midl.exe
+# ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /win32
+# ADD MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /win32
+BSC32=bscmake.exe
+# ADD BASE BSC32 /nologo
+# ADD BSC32 /nologo
+LINK32=link.exe
+# ADD BASE LINK32 /nologo /base:"0x00100000" /stack:0x10000,0x1000 /entry:"_DllMainCRTStartup" /dll /subsystem:$(CESubsystem) /MACHINE:THUMB
+# ADD LINK32 /nologo /base:"0x00100000" /stack:0x10000,0x1000 /entry:"_DllMainCRTStartup" /dll /subsystem:$(CESubsystem) /MACHINE:THUMB
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE ARMV4I) Release MinDependency"
+
+# PROP BASE Use_MFC 0
+# PROP BASE Use_Debug_Libraries 0
+# PROP BASE Output_Dir "ARMV4IRelMinDependency"
+# PROP BASE Intermediate_Dir "ARMV4IRelMinDependency"
+# PROP BASE CPU_ID "{DC70F430-E78B-494F-A9D5-62ADC56443B8}"
+# PROP BASE Platform_ID "{8A9A2F80-6887-11D3-842E-005004848CBA}"
+# PROP BASE Target_Dir ""
+# PROP Use_MFC 0
+# PROP Use_Debug_Libraries 0
+# PROP Output_Dir "ARMV4IRelMinDependency"
+# PROP Intermediate_Dir "ARMV4IRelMinDependency"
+# PROP CPU_ID "{DC70F430-E78B-494F-A9D5-62ADC56443B8}"
+# PROP Platform_ID "{8A9A2F80-6887-11D3-842E-005004848CBA}"
+# PROP Target_Dir ""
+RSC=rc.exe
+# ADD BASE RSC /l 0x409 /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "UNICODE" /d "_UNICODE" /d "NDEBUG" /d "$(CePlatform)" /d "THUMB" /d "_THUMB_" /d "ARM" /d "_ARM_" /d "ARMV4I" /r
+# ADD RSC /l 0x409 /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "UNICODE" /d "_UNICODE" /d "NDEBUG" /d "$(CePlatform)" /d "THUMB" /d "_THUMB_" /d "ARM" /d "_ARM_" /d "ARMV4I" /r
+CPP=clarm.exe
+# ADD BASE CPP /nologo /W3 /D "_USRDLL" /D "ARM" /D "_ARM_" /D "$(CePlatform)" /D "ARMV4I" /D UNDER_CE=$(CEVersion) /D _WIN32_WCE=$(CEVersion) /D "UNICODE" /D "_UNICODE" /D "NDEBUG" /D "_ATL_MIN_CRT" /D "_ATL_STATIC_REGISTRY" /Yu"stdafx.h" /QRarch4T /QRinterwork-return /O2 /M$(CECrtMT) /c
+# ADD CPP /nologo /W3 /D "_USRDLL" /D "ARM" /D "_ARM_" /D "$(CePlatform)" /D "ARMV4I" /D UNDER_CE=$(CEVersion) /D _WIN32_WCE=$(CEVersion) /D "UNICODE" /D "_UNICODE" /D "NDEBUG" /D "_ATL_MIN_CRT" /D "_ATL_STATIC_REGISTRY" /Yu"stdafx.h" /QRarch4T /QRinterwork-return /O2 /M$(CECrtMT) /c
+MTL=midl.exe
+# ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /win32
+# ADD MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /win32
+BSC32=bscmake.exe
+# ADD BASE BSC32 /nologo
+# ADD BSC32 /nologo
+LINK32=link.exe
+# ADD BASE LINK32 /nologo /base:"0x00100000" /stack:0x10000,0x1000 /entry:"_DllMainCRTStartup" /dll /subsystem:$(CESubsystem) /MACHINE:THUMB
+# ADD LINK32 /nologo /base:"0x00100000" /stack:0x10000,0x1000 /entry:"_DllMainCRTStartup" /dll /subsystem:$(CESubsystem) /MACHINE:THUMB
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE MIPS16) Release MinSize"
+
+# PROP BASE Use_MFC 0
+# PROP BASE Use_Debug_Libraries 0
+# PROP BASE Output_Dir "MIPS16RelMinSize"
+# PROP BASE Intermediate_Dir "MIPS16RelMinSize"
+# PROP BASE CPU_ID "{D6519013-710F-11D3-99F2-00105A0DF099}"
+# PROP BASE Platform_ID "{8A9A2F80-6887-11D3-842E-005004848CBA}"
+# PROP BASE Target_Dir ""
+# PROP Use_MFC 0
+# PROP Use_Debug_Libraries 0
+# PROP Output_Dir "MIPS16RelMinSize"
+# PROP Intermediate_Dir "MIPS16RelMinSize"
+# PROP CPU_ID "{D6519013-710F-11D3-99F2-00105A0DF099}"
+# PROP Platform_ID "{8A9A2F80-6887-11D3-842E-005004848CBA}"
+# PROP Target_Dir ""
+RSC=rc.exe
+# ADD BASE RSC /l 0x409 /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "MIPS16SUPPORT" /d "UNICODE" /d "_UNICODE" /d "NDEBUG" /d "$(CePlatform)" /d "MIPS" /d "_MIPS_" /d "R4000" /d "MIPSII" /d "MIPS16" /r
+# ADD RSC /l 0x409 /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "MIPS16SUPPORT" /d "UNICODE" /d "_UNICODE" /d "NDEBUG" /d "$(CePlatform)" /d "MIPS" /d "_MIPS_" /d "R4000" /d "MIPSII" /d "MIPS16" /r
+CPP=clmips.exe
+# ADD BASE CPP /nologo /W3 /D "_USRDLL" /D "$(CePlatform)" /D "MIPS" /D "_MIPS_" /D "R4000" /D "MIPSII" /D "MIPS16" /D UNDER_CE=$(CEVersion) /D _WIN32_WCE=$(CEVersion) /D "UNICODE" /D "_UNICODE" /D "NDEBUG" /D "_MIPS16_" /D "MIPS16SUPPORT" /D "_ATL_MIN_CRT" /D "_ATL_DLL" /Yu"stdafx.h" /QMmips16 /O2 /M$(CECrtMT) /c
+# ADD CPP /nologo /W3 /D "_USRDLL" /D "$(CePlatform)" /D "MIPS" /D "_MIPS_" /D "R4000" /D "MIPSII" /D "MIPS16" /D UNDER_CE=$(CEVersion) /D _WIN32_WCE=$(CEVersion) /D "UNICODE" /D "_UNICODE" /D "NDEBUG" /D "_MIPS16_" /D "MIPS16SUPPORT" /D "_ATL_MIN_CRT" /D "_ATL_DLL" /Yu"stdafx.h" /QMmips16 /O2 /M$(CECrtMT) /c
+MTL=midl.exe
+# ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /win32
+# ADD MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /win32
+BSC32=bscmake.exe
+# ADD BASE BSC32 /nologo
+# ADD BSC32 /nologo
+LINK32=link.exe
+# ADD BASE LINK32 /nologo /base:"0x00100000" /stack:0x10000,0x1000 /entry:"_DllMainCRTStartup" /dll /subsystem:$(CESubsystem) /MACHINE:MIPS16 /ALIGN:4096
+# ADD LINK32 /nologo /base:"0x00100000" /stack:0x10000,0x1000 /entry:"_DllMainCRTStartup" /dll /subsystem:$(CESubsystem) /MACHINE:MIPS16 /ALIGN:4096
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE MIPS16) Release MinDependency"
+
+# PROP BASE Use_MFC 0
+# PROP BASE Use_Debug_Libraries 0
+# PROP BASE Output_Dir "MIPS16RelMinDependency"
+# PROP BASE Intermediate_Dir "MIPS16RelMinDependency"
+# PROP BASE CPU_ID "{D6519013-710F-11D3-99F2-00105A0DF099}"
+# PROP BASE Platform_ID "{8A9A2F80-6887-11D3-842E-005004848CBA}"
+# PROP BASE Target_Dir ""
+# PROP Use_MFC 0
+# PROP Use_Debug_Libraries 0
+# PROP Output_Dir "MIPS16RelMinDependency"
+# PROP Intermediate_Dir "MIPS16RelMinDependency"
+# PROP CPU_ID "{D6519013-710F-11D3-99F2-00105A0DF099}"
+# PROP Platform_ID "{8A9A2F80-6887-11D3-842E-005004848CBA}"
+# PROP Target_Dir ""
+RSC=rc.exe
+# ADD BASE RSC /l 0x409 /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "MIPS16SUPPORT" /d "UNICODE" /d "_UNICODE" /d "NDEBUG" /d "$(CePlatform)" /d "MIPS" /d "_MIPS_" /d "R4000" /d "MIPSII" /d "MIPS16" /r
+# ADD RSC /l 0x409 /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "MIPS16SUPPORT" /d "UNICODE" /d "_UNICODE" /d "NDEBUG" /d "$(CePlatform)" /d "MIPS" /d "_MIPS_" /d "R4000" /d "MIPSII" /d "MIPS16" /r
+CPP=clmips.exe
+# ADD BASE CPP /nologo /W3 /D "_USRDLL" /D "$(CePlatform)" /D "MIPS" /D "_MIPS_" /D "R4000" /D "MIPSII" /D "MIPS16" /D UNDER_CE=$(CEVersion) /D _WIN32_WCE=$(CEVersion) /D "UNICODE" /D "_UNICODE" /D "NDEBUG" /D "_MIPS16_" /D "MIPS16SUPPORT" /D "_ATL_MIN_CRT" /D "_ATL_STATIC_REGISTRY" /Yu"stdafx.h" /QMmips16 /O2 /M$(CECrtMT) /c
+# ADD CPP /nologo /W3 /D "_USRDLL" /D "$(CePlatform)" /D "MIPS" /D "_MIPS_" /D "R4000" /D "MIPSII" /D "MIPS16" /D UNDER_CE=$(CEVersion) /D _WIN32_WCE=$(CEVersion) /D "UNICODE" /D "_UNICODE" /D "NDEBUG" /D "_MIPS16_" /D "MIPS16SUPPORT" /D "_ATL_MIN_CRT" /D "_ATL_STATIC_REGISTRY" /Yu"stdafx.h" /QMmips16 /O2 /M$(CECrtMT) /c
+MTL=midl.exe
+# ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /win32
+# ADD MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /win32
+BSC32=bscmake.exe
+# ADD BASE BSC32 /nologo
+# ADD BSC32 /nologo
+LINK32=link.exe
+# ADD BASE LINK32 /nologo /base:"0x00100000" /stack:0x10000,0x1000 /entry:"_DllMainCRTStartup" /dll /subsystem:$(CESubsystem) /MACHINE:MIPS16 /ALIGN:4096
+# ADD LINK32 /nologo /base:"0x00100000" /stack:0x10000,0x1000 /entry:"_DllMainCRTStartup" /dll /subsystem:$(CESubsystem) /MACHINE:MIPS16 /ALIGN:4096
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE SH3) Release MinSize"
+
+# PROP BASE Use_MFC 0
+# PROP BASE Use_Debug_Libraries 0
+# PROP BASE Output_Dir "SH3RelMinSize"
+# PROP BASE Intermediate_Dir "SH3RelMinSize"
+# PROP BASE CPU_ID "{D6519020-710F-11D3-99F2-00105A0DF099}"
+# PROP BASE Platform_ID "{8A9A2F80-6887-11D3-842E-005004848CBA}"
+# PROP BASE Target_Dir ""
+# PROP Use_MFC 0
+# PROP Use_Debug_Libraries 0
+# PROP Output_Dir "SH3RelMinSize"
+# PROP Intermediate_Dir "SH3RelMinSize"
+# PROP CPU_ID "{D6519020-710F-11D3-99F2-00105A0DF099}"
+# PROP Platform_ID "{8A9A2F80-6887-11D3-842E-005004848CBA}"
+# PROP Target_Dir ""
+RSC=rc.exe
+# ADD BASE RSC /l 0x409 /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "UNICODE" /d "_UNICODE" /d "NDEBUG" /d "$(CePlatform)" /d "SHx" /d "SH3" /d "_SH3_" /r
+# ADD RSC /l 0x409 /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "UNICODE" /d "_UNICODE" /d "NDEBUG" /d "$(CePlatform)" /d "SHx" /d "SH3" /d "_SH3_" /r
+CPP=shcl.exe
+# ADD BASE CPP /nologo /W3 /D "_USRDLL" /D "$(CePlatform)" /D "SHx" /D "SH3" /D "_SH3_" /D UNDER_CE=$(CEVersion) /D _WIN32_WCE=$(CEVersion) /D "UNICODE" /D "_UNICODE" /D "NDEBUG" /D "_ATL_MIN_CRT" /D "_ATL_DLL" /Yu"stdafx.h" /O2 /M$(CECrtMT) /c
+# ADD CPP /nologo /W3 /D "_USRDLL" /D "$(CePlatform)" /D "SHx" /D "SH3" /D "_SH3_" /D UNDER_CE=$(CEVersion) /D _WIN32_WCE=$(CEVersion) /D "UNICODE" /D "_UNICODE" /D "NDEBUG" /D "_ATL_MIN_CRT" /D "_ATL_DLL" /Yu"stdafx.h" /O2 /M$(CECrtMT) /c
+MTL=midl.exe
+# ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /win32
+# ADD MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /win32
+BSC32=bscmake.exe
+# ADD BASE BSC32 /nologo
+# ADD BSC32 /nologo
+LINK32=link.exe
+# ADD BASE LINK32 /nologo /base:"0x00100000" /stack:0x10000,0x1000 /entry:"_DllMainCRTStartup" /dll /subsystem:$(CESubsystem) /MACHINE:SH3 /align:4096
+# ADD LINK32 /nologo /base:"0x00100000" /stack:0x10000,0x1000 /entry:"_DllMainCRTStartup" /dll /subsystem:$(CESubsystem) /MACHINE:SH3 /align:4096
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE SH3) Release MinDependency"
+
+# PROP BASE Use_MFC 0
+# PROP BASE Use_Debug_Libraries 0
+# PROP BASE Output_Dir "SH3RelMinDependency"
+# PROP BASE Intermediate_Dir "SH3RelMinDependency"
+# PROP BASE CPU_ID "{D6519020-710F-11D3-99F2-00105A0DF099}"
+# PROP BASE Platform_ID "{8A9A2F80-6887-11D3-842E-005004848CBA}"
+# PROP BASE Target_Dir ""
+# PROP Use_MFC 0
+# PROP Use_Debug_Libraries 0
+# PROP Output_Dir "SH3RelMinDependency"
+# PROP Intermediate_Dir "SH3RelMinDependency"
+# PROP CPU_ID "{D6519020-710F-11D3-99F2-00105A0DF099}"
+# PROP Platform_ID "{8A9A2F80-6887-11D3-842E-005004848CBA}"
+# PROP Target_Dir ""
+RSC=rc.exe
+# ADD BASE RSC /l 0x409 /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "UNICODE" /d "_UNICODE" /d "NDEBUG" /d "$(CePlatform)" /d "SHx" /d "SH3" /d "_SH3_" /r
+# ADD RSC /l 0x409 /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "UNICODE" /d "_UNICODE" /d "NDEBUG" /d "$(CePlatform)" /d "SHx" /d "SH3" /d "_SH3_" /r
+CPP=shcl.exe
+# ADD BASE CPP /nologo /W3 /D "_USRDLL" /D "$(CePlatform)" /D "SHx" /D "SH3" /D "_SH3_" /D UNDER_CE=$(CEVersion) /D _WIN32_WCE=$(CEVersion) /D "UNICODE" /D "_UNICODE" /D "NDEBUG" /D "_ATL_MIN_CRT" /D "_ATL_STATIC_REGISTRY" /Yu"stdafx.h" /O2 /M$(CECrtMT) /c
+# ADD CPP /nologo /W3 /D "_USRDLL" /D "$(CePlatform)" /D "SHx" /D "SH3" /D "_SH3_" /D UNDER_CE=$(CEVersion) /D _WIN32_WCE=$(CEVersion) /D "UNICODE" /D "_UNICODE" /D "NDEBUG" /D "_ATL_MIN_CRT" /D "_ATL_STATIC_REGISTRY" /Yu"stdafx.h" /O2 /M$(CECrtMT) /c
+MTL=midl.exe
+# ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /win32
+# ADD MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /win32
+BSC32=bscmake.exe
+# ADD BASE BSC32 /nologo
+# ADD BSC32 /nologo
+LINK32=link.exe
+# ADD BASE LINK32 /nologo /base:"0x00100000" /stack:0x10000,0x1000 /entry:"_DllMainCRTStartup" /dll /subsystem:$(CESubsystem) /MACHINE:SH3 /align:4096
+# ADD LINK32 /nologo /base:"0x00100000" /stack:0x10000,0x1000 /entry:"_DllMainCRTStartup" /dll /subsystem:$(CESubsystem) /MACHINE:SH3 /align:4096
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE ARMV4T) Release MinSize"
+
+# PROP BASE Use_MFC 0
+# PROP BASE Use_Debug_Libraries 0
+# PROP BASE Output_Dir "ARMV4TRelMinSize"
+# PROP BASE Intermediate_Dir "ARMV4TRelMinSize"
+# PROP BASE CPU_ID "{F52316A9-3B7C-4FE7-A67F-68350B41240D}"
+# PROP BASE Platform_ID "{8A9A2F80-6887-11D3-842E-005004848CBA}"
+# PROP BASE Target_Dir ""
+# PROP Use_MFC 0
+# PROP Use_Debug_Libraries 0
+# PROP Output_Dir "ARMV4TRelMinSize"
+# PROP Intermediate_Dir "ARMV4TRelMinSize"
+# PROP CPU_ID "{F52316A9-3B7C-4FE7-A67F-68350B41240D}"
+# PROP Platform_ID "{8A9A2F80-6887-11D3-842E-005004848CBA}"
+# PROP Target_Dir ""
+RSC=rc.exe
+# ADD BASE RSC /l 0x409 /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "UNICODE" /d "_UNICODE" /d "NDEBUG" /d "$(CePlatform)" /d "THUMB" /d "_THUMB_" /d "ARM" /d "_ARM_" /d "ARMV4T" /r
+# ADD RSC /l 0x409 /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "UNICODE" /d "_UNICODE" /d "NDEBUG" /d "$(CePlatform)" /d "THUMB" /d "_THUMB_" /d "ARM" /d "_ARM_" /d "ARMV4T" /r
+CPP=clthumb.exe
+# ADD BASE CPP /nologo /W3 /D "_USRDLL" /D "ARM" /D "_ARM_" /D "$(CePlatform)" /D "THUMB" /D "_THUMB_" /D "ARMV4T" /D UNDER_CE=$(CEVersion) /D _WIN32_WCE=$(CEVersion) /D "UNICODE" /D "_UNICODE" /D "NDEBUG" /D "_ATL_MIN_CRT" /D "_ATL_DLL" /Yu"stdafx.h" /QRarch4T /QRinterwork-return /O2 /M$(CECrtMT) /c
+# ADD CPP /nologo /W3 /D "_USRDLL" /D "ARM" /D "_ARM_" /D "$(CePlatform)" /D "THUMB" /D "_THUMB_" /D "ARMV4T" /D UNDER_CE=$(CEVersion) /D _WIN32_WCE=$(CEVersion) /D "UNICODE" /D "_UNICODE" /D "NDEBUG" /D "_ATL_MIN_CRT" /D "_ATL_DLL" /Yu"stdafx.h" /QRarch4T /QRinterwork-return /O2 /M$(CECrtMT) /c
+MTL=midl.exe
+# ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /win32
+# ADD MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /win32
+BSC32=bscmake.exe
+# ADD BASE BSC32 /nologo
+# ADD BSC32 /nologo
+LINK32=link.exe
+# ADD BASE LINK32 /nologo /base:"0x00100000" /stack:0x10000,0x1000 /entry:"_DllMainCRTStartup" /dll /subsystem:$(CESubsystem) /MACHINE:THUMB
+# ADD LINK32 /nologo /base:"0x00100000" /stack:0x10000,0x1000 /entry:"_DllMainCRTStartup" /dll /subsystem:$(CESubsystem) /MACHINE:THUMB
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE ARMV4T) Release MinDependency"
+
+# PROP BASE Use_MFC 0
+# PROP BASE Use_Debug_Libraries 0
+# PROP BASE Output_Dir "ARMV4TRelMinDependency"
+# PROP BASE Intermediate_Dir "ARMV4TRelMinDependency"
+# PROP BASE CPU_ID "{F52316A9-3B7C-4FE7-A67F-68350B41240D}"
+# PROP BASE Platform_ID "{8A9A2F80-6887-11D3-842E-005004848CBA}"
+# PROP BASE Target_Dir ""
+# PROP Use_MFC 0
+# PROP Use_Debug_Libraries 0
+# PROP Output_Dir "ARMV4TRelMinDependency"
+# PROP Intermediate_Dir "ARMV4TRelMinDependency"
+# PROP CPU_ID "{F52316A9-3B7C-4FE7-A67F-68350B41240D}"
+# PROP Platform_ID "{8A9A2F80-6887-11D3-842E-005004848CBA}"
+# PROP Target_Dir ""
+RSC=rc.exe
+# ADD BASE RSC /l 0x409 /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "UNICODE" /d "_UNICODE" /d "NDEBUG" /d "$(CePlatform)" /d "THUMB" /d "_THUMB_" /d "ARM" /d "_ARM_" /d "ARMV4T" /r
+# ADD RSC /l 0x409 /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "UNICODE" /d "_UNICODE" /d "NDEBUG" /d "$(CePlatform)" /d "THUMB" /d "_THUMB_" /d "ARM" /d "_ARM_" /d "ARMV4T" /r
+CPP=clthumb.exe
+# ADD BASE CPP /nologo /W3 /D "_USRDLL" /D "ARM" /D "_ARM_" /D "$(CePlatform)" /D "THUMB" /D "_THUMB_" /D "ARMV4T" /D UNDER_CE=$(CEVersion) /D _WIN32_WCE=$(CEVersion) /D "UNICODE" /D "_UNICODE" /D "NDEBUG" /D "_ATL_MIN_CRT" /D "_ATL_STATIC_REGISTRY" /Yu"stdafx.h" /QRarch4T /QRinterwork-return /O2 /M$(CECrtMT) /c
+# ADD CPP /nologo /W3 /D "_USRDLL" /D "ARM" /D "_ARM_" /D "$(CePlatform)" /D "THUMB" /D "_THUMB_" /D "ARMV4T" /D UNDER_CE=$(CEVersion) /D _WIN32_WCE=$(CEVersion) /D "UNICODE" /D "_UNICODE" /D "NDEBUG" /D "_ATL_MIN_CRT" /D "_ATL_STATIC_REGISTRY" /Yu"stdafx.h" /QRarch4T /QRinterwork-return /O2 /M$(CECrtMT) /c
+MTL=midl.exe
+# ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /win32
+# ADD MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /win32
+BSC32=bscmake.exe
+# ADD BASE BSC32 /nologo
+# ADD BSC32 /nologo
+LINK32=link.exe
+# ADD BASE LINK32 /nologo /base:"0x00100000" /stack:0x10000,0x1000 /entry:"_DllMainCRTStartup" /dll /subsystem:$(CESubsystem) /MACHINE:THUMB
+# ADD LINK32 /nologo /base:"0x00100000" /stack:0x10000,0x1000 /entry:"_DllMainCRTStartup" /dll /subsystem:$(CESubsystem) /MACHINE:THUMB
+
+!ENDIF 
+
+# Begin Target
+
+# Name "UFile - Win32 (WCE MIPSII_FP) Debug"
+# Name "UFile - Win32 (WCE MIPSII) Debug"
+# Name "UFile - Win32 (WCE SH4) Debug"
+# Name "UFile - Win32 (WCE SH3) Debug"
+# Name "UFile - Win32 (WCE MIPSIV) Debug"
+# Name "UFile - Win32 (WCE emulator) Debug"
+# Name "UFile - Win32 (WCE ARMV4I) Debug"
+# Name "UFile - Win32 (WCE MIPSIV_FP) Debug"
+# Name "UFile - Win32 (WCE ARMV4) Debug"
+# Name "UFile - Win32 (WCE MIPS16) Debug"
+# Name "UFile - Win32 (WCE ARMV4T) Debug"
+# Name "UFile - Win32 (WCE x86) Debug"
+# Name "UFile - Win32 (WCE MIPSIV_FP) Release MinSize"
+# Name "UFile - Win32 (WCE MIPSIV_FP) Release MinDependency"
+# Name "UFile - Win32 (WCE SH4) Release MinSize"
+# Name "UFile - Win32 (WCE SH4) Release MinDependency"
+# Name "UFile - Win32 (WCE emulator) Release MinSize"
+# Name "UFile - Win32 (WCE emulator) Release MinDependency"
+# Name "UFile - Win32 (WCE x86) Release MinSize"
+# Name "UFile - Win32 (WCE x86) Release MinDependency"
+# Name "UFile - Win32 (WCE MIPSIV) Release MinSize"
+# Name "UFile - Win32 (WCE MIPSIV) Release MinDependency"
+# Name "UFile - Win32 (WCE ARMV4) Release MinSize"
+# Name "UFile - Win32 (WCE ARMV4) Release MinDependency"
+# Name "UFile - Win32 (WCE MIPSII) Release MinSize"
+# Name "UFile - Win32 (WCE MIPSII) Release MinDependency"
+# Name "UFile - Win32 (WCE MIPSII_FP) Release MinSize"
+# Name "UFile - Win32 (WCE MIPSII_FP) Release MinDependency"
+# Name "UFile - Win32 (WCE ARMV4I) Release MinSize"
+# Name "UFile - Win32 (WCE ARMV4I) Release MinDependency"
+# Name "UFile - Win32 (WCE MIPS16) Release MinSize"
+# Name "UFile - Win32 (WCE MIPS16) Release MinDependency"
+# Name "UFile - Win32 (WCE SH3) Release MinSize"
+# Name "UFile - Win32 (WCE SH3) Release MinDependency"
+# Name "UFile - Win32 (WCE ARMV4T) Release MinSize"
+# Name "UFile - Win32 (WCE ARMV4T) Release MinDependency"
+# Begin Group "Source Files"
+
+# PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
+# Begin Source File
+
+SOURCE=.\StdAfx.cpp
+
+!IF  "$(CFG)" == "UFile - Win32 (WCE MIPSII_FP) Debug"
+
+DEP_CPP_STDAF=\
+	".\StdAfx.h"\
+	
+# ADD CPP /Yc"stdafx.h"
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE MIPSII) Debug"
+
+DEP_CPP_STDAF=\
+	".\StdAfx.h"\
+	
+# ADD CPP /Yc"stdafx.h"
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE SH4) Debug"
+
+DEP_CPP_STDAF=\
+	".\StdAfx.h"\
+	
+# ADD CPP /Yc"stdafx.h"
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE SH3) Debug"
+
+DEP_CPP_STDAF=\
+	".\StdAfx.h"\
+	
+# ADD CPP /Yc"stdafx.h"
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE MIPSIV) Debug"
+
+DEP_CPP_STDAF=\
+	".\StdAfx.h"\
+	
+# ADD CPP /Yc"stdafx.h"
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE emulator) Debug"
+
+DEP_CPP_STDAF=\
+	".\StdAfx.h"\
+	{$(INCLUDE)}"sockutil.h"\
+	{$(INCLUDE)}"uqueue.h"\
+	{$(INCLUDE)}"usocket.h"\
+	
+# ADD CPP /Yc"stdafx.h"
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE ARMV4I) Debug"
+
+DEP_CPP_STDAF=\
+	".\StdAfx.h"\
+	
+# ADD CPP /Yc"stdafx.h"
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE MIPSIV_FP) Debug"
+
+DEP_CPP_STDAF=\
+	".\StdAfx.h"\
+	
+# ADD CPP /Yc"stdafx.h"
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE ARMV4) Debug"
+
+DEP_CPP_STDAF=\
+	".\StdAfx.h"\
+	
+# ADD CPP /Yc"stdafx.h"
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE MIPS16) Debug"
+
+DEP_CPP_STDAF=\
+	".\StdAfx.h"\
+	
+# ADD CPP /Yc"stdafx.h"
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE ARMV4T) Debug"
+
+DEP_CPP_STDAF=\
+	".\StdAfx.h"\
+	
+# ADD CPP /Yc"stdafx.h"
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE x86) Debug"
+
+DEP_CPP_STDAF=\
+	".\StdAfx.h"\
+	
+# ADD CPP /Yc"stdafx.h"
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE MIPSIV_FP) Release MinSize"
+
+DEP_CPP_STDAF=\
+	".\StdAfx.h"\
+	
+# ADD BASE CPP /Yc"stdafx.h"
+# ADD CPP /Yc"stdafx.h"
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE MIPSIV_FP) Release MinDependency"
+
+DEP_CPP_STDAF=\
+	".\StdAfx.h"\
+	
+# ADD BASE CPP /Yc"stdafx.h"
+# ADD CPP /Yc"stdafx.h"
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE SH4) Release MinSize"
+
+DEP_CPP_STDAF=\
+	".\StdAfx.h"\
+	
+# ADD BASE CPP /Yc"stdafx.h"
+# ADD CPP /Yc"stdafx.h"
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE SH4) Release MinDependency"
+
+DEP_CPP_STDAF=\
+	".\StdAfx.h"\
+	
+# ADD BASE CPP /Yc"stdafx.h"
+# ADD CPP /Yc"stdafx.h"
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE emulator) Release MinSize"
+
+DEP_CPP_STDAF=\
+	".\StdAfx.h"\
+	
+# ADD BASE CPP /Yc"stdafx.h"
+# ADD CPP /Yc"stdafx.h"
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE emulator) Release MinDependency"
+
+DEP_CPP_STDAF=\
+	".\StdAfx.h"\
+	{$(INCLUDE)}"sockutil.h"\
+	{$(INCLUDE)}"uqueue.h"\
+	{$(INCLUDE)}"usocket.h"\
+	
+# ADD BASE CPP /Yc"stdafx.h"
+# ADD CPP /Yc"stdafx.h"
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE x86) Release MinSize"
+
+DEP_CPP_STDAF=\
+	".\StdAfx.h"\
+	
+# ADD BASE CPP /Yc"stdafx.h"
+# ADD CPP /Yc"stdafx.h"
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE x86) Release MinDependency"
+
+DEP_CPP_STDAF=\
+	".\StdAfx.h"\
+	
+# ADD BASE CPP /Yc"stdafx.h"
+# ADD CPP /Yc"stdafx.h"
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE MIPSIV) Release MinSize"
+
+DEP_CPP_STDAF=\
+	".\StdAfx.h"\
+	
+# ADD BASE CPP /Yc"stdafx.h"
+# ADD CPP /Yc"stdafx.h"
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE MIPSIV) Release MinDependency"
+
+DEP_CPP_STDAF=\
+	".\StdAfx.h"\
+	
+# ADD BASE CPP /Yc"stdafx.h"
+# ADD CPP /Yc"stdafx.h"
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE ARMV4) Release MinSize"
+
+DEP_CPP_STDAF=\
+	".\StdAfx.h"\
+	
+# ADD BASE CPP /Yc"stdafx.h"
+# ADD CPP /Yc"stdafx.h"
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE ARMV4) Release MinDependency"
+
+DEP_CPP_STDAF=\
+	".\StdAfx.h"\
+	
+# ADD BASE CPP /Yc"stdafx.h"
+# ADD CPP /Yc"stdafx.h"
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE MIPSII) Release MinSize"
+
+DEP_CPP_STDAF=\
+	".\StdAfx.h"\
+	
+# ADD BASE CPP /Yc"stdafx.h"
+# ADD CPP /Yc"stdafx.h"
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE MIPSII) Release MinDependency"
+
+DEP_CPP_STDAF=\
+	".\StdAfx.h"\
+	
+# ADD BASE CPP /Yc"stdafx.h"
+# ADD CPP /Yc"stdafx.h"
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE MIPSII_FP) Release MinSize"
+
+DEP_CPP_STDAF=\
+	".\StdAfx.h"\
+	
+# ADD BASE CPP /Yc"stdafx.h"
+# ADD CPP /Yc"stdafx.h"
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE MIPSII_FP) Release MinDependency"
+
+DEP_CPP_STDAF=\
+	".\StdAfx.h"\
+	
+# ADD BASE CPP /Yc"stdafx.h"
+# ADD CPP /Yc"stdafx.h"
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE ARMV4I) Release MinSize"
+
+DEP_CPP_STDAF=\
+	".\StdAfx.h"\
+	
+# ADD BASE CPP /Yc"stdafx.h"
+# ADD CPP /Yc"stdafx.h"
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE ARMV4I) Release MinDependency"
+
+DEP_CPP_STDAF=\
+	".\StdAfx.h"\
+	
+# ADD BASE CPP /Yc"stdafx.h"
+# ADD CPP /Yc"stdafx.h"
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE MIPS16) Release MinSize"
+
+DEP_CPP_STDAF=\
+	".\StdAfx.h"\
+	
+# ADD BASE CPP /Yc"stdafx.h"
+# ADD CPP /Yc"stdafx.h"
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE MIPS16) Release MinDependency"
+
+DEP_CPP_STDAF=\
+	".\StdAfx.h"\
+	
+# ADD BASE CPP /Yc"stdafx.h"
+# ADD CPP /Yc"stdafx.h"
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE SH3) Release MinSize"
+
+DEP_CPP_STDAF=\
+	".\StdAfx.h"\
+	
+# ADD BASE CPP /Yc"stdafx.h"
+# ADD CPP /Yc"stdafx.h"
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE SH3) Release MinDependency"
+
+DEP_CPP_STDAF=\
+	".\StdAfx.h"\
+	
+# ADD BASE CPP /Yc"stdafx.h"
+# ADD CPP /Yc"stdafx.h"
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE ARMV4T) Release MinSize"
+
+DEP_CPP_STDAF=\
+	".\StdAfx.h"\
+	
+# ADD BASE CPP /Yc"stdafx.h"
+# ADD CPP /Yc"stdafx.h"
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE ARMV4T) Release MinDependency"
+
+DEP_CPP_STDAF=\
+	".\StdAfx.h"\
+	
+# ADD BASE CPP /Yc"stdafx.h"
+# ADD CPP /Yc"stdafx.h"
+
+!ENDIF 
+
+# End Source File
+# Begin Source File
+
+SOURCE=.\UFile.cpp
+
+!IF  "$(CFG)" == "UFile - Win32 (WCE MIPSII_FP) Debug"
+
+DEP_CPP_UFILE=\
+	".\StdAfx.h"\
+	".\UFile.h"\
+	".\UFile_i.c"\
+	".\UFileCP.h"\
+	".\UFileImp.h"\
+	
+NODEP_CPP_UFILE=\
+	".\ockutil.h"\
+	".\queue.h"\
+	".\socket.h"\
+	".\socketevent.h"\
+	".\uiddef.h"\
+	
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE MIPSII) Debug"
+
+DEP_CPP_UFILE=\
+	".\StdAfx.h"\
+	".\UFile.h"\
+	".\UFile_i.c"\
+	".\UFileCP.h"\
+	".\UFileImp.h"\
+	
+NODEP_CPP_UFILE=\
+	".\ockutil.h"\
+	".\queue.h"\
+	".\socket.h"\
+	".\socketevent.h"\
+	".\uiddef.h"\
+	
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE SH4) Debug"
+
+DEP_CPP_UFILE=\
+	".\StdAfx.h"\
+	".\UFile.h"\
+	".\UFile_i.c"\
+	".\UFileCP.h"\
+	".\UFileImp.h"\
+	
+NODEP_CPP_UFILE=\
+	".\ockutil.h"\
+	".\queue.h"\
+	".\socket.h"\
+	".\socketevent.h"\
+	".\uiddef.h"\
+	
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE SH3) Debug"
+
+DEP_CPP_UFILE=\
+	".\StdAfx.h"\
+	".\UFile.h"\
+	".\UFile_i.c"\
+	".\UFileCP.h"\
+	".\UFileImp.h"\
+	
+NODEP_CPP_UFILE=\
+	".\ockutil.h"\
+	".\queue.h"\
+	".\socket.h"\
+	".\socketevent.h"\
+	".\uiddef.h"\
+	
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE MIPSIV) Debug"
+
+DEP_CPP_UFILE=\
+	".\StdAfx.h"\
+	".\UFile.h"\
+	".\UFile_i.c"\
+	".\UFileCP.h"\
+	".\UFileImp.h"\
+	
+NODEP_CPP_UFILE=\
+	".\ockutil.h"\
+	".\queue.h"\
+	".\socket.h"\
+	".\socketevent.h"\
+	".\uiddef.h"\
+	
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE emulator) Debug"
+
+DEP_CPP_UFILE=\
+	".\StdAfx.h"\
+	".\UFile.h"\
+	".\UFile_i.c"\
+	".\UFileCP.h"\
+	".\UFileImp.h"\
+	{$(INCLUDE)}"guiddef.h"\
+	{$(INCLUDE)}"sockutil.h"\
+	{$(INCLUDE)}"uqueue.h"\
+	{$(INCLUDE)}"usocket.h"\
+	{$(INCLUDE)}"usocketevent.h"\
+	
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE ARMV4I) Debug"
+
+DEP_CPP_UFILE=\
+	".\StdAfx.h"\
+	".\UFile.h"\
+	".\UFile_i.c"\
+	".\UFileCP.h"\
+	".\UFileImp.h"\
+	
+NODEP_CPP_UFILE=\
+	".\ockutil.h"\
+	".\queue.h"\
+	".\socket.h"\
+	".\socketevent.h"\
+	".\uiddef.h"\
+	
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE MIPSIV_FP) Debug"
+
+DEP_CPP_UFILE=\
+	".\StdAfx.h"\
+	".\UFile.h"\
+	".\UFile_i.c"\
+	".\UFileCP.h"\
+	".\UFileImp.h"\
+	
+NODEP_CPP_UFILE=\
+	".\ockutil.h"\
+	".\queue.h"\
+	".\socket.h"\
+	".\socketevent.h"\
+	".\uiddef.h"\
+	
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE ARMV4) Debug"
+
+DEP_CPP_UFILE=\
+	".\StdAfx.h"\
+	".\UFile.h"\
+	".\UFile_i.c"\
+	".\UFileCP.h"\
+	".\UFileImp.h"\
+	
+NODEP_CPP_UFILE=\
+	".\ockutil.h"\
+	".\queue.h"\
+	".\socket.h"\
+	".\socketevent.h"\
+	".\uiddef.h"\
+	
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE MIPS16) Debug"
+
+DEP_CPP_UFILE=\
+	".\StdAfx.h"\
+	".\UFile.h"\
+	".\UFile_i.c"\
+	".\UFileCP.h"\
+	".\UFileImp.h"\
+	
+NODEP_CPP_UFILE=\
+	".\ockutil.h"\
+	".\queue.h"\
+	".\socket.h"\
+	".\socketevent.h"\
+	".\uiddef.h"\
+	
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE ARMV4T) Debug"
+
+DEP_CPP_UFILE=\
+	".\StdAfx.h"\
+	".\UFile.h"\
+	".\UFile_i.c"\
+	".\UFileCP.h"\
+	".\UFileImp.h"\
+	
+NODEP_CPP_UFILE=\
+	".\ockutil.h"\
+	".\queue.h"\
+	".\socket.h"\
+	".\socketevent.h"\
+	".\uiddef.h"\
+	
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE x86) Debug"
+
+DEP_CPP_UFILE=\
+	".\StdAfx.h"\
+	".\UFile.h"\
+	".\UFile_i.c"\
+	".\UFileCP.h"\
+	".\UFileImp.h"\
+	
+NODEP_CPP_UFILE=\
+	".\ockutil.h"\
+	".\queue.h"\
+	".\socket.h"\
+	".\socketevent.h"\
+	".\uiddef.h"\
+	
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE MIPSIV_FP) Release MinSize"
+
+DEP_CPP_UFILE=\
+	".\StdAfx.h"\
+	".\UFile.h"\
+	".\UFile_i.c"\
+	".\UFileCP.h"\
+	".\UFileImp.h"\
+	
+NODEP_CPP_UFILE=\
+	".\ockutil.h"\
+	".\queue.h"\
+	".\socket.h"\
+	".\socketevent.h"\
+	".\uiddef.h"\
+	
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE MIPSIV_FP) Release MinDependency"
+
+DEP_CPP_UFILE=\
+	".\StdAfx.h"\
+	".\UFile.h"\
+	".\UFile_i.c"\
+	".\UFileCP.h"\
+	".\UFileImp.h"\
+	
+NODEP_CPP_UFILE=\
+	".\ockutil.h"\
+	".\queue.h"\
+	".\socket.h"\
+	".\socketevent.h"\
+	".\uiddef.h"\
+	
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE SH4) Release MinSize"
+
+DEP_CPP_UFILE=\
+	".\StdAfx.h"\
+	".\UFile.h"\
+	".\UFile_i.c"\
+	".\UFileCP.h"\
+	".\UFileImp.h"\
+	
+NODEP_CPP_UFILE=\
+	".\ockutil.h"\
+	".\queue.h"\
+	".\socket.h"\
+	".\socketevent.h"\
+	".\uiddef.h"\
+	
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE SH4) Release MinDependency"
+
+DEP_CPP_UFILE=\
+	".\StdAfx.h"\
+	".\UFile.h"\
+	".\UFile_i.c"\
+	".\UFileCP.h"\
+	".\UFileImp.h"\
+	
+NODEP_CPP_UFILE=\
+	".\ockutil.h"\
+	".\queue.h"\
+	".\socket.h"\
+	".\socketevent.h"\
+	".\uiddef.h"\
+	
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE emulator) Release MinSize"
+
+DEP_CPP_UFILE=\
+	".\StdAfx.h"\
+	".\UFile.h"\
+	".\UFile_i.c"\
+	".\UFileCP.h"\
+	".\UFileImp.h"\
+	
+NODEP_CPP_UFILE=\
+	".\ockutil.h"\
+	".\queue.h"\
+	".\socket.h"\
+	".\socketevent.h"\
+	".\uiddef.h"\
+	
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE emulator) Release MinDependency"
+
+DEP_CPP_UFILE=\
+	".\StdAfx.h"\
+	".\UFile.h"\
+	".\UFile_i.c"\
+	".\UFileCP.h"\
+	".\UFileImp.h"\
+	{$(INCLUDE)}"guiddef.h"\
+	{$(INCLUDE)}"sockutil.h"\
+	{$(INCLUDE)}"uqueue.h"\
+	{$(INCLUDE)}"usocket.h"\
+	{$(INCLUDE)}"usocketevent.h"\
+	
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE x86) Release MinSize"
+
+DEP_CPP_UFILE=\
+	".\StdAfx.h"\
+	".\UFile.h"\
+	".\UFile_i.c"\
+	".\UFileCP.h"\
+	".\UFileImp.h"\
+	
+NODEP_CPP_UFILE=\
+	".\ockutil.h"\
+	".\queue.h"\
+	".\socket.h"\
+	".\socketevent.h"\
+	".\uiddef.h"\
+	
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE x86) Release MinDependency"
+
+DEP_CPP_UFILE=\
+	".\StdAfx.h"\
+	".\UFile.h"\
+	".\UFile_i.c"\
+	".\UFileCP.h"\
+	".\UFileImp.h"\
+	
+NODEP_CPP_UFILE=\
+	".\ockutil.h"\
+	".\queue.h"\
+	".\socket.h"\
+	".\socketevent.h"\
+	".\uiddef.h"\
+	
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE MIPSIV) Release MinSize"
+
+DEP_CPP_UFILE=\
+	".\StdAfx.h"\
+	".\UFile.h"\
+	".\UFile_i.c"\
+	".\UFileCP.h"\
+	".\UFileImp.h"\
+	
+NODEP_CPP_UFILE=\
+	".\ockutil.h"\
+	".\queue.h"\
+	".\socket.h"\
+	".\socketevent.h"\
+	".\uiddef.h"\
+	
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE MIPSIV) Release MinDependency"
+
+DEP_CPP_UFILE=\
+	".\StdAfx.h"\
+	".\UFile.h"\
+	".\UFile_i.c"\
+	".\UFileCP.h"\
+	".\UFileImp.h"\
+	
+NODEP_CPP_UFILE=\
+	".\ockutil.h"\
+	".\queue.h"\
+	".\socket.h"\
+	".\socketevent.h"\
+	".\uiddef.h"\
+	
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE ARMV4) Release MinSize"
+
+DEP_CPP_UFILE=\
+	".\StdAfx.h"\
+	".\UFile.h"\
+	".\UFile_i.c"\
+	".\UFileCP.h"\
+	".\UFileImp.h"\
+	
+NODEP_CPP_UFILE=\
+	".\ockutil.h"\
+	".\queue.h"\
+	".\socket.h"\
+	".\socketevent.h"\
+	".\uiddef.h"\
+	
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE ARMV4) Release MinDependency"
+
+DEP_CPP_UFILE=\
+	".\StdAfx.h"\
+	".\UFile.h"\
+	".\UFile_i.c"\
+	".\UFileCP.h"\
+	".\UFileImp.h"\
+	
+NODEP_CPP_UFILE=\
+	".\ockutil.h"\
+	".\queue.h"\
+	".\socket.h"\
+	".\socketevent.h"\
+	".\uiddef.h"\
+	
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE MIPSII) Release MinSize"
+
+DEP_CPP_UFILE=\
+	".\StdAfx.h"\
+	".\UFile.h"\
+	".\UFile_i.c"\
+	".\UFileCP.h"\
+	".\UFileImp.h"\
+	
+NODEP_CPP_UFILE=\
+	".\ockutil.h"\
+	".\queue.h"\
+	".\socket.h"\
+	".\socketevent.h"\
+	".\uiddef.h"\
+	
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE MIPSII) Release MinDependency"
+
+DEP_CPP_UFILE=\
+	".\StdAfx.h"\
+	".\UFile.h"\
+	".\UFile_i.c"\
+	".\UFileCP.h"\
+	".\UFileImp.h"\
+	
+NODEP_CPP_UFILE=\
+	".\ockutil.h"\
+	".\queue.h"\
+	".\socket.h"\
+	".\socketevent.h"\
+	".\uiddef.h"\
+	
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE MIPSII_FP) Release MinSize"
+
+DEP_CPP_UFILE=\
+	".\StdAfx.h"\
+	".\UFile.h"\
+	".\UFile_i.c"\
+	".\UFileCP.h"\
+	".\UFileImp.h"\
+	
+NODEP_CPP_UFILE=\
+	".\ockutil.h"\
+	".\queue.h"\
+	".\socket.h"\
+	".\socketevent.h"\
+	".\uiddef.h"\
+	
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE MIPSII_FP) Release MinDependency"
+
+DEP_CPP_UFILE=\
+	".\StdAfx.h"\
+	".\UFile.h"\
+	".\UFile_i.c"\
+	".\UFileCP.h"\
+	".\UFileImp.h"\
+	
+NODEP_CPP_UFILE=\
+	".\ockutil.h"\
+	".\queue.h"\
+	".\socket.h"\
+	".\socketevent.h"\
+	".\uiddef.h"\
+	
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE ARMV4I) Release MinSize"
+
+DEP_CPP_UFILE=\
+	".\StdAfx.h"\
+	".\UFile.h"\
+	".\UFile_i.c"\
+	".\UFileCP.h"\
+	".\UFileImp.h"\
+	
+NODEP_CPP_UFILE=\
+	".\ockutil.h"\
+	".\queue.h"\
+	".\socket.h"\
+	".\socketevent.h"\
+	".\uiddef.h"\
+	
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE ARMV4I) Release MinDependency"
+
+DEP_CPP_UFILE=\
+	".\StdAfx.h"\
+	".\UFile.h"\
+	".\UFile_i.c"\
+	".\UFileCP.h"\
+	".\UFileImp.h"\
+	
+NODEP_CPP_UFILE=\
+	".\ockutil.h"\
+	".\queue.h"\
+	".\socket.h"\
+	".\socketevent.h"\
+	".\uiddef.h"\
+	
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE MIPS16) Release MinSize"
+
+DEP_CPP_UFILE=\
+	".\StdAfx.h"\
+	".\UFile.h"\
+	".\UFile_i.c"\
+	".\UFileCP.h"\
+	".\UFileImp.h"\
+	
+NODEP_CPP_UFILE=\
+	".\ockutil.h"\
+	".\queue.h"\
+	".\socket.h"\
+	".\socketevent.h"\
+	".\uiddef.h"\
+	
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE MIPS16) Release MinDependency"
+
+DEP_CPP_UFILE=\
+	".\StdAfx.h"\
+	".\UFile.h"\
+	".\UFile_i.c"\
+	".\UFileCP.h"\
+	".\UFileImp.h"\
+	
+NODEP_CPP_UFILE=\
+	".\ockutil.h"\
+	".\queue.h"\
+	".\socket.h"\
+	".\socketevent.h"\
+	".\uiddef.h"\
+	
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE SH3) Release MinSize"
+
+DEP_CPP_UFILE=\
+	".\StdAfx.h"\
+	".\UFile.h"\
+	".\UFile_i.c"\
+	".\UFileCP.h"\
+	".\UFileImp.h"\
+	
+NODEP_CPP_UFILE=\
+	".\ockutil.h"\
+	".\queue.h"\
+	".\socket.h"\
+	".\socketevent.h"\
+	".\uiddef.h"\
+	
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE SH3) Release MinDependency"
+
+DEP_CPP_UFILE=\
+	".\StdAfx.h"\
+	".\UFile.h"\
+	".\UFile_i.c"\
+	".\UFileCP.h"\
+	".\UFileImp.h"\
+	
+NODEP_CPP_UFILE=\
+	".\ockutil.h"\
+	".\queue.h"\
+	".\socket.h"\
+	".\socketevent.h"\
+	".\uiddef.h"\
+	
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE ARMV4T) Release MinSize"
+
+DEP_CPP_UFILE=\
+	".\StdAfx.h"\
+	".\UFile.h"\
+	".\UFile_i.c"\
+	".\UFileCP.h"\
+	".\UFileImp.h"\
+	
+NODEP_CPP_UFILE=\
+	".\ockutil.h"\
+	".\queue.h"\
+	".\socket.h"\
+	".\socketevent.h"\
+	".\uiddef.h"\
+	
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE ARMV4T) Release MinDependency"
+
+DEP_CPP_UFILE=\
+	".\StdAfx.h"\
+	".\UFile.h"\
+	".\UFile_i.c"\
+	".\UFileCP.h"\
+	".\UFileImp.h"\
+	
+NODEP_CPP_UFILE=\
+	".\ockutil.h"\
+	".\queue.h"\
+	".\socket.h"\
+	".\socketevent.h"\
+	".\uiddef.h"\
+	
+
+!ENDIF 
+
+# End Source File
+# Begin Source File
+
+SOURCE=.\UFile.def
+# End Source File
+# Begin Source File
+
+SOURCE=.\UFile.idl
+
+!IF  "$(CFG)" == "UFile - Win32 (WCE MIPSII_FP) Debug"
+
+# PROP Ignore_Default_Tool 1
+# Begin Custom Build - Performing MIDL step
+InputPath=.\UFile.idl
+
+BuildCmds= \
+	midl /nologo /Oicf /h "UFile.h" /iid "UFile_i.c" "UFile.idl"
+
+".\UFile.tlb" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+
+".\UFile.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+
+".\UFile_i.c" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE MIPSII) Debug"
+
+# PROP Ignore_Default_Tool 1
+# Begin Custom Build - Performing MIDL step
+InputPath=.\UFile.idl
+
+BuildCmds= \
+	midl /nologo /Oicf /h "UFile.h" /iid "UFile_i.c" "UFile.idl"
+
+".\UFile.tlb" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+
+".\UFile.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+
+".\UFile_i.c" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE SH4) Debug"
+
+# PROP Ignore_Default_Tool 1
+# Begin Custom Build - Performing MIDL step
+InputPath=.\UFile.idl
+
+BuildCmds= \
+	midl /nologo /Oicf /h "UFile.h" /iid "UFile_i.c" "UFile.idl"
+
+".\UFile.tlb" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+
+".\UFile.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+
+".\UFile_i.c" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE SH3) Debug"
+
+# PROP Ignore_Default_Tool 1
+# Begin Custom Build - Performing MIDL step
+InputPath=.\UFile.idl
+
+BuildCmds= \
+	midl /nologo /Oicf /h "UFile.h" /iid "UFile_i.c" "UFile.idl"
+
+".\UFile.tlb" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+
+".\UFile.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+
+".\UFile_i.c" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE MIPSIV) Debug"
+
+# PROP Ignore_Default_Tool 1
+# Begin Custom Build - Performing MIDL step
+InputPath=.\UFile.idl
+
+BuildCmds= \
+	midl /nologo /Oicf /h "UFile.h" /iid "UFile_i.c" "UFile.idl"
+
+".\UFile.tlb" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+
+".\UFile.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+
+".\UFile_i.c" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE emulator) Debug"
+
+# PROP Ignore_Default_Tool 1
+# Begin Custom Build - Performing MIDL step
+InputPath=.\UFile.idl
+
+BuildCmds= \
+	midl /nologo /Oicf /h "UFile.h" /iid "UFile_i.c" "UFile.idl"
+
+".\UFile.tlb" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+
+".\UFile.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+
+".\UFile_i.c" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE ARMV4I) Debug"
+
+# PROP Ignore_Default_Tool 1
+# Begin Custom Build - Performing MIDL step
+InputPath=.\UFile.idl
+
+BuildCmds= \
+	midl /nologo /Oicf /h "UFile.h" /iid "UFile_i.c" "UFile.idl"
+
+".\UFile.tlb" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+
+".\UFile.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+
+".\UFile_i.c" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE MIPSIV_FP) Debug"
+
+# PROP Ignore_Default_Tool 1
+# Begin Custom Build - Performing MIDL step
+InputPath=.\UFile.idl
+
+BuildCmds= \
+	midl /nologo /Oicf /h "UFile.h" /iid "UFile_i.c" "UFile.idl"
+
+".\UFile.tlb" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+
+".\UFile.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+
+".\UFile_i.c" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE ARMV4) Debug"
+
+# PROP Ignore_Default_Tool 1
+# Begin Custom Build - Performing MIDL step
+InputPath=.\UFile.idl
+
+BuildCmds= \
+	midl /nologo /Oicf /h "UFile.h" /iid "UFile_i.c" "UFile.idl"
+
+".\UFile.tlb" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+
+".\UFile.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+
+".\UFile_i.c" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE MIPS16) Debug"
+
+# PROP Ignore_Default_Tool 1
+# Begin Custom Build - Performing MIDL step
+InputPath=.\UFile.idl
+
+BuildCmds= \
+	midl /nologo /Oicf /h "UFile.h" /iid "UFile_i.c" "UFile.idl"
+
+".\UFile.tlb" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+
+".\UFile.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+
+".\UFile_i.c" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE ARMV4T) Debug"
+
+# PROP Ignore_Default_Tool 1
+# Begin Custom Build - Performing MIDL step
+InputPath=.\UFile.idl
+
+BuildCmds= \
+	midl /nologo /Oicf /h "UFile.h" /iid "UFile_i.c" "UFile.idl"
+
+".\UFile.tlb" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+
+".\UFile.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+
+".\UFile_i.c" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE x86) Debug"
+
+# PROP Ignore_Default_Tool 1
+# Begin Custom Build - Performing MIDL step
+InputPath=.\UFile.idl
+
+BuildCmds= \
+	midl /nologo /Oicf /h "UFile.h" /iid "UFile_i.c" "UFile.idl"
+
+".\UFile.tlb" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+
+".\UFile.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+
+".\UFile_i.c" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE MIPSIV_FP) Release MinSize"
+
+# PROP Ignore_Default_Tool 1
+# Begin Custom Build - Performing MIDL step
+InputPath=.\UFile.idl
+
+BuildCmds= \
+	midl /nologo /Oicf /h "UFile.h" /iid "UFile_i.c" "UFile.idl"
+
+".\UFile.tlb" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+
+".\UFile.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+
+".\UFile_i.c" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE MIPSIV_FP) Release MinDependency"
+
+# PROP Ignore_Default_Tool 1
+# Begin Custom Build - Performing MIDL step
+InputPath=.\UFile.idl
+
+BuildCmds= \
+	midl /nologo /Oicf /h "UFile.h" /iid "UFile_i.c" "UFile.idl"
+
+".\UFile.tlb" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+
+".\UFile.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+
+".\UFile_i.c" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE SH4) Release MinSize"
+
+# PROP Ignore_Default_Tool 1
+# Begin Custom Build - Performing MIDL step
+InputPath=.\UFile.idl
+
+BuildCmds= \
+	midl /nologo /Oicf /h "UFile.h" /iid "UFile_i.c" "UFile.idl"
+
+".\UFile.tlb" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+
+".\UFile.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+
+".\UFile_i.c" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE SH4) Release MinDependency"
+
+# PROP Ignore_Default_Tool 1
+# Begin Custom Build - Performing MIDL step
+InputPath=.\UFile.idl
+
+BuildCmds= \
+	midl /nologo /Oicf /h "UFile.h" /iid "UFile_i.c" "UFile.idl"
+
+".\UFile.tlb" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+
+".\UFile.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+
+".\UFile_i.c" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE emulator) Release MinSize"
+
+# PROP Ignore_Default_Tool 1
+# Begin Custom Build - Performing MIDL step
+InputPath=.\UFile.idl
+
+BuildCmds= \
+	midl /nologo /Oicf /h "UFile.h" /iid "UFile_i.c" "UFile.idl"
+
+".\UFile.tlb" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+
+".\UFile.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+
+".\UFile_i.c" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE emulator) Release MinDependency"
+
+# PROP Ignore_Default_Tool 1
+# Begin Custom Build - Performing MIDL step
+InputPath=.\UFile.idl
+
+BuildCmds= \
+	midl /nologo /Oicf /h "UFile.h" /iid "UFile_i.c" "UFile.idl"
+
+".\UFile.tlb" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+
+".\UFile.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+
+".\UFile_i.c" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE x86) Release MinSize"
+
+# PROP Ignore_Default_Tool 1
+# Begin Custom Build - Performing MIDL step
+InputPath=.\UFile.idl
+
+BuildCmds= \
+	midl /nologo /Oicf /h "UFile.h" /iid "UFile_i.c" "UFile.idl"
+
+".\UFile.tlb" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+
+".\UFile.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+
+".\UFile_i.c" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE x86) Release MinDependency"
+
+# PROP Ignore_Default_Tool 1
+# Begin Custom Build - Performing MIDL step
+InputPath=.\UFile.idl
+
+BuildCmds= \
+	midl /nologo /Oicf /h "UFile.h" /iid "UFile_i.c" "UFile.idl"
+
+".\UFile.tlb" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+
+".\UFile.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+
+".\UFile_i.c" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE MIPSIV) Release MinSize"
+
+# PROP Ignore_Default_Tool 1
+# Begin Custom Build - Performing MIDL step
+InputPath=.\UFile.idl
+
+BuildCmds= \
+	midl /nologo /Oicf /h "UFile.h" /iid "UFile_i.c" "UFile.idl"
+
+".\UFile.tlb" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+
+".\UFile.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+
+".\UFile_i.c" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE MIPSIV) Release MinDependency"
+
+# PROP Ignore_Default_Tool 1
+# Begin Custom Build - Performing MIDL step
+InputPath=.\UFile.idl
+
+BuildCmds= \
+	midl /nologo /Oicf /h "UFile.h" /iid "UFile_i.c" "UFile.idl"
+
+".\UFile.tlb" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+
+".\UFile.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+
+".\UFile_i.c" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE ARMV4) Release MinSize"
+
+# PROP Ignore_Default_Tool 1
+# Begin Custom Build - Performing MIDL step
+InputPath=.\UFile.idl
+
+BuildCmds= \
+	midl /nologo /Oicf /h "UFile.h" /iid "UFile_i.c" "UFile.idl"
+
+".\UFile.tlb" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+
+".\UFile.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+
+".\UFile_i.c" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE ARMV4) Release MinDependency"
+
+# PROP Ignore_Default_Tool 1
+# Begin Custom Build - Performing MIDL step
+InputPath=.\UFile.idl
+
+BuildCmds= \
+	midl /nologo /Oicf /h "UFile.h" /iid "UFile_i.c" "UFile.idl"
+
+".\UFile.tlb" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+
+".\UFile.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+
+".\UFile_i.c" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE MIPSII) Release MinSize"
+
+# PROP Ignore_Default_Tool 1
+# Begin Custom Build - Performing MIDL step
+InputPath=.\UFile.idl
+
+BuildCmds= \
+	midl /nologo /Oicf /h "UFile.h" /iid "UFile_i.c" "UFile.idl"
+
+".\UFile.tlb" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+
+".\UFile.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+
+".\UFile_i.c" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE MIPSII) Release MinDependency"
+
+# PROP Ignore_Default_Tool 1
+# Begin Custom Build - Performing MIDL step
+InputPath=.\UFile.idl
+
+BuildCmds= \
+	midl /nologo /Oicf /h "UFile.h" /iid "UFile_i.c" "UFile.idl"
+
+".\UFile.tlb" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+
+".\UFile.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+
+".\UFile_i.c" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE MIPSII_FP) Release MinSize"
+
+# PROP Ignore_Default_Tool 1
+# Begin Custom Build - Performing MIDL step
+InputPath=.\UFile.idl
+
+BuildCmds= \
+	midl /nologo /Oicf /h "UFile.h" /iid "UFile_i.c" "UFile.idl"
+
+".\UFile.tlb" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+
+".\UFile.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+
+".\UFile_i.c" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE MIPSII_FP) Release MinDependency"
+
+# PROP Ignore_Default_Tool 1
+# Begin Custom Build - Performing MIDL step
+InputPath=.\UFile.idl
+
+BuildCmds= \
+	midl /nologo /Oicf /h "UFile.h" /iid "UFile_i.c" "UFile.idl"
+
+".\UFile.tlb" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+
+".\UFile.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+
+".\UFile_i.c" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE ARMV4I) Release MinSize"
+
+# PROP Ignore_Default_Tool 1
+# Begin Custom Build - Performing MIDL step
+InputPath=.\UFile.idl
+
+BuildCmds= \
+	midl /nologo /Oicf /h "UFile.h" /iid "UFile_i.c" "UFile.idl"
+
+".\UFile.tlb" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+
+".\UFile.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+
+".\UFile_i.c" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE ARMV4I) Release MinDependency"
+
+# PROP Ignore_Default_Tool 1
+# Begin Custom Build - Performing MIDL step
+InputPath=.\UFile.idl
+
+BuildCmds= \
+	midl /nologo /Oicf /h "UFile.h" /iid "UFile_i.c" "UFile.idl"
+
+".\UFile.tlb" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+
+".\UFile.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+
+".\UFile_i.c" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE MIPS16) Release MinSize"
+
+# PROP Ignore_Default_Tool 1
+# Begin Custom Build - Performing MIDL step
+InputPath=.\UFile.idl
+
+BuildCmds= \
+	midl /nologo /Oicf /h "UFile.h" /iid "UFile_i.c" "UFile.idl"
+
+".\UFile.tlb" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+
+".\UFile.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+
+".\UFile_i.c" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE MIPS16) Release MinDependency"
+
+# PROP Ignore_Default_Tool 1
+# Begin Custom Build - Performing MIDL step
+InputPath=.\UFile.idl
+
+BuildCmds= \
+	midl /nologo /Oicf /h "UFile.h" /iid "UFile_i.c" "UFile.idl"
+
+".\UFile.tlb" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+
+".\UFile.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+
+".\UFile_i.c" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE SH3) Release MinSize"
+
+# PROP Ignore_Default_Tool 1
+# Begin Custom Build - Performing MIDL step
+InputPath=.\UFile.idl
+
+BuildCmds= \
+	midl /nologo /Oicf /h "UFile.h" /iid "UFile_i.c" "UFile.idl"
+
+".\UFile.tlb" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+
+".\UFile.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+
+".\UFile_i.c" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE SH3) Release MinDependency"
+
+# PROP Ignore_Default_Tool 1
+# Begin Custom Build - Performing MIDL step
+InputPath=.\UFile.idl
+
+BuildCmds= \
+	midl /nologo /Oicf /h "UFile.h" /iid "UFile_i.c" "UFile.idl"
+
+".\UFile.tlb" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+
+".\UFile.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+
+".\UFile_i.c" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE ARMV4T) Release MinSize"
+
+# PROP Ignore_Default_Tool 1
+# Begin Custom Build - Performing MIDL step
+InputPath=.\UFile.idl
+
+BuildCmds= \
+	midl /nologo /Oicf /h "UFile.h" /iid "UFile_i.c" "UFile.idl"
+
+".\UFile.tlb" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+
+".\UFile.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+
+".\UFile_i.c" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE ARMV4T) Release MinDependency"
+
+# PROP Ignore_Default_Tool 1
+# Begin Custom Build - Performing MIDL step
+InputPath=.\UFile.idl
+
+BuildCmds= \
+	midl /nologo /Oicf /h "UFile.h" /iid "UFile_i.c" "UFile.idl"
+
+".\UFile.tlb" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+
+".\UFile.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+
+".\UFile_i.c" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+# End Custom Build
+
+!ENDIF 
+
+# End Source File
+# Begin Source File
+
+SOURCE=.\UFile.rc
+
+!IF  "$(CFG)" == "UFile - Win32 (WCE MIPSII_FP) Debug"
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE MIPSII) Debug"
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE SH4) Debug"
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE SH3) Debug"
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE MIPSIV) Debug"
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE emulator) Debug"
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE ARMV4I) Debug"
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE MIPSIV_FP) Debug"
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE ARMV4) Debug"
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE MIPS16) Debug"
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE ARMV4T) Debug"
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE x86) Debug"
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE MIPSIV_FP) Release MinSize"
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE MIPSIV_FP) Release MinDependency"
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE SH4) Release MinSize"
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE SH4) Release MinDependency"
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE emulator) Release MinSize"
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE emulator) Release MinDependency"
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE x86) Release MinSize"
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE x86) Release MinDependency"
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE MIPSIV) Release MinSize"
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE MIPSIV) Release MinDependency"
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE ARMV4) Release MinSize"
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE ARMV4) Release MinDependency"
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE MIPSII) Release MinSize"
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE MIPSII) Release MinDependency"
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE MIPSII_FP) Release MinSize"
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE MIPSII_FP) Release MinDependency"
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE ARMV4I) Release MinSize"
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE ARMV4I) Release MinDependency"
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE MIPS16) Release MinSize"
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE MIPS16) Release MinDependency"
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE SH3) Release MinSize"
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE SH3) Release MinDependency"
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE ARMV4T) Release MinSize"
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE ARMV4T) Release MinDependency"
+
+!ENDIF 
+
+# End Source File
+# Begin Source File
+
+SOURCE=.\UFile.rgs
+# End Source File
+# Begin Source File
+
+SOURCE=.\UFileImp.cpp
+
+!IF  "$(CFG)" == "UFile - Win32 (WCE MIPSII_FP) Debug"
+
+DEP_CPP_UFILEI=\
+	".\StdAfx.h"\
+	".\UFile.h"\
+	".\UFileCP.h"\
+	".\UFileImp.h"\
+	
+NODEP_CPP_UFILEI=\
+	".\ockutil.h"\
+	".\queue.h"\
+	".\socket.h"\
+	".\socketevent.h"\
+	
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE MIPSII) Debug"
+
+DEP_CPP_UFILEI=\
+	".\StdAfx.h"\
+	".\UFile.h"\
+	".\UFileCP.h"\
+	".\UFileImp.h"\
+	
+NODEP_CPP_UFILEI=\
+	".\ockutil.h"\
+	".\queue.h"\
+	".\socket.h"\
+	".\socketevent.h"\
+	
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE SH4) Debug"
+
+DEP_CPP_UFILEI=\
+	".\StdAfx.h"\
+	".\UFile.h"\
+	".\UFileCP.h"\
+	".\UFileImp.h"\
+	
+NODEP_CPP_UFILEI=\
+	".\ockutil.h"\
+	".\queue.h"\
+	".\socket.h"\
+	".\socketevent.h"\
+	
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE SH3) Debug"
+
+DEP_CPP_UFILEI=\
+	".\StdAfx.h"\
+	".\UFile.h"\
+	".\UFileCP.h"\
+	".\UFileImp.h"\
+	
+NODEP_CPP_UFILEI=\
+	".\ockutil.h"\
+	".\queue.h"\
+	".\socket.h"\
+	".\socketevent.h"\
+	
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE MIPSIV) Debug"
+
+DEP_CPP_UFILEI=\
+	".\StdAfx.h"\
+	".\UFile.h"\
+	".\UFileCP.h"\
+	".\UFileImp.h"\
+	
+NODEP_CPP_UFILEI=\
+	".\ockutil.h"\
+	".\queue.h"\
+	".\socket.h"\
+	".\socketevent.h"\
+	
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE emulator) Debug"
+
+DEP_CPP_UFILEI=\
+	".\StdAfx.h"\
+	".\UFile.h"\
+	".\UFileCP.h"\
+	".\UFileImp.h"\
+	{$(INCLUDE)}"sockutil.h"\
+	{$(INCLUDE)}"uqueue.h"\
+	{$(INCLUDE)}"usocket.h"\
+	{$(INCLUDE)}"usocketevent.h"\
+	
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE ARMV4I) Debug"
+
+DEP_CPP_UFILEI=\
+	".\StdAfx.h"\
+	".\UFile.h"\
+	".\UFileCP.h"\
+	".\UFileImp.h"\
+	
+NODEP_CPP_UFILEI=\
+	".\ockutil.h"\
+	".\queue.h"\
+	".\socket.h"\
+	".\socketevent.h"\
+	
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE MIPSIV_FP) Debug"
+
+DEP_CPP_UFILEI=\
+	".\StdAfx.h"\
+	".\UFile.h"\
+	".\UFileCP.h"\
+	".\UFileImp.h"\
+	
+NODEP_CPP_UFILEI=\
+	".\ockutil.h"\
+	".\queue.h"\
+	".\socket.h"\
+	".\socketevent.h"\
+	
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE ARMV4) Debug"
+
+DEP_CPP_UFILEI=\
+	".\StdAfx.h"\
+	".\UFile.h"\
+	".\UFileCP.h"\
+	".\UFileImp.h"\
+	
+NODEP_CPP_UFILEI=\
+	".\ockutil.h"\
+	".\queue.h"\
+	".\socket.h"\
+	".\socketevent.h"\
+	
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE MIPS16) Debug"
+
+DEP_CPP_UFILEI=\
+	".\StdAfx.h"\
+	".\UFile.h"\
+	".\UFileCP.h"\
+	".\UFileImp.h"\
+	
+NODEP_CPP_UFILEI=\
+	".\ockutil.h"\
+	".\queue.h"\
+	".\socket.h"\
+	".\socketevent.h"\
+	
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE ARMV4T) Debug"
+
+DEP_CPP_UFILEI=\
+	".\StdAfx.h"\
+	".\UFile.h"\
+	".\UFileCP.h"\
+	".\UFileImp.h"\
+	
+NODEP_CPP_UFILEI=\
+	".\ockutil.h"\
+	".\queue.h"\
+	".\socket.h"\
+	".\socketevent.h"\
+	
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE x86) Debug"
+
+DEP_CPP_UFILEI=\
+	".\StdAfx.h"\
+	".\UFile.h"\
+	".\UFileCP.h"\
+	".\UFileImp.h"\
+	
+NODEP_CPP_UFILEI=\
+	".\ockutil.h"\
+	".\queue.h"\
+	".\socket.h"\
+	".\socketevent.h"\
+	
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE MIPSIV_FP) Release MinSize"
+
+DEP_CPP_UFILEI=\
+	".\StdAfx.h"\
+	".\UFile.h"\
+	".\UFileCP.h"\
+	".\UFileImp.h"\
+	
+NODEP_CPP_UFILEI=\
+	".\ockutil.h"\
+	".\queue.h"\
+	".\socket.h"\
+	".\socketevent.h"\
+	
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE MIPSIV_FP) Release MinDependency"
+
+DEP_CPP_UFILEI=\
+	".\StdAfx.h"\
+	".\UFile.h"\
+	".\UFileCP.h"\
+	".\UFileImp.h"\
+	
+NODEP_CPP_UFILEI=\
+	".\ockutil.h"\
+	".\queue.h"\
+	".\socket.h"\
+	".\socketevent.h"\
+	
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE SH4) Release MinSize"
+
+DEP_CPP_UFILEI=\
+	".\StdAfx.h"\
+	".\UFile.h"\
+	".\UFileCP.h"\
+	".\UFileImp.h"\
+	
+NODEP_CPP_UFILEI=\
+	".\ockutil.h"\
+	".\queue.h"\
+	".\socket.h"\
+	".\socketevent.h"\
+	
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE SH4) Release MinDependency"
+
+DEP_CPP_UFILEI=\
+	".\StdAfx.h"\
+	".\UFile.h"\
+	".\UFileCP.h"\
+	".\UFileImp.h"\
+	
+NODEP_CPP_UFILEI=\
+	".\ockutil.h"\
+	".\queue.h"\
+	".\socket.h"\
+	".\socketevent.h"\
+	
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE emulator) Release MinSize"
+
+DEP_CPP_UFILEI=\
+	".\StdAfx.h"\
+	".\UFile.h"\
+	".\UFileCP.h"\
+	".\UFileImp.h"\
+	
+NODEP_CPP_UFILEI=\
+	".\ockutil.h"\
+	".\queue.h"\
+	".\socket.h"\
+	".\socketevent.h"\
+	
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE emulator) Release MinDependency"
+
+DEP_CPP_UFILEI=\
+	".\StdAfx.h"\
+	".\UFile.h"\
+	".\UFileCP.h"\
+	".\UFileImp.h"\
+	{$(INCLUDE)}"sockutil.h"\
+	{$(INCLUDE)}"uqueue.h"\
+	{$(INCLUDE)}"usocket.h"\
+	{$(INCLUDE)}"usocketevent.h"\
+	
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE x86) Release MinSize"
+
+DEP_CPP_UFILEI=\
+	".\StdAfx.h"\
+	".\UFile.h"\
+	".\UFileCP.h"\
+	".\UFileImp.h"\
+	
+NODEP_CPP_UFILEI=\
+	".\ockutil.h"\
+	".\queue.h"\
+	".\socket.h"\
+	".\socketevent.h"\
+	
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE x86) Release MinDependency"
+
+DEP_CPP_UFILEI=\
+	".\StdAfx.h"\
+	".\UFile.h"\
+	".\UFileCP.h"\
+	".\UFileImp.h"\
+	
+NODEP_CPP_UFILEI=\
+	".\ockutil.h"\
+	".\queue.h"\
+	".\socket.h"\
+	".\socketevent.h"\
+	
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE MIPSIV) Release MinSize"
+
+DEP_CPP_UFILEI=\
+	".\StdAfx.h"\
+	".\UFile.h"\
+	".\UFileCP.h"\
+	".\UFileImp.h"\
+	
+NODEP_CPP_UFILEI=\
+	".\ockutil.h"\
+	".\queue.h"\
+	".\socket.h"\
+	".\socketevent.h"\
+	
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE MIPSIV) Release MinDependency"
+
+DEP_CPP_UFILEI=\
+	".\StdAfx.h"\
+	".\UFile.h"\
+	".\UFileCP.h"\
+	".\UFileImp.h"\
+	
+NODEP_CPP_UFILEI=\
+	".\ockutil.h"\
+	".\queue.h"\
+	".\socket.h"\
+	".\socketevent.h"\
+	
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE ARMV4) Release MinSize"
+
+DEP_CPP_UFILEI=\
+	".\StdAfx.h"\
+	".\UFile.h"\
+	".\UFileCP.h"\
+	".\UFileImp.h"\
+	
+NODEP_CPP_UFILEI=\
+	".\ockutil.h"\
+	".\queue.h"\
+	".\socket.h"\
+	".\socketevent.h"\
+	
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE ARMV4) Release MinDependency"
+
+DEP_CPP_UFILEI=\
+	".\StdAfx.h"\
+	".\UFile.h"\
+	".\UFileCP.h"\
+	".\UFileImp.h"\
+	
+NODEP_CPP_UFILEI=\
+	".\ockutil.h"\
+	".\queue.h"\
+	".\socket.h"\
+	".\socketevent.h"\
+	
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE MIPSII) Release MinSize"
+
+DEP_CPP_UFILEI=\
+	".\StdAfx.h"\
+	".\UFile.h"\
+	".\UFileCP.h"\
+	".\UFileImp.h"\
+	
+NODEP_CPP_UFILEI=\
+	".\ockutil.h"\
+	".\queue.h"\
+	".\socket.h"\
+	".\socketevent.h"\
+	
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE MIPSII) Release MinDependency"
+
+DEP_CPP_UFILEI=\
+	".\StdAfx.h"\
+	".\UFile.h"\
+	".\UFileCP.h"\
+	".\UFileImp.h"\
+	
+NODEP_CPP_UFILEI=\
+	".\ockutil.h"\
+	".\queue.h"\
+	".\socket.h"\
+	".\socketevent.h"\
+	
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE MIPSII_FP) Release MinSize"
+
+DEP_CPP_UFILEI=\
+	".\StdAfx.h"\
+	".\UFile.h"\
+	".\UFileCP.h"\
+	".\UFileImp.h"\
+	
+NODEP_CPP_UFILEI=\
+	".\ockutil.h"\
+	".\queue.h"\
+	".\socket.h"\
+	".\socketevent.h"\
+	
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE MIPSII_FP) Release MinDependency"
+
+DEP_CPP_UFILEI=\
+	".\StdAfx.h"\
+	".\UFile.h"\
+	".\UFileCP.h"\
+	".\UFileImp.h"\
+	
+NODEP_CPP_UFILEI=\
+	".\ockutil.h"\
+	".\queue.h"\
+	".\socket.h"\
+	".\socketevent.h"\
+	
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE ARMV4I) Release MinSize"
+
+DEP_CPP_UFILEI=\
+	".\StdAfx.h"\
+	".\UFile.h"\
+	".\UFileCP.h"\
+	".\UFileImp.h"\
+	
+NODEP_CPP_UFILEI=\
+	".\ockutil.h"\
+	".\queue.h"\
+	".\socket.h"\
+	".\socketevent.h"\
+	
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE ARMV4I) Release MinDependency"
+
+DEP_CPP_UFILEI=\
+	".\StdAfx.h"\
+	".\UFile.h"\
+	".\UFileCP.h"\
+	".\UFileImp.h"\
+	
+NODEP_CPP_UFILEI=\
+	".\ockutil.h"\
+	".\queue.h"\
+	".\socket.h"\
+	".\socketevent.h"\
+	
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE MIPS16) Release MinSize"
+
+DEP_CPP_UFILEI=\
+	".\StdAfx.h"\
+	".\UFile.h"\
+	".\UFileCP.h"\
+	".\UFileImp.h"\
+	
+NODEP_CPP_UFILEI=\
+	".\ockutil.h"\
+	".\queue.h"\
+	".\socket.h"\
+	".\socketevent.h"\
+	
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE MIPS16) Release MinDependency"
+
+DEP_CPP_UFILEI=\
+	".\StdAfx.h"\
+	".\UFile.h"\
+	".\UFileCP.h"\
+	".\UFileImp.h"\
+	
+NODEP_CPP_UFILEI=\
+	".\ockutil.h"\
+	".\queue.h"\
+	".\socket.h"\
+	".\socketevent.h"\
+	
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE SH3) Release MinSize"
+
+DEP_CPP_UFILEI=\
+	".\StdAfx.h"\
+	".\UFile.h"\
+	".\UFileCP.h"\
+	".\UFileImp.h"\
+	
+NODEP_CPP_UFILEI=\
+	".\ockutil.h"\
+	".\queue.h"\
+	".\socket.h"\
+	".\socketevent.h"\
+	
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE SH3) Release MinDependency"
+
+DEP_CPP_UFILEI=\
+	".\StdAfx.h"\
+	".\UFile.h"\
+	".\UFileCP.h"\
+	".\UFileImp.h"\
+	
+NODEP_CPP_UFILEI=\
+	".\ockutil.h"\
+	".\queue.h"\
+	".\socket.h"\
+	".\socketevent.h"\
+	
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE ARMV4T) Release MinSize"
+
+DEP_CPP_UFILEI=\
+	".\StdAfx.h"\
+	".\UFile.h"\
+	".\UFileCP.h"\
+	".\UFileImp.h"\
+	
+NODEP_CPP_UFILEI=\
+	".\ockutil.h"\
+	".\queue.h"\
+	".\socket.h"\
+	".\socketevent.h"\
+	
+
+!ELSEIF  "$(CFG)" == "UFile - Win32 (WCE ARMV4T) Release MinDependency"
+
+DEP_CPP_UFILEI=\
+	".\StdAfx.h"\
+	".\UFile.h"\
+	".\UFileCP.h"\
+	".\UFileImp.h"\
+	
+NODEP_CPP_UFILEI=\
+	".\ockutil.h"\
+	".\queue.h"\
+	".\socket.h"\
+	".\socketevent.h"\
+	
+
+!ENDIF 
+
+# End Source File
+# End Group
+# Begin Group "Header Files"
+
+# PROP Default_Filter "h;hpp;hxx;hm;inl"
+# Begin Source File
+
+SOURCE=.\Resource.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\StdAfx.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\UFileImp.h
+# End Source File
+# End Group
+# Begin Group "Resource Files"
+
+# PROP Default_Filter "ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"
+# End Group
+# End Target
+# End Project

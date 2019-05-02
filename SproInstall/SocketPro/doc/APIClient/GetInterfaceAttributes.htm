@@ -1,0 +1,155 @@
+<html xmlns:o="urn:schemas-microsoft-com:office:office"
+xmlns:w="urn:schemas-microsoft-com:office:word"
+xmlns="http://www.w3.org/TR/REC-html40">
+
+<head>
+<meta http-equiv=Content-Type content="text/html; charset=windows-1252">
+<meta name=ProgId content=Word.Document>
+<meta name=Generator content="Microsoft Word 9">
+<meta name=Originator content="Microsoft Word 9">
+<link rel=File-List href="./GetInterfaceAttributes_files/filelist.xml">
+<title>GetInterfaceAttributes</title>
+<!--[if gte mso 9]><xml>
+ <o:DocumentProperties>
+  <o:Author>Yahoo</o:Author>
+  <o:Template>Normal</o:Template>
+  <o:LastAuthor>Yuancai (Charlie) Ye</o:LastAuthor>
+  <o:Revision>4</o:Revision>
+  <o:TotalTime>17</o:TotalTime>
+  <o:Created>2006-09-04T00:46:00Z</o:Created>
+  <o:LastSaved>2006-11-01T00:28:00Z</o:LastSaved>
+  <o:Pages>1</o:Pages>
+  <o:Words>144</o:Words>
+  <o:Characters>824</o:Characters>
+  <o:Company>Yahoo</o:Company>
+  <o:Lines>6</o:Lines>
+  <o:Paragraphs>1</o:Paragraphs>
+  <o:CharactersWithSpaces>1011</o:CharactersWithSpaces>
+  <o:Version>9.2720</o:Version>
+ </o:DocumentProperties>
+</xml><![endif]--><!--[if gte mso 9]><xml>
+ <w:WordDocument>
+  <w:PunctuationKerning/>
+ </w:WordDocument>
+</xml><![endif]-->
+<style>
+<!--
+ /* Style Definitions */
+p.MsoNormal, li.MsoNormal, div.MsoNormal
+	{mso-style-parent:"";
+	margin:0in;
+	margin-bottom:.0001pt;
+	mso-pagination:widow-orphan;
+	font-size:10.0pt;
+	font-family:"Times New Roman";
+	mso-fareast-font-family:"Times New Roman";}
+a:link, span.MsoHyperlink
+	{color:blue;
+	text-decoration:underline;
+	text-underline:single;}
+a:visited, span.MsoHyperlinkFollowed
+	{color:purple;
+	text-decoration:underline;
+	text-underline:single;}
+@page Section1
+	{size:8.5in 11.0in;
+	margin:1.0in 1.25in 1.0in 1.25in;
+	mso-header-margin:.5in;
+	mso-footer-margin:.5in;
+	mso-paper-source:0;}
+div.Section1
+	{page:Section1;}
+-->
+</style>
+</head>
+
+<body lang=EN-US link=blue vlink=purple style='tab-interval:.5in'>
+
+<div class=Section1>
+
+<p class=MsoNormal><b><span style='font-size:12.0pt;mso-bidi-font-size:10.0pt'>[<span
+style='color:blue'>id</span>(9), <span style='color:blue'>helpstring</span>(<span
+style='color:maroon'>&quot;method GetInterfaceAttributes&quot;</span>)] HRESULT
+GetInterfaceAttributes([<span style='color:blue'>out</span>]<span
+style='color:blue'>long</span> *plMTU, [<span style='color:blue'>out</span>]<span
+style='color:blue'>long</span> *plMaxSpeed, [<span style='color:blue'>out</span>]<span
+style='color:blue'>long</span> *plIType, [<span style='color:blue'>out</span>]BSTR
+*pbstrMask, [<span style='color:blue'>out</span>, <span style='color:blue'>retval</span>]BSTR
+*pbstrDesc);</span></b><b><span style='font-size:12.0pt'><o:p></o:p></span></b></p>
+
+<p class=MsoNormal><span style='font-size:12.0pt'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal><b style='mso-bidi-font-weight:normal'><span
+style='font-size:12.0pt'>Parameters</span></b><span style='font-size:12.0pt'><o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='font-size:12.0pt'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal><i style='mso-bidi-font-style:normal'><span
+style='font-size:12.0pt'>plMTU<o:p></o:p></span></i></p>
+
+<p class=MsoNormal><span style='font-size:12.0pt'><span style='mso-tab-count:
+1'>            </span>[out]A pointer to an integer for receiving MTU (Maximum
+Transfer Unit)<o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='font-size:12.0pt'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal><i style='mso-bidi-font-style:normal'><span
+style='font-size:12.0pt'>plMaxSpeed<o:p></o:p></span></i></p>
+
+<p class=MsoNormal><span style='font-size:12.0pt'><span style='mso-tab-count:
+1'>            </span>[out]A pointer to an integer for receiving the maximum
+speed in bits per second like 10,000,000, 100, 000,000, or 1000,000,000.<o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='font-size:12.0pt'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal><i style='mso-bidi-font-style:normal'><span
+style='font-size:12.0pt'>plType<o:p></o:p></span></i></p>
+
+<p class=MsoNormal><span style='font-size:12.0pt'><span style='mso-tab-count:
+1'>            </span>[out]A pointer to an integer for type of network device.
+It can be one of values in the enum <a href="tagInterfaceType.htm">tagInterfaceType</a>.<o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='font-size:12.0pt'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal><i style='mso-bidi-font-style:normal'><span
+style='font-size:12.0pt'>pbstrMask<o:p></o:p></span></i></p>
+
+<p class=MsoNormal><span style='font-size:12.0pt'><span style='mso-tab-count:
+1'>            </span>[out]A pointer to a BSTR for receiving network set mask
+like “255.255.255.0”.<o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='font-size:12.0pt'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal><i><span style='font-size:12.0pt'>pbstrDesc<o:p></o:p></span></i></p>
+
+<p class=MsoNormal><span style='font-size:12.0pt'><span style='mso-tab-count:
+1'>            </span>[out]A pointer to a BSTR for receiving network card
+description<o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='font-size:12.0pt'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal><b style='mso-bidi-font-weight:normal'><span
+style='font-size:12.0pt'>Remarks<o:p></o:p></span></b></p>
+
+<p class=MsoNormal><span style='font-size:12.0pt'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='font-size:12.0pt'><span style='mso-tab-count:
+1'>            </span>Calling the function gets network card or modem interface
+attributes. <o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='font-size:12.0pt'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal style='text-indent:.5in'><span style='font-size:12.0pt'>For
+example, you can use these attributes to estimate the maximum speed and turn on
+zip on server side on the fly.<o:p></o:p></span></p>
+
+<p class=MsoNormal style='text-indent:.5in'><span style='font-size:12.0pt'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal><b><span style='font-size:12.0pt'><a href="usocketlib.htm">USocket
+library</a></span></b><span style='font-size:12.0pt'><o:p></o:p></span></p>
+
+</div>
+
+</body>
+
+</html>

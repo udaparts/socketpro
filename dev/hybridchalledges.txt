@@ -1,0 +1,10 @@
+Hybrid Public/Private, Hybrid Public/Public, and Hybrid Legacy/Clouds
+
+Hybrid Cloud Computing Challenges
+
+	1.	Disaster recovery and data loss (client/server persistent message queue)
+	2.	Network -- Long latency and lower bandwidth (request batch for high volume small messages)
+	3.	Security (SSL/TLS)
+	4.	Atomicity -- software update, network instability, and application crashes (client/server persistent message queue)
+	5.	Portability (interoperability across different service providers, cross-platform and Unicode string)
+	6.	Remote and real-time data synchronization/replication (persistent message queue and auto connecting)

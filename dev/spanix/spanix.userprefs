@@ -1,0 +1,14 @@
+﻿<Properties>
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
+  <MonoDevelop.Ide.Workbench />
+  <MonoDevelop.Ide.DebuggingService.Breakpoints>
+    <BreakpointStore>
+      <Breakpoint file="/home/yye/chaohu/dev/SproAdapter/uqueue.cs" line="1922" />
+      <Breakpoint file="/home/yye/chaohu/dev/SPANetTest/Program.cs" line="163" />
+      <Breakpoint file="/home/yye/chaohu/dev/SPANetTest/Program.cs" line="406" />
+      <Breakpoint file="/home/yye/chaohu/dev/SPANetTest/Program.cs" line="460" />
+      <Breakpoint file="/home/yye/chaohu/dev/SPANetTest/Program.cs" line="528" />
+    </BreakpointStore>
+  </MonoDevelop.Ide.DebuggingService.Breakpoints>
+  <MonoDevelop.Ide.DebuggingService.PinnedWatches />
+</Properties>

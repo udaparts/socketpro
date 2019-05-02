@@ -1,0 +1,18 @@
+LIBRARY			"SpMySqlPush"
+
+EXPORTS
+	IsConnected_init		@1
+	IsConnected_deinit		@2
+	IsConnected				@3
+	Disconnect_init			@4
+	Disconnect_deinit		@5
+	Disconnect				@6
+	Connect_init			@7
+	Connect_deinit			@8
+	Connect					@9
+	SendUserMessage_init	@10
+	SendUserMessage_deinit	@11
+	SendUserMessage			@12
+	Notify_init				@13
+	Notify_deinit			@14
+	Notify					@15

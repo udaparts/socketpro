@@ -1,0 +1,142 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" >
+<head>
+    <title>SocketPro HTTP service Demonstration</title>
+    <style type="text/css">
+        #Text1
+        {
+            width: 404px;
+        }
+        .style1
+        {            text-align: right;
+        }
+        .style2
+        {
+            width: 147px;
+            text-align: right;
+        }
+        #Button1
+        {
+            width: 128px;
+        }
+        #txtAge
+        {
+            width: 130px;
+            text-align: right;
+        }
+        #txtResult
+        {
+            width: 387px;
+            margin-left: 0px;
+            text-align: right;
+        }
+        #txtLastName
+        {
+            text-align: right;
+            width: 155px;
+            margin-left: 138px;
+            margin-right: 0px;
+        }
+        #txtFirstName
+        {
+            width: 130px;
+            text-align: right;
+        }
+        .style3
+        {
+            text-align: right;
+        }
+    </style>
+<script language="javascript" type="text/javascript">
+// <!CDATA[
+
+
+//set an address pointer for processing requests
+UHTTP.defaultConfig.pathname = '/processing';
+//UHTTP.defaultConfig.protocol = 'http'; //https, or other
+//UHTTP.defaultConfig.port = 80; //443 or other
+//UHTTP.defaultConfig.hostname = 'www.somedomain.com';
+
+function myCallback(req, data)
+{
+    //you may parse your result here .....
+    
+/*  var script = req.getScript();
+    if(script.abort)
+        alert('Request remoted by XMLHttpRequest');
+    else
+        alert('Request remoted by script tag');  */ 
+    
+    var obj = UJSON.parse(data);
+    document.getElementById('txtResult').value = data;
+}
+
+var req;
+function btnSend_onclick() {
+
+    if(!req)
+        req = UHTTP.createRequest(  'echo',  //required, request name
+                                        0);     //optional, 0, false (default) json, 1 -- xml
+                                                                      
+    var firstName = document.getElementById('txtFirstName').value;
+    var lastName = document.getElementById('txtLastName').value;
+    var age = document.getElementById('txtAge').value;
+    
+    req.clear(); //remove previously stored parameters
+    
+    //add the 1st parameter and its value
+    req.add('firstName', firstName);
+    
+    //add the 2nd parameter and its value
+    req.add("lastName", lastName);
+    
+    req.add('age', age); 
+    
+    //send request, and it returns a unique request index which may be useful later
+    var index = req.invoke( myCallback,     //required, a callback function to handle returning data
+                            0,              //optional, 0, false (default) POST, 1 -- GET
+                            0               //optional, 0, false (default) async, 1 -- sync
+                            );
+    
+    index = 0;
+
+}
+
+// ]]>
+</script>
+</head>
+<body>
+
+    <table style="width: 46%;">
+        <tr>
+            <td class="style1" colspan="3">
+                &lt;&lt;===
+        SocketPro HTTP Remoting Demonstration ===&gt;&gt;</td>
+        </tr>
+        <tr>
+            <td class="style1">
+                Last Name:</td>
+            <td class="style2">
+                First Name:</td>
+            <td class="style1">
+                Age:</td>
+        </tr>
+        <tr>
+            <td class="style1">
+                <input id="txtLastName" type="text" /></td>
+            <td class="style2">
+                <input id="txtFirstName" type="text" /></td>
+            <td class="style1">
+                <input id="txtAge" type="text" /></td>
+        </tr>
+        <tr>
+            <td class="style3" colspan="2">
+                <input id="txtResult" type="text" /></td>
+            <td class="style3">
+                <input id="btnSend" type="button" value="Send Message" onclick="return btnSend_onclick()" /></td>
+        </tr>
+    </table>
+
+</body>
+</html>

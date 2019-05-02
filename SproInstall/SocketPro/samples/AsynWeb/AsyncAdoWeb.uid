@@ -1,0 +1,13 @@
+// For how to write such an interface file, see tutorial one
+	
+
+[	
+	ServiceID = 303 //service id can't be less than 0
+]
+			
+CAsyncAdo
+{
+	$DataTable GetDataTable(string strSQL, out string strError);
+	$int ExecuteNoQuery(string strSQL, out string strError);
+}
+

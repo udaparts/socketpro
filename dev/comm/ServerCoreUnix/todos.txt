@@ -1,0 +1,24 @@
+Todo:
+
+1. HTTP Negative Tests (done)
+	a. Bad methods.
+	b. Bad header/values.
+	c. Bad SP requests ('Bad Json Request', 'Bad number of arguments', 'Bad arguments', 'Bad argument type', 'Bad request', 'Empty request', 'Not supported', 'Authentication failed').
+	d. HTTP multiplex and HTTP chunked (C++ code) requests.
+	e. Bad HTTP versions (1.0 and 2.0).
+	f. Bad HTTP header format.
+	
+2. HTTP Requests Pipeline Tests (done)
+
+3. HTTP request bytes reandom sending (done)
+
+4. HTTPS test
+
+5. Cancel at server side
+
+6. Online compression/de-compression for both SP client and server sides
+
+7. Queue server and client implementations
+
+8. Reimplemnt client socket pool
+

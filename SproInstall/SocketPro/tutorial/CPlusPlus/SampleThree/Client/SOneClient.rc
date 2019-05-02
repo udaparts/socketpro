@@ -1,0 +1,255 @@
+//Microsoft Developer Studio generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "afxres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// English (U.S.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+#endif //_WIN32
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#include ""afxres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#define _AFX_NO_SPLITTER_RESOURCES\r\n"
+    "#define _AFX_NO_OLE_RESOURCES\r\n"
+    "#define _AFX_NO_TRACKER_RESOURCES\r\n"
+    "#define _AFX_NO_PROPERTY_RESOURCES\r\n"
+    "\r\n"
+    "#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)\r\n"
+    "#ifdef _WIN32\r\n"
+    "LANGUAGE 9, 1\r\n"
+    "#pragma code_page(1252)\r\n"
+    "#endif //_WIN32\r\n"
+    "#include ""res\\SOneClient.rc2""  // non-Microsoft Visual C++ edited resources\r\n"
+    "#include ""afxres.rc""         // Standard components\r\n"
+    "#endif\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDR_MAINFRAME           ICON    DISCARDABLE     "res\\SOneClient.ico"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_ABOUTBOX DIALOG DISCARDABLE  0, 0, 235, 55
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "About SOneClient"
+FONT 8, "MS Sans Serif"
+BEGIN
+    ICON            IDR_MAINFRAME,IDC_STATIC,11,17,20,20
+    LTEXT           "SOneClient Version 1.0",IDC_STATIC,40,10,119,8,
+                    SS_NOPREFIX
+    LTEXT           "Copyright (C) 2005",IDC_STATIC,40,25,119,8
+    DEFPUSHBUTTON   "OK",IDOK,178,7,50,14,WS_GROUP
+END
+
+IDD_SONECLIENT_DIALOG DIALOGEX 0, 0, 459, 170
+STYLE DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+EXSTYLE WS_EX_APPWINDOW
+CAPTION "SOneClient"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LTEXT           "Host Address:",IDC_STATIC,7,8,72,8
+    EDITTEXT        IDC_HOST_EDIT,7,20,96,13,ES_AUTOHSCROLL
+    LTEXT           "Port:",IDC_STATIC,104,8,31,8
+    EDITTEXT        IDC_PORT_EDIT,104,20,37,13,ES_AUTOHSCROLL
+    PUSHBUTTON      "Connect",IDC_CONNECT_BUTTON,342,7,110,16
+    CONTROL         "Zip",IDC_ZIP_CHECK,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,341,26,39,8
+    PUSHBUTTON      "Disconnect",IDC_DISCONNECT_BUTTON,342,36,110,16
+    RTEXT           "User ID:",IDC_STATIC,145,11,37,8
+    RTEXT           "Password:",IDC_STATIC,145,26,37,8
+    EDITTEXT        IDC_UID_EDIT,185,7,65,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_PASSWORD_EDIT,185,24,65,14,ES_PASSWORD | 
+                    ES_AUTOHSCROLL
+    PUSHBUTTON      "Sleep",IDC_SLEEP_BUTTON,7,45,56,16,WS_DISABLED
+    EDITTEXT        IDC_SLEEP_EDIT,67,46,47,14,ES_AUTOHSCROLL
+    CONTROL         "Frozen",IDC_FROZEN_CHECK,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,120,47,40,14
+    PUSHBUTTON      "Get All Counts",IDC_GETALLCOUNTS_BUTTON,7,65,110,17,
+                    WS_DISABLED
+    PUSHBUTTON      "QueryCount",IDC_DUERYCOUNT_BUTTON,7,86,78,16,
+                    WS_DISABLED
+    EDITTEXT        IDC_COUNT_EDIT,87,87,43,15,ES_AUTOHSCROLL
+    PUSHBUTTON      "QueryGlobalCount",IDC_GLOBALCOUNT_BUTTON,7,106,78,16,
+                    WS_DISABLED
+    EDITTEXT        IDC_GLOBALCOUNT_EDIT,87,106,43,15,ES_AUTOHSCROLL
+    PUSHBUTTON      "QueryGlobalFastCount",IDC_GLOBALFASTCOUNT_BUTTON,7,144,
+                    108,16,WS_DISABLED
+    EDITTEXT        IDC_GLOBALFASTCOUNT_EDIT,118,144,45,16,ES_AUTOHSCROLL
+    PUSHBUTTON      "EchoData",IDC_ECHODATA_BUTTON,7,124,78,17,WS_DISABLED
+    CONTROL         "Use SSL",IDC_USESSL_CHECK,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,394,24,54,11
+    CTEXT           "Notification Message:",IDC_STATIC,233,59,98,8
+    EDITTEXT        IDC_MESSAGE_EDIT,123,69,329,14,ES_CENTER | 
+                    ES_AUTOHSCROLL
+    LTEXT           "Latency (us)",IDC_STATIC,253,7,65,9
+    EDITTEXT        IDC_LATENCY_EDIT,253,17,83,12,ES_AUTOHSCROLL
+    LTEXT           "TimeRequired (us)",IDC_STATIC,253,31,83,8
+    EDITTEXT        IDC_TIMEREQUIRED_EDIT,253,41,82,13,ES_AUTOHSCROLL
+    LTEXT           "Bytes sent:",IDC_STATIC,133,114,54,9
+    LTEXT           "Bytes received:",IDC_STATIC,133,87,57,9
+    EDITTEXT        IDC_BYTESSENT_EDIT,133,124,54,13,ES_AUTOHSCROLL
+    EDITTEXT        IDC_BYTESRECEIVED_EDIT,133,97,53,13,ES_AUTOHSCROLL
+    PUSHBUTTON      "GetOneItemFromServer",IDC_GETONE_BUTTON,194,86,208,14,
+                    WS_DISABLED
+    PUSHBUTTON      "GetALotItemsFromServer",IDC_GETALOT_BUTTON,195,104,208,
+                    15,WS_DISABLED
+    EDITTEXT        IDC_GETALOT_EDIT,405,104,47,13,ES_AUTOHSCROLL
+    PUSHBUTTON      "SendOneItemToServer",IDC_SENDONE_BUTTON,195,126,206,15,
+                    WS_DISABLED
+    PUSHBUTTON      "SendALotItemsToServer",IDC_SENDALOT_BUTTON,195,146,208,
+                    15,WS_DISABLED
+    EDITTEXT        IDC_SENDALOT_EDIT,405,145,47,14,ES_AUTOHSCROLL
+END
+
+
+#ifndef _MAC
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 1,0,0,1
+ PRODUCTVERSION 1,0,0,1
+ FILEFLAGSMASK 0x3fL
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x4L
+ FILETYPE 0x1L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904B0"
+        BEGIN
+            VALUE "CompanyName", "\0"
+            VALUE "FileDescription", "SOneClient MFC Application\0"
+            VALUE "FileVersion", "1, 0, 0, 1\0"
+            VALUE "InternalName", "SOneClient\0"
+            VALUE "LegalCopyright", "Copyright (C) 2005\0"
+            VALUE "LegalTrademarks", "\0"
+            VALUE "OriginalFilename", "SOneClient.EXE\0"
+            VALUE "ProductName", "SOneClient Application\0"
+            VALUE "ProductVersion", "1, 0, 0, 1\0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1200
+    END
+END
+
+#endif    // !_MAC
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO DISCARDABLE 
+BEGIN
+    IDD_ABOUTBOX, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 228
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 48
+    END
+
+    IDD_SONECLIENT_DIALOG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 452
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 163
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_ABOUTBOX            "&About SOneClient..."
+END
+
+#endif    // English (U.S.) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+#define _AFX_NO_SPLITTER_RESOURCES
+#define _AFX_NO_OLE_RESOURCES
+#define _AFX_NO_TRACKER_RESOURCES
+#define _AFX_NO_PROPERTY_RESOURCES
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE 9, 1
+#pragma code_page(1252)
+#endif //_WIN32
+#include "res\SOneClient.rc2"  // non-Microsoft Visual C++ edited resources
+#include "afxres.rc"         // Standard components
+#endif
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

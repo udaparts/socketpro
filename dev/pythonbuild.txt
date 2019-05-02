@@ -1,0 +1,7 @@
+
+bjam --user-config=user-config.jam --with-python
+
+
+using python : 3.3 : C:\\Development\\Python-3.3.0\\PCBuild\\python.exe
+    : C:\\Development\\Python-3.3.0\\Include C:\\Development\\Python-3.3.0\\PC
+    : C:\\Development\\Python-3.3.0\\PCBuild : ;

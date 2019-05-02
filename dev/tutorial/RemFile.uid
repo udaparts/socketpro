@@ -1,0 +1,13 @@
+
+[	
+	ServiceID = 33 //service id can't be less than 0
+]			
+RemotingFile
+{
+	//we'll manually modify generated code.
+	//Don't be surprised when you see the difference between generated and actual codes.
+	//The uid file is used for creating skeleton code only and we'll modify them a lot manually for this service.
+	$void DownloadFile(string RemoteFilePath);
+	bool UploadFile(string RemoteFilePath);
+}
+

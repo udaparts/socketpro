@@ -1,0 +1,118 @@
+
+
+/* this ALWAYS GENERATED file contains the IIDs and CLSIDs */
+
+/* link this file in with the server and any clients */
+
+
+ /* File created by MIDL compiler version 7.00.0500 */
+/* at Mon Dec 28 20:19:43 2009
+ */
+/* Compiler settings for .\USocket.idl:
+    Oicf, W1, Zp8, env=Win32 (32b run)
+    protocol : dce , ms_ext, c_ext, robust
+    error checks: allocation ref bounds_check enum stub_data 
+    VC __declspec() decoration level: 
+         __declspec(uuid()), __declspec(selectany), __declspec(novtable)
+         DECLSPEC_UUID(), MIDL_INTERFACE()
+*/
+//@@MIDL_FILE_HEADING(  )
+
+#pragma warning( disable: 4049 )  /* more than 64k source lines */
+
+
+#ifdef __cplusplus
+extern "C"{
+#endif 
+
+
+#include <rpc.h>
+#include <rpcndr.h>
+
+#ifdef _MIDL_USE_GUIDDEF_
+
+#ifndef INITGUID
+#define INITGUID
+#include <guiddef.h>
+#undef INITGUID
+#else
+#include <guiddef.h>
+#endif
+
+#define MIDL_DEFINE_GUID(type,name,l,w1,w2,b1,b2,b3,b4,b5,b6,b7,b8) \
+        DEFINE_GUID(name,l,w1,w2,b1,b2,b3,b4,b5,b6,b7,b8)
+
+#else // !_MIDL_USE_GUIDDEF_
+
+#ifndef __IID_DEFINED__
+#define __IID_DEFINED__
+
+typedef struct _IID
+{
+    unsigned long x;
+    unsigned short s1;
+    unsigned short s2;
+    unsigned char  c[8];
+} IID;
+
+#endif // __IID_DEFINED__
+
+#ifndef CLSID_DEFINED
+#define CLSID_DEFINED
+typedef IID CLSID;
+#endif // CLSID_DEFINED
+
+#define MIDL_DEFINE_GUID(type,name,l,w1,w2,b1,b2,b3,b4,b5,b6,b7,b8) \
+        const type name = {l,w1,w2,{b1,b2,b3,b4,b5,b6,b7,b8}}
+
+#endif !_MIDL_USE_GUIDDEF_
+
+MIDL_DEFINE_GUID(IID, LIBID_USOCKETLib,0x97541F4E,0x4EBE,0x4701,0x9D,0x59,0x5A,0xBB,0x0D,0x7C,0xD8,0x54);
+
+
+MIDL_DEFINE_GUID(IID, IID_IJSSerialization,0xF1F73888,0xE92E,0x411D,0x8A,0xF0,0x34,0x13,0x0A,0x69,0x58,0xA1);
+
+
+MIDL_DEFINE_GUID(IID, IID_IUChat,0x2AFB8C2E,0x792C,0x10D6,0xB1,0xD1,0x00,0x10,0xB5,0xEC,0x00,0x5B);
+
+
+MIDL_DEFINE_GUID(IID, IID_ISocketBase,0x1084FB17,0x4EDB,0x42F1,0xA4,0xA8,0x12,0x9D,0x70,0xA0,0xA8,0xFA);
+
+
+MIDL_DEFINE_GUID(IID, IID_IUSocket,0x1B84FB17,0x40DB,0x42F1,0xA4,0xA8,0x12,0x9D,0x70,0xA0,0xA8,0xFA);
+
+
+MIDL_DEFINE_GUID(IID, IID_IUFast,0x2AFB8C2A,0x792C,0x15D6,0xB1,0xD1,0x10,0x10,0xB5,0xEC,0x1C,0x5B);
+
+
+MIDL_DEFINE_GUID(IID, IID_IUZip,0x2A0B8C2E,0x702C,0x1AD6,0xB1,0xD1,0x20,0x10,0xB5,0xEC,0x01,0x58);
+
+
+MIDL_DEFINE_GUID(IID, IID_IUCert,0x2FFB8C2E,0x702C,0x1AD6,0xB1,0xD1,0x00,0x10,0xB5,0xEC,0x01,0x5B);
+
+
+MIDL_DEFINE_GUID(IID, DIID__IUSocketEvent,0xF80A0F37,0x147E,0x4C43,0xB8,0x89,0x1D,0x4C,0x9A,0x61,0x2B,0xB9);
+
+
+MIDL_DEFINE_GUID(IID, IID_IUSocketPool,0x148F6E9F,0x756D,0x4B8E,0x96,0xF5,0x7A,0xE8,0xCC,0x46,0x97,0xE6);
+
+
+MIDL_DEFINE_GUID(IID, IID_IUSocketScript,0x140F6E9F,0x756D,0x4B8E,0x96,0xF5,0x7A,0xE8,0x0C,0x46,0x97,0xE6);
+
+
+MIDL_DEFINE_GUID(CLSID, CLSID_USocket,0xAAD83433,0xCC8D,0x4F6D,0x9C,0x62,0xE2,0x24,0xDC,0xA8,0x13,0x58);
+
+
+MIDL_DEFINE_GUID(IID, DIID__IUSocketPoolEvents,0x2CC0BCFE,0x0361,0x4788,0x96,0xE5,0x76,0xA6,0x4D,0x2B,0x11,0xBE);
+
+
+MIDL_DEFINE_GUID(CLSID, CLSID_USocketPool,0x0A3CD705,0x6C31,0x4C9C,0x91,0xBE,0xBD,0xFF,0x4E,0xEC,0xF8,0xCB);
+
+#undef MIDL_DEFINE_GUID
+
+#ifdef __cplusplus
+}
+#endif
+
+
+

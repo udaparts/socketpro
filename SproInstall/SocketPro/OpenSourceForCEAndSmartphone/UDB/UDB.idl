@@ -1,0 +1,451 @@
+// This is a part of the SocketPro package.
+// Copyright (C) 2000-2004 UDAParts 
+// All rights reserved.
+//
+// This source code is only intended as a supplement to the
+// SocketPro package and related electronic documentation provided with the package.
+// See these sources for detailed information regarding this
+// UDAParts product.
+
+// Please don't disclose any source code of the software to any person or entity,
+//
+// Please don't decompile, disassemble, or reverse engineer any object code of 
+// any portion of the software.
+//  
+// http://www.udaparts.com/index.htm
+// support@udaparts.com
+
+
+// UDB.idl : IDL source for UDB.dll
+//
+
+// This file will be processed by the MIDL tool to
+// produce the type library (UDB.tlb) and marshalling code.
+
+import "oaidl.idl";
+import "ocidl.idl";
+	
+[
+	uuid(E9BAD4DA-6268-4E53-BFAE-2F06B248E945),
+	version(1.0),
+	helpstring("UDB 1.0 Type Library")
+]
+library UDBLib
+{
+	importlib("stdole32.tlb");
+	importlib("stdole2.tlb");
+
+	#include "maleslot.idl"
+	enum tagDatasourceHint
+	{
+		dhDefault = 0,
+		dhFromGlobal = 1,
+		dhFromIBindResource = 2,
+	};
+
+	enum tagSessionHint
+	{
+		shDefault = 0,
+		shFromDS = 1,
+		shFromGlobal = 2,
+		shFromIBindResource = 4,
+	};
+
+	enum tagCommandHint
+	{
+		chDefault = 0,
+		chFromGlobal = 1,
+		chCommandPrepare = 2,
+	};
+	
+	enum tagCursorType
+	{
+		ctForwardOnly = 0,
+		ctStatic = 1,
+		ctKeyset = 2,
+		ctDynamic = 3,
+	};
+
+	enum tagCreatedObject
+	{
+		coNothing = 0,
+		coDataSource = 1,
+		coSession,
+		coCommand,
+		coRowset,
+		coMultipleResults,
+		coView,
+		coChapter,
+		coBinder,
+		coRow,
+		coStream,
+		coEnumerator,
+		coDataSet,
+	};
+
+	enum tagRowsetHint
+	{
+		rhDefault = 0,
+		rhFromCommand = 0,
+		rhTable = 1,
+		rhReadOnly = 2,
+		rhBatchUpdate = 4,
+		rhScrollable = 8,
+		rhUseBookmark = 16,
+		rhUseCCE = 32,
+		rhServerDataOnInsert = 64,
+		rhFromIMultipleResults = 128,
+		rhFromIBindResource = 256,
+		rhFromICreateRow = 512,
+		rhKeepPreviousRowset = 1024,
+	};
+
+	enum tagIsolationLevel
+	{
+		ilUnspecified = 0xFFFFFFFF,
+		ilChaos = 0x10,
+		ilReadUncommitted = 0x100,
+		ilBrowse = 0x100,
+		ilReadCommitted = 0x1000,
+		ilCursorStability = 0x1000,
+		ilRepeatableRead = 0x10000,
+		ilSerializable = 0x100000,
+		ilIsolated = 0x100000,
+	};
+
+	enum tagDBRequestID
+	{
+		idDSOpen = 86,
+		idDSClose,
+		idDSGetProperty,
+		idDSGetPropFlags,
+		idDSOpenFromHandle,
+		idDSSetProperty,
+
+		idSessionOpen=96,
+		idSessionClose,
+		idSessionBeginTrans,
+		idSessionCommit,
+		idSessionRollback,
+		idSessionSetProperty,
+		idSessionGetProperty,
+		idSessionOpenFromHandle,
+
+		idCmndOpen=116,
+		idCmndClose,
+		idCmndExecuteSQL,
+		idCmndCancel,
+		idCmndGetProperty,
+		idCmndSetProperty,
+		idCmndPrepare,
+		idCmndUnprepare,
+		idCmndDoBatch,
+		idCmndOpenFromHandle,
+		idCmndGetOutputParams,
+		idCmndUseStorageObjectForBLOB,
+		idCmndReleaseCreatedObject,
+
+		idRowsetOpen=136,
+		idRowsetClose,
+		idRowsetMoveFirst,
+		idRowsetMoveLast,
+		idRowsetMovePrev,
+		idRowsetMoveNext,
+		idRowsetUpdate,
+		idRowsetUpdateBatch,
+		idRowsetAdd,
+		idRowsetDelete,
+		idRowsetAsynFetch,
+		idRowsetSetDataType,
+		idRowsetOpenFromHandle,
+		idRowsetGetBatchRecords,
+		idRowsetBookmark,
+		idRowsetUndo,
+		idRowsetGetRowsAt,
+		idRowsetGetSchemaRowset,
+		idRowsetGetProviders,
+		idRowsetGetProperty,
+		idRowsetUseStorageObjectForBLOB,
+		idRowsetSendSubBatch,
+		idRowsetSendBLOB,
+		idRowsetStartFetchingBatch,
+		idRowsetGetBatchRecordsEx,
+		idRowsetGetBatchRecordsLast,
+	};
+	
+	enum tagSockDataType
+	{
+		sdVT_EMPTY	= 0,
+		sdVT_I2	= 2,
+		sdVT_I4	= 3,
+		sdVT_R4	= 4,
+		sdVT_R8	= 5,
+		sdVT_CY	= 6,
+		sdVT_DATE = 7,
+		sdVT_BOOL = 11,
+		sdVT_VARIANT = 12,
+		sdVT_DECIMAL = 14,
+		sdVT_I1	= 16,
+		sdVT_UI1 = 17,
+		sdVT_UI2 = 18,
+		sdVT_UI4 = 19,
+		sdVT_I8	= 20,
+		sdVT_UI8 = 21,
+		sdVT_BYTES =128,
+		sdVT_STR = 129,
+		sdVT_WSTR = 130,
+	};
+
+	enum tagSockDBParamType
+	{
+		sdParamInput=1,
+		sdParamOutput=2,
+		sdParamInputOutput=3,
+	};
+
+	enum tagDBError
+	{
+		dbeFail = 0x8F300001,
+		dbeDataTypeError = 0x8F300002,
+		dbeLengthTooShort = 0x8F300003,
+	};
+
+	[
+		object,
+		uuid(5731AC6E-E2B6-4352-9593-CAB22BCF57EA),
+		dual,
+		helpstring("IUDataSource Interface"),
+		pointer_default(unique)
+	]
+	interface IUDataSource : IUObjBase
+	{
+		[id(4), helpstring("method Close")] HRESULT Close();
+		[id(5), helpstring("method Open")] HRESULT Open([in]BSTR bstrConnection, [in, defaultvalue(dhDefault)]long lHint);
+		[id(6), helpstring("method GetProperty")] HRESULT GetProperty([in]long lPropID, [in, defaultvalue("{c8b522bb-5cf3-11ce-ade5-00aa0044773d}")]BSTR bstrPropSet);
+		[id(7), helpstring("method GetPropFlags")] HRESULT GetPropFlags([in]long lPropID, [in, defaultvalue("{c8b522be-5cf3-11ce-ade5-00aa0044773d}")]BSTR bstrPropSet);
+		[id(8), helpstring("method OpenFromHandle")] HRESULT OpenFromHandle([in]long lHandle);
+		[propget, id(9), helpstring("property Handle")] HRESULT Handle([out, retval] long *pVal);
+		[propget, id(10), helpstring("property Flags")] HRESULT Flags([out, retval] long *pVal);
+		[propget, id(11), helpstring("property Property")] HRESULT Property([out, retval] VARIANT *pVal);
+		[propget, id(12), helpstring("property ParentHandle")] HRESULT ParentHandle([out, retval] long *pVal);
+		[propput, id(12), helpstring("property ParentHandle")] HRESULT ParentHandle([in] long newVal);
+		[id(13), helpstring("method SetProperty")] HRESULT SetProperty([in]VARIANT vtValue, [in]long lPropID, [in, defaultvalue("{c8b522ba-5cf3-11ce-ade5-00aa0044773d}")]BSTR bstrPropSet);
+	};
+
+	[
+		object,
+		uuid(0356C85C-18DC-497A-8142-439CC9CEE96E),
+		dual,
+		helpstring("IUSession Interface"),
+		pointer_default(unique)
+	]
+	interface IUSession : IUObjBase
+	{
+		[id(4), helpstring("method Close")] HRESULT Close();
+		[id(5), helpstring("method Open")] HRESULT Open([in, defaultvalue("")]BSTR bstrData, [in, defaultvalue(shDefault)]long lHint);
+		[id(6), helpstring("method Commit")] HRESULT Commit();
+		[id(7), helpstring("method Rollback")] HRESULT Rollback();
+		[id(8), helpstring("method BeginTrans")] HRESULT BeginTrans([in, defaultvalue(ilReadCommitted)]long lISolationLevel);
+		[id(9), helpstring("method SetProperty")] HRESULT SetProperty([in]VARIANT vtValue, [in, defaultvalue(0xbeL)]long lPropID, [in, defaultvalue("{c8b522c6-5cf3-11ce-ade5-00aa0044773d}")]BSTR bstrPropSet);
+		[id(10), helpstring("method GetProperty")] HRESULT GetProperty([in, defaultvalue(0xbeL)]long lPropID, [in, defaultvalue("{c8b522c6-5cf3-11ce-ade5-00aa0044773d}")]BSTR bstrPropSet);
+		[id(11), helpstring("method OpenFromHandle")] HRESULT OpenFromHandle([in]long lHandle);
+		[propget, id(12), helpstring("property Handle")] HRESULT Handle([out, retval] long *pVal);
+		[propget, id(13), helpstring("property Property")] HRESULT Property([out, retval] VARIANT *pVal);
+		[propget, id(14), helpstring("property ParentHandle")] HRESULT ParentHandle([out, retval] long *pVal);
+		[propput, id(14), helpstring("property ParentHandle")] HRESULT ParentHandle([in] long newVal);
+	};
+
+	[
+		object,
+		uuid(9CE3E546-BE1A-4E0B-8B66-500107FFF69F),
+		dual,
+		helpstring("IUCommand Interface"),
+		pointer_default(unique)
+	]
+	interface IUCommand : IUObjBase
+	{
+		[id(4), helpstring("method Close")] HRESULT Close();
+		[id(5), helpstring("method Open")] HRESULT Open([in, defaultvalue("")]BSTR bstrStatement, [in, defaultvalue(chDefault)]long lHint);
+		[id(6), helpstring("method SetProperty")] HRESULT SetProperty([in]long lPropID, [in]VARIANT vtValue, [in, defaultvalue("{c8b522be-5cf3-11ce-ade5-00aa0044773d}")]BSTR bstrPropSet);
+		[id(7), helpstring("method GetProperty")] HRESULT GetProperty([in]long lPropID, [in, defaultvalue("{c8b522be-5cf3-11ce-ade5-00aa0044773d}")]BSTR bstrPropSet);
+		[id(8), helpstring("method Cancel")] HRESULT Cancel();
+		[id(9), helpstring("method ExecuteSQL")] HRESULT ExecuteSQL([in]BSTR bstrSQL, [in]short sCreatedObject, [in, defaultvalue(ctStatic)]short sCursorType, [in, defaultvalue(0)]long lHint);
+		[id(10), helpstring("method Prepare")] HRESULT Prepare([in, defaultvalue(0)]long lExpectedRuns);
+		[id(11), helpstring("method Unprepare")] HRESULT Unprepare();
+		[id(12), helpstring("method DoBatch")] HRESULT DoBatch([in, defaultvalue(coNothing)]short sCreatedObject, [in, defaultvalue(ctStatic)]short sCursorType, [in, defaultvalue(0)]long lHint);
+		[id(13), helpstring("method OpenFromHandle")] HRESULT OpenFromHandle([in]long lHandle);
+		[id(14), helpstring("method GetOutputParams")] HRESULT GetOutputParams();
+		[id(15), helpstring("method AddParamInfo")] HRESULT AddParamInfo([in]short nDBType, [in, defaultvalue(sdParamInput)]long nDBParamIO, [in, defaultvalue(0)]long lLen, [in, defaultvalue("")]BSTR bstrPName, [in, defaultvalue(0)] unsigned char bPrecision, [in, defaultvalue(0)] unsigned char bScale);
+		[id(16), helpstring("method GetParamInfo")] HRESULT GetParamInfo([in]long lIndex, [out, defaultvalue(0)]short *pnDBType, [out,defaultvalue(0)]long *plDBParamIO, [out,defaultvalue(0)]long *plLen, [out, defaultvalue(0)]BSTR *pbstrPName, [out, defaultvalue(0)]unsigned char *pbPrecision, [out,defaultvalue(0)]unsigned char *pbScale);
+		[id(17), helpstring("method GetCountParamInfos")] HRESULT GetCountParamInfos([out, retval]long *plCount);
+		[id(18), helpstring("method GetCountParamData")] HRESULT GetCountParamData([out, retval]long *plCount);
+		[id(19), helpstring("method AppendParamData")] HRESULT AppendParamData([in]VARIANT vtParamData);
+		[id(20), helpstring("method CleanParamData")] HRESULT CleanParamData();
+		[id(21), helpstring("method GetOutputData")] HRESULT GetOutputData([in]long nIndex, [out, retval]VARIANT *pvtData);
+		[id(22), helpstring("method CleanParamInfo")] HRESULT CleanParamInfo();
+		[id(23), helpstring("method UseStorageObjectForBLOB")] HRESULT UseStorageObjectForBLOB([in, defaultvalue(-1)]VARIANT_BOOL bStorageObjectForBLOB);
+		[id(24), helpstring("method ShrinkMemory")] HRESULT ShrinkMemory([in]long lNewSize);
+		[id(25), helpstring("method GetCountOutputData")] HRESULT GetCountOutputData([out, retval]long *plCount);
+		[id(26), helpstring("method ReleaseCreatedObject")] HRESULT ReleaseCreatedObject();
+		[propget, id(27), helpstring("property ParentHandle")] HRESULT ParentHandle([out, retval] long *pVal);
+		[propput, id(27), helpstring("property ParentHandle")] HRESULT ParentHandle([in] long newVal);
+		[propget, id(28), helpstring("property Handle")] HRESULT Handle([out, retval] long *pVal);
+		[propget, id(29), helpstring("property CreatedObjectHandle")] HRESULT CreatedObjectHandle([out, retval] long *pVal);
+		[propget, id(30), helpstring("property Property")] HRESULT Property([out, retval] VARIANT *pVal);
+		[propget, id(31), helpstring("property AffectedRows")] HRESULT AffectedRows([out, retval] long *pVal);
+	};
+
+	[
+		object,
+		uuid(94A4D811-5121-434F-9861-66FE4099DC2A),
+		dual,
+		helpstring("IURowset Interface"),
+		pointer_default(unique)
+	]
+	interface IURowset : IUObjBase
+	{
+		[id(4), helpstring("method Open")] HRESULT Open([in, defaultvalue("")]BSTR bstrTableName, [in, defaultvalue(ctStatic)]short sCursorType, [in, defaultvalue(0)]long lHint, [in, defaultvalue(0)]short sBatchSize, [in, defaultvalue(0)]VARIANT_BOOL bNoDelayForBLOB);
+		[id(5), helpstring("method Close")] HRESULT Close();
+		[id(6), helpstring("method MoveFirst")] HRESULT MoveFirst();
+		[id(7), helpstring("method MoveLast")] HRESULT MoveLast();
+		[id(8), helpstring("method MovePrev")] HRESULT MovePrev();
+		[id(9), helpstring("method MoveNext")] HRESULT MoveNext([in, defaultvalue(0)]long lSkip);
+		[id(10), helpstring("method Delete")] HRESULT Delete([in, defaultvalue(0)]short sRow);
+		[id(11), helpstring("method Add")] HRESULT Add([in, defaultvalue(0)]VARIANT_BOOL bNeedNewRecord, [in, defaultvalue(0)]short sRow);
+		[id(12), helpstring("method Update")] HRESULT Update([in, defaultvalue(0)]short sRow);
+		[id(13), helpstring("method UpdateBatch")] HRESULT UpdateBatch();
+		[id(14), helpstring("method OpenFromHandle")] HRESULT OpenFromHandle([in]long lHandle, [in, defaultvalue(0)]VARIANT_BOOL bKeepPrevRowset);
+		[id(15), helpstring("method Bookmark")] HRESULT Bookmark([in]short sRow);
+		[id(16), helpstring("method AsynFetch")] HRESULT AsynFetch([in, defaultvalue(-1)]VARIANT_BOOL bFromBeginning, [in, defaultvalue(0)]short sSubBatchSize, [in, defaultvalue(-1)]long lRows);
+		[id(17), helpstring("method GetBatchRecords")] HRESULT GetBatchRecords([in, defaultvalue(0)]short sSubBatchSize, [in, defaultvalue(0)]VARIANT_BOOL bFirst);
+		[id(18), helpstring("method GetProviders")] HRESULT GetProviders([in, defaultvalue(0)]VARIANT_BOOL bKeepPrevRowset);
+		[id(19), helpstring("method Undo")] HRESULT Undo();
+		[id(20), helpstring("method GetSchemaRowset")] HRESULT GetSchemaRowset([in]BSTR bstrSchemaGUID, [in]VARIANT vtRestrictions, [in, defaultvalue(0)]short nBatchSize, [in, defaultvalue(0)]VARIANT_BOOL bKeepPrevRowset);
+		[id(21), helpstring("method GetProperty")] HRESULT GetProperty([in]long lPropID, [in, defaultvalue("{c8b522be-5cf3-11ce-ade5-00aa0044773d}")]BSTR bstrPropSet);
+		[id(22), helpstring("method SetDataType")] HRESULT SetDataType([in]long lCol, [in]short nDBType, [in, defaultvalue(0)]long lLen);
+		[id(23), helpstring("method GetRowsAt")] HRESULT GetRowsAt([in]VARIANT vtBookmarkValue, [in, defaultvalue(0)]long lRowsOffset, [in, defaultvalue(0)]short sSubBatchSize);
+		[id(24), helpstring("method UseStorageObjectForBLOB")] HRESULT UseStorageObjectForBLOB([in, defaultvalue(-1)]VARIANT_BOOL bUseStorageObject);
+		[id(25), helpstring("method GetData")] HRESULT GetData([in]short nRow, [in]long lCol, [out, retval]VARIANT *pvtData);
+		[id(26), helpstring("method IsBLOB")] HRESULT IsBLOB([in]long lCol, [out, retval]VARIANT_BOOL *pbBLOB);
+		[id(27), helpstring("method GetColName")] HRESULT GetColName([in]long lCol, [out, retval]BSTR *pbstrColName);
+		[id(28), helpstring("method GetDataType")] HRESULT GetDataType([in]long lCol, [out, retval]short *psDBType);
+		[id(29), helpstring("method GetStatus")] HRESULT GetStatus([in]short nRow, [in]long lCol, [out, retval]long *plStatus);
+		[id(30), helpstring("method FindColOrdinal")] HRESULT FindColOrdinal([in]BSTR bstrColName, [in, defaultvalue(0)]VARIANT_BOOL bCaseSensitive, [out, retval]long *plCol);
+		[id(31), helpstring("method SetData")] HRESULT SetData([in]short nRow, [in]long lCol, [in]VARIANT vtData);
+		[id(32), helpstring("method IsEOF")] HRESULT IsEOF([out, retval]VARIANT_BOOL *pbIsEOF);
+		[id(33), helpstring("method GetRowsFetched")] HRESULT GetRowsFetched([out, retval]short *psCount);
+		[id(34), helpstring("method GetCols")] HRESULT GetCols([out, retval]long *plCols);
+		[id(35), helpstring("method IsModified")] HRESULT IsModified([in]short sRow, [in]long lCol, [out, retval]VARIANT_BOOL *pbModified);
+		[id(36), helpstring("method GetMaxLen")] HRESULT GetMaxLen([in]long lCol, [out, retval]long *plMaxLen);
+		[id(37), helpstring("method IsWritable")] HRESULT IsWritable([in]long lCol, [out, retval]VARIANT_BOOL *pbWritable);
+		[id(38), helpstring("method GetRawDataType")] HRESULT GetRawDataType([in]long lCol, [out, retval]short *psDataType);
+		[id(39), helpstring("method GetDataSize")] HRESULT GetDataSize([in]short nRow, [in]long lCol, [out, retval]long *plSize);
+		[id(40), helpstring("method GetBatchSize")] HRESULT GetBatchSize([out, retval]short *psBatchSize);
+		[id(41), helpstring("method GetColFlags")] HRESULT GetColFlags([in]long lCol, [out, retval]long *plFlags);
+		[id(42), helpstring("method GetRawMaxColLen")] HRESULT GetRawMaxColLen([in]long lCol, [out, retval]long *plLen);
+		[id(43), helpstring("method ShrinkMemory")] HRESULT ShrinkMemory([in]long lNewSize);
+		[id(44), helpstring("method IsNullable")] HRESULT IsNullable([in]long lCol, [out, retval]VARIANT_BOOL *pbIsNullable);
+		[id(45), helpstring("method BLOBDelayed")] HRESULT BLOBDelayed([out, retval]VARIANT_BOOL *pbDelayed);
+		[id(46), helpstring("method IsDelayedUpdate")] HRESULT IsDelayedUpdate([out, retval]VARIANT_BOOL *pbDelayedUpdate);
+		[id(47), helpstring("method IsReadOnly")] HRESULT IsReadOnly([out, retval]VARIANT_BOOL *pbIsReadOnly);
+		[id(48), helpstring("method GetCountOfBLOBsPerRow")] HRESULT GetCountOfBLOBsPerRow([out, retval]long *plCountBLOBs);
+		[propget, id(49), helpstring("property ParentHandle")] HRESULT ParentHandle([out, retval] long *pVal);
+		[propput, id(49), helpstring("property ParentHandle")] HRESULT ParentHandle([in] long newVal);
+		[propget, id(50), helpstring("property Handle")] HRESULT Handle([out, retval] long *pVal);
+		[propget, id(51), helpstring("property Property")] HRESULT Property([out, retval] VARIANT *pVal);	
+		[propget, id(52), helpstring("property BookmarkValue")] HRESULT BookmarkValue([out, retval] VARIANT *pVal);
+		[id(53), helpstring("method GetBatchRecordsEx")] HRESULT GetBatchRecordsEx([in, defaultvalue(0)]short sSubBatchSize, [in, defaultvalue(0)]long lSkip);
+		[id(54), helpstring("method GetBatchRecordsLast")] HRESULT GetBatchRecordsLast([in, defaultvalue(0)]short sSubBatchSize);
+	};
+
+	[
+		object,
+		uuid(1A0B8C2A-742C-15D6-B1D1-1112B5EC1C5B),
+		helpstring("IUDataReader Interface"),
+		pointer_default(unique)
+	]
+	interface IUDataReader : IUnknown
+	{
+		[helpstring("method GetUInt8")] HRESULT GetUInt8([in]short nRow, [in]long lCol, [out]VARIANT_BOOL *pbIsNull, [out, retval]BYTE *pData);
+		[helpstring("method GetInt8")] HRESULT GetInt8([in]short nRow, [in]long lCol, [out]VARIANT_BOOL *pbIsNull, [out, retval]signed char *pData);
+		[helpstring("method GetUInt16")] HRESULT GetUInt16([in]short nRow, [in]long lCol, [out]VARIANT_BOOL *pbIsNull, [out, retval]unsigned short *pusData);
+		[helpstring("method GetInt16")] HRESULT GetInt16([in]short nRow, [in]long lCol, [out]VARIANT_BOOL *pbIsNull, [out, retval]short *psData);
+		[helpstring("method GetUInt32")] HRESULT GetUInt32([in]short nRow, [in]long lCol, [out]VARIANT_BOOL *pbIsNull, [out, retval]unsigned long *punData);
+		[helpstring("method GetInt32")] HRESULT GetInt32([in]short nRow, [in]long lCol, [out]VARIANT_BOOL *pbIsNull, [out, retval]long *pnData);
+		[helpstring("method GetFloat")] HRESULT GetFloat([in]short nRow, [in]long lCol, [out]VARIANT_BOOL *pbIsNull, [out, retval]float *pfData);
+		[helpstring("method GetDouble")] HRESULT GetDouble([in]short nRow, [in]long lCol, [out]VARIANT_BOOL *pbIsNull, [out, retval]double *pdData);
+		[helpstring("method GetBool")] HRESULT GetBool([in]short nRow, [in]long lCol, [out]VARIANT_BOOL *pbIsNull, [out, retval]VARIANT_BOOL *pbData);
+		[helpstring("method GetVariant")] HRESULT GetVariant([in]short nRow, [in]long lCol, [out, retval]VARIANT *pvtData);
+		[helpstring("method GetUInt64")] HRESULT GetUInt64([in]short nRow, [in]long lCol, [out]VARIANT_BOOL *pbIsNull, [out, retval]unsigned __int64 *pulData);
+		[helpstring("method GetInt64")] HRESULT GetInt64([in]short nRow, [in]long lCol, [out]VARIANT_BOOL *pbIsNull, [out, retval]__int64 *plData);
+		[helpstring("method GetDecimal")] HRESULT GetDecimal([in]short nRow, [in]long lCol, [out]VARIANT_BOOL *pbIsNull, [out, retval]DECIMAL *pdecData);
+		[helpstring("method GetCurrency")] HRESULT GetCurrency([in]short nRow, [in]long lCol, [out]VARIANT_BOOL *pbIsNull, [out, retval]CY *pcyData);
+		[helpstring("method GetDateTime")] HRESULT GetDateTime([in]short nRow, [in]long lCol, [out]VARIANT_BOOL *pbIsNull, [out, retval]DATE *pdData);
+		[helpstring("method GetBytes")] HRESULT GetBytes([in]short nRow, [in]long lCol, [in]unsigned long ulLen, [in, size_is(ulLen)]BYTE *pBuffer, [out, retval]unsigned long *plRtnSize);
+		[helpstring("method GetStringA")] HRESULT GetStringA([in]short nRow, [in]long lCol, [in]unsigned long cchar, [in, size_is(cchar)]signed char *strA, [out, retval]unsigned long *plRtnChars);
+		[helpstring("method GetStringW")] HRESULT GetStringW([in]short nRow, [in]long lCol, [in]unsigned long cwchar, [in, size_is(cwchar)]LPWSTR strW, [out, retval]unsigned long *plRtnWChars);
+		[propget, helpstring("property MatrixData")] HRESULT MatrixData([out, retval] VARIANT *pVal);
+		[propget, helpstring("property InternalDataPointer")] HRESULT InternalDataPointer([out, retval] long *pVal);
+	};
+
+	[
+		uuid(15CF3B4A-9E2D-47FE-BFC8-942C83CB94B6),
+		helpstring("UDataSource Class")
+	]
+	coclass UDataSource
+	{
+		[default] interface IUDataSource;
+		interface IUObjBase;
+		[default, source] dispinterface _IURequestEvent;
+	};
+
+	[
+		uuid(A1FE27D7-FD8B-4029-AEB7-DFBC0321D9D0),
+		helpstring("USession Class")
+	]
+	coclass USession
+	{
+		[default] interface IUSession;
+		interface IUObjBase;
+		[default, source] dispinterface _IURequestEvent;
+	};
+	
+	[
+		uuid(7BBFAE6E-1863-4FA5-BE86-977B5FC66E82),
+		helpstring("UCommand Class")
+	]
+	coclass UCommand
+	{
+		[default] interface IUCommand;
+		interface IUObjBase;
+		[default, source] dispinterface _IURequestEvent;
+	};
+	[
+		uuid(BBE0E397-6941-45A9-B1E8-D81BE1B74992),
+		helpstring("URowset Class")
+	]
+	coclass URowset
+	{
+		[default] interface IURowset;
+		interface IUDataReader;
+		interface IUObjBase;
+		[default, source] dispinterface _IURequestEvent;
+	};
+};
+
+// This is a part of the SocketPro package.
+// Copyright (C) 2000-2004 UDAParts 
+// All rights reserved.
+//
+// This source code is only intended as a supplement to the
+// SocketPro package and related electronic documentation provided with the package.
+// See these sources for detailed information regarding this
+// UDAParts product.
+
+// Please don't disclose any source code of the software to any person or entity,
+//
+// Please don't decompile, disassemble, or reverse engineer any object code of 
+// any portion of the software.
+//  
+// http://www.udaparts.com/index.htm
+// support@udaparts.com

@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>10.0.0</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{DCA73A65-463F-4274-9267-0EEBEC8B0435}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>servertest</RootNamespace>
+    <AssemblyName>servertest</AssemblyName>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug</OutputPath>
+    <DefineConstants>DEBUG;MONO</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Externalconsole>true</Externalconsole>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>none</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release</OutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Externalconsole>true</Externalconsole>
+    <DefineConstants>MONO</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="AssemblyInfo.cs" />
+    <Compile Include="..\..\SpaServerTest\TEchoBImpl.cs">
+      <Link>TEchoBImpl.cs</Link>
+    </Compile>
+    <Compile Include="..\..\SpaServerTest\Program.cs">
+      <Link>Program.cs</Link>
+    </Compile>
+    <Compile Include="..\..\SpaServerTest\TEchoCImpl.cs">
+      <Link>TEchoCImpl.cs</Link>
+    </Compile>
+    <Compile Include="..\..\SpaServerTest\TEchoDImpl.cs">
+      <Link>TEchoDImpl.cs</Link>
+    </Compile>
+    <Compile Include="..\..\SpaServerTest\mypeer.cs">
+      <Link>mypeer.cs</Link>
+    </Compile>
+    <Compile Include="..\..\SpaServerTest\myhttppeer.cs">
+      <Link>myhttppeer.cs</Link>
+    </Compile>
+    <Compile Include="..\..\netshares\helloworld_i.cs">
+      <Link>helloworld_i.cs</Link>
+    </Compile>
+    <Compile Include="..\..\netshares\TEchoB_i.cs">
+      <Link>TEchoB_i.cs</Link>
+    </Compile>
+    <Compile Include="..\..\netshares\TEchoC_i.cs">
+      <Link>TEchoC_i.cs</Link>
+    </Compile>
+    <Compile Include="..\..\netshares\TEchoD_i.cs">
+      <Link>TEchoD_i.cs</Link>
+    </Compile>
+    <Compile Include="..\..\netshares\testpeer_i.cs">
+      <Link>testpeer_i.cs</Link>
+    </Compile>
+    <Compile Include="..\..\SpaServerTest\helloworld.cs">
+      <Link>helloworld.cs</Link>
+    </Compile>
+    <Compile Include="..\..\SpaServerTest\perfstudypeer.cs">
+      <Link>perfstudypeer.cs</Link>
+    </Compile>
+    <Compile Include="..\..\netshares\perfstudy_i.cs">
+      <Link>perfstudy_i.cs</Link>
+    </Compile>
+    <Compile Include="..\..\netshares\TOne_i.cs">
+      <Link>TOne_i.cs</Link>
+    </Compile>
+    <Compile Include="..\..\SpaServerTest\TOneImpl.cs">
+      <Link>TOneImpl.cs</Link>
+    </Compile>
+    <Compile Include="..\..\SpaServerTest\RAdoImpl.cs">
+      <Link>RAdoImpl.cs</Link>
+    </Compile>
+    <Compile Include="..\..\netshares\RAdo_i.cs">
+      <Link>RAdo_i.cs</Link>
+    </Compile>
+    <Compile Include="..\..\netshares\SQueue_i.cs">
+      <Link>SQueue_i.cs</Link>
+    </Compile>
+    <Compile Include="..\..\SpaServerTest\SQueueImpl.cs">
+      <Link>SQueueImpl.cs</Link>
+    </Compile>
+    <Compile Include="..\..\SpaServerTest\CR1Peer.cs">
+      <Link>CR1Peer.cs</Link>
+    </Compile>
+    <Compile Include="..\..\SpaServerTest\CR0Peer.cs">
+      <Link>CR0Peer.cs</Link>
+    </Compile>
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <ItemGroup>
+    <ProjectReference Include="..\spanix\spanix.csproj">
+      <Project>{E98C6E1C-BB90-40EC-A7FC-87C4E68683F6}</Project>
+      <Name>spanix</Name>
+    </ProjectReference>
+  </ItemGroup>
+</Project>

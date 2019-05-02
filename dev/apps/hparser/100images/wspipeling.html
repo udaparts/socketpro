@@ -1,0 +1,199 @@
+<!DOCTYPE HTML>
+<html lang="ja">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <title>image download race</title>
+        <script type="text/javascript" src="jquery-1.4.1.min.js"></script>
+    </head>
+    <body>
+    	<style type="text/css">
+    	*{
+			font-size: 11pt;
+		}
+
+		#content {
+			width: 960px;
+			margin-left: auto;
+			margin-right: auto;
+			border: 2px solid blue;
+			border-radius: 5px;
+			padding: 10px;
+		}
+		
+		#explain{
+			font-size: 0.75em;
+			font-weight: bold;
+		}
+
+		#board {
+			border: 3px solid gray;
+			color: white;
+			background: black;
+			border-radius: 10px;
+			padding: 10px;
+			width: 920px;
+			overflow: auto;
+		}
+
+		label {
+			font-size: 9pt;
+			color: #990000;
+		}
+
+    	</style>
+    	<div id="content">
+	        <h1 id="title"></h1>
+	        <hr>
+	        <div id="explain">
+	        このサンプルは、「websocket pipelineを使うと、それだけで普通のページのブラウジングが早くなるんじゃないか？」という思いをテストするために作成しました。
+	        <p></p>
+	        「画像をたくさん含むようなサイトを見ようとすると、画像のダウンロードに時間がかかって中々開かない（・ω・）」という経験をされた方は多いはずです。で、この要因の一つとして「httpでは、前の画像のダウンロードが終わらないと、次の画像のダウンロードが始まらない（待ってる時間だけ時間を食っている）」というのがあるのでは？と考えました。
+	        <p></p>一方，websokcet pipelineなら「いちいち、（前の画像のダウンロードが終わるのを）待たないんだから、ひょっとして早くなるんじゃない？」と考えたのが、このサンプルを作った理由です。
+	        <p></p>
+	        "via ws(websocket pipeline)"をクリックすると、websocket pipelineで100個の画像をダウンロードし、"via http(append DOM)"をクリックすると、普通のhttp（DOMのappendChildで実装しています）で同じ個数の画像をダウンロードします。
+	        <p></p>
+	        正直、僕が以前作った<a href="http://bloga.jp/koma/ws/pipelinetest.html">websocket pipelineデモ</a>ほど、その差は顕著ではないのですが（僕の環境ではwebsocket pipelineの方が2倍程度早いだけだった。アメリカとかからなら、もっと開くと期待）、その理由は以下ように考えられます。
+			<div style="color:blue;cursor:pointer;" onclick="this.style.display='none'; $('#hide').css({'display': 'block'});">続きを見る</div>
+			<div id="hide" style="display:none">
+	        <ul>
+	        	<li>同時コネクション数の違い</li>
+	        	DOMの追加で画像ダウンロードを行うと、最大で6個のtcp connectionが張られるようです(chromeの場合：xhrでは最大で3コネクションでした）。同時にコネクションを複数張るというのは、例えるなら、６台のトラックで複数の荷物を手分けして運ぶのと同じですので、それだけ従来のhttpでも早くなります。
+	        	<li>base64エンコード</li>
+	        	<a href="http://tools.ietf.org/html/draft-hixie-thewebsocketprotocol">websocket</a>(執筆時点では72)では、binary-frameも運べることになっているのですが、現状binaryを扱うapiが無い(;-;)ということで、websocket pipelineではbase64でテキストエンコードした画像をダウンロードしています。ですので、ダウンロードするバイト数がwebsokcketのほうが現状では大きくなってしまう（1.5倍程度）というのが、顕著なスピードの差に繋がらなかったと考えられます。
+	        </ul>
+	        「じゃぁ、websocket pipelineは、このケースではあまり有効ではないの？」というとそんなことは無いと思います。現状のhttpではスピードをあげるために6個のコネクションをwebサーバーと同時に張っていますが、これはそれだけサーバーのリソースを消費していることになります。apacheの場合だと、単純に6倍のメモリを消費することになりますし、CPUリソースを見ても（正確なテストはしていませんので、参考値として見てください）http(6 connection)でCPU loadが大体5%程度だったのに対し、websocket pipeline(1 connction)では、0.5%程度でした。同時接続ユーザー数が増えると、この数値は単純には掛け算で効いてきますので、この差は無視できないものになります。
+	        <p></p>
+	        更に、クライアントとサーバーの間には、たくさんのNW機器が存在しますが、これらの中には同時セッション数に比例して、リソースを消費する機械が数多く存在します。例えば、NATやfirewall, ロードバランサー, proxyなどが挙げられます。これらの機械は、ルーターやスイッチなどに比べると比較的高価な機械です。
+	        <p></p>
+	        従って、現状のhttpのままで（スピードを出すために大量のコネクション数が消費されて）webが進化していくことは、サーバーコストやNWコストの増大を意味しているとも考えられますし、そのコストは最終的にエンドユーザーに返ってきます（ここで"返ってくる"という言葉は、サービスの進展を阻害すると捉えて欲しいです）。そういった目線で、このサンプルデモを見ていただけると嬉しいです(^-^)。
+	        </div>
+	        </div>
+	        <hr>
+	        <div style="float:left;text-align:center;">
+				<input type="button" id="via_ws" value="via ws(websocket pipeline)"><br />
+				<label># of ws connections</label><br /><input type="text" size="2" id="num_ws" value="1">
+			</div>
+	        <div style="float:left;text-align:center;">
+				<input type="button" id="via_http" value="via http(append DOM)"><br />
+			</div>
+			<div style="clear:both"></div>
+			<p></p>
+			<div id="status"></div>
+			<div id="counter"></div>
+			<div id="board"></div>
+    	</div>
+    	<script type="text/javascript">
+		
+		var max = 100;
+		var ws = [];
+		var ws_count = 0;
+		var start = null;
+		var finish = null;
+		var out = '';
+		
+		var num = 1;
+		
+		$("#title").html(max+" images download race");
+
+		$("#via_ws").click(function(e){
+			for(var i = 0; i < 5; i++) {
+				if (ws[i]) {
+					ws[i].close();
+					ws[i] = null;
+				}
+			}
+			
+			num = document.getElementById('num_ws').value;
+			num = ( num < 1 ? 1 : num );
+			num = ( num > 5 ? 5 : num);
+			document.getElementById('num_ws').value = num;
+			
+			
+//			alert(num);
+			
+			ws_count = 0;
+			start = new Date().getTime();
+
+			$('#status').html('');
+			$('#counter').html("");
+			$("#board").html("");
+			out = '';
+
+			
+			for(var k = 0; k < num; k++) {
+				ws[k] = new WebSocket("ws://"+location.host+"/pub/100images/dog");
+				ws[k].onopen = function(e) {
+					btnDisable();
+					var _max = parseInt(max / num);
+					for(var i = 0; i < _max; i++) {
+						this.send("get");
+					}
+				};
+				ws[k].onmessage = function(e) {
+					ws_count += 1;
+					$("#board").append("<img src='"+e.data+"'>");
+	//				$("#status").html(ws_count);
+	//				$('#counter').html(ws_count+"/"+max);
+					var _max = (num == 3 ? (parseInt(max / num) * 3) : max);
+					if(ws_count >= _max) {
+						btnEnable();
+						finish = new Date().getTime();
+						$("#status").html("....."+(finish-start)+"msec");
+						for(var i = 0; i < num; i++) {
+							if(ws[i]){
+								ws[i].close();
+								ws[i] = null;
+							}
+						}
+					}
+				};
+			}
+		});
+
+		$("#via_http").click(function(e){
+			btnDisable();
+			$("#board").html("");
+			$("#status").html("");
+			$("#counter").html("");
+			start = new Date().getTime();
+			for(var i = 0; i < max; i++) {
+				var img = document.createElement('img');
+				img.src="dog.png?"+start+"-"+i;
+				img.id="dog_image"+i;
+				
+				document.getElementById('board').appendChild(img);
+				
+				if ( i == (max - 1)) {
+					img.onload = function(e) {
+						finish = new Date().getTime();
+						$("#status").html("....."+(finish-start)+"msec");
+						btnEnable();
+					};
+				}
+//				$("#board").append("<img id='dog_image'"+i+" src='dog.png?"+start+"-"+i+"' >");
+			}
+			
+		});
+		
+		var btnEnable = function() {
+			document.getElementById('via_ws').disabled = false;
+			document.getElementById('via_http').disabled = false;
+		}
+
+		var btnDisable = function() {
+			document.getElementById('via_ws').disabled = true;
+			document.getElementById('via_http').disabled = true;
+		}
+
+		
+		window.addEventListener('unload', function(e) {
+			for(var i = 0; i < 5; i++) {
+				if(ws[i]) {
+					ws[i].close();
+				}
+			}
+		}, false);
+		</script>
+    </body>
+</html>
+

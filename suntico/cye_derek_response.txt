@@ -1,0 +1,72 @@
+Hi Derek and Vincent,
+
+Thanks a lot for your responses. I am happy about the progress your company has achieved.
+
+We are going to continue working on our SocketPro. The coming SocketPro will support bi-directional distributed message queues. 
+
+We have already tested our distributed message queue approach, which is drastically faster and more scalable than all of queue-related products known on the market.
+
+In addition, SocketPro will support both linux and window platforms soon. 
+
+By the middle of the next year, SocketPro will also support Mac platform.  
+
+
+Happy New Year to you from all at Suntico. 
+
+I am sorry for the delay in responding but we have just moved offices, are involved in our first product launch and also involved in raising development finance. 
+
+In summary  our position is that we have had to develop our own proprietary 'connector' as SocketPro as it was very clear to us at the time that despite your best eforts SocketPro was not going to be fit for our purpose at the time nor could we see it being commercially useful within the required time-frame.
+
+I would like Asim and your software engineers to try our new SocketPro although it is still in the alpha stage and there is no .NET adapter available yet. 
+However, SocketPro is suitable to your company and it will reduce your development time and costs noticeably. Though, if there are any features that are missing or that you would like to be included please notify me as soon as possible so that we can make SocketPro suitable to your procedures.
+
+I estimate that--at the latest and possibly much earlier--the .NET adapter will be available in about two months.
+
+Regarding charges - we believe that as we cannot/could not use any element of your exploratory work that we are not liable for any charges.
+Had we been able to use SocketPro by way of licence or purchase, then of course we would accepted charges. 
+
+I am fully aware of the fact that Suntico did not use SocketPro completely. 
+However, due to the amount of personal time that I have devoted completely to Suntico, 
+I am certain that charges need to be paid for all of my hardwork and effort. 
+I would like to point out the Task List that I wrote in order to provide a general outline of the number of tasks purely for the purposes of Suntico products. 
+Besides, do not forget the additional twenty hours--nearly three-day's amount of work--that was fulfilled and donated to Suntico free of charge. 
+Therefore, in all respect, I hope that Suntico acknowledges the fact that lots of contributions and sacrifices were made in order to help promote Suntico. 
+
+As all of us know, we always have many difficulties in developing a software product before eventual success. 
+For instance, take your Connected Cloud Apps as example, I think your company has already sacrificied lots of resources 
+(not to mention money) for various developmental constructions and changes continually far before your company employees made the final correct 
+architecture and wrote various correct code as well as software components.
+Therefore, looking into your own Connected Cloud Apps as a model, I think you'd find that not a single company would not pay the necessary fees to employees for various unpredictable mistakes at the initial development stages.
+
+See the attached invoice, you can see that I just count the development time related with the following Suntico stuffs. 
+
+1. reviewing Jawad Mobin’s architecture and his requirement features list and my roadmap Suntico connector
+2. my proposed architecture and Suntico prototype connector components as well as unit tests
+3. Suntico SocketPro connector alpha version and unit tests (3/11–3/13)
+4. Suntico SocketPro connector beta version and unit tests (3/14–3/19)
+5. Setup Suntico development environment and various preparations (3/20--3/25)
+
+Note that all of the above items are directly related to your company product developments.
+
+Also note that I didn't count my 20-hour effort related with various communications and helping on your software engineers.
+
+
+Our development team also considers
+that we have contributed significantly to your development of SocketPro for future commercial use. 
+
+I appreciate your development team responses, 
+but they ware not significant to our SocketPro at all in comparison to the amount of dedication that I spent for the purposes of your company.
+I have not found any significant idea or software item contributed from your engineer team. If you or any one of your colleagues know one, please let me know.
+
+
+We would be happy to review/comment on future product development even though we have had to develop our own product.
+This is now well advanced and  we have decided that we should continue to develop our own work for commercial use.
+
+We would, of course, like to maintain a relationship with you for the future.
+
+We as well will indoutably keep in touch with Suntico for mutually beneficial purposes and relations. I hope that fortuituous events come your way in 2013.
+
+
+Kind Regards
+
+Derek 

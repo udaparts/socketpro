@@ -1,0 +1,16 @@
+
+[	
+	ServiceID = 124 //service id can't be less than 0
+]			
+HWReceiver
+{
+	$ulong DoDequeue(uint count, bool notified);
+}
+
+[	
+	ServiceID = 123 //service id can't be less than 0
+]			
+HWSender
+{
+	$uint SayHelloWord(string fullName, uint index);
+}

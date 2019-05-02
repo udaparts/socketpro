@@ -1,0 +1,517 @@
+<html>
+
+<head>
+<meta http-equiv=Content-Type content="text/html; charset=windows-1252">
+<meta name=Generator content="Microsoft Word 12 (filtered)">
+<style>
+<!--
+ /* Font Definitions */
+ @font-face
+	{font-family:Wingdings;
+	panose-1:5 0 0 0 0 0 0 0 0 0;}
+@font-face
+	{font-family:"Cambria Math";
+	panose-1:2 4 5 3 5 4 6 3 2 4;}
+@font-face
+	{font-family:Calibri;
+	panose-1:2 15 5 2 2 2 4 3 2 4;}
+@font-face
+	{font-family:Tahoma;
+	panose-1:2 11 6 4 3 5 4 4 2 4;}
+@font-face
+	{font-family:Consolas;
+	panose-1:2 11 6 9 2 2 4 3 2 4;}
+ /* Style Definitions */
+ p.MsoNormal, li.MsoNormal, div.MsoNormal
+	{margin-top:0in;
+	margin-right:0in;
+	margin-bottom:8.0pt;
+	margin-left:0in;
+	line-height:107%;
+	font-size:11.0pt;
+	font-family:"Calibri","sans-serif";}
+p.MsoHeader, li.MsoHeader, div.MsoHeader
+	{mso-style-link:"Header Char";
+	margin:0in;
+	margin-bottom:.0001pt;
+	font-size:11.0pt;
+	font-family:"Calibri","sans-serif";}
+p.MsoFooter, li.MsoFooter, div.MsoFooter
+	{mso-style-link:"Footer Char";
+	margin:0in;
+	margin-bottom:.0001pt;
+	font-size:11.0pt;
+	font-family:"Calibri","sans-serif";}
+a:link, span.MsoHyperlink
+	{color:blue;
+	text-decoration:underline;}
+a:visited, span.MsoHyperlinkFollowed
+	{color:#954F72;
+	text-decoration:underline;}
+p.MsoAcetate, li.MsoAcetate, div.MsoAcetate
+	{mso-style-link:"Balloon Text Char";
+	margin:0in;
+	margin-bottom:.0001pt;
+	font-size:8.0pt;
+	font-family:"Tahoma","sans-serif";}
+p.MsoListParagraph, li.MsoListParagraph, div.MsoListParagraph
+	{margin-top:0in;
+	margin-right:0in;
+	margin-bottom:8.0pt;
+	margin-left:.5in;
+	line-height:107%;
+	font-size:11.0pt;
+	font-family:"Calibri","sans-serif";}
+p.MsoListParagraphCxSpFirst, li.MsoListParagraphCxSpFirst, div.MsoListParagraphCxSpFirst
+	{margin-top:0in;
+	margin-right:0in;
+	margin-bottom:0in;
+	margin-left:.5in;
+	margin-bottom:.0001pt;
+	line-height:107%;
+	font-size:11.0pt;
+	font-family:"Calibri","sans-serif";}
+p.MsoListParagraphCxSpMiddle, li.MsoListParagraphCxSpMiddle, div.MsoListParagraphCxSpMiddle
+	{margin-top:0in;
+	margin-right:0in;
+	margin-bottom:0in;
+	margin-left:.5in;
+	margin-bottom:.0001pt;
+	line-height:107%;
+	font-size:11.0pt;
+	font-family:"Calibri","sans-serif";}
+p.MsoListParagraphCxSpLast, li.MsoListParagraphCxSpLast, div.MsoListParagraphCxSpLast
+	{margin-top:0in;
+	margin-right:0in;
+	margin-bottom:8.0pt;
+	margin-left:.5in;
+	line-height:107%;
+	font-size:11.0pt;
+	font-family:"Calibri","sans-serif";}
+span.BalloonTextChar
+	{mso-style-name:"Balloon Text Char";
+	mso-style-link:"Balloon Text";
+	font-family:"Tahoma","sans-serif";}
+span.apple-converted-space
+	{mso-style-name:apple-converted-space;}
+span.HeaderChar
+	{mso-style-name:"Header Char";
+	mso-style-link:Header;}
+span.FooterChar
+	{mso-style-name:"Footer Char";
+	mso-style-link:Footer;}
+.MsoPapDefault
+	{margin-bottom:8.0pt;
+	line-height:107%;}
+ /* Page Definitions */
+ @page WordSection1
+	{size:11.0in 8.5in;
+	margin:1.0in 1.0in 1.0in 1.0in;}
+div.WordSection1
+	{page:WordSection1;}
+ /* List Definitions */
+ ol
+	{margin-bottom:0in;}
+ul
+	{margin-bottom:0in;}
+-->
+</style>
+
+</head>
+
+<body lang=EN-US link=blue vlink="#954F72">
+
+<div class=WordSection1>
+
+<p class=MsoNormal align=center style='text-align:center'><b><span
+style='font-size:14.0pt;line-height:107%;font-family:"Times New Roman","serif"'>Tutoral
+8 – Treat SocketPro Server as a Router for Load Balancing</span></b></p>
+
+<p class=MsoNormal><span style='font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoNormal><b><span style='font-size:12.0pt;line-height:107%;
+font-family:"Times New Roman","serif"'>Contents:</span></b></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt'><b><i><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>Introduction</span></i></b></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt'><b><i><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>Routing
+architectures and benefits</span></i></b></p>
+
+<p class=MsoListParagraphCxSpFirst style='margin-bottom:0in;margin-bottom:.0001pt;
+text-indent:-.25in'><span style='font-size:12.0pt;line-height:107%;font-family:
+Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><i><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>Many-to-many</span></i></p>
+
+<p class=MsoListParagraphCxSpLast style='margin-bottom:0in;margin-bottom:.0001pt;
+text-indent:-.25in'><span style='font-size:12.0pt;line-height:107%;font-family:
+Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><i><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>Many-to-one</span></i></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt'><a
+name="Sample_numerical_integration"><b><i><span style='font-size:12.0pt;
+line-height:107%;font-family:"Times New Roman","serif";background:white'>Numerical
+integration for<span class=apple-converted-space>&nbsp;</span></span></i></b></a><b><i><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif";
+background:white'>&#960;</span></i></b></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt'><b><i><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>Server
+side code</span></i></b></p>
+
+<p class=MsoListParagraphCxSpFirst style='margin-bottom:0in;margin-bottom:.0001pt;
+text-indent:-.25in'><span style='font-size:12.0pt;line-height:107%;font-family:
+Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><i><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>Prepare two services in pair</span></i></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-bottom:0in;margin-bottom:
+.0001pt;text-indent:-.25in'><span style='font-size:12.0pt;line-height:107%;
+font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><i><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>Register a routing by the method SetRouting</span></i></p>
+
+<p class=MsoListParagraphCxSpLast style='margin-bottom:0in;margin-bottom:.0001pt;
+text-indent:-.25in'><span style='font-size:12.0pt;line-height:107%;font-family:
+Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><i><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>Process some requests within router or SocketPro
+server instead of workers</span></i></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt'><b><i><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>Client
+side code</span></i></b></p>
+
+<p class=MsoListParagraphCxSpFirst style='margin-bottom:0in;margin-bottom:.0001pt;
+text-indent:-.25in'><span style='font-size:12.0pt;line-height:107%;font-family:
+Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><i><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>Set a persistent message queue for auto failure
+recovery</span></i></p>
+
+<p class=MsoListParagraphCxSpLast style='margin-bottom:0in;margin-bottom:.0001pt;
+text-indent:-.25in'><span style='font-size:12.0pt;line-height:107%;font-family:
+Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><i><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>Divide integration into parts and sum collected
+results</span></i></p>
+
+<p class=MsoNormal><b><span style='font-size:12.0pt;line-height:107%;
+font-family:"Times New Roman","serif"'>Worker side code</span></b></p>
+
+<p class=MsoListParagraphCxSpFirst><span style='font-size:12.0pt;line-height:
+107%;font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='text-indent:-.25in'><b><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>1.<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span></span></b><b><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>Introduction</span></b></p>
+
+<p class=MsoListParagraphCxSpMiddle><b><span style='font-size:12.0pt;
+line-height:107%;font-family:"Times New Roman","serif"'>&nbsp;</span></b></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-left:0in;text-indent:.5in'><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>SocketPro
+provides two features for distributing workloads across multiple computing
+resources. The first feature is called client socket pool, which enables a
+client to access multiple servers for fast and scalable processing requests
+asynchronously and in parallel as shown in <a href="rado.htm">tutorial 4 -- <i>Build responsive
+and scalable web applications in a few hours</i></a>.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-left:0in;text-indent:.5in'><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-left:0in;text-indent:.5in'><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>The
+second feature is called SocketPro server routing or load balancing. Each
+SocketPro server is able to support multiple routings by different
+configurations. Furthermore, you can also directly process a portion of
+requests at server instead of workers.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle><span style='font-size:12.0pt;line-height:
+107%;font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle><span style='font-size:12.0pt;line-height:
+107%;font-family:"Times New Roman","serif"'>The tutorial projects are located
+at the directory ..\tutorials\(csharp|vbnet|cplusplus|java\src|ce|python)\loading_balance.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle><span style='font-size:12.0pt;line-height:
+107%;font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='text-indent:-.25in'><b><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>2.<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span></span></b><b><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>Scenarios</span></b></p>
+
+<p class=MsoListParagraphCxSpMiddle><b><span style='font-size:12.0pt;
+line-height:107%;font-family:"Times New Roman","serif"'>&nbsp;</span></b></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-left:0in;text-indent:.5in'><b><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>Many-to-many:
+</span></b><span style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>In
+general, SocketPro server supports multiple many-clients-to-many-workers
+routings as shown in the following Figure 1.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle><span style='font-size:12.0pt;line-height:
+107%;font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle><span style='font-size:12.0pt;line-height:
+107%;font-family:"Times New Roman","serif"'><img width=645 height=410
+src="snpisec_files/image001.png"></span></p>
+
+<p class=MsoListParagraphCxSpMiddle><i><span style='font-size:12.0pt;
+line-height:107%;font-family:"Times New Roman","serif"'>Figure 1: SocketPro
+server many-clients-to-many-workers routing architecture</span></i></p>
+
+<p class=MsoListParagraphCxSpMiddle><span style='font-size:12.0pt;line-height:
+107%;font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-left:0in;text-indent:.5in'><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>Note
+that a SocketPro server is able to support multiple routings. Moreover, SocketPro
+routing is bi-directional so that not only can a worker become a client but a
+client can also become a worker. As shown in Figure 1 above, you will then be
+able to directly process some requests through the routing server instead of
+workers.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-left:0in;text-indent:.5in'><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-left:0in;text-indent:.5in'><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>If
+we use SocketPro persistent message queues at client side, SocketPro guarantees
+auto failure recovery for any problems caused by networks, router and workers since
+persistent message queue is able to act as a request log to re-send requests if
+necessary.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-left:0in;text-indent:.5in'><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-left:0in;text-indent:.5in'><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>SocketPro
+routing supports load-balancing affinity. You can group any number of requests
+from a client and send or route them onto one worker for processing if
+persistent message queue is employed at client side. If you do not use
+persistent message queue, the maximum number of requests grouped is limited to
+two gigabytes.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-left:0in;text-indent:.5in'><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-left:0in;text-indent:.5in'><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>Finally,
+SocketPro ensures request at-least-once delivery if persistent message queue is
+used at client side. Without persistent message queue at client side, SocketPro
+does not guarantee any auto failure recovery or at-least-once request delivery.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-left:0in;text-indent:.5in'><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-left:0in;text-indent:.5in'><b><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>Many-to-one:</span></b><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>
+If there is only one worker, Figure 1 above will become the following Figure 2.
+In this particular case, SocketPro guarantees both auto failure recovery and exactly-once
+delivery as long as clients use persistent message queue. All of the queued
+requests with SocketPro are ensured to be exactly-once delivery except in the
+case where there are two or more workers involved with a routing as shown in Figure
+1 above.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-left:0in;text-indent:.5in'><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-left:0in;text-indent:.5in'><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'><img
+width=634 height=408 id="Picture 2" src="snpisec_files/image002.png"></span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-left:0in;text-indent:.5in'><i><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>Figure
+2:</span></i><span style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>
+<i>SocketPro server many-clients-to-one-worker routing architecture</i></span></p>
+
+<p class=MsoListParagraphCxSpMiddle><span style='font-size:12.0pt;line-height:
+107%;font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='text-indent:-.25in'><b><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>3.<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span></span></b><b><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif";
+background:white'>Numerical integration for<span class=apple-converted-space>&nbsp;</span></span></b><b><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif";
+background:white'>&#960;</span></b></p>
+
+<p class=MsoListParagraphCxSpMiddle style='line-height:normal;background:white'><span
+style='font-size:12.0pt;font-family:"Times New Roman","serif";color:#663300'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-left:0in;text-indent:.5in;
+line-height:normal;background:white'><span style='font-size:12.0pt;font-family:
+"Times New Roman","serif"'>Consider the problem of computing the value of
+&#960; using the numerical integration below.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-right:1.0in;line-height:normal;
+background:white'><img width=370 height=122 src="snpisec_files/image003.gif"
+alt="http://www.udaparts.com/document/articles/computepi.gif"></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-right:1.0in;line-height:normal;
+background:white'><i><span style='font-size:12.0pt;font-family:"Times New Roman","serif"'>Figure
+3: Compute &#960; value by use of numerical integration</span></i></p>
+
+<p class=MsoListParagraphCxSpMiddle style='line-height:normal;background:white'><span
+style='font-size:13.5pt;font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-left:0in;text-indent:.5in;
+line-height:normal;background:white'><span style='font-size:12.0pt;font-family:
+"Times New Roman","serif"'>We can use trapezoidal integration to solve the
+integral. The basic idea is to fill the area under a curve with a series of
+tiny rectangles. As the width of rectangles approaches 0, the sum of the areas
+of these rectangles approaches the real value of &#960;. To accurately achieve
+the value, we must divide the integral area with rectangles as numerous and
+small as possible. Therefore, we are going to divide the whole integration into
+a set of sections and send them onto different working machines (clients/workers)
+with a SocketPro server in between as a router. These workers actually finish
+CPU-extensive numerical integration in parallel. The sending machine (client)
+will collect the integral values of these sections from these workers and then
+add them to get the &#960; value.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle><b><span style='font-size:12.0pt;
+line-height:107%;font-family:"Times New Roman","serif"'>&nbsp;</span></b></p>
+
+<p class=MsoListParagraphCxSpLast style='text-indent:-.25in'><b><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>4.<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span></span></b><b><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>Server
+side code<a name="_GoBack"></a></span></b></p>
+
+<p class=MsoNormal style='text-indent:.5in'><b><span style='font-size:12.0pt;
+line-height:107%;font-family:"Times New Roman","serif"'>Prepare two services in
+pair:</span></b><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'> Two services must be registered in pair to use
+routing at SocketPro server side. One service represents sending client
+requests while the other is for processing requests as worker. You could use
+the code snippet in Figure 4 below to prepare two services for routing.</span></p>
+
+<p class=MsoNormal style='text-indent:.5in'><span style='font-size:12.0pt;
+line-height:107%;font-family:"Times New Roman","serif"'><img width=674
+height=80 id="Picture 3" src="snpisec_files/image004.png"></span></p>
+
+<p class=MsoNormal style='text-indent:.5in'><i><span style='font-size:12.0pt;
+line-height:107%;font-family:"Times New Roman","serif"'>Figure 4: Prepare two
+services for using SocketPro routing/load balancing feature at server side</span></i></p>
+
+<p class=MsoNormal style='text-indent:.5in'><b><span style='font-size:12.0pt;
+line-height:107%;font-family:"Times New Roman","serif"'>Register a routing by
+the method <i>SetRouting</i>:</span></b><span style='font-size:12.0pt;
+line-height:107%;font-family:"Times New Roman","serif"'> Once two services are
+prepared, we can use the method <i>SetRouting</i> to register them for routing
+as shown in line 89 of the following Figure 5.</span></p>
+
+<p class=MsoNormal style='text-indent:.5in'><span style='font-size:12.0pt;
+line-height:107%;font-family:"Times New Roman","serif"'><img width=705
+height=145 src="snpisec_files/image005.png"></span></p>
+
+<p class=MsoNormal style='text-indent:.5in'><span style='font-size:12.0pt;
+line-height:107%;font-family:"Times New Roman","serif"'> <i>Figure 5: Register
+one routing with the method SetRouting</i></span></p>
+
+<p class=MsoNormal style='text-indent:.5in'><span style='font-size:12.0pt;
+line-height:107%;font-family:"Times New Roman","serif"'>Note that you can
+register multiple routings at server side.</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in;line-height:normal;text-autospace:none'><b><span style='font-size:12.0pt;
+font-family:"Times New Roman","serif"'>Process some requests within router or
+SocketPro server instead of workers:</span></b><span style='font-size:12.0pt;
+font-family:"Times New Roman","serif"'> Under many situations, you may like the
+option to directly process a portion of requests at server side instead of processing
+by workers. To do so, first you have to derive a new class from <i>CClientPeer</i>
+and implement it with the portion of requests as usual. Afterwards, you call
+the method <i>AddAlphaRequest</i> to tell SocketPro server that these requests
+are scheduled to be processed within this SocketPro server instead of workers.</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in;line-height:normal;text-autospace:none'><span style='font-size:9.5pt;
+font-family:Consolas'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpFirst style='text-indent:-.25in'><b><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>5.<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span></span></b><b><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>Client
+side code</span></b></p>
+
+<p class=MsoListParagraphCxSpMiddle><span style='font-size:12.0pt;line-height:
+107%;font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-left:0in;text-indent:.5in'><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>The
+major client code snippet is shown in Figure 6. The code in line 20 starts a
+persistent message queue so that SocketPro ensures request at-least-once
+delivery and auto failure recovery. Codes in line 24 through 37 actually send
+1000 requests to workers for computing 1000 </span><span style='font-size:12.0pt;
+line-height:107%;font-family:"Times New Roman","serif"'>integrals. The Lambda
+expression in line 31 through 36 collects each of 1000 integral values. The
+code in line 38 is a waiting barrier until all expected integral values are
+finished from the workers.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-left:0in;text-indent:.5in'><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-left:0in;text-indent:.5in'><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>Note
+that you can test SocketPro auto failure recovery by shutting down one of the workers.
+The final &#960; value is the same; the count of return integral values will be
+1000, no matter how you shut down one of workers since persistent message queue
+is employed at client side.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle><span style='font-size:12.0pt;line-height:
+107%;font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle><span style='font-size:12.0pt;line-height:
+107%;font-family:"Times New Roman","serif"'><img width=793 height=423
+id="Picture 1" src="snpisec_files/image006.jpg"></span></p>
+
+<p class=MsoListParagraphCxSpMiddle><i><span style='font-size:12.0pt;
+line-height:107%;font-family:"Times New Roman","serif"'>Figure 6: Divide the
+whole </span></i><i><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>numerical integration</span></i><i><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>
+into parts before delivering workloads across multiple workers for processing</span></i></p>
+
+<p class=MsoListParagraphCxSpMiddle><span style='font-size:12.0pt;line-height:
+107%;font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpLast style='text-indent:-.25in'><b><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>6.<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span></span></b><b><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>Worker
+side code</span></b></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in;line-height:normal;text-autospace:none'><span style='font-size:12.0pt;
+font-family:"Times New Roman","serif"'>The worker side code is extremely simple
+as shown in the following Figure 7. First, we use the property <i>RouteeRequest</i>
+in line 13. The actual integral is finished in lines 17 through 27. At the end,
+we send the final integral value back to client using the method <i>SendRouteeResult</i>
+as shown in line 28.</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in;line-height:normal;text-autospace:none'><span style='font-size:12.0pt;
+font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in;line-height:normal;text-autospace:none'><span style='font-size:12.0pt;
+font-family:"Times New Roman","serif"'><img width=598 height=385 id="Picture 4"
+src="snpisec_files/image007.png"></span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in;line-height:normal;text-autospace:none'><i><span style='font-size:12.0pt;
+font-family:"Times New Roman","serif"'>Figure 7: Compute an integral value at
+worker side</span></i></p>
+
+</div>
+
+</body>
+
+</html>

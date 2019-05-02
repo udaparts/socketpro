@@ -1,0 +1,56 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "spanix", "spanix\spanix.csproj", "{E98C6E1C-BB90-40EC-A7FC-87C4E68683F6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "clienttest", "clienttest\clienttest.csproj", "{A2CE0FED-0271-4D03-AA57-684B87E081C8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "servertest", "servertest\servertest.csproj", "{DCA73A65-463F-4274-9267-0EEBEC8B0435}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "clientqueue", "clientqueue\clientqueue.csproj", "{F7E93427-8348-4843-B9AD-5CC7966BB617}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RouteZero", "RouteZero\RouteZero.csproj", "{D1C69830-04B1-4E80-81F8-A6BA93A2F8F2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RouteOne", "RouteOne\RouteOne.csproj", "{5FDB1F90-6AA8-4793-96A2-B211B7C8726A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "replication", "replication\replication.csproj", "{F156A155-1957-4F92-A586-E692392E339F}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{5FDB1F90-6AA8-4793-96A2-B211B7C8726A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5FDB1F90-6AA8-4793-96A2-B211B7C8726A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5FDB1F90-6AA8-4793-96A2-B211B7C8726A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5FDB1F90-6AA8-4793-96A2-B211B7C8726A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A2CE0FED-0271-4D03-AA57-684B87E081C8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A2CE0FED-0271-4D03-AA57-684B87E081C8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A2CE0FED-0271-4D03-AA57-684B87E081C8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A2CE0FED-0271-4D03-AA57-684B87E081C8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D1C69830-04B1-4E80-81F8-A6BA93A2F8F2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D1C69830-04B1-4E80-81F8-A6BA93A2F8F2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D1C69830-04B1-4E80-81F8-A6BA93A2F8F2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D1C69830-04B1-4E80-81F8-A6BA93A2F8F2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DCA73A65-463F-4274-9267-0EEBEC8B0435}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DCA73A65-463F-4274-9267-0EEBEC8B0435}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DCA73A65-463F-4274-9267-0EEBEC8B0435}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DCA73A65-463F-4274-9267-0EEBEC8B0435}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E98C6E1C-BB90-40EC-A7FC-87C4E68683F6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E98C6E1C-BB90-40EC-A7FC-87C4E68683F6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E98C6E1C-BB90-40EC-A7FC-87C4E68683F6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E98C6E1C-BB90-40EC-A7FC-87C4E68683F6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F156A155-1957-4F92-A586-E692392E339F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F156A155-1957-4F92-A586-E692392E339F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F156A155-1957-4F92-A586-E692392E339F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F156A155-1957-4F92-A586-E692392E339F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F7E93427-8348-4843-B9AD-5CC7966BB617}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F7E93427-8348-4843-B9AD-5CC7966BB617}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F7E93427-8348-4843-B9AD-5CC7966BB617}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F7E93427-8348-4843-B9AD-5CC7966BB617}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(MonoDevelopProperties) = preSolution
+		StartupItem = clienttest\clienttest.csproj
+	EndGlobalSection
+EndGlobal

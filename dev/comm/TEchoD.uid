@@ -1,0 +1,12 @@
+
+[	
+	ServiceID = 3 //service id can't be less than 0
+]			
+CEchoSys
+{
+	MyStruct EchoMyStruct(MyStruct my);
+	CUQueue EchoUQueue(CUQueue q);
+	object EchoComplex0(double d, string s, object simpleObj, bool b, out string sOut);
+}
+
+

@@ -1,0 +1,349 @@
+<html>
+
+<head>
+<meta http-equiv=Content-Type content="text/html; charset=windows-1252">
+<meta name=Generator content="Microsoft Word 12 (filtered)">
+<style>
+<!--
+ /* Font Definitions */
+ @font-face
+	{font-family:Wingdings;
+	panose-1:5 0 0 0 0 0 0 0 0 0;}
+@font-face
+	{font-family:"Cambria Math";
+	panose-1:2 4 5 3 5 4 6 3 2 4;}
+@font-face
+	{font-family:Calibri;
+	panose-1:2 15 5 2 2 2 4 3 2 4;}
+@font-face
+	{font-family:Tahoma;
+	panose-1:2 11 6 4 3 5 4 4 2 4;}
+ /* Style Definitions */
+ p.MsoNormal, li.MsoNormal, div.MsoNormal
+	{margin-top:0in;
+	margin-right:0in;
+	margin-bottom:8.0pt;
+	margin-left:0in;
+	line-height:107%;
+	font-size:11.0pt;
+	font-family:"Calibri","sans-serif";}
+p.MsoHeader, li.MsoHeader, div.MsoHeader
+	{mso-style-link:"Header Char";
+	margin:0in;
+	margin-bottom:.0001pt;
+	font-size:11.0pt;
+	font-family:"Calibri","sans-serif";}
+p.MsoFooter, li.MsoFooter, div.MsoFooter
+	{mso-style-link:"Footer Char";
+	margin:0in;
+	margin-bottom:.0001pt;
+	font-size:11.0pt;
+	font-family:"Calibri","sans-serif";}
+a:link, span.MsoHyperlink
+	{color:blue;
+	text-decoration:underline;}
+a:visited, span.MsoHyperlinkFollowed
+	{color:#954F72;
+	text-decoration:underline;}
+p.MsoAcetate, li.MsoAcetate, div.MsoAcetate
+	{mso-style-link:"Balloon Text Char";
+	margin:0in;
+	margin-bottom:.0001pt;
+	font-size:8.0pt;
+	font-family:"Tahoma","sans-serif";}
+p.MsoListParagraph, li.MsoListParagraph, div.MsoListParagraph
+	{margin-top:0in;
+	margin-right:0in;
+	margin-bottom:8.0pt;
+	margin-left:.5in;
+	line-height:107%;
+	font-size:11.0pt;
+	font-family:"Calibri","sans-serif";}
+p.MsoListParagraphCxSpFirst, li.MsoListParagraphCxSpFirst, div.MsoListParagraphCxSpFirst
+	{margin-top:0in;
+	margin-right:0in;
+	margin-bottom:0in;
+	margin-left:.5in;
+	margin-bottom:.0001pt;
+	line-height:107%;
+	font-size:11.0pt;
+	font-family:"Calibri","sans-serif";}
+p.MsoListParagraphCxSpMiddle, li.MsoListParagraphCxSpMiddle, div.MsoListParagraphCxSpMiddle
+	{margin-top:0in;
+	margin-right:0in;
+	margin-bottom:0in;
+	margin-left:.5in;
+	margin-bottom:.0001pt;
+	line-height:107%;
+	font-size:11.0pt;
+	font-family:"Calibri","sans-serif";}
+p.MsoListParagraphCxSpLast, li.MsoListParagraphCxSpLast, div.MsoListParagraphCxSpLast
+	{margin-top:0in;
+	margin-right:0in;
+	margin-bottom:8.0pt;
+	margin-left:.5in;
+	line-height:107%;
+	font-size:11.0pt;
+	font-family:"Calibri","sans-serif";}
+span.BalloonTextChar
+	{mso-style-name:"Balloon Text Char";
+	mso-style-link:"Balloon Text";
+	font-family:"Tahoma","sans-serif";}
+span.apple-converted-space
+	{mso-style-name:apple-converted-space;}
+span.HeaderChar
+	{mso-style-name:"Header Char";
+	mso-style-link:Header;}
+span.FooterChar
+	{mso-style-name:"Footer Char";
+	mso-style-link:Footer;}
+.MsoPapDefault
+	{margin-bottom:8.0pt;
+	line-height:107%;}
+ /* Page Definitions */
+ @page WordSection1
+	{size:11.0in 8.5in;
+	margin:1.0in 1.0in 1.0in 1.0in;}
+div.WordSection1
+	{page:WordSection1;}
+ /* List Definitions */
+ ol
+	{margin-bottom:0in;}
+ul
+	{margin-bottom:0in;}
+-->
+</style>
+
+</head>
+
+<body lang=EN-US link=blue vlink="#954F72">
+
+<div class=WordSection1>
+
+<p class=MsoNormal align=center style='text-align:center'><b><span
+style='font-size:14.0pt;line-height:107%;font-family:"Times New Roman","serif"'>Tutorial
+6 – Data Replication by Persistent Message Queue</span></b></p>
+
+<p class=MsoNormal><span style='font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoNormal><b><span style='font-size:12.0pt;line-height:107%;
+font-family:"Times New Roman","serif"'>Contents:</span></b></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt'><b><i><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>Introduction</span></i></b></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt'><b><i><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>Replication
+architectures</span></i></b></p>
+
+<p class=MsoListParagraphCxSpFirst style='margin-bottom:0in;margin-bottom:.0001pt;
+text-indent:-.25in'><span style='font-size:12.0pt;line-height:107%;font-family:
+Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><i><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>One message queue to one target</span></i></p>
+
+<p class=MsoListParagraphCxSpLast style='margin-bottom:0in;margin-bottom:.0001pt;
+text-indent:-.25in'><span style='font-size:12.0pt;line-height:107%;font-family:
+Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><i><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>One root persistent message queue replicated to
+multiple ones</span></i></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt'><b><i><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>Replication
+code snippet</span></i></b></p>
+
+<p class=MsoListParagraphCxSpFirst><span style='font-size:12.0pt;line-height:
+107%;font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='text-indent:-.25in'><b><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>1.<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span></span></b><b><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>Introduction</span></b></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-left:0in;text-indent:.5in'><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif";
+color:black;background:white'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-left:0in;text-indent:.5in'><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif";
+color:#252525;background:white'>Data replication</span><span
+class=apple-converted-space><span style='font-size:12.0pt;line-height:107%;
+font-family:"Times New Roman","serif";color:#252525;background:white'>&nbsp;</span></span><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif";
+color:#252525;background:white'>in<span class=apple-converted-space>&nbsp;</span></span><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>computing
+science<span class=apple-converted-space><span style='color:#252525;background:
+white'>&nbsp;</span></span><span style='color:#252525;background:white'>involves
+sharing information to ensure consistency among redundant resources to improve
+reliability, accessibility and fault-tolerance. Data replication has many usages
+such as database replication, disk storage replication, memory/cache data
+replication, hybrid database replication and so on.</span></span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-left:0in;text-indent:.5in'><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif";
+color:#252525;background:white'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-left:0in;text-indent:.5in'><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif";
+color:#252525;background:white'>SocketPro supports asynchronous transactional
+replication fully in agreement with all ACID (atomicity, consistency, isolation
+and durability) properties and guarantee complete consistency among all copies
+of replicated data. Once target machines are connected, replicate data are
+pushed over network as early as possible. With the help of SocketPro
+replication, you can programmatically replicate selected portions of arbitrary
+data onto different target machines. SocketPro replication is realized by use
+of its client side persistent message queue.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-left:0in;text-indent:.5in'><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif";
+color:black;background:white'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-left:0in;text-indent:.5in'><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif";
+color:black;background:white'>The tutorial project is located at the directory ..\tutorials\(csharp|vbnet|cplusplus|java\src|ce|python)\replication.
+To test this sample, you need starting <a href="helloworld.htm">tutorial one</a> server first. There is an
+extra sample about the application of SocketPro replication on MS sql server at
+the directory ..\samples\mssqlpush\(csharp|vbnet).</span></p>
+
+<p class=MsoListParagraphCxSpMiddle><b><span style='font-size:12.0pt;
+line-height:107%;font-family:"Times New Roman","serif"'>&nbsp;</span></b></p>
+
+<p class=MsoListParagraphCxSpLast style='text-indent:-.25in'><b><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>2.<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span></span></b><b><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>Replication
+architectures</span></b></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in'><a name="_GoBack"></a><b><span style='font-size:12.0pt;line-height:107%;
+font-family:"Times New Roman","serif"'>One persistent message queue to one target:</span></b><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>
+If there is only one receiving application for data, internally SocketPro directly
+uses one client persistent message queue as shown in Figure 1. The queued data
+will be pushed onto a SocketPro server as long as the server is connected. From
+the server side, you can process those de-queued messages as usual. </span></p>
+
+<p class=MsoListParagraphCxSpFirst><b><span style='font-family:"Times New Roman","serif"'><img
+width=485 height=144 id="Picture 1" src="replication_files/image001.png"></span></b></p>
+
+<p class=MsoListParagraphCxSpMiddle><i><span style='font-size:12.0pt;
+line-height:107%;font-family:"Times New Roman","serif"'>Figure 1: One
+persistent message queue to one target remote SocketPro server</span></i></p>
+
+<p class=MsoListParagraphCxSpMiddle><span style='font-size:12.0pt;line-height:
+107%;font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-left:0in;text-indent:.5in'><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>It
+should be noted that there is no replication that is happening for this
+scenario since there is no need for any replication.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-left:0in;text-indent:.5in'><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin:0in;margin-bottom:.0001pt;
+text-indent:.5in'><b><span style='font-size:12.0pt;line-height:107%;font-family:
+"Times New Roman","serif"'>One root persistent message queue replicated to
+multiple ones:</span></b><span style='font-size:12.0pt;line-height:107%;
+font-family:"Times New Roman","serif"'> In case you like to push a copy of data
+to different SocketPro servers and ensure consistency among these copies,
+SocketPro will use the following architecture as shown in the Figure 2.</span></p>
+
+<p class=MsoListParagraphCxSpMiddle><span style='font-size:12.0pt;line-height:
+107%;font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoListParagraphCxSpMiddle><span style='font-size:12.0pt;line-height:
+107%;font-family:"Times New Roman","serif"'><img width=797 height=292
+id="Picture 2" src="replication_files/image002.jpg"></span></p>
+
+<p class=MsoListParagraphCxSpMiddle><i><span style='font-size:12.0pt;
+line-height:107%;font-family:"Times New Roman","serif"'>Figure 2: One root
+message queue replicated to three ones</span></i></p>
+
+<p class=MsoListParagraphCxSpMiddle><i><span style='font-size:12.0pt;
+line-height:107%;font-family:"Times New Roman","serif"'>&nbsp;</span></i></p>
+
+<p class=MsoListParagraphCxSpMiddle style='margin-left:0in;text-indent:.5in'><span
+style='font-size:12.0pt;line-height:107%;font-family:"Times New Roman","serif"'>Initially
+one or more messages are en-queued into a root message queue at the left side
+for safety. Once informed by your code, all messages stored inside the left root
+message queue are replicated onto three different message queues as shown in Figure
+2 above. Both the left side en-queuing and successive replication are
+completely <span style='color:#252525;background:white'>in agreement with all
+ACID requirements. Each of the three persistent message queues is connected
+with one remote SocketPro server. Internally, SocketPro will automatically de-queue
+inside messages and send them to their connected SocketPro server for
+successive processing.</span></span></p>
+
+<p class=MsoListParagraphCxSpMiddle><i><span style='font-size:12.0pt;
+line-height:107%;font-family:"Times New Roman","serif"'>&nbsp;</span></i></p>
+
+<p class=MsoListParagraphCxSpLast style='text-indent:-.25in'><b><span
+style='font-family:"Times New Roman","serif"'>3.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span></b><b><span style='font-family:"Times New Roman","serif"'>Replication
+code snippet</span></b></p>
+
+<p class=MsoNormal style='text-indent:.5in'><span style='font-family:"Times New Roman","serif"'>It
+is very simple to use replication with SocketPro as shown in the Figure 3 below.</span></p>
+
+<p class=MsoNormal style='margin-left:.5in'><span style='font-family:"Times New Roman","serif"'><img
+width=777 height=303 id="Picture 4" src="replication_files/image003.png"></span></p>
+
+<p class=MsoNormal style='margin-left:.5in'><i><span style='font-family:"Times New Roman","serif"'>Figure
+3: One root message queue replicated to two queues </span></i></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in;line-height:normal;text-autospace:none'><span style='font-size:12.0pt;
+font-family:"Times New Roman","serif"'>As usual, we set the message queue
+password at line 28. Afterwards, we set a working directory to store all message
+queue files at line 29. Next, we create a default replication setting structure
+at line 30, and initialize an instance of <i>CReplication</i> at line 31.</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in;line-height:normal;text-autospace:none'><span style='font-size:12.0pt;
+font-family:"Times New Roman","serif"'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in;line-height:normal;text-autospace:none'><span style='font-size:12.0pt;
+font-family:"Times New Roman","serif"'>At this time, we create a dictionary
+containing two mappings of right side queue name and connection context of Figure
+2 above (Tolocalcsharp/127.0.0.1 and Tolinuxcsharp/192.168.1.109) to its remote
+server from lines 32 through 36.</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in;line-height:normal;text-autospace:none'><span style='font-size:12.0pt;
+font-family:"Times New Roman","serif"'>In line 37, we start running a replication
+with a given name for root message queue name. If there are any messages left
+inside the root message queue or any previous crash detected, calling the
+method, Start, will lead to processing and replication of them following <span
+style='color:#252525;background:white'>ACID rules.</span></span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in;line-height:normal;text-autospace:none'><span style='font-size:12.0pt;
+font-family:"Times New Roman","serif";color:#252525;background:white'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in;line-height:normal;text-autospace:none'><span style='font-size:12.0pt;
+font-family:"Times New Roman","serif";color:#252525;background:white'>The codes
+from line 38 through 41 en-queue two requests in one transaction manually.
+SocketPro uses <i>StartJob</i> and <i>EndJob/AbortJob</i> as database <i>BeginTran</i>
+and <i>Commit/Rollback</i> for manual transaction. If you don’t use lines 38
+and 41, you are using auto transaction for two separate transactions as you did
+for all databases. However, please note that there are no callbacks involved
+with replication for those two requests.</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in;line-height:normal;text-autospace:none'><span style='font-size:12.0pt;
+font-family:"Times New Roman","serif";color:#252525;background:white'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;text-indent:
+.5in;line-height:normal;text-autospace:none'><span style='font-size:12.0pt;
+font-family:"Times New Roman","serif";color:#252525;background:white'>To test
+replication, you need to start the <a href="helloworld.htm">tutorial one hello world server</a>.</span></p>
+
+</div>
+
+</body>
+
+</html>
