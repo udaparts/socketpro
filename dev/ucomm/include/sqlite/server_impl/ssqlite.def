@@ -1,0 +1,12 @@
+
+LIBRARY			"ssqlite.dll"
+
+EXPORTS
+	InitServerLibrary	@1
+    UninitServerLibrary	@2
+    GetNumOfServices	@3
+    GetAServiceID		@4
+    GetOneSvsContext	@5
+    GetNumOfSlowRequests	@6
+    GetOneSlowRequestID	@7
+	SetSqliteDBGlobalConnectionString @8

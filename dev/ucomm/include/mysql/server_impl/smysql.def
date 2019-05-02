@@ -1,0 +1,14 @@
+
+LIBRARY			"smysql.dll"
+
+EXPORTS
+	InitServerLibrary	@1
+    UninitServerLibrary	@2
+    GetNumOfServices	@3
+    GetAServiceID		@4
+    GetOneSvsContext	@5
+    GetNumOfSlowRequests	@6
+    GetOneSlowRequestID	@7
+	SetMysqlDBGlobalConnectionString @8
+	SetMysqlEmbeddedOptions @9
+	DoMySQLAuthentication @10
