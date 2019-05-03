@@ -50,8 +50,8 @@ void CClientSession::ReleaseIoBuffer(unsigned char *buffer) {
 }
 
 CClientSession::mutex CClientSession::m_mutexQLI;
-std::vector<boost::shared_ptr<MQ_FILE::CMqFile> > CClientSession::m_vQRequest;
-boost::shared_ptr<MQ_FILE::CQLastIndex> CClientSession::m_pQLastIndex;
+std::vector<MQ_FILE::CFilePtr > CClientSession::m_vQRequest;
+MQ_FILE::CQLastIndexPtr CClientSession::m_pQLastIndex;
 
 CClientSession::CClientSession(CIoService &IoService, CClientThread *pClientThread)
 :
@@ -1695,7 +1695,7 @@ bool CClientSession::GetAutoConn() {
 
 bool CClientSession::Find(const std::string &rawName) {
     CAutoLock sl(m_mutexQLI);
-    std::vector<boost::shared_ptr<MQ_FILE::CMqFile> >::iterator it, end = m_vQRequest.end();
+    std::vector<MQ_FILE::CFilePtr>::iterator it, end = m_vQRequest.end();
     for (it = m_vQRequest.begin(); it != end; ++it) {
         if ((*it)->GetMQFileName().find(rawName) == 0)
             return true;
@@ -1753,9 +1753,9 @@ bool CClientSession::StartQueueInternal(const char *qName, bool secure, bool deq
         SPA::Utilities::ToWide(id.c_str(), id.size(), *tempSQ);
         std::wstring wid = (const wchar_t*) tempSQ->GetBuffer();
 #endif
-        m_qRequest = boost::shared_ptr<MQ_FILE::CMqFile > (new MQ_FILE::CMqFileEx(fn.c_str(), ttl, SPA::oSystemMemoryCached, wid.c_str(), pwd.c_str(), m_pQLastIndex.get(), true, dequeueShared));
+        m_qRequest.reset(new MQ_FILE::CMqFileEx(fn.c_str(), ttl, SPA::oSystemMemoryCached, wid.c_str(), pwd.c_str(), m_pQLastIndex.get(), true, dequeueShared));
     } else {
-        m_qRequest = boost::shared_ptr<MQ_FILE::CMqFile > (new MQ_FILE::CMqFile(fn.c_str(), ttl, SPA::oSystemMemoryCached, false, true, dequeueShared));
+        m_qRequest.reset(new MQ_FILE::CMqFile(fn.c_str(), ttl, SPA::oSystemMemoryCached, false, true, dequeueShared));
     }
 #ifndef WINCE
     if (m_qRequest)
@@ -1857,7 +1857,7 @@ void CClientSession::SetOptimistic(SPA::tagOptimistic bOptimistic) {
         m_qRequest->SetOptimistic(bOptimistic);
 }
 
-SPA::UINT64 CClientSession::AppendQueue(boost::shared_ptr<MQ_FILE::CMqFile> q) {
+SPA::UINT64 CClientSession::AppendQueue(MQ_FILE::CFilePtr q) {
     if (!q || !q->IsAvailable())
         return 0;
     CAutoLock al(m_mutex);
@@ -2090,7 +2090,7 @@ void CClientSession::StopQueueInternal(bool permanent) {
     if (CheckQueueAvailable()) {
         qFileName = m_qRequest->GetMQFileName();
         CAutoLock al(m_mutexQLI);
-        std::vector<boost::shared_ptr<MQ_FILE::CMqFile> >::iterator it = std::find(m_vQRequest.begin(), m_vQRequest.end(), m_qRequest);
+        std::vector<MQ_FILE::CFilePtr >::iterator it = std::find(m_vQRequest.begin(), m_vQRequest.end(), m_qRequest);
         if (it != m_vQRequest.end())
             m_vQRequest.erase(it);
     }
@@ -2418,7 +2418,7 @@ void CClientSession::SetVQtrans() {
     unsigned int removed = m_qRequest->ConfirmDequeueJob(&m_vQTrans.front(), m_vQTrans.size(), m_bConfirmFail);
 }
 
-boost::shared_ptr<MQ_FILE::CMqFile> CClientSession::GetQueue() {
+MQ_FILE::CFilePtr CClientSession::GetQueue() {
     CAutoLock sl(m_mutex);
     return m_qRequest;
 }
@@ -2843,7 +2843,7 @@ void CClientSession::OnReadCompleted(const CErrorCode& Error, size_t nLen) {
                             DWORD total = chains->cElement;
                             for (DWORD n = 0; n < total; ++n) {
                                 PCERT_CHAIN_ELEMENT one = chains->rgpElement[n];
-                                boost::scoped_ptr<SPA::CCertificateImpl> pCert(new SPA::CCertificateImpl(one->pCertContext, ""));
+								SPA::CCertificateImplPtr pCert(new SPA::CCertificateImpl(one->pCertContext, ""));
                                 ok = cvc(ok, n, one->TrustStatus.dwErrorStatus, SPA::CCertificateImpl::MapErrorMessage(one->TrustStatus.dwErrorStatus), pCert.get());
                                 if (!ok)
                                     break;

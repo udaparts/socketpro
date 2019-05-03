@@ -11,8 +11,6 @@
 #include <mutex>
 #include <thread>
 #include <condition_variable>
-//using namespace std::chrono_literals;
-
 #else
 #include <boost/thread.hpp>
 #include <boost/thread/condition_variable.hpp>

@@ -35,7 +35,7 @@ public:
     bool IsKilling();
     void SetKilling();
     void PostTimerMessage();
-    typedef std::vector<boost::shared_ptr<CClientThread> > CClientThreadVector;
+	typedef std::vector<CClientThreadPtr> CClientThreadVector;
     typedef CClientThread* PClientThread;
     bool GetQueueAutoMerge();
     void SetQueueAutoMerge(bool autoMerge);

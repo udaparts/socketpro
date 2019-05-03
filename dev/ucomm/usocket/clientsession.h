@@ -26,15 +26,9 @@ public:
     CClientSession(const CClientSession &cs);
     CClientSession& operator=(const CClientSession &cs);
 
-#ifndef WINCE
-	typedef std::unique_lock<std::mutex> CAutoLock;
-	using mutex = std::mutex;
-	using thread = std::thread;
-#else
-	typedef boost::mutex::scoped_lock CAutoLock;
-	using mutex = boost::mutex;
-	using thread = boost::thread;
-#endif
+	using CAutoLock = MQ_FILE::CAutoLock;
+	using mutex = MQ_FILE::mutex;
+	using thread = MQ_FILE::thread;
 
 public:
     SPA::tagOperationSystem GetPeerOs(bool *endian);
@@ -152,9 +146,9 @@ public:
     bool IsRouteeRequest();
     bool SendRouteeResult(unsigned short reqId, const unsigned char *buffer, unsigned int len);
     unsigned int GetRouteeCount();
-    SPA::UINT64 AppendQueue(boost::shared_ptr<MQ_FILE::CMqFile> q);
+    SPA::UINT64 AppendQueue(MQ_FILE::CFilePtr q);
     bool IsDequeueShared();
-    boost::shared_ptr<MQ_FILE::CMqFile> GetQueue();
+	MQ_FILE::CFilePtr GetQueue();
     unsigned int GetTTL();
     SPA::UINT64 RemoveQueuedRequestsByTTL();
     void ResetQueue();
@@ -278,9 +272,9 @@ private:
     unsigned int m_nConnTimeout;
     unsigned int m_nRecvTimeout;
     unsigned int m_nCancel;
-    boost::shared_ptr<SPA::CCertificateImpl> m_pCert;
+	SPA::CCertificateImplPtr m_pCert;
     std::wstring m_strUserId;
-    boost::shared_ptr<MQ_FILE::CMqFile> m_qRequest;
+	MQ_FILE::CFilePtr m_qRequest;
     MQ_FILE::CQueueInitialInfo m_ServerQFile;
     bool m_bAutoConn;
     unsigned int m_nPoolId;
@@ -316,13 +310,13 @@ private:
 #endif
 
     static mutex m_mutexQLI;
-    static std::vector<boost::shared_ptr<MQ_FILE::CMqFile> > m_vQRequest;
+    static std::vector<MQ_FILE::CFilePtr > m_vQRequest;
 
     static mutex m_mutexBuffer;
     static std::vector<unsigned char*> m_aBuffer;
 
 public:
-    static boost::shared_ptr<MQ_FILE::CQLastIndex> m_pQLastIndex;
+    static MQ_FILE::CQLastIndexPtr m_pQLastIndex;
 
     POnEnter2 m_OnSubscribe2;
     POnExit2 m_OnUnsubscribe2;
@@ -334,6 +328,12 @@ public:
     CClientSession *m_to;
     std::string m_hn;
 };
+
+#ifndef WINCE
+typedef std::shared_ptr<CClientSession> CClientSessionPtr;
+#else
+typedef boost::shared_ptr<CClientSession> CClientSessionPtr;
+#endif
 
 
 #endif

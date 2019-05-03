@@ -2,7 +2,6 @@
 #include "clientthread.h"
 #include "clientsession.h"
 #include "../clientcore/socketpool.h"
-#include <boost/scoped_ptr.hpp>
 
 #ifndef WINCE
 extern std::mutex g_Mutex;
@@ -15,8 +14,6 @@ boost::mutex g_mutexCvc;
 #endif
 
 extern std::vector<CSocketPool*> g_vSocketPool;
-
-
 
 volatile long CClientThread::MyTimerSet::m_stop = 0;
 
@@ -144,7 +141,7 @@ bool CClientThread::Start() {
         unsigned int session = m_session;
         while (session) {
             LockState ls(this);
-            boost::shared_ptr<CClientSession> p(new CClientSession(GetIoService(), this));
+			CClientSessionPtr p(new CClientSession(GetIoService(), this));
             m_mutex.lock();
             m_mapClientSession.push_back(CSessionState(p, ls));
             m_mutex.unlock();
@@ -162,7 +159,7 @@ SPA::UINT64 CClientThread::GetLockedEx() {
             CAutoLock alml(m_ml);
             if (it->second.Locked)
                 data += LOCKED_REQUEST_COUNT;
-            boost::shared_ptr<MQ_FILE::CMqFile> q = it->first->GetQueue();
+            MQ_FILE::CFilePtr q = it->first->GetQueue();
             if (q) {
                 data += q->GetMessageCount();
             } else {
@@ -241,7 +238,7 @@ bool CClientThread::SortUnlocked(const CSessionState &p0, const CSessionState &p
     if (p0.second.Locked) {
         p0_count = (~0);
     } else {
-        boost::shared_ptr<MQ_FILE::CMqFile> q = p0.first->GetQueue();
+		MQ_FILE::CFilePtr q = p0.first->GetQueue();
         if (q)
             p0_count = q->GetMessageCount();
         else
@@ -251,7 +248,7 @@ bool CClientThread::SortUnlocked(const CSessionState &p0, const CSessionState &p
     if (p1.second.Locked) {
         p1_count = (~0);
     } else {
-        boost::shared_ptr<MQ_FILE::CMqFile> q = p1.first->GetQueue();
+		MQ_FILE::CFilePtr q = p1.first->GetQueue();
         if (q)
             p1_count = q->GetMessageCount();
         else
@@ -260,7 +257,7 @@ bool CClientThread::SortUnlocked(const CSessionState &p0, const CSessionState &p
     return (p0_count < p1_count);
 }
 
-boost::shared_ptr<CClientSession> CClientThread::Lock() {
+CClientSessionPtr CClientThread::Lock() {
     //CAutoLock al(m_mutex);
     std::sort(m_mapClientSession.begin(), m_mapClientSession.end(), SortUnlocked);
     for (CMapClientSession::iterator it = m_mapClientSession.begin(), end = m_mapClientSession.end(); it != end; ++it) {
@@ -282,7 +279,7 @@ boost::shared_ptr<CClientSession> CClientThread::Lock() {
             m_ml.unlock();
         }
     }
-    return boost::shared_ptr<CClientSession > ();
+    return nullptr;
 }
 
 USocket_Client_Handle CClientThread::FindAClosedSocket() {
@@ -300,7 +297,7 @@ std::vector<CClientSession*> CClientThread::FindQueuedSessions() {
     for (CMapClientSession::iterator it = m_mapClientSession.begin(), end = m_mapClientSession.end(); it != end; ++it) {
         if (it->first->IsOpened())
             continue;
-        boost::shared_ptr<MQ_FILE::CMqFile> q = it->first->GetQueue();
+		MQ_FILE::CFilePtr q = it->first->GetQueue();
         if (q && q->IsAvailable() && q->GetJobSize() == 0 && q->GetMessageCount() > 0) {
             vSession.push_back(it->first.get());
         }
@@ -316,7 +313,7 @@ CClientSession* CClientThread::SeekSmallQueue(CClientSession* session) {
             continue;
         if (s->m_hn == session->m_hn)
             continue;
-        boost::shared_ptr<MQ_FILE::CMqFile> q = s->GetQueue();
+		MQ_FILE::CFilePtr q = s->GetQueue();
         if (q && q->IsAvailable() && q->GetJobSize() == 0) {
             if (!p) {
                 p = s;

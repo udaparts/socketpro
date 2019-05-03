@@ -4,6 +4,11 @@
 
 #include "../../include/ucomm.h"
 #include "scsspi.h"
+#ifndef WINCE
+#include <memory>
+#else
+#include <boost/shared_ptr.hpp>
+#endif
 
 namespace SPA {
 
@@ -47,9 +52,11 @@ namespace SPA {
         std::string m_strNotAfter;
         std::string m_strNotBefore;
     };
-
+#ifndef WINCE
+	typedef std::shared_ptr<CCertificateImpl> CCertificateImplPtr;
+#else
     typedef boost::shared_ptr<CCertificateImpl> CCertificateImplPtr;
-
+#endif
 } //namespace SPA
 
 #endif

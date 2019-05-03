@@ -1159,7 +1159,7 @@ SPA::tagQueueStatus WINAPI GetClientQueueStatus(USocket_Client_Handle h) {
     CClientSession *cs = MapHandleToClientSession(h);
     if (!cs)
         return SPA::qsNormal;
-    boost::shared_ptr<MQ_FILE::CMqFile> q = cs->GetQueue();
+    MQ_FILE::CFilePtr q = cs->GetQueue();
     if (!q)
         return SPA::qsNormal;
     return q->GetQueueOpenStatus();

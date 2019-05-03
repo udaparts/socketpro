@@ -3,7 +3,6 @@
 #define ___UDAPARTS_COMM_SSPI_I_H__
 
 #include "../../include/membuffer.h"
-#include <boost/shared_ptr.hpp>
 
 #ifndef SECURITY_WIN32
 #define SECURITY_WIN32
@@ -102,7 +101,11 @@ namespace SPA {
         bool m_bClientReset;
         bool m_clientCertAuth;
     };
+#ifndef WINCE
+	typedef std::shared_ptr<CSspi> CSspiPtr;
+#else
     typedef boost::shared_ptr<CSspi> CSspiPtr;
+#endif
 }
 
 #endif

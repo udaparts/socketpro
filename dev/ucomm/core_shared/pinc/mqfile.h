@@ -12,20 +12,14 @@
 #include <mutex>
 #include <thread>
 #include <condition_variable>
+#include <memory>
 #include <map>
 #else
-
-/*
-#if defined(__ANDROID__) || defined(ANDROID)
-#include <unordered_map> //slower
-#else
-#include <boost/unordered_map.hpp> //faster
-#endif
- */
 #include <boost/thread.hpp>
 #include <boost/thread/condition_variable.hpp>
+#include <boost/shared_ptr.hpp>
 #endif
-#include <boost/scoped_ptr.hpp>
+
 #include <boost/unordered_map.hpp> //faster
 #include "../shared/streamhead.h"
 #include "../../include/ucomm.h"
@@ -132,11 +126,14 @@ namespace MQ_FILE {
 	using condition_variable = std::condition_variable;
 	using ms = std::chrono::milliseconds;
 	typedef std::unique_lock<std::mutex> CAutoLock;
+	typedef std::shared_ptr<CBlowFish> CBlowFishPtr;
+
 #else
 	using thread = boost::thread;
 	using mutex = boost::mutex;
 	using condition_variable = boost::condition_variable;
 	typedef boost::mutex::scoped_lock CAutoLock;
+	typedef boost::shared_ptr<CBlowFish> CBlowFishPtr;
 #endif
 
     class CMqFile {
@@ -362,7 +359,7 @@ namespace MQ_FILE {
         CMqFileEx& operator=(const CMqFileEx &file);
 
     private:
-        boost::scoped_ptr<CBlowFish> m_bf;
+		CBlowFishPtr m_bf;
     };
 
     /*
@@ -435,11 +432,19 @@ namespace MQ_FILE {
         CMyContainer& operator=(const CMyContainer &c);
 
     private:
-        boost::scoped_ptr<CBlowFish> m_bf;
+		CBlowFishPtr m_bf;
         mutex m_cs;
     };
 
     extern mutex g_csQFile;
     extern std::vector<CMqFile*> g_vQFile;
     extern std::vector<CQLastIndex*> g_vQLastIndex;
+
+#ifndef WINCE
+	typedef std::shared_ptr<CMqFile> CFilePtr;
+	typedef std::shared_ptr<CQLastIndex> CQLastIndexPtr;
+#else
+	typedef boost::shared_ptr<CMqFile> CFilePtr;
+	typedef boost::shared_ptr<CQLastIndex> CQLastIndexPtr;
+#endif
 };

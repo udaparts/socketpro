@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include "../include/commutil.h"
+#include "../../include/commutil.h"
 #include <string>
 
 #ifdef WIN32_64

@@ -63,7 +63,7 @@ bool CSocketPool::AddOneThread() {
     if (m_spc) {
         m_spc(m_poolId, SPA::ClientSide::speCreatingThread, nullptr);
     }
-    boost::shared_ptr<CClientThread> p(new CClientThread(m_spc, m_SocketsPerThread, this, m_ta));
+    CClientThreadPtr p(new CClientThread(m_spc, m_SocketsPerThread, this, m_ta));
     bool b = p->Start();
     if (!b)
         return false;
@@ -133,7 +133,7 @@ void CSocketPool::OnFindClosed() {
 }
 
 void CSocketPool::OnCloseInternal(CClientSession *session) {
-    boost::shared_ptr<MQ_FILE::CMqFile> q = session->GetQueue();
+	MQ_FILE::CFilePtr q = session->GetQueue();
     if (!q || !q->IsAvailable())
         return;
     if (q->GetJobSize() > 0)
@@ -212,7 +212,7 @@ unsigned int CSocketPool::GetConnectedSockets() {
 
 bool CSocketPool::DisconnectAll() {
     m_mutex.lock();
-    std::vector<boost::shared_ptr<CClientThread> > temp(m_vThread);
+    std::vector<CClientThreadPtr> temp(m_vThread);
     m_bDisconenctAll = true;
     m_mutex.unlock();
 

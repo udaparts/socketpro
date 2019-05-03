@@ -5,7 +5,6 @@
 #include "../include/definebase.h"
 #include "../include/uclient.h"
 #include "../core_shared/shared/uthread.h"
-#include <boost/shared_ptr.hpp>
 
 class CClientSession;
 class CSocketPool;
@@ -20,7 +19,13 @@ struct LockState {
     bool Locked;
 };
 
-typedef std::pair<boost::shared_ptr<CClientSession>, LockState> CSessionState;
+#ifndef WINCE
+typedef std::shared_ptr<CClientSession> CClientSessionPtr;
+#else
+typedef boost::shared_ptr<CClientSession> CClientSessionPtr;
+#endif
+
+typedef std::pair<CClientSessionPtr, LockState> CSessionState;
 typedef std::vector<CSessionState> CMapClientSession;
 
 class CClientThread : public SPA::CUCommThread {
@@ -35,7 +40,7 @@ public:
     bool IsBusy();
     CSocketPool* GetPool() const;
     unsigned int GetTimerInterval() const;
-    boost::shared_ptr<CClientSession> Lock();
+	CClientSessionPtr Lock();
     bool Unlock(USocket_Client_Handle h);
     unsigned int GetLocked();
     unsigned int GetConnectedSockets();
@@ -91,6 +96,11 @@ private:
 };
 
 typedef CClientThread* PCClientThread;
+#ifndef WINCE
+typedef std::shared_ptr<CClientThread> CClientThreadPtr;
+#else
+typedef boost::shared_ptr<CClientThread> CClientThreadPtr;
+#endif
 
 #endif
 
