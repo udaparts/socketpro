@@ -32,7 +32,7 @@
 #endif
 
 #include "StackWalker.h"
-#include "../../pinc/getsysid.h"
+#include "../core_shared/pinc/getsysid.h"
 
 // If VC7 and later, then use the shipped 'dbghelp.h'-file
 #if _MSC_VER >= 1300

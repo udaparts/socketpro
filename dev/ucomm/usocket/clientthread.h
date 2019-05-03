@@ -2,8 +2,8 @@
 #ifndef _UMB_CLIENT_THREAD_H__
 #define _UMB_CLIENT_THREAD_H__
 
-#include "../../include/definebase.h"
-#include "../../include/uclient.h"
+#include "../include/definebase.h"
+#include "../include/uclient.h"
 #include "../core_shared/shared/uthread.h"
 #include <boost/shared_ptr.hpp>
 

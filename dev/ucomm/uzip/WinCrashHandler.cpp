@@ -1,10 +1,10 @@
 #include "stdafx.h"
-#include "../../pinc/WinCrashHandler.h"
+#include "../core_shared/pinc/WinCrashHandler.h"
 #include <signal.h>
-#include "../../pinc/mqfile.h"
+#include "../core_shared/pinc/mqfile.h"
 #include "StackWalker.h"
 
-extern boost::mutex g_csLCI;
+extern MQ_FILE::mutex g_csLCI;
 extern SPA::CUQueue g_LastCallInfo;
 
 #ifndef _AddressOfReturnAddress
@@ -159,7 +159,7 @@ void CCrashHandler::GetExceptionPointers(DWORD dwExceptionCode,
 
 void CCrashHandler::CreateMiniDump(EXCEPTION_POINTERS* pExcPtrs) {
     {
-        boost::mutex::scoped_lock al(MQ_FILE::g_csQFile);
+		MQ_FILE::CAutoLock al(MQ_FILE::g_csQFile);
         for (auto it = MQ_FILE::g_vQFile.begin(), end = MQ_FILE::g_vQFile.end(); it != end; ++it) {
             (*it)->SetOptimistic(SPA::oSystemMemoryCached);
         }
@@ -171,7 +171,7 @@ void CCrashHandler::CreateMiniDump(EXCEPTION_POINTERS* pExcPtrs) {
     std::string s("last call info = ");
     StackWalker sw;
 	{
-		boost::mutex::scoped_lock al(g_csLCI);
+		MQ_FILE::CAutoLock al(g_csLCI);
 		g_LastCallInfo.SetNull();
 		s += (const char*) g_LastCallInfo.GetBuffer();
 	}

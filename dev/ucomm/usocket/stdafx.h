@@ -1,5 +1,5 @@
 
-#include "../../include/definebase.h"
+#include "../include/definebase.h"
 
 #ifndef __UMB_COMM_CLIENT_CORE_HEADER_H_
 #define __UMB_COMM_CLIENT_CORE_HEADER_H_
@@ -15,8 +15,6 @@
 #ifndef WINCE
 #include <windows.h>
 #endif
-
-#include <iostream>
 
 #endif
 

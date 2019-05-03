@@ -12,7 +12,7 @@
 
 #include "socketpool.h"
 #include <algorithm>
-#include "../../include/uclient.h"
+#include "../include/uclient.h"
 
 #ifndef WINCE
 extern std::mutex g_mutex;
@@ -259,8 +259,7 @@ unsigned int CSocketPool::GetThreadCount() {
 
 bool CSocketPool::WaitUtil(CAutoLock &al, unsigned int timeout) {
 #ifndef WINCE
-	using namespace std::chrono_literals;
-	return (m_cv.wait_for(al, timeout * 1ms) == std::cv_status::no_timeout);
+	return (m_cv.wait_for(al, MQ_FILE::ms(timeout)) == std::cv_status::no_timeout);
 #else
     boost::system_time td = boost::get_system_time() + boost::posix_time::milliseconds(timeout);
     return m_cv.timed_wait(al, td);

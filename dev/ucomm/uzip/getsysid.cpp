@@ -1,12 +1,12 @@
 
 #include "stdafx.h"
-#include "../../pinc/getsysid.h"
+#include "../core_shared/pinc/getsysid.h"
 #include <algorithm>
 #include <boost/algorithm/string/find.hpp>
-#include "../../pinc/prettywriter.h"
-#include "../../pinc/base64.h"
-#include "../../pinc/sha1.h"
-#include "../../include/membuffer.h"
+#include "../core_shared/pinc/prettywriter.h"
+#include "../core_shared/pinc/base64.h"
+#include "../core_shared/pinc/sha1.h"
+#include "../include/membuffer.h"
 #include <fstream>
 #include <sstream>
 
@@ -15,7 +15,7 @@
 #elif defined(WINCE)
 #include <Iphlpapi.h>
 #else
-#include "../../pinc/uvariant2rj.h"
+#include "../core_shared/pinc/uvariant2rj.h"
 #endif
 #include <boost/format.hpp>
 #include <boost/algorithm/string.hpp>

@@ -7,11 +7,11 @@
 #else
 #include <boost/atomic.hpp>
 #endif
-#include "../../pinc/bf.h"
+#include "../core_shared/pinc/bf.h"
 #include "clientthread.h"
-#include "../../pinc/mqfile.h"
+#include "../core_shared/pinc/mqfile.h"
 #include "../core_shared/shared/certificateimpl.h"
-#include "../../include/uclient.h"
+#include "../include/uclient.h"
 
 class CClientSession : public SPA::ClientSide::UClientSocketBase {
 #ifndef NDEBUG

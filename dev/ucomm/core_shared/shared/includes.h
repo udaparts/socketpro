@@ -1,3 +1,4 @@
+
 #ifndef __UMB_INCLUDES_FOR_INTERNAL_H_
 #define __UMB_INCLUDES_FOR_INTERNAL_H_
 
@@ -6,9 +7,12 @@
 #include <queue>
 
 #ifndef WINCE
+#include<chrono>
 #include <mutex>
 #include <thread>
 #include <condition_variable>
+//using namespace std::chrono_literals;
+
 #else
 #include <boost/thread.hpp>
 #include <boost/thread/condition_variable.hpp>
@@ -40,10 +44,9 @@ typedef nsSSL::context CSslContext;
 #endif
 
 #ifndef WINCE
-#include<chrono>
 typedef std::unique_lock<std::mutex> CAutoLock;
-//typedef std::lock_guard<std::recursive_mutex> CAutoLockR;
-//typedef std::lock_guard<std::recursive_mutex> CAutoLockRecursive;
+//typedef std::unique_lock<std::recursive_mutex> CAutoLockR;
+//typedef std::unique_lock<std::recursive_mutex> CAutoLockRecursive;
 typedef std::condition_variable CConditionVariable;
 #else
 //#include <boost/thread/recursive_mutex.hpp>
@@ -85,3 +88,4 @@ SPA::CUQueue& operator <<(SPA::CUQueue &mc, const SPA::CSwitchInfo &si);
 SPA::CUQueue& operator >>(SPA::CUQueue &mc, SPA::CSwitchInfo &si);
 
 #endif
+

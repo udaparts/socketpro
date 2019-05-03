@@ -1,8 +1,8 @@
 #include "stdafx.h"
 #include "clientsession.h"
 #include <ctype.h>
-#include "../../pinc/uzip.h"
-#include "../../pinc/getsysid.h"
+#include "../core_shared/pinc/uzip.h"
+#include "../core_shared/pinc/getsysid.h"
 #include <boost/algorithm/string/trim.hpp>
 #include "../clientcore/socketpool.h"
 #include <assert.h>
@@ -387,8 +387,7 @@ bool CClientSession::WaitAllInternal(CAutoLock &sl, unsigned int nTimeout) {
     do {
         m_bWaiting = true;
 #ifndef WINCE
-		using namespace std::chrono_literals;
-		b = ((m_cv.wait_for(sl, nTimeout * 1ms) == std::cv_status::no_timeout) && m_ConnState >= SPA::ClientSide::csConnected);
+		b = ((m_cv.wait_for(sl, MQ_FILE::ms(nTimeout)) == std::cv_status::no_timeout) && m_ConnState >= SPA::ClientSide::csConnected);
 #else
 		boost::system_time td = boost::get_system_time() + boost::posix_time::milliseconds(nTimeout);
         b = (m_cv.timed_wait(sl, td) && m_ConnState >= SPA::ClientSide::csConnected);
@@ -1058,8 +1057,7 @@ bool CClientSession::WaitConnected(CAutoLock &sl, unsigned int nTimeout) {
         return true;
     m_bWaiting = true;
 #ifndef WINCE
-	using namespace std::chrono_literals;
-	bool b = ((m_cv.wait_for(sl, nTimeout * 1ms) == std::cv_status::no_timeout) && m_ConnState >= SPA::ClientSide::csConnected);
+	bool b = ((m_cv.wait_for(sl, MQ_FILE::ms(nTimeout)) == std::cv_status::no_timeout) && m_ConnState >= SPA::ClientSide::csConnected);
 #else
 	boost::system_time td = boost::get_system_time() + boost::posix_time::milliseconds(nTimeout);
     bool b = (m_cv.timed_wait(sl, td) && m_ConnState >= SPA::ClientSide::csConnected);

@@ -7,7 +7,13 @@
 #include "../include/membuffer.h"
 #include "blowfish.h" 
 #include <stdio.h>
-#include <boost/scoped_ptr.hpp>
+
+#ifndef WINCE
+#include <mutex>
+#include <thread>
+#include <condition_variable>
+#include <map>
+#else
 
 /*
 #if defined(__ANDROID__) || defined(ANDROID)
@@ -16,11 +22,13 @@
 #include <boost/unordered_map.hpp> //faster
 #endif
  */
-#include <boost/unordered_map.hpp> //faster
 #include <boost/thread.hpp>
 #include <boost/thread/condition_variable.hpp>
-#include "../comm/shared/streamhead.h"
-#include "../include/ucomm.h"
+#endif
+#include <boost/scoped_ptr.hpp>
+#include <boost/unordered_map.hpp> //faster
+#include "../shared/streamhead.h"
+#include "../../include/ucomm.h"
 
 #define INVALID_QUEUE_HANDLE (~0)
 
@@ -118,6 +126,19 @@ namespace MQ_FILE {
         }
     };
 
+#ifndef WINCE
+	using thread = std::thread;
+	using mutex = std::mutex;
+	using condition_variable = std::condition_variable;
+	using ms = std::chrono::milliseconds;
+	typedef std::unique_lock<std::mutex> CAutoLock;
+#else
+	using thread = boost::thread;
+	using mutex = boost::mutex;
+	using condition_variable = boost::condition_variable;
+	typedef boost::mutex::scoped_lock CAutoLock;
+#endif
+
     class CMqFile {
 #ifndef NDEBUG
         int m_nJobBalanceDequeue;
@@ -137,7 +158,6 @@ namespace MQ_FILE {
 
     private:
 #pragma pack(push,1)
-
         struct MessageDecriptionHeader {
             SPA::UINT64 MessageIndex;
             unsigned int Time;
@@ -241,7 +261,6 @@ namespace MQ_FILE {
         void SetOptimistic(SPA::tagOptimistic optimistic);
 
     protected:
-        typedef boost::mutex::scoped_lock CAutoLock;
         virtual SPA::CUQueue* DoEncryption(const unsigned char *buffer, unsigned int len);
         virtual std::vector<unsigned int> DoBatchDequeueInternal(CAutoLock &al, SPA::CUQueue &qAttr, SPA::CUQueue &qRequests, unsigned int maxSizeInByte, unsigned int waitTime);
         virtual SPA::UINT64 EnqueueInternal(const SPA::CStreamHeader &sh, const unsigned char *buffer, unsigned int size);
@@ -296,11 +315,11 @@ namespace MQ_FILE {
         SPA::CUQueue &m_qTransIndex;
         bool m_bClient;
         bool m_bShared;
-        boost::mutex m_cs;
-        boost::condition_variable m_cv;
+        mutex m_cs;
+        condition_variable m_cv;
         SPA::UINT64 m_nMinIndex;
         unsigned int m_LastTime;
-        static boost::mutex m_csAppName;
+        static mutex m_csAppName;
         bool m_bEnd;
         SPA::UINT64 m_nFileSize;
 
@@ -389,11 +408,10 @@ namespace MQ_FILE {
         std::string m_fileName;
         bool m_bDirty;
         FILE *m_hFile;
-        boost::mutex m_cs;
-        boost::condition_variable m_cv;
-        boost::mutex m_csFile;
-        boost::thread_group m_tg;
-        boost::thread *m_thread;
+        mutex m_cs;
+        condition_variable m_cv;
+        mutex m_csFile;
+        thread *m_thread;
         volatile long m_stop;
         SPA::tagQueueStatus m_qs;
         unsigned int m_CheckSum;
@@ -418,10 +436,10 @@ namespace MQ_FILE {
 
     private:
         boost::scoped_ptr<CBlowFish> m_bf;
-        boost::mutex m_cs;
+        mutex m_cs;
     };
 
-    extern boost::mutex g_csQFile;
+    extern mutex g_csQFile;
     extern std::vector<CMqFile*> g_vQFile;
     extern std::vector<CQLastIndex*> g_vQLastIndex;
 };

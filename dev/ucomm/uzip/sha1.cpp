@@ -6,7 +6,7 @@
   See header file for version history and test vectors.
  */
 
-#include "../../pinc/sha1.h"
+#include "../core_shared/pinc/sha1.h"
 
 #ifdef SHA1_UTILITY_FUNCTIONS
 #define SHA1_MAX_FILE_BUFFER (32 * 20 * 820)

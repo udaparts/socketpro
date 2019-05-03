@@ -36,7 +36,11 @@ CClientThread::MyTimerSet::~MyTimerSet() {
 
 void CClientThread::MyTimerSet::ThreadFunc() {
     while (!m_stop) {
+#ifndef WINCE
+		std::this_thread::sleep_for(std::chrono::milliseconds(100));
+#else
         boost::this_thread::sleep(boost::posix_time::milliseconds(100));
+#endif
         {
             size_t n, size;
             CAutoLock al(g_mutex);

@@ -1,23 +1,23 @@
 
-#include "../../pinc/mqfile.h"
+#include "../core_shared/pinc/mqfile.h"
 #include <string>
 #include <assert.h>
-#include "../../pinc/sha1.h"
+#include "../core_shared/pinc/sha1.h"
 #include <algorithm>
-#include "../../include/membuffer.h"
-#include "../../pinc/getsysid.h"
+#include "../include/membuffer.h"
+#include "../core_shared/pinc/getsysid.h"
 #include <algorithm> 
 #include <boost/filesystem.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <time.h>
-#include "../../pinc/getsysid.h"
+#include "../core_shared/pinc/getsysid.h"
 #include <fstream>
 
 #ifdef WINCE
 #elif defined(WIN32_64)
 #include <io.h>
-#include "../../pinc/WinCrashHandler.h"
+#include "../core_shared/pinc/WinCrashHandler.h"
 #else
 #include <unistd.h>
 #include <signal.h>
@@ -31,11 +31,11 @@
 
 using namespace std;
 
-boost::mutex g_csLCI;
+MQ_FILE::mutex g_csLCI;
 SPA::CUQueue g_LastCallInfo;
 
 void WINAPI SetLastCallInfo(const char *str) {
-    boost::mutex::scoped_lock al(g_csLCI);
+	MQ_FILE::CAutoLock al(g_csLCI);
     g_LastCallInfo.SetSize(0);
     g_LastCallInfo.Push(str);
 }
@@ -46,7 +46,7 @@ namespace MQ_FILE {
 
     std::time_t CMqFile::TIME_Y_2013 = SPA::Get2013();
 
-    boost::mutex g_csQFile;
+    mutex g_csQFile;
     std::vector<CMqFile*> g_vQFile;
     std::vector<CQLastIndex*> g_vQLastIndex;
 
@@ -55,7 +55,7 @@ namespace MQ_FILE {
 
     void handler(int sig, siginfo_t *info, void *ptr) {
         try {
-            boost::mutex::scoped_lock al(MQ_FILE::g_csQFile);
+			MQ_FILE::CAutoLock al(MQ_FILE::g_csQFile);
             for (auto it = MQ_FILE::g_vQFile.begin(), end = MQ_FILE::g_vQFile.end(); it != end; ++it) {
                 (*it)->SetOptimistic(SPA::oSystemMemoryCached);
             }
@@ -72,7 +72,7 @@ namespace MQ_FILE {
         std::ofstream myfile(SPA::GetAppName() + "_crash.txt");
         if (myfile.is_open()) {
             {
-                boost::mutex::scoped_lock al(g_csLCI);
+				MQ_FILE::CAutoLock al(g_csLCI);
                 g_LastCallInfo.SetNull();
                 myfile << "last call info = " << (const char*) g_LastCallInfo.GetBuffer() << std::endl;
             }
@@ -198,7 +198,7 @@ namespace MQ_FILE {
     }
 #endif
 
-    boost::mutex CMqFile::m_csAppName;
+	mutex CMqFile::m_csAppName;
     std::string CMqFile::m_strAppName;
 
     CMqFile::CMqFile(const char *fileName, unsigned int ttl, SPA::tagOptimistic crashSafe, bool secure, bool client, bool shared)
@@ -280,7 +280,7 @@ namespace MQ_FILE {
         }
 
         {
-            boost::mutex::scoped_lock al(g_csQFile);
+			CAutoLock al(g_csQFile);
             g_vQFile.push_back(this);
         }
     }
@@ -291,7 +291,7 @@ namespace MQ_FILE {
             CloseFile();
         }
         try {
-            boost::mutex::scoped_lock al(g_csQFile);
+			CAutoLock al(g_csQFile);
             g_vQFile.erase(std::find(g_vQFile.begin(), g_vQFile.end(), this));
         } catch (...) {
 
@@ -1937,8 +1937,12 @@ namespace MQ_FILE {
                 }
             }
             if (!vMdh.size() && waitTime && !again) {
+#ifndef WINCE
+				m_cv.wait_for(al, ms(waitTime));
+#else
                 boost::system_time td = boost::get_system_time() + boost::posix_time::milliseconds(waitTime);
                 m_cv.timed_wait(al, td);
+#endif
                 again = true;
             } else
                 again = false;
@@ -1985,7 +1989,7 @@ namespace MQ_FILE {
 #endif
     }
 
-    std::vector<unsigned int> CMqFile::DoBatchDequeueInternal(CMqFile::CAutoLock &al, SPA::CUQueue &qAttr, SPA::CUQueue &qRequests, unsigned int maxSize, unsigned int waitTime) {
+    std::vector<unsigned int> CMqFile::DoBatchDequeueInternal(CAutoLock &al, SPA::CUQueue &qAttr, SPA::CUQueue &qRequests, unsigned int maxSize, unsigned int waitTime) {
         size_t read;
         SPA::INT64 fileSize;
         bool again = false;
@@ -2083,8 +2087,12 @@ namespace MQ_FILE {
                 }
             }
             if (!vMdh.size() && waitTime && !again) {
+#ifndef WINCE
+				m_cv.wait_for(al, ms(waitTime));
+#else
                 boost::system_time td = boost::get_system_time() + boost::posix_time::milliseconds(waitTime);
                 m_cv.timed_wait(al, td);
+#endif
                 again = true;
             } else
                 again = false;
@@ -2172,8 +2180,12 @@ namespace MQ_FILE {
                 }
             }
             if (pos == INVALID_NUMBER && waitTime && !again) {
+#ifndef WINCE
+				m_cv.wait_for(al, ms(waitTime));
+#else
                 boost::system_time td = boost::get_system_time() + boost::posix_time::milliseconds(waitTime);
                 m_cv.timed_wait(al, td);
+#endif
                 again = true;
             } else
                 again = false;
@@ -2498,8 +2510,12 @@ namespace MQ_FILE {
                 if (qFile->m_qTransPos == INVALID_NUMBER)
                     break;
                 qFile->m_cs.unlock();
+#ifndef WINCE
+				std::this_thread::sleep_for(1ms);
+#else
                 boost::system_time td = boost::get_system_time() + boost::posix_time::milliseconds(1);
                 boost::this_thread::sleep(td);
+#endif
             } while (true);
             attr.MessagePos = qFile->m_nFileSize;
             attr.MessageIndex = qFile->EnqueueInternal(sh, nullptr, 0);
@@ -2740,16 +2756,19 @@ namespace MQ_FILE {
             m_fileName += "_s.qdx";
         SetFileHandler();
         Load();
+#ifndef WINCE
+		m_thread = new std::thread(&CQLastIndex::DoFastSave, this);
+		//make sure the thread is already running
+		//boost::system_time td = boost::get_system_time() + boost::posix_time::milliseconds(50);
+		std::this_thread::sleep_for(50ms);
+#else
         m_thread = m_tg.create_thread(boost::bind(&CQLastIndex::DoFastSave, this));
-
-        //make sure the thread is already running
-        boost::system_time td = boost::get_system_time() + boost::posix_time::milliseconds(50);
-        boost::this_thread::sleep(td);
-
-        {
-            boost::mutex::scoped_lock al(g_csQFile);
-            g_vQLastIndex.push_back(this);
-        }
+		//make sure the thread is already running
+		boost::system_time td = boost::get_system_time() + boost::posix_time::milliseconds(50);
+		boost::this_thread::sleep(td);
+#endif
+        CAutoLock al(g_csQFile);
+		g_vQLastIndex.push_back(this);
     }
 
     CQLastIndex::~CQLastIndex() {
@@ -2758,7 +2777,7 @@ namespace MQ_FILE {
 
     void CQLastIndex::Stop() {
         try {
-            boost::mutex::scoped_lock al(g_csQFile);
+			CAutoLock al(g_csQFile);
             if (!m_stop) {
                 m_stop = 1;
                 try {
@@ -2772,13 +2791,7 @@ namespace MQ_FILE {
                 }
                 m_cv.notify_one();
                 if (m_thread->joinable()) {
-#ifndef _WIN32_WCE
-                    if (!m_thread->try_join_for(boost::chrono::seconds(1))) {
-                        m_thread->detach();
-                    }
-#else
                     m_thread->join();
-#endif
                 }
                 Save();
                 CloseFile();
@@ -2796,9 +2809,14 @@ namespace MQ_FILE {
         unsigned int waitTime = LONG_WAIT_TIME;
         do {
             {
+#ifndef WINCE
+				CAutoLock al(m_cs);
+				waited = (m_cv.wait_for(al, ms(waitTime)) == std::cv_status::no_timeout);
+#else
                 boost::system_time td = boost::get_system_time() + boost::posix_time::milliseconds(waitTime);
-                boost::mutex::scoped_lock al(m_cs);
+				CAutoLock al(m_cs);
                 waited = m_cv.timed_wait(al, td);
+#endif
             }
             if (waited || IsDirty()) {
                 Save();
@@ -2819,7 +2837,7 @@ namespace MQ_FILE {
     }
 
     bool CQLastIndex::IsAvailable() {
-        boost::mutex::scoped_lock al(m_csFile);
+		CAutoLock al(m_csFile);
         return (m_hFile != nullptr);
     }
 
@@ -2842,9 +2860,13 @@ namespace MQ_FILE {
         bool save = (m_CheckSum > 0);
         m_cs.unlock();
         if (save) {
+#ifndef WINCE
+			std::this_thread::yield();
+#else
             boost::this_thread::yield();
+#endif
             unsigned int checksum = 0;
-            boost::mutex::scoped_lock al(m_csFile);
+			CAutoLock al(m_csFile);
             if (m_CheckSum == 0)
                 return false;
 #ifdef WINCE
@@ -2873,7 +2895,7 @@ namespace MQ_FILE {
         SPA::CUQueue &qBuffer = *su;
 
         {
-            boost::mutex::scoped_lock al(m_cs);
+			CAutoLock al(m_cs);
             if (m_hFile == nullptr)
                 return false;
             m_bDirty = false;
@@ -2896,7 +2918,7 @@ namespace MQ_FILE {
         }
 
         {
-            boost::mutex::scoped_lock al(m_csFile);
+			CAutoLock al(m_csFile);
             if (m_hFile == nullptr)
                 return false;
             //set file pointer to the beginning
@@ -2914,7 +2936,7 @@ namespace MQ_FILE {
     }
 
     void CQLastIndex::CloseFile() {
-        boost::mutex::scoped_lock al(m_csFile);
+		CAutoLock al(m_csFile);
         if (m_hFile != nullptr) {
             ::fclose(m_hFile);
             m_hFile = nullptr;
@@ -2997,7 +3019,7 @@ namespace MQ_FILE {
             return;
         {
             CMyMap &map = *this;
-            boost::mutex::scoped_lock al(m_cs);
+			CAutoLock al(m_cs);
             CQLastIndex::iterator it = find(key);
             if (it != map.end() && it->second == qa)
                 return;
@@ -3012,7 +3034,7 @@ namespace MQ_FILE {
         bool dirty = false;
         {
             CMyMap &map = *this;
-            boost::mutex::scoped_lock al(m_cs);
+			CAutoLock al(m_cs);
             CQLastIndex::iterator it = find(key);
             if (it != map.end()) {
                 map.erase(it);
@@ -3028,7 +3050,7 @@ namespace MQ_FILE {
 
     QAttr CQLastIndex::Seek(const QueueSha1 & key) {
         QAttr qa(INVALID_NUMBER, INVALID_NUMBER);
-        boost::mutex::scoped_lock al(m_cs);
+		CAutoLock al(m_cs);
         CMyMap &map = *this;
         CQLastIndex::iterator it = find(key);
         if (it != map.end()) {
@@ -3048,7 +3070,7 @@ namespace MQ_FILE {
     std::string CMyContainer::Get(SPA::UINT64 src) {
         SPA::CScopeUQueue su;
         {
-            boost::mutex::scoped_lock al(m_cs);
+			CAutoLock al(m_cs);
             if (m_objp.find(src) == m_objp.end())
                 return "";
             std::vector<unsigned char> &buffer = m_objp[src];
@@ -3068,7 +3090,7 @@ namespace MQ_FILE {
         su->Push(pwd);
         unsigned int len = su->GetSize();
         if (len == 0) {
-            boost::mutex::scoped_lock al(m_cs);
+			CAutoLock al(m_cs);
             m_objp.erase(src);
             return;
         }
@@ -3083,12 +3105,12 @@ namespace MQ_FILE {
         }
         m_bf->Encrypt((unsigned char*) su->GetBuffer(), su->GetSize());
         std::vector<unsigned char> buffer(su->GetBuffer(), su->GetBuffer(su->GetSize()));
-        boost::mutex::scoped_lock al(m_cs);
+		CAutoLock al(m_cs);
         m_objp[src] = buffer;
     }
 
     void CMyContainer::Remove(SPA::UINT64 src) {
-        boost::mutex::scoped_lock al(m_cs);
+		CAutoLock al(m_cs);
         m_objp.erase(src);
     }
 }

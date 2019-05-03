@@ -6,7 +6,7 @@
 #include <assert.h>
 //#include "LzmaLib.h"
 #include "zutil.h"
-#include "../../include/membuffer.h"
+#include "../include/membuffer.h"
 
 #ifdef WIN32_64
 #include <winsock2.h>

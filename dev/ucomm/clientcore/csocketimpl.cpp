@@ -10,10 +10,10 @@
 #include "../ClientCoreUnix/clientsession.h"
 #endif
 
-#include "../../include/commutil.h"
-#include "../../include/uclient.h"
+#include "../include/commutil.h"
+#include "../include/uclient.h"
 #include "socketpool.h"
-#include "../../pinc/uzip.h"
+#include "../core_shared/pinc/uzip.h"
 
 #ifndef WINCE
 extern std::mutex g_mutex;

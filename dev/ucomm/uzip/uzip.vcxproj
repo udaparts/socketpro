@@ -176,6 +176,10 @@
     <ClCompile Include="zutil.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\core_shared\pinc\blowfish.h" />
+    <ClInclude Include="..\core_shared\pinc\fastujson.h" />
+    <ClInclude Include="..\core_shared\pinc\getsysid.h" />
+    <ClInclude Include="..\core_shared\pinc\mqfile.h" />
     <ClInclude Include="..\include\membuffer.h" />
     <ClInclude Include="crc32.h" />
     <ClInclude Include="deflate.h" />

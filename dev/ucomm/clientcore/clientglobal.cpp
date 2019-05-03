@@ -11,7 +11,7 @@
 #endif
 
 #include "socketpool.h"
-#include "../../pinc/getsysid.h"
+#include "../core_shared/pinc/getsysid.h"
 #include <boost/filesystem.hpp>
 
 #ifndef WINCE
@@ -105,7 +105,11 @@ bool WINAPI DestroySocketPool(unsigned int poolId) {
             CClientSession::m_pQLastIndex->Stop();
             CClientSession::m_pQLastIndex.reset();
         }
+#ifndef WINCE
+		std::this_thread::yield();
+#else
         boost::this_thread::yield();
+#endif
     } else {
         g_mutex.unlock();
     }

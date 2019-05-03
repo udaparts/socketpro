@@ -65,23 +65,21 @@ namespace SPA {
         m_cv.notify_all();
         try {
             m_io.run(m_ec);
+#ifndef NDEBUG
         } catch (boost::system::system_error &err) {
-#ifndef NDEBUG
             std::cout << "boost::system_error " << err.what() << ", " << __FUNCTION__ << std::endl;
-#endif
         } catch (SPA::CUException &err) {
-#ifndef NDEBUG
             std::cout << "SPA::CUException " << err.what() << ", " << __FUNCTION__ << std::endl;
-#endif
         } catch (std::exception &err) {
-#ifndef NDEBUG
             std::cout << "std::exception " << err.what() << ", " << __FUNCTION__ << std::endl;
-#endif
         } catch (...) {
-#ifndef NDEBUG
             std::cout << "Unknown exception " << ", " << __FUNCTION__ << std::endl;
-#endif
         }
+#else
+		} catch (...) {
+		}
+#endif
+
 #ifdef WIN32_64
         if (ok)
             ::CoUninitialize();
@@ -96,8 +94,7 @@ namespace SPA {
         m_pThread = new thread(boost::bind(&CIoService::run, &m_io, m_ec));
         m_io.post(boost::bind(&CUCommThread::Call, this, m_ec));
 #ifndef WINCE
-		using namespace std::chrono_literals;
-		m_cv.wait_for(sl, 500ms);
+		m_cv.wait_for(sl, std::chrono::milliseconds(500));
 #else
         boost::system_time td = boost::get_system_time() + boost::posix_time::milliseconds(500);
         m_cv.timed_wait(sl, td);

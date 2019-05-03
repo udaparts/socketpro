@@ -3,7 +3,7 @@
 #ifndef __MB_UZIP_H__
 #define __MB_UZIP_H__
 
-#include "../../include/commutil.h"
+#include "../include/commutil.h"
 #include "zlib.h"
 #include "lz4.h"
 

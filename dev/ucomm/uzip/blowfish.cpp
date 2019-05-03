@@ -8,7 +8,7 @@
 
 #include <cstring>
 #include <exception>
-#include "../../pinc/blowfish.h"
+#include "../core_shared/pinc/blowfish.h"
 
 //Initialization with a fixed string which consists of the hexadecimal digits of PI (less the initial 3)
 //P-array, 18 32-bit subkeys
