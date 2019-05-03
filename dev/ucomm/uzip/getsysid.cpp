@@ -1,14 +1,13 @@
 
 #include "stdafx.h"
+#include "../include/membuffer.h"
 #include "../core_shared/pinc/getsysid.h"
 #include <algorithm>
 #include <boost/algorithm/string/find.hpp>
 #include "../core_shared/pinc/prettywriter.h"
 #include "../core_shared/pinc/base64.h"
 #include "../core_shared/pinc/sha1.h"
-#include "../include/membuffer.h"
 #include <fstream>
-#include <sstream>
 
 #if defined(__ANDROID__) || defined(ANDROID)
 

@@ -127,13 +127,14 @@ namespace MQ_FILE {
 	using ms = std::chrono::milliseconds;
 	typedef std::unique_lock<std::mutex> CAutoLock;
 	typedef std::shared_ptr<CBlowFish> CBlowFishPtr;
-
+	using namespace std::this_thread;
 #else
 	using thread = boost::thread;
 	using mutex = boost::mutex;
 	using condition_variable = boost::condition_variable;
 	typedef boost::mutex::scoped_lock CAutoLock;
 	typedef boost::shared_ptr<CBlowFish> CBlowFishPtr;
+	using namespace boost::this_thread;
 #endif
 
     class CMqFile {

@@ -11,9 +11,11 @@
 #include <mutex>
 #include <thread>
 #include <condition_variable>
+using namespace std::this_thread;
 #else
 #include <boost/thread.hpp>
 #include <boost/thread/condition_variable.hpp>
+using namespace boost::this_thread;
 #endif
 
 #include <boost/bind.hpp>
@@ -47,10 +49,10 @@ typedef std::unique_lock<std::mutex> CAutoLock;
 //typedef std::unique_lock<std::recursive_mutex> CAutoLockRecursive;
 typedef std::condition_variable CConditionVariable;
 #else
-//#include <boost/thread/recursive_mutex.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/date_time/local_time/local_time.hpp>
 typedef boost::mutex::scoped_lock CAutoLock;
+//#include <boost/thread/recursive_mutex.hpp>
 //typedef boost::recursive_mutex::scoped_lock CAutoLockR;
 //typedef boost::recursive_mutex::scoped_lock CAutoLockRecursive;
 typedef boost::condition_variable CConditionVariable;

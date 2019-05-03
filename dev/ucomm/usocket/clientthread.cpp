@@ -24,20 +24,26 @@ void WINAPI SetCertificateVerifyCallback(PCertificateVerifyCallback cvc) {
     g_cvc = cvc;
 }
 
+#ifndef WINCE
+std::thread* CClientThread::MyTimerSet::m_thread = nullptr;
+#else
+boost::thread* CClientThread::MyTimerSet::m_thread = nullptr;
+#endif
+
 CClientThread::MyTimerSet::MyTimerSet() {
 }
 
 CClientThread::MyTimerSet::~MyTimerSet() {
     m_stop = 1;
+	if (CClientThread::MyTimerSet::m_thread) {
+		CClientThread::MyTimerSet::m_thread->join();
+		delete CClientThread::MyTimerSet::m_thread;
+		CClientThread::MyTimerSet::m_thread = nullptr;
+	}
 }
 
 void CClientThread::MyTimerSet::ThreadFunc() {
     while (!m_stop) {
-#ifndef WINCE
-		std::this_thread::sleep_for(std::chrono::milliseconds(100));
-#else
-        boost::this_thread::sleep(boost::posix_time::milliseconds(100));
-#endif
         {
             size_t n, size;
             CAutoLock al(g_mutex);
@@ -50,20 +56,31 @@ void CClientThread::MyTimerSet::ThreadFunc() {
                 pool->PostTimerMessage();
             }
         }
+#ifndef WINCE
+		sleep_for(std::chrono::milliseconds(100));
+#else
+		sleep(boost::posix_time::milliseconds(100));
+#endif
     }
     m_stop = 0;
 }
 
 CClientThread::MyTimerSet CClientThread::MyTimerSet::ms;
 
+void StartTimerThread() {
+	if (!CClientThread::MyTimerSet::m_thread) {
 #ifndef WINCE
-std::thread CClientThread::MyTimerSet::m_thread(boost::bind(CClientThread::MyTimerSet::ThreadFunc));
+		CClientThread::MyTimerSet::m_thread = new std::thread(&CClientThread::MyTimerSet::ThreadFunc);
+		sleep_for(MQ_FILE::ms(10));
 #else
-boost::thread CClientThread::MyTimerSet::m_thread(boost::bind(CClientThread::MyTimerSet::ThreadFunc));
+		CClientThread::MyTimerSet::m_thread = new boost::thread(boost::bind(CClientThread::MyTimerSet::ThreadFunc));
+		boost::system_time td = boost::get_system_time() + boost::posix_time::milliseconds(10);
+		sleep(td);
 #endif
+	}
+}
 
 //we don't use a mutex to lock m_mapClientSession because it is controlled by thread pool
-
 CClientThread::CClientThread(PSocketPoolCallback spc, unsigned int session, CSocketPool *pSocketPool, SPA::tagThreadApartment ta)
 : SPA::CUCommThread(ta),
 m_spc(spc),

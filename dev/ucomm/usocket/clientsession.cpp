@@ -195,7 +195,7 @@ void CClientSession::TimerHandler() {
 #else
                     std::cout << "Thank you very much for evaluation on SocketPro!" << std::endl;
                     std::cout << "Please go to www.udaparts.com for registration." << std::endl;
-                    boost::this_thread::sleep(boost::posix_time::milliseconds(rc));
+                    sleep(boost::posix_time::milliseconds(rc));
 #endif
                 }
             }
@@ -348,11 +348,7 @@ SPA::UINT64 CClientSession::GetBytesSent() {
 }
 
 bool CClientSession::IsSameThread() {
-#ifndef WINCE
-	return (std::this_thread::get_id() == m_pThread->GetBoostThread()->get_id());
-#else
-    return (boost::this_thread::get_id() == m_pThread->GetBoostThread()->get_id());
-#endif
+	return (get_id() == m_pThread->GetBoostThread()->get_id());
 }
 
 bool CClientSession::WaitAllInternal(CAutoLock &sl, unsigned int nTimeout) {

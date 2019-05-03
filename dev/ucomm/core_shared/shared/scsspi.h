@@ -18,6 +18,12 @@
 #include <memory>
 #include "storetype.h"
 
+#ifndef WINCE
+#include <memory>
+#else
+#include <boost/shared_ptr.hpp>
+#endif
+
 namespace SPA {
 
     typedef SECURITY_STATUS(SEC_ENTRY *PCompleteAuthToken)(PCtxtHandle phContext, PSecBufferDesc pToken);

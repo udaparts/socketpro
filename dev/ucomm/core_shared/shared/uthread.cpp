@@ -126,9 +126,9 @@ namespace SPA {
                 m_io.stop();
                 while (!m_io.stopped()) {
 #ifndef WINCE
-                    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+                    sleep_for(std::chrono::milliseconds(1));
 #else
-					boost::this_thread::sleep(boost::posix_time::milliseconds(1));
+					sleep(boost::posix_time::milliseconds(1));
 #endif
                 }
                 if (p->joinable()) {

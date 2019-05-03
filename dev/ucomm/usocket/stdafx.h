@@ -20,4 +20,6 @@
 
 // TODO: reference additional headers your program requires here
 
+void StartTimerThread();
+
 #endif

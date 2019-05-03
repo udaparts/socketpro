@@ -51,6 +51,7 @@ unsigned int WINAPI CreateSocketPool(PSocketPoolCallback spc, unsigned int maxSo
         maxThreads = GetNumberOfCores();
     {
         CAutoLock al(g_mutex);
+		StartTimerThread();
         if (!g_localhost.size()) {
             char str[256] = {0};
             ::gethostname(str, sizeof (str));
@@ -105,11 +106,7 @@ bool WINAPI DestroySocketPool(unsigned int poolId) {
             CClientSession::m_pQLastIndex->Stop();
             CClientSession::m_pQLastIndex.reset();
         }
-#ifndef WINCE
-		std::this_thread::yield();
-#else
-        boost::this_thread::yield();
-#endif
+		yield();
     } else {
         g_mutex.unlock();
     }

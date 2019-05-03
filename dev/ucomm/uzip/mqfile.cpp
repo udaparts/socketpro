@@ -1,17 +1,11 @@
 
 #include "../core_shared/pinc/mqfile.h"
-#include <string>
 #include <assert.h>
 #include "../core_shared/pinc/sha1.h"
-#include <algorithm>
 #include "../include/membuffer.h"
 #include "../core_shared/pinc/getsysid.h"
-#include <algorithm> 
 #include <boost/filesystem.hpp>
-#include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
-#include <time.h>
-#include "../core_shared/pinc/getsysid.h"
 #include <fstream>
 
 #ifdef WINCE
@@ -2511,10 +2505,10 @@ namespace MQ_FILE {
                     break;
                 qFile->m_cs.unlock();
 #ifndef WINCE
-				std::this_thread::sleep_for(1ms);
+				sleep_for(ms(1));
 #else
                 boost::system_time td = boost::get_system_time() + boost::posix_time::milliseconds(1);
-                boost::this_thread::sleep(td);
+                sleep(td);
 #endif
             } while (true);
             attr.MessagePos = qFile->m_nFileSize;
@@ -2758,14 +2752,12 @@ namespace MQ_FILE {
         Load();
 #ifndef WINCE
 		m_thread = new std::thread(&CQLastIndex::DoFastSave, this);
-		//make sure the thread is already running
-		//boost::system_time td = boost::get_system_time() + boost::posix_time::milliseconds(50);
-		std::this_thread::sleep_for(50ms);
+		sleep_for(ms(50));
 #else
         m_thread = m_tg.create_thread(boost::bind(&CQLastIndex::DoFastSave, this));
 		//make sure the thread is already running
 		boost::system_time td = boost::get_system_time() + boost::posix_time::milliseconds(50);
-		boost::this_thread::sleep(td);
+		sleep(td);
 #endif
         CAutoLock al(g_csQFile);
 		g_vQLastIndex.push_back(this);
@@ -2861,9 +2853,9 @@ namespace MQ_FILE {
         m_cs.unlock();
         if (save) {
 #ifndef WINCE
-			std::this_thread::yield();
+			yield();
 #else
-            boost::this_thread::yield();
+            yield();
 #endif
             unsigned int checksum = 0;
 			CAutoLock al(m_csFile);

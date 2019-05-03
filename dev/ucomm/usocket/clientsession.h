@@ -4,8 +4,10 @@
 
 #ifndef WINCE
 #include <atomic>
+using std::atomic;
 #else
 #include <boost/atomic.hpp>
+using boost::atomic;
 #endif
 #include "../core_shared/pinc/bf.h"
 #include "clientthread.h"
@@ -230,11 +232,7 @@ private:
     size_t m_bWBLocked;
     SPA::tagZipLevel m_zl;
     mutex m_mutex;
-#ifndef WINCE
-	std::atomic<SPA::UINT64> m_ulRead;
-#else
-    boost::atomic<SPA::UINT64> m_ulRead;
-#endif
+	atomic<SPA::UINT64> m_ulRead;
 	SPA::UINT64 m_ulSent;
     SPA::UINT64 m_tRecv;
     SPA::UINT64 m_tSend;
@@ -262,11 +260,7 @@ private:
     POnServerException m_OnServerException;
     POnBaseRequestProcessed m_OnBaseRequestProcessed;
     POnAllRequestsProcessed m_OnAllRequestsProcessed;
-#ifndef WINCE
-	std::atomic<SPA::ClientSide::tagConnectionState> m_ConnState;
-#else
-    boost::atomic<SPA::ClientSide::tagConnectionState> m_ConnState;
-#endif
+	atomic<SPA::ClientSide::tagConnectionState> m_ConnState;
     CConditionVariable m_cv;
     CClientThread *m_pThread;
     unsigned int m_nConnTimeout;
@@ -335,5 +329,5 @@ typedef std::shared_ptr<CClientSession> CClientSessionPtr;
 typedef boost::shared_ptr<CClientSession> CClientSessionPtr;
 #endif
 
-
 #endif
+

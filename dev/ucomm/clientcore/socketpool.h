@@ -2,8 +2,6 @@
 #ifndef __UMB_SOCKET_POOL_H__
 #define __UMB_SOCKET_POOL_H__
 
-#include <boost/atomic.hpp>
-
 #ifdef OLD_IMPL
 #include "clientthread.h"
 #elif defined(_WIN32_WCE) || defined(WIN32_64)
@@ -67,13 +65,8 @@ private:
 #endif
     CConditionVariable m_cv;
     SPA::tagThreadApartment m_ta;
-#ifndef WINCE
-	std::atomic<bool> m_bKilling;
-	std::atomic<bool> m_bQueueAutoMerge;
-#else
-    boost::atomic<bool> m_bKilling;
-    boost::atomic<bool> m_bQueueAutoMerge;
-#endif
+	atomic<bool> m_bKilling;
+	atomic<bool> m_bQueueAutoMerge;
     bool m_bDisconenctAll;
 };
 

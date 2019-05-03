@@ -80,7 +80,9 @@ private:
     unsigned int m_session;
     unsigned int m_msTimerInterval;
 
+public:
     class MyTimerSet {
+	public:
 #ifndef WINCE
 		using thread = std::thread;
 #else
@@ -89,7 +91,7 @@ private:
         MyTimerSet();
         ~MyTimerSet();
         static volatile long m_stop;
-        static thread m_thread;
+        static thread *m_thread;
         static MyTimerSet ms;
         static void ThreadFunc();
     };

@@ -4,11 +4,6 @@
 
 #include "../../include/ucomm.h"
 #include "scsspi.h"
-#ifndef WINCE
-#include <memory>
-#else
-#include <boost/shared_ptr.hpp>
-#endif
 
 namespace SPA {
 
