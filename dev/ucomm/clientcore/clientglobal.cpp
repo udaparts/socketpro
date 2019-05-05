@@ -3,8 +3,8 @@
 #include "stdafx.h"
 #include "clientsession.h"
 #elif defined(_WIN32_WCE) || defined(WIN32_64)
-#include "../usocket/stdafx.h"
-#include "../usocket/clientsession.h"
+#include "../usocket_win/stdafx.h"
+#include "../usocket_win/clientsession.h"
 #else
 #include "../ClientCoreUnix/stdafx.h"
 #include "../ClientCoreUnix/clientsession.h"
@@ -101,6 +101,7 @@ bool WINAPI DestroySocketPool(unsigned int poolId) {
     delete p;
     g_mutex.lock();
     if (g_vSocketPool.size() == 0) {
+		StopTimerThread();
         g_mutex.unlock();
         if (CClientSession::m_pQLastIndex) {
             CClientSession::m_pQLastIndex->Stop();

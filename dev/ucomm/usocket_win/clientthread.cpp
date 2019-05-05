@@ -30,12 +30,7 @@ CClientThread::MyTimerSet::MyTimerSet() {
 }
 
 CClientThread::MyTimerSet::~MyTimerSet() {
-    m_stop = 1;
-	if (CClientThread::MyTimerSet::m_thread) {
-		CClientThread::MyTimerSet::m_thread->join();
-		delete CClientThread::MyTimerSet::m_thread;
-		CClientThread::MyTimerSet::m_thread = nullptr;
-	}
+	StopTimerThread();
 }
 
 void CClientThread::MyTimerSet::ThreadFunc() {
@@ -63,6 +58,15 @@ void StartTimerThread() {
 	if (!CClientThread::MyTimerSet::m_thread) {
 		CClientThread::MyTimerSet::m_thread = new boost::thread(boost::bind(CClientThread::MyTimerSet::ThreadFunc));
 		sleep(boost::posix_time::milliseconds(10));
+	}
+}
+
+void StopTimerThread() {
+	CClientThread::MyTimerSet::m_stop = 1;
+	if (CClientThread::MyTimerSet::m_thread) {
+		CClientThread::MyTimerSet::m_thread->join();
+		delete CClientThread::MyTimerSet::m_thread;
+		CClientThread::MyTimerSet::m_thread = nullptr;
 	}
 }
 

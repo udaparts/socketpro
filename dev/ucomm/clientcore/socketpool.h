@@ -5,7 +5,7 @@
 #ifdef OLD_IMPL
 #include "clientthread.h"
 #elif defined(_WIN32_WCE) || defined(WIN32_64)
-#include "../usocket/clientthread.h"
+#include "../usocket_win/clientthread.h"
 #else
 #include "../ClientCoreUnix/clientthread.h"
 #endif
