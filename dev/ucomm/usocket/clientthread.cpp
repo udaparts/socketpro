@@ -24,11 +24,7 @@ void WINAPI SetCertificateVerifyCallback(PCertificateVerifyCallback cvc) {
     g_cvc = cvc;
 }
 
-#ifndef WINCE
-std::thread* CClientThread::MyTimerSet::m_thread = nullptr;
-#else
-boost::thread* CClientThread::MyTimerSet::m_thread = nullptr;
-#endif
+SPA::CUCommThread::thread* CClientThread::MyTimerSet::m_thread = nullptr;
 
 CClientThread::MyTimerSet::MyTimerSet() {
 }
@@ -56,11 +52,7 @@ void CClientThread::MyTimerSet::ThreadFunc() {
                 pool->PostTimerMessage();
             }
         }
-#ifndef WINCE
-		sleep_for(std::chrono::milliseconds(100));
-#else
 		sleep(boost::posix_time::milliseconds(100));
-#endif
     }
     m_stop = 0;
 }
@@ -69,14 +61,8 @@ CClientThread::MyTimerSet CClientThread::MyTimerSet::ms;
 
 void StartTimerThread() {
 	if (!CClientThread::MyTimerSet::m_thread) {
-#ifndef WINCE
-		CClientThread::MyTimerSet::m_thread = new std::thread(&CClientThread::MyTimerSet::ThreadFunc);
-		sleep_for(MQ_FILE::ms(10));
-#else
 		CClientThread::MyTimerSet::m_thread = new boost::thread(boost::bind(CClientThread::MyTimerSet::ThreadFunc));
-		boost::system_time td = boost::get_system_time() + boost::posix_time::milliseconds(10);
-		sleep(td);
-#endif
+		sleep(boost::posix_time::milliseconds(10));
 	}
 }
 
@@ -100,8 +86,6 @@ CClientThread::~CClientThread() {
             m_mapClientSession.clear();
         }
     }
-    CAutoLock al(m_mutex);
-    m_spc = nullptr;
 }
 
 void CClientThread::OnThreadStarted() {

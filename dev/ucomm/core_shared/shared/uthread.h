@@ -36,15 +36,14 @@ namespace SPA {
     };
 #ifndef WINCE
 	using mutex = std::mutex;
-	using thread = std::thread;
 #else
 	using mutex = boost::mutex;
-	using thread = boost::thread;
 #endif
     class CUCommThread {
     public:
         CUCommThread(tagThreadApartment ta);
         virtual ~CUCommThread();
+		using thread = boost::thread;
 
     public:
         CErrorCode GetErrorCode();

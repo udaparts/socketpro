@@ -76,6 +76,7 @@ extern "C" {
     typedef void (CALLBACK *POnSendUserMessageEx) (USocket_Client_Handle handler, SPA::ClientSide::CMessageSender sender, const unsigned char *pMessage, unsigned int size);
     typedef void (CALLBACK *POnServerException) (USocket_Client_Handle handler, unsigned short requestId, const wchar_t *errMessage, const char* errWhere, unsigned int errCode);
     typedef void (CALLBACK *POnAllRequestsProcessed) (USocket_Client_Handle handler, unsigned short lastRequestId);
+	typedef void (CALLBACK *POnPostProcessing) (USocket_Client_Handle handler, unsigned int hint, SPA::UINT64 data);
 
     //<python>
     typedef void (CALLBACK *POnEnter2) (USocket_Client_Handle handler, SPA::ClientSide::CMessageSender *sender, const unsigned int *pGroup, unsigned int count);
@@ -138,7 +139,7 @@ extern "C" {
     void WINAPI SetOnSocketConnected(USocket_Client_Handle h, POnSocketConnected p);
     void WINAPI SetOnBaseRequestProcessed(USocket_Client_Handle h, POnBaseRequestProcessed p);
     void WINAPI SetOnAllRequestsProcessed(USocket_Client_Handle h, POnAllRequestsProcessed p);
-
+	
     //If socket is closed, batching requests or timed out, it will return false
     bool WINAPI WaitAll(USocket_Client_Handle h, unsigned int nTimeout = (~0));
     bool WINAPI Cancel(USocket_Client_Handle h, unsigned int requestsQueued = (~0));
@@ -244,6 +245,8 @@ extern "C" {
     const unsigned char* WINAPI GetResultBuffer(USocket_Client_Handle h);
     bool WINAPI GetQueueAutoMergeByPool(unsigned int poolId);
     void WINAPI SetQueueAutoMergeByPool(unsigned int poolId, bool autoMerge);
+	void WINAPI SetOnPostProcessing(USocket_Client_Handle h, POnPostProcessing p);
+	void WINAPI PostProcessing(USocket_Client_Handle h, unsigned int hint, SPA::UINT64 data);
 
 #ifdef __cplusplus
 }

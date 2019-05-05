@@ -83,11 +83,6 @@ private:
 public:
     class MyTimerSet {
 	public:
-#ifndef WINCE
-		using thread = std::thread;
-#else
-		using thread = boost::thread;
-#endif
         MyTimerSet();
         ~MyTimerSet();
         static volatile long m_stop;

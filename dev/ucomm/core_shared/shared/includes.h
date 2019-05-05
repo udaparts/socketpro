@@ -9,15 +9,12 @@
 #ifndef WINCE
 #include<chrono>
 #include <mutex>
-#include <thread>
 #include <condition_variable>
-using namespace std::this_thread;
 #else
-#include <boost/thread.hpp>
 #include <boost/thread/condition_variable.hpp>
-using namespace boost::this_thread;
 #endif
-
+#include <boost/thread.hpp>
+using namespace boost::this_thread;
 #include <boost/bind.hpp>
 #include <boost/asio.hpp>
 #ifndef NOT_USE_OPENSSL

@@ -35,7 +35,7 @@ namespace SPA {
         return m_ta;
     }
 
-    const thread* CUCommThread::GetBoostThread() const {
+    const CUCommThread::thread* CUCommThread::GetBoostThread() const {
         return m_pThread;
     }
 
@@ -125,11 +125,7 @@ namespace SPA {
                 m_mutex.unlock();
                 m_io.stop();
                 while (!m_io.stopped()) {
-#ifndef WINCE
-                    sleep_for(std::chrono::milliseconds(1));
-#else
 					sleep(boost::posix_time::milliseconds(1));
-#endif
                 }
                 if (p->joinable()) {
                     p->join();

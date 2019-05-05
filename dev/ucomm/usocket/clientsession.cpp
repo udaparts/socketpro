@@ -75,7 +75,7 @@ m_bConfirmFail(false), m_RouterHandle(0), m_nRouteeCount(0), m_bRegistered(true)
 m_bSync(false), m_routeeNotAvailable(0), m_bRoutingQueueIndexEnabled(false), m_bRoutingWait(false),
 m_bSendWaiting(false), m_bWaiting(false), m_pCertContext(nullptr), m_bLastDequeue(false), m_nRcvBufferSize(0),
 m_OnSubscribe2(nullptr), m_OnUnsubscribe2(nullptr), m_OnBroadcastEx2(nullptr), m_OnBroadcast2(nullptr),
-m_OnPostUserMessageEx2(nullptr), m_OnPostUserMessage2(nullptr), m_to(nullptr) {
+m_OnPostUserMessageEx2(nullptr), m_OnPostUserMessage2(nullptr), m_to(nullptr), m_OnPostProcessing(nullptr) {
     m_tRecv = GetTimeTick();
     m_tSend = m_tRecv;
     PSocketPoolCallback spc = pClientThread->GetSocketPoolCallback();
@@ -2170,6 +2170,12 @@ void CClientSession::SetOnAllRequestsProcessed(POnAllRequestsProcessed p) {
     m_mutex.unlock();
 }
 
+void CClientSession::SetOnPostProcessing(POnPostProcessing p) {
+	m_mutex.lock();
+	m_OnPostProcessing = p;
+	m_mutex.unlock();
+}
+
 unsigned int CClientSession::GetCurrentResultSize() {
     m_mutex.lock();
     unsigned int size = m_ResultInfo.Size;
@@ -2187,6 +2193,19 @@ unsigned int CClientSession::RetrieveResultInternal(unsigned char *pBuffer, unsi
         m_ResultInfo.Size -= size;
     }
     return size;
+}
+
+void CClientSession::OnPostProcessing(unsigned int hint, SPA::UINT64 data) {
+	m_mutex.lock();
+	POnPostProcessing pp = m_OnPostProcessing;
+	m_mutex.unlock();
+	if (pp) {
+		pp(this, hint, data);
+	}
+}
+
+void CClientSession::PostProcessing(unsigned int hint, SPA::UINT64 data) {
+	m_pIoService->post(boost::bind(&CClientSession::OnPostProcessing, this, hint, data));
 }
 
 const unsigned char* CClientSession::GetResultBuffer() {

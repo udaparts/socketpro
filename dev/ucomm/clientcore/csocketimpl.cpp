@@ -241,6 +241,12 @@ void WINAPI SetOnAllRequestsProcessed(USocket_Client_Handle h, POnAllRequestsPro
         s->SetOnAllRequestsProcessed(p);
 }
 
+void WINAPI SetOnPostProcessing(USocket_Client_Handle h, POnPostProcessing p) {
+	CClientSession *s = MapHandleToClientSession(h);
+	if (s)
+		s->SetOnPostProcessing(p);
+}
+
 void WINAPI Shutdown(USocket_Client_Handle h, SPA::tagShutdownType how) {
     //CAutoLock al(g_Mutex);
     CClientSession *s = MapHandleToClientSession(h);
@@ -786,6 +792,13 @@ void WINAPI SetOptimistic(USocket_Client_Handle h, SPA::tagOptimistic bOptimisti
     CClientSession *cs = MapHandleToClientSession(h);
     if (cs)
         cs->SetOptimistic(bOptimistic);
+}
+
+void WINAPI PostProcessing(USocket_Client_Handle h, unsigned int hint, SPA::UINT64 data) {
+	//CAutoLock al(g_Mutex);
+	CClientSession *cs = MapHandleToClientSession(h);
+	if (cs)
+		cs->PostProcessing(hint, data);
 }
 
 const char* WINAPI GetQueueFileName(USocket_Client_Handle h) {
