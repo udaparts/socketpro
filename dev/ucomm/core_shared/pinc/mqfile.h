@@ -4,7 +4,7 @@
 #include <vector>
 #include <string>
 #include <deque>
-#include "../include/membuffer.h"
+#include "../../include/membuffer.h"
 #include "blowfish.h" 
 #include <stdio.h>
 
@@ -121,20 +121,20 @@ namespace MQ_FILE {
     };
 
 #ifndef WINCE
-	using thread = std::thread;
-	using mutex = std::mutex;
-	using condition_variable = std::condition_variable;
-	using ms = std::chrono::milliseconds;
-	typedef std::unique_lock<std::mutex> CAutoLock;
-	typedef std::shared_ptr<CBlowFish> CBlowFishPtr;
-	using namespace std::this_thread;
+    using thread = std::thread;
+    using mutex = std::mutex;
+    using condition_variable = std::condition_variable;
+    using ms = std::chrono::milliseconds;
+    typedef std::unique_lock<std::mutex> CAutoLock;
+    typedef std::shared_ptr<CBlowFish> CBlowFishPtr;
+    using namespace std::this_thread;
 #else
-	using thread = boost::thread;
-	using mutex = boost::mutex;
-	using condition_variable = boost::condition_variable;
-	typedef boost::mutex::scoped_lock CAutoLock;
-	typedef boost::shared_ptr<CBlowFish> CBlowFishPtr;
-	using namespace boost::this_thread;
+    using thread = boost::thread;
+    using mutex = boost::mutex;
+    using condition_variable = boost::condition_variable;
+    typedef boost::mutex::scoped_lock CAutoLock;
+    typedef boost::shared_ptr<CBlowFish> CBlowFishPtr;
+    using namespace boost::this_thread;
 #endif
 
     class CMqFile {
@@ -156,6 +156,7 @@ namespace MQ_FILE {
 
     private:
 #pragma pack(push,1)
+
         struct MessageDecriptionHeader {
             SPA::UINT64 MessageIndex;
             unsigned int Time;
@@ -360,7 +361,7 @@ namespace MQ_FILE {
         CMqFileEx& operator=(const CMqFileEx &file);
 
     private:
-		CBlowFishPtr m_bf;
+        CBlowFishPtr m_bf;
     };
 
     /*
@@ -433,7 +434,7 @@ namespace MQ_FILE {
         CMyContainer& operator=(const CMyContainer &c);
 
     private:
-		CBlowFishPtr m_bf;
+        CBlowFishPtr m_bf;
         mutex m_cs;
     };
 
@@ -442,10 +443,10 @@ namespace MQ_FILE {
     extern std::vector<CQLastIndex*> g_vQLastIndex;
 
 #ifndef WINCE
-	typedef std::shared_ptr<CMqFile> CFilePtr;
-	typedef std::shared_ptr<CQLastIndex> CQLastIndexPtr;
+    typedef std::shared_ptr<CMqFile> CFilePtr;
+    typedef std::shared_ptr<CQLastIndex> CQLastIndexPtr;
 #else
-	typedef boost::shared_ptr<CMqFile> CFilePtr;
-	typedef boost::shared_ptr<CQLastIndex> CQLastIndexPtr;
+    typedef boost::shared_ptr<CMqFile> CFilePtr;
+    typedef boost::shared_ptr<CQLastIndex> CQLastIndexPtr;
 #endif
 };

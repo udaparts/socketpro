@@ -81,7 +81,7 @@ namespace SPA {
 
         time_t URegistration::GetEndDate() {
             const char *end;
-			struct tm tmDate;
+            struct tm tmDate;
             ::memset(&tmDate, 0, sizeof (tm));
             if (EndDate.size() != 10)
                 return std::mktime(&tmDate);

@@ -1,0 +1,330 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configurationDescriptor version="95">
+  <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
+    <logicalFolder name="HeaderFiles"
+                   displayName="Header Files"
+                   projectFiles="true">
+      <itemPath>../core_shared/pinc/aes.h</itemPath>
+      <itemPath>../core_shared/pinc/base64.h</itemPath>
+      <itemPath>../core_shared/pinc/blowfish.h</itemPath>
+      <itemPath>deflate.h</itemPath>
+      <itemPath>../core_shared/pinc/getsysid.h</itemPath>
+      <itemPath>inffast.h</itemPath>
+      <itemPath>inflate.h</itemPath>
+      <itemPath>inftrees.h</itemPath>
+      <itemPath>lz4.h</itemPath>
+      <itemPath>lz4_decoder.h</itemPath>
+      <itemPath>lz4_encoder.h</itemPath>
+      <itemPath>../include/membuffer.h</itemPath>
+      <itemPath>../core_shared/pinc/mqfile.h</itemPath>
+      <itemPath>../core_shared/pinc/sha1.h</itemPath>
+      <itemPath>../core_shared/pinc/uzip.h</itemPath>
+      <itemPath>zlib.h</itemPath>
+    </logicalFolder>
+    <logicalFolder name="ResourceFiles"
+                   displayName="Resource Files"
+                   projectFiles="true">
+    </logicalFolder>
+    <logicalFolder name="SourceFiles"
+                   displayName="Source Files"
+                   projectFiles="true">
+      <itemPath>adler32.c</itemPath>
+      <itemPath>aes.c</itemPath>
+      <itemPath>../core_shared/pinc/base64.cpp</itemPath>
+      <itemPath>blowfish.cpp</itemPath>
+      <itemPath>compress.c</itemPath>
+      <itemPath>crc32.c</itemPath>
+      <itemPath>deflate.c</itemPath>
+      <itemPath>../../../../Downloads/boost/libs/system/src/error_code.cpp</itemPath>
+      <itemPath>fastujson.cpp</itemPath>
+      <itemPath>getsysid.cpp</itemPath>
+      <itemPath>infback.c</itemPath>
+      <itemPath>inffast.c</itemPath>
+      <itemPath>inflate.c</itemPath>
+      <itemPath>inftrees.c</itemPath>
+      <itemPath>lz4.c</itemPath>
+      <itemPath>../include/membuffer.cpp</itemPath>
+      <itemPath>mqfile.cpp</itemPath>
+      <itemPath>../../../../Downloads/boost/libs/thread/src/pthread/once.cpp</itemPath>
+      <itemPath>../../../../Downloads/boost/libs/filesystem/src/operations.cpp</itemPath>
+      <itemPath>../../../../Downloads/boost/libs/filesystem/src/path.cpp</itemPath>
+      <itemPath>sha1.cpp</itemPath>
+      <itemPath>../../../../Downloads/boost/libs/thread/src/pthread/thread.cpp</itemPath>
+      <itemPath>trees.c</itemPath>
+      <itemPath>../../../../Downloads/boost/libs/thread/src/tss_null.cpp</itemPath>
+      <itemPath>uncompr.c</itemPath>
+      <itemPath>uzip.cpp</itemPath>
+      <itemPath>zutil.c</itemPath>
+    </logicalFolder>
+    <logicalFolder name="TestFiles"
+                   displayName="Test Files"
+                   projectFiles="false"
+                   kind="TEST_LOGICAL_FOLDER">
+    </logicalFolder>
+    <logicalFolder name="ExternalFiles"
+                   displayName="Important Files"
+                   projectFiles="false"
+                   kind="IMPORTANT_FILES_FOLDER">
+      <itemPath>Makefile</itemPath>
+    </logicalFolder>
+  </logicalFolder>
+  <projectmakefile>Makefile</projectmakefile>
+  <confs>
+    <conf name="Debug" type="3">
+      <toolsSet>
+        <compilerSet>default</compilerSet>
+        <dependencyChecking>true</dependencyChecking>
+        <rebuildPropChanged>false</rebuildPropChanged>
+      </toolsSet>
+      <compileType>
+        <cTool>
+          <commandLine>-fPIC -std=c++11 -static-libgcc -static-libstdc++ -static</commandLine>
+        </cTool>
+        <ccTool>
+          <commandLine>-fPIC -std=c++11 -static-libgcc -static-libstdc++ -static</commandLine>
+        </ccTool>
+        <archiverTool>
+        </archiverTool>
+      </compileType>
+      <item path="../../../../Downloads/boost/libs/filesystem/src/operations.cpp"
+            ex="false"
+            tool="0"
+            flavor2="0">
+      </item>
+      <item path="../../../../Downloads/boost/libs/filesystem/src/path.cpp"
+            ex="false"
+            tool="0"
+            flavor2="0">
+      </item>
+      <item path="../../../../Downloads/boost/libs/system/src/error_code.cpp"
+            ex="false"
+            tool="0"
+            flavor2="0">
+      </item>
+      <item path="../../../../Downloads/boost/libs/thread/src/pthread/once.cpp"
+            ex="false"
+            tool="0"
+            flavor2="0">
+      </item>
+      <item path="../../../../Downloads/boost/libs/thread/src/pthread/thread.cpp"
+            ex="false"
+            tool="0"
+            flavor2="0">
+      </item>
+      <item path="../../../../Downloads/boost/libs/thread/src/tss_null.cpp"
+            ex="false"
+            tool="0"
+            flavor2="0">
+      </item>
+      <item path="../core_shared/pinc/aes.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../core_shared/pinc/base64.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="../core_shared/pinc/base64.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../core_shared/pinc/blowfish.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../core_shared/pinc/getsysid.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../core_shared/pinc/mqfile.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../core_shared/pinc/sha1.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../core_shared/pinc/uzip.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../include/membuffer.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="../include/membuffer.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="adler32.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="aes.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="blowfish.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="compress.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="crc32.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="deflate.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="deflate.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="fastujson.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="getsysid.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="infback.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="inffast.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="inffast.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="inflate.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="inflate.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="inftrees.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="inftrees.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="lz4.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="lz4.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="lz4_decoder.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="lz4_encoder.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="mqfile.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="sha1.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="trees.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="uncompr.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="uzip.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="zlib.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="zutil.c" ex="false" tool="0" flavor2="0">
+      </item>
+    </conf>
+    <conf name="Release" type="3">
+      <toolsSet>
+        <compilerSet>default</compilerSet>
+        <dependencyChecking>true</dependencyChecking>
+        <rebuildPropChanged>false</rebuildPropChanged>
+      </toolsSet>
+      <compileType>
+        <cTool>
+          <developmentMode>5</developmentMode>
+          <commandLine>-fPIC -std=c++11 -static-libgcc -static-libstdc++ -static</commandLine>
+          <preprocessorList>
+            <Elem>NDEBUG</Elem>
+          </preprocessorList>
+        </cTool>
+        <ccTool>
+          <developmentMode>5</developmentMode>
+          <commandLine>-fPIC -std=c++11 -static-libgcc -static-libstdc++ -static</commandLine>
+          <preprocessorList>
+            <Elem>NDEBUG</Elem>
+          </preprocessorList>
+        </ccTool>
+        <fortranCompilerTool>
+          <developmentMode>5</developmentMode>
+        </fortranCompilerTool>
+        <asmTool>
+          <developmentMode>5</developmentMode>
+        </asmTool>
+        <archiverTool>
+        </archiverTool>
+      </compileType>
+      <item path="../../../../Downloads/boost/libs/filesystem/src/operations.cpp"
+            ex="false"
+            tool="0"
+            flavor2="0">
+      </item>
+      <item path="../../../../Downloads/boost/libs/filesystem/src/path.cpp"
+            ex="false"
+            tool="0"
+            flavor2="0">
+      </item>
+      <item path="../../../../Downloads/boost/libs/system/src/error_code.cpp"
+            ex="false"
+            tool="0"
+            flavor2="0">
+      </item>
+      <item path="../../../../Downloads/boost/libs/thread/src/pthread/once.cpp"
+            ex="false"
+            tool="0"
+            flavor2="0">
+      </item>
+      <item path="../../../../Downloads/boost/libs/thread/src/pthread/thread.cpp"
+            ex="false"
+            tool="0"
+            flavor2="0">
+      </item>
+      <item path="../../../../Downloads/boost/libs/thread/src/tss_null.cpp"
+            ex="false"
+            tool="0"
+            flavor2="0">
+      </item>
+      <item path="../core_shared/pinc/aes.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../core_shared/pinc/base64.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="../core_shared/pinc/base64.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../core_shared/pinc/blowfish.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../core_shared/pinc/getsysid.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../core_shared/pinc/mqfile.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../core_shared/pinc/sha1.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../core_shared/pinc/uzip.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../include/membuffer.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="../include/membuffer.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="adler32.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="aes.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="blowfish.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="compress.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="crc32.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="deflate.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="deflate.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="fastujson.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="getsysid.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="infback.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="inffast.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="inffast.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="inflate.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="inflate.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="inftrees.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="inftrees.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="lz4.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="lz4.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="lz4_decoder.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="lz4_encoder.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="mqfile.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="sha1.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="trees.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="uncompr.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="uzip.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="zlib.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="zutil.c" ex="false" tool="0" flavor2="0">
+      </item>
+    </conf>
+  </confs>
+</configurationDescriptor>
