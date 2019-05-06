@@ -3,10 +3,8 @@
 #include "stdafx.h"
 #include "clientsession.h"
 #elif defined(_WIN32_WCE) || defined(WIN32_64)
-#include "../usocket_win/stdafx.h"
 #include "../usocket_win/clientsession.h"
 #else
-#include "../ClientCoreUnix/stdafx.h"
 #include "../ClientCoreUnix/clientsession.h"
 #endif
 
@@ -21,6 +19,9 @@ boost::mutex g_mutex;
 #endif
 std::vector<CSocketPool*> g_vSocketPool;
 std::string g_localhost;
+
+void StartTimerThread();
+void StopTimerThread();
 
 unsigned int GetDefaultSocketsPerThread() {
     return 2;

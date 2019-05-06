@@ -10,7 +10,7 @@ using std::atomic;
 using boost::atomic;
 #endif
 #include "../core_shared/pinc/bf.h"
-#include "clientthread.h"
+#include "../clientcore/clientthread.h"
 #include "../core_shared/pinc/mqfile.h"
 #include "../core_shared/shared/certificateimpl.h"
 #include "../include/uclient.h"

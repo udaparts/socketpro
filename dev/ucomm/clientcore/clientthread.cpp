@@ -1,7 +1,9 @@
-#include "stdafx.h"
-#include "clientthread.h"
-#include "clientsession.h"
-#include "../clientcore/socketpool.h"
+#ifdef WINCE
+#elif WIN32_64
+#include "../usocket_win/clientsession.h"
+#else
+#endif
+#include "socketpool.h"
 
 #ifndef WINCE
 extern std::mutex g_Mutex;
@@ -25,6 +27,22 @@ void WINAPI SetCertificateVerifyCallback(PCertificateVerifyCallback cvc) {
 }
 
 SPA::CUCommThread::thread* CClientThread::MyTimerSet::m_thread = nullptr;
+
+void StartTimerThread() {
+	if (!CClientThread::MyTimerSet::m_thread) {
+		CClientThread::MyTimerSet::m_thread = new boost::thread(boost::bind(CClientThread::MyTimerSet::ThreadFunc));
+		sleep(boost::posix_time::milliseconds(10));
+	}
+}
+
+void StopTimerThread() {
+	CClientThread::MyTimerSet::m_stop = 1;
+	if (CClientThread::MyTimerSet::m_thread) {
+		CClientThread::MyTimerSet::m_thread->join();
+		delete CClientThread::MyTimerSet::m_thread;
+		CClientThread::MyTimerSet::m_thread = nullptr;
+	}
+}
 
 CClientThread::MyTimerSet::MyTimerSet() {
 }
@@ -53,22 +71,6 @@ void CClientThread::MyTimerSet::ThreadFunc() {
 }
 
 CClientThread::MyTimerSet CClientThread::MyTimerSet::ms;
-
-void StartTimerThread() {
-	if (!CClientThread::MyTimerSet::m_thread) {
-		CClientThread::MyTimerSet::m_thread = new boost::thread(boost::bind(CClientThread::MyTimerSet::ThreadFunc));
-		sleep(boost::posix_time::milliseconds(10));
-	}
-}
-
-void StopTimerThread() {
-	CClientThread::MyTimerSet::m_stop = 1;
-	if (CClientThread::MyTimerSet::m_thread) {
-		CClientThread::MyTimerSet::m_thread->join();
-		delete CClientThread::MyTimerSet::m_thread;
-		CClientThread::MyTimerSet::m_thread = nullptr;
-	}
-}
 
 //we don't use a mutex to lock m_mapClientSession because it is controlled by thread pool
 CClientThread::CClientThread(PSocketPoolCallback spc, unsigned int session, CSocketPool *pSocketPool, SPA::tagThreadApartment ta)

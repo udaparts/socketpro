@@ -1,14 +1,7 @@
-
 #ifndef __UMB_SOCKET_POOL_H__
 #define __UMB_SOCKET_POOL_H__
 
-#ifdef OLD_IMPL
 #include "clientthread.h"
-#elif defined(_WIN32_WCE) || defined(WIN32_64)
-#include "../usocket_win/clientthread.h"
-#else
-#include "../ClientCoreUnix/clientthread.h"
-#endif
 
 class CSocketPool {
 public:

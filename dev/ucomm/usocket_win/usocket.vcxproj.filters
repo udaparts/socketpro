@@ -51,15 +51,12 @@
     <ClInclude Include="clientsession.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="clientthread.h">
+    <ClInclude Include="..\clientcore\clientthread.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="usocket.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="dllmain.cpp">
@@ -83,22 +80,19 @@
     <ClCompile Include="..\core_shared\shared\uthread.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="clientcore.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="clientsession.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="clientthread.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\clientcore\clientglobal.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\clientcore\csocketimpl.cpp">
+    <ClCompile Include="..\clientcore\socketpool.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\clientcore\socketpool.cpp">
+    <ClCompile Include="..\clientcore\clientthread.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\clientcore\csocketimpl.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

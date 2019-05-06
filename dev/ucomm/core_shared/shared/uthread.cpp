@@ -1,4 +1,3 @@
-
 #include "uthread.h"
 #ifdef WIN32_64
 #include <objbase.h>
