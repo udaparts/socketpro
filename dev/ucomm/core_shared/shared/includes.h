@@ -7,11 +7,15 @@
 #include <queue>
 
 #ifndef WINCE
-#include<chrono>
+#include <atomic>
+#include <chrono>
 #include <mutex>
 #include <condition_variable>
+using std::atomic;
 #else
+#include <boost/atomic.hpp>
 #include <boost/thread/condition_variable.hpp>
+using boost::atomic;
 #endif
 #include <boost/thread.hpp>
 using namespace boost::this_thread;
@@ -20,7 +24,6 @@ using namespace boost::this_thread;
 #ifndef NOT_USE_OPENSSL
 #include <boost/asio/ssl.hpp>
 #endif
-#include <time.h>
 
 #include "streamhead.h"
 #include "../../include/ucomm.h"

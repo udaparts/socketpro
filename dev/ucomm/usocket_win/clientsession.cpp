@@ -54,12 +54,7 @@ std::vector<MQ_FILE::CFilePtr > CClientSession::m_vQRequest;
 MQ_FILE::CQLastIndexPtr CClientSession::m_pQLastIndex;
 
 CClientSession::CClientSession(CIoService &IoService, CClientThread *pClientThread)
-:
-#ifndef NDEBUG
-m_nJobRequest(0),
-m_nJobConfirm(0),
-#endif
-m_qRead(INIT_BUFFER_SIZE), m_qWrite(INIT_BUFFER_SIZE, BUFFER_BLOCK_SIZE),
+: m_qRead(INIT_BUFFER_SIZE), m_qWrite(INIT_BUFFER_SIZE, BUFFER_BLOCK_SIZE),
 m_qReqIdWait(INIT_BUFFER_SIZE, BUFFER_BLOCK_SIZE), m_qReqIdCancel(INIT_BUFFER_SIZE, BUFFER_BLOCK_SIZE),
 m_pIoService(&IoService), m_pSocket(nullptr), m_ulRead(0), m_ulSent(0),
 m_ReadBuffer(GetIoBuffer()), m_bRBLocked(false), m_WriteBuffer(GetIoBuffer()), m_bWBLocked(0),
@@ -472,11 +467,6 @@ unsigned int CClientSession::GetCountOfRequestsInQueue() {
 }
 
 void CClientSession::OnConnectedInternal(int errCode) {
-#ifndef NDEBUG
-    m_nBalance = 0;
-    if (m_qRequest && m_qRequest->IsAvailable())
-        m_nBalance = m_qRequest->GetMessageCount();
-#endif
     ::memset(&m_ResultInfo, 0, sizeof (m_ResultInfo));
     SPA::CScopeUQueue::Unlock(m_pQBatch);
     m_pQBatch = nullptr;
@@ -841,10 +831,6 @@ bool CClientSession::SendRequestInternal(CAutoLock &al, unsigned short reqId, co
         if (!bQueue)
             return false;
     }
-#ifndef NDEBUG
-    if (reqId > SPA::idSwitchTo)
-        ++m_nBalance;
-#endif
     if (m_qWrite.GetSize() > BLOCK_COUNT * BUFFER_BLOCK_SIZE) {
         if (!IsSameThread()) {
             m_bSendWaiting = true;
@@ -918,11 +904,6 @@ bool CClientSession::SendRequestInternal(CAutoLock &al, unsigned short reqId, co
         WriteFromQueueFile();
     }
     Write(nullptr, 0);
-#ifndef NDEBUG
-    if (m_qRequest && m_qRequest->IsAvailable() && m_qRequest->GetMessageCount() < m_nBalance) {
-        //assert(false);
-    }
-#endif
     return true;
 }
 
@@ -1097,10 +1078,6 @@ void CClientSession::OnConnected(const CErrorCode &ec, CResolver::iterator ep) {
     boost::asio::ip::tcp::no_delay nodelay(true);
     CAutoLock sl(m_mutex);
     m_pCert.reset();
-#ifndef NDEBUG
-    m_nJobRequest = 0;
-    m_nJobConfirm = 0;
-#endif
     m_nCancel = 0;
     m_qRead.SetSize(0);
     m_qWrite.SetSize(0);
@@ -1549,14 +1526,6 @@ void CClientSession::CloseInternal(int nError) {
     if (m_ConnState == SPA::ClientSide::csClosed) {
         return;
     }
-#ifndef NDEBUG
-    if (m_nJobRequest) {
-        std::cout << "Bad dequeue job balance = " << __FUNCTION__ << ", balance = " << m_nJobRequest << std::endl;
-    }
-    if (m_nJobConfirm) {
-        std::cout << "Bad confirm job balance = " << __FUNCTION__ << ", balance = " << m_nJobConfirm << std::endl;
-    }
-#endif
     m_tRecv = GetTickCount();
     m_tSend = m_tRecv;
     PSocketPoolCallback spc = m_pThread->GetSocketPoolCallback();
@@ -1762,9 +1731,6 @@ bool CClientSession::StartQueueInternal(const char *qName, bool secure, bool deq
     if (!m_qRequest->IsAvailable()) {
         return false;
     } else {
-#ifndef NDEBUG
-        m_nBalance += m_qRequest->GetMessageCount();
-#endif
         if (m_ClientInfo.ServiceId > SPA::sidStartup && m_ConnState > SPA::ClientSide::csConnected)
             SendStartQueueMessage();
         CAutoLock sl(m_mutexQLI);
@@ -1886,9 +1852,6 @@ bool CClientSession::PushQueueTo(const std::vector<CClientSession*> &vClients) {
         MQ_FILE::CMqFile* &ref = vQ.front();
         if (m_qRequest->AppendTo(&ref, (unsigned int) vQ.size())) {
             for (it = vClients.begin(); it != end; ++it) {
-#ifndef NDEBUG
-                (*it)->m_nBalance += count;
-#endif
                 (*it)->SendFromPersistantQueue();
             }
             return true;
@@ -2109,7 +2072,7 @@ bool CClientSession::DequeuedResult() {
     return q;
 }
 
-void CClientSession::Shutdown(nsIP::tcp::socket::shutdown_type nHow) {
+void CClientSession::Shutdown(CSocket::shutdown_type nHow) {
     CErrorCode ec;
     CAutoLock sl(m_mutex);
     if (IsContextSet()) {
@@ -2234,22 +2197,6 @@ bool CClientSession::RemoveRequestId(unsigned short nRequestId) {
         for (n = 0; n < count; ++n) {
             if (pId[n].RequestId == nRequestId) {
                 m_qReqIdWait.Pop((unsigned int) sizeof (SPA::CStreamHeader), (unsigned int) (n * sizeof (SPA::CStreamHeader)));
-#ifndef NDEBUG
-                if (nRequestId > SPA::idReservedTwo) {
-                    if (!m_nBalance) {
-                        assert(false);
-                    } else {
-                        --m_nBalance;
-                        if (m_nBalance == 0) {
-                            int n;
-                            n = 0;
-                        }
-                    }
-                }
-                if (m_qRequest && m_qRequest->IsAvailable() && m_qRequest->GetMessageCount() < m_nBalance) {
-                    assert(false);
-                }
-#endif
                 return true;
             }
         }
@@ -2257,22 +2204,6 @@ bool CClientSession::RemoveRequestId(unsigned short nRequestId) {
 
         if (pId->RequestId == nRequestId) {
             m_qReqIdWait.Pop((unsigned int) sizeof (SPA::CStreamHeader)); //remove the request id
-#ifndef NDEBUG
-            if (nRequestId > SPA::idReservedTwo) {
-                if (!m_nBalance) {
-                    assert(false);
-                } else {
-                    --m_nBalance;
-                    if (m_nBalance == 0) {
-                        int n;
-                        n = 0;
-                    }
-                }
-            }
-            if (m_qRequest && m_qRequest->IsAvailable() && m_qRequest->GetMessageCount() < m_nBalance) {
-                //assert(false);
-            }
-#endif
             if (m_qReqIdCancel.GetSize() > 0) {
                 pId = (SPA::CStreamHeader *) m_qReqIdCancel.GetBuffer();
                 if (pId->RequestId == nRequestId) {
@@ -2492,21 +2423,9 @@ void CClientSession::OnBaseRequestProcessed(unsigned short nRequestId, unsigned 
             if (nRequestId == SPA::idDequeueConfirmed) {
                 assert(sb->GetSize() == sizeof (MQ_FILE::CDequeueConfirmInfo));
                 sb >> dci;
-#ifndef NDEBUG
-                if (m_qRequest->GetMessageCount() < m_nBalance + 1 + m_qConfirm.GetSize() / sizeof (dci)) {
-                    MQ_FILE::CDequeueConfirmInfo *start = (MQ_FILE::CDequeueConfirmInfo *) m_qConfirm.GetBuffer();
-                    //assert(false);
-                }
-#endif
                 assert(dci.QA.MessageIndex && dci.QA.MessageIndex != (~0));
                 m_qa = dci.QA;
             } else {
-#ifndef NDEBUG
-                if (m_qRequest->GetMessageCount() < m_nBalance + sb->GetSize() / sizeof (dci) + m_qConfirm.GetSize() / sizeof (dci)) {
-                    MQ_FILE::CDequeueConfirmInfo *start = (MQ_FILE::CDequeueConfirmInfo *) m_qConfirm.GetBuffer();
-                    assert(false);
-                }
-#endif
                 while (sb->GetSize() > 0) {
                     assert(sb->GetSize() >= sizeof (dci));
                     sb >> dci;
@@ -2525,9 +2444,6 @@ void CClientSession::OnBaseRequestProcessed(unsigned short nRequestId, unsigned 
             if (bQueue) {
                 switch (reqId) {
                     case SPA::idStartJob:
-#ifndef NDEBUG
-                        ++m_nJobConfirm;
-#endif
                         if (m_ConnState < SPA::ClientSide::csConnected)
                             return;
                         m_bConfirmFail = dci.Fail;
@@ -2541,9 +2457,6 @@ void CClientSession::OnBaseRequestProcessed(unsigned short nRequestId, unsigned 
                         RemoveRequestId(nRequestId);
                         break;
                     case SPA::idEndJob:
-#ifndef NDEBUG
-                        --m_nJobConfirm;
-#endif
                         if (m_ConnState < SPA::ClientSide::csConnected || m_vQTrans.size() == 0)
                             return;
                         if (!m_bConfirmFail)
@@ -2572,12 +2485,6 @@ void CClientSession::OnBaseRequestProcessed(unsigned short nRequestId, unsigned 
                             m_vQTrans.push_back(m_qa);
                         } else {
                             m_qConfirm << dci;
-#ifndef NDEBUG
-                            if (m_qRequest->GetMessageCount() < m_nBalance + m_qConfirm.GetSize() / sizeof (dci)) {
-                                MQ_FILE::CDequeueConfirmInfo *start = (MQ_FILE::CDequeueConfirmInfo *) m_qConfirm.GetBuffer();
-                                //assert(false);
-                            }
-#endif
                             bool fail = dci.Fail;
                             if (fail || ComputeQueueDistance() >= 128 * 1024) {
                                 DoConfirmDequeue();
@@ -2589,11 +2496,6 @@ void CClientSession::OnBaseRequestProcessed(unsigned short nRequestId, unsigned 
                         }
                         break;
                 }
-#ifndef NDEBUG
-                if (m_nJobConfirm > 1) {
-                    std::cout << "Bad confirm job balance = " << __FUNCTION__ << ", balance = " << m_nJobConfirm << std::endl;
-                }
-#endif
                 if (dci.Fail) {
                     WriteFromQueueFile();
                     Write(nullptr, 0);
@@ -2708,11 +2610,6 @@ bool CClientSession::IsRouteeRequest() {
 }
 
 void CClientSession::NotifyDequeued(unsigned int qHandle) {
-#ifndef NDEBUG
-    if (m_nJobRequest > 1) {
-        std::cout << "Bad dequeue job balance = " << __FUNCTION__ << ", balance = " << m_nJobRequest << std::endl;
-    }
-#endif
     if (m_RouterHandle) {
         switch (m_ResultInfo.RequestId) {
             case SPA::idStartJob:
@@ -2993,15 +2890,6 @@ void CClientSession::OnReadCompleted(const CErrorCode& Error, size_t nLen) {
                             seek.MessageIndex >= m_qa.MessageIndex &&
                             seek.MessagePos != INVALID_NUMBER &&
                             seek.MessagePos >= m_qa.MessagePos && m_qa.MessageIndex > 1) {
-#ifndef NDEBUG
-                        std::cout << "++++ ReqId = " << m_ResultInfo.RequestId << ", len = " << m_ResultInfo.Size << ", msg index = " << m_qa.MessageIndex << ", pos = " << m_qa.MessagePos;
-                        std::cout << ", seek msg index = " << seek.MessageIndex << ", seek pos = " << seek.MessagePos << std::endl;
-                        if (m_ResultInfo.RequestId == SPA::idStartJob) {
-                            ++m_nJobRequest;
-                        } else if (m_ResultInfo.RequestId == SPA::idEndJob) {
-                            --m_nJobRequest;
-                        }
-#endif
                         m_bFail = false;
                         NotifyDequeued(qHandle);
                         assert(m_qRead.GetSize() >= m_ResultInfo.Size);
@@ -3011,9 +2899,6 @@ void CClientSession::OnReadCompleted(const CErrorCode& Error, size_t nLen) {
                         b = (m_qRead.GetSize() >= sizeof (SPA::CStreamHeader));
                         continue;
                     } else if (m_ResultInfo.RequestId == SPA::idStartJob) {
-#ifndef NDEBUG
-                        ++m_nJobRequest;
-#endif
                         m_bDequeueTrans = true;
                         m_bFail = false;
                         NotifyDequeuedStartQueueTrans(qHandle);
@@ -3022,9 +2907,6 @@ void CClientSession::OnReadCompleted(const CErrorCode& Error, size_t nLen) {
                         b = (m_qRead.GetSize() >= sizeof (SPA::CStreamHeader));
                         continue;
                     } else if (m_ResultInfo.RequestId == SPA::idEndJob) {
-#ifndef NDEBUG
-                        --m_nJobRequest;
-#endif
                         NotifyDequeuedCommitQueueTrans(qHandle);
                         m_bDequeueTrans = false;
                         assert(m_qRead.GetSize() >= m_ResultInfo.Size);
@@ -3108,14 +2990,6 @@ void CClientSession::DoConfirmDequeue() {
         unsigned int count = m_qConfirm.GetSize() / sizeof (MQ_FILE::CDequeueConfirmInfo);
         std::sort(start, start + count, SortQueueConfirm);
         unsigned int res = m_qRequest->DoConfirmDequeue(m_qConfirm);
-#ifndef NDEBUG
-        if (count != res) {
-            assert(false);
-        }
-        if (m_qRequest->GetMessageCount() < m_nBalance) {
-            //assert(false);
-        }
-#endif
         m_qConfirm.SetSize(0);
     }
 }

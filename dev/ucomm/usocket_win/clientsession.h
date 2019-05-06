@@ -2,13 +2,6 @@
 #ifndef __UMB_CLIENT_SESSION_H__
 #define __UMB_CLIENT_SESSION_H__
 
-#ifndef WINCE
-#include <atomic>
-using std::atomic;
-#else
-#include <boost/atomic.hpp>
-using boost::atomic;
-#endif
 #include "../core_shared/pinc/bf.h"
 #include "../clientcore/clientthread.h"
 #include "../core_shared/pinc/mqfile.h"
@@ -16,11 +9,6 @@ using boost::atomic;
 #include "../include/uclient.h"
 
 class CClientSession : public SPA::ClientSide::UClientSocketBase {
-#ifndef NDEBUG
-    unsigned int m_nJobRequest;
-    unsigned int m_nJobConfirm;
-#endif
-
 public:
     CClientSession(CIoService &IoService, CClientThread *pClientThread);
     ~CClientSession();
@@ -45,7 +33,7 @@ public:
     SPA::tagEncryptionMethod GetEncryptionMethod();
     bool Connect(const char *strHost, unsigned int nPort, bool bSync = false, bool b6 = false);
     void Close();
-    void Shutdown(nsIP::tcp::socket::shutdown_type nHow = nsIP::tcp::socket::shutdown_both);
+    void Shutdown(CSocket::shutdown_type nHow = CSocket::shutdown_both);
     unsigned int RetrieveResult(unsigned char *pBuffer, unsigned int size);
     void SetOnSocketClosed(POnSocketClosed p);
     void SetOnHandShakeCompleted(POnHandShakeCompleted p);
@@ -300,10 +288,6 @@ private:
     bool m_bLastDequeue;
     SPA::CUQueue m_qBatchDequeueConfirm;
     unsigned int m_nRcvBufferSize;
-
-#ifndef NDEBUG
-    SPA::UINT64 m_nBalance;
-#endif
 
     static mutex m_mutexQLI;
     static std::vector<MQ_FILE::CFilePtr > m_vQRequest;
