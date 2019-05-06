@@ -98,7 +98,7 @@
       <ModuleDefinitionFile>clientcore.def</ModuleDefinitionFile>
       <AdditionalDependencies>../debug/uzip.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
-      <ImportLibrary>$(OutDir)UClientCore.lib</ImportLibrary>
+      <ImportLibrary>$(OutDir)uclientcore.lib</ImportLibrary>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -116,7 +116,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ModuleDefinitionFile>clientcore.def</ModuleDefinitionFile>
       <AdditionalDependencies>../x64/debug/uzip.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <ImportLibrary>$(OutDir)UClientCore.lib</ImportLibrary>
+      <ImportLibrary>$(OutDir)uclientcore.lib</ImportLibrary>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -138,7 +138,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ModuleDefinitionFile>clientcore.def</ModuleDefinitionFile>
       <AdditionalDependencies>../release/uzip.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <ImportLibrary>$(OutDir)UClientCore.lib</ImportLibrary>
+      <ImportLibrary>$(OutDir)uclientcore.lib</ImportLibrary>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -160,7 +160,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ModuleDefinitionFile>clientcore.def</ModuleDefinitionFile>
       <AdditionalDependencies>../x64/release/uzip.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <ImportLibrary>$(OutDir)UClientCore.lib</ImportLibrary>
+      <ImportLibrary>$(OutDir)uclientcore.lib</ImportLibrary>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>

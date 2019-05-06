@@ -6,6 +6,14 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "uzip", "uzip\uzip.vcxproj", "{7DF86DEC-F5D6-4A63-8E75-62415D2CC8B2}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "usocket", "usocket_win\usocket.vcxproj", "{FDFA728A-F33C-4B23-962F-34090581794D}"
+	ProjectSection(ProjectDependencies) = postProject
+		{7DF86DEC-F5D6-4A63-8E75-62415D2CC8B2} = {7DF86DEC-F5D6-4A63-8E75-62415D2CC8B2}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "uservercore", "uservercore_win\uservercore.vcxproj", "{AE7E37C7-5638-4395-848C-AB92F8850D43}"
+	ProjectSection(ProjectDependencies) = postProject
+		{7DF86DEC-F5D6-4A63-8E75-62415D2CC8B2} = {7DF86DEC-F5D6-4A63-8E75-62415D2CC8B2}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -31,6 +39,14 @@ Global
 		{FDFA728A-F33C-4B23-962F-34090581794D}.Release|x64.Build.0 = Release|x64
 		{FDFA728A-F33C-4B23-962F-34090581794D}.Release|x86.ActiveCfg = Release|Win32
 		{FDFA728A-F33C-4B23-962F-34090581794D}.Release|x86.Build.0 = Release|Win32
+		{AE7E37C7-5638-4395-848C-AB92F8850D43}.Debug|x64.ActiveCfg = Debug|x64
+		{AE7E37C7-5638-4395-848C-AB92F8850D43}.Debug|x64.Build.0 = Debug|x64
+		{AE7E37C7-5638-4395-848C-AB92F8850D43}.Debug|x86.ActiveCfg = Debug|Win32
+		{AE7E37C7-5638-4395-848C-AB92F8850D43}.Debug|x86.Build.0 = Debug|Win32
+		{AE7E37C7-5638-4395-848C-AB92F8850D43}.Release|x64.ActiveCfg = Release|x64
+		{AE7E37C7-5638-4395-848C-AB92F8850D43}.Release|x64.Build.0 = Release|x64
+		{AE7E37C7-5638-4395-848C-AB92F8850D43}.Release|x86.ActiveCfg = Release|Win32
+		{AE7E37C7-5638-4395-848C-AB92F8850D43}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
