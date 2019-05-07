@@ -11,526 +11,603 @@
 #endif
 
 namespace SPA {
-    namespace ClientSide {
+	namespace ClientSide {
 
-        class CStreamingFile : public CAsyncServiceHandler {
-        public:
-            typedef std::function<void(CStreamingFile *file, int res, const std::wstring &errMsg) > DDownload;
-            typedef DDownload DUpload;
-            typedef std::function<void(CStreamingFile *file, UINT64 transferred) > DTransferring;
+		class CStreamingFile : public CAsyncServiceHandler {
+		public:
+			typedef std::function<void(CStreamingFile *file, int res, const std::wstring &errMsg) > DDownload;
+			typedef DDownload DUpload;
+			typedef std::function<void(CStreamingFile *file, UINT64 transferred) > DTransferring;
 
-            CStreamingFile(CClientSocket * cs) : CAsyncServiceHandler(SFile::sidFile, cs) {
-            }
+			CStreamingFile(CClientSocket * cs) : CAsyncServiceHandler(SFile::sidFile, cs) {
+			}
 
-        protected:
-            //You may use the protected constructor when extending this class
+		protected:
+			//You may use the protected constructor when extending this class
 
-            CStreamingFile(unsigned int sid, CClientSocket * cs) : CAsyncServiceHandler(sid, cs) {
-            }
+			CStreamingFile(unsigned int sid, CClientSocket * cs) : CAsyncServiceHandler(sid, cs) {
+			}
 
-        private:
+		private:
 
-            struct CContext {
+			struct CContext {
 
-                CContext(bool uplaod, unsigned int flags)
-                : Tried(false), Uploading(uplaod), FileSize(~0), Flags(flags), Sent(false), QueueOk(false), ErrorCode(0),
+				CContext(bool uplaod, unsigned int flags)
+					: Uploading(uplaod), FileSize(~0), Flags(flags), QueueOk(false), ErrorCode(0), Sent(false),
 #ifdef WIN32_64
-                File(INVALID_HANDLE_VALUE)
+					File(INVALID_HANDLE_VALUE)
 #else
-                File(-1)
+					File(-1)
 #endif
-                {
-                }
-                bool Tried;
-                bool Uploading;
-                UINT64 FileSize;
-                unsigned int Flags;
-                bool Sent;
-                std::wstring LocalFile;
-                std::wstring FilePath;
-                DDownload Download;
-                DTransferring Transferring;
-                DDiscarded Discarded;
-                bool QueueOk;
-                int ErrorCode;
+				{
+				}
+				bool Uploading;
+				UINT64 FileSize;
+				unsigned int Flags;
+				std::wstring LocalFile;
+				std::wstring FilePath;
+				DDownload Download;
+				DTransferring Transferring;
+				DDiscarded Discarded;
+				bool QueueOk;
+				int ErrorCode;
+				bool Sent;
 #ifdef WIN32_64
-                HANDLE File;
+				HANDLE File;
 #else
-                int File;
+				int File;
 #endif
-                std::wstring ErrMsg;
-            };
+				std::wstring ErrMsg;
+			};
 
-        public:
+		public:
 
-            virtual unsigned int CleanCallbacks() {
-                {
-                    CAutoLock al(m_csFile);
-                    for (auto it = m_vContext.begin(), end = m_vContext.end(); it != end; ++it) {
+			virtual unsigned int CleanCallbacks() {
+				{
+					CAutoLock al(m_csFile);
+					for (auto it = m_vContext.begin(), end = m_vContext.end(); it != end; ++it) {
+						CloseFile(*it);
+					}
+					m_vContext.clear();
+				}
+				return CAsyncServiceHandler::CleanCallbacks();
+			}
+
+			size_t GetFilesQueued() {
+				CAutoLock al(m_csFile);
+				return m_vContext.size();
+			}
+
+			UINT64 GetFileSize() {
+				UINT64 file_size = (~0);
+				CAutoLock al(m_csFile);
+				if (m_vContext.size())
+					file_size = m_vContext.front().FileSize;
+				return file_size;
+			}
+
+			bool Upload(const wchar_t *localFile, const wchar_t *remoteFile, DUpload up = nullptr, DTransferring trans = nullptr, DDiscarded aborted = nullptr, unsigned int flags = SFile::FILE_OPEN_TRUNCACTED) {
+				if (!localFile || !::wcslen(localFile))
+					return false;
+				if (!remoteFile || !::wcslen(remoteFile))
+					return false;
+				CContext context(true, flags);
+				context.Download = up;
+				context.Transferring = trans;
+				context.Discarded = aborted;
+				context.FilePath = remoteFile;
+				context.LocalFile = localFile;
+				CAutoLock al(m_csFile);
+				m_vContext.push_back(context);
+				if (m_vContext.size() == 1) {
+					ClientCoreLoader.PostProcessing(GetAttachedClientSocket()->GetHandle(), 0, 0);
+					GetAttachedClientSocket()->DoEcho(); //make sure WaitAll works correctly
+				}
+				return true;
+			}
+
+			bool Download(const wchar_t *localFile, const wchar_t *remoteFile, DDownload dl = nullptr, DTransferring trans = nullptr, DDiscarded aborted = nullptr, unsigned int flags = SFile::FILE_OPEN_TRUNCACTED) {
+				if (!localFile || !::wcslen(localFile))
+					return false;
+				if (!remoteFile || !::wcslen(remoteFile))
+					return false;
+				CContext context(false, flags);
+				context.Download = dl;
+				context.Transferring = trans;
+				context.Discarded = aborted;
+				context.FilePath = remoteFile;
+				context.LocalFile = localFile;
+				CAutoLock al(m_csFile);
+				m_vContext.push_back(context);
+				if (m_vContext.size() == 1) {
+					ClientCoreLoader.PostProcessing(GetAttachedClientSocket()->GetHandle(), 0, 0);
+					GetAttachedClientSocket()->DoEcho(); //make sure WaitAll works correctly
+				}
+				return true;
+			}
+
+		protected:
+			virtual void OnPostProcessing(unsigned int hint, UINT64 data) {
+				ResultHandler rh;
+				DServerException se;
+				CContext ctx(false, 0);
+				{
+					CAutoLock al(m_csFile);
+					if (m_vContext.size()) {
+						CContext &context = m_vContext.front();
+						if (context.Uploading) {
+							OpenLocalRead(context);
+						}
+						else {
+							OpenLocalWrite(context);
+						}
+						if (context.ErrorCode || context.ErrMsg.size()) {
+							ctx = m_vContext.front();
+							m_vContext.pop_front();
+							if (m_vContext.size()) {
+								//post processing the next one
+								ClientCoreLoader.PostProcessing(GetAttachedClientSocket()->GetHandle(), 0, 0);
+								GetAttachedClientSocket()->DoEcho(); //make sure WaitAll works correctly
+							}
+						}
+						else if (context.Uploading) {
+							SendRequest(SFile::idUpload, context.FilePath.c_str(), context.Flags, context.FileSize, rh, context.Discarded, se);
+						}
+						else {
+							//downloading
+							SendRequest(SFile::idDownload, context.FilePath.c_str(), context.Flags, rh, context.Discarded, se);
+						}
+					}
+				}
+				if (ctx.ErrorCode || ctx.ErrMsg.size()) {
+					CloseFile(ctx);
+					if (ctx.Download) {
+						ctx.Download(this, ctx.ErrorCode, ctx.ErrMsg);
+					}
+				}
+			}
+
+			virtual void OnMergeTo(CAsyncServiceHandler & to) {
+				CStreamingFile &fTo = (CStreamingFile &)to;
+				CAutoLock al0(fTo.m_csFile);
+				{
+					CAutoLock al1(m_csFile);
+					for (auto it = m_vContext.begin(), end = m_vContext.end(); it != end; ++it) {
+						fTo.m_vContext.push_back(*it);
+					}
+					m_vContext.clear();
+				}
+			}
+
+			virtual void OnResultReturned(unsigned short reqId, CUQueue &mc) {
+				switch (reqId) {
+				case SFile::idDownload:
+				{
+					int res;
+					std::wstring errMsg;
+					mc >> res >> errMsg;
+					DDownload dl;
+					{
+						CAutoLock al(m_csFile);
+						if (m_vContext.size()) {
+							CContext &context = m_vContext.front();
+							assert(!context.Uploading);
+							context.ErrorCode = res;
+							context.ErrMsg = errMsg;
+							dl = context.Download;
+							CloseFile(context);
+							m_vContext.pop_front();
+						}
+						else {
+							assert(false);
+						}
+					}
+					if (dl)
+						dl(this, res, errMsg);
+					OnPostProcessing(0, 0);
+				}
+				break;
+				case SFile::idStartDownloading:
+				{
+					CAutoLock al(m_csFile);
+					if (m_vContext.size()) {
+						CContext &context = m_vContext.front();
+						assert(!context.Uploading);
+						mc >> context.FileSize;
+					}
+					else {
+						assert(false);
+						mc.SetSize(0);
+					}
+				}
+				break;
+				case SFile::idDownloading:
+				{
+					DTransferring trans;
+					UINT64 downloaded = 0;
+					{
+						CAutoLock al(m_csFile);
+						if (m_vContext.size()) {
+							CContext &context = m_vContext.front();
+							assert(!context.Uploading);
+							trans = context.Transferring;
 #ifdef WIN32_64
-                        if (it->File != INVALID_HANDLE_VALUE)
-                            ::CloseHandle(it->File);
-                        if (!it->Uploading)
-                            ::DeleteFileW(it->LocalFile.c_str());
+							if (context.File != INVALID_HANDLE_VALUE) {
+								DWORD dw = mc.GetSize(), dwWritten;
+								BOOL ok = ::WriteFile(context.File, mc.GetBuffer(), dw, &dwWritten, nullptr);
+								assert(ok);
+								assert(dwWritten == mc.GetSize());
+								dwWritten = 0;
+								dw = ::GetFileSize(context.File, &dwWritten);
+								downloaded = dwWritten;
+								downloaded <<= 32;
+								downloaded += dw;
+							}
 #else
-                        if (it->File != -1)
-                            ::close(it->File);
-                        if (!it->Uploading) {
-                            std::string path = Utilities::ToUTF8(it->LocalFile.c_str(), it->LocalFile.size());
-                            unlink(path.c_str());
-                        }
+							if (context.File != -1) {
+								auto ret = ::write(context.File, mc.GetBuffer(), mc.GetSize());
+								assert((unsigned int)ret == mc.GetSize());
+								struct stat st;
+								static_assert(sizeof(st.st_size) >= sizeof(UINT64), "Big file not supported");
+								auto res = ::fstat(context.File, &st);
+								assert(res != -1);
+								downloaded = st.st_size;
+							}
 #endif
-                    }
-                    m_vContext.clear();
-                }
-                return CAsyncServiceHandler::CleanCallbacks();
-            }
-
-            size_t GetFilesQueued() {
-                CAutoLock al(m_csFile);
-                return m_vContext.size();
-            }
-
-            UINT64 GetFileSize() {
-                UINT64 file_size = (~0);
-                CAutoLock al(m_csFile);
-                if (m_vContext.size())
-                    file_size = m_vContext.front().FileSize;
-                return file_size;
-            }
-
-            bool Upload(const wchar_t *localFile, const wchar_t *remoteFile, DUpload up = nullptr, DTransferring trans = nullptr, DDiscarded aborted = nullptr, unsigned int flags = SFile::FILE_OPEN_TRUNCACTED) {
-                if (!localFile || !::wcslen(localFile))
-                    return false;
-                if (!remoteFile || !::wcslen(remoteFile))
-                    return false;
-                CContext context(true, flags);
-                context.Download = up;
-                context.Transferring = trans;
-                context.Discarded = aborted;
-                context.FilePath = remoteFile;
-                context.LocalFile = localFile;
-                CAutoLock al(m_csFile);
-                m_vContext.push_back(context);
-                return Transfer();
-            }
-
-            bool Download(const wchar_t *localFile, const wchar_t *remoteFile, DDownload dl = nullptr, DTransferring trans = nullptr, DDiscarded aborted = nullptr, unsigned int flags = SFile::FILE_OPEN_TRUNCACTED) {
-                if (!localFile || !::wcslen(localFile))
-                    return false;
-                if (!remoteFile || !::wcslen(remoteFile))
-                    return false;
-                CContext context(false, flags);
-                context.Download = dl;
-                context.Transferring = trans;
-                context.Discarded = aborted;
-                context.FilePath = remoteFile;
-                context.LocalFile = localFile;
-                CAutoLock al(m_csFile);
-                m_vContext.push_back(context);
-                return Transfer();
-            }
-
-        protected:
-
-            virtual void OnMergeTo(CAsyncServiceHandler & to) {
-                CStreamingFile &fTo = (CStreamingFile &) to;
-                CAutoLock al0(fTo.m_csFile);
-                {
-                    CAutoLock al1(m_csFile);
-                    for (auto it = m_vContext.begin(), end = m_vContext.end(); it != end; ++it) {
-                        fTo.m_vContext.push_back(*it);
-                    }
-                    m_vContext.clear();
-                }
-            }
-
-            virtual void OnResultReturned(unsigned short reqId, CUQueue &mc) {
-                switch (reqId) {
-                    case SFile::idDownload:
-                    {
-                        int res;
-                        std::wstring errMsg;
-                        mc >> res >> errMsg;
-                        DDownload dl;
-                        {
-                            CAutoLock al(m_csFile);
-                            if (m_vContext.size()) {
-                                CContext &context = m_vContext.front();
-                                assert(!context.Uploading);
+						}
+						else {
+							assert(false); //shouldn't come here
+						}
+					}
+					if (trans)
+						trans(this, downloaded);
+					mc.SetSize(0);
+				}
+				break;
+				case SFile::idUpload:
+				{
+					int res;
+					CContext ctx(false, 0);
+					std::wstring errMsg;
+					mc >> res >> errMsg;
+					if (res || errMsg.size()) {
+						CAutoLock al(m_csFile);
+						if (m_vContext.size()) {
+							CContext &context = m_vContext.front();
+							ctx = m_vContext.front();;
+							ctx.ErrMsg = errMsg;
+							ctx.ErrorCode = res;
+							assert(context.Uploading);
+							m_vContext.pop_front();
+						}
+						else {
+							assert(false); //shouldn't come here
+						}
+					}
+					else {
+						CAutoLock al(m_csFile);
+						if (m_vContext.size()) {
+							bool ok;
+							ResultHandler rh;
+							DServerException se;
+							CContext &context = m_vContext.front();
+							CScopeUQueue sb(MY_OPERATION_SYSTEM, IsBigEndian(), SFile::STREAM_CHUNK_SIZE);
+							context.QueueOk = GetAttachedClientSocket()->GetClientQueue().StartJob();
 #ifdef WIN32_64
-                                if (context.File != INVALID_HANDLE_VALUE) {
-                                    ::CloseHandle(context.File);
-                                    context.File = INVALID_HANDLE_VALUE;
-                                }
+							DWORD ret = 0;
+							ok = ::ReadFile(context.File, (LPVOID)sb->GetBuffer(), SFile::STREAM_CHUNK_SIZE, &ret, nullptr) ? true : false;
 #else
-                                if (context.File != -1) {
-                                    ::close(context.File);
-                                    context.File = -1;
-                                }
+							int ret = ::read(context.File, (void*)sb->GetBuffer(), SFile::STREAM_CHUNK_SIZE);
+							ok = (ret != -1);
 #endif
-                                else if (res == 0) {
-                                    res = context.ErrorCode;
-                                    errMsg = context.ErrMsg;
-                                }
-                                dl = context.Download;
-                                m_vContext.pop_front();
-                            } else {
-                                assert(false);
-                            }
-                            if (dl)
-                                dl(this, res, errMsg);
-                        }
-                    }
-                        break;
-                    case SFile::idStartDownloading:
-                    {
-                        CAutoLock al(m_csFile);
-                        if (m_vContext.size()) {
-                            CContext &context = m_vContext.front();
-                            assert(!context.Uploading);
-                            mc >> context.FileSize;
+							while (ok && (unsigned int)ret == SFile::STREAM_CHUNK_SIZE) {
+								SendRequest(SFile::idUploading, sb->GetBuffer(), (unsigned int)ret, rh, context.Discarded, se);
 #ifdef WIN32_64
-                            DWORD sm = 0;
-                            if ((context.Flags & SFile::FILE_OPEN_SHARE_WRITE) == SFile::FILE_OPEN_SHARE_WRITE)
-                                sm |= FILE_SHARE_WRITE;
-                            context.File = ::CreateFileW(context.LocalFile.c_str(), GENERIC_WRITE, sm, nullptr, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
-                            if (context.File == INVALID_HANDLE_VALUE) {
-                                context.ErrorCode = SFile::CANNOT_OPEN_LOCAL_FILE_FOR_WRITING;
-                                context.ErrMsg = Utilities::GetErrorMessage(::GetLastError());
-                            } else {
-                                if ((context.Flags & SFile::FILE_OPEN_TRUNCACTED) == SFile::FILE_OPEN_TRUNCACTED) {
-                                    BOOL ok = ::SetEndOfFile(context.File);
-                                    assert(ok);
-                                } else if ((context.Flags & SFile::FILE_OPEN_APPENDED) == SFile::FILE_OPEN_APPENDED) {
-                                    sm = ::SetFilePointer(context.File, 0, nullptr, FILE_END);
-                                }
-                            }
+								ret = 0;
+								ok = ::ReadFile(context.File, (LPVOID)sb->GetBuffer(), SFile::STREAM_CHUNK_SIZE, &ret, nullptr) ? true : false;
 #else
-                            std::string s = Utilities::ToUTF8(context.LocalFile.c_str(), context.LocalFile.size());
-                            int mode = (O_WRONLY | O_CREAT);
-                            if ((context.Flags & SFile::FILE_OPEN_TRUNCACTED) == SFile::FILE_OPEN_TRUNCACTED) {
-                                mode |= O_TRUNC;
-                            } else if ((context.Flags & SFile::FILE_OPEN_APPENDED) == SFile::FILE_OPEN_APPENDED) {
-                                mode |= O_APPEND;
-                            }
-                            mode_t m = (S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
-                            context.File = ::open(s.c_str(), mode, m);
-                            if (context.File == -1) {
-                                context.ErrorCode = SFile::CANNOT_OPEN_LOCAL_FILE_FOR_WRITING;
-                                std::string err = strerror(errno);
-                                context.ErrMsg = Utilities::ToWide(err.c_str(), err.size());
-                            } else if ((context.Flags & SFile::FILE_OPEN_SHARE_WRITE) == 0) {
-                                struct flock fl;
-                                fl.l_whence = SEEK_SET;
-                                fl.l_start = 0;
-                                fl.l_len = 0;
-                                fl.l_type = F_WRLCK;
-                                fl.l_pid = ::getpid();
-                                if (::fcntl(context.File, F_SETLKW, &fl) == -1) {
-                                    std::string err = strerror(errno);
-                                    context.ErrMsg = Utilities::ToWide(err.c_str(), err.size());
-                                }
-                            }
+								ret = ::read(context.File, (void*)sb->GetBuffer(), SFile::STREAM_CHUNK_SIZE);
+								ok = (ret != -1);
 #endif
-                        } else {
-                            assert(false);
-                            mc.SetSize(0);
-                        }
-                    }
-                        break;
-                    case SFile::idDownloading:
-                    {
-                        DTransferring trans;
-                        UINT64 downloaded = 0;
-                        {
-                            CAutoLock al(m_csFile);
-                            if (m_vContext.size()) {
-                                CContext &context = m_vContext.front();
-                                assert(!context.Uploading);
-                                trans = context.Transferring;
+								if (!ok) {
+									break;
+								}
+								if (context.QueueOk) {
+									bool automerge = ClientCoreLoader.GetQueueAutoMergeByPool(GetAttachedClientSocket()->GetPoolId());
+									if (automerge) {
+									}
+									else if (GetAttachedClientSocket()->GetConnectionState() > csConnected) {
+										auto pending = GetAttachedClientSocket()->GetClientQueue().GetMessagesInDequeuing();
+										auto jobsize = GetAttachedClientSocket()->GetClientQueue().GetJobSize();
+										auto msg = GetAttachedClientSocket()->GetClientQueue().GetMessageCount();
+										if (msg + jobsize - pending > 10) {
+											break;
+										}
+									}
+								}
+								else if (GetAttachedClientSocket()->GetBytesInSendingBuffer() > 5 * SFile::STREAM_CHUNK_SIZE || GetAttachedClientSocket()->GetConnectionState() < csConnected) {
+									break;
+								}
+							}
+							if (!ok) {
 #ifdef WIN32_64
-                                if (context.File != INVALID_HANDLE_VALUE) {
-                                    DWORD dw = mc.GetSize(), dwWritten;
-                                    BOOL ok = ::WriteFile(context.File, mc.GetBuffer(), dw, &dwWritten, nullptr);
-                                    assert(ok);
-                                    assert(dwWritten == mc.GetSize());
-                                    dwWritten = 0;
-                                    dw = ::GetFileSize(context.File, &dwWritten);
-                                    downloaded = dwWritten;
-                                    downloaded <<= 32;
-                                    downloaded += dw;
-                                }
+								context.ErrorCode = ::GetLastError();
+								context.ErrMsg = Utilities::GetErrorMessage(::GetLastError());
 #else
-                                if (context.File != -1) {
-                                    auto ret = ::write(context.File, mc.GetBuffer(), mc.GetSize());
-                                    assert((unsigned int) ret == mc.GetSize());
-                                    struct stat st;
-                                    static_assert(sizeof (st.st_size) >= sizeof (UINT64), "Big file not supported");
-                                    auto res = ::fstat(context.File, &st);
-                                    assert(res != -1);
-                                    downloaded = st.st_size;
-                                }
+								context.ErrorCode = errno;
+								std::string err = strerror(errno);
+								context.ErrMsg = Utilities::ToWide(err);
 #endif
-                            } else {
-                                assert(false);
-                            }
-                        }
-                        if (trans)
-                            trans(this, downloaded);
-                        mc.SetSize(0);
-                    }
-                        break;
-                    case SFile::idUpload:
-                    {
-                        int res;
-                        DUpload upl;
-                        std::wstring errMsg;
-                        mc >> res >> errMsg;
-                        if (res) {
-                            CAutoLock al(m_csFile);
-                            if (m_vContext.size()) {
-                                CContext &context = m_vContext.front();
-                                assert(context.Uploading);
+								if (context.QueueOk) {
+									GetAttachedClientSocket()->GetClientQueue().AbortJob();
+								}
+								ctx = m_vContext.front();
+								m_vContext.pop_front();
+							}
+							else if (ret > 0) {
+								SendRequest(SFile::idUploading, sb->GetBuffer(), (unsigned int)ret, rh, context.Discarded, se);
+							}
+							if (ok && ret < SFile::STREAM_CHUNK_SIZE) {
+								context.Sent = true;
+								SendRequest(SFile::idUploadCompleted, (const unsigned char*) nullptr, (unsigned int)0, rh, context.Discarded, se);
+								if (context.QueueOk) {
+									GetAttachedClientSocket()->GetClientQueue().EndJob();
+								}
+							}
+						}
+						else {
+							assert(false); //shouldn't come here
+						}
+					}
+					if (ctx.ErrorCode || ctx.ErrMsg.size()) {
+						CloseFile(ctx);
+						if (ctx.Download) {
+							ctx.Download(this, ctx.ErrorCode, ctx.ErrMsg);
+						}
+						OnPostProcessing(0, 0);
+					}
+				}
+				break;
+				case SFile::idUploading:
+				{
+					CContext ctx(false, 0);
+					DTransferring trans;
+					INT64 uploaded;
+					mc >> uploaded;
+					{
+						CAutoLock al(m_csFile);
+						if (m_vContext.size()) {
+							CContext &context = m_vContext.front();
+							assert(context.Uploading);
+							trans = context.Transferring;
+							if (!context.Sent) {
+								bool ok;
+								CScopeUQueue sb(MY_OPERATION_SYSTEM, IsBigEndian(), SFile::STREAM_CHUNK_SIZE);
 #ifdef WIN32_64
-                                if (context.File != INVALID_HANDLE_VALUE) {
-                                    ::CloseHandle(context.File);
-                                    context.File = INVALID_HANDLE_VALUE;
-                                }
+								DWORD ret = 0;
+								ok = ::ReadFile(context.File, (LPVOID)sb->GetBuffer(), SFile::STREAM_CHUNK_SIZE, &ret, nullptr) ? true : false;
 #else
-                                if (context.File != -1) {
-                                    ::close(context.File);
-                                    context.File = -1;
-                                }
+								int ret = ::read(context.File, (void*)sb->GetBuffer(), SFile::STREAM_CHUNK_SIZE);
+								ok = (ret != -1);
 #endif
-                                upl = context.Download;
-                                m_vContext.pop_front();
-                            } else {
-                                assert(false);
-                            }
-                        }
-                        if (upl)
-                            upl(this, res, errMsg);
-                    }
-                        break;
-                    case SFile::idUploading:
-                    {
-                        DTransferring trans;
-                        INT64 uploaded;
-                        mc >> uploaded;
-                        if (uploaded > 0) {
-                            CAutoLock al(m_csFile);
-                            if (m_vContext.size()) {
-                                CContext &context = m_vContext.front();
-                                assert(context.Uploading);
-                                trans = context.Transferring;
-                            } else {
-                                assert(false);
-                            }
-                        }
-                        if (trans)
-                            trans(this, (UINT64) uploaded);
-                    }
-                        break;
-                    case SFile::idUploadCompleted:
-                    {
-                        DDownload upl;
-                        {
-                            CAutoLock al(m_csFile);
-                            if (m_vContext.size()) {
-                                CContext &context = m_vContext.front();
-                                assert(context.Uploading);
+								assert(ok);
+								ResultHandler rh;
+								DServerException se;
+								if (!ok) {
 #ifdef WIN32_64
-                                if (context.File != INVALID_HANDLE_VALUE) {
-                                    ::CloseHandle(context.File);
-                                    context.File = INVALID_HANDLE_VALUE;
-                                }
+									context.ErrorCode = ::GetLastError();
+									context.ErrMsg = Utilities::GetErrorMessage(::GetLastError());
 #else
-                                if (context.File != -1) {
-                                    ::close(context.File);
-                                    context.File = -1;
-                                }
+									context.ErrorCode = errno;
+									std::string err = strerror(errno);
+									context.ErrMsg = Utilities::ToWide(err);
 #endif
-                                upl = context.Download;
-                                m_vContext.pop_front();
-                            } else {
-                                assert(false);
-                            }
-                        }
-                        if (upl)
-                            upl(this, 0, L"");
-                    }
-                        break;
-                    default:
-                        CAsyncServiceHandler::OnResultReturned(reqId, mc);
-                        break;
-                }
-                CAutoLock al(m_csFile);
-                Transfer();
-            }
+									if (context.QueueOk) {
+										GetAttachedClientSocket()->GetClientQueue().AbortJob();
+									}
+									ctx = m_vContext.front();
+									m_vContext.pop_front();
+								}
+								else if (ret > 0) {
+									SendRequest(SFile::idUploading, sb->GetBuffer(), (unsigned int)ret, rh, context.Discarded, se);
+								}
+								if (ok && ret < SFile::STREAM_CHUNK_SIZE) {
+									context.Sent = true;
+									SendRequest(SFile::idUploadCompleted, (const unsigned char*) nullptr, (unsigned int)0, rh, context.Discarded, se);
+									if (context.QueueOk) {
+										GetAttachedClientSocket()->GetClientQueue().EndJob();
+									}
+								}
+							}
+						}
+						else {
+							assert(false); //shouldn't come here
+						}
+					}
+					if (ctx.ErrorCode || ctx.ErrMsg.size()) {
+						CloseFile(ctx);
+						if (ctx.Download) {
+							ctx.Download(this, ctx.ErrorCode, ctx.ErrMsg);
+						}
+						OnPostProcessing(0, 0);
+					}
+					else if (trans) {
+						trans(this, (UINT64)uploaded);
+					}
+				}
+				break;
+				case SFile::idUploadCompleted:
+				{
+					DDownload upl;
+					{
+						CAutoLock al(m_csFile);
+						if (m_vContext.size()) {
+							CContext &context = m_vContext.front();
+							assert(context.Uploading);
+							CloseFile(context);
+							upl = context.Download;
+							m_vContext.pop_front();
+						}
+						else {
+							assert(false);
+						}
+					}
+					if (upl)
+						upl(this, 0, L"");
+					OnPostProcessing(0, 0);
+				}
+				break;
+				default:
+					CAsyncServiceHandler::OnResultReturned(reqId, mc);
+					break;
+				}
+			}
 
-        private:
+		private:
+			static void CloseFile(CContext &context) {
+#ifdef WIN32_64
+				if (context.File != INVALID_HANDLE_VALUE) {
+					::CloseHandle(context.File);
+					context.File = INVALID_HANDLE_VALUE;
+					if (!context.Uploading && (context.ErrorCode || context.ErrMsg.size())) {
+						::DeleteFileW(context.LocalFile.c_str());
+					}
+				}
+#else
+				if (context.File != -1) {
+					::close(context.File);
+					context.File = -1;
+					if (!context.Uploading && (context.ErrorCode || context.ErrMsg.size())) {
+						std::string path = Utilities::ToUTF8(it->LocalFile.c_str(), it->LocalFile.size());
+						unlink(path.c_str());
+					}
+				}
+#endif
+			}
 
-            static bool IsOpened(const CContext &context) {
+			void OpenLocalWrite(CContext &context) {
+				do {
 #ifdef WIN32_64
-                return (context.File != INVALID_HANDLE_VALUE);
+					DWORD sm = 0;
+					if ((context.Flags & SFile::FILE_OPEN_SHARE_WRITE) == SFile::FILE_OPEN_SHARE_WRITE)
+						sm |= FILE_SHARE_WRITE;
+					context.File = ::CreateFileW(context.LocalFile.c_str(), GENERIC_WRITE, sm, nullptr, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+					if (context.File == INVALID_HANDLE_VALUE) {
+						context.ErrorCode = SFile::CANNOT_OPEN_LOCAL_FILE_FOR_WRITING;
+						context.ErrMsg = Utilities::GetErrorMessage(::GetLastError());
+						break;
+					}
+					if ((context.Flags & SFile::FILE_OPEN_TRUNCACTED) == SFile::FILE_OPEN_TRUNCACTED) {
+						if (!::SetEndOfFile(context.File)) {
+							context.ErrorCode = ::GetLastError();
+							context.ErrMsg = Utilities::GetErrorMessage(::GetLastError());
+						}
+					}
+					else if ((context.Flags & SFile::FILE_OPEN_APPENDED) == SFile::FILE_OPEN_APPENDED) {
+						LARGE_INTEGER dis, pos;
+						dis.QuadPart = 0;
+						if (!::SetFilePointerEx(context.File, dis, &pos, FILE_END)) {
+							context.ErrorCode = ::GetLastError();
+							context.ErrMsg = Utilities::GetErrorMessage(::GetLastError());
+						}
+					}
 #else
-                return (context.File != -1);
+					std::string s = Utilities::ToUTF8(context.LocalFile.c_str(), context.LocalFile.size());
+					int mode = (O_WRONLY | O_CREAT);
+					if ((context.Flags & SFile::FILE_OPEN_TRUNCACTED) == SFile::FILE_OPEN_TRUNCACTED) {
+						mode |= O_TRUNC;
+					}
+					else if ((context.Flags & SFile::FILE_OPEN_APPENDED) == SFile::FILE_OPEN_APPENDED) {
+						mode |= O_APPEND;
+					}
+					mode_t m = (S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
+					context.File = ::open(s.c_str(), mode, m);
+					if (context.File == -1) {
+						context.ErrorCode = SFile::CANNOT_OPEN_LOCAL_FILE_FOR_WRITING;
+						std::string err = strerror(errno);
+						context.ErrMsg = Utilities::ToWide(err);
+						break;
+					}
+					if ((context.Flags & SFile::FILE_OPEN_SHARE_WRITE) == 0) {
+						struct flock fl;
+						fl.l_whence = SEEK_SET;
+						fl.l_start = 0;
+						fl.l_len = 0;
+						fl.l_type = F_WRLCK;
+						fl.l_pid = ::getpid();
+						if (::fcntl(context.File, F_SETLKW, &fl) == -1) {
+							context.ErrorCode = errno;
+							std::string err = strerror(errno);
+							context.ErrMsg = Utilities::ToWide(err);
+						}
+					}
 #endif
-            }
+				} while (false);
+			}
 
-            bool Transfer() {
-                size_t index = 0;
-                ResultHandler rh;
-                DServerException se;
-                CClientSocket *cs = GetAttachedClientSocket();
-                if (!cs->Sendable())
-                    return false;
-                unsigned int sent_buffer_size = cs->GetBytesInSendingBuffer();
-                if (sent_buffer_size > 3 * SFile::STREAM_CHUNK_SIZE)
-                    return true;
-                while (index < m_vContext.size()) {
-                    CContext &context = m_vContext[index];
-                    if (context.Sent) {
-                        return true;
-                    }
-                    if (context.Uploading && context.Tried && !IsOpened(context)) {
-                        if (index == 0) {
-                            if (context.Download) {
-                                context.Download(this, context.ErrorCode, context.ErrMsg);
-                            }
-                            m_vContext.erase(m_vContext.begin() + index);
-                        } else {
-                            ++index;
-                        }
-                        continue;
-                    }
-                    if (context.Uploading) {
-                        if (!context.Tried) {
-                            context.Tried = true;
+			void OpenLocalRead(CContext &context) {
+				do {
 #ifdef WIN32_64
-                            DWORD sm = 0;
-                            if ((context.Flags & SFile::FILE_OPEN_SHARE_READ) == SFile::FILE_OPEN_SHARE_READ)
-                                sm |= FILE_SHARE_READ;
-                            context.File = ::CreateFileW(context.LocalFile.c_str(), GENERIC_READ, sm, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
-                            if (context.File == INVALID_HANDLE_VALUE) {
-                                context.ErrorCode = SFile::CANNOT_OPEN_LOCAL_FILE_FOR_READING;
-                                context.ErrMsg = Utilities::GetErrorMessage(::GetLastError());
-                            }
+					DWORD sm = 0;
+					if ((context.Flags & SFile::FILE_OPEN_SHARE_READ) == SFile::FILE_OPEN_SHARE_READ)
+						sm |= FILE_SHARE_READ;
+					context.File = ::CreateFileW(context.LocalFile.c_str(), GENERIC_READ, sm, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
+					if (context.File == INVALID_HANDLE_VALUE) {
+						context.ErrorCode = SFile::CANNOT_OPEN_LOCAL_FILE_FOR_READING;
+						context.ErrMsg = Utilities::GetErrorMessage(::GetLastError());
+						break;
+					}
+					LARGE_INTEGER li;
+					if (!GetFileSizeEx(context.File, &li)) {
+						context.ErrorCode = ::GetLastError();
+						context.ErrMsg = Utilities::GetErrorMessage(::GetLastError());
+						break;
+					}
+					context.FileSize = (UINT64)li.QuadPart;
 #else
-                            std::string s = Utilities::ToUTF8(context.LocalFile.c_str(), context.LocalFile.size());
-                            context.File = ::open(s.c_str(), O_RDONLY);
-                            if (context.File == -1) {
-                                context.ErrorCode = SFile::CANNOT_OPEN_LOCAL_FILE_FOR_READING;
-                                std::string err = strerror(errno);
-                                context.ErrMsg = Utilities::ToWide(err.c_str(), err.size());
-                            }
+					std::string s = Utilities::ToUTF8(context.LocalFile.c_str(), context.LocalFile.size());
+					context.File = ::open(s.c_str(), O_RDONLY);
+					if (context.File == -1) {
+						context.ErrorCode = SFile::CANNOT_OPEN_LOCAL_FILE_FOR_READING;
+						std::string err = strerror(errno);
+						context.ErrMsg = Utilities::ToWide(err);
+						break;
+					}
+					if ((context.Flags & SFile::FILE_OPEN_SHARE_READ) == 0) {
+						struct flock fl;
+						fl.l_whence = SEEK_SET;
+						fl.l_start = 0;
+						fl.l_len = 0;
+						fl.l_type = F_RDLCK;
+						fl.l_pid = ::getpid();
+						if (::fcntl(context.File, F_SETLKW, &fl) == -1) {
+							context.ErrorCode = errno;
+							std::string err = strerror(errno);
+							context.ErrMsg = Utilities::ToWide(err);
+							break;
+						}
+					}
+					struct stat st;
+					static_assert(sizeof(st.st_size) >= sizeof(UINT64), "Big file not supported");
+					if (::fstat(context.File, &st) == -1) {
+						context.ErrorCode = errno;
+						std::string err = strerror(errno);
+						context.ErrMsg = Utilities::ToWide(err);
+						break;
+					}
+					context.FileSize = st.st_size;
 #endif
-                            if (IsOpened(context)) {
-#ifdef WIN32_64
-                                DWORD dwHigh = 0;
-                                DWORD dw = ::GetFileSize(context.File, &dwHigh);
-                                context.FileSize = dwHigh;
-                                context.FileSize <<= 32;
-                                context.FileSize += dw;
-#else
-                                int res;
-                                if ((context.Flags & SFile::FILE_OPEN_SHARE_READ) == 0) {
-                                    struct flock fl;
-                                    fl.l_whence = SEEK_SET;
-                                    fl.l_start = 0;
-                                    fl.l_len = 0;
-                                    fl.l_type = F_RDLCK;
-                                    fl.l_pid = ::getpid();
-                                    res = ::fcntl(context.File, F_SETLKW, &fl);
-                                    assert(res != -1);
-                                }
-                                struct stat st;
-                                static_assert(sizeof (st.st_size) >= sizeof (UINT64), "Big file not supported");
-                                res = ::fstat(context.File, &st);
-                                assert(res != -1);
-                                context.FileSize = st.st_size;
-#endif
-                                context.QueueOk = GetAttachedClientSocket()->GetClientQueue().StartJob();
-                                if (!SendRequest(SFile::idUpload, context.FilePath.c_str(), context.Flags, context.FileSize, rh, context.Discarded, se)) {
-                                    return false;
-                                }
-                            }
-                        }
-                        if (!IsOpened(context)) {
-                            if (index == 0) {
-                                if (context.Download) {
-                                    context.Download(this, context.ErrorCode, context.ErrMsg);
-                                }
-                                m_vContext.erase(m_vContext.begin() + index);
-                            } else {
-                                ++index;
-                            }
-                            continue;
-                        } else {
-                            CScopeUQueue sb(MY_OPERATION_SYSTEM, IsBigEndian(), SFile::STREAM_CHUNK_SIZE);
-#ifdef WIN32_64
-                            DWORD ret = 0;
-                            BOOL ok = ::ReadFile(context.File, (LPVOID) sb->GetBuffer(), SFile::STREAM_CHUNK_SIZE, &ret, nullptr);
-                            assert(ok);
-#else
-                            int ret = ::read(context.File, (void*) sb->GetBuffer(), SFile::STREAM_CHUNK_SIZE);
-                            assert(ret != -1);
-#endif
-                            while (ret > 0) {
-                                if (!SendRequest(SFile::idUploading, sb->GetBuffer(), (unsigned int) ret, rh, context.Discarded, se)) {
-                                    return false;
-                                }
-                                sent_buffer_size = cs->GetBytesInSendingBuffer();
-                                if ((unsigned int) ret < SFile::STREAM_CHUNK_SIZE)
-                                    break;
-                                if (sent_buffer_size >= 5 * SFile::STREAM_CHUNK_SIZE)
-                                    break;
-#ifdef WIN32_64
-                                ret = 0;
-                                ok = ::ReadFile(context.File, (LPVOID) sb->GetBuffer(), SFile::STREAM_CHUNK_SIZE, &ret, nullptr);
-                                assert(ok);
-#else
-                                ret = ::read(context.File, (void*) sb->GetBuffer(), SFile::STREAM_CHUNK_SIZE);
-                                assert(ret != -1);
-#endif
-                            }
-                            if ((unsigned int) ret < SFile::STREAM_CHUNK_SIZE) {
-                                context.Sent = true;
-                                if (!SendRequest(SFile::idUploadCompleted, (const unsigned char*) nullptr, (unsigned int) 0, rh, context.Discarded, se)) {
-                                    return false;
-                                }
-                                if (context.QueueOk) {
-                                    GetAttachedClientSocket()->GetClientQueue().EndJob();
-                                    context.QueueOk = false;
-                                }
-                            }
-                            if (sent_buffer_size >= 4 * SFile::STREAM_CHUNK_SIZE)
-                                break;
-                        }
-                    } else {
-                        if (!SendRequest(SFile::idDownload, context.FilePath.c_str(), context.Flags, rh, context.Discarded, se)) {
-                            return false;
-                        }
-                        context.Sent = true;
-                        context.Tried = true;
-                        sent_buffer_size = cs->GetBytesInSendingBuffer();
-                        if (sent_buffer_size > 3 * SFile::STREAM_CHUNK_SIZE)
-                            break;
-                    }
-                    ++index;
-                }
-                return true;
-            }
+				} while (false);
+			}
 
-        protected:
-            CUCriticalSection m_csFile;
+		protected:
+			CUCriticalSection m_csFile;
 
-        private:
-            std::deque<CContext> m_vContext; //protected by m_csFile;
-        };
-        typedef CSocketPool<CStreamingFile> CStreamingFilePool;
-    } //ClientSide
+		private:
+			std::deque<CContext> m_vContext; //protected by m_csFile;
+		};
+		typedef CSocketPool<CStreamingFile> CStreamingFilePool;
+	} //ClientSide
 } //SPA
 
 #endif

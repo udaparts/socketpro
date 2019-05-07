@@ -279,8 +279,10 @@ namespace SPA {
             m_pClientSocket = nullptr;
         }
 
-        void CAsyncServiceHandler::OnMergeTo(CAsyncServiceHandler & to) {
+		void CAsyncServiceHandler::OnPostProcessing(unsigned int hint, UINT64 data) {
+		}
 
+        void CAsyncServiceHandler::OnMergeTo(CAsyncServiceHandler & to) {
         }
 
         void CAsyncServiceHandler::AppendTo(CAsyncServiceHandler & to) {
@@ -408,7 +410,7 @@ namespace SPA {
         }
 
         CClientSocket::CClientSocket()
-        : m_hSocket((USocket_Client_Handle) nullptr), m_bRandom(false), m_endian(false), m_os(MY_OPERATION_SYSTEM), m_nCurrSvsId(sidStartup), m_routing(false) {
+        : m_hSocket((USocket_Client_Handle) nullptr), m_bRandom(false), m_endian(false), m_os(MY_OPERATION_SYSTEM), m_nCurrSvsId(sidStartup), m_routing(false), m_poolId(0) {
             m_mutex.lock();
             m_vClientSocket.push_back(this);
             m_mutex.unlock();
@@ -417,8 +419,9 @@ namespace SPA {
 #endif
         }
 
-        void CClientSocket::Set(USocket_Client_Handle h) {
-            m_hSocket = h;
+        void CClientSocket::Set(USocket_Client_Handle h, unsigned int poolId) {
+			m_poolId = poolId;
+			m_hSocket = h;
             m_PushImpl.m_cs = this;
             m_QueueImpl.m_hSocket = h;
             ClientCoreLoader.SetOnHandShakeCompleted(h, &CClientSocket::OnHandShakeCompleted);
@@ -434,6 +437,7 @@ namespace SPA {
             ClientCoreLoader.SetOnServerException(h, &CClientSocket::OnServerException);
             ClientCoreLoader.SetOnBaseRequestProcessed(h, &CClientSocket::OnBaseRequestProcessed);
             ClientCoreLoader.SetOnAllRequestsProcessed(h, &CClientSocket::OnAllRequestsProcessed);
+			ClientCoreLoader.SetOnPostProcessing(h, &CClientSocket::OnPostProcessing);
         }
 
         CClientSocket::~CClientSocket() {
@@ -511,6 +515,10 @@ namespace SPA {
                 }
             }
         }
+
+		unsigned int CClientSocket::GetPoolId() const {
+			return m_poolId;
+		}
 
         USocket_Client_Handle CClientSocket::GetHandle() const {
             return m_hSocket;
@@ -1297,6 +1305,16 @@ namespace SPA {
             } while (false);
 #endif
         }
+
+		void WINAPI CClientSocket::OnPostProcessing(USocket_Client_Handle handler, unsigned int hint, SPA::UINT64 data) {
+			CClientSocket *p = Seek(handler);
+			if (!p)
+				return;
+			PAsyncServiceHandler ash = p->Seek(ClientCoreLoader.GetCurrentServiceId(handler));
+			if (ash) {
+				ash->OnPostProcessing(hint, data);
+			}
+		}
 
         void CClientSocket::OnAllRequestsProcessed(unsigned short lastRequestId) {
 

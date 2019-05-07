@@ -245,7 +245,7 @@ namespace SPA {
             bool Attach(CAsyncServiceHandler *p);
             void Detach(CAsyncServiceHandler *p);
             CAsyncServiceHandler *Seek(unsigned int nServiceId);
-            void Set(USocket_Client_Handle h);
+            void Set(USocket_Client_Handle h, unsigned int poolId);
 
         private:
             CClientSocket(const CClientSocket &cs);
@@ -396,6 +396,7 @@ namespace SPA {
             bool IsConnected() const;
             void SetEncryptionMethod(tagEncryptionMethod em) const;
             USocket_Client_Handle GetHandle() const;
+			unsigned int GetPoolId() const;
             const CConnectionContext& GetConnectionContext() const;
             static CClientSocket* Seek(USocket_Client_Handle h);
 
@@ -472,6 +473,7 @@ namespace SPA {
             static void WINAPI OnServerException(USocket_Client_Handle handler, unsigned short requestId, const wchar_t *errMessage, const char* errWhere, unsigned int errCode);
             static void WINAPI OnBaseRequestProcessed(USocket_Client_Handle handler, unsigned short requestId);
             static void WINAPI OnAllRequestsProcessed(USocket_Client_Handle handler, unsigned short lastRequestId);
+			static void WINAPI OnPostProcessing(USocket_Client_Handle handler, unsigned int hint, SPA::UINT64 data);
 
             CAsyncServiceHandler *GetCurrentHandler();
 
@@ -486,6 +488,7 @@ namespace SPA {
             tagOperationSystem m_os;
             unsigned int m_nCurrSvsId;
             bool m_routing;
+			unsigned int m_poolId;
 
             static CUCriticalSection m_mutex;
             static std::vector<CClientSocket*> m_vClientSocket;
@@ -1452,6 +1455,7 @@ namespace SPA {
             void AppendTo(CAsyncServiceHandler &from);
 
         protected:
+			virtual void OnPostProcessing(unsigned int hint, UINT64 data);
             virtual void OnMergeTo(CAsyncServiceHandler & to);
             virtual bool SendRouteeResult(const unsigned char *buffer, unsigned int len, unsigned short reqId = 0);
             bool SendRouteeResult(unsigned short reqId = 0);
@@ -2107,8 +2111,8 @@ namespace SPA {
                 return PClientSocket();
             }
 
-            static void Set(PClientSocket &cs, USocket_Client_Handle h) {
-                cs->Set(h);
+            static void Set(PClientSocket &cs, USocket_Client_Handle h, unsigned int poolId) {
+                cs->Set(h, poolId);
             }
 
             static PClientSocket CreateEmptySocket() {
@@ -2160,7 +2164,7 @@ namespace SPA {
                     case speUSocketCreated:
                         if (sp) {
                             PClientSocket clientSocket = CSocketPool<THandler, TCS>::CreateEmptySocket();
-                            Set(clientSocket, h);
+                            Set(clientSocket, h, poolId);
                             ClientCoreLoader.SetRecvTimeout(h, sp->m_recvTimeout);
                             ClientCoreLoader.SetConnTimeout(h, sp->m_connTimeout);
                             ClientCoreLoader.SetAutoConn(h, sp->m_autoConn);
