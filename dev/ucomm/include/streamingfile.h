@@ -290,6 +290,7 @@ namespace SPA {
 							bool ok;
 							ResultHandler rh;
 							DServerException se;
+							bool automerge = ClientCoreLoader.GetQueueAutoMergeByPool(GetAttachedClientSocket()->GetPoolId());
 							CContext &context = m_vContext.front();
 							CScopeUQueue sb(MY_OPERATION_SYSTEM, IsBigEndian(), SFile::STREAM_CHUNK_SIZE);
 							context.QueueOk = GetAttachedClientSocket()->GetClientQueue().StartJob();
@@ -313,19 +314,18 @@ namespace SPA {
 									break;
 								}
 								if (context.QueueOk) {
-									bool automerge = ClientCoreLoader.GetQueueAutoMergeByPool(GetAttachedClientSocket()->GetPoolId());
 									if (automerge) {
 									}
 									else if (GetAttachedClientSocket()->GetConnectionState() > csConnected) {
 										auto pending = GetAttachedClientSocket()->GetClientQueue().GetMessagesInDequeuing();
 										auto jobsize = GetAttachedClientSocket()->GetClientQueue().GetJobSize();
 										auto msg = GetAttachedClientSocket()->GetClientQueue().GetMessageCount();
-										if (msg + jobsize - pending > 10) {
+										if (msg + jobsize - pending > 80) {
 											break;
 										}
 									}
 								}
-								else if (GetAttachedClientSocket()->GetBytesInSendingBuffer() > 5 * SFile::STREAM_CHUNK_SIZE || GetAttachedClientSocket()->GetConnectionState() < csConnected) {
+								else if (GetAttachedClientSocket()->GetBytesInSendingBuffer() > 40 * SFile::STREAM_CHUNK_SIZE || GetAttachedClientSocket()->GetConnectionState() < csConnected) {
 									break;
 								}
 							}

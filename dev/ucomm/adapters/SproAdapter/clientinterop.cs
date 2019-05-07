@@ -13,6 +13,7 @@ namespace SocketProAdapter
         delegate void POnRequestProcessed(IntPtr handler, ushort requestId, uint len);
         delegate void POnBaseRequestProcessed(IntPtr handler, ushort requestId);
         delegate void POnAllRequestsProcessed(IntPtr handler, ushort lastRequestId);
+        delegate void POnPostProcessing(IntPtr handler, uint hint, ulong data);
 
         //CE/mobile platforms do not support the marshals UnmanagedType.LPArray or UnmanagedType.LPStr, 
         delegate void POnEnter(IntPtr handler, IntPtr sender, IntPtr groups, uint count);
@@ -569,6 +570,12 @@ namespace SocketProAdapter
 
             [DllImport(CLIENT_CORE_DLL)]
             internal static extern void SetLastCallInfo(IntPtr str);
+
+            [DllImport(CLIENT_CORE_DLL)]
+            internal static extern void SetOnPostProcessing(IntPtr h, POnPostProcessing p);
+
+            [DllImport(CLIENT_CORE_DLL)]
+            internal static extern void PostProcessing(IntPtr h, uint hint, ulong data);
         }
     }
 }

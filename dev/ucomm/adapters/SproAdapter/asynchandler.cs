@@ -109,6 +109,16 @@ namespace SocketProAdapter
                 cs.Detach(this);
             }
 
+            internal void OnPP(uint hint, ulong data)
+            {
+                OnPostProcessing(hint, data);
+            }
+
+            protected virtual void OnPostProcessing(uint hint, ulong data)
+            {
+
+            }
+
             internal bool Attach(CClientSocket cs)
             {
                 bool ok = true;

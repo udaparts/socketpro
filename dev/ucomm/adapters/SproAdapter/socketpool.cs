@@ -826,7 +826,7 @@ namespace SocketProAdapter
                     case tagSocketPoolEvent.speUSocketCreated:
                         {
                             CClientSocket cs = new CClientSocket();
-                            cs.Set(h);
+                            cs.Set(h, poolId);
                             ClientCoreLoader.SetRecvTimeout(h, m_recvTimeout);
                             ClientCoreLoader.SetConnTimeout(h, m_connTimeout);
                             ClientCoreLoader.SetAutoConn(h, (byte)(m_autoConn ? 1 : 0));

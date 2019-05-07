@@ -82,6 +82,7 @@ namespace SocketProAdapter
                 m_s += new POnSpeak(OnB);
                 m_sume += new POnSendUserMessageEx(OnPUMessageEx);
                 m_sum += new POnSendUserMessage(OnPUMessage);
+                m_pp += new POnPostProcessing(OnPostProcessing);
             }
             public CAsyncServiceHandler CurrentHandler
             {
@@ -464,6 +465,16 @@ namespace SocketProAdapter
                     }
                 }
             }
+
+            private uint m_poolId = 0;
+            public uint PoolId
+            {
+                get
+                {
+                    return m_poolId;
+                }
+            }
+
             private tagOperationSystem m_os = Defines.OperationSystem;
             private bool m_endian = false;
             public tagOperationSystem GetPeerOs()
@@ -865,6 +876,13 @@ namespace SocketProAdapter
                     ash.OnAll();
             }
 
+            private void OnPostProcessing(IntPtr handler, uint hint, ulong data)
+            {
+                CAsyncServiceHandler ash = Seek(CurrentServiceID);
+                if (ash != null)
+                    ash.OnPP(hint, data);
+            }
+
             private POnHandShakeCompleted m_hsc;
             private POnSocketClosed m_ss;
             private POnRequestProcessed m_rp;
@@ -878,8 +896,9 @@ namespace SocketProAdapter
             private POnExit m_exit;
             private POnSendUserMessage m_sum;
             private POnSendUserMessageEx m_sume;
+            private POnPostProcessing m_pp;
 
-            internal void Set(IntPtr h)
+            internal void Set(IntPtr h, uint poolId)
             {
                 ClientCoreLoader.SetOnHandShakeCompleted(h, m_hsc);
                 ClientCoreLoader.SetOnRequestProcessed(h, m_rp);
@@ -895,6 +914,7 @@ namespace SocketProAdapter
                 ClientCoreLoader.SetOnSendUserMessageEx2(h, m_sume);
                 ClientCoreLoader.SetOnSendUserMessage2(h, m_sum);
                 m_h = h;
+                m_poolId = poolId;
             }
 
             class CClientQueueImpl : IClientQueue
