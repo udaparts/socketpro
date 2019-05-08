@@ -26,7 +26,7 @@ public:
     bool IsKilling();
     void SetKilling();
     void PostTimerMessage();
-	typedef std::vector<CClientThreadPtr> CClientThreadVector;
+    typedef std::vector<CClientThreadPtr> CClientThreadVector;
     typedef CClientThread* PClientThread;
     bool GetQueueAutoMerge();
     void SetQueueAutoMerge(bool autoMerge);
@@ -34,8 +34,8 @@ public:
     void OnFindClosed();
 
 private:
-	CSocketPool(const CSocketPool &sp);
-	CSocketPool& operator=(const CSocketPool &sp);
+    CSocketPool(const CSocketPool &sp);
+    CSocketPool& operator=(const CSocketPool &sp);
 
     bool WaitUtil(CAutoLock &al, unsigned int timeout);
     void OnCloseInternal(CClientSession *session);
@@ -52,14 +52,14 @@ private:
     CClientThreadVector m_vThread;
     SPA::CUQueue m_qThread;
 #ifndef WINCE
-	std::mutex m_mutex;
+    std::mutex m_mutex;
 #else
     boost::mutex m_mutex;
 #endif
     CConditionVariable m_cv;
     SPA::tagThreadApartment m_ta;
-	atomic<bool> m_bKilling;
-	atomic<bool> m_bQueueAutoMerge;
+    atomic<bool> m_bKilling;
+    atomic<bool> m_bQueueAutoMerge;
     bool m_bDisconenctAll;
 };
 

@@ -3,7 +3,7 @@
 #ifdef USE_SPIRIT_CLSSICAL_FOR_MULTIPART
 #include "../ServerCoreUnix/server.h"
 #else
-#include "../ClientCore/clientthread.h"
+#include "../../clientcore/clientthread.h"
 #endif
 
 const char* CUCertImpl::m_empty = "";

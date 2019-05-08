@@ -2,7 +2,7 @@
 #ifndef __MB_UZIP_H__
 #define __MB_UZIP_H__
 
-#include "../include/membuffer.h"
+#include "../../include/membuffer.h"
 
 #define FAST_COMPRESS_MIN_SIZE 700
 #define ZLIB_COMPRESS_MIN_SIZE 350

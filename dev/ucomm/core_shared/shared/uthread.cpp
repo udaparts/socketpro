@@ -11,12 +11,13 @@
 
 #endif
 
-namespace SPA {
+namespace SPA
+{
 
     //CIoService CUCommThread::m_io;
 
     CUCommThread::CUCommThread(tagThreadApartment ta)
-    : m_ta(ta), m_pThread(nullptr) {
+            : m_ta(ta), m_pThread(nullptr) {
 
     }
 
@@ -34,7 +35,7 @@ namespace SPA {
         return m_ta;
     }
 
-    const CUCommThread::thread* CUCommThread::GetBoostThread() const {
+    const CUCommThread::thread * CUCommThread::GetBoostThread() const {
         return m_pThread;
     }
 
@@ -43,11 +44,11 @@ namespace SPA {
         return m_ec;
     }
 
-    CIoService& CUCommThread::GetIoService() {
+    CIoService & CUCommThread::GetIoService() {
         return m_io;
     }
 
-    void CUCommThread::Call(const CErrorCode &ec) {
+    void CUCommThread::Call(const CErrorCode & ec) {
 #ifdef WINCE
         bool ok = (CoInitializeEx(nullptr, COINIT_MULTITHREADED) == S_OK);
 #elif defined(WIN32_64)
@@ -62,21 +63,31 @@ namespace SPA {
 #endif
         OnThreadStarted();
         m_cv.notify_all();
-        try {
+        try{
             m_io.run(m_ec);
 #ifndef NDEBUG
-        } catch (boost::system::system_error &err) {
+        }
+
+        catch(boost::system::system_error & err) {
             std::cout << "boost::system_error " << err.what() << ", " << __FUNCTION__ << std::endl;
-        } catch (SPA::CUException &err) {
+        }
+
+        catch(SPA::CUException & err) {
             std::cout << "SPA::CUException " << err.what() << ", " << __FUNCTION__ << std::endl;
-        } catch (std::exception &err) {
+        }
+
+        catch(std::exception & err) {
             std::cout << "std::exception " << err.what() << ", " << __FUNCTION__ << std::endl;
-        } catch (...) {
+        }
+
+        catch(...) {
             std::cout << "Unknown exception " << ", " << __FUNCTION__ << std::endl;
         }
 #else
-		} catch (...) {
-		}
+        }
+
+        catch(...) {
+        }
 #endif
 
 #ifdef WIN32_64
@@ -93,7 +104,7 @@ namespace SPA {
         m_pThread = new thread(boost::bind(&CIoService::run, &m_io, m_ec));
         m_io.post(boost::bind(&CUCommThread::Call, this, m_ec));
 #ifndef WINCE
-		m_cv.wait_for(sl, std::chrono::milliseconds(500));
+        m_cv.wait_for(sl, std::chrono::milliseconds(500));
 #else
         boost::system_time td = boost::get_system_time() + boost::posix_time::milliseconds(500);
         m_cv.timed_wait(sl, td);
@@ -124,7 +135,7 @@ namespace SPA {
                 m_mutex.unlock();
                 m_io.stop();
                 while (!m_io.stopped()) {
-					sleep(boost::posix_time::milliseconds(1));
+                    sleep(boost::posix_time::milliseconds(1));
                 }
                 if (p->joinable()) {
                     p->join();

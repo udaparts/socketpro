@@ -5,7 +5,7 @@
 #elif defined(_WIN32_WCE)|| defined(WIN32_64)
 #include "../usocket_win/clientsession.h"
 #else
-#include "../ClientCoreUnix/clientsession.h"
+#include "../usocket/clientsession.h"
 #endif
 
 #include "socketpool.h"
@@ -131,7 +131,7 @@ void CSocketPool::OnFindClosed() {
 }
 
 void CSocketPool::OnCloseInternal(CClientSession *session) {
-	MQ_FILE::CFilePtr q = session->GetQueue();
+    MQ_FILE::CFilePtr q = session->GetQueue();
     if (!q || !q->IsAvailable())
         return;
     if (q->GetJobSize() > 0)
@@ -257,7 +257,7 @@ unsigned int CSocketPool::GetThreadCount() {
 
 bool CSocketPool::WaitUtil(CAutoLock &al, unsigned int timeout) {
 #ifndef WINCE
-	return (m_cv.wait_for(al, MQ_FILE::ms(timeout)) == std::cv_status::no_timeout);
+    return (m_cv.wait_for(al, MQ_FILE::ms(timeout)) == std::cv_status::no_timeout);
 #else
     boost::system_time td = boost::get_system_time() + boost::posix_time::milliseconds(timeout);
     return m_cv.timed_wait(al, td);

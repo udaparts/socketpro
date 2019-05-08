@@ -3,8 +3,8 @@
 #define ___NIX_UCOMM__UTIL_HEADER_FILE___H___
 
 #include <cstdlib>
-#include <boost/thread/recursive_mutex.hpp>
-//#include <mutex>
+//#include <boost/thread/recursive_mutex.hpp>
+#include <mutex>
 #include <boost/uuid/uuid.hpp>
 #include <exception>
 
@@ -83,11 +83,12 @@ typedef GUID CLSID;
 #endif
 
 namespace SPA {
-    typedef boost::recursive_mutex CUCriticalSection;
-    typedef boost::recursive_mutex::scoped_lock CAutoLock;
+    //typedef boost::recursive_mutex CUCriticalSection;
+    //typedef boost::recursive_mutex::scoped_lock CAutoLock;
 
-    //typedef std::recursive_mutex CUCriticalSection;
+    typedef std::recursive_mutex CUCriticalSection;
     //typedef std::lock_guard<std::recursive_mutex> CAutoLock;
+    typedef std::unique_lock<std::recursive_mutex> CAutoLock;
 
     /** 
      * A class for managing MB exception on non-window platforms

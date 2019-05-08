@@ -2,13 +2,49 @@
 #ifndef __UMB_CLIENT_SESSION_H__
 #define __UMB_CLIENT_SESSION_H__
 
-#include "../core_shared/pinc/bf.h"
 #include "../clientcore/clientthread.h"
 #include "../core_shared/pinc/mqfile.h"
-#include "../core_shared/shared/certificateimpl.h"
+#include "../core_shared/shared/ucertimpl.h"
 #include "../include/uclient.h"
 
+/*
+boost modification
+windows inside boost/asio/detail/win_iocp_socket_recv_op.hpp or reactive_socket_recv_op.hpp for non-windows
+
+static void do_complete(io_service_impl* owner, operation* base,
+      const boost::system::error_code& result_ec,
+      std::size_t bytes_transferred)
+  {
+    boost::system::error_code ec(result_ec);
+    if (ec.value() == WSAEBADF)
+        return;
+
+    // Take ownership of the operation object.
+    win_iocp_socket_recv_op* o(static_cast<win_iocp_socket_recv_op*>(base));
+    ptr p = { boost::addressof(o->handler_), o, o };
+
+
+both windows and linux inside boost/asio/ssl/detail/io.hpp
+ std::size_t bytes_transferred = 0;
+  do switch (op(core.engine_, ec, bytes_transferred))
+  {
+  case engine::want_input_and_retry:
+
+    // If the input buffer is empty then we need to read some more data from
+    // the underlying transport.
+    if (boost::asio::buffer_size(core.input_) == 0)
+      core.input_ = boost::asio::buffer(core.input_buffer_,
+          next_layer.read_some(core.input_buffer_, ec));
+    if (ec)
+        break;
+ */
+
 class CClientSession : public SPA::ClientSide::UClientSocketBase {
+#ifndef NDEBUG
+    unsigned int m_nJobRequest;
+    unsigned int m_nJobConfirm;
+#endif
+
 public:
     CClientSession(CIoService &IoService, CClientThread *pClientThread);
     ~CClientSession();
@@ -33,7 +69,7 @@ public:
     SPA::tagEncryptionMethod GetEncryptionMethod();
     bool Connect(const char *strHost, unsigned int nPort, bool bSync = false, bool b6 = false);
     void Close();
-    void Shutdown(CSocket::shutdown_type nHow = CSocket::shutdown_both);
+    void Shutdown(nsIP::tcp::socket::shutdown_type nHow = nsIP::tcp::socket::shutdown_both);
     unsigned int RetrieveResult(unsigned char *pBuffer, unsigned int size);
     void SetOnSocketClosed(POnSocketClosed p);
     void SetOnHandShakeCompleted(POnHandShakeCompleted p);
@@ -78,7 +114,6 @@ public:
     void SetOnServerException(POnServerException p);
     void SetOnBaseRequestProcessed(POnBaseRequestProcessed p);
     void SetOnAllRequestsProcessed(POnAllRequestsProcessed p);
-    void SetOnPostProcessing(POnPostProcessing p);
     void SetZip(bool zip);
     bool GetZip();
     void SetZipLevel(SPA::tagZipLevel zl);
@@ -124,7 +159,7 @@ public:
     void SetAutoConn(bool autoConnecting);
     bool GetAutoConn();
     unsigned short GetServerPingTime();
-    SPA::CCertificateImpl* GetUCert();
+    CUCertImpl* GetUCert();
     void* GetSSL();
     bool IgnoreLastRequest(unsigned short reqId);
     void TimerHandler();
@@ -148,6 +183,7 @@ public:
     bool IsRoutingQueueIndexEnabled();
     const unsigned char* GetResultBuffer();
     void PostProcessing(unsigned int hint, SPA::UINT64 data);
+    void SetOnPostProcessing(POnPostProcessing p);
 
 private:
     static bool SortQueueConfirm(const MQ_FILE::CDequeueConfirmInfo &dci0, const MQ_FILE::CDequeueConfirmInfo &dci1);
@@ -199,8 +235,6 @@ private:
     bool SendRoutingResultInternal(unsigned short reqId, const unsigned char *buffer, unsigned int len);
     std::wstring GetPwd();
     void DoConfirmDequeue();
-    void FreeCredHandle();
-    SECURITY_STATUS OpenCred();
     void OnPostProcessing(unsigned int hint, SPA::UINT64 data);
 
 public:
@@ -215,6 +249,7 @@ private:
     SPA::CUQueue m_qReqIdCancel;
     SPA::CUQueue m_qReqIdWait;
     SPA::CSwitchInfo m_ServerInfo;
+    CSslSocket *m_pSslSocket;
     CSocket *m_pSocket;
     unsigned char *m_ReadBuffer;
     bool m_bRBLocked;
@@ -256,7 +291,8 @@ private:
     unsigned int m_nConnTimeout;
     unsigned int m_nRecvTimeout;
     unsigned int m_nCancel;
-    SPA::CCertificateImplPtr m_pCert;
+    CCertificateImplPtr m_pCert;
+
     std::wstring m_strUserId;
     MQ_FILE::CFilePtr m_qRequest;
     MQ_FILE::CQueueInitialInfo m_ServerQFile;
@@ -279,12 +315,6 @@ private:
     bool m_bSendWaiting;
     bool m_bWaiting;
     SPA::CUQueue m_qConfirm;
-
-    CredHandle m_hCreds;
-    SPA::CSspiPtr m_pSspi;
-    SPA::CCertificateImplPtr m_pSelfCert;
-    std::string m_certCN;
-    PCCERT_CONTEXT m_pCertContext;
     bool m_bLastDequeue;
     SPA::CUQueue m_qBatchDequeueConfirm;
     unsigned int m_nRcvBufferSize;
@@ -317,4 +347,3 @@ typedef boost::shared_ptr<CClientSession> CClientSessionPtr;
 #endif
 
 #endif
-

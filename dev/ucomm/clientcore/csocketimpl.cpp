@@ -5,7 +5,7 @@
 #elif defined(_WIN32_WCE) || defined(WIN32_64)
 #include "../usocket_win/clientsession.h"
 #else
-#include "../ClientCoreUnix/clientsession.h"
+#include "../usocket/clientsession.h"
 #endif
 
 #include "../include/commutil.h"
@@ -240,9 +240,9 @@ void WINAPI SetOnAllRequestsProcessed(USocket_Client_Handle h, POnAllRequestsPro
 }
 
 void WINAPI SetOnPostProcessing(USocket_Client_Handle h, POnPostProcessing p) {
-	CClientSession *s = MapHandleToClientSession(h);
-	if (s)
-		s->SetOnPostProcessing(p);
+    CClientSession *s = MapHandleToClientSession(h);
+    if (s)
+        s->SetOnPostProcessing(p);
 }
 
 void WINAPI Shutdown(USocket_Client_Handle h, SPA::tagShutdownType how) {
@@ -480,7 +480,7 @@ unsigned int WINAPI GetUID(USocket_Client_Handle h, wchar_t *strUserId, unsigned
             unsigned int bufferSize = (chars + 1) * sizeof (wchar_t);
             if (q.GetMaxSize() < bufferSize)
                 q.ReallocBuffer(bufferSize);
-            wchar_t *userId = (wchar_t *)q.GetBuffer();
+            wchar_t *userId = (wchar_t *) q.GetBuffer();
             unsigned int len = p->GetUID(userId, chars);
 #if defined(__ANDROID__) || defined(ANDROID)
             auto uid = SPA::Utilities::ToUTF16(userId, len);
@@ -793,10 +793,10 @@ void WINAPI SetOptimistic(USocket_Client_Handle h, SPA::tagOptimistic bOptimisti
 }
 
 void WINAPI PostProcessing(USocket_Client_Handle h, unsigned int hint, SPA::UINT64 data) {
-	//CAutoLock al(g_Mutex);
-	CClientSession *cs = MapHandleToClientSession(h);
-	if (cs)
-		cs->PostProcessing(hint, data);
+    //CAutoLock al(g_Mutex);
+    CClientSession *cs = MapHandleToClientSession(h);
+    if (cs)
+        cs->PostProcessing(hint, data);
 }
 
 const char* WINAPI GetQueueFileName(USocket_Client_Handle h) {

@@ -40,7 +40,7 @@ public:
     bool IsBusy();
     CSocketPool* GetPool() const;
     unsigned int GetTimerInterval() const;
-	CClientSessionPtr Lock();
+    CClientSessionPtr Lock();
     bool Unlock(USocket_Client_Handle h);
     unsigned int GetLocked();
     unsigned int GetConnectedSockets();
@@ -49,7 +49,9 @@ public:
     void DisconnectAll();
     USocket_Client_Handle FindAClosedSocket();
     bool Within(USocket_Client_Handle h);
-
+#ifndef NOT_USE_OPENSSL
+    CSslContext& GetSslContext();
+#endif
     PSocketPoolCallback GetSocketPoolCallback();
     void PostTimerMessage();
     CClientSession* SeekSmallQueue(CClientSession *session);
@@ -67,28 +69,39 @@ private:
 public:
     static const SPA::UINT64 LOCKED_REQUEST_COUNT = 0xFFFFFFFFFFFF;
 
+#ifndef NOT_USE_OPENSSL
+    static bool verify_certificate_cb(bool preverified, boost::asio::ssl::verify_context& ctx);
+    static CSslContext m_sslContext;
+#endif
+
 private:
     PSocketPoolCallback m_spc;
     CMapClientSession m_mapClientSession;
     CSocketPool *m_pSocketPool;
 #ifndef WINCE
-	using mutex = std::mutex;
+    using mutex = std::mutex;
 #else
-	using mutex = boost::mutex;
+    using mutex = boost::mutex;
 #endif
     mutex m_ml;
     unsigned int m_session;
     unsigned int m_msTimerInterval;
 
 public:
+
     class MyTimerSet {
-	public:
+    public:
         MyTimerSet();
         ~MyTimerSet();
         static volatile long m_stop;
         static thread *m_thread;
         static MyTimerSet ms;
         static void ThreadFunc();
+#ifndef NOT_USE_OPENSSL
+        static struct CRYPTO_dynlock_value *dyn_create_function(const char *file, int line);
+        static void dyn_lock_function(int mode, struct CRYPTO_dynlock_value *l, const char *file, int line);
+        static void dyn_destroy_function(struct CRYPTO_dynlock_value *l, const char *file, int line);
+#endif
     };
 };
 
@@ -100,4 +113,3 @@ typedef boost::shared_ptr<CClientThread> CClientThreadPtr;
 #endif
 
 #endif
-

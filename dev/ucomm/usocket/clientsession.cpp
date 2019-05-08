@@ -1,4 +1,4 @@
-#include "stdafx.h"
+
 #include "clientsession.h"
 #include <ctype.h>
 #include "../core_shared/pinc/uzip.h"
@@ -7,8 +7,6 @@
 #include "../clientcore/socketpool.h"
 #include <assert.h>
 #include <boost/filesystem.hpp>
-#include <boost/system/system_error.hpp>
-#include <boost/lexical_cast.hpp>
 
 extern std::string g_localhost;
 
@@ -17,14 +15,6 @@ boost::posix_time::ptime CClientSession::m_tStart = boost::posix_time::microsec_
 std::vector<unsigned char*> CClientSession::m_aBuffer;
 CClientSession::mutex CClientSession::m_mutexBuffer;
 std::string CClientSession::m_WorkingPath("");
-
-#ifndef WINCE
-extern std::mutex g_mutexCvc;
-#else
-extern boost::mutex g_mutexCvc;
-#endif
-
-extern PCertificateVerifyCallback g_cvc;
 
 unsigned char* CClientSession::GetIoBuffer() {
     unsigned char *s = nullptr;
@@ -50,13 +40,18 @@ void CClientSession::ReleaseIoBuffer(unsigned char *buffer) {
 }
 
 CClientSession::mutex CClientSession::m_mutexQLI;
-std::vector<MQ_FILE::CFilePtr > CClientSession::m_vQRequest;
+std::vector<MQ_FILE::CFilePtr> CClientSession::m_vQRequest;
 MQ_FILE::CQLastIndexPtr CClientSession::m_pQLastIndex;
 
 CClientSession::CClientSession(CIoService &IoService, CClientThread *pClientThread)
-: m_qRead(INIT_BUFFER_SIZE), m_qWrite(INIT_BUFFER_SIZE, BUFFER_BLOCK_SIZE),
+:
+#ifndef NDEBUG
+m_nJobRequest(0),
+m_nJobConfirm(0),
+#endif
+m_qRead(INIT_BUFFER_SIZE), m_qWrite(INIT_BUFFER_SIZE, BUFFER_BLOCK_SIZE),
 m_qReqIdWait(INIT_BUFFER_SIZE, BUFFER_BLOCK_SIZE), m_qReqIdCancel(INIT_BUFFER_SIZE, BUFFER_BLOCK_SIZE),
-m_pIoService(&IoService), m_pSocket(nullptr), m_ulRead(0), m_ulSent(0),
+m_pIoService(&IoService), m_pSocket(nullptr), m_pSslSocket(nullptr), m_ulRead(0), m_ulSent(0),
 m_ReadBuffer(GetIoBuffer()), m_bRBLocked(false), m_WriteBuffer(GetIoBuffer()), m_bWBLocked(0),
 m_zl(SPA::zlDefault), m_pQBatch(nullptr), m_bZip(false), m_EncryptionMethod(SPA::NoEncryption),
 m_Resolver(IoService), m_nPort(0), m_OnSocketClosed(nullptr), m_OnHandShakeCompleted(nullptr),
@@ -68,7 +63,7 @@ m_OnServerException(nullptr), m_OnBaseRequestProcessed(nullptr), m_OnAllRequests
 m_nPoolId(m_pThread->GetPool()->GetPoolId()), m_bFail(false), m_bDequeueTrans(false), m_bConfirmTrans(false),
 m_bConfirmFail(false), m_RouterHandle(0), m_nRouteeCount(0), m_bRegistered(true), m_b6(false),
 m_bSync(false), m_routeeNotAvailable(0), m_bRoutingQueueIndexEnabled(false), m_bRoutingWait(false),
-m_bSendWaiting(false), m_bWaiting(false), m_pCertContext(nullptr), m_bLastDequeue(false), m_nRcvBufferSize(0),
+m_bSendWaiting(false), m_bWaiting(false), m_bLastDequeue(false), m_nRcvBufferSize(0),
 m_OnSubscribe2(nullptr), m_OnUnsubscribe2(nullptr), m_OnBroadcastEx2(nullptr), m_OnBroadcast2(nullptr),
 m_OnPostUserMessageEx2(nullptr), m_OnPostUserMessage2(nullptr), m_to(nullptr), m_OnPostProcessing(nullptr) {
     m_tRecv = GetTimeTick();
@@ -77,25 +72,18 @@ m_OnPostUserMessageEx2(nullptr), m_OnPostUserMessage2(nullptr), m_to(nullptr), m
     if (spc) {
         spc(m_nPoolId, SPA::ClientSide::speUSocketCreated, this);
     }
-    ::memset(&m_hCreds, 0, sizeof (m_hCreds));
 }
 
 CClientSession::~CClientSession() {
     CAutoLock sl(m_mutex);
-    FreeCredHandle();
-    if (m_pCertContext) {
-        ::CertFreeCertificateContext(m_pCertContext);
-        m_pCertContext = nullptr;
-    }
     if (IsContextSet()) {
         CErrorCode ec(0, boost::system::system_category());
-        if (IsSslEnabled()) {
-
-        }
         GetSocket()->shutdown(boost::asio::socket_base::shutdown_both, ec);
         GetSocket()->close(ec);
     }
+    delete m_pSslSocket;
     delete m_pSocket;
+    m_pSslSocket = nullptr;
     m_pSocket = nullptr;
     SPA::CScopeUQueue::Unlock(m_pQBatch);
     ReleaseIoBuffer(m_ReadBuffer);
@@ -119,7 +107,7 @@ std::string CClientSession::GetErrorMessage() {
 }
 
 bool CClientSession::IsContextSet() {
-    return (m_pSocket != nullptr);
+    return (m_pSslSocket != nullptr || m_pSocket != nullptr);
 }
 
 bool ExecuteSpc(unsigned int id, CClientSession *session, PSocketPoolCallback spc) {
@@ -152,7 +140,7 @@ void CClientSession::TimerHandler() {
     SPA::UINT64 lastOne = ((m_tRecv > m_tSend) ? m_tRecv : m_tSend);
     CAutoLock al(m_mutex);
     switch (m_ConnState) {
-            //case SPA::ClientSide::csSslShaking:
+        case SPA::ClientSide::csSslShaking:
         case SPA::ClientSide::csConnecting:
             if (now > lastOne + m_nConnTimeout) {
                 m_ec.assign(errorCode, boost::asio::error::get_system_category());
@@ -190,7 +178,7 @@ void CClientSession::TimerHandler() {
 #else
                     std::cout << "Thank you very much for evaluation on SocketPro!" << std::endl;
                     std::cout << "Please go to www.udaparts.com for registration." << std::endl;
-                    sleep(boost::posix_time::milliseconds(rc));
+                    boost::this_thread::sleep(boost::posix_time::milliseconds(rc));
 #endif
                 }
             }
@@ -253,19 +241,21 @@ CSocketPool* CClientSession::GetSocketPool() {
 
 void* CClientSession::GetSSL() {
     CAutoLock al(m_mutex);
-    if (m_pSspi)
-        return m_pSspi->GetCtxHandle();
+    if (m_pSslSocket)
+        return m_pSslSocket->native_handle();
     return nullptr;
 }
 
-SPA::CCertificateImpl* CClientSession::GetUCert() {
+CUCertImpl* CClientSession::GetUCert() {
     CAutoLock al(m_mutex);
+    if (!m_pCert && m_pSslSocket)
+        m_pCert.reset(new CUCertImpl(m_pSslSocket->native_handle()));
     return m_pCert.get();
 }
 
 bool CClientSession::Cancel(unsigned int requestsQueued) {
     CAutoLock sl(m_mutex);
-    if (nullptr != m_pQBatch || m_pSspi)
+    if (nullptr != m_pQBatch)
         return false;
     if (CheckQueueAvailable()) {
         m_qRequest->Reset();
@@ -343,7 +333,7 @@ SPA::UINT64 CClientSession::GetBytesSent() {
 }
 
 bool CClientSession::IsSameThread() {
-    return (get_id() == m_pThread->GetBoostThread()->get_id());
+    return (boost::this_thread::get_id() == m_pThread->GetBoostThread()->get_id());
 }
 
 bool CClientSession::WaitAllInternal(CAutoLock &sl, unsigned int nTimeout) {
@@ -374,15 +364,9 @@ bool CClientSession::WaitAllInternal(CAutoLock &sl, unsigned int nTimeout) {
         } while (true);
         return (m_ConnState >= SPA::ClientSide::csConnected && m_qReqIdWait.GetSize() == 0);
     }
-
     do {
         m_bWaiting = true;
-#ifndef WINCE
         b = ((m_cv.wait_for(sl, MQ_FILE::ms(nTimeout)) == std::cv_status::no_timeout) && m_ConnState >= SPA::ClientSide::csConnected);
-#else
-        boost::system_time td = boost::get_system_time() + boost::posix_time::milliseconds(nTimeout);
-        b = (m_cv.timed_wait(sl, td) && m_ConnState >= SPA::ClientSide::csConnected);
-#endif
         m_bWaiting = false;
     } while (b && m_qReqIdWait.GetSize() > 0);
     return b;
@@ -484,15 +468,13 @@ void CClientSession::OnConnectedInternal(int errCode) {
         CRAutoLock sl(m_mutex);
         p(this, errCode);
     }
-
     PSocketPoolCallback spc = m_pThread->GetSocketPoolCallback();
     if (spc) {
         CRAutoLock sl(m_mutex);
         spc(m_nPoolId, SPA::ClientSide::speConnected, this);
     }
-
-    if (errCode == 0) {
-        m_pThread->GetPool()->Notify();
+    m_pThread->GetPool()->Notify();
+    if (!errCode) {
         if (m_bWaiting)
             m_cv.notify_all();
     }
@@ -518,6 +500,8 @@ bool CClientSession::IsOpened() {
 }
 
 CSocket* CClientSession::GetSocket() {
+    if (m_pSslSocket != nullptr)
+        return &(m_pSslSocket->next_layer());
     return m_pSocket;
 }
 
@@ -606,15 +590,17 @@ bool CClientSession::SendUserMessageEx(const wchar_t *userId, const unsigned cha
 
 bool CClientSession::SwitchToIntenal(CAutoLock &al, unsigned int serviceId) {
     SPA::CScopeUQueue sb;
-    if (m_ConnState < SPA::ClientSide::csConnected)
+    if (m_ConnState < SPA::ClientSide::csConnected) {
         return false;
+    }
     bool bQueue = CheckQueueAvailable();
     if (bQueue && m_ClientInfo.ServiceId == SPA::sidStartup) {
         m_qReqIdCancel.SetSize(0);
         m_qReqIdWait.SetSize(0);
     }
-    if (bQueue && m_ClientInfo.ServiceId != SPA::sidStartup)
+    if (bQueue && m_ClientInfo.ServiceId != SPA::sidStartup) {
         return false;
+    }
     m_ClientInfo.ServiceId = serviceId;
     std::time_t t;
     std::time(&t);
@@ -687,12 +673,10 @@ bool CClientSession::CommitBatching(bool bBatchingAtServerSide) {
                 len = CompressRequestTo(SPA::idBatchZipped, m_zl, pBatch->GetBuffer(), pBatch->GetSize(), *sb);
                 SPA::CStreamHeader *sh = (SPA::CStreamHeader *)sb->GetBuffer();
                 sb->Pop((unsigned int) sizeof (SPA::CStreamHeader));
-                {
-                    m_qRequest->Enqueue(*sh, *sb);
-                    if (m_ConnState == SPA::ClientSide::csClosed) {
-                        CRAutoLock ral(m_mutex);
-                        m_pThread->GetPool()->OnClose(this);
-                    }
+                m_qRequest->Enqueue(*sh, *sb);
+                if (m_ConnState == SPA::ClientSide::csClosed) {
+                    CRAutoLock ral(m_mutex);
+                    m_pThread->GetPool()->OnClose(this);
                 }
                 if (m_ConnState > SPA::ClientSide::csConnected) {
                     WriteFromQueueFile();
@@ -701,37 +685,20 @@ bool CClientSession::CommitBatching(bool bBatchingAtServerSide) {
             } else {
                 if (m_qWrite.GetTailSize() < len + sizeof (SPA::CStreamHeader) && m_qWrite.GetHeadPosition() > len + sizeof (SPA::CStreamHeader))
                     m_qWrite.SetHeadPosition();
-                if (!m_pSspi) {
-                    len = CompressRequestTo(SPA::idBatchZipped, m_zl, pBatch->GetBuffer(), pBatch->GetSize(), m_qWrite);
-                    m_qReqIdCancel.Push(m_qWrite.GetBuffer(), sizeof (SPA::CStreamHeader));
-                    Write(nullptr, 0);
-                } else {
-                    SPA::CScopeUQueue sb;
-                    len = CompressRequestTo(SPA::idBatchZipped, m_zl, pBatch->GetBuffer(), pBatch->GetSize(), *sb);
-                    m_qReqIdCancel.Push(sb->GetBuffer(), sizeof (SPA::CStreamHeader));
-                    Write(sb->GetBuffer(), sb->GetSize());
-                }
+                len = CompressRequestTo(SPA::idBatchZipped, m_zl, pBatch->GetBuffer(), pBatch->GetSize(), m_qWrite);
+                m_qReqIdCancel.Push(m_qWrite.GetBuffer(), sizeof (SPA::CStreamHeader));
+                Write(nullptr, 0);
             }
         } else {
-            if (m_pSspi) {
-                if (bQueue && m_ConnState > SPA::ClientSide::csConnected) {
-                    m_qRequest->BatchEnqueue(*pBatch);
-                    WriteFromQueueFile();
-                    Write(nullptr, 0);
-                } else {
-                    Write(pBatch->GetBuffer(), pBatch->GetSize());
-                }
+            if (bQueue && m_ConnState > SPA::ClientSide::csConnected) {
+                m_qRequest->BatchEnqueue(*pBatch);
+                WriteFromQueueFile();
+                Write(nullptr, 0);
+            } else if (m_qWrite.GetSize() == 0) {
+                m_qWrite.Swap(*pBatch);
+                Write(nullptr, 0);
             } else {
-                if (bQueue && m_ConnState > SPA::ClientSide::csConnected) {
-                    m_qRequest->BatchEnqueue(*pBatch);
-                    WriteFromQueueFile();
-                    Write(nullptr, 0);
-                } else if (m_qWrite.GetSize() == 0) {
-                    m_qWrite.Swap(*pBatch);
-                    Write(nullptr, 0);
-                } else {
-                    Write(pBatch->GetBuffer(), pBatch->GetSize());
-                }
+                Write(pBatch->GetBuffer(), pBatch->GetSize());
             }
         }
         SPA::CScopeUQueue::Unlock(pBatch);
@@ -831,7 +798,7 @@ bool CClientSession::SendRequestInternal(CAutoLock &al, unsigned short reqId, co
         if (!bQueue)
             return false;
     }
-    if (m_qWrite.GetSize() > BLOCK_COUNT * BUFFER_BLOCK_SIZE) {
+    if (!bQueue && m_qWrite.GetSize() > BLOCK_COUNT * BUFFER_BLOCK_SIZE) {
         if (!IsSameThread()) {
             m_bSendWaiting = true;
             WaitAllInternal(al, (~0));
@@ -892,14 +859,11 @@ bool CClientSession::SendRequestInternal(CAutoLock &al, unsigned short reqId, co
             } else {
                 m_qReqIdCancel << reqInfo;
                 m_qReqIdWait << reqInfo;
-                if (m_pSspi) {
-                    Write(reqInfo, nullptr, 0);
-                } else {
-                    m_qWrite << reqInfo;
-                }
+                m_qWrite << reqInfo;
             }
         }
     }
+
     if (bQueue) {
         WriteFromQueueFile();
     }
@@ -936,24 +900,15 @@ void CClientSession::WriteFromQueueFile() {
         sh->SetQueued(true);
         m_qReqIdCancel << *sh;
         m_qReqIdWait << *sh;
-        if (m_pSspi) {
-            SPA::CScopeUQueue sb;
-            sb << *sh;
-            assert(qattr[index].MessageIndex && qattr[index].MessageIndex != (~0));
-            if (records == index + 1) {
-                MQ_FILE::QAttr qa = qattr[index];
-                qa.MessagePos |= MQ_FILE::QAttr::RANGE_DEQUEUED_POSITION_END;
-                sb << qa;
-            } else {
-                sb << qattr[index];
-            }
-            sb->Push(qRequests->GetBuffer(pos + sizeof (SPA::CStreamHeader)), size);
-            Write(sb->GetBuffer(), sb->GetSize());
+        m_qWrite << *sh;
+        if (records == index + 1) {
+            MQ_FILE::QAttr qa = qattr[index];
+            qa.MessagePos |= MQ_FILE::QAttr::RANGE_DEQUEUED_POSITION_END;
+            m_qWrite << qa;
         } else {
-            m_qWrite << *sh;
             m_qWrite << qattr[index];
-            m_qWrite.Push(qRequests->GetBuffer(pos + sizeof (SPA::CStreamHeader)), size);
         }
+        m_qWrite.Push(qRequests->GetBuffer(pos + sizeof (SPA::CStreamHeader)), size);
         pos += total;
         ++index;
     }
@@ -969,20 +924,22 @@ bool CClientSession::SendRequest(unsigned short reqId, const unsigned char *pBuf
 }
 
 void CClientSession::SetContext() {
-    delete m_pSocket;
-    m_pSocket = new CSocket(*m_pIoService);
-#ifdef WIN32_64
-#ifndef _WIN32_WCE
-#define LOOPBACK_FAST_PATH ((DWORD)0x98000010)
-    int optionValue = 1;
-    DWORD NumOfBytes = 0;
-    WSAIoctl(m_pSocket->native_handle(), LOOPBACK_FAST_PATH, &optionValue, sizeof (optionValue), nullptr, 0, &NumOfBytes, nullptr, nullptr);
-#endif
-#endif
+    switch (m_EncryptionMethod) {
+        case SPA::TLSv1:
+            delete m_pSslSocket;
+            m_pSslSocket = nullptr;
+            m_pSslSocket = new CSslSocket(*m_pIoService, m_pThread->GetSslContext());
+            break;
+        default:
+            delete m_pSocket;
+            m_pSocket = nullptr;
+            m_pSocket = new CSocket(*m_pIoService);
+            break;
+    }
 }
 
 #ifndef WIN32_64
-boost::mutex g_mutexResover;
+CClientSession::mutex g_mutexResover;
 #endif
 
 void CClientSession::ConnectInternally() {
@@ -1017,7 +974,7 @@ void CClientSession::ConnectInternally() {
             CloseInternal(ec.value());
             return;
         }
-        //async_coonect requires a new thread created
+        //async_connect requires a new thread created
         GetSocket()->async_connect(iterator->endpoint(), boost::bind(&CClientSession::OnConnected, this, boost::asio::placeholders::error, iterator));
     }
 }
@@ -1033,12 +990,7 @@ bool CClientSession::WaitConnected(CAutoLock &sl, unsigned int nTimeout) {
     if (m_ConnState >= SPA::ClientSide::csConnected)
         return true;
     m_bWaiting = true;
-#ifndef WINCE
     bool b = ((m_cv.wait_for(sl, MQ_FILE::ms(nTimeout)) == std::cv_status::no_timeout) && m_ConnState >= SPA::ClientSide::csConnected);
-#else
-    boost::system_time td = boost::get_system_time() + boost::posix_time::milliseconds(nTimeout);
-    bool b = (m_cv.timed_wait(sl, td) && m_ConnState >= SPA::ClientSide::csConnected);
-#endif
     m_bWaiting = false;
     return b;
 }
@@ -1059,9 +1011,6 @@ bool CClientSession::Connect(const char *strHost, unsigned int nPort, bool bSync
     }
     m_pIoService->post(boost::bind(&CClientSession::ConnectInternally, this));
 
-    //can't use the sync connecting, which may lead to dead lock
-    //ConnectInternally();
-
     if (bSync) {
         CAutoLock sl(m_mutex);
         return WaitConnected(sl, m_nConnTimeout);
@@ -1077,14 +1026,17 @@ void CClientSession::OnConnected(const CErrorCode &ec, CResolver::iterator ep) {
     boost::asio::socket_base::keep_alive option(false);
     boost::asio::ip::tcp::no_delay nodelay(true);
     CAutoLock sl(m_mutex);
-    m_pCert.reset();
-    m_nCancel = 0;
+#ifndef NDEBUG
+    m_nJobRequest = 0;
+    m_nJobConfirm = 0;
+#endif
     m_qRead.SetSize(0);
     m_qWrite.SetSize(0);
     m_qReqIdCancel.SetSize(0);
     m_qReqIdWait.SetSize(0);
     m_bRBLocked = false;
     m_bWBLocked = 0;
+    m_nCancel = 0;
     GetSocket()->set_option(option, m_ec);
     GetSocket()->set_option(nodelay, m_ec);
     if (ec) {
@@ -1106,14 +1058,14 @@ void CClientSession::OnConnected(const CErrorCode &ec, CResolver::iterator ep) {
             if (ep->endpoint().address().is_v4()) {
                 struct sockaddr_in saGNI;
                 saGNI.sin_family = AF_INET;
-                saGNI.sin_addr.s_addr = inet_addr(saddr.c_str()); //!!!! use inet_pton for the future when supporting windows vista or later
+                saGNI.sin_addr.s_addr = inet_addr(saddr.c_str());
                 saGNI.sin_port = htons((u_short) m_nPort);
                 res = ::getnameinfo((struct sockaddr *) &saGNI, sizeof (struct sockaddr), hostname, sizeof (hostname), nullptr, 0, NI_NAMEREQD);
             } else {
                 nsIP::address_v6::bytes_type bytes = addr.to_v6().to_bytes();
                 struct sockaddr_in6 saGNI;
                 saGNI.sin6_family = AF_INET6;
-                memcpy(saGNI.sin6_addr.u.Byte, bytes.data(), bytes.size());
+                memcpy(saGNI.sin6_addr.__in6_u.__u6_addr8, bytes.data(), bytes.size());
                 saGNI.sin6_port = htons((u_short) m_nPort);
                 res = ::getnameinfo((struct sockaddr *) &saGNI, sizeof (struct sockaddr_in6), hostname, sizeof (hostname), nullptr, 0, NI_NAMEREQD);
             }
@@ -1132,36 +1084,21 @@ void CClientSession::OnConnected(const CErrorCode &ec, CResolver::iterator ep) {
             }
         }
         m_hn += '@';
-#ifdef _WIN32_WCE
-        char str[16] = {0};
-        sprintf(str, "%u", m_nPort);
-        m_hn += str;
-#else
         m_hn += std::to_string((SPA::UINT64)m_nPort);
-#endif
     }
-
-    m_tRecv = GetTickCount();
+    m_tRecv = GetTimeTick();
     m_tSend = m_tRecv;
+
+#ifndef NDEBUG
+    std::cout << "TCP connection connected, error code = " << m_ec.value() << std::endl;
+#endif
     if (IsSslEnabled()) {
         m_ConnState = SPA::ClientSide::csSslShaking;
-        SECURITY_STATUS ss = OpenCred();
-        if (ss == SEC_E_OK) {
-            m_pSspi.reset(new SPA::CSspi(true, &m_hCreds, false));
-            if (m_pSspi->DoHandshake(nullptr, 0, m_qWrite)) {
-                Write(nullptr, 0);
-            } else {
-                ss = m_pSspi->GetLastStatus();
-            }
-        }
-        if (ss != SEC_E_OK) {
-            CloseInternal(ss);
-            return;
-        }
+        m_pSslSocket->async_handshake(boost::asio::ssl::stream_base::client, boost::bind(&CClientSession::OnSslHandShake, this, boost::asio::placeholders::error));
     } else {
         OnConnectedInternal(ec.value());
+        Read();
     }
-    Read();
 }
 
 void CClientSession::Write(const SPA::CStreamHeader &sh, const unsigned char *s, unsigned int nSize) {
@@ -1171,12 +1108,6 @@ void CClientSession::Write(const SPA::CStreamHeader &sh, const unsigned char *s,
         return;
     if (m_qWrite.GetTailSize() < (nSize + sizeof (sh)) && m_qWrite.GetHeadPosition() > (nSize + sizeof (sh)))
         m_qWrite.SetHeadPosition();
-    if (m_pSspi) {
-        SPA::CScopeUQueue su;
-        su << sh;
-        su->Push(s, nSize);
-        return Write(su->GetBuffer(), su->GetSize());
-    }
     if (m_bWBLocked) {
         m_qWrite << sh;
         m_qWrite.Push(s, nSize);
@@ -1206,89 +1137,66 @@ void CClientSession::Write(const SPA::CStreamHeader &sh, const unsigned char *s,
     }
     m_ulSent += ulLen;
     m_bWBLocked = ulLen;
-    m_pSocket->async_write_some(boost::asio::buffer(m_WriteBuffer, ulLen), boost::bind(&CClientSession::OnWriteCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
+    if (m_pSslSocket) {
+        m_pSslSocket->async_write_some(boost::asio::buffer(m_WriteBuffer, ulLen), boost::bind(&CClientSession::OnWriteCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
+    } else if (m_pSocket) {
+        m_pSocket->async_write_some(boost::asio::buffer(m_WriteBuffer, ulLen), boost::bind(&CClientSession::OnWriteCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
+    }
 }
 
 void CClientSession::Write(const unsigned char *s, unsigned int nSize) {
-    unsigned int ulLen;
     if (!s)
         nSize = 0;
-    if (m_ConnState < SPA::ClientSide::csSslShaking)
+    if (m_ConnState < SPA::ClientSide::csConnected)
         return;
     if (m_qWrite.GetTailSize() < nSize && nSize < m_qWrite.GetHeadPosition())
         m_qWrite.SetHeadPosition();
-
-    if (m_pSspi) {
-        SPA::CScopeUQueue su;
-        if (s && nSize) {
-            m_pSspi->Encrypt(s, nSize, *su);
-        }
-        s = su->GetBuffer();
-        nSize = su->GetSize();
-        if (m_bWBLocked) {
-            m_qWrite.Push(s, nSize);
-            return;
-        }
-        ulLen = m_qWrite.GetSize();
-        if (ulLen == 0 && s != nullptr && nSize > 0) {
-            if (nSize <= IO_BUFFER_SIZE) {
-                ::memcpy(m_WriteBuffer, s, nSize);
-                ulLen = nSize;
-            } else {
-                ::memcpy(m_WriteBuffer, s, IO_BUFFER_SIZE);
-                ulLen = IO_BUFFER_SIZE;
-
-                //remaining
-                m_qWrite.Push(s + IO_BUFFER_SIZE, nSize - IO_BUFFER_SIZE);
-            }
+    if (m_bWBLocked) {
+        m_qWrite.Push(s, nSize);
+        return;
+    }
+    unsigned int ulLen = m_qWrite.GetSize();
+    if (ulLen == 0 && s != nullptr && nSize > 0) {
+        if (nSize <= IO_BUFFER_SIZE) {
+            ::memcpy(m_WriteBuffer, s, nSize);
+            ulLen = nSize;
         } else {
-            m_qWrite.Push(s, nSize);
-            ulLen = m_qWrite.GetSize();
-            if (ulLen == 0)
-                return;
-            if (ulLen > IO_BUFFER_SIZE)
-                ulLen = IO_BUFFER_SIZE;
-            m_qWrite.Pop(m_WriteBuffer, ulLen);
+            ::memcpy(m_WriteBuffer, s, IO_BUFFER_SIZE);
+            ulLen = IO_BUFFER_SIZE;
+
+            //remaining
+            m_qWrite.Push(s + IO_BUFFER_SIZE, nSize - IO_BUFFER_SIZE);
         }
     } else {
-        if (m_bWBLocked) {
-            m_qWrite.Push(s, nSize);
-            return;
-        }
+        m_qWrite.Push(s, nSize);
         ulLen = m_qWrite.GetSize();
-        if (ulLen == 0 && s != nullptr && nSize > 0) {
-            if (nSize <= IO_BUFFER_SIZE) {
-                ::memcpy(m_WriteBuffer, s, nSize);
-                ulLen = nSize;
-            } else {
-                ::memcpy(m_WriteBuffer, s, IO_BUFFER_SIZE);
-                ulLen = IO_BUFFER_SIZE;
-
-                //remaining
-                m_qWrite.Push(s + IO_BUFFER_SIZE, nSize - IO_BUFFER_SIZE);
-            }
-        } else {
-            m_qWrite.Push(s, nSize);
-            ulLen = m_qWrite.GetSize();
-            if (ulLen == 0)
-                return;
-            if (ulLen > IO_BUFFER_SIZE)
-                ulLen = IO_BUFFER_SIZE;
-            m_qWrite.Pop(m_WriteBuffer, ulLen);
-        }
+        if (ulLen == 0)
+            return;
+        if (ulLen > IO_BUFFER_SIZE)
+            ulLen = IO_BUFFER_SIZE;
+        m_qWrite.Pop(m_WriteBuffer, ulLen);
     }
     m_ulSent += ulLen;
     m_bWBLocked = ulLen;
-    m_pSocket->async_write_some(boost::asio::buffer(m_WriteBuffer, ulLen), boost::bind(&CClientSession::OnWriteCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
+    if (m_pSslSocket) {
+        m_pSslSocket->async_write_some(boost::asio::buffer(m_WriteBuffer, ulLen), boost::bind(&CClientSession::OnWriteCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
+    } else if (m_pSocket) {
+        m_pSocket->async_write_some(boost::asio::buffer(m_WriteBuffer, ulLen), boost::bind(&CClientSession::OnWriteCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
+    }
 }
 
 void CClientSession::Read() {
     if (m_pThread && m_pThread->GetPool()->IsKilling())
         return;
-    if (m_bRBLocked || m_ConnState < SPA::ClientSide::csSslShaking || m_bRoutingWait)
+    if (m_bRBLocked || m_ConnState < SPA::ClientSide::csConnected || m_bRoutingWait)
         return;
     m_bRBLocked = true;
-    m_pSocket->async_read_some(boost::asio::buffer(m_ReadBuffer, IO_BUFFER_SIZE), boost::bind(&CClientSession::OnReadCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
+    if (m_pSslSocket)
+        m_pSslSocket->async_read_some(boost::asio::buffer(m_ReadBuffer, IO_BUFFER_SIZE),
+            boost::bind(&CClientSession::OnReadCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
+    else
+        m_pSocket->async_read_some(boost::asio::buffer(m_ReadBuffer, IO_BUFFER_SIZE),
+            boost::bind(&CClientSession::OnReadCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
 }
 
 void CClientSession::OnHandleShakeCompleted(int errCode) {
@@ -1305,7 +1213,14 @@ void CClientSession::OnHandleShakeCompleted(int errCode) {
 }
 
 void CClientSession::OnSslHandShake(const CErrorCode& ec) {
+    CAutoLock sl(m_mutex);
+    m_ec = ec;
+    m_tRecv = GetTimeTick();
+    m_tSend = m_tRecv;
     OnHandleShakeCompleted(ec.value());
+#ifndef NDEBUG
+    std::cout << "SSL/TLS connection connected, error code = " << m_ec.value() << std::endl;
+#endif
     OnConnectedInternal(ec.value());
     if (!ec) {
         Read();
@@ -1394,6 +1309,25 @@ void CClientSession::SetOnSendUserMessageEx(POnSendUserMessageEx p) {
 void CClientSession::SetOnSendUserMessage(POnSendUserMessage p) {
     CAutoLock al(m_mutex);
     m_OnPostUserMessage = p;
+}
+
+void CClientSession::SetOnPostProcessing(POnPostProcessing p) {
+    m_mutex.lock();
+    m_OnPostProcessing = p;
+    m_mutex.unlock();
+}
+
+void CClientSession::OnPostProcessing(unsigned int hint, SPA::UINT64 data) {
+    m_mutex.lock();
+    POnPostProcessing pp = m_OnPostProcessing;
+    m_mutex.unlock();
+    if (pp) {
+        pp(this, hint, data);
+    }
+}
+
+void CClientSession::PostProcessing(unsigned int hint, SPA::UINT64 data) {
+    m_pIoService->post(boost::bind(&CClientSession::OnPostProcessing, this, hint, data));
 }
 
 SPA::tagOperationSystem CClientSession::GetPeerOs(bool *endian) {
@@ -1526,18 +1460,27 @@ void CClientSession::CloseInternal(int nError) {
     if (m_ConnState == SPA::ClientSide::csClosed) {
         return;
     }
-    m_tRecv = GetTickCount();
+#ifndef NDEBUG
+    if (m_nJobRequest) {
+        std::cout << "Bad dequeue job balance = " << __FUNCTION__ << ", balance = " << m_nJobRequest << std::endl;
+    }
+    if (m_nJobConfirm) {
+        std::cout << "Bad confirm job balance = " << __FUNCTION__ << ", balance = " << m_nJobConfirm << std::endl;
+    }
+#endif
+    m_tRecv = GetTimeTick();
     m_tSend = m_tRecv;
     PSocketPoolCallback spc = m_pThread->GetSocketPoolCallback();
     if (spc) {
         CRAutoLock sl(m_mutex);
         spc(m_nPoolId, SPA::ClientSide::speClosingSocket, this);
     }
+
+    SPA::CScopeUQueue::Unlock(m_pQBatch);
+    m_pQBatch = nullptr;
+
     if (IsContextSet()) {
         CErrorCode ec(nError, boost::system::system_category());
-        if (IsSslEnabled()) {
-
-        }
         GetSocket()->shutdown(boost::asio::socket_base::shutdown_both, ec);
         GetSocket()->close(ec);
     }
@@ -1548,23 +1491,15 @@ void CClientSession::CloseInternal(int nError) {
     m_bConfirmTrans = false;
     m_bConfirmFail = false;
     OnClosed(nError);
-    {
-        if (spc) {
-            CRAutoLock sl(m_mutex);
-            spc(m_nPoolId, SPA::ClientSide::speSocketClosed, this);
-        }
-        if (m_qRequest && m_qRequest->IsAvailable() && m_qRequest->GetJobSize() == 0 && m_qRequest->GetMessageCount() > 0 && ss > SPA::ClientSide::csConnected) {
-            CRAutoLock sl(m_mutex);
-            m_pThread->GetPool()->OnClose(this);
-        }
+    if (spc) {
+        CRAutoLock sl(m_mutex);
+        spc(m_nPoolId, SPA::ClientSide::speSocketClosed, this);
+    }
+    if (m_qRequest && m_qRequest->IsAvailable() && m_qRequest->GetJobSize() == 0 && m_qRequest->GetMessageCount() > 0 && ss > SPA::ClientSide::csConnected) {
+        CRAutoLock sl(m_mutex);
+        m_pThread->GetPool()->OnClose(this);
     }
     m_ClientInfo.ServiceId = SPA::sidStartup;
-    FreeCredHandle();
-    if (m_pCertContext) {
-        ::CertFreeCertificateContext(m_pCertContext);
-        m_pCertContext = nullptr;
-    }
-    m_pSspi.reset();
 }
 
 void CClientSession::Close() {
@@ -1577,7 +1512,10 @@ bool CClientSession::GetSockAddr(unsigned int *sockPort, char *strIPAddrBuffer, 
     unsigned short n;
     boost::asio::ip::tcp::endpoint ep;
     CAutoLock sl(m_mutex);
-    ep = m_pSocket->local_endpoint(ec);
+    if (m_pSslSocket)
+        ep = m_pSslSocket->next_layer().local_endpoint(ec);
+    else
+        ep = m_pSocket->local_endpoint(ec);
     if (ec)
         return false;
     if (sockPort)
@@ -1599,7 +1537,10 @@ bool CClientSession::GetPeerName(unsigned int *sockPort, char *strIPAddrBuffer, 
     unsigned short n;
     boost::asio::ip::tcp::endpoint ep;
     CAutoLock sl(m_mutex);
-    ep = m_pSocket->remote_endpoint(ec);
+    if (m_pSslSocket)
+        ep = m_pSslSocket->next_layer().remote_endpoint(ec);
+    else
+        ep = m_pSocket->remote_endpoint(ec);
     if (ec)
         return false;
     if (sockPort)
@@ -1788,15 +1729,17 @@ void CClientSession::ResetQueue() {
 }
 
 SPA::UINT64 CClientSession::RemoveQueuedRequestsByTTL() {
-    CAutoLock al(m_mutex);
-    if (!m_qRequest)
-        return 0;
+    {
+        CAutoLock al(m_mutex);
+        if (!m_qRequest || !m_qRequest->IsAvailable())
+            return 0;
+    }
     return m_qRequest->RemoveByTTL();
 }
 
 unsigned int CClientSession::GetTTL() {
     CAutoLock al(m_mutex);
-    if (!m_qRequest)
+    if (!m_qRequest || !m_qRequest->IsAvailable())
         return 0;
     return m_qRequest->GetTTL();
 }
@@ -1919,47 +1862,6 @@ SPA::UINT64 CClientSession::CancelQueuedRequests(SPA::UINT64 startIndex, SPA::UI
     return 0;
 }
 
-void CClientSession::FreeCredHandle() {
-    if (m_hCreds.dwLower || m_hCreds.dwUpper) {
-        ::FreeCredentialsHandle(&m_hCreds);
-        ::memset(&m_hCreds, 0, sizeof (m_hCreds));
-    }
-}
-
-SECURITY_STATUS CClientSession::OpenCred() {
-    FreeCredHandle();
-    SECURITY_STATUS Status = SEC_E_OK;
-    SCHANNEL_CRED SchannelCred;
-    ::memset(&SchannelCred, 0, sizeof (SchannelCred));
-
-    PCCERT_CONTEXT pCertContext = nullptr;
-    if (m_pSelfCert) {
-        pCertContext = m_pSelfCert->GetCertContext();
-    }
-    if (pCertContext) {
-        SchannelCred.cCreds = 1;
-        SchannelCred.paCred = &pCertContext;
-    }
-    SchannelCred.dwVersion = SCHANNEL_CRED_VERSION;
-#ifdef _WIN32_WCE
-    SchannelCred.grbitEnabledProtocols = SP_PROT_SSL3TLS1_CLIENTS;
-    SchannelCred.dwFlags = (SCH_CRED_NO_DEFAULT_CREDS | SCH_CRED_MANUAL_CRED_VALIDATION | SCH_CRED_REVOCATION_CHECK_CHAIN);
-#else
-    SchannelCred.grbitEnabledProtocols = SP_PROT_SSL3TLS1_X_CLIENTS;
-    SchannelCred.dwFlags = (SCH_CRED_NO_DEFAULT_CREDS | SCH_CRED_MANUAL_CRED_VALIDATION | SCH_CRED_REVOCATION_CHECK_CHAIN/* | SCH_SEND_ROOT_CERT*/);
-#endif
-    SECURITY_STATUS ss = ::AcquireCredentialsHandle(nullptr,
-            (LPWSTR) UNISP_NAME,
-            SECPKG_CRED_OUTBOUND,
-            nullptr,
-            &SchannelCred,
-            nullptr,
-            nullptr,
-            &m_hCreds,
-            nullptr);
-    return ss;
-}
-
 bool CClientSession::AbortJob() {
     CAutoLock al(m_mutex);
     if (m_pQBatch)
@@ -2049,7 +1951,7 @@ void CClientSession::StopQueueInternal(bool permanent) {
     if (CheckQueueAvailable()) {
         qFileName = m_qRequest->GetMQFileName();
         CAutoLock al(m_mutexQLI);
-        std::vector<MQ_FILE::CFilePtr >::iterator it = std::find(m_vQRequest.begin(), m_vQRequest.end(), m_qRequest);
+        std::vector<MQ_FILE::CFilePtr>::iterator it = std::find(m_vQRequest.begin(), m_vQRequest.end(), m_qRequest);
         if (it != m_vQRequest.end())
             m_vQRequest.erase(it);
     }
@@ -2072,14 +1974,20 @@ bool CClientSession::DequeuedResult() {
     return q;
 }
 
-void CClientSession::Shutdown(CSocket::shutdown_type nHow) {
+void CClientSession::Shutdown(nsIP::tcp::socket::shutdown_type nHow) {
     CErrorCode ec;
     CAutoLock sl(m_mutex);
+    if (m_ConnState <= SPA::ClientSide::csClosing)
+        return;
+    m_ConnState = SPA::ClientSide::csClosing;
     if (IsContextSet()) {
+        /*
         do {
             if (!IsSslEnabled())
                 break;
+            m_pSslSocket->shutdown(ec);
         } while (false);
+         */
         GetSocket()->shutdown(nHow, ec);
     }
 }
@@ -2133,12 +2041,6 @@ void CClientSession::SetOnAllRequestsProcessed(POnAllRequestsProcessed p) {
     m_mutex.unlock();
 }
 
-void CClientSession::SetOnPostProcessing(POnPostProcessing p) {
-    m_mutex.lock();
-    m_OnPostProcessing = p;
-    m_mutex.unlock();
-}
-
 unsigned int CClientSession::GetCurrentResultSize() {
     m_mutex.lock();
     unsigned int size = m_ResultInfo.Size;
@@ -2156,19 +2058,6 @@ unsigned int CClientSession::RetrieveResultInternal(unsigned char *pBuffer, unsi
         m_ResultInfo.Size -= size;
     }
     return size;
-}
-
-void CClientSession::OnPostProcessing(unsigned int hint, SPA::UINT64 data) {
-    m_mutex.lock();
-    POnPostProcessing pp = m_OnPostProcessing;
-    m_mutex.unlock();
-    if (pp) {
-        pp(this, hint, data);
-    }
-}
-
-void CClientSession::PostProcessing(unsigned int hint, SPA::UINT64 data) {
-    m_pIoService->post(boost::bind(&CClientSession::OnPostProcessing, this, hint, data));
 }
 
 const unsigned char* CClientSession::GetResultBuffer() {
@@ -2423,13 +2312,11 @@ void CClientSession::OnBaseRequestProcessed(unsigned short nRequestId, unsigned 
             if (nRequestId == SPA::idDequeueConfirmed) {
                 assert(sb->GetSize() == sizeof (MQ_FILE::CDequeueConfirmInfo));
                 sb >> dci;
-                assert(dci.QA.MessageIndex && dci.QA.MessageIndex != (~0));
                 m_qa = dci.QA;
             } else {
                 while (sb->GetSize() > 0) {
                     assert(sb->GetSize() >= sizeof (dci));
                     sb >> dci;
-                    assert(dci.QA.MessageIndex && dci.QA.MessageIndex != (~0));
                     if (sb->GetSize() > 0)
                         m_qConfirm << dci;
                     else
@@ -2444,6 +2331,9 @@ void CClientSession::OnBaseRequestProcessed(unsigned short nRequestId, unsigned 
             if (bQueue) {
                 switch (reqId) {
                     case SPA::idStartJob:
+#ifndef NDEBUG
+                        ++m_nJobConfirm;
+#endif
                         if (m_ConnState < SPA::ClientSide::csConnected)
                             return;
                         m_bConfirmFail = dci.Fail;
@@ -2457,6 +2347,9 @@ void CClientSession::OnBaseRequestProcessed(unsigned short nRequestId, unsigned 
                         RemoveRequestId(nRequestId);
                         break;
                     case SPA::idEndJob:
+#ifndef NDEBUG
+                        --m_nJobConfirm;
+#endif
                         if (m_ConnState < SPA::ClientSide::csConnected || m_vQTrans.size() == 0)
                             return;
                         if (!m_bConfirmFail)
@@ -2477,6 +2370,7 @@ void CClientSession::OnBaseRequestProcessed(unsigned short nRequestId, unsigned 
                             WriteFromQueueFile();
                         }
                         Write(nullptr, 0);
+
                         break;
                     default:
                         if (m_bConfirmTrans) {
@@ -2496,6 +2390,11 @@ void CClientSession::OnBaseRequestProcessed(unsigned short nRequestId, unsigned 
                         }
                         break;
                 }
+#ifndef NDEBUG
+                if (m_nJobConfirm > 1) {
+                    std::cout << "Bad confirm job balance = " << __FUNCTION__ << ", balance = " << m_nJobConfirm << std::endl;
+                }
+#endif
                 if (dci.Fail) {
                     WriteFromQueueFile();
                     Write(nullptr, 0);
@@ -2576,7 +2475,6 @@ void CClientSession::OnBaseRequestProcessed(unsigned short nRequestId, unsigned 
             break;
     }
     if (brp) {
-
         CRAutoLock sl(m_mutex);
         brp(this, nRequestId);
     }
@@ -2606,10 +2504,16 @@ bool CClientSession::GetPeerDequeueFailed() {
 
 bool CClientSession::IsRouteeRequest() {
     CAutoLock al(m_mutex);
+
     return (m_RouterHandle > 0);
 }
 
 void CClientSession::NotifyDequeued(unsigned int qHandle) {
+#ifndef NDEBUG
+    if (m_nJobRequest > 1) {
+        std::cout << "Bad dequeue job balance = " << __FUNCTION__ << ", balance = " << m_nJobRequest << std::endl;
+    }
+#endif
     if (m_RouterHandle) {
         switch (m_ResultInfo.RequestId) {
             case SPA::idStartJob:
@@ -2666,7 +2570,6 @@ void CClientSession::NotifyDequeued(unsigned int qHandle) {
 void CClientSession::NotifyDequeuedStartQueueTrans(unsigned int qHandle) {
     POnBaseRequestProcessed p = m_OnBaseRequestProcessed;
     if (p != nullptr) {
-
         CRAutoLock sl(m_mutex);
         p(this, SPA::idStartJob);
     }
@@ -2677,7 +2580,6 @@ void CClientSession::NotifyDequeuedStartQueueTrans(unsigned int qHandle) {
 void CClientSession::NotifyDequeuedCommitQueueTrans(unsigned int qHandle) {
     POnBaseRequestProcessed p = m_OnBaseRequestProcessed;
     if (p != nullptr) {
-
         CRAutoLock sl(m_mutex);
         p(this, SPA::idEndJob);
     }
@@ -2690,133 +2592,28 @@ void CClientSession::OnReadCompleted(const CErrorCode& Error, size_t nLen) {
     unsigned int len = (unsigned int) nLen;
     if (Error) {
         CAutoLock sl(m_mutex);
+        m_ec = Error;
         CloseInternal(Error.value());
         return;
     }
-    if (m_ConnState < SPA::ClientSide::csSslShaking) {
+    if (m_ConnState < SPA::ClientSide::csConnected) {
         return;
     }
-    if (m_qRead.GetTailSize() < len && m_qRead.GetHeadPosition() >= len)
-        m_qRead.SetHeadPosition();
-    if (m_pSspi) {
-        if (m_pSspi->GetHandshakeState() == SPA::hsDone) {
-            nLen = m_qRead.GetSize();
-            if (!m_pSspi->Decrypt(m_ReadBuffer, len, m_qRead)) {
-                CAutoLock sl(m_mutex);
-                CloseInternal(m_pSspi->GetLastStatus());
-                return;
-            }
-            m_ulRead += (unsigned int) (m_qRead.GetSize() - nLen);
-        } else {
-            m_bRBLocked = false;
-            CAutoLock sl(m_mutex);
-            m_tRecv = GetTimeTick();
-            m_qRead.Push(m_ReadBuffer, len);
-            bool ok = m_pSspi->DoHandshake(m_qRead.GetBuffer(), m_qRead.GetSize(), m_qWrite);
-            if (ok) {
-                if (m_pSspi->GetLastStatus() != SEC_E_INCOMPLETE_MESSAGE) {
-                    m_qRead.SetSize(0);
-                }
-                if (m_pSspi->GetHandshakeState() == SPA::hsDone) {
-
-                    g_mutexCvc.lock();
-                    PCertificateVerifyCallback cvc = g_cvc;
-                    g_mutexCvc.unlock();
-                    if (cvc) {
-                        DWORD dwFlags = 0;
-                        PCCERT_CHAIN_CONTEXT pChainContext = nullptr;
-                        CERT_ENHKEY_USAGE EnhkeyUsage;
-                        CERT_USAGE_MATCH CertUsage;
-                        CERT_CHAIN_PARA ChainPara;
-                        EnhkeyUsage.cUsageIdentifier = 0;
-                        EnhkeyUsage.rgpszUsageIdentifier = nullptr;
-                        CertUsage.dwType = USAGE_MATCH_TYPE_AND;
-                        CertUsage.Usage = EnhkeyUsage;
-                        ChainPara.cbSize = sizeof (CERT_CHAIN_PARA);
-                        ChainPara.RequestedUsage = CertUsage;
-                        PCCERT_CONTEXT pCertContext = m_pSspi->GetCertContext();
-                        if (!::CertGetCertificateChain(nullptr, // use the default chain engine
-                                pCertContext, // pointer to the end certificate
-                                NULL, // use the default time
-                                SPA::CCertificateImpl::CertStore.GetCertStore(), // search no additional stores
-                                &ChainPara, // use AND logic and enhanced key usage 
-                                dwFlags,
-                                NULL, // currently reserved
-                                &pChainContext)) // return a pointer to the chain created
-                        {
-                            //ec.assign(::GetLastError(), boost::system::get_system_category());
-                            CloseInternal((int) ::GetLastError());
-                            return;
-                        } else {
-                            int errCode = 0;
-                            const char *errMsg = SPA::CCertificateImpl::VerifyOne(pCertContext, &errCode, SPA::CCertificateImpl::CertStore.GetCertStore());
-                            bool ok = (errCode == CERT_TRUST_NO_ERROR || ::strlen(errMsg) == 0);
-                            PCERT_SIMPLE_CHAIN chains = pChainContext->rgpChain[0];
-                            DWORD total = chains->cElement;
-                            for (DWORD n = 0; n < total; ++n) {
-                                PCERT_CHAIN_ELEMENT one = chains->rgpElement[n];
-                                SPA::CCertificateImplPtr pCert(new SPA::CCertificateImpl(one->pCertContext, ""));
-                                ok = cvc(ok, n, one->TrustStatus.dwErrorStatus, SPA::CCertificateImpl::MapErrorMessage(one->TrustStatus.dwErrorStatus), pCert.get());
-                                if (!ok)
-                                    break;
-                            }
-                            ::CertFreeCertificateChain(pChainContext);
-                            if (!ok) {
-                                CloseInternal((int) ::GetLastError());
-                                return;
-                            }
-                        }
-                    }
-                    CErrorCode ec;
-                    m_pCert.reset(new SPA::CCertificateImpl(m_pSspi, ""));
-                    OnSslHandShake(ec);
-                    return;
-                } else if (SEC_I_INCOMPLETE_CREDENTIALS == m_pSspi->GetLastStatus()) {
-                    if (m_certCN.size()) {
-                        m_pCertContext = ::CertFindCertificateInStore(SPA::CCertificateImpl::CertStore.GetCertStore(), X509_ASN_ENCODING | PKCS_7_ASN_ENCODING, 0, CERT_FIND_SUBJECT_STR, CA2CT(m_certCN.c_str()), nullptr);
-                        if (m_pCertContext) {
-                            m_pSelfCert.reset(new SPA::CCertificateImpl(m_pCertContext, ""));
-                        } else {
-                            m_pSelfCert.reset();
-                        }
-                    }
-                    SECURITY_STATUS ss = OpenCred();
-                    if (ss == SEC_E_OK) {
-                        m_pSspi->ResetCredHandle(&m_hCreds);
-                        ok = m_pSspi->DoHandshake(m_qRead.GetBuffer(), m_qRead.GetSize(), m_qWrite);
-                        if (!ok) {
-                            CloseInternal(m_pSspi->GetLastStatus());
-                            return;
-                        } else {
-
-                        }
-                    } else {
-                        CloseInternal(ss);
-                        return;
-                    }
-                } else {
-                }
-                Write(nullptr, 0);
-                Read();
-                return;
-            } else {
-                CloseInternal(m_pSspi->GetLastStatus());
-                return;
-            }
-
-        }
-    } else {
+    if (len > 0) {
         m_ulRead += len;
+        if (m_qRead.GetTailSize() < len && m_qRead.GetHeadPosition() >= len)
+            m_qRead.SetHeadPosition();
         m_qRead.Push(m_ReadBuffer, len);
     }
     m_bRBLocked = false;
     CAutoLock sl(m_mutex);
-    bool notify = (m_qReqIdWait.GetSize() > 0);
+    m_ec = Error;
     m_tRecv = GetTimeTick();
+    bool notify = (m_qReqIdWait.GetSize() > 0);
     if (m_bRoutingWait)
         return;
-    bool b = (m_qRead.GetSize() >= sizeof (SPA::CStreamHeader) || m_ResultInfo.RequestId != 0);
     m_nRcvBufferSize = m_qRead.GetSize();
+    bool b = (m_nRcvBufferSize >= sizeof (SPA::CStreamHeader) || m_ResultInfo.RequestId != 0);
     while (b) {
         m_nRcvBufferSize = m_qRead.GetSize();
         if (m_bSendWaiting && (m_qWrite.GetSize() < BUFFER_BLOCK_SIZE / 2 || m_qReqIdWait.GetSize() / sizeof (SPA::CStreamHeader) <= 2)) {
@@ -2876,8 +2673,9 @@ void CClientSession::OnReadCompleted(const CErrorCode& Error, size_t nLen) {
                         }
                         m_qRead >> qHandle >> m_qa;
                         m_bLastDequeue = ((m_qa.MessagePos & MQ_FILE::QAttr::RANGE_DEQUEUED_POSITION_END) == MQ_FILE::QAttr::RANGE_DEQUEUED_POSITION_END);
-                        if (m_bLastDequeue)
+                        if (m_bLastDequeue) {
                             m_qa.MessagePos -= MQ_FILE::QAttr::RANGE_DEQUEUED_POSITION_END;
+                        }
                         m_ResultInfo.Size -= (sizeof (qHandle) + sizeof (m_qa));
                         if ((m_ServerQFile.MinIndex & MQ_FILE::CQueueInitialInfo::QUEUE_SHARED_INDEX) != MQ_FILE::CQueueInitialInfo::QUEUE_SHARED_INDEX) {
                             seek = m_pQLastIndex->Seek(m_ServerQFile.Qs);
@@ -2890,6 +2688,15 @@ void CClientSession::OnReadCompleted(const CErrorCode& Error, size_t nLen) {
                             seek.MessageIndex >= m_qa.MessageIndex &&
                             seek.MessagePos != INVALID_NUMBER &&
                             seek.MessagePos >= m_qa.MessagePos && m_qa.MessageIndex > 1) {
+#ifndef NDEBUG
+                        std::cout << "++++ ReqId = " << m_ResultInfo.RequestId << ", len = " << m_ResultInfo.Size << ", msg index = " << m_qa.MessageIndex << ", pos = " << m_qa.MessagePos;
+                        std::cout << ", seek msg index = " << seek.MessageIndex << ", seek pos = " << seek.MessagePos << std::endl;
+                        if (m_ResultInfo.RequestId == SPA::idStartJob) {
+                            ++m_nJobRequest;
+                        } else if (m_ResultInfo.RequestId == SPA::idEndJob) {
+                            --m_nJobRequest;
+                        }
+#endif
                         m_bFail = false;
                         NotifyDequeued(qHandle);
                         assert(m_qRead.GetSize() >= m_ResultInfo.Size);
@@ -2899,6 +2706,9 @@ void CClientSession::OnReadCompleted(const CErrorCode& Error, size_t nLen) {
                         b = (m_qRead.GetSize() >= sizeof (SPA::CStreamHeader));
                         continue;
                     } else if (m_ResultInfo.RequestId == SPA::idStartJob) {
+#ifndef NDEBUG
+                        ++m_nJobRequest;
+#endif
                         m_bDequeueTrans = true;
                         m_bFail = false;
                         NotifyDequeuedStartQueueTrans(qHandle);
@@ -2907,6 +2717,9 @@ void CClientSession::OnReadCompleted(const CErrorCode& Error, size_t nLen) {
                         b = (m_qRead.GetSize() >= sizeof (SPA::CStreamHeader));
                         continue;
                     } else if (m_ResultInfo.RequestId == SPA::idEndJob) {
+#ifndef NDEBUG
+                        --m_nJobRequest;
+#endif
                         NotifyDequeuedCommitQueueTrans(qHandle);
                         m_bDequeueTrans = false;
                         assert(m_qRead.GetSize() >= m_ResultInfo.Size);
@@ -2989,15 +2802,16 @@ void CClientSession::DoConfirmDequeue() {
         assert((m_qConfirm.GetSize() % sizeof (MQ_FILE::CDequeueConfirmInfo)) == 0);
         unsigned int count = m_qConfirm.GetSize() / sizeof (MQ_FILE::CDequeueConfirmInfo);
         std::sort(start, start + count, SortQueueConfirm);
-        unsigned int res = m_qRequest->DoConfirmDequeue(m_qConfirm);
+        m_qRequest->DoConfirmDequeue(m_qConfirm);
         m_qConfirm.SetSize(0);
     }
+    m_qConfirm.SetSize(0);
 }
 
 void CClientSession::OnWriteCompleted(const CErrorCode& Error, size_t bytes_transferred) {
     CAutoLock sl(m_mutex);
     m_tSend = GetTimeTick();
-    if (m_ConnState < SPA::ClientSide::csSslShaking) {
+    if (m_ConnState < SPA::ClientSide::csConnected) {
         return;
     }
     if (!Error) {
@@ -3020,7 +2834,11 @@ void CClientSession::OnWriteCompleted(const CErrorCode& Error, size_t bytes_tran
                 ulLen += max_add;
                 m_bWBLocked = ulLen;
             }
-            m_pSocket->async_write_some(boost::asio::buffer(m_WriteBuffer, ulLen), boost::bind(&CClientSession::OnWriteCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
+            if (m_pSslSocket) {
+                m_pSslSocket->async_write_some(boost::asio::buffer(m_WriteBuffer, ulLen), boost::bind(&CClientSession::OnWriteCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
+            } else if (m_pSocket) {
+                m_pSocket->async_write_some(boost::asio::buffer(m_WriteBuffer, ulLen), boost::bind(&CClientSession::OnWriteCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
+            }
         } else {
             m_bWBLocked = 0;
             Write(nullptr, 0);
@@ -3034,6 +2852,7 @@ void CClientSession::OnWriteCompleted(const CErrorCode& Error, size_t bytes_tran
 
 bool CClientSession::DoEcho() {
     CAutoLock sl(m_mutex);
+
     return SendRequestInternal(sl, SPA::idDoEcho, nullptr, 0);
 }
 
@@ -3044,6 +2863,7 @@ bool CClientSession::SetSockOpt(SPA::tagSocketOption optName, int optValue, SPA:
     if (m_ConnState < SPA::ClientSide::csConnected)
         return false;
     int res = ::setsockopt(GetSocket()->native_handle(), lvl, name, (const char*) &optValue, sizeof (optValue));
+
     return (res == 0);
 }
 
@@ -3051,17 +2871,20 @@ bool CClientSession::SetSockOptAtSvr(SPA::tagSocketOption optName, int optValue,
     SPA::CScopeUQueue su;
     su << (int) optName << optValue << (int) level;
     CAutoLock sl(m_mutex);
+
     return SendRequestInternal(sl, SPA::idSetSockOptAtSvr, su->GetBuffer(), su->GetSize());
 }
 
 bool CClientSession::TurnOnZipAtSvr(bool enableZip) {
     CAutoLock sl(m_mutex);
+
     return SendRequestInternal(sl, SPA::idTurnOnZipAtSvr, &enableZip, sizeof (enableZip));
 }
 
 bool CClientSession::SetZipLevelAtSvr(SPA::tagZipLevel zipLevel) {
     int level = zipLevel;
     CAutoLock sl(m_mutex);
+
     return SendRequestInternal(sl, SPA::idSetZipLevelAtSvr, &level, sizeof (level));
 }
 

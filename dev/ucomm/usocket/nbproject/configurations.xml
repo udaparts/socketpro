@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configurationDescriptor version="95">
+  <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
+    <logicalFolder name="HeaderFiles"
+                   displayName="Header Files"
+                   projectFiles="true">
+      <itemPath>clientsession.h</itemPath>
+      <itemPath>../clientcore/clientthread.h</itemPath>
+      <itemPath>../core_shared/shared/includes.h</itemPath>
+      <itemPath>../include/membuffer.h</itemPath>
+      <itemPath>../clientcore/socketpool.h</itemPath>
+      <itemPath>../core_shared/shared/streamhead.h</itemPath>
+      <itemPath>../core_shared/shared/ucertimpl.h</itemPath>
+      <itemPath>../core_shared/shared/uthread.h</itemPath>
+    </logicalFolder>
+    <logicalFolder name="ResourceFiles"
+                   displayName="Resource Files"
+                   projectFiles="true">
+    </logicalFolder>
+    <logicalFolder name="SourceFiles"
+                   displayName="Source Files"
+                   projectFiles="true">
+      <itemPath>../clientcore/clientglobal.cpp</itemPath>
+      <itemPath>clientsession.cpp</itemPath>
+      <itemPath>../clientcore/clientthread.cpp</itemPath>
+      <itemPath>../clientcore/csocketimpl.cpp</itemPath>
+      <itemPath>../core_shared/shared/includes.cpp</itemPath>
+      <itemPath>../include/membuffer.cpp</itemPath>
+      <itemPath>../clientcore/socketpool.cpp</itemPath>
+      <itemPath>../core_shared/shared/ucertimpl.cpp</itemPath>
+      <itemPath>../core_shared/shared/uthread.cpp</itemPath>
+    </logicalFolder>
+    <logicalFolder name="TestFiles"
+                   displayName="Test Files"
+                   projectFiles="false"
+                   kind="TEST_LOGICAL_FOLDER">
+    </logicalFolder>
+    <logicalFolder name="ExternalFiles"
+                   displayName="Important Files"
+                   projectFiles="false"
+                   kind="IMPORTANT_FILES_FOLDER">
+      <itemPath>Makefile</itemPath>
+    </logicalFolder>
+  </logicalFolder>
+  <projectmakefile>Makefile</projectmakefile>
+  <confs>
+    <conf name="Debug" type="2">
+      <toolsSet>
+        <compilerSet>default</compilerSet>
+        <dependencyChecking>true</dependencyChecking>
+        <rebuildPropChanged>false</rebuildPropChanged>
+      </toolsSet>
+      <compileType>
+        <cTool>
+          <commandLine>-static-libgcc -static-libstdc++ -std=c++11</commandLine>
+        </cTool>
+        <ccTool>
+          <commandLine>-static-libgcc -static-libstdc++ -std=c++11</commandLine>
+        </ccTool>
+        <linkerTool>
+          <commandlineTool>g++</commandlineTool>
+          <linkerLibItems>
+            <linkerLibLibItem>ssl</linkerLibLibItem>
+            <linkerLibFileItem>../uzip/dist/Debug/GNU-Linux-x86/libuzip.a</linkerLibFileItem>
+            <linkerLibStdlibItem>DynamicLinking</linkerLibStdlibItem>
+            <linkerLibStdlibItem>PosixThreads</linkerLibStdlibItem>
+            <linkerOptionItem>`pkg-config --libs libcrypto`</linkerOptionItem>
+          </linkerLibItems>
+          <commandLine>-z defs -rdynamic</commandLine>
+        </linkerTool>
+      </compileType>
+      <item path="../clientcore/clientglobal.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="../clientcore/clientthread.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="../clientcore/clientthread.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../clientcore/csocketimpl.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="../clientcore/socketpool.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="../clientcore/socketpool.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../core_shared/shared/includes.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="../core_shared/shared/includes.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../core_shared/shared/streamhead.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../core_shared/shared/ucertimpl.cpp"
+            ex="false"
+            tool="0"
+            flavor2="0">
+      </item>
+      <item path="../core_shared/shared/ucertimpl.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../core_shared/shared/uthread.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="../core_shared/shared/uthread.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../include/membuffer.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="../include/membuffer.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="clientsession.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="clientsession.h" ex="false" tool="3" flavor2="0">
+      </item>
+    </conf>
+    <conf name="Release" type="2">
+      <toolsSet>
+        <compilerSet>default</compilerSet>
+        <dependencyChecking>true</dependencyChecking>
+        <rebuildPropChanged>false</rebuildPropChanged>
+      </toolsSet>
+      <compileType>
+        <cTool>
+          <developmentMode>6</developmentMode>
+          <stripSymbols>true</stripSymbols>
+          <commandLine>-static-libgcc -static-libstdc++ -std=c++11</commandLine>
+          <preprocessorList>
+            <Elem>NDEBUG</Elem>
+          </preprocessorList>
+        </cTool>
+        <ccTool>
+          <developmentMode>6</developmentMode>
+          <stripSymbols>true</stripSymbols>
+          <commandLine>-static-libgcc -static-libstdc++ -std=c++11</commandLine>
+          <preprocessorList>
+            <Elem>NDEBUG</Elem>
+          </preprocessorList>
+        </ccTool>
+        <fortranCompilerTool>
+          <developmentMode>5</developmentMode>
+        </fortranCompilerTool>
+        <asmTool>
+          <developmentMode>5</developmentMode>
+        </asmTool>
+        <linkerTool>
+          <stripSymbols>true</stripSymbols>
+          <commandlineTool>g++</commandlineTool>
+          <linkerLibItems>
+            <linkerLibLibItem>ssl</linkerLibLibItem>
+            <linkerLibFileItem>../uzip/dist/Release/GNU-Linux-x86/libuzip.a</linkerLibFileItem>
+            <linkerLibStdlibItem>DynamicLinking</linkerLibStdlibItem>
+            <linkerLibStdlibItem>PosixThreads</linkerLibStdlibItem>
+            <linkerOptionItem>`pkg-config --libs libcrypto`</linkerOptionItem>
+          </linkerLibItems>
+          <commandLine>-z defs -rdynamic</commandLine>
+        </linkerTool>
+      </compileType>
+      <item path="../clientcore/clientglobal.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="../clientcore/clientthread.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="../clientcore/clientthread.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../clientcore/csocketimpl.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="../clientcore/socketpool.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="../clientcore/socketpool.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../core_shared/shared/includes.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="../core_shared/shared/includes.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../core_shared/shared/streamhead.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../core_shared/shared/ucertimpl.cpp"
+            ex="false"
+            tool="0"
+            flavor2="0">
+      </item>
+      <item path="../core_shared/shared/ucertimpl.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../core_shared/shared/uthread.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="../core_shared/shared/uthread.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../include/membuffer.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="../include/membuffer.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="clientsession.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="clientsession.h" ex="false" tool="3" flavor2="0">
+      </item>
+    </conf>
+  </confs>
+</configurationDescriptor>

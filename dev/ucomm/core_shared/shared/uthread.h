@@ -35,15 +35,16 @@ namespace SPA {
         }
     };
 #ifndef WINCE
-	using mutex = std::mutex;
+    using mutex = std::mutex;
 #else
-	using mutex = boost::mutex;
+    using mutex = boost::mutex;
 #endif
+
     class CUCommThread {
     public:
         CUCommThread(tagThreadApartment ta);
         virtual ~CUCommThread();
-		using thread = boost::thread;
+        using thread = boost::thread;
 
     public:
         CErrorCode GetErrorCode();
@@ -60,15 +61,15 @@ namespace SPA {
         virtual void OnThreadEnded() = 0;
 
     private:
-		CUCommThread(const CUCommThread &t);
-		CUCommThread& operator=(const CUCommThread &t);
+        CUCommThread(const CUCommThread &t);
+        CUCommThread& operator=(const CUCommThread &t);
         void Call(const CErrorCode &ec);
 
     protected:
 #ifndef WINCE
-		typedef std::unique_lock<std::mutex> CAutoLock;
+        typedef std::unique_lock<std::mutex> CAutoLock;
 #else
-		typedef boost::mutex::scoped_lock CAutoLock;
+        typedef boost::mutex::scoped_lock CAutoLock;
 #endif
         CIoService m_io;
         CErrorCode m_ec;

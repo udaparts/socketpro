@@ -5,7 +5,7 @@
 #elif defined(_WIN32_WCE) || defined(WIN32_64)
 #include "../usocket_win/clientsession.h"
 #else
-#include "../ClientCoreUnix/clientsession.h"
+#include "../usocket/clientsession.h"
 #endif
 
 #include "socketpool.h"
@@ -52,7 +52,7 @@ unsigned int WINAPI CreateSocketPool(PSocketPoolCallback spc, unsigned int maxSo
         maxThreads = GetNumberOfCores();
     {
         CAutoLock al(g_mutex);
-		StartTimerThread();
+        StartTimerThread();
         if (!g_localhost.size()) {
             char str[256] = {0};
             ::gethostname(str, sizeof (str));
@@ -102,13 +102,13 @@ bool WINAPI DestroySocketPool(unsigned int poolId) {
     delete p;
     g_mutex.lock();
     if (g_vSocketPool.size() == 0) {
-		StopTimerThread();
+        StopTimerThread();
         g_mutex.unlock();
         if (CClientSession::m_pQLastIndex) {
             CClientSession::m_pQLastIndex->Stop();
             CClientSession::m_pQLastIndex.reset();
         }
-		yield();
+        yield();
     } else {
         g_mutex.unlock();
     }

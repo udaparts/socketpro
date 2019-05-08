@@ -9,10 +9,12 @@
 #include <fstream>
 
 #ifdef WINCE
+
 #elif defined(WIN32_64)
 #include <io.h>
 #include "../core_shared/pinc/WinCrashHandler.h"
 #else
+
 #include <unistd.h>
 #include <signal.h>
 
@@ -20,6 +22,7 @@
 
 #else
 #include <execinfo.h>
+#include <boost/thread/thread_time.hpp>
 #endif
 #endif
 

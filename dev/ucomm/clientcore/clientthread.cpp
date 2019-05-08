@@ -2,6 +2,7 @@
 #elif WIN32_64
 #include "../usocket_win/clientsession.h"
 #else
+#include "../usocket/clientsession.h"
 #endif
 #include "socketpool.h"
 
@@ -24,31 +25,50 @@ PCertificateVerifyCallback g_cvc = nullptr;
 void WINAPI SetCertificateVerifyCallback(PCertificateVerifyCallback cvc) {
     CAutoLock al(g_mutexCvc);
     g_cvc = cvc;
+#ifndef NOT_USE_OPENSSL
+    if (g_cvc != nullptr) {
+        CClientThread::m_sslContext.set_verify_mode(boost::asio::ssl::verify_peer);
+        CClientThread::m_sslContext.set_verify_callback(boost::bind(&CClientThread::verify_certificate_cb, _1, _2));
+    } else {
+        CClientThread::m_sslContext.set_verify_mode(boost::asio::ssl::verify_none);
+        //CClientThread::m_sslContext.set_verify_callback(nullptr);
+    }
+#endif
 }
 
 SPA::CUCommThread::thread* CClientThread::MyTimerSet::m_thread = nullptr;
 
 void StartTimerThread() {
-	if (!CClientThread::MyTimerSet::m_thread) {
-		CClientThread::MyTimerSet::m_thread = new boost::thread(boost::bind(CClientThread::MyTimerSet::ThreadFunc));
-		sleep(boost::posix_time::milliseconds(10));
-	}
+    if (!CClientThread::MyTimerSet::m_thread) {
+        CClientThread::MyTimerSet::m_thread = new boost::thread(boost::bind(CClientThread::MyTimerSet::ThreadFunc));
+        sleep(boost::posix_time::milliseconds(10));
+    }
 }
 
 void StopTimerThread() {
-	CClientThread::MyTimerSet::m_stop = 1;
-	if (CClientThread::MyTimerSet::m_thread) {
-		CClientThread::MyTimerSet::m_thread->join();
-		delete CClientThread::MyTimerSet::m_thread;
-		CClientThread::MyTimerSet::m_thread = nullptr;
-	}
+    CClientThread::MyTimerSet::m_stop = 1;
+    if (CClientThread::MyTimerSet::m_thread) {
+        CClientThread::MyTimerSet::m_thread->join();
+        delete CClientThread::MyTimerSet::m_thread;
+        CClientThread::MyTimerSet::m_thread = nullptr;
+    }
 }
 
 CClientThread::MyTimerSet::MyTimerSet() {
+#ifndef NOT_USE_OPENSSL
+    CRYPTO_set_dynlock_create_callback(dyn_create_function);
+    CRYPTO_set_dynlock_lock_callback(dyn_lock_function);
+    CRYPTO_set_dynlock_destroy_callback(dyn_destroy_function);
+#endif
 }
 
 CClientThread::MyTimerSet::~MyTimerSet() {
-	StopTimerThread();
+    StopTimerThread();
+#ifndef NOT_USE_OPENSSL
+    CRYPTO_set_dynlock_create_callback(nullptr);
+    CRYPTO_set_dynlock_lock_callback(nullptr);
+    CRYPTO_set_dynlock_destroy_callback(nullptr);
+#endif
 }
 
 void CClientThread::MyTimerSet::ThreadFunc() {
@@ -65,14 +85,58 @@ void CClientThread::MyTimerSet::ThreadFunc() {
                 pool->PostTimerMessage();
             }
         }
-		sleep(boost::posix_time::milliseconds(100));
+        sleep(boost::posix_time::milliseconds(100));
     }
     m_stop = 0;
 }
 
 CClientThread::MyTimerSet CClientThread::MyTimerSet::ms;
 
+#ifndef NOT_USE_OPENSSL
+CSslContext CClientThread::m_sslContext(CSslContext::tls_client);
+
+struct CRYPTO_dynlock_value* CClientThread::MyTimerSet::dyn_create_function(const char *file, int line) {
+    boost::mutex *p = new boost::mutex;
+    return (struct CRYPTO_dynlock_value*) p;
+}
+
+void CClientThread::MyTimerSet::dyn_lock_function(int mode, struct CRYPTO_dynlock_value *lock, const char *file, int line) {
+    boost::mutex *p = (boost::mutex *)lock;
+    if (mode & CRYPTO_LOCK) {
+        p->lock();
+    } else {
+        p->unlock();
+    }
+}
+
+void CClientThread::MyTimerSet::dyn_destroy_function(struct CRYPTO_dynlock_value *lock, const char *file, int line) {
+    boost::mutex *p = (boost::mutex *)lock;
+    delete p;
+}
+
+bool CClientThread::verify_certificate_cb(bool preverified, boost::asio::ssl::verify_context& ctx) {
+    CAutoLock al(g_mutexCvc);
+    if (g_cvc) {
+        X509_STORE_CTX *cts = ctx.native_handle();
+        X509* cert = ::X509_STORE_CTX_get_current_cert(cts);
+        int depth = ::X509_STORE_CTX_get_error_depth(cts);
+        int errCode = X509_STORE_CTX_get_error(cts);
+        const char *errMsg = X509_verify_cert_error_string(errCode);
+        CCertificateImplPtr pCert(new CUCertImpl(cert));
+        return g_cvc(preverified, depth, errCode, errMsg, pCert.get());
+    }
+    return true;
+}
+
+CSslContext& CClientThread::GetSslContext() {
+    return m_sslContext;
+}
+
+#endif
+
+
 //we don't use a mutex to lock m_mapClientSession because it is controlled by thread pool
+
 CClientThread::CClientThread(PSocketPoolCallback spc, unsigned int session, CSocketPool *pSocketPool, SPA::tagThreadApartment ta)
 : SPA::CUCommThread(ta),
 m_spc(spc),
@@ -148,7 +212,7 @@ bool CClientThread::Start() {
         unsigned int session = m_session;
         while (session) {
             LockState ls(this);
-			CClientSessionPtr p(new CClientSession(GetIoService(), this));
+            CClientSessionPtr p(new CClientSession(GetIoService(), this));
             m_mutex.lock();
             m_mapClientSession.push_back(CSessionState(p, ls));
             m_mutex.unlock();
@@ -245,7 +309,7 @@ bool CClientThread::SortUnlocked(const CSessionState &p0, const CSessionState &p
     if (p0.second.Locked) {
         p0_count = (~0);
     } else {
-		MQ_FILE::CFilePtr q = p0.first->GetQueue();
+        MQ_FILE::CFilePtr q = p0.first->GetQueue();
         if (q)
             p0_count = q->GetMessageCount();
         else
@@ -255,7 +319,7 @@ bool CClientThread::SortUnlocked(const CSessionState &p0, const CSessionState &p
     if (p1.second.Locked) {
         p1_count = (~0);
     } else {
-		MQ_FILE::CFilePtr q = p1.first->GetQueue();
+        MQ_FILE::CFilePtr q = p1.first->GetQueue();
         if (q)
             p1_count = q->GetMessageCount();
         else
@@ -304,7 +368,7 @@ std::vector<CClientSession*> CClientThread::FindQueuedSessions() {
     for (CMapClientSession::iterator it = m_mapClientSession.begin(), end = m_mapClientSession.end(); it != end; ++it) {
         if (it->first->IsOpened())
             continue;
-		MQ_FILE::CFilePtr q = it->first->GetQueue();
+        MQ_FILE::CFilePtr q = it->first->GetQueue();
         if (q && q->IsAvailable() && q->GetJobSize() == 0 && q->GetMessageCount() > 0) {
             vSession.push_back(it->first.get());
         }
@@ -320,7 +384,7 @@ CClientSession* CClientThread::SeekSmallQueue(CClientSession* session) {
             continue;
         if (s->m_hn == session->m_hn)
             continue;
-		MQ_FILE::CFilePtr q = s->GetQueue();
+        MQ_FILE::CFilePtr q = s->GetQueue();
         if (q && q->IsAvailable() && q->GetJobSize() == 0) {
             if (!p) {
                 p = s;

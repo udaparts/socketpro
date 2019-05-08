@@ -49,3 +49,9 @@ private:
     static const char *m_empty;
 };
 
+#ifndef WINCE
+typedef std::shared_ptr<CUCertImpl> CCertificateImplPtr;
+#else
+typedef boost::shared_ptr<CCertificateImpl> CCertificateImplPtr;
+#endif
+
