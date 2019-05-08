@@ -48,7 +48,7 @@ namespace SPA {
         std::string m_strNotBefore;
     };
 #ifndef WINCE
-	typedef std::shared_ptr<CCertificateImpl> CCertificateImplPtr;
+    typedef std::shared_ptr<CCertificateImpl> CCertificateImplPtr;
 #else
     typedef boost::shared_ptr<CCertificateImpl> CCertificateImplPtr;
 #endif

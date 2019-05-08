@@ -6,8 +6,9 @@
 
 #endif
 
-namespace SPA {
-    namespace ClientSide {
+namespace SPA
+{
+    namespace ClientSide{
 
         CUCriticalSection g_csSpPool;
 
@@ -279,8 +280,8 @@ namespace SPA {
             m_pClientSocket = nullptr;
         }
 
-		void CAsyncServiceHandler::OnPostProcessing(unsigned int hint, UINT64 data) {
-		}
+        void CAsyncServiceHandler::OnPostProcessing(unsigned int hint, UINT64 data) {
+        }
 
         void CAsyncServiceHandler::OnMergeTo(CAsyncServiceHandler & to) {
         }
@@ -420,8 +421,8 @@ namespace SPA {
         }
 
         void CClientSocket::Set(USocket_Client_Handle h, unsigned int poolId) {
-			m_poolId = poolId;
-			m_hSocket = h;
+            m_poolId = poolId;
+            m_hSocket = h;
             m_PushImpl.m_cs = this;
             m_QueueImpl.m_hSocket = h;
             ClientCoreLoader.SetOnHandShakeCompleted(h, &CClientSocket::OnHandShakeCompleted);
@@ -437,7 +438,7 @@ namespace SPA {
             ClientCoreLoader.SetOnServerException(h, &CClientSocket::OnServerException);
             ClientCoreLoader.SetOnBaseRequestProcessed(h, &CClientSocket::OnBaseRequestProcessed);
             ClientCoreLoader.SetOnAllRequestsProcessed(h, &CClientSocket::OnAllRequestsProcessed);
-			ClientCoreLoader.SetOnPostProcessing(h, &CClientSocket::OnPostProcessing);
+            ClientCoreLoader.SetOnPostProcessing(h, &CClientSocket::OnPostProcessing);
         }
 
         CClientSocket::~CClientSocket() {
@@ -516,9 +517,9 @@ namespace SPA {
             }
         }
 
-		unsigned int CClientSocket::GetPoolId() const {
-			return m_poolId;
-		}
+        unsigned int CClientSocket::GetPoolId() const {
+            return m_poolId;
+        }
 
         USocket_Client_Handle CClientSocket::GetHandle() const {
             return m_hSocket;
@@ -529,7 +530,8 @@ namespace SPA {
         }
 
         void SetLastCallInfo(const char *str, int data, const char *func) {
-            char buff[4097] = {0};
+            char buff[4097] =
+            {0};
 #ifdef WIN32_64
             _snprintf_s(buff, sizeof (buff), sizeof (buff), "lf: %s, what: %s, data: %d", func, str, data);
 #else
@@ -658,7 +660,8 @@ namespace SPA {
         }
 
         std::string CClientSocket::GetPeerName(unsigned int *port) const {
-            char ipAddr[256] = {0};
+            char ipAddr[256] =
+            {0};
             ClientCoreLoader.GetPeerName(m_hSocket, port, ipAddr, sizeof (ipAddr));
             return ipAddr;
         }
@@ -691,7 +694,7 @@ namespace SPA {
             ClientCoreLoader.SetZip(m_hSocket, zip);
         }
 
-        bool CClientSocket::operator==(const CClientSocket & cs) const {
+        bool CClientSocket::operator == (const CClientSocket & cs) const {
             return (m_hSocket == cs.m_hSocket);
         }
 
@@ -958,7 +961,8 @@ namespace SPA {
         }
 
         std::string CClientSocket::GetErrorMsg() const {
-            char strErrorMsg[1025] = {0};
+            char strErrorMsg[1025] =
+            {0};
             ClientCoreLoader.GetErrorMessage(m_hSocket, strErrorMsg, sizeof (strErrorMsg));
             return strErrorMsg;
         }
@@ -1306,15 +1310,15 @@ namespace SPA {
 #endif
         }
 
-		void WINAPI CClientSocket::OnPostProcessing(USocket_Client_Handle handler, unsigned int hint, SPA::UINT64 data) {
-			CClientSocket *p = Seek(handler);
-			if (!p)
-				return;
-			PAsyncServiceHandler ash = p->Seek(ClientCoreLoader.GetCurrentServiceId(handler));
-			if (ash) {
-				ash->OnPostProcessing(hint, data);
-			}
-		}
+        void WINAPI CClientSocket::OnPostProcessing(USocket_Client_Handle handler, unsigned int hint, SPA::UINT64 data) {
+            CClientSocket *p = Seek(handler);
+            if (!p)
+                return;
+            PAsyncServiceHandler ash = p->Seek(ClientCoreLoader.GetCurrentServiceId(handler));
+            if (ash) {
+                ash->OnPostProcessing(hint, data);
+            }
+        }
 
         void CClientSocket::OnAllRequestsProcessed(unsigned short lastRequestId) {
 

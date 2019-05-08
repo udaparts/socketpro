@@ -148,10 +148,10 @@ namespace SPA
             }
 
 #ifndef _WIN32_WCE
-			SecPkgContext_CipherInfo ci;
-			::memset(&ci, 0, sizeof (ci));
-			ss = ::QueryContextAttributes(sc, SECPKG_ATTR_CIPHER_INFO, &ci);
-			if (ci.szCipherSuite) {
+            SecPkgContext_CipherInfo ci;
+            ::memset(&ci, 0, sizeof (ci));
+            ss = ::QueryContextAttributes(sc, SECPKG_ATTR_CIPHER_INFO, &ci);
+            if (ci.szCipherSuite) {
                 m_strSessionInfo += ", ";
                 m_strSessionInfo += SPA::Utilities::ToUTF8(ci.szCipherSuite);
             }
