@@ -4,8 +4,7 @@
 
 #include <cstdlib>
 //#include <boost/thread/recursive_mutex.hpp>
-#include <mutex>
-#include <boost/uuid/uuid.hpp>
+#include <mutex> //-pthread -std=c++11
 #include <exception>
 
 #ifdef __ANDROID__
@@ -77,10 +76,16 @@ enum VARENUM {
 
 #ifdef BOOST_UUID_HPP
 typedef boost::uuids::uuid GUID;
+#else
+struct uuid {
+public:
+    unsigned char data[16];
+};
+typedef uuid GUID;
+#endif
 static_assert(sizeof (GUID) == sizeof (DECIMAL), "GUID and DECIMAL should have the same size");
 typedef GUID UUID;
 typedef GUID CLSID;
-#endif
 
 namespace SPA {
     //typedef boost::recursive_mutex CUCriticalSection;

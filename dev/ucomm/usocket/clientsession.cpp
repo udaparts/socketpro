@@ -7,6 +7,7 @@
 #include "../clientcore/socketpool.h"
 #include <assert.h>
 #include <boost/filesystem.hpp>
+#include <boost/lexical_cast.hpp>
 
 extern std::string g_localhost;
 
