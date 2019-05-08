@@ -21,8 +21,10 @@ namespace SocketProAdapter.ClientSide
         /// <summary>
         /// Remote stream size in bytes. It will be -1 if not available.
         /// </summary>
-        public ulong DownloadingStreamSize {
-            get {
+        public ulong DownloadingStreamSize
+        {
+            get
+            {
                 return m_nDownloadingFileSize;
             }
         }
@@ -225,8 +227,10 @@ namespace SocketProAdapter.ClientSide
         /// <summary>
         /// Hosting service handler
         /// </summary>
-        public CAsyncServiceHandler AsyncServiceHandler {
-            get {
+        public CAsyncServiceHandler AsyncServiceHandler
+        {
+            get
+            {
                 return m_ash;
             }
         }
@@ -376,8 +380,10 @@ namespace SocketProAdapter.ClientSide
         /// <summary>
         /// The number of files queued
         /// </summary>
-        public uint FilesQueued {
-            get {
+        public uint FilesQueued
+        {
+            get
+            {
                 lock (m_csFile)
                 {
                     return (uint)m_vContext.Count;
@@ -388,8 +394,10 @@ namespace SocketProAdapter.ClientSide
         /// <summary>
         /// The file size in bytes for current file being in transaction
         /// </summary>
-        public long FileSize {
-            get {
+        public long FileSize
+        {
+            get
+            {
                 lock (m_csFile)
                 {
                     if (m_vContext.Count == 0)
@@ -402,8 +410,10 @@ namespace SocketProAdapter.ClientSide
         /// <summary>
         /// Local file name of current file being in transaction
         /// </summary>
-        public string LocalFile {
-            get {
+        public string LocalFile
+        {
+            get
+            {
                 lock (m_csFile)
                 {
                     if (m_vContext.Count == 0)
@@ -416,8 +426,10 @@ namespace SocketProAdapter.ClientSide
         /// <summary>
         /// Remote file name of current file being in transaction
         /// </summary>
-        public string RemoteFile {
-            get {
+        public string RemoteFile
+        {
+            get
+            {
                 lock (m_csFile)
                 {
                     if (m_vContext.Count == 0)
@@ -630,7 +642,7 @@ namespace SocketProAdapter.ClientSide
 #if SP_MANAGER
                                 context.ErrCode = err.HResult;
 #else
-                                context.ErrCode = CANNOT_OPEN_LOCAL_FILE_FOR_WRITING;   
+                                context.ErrCode = CANNOT_OPEN_LOCAL_FILE_FOR_WRITING;
 #endif
                             }
 
@@ -729,7 +741,7 @@ namespace SocketProAdapter.ClientSide
 #if SP_MANAGER
                                         res = err.HResult;
 #else
-                                        res = CANNOT_OPEN_LOCAL_FILE_FOR_READING;   
+                                        res = CANNOT_OPEN_LOCAL_FILE_FOR_READING;
 #endif
                                         context.ErrCode = res;
                                         context.ErrMsg = errMsg;
@@ -791,7 +803,7 @@ namespace SocketProAdapter.ClientSide
 #if SP_MANAGER
                                         context.ErrCode = err.HResult;
 #else
-                                        context.ErrCode = CANNOT_OPEN_LOCAL_FILE_FOR_READING;   
+                                        context.ErrCode = CANNOT_OPEN_LOCAL_FILE_FOR_READING;
 #endif
                                     }
 
