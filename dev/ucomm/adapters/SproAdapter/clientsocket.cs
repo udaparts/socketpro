@@ -913,6 +913,7 @@ namespace SocketProAdapter
                 ClientCoreLoader.SetOnSpeak2(h, m_s);
                 ClientCoreLoader.SetOnSendUserMessageEx2(h, m_sume);
                 ClientCoreLoader.SetOnSendUserMessage2(h, m_sum);
+                ClientCoreLoader.SetOnPostProcessing(h, m_pp);
                 m_h = h;
                 m_poolId = poolId;
             }
