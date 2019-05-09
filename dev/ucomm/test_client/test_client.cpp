@@ -29,9 +29,7 @@ int main(int argc, char* argv[]) {
 		return false;
 	};
 
-	rf->ResultReturned += [](CAsyncServiceHandler *ash, unsigned short reqId, CUQueue& buff) -> bool {
-		return false;
-	};
+	rf->ResultReturned += rr;
 
 	if (rf->ResultReturned) {
 		ok = true;
@@ -40,7 +38,7 @@ int main(int argc, char* argv[]) {
 	rf->ResultReturned += rr;
 
     //test both downloading and uploading files in file stream (it is different from byte stream)
-    std::wstring RemoteFile = L"jvm1.lib";
+    std::wstring RemoteFile = L"jvm.lib";
     std::wstring LocalFile(L"spfile1.test");
     //downloading test
     ok = rf->Download(LocalFile.c_str(), RemoteFile.c_str(), [RemoteFile](CStreamingFile *file, int res, const std::wstring & errMsg) {
@@ -54,7 +52,7 @@ int main(int argc, char* argv[]) {
     });
 
     LocalFile = L"spfile2.test";
-    RemoteFile = L"libboost_wave-vc100-mt-sgd-x64-1_681.lib";
+    RemoteFile = L"libboost_wave-vc100-mt-sgd-x64-1_68.lib";
     //downloading test
     ok = rf->Download(LocalFile.c_str(), RemoteFile.c_str(), [RemoteFile](CStreamingFile *file, int res, const std::wstring & errMsg) {
         if (res) {
@@ -66,7 +64,7 @@ int main(int argc, char* argv[]) {
     });
 
     LocalFile = L"spfile3.test";
-    RemoteFile = L"libboost_coroutine-vc100-mt-s-x64-1_681.lib";
+    RemoteFile = L"libboost_coroutine-vc100-mt-s-x64-1_68.lib";
     //downloading test
     ok = rf->Download(LocalFile.c_str(), RemoteFile.c_str(), [RemoteFile](CStreamingFile *file, int res, const std::wstring & errMsg) {
         if (res) {
@@ -78,7 +76,7 @@ int main(int argc, char* argv[]) {
     });
 
     LocalFile = L"spfile4.test";
-    RemoteFile = L"libboost_serialization-vc100-mt-s-x64-1_681.lib";
+    RemoteFile = L"libboost_serialization-vc100-mt-s-x64-1_68.lib";
     //downloading test
     ok = rf->Download(LocalFile.c_str(), RemoteFile.c_str(), [RemoteFile](CStreamingFile *file, int res, const std::wstring & errMsg) {
         if (res) {
@@ -90,7 +88,7 @@ int main(int argc, char* argv[]) {
     });
 
     LocalFile = L"spfile5.test";
-    RemoteFile = L"libboost_math_tr1f-vc100-mt-sgd-x64-1_681.lib";
+    RemoteFile = L"libboost_math_tr1f-vc100-mt-sgd-x64-1_68.lib";
     //downloading test
     ok = rf->Download(LocalFile.c_str(), RemoteFile.c_str(), [RemoteFile](CStreamingFile *file, int res, const std::wstring & errMsg) {
         if (res) {
