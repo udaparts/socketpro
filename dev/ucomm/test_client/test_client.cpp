@@ -23,7 +23,22 @@ int main(int argc, char* argv[]) {
         std::cout << "Can not connect to remote server" << std::endl;
         return -1;
     }
-    auto rf = spRf.Seek();
+	auto rf = spRf.GetAsyncHandlers()[0];
+
+	CAsyncServiceHandler::DResultReturned rr = [](CAsyncServiceHandler *ash, unsigned short reqId, CUQueue& buff) -> bool {
+		return false;
+	};
+
+	rf->ResultReturned += [](CAsyncServiceHandler *ash, unsigned short reqId, CUQueue& buff) -> bool {
+		return false;
+	};
+
+	if (rf->ResultReturned) {
+		ok = true;
+	}
+
+	rf->ResultReturned += rr;
+
     //test both downloading and uploading files in file stream (it is different from byte stream)
     std::wstring RemoteFile = L"jvm1.lib";
     std::wstring LocalFile(L"spfile1.test");

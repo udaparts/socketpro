@@ -514,9 +514,21 @@ namespace SPA {
         public:
             virtual ~CAsyncServiceHandler();
             typedef std::function<void(CAsyncServiceHandler *ash, unsigned short) > DBaseRequestProcessed;
-            typedef std::function<bool(CAsyncServiceHandler *ash, unsigned short, CUQueue&) > DResultReturned;
+#if defined(WIN32_64) && _MSC_VER < 1700
+			typedef std::function<bool(CAsyncServiceHandler *ash, unsigned short reqId, CUQueue& mb)> DResultReturned;
+#else
+			typedef bool(*DResultReturned)(CAsyncServiceHandler *ash, unsigned short reqId, CUQueue& buff);
+#endif
             typedef std::function<void(CAsyncServiceHandler *ash, unsigned short requestId, const wchar_t *errMessage, const char* errWhere, unsigned int errCode) > DServerException;
             typedef std::function<void(CAsyncServiceHandler *ash, bool canceled) > DDiscarded;
+
+			struct IResultReturned {
+				virtual void operator+=(const DResultReturned& rr) = 0;
+				virtual void operator-=(const DResultReturned& rr) = 0;
+				virtual void operator=(const DResultReturned& rr) = 0;
+				virtual size_t Count() = 0;
+				virtual operator bool() = 0;
+			};
 
         protected:
             CAsyncServiceHandler(unsigned int nServiceId, CClientSocket *cs);
@@ -567,7 +579,6 @@ namespace SPA {
 
         public:
             DBaseRequestProcessed BaseRequestProcessed;
-            DResultReturned ResultReturned;
             DServerException ServerException;
 
         public:
@@ -1544,6 +1555,28 @@ namespace SPA {
             friend class CClientSocket;
             template<typename THandler, typename TCS>
             friend class CSocketPool; // unbound friend class
+
+			struct CRRImpl : public IResultReturned {
+				CRRImpl() { }
+				CRRImpl(const CRRImpl &impl);
+				CRRImpl& operator=(const CRRImpl &impl);
+
+				virtual void operator+=(const DResultReturned& rr);
+				virtual void operator-=(const DResultReturned& rr);
+				virtual void operator=(const DResultReturned& rr);
+				virtual size_t Count();
+				virtual operator bool();
+
+				bool Process(CAsyncServiceHandler *ash, unsigned short reqId, CUQueue &buff);
+
+			private:
+				CUCriticalSection m_cs;
+				std::vector<DResultReturned> m_vCb;
+			};
+			CRRImpl m_rrImpl;
+
+		public:
+			IResultReturned &ResultReturned;
         };
 
         typedef CAsyncServiceHandler* PAsyncServiceHandler;
