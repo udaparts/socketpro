@@ -22,53 +22,56 @@ namespace SPA
 
         CUCriticalSection CAsyncServiceHandler::m_csIndex;
         UINT64 CAsyncServiceHandler::m_CallIndex = 0; //should be protected by m_csIndex
-		void CAsyncServiceHandler::CRRImpl::operator+=(const DResultReturned& rr) {
-			if (rr) {
-				CAutoLock al(m_cs);
-				auto pos = std::find(m_vCb.cbegin(), m_vCb.cend(), rr);
-				if (pos == m_vCb.cend()) {
-					m_vCb.push_back(rr);
-				}
-			}
-		}
-		void CAsyncServiceHandler::CRRImpl::operator-=(const DResultReturned& rr) {
-			if (rr) {
-				CAutoLock al(m_cs);
-				auto pos = std::find(m_vCb.cbegin(), m_vCb.cend(), rr);
-				if (pos != m_vCb.cend()) {
-					m_vCb.erase(pos);
-				}
-			}
-		}
 
-		void CAsyncServiceHandler::CRRImpl::operator=(const DResultReturned& rr) {
-			CAutoLock al(m_cs);
-			m_vCb.clear();
-			if (rr) {
-				m_vCb.push_back(rr);
-			}
-		}
+        void CAsyncServiceHandler::CRRImpl::operator += (const DResultReturned & rr) {
+            if (rr) {
+                CAutoLock al(m_cs);
+                auto pos = std::find(m_vCb.cbegin(), m_vCb.cend(), rr);
+                if (pos == m_vCb.cend()) {
+                    m_vCb.push_back(rr);
+                }
+            }
+        }
 
-		bool CAsyncServiceHandler::CRRImpl::Process(CAsyncServiceHandler *ash, unsigned short reqId, CUQueue &buff) {
-			CAutoLock al(m_cs);
-			for (auto it = m_vCb.cbegin(), end = m_vCb.cend(); it != end; ++it) {
-				auto &rr = *it;
-				if (rr(ash, reqId, buff)) {
-					return true;
-				}
-			}
-			return false;
-		}
+        void CAsyncServiceHandler::CRRImpl::operator -= (const DResultReturned & rr) {
+            if (rr) {
+                CAutoLock al(m_cs);
+                auto pos = std::find(m_vCb.begin(), m_vCb.end(), rr);
+                if (pos != m_vCb.end()) {
+                    m_vCb.erase(pos);
+                }
+            }
+        }
 
-		size_t CAsyncServiceHandler::CRRImpl::Count() {
-			CAutoLock al(m_cs);
-			return m_vCb.size();
-		}
+        void CAsyncServiceHandler::CRRImpl::operator = (const DResultReturned & rr)
+        {
+            CAutoLock al(m_cs);
+            m_vCb.clear();
+            if (rr) {
+                m_vCb.push_back(rr);
+            }
+        }
 
-		CAsyncServiceHandler::CRRImpl::operator bool() {
-			CAutoLock al(m_cs);
-			return (m_vCb.size() > 0);
-		}
+        bool CAsyncServiceHandler::CRRImpl::Process(CAsyncServiceHandler *ash, unsigned short reqId, CUQueue & buff) {
+            CAutoLock al(m_cs);
+            for (auto it = m_vCb.cbegin(), end = m_vCb.cend(); it != end; ++it) {
+                auto &rr = *it;
+                if (rr(ash, reqId, buff)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        size_t CAsyncServiceHandler::CRRImpl::Count() {
+            CAutoLock al(m_cs);
+            return m_vCb.size();
+        }
+
+        CAsyncServiceHandler::CRRImpl::operator bool() {
+            CAutoLock al(m_cs);
+            return (m_vCb.size() > 0);
+        }
 
         CAsyncServiceHandler::CAsyncServiceHandler(unsigned int nServiceId, CClientSocket * cs)
         : m_vCallback(*m_suCallback), m_vBatching(*m_suBatching), m_nServiceId(nServiceId), m_pClientSocket(nullptr), ResultReturned(m_rrImpl) {
