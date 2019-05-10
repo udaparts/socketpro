@@ -16,8 +16,8 @@ namespace SPA {
         class CStreamingFile : public CAsyncServiceHandler {
         public:
             typedef std::function<void(CStreamingFile *file, int res, const std::wstring &errMsg) > DDownload;
-            typedef DDownload DUpload;
             typedef std::function<void(CStreamingFile *file, UINT64 transferred) > DTransferring;
+			typedef DDownload DUpload;
 
             CStreamingFile(CClientSocket * cs) : CAsyncServiceHandler(SFile::sidFile, cs) {
             }
@@ -86,6 +86,17 @@ namespace SPA {
                 return file_size;
             }
 
+			std::pair<const wchar_t*, const wchar_t*> GetFilePathPair() {
+				std::pair<const wchar_t*, const wchar_t*> p(nullptr, nullptr);
+				CAutoLock al(m_csFile);
+				if (m_vContext.size()) {
+					auto &front = m_vContext.front();
+					p.first = front.LocalFile.c_str();
+					p.second = front.FilePath.c_str();
+				}
+				return p;
+			}
+
             bool Upload(const wchar_t *localFile, const wchar_t *remoteFile, DUpload up = nullptr, DTransferring trans = nullptr, DDiscarded aborted = nullptr, unsigned int flags = SFile::FILE_OPEN_TRUNCACTED) {
                 if (!localFile || !::wcslen(localFile))
                     return false;
@@ -130,7 +141,7 @@ namespace SPA {
 
             virtual void OnPostProcessing(unsigned int hint, UINT64 data) {
                 ResultHandler rh;
-                DServerException se;
+                DServerException se = nullptr;
                 CContext ctx(false, 0);
                 {
                     CAutoLock al(m_csFile);
@@ -143,12 +154,6 @@ namespace SPA {
                         }
                         if (context.ErrorCode || context.ErrMsg.size()) {
                             ctx = m_vContext.front();
-                            m_vContext.pop_front();
-                            if (m_vContext.size()) {
-                                //post processing the next one
-                                ClientCoreLoader.PostProcessing(GetAttachedClientSocket()->GetHandle(), 0, 0);
-                                GetAttachedClientSocket()->DoEcho(); //make sure WaitAll works correctly
-                            }
                         } else if (context.Uploading) {
                             SendRequest(SFile::idUpload, context.FilePath.c_str(), context.Flags, context.FileSize, rh, context.Discarded, se);
                         } else {
@@ -162,6 +167,13 @@ namespace SPA {
                     if (ctx.Download) {
                         ctx.Download(this, ctx.ErrorCode, ctx.ErrMsg);
                     }
+					CAutoLock al(m_csFile);
+					m_vContext.pop_front();
+					if (m_vContext.size()) {
+						//post processing the next one
+						ClientCoreLoader.PostProcessing(GetAttachedClientSocket()->GetHandle(), 0, 0);
+						GetAttachedClientSocket()->DoEcho(); //make sure WaitAll works correctly
+					}
                 }
             }
 
@@ -187,20 +199,18 @@ namespace SPA {
                         DDownload dl;
                         {
                             CAutoLock al(m_csFile);
-                            if (m_vContext.size()) {
-                                CContext &context = m_vContext.front();
-                                assert(!context.Uploading);
-                                context.ErrorCode = res;
-                                context.ErrMsg = errMsg;
-                                dl = context.Download;
-                                CloseFile(context);
-                                m_vContext.pop_front();
-                            } else {
-                                assert(false);
-                            }
+                            CContext &context = m_vContext.front();
+                            assert(!context.Uploading);
+                            dl = context.Download;
                         }
                         if (dl)
                             dl(this, res, errMsg);
+						{
+							CAutoLock al(m_csFile);
+							CContext &context = m_vContext.front();
+							CloseFile(context);
+							m_vContext.pop_front();
+						}
                         OnPostProcessing(0, 0);
                     }
                         break;
@@ -270,11 +280,9 @@ namespace SPA {
                             if (m_vContext.size()) {
                                 CContext &context = m_vContext.front();
                                 ctx = m_vContext.front();
-                                ;
                                 ctx.ErrMsg = errMsg;
                                 ctx.ErrorCode = res;
                                 assert(context.Uploading);
-                                m_vContext.pop_front();
                             } else {
                                 assert(false); //shouldn't come here
                             }
@@ -283,7 +291,7 @@ namespace SPA {
                             if (m_vContext.size()) {
                                 bool ok;
                                 ResultHandler rh;
-                                DServerException se;
+                                DServerException se = nullptr;
                                 bool automerge = ClientCoreLoader.GetQueueAutoMergeByPool(GetAttachedClientSocket()->GetPoolId());
                                 CContext &context = m_vContext.front();
                                 CScopeUQueue sb(MY_OPERATION_SYSTEM, IsBigEndian(), SFile::STREAM_CHUNK_SIZE);
@@ -334,7 +342,6 @@ namespace SPA {
                                         GetAttachedClientSocket()->GetClientQueue().AbortJob();
                                     }
                                     ctx = m_vContext.front();
-                                    m_vContext.pop_front();
                                 } else if (ret > 0) {
                                     SendRequest(SFile::idUploading, sb->GetBuffer(), (unsigned int) ret, rh, context.Discarded, se);
                                 }
@@ -354,6 +361,10 @@ namespace SPA {
                             if (ctx.Download) {
                                 ctx.Download(this, ctx.ErrorCode, ctx.ErrMsg);
                             }
+							{
+								CAutoLock al(m_csFile);
+								m_vContext.pop_front();
+							}
                             OnPostProcessing(0, 0);
                         }
                     }
@@ -382,7 +393,7 @@ namespace SPA {
 #endif
                                     assert(ok);
                                     ResultHandler rh;
-                                    DServerException se;
+                                    DServerException se = nullptr;
                                     if (!ok) {
 #ifdef WIN32_64
                                         context.ErrorCode = ::GetLastError();
@@ -428,18 +439,18 @@ namespace SPA {
                         DDownload upl;
                         {
                             CAutoLock al(m_csFile);
-                            if (m_vContext.size()) {
-                                CContext &context = m_vContext.front();
-                                assert(context.Uploading);
-                                CloseFile(context);
-                                upl = context.Download;
-                                m_vContext.pop_front();
-                            } else {
-                                assert(false);
-                            }
+                            CContext &context = m_vContext.front();
+                            assert(context.Uploading);
+                            upl = context.Download;
                         }
                         if (upl)
                             upl(this, 0, L"");
+						{
+							CAutoLock al(m_csFile);
+							CContext &context = m_vContext.front();
+							CloseFile(context);
+							m_vContext.pop_front();
+						}
                         OnPostProcessing(0, 0);
                     }
                         break;

@@ -24,28 +24,21 @@ int main(int argc, char* argv[]) {
         return -1;
     }
 	auto rf = spRf.GetAsyncHandlers()[0];
-
 	CAsyncServiceHandler::DResultReturned rr = [](CAsyncServiceHandler *ash, unsigned short reqId, CUQueue& buff) -> bool {
 		return false;
 	};
 
 	rf->ResultReturned += rr;
-
-	if (rf->ResultReturned) {
-		ok = true;
-	}
-
-	rf->ResultReturned += rr;
-
+	
     //test both downloading and uploading files in file stream (it is different from byte stream)
     std::wstring RemoteFile = L"jvm.lib";
     std::wstring LocalFile(L"spfile1.test");
     //downloading test
-    ok = rf->Download(LocalFile.c_str(), RemoteFile.c_str(), [RemoteFile](CStreamingFile *file, int res, const std::wstring & errMsg) {
+    ok = rf->Download(LocalFile.c_str(), RemoteFile.c_str(), [](CStreamingFile *file, int res, const std::wstring & errMsg) {
         if (res) {
             std::wcout << L"Error code: " << res << L", error message: " << errMsg << std::endl;
         } else
-            std::wcout << L"Downloading " << RemoteFile << L" completed" << std::endl;
+            std::wcout << L"Downloading " << file->GetFilePathPair().second << L" completed" << std::endl;
     }, [](CStreamingFile *file, SPA::UINT64 downloaded) {
         //downloading progress
         std::cout << "Downloading rate: " << (downloaded * 100) / file->GetFileSize() << "%" << std::endl;
@@ -54,11 +47,11 @@ int main(int argc, char* argv[]) {
     LocalFile = L"spfile2.test";
     RemoteFile = L"libboost_wave-vc100-mt-sgd-x64-1_68.lib";
     //downloading test
-    ok = rf->Download(LocalFile.c_str(), RemoteFile.c_str(), [RemoteFile](CStreamingFile *file, int res, const std::wstring & errMsg) {
+    ok = rf->Download(LocalFile.c_str(), RemoteFile.c_str(), [](CStreamingFile *file, int res, const std::wstring & errMsg) {
         if (res) {
             std::wcout << L"Error code: " << res << L", error message: " << errMsg << std::endl;
         } else
-            std::wcout << L"Downloading " << RemoteFile << L" completed" << std::endl;
+            std::wcout << L"Downloading " << file->GetFilePathPair().second << L" completed" << std::endl;
     }, [](CStreamingFile *file, SPA::UINT64 downloaded) {
         //std::cout << "Downloading rate: " << (downloaded * 100) / file->GetFileSize() << "%" << std::endl;
     });
@@ -66,11 +59,11 @@ int main(int argc, char* argv[]) {
     LocalFile = L"spfile3.test";
     RemoteFile = L"libboost_coroutine-vc100-mt-s-x64-1_68.lib";
     //downloading test
-    ok = rf->Download(LocalFile.c_str(), RemoteFile.c_str(), [RemoteFile](CStreamingFile *file, int res, const std::wstring & errMsg) {
+    ok = rf->Download(LocalFile.c_str(), RemoteFile.c_str(), [](CStreamingFile *file, int res, const std::wstring & errMsg) {
         if (res) {
             std::wcout << L"Error code: " << res << L", error message: " << errMsg << std::endl;
         } else
-            std::wcout << L"Downloading " << RemoteFile << L" completed" << std::endl;
+            std::wcout << L"Downloading " << file->GetFilePathPair().second << L" completed" << std::endl;
     }, [](CStreamingFile *file, SPA::UINT64 downloaded) {
         //std::cout << "Downloading rate: " << (downloaded * 100) / file->GetFileSize() << "%" << std::endl;
     });
@@ -78,11 +71,11 @@ int main(int argc, char* argv[]) {
     LocalFile = L"spfile4.test";
     RemoteFile = L"libboost_serialization-vc100-mt-s-x64-1_68.lib";
     //downloading test
-    ok = rf->Download(LocalFile.c_str(), RemoteFile.c_str(), [RemoteFile](CStreamingFile *file, int res, const std::wstring & errMsg) {
+    ok = rf->Download(LocalFile.c_str(), RemoteFile.c_str(), [](CStreamingFile *file, int res, const std::wstring & errMsg) {
         if (res) {
             std::wcout << L"Error code: " << res << L", error message: " << errMsg << std::endl;
         } else
-            std::wcout << L"Downloading " << RemoteFile << L" completed" << std::endl;
+            std::wcout << L"Downloading " << file->GetFilePathPair().second << L" completed" << std::endl;
     }, [](CStreamingFile *file, SPA::UINT64 downloaded) {
         //std::cout << "Downloading rate: " << (downloaded * 100) / file->GetFileSize() << "%" << std::endl;
     });
@@ -90,11 +83,11 @@ int main(int argc, char* argv[]) {
     LocalFile = L"spfile5.test";
     RemoteFile = L"libboost_math_tr1f-vc100-mt-sgd-x64-1_68.lib";
     //downloading test
-    ok = rf->Download(LocalFile.c_str(), RemoteFile.c_str(), [RemoteFile](CStreamingFile *file, int res, const std::wstring & errMsg) {
+    ok = rf->Download(LocalFile.c_str(), RemoteFile.c_str(), [](CStreamingFile *file, int res, const std::wstring & errMsg) {
         if (res) {
             std::wcout << L"Error code: " << res << L", error message: " << errMsg << std::endl;
         } else
-            std::wcout << L"Downloading " << RemoteFile << L" completed" << std::endl;
+            std::wcout << L"Downloading " << file->GetFilePathPair().second << L" completed" << std::endl;
     }, [](CStreamingFile *file, SPA::UINT64 downloaded) {
         //std::cout << "Downloading rate: " << (downloaded * 100) / file->GetFileSize() << "%" << std::endl;
     });
@@ -103,11 +96,11 @@ int main(int argc, char* argv[]) {
     //uploading test
     LocalFile = L"spfile1.test";
     RemoteFile = L"jvm_copy.lib";
-    ok = rf->Upload(LocalFile.c_str(), RemoteFile.c_str(), [RemoteFile](CStreamingFile *file, int res, const std::wstring & errMsg) {
+    ok = rf->Upload(LocalFile.c_str(), RemoteFile.c_str(), [](CStreamingFile *file, int res, const std::wstring & errMsg) {
         if (res) {
             std::wcout << L"Error code: " << res << L", error message: " << errMsg << std::endl;
         } else {
-            std::wcout << L"Uploading " << RemoteFile << L" completed" << std::endl;
+            std::wcout << L"Uploading " << file->GetFilePathPair().second << L" completed" << std::endl;
         }
     }, [](CStreamingFile *file, SPA::UINT64 uploaded) {
         //uploading progress
@@ -116,11 +109,11 @@ int main(int argc, char* argv[]) {
 
     LocalFile = L"spfile2.test";
     RemoteFile = L"libboost_wave-vc100-mt-sgd-x64-1_68_copy.lib";
-    ok = rf->Upload(LocalFile.c_str(), RemoteFile.c_str(), [RemoteFile](CStreamingFile *file, int res, const std::wstring & errMsg) {
+    ok = rf->Upload(LocalFile.c_str(), RemoteFile.c_str(), [](CStreamingFile *file, int res, const std::wstring & errMsg) {
         if (res) {
             std::wcout << L"Error code: " << res << L", error message: " << errMsg << std::endl;
         } else {
-            std::wcout << L"Uploading " << RemoteFile << L" completed" << std::endl;
+            std::wcout << L"Uploading " << file->GetFilePathPair().second << L" completed" << std::endl;
         }
     }, [](CStreamingFile *file, SPA::UINT64 uploaded) {
         //std::cout << "Uploading rate: " << (uploaded * 100) / file->GetFileSize() << "%" << std::endl;
@@ -128,11 +121,11 @@ int main(int argc, char* argv[]) {
 
     LocalFile = L"spfile3.test";
     RemoteFile = L"libboost_coroutine-vc100-mt-s-x64-1_68_copy.lib";
-    ok = rf->Upload(LocalFile.c_str(), RemoteFile.c_str(), [RemoteFile](CStreamingFile *file, int res, const std::wstring & errMsg) {
+    ok = rf->Upload(LocalFile.c_str(), RemoteFile.c_str(), [](CStreamingFile *file, int res, const std::wstring & errMsg) {
         if (res) {
             std::wcout << L"Error code: " << res << L", error message: " << errMsg << std::endl;
         } else {
-            std::wcout << L"Uploading " << RemoteFile << L" completed" << std::endl;
+            std::wcout << L"Uploading " << file->GetFilePathPair().second << L" completed" << std::endl;
         }
     }, [](CStreamingFile *file, SPA::UINT64 uploaded) {
         //std::cout << "Uploading rate: " << (uploaded * 100) / file->GetFileSize() << "%" << std::endl;
@@ -140,11 +133,11 @@ int main(int argc, char* argv[]) {
 
     LocalFile = L"spfile4.test";
     RemoteFile = L"libboost_serialization-vc100-mt-s-x64-1_68_copy.lib";
-    ok = rf->Upload(LocalFile.c_str(), RemoteFile.c_str(), [RemoteFile](CStreamingFile *file, int res, const std::wstring & errMsg) {
+    ok = rf->Upload(LocalFile.c_str(), RemoteFile.c_str(), [](CStreamingFile *file, int res, const std::wstring & errMsg) {
         if (res) {
             std::wcout << L"Error code: " << res << L", error message: " << errMsg << std::endl;
         } else {
-            std::wcout << L"Uploading " << RemoteFile << L" completed" << std::endl;
+            std::wcout << L"Uploading " << file->GetFilePathPair().second << L" completed" << std::endl;
         }
     }, [](CStreamingFile *file, SPA::UINT64 uploaded) {
         //std::cout << "Uploading rate: " << (uploaded * 100) / file->GetFileSize() << "%" << std::endl;
@@ -153,11 +146,11 @@ int main(int argc, char* argv[]) {
     LocalFile = L"spfile5.test";
     //uploading test
     RemoteFile = L"libboost_math_tr1f-vc100-mt-sgd-x64-1_68_copy.lib";
-    ok = rf->Upload(LocalFile.c_str(), RemoteFile.c_str(), [RemoteFile](CStreamingFile *file, int res, const std::wstring & errMsg) {
+    ok = rf->Upload(LocalFile.c_str(), RemoteFile.c_str(), [](CStreamingFile *file, int res, const std::wstring & errMsg) {
         if (res) {
             std::wcout << L"Error code: " << res << L", error message: " << errMsg << std::endl;
         } else {
-            std::wcout << L"Uploading " << RemoteFile << L" completed" << std::endl;
+            std::wcout << L"Uploading " << file->GetFilePathPair().second << L" completed" << std::endl;
         }
     }, [](CStreamingFile *file, SPA::UINT64 uploaded) {
         //std::cout << "Uploading rate: " << (uploaded * 100) / file->GetFileSize() << "%" << std::endl;
