@@ -7,7 +7,15 @@ namespace SocketProAdapter.ClientSide
     public class CAsyncAdohandler : CAsyncServiceHandler
     {
         public delegate void DAdonetLoaded(CAsyncAdohandler sender, ushort reqId);
-        public event DAdonetLoaded OnAdonetLoaded;
+        private UDelegate<DAdonetLoaded> m_lstLoaded;
+        public event DAdonetLoaded OnAdonetLoaded {
+            add {
+                m_lstLoaded.add(value);
+            }
+            remove {
+                m_lstLoaded.remove(value);
+            }
+        }
 
         private DAsyncResultHandler m_arh = (ar) =>
         {
@@ -34,21 +42,28 @@ namespace SocketProAdapter.ClientSide
         protected CAsyncAdohandler(uint serviceId)
             : base(serviceId)
         {
+            m_lstLoaded = new UDelegate<DAdonetLoaded>(m_cs);
             m_AdoSerializer = new CAdoSerializationHelper();
         }
 
         protected override void OnResultReturned(ushort sRequestId, CUQueue UQueue)
         {
-            m_AdoSerializer.Load(sRequestId, UQueue);
-            if (OnAdonetLoaded != null)
-                OnAdonetLoaded.Invoke(this, sRequestId);
+            lock (m_cs)
+            {
+                m_AdoSerializer.Load(sRequestId, UQueue);
+                foreach (var el in m_lstLoaded)
+                {
+                    el.Invoke(this, sRequestId);
+                }
+            }
         }
 
-        public CAdoSerializationHelper AdoSerializer
-        {
-            get
-            {
-                return m_AdoSerializer;
+        public CAdoSerializationHelper AdoSerializer {
+            get {
+                lock (m_cs)
+                {
+                    return m_AdoSerializer;
+                }
             }
         }
 
@@ -72,7 +87,10 @@ namespace SocketProAdapter.ClientSide
 
         public void FinalizeRecords()
         {
-            m_AdoSerializer.FinalizeRecords();
+            lock (m_cs)
+            {
+                m_AdoSerializer.FinalizeRecords();
+            }
         }
 
         public bool Send(DataSet ds)
@@ -100,24 +118,27 @@ namespace SocketProAdapter.ClientSide
                 CUQueue AdoUQueue = UQueue.UQueue;
                 do
                 {
-                    m_AdoSerializer.PushHeader(AdoUQueue, ds);
-                    if (RouteeRequest)
-                        b = SendRouteeResult(AdoUQueue, CAdoSerializationHelper.idDataSetHeaderArrive);
-                    else
-                        b = SendRequest(CAdoSerializationHelper.idDataSetHeaderArrive, AdoUQueue, m_arh);
-                    AdoUQueue.SetSize(0);
-                    if (!b)
-                        break;
-                    foreach (DataTable dt in ds.Tables)
+                    lock (m_cs)
                     {
-                        b = Send(dt, batchSize);
+                        m_AdoSerializer.PushHeader(AdoUQueue, ds);
+                        if (RouteeRequest)
+                            b = SendRouteeResult(AdoUQueue, CAdoSerializationHelper.idDataSetHeaderArrive);
+                        else
+                            b = SendRequest(CAdoSerializationHelper.idDataSetHeaderArrive, AdoUQueue, m_arh);
                         AdoUQueue.SetSize(0);
                         if (!b)
                             break;
+                        foreach (DataTable dt in ds.Tables)
+                        {
+                            b = Send(dt, batchSize);
+                            AdoUQueue.SetSize(0);
+                            if (!b)
+                                break;
+                        }
+                        if (!b)
+                            break;
+                        b = EndDataSet(ds, needRelations);
                     }
-                    if (!b)
-                        break;
-                    b = EndDataSet(ds, needRelations);
                     AdoUQueue.SetSize(0);
                 } while (false);
                 if (!bBatching)
@@ -148,42 +169,45 @@ namespace SocketProAdapter.ClientSide
                 do
                 {
                     AdoUQueue.SetSize(0);
-                    m_AdoSerializer.PushHeader(AdoUQueue, dt, false, false);
-                    if (batchSize < 2048)
-                        batchSize = 2048;
-                    AdoUQueue.Save(batchSize);
-                    if (rr)
-                        bSuc = SendRouteeResult(AdoUQueue, CAdoSerializationHelper.idDataTableHeaderArrive);
-                    else
-                        bSuc = SendRequest(CAdoSerializationHelper.idDataTableHeaderArrive, AdoUQueue, m_arh);
-                    AdoUQueue.SetSize(0);
-                    if (!bSuc)
-                        break;
-                    foreach (DataRow dr in dt.Rows)
+                    lock (m_cs)
                     {
-                        m_AdoSerializer.Push(AdoUQueue, dr);
-                        if (AdoUQueue.GetSize() > batchSize)
+                        m_AdoSerializer.PushHeader(AdoUQueue, dt, false, false);
+                        if (batchSize < 2048)
+                            batchSize = 2048;
+                        AdoUQueue.Save(batchSize);
+                        if (rr)
+                            bSuc = SendRouteeResult(AdoUQueue, CAdoSerializationHelper.idDataTableHeaderArrive);
+                        else
+                            bSuc = SendRequest(CAdoSerializationHelper.idDataTableHeaderArrive, AdoUQueue, m_arh);
+                        AdoUQueue.SetSize(0);
+                        if (!bSuc)
+                            break;
+                        foreach (DataRow dr in dt.Rows)
                         {
-                            if (rr)
-                                bSuc = SendRouteeResult(AdoUQueue, CAdoSerializationHelper.idDataTableRowsArrive);
-                            else
-                                bSuc = SendRequest(CAdoSerializationHelper.idDataTableRowsArrive, AdoUQueue, m_arh);
-                            AdoUQueue.SetSize(0);
-                            if (!bSuc)
-                                break;
-                            if (AttachedClientSocket.BytesBatched > 2 * batchSize)
+                            m_AdoSerializer.Push(AdoUQueue, dr);
+                            if (AdoUQueue.GetSize() > batchSize)
                             {
-                                //if we find too much are stored in batch queue, we send them and start a new batching
-                                CommitBatching(true);
-                                StartBatching();
-                            }
-                            uint nBytesInSendBuffer = AttachedClientSocket.BytesInSendingBuffer;
-                            if (nBytesInSendBuffer > 6 * CAdoSerializationHelper.DEFAULT_BATCH_SIZE) //60k
-                            {
-                                CommitBatching(true);
-                                //if we find there are too much data in sending buffer, we wait until all of data are sent and processed.
-                                WaitAll();
-                                StartBatching();
+                                if (rr)
+                                    bSuc = SendRouteeResult(AdoUQueue, CAdoSerializationHelper.idDataTableRowsArrive);
+                                else
+                                    bSuc = SendRequest(CAdoSerializationHelper.idDataTableRowsArrive, AdoUQueue, m_arh);
+                                AdoUQueue.SetSize(0);
+                                if (!bSuc)
+                                    break;
+                                if (AttachedClientSocket.BytesBatched > 2 * batchSize)
+                                {
+                                    //if we find too much are stored in batch queue, we send them and start a new batching
+                                    CommitBatching(true);
+                                    StartBatching();
+                                }
+                                uint nBytesInSendBuffer = AttachedClientSocket.BytesInSendingBuffer;
+                                if (nBytesInSendBuffer > 6 * CAdoSerializationHelper.DEFAULT_BATCH_SIZE) //60k
+                                {
+                                    CommitBatching(true);
+                                    //if we find there are too much data in sending buffer, we wait until all of data are sent and processed.
+                                    WaitAll();
+                                    StartBatching();
+                                }
                             }
                         }
                     }
@@ -234,42 +258,45 @@ namespace SocketProAdapter.ClientSide
                 CUQueue AdoUQueue = UQueue.UQueue;
                 do
                 {
-                    m_AdoSerializer.PushHeader(AdoUQueue, dr);
-                    if (batchSize < 2048)
-                        batchSize = 2048;
-                    AdoUQueue.Save(batchSize);
-                    if (rr)
-                        bSuc = SendRouteeResult(AdoUQueue, CAdoSerializationHelper.idDataReaderHeaderArrive);
-                    else
-                        bSuc = SendRequest(CAdoSerializationHelper.idDataReaderHeaderArrive, AdoUQueue, m_arh);
-                    AdoUQueue.SetSize(0);
-                    //monitor socket close event
-                    if (!bSuc)
-                        break;
-                    while (dr.Read())
+                    lock (m_cs)
                     {
-                        m_AdoSerializer.Push(AdoUQueue, dr);
-                        if (AdoUQueue.GetSize() > batchSize)
+                        m_AdoSerializer.PushHeader(AdoUQueue, dr);
+                        if (batchSize < 2048)
+                            batchSize = 2048;
+                        AdoUQueue.Save(batchSize);
+                        if (rr)
+                            bSuc = SendRouteeResult(AdoUQueue, CAdoSerializationHelper.idDataReaderHeaderArrive);
+                        else
+                            bSuc = SendRequest(CAdoSerializationHelper.idDataReaderHeaderArrive, AdoUQueue, m_arh);
+                        AdoUQueue.SetSize(0);
+                        //monitor socket close event
+                        if (!bSuc)
+                            break;
+                        while (dr.Read())
                         {
-                            if (rr)
-                                bSuc = SendRouteeResult(AdoUQueue, CAdoSerializationHelper.idDataReaderRecordsArrive);
-                            else
-                                bSuc = SendRequest(CAdoSerializationHelper.idDataReaderRecordsArrive, AdoUQueue, m_arh);
-                            AdoUQueue.SetSize(0);
-                            if (!bSuc)
-                                break;
-                            if (AttachedClientSocket.BytesBatched > 2 * batchSize)
+                            m_AdoSerializer.Push(AdoUQueue, dr);
+                            if (AdoUQueue.GetSize() > batchSize)
                             {
-                                //if we find too much are stored in batch queue, we send them and start a new batching
-                                CommitBatching(true);
-                                StartBatching();
-                            }
-                            if (AttachedClientSocket.BytesInSendingBuffer > 60 * 1024)
-                            {
-                                CommitBatching(true);
-                                //if we find there are too much data in sending buffer, we wait until all of data are sent and processed.
-                                WaitAll();
-                                StartBatching();
+                                if (rr)
+                                    bSuc = SendRouteeResult(AdoUQueue, CAdoSerializationHelper.idDataReaderRecordsArrive);
+                                else
+                                    bSuc = SendRequest(CAdoSerializationHelper.idDataReaderRecordsArrive, AdoUQueue, m_arh);
+                                AdoUQueue.SetSize(0);
+                                if (!bSuc)
+                                    break;
+                                if (AttachedClientSocket.BytesBatched > 2 * batchSize)
+                                {
+                                    //if we find too much are stored in batch queue, we send them and start a new batching
+                                    CommitBatching(true);
+                                    StartBatching();
+                                }
+                                if (AttachedClientSocket.BytesInSendingBuffer > 60 * 1024)
+                                {
+                                    CommitBatching(true);
+                                    //if we find there are too much data in sending buffer, we wait until all of data are sent and processed.
+                                    WaitAll();
+                                    StartBatching();
+                                }
                             }
                         }
                     }

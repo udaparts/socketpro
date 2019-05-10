@@ -75,40 +75,44 @@ namespace SocketProAdapter
             public delegate bool DOnResultReturned(CAsyncServiceHandler sender, ushort reqId, CUQueue qData);
             public delegate void DOnExceptionFromServer(CAsyncServiceHandler sender, ushort reqId, string errMessage, string errWhere, int errCode);
             public delegate void DOnBaseRequestProcessed(CAsyncServiceHandler sender, ushort reqId);
+
+            private UDelegate<DOnResultReturned> m_lstRR;
             public event DOnResultReturned ResultReturned {
                 add {
-                    if (value == null) return;
-                    lock (m_cs)
-                        {
-                            int pos = m_rr.IndexOf(value);
-                            if (pos == -1)
-                            {
-                                m_rr.Add(value);
-                            }
-                        }
+                    m_lstRR.add(value);
                 }
                 remove {
-                    if (value == null) return;
-                    lock (m_cs)
-                    {
-                        int pos = m_rr.IndexOf(value);
-                        if (pos != -1)
-                        {
-                            m_rr.RemoveAt(pos);
-                        }
-                    }
+                    m_lstRR.remove(value);
                 }
             }
-            public event DOnExceptionFromServer ServerException;
-            public event DOnBaseRequestProcessed BaseRequestProcessed;
+            private UDelegate<DOnExceptionFromServer> m_lstEFS;
+            public event DOnExceptionFromServer ServerException {
+                add {
+                    m_lstEFS.add(value);
+                }
+                remove {
 
-            private List<DOnResultReturned> m_rr = new List<DOnResultReturned>();
+                    m_lstEFS.remove(value);
+                }
+            }
+            private UDelegate<DOnBaseRequestProcessed> m_lstBRP;
+            public event DOnBaseRequestProcessed BaseRequestProcessed {
+                add {
+                    m_lstBRP.add(value);
+                }
+                remove {
+                    m_lstBRP.Remove(value);
+                }
+            }
 
 #if SP_MANAGER
             public CAsyncServiceHandler()
             {
                 m_nServiceId = 0;
                 m_ClientSocket = null;
+                m_lstBRP = new UDelegate<DOnBaseRequestProcessed>(m_cs);
+                m_lstEFS = new UDelegate<DOnExceptionFromServer>(m_cs);
+                m_lstRR = new UDelegate<DOnResultReturned>(m_cs);
             }
             public dynamic Pool { get; internal set; }
 #endif
@@ -116,6 +120,9 @@ namespace SocketProAdapter
             {
                 m_nServiceId = nServiceId;
                 m_ClientSocket = null;
+                m_lstBRP = new UDelegate<DOnBaseRequestProcessed>(m_cs);
+                m_lstEFS = new UDelegate<DOnExceptionFromServer>(m_cs);
+                m_lstRR = new UDelegate<DOnResultReturned>(m_cs);
             }
 
             internal void Detach()
@@ -352,8 +359,13 @@ namespace SocketProAdapter
                 {
                     rcb.ExceptionFromServer.Invoke(this, reqId, errMessage, errWhere, errCode);
                 }
-                if (ServerException != null)
-                    ServerException.Invoke(this, reqId, errMessage, errWhere, errCode);
+                lock (m_cs)
+                {
+                    foreach (var el in m_lstEFS)
+                    {
+                        el.Invoke(this, reqId, errMessage, errWhere, errCode);
+                    }
+                }
             }
 
             internal void onRR(ushort reqId, CUQueue mc)
@@ -370,7 +382,7 @@ namespace SocketProAdapter
                     bool processed = false;
                     lock (m_cs)
                     {
-                        foreach (DOnResultReturned r in m_rr)
+                        foreach (DOnResultReturned r in m_lstRR)
                         {
                             if (r.Invoke(this, reqId, mc))
                             {
@@ -396,8 +408,13 @@ namespace SocketProAdapter
 
             internal void OnBProcessed(ushort reqId)
             {
-                if (BaseRequestProcessed != null)
-                    BaseRequestProcessed(this, reqId);
+                lock (m_cs)
+                {
+                    foreach (var el in m_lstBRP)
+                    {
+                        el.Invoke(this, reqId);
+                    }
+                }
                 OnBaseRequestProcessed(reqId);
             }
 
