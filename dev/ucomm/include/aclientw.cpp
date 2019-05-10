@@ -26,20 +26,30 @@ namespace SPA
         void CAsyncServiceHandler::CRRImpl::operator += (const DResultReturned & rr) {
             if (rr) {
                 CAutoLock al(m_cs);
+#ifdef SAFE_RESULT_RETURN_EVENT
                 auto pos = std::find(m_vCb.cbegin(), m_vCb.cend(), rr);
                 if (pos == m_vCb.cend()) {
                     m_vCb.push_back(rr);
                 }
+#else
+				m_vCb.push_back(rr);
+#endif
             }
         }
 
         void CAsyncServiceHandler::CRRImpl::operator -= (const DResultReturned & rr) {
             if (rr) {
                 CAutoLock al(m_cs);
+#ifdef SAFE_RESULT_RETURN_EVENT
                 auto pos = std::find(m_vCb.begin(), m_vCb.end(), rr);
                 if (pos != m_vCb.end()) {
                     m_vCb.erase(pos);
                 }
+#else
+				if (m_vCb.size()) {
+					m_vCb.pop_back();
+				}
+#endif
             }
         }
 

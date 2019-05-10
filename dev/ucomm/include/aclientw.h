@@ -514,7 +514,7 @@ namespace SPA {
         public:
             virtual ~CAsyncServiceHandler();
             typedef std::function<void(CAsyncServiceHandler *ash, unsigned short) > DBaseRequestProcessed;
-#if defined(WIN32_64) && _MSC_VER < 1700
+#ifndef SAFE_RESULT_RETURN_EVENT
             typedef std::function<bool(CAsyncServiceHandler *ash, unsigned short reqId, CUQueue& mb) > DResultReturned;
 #else
             typedef bool(*DResultReturned)(CAsyncServiceHandler *ash, unsigned short reqId, CUQueue& buff);
