@@ -430,6 +430,7 @@ namespace SPA
 			return false;
 		}
 
+#ifdef ENABLE_REQUEST_AND_ALL
 		void CClientSocket::CIRequestProcessed::Invoke(CClientSocket *cs, unsigned short reqId, CUQueue &mc) {
 			CAutoLock al(*m_cs);
 			for (auto it = m_vD.cbegin(), end = m_vD.cend(); it != end; ++it) {
@@ -437,13 +438,15 @@ namespace SPA
 				d(cs, reqId, mc);
 			}
 		}
-
+#endif
 		CClientSocket::CClientSocket()
 			: m_hSocket((USocket_Client_Handle) nullptr), m_bRandom(false), m_endian(false),
 			m_os(MY_OPERATION_SYSTEM), m_nCurrSvsId(sidStartup), m_routing(false), m_poolId(0),
 			SocketClosed(m_implClosed), HandShakeCompleted(m_implHSC), SocketConnected(m_implConnected),
-			BaseRequestProcessed(m_implBRP), AllRequestsProcessed(m_implARP), RequestProcessed(m_implRP),
 			ExceptionFromServer(m_implEFS)
+#ifdef ENABLE_REQUEST_AND_ALL
+			,BaseRequestProcessed(m_implBRP), AllRequestsProcessed(m_implARP), RequestProcessed(m_implRP)
+#endif	
 		{
 			m_mutex.lock();
 			m_vClientSocket.push_back(this);
@@ -452,10 +455,13 @@ namespace SPA
 			m_implClosed.SetCS(&m_cs);
 			m_implHSC.SetCS(&m_cs);
 			m_implConnected.SetCS(&m_cs);
+			m_implEFS.SetCS(&m_cs);
+
+#ifdef ENABLE_REQUEST_AND_ALL
 			m_implBRP.SetCS(&m_cs);
 			m_implARP.SetCS(&m_cs);
 			m_implRP.SetCS(&m_cs);
-			m_implEFS.SetCS(&m_cs);
+#endif
 
 #ifdef NODE_JS_ADAPTER_PROJECT
 			m_asyncType = nullptr;
@@ -1133,7 +1139,9 @@ namespace SPA
 				PAsyncServiceHandler ash = p->Seek(p->m_nCurrSvsId);
 				if (ash)
 					ash->OnRR(requestId, q);
+#ifdef ENABLE_REQUEST_AND_ALL
 				p->m_implRP.Invoke(p, requestId, q);
+#endif
 				p->OnRequestProcessed(requestId, q);
 #ifdef NODE_JS_ADAPTER_PROJECT
 				NJA::NJSocketPool *pool = (NJA::NJSocketPool *)p->m_asyncType->data;
@@ -1363,7 +1371,9 @@ namespace SPA
 			PAsyncServiceHandler ash = p->Seek(ClientCoreLoader.GetCurrentServiceId(handler));
 			if (ash)
 				ash->OnAllProcessed();
+#ifdef ENABLE_REQUEST_AND_ALL
 			p->m_implARP.Invoke(p, lastRequestId);
+#endif
 			p->OnAllRequestsProcessed(lastRequestId);
 #ifdef NODE_JS_ADAPTER_PROJECT
 			NJA::NJSocketPool *pool = (NJA::NJSocketPool *)p->m_asyncType->data;
@@ -1398,8 +1408,9 @@ namespace SPA
 				if (requestId == SPA::idCancel)
 					ash->CleanCallbacks();
 			}
-
+#ifdef ENABLE_REQUEST_AND_ALL
 			p->m_implBRP.Invoke(p, requestId);
+#endif
 			p->OnBaseRequestProcessed(requestId);
 #ifdef NODE_JS_ADAPTER_PROJECT
 			NJA::NJSocketPool *pool = (NJA::NJSocketPool *)p->m_asyncType->data;

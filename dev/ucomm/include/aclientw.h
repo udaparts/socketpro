@@ -629,28 +629,21 @@ namespace SPA {
 
 #ifndef SAFE_RESULT_RETURN_EVENT
 			typedef std::function<void(CClientSocket*, int) > DSocketEvent;
-			typedef std::function<void(CClientSocket*, unsigned short) > DRequestEvent;
-			typedef std::function<void(CClientSocket*, unsigned short, CUQueue &) > DRequestProcessed;
 #if defined(WIN32_64) && _MSC_VER < 1800
 			//Visual C++ has implementation limitation of std::function on the number of parameters -- temporary solution
 			typedef std::tr1::function<void(CClientSocket*, const wchar_t*, const char*, unsigned int) > DExceptionFromServer;
 #else
 			typedef std::function<void(CClientSocket*, unsigned short, const wchar_t*, const char*, unsigned int) > DExceptionFromServer;
 #endif
-
 #else
 			typedef void(*DSocketEvent)(CClientSocket*, int);
-			typedef void(*DRequestEvent)(CClientSocket*, unsigned short);
-			typedef void(*DRequestProcessed)(CClientSocket*, unsigned short, CUQueue &);
 #if defined(WIN32_64) && _MSC_VER < 1800
 			//Visual C++ has implementation limitation of std::function on the number of parameters -- temporary solution
 			typedef void(*DExceptionFromServer)(CClientSocket*, const wchar_t*, const char*, unsigned int);
 #else
 			typedef void(*DExceptionFromServer)(CClientSocket*, unsigned short, const wchar_t*, const char*, unsigned int);
 #endif
-
 #endif
-
 		protected:
 			virtual void OnSocketClosed(int nError);
 			virtual void OnHandShakeCompleted(int nError);
@@ -709,26 +702,38 @@ namespace SPA {
 			uv_async_t *m_asyncType;
 			friend class NJA::NJSocketPool;
 #endif
-			struct CIRequestProcessed : public IUDelImpl<DRequestProcessed> {
-				void Invoke(CClientSocket *cs, unsigned short reqId, CUQueue &mc);
-			};
-
 			IUDelImpl<DSocketEvent> m_implClosed;
 			IUDelImpl<DSocketEvent> m_implHSC;
 			IUDelImpl<DSocketEvent> m_implConnected;
-			IUDelImpl<DRequestEvent> m_implBRP;
-			IUDelImpl<DRequestEvent> m_implARP;
-			CIRequestProcessed m_implRP;
 			IUDelImpl<DExceptionFromServer> m_implEFS;
 
 		public:
 			IUDel<DSocketEvent>& SocketClosed;
 			IUDel<DSocketEvent>& HandShakeCompleted;
 			IUDel<DSocketEvent>& SocketConnected;
+			IUDel<DExceptionFromServer>& ExceptionFromServer;
+#ifdef ENABLE_REQUEST_AND_ALL
+		public:
+#ifndef SAFE_RESULT_RETURN_EVENT
+			typedef std::function<void(CClientSocket*, unsigned short) > DRequestEvent;
+			typedef std::function<void(CClientSocket*, unsigned short, CUQueue &) > DRequestProcessed;
+#else
+			typedef void(*DRequestEvent)(CClientSocket*, unsigned short);
+			typedef void(*DRequestProcessed)(CClientSocket*, unsigned short, CUQueue &);
+#endif
+		private:
+			IUDelImpl<DRequestEvent> m_implBRP;
+			IUDelImpl<DRequestEvent> m_implARP;
+			struct CIRequestProcessed : public IUDelImpl<DRequestProcessed> {
+				void Invoke(CClientSocket *cs, unsigned short reqId, CUQueue &mc);
+			};
+			CIRequestProcessed m_implRP;
+
+		public:
 			IUDel<DRequestEvent>& BaseRequestProcessed;
 			IUDel<DRequestEvent>& AllRequestsProcessed;
 			IUDel<DRequestProcessed>& RequestProcessed;
-			IUDel<DExceptionFromServer>& ExceptionFromServer;
+#endif
 		};
 
 		typedef CClientSocket* PClientSocket;

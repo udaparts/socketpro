@@ -86,17 +86,6 @@ namespace SPA {
                 return file_size;
             }
 
-			std::pair<const wchar_t*, const wchar_t*> GetFilePathPair() {
-				std::pair<const wchar_t*, const wchar_t*> p(nullptr, nullptr);
-				CAutoLock al(m_csFile);
-				if (m_vContext.size()) {
-					auto &front = m_vContext.front();
-					p.first = front.LocalFile.c_str();
-					p.second = front.FilePath.c_str();
-				}
-				return p;
-			}
-
             bool Upload(const wchar_t *localFile, const wchar_t *remoteFile, DUpload up = nullptr, DTransferring trans = nullptr, DDiscarded aborted = nullptr, unsigned int flags = SFile::FILE_OPEN_TRUNCACTED) {
                 if (!localFile || !::wcslen(localFile))
                     return false;
