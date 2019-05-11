@@ -77,11 +77,13 @@ enum VARENUM {
 #ifdef BOOST_UUID_HPP
 typedef boost::uuids::uuid GUID;
 #else
-struct uuid {
-public:
-    unsigned char data[16];
-};
-typedef uuid GUID;
+//use windows GUID definition
+typedef struct _GUID {
+	unsigned int  Data1;
+	unsigned short Data2;
+	unsigned short Data3;
+	unsigned char  Data4[8];
+} GUID;
 #endif
 static_assert(sizeof (GUID) == sizeof (DECIMAL), "GUID and DECIMAL should have the same size");
 typedef GUID UUID;
