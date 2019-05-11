@@ -137,12 +137,9 @@ namespace SPA
 
 		}
 
-		unsigned int CAsyncServiceHandler::GetSvsID() const {
-			return m_nServiceId;
-		}
-
 		void CAsyncServiceHandler::SetSvsID(unsigned int serviceId) {
 			assert(0 == m_nServiceId);
+			assert(serviceId);
 			m_nServiceId = serviceId;
 		}
 
@@ -194,11 +191,6 @@ namespace SPA
 
 		bool CAsyncServiceHandler::SendRouteeResult(const CScopeUQueue &sb, unsigned short reqId) {
 			return SendRouteeResult(sb->GetBuffer(), sb->GetSize(), reqId);
-		}
-
-		CClientSocket * CAsyncServiceHandler::GetAttachedClientSocket() {
-			CAutoLock al(m_cs);
-			return m_pClientSocket;
 		}
 
 		void CAsyncServiceHandler::Detach() {
@@ -400,10 +392,8 @@ namespace SPA
 		}
 
 		USocket_Client_Handle CAsyncServiceHandler::GetClientSocketHandle() const {
-			if (m_pClientSocket)
-				return m_pClientSocket->GetHandle();
-			assert(false);
-			return nullptr;
+			assert(m_pClientSocket);
+			return m_pClientSocket->GetHandle();
 		}
 
 		bool CAsyncServiceHandler::GetAsyncResultHandler(unsigned short usReqId, PRR_PAIR & p) {
@@ -572,14 +562,6 @@ namespace SPA
 			}
 		}
 
-		unsigned int CClientSocket::GetPoolId() const {
-			return m_poolId;
-		}
-
-		USocket_Client_Handle CClientSocket::GetHandle() const {
-			return m_hSocket;
-		}
-
 		const CConnectionContext & CClientSocket::GetConnectionContext() const {
 			return m_cc;
 		}
@@ -622,10 +604,6 @@ namespace SPA
 
 		bool CClientSocket::Cancel(unsigned int requestsQueued) const {
 			return ClientCoreLoader.Cancel(m_hSocket, requestsQueued);
-		}
-
-		bool CClientSocket::IsRandom() const {
-			return m_bRandom;
 		}
 
 		unsigned int CClientSocket::GetBytesInSendingBuffer() const {
@@ -987,10 +965,6 @@ namespace SPA
 			return ClientCoreLoader.GetServerPingTime(m_hSocket);
 		}
 
-		unsigned int CClientSocket::GetCurrentServiceID() const {
-			return m_nCurrSvsId;
-		}
-
 		unsigned int CClientSocket::GetCurrentResultSize() const {
 			return ClientCoreLoader.GetCurrentResultSize(m_hSocket);
 		}
@@ -1009,10 +983,6 @@ namespace SPA
 
 		unsigned int CClientSocket::GetRouteeCount() const {
 			return ClientCoreLoader.GetRouteeCount(m_hSocket);
-		}
-
-		bool CClientSocket::IsRouting() const {
-			return m_routing;
 		}
 
 		std::string CClientSocket::GetErrorMsg() const {

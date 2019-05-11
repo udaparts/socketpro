@@ -369,7 +369,7 @@ namespace SPA {
 		private:
 			bool Attach(CAsyncServiceHandler *p);
 			void Detach(CAsyncServiceHandler *p);
-			CAsyncServiceHandler *Seek(unsigned int nServiceId);
+			inline CAsyncServiceHandler *Seek(unsigned int nServiceId);
 			void Set(USocket_Client_Handle h, unsigned int poolId);
 
 		private:
@@ -587,10 +587,14 @@ namespace SPA {
 			void* GetSslHandle() const;
 			bool IgnoreLastRequest(unsigned short reqId) const;
 			unsigned int GetRouteeCount() const;
-			bool IsRouting() const;
+			inline bool IsRouting() const {
+				return m_routing;
+			}
 			unsigned int GetCountOfRequestsInQueue() const;
 			unsigned short GetCurrentRequestID() const;
-			unsigned int GetCurrentServiceID() const;
+			inline unsigned int GetCurrentServiceID() const {
+				return m_nCurrSvsId;
+			}
 			unsigned short GetServerPingTime() const;
 			unsigned int GetCurrentResultSize() const;
 			tagEncryptionMethod GetEncryptionMethod() const;
@@ -598,15 +602,21 @@ namespace SPA {
 			std::string GetErrorMsg() const;
 			bool IsConnected() const;
 			void SetEncryptionMethod(tagEncryptionMethod em) const;
-			USocket_Client_Handle GetHandle() const;
-			unsigned int GetPoolId() const;
+			inline USocket_Client_Handle GetHandle() const {
+				return m_hSocket;
+			}
+			inline unsigned int GetPoolId() const {
+				return m_poolId;
+			}
 			const CConnectionContext& GetConnectionContext() const;
 			static CClientSocket* Seek(USocket_Client_Handle h);
 
 			//If socket is closed, batching requests or timed out, it will return false
 			bool WaitAll(unsigned int nTimeout = (~0)) const;
 			bool Cancel(unsigned int requestsQueued = (~0)) const;
-			bool IsRandom() const;
+			inline bool IsRandom() const {
+				return m_bRandom;
+			}
 			unsigned int GetBytesInSendingBuffer() const;
 			unsigned int GetBytesInReceivingBuffer() const;
 			unsigned int GetBytesBatched() const;
@@ -808,11 +818,15 @@ namespace SPA {
 		public:
 			unsigned int GetRequestsQueued();
 			void ShrinkDeque();
-			unsigned int GetSvsID() const;
+			inline unsigned int GetSvsID() const {
+				return m_nServiceId;
+			}
 			void SetSvsID(unsigned int serviceId);
 			virtual bool SendRequest(unsigned short reqId, const unsigned char *pBuffer, unsigned int size, ResultHandler rh, DDiscarded discarded = nullptr, DServerException serverException = nullptr);
 			bool SendRequest(unsigned short reqId, ResultHandler rh, DDiscarded discarded = nullptr, DServerException se = nullptr);
-			CClientSocket *GetAttachedClientSocket();
+			inline CClientSocket *GetAttachedClientSocket() {
+				return m_pClientSocket;
+			}
 			virtual bool WaitAll(unsigned int timeOut = (~0));
 			bool StartBatching();
 			bool CommitBatching(bool bBatchingAtServerSide = false);
@@ -1597,7 +1611,7 @@ namespace SPA {
 			bool Attach(CClientSocket *cs);
 			void Detach();
 
-			USocket_Client_Handle GetClientSocketHandle() const;
+			inline USocket_Client_Handle GetClientSocketHandle() const;
 
 			bool P(unsigned short reqId, const CUQueue &qSender) {
 				bool ok = true;
