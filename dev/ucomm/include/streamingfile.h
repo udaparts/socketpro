@@ -17,7 +17,7 @@ namespace SPA {
         public:
             typedef std::function<void(CStreamingFile *file, int res, const std::wstring &errMsg) > DDownload;
             typedef std::function<void(CStreamingFile *file, UINT64 transferred) > DTransferring;
-			typedef DDownload DUpload;
+            typedef DDownload DUpload;
 
             CStreamingFile(CClientSocket * cs) : CAsyncServiceHandler(SFile::sidFile, cs) {
             }
@@ -156,13 +156,13 @@ namespace SPA {
                     if (ctx.Download) {
                         ctx.Download(this, ctx.ErrorCode, ctx.ErrMsg);
                     }
-					CAutoLock al(m_csFile);
-					m_vContext.pop_front();
-					if (m_vContext.size()) {
-						//post processing the next one
-						ClientCoreLoader.PostProcessing(GetAttachedClientSocket()->GetHandle(), 0, 0);
-						GetAttachedClientSocket()->DoEcho(); //make sure WaitAll works correctly
-					}
+                    CAutoLock al(m_csFile);
+                    m_vContext.pop_front();
+                    if (m_vContext.size()) {
+                        //post processing the next one
+                        ClientCoreLoader.PostProcessing(GetAttachedClientSocket()->GetHandle(), 0, 0);
+                        GetAttachedClientSocket()->DoEcho(); //make sure WaitAll works correctly
+                    }
                 }
             }
 
@@ -194,12 +194,12 @@ namespace SPA {
                         }
                         if (dl)
                             dl(this, res, errMsg);
-						{
-							CAutoLock al(m_csFile);
-							CContext &context = m_vContext.front();
-							CloseFile(context);
-							m_vContext.pop_front();
-						}
+                        {
+                            CAutoLock al(m_csFile);
+                            CContext &context = m_vContext.front();
+                            CloseFile(context);
+                            m_vContext.pop_front();
+                        }
                         OnPostProcessing(0, 0);
                     }
                         break;
@@ -350,10 +350,10 @@ namespace SPA {
                             if (ctx.Download) {
                                 ctx.Download(this, ctx.ErrorCode, ctx.ErrMsg);
                             }
-							{
-								CAutoLock al(m_csFile);
-								m_vContext.pop_front();
-							}
+                            {
+                                CAutoLock al(m_csFile);
+                                m_vContext.pop_front();
+                            }
                             OnPostProcessing(0, 0);
                         }
                     }
@@ -434,12 +434,12 @@ namespace SPA {
                         }
                         if (upl)
                             upl(this, 0, L"");
-						{
-							CAutoLock al(m_csFile);
-							CContext &context = m_vContext.front();
-							CloseFile(context);
-							m_vContext.pop_front();
-						}
+                        {
+                            CAutoLock al(m_csFile);
+                            CContext &context = m_vContext.front();
+                            CloseFile(context);
+                            m_vContext.pop_front();
+                        }
                         OnPostProcessing(0, 0);
                     }
                         break;
