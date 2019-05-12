@@ -1,7 +1,7 @@
 
 #include "ucertimpl.h"
 #ifdef USE_SPIRIT_CLSSICAL_FOR_MULTIPART
-#include "../ServerCoreUnix/server.h"
+#include "../../uservercore/server.h"
 #else
 #include "../../clientcore/clientthread.h"
 #endif

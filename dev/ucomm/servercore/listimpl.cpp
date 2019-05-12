@@ -6,7 +6,7 @@
 #elif defined(WIN32_64)
 #include "../uservercore_win/server.h"
 #else
-#include "../ServerCoreUnix/server.h"
+#include "../uservercore/server.h"
 #endif
 
 #include "../include/userver.h"

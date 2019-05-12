@@ -5,7 +5,7 @@
 #elif defined(WIN32_64)
 #include "../uservercore_win/session.h"
 #else
-#include "../ServerCoreUnix/session.h"
+#include "../uservercore/session.h"
 #endif
 
 #include "servicecontext.h"

@@ -65,11 +65,11 @@ OBJECTFILES= \
 
 
 # C Compiler Flags
-CFLAGS=-fPIC -std=c++11 -static-libgcc -static-libstdc++ -static
+CFLAGS=-std=c++11 -static -fPIC
 
 # CC Compiler Flags
-CCFLAGS=-fPIC -std=c++11 -static-libgcc -static-libstdc++ -static
-CXXFLAGS=-fPIC -std=c++11 -static-libgcc -static-libstdc++ -static
+CCFLAGS=-std=c++11 -static -fPIC
+CXXFLAGS=-std=c++11 -static -fPIC
 
 # Fortran Compiler Flags
 FFLAGS=

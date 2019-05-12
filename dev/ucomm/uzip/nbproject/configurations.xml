@@ -78,10 +78,10 @@
       </toolsSet>
       <compileType>
         <cTool>
-          <commandLine>-fPIC -std=c++11 -static-libgcc -static-libstdc++ -static</commandLine>
+          <commandLine>-std=c++11 -static -fPIC</commandLine>
         </cTool>
         <ccTool>
-          <commandLine>-fPIC -std=c++11 -static-libgcc -static-libstdc++ -static</commandLine>
+          <commandLine>-std=c++11 -static -fPIC</commandLine>
         </ccTool>
         <archiverTool>
         </archiverTool>
@@ -199,17 +199,17 @@
       </toolsSet>
       <compileType>
         <cTool>
-          <developmentMode>5</developmentMode>
+          <developmentMode>6</developmentMode>
           <stripSymbols>true</stripSymbols>
-          <commandLine>-fPIC -std=c++11 -static-libgcc -static-libstdc++ -static</commandLine>
+          <commandLine>-std=c++11 -static -fPIC</commandLine>
           <preprocessorList>
             <Elem>NDEBUG</Elem>
           </preprocessorList>
         </cTool>
         <ccTool>
-          <developmentMode>5</developmentMode>
+          <developmentMode>6</developmentMode>
           <stripSymbols>true</stripSymbols>
-          <commandLine>-fPIC -std=c++11 -static-libgcc -static-libstdc++ -static</commandLine>
+          <commandLine>-std=c++11 -static -fPIC</commandLine>
           <preprocessorList>
             <Elem>NDEBUG</Elem>
           </preprocessorList>
@@ -225,12 +225,12 @@
       </compileType>
       <item path="../../../../Downloads/boost/libs/filesystem/src/operations.cpp"
             ex="false"
-            tool="0"
+            tool="1"
             flavor2="0">
       </item>
       <item path="../../../../Downloads/boost/libs/filesystem/src/path.cpp"
             ex="false"
-            tool="0"
+            tool="1"
             flavor2="0">
       </item>
       <item path="../../../../Downloads/boost/libs/system/src/error_code.cpp"
@@ -240,17 +240,17 @@
       </item>
       <item path="../../../../Downloads/boost/libs/thread/src/pthread/once.cpp"
             ex="false"
-            tool="0"
+            tool="1"
             flavor2="0">
       </item>
       <item path="../../../../Downloads/boost/libs/thread/src/pthread/thread.cpp"
             ex="false"
-            tool="0"
+            tool="1"
             flavor2="0">
       </item>
       <item path="../../../../Downloads/boost/libs/thread/src/tss_null.cpp"
             ex="false"
-            tool="0"
+            tool="1"
             flavor2="0">
       </item>
       <item path="../core_shared/pinc/aes.h" ex="false" tool="3" flavor2="0">
@@ -269,7 +269,7 @@
       </item>
       <item path="../core_shared/pinc/uzip.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../include/membuffer.cpp" ex="false" tool="0" flavor2="0">
+      <item path="../include/membuffer.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../include/membuffer.h" ex="false" tool="3" flavor2="0">
       </item>

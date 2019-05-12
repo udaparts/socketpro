@@ -9,6 +9,10 @@
 #include <boost/filesystem.hpp>
 #include <boost/lexical_cast.hpp>
 
+#ifdef NDEBUG
+#include<iostream>
+#endif
+
 extern std::string g_localhost;
 
 boost::posix_time::ptime CClientSession::m_tStart = boost::posix_time::microsec_clock::local_time();

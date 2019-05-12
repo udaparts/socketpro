@@ -47,11 +47,11 @@ OBJECTFILES= \
 
 
 # C Compiler Flags
-CFLAGS=-static-libgcc -static-libstdc++ -std=c++11
+CFLAGS=-std=c++11
 
 # CC Compiler Flags
-CCFLAGS=-static-libgcc -static-libstdc++ -std=c++11
-CXXFLAGS=-static-libgcc -static-libstdc++ -std=c++11
+CCFLAGS=-std=c++11
+CXXFLAGS=-std=c++11
 
 # Fortran Compiler Flags
 FFLAGS=
@@ -60,7 +60,7 @@ FFLAGS=
 ASFLAGS=
 
 # Link Libraries and Options
-LDLIBSOPTIONS=-lssl ../uzip/dist/Debug/GNU-Linux-x86/libuzip.a -ldl -lpthread `pkg-config --libs libcrypto`  
+LDLIBSOPTIONS=../uzip/dist/Debug/GNU-Linux-x86/libuzip.a -ldl -lpthread `pkg-config --libs libcrypto` `pkg-config --libs libssl`  
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
@@ -70,52 +70,52 @@ ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libusocket.${CND_DLIB_EXT}: ../uzip/d
 
 ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libusocket.${CND_DLIB_EXT}: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
-	g++ -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libusocket.${CND_DLIB_EXT} ${OBJECTFILES} ${LDLIBSOPTIONS} -z defs -rdynamic -shared -fPIC
+	g++ -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libusocket.${CND_DLIB_EXT} ${OBJECTFILES} ${LDLIBSOPTIONS} -shared -fPIC
 
 ${OBJECTDIR}/_ext/718243431/clientglobal.o: ../clientcore/clientglobal.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/718243431
 	${RM} "$@.d"
-	$(COMPILE.c) -g `pkg-config --cflags libcrypto`   -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/718243431/clientglobal.o ../clientcore/clientglobal.cpp
+	$(COMPILE.c) -g `pkg-config --cflags libcrypto` `pkg-config --cflags libssl`   -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/718243431/clientglobal.o ../clientcore/clientglobal.cpp
 
 ${OBJECTDIR}/_ext/718243431/clientthread.o: ../clientcore/clientthread.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/718243431
 	${RM} "$@.d"
-	$(COMPILE.c) -g `pkg-config --cflags libcrypto`   -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/718243431/clientthread.o ../clientcore/clientthread.cpp
+	$(COMPILE.c) -g `pkg-config --cflags libcrypto` `pkg-config --cflags libssl`   -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/718243431/clientthread.o ../clientcore/clientthread.cpp
 
 ${OBJECTDIR}/_ext/718243431/csocketimpl.o: ../clientcore/csocketimpl.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/718243431
 	${RM} "$@.d"
-	$(COMPILE.c) -g `pkg-config --cflags libcrypto`   -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/718243431/csocketimpl.o ../clientcore/csocketimpl.cpp
+	$(COMPILE.c) -g `pkg-config --cflags libcrypto` `pkg-config --cflags libssl`   -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/718243431/csocketimpl.o ../clientcore/csocketimpl.cpp
 
 ${OBJECTDIR}/_ext/718243431/socketpool.o: ../clientcore/socketpool.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/718243431
 	${RM} "$@.d"
-	$(COMPILE.c) -g `pkg-config --cflags libcrypto`   -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/718243431/socketpool.o ../clientcore/socketpool.cpp
+	$(COMPILE.c) -g `pkg-config --cflags libcrypto` `pkg-config --cflags libssl`   -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/718243431/socketpool.o ../clientcore/socketpool.cpp
 
 ${OBJECTDIR}/_ext/1719658846/includes.o: ../core_shared/shared/includes.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1719658846
 	${RM} "$@.d"
-	$(COMPILE.c) -g `pkg-config --cflags libcrypto`   -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1719658846/includes.o ../core_shared/shared/includes.cpp
+	$(COMPILE.c) -g `pkg-config --cflags libcrypto` `pkg-config --cflags libssl`   -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1719658846/includes.o ../core_shared/shared/includes.cpp
 
 ${OBJECTDIR}/_ext/1719658846/ucertimpl.o: ../core_shared/shared/ucertimpl.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1719658846
 	${RM} "$@.d"
-	$(COMPILE.c) -g `pkg-config --cflags libcrypto`   -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1719658846/ucertimpl.o ../core_shared/shared/ucertimpl.cpp
+	$(COMPILE.c) -g `pkg-config --cflags libcrypto` `pkg-config --cflags libssl`   -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1719658846/ucertimpl.o ../core_shared/shared/ucertimpl.cpp
 
 ${OBJECTDIR}/_ext/1719658846/uthread.o: ../core_shared/shared/uthread.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1719658846
 	${RM} "$@.d"
-	$(COMPILE.c) -g `pkg-config --cflags libcrypto`   -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1719658846/uthread.o ../core_shared/shared/uthread.cpp
+	$(COMPILE.c) -g `pkg-config --cflags libcrypto` `pkg-config --cflags libssl`   -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1719658846/uthread.o ../core_shared/shared/uthread.cpp
 
 ${OBJECTDIR}/_ext/262068057/membuffer.o: ../include/membuffer.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/262068057
 	${RM} "$@.d"
-	$(COMPILE.c) -g `pkg-config --cflags libcrypto`   -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/262068057/membuffer.o ../include/membuffer.cpp
+	$(COMPILE.c) -g `pkg-config --cflags libcrypto` `pkg-config --cflags libssl`   -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/262068057/membuffer.o ../include/membuffer.cpp
 
 ${OBJECTDIR}/clientsession.o: clientsession.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.c) -g `pkg-config --cflags libcrypto`   -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/clientsession.o clientsession.cpp
+	$(COMPILE.c) -g `pkg-config --cflags libcrypto` `pkg-config --cflags libssl`   -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/clientsession.o clientsession.cpp
 
 # Subprojects
 .build-subprojects:

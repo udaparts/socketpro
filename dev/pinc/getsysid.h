@@ -1,5 +1,5 @@
-
-#pragma once
+#ifndef U_SOCKETPRO_REGISTRATION_H
+#define U_SOCKETPRO_REGISTRATION_H
 
 #include "../include/commutil.h"
 #include <string>
@@ -61,3 +61,5 @@ namespace SPA {
 #endif
 
 }; //namespace SPA
+
+#endif
