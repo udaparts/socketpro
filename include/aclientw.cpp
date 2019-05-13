@@ -6,8 +6,9 @@
 
 #endif
 
-namespace SPA {
-    namespace ClientSide {
+namespace SPA
+{
+    namespace ClientSide{
 
         CUCriticalSection g_csSpPool;
 
@@ -22,13 +23,28 @@ namespace SPA {
         CUCriticalSection CAsyncServiceHandler::m_csIndex;
         UINT64 CAsyncServiceHandler::m_CallIndex = 0; //should be protected by m_csIndex
 
+        bool CAsyncServiceHandler::CRRImpl::Invoke(CAsyncServiceHandler *ash, unsigned short reqId, CUQueue & buff) {
+            CAutoLock al(*m_cs);
+            for (auto it = m_vD.cbegin(), end = m_vD.cend(); it != end; ++it) {
+                auto &rr = *it;
+                if (rr(ash, reqId, buff)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         CAsyncServiceHandler::CAsyncServiceHandler(unsigned int nServiceId, CClientSocket * cs)
-        : m_vCallback(*m_suCallback), m_vBatching(*m_suBatching), m_nServiceId(nServiceId), m_pClientSocket(nullptr) {
-            if (cs)
+        : m_vCallback(*m_suCallback), m_vBatching(*m_suBatching), m_nServiceId(nServiceId), m_pClientSocket(nullptr),
+        ResultReturned(m_rrImpl), ServerException(m_seImpl), BaseRequestProcessed(m_brpImpl) {
+            if (cs) {
                 Attach(cs);
+            }
             m_vCallback.SetBlockSize(128 * 1024);
             m_vCallback.ReallocBuffer(128 * 1024);
-
+            m_rrImpl.SetCS(&m_cs);
+            m_seImpl.SetCS(&m_cs);
+            m_brpImpl.SetCS(&m_cs);
 #ifdef NODE_JS_ADAPTER_PROJECT
             ::memset(&m_typeReq, 0, sizeof (m_typeReq));
             m_typeReq.data = this;
@@ -121,12 +137,9 @@ namespace SPA {
 
         }
 
-        unsigned int CAsyncServiceHandler::GetSvsID() const {
-            return m_nServiceId;
-        }
-
         void CAsyncServiceHandler::SetSvsID(unsigned int serviceId) {
             assert(0 == m_nServiceId);
+            assert(serviceId);
             m_nServiceId = serviceId;
         }
 
@@ -178,11 +191,6 @@ namespace SPA {
 
         bool CAsyncServiceHandler::SendRouteeResult(const CScopeUQueue &sb, unsigned short reqId) {
             return SendRouteeResult(sb->GetBuffer(), sb->GetSize(), reqId);
-        }
-
-        CClientSocket * CAsyncServiceHandler::GetAttachedClientSocket() {
-            CAutoLock al(m_cs);
-            return m_pClientSocket;
         }
 
         void CAsyncServiceHandler::Detach() {
@@ -279,8 +287,10 @@ namespace SPA {
             m_pClientSocket = nullptr;
         }
 
-        void CAsyncServiceHandler::OnMergeTo(CAsyncServiceHandler & to) {
+        void CAsyncServiceHandler::OnPostProcessing(unsigned int hint, UINT64 data) {
+        }
 
+        void CAsyncServiceHandler::OnMergeTo(CAsyncServiceHandler & to) {
         }
 
         void CAsyncServiceHandler::AppendTo(CAsyncServiceHandler & to) {
@@ -321,9 +331,7 @@ namespace SPA {
                 }
                 Recycle(p);
             }
-            if (ServerException) {
-                ServerException(this, requestId, errMessage, errWhere, errCode);
-            }
+            m_seImpl.Invoke(this, requestId, errMessage, errWhere, errCode);
         }
 
         void CAsyncServiceHandler::OnRR(unsigned short reqId, CUQueue & mc) {
@@ -331,7 +339,7 @@ namespace SPA {
             if (GetAsyncResultHandler(reqId, p) && p->second.AsyncResultHandler) {
                 CAsyncResult ar(this, reqId, mc, p->second.AsyncResultHandler);
                 p->second.AsyncResultHandler(ar);
-            } else if (ResultReturned && ResultReturned(this, reqId, mc)) {
+            } else if (m_rrImpl.Invoke(this, reqId, mc)) {
             } else
                 OnResultReturned(reqId, mc);
             Recycle(p);
@@ -378,10 +386,8 @@ namespace SPA {
         }
 
         USocket_Client_Handle CAsyncServiceHandler::GetClientSocketHandle() const {
-            if (m_pClientSocket)
-                return m_pClientSocket->GetHandle();
-            assert(false);
-            return nullptr;
+            assert(m_pClientSocket);
+            return m_pClientSocket->GetHandle();
         }
 
         bool CAsyncServiceHandler::GetAsyncResultHandler(unsigned short usReqId, PRR_PAIR & p) {
@@ -407,11 +413,41 @@ namespace SPA {
             return false;
         }
 
+#ifdef ENABLE_SOCKET_REQUEST_AND_ALL_EVENTS
+
+        void CClientSocket::CIRequestProcessed::Invoke(CClientSocket *cs, unsigned short reqId, CUQueue & mc) {
+            CAutoLock al(*m_cs);
+            for (auto it = m_vD.cbegin(), end = m_vD.cend(); it != end; ++it) {
+                auto &d = *it;
+                d(cs, reqId, mc);
+            }
+        }
+#endif
+
         CClientSocket::CClientSocket()
-        : m_hSocket((USocket_Client_Handle) nullptr), m_bRandom(false), m_endian(false), m_os(MY_OPERATION_SYSTEM), m_nCurrSvsId(sidStartup), m_routing(false) {
+        : m_hSocket((USocket_Client_Handle) nullptr), m_bRandom(false), m_endian(false),
+        m_os(MY_OPERATION_SYSTEM), m_nCurrSvsId(sidStartup), m_routing(false),
+        SocketClosed(m_implClosed), HandShakeCompleted(m_implHSC), SocketConnected(m_implConnected),
+        ExceptionFromServer(m_implEFS)
+#ifdef ENABLE_SOCKET_REQUEST_AND_ALL_EVENTS
+        , BaseRequestProcessed(m_implBRP), AllRequestsProcessed(m_implARP), RequestProcessed(m_implRP)
+#endif	
+        {
             m_mutex.lock();
             m_vClientSocket.push_back(this);
             m_mutex.unlock();
+
+            m_implClosed.SetCS(&m_cs);
+            m_implHSC.SetCS(&m_cs);
+            m_implConnected.SetCS(&m_cs);
+            m_implEFS.SetCS(&m_cs);
+
+#ifdef ENABLE_SOCKET_REQUEST_AND_ALL_EVENTS
+            m_implBRP.SetCS(&m_cs);
+            m_implARP.SetCS(&m_cs);
+            m_implRP.SetCS(&m_cs);
+#endif
+
 #ifdef NODE_JS_ADAPTER_PROJECT
             m_asyncType = nullptr;
 #endif
@@ -434,6 +470,14 @@ namespace SPA {
             ClientCoreLoader.SetOnServerException(h, &CClientSocket::OnServerException);
             ClientCoreLoader.SetOnBaseRequestProcessed(h, &CClientSocket::OnBaseRequestProcessed);
             ClientCoreLoader.SetOnAllRequestsProcessed(h, &CClientSocket::OnAllRequestsProcessed);
+            ClientCoreLoader.SetOnPostProcessing(h, &CClientSocket::OnPostProcessing);
+
+            m_PushImpl.m_lstPublish.SetCS(&m_cs);
+            m_PushImpl.m_lstPublishEx.SetCS(&m_cs);
+            m_PushImpl.m_lstSub.SetCS(&m_cs);
+            m_PushImpl.m_lstUnsub.SetCS(&m_cs);
+            m_PushImpl.m_lstUser.SetCS(&m_cs);
+            m_PushImpl.m_lstUserEx.SetCS(&m_cs);
         }
 
         CClientSocket::~CClientSocket() {
@@ -512,16 +556,13 @@ namespace SPA {
             }
         }
 
-        USocket_Client_Handle CClientSocket::GetHandle() const {
-            return m_hSocket;
-        }
-
         const CConnectionContext & CClientSocket::GetConnectionContext() const {
             return m_cc;
         }
 
         void SetLastCallInfo(const char *str, int data, const char *func) {
-            char buff[4097] = {0};
+            char buff[4097] =
+            { 0};
 #ifdef WIN32_64
             _snprintf_s(buff, sizeof (buff), sizeof (buff), "lf: %s, what: %s, data: %d", func, str, data);
 #else
@@ -557,10 +598,6 @@ namespace SPA {
 
         bool CClientSocket::Cancel(unsigned int requestsQueued) const {
             return ClientCoreLoader.Cancel(m_hSocket, requestsQueued);
-        }
-
-        bool CClientSocket::IsRandom() const {
-            return m_bRandom;
         }
 
         unsigned int CClientSocket::GetBytesInSendingBuffer() const {
@@ -650,7 +687,8 @@ namespace SPA {
         }
 
         std::string CClientSocket::GetPeerName(unsigned int *port) const {
-            char ipAddr[256] = {0};
+            char ipAddr[256] =
+            { 0};
             ClientCoreLoader.GetPeerName(m_hSocket, port, ipAddr, sizeof (ipAddr));
             return ipAddr;
         }
@@ -683,7 +721,7 @@ namespace SPA {
             ClientCoreLoader.SetZip(m_hSocket, zip);
         }
 
-        bool CClientSocket::operator==(const CClientSocket & cs) const {
+        bool CClientSocket::operator == (const CClientSocket & cs) const {
             return (m_hSocket == cs.m_hSocket);
         }
 
@@ -921,10 +959,6 @@ namespace SPA {
             return ClientCoreLoader.GetServerPingTime(m_hSocket);
         }
 
-        unsigned int CClientSocket::GetCurrentServiceID() const {
-            return m_nCurrSvsId;
-        }
-
         unsigned int CClientSocket::GetCurrentResultSize() const {
             return ClientCoreLoader.GetCurrentResultSize(m_hSocket);
         }
@@ -945,15 +979,15 @@ namespace SPA {
             return ClientCoreLoader.GetRouteeCount(m_hSocket);
         }
 
-        bool CClientSocket::IsRouting() const {
-            return m_routing;
-        }
-
         std::string CClientSocket::GetErrorMsg() const {
             char strErrorMsg[1025] = {0};
             ClientCoreLoader.GetErrorMessage(m_hSocket, strErrorMsg, sizeof (strErrorMsg));
             return strErrorMsg;
         }
+
+		unsigned int CClientSocket::GetPoolId() const {
+			return ClientCoreLoader.GetSocketPoolId(m_hSocket);
+		}
 
         bool CClientSocket::IsConnected() const {
             return ClientCoreLoader.IsOpened(m_hSocket);
@@ -1036,8 +1070,7 @@ namespace SPA {
                 if (ash)
                     ash->CleanCallbacks();
             }
-            if (p->SocketClosed)
-                p->SocketClosed(p, nError);
+            p->m_implClosed.Invoke(p, nError);
             p->OnSocketClosed(nError);
         }
 
@@ -1045,8 +1078,7 @@ namespace SPA {
             CClientSocket *p = Seek(handler);
             if (!p)
                 return;
-            if (p->HandShakeCompleted)
-                p->HandShakeCompleted(p, nError);
+            p->m_implHSC.Invoke(p, nError);
             p->OnHandShakeCompleted(nError);
         }
 
@@ -1054,8 +1086,7 @@ namespace SPA {
             CClientSocket *p = Seek(handler);
             if (!p)
                 return;
-            if (p->SocketConnected)
-                p->SocketConnected(p, nError);
+            p->m_implConnected.Invoke(p, nError);
             p->OnSocketConnected(nError);
         }
 
@@ -1075,8 +1106,9 @@ namespace SPA {
                 PAsyncServiceHandler ash = p->Seek(p->m_nCurrSvsId);
                 if (ash)
                     ash->OnRR(requestId, q);
-                if (p->RequestProcessed)
-                    p->RequestProcessed(p, requestId, q);
+#ifdef ENABLE_SOCKET_REQUEST_AND_ALL_EVENTS
+                p->m_implRP.Invoke(p, requestId, q);
+#endif
                 p->OnRequestProcessed(requestId, q);
 #ifdef NODE_JS_ADAPTER_PROJECT
                 NJA::NJSocketPool *pool = (NJA::NJSocketPool *)p->m_asyncType->data;
@@ -1102,9 +1134,7 @@ namespace SPA {
             CClientSocket *p = Seek(handler);
             if (!p)
                 return;
-            CPushImpl &push = p->GetPush();
-            if (push.OnSubscribe)
-                push.OnSubscribe(p, sender, pGroup, count);
+            p->GetPush().m_lstSub.Invoke(p, sender, pGroup, count);
             p->OnSubscribe(sender, pGroup, count);
 #ifdef NODE_JS_ADAPTER_PROJECT
             do {
@@ -1133,9 +1163,7 @@ namespace SPA {
             CClientSocket *p = Seek(handler);
             if (!p)
                 return;
-            CPushImpl &push = p->GetPush();
-            if (push.OnUnsubscribe)
-                push.OnUnsubscribe(p, sender, pGroup, count);
+            p->GetPush().m_lstUnsub.Invoke(p, sender, pGroup, count);
             p->OnUnsubscribe(sender, pGroup, count);
 #ifdef NODE_JS_ADAPTER_PROJECT
             do {
@@ -1168,9 +1196,7 @@ namespace SPA {
             sb->Push(pMessage, size);
             SPA::UVariant vtMessage;
             sb >> vtMessage;
-            CPushImpl &push = p->GetPush();
-            if (push.OnPublish)
-                push.OnPublish(p, sender, pGroup, count, vtMessage);
+            p->GetPush().m_lstPublish.Invoke(p, sender, pGroup, count, vtMessage);
             p->OnPublish(sender, pGroup, count, vtMessage);
 #ifdef NODE_JS_ADAPTER_PROJECT
             do {
@@ -1200,15 +1226,12 @@ namespace SPA {
             CClientSocket *p = Seek(handler);
             if (!p)
                 return;
-            CPushImpl &push = p->GetPush();
-            if (push.OnPublishEx) {
 #if defined(WIN32_64) && _MSC_VER < 1800
-                //Visual C++ has implementation limitation of std::function on the number of parameters -- temporary solution
-                push.OnPublishEx(sender, pGroup, count, pMessage, size);
+            //Visual C++ has implementation limitation of std::function on the number of parameters -- temporary solution
+            p->GetPush().m_lstPublishEx.Invoke(sender, pGroup, count, pMessage, size);
 #else
-                push.OnPublishEx(p, sender, pGroup, count, pMessage, size);
+            p->GetPush().m_lstPublishEx.Invoke(p, sender, pGroup, count, pMessage, size);
 #endif
-            }
             p->OnPublishEx(sender, pGroup, count, pMessage, size);
 #ifdef NODE_JS_ADAPTER_PROJECT
             do {
@@ -1242,9 +1265,7 @@ namespace SPA {
             sb->Push(pMessage, size);
             SPA::UVariant vtMessage;
             sb >> vtMessage;
-            CPushImpl &push = p->GetPush();
-            if (push.OnSendUserMessage)
-                push.OnSendUserMessage(p, sender, vtMessage);
+            p->GetPush().m_lstUser.Invoke(p, sender, vtMessage);
             p->OnSendUserMessage(sender, vtMessage);
 #ifdef NODE_JS_ADAPTER_PROJECT
             do {
@@ -1272,9 +1293,7 @@ namespace SPA {
             CClientSocket *p = Seek(handler);
             if (!p)
                 return;
-            CPushImpl &push = p->GetPush();
-            if (push.OnSendUserMessageEx)
-                push.OnSendUserMessageEx(p, sender, pMessage, size);
+            p->GetPush().m_lstUserEx.Invoke(p, sender, pMessage, size);
             p->OnSendUserMessageEx(sender, pMessage, size);
 #ifdef NODE_JS_ADAPTER_PROJECT
             do {
@@ -1298,6 +1317,16 @@ namespace SPA {
 #endif
         }
 
+        void WINAPI CClientSocket::OnPostProcessing(USocket_Client_Handle handler, unsigned int hint, SPA::UINT64 data) {
+            CClientSocket *p = Seek(handler);
+            if (!p)
+                return;
+            PAsyncServiceHandler ash = p->Seek(ClientCoreLoader.GetCurrentServiceId(handler));
+            if (ash) {
+                ash->OnPostProcessing(hint, data);
+            }
+        }
+
         void CClientSocket::OnAllRequestsProcessed(unsigned short lastRequestId) {
 
         }
@@ -1309,8 +1338,9 @@ namespace SPA {
             PAsyncServiceHandler ash = p->Seek(ClientCoreLoader.GetCurrentServiceId(handler));
             if (ash)
                 ash->OnAllProcessed();
-            if (p->AllRequestsProcessed)
-                p->AllRequestsProcessed(p, lastRequestId);
+#ifdef ENABLE_SOCKET_REQUEST_AND_ALL_EVENTS
+            p->m_implARP.Invoke(p, lastRequestId);
+#endif
             p->OnAllRequestsProcessed(lastRequestId);
 #ifdef NODE_JS_ADAPTER_PROJECT
             NJA::NJSocketPool *pool = (NJA::NJSocketPool *)p->m_asyncType->data;
@@ -1340,14 +1370,14 @@ namespace SPA {
             }
             PAsyncServiceHandler ash = p->Seek(ClientCoreLoader.GetCurrentServiceId(handler));
             if (ash) {
-                if (ash->BaseRequestProcessed)
-                    ash->BaseRequestProcessed(ash, requestId);
+                ash->m_brpImpl.Invoke(ash, requestId);
                 ash->OnBaseRequestprocessed(requestId);
                 if (requestId == SPA::idCancel)
                     ash->CleanCallbacks();
             }
-            if (p->BaseRequestProcessed)
-                p->BaseRequestProcessed(p, requestId);
+#ifdef ENABLE_SOCKET_REQUEST_AND_ALL_EVENTS
+            p->m_implBRP.Invoke(p, requestId);
+#endif
             p->OnBaseRequestProcessed(requestId);
 #ifdef NODE_JS_ADAPTER_PROJECT
             NJA::NJSocketPool *pool = (NJA::NJSocketPool *)p->m_asyncType->data;
@@ -1374,9 +1404,9 @@ namespace SPA {
             if (p->ExceptionFromServer) {
 #if defined(WIN32_64) && _MSC_VER < 1800
                 //Visual C++ has implementation limitation of std::function on the number of parameters -- temporary solution
-                p->ExceptionFromServer(p, errMessage, errWhere, errCode);
+                p->m_implEFS.Invoke(p, errMessage, errWhere, errCode);
 #else
-                p->ExceptionFromServer(p, requestId, errMessage, errWhere, errCode);
+                p->m_implEFS.Invoke(p, requestId, errMessage, errWhere, errCode);
 #endif
             }
             PAsyncServiceHandler ash = p->Seek(ClientCoreLoader.GetCurrentServiceId(handler));

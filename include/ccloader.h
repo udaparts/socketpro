@@ -143,6 +143,8 @@ namespace SPA {
         typedef const unsigned char* (WINAPI *PGetResultBuffer)(USocket_Client_Handle h);
         typedef bool (WINAPI *PGetQueueAutoMergeByPool)(unsigned int poolId);
         typedef void (WINAPI *PSetQueueAutoMergeByPool)(unsigned int poolId, bool autoMerge);
+        typedef void (WINAPI *PSetOnPostProcessing)(USocket_Client_Handle h, POnPostProcessing p);
+        typedef void (WINAPI *PPostProcessing)(USocket_Client_Handle h, unsigned int hint, SPA::UINT64 data);
 
         namespace Internal {
 
@@ -296,6 +298,8 @@ namespace SPA {
                     SetLastCallInfo = (PSetLastCallInfo)::GetProcAddress(m_hClientCore, L"SetLastCallInfo");
                     GetQueueAutoMergeByPool = (PGetQueueAutoMergeByPool)::GetProcAddress(m_hClientCore, L"GetQueueAutoMergeByPool");
                     SetQueueAutoMergeByPool = (PSetQueueAutoMergeByPool)::GetProcAddress(m_hClientCore, L"SetQueueAutoMergeByPool");
+                    SetOnPostProcessing = (PSetOnPostProcessing)::GetProcAddress(m_hClientCore, L"SetOnPostProcessing");
+                    PostProcessing = (PPostProcessing)::GetProcAddress(m_hClientCore, L"PostProcessing");
 #else
                     CreateSocketPool = (PCreateSocketPool)::GetProcAddress(m_hClientCore, "CreateSocketPool");
                     DestroySocketPool = (PDestroySocketPool)::GetProcAddress(m_hClientCore, "DestroySocketPool");
@@ -433,6 +437,8 @@ namespace SPA {
                     SetLastCallInfo = (PSetLastCallInfo)::GetProcAddress(m_hClientCore, "SetLastCallInfo");
                     GetQueueAutoMergeByPool = (PGetQueueAutoMergeByPool)::GetProcAddress(m_hClientCore, "GetQueueAutoMergeByPool");
                     SetQueueAutoMergeByPool = (PSetQueueAutoMergeByPool)::GetProcAddress(m_hClientCore, "SetQueueAutoMergeByPool");
+                    SetOnPostProcessing = (PSetOnPostProcessing)::GetProcAddress(m_hClientCore, "SetOnPostProcessing");
+                    PostProcessing = (PPostProcessing)::GetProcAddress(m_hClientCore, "PostProcessing");
 #endif
                 }
 
@@ -578,6 +584,8 @@ namespace SPA {
                 PSetLastCallInfo SetLastCallInfo;
                 PGetQueueAutoMergeByPool GetQueueAutoMergeByPool;
                 PSetQueueAutoMergeByPool SetQueueAutoMergeByPool;
+                PSetOnPostProcessing SetOnPostProcessing;
+                PPostProcessing PostProcessing;
 
             public:
 

@@ -9,7 +9,7 @@
 #include "wincommutil.h"
 #else
 #include "nixcommutil.h"
-#include <boost/multiprecision/cpp_int.hpp>
+//#include <boost/multiprecision/cpp_int.hpp>
 #endif
 
 #define CUExCode(errMsg, errCode)  SPA::CUException(errMsg, __FILE__, __LINE__, __FUNCTION__, errCode)
@@ -18,7 +18,7 @@
 
 namespace SPA {
 
-#ifndef WIN32_64
+#ifdef BOOST_MP_CPP_INT_HPP
     using namespace boost::multiprecision;
     typedef number<cpp_int_backend<96, 96, unsigned_magnitude, unchecked, void> > uint96_t;
 #endif
@@ -54,9 +54,10 @@ namespace SPA {
 
     static bool ParseDec_long(const char *data, DECIMAL &dec) {
         assert(data);
+
+#ifdef WIN32_64
         dec.Hi32 = 0;
         dec.wReserved = 0;
-#ifdef WIN32_64
         CComVariant vtSrc(data), vtDes;
         HRESULT hr = ::VariantChangeType(&vtDes, &vtSrc, 0, VT_DECIMAL);
         if (FAILED(hr)) {
@@ -64,6 +65,9 @@ namespace SPA {
         }
         dec = vtDes.decVal;
 #else
+#ifdef BOOST_MP_CPP_INT_HPP
+        dec.Hi32 = 0;
+        dec.wReserved = 0;
         const char* posNegative = ::strchr(data, '-');
         if (posNegative) {
             dec.sign = 0x80;
@@ -86,6 +90,9 @@ namespace SPA {
         dec.Lo64 = (v & 0xffffffffffffffff).convert_to<uint64_t>();
         v >>= 64;
         dec.Hi32 = v.convert_to<unsigned int>();
+#else
+        ParseDec(data, dec);
+#endif
 #endif
         return true;
     }
@@ -120,6 +127,8 @@ namespace SPA {
         std::string s(vtDes.bstrVal, vtDes.bstrVal + len);
         VariantClear(&vtDes);
 #else
+
+#ifdef BOOST_MP_CPP_INT_HPP
         uint96_t v = decVal.Hi32;
         v <<= 64;
         v += decVal.Lo64;
@@ -135,8 +144,12 @@ namespace SPA {
             size_t pos = s.length() - decVal.scale;
             s.insert(pos, 1, '.');
         }
-#endif
         return s;
+#else
+        return ToString(decVal);
+#endif
+#endif
+
     }
 
     static inline double ToDouble(const DECIMAL &dec) {

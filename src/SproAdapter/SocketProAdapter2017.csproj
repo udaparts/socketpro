@@ -55,6 +55,7 @@
     <Compile Include="clientsocket.cs" />
     <Compile Include="deque.cs" />
     <Compile Include="gencachepeer.cs" />
+    <Compile Include="genricevents.cs" />
     <Compile Include="masterpool.cs" />
     <Compile Include="masterslavebase.cs" />
     <Compile Include="odbc.cs" />
@@ -67,7 +68,7 @@
     <Compile Include="serverqueue.cs" />
     <Compile Include="serversocket.cs" />
     <Compile Include="socketpool.cs" />
-	<Compile Include="spmanager.cs" />
+    <Compile Include="spmanager.cs" />
     <Compile Include="sqlmasterpool.cs" />
     <Compile Include="streamclient.cs" />
     <Compile Include="streamserver.cs" />
