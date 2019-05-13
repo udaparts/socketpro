@@ -11,10 +11,8 @@ namespace SocketProAdapter
             public delegate void DOnSocketClosed(CClientSocket sender, int errorCode);
             public delegate void DOnHandShakeCompleted(CClientSocket sender, int errorCode);
             public delegate void DOnSocketConnected(CClientSocket sender, int errorCode);
-            public delegate void DOnRequestProcessed(CClientSocket sender, ushort requestId, uint len);
-            public delegate void DOnBaseRequestProcessed(CClientSocket sender, tagBaseRequestID requestId);
             public delegate void DOnServerException(CClientSocket sender, ushort requestId, string errMessage, string errWhere, int errCode);
-            public delegate void DOnAllRequestsProcessed(CClientSocket sender, ushort lastRequestId);
+
 
             internal object m_cs = new object(); //used for protecting events
 
@@ -48,16 +46,6 @@ namespace SocketProAdapter
                 }
             }
 
-            private UDelegate<DOnAllRequestsProcessed> m_lstAll;
-            public event DOnAllRequestsProcessed AllRequestsProcessed {
-                add {
-                    m_lstAll.add(value);
-                }
-                remove {
-                    m_lstAll.remove(value);
-                }
-            }
-
             private UDelegate<DOnServerException> m_lstSE;
             public event DOnServerException SeverException {
                 add {
@@ -65,6 +53,20 @@ namespace SocketProAdapter
                 }
                 remove {
                     m_lstSE.remove(value);
+                }
+            }
+#if ENABLE_SOCKET_REQUEST_AND_ALL_EVENTS
+            public delegate void DOnRequestProcessed(CClientSocket sender, ushort requestId, uint len);
+            public delegate void DOnBaseRequestProcessed(CClientSocket sender, tagBaseRequestID requestId);
+            public delegate void DOnAllRequestsProcessed(CClientSocket sender, ushort lastRequestId);
+
+            private UDelegate<DOnAllRequestsProcessed> m_lstAll;
+            public event DOnAllRequestsProcessed AllRequestsProcessed {
+                add {
+                    m_lstAll.add(value);
+                }
+                remove {
+                    m_lstAll.remove(value);
                 }
             }
 
@@ -87,7 +89,7 @@ namespace SocketProAdapter
                     m_lstBRP.remove(value);
                 }
             }
-
+#endif
             private List<CAsyncServiceHandler> m_lstAsh = new List<CAsyncServiceHandler>();
 
             public const uint DEFAULT_RECV_TIMEOUT = 30000;
@@ -147,12 +149,13 @@ namespace SocketProAdapter
                 m_sume += new POnSendUserMessageEx(OnPUMessageEx);
                 m_sum += new POnSendUserMessage(OnPUMessage);
                 m_pp += new POnPostProcessing(OnPostProcessing);
-
+#if ENABLE_SOCKET_REQUEST_AND_ALL_EVENTS
                 m_lstBRP = new UDelegate<DOnBaseRequestProcessed>(m_cs);
                 m_lstAll = new UDelegate<DOnAllRequestsProcessed>(m_cs);
+                m_lstRP = new UDelegate<DOnRequestProcessed>(m_cs);
+#endif
                 m_lstClosed = new UDelegate<DOnSocketClosed>(m_cs);
                 m_lstConnected = new UDelegate<DOnSocketConnected>(m_cs);
-                m_lstRP = new UDelegate<DOnRequestProcessed>(m_cs);
                 m_lstSE = new UDelegate<DOnServerException>(m_cs);
                 m_lstShake = new UDelegate<DOnHandShakeCompleted>(m_cs);
             }
@@ -710,6 +713,7 @@ namespace SocketProAdapter
                     ash.onRR(requestId, q);
                     CScopeUQueue.Unlock(q);
                 }
+#if ENABLE_SOCKET_REQUEST_AND_ALL_EVENTS
                 lock (m_cs)
                 {
                     foreach (var el in m_lstRP)
@@ -717,6 +721,7 @@ namespace SocketProAdapter
                         el.Invoke(this, requestId, len);
                     }
                 }
+#endif
             }
 
             private CMessageSender ToMessageSender(CMessageSenderCe senderCe)
@@ -867,6 +872,7 @@ namespace SocketProAdapter
                     if ((tagBaseRequestID)requestId == tagBaseRequestID.idCancel)
                         ash.CleanCallbacks();
                 }
+#if ENABLE_SOCKET_REQUEST_AND_ALL_EVENTS
                 lock (m_cs)
                 {
                     foreach (var el in m_lstBRP)
@@ -874,6 +880,7 @@ namespace SocketProAdapter
                         el.Invoke(this, (tagBaseRequestID)requestId);
                     }
                 }
+#endif
             }
 
             private void OnARProcessed(IntPtr handler, ushort lastRequestId)
@@ -881,6 +888,7 @@ namespace SocketProAdapter
                 CAsyncServiceHandler ash = Seek(CurrentServiceID);
                 if (ash != null)
                     ash.OnAll();
+#if ENABLE_SOCKET_REQUEST_AND_ALL_EVENTS
                 lock (m_cs)
                 {
                     foreach (var el in m_lstAll)
@@ -888,6 +896,7 @@ namespace SocketProAdapter
                         el.Invoke(this, lastRequestId);
                     }
                 }
+#endif
             }
 
             private void OnPostProcessing(IntPtr handler, uint hint, ulong data)

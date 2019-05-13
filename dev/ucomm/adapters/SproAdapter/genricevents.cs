@@ -1,5 +1,4 @@
-﻿
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace SocketProAdapter
 {
@@ -49,5 +48,4 @@ namespace SocketProAdapter
             private object m_cs;
         }
     }
-
 }
