@@ -1,3 +1,7 @@
+85. SocketPro Version 6.3.0.1
+	(a) Add the method PostProcessing to dispatch requests from calling thread onto pool worker thread at client side
+	(b) Upgrade CStreamingFile at client side to use PostProcessing for all adapters
+
 84. SocketPro Version 6.2.0.1-4
 	(a) Add support of TLSv1.2 and TLSv1.3, and disable SSL3
 	(b) Remove a potential dead-lock related with routing at server side
