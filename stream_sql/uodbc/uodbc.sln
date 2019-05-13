@@ -1,6 +1,8 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2010
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.25420.1
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "netferf", "netperf\netferf.csproj", "{43A07740-F644-4FCF-A006-2C9CCF822CAD}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sodbc", "sodbc\sodbc.vcxproj", "{A172B3E3-784D-4BB7-BDA3-5D932A62F70E}"
@@ -108,17 +110,19 @@ Global
 		{848291AB-8DF7-40D9-815F-5669FAB71B18}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
 		{848291AB-8DF7-40D9-815F-5669FAB71B18}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
 		{848291AB-8DF7-40D9-815F-5669FAB71B18}.Debug|Win32.ActiveCfg = Debug|Any CPU
-		{848291AB-8DF7-40D9-815F-5669FAB71B18}.Debug|x64.ActiveCfg = Debug|x86
-		{848291AB-8DF7-40D9-815F-5669FAB71B18}.Debug|x86.ActiveCfg = Debug|x86
-		{848291AB-8DF7-40D9-815F-5669FAB71B18}.Debug|x86.Build.0 = Debug|x86
+		{848291AB-8DF7-40D9-815F-5669FAB71B18}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{848291AB-8DF7-40D9-815F-5669FAB71B18}.Debug|x64.Build.0 = Debug|Any CPU
+		{848291AB-8DF7-40D9-815F-5669FAB71B18}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{848291AB-8DF7-40D9-815F-5669FAB71B18}.Debug|x86.Build.0 = Debug|Any CPU
 		{848291AB-8DF7-40D9-815F-5669FAB71B18}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{848291AB-8DF7-40D9-815F-5669FAB71B18}.Release|Any CPU.Build.0 = Release|Any CPU
 		{848291AB-8DF7-40D9-815F-5669FAB71B18}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{848291AB-8DF7-40D9-815F-5669FAB71B18}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{848291AB-8DF7-40D9-815F-5669FAB71B18}.Release|Win32.ActiveCfg = Release|Any CPU
-		{848291AB-8DF7-40D9-815F-5669FAB71B18}.Release|x64.ActiveCfg = Release|x86
-		{848291AB-8DF7-40D9-815F-5669FAB71B18}.Release|x86.ActiveCfg = Release|x86
-		{848291AB-8DF7-40D9-815F-5669FAB71B18}.Release|x86.Build.0 = Release|x86
+		{848291AB-8DF7-40D9-815F-5669FAB71B18}.Release|x64.ActiveCfg = Release|Any CPU
+		{848291AB-8DF7-40D9-815F-5669FAB71B18}.Release|x64.Build.0 = Release|Any CPU
+		{848291AB-8DF7-40D9-815F-5669FAB71B18}.Release|x86.ActiveCfg = Release|Any CPU
+		{848291AB-8DF7-40D9-815F-5669FAB71B18}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
