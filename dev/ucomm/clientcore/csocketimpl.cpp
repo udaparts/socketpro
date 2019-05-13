@@ -15,14 +15,11 @@
 
 #ifndef WINCE
 extern std::mutex g_mutex;
-std::mutex g_Mutex;
 #else
-
 extern boost::mutex g_mutex;
-boost::mutex g_Mutex;
 #endif
 
-CClientSession *MapHandleToClientSession(USocket_Client_Handle h) {
+inline CClientSession *MapHandleToClientSession(USocket_Client_Handle h) {
     CClientSession *p = (CClientSession*) (h);
     return p;
 }
@@ -42,7 +39,6 @@ void WINAPI SetMessageQueuePassword(const char *pwd) {
 }
 
 void WINAPI Close(USocket_Client_Handle h) {
-    //CAutoLock al(g_Mutex);
     CClientSession *p = MapHandleToClientSession(h);
     if (p)
         p->Close();
@@ -50,17 +46,14 @@ void WINAPI Close(USocket_Client_Handle h) {
 
 bool WINAPI Connect(USocket_Client_Handle h, const char* host, unsigned int portNumber, bool sync, bool v6) {
     bool ok = false;
-    //CAutoLock al(g_Mutex);
     CClientSession *p = MapHandleToClientSession(h);
     if (p) {
-        //CRAutoLock ral(g_Mutex);
         ok = p->Connect(host, portNumber, sync, v6);
     }
     return ok;
 }
 
 unsigned int WINAPI GetCountOfRequestsQueued(USocket_Client_Handle h) {
-    //CAutoLock al(g_Mutex);
     CClientSession *p = MapHandleToClientSession(h);
     if (p)
         return p->GetCountOfRequestsInQueue();
@@ -68,7 +61,6 @@ unsigned int WINAPI GetCountOfRequestsQueued(USocket_Client_Handle h) {
 }
 
 unsigned short WINAPI GetCurrentRequestID(USocket_Client_Handle h) {
-    //CAutoLock al(g_Mutex);
     CClientSession *p = MapHandleToClientSession(h);
     if (p)
         return p->GetCurrentRequestID();
@@ -76,7 +68,6 @@ unsigned short WINAPI GetCurrentRequestID(USocket_Client_Handle h) {
 }
 
 unsigned int WINAPI GetCurrentResultSize(USocket_Client_Handle h) {
-    //CAutoLock al(g_Mutex);
     CClientSession *p = MapHandleToClientSession(h);
     if (p)
         return p->GetCurrentResultSize();
@@ -84,7 +75,6 @@ unsigned int WINAPI GetCurrentResultSize(USocket_Client_Handle h) {
 }
 
 SPA::tagEncryptionMethod WINAPI GetEncryptionMethod(USocket_Client_Handle h) {
-    //CAutoLock al(g_Mutex);
     CClientSession *p = MapHandleToClientSession(h);
     if (p)
         return p->GetEncryptionMethod();
@@ -92,7 +82,6 @@ SPA::tagEncryptionMethod WINAPI GetEncryptionMethod(USocket_Client_Handle h) {
 }
 
 int WINAPI GetErrorCode(USocket_Client_Handle h) {
-    //CAutoLock al(g_Mutex);
     CClientSession *p = MapHandleToClientSession(h);
     if (p)
         return p->GetErrorCode();
@@ -100,7 +89,6 @@ int WINAPI GetErrorCode(USocket_Client_Handle h) {
 }
 
 SPA::tagOperationSystem WINAPI GetPeerOs(USocket_Client_Handle h, bool *endian) {
-    //CAutoLock al(g_Mutex);
     CClientSession *p = MapHandleToClientSession(h);
     if (p)
         return p->GetPeerOs(endian);
@@ -110,7 +98,6 @@ SPA::tagOperationSystem WINAPI GetPeerOs(USocket_Client_Handle h, bool *endian) 
 }
 
 bool WINAPI GetPeerName(USocket_Client_Handle h, unsigned int *peerPort, char *strIpAddr, unsigned short bufferLen) {
-    //CAutoLock al(g_Mutex);
     CClientSession *p = MapHandleToClientSession(h);
     if (p)
         return p->GetPeerName(peerPort, strIpAddr, bufferLen);
@@ -118,7 +105,6 @@ bool WINAPI GetPeerName(USocket_Client_Handle h, unsigned int *peerPort, char *s
 }
 
 bool WINAPI GetSockAddr(USocket_Client_Handle h, unsigned int *sockPort, char *strIPAddrBuffer, unsigned short chars) {
-    //CAutoLock al(g_Mutex);
     CClientSession *p = MapHandleToClientSession(h);
     if (p)
         return p->GetSockAddr(sockPort, strIPAddrBuffer, chars);
@@ -126,7 +112,6 @@ bool WINAPI GetSockAddr(USocket_Client_Handle h, unsigned int *sockPort, char *s
 }
 
 unsigned int WINAPI GetErrorMessage(USocket_Client_Handle h, char *str, unsigned int bufferLen) {
-    //CAutoLock al(g_Mutex);
     CClientSession *p = MapHandleToClientSession(h);
     if (!p)
         return 0;
@@ -145,7 +130,6 @@ unsigned int WINAPI GetErrorMessage(USocket_Client_Handle h, char *str, unsigned
 }
 
 unsigned int WINAPI GetSocketPoolId(USocket_Client_Handle h) {
-    //CAutoLock al(g_Mutex);
     CClientSession *p = MapHandleToClientSession(h);
     if (p) {
         CSocketPool *pool = p->GetSocketPool();
@@ -156,7 +140,6 @@ unsigned int WINAPI GetSocketPoolId(USocket_Client_Handle h) {
 }
 
 bool WINAPI IsOpened(USocket_Client_Handle h) {
-    //CAutoLock al(g_Mutex);
     CClientSession *p = MapHandleToClientSession(h);
     if (p)
         return p->IsOpened();
@@ -164,9 +147,7 @@ bool WINAPI IsOpened(USocket_Client_Handle h) {
 }
 
 unsigned int WINAPI RetrieveResult(USocket_Client_Handle h, unsigned char *pBuffer, unsigned int size) {
-    //g_Mutex.lock();
     CClientSession *p = MapHandleToClientSession(h);
-    //g_Mutex.unlock();
     if (p) {
         return p->RetrieveResult(pBuffer, size);
     }
@@ -174,66 +155,55 @@ unsigned int WINAPI RetrieveResult(USocket_Client_Handle h, unsigned char *pBuff
 }
 
 bool WINAPI SendRequest(USocket_Client_Handle h, unsigned short reqId, const unsigned char *pBuffer, unsigned int len) {
-    bool ok = false;
-    //g_Mutex.lock();
     CClientSession *p = MapHandleToClientSession(h);
-    //g_Mutex.unlock();
     if (p) {
-        ok = p->SendRequest(reqId, pBuffer, len);
+        return p->SendRequest(reqId, pBuffer, len);
     }
-    return ok;
+    return false;
 }
 
 void WINAPI SetEncryptionMethod(USocket_Client_Handle h, SPA::tagEncryptionMethod em) {
-    //CAutoLock al(g_Mutex);
     CClientSession *p = MapHandleToClientSession(h);
     if (p)
         p->SetEncryptionMethod(em);
 }
 
 void WINAPI SetOnHandShakeCompleted(USocket_Client_Handle h, POnHandShakeCompleted p) {
-    //CAutoLock al(g_Mutex);
     CClientSession *s = MapHandleToClientSession(h);
     if (s)
         s->SetOnHandShakeCompleted(p);
 }
 
 void WINAPI SetOnRequestProcessed(USocket_Client_Handle h, POnRequestProcessed p) {
-    //CAutoLock al(g_Mutex);
     CClientSession *s = MapHandleToClientSession(h);
     if (s)
         s->SetOnRequestProcessed(p);
 }
 
 void WINAPI SetOnServerException(USocket_Client_Handle h, POnServerException p) {
-    //CAutoLock al(g_Mutex);
     CClientSession *s = MapHandleToClientSession(h);
     if (s)
         s->SetOnServerException(p);
 }
 
 void WINAPI SetOnSocketClosed(USocket_Client_Handle h, POnSocketClosed p) {
-    //CAutoLock al(g_Mutex);
     CClientSession *s = MapHandleToClientSession(h);
     s->SetOnSocketClosed(p);
 }
 
 void WINAPI SetOnSocketConnected(USocket_Client_Handle h, POnSocketConnected p) {
-    //CAutoLock al(g_Mutex);
     CClientSession *s = MapHandleToClientSession(h);
     if (s)
         s->SetOnSocketConnected(p);
 }
 
 void WINAPI SetOnBaseRequestProcessed(USocket_Client_Handle h, POnBaseRequestProcessed p) {
-    //CAutoLock al(g_Mutex);
     CClientSession *s = MapHandleToClientSession(h);
     if (s)
         s->SetOnBaseRequestProcessed(p);
 }
 
 void WINAPI SetOnAllRequestsProcessed(USocket_Client_Handle h, POnAllRequestsProcessed p) {
-    //CAutoLock al(g_Mutex);
     CClientSession *s = MapHandleToClientSession(h);
     if (s)
         s->SetOnAllRequestsProcessed(p);
@@ -246,7 +216,6 @@ void WINAPI SetOnPostProcessing(USocket_Client_Handle h, POnPostProcessing p) {
 }
 
 void WINAPI Shutdown(USocket_Client_Handle h, SPA::tagShutdownType how) {
-    //CAutoLock al(g_Mutex);
     CClientSession *s = MapHandleToClientSession(h);
     if (s)
         s->Shutdown((nsIP::tcp::socket::shutdown_type)how);
@@ -254,9 +223,7 @@ void WINAPI Shutdown(USocket_Client_Handle h, SPA::tagShutdownType how) {
 
 bool WINAPI WaitAll(USocket_Client_Handle h, unsigned int nTimeout) {
     bool ok = false;
-    //g_Mutex.lock();
     CClientSession *p = MapHandleToClientSession(h);
-    //g_Mutex.unlock();
     if (p) {
         ok = p->WaitAll(nTimeout);
     }
@@ -264,17 +231,14 @@ bool WINAPI WaitAll(USocket_Client_Handle h, unsigned int nTimeout) {
 }
 
 bool WINAPI Cancel(USocket_Client_Handle h, unsigned int requestsQueued) {
-    //CAutoLock al(g_Mutex);
     CClientSession *p = MapHandleToClientSession(h);
     if (p) {
-        //CRAutoLock ral(g_Mutex);
         return p->Cancel(requestsQueued);
     }
     return false;
 }
 
 bool WINAPI IsRandom(USocket_Client_Handle h) {
-    //CAutoLock al(g_Mutex);
     CClientSession *p = MapHandleToClientSession(h);
     if (p)
         return p->IsRandom();
@@ -282,7 +246,6 @@ bool WINAPI IsRandom(USocket_Client_Handle h) {
 }
 
 const SPA::CSwitchInfo* WINAPI GetServerInfo(USocket_Client_Handle h) {
-    //CAutoLock al(g_Mutex);
     CClientSession *p = MapHandleToClientSession(h);
     if (p)
         return p->GetServerInfo();
@@ -290,7 +253,6 @@ const SPA::CSwitchInfo* WINAPI GetServerInfo(USocket_Client_Handle h) {
 }
 
 const SPA::CSwitchInfo* WINAPI GetClientInfo(USocket_Client_Handle h) {
-    //CAutoLock al(g_Mutex);
     CClientSession *p = MapHandleToClientSession(h);
     if (p)
         return p->GetClientInfo();
@@ -298,7 +260,6 @@ const SPA::CSwitchInfo* WINAPI GetClientInfo(USocket_Client_Handle h) {
 }
 
 unsigned int WINAPI GetCurrentServiceId(USocket_Client_Handle h) {
-    //CAutoLock al(g_Mutex);
     CClientSession *p = MapHandleToClientSession(h);
     if (p)
         return p->GetCurrentServiceId();
@@ -306,14 +267,12 @@ unsigned int WINAPI GetCurrentServiceId(USocket_Client_Handle h) {
 }
 
 void WINAPI SetClientInfo(USocket_Client_Handle h, SPA::CSwitchInfo si) {
-    //CAutoLock al(g_Mutex);
     CClientSession *p = MapHandleToClientSession(h);
     if (p)
         p->SetClientInfo(si);
 }
 
 unsigned int WINAPI GetBytesInSendingBuffer(USocket_Client_Handle h) {
-    //CAutoLock al(g_Mutex);
     CClientSession *p = MapHandleToClientSession(h);
     if (p)
         return p->GetBytesInSendingBuffer();
@@ -321,7 +280,6 @@ unsigned int WINAPI GetBytesInSendingBuffer(USocket_Client_Handle h) {
 }
 
 unsigned int WINAPI GetBytesInReceivingBuffer(USocket_Client_Handle h) {
-    //CAutoLock al(g_Mutex);
     CClientSession *p = MapHandleToClientSession(h);
     if (p)
         return p->GetBytesInReceivingBuffer();
@@ -329,18 +287,13 @@ unsigned int WINAPI GetBytesInReceivingBuffer(USocket_Client_Handle h) {
 }
 
 bool WINAPI IsBatching(USocket_Client_Handle h) {
-    CClientSession *p;
-    {
-        //CAutoLock al(g_Mutex);
-        p = MapHandleToClientSession(h);
-        if (!p)
-            return false;
-    }
+    CClientSession *p = MapHandleToClientSession(h);
+    if (!p)
+        return false;
     return p->IsBatching();
 }
 
 unsigned int WINAPI GetBytesBatched(USocket_Client_Handle h) {
-    //CAutoLock al(g_Mutex);
     CClientSession *p = MapHandleToClientSession(h);
     if (p)
         return p->GetBytesBatched();
@@ -348,7 +301,6 @@ unsigned int WINAPI GetBytesBatched(USocket_Client_Handle h) {
 }
 
 bool WINAPI StartBatching(USocket_Client_Handle h) {
-    //CAutoLock al(g_Mutex);
     CClientSession *p = MapHandleToClientSession(h);
     if (p)
         return p->StartBatching();
@@ -356,18 +308,14 @@ bool WINAPI StartBatching(USocket_Client_Handle h) {
 }
 
 bool WINAPI CommitBatching(USocket_Client_Handle h, bool bBatchingAtServerSide) {
-    bool ok = false;
-    //CAutoLock al(g_Mutex);
     CClientSession *p = MapHandleToClientSession(h);
     if (p) {
-        //CRAutoLock ral(g_Mutex);
-        ok = p->CommitBatching(bBatchingAtServerSide);
+        return p->CommitBatching(bBatchingAtServerSide);
     }
-    return ok;
+    return false;
 }
 
 bool WINAPI AbortBatching(USocket_Client_Handle h) {
-    //CAutoLock al(g_Mutex);
     CClientSession *p = MapHandleToClientSession(h);
     if (p)
         return p->AbortBatching();
@@ -375,7 +323,6 @@ bool WINAPI AbortBatching(USocket_Client_Handle h) {
 }
 
 SPA::UINT64 WINAPI GetBytesReceived(USocket_Client_Handle h) {
-    //CAutoLock al(g_Mutex);
     CClientSession *p = MapHandleToClientSession(h);
     if (p)
         return p->GetBytesReceived();
@@ -383,7 +330,6 @@ SPA::UINT64 WINAPI GetBytesReceived(USocket_Client_Handle h) {
 }
 
 SPA::UINT64 WINAPI GetBytesSent(USocket_Client_Handle h) {
-    //CAutoLock al(g_Mutex);
     CClientSession *p = MapHandleToClientSession(h);
     if (p)
         return p->GetBytesSent();
@@ -391,7 +337,6 @@ SPA::UINT64 WINAPI GetBytesSent(USocket_Client_Handle h) {
 }
 
 void WINAPI SetUserID(USocket_Client_Handle h, const wchar_t *strUserId) {
-    //CAutoLock al(g_Mutex);
     CClientSession *p = MapHandleToClientSession(h);
     if (p) {
         if (!strUserId) {
@@ -407,14 +352,12 @@ void WINAPI SetUserID(USocket_Client_Handle h, const wchar_t *strUserId) {
 }
 
 void WINAPI SetZip(USocket_Client_Handle h, bool zip) {
-    //CAutoLock al(g_Mutex);
     CClientSession *p = MapHandleToClientSession(h);
     if (p)
         p->SetZip(zip);
 }
 
 bool WINAPI GetZip(USocket_Client_Handle h) {
-    //CAutoLock al(g_Mutex);
     CClientSession *p = MapHandleToClientSession(h);
     if (p)
         return p->GetZip();
@@ -422,14 +365,12 @@ bool WINAPI GetZip(USocket_Client_Handle h) {
 }
 
 void WINAPI SetZipLevel(USocket_Client_Handle h, SPA::tagZipLevel zl) {
-    //CAutoLock al(g_Mutex);
     CClientSession *p = MapHandleToClientSession(h);
     if (p)
         p->SetZipLevel(zl);
 }
 
 SPA::tagZipLevel WINAPI GetZipLevel(USocket_Client_Handle h) {
-    //CAutoLock al(g_Mutex);
     CClientSession *p = MapHandleToClientSession(h);
     if (p)
         return p->GetZipLevel();
@@ -437,26 +378,21 @@ SPA::tagZipLevel WINAPI GetZipLevel(USocket_Client_Handle h) {
 }
 
 bool WINAPI StartQueue(USocket_Client_Handle h, const char *qName, bool secure, bool dequeueShared, unsigned int ttl) {
-    //CAutoLock al(g_Mutex);
     CClientSession *p = MapHandleToClientSession(h);
     if (p) {
-        //CRAutoLock ral(g_Mutex);
         return p->StartQueue(qName, secure, dequeueShared, ttl);
     }
     return false;
 }
 
 void WINAPI StopQueue(USocket_Client_Handle h, bool permanent) {
-    //CAutoLock al(g_Mutex);
     CClientSession *p = MapHandleToClientSession(h);
     if (p) {
-        //CRAutoLock ral(g_Mutex);
         p->StopQueue(permanent);
     }
 }
 
 bool WINAPI DequeuedResult(USocket_Client_Handle h) {
-    //CAutoLock al(g_Mutex);
     CClientSession *p = MapHandleToClientSession(h);
     if (p)
         return p->DequeuedResult();
@@ -468,7 +404,6 @@ void WINAPI UseUTF16() {
 }
 
 unsigned int WINAPI GetUID(USocket_Client_Handle h, wchar_t *strUserId, unsigned int chars) {
-    //CAutoLock al(g_Mutex);
     CClientSession *p = MapHandleToClientSession(h);
     if (p) {
         if (!chars || !strUserId)
@@ -500,7 +435,6 @@ unsigned int WINAPI GetUID(USocket_Client_Handle h, wchar_t *strUserId, unsigned
 }
 
 void WINAPI SetPassword(USocket_Client_Handle h, const wchar_t *strPassword) {
-    //CAutoLock al(g_Mutex);
     CClientSession *p = MapHandleToClientSession(h);
     if (p) {
         if (!strPassword) {
@@ -516,59 +450,47 @@ void WINAPI SetPassword(USocket_Client_Handle h, const wchar_t *strPassword) {
 }
 
 bool WINAPI SwitchTo(USocket_Client_Handle h, unsigned int serviceId) {
-    //CAutoLock al(g_Mutex);
     CClientSession *p = MapHandleToClientSession(h);
     if (p) {
-        //CRAutoLock ral(g_Mutex);
         return p->SwitchTo(serviceId);
     }
     return false;
 }
 
 bool WINAPI Enter(USocket_Client_Handle h, const unsigned int *pChatGroupId, unsigned int nCount) {
-    //CAutoLock al(g_Mutex);
     CClientSession *p = MapHandleToClientSession(h);
     if (p) {
-        //CRAutoLock ral(g_Mutex);
         return p->Enter(pChatGroupId, nCount);
     }
     return false;
 }
 
 void WINAPI Exit(USocket_Client_Handle h) {
-    //CAutoLock al(g_Mutex);
     CClientSession *p = MapHandleToClientSession(h);
     if (p) {
-        //CRAutoLock ral(g_Mutex);
         p->Exit();
     }
 }
 
 bool WINAPI SpeakEx(USocket_Client_Handle h, const unsigned char *message, unsigned int size, const unsigned int *pChatGroupId, unsigned int nCount) {
-    //CAutoLock al(g_Mutex);
     CClientSession *p = MapHandleToClientSession(h);
     if (p) {
-        //CRAutoLock ral(g_Mutex);
         return p->SpeakEx(message, size, pChatGroupId, nCount);
     }
     return false;
 }
 
 bool WINAPI Speak(USocket_Client_Handle h, const unsigned char *message, unsigned int size, const unsigned int *pChatGroupId, unsigned int nCount) {
-    //CAutoLock al(g_Mutex);
     CClientSession *p = MapHandleToClientSession(h);
     if (p) {
-        //CRAutoLock ral(g_Mutex);
         return p->Speak(message, size, pChatGroupId, nCount);
     }
     return false;
 }
 
 bool WINAPI SendUserMessageEx(USocket_Client_Handle h, const wchar_t *userId, const unsigned char *message, unsigned int size) {
-    //CAutoLock al(g_Mutex);
     CClientSession *p = MapHandleToClientSession(h);
     if (p) {
-        //CRAutoLock ral(g_Mutex);
         if (SPA::g_bAdapterUTF16 && sizeof (wchar_t) != sizeof (SPA::UTF16)) {
             const SPA::UTF16 *str = (const SPA::UTF16 *)userId;
             unsigned int len = SPA::Utilities::GetLen(str);
@@ -581,25 +503,20 @@ bool WINAPI SendUserMessageEx(USocket_Client_Handle h, const wchar_t *userId, co
 }
 
 bool WINAPI SendUserMessage(USocket_Client_Handle h, const wchar_t *userId, const unsigned char *message, unsigned int size) {
-    bool ok;
-    //CAutoLock al(g_Mutex);
     CClientSession *p = MapHandleToClientSession(h);
     if (p) {
-        //CRAutoLock ral(g_Mutex);
         if (SPA::g_bAdapterUTF16 && sizeof (wchar_t) != sizeof (SPA::UTF16)) {
             const SPA::UTF16 *str = (const SPA::UTF16 *)userId;
             unsigned int len = SPA::Utilities::GetLen(str);
             std::wstring s = SPA::ToNativeString(str, len);
-            ok = p->SendUserMessage(s.c_str(), message, size);
+            return p->SendUserMessage(s.c_str(), message, size);
         } else
-            ok = p->SendUserMessage(userId, message, size);
-        return ok;
+            return p->SendUserMessage(userId, message, size);
     }
     return false;
 }
 
 SPA::UINT64 WINAPI GetSocketNativeHandle(USocket_Client_Handle h) {
-    //CAutoLock al(g_Mutex);
     CClientSession *p = MapHandleToClientSession(h);
     if (p)
         return p->GetSocketNativeHandle();
@@ -607,21 +524,18 @@ SPA::UINT64 WINAPI GetSocketNativeHandle(USocket_Client_Handle h) {
 }
 
 void WINAPI SetOnEnter(USocket_Client_Handle h, POnEnter p) {
-    //CAutoLock al(g_Mutex);
     CClientSession *cs = MapHandleToClientSession(h);
     if (cs)
         cs->SetOnEnter(p);
 }
 
 void WINAPI SetOnExit(USocket_Client_Handle h, POnExit p) {
-    //CAutoLock al(g_Mutex);
     CClientSession *cs = MapHandleToClientSession(h);
     if (cs)
         cs->SetOnExit(p);
 }
 
 void WINAPI SetOnSpeakEx(USocket_Client_Handle h, POnSpeakEx p) {
-    //CAutoLock al(g_Mutex);
     CClientSession *cs = MapHandleToClientSession(h);
     if (cs)
         cs->SetOnSpeakEx(p);
@@ -634,63 +548,54 @@ void WINAPI SetOnSpeak(USocket_Client_Handle h, POnSpeak p) {
 }
 
 void WINAPI SetOnSendUserMessageEx(USocket_Client_Handle h, POnSendUserMessageEx p) {
-    //CAutoLock al(g_Mutex);
     CClientSession *cs = MapHandleToClientSession(h);
     if (cs)
         cs->SetOnSendUserMessageEx(p);
 }
 
 void WINAPI SetOnSendUserMessage(USocket_Client_Handle h, POnSendUserMessage p) {
-    //CAutoLock al(g_Mutex);
     CClientSession *cs = MapHandleToClientSession(h);
     if (cs)
         cs->SetOnSendUserMessage(p);
 }
 
 void WINAPI SetOnEnter2(USocket_Client_Handle h, POnEnter2 p) {
-    //CAutoLock al(g_Mutex);
     CClientSession *cs = MapHandleToClientSession(h);
     if (cs)
         cs->m_OnSubscribe2 = p;
 }
 
 void WINAPI SetOnExit2(USocket_Client_Handle h, POnExit2 p) {
-    //CAutoLock al(g_Mutex);
     CClientSession *cs = MapHandleToClientSession(h);
     if (cs)
         cs->m_OnUnsubscribe2 = p;
 }
 
 void WINAPI SetOnSpeakEx2(USocket_Client_Handle h, POnSpeakEx2 p) {
-    //CAutoLock al(g_Mutex);
     CClientSession *cs = MapHandleToClientSession(h);
     if (cs)
         cs->m_OnBroadcastEx2 = p;
 }
 
 void WINAPI SetOnSendUserMessageEx2(USocket_Client_Handle h, POnSendUserMessageEx2 p) {
-    //CAutoLock al(g_Mutex);
     CClientSession *cs = MapHandleToClientSession(h);
     if (cs)
         cs->m_OnPostUserMessageEx2 = p;
 }
 
 void WINAPI SetOnSendUserMessage2(USocket_Client_Handle h, POnSendUserMessage2 p) {
-    //CAutoLock al(g_Mutex);
     CClientSession *cs = MapHandleToClientSession(h);
     if (cs)
         cs->m_OnPostUserMessage2 = p;
 }
 
 void WINAPI SetOnSpeak2(USocket_Client_Handle h, POnSpeak2 p) {
-    //CAutoLock al(g_Mutex);
     CClientSession *cs = MapHandleToClientSession(h);
     if (cs)
         cs->m_OnBroadcast2 = p;
 }
 
 unsigned int WINAPI GetMessagesInDequeuing(USocket_Client_Handle h) {
-    //CAutoLock al(g_Mutex);
     CClientSession *cs = MapHandleToClientSession(h);
     if (cs)
         return cs->GetMessagesInDequeuing();
@@ -698,7 +603,6 @@ unsigned int WINAPI GetMessagesInDequeuing(USocket_Client_Handle h) {
 }
 
 SPA::UINT64 WINAPI GetQueueLastIndex(USocket_Client_Handle h) {
-    //CAutoLock al(g_Mutex);
     CClientSession *cs = MapHandleToClientSession(h);
     if (cs)
         return cs->GetQueueLastIndex();
@@ -706,7 +610,6 @@ SPA::UINT64 WINAPI GetQueueLastIndex(USocket_Client_Handle h) {
 }
 
 SPA::UINT64 WINAPI GetMessageCount(USocket_Client_Handle h) {
-    //CAutoLock al(g_Mutex);
     CClientSession *cs = MapHandleToClientSession(h);
     if (cs)
         return cs->GetMessageCount();
@@ -714,17 +617,14 @@ SPA::UINT64 WINAPI GetMessageCount(USocket_Client_Handle h) {
 }
 
 SPA::UINT64 WINAPI GetQueueSize(USocket_Client_Handle h) {
-    //CAutoLock al(g_Mutex);
     CClientSession *cs = MapHandleToClientSession(h);
     if (cs) {
-        //CRAutoLock ral(g_Mutex);
         return cs->GetQueueSize();
     }
     return 0;
 }
 
 bool WINAPI IsDequeueShared(USocket_Client_Handle h) {
-    //CAutoLock al(g_Mutex);
     CClientSession *cs = MapHandleToClientSession(h);
     if (cs) {
         return cs->IsDequeueShared();
@@ -733,17 +633,14 @@ bool WINAPI IsDequeueShared(USocket_Client_Handle h) {
 }
 
 SPA::UINT64 WINAPI CancelQueuedRequestsByIndex(USocket_Client_Handle h, SPA::UINT64 startIndex, SPA::UINT64 endIndex) {
-    //CAutoLock al(g_Mutex);
     CClientSession *cs = MapHandleToClientSession(h);
     if (cs) {
-        //CRAutoLock ral(g_Mutex);
         return cs->CancelQueuedRequests(startIndex, endIndex);
     }
     return 0;
 }
 
 bool WINAPI IsQueueSecured(USocket_Client_Handle h) {
-    //CAutoLock al(g_Mutex);
     CClientSession *cs = MapHandleToClientSession(h);
     if (cs)
         return cs->IsQueueSecured();
@@ -751,7 +648,6 @@ bool WINAPI IsQueueSecured(USocket_Client_Handle h) {
 }
 
 const char* WINAPI GetQueueName(USocket_Client_Handle h) {
-    //CAutoLock al(g_Mutex);
     CClientSession *cs = MapHandleToClientSession(h);
     if (cs)
         return cs->GetQueueName();
@@ -759,17 +655,14 @@ const char* WINAPI GetQueueName(USocket_Client_Handle h) {
 }
 
 unsigned int WINAPI CancelQueuedRequests(USocket_Client_Handle h, const unsigned short *ids, unsigned int count) {
-    //CAutoLock al(g_Mutex);
     CClientSession *cs = MapHandleToClientSession(h);
     if (cs) {
-        //CRAutoLock ral(g_Mutex);
         return cs->CancelQueuedRequests(ids, count);
     }
     return 0;
 }
 
 SPA::tagOptimistic WINAPI GetOptimistic(USocket_Client_Handle h) {
-    //CAutoLock al(g_Mutex);
     CClientSession *cs = MapHandleToClientSession(h);
     if (cs)
         return cs->GetOptimistic();
@@ -777,30 +670,25 @@ SPA::tagOptimistic WINAPI GetOptimistic(USocket_Client_Handle h) {
 }
 
 const unsigned char* WINAPI GetResultBuffer(USocket_Client_Handle h) {
-    //g_Mutex.lock();
     CClientSession *cs = MapHandleToClientSession(h);
-    //g_Mutex.unlock();
     if (cs)
         return cs->GetResultBuffer();
     return nullptr;
 }
 
 void WINAPI SetOptimistic(USocket_Client_Handle h, SPA::tagOptimistic bOptimistic) {
-    //CAutoLock al(g_Mutex);
     CClientSession *cs = MapHandleToClientSession(h);
     if (cs)
         cs->SetOptimistic(bOptimistic);
 }
 
 void WINAPI PostProcessing(USocket_Client_Handle h, unsigned int hint, SPA::UINT64 data) {
-    //CAutoLock al(g_Mutex);
     CClientSession *cs = MapHandleToClientSession(h);
     if (cs)
         cs->PostProcessing(hint, data);
 }
 
 const char* WINAPI GetQueueFileName(USocket_Client_Handle h) {
-    //CAutoLock al(g_Mutex);
     CClientSession *cs = MapHandleToClientSession(h);
     if (cs)
         return cs->GetQueueFileName();
@@ -808,7 +696,6 @@ const char* WINAPI GetQueueFileName(USocket_Client_Handle h) {
 }
 
 bool WINAPI IsQueueStarted(USocket_Client_Handle h) {
-    //CAutoLock al(g_Mutex);
     CClientSession *cs = MapHandleToClientSession(h);
     if (cs)
         return cs->IsQueueStarted();
@@ -816,17 +703,14 @@ bool WINAPI IsQueueStarted(USocket_Client_Handle h) {
 }
 
 bool WINAPI DoEcho(USocket_Client_Handle h) {
-    //CAutoLock al(g_Mutex);
     CClientSession *cs = MapHandleToClientSession(h);
     if (cs) {
-        //CRAutoLock ral(g_Mutex);
         return cs->DoEcho();
     }
     return false;
 }
 
 bool WINAPI SetSockOpt(USocket_Client_Handle h, SPA::tagSocketOption optName, int optValue, SPA::tagSocketLevel level) {
-    //CAutoLock al(g_Mutex);
     CClientSession *cs = MapHandleToClientSession(h);
     if (cs)
         return cs->SetSockOpt(optName, optValue, level);
@@ -834,27 +718,22 @@ bool WINAPI SetSockOpt(USocket_Client_Handle h, SPA::tagSocketOption optName, in
 }
 
 bool WINAPI SetSockOptAtSvr(USocket_Client_Handle h, SPA::tagSocketOption optName, int optValue, SPA::tagSocketLevel level) {
-    //CAutoLock al(g_Mutex);
     CClientSession *cs = MapHandleToClientSession(h);
     if (cs) {
-        //CRAutoLock ral(g_Mutex);
         return cs->SetSockOptAtSvr(optName, optValue, level);
     }
     return false;
 }
 
 bool WINAPI TurnOnZipAtSvr(USocket_Client_Handle h, bool enableZip) {
-    //CAutoLock al(g_Mutex);
     CClientSession *cs = MapHandleToClientSession(h);
     if (cs) {
-        //CRAutoLock ral(g_Mutex);
         return cs->TurnOnZipAtSvr(enableZip);
     }
     return false;
 }
 
 bool WINAPI SetZipLevelAtSvr(USocket_Client_Handle h, SPA::tagZipLevel zipLevel) {
-    //CAutoLock al(g_Mutex);
     CClientSession *cs = MapHandleToClientSession(h);
     if (cs)
         return cs->SetZipLevelAtSvr(zipLevel);
@@ -862,14 +741,12 @@ bool WINAPI SetZipLevelAtSvr(USocket_Client_Handle h, SPA::tagZipLevel zipLevel)
 }
 
 void WINAPI SetRecvTimeout(USocket_Client_Handle h, unsigned int timeout) {
-    //CAutoLock al(g_Mutex);
     CClientSession *cs = MapHandleToClientSession(h);
     if (cs)
         cs->SetRecvTimeout(timeout);
 }
 
 unsigned int WINAPI GetRecvTimeout(USocket_Client_Handle h) {
-    //CAutoLock al(g_Mutex);
     CClientSession *cs = MapHandleToClientSession(h);
     if (cs)
         return cs->GetRecvTimeout();
@@ -877,14 +754,12 @@ unsigned int WINAPI GetRecvTimeout(USocket_Client_Handle h) {
 }
 
 void WINAPI SetConnTimeout(USocket_Client_Handle h, unsigned int timeout) {
-    //CAutoLock al(g_Mutex);
     CClientSession *cs = MapHandleToClientSession(h);
     if (cs)
         cs->SetConnTimeout(timeout);
 }
 
 unsigned int WINAPI GetConnTimeout(USocket_Client_Handle h) {
-    //CAutoLock al(g_Mutex);
     CClientSession *cs = MapHandleToClientSession(h);
     if (cs)
         return cs->GetConnTimeout();
@@ -892,14 +767,12 @@ unsigned int WINAPI GetConnTimeout(USocket_Client_Handle h) {
 }
 
 void WINAPI EnableRoutingQueueIndex(USocket_Client_Handle h, bool enable) {
-    //CAutoLock al(g_Mutex);
     CClientSession *cs = MapHandleToClientSession(h);
     if (cs)
         cs->EnableRoutingQueueIndex(enable);
 }
 
 bool WINAPI IsRoutingQueueIndexEnabled(USocket_Client_Handle h) {
-    //CAutoLock al(g_Mutex);
     CClientSession *cs = MapHandleToClientSession(h);
     if (cs)
         return cs->IsRoutingQueueIndexEnabled();
@@ -907,14 +780,12 @@ bool WINAPI IsRoutingQueueIndexEnabled(USocket_Client_Handle h) {
 }
 
 void WINAPI SetAutoConn(USocket_Client_Handle h, bool autoConnecting) {
-    //CAutoLock al(g_Mutex);
     CClientSession *cs = MapHandleToClientSession(h);
     if (cs)
         cs->SetAutoConn(autoConnecting);
 }
 
 bool WINAPI GetAutoConn(USocket_Client_Handle h) {
-    //CAutoLock al(g_Mutex);
     CClientSession *cs = MapHandleToClientSession(h);
     if (cs)
         return cs->GetAutoConn();
@@ -922,7 +793,6 @@ bool WINAPI GetAutoConn(USocket_Client_Handle h) {
 }
 
 bool WINAPI GetReturnRandom(USocket_Client_Handle h) {
-    //CAutoLock al(g_Mutex);
     CClientSession *cs = MapHandleToClientSession(h);
     if (cs)
         return cs->IsRandom();
@@ -930,7 +800,6 @@ bool WINAPI GetReturnRandom(USocket_Client_Handle h) {
 }
 
 unsigned short WINAPI GetServerPingTime(USocket_Client_Handle h) {
-    //CAutoLock al(g_Mutex);
     CClientSession *cs = MapHandleToClientSession(h);
     if (cs)
         return cs->GetServerPingTime();
@@ -938,7 +807,6 @@ unsigned short WINAPI GetServerPingTime(USocket_Client_Handle h) {
 }
 
 SPA::CertInfo* WINAPI GetUCert(USocket_Client_Handle h) {
-    //CAutoLock al(g_Mutex);
     CClientSession *cs = MapHandleToClientSession(h);
     if (cs)
         return cs->GetUCert();
@@ -946,7 +814,6 @@ SPA::CertInfo* WINAPI GetUCert(USocket_Client_Handle h) {
 }
 
 SPA::IUcert* WINAPI GetUCertEx(USocket_Client_Handle h) {
-    //CAutoLock al(g_Mutex);
     CClientSession *cs = MapHandleToClientSession(h);
     if (cs)
         return cs->GetUCert();
@@ -954,14 +821,12 @@ SPA::IUcert* WINAPI GetUCertEx(USocket_Client_Handle h) {
 }
 
 void WINAPI SetPeerDequeueFailed(USocket_Client_Handle h, bool fail) {
-    //CAutoLock al(g_Mutex);
     CClientSession *cs = MapHandleToClientSession(h);
     if (cs)
         cs->SetPeerDequeueFailed(fail);
 }
 
 bool WINAPI GetPeerDequeueFailed(USocket_Client_Handle h) {
-    //CAutoLock al(g_Mutex);
     CClientSession *cs = MapHandleToClientSession(h);
     if (cs)
         return cs->GetPeerDequeueFailed();
@@ -969,7 +834,6 @@ bool WINAPI GetPeerDequeueFailed(USocket_Client_Handle h) {
 }
 
 bool WINAPI IsRouteeRequest(USocket_Client_Handle h) {
-    //CAutoLock al(g_Mutex);
     CClientSession *cs = MapHandleToClientSession(h);
     if (cs)
         return cs->IsRouteeRequest();
@@ -977,16 +841,13 @@ bool WINAPI IsRouteeRequest(USocket_Client_Handle h) {
 }
 
 bool WINAPI AbortJob(USocket_Client_Handle h) {
-    //g_Mutex.lock();
     CClientSession *cs = MapHandleToClientSession(h);
-    //g_Mutex.unlock();
     if (cs)
         return cs->AbortJob();
     return false;
 }
 
 SPA::UINT64 WINAPI GetJobSize(USocket_Client_Handle h) {
-    //CAutoLock al(g_Mutex);
     CClientSession *cs = MapHandleToClientSession(h);
     if (cs)
         return cs->GetJobSize();
@@ -994,25 +855,20 @@ SPA::UINT64 WINAPI GetJobSize(USocket_Client_Handle h) {
 }
 
 bool WINAPI StartJob(USocket_Client_Handle h) {
-    //g_Mutex.lock();
     CClientSession *cs = MapHandleToClientSession(h);
-    //g_Mutex.unlock();
     if (cs)
         return cs->StartJob();
     return false;
 }
 
 bool WINAPI EndJob(USocket_Client_Handle h) {
-    //g_Mutex.lock();
     CClientSession *cs = MapHandleToClientSession(h);
-    //g_Mutex.unlock();
     if (cs)
         return cs->EndJob();
     return false;
 }
 
 bool WINAPI IsDequeueEnabled(USocket_Client_Handle h) {
-    //CAutoLock al(g_Mutex);
     CClientSession *cs = MapHandleToClientSession(h);
     if (cs)
         return cs->IsDequeueEnabled();
@@ -1020,7 +876,6 @@ bool WINAPI IsDequeueEnabled(USocket_Client_Handle h) {
 }
 
 void* WINAPI GetSSL(USocket_Client_Handle h) {
-    //CAutoLock al(g_Mutex);
     CClientSession *cs = MapHandleToClientSession(h);
     if (cs)
         return cs->GetSSL();
@@ -1028,7 +883,6 @@ void* WINAPI GetSSL(USocket_Client_Handle h) {
 }
 
 bool WINAPI IgnoreLastRequest(USocket_Client_Handle h, unsigned short reqId) {
-    //CAutoLock al(g_Mutex);
     CClientSession *cs = MapHandleToClientSession(h);
     if (cs)
         return cs->IgnoreLastRequest(reqId);
@@ -1036,7 +890,6 @@ bool WINAPI IgnoreLastRequest(USocket_Client_Handle h, unsigned short reqId) {
 }
 
 bool WINAPI SetVerifyLocation(const char *certFile) {
-    //CAutoLock al(g_Mutex);
 #if defined(OLD_IMPL)
     return CUCertImpl::SetVerifyLocation(certFile);
 #elif defined(_WIN32_WCE) || defined(WIN32_64)
@@ -1047,7 +900,6 @@ bool WINAPI SetVerifyLocation(const char *certFile) {
 }
 
 const char* WINAPI Verify(USocket_Client_Handle h, int *errCode) {
-    //CAutoLock al(g_Mutex);
     CClientSession *cs = MapHandleToClientSession(h);
     if (cs) {
         SPA::IUcert *p = cs->GetUCert();
@@ -1059,19 +911,14 @@ const char* WINAPI Verify(USocket_Client_Handle h, int *errCode) {
 }
 
 unsigned int WINAPI PeekQueuedRequests(USocket_Client_Handle h, SPA::CQueuedRequestInfo *qri, unsigned int count) {
-    //CAutoLock al(g_Mutex);
     CClientSession *cs = MapHandleToClientSession(h);
     if (cs) {
-        //g_Mutex.unlock();
-        unsigned int res = cs->PeekQueuedRequests(qri, count);
-        //g_Mutex.lock();
-        return res;
+        return cs->PeekQueuedRequests(qri, count);
     }
     return 0;
 }
 
 bool WINAPI SendRouteeResult(USocket_Client_Handle h, unsigned short reqId, const unsigned char *buffer, unsigned int len) {
-    //CAutoLock al(g_Mutex);
     CClientSession *cs = MapHandleToClientSession(h);
     if (cs)
         return cs->SendRouteeResult(reqId, buffer, len);
@@ -1079,7 +926,6 @@ bool WINAPI SendRouteeResult(USocket_Client_Handle h, unsigned short reqId, cons
 }
 
 unsigned int WINAPI GetRouteeCount(USocket_Client_Handle h) {
-    //CAutoLock al(g_Mutex);
     CClientSession *cs = MapHandleToClientSession(h);
     if (cs)
         return cs->GetRouteeCount();
@@ -1087,19 +933,14 @@ unsigned int WINAPI GetRouteeCount(USocket_Client_Handle h) {
 }
 
 SPA::UINT64 WINAPI AppendQueue(USocket_Client_Handle h, USocket_Client_Handle hQueue) {
-    //CAutoLock al(g_Mutex);
     CClientSession *cs = MapHandleToClientSession(h);
     CClientSession *csQueue = MapHandleToClientSession(hQueue);
     if (!cs || !csQueue || cs == csQueue)
         return 0;
-    {
-        //CRAutoLock ral(g_Mutex);
-        return cs->AppendQueue(csQueue->GetQueue());
-    }
+    return cs->AppendQueue(csQueue->GetQueue());
 }
 
 unsigned int WINAPI GetTTL(USocket_Client_Handle h) {
-    //CAutoLock al(g_Mutex);
     CClientSession *cs = MapHandleToClientSession(h);
     if (!cs)
         return 0;
@@ -1107,7 +948,6 @@ unsigned int WINAPI GetTTL(USocket_Client_Handle h) {
 }
 
 SPA::UINT64 WINAPI GetLastQueueMessageTime(USocket_Client_Handle h) {
-    //CAutoLock al(g_Mutex);
     CClientSession *cs = MapHandleToClientSession(h);
     if (!cs)
         return 0;
@@ -1115,7 +955,6 @@ SPA::UINT64 WINAPI GetLastQueueMessageTime(USocket_Client_Handle h) {
 }
 
 SPA::ClientSide::tagConnectionState WINAPI GetConnectionState(USocket_Client_Handle h) {
-    //CAutoLock al(g_Mutex);
     CClientSession *cs = MapHandleToClientSession(h);
     if (!cs)
         return SPA::ClientSide::csClosed;
@@ -1123,7 +962,6 @@ SPA::ClientSide::tagConnectionState WINAPI GetConnectionState(USocket_Client_Han
 }
 
 bool WINAPI IsRouting(USocket_Client_Handle h) {
-    //CAutoLock al(g_Mutex);
     CClientSession *cs = MapHandleToClientSession(h);
     if (!cs)
         return false;
@@ -1131,7 +969,6 @@ bool WINAPI IsRouting(USocket_Client_Handle h) {
 }
 
 void WINAPI AbortDequeuedMessage(USocket_Client_Handle h) {
-    //CAutoLock al(g_Mutex);
     CClientSession *cs = MapHandleToClientSession(h);
     if (!cs)
         return;
@@ -1139,7 +976,6 @@ void WINAPI AbortDequeuedMessage(USocket_Client_Handle h) {
 }
 
 bool WINAPI IsDequeuedMessageAborted(USocket_Client_Handle h) {
-    //CAutoLock al(g_Mutex);
     CClientSession *cs = MapHandleToClientSession(h);
     if (!cs)
         return false;
@@ -1147,7 +983,6 @@ bool WINAPI IsDequeuedMessageAborted(USocket_Client_Handle h) {
 }
 
 void WINAPI ResetQueue(USocket_Client_Handle h) {
-    //CAutoLock al(g_Mutex);
     CClientSession *cs = MapHandleToClientSession(h);
     if (!cs)
         return;
@@ -1155,18 +990,13 @@ void WINAPI ResetQueue(USocket_Client_Handle h) {
 }
 
 SPA::UINT64 WINAPI RemoveQueuedRequestsByTTL(USocket_Client_Handle h) {
-    CClientSession *cs;
-    {
-        //CAutoLock al(g_Mutex);
-        cs = MapHandleToClientSession(h);
-        if (!cs)
-            return 0;
-    }
+    CClientSession *cs = MapHandleToClientSession(h);
+    if (!cs)
+        return 0;
     return cs->RemoveQueuedRequestsByTTL();
 }
 
 SPA::tagQueueStatus WINAPI GetClientQueueStatus(USocket_Client_Handle h) {
-    //CAutoLock al(g_Mutex);
     CClientSession *cs = MapHandleToClientSession(h);
     if (!cs)
         return SPA::qsNormal;
@@ -1183,7 +1013,6 @@ bool WINAPI PushQueueTo(USocket_Client_Handle h, const USocket_Client_Handle *ha
         return false;
     std::vector<CClientSession *> vClient;
     {
-        //CAutoLock al(g_Mutex);
         src = MapHandleToClientSession(h);
         if (!src)
             return false;
@@ -1198,7 +1027,6 @@ bool WINAPI PushQueueTo(USocket_Client_Handle h, const USocket_Client_Handle *ha
 }
 
 bool WINAPI IsClientQueueIndexPossiblyCrashed() {
-    //CAutoLock al(g_mutex);
     if (CClientSession::m_pQLastIndex.get() == nullptr)
         return false;
     return CClientSession::m_pQLastIndex->IsCrashed();

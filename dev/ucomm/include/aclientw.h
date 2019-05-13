@@ -144,7 +144,7 @@ namespace SPA {
 
             virtual void operator+=(const Del& d) {
                 if (d) {
-                    CAutoLock al(*m_cs);
+					m_cs->lock();
 #ifdef SAFE_RESULT_RETURN_EVENT
                     auto pos = std::find(m_vD.cbegin(), m_vD.cend(), d);
                     if (pos == m_vD.cend()) {
@@ -153,12 +153,13 @@ namespace SPA {
 #else
                     m_vD.push_back(d);
 #endif
+					m_cs->unlock();
                 }
             }
 
             virtual void operator-=(const Del& d) {
                 if (d) {
-                    CAutoLock al(*m_cs);
+					m_cs->lock();
 #ifdef SAFE_RESULT_RETURN_EVENT
                     auto pos = std::find(m_vD.cbegin(), m_vD.cend(), d);
                     if (pos == m_vD.cend()) {
@@ -167,25 +168,31 @@ namespace SPA {
 #else
                     m_vD.push_back(d);
 #endif
+					m_cs->unlock();
                 }
             }
 
             virtual void operator=(const Del& d) {
-                CAutoLock al(*m_cs);
+				m_cs->lock();
                 m_vD.clear();
                 if (d) {
                     m_vD.push_back(d);
                 }
+				m_cs->unlock();
             }
 
             virtual size_t Count() {
-                CAutoLock al(*m_cs);
-                return m_vD.size();
+				m_cs->lock();
+                auto size = m_vD.size();
+				m_cs->unlock();
+				return size;
             }
 
             virtual operator bool() {
-                CAutoLock al(*m_cs);
-                return (m_vD.size() > 0);
+				m_cs->lock();
+				auto size = m_vD.size();
+				m_cs->unlock();
+				return (size > 0);
             }
 
             template<typename P0>
@@ -375,7 +382,7 @@ namespace SPA {
             bool Attach(CAsyncServiceHandler *p);
             void Detach(CAsyncServiceHandler *p);
             inline CAsyncServiceHandler *Seek(unsigned int nServiceId);
-            void Set(USocket_Client_Handle h, unsigned int poolId);
+            void Set(USocket_Client_Handle h);
 
         private:
             CClientSocket(const CClientSocket &cs);
@@ -621,9 +628,7 @@ namespace SPA {
                 return m_hSocket;
             }
 
-            inline unsigned int GetPoolId() const {
-                return m_poolId;
-            }
+			unsigned int GetPoolId() const;
             const CConnectionContext& GetConnectionContext() const;
             static CClientSocket* Seek(USocket_Client_Handle h);
 
@@ -716,7 +721,6 @@ namespace SPA {
             tagOperationSystem m_os;
             unsigned int m_nCurrSvsId;
             bool m_routing;
-            unsigned int m_poolId;
 
             static CUCriticalSection m_mutex;
             static std::vector<CClientSocket*> m_vClientSocket;
@@ -739,7 +743,7 @@ namespace SPA {
             IUDel<DSocketEvent>& HandShakeCompleted;
             IUDel<DSocketEvent>& SocketConnected;
             IUDel<DExceptionFromServer>& ExceptionFromServer;
-#ifdef ENABLE_REQUEST_AND_ALL
+#ifdef ENABLE_SOCKET_REQUEST_AND_ALL_EVENTS
         public:
 #ifndef SAFE_RESULT_RETURN_EVENT
             typedef std::function<void(CClientSocket*, unsigned short) > DRequestEvent;
@@ -2397,8 +2401,8 @@ namespace SPA {
                 return PClientSocket();
             }
 
-            static void Set(PClientSocket &cs, USocket_Client_Handle h, unsigned int poolId) {
-                cs->Set(h, poolId);
+            static void Set(PClientSocket &cs, USocket_Client_Handle h) {
+                cs->Set(h);
             }
 
             static PClientSocket CreateEmptySocket() {
@@ -2450,7 +2454,7 @@ namespace SPA {
                     case speUSocketCreated:
                         if (sp) {
                             PClientSocket clientSocket = CSocketPool<THandler, TCS>::CreateEmptySocket();
-                            Set(clientSocket, h, poolId);
+                            Set(clientSocket, h);
                             ClientCoreLoader.SetRecvTimeout(h, sp->m_recvTimeout);
                             ClientCoreLoader.SetConnTimeout(h, sp->m_connTimeout);
                             ClientCoreLoader.SetAutoConn(h, sp->m_autoConn);

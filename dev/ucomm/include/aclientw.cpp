@@ -413,7 +413,7 @@ namespace SPA
             return false;
         }
 
-#ifdef ENABLE_REQUEST_AND_ALL
+#ifdef ENABLE_SOCKET_REQUEST_AND_ALL_EVENTS
 
         void CClientSocket::CIRequestProcessed::Invoke(CClientSocket *cs, unsigned short reqId, CUQueue & mc) {
             CAutoLock al(*m_cs);
@@ -426,10 +426,10 @@ namespace SPA
 
         CClientSocket::CClientSocket()
         : m_hSocket((USocket_Client_Handle) nullptr), m_bRandom(false), m_endian(false),
-        m_os(MY_OPERATION_SYSTEM), m_nCurrSvsId(sidStartup), m_routing(false), m_poolId(0),
+        m_os(MY_OPERATION_SYSTEM), m_nCurrSvsId(sidStartup), m_routing(false),
         SocketClosed(m_implClosed), HandShakeCompleted(m_implHSC), SocketConnected(m_implConnected),
         ExceptionFromServer(m_implEFS)
-#ifdef ENABLE_REQUEST_AND_ALL
+#ifdef ENABLE_SOCKET_REQUEST_AND_ALL_EVENTS
         , BaseRequestProcessed(m_implBRP), AllRequestsProcessed(m_implARP), RequestProcessed(m_implRP)
 #endif	
         {
@@ -442,7 +442,7 @@ namespace SPA
             m_implConnected.SetCS(&m_cs);
             m_implEFS.SetCS(&m_cs);
 
-#ifdef ENABLE_REQUEST_AND_ALL
+#ifdef ENABLE_SOCKET_REQUEST_AND_ALL_EVENTS
             m_implBRP.SetCS(&m_cs);
             m_implARP.SetCS(&m_cs);
             m_implRP.SetCS(&m_cs);
@@ -453,8 +453,7 @@ namespace SPA
 #endif
         }
 
-        void CClientSocket::Set(USocket_Client_Handle h, unsigned int poolId) {
-            m_poolId = poolId;
+        void CClientSocket::Set(USocket_Client_Handle h) {
             m_hSocket = h;
             m_PushImpl.m_cs = this;
             m_QueueImpl.m_hSocket = h;
@@ -981,11 +980,14 @@ namespace SPA
         }
 
         std::string CClientSocket::GetErrorMsg() const {
-            char strErrorMsg[1025] =
-            { 0};
+            char strErrorMsg[1025] = {0};
             ClientCoreLoader.GetErrorMessage(m_hSocket, strErrorMsg, sizeof (strErrorMsg));
             return strErrorMsg;
         }
+
+		unsigned int CClientSocket::GetPoolId() const {
+			return ClientCoreLoader.GetSocketPoolId(m_hSocket);
+		}
 
         bool CClientSocket::IsConnected() const {
             return ClientCoreLoader.IsOpened(m_hSocket);
@@ -1104,7 +1106,7 @@ namespace SPA
                 PAsyncServiceHandler ash = p->Seek(p->m_nCurrSvsId);
                 if (ash)
                     ash->OnRR(requestId, q);
-#ifdef ENABLE_REQUEST_AND_ALL
+#ifdef ENABLE_SOCKET_REQUEST_AND_ALL_EVENTS
                 p->m_implRP.Invoke(p, requestId, q);
 #endif
                 p->OnRequestProcessed(requestId, q);
@@ -1336,7 +1338,7 @@ namespace SPA
             PAsyncServiceHandler ash = p->Seek(ClientCoreLoader.GetCurrentServiceId(handler));
             if (ash)
                 ash->OnAllProcessed();
-#ifdef ENABLE_REQUEST_AND_ALL
+#ifdef ENABLE_SOCKET_REQUEST_AND_ALL_EVENTS
             p->m_implARP.Invoke(p, lastRequestId);
 #endif
             p->OnAllRequestsProcessed(lastRequestId);
@@ -1373,7 +1375,7 @@ namespace SPA
                 if (requestId == SPA::idCancel)
                     ash->CleanCallbacks();
             }
-#ifdef ENABLE_REQUEST_AND_ALL
+#ifdef ENABLE_SOCKET_REQUEST_AND_ALL_EVENTS
             p->m_implBRP.Invoke(p, requestId);
 #endif
             p->OnBaseRequestProcessed(requestId);

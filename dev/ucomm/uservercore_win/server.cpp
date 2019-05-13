@@ -124,7 +124,7 @@ void CServer::KillMainThread() {
         std::shared_ptr<boost::thread> one = m_vThread.front();
         m_IoService.stop();
         while (!m_IoService.stopped()) {
-            boost::this_thread::sleep(boost::posix_time::milliseconds(1));
+            sleep(boost::posix_time::milliseconds(1));
         }
         one->timed_join(boost::posix_time::milliseconds(500));
     }
@@ -632,7 +632,7 @@ bool CServer::StartIOPump() {
     if (m_vThread.size())
         return true;
     m_vThread.push_back(std::shared_ptr<boost::thread>(new boost::thread(boost::bind(&CServer::StartIOPumpInternal, this))));
-    boost::this_thread::sleep(boost::posix_time::milliseconds(100));
+    sleep(boost::posix_time::milliseconds(100));
     return !m_bStopped;
 }
 
@@ -832,7 +832,7 @@ void CServer::HandleServerPingInternal(SPA::UINT64 tNow, std::vector<CServerSess
                 m_reg.Initialize();
                 if (m_reg.ShouldShutdown()) {
                     std::cout << "Server is going to shutdown because registration is not qualified. Please contact UDAParts for a new key." << std::endl;
-                    boost::this_thread::sleep(boost::posix_time::seconds(std::rand() % 20));
+                    sleep(boost::posix_time::seconds(std::rand() % 20));
                     PostQuitPump();
                 }
             }

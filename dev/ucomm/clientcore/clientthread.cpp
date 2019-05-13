@@ -7,11 +7,9 @@
 #include "socketpool.h"
 
 #ifndef WINCE
-extern std::mutex g_Mutex;
 extern std::mutex g_mutex;
 std::mutex g_mutexCvc;
 #else
-extern boost::mutex g_Mutex;
 extern boost::mutex g_mutex;
 boost::mutex g_mutexCvc;
 #endif
