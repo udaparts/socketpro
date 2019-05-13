@@ -9,7 +9,7 @@ namespace PA {
 
     class CPhpFile : public CPhpBaseHandler {
     public:
-        CPhpFile(unsigned int poolId, CAsyncFile *sh, bool locked);
+        CPhpFile(CAsyncFile *sh, bool locked);
         CPhpFile(const CPhpFile &file) = delete;
 
     public:

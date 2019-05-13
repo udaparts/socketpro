@@ -4,7 +4,7 @@
 namespace PA
 {
 
-    CPhpFile::CPhpFile(unsigned int poolId, CAsyncFile *sh, bool locked) : CPhpBaseHandler(locked, sh, poolId), m_sh(sh) {
+    CPhpFile::CPhpFile(CAsyncFile *sh, bool locked) : CPhpBaseHandler(locked, sh), m_sh(sh) {
     }
 
     void CPhpFile::RegisterInto(Php::Class<CPhpBaseHandler> &base, Php::Namespace & cs) {

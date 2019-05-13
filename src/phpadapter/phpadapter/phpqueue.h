@@ -11,7 +11,7 @@ namespace PA {
 
     class CPhpQueue : public CPhpBaseHandler {
     public:
-        CPhpQueue(unsigned int poolId, CAsyncQueue *aq, bool locked);
+        CPhpQueue(CAsyncQueue *aq, bool locked);
         CPhpQueue(const CPhpQueue &q) = delete;
 
     public:

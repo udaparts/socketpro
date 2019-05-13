@@ -12,7 +12,7 @@ namespace PA {
 
     class CPhpDb : public CPhpBaseHandler {
     public:
-        CPhpDb(unsigned int poolId, CDBHandler *db, bool locked);
+        CPhpDb(CDBHandler *db, bool locked);
         CPhpDb(const CPhpDb &db) = delete;
 
     public:

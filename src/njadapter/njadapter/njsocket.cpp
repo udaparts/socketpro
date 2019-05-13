@@ -79,6 +79,7 @@ namespace NJA {
         NODE_SET_PROTOTYPE_METHOD(tpl, "getPeerAddr", getPeerAddr);
         NODE_SET_PROTOTYPE_METHOD(tpl, "getPush", getPush);
         NODE_SET_PROTOTYPE_METHOD(tpl, "getQueue", getQueue);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "getPoolId", getPoolId);
 
         constructor.Reset(isolate, tpl->GetFunction());
         exports->Set(ToStr(isolate, "CSocket"), tpl->GetFunction());
@@ -493,6 +494,15 @@ namespace NJA {
             args.GetReturnValue().Set(ToStr(isolate, uid.c_str()));
         }
     }
+
+	void NJSocket::getPoolId(const FunctionCallbackInfo<Value>& args) {
+		Isolate* isolate = args.GetIsolate();
+		NJSocket* obj = ObjectWrap::Unwrap<NJSocket>(args.Holder());
+		if (obj->IsValid(isolate)) {
+			auto id = obj->m_socket->GetPoolId();
+			args.GetReturnValue().Set(Number::New(isolate, (double)id));
+		}
+	}
 
     void NJSocket::getPeerOs(const FunctionCallbackInfo<Value>& args) {
         Isolate* isolate = args.GetIsolate();

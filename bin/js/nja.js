@@ -385,6 +385,10 @@ class CSocket {
         return this.socket.getUserId();
     }
 
+	get PoolId() {
+        return this.socket.getPoolId();
+    }
+
     get PeerOs() {
         return this.socket.getPeerOs();
     }
