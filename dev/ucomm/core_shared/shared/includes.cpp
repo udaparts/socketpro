@@ -4,7 +4,7 @@
 
 unsigned int GetNumberOfCores() {
 #ifndef WINCE
-	return std::thread::hardware_concurrency();
+    return std::thread::hardware_concurrency();
 #else
     return boost::thread::hardware_concurrency();
 #endif
@@ -17,7 +17,7 @@ void ChangeUInt32Endian(unsigned int *pGroup, unsigned int count) {
     }
 }
 
-SPA::CUQueue& operator<<(SPA::CUQueue &mc, const SPA::CSwitchInfo &si) {
+SPA::CUQueue& operator << (SPA::CUQueue &mc, const SPA::CSwitchInfo &si) {
     mc << si.SockMajorVersion;
     mc << si.ServiceId;
     mc << si.MajorVersion;

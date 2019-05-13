@@ -58,7 +58,7 @@
           <commandLine>-std=c++11</commandLine>
         </ccTool>
         <linkerTool>
-          <commandlineTool>g++</commandlineTool>
+          <commandlineTool>gcc</commandlineTool>
           <linkerLibItems>
             <linkerLibFileItem>../uzip/dist/Debug/GNU-Linux-x86/libuzip.a</linkerLibFileItem>
             <linkerLibStdlibItem>DynamicLinking</linkerLibStdlibItem>
@@ -138,7 +138,7 @@
         </asmTool>
         <linkerTool>
           <stripSymbols>true</stripSymbols>
-          <commandlineTool>g++</commandlineTool>
+          <commandlineTool>gcc</commandlineTool>
           <linkerLibItems>
             <linkerLibFileItem>../uzip/dist/Release/GNU-Linux-x86/libuzip.a</linkerLibFileItem>
             <linkerLibStdlibItem>DynamicLinking</linkerLibStdlibItem>

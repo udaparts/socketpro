@@ -65,9 +65,11 @@ void ChangeUInt32Endian(unsigned int *pGroup, unsigned int count);
 class CRAutoLock {
 public:
 #ifndef WINCE
+
     CRAutoLock(std::mutex &mutex) : m_mutex(mutex) {
 #else
-	CRAutoLock(boost::mutex &mutex) : m_mutex(mutex) {
+
+    CRAutoLock(boost::mutex &mutex) : m_mutex(mutex) {
 #endif
         m_mutex.unlock();
     }
@@ -78,14 +80,14 @@ public:
 
 private:
 #ifndef WINCE
-	std::mutex &m_mutex;
+    std::mutex &m_mutex;
 #else
     boost::mutex &m_mutex;
 #endif
 };
 
-SPA::CUQueue& operator <<(SPA::CUQueue &mc, const SPA::CSwitchInfo &si);
-SPA::CUQueue& operator >>(SPA::CUQueue &mc, SPA::CSwitchInfo &si);
+SPA::CUQueue& operator<<(SPA::CUQueue &mc, const SPA::CSwitchInfo &si);
+SPA::CUQueue& operator>>(SPA::CUQueue &mc, SPA::CSwitchInfo &si);
 
 #endif
 

@@ -11,13 +11,12 @@
 
 #endif
 
-namespace SPA
-{
+namespace SPA {
 
     //CIoService CUCommThread::m_io;
 
     CUCommThread::CUCommThread(tagThreadApartment ta)
-            : m_ta(ta), m_pThread(nullptr) {
+    : m_ta(ta), m_pThread(nullptr) {
 
     }
 
@@ -63,30 +62,20 @@ namespace SPA
 #endif
         OnThreadStarted();
         m_cv.notify_all();
-        try{
+        try {
             m_io.run(m_ec);
 #ifndef NDEBUG
-        }
-
-        catch(boost::system::system_error & err) {
+        } catch (boost::system::system_error & err) {
             std::cout << "boost::system_error " << err.what() << ", " << __FUNCTION__ << std::endl;
-        }
-
-        catch(SPA::CUException & err) {
+        } catch (SPA::CUException & err) {
             std::cout << "SPA::CUException " << err.what() << ", " << __FUNCTION__ << std::endl;
-        }
-
-        catch(std::exception & err) {
+        } catch (std::exception & err) {
             std::cout << "std::exception " << err.what() << ", " << __FUNCTION__ << std::endl;
-        }
-
-        catch(...) {
+        } catch (...) {
             std::cout << "Unknown exception " << ", " << __FUNCTION__ << std::endl;
         }
 #else
-        }
-
-        catch(...) {
+        } catch (...) {
         }
 #endif
 
